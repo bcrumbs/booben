@@ -1,0 +1,22 @@
+{
+  "name": "jssy",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@gitlab.ordbuy.com:29184/jssy/jssy.git"
+  },
+  "author": "Dmitriy Bizyaev",
+  "license": "UNLICENCED",
+  "dependencies": {
+    "co": "^4.6.0",
+    "convict": "^1.4.0",
+    "express": "^4.14.0",
+    "mz": "^2.4.0",
+    "webpack": "^1.13.1"
+  }
+}
