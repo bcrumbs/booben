@@ -22,6 +22,12 @@ const config = convict({
         arg: 'config'
     },
 
+    port: {
+        doc: '',
+        format: 'port',
+        default: 3000
+    },
+
     projectsDir: {
         doc: 'Projects directory. Default value is for Docker build.',
         format: String,
