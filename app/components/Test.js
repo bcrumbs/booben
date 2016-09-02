@@ -6,8 +6,16 @@
 
 import React from 'react';
 
+import {
+	App
+} from '@reactackle/reactackle'
+
 export class Test extends React.Component {
     render() {
-        return <div>Hello</div>
+        return (
+        	<App>
+		        Hello
+	        </App>
+        );
     }
 }

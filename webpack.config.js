@@ -45,9 +45,11 @@ module.exports = {
         loaders: [
             {
                 test: /\.jsx?$/,
-                exclude: path => {
-                    return /node_modules/.test(path);
-                },
+	            exclude: path => {
+		            if (/reactackle\/node_modules/.test(path)) return true;
+		            if (/reactackle/.test(path)) return false;
+		            return /node_modules/.test(path);
+	            },
                 loader: 'babel?presets[]=es2015&presets[]=react'
             },
             {
