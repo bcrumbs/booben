@@ -9,11 +9,12 @@ const co = require('co'),
     http = require('http'),
     express = require('express'),
     serveStatic = require('serve-static'),
-    config = require('./config');
+    config = require('./config'),
+    helpers = require('./endpoints/helpers');
 
 let httpServer;
 
-const setupWebpackMiddleware = app => {
+const setupWebpackDevMiddleware = app => {
     const webpack = require('webpack'),
         webpackDevMiddleware = require('webpack-dev-middleware'),
         webpackHotMiddleware = require('webpack-hot-middleware'),
@@ -33,12 +34,21 @@ const setupWebpackMiddleware = app => {
     }));
 };
 
+const setupEndpoint = (app, endpoint) => {
+    app[endpoint.method](endpoint.url, ...endpoint.handlers);
+};
+
 const start = () => co(function* () {
     const app = express();
 
-    app.use('/', serveStatic(path.join(__dirname, '/public')));
+    setupEndpoint(app, require('./endpoints/serve-designer-app'));
+    setupEndpoint(app, require('./endpoints/get-project'));
+    setupEndpoint(app, require('./endpoints/create-project'));
+    setupEndpoint(app, require('./endpoints/update-project'));
 
-    setupWebpackMiddleware(app);
+    if (config.get('env') === 'development') {
+        setupWebpackDevMiddleware(app);
+    }
 
     httpServer = http.createServer(app);
 
