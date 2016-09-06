@@ -21,3 +21,27 @@ exports.PROJECT_FILE = 'project.json';
  * @type {number}
  */
 exports.PROJECT_FILE_VERSION = 1;
+
+/**
+ *
+ * @type {string}
+ */
+exports.METADATA_DIR = '.jssy';
+
+/**
+ *
+ * @type {string}
+ */
+exports.METADATA_FILE = 'meta.json';
+
+/**
+ *
+ * @type {string}
+ */
+exports.METADATA_TYPES_FILE = 'types.json';
+
+/**
+ *
+ * @type {string}
+ */
+exports.METADATA_STRINGS_FILE = 'strings.json';

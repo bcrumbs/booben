@@ -8,9 +8,7 @@ const co = require('co'),
     path = require('path'),
     http = require('http'),
     express = require('express'),
-    serveStatic = require('serve-static'),
-    config = require('./config'),
-    helpers = require('./endpoints/helpers');
+    config = require('./config');
 
 let httpServer;
 
@@ -30,6 +28,7 @@ const setupWebpackDevMiddleware = app => {
     }));
 
     app.use(webpackHotMiddleware(compiler, {
+        path: '/dev/',
         log: console.log
     }));
 };
