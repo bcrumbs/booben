@@ -1,22 +1,23 @@
 'use strict';
 
-const path = require('path'),
+const webpack = require('webpack'),
+    path = require('path'),
     HtmlWebpackPlugin = require('html-webpack-plugin');
 
 
-const APP_SRC_DIR = 'app';
-const APP_DIST_DIR = 'public';
+const APP_SRC_DIR = '../app';
 
 
 module.exports = {
     context: path.join(__dirname, APP_SRC_DIR),
 
-    entry: {
-        index: './index'
-    },
+    entry: [
+        'webpack-hot-middleware/client?reload=true',
+        './index'
+    ],
 
     output: {
-        path: path.join(__dirname, APP_DIST_DIR),
+        path: '/',
         filename: '[name].js',
         library: '[name]'
     },
@@ -27,6 +28,9 @@ module.exports = {
     },
 
     plugins: [
+        new webpack.optimize.OccurenceOrderPlugin(),
+        new webpack.HotModuleReplacementPlugin(),
+
         new HtmlWebpackPlugin({
             title: 'JSSY',
             template: 'index.ejs',
@@ -45,12 +49,21 @@ module.exports = {
         loaders: [
             {
                 test: /\.jsx?$/,
-	            exclude: path => {
-		            if (/reactackle\/node_modules/.test(path)) return true;
-		            if (/reactackle/.test(path)) return false;
-		            return /node_modules/.test(path);
+	            include: path => {
+		            if (/reactackle\/node_modules/.test(path)) return false;
+		            return /reactackle/.test(path);
 	            },
-                loader: 'babel?presets[]=es2015&presets[]=react'
+                loaders: [
+                    'babel?presets[]=es2015&presets[]=react'
+                ]
+            },
+            {
+                test: /\.jsx?$/,
+                exclude: path => /node_modules/.test(path),
+                loaders: [
+                    'react-hot',
+                    'babel?presets[]=es2015&presets[]=react'
+                ]
             },
             {
                 test: /\.scss$/,
