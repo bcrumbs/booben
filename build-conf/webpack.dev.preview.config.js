@@ -5,7 +5,7 @@ const webpack = require('webpack'),
     HtmlWebpackPlugin = require('html-webpack-plugin');
 
 
-const APP_SRC_DIR = '../app/preview';
+const APP_SRC_DIR = '../preview';
 
 
 module.exports = {
@@ -56,7 +56,7 @@ module.exports = {
 	            },
                 loaders: [
                     'react-hot',
-                    'babel'
+                    'babel?presets[]=es2015&presets[]=react'
                 ]
             },
             {

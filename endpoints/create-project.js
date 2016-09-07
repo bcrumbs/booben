@@ -92,6 +92,8 @@ module.exports = {
             const input = misc.sanitizeObject(req.body, allowedFields),
                 { valid, errors } = rv.validate(input, bodySchema);
 
+            console.log(req);
+
             if (!valid) {
                 helpers.sendError(res, 400, 'Invalid request body', { errors });
                 return;
