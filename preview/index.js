@@ -2,16 +2,23 @@ import ReactDOM from 'react-dom';
 import React from 'react';
 
 import Container from './Container';
-import { Builder } from './utils';
+import { builder } from './utils';
+
+let _metaData = {
+    name: 'root',
+    type: 'Datepicker',
+    props: {},
+    children: []
+}
 
 /**
  * Render view by data from meta file
  * @return {}
  */
-window.render = function() {
+window.render = function(metaData = {}) {
     ReactDOM.render(
         <Container>
-            { Builder.getComponentByProject() }
+            { builder.getComponentFromMeta(metaData) }
         </Container>,
         document.getElementById('container')
     );
@@ -20,4 +27,4 @@ window.render = function() {
 /**
  * Call for testing.
  */
-window.render();
+window.render(_metaData);
