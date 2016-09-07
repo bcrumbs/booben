@@ -16,18 +16,27 @@ const setupWebpackDevMiddleware = app => {
     const webpack = require('webpack'),
         webpackDevMiddleware = require('webpack-dev-middleware'),
         webpackHotMiddleware = require('webpack-hot-middleware'),
-        webpackConfig = require('./webpack.dev.config');
+        webpackDevConfig = require('./build-conf/webpack.dev.config'),
+        webpackDevPreviewConfig = require('./build-conf/webpack.dev.preview.config');
 
-    const compiler = webpack(webpackConfig);
+    const compilerDev = webpack(webpackDevConfig);
+    const compilerDevPreview = webpack(webpackDevPreviewConfig);
 
-    app.use(webpackDevMiddleware(compiler, {
+    app.use(webpackDevMiddleware(compilerDev, {
         publicPath: '/dev/',
         stats: {
             colors: true
         }
     }));
 
-    app.use(webpackHotMiddleware(compiler, {
+    app.use(webpackDevMiddleware(compilerDevPreview, {
+        publicPath: '/dev/preview/',
+        stats: {
+            colors: true
+        }
+    }));
+
+    app.use(webpackHotMiddleware(compilerDev, {
         path: '/dev/',
         log: console.log
     }));
