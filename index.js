@@ -28,7 +28,6 @@ const setupWebpackDevMiddleware = app => {
     }));
 
     app.use(webpackHotMiddleware(compiler, {
-        path: '/dev/',
         log: console.log
     }));
 };

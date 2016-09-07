@@ -304,7 +304,7 @@ const packageJSONMetaSchema = {
         namespace: {
             type: 'string',
             allowEmpty: false,
-            required: false
+            required: true
         },
 
         globalStyle: {
