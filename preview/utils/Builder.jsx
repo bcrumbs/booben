@@ -30,10 +30,17 @@ const getComponentByName = (name = '') => {
     return Reactackle[name];
 }
 
-class Test extends Component {
-    render() {
-        return <div>TEST</div>;
+/**
+ * Props constructor by meta
+ * @param  {Object} props
+ * @return {Object}
+ */
+const getProps = (props = {}) => {
+    if(props.source == 'static') {
+        return props.sourceData.SourceDataStatic;
     }
+
+    return {};
 }
 
 /**
@@ -51,7 +58,7 @@ const getComponentFromMeta = (data = null) => {
         } else {
             let _component = getComponentByName(data['name']);
 
-            return <_component>
+            return <_component {...getProps(data['props'])}>
                 { getComponentFromMeta(data['children']) }
             </_component>;
         }
