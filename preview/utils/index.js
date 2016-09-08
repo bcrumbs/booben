@@ -1,3 +1,3 @@
-import * as builder from './builder';
+import Builder from './Builder';
 
-export { builder };
+export { Builder };
