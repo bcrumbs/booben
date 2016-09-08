@@ -60,15 +60,6 @@ const allowedFields = Object.keys(bodySchema.properties);
  */
 
 /**
- * @typedef {Object} Project
- * @property {string} name
- * @property {?string} author
- * @property {string[]} componentLibs
- * @property {?string} relayEndpointURL
- * @property {Object[]} routes
- */
-
-/**
  *
  * @param {CreateProjectInput} input
  * @returns {Project}
