@@ -313,13 +313,18 @@ const packageJSONMetaSchema = {
         },
 
         loaders: {
-            type: 'array',
+            type: 'object',
+            patternProperties: {
+                '.*': {
+                    type: 'array',
+                    minItems: 1,
+                    items: {
+                        type: 'string',
+                        allowEmpty: false
+                    }
+                }
+            },
             required: false,
-            uniqueItems: true,
-            items: {
-                type: 'string',
-                allowEmpty: false
-            }
         },
 
         import: {
@@ -577,6 +582,7 @@ const getChildNodes = ({ dir }) => co(function* () {
  * @property {string} namespace
  * @property {boolean} globalStyle
  * @property {string[]} import
+ * @property {Object.<string, string[]>} loaders
  * @property {Object.<string, Object>} components
  * @property {Object} packageJSON
  */
