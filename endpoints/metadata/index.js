@@ -572,10 +572,24 @@ const getChildNodes = ({ dir }) => co(function* () {
     return ret;
 });
 
+/**
+ * @typedef {Object} LibMetadata
+ * @property {string} namespace
+ * @property {boolean} globalStyle
+ * @property {string[]} import
+ * @property {Object.<string, Object>} components
+ * @property {Object} packageJSON
+ */
+
+/**
+ *
+ * @param {string} moduleDir
+ * @returns {Promise.<LibMetadata>}
+ */
 exports.gatherMetadata = moduleDir => co(function* () {
     let ret = {};
 
-    const packageJSON = require(path.join(moduleDir, 'package.json'));
+    const packageJSON = ret.packageJSON = require(path.join(moduleDir, 'package.json'));
 
     if (!packageJSON.jssy)
         throw new Error('Not a jssy components library');

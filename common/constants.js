@@ -18,6 +18,12 @@ exports.PROJECT_FILE = 'project.json';
 
 /**
  *
+ * @type {string}
+ */
+exports.PROJECT_COMPONENTS_SRC_FILE = 'components.js';
+
+/**
+ *
  * @type {number}
  */
 exports.PROJECT_FILE_VERSION = 1;

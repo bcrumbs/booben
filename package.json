@@ -16,11 +16,13 @@
   "author": "Dmitriy Bizyaev",
   "license": "UNLICENCED",
   "dependencies": {
+    "@common/async-utils": "^0.2.1",
     "@common/tree": "^0.1.1",
     "body-parser": "^1.15.2",
     "co": "^4.6.0",
     "convict": "^1.4.0",
     "express": "^4.14.0",
+    "js-object-pretty-print": "^0.2.0",
     "mz": "^2.4.0",
     "revalidator": "^0.3.1",
     "serve-static": "^1.11.1"
