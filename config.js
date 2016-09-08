@@ -34,6 +34,12 @@ const config = convict({
         arg: 'config'
     },
 
+    logLevel: {
+        doc: 'Logging level',
+        format: ['trace', 'verbose', 'debug', 'info', 'warn', 'error', 'critical'],
+        default: 'info'
+    },
+
     port: {
         doc: '',
         format: 'port',

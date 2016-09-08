@@ -18,6 +18,24 @@ exports.PROJECT_FILE = 'project.json';
 
 /**
  *
+ * @type {string}
+ */
+exports.PROJECT_COMPONENTS_SRC_FILE = 'components.js';
+
+/**
+ *
+ * @type {string}
+ */
+exports.PROJECT_COMPONENTS_BUILD_DIR = 'build';
+
+/**
+ *
+ * @type {string}
+ */
+exports.PROJECT_COMPONENTS_WEBPACK_LOG_FILE = 'webpack.log';
+
+/**
+ *
  * @type {number}
  */
 exports.PROJECT_FILE_VERSION = 1;

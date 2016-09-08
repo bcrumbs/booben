@@ -8,7 +8,8 @@ const co = require('co'),
     path = require('path'),
     http = require('http'),
     express = require('express'),
-    config = require('./config');
+    config = require('./config'),
+    logger = require('./common/logger');
 
 let httpServer;
 
@@ -65,7 +66,7 @@ const start = () => co(function* () {
     yield new Promise((resolve, reject) =>
         void httpServer.listen(port, err => void (err ? reject(err) : resolve())));
 
-    console.log(`Server is listening on port ${port}`);
+    logger.info(`Server is listening on port ${port}`);
 });
 
 

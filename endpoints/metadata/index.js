@@ -313,13 +313,18 @@ const packageJSONMetaSchema = {
         },
 
         loaders: {
-            type: 'array',
+            type: 'object',
+            patternProperties: {
+                '.*': {
+                    type: 'array',
+                    minItems: 1,
+                    items: {
+                        type: 'string',
+                        allowEmpty: false
+                    }
+                }
+            },
             required: false,
-            uniqueItems: true,
-            items: {
-                type: 'string',
-                allowEmpty: false
-            }
         },
 
         import: {
@@ -572,10 +577,25 @@ const getChildNodes = ({ dir }) => co(function* () {
     return ret;
 });
 
+/**
+ * @typedef {Object} LibMetadata
+ * @property {string} namespace
+ * @property {boolean} globalStyle
+ * @property {string[]} import
+ * @property {Object.<string, string[]>} loaders
+ * @property {Object.<string, Object>} components
+ * @property {Object} packageJSON
+ */
+
+/**
+ *
+ * @param {string} moduleDir
+ * @returns {Promise.<LibMetadata>}
+ */
 exports.gatherMetadata = moduleDir => co(function* () {
     let ret = {};
 
-    const packageJSON = require(path.join(moduleDir, 'package.json'));
+    const packageJSON = ret.packageJSON = require(path.join(moduleDir, 'package.json'));
 
     if (!packageJSON.jssy)
         throw new Error('Not a jssy components library');
