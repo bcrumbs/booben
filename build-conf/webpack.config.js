@@ -17,8 +17,7 @@ module.exports = {
 
     output: {
         path: path.join(__dirname, APP_DIST_DIR),
-        filename: '[name].js',
-        library: '[name]'
+        filename: '[name].js'
     },
 
     resolve: {

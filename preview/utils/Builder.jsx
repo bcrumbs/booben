@@ -1,7 +1,9 @@
 'use strict';
 
 import React, { Component, PropTypes } from 'react';
-import * as Reactackle from '@reactackle/reactackle';
+
+// The real components.js will be generated during build process
+import components from '../components.js';
 
 /**
  * class Builder
@@ -63,8 +65,12 @@ Builder.defaultProps = {
  * @return {function} React component for render
  */
 const getComponentByName = (name = '') => {
-    return Reactackle[name];
-}
+    const [namespace, componentName] = name.split('.');
+    if (!namespace || !componentName) throw new Error(`Wrong component name: ${name}`);
+    const component = components[namespace][componentName];
+    if (!component) throw new Error(`Component not found: ${name}`);
+    return component;
+};
 
 /**
  * Props constructor by meta
@@ -77,6 +83,6 @@ const getProps = (props = {}) => {
     }
 
     return {};
-}
+};
 
 export default Builder;
