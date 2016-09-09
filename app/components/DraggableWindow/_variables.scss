@@ -1,0 +1,17 @@
+@charset "UTF-8";
+@import '~@reactackle/reactackle/utils/global';
+
+// =====================================================================================================================
+// BASE VARIABLES
+// =====================================================================================================================
+$dragwindow-bg-color:           $white !default;
+$dragwindow-border-radius:      $global-radius !default;
+
+$dragwindow-section-max-width:  rem-calc(360) !default;
+$dragwindow-section-margins:    $base-module/2 !default;
+
+$dragwindow-elevation-default:  1 !default;
+$dragwindow-elevation-dragging: 2 !default;
+
+// REGION: aside
+$dragwindow-aside-bg-color:     $grey-200 !default;
