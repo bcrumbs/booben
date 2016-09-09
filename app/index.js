@@ -10,6 +10,7 @@ import { Router, Route, useRouterHistory } from 'react-router';
 import { createHistory } from 'history'
 
 import RootRoute from './routes/Root';
+import '@reactackle/reactackle/reactackle.scss';
 
 const history = useRouterHistory(createHistory)({
     basename: '/app'

@@ -140,11 +140,6 @@ export default class Test extends React.Component {
 					        </Header>
 
 					        <PanelContent>
-
-						        <Row>
-							        <h1>Обычный дропдаун</h1>
-						        </Row>
-
 						        <Row>
 							        <DraggableWindow>
 								        <DraggableWindowRegion>
