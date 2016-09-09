@@ -1,0 +1,56 @@
+@charset "UTF-8";
+@import 'variables';
+
+@include exports(component-placeholder) {
+	// =================================================================================================================
+	// Base
+	// =================================================================================================================
+	.component-placeholder {
+		position: fixed;
+		z-index: map_get($zindex, overlay);
+		padding: 0;
+
+		min-width: $cplaceholder-min-width;
+		width: 100%;
+		min-height: $cplaceholder-min-height;
+		height: 100%;
+		line-height: 1;
+		overflow: hidden;
+
+		background-color: $cplaceholder-bg-color;
+		border: $cplaceholder-border-width solid $cplaceholder-border-color;
+		border-radius: $cplaceholder-border-radius;
+
+		cursor: $cursor-move;
+
+		@include user-select();
+
+		// STATES
+		&.is-free {
+			width: $cplaceholder-min-width;
+			height: $cplaceholder-min-height;
+
+			top: 250px;
+			right: 310px;
+		}
+
+		&.is-placed {
+			position: relative;
+			min-height: 0;
+		}
+	}
+
+	// Title
+	.component-placeholder-title {
+		background-color: $cplaceholder-title-bgcolor;
+		padding: $cplaceholder-title-padding;
+
+		color: $cplaceholder-title-color;
+		font-size: $cplaceholder-title-font-size;
+		line-height: $cplaceholder-title-line-height;
+
+		display: inline-block;
+		max-width: 100%;
+		max-height: 100%;
+	}
+}

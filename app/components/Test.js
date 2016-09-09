@@ -28,7 +28,8 @@ import {
 	Footer,
 	FooterRegion,
 	FooterMenu,
-	FooterMenuItem
+	FooterMenuItem,
+	ToggleButton
 } from '@reactackle/reactackle';
 
 import {
@@ -56,6 +57,8 @@ import {
 	DraggableWindow,
 	DraggableWindowRegion
 } from './DraggableWindow/DraggableWindow';
+
+import { ComponentPlaceholder } from './ComponentPlaceholder/ComponentPlaceholder';
 
 const titleButtons = [
 	{
@@ -124,6 +127,8 @@ export default class Test extends React.Component {
 
 		        <MainRegion>
 			        <Content>
+				        <ComponentPlaceholder title="Some Component"/>
+
 				        <Panel headerFixed={true} maxHeight="initial">
 					        <Header>
 						        <HeaderRegion alignY="center">
@@ -156,6 +161,7 @@ export default class Test extends React.Component {
 										        </BlockContentNavigation>
 
 										        <BlockContentBox>
+											        <ComponentPlaceholder title="Some Component" isPlaced={true }/>
 											        <BlockContentBoxHeading>Header 1</BlockContentBoxHeading>
 											        <BlockContentBoxItem>
 												        Content block 1. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
@@ -261,8 +267,8 @@ export default class Test extends React.Component {
 				        </FooterRegion>
 				        <FooterRegion size='blank'>
 					        <FooterMenu inline={true}  dense={true}>
-						        <FooterMenuItem text="Show component's title"/>
-						        <FooterMenuItem text="Show placeholders"/>
+						        <FooterMenuItem text="Show component's title" subcomponentRight={<ToggleButton />} />
+						        <FooterMenuItem text="Show placeholders" subcomponentRight={<ToggleButton />}/>
 						        <FooterMenuItem text="Toggle Full Screen"/>
 					        </FooterMenu>
 				        </FooterRegion>
