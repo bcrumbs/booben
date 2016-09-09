@@ -1,6 +1,5 @@
 import React, { Component, PropTypes } from 'react';
-import {Button} from '@reactackle/reactackle';
-import {Tooltip} from '@reactackle/reactackle';
+import { Button, Tooltip } from '@reactackle/reactackle';
 
 export const PageDrawerActionItem = props => {
 	let className = `page-drawer-action-item`;
@@ -9,7 +8,7 @@ export const PageDrawerActionItem = props => {
 
 	let tooltip = null;
 	if (props.icon) {
-		tooltip = <Tooltip text={props.title} />
+		tooltip = <Tooltip text={props.title} />;
 		className += ' ' + 'has-tooltip';
 	}
 
