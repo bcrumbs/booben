@@ -1,7 +1,9 @@
 'use strict';
 
 import React, { Component, PropTypes } from 'react';
-import * as Reactackle from '@reactackle/reactackle';
+
+// The real components.js will be generated during build process
+import components from '../components.js';
 
 /**
  * class Builder
@@ -16,19 +18,27 @@ class Builder extends Component {
     getComponentFromMeta(data = null) {
         if(data) {
             if(Array.isArray(data)) {
-                if(data.length == 1 && data[0] == 'outlet') {
-                    return this.props.children;
+                if(data.length == 1) {
+                    if(data[0] == 'outlet') {
+                        return this.props.children;
+                    } else {
+                        return this.getComponentFromMeta(data[0])
+                    }
+                } else {
+                    return data.map((item) => {
+                        return this.getComponentFromMeta(item);
+                    });
                 }
-
-                return data.map((item) => {
-                    return this.getComponentFromMeta(item);
-                });
             } else {
                 const _component = getComponentByName(data['name']);
 
-                return <_component {...getProps(data['props'])}>
-                    { this.getComponentFromMeta(data['children']) }
-                </_component>;
+                if(data['children'].length) {
+                    return <_component {...getProps(data['props'])}>
+                        { this.getComponentFromMeta(data['children']) }
+                    </_component>;
+                } else {
+                    return <_component {...getProps(data['props'])} />
+                }
             }
         } else {
             return null;
@@ -36,9 +46,7 @@ class Builder extends Component {
     }
 
     render() {
-        return <div>
-            {this.getComponentFromMeta(this.props.data)}
-        </div>;
+        return this.getComponentFromMeta(this.props.data);
     }
 }
 
@@ -57,8 +65,12 @@ Builder.defaultProps = {
  * @return {function} React component for render
  */
 const getComponentByName = (name = '') => {
-    return Reactackle[name];
-}
+    const [namespace, componentName] = name.split('.');
+    if (!namespace || !componentName) throw new Error(`Wrong component name: ${name}`);
+    const component = components[namespace][componentName];
+    if (!component) throw new Error(`Component not found: ${name}`);
+    return component;
+};
 
 /**
  * Props constructor by meta
@@ -71,6 +83,6 @@ const getProps = (props = {}) => {
     }
 
     return {};
-}
+};
 
 export default Builder;

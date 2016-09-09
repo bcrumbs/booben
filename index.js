@@ -9,6 +9,7 @@ const co = require('co'),
     http = require('http'),
     express = require('express'),
     config = require('./config'),
+    constants = require('./common/constants'),
     logger = require('./common/logger');
 
 let httpServer;
@@ -24,21 +25,13 @@ const setupWebpackDevMiddleware = app => {
     const compilerDevPreview = webpack(webpackDevPreviewConfig);
 
     app.use(webpackDevMiddleware(compilerDev, {
-        publicPath: '/dev/',
-        stats: {
-            colors: true
-        }
-    }));
-
-    app.use(webpackDevMiddleware(compilerDevPreview, {
-        publicPath: '/dev/preview/',
+        publicPath: `${constants.URL_APP_DEV_PREFIX}/`,
         stats: {
             colors: true
         }
     }));
 
     app.use(webpackHotMiddleware(compilerDev, {
-        path: '/dev/',
         log: console.log
     }));
 };

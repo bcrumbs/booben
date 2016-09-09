@@ -9,9 +9,12 @@ const co = require('co'),
     path = require('path'),
     bodyParser = require('body-parser'),
     rv = require('revalidator'),
+    prettyMs = require('pretty-ms'),
     config = require('../config'),
     helpers = require('./helpers'),
+    buildPreviewApp = require('./preview-builder').buildPreviewApp,
     constants = require('../common/constants'),
+    logger = require('../common/logger'),
     misc = require('../utils/misc');
 
 const projectsDir = config.get('projectsDir'),
@@ -74,7 +77,7 @@ const createProjectData = input => ({
 });
 
 module.exports = {
-    url: '/api/v1/projects',
+    url: `${constants.URL_API_PREFIX}/projects`,
     method: 'post',
     handlers: [
         bodyParser.json(),
@@ -82,8 +85,6 @@ module.exports = {
         (req, res) => void co(function* () {
             const input = misc.sanitizeObject(req.body, allowedFields),
                 { valid, errors } = rv.validate(input, bodySchema);
-
-            console.log(req);
 
             if (!valid) {
                 helpers.sendError(res, 400, 'Invalid request body', { errors });
@@ -120,6 +121,27 @@ module.exports = {
             }
 
             helpers.sendJSON(res, 200, projectDataJSON);
+
+            const buildStartTime = Date.now();
+            logger.info(`Building preview app for project '${projectData.name}'...`);
+
+            try {
+                yield buildPreviewApp(projectData);
+            }
+            catch (err) {
+                logger.error(
+                    `Preview app build for project '${projectData.name}' ` +
+                    `failed: ${err.message || err}`
+                );
+
+                return;
+            }
+
+            const buildTime = Date.now() - buildStartTime;
+            logger.info(
+                `Preview app build for project '${projectData.name}' ` +
+                `finished in ${prettyMs(buildTime)}`
+            );
         })
     ]
 };

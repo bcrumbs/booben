@@ -5,29 +5,52 @@
 'use strict';
 
 const co = require('co'),
+    thenify = require('thenify'),
     path = require('path'),
     exec = require('mz/child_process').exec,
     fs = require('mz/fs'),
+    ncp = thenify(require('ncp').ncp),
+    rmrf = thenify(require('rimraf')),
     printObject = require('js-object-pretty-print').pretty,
     webpack = require('webpack'),
+    HtmlWebpackPlugin = require('html-webpack-plugin'),
     asyncUtils = require('@common/async-utils'),
     config = require('../../config'),
     gatherMetadata = require('../metadata').gatherMetadata,
     constants = require('../../common/constants'),
     logger = require('../../common/logger');
 
+/**
+ *
+ * @type {string}
+ */
 const projectsDir = config.get('projectsDir');
+
+/**
+ * @type {string}
+ */
+const previewSrcDir = path.resolve(path.join(__dirname, '..', '..', 'preview'));
 
 /**
  *
  * @param {string} dir
  * @param {string|string[]} modules
+ * @param {Object} [options]
+ * @param {boolean} [options.legacyBundling=false]
  * @returns {Promise}
  */
-const npmInstall = (dir, modules) => co(function* () {
+const npmInstall = (dir, modules, options) => co(function* () {
     modules = Array.isArray(modules) ? modules : [modules];
+    options = options || {};
+
     logger.debug(`Installing ${modules.join(', ')} in ${dir}`);
-    yield exec(`npm install -q ${modules.join(' ')}`, { cwd: dir });
+
+    const cmd =
+        `npm install -q ` +
+        `${options.legacyBundling ? ' --legacy-bundling' : ''} ` +
+        `${modules.join(' ')}`;
+
+    yield exec(cmd, { cwd: dir });
 });
 
 /**
@@ -84,25 +107,38 @@ const generateWebpackConfig = (projectDir, libsData) => {
 
     const ret = {
         context: projectDir,
-        entry: './' + constants.PROJECT_COMPONENTS_SRC_FILE,
+        entry: './index',
+
         output: {
-            path: path.join(projectDir, constants.PROJECT_COMPONENTS_BUILD_DIR),
-            libraryTarget: 'commonjs2'
+            path: path.join(projectDir, constants.PROJECT_PREVIEW_BUILD_DIR)
         },
-        externals: ['react', 'react-dom'],
+
         resolve: {
-            modulesDirectories: [localNodeModules],
+            modulesDirectories: ['node_modules'],
             extensions: ['', '.js', '.jsx']
         },
+
         resolveLoader: {
             modulesDirectories: [localNodeModules],
             moduleTemplates: ['*-loader'],
             extensions: ['', '.js']
         },
+
+        plugins: [
+            new HtmlWebpackPlugin({
+                template: 'index.ejs',
+                inject: 'body',
+                hash: true
+            })
+        ],
+
         module: {
             loaders: [{
-                test: path.join(projectDir, constants.PROJECT_COMPONENTS_SRC_FILE),
-                loader: 'babel?presets[]=es2015'
+                test: filename =>
+                    filename.indexOf('node_modules') === -1 &&
+                    (filename.endsWith('.js') || filename.endsWith('.jsx')),
+
+                loader: 'babel?presets[]=es2015&presets[]=react'
             }]
         }
     };
@@ -139,6 +175,28 @@ const loaderStringParsers = {
 };
 
 /**
+ * These modules are required to build preview app itself
+ * @type {string[]}
+ */
+const previewAppDeps = [
+    'react',
+    'react-dom',
+    'react-router',
+    'history',
+    'babel-loader',
+    'babel-preset-es2015',
+    'babel-preset-react'
+];
+
+/**
+ *
+ * @type {string[]}
+ */
+const previewAppLoaders = [
+    'babel-loader'
+];
+
+/**
  *
  * @param {string} projectDir
  * @param {LibData[]} libsData
@@ -148,10 +206,8 @@ const installLoaders = (projectDir, libsData) => co(function* () {
     const requiredModulesSet = new Set(),
         loaderModulesSet = new Set();
 
-    // These modules are required to build components.js itself
-    requiredModulesSet.add('babel-loader');
-    requiredModulesSet.add('babel-preset-es2015');
-    loaderModulesSet.add('babel-loader');
+    previewAppDeps.forEach(module => void requiredModulesSet.add(module));
+    previewAppLoaders.forEach(module => void loaderModulesSet.add(module));
 
     libsData.forEach(libData => {
         const keys = Object.keys(libData.meta.loaders);
@@ -206,6 +262,18 @@ const installLoaders = (projectDir, libsData) => co(function* () {
 
 /**
  *
+ * @param {string} projectDir
+ * @returns {Promise}
+ */
+const copyPreviewAppSrc = projectDir => co(function* () {
+    yield ncp(previewSrcDir, projectDir, {
+        filter: filename => !filename.endsWith(constants.PROJECT_COMPONENTS_SRC_FILE),
+        stopOnErr: true
+    });
+});
+
+/**
+ *
  * @param {Object} webpackConfig
  * @returns {Promise.<Object>}
  */
@@ -214,47 +282,63 @@ const compile = webpackConfig => new Promise((resolve, reject) =>
         void (err ? reject(err) : resolve(stats))));
 
 /**
- * @typedef {Object} BuildComponentsBundleOptions
+ *
+ * @param {string} projectDir
+ * @returns {Promise}
+ */
+const clean = projectDir => co(function* () {
+    const previewSourceFiles = yield fs.readdir(previewSrcDir);
+
+    const toDelete = [].concat(
+        path.join(projectDir, 'node_modules'),
+        previewSourceFiles.map(file => path.join(projectDir, file))
+    );
+
+    for (let i = 0, l = toDelete.length; i < l; i++) yield rmrf(toDelete[i]);
+});
+
+/**
+ * @typedef {Object} BuildPreviewAppOptions
  * @property {boolean} [allowMultipleGlobalStyles=false]
  * @property {boolean} [noInstallLoaders=false]
+ * @property {boolean} [clean=true]
  */
 
 /**
  *
- * @type {BuildComponentsBundleOptions}
+ * @type {BuildPreviewAppOptions}
  */
 const defaultOptions = {
     allowMultipleGlobalStyles: false,
-    noInstallLoaders: false
+    noInstallLoaders: false,
+    clean: true
 };
 
 /**
  *
  * @param {Project} project
- * @param {BuildComponentsBundleOptions} [options]
+ * @param {BuildPreviewAppOptions} [options]
  * @returns {Promise}
  */
-exports.buildComponentsBundle = (project, options) => co(function* () {
+exports.buildPreviewApp = (project, options) => co(function* () {
     options = Object.assign({}, defaultOptions, options);
-
-    logger.debug(`Building components bundle for project '${project.name}'`);
 
     const projectDir = path.join(projectsDir, project.name);
 
     if (project.componentLibs.length > 0) {
         logger.debug(`[${project.name}] Installing component libraries`);
-        yield npmInstall(projectDir, project.componentLibs);
+        yield npmInstall(projectDir, project.componentLibs, { legacyBundling: true });
     }
 
     const modulesDir = path.join(projectDir, 'node_modules');
-    let moduleDirs = project.componentLibs.map(name => {
+    let libDirs = project.componentLibs.map(name => {
         const atIdx = name.lastIndexOf('@');
         if (atIdx === -1 || atIdx === 0) return name;
         return name.slice(0, atIdx);
     });
 
-    logger.debug(`[${project.name}] Gathering metadata from ${moduleDirs.join(', ')}`);
-    let libsData = yield asyncUtils.asyncMap(moduleDirs, dir => co(function* () {
+    logger.debug(`[${project.name}] Gathering metadata from ${libDirs.join(', ')}`);
+    let libsData = yield asyncUtils.asyncMap(libDirs, dir => co(function* () {
         const fullPath = path.join(modulesDir, dir),
             meta = yield gatherMetadata(fullPath);
 
@@ -262,6 +346,19 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
             ? { name: dir, dir: fullPath, meta }
             : null;
     }));
+
+    libsData = libsData.filter(libData => libData !== null);
+
+    const compiledMetadata = libsData.reduce((acc, cur) =>
+        Object.assign(acc, { [cur.meta.namespace]: cur.meta }), {});
+
+    const compiledMetadataFile = path.join(
+        projectDir,
+        constants.PROJECT_COMPILED_METADATA_FILE
+    );
+
+    logger.debug(`[${project.name}] Saving compiled metadata file`);
+    yield fs.writeFile(compiledMetadataFile, JSON.stringify(compiledMetadata));
 
     if (!options.allowMultipleGlobalStyles) {
         let libsWithGlobalStylesNum = 0;
@@ -274,26 +371,31 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
         }
     }
 
+    if (!options.noInstallLoaders) {
+        logger.debug(`[${project.name}] Installing webpack loaders`);
+        yield installLoaders(projectDir, libsData);
+    }
+
+    logger.debug(`[${project.name}] Copying preview app source to ${projectDir}`);
+    yield copyPreviewAppSrc(projectDir);
+
     logger.debug(`[${project.name}] Generating code for components bundle`);
     const code = generateBundleCode(libsData),
         codeFile = path.join(projectDir, constants.PROJECT_COMPONENTS_SRC_FILE);
 
     yield fs.writeFile(codeFile, code);
 
-    if (!options.noInstallLoaders) {
-        logger.verbose(`[${project.name}] Installing webpack loaders`);
-        yield installLoaders(projectDir, libsData);
-    }
-
-    logger.debug(`[${project.name}] Compiling components bundle`);
+    logger.debug(`[${project.name}] Compiling preview app`);
     const webpackConfig = generateWebpackConfig(projectDir, libsData),
         stats = yield compile(webpackConfig);
 
-    logger.debug(stats.toString({ colors: true }));
+    console.log(require('util').inspect(webpackConfig, { depth: Infinity }));
+
+    logger.verbose(stats.toString({ colors: true }));
 
     const webpackLogFile = path.join(
         projectDir,
-        constants.PROJECT_COMPONENTS_WEBPACK_LOG_FILE
+        constants.PROJECT_PREVIEW_WEBPACK_LOG_FILE
     );
 
     try {
@@ -301,5 +403,10 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
     }
     catch (err) {
         logger.warn(`Failed to write webpack log to ${webpackLogFile}: ${err.code}`);
+    }
+
+    if (options.clean) {
+        logger.debug(`[${project.name}] Cleaning ${projectDir}`);
+        yield clean(projectDir);
     }
 });

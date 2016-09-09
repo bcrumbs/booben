@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack",
+    "build": "webpack --config ./build-conf/webpack.config.js",
     "start": "node index.js",
     "start-dev": "NODE_ENV=development node index.js --config jssy-projects/dev-config.json"
   },
@@ -22,14 +22,19 @@
     "co": "^4.6.0",
     "convict": "^1.4.0",
     "express": "^4.14.0",
+    "html-webpack-plugin": "^2.22.0",
     "intel": "^1.1.1",
     "js-object-pretty-print": "^0.2.0",
     "mz": "^2.4.0",
+    "ncp": "^2.0.0",
     "revalidator": "^0.3.1",
     "serve-static": "^1.11.1",
+    "thenify": "^3.2.0",
     "webpack": "^1.13.2",
     "webpack-dev-middleware": "^1.6.1",
-    "webpack-hot-middleware": "^2.12.2"
+    "webpack-hot-middleware": "^2.12.2",
+    "rimraf": "latest",
+    "pretty-ms": "latest"
   },
   "devDependencies": {
     "@reactackle/reactackle": "0.1.0-dev122",
@@ -40,7 +45,6 @@
     "css-loader": "^0.24.0",
     "file-loader": "^0.9.0",
     "history": "2.1.2",
-    "html-webpack-plugin": "^2.22.0",
     "image-webpack-loader": "^2.0.0",
     "node-sass": "^3.8.0",
     "react": "^15.3.1",

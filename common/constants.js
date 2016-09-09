@@ -26,13 +26,19 @@ exports.PROJECT_COMPONENTS_SRC_FILE = 'components.js';
  *
  * @type {string}
  */
-exports.PROJECT_COMPONENTS_BUILD_DIR = 'build';
+exports.PROJECT_PREVIEW_BUILD_DIR = 'preview';
 
 /**
  *
  * @type {string}
  */
-exports.PROJECT_COMPONENTS_WEBPACK_LOG_FILE = 'webpack.log';
+exports.PROJECT_PREVIEW_WEBPACK_LOG_FILE = 'webpack.log';
+
+/**
+ *
+ * @type {string}
+ */
+exports.PROJECT_COMPILED_METADATA_FILE = 'meta.json';
 
 /**
  *
@@ -63,3 +69,27 @@ exports.METADATA_TYPES_FILE = 'types.json';
  * @type {string}
  */
 exports.METADATA_STRINGS_FILE = 'strings.json';
+
+/**
+ *
+ * @type {string}
+ */
+exports.URL_API_PREFIX = '/api/v1';
+
+/**
+ *
+ * @type {string}
+ */
+exports.URL_APP_PREFIX = '/app';
+
+/**
+ *
+ * @type {string}
+ */
+exports.URL_APP_DEV_PREFIX = '/dev';
+
+/**
+ *
+ * @type {string}
+ */
+exports.URL_PREVIEW_PREFIX = '/preview';

@@ -32,7 +32,7 @@ const bodySchema = {
 const allowedFields = Object.keys(bodySchema.properties);
 
 module.exports = {
-    url: '/api/v1/projects/:name',
+    url: `${constants.URL_API_PREFIX}/projects/:name`,
     method: 'patch',
     handlers: [
         bodyParser.json(),

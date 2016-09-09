@@ -83,7 +83,7 @@ const drawerButtons = [
 	}
 ];
 
-export class Test extends React.Component {
+export default class Test extends React.Component {
     constructor(props) {
         super(props);
 
