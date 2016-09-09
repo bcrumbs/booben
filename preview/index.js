@@ -20,8 +20,8 @@ const browserHistory = useRouterHistory(createHashHistory)({
  * @return {Object}
  */
 const getComponentsByRoute = (data, route, routes) => {
-    let _data = data;
-    let _components = null;
+    let _data = data,
+        _components = null;
 
     routes.forEach((_route) => {
         _data = _data.find((_item) => {
@@ -55,9 +55,8 @@ class Preview extends Component {
     getRouterMiddleware() {
         return {
             renderRouteComponent: (child, props) => {
-                const { key, route, routes } = props;
-
-                let _components = getComponentsByRoute(this.props.data, route, routes)
+                const { key, route, routes } = props,
+                      _components = getComponentsByRoute(this.props.data, route, routes);
 
                 if(_components) {
                     return React.cloneElement(child, {
@@ -71,9 +70,7 @@ class Preview extends Component {
     }
 
     render() {
-        let _routes = [];
-
-        _routes = this.props.data.map((route) => {
+        const _routes = this.props.data.map((route) => {
             return this.getRoute(route);
         })
 

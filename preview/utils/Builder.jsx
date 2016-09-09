@@ -1,3 +1,5 @@
+'use strict';
+
 import React, { Component, PropTypes } from 'react';
 import * as Reactackle from '@reactackle/reactackle';
 
@@ -22,7 +24,7 @@ class Builder extends Component {
                     return this.getComponentFromMeta(item);
                 });
             } else {
-                let _component = getComponentByName(data['name']);
+                const _component = getComponentByName(data['name']);
 
                 return <_component {...getProps(data['props'])}>
                     { this.getComponentFromMeta(data['children']) }
@@ -70,6 +72,5 @@ const getProps = (props = {}) => {
 
     return {};
 }
-
 
 export default Builder;
