@@ -6,82 +6,42 @@ import { createHashHistory } from 'history';
 import Container from './Container';
 import { Builder } from './utils';
 
-let project = {
-    name: 'Sample Project',
-    author: 'iAuthor',
-    componentLibs: ['@reactackle/reactackle'],
-    relayEndpointURL: '',
-    routes: [
-        {
-            path: "page1",
-            children: [
-                {
-                    path: "sub",
-                    children: [],
-                    components: [
-                        {
-                            name: 'Datepicker',
-                            props: {},
-                            children: []
-                        }
-                    ]
-                }
-            ],
-            components: [
-                {
-                    name: 'Radio',
-                    props: {
-                        source: 'static',
-                        sourceData: {
-                            SourceDataStatic: {
-                                checked: true
-                            }
-                        }
-                    },
-                    children: []
-                }
-            ]
-        },
-        {
-            path: "page2",
-            children: [],
-            components: [
-                {
-                    name: 'Datepicker',
-                    props: {},
-                    children: []
-                }
-            ]
-        }
-    ]
-}
+import project from './project';
 
 const browserHistory = useRouterHistory(createHashHistory)({
     queryKey: false,
     basename: '/dev/preview/'
 });
 
-const useBuilderProps = {
-  renderRouteComponent: (child, props) => {
-    const { key, route } = props;
+/**
+ * @param  {Array} data
+ * @param  {Object} route
+ * @param  {Array} routes
+ * @return {Object}
+ */
+const getComponentsByRoute = (data, route, routes) => {
+    let _data = data;
+    let _components = null;
 
-    let _route = project.routes.find((item) => {
-        return item.path == route.path;
-    })
-
-    if(_route) {
-        return React.cloneElement(child, {
-            data: _route.components
+    routes.forEach((_route) => {
+        _data = _data.find((_item) => {
+            return _item.path == _route.path;
         });
-    } else {
-        return child;
-    }
-  }
+
+        if(_data.path == route.path) {
+            _components = _data.components;
+
+        }
+
+        _data = _data.children;
+    });
+
+    return _components;
 }
 
 class Preview extends Component {
     getRoute(route, routerState) {
-        if(route.children) {
+        if(route.children && route.children.length) {
             return <Route path={route.path} component={Builder}>
                 {route.children.map((_route) => {
                     return this.getRoute(_route);
@@ -92,6 +52,24 @@ class Preview extends Component {
         }
     }
 
+    getRouterMiddleware() {
+        return {
+            renderRouteComponent: (child, props) => {
+                const { key, route, routes } = props;
+
+                let _components = getComponentsByRoute(this.props.data, route, routes)
+
+                if(_components) {
+                    return React.cloneElement(child, {
+                        data: _components
+                    });
+                } else {
+                    return child;
+                }
+            }
+        }
+    }
+
     render() {
         let _routes = [];
 
@@ -99,10 +77,8 @@ class Preview extends Component {
             return this.getRoute(route);
         })
 
-        return <Router render={applyRouterMiddleware(useBuilderProps)} history={browserHistory}>
-            <Route path="/" component={Container}>
-                {_routes}
-            </Route>
+        return <Router render={applyRouterMiddleware(this.getRouterMiddleware())} history={browserHistory}>
+            {_routes}
         </Router>;
     }
 }
