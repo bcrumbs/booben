@@ -9,7 +9,7 @@ const APP_SRC_DIR = '../app';
 
 
 module.exports = {
-    context: path.join(__dirname, APP_SRC_DIR),
+    context: path.resolve(path.join(__dirname, APP_SRC_DIR)),
 
     entry: [
         'webpack-hot-middleware/client?reload=true',

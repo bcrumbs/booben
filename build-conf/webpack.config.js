@@ -9,14 +9,14 @@ const APP_DIST_DIR = '../public';
 
 
 module.exports = {
-    context: path.join(__dirname, APP_SRC_DIR),
+    context: path.resolve(path.join(__dirname, APP_SRC_DIR)),
 
     entry: {
         index: './index'
     },
 
     output: {
-        path: path.join(__dirname, APP_DIST_DIR),
+        path: path.resolve(path.join(__dirname, APP_DIST_DIR)),
         filename: '[name].js'
     },
 

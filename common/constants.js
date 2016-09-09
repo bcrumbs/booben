@@ -69,3 +69,27 @@ exports.METADATA_TYPES_FILE = 'types.json';
  * @type {string}
  */
 exports.METADATA_STRINGS_FILE = 'strings.json';
+
+/**
+ *
+ * @type {string}
+ */
+exports.URL_API_PREFIX = '/api/v1';
+
+/**
+ *
+ * @type {string}
+ */
+exports.URL_APP_PREFIX = '/app';
+
+/**
+ *
+ * @type {string}
+ */
+exports.URL_APP_DEV_PREFIX = '/dev';
+
+/**
+ *
+ * @type {string}
+ */
+exports.URL_PREVIEW_PREFIX = '/preview';

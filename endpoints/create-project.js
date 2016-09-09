@@ -77,7 +77,7 @@ const createProjectData = input => ({
 });
 
 module.exports = {
-    url: '/api/v1/projects',
+    url: `${constants.URL_API_PREFIX}/projects`,
     method: 'post',
     handlers: [
         bodyParser.json(),

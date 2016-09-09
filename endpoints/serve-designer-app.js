@@ -5,12 +5,13 @@
 'use strict';
 
 const path = require('path'),
-    serveStatic = require('serve-static');
+    serveStatic = require('serve-static'),
+    constants = require('../common/constants');
 
 module.exports = {
-    url: '/',
-    method: 'get',
+    url: `${constants.URL_APP_PREFIX}/:name`,
+    method: 'use',
     handlers: [
-        serveStatic(path.join(__dirname, '..', 'public'))
+        serveStatic(path.resolve(path.join(__dirname, '..', 'public')))
     ]
 };

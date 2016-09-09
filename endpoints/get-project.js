@@ -14,7 +14,7 @@ const co = require('co'),
 const projectsDir = config.get('projectsDir');
 
 module.exports = {
-    url: '/api/v1/projects/:name',
+    url: `${constants.URL_API_PREFIX}/projects/:name`,
     method: 'get',
     handlers: [
         (req, res) => void co(function* () {
