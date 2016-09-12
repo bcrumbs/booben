@@ -6,7 +6,21 @@ const path = require('path'),
 
 const APP_SRC_DIR = '../app';
 const APP_DIST_DIR = '../public';
+const REACTACKLE_THEME_FILE = '../app/_reactackle_theme.scss';
 
+
+const rewriteThemePathResolverPlugin = {
+    apply(resolver) {
+        resolver.plugin("resolve", (context, request) => {
+            const isReactackleThemeFile =
+                /@reactackle\/reactackle/.test(context) &&
+                request.path === '../_theme.scss';
+
+            if (isReactackleThemeFile)
+                request.path = path.resolve(__dirname, REACTACKLE_THEME_FILE);
+        });
+    }
+};
 
 module.exports = {
     context: path.resolve(path.join(__dirname, APP_SRC_DIR)),
@@ -26,6 +40,12 @@ module.exports = {
     },
 
     plugins: [
+        {
+            apply(compiler) {
+                compiler.resolvers.normal.apply(rewriteThemePathResolverPlugin)
+            }
+        },
+
         new HtmlWebpackPlugin({
             title: 'JSSY',
             template: 'index.ejs',
