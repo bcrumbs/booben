@@ -44,6 +44,7 @@ const start = () => co(function* () {
     const app = express();
 
     setupEndpoint(app, require('./endpoints/serve-designer-app'));
+    setupEndpoint(app, require('./endpoints/serve-preview-app'));
     setupEndpoint(app, require('./endpoints/get-project'));
     setupEndpoint(app, require('./endpoints/create-project'));
     setupEndpoint(app, require('./endpoints/update-project'));
