@@ -6,10 +6,8 @@
 
 import React, { Component } from 'react';
 
-import Test from '../components/Test';
-
-export default class RootRoute extends Component {
+export default class DesignRoute extends Component {
     render() {
-        return <Test/>
+        return <div/>
     }
 }
