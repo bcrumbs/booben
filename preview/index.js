@@ -19,4 +19,8 @@ window.renderProject = function(project) {
 /**
  * Call for testing.
  */
+window.hoistingEventToConstructor = function() {
+    console.log(arguments);
+}
+
 window.renderProject(project);
