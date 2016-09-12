@@ -19,9 +19,21 @@ export default {
                             "path": "sub",
                             "children": [],
                             "component": {
-                                "name": "Reactackle.Datepicker",
+                                "name": "Reactackle.Card",
                                 "props": {},
-                                "children": []
+                                "children": [
+                                    {
+                                        "name": "Reactackle.Input",
+                                        "props": {
+                                            "source": "static",
+                                            "sourceData": {
+                                                "SourceDataStatic": {
+                                                    "value": "TEST"
+                                                }
+                                            }
+                                        }
+                                    }
+                                ]
                             }
                         }
                     ],
