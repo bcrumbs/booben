@@ -1,13 +1,7 @@
 import React, { Component, PropTypes } from 'react';
-import { Router, Route, useRouterHistory, applyRouterMiddleware } from 'react-router';
-import { createHashHistory } from 'history';
+import { Router, Route, applyRouterMiddleware, hashHistory } from 'react-router';
 
 import { Builder } from './utils';
-
-const browserHistory = useRouterHistory(createHashHistory)({
-    queryKey: false,
-    basename: '/dev/preview/'
-});
 
 /**
  * @param  {Array} data
@@ -35,7 +29,7 @@ const getComponentsByRoute = (data, route, routes) => {
 }
 
 class Preview extends Component {
-    getRoute(route, routerState) {
+    getRoute(route) {
         if(route.children && route.children.length) {
             return <Route path={route.path} component={Builder}>
                 {route.children.map((_route) => {
@@ -69,7 +63,7 @@ class Preview extends Component {
             return this.getRoute(route);
         })
 
-        return <Router render={applyRouterMiddleware(this.getRouterMiddleware())} history={browserHistory}>
+        return <Router render={applyRouterMiddleware(this.getRouterMiddleware())} history={hashHistory}>
             {_routes}
         </Router>;
     }

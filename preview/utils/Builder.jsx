@@ -5,6 +5,8 @@ import React, { Component, PropTypes } from 'react';
 // The real components.js will be generated during build process
 import components from '../components.js';
 
+import * as actions from './actions.js';
+
 /**
  * class Builder
  */
@@ -46,16 +48,17 @@ class Builder extends Component {
     }
 
     render() {
+        console.log(this.props.data);
         return this.getComponentFromMeta(this.props.data);
     }
 }
 
 Builder.propTypes = {
-    data: PropTypes.array
+    data: PropTypes.object
 };
 
 Builder.defaultProps = {
-    data: []
+    data: {}
 };
 
 /**
@@ -77,12 +80,23 @@ const getComponentByName = (name = '') => {
  * @param  {Object} props
  * @return {Object}
  */
-const getProps = (props = {}) => {
-    if(props.source == 'static') {
-        return props.sourceData.SourceDataStatic;
+const getProps = (data = {}) => {
+    let externalProps = {},
+        internalProps = {},
+        props = data.props;
+
+    if(props && props.source == 'static') {
+        externalProps = props.sourceData.SourceDataStatic;
     }
 
-    return {};
-};
+    internalProps = {
+        onClick: actions.get(this, 'click', 'xxx'),
+        onMouseOut: actions.get(this, 'mouseout', 'xxx'),
+        onMouseOver: actions.get(this, 'mouseover', 'xxx'),
+        onChange: actions.get(this, 'change', 'xxx')
+    }
+
+    return externalProps;
+}
 
 export default Builder;

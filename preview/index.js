@@ -19,4 +19,4 @@ window.renderProject = function(project) {
 /**
  * Call for testing.
  */
-window.renderProject(project.routes);
+window.renderProject(project);

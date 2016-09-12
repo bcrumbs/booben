@@ -7,7 +7,7 @@ export default {
         {
             "path": "/",
             "component": {
-                "name": "App",
+                "name": "Reactackle.App",
                 "props": {},
                 "children": ["outlet"]
             },
@@ -19,14 +19,14 @@ export default {
                             "path": "sub",
                             "children": [],
                             "component": {
-                                "name": "Datepicker",
+                                "name": "Reactackle.Datepicker",
                                 "props": {},
                                 "children": []
                             }
                         }
                     ],
                     "component": {
-                        "name": "Card",
+                        "name": "Reactackle.Card",
                         "props": {
                             "source": "static",
                             "sourceData": {
@@ -40,7 +40,7 @@ export default {
                     "path": "page2",
                     "children": [],
                     "component": {
-                        "name": "Radio",
+                        "name": "Reactackle.Radio",
                         "props": {
                             "source": "static",
                             "sourceData": {
