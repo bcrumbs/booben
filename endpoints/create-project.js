@@ -129,9 +129,15 @@ module.exports = {
                 yield buildPreviewApp(projectData);
             }
             catch (err) {
+                const errorMessage =
+                    (err.message || err.toString()) +
+                    err.errors
+                        ? ` (${err.errors.map(e => JSON.stringify(e)).join(', ')})`
+                        : '';
+
                 logger.error(
                     `Preview app build for project '${projectData.name}' ` +
-                    `failed: ${err.message || err}`
+                    `failed: ${errorMessage}`
                 );
 
                 return;
