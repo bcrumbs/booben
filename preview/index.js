@@ -9,9 +9,9 @@ import project from './project';
  * 
  * @return {}
  */
-window.render = function(routes = []) {
+window.renderProject = function(project) {
     ReactDOM.render(
-        <Preview routes={routes} />,
+        <Preview routes={project.routes} />,
         document.getElementById('container')
     );
 }
@@ -19,4 +19,4 @@ window.render = function(routes = []) {
 /**
  * Call for testing.
  */
-window.render(project.routes);
+window.renderProject(project.routes);
