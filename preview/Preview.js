@@ -2,7 +2,8 @@ import ReactDOM from 'react-dom';
 import React, { Component, PropTypes } from 'react';
 import { Router, Route, applyRouterMiddleware, hashHistory } from 'react-router';
 
-import { Builder, componentsMap } from './utils';
+import { Builder, componentsMap, getCoords } from './utils';
+import Overlay from './Overlay';
 
 /**
  * @param  {Array} data
@@ -32,14 +33,12 @@ const getComponentsByRoute = (data, route, routes) => {
 class Preview extends Component {
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
-
-        this.domNode.addEventListener("click", this._hoistingEvent.bind(this), false);
-        this.domNode.addEventListener("mouseover", this._hoistingEvent.bind(this), false);
+        this.domNode.addEventListener('click', this._hoistEvent.bind(this), false);
     }
 
     componentWillUnmount() {
-        this.domNode.removeEventListener("click", this._hoistingEvent.bind(this), false);
-        this.domNode.removeEventListener("mouseover", this._hoistingEvent.bind(this), false);
+        this.domNode.removeEventListener('click', this._hoistEvent.bind(this),
+            false);
     }
 
     /**
@@ -51,7 +50,7 @@ class Preview extends Component {
      */
     _getOwner(el, condition) {
         if(el._owner) {
-            const _el = el._owner._currentElement;
+            const _el = el._owner;
 
             if(condition) {
                 if(condition(_el)) {
@@ -67,22 +66,44 @@ class Preview extends Component {
         return null;
     }
 
+    _getSelected(el) {
+        const _owner = this._getOwner(el, (item) => {
+            return item._currentElement.props.uid;
+        });
+
+        const _domEl = _owner._renderedComponent._hostNode;
+
+        return [_domEl.getBoundingClientRect()];
+    }
+
     /**
-     * Hoisting preview event to constructor
+     * Hoist preview event to constructor
      * 
      * @param  {MouseEvent} e
      */
-    _hoistingEvent(e) {
+    _hoistEvent(e) {
         if(e.ctrlKey) {
             for (var key in e.target) {
-                if (key.startsWith("__reactInternalInstance$")) {
+                if (key.startsWith('__reactInternalInstance$')) {
+                    let _el = e.target[key]._currentElement;
 
-                    const _owner = this._getOwner(e.target[key]._currentElement, (item) => {
-                        return item.props.uid;
-                    })
+                    const _owner = this._getOwner(_el, (item) => {
+                        return item._currentElement.props.uid;
+                    });
 
                     if(_owner) {
-                        window.hoistingEventToConstructor(e.type, componentsMap.get(_owner.props.uid));
+                        let _eventName = 'UnknownEvent';
+
+                        if(e.type == 'click') {
+                            _eventName = 'SelectСomponent';
+
+                            this._getSelected(_el);
+                        }
+
+                        const _params = componentsMap.get(
+                            _owner._currentElement.props.uid);
+
+                        window.hoistEventToConstructor(_eventName, _params);
                         e.stopPropagation();
                     }
                 }
@@ -90,11 +111,11 @@ class Preview extends Component {
         }
     }
 
-    getRoute(route) {
+    _getRoute(route) {
         if(route.children && route.children.length) {
             return <Route path={route.path} component={Builder}>
                 {route.children.map((_route) => {
-                    return this.getRoute(_route);
+                    return this._getRoute(_route);
                 })}
             </Route>;
         } else {
@@ -102,11 +123,12 @@ class Preview extends Component {
         }
     }
 
-    getRouterMiddleware() {
+    _getRouterMiddleware() {
         return {
             renderRouteComponent: (child, props) => {
                 const { key, route, routes } = props,
-                      _component = getComponentsByRoute(this.props.routes, route, routes);
+                      _component = getComponentsByRoute(this.props.routes, route,
+                        routes);
 
                 if(_component) {
                     return React.cloneElement(child, {
@@ -121,10 +143,12 @@ class Preview extends Component {
 
     render() {
         const _routes = this.props.routes.map((route) => {
-            return this.getRoute(route);
+            return this._getRoute(route);
         })
 
-        return <Router render={applyRouterMiddleware(this.getRouterMiddleware())} history={hashHistory}>
+        return <Router
+            render={applyRouterMiddleware(this._getRouterMiddleware())}
+            history={hashHistory}>
             {_routes}
         </Router>;
     }

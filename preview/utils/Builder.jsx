@@ -36,17 +36,23 @@ class Builder extends Component {
                 let _compositComponent = null;
 
                 if(data['children'] && data['children'].length) {
-                    _compositComponent = <_component uid={data.uid} {...getProps(data['props'])}>
+                    _compositComponent = <_component
+                        uid={data.uid}
+                        {...getProps(data['props'])}
+                    >
                         { this.getComponentFromMeta(data['children']) }
                     </_component>;
                 } else {
-                    _compositComponent = <_component uid={data.uid} {...getProps(data['props'])} />
+                    _compositComponent = <_component
+                        uid={data.uid}
+                        {...getProps(data['props'])}
+                    />
                 }
 
                 componentsMap.set(data.uid, {
-                    "uid": data.uid,
-                    "name": data.name,
-                    "componentType": data.componentType
+                    'uid': data.uid,
+                    'name': data.name,
+                    'componentType': data.componentType
                 });
 
                 return _compositComponent;
