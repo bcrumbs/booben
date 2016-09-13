@@ -4,8 +4,17 @@
 
 'use strict';
 
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
+import { connect } from 'react-redux'
 import { Link } from 'react-router';
+
+import { loadProject } from '../actions/project';
+
+import {
+    NOT_LOADED,
+    LOADING,
+    LOAD_ERROR
+} from '../constants/loadStates';
 
 import {
     App,
@@ -57,21 +66,35 @@ const toggleFullScreen = () => {
     }
 };
 
-export default class RootRoute extends Component {
+class RootRoute extends Component {
+    componentDidMount() {
+        const projectName = this.props.params.projectName;
+        this.props.onProjectRequest(projectName);
+    }
+
     render() {
+        if (this.props.projectLoadState === NOT_LOADED)
+            return <div>Initializing...</div>;
+
+        if (this.props.projectLoadState === LOADING)
+            return <div>Loading project...</div>;
+
+        if (this.props.projectLoadState === LOAD_ERROR)
+            return <div>Failed to load project: {this.props.projectLoadError.message}</div>;
+
         return (
             <App fixed>
                 <TopRegion>
                     <Header size="blank">
                         <HeaderRegion size='blank'>
-                            <HeaderLogoBox title={this.props.params.projectName}/>
+                            <HeaderLogoBox title={this.props.projectName}/>
                         </HeaderRegion>
 
                         <HeaderRegion region="main" size='blank'>
                             <HeaderMenu inline dense>
                                 <HeaderMenuItem
                                     text="Structure"
-                                    linkHref={`/${this.props.params.projectName}/structure`}
+                                    linkHref={`/${this.props.projectName}/structure`}
                                     linkComponent={TopMenuLink}
                                 />
 
@@ -129,4 +152,26 @@ export default class RootRoute extends Component {
     }
 }
 
+RootRoute.propTypes = {
+    projectName: PropTypes.string,
+    projectLoadState: PropTypes.number,
+    projectLoadError: PropTypes.object,
+    onProjectRequest: PropTypes.func
+};
+
 RootRoute.displayName = 'RootRoute';
+
+const mapStateToProps = state => ({
+    projectName: state.project.projectName,
+    projectLoadState: state.project.loadState,
+    projectLoadError: state.project.error
+});
+
+const mapDispatchToProps = dispatch => ({
+    onProjectRequest: name => void dispatch(loadProject(name))
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(RootRoute);

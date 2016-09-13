@@ -12,7 +12,7 @@ const path = require('path'),
 const projectsDir = config.get('projectsDir');
 
 module.exports = {
-    url: `${constants.URL_API_PREFIX}/projects/:name`,
+    url: `${constants.URL_API_PREFIX}/projects/:name/metadata`,
     method: 'get',
     handlers: [
         (req, res) => {
@@ -30,7 +30,7 @@ module.exports = {
                 }
             };
 
-            res.sendFile(constants.PROJECT_FILE, options, err => {
+            res.sendFile(constants.PROJECT_COMPILED_METADATA_FILE, options, err => {
                 if (err) helpers.sendError(res, err.status, err.message);
             });
         }

@@ -46,11 +46,12 @@ const start = () => co(function* () {
     setupEndpoint(app, require('./endpoints/serve-designer-app'));
     setupEndpoint(app, require('./endpoints/serve-preview-app'));
     setupEndpoint(app, require('./endpoints/get-project'));
+    setupEndpoint(app, require('./endpoints/get-metadata'));
     setupEndpoint(app, require('./endpoints/create-project'));
     setupEndpoint(app, require('./endpoints/update-project'));
 
     if (config.get('env') === 'development') {
-        setupWebpackDevMiddleware(app);
+        // setupWebpackDevMiddleware(app);
     }
 
     httpServer = http.createServer(app);

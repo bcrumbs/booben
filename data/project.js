@@ -17,7 +17,7 @@
  * @typedef {Object} ProjectRoute
  * @property {string} path
  * @property {ProjectRoute[]} children
- * @property {ProjectComponent[]} components
+ * @property {ProjectComponent} component
  */
 
 /**
