@@ -33,13 +33,12 @@ class Preview extends Component {
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
 
-        this.domNode.addEventListener("click", this._hoistingEvent.bind(this), false);
-        this.domNode.addEventListener("mouseover", this._hoistingEvent.bind(this), false);
+        this.domNode.addEventListener('click', this._hoistEvent.bind(this), false);
     }
 
     componentWillUnmount() {
-        this.domNode.removeEventListener("click", this._hoistingEvent.bind(this), false);
-        this.domNode.removeEventListener("mouseover", this._hoistingEvent.bind(this), false);
+        this.domNode.removeEventListener('click', this._hoistEvent.bind(this),
+            false);
     }
 
     /**
@@ -68,21 +67,29 @@ class Preview extends Component {
     }
 
     /**
-     * Hoisting preview event to constructor
+     * Hoist preview event to constructor
      * 
      * @param  {MouseEvent} e
      */
-    _hoistingEvent(e) {
+    _hoistEvent(e) {
         if(e.ctrlKey) {
             for (var key in e.target) {
-                if (key.startsWith("__reactInternalInstance$")) {
-
-                    const _owner = this._getOwner(e.target[key]._currentElement, (item) => {
-                        return item.props.uid;
-                    })
+                if (key.startsWith('__reactInternalInstance$')) {
+                    const _owner = this._getOwner(e.target[key]._currentElement,
+                        (item) => {
+                            return item.props.uid;
+                        }
+                    );
 
                     if(_owner) {
-                        window.hoistingEventToConstructor(e.type, componentsMap.get(_owner.props.uid));
+                        let _eventName = 'UnknownEvent';
+
+                        if(e.type == 'click') {
+                            _eventName = 'SetСomponent'
+                        }
+
+                        window.hoistEventToConstructor(_eventName,
+                            componentsMap.get(_owner.props.uid));
                         e.stopPropagation();
                     }
                 }
@@ -90,11 +97,11 @@ class Preview extends Component {
         }
     }
 
-    getRoute(route) {
+    _getRoute(route) {
         if(route.children && route.children.length) {
             return <Route path={route.path} component={Builder}>
                 {route.children.map((_route) => {
-                    return this.getRoute(_route);
+                    return this._getRoute(_route);
                 })}
             </Route>;
         } else {
@@ -102,11 +109,12 @@ class Preview extends Component {
         }
     }
 
-    getRouterMiddleware() {
+    _getRouterMiddleware() {
         return {
             renderRouteComponent: (child, props) => {
                 const { key, route, routes } = props,
-                      _component = getComponentsByRoute(this.props.routes, route, routes);
+                      _component = getComponentsByRoute(this.props.routes, route,
+                        routes);
 
                 if(_component) {
                     return React.cloneElement(child, {
@@ -121,10 +129,12 @@ class Preview extends Component {
 
     render() {
         const _routes = this.props.routes.map((route) => {
-            return this.getRoute(route);
+            return this._getRoute(route);
         })
 
-        return <Router render={applyRouterMiddleware(this.getRouterMiddleware())} history={hashHistory}>
+        return <Router
+            render={applyRouterMiddleware(this._getRouterMiddleware())}
+            history={hashHistory}>
             {_routes}
         </Router>;
     }
