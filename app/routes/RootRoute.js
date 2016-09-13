@@ -73,13 +73,14 @@ class RootRoute extends Component {
     }
 
     render() {
-        if (this.props.projectLoadState === NOT_LOADED)
-            return <div>Initializing...</div>;
+        const loadState = this.props.projectLoadState;
 
-        if (this.props.projectLoadState === LOADING)
+        // TODO: Create loading screen
+        if (loadState === LOADING || loadState === NOT_LOADED)
             return <div>Loading project...</div>;
 
-        if (this.props.projectLoadState === LOAD_ERROR)
+        // TODO: Create error screen
+        if (loadState === LOAD_ERROR)
             return <div>Failed to load project: {this.props.projectLoadError.message}</div>;
 
         return (

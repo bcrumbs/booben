@@ -4,10 +4,31 @@
 
 'use strict';
 
-import React, { Component } from 'react';
+import React, { Component, PropTypes } from 'react';
+import { connect } from 'react-redux';
 
-export default class StructureRoute extends Component {
+import {
+    Content
+} from '@reactackle/reactackle';
+
+class StructureRoute extends Component {
     render() {
-        return <div/>
+        return (
+            <Content>
+
+            </Content>
+        )
     }
 }
+
+StructureRoute.propTypes = {
+    routes: PropTypes.arrayOf(PropTypes.object).isRequired
+};
+
+StructureRoute.displayName = 'StructureRoute';
+
+const mapStateToProps = state => ({
+    routes: state.project.data.routes
+});
+
+export default connect(mapStateToProps)(StructureRoute);
