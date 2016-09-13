@@ -1,7 +1,8 @@
+import ReactDOM from 'react-dom';
 import React, { Component, PropTypes } from 'react';
 import { Router, Route, applyRouterMiddleware, hashHistory } from 'react-router';
 
-import { Builder } from './utils';
+import { Builder, componentsMap } from './utils';
 
 /**
  * @param  {Array} data
@@ -29,6 +30,58 @@ const getComponentsByRoute = (data, route, routes) => {
 }
 
 class Preview extends Component {
+    componentDidMount() {
+        this.domNode = ReactDOM.findDOMNode(this);
+
+        this.domNode.addEventListener("click", this._hoistingEvent.bind(this), false);
+    }
+
+    componentWillUnmount() {
+        this.domNode.removeEventListener("click", this._hoistingEvent.bind(this), false);
+    }
+
+    /**
+     * Get owner React element by condition
+     * 
+     * @param  {function} el
+     * @param  {function} condition
+     * @return {function}
+     */
+    _getOwner(el, condition) {
+        const _el = el._owner._currentElement;
+
+        if(condition) {
+            if(condition(_el)) {
+                return _el;
+            } else {
+                return this._getOwner(_el, condition);
+            }
+        } else {
+            return _el;
+        }
+        
+    }
+
+    /**
+     * Hoisting preview event to constructor
+     * 
+     * @param  {MouseEvent} e
+     */
+    _hoistingEvent(e) {
+        if(e.ctrlKey) {
+            for (var key in e.target) {
+                if (key.startsWith("__reactInternalInstance$")) {
+
+                    const _owner = this._getOwner(e.target[key]._currentElement, (item) => {
+                        return item.props.uid;
+                    })
+
+                    window.hoistingEventToConstructor(e.type, componentsMap.get(_owner.props.uid));
+                }
+            }
+        }
+    }
+
     getRoute(route) {
         if(route.children && route.children.length) {
             return <Route path={route.path} component={Builder}>

@@ -4,6 +4,7 @@ import React, { Component, PropTypes } from 'react';
 
 // The real components.js will be generated during build process
 import components from '../components.js';
+import * as componentsMap from './componentsMap.js';
 
 /**
  * class Builder
@@ -32,13 +33,23 @@ class Builder extends Component {
             } else {
                 const _component = getComponentByName(data['name']);
 
+                let _compositComponent = null;
+
                 if(data['children'] && data['children'].length) {
-                    return <_component {...getProps(data['props'])}>
+                    _compositComponent = <_component uid={data.uid} {...getProps(data['props'])}>
                         { this.getComponentFromMeta(data['children']) }
                     </_component>;
                 } else {
-                    return <_component {...getProps(data['props'])} />
+                    _compositComponent = <_component uid={data.uid} {...getProps(data['props'])} />
                 }
+
+                componentsMap.set(data.uid, {
+                    "uid": data.uid,
+                    "name": data.name,
+                    "componentType": data.componentType
+                });
+
+                return _compositComponent;
             }
         } else {
             return null;
@@ -46,7 +57,6 @@ class Builder extends Component {
     }
 
     render() {
-        console.log(this.props.data);
         return this.getComponentFromMeta(this.props.data);
     }
 }
