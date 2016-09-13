@@ -2,7 +2,8 @@ import ReactDOM from 'react-dom';
 import React, { Component, PropTypes } from 'react';
 import { Router, Route, applyRouterMiddleware, hashHistory } from 'react-router';
 
-import { Builder, componentsMap } from './utils';
+import { Builder, componentsMap, getCoords } from './utils';
+import Overlay from './Overlay';
 
 /**
  * @param  {Array} data
@@ -32,7 +33,6 @@ const getComponentsByRoute = (data, route, routes) => {
 class Preview extends Component {
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
-
         this.domNode.addEventListener('click', this._hoistEvent.bind(this), false);
     }
 
@@ -50,7 +50,7 @@ class Preview extends Component {
      */
     _getOwner(el, condition) {
         if(el._owner) {
-            const _el = el._owner._currentElement;
+            const _el = el._owner;
 
             if(condition) {
                 if(condition(_el)) {
@@ -66,6 +66,16 @@ class Preview extends Component {
         return null;
     }
 
+    _getSelected(el) {
+        const _owner = this._getOwner(el, (item) => {
+            return item._currentElement.props.uid;
+        });
+
+        const _domEl = _owner._renderedComponent._hostNode;
+
+        return [_domEl.getBoundingClientRect()];
+    }
+
     /**
      * Hoist preview event to constructor
      * 
@@ -75,21 +85,25 @@ class Preview extends Component {
         if(e.ctrlKey) {
             for (var key in e.target) {
                 if (key.startsWith('__reactInternalInstance$')) {
-                    const _owner = this._getOwner(e.target[key]._currentElement,
-                        (item) => {
-                            return item.props.uid;
-                        }
-                    );
+                    let _el = e.target[key]._currentElement;
+
+                    const _owner = this._getOwner(_el, (item) => {
+                        return item._currentElement.props.uid;
+                    });
 
                     if(_owner) {
                         let _eventName = 'UnknownEvent';
 
                         if(e.type == 'click') {
-                            _eventName = 'SetСomponent'
+                            _eventName = 'SelectСomponent';
+
+                            this._getSelected(_el);
                         }
 
-                        window.hoistEventToConstructor(_eventName,
-                            componentsMap.get(_owner.props.uid));
+                        const _params = componentsMap.get(
+                            _owner._currentElement.props.uid);
+
+                        window.hoistEventToConstructor(_eventName, _params);
                         e.stopPropagation();
                     }
                 }

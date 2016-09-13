@@ -1,7 +1,7 @@
 import ReactDOM from 'react-dom';
 import React from 'react';
 
-import Preview from './Preview';
+import App from './App';
 import project from './project';
 
 /**
@@ -11,7 +11,7 @@ import project from './project';
  */
 window.renderProject = function(project) {
     ReactDOM.render(
-        <Preview routes={project.routes} />,
+        <App project={project} />,
         document.getElementById('container')
     );
 }
