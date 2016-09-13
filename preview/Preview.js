@@ -34,10 +34,12 @@ class Preview extends Component {
         this.domNode = ReactDOM.findDOMNode(this);
 
         this.domNode.addEventListener("click", this._hoistingEvent.bind(this), false);
+        this.domNode.addEventListener("mouseover", this._hoistingEvent.bind(this), false);
     }
 
     componentWillUnmount() {
         this.domNode.removeEventListener("click", this._hoistingEvent.bind(this), false);
+        this.domNode.removeEventListener("mouseover", this._hoistingEvent.bind(this), false);
     }
 
     /**
@@ -48,18 +50,21 @@ class Preview extends Component {
      * @return {function}
      */
     _getOwner(el, condition) {
-        const _el = el._owner._currentElement;
+        if(el._owner) {
+            const _el = el._owner._currentElement;
 
-        if(condition) {
-            if(condition(_el)) {
-                return _el;
+            if(condition) {
+                if(condition(_el)) {
+                    return _el;
+                } else {
+                    return this._getOwner(_el, condition);
+                }
             } else {
-                return this._getOwner(_el, condition);
+                return _el;
             }
-        } else {
-            return _el;
         }
-        
+
+        return null;
     }
 
     /**
@@ -76,7 +81,10 @@ class Preview extends Component {
                         return item.props.uid;
                     })
 
-                    window.hoistingEventToConstructor(e.type, componentsMap.get(_owner.props.uid));
+                    if(_owner) {
+                        window.hoistingEventToConstructor(e.type, componentsMap.get(_owner.props.uid));
+                        e.stopPropagation();
+                    }
                 }
             }
         }
