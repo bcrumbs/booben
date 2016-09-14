@@ -18,11 +18,9 @@ const setupWebpackDevMiddleware = app => {
     const webpack = require('webpack'),
         webpackDevMiddleware = require('webpack-dev-middleware'),
         webpackHotMiddleware = require('webpack-hot-middleware'),
-        webpackDevConfig = require('./build-conf/webpack.dev.config'),
-        webpackDevPreviewConfig = require('./build-conf/webpack.dev.preview.config');
+        webpackDevConfig = require('./build-conf/webpack.dev.config');
 
     const compilerDev = webpack(webpackDevConfig);
-    const compilerDevPreview = webpack(webpackDevPreviewConfig);
 
     app.use(webpackDevMiddleware(compilerDev, {
         publicPath: `${constants.URL_APP_DEV_PREFIX}/`,
@@ -40,18 +38,23 @@ const setupEndpoint = (app, endpoint) => {
     app[endpoint.method](endpoint.url, ...endpoint.handlers);
 };
 
+const cb = (resolve, reject) => (err, res) => void (err ? reject(err) : resolve(res));
+
 const start = () => co(function* () {
     const app = express();
 
-    setupEndpoint(app, require('./endpoints/serve-designer-app'));
-    setupEndpoint(app, require('./endpoints/serve-preview-app'));
+    if (config.get('serveStatic')) {
+        setupEndpoint(app, require('./endpoints/serve-designer-app'));
+        setupEndpoint(app, require('./endpoints/serve-preview-app'));
+    }
+
     setupEndpoint(app, require('./endpoints/get-project'));
     setupEndpoint(app, require('./endpoints/get-metadata'));
     setupEndpoint(app, require('./endpoints/create-project'));
     setupEndpoint(app, require('./endpoints/update-project'));
 
     if (config.get('env') === 'development') {
-        // setupWebpackDevMiddleware(app);
+        setupWebpackDevMiddleware(app);
     }
 
     httpServer = http.createServer(app);
@@ -59,7 +62,7 @@ const start = () => co(function* () {
     const port = config.get('port');
 
     yield new Promise((resolve, reject) =>
-        void httpServer.listen(port, err => void (err ? reject(err) : resolve())));
+        void httpServer.listen(port, cb(resolve, reject)));
 
     logger.info(`Server is listening on port ${port}`);
 });
@@ -70,7 +73,7 @@ co(function* () {
         yield start();
     }
     catch (err) {
-        console.error(err);
+        logger.critical(err);
         process.exit(1);
     }
 });

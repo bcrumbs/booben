@@ -47,6 +47,13 @@ const config = convict({
         env: 'JSSY_PORT'
     },
 
+    serveStatic: {
+        doc: '',
+        format: Boolean,
+        default: false,
+        env: 'JSSY_SERVE_STATIC'
+    },
+
     projectsDir: {
         doc: 'Projects directory. Default value is for Docker build.',
         format: String,
