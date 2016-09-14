@@ -389,8 +389,6 @@ exports.buildPreviewApp = (project, options) => co(function* () {
     const webpackConfig = generateWebpackConfig(projectDir, libsData),
         stats = yield compile(webpackConfig);
 
-    console.log(require('util').inspect(webpackConfig, { depth: Infinity }));
-
     logger.verbose(stats.toString({ colors: true }));
 
     const webpackLogFile = path.join(

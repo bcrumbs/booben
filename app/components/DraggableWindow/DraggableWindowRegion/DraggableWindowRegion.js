@@ -22,4 +22,3 @@ DraggableWindowRegion.defaultProps = {
 };
 
 DraggableWindowRegion.displayName = 'DraggableWindowRegion';
-
