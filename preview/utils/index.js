@@ -1,4 +1,5 @@
 import Builder from './Builder';
 import * as componentsMap from './componentsMap';
+import * as commonUtils from './common';
 
-export { Builder, componentsMap };
+export { Builder, componentsMap, commonUtils };

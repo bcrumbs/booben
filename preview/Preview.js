@@ -2,8 +2,10 @@ import ReactDOM from 'react-dom';
 import React, { Component, PropTypes } from 'react';
 import { Router, Route, applyRouterMiddleware, hashHistory } from 'react-router';
 
-import { Builder, componentsMap, getCoords } from './utils';
+import { Builder, componentsMap, commonUtils } from './utils';
 import Overlay from './Overlay';
+
+let selected = [];
 
 /**
  * @param  {Array} data
@@ -34,11 +36,18 @@ class Preview extends Component {
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
         this.domNode.addEventListener('click', this._hoistEvent.bind(this), false);
+
+        window.addEventListener("resize", this._resizeEvent.bind(this), false);
     }
 
     componentWillUnmount() {
         this.domNode.removeEventListener('click', this._hoistEvent.bind(this),
             false);
+        window.removeEventListener("resize", this._resizeEvent.bind(this), false);
+    }
+
+    _resizeEvent() {
+        this._renderOverlayDOM();
     }
 
     /**
@@ -65,15 +74,34 @@ class Preview extends Component {
 
         return null;
     }
-
-    _getSelected(el) {
+    /**
+     * Get array selected components
+     * 
+     * @param  {function} el
+     * @param  {Object} params
+     */
+    _updateSelected(el, params) {
         const _owner = this._getOwner(el, (item) => {
-            return item._currentElement.props.uid;
+            return item._currentElement.props.uid == params.uid;
         });
 
         const _domEl = _owner._renderedComponent._hostNode;
 
-        return [_domEl.getBoundingClientRect()];
+        if(selected.find((item) => item.uid == params.uid)) {
+            selected = selected.filter((item) => item.uid != params.uid);
+            commonUtils.hoistEventToConstructor('UnselectСomponent', params);
+        } else {
+            selected.push({
+                el: _domEl,
+                uid: params.uid
+            });
+
+            commonUtils.hoistEventToConstructor('SelectСomponent', params);
+        }
+    }
+
+    _getSelected() {
+        return selected;
     }
 
     /**
@@ -92,18 +120,16 @@ class Preview extends Component {
                     });
 
                     if(_owner) {
-                        let _eventName = 'UnknownEvent';
-
-                        if(e.type == 'click') {
-                            _eventName = 'SelectСomponent';
-
-                            this._getSelected(_el);
-                        }
-
                         const _params = componentsMap.get(
                             _owner._currentElement.props.uid);
 
-                        window.hoistEventToConstructor(_eventName, _params);
+                        if(e.type == 'click') {
+                            this._updateSelected(_el, _params);
+                            this._renderOverlayDOM();
+                        } else {
+                            commonUtils.hoistEventToConstructor('UnknownEvent', _params);
+                        }
+
                         e.stopPropagation();
                     }
                 }
@@ -139,6 +165,15 @@ class Preview extends Component {
                 }
             }
         }
+    }
+
+    _renderOverlayDOM() {
+        const _selected = this._getSelected();
+
+        ReactDOM.render(
+            <Overlay selected={_selected}/>,
+            document.getElementById('overlay')
+        );
     }
 
     render() {
