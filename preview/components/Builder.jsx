@@ -3,9 +3,8 @@
 import React, { Component, PropTypes } from 'react';
 
 // The real components.js will be generated during build process
+import { componentsMap } from '../utils';
 import components from '../components.js';
-import * as componentsMap from './componentsMap.js';
-
 /**
  * class Builder
  */
@@ -52,7 +51,7 @@ class Builder extends Component {
                 componentsMap.set(data.uid, {
                     'uid': data.uid,
                     'name': data.name,
-                    'componentType': data.componentType
+                    'componentType': _component.meta ? _component.meta.kind : 'undefined'
                 });
 
                 return _compositComponent;
@@ -97,8 +96,10 @@ const getComponentByName = (name = '') => {
 const getProps = (props = {}) => {
     let externalProps = {};
 
-    if(props && props.source == 'static') {
-        externalProps = props.sourceData.SourceDataStatic;
+    for(let key in props) {
+        if(props[key].source == 'static') {
+            externalProps[key] = props[key].sourceData.value;
+        }
     }
 
     return externalProps;
