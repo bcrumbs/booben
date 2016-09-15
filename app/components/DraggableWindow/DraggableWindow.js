@@ -1,23 +1,23 @@
+'use strict';
+
 import './DraggableWindow.scss';
-import React, { PropTypes, Component } from 'react';
+import React, { PropTypes } from 'react';
 
-export class DraggableWindow extends Component {
-    constructor(props) {
-        super(props);
-    }
+export const DraggableWindow = props => {
+    let className = 'draggable-window';
 
-    render() {
-        let className = 'draggable-window';
+    if (props.isDragged) className += ' is-dragged';
 
-	    if(this.props.isDragged) className += ' ' + 'is-dragged';
+    const style = {
+        position: 'absolute'
+    };
 
-        return (
-            <div className={className}>
-	            { this.props.children }
-            </div>
-        );
-    }
-}
+    return (
+        <div className={className} style={style}>
+            {props.children}
+        </div>
+    );
+};
 
 DraggableWindow.propTypes = {
 	isDragged: PropTypes.bool
@@ -29,4 +29,4 @@ DraggableWindow.defaultProps = {
 
 DraggableWindow.displayName = 'DraggableWindow';
 
-export * from './DraggableWindowRegion/DraggableWindowRegion'
+export * from './DraggableWindowRegion/DraggableWindowRegion';
