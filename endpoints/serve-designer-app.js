@@ -27,8 +27,10 @@ module.exports = {
                 return;
             }
 
+            const rootDir = path.resolve(__dirname, '..', 'public');
+
             const options = {
-                root: path.resolve(__dirname, '..', 'public'),
+                root: rootDir,
                 dotfiles: 'deny'
             };
 
@@ -36,7 +38,7 @@ module.exports = {
 
             if (req.params[0]) {
                 file = path.join(...req.params[0].split('/'));
-                if (!(yield fs.exists(file))) file = 'index.html';
+                if (!(yield fs.exists(path.join(rootDir, file)))) file = 'index.html';
             }
 
             res.sendFile(file, options, err => {
