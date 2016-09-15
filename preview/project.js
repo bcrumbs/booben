@@ -8,7 +8,6 @@ export default {
             "path": "/",
             "component": {
                 "name": "Reactackle.App",
-                "componentType": "region",
                 "uid": "cmVnaW9uOjA=",
                 "props": {},
                 "children": ["outlet"]
@@ -23,36 +22,27 @@ export default {
                             "component": {
                                 "name": "Reactackle.Card",
                                 "uid": "cmVnaW9uOjE=",
-                                "componentType": "region",
                                 "props": {},
                                 "children": [
                                     {
                                         "name": "Reactackle.Card",
                                         "uid": "cmVnaW9uOjE7",
-                                        "componentType": "region",
                                         "props": {},
                                         "children": [
                                             {
                                                 "name": "Reactackle.Timepicker",
-                                                "componentType": "control",
                                                 "uid": "Y29udHJvbDo2",
-                                                "props": {
-                                                    "source": "static",
-                                                    "sourceData": {
-                                                        "SourceDataStatic": {}
-                                                    }
-                                                }
+                                                "props": {}
                                             }
                                         ]
                                     },
                                     {
                                         "name": "Reactackle.Input",
-                                        "componentType": "control",
                                         "uid": "Y29udHJvbDox",
                                         "props": {
-                                            "source": "static",
-                                            "sourceData": {
-                                                "SourceDataStatic": {
+                                            "value": {
+                                                "source": "static",
+                                                "sourceData": {
                                                     "value": "TEST1"
                                                 }
                                             }
@@ -60,12 +50,11 @@ export default {
                                     },
                                     {
                                         "name": "Reactackle.Input",
-                                        "componentType": "control",
                                         "uid": "Y29udHJvbDoy",
                                         "props": {
-                                            "source": "static",
-                                            "sourceData": {
-                                                "SourceDataStatic": {
+                                            "value": {
+                                                "source": "static",
+                                                "sourceData": {
                                                     "value": "TEST2"
                                                 }
                                             }
@@ -73,13 +62,12 @@ export default {
                                     },
                                     {
                                         "name": "Reactackle.Input",
-                                        "componentType": "control",
                                         "uid": "Y29udHJvbDo0",
                                         "props": {
-                                            "source": "static",
-                                            "sourceData": {
-                                                "SourceDataStatic": {
-                                                    "value": "TEST3"
+                                            "value": {
+                                                "source": "static",
+                                                "sourceData": {
+                                                    "value": "TEST2"
                                                 }
                                             }
                                         }
@@ -90,14 +78,8 @@ export default {
                     ],
                     "component": {
                         "name": "Reactackle.Card",
-                        "componentType": "region",
                         "uid": "cmVnaW9uOjI=",
-                        "props": {
-                            "source": "static",
-                            "sourceData": {
-                                "SourceDataStatic": {}
-                            }
-                        },
+                        "props": {},
                         "children": ["outlet"]
                     }
                 },
@@ -106,12 +88,13 @@ export default {
                     "children": [],
                     "component": {
                         "name": "Reactackle.Radio",
-                        "componentType": "control",
                         "uid": "Y29udHJvbDoz",
                         "props": {
-                            "source": "static",
-                            "sourceData": {
-                                "SourceDataStatic": {}
+                            "checked": {
+                                "source": "static",
+                                "sourceData": {
+                                    "value": true
+                                }
                             }
                         },
                         "children": []

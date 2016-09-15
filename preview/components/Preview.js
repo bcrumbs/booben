@@ -2,10 +2,9 @@ import ReactDOM from 'react-dom';
 import React, { Component, PropTypes } from 'react';
 import { Router, Route, applyRouterMiddleware, hashHistory } from 'react-router';
 
-import { Builder, componentsMap, commonUtils } from './utils';
+import { componentsMap, commonUtils } from '../utils';
+import Builder from './Builder';
 import Overlay from './Overlay';
-
-let selected = [];
 
 /**
  * @param  {Array} data
@@ -33,6 +32,11 @@ const getComponentsByRoute = (data, route, routes) => {
 }
 
 class Preview extends Component {
+    constructor() {
+        super();
+        this.selected = [];
+    }
+
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
         this.domNode.addEventListener('click', this._hoistEvent.bind(this), false);
@@ -84,14 +88,13 @@ class Preview extends Component {
         const _owner = this._getOwner(el, (item) => {
             return item._currentElement.props.uid == params.uid;
         });
-
         const _domEl = _owner._renderedComponent._hostNode;
 
-        if(selected.find((item) => item.uid == params.uid)) {
-            selected = selected.filter((item) => item.uid != params.uid);
+        if(this.selected.find((item) => item.uid == params.uid)) {
+            this.selected = this.selected.filter((item) => item.uid != params.uid);
             commonUtils.hoistEventToConstructor('UnselectСomponent', params);
         } else {
-            selected.push({
+            this.selected.push({
                 el: _domEl,
                 uid: params.uid
             });
@@ -101,7 +104,7 @@ class Preview extends Component {
     }
 
     _getSelected() {
-        return selected;
+        return this.selected;
     }
 
     /**
