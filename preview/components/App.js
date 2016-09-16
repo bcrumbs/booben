@@ -1,12 +1,13 @@
 'use strict';
 
 import React, { Component, PropTypes } from 'react';
+import { connect } from 'react-redux';
 
 import Preview from './Preview';
 
 class App extends Component {
     render() {
-        return <Preview routes={this.props.project.routes} />;
+        return <Preview routes={this.props.project.data.routes} />;
     }
 }
 
@@ -18,4 +19,10 @@ App.defaultProps = {
     project: {}
 };
 
-export default App;
+const mapStateToProps = state => ({
+    project: state.project
+});
+
+export default connect(
+    mapStateToProps
+)(App);

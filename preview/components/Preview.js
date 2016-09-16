@@ -38,16 +38,20 @@ class Preview extends Component {
     }
 
     componentDidMount() {
-        this.domNode = ReactDOM.findDOMNode(this);
-        this.domNode.addEventListener('click', this._hoistEvent.bind(this), false);
+        if(this.props.canSelected) {
+            this.domNode = ReactDOM.findDOMNode(this);
+            this.domNode.addEventListener('click', this._hoistEvent.bind(this), false);
 
-        window.addEventListener("resize", this._resizeEvent.bind(this), false);
+            window.addEventListener("resize", this._resizeEvent.bind(this), false);
+        }
     }
 
     componentWillUnmount() {
-        this.domNode.removeEventListener('click', this._hoistEvent.bind(this),
-            false);
-        window.removeEventListener("resize", this._resizeEvent.bind(this), false);
+        if(this.props.canSelected) {
+            this.domNode.removeEventListener('click', this._hoistEvent.bind(this),
+                false);
+            window.removeEventListener("resize", this._resizeEvent.bind(this), false);
+        }
     }
 
     _resizeEvent() {
@@ -193,11 +197,13 @@ class Preview extends Component {
 }
 
 Preview.propTypes = {
-    routes: PropTypes.array
+    routes: PropTypes.array,
+    canSelected: PropTypes.bool
 };
 
 Preview.defaultProps = {
-    routes: []
+    routes: [],
+    canSelected: false
 };
 
 export default Preview;

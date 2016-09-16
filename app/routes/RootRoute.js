@@ -8,8 +8,6 @@ import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux'
 import { Link } from 'react-router';
 
-import { loadProject } from '../actions/project';
-
 import {
     NOT_LOADED,
     LOADING,
@@ -67,11 +65,6 @@ const toggleFullScreen = () => {
 };
 
 class RootRoute extends Component {
-    componentDidMount() {
-        const projectName = this.props.params.projectName;
-        this.props.onProjectRequest(projectName);
-    }
-
     render() {
         const loadState = this.props.projectLoadState;
 
@@ -111,7 +104,11 @@ class RootRoute extends Component {
 
                         <HeaderRegion size="blank">
                             <HeaderMenu inline dense>
-                                <HeaderMenuItem text="Preview" />
+                                <HeaderMenuItem
+                                    text="Preview"
+                                    linkHref={`/${this.props.projectName}/preview`}
+                                    linkComponent={TopMenuLink}
+                                />
                                 <HeaderMenuItem text="Publish" />
                             </HeaderMenu>
                         </HeaderRegion>
@@ -168,11 +165,6 @@ const mapStateToProps = state => ({
     projectLoadError: state.project.error
 });
 
-const mapDispatchToProps = dispatch => ({
-    onProjectRequest: name => void dispatch(loadProject(name))
-});
-
 export default connect(
-    mapStateToProps,
-    mapDispatchToProps
+    mapStateToProps
 )(RootRoute);
