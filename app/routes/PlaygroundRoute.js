@@ -15,16 +15,8 @@ import {
     HeaderRegion,
     HeaderLogoBox,
     HeaderMenu,
-    HeaderMenuList,
     HeaderMenuItem,
-    HeaderTitle,
     Content,
-    Panel,
-    PanelContent,
-    Tabs,
-    Tab,
-    Row,
-    Button,
     Footer,
     FooterRegion,
     FooterMenu,
@@ -33,30 +25,16 @@ import {
 } from '@reactackle/reactackle';
 
 import {
-    BlockContent,
-    BlockContentTitle,
-    BlockContentNavigation,
     BlockContentBox,
     BlockContentBoxItem,
-    BlockContentBoxHeading,
-    BlockContentActions,
-    BlockContentActionsRegion,
-    BlockContentPlaceholder
-} from './BlockContent/BlockContent';
-
-import {
-    PageDrawer,
-    PageDrawerActionsArea,
-    PageDrawerActionsGroup,
-    PageDrawerActionItem,
-    PageDrawerActionPlaceholder,
-    PageDrawerContentArea
-} from './PageDrawer/PageDrawer';
+    BlockContentBoxHeading
+} from '../components/BlockContent/BlockContent';
 
 
-import { ComponentPlaceholder } from './ComponentPlaceholder/ComponentPlaceholder';
-import { ToolWindow } from './ToolWindow/ToolWindow';
-import { ToolPanel } from './ToolPanel/ToolPanel';
+import { ComponentPlaceholder } from '../components/ComponentPlaceholder/ComponentPlaceholder';
+import { ToolWindow } from '../containers/ToolWindow/ToolWindow';
+import { ToolPanel } from '../containers/ToolPanel/ToolPanel';
+import { Desktop } from '../containers/Desktop/Desktop';
 
 
 const toolWindowSections = [
@@ -111,6 +89,32 @@ const toolWindowSecondaryActions = [
     }
 ];
 
+const toolGroups = [{
+    tools: [{
+        icon: 'cube',
+        name: 'Tool 1',
+        title: 'Hey ho lets go',
+        undockable: true,
+        closable: false,
+        docked: true,
+        closed: false,
+        sections: toolWindowSections,
+        mainButtons: toolWindowMainActions,
+        secondaryButtons: toolWindowSecondaryActions
+    }, {
+        icon: 'server',
+        name: 'Tool 2',
+        title: 'fuck you i\'m drunk',
+        undockable: true,
+        closable: false,
+        docked: false,
+        closed: false,
+        sections: toolWindowSections,
+        mainButtons: toolWindowMainActions,
+        secondaryButtons: toolWindowSecondaryActions
+    }]
+}];
+
 export default class Playground extends React.Component {
     constructor(props) {
         super(props);
@@ -127,9 +131,6 @@ export default class Playground extends React.Component {
 
                         <HeaderRegion region="main" size='blank'>
                             <HeaderMenu inline={true}  dense={true}>
-                                {/*<MenuComposer data={list1} />*/}
-
-
                                 <HeaderMenuItem text="Structure" />
                                 <HeaderMenuItem text="Design">
                                     <HeaderMenuItem text="User Route 1: index" />
@@ -137,7 +138,6 @@ export default class Playground extends React.Component {
                                 </HeaderMenuItem>
                                 <HeaderMenuItem text="Data" isActive={true}/>
                                 <HeaderMenuItem text="Settings" />
-
                             </HeaderMenu>
                         </HeaderRegion>
 
@@ -150,36 +150,7 @@ export default class Playground extends React.Component {
                     </Header>
                 </TopRegion>
 
-                <MainRegion>
-                    <Content>
-                        <ToolWindow
-                            title="Move me"
-                            subtitle="I'm a little movable window"
-                            sections={toolWindowSections}
-                            mainButtons={toolWindowMainActions}
-                            secondaryButtons={toolWindowSecondaryActions}
-                        />
-                    </Content>
-
-                    <PageDrawer isExpanded>
-                        <PageDrawerActionsArea>
-                            <PageDrawerActionsGroup>
-                                <PageDrawerActionItem icon='cube' title="Component Props" isActive={true} />
-                                <PageDrawerActionItem icon='file-text-o' title="Data"/>
-                                <PageDrawerActionItem icon='sitemap' title="Elements Tree"/>
-                                <PageDrawerActionPlaceholder />
-                            </PageDrawerActionsGroup>
-                        </PageDrawerActionsArea>
-
-                        <ToolPanel
-                            title="Don't move me"
-                            sections={toolWindowSections}
-                            mainButtons={toolWindowMainActions}
-                            secondaryButtons={toolWindowSecondaryActions}
-                        />
-
-                    </PageDrawer>
-                </MainRegion>
+                <Desktop toolGroups={toolGroups}/>
 
                 <BottomRegion fixed={false}>
                     <Footer>

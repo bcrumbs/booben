@@ -10,7 +10,7 @@ import ReactDOM from 'react-dom';
 import {
     DraggableWindow,
     DraggableWindowRegion
-} from '../DraggableWindow/DraggableWindow';
+} from '../../components/DraggableWindow/DraggableWindow';
 
 import {
     BlockContent,
@@ -18,13 +18,15 @@ import {
     BlockContentNavigation,
     BlockContentActions,
     BlockContentActionsRegion
-} from '../BlockContent/BlockContent';
+} from '../../components/BlockContent/BlockContent';
 
 import {
     Button,
     Tabs,
     Tab
 } from '@reactackle/reactackle';
+
+import ButtonType from '../../prop-types/Button';
 
 
 let draggedWindow = null,
@@ -300,13 +302,6 @@ export class ToolWindow extends Component {
         );
     }
 }
-
-const ButtonType = PropTypes.shape({
-    icon: PropTypes.string,
-    text: PropTypes.string,
-    disabled: PropTypes.bool,
-    onPress: PropTypes.func
-});
 
 ToolWindow.propTypes = {
     title: PropTypes.string,

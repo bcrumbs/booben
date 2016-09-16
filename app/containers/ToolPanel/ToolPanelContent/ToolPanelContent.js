@@ -8,20 +8,20 @@ import React, { PropTypes } from 'react';
 
 import {
     PageDrawerContentArea
-} from '../PageDrawer/PageDrawer';
+} from '../../../components/PageDrawer/PageDrawer';
 
 import {
     BlockContent,
     BlockContentTitle,
     BlockContentActions,
     BlockContentActionsRegion
-} from '../BlockContent/BlockContent';
+} from '../../../components/BlockContent/BlockContent';
 
 import {
     Button
 } from '@reactackle/reactackle'
 
-export const ToolPanel = props => {
+export const ToolPanelContent = props => {
     const titleButtons = [];
 
     if (props.undockable) titleButtons.push({
@@ -109,7 +109,7 @@ const ButtonType = PropTypes.shape({
     onPress: PropTypes.func
 });
 
-ToolPanel.propTypes = {
+ToolPanelContent.propTypes = {
     title: PropTypes.string,
     titleEditable: PropTypes.bool,
     onTitleChange: PropTypes.func,
@@ -124,7 +124,7 @@ ToolPanel.propTypes = {
     secondaryButtons: PropTypes.arrayOf(ButtonType)
 };
 
-ToolPanel.defaultProps = {
+ToolPanelContent.defaultProps = {
     title: '',
     titleEditable: false,
     onTitleChange: /* istanbul ignore next */ () => {},
@@ -136,4 +136,4 @@ ToolPanel.defaultProps = {
     secondaryButtons: []
 };
 
-ToolPanel.displayName = 'ToolPanel';
+ToolPanelContent.displayName = 'ToolPanelContent';

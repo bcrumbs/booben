@@ -15,8 +15,7 @@ import { Provider } from 'react-redux';
 import RootRoute from './routes/RootRoute';
 import StructureRoute from './routes/StructureRoute';
 import DesignRoute from './routes/DesignRoute';
-
-import Playground from './components/Playground';
+import PlaygroundRoute from './routes/PlaygroundRoute';
 
 import store from './store';
 
@@ -28,7 +27,7 @@ window.addEventListener('DOMContentLoaded', () => {
     ReactDOM.render(
         <Provider store={store}>
             <Router history={history}>
-                <Route path="/playground" component={Playground}/>
+                <Route path="/playground" component={PlaygroundRoute}/>
 
                 <Route path="/:projectName" component={RootRoute}>
                     <IndexRedirect to="/:projectName/structure" />

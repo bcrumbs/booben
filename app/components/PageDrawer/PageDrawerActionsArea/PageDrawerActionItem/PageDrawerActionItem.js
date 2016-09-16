@@ -1,3 +1,5 @@
+'use strict';
+
 import React, { PropTypes } from 'react';
 import { Button, Tooltip } from '@reactackle/reactackle';
 
@@ -9,12 +11,12 @@ export const PageDrawerActionItem = props => {
         button = null;
 
     if (props.icon) {
-        button = <Button icon={props.icon} />;
+        button = <Button icon={props.icon} onPress={props.onPress}/>;
         tooltip = <Tooltip text={props.title} />;
         className += ' has-tooltip';
     }
     else {
-        button = <Button text={props.title} />;
+        button = <Button text={props.title} onPress={props.onPress} />;
     }
 
     return (
@@ -28,13 +30,15 @@ export const PageDrawerActionItem = props => {
 PageDrawerActionItem.propTypes = {
     icon: PropTypes.string,
     title: PropTypes.string,
-    isActive: PropTypes.bool
+    isActive: PropTypes.bool,
+    onPress: PropTypes.func
 };
 
 PageDrawerActionItem.defaultProps = {
     icon: null,
     title: null,
-    isActive: false
+    isActive: false,
+    onPress: () => /* istanbul ignore next */ {}
 };
 
 PageDrawerActionItem.displayName = 'PageDrawerActionItem';
