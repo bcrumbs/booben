@@ -1,17 +1,22 @@
 import ReactDOM from 'react-dom';
 import React from 'react';
+import { Provider } from 'react-redux';
 
 import App from './components/App';
-import project from './project';
+
+window.JSSY = {};
 
 /**
  * Rendering of preview
  * 
  * @return {}
  */
-window.renderProject = function(project) {
+
+window.JSSY.setStore = function(store) {
     ReactDOM.render(
-        <App project={project} />,
+        <Provider store={store}>
+            <App/>
+        </Provider>,
         document.getElementById('container')
     );
 }
@@ -22,5 +27,3 @@ window.renderProject = function(project) {
 window.hoistEventToConstructor = function(eventName, params) {
     console.log(eventName, params);
 }
-
-window.renderProject(project);
