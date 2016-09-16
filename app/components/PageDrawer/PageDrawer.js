@@ -1,69 +1,66 @@
 import './PageDrawer.scss'
 
-import React, { PropTypes, Component } from 'react';
+import React, { PropTypes } from 'react';
 import { PageDrawerActionsArea } from './PageDrawerActionsArea/PageDrawerActionsArea';
 
-export class PageDrawer extends Component {
-    render() {
-        let className = 'page-drawer',
-	        props = this.props,
-	        children = props.children;
+export const PageDrawer = props => {
+    let className = 'page-drawer',
+        children = props.children;
 
-	    className += ' ' + (props.isExpanded ? 'is-expanded' : 'is-collapsed');
+    className += props.isExpanded ? ' is-expanded' : ' is-collapsed';
 
-	    if (props.overlay) className += ' is-overlayed';
-	    if (props.isEmpty) className += ' is-empty';
+    if (props.overlay) className += ' is-overlayed';
+    if (props.isEmpty) className += ' is-empty';
 
-	    if (children) {
-		    children = React.Children.toArray(children);
+    if (children) {
+        children = React.Children.toArray(children);
 
-		    let actionsArea = null;
+        let actionsArea = null;
 
-		    for (let i = 0, l = children.length; i < l; i++) {
-			    if (children[i].type === PageDrawerActionsArea) {
-				    actionsArea = children[i];
-				    break;
-			    }
-		    }
+        for (let i = 0, l = children.length; i < l; i++) {
+            if (children[i].type === PageDrawerActionsArea) {
+                actionsArea = children[i];
+                break;
+            }
+        }
 
-		    if (actionsArea !== null)
-			    className += ' page-drawer-has-actions';
-	    }
+        if (actionsArea !== null)
+            className += ' page-drawer-has-actions';
+    }
 
-        let collapseButton = null;
-	    if (props.collapseButtonText) {
-	    	collapseButton =
-			    <a className='page-drawer-collapse-button' >
-				    {props.collapseButtonText}
-			    </a>;
-	    }
+    let collapseButton = null;
+    if (props.collapseButtonText) {
+        collapseButton =
+            <a className='page-drawer-collapse-button' >
+                {props.collapseButtonText}
+            </a>;
+    }
 
-	    let actions = null;
-	    if (props.actions) {
-		    actions = props.data.map((item) => {
-		    	return getActions(item);
-		    })
-	    }
+    let actions = null;
+    if (props.actions) {
+        actions = props.data.map((item) => {
+            return getActions(item);
+        })
+    }
 
-	    let actionsArea = null;
-	    if (props.actionsType || collapseButton) {
-	    	actionsArea = (
-			    <PageDrawerActionsArea >
-				    {collapseButton}
-				    {actions}
-			    </PageDrawerActionsArea>
-		    );
-	    }
-
-        return (
-            <div className={className}>
-	            <div className='page-drawer-wrapper'>
-		            { props.children }
-	            </div>
-            </div>
+    let actionsArea = null;
+    if (props.actionsType || collapseButton) {
+        actionsArea = (
+            <PageDrawerActionsArea >
+                {collapseButton}
+                {actions}
+            </PageDrawerActionsArea>
         );
     }
-}
+
+    return (
+        <div className={className}>
+            <div className='page-drawer-wrapper'>
+                { props.children }
+            </div>
+        </div>
+    );
+};
 
 PageDrawer.propTypes = {
     defaultExpanded: PropTypes.bool,
@@ -71,7 +68,7 @@ PageDrawer.propTypes = {
     isEmpty: PropTypes.bool,
     title: PropTypes.string,
     collapseButtonText: PropTypes.string,
-	mode: PropTypes.oneOf(['overlay', 'shift', 'resize'])
+    mode: PropTypes.oneOf(['overlay', 'shift', 'resize'])
 };
 
 PageDrawer.defaultProps = {
@@ -80,7 +77,7 @@ PageDrawer.defaultProps = {
     isEmpty: true,
     title: '',
     collapseButtonText: 'collapse',
-	mode: 'resize'
+    mode: 'resize'
 };
 
 PageDrawer.displayName = 'PageDrawer';

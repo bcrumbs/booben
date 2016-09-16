@@ -5,12 +5,13 @@ import React, { PropTypes } from 'react';
 
 export const DraggableWindow = props => {
     let className = 'draggable-window';
-
     if (props.isDragged) className += ' is-dragged';
 
     const style = {
         position: 'absolute'
     };
+
+    if (props.maxHeight > 0) style.maxHeight = `${props.maxHeight}px`;
 
     return (
         <div className={className} style={style}>
@@ -20,11 +21,13 @@ export const DraggableWindow = props => {
 };
 
 DraggableWindow.propTypes = {
-	isDragged: PropTypes.bool
+    isDragged: PropTypes.bool,
+    maxHeight: PropTypes.number
 };
 
 DraggableWindow.defaultProps = {
-	isDragged: false
+    isDragged: false,
+    maxHeight: 0
 };
 
 DraggableWindow.displayName = 'DraggableWindow';

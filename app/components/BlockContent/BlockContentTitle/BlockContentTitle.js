@@ -1,9 +1,8 @@
-import React, { Component, PropTypes } from 'react';
+import React, { PropTypes } from 'react';
 import { Icon, Button } from '@reactackle/reactackle';
 
 export const BlockContentTitle = props => {
     const prefix = 'block-content';
-
     let titleClassName = `${prefix}-title-box`;
 
     if (props.isEditable) titleClassName += ' is-editable';

@@ -1,30 +1,26 @@
-import React, { Component, PropTypes } from 'react';
+import React, { PropTypes } from 'react';
 
 export const BlockContentBox = props => {
-	let className = `block-content-box-area`;
+    let className = `block-content-box-area`;
+    if (props.isBordered) className += ' is-bordered';
 
-	const prefix = 'block-content';
-
-	if (props.isBordered) className += ' ' + 'is-bordered';
-
-	return (
-		<div className={className}>
-			{props.children}
-		</div>
-	);
+    return (
+        <div className={className}>
+            {props.children}
+        </div>
+    );
 
 };
 
 BlockContentBox.propTypes = {
-	isBordered: PropTypes.bool
+    isBordered: PropTypes.bool
 };
 
 BlockContentBox.defaultProps = {
-	isBordered: true
+    isBordered: true
 };
 
 BlockContentBox.displayName = 'BlockContentBox';
 
 export * from './BlockContentBoxItem/BlockContentBoxItem'
 export * from './BlockContentBoxHeading/BlockContentBoxHeading'
-

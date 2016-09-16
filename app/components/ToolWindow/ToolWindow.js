@@ -71,8 +71,11 @@ export class ToolWindow extends Component {
 
         this.state = {
             dragging: false,
-            activeSection: 0
+            activeSection: 0,
+            actionsAreaHasBorder: false
         };
+
+        this._haveActionsArea = false;
 
         this._handleDragIconMouseDown = this._handleDragIconMouseDown.bind(this);
         this._handleNavigation = this._handleNavigation.bind(this);
@@ -96,6 +99,8 @@ export class ToolWindow extends Component {
         this.dx = 0;
         this.dy = 0;
         this.needRAF = true;
+
+        this._updateActionsAreaBorder();
     }
 
     componentWillUnmount() {
@@ -107,6 +112,33 @@ export class ToolWindow extends Component {
         }
 
         this.domNode = null;
+    }
+
+    componentDidUpdate() {
+        this._updateActionsAreaBorder();
+    }
+
+    _updateActionsAreaBorder() {
+        let needBorder = false;
+
+        if (this._haveActionsArea) {
+            // Ugly hack
+            const el = ReactDOM.findDOMNode(this),
+                actionsAreaEl = el.querySelector('.block-content-actions-area');
+
+            if (actionsAreaEl) {
+                const contentAreaEl = actionsAreaEl.previousElementSibling;
+
+                if (contentAreaEl)
+                    needBorder = contentAreaEl.scrollHeight > contentAreaEl.clientHeight;
+            }
+        }
+
+        if (this.state.actionsAreaHasBorder !== needBorder) {
+            this.setState({
+                actionsAreaHasBorder: needBorder
+            });
+        }
     }
 
     _handleDragIconMouseDown(event) {
@@ -201,18 +233,20 @@ export class ToolWindow extends Component {
                 ));
 
                 secondaryButtonsRegion = (
-                    <BlockContentActionsRegion>
+                    <BlockContentActionsRegion type="secondary">
                         {buttons}
                     </BlockContentActionsRegion>
                 );
             }
 
             actionsArea = (
-                <BlockContentActions>
+                <BlockContentActions isBordered={this.state.actionsAreaHasBorder}>
                     {secondaryButtonsRegion}
                     {mainActionsRegion}
                 </BlockContentActions>
             );
+
+            this._haveActionsArea = true;
         }
 
         const mainRegion = (
@@ -229,7 +263,7 @@ export class ToolWindow extends Component {
 
                     {navArea}
 
-                    <ContentComponent/>
+                    <ContentComponent />
 
                     {actionsArea}
                 </BlockContent>
@@ -256,11 +290,14 @@ export class ToolWindow extends Component {
         }
 
         return (
-            <DraggableWindow isDragged={this.state.dragging}>
+            <DraggableWindow
+                isDragged={this.state.dragging}
+                maxHeight={this.props.maxHeight}
+            >
                 {mainRegion}
                 {sideRegion}
             </DraggableWindow>
-        )
+        );
     }
 }
 
@@ -287,7 +324,8 @@ ToolWindow.propTypes = {
         sideRegionComponent: PropTypes.func
     })),
     mainButtons: PropTypes.arrayOf(ButtonType),
-    secondaryButtons: PropTypes.arrayOf(ButtonType)
+    secondaryButtons: PropTypes.arrayOf(ButtonType),
+    maxHeight: PropTypes.number
 };
 
 ToolWindow.defaultProps = {
@@ -302,7 +340,8 @@ ToolWindow.defaultProps = {
     onDock: /* istanbul ignore next*/ () => {},
     sections: [],
     mainButtons: [],
-    secondaryButtons: []
+    secondaryButtons: [],
+    maxHeight: 0
 };
 
 ToolWindow.displayName = 'ToolWindow';

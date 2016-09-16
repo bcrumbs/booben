@@ -1,15 +1,9 @@
-import React, { Component, PropTypes } from 'react';
+import React from 'react';
 
-export const PageDrawerActionsGroup = props => {
-	let className = `page-drawer-actions-group`;
-
-	return (
-		<div className={className}>
-			{props.children}
-		</div>
-	);
-
-};
+export const PageDrawerActionsGroup = props => (
+    <div className='page-drawer-actions-group'>
+        {props.children}
+    </div>
+);
 
 PageDrawerActionsGroup.displayName = 'PageDrawerActionsGroup';
-

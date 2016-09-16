@@ -1,10 +1,9 @@
 import './ComponentPlaceholder.scss';
-import React, { PropTypes, Component } from 'react';
+import React, { PropTypes } from 'react';
 
 export const ComponentPlaceholder = props => {
     let className = 'component-placeholder';
-
-    className += props.isPlaced? ' is-placed' : ' is-free';
+    className += props.isPlaced ? ' is-placed' : ' is-free';
 
     return (
         <div className={className}>
@@ -16,13 +15,13 @@ export const ComponentPlaceholder = props => {
 };
 
 ComponentPlaceholder.propTypes = {
-	title: PropTypes.string,
-	isPlaced: PropTypes.bool
+    title: PropTypes.string,
+    isPlaced: PropTypes.bool
 };
 
 ComponentPlaceholder.defaultProps = {
-	title: '',
-	isPlaced: false
+    title: '',
+    isPlaced: false
 };
 
 ComponentPlaceholder.displayName = 'ComponentPlaceholder';

@@ -1,37 +1,40 @@
-import React, { Component, PropTypes } from 'react';
+import React, { PropTypes } from 'react';
 import { Button, Tooltip } from '@reactackle/reactackle';
 
 export const PageDrawerActionItem = props => {
-	let className = `page-drawer-action-item`;
+    let className = `page-drawer-action-item`;
+    if (props.isActive) className += ' is-active';
 
-	if (props.isActive) className += ' ' + 'is-active';
+    let tooltip = null,
+        button = null;
 
-	let tooltip = null;
-	if (props.icon) {
-		tooltip = <Tooltip text={props.title} />;
-		className += ' ' + 'has-tooltip';
-	}
+    if (props.icon) {
+        button = <Button icon={props.icon} />;
+        tooltip = <Tooltip text={props.title} />;
+        className += ' has-tooltip';
+    }
+    else {
+        button = <Button text={props.title} />;
+    }
 
-	return (
-		<div className={className}>
-			<Button icon={props.icon} text={props.icon ? null : props.title}/>
-			{tooltip}
-		</div>
-	);
-
+    return (
+        <div className={className}>
+            {button}
+            {tooltip}
+        </div>
+    );
 };
 
 PageDrawerActionItem.propTypes = {
-	icon: PropTypes.string,
-	title: PropTypes.string,
-	isActive: PropTypes.bool
+    icon: PropTypes.string,
+    title: PropTypes.string,
+    isActive: PropTypes.bool
 };
 
 PageDrawerActionItem.defaultProps = {
-	icon: null,
-	title: null,
-	isActive: false
+    icon: null,
+    title: null,
+    isActive: false
 };
 
 PageDrawerActionItem.displayName = 'PageDrawerActionItem';
-

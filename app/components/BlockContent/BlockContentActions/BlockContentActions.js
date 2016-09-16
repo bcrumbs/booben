@@ -1,27 +1,25 @@
-import React, { Component, PropTypes } from 'react';
+import React, { PropTypes } from 'react';
 
 export const BlockContentActions = props => {
-	let className = `block-content-actions-area`;
+    let className = 'block-content-actions-area';
+    if (props.isBordered) className += ' is-bordered';
 
-	if(props.isBordered) className += ' ' + 'is-bordered';
-
-	return (
-		<div className={className}>
-			{props.children}
-		</div>
-	);
+    return (
+        <div className={className}>
+            {props.children}
+        </div>
+    );
 
 };
 
 BlockContentActions.propTypes = {
-	isBordered: PropTypes.bool
+    isBordered: PropTypes.bool
 };
 
 BlockContentActions.defaultProps = {
-	isBordered: false
+    isBordered: false
 };
 
 BlockContentActions.displayName = 'BlockContentActions';
 
 export * from './BlockContentActionsRegion/BlockContentActionsRegion'
-
