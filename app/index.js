@@ -26,14 +26,6 @@ const history = useRouterHistory(createHistory)({
     basename: '/app'
 });
 
-class Wrap extends React.Component {
-    render() {
-        return <div className="WRAP">
-            {this.props.children}
-        </div>;
-    }
-}
-
 window.addEventListener('DOMContentLoaded', () => {
     ReactDOM.render(
         <Provider store={store}>
