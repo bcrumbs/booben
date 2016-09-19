@@ -4,9 +4,12 @@
 
 'use strict';
 
-import project from './project';
 import { combineReducers } from 'redux';
 
+import project from './project';
+import preview from './preview';
+
 export default combineReducers({
-    project
+    project,
+    preview
 });

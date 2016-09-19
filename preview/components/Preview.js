@@ -3,9 +3,11 @@ import React, { Component, PropTypes } from 'react';
 import { Router, Route, applyRouterMiddleware, hashHistory } from 'react-router';
 import { connect } from 'react-redux';
 
-import { componentsMap, commonUtils } from '../utils';
+import { componentsMap } from '../utils';
 import Builder from './Builder';
 import Overlay from './Overlay';
+
+import { updatePreviewSelected } from '../../app/actions/preview'
 
 /**
  * @param  {Array} data
@@ -32,10 +34,17 @@ const getComponentsByRoute = (data, route, routes) => {
     return _component;
 }
 
+let mapDispatchToEvents = function(dispatch) {
+  return {
+    updateSelected: function(selected) {
+        dispatch(updatePreviewSelected(selected));
+    }
+  };
+}
+
 class Preview extends Component {
     constructor() {
         super();
-        this.selected = [];
     }
 
     componentDidMount() {
@@ -93,23 +102,26 @@ class Preview extends Component {
         const _owner = this._getOwner(el, (item) => {
             return item._currentElement.props.uid == params.uid;
         });
-        const _domEl = _owner._renderedComponent._hostNode;
 
-        if(this.selected.find((item) => item.uid == params.uid)) {
-            this.selected = this.selected.filter((item) => item.uid != params.uid);
-            commonUtils.hoistEventToConstructor('UnselectСomponent', params);
+        const _domEl = _owner._renderedComponent._hostNode,
+            _prevSelected = this.props.selected;
+
+        let _nextSelected = [];
+
+        if(_prevSelected.find((item) => item.uid == params.uid)) {
+            _nextSelected = _prevSelected.filter((item) => item.uid != params.uid);
         } else {
-            this.selected.push({
+            _nextSelected = _nextSelected.concat({
                 el: _domEl,
                 uid: params.uid
-            });
-
-            commonUtils.hoistEventToConstructor('SelectСomponent', params);
+            }, _prevSelected);
         }
+
+        this.props.updateSelected(_nextSelected);
     }
 
     _getSelected() {
-        return this.selected;
+        return this.props.selected;
     }
 
     /**
@@ -208,9 +220,11 @@ Preview.defaultProps = {
 };
 
 const mapStateToProps = state => ({
-    routes: state.project.data.routes
+    routes: state.project.data.routes,
+    selected: state.preview.selectedItems
 });
 
 export default connect(
-    mapStateToProps
+    mapStateToProps,
+    mapDispatchToEvents
 )(Preview);
