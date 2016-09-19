@@ -10,12 +10,22 @@ import {
     PageDrawer,
     PageDrawerActionsArea,
     PageDrawerActionsGroup,
-    PageDrawerActionItem
+    PageDrawerActionItem,
+    PageDrawerActionPlaceholder
 } from '../../components/PageDrawer/PageDrawer';
 
 import { ToolPanelContent } from './ToolPanelContent/ToolPanelContent';
 
 import ToolType from '../../prop-types/Tool';
+
+const getFirstTool = toolGroups => {
+    for (let i = 0, l = toolGroups.length; i < l; i++)
+        for (let j = 0, m = toolGroups[i].tools.length; j < m; j++)
+            if (toolGroups[i].tools[j] !== 'placeholder')
+                return toolGroups[i].tools[j];
+
+    return null;
+};
 
 export class ToolPanel extends Component {
     constructor(props) {
@@ -23,8 +33,7 @@ export class ToolPanel extends Component {
 
         this.state = {
             isExpanded: props.isExpanded,
-            activeGroup: 0,
-            activeTool: 0
+            activeTool: getFirstTool(props.toolGroups)
         };
 
         this._handleCollapse = this._handleCollapse.bind(this);
@@ -32,27 +41,31 @@ export class ToolPanel extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        const newState = {};
-        let willSetState = false;
-
-        if (nextProps.isExpanded !== this.state.isExpanded) {
-            newState.isExpanded = nextProps.isExpanded;
-            willSetState = true;
-        }
-
         if (nextProps.toolGroups !== this.props.toolGroups) {
-            newState.activeGroup = 0;
-            newState.activeTool = 0;
-            willSetState = true;
-        }
+            let foundActiveTool = false;
 
-        if (willSetState) this.setState(newState);
+            for (let i = 0, l = nextProps.toolGroups.length; i < l; i++) {
+                for (let j = 0, m = nextProps.toolGroups[i].tools.length; j < m; j++) {
+                    if (nextProps.toolGroups[i].tools[j] === this.state.activeTool) {
+                        foundActiveTool = true;
+                        break;
+                    }
+                }
+
+                if (foundActiveTool) break;
+            }
+
+            if (!foundActiveTool) {
+                this.setState({
+                    activeTool: getFirstTool(nextProps.toolGroups)
+                });
+            }
+        }
     }
 
-    _handlePanelSelect(groupIdx, panelIdx) {
+    _handlePanelSelect(tool) {
         this.setState({
-            activeGroup: groupIdx,
-            activeTool: panelIdx,
+            activeTool: tool,
             isExpanded: true
         });
     }
@@ -64,41 +77,26 @@ export class ToolPanel extends Component {
     }
 
     _handleUndockActiveTool() {
-        const activeTool =
-            this.props.toolGroups[this.state.activeGroup].tools[this.state.activeTool];
-
-        this.props.onToolUndock(activeTool);
+        this.props.onToolUndock(this.state.activeTool);
     }
 
     render() {
-        const haveTools = this.props.toolGroups.some(group => group.tools.length > 0);
-
-        if (!haveTools) {
-            return (
-                <PageDrawer>
-                    <PageDrawerActionsArea/>
-                </PageDrawer>
-            )
-        }
+        const activeTool = this.state.activeTool;
 
         const panelSwitcherGroups = this.props.toolGroups
             .filter(group => group.tools.length > 0)
             .map((group, groupIdx) => {
-                const icons = group.tools.map((panel, panelIdx) => {
-                    const isActive =
-                        groupIdx === this.state.activeGroup &&
-                        panelIdx === this.state.activeTool;
-
-                    const onPress =
-                        this._handlePanelSelect.bind(this, groupIdx, panelIdx);
+                const icons = group.tools.map((tool, toolIdx) => {
+                    if (tool === 'placeholder')
+                        return <PageDrawerActionPlaceholder key={toolIdx}/>;
 
                     return (
                         <PageDrawerActionItem
-                            icon={panel.icon}
-                            title={panel.name}
-                            isActive={isActive}
-                            key={panelIdx}
-                            onPress={onPress}
+                            icon={tool.icon}
+                            title={tool.name}
+                            isActive={tool === activeTool}
+                            key={toolIdx}
+                            onPress={this._handlePanelSelect.bind(this, tool)}
                         />
                     );
                 });
@@ -110,15 +108,11 @@ export class ToolPanel extends Component {
                 );
             });
 
-        const activeTool =
-            this.props.toolGroups[this.state.activeGroup].tools[this.state.activeTool];
+        let panelContent = null,
+            isExpanded = false;
 
-        return (
-            <PageDrawer isExpanded={this.state.isExpanded}>
-                <PageDrawerActionsArea>
-                    {panelSwitcherGroups}
-                </PageDrawerActionsArea>
-
+        if (activeTool !== null) {
+            panelContent = (
                 <ToolPanelContent
                     title={activeTool.title}
                     titleEditable={activeTool.titleEditable}
@@ -130,6 +124,18 @@ export class ToolPanel extends Component {
                     mainButtons={activeTool.mainButtons}
                     secondaryButtons={activeTool.secondaryButtons}
                 />
+            );
+
+            isExpanded = this.state.isExpanded;
+        }
+
+        return (
+            <PageDrawer isExpanded={isExpanded}>
+                <PageDrawerActionsArea>
+                    {panelSwitcherGroups}
+                </PageDrawerActionsArea>
+
+                {panelContent}
             </PageDrawer>
         );
     }
@@ -138,7 +144,10 @@ export class ToolPanel extends Component {
 ToolPanel.propTypes = {
     isExpanded: PropTypes.bool,
     toolGroups: PropTypes.arrayOf(PropTypes.shape({
-        tools: PropTypes.arrayOf(ToolType)
+        tools: PropTypes.arrayOf(PropTypes.oneOfType([
+            ToolType,
+            PropTypes.string
+        ]))
     })),
     onToolUndock: PropTypes.func
 };

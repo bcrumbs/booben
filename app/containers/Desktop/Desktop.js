@@ -16,7 +16,13 @@ export class Desktop extends Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            toolInStickRegion: null
+        };
+
         this._handleToolUndock = this._handleToolUndock.bind(this);
+        this._handleStickRegionLeave = this._handleStickRegionLeave.bind(this);
+        this._handleStopDrag = this._handleStopDrag.bind(this);
     }
 
     _handleClose(tool) {
@@ -35,6 +41,26 @@ export class Desktop extends Component {
         this.forceUpdate();
     }
 
+    _handleStickRegionEnter(tool) {
+        this.setState({
+            toolInStickRegion: tool
+        });
+    }
+
+    _handleStickRegionLeave() {
+        this.setState({
+            toolInStickRegion: null
+        });
+    }
+
+    _handleStopDrag() {
+        if (this.state.toolInStickRegion) {
+            this.state.toolInStickRegion.docked = true;
+            this.state.toolInStickRegion = null;
+            this.forceUpdate();
+        }
+    }
+
     render() {
         const windowedTools = [];
         this.props.toolGroups.forEach(toolGroup => {
@@ -44,14 +70,23 @@ export class Desktop extends Component {
         });
 
         const dockedToolGroups = this.props.toolGroups
-            .map(toolGroup => ({
-                tools: toolGroup.tools.filter(tool => tool.docked)
-            }))
+            .map(toolGroup => {
+                const ret = { tools: [] };
+
+                toolGroup.tools.forEach(tool => {
+                    if (tool.docked)
+                        ret.tools.push(tool);
+                    else if (tool === this.state.toolInStickRegion)
+                        ret.tools.push('placeholder');
+                });
+
+                return ret;
+            })
             .filter(toolGroup => toolGroup.tools.length > 0);
 
-        const windows = windowedTools.map((tool, idx) => (
+        const windows = windowedTools.map(tool => (
             <ToolWindow
-                key={idx}
+                key={tool.id}
                 title={tool.title}
                 titleEditable={tool.titleEditable}
                 subtitle={tool.subtitle}
@@ -63,6 +98,13 @@ export class Desktop extends Component {
                 mainButtons={tool.mainButtons}
                 secondaryButtons={tool.secondaryButtons}
                 maxHeight={tool.maxHeight}
+                constrainPosition
+                marginRight={8}
+                marginBottom={8}
+                stickRegionRight={100}
+                onStickRegionEnter={this._handleStickRegionEnter.bind(this, tool)}
+                onStickRegionLeave={this._handleStickRegionLeave}
+                onStopDrag={this._handleStopDrag}
             />
         ));
 

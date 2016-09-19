@@ -91,6 +91,7 @@ const toolWindowSecondaryActions = [
 
 const toolGroups = [{
     tools: [{
+        id: 'tool1',
         icon: 'cube',
         name: 'Tool 1',
         title: 'Hey ho lets go',
@@ -102,6 +103,7 @@ const toolGroups = [{
         mainButtons: toolWindowMainActions,
         secondaryButtons: toolWindowSecondaryActions
     }, {
+        id: 'tool2',
         icon: 'server',
         name: 'Tool 2',
         title: 'fuck you i\'m drunk',

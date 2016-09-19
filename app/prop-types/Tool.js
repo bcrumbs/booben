@@ -8,6 +8,7 @@ import { PropTypes } from 'react';
 import ButtonType from './Button';
 
 export default PropTypes.shape({
+    id: PropTypes.string.isRequired,
     icon: PropTypes.string.isRequired,
     name: PropTypes.string.isRequired,
     title: PropTypes.string,

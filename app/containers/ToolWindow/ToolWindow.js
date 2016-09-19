@@ -28,38 +28,27 @@ import {
 
 import ButtonType from '../../prop-types/Button';
 
+export const STICK_REGION_LEFT = 0;
+export const STICK_REGION_RIGHT = 1;
+export const STICK_REGION_TOP = 2;
+export const STICK_REGION_BOTTOM = 3;
 
 let draggedWindow = null,
     windowsNum = 0;
 
 const mouseUpListener = () => {
     if (draggedWindow === null) return;
-
-    draggedWindow.setState({
-        dragging: false
-    });
-
-    draggedWindow = null;
+    draggedWindow._handleStopDrag();
 };
 
 const updateWindowElement = () => {
     if (draggedWindow === null) return;
-    draggedWindow.needRAF = true;
-
-    const { dx, dy } = draggedWindow;
-    draggedWindow.currentTranslateX = dx;
-    draggedWindow.currentTranslateY = dy;
-    draggedWindow.domNode.style.transform = `translate(${dx}px, ${dy}px)`;
+    draggedWindow._handleRAF();
 };
 
 const mouseMoveListener = event => {
     if (draggedWindow === null) return;
-
-    draggedWindow.dx =
-        event.clientX - draggedWindow.startX + draggedWindow.dragStartTranslateX;
-
-    draggedWindow.dy =
-        event.clientY - draggedWindow.startY + draggedWindow.dragStartTranslateY;
+    draggedWindow._handleMove(event);
 
     if (draggedWindow.needRAF) {
         draggedWindow.needRAF = false;
@@ -101,6 +90,10 @@ export class ToolWindow extends Component {
         this.dx = 0;
         this.dy = 0;
         this.needRAF = true;
+        this.inStickRegionLeft = false;
+        this.inStickRegionRight = false;
+        this.inStickRegionTop = false;
+        this.inStickRegionBottom = false;
 
         this._updateActionsAreaBorder();
     }
@@ -143,6 +136,70 @@ export class ToolWindow extends Component {
         }
     }
 
+    _handleMove(event) {
+        const el = ReactDOM.findDOMNode(this),
+            width = el.clientWidth,
+            height = el.clientHeight,
+            container = el.parentNode,
+            containerWidth = container.clientWidth,
+            containerHeight = container.clientHeight;
+
+        this.dx = event.clientX - this.startX + this.dragStartTranslateX;
+        this.dy = event.clientY - this.startY + this.dragStartTranslateY;
+
+        if (this.props.constrainPosition) {
+            if (this.dx + width + this.props.marginRight > containerWidth)
+                this.dx = containerWidth - width - this.props.marginRight;
+
+            if (this.dx < this.props.marginLeft) this.dx = this.props.marginLeft;
+
+            if (this.dy + height + this.props.marginBottom > containerHeight)
+                this.dy = containerHeight - height - this.props.marginBottom;
+
+            if (this.dy < this.props.marginTop) this.dy = this.props.marginTop;
+        }
+
+        const isInStickRegion = {
+            left: this.dx < this.props.marginLeft + this.props.stickRegionLeft,
+            right: this.dx > containerWidth - width - this.props.marginRight - this.props.stickRegionRight,
+            top: this.dy < this.props.marginTop + this.props.stickRegionTop,
+            bottom: this.dy > containerHeight - height - this.props.marginBottom - this.props.stickRegionBottom
+        };
+
+        if (this.inStickRegionLeft) {
+            if (!isInStickRegion.left) this.props.onStickRegionLeave(STICK_REGION_LEFT);
+        }
+        else {
+            if (isInStickRegion.left) this.props.onStickRegionEnter(STICK_REGION_LEFT);
+        }
+
+        if (this.inStickRegionRight) {
+            if (!isInStickRegion.right) this.props.onStickRegionLeave(STICK_REGION_RIGHT);
+        }
+        else {
+            if (isInStickRegion.right) this.props.onStickRegionEnter(STICK_REGION_RIGHT);
+        }
+
+        if (this.inStickRegionTop) {
+            if (!isInStickRegion.top) this.props.onStickRegionLeave(STICK_REGION_TOP);
+        }
+        else {
+            if (isInStickRegion.top) this.props.onStickRegionEnter(STICK_REGION_TOP);
+        }
+
+        if (this.inStickRegionBottom) {
+            if (!isInStickRegion.bottom) this.props.onStickRegionLeave(STICK_REGION_BOTTOM);
+        }
+        else {
+            if (isInStickRegion.bottom) this.props.onStickRegionEnter(STICK_REGION_BOTTOM);
+        }
+
+        this.inStickRegionLeft = isInStickRegion.left;
+        this.inStickRegionRight = isInStickRegion.right;
+        this.inStickRegionTop = isInStickRegion.top;
+        this.inStickRegionBottom = isInStickRegion.bottom;
+    }
+
     _handleDragIconMouseDown(event) {
         draggedWindow = this;
 
@@ -155,6 +212,25 @@ export class ToolWindow extends Component {
         this.startX = event.clientX;
         this.startY = event.clientY;
         this.needRAF = true;
+
+        this.props.onStartDrag();
+    }
+
+    _handleStopDrag() {
+        this.setState({
+            dragging: false
+        });
+
+        this.props.onStopDrag();
+        draggedWindow = null;
+    }
+
+    _handleRAF() {
+        this.needRAF = true;
+        const { dx, dy } = this;
+        this.currentTranslateX = dx;
+        this.currentTranslateY = dy;
+        this.domNode.style.transform = `translate(${dx}px, ${dy}px)`;
     }
 
     _handleNavigation(newActiveSection) {
@@ -320,7 +396,20 @@ ToolWindow.propTypes = {
     })),
     mainButtons: PropTypes.arrayOf(ButtonType),
     secondaryButtons: PropTypes.arrayOf(ButtonType),
-    maxHeight: PropTypes.number
+    maxHeight: PropTypes.number,
+    constrainPosition: PropTypes.bool,
+    marginLeft: PropTypes.number,
+    marginRight: PropTypes.number,
+    marginTop: PropTypes.number,
+    marginBottom: PropTypes.number,
+    stickRegionLeft: PropTypes.number,
+    stickRegionRight: PropTypes.number,
+    stickRegionTop: PropTypes.number,
+    stickRegionBottom: PropTypes.number,
+    onStartDrag: PropTypes.func,
+    onStopDrag: PropTypes.func,
+    onStickRegionEnter: PropTypes.func,
+    onStickRegionLeave: PropTypes.func
 };
 
 ToolWindow.defaultProps = {
@@ -336,7 +425,20 @@ ToolWindow.defaultProps = {
     sections: [],
     mainButtons: [],
     secondaryButtons: [],
-    maxHeight: 0
+    maxHeight: 0,
+    constrainPosition: true,
+    marginLeft: 0,
+    marginRight: 0,
+    marginTop: 0,
+    marginBottom: 0,
+    stickRegionLeft: 0,
+    stickRegionRight: 0,
+    stickRegionTop: 0,
+    stickRegionBottom: 0,
+    onStartDrag: /* istanbul ignore next */ () => {},
+    onStopDrag: /* istanbul ignore next */ () => {},
+    onStickRegionEnter: /* istanbul ignore next */ () => {},
+    onStickRegionLeave: /* istanbul ignore next */ () => {}
 };
 
 ToolWindow.displayName = 'ToolWindow';
