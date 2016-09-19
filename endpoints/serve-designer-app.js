@@ -37,8 +37,15 @@ module.exports = {
             let file = 'index.html';
 
             if (req.params[0]) {
-                file = path.join(...req.params[0].split('/'));
-                if (!(yield fs.exists(path.join(rootDir, file)))) file = 'index.html';
+                const parts = req.params[0].split('/');
+
+                file = path.join(...parts);
+                if (!(yield fs.exists(path.join(rootDir, file)))) {
+                    file = parts[parts.length - 1];
+                    if (!(yield fs.exists(path.join(rootDir, file)))) {
+                        file = 'index.html';
+                    }
+                }
             }
 
             res.sendFile(file, options, err => {
