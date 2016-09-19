@@ -12,10 +12,10 @@ window.JSSY = {};
  * @return {}
  */
 
-window.JSSY.setStore = function(store) {
+window.JSSY.setParams = function(params) {
     ReactDOM.render(
-        <Provider store={store}>
-            <App/>
+        <Provider store={params.store}>
+            <App canSelected={params.canSelected}/>
         </Provider>,
         document.getElementById('container')
     );

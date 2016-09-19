@@ -13,7 +13,10 @@ export class PreviewIFrame extends Component {
             this.contentDocument = domNode.contentDocument;
             this.contentWindow = domNode.contentWindow;
 
-            this.contentWindow.JSSY.setStore(this.props.externalStore);
+            this.contentWindow.JSSY.setParams({
+                store: this.props.externalStore,
+                canSelected: this.props.canSelected
+            });
         }
     }
 

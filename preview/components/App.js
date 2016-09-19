@@ -7,20 +7,25 @@ import Preview from './Preview';
 
 class App extends Component {
     render() {
-        return <Preview routes={this.props.project.data.routes} />;
+        return <Preview
+            routes={this.props.routes}
+            canSelected={this.props.canSelected}
+        />;
     }
 }
 
 App.propTypes = {
-    project: PropTypes.object
+    routes: PropTypes.object,
+    canSelected: PropTypes.bool
 };
 
 App.defaultProps = {
-    project: {}
+    routes: {},
+    canSelected: false
 };
 
 const mapStateToProps = state => ({
-    project: state.project
+    routes: state.project.data.routes
 });
 
 export default connect(
