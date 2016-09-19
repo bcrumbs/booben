@@ -2,7 +2,7 @@ import ReactDOM from 'react-dom';
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import App from './components/App';
+import Preview from './components/Preview';
 
 window.JSSY = {};
 
@@ -15,7 +15,7 @@ window.JSSY = {};
 window.JSSY.setParams = function(params) {
     ReactDOM.render(
         <Provider store={params.store}>
-            <App canSelected={params.canSelected}/>
+            <Preview canSelected={params.canSelected} />
         </Provider>,
         document.getElementById('container')
     );

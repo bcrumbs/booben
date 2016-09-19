@@ -1,6 +1,7 @@
 import ReactDOM from 'react-dom';
 import React, { Component, PropTypes } from 'react';
 import { Router, Route, applyRouterMiddleware, hashHistory } from 'react-router';
+import { connect } from 'react-redux';
 
 import { componentsMap, commonUtils } from '../utils';
 import Builder from './Builder';
@@ -206,4 +207,10 @@ Preview.defaultProps = {
     canSelected: false
 };
 
-export default Preview;
+const mapStateToProps = state => ({
+    routes: state.project.data.routes
+});
+
+export default connect(
+    mapStateToProps
+)(Preview);
