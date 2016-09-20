@@ -15,6 +15,10 @@ import {
 } from '../constants/loadStates';
 
 import {
+    getRoutes
+} from '../utils';
+
+import {
     App,
     TopRegion,
     MainRegion,
@@ -65,6 +69,18 @@ const toggleFullScreen = () => {
 };
 
 class RootRoute extends Component {
+    _getDesignMenu(projectData) {
+        if(projectData) {
+            return getRoutes(projectData.routes).map((route) => {
+                return <HeaderMenuItem
+                    text={route.path}
+                    linkHref={`/app/${this.props.projectName}/design/${route.id}`}
+                />
+            });
+        }
+        return [];
+    }
+
     render() {
         const loadState = this.props.projectLoadState;
 
@@ -93,8 +109,7 @@ class RootRoute extends Component {
                                 />
 
                                 <HeaderMenuItem text="Design">
-                                    <HeaderMenuItem text="User Route 1: index" />
-                                    <HeaderMenuItem text="User Route 2: aerial" />
+                                    {this._getDesignMenu(this.props.projectData)}
                                 </HeaderMenuItem>
                                 <HeaderMenuItem text="Data" />
                                 <HeaderMenuItem text="Settings" />
@@ -154,7 +169,8 @@ RootRoute.propTypes = {
     projectName: PropTypes.string,
     projectLoadState: PropTypes.number,
     projectLoadError: PropTypes.object,
-    onProjectRequest: PropTypes.func
+    onProjectRequest: PropTypes.func,
+    projectData: PropTypes.object
 };
 
 RootRoute.displayName = 'RootRoute';
@@ -162,7 +178,8 @@ RootRoute.displayName = 'RootRoute';
 const mapStateToProps = state => ({
     projectName: state.project.projectName,
     projectLoadState: state.project.loadState,
-    projectLoadError: state.project.error
+    projectLoadError: state.project.error,
+    projectData: state.project.data
 });
 
 export default connect(

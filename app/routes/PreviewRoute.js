@@ -7,13 +7,13 @@ import store from '../store';
 
 class PreviewRoute extends Component {
     render() {
-        const src = `/preview/${this.props.params.projectName}/index.html`;
+        const _src = `/preview/${this.props.params.projectName}/index.html`;
 
         return (
             <PreviewIFrame
                 externalStore={store}
                 canSelected={false}
-                previewAppURL={src}
+                previewAppURL={_src}
             />
         );
     }

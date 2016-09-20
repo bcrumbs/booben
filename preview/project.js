@@ -5,6 +5,7 @@ export default {
     "relayEndpointURL": "",
     "routes": [
         {
+            "id": "0",
             "path": "/",
             "component": {
                 "name": "Reactackle.App",
@@ -14,9 +15,11 @@ export default {
             },
             "children": [
                 {
+                    "id": "1",
                     "path": "page1",
                     "children": [
                         {
+                            "id": "2",
                             "path": "sub",
                             "children": [],
                             "component": {
@@ -84,6 +87,7 @@ export default {
                     }
                 },
                 {
+                    "id": "3",
                     "path": "page2",
                     "children": [],
                     "component": {
