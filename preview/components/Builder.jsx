@@ -3,8 +3,10 @@
 import React, { Component, PropTypes } from 'react';
 
 // The real components.js will be generated during build process
-import { componentsMap } from '../utils';
 import components from '../components.js';
+
+import { componentsMap } from '../utils';
+
 /**
  * class Builder
  */
@@ -16,48 +18,44 @@ class Builder extends Component {
      * @return {function} React component for render
      */
     getComponentFromMeta(data = null) {
-        if(data) {
-            if(Array.isArray(data)) {
-                if(data.length == 1) {
-                    if(data[0] == 'outlet') {
-                        return this.props.children;
-                    } else {
-                        return this.getComponentFromMeta(data[0])
-                    }
+        if (!data) return null;
+
+        if (Array.isArray(data)) {
+            if (data.length == 1) {
+                if (data[0] == 'outlet') {
+                    return this.props.children;
                 } else {
-                    return data.map((item) => {
-                        return this.getComponentFromMeta(item);
-                    });
+                    return this.getComponentFromMeta(data[0])
                 }
             } else {
-                const _component = getComponentByName(data['name']);
-
-                let _compositComponent = null;
-
-                if(data['children'] && data['children'].length) {
-                    _compositComponent = <_component
-                        uid={data.uid}
-                        {...getProps(data['props'])}
-                    >
-                        { this.getComponentFromMeta(data['children']) }
-                    </_component>;
-                } else {
-                    _compositComponent = <_component
-                        uid={data.uid}
-                        {...getProps(data['props'])}
-                    />
-                }
-
-                componentsMap.set(data.uid, {
-                    'uid': data.uid,
-                    'name': data.name,
-                    'componentType': _component.meta ? _component.meta.kind : 'undefined'
-                });
-
-                return _compositComponent;
+                return data.map(item => this.getComponentFromMeta(item));
             }
         } else {
-            return null;
+            const _component = getComponentByName(data['name']);
+
+            let _compositComponent = null;
+
+            if (data['children'] && data['children'].length) {
+                _compositComponent = <_component
+                    uid={data.uid}
+                    {...getProps(data['props'])}
+                >
+                    { this.getComponentFromMeta(data['children']) }
+                </_component>;
+            } else {
+                _compositComponent = <_component
+                    uid={data.uid}
+                    {...getProps(data['props'])}
+                />
+            }
+
+            componentsMap.set(data.uid, {
+                'uid': data.uid,
+                'name': data.name,
+                'componentType': _component.meta ? _component.meta.kind : 'undefined'
+            });
+
+            return _compositComponent;
         }
     }
 
@@ -82,7 +80,8 @@ Builder.defaultProps = {
  */
 const getComponentByName = (name = '') => {
     const [namespace, componentName] = name.split('.');
-    if (!namespace || !componentName) throw new Error(`Wrong component name: ${name}`);
+    if (!namespace || !componentName) throw new Error(`Invalid component name: ${name}`);
+    if (!components[namespace]) throw new Error(`Namespace not found: ${namespace}`);
     const component = components[namespace][componentName];
     if (!component) throw new Error(`Component not found: ${name}`);
     return component;
@@ -97,12 +96,12 @@ const getProps = (props = {}) => {
     let externalProps = {};
 
     for(let key in props) {
-        if(props[key].source == 'static') {
+        if (props[key].source == 'static') {
             externalProps[key] = props[key].sourceData.value;
         }
     }
 
     return externalProps;
-}
+};
 
 export default Builder;

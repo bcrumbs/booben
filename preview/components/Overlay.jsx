@@ -84,11 +84,13 @@ class Overlay extends Component {
             top: 0,
             position: 'absolute',
             zIndex: 999,
-        }
+        };
 
-        return <div style={overlayStyle}>
-            {items}
-        </div>;
+        return (
+            <div style={overlayStyle}>
+                {items}
+            </div>
+        );
     }
 
     render() {

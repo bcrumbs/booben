@@ -15,6 +15,7 @@
 
 /**
  * @typedef {Object} ProjectRoute
+ * @property {number} id
  * @property {string} path
  * @property {ProjectRoute[]} children
  * @property {ProjectComponent} component
@@ -22,7 +23,9 @@
 
 /**
  * @typedef {Object} ProjectComponent
+ * @property {string} uid - Unique component ID
  * @property {string} name - Component name with namespace (e.g. "Namespace.MyComponent")
+ * @property {string} title - User-defined title
  * @property {Object.<string, ProjectComponentProp>} props
  * @property {ProjectComponent[]} [children]
  */

@@ -130,9 +130,7 @@ class RootRoute extends Component {
                     </Header>
                 </TopRegion>
 
-                <MainRegion>
-                    {this.props.children}
-                </MainRegion>
+                {this.props.children}
 
                 <BottomRegion>
                     <Footer>

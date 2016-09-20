@@ -2,7 +2,7 @@
 
 import React, { Component } from 'react';
 
-import { PreviewIFrame } from '../components/PreviewIFrame';
+import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
 import store from '../store';
 
 class PreviewRoute extends Component {

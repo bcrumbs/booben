@@ -1,28 +1,22 @@
+'use strict';
+
 import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 
 export class PreviewIFrame extends Component {
-    constructor(props) {
-        super(props);
-    }
-
     componentDidMount() {
-        const domNode = ReactDOM.findDOMNode(this);
+        const domNode = ReactDOM.findDOMNode(this),
+            contentWindow = domNode.contentWindow,
+            { store, canSelect } = this.props;
 
-        domNode.onload = () => {
-            this.contentDocument = domNode.contentDocument;
-            this.contentWindow = domNode.contentWindow;
-
-            this.contentWindow.JSSY.setParams({
-                store: this.props.externalStore,
-                canSelected: this.props.canSelected
-            });
-        }
+        contentWindow.addEventListener('DOMContentLoaded', () => {
+            contentWindow.JSSY.initPreview({ store, canSelect });
+        });
     }
 
     render() {
         return (
-            <iframe src={this.props.previewAppURL} />
+            <iframe src={this.props.url} />
         );
     }
 }
@@ -30,11 +24,13 @@ export class PreviewIFrame extends Component {
 PreviewIFrame.displayName = 'PreviewIFrame';
 
 PreviewIFrame.propTypes = {
-    previewAppURL: PropTypes.string.isRequired,
-    externalStore: PropTypes.any
+    url: PropTypes.string.isRequired,
+    store: PropTypes.any,
+    canSelect: PropTypes.bool
 };
 
 PreviewIFrame.defaultProps = {
-    previewAppURL: '',
-    externalStore: {}
+    url: '',
+    store: {},
+    canSelect: false
 };

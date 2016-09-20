@@ -28,16 +28,17 @@
     "html-webpack-plugin": "^2.22.0",
     "intel": "^1.1.1",
     "js-object-pretty-print": "^0.2.0",
+    "minimist": "^1.2.0",
     "mz": "^2.4.0",
     "ncp": "^2.0.0",
+    "pretty-ms": "latest",
     "revalidator": "^0.3.1",
+    "rimraf": "latest",
     "serve-static": "^1.11.1",
     "thenify": "^3.2.0",
     "webpack": "^1.13.2",
     "webpack-dev-middleware": "^1.6.1",
-    "webpack-hot-middleware": "^2.12.2",
-    "rimraf": "latest",
-    "pretty-ms": "latest"
+    "webpack-hot-middleware": "^2.12.2"
   },
   "devDependencies": {
     "@reactackle/reactackle": "0.1.0-dev125",

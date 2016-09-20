@@ -1,9 +1,10 @@
+'use strict';
+
 import ReactDOM from 'react-dom';
 import React, { Component, PropTypes } from 'react';
 import { Router, Route, applyRouterMiddleware, hashHistory } from 'react-router';
 import { connect } from 'react-redux';
 
-import { componentsMap } from '../utils';
 import Builder from './Builder';
 import Overlay from './Overlay';
 
@@ -17,151 +18,115 @@ import { updatePreviewSelected } from '../../app/actions/preview'
  */
 const getComponentsByRoute = (data, route, routes) => {
     let _data = data,
-        _component = null;
+        component = null;
 
-    routes.forEach((_route) => {
-        _data = _data.find((_item) => {
-            return _item.path == _route.path;
-        });
+    routes.forEach(_route => {
+        _data = _data.find(item => item.path == _route.path);
 
-        if(_data.path == route.path) {
-            _component = _data.component;
-        }
+        if (_data.path == route.path)
+            component = _data.component;
 
         _data = _data.children;
     });
 
-    return _component;
-}
+    return component;
+};
 
-let mapDispatchToEvents = function(dispatch) {
-  return {
-    updateSelected: function(selected) {
-        dispatch(updatePreviewSelected(selected));
-    }
-  };
-}
+/**
+ * Get owner React element by condition
+ *
+ * @param  {function} el
+ * @param  {function} [condition]
+ * @return {function}
+ */
+const getOwner = (el, condition) => {
+    const owner = el._owner;
+    if (!owner) return null;
+    if (!condition) return owner;
+    return condition(owner) ? owner : getOwner(owner, condition);
+};
 
 class Preview extends Component {
     constructor() {
         super();
+
+        this.domNode = null;
+
+        this._handleClick = this._handleClick.bind(this);
+        this._handleResize = this._handleResize.bind(this);
     }
 
     componentDidMount() {
-        if(this.props.canSelected) {
-            this.domNode = ReactDOM.findDOMNode(this);
-            this.domNode.addEventListener('click', this._hoistEvent.bind(this), false);
+        this.domNode = ReactDOM.findDOMNode(this);
 
-            window.addEventListener("resize", this._resizeEvent.bind(this), false);
+        if (this.props.canSelect) {
+            this.domNode.addEventListener('click', this._handleClick, false);
+            window.addEventListener('resize', this._handleResize, false);
         }
     }
 
     componentWillUnmount() {
-        if(this.props.canSelected) {
-            this.domNode.removeEventListener('click', this._hoistEvent.bind(this),
-                false);
-            window.removeEventListener("resize", this._resizeEvent.bind(this), false);
+        if (this.props.canSelect) {
+            this.domNode.removeEventListener('click', this._handleClick, false);
+            window.removeEventListener('resize', this._handleResize, false);
         }
+
+        this.domNode = null;
     }
 
-    _resizeEvent() {
+    _handleResize() {
         this._renderOverlayDOM();
     }
 
     /**
-     * Get owner React element by condition
-     * 
+     * Get array of selected components
+     *
      * @param  {function} el
-     * @param  {function} condition
-     * @return {function}
+     * @param  {string} uid
      */
-    _getOwner(el, condition) {
-        if(el._owner) {
-            const _el = el._owner;
+    _updateSelected(el, uid) {
+        const owner = getOwner(el, item => item._currentElement.props.uid == uid),
+            domEl = owner._renderedComponent._hostNode;
 
-            if(condition) {
-                if(condition(_el)) {
-                    return _el;
-                } else {
-                    return this._getOwner(_el, condition);
-                }
-            } else {
-                return _el;
-            }
-        }
+        let nextSelected = this.props.selected.filter(item => item.uid != uid);
 
-        return null;
-    }
-    /**
-     * Get array selected components
-     * 
-     * @param  {function} el
-     * @param  {Object} params
-     */
-    _updateSelected(el, params) {
-        const _owner = this._getOwner(el, (item) => {
-            return item._currentElement.props.uid == params.uid;
-        });
+        if (nextSelected.length === this.props.selected.length)
+            nextSelected = nextSelected.concat({ uid, el: domEl });
 
-        const _domEl = _owner._renderedComponent._hostNode,
-            _prevSelected = this.props.selected;
-
-        let _nextSelected = [];
-
-        if(_prevSelected.find((item) => item.uid == params.uid)) {
-            _nextSelected = _prevSelected.filter((item) => item.uid != params.uid);
-        } else {
-            _nextSelected = _nextSelected.concat({
-                el: _domEl,
-                uid: params.uid
-            }, _prevSelected);
-        }
-
-        this.props.updateSelected(_nextSelected);
-    }
-
-    _getSelected() {
-        return this.props.selected;
+        this.props.updateSelected(nextSelected);
     }
 
     /**
-     * Hoist preview event to constructor
      * 
-     * @param  {MouseEvent} e
+     * @param {MouseEvent} event
      */
-    _hoistEvent(e) {
-        if(e.ctrlKey) {
-            for (var key in e.target) {
-                if (key.startsWith('__reactInternalInstance$')) {
-                    let _el = e.target[key]._currentElement;
+    _handleClick(event) {
+        if (!event.ctrlKey) return;
 
-                    const _owner = this._getOwner(_el, (item) => {
-                        return item._currentElement.props.uid;
-                    });
+        const keys = Object.keys(event.target),
+            riiKey = keys.find(key => key.startsWith('__reactInternalInstance$'));
 
-                    if(_owner) {
-                        const _params = componentsMap.get(
-                            _owner._currentElement.props.uid);
+        if (!riiKey) return;
 
-                        if(e.type == 'click') {
-                            this._updateSelected(_el, _params);
-                            this._renderOverlayDOM();
-                        }
+        const el = event.target[riiKey]._currentElement,
+            owner = getOwner(el, item => item._currentElement.props.uid);
 
-                        e.stopPropagation();
-                    }
-                }
-            }
+        if (owner) {
+            this._updateSelected(el, owner._currentElement.props.uid);
+            this._renderOverlayDOM();
+            event.stopPropagation();
         }
     }
 
     _getRoute(route) {
-        if(route.children && route.children.length) {
-            return <Route path={route.path} component={Builder}>
-                {route.children.map((_route) => {
-                    return this._getRoute(_route);
-                })}
-            </Route>;
+        if (route.children && route.children.length) {
+            const childRoutes = route.children.map(child => this._getRoute(child));
+
+            return (
+                <Route path={route.path} component={Builder}>
+                    {childRoutes}
+                </Route>
+            );
         } else {
             return <Route path={route.path} component={Builder} />;
         }
@@ -170,59 +135,64 @@ class Preview extends Component {
     _getRouterMiddleware() {
         return {
             renderRouteComponent: (child, props) => {
-                const { key, route, routes } = props,
-                      _component = getComponentsByRoute(this.props.routes, route,
-                        routes);
+                const data = getComponentsByRoute(
+                    this.props.routes,
+                    props.route,
+                    props.routes
+                );
 
-                if(_component) {
-                    return React.cloneElement(child, {
-                        data: _component
-                    });
-                } else {
-                    return child;
-                }
+                return data ? React.cloneElement(child, { data }) : child;
             }
         }
     }
 
     _renderOverlayDOM() {
-        const _selected = this._getSelected();
-
         ReactDOM.render(
-            <Overlay selected={_selected}/>,
+            <Overlay selected={this.props.selected}/>,
             document.getElementById('overlay')
         );
     }
 
     render() {
-        const _routes = this.props.routes.map((route) => {
-            return this._getRoute(route);
-        })
+        const routes = this.props.routes.map(route => this._getRoute(route));
 
-        return <Router
-            render={applyRouterMiddleware(this._getRouterMiddleware())}
-            history={hashHistory}>
-            {_routes}
-        </Router>;
+        return (
+            <Router
+                render={applyRouterMiddleware(this._getRouterMiddleware())}
+                history={hashHistory}
+            >
+                {routes}
+            </Router>
+        );
     }
 }
 
 Preview.propTypes = {
+    canSelect: PropTypes.bool,
     routes: PropTypes.array,
-    canSelected: PropTypes.bool
+    selected: PropTypes.array,
+    updateSelected: PropTypes.func
 };
 
 Preview.defaultProps = {
+    canSelect: false,
     routes: [],
-    canSelected: false
+    selected: [],
+    updateSelected: /* istanbul ignore next */ () => {}
 };
+
+Preview.displayName = 'Preview';
 
 const mapStateToProps = state => ({
     routes: state.project.data.routes,
     selected: state.preview.selectedItems
 });
 
+const mapDispatchToProps = dispatch => ({
+    updateSelected: selected => void dispatch(updatePreviewSelected(selected))
+});
+
 export default connect(
     mapStateToProps,
-    mapDispatchToEvents
+    mapDispatchToProps
 )(Preview);

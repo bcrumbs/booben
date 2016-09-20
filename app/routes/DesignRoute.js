@@ -7,7 +7,8 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 
-import { PreviewIFrame } from '../components/PreviewIFrame';
+import { Desktop } from '../containers/Desktop/Desktop';
+import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
 import store from '../store';
 
 import {
@@ -16,17 +17,22 @@ import {
 
 class DesignRoute extends Component {
     render() {
-        const _src = `/preview/${this.props.params.projectName}/index.html`;
-        const _route = getRoutes(this.props.routes).find((route) => {
+        const src = `/preview/${this.props.params.projectName}/index.html`;
+
+        const route = getRoutes(this.props.routes).find(route => {
             return route.id == this.props.params.routeId;
         });
 
         return (
-            <PreviewIFrame
-                externalStore={store}
-                canSelected={true}
-                previewAppURL={`${_src}#${_route.path}`}
-            />
+            <Desktop>
+                <div style={{ marginTop: '40px' }}>
+                    <PreviewIFrame
+                        canSelect
+                        store={store}
+                        url={`${src}#${route.path}`}
+                    />
+                </div>
+            </Desktop>
         );
     }
 }

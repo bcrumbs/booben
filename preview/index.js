@@ -1,3 +1,5 @@
+'use strict';
+
 import ReactDOM from 'react-dom';
 import React from 'react';
 import { Provider } from 'react-redux';
@@ -8,22 +10,18 @@ window.JSSY = {};
 
 /**
  * Rendering of preview
- * 
- * @return {}
+ *
+ * @param {Object} params
+ * @param {Object} params.store
+ * @param {boolean} params.canSelect
  */
 
-window.JSSY.setParams = function(params) {
+window.JSSY.initPreview = params => {
     ReactDOM.render(
         <Provider store={params.store}>
-            <Preview canSelected={params.canSelected} />
+            <Preview canSelect={params.canSelect} />
         </Provider>,
+
         document.getElementById('container')
     );
-}
-
-/**
- * Call for testing.
- */
-window.hoistEventToConstructor = function(eventName, params) {
-    console.log(eventName, params);
-}
+};

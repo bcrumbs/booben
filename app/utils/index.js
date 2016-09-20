@@ -1,3 +1,5 @@
+'use strict';
+
 const getRoutePrefix = (path, prefix) => {
     if(prefix) {
         if(prefix == '/') {
@@ -33,7 +35,7 @@ export const getRoutes = (routes, prefix) => {
             let _prefix = getRoutePrefix(route.path, prefix);
             _routes.push(...getRoutes(route.children, _prefix));
         }
-    })
+    });
 
     return _routes;
 };
