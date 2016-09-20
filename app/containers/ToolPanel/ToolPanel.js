@@ -87,7 +87,7 @@ export class ToolPanel extends Component {
             .filter(group => group.tools.length > 0)
             .map((group, groupIdx) => {
                 const icons = group.tools.map((tool, toolIdx) => {
-                    if (tool === 'placeholder')
+                    if (tool === null)
                         return <PageDrawerActionPlaceholder key={toolIdx}/>;
 
                     return (
@@ -144,10 +144,7 @@ export class ToolPanel extends Component {
 ToolPanel.propTypes = {
     isExpanded: PropTypes.bool,
     toolGroups: PropTypes.arrayOf(PropTypes.shape({
-        tools: PropTypes.arrayOf(PropTypes.oneOfType([
-            ToolType,
-            PropTypes.string
-        ]))
+        tools: PropTypes.arrayOf(ToolType)
     })),
     onToolUndock: PropTypes.func
 };

@@ -8,13 +8,18 @@ export const DraggableWindow = props => {
     if (props.isDragged) className += ' is-dragged';
 
     const style = {
-        position: 'absolute'
+        position: 'absolute',
+        zIndex: props.zIndex
     };
 
     if (props.maxHeight > 0) style.maxHeight = `${props.maxHeight}px`;
 
     return (
-        <div className={className} style={style}>
+        <div
+            className={className}
+            style={style}
+            onMouseDown={props.onFocus}
+        >
             {props.children}
         </div>
     );
@@ -22,12 +27,16 @@ export const DraggableWindow = props => {
 
 DraggableWindow.propTypes = {
     isDragged: PropTypes.bool,
-    maxHeight: PropTypes.number
+    maxHeight: PropTypes.number,
+    zIndex: PropTypes.number,
+    onFocus: PropTypes.func
 };
 
 DraggableWindow.defaultProps = {
     isDragged: false,
-    maxHeight: 0
+    maxHeight: 0,
+    zIndex: 0,
+    onFocus: /* istanbul ignore next */ () => {}
 };
 
 DraggableWindow.displayName = 'DraggableWindow';

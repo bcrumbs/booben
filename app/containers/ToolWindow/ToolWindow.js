@@ -28,6 +28,8 @@ import {
 
 import ButtonType from '../../prop-types/Button';
 
+import { throttle } from '../../utils/misc';
+
 export const STICK_REGION_LEFT = 0;
 export const STICK_REGION_RIGHT = 1;
 export const STICK_REGION_TOP = 2;
@@ -43,11 +45,12 @@ const mouseUpListener = () => {
 
 const updateWindowElement = () => {
     if (draggedWindow === null) return;
-    draggedWindow._handleRAF();
+    draggedWindow._handleAnimationFrame();
 };
 
 const mouseMoveListener = event => {
     if (draggedWindow === null) return;
+    event.preventDefault();
     draggedWindow._handleMove(event);
 
     if (draggedWindow.needRAF) {
@@ -70,6 +73,8 @@ export class ToolWindow extends Component {
 
         this._handleDragIconMouseDown = this._handleDragIconMouseDown.bind(this);
         this._handleNavigation = this._handleNavigation.bind(this);
+
+        this._updateStickRegion = throttle(this._updateStickRegion.bind(this), 100);
     }
 
     componentDidMount() {
@@ -83,10 +88,8 @@ export class ToolWindow extends Component {
         this.domNode = ReactDOM.findDOMNode(this);
         this.currentTranslateX = 0;
         this.currentTranslateY = 0;
-        this.dragStartTranslateX = 0;
-        this.dragStartTranslateY = 0;
-        this.startX = 0;
-        this.startY = 0;
+        this.dragStartDiffX = 0;
+        this.dragStartDiffY = 0;
         this.dx = 0;
         this.dy = 0;
         this.needRAF = true;
@@ -136,28 +139,13 @@ export class ToolWindow extends Component {
         }
     }
 
-    _handleMove(event) {
-        const el = ReactDOM.findDOMNode(this),
-            width = el.clientWidth,
-            height = el.clientHeight,
-            container = el.parentNode,
-            containerWidth = container.clientWidth,
-            containerHeight = container.clientHeight;
-
-        this.dx = event.clientX - this.startX + this.dragStartTranslateX;
-        this.dy = event.clientY - this.startY + this.dragStartTranslateY;
-
-        if (this.props.constrainPosition) {
-            if (this.dx + width + this.props.marginRight > containerWidth)
-                this.dx = containerWidth - width - this.props.marginRight;
-
-            if (this.dx < this.props.marginLeft) this.dx = this.props.marginLeft;
-
-            if (this.dy + height + this.props.marginBottom > containerHeight)
-                this.dy = containerHeight - height - this.props.marginBottom;
-
-            if (this.dy < this.props.marginTop) this.dy = this.props.marginTop;
-        }
+    _updateStickRegion() {
+        const {
+            width,
+            height,
+            containerWidth,
+            containerHeight
+        } = this;
 
         const isInStickRegion = {
             left: this.dx < this.props.marginLeft + this.props.stickRegionLeft,
@@ -200,32 +188,59 @@ export class ToolWindow extends Component {
         this.inStickRegionBottom = isInStickRegion.bottom;
     }
 
+    _handleMove(event) {
+        this.dx = event.clientX + this.dragStartDiffX;
+        this.dy = event.clientY + this.dragStartDiffY;
+
+        if (this.props.constrainPosition) {
+            if (this.dx + this.props.marginRight > this.containerWidthMinusWindowWidth)
+                this.dx = this.containerWidthMinusWindowWidth - this.props.marginRight;
+
+            if (this.dx < this.props.marginLeft) this.dx = this.props.marginLeft;
+
+            if (this.dy + this.props.marginBottom > this.containerHeightMinusWindowHeight)
+                this.dy = this.containerHeightMinusWindowHeight - this.props.marginBottom;
+
+            if (this.dy < this.props.marginTop) this.dy = this.props.marginTop;
+        }
+
+        this._updateStickRegion();
+    }
+
     _handleDragIconMouseDown(event) {
         draggedWindow = this;
+
+        this.width = this.domNode.clientWidth;
+        this.height = this.domNode.clientHeight;
+        this.container = this.domNode.parentNode;
+        this.containerWidth = this.container.clientWidth;
+        this.containerHeight = this.container.clientHeight;
+
+        this.containerWidthMinusWindowWidth = this.containerWidth - this.width;
+        this.containerHeightMinusWindowHeight = this.containerHeight - this.height;
 
         this.setState({
             dragging: true
         });
 
-        this.dragStartTranslateX = this.currentTranslateX;
-        this.dragStartTranslateY = this.currentTranslateY;
-        this.startX = event.clientX;
-        this.startY = event.clientY;
+        this.dragStartDiffX = this.currentTranslateX - event.clientX;
+        this.dragStartDiffY = this.currentTranslateY - event.clientY;
         this.needRAF = true;
 
         this.props.onStartDrag();
     }
 
     _handleStopDrag() {
+        draggedWindow = null;
+
         this.setState({
             dragging: false
         });
 
         this.props.onStopDrag();
-        draggedWindow = null;
     }
 
-    _handleRAF() {
+    _handleAnimationFrame() {
         this.needRAF = true;
         const { dx, dy } = this;
         this.currentTranslateX = dx;
@@ -371,6 +386,8 @@ export class ToolWindow extends Component {
             <DraggableWindow
                 isDragged={this.state.dragging}
                 maxHeight={this.props.maxHeight}
+                zIndex={this.props.zIndex}
+                onFocus={this.props.onFocus}
             >
                 {mainRegion}
                 {sideRegion}
@@ -397,6 +414,7 @@ ToolWindow.propTypes = {
     mainButtons: PropTypes.arrayOf(ButtonType),
     secondaryButtons: PropTypes.arrayOf(ButtonType),
     maxHeight: PropTypes.number,
+    zIndex: PropTypes.number,
     constrainPosition: PropTypes.bool,
     marginLeft: PropTypes.number,
     marginRight: PropTypes.number,
@@ -406,6 +424,7 @@ ToolWindow.propTypes = {
     stickRegionRight: PropTypes.number,
     stickRegionTop: PropTypes.number,
     stickRegionBottom: PropTypes.number,
+    onFocus: PropTypes.func,
     onStartDrag: PropTypes.func,
     onStopDrag: PropTypes.func,
     onStickRegionEnter: PropTypes.func,
@@ -426,6 +445,7 @@ ToolWindow.defaultProps = {
     mainButtons: [],
     secondaryButtons: [],
     maxHeight: 0,
+    zIndex: 0,
     constrainPosition: true,
     marginLeft: 0,
     marginRight: 0,
@@ -435,6 +455,7 @@ ToolWindow.defaultProps = {
     stickRegionRight: 0,
     stickRegionTop: 0,
     stickRegionBottom: 0,
+    onFocus: /* istanbul ignore next */ () => {},
     onStartDrag: /* istanbul ignore next */ () => {},
     onStopDrag: /* istanbul ignore next */ () => {},
     onStickRegionEnter: /* istanbul ignore next */ () => {},
