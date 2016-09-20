@@ -146,8 +146,6 @@ class Preview extends Component {
                         if(e.type == 'click') {
                             this._updateSelected(_el, _params);
                             this._renderOverlayDOM();
-                        } else {
-                            commonUtils.hoistEventToConstructor('UnknownEvent', _params);
                         }
 
                         e.stopPropagation();
