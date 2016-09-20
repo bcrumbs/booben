@@ -103,10 +103,24 @@ const generateBundleCode = libsData => {
  * @return {Object}
  */
 const generateWebpackConfig = (projectDir, libsData) => {
-    const localNodeModules = path.join(projectDir, 'node_modules');
+    const projectNodeModules = path.join(projectDir, 'node_modules'),
+        localNodeModules = path.resolve(__dirname, '..', '..', 'node_modules');
+
+    const rewriteComponentsPathResolverPlugin = {
+        apply(resolver) {
+            resolver.plugin('resolve', (context, request) => {
+                const isComponentsFile =
+                    /preview\/components$/.test(context) &&
+                    request.path === '../components.js';
+
+                if (isComponentsFile)
+                    request.path = path.resolve(projectDir, 'components.js');
+            });
+        }
+    };
 
     const ret = {
-        context: projectDir,
+        context: path.resolve(__dirname, '..', '..', 'preview'),
         entry: './index',
 
         output: {
@@ -114,17 +128,28 @@ const generateWebpackConfig = (projectDir, libsData) => {
         },
 
         resolve: {
+            root: [projectNodeModules],
             modulesDirectories: ['node_modules'],
+            fallback: [localNodeModules],
             extensions: ['', '.js', '.jsx']
         },
 
         resolveLoader: {
-            modulesDirectories: [localNodeModules],
+            root: [
+                projectNodeModules,
+                localNodeModules
+            ],
             moduleTemplates: ['*-loader'],
             extensions: ['', '.js']
         },
 
         plugins: [
+            {
+                apply(compiler) {
+                    compiler.resolvers.normal.apply(rewriteComponentsPathResolverPlugin)
+                }
+            },
+
             new HtmlWebpackPlugin({
                 template: 'index.ejs',
                 inject: 'body',
@@ -175,30 +200,6 @@ const loaderStringParsers = {
 };
 
 /**
- * These modules are required to build preview app itself
- * @type {string[]}
- */
-const previewAppDeps = [
-    'react',
-    'react-dom',
-    'react-router',
-    'history',
-    'babel-loader',
-    'babel-preset-es2015',
-    'babel-preset-react',
-    'redux',
-    'react-redux'
-];
-
-/**
- *
- * @type {string[]}
- */
-const previewAppLoaders = [
-    'babel-loader'
-];
-
-/**
  *
  * @param {string} projectDir
  * @param {LibData[]} libsData
@@ -207,9 +208,6 @@ const previewAppLoaders = [
 const installLoaders = (projectDir, libsData) => co(function* () {
     const requiredModulesSet = new Set(),
         loaderModulesSet = new Set();
-
-    previewAppDeps.forEach(module => void requiredModulesSet.add(module));
-    previewAppLoaders.forEach(module => void loaderModulesSet.add(module));
 
     libsData.forEach(libData => {
         const keys = Object.keys(libData.meta.loaders);
@@ -260,18 +258,6 @@ const installLoaders = (projectDir, libsData) => co(function* () {
     if (loadersPeerDeps.length > 0) {
         yield npmInstall(projectDir, loadersPeerDeps);
     }
-});
-
-/**
- *
- * @param {string} projectDir
- * @returns {Promise}
- */
-const copyPreviewAppSrc = projectDir => co(function* () {
-    yield ncp(previewSrcDir, projectDir, {
-        filter: filename => !filename.endsWith(constants.PROJECT_COMPONENTS_SRC_FILE),
-        stopOnErr: true
-    });
 });
 
 /**
@@ -377,9 +363,6 @@ exports.buildPreviewApp = (project, options) => co(function* () {
         logger.debug(`[${project.name}] Installing webpack loaders`);
         yield installLoaders(projectDir, libsData);
     }
-
-    logger.debug(`[${project.name}] Copying preview app source to ${projectDir}`);
-    yield copyPreviewAppSrc(projectDir);
 
     logger.debug(`[${project.name}] Generating code for components bundle`);
     const code = generateBundleCode(libsData),
