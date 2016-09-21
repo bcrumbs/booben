@@ -54,6 +54,8 @@ class Preview extends Component {
         super();
 
         this.domNode = null;
+        this.mouseEvents = ['click', 'mouseover', 'mouseout', 'dragover', 'dragleave',
+            'drop'];
 
         this._handleMouseEvent = this._handleMouseEvent.bind(this);
         this._handleResize = this._handleResize.bind(this);
@@ -63,18 +65,20 @@ class Preview extends Component {
         this.domNode = ReactDOM.findDOMNode(this);
 
         if (this.props.canSelect) {
-            this.domNode.addEventListener('click', this._handleMouseEvent, false);
-            this.domNode.addEventListener('mouseover', this._handleMouseEvent, false);
-            this.domNode.addEventListener('mouseout', this._handleMouseEvent, false);
+            this.mouseEvents.forEach((e) => {
+              this.domNode.addEventListener(e, this._handleMouseEvent, false);
+            });
+
             window.addEventListener('resize', this._handleResize, false);
         }
     }
 
     componentWillUnmount() {
         if (this.props.canSelect) {
-            this.domNode.removeEventListener('click', this._handleMouseEvent, false);
-            this.domNode.removeEventListener('mouseover', this._handleMouseEvent, false);
-            this.domNode.removeEventListener('mouseout', this._handleMouseEvent, false);
+            this.mouseEvents.forEach((e) => {
+              this.domNode.removeEventListener(e, this._handleMouseEvent, false);
+            });
+
             window.removeEventListener('resize', this._handleResize, false);
         }
 
@@ -130,13 +134,19 @@ class Preview extends Component {
             owner = getOwner(el, item => item._currentElement.props.uid);
 
         if (owner) {
-            if(event.type == 'click') {
-                if (!event.ctrlKey) return;
-                this._updateSelected(el, owner._currentElement.props.uid);
-            } else if(event.type == 'mouseover') {
-                this._updateHighlighted(el, owner._currentElement.props.uid)
-            } else if(event.type == 'mouseout') {
-                this.props.updateHighlighted([]);
+            switch(event.type) {
+                case 'click':
+                    if (!event.ctrlKey) return;
+                    this._updateSelected(el, owner._currentElement.props.uid);
+                    break;
+                case 'dragover':
+                case 'mouseover':
+                    this._updateHighlighted(el, owner._currentElement.props.uid);
+                    break;
+                case 'dragleave':
+                case 'mouseout':
+                    this.props.updateHighlighted([]);
+                    break;
             }
 
             this._renderOverlayDOM();
