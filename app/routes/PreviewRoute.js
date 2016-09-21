@@ -13,6 +13,7 @@ class PreviewRoute extends Component {
             <PreviewIFrame
                 externalStore={store}
                 canSelected={false}
+                canHighlight={false}
                 previewAppURL={_src}
             />
         );

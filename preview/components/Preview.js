@@ -8,7 +8,10 @@ import { connect } from 'react-redux';
 import Builder from './Builder';
 import Overlay from './Overlay';
 
-import { updatePreviewSelected } from '../../app/actions/preview'
+import {
+    updatePreviewSelected,
+    updatePreviewHighlighted
+} from '../../app/actions/preview'
 
 /**
  * @param  {Array} data
@@ -52,7 +55,7 @@ class Preview extends Component {
 
         this.domNode = null;
 
-        this._handleClick = this._handleClick.bind(this);
+        this._handleMouseEvent = this._handleMouseEvent.bind(this);
         this._handleResize = this._handleResize.bind(this);
     }
 
@@ -60,14 +63,18 @@ class Preview extends Component {
         this.domNode = ReactDOM.findDOMNode(this);
 
         if (this.props.canSelect) {
-            this.domNode.addEventListener('click', this._handleClick, false);
+            this.domNode.addEventListener('click', this._handleMouseEvent, false);
+            this.domNode.addEventListener('mouseover', this._handleMouseEvent, false);
+            this.domNode.addEventListener('mouseout', this._handleMouseEvent, false);
             window.addEventListener('resize', this._handleResize, false);
         }
     }
 
     componentWillUnmount() {
         if (this.props.canSelect) {
-            this.domNode.removeEventListener('click', this._handleClick, false);
+            this.domNode.removeEventListener('click', this._handleMouseEvent, false);
+            this.domNode.removeEventListener('mouseover', this._handleMouseEvent, false);
+            this.domNode.removeEventListener('mouseout', this._handleMouseEvent, false);
             window.removeEventListener('resize', this._handleResize, false);
         }
 
@@ -88,21 +95,32 @@ class Preview extends Component {
         const owner = getOwner(el, item => item._currentElement.props.uid == uid),
             domEl = owner._renderedComponent._hostNode;
 
-        let nextSelected = this.props.selected.filter(item => item.uid != uid);
+        let next = this.props.selected.filter(item => item.uid != uid);
 
-        if (nextSelected.length === this.props.selected.length)
-            nextSelected = nextSelected.concat({ uid, el: domEl });
+        if (next.length === this.props.selected.length)
+            next = next.concat({ uid, el: domEl });
 
-        this.props.updateSelected(nextSelected);
+        this.props.updateSelected(next);
+    }
+
+    /**
+     * Get array of highlighted components
+     *
+     * @param  {function} el
+     * @param  {string} uid
+     */
+    _updateHighlighted(el, uid) {
+        const owner = getOwner(el, item => item._currentElement.props.uid == uid),
+            domEl = owner._renderedComponent._hostNode;
+
+        this.props.updateHighlighted([{ uid, el: domEl }]);
     }
 
     /**
      * 
      * @param {MouseEvent} event
      */
-    _handleClick(event) {
-        if (!event.ctrlKey) return;
-
+    _handleMouseEvent(event) {
         const keys = Object.keys(event.target),
             riiKey = keys.find(key => key.startsWith('__reactInternalInstance$'));
 
@@ -112,7 +130,15 @@ class Preview extends Component {
             owner = getOwner(el, item => item._currentElement.props.uid);
 
         if (owner) {
-            this._updateSelected(el, owner._currentElement.props.uid);
+            if(event.type == 'click') {
+                if (!event.ctrlKey) return;
+                this._updateSelected(el, owner._currentElement.props.uid);
+            } else if(event.type == 'mouseover') {
+                this._updateHighlighted(el, owner._currentElement.props.uid)
+            } else if(event.type == 'mouseout') {
+                this.props.updateHighlighted([]);
+            }
+
             this._renderOverlayDOM();
             event.stopPropagation();
         }
@@ -148,7 +174,11 @@ class Preview extends Component {
 
     _renderOverlayDOM() {
         ReactDOM.render(
-            <Overlay selected={this.props.selected}/>,
+            <Overlay 
+                selected={this.props.selected}
+                highlighted={this.props.highlighted}
+            />,
+
             document.getElementById('overlay')
         );
     }
@@ -169,27 +199,36 @@ class Preview extends Component {
 
 Preview.propTypes = {
     canSelect: PropTypes.bool,
+    canHighlight: PropTypes.bool,
     routes: PropTypes.array,
     selected: PropTypes.array,
-    updateSelected: PropTypes.func
+    highlighted: PropTypes.array,
+    updateSelected: PropTypes.func,
+    updateHighlighted: PropTypes.func
 };
 
 Preview.defaultProps = {
     canSelect: false,
+    canHighlight: false,
     routes: [],
     selected: [],
-    updateSelected: /* istanbul ignore next */ () => {}
+    highlighted: [],
+    updateSelected: /* istanbul ignore next */ () => {},
+    updateHighlighted: /* istanbul ignore next */ () => {}
 };
 
 Preview.displayName = 'Preview';
 
 const mapStateToProps = state => ({
     routes: state.project.data.routes,
-    selected: state.preview.selectedItems
+    selected: state.preview.selectedItems,
+    highlighted: state.preview.highlightedItems
 });
 
 const mapDispatchToProps = dispatch => ({
-    updateSelected: selected => void dispatch(updatePreviewSelected(selected))
+    updateSelected: selected => void dispatch(updatePreviewSelected(selected)),
+    updateHighlighted: highlighted => void dispatch(updatePreviewHighlighted(
+        highlighted))
 });
 
 export default connect(

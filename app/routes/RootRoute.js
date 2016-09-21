@@ -74,7 +74,8 @@ class RootRoute extends Component {
             return getRoutes(projectData.routes).map((route) => {
                 return <HeaderMenuItem
                     text={route.path}
-                    linkHref={`/app/${this.props.projectName}/design/${route.id}`}
+                    linkHref={`/${this.props.projectName}/design/${route.id}`}
+                    linkComponent={TopMenuLink}
                 />
             });
         }

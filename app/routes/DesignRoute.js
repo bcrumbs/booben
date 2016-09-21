@@ -28,6 +28,7 @@ class DesignRoute extends Component {
                 <div style={{ marginTop: '40px' }}>
                     <PreviewIFrame
                         canSelect
+                        canHighlight
                         store={store}
                         url={`${src}#${route.path}`}
                     />

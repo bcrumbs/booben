@@ -3,10 +3,10 @@
 import React, { Component, PropTypes } from 'react';
 
 class Overlay extends Component {
-    _getSelectItems() {
-        let items = [];
+    _getItems(data, color) {
+        let _items = [];
 
-        this.props.selected.forEach((item) => {
+        data.forEach((item) => {
             let {
                 bottom,
                 height,
@@ -25,7 +25,7 @@ class Overlay extends Component {
             left = left - syntheticPadding/2;
             top = top - syntheticPadding/2 + scrollTop;
 
-            const borderColorSelect = '3px solid green',
+            const borderColorSelect = `3px solid ${color}`,
                 style = {
                     height: '1px',
                     width: '1px',
@@ -67,7 +67,7 @@ class Overlay extends Component {
                     position: 'absolute'
                 };
 
-            items.push(
+            _items.push(
                 <div key={uid} style={style}>
                     <div style={topBorder}></div>
                     <div style={bottomLeft}></div>
@@ -77,6 +77,10 @@ class Overlay extends Component {
             );
         });
 
+        return _items;
+    }
+
+    render() {
         const overlayStyle = {
             height: '1px',
             width: '1px',
@@ -84,18 +88,26 @@ class Overlay extends Component {
             top: 0,
             position: 'absolute',
             zIndex: 999,
-        };
+        }
 
         return (
             <div style={overlayStyle}>
-                {items}
+                {this._getItems(this.props.highlighted, 'yellow')}
+                {this._getItems(this.props.selected, 'green')}
             </div>
         );
     }
-
-    render() {
-        return this._getSelectItems();
-    }
 }
+
+Overlay.propTypes = {
+    selected: PropTypes.array,
+    highlighted: PropTypes.array
+
+};
+
+Overlay.defaultProps = {
+    selected: [],
+    highlighted: []
+};
 
 export default Overlay;

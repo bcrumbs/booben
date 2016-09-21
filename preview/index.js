@@ -19,7 +19,7 @@ window.JSSY = {};
 window.JSSY.initPreview = params => {
     ReactDOM.render(
         <Provider store={params.store}>
-            <Preview canSelect={params.canSelect} />
+            <Preview canSelect={params.canSelect} canHighlight={params.canHighlight}/>
         </Provider>,
 
         document.getElementById('container')
