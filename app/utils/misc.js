@@ -4,6 +4,17 @@
 
 'use strict';
 
+/**
+ * Does nothing
+ */
+export const noop = /* istanbul ignore next */ () => {};
+
+/**
+ *
+ * @param {Function} fn
+ * @param {number} threshold
+ * @returns {Function}
+ */
 export const throttle = (fn, threshold) => {
     let last,
         deferTimer;

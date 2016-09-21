@@ -4,168 +4,89 @@
 
 'use strict';
 
+//noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
+import ImmutablePropTypes from 'react-immutable-proptypes';
+import { connect } from 'react-redux';
 
-import { MainRegion, Content } from '@reactackle/reactackle';
-import { ToolWindow } from '../ToolWindow/ToolWindow';
-import { ToolPanel } from '../ToolPanel/ToolPanel';
+import {
+    MainRegion,
+    Content
+} from '@reactackle/reactackle';
 
-import ToolType from '../../prop-types/Tool';
+import { ToolWindow } from './ToolWindow/ToolWindow';
+import { ToolPanel } from './ToolPanel/ToolPanel';
 
-const findWindowedTools = toolGroups => {
-    const ret = [];
-    toolGroups.forEach(toolGroup => {
-        toolGroup.tools.forEach(tool => {
-            if (!tool.docked && !tool.closed) ret.push(tool);
-        })
-    });
+import ToolType from '../../models/Tool';
+import ToolStateType from '../../models/ToolState';
 
-    return ret;
-};
+import {
+    collapseToolsPanel,
+    expandToolsPanel,
+    dockTool,
+    undockTool,
+    focusTool,
+    selectTool,
+    closeTool,
+    setStickyTool
+} from '../../actions/desktop';
 
-export class Desktop extends Component {
-    constructor(props) {
-        super(props);
+import { List, Map } from 'immutable';
 
-        this.topTool = null;
+import { noop } from '../../utils/misc';
 
-        let nextZIndex = 0;
-        props.toolGroups.forEach(toolGroup => {
-            toolGroup.tools.forEach(tool => {
-                tool.zIndex = nextZIndex++;
-                this.topTool = tool;
-            })
-        });
-
-        const windowedTools = findWindowedTools(props.toolGroups);
-
-        this.state = {
-            toolInStickRegion: null,
-            windowedTools: windowedTools
-        };
-
-        this._handleToolUndock = this._handleToolUndock.bind(this);
-        this._handleStickRegionLeave = this._handleStickRegionLeave.bind(this);
-        this._handleStopDrag = this._handleStopDrag.bind(this);
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.toolGroups !== this.props.toolGroups) {
-            this.topTool = null;
-
-            let nextZIndex = 0;
-            nextProps.toolGroups.forEach(toolGroup => {
-                toolGroup.tools.forEach(tool => {
-                    tool.zIndex = nextZIndex++;
-                    this.topTool = tool;
-                })
-            });
-
-            const nextWindowsTools = findWindowedTools(nextProps.toolGroups);
-
-            this.setState({
-                windowedTools: nextWindowsTools
-            });
-        }
-    }
-
-    _makeTopTool(tool) {
-        tool.zIndex = this.topTool.zIndex + 1;
-        this.topTool = tool;
-    }
-
-    _removeWindow(tool) {
-        const idx = this.state.windowedTools.indexOf(tool);
-        if (idx > -1) {
-            this.state.windowedTools.splice(idx, 1);
-            this.forceUpdate();
-        }
-    }
-
-    _handleClose(tool) {
-        tool.closed = true;
-        tool.docked = true;
-        this._removeWindow(tool);
-    }
-
-    _handleDock(tool) {
-        tool.docked = true;
-        this._removeWindow(tool);
-    }
-
-    _handleToolUndock(tool) {
-        tool.docked = false;
-        this.state.windowedTools.push(tool);
-        this._makeTopTool(tool);
-        this.forceUpdate();
-    }
-
-    _handleStickRegionEnter(tool) {
-        this.setState({
-            toolInStickRegion: tool
-        });
-    }
-
-    _handleStickRegionLeave() {
-        this.setState({
-            toolInStickRegion: null
-        });
-    }
-
-    _handleStopDrag() {
-        if (this.state.toolInStickRegion) {
-            const tool = this.state.toolInStickRegion;
-            this.state.toolInStickRegion = null;
-            this._handleDock(tool);
-        }
-    }
-
-    _handleWindowFocus(tool) {
-        this._makeTopTool(tool);
-        this.forceUpdate();
-    }
-
+class DesktopComponent extends Component {
     render() {
-        const dockedToolGroups = this.props.toolGroups
-            .map(toolGroup => {
-                const ret = { tools: [] };
+        const windows = [];
 
-                toolGroup.tools.forEach(tool => {
-                    if (tool.docked)
-                        ret.tools.push(tool);
-                    else if (tool === this.state.toolInStickRegion)
-                        ret.tools.push(null);
-                });
+        this.props.toolGroups.forEach(tools => {
+            tools.forEach(tool => {
+                const toolState =
+                    this.props.toolStates.get(tool.id) ||
+                    new ToolStateType();
 
-                return ret;
-            })
-            .filter(toolGroup => toolGroup.tools.length > 0);
+                if (toolState.docked || toolState.closed) return;
 
-        const windows = this.state.windowedTools.map(tool => (
-            <ToolWindow
-                key={tool.id}
-                title={tool.title}
-                titleEditable={tool.titleEditable}
-                subtitle={tool.subtitle}
-                closable={tool.closable}
-                onClose={this._handleClose.bind(this, tool)}
-                dockable={tool.undockable}
-                onDock={this._handleDock.bind(this, tool)}
-                sections={tool.sections}
-                mainButtons={tool.mainButtons}
-                secondaryButtons={tool.secondaryButtons}
-                maxHeight={tool.maxHeight}
-                zIndex={tool.zIndex}
-                constrainPosition
-                marginRight={8}
-                marginBottom={8}
-                stickRegionRight={100}
-                onStickRegionEnter={this._handleStickRegionEnter.bind(this, tool)}
-                onStickRegionLeave={this._handleStickRegionLeave}
-                onStopDrag={this._handleStopDrag}
-                onFocus={this._handleWindowFocus.bind(this, tool)}
-            />
-        ));
+                const onDock = () => this.props.onToolDock(tool);
+
+                const onClose = () => this.props.onToolClose(tool);
+
+                const onFocus = () => this.props.onToolFocus(tool);
+
+                const onTitleChange = newTitle =>
+                    this.props.onToolTitleChange(tool, newTitle);
+
+                const onStickRegionEnter = () =>
+                    this.props.onToolStickRegionEnter(tool);
+
+                const onStickRegionLeave = () =>
+                    this.props.onToolStickRegionLeave(tool);
+
+                const onStopDrag = () => {
+                    const toolState = this.props.toolStates.get(tool.id);
+                    if (toolState.isInDockRegion) this.props.onToolDock(tool);
+                };
+
+                windows.push(
+                    <ToolWindow
+                        key={tool.id}
+                        tool={tool}
+                        toolState={toolState}
+                        constrainPosition
+                        marginRight={8}
+                        marginBottom={8}
+                        stickRegionRight={100}
+                        onDock={onDock}
+                        onClose={onClose}
+                        onFocus={onFocus}
+                        onTitleChange={onTitleChange}
+                        onStickRegionEnter={onStickRegionEnter}
+                        onStickRegionLeave={onStickRegionLeave}
+                        onStopDrag={onStopDrag}
+                    />
+                );
+            });
+        });
 
         return (
             <MainRegion>
@@ -175,22 +96,69 @@ export class Desktop extends Component {
                 </Content>
 
                 <ToolPanel
-                    toolGroups={dockedToolGroups}
-                    onToolUndock={this._handleToolUndock}
+                    isExpanded={this.props.toolsPanelIsExpanded}
+                    toolGroups={this.props.toolGroups}
+                    toolStates={this.props.toolStates}
+                    onCollapse={this.props.onToolsPanelCollapse}
+                    onToolSelect={this.props.onActiveToolChange}
+                    onToolUndock={this.props.onToolUndock}
+                    onToolTitleChange={this.props.onToolTitleChange}
                 />
             </MainRegion>
         );
     }
-}
+} 
 
-Desktop.propTypes = {
-    toolGroups: PropTypes.arrayOf(PropTypes.shape({
-        tools: PropTypes.arrayOf(ToolType)
-    }))
+DesktopComponent.propTypes = {
+    toolGroups: ImmutablePropTypes.listOf(
+        ImmutablePropTypes.listOf(PropTypes.instanceOf(ToolType))
+    ),
+
+    toolStates: ImmutablePropTypes.mapOf(
+        PropTypes.instanceOf(ToolStateType),
+        PropTypes.string
+    ),
+
+    toolsPanelActiveTool: PropTypes.instanceOf(ToolType),
+    toolsPanelIsExpanded: PropTypes.bool,
+
+    onToolsPanelCollapse: PropTypes.func,
+    onActiveToolChange: PropTypes.func,
+    onToolTitleChange: PropTypes.func,
+    onToolDock: PropTypes.func,
+    onToolUndock: PropTypes.func,
+    onToolClose: PropTypes.func,
+    onToolFocus: PropTypes.func,
+    onToolStickRegionEnter: PropTypes.func,
+    onToolStickRegionLeave: PropTypes.func
 };
 
-Desktop.defaultProps = {
-    toolGroups: []
+DesktopComponent.defaultProps = {
+    toolGroups: List()
 };
 
-Desktop.displayName = 'Desktop';
+DesktopComponent.displayName = 'Desktop';
+
+const mapStateToProps = state => ({
+    toolStates: state.desktop.toolStates,
+    toolsPanelIsExpanded: state.desktop.toolsPanelIsExpanded
+});
+
+const mapDispatchToProps = dispatch => ({
+    onToolsPanelCollapse: () => void dispatch(collapseToolsPanel()),
+    onActiveToolChange: tool => void dispatch(selectTool(tool.id)),
+    onToolDock: tool => void dispatch(dockTool(tool.id)),
+
+    onToolUndock: (tool, nextActiveTool) =>
+        void dispatch(undockTool(
+            tool.id,
+            nextActiveTool !== null ? nextActiveTool.id : null)
+        ),
+
+    onToolClose: tool => void dispatch(closeTool(tool.id)),
+    onToolFocus: tool => void dispatch(focusTool(tool.id)),
+    onToolStickRegionEnter: tool => void dispatch(setStickyTool(tool.id)),
+    onToolStickRegionLeave: () => void dispatch(setStickyTool(null))
+});
+
+export const Desktop = connect(mapStateToProps, mapDispatchToProps)(DesktopComponent);

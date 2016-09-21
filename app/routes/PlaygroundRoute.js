@@ -9,14 +9,12 @@ import React from 'react';
 import {
     App,
     TopRegion,
-    MainRegion,
     BottomRegion,
     Header,
     HeaderRegion,
     HeaderLogoBox,
     HeaderMenu,
     HeaderMenuItem,
-    Content,
     Footer,
     FooterRegion,
     FooterMenu,
@@ -30,98 +28,106 @@ import {
     BlockContentBoxHeading
 } from '../components/BlockContent/BlockContent';
 
-
-import { ComponentPlaceholder } from '../components/ComponentPlaceholder/ComponentPlaceholder';
-import { ToolWindow } from '../containers/ToolWindow/ToolWindow';
-import { ToolPanel } from '../containers/ToolPanel/ToolPanel';
 import { Desktop } from '../containers/Desktop/Desktop';
 
+import { List } from 'immutable';
 
-const toolWindowSections = [
-    {
+import ToolSectionRecord from '../models/ToolSection';
+import ButtonRecord from '../models/Button';
+import ToolRecord from '../models/Tool';
+
+import store from '../store';
+import { addTools } from '../actions/desktop';
+
+
+const toolWindowSections = List([
+    new ToolSectionRecord({
         name: 'Section 1',
         component: () => (
             <BlockContentBox>
                 <BlockContentBoxHeading>Header 1</BlockContentBoxHeading>
                 <BlockContentBoxItem>
-                    Content block 1. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
+                    Content block 1. Lorem ipsum dolor sit amet,
+                    consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
                 </BlockContentBoxItem>
 
                 <BlockContentBoxItem>
-                    Content block 2. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
+                    Content block 2. Lorem ipsum dolor sit amet,
+                    consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
                 </BlockContentBoxItem>
             </BlockContentBox>
         )
-    },
+    }),
 
-    {
+    new ToolSectionRecord({
         name: 'Section 2',
         component: () => (
             <BlockContentBox>
                 <BlockContentBoxHeading>Header 2</BlockContentBoxHeading>
                 <BlockContentBoxItem>
-                    Content block 3. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
+                    Content block 3. Lorem ipsum dolor sit amet,
+                    consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
                 </BlockContentBoxItem>
 
                 <BlockContentBoxItem>
-                    Content block 4. Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
+                    Content block 4. Lorem ipsum dolor sit amet,
+                    consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
                 </BlockContentBoxItem>
             </BlockContentBox>
         )
-    }
-];
+    })
+]);
 
-const toolWindowMainActions = [
-    {
+const toolWindowMainActions = List([
+    new ButtonRecord({
         text: 'Edit content',
         onPress: () => {}
-    },
-    {
+    }),
+
+    new ButtonRecord({
         text: 'Save',
         onPress: () => {}
-    }
-];
+    })
+]);
 
-const toolWindowSecondaryActions = [
-    {
+const toolWindowSecondaryActions = List([
+    new ButtonRecord({
         icon: 'trash-o',
         onPress: () => {}
-    }
-];
+    })
+]);
 
-const toolGroups = [{
-    tools: [{
-        id: 'tool1',
-        icon: 'cube',
-        name: 'Tool 1',
-        title: 'Hey ho lets go',
-        undockable: true,
-        closable: false,
-        docked: true,
-        closed: false,
-        sections: toolWindowSections,
-        mainButtons: toolWindowMainActions,
-        secondaryButtons: toolWindowSecondaryActions
-    }, {
-        id: 'tool2',
-        icon: 'server',
-        name: 'Tool 2',
-        title: 'fuck you i\'m drunk',
-        undockable: true,
-        closable: false,
-        docked: false,
-        closed: false,
-        sections: toolWindowSections,
-        mainButtons: toolWindowMainActions,
-        secondaryButtons: toolWindowSecondaryActions
-    }]
-}];
+const toolGroups = List([
+    List([
+        new ToolRecord({
+            id: 'tool1',
+            icon: 'cube',
+            name: 'Tool 1',
+            title: 'Hey ho lets go',
+            undockable: true,
+            closable: false,
+            sections: toolWindowSections,
+            mainButtons: toolWindowMainActions,
+            secondaryButtons: toolWindowSecondaryActions
+        }),
+
+        new ToolRecord({
+            id: 'tool2',
+            icon: 'server',
+            name: 'Tool 2',
+            title: 'Fuck you, i\'m drunk',
+            undockable: true,
+            closable: false,
+            sections: toolWindowSections,
+            mainButtons: toolWindowMainActions,
+            secondaryButtons: toolWindowSecondaryActions
+        })
+    ])
+]);
+
+store.dispatch(addTools(toolGroups));
 
 export default class Playground extends React.Component {
-    constructor(props) {
-        super(props);
-    }
-
     render() {
         return (
             <App fixed={true}>

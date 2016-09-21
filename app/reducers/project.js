@@ -17,13 +17,15 @@ import {
     PROJECT_LOAD_FAILED
 } from '../actions/project';
 
-export default (state = {
+const initialState = {
     projectName: '',
     loadState: NOT_LOADED,
     data: null,
     meta: null,
     error: null
-}, action) => {
+};
+
+export default (state = initialState, action) => {
     switch (action.type) {
         case PROJECT_REQUEST: return Object.assign({}, state, {
             projectName: action.projectName,

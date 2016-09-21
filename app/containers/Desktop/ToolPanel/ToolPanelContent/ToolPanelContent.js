@@ -4,46 +4,64 @@
 
 'use strict';
 
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 
 import {
     PageDrawerContentArea
-} from '../../../components/PageDrawer/PageDrawer';
+} from '../../../../components/PageDrawer/PageDrawer';
 
 import {
     BlockContent,
     BlockContentTitle,
     BlockContentActions,
     BlockContentActionsRegion
-} from '../../../components/BlockContent/BlockContent';
+} from '../../../../components/BlockContent/BlockContent';
 
 import {
     Button
 } from '@reactackle/reactackle'
 
+import { List } from 'immutable';
+
+import ButtonType from '../../../../models/Button';
+import ToolType from '../../../../models/Tool';
+import ToolStateType from '../../../../models/ToolState';
+
+import { noop } from '../../../../utils/misc';
+
 export const ToolPanelContent = props => {
-    const titleButtons = [];
+    const { tool } = props;
 
-    if (props.undockable) titleButtons.push({
-        icon: 'arrows-alt',
-        onPress: props.onUndock
-    });
+    let titleButtons = List([
+        new ButtonType({
+            icon: 'chevron-right',
+            onPress: props.onCollapse
+        })
+    ]);
 
-    titleButtons.push({
-        icon: 'chevron-right',
-        onPress: props.onCollapse
-    });
+    if (tool.undockable) {
+        titleButtons = titleButtons.unshift(new ButtonType({
+            icon: 'arrows-alt',
+            onPress: props.onUndock
+        }));
+    }
 
-    const sections = props.sections.map((section, idx) => {
+    const sections = tool.sections.map((section, idx) => {
         const SectionComponent = section.component;
         return <SectionComponent key={idx}/>
     });
 
     let actionsArea = null;
-    if (props.mainButtons.length || props.secondaryButtons.length) {
+    const mainButtons = tool.mainButtons,
+        secondaryButtons = tool.secondaryButtons,
+        mainButtonsNum = mainButtons.size,
+        secondaryButtonsNum = secondaryButtons.size;
+
+    if (mainButtonsNum > 0 || secondaryButtonsNum > 0) {
         let mainActionsRegion = null;
-        if (props.mainButtons.length) {
-            const buttons = props.mainButtons.map((button, idx) => (
+        if (mainButtonsNum > 0) {
+            const buttons = mainButtons.map((button, idx) => (
                 <Button
                     key={idx}
                     icon={button.icon}
@@ -60,8 +78,8 @@ export const ToolPanelContent = props => {
         }
 
         let secondaryButtonsRegion = null;
-        if (props.secondaryButtons.length) {
-            const buttons = props.secondaryButtons.map((button, idx) => (
+        if (secondaryButtonsNum > 0) {
+            const buttons = secondaryButtons.map((button, idx) => (
                 <Button
                     key={idx}
                     icon={button.icon}
@@ -89,51 +107,30 @@ export const ToolPanelContent = props => {
         <PageDrawerContentArea>
             <BlockContent>
                 <BlockContentTitle
-                    title={props.title}
-                    isEditable={props.titleEditable}
+                    title={tool.title}
+                    isEditable={tool.titleEditable}
                     buttons={titleButtons}
                 />
 
                 {sections}
-
                 {actionsArea}
             </BlockContent>
         </PageDrawerContentArea>
     );
 };
 
-const ButtonType = PropTypes.shape({
-    icon: PropTypes.string,
-    text: PropTypes.string,
-    disabled: PropTypes.bool,
-    onPress: PropTypes.func
-});
-
 ToolPanelContent.propTypes = {
-    title: PropTypes.string,
-    titleEditable: PropTypes.bool,
+    tool: PropTypes.instanceOf(ToolType).isRequired,
+    toolState: PropTypes.instanceOf(ToolStateType).isRequired,
     onTitleChange: PropTypes.func,
-    undockable: PropTypes.bool,
     onUndock: PropTypes.func,
-    onCollapse: PropTypes.func,
-    sections: PropTypes.arrayOf(PropTypes.shape({
-        name: PropTypes.string.isRequired,
-        component: PropTypes.func.isRequired
-    })),
-    mainButtons: PropTypes.arrayOf(ButtonType),
-    secondaryButtons: PropTypes.arrayOf(ButtonType)
+    onCollapse: PropTypes.func
 };
 
 ToolPanelContent.defaultProps = {
-    title: '',
-    titleEditable: false,
-    onTitleChange: /* istanbul ignore next */ () => {},
-    undockable: true,
-    onUndock: /* istanbul ignore next */ () => {},
-    onCollapse: /* istanbul ignore next */ () => {},
-    sections: [],
-    mainButtons: [],
-    secondaryButtons: []
+    onTitleChange: noop,
+    onUndock: noop,
+    onCollapse: noop,
 };
 
 ToolPanelContent.displayName = 'ToolPanelContent';

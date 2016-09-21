@@ -4,13 +4,14 @@
 
 'use strict';
 
+//noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 
 import {
     DraggableWindow,
     DraggableWindowRegion
-} from '../../components/DraggableWindow/DraggableWindow';
+} from '../../../components/DraggableWindow/DraggableWindow';
 
 import {
     BlockContent,
@@ -18,7 +19,7 @@ import {
     BlockContentNavigation,
     BlockContentActions,
     BlockContentActionsRegion
-} from '../../components/BlockContent/BlockContent';
+} from '../../../components/BlockContent/BlockContent';
 
 import {
     Button,
@@ -26,9 +27,13 @@ import {
     Tab
 } from '@reactackle/reactackle';
 
-import ButtonType from '../../prop-types/Button';
+import { List } from 'immutable';
 
-import { throttle } from '../../utils/misc';
+import ButtonType from '../../../models/Button';
+import ToolType from '../../../models/Tool';
+import ToolStateType from '../../../models/ToolState';
+
+import { noop, throttle } from '../../../utils/misc';
 
 export const STICK_REGION_LEFT = 0;
 export const STICK_REGION_RIGHT = 1;
@@ -69,11 +74,8 @@ export class ToolWindow extends Component {
             actionsAreaHasBorder: false
         };
 
-        this._haveActionsArea = false;
-
         this._handleDragIconMouseDown = this._handleDragIconMouseDown.bind(this);
         this._handleNavigation = this._handleNavigation.bind(this);
-
         this._updateStickRegion = throttle(this._updateStickRegion.bind(this), 100);
     }
 
@@ -117,12 +119,16 @@ export class ToolWindow extends Component {
     }
 
     _updateActionsAreaBorder() {
+        const haveActionsArea =
+            this.props.tool.mainButtons.size > 0 ||
+            this.props.tool.secondaryButtons.size > 0;
+
         let needBorder = false;
 
-        if (this._haveActionsArea) {
+        if (haveActionsArea) {
             // Ugly hack
-            const el = ReactDOM.findDOMNode(this),
-                actionsAreaEl = el.querySelector('.block-content-actions-area');
+            const actionsAreaEl =
+                this.domNode.querySelector('.block-content-actions-area');
 
             if (actionsAreaEl) {
                 const contentAreaEl = actionsAreaEl.previousElementSibling;
@@ -255,25 +261,14 @@ export class ToolWindow extends Component {
     }
 
     render() {
-        const titleButtons = [];
-
-        if (this.props.dockable)
-            titleButtons.push({
-                icon: 'compress',
-                disabled: false,
-                onPress: this.props.onDock
-            });
-
-        if (this.props.closable)
-            titleButtons.push({
-                icon: 'times',
-                disabled: false,
-                onPress: this.props.onClose
-            });
+        const { tool, toolState } = this.props;
 
         let navArea = null;
-        if (this.props.sections.length > 1) {
-            const tabs = this.props.sections.map((section, idx) => (
+        const sections = tool.sections,
+            sectionsNum = sections.size;
+
+        if (sectionsNum > 1) {
+            const tabs = sections.map((section, idx) => (
                 <Tab key={idx} text={section.name} />
             ));
 
@@ -290,15 +285,16 @@ export class ToolWindow extends Component {
             );
         }
 
-        let ContentComponent = null;
-        if (this.state.activeSection < this.props.sections.length)
-            ContentComponent = this.props.sections[this.state.activeSection].component;
-
         let actionsArea = null;
-        if (this.props.mainButtons.length || this.props.secondaryButtons.length) {
+        const mainButtons = tool.mainButtons,
+            secondaryButtons = tool.secondaryButtons,
+            mainButtonsNum = mainButtons.size,
+            secondaryButtonsNum = secondaryButtons.size;
+
+        if (mainButtonsNum > 0 || secondaryButtonsNum > 0) {
             let mainActionsRegion = null;
-            if (this.props.mainButtons.length) {
-                const buttons = this.props.mainButtons.map((button, idx) => (
+            if (mainButtonsNum > 0) {
+                const buttons = mainButtons.map((button, idx) => (
                     <Button
                         key={idx}
                         icon={button.icon}
@@ -315,8 +311,8 @@ export class ToolWindow extends Component {
             }
 
             let secondaryButtonsRegion = null;
-            if (this.props.secondaryButtons.length) {
-                const buttons = this.props.secondaryButtons.map((button, idx) => (
+            if (secondaryButtonsNum > 0) {
+                const buttons = secondaryButtons.map((button, idx) => (
                     <Button
                         key={idx}
                         icon={button.icon}
@@ -338,17 +334,37 @@ export class ToolWindow extends Component {
                     {mainActionsRegion}
                 </BlockContentActions>
             );
-
-            this._haveActionsArea = true;
         }
+
+        let titleButtons = List();
+
+        if (tool.undockable) {
+            titleButtons = titleButtons.push(new ButtonType({
+                icon: 'compress',
+                onPress: this.props.onDock
+            }));
+        }
+
+        if (tool.closable) {
+            titleButtons = titleButtons.push(new ButtonType({
+                icon: 'times',
+                onPress: this.props.onClose
+            }));
+        }
+
+        const activeSection = sections.get(this.state.activeSection) || null;
+
+        const ContentComponent = activeSection !== null
+            ? activeSection.component
+            : null;
 
         const mainRegion = (
             <DraggableWindowRegion>
                 <BlockContent>
                     <BlockContentTitle
-                        title={this.props.title}
-                        subtitle={this.props.subtitle}
-                        isEditable={this.props.titleEditable}
+                        title={tool.title}
+                        subtitle={tool.subtitle}
+                        isEditable={tool.titleEditable}
                         iconLeft="ellipsis-v"
                         buttons={titleButtons}
                         onLeftIconMouseDown={this._handleDragIconMouseDown}
@@ -364,14 +380,12 @@ export class ToolWindow extends Component {
         );
 
         let sideRegion = null;
-        if (this.props.showSideRegion) {
-            let SideRegionContentComponent = null;
-            if (this.state.activeSection < this.props.sections.length) {
-                SideRegionContentComponent =
-                    this.props.sections[this.state.activeSection].sideRegionComponent;
-            }
+        if (toolState.sideRegionIsVisible) {
+            const SideRegionContentComponent = activeSection !== null
+                ? activeSection.sideRegionComponent
+                : null;
 
-            if (SideRegionContentComponent) {
+            if (SideRegionContentComponent !== null) {
                 sideRegion = (
                     <DraggableWindowRegion type="aside">
                         <BlockContent>
@@ -385,8 +399,8 @@ export class ToolWindow extends Component {
         return (
             <DraggableWindow
                 isDragged={this.state.dragging}
-                maxHeight={this.props.maxHeight}
-                zIndex={this.props.zIndex}
+                maxHeight={tool.maxHeight}
+                zIndex={toolState.zIndex}
                 onFocus={this.props.onFocus}
             >
                 {mainRegion}
@@ -397,24 +411,9 @@ export class ToolWindow extends Component {
 }
 
 ToolWindow.propTypes = {
-    title: PropTypes.string,
-    titleEditable: PropTypes.bool,
-    onTitleChange: PropTypes.func,
-    subtitle: PropTypes.string,
-    showSideRegion: PropTypes.bool,
-    closable: PropTypes.bool,
-    onClose: PropTypes.func,
-    dockable: PropTypes.bool,
-    onDock: PropTypes.func,
-    sections: PropTypes.arrayOf(PropTypes.shape({
-        name: PropTypes.string.isRequired,
-        component: PropTypes.func.isRequired,
-        sideRegionComponent: PropTypes.func
-    })),
-    mainButtons: PropTypes.arrayOf(ButtonType),
-    secondaryButtons: PropTypes.arrayOf(ButtonType),
-    maxHeight: PropTypes.number,
-    zIndex: PropTypes.number,
+    tool: PropTypes.instanceOf(ToolType).isRequired,
+    toolState: PropTypes.instanceOf(ToolStateType).isRequired,
+
     constrainPosition: PropTypes.bool,
     marginLeft: PropTypes.number,
     marginRight: PropTypes.number,
@@ -424,6 +423,10 @@ ToolWindow.propTypes = {
     stickRegionRight: PropTypes.number,
     stickRegionTop: PropTypes.number,
     stickRegionBottom: PropTypes.number,
+
+    onTitleChange: PropTypes.func,
+    onClose: PropTypes.func,
+    onDock: PropTypes.func,
     onFocus: PropTypes.func,
     onStartDrag: PropTypes.func,
     onStopDrag: PropTypes.func,
@@ -432,20 +435,6 @@ ToolWindow.propTypes = {
 };
 
 ToolWindow.defaultProps = {
-    title: '',
-    titleEditable: false,
-    onTitleChange: /* istanbul ignore next*/ () => {},
-    subtitle: '',
-    showSideRegion: false,
-    closable: true,
-    onClose: /* istanbul ignore next*/ () => {},
-    dockable: true,
-    onDock: /* istanbul ignore next*/ () => {},
-    sections: [],
-    mainButtons: [],
-    secondaryButtons: [],
-    maxHeight: 0,
-    zIndex: 0,
     constrainPosition: true,
     marginLeft: 0,
     marginRight: 0,
@@ -455,11 +444,15 @@ ToolWindow.defaultProps = {
     stickRegionRight: 0,
     stickRegionTop: 0,
     stickRegionBottom: 0,
-    onFocus: /* istanbul ignore next */ () => {},
-    onStartDrag: /* istanbul ignore next */ () => {},
-    onStopDrag: /* istanbul ignore next */ () => {},
-    onStickRegionEnter: /* istanbul ignore next */ () => {},
-    onStickRegionLeave: /* istanbul ignore next */ () => {}
+
+    onTitleChange: noop,
+    onClose: noop,
+    onDock: noop,
+    onFocus: noop,
+    onStartDrag: noop,
+    onStopDrag: noop,
+    onStickRegionEnter: noop,
+    onStickRegionLeave: noop
 };
 
 ToolWindow.displayName = 'ToolWindow';

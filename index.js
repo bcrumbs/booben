@@ -54,7 +54,7 @@ const start = () => co(function* () {
     setupEndpoint(app, require('./endpoints/update-project'));
 
     if (config.get('env') === 'development') {
-        setupWebpackDevMiddleware(app);
+        // setupWebpackDevMiddleware(app);
     }
 
     httpServer = http.createServer(app);

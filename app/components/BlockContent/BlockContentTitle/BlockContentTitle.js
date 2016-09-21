@@ -1,10 +1,24 @@
+'use strict';
+
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
-import { Icon, Button } from '@reactackle/reactackle';
+import ImmutablePropTypes from 'react-immutable-proptypes';
+
+import {
+    Icon,
+    Button
+} from '@reactackle/reactackle';
+
+import { List } from 'immutable';
+
+import ButtonType from '../../../models/Button';
+
+import { noop } from '../../../utils/misc';
 
 export const BlockContentTitle = props => {
     const prefix = 'block-content';
-    let titleClassName = `${prefix}-title-box`;
 
+    let titleClassName = `${prefix}-title-box`;
     if (props.isEditable) titleClassName += ' is-editable';
     if (props.editingOn) titleClassName += ' editing-is-on';
 
@@ -22,12 +36,12 @@ export const BlockContentTitle = props => {
 
 
     let buttonsArea = null;
-    if (props.buttons && props.buttons.length) {
+    if (props.buttons.size > 0) {
         const buttons = props.buttons.map((button, idx) => (
             <Button
                 key={idx}
                 icon={button.icon}
-                disabled={!!button.disabled}
+                disabled={button.disabled}
                 onPress={button.onPress}
             />
         ));
@@ -76,27 +90,25 @@ export const BlockContentTitle = props => {
 };
 
 BlockContentTitle.propTypes = {
+    title: PropTypes.string.isRequired,
     isEditable: PropTypes.bool,
     editingOn: PropTypes.bool,
-    title: PropTypes.string.isRequired,
     subtitle: PropTypes.string,
     iconLeft: PropTypes.string,
-    buttons: PropTypes.arrayOf(PropTypes.shape({
-        icon: PropTypes.string.isRequired,
-        disabled: PropTypes.bool,
-        onPress: PropTypes.func.isRequired
-    })),
+    buttons: ImmutablePropTypes.listOf(
+        PropTypes.instanceOf(ButtonType)
+    ),
     onLeftIconMouseDown: PropTypes.func
 };
 
 BlockContentTitle.defaultProps = {
+    title: '',
     isEditable: false,
     editingOn: false,
-    title: '',
     subtitle: null,
     iconLeft: null,
-    buttons: [],
-    onLeftIconMouseDown: /* istanbul ignore next */ () => {}
+    buttons: List(),
+    onLeftIconMouseDown: noop
 };
 
 BlockContentTitle.displayName = 'BlockContentTitle';
