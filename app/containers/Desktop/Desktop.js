@@ -22,7 +22,6 @@ import ToolStateType from '../../models/ToolState';
 
 import {
     collapseToolsPanel,
-    expandToolsPanel,
     dockTool,
     undockTool,
     focusTool,
@@ -31,9 +30,7 @@ import {
     setStickyTool
 } from '../../actions/desktop';
 
-import { List, Map } from 'immutable';
-
-import { noop } from '../../utils/misc';
+import { List } from 'immutable';
 
 class DesktopComponent extends Component {
     render() {
