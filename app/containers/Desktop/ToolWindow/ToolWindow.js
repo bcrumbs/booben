@@ -40,26 +40,6 @@ export const STICK_REGION_RIGHT = 1;
 export const STICK_REGION_TOP = 2;
 export const STICK_REGION_BOTTOM = 3;
 
-let draggedWindow = null;
-
-const mouseMoveListener = event => {
-    event.preventDefault();
-    draggedWindow._handleMove(event);
-
-    if (draggedWindow.needRAF) {
-        draggedWindow.needRAF = false;
-        window.requestAnimationFrame(updateWindowElement);
-    }
-};
-
-const mouseUpListener = () => {
-    draggedWindow._handleStopDrag();
-};
-
-const updateWindowElement = () => {
-    if (draggedWindow !== null) draggedWindow._handleAnimationFrame();
-};
-
 export class ToolWindow extends Component {
     constructor(props) {
         super(props);
@@ -70,7 +50,10 @@ export class ToolWindow extends Component {
             actionsAreaHasBorder: false
         };
 
-        this._handleDragIconMouseDown = this._handleDragIconMouseDown.bind(this);
+        this._handleStartDrag = this._handleStartDrag.bind(this);
+        this._handleMouseMove = this._handleMouseMove.bind(this);
+        this._handleStopDrag = this._handleStopDrag.bind(this);
+        this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
         this._handleNavigation = this._handleNavigation.bind(this);
         this._updateStickRegion = throttle(this._updateStickRegion.bind(this), 100);
     }
@@ -88,6 +71,7 @@ export class ToolWindow extends Component {
         this.inStickRegionRight = false;
         this.inStickRegionTop = false;
         this.inStickRegionBottom = false;
+        this.animationFrame = null;
 
         this._updateActionsAreaBorder();
     }
@@ -99,6 +83,33 @@ export class ToolWindow extends Component {
     componentDidUpdate() {
         this._updateActionsAreaBorder();
     }
+
+    _handleMouseMove(event) {
+        event.preventDefault();
+
+        this.dx = event.clientX + this.dragStartDiffX;
+        this.dy = event.clientY + this.dragStartDiffY;
+
+        if (this.props.constrainPosition) {
+            if (this.dx + this.props.marginRight > this.containerWidthMinusWindowWidth)
+                this.dx = this.containerWidthMinusWindowWidth - this.props.marginRight;
+
+            if (this.dx < this.props.marginLeft) this.dx = this.props.marginLeft;
+
+            if (this.dy + this.props.marginBottom > this.containerHeightMinusWindowHeight)
+                this.dy = this.containerHeightMinusWindowHeight - this.props.marginBottom;
+
+            if (this.dy < this.props.marginTop) this.dy = this.props.marginTop;
+        }
+
+        if (this.needRAF) {
+            this.needRAF = false;
+            this.animationFrame =
+                window.requestAnimationFrame(this._handleAnimationFrame);
+        }
+
+        this._updateStickRegion();
+    };
 
     _updateActionsAreaBorder() {
         const haveActionsArea =
@@ -176,30 +187,9 @@ export class ToolWindow extends Component {
         this.inStickRegionBottom = isInStickRegion.bottom;
     }
 
-    _handleMove(event) {
-        this.dx = event.clientX + this.dragStartDiffX;
-        this.dy = event.clientY + this.dragStartDiffY;
-
-        if (this.props.constrainPosition) {
-            if (this.dx + this.props.marginRight > this.containerWidthMinusWindowWidth)
-                this.dx = this.containerWidthMinusWindowWidth - this.props.marginRight;
-
-            if (this.dx < this.props.marginLeft) this.dx = this.props.marginLeft;
-
-            if (this.dy + this.props.marginBottom > this.containerHeightMinusWindowHeight)
-                this.dy = this.containerHeightMinusWindowHeight - this.props.marginBottom;
-
-            if (this.dy < this.props.marginTop) this.dy = this.props.marginTop;
-        }
-
-        this._updateStickRegion();
-    }
-
-    _handleDragIconMouseDown(event) {
-        draggedWindow = this;
-
-        window.addEventListener('mouseup', mouseUpListener);
-        window.addEventListener('mousemove', mouseMoveListener);
+    _handleStartDrag(event) {
+        window.addEventListener('mouseup', this._handleStopDrag);
+        window.addEventListener('mousemove', this._handleMouseMove);
 
         this.width = this.domNode.clientWidth;
         this.height = this.domNode.clientHeight;
@@ -222,10 +212,13 @@ export class ToolWindow extends Component {
     }
 
     _handleStopDrag() {
-        window.removeEventListener('mouseup', mouseUpListener);
-        window.removeEventListener('mousemove', mouseMoveListener);
+        window.removeEventListener('mouseup', this._handleStopDrag);
+        window.removeEventListener('mousemove', this._handleMouseMove);
 
-        draggedWindow = null;
+        if (this.animationFrame !== null) {
+            window.cancelAnimationFrame(this.animationFrame);
+            this.animationFrame = null;
+        }
 
         this.setState({
             dragging: false
@@ -235,11 +228,11 @@ export class ToolWindow extends Component {
     }
 
     _handleAnimationFrame() {
+        this.domNode.style.transform = `translate(${this.dx}px, ${this.dy}px)`;
+        this.animationFrame = null;
         this.needRAF = true;
-        const { dx, dy } = this;
-        this.currentTranslateX = dx;
-        this.currentTranslateY = dy;
-        this.domNode.style.transform = `translate(${dx}px, ${dy}px)`;
+        this.currentTranslateX = this.dx;
+        this.currentTranslateY = this.dy;
     }
 
     _handleNavigation(newActiveSection) {
@@ -355,7 +348,7 @@ export class ToolWindow extends Component {
                         isEditable={tool.titleEditable}
                         iconLeft="ellipsis-v"
                         buttons={titleButtons}
-                        onLeftIconMouseDown={this._handleDragIconMouseDown}
+                        onLeftIconMouseDown={this._handleStartDrag}
                     />
 
                     {navArea}
