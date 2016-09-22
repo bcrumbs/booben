@@ -54,11 +54,17 @@ class Preview extends Component {
         super();
 
         this.domNode = null;
-        this.mouseEvents = ['click', 'mouseover', 'mouseout', 'dragover', 'dragleave',
-            'drop'];
+        this.mouseEvents = [
+            'click', 'mouseover', 'mouseout', 'dragover', 'dragleave','drop',
+            'mousedown'
+        ];
 
         this._handleMouseEvent = this._handleMouseEvent.bind(this);
         this._handleResize = this._handleResize.bind(this);
+    }
+
+    componentWillMount() {
+        this.routes = this.props.routes.map(route => this._getRoute(route));
     }
 
     componentDidMount() {
@@ -120,6 +126,10 @@ class Preview extends Component {
         this.props.updateHighlighted([{ uid, el: domEl }]);
     }
 
+    _dragStart(owner) {
+
+    }
+
     /**
      * 
      * @param {MouseEvent} event
@@ -134,23 +144,32 @@ class Preview extends Component {
             owner = getOwner(el, item => item._currentElement.props.uid);
 
         if (owner) {
-            switch(event.type) {
-                case 'click':
-                    if (!event.ctrlKey) return;
-                    this._updateSelected(el, owner._currentElement.props.uid);
-                    break;
-                case 'dragover':
-                case 'mouseover':
-                    this._updateHighlighted(el, owner._currentElement.props.uid);
-                    break;
-                case 'dragleave':
-                case 'mouseout':
-                    this.props.updateHighlighted([]);
-                    break;
+            event.preventDefault();
+            event.stopPropagation();
+
+            const type = event.type;
+
+            if( type == 'click' ) {
+                if(!event.ctrlKey) return;
+                this._updateSelected(el, owner._currentElement.props.uid);
+            } else if( type == 'dragover' || type == 'mouseover') {
+                this._updateHighlighted(el, owner._currentElement.props.uid);
+            } else if( type == 'dragleave' || type == 'mouseout') {
+                this.props.updateHighlighted([]);
+            } else if( type == 'drop' ) {
+                console.log({
+                    source: JSON.parse(event.dataTransfer.getData("Text")),
+                    target: owner._currentElement.props.uid
+                });
             }
 
+            if( type == 'mousedown' ) {
+                if (event.which != 1) return;
+                this._dragStart(owner);
+            }
+
+
             this._renderOverlayDOM();
-            event.stopPropagation();
         }
     }
 
@@ -194,14 +213,12 @@ class Preview extends Component {
     }
 
     render() {
-        const routes = this.props.routes.map(route => this._getRoute(route));
-
         return (
             <Router
                 render={applyRouterMiddleware(this._getRouterMiddleware())}
                 history={hashHistory}
             >
-                {routes}
+                {this.routes}
             </Router>
         );
     }
