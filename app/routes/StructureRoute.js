@@ -4,25 +4,31 @@
 
 'use strict';
 
+//noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
+import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
-import {
-    Content
-} from '@reactackle/reactackle';
+import { Desktop } from '../containers/Desktop/Desktop';
+
+import toolGroups from '../tools/structure';
+
+import ProjectRouteRecord from '../models/ProjectRoute';
 
 class StructureRoute extends Component {
     render() {
         return (
-            <Content>
+            <Desktop toolGroups={toolGroups}>
 
-            </Content>
+            </Desktop>
         )
     }
 }
 
 StructureRoute.propTypes = {
-    routes: PropTypes.arrayOf(PropTypes.object).isRequired
+    routes: ImmutablePropTypes.listOf(
+        PropTypes.instanceOf(ProjectRouteRecord)
+    )
 };
 
 StructureRoute.displayName = 'StructureRoute';

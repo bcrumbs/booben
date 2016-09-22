@@ -4,7 +4,8 @@
 
 'use strict';
 
-import React, { Component } from 'react';
+//noinspection JSUnresolvedVariable
+import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 
 import { Desktop } from '../containers/Desktop/Desktop';
@@ -15,16 +16,20 @@ import {
     getRoutes
 } from '../utils';
 
+import toolGroups from '../tools/design';
+
+import ProjectRecord from '../models/Project';
+
 class DesignRoute extends Component {
     render() {
         const src = `/preview/${this.props.params.projectName}/index.html`;
 
-        const route = getRoutes(this.props.routes).find(route => {
+        const route = getRoutes(this.props.project.routes).find(route => {
             return route.id == this.props.params.routeId;
         });
 
         return (
-            <Desktop>
+            <Desktop toolGroups={toolGroups}>
                 <div style={{ marginTop: '40px' }}>
                     <PreviewIFrame
                         canSelect
@@ -38,8 +43,12 @@ class DesignRoute extends Component {
     }
 }
 
+DesignRoute.propTypes = {
+    project: PropTypes.instanceOf(ProjectRecord)
+};
+
 const mapStateToProps = state => ({
-    routes: state.project.data.routes
+    project: state.project.data
 });
 
 export default connect(

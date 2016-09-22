@@ -4,15 +4,10 @@
 
 'use strict';
 
+//noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux'
 import { Link } from 'react-router';
-
-import {
-    NOT_LOADED,
-    LOADING,
-    LOAD_ERROR
-} from '../constants/loadStates';
 
 import {
     getRoutes
@@ -21,7 +16,6 @@ import {
 import {
     App,
     TopRegion,
-    MainRegion,
     BottomRegion,
     Header,
     HeaderRegion,
@@ -34,6 +28,8 @@ import {
     FooterMenuItem,
     ToggleButton
 } from '@reactackle/reactackle';
+
+import ProjectRecord from '../models/Project';
 
 const TopMenuLink = props =>
     <Link to={props.href} className={props.className}>
@@ -70,7 +66,7 @@ const toggleFullScreen = () => {
 
 class RootRoute extends Component {
     _getDesignMenu(projectData) {
-        if(projectData) {
+        if (projectData) {
             return getRoutes(projectData.routes).map((route) => {
                 return <HeaderMenuItem
                     text={route.path}
@@ -79,20 +75,11 @@ class RootRoute extends Component {
                 />
             });
         }
+
         return [];
     }
 
     render() {
-        const loadState = this.props.projectLoadState;
-
-        // TODO: Create loading screen
-        if (loadState === LOADING || loadState === NOT_LOADED)
-            return <div>Loading project...</div>;
-
-        // TODO: Create error screen
-        if (loadState === LOAD_ERROR)
-            return <div>Failed to load project: {this.props.projectLoadError.message}</div>;
-
         return (
             <App fixed>
                 <TopRegion>
@@ -166,21 +153,14 @@ class RootRoute extends Component {
 
 RootRoute.propTypes = {
     projectName: PropTypes.string,
-    projectLoadState: PropTypes.number,
-    projectLoadError: PropTypes.object,
-    onProjectRequest: PropTypes.func,
-    projectData: PropTypes.object
+    projectData: PropTypes.instanceOf(ProjectRecord)
 };
 
 RootRoute.displayName = 'RootRoute';
 
 const mapStateToProps = state => ({
     projectName: state.project.projectName,
-    projectLoadState: state.project.loadState,
-    projectLoadError: state.project.error,
     projectData: state.project.data
 });
 
-export default connect(
-    mapStateToProps
-)(RootRoute);
+export default connect(mapStateToProps)(RootRoute);

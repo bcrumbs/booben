@@ -22,21 +22,43 @@ import PlaygroundRoute from './routes/PlaygroundRoute';
 
 import store from './store';
 
+import { setTools } from './actions/desktop';
+
+import playgroundRouteTools from './tools/playground';
+import structureRouteTools from './tools/structure';
+import designRouteTools from './tools/design';
+
 const history = useRouterHistory(createHistory)({
     basename: '/app'
 });
+
+const setToolsOnEnter = tools => () => void store.dispatch(setTools(tools));
 
 window.addEventListener('DOMContentLoaded', () => {
     ReactDOM.render(
         <Provider store={store}>
             <Router history={history}>
-                <Route path="/playground" component={PlaygroundRoute}/>
+                <Route
+                    path="/playground"
+                    component={PlaygroundRoute}
+                    onEnter={setToolsOnEnter(playgroundRouteTools)}
+                />
                 
                 <Route path="/:projectName" component={AppRoute}>
                     <Route component={RootRoute}>
                         <IndexRedirect to="/:projectName/structure" />
-                        <Route path="structure" component={StructureRoute}/>
-                        <Route path="design/:routeId" component={DesignRoute}/>
+
+                        <Route
+                            path="structure"
+                            component={StructureRoute}
+                            onEnter={setToolsOnEnter(structureRouteTools)}
+                        />
+
+                        <Route
+                            path="design/:routeId"
+                            component={DesignRoute}
+                            onEnter={setToolsOnEnter(designRouteTools)}
+                        />
                     </Route>
                     <Route path="preview" component={PreviewRoute}/>
                 </Route>

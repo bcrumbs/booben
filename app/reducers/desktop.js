@@ -7,7 +7,7 @@
 import { Map, Record } from 'immutable';
 
 import {
-    DESKTOP_ADD_TOOLS,
+    DESKTOP_SET_TOOLS,
     DESKTOP_COLLAPSE_TOOLS_PANEL,
     DESKTOP_EXPAND_TOOLS_PANEL,
     DESKTOP_TOOL_DOCK,
@@ -29,13 +29,46 @@ const DesktopState = Record({
     stickyToolId: null,
 });
 
+const selectTool = (state, toolId) => {
+    if (toolId === state.activeToolId) return state;
+
+    if (state.activeToolId !== null) {
+        state = state.setIn(
+            ['toolStates', state.activeToolId, 'isActiveInToolsPanel'],
+            false
+        );
+    }
+
+    if (toolId !== null && state.toolStates.has(toolId)) {
+        return state
+            .setIn(['toolStates', toolId, 'isActiveInToolsPanel'], true)
+            .merge({
+                activeToolId: toolId,
+                toolsPanelIsExpanded: true
+            });
+    }
+    else {
+        return state.set('activeToolId', null);
+    }
+};
+
+const changeToolStateProp = (state, toolId, prop, value) => {
+    if (state.toolStates.has(toolId))
+        return state.setIn(['toolStates', toolId, prop], value);
+    else
+        return state;
+};
+
 export default (state = new DesktopState(), action) => {
     switch (action.type) {
-        case DESKTOP_ADD_TOOLS:
-            const newToolStates = {};
+        case DESKTOP_SET_TOOLS:
+            const newToolStates = {},
+                toolIds = [];
 
             action.newToolGroups.forEach(tools => {
                 tools.forEach(tool => {
+                    toolIds.push(tool.id);
+
                     if (!state.toolStates.has(tool.id))
                         newToolStates[tool.id] = new ToolStateRecord()
                 });
@@ -43,9 +76,20 @@ export default (state = new DesktopState(), action) => {
 
             const newToolStatesMap = Map(newToolStates);
 
-            return newToolStatesMap.size > 0
+            state = newToolStatesMap.size > 0
                 ? state.set('toolStates', state.toolStates.merge(newToolStatesMap))
                 : state;
+
+            const needToChangeActiveTool =
+                state.activeToolId === null ||
+                toolIds.indexOf(state.activeToolId) === -1;
+
+            if (needToChangeActiveTool) {
+                return selectTool(state, toolIds[0] || null);
+            }
+            else {
+                return state;
+            }
 
         case DESKTOP_COLLAPSE_TOOLS_PANEL:
             return state.set('toolsPanelIsExpanded', false);
@@ -72,8 +116,10 @@ export default (state = new DesktopState(), action) => {
                 return state
                     .setIn(['toolStates', action.toolId, 'docked'], true)
                     .setIn(['toolStates', action.toolId, 'isActiveInToolsPanel'], true)
-                    .set('stickyToolId', null)
-                    .set('activeToolId', action.toolId)
+                    .merge({
+                        stickyToolId: null,
+                        activeToolId: action.toolId
+                    });
             }
             else {
                 return state;
@@ -104,16 +150,10 @@ export default (state = new DesktopState(), action) => {
             }
 
         case DESKTOP_TOOL_CLOSE:
-            if (state.toolStates.has(action.toolId))
-                return state.setIn(['toolStates', action.toolId, 'closed'], true);
-            else
-                return state;
+            return changeToolStateProp(state, action.toolId, 'closed', true);
 
         case DESKTOP_TOOL_OPEN:
-            if (state.toolStates.has(action.toolId))
-                return state.setIn(['toolStates', action.toolId, 'closed'], false);
-            else
-                return state;
+            return changeToolStateProp(state, action.toolId, 'closed', false);
 
         case DESKTOP_TOOL_FOCUS:
             if (state.toolStates.has(action.toolId)) {
@@ -128,24 +168,7 @@ export default (state = new DesktopState(), action) => {
             }
             
         case DESKTOP_TOOL_SELECT:
-            if (action.toolId === state.activeToolId) return state;
-            
-            if (state.activeToolId !== null) {
-                state = state.setIn(
-                    ['toolStates', state.activeToolId, 'isActiveInToolsPanel'],
-                    false
-                );
-            }
-
-            if (action.toolId !== null && state.toolStates.has(action.toolId)) {
-                return state
-                    .setIn(['toolStates', action.toolId, 'isActiveInToolsPanel'], true)
-                    .set('activeToolId', action.toolId)
-                    .set('toolsPanelIsExpanded', true);
-            }
-            else {
-                return state.set('activeToolId', null);
-            }
+            return selectTool(state, action.toolId);
 
         case DESKTOP_SET_STICKY_TOOL:
             if (action.toolId === state.stickyToolId) return state;

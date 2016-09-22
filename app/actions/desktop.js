@@ -4,10 +4,10 @@
 
 'use strict';
 
-export const DESKTOP_ADD_TOOLS = 'DESKTOP_ADD_TOOLS';
+export const DESKTOP_SET_TOOLS = 'DESKTOP_SET_TOOLS';
 
-export const addTools = newToolGroups => ({
-    type: DESKTOP_ADD_TOOLS,
+export const setTools = newToolGroups => ({
+    type: DESKTOP_SET_TOOLS,
     newToolGroups
 });
 

@@ -4,6 +4,7 @@
 
 'use strict';
 
+//noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux'
 
@@ -22,6 +23,16 @@ class AppRoute extends Component {
     }
 
     render() {
+        const loadState = this.props.projectLoadState;
+
+        // TODO: Create loading screen
+        if (loadState === LOADING || loadState === NOT_LOADED)
+            return <div>Loading project...</div>;
+
+        // TODO: Create error screen
+        if (loadState === LOAD_ERROR)
+            return <div>Failed to load project: {this.props.projectLoadError.message}</div>;
+
         return this.props.children;
     }
 }
