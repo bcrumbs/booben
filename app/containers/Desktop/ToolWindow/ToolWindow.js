@@ -40,21 +40,9 @@ export const STICK_REGION_RIGHT = 1;
 export const STICK_REGION_TOP = 2;
 export const STICK_REGION_BOTTOM = 3;
 
-let draggedWindow = null,
-    windowsNum = 0;
-
-const mouseUpListener = () => {
-    if (draggedWindow === null) return;
-    draggedWindow._handleStopDrag();
-};
-
-const updateWindowElement = () => {
-    if (draggedWindow === null) return;
-    draggedWindow._handleAnimationFrame();
-};
+let draggedWindow = null;
 
 const mouseMoveListener = event => {
-    if (draggedWindow === null) return;
     event.preventDefault();
     draggedWindow._handleMove(event);
 
@@ -62,6 +50,14 @@ const mouseMoveListener = event => {
         draggedWindow.needRAF = false;
         window.requestAnimationFrame(updateWindowElement);
     }
+};
+
+const mouseUpListener = () => {
+    draggedWindow._handleStopDrag();
+};
+
+const updateWindowElement = () => {
+    if (draggedWindow !== null) draggedWindow._handleAnimationFrame();
 };
 
 export class ToolWindow extends Component {
@@ -80,13 +76,6 @@ export class ToolWindow extends Component {
     }
 
     componentDidMount() {
-        if (windowsNum === 0) {
-            window.addEventListener('mouseup', mouseUpListener);
-            window.addEventListener('mousemove', mouseMoveListener);
-        }
-
-        windowsNum++;
-
         this.domNode = ReactDOM.findDOMNode(this);
         this.currentTranslateX = 0;
         this.currentTranslateY = 0;
@@ -104,13 +93,6 @@ export class ToolWindow extends Component {
     }
 
     componentWillUnmount() {
-        windowsNum--;
-
-        if (windowsNum === 0) {
-            window.removeEventListener('mouseup', mouseUpListener);
-            window.removeEventListener('mousemove', mouseMoveListener);
-        }
-
         this.domNode = null;
     }
 
@@ -216,6 +198,9 @@ export class ToolWindow extends Component {
     _handleDragIconMouseDown(event) {
         draggedWindow = this;
 
+        window.addEventListener('mouseup', mouseUpListener);
+        window.addEventListener('mousemove', mouseMoveListener);
+
         this.width = this.domNode.clientWidth;
         this.height = this.domNode.clientHeight;
         this.container = this.domNode.parentNode;
@@ -237,6 +222,9 @@ export class ToolWindow extends Component {
     }
 
     _handleStopDrag() {
+        window.removeEventListener('mouseup', mouseUpListener);
+        window.removeEventListener('mousemove', mouseMoveListener);
+
         draggedWindow = null;
 
         this.setState({
