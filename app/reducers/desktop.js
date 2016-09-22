@@ -30,7 +30,7 @@ const DesktopState = Record({
 });
 
 const selectTool = (state, toolId) => {
-    if (toolId === state.activeToolId) return state;
+    if (toolId === state.activeToolId && state.toolsPanelIsExpanded) return state;
 
     if (state.activeToolId !== null) {
         state = state.setIn(
