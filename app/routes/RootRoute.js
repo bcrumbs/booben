@@ -64,92 +64,86 @@ const toggleFullScreen = () => {
     }
 };
 
-class RootRoute extends Component {
-    _getDesignMenu(projectData) {
-        if (projectData) {
-            return getRoutes(projectData.routes).map((route) => {
-                return <HeaderMenuItem
-                    text={route.path}
-                    linkHref={`/${this.props.projectName}/design/${route.id}`}
-                    linkComponent={TopMenuLink}
-                />
-            });
-        }
+const RootRoute = props => {
+    const routeMenuItems = getRoutes(props.projectData.routes).map(route => (
+        <HeaderMenuItem
+            key={route.id}
+            text={route.path}
+            linkHref={`/${props.projectName}/design/${route.id}`}
+            linkComponent={TopMenuLink}
+        />
+    ));
 
-        return [];
-    }
+    return (
+        <App fixed>
+            <TopRegion>
+                <Header size="blank">
+                    <HeaderRegion size='blank'>
+                        <HeaderLogoBox title={props.projectName}/>
+                    </HeaderRegion>
 
-    render() {
-        return (
-            <App fixed>
-                <TopRegion>
-                    <Header size="blank">
-                        <HeaderRegion size='blank'>
-                            <HeaderLogoBox title={this.props.projectName}/>
-                        </HeaderRegion>
+                    <HeaderRegion region="main" size='blank'>
+                        <HeaderMenu inline dense>
+                            <HeaderMenuItem
+                                text="Structure"
+                                linkHref={`/${props.projectName}/structure`}
+                                linkComponent={TopMenuLink}
+                            />
 
-                        <HeaderRegion region="main" size='blank'>
-                            <HeaderMenu inline dense>
-                                <HeaderMenuItem
-                                    text="Structure"
-                                    linkHref={`/${this.props.projectName}/structure`}
-                                    linkComponent={TopMenuLink}
-                                />
+                            <HeaderMenuItem text="Design">
+                                {routeMenuItems}
+                            </HeaderMenuItem>
 
-                                <HeaderMenuItem text="Design">
-                                    {this._getDesignMenu(this.props.projectData)}
-                                </HeaderMenuItem>
-                                <HeaderMenuItem text="Data" />
-                                <HeaderMenuItem text="Settings" />
+                            <HeaderMenuItem text="Data" />
+                            <HeaderMenuItem text="Settings" />
 
-                            </HeaderMenu>
-                        </HeaderRegion>
+                        </HeaderMenu>
+                    </HeaderRegion>
 
-                        <HeaderRegion size="blank">
-                            <HeaderMenu inline dense>
-                                <HeaderMenuItem
-                                    text="Preview"
-                                    linkHref={`/${this.props.projectName}/preview`}
-                                    linkComponent={TopMenuLink}
-                                />
-                                <HeaderMenuItem text="Publish" />
-                            </HeaderMenu>
-                        </HeaderRegion>
-                    </Header>
-                </TopRegion>
+                    <HeaderRegion size="blank">
+                        <HeaderMenu inline dense>
+                            <HeaderMenuItem
+                                text="Preview"
+                                linkHref={`/${props.projectName}/preview`}
+                                linkComponent={TopMenuLink}
+                            />
+                            <HeaderMenuItem text="Publish" />
+                        </HeaderMenu>
+                    </HeaderRegion>
+                </Header>
+            </TopRegion>
 
-                {this.props.children}
+            {props.children}
 
-                <BottomRegion>
-                    <Footer>
-                        <FooterRegion region="main" size='blank'>
-                            <FooterMenu inline dense>
-                                <FooterMenuItem text="FAQ"/>
-                            </FooterMenu>
-                        </FooterRegion>
-                        <FooterRegion size='blank'>
-                            <FooterMenu inline dense>
-                                <FooterMenuItem
-                                    text="Show component's title"
-                                    subcomponentRight={<ToggleButton />}
-                                />
+            <BottomRegion>
+                <Footer>
+                    <FooterRegion region="main" size='blank'>
+                        <FooterMenu inline dense>
+                            <FooterMenuItem text="FAQ"/>
+                        </FooterMenu>
+                    </FooterRegion>
+                    <FooterRegion size='blank'>
+                        <FooterMenu inline dense>
+                            <FooterMenuItem
+                                text="Show component's title"
+                                subcomponentRight={<ToggleButton />}
+                            />
 
-                                <FooterMenuItem
-                                    text="Show placeholders"
-                                    subcomponentRight={<ToggleButton />}
-                                />
+                            <FooterMenuItem
+                                text="Show placeholders"
+                                subcomponentRight={<ToggleButton />}
+                            />
 
-                                <FooterMenuItem
-                                    text="Toggle Full Screen"
-                                />
-                            </FooterMenu>
-                        </FooterRegion>
-                    </Footer>
-                </BottomRegion>
-            </App>
-        )
-    }
-}
+                            <FooterMenuItem
+                                text="Toggle Full Screen"
+                            />
+                        </FooterMenu>
+                    </FooterRegion>
+                </Footer>
+            </BottomRegion>
+        </App>
+    )
+};
 
 RootRoute.propTypes = {
     projectName: PropTypes.string,

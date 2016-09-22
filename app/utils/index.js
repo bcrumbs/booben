@@ -1,8 +1,14 @@
 'use strict';
 
+/**
+ *
+ * @param {string} path
+ * @param {string} [prefix]
+ * @return {string}
+ */
 const getRoutePrefix = (path, prefix) => {
-    if(prefix) {
-        if(prefix == '/') {
+    if (prefix) {
+        if (prefix == '/') {
             return `${prefix}${path}`;
         } else {
             return `${prefix}/${path}`;
@@ -12,30 +18,32 @@ const getRoutePrefix = (path, prefix) => {
     }
 };
 
-const getRoute = (route, prefix) => {
-     return {
-        id: route.id,
-        path: getRoutePrefix(route.path, prefix)
-    }
-};
+/**
+ *
+ * @param {Object} route
+ * @param {string} [prefix]
+ */
+const getRoute = (route, prefix) => ({
+    id: route.id,
+    path: getRoutePrefix(route.path, prefix)
+});
+
 /**
  * Get routers from project
  * 
- * @param  {Array} routes
- * @param  {String} prefix
- * @return {Array}
+ * @param  {List} routes
+ * @param  {string} [prefix]
+ * @return {Object[]}
  */
 export const getRoutes = (routes, prefix) => {
-    let _routes = [];
+    const ret = [];
 
-    routes.forEach((route) => {
-        _routes.push(getRoute(route, prefix));
+    routes.forEach(route => {
+        ret.push(getRoute(route, prefix));
 
-        if(route.children) {
-            let _prefix = getRoutePrefix(route.path, prefix);
-            _routes.push(...getRoutes(route.children, _prefix));
-        }
+        if (route.children)
+            ret.push(...getRoutes(route.children, getRoutePrefix(route.path, prefix)));
     });
 
-    return _routes;
+    return ret;
 };
