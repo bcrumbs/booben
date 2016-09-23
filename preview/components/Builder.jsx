@@ -1,57 +1,60 @@
 'use strict';
 
 import React, { Component, PropTypes } from 'react';
+import { List, Map } from 'immutable';
 
 // The real components.js will be generated during build process
 import components from '../components.js';
 
 import { componentsMap } from '../utils';
-
+import { ProjectComponent } from '../../app/models';
 /**
  * class Builder
  */
 class Builder extends Component {
     /**
-     * Build React component by metadata
+     * Build React component
      * 
-     * @param  {Object} data - Scheme for preview app
+     * @param  {Object} component - Scheme for preview app
      * @return {function} React component for render
      */
-    getComponentFromMeta(data = null) {
-        if (!data) return null;
+    getComponentFromMeta(component = null) {
+        if (!component) return null;
 
-        if (Array.isArray(data)) {
-            if (data.length == 1) {
-                if (data[0] == 'outlet') {
+        if (List.isList(component)) {
+            if (component.size == 1) {
+                if (component.first().name == 'Outlet') {
                     return this.props.children;
                 } else {
-                    return this.getComponentFromMeta(data[0])
+                    return this.getComponentFromMeta(component.first())
                 }
             } else {
-                return data.map(item => this.getComponentFromMeta(item));
+                return component.map(item => this.getComponentFromMeta(item));
             }
         } else {
-            const _component = getComponentByName(data['name']);
+            const _component = getComponentByName(component.name);
 
             let _compositComponent = null;
 
-            if (data['children'] && data['children'].length) {
+            if (component.children && component.children.size) {
                 _compositComponent = <_component
-                    uid={data.uid}
-                    {...getProps(data['props'])}
+                    key={component.uid}
+                    uid={component.uid}
+                    {...getProps(component.props)}
                 >
-                    { this.getComponentFromMeta(data['children']) }
+                    { this.getComponentFromMeta(component.children) }
                 </_component>;
             } else {
                 _compositComponent = <_component
-                    uid={data.uid}
-                    {...getProps(data['props'])}
+                    key={component.uid}
+                    uid={component.uid}
+                    {...getProps(component.props)}
                 />
             }
 
-            componentsMap.set(data.uid, {
-                'uid': data.uid,
-                'name': data.name,
+            componentsMap.set(component.uid, {
+                'uid': component.uid,
+                'name': component.name,
                 'componentType': _component.meta ? _component.meta.kind : 'undefined'
             });
 
@@ -60,16 +63,16 @@ class Builder extends Component {
     }
 
     render() {
-        return this.getComponentFromMeta(this.props.data);
+        return this.getComponentFromMeta(this.props.component);
     }
 }
 
 Builder.propTypes = {
-    data: PropTypes.object
+    component: PropTypes.instanceOf(ProjectComponent)
 };
 
 Builder.defaultProps = {
-    data: {}
+    component: Map()
 };
 
 /**
@@ -95,11 +98,13 @@ const getComponentByName = (name = '') => {
 const getProps = (props = {}) => {
     let externalProps = {};
 
-    for(let key in props) {
-        if (props[key].source == 'static') {
-            externalProps[key] = props[key].sourceData.value;
+    props.keySeq().forEach((key) => {
+        const prop = props.get(key);
+
+        if (prop.source == 'static') {
+            externalProps[key] = prop.sourceData.value;
         }
-    }
+    });
 
     return externalProps;
 };

@@ -4,6 +4,8 @@ import ReactDOM from 'react-dom';
 import React, { Component, PropTypes } from 'react';
 import { Router, Route, applyRouterMiddleware, hashHistory } from 'react-router';
 import { connect } from 'react-redux';
+import ImmutablePropTypes from 'react-immutable-proptypes';
+import { List } from 'immutable';
 
 import Builder from './Builder';
 import Overlay from './Overlay';
@@ -12,6 +14,8 @@ import {
     updatePreviewSelected,
     updatePreviewHighlighted
 } from '../../app/actions/preview'
+
+import { ProjectRoute } from '../../app/models';
 
 /**
  * @param  {Array} data
@@ -64,7 +68,7 @@ class Preview extends Component {
     }
 
     componentWillMount() {
-        this.routes = this.props.routes.map(route => this._getRoute(route));
+        this.routes = this.props.routes.map(route => this._getRoute(route)).toArray();
     }
 
     componentDidMount() {
@@ -107,7 +111,7 @@ class Preview extends Component {
 
         let next = this.props.selected.filter(item => item.uid != uid);
 
-        if (next.length === this.props.selected.length)
+        if (next.size === this.props.selected.size)
             next = next.concat({ uid, el: domEl });
 
         this.props.updateSelected(next);
@@ -124,10 +128,6 @@ class Preview extends Component {
             domEl = owner._renderedComponent._hostNode;
 
         this.props.updateHighlighted([{ uid, el: domEl }]);
-    }
-
-    _dragStart(owner) {
-
     }
 
     /**
@@ -165,21 +165,19 @@ class Preview extends Component {
 
             if( type == 'mousedown' ) {
                 if (event.which != 1) return;
-                this._dragStart(owner);
             }
-
 
             this._renderOverlayDOM();
         }
     }
 
     _getRoute(route) {
-        if (route.children && route.children.length) {
+        if (route.children && route.children.size) {
             const childRoutes = route.children.map(child => this._getRoute(child));
 
             return (
                 <Route path={route.path} component={Builder}>
-                    {childRoutes}
+                    {childRoutes.toArray()}
                 </Route>
             );
         } else {
@@ -187,16 +185,20 @@ class Preview extends Component {
         }
     }
 
+    _getRouts() {
+        return this.routes;
+    }
+
     _getRouterMiddleware() {
         return {
             renderRouteComponent: (child, props) => {
-                const data = getComponentsByRoute(
+                const component = getComponentsByRoute(
                     this.props.routes,
                     props.route,
                     props.routes
                 );
 
-                return data ? React.cloneElement(child, { data }) : child;
+                return component ? React.cloneElement(child, { component }) : child;
             }
         }
     }
@@ -218,7 +220,7 @@ class Preview extends Component {
                 render={applyRouterMiddleware(this._getRouterMiddleware())}
                 history={hashHistory}
             >
-                {this.routes}
+                {this._getRouts()}
             </Router>
         );
     }
@@ -227,9 +229,11 @@ class Preview extends Component {
 Preview.propTypes = {
     canSelect: PropTypes.bool,
     canHighlight: PropTypes.bool,
-    routes: PropTypes.array,
-    selected: PropTypes.array,
-    highlighted: PropTypes.array,
+    routes: ImmutablePropTypes.listOf(
+        PropTypes.instanceOf(ProjectRoute)
+    ),
+    selected: PropTypes.instanceOf(List),
+    highlighted: PropTypes.instanceOf(List),
     updateSelected: PropTypes.func,
     updateHighlighted: PropTypes.func
 };
@@ -237,9 +241,9 @@ Preview.propTypes = {
 Preview.defaultProps = {
     canSelect: false,
     canHighlight: false,
-    routes: [],
-    selected: [],
-    highlighted: [],
+    routes: List(),
+    selected: List(),
+    highlighted: List(),
     updateSelected: /* istanbul ignore next */ () => {},
     updateHighlighted: /* istanbul ignore next */ () => {}
 };
