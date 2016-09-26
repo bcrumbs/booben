@@ -81,8 +81,6 @@ class Preview extends Component {
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
 
-        domElementsMap.clear();
-
         if (this.props.canSelect) {
             this.mouseEvents.forEach((e) => {
               this.domNode.addEventListener(e, this._handleMouseEvent, false);
