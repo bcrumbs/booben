@@ -20,7 +20,7 @@ import {
 import Project from '../models/Project';
 import ProjectRoute from '../models/ProjectRoute';
 import ProjectComponent from '../models/ProjectComponent';
-import ProjectComponentProp from '../models/PropjectComponentProp';
+import ProjectComponentProp from '../models/ProjectComponentProp';
 import SourceDataStatic from '../models/SourceDataStatic';
 import SourceDataData from '../models/SourceDataData';
 import SourceDataConst from '../models/SourceDataConst';

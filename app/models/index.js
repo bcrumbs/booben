@@ -1,13 +1,15 @@
+'use strict';
+
 import ProjectRecord from './Project';
 import ProjectComponent from './ProjectComponent';
 import ProjectRoute from './ProjectRoute';
-import PropjectComponentProp from './PropjectComponentProp';
+import ProjectComponentProp from './ProjectComponentProp';
 import Preview from './Preview';
 
 export {
     ProjectRecord,
     ProjectComponent,
     ProjectRoute,
-    PropjectComponentProp,
+    ProjectComponentProp,
     Preview
 };
