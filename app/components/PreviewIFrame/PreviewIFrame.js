@@ -1,5 +1,6 @@
 'use strict';
 
+//noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 

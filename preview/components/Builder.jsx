@@ -1,71 +1,79 @@
 'use strict';
 
+//noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
-import { List, Map } from 'immutable';
 
 // The real components.js will be generated during build process
 import components from '../components.js';
 
 import { componentsMap } from '../utils';
 import { ProjectComponent } from '../../app/models';
-/**
- * class Builder
- */
+
+const pseudoComponents = new Set([
+    'Text',
+    'Outlet'
+]);
+
+const isPseudoComponent = component => pseudoComponents.has(component.name);
+
 class Builder extends Component {
-    shouldComponentUpdate(nextProps, nextState) {
+    constructor(props) {
+        super(props);
+
+        this._getComponentFromMeta = this._getComponentFromMeta.bind(this);
+    }
+    
+    shouldComponentUpdate(nextProps) {
       return nextProps.component !== this.props.component;
     }
-    /**
-     * Build React component
-     * 
-     * @param  {Object} component - Scheme for preview app
-     * @return {function} React component for render
-     */
-    getComponentFromMeta(component = null) {
+    
+    _renderPseudoComponent(component) {
+        if (component.name === 'Outlet') {
+            return this.props.children;
+        }
+        else if (component.name === 'Text') {
+            const props = getProps(component.props);
+            return props.text || '';
+        }
+    }
+
+    _getComponentFromMeta(component = null) {
         if (!component) return null;
+        
+        if (isPseudoComponent(component))
+            return this._renderPseudoComponent(component);
 
-        if (List.isList(component)) {
-            if (component.size == 1) {
-                if (component.first().name == 'Outlet') {
-                    return this.props.children;
-                } else {
-                    return this.getComponentFromMeta(component.first())
-                }
-            } else {
-                return component.map(item => this.getComponentFromMeta(item));
-            }
-        } else {
-            const _component = getComponentByName(component.name);
+        const Component = getComponentByName(component.name);
 
-            let _compositComponent = null;
+        componentsMap.set(component.uid, {
+            name: component.name,
+            componentType: Component.jssy ? Component.jssy.kind : null
+        });
 
-            if (component.children && component.children.size) {
-                _compositComponent = <_component
+        if (component.children && component.children.size) {
+            return (
+                <Component
                     key={component.uid}
                     uid={component.uid}
                     {...getProps(component.props)}
                 >
-                    { this.getComponentFromMeta(component.children) }
-                </_component>;
-            } else {
-                _compositComponent = <_component
+                    { component.children.map(this._getComponentFromMeta) }
+                </Component>
+            );
+        }
+        else {
+            return (
+                <Component
                     key={component.uid}
                     uid={component.uid}
                     {...getProps(component.props)}
                 />
-            }
-
-            componentsMap.set(component.uid, {
-                'name': component.name,
-                'componentType': _component.meta ? _component.meta.kind : 'undefined'
-            });
-
-            return _compositComponent;
+            );
         }
     }
 
     render() {
-        return this.getComponentFromMeta(this.props.component);
+        return this._getComponentFromMeta(this.props.component);
     }
 }
 
@@ -74,14 +82,14 @@ Builder.propTypes = {
 };
 
 Builder.defaultProps = {
-    component: new ProjectComponent()
+    component: null
 };
 
 /**
  * Get component from UI library
  * 
- * @param  {string} name - Name of React components
- * @return {function} React component for render
+ * @param  {string} name - Name of React component
+ * @return {Function} React component for render
  */
 const getComponentByName = (name = '') => {
     const [namespace, componentName] = name.split('.');
@@ -94,21 +102,26 @@ const getComponentByName = (name = '') => {
 
 /**
  * Props constructor by meta
- * @param  {Object} props
+ * @param  {Immutable.Map} props
  * @return {Object}
  */
-const getProps = (props = {}) => {
-    let externalProps = {};
+const getProps = props => {
+    const ret = {};
 
-    props.keySeq().forEach((key) => {
+    props.keySeq().forEach(key => {
         const prop = props.get(key);
 
         if (prop.source == 'static') {
-            externalProps[key] = prop.sourceData.value;
+            ret[key] = prop.sourceData.value;
+        }
+        else if (prop.source === 'const') {
+            if (typeof prop.sourceData.value !== 'undefined') {
+                ret[key] = prop.sourceData.value;
+            }
         }
     });
 
-    return externalProps;
+    return ret;
 };
 
 export default Builder;
