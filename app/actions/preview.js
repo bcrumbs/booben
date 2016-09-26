@@ -4,23 +4,43 @@
  *
  * @type {string}
  */
-export const UPDATE_PREVIEW_SELECTED = 'UPDATE_PREVIEW_SELECTED';
-export const UPDATE_PREVIEW_HIGHLIGHTED = 'UPDATE_PREVIEW_HIGLIGHTED';
+export const DESELECT_PREVIEW_COMPONENT = 'DESELECT_PREVIEW_COMPONENT';
+export const SELECT_PREVIEW_COMPONENT = 'SELECT_PREVIEW_COMPONENT';
+export const UNHIGHLIGHT_PREVIEW_COMPONENT = 'UNHIGHLIGHT_PREVIEW_COMPONENT';
+export const HIGHLIGHT_PREVIEW_COMPONENT = 'HIGHLIGHT_PREVIEW_COMPONENT';
 
 /**
- * @param  {Array} selectedItems
+ * @param  {Object} component
  * @return {Object}
  */
-export const updatePreviewSelected = (selectedItems) => ({
-    type: UPDATE_PREVIEW_SELECTED,
-    selectedItems
+export const selectPreviewComponent = component => ({
+    type: SELECT_PREVIEW_COMPONENT,
+    component
 });
 
 /**
- * @param  {Array} highlightedItems
+ * @param  {Object} component
  * @return {Object}
  */
-export const updatePreviewHighlighted = (highlightedItems) => ({
-    type: UPDATE_PREVIEW_HIGHLIGHTED,
-    highlightedItems
+export const deselectPreviewComponent = component => ({
+    type: DESELECT_PREVIEW_COMPONENT,
+    component
+});
+
+/**
+ * @param  {Object} component
+ * @return {Object}
+ */
+export const highlightPreviewComponent = component => ({
+    type: HIGHLIGHT_PREVIEW_COMPONENT,
+    component
+});
+
+/**
+ * @param  {Object} component
+ * @return {Object}
+ */
+export const unhighlightPreviewComponent = component => ({
+    type: UNHIGHLIGHT_PREVIEW_COMPONENT,
+    component
 });

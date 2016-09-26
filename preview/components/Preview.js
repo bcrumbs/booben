@@ -5,17 +5,23 @@ import React, { Component, PropTypes } from 'react';
 import { Router, Route, applyRouterMiddleware, hashHistory } from 'react-router';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { List } from 'immutable';
+import { List, Set } from 'immutable';
 
 import Builder from './Builder';
 import Overlay from './Overlay';
 
+import { componentsMap, domElementsMap } from '../utils';
+
 import {
-    updatePreviewSelected,
-    updatePreviewHighlighted
+    selectPreviewComponent,
+    deselectPreviewComponent,
+    highlightPreviewComponent,
+    unhighlightPreviewComponent
 } from '../../app/actions/preview'
 
-import { ProjectRoute } from '../../app/models';
+import { 
+    ProjectRoute
+} from '../../app/models';
 
 /**
  * @param  {Array} data
@@ -58,6 +64,7 @@ class Preview extends Component {
         super();
 
         this.domNode = null;
+
         this.mouseEvents = [
             'click', 'mouseover', 'mouseout', 'dragover', 'dragleave','drop',
             'mousedown'
@@ -73,6 +80,8 @@ class Preview extends Component {
 
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
+
+        domElementsMap.clear();
 
         if (this.props.canSelect) {
             this.mouseEvents.forEach((e) => {
@@ -109,12 +118,13 @@ class Preview extends Component {
         const owner = getOwner(el, item => item._currentElement.props.uid == uid),
             domEl = owner._renderedComponent._hostNode;
 
-        let next = this.props.selected.filter(item => item.uid != uid);
+        domElementsMap.set(uid, domEl);
 
-        if (next.size === this.props.selected.size)
-            next = next.concat({ uid, el: domEl });
-
-        this.props.updateSelected(next);
+        if(this.props.selected.has(uid)) {
+            this.props.deselectComponent(uid);
+        } else {
+            this.props.selectComponent(uid)
+        }
     }
 
     /**
@@ -127,7 +137,13 @@ class Preview extends Component {
         const owner = getOwner(el, item => item._currentElement.props.uid == uid),
             domEl = owner._renderedComponent._hostNode;
 
-        this.props.updateHighlighted([{ uid, el: domEl }]);
+        domElementsMap.set(uid, domEl);
+
+        if(this.props.highlighted.has(uid)) {
+            this.props.unhighlightComponent(uid);
+        } else {
+            this.props.highlightComponent(uid);
+        }
     }
 
     /**
@@ -155,7 +171,7 @@ class Preview extends Component {
             } else if( type == 'dragover' || type == 'mouseover') {
                 this._updateHighlighted(el, owner._currentElement.props.uid);
             } else if( type == 'dragleave' || type == 'mouseout') {
-                this.props.updateHighlighted([]);
+                this._updateHighlighted(el, owner._currentElement.props.uid);
             } else if( type == 'drop' ) {
                 console.log({
                     source: JSON.parse(event.dataTransfer.getData("Text")),
@@ -232,20 +248,24 @@ Preview.propTypes = {
     routes: ImmutablePropTypes.listOf(
         PropTypes.instanceOf(ProjectRoute)
     ),
-    selected: PropTypes.instanceOf(List),
-    highlighted: PropTypes.instanceOf(List),
-    updateSelected: PropTypes.func,
-    updateHighlighted: PropTypes.func
+    selected: ImmutablePropTypes.set,
+    highlighted: ImmutablePropTypes.set,
+    deselectComponent: PropTypes.func,
+    selectComponent: PropTypes.func,
+    unhighlightComponent: PropTypes.func,
+    highlightComponent: PropTypes.func
 };
 
 Preview.defaultProps = {
     canSelect: false,
     canHighlight: false,
     routes: List(),
-    selected: List(),
-    highlighted: List(),
-    updateSelected: /* istanbul ignore next */ () => {},
-    updateHighlighted: /* istanbul ignore next */ () => {}
+    selected: Set(),
+    highlighted: Set(),
+    deselectComponent: /* istanbul ignore next */ () => {},
+    selectComponent: /* istanbul ignore next */ () => {},
+    highlightComponent: /* istanbul ignore next */ () => {},
+    unhighlightComponent: /* istanbul ignore next */ () => {}
 };
 
 Preview.displayName = 'Preview';
@@ -257,9 +277,10 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    updateSelected: selected => void dispatch(updatePreviewSelected(selected)),
-    updateHighlighted: highlighted => void dispatch(updatePreviewHighlighted(
-        highlighted))
+    deselectComponent: selected => void dispatch(deselectPreviewComponent(selected)),
+    selectComponent: selected => void dispatch(selectPreviewComponent(selected)),
+    highlightComponent: highlighted => void dispatch(highlightPreviewComponent(highlighted)),
+    unhighlightComponent: highlighted => void dispatch(unhighlightPreviewComponent(highlighted))
 });
 
 export default connect(

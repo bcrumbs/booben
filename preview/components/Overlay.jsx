@@ -1,12 +1,18 @@
 'use strict';
 
 import React, { Component, PropTypes } from 'react';
+import ImmutablePropTypes from 'react-immutable-proptypes';
+import { Set } from 'immutable';
+
+import { componentsMap, domElementsMap } from '../utils';
 
 class Overlay extends Component {
-    _getItems(data, color) {
-        let _items = [];
+    _getItems(uids, color) {
+        if(!uids.size) return;
 
-        data.forEach((item) => {
+        return uids.map((uid) => {
+            const el = domElementsMap.get(uid);
+
             let {
                 bottom,
                 height,
@@ -14,11 +20,10 @@ class Overlay extends Component {
                 right,
                 top,
                 width
-            } = item.el.getBoundingClientRect();
+            } = el.getBoundingClientRect();
 
             const syntheticPadding = 10,
-                scrollTop = window.pageYOffset,
-                uid = item.uid;
+                scrollTop = window.pageYOffset;
 
             width = width + syntheticPadding;
             height = height + syntheticPadding;
@@ -67,7 +72,7 @@ class Overlay extends Component {
                     position: 'absolute'
                 };
 
-            _items.push(
+            return (
                 <div key={uid} style={style}>
                     <div style={topBorder}></div>
                     <div style={bottomLeft}></div>
@@ -76,8 +81,6 @@ class Overlay extends Component {
                 </div>
             );
         });
-
-        return _items;
     }
 
     render() {
@@ -92,22 +95,22 @@ class Overlay extends Component {
 
         return (
             <div style={overlayStyle}>
-                {this._getItems(this.props.highlighted, 'yellow')}
-                {this._getItems(this.props.selected, 'green')}
+                { this._getItems(this.props.highlighted, 'yellow') }
+                { this._getItems(this.props.selected, 'green') }
             </div>
         );
     }
 }
 
 Overlay.propTypes = {
-    selected: PropTypes.array,
-    highlighted: PropTypes.array
+    selected: ImmutablePropTypes.set,
+    highlighted: ImmutablePropTypes.set
 
 };
 
 Overlay.defaultProps = {
-    selected: [],
-    highlighted: []
+    selected: Set(),
+    highlighted: Set()
 };
 
 export default Overlay;

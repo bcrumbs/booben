@@ -12,6 +12,9 @@ import { ProjectComponent } from '../../app/models';
  * class Builder
  */
 class Builder extends Component {
+    shouldComponentUpdate(nextProps, nextState) {
+      return nextProps.component !== this.props.component;
+    }
     /**
      * Build React component
      * 
@@ -53,7 +56,6 @@ class Builder extends Component {
             }
 
             componentsMap.set(component.uid, {
-                'uid': component.uid,
                 'name': component.name,
                 'componentType': _component.meta ? _component.meta.kind : 'undefined'
             });
@@ -72,7 +74,7 @@ Builder.propTypes = {
 };
 
 Builder.defaultProps = {
-    component: Map()
+    component: new ProjectComponent()
 };
 
 /**
