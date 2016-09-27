@@ -22,11 +22,11 @@ import ProjectRecord from '../models/Project';
 
 class DesignRoute extends Component {
     render() {
-        const src = `/preview/${this.props.params.projectName}/index.html`;
+        const src = `/preview/${this.props.params.projectName}/index.html`,
+            routeId = parseInt(this.props.params.routeId);
 
-        const route = getRoutes(this.props.project.routes).find(route => {
-            return route.id == this.props.params.routeId;
-        });
+        const route = getRoutes(this.props.project.routes)
+            .find(route => route.id === routeId);
 
         return (
             <Desktop toolGroups={toolGroups}>
@@ -35,7 +35,8 @@ class DesignRoute extends Component {
                         canSelect
                         canHighlight
                         store={store}
-                        url={`${src}#${route.path}`}
+                        url={src}
+                        path={route.path}
                     />
                 </div>
             </Desktop>

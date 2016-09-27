@@ -1,8 +1,9 @@
 'use strict';
 
-import ReactDOM from 'react-dom';
+//noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
-import { Router, Route, applyRouterMiddleware, hashHistory } from 'react-router';
+import ReactDOM from 'react-dom';
+import { Router, Route, hashHistory } from 'react-router';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { List, Set } from 'immutable';
@@ -10,7 +11,7 @@ import { List, Set } from 'immutable';
 import Builder from './Builder';
 import Overlay from './Overlay';
 
-import { componentsMap, domElementsMap } from '../utils';
+import { domElementsMap } from '../utils';
 
 import {
     selectPreviewComponent,
@@ -23,27 +24,8 @@ import {
     ProjectRoute
 } from '../../app/models';
 
-/**
- * @param  {Array} data
- * @param  {Object} route
- * @param  {Array} routes
- * @return {Object}
- */
-const getComponentsByRoute = (data, route, routes) => {
-    let _data = data,
-        component = null;
-
-    routes.forEach(_route => {
-        _data = _data.find(item => item.path == _route.path);
-
-        if (_data.path == route.path)
-            component = _data.component;
-
-        _data = _data.children;
-    });
-
-    return component;
-};
+const createBuilder = component =>
+    ({ children }) => <Builder component={component} children={children} />;
 
 /**
  * Get owner React element by condition
@@ -60,8 +42,8 @@ const getOwner = (el, condition) => {
 };
 
 class Preview extends Component {
-    constructor() {
-        super();
+    constructor(props) {
+        super(props);
 
         this.domNode = null;
 
@@ -74,16 +56,12 @@ class Preview extends Component {
         this._handleResize = this._handleResize.bind(this);
     }
 
-    componentWillMount() {
-        this.routes = this.props.routes.map(route => this._getRoute(route)).toArray();
-    }
-
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
 
         if (this.props.canSelect) {
-            this.mouseEvents.forEach((e) => {
-              this.domNode.addEventListener(e, this._handleMouseEvent, false);
+            this.mouseEvents.forEach(e => {
+                this.domNode.addEventListener(e, this._handleMouseEvent, false);
             });
 
             window.addEventListener('resize', this._handleResize, false);
@@ -92,8 +70,8 @@ class Preview extends Component {
 
     componentWillUnmount() {
         if (this.props.canSelect) {
-            this.mouseEvents.forEach((e) => {
-              this.domNode.removeEventListener(e, this._handleMouseEvent, false);
+            this.mouseEvents.forEach(e => {
+                this.domNode.removeEventListener(e, this._handleMouseEvent, false);
             });
 
             window.removeEventListener('resize', this._handleResize, false);
@@ -102,8 +80,12 @@ class Preview extends Component {
         this.domNode = null;
     }
 
+    shouldComponentUpdate(nextProps) {
+        return nextProps.routes !== this.props.routes;
+    }
+
     _handleResize() {
-        this._renderOverlayDOM();
+        this._renderOverlay();
     }
 
     /**
@@ -181,43 +163,11 @@ class Preview extends Component {
                 if (event.which != 1) return;
             }
 
-            this._renderOverlayDOM();
+            this._renderOverlay();
         }
     }
 
-    _getRoute(route) {
-        if (route.children && route.children.size) {
-            const childRoutes = route.children.map(child => this._getRoute(child));
-
-            return (
-                <Route path={route.path} component={Builder}>
-                    {childRoutes.toArray()}
-                </Route>
-            );
-        } else {
-            return <Route path={route.path} component={Builder} />;
-        }
-    }
-
-    _getRouts() {
-        return this.routes;
-    }
-
-    _getRouterMiddleware() {
-        return {
-            renderRouteComponent: (child, props) => {
-                const component = getComponentsByRoute(
-                    this.props.routes,
-                    props.route,
-                    props.routes
-                );
-
-                return component ? React.cloneElement(child, { component }) : child;
-            }
-        }
-    }
-
-    _renderOverlayDOM() {
+    _renderOverlay() {
         ReactDOM.render(
             <Overlay 
                 selected={this.props.selected}
@@ -228,14 +178,31 @@ class Preview extends Component {
         );
     }
 
+    _createRoute(route) {
+        if (route.children && route.children.size) {
+            return {
+                path: route.path,
+                component: createBuilder(route.component),
+                childRoutes: route.children
+                    .map(child => this._createRoute(child))
+                    .toArray()
+            };
+        }
+        else {
+            return {
+                path: route.path,
+                component: createBuilder(route.component)
+            };
+        }
+    }
+
     render() {
+        const routes = this.props.routes
+            .map(route => this._createRoute(route))
+            .toArray();
+
         return (
-            <Router
-                render={applyRouterMiddleware(this._getRouterMiddleware())}
-                history={hashHistory}
-            >
-                {this._getRouts()}
-            </Router>
+            <Router history={hashHistory} routes={routes} />
         );
     }
 }

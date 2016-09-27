@@ -23,10 +23,6 @@ class Builder extends Component {
         this._getComponentFromMeta = this._getComponentFromMeta.bind(this);
     }
     
-    shouldComponentUpdate(nextProps) {
-      return nextProps.component !== this.props.component;
-    }
-    
     _renderPseudoComponent(component) {
         if (component.name === 'Outlet') {
             return this.props.children;
