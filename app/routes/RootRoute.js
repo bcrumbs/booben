@@ -36,7 +36,7 @@ const TopMenuLink = props =>
         {props.children}
     </Link>;
 
-const toggleFullScreen = () => {
+const toggleFullscreen = () => {
     if (!document.fullscreenElement &&
         !document.mozFullScreenElement &&
         !document.webkitFullscreenElement
@@ -136,6 +136,7 @@ const RootRoute = props => {
 
                             <FooterMenuItem
                                 text="Toggle Full Screen"
+                                onClick={toggleFullscreen}
                             />
                         </FooterMenu>
                     </FooterRegion>
