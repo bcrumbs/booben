@@ -3,7 +3,7 @@
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
-import { Router, Route, hashHistory } from 'react-router';
+import { Router, hashHistory } from 'react-router';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { List, Set } from 'immutable';
