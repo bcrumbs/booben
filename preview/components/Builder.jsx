@@ -90,6 +90,7 @@ Builder.defaultProps = {
 const getComponentByName = (name = '') => {
     const [namespace, componentName] = name.split('.');
     if (!namespace || !componentName) throw new Error(`Invalid component name: ${name}`);
+    if (namespace === 'HTML') return componentName;
     if (!components[namespace]) throw new Error(`Namespace not found: ${namespace}`);
     const component = components[namespace][componentName];
     if (!component) throw new Error(`Component not found: ${name}`);
