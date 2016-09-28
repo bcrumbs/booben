@@ -60,7 +60,7 @@ class Preview extends Component {
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
 
-        if (this.props.canSelect) {
+        if (this.props.canInteractive) {
             this.mouseEvents.forEach(e => {
                 this.domNode.addEventListener(e, this._handleMouseEvent, false);
             });
@@ -70,7 +70,7 @@ class Preview extends Component {
     }
 
     componentWillUnmount() {
-        if (this.props.canSelect) {
+        if (this.props.canInteractive) {
             this.mouseEvents.forEach(e => {
                 this.domNode.removeEventListener(e, this._handleMouseEvent, false);
             });
@@ -182,7 +182,6 @@ class Preview extends Component {
             owner = getOwner(el, item => item._currentElement.props.uid);
 
         if (owner) {
-            event.preventDefault();
             event.stopPropagation();
 
             const type = event.type;
@@ -202,6 +201,8 @@ class Preview extends Component {
             }
 
             if ( type == 'mousedown' ) {
+                event.preventDefault();
+
                 if (event.which != 1 || !event.ctrlKey) return;
 
                 this.dragStartX = event.pageX;
@@ -240,8 +241,7 @@ class Preview extends Component {
 }
 
 Preview.propTypes = {
-    canSelect: PropTypes.bool,
-    canHighlight: PropTypes.bool,
+    canInteractive: PropTypes.bool,
     routes: ImmutablePropTypes.listOf(
         ImmutablePropTypes.contains({
             id: PropTypes.number,
@@ -265,8 +265,7 @@ Preview.propTypes = {
 };
 
 Preview.defaultProps = {
-    canSelect: false,
-    canHighlight: false,
+    canInteractive: false,
     routes: List(),
     selected: Set(),
     highlighted: Set(),
