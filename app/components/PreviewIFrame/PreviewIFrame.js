@@ -1,5 +1,7 @@
 'use strict';
 
+import './PreviewIFrame.scss';
+
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
@@ -61,7 +63,9 @@ export class PreviewIFrame extends Component {
         // TODO: Render preloader if this.state.loaded === false
 
         return (
-            <iframe src={`${this.props.url}#${this.props.path}`} />
+        	<section className="preview-iframe-wrapper">
+                <iframe src={`${this.props.url}#${this.props.path}`} className="preview-iframe"/>
+	        </section>
         );
     }
 }
