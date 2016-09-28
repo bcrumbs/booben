@@ -6,6 +6,7 @@ import { Provider } from 'react-redux';
 import { hashHistory } from 'react-router';
 
 import Preview from './components/Preview';
+import Overlay from './components/Overlay';
 
 window.JSSY = {};
 
@@ -24,6 +25,14 @@ window.JSSY.initPreview = params => {
         </Provider>,
 
         document.getElementById('container')
+    );
+
+    ReactDOM.render(
+        <Provider store={params.store}>
+            <Overlay />
+        </Provider>,
+
+        document.getElementById('overlay')
     );
 
     return { history: hashHistory };
