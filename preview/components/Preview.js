@@ -179,21 +179,18 @@ class Preview extends Component {
     }
 
     _createRoute(route) {
+        const ret = {
+            path: route.path,
+            component: createBuilder(route.component)
+        };
+
         if (route.children && route.children.size) {
-            return {
-                path: route.path,
-                component: createBuilder(route.component),
-                childRoutes: route.children
-                    .map(child => this._createRoute(child))
-                    .toArray()
-            };
+            ret.childRoutes = route.children
+                .map(child => this._createRoute(child))
+                .toArray();
         }
-        else {
-            return {
-                path: route.path,
-                component: createBuilder(route.component)
-            };
-        }
+
+        return ret;
     }
 
     render() {
