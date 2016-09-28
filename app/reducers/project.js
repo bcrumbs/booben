@@ -14,7 +14,10 @@ import {
 import {
     PROJECT_REQUEST,
     PROJECT_LOADED,
-    PROJECT_LOAD_FAILED
+    PROJECT_LOAD_FAILED,
+    PROJECT_ROUTE_CREATE,
+    PROJECT_ROUTE_DELETE,
+    PROJECT_ROUTE_RENAME
 } from '../actions/project';
 
 import Project from '../models/Project';
@@ -83,30 +86,68 @@ const ProjectState = Record({
 
 export default (state = new ProjectState(), action) => {
     switch (action.type) {
-        case PROJECT_REQUEST: return state.merge({
-            projectName: action.projectName,
-            loadState: LOADING
-        });
+        case PROJECT_REQUEST:
+            return state.merge({
+                projectName: action.projectName,
+                loadState: LOADING
+            });
 
-        case PROJECT_LOADED: return state.merge({
-            projectName: action.project.name,
-            loadState: LOADED,
-            data: projectToImmutable(action.project),
+        case PROJECT_LOADED:
+            return state.merge({
+                projectName: action.project.name,
+                loadState: LOADED,
+                data: projectToImmutable(action.project),
 
-            // Metadata cannot be changed at all,
-            // so there's no need to convert it to Immutable.js containers
-            meta: action.metadata,
+                // Metadata cannot be changed at all,
+                // so there's no need to convert it to Immutable.js containers
+                meta: action.metadata,
 
-            error: null
-        });
+                error: null
+            });
 
-        case PROJECT_LOAD_FAILED: return state.merge({
-            loadState: LOAD_ERROR,
-            data: null,
-            meta: null,
-            error: action.error
-        });
+        case PROJECT_LOAD_FAILED:
+            return state.merge({
+                loadState: LOAD_ERROR,
+                data: null,
+                meta: null,
+                error: action.error
+            });
 
-        default: return state;
+        case PROJECT_ROUTE_CREATE:
+            const reducer = (acc, route) =>
+                Math.max(route.id, route.children.reduce(reducer, acc));
+
+            const newRouteId = state.data.routes.reduce(reducer, -1) + 1;
+
+            const newRoute = new ProjectRoute({
+                id: newRouteId,
+                path: action.path,
+                title: action.title
+            });
+
+            return state.updateIn(
+                ['data', 'routes'].concat(...action.where.map(idx => [idx, 'children'])),
+                routes => routes.push(newRoute)
+            );
+
+        case PROJECT_ROUTE_DELETE:
+            return state.updateIn(
+                ['data', 'routes'].concat(...action.where.map(idx => [idx, 'children'])),
+                routes => routes.delete(action.idx)
+            );
+
+        case PROJECT_ROUTE_RENAME:
+            return state.setIn(
+                ['data', 'routes'].concat(
+                    ...action.where.map(idx => [idx, 'children']),
+                    action.idx,
+                    'title'
+                ),
+
+                action.newTitle
+            );
+
+        default:
+            return state;
     }
 };

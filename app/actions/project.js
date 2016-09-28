@@ -68,3 +68,61 @@ export const loadProject = projectName => dispatch => {
         .then(([project, metadata]) => void dispatch(projectLoaded(project, metadata)))
         .catch(err => void dispatch(projectLoadFailed(err)))
 };
+
+/**
+ *
+ * @type {string}
+ */
+export const PROJECT_ROUTE_CREATE = 'PROJECT_ROUTE_CREATE';
+
+/**
+ *
+ * @param {number[]} where - indexes of routes in path
+ * @param {string} path
+ * @param {string} title
+ * @returns {Object}
+ */
+export const createRoute = (where, path, title) => ({
+    type: PROJECT_ROUTE_CREATE,
+    where,
+    path,
+    title
+});
+
+/**
+ *
+ * @type {string}
+ */
+export const PROJECT_ROUTE_DELETE = 'PROJECT_ROUTE_DELETE';
+
+/**
+ *
+ * @param {number[]} where - indexes of routes in path
+ * @param {number} idx - index of route to delete
+ * @returns {Object}
+ */
+export const deleteRoute = (where, idx) => ({
+    type: PROJECT_ROUTE_DELETE,
+    where,
+    idx
+});
+
+/**
+ *
+ * @type {string}
+ */
+export const PROJECT_ROUTE_RENAME = 'PROJECT_ROUTE_RENAME';
+
+/**
+ *
+ * @param {number[]} where - indexes of routes in path
+ * @param {number} idx - index of route to rename
+ * @param {string} newTitle
+ * @returns {Object}
+ */
+export const renameRoute = (where, idx, newTitle) => ({
+    type: PROJECT_ROUTE_RENAME,
+    where,
+    idx,
+    newTitle
+});
