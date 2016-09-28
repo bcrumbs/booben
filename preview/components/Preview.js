@@ -38,17 +38,22 @@ const getOwner = (el, condition) => {
     return condition(owner) ? owner : getOwner(owner, condition);
 };
 
+const mouseEvents = [
+    'click',
+    'mouseover',
+    'mouseout',
+    'dragover',
+    'dragleave',
+    'drop',
+    'mousedown'
+];
+
 class Preview extends Component {
     constructor(props) {
         super(props);
 
         this.domNode = null;
         this.dndComponent = null;
-
-        this.mouseEvents = [
-            'click', 'mouseover', 'mouseout', 'dragover', 'dragleave','drop',
-            'mousedown'
-        ];
 
         this._handleMouseEvent = this._handleMouseEvent.bind(this);
         this._handleResize = this._handleResize.bind(this);
@@ -60,8 +65,8 @@ class Preview extends Component {
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
 
-        if (this.props.canInteractive) {
-            this.mouseEvents.forEach(e => {
+        if (this.props.interactive) {
+            mouseEvents.forEach(e => {
                 this.domNode.addEventListener(e, this._handleMouseEvent, false);
             });
 
@@ -70,8 +75,8 @@ class Preview extends Component {
     }
 
     componentWillUnmount() {
-        if (this.props.canInteractive) {
-            this.mouseEvents.forEach(e => {
+        if (this.props.interactive) {
+            mouseEvents.forEach(e => {
                 this.domNode.removeEventListener(e, this._handleMouseEvent, false);
             });
 
@@ -241,7 +246,7 @@ class Preview extends Component {
 }
 
 Preview.propTypes = {
-    canInteractive: PropTypes.bool,
+    interactive: PropTypes.bool,
     routes: ImmutablePropTypes.listOf(
         ImmutablePropTypes.contains({
             id: PropTypes.number,
@@ -265,7 +270,7 @@ Preview.propTypes = {
 };
 
 Preview.defaultProps = {
-    canInteractive: false,
+    interactive: false,
     routes: List(),
     selected: Set(),
     highlighted: Set(),

@@ -20,11 +20,14 @@ export class PreviewIFrame extends Component {
 
     componentDidMount() {
         const contentWindow = this._iframe.contentWindow,
-            { store, canSelect } = this.props;
+            { store, interactive } = this.props;
 
         contentWindow.addEventListener('DOMContentLoaded', () => {
             if (contentWindow.JSSY) {
-                const { history } = contentWindow.JSSY.initPreview({ store, canSelect });
+                const { history } = contentWindow.JSSY.initPreview({
+                    store,
+                    interactive
+                });
 
                 this.setState({
                     loaded: true,
@@ -79,12 +82,12 @@ PreviewIFrame.propTypes = {
     url: PropTypes.string.isRequired,
     path: PropTypes.string,
     store: PropTypes.any,
-    canSelect: PropTypes.bool
+    interactive: PropTypes.bool
 };
 
 PreviewIFrame.defaultProps = {
     url: '',
     path: '/',
     store: {},
-    canSelect: false
+    interactive: false
 };
