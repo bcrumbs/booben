@@ -15,13 +15,13 @@ window.JSSY = {};
  *
  * @param {Object} params
  * @param {Object} params.store
- * @param {boolean} params.canSelect
+ * @param {boolean} params.canInteractive
  */
 
 window.JSSY.initPreview = params => {
     ReactDOM.render(
         <Provider store={params.store}>
-            <Preview canSelect={params.canSelect} />
+            <Preview canInteractive={params.canInteractive} />
         </Provider>,
 
         document.getElementById('container')

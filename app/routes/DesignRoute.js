@@ -31,8 +31,7 @@ class DesignRoute extends Component {
         return (
             <Desktop toolGroups={toolGroups}>
                 <PreviewIFrame
-                    canSelect
-                    canHighlight
+                    canInteractive
                     store={store}
                     url={src}
                     path={route.path}
