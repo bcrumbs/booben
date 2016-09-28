@@ -2,12 +2,12 @@
 
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
+import ImmutablePropTypes from 'react-immutable-proptypes';
 
 // The real components.js will be generated during build process
 import components from '../components.js';
 
 import { componentsMap } from '../utils';
-import { ProjectComponent } from '../../app/models';
 
 const pseudoComponents = new Set([
     'Text',
@@ -77,20 +77,13 @@ Builder.propTypes = {
     component: ImmutablePropTypes.contains({
         uid: React.PropTypes.string,
         name: React.PropTypes.string,
-        title: React.PropTypes.string,
         props: ImmutablePropTypes.map,
         children: ImmutablePropTypes.list
     })
 };
 
 Builder.defaultProps = {
-    component: Record({
-        uid: '',
-        name: '',
-        title: '',
-        props: Map(),
-        children: List()
-    })
+    component: null
 };
 
 /**
@@ -102,6 +95,7 @@ Builder.defaultProps = {
 const getComponentByName = (name = '') => {
     const [namespace, componentName] = name.split('.');
     if (!namespace || !componentName) throw new Error(`Invalid component name: ${name}`);
+    if (namespace === 'HTML') return componentName;
     if (!components[namespace]) throw new Error(`Namespace not found: ${namespace}`);
     const component = components[namespace][componentName];
     if (!component) throw new Error(`Component not found: ${name}`);

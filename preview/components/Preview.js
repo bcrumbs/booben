@@ -9,7 +9,6 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { List, Set } from 'immutable';
 
 import Builder from './Builder';
-import Overlay from './Overlay';
 
 import { domElementsMap } from '../utils';
 
@@ -21,10 +20,6 @@ import {
     showDndPreviewComponent,
     hideDndPreviewComponent
 } from '../../app/actions/preview'
-
-import { 
-    ProjectRoute
-} from '../../app/models';
 
 const createBuilder = component =>
     ({ children }) => <Builder component={component} children={children} />;
@@ -248,7 +243,16 @@ Preview.propTypes = {
     canSelect: PropTypes.bool,
     canHighlight: PropTypes.bool,
     routes: ImmutablePropTypes.listOf(
-        PropTypes.instanceOf(ProjectRoute)
+        ImmutablePropTypes.contains({
+            id: PropTypes.number,
+            path: PropTypes.string,
+            component: ImmutablePropTypes.contains({
+                uid: React.PropTypes.string,
+                name: React.PropTypes.string,
+                props: ImmutablePropTypes.map,
+                children: ImmutablePropTypes.list
+            })
+        })
     ),
     selected: ImmutablePropTypes.set,
     highlighted: ImmutablePropTypes.set,
