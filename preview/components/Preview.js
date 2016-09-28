@@ -21,10 +21,6 @@ import {
     hideDndPreviewComponent
 } from '../../app/actions/preview'
 
-import { 
-    ProjectComponent
-} from '../../app/models';
-
 const createBuilder = component =>
     ({ children }) => <Builder component={component} children={children} />;
 
