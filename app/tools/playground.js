@@ -6,10 +6,13 @@
 
 import React from 'react';
 
+import { Button } from '@reactackle/reactackle';
+
 import {
     BlockContentBox,
     BlockContentBoxItem,
-    BlockContentBoxHeading
+    BlockContentBoxHeading,
+	BlockContentPlaceholder
 } from '../components/BlockContent/BlockContent';
 
 import {
@@ -111,6 +114,17 @@ const toolComponentsWindowSections = List([
 	})
 ]);
 
+const toolComponentsPlaceholderWindowSections = List([
+	new ToolSectionRecord({
+		name: 'Section 1',
+		component: () => (
+			<BlockContentPlaceholder text="Ooops!">
+				<Button text='Show All Components' />
+			</BlockContentPlaceholder>
+		)
+	})
+]);
+
 export default List([
     List([
         new ToolRecord({
@@ -121,9 +135,21 @@ export default List([
             undockable: true,
             closable: false,
             sections: toolComponentsWindowSections,
-            mainButtons: toolWindowMainActions,
-            secondaryButtons: toolWindowSecondaryActions
+            mainButtons: toolWindowMainActions, // Delete it
+            secondaryButtons: toolWindowSecondaryActions // Delete it
         }),
+
+	    new ToolRecord({
+		    id: 'tool4',
+		    icon: 'trash-o',
+		    name: 'Just Empty Tab',
+		    title: 'Just Empty Tab',
+		    undockable: true,
+		    closable: false,
+		    sections: toolComponentsPlaceholderWindowSections,
+		    mainButtons: toolWindowMainActions, // Delete it
+		    secondaryButtons: toolWindowSecondaryActions // Delete it
+	    }),
 
         new ToolRecord({
             id: 'tool2',
@@ -138,7 +164,7 @@ export default List([
         }),
 
 	    new ToolRecord({
-		    id: 'tool2',
+		    id: 'tool3',
 		    icon: 'sitemap',
 		    name: 'Elements Tree',
 		    title: 'Fuck you, i\'m drunk',

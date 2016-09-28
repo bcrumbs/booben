@@ -180,6 +180,7 @@
 		width: 100%;
 		flex-shrink: 0;
 		padding: $bcontent-empty-padding;
+		text-align: center;
 
 		@include user-select();
 	}
@@ -190,6 +191,10 @@
 		line-height: $bcontent-empty-line-height;
 		font-style: $bcontent-empty-text-style;
 		text-align: $bcontent-empty-text-align;
+
+		+ * {
+			margin-top: $bcontent-empty-text-spacing-bottom;
+		}
 	}
 
 
