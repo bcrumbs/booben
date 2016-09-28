@@ -22,16 +22,22 @@ export class PreviewIFrame extends Component {
             { store, canSelect } = this.props;
 
         contentWindow.addEventListener('DOMContentLoaded', () => {
-            const { history } = contentWindow.JSSY.initPreview({ store, canSelect });
+            if (contentWindow.JSSY) {
+                const { history } = contentWindow.JSSY.initPreview({ store, canSelect });
 
-            this.setState({
-                loaded: true,
-                history
-            });
+                this.setState({
+                    loaded: true,
+                    history
+                });
 
-            if (this._nextPath !== null) {
-                history.push(this._nextPath);
-                this._nextPath = null;
+                if (this._nextPath !== null) {
+                    history.push(this._nextPath);
+                    this._nextPath = null;
+                }
+            }
+            else {
+                // TODO: Show warning?
+                this.setState({ loaded: true });
             }
         });
     }
@@ -39,7 +45,7 @@ export class PreviewIFrame extends Component {
     componentWillReceiveProps(nextProps) {
         if (nextProps.path !== this.props.path) {
             if (this.state.loaded) {
-                this.state.history.push(nextProps.path);
+                if (this.state.history) this.state.history.push(nextProps.path);
             }
             else {
                 this._nextPath = nextProps.path;
