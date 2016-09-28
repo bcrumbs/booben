@@ -74,11 +74,23 @@ class Builder extends Component {
 }
 
 Builder.propTypes = {
-    component: PropTypes.instanceOf(ProjectComponent)
+    component: ImmutablePropTypes.contains({
+        uid: React.PropTypes.string,
+        name: React.PropTypes.string,
+        title: React.PropTypes.string,
+        props: ImmutablePropTypes.map,
+        children: ImmutablePropTypes.list
+    })
 };
 
 Builder.defaultProps = {
-    component: null
+    component: Record({
+        uid: '',
+        name: '',
+        title: '',
+        props: Map(),
+        children: List()
+    })
 };
 
 /**

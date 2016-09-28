@@ -17,7 +17,9 @@ import {
     selectPreviewComponent,
     deselectPreviewComponent,
     highlightPreviewComponent,
-    unhighlightPreviewComponent
+    unhighlightPreviewComponent,
+    showDndPreviewComponent,
+    hideDndPreviewComponent
 } from '../../app/actions/preview'
 
 import { 
@@ -46,6 +48,7 @@ class Preview extends Component {
         super(props);
 
         this.domNode = null;
+        this.dndComponent = null;
 
         this.mouseEvents = [
             'click', 'mouseover', 'mouseout', 'dragover', 'dragleave','drop',
@@ -54,6 +57,9 @@ class Preview extends Component {
 
         this._handleMouseEvent = this._handleMouseEvent.bind(this);
         this._handleResize = this._handleResize.bind(this);
+        this._handleDrag = this._handleDrag.bind(this);
+        this._handleStartDrag = this._handleStartDrag.bind(this);
+        this._handleStopDrag = this._handleStopDrag.bind(this);
     }
 
     componentDidMount() {
@@ -84,9 +90,7 @@ class Preview extends Component {
         return nextProps.routes !== this.props.routes;
     }
 
-    _handleResize() {
-        this._renderOverlay();
-    }
+    _handleResize() {}
 
     /**
      * Get array of selected components
@@ -126,6 +130,49 @@ class Preview extends Component {
         }
     }
 
+    _handleStartDrag(event) {
+        this.domNode.addEventListener('mousemove', this._handleDrag);
+        this.domNode.addEventListener('mouseup', this._handleStopDrag);
+    }
+
+    _handleStopDrag(event) {
+        const keys = Object.keys(event.target),
+            riiKey = keys.find(key => key.startsWith('__reactInternalInstance$'));
+
+        if (riiKey) {
+            const owner = getOwner(event.target[riiKey]._currentElement, item => item._currentElement.props.uid);
+
+            console.log({
+                source: this.dndComponent.uid,
+                target: owner._currentElement.props.uid
+            });
+        }
+
+        this.dndComponent = null;
+
+        this.props.hideDndComponent();
+
+        this.domNode.removeEventListener('mousemove', this._handleDrag);
+        this.domNode.removeEventListener('mouseup', this._handleStopDrag);
+    }
+
+    _handleDrag(event) {
+        const moveX = event.pageX - this.dragStartX,
+            moveY = event.pageY - this.dragStartY;
+
+        if ( Math.abs(moveX) < 3 && Math.abs(moveY) < 3 ) {
+            return;
+        }
+
+        this.dndComponent = {
+            uid: this.dragComponent,
+            pageX: event.pageX + 10,
+            pageY: event.pageY + 10
+        };
+
+        this.props.showDndComponent(this.dndComponent);
+    }
+
     /**
      * 
      * @param {MouseEvent} event
@@ -159,23 +206,16 @@ class Preview extends Component {
                 });
             }
 
-            if( type == 'mousedown' ) {
-                if (event.which != 1) return;
+            if ( type == 'mousedown' ) {
+                if (event.which != 1 || !event.ctrlKey) return;
+
+                this.dragStartX = event.pageX;
+                this.dragStartY = event.pageY;
+                this.dragComponent = owner._currentElement.props.uid;
+
+                this._handleStartDrag();
             }
-
-            this._renderOverlay();
         }
-    }
-
-    _renderOverlay() {
-        ReactDOM.render(
-            <Overlay 
-                selected={this.props.selected}
-                highlighted={this.props.highlighted}
-            />,
-
-            document.getElementById('overlay')
-        );
     }
 
     _createRoute(route) {
@@ -215,7 +255,9 @@ Preview.propTypes = {
     deselectComponent: PropTypes.func,
     selectComponent: PropTypes.func,
     unhighlightComponent: PropTypes.func,
-    highlightComponent: PropTypes.func
+    highlightComponent: PropTypes.func,
+    showDndComponent: PropTypes.func,
+    hideDndComponent: PropTypes.func
 };
 
 Preview.defaultProps = {
@@ -227,7 +269,9 @@ Preview.defaultProps = {
     deselectComponent: /* istanbul ignore next */ () => {},
     selectComponent: /* istanbul ignore next */ () => {},
     highlightComponent: /* istanbul ignore next */ () => {},
-    unhighlightComponent: /* istanbul ignore next */ () => {}
+    unhighlightComponent: /* istanbul ignore next */ () => {},
+    showDndComponent: /* istanbul ignore next */ () => {},
+    hideDndComponent: /* istanbul ignore next */ () => {}
 };
 
 Preview.displayName = 'Preview';
@@ -242,7 +286,9 @@ const mapDispatchToProps = dispatch => ({
     deselectComponent: selected => void dispatch(deselectPreviewComponent(selected)),
     selectComponent: selected => void dispatch(selectPreviewComponent(selected)),
     highlightComponent: highlighted => void dispatch(highlightPreviewComponent(highlighted)),
-    unhighlightComponent: highlighted => void dispatch(unhighlightPreviewComponent(highlighted))
+    unhighlightComponent: highlighted => void dispatch(unhighlightPreviewComponent(highlighted)),
+    showDndComponent: component => void dispatch(showDndPreviewComponent(component)),
+    hideDndComponent: () => void dispatch(hideDndPreviewComponent())
 });
 
 export default connect(

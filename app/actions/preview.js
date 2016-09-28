@@ -8,6 +8,8 @@ export const DESELECT_PREVIEW_COMPONENT = 'DESELECT_PREVIEW_COMPONENT';
 export const SELECT_PREVIEW_COMPONENT = 'SELECT_PREVIEW_COMPONENT';
 export const UNHIGHLIGHT_PREVIEW_COMPONENT = 'UNHIGHLIGHT_PREVIEW_COMPONENT';
 export const HIGHLIGHT_PREVIEW_COMPONENT = 'HIGHLIGHT_PREVIEW_COMPONENT';
+export const SHOW_DND_PREVIEW_COMPONENT = 'SHOW_DND_PREVIEW_COMPONENT';
+export const HIDE_DND_PREVIEW_COMPONENT = 'HIDE_DND_PREVIEW_COMPONENT';
 
 /**
  * @param  {Object} component
@@ -44,3 +46,21 @@ export const unhighlightPreviewComponent = component => ({
     type: UNHIGHLIGHT_PREVIEW_COMPONENT,
     component
 });
+
+/**
+ * @param  {Object} component
+ * @return {Object}
+ */
+export const showDndPreviewComponent = component => ({
+    type: SHOW_DND_PREVIEW_COMPONENT,
+    component
+});
+
+/**
+ * @param  {Object} component
+ * @return {Object}
+ */
+export const hideDndPreviewComponent = () => ({
+    type: HIDE_DND_PREVIEW_COMPONENT
+});
+
