@@ -1,0 +1,104 @@
+@charset "UTF-8";
+@import 'variables';
+
+@include exports(component-tag) {
+	// =================================================================================================================
+	// TAGS WRAPPER
+	// =================================================================================================================
+	.component-tags-wrapper {
+		margin: (-$component-tag-box-padding - $component-tag-box-spacing-y) (-$component-tag-box-padding - $component-tag-box-spacing-x);
+		display: flex;
+		flex-wrap: wrap;
+	}
+
+	// =================================================================================================================
+	// TAG ITEM
+	// =================================================================================================================
+	.component-tag-box {
+		padding: $component-tag-box-padding;
+		border-radius: $component-tag-box-border-radius;
+		border: 1px solid transparent;
+		margin: $component-tag-box-spacing-y $component-tag-box-spacing-x;
+		cursor: $component-tag-box-cursor;
+		flex-shrink: 0;
+		flex-basis: (100%/$component-tag-amount-per-row) - 5%;
+		flex-grow: 1;
+
+		display: flex;
+		align-items: stretch;
+
+		@include single-transition();
+		@include user-select();
+
+		@if $component-tag-box-spacing-x != 0 {
+			max-width: calc(#{100%/$component-tag-amount-per-row} - #{$component-tag-box-spacing-x/2});
+		} @else {
+			max-width: 100%/$component-tag-amount-per-row;
+		}
+	}
+
+	.component-tag {
+		width: 100%;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+
+		.component-tag-box:hover &{
+			background-color: $component-tag-box-hover-bg-color;
+			border-color: $component-tag-box-hover-border-color;
+		}
+
+		.component-tag-box:focus &,
+		.component-tag-box.is-focused & {
+			background-color: $component-tag-box-focus-bg-color;
+			border-radius: $component-tag-box-border-radius;
+
+			@if $component-tag-box-focus-box-shadow {
+				@include box-shadow(0);
+			}
+		}
+	}
+
+	// Tag Image
+	.component-tag-image {
+		width: 100%;
+		min-height: $component-tag-img-min-size;
+		background-color: $component-tag-img-bg-color;
+		display: flex;
+		align-items: center;
+		border-radius: $component-tag-box-border-radius;
+		overflow: hidden;
+
+		img {
+			width: 100%;
+			max-width: 100%;
+		}
+
+		.component-tag-box:hover &,
+		.component-tag-box:focus &,
+		.component-tag-box.is-focused & {
+			border-radius: 0;
+		}
+	}
+
+	// Tag Title
+	.component-tag-title-box {
+		.component-tag-image + & {
+			padding: $component-tag-title-padding;
+		}
+	}
+
+	.component-tag-title {
+		font-size: $component-tag-title-font-size;
+		line-height: $component-tag-title-line-height;
+		color: $component-tag-title-font-color;
+		font-weight: $component-tag-title-font-weight;
+		text-transform: $component-tag-title-text-transform;
+
+		.component-tag-box:focus & ,
+		.component-tag-box.is-focused & {
+			color: $component-tag-title-focus-font-color;
+		}
+	}
+}
