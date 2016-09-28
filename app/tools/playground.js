@@ -12,6 +12,14 @@ import {
     BlockContentBoxHeading
 } from '../components/BlockContent/BlockContent';
 
+import {
+	Accordion,
+	AccordionItem } from '../components/Accordion/Accordion';
+
+import {
+	ComponentTag,
+	ComponentTagWrapper } from '../components/ComponentTag/ComponentTag';
+
 import { List } from 'immutable';
 
 import ToolSectionRecord from '../models/ToolSection';
@@ -75,13 +83,53 @@ const toolWindowSecondaryActions = List([
     })
 ]);
 
+// Components Library
+const toolComponentsWindowSections = List([
+	new ToolSectionRecord({
+		name: 'Section 1',
+		component: () => (
+			<BlockContentBox>
+				<Accordion>
+					<AccordionItem title="Form">
+						some accordion item
+					</AccordionItem>
+					<AccordionItem title="Text">
+						some accordion item
+					</AccordionItem>
+					<AccordionItem title="Navigation" expanded>
+						<ComponentTagWrapper>
+							<ComponentTag title="Accordion" image="https://drscdn.500px.org/photo/118771829/m%3D2048/420d2f6430f878b8a0db28195b1ff8a3"/>
+							<ComponentTag title="Block Content" focused />
+							<ComponentTag title="Component Placeholder" />
+							<ComponentTag title="Component Tag" />
+							<ComponentTag title="Draggable Window" />
+						</ComponentTagWrapper>
+					</AccordionItem>
+				</Accordion>
+			</BlockContentBox>
+		)
+	})
+]);
+
 export default List([
     List([
         new ToolRecord({
             id: 'tool1',
             icon: 'cube',
-            name: 'Tool 1',
-            title: 'Hey ho lets go',
+            name: 'Components Library',
+            title: 'Components Library',
+            undockable: true,
+            closable: false,
+            sections: toolComponentsWindowSections,
+            mainButtons: toolWindowMainActions,
+            secondaryButtons: toolWindowSecondaryActions
+        }),
+
+        new ToolRecord({
+            id: 'tool2',
+            icon: 'file-text-o',
+            name: 'Data',
+            title: 'Fuck you, i\'m drunk',
             undockable: true,
             closable: false,
             sections: toolWindowSections,
@@ -89,17 +137,17 @@ export default List([
             secondaryButtons: toolWindowSecondaryActions
         }),
 
-        new ToolRecord({
-            id: 'tool2',
-            icon: 'server',
-            name: 'Tool 2',
-            title: 'Fuck you, i\'m drunk',
-            undockable: true,
-            closable: false,
-            sections: toolWindowSections,
-            mainButtons: toolWindowMainActions,
-            secondaryButtons: toolWindowSecondaryActions
-        })
+	    new ToolRecord({
+		    id: 'tool2',
+		    icon: 'sitemap',
+		    name: 'Elements Tree',
+		    title: 'Fuck you, i\'m drunk',
+		    undockable: true,
+		    closable: false,
+		    sections: toolWindowSections,
+		    mainButtons: toolWindowMainActions,
+		    secondaryButtons: toolWindowSecondaryActions
+	    })
     ])
 ]);
  

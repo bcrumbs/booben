@@ -1,0 +1,36 @@
+@charset "UTF-8";
+@import '~@reactackle/reactackle/utils/global';
+
+// =====================================================================================================================
+// BASE VARIABLES
+// =====================================================================================================================
+$component-tag-amount-per-row:          3 !default;
+
+// Box
+$component-tag-box-padding:             $base-module/4 !default;
+$component-tag-box-spacing-y:           0 !default;
+$component-tag-box-spacing-x:           0 !default;
+
+$component-tag-box-border-radius:       $global-radius !default;
+$component-tag-box-hover-bg-color:      transparent !default;
+$component-tag-box-hover-border-color:  $color-border !default;
+
+$component-tag-box-focus-bg-color:      $color-primary !default;
+$component-tag-box-focus-border-color:  $component-tag-box-hover-border-color !default;
+$component-tag-box-focus-box-shadow:    true !default;
+
+$component-tag-box-cursor:              $cursor-move !default;
+
+// Image
+$component-tag-img-min-size:            $base-module*9.5 !default;
+$component-tag-img-bg-color:            transparentize($black, 0.9) !default;
+
+// Title
+$component-tag-title-padding:           $base-module*0.5 !default;
+
+$component-tag-title-font-size:         fs(-1) !default;
+$component-tag-title-line-height:       1.25 !default;
+$component-tag-title-font-color:        $body-font-color !default;
+$component-tag-title-focus-font-color:  foreground($component-tag-box-focus-bg-color, $yes: $component-tag-title-font-color, $no: $white, $threshold: 60%) !default;
+$component-tag-title-font-weight:       $font-weight-normal !default;
+$component-tag-title-text-transform:    normal !default;

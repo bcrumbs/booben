@@ -1,0 +1,38 @@
+@charset "UTF-8";
+@import '~@reactackle/reactackle/utils/global';
+
+// =====================================================================================================================
+// BASE VARIABLES
+// =====================================================================================================================
+$accordion-title-font-size:                 fs(-1) !default;
+$accordion-title-line-height:               1.5 !default;
+$accordion-title-text-transform:            uppercase !default;
+
+$accordion-icon-box-size:                   $base-module*2.5 !default;
+$accordion-icon-img-size:                   $base-module*1.5 !default;
+
+$accordion-title-box-y-align:               center !default;
+$accordion-title-box-hover-bg-color:        transparentize($black, 0.93) !default;
+
+$accordion-item-separator-color:            $color-border !default;
+$accordion-item-separator-thickness:        1px !default;
+
+// States
+$accordion-expanded-title-font-color:       $body-font-color !default;
+$accordion-expanded-title-font-weight:      $font-weight-semibold !default;
+$accordion-expanded-icon-color:             $accordion-expanded-title-font-color !default;
+
+$accordion-collapsed-title-font-color:      $body-font-color !default;
+$accordion-collapsed-title-font-weight:     $font-weight-normal !default;
+$accordion-collapsed-icon-color:            $accordion-collapsed-title-font-color !default;
+
+$accordion-collapsed-opacity:               0.7 !default;
+
+// Sizes
+$accordion-item-pad-x:                      $base-module*2 !default;
+$accordion-title-pad-y:                     $base-module !default;
+$accordion-icon-spacing:                    $base-module !default;
+$accordion-content-pad-y:                   $base-module*1.5 !default;
+
+// title => Accordion title box height
+$accordion-title-box-min-height:            $accordion-title-font-size*$accordion-title-line-height + $accordion-title-pad-y*2
