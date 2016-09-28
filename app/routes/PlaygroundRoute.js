@@ -22,6 +22,8 @@ import {
     ToggleButton
 } from '@reactackle/reactackle';
 
+import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
+
 import { Desktop } from '../containers/Desktop/Desktop';
 
 import toolGroups from '../tools/playground';
@@ -57,7 +59,9 @@ export default class Playground extends React.Component {
                     </Header>
                 </TopRegion>
 
-                <Desktop toolGroups={toolGroups}/>
+                <Desktop toolGroups={toolGroups}>
+	                <PreviewIFrame url="someRoute" />
+                </Desktop>
 
                 <BottomRegion fixed={false}>
                     <Footer>
