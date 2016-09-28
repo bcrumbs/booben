@@ -76,7 +76,7 @@ const RootRoute = props => {
 
     return (
         <App fixed>
-            <TopRegion>
+            <TopRegion fixed={false}>
                 <Header size="blank">
                     <HeaderRegion size='blank'>
                         <HeaderLogoBox title={props.projectName}/>

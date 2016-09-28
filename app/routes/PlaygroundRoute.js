@@ -60,7 +60,7 @@ export default class Playground extends React.Component {
                 </TopRegion>
 
                 <Desktop toolGroups={toolGroups}>
-	                <PreviewIFrame url="someRoute" />
+	                <PreviewIFrame url="https://ordbuy.com" />
                 </Desktop>
 
                 <BottomRegion fixed={false}>

@@ -30,15 +30,13 @@ class DesignRoute extends Component {
 
         return (
             <Desktop toolGroups={toolGroups}>
-                <div style={{ marginTop: '40px' }}>
-                    <PreviewIFrame
-                        canSelect
-                        canHighlight
-                        store={store}
-                        url={src}
-                        path={route.path}
-                    />
-                </div>
+                <PreviewIFrame
+                    canSelect
+                    canHighlight
+                    store={store}
+                    url={src}
+                    path={route.path}
+                />
             </Desktop>
         );
     }

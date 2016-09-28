@@ -4,7 +4,6 @@ import './PreviewIFrame.scss';
 
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
-import ReactDOM from 'react-dom';
 
 export class PreviewIFrame extends Component {
     constructor(props) {
@@ -15,12 +14,12 @@ export class PreviewIFrame extends Component {
             history: null
         };
 
+        this._iframe = null;
         this._nextPath = null;
     }
 
     componentDidMount() {
-        const domNode = ReactDOM.findDOMNode(this),
-            contentWindow = domNode.contentWindow,
+        const contentWindow = this._iframe.contentWindow,
             { store, canSelect } = this.props;
 
         contentWindow.addEventListener('DOMContentLoaded', () => {
@@ -64,7 +63,11 @@ export class PreviewIFrame extends Component {
 
         return (
         	<section className="preview-iframe-wrapper">
-                <iframe src={`${this.props.url}#${this.props.path}`} className="preview-iframe"/>
+                <iframe
+                    ref={iframe => this._iframe = iframe}
+                    src={`${this.props.url}#${this.props.path}`}
+                    className="preview-iframe"
+                />
 	        </section>
         );
     }
