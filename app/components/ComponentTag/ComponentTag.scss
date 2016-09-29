@@ -31,7 +31,7 @@
 		@include user-select();
 
 		@if $component-tag-box-spacing-x != 0 {
-			max-width: calc(#{100%/$component-tag-amount-per-row} - #{$component-tag-box-spacing-x});
+			max-width: calc(#{100%/$component-tag-amount-per-row} - #{$component-tag-box-spacing-x*2});
 		} @else {
 			max-width: 100%/$component-tag-amount-per-row;
 		}
@@ -45,6 +45,7 @@
 		&.is-focused {
 			background-color: $component-tag-box-focus-bg-color;
 			border-radius: $component-tag-box-border-radius;
+			border-color: $component-tag-box-hover-border-color;
 
 			@if $component-tag-box-focus-box-shadow {
 				@include box-shadow(0);
