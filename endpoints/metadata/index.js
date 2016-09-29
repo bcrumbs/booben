@@ -296,7 +296,7 @@ const metaSchema = {
             patternProperties: {
                 '.*': propSchema
             },
-            required: true
+            required: false
         },
 
         types: Object.assign({ required: false }, typesSchema),
@@ -551,9 +551,10 @@ const readComponentMeta = metaDir => co(function* () {
         throw err;
     }
 
-    const props = Object.keys(meta.props);
-
     if (!meta.strings) meta.strings = (yield readStrings(metaDir)) || {};
+    if (!meta.props) meta.props = {};
+
+    const props = Object.keys(meta.props);
 
     for (let i = 0, l = props.length; i < l; i++) {
         const propMeta = meta.props[props[i]];

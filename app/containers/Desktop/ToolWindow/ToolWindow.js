@@ -380,7 +380,8 @@ export class ToolWindow extends Component {
         return (
             <DraggableWindow
                 isDragged={this.state.dragging}
-                maxHeight={tool.maxHeight}
+                maxHeight={tool.windowMaxHeight}
+                minWidth={tool.windowMinWidth}
                 zIndex={toolState.zIndex}
                 onFocus={this.props.onFocus}
             >

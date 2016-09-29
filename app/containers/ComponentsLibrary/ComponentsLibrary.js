@@ -122,12 +122,19 @@ class ComponentsLibraryComponent extends Component {
 
     render() {
         const accordionItems = this.componentGroups.map(group => {
-            const items = group.components.map((c, idx) => (
-                <ComponentTag
-                    key={idx}
-                    title={c.text[this.props.language]}
-                />
-            ));
+            const items = group.components
+                .sort((a, b) => {
+                    const aText = a.text[this.props.language],
+                        bText = b.text[this.props.language];
+
+                    return aText < bText ? -1 : aText > bText ? 1 : 0;
+                })
+                .map((c, idx) => (
+                    <ComponentTag
+                        key={idx}
+                        title={c.text[this.props.language]}
+                    />
+                ));
 
             // TODO: Replace "Uncategorized" with a string from translations
             const title = group.isDefault

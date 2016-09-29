@@ -15,7 +15,7 @@ export default List([
     List([
         new ToolRecord({
             id: 'componentsLibrary',
-            icon: 'cube',
+            icon: 'cubes',
             name: 'Components Library',
             title: 'Components Library',
             undockable: true,
@@ -27,7 +27,8 @@ export default List([
                 })
             ]),
             mainButtons: List(),
-            secondaryButtons: List()
+            secondaryButtons: List(),
+            windowMinWidth: 360
         })
     ])
 ]);
