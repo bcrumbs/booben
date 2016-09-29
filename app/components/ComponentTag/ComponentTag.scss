@@ -31,9 +31,25 @@
 		@include user-select();
 
 		@if $component-tag-box-spacing-x != 0 {
-			max-width: calc(#{100%/$component-tag-amount-per-row} - #{$component-tag-box-spacing-x/2});
+			max-width: calc(#{100%/$component-tag-amount-per-row} - #{$component-tag-box-spacing-x*2});
 		} @else {
 			max-width: 100%/$component-tag-amount-per-row;
+		}
+
+		&:hover {
+			background-color: $component-tag-box-hover-bg-color;
+			border-color: $component-tag-box-hover-border-color;
+		}
+
+		&:focus,
+		&.is-focused {
+			background-color: $component-tag-box-focus-bg-color;
+			border-radius: $component-tag-box-border-radius;
+			border-color: $component-tag-box-hover-border-color;
+
+			@if $component-tag-box-focus-box-shadow {
+				@include box-shadow(0);
+			}
 		}
 	}
 
@@ -43,21 +59,6 @@
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
-
-		.component-tag-box:hover &{
-			background-color: $component-tag-box-hover-bg-color;
-			border-color: $component-tag-box-hover-border-color;
-		}
-
-		.component-tag-box:focus &,
-		.component-tag-box.is-focused & {
-			background-color: $component-tag-box-focus-bg-color;
-			border-radius: $component-tag-box-border-radius;
-
-			@if $component-tag-box-focus-box-shadow {
-				@include box-shadow(0);
-			}
-		}
 	}
 
 	// Tag Image
