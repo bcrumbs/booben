@@ -7,35 +7,41 @@ import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { AccordionItem } from './AccordionItem/AccordionItem';
 import { Set, Record } from 'immutable';
+import { noop } from '../../utils/misc';
 
 export class Accordion extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            expandedItems: Set()
-        };
-    }
-
-    shouldComponentUpdate(nextProps, nextState) {
+    shouldComponentUpdate(nextProps) {
         return nextProps.items !== this.props.items ||
-            nextState.expandedItems !== this.state.expandedItems;
+            nextProps.expandedItemIds !== this.props.expandedItemIds;
     }
 
-    _replaceExpanded(idx) {
-        this.setState({
-            expandedItems: Set([idx])
-        });
+    componentWillReceiveProps(nextProps) {
+        const willUpdateExpandedItems =
+            nextProps.items !== this.props.items &&
+            nextProps.expandedItemIds === this.props.expandedItemIds;
+
+        if (willUpdateExpandedItems) {
+            const newExpandedItemIds = this.props.expandedItemIds.intersect(
+                nextProps.items.map(item => item.id)
+            );
+
+            if (newExpandedItemIds !== this.props.expandedItemIds)
+                this.props.onExpandedItemsChange(newExpandedItemIds);
+        }
     }
 
-    _toggleItem(idx) {
-        const exclude = this.state.expandedItems.has(idx);
+    _replaceExpanded(itemId) {
+        this.props.onExpandedItemsChange(Set([itemId]));
+    }
 
-        this.setState({
-            expandedItems: exclude
-                ? this.state.expandedItems.delete(idx)
-                : this.state.expandedItems.add(idx)
-        });
+    _toggleItem(itemId) {
+        const exclude = this.state.expandedItems.has(itemId);
+
+        const newExpandedItems = exclude
+            ? this.state.expandedItems.delete(itemId)
+            : this.state.expandedItems.add(itemId);
+
+        this.props.onExpandedItemsChange(newExpandedItems);
     }
 
     render() {
@@ -47,8 +53,8 @@ export class Accordion extends Component {
             <AccordionItem
                 key={idx}
                 title={item.title}
-                expanded={this.state.expandedItems.has(idx)}
-                onExpand={onExpandFn.bind(this, idx)}
+                expanded={this.props.expandedItemIds.has(item.id)}
+                onExpand={onExpandFn.bind(this, item.id)}
             >
                 {item.content}
             </AccordionItem>
@@ -65,6 +71,7 @@ export class Accordion extends Component {
 }
 
 export const AccordionItemRecord = Record({
+    id: '',
     title: '',
     content: null
 });
@@ -74,12 +81,19 @@ Accordion.propTypes = {
         PropTypes.instanceOf(AccordionItemRecord)
     ),
 
-    single: PropTypes.bool
+    expandedItemIds: ImmutablePropTypes.setOf(
+        PropTypes.string
+    ),
+
+    single: PropTypes.bool,
+    onExpandedItemsChange: PropTypes.func
 };
 
 Accordion.defaultProps = {
     items: [],
-    single: false
+    expandedItemIds: null,
+    single: false,
+    onExpandedItemsChange: noop
 };
 
 Accordion.displayName = 'Accordion';

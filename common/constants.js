@@ -74,6 +74,12 @@ exports.METADATA_STRINGS_FILE = 'strings.json';
  *
  * @type {string}
  */
+exports.METADATA_MAIN_FILE = 'jssy.json';
+
+/**
+ *
+ * @type {string}
+ */
 exports.URL_API_PREFIX = '/api/v1';
 
 /**

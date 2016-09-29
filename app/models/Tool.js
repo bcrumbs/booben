@@ -18,5 +18,6 @@ export default Record({
     sections: List(),
     mainButtons: List(),
     secondaryButtons: List(),
-    windowMaxHeight: 0
+    windowMaxHeight: 0,
+    windowMinWidth: 0
 });
