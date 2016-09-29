@@ -10,7 +10,7 @@ import { List, Set } from 'immutable';
 
 import Builder from './Builder';
 
-import { domElementsMap } from '../utils';
+import { domElementsMap, componentsMap } from '../utils';
 
 import {
     selectPreviewComponent,
@@ -53,7 +53,9 @@ class Preview extends Component {
         super(props);
 
         this.domNode = null;
-        this.dndComponent = null;
+        this.domOverlay = null;
+        this.dndParams = {};
+        this.dndFlag = false;
 
         this._handleMouseEvent = this._handleMouseEvent.bind(this);
         this._handleResize = this._handleResize.bind(this);
@@ -64,6 +66,7 @@ class Preview extends Component {
 
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
+        this.domOverlay = this.props.domOverlay;
 
         if (this.props.interactive) {
             mouseEvents.forEach(e => {
@@ -130,43 +133,73 @@ class Preview extends Component {
         }
     }
 
+    _animateDnDComponent(dndParams) {
+        var el = this.dndParams.el;
+
+        if(dndParams) {
+            el.style.left = `${dndParams.pageX}px`;
+            el.style.top = `${dndParams.pageY}px`;
+        } else {
+            this.domOverlay.removeChild(el);
+        }
+
+    }
+
     _handleStartDrag(event) {
+        if(this.dndFlag) return;
+
         this.domNode.addEventListener('mousemove', this._handleDrag);
         this.domNode.addEventListener('mouseup', this._handleStopDrag);
     }
 
     _handleStopDrag(event) {
+        this.domNode.removeEventListener('mousemove', this._handleDrag);
+        this.domNode.removeEventListener('mouseup', this._handleStopDrag);
+
+        if(!this.dndFlag) return;
+
         const keys = Object.keys(event.target),
             riiKey = keys.find(key => key.startsWith('__reactInternalInstance$'));
 
-        if (riiKey && this.dndComponent) {
+        this.dndFlag = false;
+
+        if (riiKey && this.dndParams) {
             const owner = getOwner(event.target[riiKey]._currentElement, item => item._currentElement.props.uid);
 
             console.log({
-                source: this.dndComponent.uid,
+                source: this.dndParams.uid,
                 target: owner._currentElement.props.uid
             });
         }
 
-        this.dndComponent = null;
-
-        this.domNode.removeEventListener('mousemove', this._handleDrag);
-        this.domNode.removeEventListener('mouseup', this._handleStopDrag);
+        this._animateDnDComponent(null);
     }
 
     _handleDrag(event) {
-        const moveX = event.pageX - this.dragStartX,
-            moveY = event.pageY - this.dragStartY;
+        const moveX = event.pageX - this.dndParams.dragStartX,
+            moveY = event.pageY - this.dndParams.dragStartY;
 
-        if ( Math.abs(moveX) < 3 && Math.abs(moveY) < 3 ) {
+        if ( Math.abs(moveX) < 10 && Math.abs(moveY) < 10 ) {
             return;
         }
 
-        this.dndComponent = {
-            uid: this.dragComponent,
+        if(!this.dndFlag) {
+            var el = this.dndParams.el;
+            el.innerHTML = componentsMap.get(this.dndParams.uid).name;
+
+            el.style.position = 'absolute';
+            el.style.zIndex = 1000;
+            el.style.left = `${this.dndParams.dragStartX + 10}px`;
+            el.style.top = `${this.dndParams.dragStartY + 10}px`;
+
+            this.domOverlay.appendChild(el);
+            this.dndFlag = true;
+        }
+
+        this._animateDnDComponent({
             pageX: event.pageX + 10,
             pageY: event.pageY + 10
-        };
+        });
     }
 
     /**
@@ -183,7 +216,7 @@ class Preview extends Component {
             owner = getOwner(el, item => item._currentElement.props.uid);
 
         if (owner) {
-            event.stopPropagation();
+            // event.stopPropagation();
 
             const type = event.type;
 
@@ -202,13 +235,14 @@ class Preview extends Component {
             }
 
             if ( type == 'mousedown' ) {
-                event.preventDefault();
-
                 if (event.which != 1 || !event.ctrlKey) return;
 
-                this.dragStartX = event.pageX;
-                this.dragStartY = event.pageY;
-                this.dragComponent = owner._currentElement.props.uid;
+                event.preventDefault();
+
+                this.dndParams.el = document.createElement('div');
+                this.dndParams.uid = owner._currentElement.props.uid;
+                this.dndParams.dragStartX = event.pageX;
+                this.dndParams.dragStartY = event.pageY;
 
                 this._handleStartDrag();
             }
@@ -242,6 +276,7 @@ class Preview extends Component {
 }
 
 Preview.propTypes = {
+    domOverlay: React.PropTypes.object,
     interactive: PropTypes.bool,
     routes: ImmutablePropTypes.listOf(
         ImmutablePropTypes.contains({
@@ -266,6 +301,7 @@ Preview.propTypes = {
 };
 
 Preview.defaultProps = {
+    domOverlay: null,
     interactive: false,
     routes: List(),
     selected: Set(),

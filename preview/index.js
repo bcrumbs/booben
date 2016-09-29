@@ -19,20 +19,23 @@ window.JSSY = {};
  */
 
 window.JSSY.initPreview = params => {
-    ReactDOM.render(
-        <Provider store={params.store}>
-            <Preview interactive={params.interactive} />
-        </Provider>,
-
-        document.getElementById('container')
-    );
-
-    ReactDOM.render(
+    let domOverlay = ReactDOM.render(
         <Provider store={params.store}>
             <Overlay />
         </Provider>,
 
         document.getElementById('overlay')
+    );
+
+    ReactDOM.render(
+        <Provider store={params.store}>
+            <Preview
+                interactive={params.interactive}
+                domOverlay={ReactDOM.findDOMNode(domOverlay)}
+            />
+        </Provider>,
+
+        document.getElementById('container')
     );
 
     return { history: hashHistory };
