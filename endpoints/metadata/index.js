@@ -279,6 +279,12 @@ const metaSchema = {
             required: false
         },
 
+        group: {
+            type: 'string',
+            allowEmpty: false,
+            required: false
+        },
+
         kind: {
             type: 'string',
             enum: ['atomic', 'container'],
@@ -299,7 +305,7 @@ const metaSchema = {
     }
 };
 
-const packageJSONMetaSchema = {
+const mainMetaSchema = {
     properties: {
         namespace: {
             type: 'string',
@@ -343,7 +349,31 @@ const packageJSONMetaSchema = {
                 '.*': metaSchema
             },
             required: false
-        }
+        },
+
+        componentGroups: {
+            patternProperties: {
+                '.*': {
+                    type: 'object',
+                    properties: {
+                        textKey: {
+                            type: 'string',
+                            allowEmpty: false,
+                            required: true
+                        },
+
+                        descriptionTextKey: {
+                            type: 'string',
+                            allowEmpty: false,
+                            required: false
+                        }
+                    }
+                }
+            },
+            required: false
+        },
+
+        strings: Object.assign({ required: false }, stringsSchema)
     }
 };
 
@@ -593,22 +623,29 @@ const getChildNodes = ({ dir }) => co(function* () {
  * @returns {Promise.<LibMetadata>}
  */
 exports.gatherMetadata = moduleDir => co(function* () {
-    let ret = {};
+    let ret = {},
+        mainMeta = null;
 
-    const packageJSON = ret.packageJSON = require(path.join(moduleDir, 'package.json'));
+    const mainMetaFile = path.join(moduleDir, constants.METADATA_MAIN_FILE);
+    mainMeta = yield readJSONFile(mainMetaFile);
 
-    if (!packageJSON.jssy)
+    if (!mainMeta) {
+        const packageJSON = require(path.join(moduleDir, 'package.json'));
+        mainMeta = packageJSON.jssy;
+    }
+
+    if (!mainMeta)
         throw new Error('Not a jssy components library');
 
-    const { valid, errors } = rv.validate(packageJSON.jssy, packageJSONMetaSchema);
+    const { valid, errors } = rv.validate(mainMeta, mainMetaSchema);
 
     if (!valid) {
-        const err = new Error(`Invalid metadata in package.json`);
+        const err = new Error(`Invalid main metadata`);
         err.validationErrors = errors;
         throw err;
     }
 
-    ret = Object.assign(ret, packageJSON.jssy);
+    ret = Object.assign(ret, mainMeta);
 
     if (!ret.components) {
         ret.components = {};

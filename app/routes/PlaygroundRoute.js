@@ -59,9 +59,7 @@ export default class Playground extends React.Component {
                     </Header>
                 </TopRegion>
 
-                <Desktop toolGroups={toolGroups}>
-	                <PreviewIFrame url="https://ordbuy.com" />
-                </Desktop>
+                <Desktop toolGroups={toolGroups} />
 
                 <BottomRegion fixed={false}>
                     <Footer>

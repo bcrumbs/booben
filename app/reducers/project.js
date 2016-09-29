@@ -97,11 +97,7 @@ export default (state = new ProjectState(), action) => {
                 projectName: action.project.name,
                 loadState: LOADED,
                 data: projectToImmutable(action.project),
-
-                // Metadata cannot be changed at all,
-                // so there's no need to convert it to Immutable.js containers
                 meta: action.metadata,
-
                 error: null
             });
 
