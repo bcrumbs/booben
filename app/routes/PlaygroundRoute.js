@@ -98,6 +98,7 @@ export default class Playground extends React.Component {
 						                </RoutesList>
 					                </Column>
 				                </Row>
+
 			                </Container>
 		                </PanelContent>
 	                </Panel>

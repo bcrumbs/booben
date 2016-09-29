@@ -137,8 +137,49 @@ const toolComponentsPlaceholderWindowSections = List([
 	})
 ]);
 
+// Route Editing
+const toolRouteWindowSections = List([
+	new ToolSectionRecord({
+		name: 'Route Editing',
+		component: () => (
+			<BlockContentBox>
+				<BlockContentBoxHeading>Header 2</BlockContentBoxHeading>
+				<BlockContentBoxItem>
+					some content here
+				</BlockContentBoxItem>
+			</BlockContentBox>
+		)
+	})
+]);
+
+const toolRouteWindowMainActions = List([
+	new ButtonRecord({
+		text: 'Save',
+		onPress: () => {}
+	})
+]);
+
+const toolRouteWindowSecondaryActions = List([
+	new ButtonRecord({
+		icon: 'trash-o',
+		onPress: () => {}
+	})
+]);
+
 export default List([
     List([
+	    new ToolRecord({
+		    id: 'tool5',
+		    icon: 'cog',
+		    name: 'Parsers',
+		    title: 'Route Settings',
+		    undockable: true,
+		    closable: false,
+		    sections: toolRouteWindowSections,
+		    mainButtons: toolRouteWindowMainActions,
+		    secondaryButtons: toolRouteWindowSecondaryActions
+	    }),
+
         new ToolRecord({
             id: 'tool1',
             icon: 'cube',
