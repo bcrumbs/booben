@@ -28,9 +28,17 @@ export const RouteCard = props => {
 			</div>
 		</div>;
 
+	const addRoute =
+		<button className="route-add-new" tabIndex="1">
+			<div className="route-add-new-inside">
+				<Icon name="plus" />
+			</div>
+		</button>;
+
     return (
         <div
             className={className}
+            tabIndex="1"
         >
 	        <div className="route-card-content">
 		        <div className="route-title-box">
@@ -40,7 +48,8 @@ export const RouteCard = props => {
 		        <div className="route-subtitle">{props.subtitle}</div>
 	        </div>
 
-	        {actions }
+	        { actions }
+	        { addRoute }
         </div>
     );
 };

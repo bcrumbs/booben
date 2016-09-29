@@ -21,6 +21,7 @@
 		display: flex;
 		align-items: center;
 		cursor: $cursor-pointer;
+		position: relative;
 
 		@include box-shadow();
 		@include single-transition();
@@ -35,6 +36,11 @@
 		}
 
 		&:hover {
+			background-color: $rcard-hover-bg-color;
+		}
+
+		&:focus {
+			outline: none;
 			background-color: $rcard-hover-bg-color;
 		}
 
@@ -66,6 +72,58 @@
 		color: $rcard-subtitle-font-color;
 	}
 
+	// ADD NEW ROUTE
+	.route-add-new {
+		position: absolute;
+		bottom: 0;
+		left: 50%;
+		transform: translate3d(-50%, 50%, 0);
+		width: $rcard-new-outer-size;
+		height: $rcard-new-outer-size;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 9;
+		cursor: $cursor-pointer;
+
+		&,
+		&:focus,
+		&:hover,
+		&:active {
+			background-color: transparent;
+			border-color: transparent;
+			outline: none;
+		}
+	}
+
+	.route-add-new-inside {
+		border-radius: $rcard-new-border-radius;
+		opacity: 0;
+		pointer-events: none;
+
+		@include single-transition();
+
+		@include icon-size(
+						$rcard-new-box-size,
+						$rcard-new-img-size);
+
+		@include icon-style(
+						$rcard-new-color,
+						$rcard-new-bg-color);
+
+		.route-add-new:hover & {
+			@include icon-style(
+							$rcard-new-color,
+							$rcard-new-hover-bg-color);
+		}
+
+		.route-card:hover &,
+		.route-card:focus & {
+			opacity: 1;
+			pointer-events: auto;
+		}
+	}
+
 	// ICONS
 	.route-icon-index {
 		margin-left: $rcard-icon-index-margin-left;
@@ -89,6 +147,7 @@
 		@include single-transition();
 
 		.route-card:hover &,
+		.route-card:focus &,
 		.route-card.is-focused & {
 			opacity: 1;
 			pointer-events: auto;
