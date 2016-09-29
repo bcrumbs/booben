@@ -139,7 +139,7 @@ class Preview extends Component {
         const keys = Object.keys(event.target),
             riiKey = keys.find(key => key.startsWith('__reactInternalInstance$'));
 
-        if (riiKey) {
+        if (riiKey && this.dndComponent) {
             const owner = getOwner(event.target[riiKey]._currentElement, item => item._currentElement.props.uid);
 
             console.log({
@@ -149,8 +149,6 @@ class Preview extends Component {
         }
 
         this.dndComponent = null;
-
-        this.props.hideDndComponent();
 
         this.domNode.removeEventListener('mousemove', this._handleDrag);
         this.domNode.removeEventListener('mouseup', this._handleStopDrag);
@@ -169,8 +167,6 @@ class Preview extends Component {
             pageX: event.pageX + 10,
             pageY: event.pageY + 10
         };
-
-        this.props.showDndComponent(this.dndComponent);
     }
 
     /**
@@ -277,9 +273,7 @@ Preview.defaultProps = {
     deselectComponent: /* istanbul ignore next */ () => {},
     selectComponent: /* istanbul ignore next */ () => {},
     highlightComponent: /* istanbul ignore next */ () => {},
-    unhighlightComponent: /* istanbul ignore next */ () => {},
-    showDndComponent: /* istanbul ignore next */ () => {},
-    hideDndComponent: /* istanbul ignore next */ () => {}
+    unhighlightComponent: /* istanbul ignore next */ () => {}
 };
 
 Preview.displayName = 'Preview';
@@ -294,9 +288,7 @@ const mapDispatchToProps = dispatch => ({
     deselectComponent: selected => void dispatch(deselectPreviewComponent(selected)),
     selectComponent: selected => void dispatch(selectPreviewComponent(selected)),
     highlightComponent: highlighted => void dispatch(highlightPreviewComponent(highlighted)),
-    unhighlightComponent: highlighted => void dispatch(unhighlightPreviewComponent(highlighted)),
-    showDndComponent: component => void dispatch(showDndPreviewComponent(component)),
-    hideDndComponent: () => void dispatch(hideDndPreviewComponent())
+    unhighlightComponent: highlighted => void dispatch(unhighlightPreviewComponent(highlighted))
 });
 
 export default connect(

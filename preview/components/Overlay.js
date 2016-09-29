@@ -3,6 +3,7 @@
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Set } from 'immutable';
+import { connect } from 'react-redux';
 
 import { componentsMap, domElementsMap } from '../utils';
 
@@ -113,4 +114,11 @@ Overlay.defaultProps = {
     highlighted: Set()
 };
 
-export default Overlay;
+const mapStateToProps = state => ({
+    selected: state.preview.selectedItems,
+    highlighted: state.preview.highlightedItems
+});
+
+export default connect(
+    mapStateToProps
+)(Overlay);

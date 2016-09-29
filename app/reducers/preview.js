@@ -6,9 +6,7 @@ import {
     DESELECT_PREVIEW_COMPONENT,
     SELECT_PREVIEW_COMPONENT,
     HIGHLIGHT_PREVIEW_COMPONENT,
-    UNHIGHLIGHT_PREVIEW_COMPONENT,
-    SHOW_DND_PREVIEW_COMPONENT,
-    HIDE_DND_PREVIEW_COMPONENT
+    UNHIGHLIGHT_PREVIEW_COMPONENT
 } from '../actions/preview';
 
 const PreviewState = Record({
@@ -37,16 +35,6 @@ export default (state = new PreviewState(), action) => {
         case DESELECT_PREVIEW_COMPONENT:
             return state.merge({
                 selectedItems: state.get('selectedItems').delete(action.component)
-            });
-
-        case SHOW_DND_PREVIEW_COMPONENT:
-            return state.merge({
-                dndComponent: action.component
-            });
-
-        case HIDE_DND_PREVIEW_COMPONENT:
-            return state.merge({
-                dndComponent: null
             });
 
         default: return state;
