@@ -91,14 +91,9 @@ export class ToolWindow extends Component {
         this.dy = event.clientY + this.dragStartDiffY;
 
         if (this.props.constrainPosition) {
-            if (this.dx + this.props.marginRight > this.containerWidthMinusWindowWidth)
-                this.dx = this.containerWidthMinusWindowWidth - this.props.marginRight;
-
+            if (this.dx > this.maxDx) this.dx = this.maxDx;
             if (this.dx < this.props.marginLeft) this.dx = this.props.marginLeft;
-
-            if (this.dy + this.props.marginBottom > this.containerHeightMinusWindowHeight)
-                this.dy = this.containerHeightMinusWindowHeight - this.props.marginBottom;
-
+            if (this.dy > this.maxDy) this.dy = this.maxDy;
             if (this.dy < this.props.marginTop) this.dy = this.props.marginTop;
         }
 
@@ -196,9 +191,8 @@ export class ToolWindow extends Component {
         this.container = this.domNode.parentNode;
         this.containerWidth = this.container.clientWidth;
         this.containerHeight = this.container.clientHeight;
-
-        this.containerWidthMinusWindowWidth = this.containerWidth - this.width;
-        this.containerHeightMinusWindowHeight = this.containerHeight - this.height;
+        this.maxDx = this.containerWidth - this.width - this.props.marginRight;
+        this.maxDy = this.containerHeight - this.height - this.props.marginBottom;
 
         this.setState({
             dragging: true
