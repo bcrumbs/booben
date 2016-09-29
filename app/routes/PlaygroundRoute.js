@@ -10,8 +10,11 @@ import {
     App,
     TopRegion,
     BottomRegion,
+	Column,
+	Container,
     Header,
     HeaderRegion,
+	HeaderTitle,
     HeaderLogoBox,
     HeaderMenu,
     HeaderMenuItem,
@@ -19,10 +22,18 @@ import {
     FooterRegion,
     FooterMenu,
     FooterMenuItem,
+	Panel,
+	PanelContent,
+	Row,
+	Tabs,
+	Tab,
     ToggleButton
 } from '@reactackle/reactackle';
 
-import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
+import {
+	RoutesList,
+	RouteCard
+} from '../components/RoutesList/RoutesList';
 
 import { Desktop } from '../containers/Desktop/Desktop';
 
@@ -60,7 +71,36 @@ export default class Playground extends React.Component {
                 </TopRegion>
 
                 <Desktop toolGroups={toolGroups}>
-	                <PreviewIFrame url="https://ordbuy.com" />
+	                <Panel headerFixed={true} maxHeight="initial">
+		                <Header>
+			                <HeaderRegion alignY="center">
+				                <HeaderTitle>Route Title: Data</HeaderTitle>
+			                </HeaderRegion>
+
+			                <HeaderRegion region="main" size='blank'>
+				                <Tabs colorMode="light">
+					                <Tab text="Scheme"/>
+					                <Tab text="Functions"/>
+					                <Tab text="Mutations"/>
+				                </Tabs>
+			                </HeaderRegion>
+		                </Header>
+
+		                <PanelContent>
+			                <Container boxed>
+				                <Row>
+					                <Column>
+						                <RoutesList>
+							                <RouteCard title="Root" root />
+							                <RouteCard title="Index" subtitle="/" home />
+							                <RouteCard title="Parsers" subtitle="parsers" focused />
+							                <RouteCard title="Parser" subtitle="parser-{parser.ParserTitle}" />
+						                </RoutesList>
+					                </Column>
+				                </Row>
+			                </Container>
+		                </PanelContent>
+	                </Panel>
                 </Desktop>
 
                 <BottomRegion fixed={false}>

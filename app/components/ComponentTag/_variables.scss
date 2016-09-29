@@ -7,11 +7,11 @@
 $component-tag-amount-per-row:          3 !default;
 
 // Box
-$component-tag-box-padding:             $base-module/4 !default;
-$component-tag-box-spacing-y:           0 !default;
-$component-tag-box-spacing-x:           0 !default;
+$component-tag-box-padding:             0 !default;
+$component-tag-box-spacing-y:           $base-module/2 !default;
+$component-tag-box-spacing-x:           $base-module/2 !default;
 
-$component-tag-box-border-radius:       $global-radius !default;
+$component-tag-box-border-radius:       0 !default;
 $component-tag-box-hover-bg-color:      transparent !default;
 $component-tag-box-hover-border-color:  $color-border !default;
 

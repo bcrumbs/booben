@@ -1,0 +1,112 @@
+@charset "UTF-8";
+@import 'variables';
+
+@include exports(routes-list) {
+	// =================================================================================================================
+	// BASE
+	// =================================================================================================================
+	.routes-list-wrapper {
+		width: 100%;
+	}
+
+	// ROUTE CARD
+	// =================================================================================================================
+	.route-card {
+		background-color: $rcard-bg-color;
+		border-radius: $rcard-border-radius;
+		width: 100%;
+		max-width: $rcard-max-width;
+		min-height: $rcard-min-height;
+		padding: $rcard-padding-y $rcard-padding-x;
+		display: flex;
+		align-items: center;
+		cursor: $cursor-pointer;
+
+		@include box-shadow();
+		@include single-transition();
+		@include user-select();
+
+		& + & {
+			margin-top: $rcard-spacing;
+		}
+
+		&:not(.is-root) {
+			margin-left: $rcard-offset-left;
+		}
+
+		&:hover {
+			background-color: $rcard-hover-bg-color;
+		}
+
+		&.is-focused {
+			background-color: $rcard-focus-bg-color;
+		}
+	}
+
+	// CONTENT
+	.route-card-content {
+		flex-grow: 1;
+	}
+
+	.route-title-box {
+		display: flex;
+	}
+
+	.route-title {
+		font-size: $rcard-title-font-size;
+		line-height: $rcard-title-line-height;
+		font-weight: $rcard-title-font-weight;
+		color: $rcard-title-font-color;
+	}
+
+	.route-subtitle {
+		font-size: $rcard-subtitle-font-size;
+		line-height: $rcard-subtitle-line-height;
+		font-weight: $rcard-subtitle-font-weight;
+		color: $rcard-subtitle-font-color;
+	}
+
+	// ICONS
+	.route-icon-index {
+		margin-left: $rcard-icon-index-margin-left;
+
+		@include icon-size(
+						$rcard-icon-index-box-size,
+						$rcard-icon-index-img-size);
+
+		@include icon-style($rcard-icon-index-color);
+	}
+
+	// ACTIONS
+	.route-actions-box {
+		margin-left: $rcard-action-box-margin-left - $rcard-action-margin;
+		margin-right: -$rcard-action-margin;
+		display: flex;
+
+		opacity: 0;
+		pointer-events: none;
+
+		@include single-transition();
+
+		.route-card:hover &,
+		.route-card.is-focused & {
+			opacity: 1;
+			pointer-events: auto;
+		}
+	}
+
+	.route-action-item {
+		margin: 0 $rcard-action-margin;
+		flex-shrink: 0;
+
+		@include icon-size(
+						$rcard-action-box-size,
+						$rcard-action-img-size);
+
+		@include icon-style($rcard-action-default-color);
+
+		.route-card.is-focused & {
+			@include icon-style($rcard-action-focus-color);
+		}
+	}
+}
