@@ -3,3 +3,20 @@
 
 // Base Variables
 // =====================================================================================================================
+$props-spacing: $base-module*2.5 !default;
+
+// Actions
+$prop-actions-margin-left: $base-module !default;
+
+$prop-action-box-size: $base-module*4 !default;
+$prop-action-img-size: $base-module*2.5 !default;
+$prop-action-color: $icon-dark-inactive-color !default;
+$prop-action-hover-color: $icon-dark-default-color !default;
+$prop-action-margin: $base-module/2 !default;
+
+// PROPS TYPES
+// =====================================================================================================================
+$prop-label-font-size:  fs(0) !default;
+$prop-label-font-weight:  $font-weight-normal !default;
+$prop-label-text-transform:  normal !default;
+$prop-label-color:  $body-font-color !default;

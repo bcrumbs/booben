@@ -1,10 +1,72 @@
 @charset "UTF-8";
 @import 'variables';
 
+// Type classnames
+$prop-input: 'props-type-input';
+$prop-textarea: 'props-type-textarea';
+$prop-list: 'props-type-list';
+$prop-constructor: 'props-type-constructor';
+$prop-array: 'props-type-array';
+$prop-toggle: 'props-type-toggle';
+
 @include exports(props-list) {
 	// =================================================================================================================
 	// BASE
 	// =================================================================================================================
+
+	// =================================================================================================================
+	// PROPS ITEM
+	// =================================================================================================================
+	.prop-item {
+		display: flex;
+		margin-top: $props-spacing;
+	}
+
+	.prop-item-content-box {
+		flex-grow: 1;
+	}
+
+	// Prop Actions (linking)
+	.prop-item-actions-box {
+		margin-left: $prop-actions-margin-left - $prop-action-margin;
+	}
+
+	.prop-item-action {
+		margin: $prop-action-margin;
+
+		.button-icon {
+			@include icon-size(
+							$prop-action-box-size,
+							$prop-action-img-size);
+
+			@include icon-style($prop-action-color);
+
+			&:hover {
+				@include icon-style($prop-action-hover-color);
+			}
+		}
+	}
+
+	// =================================================================================================================
+	// PROPS TYPES
+	// =================================================================================================================
+	.prop-item {
+		.input,
+		.textarea,
+		.select-box {
+			margin-top: 0;
+			margin-bottom: 0;
+		}
+	}
+
+	.prop-item-label {
+		font-size: $prop-label-font-size;
+		font-weight: $prop-label-font-weight;
+		text-transform: $prop-label-text-transform;
+		color: $prop-label-color;
+		display: block;
+	}
+
 
 }
 

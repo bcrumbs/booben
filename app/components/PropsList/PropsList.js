@@ -7,7 +7,7 @@ export const PropsList = props => {
 
     return (
         <div className={className}>
-
+	        {props.children}
         </div>
     );
 };
@@ -19,3 +19,5 @@ PropsList.defaultProps = {
 };
 
 PropsList.displayName = 'PropsList';
+
+export * from './PropsItem/PropsItem';
