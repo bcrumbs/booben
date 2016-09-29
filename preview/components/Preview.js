@@ -62,11 +62,14 @@ class Preview extends Component {
         this._handleDrag = this._handleDrag.bind(this);
         this._handleStartDrag = this._handleStartDrag.bind(this);
         this._handleStopDrag = this._handleStopDrag.bind(this);
+        this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
     }
 
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
         this.domOverlay = this.props.domOverlay;
+        this.animationFrame = null;
+        this.needRAF = true;
 
         if (this.props.interactive) {
             mouseEvents.forEach(e => {
@@ -133,16 +136,13 @@ class Preview extends Component {
         }
     }
 
-    _animateDnDComponent(dndParams) {
+    _handleAnimationFrame() {
         var el = this.dndParams.el;
 
-        if(dndParams) {
-            el.style.left = `${dndParams.pageX}px`;
-            el.style.top = `${dndParams.pageY}px`;
-        } else {
-            this.domOverlay.removeChild(el);
-        }
-
+        el.style.transform = `translate(${this.dndParams.pageX}px,
+            ${this.dndParams.pageY}px)`;
+        this.animationFrame = null;
+        this.needRAF = true;
     }
 
     _handleStartDrag(event) {
@@ -150,11 +150,13 @@ class Preview extends Component {
 
         this.domNode.addEventListener('mousemove', this._handleDrag);
         this.domNode.addEventListener('mouseup', this._handleStopDrag);
+        window.top.addEventListener('mouseup', this._handleStopDrag);
     }
 
     _handleStopDrag(event) {
         this.domNode.removeEventListener('mousemove', this._handleDrag);
         this.domNode.removeEventListener('mouseup', this._handleStopDrag);
+        window.top.removeEventListener('mouseup', this._handleStopDrag);
 
         if(!this.dndFlag) return;
 
@@ -166,13 +168,20 @@ class Preview extends Component {
         if (riiKey && this.dndParams) {
             const owner = getOwner(event.target[riiKey]._currentElement, item => item._currentElement.props.uid);
 
-            console.log({
-                source: this.dndParams.uid,
-                target: owner._currentElement.props.uid
-            });
+            if(owner && owner._currentElement.props.uid) {
+                console.log({
+                    source: this.dndParams.uid,
+                    target: owner._currentElement.props.uid
+                });
+            }
         }
 
-        this._animateDnDComponent(null);
+        if (this.animationFrame !== null) {
+            window.cancelAnimationFrame(this.animationFrame);
+            this.animationFrame = null;
+        }
+
+        this.domOverlay.removeChild(this.dndParams.el);
     }
 
     _handleDrag(event) {
@@ -189,17 +198,26 @@ class Preview extends Component {
 
             el.style.position = 'absolute';
             el.style.zIndex = 1000;
-            el.style.left = `${this.dndParams.dragStartX + 10}px`;
-            el.style.top = `${this.dndParams.dragStartY + 10}px`;
+
+            this.dndParams.pageX = this.dndParams.dragStartX + 10;
+            this.dndParams.pageY = this.dndParams.dragStartY + 10;
+
+            el.style.transform = `translate(${this.dndParams.pageX}px,
+            ${this.dndParams.pageY}px)`;
 
             this.domOverlay.appendChild(el);
             this.dndFlag = true;
         }
 
-        this._animateDnDComponent({
-            pageX: event.pageX + 10,
-            pageY: event.pageY + 10
-        });
+        this.dndParams.pageX = event.pageX + 10;
+        this.dndParams.pageY = event.pageY + 10;
+
+        if (this.needRAF) {
+            this.needRAF = false;
+
+            this.animationFrame =
+                window.requestAnimationFrame(this._handleAnimationFrame);
+        }
     }
 
     /**
