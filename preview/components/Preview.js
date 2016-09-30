@@ -19,10 +19,11 @@ import {
     unhighlightPreviewComponent,
     showDndPreviewComponent,
     hideDndPreviewComponent
-} from '../../app/actions/preview'
+} from '../../app/actions/preview';
 
-const createBuilder = component =>
-    ({ children }) => <Builder component={component} children={children} />;
+import {
+    componentUpdateRoute
+} from '../../app/actions/project';
 
 /**
  * Get owner React element by condition
@@ -78,6 +79,12 @@ class Preview extends Component {
 
             window.addEventListener('resize', this._handleResize, false);
         }
+    }
+
+    componentWillMount() {
+        this.routes = this.props.routes
+            .map((route, routeIndex) => this._createRoute(route, routeIndex))
+            .toArray();
     }
 
     componentWillUnmount() {
@@ -169,10 +176,10 @@ class Preview extends Component {
             const owner = getOwner(event.target[riiKey]._currentElement, item => item._currentElement.props.uid);
 
             if(owner && owner._currentElement.props.uid) {
-                console.log({
-                    source: this.dndParams.uid,
-                    target: owner._currentElement.props.uid
-                });
+                this.props.componentUpdateRoute(
+                    this.dndParams.where,
+                    owner._currentElement.props.where
+                );
             }
         }
 
@@ -259,6 +266,7 @@ class Preview extends Component {
 
                 this.dndParams.el = document.createElement('div');
                 this.dndParams.uid = owner._currentElement.props.uid;
+                this.dndParams.where = owner._currentElement.props.where;
                 this.dndParams.dragStartX = event.pageX;
                 this.dndParams.dragStartY = event.pageY;
 
@@ -267,15 +275,22 @@ class Preview extends Component {
         }
     }
 
-    _createRoute(route) {
+    _createRoute(route, index) {
+        const routeIndex = Array.isArray(index) ? index : [index];
+
         const ret = {
             path: route.path,
-            component: createBuilder(route.component)
+            component: ({ children }) => <Builder
+                component={this.props.routes.getIn(routeIndex).component}
+                children={children}
+                routeIndex={routeIndex}
+            />
         };
 
         if (route.children && route.children.size) {
             ret.childRoutes = route.children
-                .map(child => this._createRoute(child))
+                .map((child, routeIndex) => this._createRoute(child,
+                    [].concat(index, 'children', routeIndex)))
                 .toArray();
         }
 
@@ -283,12 +298,8 @@ class Preview extends Component {
     }
 
     render() {
-        const routes = this.props.routes
-            .map(route => this._createRoute(route))
-            .toArray();
-
         return (
-            <Router history={hashHistory} routes={routes} />
+            <Router history={hashHistory} routes={this.routes} />
         );
     }
 }
@@ -342,7 +353,8 @@ const mapDispatchToProps = dispatch => ({
     deselectComponent: selected => void dispatch(deselectPreviewComponent(selected)),
     selectComponent: selected => void dispatch(selectPreviewComponent(selected)),
     highlightComponent: highlighted => void dispatch(highlightPreviewComponent(highlighted)),
-    unhighlightComponent: highlighted => void dispatch(unhighlightPreviewComponent(highlighted))
+    unhighlightComponent: highlighted => void dispatch(unhighlightPreviewComponent(highlighted)),
+    componentUpdateRoute: (source, target) => void dispatch(componentUpdateRoute(source, target))
 });
 
 export default connect(

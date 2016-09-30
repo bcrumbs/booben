@@ -7,106 +7,69 @@ export default {
     "relayEndpointURL":null,
     "routes":[
         {
-            "id":0,
-            "path":"/",
-            "component":{
-                "name":"Reactackle.App",
-                "uid":"cmVnaW9uOjA=",
-                "props":{
-
-                },
-                "children":[
-                    {
-                        "uid":"...",
-                        "name":"Outlet",
-                        "title":"...",
-                        "props":{
-
-                        },
-                        "children":[
-
-                        ]
-                    }
-                ]
+            "id": 0,
+            "path": "/",
+            "component": {
+                "name": "Reactackle.App",
+                "uid": "cmVnaW9uOjA=",
+                "props": {},
+                "children": [{
+                    "uid": "...",
+                    "name": "Outlet",
+                    "title": "...",
+                    "props": {},
+                    "children": []
+                }]
             },
-            "children":[
+            "children": [
                 {
-                    "id":1,
-                    "path":"page1",
-                    "children":[
+                    "id": 1,
+                    "path": "page1",
+                    "children": [
                         {
-                            "id":2,
-                            "path":"sub",
-                            "children":[
-
-                            ],
-                            "component":{
-                                "name":"Reactackle.Card",
-                                "uid":"cmVnaW9uOjE=",
-                                "props":{
-
-                                },
-                                "children":[
+                            "id": 2,
+                            "path": "sub",
+                            "children": [],
+                            "component": {
+                                "name": "Reactackle.Card",
+                                "uid": "cmVnaW9uOjE=",
+                                "props": {},
+                                "children": [
                                     {
-                                        "name":"Reactackle.Card",
-                                        "uid":"cmVnaW9uOjE7",
-                                        "props":{
-
-                                        },
-                                        "children":[
-                                            {
-                                                "name":"Reactackle.Timepicker",
-                                                "uid":"Y29udHJvbDo2",
-                                                "props":{
-
-                                                },
-                                                "children":[
-
-                                                ]
-                                            }
-                                        ]
-                                    },
-                                    {
-                                        "name":"Reactackle.Input",
-                                        "uid":"Y29udHJvbDox",
-                                        "children":[
-
-                                        ],
-                                        "props":{
-                                            "value":{
-                                                "source":"static",
-                                                "sourceData":{
-                                                    "value":"TEST1"
+                                        "name": "Reactackle.Input",
+                                        "uid": "Y29udHJvbDox",
+                                        "children": [],
+                                        "props": {
+                                            "value": {
+                                                "source": "static",
+                                                "sourceData": {
+                                                    "value": "TEST1"
                                                 }
                                             }
                                         }
                                     },
                                     {
-                                        "name":"Reactackle.Input",
-                                        "uid":"Y29udHJvbDoy",
-                                        "children":[
-
-                                        ],
-                                        "props":{
-                                            "value":{
-                                                "source":"static",
-                                                "sourceData":{
-                                                    "value":"TEST2"
+                                        "name": "Reactackle.Input",
+                                        "uid": "Y29udHJvbDoy",
+                                        "children": [],
+                                        "props": {
+                                            "value": {
+                                                "source": "static",
+                                                "sourceData": {
+                                                    "value": "TEST2"
                                                 }
                                             }
                                         }
                                     },
                                     {
-                                        "name":"Reactackle.Input",
-                                        "uid":"Y29udHJvbDo0",
-                                        "children":[
-
-                                        ],
-                                        "props":{
-                                            "value":{
-                                                "source":"static",
-                                                "sourceData":{
-                                                    "value":"TEST2"
+                                        "name": "Reactackle.Input",
+                                        "uid": "Y29udHJvbDo0",
+                                        "children": [],
+                                        "props": {
+                                            "value": {
+                                                "source": "static",
+                                                "sourceData": {
+                                                    "value": "TEST2"
                                                 }
                                             }
                                         }
@@ -115,47 +78,35 @@ export default {
                             }
                         }
                     ],
-                    "component":{
-                        "name":"Reactackle.Card",
-                        "uid":"cmVnaW9uOjI=",
-                        "props":{
-
-                        },
-                        "children":[
-                            {
-                                "uid":"...",
-                                "name":"Outlet",
-                                "title":"...",
-                                "props":{
-
-                                },
-                                "children":[
-
-                                ]
-                            }
-                        ]
+                    "component": {
+                        "name": "Reactackle.Card",
+                        "uid": "cmVnaW9uOjI=",
+                        "props": {},
+                        "children": [{
+                            "uid": "...",
+                            "name": "Outlet",
+                            "title": "...",
+                            "props": {},
+                            "children": []
+                        }]
                     }
                 },
                 {
-                    "id":3,
-                    "path":"page2",
-                    "children":[
-
-                    ],
-                    "component":{
-                        "name":"Reactackle.Radio",
-                        "uid":"Y29udHJvbDoz",
-                        "props":{
-                            "checked":{
-                                "source":"static",
-                                "sourceData":{
-                                    "value":true
+                    "id": 3,
+                    "path": "page2",
+                    "children": [],
+                    "component": {
+                        "name": "Reactackle.Radio",
+                        "uid": "Y29udHJvbDoz",
+                        "props": {
+                            "checked": {
+                                "source": "static",
+                                "sourceData": {
+                                    "value": true
                                 }
                             }
                         },
-                        "children":[
-
-                        ]
+                        "children": []
                     }
                 }
             ]
