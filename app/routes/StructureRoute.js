@@ -32,8 +32,7 @@ import {
 import {
     RoutesList,
     RouteCard,
-    RouteNewButton,
-    RouteNewChildButton
+    RouteNewButton
 } from '../components/RoutesList/RoutesList';
 
 class StructureRoute extends Component {
@@ -45,12 +44,9 @@ class StructureRoute extends Component {
     }
 
     _renderRouteList(routes, isRoot) {
-        const button = isRoot ? <RouteNewButton/> : <RouteNewChildButton/>;
-
         return (
             <RoutesList>
                 {routes.map(this._renderRouteCard)}
-                {button}
             </RoutesList>
         );
     }
