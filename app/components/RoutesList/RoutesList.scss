@@ -47,6 +47,12 @@
 		&.is-focused {
 			background-color: $rcard-focus-bg-color;
 		}
+
+		@for $level from 0 through 5 {
+			&.level-#{$level} {
+				margin-left: $rcard-offset-left*$level;
+			}
+		}
 	}
 
 	// CONTENT
