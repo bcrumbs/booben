@@ -1,25 +1,15 @@
 'use strict';
 
 import './RoutesList.scss';
+
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 
-export const RoutesList = props => {
-    let className = 'routes-list-wrapper';
-
-    return (
-        <ul
-            className={className}
-        >
-	        {props.children}
-        </ul>
-    );
-};
-
-RoutesList.propTypes = {
-};
-
-RoutesList.defaultProps = {
-};
+export const RoutesList = props => (
+    <ul className="routes-list-wrapper">
+        {props.children}
+    </ul>
+);
 
 RoutesList.displayName = 'RoutesList';
 

@@ -21,15 +21,77 @@ import {
     renameRoute
 } from '../actions/project';
 
+import {
+    Panel,
+    PanelContent,
+    Container,
+    Row,
+    Column
+} from '@reactackle/reactackle';
+
+import {
+    RoutesList,
+    RouteCard,
+    RouteNewButton,
+    RouteNewChildButton
+} from '../components/RoutesList/RoutesList';
+
 class StructureRoute extends Component {
     constructor(props) {
         super(props);
+
+        this._renderRouteList = this._renderRouteList.bind(this);
+        this._renderRouteCard = this._renderRouteCard.bind(this);
+    }
+
+    _renderRouteList(routes, isRoot) {
+        const button = isRoot ? <RouteNewButton/> : <RouteNewChildButton/>;
+
+        return (
+            <RoutesList>
+                {routes.map(this._renderRouteCard)}
+                {button}
+            </RoutesList>
+        );
+    }
+
+    _renderRouteCard(route) {
+        if (route.children.size === 0) {
+            return (
+                <RouteCard
+                    key={route.id}
+                    title={route.title || route.path}
+                    subtitle={route.path}
+                />
+            );
+        }
+        else {
+            return (
+                <RouteCard
+                    key={route.id}
+                    title={route.title || route.path}
+                    subtitle={route.path}
+                >
+                    {this._renderRouteList(route.children, false)}
+                </RouteCard>
+            );
+        }
     }
 
     render() {
         return (
             <Desktop toolGroups={toolGroups}>
-
+                <Panel headerFixed={true} maxHeight="initial">
+                    <PanelContent>
+                        <Container boxed>
+                            <Row>
+                                <Column>
+                                    {this._renderRouteList(this.props.routes, true)}
+                                </Column>
+                            </Row>
+                        </Container>
+                    </PanelContent>
+                </Panel>
             </Desktop>
         )
     }
