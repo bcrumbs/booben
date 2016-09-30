@@ -89,7 +89,7 @@ export const ToolPanelContent = props => {
             ));
 
             secondaryButtonsRegion = (
-                <BlockContentActionsRegion>
+                <BlockContentActionsRegion type="secondary">
                     {buttons}
                 </BlockContentActionsRegion>
             );

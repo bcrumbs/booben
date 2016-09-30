@@ -13,6 +13,7 @@ export const DraggableWindow = props => {
     };
 
     if (props.maxHeight > 0) style.maxHeight = `${props.maxHeight}px`;
+    if (props.minWidth > 0) style.minWidth = `${props.minWidth}px`;
 
     return (
         <div
@@ -28,6 +29,7 @@ export const DraggableWindow = props => {
 DraggableWindow.propTypes = {
     isDragged: PropTypes.bool,
     maxHeight: PropTypes.number,
+    minWidth: PropTypes.number,
     zIndex: PropTypes.number,
     onFocus: PropTypes.func
 };
@@ -35,6 +37,7 @@ DraggableWindow.propTypes = {
 DraggableWindow.defaultProps = {
     isDragged: false,
     maxHeight: 0,
+    minWidth: 0,
     zIndex: 0,
     onFocus: /* istanbul ignore next */ () => {}
 };

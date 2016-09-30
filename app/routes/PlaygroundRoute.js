@@ -32,7 +32,8 @@ import {
 
 import {
 	RoutesList,
-	RouteCard
+	RouteCard,
+	RouteNewButton
 } from '../components/RoutesList/RoutesList';
 
 import { Desktop } from '../containers/Desktop/Desktop';
@@ -74,7 +75,7 @@ export default class Playground extends React.Component {
 	                <Panel headerFixed={true} maxHeight="initial">
 		                <Header>
 			                <HeaderRegion alignY="center">
-				                <HeaderTitle>Route Title: Data</HeaderTitle>
+				                <HeaderTitle>Project Structure</HeaderTitle>
 			                </HeaderRegion>
 
 			                <HeaderRegion region="main" size='blank'>
@@ -87,18 +88,35 @@ export default class Playground extends React.Component {
 		                </Header>
 
 		                <PanelContent>
-			                <Container boxed>
+			                <Container>
 				                <Row>
 					                <Column>
 						                <RoutesList>
-							                <RouteCard title="Root" root />
-							                <RouteCard title="Index" subtitle="/" home />
-							                <RouteCard title="Parsers" subtitle="parsers" focused />
-							                <RouteCard title="Parser" subtitle="parser-{parser.ParserTitle}" />
+							                <RouteCard title="Root">
+								                <RoutesList>
+									                <RouteCard title="Index" subtitle="/" home />
+									                <RouteCard title="Parsers" subtitle="parsers" >
+										                <RoutesList>
+										                    <RouteCard title="Route 1" subtitle="route1" focused>
+											                    <RoutesList>
+												                    <RouteCard title="Route 2" subtitle="route2" />
+												                    <RouteCard title="Route 3" subtitle="route3">
+													                    <RoutesList>
+														                    <RouteCard title="Route 4" subtitle="route4" />
+													                    </RoutesList>
+												                    </RouteCard>
+												                    <RouteNewButton />
+											                    </RoutesList>
+										                    </RouteCard>
+									                    </RoutesList>
+									                </RouteCard>
+									                <RouteCard title="Parser" subtitle="parser-{parser.ParserTitle}" />
+								                </RoutesList>
+							                </RouteCard>
+							                <RouteNewButton />
 						                </RoutesList>
 					                </Column>
 				                </Row>
-
 			                </Container>
 		                </PanelContent>
 	                </Panel>

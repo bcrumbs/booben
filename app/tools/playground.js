@@ -30,7 +30,7 @@ import {
 	PropsItem
 } from '../components/PropsList/PropsList';
 
-import { List } from 'immutable';
+import { List, Set } from 'immutable';
 
 import ToolSectionRecord from '../models/ToolSection';
 import ButtonRecord from '../models/Button';
@@ -94,41 +94,42 @@ const toolWindowSecondaryActions = List([
 ]);
 
 // Components Library
+const accordionItems = List([
+    new AccordionItemRecord({
+        id: 'tab1',
+        title: 'Form',
+        content: 'some accordion item'
+    }),
+
+    new AccordionItemRecord({
+        id: 'tab2',
+        title: "Text",
+        content: 'some accordion item'
+    }),
+
+    new AccordionItemRecord({
+        id: 'tab3',
+        title: 'Navigation',
+        content: (
+            <ComponentTagWrapper>
+                <ComponentTag title="Accordion" image="https://drscdn.500px.org/photo/118771829/m%3D2048/420d2f6430f878b8a0db28195b1ff8a3"/>
+                <ComponentTag title="Block Content" focused />
+                <ComponentTag title="Component Placeholder" />
+                <ComponentTag title="Component Tag" />
+                <ComponentTag title="Draggable Window" />
+            </ComponentTagWrapper>
+        )
+    })
+]);
+
 const toolComponentsWindowSections = List([
 	new ToolSectionRecord({
 		name: 'Section 1',
-		component: () => {
-		    const accordionItems = List([
-		        new AccordionItemRecord({
-		            title: 'Form',
-                    content: 'some accordion item'
-                }),
-
-                new AccordionItemRecord({
-                    title: "Text",
-                    content: 'some accordion item'
-                }),
-
-                new AccordionItemRecord({
-                    title: 'Navigation',
-                    content: (
-                        <ComponentTagWrapper>
-                            <ComponentTag title="Accordion" image="https://drscdn.500px.org/photo/118771829/m%3D2048/420d2f6430f878b8a0db28195b1ff8a3"/>
-                            <ComponentTag title="Block Content" focused />
-                            <ComponentTag title="Component Placeholder" />
-                            <ComponentTag title="Component Tag" />
-                            <ComponentTag title="Draggable Window" />
-                        </ComponentTagWrapper>
-                    )
-                })
-            ]);
-
-		    return (
-                <BlockContentBox>
-                    <Accordion single items={accordionItems}/>
-                </BlockContentBox>
-            );
-        }
+		component: () => (
+            <BlockContentBox>
+                <Accordion single items={accordionItems} expandedItemIds={Set(['tab3'])}/>
+            </BlockContentBox>
+        )
 	})
 ]);
 

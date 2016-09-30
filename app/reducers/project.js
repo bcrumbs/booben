@@ -17,7 +17,8 @@ import {
     PROJECT_LOAD_FAILED,
     PROJECT_ROUTE_CREATE,
     PROJECT_ROUTE_DELETE,
-    PROJECT_ROUTE_RENAME
+    PROJECT_ROUTE_RENAME,
+    PROJECT_ROUTE_COMPONENT_UPDATE
 } from '../actions/project';
 
 import Project from '../models/Project';
@@ -97,11 +98,7 @@ export default (state = new ProjectState(), action) => {
                 projectName: action.project.name,
                 loadState: LOADED,
                 data: projectToImmutable(action.project),
-
-                // Metadata cannot be changed at all,
-                // so there's no need to convert it to Immutable.js containers
                 meta: action.metadata,
-
                 error: null
             });
 
@@ -146,6 +143,16 @@ export default (state = new ProjectState(), action) => {
 
                 action.newTitle
             );
+
+        case PROJECT_ROUTE_COMPONENT_UPDATE:
+            const whereSource = ['data', 'routes'].concat(...action.source),
+                whereTarget = ['data', 'routes'].concat(...action.target);
+
+            const sourceComponent = state.getIn(whereSource),
+                targetComponent = state.getIn(whereTarget);
+
+            return state.deleteIn(whereSource)
+                 .updateIn([...whereTarget, 'children'], list => list.push(sourceComponent));
 
         default:
             return state;
