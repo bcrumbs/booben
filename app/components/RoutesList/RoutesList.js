@@ -7,11 +7,11 @@ export const RoutesList = props => {
     let className = 'routes-list-wrapper';
 
     return (
-        <div
+        <ul
             className={className}
         >
 	        {props.children}
-        </div>
+        </ul>
     );
 };
 
@@ -24,3 +24,4 @@ RoutesList.defaultProps = {
 RoutesList.displayName = 'RoutesList';
 
 export * from './RouteCard/RouteCard';
+export * from './RouteNewButton/RouteNewButton';

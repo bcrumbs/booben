@@ -36,21 +36,27 @@ export const RouteCard = props => {
 		</button>;
 
     return (
-        <div
-            className={className}
-            tabIndex="1"
+        <li
+            className='route-card-wrapper'
         >
-	        <div className="route-card-content">
-		        <div className="route-title-box">
-			        <span className="route-title">{props.title}</span>
-			        { iconIndex }
+	        <div
+		        className={className}
+	             tabIndex="1"
+	        >
+		        <div className="route-card-content">
+			        <div className="route-title-box">
+				        <span className="route-title">{props.title}</span>
+				        { iconIndex }
+			        </div>
+			        <div className="route-subtitle">{props.subtitle}</div>
 		        </div>
-		        <div className="route-subtitle">{props.subtitle}</div>
+
+		        { actions }
+		        { addRoute }
 	        </div>
 
-	        { actions }
-	        { addRoute }
-        </div>
+	        {props.children}
+        </li>
     );
 };
 

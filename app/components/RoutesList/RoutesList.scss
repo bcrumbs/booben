@@ -7,10 +7,24 @@
 	// =================================================================================================================
 	.routes-list-wrapper {
 		width: 100%;
+		margin: 0;
+		padding: 0;
+		list-style-type: none;
 	}
 
 	// ROUTE CARD
 	// =================================================================================================================
+	.route-card-wrapper {
+		& + & {
+			margin-top: $rcard-spacing;
+		}
+
+		.routes-list-wrapper {
+			margin-top: $rcard-spacing;
+			padding-left: $rcard-offset-left;
+		}
+	}
+
 	.route-card {
 		background-color: $rcard-bg-color;
 		border-radius: $rcard-border-radius;
@@ -27,14 +41,6 @@
 		@include single-transition();
 		@include user-select();
 
-		& + & {
-			margin-top: $rcard-spacing;
-		}
-
-		&:not(.is-root) {
-			margin-left: $rcard-offset-left;
-		}
-
 		&:hover {
 			background-color: $rcard-hover-bg-color;
 		}
@@ -46,12 +52,6 @@
 
 		&.is-focused {
 			background-color: $rcard-focus-bg-color;
-		}
-
-		@for $level from 0 through 5 {
-			&.level-#{$level} {
-				margin-left: $rcard-offset-left*$level;
-			}
 		}
 	}
 
@@ -117,14 +117,16 @@
 						$rcard-new-color,
 						$rcard-new-bg-color);
 
-		.route-add-new:hover & {
+		.route-add-new:hover &,
+		.route-add-new:focus & {
 			@include icon-style(
 							$rcard-new-color,
 							$rcard-new-hover-bg-color);
 		}
 
 		.route-card:hover &,
-		.route-card:focus & {
+		.route-card:focus &,
+		&:focus {
 			opacity: 1;
 			pointer-events: auto;
 		}
