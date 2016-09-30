@@ -8,7 +8,7 @@ export const RouteNewButton = props => {
 
     return (
         <li className={className} >
-	        <Button text="Add new root route" />
+	        <Button text="New route" kind="outline-primary"/>
         </li>
     );
 };

@@ -10,6 +10,7 @@
 		margin: 0;
 		padding: 0;
 		list-style-type: none;
+		position: relative;
 	}
 
 	// ROUTE CARD
@@ -21,7 +22,36 @@
 
 		.routes-list-wrapper {
 			margin-top: $rcard-spacing;
-			padding-left: $rcard-offset-left;
+
+			li:last-child {
+				margin-bottom: $rcard-last-child-margin-bottom;
+			}
+		}
+	}
+
+	.route-card-wrapper .routes-list-wrapper {
+		margin-left: $rcard-offset-left;
+
+		@if $rcard-level-multiplicator != 0 {
+			@include level-offset(1) {
+				@include level-offset(2) {
+					@include level-offset(3) {
+						@include level-offset(4) {
+							@include level-offset(5) {
+								@include level-offset(6) {
+									@include level-offset(7) {
+										@include level-offset(8) {
+											@include level-offset(9) {
+												@include level-offset(10)
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 
@@ -52,6 +82,20 @@
 
 		&.is-focused {
 			background-color: $rcard-focus-bg-color;
+
+			// Vertical Ruler
+			+ .routes-list-wrapper {
+				&::before {
+					position: absolute;
+					content: '';
+					top: 0;
+					left: $rcard-ruler-offset;
+					height: 100%;
+					width: $rcard-ruler-thickness;
+					border-left: $rcard-ruler-thickness $rcard-ruler-style $rcard-ruler-color;
+					z-index: 1;
+				}
+			}
 		}
 	}
 
@@ -80,7 +124,23 @@
 
 	// ADD NEW ROUTE
 	.route-new-button {
-		margin-top: $rcard-spacing;
+		margin-top: $rcard-new-margin-top;
+
+		.button {
+			border: $rcard-new-border-thickness $rcard-new-border-style $rcard-new-border-color;
+			background-color: $rcard-new-bg-color;
+			color: $rcard-new-color;
+
+			&:hover {
+				border: $rcard-new-hover-border-thickness $rcard-new-hover-border-style $rcard-new-hover-border-color;
+				background-color: $rcard-new-hover-bg-color;
+				color: $rcard-new-hover-color;
+			}
+		}
+	}
+
+	.route-new-child-button {
+		margin-bottom: $rcard-spacing;
 	}
 
 	// ICONS
