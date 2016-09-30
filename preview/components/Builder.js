@@ -22,7 +22,7 @@ class Builder extends Component {
 
         this._getComponentFromMeta = this._getComponentFromMeta.bind(this);
     }
-    
+
     _renderPseudoComponent(component) {
         if (component.name === 'Outlet') {
             return this.props.children;
@@ -33,9 +33,9 @@ class Builder extends Component {
         }
     }
 
-    _getComponentFromMeta(component = null) {
+    _getComponentFromMeta(component = null, componentIndex = []) {
         if (!component) return null;
-        
+
         if (isPseudoComponent(component))
             return this._renderPseudoComponent(component);
 
@@ -46,14 +46,23 @@ class Builder extends Component {
             componentType: Component.jssy ? Component.jssy.kind : null
         });
 
+        let baseIndex = [...this.props.routeIndex, 'component'];
+
+        if(componentIndex) {
+            baseIndex = [...baseIndex, ...componentIndex];
+        }
+
         if (component.children && component.children.size) {
             return (
                 <Component
                     key={component.uid}
                     uid={component.uid}
+                    where={[...baseIndex]}
                     {...getProps(component.props)}
                 >
-                    { component.children.map(this._getComponentFromMeta) }
+                    { component.children.map((_component, index) => 
+                        this._getComponentFromMeta(_component, 
+                            [].concat(...componentIndex, 'children', index))) }
                 </Component>
             );
         }
@@ -62,6 +71,7 @@ class Builder extends Component {
                 <Component
                     key={component.uid}
                     uid={component.uid}
+                    where={[...baseIndex]}
                     {...getProps(component.props)}
                 />
             );
@@ -79,11 +89,13 @@ Builder.propTypes = {
         name: React.PropTypes.string,
         props: ImmutablePropTypes.map,
         children: ImmutablePropTypes.list
-    })
+    }),
+    routeIndex: React.PropTypes.array
 };
 
 Builder.defaultProps = {
-    component: null
+    component: null,
+    routeIndex: []
 };
 
 /**

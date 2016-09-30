@@ -126,3 +126,21 @@ export const renameRoute = (where, idx, newTitle) => ({
     idx,
     newTitle
 });
+
+/**
+ *
+ * @type {string}
+ */
+export const PROJECT_ROUTE_COMPONENT_UPDATE = 'PROJECT_ROUTE_COMPONENT_UPDATE';
+
+/**
+ *
+ * @param {number[]} source - index of source component
+ * @param {number[]} target - index of target component
+ * @returns {Object}
+ */
+export const componentUpdateRoute = (source, target) => ({
+    type: PROJECT_ROUTE_COMPONENT_UPDATE,
+    source,
+    target
+});

@@ -4,6 +4,8 @@
 import React, { PropTypes } from 'react';
 import { Icon } from '@reactackle/reactackle';
 
+import { RouteNewButton } from '../RouteNewButton/RouteNewButton';
+
 export const RouteCard = props => {
     let className = 'route-card';
 
@@ -32,6 +34,11 @@ export const RouteCard = props => {
                 <Icon name="plus" />
             </div>
         </button>;
+
+	let addNewRoute = false;
+	if (props.focused) {
+		addNewRoute = <RouteNewButton />;
+	}
 
     return (
         <li className='route-card-wrapper'>

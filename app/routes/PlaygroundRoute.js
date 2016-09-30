@@ -33,8 +33,7 @@ import {
 import {
 	RoutesList,
 	RouteCard,
-	RouteNewButton,
-	RouteNewChildButton
+	RouteNewButton
 } from '../components/RoutesList/RoutesList';
 
 import { Desktop } from '../containers/Desktop/Desktop';
@@ -89,36 +88,35 @@ export default class Playground extends React.Component {
 		                </Header>
 
 		                <PanelContent>
-			                <Container boxed>
+			                <Container>
 				                <Row>
 					                <Column>
 						                <RoutesList>
 							                <RouteCard title="Root">
 								                <RoutesList>
 									                <RouteCard title="Index" subtitle="/" home />
-									                <RouteCard title="Parsers" subtitle="parsers" focused>
+									                <RouteCard title="Parsers" subtitle="parsers" >
 										                <RoutesList>
-										                    <RouteCard title="Route">
+										                    <RouteCard title="Route 1" subtitle="route1" focused>
 											                    <RoutesList>
-												                    <RouteCard title="Route" />
-												                    <RouteCard title="Route">
+												                    <RouteCard title="Route 2" subtitle="route2" />
+												                    <RouteCard title="Route 3" subtitle="route3">
 													                    <RoutesList>
-														                    <RouteCard title="Route" />
+														                    <RouteCard title="Route 4" subtitle="route4" />
 													                    </RoutesList>
 												                    </RouteCard>
+												                    <RouteNewButton />
 											                    </RoutesList>
 										                    </RouteCard>
-											                <RouteNewChildButton />
 									                    </RoutesList>
 									                </RouteCard>
 									                <RouteCard title="Parser" subtitle="parser-{parser.ParserTitle}" />
-									                <RouteNewButton />
 								                </RoutesList>
 							                </RouteCard>
+							                <RouteNewButton />
 						                </RoutesList>
 					                </Column>
 				                </Row>
-
 			                </Container>
 		                </PanelContent>
 	                </Panel>
