@@ -25,3 +25,4 @@ RoutesList.displayName = 'RoutesList';
 
 export * from './RouteCard/RouteCard';
 export * from './RouteNewButton/RouteNewButton';
+export * from './RouteNewChildButton/RouteNewChildButton';

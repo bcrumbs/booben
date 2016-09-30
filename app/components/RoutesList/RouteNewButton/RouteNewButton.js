@@ -1,18 +1,15 @@
 'use strict';
 
 import React, { PropTypes } from 'react';
+import { Button } from '@reactackle/reactackle';
 
 export const RouteNewButton = props => {
-    let className = 'route-new-button';
+    let className = 'route-new-button route-new-root-button';
 
     return (
-        <div
-            className='route-new-button-wrapper'
-        >
-	        <button className={className} tabIndex="1">
-		        Add new root route
-	        </button>
-        </div>
+        <li className={className} >
+	        <Button text="Add new root route" />
+        </li>
     );
 };
 

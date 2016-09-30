@@ -6,7 +6,6 @@
 // =====================================================================================================================
 // Route Card
 $rcard-offset-left:         $base-module*3 !default;
-$rcard-levels-amount:       10 !default;
 $rcard-padding-x:           $base-module*2 !default;
 $rcard-padding-y:           $base-module*1.5 !default;
 
@@ -14,7 +13,7 @@ $rcard-bg-color:            $white !default;
 $rcard-hover-bg-color:      $grey-100 !default;
 $rcard-focus-bg-color:      color($yellow-palette, lightest) !default;
 $rcard-border-radius:       $global-radius !default;
-$rcard-spacing:             $base-module*1.5 !default;
+$rcard-spacing:             $base-module*2 !default;
 
 $rcard-title-font-size:     fs(3) !default;
 $rcard-title-line-height:   1.3 !default;
@@ -41,15 +40,6 @@ $rcard-icon-index-box-size:     $rcard-title-font-size*$rcard-title-line-height 
 $rcard-icon-index-img-size:     $base-module*2 !default;
 $rcard-icon-index-color:        $icon-dark-inactive-color !default;
 $rcard-icon-index-margin-left:  $base-module !default;
-
-// Actions
-$rcard-action-box-size:         $icon-width !default;
-$rcard-action-img-size:         $icon-image-size !default;
-$rcard-action-default-color:    $icon-dark-inactive-color !default;
-$rcard-action-focus-color:      $icon-dark-default-color !default;
-$rcard-action-margin:           $base-module/2 !default;
-
-$rcard-action-box-margin-left: $base-module !default;
 
 // Title => Route Card min-height
 $rcard-min-height:      $rcard-padding-y*2 + $rcard-title-font-size*$rcard-title-line-height + $rcard-subtitle-font-size*$rcard-subtitle-line-height !default;

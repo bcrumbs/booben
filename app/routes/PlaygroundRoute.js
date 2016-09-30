@@ -33,7 +33,8 @@ import {
 import {
 	RoutesList,
 	RouteCard,
-	RouteNewButton
+	RouteNewButton,
+	RouteNewChildButton
 } from '../components/RoutesList/RoutesList';
 
 import { Desktop } from '../containers/Desktop/Desktop';
@@ -107,6 +108,7 @@ export default class Playground extends React.Component {
 												                    </RouteCard>
 											                    </RoutesList>
 										                    </RouteCard>
+											                <RouteNewChildButton />
 									                    </RoutesList>
 									                </RouteCard>
 									                <RouteCard title="Parser" subtitle="parser-{parser.ParserTitle}" />

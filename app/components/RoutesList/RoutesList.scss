@@ -79,57 +79,8 @@
 	}
 
 	// ADD NEW ROUTE
-	.route-add-new {
-		position: absolute;
-		bottom: 0;
-		left: 50%;
-		transform: translate3d(-50%, 50%, 0);
-		width: $rcard-new-outer-size;
-		height: $rcard-new-outer-size;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		z-index: 9;
-		cursor: $cursor-pointer;
-
-		&,
-		&:focus,
-		&:hover,
-		&:active {
-			background-color: transparent;
-			border-color: transparent;
-			outline: none;
-		}
-	}
-
-	.route-add-new-inside {
-		border-radius: $rcard-new-border-radius;
-		opacity: 0;
-		pointer-events: none;
-
-		@include single-transition();
-
-		@include icon-size(
-						$rcard-new-box-size,
-						$rcard-new-img-size);
-
-		@include icon-style(
-						$rcard-new-color,
-						$rcard-new-bg-color);
-
-		.route-add-new:hover &,
-		.route-add-new:focus & {
-			@include icon-style(
-							$rcard-new-color,
-							$rcard-new-hover-bg-color);
-		}
-
-		.route-card:hover &,
-		.route-card:focus &,
-		&:focus {
-			opacity: 1;
-			pointer-events: auto;
-		}
+	.route-new-button {
+		margin-top: $rcard-spacing;
 	}
 
 	// ICONS
@@ -141,39 +92,5 @@
 						$rcard-icon-index-img-size);
 
 		@include icon-style($rcard-icon-index-color);
-	}
-
-	// ACTIONS
-	.route-actions-box {
-		margin-left: $rcard-action-box-margin-left - $rcard-action-margin;
-		margin-right: -$rcard-action-margin;
-		display: flex;
-
-		opacity: 0;
-		pointer-events: none;
-
-		@include single-transition();
-
-		.route-card:hover &,
-		.route-card:focus &,
-		.route-card.is-focused & {
-			opacity: 1;
-			pointer-events: auto;
-		}
-	}
-
-	.route-action-item {
-		margin: 0 $rcard-action-margin;
-		flex-shrink: 0;
-
-		@include icon-size(
-						$rcard-action-box-size,
-						$rcard-action-img-size);
-
-		@include icon-style($rcard-action-default-color);
-
-		.route-card.is-focused & {
-			@include icon-style($rcard-action-focus-color);
-		}
 	}
 }

@@ -50,9 +50,6 @@ export const RouteCard = props => {
 			        </div>
 			        <div className="route-subtitle">{props.subtitle}</div>
 		        </div>
-
-		        { actions }
-		        { addRoute }
 	        </div>
 
 	        {props.children}
