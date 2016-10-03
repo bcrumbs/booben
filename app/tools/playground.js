@@ -22,7 +22,13 @@ import {
 
 import {
 	ComponentTag,
-	ComponentTagWrapper } from '../components/ComponentTag/ComponentTag';
+	ComponentTagWrapper
+} from '../components/ComponentTag/ComponentTag';
+
+import {
+	PropsList,
+	PropsItem
+} from '../components/PropsList/PropsList';
 
 import { List, Set } from 'immutable';
 
@@ -144,9 +150,22 @@ const toolRouteWindowSections = List([
 		name: 'Route Editing',
 		component: () => (
 			<BlockContentBox>
-				<BlockContentBoxHeading>Header 2</BlockContentBoxHeading>
+				<BlockContentBoxHeading>Props Group 1</BlockContentBoxHeading>
 				<BlockContentBoxItem>
-					some content here
+					<PropsList>
+						<PropsItem type="input" linkable label="Input Props"/>
+						<PropsItem type="textarea" linkable label="Textarea Prop" />
+						<PropsItem type="list" linkable label="List prop" />
+						<PropsItem type="constructor" linkable label="Constructor Prop" />
+						<PropsItem type="toggle" linkable label="Toggle prop" />
+					</PropsList>
+				</BlockContentBoxItem>
+
+				<BlockContentBoxHeading>Props Group 2</BlockContentBoxHeading>
+				<BlockContentBoxItem>
+					<PropsList>
+						<PropsItem type="array" label="Array Prop" />
+					</PropsList>
 				</BlockContentBoxItem>
 			</BlockContentBox>
 		)
