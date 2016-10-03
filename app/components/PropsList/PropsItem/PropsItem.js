@@ -21,8 +21,10 @@ import {
 } from './PropItemArray/PropItemArray';
 
 import {PropLabel} from './PropLabel/PropLabel';
+import {PropLinkButton} from './PropLinkButton/PropLinkButton';
 
 import {PropConstructor} from './PropConstructor/PropConstructor';
+import {PropArrayNewRow} from './PropItemArray/PropArrayNewRow/PropArrayNewRow';
 
 export const PropsItem = props => {
     let className = 'prop-item';
@@ -31,12 +33,7 @@ export const PropsItem = props => {
 
 	let actions = false;
 	if (props.linkable) {
-		actions =
-			<div className="prop-item-actions-box">
-				<div className="prop-item-action action-linking">
-					<Button icon="link" />
-				</div>
-			</div>
+		actions = <PropLinkButton />;
 	}
 
 	const label =
@@ -74,7 +71,7 @@ export const PropsItem = props => {
 				<PropItemArrayHeader>
 					<PropItemArrayHeaderRow>
 						<PropItemArrayHeaderCell>Title</PropItemArrayHeaderCell>
-						<PropItemArrayHeaderCell>Sortable</PropItemArrayHeaderCell>
+						<PropItemArrayHeaderCell align="center">Sortable</PropItemArrayHeaderCell>
 						<PropItemArrayHeaderCell />
 					</PropItemArrayHeaderRow>
 				</PropItemArrayHeader>
@@ -97,16 +94,8 @@ export const PropsItem = props => {
 						</PropArrayBodyCell>
 						<PropArrayBodyCell clearing />
 					</PropArrayBodyRow>
-					<PropArrayBodyRow>
-						<PropArrayBodyCell>
-							<Input label={'Set component title'} dense />
-						</PropArrayBodyCell>
-						<PropArrayBodyCell align="center">
-							<Checkbox />
-						</PropArrayBodyCell>
-						<PropArrayBodyCell clearing />
-					</PropArrayBodyRow>
 				</PropItemArrayBody>
+
 			</PropItemArray>
 	}
 

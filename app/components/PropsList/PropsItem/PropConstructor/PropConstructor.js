@@ -11,7 +11,7 @@ export const PropConstructor = props => {
 		    <PropLabel label={props.label} />
 
 		    <div className="prop-constructor-button">
-		        <Button kind="link" text="Configure component"/>
+		        <Button kind="link" text="Set component"/>
 		    </div>
 	    </div>
     );

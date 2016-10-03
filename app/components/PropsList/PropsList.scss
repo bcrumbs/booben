@@ -29,10 +29,12 @@ $prop-toggle: 'props-type-toggle';
 	// Prop Actions (linking)
 	.prop-item-actions-box {
 		margin-left: $prop-actions-margin-left - $prop-action-margin;
+		margin-top: $prop-actions-margin-top;
 	}
 
 	.prop-item-action {
 		margin: $prop-action-margin;
+		height: $prop-action-height;
 
 		.button-icon {
 			@include icon-size(
@@ -62,11 +64,14 @@ $prop-toggle: 'props-type-toggle';
 
 	.prop-item-label {
 		font-size: $prop-label-font-size;
+		line-height: $prop-label-line-height;
 		font-weight: $prop-label-font-weight;
 		text-transform: $prop-label-text-transform;
 		color: $prop-label-color;
 		display: block;
 		margin-bottom: $prop-label-margin-bottom;
+
+		@include user-select();
 	}
 
 	// PROP: constructor
@@ -77,9 +82,18 @@ $prop-toggle: 'props-type-toggle';
 
 	// PROP: array
 	// =================================================================================================================
+	.block-content-box-heading + .block-content-box-item {
+		.prop-type-array {
+			margin-top: 0;
+		}
+	}
+
 	.prop-array-table {
-		width: 100%;
 		margin-left: -$prop-array-cell-padding-x;
+		width: calc(100% + #{$prop-array-cell-padding-x*2});
+		border-spacing: 0;
+
+		@include user-select();
 
 		td {
 			padding: $prop-array-cell-padding-y $prop-array-cell-padding-x;
@@ -95,8 +109,12 @@ $prop-toggle: 'props-type-toggle';
 	}
 
 	// Body
-	.prop-array-body-row:hover {
-		background-color: $prop-array-row-hover-bg-color;
+	.prop-array-body-row {
+		@include single-transition();
+
+		&:hover {
+			background-color: $prop-array-row-hover-bg-color;
+		}
 	}
 
 	.prop-array-body-cell {
@@ -112,9 +130,48 @@ $prop-toggle: 'props-type-toggle';
 		#{&}-center { text-align: center; }
 	}
 
-	// Add new route
+	// Add new row
 	.prop-array-add-new-row {
 		text-align: right;
+		margin-top: $prop-array-add-row-margin-top;
+		margin-right: -$prop-array-cell-padding-x;
+	}
+
+	.prop-array-body-new-row {
+		background-color: $prop-array-new-row-bg-color;
+		padding: $prop-array-new-row-pad-y $prop-array-new-row-pad-x;
+		display: flex;
+		align-items: flex-end;
+		margin-top: $prop-array-add-row-margin-top;
+		margin-left: -$prop-array-cell-padding-x;
+		width: calc(100% + #{$prop-array-cell-padding-x*2});
+
+		.input { flex-grow: 1 }
+
+		.button {
+			margin-left: $prop-array-new-row-element-spacing;
+		}
+
+		.button-text {
+			padding-left: 0;
+			padding-right: 0;
+		}
+	}
+
+	// Clearing
+	.prop-array-clearing-cell {
+		.button-icon {
+			@include icon-size(
+							$prop-array-clearing-box-size,
+							$prop-array-clearing-img-size);
+
+			@include icon-style($prop-array-clearing-color);
+
+			&:hover,
+			&:focus {
+				@include icon-style($prop-array-clearing-hover-color);
+			}
+		}
 	}
 }
 
