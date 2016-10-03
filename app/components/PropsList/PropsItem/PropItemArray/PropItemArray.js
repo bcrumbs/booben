@@ -1,40 +1,35 @@
 import React, { PropTypes } from 'react';
 
-import {
-	Button,
-	Input,
-	SelectBox,
-	Textarea,
-	ToggleButton
-} from '@reactackle/reactackle';
+import { PropArrayAddNewRow } from './PropArrayAddNewRow/PropArrayAddNewRow';
 
 export const PropItemArray = props => {
-    let className = 'prop-item';
+    let className = 'prop-item-array-wrapper';
 
     return (
         <div className={className}>
 	        <table className="prop-array-table">
-		        <thead>
-			        <tr>
-				        <td className="prop-array-header">title 1</td>
-				        <td className="prop-array-header">title 2</td>
-			        </tr>
-		        </thead>
-		        <tbody>
-			        <tr>
-				        <td className="prop-array-body">body 1</td>
-				        <td className="prop-array-body">body 2</td>
-			        </tr>
-		        </tbody>
+		        {props.children}
 	        </table>
+	        <PropArrayAddNewRow text={props.newRowButtonText}/>
         </div>
     );
 };
 
 PropItemArray.propTypes = {
+	newRowButtonText: PropTypes.string
 };
 
 PropItemArray.defaultProps = {
+	newRowButtonText: 'Add Row'
 };
 
 PropItemArray.displayName = 'PropItemArray';
+
+export * from './PropItemArrayHeader/PropItemArrayHeader';
+export * from './PropItemArrayHeader/PropItemArrayHeaderRow/PropItemArrayHeaderRow';
+export * from './PropItemArrayHeader/PropItemArrayHeaderCell/PropItemArrayHeaderCell';
+
+export * from './PropItemArrayBody/PropItemArrayBody';
+export * from './PropItemArrayBody/PropArrayBodyRow/PropArrayBodyRow';
+export * from './PropItemArrayBody/PropArrayBodyCell/PropArrayBodyCell';
+

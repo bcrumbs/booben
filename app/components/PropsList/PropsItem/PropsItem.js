@@ -2,13 +2,27 @@ import React, { PropTypes } from 'react';
 
 import {
 	Button,
+	Checkbox,
 	Input,
 	SelectBox,
 	Textarea,
 	ToggleButton
 } from '@reactackle/reactackle';
 
-import { PropItemArray } from './PropItemArray/PropItemArray';
+import {
+	PropItemArray,
+	PropItemArrayHeader,
+	PropItemArrayHeaderRow,
+	PropItemArrayHeaderCell,
+	PropItemArrayBody,
+	PropArrayBodyRow,
+	PropArrayBodyCell,
+	PropArrayBodyCellText
+} from './PropItemArray/PropItemArray';
+
+import {PropLabel} from './PropLabel/PropLabel';
+
+import {PropConstructor} from './PropConstructor/PropConstructor';
 
 export const PropsItem = props => {
     let className = 'prop-item';
@@ -26,7 +40,7 @@ export const PropsItem = props => {
 	}
 
 	const label =
-		<label className="prop-item-label">{props.label}</label>
+		<PropLabel>{props.label}</PropLabel>;
 
 	let content = false;
 	if (props.type === 'input') {
@@ -51,14 +65,49 @@ export const PropsItem = props => {
 
 	else if (props.type === 'constructor') {
 		content =
-			<div>
-				{ label }
-				<Button size="small" kind="text" text="Configure component"/>
-			</div>
+			<PropConstructor label={props.label} />
 	}
 
 	else if (props.type === 'array') {
-		content = <PropItemArray />
+		content =
+			<PropItemArray>
+				<PropItemArrayHeader>
+					<PropItemArrayHeaderRow>
+						<PropItemArrayHeaderCell>Title</PropItemArrayHeaderCell>
+						<PropItemArrayHeaderCell>Sortable</PropItemArrayHeaderCell>
+						<PropItemArrayHeaderCell />
+					</PropItemArrayHeaderRow>
+				</PropItemArrayHeader>
+				<PropItemArrayBody>
+					<PropArrayBodyRow>
+						<PropArrayBodyCell>
+							<PropConstructor label={'body 1-1'} />
+						</PropArrayBodyCell>
+						<PropArrayBodyCell align="center">
+							<Checkbox />
+						</PropArrayBodyCell>
+						<PropArrayBodyCell clearing />
+					</PropArrayBodyRow>
+					<PropArrayBodyRow>
+						<PropArrayBodyCell>
+							<PropConstructor label={'body 2-1'} />
+						</PropArrayBodyCell>
+						<PropArrayBodyCell align="center">
+							<Checkbox />
+						</PropArrayBodyCell>
+						<PropArrayBodyCell clearing />
+					</PropArrayBodyRow>
+					<PropArrayBodyRow>
+						<PropArrayBodyCell>
+							<Input label={'Set component title'} dense />
+						</PropArrayBodyCell>
+						<PropArrayBodyCell align="center">
+							<Checkbox />
+						</PropArrayBodyCell>
+						<PropArrayBodyCell clearing />
+					</PropArrayBodyRow>
+				</PropItemArrayBody>
+			</PropItemArray>
 	}
 
 
