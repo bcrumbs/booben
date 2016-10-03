@@ -9,7 +9,10 @@ export const PropConstructor = props => {
     return (
 	    <div className={className}>
 		    <PropLabel label={props.label} />
-		    <Button kind="link" text="Configure component"/>
+
+		    <div className="prop-constructor-button">
+		        <Button kind="link" text="Configure component"/>
+		    </div>
 	    </div>
     );
 };

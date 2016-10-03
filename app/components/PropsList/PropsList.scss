@@ -69,6 +69,12 @@ $prop-toggle: 'props-type-toggle';
 		margin-bottom: $prop-label-margin-bottom;
 	}
 
+	// PROP: constructor
+	// =================================================================================================================
+	.prop-constructor-button {
+		margin-top: $prop-constructor-button-margin-top;
+	}
+
 	// PROP: array
 	// =================================================================================================================
 	.prop-array-table {

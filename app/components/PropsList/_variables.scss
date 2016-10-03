@@ -22,6 +22,10 @@ $prop-label-text-transform:     none !default;
 $prop-label-color:              $body-font-color !default;
 $prop-label-margin-bottom:      0 !default;
 
+// PROP: constructor
+// =====================================================================================================================
+$prop-constructor-button-margin-top: $base-module/2 !default;
+
 // PROP: array
 // =====================================================================================================================
 $prop-array-cell-padding-y:     $base-module/2 !default;
