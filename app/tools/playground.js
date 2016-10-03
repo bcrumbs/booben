@@ -157,6 +157,7 @@ const toolRouteWindowSections = List([
 						<PropsItem type="textarea" linkable label="Textarea Prop" />
 						<PropsItem type="list" linkable label="List prop" />
 						<PropsItem type="constructor" linkable label="Constructor Prop" />
+						<PropsItem type="constructor-toggle" linkable label="Constructor with toggle" />
 						<PropsItem type="toggle" linkable label="Toggle prop" />
 					</PropsList>
 				</BlockContentBoxItem>

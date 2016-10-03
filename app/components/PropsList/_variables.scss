@@ -27,7 +27,8 @@ $prop-label-margin-bottom:      0 !default;
 
 // PROP: constructor
 // =====================================================================================================================
-$prop-constructor-button-margin-top: $base-module/2 !default;
+$prop-constructor-button-margin-top:    0 !default;
+$prop-constructor-toggle-spacing:       $base-module/2 !default;
 
 // PROP: array
 // =====================================================================================================================

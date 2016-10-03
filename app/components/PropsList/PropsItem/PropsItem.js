@@ -65,6 +65,11 @@ export const PropsItem = props => {
 			<PropConstructor label={props.label} />
 	}
 
+	else if (props.type === 'constructor-toggle') {
+		content =
+			<PropConstructor label={props.label} hasToggle />
+	}
+
 	else if (props.type === 'array') {
 		content =
 			<PropItemArray>
@@ -112,7 +117,7 @@ export const PropsItem = props => {
 };
 
 PropsItem.propTypes = {
-	type:       PropTypes.oneOf(['input', 'textarea', 'list', 'constructor', 'array', 'toggle']),
+	type:       PropTypes.oneOf(['input', 'textarea', 'list', 'constructor', 'constructor-toggle', 'array', 'toggle']),
 	label:      PropTypes.string,
 	linkable:   PropTypes.bool
 };

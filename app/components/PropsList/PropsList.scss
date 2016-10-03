@@ -76,6 +76,16 @@ $prop-toggle: 'props-type-toggle';
 
 	// PROP: constructor
 	// =================================================================================================================
+	.prop-constructor-wrapper {
+		display: flex;
+	}
+
+	.prop-constructor-content {
+		flex-grow: 1;
+
+		& + .toggle-button { margin-left: $prop-constructor-toggle-spacing }
+	}
+
 	.prop-constructor-button {
 		margin-top: $prop-constructor-button-margin-top;
 	}
