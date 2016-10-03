@@ -78,25 +78,37 @@ $prop-toggle: 'props-type-toggle';
 		td {
 			padding: $prop-array-cell-padding-y $prop-array-cell-padding-x;
 		}
-
-		tbody tr:hover {
-			background-color: $prop-array-row-hover-bg-color;
-		}
 	}
 
-	.prop-array-header {
+	// Header
+	.prop-array-header-cell {
 		font-size: $prop-array-header-font-size;
 		color: $prop-array-header-font-color;
 		font-weight: $prop-array-header-font-weight;
 		line-height: $prop-array-header-line-height;
 	}
 
-	.prop-array-body {
+	// Body
+	.prop-array-body-row:hover {
+		background-color: $prop-array-row-hover-bg-color;
+	}
+
+	.prop-array-body-cell {
 		font-size: $prop-array-body-font-size;
 		color: $prop-array-body-font-color;
 		font-weight: $prop-array-body-font-weight;
 		line-height: $prop-array-body-line-height;
 	}
 
+	.prop-array-cell-align {
+		#{&}-left { text-align: left; }
+		#{&}-right { text-align: right; }
+		#{&}-center { text-align: center; }
+	}
+
+	// Add new route
+	.prop-array-add-new-row {
+		text-align: right;
+	}
 }
 
