@@ -3,20 +3,38 @@
 
 // Base Variables
 // =====================================================================================================================
-$props-spacing: $base-module*2.5 !default;
+$props-spacing:                 $base-module*2.5 !default;
 
 // Actions
-$prop-actions-margin-left: $base-module !default;
+$prop-actions-margin-left:      $base-module !default;
 
-$prop-action-box-size: $base-module*4 !default;
-$prop-action-img-size: $base-module*2.5 !default;
-$prop-action-color: $icon-dark-inactive-color !default;
-$prop-action-hover-color: $icon-dark-default-color !default;
-$prop-action-margin: $base-module/2 !default;
+$prop-action-box-size:          $base-module*4 !default;
+$prop-action-img-size:          $base-module*2.5 !default;
+$prop-action-color:             $icon-dark-inactive-color !default;
+$prop-action-hover-color:       $icon-dark-default-color !default;
+$prop-action-margin:            $base-module/2 !default;
 
 // PROPS TYPES
 // =====================================================================================================================
-$prop-label-font-size:  fs(0) !default;
-$prop-label-font-weight:  $font-weight-normal !default;
-$prop-label-text-transform:  normal !default;
-$prop-label-color:  $body-font-color !default;
+$prop-label-font-size:          fs(0) !default;
+$prop-label-font-weight:        $font-weight-normal !default;
+$prop-label-text-transform:     none !default;
+$prop-label-color:              $body-font-color !default;
+$prop-label-margin-bottom:      $base-module !default;
+
+// PROP: array
+// =====================================================================================================================
+$prop-array-cell-padding-y: $base-module/2 !default;
+$prop-array-cell-padding-x: $base-module/2 !default;
+
+$prop-array-row-hover-bg-color: $grey-100 !default;
+
+$prop-array-header-font-size: fs(0) !default;
+$prop-array-header-font-color: $grey-500 !default;
+$prop-array-header-font-weight: $font-weight-normal !default;
+$prop-array-header-line-height: 1.25 !default;
+
+$prop-array-body-font-size: fs(0) !default;
+$prop-array-body-font-color: $body-font-color !default;
+$prop-array-body-font-weight: $font-weight-normal !default;
+$prop-array-body-line-height: 1.25 !default;

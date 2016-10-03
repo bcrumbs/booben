@@ -8,6 +8,8 @@ import {
 	ToggleButton
 } from '@reactackle/reactackle';
 
+import { PropItemArray } from './PropItemArray/PropItemArray';
+
 export const PropsItem = props => {
     let className = 'prop-item';
 
@@ -51,16 +53,12 @@ export const PropsItem = props => {
 		content =
 			<div>
 				{ label }
-				<Button size="inline" kind="flat" />
+				<Button size="small" kind="text" text="Configure component"/>
 			</div>
 	}
 
 	else if (props.type === 'array') {
-		content =
-			<div>
-				{ label }
-				<p>todo</p>
-			</div>
+		content = <PropItemArray />
 	}
 
 

@@ -41,7 +41,8 @@ $prop-toggle: 'props-type-toggle';
 
 			@include icon-style($prop-action-color);
 
-			&:hover {
+			&:hover,
+			&:focus {
 				@include icon-style($prop-action-hover-color);
 			}
 		}
@@ -65,8 +66,37 @@ $prop-toggle: 'props-type-toggle';
 		text-transform: $prop-label-text-transform;
 		color: $prop-label-color;
 		display: block;
+		margin-bottom: $prop-label-margin-bottom;
 	}
 
+	// PROP: array
+	// =================================================================================================================
+	.prop-array-table {
+		width: 100%;
+		margin-left: -$prop-array-cell-padding-x;
+
+		td {
+			padding: $prop-array-cell-padding-y $prop-array-cell-padding-x;
+		}
+
+		tbody tr:hover {
+			background-color: $prop-array-row-hover-bg-color;
+		}
+	}
+
+	.prop-array-header {
+		font-size: $prop-array-header-font-size;
+		color: $prop-array-header-font-color;
+		font-weight: $prop-array-header-font-weight;
+		line-height: $prop-array-header-line-height;
+	}
+
+	.prop-array-body {
+		font-size: $prop-array-body-font-size;
+		color: $prop-array-body-font-color;
+		font-weight: $prop-array-body-font-weight;
+		line-height: $prop-array-body-line-height;
+	}
 
 }
 
