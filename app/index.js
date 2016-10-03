@@ -8,8 +8,7 @@ import '@reactackle/reactackle/reactackle.scss';
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Router, Route, useRouterHistory, IndexRedirect } from 'react-router';
-import { createHistory } from 'history';
+import { Router, Route, IndexRedirect } from 'react-router';
 import { Provider } from 'react-redux';
 
 import AppRoute from './routes/AppRoute';
@@ -21,16 +20,13 @@ import PreviewRoute from './routes/PreviewRoute';
 import PlaygroundRoute from './routes/PlaygroundRoute';
 
 import store from './store';
+import history from './history';
 
 import { setTools } from './actions/desktop';
 
 import playgroundRouteTools from './tools/playground';
 import structureRouteTools from './tools/structure';
 import designRouteTools from './tools/design';
-
-const history = useRouterHistory(createHistory)({
-    basename: '/app'
-});
 
 const setToolsOnEnter = tools => () => void store.dispatch(setTools(tools));
 

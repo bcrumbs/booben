@@ -65,7 +65,14 @@ const projectComponentToImmutable = input => new ProjectComponent({
 const projectRouteToImmutable = input => new ProjectRoute({
     id: input.id,
     path: input.path,
-    component: projectComponentToImmutable(input.component),
+    isIndex: input.isIndex,
+    title: input.title,
+    description: input.description,
+
+    component: input.component !== null
+        ? projectComponentToImmutable(input.component)
+        : null,
+
     children: List(input.children.map(projectRouteToImmutable))
 });
 

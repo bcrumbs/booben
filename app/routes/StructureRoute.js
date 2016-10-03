@@ -26,7 +26,8 @@ import {
     PanelContent,
     Container,
     Row,
-    Column
+    Column,
+    Dialog
 } from '@reactackle/reactackle';
 
 import {
@@ -35,54 +36,104 @@ import {
     RouteNewButton
 } from '../components/RoutesList/RoutesList';
 
+import { List } from 'immutable';
+
+import history from '../history';
+
 class StructureRoute extends Component {
     constructor(props) {
         super(props);
+
+        this.state = {
+            selectedRouteId: props.routes.size > 0 ? props.routes.get(0).id : null
+        };
 
         this._renderRouteList = this._renderRouteList.bind(this);
         this._renderRouteCard = this._renderRouteCard.bind(this);
     }
 
-    _renderRouteList(routes, isRoot) {
+    _handleRouteSelect(route) {
+        this.setState({
+            selectedRouteId: route.id
+        });
+    }
+
+    _handleRouteGo(route) {
+        history.push(`/${this.props.projectName}/design/${route.id}`);
+    }
+
+    _handleNewRoutePress(indexes) {
+
+    }
+
+    _renderRouteList(parentRoute, routes, indexes) {
+        const routeCards = routes
+            ? routes.map((route, idx) => this._renderRouteCard(route, indexes.push(idx)))
+            : null;
+
+        let button = null;
+
+        const needButton = parentRoute === null || (
+            !parentRoute.isIndex &&
+            parentRoute.id === this.state.selectedRouteId
+        );
+
+        if (needButton) {
+            // TODO: Get text from i18n
+            button = (
+                <RouteNewButton
+                    text={parentRoute ? 'New route' : 'New root route'}
+                    onPress={this._handleNewRoutePress.bind(this, indexes)}
+                />
+            );
+        }
+
         return (
             <RoutesList>
-                {routes.map(this._renderRouteCard)}
+                {routeCards}
+                {button}
             </RoutesList>
         );
     }
 
-    _renderRouteCard(route) {
-        if (route.children.size === 0) {
-            return (
-                <RouteCard
-                    key={route.id}
-                    title={route.title || route.path}
-                    subtitle={route.path}
-                />
-            );
-        }
-        else {
-            return (
-                <RouteCard
-                    key={route.id}
-                    title={route.title || route.path}
-                    subtitle={route.path}
-                >
-                    {this._renderRouteList(route.children, false)}
-                </RouteCard>
-            );
-        }
+    _renderRouteCard(route, indexes) {
+        const isSelected = this.state.selectedRouteId === route.id;
+
+        const children = route.children.size > 0
+            ? this._renderRouteList(route, route.children, indexes)
+            : isSelected
+                ? this._renderRouteList(route, null, indexes)
+                : null;
+
+        const title = route.title || (route.isIndex ? 'Index' : route.path),
+            subtitle = route.isIndex ? '' : route.path;
+
+        return (
+            <RouteCard
+                key={route.id}
+                title={title}
+                subtitle={subtitle}
+                home={route.isIndex}
+                focused={isSelected}
+                onFocus={this._handleRouteSelect.bind(this, route)}
+                onGo={this._handleRouteGo.bind(this, route)}
+            >
+                {children}
+            </RouteCard>
+        );
     }
 
     render() {
+        const routesList = this._renderRouteList(null, this.props.routes, List());
+
         return (
             <Desktop toolGroups={toolGroups}>
-                <Panel headerFixed={true} maxHeight="initial">
+                <Panel headerFixed maxHeight="initial">
                     <PanelContent>
-                        <Container boxed>
+                        <Container>
                             <Row>
                                 <Column>
-                                    {this._renderRouteList(this.props.routes, true)}
+                                    {routesList}
                                 </Column>
                             </Row>
                         </Container>
@@ -98,6 +149,8 @@ StructureRoute.propTypes = {
         PropTypes.instanceOf(ProjectRouteRecord)
     ),
 
+    projectName: PropTypes.string,
+
     onCreateRoute: PropTypes.func,
     onDeleteRoute: PropTypes.func,
     onRenameRoute: PropTypes.func
@@ -106,7 +159,8 @@ StructureRoute.propTypes = {
 StructureRoute.displayName = 'StructureRoute';
 
 const mapStateToProps = state => ({
-    routes: state.project.data.routes
+    routes: state.project.data.routes,
+    projectName: state.project.projectName
 });
 
 const mapDispatchToProps = dispatch => ({

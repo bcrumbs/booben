@@ -73,19 +73,6 @@ export default class Playground extends React.Component {
 
                 <Desktop toolGroups={toolGroups}>
 	                <Panel headerFixed={true} maxHeight="initial">
-		                <Header>
-			                <HeaderRegion alignY="center">
-				                <HeaderTitle>Project Structure</HeaderTitle>
-			                </HeaderRegion>
-
-			                <HeaderRegion region="main" size='blank'>
-				                <Tabs colorMode="light">
-					                <Tab text="Scheme"/>
-					                <Tab text="Functions"/>
-					                <Tab text="Mutations"/>
-				                </Tabs>
-			                </HeaderRegion>
-		                </Header>
 
 		                <PanelContent>
 			                <Container>

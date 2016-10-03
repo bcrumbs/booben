@@ -2,19 +2,19 @@
 
 /**
  *
- * @param {string} path
+ * @param {Object} route
  * @param {string} [prefix]
  * @return {string}
  */
-const getRoutePrefix = (path, prefix) => {
+const getRoutePrefix = (route, prefix) => {
     if (prefix) {
         if (prefix == '/') {
-            return `${prefix}${path}`;
+            return `/${route.path}`;
         } else {
-            return `${prefix}/${path}`;
+            return `${prefix}/${route.path}`;
         }
     } else {
-        return path;
+        return route.path;
     }
 };
 
@@ -25,7 +25,7 @@ const getRoutePrefix = (path, prefix) => {
  */
 const getRoute = (route, prefix) => ({
     id: route.id,
-    path: getRoutePrefix(route.path, prefix)
+    path: getRoutePrefix(route, prefix)
 });
 
 /**
@@ -39,10 +39,11 @@ export const getRoutes = (routes, prefix) => {
     const ret = [];
 
     routes.forEach(route => {
+        if (route.isIndex) return;
         ret.push(getRoute(route, prefix));
 
         if (route.children)
-            ret.push(...getRoutes(route.children, getRoutePrefix(route.path, prefix)));
+            ret.push(...getRoutes(route.children, getRoutePrefix(route, prefix)));
     });
 
     return ret;
