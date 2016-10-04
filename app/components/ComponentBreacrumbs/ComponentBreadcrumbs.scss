@@ -1,0 +1,92 @@
+@charset "UTF-8";
+@import 'variables';
+
+@include exports(component-breadcrumbs) {
+	// =================================================================================================================
+	// Base
+	// =================================================================================================================
+	.has-component-breadcrumbs {
+		position: relative;
+	}
+
+	.component-breadcrumbs {
+		display: flex;
+		align-items: stretch;
+		flex-wrap: wrap;
+
+		position: absolute;
+		top: 0;
+		left: 0;
+		bottom: 0;
+		right: 0;
+		max-width: 100%;
+		z-index: map-get($zindex, overlay);
+
+		border: $cbreadcrumb-border-thickness $cbreadcrumb-border-style $cbreadcrumb-border-color;
+
+		&.component-breadcrumbs-on {
+			opacity: 1;
+			pointer-events: initial;
+		}
+
+		&.component-breadcrumbs-off {
+			opacity: 0;
+			pointer-events: none;
+		}
+	}
+
+	// Breadcrumb Item
+	.component-breadcrumb-item {
+		display: block;
+	}
+
+	.component-breadcrumb-item-text {
+		font-size: $cbreadcrumb-font-size;
+		line-height: $cbreadcrumb-line-height;
+		padding: $cbreadcrumb-item-pad-y $cbreadcrumb-item-pad-x;
+		background-color: $cbreadcrumb-bg-color;
+		color: $cbreadcrumb-color;
+		cursor: $cbreadcrumb-cursor;
+
+		@include user-select();
+
+		.component-breadcrumb-item.is-focused & {
+			background-color: $cbreadcrumb-focus-bg-color;
+			color: $cbreadcrumb-focus-color;
+		}
+
+		.component-breadcrumb-item.is-disabled & {
+			background-color: $cbreadcrumb-disabled-bg-color;
+			color: $cbreadcrumb-disabled-color;
+
+			cursor: $cbreadcrumb-disabled-cursor;
+		}
+	}
+
+	// Separator
+	.component-breadcrumbs-separator .component-breadcrumb-item-text {
+		background-color: $cbreadcrumb-separator-bg-color;
+	}
+
+	// Placeholder
+	.component-breadcrumb-placeholder {
+		opacity: 0;
+		pointer-events: none;
+		position: absolute;
+
+		&,
+		.component-placeholder {
+			min-height: $cbreadcrumb-item-min-height;
+			cursor: $cursor-default;
+		}
+
+		.component-breadcrumb-item.is-visible & {
+			opacity: 1;
+			pointer-events: initial;
+			position: relative;
+			min-width: $cbreadcrumb-placeholder-min-width;
+		}
+	}
+
+
+}

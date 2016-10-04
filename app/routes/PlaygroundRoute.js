@@ -36,6 +36,11 @@ import {
 	RouteNewButton
 } from '../components/RoutesList/RoutesList';
 
+import {
+	ComponentBreadcrumbs,
+	ComponentBreadcrumbItem
+} from '../components/ComponentBreacrumbs/ComponentBreadcrumbs';
+
 import { Desktop } from '../containers/Desktop/Desktop';
 
 import toolGroups from '../tools/playground';
@@ -90,6 +95,16 @@ export default class Playground extends React.Component {
 												                    <RouteCard title="Route 3" subtitle="route3">
 													                    <RoutesList>
 														                    <RouteCard title="Route 4" subtitle="route4" />
+
+														                    <ComponentBreadcrumbs>
+																				<ComponentBreadcrumbItem placeholder/>
+															                    <ComponentBreadcrumbItem text="Routes List"/>
+															                    <ComponentBreadcrumbItem separator/>
+																				<ComponentBreadcrumbItem text="Route Card" disabled/>
+																				<ComponentBreadcrumbItem separator/>
+																				<ComponentBreadcrumbItem text="Routes List" />
+														                    </ComponentBreadcrumbs>
+
 													                    </RoutesList>
 												                    </RouteCard>
 												                    <RouteNewButton />

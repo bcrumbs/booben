@@ -53,14 +53,14 @@ export const BlockContentTitle = props => {
         );
     }
 
+	const disabled = props.isEditable ? 'disabled' : '';
     const title = (
         <div className={titleClassName}>
-            <span
+            <input
                 className={`${prefix}-title`}
-                contentEditable={props.isEditable}
-            >
-                {props.title}
-            </span>
+                value={props.title}
+                disabled={disabled}
+            />
         </div>
     );
 
