@@ -7,7 +7,7 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 // The real components.js will be generated during build process
 import components from '../components.js';
 
-import { componentsMap } from '../utils';
+import { componentsMap, workspaceMap } from '../utils';
 
 const pseudoComponents = new Set([
     'Text',
@@ -24,17 +24,6 @@ class Builder extends Component {
         this._getComponentFromMeta = this._getComponentFromMeta.bind(this);
     }
 
-    _getRootProps() {
-        const ret = {};
-
-        if(!this.rootRender) {
-            ret.path = this.props.path;
-            this.rootRender = true;
-        }
-
-        return ret;
-    }
-
     _renderPseudoComponent(component) {
         if (component.name === 'Outlet') {
             return this.props.children;
@@ -47,6 +36,11 @@ class Builder extends Component {
 
     _getComponentFromMeta(component = null, componentIndex = []) {
         if (!component) return null;
+
+        if(!this.rootRender) {
+            workspaceMap.set(this.props.path, component.uid);
+            this.rootRender = true;
+        }
 
         if (isPseudoComponent(component))
             return this._renderPseudoComponent(component);
@@ -70,7 +64,6 @@ class Builder extends Component {
                     key={component.uid}
                     uid={component.uid}
                     where={[...baseIndex]}
-                    {...this._getRootProps()}
                     {...getProps(component.props)}
                 >
                     { component.children.map((_component, index) => 
@@ -85,7 +78,6 @@ class Builder extends Component {
                     key={component.uid}
                     uid={component.uid}
                     where={[...baseIndex]}
-                    {...this._getRootProps()}
                     {...getProps(component.props)}
                 />
             );

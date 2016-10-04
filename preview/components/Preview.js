@@ -10,7 +10,7 @@ import { List, Set } from 'immutable';
 
 import Builder from './Builder';
 
-import { domElementsMap, componentsMap } from '../utils';
+import { domElementsMap, componentsMap, workspaceMap } from '../utils';
 import { getRoutePrefix } from '../../app/utils';
 
 import {
@@ -90,7 +90,8 @@ class Preview extends Component {
         this.domOverlay = null;
         this.dndParams = {};
         this.dndFlag = false;
-        this.workspace = null;
+        this.animationFrame = null;
+        this.needRAF = true;
 
         this._handleMouseEvent = this._handleMouseEvent.bind(this);
         this._handleResize = this._handleResize.bind(this);
@@ -103,8 +104,7 @@ class Preview extends Component {
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
         this.domOverlay = this.props.domOverlay;
-        this.animationFrame = null;
-        this.needRAF = true;
+        this.workspace = workspaceMap.get(this.props.path);
 
         if (this.props.interactive) {
             mouseEvents.forEach(e => {
@@ -147,11 +147,10 @@ class Preview extends Component {
 
     _updateWorkspace() {
         const builderWS = getChild(this['_reactInternalInstance'],
-                item => item._currentElement.props.path == this.props.path);
+            item => item._currentElement.props.uid == this.workspace);
 
         if(!builderWS)  return;
 
-        this.workspace = builderWS._renderedComponent._currentElement.props.uid;
         this.props.setWorkspace(this.workspace);
 
         domElementsMap.set(this.workspace, builderWS._renderedComponent._hostNode);
@@ -334,10 +333,8 @@ class Preview extends Component {
     }
 
     _createRoute(route, index, prefix) {
-        const routeIndex = Array.isArray(index) ? index : [index];
-
-        debugger;
-        const path = getRoutePrefix(route, prefix); 
+        const routeIndex = Array.isArray(index) ? index : [index],
+            path = getRoutePrefix(route, prefix); 
 
         const ret = {
             path: route.path,
