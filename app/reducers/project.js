@@ -18,6 +18,9 @@ import {
     PROJECT_ROUTE_CREATE,
     PROJECT_ROUTE_DELETE,
     PROJECT_ROUTE_RENAME,
+    PROJECT_ROUTE_UPDATE_PATH,
+    PROJECT_ROUTE_UPDATE_DESCRIPTION,
+    PROJECT_ROUTE_UPDATE_IS_INDEX,
     PROJECT_ROUTE_COMPONENT_UPDATE
 } from '../actions/project';
 
@@ -84,6 +87,11 @@ const projectToImmutable = input => new Project({
     routes: List(input.routes.map(projectRouteToImmutable))
 });
 
+const updateRouteField = (state, where, idx, field, newValue) => state.setIn(
+    ['data', 'routes'].concat(...where.map(idx => [idx, 'children']), idx, field),
+    newValue
+);
+
 const ProjectState = Record({
     projectName: '',
     loadState: NOT_LOADED,
@@ -141,14 +149,39 @@ export default (state = new ProjectState(), action) => {
             );
 
         case PROJECT_ROUTE_RENAME:
-            return state.setIn(
-                ['data', 'routes'].concat(
-                    ...action.where.map(idx => [idx, 'children']),
-                    action.idx,
-                    'title'
-                ),
-
+            return updateRouteField(
+                state,
+                action.where,
+                action.idx,
+                'title',
                 action.newTitle
+            );
+
+        case PROJECT_ROUTE_UPDATE_PATH:
+            return updateRouteField(
+                state,
+                action.where,
+                action.idx,
+                'path',
+                action.newPath
+            );
+
+        case PROJECT_ROUTE_UPDATE_DESCRIPTION:
+            return updateRouteField(
+                state,
+                action.where,
+                action.idx,
+                'description',
+                action.newDescription
+            );
+
+        case PROJECT_ROUTE_UPDATE_IS_INDEX:
+            return updateRouteField(
+                state,
+                action.where,
+                action.idx,
+                'isIndex',
+                action.newIsIndex
             );
 
         case PROJECT_ROUTE_COMPONENT_UPDATE:

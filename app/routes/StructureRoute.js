@@ -10,10 +10,12 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
 import { Desktop } from '../containers/Desktop/Desktop';
-
-import toolGroups from '../tools/structure';
+import { RouteEditor } from '../containers/RouteEditor/RouteEditor';
 
 import ProjectRouteRecord from '../models/ProjectRoute';
+import ToolRecord from '../models/Tool';
+import ToolSectionRecord from '../models/ToolSection';
+import ButtonRecord from '../models/Button';
 
 import {
     createRoute,
@@ -21,13 +23,14 @@ import {
     renameRoute
 } from '../actions/project';
 
+import { selectRoute } from '../actions/structure';
+
 import {
     Panel,
     PanelContent,
     Container,
     Row,
-    Column,
-    Dialog
+    Column
 } from '@reactackle/reactackle';
 
 import {
@@ -40,22 +43,23 @@ import { List } from 'immutable';
 
 import history from '../history';
 
+import { findRouteById } from '../utils';
+
 class StructureRoute extends Component {
     constructor(props) {
         super(props);
-
-        this.state = {
-            selectedRouteId: props.routes.size > 0 ? props.routes.get(0).id : null
-        };
 
         this._renderRouteList = this._renderRouteList.bind(this);
         this._renderRouteCard = this._renderRouteCard.bind(this);
     }
 
-    _handleRouteSelect(route) {
-        this.setState({
-            selectedRouteId: route.id
-        });
+    componentDidMount() {
+        if (this.props.selectedRouteId === -1 && this.props.routes.size > 0)
+            this._handleRouteSelect(this.props.routes.get(0), List([0]));
+    }
+
+    _handleRouteSelect(route, indexes) {
+        this.props.onSelectRoute(route, indexes);
     }
 
     _handleRouteGo(route) {
@@ -73,9 +77,11 @@ class StructureRoute extends Component {
 
         let button = null;
 
+        //noinspection JSValidateTypes
         const needButton = parentRoute === null || (
             !parentRoute.isIndex &&
-            parentRoute.id === this.state.selectedRouteId
+            this.props.selectedRouteId !== -1 &&
+            parentRoute.id === this.props.selectedRouteId
         );
 
         if (needButton) {
@@ -97,7 +103,7 @@ class StructureRoute extends Component {
     }
 
     _renderRouteCard(route, indexes) {
-        const isSelected = this.state.selectedRouteId === route.id;
+        const isSelected = this.props.selectedRouteId === route.id;
 
         const children = route.children.size > 0
             ? this._renderRouteList(route, route.children, indexes)
@@ -115,7 +121,7 @@ class StructureRoute extends Component {
                 subtitle={subtitle}
                 home={route.isIndex}
                 focused={isSelected}
-                onFocus={this._handleRouteSelect.bind(this, route)}
+                onFocus={this._handleRouteSelect.bind(this, route, indexes)}
                 onGo={this._handleRouteGo.bind(this, route)}
             >
                 {children}
@@ -124,6 +130,39 @@ class StructureRoute extends Component {
     }
 
     render() {
+        //noinspection JSValidateTypes
+        const selectedRoute = this.props.selectedRouteId !== -1
+            ? findRouteById(this.props.routes, this.props.selectedRouteId)
+            : null;
+
+        const toolGroups = List([
+            List([
+                new ToolRecord({
+                    id: 'routeEditor',
+                    icon: 'random',
+                    name: 'Route editor',
+                    title: selectedRoute ? selectedRoute.title : '',
+                    titleEditable: true,
+                    subtitle: selectedRoute ? selectedRoute.path : '',
+                    undockable: true,
+                    closable: true,
+                    sections: List([
+                        new ToolSectionRecord({
+                            component: RouteEditor
+                        })
+                    ]),
+                    mainButtons: List(),
+                    secondaryButtons: List([
+                        new ButtonRecord({
+                            icon: 'trash'
+                        })
+                    ]),
+                    windowMaxHeight: 0,
+                    windowMinWidth: 360
+                })
+            ])
+        ]);
+
         const routesList = this._renderRouteList(null, this.props.routes, List());
 
         return (
@@ -150,7 +189,9 @@ StructureRoute.propTypes = {
     ),
 
     projectName: PropTypes.string,
+    selectedRouteId: PropTypes.number,
 
+    onSelectRoute: PropTypes.func,
     onCreateRoute: PropTypes.func,
     onDeleteRoute: PropTypes.func,
     onRenameRoute: PropTypes.func
@@ -160,10 +201,12 @@ StructureRoute.displayName = 'StructureRoute';
 
 const mapStateToProps = state => ({
     routes: state.project.data.routes,
-    projectName: state.project.projectName
+    projectName: state.project.projectName,
+    selectedRouteId: state.structure.selectedRouteId
 });
 
 const mapDispatchToProps = dispatch => ({
+    onSelectRoute: (route, indexes) => void dispatch(selectRoute(route.id, indexes)),
     onCreateRoute: (where, path, title) => void dispatch(createRoute(where, path, title)),
     onDeleteRoute: (where, idx) => void dispatch(deleteRoute(where, idx)),
     onRenameRoute: (where, idx, newTitle) => void dispatch(renameRoute(where, idx, newTitle))

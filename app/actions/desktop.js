@@ -6,9 +6,9 @@
 
 export const DESKTOP_SET_TOOLS = 'DESKTOP_SET_TOOLS';
 
-export const setTools = newToolGroups => ({
+export const setTools = toolIds => ({
     type: DESKTOP_SET_TOOLS,
-    newToolGroups
+    toolIds
 });
 
 export const DESKTOP_COLLAPSE_TOOLS_PANEL = 'DESKTOP_COLLAPSE_TOOLS_PANEL';

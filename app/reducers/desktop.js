@@ -62,16 +62,11 @@ const changeToolStateProp = (state, toolId, prop, value) => {
 export default (state = new DesktopState(), action) => {
     switch (action.type) {
         case DESKTOP_SET_TOOLS:
-            const newToolStates = {},
-                toolIds = [];
+            const newToolStates = {};
 
-            action.newToolGroups.forEach(tools => {
-                tools.forEach(tool => {
-                    toolIds.push(tool.id);
-
-                    if (!state.toolStates.has(tool.id))
-                        newToolStates[tool.id] = new ToolStateRecord()
-                });
+            action.toolIds.forEach(toolId => {
+                if (!state.toolStates.has(toolId))
+                    newToolStates[toolId] = new ToolStateRecord();
             });
 
             const newToolStatesMap = Map(newToolStates);
@@ -82,10 +77,10 @@ export default (state = new DesktopState(), action) => {
 
             const needToChangeActiveTool =
                 state.activeToolId === null ||
-                toolIds.indexOf(state.activeToolId) === -1;
+                !action.toolIds.includes(state.activeToolId);
 
             if (needToChangeActiveTool) {
-                return selectTool(state, toolIds[0] || null);
+                return selectTool(state, action.toolIds.get(0) || null);
             }
             else {
                 return state;

@@ -115,7 +115,7 @@ export const PROJECT_ROUTE_RENAME = 'PROJECT_ROUTE_RENAME';
 
 /**
  *
- * @param {number[]} where - indexes of routes in path
+ * @param {number[]|Immutable.List<number>} where - indexes of routes in path
  * @param {number} idx - index of route to rename
  * @param {string} newTitle
  * @returns {Object}
@@ -125,6 +125,66 @@ export const renameRoute = (where, idx, newTitle) => ({
     where,
     idx,
     newTitle
+});
+
+/**
+ *
+ * @type {string}
+ */
+export const PROJECT_ROUTE_UPDATE_PATH = 'PROJECT_ROUTE_UPDATE_PATH';
+
+/**
+ *
+ * @param {number[]|Immutable.List<number>} where
+ * @param {number} idx
+ * @param {string} newPath
+ * @returns {Object}
+ */
+export const updateRoutePath = (where, idx, newPath) => ({
+    type: PROJECT_ROUTE_UPDATE_PATH,
+    where,
+    idx,
+    newPath
+});
+
+/**
+ *
+ * @type {string}
+ */
+export const PROJECT_ROUTE_UPDATE_DESCRIPTION = 'PROJECT_ROUTE_UPDATE_DESCRIPTION';
+
+/**
+ *
+ * @param {number[]|Immutable.List<number>} where
+ * @param {number} idx
+ * @param {string} newDescription
+ * @returns {Object}
+ */
+export const updateRouteDescription = (where, idx, newDescription) => ({
+    type: PROJECT_ROUTE_UPDATE_DESCRIPTION,
+    where,
+    idx,
+    newDescription
+});
+
+/**
+ *
+ * @type {string}
+ */
+export const PROJECT_ROUTE_UPDATE_IS_INDEX = 'PROJECT_ROUTE_UPDATE_IS_INDEX';
+
+/**
+ *
+ * @param {number[]|Immutable.List<number>} where
+ * @param {number} idx
+ * @param {boolean} newIsIndex
+ * @returns {Object}
+ */
+export const updateRouteIsIndex = (where, idx, newIsIndex) => ({
+    type: PROJECT_ROUTE_UPDATE_IS_INDEX,
+    where,
+    idx,
+    newIsIndex
 });
 
 /**

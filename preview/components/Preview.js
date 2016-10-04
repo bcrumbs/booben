@@ -90,6 +90,7 @@ class Preview extends Component {
         this.dndFlag = false;
         this.animationFrame = null;
         this.needRAF = true;
+        this.currentPath = null;
 
         this._handleMouseEvent = this._handleMouseEvent.bind(this);
         this._handleResize = this._handleResize.bind(this);
@@ -97,12 +98,13 @@ class Preview extends Component {
         this._handleStartDrag = this._handleStartDrag.bind(this);
         this._handleStopDrag = this._handleStopDrag.bind(this);
         this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
+        this._handlerChangeRoute = this._handlerChangeRoute.bind(this);
     }
 
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
         this.domOverlay = this.props.domOverlay;
-        this.workspace = workspaceMap.get(this.props.path);
+        this.workspace = workspaceMap.get(this.currentPath);
 
         if (this.props.interactive) {
             mouseEvents.forEach(e => {
@@ -111,12 +113,6 @@ class Preview extends Component {
 
             window.addEventListener('resize', this._handleResize, false);
 
-            this._updateWorkspace();
-        }
-    }
-
-    componentDidUpdate(prevProps) {
-        if(prevProps.path != this.props.path) {
             this._updateWorkspace();
         }
     }
@@ -147,7 +143,7 @@ class Preview extends Component {
         const builderWS = getChild(this['_reactInternalInstance'],
             item => item._currentElement.props.uid == this.workspace);
 
-        if(!builderWS)  return;
+        if(!builderWS || !builderWS._renderedComponent) return;
 
         this.props.setWorkspace(this.workspace);
 
@@ -199,7 +195,7 @@ class Preview extends Component {
             el = componentsMap.get(uid);
 
         for(var i in workspace.where) {
-            if(workspace.where[i] == el.where[i]) return false;
+            if(workspace.where[i] != el.where[i]) return false;
         }
 
         return true;
@@ -220,8 +216,6 @@ class Preview extends Component {
         this.domNode.addEventListener('mousemove', this._handleDrag);
         this.domNode.addEventListener('mouseup', this._handleStopDrag);
         window.top.addEventListener('mouseup', this._handleStopDrag);
-
-        this.props.showWorkspace();
     }
 
     _handleStopDrag(event) {
@@ -241,9 +235,11 @@ class Preview extends Component {
         if (riiKey && this.dndParams) {
             const owner = getOwner(event.target[riiKey]._currentElement, item => item._currentElement.props.uid);
 
-            if(owner && owner._currentElement.props.uid) {
-                this._inWorkspace(owner._currentElement.props.uid);
-
+            if(
+                owner &&
+                owner._currentElement.props.uid &&
+                this._inWorkspace(owner._currentElement.props.uid)
+            ) {
                 this.props.componentUpdateRoute(
                     this.dndParams.where,
                     componentsMap.get(owner._currentElement.props.uid).where
@@ -282,6 +278,8 @@ class Preview extends Component {
 
             this.domOverlay.appendChild(el);
             this.dndFlag = true;
+
+            this.props.showWorkspace();
         }
 
         this.dndParams.pageX = event.pageX + 10;
@@ -314,6 +312,7 @@ class Preview extends Component {
             const type = event.type,
                 uid = owner._currentElement.props.uid;
 
+            if(!this._inWorkspace(uid)) return;
 
             if( type == 'click' ) {
                 if(!event.ctrlKey) return;
@@ -345,12 +344,17 @@ class Preview extends Component {
         }
     }
 
+    _handlerChangeRoute(params) {
+        this.currentPath = params.location.pathname;
+    }
+
+    // TODO: Replace prefix with something unique
     _createRoute(route, index, prefix) {
         const routeIndex = Array.isArray(index) ? index : [index],
             path = getRoutePrefix(route, prefix); 
 
         const ret = {
-            path: route.path,
+            onEnter: this._handlerChangeRoute,
             component: ({ children }) => <Builder
                 component={this.props.routes.getIn(routeIndex).component}
                 children={children}
@@ -359,14 +363,32 @@ class Preview extends Component {
             />
         };
 
-        if (route.children && route.children.size) {
-            ret.childRoutes = route.children
+        if (!route.isIndex) ret.path = route.path;
+
+        if (!route.isIndex && route.children.size > 0) {
+            const indexRouteIdx = route.children.findKey(route => route.isIndex),
+                haveIndexRoute = typeof indexRouteIdx === 'undefined';
+
+            const regularChildren = haveIndexRoute
+                ? route.children
+                : route.children.delete(indexRouteIdx);
+
+            ret.childRoutes = regularChildren
                 .map((child, routeIndex) => this._createRoute(
                     child,
                     [].concat(index, 'children', routeIndex),
                     path
                 ))
                 .toArray();
+
+            if (haveIndexRoute) {
+                const indexRoute = route.children.get(indexRouteIdx);
+                ret.indexRoute = this._createRoute(
+                    indexRoute,
+                    [].concat(index, 'children', indexRouteIdx)
+                    // TODO: Pass something instead of prefix here
+                )
+            }
         }
 
         return ret;

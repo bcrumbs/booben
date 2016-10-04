@@ -25,10 +25,15 @@ import history from './history';
 import { setTools } from './actions/desktop';
 
 import playgroundRouteTools from './tools/playground';
-import structureRouteTools from './tools/structure';
-import designRouteTools from './tools/design';
 
-const setToolsOnEnter = tools => () => void store.dispatch(setTools(tools));
+import { List } from 'immutable';
+
+const setToolsOnEnter = toolIds => () => void store.dispatch(setTools(toolIds));
+
+const playgroundToolIds = [];
+playgroundRouteTools.forEach(group =>
+    void group.forEach(tool =>
+        void playgroundToolIds.push(tool.id)));
 
 window.addEventListener('DOMContentLoaded', () => {
     ReactDOM.render(
@@ -37,7 +42,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 <Route
                     path="/playground"
                     component={PlaygroundRoute}
-                    onEnter={setToolsOnEnter(playgroundRouteTools)}
+                    onEnter={setToolsOnEnter(List(playgroundToolIds))}
                 />
                 
                 <Route path="/:projectName" component={AppRoute}>
@@ -47,13 +52,13 @@ window.addEventListener('DOMContentLoaded', () => {
                         <Route
                             path="structure"
                             component={StructureRoute}
-                            onEnter={setToolsOnEnter(structureRouteTools)}
+                            onEnter={setToolsOnEnter(List(['routeEditor']))}
                         />
 
                         <Route
                             path="design/:routeId"
                             component={DesignRoute}
-                            onEnter={setToolsOnEnter(designRouteTools)}
+                            onEnter={setToolsOnEnter(List(['componentsLibrary']))}
                         />
                     </Route>
                     <Route path="preview" component={PreviewRoute}/>

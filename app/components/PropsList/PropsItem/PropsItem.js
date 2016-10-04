@@ -1,3 +1,5 @@
+'use strict';
+
 import React, { PropTypes } from 'react';
 
 import {
@@ -26,12 +28,13 @@ import {PropLinkButton} from './PropLinkButton/PropLinkButton';
 import {PropConstructor} from './PropConstructor/PropConstructor';
 import {PropArrayNewRow} from './PropItemArray/PropArrayNewRow/PropArrayNewRow';
 
+import { noop } from '../../../utils/misc';
+
 export const PropsItem = props => {
     let className = 'prop-item';
+	if (props.type) className += ` prop-type-${props.type}`;
 
-	if (props.type) className += ' ' + 'prop-type-' + props.type;
-
-	let actions = false;
+	let actions = null;
 	if (props.linkable) {
 		actions = <PropLinkButton />;
 	}
@@ -41,25 +44,41 @@ export const PropsItem = props => {
 
 	let content = false;
 	if (props.type === 'input') {
-		content =
-			<Input label={props.label} dense/>
+		content = (
+			<Input
+                dense
+                label={props.label}
+                value={props.value}
+                disabled={props.disabled}
+                onChange={props.onChange}
+            />
+        );
 	}
-
 	else if (props.type === 'textarea') {
-		content =
-			<Textarea label={props.label} dense/>
+		content = (
+			<Textarea
+                dense
+                label={props.label}
+                value={props.value}
+                disabled={props.disabled}
+                onChange={props.onChange}
+            />
+        );
 	}
-
+    else if (props.type === 'toggle') {
+        content = (
+            <ToggleButton
+                label={props.label}
+                checked={props.value}
+                disabled={props.disabled}
+                onCheck={props.onChange}
+            />
+        );
+    }
 	else if (props.type === 'list') {
 		content =
 			<SelectBox label={props.label} dense/>
 	}
-
-	else if (props.type === 'toggle') {
-		content =
-			<ToggleButton label={props.label}/>
-	}
-
 	else if (props.type === 'constructor') {
 		content =
 			<PropConstructor label={props.label} />
@@ -100,32 +119,44 @@ export const PropsItem = props => {
 						<PropArrayBodyCell clearing />
 					</PropArrayBodyRow>
 				</PropItemArrayBody>
-
 			</PropItemArray>
 	}
-
 
     return (
         <div className={className}>
 	        <div className="prop-item-content-box">
-	            { content }
+	            {content}
 	        </div>
 
-	        { actions }
+	        {actions}
         </div>
     );
 };
 
 PropsItem.propTypes = {
-	type:       PropTypes.oneOf(['input', 'textarea', 'list', 'constructor', 'constructor-toggle', 'array', 'toggle']),
-	label:      PropTypes.string,
-	linkable:   PropTypes.bool
+	type: PropTypes.oneOf([
+	    'input',
+        'textarea',
+        'list',
+        'constructor',
+        'constructor-toggle',
+        'array',
+        'toggle'
+    ]),
+	label: PropTypes.string,
+	linkable: PropTypes.bool,
+    value: PropTypes.any,
+    disabled: PropTypes.bool,
+    onChange: PropTypes.func
 };
 
 PropsItem.defaultProps = {
-	type:       'input',
-	label:      '',
-	linkable:   false
+	type: 'input',
+	label: '',
+	linkable: false,
+    value: null,
+    disabled: false,
+    onChange: noop
 };
 
 PropsItem.displayName = 'PropsItem';

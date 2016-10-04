@@ -48,3 +48,27 @@ export const getRoutes = (routes, prefix) => {
 
     return ret;
 };
+
+export const findRouteById = (routes, routeId) => {
+    let ret = null;
+
+    routes.forEach(route => {
+        if (route.id === routeId) {
+            ret = route;
+            return false;
+        }
+
+        ret = findRouteById(route.children, routeId);
+        if (ret !== null) return false;
+    });
+
+    return ret;
+};
+
+export const getRouteByIndexes = (routes, where, idx) => routes.getIn(
+    [].concat(...where.map(index => [index, 'children']), idx)
+);
+
+export const getRoutesByIndexes = (routes, where) => where.size > 0
+    ? routes.getIn([].concat(...where.map(index => [index, 'children'])))
+    : routes;
