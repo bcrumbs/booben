@@ -55,7 +55,7 @@ class RouteEditorComponent extends Component {
     }
 
     _handleProps(props) {
-        if (!this.props.haveSelectedRoute) return;
+        if (!props.haveSelectedRoute) return;
 
         this._where = props.selectedRouteIndexes.butLast();
         this._idx = props.selectedRouteIndexes.last();
