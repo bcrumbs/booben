@@ -90,6 +90,7 @@ class Preview extends Component {
         this.dndFlag = false;
         this.animationFrame = null;
         this.needRAF = true;
+        this.currentPath = null;
 
         this._handleMouseEvent = this._handleMouseEvent.bind(this);
         this._handleResize = this._handleResize.bind(this);
@@ -97,13 +98,13 @@ class Preview extends Component {
         this._handleStartDrag = this._handleStartDrag.bind(this);
         this._handleStopDrag = this._handleStopDrag.bind(this);
         this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
-        this._updateWorkspace = this._updateWorkspace.bind(this);
+        this._handlerChangeRoute = this._handlerChangeRoute.bind(this);
     }
 
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
         this.domOverlay = this.props.domOverlay;
-        this.workspace = workspaceMap.get(this.props.path);
+        this.workspace = workspaceMap.get(this.currentPath);
 
         if (this.props.interactive) {
             mouseEvents.forEach(e => {
@@ -343,12 +344,17 @@ class Preview extends Component {
         }
     }
 
+    _handlerChangeRoute(params) {
+        this.currentPath = params.location.pathname;
+    }
+
     _createRoute(route, index, prefix) {
         const routeIndex = Array.isArray(index) ? index : [index],
             path = getRoutePrefix(route, prefix); 
 
         const ret = {
             path: route.path,
+            onEnter: this._handlerChangeRoute,
             component: ({ children }) => <Builder
                 component={this.props.routes.getIn(routeIndex).component}
                 children={children}
