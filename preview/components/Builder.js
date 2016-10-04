@@ -20,7 +20,19 @@ class Builder extends Component {
     constructor(props) {
         super(props);
 
+        this.rootRender = false;
         this._getComponentFromMeta = this._getComponentFromMeta.bind(this);
+    }
+
+    _getRootProps() {
+        const ret = {};
+
+        if(!this.rootRender) {
+            ret.path = this.props.path;
+            this.rootRender = true;
+        }
+
+        return ret;
     }
 
     _renderPseudoComponent(component) {
@@ -58,6 +70,7 @@ class Builder extends Component {
                     key={component.uid}
                     uid={component.uid}
                     where={[...baseIndex]}
+                    {...this._getRootProps()}
                     {...getProps(component.props)}
                 >
                     { component.children.map((_component, index) => 
@@ -72,6 +85,7 @@ class Builder extends Component {
                     key={component.uid}
                     uid={component.uid}
                     where={[...baseIndex]}
+                    {...this._getRootProps()}
                     {...getProps(component.props)}
                 />
             );

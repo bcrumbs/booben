@@ -20,11 +20,12 @@ export class PreviewIFrame extends Component {
 
     componentDidMount() {
         const contentWindow = this._iframe.contentWindow,
-            { store, interactive } = this.props;
+            { path, store, interactive } = this.props;
 
         contentWindow.addEventListener('DOMContentLoaded', () => {
             if (contentWindow.JSSY) {
                 const { history } = contentWindow.JSSY.initPreview({
+                    path,
                     store,
                     interactive
                 });

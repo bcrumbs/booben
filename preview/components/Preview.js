@@ -11,14 +11,17 @@ import { List, Set } from 'immutable';
 import Builder from './Builder';
 
 import { domElementsMap, componentsMap } from '../utils';
+import { getRoutePrefix } from '../../app/utils';
 
 import {
     selectPreviewComponent,
     deselectPreviewComponent,
     highlightPreviewComponent,
     unhighlightPreviewComponent,
-    showDndPreviewComponent,
-    hideDndPreviewComponent
+    setPreviewWorkspace,
+    unsetPreviewWorkspace,
+    showPreviewWorkspace,
+    hidePreviewWorkspace
 } from '../../app/actions/preview';
 
 import {
@@ -39,6 +42,36 @@ const getOwner = (el, condition) => {
     return condition(owner) ? owner : getOwner(owner, condition);
 };
 
+/**
+ * Get child React element by condition
+ *
+ * @param  {function} el
+ * @param  {function} [condition]
+ * @return {function}
+ */
+const getChild = (el, condition) => {
+    let child = null;
+
+    if(el._renderedComponent) {
+        child = el._renderedComponent;
+        if (!child) return null;
+        if (!condition) return child;
+        return condition(child) ? child : getChild(child, condition);
+    } else if(el._renderedChildren) {
+        for(let key in el._renderedChildren) {
+            if(condition(el._renderedChildren[key])) {
+                return el._renderedChildren[key];
+            } else {
+                child = getChild(el._renderedChildren[key], condition);
+
+                if(child) return child;
+            }
+        }
+
+        return null;
+    }
+};
+
 const mouseEvents = [
     'click',
     'mouseover',
@@ -57,6 +90,7 @@ class Preview extends Component {
         this.domOverlay = null;
         this.dndParams = {};
         this.dndFlag = false;
+        this.workspace = null;
 
         this._handleMouseEvent = this._handleMouseEvent.bind(this);
         this._handleResize = this._handleResize.bind(this);
@@ -78,12 +112,20 @@ class Preview extends Component {
             });
 
             window.addEventListener('resize', this._handleResize, false);
+
+            this._updateWorkspace();
+        }
+    }
+
+    componentDidUpdate(prevProps) {
+        if(prevProps.path != this.props.path) {
+            this._updateWorkspace();
         }
     }
 
     componentWillMount() {
         this.routes = this.props.routes
-            .map((route, routeIndex) => this._createRoute(route, routeIndex))
+            .map((route, routeIndex) => this._createRoute(route, routeIndex, route.path))
             .toArray();
     }
 
@@ -101,6 +143,18 @@ class Preview extends Component {
 
     shouldComponentUpdate(nextProps) {
         return nextProps.routes !== this.props.routes;
+    }
+
+    _updateWorkspace() {
+        const builderWS = getChild(this['_reactInternalInstance'],
+                item => item._currentElement.props.path == this.props.path);
+
+        if(!builderWS)  return;
+
+        this.workspace = builderWS._renderedComponent._currentElement.props.uid;
+        this.props.setWorkspace(this.workspace);
+
+        domElementsMap.set(this.workspace, builderWS._renderedComponent._hostNode);
     }
 
     _handleResize() {}
@@ -158,12 +212,16 @@ class Preview extends Component {
         this.domNode.addEventListener('mousemove', this._handleDrag);
         this.domNode.addEventListener('mouseup', this._handleStopDrag);
         window.top.addEventListener('mouseup', this._handleStopDrag);
+
+        this.props.showWorkspace();
     }
 
     _handleStopDrag(event) {
         this.domNode.removeEventListener('mousemove', this._handleDrag);
         this.domNode.removeEventListener('mouseup', this._handleStopDrag);
         window.top.removeEventListener('mouseup', this._handleStopDrag);
+
+        this.props.hideWorkspace();
 
         if(!this.dndFlag) return;
 
@@ -275,22 +333,29 @@ class Preview extends Component {
         }
     }
 
-    _createRoute(route, index) {
+    _createRoute(route, index, prefix) {
         const routeIndex = Array.isArray(index) ? index : [index];
+
+        debugger;
+        const path = getRoutePrefix(route, prefix); 
 
         const ret = {
             path: route.path,
             component: ({ children }) => <Builder
                 component={this.props.routes.getIn(routeIndex).component}
                 children={children}
+                path={path}
                 routeIndex={routeIndex}
             />
         };
 
         if (route.children && route.children.size) {
             ret.childRoutes = route.children
-                .map((child, routeIndex) => this._createRoute(child,
-                    [].concat(index, 'children', routeIndex)))
+                .map((child, routeIndex) => this._createRoute(
+                    child,
+                    [].concat(index, 'children', routeIndex),
+                    path
+                ))
                 .toArray();
         }
 
@@ -325,8 +390,7 @@ Preview.propTypes = {
     selectComponent: PropTypes.func,
     unhighlightComponent: PropTypes.func,
     highlightComponent: PropTypes.func,
-    showDndComponent: PropTypes.func,
-    hideDndComponent: PropTypes.func
+    setWorkspace: PropTypes.func
 };
 
 Preview.defaultProps = {
@@ -338,7 +402,8 @@ Preview.defaultProps = {
     deselectComponent: /* istanbul ignore next */ () => {},
     selectComponent: /* istanbul ignore next */ () => {},
     highlightComponent: /* istanbul ignore next */ () => {},
-    unhighlightComponent: /* istanbul ignore next */ () => {}
+    unhighlightComponent: /* istanbul ignore next */ () => {},
+    setWorkspace: /* istanbul ignore next */ () => {}
 };
 
 Preview.displayName = 'Preview';
@@ -354,7 +419,11 @@ const mapDispatchToProps = dispatch => ({
     selectComponent: selected => void dispatch(selectPreviewComponent(selected)),
     highlightComponent: highlighted => void dispatch(highlightPreviewComponent(highlighted)),
     unhighlightComponent: highlighted => void dispatch(unhighlightPreviewComponent(highlighted)),
-    componentUpdateRoute: (source, target) => void dispatch(componentUpdateRoute(source, target))
+    componentUpdateRoute: (source, target) => void dispatch(componentUpdateRoute(source, target)),
+    setWorkspace: component => void dispatch(setPreviewWorkspace(component)),
+    unsetWorkspace: component => void dispatch(unsetPreviewWorkspace(component)),
+    showWorkspace: () => void dispatch(showPreviewWorkspace()),
+    hideWorkspace: () => void dispatch(hidePreviewWorkspace())
 });
 
 export default connect(
