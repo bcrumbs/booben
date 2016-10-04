@@ -97,6 +97,7 @@ class Preview extends Component {
         this._handleStartDrag = this._handleStartDrag.bind(this);
         this._handleStopDrag = this._handleStopDrag.bind(this);
         this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
+        this._updateWorkspace = this._updateWorkspace.bind(this);
     }
 
     componentDidMount() {
@@ -111,12 +112,6 @@ class Preview extends Component {
 
             window.addEventListener('resize', this._handleResize, false);
 
-            this._updateWorkspace();
-        }
-    }
-
-    componentDidUpdate(prevProps) {
-        if(prevProps.path != this.props.path) {
             this._updateWorkspace();
         }
     }
@@ -147,7 +142,7 @@ class Preview extends Component {
         const builderWS = getChild(this['_reactInternalInstance'],
             item => item._currentElement.props.uid == this.workspace);
 
-        if(!builderWS)  return;
+        if(!builderWS || !builderWS._renderedComponent) return;
 
         this.props.setWorkspace(this.workspace);
 
@@ -199,7 +194,7 @@ class Preview extends Component {
             el = componentsMap.get(uid);
 
         for(var i in workspace.where) {
-            if(workspace.where[i] == el.where[i]) return false;
+            if(workspace.where[i] != el.where[i]) return false;
         }
 
         return true;
@@ -220,8 +215,6 @@ class Preview extends Component {
         this.domNode.addEventListener('mousemove', this._handleDrag);
         this.domNode.addEventListener('mouseup', this._handleStopDrag);
         window.top.addEventListener('mouseup', this._handleStopDrag);
-
-        this.props.showWorkspace();
     }
 
     _handleStopDrag(event) {
@@ -241,9 +234,11 @@ class Preview extends Component {
         if (riiKey && this.dndParams) {
             const owner = getOwner(event.target[riiKey]._currentElement, item => item._currentElement.props.uid);
 
-            if(owner && owner._currentElement.props.uid) {
-                this._inWorkspace(owner._currentElement.props.uid);
-
+            if(
+                owner &&
+                owner._currentElement.props.uid &&
+                this._inWorkspace(owner._currentElement.props.uid)
+            ) {
                 this.props.componentUpdateRoute(
                     this.dndParams.where,
                     componentsMap.get(owner._currentElement.props.uid).where
@@ -282,6 +277,8 @@ class Preview extends Component {
 
             this.domOverlay.appendChild(el);
             this.dndFlag = true;
+
+            this.props.showWorkspace();
         }
 
         this.dndParams.pageX = event.pageX + 10;
@@ -314,6 +311,7 @@ class Preview extends Component {
             const type = event.type,
                 uid = owner._currentElement.props.uid;
 
+            if(!this._inWorkspace(uid)) return;
 
             if( type == 'click' ) {
                 if(!event.ctrlKey) return;

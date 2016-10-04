@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import { componentsMap, domElementsMap } from '../utils';
 
 class Overlay extends Component {
-    _getItems(uids, color) {
+    _getItems(uids, color, zIndex) {
         if(!uids.size) return;
 
         return uids.map((uid) => {
@@ -36,7 +36,7 @@ class Overlay extends Component {
                     height: '1px',
                     width: '1px',
                     position: 'absolute',
-                    zIndex: 1000,
+                    zIndex: zIndex || 1000,
                     left: left,
                     top: top
                 },
