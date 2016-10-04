@@ -11,11 +11,13 @@ import project from './project';
 import preview from './preview';
 import desktop from './desktop';
 import componentsLibrary from './components-library';
+import structure from './structure';
 
 export default combineReducers({
     app,
     project,
     preview,
     desktop,
-    componentsLibrary
+    componentsLibrary,
+    structure
 });

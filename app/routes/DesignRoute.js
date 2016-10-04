@@ -9,16 +9,39 @@ import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 
 import { Desktop } from '../containers/Desktop/Desktop';
+import { ComponentsLibrary } from '../containers/ComponentsLibrary/ComponentsLibrary';
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
+
 import store from '../store';
-
-import {
-    getRoutes
-} from '../utils';
-
-import toolGroups from '../tools/design';
+import { getRoutes } from '../utils';
 
 import ProjectRecord from '../models/Project';
+import ToolRecord from '../models/Tool';
+import ToolSectionRecord from '../models/ToolSection';
+
+import { List } from 'immutable';
+
+const toolGroups = List([
+    List([
+        new ToolRecord({
+            id: 'componentsLibrary',
+            icon: 'cubes',
+            name: 'Components Library',
+            title: 'Components Library',
+            undockable: true,
+            closable: false,
+            sections: List([
+                new ToolSectionRecord({
+                    name: '',
+                    component: ComponentsLibrary
+                })
+            ]),
+            mainButtons: List(),
+            secondaryButtons: List(),
+            windowMinWidth: 360
+        })
+    ])
+]);
 
 class DesignRoute extends Component {
     render() {

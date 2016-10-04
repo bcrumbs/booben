@@ -333,6 +333,8 @@ export class ToolWindow extends Component {
             ? activeSection.component
             : null;
 
+        const content = ContentComponent ? <ContentComponent/> : null;
+
         const mainRegion = (
             <DraggableWindowRegion>
                 <BlockContent>
@@ -346,9 +348,7 @@ export class ToolWindow extends Component {
                     />
 
                     {navArea}
-
-                    <ContentComponent />
-
+                    {content}
                     {actionsArea}
                 </BlockContent>
             </DraggableWindowRegion>
