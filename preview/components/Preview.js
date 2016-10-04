@@ -348,12 +348,12 @@ class Preview extends Component {
         this.currentPath = params.location.pathname;
     }
 
+    // TODO: Replace prefix with something unique
     _createRoute(route, index, prefix) {
         const routeIndex = Array.isArray(index) ? index : [index],
             path = getRoutePrefix(route, prefix); 
 
         const ret = {
-            path: route.path,
             onEnter: this._handlerChangeRoute,
             component: ({ children }) => <Builder
                 component={this.props.routes.getIn(routeIndex).component}
@@ -363,14 +363,32 @@ class Preview extends Component {
             />
         };
 
-        if (route.children && route.children.size) {
-            ret.childRoutes = route.children
+        if (!route.isIndex) ret.path = route.path;
+
+        if (!route.isIndex && route.children.size > 0) {
+            const indexRouteIdx = route.children.findKey(route => route.isIndex),
+                haveIndexRoute = typeof indexRouteIdx === 'undefined';
+
+            const regularChildren = haveIndexRoute
+                ? route.children
+                : route.children.delete(indexRouteIdx);
+
+            ret.childRoutes = regularChildren
                 .map((child, routeIndex) => this._createRoute(
                     child,
                     [].concat(index, 'children', routeIndex),
                     path
                 ))
                 .toArray();
+
+            if (haveIndexRoute) {
+                const indexRoute = route.children.get(indexRouteIdx);
+                ret.indexRoute = this._createRoute(
+                    indexRoute,
+                    [].concat(index, 'children', indexRouteIdx)
+                    // TODO: Pass something instead of prefix here
+                )
+            }
         }
 
         return ret;
