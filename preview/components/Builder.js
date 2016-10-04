@@ -47,23 +47,23 @@ class Builder extends Component {
 
         const Component = getComponentByName(component.name);
 
-        componentsMap.set(component.uid, {
-            name: component.name,
-            componentType: Component.jssy ? Component.jssy.kind : null
-        });
-
         let baseIndex = [...this.props.routeIndex, 'component'];
 
         if(componentIndex) {
             baseIndex = [...baseIndex, ...componentIndex];
         }
 
+        componentsMap.set(component.uid, {
+            name: component.name,
+            componentType: Component.jssy ? Component.jssy.kind : null,
+            where: [...baseIndex]
+        });
+
         if (component.children && component.children.size) {
             return (
                 <Component
                     key={component.uid}
                     uid={component.uid}
-                    where={[...baseIndex]}
                     {...getProps(component.props)}
                 >
                     { component.children.map((_component, index) => 
@@ -77,7 +77,6 @@ class Builder extends Component {
                 <Component
                     key={component.uid}
                     uid={component.uid}
-                    where={[...baseIndex]}
                     {...getProps(component.props)}
                 />
             );

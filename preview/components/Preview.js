@@ -39,6 +39,7 @@ const getOwner = (el, condition) => {
     const owner = el._owner;
     if (!owner) return null;
     if (!condition) return owner;
+
     return condition(owner) ? owner : getOwner(owner, condition);
 };
 
@@ -59,13 +60,10 @@ const getChild = (el, condition) => {
         return condition(child) ? child : getChild(child, condition);
     } else if(el._renderedChildren) {
         for(let key in el._renderedChildren) {
-            if(condition(el._renderedChildren[key])) {
-                return el._renderedChildren[key];
-            } else {
-                child = getChild(el._renderedChildren[key], condition);
+            if(condition(el._renderedChildren[key])) return el._renderedChildren[key];
 
-                if(child) return child;
-            }
+            child = getChild(el._renderedChildren[key], condition);
+            if(child) return child;
         }
 
         return null;
@@ -196,6 +194,17 @@ class Preview extends Component {
         }
     }
 
+    _inWorkspace(uid) {
+        const workspace = componentsMap.get(this.workspace),
+            el = componentsMap.get(uid);
+
+        for(var i in workspace.where) {
+            if(workspace.where[i] == el.where[i]) return false;
+        }
+
+        return true;
+    }
+
     _handleAnimationFrame() {
         var el = this.dndParams.el;
 
@@ -233,9 +242,11 @@ class Preview extends Component {
             const owner = getOwner(event.target[riiKey]._currentElement, item => item._currentElement.props.uid);
 
             if(owner && owner._currentElement.props.uid) {
+                this._inWorkspace(owner._currentElement.props.uid);
+
                 this.props.componentUpdateRoute(
                     this.dndParams.where,
-                    owner._currentElement.props.where
+                    componentsMap.get(owner._currentElement.props.uid).where
                 );
             }
         }
@@ -300,19 +311,21 @@ class Preview extends Component {
         if (owner) {
             // event.stopPropagation();
 
-            const type = event.type;
+            const type = event.type,
+                uid = owner._currentElement.props.uid;
+
 
             if( type == 'click' ) {
                 if(!event.ctrlKey) return;
-                this._updateSelected(el, owner._currentElement.props.uid);
+                this._updateSelected(el, uid);
             } else if( type == 'dragover' || type == 'mouseover') {
-                this._updateHighlighted(el, owner._currentElement.props.uid);
+                this._updateHighlighted(el, uid);
             } else if( type == 'dragleave' || type == 'mouseout') {
-                this._updateHighlighted(el, owner._currentElement.props.uid);
+                this._updateHighlighted(el, uid);
             } else if( type == 'drop' ) {
                 console.log({
                     source: JSON.parse(event.dataTransfer.getData("Text")),
-                    target: owner._currentElement.props.uid
+                    target: uid
                 });
             }
 
@@ -322,8 +335,8 @@ class Preview extends Component {
                 event.preventDefault();
 
                 this.dndParams.el = document.createElement('div');
-                this.dndParams.uid = owner._currentElement.props.uid;
-                this.dndParams.where = owner._currentElement.props.where;
+                this.dndParams.uid = uid;
+                this.dndParams.where = componentsMap.get(uid).where;
                 this.dndParams.dragStartX = event.pageX;
                 this.dndParams.dragStartY = event.pageY;
 
