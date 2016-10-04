@@ -65,6 +65,8 @@ class RouteEditorComponent extends Component {
             this._idx
         );
 
+        if (!this._route) return;
+
         if (this._route.children.size > 0) {
             this._isIndexDisabled = true;
         }
@@ -89,7 +91,7 @@ class RouteEditorComponent extends Component {
     }
 
     render() {
-        if (!this.props.haveSelectedRoute) return null;
+        if (!this.props.haveSelectedRoute || !this._route) return null;
 
         return (
             <BlockContentBox>
