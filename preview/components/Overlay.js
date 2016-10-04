@@ -8,7 +8,7 @@ import { connect } from 'react-redux';
 import { componentsMap, domElementsMap } from '../utils';
 
 class Overlay extends Component {
-    _getItems(uids, color) {
+    _getItems(uids, color, zIndex) {
         if(!uids.size) return;
 
         return uids.map((uid) => {
@@ -36,7 +36,7 @@ class Overlay extends Component {
                     height: '1px',
                     width: '1px',
                     position: 'absolute',
-                    zIndex: 1000,
+                    zIndex: zIndex || 1000,
                     left: left,
                     top: top
                 },
@@ -98,6 +98,8 @@ class Overlay extends Component {
             <div style={overlayStyle}>
                 { this._getItems(this.props.highlighted, 'yellow') }
                 { this._getItems(this.props.selected, 'green') }
+                { this.props.workspaceVisible &&
+                    this._getItems(this.props.workspace, 'red') }
             </div>
         );
     }
@@ -105,18 +107,23 @@ class Overlay extends Component {
 
 Overlay.propTypes = {
     selected: ImmutablePropTypes.set,
-    highlighted: ImmutablePropTypes.set
-
+    highlighted: ImmutablePropTypes.set,
+    workspace: ImmutablePropTypes.set,
+    workspaceVisible: PropTypes.bool
 };
 
 Overlay.defaultProps = {
     selected: Set(),
-    highlighted: Set()
+    highlighted: Set(),
+    workspace: Set(),
+    workspaceVisible: false
 };
 
 const mapStateToProps = state => ({
     selected: state.preview.selectedItems,
-    highlighted: state.preview.highlightedItems
+    highlighted: state.preview.highlightedItems,
+    workspace: state.preview.workspace,
+    workspaceVisible: state.preview.workspaceVisible
 });
 
 export default connect(

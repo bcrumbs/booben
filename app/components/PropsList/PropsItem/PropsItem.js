@@ -22,9 +22,11 @@ import {
 	PropArrayBodyCellText
 } from './PropItemArray/PropItemArray';
 
-import { PropLabel } from './PropLabel/PropLabel';
+import {PropLabel} from './PropLabel/PropLabel';
+import {PropLinkButton} from './PropLinkButton/PropLinkButton';
 
-import { PropConstructor } from './PropConstructor/PropConstructor';
+import {PropConstructor} from './PropConstructor/PropConstructor';
+import {PropArrayNewRow} from './PropItemArray/PropArrayNewRow/PropArrayNewRow';
 
 import { noop } from '../../../utils/misc';
 
@@ -34,12 +36,7 @@ export const PropsItem = props => {
 
 	let actions = null;
 	if (props.linkable) {
-		actions =
-			<div className="prop-item-actions-box">
-				<div className="prop-item-action action-linking">
-					<Button icon="link" />
-				</div>
-			</div>
+		actions = <PropLinkButton />;
 	}
 
 	const label =
@@ -86,13 +83,19 @@ export const PropsItem = props => {
 		content =
 			<PropConstructor label={props.label} />
 	}
+
+	else if (props.type === 'constructor-toggle') {
+		content =
+			<PropConstructor label={props.label} hasToggle />
+	}
+
 	else if (props.type === 'array') {
 		content =
 			<PropItemArray>
 				<PropItemArrayHeader>
 					<PropItemArrayHeaderRow>
 						<PropItemArrayHeaderCell>Title</PropItemArrayHeaderCell>
-						<PropItemArrayHeaderCell>Sortable</PropItemArrayHeaderCell>
+						<PropItemArrayHeaderCell align="center">Sortable</PropItemArrayHeaderCell>
 						<PropItemArrayHeaderCell />
 					</PropItemArrayHeaderRow>
 				</PropItemArrayHeader>
@@ -109,15 +112,6 @@ export const PropsItem = props => {
 					<PropArrayBodyRow>
 						<PropArrayBodyCell>
 							<PropConstructor label={'body 2-1'} />
-						</PropArrayBodyCell>
-						<PropArrayBodyCell align="center">
-							<Checkbox />
-						</PropArrayBodyCell>
-						<PropArrayBodyCell clearing />
-					</PropArrayBodyRow>
-					<PropArrayBodyRow>
-						<PropArrayBodyCell>
-							<Input label={'Set component title'} dense />
 						</PropArrayBodyCell>
 						<PropArrayBodyCell align="center">
 							<Checkbox />
@@ -145,6 +139,7 @@ PropsItem.propTypes = {
         'textarea',
         'list',
         'constructor',
+        'constructor-toggle',
         'array',
         'toggle'
     ]),

@@ -10,15 +10,18 @@ import { List, Set } from 'immutable';
 
 import Builder from './Builder';
 
-import { domElementsMap, componentsMap } from '../utils';
+import { domElementsMap, componentsMap, workspaceMap } from '../utils';
+import { getRoutePrefix } from '../../app/utils';
 
 import {
     selectPreviewComponent,
     deselectPreviewComponent,
     highlightPreviewComponent,
     unhighlightPreviewComponent,
-    showDndPreviewComponent,
-    hideDndPreviewComponent
+    setPreviewWorkspace,
+    unsetPreviewWorkspace,
+    showPreviewWorkspace,
+    hidePreviewWorkspace
 } from '../../app/actions/preview';
 
 import {
@@ -36,7 +39,35 @@ const getOwner = (el, condition) => {
     const owner = el._owner;
     if (!owner) return null;
     if (!condition) return owner;
+
     return condition(owner) ? owner : getOwner(owner, condition);
+};
+
+/**
+ * Get child React element by condition
+ *
+ * @param  {function} el
+ * @param  {function} [condition]
+ * @return {function}
+ */
+const getChild = (el, condition) => {
+    let child = null;
+
+    if(el._renderedComponent) {
+        child = el._renderedComponent;
+        if (!child) return null;
+        if (!condition) return child;
+        return condition(child) ? child : getChild(child, condition);
+    } else if(el._renderedChildren) {
+        for(let key in el._renderedChildren) {
+            if(condition(el._renderedChildren[key])) return el._renderedChildren[key];
+
+            child = getChild(el._renderedChildren[key], condition);
+            if(child) return child;
+        }
+
+        return null;
+    }
 };
 
 const mouseEvents = [
@@ -57,6 +88,8 @@ class Preview extends Component {
         this.domOverlay = null;
         this.dndParams = {};
         this.dndFlag = false;
+        this.animationFrame = null;
+        this.needRAF = true;
 
         this._handleMouseEvent = this._handleMouseEvent.bind(this);
         this._handleResize = this._handleResize.bind(this);
@@ -64,13 +97,13 @@ class Preview extends Component {
         this._handleStartDrag = this._handleStartDrag.bind(this);
         this._handleStopDrag = this._handleStopDrag.bind(this);
         this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
+        this._updateWorkspace = this._updateWorkspace.bind(this);
     }
 
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
         this.domOverlay = this.props.domOverlay;
-        this.animationFrame = null;
-        this.needRAF = true;
+        this.workspace = workspaceMap.get(this.props.path);
 
         if (this.props.interactive) {
             mouseEvents.forEach(e => {
@@ -78,12 +111,14 @@ class Preview extends Component {
             });
 
             window.addEventListener('resize', this._handleResize, false);
+
+            this._updateWorkspace();
         }
     }
 
     componentWillMount() {
         this.routes = this.props.routes
-            .map((route, routeIndex) => this._createRoute(route, routeIndex))
+            .map((route, routeIndex) => this._createRoute(route, routeIndex, route.path))
             .toArray();
     }
 
@@ -101,6 +136,17 @@ class Preview extends Component {
 
     shouldComponentUpdate(nextProps) {
         return nextProps.routes !== this.props.routes;
+    }
+
+    _updateWorkspace() {
+        const builderWS = getChild(this['_reactInternalInstance'],
+            item => item._currentElement.props.uid == this.workspace);
+
+        if(!builderWS || !builderWS._renderedComponent) return;
+
+        this.props.setWorkspace(this.workspace);
+
+        domElementsMap.set(this.workspace, builderWS._renderedComponent._hostNode);
     }
 
     _handleResize() {}
@@ -143,6 +189,17 @@ class Preview extends Component {
         }
     }
 
+    _inWorkspace(uid) {
+        const workspace = componentsMap.get(this.workspace),
+            el = componentsMap.get(uid);
+
+        for(var i in workspace.where) {
+            if(workspace.where[i] != el.where[i]) return false;
+        }
+
+        return true;
+    }
+
     _handleAnimationFrame() {
         var el = this.dndParams.el;
 
@@ -165,6 +222,8 @@ class Preview extends Component {
         this.domNode.removeEventListener('mouseup', this._handleStopDrag);
         window.top.removeEventListener('mouseup', this._handleStopDrag);
 
+        this.props.hideWorkspace();
+
         if(!this.dndFlag) return;
 
         const keys = Object.keys(event.target),
@@ -175,10 +234,14 @@ class Preview extends Component {
         if (riiKey && this.dndParams) {
             const owner = getOwner(event.target[riiKey]._currentElement, item => item._currentElement.props.uid);
 
-            if(owner && owner._currentElement.props.uid) {
+            if(
+                owner &&
+                owner._currentElement.props.uid &&
+                this._inWorkspace(owner._currentElement.props.uid)
+            ) {
                 this.props.componentUpdateRoute(
                     this.dndParams.where,
-                    owner._currentElement.props.where
+                    componentsMap.get(owner._currentElement.props.uid).where
                 );
             }
         }
@@ -214,6 +277,8 @@ class Preview extends Component {
 
             this.domOverlay.appendChild(el);
             this.dndFlag = true;
+
+            this.props.showWorkspace();
         }
 
         this.dndParams.pageX = event.pageX + 10;
@@ -243,19 +308,22 @@ class Preview extends Component {
         if (owner) {
             // event.stopPropagation();
 
-            const type = event.type;
+            const type = event.type,
+                uid = owner._currentElement.props.uid;
+
+            if(!this._inWorkspace(uid)) return;
 
             if( type == 'click' ) {
                 if(!event.ctrlKey) return;
-                this._updateSelected(el, owner._currentElement.props.uid);
+                this._updateSelected(el, uid);
             } else if( type == 'dragover' || type == 'mouseover') {
-                this._updateHighlighted(el, owner._currentElement.props.uid);
+                this._updateHighlighted(el, uid);
             } else if( type == 'dragleave' || type == 'mouseout') {
-                this._updateHighlighted(el, owner._currentElement.props.uid);
+                this._updateHighlighted(el, uid);
             } else if( type == 'drop' ) {
                 console.log({
                     source: JSON.parse(event.dataTransfer.getData("Text")),
-                    target: owner._currentElement.props.uid
+                    target: uid
                 });
             }
 
@@ -265,8 +333,8 @@ class Preview extends Component {
                 event.preventDefault();
 
                 this.dndParams.el = document.createElement('div');
-                this.dndParams.uid = owner._currentElement.props.uid;
-                this.dndParams.where = owner._currentElement.props.where;
+                this.dndParams.uid = uid;
+                this.dndParams.where = componentsMap.get(uid).where;
                 this.dndParams.dragStartX = event.pageX;
                 this.dndParams.dragStartY = event.pageY;
 
@@ -275,22 +343,27 @@ class Preview extends Component {
         }
     }
 
-    _createRoute(route, index) {
-        const routeIndex = Array.isArray(index) ? index : [index];
+    _createRoute(route, index, prefix) {
+        const routeIndex = Array.isArray(index) ? index : [index],
+            path = getRoutePrefix(route, prefix); 
 
         const ret = {
             path: route.path,
             component: ({ children }) => <Builder
                 component={this.props.routes.getIn(routeIndex).component}
                 children={children}
+                path={path}
                 routeIndex={routeIndex}
             />
         };
 
         if (route.children && route.children.size) {
             ret.childRoutes = route.children
-                .map((child, routeIndex) => this._createRoute(child,
-                    [].concat(index, 'children', routeIndex)))
+                .map((child, routeIndex) => this._createRoute(
+                    child,
+                    [].concat(index, 'children', routeIndex),
+                    path
+                ))
                 .toArray();
         }
 
@@ -325,8 +398,7 @@ Preview.propTypes = {
     selectComponent: PropTypes.func,
     unhighlightComponent: PropTypes.func,
     highlightComponent: PropTypes.func,
-    showDndComponent: PropTypes.func,
-    hideDndComponent: PropTypes.func
+    setWorkspace: PropTypes.func
 };
 
 Preview.defaultProps = {
@@ -338,7 +410,8 @@ Preview.defaultProps = {
     deselectComponent: /* istanbul ignore next */ () => {},
     selectComponent: /* istanbul ignore next */ () => {},
     highlightComponent: /* istanbul ignore next */ () => {},
-    unhighlightComponent: /* istanbul ignore next */ () => {}
+    unhighlightComponent: /* istanbul ignore next */ () => {},
+    setWorkspace: /* istanbul ignore next */ () => {}
 };
 
 Preview.displayName = 'Preview';
@@ -354,7 +427,11 @@ const mapDispatchToProps = dispatch => ({
     selectComponent: selected => void dispatch(selectPreviewComponent(selected)),
     highlightComponent: highlighted => void dispatch(highlightPreviewComponent(highlighted)),
     unhighlightComponent: highlighted => void dispatch(unhighlightPreviewComponent(highlighted)),
-    componentUpdateRoute: (source, target) => void dispatch(componentUpdateRoute(source, target))
+    componentUpdateRoute: (source, target) => void dispatch(componentUpdateRoute(source, target)),
+    setWorkspace: component => void dispatch(setPreviewWorkspace(component)),
+    unsetWorkspace: component => void dispatch(unsetPreviewWorkspace(component)),
+    showWorkspace: () => void dispatch(showPreviewWorkspace()),
+    hideWorkspace: () => void dispatch(hidePreviewWorkspace())
 });
 
 export default connect(

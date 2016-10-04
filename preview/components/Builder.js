@@ -7,7 +7,7 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 // The real components.js will be generated during build process
 import components from '../components.js';
 
-import { componentsMap } from '../utils';
+import { componentsMap, workspaceMap } from '../utils';
 
 const pseudoComponents = new Set([
     'Text',
@@ -20,6 +20,7 @@ class Builder extends Component {
     constructor(props) {
         super(props);
 
+        this.rootRender = false;
         this._getComponentFromMeta = this._getComponentFromMeta.bind(this);
     }
 
@@ -36,15 +37,15 @@ class Builder extends Component {
     _getComponentFromMeta(component = null, componentIndex = []) {
         if (!component) return null;
 
+        if(!this.rootRender) {
+            workspaceMap.set(this.props.path, component.uid);
+            this.rootRender = true;
+        }
+
         if (isPseudoComponent(component))
             return this._renderPseudoComponent(component);
 
         const Component = getComponentByName(component.name);
-
-        componentsMap.set(component.uid, {
-            name: component.name,
-            componentType: Component.jssy ? Component.jssy.kind : null
-        });
 
         let baseIndex = [...this.props.routeIndex, 'component'];
 
@@ -52,12 +53,17 @@ class Builder extends Component {
             baseIndex = [...baseIndex, ...componentIndex];
         }
 
+        componentsMap.set(component.uid, {
+            name: component.name,
+            componentType: Component.jssy ? Component.jssy.kind : null,
+            where: [...baseIndex]
+        });
+
         if (component.children && component.children.size) {
             return (
                 <Component
                     key={component.uid}
                     uid={component.uid}
-                    where={[...baseIndex]}
                     {...getProps(component.props)}
                 >
                     { component.children.map((_component, index) => 
@@ -71,7 +77,6 @@ class Builder extends Component {
                 <Component
                     key={component.uid}
                     uid={component.uid}
-                    where={[...baseIndex]}
                     {...getProps(component.props)}
                 />
             );

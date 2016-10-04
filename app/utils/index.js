@@ -6,8 +6,8 @@
  * @param {string} [prefix]
  * @return {string}
  */
-const getRoutePrefix = (route, prefix) => {
-    if (prefix) {
+export const getRoutePrefix = (route, prefix) => {
+    if (prefix && route.path != '/') {
         if (prefix == '/') {
             return `/${route.path}`;
         } else {

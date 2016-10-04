@@ -37,6 +37,8 @@
 	.block-content-title-box,
 	.block-content-subtitle-box {
 		overflow: hidden;
+
+		@include user-select();
 	}
 
 	.block-content-title-box {
@@ -135,6 +137,8 @@
 		margin-top: $bcontent-box-header-top;
 		margin-bottom: $bcontent-box-header-bottom;
 		padding: 0 $bcontent-box-pad-x;
+
+		@include user-select();
 
 		&.is-bordered {
 			border-top: 1px solid $bcontent-box-border-color;

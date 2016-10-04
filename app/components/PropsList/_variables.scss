@@ -1,9 +1,10 @@
 @charset "UTF-8";
 @import '~@reactackle/reactackle/utils/global';
+@import '~@reactackle/reactackle/components/Button/_variables';
 
 // Base Variables
 // =====================================================================================================================
-$props-spacing:                 $base-module*2.5 !default;
+$props-spacing:                 $base-module*2 !default;
 
 // Actions
 $prop-actions-margin-left:      $base-module !default;
@@ -13,10 +14,12 @@ $prop-action-img-size:          $base-module*2.5 !default;
 $prop-action-color:             $icon-dark-inactive-color !default;
 $prop-action-hover-color:       $icon-dark-default-color !default;
 $prop-action-margin:            $base-module/2 !default;
+$prop-action-height:            $button-small-min-height !default; // for normal-size button use $button-min-height instead of $button-small-min-height
 
 // PROPS TYPES
 // =====================================================================================================================
 $prop-label-font-size:          fs(0) !default;
+$prop-label-line-height:        1.5 !default;
 $prop-label-font-weight:        $font-weight-normal !default;
 $prop-label-text-transform:     none !default;
 $prop-label-color:              $body-font-color !default;
@@ -24,16 +27,17 @@ $prop-label-margin-bottom:      0 !default;
 
 // PROP: constructor
 // =====================================================================================================================
-$prop-constructor-button-margin-top: $base-module/2 !default;
+$prop-constructor-button-margin-top:    0 !default;
+$prop-constructor-toggle-spacing:       $base-module/2 !default;
 
 // PROP: array
 // =====================================================================================================================
-$prop-array-cell-padding-y:     $base-module/2 !default;
-$prop-array-cell-padding-x:     $base-module/2 !default;
+$prop-array-cell-padding-y:     $base-module !default;
+$prop-array-cell-padding-x:     $base-module !default;
 
 $prop-array-row-hover-bg-color: $grey-100 !default;
 
-$prop-array-header-font-size:   fs(0) !default;
+$prop-array-header-font-size:   fs(-1) !default;
 $prop-array-header-font-color:  $grey-500 !default;
 $prop-array-header-font-weight: $font-weight-normal !default;
 $prop-array-header-line-height: 1.25 !default;
@@ -42,3 +46,23 @@ $prop-array-body-font-size:     fs(0) !default;
 $prop-array-body-font-color:    $body-font-color !default;
 $prop-array-body-font-weight:   $font-weight-normal !default;
 $prop-array-body-line-height:   1.25 !default;
+
+// Add new route
+// =====================================================================================================================
+$prop-array-add-row-margin-top: $base-module !default;
+
+$prop-array-new-row-bg-color:   color($yellow-palette, lightest) !default;
+$prop-array-new-row-pad-y:      $base-module*1.5 !default;
+$prop-array-new-row-pad-x:      $prop-array-cell-padding-x !default;
+$prop-array-new-row-element-spacing:      $base-module/2 !default;
+
+$prop-array-clearing-box-size:          $base-module*4 !default;
+$prop-array-clearing-img-size:          $base-module*2.5 !default;
+$prop-array-clearing-color:             $icon-dark-inactive-color !default;
+$prop-array-clearing-hover-color:       $icon-dark-default-color !default;
+$prop-array-clearing-margin:            $base-module/2 !default;
+
+// prop lable size => Prop actions margin top
+$prop-actions-margin-top:       -($prop-action-height + $prop-action-margin/2 - $prop-label-font-size*$prop-label-line-height) !default;
+
+

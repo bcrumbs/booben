@@ -1,6 +1,7 @@
 import React, { PropTypes } from 'react';
 
-import { PropArrayAddNewRow } from './PropArrayAddNewRow/PropArrayAddNewRow';
+import { PropArrayAddNewRow }   from './PropArrayAddNewRow/PropArrayAddNewRow';
+import { PropArrayNewRow }      from './PropArrayNewRow/PropArrayNewRow';
 
 export const PropItemArray = props => {
     let className = 'prop-item-array-wrapper';
@@ -10,6 +11,7 @@ export const PropItemArray = props => {
 	        <table className="prop-array-table">
 		        {props.children}
 	        </table>
+	        <PropArrayNewRow />
 	        <PropArrayAddNewRow text={props.newRowButtonText}/>
         </div>
     );
