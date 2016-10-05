@@ -5,11 +5,17 @@ export const ComponentPlaceholder = props => {
     let className = 'component-placeholder';
     className += props.isPlaced ? ' is-placed' : ' is-free';
 
+	let content = false;
+	if (props.title) {
+		content =
+			<div className='component-placeholder-title'>
+				{ props.title }
+			</div>
+	}
+
     return (
         <div className={className}>
-            <div className='component-placeholder-title'>
-                { props.title }
-            </div>
+	        { content }
         </div>
     );
 };

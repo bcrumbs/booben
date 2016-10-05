@@ -1,0 +1,36 @@
+@charset "UTF-8";
+@import '~@reactackle/reactackle/utils/global';
+
+// =====================================================================================================================
+// BASE VARIABLES
+// =====================================================================================================================
+$cbreadcrumb-main-color: $color-primary !default;
+
+$cbreadcrumb-font-size: fs(-1) !default;
+$cbreadcrumb-line-height: 1.2 !default;
+
+$cbreadcrumb-border-thickness: 1px !default;
+$cbreadcrumb-border-color: $cbreadcrumb-main-color !default;
+$cbreadcrumb-border-style: solid !default;
+
+// Item
+$cbreadcrumb-focus-color: $white !default;
+$cbreadcrumb-color: transparentize($cbreadcrumb-focus-color, 0.2) !default;
+$cbreadcrumb-disabled-color: transparentize($cbreadcrumb-focus-color, 0.4) !default;
+
+$cbreadcrumb-bg-color: $grey-700 !default;
+$cbreadcrumb-focus-bg-color: $cbreadcrumb-main-color !default;
+$cbreadcrumb-disabled-bg-color: $grey-500 !default;
+$cbreadcrumb-separator-bg-color: $grey-600 !default;
+
+$cbreadcrumb-item-pad-y: $base-module/2 !default;
+$cbreadcrumb-item-pad-x: $base-module !default;
+
+$cbreadcrumb-item-min-height: $cbreadcrumb-font-size*$cbreadcrumb-line-height + $cbreadcrumb-item-pad-y*2 !default;
+
+$cbreadcrumb-cursor:    $cursor-pointer !default;
+$cbreadcrumb-disabled-cursor:    $cursor-default !default;
+
+// Placeholder
+$cbreadcrumb-placeholder-min-width: $base-module*5 !default;
+

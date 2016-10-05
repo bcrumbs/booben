@@ -41,13 +41,25 @@
 		@include user-select();
 	}
 
-	.block-content-title-box {
+	.block-content-title {
+		padding: 0;
+		width: 100%;
+
 		font-size: $bcontent-title-font-size;
 		line-height: $bcontent-title-line-height;
 		color: $bcontent-title-color;
 		font-weight: $bcontent-title-font-weight;
 		font-style: $bcontent-title-font-style;
 
+		&,
+		&[disabled] {
+			background-color: transparent;
+			border: 0;
+			box-shadow: none;
+		}
+	}
+
+	.block-content-title-box {
 		&.is-editable {
 			cursor: $cursor-text;
 
