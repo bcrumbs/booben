@@ -17,7 +17,7 @@ export class RouteCard extends Component {
     }
 
     render() {
-        let className = 'route-card';
+        let className = 'route-card-wrapper';
 
         if (this.props.home) className += ' is-home';
         if (this.props.focused) className += ' is-focused';
@@ -29,24 +29,37 @@ export class RouteCard extends Component {
                     <Icon name="home" />
                 </div>
             );
-        }
+        };
+
+        let defaultIndex = false;
+	    if (this.props.index) {
+		    defaultIndex =
+			    <button className="route-index-default" tabIndex="1">
+				    <div className="route-index-default-button">Edit index</div>
+			    </button>;
+
+		    className += ' ' + 'has-default-index';
+	    }
 
         return (
             <li className='route-card-wrapper'>
-                <div
-                    className={className}
-                    tabIndex="1"
-                    onClick={this.props.onFocus}
-                    ref={this.refCallback}
-                >
-                    <div className="route-card-content">
-                        <div className="route-title-box">
-                            <span className="route-title">{this.props.title}</span>
-                            {iconIndex}
-                        </div>
-                        <div className="route-subtitle">{this.props.subtitle}</div>
-                    </div>
-                </div>
+	            <div className={className}>
+	                <div
+	                    className='route-card'
+	                    tabIndex="1"
+	                    onClick={this.props.onFocus}
+	                    ref={this.refCallback}
+	                >
+	                    <div className="route-card-content">
+	                        <div className="route-title-box">
+	                            <span className="route-title">{this.props.title}</span>
+	                            {iconIndex}
+	                        </div>
+	                        <div className="route-subtitle">{this.props.subtitle}</div>
+	                    </div>
+	                </div>
+		            { defaultIndex }
+	            </div>
 
                 {this.props.children}
             </li>
@@ -61,6 +74,7 @@ RouteCard.propTypes = {
     home: PropTypes.bool,
     focused: PropTypes.bool,
     onFocus: PropTypes.func,
+	index: PropTypes.bool,
     onGo: PropTypes.func
 };
 
@@ -71,6 +85,7 @@ RouteCard.defaultProps = {
     home: false,
     focused: false,
     onFocus: noop,
+	index: false,
     onGo: noop
 };
 

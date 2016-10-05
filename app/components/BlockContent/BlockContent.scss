@@ -137,6 +137,10 @@
 				border-top: 1px solid $bcontent-box-border-color;
 			}
 		}
+
+		&.display-flex {
+			display: flex;
+		}
 	}
 
 	.block-content-box-heading {

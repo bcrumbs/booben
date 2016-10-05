@@ -11,6 +11,7 @@ export const RouteNewButton = props => (
             kind="outline-primary"
             tabIndex="1"
             onPress={props.onPress}
+            tabIndex="1"
         />
     </li>
 );

@@ -31,7 +31,7 @@ $rcard-subtitle-font-color:     $grey-500 !default;
 // Subroutes
 $rcard-ruler-thickness:          1px !default;
 $rcard-ruler-style:              dotted !default;
-$rcard-ruler-color:              $grey-300 !default;
+$rcard-ruler-color:              $grey-400 !default;
 $rcard-ruler-offset:             -$base-module !default;
 
 // Add New
@@ -57,6 +57,21 @@ $rcard-icon-index-margin-left:  $base-module !default;
 // Title => Route Card min-height
 $rcard-min-height:      $rcard-padding-y*2 + $rcard-title-font-size*$rcard-title-line-height + $rcard-subtitle-font-size*$rcard-subtitle-line-height !default;
 $rcard-max-width:       $rcard-min-height*5 !default;
+
+// Index
+$rcard-index-bg-color:         $grey-200 !default;
+$rcard-index-hover-bg-color:   $grey-300 !default;
+
+$rcard-index-color:            $grey-500 !default;
+$rcard-index-hover-color:      $grey-800 !default;
+$rcard-index-font-size:        fs(-2) !default;
+$rcard-index-line-height:      1.5 !default;
+$rcard-index-text-align:       right !default;
+$rcard-index-text-transform:   uppercase !default;
+$rcard-index-font-weight:      $font-weight-semibold !default;
+
+$rcard-index-pad-y: $base-module/2 !default;
+$rcard-index-pad-x: $base-module*1.5 !default;
 
 // MIXINS
 @mixin level-offset($level) {

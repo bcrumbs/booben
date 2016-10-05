@@ -84,30 +84,30 @@ export default class Playground extends React.Component {
 				                <Row>
 					                <Column>
 						                <RoutesList>
-							                <RouteCard title="Root">
+							                <RouteCard title="Root" subtitle="/" home>
 								                <RoutesList>
-									                <RouteCard title="Index" subtitle="/" home />
+									                <RouteCard title="Some Route" subtitle="some-route" index/>
 									                <RouteCard title="Parsers" subtitle="parsers" >
 										                <RoutesList>
-										                    <RouteCard title="Route 1" subtitle="route1" focused>
+										                    <RouteCard title="Route 1" subtitle="route1" focused >
 											                    <RoutesList>
 												                    <RouteCard title="Route 2" subtitle="route2" />
 												                    <RouteCard title="Route 3" subtitle="route3">
 													                    <RoutesList>
 														                    <RouteCard title="Route 4" subtitle="route4" />
 
-														                    <ComponentBreadcrumbs>
-																				<ComponentBreadcrumbItem placeholder/>
-															                    <ComponentBreadcrumbItem text="Routes List"/>
-															                    <ComponentBreadcrumbItem separator/>
-																				<ComponentBreadcrumbItem text="Route Card" disabled/>
-																				<ComponentBreadcrumbItem separator/>
-																				<ComponentBreadcrumbItem text="Routes List" />
-														                    </ComponentBreadcrumbs>
+														                    {/*<ComponentBreadcrumbs>*/}
+																				{/*<ComponentBreadcrumbItem placeholder />*/}
+															                    {/*<ComponentBreadcrumbItem text="Routes List"/>*/}
+															                    {/*<ComponentBreadcrumbItem separator />*/}
+																				{/*<ComponentBreadcrumbItem text="Route Card" disabled />*/}
+																				{/*<ComponentBreadcrumbItem separator />*/}
+																				{/*<ComponentBreadcrumbItem text="Routes List" />*/}
+														                    {/*</ComponentBreadcrumbs>*/}
 
 													                    </RoutesList>
 												                    </RouteCard>
-												                    <RouteNewButton />
+												                    <RouteNewButton text="New Route" />
 											                    </RoutesList>
 										                    </RouteCard>
 									                    </RoutesList>
@@ -115,7 +115,7 @@ export default class Playground extends React.Component {
 									                <RouteCard title="Parser" subtitle="parser-{parser.ParserTitle}" />
 								                </RoutesList>
 							                </RouteCard>
-							                <RouteNewButton />
+							                <RouteNewButton text="New Root"  />
 						                </RoutesList>
 					                </Column>
 				                </Row>

@@ -80,21 +80,23 @@
 			background-color: $rcard-hover-bg-color;
 		}
 
-		&.is-focused {
+		.route-card-wrapper.is-focused & {
 			background-color: $rcard-focus-bg-color;
+		}
+	}
 
-			// Vertical Ruler
-			+ .routes-list-wrapper {
-				&::before {
-					position: absolute;
-					content: '';
-					top: 0;
-					left: $rcard-ruler-offset;
-					height: 100%;
-					width: $rcard-ruler-thickness;
-					border-left: $rcard-ruler-thickness $rcard-ruler-style $rcard-ruler-color;
-					z-index: 1;
-				}
+	.route-card-wrapper.is-focused {
+		// Vertical Ruler
+		+ .routes-list-wrapper {
+			&::before {
+				position: absolute;
+				content: '';
+				top: 0;
+				left: $rcard-ruler-offset;
+				height: 100%;
+				width: $rcard-ruler-thickness;
+				border-left: $rcard-ruler-thickness $rcard-ruler-style $rcard-ruler-color;
+				z-index: 1;
 			}
 		}
 	}
@@ -131,7 +133,8 @@
 			background-color: $rcard-new-bg-color;
 			color: $rcard-new-color;
 
-			&:hover {
+			&:hover,
+			&:focus {
 				border: $rcard-new-hover-border-thickness $rcard-new-hover-border-style $rcard-new-hover-border-color;
 				background-color: $rcard-new-hover-bg-color;
 				color: $rcard-new-hover-color;
@@ -152,5 +155,43 @@
 						$rcard-icon-index-img-size);
 
 		@include icon-style($rcard-icon-index-color);
+	}
+
+	// DEFAULT index
+	.route-card-wrapper.has-default-index .route-card {
+		@include side-radius(bottom, 0)
+	}
+
+	.route-index-default {
+		margin-top: 0;
+		padding: $rcard-index-pad-y $rcard-index-pad-x;
+
+		background-color: $rcard-index-bg-color;
+		color: $rcard-index-color;
+		font-size: $rcard-index-font-size;
+		line-height: $rcard-index-line-height;
+		text-align: $rcard-index-text-align;
+		text-transform: $rcard-index-text-transform;
+		cursor: $cursor-pointer;
+		width: 100%;
+		max-width: $rcard-max-width;
+		border: 0 solid transparent;
+		font-weight: $rcard-index-font-weight;
+		position: relative;
+		z-index: 2;
+		display: block;
+
+		@include side-radius(bottom, $rcard-border-radius);
+		@include box-shadow();
+		@include user-select();
+		@include single-transition();
+
+		&:hover,
+		&:focus {
+			background-color: $rcard-index-hover-bg-color;
+			outline: none;
+			color: $rcard-index-hover-color;
+			@include box-shadow();
+		}
 	}
 }

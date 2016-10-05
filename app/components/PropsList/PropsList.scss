@@ -28,14 +28,15 @@ $prop-toggle: 'props-type-toggle';
 
 	// Prop Actions (linking)
 	.prop-item-actions-box {
-		margin-left: $prop-actions-margin-left - $prop-action-margin;
+		margin-left: $prop-actions-margin-left - $prop-action-margin-x;
 		margin-top: $prop-actions-margin-top;
+		height: $prop-action-height + $prop-action-margin-y;
 	}
 
 	.prop-item-action {
-		margin: $prop-action-margin;
-		height: $prop-action-height;
+		margin: $prop-action-margin-y $prop-action-margin-x;
 
+		&,
 		.button-icon {
 			@include icon-size(
 							$prop-action-box-size,
@@ -47,6 +48,11 @@ $prop-toggle: 'props-type-toggle';
 			&:focus {
 				@include icon-style($prop-action-hover-color);
 			}
+		}
+
+		.button {
+			min-height: 0;
+			border: 0 solid transparent;
 		}
 	}
 
@@ -72,6 +78,16 @@ $prop-toggle: 'props-type-toggle';
 		margin-bottom: $prop-label-margin-bottom;
 
 		@include user-select();
+	}
+
+	// PROP: toggle
+	// =================================================================================================================
+	.prop-type-toggle {
+		.toggle-label {
+			display: flex;
+			align-items: center;
+			min-height: ($prop-action-box-size + $prop-actions-margin-top );
+		}
 	}
 
 	// PROP: constructor
