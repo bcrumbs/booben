@@ -157,28 +157,29 @@
 		@include icon-style($rcard-icon-index-color);
 	}
 
-	// DEFAULT OUTLET
-	.route-card-wrapper.has-default-outlet .route-card {
+	// DEFAULT index
+	.route-card-wrapper.has-default-index .route-card {
 		@include side-radius(bottom, 0)
 	}
 
-	.route-outlet-default {
+	.route-index-default {
 		margin-top: 0;
-		padding: $rcard-outlet-pad-y $rcard-outlet-pad-x;
+		padding: $rcard-index-pad-y $rcard-index-pad-x;
 
-		background-color: $rcard-outlet-bg-color;
-		color: $rcard-outlet-color;
-		font-size: $rcard-outlet-font-size;
-		line-height: $rcard-outlet-line-height;
-		text-align: $rcard-outlet-text-align;
-		text-transform: $rcard-outlet-text-transform;
+		background-color: $rcard-index-bg-color;
+		color: $rcard-index-color;
+		font-size: $rcard-index-font-size;
+		line-height: $rcard-index-line-height;
+		text-align: $rcard-index-text-align;
+		text-transform: $rcard-index-text-transform;
 		cursor: $cursor-pointer;
 		width: 100%;
 		max-width: $rcard-max-width;
 		border: 0 solid transparent;
-		font-weight: $rcard-outlet-font-weight;
+		font-weight: $rcard-index-font-weight;
 		position: relative;
 		z-index: 2;
+		display: block;
 
 		@include side-radius(bottom, $rcard-border-radius);
 		@include box-shadow();
@@ -187,9 +188,9 @@
 
 		&:hover,
 		&:focus {
-			background-color: $rcard-outlet-hover-bg-color;
+			background-color: $rcard-index-hover-bg-color;
 			outline: none;
-			color: $rcard-outlet-hover-color;
+			color: $rcard-index-hover-color;
 			@include box-shadow();
 		}
 	}

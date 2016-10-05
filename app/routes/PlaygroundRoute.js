@@ -86,7 +86,7 @@ export default class Playground extends React.Component {
 						                <RoutesList>
 							                <RouteCard title="Root" subtitle="/" home>
 								                <RoutesList>
-									                <RouteCard title="Some Route" subtitle="some-route" outlet/>
+									                <RouteCard title="Some Route" subtitle="some-route" index/>
 									                <RouteCard title="Parsers" subtitle="parsers" >
 										                <RoutesList>
 										                    <RouteCard title="Route 1" subtitle="route1" focused >

@@ -31,14 +31,14 @@ export class RouteCard extends Component {
             );
         };
 
-        let defaultOutlet = false;
-	    if (this.props.outlet) {
-		    defaultOutlet =
-			    <button className="route-outlet-default" tabIndex="1">
-				    <div className="route-outlet-default-button">Edit index</div>
+        let defaultIndex = false;
+	    if (this.props.index) {
+		    defaultIndex =
+			    <button className="route-index-default" tabIndex="1">
+				    <div className="route-index-default-button">Edit index</div>
 			    </button>;
 
-		    className += ' ' + 'has-default-outlet';
+		    className += ' ' + 'has-default-index';
 	    }
 
         return (
@@ -58,7 +58,7 @@ export class RouteCard extends Component {
 	                        <div className="route-subtitle">{this.props.subtitle}</div>
 	                    </div>
 	                </div>
-		            { defaultOutlet }
+		            { defaultIndex }
 	            </div>
 
                 {this.props.children}
@@ -74,7 +74,7 @@ RouteCard.propTypes = {
     home: PropTypes.bool,
     focused: PropTypes.bool,
     onFocus: PropTypes.func,
-	outlet: PropTypes.bool,
+	index: PropTypes.bool,
     onGo: PropTypes.func
 };
 
@@ -85,7 +85,7 @@ RouteCard.defaultProps = {
     home: false,
     focused: false,
     onFocus: noop,
-	outlet: false,
+	index: false,
     onGo: noop
 };
 

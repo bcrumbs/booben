@@ -49,12 +49,12 @@ $prop-array-body-line-height:   1.25 !default;
 
 // Add new route
 // =====================================================================================================================
-$prop-array-add-row-margin-top: $base-module !default;
+$prop-array-add-row-margin-top:         $base-module !default;
 
-$prop-array-new-row-bg-color:   color($yellow-palette, lightest) !default;
-$prop-array-new-row-pad-y:      $base-module*1.5 !default;
-$prop-array-new-row-pad-x:      $prop-array-cell-padding-x !default;
-$prop-array-new-row-element-spacing:      $base-module/2 !default;
+$prop-array-new-row-bg-color:           color($yellow-palette, lightest) !default;
+$prop-array-new-row-pad-y:              $base-module*1.5 !default;
+$prop-array-new-row-pad-x:              $prop-array-cell-padding-x !default;
+$prop-array-new-row-element-spacing:    $base-module/2 !default;
 
 $prop-array-clearing-box-size:          $base-module*4 - rem-calc(4) !default;
 $prop-array-clearing-img-size:          $base-module*2.5 !default;
