@@ -32,6 +32,8 @@ import {
 
 import { List } from 'immutable';
 
+import { noop } from '../../utils/misc';
+
 class DesktopComponent extends Component {
     render() {
         const windows = [];
@@ -131,7 +133,8 @@ DesktopComponent.propTypes = {
 };
 
 DesktopComponent.defaultProps = {
-    toolGroups: List()
+    toolGroups: List(),
+    onToolTitleChange: noop
 };
 
 DesktopComponent.displayName = 'Desktop';

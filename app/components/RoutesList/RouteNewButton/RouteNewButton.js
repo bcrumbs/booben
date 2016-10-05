@@ -9,6 +9,7 @@ export const RouteNewButton = props => (
         <Button
             text={props.text}
             kind="outline-primary"
+            tabIndex="1"
             onPress={props.onPress}
         />
     </li>

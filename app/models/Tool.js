@@ -12,6 +12,7 @@ export default Record({
     name: '',
     title: '',
     titleEditable: false,
+    titlePlaceholder: '',
     subtitle: '',
     undockable: true,
     closable: false,

@@ -109,7 +109,9 @@ export const ToolPanelContent = props => {
                 <BlockContentTitle
                     title={tool.title}
                     isEditable={tool.titleEditable}
+                    titlePlaceHolder={tool.titlePlaceholder}
                     buttons={titleButtons}
+                    onTitleChange={props.onTitleChange}
                 />
 
                 {sections}
