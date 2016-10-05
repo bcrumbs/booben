@@ -70,7 +70,7 @@ $rcard-index-text-align:       right !default;
 $rcard-index-text-transform:   uppercase !default;
 $rcard-index-font-weight:      $font-weight-semibold !default;
 
-$rcard-index-pad-y: $base-module/2 !default;
+$rcard-index-pad-y: $base-module*0.75 !default;
 $rcard-index-pad-x: $base-module*1.5 !default;
 
 // MIXINS

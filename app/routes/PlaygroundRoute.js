@@ -12,6 +12,8 @@ import {
     BottomRegion,
 	Column,
 	Container,
+	Dialog,
+	DialogContent,
     Header,
     HeaderRegion,
 	HeaderTitle,
@@ -37,9 +39,9 @@ import {
 } from '../components/RoutesList/RoutesList';
 
 import {
-	ComponentBreadcrumbs,
-	ComponentBreadcrumbItem
-} from '../components/ComponentBreacrumbs/ComponentBreadcrumbs';
+	LayoutSelection,
+	LayoutSelectionItem
+} from '../components/LayoutSelection/LayoutSelection';
 
 import { Desktop } from '../containers/Desktop/Desktop';
 
@@ -81,6 +83,20 @@ export default class Playground extends React.Component {
 
 		                <PanelContent>
 			                <Container>
+				                <Row>
+					                <LayoutSelection>
+						                <LayoutSelectionItem image="http://img11.nnm.me/d/3/5/5/b/4d572a2fdc5b8c28cad40d9ca45.jpg" title="Empty Template" />
+						                <LayoutSelectionItem image="http://cdn.pcwallart.com/images/cosmos-hd-wallpaper-3.jpg" title="Template A" subtitle="Header, Footer, Sidebar" />
+						                <LayoutSelectionItem image="http://coolvibe.com/wp-content/uploads/2010/06/cosmos.jpg" title="Template B" subtitle="Header" active />
+						                <LayoutSelectionItem image="http://s9.favim.com/orig/130808/cosmos-space-Favim.com-838531.jpg" title="Template C" />
+						                <LayoutSelectionItem image="http://news.nationalgeographic.com/news/2009/07/photogalleries/week-in-space-pictures-50/images/primary/090707-01-omega-nebula_big.jpg" title="Template D" />
+						                <LayoutSelectionItem image="http://www.hotel-r.net/im/hotel/fr/cosmos-12.jpg" title="Template E" />
+						                <LayoutSelectionItem image="http://www.xtec.cat/~vmessegu/img/milkyway.jpg" title="Template F" />
+						                <LayoutSelectionItem image="https://pursuingveritasdotcom.files.wordpress.com/2015/03/cosmos.jpg" title="Template G" />
+						                <LayoutSelectionItem image="http://media.salon.com/2013/10/shutterstock_136444319.jpg" title="Template H" />
+					                </LayoutSelection>
+				                </Row>
+
 				                <Row>
 					                <Column>
 						                <RoutesList>
