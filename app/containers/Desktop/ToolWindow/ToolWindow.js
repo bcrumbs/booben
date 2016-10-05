@@ -342,9 +342,11 @@ export class ToolWindow extends Component {
                         title={tool.title}
                         subtitle={tool.subtitle}
                         isEditable={tool.titleEditable}
+                        titlePlaceHolder={tool.titlePlaceholder}
                         iconLeft="ellipsis-v"
                         buttons={titleButtons}
                         onLeftIconMouseDown={this._handleStartDrag}
+                        onTitleChange={this.props.onTitleChange}
                     />
 
                     {navArea}
