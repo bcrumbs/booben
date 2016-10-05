@@ -12,6 +12,8 @@ export const SET_PREVIEW_WORKSPACE = 'SET_PREVIEW_WORKSPACE';
 export const UNSET_PREVIEW_WORKSPACE = 'UNSET_PREVIEW_WORKSPACE';
 export const SHOW_PREVIEW_WORKSPACE = 'SHOW_PREVIEW_WORKSPACE';
 export const HIDE_PREVIEW_WORKSPACE = 'HIDE_PREVIEW_WORKSPACE';
+export const SET_COMPONENT_TO_MAP = 'SET_COMPONENT_TO_MAP';
+export const SET_DOM_ELEMENT_TO_MAP = 'SET_DOM_ELEMENT_TO_MAP';
 
 /**
  * @param  {Object} component
@@ -79,4 +81,26 @@ export const showPreviewWorkspace = () => ({
  */
 export const hidePreviewWorkspace = () => ({
     type: HIDE_PREVIEW_WORKSPACE
+})
+
+/**
+ * @param  {string} uid
+ * @param  {Object} component
+ * @return {Object}
+ */
+export const setComponentToMap = (uid, component) => ({
+    type: SET_COMPONENT_TO_MAP,
+    uid,
+    component
+})
+
+/**
+ * @param  {string} uid
+ * @param  {Object} component
+ * @return {Object}
+ */
+export const setDomElementToMap = (uid, component) => ({
+    type: SET_DOM_ELEMENT_TO_MAP,
+    uid,
+    component
 })

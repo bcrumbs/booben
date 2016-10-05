@@ -4,6 +4,8 @@
 
 'use strict';
 
+// TODO: Get all text from i18n
+
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -11,6 +13,8 @@ import { connect } from 'react-redux';
 
 import { Desktop } from '../containers/Desktop/Desktop';
 import { RouteEditor } from '../containers/RouteEditor/RouteEditor';
+
+import { Dialog } from '@reactackle/reactackle';
 
 import ProjectRouteRecord from '../models/ProjectRoute';
 import ToolRecord from '../models/Tool';
@@ -49,13 +53,29 @@ class StructureRoute extends Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            confirmDeleteDialogIsVisible: false
+        };
+
         this._renderRouteList = this._renderRouteList.bind(this);
         this._renderRouteCard = this._renderRouteCard.bind(this);
+        this._handleDeleteRoutePress = this._handleDeleteRoutePress.bind(this);
+        this._handleDeleteRouteDialogClose = this._handleDeleteRouteDialogClose.bind(this);
+        this._handleDeleteRouteConfirm = this._handleDeleteRouteConfirm.bind(this);
+        this._handleDeleteRouteCancel = this._handleDeleteRouteCancel.bind(this);
     }
 
     componentDidMount() {
-        if (this.props.selectedRouteId === -1 && this.props.routes.size > 0)
+        if (this.props.selectedRouteId === -1) this._selectFirstRoute();
+    }
+
+    _selectFirstRoute() {
+        if (this.props.routes.size > 0) {
             this._handleRouteSelect(this.props.routes.get(0), List([0]));
+        }
+        else {
+            this._handleRouteSelect(null, null);
+        }
     }
 
     _handleRouteSelect(route, indexes) {
@@ -68,6 +88,31 @@ class StructureRoute extends Component {
 
     _handleNewRoutePress(indexes) {
 
+    }
+
+    _handleDeleteRoutePress() {
+        this.setState({
+            confirmDeleteDialogIsVisible: true
+        });
+    }
+
+    _handleDeleteRouteDialogClose() {
+        this.setState({
+            confirmDeleteDialogIsVisible: false
+        });
+    }
+
+    _handleDeleteRouteConfirm(closeDialog) {
+        const where = this.props.selectedRouteIndexes.butLast(),
+            idx = this.props.selectedRouteIndexes.last();
+
+        this.props.onDeleteRoute(where, idx);
+        this._selectFirstRoute();
+        closeDialog();
+    }
+
+    _handleDeleteRouteCancel(closeDialog) {
+        closeDialog();
     }
 
     _renderRouteList(parentRoute, routes, indexes) {
@@ -85,7 +130,6 @@ class StructureRoute extends Component {
         );
 
         if (needButton) {
-            // TODO: Get text from i18n
             button = (
                 <RouteNewButton
                     text={parentRoute ? 'New route' : 'New root route'}
@@ -135,35 +179,47 @@ class StructureRoute extends Component {
             ? findRouteById(this.props.routes, this.props.selectedRouteId)
             : null;
 
+        const toolMainButtons = selectedRoute
+            ? List([
+                new ButtonRecord({
+                    text: 'Delete',
+                    onPress: this._handleDeleteRoutePress
+                })
+            ])
+            : List();
+
+        const toolSections = List([
+            new ToolSectionRecord({
+                component: RouteEditor
+            })
+        ]);
+
         const toolGroups = List([
             List([
                 new ToolRecord({
                     id: 'routeEditor',
                     icon: 'random',
-                    name: 'Route editor',
+                    name: 'Route',
                     title: selectedRoute ? selectedRoute.title : '',
                     titleEditable: true,
-                    subtitle: selectedRoute ? selectedRoute.path : '',
-                    undockable: true,
-                    closable: true,
-                    sections: List([
-                        new ToolSectionRecord({
-                            component: RouteEditor
-                        })
-                    ]),
-                    mainButtons: List(),
-                    secondaryButtons: List([
-                        new ButtonRecord({
-                            icon: 'trash'
-                        })
-                    ]),
-                    windowMaxHeight: 0,
+                    subtitle: selectedRoute
+                        ? selectedRoute.isIndex
+                            ? 'Index route'
+                            : selectedRoute.path
+                        : '',
+                    sections: toolSections,
+                    mainButtons: toolMainButtons,
                     windowMinWidth: 360
                 })
             ])
         ]);
 
         const routesList = this._renderRouteList(null, this.props.routes, List());
+
+        const deleteRouteDialogButtons = [
+            { text: 'Delete', onPress: this._handleDeleteRouteConfirm },
+            { text: 'Cancel', onPress: this._handleDeleteRouteCancel }
+        ];
 
         return (
             <Desktop toolGroups={toolGroups}>
@@ -178,8 +234,18 @@ class StructureRoute extends Component {
                         </Container>
                     </PanelContent>
                 </Panel>
+
+                <Dialog
+                    title="Delete route?"
+                    buttons={deleteRouteDialogButtons}
+                    backdrop
+                    visible={this.state.confirmDeleteDialogIsVisible}
+                    onClose={this._handleDeleteRouteDialogClose}
+                >
+                    All child routes will be deleted too.
+                </Dialog>
             </Desktop>
-        )
+        );
     }
 }
 
@@ -190,6 +256,9 @@ StructureRoute.propTypes = {
 
     projectName: PropTypes.string,
     selectedRouteId: PropTypes.number,
+    selectedRouteIndexes: ImmutablePropTypes.listOf(
+        PropTypes.number
+    ),
 
     onSelectRoute: PropTypes.func,
     onCreateRoute: PropTypes.func,
@@ -202,14 +271,22 @@ StructureRoute.displayName = 'StructureRoute';
 const mapStateToProps = state => ({
     routes: state.project.data.routes,
     projectName: state.project.projectName,
-    selectedRouteId: state.structure.selectedRouteId
+    selectedRouteId: state.structure.selectedRouteId,
+    selectedRouteIndexes: state.structure.selectedRouteIndexes
 });
 
 const mapDispatchToProps = dispatch => ({
-    onSelectRoute: (route, indexes) => void dispatch(selectRoute(route.id, indexes)),
-    onCreateRoute: (where, path, title) => void dispatch(createRoute(where, path, title)),
-    onDeleteRoute: (where, idx) => void dispatch(deleteRoute(where, idx)),
-    onRenameRoute: (where, idx, newTitle) => void dispatch(renameRoute(where, idx, newTitle))
+    onSelectRoute: (route, indexes) =>
+        void dispatch(selectRoute(route ? route.id : -1, indexes || List())),
+
+    onCreateRoute: (where, path, title) =>
+        void dispatch(createRoute(where, path, title)),
+
+    onDeleteRoute: (where, idx) =>
+        void dispatch(deleteRoute(where, idx)),
+
+    onRenameRoute: (where, idx, newTitle) =>
+        void dispatch(renameRoute(where, idx, newTitle))
 });
 
 export default connect(

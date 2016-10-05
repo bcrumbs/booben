@@ -21,7 +21,10 @@ import {
     PROJECT_ROUTE_UPDATE_PATH,
     PROJECT_ROUTE_UPDATE_DESCRIPTION,
     PROJECT_ROUTE_UPDATE_IS_INDEX,
-    PROJECT_ROUTE_COMPONENT_UPDATE
+    PROJECT_ROUTE_COMPONENT_UPDATE,
+    PROJECT_ROUTE_COMPONENT_DELETE,
+    PROJECT_ROUTE_COMPONENT_ADD_BEFORE,
+    PROJECT_ROUTE_COMPONENT_ADD_AFTER
 } from '../actions/project';
 
 import Project from '../models/Project';
@@ -193,6 +196,11 @@ export default (state = new ProjectState(), action) => {
 
             return state.deleteIn(whereSource)
                  .updateIn([...whereTarget, 'children'], list => list.push(sourceComponent));
+
+        case PROJECT_ROUTE_COMPONENT_DELETE:
+            const where = ['data', 'routes'].concat(...action.where);
+
+            return state.deleteIn(where);
 
         default:
             return state;

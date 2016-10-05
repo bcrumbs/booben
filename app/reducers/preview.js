@@ -1,6 +1,6 @@
 'use strict';
 
-import { Record, Set } from 'immutable';
+import { Record, Set, Map } from 'immutable';
 
 import {
     DESELECT_PREVIEW_COMPONENT,
@@ -10,14 +10,18 @@ import {
     SET_PREVIEW_WORKSPACE,
     UNSET_PREVIEW_WORKSPACE,
     SHOW_PREVIEW_WORKSPACE,
-    HIDE_PREVIEW_WORKSPACE
+    HIDE_PREVIEW_WORKSPACE,
+    SET_COMPONENT_TO_MAP,
+    SET_DOM_ELEMENT_TO_MAP
 } from '../actions/preview';
 
 const PreviewState = Record({
     selectedItems: Set(),
     highlightedItems: Set(),
     workspace: Set(),
-    workspaceVisible: false
+    workspaceVisible: false,
+    componentsMap: Map(),
+    domElementsMap: Map()
 });
 
 export default (state = new PreviewState(), action) => {
@@ -61,6 +65,12 @@ export default (state = new PreviewState(), action) => {
             return state.merge({
                 workspaceVisible: false
             });
+
+        case SET_COMPONENT_TO_MAP:
+            return state.update('componentsMap', cMap => cMap.set(action.uid, action.component))
+
+        case SET_DOM_ELEMENT_TO_MAP:
+            return state.update('domElementsMap', deMap => deMap.set(action.uid, action.component))
 
         default: return state;
     }
