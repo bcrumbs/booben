@@ -3,6 +3,7 @@ import React, { PropTypes } from 'react';
 export const BlockContentBox = props => {
     let className = `block-content-box-area`;
     if (props.isBordered) className += ' is-bordered';
+    if (props.flex) className += ' display-flex';
 
     return (
         <div className={className}>
@@ -13,11 +14,13 @@ export const BlockContentBox = props => {
 };
 
 BlockContentBox.propTypes = {
-    isBordered: PropTypes.bool
+    isBordered: PropTypes.bool,
+    flex: PropTypes.bool
 };
 
 BlockContentBox.defaultProps = {
-    isBordered: true
+    isBordered: false,
+	flex: false
 };
 
 BlockContentBox.displayName = 'BlockContentBox';

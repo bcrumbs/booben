@@ -26,6 +26,12 @@ import {
 } from '../components/ComponentTag/ComponentTag';
 
 import {
+	ComponentsTree,
+	ComponentsTreeList,
+	ComponentsTreeItem
+} from '../components/ComponentsTree/ComponentsTree';
+
+import {
 	PropsList,
 	PropsItem
 } from '../components/PropsList/PropsList';
@@ -187,8 +193,141 @@ const toolRouteWindowSecondaryActions = List([
 	})
 ]);
 
+// Route Editing
+const toolSitemapWindowSections = List([
+	new ToolSectionRecord({
+		name: 'Sitemap',
+		component: () => (
+			<BlockContentBox isBordered flex>
+
+					<ComponentsTree>
+						<ComponentsTreeItem title="routeA" showSublevel hasTooltip>
+							<ComponentsTreeList>
+								<ComponentsTreeItem title="Main Region" showSublevel hasTooltip>
+									<ComponentsTreeList>
+										<ComponentsTreeItem title="Content" showSublevel hasTooltip>
+											<ComponentsTreeList>
+												<ComponentsTreeItem title="Components Tree" showSublevel hasTooltip>
+													<ComponentsTreeList>
+														<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+															<ComponentsTreeList>
+																<ComponentsTreeItem title="Components Tree Item" showSublevel hasTooltip/>
+																<ComponentsTreeItem title="Some extremely long tree item item item item item item" hasTooltip showSublevel active />
+																<ComponentsTreeItem title="Another extremely long tree item item item item item item" showSublevel hasTooltip>
+																	<ComponentsTreeList>
+																		<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+																			<ComponentsTreeList>
+																				<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+																					<ComponentsTreeList>
+																						<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+																							<ComponentsTreeList>
+																								<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+																									<ComponentsTreeList>
+																										<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+																											<ComponentsTreeList>
+																												<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+																													<ComponentsTreeList>
+																														<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+																															<ComponentsTreeList>
+																																<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+																																	<ComponentsTreeList>
+																																		<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+																																			<ComponentsTreeList>
+																																				<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+																																					<ComponentsTreeList>
+																																						<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+																																							<ComponentsTreeList>
+																																								<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+																																									<ComponentsTreeList>
+																																										<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+																																											<ComponentsTreeList>
+																																												<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+																																													<ComponentsTreeList>
+																																														<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+																																															<ComponentsTreeList>
+																																																<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip />
+																																															</ComponentsTreeList>
+																																														</ComponentsTreeItem>
+																																													</ComponentsTreeList>
+																																												</ComponentsTreeItem>
+																																											</ComponentsTreeList>
+																																										</ComponentsTreeItem>
+																																									</ComponentsTreeList>
+																																								</ComponentsTreeItem>
+																																							</ComponentsTreeList>
+																																						</ComponentsTreeItem>
+																																					</ComponentsTreeList>
+																																				</ComponentsTreeItem>
+																																			</ComponentsTreeList>
+																																		</ComponentsTreeItem>
+																																	</ComponentsTreeList>
+																																</ComponentsTreeItem>
+																															</ComponentsTreeList>
+																														</ComponentsTreeItem>
+																													</ComponentsTreeList>
+																												</ComponentsTreeItem>
+																											</ComponentsTreeList>
+																										</ComponentsTreeItem>
+																									</ComponentsTreeList>
+																								</ComponentsTreeItem>
+																							</ComponentsTreeList>
+																						</ComponentsTreeItem>
+																					</ComponentsTreeList>
+																				</ComponentsTreeItem>
+																			</ComponentsTreeList>
+																		</ComponentsTreeItem>
+																	</ComponentsTreeList>
+																</ComponentsTreeItem>
+															</ComponentsTreeList>
+														</ComponentsTreeItem>
+													</ComponentsTreeList>
+												</ComponentsTreeItem>
+											</ComponentsTreeList>
+										</ComponentsTreeItem>
+									</ComponentsTreeList>
+								</ComponentsTreeItem>
+							</ComponentsTreeList>
+						</ComponentsTreeItem>
+						<ComponentsTreeItem title="routeB">
+							<ComponentsTreeList>
+								<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+									<ComponentsTreeList>
+										<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+											<ComponentsTreeList>
+												<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+													<ComponentsTreeList>
+														<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip />
+													</ComponentsTreeList>
+												</ComponentsTreeItem>
+											</ComponentsTreeList>
+										</ComponentsTreeItem>
+									</ComponentsTreeList>
+								</ComponentsTreeItem>
+							</ComponentsTreeList>
+						</ComponentsTreeItem>
+						<ComponentsTreeItem title="routeC">
+							<ComponentsTreeList>
+							</ComponentsTreeList>
+						</ComponentsTreeItem>
+					</ComponentsTree>
+
+			</BlockContentBox>
+		)
+	})
+]);
+
 export default List([
     List([
+	    new ToolRecord({
+		    id: 'tool6',
+		    icon: 'sitemap',
+		    name: 'Elements Tree',
+		    title: 'Elements Tree',
+		    undockable: true,
+		    closable: false,
+		    sections: toolSitemapWindowSections
+	    }),
+
 	    new ToolRecord({
 		    id: 'tool5',
 		    icon: 'cog',
@@ -235,19 +374,7 @@ export default List([
             sections: toolWindowSections,
             mainButtons: toolWindowMainActions,
             secondaryButtons: toolWindowSecondaryActions
-        }),
-
-	    new ToolRecord({
-		    id: 'tool3',
-		    icon: 'sitemap',
-		    name: 'Elements Tree',
-		    title: 'Fuck you, i\'m drunk',
-		    undockable: true,
-		    closable: false,
-		    sections: toolWindowSections,
-		    mainButtons: toolWindowMainActions,
-		    secondaryButtons: toolWindowSecondaryActions
-	    })
+        })
     ])
 ]);
  
