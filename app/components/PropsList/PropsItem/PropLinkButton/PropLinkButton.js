@@ -7,7 +7,7 @@ export const PropLinkButton = props => {
     return (
 	    <div className="prop-item-actions-box">
 		    <div className="prop-item-action action-linking">
-			    <Button icon="link" size="small" />
+			    <Button icon="link" />
 		    </div>
 	    </div>
     );

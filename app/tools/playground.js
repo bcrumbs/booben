@@ -156,24 +156,27 @@ const toolRouteWindowSections = List([
 		name: 'Route Editing',
 		component: () => (
 			<BlockContentBox>
-				<BlockContentBoxHeading>Props Group 1</BlockContentBoxHeading>
+				<BlockContentBoxHeading>If redirect is on</BlockContentBoxHeading>
 				<BlockContentBoxItem>
 					<PropsList>
-						<PropsItem type="input" linkable label="Input Props"/>
-						<PropsItem type="textarea" linkable label="Textarea Prop" />
-						<PropsItem type="list" linkable label="List prop" />
-						<PropsItem type="constructor" linkable label="Constructor Prop" />
-						<PropsItem type="constructor-toggle" linkable label="Constructor with toggle" />
-						<PropsItem type="toggle" linkable label="Toggle prop" />
+						<PropsItem type="toggle" linkable label="Redirect" checked/>
+						<PropsItem type="input" linkable label="Set URL"/>
 					</PropsList>
 				</BlockContentBoxItem>
 
-				<BlockContentBoxHeading>Props Group 2</BlockContentBoxHeading>
+				<BlockContentBoxHeading>If redirect is off</BlockContentBoxHeading>
 				<BlockContentBoxItem>
 					<PropsList>
-						<PropsItem type="array" label="Array Prop" />
+						<PropsItem type="toggle" linkable label="Redirect"/>
 					</PropsList>
 				</BlockContentBoxItem>
+
+				{/*<BlockContentBoxHeading>Props Group 2</BlockContentBoxHeading>*/}
+				{/*<BlockContentBoxItem>*/}
+					{/*<PropsList>*/}
+						{/*<PropsItem type="array" label="Array Prop" />*/}
+					{/*</PropsList>*/}
+				{/*</BlockContentBoxItem>*/}
 			</BlockContentBox>
 		)
 	})
@@ -319,16 +322,6 @@ const toolSitemapWindowSections = List([
 export default List([
     List([
 	    new ToolRecord({
-		    id: 'tool6',
-		    icon: 'sitemap',
-		    name: 'Elements Tree',
-		    title: 'Elements Tree',
-		    undockable: true,
-		    closable: false,
-		    sections: toolSitemapWindowSections
-	    }),
-
-	    new ToolRecord({
 		    id: 'tool5',
 		    icon: 'cog',
 		    name: 'Parsers',
@@ -338,6 +331,16 @@ export default List([
 		    sections: toolRouteWindowSections,
 		    mainButtons: toolRouteWindowMainActions,
 		    secondaryButtons: toolRouteWindowSecondaryActions
+	    }),
+
+	    new ToolRecord({
+		    id: 'tool6',
+		    icon: 'sitemap',
+		    name: 'Elements Tree',
+		    title: 'Elements Tree',
+		    undockable: true,
+		    closable: false,
+		    sections: toolSitemapWindowSections
 	    }),
 
         new ToolRecord({

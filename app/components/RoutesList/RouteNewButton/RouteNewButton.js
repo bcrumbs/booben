@@ -10,6 +10,7 @@ export const RouteNewButton = props => (
             text={props.text}
             kind="outline-primary"
             onPress={props.onPress}
+            tabIndex="1"
         />
     </li>
 );

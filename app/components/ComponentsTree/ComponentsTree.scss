@@ -85,6 +85,7 @@
 		min-width: $ctree-item-min-width;
 		max-width: $ctree-item-max-width - ($ctree-item-icon-box-size + $ctree-item-icon-spacing) - $ctree-item-pad-x*2;
 		overflow: hidden;
+		text-align: left;
 
 		@include single-transition();
 
