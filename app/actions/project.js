@@ -204,3 +204,52 @@ export const componentUpdateRoute = (source, target) => ({
     source,
     target
 });
+
+/**
+ *
+ * @type {string}
+ */
+export const PROJECT_ROUTE_COMPONENT_DELETE = 'PROJECT_ROUTE_COMPONENT_DELETE';
+
+/**
+ *
+ * @param {number[]} where - index of component
+ * @returns {Object}
+ */
+export const componentDeleteFromRoute = (where) => ({
+    type: PROJECT_ROUTE_COMPONENT_DELETE,
+    where
+});
+
+/**
+ *
+ * @type {string}
+ */
+export const PROJECT_ROUTE_COMPONENT_ADD_BEFORE = 'PROJECT_ROUTE_COMPONENT_ADD_BEFORE';
+
+/**
+ *
+ * @param {number[]} where - index of component
+ * @returns {Object}
+ */
+export const componentAddBeforeToRoute = (whereSource) => ({
+    type: PROJECT_ROUTE_COMPONENT_ADD_BEFORE,
+    whereSource
+});
+
+/**
+ *
+ * @type {string}
+ */
+export const PROJECT_ROUTE_COMPONENT_ADD_AFTER = 'PROJECT_ROUTE_COMPONENT_ADD_AFTER';
+
+/**
+ *
+ * @param {number[]} where - index of component
+ * @returns {Object}
+ */
+export const componentAddAfterToRoute = (whereSource) => ({
+    type: PROJECT_ROUTE_COMPONENT_ADD_AFTER,
+    whereSource
+});
+

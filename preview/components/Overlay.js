@@ -2,17 +2,15 @@
 
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { Set } from 'immutable';
+import { Set, Map } from 'immutable';
 import { connect } from 'react-redux';
-
-import { componentsMap, domElementsMap } from '../utils';
 
 class Overlay extends Component {
     _getItems(uids, color, zIndex) {
         if(!uids.size) return;
 
         return uids.map((uid) => {
-            const el = domElementsMap.get(uid);
+            const el = this.props.domElementsMap.get(uid);
 
             let {
                 bottom,
@@ -109,21 +107,24 @@ Overlay.propTypes = {
     selected: ImmutablePropTypes.set,
     highlighted: ImmutablePropTypes.set,
     workspace: ImmutablePropTypes.set,
-    workspaceVisible: PropTypes.bool
+    workspaceVisible: PropTypes.bool,
+    domElementsMap: ImmutablePropTypes.map
 };
 
 Overlay.defaultProps = {
     selected: Set(),
     highlighted: Set(),
     workspace: Set(),
-    workspaceVisible: false
+    workspaceVisible: false,
+    domElementsMap: Map()
 };
 
 const mapStateToProps = state => ({
     selected: state.preview.selectedItems,
     highlighted: state.preview.highlightedItems,
     workspace: state.preview.workspace,
-    workspaceVisible: state.preview.workspaceVisible
+    workspaceVisible: state.preview.workspaceVisible,
+    domElementsMap: state.preview.domElementsMap
 });
 
 export default connect(

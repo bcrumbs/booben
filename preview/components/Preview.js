@@ -6,11 +6,9 @@ import ReactDOM from 'react-dom';
 import { Router, hashHistory } from 'react-router';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { List, Set } from 'immutable';
+import { List, Set, Map } from 'immutable';
 
 import Builder from './Builder';
-
-import { domElementsMap, componentsMap } from '../utils';
 
 import {
     selectPreviewComponent,
@@ -20,14 +18,15 @@ import {
     setPreviewWorkspace,
     unsetPreviewWorkspace,
     showPreviewWorkspace,
-    hidePreviewWorkspace
+    hidePreviewWorkspace,
+    setDomElementToMap
 } from '../../app/actions/preview';
 
 import {
-    componentUpdateRoute
+    componentDeleteFromRoute
 } from '../../app/actions/project';
 
-const workspaceMap = new Map();
+let workspaceMap = Map();
 
 /**
  * Get owner React element by condition
@@ -147,8 +146,7 @@ class Preview extends Component {
         if(!builderWS || !builderWS._renderedComponent) return;
 
         this.props.setWorkspace(this.workspace);
-
-        domElementsMap.set(this.workspace, builderWS._renderedComponent._hostNode);
+        this._setDomElementToMap(this.workspace, builderWS._renderedComponent._hostNode);
     }
 
     _handleResize() {}
@@ -163,7 +161,7 @@ class Preview extends Component {
         const owner = getOwner(el, item => item._currentElement.props.uid == uid),
             domEl = owner._renderedComponent._hostNode;
 
-        domElementsMap.set(uid, domEl);
+        this._setDomElementToMap(uid, domEl);
 
         if(this.props.selected.has(uid)) {
             this.props.deselectComponent(uid);
@@ -182,7 +180,7 @@ class Preview extends Component {
         const owner = getOwner(el, item => item._currentElement.props.uid == uid),
             domEl = owner._renderedComponent._hostNode;
 
-        domElementsMap.set(uid, domEl);
+        this._setDomElementToMap(uid, domEl);
 
         if(this.props.highlighted.has(uid)) {
             this.props.unhighlightComponent(uid);
@@ -191,9 +189,15 @@ class Preview extends Component {
         }
     }
 
+    _setDomElementToMap(key, value) {
+        if(!this.props.domElementsMap.has(key)) {
+            this.props.setDomElementToMap(key, value);
+        }
+    }
+
     _inWorkspace(uid) {
-        const workspace = componentsMap.get(this.workspace),
-            el = componentsMap.get(uid);
+        const workspace = this.props.componentsMap.get(this.workspace),
+            el = this.props.componentsMap.get(uid);
 
         for(var i in workspace.where) {
             if(workspace.where[i] != el.where[i]) return false;
@@ -242,10 +246,7 @@ class Preview extends Component {
                 owner._currentElement.props.uid != this.dndParams.uid &&
                 this._inWorkspace(owner._currentElement.props.uid)
             ) {
-                this.props.componentUpdateRoute(
-                    this.dndParams.where,
-                    componentsMap.get(owner._currentElement.props.uid).where
-                );
+                // this.props.componentsMap.get(owner._currentElement.props.uid).where
             }
         }
 
@@ -267,7 +268,7 @@ class Preview extends Component {
 
         if(!this.dndFlag) {
             var el = this.dndParams.el;
-            el.innerHTML = componentsMap.get(this.dndParams.uid).name;
+            el.innerHTML = this.props.componentsMap.get(this.dndParams.uid).name;
 
             el.style.position = 'absolute';
             el.style.zIndex = 1000;
@@ -280,6 +281,8 @@ class Preview extends Component {
 
             this.domOverlay.appendChild(el);
             this.dndFlag = true;
+
+            this.props.componentDeleteFromRoute(this.dndParams.where);
 
             this.props.showWorkspace();
         }
@@ -337,7 +340,7 @@ class Preview extends Component {
 
                 this.dndParams.el = document.createElement('div');
                 this.dndParams.uid = uid;
-                this.dndParams.where = componentsMap.get(uid).where;
+                this.dndParams.where = this.props.componentsMap.get(uid).where;
                 this.dndParams.dragStartX = event.pageX;
                 this.dndParams.dragStartY = event.pageY;
 
@@ -380,7 +383,7 @@ class Preview extends Component {
 
             ret.onEnter = this._handlerChangeRoute.bind(this, route.id);
 
-            workspaceMap.set(route.id, this.props.routes.getIn(routeIndex).component.uid)
+            workspaceMap = workspaceMap.set(route.id, this.props.routes.getIn(routeIndex).component.uid)
 
             if (haveIndexRoute) {
                 const indexRoute = route.children.get(indexRouteIdx);
@@ -422,7 +425,11 @@ Preview.propTypes = {
     selectComponent: PropTypes.func,
     unhighlightComponent: PropTypes.func,
     highlightComponent: PropTypes.func,
-    setWorkspace: PropTypes.func
+    setWorkspace: PropTypes.func,
+    unsetWorkspace: PropTypes.func,
+    showWorkspace: PropTypes.func,
+    hideWorkspace: PropTypes.func,
+    setDomElementToMap: PropTypes.func
 };
 
 Preview.defaultProps = {
@@ -431,11 +438,17 @@ Preview.defaultProps = {
     routes: List(),
     selected: Set(),
     highlighted: Set(),
+    componentsMap: Map(),
+    domElementsMap: Map(),
     deselectComponent: /* istanbul ignore next */ () => {},
     selectComponent: /* istanbul ignore next */ () => {},
     highlightComponent: /* istanbul ignore next */ () => {},
     unhighlightComponent: /* istanbul ignore next */ () => {},
-    setWorkspace: /* istanbul ignore next */ () => {}
+    setWorkspace: /* istanbul ignore next */ () => {},
+    unsetWorkspace: /* istanbul ignore next */ () => {},
+    showWorkspace: /* istanbul ignore next */ () => {},
+    hideWorkspace: /* istanbul ignore next */ () => {},
+    setDomElementToMap: /* istanbul ignore next */ () => {}
 };
 
 Preview.displayName = 'Preview';
@@ -443,7 +456,9 @@ Preview.displayName = 'Preview';
 const mapStateToProps = state => ({
     routes: state.project.data.routes,
     selected: state.preview.selectedItems,
-    highlighted: state.preview.highlightedItems
+    highlighted: state.preview.highlightedItems,
+    componentsMap: state.preview.componentsMap,
+    domElementsMap: state.preview.domElementsMap
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -451,11 +466,12 @@ const mapDispatchToProps = dispatch => ({
     selectComponent: selected => void dispatch(selectPreviewComponent(selected)),
     highlightComponent: highlighted => void dispatch(highlightPreviewComponent(highlighted)),
     unhighlightComponent: highlighted => void dispatch(unhighlightPreviewComponent(highlighted)),
-    componentUpdateRoute: (source, target) => void dispatch(componentUpdateRoute(source, target)),
+    componentDeleteFromRoute: (where) => void dispatch(componentDeleteFromRoute(where)),
     setWorkspace: component => void dispatch(setPreviewWorkspace(component)),
     unsetWorkspace: component => void dispatch(unsetPreviewWorkspace(component)),
     showWorkspace: () => void dispatch(showPreviewWorkspace()),
-    hideWorkspace: () => void dispatch(hidePreviewWorkspace())
+    hideWorkspace: () => void dispatch(hidePreviewWorkspace()),
+    setDomElementToMap: (uid, component) => void dispatch(setDomElementToMap(uid, component))
 });
 
 export default connect(

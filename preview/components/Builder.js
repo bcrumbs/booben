@@ -3,11 +3,15 @@
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import { Map } from 'immutable';
+import { connect } from 'react-redux';
 
 // The real components.js will be generated during build process
 import components from '../components.js';
 
-import { componentsMap, workspaceMap } from '../utils';
+import {
+    setComponentToMap
+} from '../../app/actions/preview';
 
 const pseudoComponents = new Set([
     'Text',
@@ -46,11 +50,14 @@ class Builder extends Component {
             baseIndex = [...baseIndex, ...componentIndex];
         }
 
-        componentsMap.set(component.uid, {
-            name: component.name,
-            componentType: Component.jssy ? Component.jssy.kind : null,
-            where: [...baseIndex]
-        });
+        if(!this.props.componentsMap.has(component.uid)) {
+            this.props.setComponentToMap(component.uid, {
+                name: component.name,
+                componentType: Component.jssy ? Component.jssy.kind : null,
+                where: [...baseIndex]
+            });
+        }
+        
 
         if (component.children && component.children.size) {
             return (
@@ -88,12 +95,14 @@ Builder.propTypes = {
         props: ImmutablePropTypes.map,
         children: ImmutablePropTypes.list
     }),
-    routeIndex: React.PropTypes.array
+    routeIndex: React.PropTypes.array,
+    componentsMap: ImmutablePropTypes.map
 };
 
 Builder.defaultProps = {
     component: null,
-    routeIndex: []
+    routeIndex: [],
+    componentsMap: Map()
 };
 
 /**
@@ -136,4 +145,16 @@ const getProps = props => {
     return ret;
 };
 
-export default Builder;
+const mapDispatchToProps = dispatch => ({
+    setComponentToMap: (uid, component) => void dispatch(setComponentToMap(
+        uid, component))
+});
+
+const mapStateToProps = state => ({
+    componentsMap: state.preview.componentsMap
+});
+
+export default connect(
+    mapStateToProps,
+    mapDispatchToProps
+)(Builder);
