@@ -19,8 +19,6 @@ const isPseudoComponent = component => pseudoComponents.has(component.name);
 class Builder extends Component {
     constructor(props) {
         super(props);
-
-        this.rootRender = false;
         this._getComponentFromMeta = this._getComponentFromMeta.bind(this);
     }
 
@@ -36,11 +34,6 @@ class Builder extends Component {
 
     _getComponentFromMeta(component = null, componentIndex = []) {
         if (!component) return null;
-
-        if(!this.rootRender) {
-            workspaceMap.set(this.props.path, component.uid);
-            this.rootRender = true;
-        }
 
         if (isPseudoComponent(component))
             return this._renderPseudoComponent(component);

@@ -10,8 +10,7 @@ import { List, Set } from 'immutable';
 
 import Builder from './Builder';
 
-import { domElementsMap, componentsMap, workspaceMap } from '../utils';
-import { getRoutePrefix } from '../../app/utils';
+import { domElementsMap, componentsMap } from '../utils';
 
 import {
     selectPreviewComponent,
@@ -27,6 +26,8 @@ import {
 import {
     componentUpdateRoute
 } from '../../app/actions/project';
+
+const workspaceMap = new Map();
 
 /**
  * Get owner React element by condition
@@ -90,7 +91,7 @@ class Preview extends Component {
         this.dndFlag = false;
         this.animationFrame = null;
         this.needRAF = true;
-        this.currentPath = null;
+        this.currentRouteID = null;
 
         this._handleMouseEvent = this._handleMouseEvent.bind(this);
         this._handleResize = this._handleResize.bind(this);
@@ -104,7 +105,7 @@ class Preview extends Component {
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
         this.domOverlay = this.props.domOverlay;
-        this.workspace = workspaceMap.get(this.currentPath);
+        this.workspace = workspaceMap.get(this.currentRouteID);
 
         if (this.props.interactive) {
             mouseEvents.forEach(e => {
@@ -238,6 +239,7 @@ class Preview extends Component {
             if(
                 owner &&
                 owner._currentElement.props.uid &&
+                owner._currentElement.props.uid != this.dndParams.uid &&
                 this._inWorkspace(owner._currentElement.props.uid)
             ) {
                 this.props.componentUpdateRoute(
@@ -344,28 +346,24 @@ class Preview extends Component {
         }
     }
 
-    _handlerChangeRoute(params) {
-        this.currentPath = params.location.pathname;
+    _handlerChangeRoute(id) {
+        this.currentRouteID = id;
     }
 
-    // TODO: Replace prefix with something unique
-    _createRoute(route, index, prefix) {
-        const routeIndex = Array.isArray(index) ? index : [index],
-            path = getRoutePrefix(route, prefix); 
+    _createRoute(route, index) {
+        const routeIndex = Array.isArray(index) ? index : [index]; 
 
         const ret = {
-            onEnter: this._handlerChangeRoute,
             component: ({ children }) => <Builder
                 component={this.props.routes.getIn(routeIndex).component}
                 children={children}
-                path={path}
                 routeIndex={routeIndex}
             />
         };
 
-        if (!route.isIndex) ret.path = route.path;
+        if (route && !route.isIndex) ret.path = route.path;
 
-        if (!route.isIndex && route.children.size > 0) {
+        if (route && !route.isIndex && route.children.size > 0) {
             const indexRouteIdx = route.children.findKey(route => route.isIndex),
                 haveIndexRoute = typeof indexRouteIdx === 'undefined';
 
@@ -376,17 +374,19 @@ class Preview extends Component {
             ret.childRoutes = regularChildren
                 .map((child, routeIndex) => this._createRoute(
                     child,
-                    [].concat(index, 'children', routeIndex),
-                    path
+                    [].concat(index, 'children', routeIndex)
                 ))
                 .toArray();
+
+            ret.onEnter = this._handlerChangeRoute.bind(this, route.id);
+
+            workspaceMap.set(route.id, this.props.routes.getIn(routeIndex).component.uid)
 
             if (haveIndexRoute) {
                 const indexRoute = route.children.get(indexRouteIdx);
                 ret.indexRoute = this._createRoute(
                     indexRoute,
                     [].concat(index, 'children', indexRouteIdx)
-                    // TODO: Pass something instead of prefix here
                 )
             }
         }
