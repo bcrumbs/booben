@@ -26,8 +26,6 @@ import {
     componentDeleteFromRoute
 } from '../../app/actions/project';
 
-let workspaceMap = Map();
-
 /**
  * Get owner React element by condition
  *
@@ -95,7 +93,7 @@ class Preview extends Component {
         this.dndFlag = false;
         this.animationFrame = null;
         this.needRAF = true;
-        this.currentRouteID = null;
+        this.currentRouteId = null;
         this.rootComponentIds = this._gatherRootComponentIds(props.routes);
         this.currentOwner = null;
 
@@ -108,32 +106,9 @@ class Preview extends Component {
         this._handleChangeRoute = this._handleChangeRoute.bind(this);
     }
 
-    _gatherRootComponentIds(routes) {
-        const reducer = (acc, route) => {
-            acc = acc.set(route.id, new RouteRootComponentIds({
-                componentId: route.component ? route.component.uid : null,
-                indexComponentId: route.indexComponent ? route.indexComponent.uid : null
-            }));
-
-            return route.children.reduce(reducer, acc);
-        };
-
-        return routes.reduce(reducer, Map());
-    }
-
-    _getCurrentRootComponentId() {
-        const rootComponentIds = this.rootComponentIds.get(this.currentRouteID);
-        if (!rootComponentIds) return null;
-
-        return this.props.currentRouteIsIndexRoute
-            ? rootComponentIds.indexComponentId
-            : rootComponentIds.componentId
-    }
-
     componentDidMount() {
         this.domNode = ReactDOM.findDOMNode(this);
         this.domOverlay = this.props.domOverlay;
-        this.workspace = workspaceMap.get(this.currentRouteID);
 
         if (this.props.interactive) {
             mouseEvents.forEach(e => {
@@ -166,14 +141,38 @@ class Preview extends Component {
         return nextProps.routes !== this.props.routes;
     }
 
+    _gatherRootComponentIds(routes) {
+        const reducer = (acc, route) => {
+            acc = acc.set(route.id, new RouteRootComponentIds({
+                componentId: route.component ? route.component.uid : null,
+                indexComponentId: route.indexComponent ? route.indexComponent.uid : null
+            }));
+
+            return route.children.reduce(reducer, acc);
+        };
+
+        return routes.reduce(reducer, Map());
+    }
+
+    _getCurrentRootComponentId() {
+        const rootComponentIds = this.rootComponentIds.get(this.currentRouteId);
+        if (!rootComponentIds) return null;
+
+        return this.props.currentRouteIsIndexRoute
+            ? rootComponentIds.indexComponentId
+            : rootComponentIds.componentId
+    }
+
     _updateWorkspace() {
+        const rootComponentId = this._getCurrentRootComponentId();
+
         const builderWS = getChild(this['_reactInternalInstance'],
-            item => item._currentElement.props['data-uid'] == this.workspace);
+            item => item._currentElement.props['data-uid'] == rootComponentId);
 
         if(!builderWS || !builderWS._renderedComponent) return;
 
-        this.props.setWorkspace(this.workspace);
-        this._setDomElementToMap(this.workspace, builderWS._renderedComponent._hostNode);
+        this.props.setWorkspace(rootComponentId);
+        this._setDomElementToMap(rootComponentId, builderWS._renderedComponent._hostNode);
     }
 
     _handleResize() {}
@@ -212,11 +211,13 @@ class Preview extends Component {
     }
 
     _inWorkspace(uid) {
-        const workspace = this.props.componentsMap.get(this.workspace),
+        const rootComponentId = this._getCurrentRootComponentId();
+
+        const workspace = this.props.componentsMap.get(rootComponentId),
             el = this.props.componentsMap.get(uid);
 
-        for(var i in workspace.where) {
-            if(workspace.where[i] != el.where[i]) return false;
+        for (var i in workspace.where) {
+            if (workspace.where[i] != el.where[i]) return false;
         }
 
         return true;
@@ -375,7 +376,7 @@ class Preview extends Component {
     }
 
     _handleChangeRoute(routeId) {
-        this.currentRouteID = routeId;
+        this.currentRouteId = routeId;
     }
 
     _createRoute(route, pathToRoute) {
