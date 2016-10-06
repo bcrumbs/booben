@@ -25,7 +25,7 @@ export class RouteCard extends Component {
         let className = 'route-card-wrapper';
 
         if (this.props.redirect) className += ' has-redirect';
-        if (this.props.index) className += ' is-index';
+        if (this.props.isIndex) className += ' is-index';
         if (this.props.focused) className += ' is-focused';
 
         let icon = null;
@@ -37,22 +37,13 @@ export class RouteCard extends Component {
             );
         }
 
-	    // let defaultIndex = null;
-	    // if (this.props.haveIndex) {
-		 //    defaultIndex =
-			//     <li className="route-index-default" tabIndex="1">
-			// 	    <div
-         //                className="route-index-default-button"
-         //                onClick={this._handleEditIndexClick}
-         //            >
-         //                Edit index
-         //            </div>
-			//     </li>;
-	    // }
-
 	    let subtitle = null;
-	    if (this.props.subtitle && !this.props.index) {
-	    	subtitle = <div className="route-subtitle">{this.props.subtitle}</div>;
+	    if (this.props.subtitle && !this.props.isIndex) {
+	    	subtitle = (
+	    	    <div className="route-subtitle">
+                    {this.props.subtitle}
+                </div>
+            );
 	    }
 
         return (
@@ -70,7 +61,7 @@ export class RouteCard extends Component {
 	                            {icon}
 	                        </div>
 
-		                    { subtitle }
+		                    {subtitle}
 	                    </div>
 	                </div>
 	            </div>
@@ -84,25 +75,19 @@ export class RouteCard extends Component {
 RouteCard.propTypes = {
     title: PropTypes.string,
     subtitle: PropTypes.string,
-    home: PropTypes.bool,
-    haveIndex: PropTypes.bool,
+    isIndex: PropTypes.bool,
     focused: PropTypes.bool,
-    index: PropTypes.bool,
     onFocus: PropTypes.func,
-    onGo: PropTypes.func,
-    onEditIndexClick: PropTypes.func
+    onGo: PropTypes.func
 };
 
 RouteCard.defaultProps = {
     title: '',
     subtitle: '',
-    home: false,
-    haveIndex: false,
+    isIndex: false,
     focused: false,
-    index: false,
     onFocus: noop,
-    onGo: noop,
-    onEditIndexClick: noop
+    onGo: noop
 };
 
 RouteCard.displayName = 'RouteCard';

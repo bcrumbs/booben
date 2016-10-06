@@ -20,6 +20,7 @@
  * @property {string} title
  * @property {string} description
  * @property {boolean} haveIndexRoute
+ * @property {string} indexRouteDescription
  * @property {?ProjectComponent} indexComponent
  * @property {boolean} haveRedirect
  * @property {string} redirectTo

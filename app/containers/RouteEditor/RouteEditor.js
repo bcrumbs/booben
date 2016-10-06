@@ -37,6 +37,7 @@ class RouteEditorComponent extends Component {
         this._handleHaveIndexChange = this._handleHaveIndexChange.bind(this);
         this._handleHaveRedirectChange = this._handleHaveRedirectChange.bind(this);
         this._handleRedirectToChange = this._handleRedirectToChange.bind(this);
+        this._handleIndexRouteDescriptionChange = this._handleIndexRouteDescriptionChange.bind(this);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -81,8 +82,33 @@ class RouteEditorComponent extends Component {
         this.props.onRedirectToChange(this._where, this._idx, newValue);
     }
 
+    _handleIndexRouteDescriptionChange(newValue) {
+        this.props.onIndexRouteDescriptionChange(this._where, this._idx, newValue);
+    }
+
     render() {
         if (!this.props.haveSelectedRoute || !this._route) return null;
+
+        if (this.props.indexRouteSelected) {
+            return (
+                <BlockContentBox>
+                    <BlockContentBoxHeading>
+                        Index route properties
+                    </BlockContentBoxHeading>
+
+                    <BlockContentBoxItem>
+                        <PropsList>
+                            <PropsItem
+                                type="textarea"
+                                label="Description"
+                                value={this._route.indexRouteDescription}
+                                onChange={this._handleIndexRouteDescriptionChange}
+                            />
+                        </PropsList>
+                    </BlockContentBoxItem>
+                </BlockContentBox>
+            );
+        }
 
         let redirectUrlInput = null,
             haveIndexToggle = null;
@@ -154,11 +180,14 @@ RouteEditorComponent.propTypes = {
         PropTypes.number
     ),
 
+    indexRouteSelected: PropTypes.bool,
+
     onPathChange: PropTypes.func,
     onDescriptionChange: PropTypes.func,
     onHaveIndexChange: PropTypes.func,
     onHaveRedirectChange: PropTypes.func,
-    onRedirectToChange:PropTypes.func
+    onRedirectToChange: PropTypes.func,
+    onIndexRouteDescriptionChange: PropTypes.func
 };
 
 RouteEditorComponent.displayName = 'RouteEditor';
@@ -166,7 +195,8 @@ RouteEditorComponent.displayName = 'RouteEditor';
 const mapStateToProps = state => ({
     routes: state.project.data.routes,
     haveSelectedRoute: state.structure.selectedRouteId !== -1,
-    selectedRouteIndexes: state.structure.selectedRouteIndexes
+    selectedRouteIndexes: state.structure.selectedRouteIndexes,
+    indexRouteSelected: state.structure.indexRouteSelected
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -183,7 +213,10 @@ const mapDispatchToProps = dispatch => ({
         void dispatch(updateRouteField(where, idx, 'haveRedirect', newValue)),
 
     onRedirectToChange: (where, idx, newValue) =>
-        void dispatch(updateRouteField(where, idx, 'redirectTo', newValue))
+        void dispatch(updateRouteField(where, idx, 'redirectTo', newValue)),
+
+    onIndexRouteDescriptionChange: (where, idx, newValue) =>
+        void dispatch(updateRouteField(where, idx, 'indexRouteDescription', newValue))
 });
 
 export const RouteEditor = connect(

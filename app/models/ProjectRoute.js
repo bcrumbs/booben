@@ -12,6 +12,7 @@ export default Record({
     title: '',
     description: '',
     haveIndex: false,
+    indexRouteDescription: '',
     indexComponent: null,
     haveRedirect: false,
     redirectTo: '',

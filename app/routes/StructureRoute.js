@@ -80,10 +80,10 @@ class StructureRoute extends Component {
         this._newRouteTitleInput = null;
 
         this._saveNewRouteTitleInputRef = this._saveNewRouteTitleInputRef.bind(this);
-        this._handleKeyUp = this._handleKeyUp.bind(this);
 
-        this._renderRouteList = this._renderRouteList.bind(this);
-        this._renderRouteCard = this._renderRouteCard.bind(this);
+        this._handleKeyUp = this._handleKeyUp.bind(this);
+        this._handleSelectedRouteGo = this._handleSelectedRouteGo.bind(this);
+        this._handleToolTitleChange = this._handleToolTitleChange.bind(this);
 
         this._handleDeleteRoutePress = this._handleDeleteRoutePress.bind(this);
         this._handleDeleteRouteDialogClose = this._handleDeleteRouteDialogClose.bind(this);
@@ -97,7 +97,8 @@ class StructureRoute extends Component {
         this._handleCreateRouteCreate = this._handleCreateRouteCreate.bind(this);
         this._handleCreateRouteDialogEnterKey = this._handleCreateRouteDialogEnterKey.bind(this);
 
-        this._handleToolTitleChange = this._handleToolTitleChange.bind(this);
+        this._renderRouteList = this._renderRouteList.bind(this);
+        this._renderRouteCard = this._renderRouteCard.bind(this);
     }
 
     componentDidMount() {
@@ -196,7 +197,7 @@ class StructureRoute extends Component {
         }
     }
 
-    _handleRouteSelect(route, indexes) {
+    _handleRouteSelect(route, indexes, isIndexRoute) {
         const sameRoute = route
             ? route.id === this.props.selectedRouteId
             : !route;
@@ -204,11 +205,17 @@ class StructureRoute extends Component {
         const sameIndexes = this.props.selectedRouteIndexes === indexes;
 
         if (!sameRoute || !sameIndexes)
-            this.props.onSelectRoute(route, indexes);
+            this.props.onSelectRoute(route, indexes, isIndexRoute);
     }
 
-    _handleRouteGo(route) {
-        history.push(`/${this.props.projectName}/design/${route.id}`);
+    _handleRouteGo(routeId, isIndex) {
+        let path = `/${this.props.projectName}/design/${routeId}`;
+        if (isIndex) path += '/index';
+        history.push(path);
+    }
+
+    _handleSelectedRouteGo() {
+        this._handleRouteGo(this.props.selectedRouteId, this.props.indexRouteSelected);
     }
 
     _handleDeleteRoutePress() {
@@ -302,19 +309,42 @@ class StructureRoute extends Component {
         }
     }
 
-    _handleEditIndexClick(route) {
-
-    }
-
     _renderRouteList(parentRoute, routes, indexes) {
-        const routeCards = routes
+        let routeCards = routes
             ? routes.map((route, idx) => this._renderRouteCard(route, indexes.push(idx)))
             : null;
+
+        if (parentRoute && parentRoute.haveIndex && !parentRoute.haveRedirect) {
+            const onIndexRouteFocus = this._handleRouteSelect.bind(
+                this,
+                parentRoute,
+                indexes,
+                true
+            );
+
+            const onIndexRouteGo = this._handleRouteGo.bind(this, parentRoute.id, true);
+
+            const isSelected =
+                this.props.selectedRouteId === parentRoute.id &&
+                this.props.indexRouteSelected;
+
+            routeCards = routeCards.unshift(
+                <RouteCard
+                    key={String(parentRoute.id) + '-index'}
+                    title="Index"
+                    isIndex
+                    focused={isSelected}
+                    onFocus={onIndexRouteFocus}
+                    onGo={onIndexRouteGo}
+                />
+            );
+        }
 
         let button = null;
 
         //noinspection JSValidateTypes
         const needButton = parentRoute === null || (
+            !this.props.indexRouteSelected &&
             this.props.selectedRouteId !== -1 &&
             parentRoute.id === this.props.selectedRouteId
         );
@@ -337,7 +367,9 @@ class StructureRoute extends Component {
     }
 
     _renderRouteCard(route, indexes) {
-        const isSelected = this.props.selectedRouteId === route.id;
+        const isSelected =
+            this.props.selectedRouteId === route.id &&
+            !this.props.indexRouteSelected;
 
         const children = route.children.size > 0
             ? this._renderRouteList(route, route.children, indexes)
@@ -347,14 +379,12 @@ class StructureRoute extends Component {
 
         return (
             <RouteCard
-                key={route.id}
+                key={String(route.id)}
                 title={route.title || route.path}
                 subtitle={route.path}
-                haveIndex={!route.haveRedirect && route.haveIndex}
                 focused={isSelected}
-                onFocus={this._handleRouteSelect.bind(this, route, indexes)}
-                onGo={this._handleRouteGo.bind(this, route)}
-                onEditIndexClick={this._handleEditIndexClick.bind(this, route)}
+                onFocus={this._handleRouteSelect.bind(this, route, indexes, false)}
+                onGo={this._handleRouteGo.bind(this, route.id, false)}
             >
                 {children}
             </RouteCard>
@@ -370,6 +400,11 @@ class StructureRoute extends Component {
         const routeEditorToolMainButtons = selectedRoute
             ? List([
                 new ButtonRecord({
+                    text: 'Edit',
+                    onPress: this._handleSelectedRouteGo
+                }),
+
+                new ButtonRecord({
                     text: 'Delete',
                     onPress: this._handleDeleteRoutePress
                 })
@@ -382,14 +417,22 @@ class StructureRoute extends Component {
             })
         ]);
 
+        const title = selectedRoute
+            ? this.props.indexRouteSelected
+                ? `${selectedRoute.title || selectedRoute.path} - Index`
+                : selectedRoute.title
+            : '';
+
+        const titleEditable = !!selectedRoute && !this.props.indexRouteSelected;
+
         const toolGroups = List([
             List([
                 new ToolRecord({
                     id: routeEditorToolId,
                     icon: 'random',
                     name: 'Route',
-                    title: selectedRoute ? selectedRoute.title : '',
-                    titleEditable: true,
+                    title: title,
+                    titleEditable: titleEditable,
                     titlePlaceholder: 'Route title',
                     subtitle: selectedRoute ? selectedRoute.path : '',
                     sections: routeEditorToolSections,
@@ -487,6 +530,7 @@ StructureRoute.propTypes = {
     selectedRouteIndexes: ImmutablePropTypes.listOf(
         PropTypes.number
     ),
+    indexRouteSelected: PropTypes.bool,
 
     onSelectRoute: PropTypes.func,
     onCreateRoute: PropTypes.func,
@@ -500,12 +544,17 @@ const mapStateToProps = state => ({
     routes: state.project.data.routes,
     projectName: state.project.projectName,
     selectedRouteId: state.structure.selectedRouteId,
-    selectedRouteIndexes: state.structure.selectedRouteIndexes
+    selectedRouteIndexes: state.structure.selectedRouteIndexes,
+    indexRouteSelected: state.structure.indexRouteSelected
 });
 
 const mapDispatchToProps = dispatch => ({
-    onSelectRoute: (route, indexes) =>
-        void dispatch(selectRoute(route ? route.id : -1, indexes || List())),
+    onSelectRoute: (route, indexes, indexRouteSelected) =>
+        void dispatch(selectRoute(
+            route ? route.id : -1,
+            indexes || List(),
+            indexRouteSelected
+        )),
 
     onCreateRoute: (where, path, title) =>
         void dispatch(createRoute(where, path, title)),

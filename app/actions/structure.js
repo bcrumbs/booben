@@ -6,8 +6,9 @@
 
 export const STRUCTURE_SELECT_ROUTE = 'STRUCTURE_SELECT_ROUTE';
 
-export const selectRoute = (routeId, indexes) => ({
+export const selectRoute = (routeId, indexes, indexRouteSelected) => ({
     type: STRUCTURE_SELECT_ROUTE,
     routeId,
-    indexes
+    indexes,
+    indexRouteSelected
 });
