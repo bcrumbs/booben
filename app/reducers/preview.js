@@ -11,7 +11,6 @@ import {
     UNSET_PREVIEW_WORKSPACE,
     SHOW_PREVIEW_WORKSPACE,
     HIDE_PREVIEW_WORKSPACE,
-    SET_COMPONENT_TO_MAP,
     SET_DOM_ELEMENT_TO_MAP,
     SET_IS_INDEX_ROUTE
 } from '../actions/preview';
@@ -21,7 +20,6 @@ const PreviewState = Record({
     highlightedItems: Set(),
     workspace: Set(),
     workspaceVisible: false,
-    componentsMap: Map(),
     domElementsMap: Map(),
     currentRouteIsIndexRoute: false
 });
@@ -63,9 +61,6 @@ export default (state = new PreviewState(), action) => {
 
         case HIDE_PREVIEW_WORKSPACE:
             return state.set('workspaceVisible', false);
-
-        case SET_COMPONENT_TO_MAP:
-            return state.setIn(['componentsMap', action.uid], action.component);
 
         case SET_DOM_ELEMENT_TO_MAP:
             return state.setIn(['domElementsMap', action.uid], action.component);

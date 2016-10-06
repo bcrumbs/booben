@@ -4,14 +4,9 @@
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Map } from 'immutable';
-import { connect } from 'react-redux';
 
 // The real components.js will be generated during build process
 import components from '../components.js';
-
-import {
-    setComponentToMap
-} from '../../app/actions/preview';
 
 const pseudoComponents = new Set([
     'Text',
@@ -20,94 +15,9 @@ const pseudoComponents = new Set([
 
 const isPseudoComponent = component => pseudoComponents.has(component.name);
 
-class Builder extends Component {
-    constructor(props) {
-        super(props);
-        this._getComponentFromMeta = this._getComponentFromMeta.bind(this);
-    }
-
-    _renderPseudoComponent(component) {
-        if (component.name === 'Outlet') {
-            return this.props.children;
-        }
-        else if (component.name === 'Text') {
-            const props = getProps(component.props);
-            return props.text || '';
-        }
-    }
-
-    _getComponentFromMeta(component = null, componentIndex = []) {
-        if (!component) return null;
-
-        if (isPseudoComponent(component))
-            return this._renderPseudoComponent(component);
-
-        const Component = getComponentByName(component.name);
-
-        let baseIndex = [...this.props.routeIndex, 'component'];
-
-        if(componentIndex) {
-            baseIndex = [...baseIndex, ...componentIndex];
-        }
-
-        if(!this.props.componentsMap.has(component.uid)) {
-            this.props.setComponentToMap(component.uid, {
-                name: component.name,
-                componentType: Component.jssy ? Component.jssy.kind : null,
-                where: [...baseIndex]
-            });
-        }
-
-        if (component.children && component.children.size) {
-            return (
-                <Component
-                    key={component.uid}
-                    data-uid={component.uid}
-                    {...getProps(component.props)}
-                >
-                    { component.children.map((_component, index) => 
-                        this._getComponentFromMeta(_component, 
-                            [].concat(...componentIndex, 'children', index))) }
-                </Component>
-            );
-        }
-        else {
-            return (
-                <Component
-                    key={component.uid}
-                    data-uid={component.uid}
-                    {...getProps(component.props)}
-                />
-            );
-        }
-    }
-
-    render() {
-        return this._getComponentFromMeta(this.props.component);
-    }
-}
-
-Builder.propTypes = {
-    component: ImmutablePropTypes.contains({
-        uid: React.PropTypes.string,
-        name: React.PropTypes.string,
-        props: ImmutablePropTypes.map,
-        children: ImmutablePropTypes.list
-    }),
-    routeIndex: React.PropTypes.array,
-    isIndexRoute: React.PropTypes.bool,
-    componentsMap: ImmutablePropTypes.map
-};
-
-Builder.defaultProps = {
-    component: null,
-    routeIndex: [],
-    isIndexRoute: false
-};
-
 /**
  * Get component from UI library
- * 
+ *
  * @param  {string} name - Name of React component
  * @return {Function} React component for render
  */
@@ -145,16 +55,67 @@ const getProps = props => {
     return ret;
 };
 
-const mapDispatchToProps = dispatch => ({
-    setComponentToMap: (uid, component) =>
-        void dispatch(setComponentToMap(uid, component))
-});
+export default class Builder extends Component {
+    constructor(props) {
+        super(props);
 
-const mapStateToProps = state => ({
-    componentsMap: state.preview.componentsMap
-});
+        this._getComponentFromMeta = this._getComponentFromMeta.bind(this);
+    }
 
-export default connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(Builder);
+    _renderPseudoComponent(component) {
+        if (component.name === 'Outlet') {
+            return this.props.children;
+        }
+        else if (component.name === 'Text') {
+            const props = getProps(component.props);
+            return props.text || '';
+        }
+    }
+
+    _getComponentFromMeta(component) {
+        if (!component) return null;
+
+        if (isPseudoComponent(component))
+            return this._renderPseudoComponent(component);
+
+        const Component = getComponentByName(component.name);
+
+        if (component.children.size > 0) {
+            return (
+                <Component
+                    key={component.uid}
+                    data-uid={component.uid}
+                    {...getProps(component.props)}
+                >
+                    {component.children.map(this._getComponentFromMeta)}
+                </Component>
+            );
+        }
+        else {
+            return (
+                <Component
+                    key={component.uid}
+                    data-uid={component.uid}
+                    {...getProps(component.props)}
+                />
+            );
+        }
+    }
+
+    render() {
+        return this._getComponentFromMeta(this.props.component);
+    }
+}
+
+Builder.propTypes = {
+    component: ImmutablePropTypes.contains({
+        uid: React.PropTypes.string,
+        name: React.PropTypes.string,
+        props: ImmutablePropTypes.map,
+        children: ImmutablePropTypes.list
+    })
+};
+
+Builder.defaultProps = {
+    component: null
+};

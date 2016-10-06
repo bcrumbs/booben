@@ -19,7 +19,7 @@ import {
     PROJECT_ROUTE_DELETE,
     PROJECT_ROUTE_UPDATE_FIELD,
     PROJECT_ROUTE_COMPONENT_UPDATE,
-    PROJECT_ROUTE_COMPONENT_DELETE,
+    PROJECT_COMPONENT_DELETE,
     PROJECT_ROUTE_COMPONENT_ADD_BEFORE,
     PROJECT_ROUTE_COMPONENT_ADD_AFTER
 } from '../actions/project';
@@ -93,12 +93,54 @@ const projectToImmutable = input => new Project({
     routes: List(input.routes.map(projectRouteToImmutable))
 });
 
+/**
+ *
+ * @param {Project} project
+ * @return {Immutable.Map}
+ */
+const buildComponentsIndex = project => {
+    const ret = {};
+
+    const visitComponent = (component, routeId, path) => {
+        ret[component.uid] = { path, routeId };
+
+        component.children.forEach((child, idx) =>
+            void visitComponent(child, routeId, [].concat(path, 'children', idx)));
+    };
+
+    const visitRoute = (route, path) => {
+        if (route.component !== null) {
+            visitComponent(
+                route.component,
+                route.id,
+                [].concat(path, 'component')
+            );
+        }
+
+        if (route.indexComponent !== null) {
+            visitComponent(
+                route.indexComponent,
+                route.id,
+                [].concat(path, 'indexComponent')
+            );
+        }
+
+        route.children.forEach((child, idx) =>
+            void visitRoute(child, [].concat(path, 'children', idx)));
+    };
+
+    project.routes.forEach((route, idx) => void visitRoute(route, ['routes', idx]));
+
+    return Map(ret);
+};
+
 const ProjectState = Record({
     projectName: '',
     loadState: NOT_LOADED,
     data: null,
     meta: null,
-    error: null
+    error: null,
+    componentsIndex: Map()
 });
 
 const updateRouteField = (state, where, idx, field, newValue) => state.setIn(
@@ -120,7 +162,8 @@ export default (state = new ProjectState(), action) => {
                 loadState: LOADED,
                 data: projectToImmutable(action.project),
                 meta: action.metadata,
-                error: null
+                error: null,
+                componentsIndex: buildComponentsIndex(action.project)
             });
 
         case PROJECT_LOAD_FAILED:
@@ -128,7 +171,8 @@ export default (state = new ProjectState(), action) => {
                 loadState: LOAD_ERROR,
                 data: null,
                 meta: null,
-                error: action.error
+                error: action.error,
+                componentsIndex: Map()
             });
 
         case PROJECT_ROUTE_CREATE:
@@ -173,10 +217,17 @@ export default (state = new ProjectState(), action) => {
             return state.deleteIn(whereSource)
                  .updateIn([...whereTarget, 'children'], list => list.push(sourceComponent));
 
-        case PROJECT_ROUTE_COMPONENT_DELETE:
-            const where = ['data', 'routes'].concat(...action.where);
+        case PROJECT_COMPONENT_DELETE:
+            const componentIndexData = state.componentsIndex.get(action.uid);
 
-            return state.deleteIn(where);
+            if (componentIndexData) {
+                return state
+                    .deleteIn(['data', ...componentIndexData.path])
+                    .deleteIn(['componentsIndex', action.uid]);
+            }
+            else {
+                return state;
+            }
 
         default:
             return state;

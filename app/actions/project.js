@@ -151,16 +151,16 @@ export const componentUpdateRoute = (source, target) => ({
  *
  * @type {string}
  */
-export const PROJECT_ROUTE_COMPONENT_DELETE = 'PROJECT_ROUTE_COMPONENT_DELETE';
+export const PROJECT_COMPONENT_DELETE = 'PROJECT_COMPONENT_DELETE';
 
 /**
  *
- * @param {number[]} where - index of component
+ * @param {string} uid - Component ID
  * @returns {Object}
  */
-export const componentDeleteFromRoute = (where) => ({
-    type: PROJECT_ROUTE_COMPONENT_DELETE,
-    where
+export const deleteComponent = uid => ({
+    type: PROJECT_COMPONENT_DELETE,
+    uid
 });
 
 /**

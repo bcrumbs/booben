@@ -2,7 +2,6 @@
 
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
-import ReactDOM from 'react-dom';
 import { Router, hashHistory } from 'react-router';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -23,7 +22,7 @@ import {
 } from '../../app/actions/preview';
 
 import {
-    componentDeleteFromRoute
+    deleteComponent
 } from '../../app/actions/project';
 
 /**
@@ -94,8 +93,10 @@ class Preview extends Component {
         this.animationFrame = null;
         this.needRAF = true;
         this.currentRouteId = null;
-        this.rootComponentIds = this._gatherRootComponentIds(props.routes);
+        this.rootComponentIds = this._gatherRootComponentIds(props.project.routes);
         this.currentOwner = null;
+
+        this._nextRouterKey = 0;
 
         this._handleMouseEvent = this._handleMouseEvent.bind(this);
         this._handleResize = this._handleResize.bind(this);
@@ -134,11 +135,11 @@ class Preview extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        this.rootComponentIds = this._gatherRootComponentIds(nextProps.routes);
+        this.rootComponentIds = this._gatherRootComponentIds(nextProps.project.routes);
     }
 
     shouldComponentUpdate(nextProps) {
-        return nextProps.routes !== this.props.routes;
+        return nextProps.project !== this.props.project;
     }
 
     _gatherRootComponentIds(routes) {
@@ -184,7 +185,7 @@ class Preview extends Component {
      * @param  {string} uid
      */
     _updateSelected(uid) {
-        if(this.props.selected.has(uid)) {
+        if (this.props.selected.has(uid)) {
             this.props.deselectComponent(uid);
         } else {
             this.props.selectComponent(uid)
@@ -197,7 +198,7 @@ class Preview extends Component {
      * @param  {string} uid
      */
     _updateHighlighted(uid) {
-        if(this.props.highlighted.has(uid)) {
+        if (this.props.highlighted.has(uid)) {
             this.props.unhighlightComponent(uid);
         } else {
             this.props.highlightComponent(uid);
@@ -205,22 +206,14 @@ class Preview extends Component {
     }
 
     _setDomElementToMap(key, value) {
-        if(!this.props.domElementsMap.has(key)) {
+        if (!this.props.domElementsMap.has(key)) {
             this.props.setDomElementToMap(key, value);
         }
     }
 
-    _inWorkspace(uid) {
-        const rootComponentId = this._getCurrentRootComponentId();
-
-        const workspace = this.props.componentsMap.get(rootComponentId),
-            el = this.props.componentsMap.get(uid);
-
-        for (var i in workspace.where) {
-            if (workspace.where[i] != el.where[i]) return false;
-        }
-
-        return true;
+    _componentIsInCurrentRoute(uid) {
+        const componentRouteId = this.props.componentsIndex.get(uid).routeId;
+        return componentRouteId === this.currentRouteId;
     }
 
     _getOwner(target) {
@@ -271,7 +264,7 @@ class Preview extends Component {
                 owner._currentElement.props['data-uid'] &&
                 owner._currentElement.props['data-uid'] != this.dndParams.uid
             ) {
-                // this.props.componentsMap.get(owner._currentElement.props['data-uid']).where
+                // write something here
             }
         }
 
@@ -291,9 +284,12 @@ class Preview extends Component {
             return;
         }
 
-        if(!this.dndFlag) {
+        if (!this.dndFlag) {
+            const componentIndexData = this.props.componentsIndex.get(this.dndParams.uid),
+                component = this.props.project.getIn(componentIndexData.path);
+            
             var el = this.dndParams.el;
-            el.innerHTML = this.props.componentsMap.get(this.dndParams.uid).name;
+            el.innerHTML = component.name;
 
             el.style.position = 'absolute';
             el.style.zIndex = 1000;
@@ -307,7 +303,7 @@ class Preview extends Component {
             this.domOverlay.appendChild(el);
             this.dndFlag = true;
 
-            this.props.componentDeleteFromRoute(this.dndParams.where);
+            this.props.componentDeleteFromRoute(this.dndParams.uid);
 
             this.props.showWorkspace();
         }
@@ -334,7 +330,7 @@ class Preview extends Component {
             const owner = this._getOwner(event.target),
                 uid = owner._currentElement.props['data-uid'];
 
-            if(!this._inWorkspace(uid)) return;
+            if(!this._componentIsInCurrentRoute(uid)) return;
 
             this._setDomElementToMap(uid, owner._renderedComponent._hostNode);
             this._updateHighlighted(uid);
@@ -343,31 +339,30 @@ class Preview extends Component {
         }
 
         const owner = this.currentOwner,
-            uid = owner && owner._currentElement.props['data-uid'] || false;
+            uid = owner && owner._currentElement.props['data-uid'] || null;
 
-        if(!uid || !this._inWorkspace(uid)) return;
+        if (uid === null || !this._componentIsInCurrentRoute(uid)) return;
 
-        if( type == 'click' ) {
+        if (type == 'click') {
             if(!event.ctrlKey) return;
             this._updateSelected(uid);
-        } else if( type == 'dragleave' || type == 'mouseout') {
+        } else if (type == 'dragleave' || type == 'mouseout') {
             this._updateHighlighted(uid);
             this.currentOwner = null;
-        } else if( type == 'drop' ) {
+        } else if (type == 'drop') {
             console.log({
                 source: JSON.parse(event.dataTransfer.getData("Text")),
                 target: uid
             });
         }
 
-        if ( type == 'mousedown' ) {
+        if (type == 'mousedown') {
             if (event.which != 1 || !event.ctrlKey) return;
 
             event.preventDefault();
 
             this.dndParams.el = document.createElement('div');
             this.dndParams.uid = uid;
-            this.dndParams.where = this.props.componentsMap.get(uid).where;
             this.dndParams.dragStartX = event.pageX;
             this.dndParams.dragStartY = event.pageY;
 
@@ -379,24 +374,20 @@ class Preview extends Component {
         this.currentRouteId = routeId;
     }
 
-    _createRoute(route, pathToRoute) {
+    _createRoute(route) {
         const ret = {
             path: route.path,
             component: ({ children }) => (
                 <Builder
                     component={route.component}
                     children={children}
-                    routeIndex={pathToRoute}
                 />
             )
         };
 
         if (route.children.size > 0) {
             ret.childRoutes = route.children
-                .map((child, routeIndex) => this._createRoute(
-                    child,
-                    [].concat(pathToRoute, 'children', routeIndex)
-                ))
+                .map((child, routeIndex) => this._createRoute(child))
                 .toArray();
 
             ret.onEnter = this._handleChangeRoute.bind(this, route.id);
@@ -411,8 +402,6 @@ class Preview extends Component {
                     <Builder
                         component={route.indexComponent}
                         children={children}
-                        routeIndex={pathToRoute}
-                        isIndexRoute
                     />
                 )
             };
@@ -422,12 +411,16 @@ class Preview extends Component {
     }
 
     render() {
-        const routes = this.props.routes
+        const routes = this.props.project.routes
             .map((route, idx) => this._createRoute(route, [idx]))
             .toArray();
 
         return (
-            <Router history={hashHistory} routes={routes} />
+            <Router
+                key={String(this._nextRouterKey++)}
+                history={hashHistory}
+                routes={routes}
+            />
         );
     }
 }
@@ -435,18 +428,11 @@ class Preview extends Component {
 Preview.propTypes = {
     domOverlay: React.PropTypes.object,
     interactive: PropTypes.bool,
-    routes: ImmutablePropTypes.listOf(
-        ImmutablePropTypes.contains({
-            id: PropTypes.number,
-            path: PropTypes.string,
-            component: ImmutablePropTypes.contains({
-                uid: React.PropTypes.string,
-                name: React.PropTypes.string,
-                props: ImmutablePropTypes.map,
-                children: ImmutablePropTypes.list
-            })
-        })
-    ),
+
+    // Can't use ImmutablePropTypes.record or PropTypes.instanceOf(ProjectRecord) here
+    // 'cause this value comes from another frame with another instance of immutable.js
+    project: PropTypes.any,
+    componentsIndex: ImmutablePropTypes.map,
     selected: ImmutablePropTypes.set,
     highlighted: ImmutablePropTypes.set,
     currentRouteIsIndexRoute: PropTypes.bool,
@@ -470,10 +456,10 @@ Preview.defaultProps = {
 Preview.displayName = 'Preview';
 
 const mapStateToProps = state => ({
-    routes: state.project.data.routes,
+    project: state.project.data,
+    componentsIndex: state.project.componentsIndex,
     selected: state.preview.selectedItems,
     highlighted: state.preview.highlightedItems,
-    componentsMap: state.preview.componentsMap,
     domElementsMap: state.preview.domElementsMap,
     currentRouteIsIndexRoute: state.preview.currentRouteIsIndexRoute
 });
@@ -483,7 +469,7 @@ const mapDispatchToProps = dispatch => ({
     selectComponent: selected => void dispatch(selectPreviewComponent(selected)),
     highlightComponent: highlighted => void dispatch(highlightPreviewComponent(highlighted)),
     unhighlightComponent: highlighted => void dispatch(unhighlightPreviewComponent(highlighted)),
-    componentDeleteFromRoute: (where) => void dispatch(componentDeleteFromRoute(where)),
+    componentDeleteFromRoute: (where) => void dispatch(deleteComponent(where)),
     setWorkspace: component => void dispatch(setPreviewWorkspace(component)),
     unsetWorkspace: component => void dispatch(unsetPreviewWorkspace(component)),
     showWorkspace: () => void dispatch(showPreviewWorkspace()),
