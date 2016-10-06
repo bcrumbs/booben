@@ -6,6 +6,7 @@
 
 /**
  * @typedef {Object} Project
+ * @property {number} version
  * @property {string} name
  * @property {?string} author
  * @property {string[]} componentLibs
