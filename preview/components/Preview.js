@@ -6,7 +6,7 @@ import ReactDOM from 'react-dom';
 import { Router, hashHistory } from 'react-router';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { List, Set, Map } from 'immutable';
+import { Record, Map } from 'immutable';
 
 import Builder from './Builder';
 
@@ -80,6 +80,11 @@ const mouseEvents = [
     'mousedown'
 ];
 
+const RouteRootComponentIds = Record({
+    componentId: null,
+    indexComponentId: null
+});
+
 class Preview extends Component {
     constructor(props) {
         super(props);
@@ -91,6 +96,7 @@ class Preview extends Component {
         this.animationFrame = null;
         this.needRAF = true;
         this.currentRouteID = null;
+        this.rootComponentIds = this._gatherRootComponentIds(props.routes);
 
         this._handleMouseEvent = this._handleMouseEvent.bind(this);
         this._handleResize = this._handleResize.bind(this);
@@ -98,7 +104,29 @@ class Preview extends Component {
         this._handleStartDrag = this._handleStartDrag.bind(this);
         this._handleStopDrag = this._handleStopDrag.bind(this);
         this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
-        this._handlerChangeRoute = this._handlerChangeRoute.bind(this);
+        this._handleChangeRoute = this._handleChangeRoute.bind(this);
+    }
+
+    _gatherRootComponentIds(routes) {
+        const reducer = (acc, route) => {
+            acc = acc.set(route.id, new RouteRootComponentIds({
+                componentId: route.component ? route.component.uid : null,
+                indexComponentId: route.indexComponent ? route.indexComponent.uid : null
+            }));
+
+            return route.children.reduce(reducer, acc);
+        };
+
+        return routes.reduce(reducer, Map());
+    }
+
+    _getCurrentRootComponentId() {
+        const rootComponentIds = this.rootComponentIds.get(this.currentRouteID);
+        if (!rootComponentIds) return null;
+
+        return this.props.currentRouteIsIndexRoute
+            ? rootComponentIds.indexComponentId
+            : rootComponentIds.componentId
     }
 
     componentDidMount() {
@@ -127,6 +155,10 @@ class Preview extends Component {
         }
 
         this.domNode = null;
+    }
+
+    componentWillReceiveProps(nextProps) {
+        this.rootComponentIds = this._gatherRootComponentIds(nextProps.routes);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -345,17 +377,19 @@ class Preview extends Component {
         }
     }
 
-    _handlerChangeRoute(id) {
-        this.currentRouteID = id;
+    _handleChangeRoute(routeId) {
+        this.currentRouteID = routeId;
     }
 
     _createRoute(route, pathToRoute) {
         const ret = {
-            component: ({ children }) => <Builder
-                component={route.component}
-                children={children}
-                routeIndex={pathToRoute}
-            />
+            component: ({ children }) => (
+                <Builder
+                    component={route.component}
+                    children={children}
+                    routeIndex={pathToRoute}
+                />
+            )
         };
 
         if (route.children.size > 0) {
@@ -366,9 +400,7 @@ class Preview extends Component {
                 ))
                 .toArray();
 
-            ret.onEnter = this._handlerChangeRoute.bind(this, route.id);
-
-            workspaceMap = workspaceMap.set(route.id, route.component.uid);
+            ret.onEnter = this._handleChangeRoute.bind(this, route.id);
         }
 
         if (route.haveRedirect) {
@@ -376,12 +408,14 @@ class Preview extends Component {
         }
         else if (route.haveIndex) {
             ret.indexRoute = {
-                component: ({ children }) => <Builder
-                    component={route.indexComponent}
-                    children={children}
-                    routeIndex={pathToRoute}
-                    isIndexRoute
-                />
+                component: ({ children }) => (
+                    <Builder
+                        component={route.indexComponent}
+                        children={children}
+                        routeIndex={pathToRoute}
+                        isIndexRoute
+                    />
+                )
             };
         }
 
