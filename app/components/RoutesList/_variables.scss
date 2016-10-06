@@ -9,7 +9,7 @@ $rcard-offset-left:         $base-module*2 !default;
 $rcard-levels:              10 !default;
 $rcard-level-multiplicator: 0 !default; // Set to 0 if multiplication is not necessary
 $rcard-padding-x:           $base-module*2 !default;
-$rcard-padding-y:           $base-module*1.5 !default;
+$rcard-padding-y:           $base-module !default;
 
 $rcard-bg-color:            $white !default;
 $rcard-hover-bg-color:      $grey-100 !default;
@@ -55,23 +55,20 @@ $rcard-icon-index-color:        $icon-dark-inactive-color !default;
 $rcard-icon-index-margin-left:  $base-module !default;
 
 // Title => Route Card min-height
-$rcard-min-height:      $rcard-padding-y*2 + $rcard-title-font-size*$rcard-title-line-height + $rcard-subtitle-font-size*$rcard-subtitle-line-height !default;
-$rcard-max-width:       $rcard-min-height*5 !default;
+$rcard-min-height:              $rcard-padding-y*2 + $rcard-title-font-size*$rcard-title-line-height + $rcard-subtitle-font-size*$rcard-subtitle-line-height !default;
+$rcard-max-width:               $rcard-min-height*5 !default;
 
 // Index
-$rcard-index-bg-color:         $grey-200 !default;
-$rcard-index-hover-bg-color:   $grey-300 !default;
+$rcard-index-bg-color:          $grey-200 !default;
+$rcard-index-hover-bg-color:    $grey-300 !default;
+$rcard-index-focus-bg-color:    $rcard-focus-bg-color !default;
 
-$rcard-index-color:            $grey-500 !default;
-$rcard-index-hover-color:      $grey-800 !default;
-$rcard-index-font-size:        fs(-2) !default;
-$rcard-index-line-height:      1.5 !default;
-$rcard-index-text-align:       right !default;
-$rcard-index-text-transform:   uppercase !default;
-$rcard-index-font-weight:      $font-weight-semibold !default;
+$rcard-index-color:             $grey-700 !default;
+$rcard-index-title-font-size:   fs(0) !default;
+$rcard-index-line-height:       1.5 !default;
 
-$rcard-index-pad-y: $base-module*0.75 !default;
-$rcard-index-pad-x: $base-module*1.5 !default;
+$rcard-index-pad-y:             $base-module*0.75 !default;
+$rcard-index-pad-x:             $base-module*1.5 !default;
 
 // MIXINS
 @mixin level-offset($level) {

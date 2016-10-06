@@ -15,7 +15,7 @@
 
 	// ROUTE CARD
 	// =================================================================================================================
-	.route-card-wrapper {
+	.route-card-item {
 		& + & {
 			margin-top: $rcard-spacing;
 		}
@@ -29,7 +29,7 @@
 		}
 	}
 
-	.route-card-wrapper .routes-list-wrapper {
+	.route-card-item .routes-list-wrapper {
 		margin-left: $rcard-offset-left;
 
 		@if $rcard-level-multiplicator != 0 {
@@ -147,7 +147,7 @@
 	}
 
 	// ICONS
-	.route-icon-index {
+	.route-icon {
 		margin-left: $rcard-icon-index-margin-left;
 
 		@include icon-size(
@@ -158,40 +158,27 @@
 	}
 
 	// DEFAULT index
-	.route-card-wrapper.has-default-index .route-card {
-		@include side-radius(bottom, 0)
-	}
+	.route-card-wrapper.is-index {
+		.route-card {
+			background-color: $rcard-index-bg-color;
+			min-height: 0;
 
-	.route-index-default {
-		margin-top: 0;
-		padding: $rcard-index-pad-y $rcard-index-pad-x;
+			&:hover,
+			&:focus {
+				background-color: $rcard-index-hover-bg-color;
+				outline: none;
+				@include box-shadow();
+			}
+		}
 
-		background-color: $rcard-index-bg-color;
-		color: $rcard-index-color;
-		font-size: $rcard-index-font-size;
-		line-height: $rcard-index-line-height;
-		text-align: $rcard-index-text-align;
-		text-transform: $rcard-index-text-transform;
-		cursor: $cursor-pointer;
-		width: 100%;
-		max-width: $rcard-max-width;
-		border: 0 solid transparent;
-		font-weight: $rcard-index-font-weight;
-		position: relative;
-		z-index: 2;
-		display: block;
+		&.is-focused .route-card {
+			background-color: $rcard-index-focus-bg-color;
+		}
 
-		@include side-radius(bottom, $rcard-border-radius);
-		@include box-shadow();
-		@include user-select();
-		@include single-transition();
-
-		&:hover,
-		&:focus {
-			background-color: $rcard-index-hover-bg-color;
-			outline: none;
-			color: $rcard-index-hover-color;
-			@include box-shadow();
+		.route-title {
+			color: $rcard-index-color;
+			font-size: $rcard-index-title-font-size;
+			line-height: $rcard-index-line-height;
 		}
 	}
 }
