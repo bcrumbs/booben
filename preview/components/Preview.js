@@ -91,6 +91,7 @@ class Preview extends Component {
         this.animationFrame = null;
         this.needRAF = true;
         this.currentRouteID = null;
+        this.currentOwner = null;
 
         this._handleMouseEvent = this._handleMouseEvent.bind(this);
         this._handleResize = this._handleResize.bind(this);
@@ -151,13 +152,7 @@ class Preview extends Component {
      * @param  {function} el
      * @param  {string} uid
      */
-    _updateSelected(el, uid) {
-        const owner = getOwner(el, item =>
-                item._currentElement.props['data-uid'] == uid),
-            domEl = owner._renderedComponent._hostNode;
-
-        this._setDomElementToMap(uid, domEl);
-
+    _updateSelected(uid) {
         if(this.props.selected.has(uid)) {
             this.props.deselectComponent(uid);
         } else {
@@ -168,16 +163,9 @@ class Preview extends Component {
     /**
      * Get array of highlighted components
      *
-     * @param  {function} el
      * @param  {string} uid
      */
-    _updateHighlighted(el, uid) {
-        const owner = getOwner(el, item =>
-                item._currentElement.props['data-uid'] == uid),
-            domEl = owner._renderedComponent._hostNode;
-
-        this._setDomElementToMap(uid, domEl);
-
+    _updateHighlighted(uid) {
         if(this.props.highlighted.has(uid)) {
             this.props.unhighlightComponent(uid);
         } else {
@@ -200,6 +188,18 @@ class Preview extends Component {
         }
 
         return true;
+    }
+
+    _getOwner(target) {
+        const keys = Object.keys(target),
+            riiKey = keys.find(key => key.startsWith('__reactInternalInstance$'));
+
+        if (!riiKey) return null;
+
+        const el = target[riiKey]._currentElement,
+            owner = getOwner(el, item => item._currentElement.props['data-uid']);
+
+        return owner;
     }
 
     _handleAnimationFrame() {
@@ -228,19 +228,15 @@ class Preview extends Component {
 
         if(!this.dndFlag) return;
 
-        const keys = Object.keys(event.target),
-            riiKey = keys.find(key => key.startsWith('__reactInternalInstance$'));
-
         this.dndFlag = false;
 
-        if (riiKey && this.dndParams) {
-            const owner = getOwner(event.target[riiKey]._currentElement, item => item._currentElement.props['data-uid']);
+        const owner = this.currentOwner;
 
+        if (owner && this.dndParams) {
             if(
                 owner &&
                 owner._currentElement.props['data-uid'] &&
-                owner._currentElement.props['data-uid'] != this.dndParams.uid &&
-                this._inWorkspace(owner._currentElement.props['data-uid'])
+                owner._currentElement.props['data-uid'] != this.dndParams.uid
             ) {
                 // this.props.componentsMap.get(owner._currentElement.props['data-uid']).where
             }
@@ -299,49 +295,50 @@ class Preview extends Component {
      * @param {MouseEvent} event
      */
     _handleMouseEvent(event) {
-        const keys = Object.keys(event.target),
-            riiKey = keys.find(key => key.startsWith('__reactInternalInstance$'));
+        const type = event.type;
 
-        if (!riiKey) return;
-
-        const el = event.target[riiKey]._currentElement,
-            owner = getOwner(el, item => item._currentElement.props['data-uid']);
-
-        if (owner) {
-            // event.stopPropagation();
-
-            const type = event.type,
+        if( type == 'dragover' || type == 'mouseover') {
+            const owner = this._getOwner(event.target),
                 uid = owner._currentElement.props['data-uid'];
 
             if(!this._inWorkspace(uid)) return;
 
-            if( type == 'click' ) {
-                if(!event.ctrlKey) return;
-                this._updateSelected(el, uid);
-            } else if( type == 'dragover' || type == 'mouseover') {
-                this._updateHighlighted(el, uid);
-            } else if( type == 'dragleave' || type == 'mouseout') {
-                this._updateHighlighted(el, uid);
-            } else if( type == 'drop' ) {
-                console.log({
-                    source: JSON.parse(event.dataTransfer.getData("Text")),
-                    target: uid
-                });
-            }
+            this._setDomElementToMap(uid, owner._renderedComponent._hostNode);
+            this._updateHighlighted(uid);
 
-            if ( type == 'mousedown' ) {
-                if (event.which != 1 || !event.ctrlKey) return;
+            this.currentOwner = owner;
+        }
 
-                event.preventDefault();
+        const owner = this.currentOwner,
+            uid = owner && owner._currentElement.props['data-uid'] || false;
 
-                this.dndParams.el = document.createElement('div');
-                this.dndParams.uid = uid;
-                this.dndParams.where = this.props.componentsMap.get(uid).where;
-                this.dndParams.dragStartX = event.pageX;
-                this.dndParams.dragStartY = event.pageY;
+        if(!uid || !this._inWorkspace(uid)) return;
 
-                this._handleStartDrag();
-            }
+        if( type == 'click' ) {
+            if(!event.ctrlKey) return;
+            this._updateSelected(uid);
+        } else if( type == 'dragleave' || type == 'mouseout') {
+            this._updateHighlighted(uid);
+            this.currentOwner = null;
+        } else if( type == 'drop' ) {
+            console.log({
+                source: JSON.parse(event.dataTransfer.getData("Text")),
+                target: uid
+            });
+        }
+
+        if ( type == 'mousedown' ) {
+            if (event.which != 1 || !event.ctrlKey) return;
+
+            event.preventDefault();
+
+            this.dndParams.el = document.createElement('div');
+            this.dndParams.uid = uid;
+            this.dndParams.where = this.props.componentsMap.get(uid).where;
+            this.dndParams.dragStartX = event.pageX;
+            this.dndParams.dragStartY = event.pageY;
+
+            this._handleStartDrag();
         }
     }
 
