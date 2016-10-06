@@ -9,9 +9,12 @@ import { Record, List } from 'immutable';
 export default Record({
     id: 0,
     path: '',
-    isIndex: false,
     title: '',
     description: '',
-    children: List(),
-    component: null
+    haveIndex: false,
+    indexComponent: null,
+    haveRedirect: false,
+    redirectTo: '',
+    component: null,
+    children: List()
 });

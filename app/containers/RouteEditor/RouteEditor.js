@@ -22,16 +22,9 @@ import {
 
 import ProjectRouteRecord from '../../models/ProjectRoute';
 
-import {
-    updateRoutePath,
-    updateRouteDescription,
-    updateRouteIsIndex
-} from '../../actions/project';
+import { updateRouteField } from '../../actions/project';
 
-import {
-    getRouteByIndexes,
-    getRoutesByIndexes
-} from '../../utils';
+import { getRouteByIndexes } from '../../utils';
 
 class RouteEditorComponent extends Component {
     constructor(props) {
@@ -41,7 +34,9 @@ class RouteEditorComponent extends Component {
 
         this._handlePathChange = this._handlePathChange.bind(this);
         this._handleDescriptionChange = this._handleDescriptionChange.bind(this);
-        this._handleIsIndexChange = this._handleIsIndexChange.bind(this);
+        this._handleHaveIndexChange = this._handleHaveIndexChange.bind(this);
+        this._handleHaveRedirectChange = this._handleHaveRedirectChange.bind(this);
+        this._handleRedirectToChange = this._handleRedirectToChange.bind(this);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -64,34 +59,54 @@ class RouteEditorComponent extends Component {
             this._where,
             this._idx
         );
-
-        if (!this._route) return;
-
-        if (this._route.children.size > 0) {
-            this._isIndexDisabled = true;
-        }
-        else {
-            const siblingRoutes = getRoutesByIndexes(props.routes, this._where)
-                .delete(this._idx);
-
-            this._isIndexDisabled = siblingRoutes.some(route => route.isIndex);
-        }
     }
 
     _handlePathChange(newPath) {
         this.props.onPathChange(this._where, this._idx, newPath);
     }
 
-    _handleDescriptionChange(newDescription) {
-        this.props.onDescriptionChange(this._where, this._idx, newDescription);
+    _handleDescriptionChange(newValue) {
+        this.props.onDescriptionChange(this._where, this._idx, newValue);
     }
 
-    _handleIsIndexChange(newIsIndex) {
-        this.props.onIsIndexChange(this._where, this._idx, newIsIndex);
+    _handleHaveIndexChange(newValue) {
+        this.props.onHaveIndexChange(this._where, this._idx, newValue);
+    }
+
+    _handleHaveRedirectChange(newValue) {
+        this.props.onHaveRedirectChange(this._where, this._idx, newValue);
+    }
+
+    _handleRedirectToChange(newValue) {
+        this.props.onRedirectToChange(this._where, this._idx, newValue);
     }
 
     render() {
         if (!this.props.haveSelectedRoute || !this._route) return null;
+
+        let redirectUrlInput = null,
+            haveIndexToggle = null;
+
+        if (this._route.haveRedirect) {
+            redirectUrlInput = (
+                <PropsItem
+                    type="input"
+                    label="Redirect to"
+                    value={this._route.redirectTo}
+                    onChange={this._handleRedirectToChange}
+                />
+            );
+        }
+        else {
+            haveIndexToggle = (
+                <PropsItem
+                    type="toggle"
+                    label="Index route"
+                    value={this._route.haveIndex}
+                    onChange={this._handleHaveIndexChange}
+                />
+            );
+        }
 
         return (
             <BlockContentBox>
@@ -102,16 +117,7 @@ class RouteEditorComponent extends Component {
                             type="input"
                             label="Path"
                             value={this._route.path}
-                            disabled={this._route.isIndex}
                             onChange={this._handlePathChange}
-                        />
-
-                        <PropsItem
-                            type="toggle"
-                            label="Is index route"
-                            value={this._route.isIndex}
-                            disabled={this._isIndexDisabled}
-                            onChange={this._handleIsIndexChange}
                         />
 
                         <PropsItem
@@ -120,6 +126,17 @@ class RouteEditorComponent extends Component {
                             value={this._route.description}
                             onChange={this._handleDescriptionChange}
                         />
+
+                        <PropsItem
+                            type="toggle"
+                            label="Index redirect"
+                            value={this._route.haveRedirect}
+                            onChange={this._handleHaveRedirectChange}
+                        />
+
+                        {haveIndexToggle}
+
+                        {redirectUrlInput}
                     </PropsList>
                 </BlockContentBoxItem>
             </BlockContentBox>
@@ -138,8 +155,10 @@ RouteEditorComponent.propTypes = {
     ),
 
     onPathChange: PropTypes.func,
-    onIsIndexChange: PropTypes.func,
-    onDescriptionChange: PropTypes.func
+    onDescriptionChange: PropTypes.func,
+    onHaveIndexChange: PropTypes.func,
+    onHaveRedirectChange: PropTypes.func,
+    onRedirectToChange:PropTypes.func
 };
 
 RouteEditorComponent.displayName = 'RouteEditor';
@@ -151,14 +170,20 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    onPathChange: (where, idx, newPath) =>
-        void dispatch(updateRoutePath(where, idx, newPath)),
+    onPathChange: (where, idx, newValue) =>
+        void dispatch(updateRouteField(where, idx, 'path', newValue)),
 
-    onDescriptionChange: (where, idx, newDescription) =>
-        void dispatch(updateRouteDescription(where, idx, newDescription)),
+    onDescriptionChange: (where, idx, newValue) =>
+        void dispatch(updateRouteField(where, idx, 'description', newValue)),
 
-    onIsIndexChange: (where, idx, newIsIndex) =>
-        void dispatch(updateRouteIsIndex(where, idx, newIsIndex))
+    onHaveIndexChange: (where, idx, newValue) =>
+        void dispatch(updateRouteField(where, idx, 'haveIndex', newValue)),
+
+    onHaveRedirectChange: (where, idx, newValue) =>
+        void dispatch(updateRouteField(where, idx, 'haveRedirect', newValue)),
+
+    onRedirectToChange: (where, idx, newValue) =>
+        void dispatch(updateRouteField(where, idx, 'redirectTo', newValue))
 });
 
 export const RouteEditor = connect(

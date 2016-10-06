@@ -46,7 +46,8 @@ const toolGroups = List([
 class DesignRoute extends Component {
     render() {
         const src = `/preview/${this.props.params.projectName}/index.html`,
-            routeId = parseInt(this.props.params.routeId);
+            routeId = parseInt(this.props.params.routeId),
+            isIndexRoute = this.props.location.pathname.endsWith('/index');
 
         const route = getRoutes(this.props.project.routes)
             .find(route => route.id === routeId);
@@ -58,6 +59,7 @@ class DesignRoute extends Component {
                     store={store}
                     url={src}
                     path={route.path}
+                    isIndexRoute={isIndexRoute}
                 />
             </Desktop>
         );

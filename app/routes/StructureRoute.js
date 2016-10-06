@@ -302,6 +302,10 @@ class StructureRoute extends Component {
         }
     }
 
+    _handleEditIndexClick(route) {
+
+    }
+
     _renderRouteList(parentRoute, routes, indexes) {
         const routeCards = routes
             ? routes.map((route, idx) => this._renderRouteCard(route, indexes.push(idx)))
@@ -311,7 +315,6 @@ class StructureRoute extends Component {
 
         //noinspection JSValidateTypes
         const needButton = parentRoute === null || (
-            !parentRoute.isIndex &&
             this.props.selectedRouteId !== -1 &&
             parentRoute.id === this.props.selectedRouteId
         );
@@ -342,18 +345,16 @@ class StructureRoute extends Component {
                 ? this._renderRouteList(route, null, indexes)
                 : null;
 
-        const title = route.title || (route.isIndex ? 'Index' : route.path),
-            subtitle = route.isIndex ? '' : route.path;
-
         return (
             <RouteCard
                 key={route.id}
-                title={title}
-                subtitle={subtitle}
-                home={route.isIndex}
+                title={route.title || route.path}
+                subtitle={route.path}
+                haveIndex={!route.haveRedirect && route.haveIndex}
                 focused={isSelected}
                 onFocus={this._handleRouteSelect.bind(this, route, indexes)}
                 onGo={this._handleRouteGo.bind(this, route)}
+                onEditIndexClick={this._handleEditIndexClick.bind(this, route)}
             >
                 {children}
             </RouteCard>
@@ -390,11 +391,7 @@ class StructureRoute extends Component {
                     title: selectedRoute ? selectedRoute.title : '',
                     titleEditable: true,
                     titlePlaceholder: 'Route title',
-                    subtitle: selectedRoute
-                        ? selectedRoute.isIndex
-                            ? 'Index route'
-                            : selectedRoute.path
-                        : '',
+                    subtitle: selectedRoute ? selectedRoute.path : '',
                     sections: routeEditorToolSections,
                     mainButtons: routeEditorToolMainButtons,
                     windowMinWidth: 360

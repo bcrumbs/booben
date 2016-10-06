@@ -17,10 +17,7 @@ import {
     PROJECT_LOAD_FAILED,
     PROJECT_ROUTE_CREATE,
     PROJECT_ROUTE_DELETE,
-    PROJECT_ROUTE_RENAME,
-    PROJECT_ROUTE_UPDATE_PATH,
-    PROJECT_ROUTE_UPDATE_DESCRIPTION,
-    PROJECT_ROUTE_UPDATE_IS_INDEX,
+    PROJECT_ROUTE_UPDATE_FIELD,
     PROJECT_ROUTE_COMPONENT_UPDATE,
     PROJECT_ROUTE_COMPONENT_DELETE,
     PROJECT_ROUTE_COMPONENT_ADD_BEFORE,
@@ -71,9 +68,15 @@ const projectComponentToImmutable = input => new ProjectComponent({
 const projectRouteToImmutable = input => new ProjectRoute({
     id: input.id,
     path: input.path,
-    isIndex: input.isIndex,
     title: input.title,
     description: input.description,
+    haveIndex: input.haveIndex,
+    indexComponent: input.indexComponent !== null
+        ? projectComponentToImmutable(input.indexComponent)
+        : null,
+
+    haveRedirect: input.haveRedirect,
+    redirectTo: input.redirectTo,
 
     component: input.component !== null
         ? projectComponentToImmutable(input.component)
@@ -90,11 +93,6 @@ const projectToImmutable = input => new Project({
     routes: List(input.routes.map(projectRouteToImmutable))
 });
 
-const updateRouteField = (state, where, idx, field, newValue) => state.setIn(
-    ['data', 'routes'].concat(...where.map(idx => [idx, 'children']), idx, field),
-    newValue
-);
-
 const ProjectState = Record({
     projectName: '',
     loadState: NOT_LOADED,
@@ -102,6 +100,11 @@ const ProjectState = Record({
     meta: null,
     error: null
 });
+
+const updateRouteField = (state, where, idx, field, newValue) => state.setIn(
+    ['data', 'routes'].concat(...where.map(idx => [idx, 'children']), idx, field),
+    newValue
+);
 
 export default (state = new ProjectState(), action) => {
     switch (action.type) {
@@ -151,40 +154,13 @@ export default (state = new ProjectState(), action) => {
                 routes => routes.delete(action.idx)
             );
 
-        case PROJECT_ROUTE_RENAME:
+        case PROJECT_ROUTE_UPDATE_FIELD:
             return updateRouteField(
                 state,
                 action.where,
                 action.idx,
-                'title',
-                action.newTitle
-            );
-
-        case PROJECT_ROUTE_UPDATE_PATH:
-            return updateRouteField(
-                state,
-                action.where,
-                action.idx,
-                'path',
-                action.newPath
-            );
-
-        case PROJECT_ROUTE_UPDATE_DESCRIPTION:
-            return updateRouteField(
-                state,
-                action.where,
-                action.idx,
-                'description',
-                action.newDescription
-            );
-
-        case PROJECT_ROUTE_UPDATE_IS_INDEX:
-            return updateRouteField(
-                state,
-                action.where,
-                action.idx,
-                'isIndex',
-                action.newIsIndex
+                action.field,
+                action.newValue
             );
 
         case PROJECT_ROUTE_COMPONENT_UPDATE:
