@@ -107,7 +107,7 @@ class Preview extends Component {
     }
 
     componentDidMount() {
-        this.domNode = ReactDOM.findDOMNode(this);
+        this.domNode = document.getElementById('container');
         this.domOverlay = this.props.domOverlay;
 
         if (this.props.interactive) {
@@ -381,6 +381,7 @@ class Preview extends Component {
 
     _createRoute(route, pathToRoute) {
         const ret = {
+            path: route.path,
             component: ({ children }) => (
                 <Builder
                     component={route.component}

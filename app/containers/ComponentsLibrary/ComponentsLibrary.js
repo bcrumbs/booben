@@ -21,6 +21,8 @@ import {
 
 import { setExpandedGroups } from '../../actions/components-library';
 
+import { List } from 'immutable';
+
 /**
  *
  * @param {Immutable.Map} meta
@@ -121,7 +123,7 @@ class ComponentsLibraryComponent extends Component {
     }
 
     render() {
-        const accordionItems = this.componentGroups.map(group => {
+        const accordionItems = List(this.componentGroups.map(group => {
             const items = group.components
                 .sort((a, b) => {
                     const aText = a.text[this.props.language],
@@ -150,7 +152,7 @@ class ComponentsLibraryComponent extends Component {
                     </ComponentTagWrapper>
                 )
             })
-        });
+        }));
 
         return (
             <Accordion

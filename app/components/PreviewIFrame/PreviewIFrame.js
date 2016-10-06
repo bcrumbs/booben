@@ -5,6 +5,10 @@ import './PreviewIFrame.scss';
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 
+import store from '../../store';
+
+import { setIsIndexRoute } from '../../actions/preview';
+
 export class PreviewIFrame extends Component {
     constructor(props) {
         super(props);
@@ -16,11 +20,14 @@ export class PreviewIFrame extends Component {
 
         this._iframe = null;
         this._nextPath = null;
+        this._nextIsIndexRoute = null;
+
+        this._saveIFrameRef = this._saveIFrameRef.bind(this);
     }
 
     componentDidMount() {
         const contentWindow = this._iframe.contentWindow,
-            { store, interactive, isIndexRoute } = this.props;
+            { store, interactive } = this.props;
 
         contentWindow.addEventListener('DOMContentLoaded', () => {
             if (contentWindow.JSSY) {
@@ -35,8 +42,9 @@ export class PreviewIFrame extends Component {
                 });
 
                 if (this._nextPath !== null) {
-                    history.push(this._nextPath);
+                    this._goTo(this._nextPath, this._nextIsIndexRoute);
                     this._nextPath = null;
+                    this._nextIsIndexRoute = null;
                 }
             }
             else {
@@ -49,10 +57,11 @@ export class PreviewIFrame extends Component {
     componentWillReceiveProps(nextProps) {
         if (nextProps.path !== this.props.path) {
             if (this.state.loaded) {
-                if (this.state.history) this.state.history.push(nextProps.path);
+                this._goTo(nextProps.path, nextProps.isIndexRoute);
             }
             else {
                 this._nextPath = nextProps.path;
+                this._nextIsIndexRoute = nextProps.isIndexRoute;
             }
         }
     }
@@ -61,13 +70,24 @@ export class PreviewIFrame extends Component {
         return nextProps.url !== this.props.url;
     }
 
+    _saveIFrameRef(ref) {
+        this._iframe = ref;
+    }
+
+    _goTo(path, isIndexRoute) {
+        if (this.state.history) {
+            this.state.history.push(path);
+            store.dispatch(setIsIndexRoute(isIndexRoute));
+        }
+    }
+
     render() {
         // TODO: Render preloader if this.state.loaded === false
 
         return (
         	<section className="preview-iframe-wrapper">
                 <iframe
-                    ref={iframe => this._iframe = iframe}
+                    ref={this._saveIFrameRef}
                     src={`${this.props.url}#${this.props.path}`}
                     className="preview-iframe"
                 />
