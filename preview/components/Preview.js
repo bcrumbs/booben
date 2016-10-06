@@ -117,12 +117,6 @@ class Preview extends Component {
         }
     }
 
-    componentWillMount() {
-        this.routes = this.props.routes
-            .map((route, routeIndex) => this._createRoute(route, routeIndex, route.path))
-            .toArray();
-    }
-
     componentWillUnmount() {
         if (this.props.interactive) {
             mouseEvents.forEach(e => {
@@ -355,53 +349,52 @@ class Preview extends Component {
         this.currentRouteID = id;
     }
 
-    _createRoute(route, index) {
-        const routeIndex = Array.isArray(index) ? index : [index]; 
-
+    _createRoute(route, pathToRoute) {
         const ret = {
             component: ({ children }) => <Builder
-                component={this.props.routes.getIn(routeIndex).component}
+                component={route.component}
                 children={children}
-                routeIndex={routeIndex}
+                routeIndex={pathToRoute}
             />
         };
 
-        if (route && !route.isIndex) ret.path = route.path;
-
-        if (route && !route.isIndex && route.children.size > 0) {
-            const indexRouteIdx = route.children.findKey(route => route.isIndex),
-                haveIndexRoute = typeof indexRouteIdx === 'undefined';
-
-            const regularChildren = haveIndexRoute
-                ? route.children
-                : route.children.delete(indexRouteIdx);
-
-            ret.childRoutes = regularChildren
+        if (route.children.size > 0) {
+            ret.childRoutes = route.children
                 .map((child, routeIndex) => this._createRoute(
                     child,
-                    [].concat(index, 'children', routeIndex)
+                    [].concat(pathToRoute, 'children', routeIndex)
                 ))
                 .toArray();
 
             ret.onEnter = this._handlerChangeRoute.bind(this, route.id);
 
-            workspaceMap = workspaceMap.set(route.id, this.props.routes.getIn(routeIndex).component.uid)
+            workspaceMap = workspaceMap.set(route.id, route.component.uid);
+        }
 
-            if (haveIndexRoute) {
-                const indexRoute = route.children.get(indexRouteIdx);
-                ret.indexRoute = this._createRoute(
-                    indexRoute,
-                    [].concat(index, 'children', indexRouteIdx)
-                )
-            }
+        if (route.haveRedirect) {
+            ret.onEnter = (nextState, replace) => replace(route.redirectTo);
+        }
+        else if (route.haveIndex) {
+            ret.indexRoute = {
+                component: ({ children }) => <Builder
+                    component={route.indexComponent}
+                    children={children}
+                    routeIndex={pathToRoute}
+                    isIndexRoute
+                />
+            };
         }
 
         return ret;
     }
 
     render() {
+        const routes = this.props.routes
+            .map((route, idx) => this._createRoute(route, [idx]))
+            .toArray();
+
         return (
-            <Router history={hashHistory} routes={this.routes} />
+            <Router history={hashHistory} routes={routes} />
         );
     }
 }
@@ -423,6 +416,8 @@ Preview.propTypes = {
     ),
     selected: ImmutablePropTypes.set,
     highlighted: ImmutablePropTypes.set,
+    currentRouteIsIndexRoute: PropTypes.bool,
+
     deselectComponent: PropTypes.func,
     selectComponent: PropTypes.func,
     unhighlightComponent: PropTypes.func,
@@ -436,21 +431,7 @@ Preview.propTypes = {
 
 Preview.defaultProps = {
     domOverlay: null,
-    interactive: false,
-    routes: List(),
-    selected: Set(),
-    highlighted: Set(),
-    componentsMap: Map(),
-    domElementsMap: Map(),
-    deselectComponent: /* istanbul ignore next */ () => {},
-    selectComponent: /* istanbul ignore next */ () => {},
-    highlightComponent: /* istanbul ignore next */ () => {},
-    unhighlightComponent: /* istanbul ignore next */ () => {},
-    setWorkspace: /* istanbul ignore next */ () => {},
-    unsetWorkspace: /* istanbul ignore next */ () => {},
-    showWorkspace: /* istanbul ignore next */ () => {},
-    hideWorkspace: /* istanbul ignore next */ () => {},
-    setDomElementToMap: /* istanbul ignore next */ () => {}
+    interactive: false
 };
 
 Preview.displayName = 'Preview';
@@ -460,7 +441,8 @@ const mapStateToProps = state => ({
     selected: state.preview.selectedItems,
     highlighted: state.preview.highlightedItems,
     componentsMap: state.preview.componentsMap,
-    domElementsMap: state.preview.domElementsMap
+    domElementsMap: state.preview.domElementsMap,
+    currentRouteIsIndexRoute: state.preview.currentRouteIsIndexRoute
 });
 
 const mapDispatchToProps = dispatch => ({

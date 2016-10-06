@@ -14,6 +14,7 @@ export const SHOW_PREVIEW_WORKSPACE = 'SHOW_PREVIEW_WORKSPACE';
 export const HIDE_PREVIEW_WORKSPACE = 'HIDE_PREVIEW_WORKSPACE';
 export const SET_COMPONENT_TO_MAP = 'SET_COMPONENT_TO_MAP';
 export const SET_DOM_ELEMENT_TO_MAP = 'SET_DOM_ELEMENT_TO_MAP';
+export const SET_IS_INDEX_ROUTE = 'SET_IS_INDEX_ROUTE';
 
 /**
  * @param  {Object} component
@@ -58,7 +59,7 @@ export const unhighlightPreviewComponent = component => ({
 export const setPreviewWorkspace = component => ({
     type: SET_PREVIEW_WORKSPACE,
     component
-})
+});
 
 /**
  * @param  {string} component
@@ -67,21 +68,21 @@ export const setPreviewWorkspace = component => ({
 export const unsetPreviewWorkspace = component => ({
     type: UNSET_PREVIEW_WORKSPACE,
     component
-})
+});
 
 /**
  * @return {Object}
  */
 export const showPreviewWorkspace = () => ({
     type: SHOW_PREVIEW_WORKSPACE
-})
+});
 
 /**
  * @return {Object}
  */
 export const hidePreviewWorkspace = () => ({
     type: HIDE_PREVIEW_WORKSPACE
-})
+});
 
 /**
  * @param  {string} uid
@@ -92,7 +93,7 @@ export const setComponentToMap = (uid, component) => ({
     type: SET_COMPONENT_TO_MAP,
     uid,
     component
-})
+});
 
 /**
  * @param  {string} uid
@@ -103,4 +104,13 @@ export const setDomElementToMap = (uid, component) => ({
     type: SET_DOM_ELEMENT_TO_MAP,
     uid,
     component
-})
+});
+
+/**
+ * @param  {boolean} value
+ * @return {Object}
+ */
+export const setIsIndexRoute = value => ({
+    type: SET_IS_INDEX_ROUTE,
+    value
+});

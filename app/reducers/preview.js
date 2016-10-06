@@ -12,7 +12,8 @@ import {
     SHOW_PREVIEW_WORKSPACE,
     HIDE_PREVIEW_WORKSPACE,
     SET_COMPONENT_TO_MAP,
-    SET_DOM_ELEMENT_TO_MAP
+    SET_DOM_ELEMENT_TO_MAP,
+    SET_IS_INDEX_ROUTE
 } from '../actions/preview';
 
 const PreviewState = Record({
@@ -21,7 +22,8 @@ const PreviewState = Record({
     workspace: Set(),
     workspaceVisible: false,
     componentsMap: Map(),
-    domElementsMap: Map()
+    domElementsMap: Map(),
+    currentRouteIsIndexRoute: false
 });
 
 export default (state = new PreviewState(), action) => {
@@ -57,20 +59,19 @@ export default (state = new PreviewState(), action) => {
             });
 
         case SHOW_PREVIEW_WORKSPACE:
-            return state.merge({
-                workspaceVisible: true
-            });
+            return state.set('workspaceVisible', true);
 
         case HIDE_PREVIEW_WORKSPACE:
-            return state.merge({
-                workspaceVisible: false
-            });
+            return state.set('workspaceVisible', false);
 
         case SET_COMPONENT_TO_MAP:
-            return state.update('componentsMap', cMap => cMap.set(action.uid, action.component))
+            return state.setIn(['componentsMap', action.uid], action.component);
 
         case SET_DOM_ELEMENT_TO_MAP:
-            return state.update('domElementsMap', deMap => deMap.set(action.uid, action.component))
+            return state.setIn(['domElementsMap', action.uid], action.component);
+
+        case SET_IS_INDEX_ROUTE:
+            return state.set('currentRouteIsIndexRoute', action.value);
 
         default: return state;
     }

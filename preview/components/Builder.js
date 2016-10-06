@@ -95,13 +95,14 @@ Builder.propTypes = {
         children: ImmutablePropTypes.list
     }),
     routeIndex: React.PropTypes.array,
+    isIndexRoute: React.PropTypes.bool,
     componentsMap: ImmutablePropTypes.map
 };
 
 Builder.defaultProps = {
     component: null,
     routeIndex: [],
-    componentsMap: Map()
+    isIndexRoute: false
 };
 
 /**
@@ -145,8 +146,8 @@ const getProps = props => {
 };
 
 const mapDispatchToProps = dispatch => ({
-    setComponentToMap: (uid, component) => void dispatch(setComponentToMap(
-        uid, component))
+    setComponentToMap: (uid, component) =>
+        void dispatch(setComponentToMap(uid, component))
 });
 
 const mapStateToProps = state => ({
