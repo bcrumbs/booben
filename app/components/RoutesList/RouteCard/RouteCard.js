@@ -24,35 +24,39 @@ export class RouteCard extends Component {
     render() {
         let className = 'route-card-wrapper';
 
-        if (this.props.home) className += ' is-home';
+        if (this.props.redirect) className += ' has-redirect';
+        if (this.props.index) className += ' is-index';
         if (this.props.focused) className += ' is-focused';
 
-        let iconIndex = null;
-        if (this.props.home) {
-            iconIndex = (
-                <div className="route-icon-index">
-                    <Icon name="home" />
+        let icon = null;
+        if (this.props.redirect) {
+            icon = (
+                <div className="route-icon">
+                    <Icon name="random" />
                 </div>
             );
         }
 
-        let defaultIndex = null;
-	    if (this.props.haveIndex) {
-		    defaultIndex =
-			    <button className="route-index-default" tabIndex="1">
-				    <div
-                        className="route-index-default-button"
-                        onClick={this._handleEditIndexClick}
-                    >
-                        Edit index
-                    </div>
-			    </button>;
+	    // let defaultIndex = null;
+	    // if (this.props.haveIndex) {
+		 //    defaultIndex =
+			//     <li className="route-index-default" tabIndex="1">
+			// 	    <div
+         //                className="route-index-default-button"
+         //                onClick={this._handleEditIndexClick}
+         //            >
+         //                Edit index
+         //            </div>
+			//     </li>;
+	    // }
 
-		    className += ' has-default-index';
+	    let subtitle = null;
+	    if (this.props.subtitle && !this.props.index) {
+	    	subtitle = <div className="route-subtitle">{this.props.subtitle}</div>;
 	    }
 
         return (
-            <li className='route-card-wrapper'>
+            <li className='route-card-item'>
 	            <div className={className}>
 	                <div
 	                    className='route-card'
@@ -63,14 +67,12 @@ export class RouteCard extends Component {
 	                    <div className="route-card-content">
 	                        <div className="route-title-box">
 	                            <span className="route-title">{this.props.title}</span>
-	                            {iconIndex}
+	                            {icon}
 	                        </div>
 
-	                        <div className="route-subtitle">{this.props.subtitle}</div>
+		                    { subtitle }
 	                    </div>
 	                </div>
-
-		            {defaultIndex}
 	            </div>
 
                 {this.props.children}
@@ -85,6 +87,7 @@ RouteCard.propTypes = {
     home: PropTypes.bool,
     haveIndex: PropTypes.bool,
     focused: PropTypes.bool,
+    index: PropTypes.bool,
     onFocus: PropTypes.func,
     onGo: PropTypes.func,
     onEditIndexClick: PropTypes.func
@@ -96,6 +99,7 @@ RouteCard.defaultProps = {
     home: false,
     haveIndex: false,
     focused: false,
+    index: false,
     onFocus: noop,
     onGo: noop,
     onEditIndexClick: noop
