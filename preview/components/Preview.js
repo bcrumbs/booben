@@ -141,7 +141,7 @@ class Preview extends Component {
 
     _updateWorkspace() {
         const builderWS = getChild(this['_reactInternalInstance'],
-            item => item._currentElement.props.uid == this.workspace);
+            item => item._currentElement.props['data-uid'] == this.workspace);
 
         if(!builderWS || !builderWS._renderedComponent) return;
 
@@ -158,7 +158,8 @@ class Preview extends Component {
      * @param  {string} uid
      */
     _updateSelected(el, uid) {
-        const owner = getOwner(el, item => item._currentElement.props.uid == uid),
+        const owner = getOwner(el, item =>
+                item._currentElement.props['data-uid'] == uid),
             domEl = owner._renderedComponent._hostNode;
 
         this._setDomElementToMap(uid, domEl);
@@ -177,7 +178,8 @@ class Preview extends Component {
      * @param  {string} uid
      */
     _updateHighlighted(el, uid) {
-        const owner = getOwner(el, item => item._currentElement.props.uid == uid),
+        const owner = getOwner(el, item =>
+                item._currentElement.props['data-uid'] == uid),
             domEl = owner._renderedComponent._hostNode;
 
         this._setDomElementToMap(uid, domEl);
@@ -238,15 +240,15 @@ class Preview extends Component {
         this.dndFlag = false;
 
         if (riiKey && this.dndParams) {
-            const owner = getOwner(event.target[riiKey]._currentElement, item => item._currentElement.props.uid);
+            const owner = getOwner(event.target[riiKey]._currentElement, item => item._currentElement.props['data-uid']);
 
             if(
                 owner &&
-                owner._currentElement.props.uid &&
-                owner._currentElement.props.uid != this.dndParams.uid &&
-                this._inWorkspace(owner._currentElement.props.uid)
+                owner._currentElement.props['data-uid'] &&
+                owner._currentElement.props['data-uid'] != this.dndParams.uid &&
+                this._inWorkspace(owner._currentElement.props['data-uid'])
             ) {
-                // this.props.componentsMap.get(owner._currentElement.props.uid).where
+                // this.props.componentsMap.get(owner._currentElement.props['data-uid']).where
             }
         }
 
@@ -309,13 +311,13 @@ class Preview extends Component {
         if (!riiKey) return;
 
         const el = event.target[riiKey]._currentElement,
-            owner = getOwner(el, item => item._currentElement.props.uid);
+            owner = getOwner(el, item => item._currentElement.props['data-uid']);
 
         if (owner) {
             // event.stopPropagation();
 
             const type = event.type,
-                uid = owner._currentElement.props.uid;
+                uid = owner._currentElement.props['data-uid'];
 
             if(!this._inWorkspace(uid)) return;
 

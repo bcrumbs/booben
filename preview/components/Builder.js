@@ -57,13 +57,12 @@ class Builder extends Component {
                 where: [...baseIndex]
             });
         }
-        
 
         if (component.children && component.children.size) {
             return (
                 <Component
                     key={component.uid}
-                    uid={component.uid}
+                    data-uid={component.uid}
                     {...getProps(component.props)}
                 >
                     { component.children.map((_component, index) => 
@@ -76,7 +75,7 @@ class Builder extends Component {
             return (
                 <Component
                     key={component.uid}
-                    uid={component.uid}
+                    data-uid={component.uid}
                     {...getProps(component.props)}
                 />
             );
