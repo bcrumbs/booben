@@ -121,6 +121,10 @@ class Preview extends Component {
         }
     }
 
+    componentDidUpdate(prevProps, prevState) {
+        if(prevProps.project !== this.props.project) this._setRootComponent();
+    }
+
     componentWillUnmount() {
         const domNode = this.domNode;
 
@@ -172,15 +176,14 @@ class Preview extends Component {
     }
 
     _setRootComponent() {
-        const rootComponentId = this._getCurrentRootComponentId();
-
-        const rootComponent = getChild(this['_reactInternalInstance'],
-            item => this._getComponentId(item) == rootComponentId);
+        const rootComponentId = this._getCurrentRootComponentId(),
+            rootComponent = getChild(this['_reactInternalInstance'], item =>
+                this._getComponentId(item) == rootComponentId);
 
         if(!rootComponent) return;
 
         this.props.setRootComponent(rootComponentId);
-        this._setDomElementToMap(rootComponentId, rootComponent.getHostNode());
+        this._setDomElementToMap(rootComponentId, rootComponent.getHostNode(), true);
     }
 
     _handleResizeEvent() {}
@@ -212,8 +215,8 @@ class Preview extends Component {
         }
     }
 
-    _setDomElementToMap(key, value) {
-        if (!this.props.domElementsMap.has(key)) {
+    _setDomElementToMap(key, value, force = false) {
+        if (!this.props.domElementsMap.has(key) || force) {
             this.props.setDomElementToMap(key, value);
         }
     }
