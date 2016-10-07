@@ -12,6 +12,7 @@ import preview from './preview';
 import desktop from './desktop';
 import componentsLibrary from './components-library';
 import structure from './structure';
+import design from './design';
 
 export default combineReducers({
     app,
@@ -19,5 +20,6 @@ export default combineReducers({
     preview,
     desktop,
     componentsLibrary,
-    structure
+    structure,
+    design
 });

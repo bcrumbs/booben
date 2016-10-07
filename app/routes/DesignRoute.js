@@ -10,10 +10,11 @@ import { connect } from 'react-redux';
 
 import { Desktop } from '../containers/Desktop/Desktop';
 import { ComponentsLibrary } from '../containers/ComponentsLibrary/ComponentsLibrary';
+import { ComponentsTreeView } from '../containers/ComponentsTreeView/ComponentsTreeView';
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
 
 import store from '../store';
-import { getRoutes } from '../utils';
+import { findRouteById } from '../utils';
 
 import ProjectRecord from '../models/Project';
 import ToolRecord from '../models/Tool';
@@ -21,36 +22,48 @@ import ToolSectionRecord from '../models/ToolSection';
 
 import { List } from 'immutable';
 
-const toolGroups = List([
-    List([
-        new ToolRecord({
-            id: 'componentsLibrary',
-            icon: 'cubes',
-            name: 'Components Library',
-            title: 'Components Library',
-            undockable: true,
-            closable: false,
-            sections: List([
-                new ToolSectionRecord({
-                    name: '',
-                    component: ComponentsLibrary
-                })
-            ]),
-            mainButtons: List(),
-            secondaryButtons: List(),
-            windowMinWidth: 360
+const libraryTool = new ToolRecord({
+    id: 'componentsLibrary',
+    icon: 'cubes',
+    name: 'Components Library',
+    title: 'Components Library',
+    sections: List([
+        new ToolSectionRecord({
+            name: '',
+            component: ComponentsLibrary
         })
-    ])
-]);
+    ]),
+    windowMinWidth: 360
+});
 
 class DesignRoute extends Component {
     render() {
         const src = `/preview/${this.props.params.projectName}/index.html`,
             routeId = parseInt(this.props.params.routeId),
-            isIndexRoute = this.props.location.pathname.endsWith('/index');
+            isIndexRoute = this.props.location.pathname.endsWith('/index'),
+            route = findRouteById(this.props.project.routes, routeId);
 
-        const route = getRoutes(this.props.project.routes)
-            .find(route => route.id === routeId);
+        // TODO: Show error screen
+        if (!route) return null;
+
+        const rootComponent = isIndexRoute ? route.indexComponent : route.component;
+
+        const treeTool = new ToolRecord({
+            id: 'componentsTree',
+            icon: 'sitemap',
+            name: 'Elements tree',
+            title: 'Elements tree',
+            sections: List([
+                new ToolSectionRecord({
+                    name: '',
+                    component: () => (
+                        <ComponentsTreeView rootComponent={rootComponent} />
+                    )
+                })
+            ])
+        });
+
+        const toolGroups = List([List([libraryTool, treeTool])]);
 
         return (
             <Desktop toolGroups={toolGroups}>
@@ -58,7 +71,7 @@ class DesignRoute extends Component {
                     interactive
                     store={store}
                     url={src}
-                    path={route.path}
+                    path={route.fullPath}
                     isIndexRoute={isIndexRoute}
                 />
             </Desktop>

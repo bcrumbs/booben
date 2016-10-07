@@ -109,7 +109,7 @@ export default class Builder extends Component {
 
 Builder.propTypes = {
     component: ImmutablePropTypes.contains({
-        id: React.PropTypes.string,
+        id: React.PropTypes.number,
         name: React.PropTypes.string,
         props: ImmutablePropTypes.map,
         children: ImmutablePropTypes.list

@@ -65,32 +65,40 @@ const projectComponentToImmutable = input => new ProjectComponent({
     children: List(input.children.map(projectComponentToImmutable))
 });
 
-const projectRouteToImmutable = input => new ProjectRoute({
-    id: input.id,
-    path: input.path,
-    title: input.title,
-    description: input.description,
-    haveIndex: input.haveIndex,
-    indexComponent: input.indexComponent !== null
-        ? projectComponentToImmutable(input.indexComponent)
-        : null,
+const projectRouteToImmutable = (input, pathPrefix) => {
+    const fullPath = pathPrefix + input.path,
+        nextPrefix = fullPath.endsWith('/') ? fullPath : fullPath + '/';
 
-    haveRedirect: input.haveRedirect,
-    redirectTo: input.redirectTo,
+    return new ProjectRoute({
+        id: input.id,
+        path: input.path,
+        fullPath: fullPath,
+        title: input.title,
+        description: input.description,
+        haveIndex: input.haveIndex,
+        indexComponent: input.indexComponent !== null
+            ? projectComponentToImmutable(input.indexComponent)
+            : null,
 
-    component: input.component !== null
-        ? projectComponentToImmutable(input.component)
-        : null,
+        haveRedirect: input.haveRedirect,
+        redirectTo: input.redirectTo,
 
-    children: List(input.children.map(projectRouteToImmutable))
-});
+        component: input.component !== null
+            ? projectComponentToImmutable(input.component)
+            : null,
+
+        children: List(input.children.map(
+            route => projectRouteToImmutable(route, nextPrefix))
+        )
+    });
+};
 
 const projectToImmutable = input => new Project({
     name: input.name,
     author: input.author,
     componentLibs: List(input.componentLibs),
     relayEndpointURL: input.relayEndpointURL,
-    routes: List(input.routes.map(projectRouteToImmutable))
+    routes: List(input.routes.map(route => projectRouteToImmutable(route, '')))
 });
 
 /**
