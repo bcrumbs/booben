@@ -47,6 +47,11 @@ $prop-array-body-font-color:    $body-font-color !default;
 $prop-array-body-font-weight:   $font-weight-normal !default;
 $prop-array-body-line-height:   1.25 !default;
 
+// PROP: tree
+// =====================================================================================================================
+$prop-tree-level-offset:        $base-module !default;
+
+
 // Add new route
 // =====================================================================================================================
 $prop-array-add-row-margin-top:         $base-module !default;

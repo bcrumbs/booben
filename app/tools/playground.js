@@ -164,24 +164,9 @@ const toolRouteWindowSections = List([
 				<BlockContentBoxHeading>If redirect is on</BlockContentBoxHeading>
 				<BlockContentBoxItem>
 					<PropsList>
-						<PropsItem type="toggle" linkable label="Redirect" checked/>
-						<PropsItem type="input" linkable label="Set URL"/>
+						<PropsItem type="tree" />
 					</PropsList>
 				</BlockContentBoxItem>
-
-				<BlockContentBoxHeading>If redirect is off</BlockContentBoxHeading>
-				<BlockContentBoxItem>
-					<PropsList>
-						<PropsItem type="toggle" linkable label="Redirect"/>
-					</PropsList>
-				</BlockContentBoxItem>
-
-				{/*<BlockContentBoxHeading>Props Group 2</BlockContentBoxHeading>*/}
-				{/*<BlockContentBoxItem>*/}
-					{/*<PropsList>*/}
-						{/*<PropsItem type="array" label="Array Prop" />*/}
-					{/*</PropsList>*/}
-				{/*</BlockContentBoxItem>*/}
 			</BlockContentBox>
 		)
 	})
@@ -238,8 +223,28 @@ const toolSitemapWindowSections = List([
 	})
 ]);
 
-// Component Props
+// Component Props : Step 1 - template
 const toolComponentTemplatesWindowSections = List([
+	new ToolSectionRecord({
+		name: 'Route Editing',
+		component: () => (
+			<BlockContentBox>
+				<BlockContentBoxHeading>Component Templates</BlockContentBoxHeading>
+				<BlockContentBoxItem>
+					<ComponentLayoutSelection>
+						<ComponentLayoutSelectionItem image={'http://img11.nnm.me/d/3/5/5/b/4d572a2fdc5b8c28cad40d9ca45.jpg'} title={'single block'} />
+						<ComponentLayoutSelectionItem image={"http://cdn.pcwallart.com/images/cosmos-hd-wallpaper-3.jpg"} title={'2 equal parts'} />
+						<ComponentLayoutSelectionItem image={"http://coolvibe.com/wp-content/uploads/2010/06/cosmos.jpg"} title={'3 equal parts'} />
+						<ComponentLayoutSelectionItem image={"http://coolvibe.com/wp-content/uploads/2010/06/cosmos.jpg"} title={'2 equal parts, 1 full-height'} />
+					</ComponentLayoutSelection>
+				</BlockContentBoxItem>
+			</BlockContentBox>
+		)
+	})
+]);
+
+// Component Props : Step 2 - layout
+const toolComponentLayoutWindowSections = List([
 	new ToolSectionRecord({
 		name: 'Route Editing',
 		component: () => (
@@ -275,18 +280,6 @@ const toolComponentTemplatesWindowSections = List([
 export default List([
     List([
 	    new ToolRecord({
-		    id: 'tool7',
-		    icon: 'cog',
-		    name: 'Component Settings',
-		    title: 'Component Settings',
-		    undockable: true,
-		    closable: false,
-		    sections: toolComponentTemplatesWindowSections,
-		    mainButtons: '',
-		    secondaryButtons: ''
-	    }),
-
-	    new ToolRecord({
 		    id: 'tool5',
 		    icon: 'cog',
 		    name: 'Parsers',
@@ -296,6 +289,18 @@ export default List([
 		    sections: toolRouteWindowSections,
 		    mainButtons: toolRouteWindowMainActions,
 		    secondaryButtons: toolRouteWindowSecondaryActions
+	    }),
+
+	    new ToolRecord({
+		    id: 'tool7',
+		    icon: 'cog',
+		    name: 'Component Settings',
+		    title: 'Component Settings',
+		    undockable: true,
+		    closable: false,
+		    sections: toolComponentTemplatesWindowSections,
+		    mainButtons: '',
+		    secondaryButtons: ''
 	    }),
 
 	    new ToolRecord({

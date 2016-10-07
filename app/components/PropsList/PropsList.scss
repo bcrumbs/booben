@@ -199,5 +199,19 @@ $prop-toggle: 'props-type-toggle';
 			}
 		}
 	}
+
+	// PROP: tree
+	// =================================================================================================================
+	.prop-tree {	}
+
+	// LIST
+	.prop-tree-list {
+		.prop-tree-item & {
+			margin-left: $prop-tree-level-offset;
+		}
+	}
+
+	// ITEM
+	.prop-tree-item {	}
 }
 

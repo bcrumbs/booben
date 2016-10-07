@@ -22,6 +22,12 @@ import {
 	PropArrayBodyCellText
 } from './PropItemArray/PropItemArray';
 
+import {
+	PropTree,
+	PropTreeList,
+	PropTreeItem
+} from './PropTree/PropTree';
+
 import {PropLabel} from './PropLabel/PropLabel';
 import {PropLinkButton} from './PropLinkButton/PropLinkButton';
 
@@ -89,6 +95,20 @@ export const PropsItem = props => {
 			<PropConstructor label={props.label} hasToggle />
 	}
 
+	else if (props.type === 'tree') {
+		content =
+			<PropTree>
+				<PropTreeList>
+					<PropTreeItem>
+						<PropTreeList>
+							<PropTreeItem />
+
+						</PropTreeList>
+					</PropTreeItem>
+				</PropTreeList>
+			</PropTree>
+	}
+
 	else if (props.type === 'array') {
 		content =
 			<PropItemArray>
@@ -141,6 +161,7 @@ PropsItem.propTypes = {
         'constructor',
         'constructor-toggle',
         'array',
+        'tree',
         'toggle'
     ]),
 	label: PropTypes.string,
