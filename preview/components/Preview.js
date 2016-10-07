@@ -216,9 +216,8 @@ class Preview extends Component {
     }
 
     _setDomElementToMap(key, value, force = false) {
-        if (!this.props.domElementsMap.has(key) || force) {
+        if (!this.props.domElementsMap.has(key) || force)
             this.props.setDomElementToMap(key, value);
-        }
     }
 
     _componentIsInCurrentRoute(id) {
@@ -230,20 +229,17 @@ class Preview extends Component {
         const keys = Object.keys(target),
             riiKey = keys.find(key => key.startsWith('__reactInternalInstance$'));
 
-        if (!riiKey) return null;
-
-        const owner = getOwner(target[riiKey], (item)=> {
-                return this._getComponentId(item);
-            });
-
-        return owner;
+        return riiKey
+            ? getOwner(target[riiKey], item => this._getComponentId(item))
+            : null;
     }
 
     _handleAnimationFrame() {
         var el = this.dndParams.el;
 
-        el.style.transform = `translate(${this.dndParams.pageX}px,
-            ${this.dndParams.pageY}px)`;
+        el.style.transform =
+            `translate(${this.dndParams.pageX}px, ${this.dndParams.pageY}px)`;
+
         this.animationFrame = null;
         this.needRAF = true;
     }

@@ -6,7 +6,20 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Map } from 'immutable';
 
 // The real components.js will be generated during build process
-import components from '../components.js';
+import _components from '../components.js';
+import patchComponent from '../patchComponent';
+
+const components = {};
+
+Object.keys(_components).forEach(namespace => {
+    Object.keys(_components[namespace]).forEach(componentName => {
+        if (!components[namespace])
+            components[namespace] = {};
+
+        components[namespace][componentName] =
+            patchComponent(_components[namespace][componentName]);
+    });
+});
 
 const pseudoComponents = new Set([
     'Text',
@@ -80,26 +93,26 @@ export default class Builder extends Component {
 
         const Component = getComponentByName(component.name);
 
-        if (component.children.size > 0) {
-            return (
-                <Component
-                    key={component.id}
-                    data-id={component.id}
-                    {...getProps(component.props)}
-                >
-                    {component.children.map(this._getComponentFromMeta)}
-                </Component>
-            );
+        let children = null;
+
+        if (component.children.size > 0)
+            children = component.children.map(this._getComponentFromMeta);
+
+        const props = getProps(component.props);
+        props.key = component.id;
+        props.children = children;
+
+
+        if (typeof Component === 'string') {
+            props['data-jssy-id'] = component.id;
         }
         else {
-            return (
-                <Component
-                    key={component.id}
-                    data-id={component.id}
-                    {...getProps(component.props)}
-                />
-            );
+            props.__jssy_component_id__ = component.id;
         }
+
+        return (
+            <Component {...props} />
+        );
     }
 
     render() {

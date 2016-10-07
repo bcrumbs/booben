@@ -109,8 +109,8 @@ const projectToImmutable = input => new Project({
 const buildComponentsIndex = project => {
     const ret = {};
 
-    const visitComponent = (component, routeId, path) => {
-        ret[component.id] = { path, routeId };
+    const visitComponent = (component, routeId, path, isIndexRoute) => {
+        ret[component.id] = { path, routeId, isIndexRoute };
 
         component.children.forEach((child, idx) =>
             void visitComponent(child, routeId, [].concat(path, 'children', idx)));
@@ -121,7 +121,8 @@ const buildComponentsIndex = project => {
             visitComponent(
                 route.component,
                 route.id,
-                [].concat(path, 'component')
+                [].concat(path, 'component'),
+                false
             );
         }
 
@@ -129,7 +130,8 @@ const buildComponentsIndex = project => {
             visitComponent(
                 route.indexComponent,
                 route.id,
-                [].concat(path, 'indexComponent')
+                [].concat(path, 'indexComponent'),
+                true
             );
         }
 
