@@ -1,0 +1,46 @@
+@charset "UTF-8";
+@import '../../../node_modules/@reactackle/reactackle/utils/_global';
+
+// =====================================================================================================================
+// BASE VARIABLES
+// =====================================================================================================================
+// BASE
+$layout-items-per-row:              2 !default;
+
+$layout-items-margin-y:             $base-module/8 !default;
+$layout-items-margin-x:             $base-module/8 !default;
+
+// ITEM
+$layout-item-width:                 100%/$layout-items-per-row !default;
+
+$layout-item-pad-y:                 $base-module/2 !default;
+$layout-item-pad-x:                 $base-module/2 !default;
+$layout-item-border-radius:         $global-radius !default;
+
+$layout-item-hover-border-thickness: rem-calc(1) !default;
+$layout-item-hover-border-style:    solid !default;
+$layout-item-hover-border-color:    $color-border !default;
+
+// IMAGE
+$layout-item-img-size:              100% !default;
+$layout-item-img-bg-color:          $grey-200 !default;
+
+// TITLE
+$layout-item-title-margin-top:      $base-module/2 !default;
+$layout-item-title-margin-bottom:   0 !default;
+
+$layout-item-title-font-size:       fs(-1) !default;
+$layout-item-title-line-height:     1.4 !default;
+$layout-item-title-color:           $grey-700 !default;
+$layout-item-title-text-transform:  none !default;
+$layout-item-title-font-weight:     $font-weight-normal !default;
+$layout-item-title-text-align:      left !default;
+
+$layout-item-subtitle-font-size:    fs(-1) !default;
+$layout-item-subtitle-line-height:  1.4 !default;
+$layout-item-subtitle-color:        $grey-500 !default;
+$layout-item-subtitle-text-transform: none !default;
+$layout-item-subtitle-font-weight:  $font-weight-normal !default;
+$layout-item-subtitle-text-align:   $layout-item-title-text-align !default;
+$layout-item-subtitle-spacing:      $base-module/2 !default;
+

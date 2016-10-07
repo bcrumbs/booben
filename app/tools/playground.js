@@ -36,6 +36,11 @@ import {
 	PropsItem
 } from '../components/PropsList/PropsList';
 
+import {
+	ComponentLayoutSelection,
+	ComponentLayoutSelectionItem
+} from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
+
 import { List, Set } from 'immutable';
 
 import ToolSectionRecord from '../models/ToolSection';
@@ -202,7 +207,6 @@ const toolSitemapWindowSections = List([
 		name: 'Sitemap',
 		component: () => (
 			<BlockContentBox isBordered flex>
-
 					<ComponentsTree>
 						<ComponentsTreeItem title="routeA" showSublevel hasTooltip>
 							<ComponentsTreeList>
@@ -216,71 +220,7 @@ const toolSitemapWindowSections = List([
 															<ComponentsTreeList>
 																<ComponentsTreeItem title="Components Tree Item" showSublevel hasTooltip/>
 																<ComponentsTreeItem title="Some extremely long tree item item item item item item" hasTooltip showSublevel active />
-																<ComponentsTreeItem title="Another extremely long tree item item item item item item" showSublevel hasTooltip>
-																	<ComponentsTreeList>
-																		<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-																			<ComponentsTreeList>
-																				<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-																					<ComponentsTreeList>
-																						<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-																							<ComponentsTreeList>
-																								<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-																									<ComponentsTreeList>
-																										<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-																											<ComponentsTreeList>
-																												<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-																													<ComponentsTreeList>
-																														<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-																															<ComponentsTreeList>
-																																<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-																																	<ComponentsTreeList>
-																																		<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-																																			<ComponentsTreeList>
-																																				<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-																																					<ComponentsTreeList>
-																																						<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-																																							<ComponentsTreeList>
-																																								<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-																																									<ComponentsTreeList>
-																																										<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-																																											<ComponentsTreeList>
-																																												<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-																																													<ComponentsTreeList>
-																																														<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-																																															<ComponentsTreeList>
-																																																<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip />
-																																															</ComponentsTreeList>
-																																														</ComponentsTreeItem>
-																																													</ComponentsTreeList>
-																																												</ComponentsTreeItem>
-																																											</ComponentsTreeList>
-																																										</ComponentsTreeItem>
-																																									</ComponentsTreeList>
-																																								</ComponentsTreeItem>
-																																							</ComponentsTreeList>
-																																						</ComponentsTreeItem>
-																																					</ComponentsTreeList>
-																																				</ComponentsTreeItem>
-																																			</ComponentsTreeList>
-																																		</ComponentsTreeItem>
-																																	</ComponentsTreeList>
-																																</ComponentsTreeItem>
-																															</ComponentsTreeList>
-																														</ComponentsTreeItem>
-																													</ComponentsTreeList>
-																												</ComponentsTreeItem>
-																											</ComponentsTreeList>
-																										</ComponentsTreeItem>
-																									</ComponentsTreeList>
-																								</ComponentsTreeItem>
-																							</ComponentsTreeList>
-																						</ComponentsTreeItem>
-																					</ComponentsTreeList>
-																				</ComponentsTreeItem>
-																			</ComponentsTreeList>
-																		</ComponentsTreeItem>
-																	</ComponentsTreeList>
-																</ComponentsTreeItem>
+																<ComponentsTreeItem title="Another extremely long tree item item item item item item" hasTooltip />
 															</ComponentsTreeList>
 														</ComponentsTreeItem>
 													</ComponentsTreeList>
@@ -291,27 +231,6 @@ const toolSitemapWindowSections = List([
 								</ComponentsTreeItem>
 							</ComponentsTreeList>
 						</ComponentsTreeItem>
-						<ComponentsTreeItem title="routeB">
-							<ComponentsTreeList>
-								<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-									<ComponentsTreeList>
-										<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-											<ComponentsTreeList>
-												<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-													<ComponentsTreeList>
-														<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip />
-													</ComponentsTreeList>
-												</ComponentsTreeItem>
-											</ComponentsTreeList>
-										</ComponentsTreeItem>
-									</ComponentsTreeList>
-								</ComponentsTreeItem>
-							</ComponentsTreeList>
-						</ComponentsTreeItem>
-						<ComponentsTreeItem title="routeC">
-							<ComponentsTreeList>
-							</ComponentsTreeList>
-						</ComponentsTreeItem>
 					</ComponentsTree>
 
 			</BlockContentBox>
@@ -319,8 +238,54 @@ const toolSitemapWindowSections = List([
 	})
 ]);
 
+// Component Props
+const toolComponentTemplatesWindowSections = List([
+	new ToolSectionRecord({
+		name: 'Route Editing',
+		component: () => (
+			<BlockContentBox>
+				<BlockContentBoxHeading>Component Templates</BlockContentBoxHeading>
+				<BlockContentBoxItem>
+					<ComponentLayoutSelection>
+						<ComponentLayoutSelectionItem image={'http://img11.nnm.me/d/3/5/5/b/4d572a2fdc5b8c28cad40d9ca45.jpg'} title={'single block'} />
+						<ComponentLayoutSelectionItem image={"http://cdn.pcwallart.com/images/cosmos-hd-wallpaper-3.jpg"} title={'2 equal parts'} />
+						<ComponentLayoutSelectionItem image={"http://coolvibe.com/wp-content/uploads/2010/06/cosmos.jpg"} title={'3 equal parts'} />
+						<ComponentLayoutSelectionItem image={"http://coolvibe.com/wp-content/uploads/2010/06/cosmos.jpg"} title={'2 equal parts, 1 full-height'} />
+					</ComponentLayoutSelection>
+				</BlockContentBoxItem>
+			</BlockContentBox>
+		)
+	})
+]);
+
+// const toolComponentTemplatesMainActions = List([
+// 	new ButtonRecord({
+// 		text: 'Save',
+// 		onPress: () => {}
+// 	})
+// ]);
+//
+// const toolComponentTemplatesSecondaryActions = List([
+// 	new ButtonRecord({
+// 		icon: 'trash-o',
+// 		onPress: () => {}
+// 	})
+// ]);
+
 export default List([
     List([
+	    new ToolRecord({
+		    id: 'tool7',
+		    icon: 'cog',
+		    name: 'Component Settings',
+		    title: 'Component Settings',
+		    undockable: true,
+		    closable: false,
+		    sections: toolComponentTemplatesWindowSections,
+		    mainButtons: '',
+		    secondaryButtons: ''
+	    }),
+
 	    new ToolRecord({
 		    id: 'tool5',
 		    icon: 'cog',
