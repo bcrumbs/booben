@@ -7,10 +7,10 @@ import {
     SELECT_PREVIEW_COMPONENT,
     HIGHLIGHT_PREVIEW_COMPONENT,
     UNHIGHLIGHT_PREVIEW_COMPONENT,
-    SET_PREVIEW_WORKSPACE,
-    UNSET_PREVIEW_WORKSPACE,
-    SHOW_PREVIEW_WORKSPACE,
-    HIDE_PREVIEW_WORKSPACE,
+    SET_ROOT_COMPONENT,
+    UNSET_ROOT_COMPONENT,
+    SHOW_ROOT_COMPONENT,
+    HIDE_ROOT_COMPONENT,
     SET_DOM_ELEMENT_TO_MAP,
     SET_IS_INDEX_ROUTE
 } from '../actions/preview';
@@ -18,8 +18,8 @@ import {
 const PreviewState = Record({
     selectedItems: Set(),
     highlightedItems: Set(),
-    workspace: Set(),
-    workspaceVisible: false,
+    rootComponent: Set(),
+    rootComponentVisible: false,
     domElementsMap: Map(),
     currentRouteIsIndexRoute: false
 });
@@ -46,24 +46,24 @@ export default (state = new PreviewState(), action) => {
                 selectedItems: state.get('selectedItems').delete(action.component)
             });
 
-        case SET_PREVIEW_WORKSPACE:
+        case SET_ROOT_COMPONENT:
             return state.merge({
-                workspace: state.get('workspace').add(action.component)
+                rootComponent: state.get('rootComponent').add(action.component)
             });
 
-        case UNSET_PREVIEW_WORKSPACE:
+        case UNSET_ROOT_COMPONENT:
             return state.merge({
-                workspace: state.get('workspace').delete(action.component)
+                rootComponent: state.get('rootComponent').delete(action.component)
             });
 
-        case SHOW_PREVIEW_WORKSPACE:
-            return state.set('workspaceVisible', true);
+        case SHOW_ROOT_COMPONENT:
+            return state.set('rootComponentVisible', true);
 
-        case HIDE_PREVIEW_WORKSPACE:
-            return state.set('workspaceVisible', false);
+        case HIDE_ROOT_COMPONENT:
+            return state.set('rootComponentVisible', false);
 
         case SET_DOM_ELEMENT_TO_MAP:
-            return state.setIn(['domElementsMap', action.uid], action.component);
+            return state.setIn(['domElementsMap', action.id], action.component);
 
         case SET_IS_INDEX_ROUTE:
             return state.set('currentRouteIsIndexRoute', action.value);

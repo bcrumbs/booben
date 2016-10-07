@@ -83,8 +83,8 @@ export default class Builder extends Component {
         if (component.children.size > 0) {
             return (
                 <Component
-                    key={component.uid}
-                    data-uid={component.uid}
+                    key={component.id}
+                    data-id={component.id}
                     {...getProps(component.props)}
                 >
                     {component.children.map(this._getComponentFromMeta)}
@@ -94,8 +94,8 @@ export default class Builder extends Component {
         else {
             return (
                 <Component
-                    key={component.uid}
-                    data-uid={component.uid}
+                    key={component.id}
+                    data-id={component.id}
                     {...getProps(component.props)}
                 />
             );
@@ -109,7 +109,7 @@ export default class Builder extends Component {
 
 Builder.propTypes = {
     component: ImmutablePropTypes.contains({
-        uid: React.PropTypes.string,
+        id: React.PropTypes.string,
         name: React.PropTypes.string,
         props: ImmutablePropTypes.map,
         children: ImmutablePropTypes.list

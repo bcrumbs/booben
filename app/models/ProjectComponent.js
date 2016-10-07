@@ -7,7 +7,7 @@
 import { Record, List, Map } from 'immutable';
 
 export default Record({
-    uid: '',
+    id: '',
     name: '',
     title: '',
     props: Map(),

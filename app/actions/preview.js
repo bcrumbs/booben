@@ -8,10 +8,10 @@ export const DESELECT_PREVIEW_COMPONENT = 'DESELECT_PREVIEW_COMPONENT';
 export const SELECT_PREVIEW_COMPONENT = 'SELECT_PREVIEW_COMPONENT';
 export const UNHIGHLIGHT_PREVIEW_COMPONENT = 'UNHIGHLIGHT_PREVIEW_COMPONENT';
 export const HIGHLIGHT_PREVIEW_COMPONENT = 'HIGHLIGHT_PREVIEW_COMPONENT';
-export const SET_PREVIEW_WORKSPACE = 'SET_PREVIEW_WORKSPACE';
-export const UNSET_PREVIEW_WORKSPACE = 'UNSET_PREVIEW_WORKSPACE';
-export const SHOW_PREVIEW_WORKSPACE = 'SHOW_PREVIEW_WORKSPACE';
-export const HIDE_PREVIEW_WORKSPACE = 'HIDE_PREVIEW_WORKSPACE';
+export const SET_ROOT_COMPONENT = 'SET_ROOT_COMPONENT';
+export const UNSET_ROOT_COMPONENT = 'UNSET_ROOT_COMPONENT';
+export const SHOW_ROOT_COMPONENT = 'SHOW_ROOT_COMPONENT';
+export const HIDE_ROOT_COMPONENT = 'HIDE_ROOT_COMPONENT';
 export const SET_DOM_ELEMENT_TO_MAP = 'SET_DOM_ELEMENT_TO_MAP';
 export const SET_IS_INDEX_ROUTE = 'SET_IS_INDEX_ROUTE';
 
@@ -55,8 +55,8 @@ export const unhighlightPreviewComponent = component => ({
  * @param  {string} component
  * @return {Object}
  */
-export const setPreviewWorkspace = component => ({
-    type: SET_PREVIEW_WORKSPACE,
+export const setRootComponent = component => ({
+    type: SET_ROOT_COMPONENT,
     component
 });
 
@@ -64,33 +64,33 @@ export const setPreviewWorkspace = component => ({
  * @param  {string} component
  * @return {Object}
  */
-export const unsetPreviewWorkspace = component => ({
-    type: UNSET_PREVIEW_WORKSPACE,
+export const unsetRootComponent = component => ({
+    type: UNSET_ROOT_COMPONENT,
     component
 });
 
 /**
  * @return {Object}
  */
-export const showPreviewWorkspace = () => ({
-    type: SHOW_PREVIEW_WORKSPACE
+export const showPreviewRootComponent = () => ({
+    type: SHOW_ROOT_COMPONENT
 });
 
 /**
  * @return {Object}
  */
-export const hidePreviewWorkspace = () => ({
-    type: HIDE_PREVIEW_WORKSPACE
+export const hidePreviewRootComponent = () => ({
+    type: HIDE_ROOT_COMPONENT
 });
 
 /**
- * @param  {string} uid
+ * @param  {string} id
  * @param  {Object} component
  * @return {Object}
  */
-export const setDomElementToMap = (uid, component) => ({
+export const setDomElementToMap = (id, component) => ({
     type: SET_DOM_ELEMENT_TO_MAP,
-    uid,
+    id,
     component
 });
 

@@ -45,7 +45,7 @@ const propSourceDataToImmutable = {
 };
 
 const projectComponentToImmutable = input => new ProjectComponent({
-    uid: input.uid,
+    id: input.id,
     name: input.name,
     title: input.title,
 
@@ -102,7 +102,7 @@ const buildComponentsIndex = project => {
     const ret = {};
 
     const visitComponent = (component, routeId, path) => {
-        ret[component.uid] = { path, routeId };
+        ret[component.id] = { path, routeId };
 
         component.children.forEach((child, idx) =>
             void visitComponent(child, routeId, [].concat(path, 'children', idx)));
@@ -218,12 +218,12 @@ export default (state = new ProjectState(), action) => {
                  .updateIn([...whereTarget, 'children'], list => list.push(sourceComponent));
 
         case PROJECT_COMPONENT_DELETE:
-            const componentIndexData = state.componentsIndex.get(action.uid);
+            const componentIndexData = state.componentsIndex.get(action.id);
 
             if (componentIndexData) {
                 return state
                     .deleteIn(['data', ...componentIndexData.path])
-                    .deleteIn(['componentsIndex', action.uid]);
+                    .deleteIn(['componentsIndex', action.id]);
             }
             else {
                 return state;

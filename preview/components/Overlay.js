@@ -6,11 +6,11 @@ import { Set, Map } from 'immutable';
 import { connect } from 'react-redux';
 
 class Overlay extends Component {
-    _getItems(uids, color, zIndex) {
-        if(!uids.size) return;
+    _getItems(ids, color, zIndex) {
+        if(!ids.size) return;
 
-        return uids.map((uid) => {
-            const el = this.props.domElementsMap.get(uid);
+        return ids.map((id) => {
+            const el = this.props.domElementsMap.get(id);
 
             let {
                 bottom,
@@ -72,7 +72,7 @@ class Overlay extends Component {
                 };
 
             return (
-                <div key={uid} style={style}>
+                <div key={id} style={style}>
                     <div style={topBorder}></div>
                     <div style={bottomLeft}></div>
                     <div style={bottomBottom}></div>
@@ -96,8 +96,8 @@ class Overlay extends Component {
             <div style={overlayStyle}>
                 { this._getItems(this.props.highlighted, 'yellow') }
                 { this._getItems(this.props.selected, 'green') }
-                { this.props.workspaceVisible &&
-                    this._getItems(this.props.workspace, 'red') }
+                { this.props.rootComponentVisible &&
+                    this._getItems(this.props.rootComponent, 'red') }
             </div>
         );
     }
@@ -106,24 +106,24 @@ class Overlay extends Component {
 Overlay.propTypes = {
     selected: ImmutablePropTypes.set,
     highlighted: ImmutablePropTypes.set,
-    workspace: ImmutablePropTypes.set,
-    workspaceVisible: PropTypes.bool,
+    rootComponent: ImmutablePropTypes.set,
+    rootComponentVisible: PropTypes.bool,
     domElementsMap: ImmutablePropTypes.map
 };
 
 Overlay.defaultProps = {
     selected: Set(),
     highlighted: Set(),
-    workspace: Set(),
-    workspaceVisible: false,
+    rootComponent: Set(),
+    rootComponentVisible: false,
     domElementsMap: Map()
 };
 
 const mapStateToProps = state => ({
     selected: state.preview.selectedItems,
     highlighted: state.preview.highlightedItems,
-    workspace: state.preview.workspace,
-    workspaceVisible: state.preview.workspaceVisible,
+    rootComponent: state.preview.rootComponent,
+    rootComponentVisible: state.preview.rootComponentVisible,
     domElementsMap: state.preview.domElementsMap
 });
 
