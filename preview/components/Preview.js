@@ -25,6 +25,8 @@ import {
     deleteComponent
 } from '../../app/actions/project';
 
+const OFFSET_DND_AVATAR = 10;
+
 /**
  * Get owner React element by condition
  *
@@ -69,16 +71,6 @@ const getChild = (el, condition) => {
     }
 };
 
-const mouseEvents = [
-    'click',
-    'mouseover',
-    'mouseout',
-    'dragover',
-    'dragleave',
-    'drop',
-    'mousedown'
-];
-
 const RouteRootComponentIds = Record({
     componentId: null,
     indexComponentId: null
@@ -100,40 +92,53 @@ class Preview extends Component {
 
         this._nextRouterKey = 0;
 
-        this._handleMouseEvent = this._handleMouseEvent.bind(this);
-        this._handleResize = this._handleResize.bind(this);
+        this._handleResizeEvent = this._handleResizeEvent.bind(this);
         this._handleDrag = this._handleDrag.bind(this);
         this._handleStartDrag = this._handleStartDrag.bind(this);
         this._handleStopDrag = this._handleStopDrag.bind(this);
         this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
         this._handleChangeRoute = this._handleChangeRoute.bind(this);
+        this._handleMouseOverEvent = this._handleMouseOverEvent.bind(this);
+        this._handleMouseOutEvent = this._handleMouseOutEvent.bind(this);
+        this._handleMouseDownEvent = this._handleMouseDownEvent.bind(this);
     }
 
     componentDidMount() {
         this.domNode = document.getElementById('container');
         this.domOverlay = this.props.domOverlay;
 
-        if (this.props.interactive) {
-            mouseEvents.forEach(e => {
-                this.domNode.addEventListener(e, this._handleMouseEvent, false);
-            });
+        if(this.props.interactive) {
+            const domNode = this.domNode;
 
-            window.addEventListener('resize', this._handleResize, false);
+            domNode.addEventListener('mouseover', this._handleMouseOverEvent, false);
+            domNode.addEventListener('dragover', this._handleMouseOverEvent, false);
+            domNode.addEventListener('dragleave', this._handleMouseOutEvent, false);
+            domNode.addEventListener('mouseout', this._handleMouseOutEvent, false);
+            domNode.addEventListener('mousedown', this._handleMouseDownEvent, false);
+            window.addEventListener('resize', this._handleResizeEvent, false);
 
             this._setRootComponent();
         }
     }
 
-    componentWillUnmount() {
-        if (this.props.interactive) {
-            mouseEvents.forEach(e => {
-                this.domNode.removeEventListener(e, this._handleMouseEvent, false);
-            });
+    componentDidUpdate(prevProps, prevState) {
+        if(prevProps.project !== this.props.project) this._setRootComponent();
+    }
 
-            window.removeEventListener('resize', this._handleResize, false);
+    componentWillUnmount() {
+        const domNode = this.domNode;
+
+        if (this.props.interactive) {
+            domNode.removeEventListener('mouseover', this._handleMouseOverEvent, false);
+            domNode.removeEventListener('dragover', this._handleMouseOverEvent, false);
+            domNode.removeEventListener('dragleave', this._handleMouseOutEvent, false);
+            domNode.removeEventListener('mouseout', this._handleMouseOutEvent, false);
+            domNode.removeEventListener('mousedown', this._handleMouseDownEvent, false);
+            window.removeEventListener('resize', this._handleResizeEvent, false);
         }
 
         this.domNode = null;
+        this.domOverlay = null;
     }
 
     componentWillReceiveProps(nextProps) {
@@ -171,18 +176,17 @@ class Preview extends Component {
     }
 
     _setRootComponent() {
-        const rootComponentId = this._getCurrentRootComponentId();
-
-        const rootComponent = getChild(this['_reactInternalInstance'],
-            item => this._getComponentId(item) == rootComponentId);
+        const rootComponentId = this._getCurrentRootComponentId(),
+            rootComponent = getChild(this['_reactInternalInstance'], item =>
+                this._getComponentId(item) == rootComponentId);
 
         if(!rootComponent) return;
 
         this.props.setRootComponent(rootComponentId);
-        this._setDomElementToMap(rootComponentId, rootComponent.getHostNode());
+        this._setDomElementToMap(rootComponentId, rootComponent.getHostNode(), true);
     }
 
-    _handleResize() {}
+    _handleResizeEvent() {}
 
     /**
      * Get array of selected components
@@ -211,8 +215,8 @@ class Preview extends Component {
         }
     }
 
-    _setDomElementToMap(key, value) {
-        if (!this.props.domElementsMap.has(key)) {
+    _setDomElementToMap(key, value, force = false) {
+        if (!this.props.domElementsMap.has(key) || force) {
             this.props.setDomElementToMap(key, value);
         }
     }
@@ -294,15 +298,15 @@ class Preview extends Component {
         if (!this.dndFlag) {
             const componentIndexData = this.props.componentsIndex.get(this.dndParams.id),
                 component = this.props.project.getIn(componentIndexData.path);
-            
+
             var el = this.dndParams.el;
             el.innerHTML = component.name;
 
             el.style.position = 'absolute';
             el.style.zIndex = 1000;
 
-            this.dndParams.pageX = this.dndParams.dragStartX + 10;
-            this.dndParams.pageY = this.dndParams.dragStartY + 10;
+            this.dndParams.pageX = this.dndParams.dragStartX + OFFSET_DND_AVATAR;
+            this.dndParams.pageY = this.dndParams.dragStartY + OFFSET_DND_AVATAR;
 
             el.style.transform = `translate(${this.dndParams.pageX}px,
             ${this.dndParams.pageY}px)`;
@@ -315,8 +319,8 @@ class Preview extends Component {
             this.props.showRootComponent();
         }
 
-        this.dndParams.pageX = event.pageX + 10;
-        this.dndParams.pageY = event.pageY + 10;
+        this.dndParams.pageX = event.pageX + OFFSET_DND_AVATAR;
+        this.dndParams.pageY = event.pageY + OFFSET_DND_AVATAR;
 
         if (this.needRAF) {
             this.needRAF = false;
@@ -326,55 +330,54 @@ class Preview extends Component {
         }
     }
 
-    /**
-     * 
-     * @param {MouseEvent} event
-     */
-    _handleMouseEvent(event) {
-        const type = event.type;
+    _handleMouseOverEvent(event) {
+        const owner = this._getOwner(event.target),
+            id = this._getComponentId(owner);
 
-        if( type == 'dragover' || type == 'mouseover') {
-            const owner = this._getOwner(event.target),
-                id = this._getComponentId(owner);
+        if(!this._componentIsInCurrentRoute(id)) return;
 
-            if(!this._componentIsInCurrentRoute(id)) return;
+        this._setDomElementToMap(id, owner.getHostNode());
+        this._updateHighlighted(id);
 
-            this._setDomElementToMap(id, owner.getHostNode());
-            this._updateHighlighted(id);
+        this.currentOwner = owner;
+    }
 
-            this.currentOwner = owner;
-        }
+    _handleMouseClickEvent(event) {
+        const owner = this.currentOwner,
+            id = owner && this._getComponentId(owner) || null;
+
+        if (id === null || !this._componentIsInCurrentRoute(id)) return;
+
+        if(!event.ctrlKey) return;
+        this._updateSelected(id);
+    }
+
+    _handleMouseOutEvent(event) {
+        const owner = this.currentOwner,
+            id = owner && this._getComponentId(owner) || null;
+
+        if (id === null || !this._componentIsInCurrentRoute(id)) return;
+
+        this._updateHighlighted(id);
+        this.currentOwner = null;
+    }
+
+    _handleMouseDownEvent(event) {
+        if (event.which != 1 || !event.ctrlKey) return;
 
         const owner = this.currentOwner,
             id = owner && this._getComponentId(owner) || null;
 
         if (id === null || !this._componentIsInCurrentRoute(id)) return;
 
-        if (type == 'click') {
-            if(!event.ctrlKey) return;
-            this._updateSelected(id);
-        } else if (type == 'dragleave' || type == 'mouseout') {
-            this._updateHighlighted(id);
-            this.currentOwner = null;
-        } else if (type == 'drop') {
-            console.log({
-                source: JSON.parse(event.dataTransfer.getData("Text")),
-                target: id
-            });
-        }
+        event.preventDefault();
 
-        if (type == 'mousedown') {
-            if (event.which != 1 || !event.ctrlKey) return;
+        this.dndParams.el = document.createElement('div');
+        this.dndParams.id = id;
+        this.dndParams.dragStartX = event.pageX;
+        this.dndParams.dragStartY = event.pageY;
 
-            event.preventDefault();
-
-            this.dndParams.el = document.createElement('div');
-            this.dndParams.id = id;
-            this.dndParams.dragStartX = event.pageX;
-            this.dndParams.dragStartY = event.pageY;
-
-            this._handleStartDrag();
-        }
+        this._handleStartDrag();
     }
 
     _handleChangeRoute(routeId) {
