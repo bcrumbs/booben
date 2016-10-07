@@ -120,7 +120,7 @@ class Preview extends Component {
 
             window.addEventListener('resize', this._handleResize, false);
 
-            this._updateRootComponent();
+            this._setRootComponent();
         }
     }
 
@@ -166,11 +166,15 @@ class Preview extends Component {
             : rootComponentIds.componentId
     }
 
-    _updateRootComponent() {
+    _getComponentId(el) {
+        return el._currentElement && el._currentElement.props['data-id'];
+    }
+
+    _setRootComponent() {
         const rootComponentId = this._getCurrentRootComponentId();
 
         const rootComponent = getChild(this['_reactInternalInstance'],
-            item => item._currentElement.props['data-id'] == rootComponentId);
+            item => this._getComponentId(item) == rootComponentId);
 
         if(!rootComponent) return;
 
@@ -225,7 +229,7 @@ class Preview extends Component {
         if (!riiKey) return null;
 
         const owner = getOwner(target[riiKey], (item)=> {
-                return item._currentElement.props['data-id']
+                return this._getComponentId(item);
             });
 
         return owner;
@@ -264,8 +268,8 @@ class Preview extends Component {
         if (owner && this.dndParams) {
             if(
                 owner &&
-                owner._currentElement.props['data-id'] &&
-                owner._currentElement.props['data-id'] != this.dndParams.id
+                this._getComponentId(owner) &&
+                this._getComponentId(owner) != this.dndParams.id
             ) {
                 // write something here
             }
@@ -331,7 +335,7 @@ class Preview extends Component {
 
         if( type == 'dragover' || type == 'mouseover') {
             const owner = this._getOwner(event.target),
-                id = owner._currentElement.props['data-id'];
+                id = this._getComponentId(owner);
 
             if(!this._componentIsInCurrentRoute(id)) return;
 
@@ -342,7 +346,7 @@ class Preview extends Component {
         }
 
         const owner = this.currentOwner,
-            id = owner && owner._currentElement.props['data-id'] || null;
+            id = owner && this._getComponentId(owner) || null;
 
         if (id === null || !this._componentIsInCurrentRoute(id)) return;
 
@@ -388,12 +392,14 @@ class Preview extends Component {
             )
         };
 
+        if(route) {
+            ret.onEnter = this._handleChangeRoute.bind(this, route.id);
+        }
+
         if (route.children.size > 0) {
             ret.childRoutes = route.children
                 .map((child, routeIndex) => this._createRoute(child))
                 .toArray();
-
-            ret.onEnter = this._handleChangeRoute.bind(this, route.id);
         }
 
         if (route.haveRedirect) {
