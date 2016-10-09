@@ -36,18 +36,31 @@ const patchClassComponent = component => {
     return component;
 };
 
-const patchFunctionComponent = component => class extends React.Component {
-    componentDidMount() {
-        patchDOMElement(this);
-    }
+const patchFunctionComponent = component => {
+    const ret = class extends React.Component {
+        componentDidMount() {
+            patchDOMElement(this);
+        }
 
-    componentDidUpdate() {
-        patchDOMElement(this);
-    }
+        componentDidUpdate() {
+            patchDOMElement(this);
+        }
 
-    render() {
-        return component(this.props);
-    }
+        render() {
+            return component(this.props);
+        }
+    };
+
+    if (typeof component.propTypes !== 'undefined')
+        ret.propTypes = component.propTypes;
+
+    if (typeof component.defaultProps !== 'undefined')
+        ret.defaultProps = component.defaultProps;
+
+    if (typeof component.displayName !== 'undefined')
+        ret.displayName = component.displayName;
+
+    return ret;
 };
 
 const isNullOrUndefined = val => typeof val === 'undefined' || val === null;
