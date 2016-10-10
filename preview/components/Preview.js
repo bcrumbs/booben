@@ -334,7 +334,7 @@ class Preview extends Component {
 
         if(!this._componentIsInCurrentRoute(id)) return;
 
-        this._setDomElementToMap(id, owner.getHostNode());
+        this._setDomElementToMap(id, owner.getHostNode(), true);
         this._updateHighlighted(id);
 
         this.currentOwner = owner;
