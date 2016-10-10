@@ -223,8 +223,10 @@ class Preview extends Component {
     _componentIsInCurrentRoute(id) {
         if(!this.props.componentsIndex.has(id)) return false;
 
-        const componentRouteId = this.props.componentsIndex.get(id).routeId;
-        return componentRouteId === this.currentRouteId;
+        const componentIndexData = this.props.componentsIndex.get(id);
+
+        return componentIndexData.routeId === this.currentRouteId &&
+            componentIndexData.isIndexRoute === this.props.currentRouteIsIndexRoute;
     }
 
     _getOwner(target) {
