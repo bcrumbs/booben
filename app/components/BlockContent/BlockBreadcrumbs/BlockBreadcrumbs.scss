@@ -1,0 +1,28 @@
+@charset "UTF-8";
+@import 'variables';
+
+@include exports(block-breadcrumbs) {
+	// =================================================================================================================
+	// Base
+	// =================================================================================================================
+	.block-breadcrumbs {
+		.breadcrumbs-item-anchor {
+			padding: $blockcrumbs-item-padding;
+			border-radius: fs(0);
+		}
+
+		.breadcrumbs-item.is-active .breadcrumbs-item-anchor {
+			background-color: $blockcrumbs-item-active-bg-color;
+			opacity: 1;
+		}
+
+		.breadcrumbs-item-title {
+			font-size: $blockcrumbs-item-title-font-size;
+		}
+
+		.breadcrumbs-item-subtitle {
+			font-size: $blockcrumbs-item-subtitle-font-size;
+			line-height: $blockcrumbs-item-subtitle-line-height;
+		}
+	}
+}

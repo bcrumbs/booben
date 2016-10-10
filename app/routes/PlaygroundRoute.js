@@ -19,6 +19,7 @@ import {
 	HeaderTitle,
     HeaderLogoBox,
     HeaderMenu,
+	HeaderMenuList,
     HeaderMenuItem,
     Footer,
     FooterRegion,
@@ -59,13 +60,15 @@ export default class Playground extends React.Component {
 
                         <HeaderRegion region="main" size='blank'>
                             <HeaderMenu inline={true}  dense={true}>
-                                <HeaderMenuItem text="Structure" />
-                                <HeaderMenuItem text="Design">
-                                    <HeaderMenuItem text="User Route 1: index" />
-                                    <HeaderMenuItem text="User Route 2: aerial" />
-                                </HeaderMenuItem>
-                                <HeaderMenuItem text="Data" isActive={true}/>
-                                <HeaderMenuItem text="Settings" />
+
+	                                <HeaderMenuItem text="Structure" />
+	                                <HeaderMenuItem text="Design">
+	                                    <HeaderMenuItem text="User Route 1: index" />
+	                                    <HeaderMenuItem text="User Route 2: aerial" />
+	                                </HeaderMenuItem>
+	                                <HeaderMenuItem text="Data" isActive={true}/>
+	                                <HeaderMenuItem text="Settings" />
+
                             </HeaderMenu>
                         </HeaderRegion>
 

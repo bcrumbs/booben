@@ -1,0 +1,15 @@
+@charset "UTF-8";
+@import '~@reactackle/reactackle/utils/global';
+
+@import '../variables';
+
+// =====================================================================================================================
+// BASE VARIABLES
+// =====================================================================================================================
+$blockcrumbs-item-padding:              0 $base-module*1.5 !default;
+$blockcrumbs-item-border-radius:        $base-module !default;
+$blockcrumbs-item-active-bg-color:      $grey-200 !default;
+
+$blockcrumbs-item-title-font-size:      fs(0) !default;
+$blockcrumbs-item-subtitle-font-size:   rem-calc(11) !default;
+$blockcrumbs-item-subtitle-line-height: 1 !default;

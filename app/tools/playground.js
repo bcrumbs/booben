@@ -12,6 +12,7 @@ import {
     BlockContentBox,
     BlockContentBoxItem,
     BlockContentBoxHeading,
+	BlockBreadcrumbs,
 	BlockContentPlaceholder
 } from '../components/BlockContent/BlockContent';
 
@@ -156,6 +157,18 @@ const toolComponentsPlaceholderWindowSections = List([
 ]);
 
 // Route Editing
+const treeItems = [
+	{
+		title:'prop-1',
+		subtitle:'object'
+	},
+	{
+		title:'buttons',
+		subtitle:'object',
+		isActive: true
+	}
+];
+
 const toolRouteWindowSections = List([
 	new ToolSectionRecord({
 		name: 'Route Editing',
@@ -166,6 +179,9 @@ const toolRouteWindowSections = List([
 					<PropsList>
 						<PropsItem type="tree" />
 					</PropsList>
+				</BlockContentBoxItem>
+				<BlockContentBoxItem>
+					<BlockBreadcrumbs items={treeItems}/>
 				</BlockContentBoxItem>
 			</BlockContentBox>
 		)
@@ -187,37 +203,37 @@ const toolRouteWindowSecondaryActions = List([
 ]);
 
 // Route Editing
+
 const toolSitemapWindowSections = List([
 	new ToolSectionRecord({
 		name: 'Sitemap',
 		component: () => (
 			<BlockContentBox isBordered flex>
-					<ComponentsTree>
-						<ComponentsTreeItem title="routeA" showSublevel hasTooltip>
-							<ComponentsTreeList>
-								<ComponentsTreeItem title="Main Region" showSublevel hasTooltip>
-									<ComponentsTreeList>
-										<ComponentsTreeItem title="Content" showSublevel hasTooltip>
-											<ComponentsTreeList>
-												<ComponentsTreeItem title="Components Tree" showSublevel hasTooltip>
-													<ComponentsTreeList>
-														<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
-															<ComponentsTreeList>
-																<ComponentsTreeItem title="Components Tree Item" showSublevel hasTooltip/>
-																<ComponentsTreeItem title="Some extremely long tree item item item item item item" hasTooltip showSublevel active />
-																<ComponentsTreeItem title="Another extremely long tree item item item item item item" hasTooltip />
-															</ComponentsTreeList>
-														</ComponentsTreeItem>
-													</ComponentsTreeList>
-												</ComponentsTreeItem>
-											</ComponentsTreeList>
-										</ComponentsTreeItem>
-									</ComponentsTreeList>
-								</ComponentsTreeItem>
-							</ComponentsTreeList>
-						</ComponentsTreeItem>
-					</ComponentsTree>
-
+				<ComponentsTree>
+					<ComponentsTreeItem title="routeA" showSublevel hasTooltip>
+						<ComponentsTreeList>
+							<ComponentsTreeItem title="Main Region" showSublevel hasTooltip>
+								<ComponentsTreeList>
+									<ComponentsTreeItem title="Content" showSublevel hasTooltip>
+										<ComponentsTreeList>
+											<ComponentsTreeItem title="Components Tree" showSublevel hasTooltip>
+												<ComponentsTreeList>
+													<ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
+														<ComponentsTreeList>
+															<ComponentsTreeItem title="Components Tree Item" showSublevel hasTooltip/>
+															<ComponentsTreeItem title="Some extremely long tree item item item item item item" hasTooltip showSublevel active />
+															<ComponentsTreeItem title="Another extremely long tree item item item item item item" hasTooltip />
+														</ComponentsTreeList>
+													</ComponentsTreeItem>
+												</ComponentsTreeList>
+											</ComponentsTreeItem>
+										</ComponentsTreeList>
+									</ComponentsTreeItem>
+								</ComponentsTreeList>
+							</ComponentsTreeItem>
+						</ComponentsTreeList>
+					</ComponentsTreeItem>
+				</ComponentsTree>
 			</BlockContentBox>
 		)
 	})

@@ -28,3 +28,4 @@ export * from './BlockContentNavigation/BlockContentNavigation';
 export * from './BlockContentActions/BlockContentActions';
 export * from './BlockContentShortcut/BlockContentShortcut';
 export * from './BlockContentPlaceholder/BlockContentPlaceholder';
+export * from './BlockBreadcrumbs/BlockBreadcrumbs';
