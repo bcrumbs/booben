@@ -156,11 +156,15 @@ export const PropsItem = props => {
 
     return (
         <div className={className}>
-	        <div className="prop-item-content-box">
-	            {content}
+	        <div className="prop-item-wrapper">
+		        <div className="prop-item-content-box">
+		            {content}
+		        </div>
+
+		        {actions}
 	        </div>
 
-	        {actions}
+	        { props.children }
         </div>
     );
 };

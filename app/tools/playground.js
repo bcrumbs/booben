@@ -242,7 +242,11 @@ const toolComponentTemplatesWindowSections = List([
 				<BlockContentBoxHeading>Component Regions</BlockContentBoxHeading>
 				<BlockContentBoxItem>
 					<PropsList>
-						<PropsItem type="toggle" label="Top" tooltip="Some description if needed" image={'http://img11.nnm.me/d/3/5/5/b/4d572a2fdc5b8c28cad40d9ca45.jpg'} />
+						<PropsItem type="toggle" label="Top" tooltip="Some description if needed" image={'http://img11.nnm.me/d/3/5/5/b/4d572a2fdc5b8c28cad40d9ca45.jpg'}>
+							<PropsList>
+								<PropsItem type="toggle" label="Always on screen"  />
+							</PropsList>
+						</PropsItem>
 					</PropsList>
 				</BlockContentBoxItem>
 			</BlockContentBox>
