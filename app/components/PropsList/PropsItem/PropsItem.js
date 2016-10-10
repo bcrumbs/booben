@@ -180,7 +180,8 @@ PropsItem.propTypes = {
 	linkable: PropTypes.bool,
     value: PropTypes.any,
     disabled: PropTypes.bool,
-    onChange: PropTypes.func
+    onChange: PropTypes.func,
+	image: PropTypes.string
 };
 
 PropsItem.defaultProps = {
@@ -189,7 +190,8 @@ PropsItem.defaultProps = {
 	linkable: false,
     value: null,
     disabled: false,
-    onChange: noop
+    onChange: noop,
+	image: false
 };
 
 PropsItem.displayName = 'PropsItem';

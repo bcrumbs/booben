@@ -9,11 +9,13 @@ export const PropLabel = props => {
 };
 
 PropLabel.propTypes = {
-	label: PropTypes.string
+	label: PropTypes.string,
+	tooltip: PropTypes.string
 };
 
 PropLabel.defaultProps = {
-	label: ''
+	label: '',
+	tooltip: null
 };
 
 PropLabel.displayName = 'PropLabel';
