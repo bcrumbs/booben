@@ -30,7 +30,7 @@
 
 	// REGION: common
 	.draggable-window-region {
-		max-width: $dragwindow-section-max-width;
+		width: $dragwindow-section-max-width;
 		flex-shrink: 0;
 		flex-grow: 1;
 		display: flex;

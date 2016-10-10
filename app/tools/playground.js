@@ -137,7 +137,7 @@ const toolComponentsWindowSections = List([
 	new ToolSectionRecord({
 		name: 'Section 1',
 		component: () => (
-            <BlockContentBox>
+            <BlockContentBox isBordered>
                 <Accordion single items={accordionItems} expandedItemIds={Set(['tab3'])}/>
             </BlockContentBox>
         )
@@ -160,8 +160,8 @@ const toolRouteWindowSections = List([
 	new ToolSectionRecord({
 		name: 'Route Editing',
 		component: () => (
-			<BlockContentBox>
-				<BlockContentBoxHeading>If redirect is on</BlockContentBoxHeading>
+			<BlockContentBox isBordered>
+				<BlockContentBoxHeading>Tree Prop</BlockContentBoxHeading>
 				<BlockContentBoxItem>
 					<PropsList>
 						<PropsItem type="tree" />
@@ -228,7 +228,7 @@ const toolComponentTemplatesWindowSections = List([
 	new ToolSectionRecord({
 		name: 'Route Editing',
 		component: () => (
-			<BlockContentBox>
+			<BlockContentBox isBordered>
 				<BlockContentBoxHeading>Component Templates</BlockContentBoxHeading>
 				<BlockContentBoxItem>
 					<ComponentLayoutSelection>
@@ -237,6 +237,19 @@ const toolComponentTemplatesWindowSections = List([
 						<ComponentLayoutSelectionItem image={"http://coolvibe.com/wp-content/uploads/2010/06/cosmos.jpg"} title={'3 equal parts'} />
 						<ComponentLayoutSelectionItem image={"http://coolvibe.com/wp-content/uploads/2010/06/cosmos.jpg"} title={'2 equal parts, 1 full-height'} />
 					</ComponentLayoutSelection>
+				</BlockContentBoxItem>
+
+				<BlockContentBoxHeading>Component Regions</BlockContentBoxHeading>
+				<BlockContentBoxItem>
+					<PropsList>
+						<PropsItem type="toggle" label="Top" image={'http://img11.nnm.me/d/3/5/5/b/4d572a2fdc5b8c28cad40d9ca45.jpg'} subtreeOn>
+							<PropsList>
+								<PropsItem type="toggle" label="Always on screen"  />
+							</PropsList>
+						</PropsItem>
+						<PropsItem type="toggle" label="Middle" image={'http://img11.nnm.me/d/3/5/5/b/4d572a2fdc5b8c28cad40d9ca45.jpg'} />
+						<PropsItem type="toggle" label="Bottom" image={'http://img11.nnm.me/d/3/5/5/b/4d572a2fdc5b8c28cad40d9ca45.jpg'} />
+					</PropsList>
 				</BlockContentBoxItem>
 			</BlockContentBox>
 		)
@@ -248,7 +261,7 @@ const toolComponentLayoutWindowSections = List([
 	new ToolSectionRecord({
 		name: 'Route Editing',
 		component: () => (
-			<BlockContentBox>
+			<BlockContentBox isBordered>
 				<BlockContentBoxHeading>Component Templates</BlockContentBoxHeading>
 				<BlockContentBoxItem>
 					<ComponentLayoutSelection>
@@ -280,18 +293,6 @@ const toolComponentLayoutWindowSections = List([
 export default List([
     List([
 	    new ToolRecord({
-		    id: 'tool5',
-		    icon: 'cog',
-		    name: 'Parsers',
-		    title: 'Route Settings',
-		    undockable: true,
-		    closable: false,
-		    sections: toolRouteWindowSections,
-		    mainButtons: toolRouteWindowMainActions,
-		    secondaryButtons: toolRouteWindowSecondaryActions
-	    }),
-
-	    new ToolRecord({
 		    id: 'tool7',
 		    icon: 'cog',
 		    name: 'Component Settings',
@@ -301,6 +302,18 @@ export default List([
 		    sections: toolComponentTemplatesWindowSections,
 		    mainButtons: '',
 		    secondaryButtons: ''
+	    }),
+
+	    new ToolRecord({
+		    id: 'tool5',
+		    icon: 'cog',
+		    name: 'Parsers',
+		    title: 'Route Settings',
+		    undockable: true,
+		    closable: false,
+		    sections: toolRouteWindowSections,
+		    mainButtons: toolRouteWindowMainActions,
+		    secondaryButtons: toolRouteWindowSecondaryActions
 	    }),
 
 	    new ToolRecord({

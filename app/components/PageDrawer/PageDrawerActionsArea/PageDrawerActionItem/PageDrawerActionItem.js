@@ -12,7 +12,7 @@ export const PageDrawerActionItem = props => {
 
     if (props.icon) {
         button = <Button icon={props.icon} onPress={props.onPress}/>;
-        tooltip = <Tooltip text={props.title} />;
+        // tooltip = <Tooltip text={props.title} />;
         className += ' has-tooltip';
     }
     else {
@@ -22,7 +22,7 @@ export const PageDrawerActionItem = props => {
     return (
         <div className={className}>
             {button}
-            {tooltip}
+            {/*{tooltip}*/}
         </div>
     );
 };

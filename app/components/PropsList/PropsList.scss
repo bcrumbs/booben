@@ -13,17 +13,57 @@ $prop-toggle: 'props-type-toggle';
 	// =================================================================================================================
 	// BASE
 	// =================================================================================================================
+	.props-list {
+		.prop-item & {
+			margin-left: $props-level-offset;
+			opacity: 0;
+			pointer-events: none;
+			position: fixed;
+			margin-bottom: $props-list-margin-bottom;
+		}
+
+		.prop-item .has-image + & {
+			margin-left: $props-image-level-offset;
+		}
+
+		.sublevel-is-visible + & {
+			opacity: 1;
+			pointer-events: initial;
+			position: relative;
+		}
+	}
 
 	// =================================================================================================================
 	// PROPS ITEM
 	// =================================================================================================================
 	.prop-item {
-		display: flex;
 		margin-top: $props-spacing;
+	}
+
+	.prop-item-wrapper {
+		display: flex;
 	}
 
 	.prop-item-content-box {
 		flex-grow: 1;
+		display: flex;
+		align-items: center;
+	}
+
+	// Props Image
+	.prop-item-image-box {
+		background-color: $prop-image-bg-color;
+		width: $prop-image-size;
+		height: $prop-image-size;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: $prop-image-spacing;
+
+		img {
+			max-width: 100%;
+			max-height: 100%;
+		}
 	}
 
 	// Prop Actions (linking)
@@ -83,6 +123,10 @@ $prop-toggle: 'props-type-toggle';
 	// PROP: toggle
 	// =================================================================================================================
 	.prop-type-toggle {
+		.toggle-button {
+			width: 100%;
+		}
+
 		.toggle-label {
 			display: flex;
 			align-items: center;
@@ -208,10 +252,135 @@ $prop-toggle: 'props-type-toggle';
 	.prop-tree-list {
 		.prop-tree-item & {
 			margin-left: $prop-tree-level-offset;
+			margin-top: $prop-tree-items-spacing;
+
+			position: fixed;
+			opacity: 0;
+			pointer-events: none;
+		}
+
+		.sublevel-is-opened + & {
+			position: relative;
+			opacity: 1;
+			pointer-events: initial;
 		}
 	}
 
 	// ITEM
-	.prop-tree-item {	}
+	.prop-tree-item {
+		& + & {
+			margin-top: $prop-tree-items-spacing;
+		}
+
+		&:last-child {
+			margin-bottom: $prop-tree-item-last-margin-bottom;
+		}
+	}
+
+	.prop-tree-item-content {
+		display: flex;
+	}
+
+	.prop-tree-item-title-box {
+		flex-grow: 1;
+	}
+
+	.prop-tree-item-value-box {
+		flex-basis: $prop-tree-value-width;
+		max-width: $prop-tree-value-width;
+		flex-shrink: 0;
+		padding-left: $prop-tree-value-spacing;
+
+		.prop-tree-item-type-constructor &,
+		.value-not-settable & {
+			text-align: right;
+		}
+	}
+
+	// Icon
+	.prop-tree-item-icon-left {
+		margin-right: $prop-tree-icon-margin;
+		cursor: $cursor-pointer;
+		border-radius: $prop-tree-icon-border-radius;
+
+		&,
+		.button-icon {
+			@include icon-size(
+							$prop-tree-icon-box-size,
+							$prop-tree-icon-img-size);
+
+			@include icon-style($prop-tree-icon-color);
+
+			&:hover,
+			&:focus {
+				@include icon-style($prop-tree-icon-hover-color);
+			}
+		}
+
+		&:hover,
+		&:focus {
+			.button {
+				background-color: $prop-tree-icon-hover-bg-color;
+			}
+		}
+
+		.button {
+			min-height: 0;
+		}
+	}
+
+	// Title
+	.prop-tree-item-title-box {
+		.prop-tree-item-content:not(.has-icon-left) & {
+			padding-left: $prop-tree-icon-box-size + $prop-tree-icon-margin;
+		}
+	}
+
+	.prop-tree-item-title {
+		font-size: $prop-tree-title-font-size;
+		line-height: $prop-tree-title-line-height;
+		font-weight: $prop-tree-title-font-weight;
+		text-transform: $prop-tree-title-text-transform;
+		color: $prop-tree-title-color;
+
+		.is-flat-array & { color: $prop-tree-title-flat-color; }
+	}
+
+	.prop-tree-item-type {
+		font-size: $prop-tree-type-font-size;
+		line-height: $prop-tree-type-line-height;
+		font-weight: $prop-tree-type-font-weight;
+		text-transform: $prop-tree-type-text-transform;
+		color: $prop-tree-type-color;
+	}
+
+	// Value
+	.prop-tree-item-value-static {
+		font-size: $prop-tree-value-static-font-size;
+		font-style: $prop-tree-value-font-style;
+		color: $prop-tree-value-static-color;
+	}
+
+	.prop-tree-item-value-box {
+		.prop-item {
+			margin-top: 0;
+		}
+
+		.prop-item-content-box {
+			max-width: calc(100% - #{$prop-action-box-size + $prop-actions-margin-left});
+		}
+
+		.input-content-box,
+		input {
+			max-width: 100%;
+		}
+	}
+
+	// Action
+	.prop-tree-item-action-row {
+		margin: $prop-tree-action-margin-top 0 $prop-tree-action-margin-bottom;
+		padding-left: $prop-tree-icon-box-size + $prop-tree-icon-margin;
+		text-align: $prop-tree-action-align;
+	}
 }
 
