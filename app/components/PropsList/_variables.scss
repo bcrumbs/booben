@@ -3,7 +3,10 @@
 
 // Base Variables
 // =====================================================================================================================
-$props-spacing:                 $base-module*2 !default;
+// Image
+$prop-image-size:               $base-module*5 !default;
+$prop-image-bg-color:           $grey-100 !default;
+$prop-image-spacing:            $base-module*1.5 !default;
 
 // Actions
 $prop-action-box-size:          $base-module*3.5 !default;
@@ -15,6 +18,12 @@ $prop-action-margin-y:          0 !default;
 $prop-action-height:            $prop-action-box-size !default;
 
 $prop-actions-margin-left:      $base-module !default;
+
+// List
+$props-spacing:                 $base-module*2 !default;
+$props-level-offset:            $base-module*3 !default;
+$props-image-level-offset:      $prop-image-size + $prop-image-spacing !default;
+$props-list-margin-bottom:      $base-module*3 !default;
 
 // PROPS TYPES
 // =====================================================================================================================

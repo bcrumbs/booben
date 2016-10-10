@@ -13,17 +13,57 @@ $prop-toggle: 'props-type-toggle';
 	// =================================================================================================================
 	// BASE
 	// =================================================================================================================
+	.props-list {
+		.prop-item & {
+			margin-left: $props-level-offset;
+			opacity: 0;
+			pointer-events: none;
+			position: fixed;
+			margin-bottom: $props-list-margin-bottom;
+		}
+
+		.prop-item .has-image + & {
+			margin-left: $props-image-level-offset;
+		}
+
+		.sublevel-is-visible + & {
+			opacity: 1;
+			pointer-events: initial;
+			position: relative;
+		}
+	}
 
 	// =================================================================================================================
 	// PROPS ITEM
 	// =================================================================================================================
 	.prop-item {
-		display: flex;
 		margin-top: $props-spacing;
+	}
+
+	.prop-item-wrapper {
+		display: flex;
 	}
 
 	.prop-item-content-box {
 		flex-grow: 1;
+		display: flex;
+		align-items: center;
+	}
+
+	// Props Image
+	.prop-item-image-box {
+		background-color: $prop-image-bg-color;
+		width: $prop-image-size;
+		height: $prop-image-size;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-right: $prop-image-spacing;
+
+		img {
+			max-width: 100%;
+			max-height: 100%;
+		}
 	}
 
 	// Prop Actions (linking)
@@ -83,6 +123,10 @@ $prop-toggle: 'props-type-toggle';
 	// PROP: toggle
 	// =================================================================================================================
 	.prop-type-toggle {
+		.toggle-button {
+			width: 100%;
+		}
+
 		.toggle-label {
 			display: flex;
 			align-items: center;
