@@ -18,7 +18,6 @@ import {
     PROJECT_ROUTE_CREATE,
     PROJECT_ROUTE_DELETE,
     PROJECT_ROUTE_UPDATE_FIELD,
-    PROJECT_ROUTE_COMPONENT_UPDATE,
     PROJECT_COMPONENT_DELETE,
     PROJECT_ROUTE_COMPONENT_ADD_BEFORE,
     PROJECT_ROUTE_COMPONENT_ADD_AFTER
@@ -217,23 +216,33 @@ export default (state = new ProjectState(), action) => {
                 action.newValue
             );
 
-        case PROJECT_ROUTE_COMPONENT_UPDATE:
-            const whereSource = ['data', 'routes'].concat(...action.source),
-                whereTarget = ['data', 'routes'].concat(...action.target);
-
-            const sourceComponent = state.getIn(whereSource),
-                targetComponent = state.getIn(whereTarget);
-
-            return state.deleteIn(whereSource)
-                 .updateIn([...whereTarget, 'children'], list => list.push(sourceComponent));
-
         case PROJECT_COMPONENT_DELETE:
             const componentIndexData = state.componentsIndex.get(action.id);
 
             if (componentIndexData) {
-                return state
+                const state0 = state
                     .deleteIn(['data', ...componentIndexData.path])
                     .deleteIn(['componentsIndex', action.id]);
+
+                const componentsToShift = state0.getIn(['data',
+                    ...componentIndexData.path.slice(0, -1)]);
+
+                if(!componentsToShift.size) return state0;
+
+                let state1;
+
+                componentsToShift.map((item) => {
+                    state1 = state0.updateIn(['componentsIndex', item.id],
+                        (component) => {
+                            const path = component.path;
+                            component.path[path.length - 1] = path[path.length - 1] - 1;
+
+                            return component;
+                        }
+                    )
+                });
+
+                return state1
             }
             else {
                 return state;
