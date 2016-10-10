@@ -26,7 +26,7 @@ import {
 } from '../../app/actions/project';
 
 const OFFSET_DND_AVATAR = 10;
-
+const JSSY_COMPONENT_ID = '__jssy_component_id__';
 /**
  * Get owner React element by condition
  *
@@ -172,7 +172,7 @@ class Preview extends Component {
     }
 
     _getComponentId(el) {
-        return el._currentElement && el._currentElement.props['data-id'];
+        return el._currentElement && el._currentElement.props[JSSY_COMPONENT_ID];
     }
 
     _setRootComponent() {
@@ -216,12 +216,13 @@ class Preview extends Component {
     }
 
     _setDomElementToMap(key, value, force = false) {
-        if (!this.props.domElementsMap.has(key) || force) {
+        if (!this.props.domElementsMap.has(key) || force)
             this.props.setDomElementToMap(key, value);
-        }
     }
 
     _componentIsInCurrentRoute(id) {
+        if(!this.props.componentsIndex.has(id)) return false;
+
         const componentRouteId = this.props.componentsIndex.get(id).routeId;
         return componentRouteId === this.currentRouteId;
     }
@@ -230,20 +231,17 @@ class Preview extends Component {
         const keys = Object.keys(target),
             riiKey = keys.find(key => key.startsWith('__reactInternalInstance$'));
 
-        if (!riiKey) return null;
-
-        const owner = getOwner(target[riiKey], (item)=> {
-                return this._getComponentId(item);
-            });
-
-        return owner;
+        return riiKey
+            ? getOwner(target[riiKey], item => this._getComponentId(item))
+            : null;
     }
 
     _handleAnimationFrame() {
         var el = this.dndParams.el;
 
-        el.style.transform = `translate(${this.dndParams.pageX}px,
-            ${this.dndParams.pageY}px)`;
+        el.style.transform =
+            `translate(${this.dndParams.pageX}px, ${this.dndParams.pageY}px)`;
+
         this.animationFrame = null;
         this.needRAF = true;
     }

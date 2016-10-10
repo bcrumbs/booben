@@ -18,7 +18,6 @@ import {
     PROJECT_ROUTE_CREATE,
     PROJECT_ROUTE_DELETE,
     PROJECT_ROUTE_UPDATE_FIELD,
-    PROJECT_ROUTE_COMPONENT_UPDATE,
     PROJECT_COMPONENT_DELETE,
     PROJECT_ROUTE_COMPONENT_ADD_BEFORE,
     PROJECT_ROUTE_COMPONENT_ADD_AFTER
@@ -65,32 +64,40 @@ const projectComponentToImmutable = input => new ProjectComponent({
     children: List(input.children.map(projectComponentToImmutable))
 });
 
-const projectRouteToImmutable = input => new ProjectRoute({
-    id: input.id,
-    path: input.path,
-    title: input.title,
-    description: input.description,
-    haveIndex: input.haveIndex,
-    indexComponent: input.indexComponent !== null
-        ? projectComponentToImmutable(input.indexComponent)
-        : null,
+const projectRouteToImmutable = (input, pathPrefix) => {
+    const fullPath = pathPrefix + input.path,
+        nextPrefix = fullPath.endsWith('/') ? fullPath : fullPath + '/';
 
-    haveRedirect: input.haveRedirect,
-    redirectTo: input.redirectTo,
+    return new ProjectRoute({
+        id: input.id,
+        path: input.path,
+        fullPath: fullPath,
+        title: input.title,
+        description: input.description,
+        haveIndex: input.haveIndex,
+        indexComponent: input.indexComponent !== null
+            ? projectComponentToImmutable(input.indexComponent)
+            : null,
 
-    component: input.component !== null
-        ? projectComponentToImmutable(input.component)
-        : null,
+        haveRedirect: input.haveRedirect,
+        redirectTo: input.redirectTo,
 
-    children: List(input.children.map(projectRouteToImmutable))
-});
+        component: input.component !== null
+            ? projectComponentToImmutable(input.component)
+            : null,
+
+        children: List(input.children.map(
+            route => projectRouteToImmutable(route, nextPrefix))
+        )
+    });
+};
 
 const projectToImmutable = input => new Project({
     name: input.name,
     author: input.author,
     componentLibs: List(input.componentLibs),
     relayEndpointURL: input.relayEndpointURL,
-    routes: List(input.routes.map(projectRouteToImmutable))
+    routes: List(input.routes.map(route => projectRouteToImmutable(route, '')))
 });
 
 /**
@@ -101,8 +108,8 @@ const projectToImmutable = input => new Project({
 const buildComponentsIndex = project => {
     const ret = {};
 
-    const visitComponent = (component, routeId, path) => {
-        ret[component.id] = { path, routeId };
+    const visitComponent = (component, routeId, path, isIndexRoute) => {
+        ret[component.id] = { path, routeId, isIndexRoute };
 
         component.children.forEach((child, idx) =>
             void visitComponent(child, routeId, [].concat(path, 'children', idx)));
@@ -113,7 +120,8 @@ const buildComponentsIndex = project => {
             visitComponent(
                 route.component,
                 route.id,
-                [].concat(path, 'component')
+                [].concat(path, 'component'),
+                false
             );
         }
 
@@ -121,7 +129,8 @@ const buildComponentsIndex = project => {
             visitComponent(
                 route.indexComponent,
                 route.id,
-                [].concat(path, 'indexComponent')
+                [].concat(path, 'indexComponent'),
+                true
             );
         }
 
@@ -207,23 +216,33 @@ export default (state = new ProjectState(), action) => {
                 action.newValue
             );
 
-        case PROJECT_ROUTE_COMPONENT_UPDATE:
-            const whereSource = ['data', 'routes'].concat(...action.source),
-                whereTarget = ['data', 'routes'].concat(...action.target);
-
-            const sourceComponent = state.getIn(whereSource),
-                targetComponent = state.getIn(whereTarget);
-
-            return state.deleteIn(whereSource)
-                 .updateIn([...whereTarget, 'children'], list => list.push(sourceComponent));
-
         case PROJECT_COMPONENT_DELETE:
             const componentIndexData = state.componentsIndex.get(action.id);
 
             if (componentIndexData) {
-                return state
+                const state0 = state
                     .deleteIn(['data', ...componentIndexData.path])
                     .deleteIn(['componentsIndex', action.id]);
+
+                const componentsToShift = state0.getIn(['data',
+                    ...componentIndexData.path.slice(0, -1)]);
+
+                if(!componentsToShift.size) return state0;
+
+                let state1;
+
+                componentsToShift.map((item) => {
+                    state1 = state0.updateIn(['componentsIndex', item.id],
+                        (component) => {
+                            const path = component.path;
+                            component.path[path.length - 1] = path[path.length - 1] - 1;
+
+                            return component;
+                        }
+                    )
+                });
+
+                return state1
             }
             else {
                 return state;

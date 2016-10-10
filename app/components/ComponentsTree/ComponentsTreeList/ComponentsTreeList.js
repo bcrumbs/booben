@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { PropTypes } from 'react';
+import React from 'react';
 
 export const ComponentsTreeList = props => (
     <ul className="components-tree-list">
@@ -9,4 +9,3 @@ export const ComponentsTreeList = props => (
 );
 
 ComponentsTreeList.displayName = 'ComponentsTreeList';
-

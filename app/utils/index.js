@@ -39,7 +39,6 @@ export const getRoutes = (routes, prefix) => {
     const ret = [];
 
     routes.forEach(route => {
-        if (route.isIndex) return;
         ret.push(getRoute(route, prefix));
 
         if (route.children)

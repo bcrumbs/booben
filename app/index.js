@@ -58,7 +58,7 @@ window.addEventListener('DOMContentLoaded', () => {
                         <Route
                             path="design/:routeId(/index)"
                             component={DesignRoute}
-                            onEnter={setToolsOnEnter(List(['componentsLibrary']))}
+                            onEnter={setToolsOnEnter(List(['componentsLibrary', 'componentsTree']))}
                         />
                     </Route>
                     <Route path="preview" component={PreviewRoute}/>
