@@ -37,12 +37,24 @@ import {PropArrayNewRow} from './PropItemArray/PropArrayNewRow/PropArrayNewRow';
 import { noop } from '../../../utils/misc';
 
 export const PropsItem = props => {
-    let className = 'prop-item';
+    let className = 'prop-item',
+	    wrapperClassName= 'prop-item-wrapper';
+
 	if (props.type) className += ` prop-type-${props.type}`;
+	if (props.subtreeOn) wrapperClassName+= ' ' + 'sublevel-is-visible';
 
 	let actions = null;
 	if (props.linkable) {
 		actions = <PropLinkButton />;
+	}
+
+	let image = null;
+	if (props.image) {
+		image =
+			<div className="prop-item-image-box">
+				<img src={props.image} />
+			</div>;
+		wrapperClassName += ' ' + 'has-image';
 	}
 
 	const label =
@@ -156,11 +168,17 @@ export const PropsItem = props => {
 
     return (
         <div className={className}>
-	        <div className="prop-item-content-box">
-	            {content}
+	        <div className={wrapperClassName}>
+		        { image }
+
+		        <div className="prop-item-content-box">
+		            { content }
+		        </div>
+
+		        { actions }
 	        </div>
 
-	        {actions}
+	        { props.children }
         </div>
     );
 };
@@ -180,7 +198,9 @@ PropsItem.propTypes = {
 	linkable: PropTypes.bool,
     value: PropTypes.any,
     disabled: PropTypes.bool,
-    onChange: PropTypes.func
+    onChange: PropTypes.func,
+	image: PropTypes.string,
+	subtreeOn: PropTypes.bool
 };
 
 PropsItem.defaultProps = {
@@ -189,7 +209,9 @@ PropsItem.defaultProps = {
 	linkable: false,
     value: null,
     disabled: false,
-    onChange: noop
+    onChange: noop,
+	image: false,
+	subtreeOn: false
 };
 
 PropsItem.displayName = 'PropsItem';
