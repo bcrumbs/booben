@@ -26,7 +26,7 @@ import {
 } from '../../app/actions/project';
 
 const OFFSET_DND_AVATAR = 10;
-
+const JSSY_COMPONENT_ID = '__jssy_component_id__';
 /**
  * Get owner React element by condition
  *
@@ -172,7 +172,7 @@ class Preview extends Component {
     }
 
     _getComponentId(el) {
-        return el._currentElement && el._currentElement.props['data-id'];
+        return el._currentElement && el._currentElement.props[JSSY_COMPONENT_ID];
     }
 
     _setRootComponent() {
