@@ -137,7 +137,7 @@ const toolComponentsWindowSections = List([
 	new ToolSectionRecord({
 		name: 'Section 1',
 		component: () => (
-            <BlockContentBox>
+            <BlockContentBox isBordered>
                 <Accordion single items={accordionItems} expandedItemIds={Set(['tab3'])}/>
             </BlockContentBox>
         )
@@ -160,8 +160,8 @@ const toolRouteWindowSections = List([
 	new ToolSectionRecord({
 		name: 'Route Editing',
 		component: () => (
-			<BlockContentBox>
-				<BlockContentBoxHeading>If redirect is on</BlockContentBoxHeading>
+			<BlockContentBox isBordered>
+				<BlockContentBoxHeading>Tree Prop</BlockContentBoxHeading>
 				<BlockContentBoxItem>
 					<PropsList>
 						<PropsItem type="tree" />
@@ -228,7 +228,7 @@ const toolComponentTemplatesWindowSections = List([
 	new ToolSectionRecord({
 		name: 'Route Editing',
 		component: () => (
-			<BlockContentBox>
+			<BlockContentBox isBordered>
 				<BlockContentBoxHeading>Component Templates</BlockContentBoxHeading>
 				<BlockContentBoxItem>
 					<ComponentLayoutSelection>
@@ -237,6 +237,13 @@ const toolComponentTemplatesWindowSections = List([
 						<ComponentLayoutSelectionItem image={"http://coolvibe.com/wp-content/uploads/2010/06/cosmos.jpg"} title={'3 equal parts'} />
 						<ComponentLayoutSelectionItem image={"http://coolvibe.com/wp-content/uploads/2010/06/cosmos.jpg"} title={'2 equal parts, 1 full-height'} />
 					</ComponentLayoutSelection>
+				</BlockContentBoxItem>
+
+				<BlockContentBoxHeading>Component Regions</BlockContentBoxHeading>
+				<BlockContentBoxItem>
+					<PropsList>
+						<PropsItem type="tree" />
+					</PropsList>
 				</BlockContentBoxItem>
 			</BlockContentBox>
 		)
@@ -248,7 +255,7 @@ const toolComponentLayoutWindowSections = List([
 	new ToolSectionRecord({
 		name: 'Route Editing',
 		component: () => (
-			<BlockContentBox>
+			<BlockContentBox isBordered>
 				<BlockContentBoxHeading>Component Templates</BlockContentBoxHeading>
 				<BlockContentBoxItem>
 					<ComponentLayoutSelection>
@@ -280,18 +287,6 @@ const toolComponentLayoutWindowSections = List([
 export default List([
     List([
 	    new ToolRecord({
-		    id: 'tool5',
-		    icon: 'cog',
-		    name: 'Parsers',
-		    title: 'Route Settings',
-		    undockable: true,
-		    closable: false,
-		    sections: toolRouteWindowSections,
-		    mainButtons: toolRouteWindowMainActions,
-		    secondaryButtons: toolRouteWindowSecondaryActions
-	    }),
-
-	    new ToolRecord({
 		    id: 'tool7',
 		    icon: 'cog',
 		    name: 'Component Settings',
@@ -301,6 +296,18 @@ export default List([
 		    sections: toolComponentTemplatesWindowSections,
 		    mainButtons: '',
 		    secondaryButtons: ''
+	    }),
+
+	    new ToolRecord({
+		    id: 'tool5',
+		    icon: 'cog',
+		    name: 'Parsers',
+		    title: 'Route Settings',
+		    undockable: true,
+		    closable: false,
+		    sections: toolRouteWindowSections,
+		    mainButtons: toolRouteWindowMainActions,
+		    secondaryButtons: toolRouteWindowSecondaryActions
 	    }),
 
 	    new ToolRecord({

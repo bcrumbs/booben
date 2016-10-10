@@ -99,10 +99,22 @@ export const PropsItem = props => {
 		content =
 			<PropTree>
 				<PropTreeList>
-					<PropTreeItem>
+					<PropTreeItem title="prop-1" opened>
 						<PropTreeList>
-							<PropTreeItem />
-
+							<PropTreeItem title="buttons" opened>
+								<PropTreeList addButton>
+									<PropTreeItem title="button1" type="constructor" valueType="constructor" />
+									<PropTreeItem title="button2" type="constructor" valueType="constructor" />
+								</PropTreeList>
+							</PropTreeItem>
+							<PropTreeItem title="onClick" type="function" valueType="input" />
+							<PropTreeItem title="value" type="number" valueType="input" />
+							<PropTreeItem title="some array">
+								<PropTreeList>
+									<PropTreeItem title='1' type="arrayItem" valueType="input" />
+									<PropTreeItem title='2' type="arrayItem" valueType="input" />
+								</PropTreeList>
+							</PropTreeItem>
 						</PropTreeList>
 					</PropTreeItem>
 				</PropTreeList>
