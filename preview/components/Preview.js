@@ -18,8 +18,7 @@ import {
     setRootComponent,
     unsetRootComponent,
     showPreviewRootComponent,
-    hidePreviewRootComponent,
-    setDomElementMap
+    hidePreviewRootComponent
 } from '../../app/actions/preview';
 
 import {
@@ -75,16 +74,13 @@ class Preview extends Component {
             domNode.addEventListener('mousedown', this._handleMouseDownEvent, false);
             window.addEventListener('resize', this._handleResizeEvent, false);
 
-            this._setDomElementMap();
             this._setRootComponent();
         }
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if(prevProps.project !== this.props.project) {
-            this._setDomElementMap();
+        if (prevProps.project !== this.props.project)
             this._setRootComponent();
-        }
     }
 
     componentWillUnmount() {
@@ -134,29 +130,17 @@ class Preview extends Component {
     }
 
     _getComponentId(el) {
-        return el && el.getAttribute("data-jssy-id");
+        return el && el.getAttribute('data-jssy-id');
     }
 
     _setRootComponent() {
         const rootComponentId = this._getCurrentRootComponentId(),
             rootComponent = this.domNode
-                .querySelector(`[data-jssy-id='${rootComponentId}']`);
+                .querySelector(`[data-jssy-id="${rootComponentId}"]`);
 
         if(!rootComponent) return;
 
         this.props.setRootComponent(rootComponentId);
-    }
-
-    _setDomElementMap() {
-        const jssyComponents = this.domNode.querySelectorAll('[data-jssy-id]');
-
-        let componentMap = Map();
-
-        jssyComponents.forEach((item) => {
-            componentMap = componentMap.set(item.getAttribute('data-jssy-id'), item);
-        });
-
-        this.props.setDomElementMap(componentMap);
     }
 
     _handleResizeEvent() {}
@@ -347,9 +331,7 @@ class Preview extends Component {
             )
         };
 
-        if(route) {
-            ret.onEnter = this._handleChangeRoute.bind(this, route.id);
-        }
+        ret.onEnter = this._handleChangeRoute.bind(this, route.id);
 
         if (route.children.size > 0) {
             ret.childRoutes = route.children
@@ -408,8 +390,7 @@ Preview.propTypes = {
     setRootComponent: PropTypes.func,
     unsetRootComponent: PropTypes.func,
     showRootComponent: PropTypes.func,
-    hideRootComponent: PropTypes.func,
-    setDomElementMap: PropTypes.func
+    hideRootComponent: PropTypes.func
 };
 
 Preview.defaultProps = {
@@ -440,8 +421,7 @@ const mapDispatchToProps = dispatch => ({
     setRootComponent: component => void dispatch(setRootComponent(component)),
     unsetRootComponent: component => void dispatch(unsetRootComponent(component)),
     showRootComponent: () => void dispatch(showPreviewRootComponent()),
-    hideRootComponent: () => void dispatch(hidePreviewRootComponent()),
-    setDomElementMap: (componentMap) => void dispatch(setDomElementMap(componentMap))
+    hideRootComponent: () => void dispatch(hidePreviewRootComponent())
 });
 
 export default connect(

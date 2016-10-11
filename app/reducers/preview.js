@@ -1,6 +1,6 @@
 'use strict';
 
-import { Record, Set, Map } from 'immutable';
+import { Record, Set } from 'immutable';
 
 import {
     DESELECT_PREVIEW_COMPONENT,
@@ -11,7 +11,6 @@ import {
     UNSET_ROOT_COMPONENT,
     SHOW_ROOT_COMPONENT,
     HIDE_ROOT_COMPONENT,
-    SET_DOM_ELEMENT_MAP,
     SET_IS_INDEX_ROUTE
 } from '../actions/preview';
 
@@ -20,7 +19,6 @@ const PreviewState = Record({
     highlightedItems: Set(),
     rootComponent: Set(),
     rootComponentVisible: false,
-    domElementsMap: Map(),
     currentRouteIsIndexRoute: false
 });
 
@@ -61,9 +59,6 @@ export default (state = new PreviewState(), action) => {
 
         case HIDE_ROOT_COMPONENT:
             return state.set('rootComponentVisible', false);
-
-        case SET_DOM_ELEMENT_MAP:
-            return state.setIn(['domElementsMap'], action.componentMap);
 
         case SET_IS_INDEX_ROUTE:
             return state.set('currentRouteIsIndexRoute', action.value);

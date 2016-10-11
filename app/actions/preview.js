@@ -12,7 +12,6 @@ export const SET_ROOT_COMPONENT = 'SET_ROOT_COMPONENT';
 export const UNSET_ROOT_COMPONENT = 'UNSET_ROOT_COMPONENT';
 export const SHOW_ROOT_COMPONENT = 'SHOW_ROOT_COMPONENT';
 export const HIDE_ROOT_COMPONENT = 'HIDE_ROOT_COMPONENT';
-export const SET_DOM_ELEMENT_MAP = 'SET_DOM_ELEMENT_MAP';
 export const SET_IS_INDEX_ROUTE = 'SET_IS_INDEX_ROUTE';
 
 /**
@@ -81,16 +80,6 @@ export const showPreviewRootComponent = () => ({
  */
 export const hidePreviewRootComponent = () => ({
     type: HIDE_ROOT_COMPONENT
-});
-
-/**
- * @param  {string} id
- * @param  {Object} component
- * @return {Object}
- */
-export const setDomElementMap = (componentMap) => ({
-    type: SET_DOM_ELEMENT_MAP,
-    componentMap
 });
 
 /**
