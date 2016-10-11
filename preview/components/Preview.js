@@ -19,7 +19,7 @@ import {
     unsetRootComponent,
     showPreviewRootComponent,
     hidePreviewRootComponent,
-    setDomElementToMap
+    setDomElementMap
 } from '../../app/actions/preview';
 
 import {
@@ -74,12 +74,16 @@ class Preview extends Component {
             domNode.addEventListener('mousedown', this._handleMouseDownEvent, false);
             window.addEventListener('resize', this._handleResizeEvent, false);
 
+            this._setDomElementMap();
             this._setRootComponent();
         }
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if(prevProps.project !== this.props.project) this._setRootComponent();
+        if(prevProps.project !== this.props.project) {
+            this._setDomElementMap();
+            this._setRootComponent();
+        }
     }
 
     componentWillUnmount() {
@@ -140,7 +144,18 @@ class Preview extends Component {
         if(!rootComponent) return;
 
         this.props.setRootComponent(rootComponentId);
-        this._setDomElementToMap(rootComponentId, rootComponent, true);
+    }
+
+    _setDomElementMap() {
+        const jssyComponents = this.domNode.querySelectorAll('[data-jssy-id]');
+
+        let componentMap = Map();
+
+        jssyComponents.forEach((item) => {
+            componentMap = componentMap.set(item.getAttribute('data-jssy-id'), item);
+        });
+
+        this.props.setDomElementMap(componentMap);
     }
 
     _handleResizeEvent() {}
@@ -170,11 +185,6 @@ class Preview extends Component {
         } else {
             this.props.highlightComponent(id);
         }
-    }
-
-    _setDomElementToMap(key, value, force = false) {
-        if (!this.props.domElementsMap.has(key) || force)
-            this.props.setDomElementToMap(key, value);
     }
 
     _componentIsInCurrentRoute(id) {
@@ -277,8 +287,6 @@ class Preview extends Component {
             id = this._getComponentId(owner);
 
         if(!this._componentIsInCurrentRoute(id)) return;
-
-        this._setDomElementToMap(id, owner, true);
         this._updateHighlighted(id);
 
         this.currentOwnerId = id;
@@ -396,7 +404,7 @@ Preview.propTypes = {
     unsetRootComponent: PropTypes.func,
     showRootComponent: PropTypes.func,
     hideRootComponent: PropTypes.func,
-    setDomElementToMap: PropTypes.func
+    setDomElementMap: PropTypes.func
 };
 
 Preview.defaultProps = {
@@ -425,7 +433,7 @@ const mapDispatchToProps = dispatch => ({
     unsetRootComponent: component => void dispatch(unsetRootComponent(component)),
     showRootComponent: () => void dispatch(showPreviewRootComponent()),
     hideRootComponent: () => void dispatch(hidePreviewRootComponent()),
-    setDomElementToMap: (id, component) => void dispatch(setDomElementToMap(id, component))
+    setDomElementMap: (componentMap) => void dispatch(setDomElementMap(componentMap))
 });
 
 export default connect(
