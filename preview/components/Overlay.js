@@ -1,24 +1,31 @@
 'use strict';
 
+//noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { Set, Map } from 'immutable';
+import { Set } from 'immutable';
 import { connect } from 'react-redux';
 
-class Overlay extends Component {
-    _getItems(ids, color, zIndex) {
-        if(!ids.size) return;
+let container = null;
 
-        return ids.map((id) => {
-            const el = this.props.domElementsMap.get(id);
+const getContainer = () =>
+    container || (container = document.getElementById('container'));
+
+class Overlay extends Component {
+    _getDOMElementByComponentId(id) {
+        return getContainer().querySelector(`[data-jssy-id="${id}"]`);
+    }
+
+    _getItems(ids, color, zIndex) {
+        return ids.map(id => {
+            const el = this._getDOMElementByComponentId(id);
+            if (!el) return null;
 
             let {
-                bottom,
-                height,
                 left,
-                right,
                 top,
-                width
+                width,
+                height
             } = el.getBoundingClientRect();
 
             const syntheticPadding = 10,
@@ -90,14 +97,20 @@ class Overlay extends Component {
             top: 0,
             position: 'absolute',
             zIndex: 999,
-        }
+        };
+
+        const highlightBoxes = this._getItems(this.props.highlighted, 'yellow'),
+            selectBoxes = this._getItems(this.props.selected, 'green');
+
+        const rootComponentBox = this.props.rootComponentVisible
+            ? this._getItems(this.props.rootComponent, 'red')
+            : null;
 
         return (
             <div style={overlayStyle}>
-                { this._getItems(this.props.highlighted, 'yellow') }
-                { this._getItems(this.props.selected, 'green') }
-                { this.props.rootComponentVisible &&
-                    this._getItems(this.props.rootComponent, 'red') }
+                {highlightBoxes}
+                {selectBoxes}
+                {rootComponentBox}
             </div>
         );
     }
@@ -107,24 +120,21 @@ Overlay.propTypes = {
     selected: ImmutablePropTypes.set,
     highlighted: ImmutablePropTypes.set,
     rootComponent: ImmutablePropTypes.set,
-    rootComponentVisible: PropTypes.bool,
-    domElementsMap: ImmutablePropTypes.map
+    rootComponentVisible: PropTypes.bool
 };
 
 Overlay.defaultProps = {
     selected: Set(),
     highlighted: Set(),
     rootComponent: Set(),
-    rootComponentVisible: false,
-    domElementsMap: Map()
+    rootComponentVisible: false
 };
 
 const mapStateToProps = state => ({
     selected: state.preview.selectedItems,
     highlighted: state.preview.highlightedItems,
     rootComponent: state.preview.rootComponent,
-    rootComponentVisible: state.preview.rootComponentVisible,
-    domElementsMap: state.preview.domElementsMap
+    rootComponentVisible: state.preview.rootComponentVisible
 });
 
 export default connect(
