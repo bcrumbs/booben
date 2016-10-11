@@ -143,12 +143,12 @@ const buildComponentsIndex = project => {
     return Map(ret);
 };
 
-const deleteComponentsIndex = (state, id) => {
+const deleteComponentIndex = (state, id) => {
     const curPath = state.componentsIndex.get(id).path,
         component = state.getIn(['data', ...curPath]);
 
     if(component.children) component.children.map((child) => {
-        state = deleteComponentsIndex(state, child.id);
+        state = deleteComponentIndex(state, child.id);
     });
 
     return state.deleteIn(['componentsIndex', id]);
@@ -247,7 +247,7 @@ export default (state = new ProjectState(), action) => {
             const componentIndexData = state.componentsIndex.get(action.id);
 
             if (componentIndexData) {
-                state = deleteComponentsIndex(state, action.id);
+                state = deleteComponentIndex(state, action.id);
 
                 const componentPath = componentIndexData.path,
                     componentIndex = componentPath[componentPath.length - 1],
