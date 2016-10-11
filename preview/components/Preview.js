@@ -8,6 +8,7 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Record, Map } from 'immutable';
 
 import Builder from './Builder';
+import { getDomOwner } from '../utils';
 
 import {
     selectPreviewComponent,
@@ -18,58 +19,15 @@ import {
     unsetRootComponent,
     showPreviewRootComponent,
     hidePreviewRootComponent,
-    setDomElementToMap
+    setDomElementMap
 } from '../../app/actions/preview';
 
 import {
-    deleteComponent
+    deleteComponent,
+    componentAddAfter
 } from '../../app/actions/project';
 
 const OFFSET_DND_AVATAR = 10;
-const JSSY_COMPONENT_ID = '__jssy_component_id__';
-/**
- * Get owner React element by condition
- *
- * @param  {function} el
- * @param  {function} [condition]
- * @return {function}
- */
-const getOwner = (el, condition) => {
-    if(condition(el)) return el;
-
-    const owner = el._currentElement._owner;
-    if (!owner) return null;
-    if (!condition) return owner;
-
-    return getOwner(owner, condition);
-};
-
-/**
- * Get child React element by condition
- *
- * @param  {function} el
- * @param  {function} [condition]
- * @return {function}
- */
-const getChild = (el, condition) => {
-    let child = null;
-
-    if(el._renderedComponent) {
-        child = el._renderedComponent;
-        if (!child) return null;
-        if (!condition) return child;
-        return condition(child) ? child : getChild(child, condition);
-    } else if(el._renderedChildren) {
-        for(let key in el._renderedChildren) {
-            if(condition(el._renderedChildren[key])) return el._renderedChildren[key];
-
-            child = getChild(el._renderedChildren[key], condition);
-            if(child) return child;
-        }
-
-        return null;
-    }
-};
 
 const RouteRootComponentIds = Record({
     componentId: null,
@@ -88,7 +46,7 @@ class Preview extends Component {
         this.needRAF = true;
         this.currentRouteId = null;
         this.rootComponentIds = this._gatherRootComponentIds(props.project.routes);
-        this.currentOwner = null;
+        this.currentOwnerId = null;
 
         this._nextRouterKey = 0;
 
@@ -117,12 +75,16 @@ class Preview extends Component {
             domNode.addEventListener('mousedown', this._handleMouseDownEvent, false);
             window.addEventListener('resize', this._handleResizeEvent, false);
 
+            this._setDomElementMap();
             this._setRootComponent();
         }
     }
 
     componentDidUpdate(prevProps, prevState) {
-        if(prevProps.project !== this.props.project) this._setRootComponent();
+        if(prevProps.project !== this.props.project) {
+            this._setDomElementMap();
+            this._setRootComponent();
+        }
     }
 
     componentWillUnmount() {
@@ -172,18 +134,29 @@ class Preview extends Component {
     }
 
     _getComponentId(el) {
-        return el._currentElement && el._currentElement.props[JSSY_COMPONENT_ID];
+        return el && el.getAttribute("data-jssy-id");
     }
 
     _setRootComponent() {
         const rootComponentId = this._getCurrentRootComponentId(),
-            rootComponent = getChild(this['_reactInternalInstance'], item =>
-                this._getComponentId(item) == rootComponentId);
+            rootComponent = this.domNode
+                .querySelector(`[data-jssy-id='${rootComponentId}']`);
 
         if(!rootComponent) return;
 
         this.props.setRootComponent(rootComponentId);
-        this._setDomElementToMap(rootComponentId, rootComponent.getHostNode(), true);
+    }
+
+    _setDomElementMap() {
+        const jssyComponents = this.domNode.querySelectorAll('[data-jssy-id]');
+
+        let componentMap = Map();
+
+        jssyComponents.forEach((item) => {
+            componentMap = componentMap.set(item.getAttribute('data-jssy-id'), item);
+        });
+
+        this.props.setDomElementMap(componentMap);
     }
 
     _handleResizeEvent() {}
@@ -215,11 +188,6 @@ class Preview extends Component {
         }
     }
 
-    _setDomElementToMap(key, value, force = false) {
-        if (!this.props.domElementsMap.has(key) || force)
-            this.props.setDomElementToMap(key, value);
-    }
-
     _componentIsInCurrentRoute(id) {
         if(!this.props.componentsIndex.has(id)) return false;
 
@@ -227,15 +195,6 @@ class Preview extends Component {
 
         return componentIndexData.routeId === this.currentRouteId &&
             componentIndexData.isIndexRoute === this.props.currentRouteIsIndexRoute;
-    }
-
-    _getOwner(target) {
-        const keys = Object.keys(target),
-            riiKey = keys.find(key => key.startsWith('__reactInternalInstance$'));
-
-        return riiKey
-            ? getOwner(target[riiKey], item => this._getComponentId(item))
-            : null;
     }
 
     _handleAnimationFrame() {
@@ -267,17 +226,16 @@ class Preview extends Component {
 
         this.dndFlag = false;
 
-        const owner = this.currentOwner;
+        if(this.dndParams) {
+            const sourceIndexData = this.props.componentsIndex.get(this.dndParams.id),
+                sourceComponent = this.props.project.getIn(sourceIndexData.path);
 
-        if (owner && this.dndParams) {
-            if(
-                owner &&
-                this._getComponentId(owner) &&
-                this._getComponentId(owner) != this.dndParams.id
-            ) {
-                // write something here
-            }
+            const targetIndexData = this.props.componentsIndex.get(this.currentOwnerId);
+
+            this.props.componentDeleteFromRoute(this.dndParams.id);
+            this.props.componentAddAfterToRoute(sourceComponent, targetIndexData.path);
         }
+
 
         if (this.animationFrame !== null) {
             window.cancelAnimationFrame(this.animationFrame);
@@ -314,8 +272,6 @@ class Preview extends Component {
             this.domOverlay.appendChild(el);
             this.dndFlag = true;
 
-            this.props.componentDeleteFromRoute(this.dndParams.id);
-
             this.props.showRootComponent();
         }
 
@@ -331,20 +287,18 @@ class Preview extends Component {
     }
 
     _handleMouseOverEvent(event) {
-        const owner = this._getOwner(event.target),
+        const el = event.target,
+            owner = getDomOwner(el, item => item.getAttribute("data-jssy-id")),
             id = this._getComponentId(owner);
 
         if(!this._componentIsInCurrentRoute(id)) return;
-
-        this._setDomElementToMap(id, owner.getHostNode(), true);
         this._updateHighlighted(id);
 
-        this.currentOwner = owner;
+        this.currentOwnerId = id;
     }
 
     _handleMouseClickEvent(event) {
-        const owner = this.currentOwner,
-            id = owner && this._getComponentId(owner) || null;
+        const id = this.currentOwnerId;
 
         if (id === null || !this._componentIsInCurrentRoute(id)) return;
 
@@ -353,20 +307,18 @@ class Preview extends Component {
     }
 
     _handleMouseOutEvent(event) {
-        const owner = this.currentOwner,
-            id = owner && this._getComponentId(owner) || null;
+        const id = this.currentOwnerId;
 
         if (id === null || !this._componentIsInCurrentRoute(id)) return;
 
         this._updateHighlighted(id);
-        this.currentOwner = null;
+        this.currentOwnerId = null;
     }
 
     _handleMouseDownEvent(event) {
         if (event.which != 1 || !event.ctrlKey) return;
 
-        const owner = this.currentOwner,
-            id = owner && this._getComponentId(owner) || null;
+        const id = this.currentOwnerId;
 
         if (id === null || !this._componentIsInCurrentRoute(id)) return;
 
@@ -457,7 +409,7 @@ Preview.propTypes = {
     unsetRootComponent: PropTypes.func,
     showRootComponent: PropTypes.func,
     hideRootComponent: PropTypes.func,
-    setDomElementToMap: PropTypes.func
+    setDomElementMap: PropTypes.func
 };
 
 Preview.defaultProps = {
@@ -479,14 +431,17 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     deselectComponent: selected => void dispatch(deselectPreviewComponent(selected)),
     selectComponent: selected => void dispatch(selectPreviewComponent(selected)),
-    highlightComponent: highlighted => void dispatch(highlightPreviewComponent(highlighted)),
-    unhighlightComponent: highlighted => void dispatch(unhighlightPreviewComponent(highlighted)),
-    componentDeleteFromRoute: (where) => void dispatch(deleteComponent(where)),
+    highlightComponent: highlighted => void dispatch(
+        highlightPreviewComponent(highlighted)),
+    unhighlightComponent: highlighted => void dispatch(
+        unhighlightPreviewComponent(highlighted)),
+    componentDeleteFromRoute: (id) => void dispatch(deleteComponent(id)),
+    componentAddAfterToRoute: (component) => void dispatch(componentAddAfter(component)),
     setRootComponent: component => void dispatch(setRootComponent(component)),
     unsetRootComponent: component => void dispatch(unsetRootComponent(component)),
     showRootComponent: () => void dispatch(showPreviewRootComponent()),
     hideRootComponent: () => void dispatch(hidePreviewRootComponent()),
-    setDomElementToMap: (id, component) => void dispatch(setDomElementToMap(id, component))
+    setDomElementMap: (componentMap) => void dispatch(setDomElementMap(componentMap))
 });
 
 export default connect(
