@@ -179,3 +179,42 @@ export const componentAddAfter = (component, where) => ({
     where
 });
 
+/**
+ *
+ * @type {string}
+ */
+export const PROJECT_COMPONENT_UPDATE_PROP_VALUE = 'PROJECT_COMPONENT_UPDATE_PROP_VALUE';
+
+/**
+ *
+ * @param {number} componentId
+ * @param {string} propName
+ * @param {string} newSource
+ * @param {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataAction|SourceDataDesigner} newSourceData
+ * @return {Object}
+ */
+export const updateComponentPropValue = (componentId, propName, newSource, newSourceData) => ({
+    type: PROJECT_COMPONENT_UPDATE_PROP_VALUE,
+    componentId,
+    propName,
+    newSource,
+    newSourceData
+});
+
+/**
+ *
+ * @type {string}
+ */
+export const PROJECT_COMPONENT_RENAME = 'PROJECT_COMPONENT_RENAME';
+
+/**
+ *
+ * @param {number} componentId
+ * @param {string} newTitle
+ * @return {Object}
+ */
+export const renameComponent = (componentId, newTitle) => ({
+    type: PROJECT_COMPONENT_RENAME,
+    componentId,
+    newTitle
+});

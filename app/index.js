@@ -13,8 +13,8 @@ import { Provider } from 'react-redux';
 
 import AppRoute from './routes/AppRoute';
 import RootRoute from './routes/RootRoute';
-import StructureRoute from './routes/StructureRoute';
-import DesignRoute from './routes/DesignRoute';
+import StructureRoute, { STRUCTURE_TOOL_IDS } from './routes/StructureRoute';
+import DesignRoute, { DESIGN_TOOL_IDS } from './routes/DesignRoute';
 import PreviewRoute from './routes/PreviewRoute';
 
 import PlaygroundRoute from './routes/PlaygroundRoute';
@@ -52,16 +52,20 @@ window.addEventListener('DOMContentLoaded', () => {
                         <Route
                             path="structure"
                             component={StructureRoute}
-                            onEnter={setToolsOnEnter(List(['routeEditor']))}
+                            onEnter={setToolsOnEnter(STRUCTURE_TOOL_IDS)}
                         />
 
                         <Route
                             path="design/:routeId(/index)"
                             component={DesignRoute}
-                            onEnter={setToolsOnEnter(List(['componentsLibrary', 'componentsTree']))}
+                            onEnter={setToolsOnEnter(DESIGN_TOOL_IDS)}
                         />
                     </Route>
-                    <Route path="preview" component={PreviewRoute}/>
+
+                    <Route
+                        path="preview"
+                        component={PreviewRoute}
+                    />
                 </Route>
             </Router>
         </Provider>,

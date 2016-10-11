@@ -16,6 +16,10 @@ import {
 } from '../../components/ComponentsTree/ComponentsTree';
 
 import {
+    BlockContentBox
+} from '../../components/BlockContent/BlockContent';
+
+import {
     expandTreeItem,
     collapseTreeItem
 } from '../../actions/design';
@@ -104,9 +108,11 @@ class ComponentsTreeViewComponent extends Component {
         if (!this.props.rootComponent) return null;
 
         return (
-            <ComponentsTree>
-                {this._renderList(List([this.props.rootComponent]))}
-            </ComponentsTree>
+            <BlockContentBox isBordered flex>
+                <ComponentsTree>
+                    {this._renderList(List([this.props.rootComponent]))}
+                </ComponentsTree>
+            </BlockContentBox>
         )
     }
 }
@@ -141,7 +147,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     onExpandItem: id => void dispatch(expandTreeItem(id)),
     onCollapseItem: id => void dispatch(collapseTreeItem(id)),
-    onSelectItem: id => void dispatch(selectPreviewComponent(id)),
+    onSelectItem: id => void dispatch(selectPreviewComponent(id, true)),
     onDeselectItem: id => void dispatch(deselectPreviewComponent(id)),
     onHighlightItem: id => void dispatch(highlightPreviewComponent(id)),
     onUnhighlightItem: id => void dispatch(unhighlightPreviewComponent(id))

@@ -25,24 +25,21 @@ const PreviewState = Record({
 export default (state = new PreviewState(), action) => {
     switch (action.type) {
         case HIGHLIGHT_PREVIEW_COMPONENT:
-            return state.merge({
-                highlightedItems: state.get('highlightedItems').add(action.component)
-            });
+            return state.update('highlightedItems', set => set.add(action.component));
 
         case UNHIGHLIGHT_PREVIEW_COMPONENT:
-            return state.merge({
-                highlightedItems: state.get('highlightedItems').delete(action.component)
-            });
+            return state.update('highlightedItems', set => set.delete(action.component));
 
         case SELECT_PREVIEW_COMPONENT:
-            return state.merge({
-                selectedItems: state.get('selectedItems').add(action.component)
-            });
+            if (action.exclusive) {
+                return state.set('selectedItems', Set([action.component]));
+            }
+            else {
+                return state.update('selectedItems', set => set.add(action.component));
+            }
 
         case DESELECT_PREVIEW_COMPONENT:
-            return state.merge({
-                selectedItems: state.get('selectedItems').delete(action.component)
-            });
+            return state.update('selectedItems', set => set.delete(action.component));
 
         case SET_ROOT_COMPONENT:
             return state.merge({

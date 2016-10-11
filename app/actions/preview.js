@@ -15,12 +15,14 @@ export const HIDE_ROOT_COMPONENT = 'HIDE_ROOT_COMPONENT';
 export const SET_IS_INDEX_ROUTE = 'SET_IS_INDEX_ROUTE';
 
 /**
- * @param  {Object} component
+ * @param {Object} component
+ * @param {boolean} [exclusive=false]
  * @return {Object}
  */
-export const selectPreviewComponent = component => ({
+export const selectPreviewComponent = (component, exclusive = false) => ({
     type: SELECT_PREVIEW_COMPONENT,
-    component
+    component,
+    exclusive
 });
 
 /**

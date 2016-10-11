@@ -52,10 +52,11 @@ export class ComponentsTreeItem extends Component {
         let buttonClassName = 'components-tree-item-title-wrapper',
             tooltip = null;
 
-        if (this.state.haveTooltip) {
-            buttonClassName += ' has-tooltip';
-            tooltip = <Tooltip text={this.props.title} />;
-        }
+        // TODO: Use new tooltip logic from reactackle
+        // if (this.state.haveTooltip) {
+        //     buttonClassName += ' has-tooltip';
+        //     tooltip = <Tooltip text={this.props.title} />;
+        // }
 
         let children = null,
             icon = null;

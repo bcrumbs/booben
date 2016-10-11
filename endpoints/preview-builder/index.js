@@ -85,7 +85,7 @@ const generateBundleCode = libsData => {
             ret +=
                 `if (${data.meta.namespace}.${componentName}) {\n` +
                 `    ${data.meta.namespace}.${componentName}.jssyMeta = (function() {\n` +
-                `        return ${printObject(componentMeta)}\n` +
+                `        return ${printObject(componentMeta, 4, 'json')}\n` +
                 `    })();\n` +
                 `}\n\n`
         });

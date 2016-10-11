@@ -180,11 +180,13 @@ const toolRouteWindowSections = List([
 		component: () => (
 			<BlockContentBox isBordered>
 				<BlockContentBoxHeading>Tree Prop</BlockContentBoxHeading>
+
 				<BlockContentBoxItem>
 					<PropsList>
 						<PropsItem type="tree" />
 					</PropsList>
 				</BlockContentBoxItem>
+
 				<BlockContentBoxItem>
 					<BlockBreadcrumbs items={treeItems}/>
 				</BlockContentBoxItem>

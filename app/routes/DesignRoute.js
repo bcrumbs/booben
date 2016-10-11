@@ -6,11 +6,13 @@
 
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
+import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
 import { Desktop } from '../containers/Desktop/Desktop';
 import { ComponentsLibrary } from '../containers/ComponentsLibrary/ComponentsLibrary';
 import { ComponentsTreeView } from '../containers/ComponentsTreeView/ComponentsTreeView';
+import { ComponentPropsEditor } from '../containers/ComponentPropsEditor/ComponentPropsEditor';
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
 
 import store from '../store';
@@ -20,11 +22,29 @@ import ProjectRecord from '../models/Project';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
 
+import { renameComponent } from '../actions/project';
+
 import { List } from 'immutable';
 
+
+const TOOL_ID_LIBRARY = 'componentsLibrary';
+const TOOL_ID_COMPONENTS_TREE = 'componentsTree';
+const TOOL_ID_PROPS_EDITOR = 'componentPropsEditor';
+
+const LIBRARY_ICON = 'cubes';
+const COMPONENTS_TREE_ICON = 'sitemap';
+const PROPS_EDITOR_ICON = 'sliders';
+
+export const DESIGN_TOOL_IDS = List([
+    TOOL_ID_LIBRARY,
+    TOOL_ID_COMPONENTS_TREE,
+    TOOL_ID_PROPS_EDITOR
+]);
+
+
 const libraryTool = new ToolRecord({
-    id: 'componentsLibrary',
-    icon: 'cubes',
+    id: TOOL_ID_LIBRARY,
+    icon: LIBRARY_ICON,
     name: 'Components Library',
     title: 'Components Library',
     sections: List([
@@ -37,6 +57,19 @@ const libraryTool = new ToolRecord({
 });
 
 class DesignRoute extends Component {
+    constructor(props) {
+        super(props);
+
+        this._handleToolTitleChange = this._handleToolTitleChange.bind(this);
+    }
+
+    _handleToolTitleChange(tool, newTitle) {
+        if (tool.id === TOOL_ID_PROPS_EDITOR) {
+            const componentId = this.props.selectedComponentIds.first();
+            this.props.onRenameComponent(componentId, newTitle);
+        }
+    }
+
     render() {
         const src = `/preview/${this.props.params.projectName}/index.html`,
             routeId = parseInt(this.props.params.routeId),
@@ -49,8 +82,8 @@ class DesignRoute extends Component {
         const rootComponent = isIndexRoute ? route.indexComponent : route.component;
 
         const treeTool = new ToolRecord({
-            id: 'componentsTree',
-            icon: 'sitemap',
+            id: TOOL_ID_COMPONENTS_TREE,
+            icon: COMPONENTS_TREE_ICON,
             name: 'Elements tree',
             title: 'Elements tree',
             sections: List([
@@ -63,10 +96,45 @@ class DesignRoute extends Component {
             ])
         });
 
-        const toolGroups = List([List([libraryTool, treeTool])]);
+        const singleComponentSelected = this.props.selectedComponentIds.size === 1;
+        let title, subtitle;
+
+        if (singleComponentSelected) {
+            const componentId = this.props.selectedComponentIds.first(),
+                componentIndexData = this.props.componentsIndex.get(componentId),
+                component = this.props.project.getIn(componentIndexData.path);
+
+            title = component.title;
+            subtitle = component.name;
+        }
+        else {
+            title = 'Component configuration';
+            subtitle = '';
+        }
+
+        const propsEditorTool = new ToolRecord({
+            id: TOOL_ID_PROPS_EDITOR,
+            icon: PROPS_EDITOR_ICON,
+            name: 'Component configuration',
+            title: title,
+            titleEditable: singleComponentSelected,
+            titlePlaceholder: 'Enter title',
+            subtitle: subtitle,
+            sections: List([
+                new ToolSectionRecord({
+                    name: '',
+                    component: ComponentPropsEditor
+                })
+            ])
+        });
+
+        const toolGroups = List([List([libraryTool, treeTool, propsEditorTool])]);
 
         return (
-            <Desktop toolGroups={toolGroups}>
+            <Desktop
+                toolGroups={toolGroups}
+                onToolTitleChange={this._handleToolTitleChange}
+            >
                 <PreviewIFrame
                     interactive
                     store={store}
@@ -80,13 +148,25 @@ class DesignRoute extends Component {
 }
 
 DesignRoute.propTypes = {
-    project: PropTypes.instanceOf(ProjectRecord)
+    project: PropTypes.instanceOf(ProjectRecord),
+    selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
+    componentsIndex: ImmutablePropTypes.map,
+
+    onRenameComponent: PropTypes.func
 };
 
 const mapStateToProps = state => ({
-    project: state.project.data
+    project: state.project.data,
+    selectedComponentIds: state.preview.selectedItems,
+    componentsIndex: state.project.componentsIndex
+});
+
+const mapDispatchToProps = dispatch => ({
+    onRenameComponent: (componentId, newTitle) =>
+        void dispatch(renameComponent(componentId, newTitle))
 });
 
 export default connect(
-    mapStateToProps
+    mapStateToProps,
+    mapDispatchToProps
 )(DesignRoute);

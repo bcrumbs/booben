@@ -23,7 +23,7 @@ import ButtonRecord from '../models/Button';
 import {
     createRoute,
     deleteRoute,
-    renameRoute
+    updateRouteField
 } from '../actions/project';
 
 import { selectRoute } from '../actions/structure';
@@ -63,7 +63,9 @@ const  LEFT_ARROW = 37,
     N_KEY = 78,
     R_KEY = 82;
 
-const routeEditorToolId = 'routeEditor';
+const TOOL_ID_ROUTE_EDITOR = 'routeEditor';
+
+export const STRUCTURE_TOOL_IDS = List([TOOL_ID_ROUTE_EDITOR]);
 
 class StructureRoute extends Component {
     constructor(props) {
@@ -299,9 +301,7 @@ class StructureRoute extends Component {
     }
 
     _handleToolTitleChange(tool, newTitle) {
-        console.log(newTitle);
-
-        if (tool.id === routeEditorToolId) {
+        if (tool.id === TOOL_ID_ROUTE_EDITOR) {
             const where = this.props.selectedRouteIndexes.butLast(),
                 idx = this.props.selectedRouteIndexes.last();
 
@@ -428,7 +428,7 @@ class StructureRoute extends Component {
         const toolGroups = List([
             List([
                 new ToolRecord({
-                    id: routeEditorToolId,
+                    id: TOOL_ID_ROUTE_EDITOR,
                     icon: 'random',
                     name: 'Route',
                     title: title,
@@ -466,7 +466,10 @@ class StructureRoute extends Component {
             : 'Create new root route';
 
         return (
-            <Desktop toolGroups={toolGroups} onToolTitleChange={this._handleToolTitleChange}>
+            <Desktop
+                toolGroups={toolGroups}
+                onToolTitleChange={this._handleToolTitleChange}
+            >
                 <Panel headerFixed maxHeight="initial">
                     <PanelContent>
                         <Container>
@@ -563,7 +566,7 @@ const mapDispatchToProps = dispatch => ({
         void dispatch(deleteRoute(where, idx)),
 
     onRenameRoute: (where, idx, newTitle) =>
-        void dispatch(renameRoute(where, idx, newTitle))
+        void dispatch(updateRouteField(where, idx, 'title', newTitle))
 });
 
 export default connect(

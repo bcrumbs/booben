@@ -19,6 +19,8 @@ import {
     PROJECT_ROUTE_DELETE,
     PROJECT_ROUTE_UPDATE_FIELD,
     PROJECT_COMPONENT_DELETE,
+    PROJECT_COMPONENT_UPDATE_PROP_VALUE,
+    PROJECT_COMPONENT_RENAME,
     PROJECT_ROUTE_COMPONENT_ADD_BEFORE,
     PROJECT_ROUTE_COMPONENT_ADD_AFTER
 } from '../actions/project';
@@ -105,14 +107,16 @@ const projectToImmutable = input => new Project({
  * @param {Project} project
  * @return {Immutable.Map}
  */
-const buildComponentsIndex = project => {
-    const ret = {};
-
+const buildComponentsIndex = project => Map().withMutations(ret => {
     const visitComponent = (component, routeId, path, isIndexRoute) => {
-        ret[component.id] = { path, routeId, isIndexRoute };
+        ret.set(component.id, { path, routeId, isIndexRoute });
 
-        component.children.forEach((child, idx) =>
-            void visitComponent(child, routeId, [].concat(path, 'children', idx), isIndexRoute));
+        component.children.forEach((child, idx) => void visitComponent(
+            child,
+            routeId,
+            [].concat(path, 'children', idx),
+            isIndexRoute
+        ));
     };
 
     const visitRoute = (route, path) => {
@@ -139,9 +143,7 @@ const buildComponentsIndex = project => {
     };
 
     project.routes.forEach((route, idx) => void visitRoute(route, ['routes', idx]));
-
-    return Map(ret);
-};
+});
 
 const deleteComponentIndex = (state, id) => {
     const curPath = state.componentsIndex.get(id).path,
@@ -186,23 +188,26 @@ const updateRouteField = (state, where, idx, field, newValue) => state.setIn(
 
 export default (state = new ProjectState(), action) => {
     switch (action.type) {
-        case PROJECT_REQUEST:
+        case PROJECT_REQUEST: {
             return state.merge({
                 projectName: action.projectName,
                 loadState: LOADING
             });
+        }
 
-        case PROJECT_LOADED:
-            return state.merge({
-                projectName: action.project.name,
-                loadState: LOADED,
-                data: projectToImmutable(action.project),
-                meta: action.metadata,
-                error: null,
-                componentsIndex: buildComponentsIndex(action.project)
-            });
+        case PROJECT_LOADED: {
+            return state
+                .merge({
+                    projectName: action.project.name,
+                    loadState: LOADED,
+                    data: projectToImmutable(action.project),
+                    error: null,
+                    componentsIndex: buildComponentsIndex(action.project)
+                })
+                .set('meta', action.metadata); // Prevent conversion to Immutable.Map
+        }
 
-        case PROJECT_LOAD_FAILED:
+        case PROJECT_LOAD_FAILED: {
             return state.merge({
                 loadState: LOAD_ERROR,
                 data: null,
@@ -210,8 +215,9 @@ export default (state = new ProjectState(), action) => {
                 error: action.error,
                 componentsIndex: Map()
             });
+        }
 
-        case PROJECT_ROUTE_CREATE:
+        case PROJECT_ROUTE_CREATE: {
             const reducer = (acc, route) =>
                 Math.max(route.id, route.children.reduce(reducer, acc));
 
@@ -227,14 +233,16 @@ export default (state = new ProjectState(), action) => {
                 ['data', 'routes'].concat(...action.where.map(idx => [idx, 'children'])),
                 routes => routes.push(newRoute)
             );
+        }
 
-        case PROJECT_ROUTE_DELETE:
+        case PROJECT_ROUTE_DELETE: {
             return state.updateIn(
                 ['data', 'routes'].concat(...action.where.map(idx => [idx, 'children'])),
                 routes => routes.delete(action.idx)
             );
+        }
 
-        case PROJECT_ROUTE_UPDATE_FIELD:
+        case PROJECT_ROUTE_UPDATE_FIELD: {
             return updateRouteField(
                 state,
                 action.where,
@@ -242,34 +250,56 @@ export default (state = new ProjectState(), action) => {
                 action.field,
                 action.newValue
             );
+        }
 
-        case PROJECT_COMPONENT_DELETE:
+        case PROJECT_COMPONENT_DELETE: {
             const componentIndexData = state.componentsIndex.get(action.id);
+            if (!componentIndexData) return state;
 
-            if (componentIndexData) {
-                state = deleteComponentIndex(state, action.id);
+            state = deleteComponentIndex(state, action.id);
 
-                const componentPath = componentIndexData.path,
-                    componentIndex = componentPath[componentPath.length - 1],
-                    component = state.getIn(['data', ...componentPath.slice(0, -1)]);
+            const componentPath = componentIndexData.path,
+                componentIndex = componentPath[componentPath.length - 1],
+                component = state.getIn(['data', ...componentPath.slice(0, -1)]);
 
-                if(List.isList(component)) {
-                    const componentsToShift = component.slice(componentIndex + 1);
+            if (List.isList(component)) {
+                const componentsToShift = component.slice(componentIndex + 1);
 
-                    if(componentsToShift.size) {
-                        componentsToShift.map((item) => {
-                            state = shiftComponentIndex(state, 
-                                item.id, componentPath.length - 1, v => v - 1);
-                        });
-                    }
+                if (componentsToShift.size) {
+                    componentsToShift.forEach(item => {
+                        state = shiftComponentIndex(
+                            state,
+                            item.id,
+                            componentPath.length - 1,
+                            v => v - 1
+                        );
+                    });
                 }
+            }
 
-                return state
-                    .deleteIn(['data', ...componentIndexData.path]);
-            }
-            else {
-                return state;
-            }
+            return state.deleteIn(['data', ...componentIndexData.path]);
+        }
+
+        case PROJECT_COMPONENT_UPDATE_PROP_VALUE: {
+            const componentIndexData = state.componentsIndex.get(action.componentId),
+                path = componentIndexData.path;
+
+            const newValue = new ProjectComponentProp({
+                source: action.newSource,
+                sourceData: propSourceDataToImmutable[action.newSource](
+                    action.newSourceData
+                )
+            });
+
+            return state.setIn(['data', ...path, 'props', action.propName], newValue);
+        }
+
+        case PROJECT_COMPONENT_RENAME: {
+            const componentIndexData = state.componentsIndex.get(action.componentId),
+                path = componentIndexData.path;
+
+            return state.setIn(['data', ...path, 'title'], action.newTitle);
+        }
 
         default:
             return state;

@@ -35,3 +35,11 @@ export const throttle = (fn, threshold) => {
         }
     };
 };
+
+/**
+ *
+ * @param {Object} object
+ * @param {function(value: *, key: string, object: Object)} fn
+ */
+export const objectForEach = (object, fn) =>
+    void Object.keys(object).forEach(key => void fn(object[key], key, object));

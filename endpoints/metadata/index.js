@@ -43,6 +43,12 @@ const propSchema = {
             required: false
         },
 
+        group: {
+            type: 'string',
+            allowEmpty: false,
+            required: false
+        },
+
         type: {
             type: 'string',
             allowEmpty: false,
@@ -299,6 +305,26 @@ const metaSchema = {
             required: false
         },
 
+        propGroups: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    name: {
+                        type: 'string',
+                        allowEmpty: false,
+                        required: true
+                    },
+                    textKey: {
+                        type: 'string',
+                        allowEmpty: false,
+                        required: true
+                    }
+                }
+            },
+            required: false
+        },
+
         types: Object.assign({ required: false }, typesSchema),
 
         strings: Object.assign({ required: false }, stringsSchema)
@@ -412,19 +438,19 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings) => {
     if (propMeta.textKey && !strings[propMeta.textKey])
         throw new Error(
             `Unknown string '${propMeta.textKey}' ` +
-            `in textKey of prop ${propName}`
+            `in textKey of prop '${propName}'`
         );
 
     if (propMeta.descriptionTextKey && !strings[propMeta.descriptionTextKey])
         throw new Error(
             `Unknown string '${propMeta.descriptionTextKey}' ` +
-            `in descriptionKey of prop ${propName}`
+            `in descriptionKey of prop '${propName}'`
         );
 
     if (propMeta.type === 'oneOf') {
         if (typeof propMeta.options === 'undefined') {
             throw new Error(
-                `Prop ${propName} of type 'oneOf' must have 'options' field`
+                `Prop '${propName}' of type 'oneOf' must have 'options' field`
             );
         }
 
@@ -434,7 +460,7 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings) => {
             if (!strings[optionTextKey])
                 throw new Error(
                     `Unknown string '${optionTextKey}' ` +
-                    `in options list of prop ${propName}`
+                    `in options list of prop '${propName}'`
                 );
         }
     }
@@ -442,7 +468,7 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings) => {
     if (propMeta.type === 'arrayOf') {
         if (typeof propMeta.ofType === 'undefined')
             throw new Error(
-                `Prop ${propName} of type 'arrayOf' must have 'ofType' field`
+                `Prop '${propName}' of type 'arrayOf' must have 'ofType' field`
             );
 
         checkAdditionalPropTypeData(propName + '.[]', propMeta.ofType, strings);
@@ -451,7 +477,7 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings) => {
     if (propMeta.type === 'shape') {
         if (typeof propMeta.fields === 'undefined')
             throw new Error(
-                `Prop ${propName} of type 'shape' must have 'fields' field`
+                `Prop '${propName}' of type 'shape' must have 'fields' field`
             );
 
         const fields = Object.keys(propMeta.fields);
@@ -469,7 +495,7 @@ const checkAdditionalTypedefTypeData = (typeName, typedef, strings) => {
     if (typedef.type === 'oneOf') {
         if (typeof typedef.options === 'undefined')
             throw new Error(
-                `Type ${typeName} (oneOf) must have 'options' field`
+                `Type '${typeName}' (oneOf) must have 'options' field`
             );
 
         for (let i = 0, l = typedef.options.length; i < l; i++) {
@@ -478,7 +504,7 @@ const checkAdditionalTypedefTypeData = (typeName, typedef, strings) => {
             if (!strings[optionTextKey])
                 throw new Error(
                     `Unknown string '${optionTextKey}' ` +
-                    `in options list of type ${typeName}`
+                    `in options list of type '${typeName}'`
                 );
         }
     }
@@ -486,7 +512,7 @@ const checkAdditionalTypedefTypeData = (typeName, typedef, strings) => {
     if (typedef.type === 'arrayOf') {
         if (typeof typedef.ofType === 'undefined')
             throw new Error(
-                `Type ${typeName} (arrayOf) must have 'ofType' field`
+                `Type '${typeName}' (arrayOf) must have 'ofType' field`
             );
 
         checkAdditionalPropTypeData('[]', typedef.ofType, strings);
@@ -495,7 +521,7 @@ const checkAdditionalTypedefTypeData = (typeName, typedef, strings) => {
     if (typedef.type === 'shape') {
         if (typeof typedef.fields === 'undefined')
             throw new Error(
-                `Type ${typeName} (shape) must have 'fields' field`
+                `Type '${typeName}' (shape) must have 'fields' field`
             );
 
         const fields = Object.keys(typedef.fields);
@@ -553,11 +579,33 @@ const readComponentMeta = metaDir => co(function* () {
 
     if (!meta.strings) meta.strings = (yield readStrings(metaDir)) || {};
     if (!meta.props) meta.props = {};
+    if (!meta.propGroups) meta.propGroups = [];
+
+    for (let i = 0, l = meta.propGroups.length; i < l; i++) {
+        if (!meta.strings[meta.propGroups[i].textKey]) {
+            throw new Error(
+                `Unknown string '${meta.propGroups[i].textKey}' ` +
+                `in prop groups list of component '${meta.displayName}'`
+            );
+        }
+    }
 
     const props = Object.keys(meta.props);
 
     for (let i = 0, l = props.length; i < l; i++) {
         const propMeta = meta.props[props[i]];
+
+        const groupIsOk =
+            !propMeta.group ||
+            meta.propGroups.some(group => group.name === propMeta.group);
+
+        if (!groupIsOk) {
+            throw new Error(
+                `Unknown props group '${propMeta.group}' ` +
+                `in prop '${props[i]}' ` +
+                `of component '${meta.displayName}'`
+            );
+        }
 
         if (internalTypes.has(propMeta.type)) {
             checkAdditionalPropTypeData(props[i], propMeta, meta.strings);

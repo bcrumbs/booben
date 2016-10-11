@@ -15,6 +15,10 @@ import {
 } from '../../components/Accordion/Accordion';
 
 import {
+    BlockContentBox
+} from '../../components/BlockContent/BlockContent';
+
+import {
     ComponentTag,
     ComponentTagWrapper
 } from '../../components/ComponentTag/ComponentTag';
@@ -23,36 +27,28 @@ import { setExpandedGroups } from '../../actions/components-library';
 
 import { List } from 'immutable';
 
+import { objectForEach } from '../../utils/misc';
+
 /**
  *
- * @param {Immutable.Map} meta
+ * @param {Object} meta
  * @return {Object[]}
  */
 const extractGroupsDataFromMeta = meta => {
     const groups = [],
         groupsByName = new Map();
 
-    meta.forEach(lib => {
-        const componentGroups = lib.get('componentGroups');
+    objectForEach(meta, lib => {
+        const componentGroups = lib.componentGroups;
 
-        componentGroups.forEach((groupData, groupName) => {
-            const fullName = `${lib.get('namespace')}.${groupName}`;
+        objectForEach(componentGroups, (groupData, groupName) => {
+            const fullName = `${lib.namespace}.${groupName}`;
 
             const group = {
                 name: fullName,
-
-                namespace: lib.get('namespace'),
-
-                text: lib
-                    .get('strings')
-                    .get(groupData.get('textKey'))
-                    .toJS(),
-
-                descriptionText: lib
-                    .get('strings')
-                    .get(groupData.get('descriptionTextKey'))
-                    .toJS(),
-
+                namespace: lib.namespace,
+                text: lib.strings[groupData.textKey],
+                descriptionText: lib.strings[groupData.descriptionTextKey],
                 isDefault: false,
                 components: []
             };
@@ -61,18 +57,18 @@ const extractGroupsDataFromMeta = meta => {
             groupsByName.set(fullName, group);
         });
 
-        const components = lib.get('components');
+        const components = lib.components;
 
-        components.forEach(component => {
+        objectForEach(components, component => {
             let defaultGroup = false,
                 groupName;
 
-            if (!component.get('group')) {
+            if (!component.group) {
                 defaultGroup = true;
-                groupName = `${lib.get('namespace')}.__default__`
+                groupName = `${lib.namespace}.__default__`
             }
             else {
-                groupName = `${lib.get('namespace')}.${component.get('group')}`
+                groupName = `${lib.namespace}.${component.group}`
             }
 
             let group;
@@ -80,7 +76,7 @@ const extractGroupsDataFromMeta = meta => {
             if (defaultGroup && !groupsByName.has(groupName)) {
                 group = {
                     name: groupName,
-                    namespace: lib.get('namespace'),
+                    namespace: lib.namespace,
                     text: null,
                     descriptionText: null,
                     isDefault: true,
@@ -95,18 +91,9 @@ const extractGroupsDataFromMeta = meta => {
             }
 
             group.components.push({
-                name: component.get('displayName'),
-
-                text: component
-                    .get('strings')
-                    .get(component.get('textKey'))
-                    .toJS(),
-
-                descriptionText: component
-                    .get('strings')
-                    .get(component.get('descriptionTextKey'))
-                    .toJS(),
-
+                name: component.displayName,
+                text: component.strings[component.textKey],
+                descriptionText: component.strings[component.descriptionTextKey],
                 iconURL: null
             });
         });
@@ -155,12 +142,14 @@ class ComponentsLibraryComponent extends Component {
         }));
 
         return (
-            <Accordion
-                single
-                items={accordionItems}
-                expandedItemIds={this.props.expandedGroups}
-                onExpandedItemsChange={this.props.onExpandedGroupsChange}
-            />
+            <BlockContentBox isBordered>
+                <Accordion
+                    single
+                    items={accordionItems}
+                    expandedItemIds={this.props.expandedGroups}
+                    onExpandedItemsChange={this.props.onExpandedGroupsChange}
+                />
+            </BlockContentBox>
         );
     }
 }
