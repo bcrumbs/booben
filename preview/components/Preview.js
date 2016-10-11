@@ -23,7 +23,8 @@ import {
 } from '../../app/actions/preview';
 
 import {
-    deleteComponent
+    deleteComponent,
+    componentAddAfter
 } from '../../app/actions/project';
 
 const OFFSET_DND_AVATAR = 10;
@@ -225,8 +226,14 @@ class Preview extends Component {
 
         this.dndFlag = false;
 
-        if(this.dndParams && this.currentOwnerId != this.dndParams.id) {
-            // write something here
+        if(this.dndParams) {
+            const sourceIndexData = this.props.componentsIndex.get(this.dndParams.id),
+                sourceComponent = this.props.project.getIn(sourceIndexData.path);
+
+            const targetIndexData = this.props.componentsIndex.get(this.currentOwnerId);
+
+            this.props.componentDeleteFromRoute(this.dndParams.id);
+            this.props.componentAddAfterToRoute(sourceComponent, targetIndexData.path);
         }
 
 
@@ -264,8 +271,6 @@ class Preview extends Component {
 
             this.domOverlay.appendChild(el);
             this.dndFlag = true;
-
-            this.props.componentDeleteFromRoute(this.dndParams.id);
 
             this.props.showRootComponent();
         }
@@ -426,9 +431,12 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     deselectComponent: selected => void dispatch(deselectPreviewComponent(selected)),
     selectComponent: selected => void dispatch(selectPreviewComponent(selected)),
-    highlightComponent: highlighted => void dispatch(highlightPreviewComponent(highlighted)),
-    unhighlightComponent: highlighted => void dispatch(unhighlightPreviewComponent(highlighted)),
-    componentDeleteFromRoute: (where) => void dispatch(deleteComponent(where)),
+    highlightComponent: highlighted => void dispatch(
+        highlightPreviewComponent(highlighted)),
+    unhighlightComponent: highlighted => void dispatch(
+        unhighlightPreviewComponent(highlighted)),
+    componentDeleteFromRoute: (id) => void dispatch(deleteComponent(id)),
+    componentAddAfterToRoute: (component) => void dispatch(componentAddAfter(component)),
     setRootComponent: component => void dispatch(setRootComponent(component)),
     unsetRootComponent: component => void dispatch(unsetRootComponent(component)),
     showRootComponent: () => void dispatch(showPreviewRootComponent()),

@@ -143,6 +143,33 @@ const buildComponentsIndex = project => {
     return Map(ret);
 };
 
+const deleteComponentsIndex = (state, id) => {
+    const curPath = state.componentsIndex.get(id).path,
+        component = state.getIn(['data', ...curPath]);
+
+    if(component.children) component.children.map((child) => {
+        state = deleteComponentsIndex(state, child.id);
+    });
+
+    return state.deleteIn(['componentsIndex', id]);
+};
+
+const shiftComponentIndex = (state, id, shiftPosition, mutation) => {
+    const curPath = state.componentsIndex.get(id).path,
+        component = state.getIn(['data', ...curPath]);
+
+    if(component.children) component.children.map((child) => {
+        state = shiftComponentIndex(state, child.id, shiftPosition, mutation);
+    });
+
+    return state.updateIn(['componentsIndex', id],
+        (item) => {
+            item.path[shiftPosition] = mutation(item.path[shiftPosition]);
+            return item;
+        }
+    )
+};
+
 const ProjectState = Record({
     projectName: '',
     loadState: NOT_LOADED,
@@ -219,33 +246,8 @@ export default (state = new ProjectState(), action) => {
         case PROJECT_COMPONENT_DELETE:
             const componentIndexData = state.componentsIndex.get(action.id);
 
-            const deleteIndexDependentComponent = (id) => {
-                const curPath = state.componentsIndex.get(id).path,
-                    component = state.getIn(['data', ...curPath]);
-
-                if(component.children) component.children.map(child =>
-                    deleteIndexDependentComponent(child.id));
-
-                state = state.deleteIn(['componentsIndex', id]);
-            }
-
-            const shiftComponentIndex = (id, shiftPosition) => {
-                const curPath = state.componentsIndex.get(id).path,
-                    component = state.getIn(['data', ...curPath]);
-
-                if(component.children) component.children.map(child =>
-                    shiftComponentIndex(child.id, shiftPosition));
-
-                state = state.updateIn(['componentsIndex', id],
-                    (item) => {
-                        item.path[shiftPosition] = item.path[shiftPosition] - 1;
-                        return item;
-                    }
-                )
-            }
-
             if (componentIndexData) {
-                deleteIndexDependentComponent(action.id);
+                state = deleteComponentsIndex(state, action.id);
 
                 const componentPath = componentIndexData.path,
                     componentIndex = componentPath[componentPath.length - 1],
@@ -256,7 +258,8 @@ export default (state = new ProjectState(), action) => {
 
                     if(componentsToShift.size) {
                         componentsToShift.map((item) => {
-                            shiftComponentIndex(item.id, componentPath.length - 1);
+                            state = shiftComponentIndex(state, 
+                                item.id, componentPath.length - 1, v => v - 1);
                         });
                     }
                 }

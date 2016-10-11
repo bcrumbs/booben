@@ -156,9 +156,10 @@ export const PROJECT_ROUTE_COMPONENT_ADD_BEFORE = 'PROJECT_ROUTE_COMPONENT_ADD_B
  * @param {number[]} where - index of component
  * @returns {Object}
  */
-export const componentAddBeforeToRoute = (whereSource) => ({
+export const componentAddBefore = (component, where) => ({
     type: PROJECT_ROUTE_COMPONENT_ADD_BEFORE,
-    whereSource
+    component,
+    where
 });
 
 /**
@@ -172,8 +173,9 @@ export const PROJECT_ROUTE_COMPONENT_ADD_AFTER = 'PROJECT_ROUTE_COMPONENT_ADD_AF
  * @param {number[]} where - index of component
  * @returns {Object}
  */
-export const componentAddAfterToRoute = (whereSource) => ({
+export const componentAddAfter = (component, where) => ({
     type: PROJECT_ROUTE_COMPONENT_ADD_AFTER,
-    whereSource
+    component,
+    where
 });
 
