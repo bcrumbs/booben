@@ -42,6 +42,11 @@ import {
 	ComponentLayoutSelectionItem
 } from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
+import {
+	ComponentActionEditing,
+	ComponentActionsList
+} from '../components/ComponentInteractions/ComponentInteractions';
+
 import { List, Set } from 'immutable';
 
 import ToolSectionRecord from '../models/ToolSection';
@@ -254,19 +259,6 @@ const toolComponentTemplatesWindowSections = List([
 						<ComponentLayoutSelectionItem image={"http://coolvibe.com/wp-content/uploads/2010/06/cosmos.jpg"} title={'2 equal parts, 1 full-height'} />
 					</ComponentLayoutSelection>
 				</BlockContentBoxItem>
-
-				<BlockContentBoxHeading>Component Regions</BlockContentBoxHeading>
-				<BlockContentBoxItem>
-					<PropsList>
-						<PropsItem type="toggle" label="Top" image={'http://img11.nnm.me/d/3/5/5/b/4d572a2fdc5b8c28cad40d9ca45.jpg'} subtreeOn>
-							<PropsList>
-								<PropsItem type="toggle" label="Always on screen"  />
-							</PropsList>
-						</PropsItem>
-						<PropsItem type="toggle" label="Middle" image={'http://img11.nnm.me/d/3/5/5/b/4d572a2fdc5b8c28cad40d9ca45.jpg'} />
-						<PropsItem type="toggle" label="Bottom" image={'http://img11.nnm.me/d/3/5/5/b/4d572a2fdc5b8c28cad40d9ca45.jpg'} />
-					</PropsList>
-				</BlockContentBoxItem>
 			</BlockContentBox>
 		)
 	})
@@ -292,22 +284,49 @@ const toolComponentLayoutWindowSections = List([
 	})
 ]);
 
-// const toolComponentTemplatesMainActions = List([
-// 	new ButtonRecord({
-// 		text: 'Save',
-// 		onPress: () => {}
-// 	})
-// ]);
-//
-// const toolComponentTemplatesSecondaryActions = List([
-// 	new ButtonRecord({
-// 		icon: 'trash-o',
-// 		onPress: () => {}
-// 	})
-// ]);
+// Component Props : Action Tab
+const componentActionsList = [
+	{
+		title: 'Tap',
+		description: 'Change "Component A" state to "State 1"'
+	},
+	{
+		title: 'Mouse Over',
+		description: 'Animate this: zoom in'
+	}
+];
+
+const toolComponentActionsWindowSections = List([
+	new ToolSectionRecord({
+		name: 'Route Editing',
+		component: () => (
+			<BlockContentBox isBordered flex>
+				<BlockContentBoxItem>
+					<ComponentActionEditing />
+				</BlockContentBoxItem>
+				<BlockContentBoxItem isBordered flexMain>
+					<ComponentActionsList items={componentActionsList}/>
+				</BlockContentBoxItem>
+			</BlockContentBox>
+		)
+	})
+]);
+
 
 export default List([
     List([
+	    new ToolRecord({
+		    id: 'tool8',
+		    icon: 'play',
+		    name: 'Action Tab Content',
+		    title: 'Action Tab Content',
+		    undockable: true,
+		    closable: false,
+		    sections: toolComponentActionsWindowSections,
+		    mainButtons: '',
+		    secondaryButtons: ''
+	    }),
+
 	    new ToolRecord({
 		    id: 'tool7',
 		    icon: 'cog',

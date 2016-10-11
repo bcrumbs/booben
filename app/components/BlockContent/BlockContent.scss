@@ -140,6 +140,7 @@
 
 		&.display-flex {
 			display: flex;
+			flex-direction: column;
 		}
 	}
 
@@ -184,6 +185,8 @@
 		&:not(.is-bordered) + .block-content-box-heading {
 			margin-top: $bcontent-box-header-top - $bcontent-box-pad-y;
 		}
+
+		&.flex-main { flex-grow: 1 }
 	}
 
 	// CONTENT PLACEHOLDER
