@@ -20,6 +20,7 @@ import {
     HeaderLogoBox,
     HeaderMenu,
 	HeaderMenuList,
+	MenuGroup,
     HeaderMenuItem,
     Footer,
     FooterRegion,
@@ -48,6 +49,51 @@ import { Desktop } from '../containers/Desktop/Desktop';
 
 import toolGroups from '../tools/playground';
 
+const headerMainMenu = [
+	{
+		text: "Structure"
+	},
+	{
+		text: "Design"
+	},
+	{
+		text: "Data",
+		isActive: true,
+		submenuList: [
+			{
+				text: "User Route: Route 1"
+			},
+			{
+				text: "User Route: Route 2"
+			}
+		]
+	},
+	{
+		text: "Settings"
+	}
+];
+const headerMenuSecondary = [
+	{
+		text: "Preview"
+	},
+	{
+		text: "Publish"
+	}
+];
+const footerMenuRight = [
+	{
+		text: "Show component's title",
+		subcomponentRight: '<ToggleButton />'
+	},
+	{
+		text: "Show placeholders",
+		subcomponentRight: '<ToggleButton />'
+	},
+	{
+		text: "Toggle fullscreen"
+	}
+];
+
 export default class Playground extends React.Component {
     render() {
         return (
@@ -60,23 +106,14 @@ export default class Playground extends React.Component {
 
                         <HeaderRegion region="main" size='blank'>
                             <HeaderMenu inline={true}  dense={true}>
-
-	                                <HeaderMenuItem text="Structure" />
-	                                <HeaderMenuItem text="Design">
-	                                    <HeaderMenuItem text="User Route 1: index" />
-	                                    <HeaderMenuItem text="User Route 2: aerial" />
-	                                </HeaderMenuItem>
-	                                <HeaderMenuItem text="Data" isActive={true}/>
-	                                <HeaderMenuItem text="Settings" />
-
+	                            <MenuGroup data={headerMainMenu} />
                             </HeaderMenu>
                         </HeaderRegion>
 
                         <HeaderRegion size='blank'>
-                            <HeaderMenu inline={true}  dense={true}>
-                                <HeaderMenuItem text="Preview" />
-                                <HeaderMenuItem text="Publish" />
-                            </HeaderMenu>
+	                        <HeaderMenu inline={true}  dense={true}>
+		                        <MenuGroup data={headerMenuSecondary} />
+	                        </HeaderMenu>
                         </HeaderRegion>
                     </Header>
                 </TopRegion>
@@ -153,9 +190,7 @@ export default class Playground extends React.Component {
                         </FooterRegion>
                         <FooterRegion size='blank'>
                             <FooterMenu inline={true}  dense={true}>
-                                <FooterMenuItem text="Show component's title" subcomponentRight={<ToggleButton />} />
-                                <FooterMenuItem text="Show placeholders" subcomponentRight={<ToggleButton />}/>
-                                <FooterMenuItem text="Toggle Full Screen"/>
+	                            <MenuGroup data={footerMenuRight} />
                             </FooterMenu>
                         </FooterRegion>
                     </Footer>

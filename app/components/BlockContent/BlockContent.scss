@@ -164,6 +164,7 @@
 
 	.block-content-box-item {
 		padding: $bcontent-box-pad-y $bcontent-box-pad-x;
+		flex-shrink: 0;
 
 		&:last-of-type { padding-bottom: $bcontent-box-pad-y-last; }
 
