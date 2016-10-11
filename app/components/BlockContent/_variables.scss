@@ -4,7 +4,7 @@
 // =====================================================================================================================
 // BASE VARIABLES
 // =====================================================================================================================
-$bcontent-base-pad-y:           $base-module*1.5 !default;
+$bcontent-base-pad-y:           $base-module*2 !default;
 $bcontent-base-pad-x:           $base-module*2 !default;
 
 // =====================================================================================================================
@@ -21,7 +21,7 @@ $bcontent-title-elements-space-x:   $base-module !default;
 $bcontent-title-area-bg-color:      transparent !default;
 $bcontent-title-area-border-color:  $color-border !default;
 
-$bcontent-title-font-size:          fs(1) !default;
+$bcontent-title-font-size:          fs(2) !default;
 $bcontent-title-line-height:        $base-module*3/$bcontent-title-font-size !default;
 $bcontent-title-color:              $txt-body-color !default;
 $bcontent-title-font-weight:        $font-weight-normal !default;
