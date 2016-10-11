@@ -252,6 +252,37 @@ export default (state = new ProjectState(), action) => {
             );
         }
 
+        case PROJECT_ROUTE_COMPONENT_ADD_AFTER: {
+            const targetIndexData = state.componentsIndex.get(action.targetId),
+                targetPath = targetIndexData.path,
+                targetIndex = targetPath.slice(-1)[0],
+                componentList = state.getIn(['data', ...targetPath.slice(0, -1)]);
+
+            let part0 = componentList.slice(0, targetIndex + 1);
+            let part1 = componentList.slice(targetIndex + 1);
+
+            const newValue = part0.push(action.component).concat(part1);
+
+            if (part1.size) {
+                part1.map((item) => {
+                    state = shiftComponentIndex(state,
+                        item.id, targetPath.length - 1, v => v + 1);
+                })
+            }
+
+            const componentIndexImage = state.getIn(
+                ["componentsIndex", action.targetId]
+            );
+
+            return state
+                .setIn(['data', ...targetPath.slice(0, -1)], newValue)
+                .setIn(["componentsIndex", action.component.id], {
+                    path: componentIndexImage.path.slice(0, -1).concat(componentIndexImage.path.slice(-1)[0] + 1),
+                    routeId: componentIndexImage.routeId,
+                    isIndexRoute: componentIndexImage.isIndexRoute
+                });
+        }
+
         case PROJECT_COMPONENT_DELETE: {
             const componentIndexData = state.componentsIndex.get(action.id);
             if (!componentIndexData) return state;
@@ -259,7 +290,7 @@ export default (state = new ProjectState(), action) => {
             state = deleteComponentIndex(state, action.id);
 
             const componentPath = componentIndexData.path,
-                componentIndex = componentPath[componentPath.length - 1],
+                componentIndex = componentPath.slice(-1)[0],
                 component = state.getIn(['data', ...componentPath.slice(0, -1)]);
 
             if (List.isList(component)) {

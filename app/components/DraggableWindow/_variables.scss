@@ -4,9 +4,12 @@
 // =====================================================================================================================
 // BASE VARIABLES
 // =====================================================================================================================
+$dragwindow-min-height:         rem-calc(300) !default;
+
 $dragwindow-bg-color:           $white !default;
 $dragwindow-border-radius:      $global-radius !default;
 
+$dragwindow-section-max-width:  rem-calc(360) !default;
 $dragwindow-section-max-width:  rem-calc(360) !default;
 $dragwindow-section-margins:    $base-module/2 !default;
 

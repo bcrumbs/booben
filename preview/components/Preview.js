@@ -200,6 +200,8 @@ class Preview extends Component {
     }
 
     _handleStopDrag(event) {
+        event.stopPropagation();
+
         this.domNode.removeEventListener('mousemove', this._handleDrag);
         this.domNode.removeEventListener('mouseup', this._handleStopDrag);
         window.top.removeEventListener('mouseup', this._handleStopDrag);
@@ -211,15 +213,18 @@ class Preview extends Component {
         this.dndFlag = false;
 
         if(this.dndParams) {
-            const sourceIndexData = this.props.componentsIndex.get(this.dndParams.id),
-                sourceComponent = this.props.project.getIn(sourceIndexData.path);
+            const componentIndexData = this.props.componentsIndex.get(this.dndParams.sourceId),
+                component = this.props.project.getIn(componentIndexData.path);
 
-            const targetIndexData = this.props.componentsIndex.get(this.currentOwnerId);
+            const el = event.target,
+                owner = getDomOwner(el, item => item.getAttribute("data-jssy-id")),
+                id = this._getComponentId(owner);
 
-            this.props.componentDeleteFromRoute(this.dndParams.id);
-            this.props.componentAddAfterToRoute(sourceComponent, targetIndexData.path);
+            this.props.componentDeleteFromRoute(this.dndParams.sourceId);
+            this.props.componentAddAfterToRoute(component, id);
+
+            this.props.unhighlightComponent(id);
         }
-
 
         if (this.animationFrame !== null) {
             window.cancelAnimationFrame(this.animationFrame);
@@ -238,10 +243,10 @@ class Preview extends Component {
         }
 
         if (!this.dndFlag) {
-            const componentIndexData = this.props.componentsIndex.get(this.dndParams.id),
+            const componentIndexData = this.props.componentsIndex.get(this.dndParams.sourceId),
                 component = this.props.project.getIn(componentIndexData.path);
 
-            var el = this.dndParams.el;
+            const el = this.dndParams.el;
             el.innerHTML = component.name;
 
             el.style.position = 'absolute';
@@ -282,7 +287,9 @@ class Preview extends Component {
     }
 
     _handleMouseClickEvent(event) {
-        const id = this.currentOwnerId;
+        const el = event.target,
+            owner = getDomOwner(el, item => item.getAttribute("data-jssy-id")),
+            id = this._getComponentId(owner);
 
         if (id === null || !this._componentIsInCurrentRoute(id)) return;
 
@@ -291,7 +298,9 @@ class Preview extends Component {
     }
 
     _handleMouseOutEvent(event) {
-        const id = this.currentOwnerId;
+        const el = event.target,
+            owner = getDomOwner(el, item => item.getAttribute("data-jssy-id")),
+            id = this._getComponentId(owner);
 
         if (id === null || !this._componentIsInCurrentRoute(id)) return;
 
@@ -302,14 +311,16 @@ class Preview extends Component {
     _handleMouseDownEvent(event) {
         if (event.which != 1 || !event.ctrlKey) return;
 
-        const id = this.currentOwnerId;
+        const el = event.target,
+            owner = getDomOwner(el, item => item.getAttribute("data-jssy-id")),
+            id = this._getComponentId(owner);
 
         if (id === null || !this._componentIsInCurrentRoute(id)) return;
 
         event.preventDefault();
 
         this.dndParams.el = document.createElement('div');
-        this.dndParams.id = id;
+        this.dndParams.sourceId = id;
         this.dndParams.dragStartX = event.pageX;
         this.dndParams.dragStartY = event.pageY;
 
@@ -417,7 +428,7 @@ const mapDispatchToProps = dispatch => ({
     unhighlightComponent: highlighted => void dispatch(
         unhighlightPreviewComponent(highlighted)),
     componentDeleteFromRoute: (id) => void dispatch(deleteComponent(id)),
-    componentAddAfterToRoute: (component) => void dispatch(componentAddAfter(component)),
+    componentAddAfterToRoute: (component, targetId) => void dispatch(componentAddAfter(component, targetId)),
     setRootComponent: component => void dispatch(setRootComponent(component)),
     unsetRootComponent: component => void dispatch(unsetRootComponent(component)),
     showRootComponent: () => void dispatch(showPreviewRootComponent()),
