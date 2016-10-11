@@ -112,7 +112,7 @@ const buildComponentsIndex = project => {
         ret[component.id] = { path, routeId, isIndexRoute };
 
         component.children.forEach((child, idx) =>
-            void visitComponent(child, routeId, [].concat(path, 'children', idx)));
+            void visitComponent(child, routeId, [].concat(path, 'children', idx), isIndexRoute));
     };
 
     const visitRoute = (route, path) => {
