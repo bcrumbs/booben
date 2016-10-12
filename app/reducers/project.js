@@ -343,7 +343,7 @@ export default (state = new ProjectState(), action) => {
 
         case PROJECT_COMPONENT_UPDATE_PROP_VALUE: {
             const componentIndexData = state.componentsIndex.get(action.componentId),
-                path = componentIndexData.get('path');
+                path = componentIndexData.path;
 
             const newValue = new ProjectComponentProp({
                 source: action.newSource,
@@ -357,7 +357,7 @@ export default (state = new ProjectState(), action) => {
 
         case PROJECT_COMPONENT_RENAME: {
             const componentIndexData = state.componentsIndex.get(action.componentId),
-                path = componentIndexData.get('path');
+                path = componentIndexData.path;
 
             return state.setIn(['data', ...path, 'title'], action.newTitle);
         }
