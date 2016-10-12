@@ -1,4 +1,8 @@
+'use strict';
+
 import './ComponentPlaceholder.scss';
+
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 
 export const ComponentPlaceholder = props => {
@@ -9,13 +13,13 @@ export const ComponentPlaceholder = props => {
 	if (props.title) {
 		content =
 			<div className='component-placeholder-title'>
-				{ props.title }
+				{props.title}
 			</div>
 	}
 
     return (
         <div className={className}>
-	        { content }
+	        {content}
         </div>
     );
 };

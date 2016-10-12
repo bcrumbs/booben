@@ -8,7 +8,6 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Record, Map } from 'immutable';
 
 import Builder from './Builder';
-import { getDomOwner } from '../utils';
 
 import {
     selectPreviewComponent,
@@ -46,11 +45,8 @@ class Preview extends Component {
         this.needRAF = true;
         this.currentRouteId = null;
         this.rootComponentIds = this._gatherRootComponentIds(props.project.routes);
-        this.currentOwnerId = null;
-
         this._nextRouterKey = 0;
 
-        this._handleResizeEvent = this._handleResizeEvent.bind(this);
         this._handleDrag = this._handleDrag.bind(this);
         this._handleStartDrag = this._handleStartDrag.bind(this);
         this._handleStopDrag = this._handleStopDrag.bind(this);
@@ -59,13 +55,14 @@ class Preview extends Component {
         this._handleMouseOverEvent = this._handleMouseOverEvent.bind(this);
         this._handleMouseOutEvent = this._handleMouseOutEvent.bind(this);
         this._handleMouseDownEvent = this._handleMouseDownEvent.bind(this);
+        this._handleMouseClickEvent = this._handleMouseClickEvent.bind(this);
     }
 
     componentDidMount() {
         this.domNode = document.getElementById('container');
         this.domOverlay = this.props.domOverlay;
 
-        if(this.props.interactive) {
+        if (this.props.interactive) {
             const domNode = this.domNode;
 
             domNode.addEventListener('mouseover', this._handleMouseOverEvent, false);
@@ -73,15 +70,22 @@ class Preview extends Component {
             domNode.addEventListener('dragleave', this._handleMouseOutEvent, false);
             domNode.addEventListener('mouseout', this._handleMouseOutEvent, false);
             domNode.addEventListener('mousedown', this._handleMouseDownEvent, false);
-            window.addEventListener('resize', this._handleResizeEvent, false);
+            domNode.addEventListener('click', this._handleMouseClickEvent, false);
 
             this._setRootComponent();
         }
     }
 
-    componentDidUpdate(prevProps, prevState) {
-        if (prevProps.project !== this.props.project)
-            this._setRootComponent();
+    componentWillReceiveProps(nextProps) {
+        this.rootComponentIds = this._gatherRootComponentIds(nextProps.project.routes);
+    }
+
+    shouldComponentUpdate(nextProps) {
+        return nextProps.project !== this.props.project;
+    }
+
+    componentDidUpdate(prevProps) {
+        if (prevProps.project !== this.props.project) this._setRootComponent();
     }
 
     componentWillUnmount() {
@@ -93,19 +97,10 @@ class Preview extends Component {
             domNode.removeEventListener('dragleave', this._handleMouseOutEvent, false);
             domNode.removeEventListener('mouseout', this._handleMouseOutEvent, false);
             domNode.removeEventListener('mousedown', this._handleMouseDownEvent, false);
-            window.removeEventListener('resize', this._handleResizeEvent, false);
         }
 
         this.domNode = null;
         this.domOverlay = null;
-    }
-
-    componentWillReceiveProps(nextProps) {
-        this.rootComponentIds = this._gatherRootComponentIds(nextProps.project.routes);
-    }
-
-    shouldComponentUpdate(nextProps) {
-        return nextProps.project !== this.props.project;
     }
 
     _gatherRootComponentIds(routes) {
@@ -130,9 +125,16 @@ class Preview extends Component {
             : rootComponentIds.componentId
     }
 
-    _getComponentId(el) {
-        const dataJssyId = el.getAttribute('data-jssy-id');
-        return dataJssyId ? parseInt(dataJssyId, 10) : null;
+    _getComponentIdByElement(el) {
+        let current = el;
+        
+        while (current) {
+            const dataJssyId = current.getAttribute('data-jssy-id');
+            if (dataJssyId) return parseInt(dataJssyId, 10);
+            current = current.parentNode;
+        }
+        
+        return null;
     }
 
     _setRootComponent() {
@@ -145,39 +147,23 @@ class Preview extends Component {
         this.props.setRootComponent(rootComponentId);
     }
 
-    _handleResizeEvent() {}
-
     /**
-     * Get array of selected components
      *
-     * @param  {function} el
-     * @param  {string} id
+     * @param  {string} componentId
      */
-    _updateSelected(id) {
-        if (this.props.selected.has(id)) {
-            this.props.deselectComponent(id);
-        } else {
-            this.props.selectComponent(id)
+    _updateSelected(componentId) {
+        if (this.props.selected.has(componentId)) {
+            this.props.deselectComponent(componentId);
+        }
+        else {
+            this.props.selectComponent(componentId);
         }
     }
 
-    /**
-     * Get array of highlighted components
-     *
-     * @param  {string} id
-     */
-    _updateHighlighted(id) {
-        if (this.props.highlighted.has(id)) {
-            this.props.unhighlightComponent(id);
-        } else {
-            this.props.highlightComponent(id);
-        }
-    }
+    _componentIsInCurrentRoute(componentId) {
+        if(!this.props.componentsIndex.has(componentId)) return false;
 
-    _componentIsInCurrentRoute(id) {
-        if(!this.props.componentsIndex.has(id)) return false;
-
-        const componentIndexData = this.props.componentsIndex.get(id);
+        const componentIndexData = this.props.componentsIndex.get(componentId);
 
         return componentIndexData.routeId === this.currentRouteId &&
             componentIndexData.isIndexRoute === this.props.currentRouteIsIndexRoute;
@@ -193,8 +179,8 @@ class Preview extends Component {
         this.needRAF = true;
     }
 
-    _handleStartDrag(event) {
-        if(this.dndFlag) return;
+    _handleStartDrag() {
+        if (this.dndFlag) return;
 
         this.domNode.addEventListener('mousemove', this._handleDrag);
         this.domNode.addEventListener('mouseup', this._handleStopDrag);
@@ -210,24 +196,22 @@ class Preview extends Component {
 
         this.props.hideRootComponent();
 
-        if(!this.dndFlag) return;
+        if (!this.dndFlag) return;
 
         this.dndFlag = false;
 
-        if(this.dndParams) {
-            const componentIndexData = this.props.componentsIndex.get(this.dndParams.sourceId),
-                component = this.props.project.getIn(componentIndexData.path);
+        if (this.dndParams) {
+            const sourceComponentId = this.dndParams.sourceId,
+                componentIndexData = this.props.componentsIndex.get(sourceComponentId),
+                component = this.props.project.getIn(componentIndexData.path),
+                targetComponentId = this._getComponentIdByElement(event.target);
 
-            const el = event.target,
-                owner = getDomOwner(el, item => item.getAttribute("data-jssy-id")),
-                id = this._getComponentId(owner);
-
-            if(this._componentIsInCurrentRoute(id)) {
+            if (this._componentIsInCurrentRoute(targetComponentId)) {
                 this.props.componentDeleteFromRoute(this.dndParams.sourceId);
-                this.props.componentAddBeforeToRoute(component, id);
+                this.props.componentAddBeforeToRoute(component, targetComponentId);
             }
 
-            this.props.unhighlightComponent(id);
+            this.props.unhighlightComponent(targetComponentId);
         }
 
         if (this.animationFrame !== null) {
@@ -242,9 +226,7 @@ class Preview extends Component {
         const moveX = event.pageX - this.dndParams.dragStartX,
             moveY = event.pageY - this.dndParams.dragStartY;
 
-        if ( Math.abs(moveX) < 10 && Math.abs(moveY) < 10 ) {
-            return;
-        }
+        if (Math.abs(moveX) < 10 && Math.abs(moveY) < 10) return;
 
         if (!this.dndFlag) {
             const componentIndexData = this.props.componentsIndex.get(this.dndParams.sourceId),
@@ -280,51 +262,38 @@ class Preview extends Component {
     }
 
     _handleMouseOverEvent(event) {
-        const el = event.target,
-            owner = getDomOwner(el, item => item.getAttribute("data-jssy-id")),
-            id = this._getComponentId(owner);
+        const componentId = this._getComponentIdByElement(event.target);
 
-        if(!this._componentIsInCurrentRoute(id)) return;
-        this._updateHighlighted(id);
-
-        this.currentOwnerId = id;
-    }
-
-    _handleMouseClickEvent(event) {
-        const el = event.target,
-            owner = getDomOwner(el, item => item.getAttribute("data-jssy-id")),
-            id = this._getComponentId(owner);
-
-        if (id === null || !this._componentIsInCurrentRoute(id)) return;
-
-        if(!event.ctrlKey) return;
-        this._updateSelected(id);
+        if (componentId !== null && this._componentIsInCurrentRoute(componentId))
+            this.props.highlightComponent(componentId);
     }
 
     _handleMouseOutEvent(event) {
-        const el = event.target,
-            owner = getDomOwner(el, item => item.getAttribute("data-jssy-id")),
-            id = this._getComponentId(owner);
+        const componentId = this._getComponentIdByElement(event.target);
 
-        if (id === null || !this._componentIsInCurrentRoute(id)) return;
+        if (componentId !== null && this._componentIsInCurrentRoute(componentId))
+            this.props.unhighlightComponent(componentId);
+    }
 
-        this._updateHighlighted(id);
-        this.currentOwnerId = null;
+    _handleMouseClickEvent(event) {
+        if (!event.ctrlKey) return;
+
+        const componentId = this._getComponentIdByElement(event.target);
+
+        if (componentId !== null && this._componentIsInCurrentRoute(componentId))
+            this._updateSelected(componentId);
     }
 
     _handleMouseDownEvent(event) {
         if (event.which != 1 || !event.ctrlKey) return;
 
-        const el = event.target,
-            owner = getDomOwner(el, item => item.getAttribute("data-jssy-id")),
-            id = this._getComponentId(owner);
-
-        if (id === null || !this._componentIsInCurrentRoute(id)) return;
+        const componentId = this._getComponentIdByElement(event.target);
+        if (componentId === null || !this._componentIsInCurrentRoute(componentId)) return;
 
         event.preventDefault();
 
         this.dndParams.el = document.createElement('div');
-        this.dndParams.sourceId = id;
+        this.dndParams.sourceId = componentId;
         this.dndParams.dragStartX = event.pageX;
         this.dndParams.dragStartY = event.pageY;
 

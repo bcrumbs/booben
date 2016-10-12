@@ -156,9 +156,7 @@ class ComponentsLibraryComponent extends Component {
 
 ComponentsLibraryComponent.propTypes = {
     meta: PropTypes.object,
-    selectedComponentUids: ImmutablePropTypes.setOf(
-        PropTypes.string
-    ),
+    selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     language: PropTypes.string,
     onExpandedGroupsChange: PropTypes.func
 };
@@ -167,7 +165,7 @@ ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
 
 const mapStateToProps = state => ({
     meta: state.project.meta,
-    selectedComponentUids: state.preview.selectedItems,
+    selectedComponentIds: state.preview.selectedItems,
     expandedGroups: state.componentsLibrary.expandedGroups,
     language: state.app.language
 });
