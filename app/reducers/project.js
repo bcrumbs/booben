@@ -156,7 +156,7 @@ const deepDeleteComponentIndex = (state, id) => {
     return state.deleteIn(['componentsIndex', id]);
 };
 
-const deepShiftComponentIndex = (state, id, parentPath, mutation) => {
+const deepShiftComponentIndex = (state, id, newPathContaining, mutation) => {
     const curPath = state.componentsIndex.get(id).path,
         component = state.getIn(['data', ...curPath]);
 
@@ -164,18 +164,16 @@ const deepShiftComponentIndex = (state, id, parentPath, mutation) => {
         state = deepShiftComponentIndex(
             state,
             child.id,
-            parentPath,
+            newPathContaining,
             mutation
         );
     });
 
     return state.updateIn(['componentsIndex', id],
         (item) => {
-            debugger;
-            item.path = parentPath.concat(item.path.slice(parentPath.length));
+            item.path[newPathContaining.length] = mutation(
+                item.path[newPathContaining.length]);
 
-            item.path[parentPath.length] = mutation(
-                item.path[parentPath.length]);
             return item;
         }
     )
