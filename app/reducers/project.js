@@ -148,7 +148,7 @@ const deepDeleteComponentIndex = (state, id) => {
     const curPath = state.componentsIndex.get(id).path,
         component = state.getIn(['data', ...curPath]);
 
-    if(component.children.size) component.children.map((child) => {
+    if(component.children.size) component.children.forEach((child) => {
         state = deepDeleteComponentIndex(state, child.id);
     });
 
@@ -159,12 +159,8 @@ const deepShiftComponentIndex = (state, id, basePath) => {
     const curPath = state.componentsIndex.get(id).path,
         component = state.getIn(['data', ...curPath]);
 
-    if(component && component.children.size) component.children.map((child) => {
-        state = deepShiftComponentIndex(
-            state,
-            child.id,
-            basePath
-        );
+    if(component && component.children.size) component.children.forEach((child) => {
+        state = deepShiftComponentIndex(state, child.id, basePath);
     });
 
     return state.updateIn(['componentsIndex', id],
@@ -175,11 +171,23 @@ const deepShiftComponentIndex = (state, id, basePath) => {
     )
 };
 
-const deepSetComponentIndex = (state, id, componentIndexImage) => {
-    state = state.setIn(["componentsIndex", id], {
+const deepSetComponentIndex = (state, component, componentIndexImage) => {
+    state = state.setIn(["componentsIndex", component.id], {
         path: componentIndexImage.path,
         routeId: componentIndexImage.routeId,
         isIndexRoute: componentIndexImage.isIndexRoute
+    });
+
+    if(component && component.children.size) component.children.forEach((child, i) => {
+        state = deepSetComponentIndex(
+            state,
+            child,
+            {
+                path: componentIndexImage.path.concat('children', i),
+                routeId: componentIndexImage.routeId,
+                isIndexRoute: componentIndexImage.isIndexRoute
+            }
+        );
     });
 
     return state;
@@ -305,8 +313,15 @@ export default (state = new ProjectState(), action) => {
             const targetPath = state.componentsIndex.getIn([action.targetId]).path,
                 componentList = state.getIn(['data', ...targetPath, 'children']);
 
-            let part0 = componentList.slice(0, action.position + 1);
-            let part1 = componentList.slice(action.position + 1);
+            let part0, part1;
+
+            if(action.position !== null) {
+                part0 = componentList.slice(0, action.position + 1);
+                part1 = componentList.slice(action.position + 1);
+            } else {
+                part0 = List();
+                part1 = componentList;
+            }
 
             const newValue = part0.push(component).concat(part1);
 
@@ -327,10 +342,11 @@ export default (state = new ProjectState(), action) => {
                 ["componentsIndex", action.targetId]
             );
 
-            state = deepSetComponentIndex(state, action.sourceId, {
+            state = deepSetComponentIndex(state, component, {
                 isIndexRoute: componentIndexImage.isIndexRoute,
                 routeId: componentIndexImage.routeId,
-                path: targetPath.concat('children', action.position + 1)
+                path: targetPath.concat('children', 
+                    action.position !== null && action.position + 1 || 0)
             });
 
             return state
