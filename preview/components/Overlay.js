@@ -16,8 +16,8 @@ class Overlay extends Component {
         return getContainer().querySelector(`[data-jssy-id="${id}"]`);
     }
 
-    _getItems(ids, color, zIndex) {
-        return ids.map(id => {
+    _getItems(componentIds, color, zIndex) {
+        return componentIds.map(id => {
             const el = this._getDOMElementByComponentId(id);
             if (!el) return null;
 
@@ -99,11 +99,14 @@ class Overlay extends Component {
             zIndex: 999,
         };
 
-        const highlightBoxes = this._getItems(this.props.highlighted, 'yellow'),
-            selectBoxes = this._getItems(this.props.selected, 'green');
+        const highlightBoxes = this.props.highlightingEnabled
+            ? this._getItems(this.props.highlightedComponentIds, 'yellow')
+            : null;
 
-        const rootComponentBox = this.props.rootComponentVisible
-            ? this._getItems(this.props.rootComponent, 'red')
+        const selectBoxes = this._getItems(this.props.selectedComponentIds, 'green');
+
+        const rootComponentBox = this.props.boundaryComponentId !== null
+            ? this._getItems(Set([this.props.boundaryComponentId]), 'red')
             : null;
 
         return (
@@ -117,24 +120,17 @@ class Overlay extends Component {
 }
 
 Overlay.propTypes = {
-    selected: ImmutablePropTypes.set,
-    highlighted: ImmutablePropTypes.set,
-    rootComponent: ImmutablePropTypes.set,
-    rootComponentVisible: PropTypes.bool
-};
-
-Overlay.defaultProps = {
-    selected: Set(),
-    highlighted: Set(),
-    rootComponent: Set(),
-    rootComponentVisible: false
+    selectedComponentIds: ImmutablePropTypes.set,
+    highlightedComponentIds: ImmutablePropTypes.set,
+    boundaryComponentId: PropTypes.any,
+    highlightingEnabled: PropTypes.bool
 };
 
 const mapStateToProps = state => ({
-    selected: state.preview.selectedItems,
-    highlighted: state.preview.highlightedItems,
-    rootComponent: state.preview.rootComponent,
-    rootComponentVisible: state.preview.rootComponentVisible
+    selectedComponentIds: state.preview.selectedItems,
+    highlightedComponentIds: state.preview.highlightedItems,
+    boundaryComponentId: state.preview.boundaryComponentId,
+    highlightingEnabled: state.preview.highlightingEnabled
 });
 
 export default connect(

@@ -3,62 +3,87 @@
 import { Record, Set } from 'immutable';
 
 import {
-    DESELECT_PREVIEW_COMPONENT,
-    SELECT_PREVIEW_COMPONENT,
-    HIGHLIGHT_PREVIEW_COMPONENT,
-    UNHIGHLIGHT_PREVIEW_COMPONENT,
-    SET_ROOT_COMPONENT,
-    UNSET_ROOT_COMPONENT,
-    SHOW_ROOT_COMPONENT,
-    HIDE_ROOT_COMPONENT,
-    SET_IS_INDEX_ROUTE
+    PREVIEW_SELECT_COMPONENT,
+    PREVIEW_DESELECT_COMPONENT,
+    PREVIEW_TOGGLE_COMPONENT_SELECTION,
+    PREVIEW_HIGHLIGHT_COMPONENT,
+    PREVIEW_UNHIGHLIGHT_COMPONENT,
+    PREVIEW_TOGGLE_HIGHLIGHTING,
+    PREVIEW_SET_BOUNDARY_COMPONENT,
+    PREVIEW_SET_IS_INDEX_ROUTE,
+    PREVIEW_START_DRAG_COMPONENT,
+    PREVIEW_STOP_DRAG_COMPONENT
 } from '../actions/preview';
 
 const PreviewState = Record({
     selectedItems: Set(),
     highlightedItems: Set(),
-    rootComponent: Set(),
-    rootComponentVisible: false,
-    currentRouteIsIndexRoute: false
+    highlightingEnabled: true,
+    boundaryComponentId: null,
+    currentRouteIsIndexRoute: false,
+    draggingComponent: false,
+    draggedComponentId: null,
+    draggedComponentName: ''
 });
 
 export default (state = new PreviewState(), action) => {
     switch (action.type) {
-        case HIGHLIGHT_PREVIEW_COMPONENT:
-            return state.update('highlightedItems', set => set.add(action.component));
+        case PREVIEW_HIGHLIGHT_COMPONENT:
+            return state.update('highlightedItems', set => set.add(action.componentId));
 
-        case UNHIGHLIGHT_PREVIEW_COMPONENT:
-            return state.update('highlightedItems', set => set.delete(action.component));
+        case PREVIEW_UNHIGHLIGHT_COMPONENT:
+            return state.update('highlightedItems', set => set.delete(action.componentId));
 
-        case SELECT_PREVIEW_COMPONENT:
-            if (action.exclusive) {
-                return state.set('selectedItems', Set([action.component]));
+        case PREVIEW_TOGGLE_HIGHLIGHTING: {
+            if (state.highlightingEnabled === action.enable) {
+                return state;
             }
             else {
-                return state.update('selectedItems', set => set.add(action.component));
+                return state.merge({
+                    highlightingEnabled: action.enable,
+                    highlightedItems: Set()
+                });
+            }
+        }
+
+        case PREVIEW_SELECT_COMPONENT:
+            if (action.exclusive) {
+                return state.set('selectedItems', Set([action.componentId]));
+            }
+            else {
+                return state.update('selectedItems', set => set.add(action.componentId));
             }
 
-        case DESELECT_PREVIEW_COMPONENT:
-            return state.update('selectedItems', set => set.delete(action.component));
+        case PREVIEW_DESELECT_COMPONENT:
+            return state.update('selectedItems', set => set.delete(action.componentId));
 
-        case SET_ROOT_COMPONENT:
-            return state.merge({
-                rootComponent: state.get('rootComponent').add(action.component)
-            });
+        case PREVIEW_TOGGLE_COMPONENT_SELECTION: {
+            const updater = state.selectedItems.has(action.componentId)
+                ? set => set.delete(action.componentId)
+                : set => set.add(action.componentId);
 
-        case UNSET_ROOT_COMPONENT:
-            return state.merge({
-                rootComponent: state.get('rootComponent').delete(action.component)
-            });
+            return state.update('selectedItems', updater);
+        }
 
-        case SHOW_ROOT_COMPONENT:
-            return state.set('rootComponentVisible', true);
+        case PREVIEW_SET_BOUNDARY_COMPONENT:
+            return state.set('boundaryComponentId', action.componentId);
 
-        case HIDE_ROOT_COMPONENT:
-            return state.set('rootComponentVisible', false);
-
-        case SET_IS_INDEX_ROUTE:
+        case PREVIEW_SET_IS_INDEX_ROUTE:
             return state.set('currentRouteIsIndexRoute', action.value);
+
+        case PREVIEW_START_DRAG_COMPONENT:
+            return state.merge({
+                draggingComponent: true,
+                draggedComponentName: action.componentName,
+                draggedComponentId: action.componentId
+            });
+
+        case PREVIEW_STOP_DRAG_COMPONENT:
+            return state.merge({
+                draggingComponent: false,
+                draggedComponentName: '',
+                draggedComponentId: null
+            });
 
         default: return state;
     }

@@ -1,87 +1,79 @@
 'use strict';
 
-/**
- *
- * @type {string}
- */
-export const DESELECT_PREVIEW_COMPONENT = 'DESELECT_PREVIEW_COMPONENT';
-export const SELECT_PREVIEW_COMPONENT = 'SELECT_PREVIEW_COMPONENT';
-export const UNHIGHLIGHT_PREVIEW_COMPONENT = 'UNHIGHLIGHT_PREVIEW_COMPONENT';
-export const HIGHLIGHT_PREVIEW_COMPONENT = 'HIGHLIGHT_PREVIEW_COMPONENT';
-export const SET_ROOT_COMPONENT = 'SET_ROOT_COMPONENT';
-export const UNSET_ROOT_COMPONENT = 'UNSET_ROOT_COMPONENT';
-export const SHOW_ROOT_COMPONENT = 'SHOW_ROOT_COMPONENT';
-export const HIDE_ROOT_COMPONENT = 'HIDE_ROOT_COMPONENT';
-export const SET_IS_INDEX_ROUTE = 'SET_IS_INDEX_ROUTE';
+export const PREVIEW_SELECT_COMPONENT = 'PREVIEW_SELECT_COMPONENT';
+export const PREVIEW_DESELECT_COMPONENT = 'PREVIEW_DESELECT_COMPONENT';
+export const PREVIEW_TOGGLE_COMPONENT_SELECTION = 'PREVIEW_TOGGLE_COMPONENT_SELECTION';
+export const PREVIEW_HIGHLIGHT_COMPONENT = 'PREVIEW_HIGHLIGHT_COMPONENT';
+export const PREVIEW_UNHIGHLIGHT_COMPONENT = 'PREVIEW_UNHIGHLIGHT_COMPONENT';
+export const PREVIEW_TOGGLE_HIGHLIGHTING = 'PREVIEW_TOGGLE_HIGHLIGHTING';
+export const PREVIEW_SET_BOUNDARY_COMPONENT = 'PREVIEW_SET_BOUNDARY_COMPONENT';
+export const PREVIEW_SET_IS_INDEX_ROUTE = 'PREVIEW_SET_IS_INDEX_ROUTE';
+export const PREVIEW_START_DRAG_COMPONENT = 'PREVIEW_START_DRAG_COMPONENT';
+export const PREVIEW_STOP_DRAG_COMPONENT = 'PREVIEW_STOP_DRAG_COMPONENT';
 
 /**
- * @param {Object} component
+ * @param {Object} componentId
  * @param {boolean} [exclusive=false]
  * @return {Object}
  */
-export const selectPreviewComponent = (component, exclusive = false) => ({
-    type: SELECT_PREVIEW_COMPONENT,
-    component,
+export const selectPreviewComponent = (componentId, exclusive = false) => ({
+    type: PREVIEW_SELECT_COMPONENT,
+    componentId,
     exclusive
 });
 
 /**
- * @param  {Object} component
+ * @param  {Object} componentId
  * @return {Object}
  */
-export const deselectPreviewComponent = component => ({
-    type: DESELECT_PREVIEW_COMPONENT,
-    component
+export const deselectPreviewComponent = componentId => ({
+    type: PREVIEW_DESELECT_COMPONENT,
+    componentId
 });
 
 /**
- * @param  {Object} component
+ * @param  {Object} componentId
  * @return {Object}
  */
-export const highlightPreviewComponent = component => ({
-    type: HIGHLIGHT_PREVIEW_COMPONENT,
-    component
+export const toggleComponentSelection = componentId => ({
+    type: PREVIEW_TOGGLE_COMPONENT_SELECTION,
+    componentId
 });
 
 /**
- * @param  {Object} component
+ * @param  {Object} componentId
  * @return {Object}
  */
-export const unhighlightPreviewComponent = component => ({
-    type: UNHIGHLIGHT_PREVIEW_COMPONENT,
-    component
+export const highlightPreviewComponent = componentId => ({
+    type: PREVIEW_HIGHLIGHT_COMPONENT,
+    componentId
 });
 
 /**
- * @param  {string} component
+ * @param  {Object} componentId
  * @return {Object}
  */
-export const setRootComponent = component => ({
-    type: SET_ROOT_COMPONENT,
-    component
-});
-
-/**
- * @param  {string} component
- * @return {Object}
- */
-export const unsetRootComponent = component => ({
-    type: UNSET_ROOT_COMPONENT,
-    component
+export const unhighlightPreviewComponent = componentId => ({
+    type: PREVIEW_UNHIGHLIGHT_COMPONENT,
+    componentId
 });
 
 /**
  * @return {Object}
  */
-export const showPreviewRootComponent = () => ({
-    type: SHOW_ROOT_COMPONENT
+export const toggleHighlighting = enable => ({
+    type: PREVIEW_TOGGLE_HIGHLIGHTING,
+    enable
 });
 
 /**
+ *
+ * @param {?number} componentId
  * @return {Object}
  */
-export const hidePreviewRootComponent = () => ({
-    type: HIDE_ROOT_COMPONENT
+export const setBoundaryComponent = componentId => ({
+    type: PREVIEW_SET_BOUNDARY_COMPONENT,
+    componentId
 });
 
 /**
@@ -89,6 +81,26 @@ export const hidePreviewRootComponent = () => ({
  * @return {Object}
  */
 export const setIsIndexRoute = value => ({
-    type: SET_IS_INDEX_ROUTE,
+    type: PREVIEW_SET_IS_INDEX_ROUTE,
     value
+});
+
+/**
+ *
+ * @param {string} componentName
+ * @param {?number} componentId
+ * @return {Object}
+ */
+export const startDragComponent = (componentName, componentId = null) => ({
+    type: PREVIEW_START_DRAG_COMPONENT,
+    componentName,
+    componentId
+});
+
+/**
+ *
+ * @return {Object}
+ */
+export const stopDragComponent = () => ({
+    type: PREVIEW_STOP_DRAG_COMPONENT
 });

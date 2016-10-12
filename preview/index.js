@@ -31,7 +31,7 @@ window.JSSY.initPreview = params => {
         <Provider store={params.store}>
             <Preview
                 interactive={params.interactive}
-                domOverlay={ReactDOM.findDOMNode(domOverlay)}
+                overlayDomNode={ReactDOM.findDOMNode(domOverlay)}
             />
         </Provider>,
 

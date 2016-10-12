@@ -3,6 +3,7 @@
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import { connect } from 'react-redux';
 import { Map } from 'immutable';
 
 // The real components.js will be generated during build process
@@ -68,11 +69,11 @@ const getProps = props => {
     return ret;
 };
 
-export default class Builder extends Component {
+class Builder extends Component {
     constructor(props) {
         super(props);
 
-        this._getComponentFromMeta = this._getComponentFromMeta.bind(this);
+        this._renderComponent = this._renderComponent.bind(this);
     }
 
     _renderPseudoComponent(component) {
@@ -85,8 +86,9 @@ export default class Builder extends Component {
         }
     }
 
-    _getComponentFromMeta(component) {
+    _renderComponent(component) {
         if (!component) return null;
+        if (component.id === this.props.draggedComponentId) return null;
 
         if (isPseudoComponent(component))
             return this._renderPseudoComponent(component);
@@ -96,7 +98,7 @@ export default class Builder extends Component {
         let children = null;
 
         if (component.children.size > 0)
-            children = component.children.map(this._getComponentFromMeta);
+            children = component.children.map(this._renderComponent);
 
         const props = getProps(component.props);
         props.key = component.id;
@@ -116,7 +118,7 @@ export default class Builder extends Component {
     }
 
     render() {
-        return this._getComponentFromMeta(this.props.component);
+        return this._renderComponent(this.props.component);
     }
 }
 
@@ -126,9 +128,19 @@ Builder.propTypes = {
         name: React.PropTypes.string,
         props: ImmutablePropTypes.map,
         children: ImmutablePropTypes.list
-    })
+    }),
+
+    draggedComponentId: PropTypes.any // number or null
 };
 
 Builder.defaultProps = {
     component: null
 };
+
+Builder.displayName = 'Builder';
+
+const mapStateToProps = state => ({
+    draggedComponentId: state.preview.draggedComponentId
+});
+
+export default connect(mapStateToProps)(Builder);

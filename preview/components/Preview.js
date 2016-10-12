@@ -10,110 +10,133 @@ import { Record, Map } from 'immutable';
 import Builder from './Builder';
 
 import {
-    selectPreviewComponent,
-    deselectPreviewComponent,
+    toggleComponentSelection,
     highlightPreviewComponent,
     unhighlightPreviewComponent,
-    setRootComponent,
-    unsetRootComponent,
-    showPreviewRootComponent,
-    hidePreviewRootComponent
+    toggleHighlighting,
+    setBoundaryComponent,
+    startDragComponent,
+    stopDragComponent
 } from '../../app/actions/preview';
 
-import {
-    deleteComponent,
-    componentAddAfter,
-    componentAddBefore
-} from '../../app/actions/project';
+import HTMLMeta from '../../app/meta/html';
+import miscMeta from '../../app/meta/misc';
 
 const OFFSET_DND_AVATAR = 10;
+const START_DRAG_THRESHOLD = 10;
 
 const RouteRootComponentIds = Record({
     componentId: null,
     indexComponentId: null
 });
 
+const gatherRootComponentIds = routes => {
+    const reducer = (acc, route) => {
+        acc = acc.set(route.id, new RouteRootComponentIds({
+            componentId: route.component ? route.component.id : null,
+            indexComponentId: route.indexComponent ? route.indexComponent.id : null
+        }));
+
+        return route.children.reduce(reducer, acc);
+    };
+
+    return routes.reduce(reducer, Map());
+};
+
+/**
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} cX
+ * @param {number} cY
+ * @param {number} r
+ * @return {boolean}
+ */
+const pointIsInCircle = (x, y, cX, cY, r) => {
+    const xx = x - cX,
+        yy = y - cY;
+
+    return xx * xx + yy * yy <= r * r;
+};
+
 class Preview extends Component {
     constructor(props) {
         super(props);
 
         this.domNode = null;
-        this.domOverlay = null;
-        this.dndParams = {};
-        this.dndFlag = false;
+        this.dndParams = {
+            componentId: null,
+            componentName: '',
+            avatarElement: null,
+            dragStartX: 0,
+            dragStartY: 0,
+            pageX: 0,
+            pageY: 0
+        };
+        this.willTryStartDrag = false;
         this.animationFrame = null;
         this.needRAF = true;
         this.currentRouteId = null;
-        this.rootComponentIds = this._gatherRootComponentIds(props.project.routes);
-        this._nextRouterKey = 0;
+        this.rootComponentIds = gatherRootComponentIds(props.project.routes);
 
-        this._handleDrag = this._handleDrag.bind(this);
-        this._handleStartDrag = this._handleStartDrag.bind(this);
-        this._handleStopDrag = this._handleStopDrag.bind(this);
+        this.routes = props.project.routes
+            .map((route, idx) => this._createRoute(route, [idx]))
+            .toArray();
+
+        this.routerKey = 0;
+
+        this._handleMouseDown = this._handleMouseDown.bind(this);
+        this._handleMouseMove = this._handleMouseMove.bind(this);
+        this._handleMouseUp = this._handleMouseUp.bind(this);
         this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
+        this._handleMouseOver = this._handleMouseOver.bind(this);
+        this._handleMouseOut = this._handleMouseOut.bind(this);
+        this._handleClick = this._handleClick.bind(this);
         this._handleChangeRoute = this._handleChangeRoute.bind(this);
-        this._handleMouseOverEvent = this._handleMouseOverEvent.bind(this);
-        this._handleMouseOutEvent = this._handleMouseOutEvent.bind(this);
-        this._handleMouseDownEvent = this._handleMouseDownEvent.bind(this);
-        this._handleMouseClickEvent = this._handleMouseClickEvent.bind(this);
     }
 
     componentDidMount() {
         this.domNode = document.getElementById('container');
-        this.domOverlay = this.props.domOverlay;
 
         if (this.props.interactive) {
-            const domNode = this.domNode;
-
-            domNode.addEventListener('mouseover', this._handleMouseOverEvent, false);
-            domNode.addEventListener('dragover', this._handleMouseOverEvent, false);
-            domNode.addEventListener('dragleave', this._handleMouseOutEvent, false);
-            domNode.addEventListener('mouseout', this._handleMouseOutEvent, false);
-            domNode.addEventListener('mousedown', this._handleMouseDownEvent, false);
-            domNode.addEventListener('click', this._handleMouseClickEvent, false);
-
-            this._setRootComponent();
+            this.domNode.addEventListener('mouseover', this._handleMouseOver, false);
+            this.domNode.addEventListener('mouseout', this._handleMouseOut, false);
+            this.domNode.addEventListener('mousedown', this._handleMouseDown, false);
+            this.domNode.addEventListener('click', this._handleClick, false);
         }
     }
 
     componentWillReceiveProps(nextProps) {
-        this.rootComponentIds = this._gatherRootComponentIds(nextProps.project.routes);
+        if (nextProps.project.routes !== this.props.project.routes) {
+            this.rootComponentIds = gatherRootComponentIds(nextProps.project.routes);
+
+            this.routes = nextProps.project.routes
+                .map((route, idx) => this._createRoute(route, [idx]))
+                .toArray();
+
+            this.routerKey++;
+        }
     }
 
     shouldComponentUpdate(nextProps) {
-        return nextProps.project !== this.props.project;
-    }
-
-    componentDidUpdate(prevProps) {
-        if (prevProps.project !== this.props.project) this._setRootComponent();
+        return nextProps.project !== this.props.project ||
+            nextProps.currentRouteIsIndexRoute !== this.props.currentRouteIsIndexRoute;
     }
 
     componentWillUnmount() {
-        const domNode = this.domNode;
-
         if (this.props.interactive) {
-            domNode.removeEventListener('mouseover', this._handleMouseOverEvent, false);
-            domNode.removeEventListener('dragover', this._handleMouseOverEvent, false);
-            domNode.removeEventListener('dragleave', this._handleMouseOutEvent, false);
-            domNode.removeEventListener('mouseout', this._handleMouseOutEvent, false);
-            domNode.removeEventListener('mousedown', this._handleMouseDownEvent, false);
+            this.domNode.removeEventListener('mouseover', this._handleMouseOver, false);
+            this.domNode.removeEventListener('mouseout', this._handleMouseOut, false);
+            this.domNode.removeEventListener('mousedown', this._handleMouseDown, false);
+            this.domNode.removeEventListener('click', this._handleClick, false);
         }
 
         this.domNode = null;
-        this.domOverlay = null;
     }
-
-    _gatherRootComponentIds(routes) {
-        const reducer = (acc, route) => {
-            acc = acc.set(route.id, new RouteRootComponentIds({
-                componentId: route.component ? route.component.id : null,
-                indexComponentId: route.indexComponent ? route.indexComponent.id : null
-            }));
-
-            return route.children.reduce(reducer, acc);
-        };
-
-        return routes.reduce(reducer, Map());
+    
+    _getComponentById(id) {
+        const componentIndexData = this.props.componentsIndex.get(id);
+        return this.props.project.getIn(componentIndexData.path);
     }
 
     _getCurrentRootComponentId() {
@@ -125,44 +148,57 @@ class Preview extends Component {
             : rootComponentIds.componentId
     }
 
-    _getComponentIdByElement(el) {
-        let current = el;
+    _getComponentMetadata(fullName) {
+        let [namespace, name] = fullName.split('.');
+        if (!name) {
+            namespace = '';
+            name = namespace;
+        }
+
+        let componentsMeta;
+        if (!namespace) componentsMeta = miscMeta;
+        else if (namespace === 'HTML') componentsMeta = HTMLMeta;
+        else componentsMeta = this.props.meta[namespace].components;
         
+        return componentsMeta[name] || null;
+    }
+
+    _getClosestComponentId(el) {
+        let current = el;
+
         while (current) {
             const dataJssyId = current.getAttribute('data-jssy-id');
             if (dataJssyId) return parseInt(dataJssyId, 10);
+            if (current.hasAttribute('data-reactroot')) break;
             current = current.parentNode;
         }
-        
+
         return null;
     }
 
-    _setRootComponent() {
-        const rootComponentId = this._getCurrentRootComponentId(),
-            rootComponent = this.domNode
-                .querySelector(`[data-jssy-id="${rootComponentId}"]`);
+    _getClosestContainerComponentId(el) {
+        let current = el;
 
-        if(!rootComponent) return;
+        while (current) {
+            const dataJssyId = current.getAttribute('data-jssy-id');
 
-        this.props.setRootComponent(rootComponentId);
-    }
+            if (dataJssyId) {
+                const componentId = parseInt(dataJssyId, 10),
+                    component = this._getComponentById(componentId),
+                    componentMeta = this._getComponentMetadata(component.name);
+                
+                if (componentMeta !== null && componentMeta.kind === 'container')
+                    return componentId;
+            }
 
-    /**
-     *
-     * @param  {string} componentId
-     */
-    _updateSelected(componentId) {
-        if (this.props.selected.has(componentId)) {
-            this.props.deselectComponent(componentId);
+            if (current.hasAttribute('data-reactroot')) break;
+            current = current.parentNode;
         }
-        else {
-            this.props.selectComponent(componentId);
-        }
+
+        return null;
     }
 
     _componentIsInCurrentRoute(componentId) {
-        if(!this.props.componentsIndex.has(componentId)) return false;
-
         const componentIndexData = this.props.componentsIndex.get(componentId);
 
         return componentIndexData.routeId === this.currentRouteId &&
@@ -170,7 +206,7 @@ class Preview extends Component {
     }
 
     _handleAnimationFrame() {
-        var el = this.dndParams.el;
+        var el = this.dndParams.avatarElement;
 
         el.style.transform =
             `translate(${this.dndParams.pageX}px, ${this.dndParams.pageY}px)`;
@@ -179,125 +215,160 @@ class Preview extends Component {
         this.needRAF = true;
     }
 
-    _handleStartDrag() {
-        if (this.dndFlag) return;
+    _handleMouseDown(event) {
+        if (event.button != 0 || !event.ctrlKey) return;
 
-        this.domNode.addEventListener('mousemove', this._handleDrag);
-        this.domNode.addEventListener('mouseup', this._handleStopDrag);
-        window.top.addEventListener('mouseup', this._handleStopDrag);
+        event.preventDefault();
+
+        this.domNode.addEventListener('mousemove', this._handleMouseMove);
+        this.domNode.addEventListener('mouseup', this._handleMouseUp);
+        window.top.addEventListener('mouseup', this._handleMouseUp);
+
+        const componentId = this._getClosestComponentId(event.target);
+
+        if (componentId !== null && this._componentIsInCurrentRoute(componentId)) {
+            const component = this._getComponentById(componentId);
+
+            this.dndParams.componentId = componentId;
+            this.dndParams.componentName = component.name;
+            this.dndParams.dragStartX = event.pageX;
+            this.dndParams.dragStartY = event.pageY;
+            this.willTryStartDrag = true;
+        }
     }
 
-    _handleStopDrag(event) {
-        event.stopPropagation();
+    /**
+     * Start dragging local component
+     * @private
+     */
+    _startDragComponent() {
+        const el = document.createElement('div');
+        el.innerHTML = this.dndParams.componentName;
+        el.style.position = 'absolute';
+        el.style.zIndex = 1000;
 
-        this.domNode.removeEventListener('mousemove', this._handleDrag);
-        this.domNode.removeEventListener('mouseup', this._handleStopDrag);
-        window.top.removeEventListener('mouseup', this._handleStopDrag);
+        this.dndParams.pageX = this.dndParams.dragStartX + OFFSET_DND_AVATAR;
+        this.dndParams.pageY = this.dndParams.dragStartY + OFFSET_DND_AVATAR;
 
-        this.props.hideRootComponent();
+        el.style.transform =
+            `translate(${this.dndParams.pageX}px,${this.dndParams.pageY}px)`;
 
-        if (!this.dndFlag) return;
+        this.props.overlayDomNode.appendChild(el);
+        this.dndParams.avatarElement = el;
 
-        this.dndFlag = false;
+        this.props.onSetBoundaryComponent(this._getCurrentRootComponentId());
+        this.props.onToggleHighlighting(false);
+        
+        this.props.onComponentStartDrag(
+            this.dndParams.componentName,
+            this.dndParams.componentId
+        );
+    }
 
-        if (this.dndParams) {
-            const sourceComponentId = this.dndParams.sourceId,
-                componentIndexData = this.props.componentsIndex.get(sourceComponentId),
-                component = this.props.project.getIn(componentIndexData.path),
-                targetComponentId = this._getComponentIdByElement(event.target);
-
-            if (this._componentIsInCurrentRoute(targetComponentId)) {
-                this.props.componentDeleteFromRoute(this.dndParams.sourceId);
-                this.props.componentAddBeforeToRoute(component, targetComponentId);
-            }
-
-            this.props.unhighlightComponent(targetComponentId);
-        }
+    /**
+     * Handle drop of component (both local and non-local)
+     *
+     * @param {HTMLElement} el
+     * @private
+     */
+    _dropComponent(el) {
+        this.props.onSetBoundaryComponent(null);
 
         if (this.animationFrame !== null) {
             window.cancelAnimationFrame(this.animationFrame);
             this.animationFrame = null;
         }
 
-        this.domOverlay.removeChild(this.dndParams.el);
-    }
+        this.needRAF = true;
+        this.props.overlayDomNode.removeChild(this.dndParams.avatarElement);
 
-    _handleDrag(event) {
-        const moveX = event.pageX - this.dndParams.dragStartX,
-            moveY = event.pageY - this.dndParams.dragStartY;
+        if (this.props.draggedComponentId !== null) {
+            const containerId = this._getClosestContainerComponentId(el);
 
-        if (Math.abs(moveX) < 10 && Math.abs(moveY) < 10) return;
-
-        if (!this.dndFlag) {
-            const componentIndexData = this.props.componentsIndex.get(this.dndParams.sourceId),
-                component = this.props.project.getIn(componentIndexData.path);
-
-            const el = this.dndParams.el;
-            el.innerHTML = component.name;
-
-            el.style.position = 'absolute';
-            el.style.zIndex = 1000;
-
-            this.dndParams.pageX = this.dndParams.dragStartX + OFFSET_DND_AVATAR;
-            this.dndParams.pageY = this.dndParams.dragStartY + OFFSET_DND_AVATAR;
-
-            el.style.transform = `translate(${this.dndParams.pageX}px,
-            ${this.dndParams.pageY}px)`;
-
-            this.domOverlay.appendChild(el);
-            this.dndFlag = true;
-
-            this.props.showRootComponent();
+            if (containerId !== null && this._componentIsInCurrentRoute(containerId)) {
+                // TODO: Move existing component
+            }
+        }
+        else {
+            // TODO: Create new component
         }
 
-        this.dndParams.pageX = event.pageX + OFFSET_DND_AVATAR;
-        this.dndParams.pageY = event.pageY + OFFSET_DND_AVATAR;
+        this.props.onToggleHighlighting(true);
+        this.props.onComponentStopDrag();
+    }
 
-        if (this.needRAF) {
-            this.needRAF = false;
+    _handleMouseMove(event) {
+        if (this.willTryStartDrag) {
+            const willStartDrag = !pointIsInCircle(
+                event.pageX,
+                event.pageY,
+                this.dndParams.dragStartX,
+                this.dndParams.dragStartY,
+                START_DRAG_THRESHOLD
+            );
 
-            this.animationFrame =
-                window.requestAnimationFrame(this._handleAnimationFrame);
+            if (willStartDrag) {
+                this.willTryStartDrag = false;
+                this._startDragComponent();
+            }
+        }
+
+        if (this.props.draggingComponent) {
+            if (this.props.draggedComponentId !== null) { // Dragging existing component
+                this.dndParams.pageX = event.pageX + OFFSET_DND_AVATAR;
+                this.dndParams.pageY = event.pageY + OFFSET_DND_AVATAR;
+
+                if (this.needRAF) {
+                    this.needRAF = false;
+
+                    this.animationFrame =
+                        window.requestAnimationFrame(this._handleAnimationFrame);
+                }
+            }
+            else { // Dragging new component from library
+                // TODO: Handle that shit
+            }
         }
     }
 
-    _handleMouseOverEvent(event) {
-        const componentId = this._getComponentIdByElement(event.target);
+    _handleMouseUp(event) {
+        event.stopPropagation();
 
-        if (componentId !== null && this._componentIsInCurrentRoute(componentId))
-            this.props.highlightComponent(componentId);
+        this.willTryStartDrag = false;
+
+        this.domNode.removeEventListener('mousemove', this._handleMouseMove);
+        this.domNode.removeEventListener('mouseup', this._handleMouseUp);
+        window.top.removeEventListener('mouseup', this._handleMouseUp);
+
+        if (this.props.draggingComponent)
+            this._dropComponent(event.target);
     }
 
-    _handleMouseOutEvent(event) {
-        const componentId = this._getComponentIdByElement(event.target);
+    _handleMouseOver(event) {
+        if (this.props.highlightingEnabled) {
+            const componentId = this._getClosestComponentId(event.target);
 
-        if (componentId !== null && this._componentIsInCurrentRoute(componentId))
-            this.props.unhighlightComponent(componentId);
+            if (componentId !== null && this._componentIsInCurrentRoute(componentId))
+                this.props.onHighlightComponent(componentId);
+        }
     }
 
-    _handleMouseClickEvent(event) {
+    _handleMouseOut(event) {
+        if (this.props.highlightingEnabled) {
+            const componentId = this._getClosestComponentId(event.target);
+
+            if (componentId !== null && this._componentIsInCurrentRoute(componentId))
+                this.props.onUnhighlightComponent(componentId);
+        }
+    }
+
+    _handleClick(event) {
         if (!event.ctrlKey) return;
 
-        const componentId = this._getComponentIdByElement(event.target);
+        const componentId = this._getClosestComponentId(event.target);
 
         if (componentId !== null && this._componentIsInCurrentRoute(componentId))
-            this._updateSelected(componentId);
-    }
-
-    _handleMouseDownEvent(event) {
-        if (event.which != 1 || !event.ctrlKey) return;
-
-        const componentId = this._getComponentIdByElement(event.target);
-        if (componentId === null || !this._componentIsInCurrentRoute(componentId)) return;
-
-        event.preventDefault();
-
-        this.dndParams.el = document.createElement('div');
-        this.dndParams.sourceId = componentId;
-        this.dndParams.dragStartX = event.pageX;
-        this.dndParams.dragStartY = event.pageY;
-
-        this._handleStartDrag();
+            this.props.onToggleComponentSelection(componentId);
     }
 
     _handleChangeRoute(routeId) {
@@ -341,44 +412,42 @@ class Preview extends Component {
     }
 
     render() {
-        const routes = this.props.project.routes
-            .map((route, idx) => this._createRoute(route, [idx]))
-            .toArray();
-
         return (
             <Router
-                key={String(this._nextRouterKey++)}
+                key={this.routerKey}
                 history={hashHistory}
-                routes={routes}
+                routes={this.routes}
             />
         );
     }
 }
 
 Preview.propTypes = {
-    domOverlay: React.PropTypes.object,
+    overlayDomNode: React.PropTypes.object,
     interactive: PropTypes.bool,
 
     // Can't use ImmutablePropTypes.record or PropTypes.instanceOf(ProjectRecord) here
     // 'cause this value comes from another frame with another instance of immutable.js
     project: PropTypes.any,
+    meta: PropTypes.object,
     componentsIndex: ImmutablePropTypes.map,
-    selected: ImmutablePropTypes.set,
-    highlighted: ImmutablePropTypes.set,
     currentRouteIsIndexRoute: PropTypes.bool,
+    draggingComponent: PropTypes.bool,
+    draggedComponentId: PropTypes.any, // number or null
+    draggedComponentName: PropTypes.string,
+    highlightingEnabled: PropTypes.bool,
 
-    deselectComponent: PropTypes.func,
-    selectComponent: PropTypes.func,
-    unhighlightComponent: PropTypes.func,
-    highlightComponent: PropTypes.func,
-    setRootComponent: PropTypes.func,
-    unsetRootComponent: PropTypes.func,
-    showRootComponent: PropTypes.func,
-    hideRootComponent: PropTypes.func
+    onToggleComponentSelection: PropTypes.func,
+    onHighlightComponent: PropTypes.func,
+    onUnhighlightComponent: PropTypes.func,
+    onToggleHighlighting: PropTypes.func,
+    onSetBoundaryComponent: PropTypes.func,
+    onComponentStartDrag: PropTypes.func,
+    onComponentStopDrag: PropTypes.func
 };
 
 Preview.defaultProps = {
-    domOverlay: null,
+    overlayDomNode: null,
     interactive: false
 };
 
@@ -386,27 +455,35 @@ Preview.displayName = 'Preview';
 
 const mapStateToProps = state => ({
     project: state.project.data,
+    meta: state.project.meta,
     componentsIndex: state.project.componentsIndex,
-    selected: state.preview.selectedItems,
-    highlighted: state.preview.highlightedItems,
-    domElementsMap: state.preview.domElementsMap,
-    currentRouteIsIndexRoute: state.preview.currentRouteIsIndexRoute
+    currentRouteIsIndexRoute: state.preview.currentRouteIsIndexRoute,
+    draggingComponent: state.preview.draggingComponent,
+    draggedComponentId: state.preview.draggedComponentId,
+    draggedComponentName: state.preview.draggedComponentName,
+    highlightingEnabled: state.preview.highlightingEnabled
 });
 
 const mapDispatchToProps = dispatch => ({
-    deselectComponent: selected => void dispatch(deselectPreviewComponent(selected)),
-    selectComponent: selected => void dispatch(selectPreviewComponent(selected)),
-    highlightComponent: highlighted => void dispatch(
-        highlightPreviewComponent(highlighted)),
-    unhighlightComponent: highlighted => void dispatch(
-        unhighlightPreviewComponent(highlighted)),
-    componentDeleteFromRoute: (id) => void dispatch(deleteComponent(id)),
-    componentAddAfterToRoute: (component, targetId) => void dispatch(componentAddAfter(component, targetId)),
-    componentAddBeforeToRoute: (component, targetId) => void dispatch(componentAddBefore(component, targetId)),
-    setRootComponent: component => void dispatch(setRootComponent(component)),
-    unsetRootComponent: component => void dispatch(unsetRootComponent(component)),
-    showRootComponent: () => void dispatch(showPreviewRootComponent()),
-    hideRootComponent: () => void dispatch(hidePreviewRootComponent())
+    onToggleComponentSelection: componentId =>
+        void dispatch(toggleComponentSelection(componentId)),
+
+    onHighlightComponent: componentId =>
+        void dispatch(highlightPreviewComponent(componentId)),
+
+    onUnhighlightComponent: componentId =>
+        void dispatch(unhighlightPreviewComponent(componentId)),
+
+    onToggleHighlighting: enable =>
+        void dispatch(toggleHighlighting(enable)),
+
+    onSetBoundaryComponent: componentId =>
+        void dispatch(setBoundaryComponent(componentId)),
+
+    onComponentStartDrag: (componentName, componentId) =>
+        void dispatch(startDragComponent(componentName, componentId)),
+
+    onComponentStopDrag: () => void dispatch(stopDragComponent())
 });
 
 export default connect(
