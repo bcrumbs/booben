@@ -20,12 +20,14 @@ import {
     HeaderLogoBox,
     HeaderMenu,
 	HeaderMenuList,
-	MenuGroup,
+	HeaderMenuGroup,
     HeaderMenuItem,
     Footer,
     FooterRegion,
     FooterMenu,
     FooterMenuItem,
+	FooterMenuGroup,
+	FooterMenuList,
 	Panel,
 	PanelContent,
 	Row,
@@ -106,13 +108,36 @@ export default class Playground extends React.Component {
 
                         <HeaderRegion region="main" size='blank'>
                             <HeaderMenu inline={true}  dense={true}>
-	                            <MenuGroup data={headerMainMenu} />
+	                            <HeaderMenu inline={true}  dense={true} mode={'light'}>
+		                            <HeaderMenuGroup>
+			                            <HeaderMenuList>
+				                            <HeaderMenuItem text="Structure" />
+				                            <HeaderMenuItem text="Design">
+					                            <HeaderMenuGroup>
+						                            <HeaderMenuList>
+							                            <HeaderMenuItem text="User Route 1: index" />
+							                            <HeaderMenuItem text="User Route 2: aerial" />
+						                            </HeaderMenuList>
+					                            </HeaderMenuGroup>
+				                            </HeaderMenuItem>
+				                            <HeaderMenuItem text="Data" isActive={true}/>
+				                            <HeaderMenuItem text="Settings" />
+			                            </HeaderMenuList>
+		                            </HeaderMenuGroup>
+	                            </HeaderMenu>
                             </HeaderMenu>
                         </HeaderRegion>
 
                         <HeaderRegion size='blank'>
 	                        <HeaderMenu inline={true}  dense={true}>
-		                        <MenuGroup data={headerMenuSecondary} />
+		                        <HeaderMenu inline={true}  dense={true} mode={'light'}>
+			                        <HeaderMenuGroup>
+				                        <HeaderMenuList>
+					                        <HeaderMenuItem text="Preview" />
+					                        <HeaderMenuItem text="Publish" />
+				                        </HeaderMenuList>
+			                        </HeaderMenuGroup>
+		                        </HeaderMenu>
 	                        </HeaderMenu>
                         </HeaderRegion>
                     </Header>
@@ -130,7 +155,7 @@ export default class Playground extends React.Component {
 						                {/*<LayoutSelectionItem image="http://coolvibe.com/wp-content/uploads/2010/06/cosmos.jpg" title="Template B" subtitle="Header" active />*/}
 						                {/*<LayoutSelectionItem image="http://s9.favim.com/orig/130808/cosmos-space-Favim.com-838531.jpg" title="Template C" />*/}
 						                {/*<LayoutSelectionItem image="http://news.nationalgeographic.com/news/2009/07/photogalleries/week-in-space-pictures-50/images/primary/090707-01-omega-nebula_big.jpg" title="Template D" />*/}
-						                {/*<LayoutSelectionItem image="http://www.hotel-r.net/im/hotel/fr/cosmos-12.jpg" title="Template E" />*/}
+						                {/*<LayoutSelectionItem image="http://www.hotel-net/im/hotel/fr/cosmos-12.jpg" title="Template E" />*/}
 						                {/*<LayoutSelectionItem image="http://www.xtec.cat/~vmessegu/img/milkyway.jpg" title="Template F" />*/}
 						                {/*<LayoutSelectionItem image="https://pursuingveritasdotcom.files.wordpress.com/2015/03/cosmos.jpg" title="Template G" />*/}
 						                {/*<LayoutSelectionItem image="http://media.salon.com/2013/10/shutterstock_136444319.jpg" title="Template H" />*/}
@@ -169,7 +194,7 @@ export default class Playground extends React.Component {
 										                    </RouteCard>
 									                    </RoutesList>
 									                </RouteCard>
-									                <RouteCard title="Parser" subtitle="parser-{parser.ParserTitle}" />
+									                <RouteCard title="Parser" subtitle="parser-{parseParserTitle}" />
 								                </RoutesList>
 							                </RouteCard>
 							                <RouteNewButton text="New Root"  />
@@ -184,14 +209,24 @@ export default class Playground extends React.Component {
                 <BottomRegion fixed={false}>
                     <Footer>
                         <FooterRegion region="main" size='blank'>
-                            <FooterMenu inline={true}  dense={true}>
-                                <FooterMenuItem text="FAQ"/>
-                            </FooterMenu>
+	                        <FooterMenu inline={true}  dense={true} >
+		                        <FooterMenuGroup>
+			                        <FooterMenuList>
+				                        <FooterMenuItem text="FAQ" />
+			                        </FooterMenuList>
+		                        </FooterMenuGroup>
+	                        </FooterMenu>
                         </FooterRegion>
                         <FooterRegion size='blank'>
-                            <FooterMenu inline={true}  dense={true}>
-	                            <MenuGroup data={footerMenuRight} />
-                            </FooterMenu>
+	                        <FooterMenu inline={true}  dense={true}>
+		                        <FooterMenuGroup>
+			                        <FooterMenuList>
+				                        <FooterMenuItem text="Show component's title" subcomponentRight={<ToggleButton />}/>
+				                        <FooterMenuItem text="Show placeholders" subcomponentRight={<ToggleButton />}/>
+				                        <FooterMenuItem text="Toggle fullscreen" />
+			                        </FooterMenuList>
+		                        </FooterMenuGroup>
+	                        </FooterMenu>
                         </FooterRegion>
                     </Footer>
                 </BottomRegion>

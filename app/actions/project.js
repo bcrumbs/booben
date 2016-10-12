@@ -149,34 +149,18 @@ export const deleteComponent = id => ({
  *
  * @type {string}
  */
-export const PROJECT_ROUTE_COMPONENT_ADD_BEFORE = 'PROJECT_ROUTE_COMPONENT_ADD_BEFORE';
+export const PROJECT_COMPONENT_MOVE = 'PROJECT_COMPONENT_MOVE';
 
 /**
  *
  * @param {number[]} where - index of component
  * @returns {Object}
  */
-export const componentAddBefore = (component, targetId) => ({
-    type: PROJECT_ROUTE_COMPONENT_ADD_BEFORE,
-    component,
-    targetId
-});
-
-/**
- *
- * @type {string}
- */
-export const PROJECT_ROUTE_COMPONENT_ADD_AFTER = 'PROJECT_ROUTE_COMPONENT_ADD_AFTER';
-
-/**
- *
- * @param {number[]} where - index of component
- * @returns {Object}
- */
-export const componentAddAfter = (component, targetId) => ({
-    type: PROJECT_ROUTE_COMPONENT_ADD_AFTER,
-    component,
-    targetId
+export const moveComponent = (sourceId, targetId, position) => ({
+    type: PROJECT_COMPONENT_MOVE,
+    sourceId,
+    targetId,
+    position
 });
 
 /**
