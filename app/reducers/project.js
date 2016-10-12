@@ -171,11 +171,9 @@ const deepShiftComponentIndex = (state, id, newPathContaining, mutation) => {
 
     return state.updateIn(['componentsIndex', id],
         (item) => {
-            item.path = newPathContaining.concat(
-                item.path.slice(newPathContaining.length));
-
             item.path[newPathContaining.length] = mutation(
                 item.path[newPathContaining.length]);
+
             return item;
         }
     )
