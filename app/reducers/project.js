@@ -149,24 +149,33 @@ const deepDeleteComponentIndex = (state, id) => {
     const curPath = state.componentsIndex.get(id).path,
         component = state.getIn(['data', ...curPath]);
 
-    if(component.children) component.children.map((child) => {
+    if(component.children.size) component.children.map((child) => {
         state = deepDeleteComponentIndex(state, child.id);
     });
 
     return state.deleteIn(['componentsIndex', id]);
 };
 
-const deepShiftComponentIndex = (state, id, shiftPosition, mutation) => {
+const deepShiftComponentIndex = (state, id, parentPath, mutation) => {
     const curPath = state.componentsIndex.get(id).path,
         component = state.getIn(['data', ...curPath]);
 
-    if(component && component.children) component.children.map((child) => {
-        state = deepShiftComponentIndex(state, child.id, shiftPosition, mutation);
+    if(component && component.children.size) component.children.map((child) => {
+        state = deepShiftComponentIndex(
+            state,
+            child.id,
+            parentPath,
+            mutation
+        );
     });
 
     return state.updateIn(['componentsIndex', id],
         (item) => {
-            item.path[shiftPosition] = mutation(item.path[shiftPosition]);
+            debugger;
+            item.path = parentPath.concat(item.path.slice(parentPath.length));
+
+            item.path[parentPath.length] = mutation(
+                item.path[parentPath.length]);
             return item;
         }
     )
@@ -266,7 +275,7 @@ export default (state = new ProjectState(), action) => {
                     state = deepShiftComponentIndex(
                         state,
                         item.id,
-                        targetPath.length - 1,
+                        targetPath.slice(0, -1),
                         v => v + 1
                     );
                 })
@@ -299,7 +308,7 @@ export default (state = new ProjectState(), action) => {
                     state = deepShiftComponentIndex(
                         state,
                         item.id,
-                        targetPath.length - 1,
+                        targetPath.slice(0, -1),
                         v => v + 1
                     );
                 })
@@ -336,7 +345,7 @@ export default (state = new ProjectState(), action) => {
                         state = deepShiftComponentIndex(
                             state,
                             item.id,
-                            componentPath.length - 1,
+                            componentPath.slice(0, -1),
                             v => v - 1
                         );
                     });
