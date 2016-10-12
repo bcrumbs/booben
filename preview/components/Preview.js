@@ -23,7 +23,8 @@ import {
 
 import {
     deleteComponent,
-    componentAddAfter
+    componentAddAfter,
+    componentAddBefore
 } from '../../app/actions/project';
 
 const OFFSET_DND_AVATAR = 10;
@@ -220,8 +221,10 @@ class Preview extends Component {
                 owner = getDomOwner(el, item => item.getAttribute("data-jssy-id")),
                 id = this._getComponentId(owner);
 
-            this.props.componentDeleteFromRoute(this.dndParams.sourceId);
-            this.props.componentAddAfterToRoute(component, id);
+            if(this._componentIsInCurrentRoute(id)) {
+                this.props.componentDeleteFromRoute(this.dndParams.sourceId);
+                this.props.componentAddBeforeToRoute(component, id);
+            }
 
             this.props.unhighlightComponent(id);
         }
@@ -429,6 +432,7 @@ const mapDispatchToProps = dispatch => ({
         unhighlightPreviewComponent(highlighted)),
     componentDeleteFromRoute: (id) => void dispatch(deleteComponent(id)),
     componentAddAfterToRoute: (component, targetId) => void dispatch(componentAddAfter(component, targetId)),
+    componentAddBeforeToRoute: (component, targetId) => void dispatch(componentAddBefore(component, targetId)),
     setRootComponent: component => void dispatch(setRootComponent(component)),
     unsetRootComponent: component => void dispatch(unsetRootComponent(component)),
     showRootComponent: () => void dispatch(showPreviewRootComponent()),

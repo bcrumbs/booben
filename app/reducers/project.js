@@ -145,23 +145,23 @@ const buildComponentsIndex = project => Map().withMutations(ret => {
     project.routes.forEach((route, idx) => void visitRoute(route, ['routes', idx]));
 });
 
-const deleteComponentIndex = (state, id) => {
+const deepDeleteComponentIndex = (state, id) => {
     const curPath = state.componentsIndex.get(id).path,
         component = state.getIn(['data', ...curPath]);
 
     if(component.children) component.children.map((child) => {
-        state = deleteComponentIndex(state, child.id);
+        state = deepDeleteComponentIndex(state, child.id);
     });
 
     return state.deleteIn(['componentsIndex', id]);
 };
 
-const shiftComponentIndex = (state, id, shiftPosition, mutation) => {
+const deepShiftComponentIndex = (state, id, shiftPosition, mutation) => {
     const curPath = state.componentsIndex.get(id).path,
         component = state.getIn(['data', ...curPath]);
 
-    if(component.children) component.children.map((child) => {
-        state = shiftComponentIndex(state, child.id, shiftPosition, mutation);
+    if(component && component.children) component.children.map((child) => {
+        state = deepShiftComponentIndex(state, child.id, shiftPosition, mutation);
     });
 
     return state.updateIn(['componentsIndex', id],
@@ -252,21 +252,56 @@ export default (state = new ProjectState(), action) => {
             );
         }
 
-        case PROJECT_ROUTE_COMPONENT_ADD_AFTER: {
-            const targetIndexData = state.componentsIndex.get(action.targetId),
-                targetPath = targetIndexData.path,
-                targetIndex = targetPath.slice(-1)[0],
+        case PROJECT_ROUTE_COMPONENT_ADD_BEFORE: {
+            const targetPath = state.componentsIndex.get(action.targetId).path,
                 componentList = state.getIn(['data', ...targetPath.slice(0, -1)]);
 
-            let part0 = componentList.slice(0, targetIndex + 1);
-            let part1 = componentList.slice(targetIndex + 1);
+            let part0 = componentList.slice(0, targetPath.slice(-1)[0]);
+            let part1 = componentList.slice(targetPath.slice(-1)[0]);
 
             const newValue = part0.push(action.component).concat(part1);
 
             if (part1.size) {
                 part1.map((item) => {
-                    state = shiftComponentIndex(state,
-                        item.id, targetPath.length - 1, v => v + 1);
+                    state = deepShiftComponentIndex(
+                        state,
+                        item.id,
+                        targetPath.length - 1,
+                        v => v + 1
+                    );
+                })
+            }
+
+            const componentIndexImage = state.getIn(
+                ["componentsIndex", action.targetId]
+            );
+
+            return state
+                .setIn(['data', ...targetPath.slice(0, -1)], newValue)
+                .setIn(["componentsIndex", action.component.id], {
+                    path: componentIndexImage.path.slice(0, -1).concat(componentIndexImage.path.slice(-1)[0] - 1),
+                    routeId: componentIndexImage.routeId,
+                    isIndexRoute: componentIndexImage.isIndexRoute
+                });
+        }
+
+        case PROJECT_ROUTE_COMPONENT_ADD_AFTER: {
+            const targetPath = state.componentsIndex.get(action.targetId).path,
+                componentList = state.getIn(['data', ...targetPath.slice(0, -1)]);
+
+            let part0 = componentList.slice(0, targetPath.slice(-1)[0] + 1);
+            let part1 = componentList.slice(targetPath.slice(-1)[0] + 1);
+
+            const newValue = part0.push(action.component).concat(part1);
+
+            if (part1.size) {
+                part1.map((item) => {
+                    state = deepShiftComponentIndex(
+                        state,
+                        item.id,
+                        targetPath.length - 1,
+                        v => v + 1
+                    );
                 })
             }
 
@@ -287,7 +322,7 @@ export default (state = new ProjectState(), action) => {
             const componentIndexData = state.componentsIndex.get(action.id);
             if (!componentIndexData) return state;
 
-            state = deleteComponentIndex(state, action.id);
+            state = deepDeleteComponentIndex(state, action.id);
 
             const componentPath = componentIndexData.path,
                 componentIndex = componentPath.slice(-1)[0],
@@ -298,7 +333,7 @@ export default (state = new ProjectState(), action) => {
 
                 if (componentsToShift.size) {
                     componentsToShift.forEach(item => {
-                        state = shiftComponentIndex(
+                        state = deepShiftComponentIndex(
                             state,
                             item.id,
                             componentPath.length - 1,
