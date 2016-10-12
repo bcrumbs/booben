@@ -131,7 +131,8 @@ class Preview extends Component {
     }
 
     _getComponentId(el) {
-        return el && el.getAttribute('data-jssy-id');
+        const dataJssyId = el.getAttribute('data-jssy-id');
+        return dataJssyId ? parseInt(dataJssyId, 10) : null;
     }
 
     _setRootComponent() {
