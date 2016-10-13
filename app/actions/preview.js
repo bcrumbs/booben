@@ -10,6 +10,8 @@ export const PREVIEW_SET_BOUNDARY_COMPONENT = 'PREVIEW_SET_BOUNDARY_COMPONENT';
 export const PREVIEW_SET_IS_INDEX_ROUTE = 'PREVIEW_SET_IS_INDEX_ROUTE';
 export const PREVIEW_START_DRAG_COMPONENT = 'PREVIEW_START_DRAG_COMPONENT';
 export const PREVIEW_STOP_DRAG_COMPONENT = 'PREVIEW_STOP_DRAG_COMPONENT';
+export const PREVIEW_DRAG_OVER_COMPONENT = 'PREVIEW_DRAG_OVER_COMPONENT';
+export const PREVIEW_DRAG_OVER_PLACEHOLDER = 'PREVIEW_DRAG_OVER_PLACEHOLDER';
 
 /**
  * @param {Object} componentId
@@ -88,13 +90,13 @@ export const setIsIndexRoute = value => ({
 /**
  *
  * @param {string} componentName
- * @param {?number} componentId
+ * @param {?Immutable.Record} component
  * @return {Object}
  */
-export const startDragComponent = (componentName, componentId = null) => ({
+export const startDragComponent = (componentName, component = null) => ({
     type: PREVIEW_START_DRAG_COMPONENT,
     componentName,
-    componentId
+    component
 });
 
 /**
@@ -103,4 +105,24 @@ export const startDragComponent = (componentName, componentId = null) => ({
  */
 export const stopDragComponent = () => ({
     type: PREVIEW_STOP_DRAG_COMPONENT
+});
+
+/**
+ *
+ * @param {number} componentId
+ * @return {Object}
+ */
+export const dragOverComponent = componentId => ({
+    type: PREVIEW_DRAG_OVER_COMPONENT,
+    componentId
+});
+
+/**
+ *
+ * @param {number} afterIdx
+ * @return {Object}
+ */
+export const dragOverPlaceholder = afterIdx => ({
+    type: PREVIEW_DRAG_OVER_PLACEHOLDER,
+    afterIdx
 });

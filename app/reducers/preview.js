@@ -12,7 +12,9 @@ import {
     PREVIEW_SET_BOUNDARY_COMPONENT,
     PREVIEW_SET_IS_INDEX_ROUTE,
     PREVIEW_START_DRAG_COMPONENT,
-    PREVIEW_STOP_DRAG_COMPONENT
+    PREVIEW_STOP_DRAG_COMPONENT,
+    PREVIEW_DRAG_OVER_COMPONENT,
+    PREVIEW_DRAG_OVER_PLACEHOLDER
 } from '../actions/preview';
 
 const PreviewState = Record({
@@ -22,8 +24,11 @@ const PreviewState = Record({
     boundaryComponentId: null,
     currentRouteIsIndexRoute: false,
     draggingComponent: false,
-    draggedComponentId: null,
-    draggedComponentName: ''
+    draggedComponent: null,
+    draggedComponentName: '',
+    draggingOverComponentId: null,
+    draggingOverPlaceholder: false,
+    placeholderAfter: -1
 });
 
 export default (state = new PreviewState(), action) => {
@@ -75,14 +80,28 @@ export default (state = new PreviewState(), action) => {
             return state.merge({
                 draggingComponent: true,
                 draggedComponentName: action.componentName,
-                draggedComponentId: action.componentId
+                draggedComponent: action.component
             });
 
         case PREVIEW_STOP_DRAG_COMPONENT:
             return state.merge({
                 draggingComponent: false,
                 draggedComponentName: '',
-                draggedComponentId: null
+                draggedComponent: null,
+                draggingOverComponentId: null
+            });
+
+        case PREVIEW_DRAG_OVER_COMPONENT:
+            return state.merge({
+                draggingOverComponentId: action.componentId,
+                draggingOverPlaceholder: false,
+                placeholderAfter: -1
+            });
+
+        case PREVIEW_DRAG_OVER_PLACEHOLDER:
+            return state.merge({
+                draggingOverPlaceholder: true,
+                placeholderAfter: action.afterIdx
             });
 
         default: return state;

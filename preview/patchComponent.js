@@ -10,12 +10,24 @@ import ReactDOM from 'react-dom';
 import { noop } from '../app/utils/misc';
 
 const patchDOMElement = componentInstance => {
-    const el = ReactDOM.findDOMNode(componentInstance);
+    const componentId = componentInstance.props.__jssy_component_id__;
 
-    if (el) el.setAttribute(
-        'data-jssy-id',
-        componentInstance.props.__jssy_component_id__
-    );
+    if (typeof componentId === 'number') {
+        const el = ReactDOM.findDOMNode(componentInstance);
+        if (el) el.setAttribute('data-jssy-id', String(componentId));
+    }
+    else {
+        const isPlaceholder = componentInstance.props.__jssy_placeholder__;
+
+        if (isPlaceholder) {
+            const el = ReactDOM.findDOMNode(componentInstance);
+            if (el) {
+                const after = componentInstance.props.__jssy_after__;
+                el.setAttribute('data-jssy-placeholder', '');
+                el.setAttribute('data-jssy-after', String(after));
+            }
+        }
+    }
 };
 
 const wrapLifecycleHook = fn => function(...args) {

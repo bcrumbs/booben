@@ -16,7 +16,9 @@ import {
     toggleHighlighting,
     setBoundaryComponent,
     startDragComponent,
-    stopDragComponent
+    stopDragComponent,
+    dragOverComponent,
+    dragOverPlaceholder
 } from '../../app/actions/preview';
 
 import HTMLMeta from '../../app/meta/html';
@@ -65,8 +67,7 @@ class Preview extends Component {
 
         this.domNode = null;
         this.dndParams = {
-            componentId: null,
-            componentName: '',
+            component: null,
             avatarElement: null,
             dragStartX: 0,
             dragStartY: 0,
@@ -133,7 +134,7 @@ class Preview extends Component {
 
         this.domNode = null;
     }
-    
+
     _getComponentById(id) {
         const componentIndexData = this.props.componentsIndex.get(id);
         return this.props.project.getIn(componentIndexData.path);
@@ -159,7 +160,7 @@ class Preview extends Component {
         if (!namespace) componentsMeta = miscMeta;
         else if (namespace === 'HTML') componentsMeta = HTMLMeta;
         else componentsMeta = this.props.meta[namespace].components;
-        
+
         return componentsMeta[name] || null;
     }
 
@@ -186,7 +187,7 @@ class Preview extends Component {
                 const componentId = parseInt(dataJssyId, 10),
                     component = this._getComponentById(componentId),
                     componentMeta = this._getComponentMetadata(component.name);
-                
+
                 if (componentMeta !== null && componentMeta.kind === 'container')
                     return componentId;
             }
@@ -195,6 +196,38 @@ class Preview extends Component {
             current = current.parentNode;
         }
 
+        return null;
+    }
+    
+    _getClosestComponentOrPlaceholder(el) {
+        let current = el;
+        
+        while (current) {
+            const dataJssyId = current.getAttribute('data-jssy-id');
+            if (dataJssyId) {
+                return {
+                    isPlaceholder: false,
+                    componentId: parseInt(dataJssyId, 10),
+                    placeholderAfter: null
+                };
+            }
+            else {
+                const isPlaceholder = current.hasAttribute('data-jssy-placeholder');
+                if (isPlaceholder) {
+                    const after = parseInt(current.getAttribute('data-jssy-after'));
+                    
+                    return {
+                        isPlaceholder: true,
+                        componentId: null,
+                        placeholderAfter: after
+                    }
+                }
+            }
+
+            if (current.hasAttribute('data-reactroot')) break;
+            current = current.parentNode;
+        }
+        
         return null;
     }
 
@@ -227,10 +260,7 @@ class Preview extends Component {
         const componentId = this._getClosestComponentId(event.target);
 
         if (componentId !== null && this._componentIsInCurrentRoute(componentId)) {
-            const component = this._getComponentById(componentId);
-
-            this.dndParams.componentId = componentId;
-            this.dndParams.componentName = component.name;
+            this.dndParams.component = this._getComponentById(componentId);
             this.dndParams.dragStartX = event.pageX;
             this.dndParams.dragStartY = event.pageY;
             this.willTryStartDrag = true;
@@ -243,7 +273,7 @@ class Preview extends Component {
      */
     _startDragComponent() {
         const el = document.createElement('div');
-        el.innerHTML = this.dndParams.componentName;
+        el.innerHTML = this.dndParams.component.name;
         el.style.position = 'absolute';
         el.style.zIndex = 1000;
 
@@ -258,10 +288,10 @@ class Preview extends Component {
 
         this.props.onSetBoundaryComponent(this._getCurrentRootComponentId());
         this.props.onToggleHighlighting(false);
-        
+
         this.props.onComponentStartDrag(
-            this.dndParams.componentName,
-            this.dndParams.componentId
+            this.dndParams.component.name,
+            this.dndParams.component
         );
     }
 
@@ -282,10 +312,15 @@ class Preview extends Component {
         this.needRAF = true;
         this.props.overlayDomNode.removeChild(this.dndParams.avatarElement);
 
-        if (this.props.draggedComponentId !== null) {
+        if (this.props.draggedComponent !== null) {
             const containerId = this._getClosestContainerComponentId(el);
 
-            if (containerId !== null && this._componentIsInCurrentRoute(containerId)) {
+            const willDrop =
+                containerId !== null &&
+                this._componentIsInCurrentRoute(containerId) &&
+                this.props.draggingOverPlaceholder;
+
+            if (willDrop) {
                 // TODO: Move existing component
             }
         }
@@ -314,7 +349,7 @@ class Preview extends Component {
         }
 
         if (this.props.draggingComponent) {
-            if (this.props.draggedComponentId !== null) { // Dragging existing component
+            if (this.props.draggedComponent !== null) { // Dragging existing component
                 this.dndParams.pageX = event.pageX + OFFSET_DND_AVATAR;
                 this.dndParams.pageY = event.pageY + OFFSET_DND_AVATAR;
 
@@ -350,6 +385,19 @@ class Preview extends Component {
 
             if (componentId !== null && this._componentIsInCurrentRoute(componentId))
                 this.props.onHighlightComponent(componentId);
+        }
+
+        if (this.props.draggingComponent) {
+            const overWhat = this._getClosestComponentOrPlaceholder(event.target);
+            if (overWhat !== null) {
+                if (!overWhat.isPlaceholder) {
+                    if (this._componentIsInCurrentRoute(overWhat.componentId))
+                        this.props.onDragOverComponent(overWhat.componentId);
+                }
+                else {
+                    this.props.onDragOverPlaceholder(overWhat.placeholderAfter);
+                }
+            }
         }
     }
 
@@ -433,8 +481,9 @@ Preview.propTypes = {
     componentsIndex: ImmutablePropTypes.map,
     currentRouteIsIndexRoute: PropTypes.bool,
     draggingComponent: PropTypes.bool,
-    draggedComponentId: PropTypes.any, // number or null
     draggedComponentName: PropTypes.string,
+    draggingOverPlaceholder: PropTypes.bool,
+    placeholderAfter: PropTypes.number,
     highlightingEnabled: PropTypes.bool,
 
     onToggleComponentSelection: PropTypes.func,
@@ -443,7 +492,9 @@ Preview.propTypes = {
     onToggleHighlighting: PropTypes.func,
     onSetBoundaryComponent: PropTypes.func,
     onComponentStartDrag: PropTypes.func,
-    onComponentStopDrag: PropTypes.func
+    onComponentStopDrag: PropTypes.func,
+    onDragOverComponent: PropTypes.func,
+    onDragOverPlaceholder: PropTypes.func
 };
 
 Preview.defaultProps = {
@@ -459,8 +510,9 @@ const mapStateToProps = state => ({
     componentsIndex: state.project.componentsIndex,
     currentRouteIsIndexRoute: state.preview.currentRouteIsIndexRoute,
     draggingComponent: state.preview.draggingComponent,
-    draggedComponentId: state.preview.draggedComponentId,
     draggedComponentName: state.preview.draggedComponentName,
+    draggingOverPlaceholder: state.preview.draggingOverPlaceholder,
+    placeholderAfter: state.preview.placeholderAfter,
     highlightingEnabled: state.preview.highlightingEnabled
 });
 
@@ -483,7 +535,9 @@ const mapDispatchToProps = dispatch => ({
     onComponentStartDrag: (componentName, componentId) =>
         void dispatch(startDragComponent(componentName, componentId)),
 
-    onComponentStopDrag: () => void dispatch(stopDragComponent())
+    onComponentStopDrag: () => void dispatch(stopDragComponent()),
+    onDragOverComponent: componentId => void dispatch(dragOverComponent(componentId)),
+    onDragOverPlaceholder: afterIdx => void dispatch(dragOverPlaceholder(afterIdx))
 });
 
 export default connect(

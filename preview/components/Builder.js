@@ -2,9 +2,10 @@
 
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
+import ReactDOM from 'react-dom';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
-import { Map } from 'immutable';
+import { Map, List } from 'immutable';
 
 // The real components.js will be generated during build process
 import _components from '../components.js';
@@ -70,10 +71,21 @@ const getProps = props => {
 };
 
 class Builder extends Component {
-    constructor(props) {
-        super(props);
+    componentDidMount() {
+        if (this.props.isPlaceholder) this._makeTransparent();
+    }
 
-        this._renderComponent = this._renderComponent.bind(this);
+    componentDidUpdate() {
+        if (this.props.isPlaceholder) this._makeTransparent();
+    }
+
+    _makeTransparent() {
+        const el = ReactDOM.findDOMNode(this);
+        if (el) el.style.opacity = '.25';
+    }
+
+    _isDraggedComponent(component) {
+        return component === this.props.draggedComponent;
     }
 
     _renderPseudoComponent(component) {
@@ -86,9 +98,9 @@ class Builder extends Component {
         }
     }
 
-    _renderComponent(component) {
+    _renderComponent(component, isPlaceholder = false, isPlaceholderRoot = false) {
         if (!component) return null;
-        if (component.id === this.props.draggedComponentId) return null;
+        if (!isPlaceholder && this._isDraggedComponent(component)) return null;
 
         if (isPseudoComponent(component))
             return this._renderPseudoComponent(component);
@@ -97,19 +109,77 @@ class Builder extends Component {
 
         let children = null;
 
-        if (component.children.size > 0)
-            children = component.children.map(this._renderComponent);
+        if (component.children.size > 0) {
+            const needPlaceholders =
+                this.props.draggedComponent !== null &&
+                this.props.draggingOverComponentId !== null;
+
+            if (needPlaceholders) {
+                children = List().withMutations(list => {
+                    component.children.forEach((childComponent, idx) => {
+                        if (childComponent.id === this.props.draggingOverComponentId) {
+                            list.push(
+                                <Builder
+                                    component={this.props.draggedComponent}
+                                    isPlaceholder
+                                    afterIdx={idx - 1}
+                                />
+                            );
+
+                            list.push(
+                                this._renderComponent(childComponent, isPlaceholder)
+                            );
+
+                            list.push(
+                                <Builder
+                                    component={this.props.draggedComponent}
+                                    isPlaceholder
+                                    afterIdx={idx}
+                                />
+                            );
+                        }
+                        else {
+                            list.push(
+                                this._renderComponent(childComponent, isPlaceholder)
+                            );
+                        }
+                    });
+                });
+            }
+            else {
+                children = component.children.map(
+                    childComponent => this._renderComponent(childComponent, isPlaceholder)
+                );
+            }
+        }
 
         const props = getProps(component.props);
         props.key = component.id;
         props.children = children;
 
-
-        if (typeof Component === 'string') {
-            props['data-jssy-id'] = component.id;
+        if (!props.children && this.props.draggedComponent !== null) {
+            props.children = (
+                <Builder
+                    component={this.props.draggedComponent}
+                    isPlaceholder
+                    afterIdx={-1}
+                />
+            );
         }
-        else {
-            props.__jssy_component_id__ = component.id;
+
+        if (!isPlaceholder) {
+            if (typeof Component === 'string') props['data-jssy-id'] = component.id;
+            else props.__jssy_component_id__ = component.id;
+        }
+        else if (isPlaceholderRoot) {
+            if (typeof Component === 'string') {
+                props['data-jssy-placeholder'] = true;
+                props['data-jssy-after'] = this.props.afterIdx
+            }
+            else {
+                props.__jssy_placeholder__ = true;
+                props.__jssy_after__ = this.props.afterIdx;
+            }
         }
 
         return (
@@ -118,7 +188,11 @@ class Builder extends Component {
     }
 
     render() {
-        return this._renderComponent(this.props.component);
+        return this._renderComponent(
+            this.props.component,
+            this.props.isPlaceholder,
+            true
+        );
     }
 }
 
@@ -130,17 +204,23 @@ Builder.propTypes = {
         children: ImmutablePropTypes.list
     }),
 
-    draggedComponentId: PropTypes.any // number or null
+    isPlaceholder: PropTypes.bool,
+    afterIdx: PropTypes.any, // number on null
+    draggedComponent: PropTypes.any,
+    draggingOverComponentId: PropTypes.any // number or null
 };
 
 Builder.defaultProps = {
-    component: null
+    component: null,
+    isPlaceholder: false,
+    afterIdx: null
 };
 
 Builder.displayName = 'Builder';
 
 const mapStateToProps = state => ({
-    draggedComponentId: state.preview.draggedComponentId
+    draggedComponent: state.preview.draggedComponent,
+    draggingOverComponentId: state.preview.draggingOverComponentId
 });
 
 export default connect(mapStateToProps)(Builder);
