@@ -19,9 +19,10 @@ import {
     PROJECT_ROUTE_DELETE,
     PROJECT_ROUTE_UPDATE_FIELD,
     PROJECT_COMPONENT_DELETE,
+    PROJECT_COMPONENT_MOVE,
+    PROJECT_COMPONENT_CREATE_ROOT,
     PROJECT_COMPONENT_UPDATE_PROP_VALUE,
-    PROJECT_COMPONENT_RENAME,
-    PROJECT_COMPONENT_MOVE
+    PROJECT_COMPONENT_RENAME
 } from '../actions/project';
 
 import Project from '../models/Project';
@@ -143,6 +144,28 @@ const buildComponentsIndex = project => Map().withMutations(ret => {
 
     project.routes.forEach((route, idx) => void visitRoute(route, ['routes', idx]));
 });
+
+const getLastComponentId = (state) => {
+    let lastComponentId = 0;
+
+    const maxComponentIdFromChildren = (component) => {
+        const reducer = (acc, component) => Math.max(component.id,
+            component.children.reduce(reducer, acc));
+
+        return component.children.reduce(reducer, -1);;
+    }
+
+    const reducer = (acc, route) => {
+        if(!route.component) return lastComponentId;
+
+        const id1 = maxComponentIdFromChildren(route.component);
+        const id2 = route.children.reduce(reducer, acc);
+
+        return Math.max(id1 ,id2);
+    }
+
+    return state.data.routes.reduce(reducer, -1)
+}
 
 const deepDeleteComponentIndex = (state, id) => {
     const curPath = state.componentsIndex.get(id).path,
@@ -303,6 +326,15 @@ export default (state = new ProjectState(), action) => {
                 action.newValue
             );
         }
+
+        case PROJECT_COMPONENT_CREATE_ROOT: {
+            const newComponentId = getLastComponentId(state) + 1;
+
+            
+
+            return state;
+        }
+
 
         case PROJECT_COMPONENT_MOVE: {
             const sourceData = state.getIn(["componentsIndex", action.sourceId]),
