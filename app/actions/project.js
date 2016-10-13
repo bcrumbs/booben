@@ -167,6 +167,24 @@ export const moveComponent = (sourceId, targetId, position) => ({
  *
  * @type {string}
  */
+export const PROJECT_COMPONENT_CREATE_ROOT = 'PROJECT_COMPONENT_CREATE_ROOT';
+
+/**
+ *
+ * @param {number[]} where - index of component
+ * @returns {Object}
+ */
+export const createRootComponent = (routeId, isIndexRoute, componentName) => ({
+    type: PROJECT_COMPONENT_CREATE_ROOT,
+    routeId,
+    isIndexRoute,
+    componentName
+});
+
+/**
+ *
+ * @type {string}
+ */
 export const PROJECT_COMPONENT_UPDATE_PROP_VALUE = 'PROJECT_COMPONENT_UPDATE_PROP_VALUE';
 
 /**

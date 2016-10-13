@@ -19,9 +19,10 @@ import {
     PROJECT_ROUTE_DELETE,
     PROJECT_ROUTE_UPDATE_FIELD,
     PROJECT_COMPONENT_DELETE,
+    PROJECT_COMPONENT_MOVE,
+    PROJECT_COMPONENT_CREATE_ROOT,
     PROJECT_COMPONENT_UPDATE_PROP_VALUE,
-    PROJECT_COMPONENT_RENAME,
-    PROJECT_COMPONENT_MOVE
+    PROJECT_COMPONENT_RENAME
 } from '../actions/project';
 
 import Project from '../models/Project';
@@ -144,6 +145,38 @@ const buildComponentsIndex = project => Map().withMutations(ret => {
     project.routes.forEach((route, idx) => void visitRoute(route, ['routes', idx]));
 });
 
+const buildRoutesIndex = project => Map().withMutations(ret => {
+    const visitRoute = (route, path) => {
+        ret.set(route.id, {path});
+        route.children.forEach((child, idx) =>
+            void visitRoute(child, [].concat(path, 'children', idx)));
+    };
+
+    project.routes.forEach((route, idx) => void visitRoute(route, ['routes', idx]));
+});
+
+const getLastComponentId = (state) => {
+    let lastComponentId = 0;
+
+    const maxComponentIdFromChildren = (component) => {
+        const reducer = (acc, component) => Math.max(component.id,
+            component.children.reduce(reducer, acc));
+
+        return component.children.reduce(reducer, -1);;
+    }
+
+    const reducer = (acc, route) => {
+        if(!route.component) return lastComponentId;
+
+        const id1 = maxComponentIdFromChildren(route.component);
+        const id2 = route.children.reduce(reducer, acc);
+
+        return Math.max(id1 ,id2);
+    }
+
+    return state.data.routes.reduce(reducer, -1)
+}
+
 const deepDeleteComponentIndex = (state, id) => {
     const curPath = state.componentsIndex.get(id).path,
         component = state.getIn(['data', ...curPath]);
@@ -230,7 +263,8 @@ const ProjectState = Record({
     data: null,
     meta: null,
     error: null,
-    componentsIndex: Map()
+    componentsIndex: Map(),
+    routesIndex: Map()
 });
 
 const updateRouteField = (state, where, idx, field, newValue) => state.setIn(
@@ -254,7 +288,8 @@ export default (state = new ProjectState(), action) => {
                     loadState: LOADED,
                     data: projectToImmutable(action.project),
                     error: null,
-                    componentsIndex: buildComponentsIndex(action.project)
+                    componentsIndex: buildComponentsIndex(action.project),
+                    routesIndex: buildRoutesIndex(action.project)
                 })
                 .set('meta', action.metadata); // Prevent conversion to Immutable.Map
         }
@@ -304,8 +339,29 @@ export default (state = new ProjectState(), action) => {
             );
         }
 
+        case PROJECT_COMPONENT_CREATE_ROOT: {
+            const newComponentId = getLastComponentId(state) + 1;
+
+            const newComponent = new ProjectComponent({
+                id: newComponentId,
+                name: action.componentName
+            });
+
+            const routePath = state.getIn(['routesIndex', action.routeId]).path;
+            const componentPath = routePath.concat(action.isIndexRoute ? 'indexComponent' : 'component');
+
+            return state
+                .setIn(['data', ...componentPath], newComponent)
+                .setIn(['componentsIndex', newComponentId], {
+                    path: componentPath,
+                    isIndexRoute: action.isIndexRoute,
+                    routeId: action.routeId
+                });
+        }
+
+
         case PROJECT_COMPONENT_MOVE: {
-            const sourceData = state.getIn(["componentsIndex", action.sourceId]),
+            const sourceData = state.getIn(['componentsIndex', action.sourceId]),
                 component = state.getIn(['data', ...sourceData.path]);
 
             state = deleteComponent(state, action.sourceId);
