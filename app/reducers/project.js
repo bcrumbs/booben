@@ -145,6 +145,16 @@ const buildComponentsIndex = project => Map().withMutations(ret => {
     project.routes.forEach((route, idx) => void visitRoute(route, ['routes', idx]));
 });
 
+const buildRoutesIndex = project => Map().withMutations(ret => {
+    const visitRoute = (route, path) => {
+        ret.set(route.id, {path});
+        route.children.forEach((child, idx) =>
+            void visitRoute(child, [].concat(path, 'children', idx)));
+    };
+
+    project.routes.forEach((route, idx) => void visitRoute(route, ['routes', idx]));
+});
+
 const getLastComponentId = (state) => {
     let lastComponentId = 0;
 
@@ -253,7 +263,8 @@ const ProjectState = Record({
     data: null,
     meta: null,
     error: null,
-    componentsIndex: Map()
+    componentsIndex: Map(),
+    routesIndex: Map()
 });
 
 const updateRouteField = (state, where, idx, field, newValue) => state.setIn(
@@ -277,7 +288,8 @@ export default (state = new ProjectState(), action) => {
                     loadState: LOADED,
                     data: projectToImmutable(action.project),
                     error: null,
-                    componentsIndex: buildComponentsIndex(action.project)
+                    componentsIndex: buildComponentsIndex(action.project),
+                    routesIndex: buildRoutesIndex(action.project)
                 })
                 .set('meta', action.metadata); // Prevent conversion to Immutable.Map
         }
@@ -330,14 +342,26 @@ export default (state = new ProjectState(), action) => {
         case PROJECT_COMPONENT_CREATE_ROOT: {
             const newComponentId = getLastComponentId(state) + 1;
 
-            
+            const newComponent = new ProjectComponent({
+                id: newComponentId,
+                name: action.componentName
+            });
 
-            return state;
+            const routePath = state.getIn(['routesIndex', action.routeId]).path;
+            const componentPath = routePath.concat(action.isIndexRoute ? 'indexComponent' : 'component');
+
+            return state
+                .setIn(['data', ...componentPath], newComponent)
+                .setIn(['componentsIndex', newComponentId], {
+                    path: componentPath,
+                    isIndexRoute: action.isIndexRoute,
+                    routeId: action.routeId
+                });
         }
 
 
         case PROJECT_COMPONENT_MOVE: {
-            const sourceData = state.getIn(["componentsIndex", action.sourceId]),
+            const sourceData = state.getIn(['componentsIndex', action.sourceId]),
                 component = state.getIn(['data', ...sourceData.path]);
 
             state = deleteComponent(state, action.sourceId);

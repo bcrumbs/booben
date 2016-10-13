@@ -174,10 +174,10 @@ export const PROJECT_COMPONENT_CREATE_ROOT = 'PROJECT_COMPONENT_CREATE_ROOT';
  * @param {number[]} where - index of component
  * @returns {Object}
  */
-export const createRootComponent = (routeId, isIndex, componentName) => ({
+export const createRootComponent = (routeId, isIndexRoute, componentName) => ({
     type: PROJECT_COMPONENT_CREATE_ROOT,
     routeId,
-    isIndex,
+    isIndexRoute,
     componentName
 });
 
