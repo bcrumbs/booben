@@ -170,14 +170,33 @@ export const moveComponent = (sourceId, targetId, position) => ({
 export const PROJECT_COMPONENT_CREATE_ROOT = 'PROJECT_COMPONENT_CREATE_ROOT';
 
 /**
- *
- * @param {number[]} where - index of component
- * @returns {Object}
+ * @param  {number}  routeId
+ * @param  {boolean} isIndexRoute
+ * @param  {string}  componentName
+ * @return {object}
  */
 export const createRootComponent = (routeId, isIndexRoute, componentName) => ({
     type: PROJECT_COMPONENT_CREATE_ROOT,
     routeId,
     isIndexRoute,
+    componentName
+});
+
+/**
+ *
+ * @type {string}
+ */
+export const PROJECT_COMPONENT_CREATE = 'PROJECT_COMPONENT_CREATE';
+
+/**
+ * @param  {number} targetId
+ * @param  {number} position
+ * @param  {string} componentName
+ */
+export const createComponent = (targetId, position, componentName) => ({
+    type: PROJECT_COMPONENT_CREATE,
+    targetId,
+    position,
     componentName
 });
 

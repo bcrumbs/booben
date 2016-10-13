@@ -18,6 +18,7 @@ import {
     PROJECT_ROUTE_CREATE,
     PROJECT_ROUTE_DELETE,
     PROJECT_ROUTE_UPDATE_FIELD,
+    PROJECT_COMPONENT_CREATE,
     PROJECT_COMPONENT_DELETE,
     PROJECT_COMPONENT_MOVE,
     PROJECT_COMPONENT_CREATE_ROOT,
@@ -257,6 +258,49 @@ const deleteComponent = (state, id) => {
     return state.deleteIn(['data', ...componentIndexData.path]);
 }
 
+const createComponent = (state, targetId, position, component) => {
+    const targetPath = state.componentsIndex.getIn([targetId]).path,
+        componentList = state.getIn(['data', ...targetPath, 'children']);
+
+    let part0, part1;
+
+    if(position !== null) {
+        part0 = componentList.slice(0, position + 1);
+        part1 = componentList.slice(position + 1);
+    } else {
+        part0 = List();
+        part1 = componentList;
+    }
+
+    const newValue = part0.push(component).concat(part1);
+
+    if (part1.size) {
+        part1.map((item) => {
+            const basePath = state.componentsIndex.get(item.id).path;
+            basePath[basePath.length - 1] = parseInt(basePath.slice(-1)) + 1;
+
+            state = deepShiftComponentIndex(
+                state,
+                item.id,
+                basePath
+            );
+        })
+    }
+
+    const componentIndexImage = state.getIn(
+        ["componentsIndex", targetId]
+    );
+
+    state = deepSetComponentIndex(state, component, {
+        isIndexRoute: componentIndexImage.isIndexRoute,
+        routeId: componentIndexImage.routeId,
+        path: targetPath.concat('children', position !== null && position + 1 || 0)
+    });
+
+    return state
+        .setIn(['data', ...targetPath, 'children'], newValue);
+}
+
 const ProjectState = Record({
     projectName: '',
     loadState: NOT_LOADED,
@@ -359,6 +403,25 @@ export default (state = new ProjectState(), action) => {
                 });
         }
 
+        case PROJECT_COMPONENT_CREATE: {
+            const newComponentId = getLastComponentId(state) + 1,
+                targetPath = state.componentsIndex.getIn([action.targetId]).path;
+
+            const newComponent = new ProjectComponent({
+                id: newComponentId,
+                name: action.componentName
+            });
+
+            state = createComponent(
+                state,
+                action.targetId,
+                action.position,
+                newComponent
+            );
+
+            return state;
+        }
+
 
         case PROJECT_COMPONENT_MOVE: {
             const sourceData = state.getIn(['componentsIndex', action.sourceId]),
@@ -366,47 +429,9 @@ export default (state = new ProjectState(), action) => {
 
             state = deleteComponent(state, action.sourceId);
 
-            const targetPath = state.componentsIndex.getIn([action.targetId]).path,
-                componentList = state.getIn(['data', ...targetPath, 'children']);
+            state = createComponent(state, action.targetId, action.position, component);
 
-            let part0, part1;
-
-            if(action.position !== null) {
-                part0 = componentList.slice(0, action.position + 1);
-                part1 = componentList.slice(action.position + 1);
-            } else {
-                part0 = List();
-                part1 = componentList;
-            }
-
-            const newValue = part0.push(component).concat(part1);
-
-            if (part1.size) {
-                part1.map((item) => {
-                    const basePath = state.componentsIndex.get(item.id).path;
-                    basePath[basePath.length - 1] = parseInt(basePath.slice(-1)) + 1;
-
-                    state = deepShiftComponentIndex(
-                        state,
-                        item.id,
-                        basePath
-                    );
-                })
-            }
-
-            const componentIndexImage = state.getIn(
-                ["componentsIndex", action.targetId]
-            );
-
-            state = deepSetComponentIndex(state, component, {
-                isIndexRoute: componentIndexImage.isIndexRoute,
-                routeId: componentIndexImage.routeId,
-                path: targetPath.concat('children', 
-                    action.position !== null && action.position + 1 || 0)
-            });
-
-            return state
-                .setIn(['data', ...targetPath, 'children'], newValue);
+            return state;
         }
 
         case PROJECT_COMPONENT_DELETE: {
