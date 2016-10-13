@@ -28,6 +28,7 @@ const PreviewState = Record({
     draggedComponentName: '',
     draggingOverComponentId: null,
     draggingOverPlaceholder: false,
+    placeholderContainerId: null,
     placeholderAfter: -1
 });
 
@@ -95,12 +96,14 @@ export default (state = new PreviewState(), action) => {
             return state.merge({
                 draggingOverComponentId: action.componentId,
                 draggingOverPlaceholder: false,
+                placeholderContainerId: null,
                 placeholderAfter: -1
             });
 
         case PREVIEW_DRAG_OVER_PLACEHOLDER:
             return state.merge({
                 draggingOverPlaceholder: true,
+                placeholderContainerId: action.containerId,
                 placeholderAfter: action.afterIdx
             });
 

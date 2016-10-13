@@ -119,10 +119,12 @@ export const dragOverComponent = componentId => ({
 
 /**
  *
+ * @param {number} containerId
  * @param {number} afterIdx
  * @return {Object}
  */
-export const dragOverPlaceholder = afterIdx => ({
+export const dragOverPlaceholder = (containerId, afterIdx) => ({
     type: PREVIEW_DRAG_OVER_PLACEHOLDER,
+    containerId,
     afterIdx
 });

@@ -28,7 +28,7 @@ class Overlay extends Component {
                 height
             } = el.getBoundingClientRect();
 
-            const syntheticPadding = 10,
+            const syntheticPadding = -2,
                 scrollTop = window.pageYOffset;
 
             width = width + syntheticPadding;
@@ -36,7 +36,7 @@ class Overlay extends Component {
             left = left - syntheticPadding/2;
             top = top - syntheticPadding/2 + scrollTop;
 
-            const borderColorSelect = `3px solid ${color}`,
+            const borderColorSelect = `2px solid ${color}`,
                 style = {
                     height: '1px',
                     width: '1px',
@@ -51,7 +51,8 @@ class Overlay extends Component {
                     left: 0,
                     top: 0,
                     borderTop: borderColorSelect,
-                    position: 'absolute'
+                    position: 'absolute',
+                    opacity: '.5'
                 },
                 bottomLeft = {
                     height: height,
@@ -59,7 +60,8 @@ class Overlay extends Component {
                     left: 0,
                     top: 0,
                     borderLeft: borderColorSelect,
-                    position: 'absolute'
+                    position: 'absolute',
+                    opacity: '.5'
                 },
                 bottomBottom = {
                     height: '0px',
@@ -67,7 +69,8 @@ class Overlay extends Component {
                     left: 0,
                     bottom: -height,
                     borderBottom: borderColorSelect,
-                    position: 'absolute'
+                    position: 'absolute',
+                    opacity: '.5'
                 },
                 bottomRight = {
                     height: height,
@@ -75,7 +78,8 @@ class Overlay extends Component {
                     right: -width,
                     top: '0px',
                     borderRight: borderColorSelect,
-                    position: 'absolute'
+                    position: 'absolute',
+                    opacity: '.5'
                 };
 
             return (

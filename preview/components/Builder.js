@@ -123,6 +123,7 @@ class Builder extends Component {
                                     component={this.props.draggedComponent}
                                     isPlaceholder
                                     afterIdx={idx - 1}
+                                    containerId={component.id}
                                 />
                             );
 
@@ -135,6 +136,7 @@ class Builder extends Component {
                                     component={this.props.draggedComponent}
                                     isPlaceholder
                                     afterIdx={idx}
+                                    containerId={component.id}
                                 />
                             );
                         }
@@ -163,6 +165,7 @@ class Builder extends Component {
                     component={this.props.draggedComponent}
                     isPlaceholder
                     afterIdx={-1}
+                    containerId={component.id}
                 />
             );
         }
@@ -174,11 +177,13 @@ class Builder extends Component {
         else if (isPlaceholderRoot) {
             if (typeof Component === 'string') {
                 props['data-jssy-placeholder'] = true;
-                props['data-jssy-after'] = this.props.afterIdx
+                props['data-jssy-after'] = this.props.afterIdx;
+                props['data-jssy-container-id'] = this.props.containerId;
             }
             else {
                 props.__jssy_placeholder__ = true;
                 props.__jssy_after__ = this.props.afterIdx;
+                props.__jssy_container_id__ = this.props.containerId;
             }
         }
 
@@ -206,6 +211,8 @@ Builder.propTypes = {
 
     isPlaceholder: PropTypes.bool,
     afterIdx: PropTypes.any, // number on null
+    containerId: PropTypes.any, // number on null
+
     draggedComponent: PropTypes.any,
     draggingOverComponentId: PropTypes.any // number or null
 };
@@ -213,7 +220,8 @@ Builder.propTypes = {
 Builder.defaultProps = {
     component: null,
     isPlaceholder: false,
-    afterIdx: null
+    afterIdx: null,
+    containerId: null
 };
 
 Builder.displayName = 'Builder';

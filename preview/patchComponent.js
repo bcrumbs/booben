@@ -22,9 +22,12 @@ const patchDOMElement = componentInstance => {
         if (isPlaceholder) {
             const el = ReactDOM.findDOMNode(componentInstance);
             if (el) {
-                const after = componentInstance.props.__jssy_after__;
+                const after = componentInstance.props.__jssy_after__,
+                    containerId = componentInstance.props.__jssy_container_id__;
+
                 el.setAttribute('data-jssy-placeholder', '');
                 el.setAttribute('data-jssy-after', String(after));
+                el.setAttribute('data-jssy-container-id', String(containerId));
             }
         }
     }

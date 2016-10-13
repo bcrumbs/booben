@@ -18,8 +18,12 @@ import {
     startDragComponent,
     stopDragComponent,
     dragOverComponent,
-    dragOverPlaceholder
+    dragOverPlaceholder,
 } from '../../app/actions/preview';
+
+import {
+    moveComponent
+} from '../../app/actions/project';
 
 import HTMLMeta from '../../app/meta/html';
 import miscMeta from '../../app/meta/misc';
@@ -208,18 +212,24 @@ class Preview extends Component {
                 return {
                     isPlaceholder: false,
                     componentId: parseInt(dataJssyId, 10),
-                    placeholderAfter: null
+                    placeholderAfter: null,
+                    containerId: null
                 };
             }
             else {
                 const isPlaceholder = current.hasAttribute('data-jssy-placeholder');
+
                 if (isPlaceholder) {
-                    const after = parseInt(current.getAttribute('data-jssy-after'));
+                    const after = parseInt(current.getAttribute('data-jssy-after'), 10);
+
+                    const containerId =
+                        parseInt(current.getAttribute('data-jssy-container-id'), 10);
                     
                     return {
                         isPlaceholder: true,
                         componentId: null,
-                        placeholderAfter: after
+                        placeholderAfter: after,
+                        containerId: containerId
                     }
                 }
             }
@@ -313,15 +323,16 @@ class Preview extends Component {
         this.props.overlayDomNode.removeChild(this.dndParams.avatarElement);
 
         if (this.props.draggedComponent !== null) {
-            const containerId = this._getClosestContainerComponentId(el);
-
             const willDrop =
-                containerId !== null &&
-                this._componentIsInCurrentRoute(containerId) &&
-                this.props.draggingOverPlaceholder;
+                this.props.draggingOverPlaceholder &&
+                this._componentIsInCurrentRoute(this.props.placeholderContainerId);
 
             if (willDrop) {
-                // TODO: Move existing component
+                this.props.onMoveComponent(
+                    this.props.draggedComponent.id,
+                    this.props.placeholderContainerId,
+                    this.props.placeholderAfter
+                );
             }
         }
         else {
@@ -395,7 +406,10 @@ class Preview extends Component {
                         this.props.onDragOverComponent(overWhat.componentId);
                 }
                 else {
-                    this.props.onDragOverPlaceholder(overWhat.placeholderAfter);
+                    this.props.onDragOverPlaceholder(
+                        overWhat.containerId,
+                        overWhat.placeholderAfter
+                    );
                 }
             }
         }
@@ -482,8 +496,10 @@ Preview.propTypes = {
     currentRouteIsIndexRoute: PropTypes.bool,
     draggingComponent: PropTypes.bool,
     draggedComponentName: PropTypes.string,
+    draggedComponent: PropTypes.any,
     draggingOverPlaceholder: PropTypes.bool,
     placeholderAfter: PropTypes.number,
+    placeholderContainerId: PropTypes.any, // number or null
     highlightingEnabled: PropTypes.bool,
 
     onToggleComponentSelection: PropTypes.func,
@@ -494,7 +510,8 @@ Preview.propTypes = {
     onComponentStartDrag: PropTypes.func,
     onComponentStopDrag: PropTypes.func,
     onDragOverComponent: PropTypes.func,
-    onDragOverPlaceholder: PropTypes.func
+    onDragOverPlaceholder: PropTypes.func,
+    onMoveComponent: PropTypes.func
 };
 
 Preview.defaultProps = {
@@ -511,8 +528,10 @@ const mapStateToProps = state => ({
     currentRouteIsIndexRoute: state.preview.currentRouteIsIndexRoute,
     draggingComponent: state.preview.draggingComponent,
     draggedComponentName: state.preview.draggedComponentName,
+    draggedComponent: state.preview.draggedComponent,
     draggingOverPlaceholder: state.preview.draggingOverPlaceholder,
     placeholderAfter: state.preview.placeholderAfter,
+    placeholderContainerId: state.preview.placeholderContainerId,
     highlightingEnabled: state.preview.highlightingEnabled
 });
 
@@ -537,7 +556,12 @@ const mapDispatchToProps = dispatch => ({
 
     onComponentStopDrag: () => void dispatch(stopDragComponent()),
     onDragOverComponent: componentId => void dispatch(dragOverComponent(componentId)),
-    onDragOverPlaceholder: afterIdx => void dispatch(dragOverPlaceholder(afterIdx))
+
+    onDragOverPlaceholder: (containerId, afterIdx) =>
+        void dispatch(dragOverPlaceholder(containerId, afterIdx)),
+
+    onMoveComponent: (componentId, containerId, position) =>
+        void dispatch(moveComponent(componentId, containerId, position))
 });
 
 export default connect(
