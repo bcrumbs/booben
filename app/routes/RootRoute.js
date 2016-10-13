@@ -21,10 +21,14 @@ import {
     HeaderRegion,
     HeaderLogoBox,
     HeaderMenu,
+    HeaderMenuGroup,
+    HeaderMenuList,
     HeaderMenuItem,
     Footer,
     FooterRegion,
     FooterMenu,
+    FooterMenuGroup,
+    FooterMenuList,
     FooterMenuItem,
     ToggleButton
 } from '@reactackle/reactackle';
@@ -83,31 +87,42 @@ const RootRoute = props => {
                     </HeaderRegion>
 
                     <HeaderRegion region="main" size='blank'>
-                        <HeaderMenu inline dense>
-                            <HeaderMenuItem
-                                text="Structure"
-                                linkHref={`/${props.projectName}/structure`}
-                                linkComponent={TopMenuLink}
-                            />
+                        <HeaderMenu inline dense mode="light">
+                            <HeaderMenuGroup>
+                                <HeaderMenuList>
+                                    <HeaderMenuItem
+                                        text="Structure"
+                                        linkHref={`/${props.projectName}/structure`}
+                                        linkComponent={TopMenuLink}
+                                    />
 
-                            <HeaderMenuItem text="Design">
-                                {routeMenuItems}
-                            </HeaderMenuItem>
+                                    <HeaderMenuItem text="Design">
+                                        <HeaderMenuGroup>
+                                            <HeaderMenuList>
+                                                {routeMenuItems}
+                                            </HeaderMenuList>
+                                        </HeaderMenuGroup>
+                                    </HeaderMenuItem>
 
-                            <HeaderMenuItem text="Data" />
-                            <HeaderMenuItem text="Settings" />
-
+                                    <HeaderMenuItem text="Data" />
+                                    <HeaderMenuItem text="Settings" />
+                                </HeaderMenuList>
+                            </HeaderMenuGroup>
                         </HeaderMenu>
                     </HeaderRegion>
 
                     <HeaderRegion size="blank">
-                        <HeaderMenu inline dense>
-                            <HeaderMenuItem
-                                text="Preview"
-                                linkHref={`/${props.projectName}/preview`}
-                                linkComponent={TopMenuLink}
-                            />
-                            <HeaderMenuItem text="Publish" />
+                        <HeaderMenu inline dense mode="light">
+                            <HeaderMenuGroup>
+                                <HeaderMenuList>
+                                    <HeaderMenuItem
+                                        text="Preview"
+                                        linkHref={`/${props.projectName}/preview`}
+                                        linkComponent={TopMenuLink}
+                                    />
+                                    <HeaderMenuItem text="Publish" />
+                                </HeaderMenuList>
+                            </HeaderMenuGroup>
                         </HeaderMenu>
                     </HeaderRegion>
                 </Header>
@@ -118,26 +133,35 @@ const RootRoute = props => {
             <BottomRegion>
                 <Footer>
                     <FooterRegion region="main" size='blank'>
-                        <FooterMenu inline dense>
-                            <FooterMenuItem text="FAQ"/>
+                        <FooterMenu inline dense mode="light">
+                            <FooterMenuGroup>
+                                <FooterMenuList>
+                                    <FooterMenuItem text="FAQ"/>
+                                </FooterMenuList>
+                            </FooterMenuGroup>
                         </FooterMenu>
                     </FooterRegion>
+
                     <FooterRegion size='blank'>
-                        <FooterMenu inline dense>
-                            <FooterMenuItem
-                                text="Show component's title"
-                                subcomponentRight={<ToggleButton />}
-                            />
+                        <FooterMenu inline dense mode="light">
+                            <FooterMenuGroup>
+                                <FooterMenuList>
+                                    <FooterMenuItem
+                                        text="Show component's title"
+                                        subcomponentRight={<ToggleButton />}
+                                    />
 
-                            <FooterMenuItem
-                                text="Show placeholders"
-                                subcomponentRight={<ToggleButton />}
-                            />
+                                    <FooterMenuItem
+                                        text="Show placeholders"
+                                        subcomponentRight={<ToggleButton />}
+                                    />
 
-                            <FooterMenuItem
-                                text="Toggle Full Screen"
-                                onClick={toggleFullscreen}
-                            />
+                                    <FooterMenuItem
+                                        text="Toggle Full Screen"
+                                        onClick={toggleFullscreen}
+                                    />
+                                </FooterMenuList>
+                            </FooterMenuGroup>
                         </FooterMenu>
                     </FooterRegion>
                 </Footer>

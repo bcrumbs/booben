@@ -13,7 +13,7 @@ const rewriteThemePathResolverPlugin = {
     apply(resolver) {
         resolver.plugin("resolve", (context, request) => {
             const isReactackleThemeFile =
-                /@reactackle\/reactackle/.test(context) &&
+                /@reactackle(\/|\\)reactackle/.test(context) &&
                 request.path === '../_theme.scss';
 
             if (isReactackleThemeFile)
