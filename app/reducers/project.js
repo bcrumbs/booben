@@ -429,11 +429,13 @@ export default (state = new ProjectState(), action) => {
             state = createComponent(state, action.targetId, action.position,
                 state.getIn(['data', ...sourceData.path]));
 
+            state = state.deleteIn(['data', ...sourcePath]);
+
             const componentIndex = sourcePath.slice(-1)[0],
                 parentComponent = state.getIn(['data', ...sourcePath.slice(0, -1)]);
 
             if (List.isList(parentComponent)) {
-                const componentsToShift = parentComponent.slice(componentIndex + 1);
+                const componentsToShift = parentComponent.slice(componentIndex);
 
                 if (componentsToShift.size) {
                     componentsToShift.forEach(item => {
@@ -449,7 +451,7 @@ export default (state = new ProjectState(), action) => {
                 }
             }
 
-            return state.deleteIn(['data', ...sourcePath]);
+            return state;
         }
 
         case PROJECT_COMPONENT_DELETE: {
