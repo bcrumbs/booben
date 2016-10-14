@@ -84,6 +84,12 @@ const propSchema = {
                             required: false
                         },
 
+                        // For 'string' type
+                        defaultTextKey: {
+                            type: 'string',
+                            required: false
+                        },
+
                         // For 'arrayOf' type
                         defaultNum: {
                             type: 'integer',
@@ -457,15 +463,15 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings) => {
         for (let i = 0, l = propMeta.options.length; i < l; i++) {
             const optionTextKey = propMeta.options[i].textKey;
 
-            if (!strings[optionTextKey])
+            if (!strings[optionTextKey]) {
                 throw new Error(
                     `Unknown string '${optionTextKey}' ` +
                     `in options list of prop '${propName}'`
                 );
+            }
         }
     }
-
-    if (propMeta.type === 'arrayOf') {
+    else if (propMeta.type === 'arrayOf') {
         if (typeof propMeta.ofType === 'undefined')
             throw new Error(
                 `Prop '${propName}' of type 'arrayOf' must have 'ofType' field`
@@ -473,8 +479,7 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings) => {
 
         checkAdditionalPropTypeData(propName + '.[]', propMeta.ofType, strings);
     }
-
-    if (propMeta.type === 'shape') {
+    else if (propMeta.type === 'shape') {
         if (typeof propMeta.fields === 'undefined')
             throw new Error(
                 `Prop '${propName}' of type 'shape' must have 'fields' field`
@@ -488,6 +493,23 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings) => {
                 propMeta.fields[fields[i]],
                 strings
             );
+    }
+    else if (propMeta.type === 'string') {
+        const hasDefaultTextKey =
+            propMeta.source.indexOf('static') > -1 &&
+            propMeta.sourceConfigs.static &&
+            propMeta.sourceConfigs.static.defaultTextKey;
+
+        if (hasDefaultTextKey) {
+            const defaultTextKey = propMeta.sourceConfigs.static.defaultTextKey;
+
+            if (!strings[defaultTextKey]) {
+                throw new Error(
+                    `Unknown string '${defaultTextKey}' ` +
+                    `in defaultTextKey of prop '${propName}'`
+                );
+            }
+        }
     }
 };
 
@@ -703,8 +725,16 @@ exports.gatherMetadata = moduleDir => co(function* () {
         let node;
 
         while (node = yield walker.next()) {
-            const maybeMeta = yield visitNode(node);
-            if (maybeMeta !== null) ret.components[maybeMeta.displayName] = maybeMeta;
+            try {
+                const maybeMeta = yield visitNode(node);
+                if (maybeMeta !== null) ret.components[maybeMeta.displayName] = maybeMeta;
+            }
+            catch (err) {
+                throw new Error(
+                    `Error while reading components metadata of '${ret.namespace}': ` +
+                    err.message || err.toString()
+                );
+            }
         }
     }
 
