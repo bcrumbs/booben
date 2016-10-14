@@ -4,6 +4,8 @@
 
 'use strict';
 
+// TODO: Get all strings from i18n
+
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -23,7 +25,10 @@ import {
     ComponentTagWrapper
 } from '../../components/ComponentTag/ComponentTag';
 
-import { setExpandedGroups } from '../../actions/components-library';
+import {
+    setExpandedGroups,
+    focusComponent
+} from '../../actions/components-library';
 
 import { List } from 'immutable';
 
@@ -92,6 +97,7 @@ const extractGroupsDataFromMeta = meta => {
 
             group.components.push({
                 name: component.displayName,
+                fullName: `${lib.namespace}.${component.displayName}`,
                 text: component.strings[component.textKey],
                 descriptionText: component.strings[component.descriptionTextKey],
                 iconURL: null
@@ -106,7 +112,23 @@ class ComponentsLibraryComponent extends Component {
     constructor(props) {
         super(props);
 
+        this._onFocusHandlersCache = {};
+
         this.componentGroups = extractGroupsDataFromMeta(props.meta);
+    }
+
+    shouldComponentUpdate(nextProps) {
+        return nextProps.selectedComponentIds !== this.props.selectedComponentIds ||
+            nextProps.expandedGroups !== this.props.expandedGroups ||
+            nextProps.focusedComponentName !== this.props.focusedComponentName ||
+            nextProps.language !== this.props.language;
+    }
+
+    _getOnFocusHandler(componentName) {
+        return this._onFocusHandlersCache[componentName] || (
+            this._onFocusHandlersCache[componentName] =
+                this.props.onFocusComponent.bind(null, componentName)
+        );
     }
 
     render() {
@@ -122,10 +144,11 @@ class ComponentsLibraryComponent extends Component {
                     <ComponentTag
                         key={idx}
                         title={c.text[this.props.language]}
+                        focused={this.props.focusedComponentName === c.fullName}
+                        onFocus={this._getOnFocusHandler(c.fullName)}
                     />
                 ));
 
-            // TODO: Replace "Uncategorized" with a string from translations
             const title = group.isDefault
                 ? `${group.namespace} - Uncategorized`
                 : `${group.namespace} - ${group.text[this.props.language]}`;
@@ -157,8 +180,12 @@ class ComponentsLibraryComponent extends Component {
 ComponentsLibraryComponent.propTypes = {
     meta: PropTypes.object,
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
+    expandedGroups: ImmutablePropTypes.setOf(PropTypes.string),
+    focusedComponentName: PropTypes.string,
     language: PropTypes.string,
-    onExpandedGroupsChange: PropTypes.func
+
+    onExpandedGroupsChange: PropTypes.func,
+    onFocusComponent: PropTypes.func
 };
 
 ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
@@ -167,11 +194,13 @@ const mapStateToProps = state => ({
     meta: state.project.meta,
     selectedComponentIds: state.preview.selectedItems,
     expandedGroups: state.componentsLibrary.expandedGroups,
+    focusedComponentName: state.componentsLibrary.focusedComponentName,
     language: state.app.language
 });
 
 const mapDispatchToProps = dispatch => ({
-    onExpandedGroupsChange: groups => void dispatch(setExpandedGroups(groups))
+    onExpandedGroupsChange: groups => void dispatch(setExpandedGroups(groups)),
+    onFocusComponent: componentName => void dispatch(focusComponent(componentName))
 });
 
 export const ComponentsLibrary = connect(

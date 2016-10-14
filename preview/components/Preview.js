@@ -25,9 +25,6 @@ import {
     moveComponent
 } from '../../app/actions/project';
 
-import HTMLMeta from '../../app/meta/html';
-import miscMeta from '../../app/meta/misc';
-
 const OFFSET_DND_AVATAR = 10;
 const START_DRAG_THRESHOLD = 10;
 
@@ -153,49 +150,12 @@ class Preview extends Component {
             : rootComponentIds.componentId
     }
 
-    _getComponentMetadata(fullName) {
-        let [namespace, name] = fullName.split('.');
-        if (!name) {
-            namespace = '';
-            name = namespace;
-        }
-
-        let componentsMeta;
-        if (!namespace) componentsMeta = miscMeta;
-        else if (namespace === 'HTML') componentsMeta = HTMLMeta;
-        else componentsMeta = this.props.meta[namespace].components;
-
-        return componentsMeta[name] || null;
-    }
-
     _getClosestComponentId(el) {
         let current = el;
 
         while (current) {
             const dataJssyId = current.getAttribute('data-jssy-id');
             if (dataJssyId) return parseInt(dataJssyId, 10);
-            if (current.hasAttribute('data-reactroot')) break;
-            current = current.parentNode;
-        }
-
-        return null;
-    }
-
-    _getClosestContainerComponentId(el) {
-        let current = el;
-
-        while (current) {
-            const dataJssyId = current.getAttribute('data-jssy-id');
-
-            if (dataJssyId) {
-                const componentId = parseInt(dataJssyId, 10),
-                    component = this._getComponentById(componentId),
-                    componentMeta = this._getComponentMetadata(component.name);
-
-                if (componentMeta !== null && componentMeta.kind === 'container')
-                    return componentId;
-            }
-
             if (current.hasAttribute('data-reactroot')) break;
             current = current.parentNode;
         }
@@ -308,10 +268,9 @@ class Preview extends Component {
     /**
      * Handle drop of component (both local and non-local)
      *
-     * @param {HTMLElement} el
      * @private
      */
-    _dropComponent(el) {
+    _dropComponent() {
         this.props.onSetBoundaryComponent(null);
 
         if (this.animationFrame !== null) {
@@ -491,7 +450,6 @@ Preview.propTypes = {
     // Can't use ImmutablePropTypes.record or PropTypes.instanceOf(ProjectRecord) here
     // 'cause this value comes from another frame with another instance of immutable.js
     project: PropTypes.any,
-    meta: PropTypes.object,
     componentsIndex: ImmutablePropTypes.map,
     currentRouteIsIndexRoute: PropTypes.bool,
     draggingComponent: PropTypes.bool,
@@ -523,7 +481,6 @@ Preview.displayName = 'Preview';
 
 const mapStateToProps = state => ({
     project: state.project.data,
-    meta: state.project.meta,
     componentsIndex: state.project.componentsIndex,
     currentRouteIsIndexRoute: state.preview.currentRouteIsIndexRoute,
     draggingComponent: state.preview.draggingComponent,

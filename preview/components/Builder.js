@@ -2,7 +2,6 @@
 
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
-import ReactDOM from 'react-dom';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { Map, List } from 'immutable';
@@ -71,19 +70,6 @@ const getProps = props => {
 };
 
 class Builder extends Component {
-    componentDidMount() {
-        if (this.props.isPlaceholder) this._makeTransparent();
-    }
-
-    componentDidUpdate() {
-        if (this.props.isPlaceholder) this._makeTransparent();
-    }
-
-    _makeTransparent() {
-        const el = ReactDOM.findDOMNode(this);
-        if (el) el.style.opacity = '.25';
-    }
-
     _isDraggedComponent(component) {
         return component === this.props.draggedComponent;
     }
