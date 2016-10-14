@@ -26,15 +26,12 @@ import {
     PROJECT_COMPONENT_RENAME
 } from '../actions/project';
 
-import Project from '../models/Project';
 import ProjectRoute from '../models/ProjectRoute';
 import ProjectComponent from '../models/ProjectComponent';
 import ProjectComponentProp from '../models/ProjectComponentProp';
-import SourceDataStatic from '../models/SourceDataStatic';
-import SourceDataData from '../models/SourceDataData';
-import SourceDataConst from '../models/SourceDataConst';
-import SourceDataAction from '../models/SourceDataAction';
-import SourceDataDesigner from '../models/SourceDataDesigner';
+
+
+import { projectToImmutable } from '../models/Project';
 
 import { Record, List, Map } from 'immutable';
 
@@ -45,63 +42,6 @@ const propSourceDataToImmutable = {
     action: input => new SourceDataAction(input),
     designer: input => new SourceDataDesigner(input)
 };
-
-const projectComponentToImmutable = input => new ProjectComponent({
-    id: input.id,
-    name: input.name,
-    title: input.title,
-
-    props: Map(Object.keys(input.props).reduce(
-        (acc, cur) => Object.assign(acc, {
-            [cur]: new ProjectComponentProp({
-                source: input.props[cur].source,
-                sourceData: propSourceDataToImmutable[input.props[cur].source](
-                    input.props[cur].sourceData
-                )
-            })
-        }),
-
-        {}
-    )),
-
-    children: List(input.children.map(projectComponentToImmutable))
-});
-
-const projectRouteToImmutable = (input, pathPrefix) => {
-    const fullPath = pathPrefix + input.path,
-        nextPrefix = fullPath.endsWith('/') ? fullPath : fullPath + '/';
-
-    return new ProjectRoute({
-        id: input.id,
-        path: input.path,
-        fullPath: fullPath,
-        title: input.title,
-        description: input.description,
-        haveIndex: input.haveIndex,
-        indexComponent: input.indexComponent !== null
-            ? projectComponentToImmutable(input.indexComponent)
-            : null,
-
-        haveRedirect: input.haveRedirect,
-        redirectTo: input.redirectTo,
-
-        component: input.component !== null
-            ? projectComponentToImmutable(input.component)
-            : null,
-
-        children: List(input.children.map(
-            route => projectRouteToImmutable(route, nextPrefix))
-        )
-    });
-};
-
-const projectToImmutable = input => new Project({
-    name: input.name,
-    author: input.author,
-    componentLibs: List(input.componentLibs),
-    relayEndpointURL: input.relayEndpointURL,
-    routes: List(input.routes.map(route => projectRouteToImmutable(route, '')))
-});
 
 /**
  *
@@ -403,22 +343,12 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PROJECT_COMPONENT_CREATE: {
-            const newComponentId = getLastComponentId(state) + 1,
-                targetPath = state.componentsIndex.getIn([action.targetId]).path;
-
-            const newComponent = new ProjectComponent({
-                id: newComponentId,
-                name: action.componentName
-            });
-
-            state = createComponent(
+            return createComponent(
                 state,
                 action.targetId,
                 action.position,
-                newComponent
+                action.component.set('id', getLastComponentId(state) + 1)
             );
-
-            return state;
         }
 
 

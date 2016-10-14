@@ -25,7 +25,6 @@ const PreviewState = Record({
     currentRouteIsIndexRoute: false,
     draggingComponent: false,
     draggedComponent: null,
-    draggedComponentName: '',
     draggingOverComponentId: null,
     draggingOverPlaceholder: false,
     placeholderContainerId: null,
@@ -80,14 +79,12 @@ export default (state = new PreviewState(), action) => {
         case PREVIEW_START_DRAG_COMPONENT:
             return state.merge({
                 draggingComponent: true,
-                draggedComponentName: action.componentName,
                 draggedComponent: action.component
             });
 
         case PREVIEW_STOP_DRAG_COMPONENT:
             return state.merge({
                 draggingComponent: false,
-                draggedComponentName: '',
                 draggedComponent: null,
                 draggingOverComponentId: null
             });

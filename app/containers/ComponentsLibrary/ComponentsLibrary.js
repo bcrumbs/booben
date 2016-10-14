@@ -30,9 +30,24 @@ import {
     focusComponent
 } from '../../actions/components-library';
 
+import {
+    startDragComponent
+} from '../../actions/preview';
+
+import HTMLMeta from '../../meta/html';
+import miscMeta from '../../meta/misc';
+
 import { List } from 'immutable';
 
-import { objectForEach } from '../../utils/misc';
+import { projectComponentToImmutable } from '../../models/ProjectComponent';
+
+import {
+    objectForEach,
+    pointIsInCircle
+} from '../../utils/misc';
+
+
+const START_DRAG_THRESHOLD = 10;
 
 /**
  *
@@ -115,6 +130,13 @@ class ComponentsLibraryComponent extends Component {
         this._onFocusHandlersCache = {};
 
         this.componentGroups = extractGroupsDataFromMeta(props.meta);
+
+        this.willTryStartDrag = false;
+        this.dragStartX = 0;
+        this.dragStartY = 0;
+        this.draggedComponentData = null;
+
+        this._handleMouseMove = this._handleMouseMove.bind(this);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -129,6 +151,107 @@ class ComponentsLibraryComponent extends Component {
             this._onFocusHandlersCache[componentName] =
                 this.props.onFocusComponent.bind(null, componentName)
         );
+    }
+
+    _getComponentMeta(fullName) {
+        let [namespace, name] = fullName.split('.');
+        if (!name) {
+            name = namespace;
+            namespace = '';
+        }
+
+        let components;
+        if (namespace === '') {
+            components = miscMeta.components;
+        }
+        else if (namespace === 'HTML') {
+            components = HTMLMeta.components;
+        }
+        else {
+            components = this.props.meta[namespace]
+                ? this.props.meta[namespace].components
+                : null;
+        }
+
+        return components ? (components[name] || null) : null;
+    }
+
+    _createComponent(componentData) {
+        const componentMeta = this._getComponentMeta(componentData.fullName);
+        if (!componentMeta) return null;
+
+        const ret = {
+            id: null,
+            name: componentData.fullName,
+            title: '',
+            props: {},
+            children: []
+        };
+
+        objectForEach(componentMeta.props, (propMeta, propName) => {
+            if (propMeta.source.indexOf('static') > -1 && propMeta.sourceConfigs.static) {
+                if (typeof propMeta.sourceConfigs.static.default !== 'undefined') {
+                    ret.props[propName] = {
+                        source: 'static',
+                        sourceData: {
+                            value: propMeta.sourceConfigs.static.default
+                        }
+                    };
+                }
+                else if (propMeta.sourceConfigs.static.defaultTextKey) {
+                    const key = propMeta.sourceConfigs.static.defaultTextKey,
+                        translations = componentMeta.strings[key];
+
+                    ret.props[propName] = {
+                        source: 'static',
+                        sourceData: {
+                            value: translations[this.props.language] || ''
+                        }
+                    };
+                }
+            }
+            else if (propMeta.source.indexOf('const') > -1 && propMeta.sourceConfigs.const) {
+                if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
+                    ret.props[propName] = {
+                        source: 'const',
+                        sourceData: {
+                            value: propMeta.sourceConfigs.const.value
+                        }
+                    }
+                }
+            }
+        });
+
+        return projectComponentToImmutable(ret);
+    }
+
+    _handleStartDrag(componentData, event) {
+        event.preventDefault();
+
+        window.addEventListener('mousemove', this._handleMouseMove);
+        this.willTryStartDrag = true;
+        this.dragStartX = event.pageX;
+        this.dragStartY = event.pageY;
+        this.draggedComponentData = componentData;
+    }
+
+    _handleMouseMove(event) {
+        if (this.willTryStartDrag) {
+            const willStartDrag = !pointIsInCircle(
+                event.pageX,
+                event.pageY,
+                this.dragStartX,
+                this.dragStartY,
+                START_DRAG_THRESHOLD
+            );
+
+            if (willStartDrag) {
+                this.willTryStartDrag = false;
+                window.removeEventListener('mousemove', this._handleMouseMove);
+                const component = this._createComponent(this.draggedComponentData);
+                if (component) this.props.onComponentStartDrag(component);
+            }
+        }
     }
 
     render() {
@@ -146,6 +269,7 @@ class ComponentsLibraryComponent extends Component {
                         title={c.text[this.props.language]}
                         focused={this.props.focusedComponentName === c.fullName}
                         onFocus={this._getOnFocusHandler(c.fullName)}
+                        onStartDrag={this._handleStartDrag.bind(this, c)}
                     />
                 ));
 
@@ -185,7 +309,8 @@ ComponentsLibraryComponent.propTypes = {
     language: PropTypes.string,
 
     onExpandedGroupsChange: PropTypes.func,
-    onFocusComponent: PropTypes.func
+    onFocusComponent: PropTypes.func,
+    onComponentStartDrag: PropTypes.func
 };
 
 ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
@@ -200,7 +325,10 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     onExpandedGroupsChange: groups => void dispatch(setExpandedGroups(groups)),
-    onFocusComponent: componentName => void dispatch(focusComponent(componentName))
+    onFocusComponent: componentName => void dispatch(focusComponent(componentName)),
+
+    onComponentStartDrag: component =>
+        void dispatch(startDragComponent(component))
 });
 
 export const ComponentsLibrary = connect(

@@ -33,6 +33,8 @@ import {
     ToggleButton
 } from '@reactackle/reactackle';
 
+import { ComponentsDragArea } from '../containers/ComponentsDragArea/ComponentsDragArea';
+
 import ProjectRecord from '../models/Project';
 
 const TopMenuLink = props =>
@@ -166,6 +168,8 @@ const RootRoute = props => {
                     </FooterRegion>
                 </Footer>
             </BottomRegion>
+
+            <ComponentsDragArea/>
         </App>
     )
 };

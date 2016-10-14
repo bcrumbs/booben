@@ -9,6 +9,14 @@ import store from '../../store';
 
 import { setIsIndexRoute } from '../../actions/preview';
 
+const EVENTS_FOR_PARENT_FRAME = [
+    'mousemove',
+    'mouseup',
+    'mousedown',
+    'mouseover',
+    'mouseout'
+];
+
 export class PreviewIFrame extends Component {
     constructor(props) {
         super(props);
@@ -28,6 +36,25 @@ export class PreviewIFrame extends Component {
     componentDidMount() {
         const contentWindow = this._iframe.contentWindow,
             { store, interactive } = this.props;
+
+        EVENTS_FOR_PARENT_FRAME.forEach(eventName => {
+            contentWindow.addEventListener(eventName, event => {
+                const boundingClientRect = this._iframe.getBoundingClientRect();
+
+                const evt = new CustomEvent(eventName, {
+                    bubbles: true,
+                    cancelable: false
+                });
+
+                evt.clientX = event.clientX + boundingClientRect.left;
+                evt.clientY = event.clientY + boundingClientRect.top;
+                evt.pageX = event.pageX + boundingClientRect.left;
+                evt.pageY = event.pageY + boundingClientRect.top;
+                evt._originalTarget = event.target;
+
+                this._iframe.dispatchEvent(evt);
+            });
+        });
 
         contentWindow.addEventListener('DOMContentLoaded', () => {
             if (contentWindow.JSSY) {

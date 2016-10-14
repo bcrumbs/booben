@@ -22,10 +22,13 @@ import {
 } from '../../app/actions/preview';
 
 import {
-    moveComponent
+    moveComponent,
+    createComponent
 } from '../../app/actions/project';
 
-const OFFSET_DND_AVATAR = 10;
+import { pointIsInCircle } from '../../app/utils/misc';
+
+
 const START_DRAG_THRESHOLD = 10;
 
 const RouteRootComponentIds = Record({
@@ -33,6 +36,11 @@ const RouteRootComponentIds = Record({
     indexComponentId: null
 });
 
+/**
+ *
+ * @param {Immutable.List<ProjectRoute>} routes
+ * @return {Immutable.Map<number, RouteRootComponentIds>}
+ */
 const gatherRootComponentIds = routes => {
     const reducer = (acc, route) => {
         acc = acc.set(route.id, new RouteRootComponentIds({
@@ -48,18 +56,71 @@ const gatherRootComponentIds = routes => {
 
 /**
  *
- * @param {number} x
- * @param {number} y
- * @param {number} cX
- * @param {number} cY
- * @param {number} r
- * @return {boolean}
+ * @param {HTMLElement} el
+ * @return {?number}
  */
-const pointIsInCircle = (x, y, cX, cY, r) => {
-    const xx = x - cX,
-        yy = y - cY;
+const getClosestComponentId = el => {
+    let current = el;
 
-    return xx * xx + yy * yy <= r * r;
+    while (current) {
+        const dataJssyId = current.getAttribute('data-jssy-id');
+        if (dataJssyId) return parseInt(dataJssyId, 10);
+        if (current.hasAttribute('data-reactroot')) break;
+        current = current.parentNode;
+    }
+
+    return null;
+};
+
+/**
+ * @typedef {Object} OverWhat
+ * @property {boolean} isPlaceholder
+ * @property {?number} componentId
+ * @property {?number} placeholderAfter
+ * @property {?number} containerId
+ */
+
+/**
+ *
+ * @param {HTMLElement} el
+ * @return {?OverWhat}
+ */
+const getClosestComponentOrPlaceholder = el => {
+    let current = el;
+
+    while (current) {
+        const dataJssyId = current.getAttribute('data-jssy-id');
+        if (dataJssyId) {
+            return {
+                isPlaceholder: false,
+                componentId: parseInt(dataJssyId, 10),
+                placeholderAfter: null,
+                containerId: null
+            };
+        }
+        else {
+            const isPlaceholder = current.hasAttribute('data-jssy-placeholder');
+
+            if (isPlaceholder) {
+                const after = parseInt(current.getAttribute('data-jssy-after'), 10);
+
+                const containerId =
+                    parseInt(current.getAttribute('data-jssy-container-id'), 10);
+
+                return {
+                    isPlaceholder: true,
+                    componentId: null,
+                    placeholderAfter: after,
+                    containerId: containerId
+                }
+            }
+        }
+
+        if (current.hasAttribute('data-reactroot')) break;
+        current = current.parentNode;
+    }
+
+    return null;
 };
 
 class Preview extends Component {
@@ -69,15 +130,12 @@ class Preview extends Component {
         this.domNode = null;
         this.dndParams = {
             component: null,
-            avatarElement: null,
             dragStartX: 0,
-            dragStartY: 0,
-            pageX: 0,
-            pageY: 0
+            dragStartY: 0
         };
+        this.listeningToMouseMove = false;
+        this.listeningToMouseUp = false;
         this.willTryStartDrag = false;
-        this.animationFrame = null;
-        this.needRAF = true;
         this.currentRouteId = null;
         this.rootComponentIds = gatherRootComponentIds(props.project.routes);
 
@@ -90,7 +148,6 @@ class Preview extends Component {
         this._handleMouseDown = this._handleMouseDown.bind(this);
         this._handleMouseMove = this._handleMouseMove.bind(this);
         this._handleMouseUp = this._handleMouseUp.bind(this);
-        this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
         this._handleMouseOver = this._handleMouseOver.bind(this);
         this._handleMouseOut = this._handleMouseOut.bind(this);
         this._handleClick = this._handleClick.bind(this);
@@ -105,6 +162,8 @@ class Preview extends Component {
             this.domNode.addEventListener('mouseout', this._handleMouseOut, false);
             this.domNode.addEventListener('mousedown', this._handleMouseDown, false);
             this.domNode.addEventListener('click', this._handleClick, false);
+            this.domNode.addEventListener('mouseup', this._handleMouseUp);
+            window.top.addEventListener('mouseup', this._handleMouseUp);
         }
     }
 
@@ -131,6 +190,8 @@ class Preview extends Component {
             this.domNode.removeEventListener('mouseout', this._handleMouseOut, false);
             this.domNode.removeEventListener('mousedown', this._handleMouseDown, false);
             this.domNode.removeEventListener('click', this._handleClick, false);
+            this.domNode.removeEventListener('mouseup', this._handleMouseUp);
+            window.top.removeEventListener('mouseup', this._handleMouseUp);
         }
 
         this.domNode = null;
@@ -150,57 +211,6 @@ class Preview extends Component {
             : rootComponentIds.componentId
     }
 
-    _getClosestComponentId(el) {
-        let current = el;
-
-        while (current) {
-            const dataJssyId = current.getAttribute('data-jssy-id');
-            if (dataJssyId) return parseInt(dataJssyId, 10);
-            if (current.hasAttribute('data-reactroot')) break;
-            current = current.parentNode;
-        }
-
-        return null;
-    }
-    
-    _getClosestComponentOrPlaceholder(el) {
-        let current = el;
-        
-        while (current) {
-            const dataJssyId = current.getAttribute('data-jssy-id');
-            if (dataJssyId) {
-                return {
-                    isPlaceholder: false,
-                    componentId: parseInt(dataJssyId, 10),
-                    placeholderAfter: null,
-                    containerId: null
-                };
-            }
-            else {
-                const isPlaceholder = current.hasAttribute('data-jssy-placeholder');
-
-                if (isPlaceholder) {
-                    const after = parseInt(current.getAttribute('data-jssy-after'), 10);
-
-                    const containerId =
-                        parseInt(current.getAttribute('data-jssy-container-id'), 10);
-                    
-                    return {
-                        isPlaceholder: true,
-                        componentId: null,
-                        placeholderAfter: after,
-                        containerId: containerId
-                    }
-                }
-            }
-
-            if (current.hasAttribute('data-reactroot')) break;
-            current = current.parentNode;
-        }
-        
-        return null;
-    }
-
     _componentIsInCurrentRoute(componentId) {
         const componentIndexData = this.props.componentsIndex.get(componentId);
 
@@ -208,98 +218,21 @@ class Preview extends Component {
             componentIndexData.isIndexRoute === this.props.currentRouteIsIndexRoute;
     }
 
-    _handleAnimationFrame() {
-        var el = this.dndParams.avatarElement;
-
-        el.style.transform =
-            `translate(${this.dndParams.pageX}px, ${this.dndParams.pageY}px)`;
-
-        this.animationFrame = null;
-        this.needRAF = true;
-    }
-
     _handleMouseDown(event) {
         if (event.button != 0 || !event.ctrlKey) return;
 
         event.preventDefault();
 
-        this.domNode.addEventListener('mousemove', this._handleMouseMove);
-        this.domNode.addEventListener('mouseup', this._handleMouseUp);
-        window.top.addEventListener('mouseup', this._handleMouseUp);
-
-        const componentId = this._getClosestComponentId(event.target);
+        const componentId = getClosestComponentId(event.target);
 
         if (componentId !== null && this._componentIsInCurrentRoute(componentId)) {
+            this.domNode.addEventListener('mousemove', this._handleMouseMove);
+
             this.dndParams.component = this._getComponentById(componentId);
             this.dndParams.dragStartX = event.pageX;
             this.dndParams.dragStartY = event.pageY;
             this.willTryStartDrag = true;
         }
-    }
-
-    /**
-     * Start dragging local component
-     * @private
-     */
-    _startDragComponent() {
-        const el = document.createElement('div');
-        el.innerHTML = this.dndParams.component.name;
-        el.style.position = 'absolute';
-        el.style.zIndex = 1000;
-
-        this.dndParams.pageX = this.dndParams.dragStartX + OFFSET_DND_AVATAR;
-        this.dndParams.pageY = this.dndParams.dragStartY + OFFSET_DND_AVATAR;
-
-        el.style.transform =
-            `translate(${this.dndParams.pageX}px,${this.dndParams.pageY}px)`;
-
-        this.props.overlayDomNode.appendChild(el);
-        this.dndParams.avatarElement = el;
-
-        this.props.onSetBoundaryComponent(this._getCurrentRootComponentId());
-        this.props.onToggleHighlighting(false);
-
-        this.props.onComponentStartDrag(
-            this.dndParams.component.name,
-            this.dndParams.component
-        );
-    }
-
-    /**
-     * Handle drop of component (both local and non-local)
-     *
-     * @private
-     */
-    _dropComponent() {
-        this.props.onSetBoundaryComponent(null);
-
-        if (this.animationFrame !== null) {
-            window.cancelAnimationFrame(this.animationFrame);
-            this.animationFrame = null;
-        }
-
-        this.needRAF = true;
-        this.props.overlayDomNode.removeChild(this.dndParams.avatarElement);
-
-        if (this.props.draggedComponent !== null) {
-            const willDrop =
-                this.props.draggingOverPlaceholder &&
-                this._componentIsInCurrentRoute(this.props.placeholderContainerId);
-
-            if (willDrop) {
-                this.props.onMoveComponent(
-                    this.props.draggedComponent.id,
-                    this.props.placeholderContainerId,
-                    this.props.placeholderAfter
-                );
-            }
-        }
-        else {
-            // TODO: Create new component
-        }
-
-        this.props.onToggleHighlighting(true);
-        this.props.onComponentStopDrag();
     }
 
     _handleMouseMove(event) {
@@ -313,25 +246,11 @@ class Preview extends Component {
             );
 
             if (willStartDrag) {
+                this.domNode.removeEventListener('mousemove', this._handleMouseMove);
                 this.willTryStartDrag = false;
-                this._startDragComponent();
-            }
-        }
-
-        if (this.props.draggingComponent) {
-            if (this.props.draggedComponent !== null) { // Dragging existing component
-                this.dndParams.pageX = event.pageX + OFFSET_DND_AVATAR;
-                this.dndParams.pageY = event.pageY + OFFSET_DND_AVATAR;
-
-                if (this.needRAF) {
-                    this.needRAF = false;
-
-                    this.animationFrame =
-                        window.requestAnimationFrame(this._handleAnimationFrame);
-                }
-            }
-            else { // Dragging new component from library
-                // TODO: Handle that shit
+                this.props.onSetBoundaryComponent(this._getCurrentRootComponentId());
+                this.props.onToggleHighlighting(false);
+                this.props.onComponentStartDrag(this.dndParams.component);
             }
         }
     }
@@ -341,34 +260,55 @@ class Preview extends Component {
 
         this.willTryStartDrag = false;
 
-        this.domNode.removeEventListener('mousemove', this._handleMouseMove);
-        this.domNode.removeEventListener('mouseup', this._handleMouseUp);
-        window.top.removeEventListener('mouseup', this._handleMouseUp);
+        if (this.props.draggingComponent) {
+            this.props.onSetBoundaryComponent(null);
 
-        if (this.props.draggingComponent)
-            this._dropComponent(event.target);
+            const willDrop =
+                this.props.draggingOverPlaceholder &&
+                this._componentIsInCurrentRoute(this.props.placeholderContainerId);
+
+            if (willDrop) {
+                if (this.props.draggedComponent.id !== null) {
+                    this.props.onMoveComponent(
+                        this.props.draggedComponent.id,
+                        this.props.placeholderContainerId,
+                        this.props.placeholderAfter
+                    );
+                }
+                else {
+                    this.props.onCreateComponent(
+                        this.props.placeholderContainerId,
+                        this.props.placeholderAfter,
+                        this.props.draggedComponent
+                    );
+                }
+            }
+
+            this.props.onToggleHighlighting(true);
+            this.props.onComponentStopDrag();
+        }
     }
 
     _handleMouseOver(event) {
         if (this.props.highlightingEnabled) {
-            const componentId = this._getClosestComponentId(event.target);
+            const componentId = getClosestComponentId(event.target);
 
             if (componentId !== null && this._componentIsInCurrentRoute(componentId))
                 this.props.onHighlightComponent(componentId);
         }
 
         if (this.props.draggingComponent) {
-            const overWhat = this._getClosestComponentOrPlaceholder(event.target);
+            const overWhat = getClosestComponentOrPlaceholder(event.target);
             if (overWhat !== null) {
-                if (!overWhat.isPlaceholder) {
-                    if (this._componentIsInCurrentRoute(overWhat.componentId))
-                        this.props.onDragOverComponent(overWhat.componentId);
-                }
-                else {
+                if (overWhat.isPlaceholder) {
                     this.props.onDragOverPlaceholder(
                         overWhat.containerId,
                         overWhat.placeholderAfter
                     );
+                }
+                else {
+                    if (this._componentIsInCurrentRoute(overWhat.componentId))
+                        this.props.onDragOverComponent(overWhat.componentId);
                 }
             }
         }
@@ -376,7 +316,7 @@ class Preview extends Component {
 
     _handleMouseOut(event) {
         if (this.props.highlightingEnabled) {
-            const componentId = this._getClosestComponentId(event.target);
+            const componentId = getClosestComponentId(event.target);
 
             if (componentId !== null && this._componentIsInCurrentRoute(componentId))
                 this.props.onUnhighlightComponent(componentId);
@@ -384,12 +324,12 @@ class Preview extends Component {
     }
 
     _handleClick(event) {
-        if (!event.ctrlKey) return;
+        if (event.ctrlKey) {
+            const componentId = getClosestComponentId(event.target);
 
-        const componentId = this._getClosestComponentId(event.target);
-
-        if (componentId !== null && this._componentIsInCurrentRoute(componentId))
-            this.props.onToggleComponentSelection(componentId);
+            if (componentId !== null && this._componentIsInCurrentRoute(componentId))
+                this.props.onToggleComponentSelection(componentId);
+        }
     }
 
     _handleChangeRoute(routeId) {
@@ -453,7 +393,6 @@ Preview.propTypes = {
     componentsIndex: ImmutablePropTypes.map,
     currentRouteIsIndexRoute: PropTypes.bool,
     draggingComponent: PropTypes.bool,
-    draggedComponentName: PropTypes.string,
     draggedComponent: PropTypes.any,
     draggingOverPlaceholder: PropTypes.bool,
     placeholderAfter: PropTypes.number,
@@ -469,7 +408,8 @@ Preview.propTypes = {
     onComponentStopDrag: PropTypes.func,
     onDragOverComponent: PropTypes.func,
     onDragOverPlaceholder: PropTypes.func,
-    onMoveComponent: PropTypes.func
+    onMoveComponent: PropTypes.func,
+    onCreateComponent: PropTypes.func
 };
 
 Preview.defaultProps = {
@@ -484,7 +424,6 @@ const mapStateToProps = state => ({
     componentsIndex: state.project.componentsIndex,
     currentRouteIsIndexRoute: state.preview.currentRouteIsIndexRoute,
     draggingComponent: state.preview.draggingComponent,
-    draggedComponentName: state.preview.draggedComponentName,
     draggedComponent: state.preview.draggedComponent,
     draggingOverPlaceholder: state.preview.draggingOverPlaceholder,
     placeholderAfter: state.preview.placeholderAfter,
@@ -508,8 +447,8 @@ const mapDispatchToProps = dispatch => ({
     onSetBoundaryComponent: componentId =>
         void dispatch(setBoundaryComponent(componentId)),
 
-    onComponentStartDrag: (componentName, componentId) =>
-        void dispatch(startDragComponent(componentName, componentId)),
+    onComponentStartDrag: component =>
+        void dispatch(startDragComponent(component)),
 
     onComponentStopDrag: () => void dispatch(stopDragComponent()),
     onDragOverComponent: componentId => void dispatch(dragOverComponent(componentId)),
@@ -518,7 +457,10 @@ const mapDispatchToProps = dispatch => ({
         void dispatch(dragOverPlaceholder(containerId, afterIdx)),
 
     onMoveComponent: (componentId, containerId, position) =>
-        void dispatch(moveComponent(componentId, containerId, position))
+        void dispatch(moveComponent(componentId, containerId, position)),
+
+    onCreateComponent: (containerId, position, component) =>
+        void dispatch(createComponent(containerId, position, component))
 });
 
 export default connect(

@@ -191,13 +191,13 @@ export const PROJECT_COMPONENT_CREATE = 'PROJECT_COMPONENT_CREATE';
 /**
  * @param  {number} targetId
  * @param  {number} position
- * @param  {string} componentName
+ * @param  {Immutable.Record} component
  */
-export const createComponent = (targetId, position, componentName) => ({
+export const createComponent = (targetId, position, component) => ({
     type: PROJECT_COMPONENT_CREATE,
     targetId,
     position,
-    componentName
+    component
 });
 
 /**

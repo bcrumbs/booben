@@ -89,13 +89,11 @@ export const setIsIndexRoute = value => ({
 
 /**
  *
- * @param {string} componentName
- * @param {?Immutable.Record} component
+ * @param {Immutable.Record} component
  * @return {Object}
  */
-export const startDragComponent = (componentName, component = null) => ({
+export const startDragComponent = component => ({
     type: PREVIEW_START_DRAG_COMPONENT,
-    componentName,
     component
 });
 

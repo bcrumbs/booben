@@ -43,3 +43,19 @@ export const throttle = (fn, threshold) => {
  */
 export const objectForEach = (object, fn) =>
     void Object.keys(object).forEach(key => void fn(object[key], key, object));
+
+/**
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} cX
+ * @param {number} cY
+ * @param {number} r
+ * @return {boolean}
+ */
+export const pointIsInCircle = (x, y, cX, cY, r) => {
+    const xx = x - cX,
+        yy = y - cY;
+
+    return xx * xx + yy * yy <= r * r;
+};
