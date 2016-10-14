@@ -424,18 +424,21 @@ export default (state = new ProjectState(), action) => {
 
         case PROJECT_COMPONENT_MOVE: {
             const sourceData = state.getIn(['componentsIndex', action.sourceId]),
-                sourcePath = sourceData.path;
+                sourceComponent = state.getIn(['data', ...sourceData.path]),
+                sourcePath = sourceData.path,
+                sourceComponentIndex = sourcePath.slice(-1)[0],
+                parentComponentId = state.getIn(['data', ...sourcePath.slice(0, -2)]).id;
 
             state = createComponent(state, action.targetId, action.position,
-                state.getIn(['data', ...sourceData.path]));
+                sourceComponent);
 
-            state = state.deleteIn(['data', ...sourcePath]);
+            const parentComponentNewPath = state.getIn(['componentsIndex', parentComponentId]).path,
+                parentComponent = state.getIn(['data', ...parentComponentNewPath]);
 
-            const componentIndex = sourcePath.slice(-1)[0],
-                parentComponent = state.getIn(['data', ...sourcePath.slice(0, -1)]);
+            state = state.deleteIn(['data', ...parentComponentNewPath, 'children', sourceComponentIndex]);
 
-            if (List.isList(parentComponent)) {
-                const componentsToShift = parentComponent.slice(componentIndex);
+            if (List.isList(parentComponent.children)) {
+                const componentsToShift = parentComponent.children.slice(sourceComponentIndex);
 
                 if (componentsToShift.size) {
                     componentsToShift.forEach(item => {
