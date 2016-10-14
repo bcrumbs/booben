@@ -424,10 +424,32 @@ export default (state = new ProjectState(), action) => {
 
         case PROJECT_COMPONENT_MOVE: {
             const sourceData = state.getIn(['componentsIndex', action.sourceId]),
-                component = state.getIn(['data', ...sourceData.path]);
+                sourcePath = sourceData.path;
 
-            state = deleteComponent(state, action.sourceId);
-            state = createComponent(state, action.targetId, action.position, component);
+            state = createComponent(state, action.targetId, action.position,
+                state.getIn(['data', ...sourceData.path]));
+
+            state = state.deleteIn(['data', ...sourcePath]);
+
+            const componentIndex = sourcePath.slice(-1)[0],
+                parentComponent = state.getIn(['data', ...sourcePath.slice(0, -1)]);
+
+            if (List.isList(parentComponent)) {
+                const componentsToShift = parentComponent.slice(componentIndex);
+
+                if (componentsToShift.size) {
+                    componentsToShift.forEach(item => {
+                        const basePath = state.componentsIndex.get(item.id).path;
+                        basePath[basePath.length - 1] = parseInt(basePath.slice(-1)) - 1;
+
+                        state = deepShiftComponentIndex(
+                            state,
+                            item.id,
+                            basePath
+                        );
+                    });
+                }
+            }
 
             return state;
         }
