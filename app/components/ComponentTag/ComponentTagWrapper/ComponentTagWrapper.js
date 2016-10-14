@@ -1,25 +1,11 @@
 'use strict';
 
-import React, { PropTypes } from 'react';
+import React from 'react';
 
-export const ComponentTagWrapper = props => {
-    let className = 'component-tags-wrapper';
-
-    return (
-        <div
-            className={className}
-        >
-	        {props.children}
-        </div>
-    );
-};
-
-ComponentTagWrapper.propTypes = {
-};
-
-ComponentTagWrapper.defaultProps = {
-};
+export const ComponentTagWrapper = props => (
+    <div className="component-tags-wrapper">
+        {props.children}
+    </div>
+);
 
 ComponentTagWrapper.displayName = 'ComponentTagWrapper';
-
-
