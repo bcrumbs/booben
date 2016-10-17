@@ -328,7 +328,7 @@ class StructureRoute extends Component {
                 this.props.selectedRouteId === parentRoute.id &&
                 this.props.indexRouteSelected;
 
-            routeCards = routeCards.unshift(
+            routeCards = routeCards && routeCards.unshift(
                 <RouteCard
                     key={String(parentRoute.id) + '-index'}
                     title="Index"

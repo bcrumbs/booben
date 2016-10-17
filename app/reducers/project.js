@@ -116,6 +116,26 @@ const getLastComponentId = (state) => {
     return state.data.routes.reduce(reducer, -1)
 };
 
+const getLastRouteId = (state) => {
+    const reducerId = (acc, route) =>
+        Math.max(route.id, route.children.reduce(reducerId, acc));
+
+    return state.data.routes.reduce(reducerId, -1);
+}
+
+const deepDeleteRoutesIndex = (state, id) => {
+    const curPath = state.routesIndex.get(id).path,
+        route = state.getIn(['data', ...curPath]);
+
+    if(!route) return state;
+
+    route.children && route.children.forEach((child) => {
+        state = deepDeleteRoutesIndex(state, child.id);
+    });
+
+    return state.deleteIn(['routesIndex', route.id])
+}
+
 const deepDeleteComponentIndex = (state, id) => {
     const curPath = state.componentsIndex.get(id).path,
         component = state.getIn(['data', ...curPath]);
@@ -290,10 +310,12 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PROJECT_ROUTE_CREATE: {
-            const reducer = (acc, route) =>
-                Math.max(route.id, route.children.reduce(reducer, acc));
-
-            const newRouteId = state.data.routes.reduce(reducer, -1) + 1;
+            const newRouteId = getLastRouteId(state) + 1,
+                parentRouteChildrenPath = action.where.reduce(
+                    (prev, cur) => prev.concat(cur, 'children'), []),
+                newRoutePosition = state.getIn(['data', 'routes', 
+                    ...parentRouteChildrenPath]).size,
+                newRoutePath = parentRouteChildrenPath.concat(newRoutePosition);
 
             const newRoute = new ProjectRoute({
                 id: newRouteId,
@@ -301,17 +323,27 @@ export default (state = new ProjectState(), action) => {
                 title: action.title
             });
 
-            return state.updateIn(
-                ['data', 'routes'].concat(...action.where.map(idx => [idx, 'children'])),
-                routes => routes.push(newRoute)
-            );
+            return state
+                .setIn(['data', 'routes', ...newRoutePath], newRoute)
+                .setIn(['routesIndex', newRouteId], {path: newRoutePath});
         }
 
         case PROJECT_ROUTE_DELETE: {
-            return state.updateIn(
-                ['data', 'routes'].concat(...action.where.map(idx => [idx, 'children'])),
-                routes => routes.delete(action.idx)
-            );
+            const parentRouteChildrenPath = action.where.reduce(
+                    (prev, cur) => prev.concat(cur, 'children'), []),
+                deleteRoute = state.getIn(['data', 'routes',
+                    ...parentRouteChildrenPath, action.idx]);
+
+            state = deepDeleteRoutesIndex(state, deleteRoute.id);
+
+            return state
+                .deleteIn([
+                    'data',
+                    'routes',
+                    ...parentRouteChildrenPath,
+                    action.idx
+                ])
+                .deleteIn(['routesIndex', deleteRoute.id]);
         }
 
         case PROJECT_ROUTE_UPDATE_FIELD: {
