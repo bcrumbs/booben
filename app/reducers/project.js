@@ -131,9 +131,11 @@ const deepShiftComponentIndex = (state, id, basePath) => {
     const curPath = state.componentsIndex.get(id).path,
         component = state.getIn(['data', ...curPath]);
 
-    if(component && component.children.size) component.children.forEach((child) => {
-        state = deepShiftComponentIndex(state, child.id, basePath);
-    });
+    if (component && component.children && component.children.size > 0) {
+        component.children.forEach((child) => {
+            state = deepShiftComponentIndex(state, child.id, basePath);
+        });
+    }
 
     return state.updateIn(['componentsIndex', id],
         item => {
@@ -354,34 +356,28 @@ export default (state = new ProjectState(), action) => {
 
         case PROJECT_COMPONENT_MOVE: {
             const sourceData = state.getIn(['componentsIndex', action.sourceId]),
-                sourcePath = sourceData.path;
+                componentSource = state.getIn(['data', ...sourceData.path]),
+                componentSourcePosition = sourceData.path.slice(-1)[0],
+                componentSourceParent = state.getIn(['data',
+                    ...sourceData.path.slice(0, -2)]);
 
-            state = createComponent(state, action.targetId, action.position,
-                state.getIn(['data', ...sourceData.path]));
+            let targetPosition = action.position;
 
-            state = state.deleteIn(['data', ...sourcePath]);
+            state = deleteComponent(state, action.sourceId);
 
-            const componentIndex = sourcePath.slice(-1)[0],
-                parentComponent = state.getIn(['data', ...sourcePath.slice(0, -1)]);
-
-            if (List.isList(parentComponent)) {
-                const componentsToShift = parentComponent.slice(componentIndex);
-
-                if (componentsToShift.size) {
-                    componentsToShift.forEach(item => {
-                        const basePath = state.componentsIndex.get(item.id).path;
-                        basePath[basePath.length - 1] = parseInt(basePath.slice(-1)) - 1;
-
-                        state = deepShiftComponentIndex(
-                            state,
-                            item.id,
-                            basePath
-                        );
-                    });
-                }
+            if (
+                componentSourceParent.id === action.targetId &&
+                action.position > componentSourcePosition
+            ) {
+                targetPosition = targetPosition - 1;
             }
 
-            return state;
+            return createComponent(
+                state,
+                action.targetId,
+                targetPosition,
+                componentSource
+            );
         }
 
         case PROJECT_COMPONENT_DELETE: {
