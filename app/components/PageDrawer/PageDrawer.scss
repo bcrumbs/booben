@@ -34,7 +34,7 @@
 	// Actions Area
 	// =================================================================================================================
 	.page-drawer-actions-area {
-		width: $pdrawer-icon-actions-area-width;
+		min-width: $pdrawer-icon-actions-area-width;
 		display: flex;
 		flex-shrink: 0;
 		flex-direction: column;
@@ -42,6 +42,8 @@
 		border-right: $pdrawer-actions-area-border-right-width solid $pdrawer-actions-area-border-right-color;
 		position: relative;
 		z-index: 2;
+		overflow: hidden;
+		overflow-y: auto;
 	}
 
 	.page-drawer-actions-group {

@@ -218,7 +218,7 @@ export default class Playground extends React.Component {
 	                        </FooterMenu>
                         </FooterRegion>
                         <FooterRegion size='blank'>
-	                        <FooterMenu inline={true}  dense={true}>
+	                        <FooterMenu inline={true}  dense={true} mode="light">
 		                        <FooterMenuGroup>
 			                        <FooterMenuList>
 				                        <FooterMenuItem text="Show component's title" subcomponentRight={<ToggleButton />}/>
