@@ -29,8 +29,18 @@ import {
 import { pointIsInCircle } from '../../app/utils/misc';
 
 
+/**
+ *
+ * @type {number}
+ * @const
+ */
 const START_DRAG_THRESHOLD = 10;
 
+/**
+ *
+ * @class
+ * @extends Immutable.Record
+ */
 const RouteRootComponentIds = Record({
     componentId: null,
     indexComponentId: null
@@ -123,26 +133,35 @@ const getClosestComponentOrPlaceholder = el => {
     return null;
 };
 
+/**
+ *
+ * @param {ProjectComponent} component
+ * @return {Function}
+ */
+const makeBuilder = component => {
+    const ret = ({ children }) => (
+        <Builder
+            component={component}
+            children={children}
+        />
+    );
+
+    ret.displayName = `Builder(${component ? String(component.id) : 'null'})`;
+    return ret;
+};
+
 class Preview extends Component {
     constructor(props) {
         super(props);
 
         this.domNode = null;
-        this.dndParams = {
-            component: null,
-            dragStartX: 0,
-            dragStartY: 0
-        };
-        this.listeningToMouseMove = false;
-        this.listeningToMouseUp = false;
         this.willTryStartDrag = false;
+        this.componentToDrag = null;
+        this.dragStartX = 0;
+        this.dragStartY = 0;
         this.currentRouteId = null;
-        this.rootComponentIds = gatherRootComponentIds(props.project.routes);
-
-        this.routes = props.project.routes
-            .map((route, idx) => this._createRoute(route, [idx]))
-            .toArray();
-
+        this.rootComponentIds = null;
+        this.routes = null;
         this.routerKey = 0;
 
         this._handleMouseDown = this._handleMouseDown.bind(this);
@@ -152,6 +171,9 @@ class Preview extends Component {
         this._handleMouseOut = this._handleMouseOut.bind(this);
         this._handleClick = this._handleClick.bind(this);
         this._handleChangeRoute = this._handleChangeRoute.bind(this);
+        this._createRoute = this._createRoute.bind(this);
+
+        this._receiveRoutes(props.project.routes);
     }
 
     componentDidMount() {
@@ -168,15 +190,8 @@ class Preview extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.project.routes !== this.props.project.routes) {
-            this.rootComponentIds = gatherRootComponentIds(nextProps.project.routes);
-
-            this.routes = nextProps.project.routes
-                .map((route, idx) => this._createRoute(route, [idx]))
-                .toArray();
-
-            this.routerKey++;
-        }
+        if (nextProps.project.routes !== this.props.project.routes)
+            this._receiveRoutes(nextProps.project.routes);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -197,11 +212,71 @@ class Preview extends Component {
         this.domNode = null;
     }
 
+    /**
+     *
+     * @param {number} routeId
+     * @private
+     */
+    _handleChangeRoute(routeId) {
+        this.currentRouteId = routeId;
+    }
+
+    /**
+     *
+     * @param {ProjectRoute} route
+     * @return {Object}
+     * @private
+     */
+    _createRoute(route) {
+        const ret = {
+            path: route.path,
+            component: makeBuilder(route.component)
+        };
+
+        ret.onEnter = this._handleChangeRoute.bind(this, route.id);
+
+        if (route.children.size > 0)
+            ret.childRoutes = route.children.map(this._createRoute).toArray();
+
+        if (route.haveRedirect) {
+            ret.onEnter = (_, replace) => replace(route.redirectTo);
+        }
+        else if (route.haveIndex) {
+            ret.indexRoute = {
+                component: makeBuilder(route.indexComponent)
+            };
+        }
+
+        return ret;
+    }
+
+    /**
+     *
+     * @param {Immutable.List<ProjectRoute>} routes
+     * @private
+     */
+    _receiveRoutes(routes) {
+        this.rootComponentIds = gatherRootComponentIds(routes);
+        this.routes = routes.map(this._createRoute).toArray();
+        this.routerKey++;
+    }
+
+    /**
+     *
+     * @param {number} id
+     * @return {ProjectComponent}
+     * @private
+     */
     _getComponentById(id) {
         const componentIndexData = this.props.componentsIndex.get(id);
         return this.props.project.getIn(componentIndexData.path);
     }
 
+    /**
+     *
+     * @return {?number}
+     * @private
+     */
     _getCurrentRootComponentId() {
         const rootComponentIds = this.rootComponentIds.get(this.currentRouteId);
         if (!rootComponentIds) return null;
@@ -211,6 +286,12 @@ class Preview extends Component {
             : rootComponentIds.componentId
     }
 
+    /**
+     *
+     * @param {number} componentId
+     * @return {boolean}
+     * @private
+     */
     _componentIsInCurrentRoute(componentId) {
         const componentIndexData = this.props.componentsIndex.get(componentId);
 
@@ -218,30 +299,41 @@ class Preview extends Component {
             componentIndexData.isIndexRoute === this.props.currentRouteIsIndexRoute;
     }
 
+    /**
+     *
+     * @param {MouseEvent} event
+     * @private
+     */
     _handleMouseDown(event) {
         if (event.button != 0 || !event.ctrlKey) return;
 
         event.preventDefault();
 
+        //noinspection JSCheckFunctionSignatures
         const componentId = getClosestComponentId(event.target);
 
         if (componentId !== null && this._componentIsInCurrentRoute(componentId)) {
             this.domNode.addEventListener('mousemove', this._handleMouseMove);
 
-            this.dndParams.component = this._getComponentById(componentId);
-            this.dndParams.dragStartX = event.pageX;
-            this.dndParams.dragStartY = event.pageY;
+            this.componentToDrag = this._getComponentById(componentId);
+            this.dragStartX = event.pageX;
+            this.dragStartY = event.pageY;
             this.willTryStartDrag = true;
         }
     }
 
+    /**
+     *
+     * @param {MouseEvent} event
+     * @private
+     */
     _handleMouseMove(event) {
         if (this.willTryStartDrag) {
             const willStartDrag = !pointIsInCircle(
                 event.pageX,
                 event.pageY,
-                this.dndParams.dragStartX,
-                this.dndParams.dragStartY,
+                this.dragStartX,
+                this.dragStartY,
                 START_DRAG_THRESHOLD
             );
 
@@ -250,11 +342,16 @@ class Preview extends Component {
                 this.willTryStartDrag = false;
                 this.props.onSetBoundaryComponent(this._getCurrentRootComponentId());
                 this.props.onToggleHighlighting(false);
-                this.props.onComponentStartDrag(this.dndParams.component);
+                this.props.onComponentStartDrag(this.componentToDrag);
             }
         }
     }
 
+    /**
+     *
+     * @param {MouseEvent} event
+     * @private
+     */
     _handleMouseUp(event) {
         event.stopPropagation();
 
@@ -269,6 +366,7 @@ class Preview extends Component {
 
             if (willDrop) {
                 if (this.props.draggedComponent.id !== null) {
+                    // We're dragging an existing component
                     this.props.onMoveComponent(
                         this.props.draggedComponent.id,
                         this.props.placeholderContainerId,
@@ -276,6 +374,7 @@ class Preview extends Component {
                     );
                 }
                 else {
+                    // We're dragging a new component from palette
                     this.props.onCreateComponent(
                         this.props.placeholderContainerId,
                         this.props.placeholderAfter,
@@ -289,8 +388,14 @@ class Preview extends Component {
         }
     }
 
+    /**
+     *
+     * @param {MouseEvent} event
+     * @private
+     */
     _handleMouseOver(event) {
         if (this.props.highlightingEnabled) {
+            //noinspection JSCheckFunctionSignatures
             const componentId = getClosestComponentId(event.target);
 
             if (componentId !== null && this._componentIsInCurrentRoute(componentId))
@@ -298,6 +403,7 @@ class Preview extends Component {
         }
 
         if (this.props.draggingComponent) {
+            //noinspection JSCheckFunctionSignatures
             const overWhat = getClosestComponentOrPlaceholder(event.target);
             if (overWhat !== null) {
                 if (overWhat.isPlaceholder) {
@@ -314,8 +420,14 @@ class Preview extends Component {
         }
     }
 
+    /**
+     *
+     * @param {MouseEvent} event
+     * @private
+     */
     _handleMouseOut(event) {
         if (this.props.highlightingEnabled) {
+            //noinspection JSCheckFunctionSignatures
             const componentId = getClosestComponentId(event.target);
 
             if (componentId !== null && this._componentIsInCurrentRoute(componentId))
@@ -323,53 +435,19 @@ class Preview extends Component {
         }
     }
 
+    /**
+     *
+     * @param {MouseEvent} event
+     * @private
+     */
     _handleClick(event) {
         if (event.ctrlKey) {
+            //noinspection JSCheckFunctionSignatures
             const componentId = getClosestComponentId(event.target);
 
             if (componentId !== null && this._componentIsInCurrentRoute(componentId))
                 this.props.onToggleComponentSelection(componentId);
         }
-    }
-
-    _handleChangeRoute(routeId) {
-        this.currentRouteId = routeId;
-    }
-
-    _createRoute(route) {
-        const ret = {
-            path: route.path,
-            component: ({ children }) => (
-                <Builder
-                    component={route.component}
-                    children={children}
-                />
-            )
-        };
-
-        ret.onEnter = this._handleChangeRoute.bind(this, route.id);
-
-        if (route.children.size > 0) {
-            ret.childRoutes = route.children
-                .map((child, routeIndex) => this._createRoute(child))
-                .toArray();
-        }
-
-        if (route.haveRedirect) {
-            ret.onEnter = (nextState, replace) => replace(route.redirectTo);
-        }
-        else if (route.haveIndex) {
-            ret.indexRoute = {
-                component: ({ children }) => (
-                    <Builder
-                        component={route.indexComponent}
-                        children={children}
-                    />
-                )
-            };
-        }
-
-        return ret;
     }
 
     render() {

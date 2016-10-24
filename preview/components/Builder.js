@@ -9,31 +9,32 @@ import { Map, List } from 'immutable';
 // The real components.js will be generated during build process
 import _components from '../components.js';
 import patchComponent from '../patchComponent';
+import { objectMap } from '../../app/utils/misc';
 
-const components = {};
+const components = objectMap(_components, ns => objectMap(ns, patchComponent));
 
-Object.keys(_components).forEach(namespace => {
-    Object.keys(_components[namespace]).forEach(componentName => {
-        if (!components[namespace])
-            components[namespace] = {};
-
-        components[namespace][componentName] =
-            patchComponent(_components[namespace][componentName]);
-    });
-});
-
+/**
+ *
+ * @type {Set<string>}
+ * @const
+ */
 const pseudoComponents = new Set([
     'Text',
     'Outlet'
 ]);
 
+/**
+ *
+ * @param {ProjectComponent} component
+ * @return {boolean}
+ */
 const isPseudoComponent = component => pseudoComponents.has(component.name);
 
 /**
  * Get component from UI library
  *
- * @param  {string} name - Name of React component
- * @return {Function} React component for render
+ * @param  {string} name - Name of component with namespace (e.g. MyNamespace.MyComponent)
+ * @return {Function|string} React component
  */
 const getComponentByName = (name = '') => {
     const [namespace, componentName] = name.split('.');
@@ -46,23 +47,21 @@ const getComponentByName = (name = '') => {
 };
 
 /**
- * Props constructor by meta
- * @param  {Immutable.Map} props
- * @return {Object}
+ * Constructs props object
+ *
+ * @param  {Immutable.Map<string, ProjectComponentProp>} props
+ * @return {Object<string, *>}
  */
 const getProps = props => {
     const ret = {};
 
-    props.keySeq().forEach(key => {
-        const prop = props.get(key);
-
+    props.forEach((prop, key) => {
         if (prop.source == 'static') {
             ret[key] = prop.sourceData.value;
         }
         else if (prop.source === 'const') {
-            if (typeof prop.sourceData.value !== 'undefined') {
+            if (typeof prop.sourceData.value !== 'undefined')
                 ret[key] = prop.sourceData.value;
-            }
         }
     });
 
@@ -70,10 +69,22 @@ const getProps = props => {
 };
 
 class Builder extends Component {
+    /**
+     *
+     * @param {ProjectComponent} component
+     * @return {boolean}
+     * @private
+     */
     _isDraggedComponent(component) {
         return component === this.props.draggedComponent;
     }
 
+    /**
+     *
+     * @param {ProjectComponent} component
+     * @return {*}
+     * @private
+     */
     _renderPseudoComponent(component) {
         if (component.name === 'Outlet') {
             return this.props.children;
@@ -84,6 +95,14 @@ class Builder extends Component {
         }
     }
 
+    /**
+     *
+     * @param {ProjectComponent} component
+     * @param {boolean} [isPlaceholder=false]
+     * @param {boolean} [isPlaceholderRoot=false]
+     * @return {ReactElement}
+     * @private
+     */
     _renderComponent(component, isPlaceholder = false, isPlaceholderRoot = false) {
         if (!component) return null;
         if (!isPlaceholder && this._isDraggedComponent(component)) return null;
