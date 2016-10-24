@@ -29,7 +29,11 @@ import {
 import ProjectRoute from '../models/ProjectRoute';
 import ProjectComponent from '../models/ProjectComponent';
 import ProjectComponentProp from '../models/ProjectComponentProp';
-
+import SourceDataStatic from '../models/SourceDataStatic';
+import SourceDataData from '../models/SourceDataData';
+import SourceDataConst from '../models/SourceDataConst';
+import SourceDataAction from '../models/SourceDataAction';
+import SourceDataDesigner from '../models/SourceDataDesigner';
 
 import { projectToImmutable } from '../models/Project';
 
@@ -117,11 +121,11 @@ const getLastComponentId = (state) => {
 };
 
 const getLastRouteId = (state) => {
-    const reducerId = (acc, route) =>
-        Math.max(route.id, route.children.reduce(reducerId, acc));
+    const reducer = (acc, route) =>
+        Math.max(route.id, route.children.reduce(reducer, acc));
 
-    return state.data.routes.reduce(reducerId, -1);
-}
+    return state.data.routes.reduce(reducer, -1);
+};
 
 const deepDeleteRoutesIndex = (state, id) => {
     const curPath = state.routesIndex.get(id).path,
@@ -134,13 +138,13 @@ const deepDeleteRoutesIndex = (state, id) => {
     });
 
     return state.deleteIn(['routesIndex', route.id])
-}
+};
 
 const deepDeleteComponentIndex = (state, id) => {
     const curPath = state.componentsIndex.get(id).path,
         component = state.getIn(['data', ...curPath]);
 
-    if (component.children.size) component.children.forEach((child) => {
+    if (component.children.size) component.children.forEach(child => {
         state = deepDeleteComponentIndex(state, child.id);
     });
 

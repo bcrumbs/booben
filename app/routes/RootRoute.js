@@ -99,7 +99,7 @@ const RootRoute = props => {
                                     />
 
                                     <HeaderMenuItem text="Design">
-                                        <HeaderMenuGroup>
+                                        <HeaderMenuGroup mode="dark">
                                             <HeaderMenuList>
                                                 {routeMenuItems}
                                             </HeaderMenuList>

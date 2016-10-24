@@ -14,7 +14,8 @@ const EVENTS_FOR_PARENT_FRAME = [
     'mouseup',
     'mousedown',
     'mouseover',
-    'mouseout'
+    'mouseout',
+    'click'
 ];
 
 export class PreviewIFrame extends Component {
