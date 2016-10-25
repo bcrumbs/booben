@@ -166,7 +166,12 @@ class Builder extends Component {
         props.key = component.id;
         props.children = this._renderComponentChildren(component, isPlaceholder);
 
-        if (!props.children && this.props.draggedComponent !== null) {
+        const willRenderPlaceholderInside =
+            !props.children &&
+            this.props.draggedComponent !== null &&
+            !isPlaceholder;
+
+        if (willRenderPlaceholderInside) {
             props.children = (
                 <Builder
                     component={this.props.draggedComponent}
@@ -191,6 +196,22 @@ class Builder extends Component {
                 props.__jssy_placeholder__ = true;
                 props.__jssy_after__ = this.props.afterIdx;
                 props.__jssy_container_id__ = this.props.containerId;
+            }
+
+            if (!props.children) {
+                // TODO: Check if component is a container
+
+                // TODO: Replace this shit with actual placeholder
+                const style = {
+                    minWidth: '100px',
+                    minHeight: '40px',
+                    backgroundColor: '#aaaaaa',
+                    borderColor: '#777777'
+                };
+
+                props.children = (
+                    <div style={style} />
+                );
             }
         }
 

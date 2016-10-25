@@ -31,7 +31,8 @@ import {
 } from '../../actions/components-library';
 
 import {
-    startDragComponent
+    startDragComponent,
+    toggleHighlighting
 } from '../../actions/preview';
 
 import HTMLMeta from '../../meta/html';
@@ -227,7 +228,6 @@ class ComponentsLibraryComponent extends Component {
 
     _handleStartDrag(componentData, event) {
         event.preventDefault();
-
         window.addEventListener('mousemove', this._handleMouseMove);
         this.willTryStartDrag = true;
         this.dragStartX = event.pageX;
@@ -235,6 +235,11 @@ class ComponentsLibraryComponent extends Component {
         this.draggedComponentData = componentData;
     }
 
+    /**
+     *
+     * @param {MouseEvent} event
+     * @private
+     */
     _handleMouseMove(event) {
         if (this.willTryStartDrag) {
             const willStartDrag = !pointIsInCircle(
@@ -249,7 +254,11 @@ class ComponentsLibraryComponent extends Component {
                 this.willTryStartDrag = false;
                 window.removeEventListener('mousemove', this._handleMouseMove);
                 const component = this._createComponent(this.draggedComponentData);
-                if (component) this.props.onComponentStartDrag(component);
+
+                if (component) {
+                    this.props.onComponentStartDrag(component);
+                    this.props.onToggleHighlighting(false);
+                }
             }
         }
     }
@@ -310,7 +319,8 @@ ComponentsLibraryComponent.propTypes = {
 
     onExpandedGroupsChange: PropTypes.func,
     onFocusComponent: PropTypes.func,
-    onComponentStartDrag: PropTypes.func
+    onComponentStartDrag: PropTypes.func,
+    onToggleHighlighting: PropTypes.func
 };
 
 ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
@@ -326,9 +336,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     onExpandedGroupsChange: groups => void dispatch(setExpandedGroups(groups)),
     onFocusComponent: componentName => void dispatch(focusComponent(componentName)),
-
-    onComponentStartDrag: component =>
-        void dispatch(startDragComponent(component))
+    onComponentStartDrag: component => void dispatch(startDragComponent(component)),
+    onToggleHighlighting: enable => void dispatch(toggleHighlighting(enable))
 });
 
 export const ComponentsLibrary = connect(
