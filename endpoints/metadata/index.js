@@ -727,7 +727,18 @@ exports.gatherMetadata = moduleDir => co(function* () {
         while (node = yield walker.next()) {
             try {
                 const maybeMeta = yield visitNode(node);
-                if (maybeMeta !== null) ret.components[maybeMeta.displayName] = maybeMeta;
+
+                if (maybeMeta !== null) {
+                    if (maybeMeta.group && !mainMeta.componentGroups[maybeMeta.group]) {
+                        //noinspection ExceptionCaughtLocallyJS
+                        throw new Error(
+                            `'${maybeMeta.displayName}' component: ` +
+                            `group '${maybeMeta.group}' is not defined.`
+                        );
+                    }
+
+                    ret.components[maybeMeta.displayName] = maybeMeta;
+                }
             }
             catch (err) {
                 throw new Error(
