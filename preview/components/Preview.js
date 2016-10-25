@@ -412,9 +412,8 @@ class Preview extends Component {
                         overWhat.placeholderAfter
                     );
                 }
-                else {
-                    if (this._componentIsInCurrentRoute(overWhat.componentId))
-                        this.props.onDragOverComponent(overWhat.componentId);
+                else if (this._componentIsInCurrentRoute(overWhat.componentId)) {
+                    this.props.onDragOverComponent(overWhat.componentId);
                 }
             }
         }
