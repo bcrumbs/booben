@@ -376,7 +376,7 @@ class ComponentPropsEditorComponent extends Component {
         if (renderablePropNames.length === 0) {
             return (
                 <BlockContentPlaceholder
-                    text="This component doesn\'t have editable attributes"
+                    text="This component doesn't have editable attributes"
                 />
             );
         }
