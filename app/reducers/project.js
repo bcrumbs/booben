@@ -110,29 +110,30 @@ const buildRoutesIndex = project => Map().withMutations(ret => {
     project.routes.forEach((route, idx) => void visitRoute(route, ['routes', idx]));
 });
 
-const getLastComponentId = (state) => {
-    const maxComponentIdFromChildren = (component) => {
-        const reducer = (acc, component) => Math.max(component.id,
-            component.children.reduce(reducer, acc));
+const getMaxComponentId = component => {
+    if (!component) return -1;
 
-        return component.children.reduce(reducer, -1);
-    };
+    const reducer = (acc, component) =>
+        Math.max(acc, component.id, component.children.reduce(reducer, acc));
 
-    const reducer = (acc, route) => {
-        if (!route.component) return 0;
-
-        const id1 = maxComponentIdFromChildren(route.component);
-        const id2 = route.children.reduce(reducer, acc);
-
-        return Math.max(id1 ,id2);
-    };
-
-    return state.data.routes.reduce(reducer, -1)
+    return Math.max(component.id, component.children.reduce(reducer, -1));
 };
 
-const getLastRouteId = (state) => {
+const getLastComponentId = state => {
+    const reducer = (acc, route) => {
+        const id1 = getMaxComponentId(route.component),
+            id2 = getMaxComponentId(route.indexComponent),
+            id3 = route.children.reduce(reducer, acc);
+
+        return Math.max(acc, id1 ,id2, id3);
+    };
+
+    return state.data.routes.reduce(reducer, -1);
+};
+
+const getLastRouteId = state => {
     const reducer = (acc, route) =>
-        Math.max(route.id, route.children.reduce(reducer, acc));
+        Math.max(acc, route.id, route.children.reduce(reducer, acc));
 
     return state.data.routes.reduce(reducer, -1);
 };
@@ -262,9 +263,7 @@ const createComponent = (state, targetId, position, component) => {
         })
     }
 
-    const componentIndexImage = state.getIn(
-        ["componentsIndex", targetId]
-    );
+    const componentIndexImage = state.getIn(["componentsIndex", targetId]);
 
     state = deepSetComponentIndex(state, component, {
         isIndexRoute: componentIndexImage.isIndexRoute,
@@ -272,8 +271,7 @@ const createComponent = (state, targetId, position, component) => {
         path: targetPath.concat('children', position !== null && position + 1 || 0)
     });
 
-    return state
-        .setIn(['data', ...targetPath, 'children'], newValue);
+    return state.setIn(['data', ...targetPath, 'children'], newValue);
 };
 
 const ProjectState = Record({
