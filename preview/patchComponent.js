@@ -78,8 +78,18 @@ const patchFunctionComponent = component => {
     return ret;
 };
 
+/**
+ *
+ * @param {*} val
+ * @return {boolean}
+ */
 const isNullOrUndefined = val => typeof val === 'undefined' || val === null;
 
+/**
+ *
+ * @param {*} component
+ * @return {*}
+ */
 export default component => {
     if (isNullOrUndefined(component)) return component;
 
@@ -90,4 +100,4 @@ export default component => {
         return patchFunctionComponent(component);
 
     return component;
-}
+};

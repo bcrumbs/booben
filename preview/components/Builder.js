@@ -31,7 +31,7 @@ const pseudoComponents = new Set([
 const isPseudoComponent = component => pseudoComponents.has(component.name);
 
 /**
- * Get component from UI library
+ * Get component from library
  *
  * @param  {string} name - Name of component with namespace (e.g. MyNamespace.MyComponent)
  * @return {Function|string} React component
@@ -99,6 +99,56 @@ class Builder extends Component {
      *
      * @param {ProjectComponent} component
      * @param {boolean} [isPlaceholder=false]
+     * @return {?Immutable.List<ReactElement>}
+     * @private
+     */
+    _renderComponentChildren(component, isPlaceholder = false) {
+        if (component.children.size === 0) return null;
+
+        const needPlaceholders =
+            this.props.draggedComponent !== null &&
+            this.props.draggingOverComponentId !== null;
+
+        if (!needPlaceholders) {
+            //noinspection JSValidateTypes
+            return component.children.map(childComponent =>
+                this._renderComponent(childComponent, isPlaceholder));
+        }
+
+        return List().withMutations(list => {
+            component.children.forEach((childComponent, idx) => {
+                if (childComponent.id === this.props.draggingOverComponentId) {
+                    list.push(
+                        <Builder
+                            component={this.props.draggedComponent}
+                            isPlaceholder
+                            afterIdx={idx - 1}
+                            containerId={component.id}
+                        />
+                    );
+
+                    list.push(this._renderComponent(childComponent, isPlaceholder));
+
+                    list.push(
+                        <Builder
+                            component={this.props.draggedComponent}
+                            isPlaceholder
+                            afterIdx={idx}
+                            containerId={component.id}
+                        />
+                    );
+                }
+                else {
+                    list.push(this._renderComponent(childComponent, isPlaceholder));
+                }
+            });
+        });
+    }
+
+    /**
+     *
+     * @param {ProjectComponent} component
+     * @param {boolean} [isPlaceholder=false]
      * @param {boolean} [isPlaceholderRoot=false]
      * @return {ReactElement}
      * @private
@@ -110,59 +160,11 @@ class Builder extends Component {
         if (isPseudoComponent(component))
             return this._renderPseudoComponent(component);
 
-        const Component = getComponentByName(component.name);
+        const Component = getComponentByName(component.name),
+            props = getProps(component.props);
 
-        let children = null;
-
-        if (component.children.size > 0) {
-            const needPlaceholders =
-                this.props.draggedComponent !== null &&
-                this.props.draggingOverComponentId !== null;
-
-            if (needPlaceholders) {
-                children = List().withMutations(list => {
-                    component.children.forEach((childComponent, idx) => {
-                        if (childComponent.id === this.props.draggingOverComponentId) {
-                            list.push(
-                                <Builder
-                                    component={this.props.draggedComponent}
-                                    isPlaceholder
-                                    afterIdx={idx - 1}
-                                    containerId={component.id}
-                                />
-                            );
-
-                            list.push(
-                                this._renderComponent(childComponent, isPlaceholder)
-                            );
-
-                            list.push(
-                                <Builder
-                                    component={this.props.draggedComponent}
-                                    isPlaceholder
-                                    afterIdx={idx}
-                                    containerId={component.id}
-                                />
-                            );
-                        }
-                        else {
-                            list.push(
-                                this._renderComponent(childComponent, isPlaceholder)
-                            );
-                        }
-                    });
-                });
-            }
-            else {
-                children = component.children.map(
-                    childComponent => this._renderComponent(childComponent, isPlaceholder)
-                );
-            }
-        }
-
-        const props = getProps(component.props);
         props.key = component.id;
-        props.children = children;
+        props.children = this._renderComponentChildren(component, isPlaceholder);
 
         if (!props.children && this.props.draggedComponent !== null) {
             props.children = (
@@ -181,7 +183,7 @@ class Builder extends Component {
         }
         else if (isPlaceholderRoot) {
             if (typeof Component === 'string') {
-                props['data-jssy-placeholder'] = true;
+                props['data-jssy-placeholder'] = '';
                 props['data-jssy-after'] = this.props.afterIdx;
                 props['data-jssy-container-id'] = this.props.containerId;
             }
