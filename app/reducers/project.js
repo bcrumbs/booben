@@ -389,11 +389,7 @@ export default (state = new ProjectState(), action) => {
 
             return state
                 .setIn(['data', ...componentPath], newComponent)
-                .setIn(['componentsIndex', newComponentId], {
-                    path: componentPath,
-                    isIndexRoute: action.isIndexRoute,
-                    routeId: action.routeId
-                });
+                .setIn(['componentsIndex', newComponentId], newIndex);
         }
 
         case PROJECT_COMPONENT_CREATE: {
