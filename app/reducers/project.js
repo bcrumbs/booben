@@ -212,7 +212,7 @@ const deepSetComponentIndex = (state, component, componentIndexImage) => {
 };
 
 const deleteComponent = (state, id) => {
-    if(!state.componentsIndex.has(id)) return state;
+    if (!state.componentsIndex.has(id)) return state;
 
     const componentIndexData = state.componentsIndex.get(id);
 
@@ -438,7 +438,7 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PROJECT_COMPONENT_DELETE: {
-            return deleteComponent(state, action.id);
+            return deleteComponent(state, action.componentId);
         }
 
         case PROJECT_COMPONENT_UPDATE_PROP_VALUE: {

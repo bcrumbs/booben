@@ -137,12 +137,12 @@ export const PROJECT_COMPONENT_DELETE = 'PROJECT_COMPONENT_DELETE';
 
 /**
  *
- * @param {string} id - Component ID
+ * @param {string} componentId - Component ID
  * @returns {Object}
  */
-export const deleteComponent = id => ({
+export const deleteComponent = componentId => ({
     type: PROJECT_COMPONENT_DELETE,
-    id
+    componentId
 });
 
 /**

@@ -17,6 +17,10 @@ import {
     PREVIEW_DRAG_OVER_PLACEHOLDER
 } from '../actions/preview';
 
+import {
+    PROJECT_COMPONENT_DELETE
+} from '../actions/project';
+
 const PreviewState = Record({
     selectedItems: Set(),
     highlightedItems: Set(),
@@ -33,11 +37,13 @@ const PreviewState = Record({
 
 export default (state = new PreviewState(), action) => {
     switch (action.type) {
-        case PREVIEW_HIGHLIGHT_COMPONENT:
+        case PREVIEW_HIGHLIGHT_COMPONENT: {
             return state.update('highlightedItems', set => set.add(action.componentId));
+        }
 
-        case PREVIEW_UNHIGHLIGHT_COMPONENT:
+        case PREVIEW_UNHIGHLIGHT_COMPONENT: {
             return state.update('highlightedItems', set => set.delete(action.componentId));
+        }
 
         case PREVIEW_TOGGLE_HIGHLIGHTING: {
             if (state.highlightingEnabled === action.enable) {
@@ -51,16 +57,18 @@ export default (state = new PreviewState(), action) => {
             }
         }
 
-        case PREVIEW_SELECT_COMPONENT:
+        case PREVIEW_SELECT_COMPONENT: {
             if (action.exclusive) {
                 return state.set('selectedItems', Set([action.componentId]));
             }
             else {
                 return state.update('selectedItems', set => set.add(action.componentId));
             }
+        }
 
-        case PREVIEW_DESELECT_COMPONENT:
+        case PREVIEW_DESELECT_COMPONENT: {
             return state.update('selectedItems', set => set.delete(action.componentId));
+        }
 
         case PREVIEW_TOGGLE_COMPONENT_SELECTION: {
             const updater = state.selectedItems.has(action.componentId)
@@ -70,39 +78,62 @@ export default (state = new PreviewState(), action) => {
             return state.update('selectedItems', updater);
         }
 
-        case PREVIEW_SET_BOUNDARY_COMPONENT:
+        case PREVIEW_SET_BOUNDARY_COMPONENT: {
             return state.set('boundaryComponentId', action.componentId);
+        }
 
-        case PREVIEW_SET_IS_INDEX_ROUTE:
+        case PREVIEW_SET_IS_INDEX_ROUTE: {
             return state.set('currentRouteIsIndexRoute', action.value);
+        }
 
-        case PREVIEW_START_DRAG_COMPONENT:
+        case PREVIEW_START_DRAG_COMPONENT: {
             return state.merge({
                 draggingComponent: true,
                 draggedComponent: action.component
             });
+        }
 
-        case PREVIEW_STOP_DRAG_COMPONENT:
+        case PREVIEW_STOP_DRAG_COMPONENT: {
             return state.merge({
                 draggingComponent: false,
                 draggedComponent: null,
                 draggingOverComponentId: null
             });
+        }
 
-        case PREVIEW_DRAG_OVER_COMPONENT:
+        case PREVIEW_DRAG_OVER_COMPONENT: {
             return state.merge({
                 draggingOverComponentId: action.componentId,
                 draggingOverPlaceholder: false,
                 placeholderContainerId: null,
                 placeholderAfter: -1
             });
+        }
 
-        case PREVIEW_DRAG_OVER_PLACEHOLDER:
+        case PREVIEW_DRAG_OVER_PLACEHOLDER: {
             return state.merge({
                 draggingOverPlaceholder: true,
                 placeholderContainerId: action.containerId,
                 placeholderAfter: action.afterIdx
             });
+        }
+
+        case PROJECT_COMPONENT_DELETE: {
+            state = state.update(
+                'selectedItems',
+                set => set.delete(action.componentId)
+            );
+
+            state = state.update(
+                'highlightedItems',
+                set => set.delete(action.componentId)
+            );
+
+            if (state.boundaryComponentId === action.componentId)
+                state = state.set('boundaryComponentId', null);
+
+            return state;
+        }
 
         default: return state;
     }

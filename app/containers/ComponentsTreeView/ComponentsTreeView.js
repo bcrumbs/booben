@@ -4,6 +4,8 @@
 
 'use strict';
 
+// TODO: Get strings from i18n
+
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -16,7 +18,8 @@ import {
 } from '../../components/ComponentsTree/ComponentsTree';
 
 import {
-    BlockContentBox
+    BlockContentBox,
+    BlockContentPlaceholder
 } from '../../components/BlockContent/BlockContent';
 
 import {
@@ -31,7 +34,7 @@ import {
     unhighlightPreviewComponent
 } from '../../actions/preview';
 
-import ProjectComponentRecord from '../../models/ProjectComponent';
+import ProjectRouteRecord from '../../models/ProjectRoute';
 
 import { List } from 'immutable';
 
@@ -43,7 +46,8 @@ class ComponentsTreeViewComponent extends Component {
     }
     
     shouldComponentUpdate(nextProps) {
-        return nextProps.rootComponent !== this.props.rootComponent ||
+        return nextProps.route !== this.props.route ||
+            nextProps.isIndexRoute !== this.props.isIndexRoute ||
             nextProps.expandedItemIds !== this.props.expandedItemIds ||
             nextProps.selectedItemIds !== this.props.selectedItemIds ||
             nextProps.highlightedItemIds !== this.props.highlightedItemIds;
@@ -105,12 +109,22 @@ class ComponentsTreeViewComponent extends Component {
     }
 
     render() {
-        if (!this.props.rootComponent) return null;
+        const rootComponent = this.props.isIndexRoute
+            ? this.props.route.indexComponent
+            : this.props.route.component;
+
+        if (!rootComponent) {
+            return (
+                <BlockContentPlaceholder
+                    text="There are no components in this route"
+                />
+            );
+        }
 
         return (
             <BlockContentBox isBordered flex>
                 <ComponentsTree>
-                    {this._renderList(List([this.props.rootComponent]))}
+                    {this._renderList(List([rootComponent]))}
                 </ComponentsTree>
             </BlockContentBox>
         )
@@ -118,7 +132,8 @@ class ComponentsTreeViewComponent extends Component {
 }
 
 ComponentsTreeViewComponent.propTypes = {
-    rootComponent: PropTypes.instanceOf(ProjectComponentRecord),
+    route: PropTypes.instanceOf(ProjectRouteRecord).isRequired,
+    isIndexRoute: PropTypes.bool.isRequired,
 
     expandedItemIds: ImmutablePropTypes.setOf(PropTypes.number),
     selectedItemIds: ImmutablePropTypes.setOf(PropTypes.number),
@@ -132,11 +147,7 @@ ComponentsTreeViewComponent.propTypes = {
     onUnhighlightItem: PropTypes.func
 };
 
-ComponentsTreeViewComponent.defaultProps = {
-    rootComponent: null
-};
-
-ComponentsTreeViewComponent.displayName = 'ComponentsTreeViewComponent';
+ComponentsTreeViewComponent.displayName = 'ComponentsTreeView';
 
 const mapStateToProps = state => ({
     expandedItemIds: state.design.treeExpandedItemIds,

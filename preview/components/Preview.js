@@ -32,6 +32,19 @@ import { pointIsInCircle } from '../../app/utils/misc';
 
 /**
  *
+ * @type {?HTMLElement}
+ */
+let _container = null;
+
+/**
+ *
+ * @return {HTMLElement}
+ */
+const getContainer = () =>
+    _container || (_container = document.getElementById('container'));
+
+/**
+ *
  * @type {number}
  * @const
  */
@@ -71,9 +84,11 @@ const gatherRootComponentIds = routes => {
  * @return {?number}
  */
 const getClosestComponentId = el => {
+    const containerNode = getContainer();
     let current = el;
 
     while (current) {
+        if (el === containerNode) break;
         const dataJssyId = current.getAttribute('data-jssy-id');
         if (dataJssyId) return parseInt(dataJssyId, 10);
         if (current.hasAttribute('data-reactroot')) break;
@@ -155,7 +170,6 @@ class Preview extends Component {
     constructor(props) {
         super(props);
 
-        this.domNode = null;
         this.willTryStartDrag = false;
         this.componentToDrag = null;
         this.dragStartX = 0;
@@ -178,14 +192,13 @@ class Preview extends Component {
     }
 
     componentDidMount() {
-        this.domNode = document.getElementById('container');
-
         if (this.props.interactive) {
-            this.domNode.addEventListener('mouseover', this._handleMouseOver, false);
-            this.domNode.addEventListener('mouseout', this._handleMouseOut, false);
-            this.domNode.addEventListener('mousedown', this._handleMouseDown, false);
-            this.domNode.addEventListener('click', this._handleClick, false);
-            this.domNode.addEventListener('mouseup', this._handleMouseUp);
+            const containerNode = getContainer();
+            containerNode.addEventListener('mouseover', this._handleMouseOver, false);
+            containerNode.addEventListener('mouseout', this._handleMouseOut, false);
+            containerNode.addEventListener('mousedown', this._handleMouseDown, false);
+            containerNode.addEventListener('click', this._handleClick, false);
+            containerNode.addEventListener('mouseup', this._handleMouseUp);
             window.top.addEventListener('mouseup', this._handleMouseUp);
         }
     }
@@ -202,15 +215,14 @@ class Preview extends Component {
 
     componentWillUnmount() {
         if (this.props.interactive) {
-            this.domNode.removeEventListener('mouseover', this._handleMouseOver, false);
-            this.domNode.removeEventListener('mouseout', this._handleMouseOut, false);
-            this.domNode.removeEventListener('mousedown', this._handleMouseDown, false);
-            this.domNode.removeEventListener('click', this._handleClick, false);
-            this.domNode.removeEventListener('mouseup', this._handleMouseUp);
+            const containerNode = getContainer();
+            containerNode.removeEventListener('mouseover', this._handleMouseOver, false);
+            containerNode.removeEventListener('mouseout', this._handleMouseOut, false);
+            containerNode.removeEventListener('mousedown', this._handleMouseDown, false);
+            containerNode.removeEventListener('click', this._handleClick, false);
+            containerNode.removeEventListener('mouseup', this._handleMouseUp);
             window.top.removeEventListener('mouseup', this._handleMouseUp);
         }
-
-        this.domNode = null;
     }
 
     /**
@@ -314,8 +326,7 @@ class Preview extends Component {
         const componentId = getClosestComponentId(event.target);
 
         if (componentId !== null && this._componentIsInCurrentRoute(componentId)) {
-            this.domNode.addEventListener('mousemove', this._handleMouseMove);
-
+            getContainer().addEventListener('mousemove', this._handleMouseMove);
             this.componentToDrag = this._getComponentById(componentId);
             this.dragStartX = event.pageX;
             this.dragStartY = event.pageY;
@@ -339,7 +350,7 @@ class Preview extends Component {
             );
 
             if (willStartDrag) {
-                this.domNode.removeEventListener('mousemove', this._handleMouseMove);
+                getContainer().removeEventListener('mousemove', this._handleMouseMove);
                 this.willTryStartDrag = false;
                 this.props.onSetBoundaryComponent(this._getCurrentRootComponentId());
                 this.props.onToggleHighlighting(false);
