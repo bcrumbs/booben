@@ -53,6 +53,10 @@ const ComponentsIndexEntry = Record({
     isIndexRoute: false
 });
 
+const RoutesIndexEntry = Record({
+    path: List()
+});
+
 /**
  *
  * @param {Project} project
@@ -102,7 +106,10 @@ const buildComponentsIndex = project => Map().withMutations(ret => {
 
 const buildRoutesIndex = project => Map().withMutations(ret => {
     const visitRoute = (route, path) => {
-        ret.set(route.id, {path});
+        ret.set(route.id, new RoutesIndexEntry({
+            path: List(path)
+        }));
+
         route.children.forEach((child, idx) =>
             void visitRoute(child, [].concat(path, 'children', idx)));
     };
@@ -139,7 +146,7 @@ const getLastRouteId = state => {
 };
 
 const deepDeleteRoutesIndex = (state, id) => {
-    const curPath = state.routesIndex.get(id).path,
+    const curPath = state.getIn(['routesIndex', id, 'path']),
         route = state.getIn(['data', ...curPath]);
 
     if(!route) return state;
@@ -335,9 +342,13 @@ export default (state = new ProjectState(), action) => {
                 title: action.title
             });
 
+            const newRouteIndex = new RoutesIndexEntry({
+                path: newRoutePath
+            });
+
             return state
                 .setIn(['data', 'routes', ...newRoutePath], newRoute)
-                .setIn(['routesIndex', newRouteId], {path: newRoutePath});
+                .setIn(['routesIndex', newRouteId], newRouteIndex);
         }
 
         case PROJECT_ROUTE_DELETE: {
