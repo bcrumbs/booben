@@ -31,7 +31,7 @@
 
 /**
  * @typedef {Object|Immutable.Record} ProjectComponent
- * @property {string} id - Unique component ID
+ * @property {number} id - Unique component ID
  * @property {string} name - Component name with namespace (e.g. "Namespace.MyComponent")
  * @property {string} title - User-defined title
  * @property {Object<string, ProjectComponentProp>|Immutable.Map<string, ProjectComponentProp>} props

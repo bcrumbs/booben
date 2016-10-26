@@ -4,11 +4,13 @@
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
-import { Map, List } from 'immutable';
+import { Map } from 'immutable';
 
 // The real components.js will be generated during build process
 import _components from '../components.js';
+
 import patchComponent from '../patchComponent';
+import { isContainerComponent } from '../../app/utils/meta';
 import { objectMap } from '../../app/utils/misc';
 
 const components = objectMap(_components, ns => objectMap(ns, patchComponent));
@@ -52,7 +54,7 @@ const getComponentByName = (name = '') => {
  * @param  {Immutable.Map<string, ProjectComponentProp>} props
  * @return {Object<string, *>}
  */
-const getProps = props => {
+const buildProps = props => {
     const ret = {};
 
     props.forEach((prop, key) => {
@@ -68,17 +70,7 @@ const getProps = props => {
     return ret;
 };
 
-class Builder extends Component {
-    /**
-     *
-     * @param {ProjectComponent} component
-     * @return {boolean}
-     * @private
-     */
-    _isDraggedComponent(component) {
-        return component === this.props.draggedComponent;
-    }
-
+class BuilderComponent extends Component {
     /**
      *
      * @param {ProjectComponent} component
@@ -90,59 +82,117 @@ class Builder extends Component {
             return this.props.children;
         }
         else if (component.name === 'Text') {
-            const props = getProps(component.props);
+            const props = buildProps(component.props);
             return props.text || '';
         }
     }
 
     /**
      *
+     * @param {number} containerId
+     * @param {number} afterIdx
+     * @return {ReactElement}
+     * @private
+     */
+    _renderPlaceholderForDraggedComponent(containerId, afterIdx) {
+        //noinspection JSValidateTypes
+        return (
+            <Builder
+                component={this.props.draggedComponent}
+                isPlaceholder
+                afterIdx={afterIdx}
+                containerId={containerId}
+            />
+        );
+    }
+
+    /**
+     *
+     * @return {ReactElement}
+     * @private
+     */
+    _renderContentPlaceholder() {
+        // TODO: Replace this shit with actual placeholder
+        const style = {
+            minWidth: '100px',
+            minHeight: '40px',
+            backgroundColor: '#aaaaaa',
+            borderColor: '#777777'
+        };
+
+        //noinspection JSValidateTypes
+        return (
+            <div style={style} />
+        );
+    }
+
+    /**
+     *
      * @param {ProjectComponent} component
      * @param {boolean} [isPlaceholder=false]
-     * @return {?Immutable.List<ReactElement>}
+     * @return {?ReactElement[]}
      * @private
      */
     _renderComponentChildren(component, isPlaceholder = false) {
         if (component.children.size === 0) return null;
 
-        const needPlaceholders =
-            this.props.draggedComponent !== null &&
-            this.props.draggingOverComponentId !== null;
+        const ret = [];
 
-        if (!needPlaceholders) {
-            //noinspection JSValidateTypes
-            return component.children.map(childComponent =>
-                this._renderComponent(childComponent, isPlaceholder));
-        }
+        component.children.forEach((childComponent, idx) => {
+            const needPlaceholders =
+                this.props.draggedComponent !== null &&
+                childComponent.id === this.props.draggingOverComponentId;
 
-        return List().withMutations(list => {
-            component.children.forEach((childComponent, idx) => {
-                if (childComponent.id === this.props.draggingOverComponentId) {
-                    list.push(
-                        <Builder
-                            component={this.props.draggedComponent}
-                            isPlaceholder
-                            afterIdx={idx - 1}
-                            containerId={component.id}
-                        />
-                    );
-
-                    list.push(this._renderComponent(childComponent, isPlaceholder));
-
-                    list.push(
-                        <Builder
-                            component={this.props.draggedComponent}
-                            isPlaceholder
-                            afterIdx={idx}
-                            containerId={component.id}
-                        />
-                    );
-                }
-                else {
-                    list.push(this._renderComponent(childComponent, isPlaceholder));
-                }
-            });
+            if (needPlaceholders) {
+                // Render placeholders for the component being dragged
+                // before and after the component user is dragging over
+                ret.push(this._renderPlaceholderForDraggedComponent(
+                    component.id,
+                    idx - 1
+                ));
+                ret.push(this._renderComponent(childComponent, isPlaceholder));
+                ret.push(this._renderPlaceholderForDraggedComponent(
+                    component.id,
+                    idx
+                ));
+            }
+            else {
+                ret.push(this._renderComponent(childComponent, isPlaceholder));
+            }
         });
+
+        return ret;
+    }
+
+    /**
+     *
+     * @param {Object} props
+     * @param {boolean} isHTMLComponent
+     * @param {number} componentId
+     * @private
+     */
+    _patchComponentProps(props, isHTMLComponent, componentId) {
+        if (isHTMLComponent) props['data-jssy-id'] = componentId;
+        else props.__jssy_component_id__ = componentId;
+    }
+
+    /**
+     *
+     * @param {Object} props
+     * @param {boolean} isHTMLComponent
+     * @private
+     */
+    _patchPlaceholderRootProps(props, isHTMLComponent) {
+        if (isHTMLComponent) {
+            props['data-jssy-placeholder'] = '';
+            props['data-jssy-after'] = this.props.afterIdx;
+            props['data-jssy-container-id'] = this.props.containerId;
+        }
+        else {
+            props.__jssy_placeholder__ = true;
+            props.__jssy_after__ = this.props.afterIdx;
+            props.__jssy_container_id__ = this.props.containerId;
+        }
     }
 
     /**
@@ -155,66 +205,49 @@ class Builder extends Component {
      */
     _renderComponent(component, isPlaceholder = false, isPlaceholderRoot = false) {
         if (!component) return null;
-        if (!isPlaceholder && this._isDraggedComponent(component)) return null;
 
-        if (isPseudoComponent(component))
-            return this._renderPseudoComponent(component);
+        // Do not render component that's being dragged right now
+        if (component === this.props.draggedComponent && !isPlaceholder) return null;
+
+        // Handle special components like Text, Outlet etc.
+        if (isPseudoComponent(component)) return this._renderPseudoComponent(component);
 
         const Component = getComponentByName(component.name),
-            props = getProps(component.props);
+            props = buildProps(component.props),
+            isHTMLComponent = typeof Component === 'string';
 
         props.key = component.id;
         props.children = this._renderComponentChildren(component, isPlaceholder);
 
-        const willRenderPlaceholderInside =
-            !props.children &&
-            this.props.draggedComponent !== null &&
-            !isPlaceholder;
-
-        if (willRenderPlaceholderInside) {
-            props.children = (
-                <Builder
-                    component={this.props.draggedComponent}
-                    isPlaceholder
-                    afterIdx={-1}
-                    containerId={component.id}
-                />
-            );
-        }
-
         if (!isPlaceholder) {
-            if (typeof Component === 'string') props['data-jssy-id'] = component.id;
-            else props.__jssy_component_id__ = component.id;
-        }
-        else if (isPlaceholderRoot) {
-            if (typeof Component === 'string') {
-                props['data-jssy-placeholder'] = '';
-                props['data-jssy-after'] = this.props.afterIdx;
-                props['data-jssy-container-id'] = this.props.containerId;
-            }
-            else {
-                props.__jssy_placeholder__ = true;
-                props.__jssy_after__ = this.props.afterIdx;
-                props.__jssy_container_id__ = this.props.containerId;
-            }
+            this._patchComponentProps(props, isHTMLComponent, component.id);
 
-            if (!props.children) {
-                // TODO: Check if component is a container
+            const willRenderPlaceholderInside =
+                this.props.draggedComponent !== null &&
+                !props.children &&
+                isContainerComponent(component.name, this.props.meta);
 
-                // TODO: Replace this shit with actual placeholder
-                const style = {
-                    minWidth: '100px',
-                    minHeight: '40px',
-                    backgroundColor: '#aaaaaa',
-                    borderColor: '#777777'
-                };
-
-                props.children = (
-                    <div style={style} />
+            // Render placeholders inside empty containers when user is dragging something
+            if (willRenderPlaceholderInside) {
+                props.children = this._renderPlaceholderForDraggedComponent(
+                    component.id,
+                    -1
                 );
             }
         }
+        else if (isPlaceholderRoot) {
+            this._patchPlaceholderRootProps(props, isHTMLComponent);
 
+            const willRenderContentPlaceholder =
+                !props.children &&
+                isContainerComponent(component.name, this.props.meta);
+
+            // Render fake content inside placeholders for container components
+            if (willRenderContentPlaceholder)
+                props.children = this._renderContentPlaceholder();
+        }
+
+        //noinspection JSValidateTypes
         return (
             <Component {...props} />
         );
@@ -224,12 +257,12 @@ class Builder extends Component {
         return this._renderComponent(
             this.props.component,
             this.props.isPlaceholder,
-            true
+            this.props.isPlaceholder
         );
     }
 }
 
-Builder.propTypes = {
+BuilderComponent.propTypes = {
     component: ImmutablePropTypes.contains({
         id: React.PropTypes.number,
         name: React.PropTypes.string,
@@ -241,22 +274,25 @@ Builder.propTypes = {
     afterIdx: PropTypes.any, // number on null
     containerId: PropTypes.any, // number on null
 
+    meta: PropTypes.object,
     draggedComponent: PropTypes.any,
     draggingOverComponentId: PropTypes.any // number or null
 };
 
-Builder.defaultProps = {
+BuilderComponent.defaultProps = {
     component: null,
     isPlaceholder: false,
     afterIdx: null,
     containerId: null
 };
 
-Builder.displayName = 'Builder';
+BuilderComponent.displayName = 'Builder';
 
 const mapStateToProps = state => ({
+    meta: state.project.meta,
     draggedComponent: state.preview.draggedComponent,
     draggingOverComponentId: state.preview.draggingOverComponentId
 });
 
-export default connect(mapStateToProps)(Builder);
+const Builder = connect(mapStateToProps)(BuilderComponent);
+export default Builder;

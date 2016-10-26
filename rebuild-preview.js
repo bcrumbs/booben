@@ -10,13 +10,14 @@ const co = require('co'),
     minimist = require('minimist'),
     thenify = require('thenify'),
     rimraf = thenify(require('rimraf')),
-    buildPreviewApp = require('./endpoints/preview-builder').buildPreviewApp,
+    previewBuilder = require('./endpoints/preview-builder'),
     config = require('./config'),
     constants = require('./common/constants');
 
 const defaults = {
     'clean': true,
-    'install-loaders': true
+    'install-loaders': true,
+    'watch': false
 };
 
 co(function* () {
@@ -43,12 +44,33 @@ co(function* () {
 
     const project = require(path.join(projectDir, constants.PROJECT_FILE));
 
-    yield buildPreviewApp(project, {
-        clean: argv['clean'],
-        noInstallLoaders: !argv['install-loaders']
-    });
+    if (argv['watch']) {
+        const handler = (err, stats) => {
+            if (err) console.error(err);
+            else console.log(stats.toString({ colors: true }));
+        };
 
-    process.exit(0);
+        const watching = yield previewBuilder.buildPreviewApp(project, {
+            noInstallLoaders: !argv['install-loaders'],
+            watch: true,
+            watchHandler: handler
+        });
+
+        process.on('SIGINT', () => void co(function* () {
+            console.log('Closing watcher...');
+            yield watching.close();
+            if (argv['clean']) yield previewBuilder.cleanProjectDir(projectName);
+            process.exit(0);
+        }));
+    }
+    else {
+        yield previewBuilder.buildPreviewApp(project, {
+            clean: argv['clean'],
+            noInstallLoaders: !argv['install-loaders']
+        });
+
+        process.exit(0);
+    }
 }).catch(err => {
     console.error(err.message || err.toString());
     process.exit(1);

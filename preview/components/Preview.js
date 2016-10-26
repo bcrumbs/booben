@@ -527,8 +527,11 @@ const mapDispatchToProps = dispatch => ({
     onComponentStartDrag: component =>
         void dispatch(startDragComponent(component)),
 
-    onComponentStopDrag: () => void dispatch(stopDragComponent()),
-    onDragOverComponent: componentId => void dispatch(dragOverComponent(componentId)),
+    onComponentStopDrag: () =>
+        void dispatch(stopDragComponent()),
+
+    onDragOverComponent: componentId =>
+        void dispatch(dragOverComponent(componentId)),
 
     onDragOverPlaceholder: (containerId, afterIdx) =>
         void dispatch(dragOverPlaceholder(containerId, afterIdx)),
