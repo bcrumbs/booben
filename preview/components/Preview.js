@@ -23,7 +23,8 @@ import {
 
 import {
     moveComponent,
-    createComponent
+    createComponent,
+    createRootComponent
 } from '../../app/actions/project';
 
 import { pointIsInCircle } from '../../app/utils/misc';
@@ -361,8 +362,10 @@ class Preview extends Component {
             this.props.onSetBoundaryComponent(null);
 
             const willDrop =
-                this.props.draggingOverPlaceholder &&
-                this._componentIsInCurrentRoute(this.props.placeholderContainerId);
+                this.props.draggingOverPlaceholder && (
+                    this.props.placeholderContainerId === -1 ||
+                    this._componentIsInCurrentRoute(this.props.placeholderContainerId)
+                );
 
             if (willDrop) {
                 if (this.props.draggedComponent.id !== null) {
@@ -375,11 +378,22 @@ class Preview extends Component {
                 }
                 else {
                     // We're dragging a new component from palette
-                    this.props.onCreateComponent(
-                        this.props.placeholderContainerId,
-                        this.props.placeholderAfter,
-                        this.props.draggedComponent
-                    );
+                    if (this.props.placeholderContainerId === -1) {
+                        // Creating root component for current route
+                        this.props.onCreateRootComponent(
+                            this.currentRouteId,
+                            this.props.currentRouteIsIndexRoute,
+                            this.props.draggedComponent
+                        );
+                    }
+                    else {
+                        // Creating nested component
+                        this.props.onCreateComponent(
+                            this.props.placeholderContainerId,
+                            this.props.placeholderAfter,
+                            this.props.draggedComponent
+                        );
+                    }
                 }
             }
 
@@ -486,7 +500,8 @@ Preview.propTypes = {
     onDragOverComponent: PropTypes.func,
     onDragOverPlaceholder: PropTypes.func,
     onMoveComponent: PropTypes.func,
-    onCreateComponent: PropTypes.func
+    onCreateComponent: PropTypes.func,
+    onCreateRootComponent: PropTypes.func
 };
 
 Preview.defaultProps = {
@@ -540,7 +555,10 @@ const mapDispatchToProps = dispatch => ({
         void dispatch(moveComponent(componentId, containerId, position)),
 
     onCreateComponent: (containerId, position, component) =>
-        void dispatch(createComponent(containerId, position, component))
+        void dispatch(createComponent(containerId, position, component)),
+
+    onCreateRootComponent: (routeId, isIndexRoute, component) =>
+        void dispatch(createRootComponent(routeId, isIndexRoute, component))
 });
 
 export default connect(

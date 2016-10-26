@@ -172,14 +172,14 @@ export const PROJECT_COMPONENT_CREATE_ROOT = 'PROJECT_COMPONENT_CREATE_ROOT';
 /**
  * @param  {number}  routeId
  * @param  {boolean} isIndexRoute
- * @param  {string}  componentName
+ * @param  {ProjectComponent}  component
  * @return {object}
  */
-export const createRootComponent = (routeId, isIndexRoute, componentName) => ({
+export const createRootComponent = (routeId, isIndexRoute, component) => ({
     type: PROJECT_COMPONENT_CREATE_ROOT,
     routeId,
     isIndexRoute,
-    componentName
+    component
 });
 
 /**
@@ -191,7 +191,7 @@ export const PROJECT_COMPONENT_CREATE = 'PROJECT_COMPONENT_CREATE';
 /**
  * @param  {number} targetId
  * @param  {number} position
- * @param  {Immutable.Record} component
+ * @param  {ProjectComponent} component
  */
 export const createComponent = (targetId, position, component) => ({
     type: PROJECT_COMPONENT_CREATE,

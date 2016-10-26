@@ -254,11 +254,18 @@ class BuilderComponent extends Component {
     }
 
     render() {
-        return this._renderComponent(
-            this.props.component,
-            this.props.isPlaceholder,
-            this.props.isPlaceholder
-        );
+        if (!this.props.component && this.props.draggedComponent) {
+            // Render placeholder for root component that is being dragged
+            return this._renderPlaceholderForDraggedComponent(-1, -1);
+        }
+        else {
+            // Render as usual
+            return this._renderComponent(
+                this.props.component,
+                this.props.isPlaceholder,
+                this.props.isPlaceholder
+            );
+        }
     }
 }
 

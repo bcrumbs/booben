@@ -380,15 +380,11 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PROJECT_COMPONENT_CREATE_ROOT: {
-            const newComponentId = getLastComponentId(state) + 1;
-
-            const newComponent = new ProjectComponent({
-                id: newComponentId,
-                name: action.componentName
-            });
-
-            const routePath = state.getIn(['routesIndex', action.routeId, 'path']);
-            const componentPath = routePath.concat(action.isIndexRoute ? 'indexComponent' : 'component');
+            const newComponentId = getLastComponentId(state) + 1,
+                newComponent = action.component.set('id', newComponentId),
+                routePath = state.getIn(['routesIndex', action.routeId, 'path']),
+                routeField = action.isIndexRoute ? 'indexComponent' : 'component',
+                componentPath = routePath.concat(routeField);
 
             const newIndex = new ComponentsIndexEntry({
                 path: componentPath,
