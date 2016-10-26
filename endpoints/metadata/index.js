@@ -299,8 +299,13 @@ const metaSchema = {
 
         kind: {
             type: 'string',
-            enum: ['atomic', 'container'],
+            enum: ['atomic', 'container', 'composite'],
             required: true
+        },
+
+        hidden: {
+            type: 'boolean',
+            required: false
         },
 
         props: {
@@ -333,7 +338,37 @@ const metaSchema = {
 
         types: Object.assign({ required: false }, typesSchema),
 
-        strings: Object.assign({ required: false }, stringsSchema)
+        strings: Object.assign({ required: false }, stringsSchema),
+
+        layouts: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    regions: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                component: {
+                                    type: 'string',
+                                    allowEmpty: false,
+                                    required: true
+                                },
+                                props: {
+                                    type: 'object',
+                                    required: false
+                                }
+                            }
+                        },
+                        minItems: 1,
+                        required: true
+                    }
+                }
+            },
+            minItems: 1,
+            required: false
+        }
     }
 };
 
