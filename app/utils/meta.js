@@ -7,6 +7,16 @@
 import HTMLMeta from '../../app/meta/html';
 import miscMeta from '../../app/meta/misc';
 
+export const parseComponentName = componentName => {
+    let [namespace, name] = componentName.split('.');
+    if (!name) {
+        name = namespace;
+        namespace = '';
+    }
+
+    return { namespace, name };
+};
+
 /**
  *
  * @param {string} componentName
@@ -14,11 +24,7 @@ import miscMeta from '../../app/meta/misc';
  * @returns {?Object}
  */
 export const getComponentMeta = (componentName, meta) => {
-    let [namespace, name] = componentName.split('.');
-    if (!name) {
-        name = namespace;
-        namespace = '';
-    }
+    const { namespace, name } = parseComponentName(componentName);
 
     let components;
     if (namespace === '') components = miscMeta.components;
@@ -48,3 +54,12 @@ export const getComponentKind = (componentName, meta) => {
  */
 export const isContainerComponent = (componentName, meta) =>
     getComponentKind(componentName, meta) === 'container';
+
+/**
+ *
+ * @param {string} componentName
+ * @param {Object} meta
+ * @return {boolean}
+ */
+export const isCompositeComponent = (componentName, meta) =>
+    getComponentKind(componentName, meta) === 'composite';

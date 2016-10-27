@@ -97,7 +97,7 @@ export const PROJECT_ROUTE_DELETE = 'PROJECT_ROUTE_DELETE';
 
 /**
  *
- * @param {number[]} where - indexes of routes in path
+ * @param {Immutable.List<number>} where - indexes of routes in path
  * @param {number} idx - index of route to delete
  * @returns {Object}
  */

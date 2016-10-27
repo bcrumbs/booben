@@ -35,11 +35,14 @@ import {
     toggleHighlighting
 } from '../../actions/preview';
 
-import { List } from 'immutable';
-
 import { projectComponentToImmutable } from '../../models/ProjectComponent';
 
-import { getComponentMeta } from '../../utils/meta';
+import { List } from 'immutable';
+
+import {
+    getComponentMeta,
+    parseComponentName
+} from '../../utils/meta';
 
 import {
     objectForEach,
@@ -99,6 +102,8 @@ const extractGroupsDataFromMeta = meta => {
         });
 
         objectForEach(libMeta.components, componentMeta => {
+            if (componentMeta.hidden) return;
+
             let defaultGroup = false,
                 groupName;
 
@@ -142,7 +147,13 @@ const extractGroupsDataFromMeta = meta => {
     return groups;
 };
 
-const buildComponentProps = (componentMeta, language) => {
+/**
+ *
+ * @param {Object} componentMeta
+ * @param {string} language
+ * @returns {Object}
+ */
+const buildDefaultProps = (componentMeta, language) => {
     const ret = {};
     
     objectForEach(componentMeta.props, (propMeta, propName) => {
@@ -226,12 +237,41 @@ class ComponentsLibraryComponent extends Component {
         const componentMeta = getComponentMeta(componentData.fullName, this.props.meta);
         if (!componentMeta) return null;
 
+        let children = [];
+
+        if (componentMeta.kind === 'composite') {
+            const { namespace } = parseComponentName(componentData.fullName),
+                defaultLayout = componentMeta.layouts[0];
+
+            children = defaultLayout.regions.map(region => {
+                const regionComponentName = `${namespace}.${region.component}`;
+
+                const regionComponentMeta = getComponentMeta(
+                    regionComponentName,
+                    this.props.meta
+                );
+
+                const props = Object.assign(
+                    buildDefaultProps(regionComponentMeta, this.props.language),
+                    region.props || {}
+                );
+
+                return {
+                    id: null,
+                    name: regionComponentName,
+                    title: '',
+                    props,
+                    children: []
+                };
+            });
+        }
+
         return projectComponentToImmutable({
             id: null,
             name: componentData.fullName,
             title: '',
-            props: buildComponentProps(componentMeta, this.props.language),
-            children: []
+            props: buildDefaultProps(componentMeta, this.props.language),
+            children
         });
     }
 

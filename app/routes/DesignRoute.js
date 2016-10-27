@@ -16,7 +16,6 @@ import { ComponentPropsEditor } from '../containers/ComponentPropsEditor/Compone
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
 
 import store from '../store';
-import { findRouteById } from '../utils';
 
 import ProjectRecord from '../models/Project';
 import ToolRecord from '../models/Tool';
@@ -27,6 +26,8 @@ import {
     renameComponent,
     deleteComponent
 } from '../actions/project';
+
+import { isCompositeComponent } from '../utils/meta';
 
 import { List } from 'immutable';
 
@@ -88,16 +89,22 @@ class DesignRoute extends Component {
         this.props.onDeleteComponent(this.props.selectedComponentIds.first());
     }
 
+    _getParentComponent(component) {
+        const indexEntry = this.props.componentsIndex.get(component.id);
+        if (indexEntry.path.get(indexEntry.path.size - 2) !== 'children') return null;
+        return this.props.project.getIn(indexEntry.path.slice(0, -2));
+    }
+
     render() {
         const src = `/preview/${this.props.params.projectName}/index.html`,
             routeId = parseInt(this.props.params.routeId),
             isIndexRoute = this.props.location.pathname.endsWith('/index'),
-            route = findRouteById(this.props.project.routes, routeId);
+            routeIndexEntry = this.props.routesIndex.get(routeId);
 
         // TODO: Show error screen
-        if (!route) return null;
+        if (!routeIndexEntry) return null;
 
-        const rootComponent = isIndexRoute ? route.indexComponent : route.component;
+        const route = this.props.project.getIn(routeIndexEntry.path);
 
         const treeTool = new ToolRecord({
             id: TOOL_ID_COMPONENTS_TREE,
@@ -120,17 +127,28 @@ class DesignRoute extends Component {
         if (singleComponentSelected) {
             const componentId = this.props.selectedComponentIds.first(),
                 componentIndexData = this.props.componentsIndex.get(componentId),
-                component = this.props.project.getIn(componentIndexData.path);
+                component = this.props.project.getIn(componentIndexData.path),
+                parentComponent = this._getParentComponent(component);
+
+            const isRegion = parentComponent
+                ? isCompositeComponent(parentComponent.name, this.props.meta)
+                : false;
 
             title = component.title;
             subtitle = component.name;
-            mainButtons = List([
-                new ButtonRecord({
-                    text: 'Delete',
-                    disabled: !singleComponentSelected,
-                    onPress: this._handleDeleteComponentButtonPress
-                })
-            ]);
+
+            if (!isRegion) {
+                mainButtons = List([
+                    new ButtonRecord({
+                        text: 'Delete',
+                        disabled: !singleComponentSelected,
+                        onPress: this._handleDeleteComponentButtonPress
+                    })
+                ]);
+            }
+            else {
+                mainButtons = List();
+            }
         }
         else {
             title = 'Component configuration';
@@ -176,8 +194,10 @@ class DesignRoute extends Component {
 
 DesignRoute.propTypes = {
     project: PropTypes.instanceOf(ProjectRecord),
+    meta: PropTypes.object,
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     componentsIndex: ImmutablePropTypes.map,
+    routesIndex: ImmutablePropTypes.map,
 
     onRenameComponent: PropTypes.func,
     onDeleteComponent: PropTypes.func
@@ -185,8 +205,10 @@ DesignRoute.propTypes = {
 
 const mapStateToProps = state => ({
     project: state.project.data,
+    meta: state.project.meta,
     selectedComponentIds: state.preview.selectedItems,
-    componentsIndex: state.project.componentsIndex
+    componentsIndex: state.project.componentsIndex,
+    routesIndex: state.project.routesIndex
 });
 
 const mapDispatchToProps = dispatch => ({
