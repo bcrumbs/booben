@@ -22,7 +22,7 @@ $prop-toggle: 'props-type-toggle';
 			margin-bottom: $props-list-margin-bottom;
 		}
 
-		.prop-item .has-image + & {
+		.rop-item-wrapper.has-image + & {
 			margin-left: $props-image-level-offset;
 		}
 
@@ -114,10 +114,14 @@ $prop-toggle: 'props-type-toggle';
 		font-weight: $prop-label-font-weight;
 		text-transform: $prop-label-text-transform;
 		color: $prop-label-color;
-		display: block;
+		display: flex;
 		margin-bottom: $prop-label-margin-bottom;
 
 		@include user-select();
+
+		.tooltip-icon {
+			margin-left: $base-module;
+		}
 	}
 
 	// PROP: toggle
@@ -146,6 +150,7 @@ $prop-toggle: 'props-type-toggle';
 	// =================================================================================================================
 	.prop-constructor-wrapper {
 		display: flex;
+		width: 100%
 	}
 
 	.prop-constructor-content {
