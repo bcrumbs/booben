@@ -299,8 +299,13 @@ const metaSchema = {
 
         kind: {
             type: 'string',
-            enum: ['atomic', 'container'],
+            enum: ['atomic', 'container', 'composite'],
             required: true
+        },
+
+        hidden: {
+            type: 'boolean',
+            required: false
         },
 
         props: {
@@ -333,7 +338,37 @@ const metaSchema = {
 
         types: Object.assign({ required: false }, typesSchema),
 
-        strings: Object.assign({ required: false }, stringsSchema)
+        strings: Object.assign({ required: false }, stringsSchema),
+
+        layouts: {
+            type: 'array',
+            items: {
+                type: 'object',
+                properties: {
+                    regions: {
+                        type: 'array',
+                        items: {
+                            type: 'object',
+                            properties: {
+                                component: {
+                                    type: 'string',
+                                    allowEmpty: false,
+                                    required: true
+                                },
+                                props: {
+                                    type: 'object',
+                                    required: false
+                                }
+                            }
+                        },
+                        minItems: 1,
+                        required: true
+                    }
+                }
+            },
+            minItems: 1,
+            required: false
+        }
     }
 };
 
@@ -727,7 +762,18 @@ exports.gatherMetadata = moduleDir => co(function* () {
         while (node = yield walker.next()) {
             try {
                 const maybeMeta = yield visitNode(node);
-                if (maybeMeta !== null) ret.components[maybeMeta.displayName] = maybeMeta;
+
+                if (maybeMeta !== null) {
+                    if (maybeMeta.group && !mainMeta.componentGroups[maybeMeta.group]) {
+                        //noinspection ExceptionCaughtLocallyJS
+                        throw new Error(
+                            `'${maybeMeta.displayName}' component: ` +
+                            `group '${maybeMeta.group}' is not defined.`
+                        );
+                    }
+
+                    ret.components[maybeMeta.displayName] = maybeMeta;
+                }
             }
             catch (err) {
                 throw new Error(

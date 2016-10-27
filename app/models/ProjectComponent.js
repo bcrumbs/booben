@@ -21,6 +21,11 @@ const ProjectComponentRecord = Record({
     children: List()
 });
 
+/**
+ *
+ * @type {Object<string, function(input: Object): Immutable.Record>}
+ * @const
+ */
 const propSourceDataToImmutable = {
     static: input => new SourceDataStatic(input),
     data: input => new SourceDataData(input),
@@ -29,6 +34,11 @@ const propSourceDataToImmutable = {
     designer: input => new SourceDataDesigner(input)
 };
 
+/**
+ *
+ * @param {Object} input
+ * @returns {ProjectComponent}
+ */
 export const projectComponentToImmutable = input => new ProjectComponentRecord({
     id: input.id,
     name: input.name,

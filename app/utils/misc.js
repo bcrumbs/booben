@@ -46,6 +46,20 @@ export const objectForEach = (object, fn) =>
 
 /**
  *
+ * @param {Object} object
+ * @param {function(value: *, key: string, object: Object)} fn
+ * @return {Object}
+ */
+export const objectMap = (object, fn) => {
+    const ret = {};
+    objectForEach(object, (value, key, object) => {
+        ret[key] = fn(value, key, object);
+    });
+    return ret;
+};
+
+/**
+ *
  * @param {number} x
  * @param {number} y
  * @param {number} cX

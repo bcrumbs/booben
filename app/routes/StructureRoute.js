@@ -371,7 +371,7 @@ class StructureRoute extends Component {
             this.props.selectedRouteId === route.id &&
             !this.props.indexRouteSelected;
 
-        const children = route.children.size > 0
+        const children = route.children.size > 0 || route.haveIndex
             ? this._renderRouteList(route, route.children, indexes)
             : isSelected
                 ? this._renderRouteList(route, null, indexes)

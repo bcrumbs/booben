@@ -31,44 +31,65 @@ import {
 } from '../../actions/components-library';
 
 import {
-    startDragComponent
+    startDragComponent,
+    toggleHighlighting
 } from '../../actions/preview';
-
-import HTMLMeta from '../../meta/html';
-import miscMeta from '../../meta/misc';
 
 import { List } from 'immutable';
 
 import { projectComponentToImmutable } from '../../models/ProjectComponent';
+
+import { getComponentMeta } from '../../utils/meta';
 
 import {
     objectForEach,
     pointIsInCircle
 } from '../../utils/misc';
 
-
+/**
+ * 
+ * @type {number}
+ * @const
+ */
 const START_DRAG_THRESHOLD = 10;
+
+/**
+ * @typedef {Object} LibraryComponentData
+ * @property {string} name
+ * @property {string} fullName
+ * @property {Object<string, string>} text
+ * @property {Object<string, string>} descriptionText
+ * @property {string} iconURL
+ */
+
+/**
+ * @typedef {Object} LibraryGroupData
+ * @property {string} name
+ * @property {string} namespace
+ * @property {Object<string, string>} text
+ * @property {Object<string, string>} descriptionText
+ * @property {boolean} isDefault
+ * @property {LibraryComponentData[]} components
+ */
 
 /**
  *
  * @param {Object} meta
- * @return {Object[]}
+ * @return {LibraryGroupData[]}
  */
 const extractGroupsDataFromMeta = meta => {
     const groups = [],
         groupsByName = new Map();
 
-    objectForEach(meta, lib => {
-        const componentGroups = lib.componentGroups;
-
-        objectForEach(componentGroups, (groupData, groupName) => {
-            const fullName = `${lib.namespace}.${groupName}`;
+    objectForEach(meta, libMeta => {
+        objectForEach(libMeta.componentGroups, (groupData, groupName) => {
+            const fullName = `${libMeta.namespace}.${groupName}`;
 
             const group = {
                 name: fullName,
-                namespace: lib.namespace,
-                text: lib.strings[groupData.textKey],
-                descriptionText: lib.strings[groupData.descriptionTextKey],
+                namespace: libMeta.namespace,
+                text: libMeta.strings[groupData.textKey],
+                descriptionText: libMeta.strings[groupData.descriptionTextKey],
                 isDefault: false,
                 components: []
             };
@@ -77,18 +98,16 @@ const extractGroupsDataFromMeta = meta => {
             groupsByName.set(fullName, group);
         });
 
-        const components = lib.components;
-
-        objectForEach(components, component => {
+        objectForEach(libMeta.components, componentMeta => {
             let defaultGroup = false,
                 groupName;
 
-            if (!component.group) {
+            if (!componentMeta.group) {
                 defaultGroup = true;
-                groupName = `${lib.namespace}.__default__`
+                groupName = `${libMeta.namespace}.__default__`
             }
             else {
-                groupName = `${lib.namespace}.${component.group}`
+                groupName = `${libMeta.namespace}.${componentMeta.group}`
             }
 
             let group;
@@ -96,7 +115,7 @@ const extractGroupsDataFromMeta = meta => {
             if (defaultGroup && !groupsByName.has(groupName)) {
                 group = {
                     name: groupName,
-                    namespace: lib.namespace,
+                    namespace: libMeta.namespace,
                     text: null,
                     descriptionText: null,
                     isDefault: true,
@@ -111,11 +130,11 @@ const extractGroupsDataFromMeta = meta => {
             }
 
             group.components.push({
-                name: component.displayName,
-                fullName: `${lib.namespace}.${component.displayName}`,
-                text: component.strings[component.textKey],
-                descriptionText: component.strings[component.descriptionTextKey],
-                iconURL: null
+                name: componentMeta.displayName,
+                fullName: `${libMeta.namespace}.${componentMeta.displayName}`,
+                text: componentMeta.strings[componentMeta.textKey],
+                descriptionText: componentMeta.strings[componentMeta.descriptionTextKey],
+                iconURL: '' // TODO: Put icon or placeholder URL here
             });
         });
     });
@@ -123,14 +142,52 @@ const extractGroupsDataFromMeta = meta => {
     return groups;
 };
 
+const buildComponentProps = (componentMeta, language) => {
+    const ret = {};
+    
+    objectForEach(componentMeta.props, (propMeta, propName) => {
+        if (propMeta.source.indexOf('static') > -1 && propMeta.sourceConfigs.static) {
+            if (typeof propMeta.sourceConfigs.static.default !== 'undefined') {
+                ret[propName] = {
+                    source: 'static',
+                    sourceData: {
+                        value: propMeta.sourceConfigs.static.default
+                    }
+                };
+            }
+            else if (propMeta.sourceConfigs.static.defaultTextKey) {
+                const key = propMeta.sourceConfigs.static.defaultTextKey,
+                    translations = componentMeta.strings[key];
+
+                ret[propName] = {
+                    source: 'static',
+                    sourceData: {
+                        value: translations[language] || ''
+                    }
+                };
+            }
+        }
+        else if (propMeta.source.indexOf('const') > -1 && propMeta.sourceConfigs.const) {
+            if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
+                ret[propName] = {
+                    source: 'const',
+                    sourceData: {
+                        value: propMeta.sourceConfigs.const.value
+                    }
+                }
+            }
+        }
+    });
+    
+    return ret;
+};
+
 class ComponentsLibraryComponent extends Component {
     constructor(props) {
         super(props);
 
-        this._onFocusHandlersCache = {};
-
+        this.onFocusHandlersCache = {};
         this.componentGroups = extractGroupsDataFromMeta(props.meta);
-
         this.willTryStartDrag = false;
         this.dragStartX = 0;
         this.dragStartY = 0;
@@ -146,88 +203,46 @@ class ComponentsLibraryComponent extends Component {
             nextProps.language !== this.props.language;
     }
 
+    /**
+     * 
+     * @param {string} componentName
+     * @returns {Function}
+     * @private
+     */
     _getOnFocusHandler(componentName) {
-        return this._onFocusHandlersCache[componentName] || (
-            this._onFocusHandlersCache[componentName] =
+        return this.onFocusHandlersCache[componentName] || (
+            this.onFocusHandlersCache[componentName] =
                 this.props.onFocusComponent.bind(null, componentName)
         );
     }
 
-    _getComponentMeta(fullName) {
-        let [namespace, name] = fullName.split('.');
-        if (!name) {
-            name = namespace;
-            namespace = '';
-        }
-
-        let components;
-        if (namespace === '') {
-            components = miscMeta.components;
-        }
-        else if (namespace === 'HTML') {
-            components = HTMLMeta.components;
-        }
-        else {
-            components = this.props.meta[namespace]
-                ? this.props.meta[namespace].components
-                : null;
-        }
-
-        return components ? (components[name] || null) : null;
-    }
-
+    /**
+     * 
+     * @param {LibraryComponentData} componentData
+     * @returns {?ProjectComponent}
+     * @private
+     */
     _createComponent(componentData) {
-        const componentMeta = this._getComponentMeta(componentData.fullName);
+        const componentMeta = getComponentMeta(componentData.fullName, this.props.meta);
         if (!componentMeta) return null;
 
-        const ret = {
+        return projectComponentToImmutable({
             id: null,
             name: componentData.fullName,
             title: '',
-            props: {},
+            props: buildComponentProps(componentMeta, this.props.language),
             children: []
-        };
-
-        objectForEach(componentMeta.props, (propMeta, propName) => {
-            if (propMeta.source.indexOf('static') > -1 && propMeta.sourceConfigs.static) {
-                if (typeof propMeta.sourceConfigs.static.default !== 'undefined') {
-                    ret.props[propName] = {
-                        source: 'static',
-                        sourceData: {
-                            value: propMeta.sourceConfigs.static.default
-                        }
-                    };
-                }
-                else if (propMeta.sourceConfigs.static.defaultTextKey) {
-                    const key = propMeta.sourceConfigs.static.defaultTextKey,
-                        translations = componentMeta.strings[key];
-
-                    ret.props[propName] = {
-                        source: 'static',
-                        sourceData: {
-                            value: translations[this.props.language] || ''
-                        }
-                    };
-                }
-            }
-            else if (propMeta.source.indexOf('const') > -1 && propMeta.sourceConfigs.const) {
-                if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
-                    ret.props[propName] = {
-                        source: 'const',
-                        sourceData: {
-                            value: propMeta.sourceConfigs.const.value
-                        }
-                    }
-                }
-            }
         });
-
-        return projectComponentToImmutable(ret);
     }
 
+    /**
+     *
+     * @param {LibraryComponentData} componentData
+     * @param {MouseEvent} event
+     * @private
+     */
     _handleStartDrag(componentData, event) {
         event.preventDefault();
-
         window.addEventListener('mousemove', this._handleMouseMove);
         this.willTryStartDrag = true;
         this.dragStartX = event.pageX;
@@ -235,6 +250,11 @@ class ComponentsLibraryComponent extends Component {
         this.draggedComponentData = componentData;
     }
 
+    /**
+     *
+     * @param {MouseEvent} event
+     * @private
+     */
     _handleMouseMove(event) {
         if (this.willTryStartDrag) {
             const willStartDrag = !pointIsInCircle(
@@ -249,7 +269,11 @@ class ComponentsLibraryComponent extends Component {
                 this.willTryStartDrag = false;
                 window.removeEventListener('mousemove', this._handleMouseMove);
                 const component = this._createComponent(this.draggedComponentData);
-                if (component) this.props.onComponentStartDrag(component);
+
+                if (component) {
+                    this.props.onComponentStartDrag(component);
+                    this.props.onToggleHighlighting(false);
+                }
             }
         }
     }
@@ -310,7 +334,8 @@ ComponentsLibraryComponent.propTypes = {
 
     onExpandedGroupsChange: PropTypes.func,
     onFocusComponent: PropTypes.func,
-    onComponentStartDrag: PropTypes.func
+    onComponentStartDrag: PropTypes.func,
+    onToggleHighlighting: PropTypes.func
 };
 
 ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
@@ -326,9 +351,8 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
     onExpandedGroupsChange: groups => void dispatch(setExpandedGroups(groups)),
     onFocusComponent: componentName => void dispatch(focusComponent(componentName)),
-
-    onComponentStartDrag: component =>
-        void dispatch(startDragComponent(component))
+    onComponentStartDrag: component => void dispatch(startDragComponent(component)),
+    onToggleHighlighting: enable => void dispatch(toggleHighlighting(enable))
 });
 
 export const ComponentsLibrary = connect(

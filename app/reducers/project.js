@@ -29,7 +29,11 @@ import {
 import ProjectRoute from '../models/ProjectRoute';
 import ProjectComponent from '../models/ProjectComponent';
 import ProjectComponentProp from '../models/ProjectComponentProp';
-
+import SourceDataStatic from '../models/SourceDataStatic';
+import SourceDataData from '../models/SourceDataData';
+import SourceDataConst from '../models/SourceDataConst';
+import SourceDataAction from '../models/SourceDataAction';
+import SourceDataDesigner from '../models/SourceDataDesigner';
 
 import { projectToImmutable } from '../models/Project';
 
@@ -43,6 +47,16 @@ const propSourceDataToImmutable = {
     designer: input => new SourceDataDesigner(input)
 };
 
+const ComponentsIndexEntry = Record({
+    path: List(),
+    routeId: null,
+    isIndexRoute: false
+});
+
+const RoutesIndexEntry = Record({
+    path: List()
+});
+
 /**
  *
  * @param {Project} project
@@ -50,7 +64,11 @@ const propSourceDataToImmutable = {
  */
 const buildComponentsIndex = project => Map().withMutations(ret => {
     const visitComponent = (component, routeId, path, isIndexRoute) => {
-        ret.set(component.id, { path, routeId, isIndexRoute });
+        ret.set(component.id, new ComponentsIndexEntry({
+            path: List(path),
+            routeId,
+            isIndexRoute
+        }));
 
         component.children.forEach((child, idx) => void visitComponent(
             child,
@@ -88,7 +106,10 @@ const buildComponentsIndex = project => Map().withMutations(ret => {
 
 const buildRoutesIndex = project => Map().withMutations(ret => {
     const visitRoute = (route, path) => {
-        ret.set(route.id, {path});
+        ret.set(route.id, new RoutesIndexEntry({
+            path: List(path)
+        }));
+
         route.children.forEach((child, idx) =>
             void visitRoute(child, [].concat(path, 'children', idx)));
     };
@@ -96,35 +117,36 @@ const buildRoutesIndex = project => Map().withMutations(ret => {
     project.routes.forEach((route, idx) => void visitRoute(route, ['routes', idx]));
 });
 
-const getLastComponentId = (state) => {
-    const maxComponentIdFromChildren = (component) => {
-        const reducer = (acc, component) => Math.max(component.id,
-            component.children.reduce(reducer, acc));
+const getMaxComponentId = component => {
+    if (!component) return -1;
 
-        return component.children.reduce(reducer, -1);
-    };
+    const reducer = (acc, component) =>
+        Math.max(acc, component.id, component.children.reduce(reducer, acc));
 
-    const reducer = (acc, route) => {
-        if (!route.component) return 0;
-
-        const id1 = maxComponentIdFromChildren(route.component);
-        const id2 = route.children.reduce(reducer, acc);
-
-        return Math.max(id1 ,id2);
-    };
-
-    return state.data.routes.reduce(reducer, -1)
+    return Math.max(component.id, component.children.reduce(reducer, -1));
 };
 
-const getLastRouteId = (state) => {
-    const reducerId = (acc, route) =>
-        Math.max(route.id, route.children.reduce(reducerId, acc));
+const getLastComponentId = state => {
+    const reducer = (acc, route) => {
+        const id1 = getMaxComponentId(route.component),
+            id2 = getMaxComponentId(route.indexComponent),
+            id3 = route.children.reduce(reducer, acc);
 
-    return state.data.routes.reduce(reducerId, -1);
-}
+        return Math.max(acc, id1 ,id2, id3);
+    };
+
+    return state.data.routes.reduce(reducer, -1);
+};
+
+const getLastRouteId = state => {
+    const reducer = (acc, route) =>
+        Math.max(acc, route.id, route.children.reduce(reducer, acc));
+
+    return state.data.routes.reduce(reducer, -1);
+};
 
 const deepDeleteRoutesIndex = (state, id) => {
-    const curPath = state.routesIndex.get(id).path,
+    const curPath = state.getIn(['routesIndex', id, 'path']),
         route = state.getIn(['data', ...curPath]);
 
     if(!route) return state;
@@ -134,13 +156,13 @@ const deepDeleteRoutesIndex = (state, id) => {
     });
 
     return state.deleteIn(['routesIndex', route.id])
-}
+};
 
 const deepDeleteComponentIndex = (state, id) => {
-    const curPath = state.componentsIndex.get(id).path,
+    const curPath = state.getIn(['componentsIndex', id, 'path']),
         component = state.getIn(['data', ...curPath]);
 
-    if (component.children.size) component.children.forEach((child) => {
+    if (component.children.size) component.children.forEach(child => {
         state = deepDeleteComponentIndex(state, child.id);
     });
 
@@ -148,7 +170,7 @@ const deepDeleteComponentIndex = (state, id) => {
 };
 
 const deepShiftComponentIndex = (state, id, basePath) => {
-    const curPath = state.componentsIndex.get(id).path,
+    const curPath = state.getIn(['componentsIndex', id, 'path']),
         component = state.getIn(['data', ...curPath]);
 
     if (component && component.children && component.children.size > 0) {
@@ -157,30 +179,32 @@ const deepShiftComponentIndex = (state, id, basePath) => {
         });
     }
 
-    return state.updateIn(['componentsIndex', id],
-        item => {
-            item.path = basePath.concat(item.path.slice(basePath.length));
-            return item;
-        }
-    )
+    const oldPath = state.getIn(['componentsIndex', id, 'path']);
+
+    return state.setIn(['componentsIndex', id, 'path'],
+            basePath.concat(oldPath.slice(basePath.size)))
 };
 
 const deepSetComponentIndex = (state, component, componentIndexImage) => {
-    state = state.setIn(["componentsIndex", component.id], {
+    const newIndex = new ComponentsIndexEntry({
         path: componentIndexImage.path,
         routeId: componentIndexImage.routeId,
         isIndexRoute: componentIndexImage.isIndexRoute
     });
 
+    state = state.setIn(["componentsIndex", component.id], newIndex);
+
     if (component && component.children.size) component.children.forEach((child, i) => {
+        const newShiftIndex = new ComponentsIndexEntry({
+            path: componentIndexImage.path.concat('children', i),
+            routeId: componentIndexImage.routeId,
+            isIndexRoute: componentIndexImage.isIndexRoute
+        });
+
         state = deepSetComponentIndex(
             state,
             child,
-            {
-                path: componentIndexImage.path.concat('children', i),
-                routeId: componentIndexImage.routeId,
-                isIndexRoute: componentIndexImage.isIndexRoute
-            }
+            newShiftIndex
         );
     });
 
@@ -188,14 +212,14 @@ const deepSetComponentIndex = (state, component, componentIndexImage) => {
 };
 
 const deleteComponent = (state, id) => {
-    if(!state.componentsIndex.has(id)) return state;
+    if (!state.componentsIndex.has(id)) return state;
 
     const componentIndexData = state.componentsIndex.get(id);
 
     state = deepDeleteComponentIndex(state, id);
 
     const componentPath = componentIndexData.path,
-        componentIndex = componentPath.slice(-1)[0],
+        componentIndex = componentPath.last(),
         component = state.getIn(['data', ...componentPath.slice(0, -1)]);
 
     if (List.isList(component)) {
@@ -203,23 +227,22 @@ const deleteComponent = (state, id) => {
 
         if (componentsToShift.size) {
             componentsToShift.forEach(item => {
-                const basePath = state.componentsIndex.get(item.id).path;
-                basePath[basePath.length - 1] = parseInt(basePath.slice(-1)) - 1;
+                const basePath = state.getIn(['componentsIndex', item.id, 'path']);
 
                 state = deepShiftComponentIndex(
                     state,
                     item.id,
-                    basePath
+                    basePath.slice(0, -1).concat(basePath.last() - 1)
                 );
             });
         }
     }
 
-    return state.deleteIn(['data', ...componentIndexData.path]);
+    return state.deleteIn(['data', ...componentPath]);
 };
 
 const createComponent = (state, targetId, position, component) => {
-    const targetPath = state.componentsIndex.getIn([targetId]).path,
+    const targetPath = state.getIn(['componentsIndex', targetId, 'path']),
         componentList = state.getIn(['data', ...targetPath, 'children']);
 
     let part0, part1;
@@ -237,20 +260,17 @@ const createComponent = (state, targetId, position, component) => {
 
     if (part1.size) {
         part1.map((item) => {
-            const basePath = state.componentsIndex.get(item.id).path;
-            basePath[basePath.length - 1] = parseInt(basePath.slice(-1)) + 1;
+            const basePath = state.getIn(['componentsIndex', item.id, 'path']);
 
             state = deepShiftComponentIndex(
                 state,
                 item.id,
-                basePath
+                basePath.slice(0, -1).concat(basePath.last() + 1)
             );
         })
     }
 
-    const componentIndexImage = state.getIn(
-        ["componentsIndex", targetId]
-    );
+    const componentIndexImage = state.getIn(["componentsIndex", targetId]);
 
     state = deepSetComponentIndex(state, component, {
         isIndexRoute: componentIndexImage.isIndexRoute,
@@ -258,8 +278,7 @@ const createComponent = (state, targetId, position, component) => {
         path: targetPath.concat('children', position !== null && position + 1 || 0)
     });
 
-    return state
-        .setIn(['data', ...targetPath, 'children'], newValue);
+    return state.setIn(['data', ...targetPath, 'children'], newValue);
 };
 
 const ProjectState = Record({
@@ -323,9 +342,13 @@ export default (state = new ProjectState(), action) => {
                 title: action.title
             });
 
+            const newRouteIndex = new RoutesIndexEntry({
+                path: newRoutePath
+            });
+
             return state
                 .setIn(['data', 'routes', ...newRoutePath], newRoute)
-                .setIn(['routesIndex', newRouteId], {path: newRoutePath});
+                .setIn(['routesIndex', newRouteId], newRouteIndex);
         }
 
         case PROJECT_ROUTE_DELETE: {
@@ -357,23 +380,21 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PROJECT_COMPONENT_CREATE_ROOT: {
-            const newComponentId = getLastComponentId(state) + 1;
+            const newComponentId = getLastComponentId(state) + 1,
+                newComponent = action.component.set('id', newComponentId),
+                routePath = state.getIn(['routesIndex', action.routeId, 'path']),
+                routeField = action.isIndexRoute ? 'indexComponent' : 'component',
+                componentPath = routePath.concat(routeField);
 
-            const newComponent = new ProjectComponent({
-                id: newComponentId,
-                name: action.componentName
+            const newIndex = new ComponentsIndexEntry({
+                path: componentPath,
+                isIndexRoute: action.isIndexRoute,
+                routeId: action.routeId
             });
-
-            const routePath = state.getIn(['routesIndex', action.routeId]).path;
-            const componentPath = routePath.concat(action.isIndexRoute ? 'indexComponent' : 'component');
 
             return state
                 .setIn(['data', ...componentPath], newComponent)
-                .setIn(['componentsIndex', newComponentId], {
-                    path: componentPath,
-                    isIndexRoute: action.isIndexRoute,
-                    routeId: action.routeId
-                });
+                .setIn(['componentsIndex', newComponentId], newIndex);
         }
 
         case PROJECT_COMPONENT_CREATE: {
@@ -387,11 +408,15 @@ export default (state = new ProjectState(), action) => {
 
 
         case PROJECT_COMPONENT_MOVE: {
-            const sourceData = state.getIn(['componentsIndex', action.sourceId]),
-                componentSource = state.getIn(['data', ...sourceData.path]),
-                componentSourcePosition = sourceData.path.slice(-1)[0],
+            const componentPath = state.getIn([
+                    'componentsIndex',
+                    action.sourceId,
+                    'path'
+                ]),
+                componentSource = state.getIn(['data', ...componentPath]),
+                componentSourcePosition = componentPath.last(),
                 componentSourceParent = state.getIn(['data',
-                    ...sourceData.path.slice(0, -2)]);
+                    ...componentPath.slice(0, -2)]);
 
             let targetPosition = action.position;
 
@@ -413,7 +438,7 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PROJECT_COMPONENT_DELETE: {
-            return deleteComponent(state, action.id);
+            return deleteComponent(state, action.componentId);
         }
 
         case PROJECT_COMPONENT_UPDATE_PROP_VALUE: {

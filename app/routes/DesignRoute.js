@@ -21,8 +21,12 @@ import { findRouteById } from '../utils';
 import ProjectRecord from '../models/Project';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
+import ButtonRecord from '../models/Button';
 
-import { renameComponent } from '../actions/project';
+import {
+    renameComponent,
+    deleteComponent
+} from '../actions/project';
 
 import { List } from 'immutable';
 
@@ -40,7 +44,6 @@ export const DESIGN_TOOL_IDS = List([
     TOOL_ID_COMPONENTS_TREE,
     TOOL_ID_PROPS_EDITOR
 ]);
-
 
 const libraryTool = new ToolRecord({
     id: TOOL_ID_LIBRARY,
@@ -61,13 +64,28 @@ class DesignRoute extends Component {
         super(props);
 
         this._handleToolTitleChange = this._handleToolTitleChange.bind(this);
+        this._handleDeleteComponentButtonPress = this._handleDeleteComponentButtonPress.bind(this);
     }
 
+    /**
+     *
+     * @param {ToolRecord} tool
+     * @param {string} newTitle
+     * @private
+     */
     _handleToolTitleChange(tool, newTitle) {
         if (tool.id === TOOL_ID_PROPS_EDITOR) {
             const componentId = this.props.selectedComponentIds.first();
             this.props.onRenameComponent(componentId, newTitle);
         }
+    }
+
+    /**
+     *
+     * @private
+     */
+    _handleDeleteComponentButtonPress() {
+        this.props.onDeleteComponent(this.props.selectedComponentIds.first());
     }
 
     render() {
@@ -90,14 +108,14 @@ class DesignRoute extends Component {
                 new ToolSectionRecord({
                     name: '',
                     component: () => (
-                        <ComponentsTreeView rootComponent={rootComponent} />
+                        <ComponentsTreeView route={route} isIndexRoute={isIndexRoute} />
                     )
                 })
             ])
         });
 
         const singleComponentSelected = this.props.selectedComponentIds.size === 1;
-        let title, subtitle;
+        let title, subtitle, mainButtons;
 
         if (singleComponentSelected) {
             const componentId = this.props.selectedComponentIds.first(),
@@ -106,10 +124,18 @@ class DesignRoute extends Component {
 
             title = component.title;
             subtitle = component.name;
+            mainButtons = List([
+                new ButtonRecord({
+                    text: 'Delete',
+                    disabled: !singleComponentSelected,
+                    onPress: this._handleDeleteComponentButtonPress
+                })
+            ]);
         }
         else {
             title = 'Component configuration';
             subtitle = '';
+            mainButtons = List();
         }
 
         const propsEditorTool = new ToolRecord({
@@ -120,6 +146,7 @@ class DesignRoute extends Component {
             titleEditable: singleComponentSelected,
             titlePlaceholder: 'Enter title',
             subtitle: subtitle,
+            mainButtons: mainButtons,
             sections: List([
                 new ToolSectionRecord({
                     name: '',
@@ -152,7 +179,8 @@ DesignRoute.propTypes = {
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     componentsIndex: ImmutablePropTypes.map,
 
-    onRenameComponent: PropTypes.func
+    onRenameComponent: PropTypes.func,
+    onDeleteComponent: PropTypes.func
 };
 
 const mapStateToProps = state => ({
@@ -163,7 +191,9 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
     onRenameComponent: (componentId, newTitle) =>
-        void dispatch(renameComponent(componentId, newTitle))
+        void dispatch(renameComponent(componentId, newTitle)),
+
+    onDeleteComponent: componentId => dispatch(deleteComponent(componentId))
 });
 
 export default connect(

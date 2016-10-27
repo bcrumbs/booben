@@ -23,14 +23,38 @@ import {
 
 import {
     moveComponent,
-    createComponent
+    createComponent,
+    createRootComponent
 } from '../../app/actions/project';
 
 import { pointIsInCircle } from '../../app/utils/misc';
 
 
+/**
+ *
+ * @type {?HTMLElement}
+ */
+let _container = null;
+
+/**
+ *
+ * @return {HTMLElement}
+ */
+const getContainer = () =>
+    _container || (_container = document.getElementById('container'));
+
+/**
+ *
+ * @type {number}
+ * @const
+ */
 const START_DRAG_THRESHOLD = 10;
 
+/**
+ *
+ * @class
+ * @extends Immutable.Record
+ */
 const RouteRootComponentIds = Record({
     componentId: null,
     indexComponentId: null
@@ -60,9 +84,11 @@ const gatherRootComponentIds = routes => {
  * @return {?number}
  */
 const getClosestComponentId = el => {
+    const containerNode = getContainer();
     let current = el;
 
     while (current) {
+        if (el === containerNode) break;
         const dataJssyId = current.getAttribute('data-jssy-id');
         if (dataJssyId) return parseInt(dataJssyId, 10);
         if (current.hasAttribute('data-reactroot')) break;
@@ -123,26 +149,34 @@ const getClosestComponentOrPlaceholder = el => {
     return null;
 };
 
+/**
+ *
+ * @param {ProjectComponent} component
+ * @return {Function}
+ */
+const makeBuilder = component => {
+    const ret = ({ children }) => (
+        <Builder
+            component={component}
+            children={children}
+        />
+    );
+
+    ret.displayName = `Builder(${component ? String(component.id) : 'null'})`;
+    return ret;
+};
+
 class Preview extends Component {
     constructor(props) {
         super(props);
 
-        this.domNode = null;
-        this.dndParams = {
-            component: null,
-            dragStartX: 0,
-            dragStartY: 0
-        };
-        this.listeningToMouseMove = false;
-        this.listeningToMouseUp = false;
         this.willTryStartDrag = false;
+        this.componentToDrag = null;
+        this.dragStartX = 0;
+        this.dragStartY = 0;
         this.currentRouteId = null;
-        this.rootComponentIds = gatherRootComponentIds(props.project.routes);
-
-        this.routes = props.project.routes
-            .map((route, idx) => this._createRoute(route, [idx]))
-            .toArray();
-
+        this.rootComponentIds = null;
+        this.routes = null;
         this.routerKey = 0;
 
         this._handleMouseDown = this._handleMouseDown.bind(this);
@@ -152,31 +186,26 @@ class Preview extends Component {
         this._handleMouseOut = this._handleMouseOut.bind(this);
         this._handleClick = this._handleClick.bind(this);
         this._handleChangeRoute = this._handleChangeRoute.bind(this);
+        this._createRoute = this._createRoute.bind(this);
+
+        this._receiveRoutes(props.project.routes);
     }
 
     componentDidMount() {
-        this.domNode = document.getElementById('container');
-
         if (this.props.interactive) {
-            this.domNode.addEventListener('mouseover', this._handleMouseOver, false);
-            this.domNode.addEventListener('mouseout', this._handleMouseOut, false);
-            this.domNode.addEventListener('mousedown', this._handleMouseDown, false);
-            this.domNode.addEventListener('click', this._handleClick, false);
-            this.domNode.addEventListener('mouseup', this._handleMouseUp);
+            const containerNode = getContainer();
+            containerNode.addEventListener('mouseover', this._handleMouseOver, false);
+            containerNode.addEventListener('mouseout', this._handleMouseOut, false);
+            containerNode.addEventListener('mousedown', this._handleMouseDown, false);
+            containerNode.addEventListener('click', this._handleClick, false);
+            containerNode.addEventListener('mouseup', this._handleMouseUp);
             window.top.addEventListener('mouseup', this._handleMouseUp);
         }
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.project.routes !== this.props.project.routes) {
-            this.rootComponentIds = gatherRootComponentIds(nextProps.project.routes);
-
-            this.routes = nextProps.project.routes
-                .map((route, idx) => this._createRoute(route, [idx]))
-                .toArray();
-
-            this.routerKey++;
-        }
+        if (nextProps.project.routes !== this.props.project.routes)
+            this._receiveRoutes(nextProps.project.routes);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -186,22 +215,81 @@ class Preview extends Component {
 
     componentWillUnmount() {
         if (this.props.interactive) {
-            this.domNode.removeEventListener('mouseover', this._handleMouseOver, false);
-            this.domNode.removeEventListener('mouseout', this._handleMouseOut, false);
-            this.domNode.removeEventListener('mousedown', this._handleMouseDown, false);
-            this.domNode.removeEventListener('click', this._handleClick, false);
-            this.domNode.removeEventListener('mouseup', this._handleMouseUp);
+            const containerNode = getContainer();
+            containerNode.removeEventListener('mouseover', this._handleMouseOver, false);
+            containerNode.removeEventListener('mouseout', this._handleMouseOut, false);
+            containerNode.removeEventListener('mousedown', this._handleMouseDown, false);
+            containerNode.removeEventListener('click', this._handleClick, false);
+            containerNode.removeEventListener('mouseup', this._handleMouseUp);
             window.top.removeEventListener('mouseup', this._handleMouseUp);
         }
-
-        this.domNode = null;
     }
 
+    /**
+     *
+     * @param {number} routeId
+     * @private
+     */
+    _handleChangeRoute(routeId) {
+        this.currentRouteId = routeId;
+    }
+
+    /**
+     *
+     * @param {ProjectRoute} route
+     * @return {Object}
+     * @private
+     */
+    _createRoute(route) {
+        const ret = {
+            path: route.path,
+            component: makeBuilder(route.component)
+        };
+
+        ret.onEnter = this._handleChangeRoute.bind(this, route.id);
+
+        if (route.children.size > 0)
+            ret.childRoutes = route.children.map(this._createRoute).toArray();
+
+        if (route.haveRedirect) {
+            ret.onEnter = (_, replace) => replace(route.redirectTo);
+        }
+        else if (route.haveIndex) {
+            ret.indexRoute = {
+                component: makeBuilder(route.indexComponent)
+            };
+        }
+
+        return ret;
+    }
+
+    /**
+     *
+     * @param {Immutable.List<ProjectRoute>} routes
+     * @private
+     */
+    _receiveRoutes(routes) {
+        this.rootComponentIds = gatherRootComponentIds(routes);
+        this.routes = routes.map(this._createRoute).toArray();
+        this.routerKey++;
+    }
+
+    /**
+     *
+     * @param {number} id
+     * @return {ProjectComponent}
+     * @private
+     */
     _getComponentById(id) {
         const componentIndexData = this.props.componentsIndex.get(id);
         return this.props.project.getIn(componentIndexData.path);
     }
 
+    /**
+     *
+     * @return {?number}
+     * @private
+     */
     _getCurrentRootComponentId() {
         const rootComponentIds = this.rootComponentIds.get(this.currentRouteId);
         if (!rootComponentIds) return null;
@@ -211,6 +299,12 @@ class Preview extends Component {
             : rootComponentIds.componentId
     }
 
+    /**
+     *
+     * @param {number} componentId
+     * @return {boolean}
+     * @private
+     */
     _componentIsInCurrentRoute(componentId) {
         const componentIndexData = this.props.componentsIndex.get(componentId);
 
@@ -218,43 +312,58 @@ class Preview extends Component {
             componentIndexData.isIndexRoute === this.props.currentRouteIsIndexRoute;
     }
 
+    /**
+     *
+     * @param {MouseEvent} event
+     * @private
+     */
     _handleMouseDown(event) {
         if (event.button != 0 || !event.ctrlKey) return;
 
         event.preventDefault();
 
+        //noinspection JSCheckFunctionSignatures
         const componentId = getClosestComponentId(event.target);
 
         if (componentId !== null && this._componentIsInCurrentRoute(componentId)) {
-            this.domNode.addEventListener('mousemove', this._handleMouseMove);
-
-            this.dndParams.component = this._getComponentById(componentId);
-            this.dndParams.dragStartX = event.pageX;
-            this.dndParams.dragStartY = event.pageY;
+            getContainer().addEventListener('mousemove', this._handleMouseMove);
+            this.componentToDrag = this._getComponentById(componentId);
+            this.dragStartX = event.pageX;
+            this.dragStartY = event.pageY;
             this.willTryStartDrag = true;
         }
     }
 
+    /**
+     *
+     * @param {MouseEvent} event
+     * @private
+     */
     _handleMouseMove(event) {
         if (this.willTryStartDrag) {
             const willStartDrag = !pointIsInCircle(
                 event.pageX,
                 event.pageY,
-                this.dndParams.dragStartX,
-                this.dndParams.dragStartY,
+                this.dragStartX,
+                this.dragStartY,
                 START_DRAG_THRESHOLD
             );
 
             if (willStartDrag) {
-                this.domNode.removeEventListener('mousemove', this._handleMouseMove);
+                getContainer().removeEventListener('mousemove', this._handleMouseMove);
                 this.willTryStartDrag = false;
                 this.props.onSetBoundaryComponent(this._getCurrentRootComponentId());
                 this.props.onToggleHighlighting(false);
-                this.props.onComponentStartDrag(this.dndParams.component);
+                this.props.onComponentStartDrag(this.componentToDrag);
             }
         }
     }
 
+    /**
+     *
+     * @param {MouseEvent} event
+     * @private
+     */
     _handleMouseUp(event) {
         event.stopPropagation();
 
@@ -264,11 +373,14 @@ class Preview extends Component {
             this.props.onSetBoundaryComponent(null);
 
             const willDrop =
-                this.props.draggingOverPlaceholder &&
-                this._componentIsInCurrentRoute(this.props.placeholderContainerId);
+                this.props.draggingOverPlaceholder && (
+                    this.props.placeholderContainerId === -1 ||
+                    this._componentIsInCurrentRoute(this.props.placeholderContainerId)
+                );
 
             if (willDrop) {
                 if (this.props.draggedComponent.id !== null) {
+                    // We're dragging an existing component
                     this.props.onMoveComponent(
                         this.props.draggedComponent.id,
                         this.props.placeholderContainerId,
@@ -276,11 +388,23 @@ class Preview extends Component {
                     );
                 }
                 else {
-                    this.props.onCreateComponent(
-                        this.props.placeholderContainerId,
-                        this.props.placeholderAfter,
-                        this.props.draggedComponent
-                    );
+                    // We're dragging a new component from palette
+                    if (this.props.placeholderContainerId === -1) {
+                        // Creating root component for current route
+                        this.props.onCreateRootComponent(
+                            this.currentRouteId,
+                            this.props.currentRouteIsIndexRoute,
+                            this.props.draggedComponent
+                        );
+                    }
+                    else {
+                        // Creating nested component
+                        this.props.onCreateComponent(
+                            this.props.placeholderContainerId,
+                            this.props.placeholderAfter,
+                            this.props.draggedComponent
+                        );
+                    }
                 }
             }
 
@@ -289,8 +413,14 @@ class Preview extends Component {
         }
     }
 
+    /**
+     *
+     * @param {MouseEvent} event
+     * @private
+     */
     _handleMouseOver(event) {
         if (this.props.highlightingEnabled) {
+            //noinspection JSCheckFunctionSignatures
             const componentId = getClosestComponentId(event.target);
 
             if (componentId !== null && this._componentIsInCurrentRoute(componentId))
@@ -298,6 +428,7 @@ class Preview extends Component {
         }
 
         if (this.props.draggingComponent) {
+            //noinspection JSCheckFunctionSignatures
             const overWhat = getClosestComponentOrPlaceholder(event.target);
             if (overWhat !== null) {
                 if (overWhat.isPlaceholder) {
@@ -306,16 +437,21 @@ class Preview extends Component {
                         overWhat.placeholderAfter
                     );
                 }
-                else {
-                    if (this._componentIsInCurrentRoute(overWhat.componentId))
-                        this.props.onDragOverComponent(overWhat.componentId);
+                else if (this._componentIsInCurrentRoute(overWhat.componentId)) {
+                    this.props.onDragOverComponent(overWhat.componentId);
                 }
             }
         }
     }
 
+    /**
+     *
+     * @param {MouseEvent} event
+     * @private
+     */
     _handleMouseOut(event) {
         if (this.props.highlightingEnabled) {
+            //noinspection JSCheckFunctionSignatures
             const componentId = getClosestComponentId(event.target);
 
             if (componentId !== null && this._componentIsInCurrentRoute(componentId))
@@ -323,53 +459,19 @@ class Preview extends Component {
         }
     }
 
+    /**
+     *
+     * @param {MouseEvent} event
+     * @private
+     */
     _handleClick(event) {
         if (event.ctrlKey) {
+            //noinspection JSCheckFunctionSignatures
             const componentId = getClosestComponentId(event.target);
 
             if (componentId !== null && this._componentIsInCurrentRoute(componentId))
                 this.props.onToggleComponentSelection(componentId);
         }
-    }
-
-    _handleChangeRoute(routeId) {
-        this.currentRouteId = routeId;
-    }
-
-    _createRoute(route) {
-        const ret = {
-            path: route.path,
-            component: ({ children }) => (
-                <Builder
-                    component={route.component}
-                    children={children}
-                />
-            )
-        };
-
-        ret.onEnter = this._handleChangeRoute.bind(this, route.id);
-
-        if (route.children.size > 0) {
-            ret.childRoutes = route.children
-                .map((child, routeIndex) => this._createRoute(child))
-                .toArray();
-        }
-
-        if (route.haveRedirect) {
-            ret.onEnter = (nextState, replace) => replace(route.redirectTo);
-        }
-        else if (route.haveIndex) {
-            ret.indexRoute = {
-                component: ({ children }) => (
-                    <Builder
-                        component={route.indexComponent}
-                        children={children}
-                    />
-                )
-            };
-        }
-
-        return ret;
     }
 
     render() {
@@ -409,7 +511,8 @@ Preview.propTypes = {
     onDragOverComponent: PropTypes.func,
     onDragOverPlaceholder: PropTypes.func,
     onMoveComponent: PropTypes.func,
-    onCreateComponent: PropTypes.func
+    onCreateComponent: PropTypes.func,
+    onCreateRootComponent: PropTypes.func
 };
 
 Preview.defaultProps = {
@@ -450,8 +553,11 @@ const mapDispatchToProps = dispatch => ({
     onComponentStartDrag: component =>
         void dispatch(startDragComponent(component)),
 
-    onComponentStopDrag: () => void dispatch(stopDragComponent()),
-    onDragOverComponent: componentId => void dispatch(dragOverComponent(componentId)),
+    onComponentStopDrag: () =>
+        void dispatch(stopDragComponent()),
+
+    onDragOverComponent: componentId =>
+        void dispatch(dragOverComponent(componentId)),
 
     onDragOverPlaceholder: (containerId, afterIdx) =>
         void dispatch(dragOverPlaceholder(containerId, afterIdx)),
@@ -460,7 +566,10 @@ const mapDispatchToProps = dispatch => ({
         void dispatch(moveComponent(componentId, containerId, position)),
 
     onCreateComponent: (containerId, position, component) =>
-        void dispatch(createComponent(containerId, position, component))
+        void dispatch(createComponent(containerId, position, component)),
+
+    onCreateRootComponent: (routeId, isIndexRoute, component) =>
+        void dispatch(createRootComponent(routeId, isIndexRoute, component))
 });
 
 export default connect(

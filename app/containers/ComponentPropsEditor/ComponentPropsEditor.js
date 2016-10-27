@@ -4,6 +4,8 @@
 
 'use strict';
 
+// TODO: Get strings from i18n
+
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -376,7 +378,7 @@ class ComponentPropsEditorComponent extends Component {
         if (renderablePropNames.length === 0) {
             return (
                 <BlockContentPlaceholder
-                    text="This component doesn\'t have editable attributes"
+                    text="This component doesn't have editable attributes"
                 />
             );
         }

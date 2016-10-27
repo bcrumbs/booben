@@ -260,14 +260,32 @@ const installLoaders = (projectDir, libsData) => co(function* () {
     }
 });
 
+const cb = (resolve, reject) => (err, res) => void (err ? reject(err) : resolve(res));
+
 /**
  *
  * @param {Object} webpackConfig
  * @returns {Promise.<Object>}
  */
 const compile = webpackConfig => new Promise((resolve, reject) =>
-    void webpack(webpackConfig).run((err, stats) =>
-        void (err ? reject(err) : resolve(stats))));
+    void webpack(webpackConfig).run(cb(resolve, reject)));
+
+/**
+ *
+ * @param {Object} webpackConfig
+ * @param {Function} handler
+ * @returns {Object}
+ */
+const watch = (webpackConfig, handler) => {
+    const watching = webpack(webpackConfig).watch({}, handler);
+
+    return {
+        _watching: watching,
+
+        close: () => new Promise((resolve, reject) =>
+            void watching.close(cb(resolve, reject)))
+    }
+};
 
 /**
  *
@@ -290,6 +308,8 @@ const clean = projectDir => co(function* () {
  * @property {boolean} [allowMultipleGlobalStyles=false]
  * @property {boolean} [noInstallLoaders=false]
  * @property {boolean} [clean=true]
+ * @property {boolean} [watch=false]
+ * @property {Function} [watchHandler]
  */
 
 /**
@@ -299,7 +319,9 @@ const clean = projectDir => co(function* () {
 const defaultOptions = {
     allowMultipleGlobalStyles: false,
     noInstallLoaders: false,
-    clean: true
+    clean: true,
+    watch: false,
+    watchHandler: () => {}
 };
 
 /**
@@ -371,25 +393,36 @@ exports.buildPreviewApp = (project, options) => co(function* () {
     yield fs.writeFile(codeFile, code);
 
     logger.debug(`[${project.name}] Compiling preview app`);
-    const webpackConfig = generateWebpackConfig(projectDir, libsData),
-        stats = yield compile(webpackConfig);
+    const webpackConfig = generateWebpackConfig(projectDir, libsData);
 
-    logger.verbose(stats.toString({ colors: true }));
-
-    const webpackLogFile = path.join(
-        projectDir,
-        constants.PROJECT_PREVIEW_WEBPACK_LOG_FILE
-    );
-
-    try {
-        yield fs.writeFile(webpackLogFile, stats.toString({ colors: false }));
+    if (options.watch) {
+        return watch(webpackConfig, options.watchHandler);
     }
-    catch (err) {
-        logger.warn(`Failed to write webpack log to ${webpackLogFile}: ${err.code}`);
-    }
+    else {
+        const stats = yield compile(webpackConfig);
 
-    if (options.clean) {
-        logger.debug(`[${project.name}] Cleaning ${projectDir}`);
-        yield clean(projectDir);
+        logger.verbose(stats.toString({ colors: true }));
+
+        const webpackLogFile = path.join(
+            projectDir,
+            constants.PROJECT_PREVIEW_WEBPACK_LOG_FILE
+        );
+
+        try {
+            yield fs.writeFile(webpackLogFile, stats.toString({ colors: false }));
+        }
+        catch (err) {
+            logger.warn(`Failed to write webpack log to ${webpackLogFile}: ${err.code}`);
+        }
+
+        if (options.clean) {
+            logger.debug(`[${project.name}] Cleaning ${projectDir}`);
+            yield clean(projectDir);
+        }
     }
+});
+
+exports.cleanProjectDir = projectName => co(function* () {
+    const projectDir = path.join(projectsDir, projectName);
+    yield clean(projectDir);
 });
