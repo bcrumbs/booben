@@ -46,11 +46,13 @@ export class ComponentsTreeItem extends Component {
 
     render() {
         let className = 'components-tree-item';
-        if (this.props.active) className += ' is-active';
         className += this.props.expanded ? ' sublevel-is-visible' : ' sublevel-is-hidden';
 
         let buttonClassName = 'components-tree-item-title-wrapper',
             tooltip = null;
+	    if (this.props.active)
+	    	buttonClassName += ' is-active';
+		    className += ' item-is-active';
 
         // TODO: Use new tooltip logic from reactackle
         // if (this.state.haveTooltip) {

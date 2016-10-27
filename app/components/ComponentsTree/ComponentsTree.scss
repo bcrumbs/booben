@@ -93,7 +93,7 @@
 			background-color: $ctree-item-hover-bg-color;
 		}
 
-		.components-tree-item.is-active & {
+		.components-tree-item-title-wrapper.is-active & {
 			background-color: $ctree-item-focus-bg-color;
 			cursor: $cursor-default
 		}
@@ -111,7 +111,7 @@
 				$ctree-item-icon-img-size
 		);
 
-		.components-tree-item.is-active &,
+		.components-tree-item.item-is-active &,
 		.components-tree-item.sublevel-is-visible & {
 			transform: rotate(180deg);
 			@include icon-style(
