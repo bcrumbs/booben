@@ -2,7 +2,8 @@
 
 const path = require('path'),
     HtmlWebpackPlugin = require('html-webpack-plugin');
-
+const webpack = require('webpack');
+const prod = process.argv.indexOf('-p') !== -1;
 
 const APP_SRC_DIR = '../app';
 const APP_DIST_DIR = '../public';
@@ -51,6 +52,12 @@ module.exports = {
             template: 'index.ejs',
             inject: 'body',
             hash: true
+        }),
+
+        new webpack.DefinePlugin({
+          'process.env': {
+            'NODE_ENV': prod ? '"production"' : '"development"'
+          }
         })
     ],
 
