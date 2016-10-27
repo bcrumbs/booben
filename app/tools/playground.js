@@ -274,12 +274,11 @@ const toolComponentLayoutWindowSections = List([
 			<BlockContentBox isBordered>
 				<BlockContentBoxHeading>Component Templates</BlockContentBoxHeading>
 				<BlockContentBoxItem>
-					<ComponentLayoutSelection>
-						<ComponentLayoutSelectionItem image={'http://img11.nnm.me/d/3/5/5/b/4d572a2fdc5b8c28cad40d9ca45.jpg'} title={'single block'} />
-						<ComponentLayoutSelectionItem image={"http://cdn.pcwallart.com/images/cosmos-hd-wallpaper-3.jpg"} title={'2 equal parts'} />
-						<ComponentLayoutSelectionItem image={"http://coolvibe.com/wp-content/uploads/2010/06/cosmos.jpg"} title={'3 equal parts'} />
-						<ComponentLayoutSelectionItem image={"http://coolvibe.com/wp-content/uploads/2010/06/cosmos.jpg"} title={'2 equal parts, 1 full-height'} />
-					</ComponentLayoutSelection>
+					<PropsItem type="toggle" image="https://c.tadst.com/gfx/750w/penguin-awareness-day-fun1.jpg?1" label="some item">
+						<PropsList>
+							<PropsItem type="constructor" label="some child item"/>
+						</PropsList>
+					</PropsItem>
 				</BlockContentBoxItem>
 			</BlockContentBox>
 		)
@@ -348,7 +347,7 @@ export default List([
 		    title: 'Route Settings',
 		    undockable: true,
 		    closable: false,
-		    sections: toolRouteWindowSections,
+		    sections: toolComponentLayoutWindowSections,
 		    mainButtons: toolRouteWindowMainActions,
 		    secondaryButtons: toolRouteWindowSecondaryActions
 	    }),
