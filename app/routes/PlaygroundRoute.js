@@ -209,7 +209,7 @@ export default class Playground extends React.Component {
                 <BottomRegion fixed={false}>
                     <Footer>
                         <FooterRegion region="main" size='blank'>
-	                        <FooterMenu inline={true}  dense={true} >
+	                        <FooterMenu inline={true} dense={true} mode="light">
 		                        <FooterMenuGroup>
 			                        <FooterMenuList>
 				                        <FooterMenuItem text="FAQ" />
@@ -218,7 +218,7 @@ export default class Playground extends React.Component {
 	                        </FooterMenu>
                         </FooterRegion>
                         <FooterRegion size='blank'>
-	                        <FooterMenu inline={true}  dense={true} mode="light">
+	                        <FooterMenu inline={true} dense={true} mode="light">
 		                        <FooterMenuGroup>
 			                        <FooterMenuList>
 				                        <FooterMenuItem text="Show component's title" subcomponentRight={<ToggleButton />}/>
