@@ -50,6 +50,7 @@ module.exports = {
             title: 'JSSY',
             template: 'index.ejs',
             inject: 'body',
+            favicon: path.resolve(__dirname, '..', 'app', 'favicon.png'),
             hash: true
         })
     ],
