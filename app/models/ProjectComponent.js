@@ -13,6 +13,8 @@ import SourceDataConst from './SourceDataConst';
 import SourceDataAction from './SourceDataAction';
 import SourceDataDesigner from './SourceDataDesigner';
 
+import { objectMap } from '../utils/misc';
+
 const ProjectComponentRecord = Record({
     id: null,
     name: '',
@@ -44,18 +46,10 @@ export const projectComponentToImmutable = input => new ProjectComponentRecord({
     name: input.name,
     title: input.title,
 
-    props: Map(Object.keys(input.props).reduce(
-        (acc, cur) => Object.assign(acc, {
-            [cur]: new ProjectComponentProp({
-                source: input.props[cur].source,
-                sourceData: propSourceDataToImmutable[input.props[cur].source](
-                    input.props[cur].sourceData
-                )
-            })
-        }),
-
-        {}
-    )),
+    props: Map(objectMap(input.props, propMeta => new ProjectComponentProp({
+        source: propMeta.source,
+        sourceData: propSourceDataToImmutable[propMeta.source](propMeta.sourceData)
+    }))),
 
     children: List(input.children.map(projectComponentToImmutable))
 });

@@ -4,7 +4,6 @@
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
-import { Map } from 'immutable';
 
 // The real components.js will be generated during build process
 import _components from '../components.js';
@@ -114,10 +113,11 @@ class BuilderComponent extends Component {
     _renderContentPlaceholder() {
         // TODO: Replace this shit with actual placeholder
         const style = {
-            minWidth: '100px',
-            minHeight: '40px',
-            backgroundColor: '#aaaaaa',
-            borderColor: '#777777'
+            width: '100%',
+            height: '100%',
+            minHeight: '20px',
+            backgroundColor: '#555555',
+            opacity: '.5'
         };
 
         //noinspection JSValidateTypes
@@ -140,6 +140,7 @@ class BuilderComponent extends Component {
 
         component.children.forEach((childComponent, idx) => {
             const needPlaceholders =
+                !isPlaceholder &&
                 this.props.draggedComponent !== null &&
                 childComponent.id === this.props.draggingOverComponentId;
 
@@ -216,10 +217,10 @@ class BuilderComponent extends Component {
             props = buildProps(component.props),
             isHTMLComponent = typeof Component === 'string';
 
-        props.key = component.id;
         props.children = this._renderComponentChildren(component, isPlaceholder);
 
         if (!isPlaceholder) {
+            props.key = component.id;
             this._patchComponentProps(props, isHTMLComponent, component.id);
 
             const willRenderPlaceholderInside =
@@ -235,10 +236,18 @@ class BuilderComponent extends Component {
                 );
             }
         }
-        else if (isPlaceholderRoot) {
-            this._patchPlaceholderRootProps(props, isHTMLComponent);
+        else {
+            const isNewComponentPlaceholder = component.id === null;
+
+            props.key = isNewComponentPlaceholder
+                ? Math.floor(Math.random() * 1000000) + 1000000
+                : component.id;
+
+            if (isPlaceholderRoot)
+                this._patchPlaceholderRootProps(props, isHTMLComponent);
 
             const willRenderContentPlaceholder =
+                isNewComponentPlaceholder &&
                 !props.children &&
                 isContainerComponent(component.name, this.props.meta);
 

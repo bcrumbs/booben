@@ -16,7 +16,7 @@ export const AccordionItem = props => {
 
     return (
         <div className={className}>
-            <div className="accordion-title-box" onClick={props.onExpand}>
+            <div className="accordion-title-box" onClick={props.onToggleExpanded}>
                 <div className="accordion-title">
                     {props.title}
                 </div>
@@ -37,14 +37,14 @@ AccordionItem.propTypes = {
     title: PropTypes.string,
     expanded: PropTypes.bool,
     contentBlank: PropTypes.bool,
-    onExpand: PropTypes.func
+    onToggleExpanded: PropTypes.func
 };
 
 AccordionItem.defaultProps = {
     title: '',
     expanded: false,
     contentBlank: false,
-    onExpand: noop
+    onToggleExpanded: noop
 };
 
 AccordionItem.displayName = 'AccordionItem';

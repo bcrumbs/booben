@@ -30,35 +30,43 @@ export class Accordion extends Component {
         }
     }
 
-    _replaceExpanded(itemId) {
-        this.props.onExpandedItemsChange(Set([itemId]));
-    }
+    _handleToggleExpanded(itemId) {
+        let newExpandedIds;
 
-    _toggleItem(itemId) {
-        const exclude = this.state.expandedItems.has(itemId);
+        if (this.props.expandedItemIds && this.props.expandedItemIds.has(itemId)) {
+            newExpandedIds = this.props.expandedItemIds.delete(itemId);
+        }
+        else if (this.props.single) {
+            newExpandedIds = Set([itemId]);
+        }
+        else {
+            newExpandedIds = this.props.expandedItemIds
+                ? this.props.expandedItemIds.add(itemId)
+                : new Set([itemId]);
+        }
 
-        const newExpandedItems = exclude
-            ? this.state.expandedItems.delete(itemId)
-            : this.state.expandedItems.add(itemId);
-
-        this.props.onExpandedItemsChange(newExpandedItems);
+        this.props.onExpandedItemsChange(newExpandedIds);
     }
 
     render() {
-        const onExpandFn = this.props.single
-            ? this._replaceExpanded
-            : this._toggleItem;
+        const items = this.props.items.map((item, idx) => {
+            const expanded =
+                !!this.props.expandedItemIds &&
+                this.props.expandedItemIds.has(item.id);
 
-        const items = this.props.items.map((item, idx) => (
-            <AccordionItem
-                key={idx}
-                title={item.title}
-                expanded={this.props.expandedItemIds.has(item.id)}
-                onExpand={onExpandFn.bind(this, item.id)}
-            >
-                {item.content}
-            </AccordionItem>
-        ));
+            const onToggleExpanded = this._handleToggleExpanded.bind(this, item.id);
+
+            return (
+                <AccordionItem
+                    key={idx}
+                    title={item.title}
+                    expanded={expanded}
+                    onToggleExpanded={onToggleExpanded}
+                >
+                    {item.content}
+                </AccordionItem>
+            );
+        });
 
         return (
             <div className="accordion">

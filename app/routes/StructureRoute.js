@@ -15,6 +15,7 @@ import { connect } from 'react-redux';
 import { Desktop } from '../containers/Desktop/Desktop';
 import { RouteEditor } from '../containers/RouteEditor/RouteEditor';
 
+import ProjectRecord from '../models/Project';
 import ProjectRouteRecord from '../models/ProjectRoute';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
@@ -50,7 +51,6 @@ import { List } from 'immutable';
 import history from '../history';
 
 import {
-    findRouteById,
     getRouteByIndexes,
     getRoutesByIndexes
 } from '../utils';
@@ -147,8 +147,8 @@ class StructureRoute extends Component {
     }
 
     _selectFirstRoute() {
-        if (this.props.routes.size > 0) {
-            this._handleRouteSelect(this.props.routes.get(0), List([0]));
+        if (this.props.project.routes.size > 0) {
+            this._handleRouteSelect(this.props.project.routes.get(0), List([0]));
         }
         else {
             this._handleRouteSelect(null, null);
@@ -158,7 +158,7 @@ class StructureRoute extends Component {
     _selectNextRoute() {
         const where = this.props.selectedRouteIndexes.butLast(),
             idx = this.props.selectedRouteIndexes.last(),
-            routes = getRoutesByIndexes(this.props.routes, where),
+            routes = getRoutesByIndexes(this.props.project.routes, where),
             nextIdx = idx + 1;
 
         if (nextIdx < routes.size)
@@ -168,7 +168,7 @@ class StructureRoute extends Component {
     _selectPrevRoute() {
         const where = this.props.selectedRouteIndexes.butLast(),
             idx = this.props.selectedRouteIndexes.last(),
-            routes = getRoutesByIndexes(this.props.routes, where),
+            routes = getRoutesByIndexes(this.props.project.routes, where),
             prevIdx = idx - 1;
 
         if (prevIdx >= 0)
@@ -178,7 +178,7 @@ class StructureRoute extends Component {
     _selectChildRoute() {
         const where = this.props.selectedRouteIndexes.butLast(),
             idx = this.props.selectedRouteIndexes.last(),
-            route = getRouteByIndexes(this.props.routes, where, idx);
+            route = getRouteByIndexes(this.props.project.routes, where, idx);
 
         if (route.children.size > 0) {
             this._handleRouteSelect(
@@ -193,7 +193,7 @@ class StructureRoute extends Component {
             const nextIndexes = this.props.selectedRouteIndexes.pop(),
                 where = nextIndexes.butLast(),
                 idx = nextIndexes.last(),
-                route = getRouteByIndexes(this.props.routes, where, idx);
+                route = getRouteByIndexes(this.props.project.routes, where, idx);
 
             this._handleRouteSelect(route, nextIndexes);
         }
@@ -392,10 +392,13 @@ class StructureRoute extends Component {
     }
 
     render() {
-        //noinspection JSValidateTypes
-        const selectedRoute = this.props.selectedRouteId !== -1
-            ? findRouteById(this.props.routes, this.props.selectedRouteId)
-            : null;
+        let selectedRoute = null;
+        if (this.props.selectedRouteId !== -1) {
+            const routeIndexEntry =
+                this.props.routesIndex.get(this.props.selectedRouteId);
+
+            selectedRoute = this.props.project.getIn(routeIndexEntry.path);
+        }
 
         const routeEditorToolMainButtons = selectedRoute
             ? List([
@@ -442,7 +445,7 @@ class StructureRoute extends Component {
             ])
         ]);
 
-        const routesList = this._renderRouteList(null, this.props.routes, List());
+        const routesList = this._renderRouteList(null, this.props.project.routes, List());
 
         const deleteRouteDialogButtons = [
             { text: 'Delete', onPress: this._handleDeleteRouteConfirm },
@@ -524,11 +527,9 @@ class StructureRoute extends Component {
 }
 
 StructureRoute.propTypes = {
-    routes: ImmutablePropTypes.listOf(
-        PropTypes.instanceOf(ProjectRouteRecord)
-    ),
-
+    project: PropTypes.instanceOf(ProjectRecord),
     projectName: PropTypes.string,
+    routesIndex: ImmutablePropTypes.map,
     selectedRouteId: PropTypes.number,
     selectedRouteIndexes: ImmutablePropTypes.listOf(
         PropTypes.number
@@ -544,8 +545,9 @@ StructureRoute.propTypes = {
 StructureRoute.displayName = 'StructureRoute';
 
 const mapStateToProps = state => ({
-    routes: state.project.data.routes,
+    project: state.project.data,
     projectName: state.project.projectName,
+    routesIndex: state.project.routesIndex,
     selectedRouteId: state.structure.selectedRouteId,
     selectedRouteIndexes: state.structure.selectedRouteIndexes,
     indexRouteSelected: state.structure.indexRouteSelected
