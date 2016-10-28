@@ -36,7 +36,12 @@
   "elementsTree": "Elements tree",
   "componentConfiguration": "Component configuration",
   "enterTitle": "Enter title",
-  "componentsLibrary": "Components library"
+  "componentsLibrary": "Components library",
 
+  "selectAComponent": "Select a component",
+  "multipleComponentsSelected": "Multiple components selected",
+  "thisComponentDoesntHaveEditableAttributes": "This component doesn't have editable attributes",
+
+  "thereAreNoComponentsInThisRoute": "There are no components in this route"
 
 }

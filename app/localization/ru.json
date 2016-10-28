@@ -36,6 +36,11 @@
   "elementsTree": "Дерево элементов",
   "componentConfiguration": "Конфигурация компонента",
   "enterTitle": "Введите название",
-  "componentsLibrary": "Библиотека компонентов"
+  "componentsLibrary": "Библиотека компонентов",
 
+  "selectAComponent": "Выбрать компонент",
+  "multipleComponentsSelected": "Выбрано несколько компонентов",
+  "thisComponentDoesntHaveEditableAttributes": "Этот компонент не имеет изменяемых атрибутов",
+
+  "thereAreNoComponentsInThisRoute": "В этом маршруте нет компонентов"
 }
