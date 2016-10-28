@@ -16,9 +16,17 @@ import { ComponentPropsEditor } from '../containers/ComponentPropsEditor/Compone
 import { ComponentRegionsEditor } from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
 
+import {
+    ComponentLayoutSelection,
+    ComponentLayoutSelectionItem
+} from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
+
+import { Dialog } from '@reactackle/reactackle';
+
 import store from '../store';
 
 import ProjectRecord from '../models/Project';
+import ProjectComponentRecord from '../models/ProjectComponent';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
 import ButtonRecord from '../models/Button';
@@ -28,9 +36,16 @@ import {
     deleteComponent
 } from '../actions/project';
 
-import { isCompositeComponent } from '../utils/meta';
+import {
+    getComponentMeta,
+    isCompositeComponent,
+    getString
+} from '../utils/meta';
 
 import { List } from 'immutable';
+
+//noinspection JSUnresolvedVariable
+import defaultComponentLayoutIcon from '../img/layout_default.svg';
 
 
 const TOOL_ID_LIBRARY = 'componentsLibrary';
@@ -65,8 +80,15 @@ class DesignRoute extends Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            confirmDeleteComponentDialogIsVisible: false
+        };
+
         this._handleToolTitleChange = this._handleToolTitleChange.bind(this);
         this._handleDeleteComponentButtonPress = this._handleDeleteComponentButtonPress.bind(this);
+        this._handleDeleteComponentConfirm = this._handleDeleteComponentConfirm.bind(this);
+        this._handleDeleteComponentCancel = this._handleDeleteComponentCancel.bind(this);
+        this._handleConfirmDeleteComponentDialogClose = this._handleConfirmDeleteComponentDialogClose.bind(this);
     }
 
     /**
@@ -87,7 +109,28 @@ class DesignRoute extends Component {
      * @private
      */
     _handleDeleteComponentButtonPress() {
+        this.setState({
+            confirmDeleteComponentDialogIsVisible: true
+        });
+    }
+
+    _handleDeleteComponentConfirm(closeDialog) {
         this.props.onDeleteComponent(this.props.selectedComponentIds.first());
+        closeDialog();
+    }
+
+    _handleDeleteComponentCancel(closeDialog) {
+        closeDialog();
+    }
+
+    _handleConfirmDeleteComponentDialogClose() {
+        this.setState({
+            confirmDeleteComponentDialogIsVisible: false
+        });
+    }
+
+    _handleLayoutSelection(layoutIdx) {
+        // TODO: Insert component
     }
 
     _getParentComponent(component) {
@@ -190,6 +233,48 @@ class DesignRoute extends Component {
 
         const toolGroups = List([List([libraryTool, treeTool, propsEditorTool])]);
 
+        let layoutSelectionDialogContent = null;
+        if (this.props.selectingComponentLayout) {
+            const draggedComponentMeta =
+                getComponentMeta(this.props.draggedComponent.name, this.props.meta);
+
+            const items = draggedComponentMeta.layouts.map((layout, idx) => {
+                const icon = layout.icon || defaultComponentLayoutIcon;
+
+                const title = getString(
+                    draggedComponentMeta,
+                    layout.textKey,
+                    this.props.language
+                );
+
+                const subtitle = getString(
+                    draggedComponentMeta,
+                    layout.descriptionTextKey,
+                    this.props.language
+                );
+
+                return (
+                    <ComponentLayoutSelectionItem
+                        image={icon}
+                        title={title}
+                        subtitle={subtitle}
+                        onClick={this._handleLayoutSelection.bind(this, idx)}
+                    />
+                );
+            });
+
+            layoutSelectionDialogContent = (
+                <ComponentLayoutSelection>
+                    {items}
+                </ComponentLayoutSelection>
+            );
+        }
+
+        const confirmDeleteDialogButtons = [
+            { text: 'Delete', onPress: this._handleDeleteComponentConfirm },
+            { text: 'Cancel', onPress: this._handleDeleteComponentCancel }
+        ];
+
         return (
             <Desktop
                 toolGroups={toolGroups}
@@ -202,6 +287,29 @@ class DesignRoute extends Component {
                     path={route.fullPath}
                     isIndexRoute={isIndexRoute}
                 />
+
+                <Dialog
+                    title="Select layout"
+                    backdrop
+                    minWidth={400}
+                    visible={this.props.selectingComponentLayout}
+                >
+                    {layoutSelectionDialogContent}
+                </Dialog>
+
+                <Dialog
+                    title="Delete component"
+                    backdrop
+                    minWidth={400}
+                    buttons={confirmDeleteDialogButtons}
+                    visible={this.state.confirmDeleteComponentDialogIsVisible}
+                    closeOnEscape
+                    closeOnBackdropClick
+                    onClose={this._handleConfirmDeleteComponentDialogClose}
+                    onEnterKeyPress={this._handleDeleteComponentConfirm}
+                >
+                    Are you sure you want to delete this component?
+                </Dialog>
             </Desktop>
         );
     }
@@ -213,6 +321,9 @@ DesignRoute.propTypes = {
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     componentsIndex: ImmutablePropTypes.map,
     routesIndex: ImmutablePropTypes.map,
+    selectingComponentLayout: PropTypes.bool,
+    draggedComponent: PropTypes.instanceOf(ProjectComponentRecord),
+    language: PropTypes.string,
 
     onRenameComponent: PropTypes.func,
     onDeleteComponent: PropTypes.func
@@ -223,7 +334,10 @@ const mapStateToProps = state => ({
     meta: state.project.meta,
     selectedComponentIds: state.preview.selectedItems,
     componentsIndex: state.project.componentsIndex,
-    routesIndex: state.project.routesIndex
+    routesIndex: state.project.routesIndex,
+    selectingComponentLayout: state.design.selectingComponentLayout,
+    draggedComponent: state.preview.draggedComponent,
+    language: state.app.language
 });
 
 const mapDispatchToProps = dispatch => ({

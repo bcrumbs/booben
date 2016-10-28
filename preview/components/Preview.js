@@ -27,6 +27,7 @@ import {
     createRootComponent
 } from '../../app/actions/project';
 
+import { getComponentMeta } from '../../app/utils/meta';
 import { pointIsInCircle } from '../../app/utils/misc';
 
 
@@ -389,21 +390,35 @@ class Preview extends Component {
                 }
                 else {
                     // We're dragging a new component from palette
-                    if (this.props.placeholderContainerId === -1) {
-                        // Creating root component for current route
-                        this.props.onCreateRootComponent(
-                            this.currentRouteId,
-                            this.props.currentRouteIsIndexRoute,
-                            this.props.draggedComponent
-                        );
+                    const componentMeta = getComponentMeta(
+                        this.props.draggedComponent.name,
+                        this.props.meta
+                    );
+
+                    const isCompositeComponentWithMultipleLayouts =
+                        componentMeta.kind === 'composite' &&
+                        componentMeta.layouts.length > 1;
+
+                    if (isCompositeComponentWithMultipleLayouts) {
+
                     }
                     else {
-                        // Creating nested component
-                        this.props.onCreateComponent(
-                            this.props.placeholderContainerId,
-                            this.props.placeholderAfter,
-                            this.props.draggedComponent
-                        );
+                        if (this.props.placeholderContainerId === -1) {
+                            // Creating root component for current route
+                            this.props.onCreateRootComponent(
+                                this.currentRouteId,
+                                this.props.currentRouteIsIndexRoute,
+                                this.props.draggedComponent
+                            );
+                        }
+                        else {
+                            // Creating nested component
+                            this.props.onCreateComponent(
+                                this.props.placeholderContainerId,
+                                this.props.placeholderAfter,
+                                this.props.draggedComponent
+                            );
+                        }
                     }
                 }
             }
@@ -492,6 +507,7 @@ Preview.propTypes = {
     // Can't use ImmutablePropTypes.record or PropTypes.instanceOf(ProjectRecord) here
     // 'cause this value comes from another frame with another instance of immutable.js
     project: PropTypes.any,
+    meta: PropTypes.object,
     componentsIndex: ImmutablePropTypes.map,
     currentRouteIsIndexRoute: PropTypes.bool,
     draggingComponent: PropTypes.bool,
@@ -524,6 +540,7 @@ Preview.displayName = 'Preview';
 
 const mapStateToProps = state => ({
     project: state.project.data,
+    meta: state.project.meta,
     componentsIndex: state.project.componentsIndex,
     currentRouteIsIndexRoute: state.preview.currentRouteIsIndexRoute,
     draggingComponent: state.preview.draggingComponent,

@@ -491,6 +491,8 @@ class StructureRoute extends Component {
                     backdrop
                     minWidth={400}
                     visible={this.state.confirmDeleteDialogIsVisible}
+                    closeOnEscape
+                    closeOnBackdropClick
                     onEnterKeyPress={this._handleDeleteRouteConfirm}
                     onClose={this._handleDeleteRouteDialogClose}
                 >
@@ -503,6 +505,8 @@ class StructureRoute extends Component {
                     backdrop
                     minWidth={400}
                     visible={this.state.createRouteDialogIsVisible}
+                    closeOnEscape
+                    closeOnBackdropClick
                     onEnterKeyPress={this._handleCreateRouteDialogEnterKey}
                     onClose={this._handleCreateRouteDialogClose}
                 >
