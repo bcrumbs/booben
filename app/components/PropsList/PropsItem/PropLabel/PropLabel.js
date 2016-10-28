@@ -25,7 +25,7 @@ PropLabel.propTypes = {
 
 PropLabel.defaultProps = {
 	label: '',
-	tooltip: 'tooltip'
+	tooltip: null
 };
 
 PropLabel.displayName = 'PropLabel';
