@@ -240,7 +240,7 @@ const deleteComponent = (state, id) => {
     const componentIndexEntry = state.componentsIndex.get(id),
         componentPath = componentIndexEntry.path,
         componentIndex = componentPath.last(),
-        component = state.getIn(['data', ...componentPath.slice(0, -1)]);
+        component = state.getIn(['data', ...componentPath]);
 
     state = deleteComponentFromIndex(state, component);
 
