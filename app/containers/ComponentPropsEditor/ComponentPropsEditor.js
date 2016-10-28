@@ -11,6 +11,8 @@ import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
+import { getLocalizedText } from '../../utils';
+
 import {
     PropsList,
     PropsItem
@@ -291,13 +293,13 @@ class ComponentPropsEditorComponent extends Component {
     render() {
         if (this.props.selectedComponentIds.size === 0) {
             return (
-                <BlockContentPlaceholder text="Select a component"/>
+                <BlockContentPlaceholder text={ getLocalizedText('selectAComponent') }/>
             );
         }
 
         if (this.props.selectedComponentIds.size > 1) {
             return (
-                <BlockContentPlaceholder text="Multiple components selected"/>
+                <BlockContentPlaceholder text={ getLocalizedText('multipleComponentsSelected') }/>
             );
         }
 
@@ -330,7 +332,7 @@ class ComponentPropsEditorComponent extends Component {
         if (renderablePropNames.length === 0) {
             return (
                 <BlockContentPlaceholder
-                    text="This component doesn't have editable attributes"
+                    text={ getLocalizedText('thisComponentDoesntHaveEditableAttributes') }
                 />
             );
         }
@@ -404,7 +406,8 @@ const mapStateToProps = state => ({
     project: state.project.data,
     meta: state.project.meta,
     componentsIndex: state.project.componentsIndex,
-    language: state.app.language
+    language: state.app.language,
+    getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
 });
 
 const mapDispatchToProps = dispatch => ({

@@ -1,0 +1,46 @@
+{
+  "projectTitle": "Проект {projectName}",
+  "structure": "Структура",
+  "design": "Дизайн",
+  "data": "Данные",
+  "settings": "Настройки",
+  "preview": "Превью",
+  "publish": "Опубликовать",
+  "faq": "Помощь",
+  "showComponentsTitle": "Показывать название компонента",
+  "showPlaceholders": "Показывать псевдоэлементы",
+  "toggleFullScreen": "Во весь экран",
+
+  "create": "Создать",
+  "edit": "Редактировать",
+  "cancel": "Отменить",
+  "delete": "Удалить",
+  "route": "Маршрут",
+  "routeTitle": "Название маршрута",
+  "createNewRoute": "Создать новый маршрут",
+  "createNewRootRoute": "Создать новый корневой маршрут",
+  "newRoute": "Новый маршрут",
+  "newRootRoute": "Новый корневой маршрут",
+  "deleteRouteQuestion": "Удалить маршрут?",
+  "title": "Название",
+  "path": "Путь",
+  "allChildRoutesWillBeDeletedTooStatement": "Все дочерние маршруты также будут удалены.",
+
+  "description": "Описание",
+  "redirectTo": "Перенаправлять в",
+  "indexRoute": "Маршрут по умолчанию",
+  "indexRedirect": "Перенаправление по умолчанию",
+  "routeProperties": "Свойства маршрута",
+  "indexRouteProperties": "Свойства маршрута по умолчанию",
+
+  "elementsTree": "Дерево элементов",
+  "componentConfiguration": "Конфигурация компонента",
+  "enterTitle": "Введите название",
+  "componentsLibrary": "Библиотека компонентов",
+
+  "selectAComponent": "Выбрать компонент",
+  "multipleComponentsSelected": "Выбрано несколько компонентов",
+  "thisComponentDoesntHaveEditableAttributes": "Этот компонент не имеет изменяемых атрибутов",
+
+  "thereAreNoComponentsInThisRoute": "В этом маршруте нет компонентов"
+}

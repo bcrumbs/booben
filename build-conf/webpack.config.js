@@ -2,6 +2,11 @@
 
 const path = require('path'),
     HtmlWebpackPlugin = require('html-webpack-plugin');
+const webpack = require('webpack');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+
+const prod = process.argv.includes('-p');
+
 
 
 const APP_SRC_DIR = '../app';
@@ -52,7 +57,17 @@ module.exports = {
             inject: 'body',
             favicon: path.resolve(__dirname, '..', 'app', 'favicon.png'),
             hash: true
-        })
+        }),
+
+        new webpack.DefinePlugin({
+          'process.env': {
+            'NODE_ENV': prod ? '"production"' : '"development"'
+          }
+        }),
+
+        new CopyWebpackPlugin([
+          { from: 'localization', to: 'localization' }
+        ])
     ],
 
     resolveLoader: {

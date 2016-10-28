@@ -52,7 +52,8 @@ import history from '../history';
 
 import {
     getRouteByIndexes,
-    getRoutesByIndexes
+    getRoutesByIndexes,
+    getLocalizedText
 } from '../utils';
 
 const  LEFT_ARROW = 37,
@@ -310,6 +311,7 @@ class StructureRoute extends Component {
     }
 
     _renderRouteList(parentRoute, routes, indexes) {
+        const { getLocalizedText } = this.props;
         let routeCards = routes
             ? routes.map((route, idx) => this._renderRouteCard(route, indexes.push(idx)))
             : null;
@@ -352,7 +354,7 @@ class StructureRoute extends Component {
         if (needButton) {
             button = (
                 <RouteNewButton
-                    text={parentRoute ? 'New route' : 'New root route'}
+                    text={ getLocalizedText(parentRoute ? 'newRoute' : 'newRootRoute') }
                     onPress={this._handleNewRoutePress.bind(this, indexes)}
                 />
             );
@@ -367,6 +369,8 @@ class StructureRoute extends Component {
     }
 
     _renderRouteCard(route, indexes) {
+        const { getLocalizedText } = this.props;
+
         const isSelected =
             this.props.selectedRouteId === route.id &&
             !this.props.indexRouteSelected;
@@ -392,6 +396,7 @@ class StructureRoute extends Component {
     }
 
     render() {
+        const { getLocalizedText } = this.props;
         let selectedRoute = null;
         if (this.props.selectedRouteId !== -1) {
             const routeIndexEntry =
@@ -403,12 +408,12 @@ class StructureRoute extends Component {
         const routeEditorToolMainButtons = selectedRoute
             ? List([
                 new ButtonRecord({
-                    text: 'Edit',
+                    text: getLocalizedText('edit'),
                     onPress: this._handleSelectedRouteGo
                 }),
 
                 new ButtonRecord({
-                    text: 'Delete',
+                    text: getLocalizedText('delete'),
                     onPress: this._handleDeleteRoutePress
                 })
             ])
@@ -436,7 +441,7 @@ class StructureRoute extends Component {
                     name: 'Route',
                     title: title,
                     titleEditable: titleEditable,
-                    titlePlaceholder: 'Route title',
+                    titlePlaceholder: getLocalizedText('routeTitle'),
                     subtitle: selectedRoute ? selectedRoute.path : '',
                     sections: routeEditorToolSections,
                     mainButtons: routeEditorToolMainButtons,
@@ -448,25 +453,26 @@ class StructureRoute extends Component {
         const routesList = this._renderRouteList(null, this.props.project.routes, List());
 
         const deleteRouteDialogButtons = [
-            { text: 'Delete', onPress: this._handleDeleteRouteConfirm },
-            { text: 'Cancel', onPress: this._handleDeleteRouteCancel }
+            { text: getLocalizedText('delete'), onPress: this._handleDeleteRouteConfirm },
+            { text: getLocalizedText('cancel'), onPress: this._handleDeleteRouteCancel }
         ];
 
         const createRouteDialogButtons = [
             {
-                text: 'Create',
+                text: getLocalizedText('create'),
                 disabled: !this.state.newRouteTitle,
                 onPress: this._handleCreateRouteCreate
             },
             {
-                text: 'Cancel',
+                text: getLocalizedText('cancel'),
                 onPress: this._handleCreateRouteCancel
             }
         ];
 
-        const createRouteDialogTitle = this.state.createRouteIndexes.size > 0
-            ? 'Create new route'
-            : 'Create new root route';
+        const createRouteDialogTitle = getLocalizedText(this.state.createRouteIndexes.size > 0
+            ? 'createNewRoute'
+            : 'createNewRootRoute'
+        );
 
         return (
             <Desktop
@@ -486,7 +492,7 @@ class StructureRoute extends Component {
                 </Panel>
 
                 <Dialog
-                    title="Delete route?"
+                    title={ getLocalizedText('deleteRouteQuestion') }
                     buttons={deleteRouteDialogButtons}
                     backdrop
                     minWidth={400}
@@ -496,7 +502,7 @@ class StructureRoute extends Component {
                     onEnterKeyPress={this._handleDeleteRouteConfirm}
                     onClose={this._handleDeleteRouteDialogClose}
                 >
-                    All child routes will be deleted too.
+                    { getLocalizedText('allChildRoutesWillBeDeletedTooStatement') }
                 </Dialog>
 
                 <Dialog
@@ -513,13 +519,13 @@ class StructureRoute extends Component {
                     <Form>
                         <Input
                             ref={this._saveNewRouteTitleInputRef}
-                            label="Title"
+                            label={ getLocalizedText('title') }
                             value={this.state.newRouteTitle}
                             onChange={this._handleNewRouteTitleChange}
                         />
 
                         <Input
-                            label="Path"
+                            label={ getLocalizedText('path') }
                             value={this.state.newRoutePath}
                             onChange={this._handleNewRoutePathChange}
                         />
@@ -554,7 +560,8 @@ const mapStateToProps = state => ({
     routesIndex: state.project.routesIndex,
     selectedRouteId: state.structure.selectedRouteId,
     selectedRouteIndexes: state.structure.selectedRouteIndexes,
-    indexRouteSelected: state.structure.indexRouteSelected
+    indexRouteSelected: state.structure.indexRouteSelected,
+    getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
 });
 
 const mapDispatchToProps = dispatch => ({
