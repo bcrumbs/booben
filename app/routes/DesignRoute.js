@@ -36,7 +36,11 @@ import {
     deleteComponent
 } from '../actions/project';
 
-import { getComponentMeta, isCompositeComponent, getString } from '../utils/meta';
+import {
+    getComponentMeta,
+    isCompositeComponent,
+    getString
+} from '../utils/meta';
 
 import { List } from 'immutable';
 
@@ -76,8 +80,15 @@ class DesignRoute extends Component {
     constructor(props) {
         super(props);
 
+        this.state = {
+            confirmDeleteComponentDialogIsVisible: false
+        };
+
         this._handleToolTitleChange = this._handleToolTitleChange.bind(this);
         this._handleDeleteComponentButtonPress = this._handleDeleteComponentButtonPress.bind(this);
+        this._handleDeleteComponentConfirm = this._handleDeleteComponentConfirm.bind(this);
+        this._handleDeleteComponentCancel = this._handleDeleteComponentCancel.bind(this);
+        this._handleConfirmDeleteComponentDialogClose = this._handleConfirmDeleteComponentDialogClose.bind(this);
     }
 
     /**
@@ -98,7 +109,24 @@ class DesignRoute extends Component {
      * @private
      */
     _handleDeleteComponentButtonPress() {
+        this.setState({
+            confirmDeleteComponentDialogIsVisible: true
+        });
+    }
+
+    _handleDeleteComponentConfirm(closeDialog) {
         this.props.onDeleteComponent(this.props.selectedComponentIds.first());
+        closeDialog();
+    }
+
+    _handleDeleteComponentCancel(closeDialog) {
+        closeDialog();
+    }
+
+    _handleConfirmDeleteComponentDialogClose() {
+        this.setState({
+            confirmDeleteComponentDialogIsVisible: false
+        });
     }
 
     _handleLayoutSelection(layoutIdx) {
@@ -242,6 +270,11 @@ class DesignRoute extends Component {
             );
         }
 
+        const confirmDeleteDialogButtons = [
+            { text: 'Delete', onPress: this._handleDeleteComponentConfirm },
+            { text: 'Cancel', onPress: this._handleDeleteComponentCancel }
+        ];
+
         return (
             <Desktop
                 toolGroups={toolGroups}
@@ -262,6 +295,20 @@ class DesignRoute extends Component {
                     visible={this.props.selectingComponentLayout}
                 >
                     {layoutSelectionDialogContent}
+                </Dialog>
+
+                <Dialog
+                    title="Delete component"
+                    backdrop
+                    minWidth={400}
+                    buttons={confirmDeleteDialogButtons}
+                    visible={this.state.confirmDeleteComponentDialogIsVisible}
+                    closeOnEscape
+                    closeOnBackdropClick
+                    onClose={this._handleConfirmDeleteComponentDialogClose}
+                    onEnterKeyPress={this._handleDeleteComponentConfirm}
+                >
+                    Are you sure you want to delete this component?
                 </Dialog>
             </Desktop>
         );
