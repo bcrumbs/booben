@@ -71,6 +71,7 @@ export const PropsItem = props => {
                 value={props.value}
                 disabled={props.disabled}
                 onChange={props.onChange}
+                tooltip={props.tooltip}
             />
         );
     }
@@ -82,6 +83,7 @@ export const PropsItem = props => {
                 value={props.value}
                 disabled={props.disabled}
                 onChange={props.onChange}
+                tooltip={props.tooltip}
             />
         );
     }
@@ -92,6 +94,7 @@ export const PropsItem = props => {
                 checked={props.value}
                 disabled={props.disabled}
                 onCheck={props.onChange}
+                tooltip={props.tooltip}
             />
         );
     }
@@ -104,16 +107,17 @@ export const PropsItem = props => {
                 value={props.value}
                 disabled={props.disabled}
                 onSelect={props.onChange}
+                tooltip={props.tooltip}
             />
     }
     else if (props.type === 'constructor') {
         content =
-            <PropConstructor label={props.label} />
+            <PropConstructor label={props.label} tooltip={props.tooltip}/>
     }
 
     else if (props.type === 'constructor-toggle') {
         content =
-            <PropConstructor label={props.label} hasToggle />
+            <PropConstructor label={props.label} hasToggle tooltip={props.tooltip} />
     }
 
     else if (props.type === 'tree') {
@@ -210,7 +214,8 @@ PropsItem.propTypes = {
     image: PropTypes.string,
     subtreeOn: PropTypes.bool,
     options: PropTypes.array,
-    onChange: PropTypes.func
+    onChange: PropTypes.func,
+	tooltip: PropTypes.string
 };
 
 PropsItem.defaultProps = {
@@ -222,7 +227,8 @@ PropsItem.defaultProps = {
     image: '',
     subtreeOn: false,
     options: [],
-    onChange: noop
+    onChange: noop,
+	tooltip: null
 };
 
 PropsItem.displayName = 'PropsItem';
