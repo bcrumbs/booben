@@ -59,5 +59,5 @@ export const getRoutesByIndexes = (routes, where) => where.size > 0
 
 
 export const getLocalizedText = (localization, language, id, values = {}) => {
-    return (new IntlMessageFormat(localization.get(id), language)).format(values);
+    return Object.keys(localization).length && (new IntlMessageFormat(localization.get(id), language)).format(values) || '';
 };

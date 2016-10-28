@@ -42,4 +42,5 @@ export const getLocalization = language =>
         .then(data => {
             if (data.error) throw new Error(data.error);
             return data;
-        });
+        })
+        .catch(err => console.log(err));

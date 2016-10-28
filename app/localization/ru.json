@@ -10,7 +10,7 @@
   "showComponentsTitle": "Показывать название компонента",
   "showPlaceholders": "Показывать заполнители???",
   "toggleFullScreen": "Во весь экран",
-  
+
   "create": "Создать",
   "edit": "Редактировать",
   "cancel": "Отменить",
@@ -24,5 +24,18 @@
   "deleteRouteQuestion": "Удалить маршрут?",
   "title": "Название",
   "path": "Путь",
-  "allChildRoutesWillBeDeletedTooStatement": "Все дочерние маршруты также будут удалены."
+  "allChildRoutesWillBeDeletedTooStatement": "Все дочерние маршруты также будут удалены.",
+
+  "description": "Описание",
+  "redirectTo": "Перенаправлять в",
+  "indexRoute": "Маршрут по умолчанию",
+  "indexRedirect": "Перенаправление по умолчанию",
+  "routeProperties": "Свойства маршрута",
+  "indexRouteProperties": "Свойства маршрута по умолчанию",
+
+  "elementsTree": "Дерево элементов",
+  "componentConfiguration": "Конфигурация компонента",
+  "enterTitle": "Введите название",
+  "componentsLibrary": "Библиотека компонентов"
+
 }

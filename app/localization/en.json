@@ -10,7 +10,7 @@
   "showComponentsTitle": "Show component's title",
   "showPlaceholders": "Show placeholders",
   "toggleFullScreen": "Toggle Full Screen",
-  
+
   "create": "Create",
   "edit": "Edit",
   "cancel": "Cancel",
@@ -24,5 +24,19 @@
   "deleteRouteQuestion": "Delete route?",
   "title": "Title",
   "path": "Path",
-  "allChildRoutesWillBeDeletedTooStatement": "All child routes will be deleted too."
+  "allChildRoutesWillBeDeletedTooStatement": "All child routes will be deleted too.",
+
+  "description": "Description",
+  "redirectTo": "Redirect to",
+  "indexRoute": "Index route",
+  "indexRedirect": "Index redirect",
+  "routeProperties": "Route properties",
+  "indexRouteProperties": "Index route properties",
+
+  "elementsTree": "Elements tree",
+  "componentConfiguration": "Component configuration",
+  "enterTitle": "Enter title",
+  "componentsLibrary": "Components library"
+
+
 }

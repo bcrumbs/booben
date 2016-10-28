@@ -29,8 +29,9 @@ import {
 
 import { isCompositeComponent } from '../utils/meta';
 
-import { List } from 'immutable';
+import { getLocalizedText } from '../utils';
 
+import { List } from 'immutable';
 
 const TOOL_ID_LIBRARY = 'componentsLibrary';
 const TOOL_ID_COMPONENTS_TREE = 'componentsTree';
@@ -45,20 +46,6 @@ export const DESIGN_TOOL_IDS = List([
     TOOL_ID_COMPONENTS_TREE,
     TOOL_ID_PROPS_EDITOR
 ]);
-
-const libraryTool = new ToolRecord({
-    id: TOOL_ID_LIBRARY,
-    icon: LIBRARY_ICON,
-    name: 'Components Library',
-    title: 'Components Library',
-    sections: List([
-        new ToolSectionRecord({
-            name: '',
-            component: ComponentsLibrary
-        })
-    ]),
-    windowMinWidth: 360
-});
 
 class DesignRoute extends Component {
     constructor(props) {
@@ -96,6 +83,7 @@ class DesignRoute extends Component {
     }
 
     render() {
+        const { getLocalizedText } = this.props;
         const src = `/preview/${this.props.params.projectName}/index.html`,
             routeId = parseInt(this.props.params.routeId),
             isIndexRoute = this.props.location.pathname.endsWith('/index'),
@@ -106,11 +94,27 @@ class DesignRoute extends Component {
 
         const route = this.props.project.getIn(routeIndexEntry.path);
 
+
+        const libraryTool = new ToolRecord({
+            id: TOOL_ID_LIBRARY,
+            icon: LIBRARY_ICON,
+            name: 'Components Library',
+            title: getLocalizedText('componentsLibrary'),
+            sections: List([
+                new ToolSectionRecord({
+                    name: '',
+                    component: ComponentsLibrary
+                })
+            ]),
+            windowMinWidth: 360
+        });
+
+
         const treeTool = new ToolRecord({
             id: TOOL_ID_COMPONENTS_TREE,
             icon: COMPONENTS_TREE_ICON,
-            name: 'Elements tree',
-            title: 'Elements tree',
+            name: 'Elements Tree',
+            title: getLocalizedText('elementsTree'),
             sections: List([
                 new ToolSectionRecord({
                     name: '',
@@ -140,7 +144,7 @@ class DesignRoute extends Component {
             if (!isRegion) {
                 mainButtons = List([
                     new ButtonRecord({
-                        text: 'Delete',
+                        text: getLocalizedText('delete'),
                         disabled: !singleComponentSelected,
                         onPress: this._handleDeleteComponentButtonPress
                     })
@@ -151,7 +155,7 @@ class DesignRoute extends Component {
             }
         }
         else {
-            title = 'Component configuration';
+            title =  getLocalizedText('componentConfiguration');
             subtitle = '';
             mainButtons = List();
         }
@@ -162,7 +166,7 @@ class DesignRoute extends Component {
             name: 'Component configuration',
             title: title,
             titleEditable: singleComponentSelected,
-            titlePlaceholder: 'Enter title',
+            titlePlaceholder: getLocalizedText('enterTitle'),
             subtitle: subtitle,
             mainButtons: mainButtons,
             sections: List([
@@ -208,7 +212,8 @@ const mapStateToProps = state => ({
     meta: state.project.meta,
     selectedComponentIds: state.preview.selectedItems,
     componentsIndex: state.project.componentsIndex,
-    routesIndex: state.project.routesIndex
+    routesIndex: state.project.routesIndex,
+    getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
 });
 
 const mapDispatchToProps = dispatch => ({
