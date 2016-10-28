@@ -3,7 +3,11 @@
 const path = require('path'),
     HtmlWebpackPlugin = require('html-webpack-plugin');
 const webpack = require('webpack');
-const prod = process.argv.indexOf('-p') !== -1;
+const CopyWebpackPlugin = require('copy-webpack-plugin');
+
+const prod = process.argv.includes('-p');
+
+
 
 const APP_SRC_DIR = '../app';
 const APP_DIST_DIR = '../public';
@@ -58,7 +62,11 @@ module.exports = {
           'process.env': {
             'NODE_ENV': prod ? '"production"' : '"development"'
           }
-        })
+        }),
+
+        new CopyWebpackPlugin([
+          { from: 'localization', to: 'localization' }
+        ])
     ],
 
     resolveLoader: {

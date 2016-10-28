@@ -1,4 +1,5 @@
 'use strict';
+import IntlMessageFormat from 'intl-messageformat';
 
 /**
  *
@@ -30,7 +31,7 @@ const getRoute = (route, prefix) => ({
 
 /**
  * Get routers from project
- * 
+ *
  * @param  {List} routes
  * @param  {string} [prefix]
  * @return {Object[]}
@@ -55,3 +56,8 @@ export const getRouteByIndexes = (routes, where, idx) => routes.getIn(
 export const getRoutesByIndexes = (routes, where) => where.size > 0
     ? routes.getIn([].concat(...where.map(index => [index, 'children'])))
     : routes;
+
+
+export const getLocalizedText = (localization, language, id, values = {}) => {
+    return (new IntlMessageFormat(localization.get(id), language)).format(values);
+};

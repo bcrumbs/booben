@@ -50,6 +50,7 @@
   },
   "devDependencies": {
     "@reactackle/reactackle": "0.1.0-dev241",
+    "copy-webpack-plugin": "^4.0.0",
     "css-loader": "^0.24.0",
     "file-loader": "^0.9.0",
     "history": "^2.1.2",

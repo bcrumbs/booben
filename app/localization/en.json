@@ -1,0 +1,28 @@
+{
+  "projectTitle": "Project {projectName}",
+  "structure": "Structure",
+  "design": "Design",
+  "data": "Data",
+  "settings": "Settings",
+  "preview": "Preview",
+  "publish": "Publish",
+  "faq": "FAQ",
+  "showComponentsTitle": "Show component's title",
+  "showPlaceholders": "Show placeholders",
+  "toggleFullScreen": "Toggle Full Screen",
+  
+  "create": "Create",
+  "edit": "Edit",
+  "cancel": "Cancel",
+  "delete": "Delete",
+  "route": "Route",
+  "routeTitle": "Route title",
+  "createNewRoute": "Create new route",
+  "createNewRootRoute": "Create new root route",
+  "newRoute": "New route",
+  "newRootRoute": "New root route",
+  "deleteRouteQuestion": "Delete route?",
+  "title": "Title",
+  "path": "Path",
+  "allChildRoutesWillBeDeletedTooStatement": "All child routes will be deleted too."
+}

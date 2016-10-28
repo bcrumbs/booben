@@ -1,29 +1,39 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 'use strict';
+import { getLocalization } from '../api';
 
-/**
- *
- * @type {string}
- */
-export const APP_SET_LANGUAGE = 'APP_SET_LANGUAGE';
+export const APP_LOCALIZATION_LOADING = 'APP_LOCALIZATION_LOADING';
+export const APP_LOCALIZATION_LOAD_SUCCESS = 'APP_LOCALIZATION_LOAD_SUCCESS';
+export const APP_LOCALIZATION_LOAD_FAILURE = 'APP_LOCALIZATION_LOAD_FAILURE';
 
 /**
  *
  * @param {string} language
+ * @param {Object} localization
  * @returns {Object}
  */
-
-export const setLanguage = (language, localization) => ({
-  type: APP_SET_LANGUAGE,
+export const localizationLoadSuccess = (language, localization) => ({
+  type: APP_LOCALIZATION_LOAD_SUCCESS,
   language,
   localization
 });
 
 
-export const getLocalization = language => dispatch => {
-  console.log(language);
-  dispatch(setLanguage(language, data));
+/**
+  * @param {string} error
+  * @returns {Object}
+  */
+export const localizationLoadFailure = error => ({
+  type: APP_LOCALIZATION_LOAD_FAILURE,
+  error
+});
+
+export const localizationLoading = () => ({
+  type: APP_LOCALIZATION_LOADING
+});
+
+export const loadLocalization = language => dispatch => {
+  dispatch(localizationLoading());
+  getLocalization(language)
+    .then((localization) => dispatch(localizationLoadSuccess(language, localization)))
+    .catch(localizationLoadFailure);
 };
