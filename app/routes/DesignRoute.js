@@ -13,6 +13,7 @@ import { Desktop } from '../containers/Desktop/Desktop';
 import { ComponentsLibrary } from '../containers/ComponentsLibrary/ComponentsLibrary';
 import { ComponentsTreeView } from '../containers/ComponentsTreeView/ComponentsTreeView';
 import { ComponentPropsEditor } from '../containers/ComponentPropsEditor/ComponentPropsEditor';
+import { ComponentRegionsEditor } from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
 
 import store from '../store';
@@ -122,7 +123,12 @@ class DesignRoute extends Component {
         });
 
         const singleComponentSelected = this.props.selectedComponentIds.size === 1;
-        let title, subtitle, mainButtons;
+        let title, subtitle, mainButtons, sections;
+
+        const propsEditorSection = new ToolSectionRecord({
+            name: 'General',
+            component: ComponentPropsEditor
+        });
 
         if (singleComponentSelected) {
             const componentId = this.props.selectedComponentIds.first(),
@@ -145,15 +151,29 @@ class DesignRoute extends Component {
                         onPress: this._handleDeleteComponentButtonPress
                     })
                 ]);
+
+                if (isCompositeComponent(component.name, this.props.meta)) {
+                    const regionsEditorSection = new ToolSectionRecord({
+                        name: 'Regions',
+                        component: ComponentRegionsEditor
+                    });
+
+                    sections = List([propsEditorSection, regionsEditorSection]);
+                }
+                else {
+                    sections = List([propsEditorSection]);
+                }
             }
             else {
                 mainButtons = List();
+                sections = List([propsEditorSection]);
             }
         }
         else {
             title = 'Component configuration';
             subtitle = '';
             mainButtons = List();
+            sections = List([propsEditorSection])
         }
 
         const propsEditorTool = new ToolRecord({
@@ -165,12 +185,7 @@ class DesignRoute extends Component {
             titlePlaceholder: 'Enter title',
             subtitle: subtitle,
             mainButtons: mainButtons,
-            sections: List([
-                new ToolSectionRecord({
-                    name: '',
-                    component: ComponentPropsEditor
-                })
-            ])
+            sections: sections
         });
 
         const toolGroups = List([List([libraryTool, treeTool, propsEditorTool])]);

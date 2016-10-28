@@ -23,7 +23,8 @@ import {
     PROJECT_COMPONENT_MOVE,
     PROJECT_COMPONENT_CREATE_ROOT,
     PROJECT_COMPONENT_UPDATE_PROP_VALUE,
-    PROJECT_COMPONENT_RENAME
+    PROJECT_COMPONENT_RENAME,
+    PROJECT_COMPONENT_TOGGLE_REGION
 } from '../actions/project';
 
 import ProjectRoute from '../models/ProjectRoute';
@@ -560,6 +561,19 @@ export default (state = new ProjectState(), action) => {
                 path = componentIndexEntry.path;
 
             return state.setIn(['data', ...path, 'title'], action.newTitle);
+        }
+
+        case PROJECT_COMPONENT_TOGGLE_REGION: {
+            const componentIndexEntry = state.componentsIndex.get(action.componentId),
+                path = componentIndexEntry.path;
+
+            return state.updateIn(
+                ['data', ...path, 'regionsEnabled'],
+
+                regionsEnabled => action.enable
+                    ? regionsEnabled.add(action.regionIdx)
+                    : regionsEnabled.delete(action.regionIdx)
+            );
         }
 
         default:

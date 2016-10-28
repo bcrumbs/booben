@@ -308,6 +308,12 @@ const metaSchema = {
             required: false
         },
 
+        icon: {
+            type: 'string',
+            allowEmpty: false,
+            required: false
+        },
+
         props: {
             type: 'object',
             patternProperties: {
@@ -345,6 +351,21 @@ const metaSchema = {
             items: {
                 type: 'object',
                 properties: {
+                    textKey: {
+                        type: 'string',
+                        allowEmpty: false,
+                        required: false
+                    },
+                    descriptionTextKey: {
+                        type: 'string',
+                        allowEmpty: false,
+                        required: false
+                    },
+                    icon: {
+                        type: 'string',
+                        allowEmpty: false,
+                        required: false
+                    },
                     regions: {
                         type: 'array',
                         items: {
@@ -353,6 +374,20 @@ const metaSchema = {
                                 component: {
                                     type: 'string',
                                     allowEmpty: false,
+                                    required: true
+                                },
+                                textKey: {
+                                    type: 'string',
+                                    allowEmpty: false,
+                                    required: true
+                                },
+                                descriptionTextKey: {
+                                    type: 'string',
+                                    allowEmpty: false,
+                                    required: true
+                                },
+                                defaultEnabled: {
+                                    type: 'boolean',
                                     required: true
                                 },
                                 props: {
@@ -673,6 +708,49 @@ const readComponentMeta = metaDir => co(function* () {
 
             if (typeof meta.types[propMeta.type] === 'undefined')
                 throw new Error(`Type ${propMeta.type} is not defined`);
+        }
+    }
+
+    if (meta.kind === 'composite') {
+        if (!meta.layouts) {
+            throw new Error(
+                `'layouts' field not found in metadata ` +
+                `for composite component '${meta.displayName}'`
+            );
+        }
+
+        for (let i = 0, l = meta.layouts.length; i < l; i++) {
+            const layout = meta.layouts[i];
+            if (layout.textKey && !meta.strings[layout.textKey]) {
+                throw new Error(
+                    `Unknown string '${layout.textKey}' ` +
+                    `in layouts of component '${meta.displayName}'`
+                );
+            }
+
+            if (layout.descriptionTextKey && !meta.strings[layout.descriptionTextKey]) {
+                throw new Error(
+                    `Unknown string '${layout.descriptionTextKey}' ` +
+                    `in layouts of component '${meta.displayName}'`
+                );
+            }
+
+            const regions = layout.regions;
+            for (let j = 0, m = regions.length; j < m; j++) {
+                if (!meta.strings[regions[j].textKey]) {
+                    throw new Error(
+                        `Unknown string '${regions[j].textKey}' ` +
+                        `in layouts of component '${meta.displayName}'`
+                    );
+                }
+
+                if (!meta.strings[regions[j].descriptionTextKey]) {
+                    throw new Error(
+                        `Unknown string '${regions[j].descriptionTextKey}' ` +
+                        `in layouts of component '${meta.displayName}'`
+                    );
+                }
+            }
         }
     }
 

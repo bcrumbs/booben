@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { Record, List, Map } from 'immutable';
+import { Record, List, Map, Set } from 'immutable';
 
 import ProjectComponentProp from './ProjectComponentProp';
 import SourceDataStatic from './SourceDataStatic';
@@ -20,7 +20,9 @@ const ProjectComponentRecord = Record({
     name: '',
     title: '',
     props: Map(),
-    children: List()
+    children: List(),
+    layout: 0,
+    regionsEnabled: Set()
 });
 
 /**
@@ -51,7 +53,9 @@ export const projectComponentToImmutable = input => new ProjectComponentRecord({
         sourceData: propSourceDataToImmutable[propMeta.source](propMeta.sourceData)
     }))),
 
-    children: List(input.children.map(projectComponentToImmutable))
+    children: List(input.children.map(projectComponentToImmutable)),
+    layout: typeof input.layout === 'number' ? input.layout : 0,
+    regionsEnabled: input.regionsEnabled ? Set(input.regionsEnabled) : Set()
 });
 
 export default ProjectComponentRecord;

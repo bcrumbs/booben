@@ -7,6 +7,34 @@
 import HTMLMeta from '../../app/meta/html';
 import miscMeta from '../../app/meta/misc';
 
+/**
+ *
+ * @param {string} namespace
+ * @param {Object} meta
+ * @returns {?Object}
+ */
+export const getNamespaceMeta = (namespace, meta) => {
+    if (namespace === '') return miscMeta;
+    if (namespace === 'HTML') return HTMLMeta;
+    return meta[namespace] || null;
+};
+
+/**
+ *
+ * @param {string} namespace
+ * @param {Object} meta
+ * @returns {?Object[]}
+ */
+export const getComponentsMeta = (namespace, meta) => {
+    const namespaceMeta = getNamespaceMeta(namespace, meta);
+    return namespaceMeta ? namespaceMeta.components : null;
+};
+
+/**
+ *
+ * @param {string} componentName
+ * @return {{namespace: string, name: string}}
+ */
 export const parseComponentName = componentName => {
     let [namespace, name] = componentName.split('.');
     if (!name) {
@@ -21,7 +49,7 @@ export const parseComponentName = componentName => {
  *
  * @param {string} componentName
  * @param {Object} meta
- * @returns {?Object}
+ * @return {?Object}
  */
 export const getComponentMeta = (componentName, meta) => {
     const { namespace, name } = parseComponentName(componentName);
@@ -63,3 +91,15 @@ export const isContainerComponent = (componentName, meta) =>
  */
 export const isCompositeComponent = (componentName, meta) =>
     getComponentKind(componentName, meta) === 'composite';
+
+/**
+ *
+ * @param {Object} componentMeta
+ * @param {string} stringId
+ * @param {string} language
+ * @return {?string}
+ */
+export const getString = (componentMeta, stringId, language) => {
+    if (!componentMeta.strings[stringId]) return null;
+    return componentMeta.strings[stringId][language] || null;
+};

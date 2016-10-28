@@ -15,7 +15,7 @@ export const PROJECT_REQUEST = 'PROJECT_REQUEST';
 /**
  *
  * @param {string} projectName
- * @returns {Object}
+ * @return {Object}
  */
 const requestProject = projectName => ({
     type: PROJECT_REQUEST,
@@ -32,7 +32,7 @@ export const PROJECT_LOADED = 'PROJECT_LOADED';
  *
  * @param {Object} project
  * @param {Object} metadata
- * @returns {Object}
+ * @return {Object}
  */
 const projectLoaded = (project, metadata) => ({
     type: PROJECT_LOADED,
@@ -49,7 +49,7 @@ export const PROJECT_LOAD_FAILED = 'PROJECT_LOAD_FAILED';
 /**
  *
  * @param {Object} error
- * @returns {Object}
+ * @return {Object}
  */
 const projectLoadFailed = error => ({
     type: PROJECT_LOAD_FAILED,
@@ -59,7 +59,7 @@ const projectLoadFailed = error => ({
 /**
  *
  * @param {string} projectName
- * @returns {function(dispatch: function(action: Object))}
+ * @return {function(dispatch: function(action: Object))}
  */
 export const loadProject = projectName => dispatch => {
     dispatch(requestProject(projectName));
@@ -80,7 +80,7 @@ export const PROJECT_ROUTE_CREATE = 'PROJECT_ROUTE_CREATE';
  * @param {number[]} where - indexes of routes in path
  * @param {string} path
  * @param {string} title
- * @returns {Object}
+ * @return {Object}
  */
 export const createRoute = (where, path, title) => ({
     type: PROJECT_ROUTE_CREATE,
@@ -99,7 +99,7 @@ export const PROJECT_ROUTE_DELETE = 'PROJECT_ROUTE_DELETE';
  *
  * @param {Immutable.List<number>} where - indexes of routes in path
  * @param {number} idx - index of route to delete
- * @returns {Object}
+ * @return {Object}
  */
 export const deleteRoute = (where, idx) => ({
     type: PROJECT_ROUTE_DELETE,
@@ -119,7 +119,7 @@ export const PROJECT_ROUTE_UPDATE_FIELD = 'PROJECT_ROUTE_UPDATE_FIELD';
  * @param {number} idx - index of route to rename
  * @param {string} field
  * @param {*} newValue
- * @returns {Object}
+ * @return {Object}
  */
 export const updateRouteField = (where, idx, field, newValue) => ({
     type: PROJECT_ROUTE_UPDATE_FIELD,
@@ -138,7 +138,7 @@ export const PROJECT_COMPONENT_DELETE = 'PROJECT_COMPONENT_DELETE';
 /**
  *
  * @param {string} componentId - Component ID
- * @returns {Object}
+ * @return {Object}
  */
 export const deleteComponent = componentId => ({
     type: PROJECT_COMPONENT_DELETE,
@@ -154,7 +154,7 @@ export const PROJECT_COMPONENT_MOVE = 'PROJECT_COMPONENT_MOVE';
 /**
  *
  * @param {number[]} where - index of component
- * @returns {Object}
+ * @return {Object}
  */
 export const moveComponent = (sourceId, targetId, position) => ({
     type: PROJECT_COMPONENT_MOVE,
@@ -238,4 +238,24 @@ export const renameComponent = (componentId, newTitle) => ({
     type: PROJECT_COMPONENT_RENAME,
     componentId,
     newTitle
+});
+
+/**
+ * 
+ * @type {string}
+ */
+export const PROJECT_COMPONENT_TOGGLE_REGION = 'PROJECT_COMPONENT_TOGGLE_REGION';
+
+/**
+ * 
+ * @param {number} componentId
+ * @param {number} regionIdx
+ * @param {boolean} enable
+ * @return {Object}
+ */
+export const toggleComponentRegion = (componentId, regionIdx, enable) => ({
+    type: PROJECT_COMPONENT_TOGGLE_REGION,
+    componentId,
+    regionIdx,
+    enable
 });

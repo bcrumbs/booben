@@ -25,10 +25,9 @@ import {
 
 import ProjectRecord from '../../models/Project';
 
-import HTMLMeta from '../../meta/html';
-import miscMeta from '../../meta/misc';
-
 import { updateComponentPropValue } from '../../actions/project';
+
+import { getString, getComponentMeta } from '../../utils/meta';
 
 /**
  *
@@ -112,57 +111,10 @@ const getStaticOneOfValue = (source, sourceData, options) =>
         ? (sourceData ? sourceData.value : options[0].value)
         : options[0].value;
 
-/**
- *
- * @param {Object} componentMeta
- * @param {string} id
- * @param {string} language
- * @return {?string}
- */
-const getString = (componentMeta, id, language) => {
-    if (!componentMeta.strings[id]) return null;
-    return componentMeta.strings[id][language] || null;
-};
-
 class ComponentPropsEditorComponent extends Component {
-    _getComponentsMeta(namespace) {
-        if (!namespace) return miscMeta;
-        if (namespace === 'HTML') return HTMLMeta;
-        if (!this.props.meta[namespace]) return null;
-        return this.props.meta[namespace].components;
-    }
-
     _getComponent(componentId) {
-        const componentIndexData = this.props.componentsIndex.get(componentId);
-
-        // TODO: Print warning
-        if (!componentIndexData) return null;
-
-        const component = this.props.project.getIn(componentIndexData.path);
-
-        // TODO: Print warning
-        if (!component) return null;
-        return component;
-    }
-
-    _getComponentMeta(component) {
-        let [namespace, name] = component.name.split('.');
-        if (!name) {
-            name = namespace;
-            namespace = null;
-        }
-
-        const componentsMeta = this._getComponentsMeta(namespace);
-
-        // TODO: Print warning
-        if (!componentsMeta) return null;
-
-        const componentMeta = componentsMeta[name];
-
-        // TODO: Print warning
-        if (!componentMeta) return null;
-
-        return componentMeta;
+        const componentIndexEntry = this.props.componentsIndex.get(componentId);
+        return this.props.project.getIn(componentIndexEntry.path);
     }
 
     _handleStaticValueChange(propName, newValue) {
@@ -351,7 +303,7 @@ class ComponentPropsEditorComponent extends Component {
 
         const componentId = this.props.selectedComponentIds.first(),
             component = this._getComponent(componentId),
-            componentMeta = this._getComponentMeta(component);
+            componentMeta = getComponentMeta(component.name, this.props.meta);
 
         if (!componentMeta) return null;
 

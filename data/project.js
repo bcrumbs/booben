@@ -35,7 +35,8 @@
  * @property {string} name - Component name with namespace (e.g. "Namespace.MyComponent")
  * @property {string} title - User-defined title
  * @property {Object<string, ProjectComponentProp>|Immutable.Map<string, ProjectComponentProp>} props
- * @property {ProjectComponent[]|Immutable.List<ProjectComponent>} [children]
+ * @property {ProjectComponent[]|Immutable.List<ProjectComponent>} children
+ * @property {number[]|Immutable.Set<number>} regionsEnabled
  */
 
 /**

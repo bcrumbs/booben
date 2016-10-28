@@ -5,7 +5,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { PropTypes } from 'react';
+import React, { Component, PropTypes } from 'react';
 
 import {
     PageDrawerContentArea
@@ -15,11 +15,14 @@ import {
     BlockContent,
     BlockContentTitle,
     BlockContentActions,
-    BlockContentActionsRegion
+    BlockContentActionsRegion,
+    BlockContentNavigation
 } from '../../../../components/BlockContent/BlockContent';
 
 import {
-    Button
+    Button,
+    Tabs,
+    Tab
 } from '@reactackle/reactackle'
 
 import { List } from 'immutable';
@@ -30,96 +33,140 @@ import ToolStateType from '../../../../models/ToolState';
 
 import { noop } from '../../../../utils/misc';
 
-export const ToolPanelContent = props => {
-    const { tool } = props;
+export class ToolPanelContent extends Component {
+    constructor(props) {
+        super(props);
 
-    let titleButtons = List([
-        new ButtonType({
-            icon: 'chevron-right',
-            onPress: props.onCollapse
-        })
-    ]);
+        this.state = {
+            activeSection: 0
+        };
 
-    if (tool.undockable) {
-        titleButtons = titleButtons.unshift(new ButtonType({
-            icon: 'arrows-alt',
-            onPress: props.onUndock
-        }));
+        this._handleNavigation = this._handleNavigation.bind(this);
     }
 
-    const sections = tool.sections.map((section, idx) => {
-        const SectionComponent = section.component;
-        return <SectionComponent key={idx}/>
-    });
+    _handleNavigation(newActiveSection) {
+        this.setState({
+            activeSection: newActiveSection
+        });
+    }
 
-    let actionsArea = null;
-    const mainButtons = tool.mainButtons,
-        secondaryButtons = tool.secondaryButtons,
-        mainButtonsNum = mainButtons.size,
-        secondaryButtonsNum = secondaryButtons.size;
+    render() {
+        const { tool } = this.props;
 
-    if (mainButtonsNum > 0 || secondaryButtonsNum > 0) {
-        let mainActionsRegion = null;
-        if (mainButtonsNum > 0) {
-            const buttons = mainButtons.map((button, idx) => (
-                <Button
-                    key={idx}
-                    icon={button.icon}
-                    text={button.text}
-                    onPress={button.onPress}
-                />
+        let titleButtons = List([
+            new ButtonType({
+                icon: 'chevron-right',
+                onPress: this.props.onCollapse
+            })
+        ]);
+
+        if (tool.undockable) {
+            titleButtons = titleButtons.unshift(new ButtonType({
+                icon: 'arrows-alt',
+                onPress: this.props.onUndock
+            }));
+        }
+
+        let navArea = null;
+        const sections = tool.sections,
+            sectionsNum = sections.size;
+
+        if (sectionsNum > 1) {
+            const tabs = sections.map((section, idx) => (
+                <Tab key={idx} text={section.name} />
             ));
 
-            mainActionsRegion = (
-                <BlockContentActionsRegion type="main">
-                    {buttons}
-                </BlockContentActionsRegion>
+            navArea = (
+                <BlockContentNavigation>
+                    <Tabs
+                        colorMode="dark"
+                        selected={this.state.activeSection}
+                        onSelectTab={this._handleNavigation}
+                    >
+                        {tabs}
+                    </Tabs>
+                </BlockContentNavigation>
             );
         }
 
-        let secondaryButtonsRegion = null;
-        if (secondaryButtonsNum > 0) {
-            const buttons = secondaryButtons.map((button, idx) => (
-                <Button
-                    key={idx}
-                    icon={button.icon}
-                    text={button.text}
-                    onPress={button.onPress}
-                />
-            ));
+        const activeSection = sections.get(this.state.activeSection) || null;
 
-            secondaryButtonsRegion = (
-                <BlockContentActionsRegion type="secondary">
-                    {buttons}
-                </BlockContentActionsRegion>
+        const ContentComponent = activeSection !== null
+            ? activeSection.component
+            : null;
+
+        const content = ContentComponent ? <ContentComponent/> : null;
+
+        let actionsArea = null;
+        const mainButtons = tool.mainButtons,
+            secondaryButtons = tool.secondaryButtons,
+            mainButtonsNum = mainButtons.size,
+            secondaryButtonsNum = secondaryButtons.size;
+
+        if (mainButtonsNum > 0 || secondaryButtonsNum > 0) {
+            let mainActionsRegion = null;
+            if (mainButtonsNum > 0) {
+                const buttons = mainButtons.map((button, idx) => (
+                    <Button
+                        key={idx}
+                        icon={button.icon}
+                        text={button.text}
+                        onPress={button.onPress}
+                    />
+                ));
+
+                mainActionsRegion = (
+                    <BlockContentActionsRegion type="main">
+                        {buttons}
+                    </BlockContentActionsRegion>
+                );
+            }
+
+            let secondaryButtonsRegion = null;
+            if (secondaryButtonsNum > 0) {
+                const buttons = secondaryButtons.map((button, idx) => (
+                    <Button
+                        key={idx}
+                        icon={button.icon}
+                        text={button.text}
+                        onPress={button.onPress}
+                    />
+                ));
+
+                secondaryButtonsRegion = (
+                    <BlockContentActionsRegion type="secondary">
+                        {buttons}
+                    </BlockContentActionsRegion>
+                );
+            }
+
+            actionsArea = (
+                <BlockContentActions>
+                    {secondaryButtonsRegion}
+                    {mainActionsRegion}
+                </BlockContentActions>
             );
         }
 
-        actionsArea = (
-            <BlockContentActions>
-                {secondaryButtonsRegion}
-                {mainActionsRegion}
-            </BlockContentActions>
+        return (
+            <PageDrawerContentArea>
+                <BlockContent>
+                    <BlockContentTitle
+                        title={tool.title}
+                        isEditable={tool.titleEditable}
+                        titlePlaceHolder={tool.titlePlaceholder}
+                        buttons={titleButtons}
+                        onTitleChange={this.props.onTitleChange}
+                    />
+
+                    {navArea}
+                    {content}
+                    {actionsArea}
+                </BlockContent>
+            </PageDrawerContentArea>
         );
     }
-
-    return (
-        <PageDrawerContentArea>
-            <BlockContent>
-                <BlockContentTitle
-                    title={tool.title}
-                    isEditable={tool.titleEditable}
-                    titlePlaceHolder={tool.titlePlaceholder}
-                    buttons={titleButtons}
-                    onTitleChange={props.onTitleChange}
-                />
-
-                {sections}
-                {actionsArea}
-            </BlockContent>
-        </PageDrawerContentArea>
-    );
-};
+}
 
 ToolPanelContent.propTypes = {
     tool: PropTypes.instanceOf(ToolType).isRequired,

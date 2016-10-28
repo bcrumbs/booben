@@ -49,6 +49,8 @@ import {
     pointIsInCircle
 } from '../../utils/misc';
 
+import defaultComponentIcon from '../../img/component_default.svg';
+
 /**
  * 
  * @type {number}
@@ -139,7 +141,7 @@ const extractGroupsDataFromMeta = meta => {
                 fullName: `${libMeta.namespace}.${componentMeta.displayName}`,
                 text: componentMeta.strings[componentMeta.textKey],
                 descriptionText: componentMeta.strings[componentMeta.descriptionTextKey],
-                iconURL: '' // TODO: Put icon or placeholder URL here
+                iconURL: defaultComponentIcon // TODO: Use icon from metadata if we're have it
             });
         });
     });
@@ -237,13 +239,21 @@ class ComponentsLibraryComponent extends Component {
         const componentMeta = getComponentMeta(componentData.fullName, this.props.meta);
         if (!componentMeta) return null;
 
-        let children = [];
+        const component = {
+            id: null,
+            name: componentData.fullName,
+            title: '',
+            props: buildDefaultProps(componentMeta, this.props.language),
+            children: []
+        };
 
         if (componentMeta.kind === 'composite') {
+            component.regionsEnabled = [];
+
             const { namespace } = parseComponentName(componentData.fullName),
                 defaultLayout = componentMeta.layouts[0];
 
-            children = defaultLayout.regions.map(region => {
+            defaultLayout.regions.forEach((region, idx) => {
                 const regionComponentName = `${namespace}.${region.component}`;
 
                 const regionComponentMeta = getComponentMeta(
@@ -256,23 +266,19 @@ class ComponentsLibraryComponent extends Component {
                     region.props || {}
                 );
 
-                return {
+                component.children.push({
                     id: null,
                     name: regionComponentName,
                     title: '',
                     props,
                     children: []
-                };
+                });
+
+                if (region.defaultEnabled) component.regionsEnabled.push(idx);
             });
         }
 
-        return projectComponentToImmutable({
-            id: null,
-            name: componentData.fullName,
-            title: '',
-            props: buildDefaultProps(componentMeta, this.props.language),
-            children
-        });
+        return projectComponentToImmutable(component);
     }
 
     /**
@@ -331,6 +337,7 @@ class ComponentsLibraryComponent extends Component {
                     <ComponentTag
                         key={idx}
                         title={c.text[this.props.language]}
+                        image={c.iconURL}
                         focused={this.props.focusedComponentName === c.fullName}
                         onFocus={this._getOnFocusHandler(c.fullName)}
                         onStartDrag={this._handleStartDrag.bind(this, c)}

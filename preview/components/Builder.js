@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import _components from '../components.js';
 
 import patchComponent from '../patchComponent';
-import { isContainerComponent } from '../../app/utils/meta';
+import { isContainerComponent, isCompositeComponent } from '../../app/utils/meta';
 import { objectMap } from '../../app/utils/misc';
 
 const components = objectMap(_components, ns => objectMap(ns, patchComponent));
@@ -138,7 +138,13 @@ class BuilderComponent extends Component {
 
         const ret = [];
 
+        const isComposite = isCompositeComponent(component.name, this.props.meta);
+
         component.children.forEach((childComponent, idx) => {
+            // Do not render disabled regions in composite components
+            if (!isPlaceholder && isComposite && !component.regionsEnabled.has(idx))
+                return;
+
             const needPlaceholders =
                 !isPlaceholder &&
                 this.props.draggedComponent !== null &&
