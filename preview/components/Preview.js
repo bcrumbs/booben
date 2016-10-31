@@ -4,8 +4,6 @@
 import React, { Component, PropTypes } from 'react';
 import { Router, hashHistory } from 'react-router';
 import { connect } from 'react-redux';
-import ImmutablePropTypes from 'react-immutable-proptypes';
-import { Record, Map } from 'immutable';
 
 import Builder from './Builder';
 
@@ -13,21 +11,16 @@ import {
     toggleComponentSelection,
     highlightPreviewComponent,
     unhighlightPreviewComponent,
-    toggleHighlighting,
     setBoundaryComponent,
-    startDragComponent,
-    stopDragComponent,
+    startDragExistingComponent,
     dragOverComponent,
     dragOverPlaceholder,
+    dropComponent,
+    setCurrentRoute
 } from '../../app/actions/preview';
 
-import {
-    moveComponent,
-    createComponent,
-    createRootComponent
-} from '../../app/actions/project';
+import { getComponentById } from '../../app/models/Project';
 
-import { getComponentMeta } from '../../app/utils/meta';
 import { pointIsInCircle } from '../../app/utils/misc';
 
 
@@ -53,34 +46,6 @@ const START_DRAG_THRESHOLD = 10;
 
 /**
  *
- * @class
- * @extends Immutable.Record
- */
-const RouteRootComponentIds = Record({
-    componentId: null,
-    indexComponentId: null
-});
-
-/**
- *
- * @param {Immutable.List<ProjectRoute>} routes
- * @return {Immutable.Map<number, RouteRootComponentIds>}
- */
-const gatherRootComponentIds = routes => {
-    const reducer = (acc, route) => {
-        acc = acc.set(route.id, new RouteRootComponentIds({
-            componentId: route.component ? route.component.id : null,
-            indexComponentId: route.indexComponent ? route.indexComponent.id : null
-        }));
-
-        return route.children.reduce(reducer, acc);
-    };
-
-    return routes.reduce(reducer, Map());
-};
-
-/**
- *
  * @param {HTMLElement} el
  * @return {?number}
  */
@@ -96,7 +61,7 @@ const getClosestComponentId = el => {
         current = current.parentNode;
     }
 
-    return null;
+    return -1;
 };
 
 /**
@@ -152,18 +117,20 @@ const getClosestComponentOrPlaceholder = el => {
 
 /**
  *
- * @param {ProjectComponent} component
+ * @param {Immutable.Map<number, ProjectComponent>} components
+ * @param {number} rootId
  * @return {Function}
  */
-const makeBuilder = component => {
+const makeBuilder = (components, rootId) => {
     const ret = ({ children }) => (
         <Builder
-            component={component}
+            components={components}
+            rootId={rootId}
             children={children}
         />
     );
 
-    ret.displayName = `Builder(${component ? String(component.id) : 'null'})`;
+    ret.displayName = `Builder(${rootId === -1 ? 'null' : rootId})`;
     return ret;
 };
 
@@ -172,11 +139,9 @@ class Preview extends Component {
         super(props);
 
         this.willTryStartDrag = false;
-        this.componentToDrag = null;
+        this.componentIdToDrag = -1;
         this.dragStartX = 0;
         this.dragStartY = 0;
-        this.currentRouteId = null;
-        this.rootComponentIds = null;
         this.routes = null;
         this.routerKey = 0;
 
@@ -210,8 +175,7 @@ class Preview extends Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        return nextProps.project !== this.props.project ||
-            nextProps.currentRouteIsIndexRoute !== this.props.currentRouteIsIndexRoute;
+        return nextProps.project !== this.props.project;
     }
 
     componentWillUnmount() {
@@ -229,25 +193,28 @@ class Preview extends Component {
     /**
      *
      * @param {number} routeId
+     * @param {boolean} isIndexRoute
      * @private
      */
-    _handleChangeRoute(routeId) {
-        this.currentRouteId = routeId;
+    _handleChangeRoute(routeId, isIndexRoute) {
+        this.props.onRouteChange(routeId, isIndexRoute);
     }
 
     /**
      *
-     * @param {ProjectRoute} route
+     * @param {number} routeId
      * @return {Object}
      * @private
      */
-    _createRoute(route) {
+    _createRoute(routeId) {
+        const route = this.props.project.routes.get(routeId);
+
         const ret = {
             path: route.path,
-            component: makeBuilder(route.component)
+            component: makeBuilder(route.components, route.component)
         };
 
-        ret.onEnter = this._handleChangeRoute.bind(this, route.id);
+        ret.onEnter = this._handleChangeRoute.bind(this, route.id, false);
 
         if (route.children.size > 0)
             ret.childRoutes = route.children.map(this._createRoute).toArray();
@@ -257,7 +224,8 @@ class Preview extends Component {
         }
         else if (route.haveIndex) {
             ret.indexRoute = {
-                component: makeBuilder(route.indexComponent)
+                component: makeBuilder(route.components, route.indexComponent),
+                onEnter: this._handleChangeRoute.bind(this, route.id, true)
             };
         }
 
@@ -270,20 +238,8 @@ class Preview extends Component {
      * @private
      */
     _receiveRoutes(routes) {
-        this.rootComponentIds = gatherRootComponentIds(routes);
         this.routes = routes.map(this._createRoute).toArray();
         this.routerKey++;
-    }
-
-    /**
-     *
-     * @param {number} id
-     * @return {ProjectComponent}
-     * @private
-     */
-    _getComponentById(id) {
-        const componentIndexData = this.props.componentsIndex.get(id);
-        return this.props.project.getIn(componentIndexData.path);
     }
 
     /**
@@ -292,12 +248,11 @@ class Preview extends Component {
      * @private
      */
     _getCurrentRootComponentId() {
-        const rootComponentIds = this.rootComponentIds.get(this.currentRouteId);
-        if (!rootComponentIds) return null;
+        const route = this.props.project.routes.get(this.props.currentRouteId);
 
         return this.props.currentRouteIsIndexRoute
-            ? rootComponentIds.indexComponentId
-            : rootComponentIds.componentId
+            ? route.indexComponent
+            : route.component
     }
 
     /**
@@ -307,10 +262,10 @@ class Preview extends Component {
      * @private
      */
     _componentIsInCurrentRoute(componentId) {
-        const componentIndexData = this.props.componentsIndex.get(componentId);
+        const component = getComponentById(this.props.project, componentId);
 
-        return componentIndexData.routeId === this.currentRouteId &&
-            componentIndexData.isIndexRoute === this.props.currentRouteIsIndexRoute;
+        return component.routeId === this.props.currentRouteId &&
+            component.isIndexRoute === this.props.currentRouteIsIndexRoute;
     }
 
     /**
@@ -326,9 +281,9 @@ class Preview extends Component {
         //noinspection JSCheckFunctionSignatures
         const componentId = getClosestComponentId(event.target);
 
-        if (componentId !== null && this._componentIsInCurrentRoute(componentId)) {
+        if (componentId > -1 && this._componentIsInCurrentRoute(componentId)) {
             getContainer().addEventListener('mousemove', this._handleMouseMove);
-            this.componentToDrag = this._getComponentById(componentId);
+            this.componentIdToDrag = componentId;
             this.dragStartX = event.pageX;
             this.dragStartY = event.pageY;
             this.willTryStartDrag = true;
@@ -354,8 +309,7 @@ class Preview extends Component {
                 getContainer().removeEventListener('mousemove', this._handleMouseMove);
                 this.willTryStartDrag = false;
                 this.props.onSetBoundaryComponent(this._getCurrentRootComponentId());
-                this.props.onToggleHighlighting(false);
-                this.props.onComponentStartDrag(this.componentToDrag);
+                this.props.onComponentStartDrag(this.componentIdToDrag);
             }
         }
     }
@@ -367,65 +321,8 @@ class Preview extends Component {
      */
     _handleMouseUp(event) {
         event.stopPropagation();
-
         this.willTryStartDrag = false;
-
-        if (this.props.draggingComponent) {
-            this.props.onSetBoundaryComponent(null);
-
-            const willDrop =
-                this.props.draggingOverPlaceholder && (
-                    this.props.placeholderContainerId === -1 ||
-                    this._componentIsInCurrentRoute(this.props.placeholderContainerId)
-                );
-
-            if (willDrop) {
-                if (this.props.draggedComponent.id !== null) {
-                    // We're dragging an existing component
-                    this.props.onMoveComponent(
-                        this.props.draggedComponent.id,
-                        this.props.placeholderContainerId,
-                        this.props.placeholderAfter
-                    );
-                }
-                else {
-                    // We're dragging a new component from palette
-                    const componentMeta = getComponentMeta(
-                        this.props.draggedComponent.name,
-                        this.props.meta
-                    );
-
-                    const isCompositeComponentWithMultipleLayouts =
-                        componentMeta.kind === 'composite' &&
-                        componentMeta.layouts.length > 1;
-
-                    if (isCompositeComponentWithMultipleLayouts) {
-
-                    }
-                    else {
-                        if (this.props.placeholderContainerId === -1) {
-                            // Creating root component for current route
-                            this.props.onCreateRootComponent(
-                                this.currentRouteId,
-                                this.props.currentRouteIsIndexRoute,
-                                this.props.draggedComponent
-                            );
-                        }
-                        else {
-                            // Creating nested component
-                            this.props.onCreateComponent(
-                                this.props.placeholderContainerId,
-                                this.props.placeholderAfter,
-                                this.props.draggedComponent
-                            );
-                        }
-                    }
-                }
-            }
-
-            this.props.onToggleHighlighting(true);
-            this.props.onComponentStopDrag();
-        }
+        if (this.props.draggingComponent) this.props.onDropComponent();
     }
 
     /**
@@ -438,7 +335,7 @@ class Preview extends Component {
             //noinspection JSCheckFunctionSignatures
             const componentId = getClosestComponentId(event.target);
 
-            if (componentId !== null && this._componentIsInCurrentRoute(componentId))
+            if (componentId > -1 && this._componentIsInCurrentRoute(componentId))
                 this.props.onHighlightComponent(componentId);
         }
 
@@ -469,7 +366,7 @@ class Preview extends Component {
             //noinspection JSCheckFunctionSignatures
             const componentId = getClosestComponentId(event.target);
 
-            if (componentId !== null && this._componentIsInCurrentRoute(componentId))
+            if (componentId > -1 && this._componentIsInCurrentRoute(componentId))
                 this.props.onUnhighlightComponent(componentId);
         }
     }
@@ -484,7 +381,7 @@ class Preview extends Component {
             //noinspection JSCheckFunctionSignatures
             const componentId = getClosestComponentId(event.target);
 
-            if (componentId !== null && this._componentIsInCurrentRoute(componentId))
+            if (componentId > -1 && this._componentIsInCurrentRoute(componentId))
                 this.props.onToggleComponentSelection(componentId);
         }
     }
@@ -508,27 +405,21 @@ Preview.propTypes = {
     // 'cause this value comes from another frame with another instance of immutable.js
     project: PropTypes.any,
     meta: PropTypes.object,
-    componentsIndex: ImmutablePropTypes.map,
-    currentRouteIsIndexRoute: PropTypes.bool,
     draggingComponent: PropTypes.bool,
-    draggedComponent: PropTypes.any,
-    draggingOverPlaceholder: PropTypes.bool,
-    placeholderAfter: PropTypes.number,
-    placeholderContainerId: PropTypes.any, // number or null
     highlightingEnabled: PropTypes.bool,
+    currentRouteId: PropTypes.number,
+    currentRouteIsIndexRoute: PropTypes.bool,
 
     onToggleComponentSelection: PropTypes.func,
     onHighlightComponent: PropTypes.func,
     onUnhighlightComponent: PropTypes.func,
-    onToggleHighlighting: PropTypes.func,
     onSetBoundaryComponent: PropTypes.func,
     onComponentStartDrag: PropTypes.func,
     onComponentStopDrag: PropTypes.func,
     onDragOverComponent: PropTypes.func,
     onDragOverPlaceholder: PropTypes.func,
-    onMoveComponent: PropTypes.func,
-    onCreateComponent: PropTypes.func,
-    onCreateRootComponent: PropTypes.func
+    onDropComponent: PropTypes.func,
+    onRouteChange: PropTypes.func
 };
 
 Preview.defaultProps = {
@@ -541,14 +432,10 @@ Preview.displayName = 'Preview';
 const mapStateToProps = state => ({
     project: state.project.data,
     meta: state.project.meta,
-    componentsIndex: state.project.componentsIndex,
-    currentRouteIsIndexRoute: state.project.currentRouteIsIndexRoute,
     draggingComponent: state.project.draggingComponent,
-    draggedComponent: state.project.draggedComponent,
-    draggingOverPlaceholder: state.project.draggingOverPlaceholder,
-    placeholderAfter: state.project.placeholderAfter,
-    placeholderContainerId: state.project.placeholderContainerId,
-    highlightingEnabled: state.project.highlightingEnabled
+    highlightingEnabled: state.project.highlightingEnabled,
+    currentRouteId: state.project.currentRouteId,
+    currentRouteIsIndexRoute: state.project.currentRouteIsIndexRoute
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -561,14 +448,11 @@ const mapDispatchToProps = dispatch => ({
     onUnhighlightComponent: componentId =>
         void dispatch(unhighlightPreviewComponent(componentId)),
 
-    onToggleHighlighting: enable =>
-        void dispatch(toggleHighlighting(enable)),
-
     onSetBoundaryComponent: componentId =>
         void dispatch(setBoundaryComponent(componentId)),
 
-    onComponentStartDrag: component =>
-        void dispatch(startDragComponent(component)),
+    onComponentStartDrag: componentId =>
+        void dispatch(startDragExistingComponent(componentId)),
 
     onComponentStopDrag: () =>
         void dispatch(stopDragComponent()),
@@ -579,14 +463,11 @@ const mapDispatchToProps = dispatch => ({
     onDragOverPlaceholder: (containerId, afterIdx) =>
         void dispatch(dragOverPlaceholder(containerId, afterIdx)),
 
-    onMoveComponent: (componentId, containerId, position) =>
-        void dispatch(moveComponent(componentId, containerId, position)),
+    onDropComponent: () =>
+        void dispatch(dropComponent()),
 
-    onCreateComponent: (containerId, position, component) =>
-        void dispatch(createComponent(containerId, position, component)),
-
-    onCreateRootComponent: (routeId, isIndexRoute, component) =>
-        void dispatch(createRootComponent(routeId, isIndexRoute, component))
+    onRouteChange: (routeId, isIndexRoute) =>
+        void dispatch(setCurrentRoute(routeId, isIndexRoute))
 });
 
 export default connect(

@@ -18,6 +18,7 @@ import { objectMap } from '../utils/misc';
 const ProjectComponentRecord = Record({
     id: -1,
     parentId: -1,
+    isNew: false,
     name: '',
     title: '',
     props: Map(),

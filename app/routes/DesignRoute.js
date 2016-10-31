@@ -25,7 +25,7 @@ import { Dialog } from '@reactackle/reactackle';
 
 import store from '../store';
 
-import ProjectRecord from '../models/Project';
+import ProjectRecord, { getComponentById } from '../models/Project';
 import ProjectComponentRecord from '../models/ProjectComponent';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
@@ -44,10 +44,8 @@ import {
 
 import { getLocalizedText } from '../utils';
 
-
 //noinspection JSUnresolvedVariable
 import defaultComponentLayoutIcon from '../img/layout_default.svg';
-
 
 import { List } from 'immutable';
 
@@ -123,12 +121,6 @@ class DesignRoute extends Component {
         // TODO: Insert component
     }
 
-    _getParentComponent(component) {
-        const indexEntry = this.props.componentsIndex.get(component.id);
-        if (indexEntry.path.get(indexEntry.path.size - 2) !== 'children') return null;
-        return this.props.project.getIn(indexEntry.path.slice(0, -2));
-    }
-
     render() {
         const { getLocalizedText } = this.props;
         const src = `/preview/${this.props.params.projectName}/index.html`,
@@ -182,9 +174,8 @@ class DesignRoute extends Component {
 
         if (singleComponentSelected) {
             const componentId = this.props.selectedComponentIds.first(),
-                componentIndexData = this.props.componentsIndex.get(componentId),
-                component = this.props.project.getIn(componentIndexData.path),
-                parentComponent = this._getParentComponent(component);
+                component = getComponentById(this.props.project, componentId),
+                parentComponent = getComponentById(component.parentId);
 
             const isRegion = parentComponent
                 ? isCompositeComponent(parentComponent.name, this.props.meta)
@@ -326,7 +317,6 @@ DesignRoute.propTypes = {
     project: PropTypes.instanceOf(ProjectRecord),
     meta: PropTypes.object,
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
-    componentsIndex: ImmutablePropTypes.map,
     routesIndex: ImmutablePropTypes.map,
     selectingComponentLayout: PropTypes.bool,
     draggedComponent: PropTypes.instanceOf(ProjectComponentRecord),
@@ -340,7 +330,6 @@ const mapStateToProps = state => ({
     project: state.project.data,
     meta: state.project.meta,
     selectedComponentIds: state.project.selectedItems,
-    componentsIndex: state.project.componentsIndex,
     routesIndex: state.project.routesIndex,
     selectingComponentLayout: state.design.selectingComponentLayout,
     draggedComponent: state.project.draggedComponent,

@@ -48,29 +48,34 @@ export const getMaxRouteId = project => project.routes.keySeq().max();
 export const getMaxComponentId = project =>
     Math.max(...project.routes.map(_getMaxComponentId));
 
-export const gatherRoutesTreeIds = (project, rootRouteId) => Set().withMutations(ret => {
-    const visitRoute = route => {
-        ret.add(route.id);
+export const gatherRoutesTreeIds = (project, rootRouteId) =>
+    Set().withMutations(ret => {
+        const visitRoute = route => {
+            ret.add(route.id);
 
-        route.children.forEach(childRouteId =>
-            void visitRoute(project.routes.get(childRouteId)));
-    };
+            route.children.forEach(childRouteId =>
+                void visitRoute(project.routes.get(childRouteId)));
+        };
 
-    visitRoute(project.routes.get(rootRouteId));
-});
+        visitRoute(project.routes.get(rootRouteId));
+    });
 
-export const gatherComponentsTreeIds = (route, rootComponentId) => Set().withMutations(ret => {
-    const visitComponent = component => {
-        ret.add(component.id);
+export const gatherComponentsTreeIds = (route, rootComponentId) =>
+    Set().withMutations(ret => {
+        const visitComponent = component => {
+            ret.add(component.id);
 
-        component.children.forEach(childComponentId =>
-            void visitComponent(route.components.get(childComponentId)));
-    };
+            component.children.forEach(childComponentId =>
+                void visitComponent(route.components.get(childComponentId)));
+        };
 
-    visitComponent(route.components.get(rootComponentId));
-});
+        visitComponent(route.components.get(rootComponentId));
+    });
 
 export const getRouteByComponentId = (project, componentId) =>
     project.routes.find(route => route.components.has(componentId));
+
+export const getComponentById = (project, componentId) =>
+    getRouteByComponentId(project, componentId).components.get(componentId);
 
 export default ProjectRecord;

@@ -12,8 +12,7 @@ import {
 import { Record, Set, List } from 'immutable';
 
 const DesignState = Record({
-    treeExpandedItemIds: Set(),
-    selectingComponentLayout: false
+    treeExpandedItemIds: Set()
 });
 
 const isArrayOrList = value => Array.isArray(value) || List.isList(value);

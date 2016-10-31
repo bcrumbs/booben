@@ -35,9 +35,10 @@ import {
     PREVIEW_UNHIGHLIGHT_COMPONENT,
     PREVIEW_TOGGLE_HIGHLIGHTING,
     PREVIEW_SET_BOUNDARY_COMPONENT,
-    PREVIEW_SET_IS_INDEX_ROUTE,
-    PREVIEW_START_DRAG_COMPONENT,
-    PREVIEW_STOP_DRAG_COMPONENT,
+    PREVIEW_SET_CURRENT_ROUTE,
+    PREVIEW_START_DRAG_NEW_COMPONENT,
+    PREVIEW_START_DRAG_EXISTING_COMPONENT,
+    PREVIEW_DROP_COMPONENT,
     PREVIEW_DRAG_OVER_COMPONENT,
     PREVIEW_DRAG_OVER_PLACEHOLDER
 } from '../actions/preview';
@@ -56,10 +57,13 @@ import {
     getMaxComponentId,
     gatherRoutesTreeIds,
     gatherComponentsTreeIds,
-    getRouteByComponentId
+    getRouteByComponentId,
+    getComponentById
 } from '../models/Project';
 
 import { Record, Set } from 'immutable';
+
+import { getComponentMeta } from '../utils/meta';
 
 const propSourceDataToImmutable = {
     static: input => new SourceDataStatic(input),
@@ -83,12 +87,16 @@ const ProjectState = Record({
     highlightingEnabled: true,
     boundaryComponentId: null,
     currentRouteIsIndexRoute: false,
+    currentRouteId: -1,
     draggingComponent: false,
-    draggedComponent: null,
-    draggingOverComponentId: null,
+    draggedComponentId: -1,
+    draggedComponents: null,
+    draggingOverComponentId: -1,
     draggingOverPlaceholder: false,
-    placeholderContainerId: null,
-    placeholderAfter: -1
+    placeholderContainerId: -1,
+    placeholderAfter: -1,
+
+    selectingComponentLayout: false
 });
 
 const addComponents = (state, routeId, isIndexRoute, parentComponentId, position, components) => {
@@ -105,6 +113,7 @@ const addComponents = (state, routeId, isIndexRoute, parentComponentId, position
                     newComponent
                         .merge({
                             id: newComponent.id + nextComponentId,
+                            isNew: false,
                             parentId: newComponent.parentId === -1
                                 ? parentComponentId
                                 : newComponent.parentId + nextComponentId,
@@ -177,6 +186,52 @@ const deleteComponent = (state, componentId) => {
 
     return state;
 };
+
+const moveComponent = (state, componentId, targetComponentId, position) => {
+    const route = getRouteByComponentId(state.data, componentId),
+        component = route.components.get(componentId);
+
+    if (component.parentId === -1)
+        throw new Error('Cannot move root component');
+
+    const sourceChildrenListPath = [
+        'data',
+        'routes',
+        route.id,
+        'components',
+        component.parentId,
+        'children'
+    ];
+
+    state = state.updateIn(
+        sourceChildrenListPath,
+        ids => ids.filter(id => id !== componentId)
+    );
+
+    const targetChildrenListPath = [
+        'data',
+        'routes',
+        route.id,
+        'components',
+        targetComponentId,
+        'children'
+    ];
+
+    return state.updateIn(
+        targetChildrenListPath,
+        ids => ids.insert(position, componentId)
+    );
+};
+
+const initDNDState = state => state.merge({
+    draggingComponent: false,
+    draggedComponents: null,
+    draggingOverComponentId: -1,
+    draggingOverPlaceholder: false,
+    placeholderContainerId: -1,
+    placeholderAfter: -1,
+    highlightingEnabled: true
+});
 
 export default (state = new ProjectState(), action) => {
     switch (action.type) {
@@ -302,38 +357,11 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PROJECT_COMPONENT_MOVE: {
-            const route = getRouteByComponentId(state.data, action.componentId),
-                component = route.components.get(action.componentId);
-
-            if (component.parentId === -1)
-                throw new Error('Cannot move root component');
-
-            const sourceChildrenListPath = [
-                'data',
-                'routes',
-                route.id,
-                'components',
-                component.parentId,
-                'children'
-            ];
-
-            state = state.updateIn(
-                sourceChildrenListPath,
-                ids => ids.filter(id => id !== action.componentId)
-            );
-
-            const targetChildrenListPath = [
-                'data',
-                'routes',
-                route.id,
-                'components',
+            return moveComponent(
+                state,
+                action.componentId,
                 action.targetComponentId,
-                'children'
-            ];
-
-            return state.updateIn(
-                targetChildrenListPath,
-                ids => ids.insert(action.position, action.componentId)
+                action.position
             );
         }
 
@@ -454,30 +482,113 @@ export default (state = new ProjectState(), action) => {
             return state.set('boundaryComponentId', action.componentId);
         }
 
-        case PREVIEW_SET_IS_INDEX_ROUTE: {
-            return state.set('currentRouteIsIndexRoute', action.value);
+        case PREVIEW_SET_CURRENT_ROUTE: {
+            return state.merge({
+                currentRouteId: action.routeId,
+                currentRouteIsIndexRoute: action.isIndexRoute
+            });
         }
 
-        case PREVIEW_START_DRAG_COMPONENT: {
+        case PREVIEW_START_DRAG_NEW_COMPONENT: {
             return state.merge({
                 draggingComponent: true,
-                draggedComponent: action.component
+                draggedComponentId: -1,
+                draggedComponents: action.components,
+                highlightingEnabled: false,
+                highlightedItems: Set()
             });
         }
 
-        case PREVIEW_STOP_DRAG_COMPONENT: {
+        case PREVIEW_START_DRAG_EXISTING_COMPONENT: {
+            const route = getRouteByComponentId(action.componentId);
+
             return state.merge({
-                draggingComponent: false,
-                draggedComponent: null,
-                draggingOverComponentId: null
+                draggingComponent: true,
+                draggedComponentId: action.componentId,
+                draggedComponents: route.components,
+                highlightingEnabled: false,
+                highlightedItems: Set()
             });
+        }
+
+        case PREVIEW_DROP_COMPONENT: {
+            if (!state.draggingComponent) return state;
+            if (!state.draggingOverPlaceholder) return initDNDState(state);
+
+            const container = getComponentById(state.data, state.placeholderContainerId);
+
+            const willDrop =
+                state.placeholderContainerId === -1 || (
+                    container.routeId === state.currentRouteId &&
+                    container.isIndexRoute === state.currentRouteIsIndexRoute
+                );
+
+            if (!willDrop) return initDNDState(state);
+
+            if (state.draggedComponentId > -1) {
+                // We're dragging an existing component
+                state = moveComponent(
+                    state,
+                    state.draggedComponentId,
+                    state.placeholderContainerId,
+                    state.placeholderAfter + 1
+                );
+
+                return initDNDState(state);
+            }
+            else {
+                // We're dragging a new component from palette
+                const rootComponent = state.draggedComponents.get(0);
+
+                const componentMeta = getComponentMeta(
+                    rootComponent.name,
+                    state.meta
+                );
+
+                const isCompositeComponentWithMultipleLayouts =
+                    componentMeta.kind === 'composite' &&
+                    componentMeta.layouts.length > 1;
+
+                if (isCompositeComponentWithMultipleLayouts) {
+                    return state.merge({
+                        selectingComponentLayout: true,
+                        draggingComponent: false
+                    });
+                }
+                else {
+                    if (this.props.placeholderContainerId === -1) {
+                        // Creating root component for current route
+                        state = addComponents(
+                            state,
+                            state.currentRouteId,
+                            state.currentRouteIsIndexRoute,
+                            -1,
+                            0,
+                            state.draggedComponents
+                        );
+                    }
+                    else {
+                        // Creating nested component
+                        state = addComponents(
+                            state,
+                            state.currentRouteId,
+                            state.currentRouteIsIndexRoute,
+                            state.placeholderContainerId,
+                            state.placeholderAfter + 1,
+                            state.draggedComponents
+                        );
+                    }
+
+                    return initDNDState(state);
+                }
+            }
         }
 
         case PREVIEW_DRAG_OVER_COMPONENT: {
             return state.merge({
                 draggingOverComponentId: action.componentId,
                 draggingOverPlaceholder: false,
-                placeholderContainerId: null,
+                placeholderContainerId: -1,
                 placeholderAfter: -1
             });
         }

@@ -18,7 +18,7 @@ import {
     PropsItem
 } from '../../components/PropsList/PropsList';
 
-import ProjectRecord from '../../models/Project';
+import ProjectRecord, { getComponentById } from '../../models/Project';
 
 import { toggleComponentRegion } from '../../actions/project';
 
@@ -39,8 +39,7 @@ class ComponentRegionsEditorComponent extends Component {
         if (this.props.selectedComponentIds.size !== 1) return null;
 
         const componentId = this.props.selectedComponentIds.first(),
-            componentIndexEntry = this.props.componentsIndex.get(componentId),
-            component = this.props.project.getIn(componentIndexEntry.path),
+            component = getComponentById(this.props.project, componentId),
             componentMeta = getComponentMeta(component.name, this.props.meta);
 
         if (componentMeta.kind !== 'composite') return null;
@@ -71,7 +70,6 @@ class ComponentRegionsEditorComponent extends Component {
 ComponentRegionsEditorComponent.propTypes = {
     project: PropTypes.instanceOf(ProjectRecord),
     meta: PropTypes.object,
-    componentsIndex: ImmutablePropTypes.map,
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     language: PropTypes.string,
 
@@ -83,7 +81,6 @@ ComponentRegionsEditorComponent.displayName = 'ComponentRegionsEditor';
 const mapStateToProps = state => ({
     project: state.project.data,
     meta: state.project.meta,
-    componentsIndex: state.project.componentsIndex,
     selectedComponentIds: state.project.selectedItems,
     language: state.app.language,
     getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
