@@ -24,6 +24,8 @@ import { toggleComponentRegion } from '../../actions/project';
 
 import { getComponentMeta, getString } from '../../utils/meta';
 
+import { getLocalizedText } from '../../utils';
+
 //noinspection JSUnresolvedVariable
 import defaultRegionIcon from '../../img/layout_default.svg';
 
@@ -83,7 +85,8 @@ const mapStateToProps = state => ({
     meta: state.project.meta,
     componentsIndex: state.project.componentsIndex,
     selectedComponentIds: state.preview.selectedItems,
-    language: state.app.language
+    language: state.app.language,
+    getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
 });
 
 const mapDispatchToProps = dispatch => ({
