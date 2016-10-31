@@ -332,11 +332,11 @@ DesignRoute.propTypes = {
 const mapStateToProps = state => ({
     project: state.project.data,
     meta: state.project.meta,
-    selectedComponentIds: state.preview.selectedItems,
+    selectedComponentIds: state.project.selectedItems,
     componentsIndex: state.project.componentsIndex,
     routesIndex: state.project.routesIndex,
     selectingComponentLayout: state.design.selectingComponentLayout,
-    draggedComponent: state.preview.draggedComponent,
+    draggedComponent: state.project.draggedComponent,
     language: state.app.language
 });
 

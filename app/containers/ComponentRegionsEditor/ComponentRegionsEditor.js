@@ -82,7 +82,7 @@ const mapStateToProps = state => ({
     project: state.project.data,
     meta: state.project.meta,
     componentsIndex: state.project.componentsIndex,
-    selectedComponentIds: state.preview.selectedItems,
+    selectedComponentIds: state.project.selectedItems,
     language: state.app.language
 });
 

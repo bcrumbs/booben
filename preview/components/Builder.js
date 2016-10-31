@@ -312,8 +312,8 @@ BuilderComponent.displayName = 'Builder';
 
 const mapStateToProps = state => ({
     meta: state.project.meta,
-    draggedComponent: state.preview.draggedComponent,
-    draggingOverComponentId: state.preview.draggingOverComponentId
+    draggedComponent: state.project.draggedComponent,
+    draggingOverComponentId: state.project.draggingOverComponentId
 });
 
 const Builder = connect(mapStateToProps)(BuilderComponent);

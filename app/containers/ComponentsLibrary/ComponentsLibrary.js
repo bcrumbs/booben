@@ -389,7 +389,7 @@ ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
 
 const mapStateToProps = state => ({
     meta: state.project.meta,
-    selectedComponentIds: state.preview.selectedItems,
+    selectedComponentIds: state.project.selectedItems,
     expandedGroups: state.componentsLibrary.expandedGroups,
     focusedComponentName: state.componentsLibrary.focusedComponentName,
     language: state.app.language

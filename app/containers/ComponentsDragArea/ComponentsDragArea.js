@@ -129,8 +129,8 @@ ComponentsDragAreaComponent.propTypes = {
 ComponentsDragAreaComponent.displayName = 'ComponentsDragAreaComponent';
 
 const mapStateToProps = state => ({
-    draggingComponent: state.preview.draggingComponent,
-    draggedComponent: state.preview.draggedComponent
+    draggingComponent: state.project.draggingComponent,
+    draggedComponent: state.project.draggedComponent
 });
 
 export const ComponentsDragArea = connect(

@@ -173,10 +173,10 @@ Overlay.propTypes = {
 };
 
 const mapStateToProps = state => ({
-    selectedComponentIds: state.preview.selectedItems,
-    highlightedComponentIds: state.preview.highlightedItems,
-    boundaryComponentId: state.preview.boundaryComponentId,
-    highlightingEnabled: state.preview.highlightingEnabled
+    selectedComponentIds: state.project.selectedItems,
+    highlightedComponentIds: state.project.highlightedItems,
+    boundaryComponentId: state.project.boundaryComponentId,
+    highlightingEnabled: state.project.highlightingEnabled
 });
 
 export default connect(

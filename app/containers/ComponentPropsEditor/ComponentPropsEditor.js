@@ -400,7 +400,7 @@ ComponentPropsEditorComponent.propTypes = {
 };
 
 const mapStateToProps = state => ({
-    selectedComponentIds: state.preview.selectedItems,
+    selectedComponentIds: state.project.selectedItems,
     project: state.project.data,
     meta: state.project.meta,
     componentsIndex: state.project.componentsIndex,

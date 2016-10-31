@@ -151,8 +151,8 @@ ComponentsTreeViewComponent.displayName = 'ComponentsTreeView';
 
 const mapStateToProps = state => ({
     expandedItemIds: state.design.treeExpandedItemIds,
-    selectedItemIds: state.preview.selectedItems,
-    highlightedItemIds: state.preview.highlightedItems
+    selectedItemIds: state.project.selectedItems,
+    highlightedItemIds: state.project.highlightedItems
 });
 
 const mapDispatchToProps = dispatch => ({

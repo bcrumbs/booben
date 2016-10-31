@@ -16,20 +16,18 @@ import SourceDataDesigner from './SourceDataDesigner';
 import { objectMap } from '../utils/misc';
 
 const ProjectComponentRecord = Record({
-    id: null,
+    id: -1,
+    parentId: -1,
     name: '',
     title: '',
     props: Map(),
     children: List(),
     layout: 0,
-    regionsEnabled: Set()
+    regionsEnabled: Set(),
+    routeId: -1,
+    isIndexRoute: false
 });
 
-/**
- *
- * @type {Object<string, function(input: Object): Immutable.Record>}
- * @const
- */
 const propSourceDataToImmutable = {
     static: input => new SourceDataStatic(input),
     data: input => new SourceDataData(input),
@@ -38,13 +36,9 @@ const propSourceDataToImmutable = {
     designer: input => new SourceDataDesigner(input)
 };
 
-/**
- *
- * @param {Object} input
- * @returns {ProjectComponent}
- */
-export const projectComponentToImmutable = input => new ProjectComponentRecord({
+export const projectComponentToImmutable = (input, routeId, isIndexRoute, parentId) => new ProjectComponentRecord({
     id: input.id,
+    parentId,
     name: input.name,
     title: input.title,
 
@@ -53,10 +47,11 @@ export const projectComponentToImmutable = input => new ProjectComponentRecord({
         sourceData: propSourceDataToImmutable[propMeta.source](propMeta.sourceData)
     }))),
 
-    children: List(input.children.map(projectComponentToImmutable)),
+    children: List(input.children.map(childComponent => childComponent.id)),
     layout: typeof input.layout === 'number' ? input.layout : 0,
-    regionsEnabled: input.regionsEnabled ? Set(input.regionsEnabled) : Set()
+    regionsEnabled: input.regionsEnabled ? Set(input.regionsEnabled) : Set(),
+    routeId,
+    isIndexRoute
 });
 
 export default ProjectComponentRecord;
- 

@@ -542,13 +542,13 @@ const mapStateToProps = state => ({
     project: state.project.data,
     meta: state.project.meta,
     componentsIndex: state.project.componentsIndex,
-    currentRouteIsIndexRoute: state.preview.currentRouteIsIndexRoute,
-    draggingComponent: state.preview.draggingComponent,
-    draggedComponent: state.preview.draggedComponent,
-    draggingOverPlaceholder: state.preview.draggingOverPlaceholder,
-    placeholderAfter: state.preview.placeholderAfter,
-    placeholderContainerId: state.preview.placeholderContainerId,
-    highlightingEnabled: state.preview.highlightingEnabled
+    currentRouteIsIndexRoute: state.project.currentRouteIsIndexRoute,
+    draggingComponent: state.project.draggingComponent,
+    draggedComponent: state.project.draggedComponent,
+    draggingOverPlaceholder: state.project.draggingOverPlaceholder,
+    placeholderAfter: state.project.placeholderAfter,
+    placeholderContainerId: state.project.placeholderContainerId,
+    highlightingEnabled: state.project.highlightingEnabled
 });
 
 const mapDispatchToProps = dispatch => ({
