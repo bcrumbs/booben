@@ -37,22 +37,38 @@ const propSourceDataToImmutable = {
     designer: input => new SourceDataDesigner(input)
 };
 
-export const projectComponentToImmutable = (input, routeId, isIndexRoute, parentId) => new ProjectComponentRecord({
-    id: input.id,
-    parentId,
-    name: input.name,
-    title: input.title,
+export const projectComponentToImmutable = (input, routeId, isIndexRoute, parentId) =>
+    new ProjectComponentRecord({
+        id: input.id,
+        parentId,
+        name: input.name,
+        title: input.title,
 
-    props: Map(objectMap(input.props, propMeta => new ProjectComponentProp({
-        source: propMeta.source,
-        sourceData: propSourceDataToImmutable[propMeta.source](propMeta.sourceData)
-    }))),
+        props: Map(objectMap(input.props, propMeta => new ProjectComponentProp({
+            source: propMeta.source,
+            sourceData: propSourceDataToImmutable[propMeta.source](propMeta.sourceData)
+        }))),
 
-    children: List(input.children.map(childComponent => childComponent.id)),
-    layout: typeof input.layout === 'number' ? input.layout : 0,
-    regionsEnabled: input.regionsEnabled ? Set(input.regionsEnabled) : Set(),
-    routeId,
-    isIndexRoute
-});
+        children: List(input.children.map(childComponent => childComponent.id)),
+        layout: typeof input.layout === 'number' ? input.layout : 0,
+        regionsEnabled: input.regionsEnabled ? Set(input.regionsEnabled) : Set(),
+        routeId,
+        isIndexRoute
+    });
+
+export const componentsToImmutable = (input, routeId, isIndexRoute, parentId) =>
+    Map.withMutations(mut => {
+        const visitComponent = (component, parentId) => {
+            mut.set(
+                component.id,
+                projectComponentToImmutable(component, routeId, isIndexRoute, parentId)
+            );
+
+            component.children.forEach(childComponent =>
+                void visitComponent(childComponent, component.id));
+        };
+
+        visitComponent(input, parentId);
+    });
 
 export default ProjectComponentRecord;

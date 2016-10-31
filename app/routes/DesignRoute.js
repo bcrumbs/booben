@@ -122,22 +122,16 @@ class DesignRoute extends Component {
     }
 
     render() {
-        const { getLocalizedText } = this.props;
-        const src = `/preview/${this.props.params.projectName}/index.html`,
+        const { getLocalizedText } = this.props,
+            src = `/preview/${this.props.params.projectName}/index.html`,
             routeId = parseInt(this.props.params.routeId),
             isIndexRoute = this.props.location.pathname.endsWith('/index'),
-            routeIndexEntry = this.props.routesIndex.get(routeId);
-
-        // TODO: Show error screen
-        if (!routeIndexEntry) return null;
-
-        const route = this.props.project.getIn(routeIndexEntry.path);
-
+            route = this.props.project.routes.get(routeId);
 
         const libraryTool = new ToolRecord({
             id: TOOL_ID_LIBRARY,
             icon: LIBRARY_ICON,
-            name: 'Components Library',
+            name: getLocalizedText('componentsLibrary'),
             title: getLocalizedText('componentsLibrary'),
             sections: List([
                 new ToolSectionRecord({
@@ -147,7 +141,6 @@ class DesignRoute extends Component {
             ]),
             windowMinWidth: 360
         });
-
 
         const treeTool = new ToolRecord({
             id: TOOL_ID_COMPONENTS_TREE,
@@ -220,7 +213,7 @@ class DesignRoute extends Component {
         const propsEditorTool = new ToolRecord({
             id: TOOL_ID_PROPS_EDITOR,
             icon: PROPS_EDITOR_ICON,
-            name: 'Component configuration',
+            name: getLocalizedText('componentConfiguration'),
             title: title,
             titleEditable: singleComponentSelected,
             titlePlaceholder: getLocalizedText('enterTitle'),
@@ -283,7 +276,6 @@ class DesignRoute extends Component {
                     store={store}
                     url={src}
                     path={route.fullPath}
-                    isIndexRoute={isIndexRoute}
                 />
 
                 <Dialog
@@ -317,7 +309,6 @@ DesignRoute.propTypes = {
     project: PropTypes.instanceOf(ProjectRecord),
     meta: PropTypes.object,
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
-    routesIndex: ImmutablePropTypes.map,
     selectingComponentLayout: PropTypes.bool,
     draggedComponent: PropTypes.instanceOf(ProjectComponentRecord),
     language: PropTypes.string,
@@ -326,15 +317,14 @@ DesignRoute.propTypes = {
     onDeleteComponent: PropTypes.func
 };
 
-const mapStateToProps = state => ({
-    project: state.project.data,
-    meta: state.project.meta,
-    selectedComponentIds: state.project.selectedItems,
-    routesIndex: state.project.routesIndex,
-    selectingComponentLayout: state.design.selectingComponentLayout,
-    draggedComponent: state.project.draggedComponent,
-    language: state.app.language,
-    getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
+const mapStateToProps = ({ project, design, app }) => ({
+    project: project.data,
+    meta: project.meta,
+    selectedComponentIds: project.selectedItems,
+    selectingComponentLayout: design.selectingComponentLayout,
+    draggedComponent: project.draggedComponent,
+    language: app.language,
+    getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
 });
 
 const mapDispatchToProps = dispatch => ({

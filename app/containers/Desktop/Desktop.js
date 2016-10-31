@@ -118,7 +118,6 @@ DesktopComponent.propTypes = {
         PropTypes.string
     ),
 
-    toolsPanelActiveTool: PropTypes.instanceOf(ToolType),
     toolsPanelIsExpanded: PropTypes.bool,
 
     onToolsPanelCollapse: PropTypes.func,
@@ -139,9 +138,9 @@ DesktopComponent.defaultProps = {
 
 DesktopComponent.displayName = 'Desktop';
 
-const mapStateToProps = state => ({
-    toolStates: state.desktop.toolStates,
-    toolsPanelIsExpanded: state.desktop.toolsPanelIsExpanded
+const mapStateToProps = ({ desktop }) => ({
+    toolStates: desktop.toolStates,
+    toolsPanelIsExpanded: desktop.toolsPanelIsExpanded
 });
 
 const mapDispatchToProps = dispatch => ({

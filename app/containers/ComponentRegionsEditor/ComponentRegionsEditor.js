@@ -78,12 +78,12 @@ ComponentRegionsEditorComponent.propTypes = {
 
 ComponentRegionsEditorComponent.displayName = 'ComponentRegionsEditor';
 
-const mapStateToProps = state => ({
-    project: state.project.data,
-    meta: state.project.meta,
-    selectedComponentIds: state.project.selectedItems,
-    language: state.app.language,
-    getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
+const mapStateToProps = ({ project, app }) => ({
+    project: project.data,
+    meta: project.meta,
+    selectedComponentIds: project.selectedItems,
+    language: app.language,
+    getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
 });
 
 const mapDispatchToProps = dispatch => ({

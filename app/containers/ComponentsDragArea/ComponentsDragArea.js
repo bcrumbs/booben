@@ -20,22 +20,21 @@ class ComponentsDragAreaComponent extends Component {
         super(props);
 
         this.dragging = false;
-        this.element = document.body;
+        this.avatarElement = null;
         this.posX = 0;
         this.posY = 0;
-        this.avatarElement = null;
         this.needRAF = true;
         this.animationFrame = null;
 
         this._handleMouseMove = this._handleMouseMove.bind(this);
         this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
 
-        if (props.draggingComponent) this._handleStartDrag(props.draggedComponent);
+        if (props.draggingComponent) this._handleStartDrag();
     }
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.draggingComponent) {
-            if (!this.dragging) this._handleStartDrag(nextProps.draggedComponent);
+            if (!this.dragging) this._handleStartDrag();
         }
         else {
             if (this.dragging) this._handleStopDrag();
@@ -44,11 +43,14 @@ class ComponentsDragAreaComponent extends Component {
 
     /**
      *
-     * @param {ProjectComponent} component
      * @returns {HTMLElement}
      * @private
      */
-    _createAvatarElement(component) {
+    _createAvatarElement() {
+        const component = this.props.draggedComponents.get(
+            this.props.draggedComponentId > -1 ? this.props.draggedComponentId : 0
+        );
+
         const ret = document.createElement('div');
         ret.innerText = component.title || component.name;
         ret.style.position = 'absolute';
@@ -58,13 +60,12 @@ class ComponentsDragAreaComponent extends Component {
 
     /**
      *
-     * @param {ProjectComponent} component
      * @private
      */
-    _handleStartDrag(component) {
+    _handleStartDrag() {
         window.addEventListener('mousemove', this._handleMouseMove);
-        this.avatarElement = this._createAvatarElement(component);
-        this.element.appendChild(this.avatarElement);
+        this.avatarElement = this._createAvatarElement();
+        document.body.appendChild(this.avatarElement);
         this.dragging = true;
     }
 
@@ -80,9 +81,8 @@ class ComponentsDragAreaComponent extends Component {
             this.animationFrame = null;
         }
 
-        this.element.removeChild(this.avatarElement);
+        document.body.removeChild(this.avatarElement);
         this.avatarElement = null;
-
         this.posX = 0;
         this.posY = 0;
         this.needRAF = true;
@@ -123,14 +123,16 @@ class ComponentsDragAreaComponent extends Component {
 
 ComponentsDragAreaComponent.propTypes = {
     draggingComponent: PropTypes.bool,
-    draggedComponent: PropTypes.any
+    draggedComponentId: PropTypes.number,
+    draggedComponents: PropTypes.any
 };
 
-ComponentsDragAreaComponent.displayName = 'ComponentsDragAreaComponent';
+ComponentsDragAreaComponent.displayName = 'ComponentsDragArea';
 
-const mapStateToProps = state => ({
-    draggingComponent: state.project.draggingComponent,
-    draggedComponent: state.project.draggedComponent
+const mapStateToProps = ({ project }) => ({
+    draggingComponent: project.draggingComponent,
+    draggedComponentId: project.draggedComponentId,
+    draggedComponents: project.draggedComponents
 });
 
 export const ComponentsDragArea = connect(

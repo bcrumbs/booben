@@ -33,8 +33,6 @@ import {
     PREVIEW_TOGGLE_COMPONENT_SELECTION,
     PREVIEW_HIGHLIGHT_COMPONENT,
     PREVIEW_UNHIGHLIGHT_COMPONENT,
-    PREVIEW_TOGGLE_HIGHLIGHTING,
-    PREVIEW_SET_BOUNDARY_COMPONENT,
     PREVIEW_SET_CURRENT_ROUTE,
     PREVIEW_START_DRAG_NEW_COMPONENT,
     PREVIEW_START_DRAG_EXISTING_COMPONENT,
@@ -85,7 +83,6 @@ const ProjectState = Record({
     selectedItems: Set(),
     highlightedItems: Set(),
     highlightingEnabled: true,
-    boundaryComponentId: null,
     currentRouteIsIndexRoute: false,
     currentRouteId: -1,
     draggingComponent: false,
@@ -376,8 +373,8 @@ export default (state = new ProjectState(), action) => {
                 highlightedItems => highlightedItems.delete(action.componentId)
             );
 
-            if (state.boundaryComponentId === action.componentId)
-                state = state.set('boundaryComponentId', null);
+            if (state.draggedComponentId === action.componentId)
+                state = initDNDState(state);
 
             return deleteComponent(state, action.componentId);
         }
@@ -445,18 +442,6 @@ export default (state = new ProjectState(), action) => {
             return state.update('highlightedItems', set => set.delete(action.componentId));
         }
 
-        case PREVIEW_TOGGLE_HIGHLIGHTING: {
-            if (state.highlightingEnabled === action.enable) {
-                return state;
-            }
-            else {
-                return state.merge({
-                    highlightingEnabled: action.enable,
-                    highlightedItems: Set()
-                });
-            }
-        }
-
         case PREVIEW_SELECT_COMPONENT: {
             if (action.exclusive) {
                 return state.set('selectedItems', Set([action.componentId]));
@@ -476,10 +461,6 @@ export default (state = new ProjectState(), action) => {
                 : set => set.add(action.componentId);
 
             return state.update('selectedItems', updater);
-        }
-
-        case PREVIEW_SET_BOUNDARY_COMPONENT: {
-            return state.set('boundaryComponentId', action.componentId);
         }
 
         case PREVIEW_SET_CURRENT_ROUTE: {

@@ -9,7 +9,6 @@ import { Record, List } from 'immutable';
 
 const StructureState = Record({
     selectedRouteId: -1,
-    selectedRouteIndexes: List(),
     indexRouteSelected: false
 });
 
@@ -18,7 +17,6 @@ export default (state = new StructureState(), action) => {
         case STRUCTURE_SELECT_ROUTE:
             return state.merge({
                 selectedRouteId: action.routeId,
-                selectedRouteIndexes: action.indexes,
                 indexRouteSelected: action.indexRouteSelected
             });
 

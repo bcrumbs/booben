@@ -5,8 +5,6 @@ export const PREVIEW_DESELECT_COMPONENT = 'PREVIEW_DESELECT_COMPONENT';
 export const PREVIEW_TOGGLE_COMPONENT_SELECTION = 'PREVIEW_TOGGLE_COMPONENT_SELECTION';
 export const PREVIEW_HIGHLIGHT_COMPONENT = 'PREVIEW_HIGHLIGHT_COMPONENT';
 export const PREVIEW_UNHIGHLIGHT_COMPONENT = 'PREVIEW_UNHIGHLIGHT_COMPONENT';
-export const PREVIEW_TOGGLE_HIGHLIGHTING = 'PREVIEW_TOGGLE_HIGHLIGHTING';
-export const PREVIEW_SET_BOUNDARY_COMPONENT = 'PREVIEW_SET_BOUNDARY_COMPONENT';
 export const PREVIEW_SET_CURRENT_ROUTE = 'PREVIEW_SET_CURRENT_ROUTE';
 export const PREVIEW_START_DRAG_NEW_COMPONENT = 'PREVIEW_START_DRAG_NEW_COMPONENT';
 export const PREVIEW_START_DRAG_EXISTING_COMPONENT = 'PREVIEW_START_DRAG_EXISTING_COMPONENT';
@@ -58,24 +56,6 @@ export const highlightPreviewComponent = componentId => ({
  */
 export const unhighlightPreviewComponent = componentId => ({
     type: PREVIEW_UNHIGHLIGHT_COMPONENT,
-    componentId
-});
-
-/**
- * @return {Object}
- */
-export const toggleHighlighting = enable => ({
-    type: PREVIEW_TOGGLE_HIGHLIGHTING,
-    enable
-});
-
-/**
- *
- * @param {?number} componentId
- * @return {Object}
- */
-export const setBoundaryComponent = componentId => ({
-    type: PREVIEW_SET_BOUNDARY_COMPONENT,
     componentId
 });
 

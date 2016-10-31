@@ -46,10 +46,10 @@ AppRoute.propTypes = {
 
 AppRoute.displayName = 'AppRoute';
 
-const mapStateToProps = state => ({
-    projectName: state.project.projectName,
-    projectLoadState: state.project.loadState,
-    projectLoadError: state.project.error
+const mapStateToProps = ({ project }) => ({
+    projectName: project.projectName,
+    projectLoadState: project.loadState,
+    projectLoadError: project.error
 });
 
 const mapDispatchToProps = dispatch => ({

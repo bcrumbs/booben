@@ -11,7 +11,6 @@ import {
     toggleComponentSelection,
     highlightPreviewComponent,
     unhighlightPreviewComponent,
-    setBoundaryComponent,
     startDragExistingComponent,
     dragOverComponent,
     dragOverPlaceholder,
@@ -308,7 +307,6 @@ class Preview extends Component {
             if (willStartDrag) {
                 getContainer().removeEventListener('mousemove', this._handleMouseMove);
                 this.willTryStartDrag = false;
-                this.props.onSetBoundaryComponent(this._getCurrentRootComponentId());
                 this.props.onComponentStartDrag(this.componentIdToDrag);
             }
         }
@@ -398,7 +396,6 @@ class Preview extends Component {
 }
 
 Preview.propTypes = {
-    overlayDomNode: React.PropTypes.object,
     interactive: PropTypes.bool,
 
     // Can't use ImmutablePropTypes.record or PropTypes.instanceOf(ProjectRecord) here
@@ -413,9 +410,7 @@ Preview.propTypes = {
     onToggleComponentSelection: PropTypes.func,
     onHighlightComponent: PropTypes.func,
     onUnhighlightComponent: PropTypes.func,
-    onSetBoundaryComponent: PropTypes.func,
     onComponentStartDrag: PropTypes.func,
-    onComponentStopDrag: PropTypes.func,
     onDragOverComponent: PropTypes.func,
     onDragOverPlaceholder: PropTypes.func,
     onDropComponent: PropTypes.func,
@@ -423,19 +418,18 @@ Preview.propTypes = {
 };
 
 Preview.defaultProps = {
-    overlayDomNode: null,
     interactive: false
 };
 
 Preview.displayName = 'Preview';
 
-const mapStateToProps = state => ({
-    project: state.project.data,
-    meta: state.project.meta,
-    draggingComponent: state.project.draggingComponent,
-    highlightingEnabled: state.project.highlightingEnabled,
-    currentRouteId: state.project.currentRouteId,
-    currentRouteIsIndexRoute: state.project.currentRouteIsIndexRoute
+const mapStateToProps = ({ project }) => ({
+    project: project.data,
+    meta: project.meta,
+    draggingComponent: project.draggingComponent,
+    highlightingEnabled: project.highlightingEnabled,
+    currentRouteId: project.currentRouteId,
+    currentRouteIsIndexRoute: project.currentRouteIsIndexRoute
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -448,14 +442,8 @@ const mapDispatchToProps = dispatch => ({
     onUnhighlightComponent: componentId =>
         void dispatch(unhighlightPreviewComponent(componentId)),
 
-    onSetBoundaryComponent: componentId =>
-        void dispatch(setBoundaryComponent(componentId)),
-
     onComponentStartDrag: componentId =>
         void dispatch(startDragExistingComponent(componentId)),
-
-    onComponentStopDrag: () =>
-        void dispatch(stopDragComponent()),
 
     onDragOverComponent: componentId =>
         void dispatch(dragOverComponent(componentId)),

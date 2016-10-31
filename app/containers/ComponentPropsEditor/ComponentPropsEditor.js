@@ -287,15 +287,20 @@ class ComponentPropsEditorComponent extends Component {
 
     render() {
         const { getLocalizedText } = this.props;
+
         if (this.props.selectedComponentIds.size === 0) {
             return (
-                <BlockContentPlaceholder text={ getLocalizedText('selectAComponent') }/>
+                <BlockContentPlaceholder
+                    text={getLocalizedText('selectAComponent')}
+                />
             );
         }
 
         if (this.props.selectedComponentIds.size > 1) {
             return (
-                <BlockContentPlaceholder text={ getLocalizedText('multipleComponentsSelected') }/>
+                <BlockContentPlaceholder
+                    text={getLocalizedText('multipleComponentsSelected')}
+                />
             );
         }
 
@@ -328,7 +333,7 @@ class ComponentPropsEditorComponent extends Component {
         if (renderablePropNames.length === 0) {
             return (
                 <BlockContentPlaceholder
-                    text={ getLocalizedText('thisComponentDoesntHaveEditableAttributes') }
+                    text={getLocalizedText('thisComponentDoesntHaveEditableAttributes')}
                 />
             );
         }
@@ -397,12 +402,12 @@ ComponentPropsEditorComponent.propTypes = {
     onPropValueChange: PropTypes.func
 };
 
-const mapStateToProps = state => ({
-    project: state.project.data,
-    meta: state.project.meta,
-    selectedComponentIds: state.project.selectedItems,
-    language: state.app.language,
-    getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
+const mapStateToProps = ({ project, app }) => ({
+    project: project.data,
+    meta: project.meta,
+    selectedComponentIds: project.selectedItems,
+    language: app.language,
+    getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
 });
 
 const mapDispatchToProps = dispatch => ({

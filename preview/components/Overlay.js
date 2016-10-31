@@ -151,9 +151,21 @@ class Overlay extends Component {
         const selectBoxes =
             this._renderBoundingBoxes(this.props.selectedComponentIds, 'green');
 
-        const rootComponentBox = this.props.boundaryComponentId !== null
-            ? this._renderBoundingBoxes(Set([this.props.boundaryComponentId]), 'red')
-            : null;
+        let rootComponentBox = null;
+        if (this.props.draggingComponent) {
+            const currentRoute = this.props.project.routes.get(this.props.currentRouteId);
+
+            const boundaryComponentId = this.props.currentRouteIsIndexRoute
+                ? currentRoute.indexComponent
+                : currentRoute.component;
+
+            if (boundaryComponentId > -1) {
+                rootComponentBox = this._renderBoundingBoxes(
+                    Set([this.props.boundaryComponentId]),
+                    'red'
+                );
+            }
+        }
 
         return (
             <div style={overlayStyle}>
@@ -166,17 +178,23 @@ class Overlay extends Component {
 }
 
 Overlay.propTypes = {
+    project: PropTypes.any,
     selectedComponentIds: ImmutablePropTypes.set,
     highlightedComponentIds: ImmutablePropTypes.set,
-    boundaryComponentId: PropTypes.any,
-    highlightingEnabled: PropTypes.bool
+    highlightingEnabled: PropTypes.bool,
+    draggingComponent: PropTypes.bool,
+    currentRouteId: PropTypes.number,
+    currentRouteIsIndexRoute: PropTypes.bool
 };
 
 const mapStateToProps = state => ({
+    project: state.project.data,
     selectedComponentIds: state.project.selectedItems,
     highlightedComponentIds: state.project.highlightedItems,
-    boundaryComponentId: state.project.boundaryComponentId,
-    highlightingEnabled: state.project.highlightingEnabled
+    highlightingEnabled: state.project.highlightingEnabled,
+    draggingComponent: state.project.draggingComponent,
+    currentRouteId: state.project.currentRouteId,
+    currentRouteIsIndexRoute: state.project.currentRouteIsIndexRoute
 });
 
 export default connect(
