@@ -278,8 +278,8 @@ class DesignRoute extends Component {
         }
 
         const confirmDeleteDialogButtons = [
-            { text: 'Delete', onPress: this._handleDeleteComponentConfirm },
-            { text: 'Cancel', onPress: this._handleDeleteComponentCancel }
+            { text: getLocalizedText('delete'), onPress: this._handleDeleteComponentConfirm },
+            { text: getLocalizedText('cancel'), onPress: this._handleDeleteComponentCancel }
         ];
 
         return (
@@ -296,7 +296,7 @@ class DesignRoute extends Component {
                 />
 
                 <Dialog
-                    title="Select layout"
+                    title={ getLocalizedText('selectLayout') }
                     backdrop
                     minWidth={400}
                     visible={this.props.selectingComponentLayout}
@@ -305,7 +305,7 @@ class DesignRoute extends Component {
                 </Dialog>
 
                 <Dialog
-                    title="Delete component"
+                    title={ getLocalizedText('deleteComponent') }
                     backdrop
                     minWidth={400}
                     buttons={confirmDeleteDialogButtons}
@@ -315,7 +315,7 @@ class DesignRoute extends Component {
                     onClose={this._handleConfirmDeleteComponentDialogClose}
                     onEnterKeyPress={this._handleDeleteComponentConfirm}
                 >
-                    Are you sure you want to delete this component?
+                    { getLocalizedText('deleteThisComponentQuestion') }
                 </Dialog>
             </Desktop>
         );

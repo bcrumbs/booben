@@ -44,7 +44,7 @@ class RouteEditorComponent extends Component {
         return nextProps.haveSelectedRoute !== this.props.haveSelectedRoute ||
             nextProps.selectedRouteIndexes !== this.props.selectedRouteIndexes ||
             nextProps.routes !== this.props.routes ||
-            nextProps.getLocalizedText !== this.props.getLocalizedText;
+            nextProps.language !== this.props.language;
     }
 
     componentWillReceiveProps(nextProps) {
@@ -199,6 +199,7 @@ const mapStateToProps = state => ({
     haveSelectedRoute: state.structure.selectedRouteId !== -1,
     selectedRouteIndexes: state.structure.selectedRouteIndexes,
     indexRouteSelected: state.structure.indexRouteSelected,
+    language: state.app.language,
     getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
 });
 

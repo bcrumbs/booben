@@ -37,6 +37,9 @@
   "componentConfiguration": "Component configuration",
   "enterTitle": "Enter title",
   "componentsLibrary": "Components library",
+  "deleteThisComponentQuestion": "Are you sure you want to delete this component?",
+  "selectLayout": "Select layout",
+  "deleteComponent": "Delete component",
 
   "selectAComponent": "Select a component",
   "multipleComponentsSelected": "Multiple components selected",

@@ -37,6 +37,9 @@
   "componentConfiguration": "Конфигурация компонента",
   "enterTitle": "Введите название",
   "componentsLibrary": "Библиотека компонентов",
+  "deleteThisComponentQuestion": "Вы уверены, что хотите удалить текущий компонент?",
+  "selectLayout": "Выбрать слой",
+  "deleteComponent": "Удаление компонента",
 
   "selectAComponent": "Выбрать компонент",
   "multipleComponentsSelected": "Выбрано несколько компонентов",

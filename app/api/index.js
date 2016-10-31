@@ -36,11 +36,14 @@ export const getMetadata = projectName =>
             return data;
         });
 
+/**
+  * @param {string} language
+  *
+  */
 export const getLocalization = language =>
     fetch(`localization/${language}.json`)
         .then(res => res.json())
         .then(data => {
             if (data.error) throw new Error(data.error);
             return data;
-        })
-        .catch(err => console.log(err));
+        });

@@ -31,10 +31,12 @@ import { List } from 'immutable';
 
 const setToolsOnEnter = toolIds => () => void store.dispatch(setTools(toolIds));
 
+/*
+ * Testing
+ */
 window.abc = (lang) => store.dispatch(loadLocalization(lang));
 
-abc('en');
-
+store.dispatch(loadLocalization('en'))
 
 const playgroundToolIds = [];
 playgroundRouteTools.forEach(group =>

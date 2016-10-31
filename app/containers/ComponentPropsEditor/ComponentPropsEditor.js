@@ -291,6 +291,7 @@ class ComponentPropsEditorComponent extends Component {
     }
 
     render() {
+        const { getLocalizedText } = this.props;
         if (this.props.selectedComponentIds.size === 0) {
             return (
                 <BlockContentPlaceholder text={ getLocalizedText('selectAComponent') }/>

@@ -1,4 +1,8 @@
+/**
+  * @author Oleg Nosov
+  */
 'use strict';
+
 import { getLocalization } from '../api';
 
 export const APP_LOCALIZATION_LOADING = 'APP_LOCALIZATION_LOADING';
@@ -6,11 +10,11 @@ export const APP_LOCALIZATION_LOAD_SUCCESS = 'APP_LOCALIZATION_LOAD_SUCCESS';
 export const APP_LOCALIZATION_LOAD_FAILURE = 'APP_LOCALIZATION_LOAD_FAILURE';
 
 /**
- *
- * @param {string} language
- * @param {Object} localization
- * @returns {Object}
- */
+  *
+  * @param {string} language
+  * @param {Object} localization
+  * @return {Object}
+  */
 export const localizationLoadSuccess = (language, localization) => ({
   type: APP_LOCALIZATION_LOAD_SUCCESS,
   language,
@@ -20,17 +24,24 @@ export const localizationLoadSuccess = (language, localization) => ({
 
 /**
   * @param {string} error
-  * @returns {Object}
+  * @return {Object}
   */
 export const localizationLoadFailure = error => ({
   type: APP_LOCALIZATION_LOAD_FAILURE,
   error
 });
 
+/**
+  * @return {Object}
+  */
 export const localizationLoading = () => ({
   type: APP_LOCALIZATION_LOADING
 });
 
+/**
+  * @param {string} language
+  * @return {function(dispatch: function(action: Object))}
+  */
 export const loadLocalization = language => dispatch => {
   dispatch(localizationLoading());
   getLocalization(language)
