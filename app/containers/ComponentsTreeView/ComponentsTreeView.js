@@ -36,6 +36,8 @@ import {
 
 import ProjectRouteRecord from '../../models/ProjectRoute';
 
+import { getLocalizedText } from '../../utils';
+
 import { List } from 'immutable';
 
 class ComponentsTreeViewComponent extends Component {
@@ -109,6 +111,7 @@ class ComponentsTreeViewComponent extends Component {
     }
 
     render() {
+        const { getLocalizedText } = this.props;
         const rootComponent = this.props.isIndexRoute
             ? this.props.route.indexComponent
             : this.props.route.component;
@@ -116,7 +119,7 @@ class ComponentsTreeViewComponent extends Component {
         if (!rootComponent) {
             return (
                 <BlockContentPlaceholder
-                    text="There are no components in this route"
+                    text={getLocalizedText('thereAreNoComponentsInThisRoute')}
                 />
             );
         }
@@ -152,7 +155,8 @@ ComponentsTreeViewComponent.displayName = 'ComponentsTreeView';
 const mapStateToProps = state => ({
     expandedItemIds: state.design.treeExpandedItemIds,
     selectedItemIds: state.project.selectedItems,
-    highlightedItemIds: state.project.highlightedItems
+    highlightedItemIds: state.project.highlightedItems,
+    getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
 });
 
 const mapDispatchToProps = dispatch => ({

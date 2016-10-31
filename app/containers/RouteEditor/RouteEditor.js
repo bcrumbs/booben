@@ -24,7 +24,7 @@ import ProjectRouteRecord from '../../models/ProjectRoute';
 
 import { updateRouteField } from '../../actions/project';
 
-import { getRouteByIndexes } from '../../utils';
+import { getRouteByIndexes, getLocalizedText } from '../../utils';
 
 class RouteEditorComponent extends Component {
     constructor(props) {
@@ -43,7 +43,8 @@ class RouteEditorComponent extends Component {
     shouldComponentUpdate(nextProps) {
         return nextProps.haveSelectedRoute !== this.props.haveSelectedRoute ||
             nextProps.selectedRouteIndexes !== this.props.selectedRouteIndexes ||
-            nextProps.routes !== this.props.routes;
+            nextProps.routes !== this.props.routes ||
+            nextProps.language !== this.props.language;
     }
 
     componentWillReceiveProps(nextProps) {
@@ -87,20 +88,21 @@ class RouteEditorComponent extends Component {
     }
 
     render() {
+        const { getLocalizedText } = this.props;
         if (!this.props.haveSelectedRoute || !this._route) return null;
 
         if (this.props.indexRouteSelected) {
             return (
                 <BlockContentBox>
                     <BlockContentBoxHeading>
-                        Index route properties
+                      { getLocalizedText('indexRouteProperties') }
                     </BlockContentBoxHeading>
 
                     <BlockContentBoxItem>
                         <PropsList>
                             <PropsItem
                                 type="textarea"
-                                label="Description"
+                                label={ getLocalizedText('description') }
                                 value={this._route.indexRouteDescription}
                                 onChange={this._handleIndexRouteDescriptionChange}
                             />
@@ -117,7 +119,7 @@ class RouteEditorComponent extends Component {
             redirectUrlInput = (
                 <PropsItem
                     type="input"
-                    label="Redirect to"
+                    label={ getLocalizedText('redirectTo') }
                     value={this._route.redirectTo}
                     onChange={this._handleRedirectToChange}
                 />
@@ -127,7 +129,7 @@ class RouteEditorComponent extends Component {
             haveIndexToggle = (
                 <PropsItem
                     type="toggle"
-                    label="Index route"
+                    label={ getLocalizedText('indexRoute') }
                     value={this._route.haveIndex}
                     onChange={this._handleHaveIndexChange}
                 />
@@ -136,26 +138,26 @@ class RouteEditorComponent extends Component {
 
         return (
             <BlockContentBox>
-                <BlockContentBoxHeading>Route properties</BlockContentBoxHeading>
+                <BlockContentBoxHeading> { getLocalizedText('routeProperties') }</BlockContentBoxHeading>
                 <BlockContentBoxItem>
                     <PropsList>
                         <PropsItem
                             type="input"
-                            label="Path"
+                            label={ getLocalizedText('path') }
                             value={this._route.path}
                             onChange={this._handlePathChange}
                         />
 
                         <PropsItem
                             type="textarea"
-                            label="Description"
+                            label={ getLocalizedText('description') }
                             value={this._route.description}
                             onChange={this._handleDescriptionChange}
                         />
 
                         <PropsItem
                             type="toggle"
-                            label="Index redirect"
+                            label={ getLocalizedText('indexRedirect') }
                             value={this._route.haveRedirect}
                             onChange={this._handleHaveRedirectChange}
                         />
@@ -196,7 +198,9 @@ const mapStateToProps = state => ({
     routes: state.project.data.routes,
     haveSelectedRoute: state.structure.selectedRouteId !== -1,
     selectedRouteIndexes: state.structure.selectedRouteIndexes,
-    indexRouteSelected: state.structure.indexRouteSelected
+    indexRouteSelected: state.structure.indexRouteSelected,
+    language: state.app.language,
+    getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
 });
 
 const mapDispatchToProps = dispatch => ({

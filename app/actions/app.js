@@ -1,21 +1,50 @@
 /**
- * @author Dmitriy Bizyaev
- */
-
+  * @author Oleg Nosov
+  */
 'use strict';
 
-/**
- *
- * @type {string}
- */
-export const APP_SET_LANGUAGE = 'APP_SET_LANGUAGE';
+import { getLocalization } from '../api';
+
+export const APP_LOCALIZATION_LOADING = 'APP_LOCALIZATION_LOADING';
+export const APP_LOCALIZATION_LOAD_SUCCESS = 'APP_LOCALIZATION_LOAD_SUCCESS';
+export const APP_LOCALIZATION_LOAD_FAILURE = 'APP_LOCALIZATION_LOAD_FAILURE';
 
 /**
- *
- * @param {string} language
- * @returns {Object}
- */
-export const setLanguage = language => ({
-    type: APP_SET_LANGUAGE,
-    language
+  *
+  * @param {string} language
+  * @param {Object} localization
+  * @return {Object}
+  */
+export const localizationLoadSuccess = (language, localization) => ({
+  type: APP_LOCALIZATION_LOAD_SUCCESS,
+  language,
+  localization
 });
+
+
+/**
+  * @param {string} error
+  * @return {Object}
+  */
+export const localizationLoadFailure = error => ({
+  type: APP_LOCALIZATION_LOAD_FAILURE,
+  error
+});
+
+/**
+  * @return {Object}
+  */
+export const localizationLoading = () => ({
+  type: APP_LOCALIZATION_LOADING
+});
+
+/**
+  * @param {string} language
+  * @return {function(dispatch: function(action: Object))}
+  */
+export const loadLocalization = language => dispatch => {
+  dispatch(localizationLoading());
+  getLocalization(language)
+    .then((localization) => dispatch(localizationLoadSuccess(language, localization)))
+    .catch(localizationLoadFailure);
+};

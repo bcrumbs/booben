@@ -42,10 +42,14 @@ import {
     getString
 } from '../utils/meta';
 
-import { List } from 'immutable';
+import { getLocalizedText } from '../utils';
+
 
 //noinspection JSUnresolvedVariable
 import defaultComponentLayoutIcon from '../img/layout_default.svg';
+
+
+import { List } from 'immutable';
 
 
 const TOOL_ID_LIBRARY = 'componentsLibrary';
@@ -61,20 +65,6 @@ export const DESIGN_TOOL_IDS = List([
     TOOL_ID_COMPONENTS_TREE,
     TOOL_ID_PROPS_EDITOR
 ]);
-
-const libraryTool = new ToolRecord({
-    id: TOOL_ID_LIBRARY,
-    icon: LIBRARY_ICON,
-    name: 'Components Library',
-    title: 'Components Library',
-    sections: List([
-        new ToolSectionRecord({
-            name: '',
-            component: ComponentsLibrary
-        })
-    ]),
-    windowMinWidth: 360
-});
 
 class DesignRoute extends Component {
     constructor(props) {
@@ -140,6 +130,7 @@ class DesignRoute extends Component {
     }
 
     render() {
+        const { getLocalizedText } = this.props;
         const src = `/preview/${this.props.params.projectName}/index.html`,
             routeId = parseInt(this.props.params.routeId),
             isIndexRoute = this.props.location.pathname.endsWith('/index'),
@@ -150,11 +141,27 @@ class DesignRoute extends Component {
 
         const route = this.props.project.getIn(routeIndexEntry.path);
 
+
+        const libraryTool = new ToolRecord({
+            id: TOOL_ID_LIBRARY,
+            icon: LIBRARY_ICON,
+            name: 'Components Library',
+            title: getLocalizedText('componentsLibrary'),
+            sections: List([
+                new ToolSectionRecord({
+                    name: '',
+                    component: ComponentsLibrary
+                })
+            ]),
+            windowMinWidth: 360
+        });
+
+
         const treeTool = new ToolRecord({
             id: TOOL_ID_COMPONENTS_TREE,
             icon: COMPONENTS_TREE_ICON,
-            name: 'Elements tree',
-            title: 'Elements tree',
+            name: getLocalizedText('elementsTree'),
+            title: getLocalizedText('elementsTree'),
             sections: List([
                 new ToolSectionRecord({
                     name: '',
@@ -189,7 +196,7 @@ class DesignRoute extends Component {
             if (!isRegion) {
                 mainButtons = List([
                     new ButtonRecord({
-                        text: 'Delete',
+                        text: getLocalizedText('delete'),
                         disabled: !singleComponentSelected,
                         onPress: this._handleDeleteComponentButtonPress
                     })
@@ -213,7 +220,7 @@ class DesignRoute extends Component {
             }
         }
         else {
-            title = 'Component configuration';
+            title =  getLocalizedText('componentConfiguration');
             subtitle = '';
             mainButtons = List();
             sections = List([propsEditorSection])
@@ -225,7 +232,7 @@ class DesignRoute extends Component {
             name: 'Component configuration',
             title: title,
             titleEditable: singleComponentSelected,
-            titlePlaceholder: 'Enter title',
+            titlePlaceholder: getLocalizedText('enterTitle'),
             subtitle: subtitle,
             mainButtons: mainButtons,
             sections: sections
@@ -271,8 +278,8 @@ class DesignRoute extends Component {
         }
 
         const confirmDeleteDialogButtons = [
-            { text: 'Delete', onPress: this._handleDeleteComponentConfirm },
-            { text: 'Cancel', onPress: this._handleDeleteComponentCancel }
+            { text: getLocalizedText('delete'), onPress: this._handleDeleteComponentConfirm },
+            { text: getLocalizedText('cancel'), onPress: this._handleDeleteComponentCancel }
         ];
 
         return (
@@ -289,7 +296,7 @@ class DesignRoute extends Component {
                 />
 
                 <Dialog
-                    title="Select layout"
+                    title={getLocalizedText('selectLayout')}
                     backdrop
                     minWidth={400}
                     visible={this.props.selectingComponentLayout}
@@ -298,7 +305,7 @@ class DesignRoute extends Component {
                 </Dialog>
 
                 <Dialog
-                    title="Delete component"
+                    title={getLocalizedText('deleteComponent')}
                     backdrop
                     minWidth={400}
                     buttons={confirmDeleteDialogButtons}
@@ -308,7 +315,7 @@ class DesignRoute extends Component {
                     onClose={this._handleConfirmDeleteComponentDialogClose}
                     onEnterKeyPress={this._handleDeleteComponentConfirm}
                 >
-                    Are you sure you want to delete this component?
+                    {getLocalizedText('deleteThisComponentQuestion')}
                 </Dialog>
             </Desktop>
         );
@@ -337,7 +344,8 @@ const mapStateToProps = state => ({
     routesIndex: state.project.routesIndex,
     selectingComponentLayout: state.design.selectingComponentLayout,
     draggedComponent: state.project.draggedComponent,
-    language: state.app.language
+    language: state.app.language,
+    getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
 });
 
 const mapDispatchToProps = dispatch => ({

@@ -20,7 +20,6 @@ module.exports = {
     handlers: [
         (req, res) => void co(function* () {
             const name = req.params.name;
-
             if (!constants.PROJECT_NAME_REGEX.test(name)) {
                 // TODO: Serve 404 page
                 helpers.sendError(res, 404, 'Project not found');
@@ -41,7 +40,7 @@ module.exports = {
 
                 file = path.join(...parts);
                 if (!(yield fs.exists(path.join(rootDir, file)))) {
-                    file = parts[parts.length - 1];
+                    file = parts.slice(1).join('/') || parts[0];
                     if (!(yield fs.exists(path.join(rootDir, file)))) {
                         file = 'index.html';
                     }

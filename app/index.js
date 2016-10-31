@@ -23,12 +23,20 @@ import store from './store';
 import history from './history';
 
 import { setTools } from './actions/desktop';
+import { loadLocalization } from './actions/app';
 
 import playgroundRouteTools from './tools/playground';
 
 import { List } from 'immutable';
 
 const setToolsOnEnter = toolIds => () => void store.dispatch(setTools(toolIds));
+
+/*
+ * Testing
+ */
+window.abc = (lang) => store.dispatch(loadLocalization(lang));
+
+store.dispatch(loadLocalization('en'))
 
 const playgroundToolIds = [];
 playgroundRouteTools.forEach(group =>
@@ -44,7 +52,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     component={PlaygroundRoute}
                     onEnter={setToolsOnEnter(List(playgroundToolIds))}
                 />
-                
+
                 <Route path="/:projectName" component={AppRoute}>
                     <Route component={RootRoute}>
                         <IndexRedirect to="/:projectName/structure" />
