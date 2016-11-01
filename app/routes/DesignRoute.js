@@ -315,7 +315,8 @@ DesignRoute.propTypes = {
     selectingComponentLayout: PropTypes.bool,
     draggedComponent: PropTypes.instanceOf(ProjectComponentRecord),
     language: PropTypes.string,
-
+    
+    getLocalizedText: PropTypes.func,
     onRenameComponent: PropTypes.func,
     onDeleteComponent: PropTypes.func
 };
