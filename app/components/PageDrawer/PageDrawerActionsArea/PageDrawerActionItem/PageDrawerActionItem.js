@@ -1,44 +1,60 @@
 'use strict';
 
-import React, { PropTypes } from 'react';
-import { Button, Tooltip } from '@reactackle/reactackle';
+import React, { Component, PropTypes } from 'react';
+import { Button }  from '@reactackle/reactackle';
+import { combineWithTooltip } from '@reactackle/reactackle/components/Tooltip/Tooltip';
 
-export const PageDrawerActionItem = props => {
-    let className = `page-drawer-action-item`;
-    if (props.isActive) className += ' is-active';
+class PageDrawerActionItemComponent extends Component {
+  constructor(props){
+    super(props);
+  }
+  render() {
+      const { props } = this;
 
-    let tooltip = null,
-        button = null;
+      let className = `page-drawer-action-item`;
+      if (props.isActive) className += ' is-active';
 
-    if (props.icon) {
-        button = <Button icon={props.icon} onPress={props.onPress}/>;
-        // tooltip = <Tooltip text={props.title} />;
-        className += ' has-tooltip';
-    }
-    else {
-        button = <Button text={props.title} onPress={props.onPress} />;
-    }
+      let tooltip = null,
+          button = null;
 
-    return (
-        <div className={className}>
-            {button}
-            {/*{tooltip}*/}
-        </div>
-    );
-};
+      if (props.icon) {
+          button = <Button icon={props.icon} onPress={props.onPress}/>;
 
-PageDrawerActionItem.propTypes = {
+          className += ' has-tooltip';
+      }
+      else {
+          button = <Button text={props.title} onPress={props.onPress} />;
+      }
+      console.log(this.Tooltip)
+      return (
+          <div className={className}
+            onFocus={this._showTooltip}
+            onBlur={this._hideTooltip}
+            onMouseEnter={this._showTooltip}
+            onMouseLeave={this._hideTooltip}
+          >
+              {button}
+              <this.Tooltip text={props.title}/>
+          </div>
+      );
+  };
+}
+
+PageDrawerActionItemComponent.propTypes = {
     icon: PropTypes.string,
     title: PropTypes.string,
     isActive: PropTypes.bool,
     onPress: PropTypes.func
 };
 
-PageDrawerActionItem.defaultProps = {
+PageDrawerActionItemComponent.defaultProps = {
     icon: null,
     title: null,
     isActive: false,
     onPress: () => /* istanbul ignore next */ {}
 };
 
-PageDrawerActionItem.displayName = 'PageDrawerActionItem';
+PageDrawerActionItemComponent.displayName = 'PageDrawerActionItem';
+
+console.log(combineWithTooltip + [])
+export const PageDrawerActionItem = combineWithTooltip(PageDrawerActionItemComponent, true);
