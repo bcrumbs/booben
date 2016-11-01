@@ -17,15 +17,16 @@ const co = require('co'),
  */
 const internalTypes = new Set([
     'string',
+    'bool',
     'int',
     'float',
-    'bool',
-    'object',
     'oneOf',
-    'func',
-    'component',
+    'object',
     'shape',
-    'arrayOf'
+    'array',
+    'arrayOf',
+    'func',
+    'component'
 ]);
 
 const propSchema = {
@@ -66,8 +67,7 @@ const propSchema = {
                     'data',
                     'const',
                     'designer',
-                    'actions',
-                    'interpolations'
+                    'actions'
                 ]
             },
             required: false
@@ -479,6 +479,82 @@ const mainMetaSchema = {
     }
 };
 
+const isNumber = value => typeof value === 'number' && !isNaN(value) && isFinite(value);
+
+const propertiesAreEqual = (object1, object2) => {
+    const keys1 = Object.keys(object1),
+        keys2 = Object.keys(object2);
+
+    if (keys1.length !== keys2.length) return false;
+
+    return keys1.every(key => object2.hasOwnProperty(key));
+};
+
+const everyProperty = (object, predicate) =>
+    Object.keys(object).every(key => predicate(object[key], key, object));
+
+const valueValidators = {
+    'string': value => typeof value === 'string',
+    'bool': value => typeof value === 'boolean',
+    'int': value => isNumber(value) && value % 1 === 0,
+    'float': value => isNumber(value),
+    'oneOf': (value, typedef) => typedef.options.some(option => option.value === value),
+    'array': value => Array.isArray(value),
+
+    'arrayOf': (value, typedef) =>
+        Array.isArray(value) && value.every(item => isValidValue(item, typedef.ofType)),
+
+    'object': value => typeof value === 'object', // It can be null
+
+    'shape': (value, typedef) =>
+        typeof value === 'object' && (
+            value === null || (
+                propertiesAreEqual(
+                    value,
+                    typedef.fields
+                ) &&
+
+                everyProperty(
+                    value,
+
+                    (fieldValue, fieldName) =>
+                        isValidValue(fieldValue, typedef.fields[fieldName])
+                )
+            )
+        ),
+
+    'component': value => true, // TODO: Write validator for component-type value
+    'func': value => true // TODO: Write validator for func-type value
+};
+
+const isValidValue = (value, typedef) => valueValidators[typedef.type](value, typedef);
+
+const typePrinters = {
+    'string': () => 'string',
+    'bool': () => 'bool',
+    'int': () => 'int',
+    'float': () => 'float',
+
+    'oneOf': typedef =>
+        `oneOf(${typedef.options.map(option => option.value).join(', ')})`,
+
+    'array': () => 'array',
+    'arrayOf': typedef => `arrayOf(${typeToString(typedef.ofType)})`,
+    'object': () => 'object',
+
+    'shape': typedef => {
+        const structure = Object.keys(typedef.fields)
+            .map(key => `${key}:${typeToString(typedef.fields[key])}`).join(',');
+
+        return `shape(${structure})`
+    },
+
+    'component': () => 'component',
+    'func': () => 'func',
+};
+
+const typeToString = typedef => typePrinters[typedef.type](typedef);
+
 const readJSONFile = filename => co(function* () {
     let json;
 
@@ -510,23 +586,61 @@ const metaValidationOptions = {
     cast: false
 };
 
-const checkAdditionalPropTypeData = (propName, propMeta, strings) => {
-    if (propMeta.textKey && !strings[propMeta.textKey])
+const checkAdditionalPropTypeData = (propName, propMeta, strings, componentName = '') => {
+    if (propMeta.textKey && !strings[propMeta.textKey]) {
         throw new Error(
             `Unknown string '${propMeta.textKey}' ` +
-            `in textKey of prop '${propName}'`
+            `in textKey of prop '${propName}' ` +
+            `of component '${componentName}'`
         );
+    }
 
-    if (propMeta.descriptionTextKey && !strings[propMeta.descriptionTextKey])
+    if (propMeta.descriptionTextKey && !strings[propMeta.descriptionTextKey]) {
         throw new Error(
             `Unknown string '${propMeta.descriptionTextKey}' ` +
-            `in descriptionKey of prop '${propName}'`
+            `in descriptionKey of prop '${propName}' ` +
+            `of component '${componentName}'`
         );
+    }
+
+    const hasDefaultValue =
+        propMeta.source.indexOf('static') > -1 &&
+        propMeta.sourceConfigs &&
+        propMeta.sourceConfigs.static &&
+        typeof propMeta.sourceConfigs.static.default !== 'undefined';
+
+    const defaultValueIsInvalid =
+        !!hasDefaultValue &&
+        !isValidValue(propMeta.sourceConfigs.static.default, propMeta);
+
+    if (defaultValueIsInvalid) {
+        throw new Error(
+            `'${componentName}': Default static value of prop '${propName}' ` +
+            `is not valid for type '${typeToString(propMeta)}'`
+        );
+    }
+
+    const hasConstValue = propMeta.source.indexOf('const') > -1 &&
+        propMeta.sourceConfigs &&
+        propMeta.sourceConfigs.const &&
+        typeof propMeta.sourceConfigs.const.value !== 'undefined';
+
+    const constValueIsInvalid =
+        !!hasConstValue &&
+        !isValidValue(propMeta.sourceConfigs.const.value, propMeta);
+
+    if (constValueIsInvalid) {
+        throw new Error(
+            `'${componentName}': Const value of prop '${propName}' ` +
+            `is not valid for type '${typeToString(propMeta)}'`
+        );
+    }
 
     if (propMeta.type === 'oneOf') {
         if (typeof propMeta.options === 'undefined') {
             throw new Error(
-                `Prop '${propName}' of type 'oneOf' must have 'options' field`
+                `'${componentName}': Prop '${propName}' ` +
+                `of type 'oneOf' must have 'options' field`
             );
         }
 
@@ -536,7 +650,8 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings) => {
             if (!strings[optionTextKey]) {
                 throw new Error(
                     `Unknown string '${optionTextKey}' ` +
-                    `in options list of prop '${propName}'`
+                    `in options list of prop '${propName}' ` +
+                    `of component '${componentName}'`
                 );
             }
         }
@@ -544,15 +659,22 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings) => {
     else if (propMeta.type === 'arrayOf') {
         if (typeof propMeta.ofType === 'undefined')
             throw new Error(
-                `Prop '${propName}' of type 'arrayOf' must have 'ofType' field`
+                `'${componentName}': Prop '${propName}' ` +
+                `of type 'arrayOf' must have 'ofType' field`
             );
 
-        checkAdditionalPropTypeData(propName + '.[]', propMeta.ofType, strings);
+        checkAdditionalPropTypeData(
+            propName + '.[]',
+            propMeta.ofType,
+            strings,
+            componentName
+        );
     }
     else if (propMeta.type === 'shape') {
         if (typeof propMeta.fields === 'undefined')
             throw new Error(
-                `Prop '${propName}' of type 'shape' must have 'fields' field`
+                `'${componentName}': Prop '${propName}' ` +
+                `of type 'shape' must have 'fields' field`
             );
 
         const fields = Object.keys(propMeta.fields);
@@ -561,7 +683,8 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings) => {
             checkAdditionalPropTypeData(
                 propName + '.' + fields[i],
                 propMeta.fields[fields[i]],
-                strings
+                strings,
+                componentName
             );
     }
     else if (propMeta.type === 'string') {
@@ -576,7 +699,8 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings) => {
             if (!strings[defaultTextKey]) {
                 throw new Error(
                     `Unknown string '${defaultTextKey}' ` +
-                    `in defaultTextKey of prop '${propName}'`
+                    `in defaultTextKey of prop '${propName}' ` +
+                    `of component '${componentName}'`
                 );
             }
         }
@@ -627,7 +751,20 @@ const readTypedefs = (metaDir, strings) => co(function* () {
     const typesFile = path.join(metaDir, constants.METADATA_TYPES_FILE),
         types = yield readJSONFile(typesFile);
 
-    const { valid, errors } = rv.validate(types, typesSchema);
+    if (!types) return null;
+
+    let validationResult;
+
+    try {
+        validationResult = rv.validate(types, typesSchema);
+    }
+    catch(err) {
+        throw new Error(
+            `Error while performing formal validation of file ${typesFile}`
+        );
+    }
+
+    const { valid, errors } = validationResult;
 
     if (!valid) {
         const err = new Error(`Invalid typedefs in ${typesFile}`);
@@ -647,7 +784,20 @@ const readStrings = metaDir => co(function* () {
     const stringsFile = path.join(metaDir, constants.METADATA_STRINGS_FILE),
         strings = yield readJSONFile(stringsFile);
 
-    const { valid, errors } = rv.validate(strings, stringsSchema);
+    if (!strings) return null;
+
+    let validationResult;
+
+    try {
+        validationResult = rv.validate(strings, stringsSchema);
+    }
+    catch(err) {
+        throw new Error(
+            `Error while performing formal validation of file ${stringsFile}`
+        );
+    }
+
+    const { valid, errors } = validationResult;
 
     if (!valid) {
         const err = new Error(`Invalid strings in ${stringsFile}`);
@@ -660,8 +810,20 @@ const readStrings = metaDir => co(function* () {
 
 const readComponentMeta = metaDir => co(function* () {
     const metaFile = path.join(metaDir, constants.METADATA_FILE),
-        meta = yield readJSONFile(metaFile),
-        { valid, errors } = rv.validate(meta, metaSchema, metaValidationOptions);
+        meta = yield readJSONFile(metaFile);
+
+    let validationResult;
+
+    try {
+        validationResult = rv.validate(meta, metaSchema, metaValidationOptions);
+    }
+    catch(err) {
+        throw new Error(
+            `Error while performing formal validation of file ${metaFile}`
+        );
+    }
+
+    const { valid, errors } = validationResult;
 
     if (!valid) {
         const err = new Error(`Invalid metadata in ${metaFile}`);
@@ -700,14 +862,24 @@ const readComponentMeta = metaDir => co(function* () {
         }
 
         if (internalTypes.has(propMeta.type)) {
-            checkAdditionalPropTypeData(props[i], propMeta, meta.strings);
+            checkAdditionalPropTypeData(
+                props[i],
+                propMeta,
+                meta.strings,
+                meta.displayName
+            );
         }
         else {
             if (!meta.types)
                 meta.types = (yield readTypedefs(metaDir, meta.strings)) || {};
 
-            if (typeof meta.types[propMeta.type] === 'undefined')
-                throw new Error(`Type ${propMeta.type} is not defined`);
+            if (typeof meta.types[propMeta.type] === 'undefined') {
+                throw new Error(
+                    `Unknown type '${propMeta.type}' ` +
+                    `in prop ${props[i]} ` +
+                    `of component ${meta.displayName}`
+                );
+            }
         }
     }
 
@@ -854,10 +1026,14 @@ exports.gatherMetadata = moduleDir => co(function* () {
                 }
             }
             catch (err) {
-                throw new Error(
+                const newErr = new Error(
                     `Error while reading components metadata of '${ret.namespace}': ` +
                     err.message || err.toString()
                 );
+
+                newErr.stack = err.stack;
+
+                throw newErr;
             }
         }
     }
