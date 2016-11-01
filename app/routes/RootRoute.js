@@ -192,7 +192,9 @@ const RootRoute = props => {
 
 RootRoute.propTypes = {
     projectName: PropTypes.string,
-    project: PropTypes.instanceOf(ProjectRecord)
+    project: PropTypes.instanceOf(ProjectRecord),
+    
+    getLocalizedText: PropTypes.func
 };
 
 RootRoute.displayName = 'RootRoute';

@@ -13,7 +13,7 @@ const API_URL_PREFIX = '/api/v1';
 /**
  *
  * @param {string} projectName
- * @returns {Promise.<Project>}
+ * @return {Promise.<Project>}
  */
 export const getProject = projectName =>
     fetch(`${API_URL_PREFIX}/projects/${projectName}`)
@@ -26,7 +26,7 @@ export const getProject = projectName =>
 /**
  *
  * @param {string} projectName
- * @returns {Promise.<Object>}
+ * @return {Promise.<Object>}
  */
 export const getMetadata = projectName =>
     fetch(`${API_URL_PREFIX}/projects/${projectName}/metadata`)
@@ -38,7 +38,7 @@ export const getMetadata = projectName =>
 
 /**
   * @param {string} language
-  *
+  * @return {Promise.<Object>}
   */
 export const getLocalization = language =>
     fetch(`localization/${language}.json`)

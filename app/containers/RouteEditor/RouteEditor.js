@@ -170,6 +170,7 @@ RouteEditorComponent.propTypes = {
     selectedRouteId: PropTypes.number,
     indexRouteSelected: PropTypes.bool,
 
+    getLocalizedText: PropTypes.func,
     onPathChange: PropTypes.func,
     onDescriptionChange: PropTypes.func,
     onHaveIndexChange: PropTypes.func,

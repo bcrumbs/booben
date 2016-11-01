@@ -73,6 +73,7 @@ ComponentRegionsEditorComponent.propTypes = {
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     language: PropTypes.string,
 
+    getLocalizedText: PropTypes.func,
     onToggleRegion: PropTypes.func
 };
 

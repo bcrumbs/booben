@@ -46,7 +46,7 @@ class ComponentsTreeViewComponent extends Component {
 
         this._renderItem = this._renderItem.bind(this);
     }
-    
+
     shouldComponentUpdate(nextProps) {
         return nextProps.route !== this.props.route ||
             nextProps.isIndexRoute !== this.props.isIndexRoute ||
@@ -64,7 +64,7 @@ class ComponentsTreeViewComponent extends Component {
         if (state) this.props.onSelectItem(componentId);
         else this.props.onDeselectItem(componentId);
     }
-    
+
     _handleHover(componentId, state) {
         if (state) this.props.onHighlightItem(componentId);
         else this.props.onUnhighlightItem(componentId);
@@ -145,6 +145,7 @@ ComponentsTreeViewComponent.propTypes = {
     selectedItemIds: ImmutablePropTypes.setOf(PropTypes.number),
     highlightedItemIds: ImmutablePropTypes.setOf(PropTypes.number),
 
+    getLocalizedText: PropTypes.func,
     onExpandItem: PropTypes.func,
     onCollapseItem: PropTypes.func,
     onSelectItem: PropTypes.func,

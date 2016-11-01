@@ -540,6 +540,7 @@ StructureRoute.propTypes = {
     selectedRouteId: PropTypes.number,
     indexRouteSelected: PropTypes.bool,
 
+    getLocalizedText: PropTypes.func,
     onSelectRoute: PropTypes.func,
     onCreateRoute: PropTypes.func,
     onDeleteRoute: PropTypes.func,
