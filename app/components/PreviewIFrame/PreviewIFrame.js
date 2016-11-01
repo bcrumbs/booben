@@ -78,6 +78,10 @@ export class PreviewIFrame extends Component {
         });
     }
 
+    componentWillUnmount() {
+        this._iframe.contentWindow.JSSY.cleanup();
+    }
+
     componentWillReceiveProps(nextProps) {
         if (nextProps.path !== this.props.path) {
             if (this.state.loaded) this._goTo(nextProps.path);
