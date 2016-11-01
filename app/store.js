@@ -11,14 +11,15 @@ import rootReducer from './reducers';
 
 const loggerMiddleware = createLogger();
 
-const reduxDevtools = process.env.NODE_ENV === 'development' && window && window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__();
-export default createStore(
-    rootReducer,
-    compose(
-      applyMiddleware(
-          thunkMiddleware,
-          loggerMiddleware
-      ),
-      reduxDevtools
-    )
-);
+const fns = [
+    applyMiddleware(thunkMiddleware, loggerMiddleware)
+];
+
+const willAddReduxDevTools =
+    process.env.NODE_ENV === 'development' &&
+    window &&
+    window.__REDUX_DEVTOOLS_EXTENSION__;
+
+if (willAddReduxDevTools) fns.push(window.__REDUX_DEVTOOLS_EXTENSION__());
+
+export default createStore(rootReducer, compose(...fns));

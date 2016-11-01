@@ -27,7 +27,8 @@ import {
     focusTool,
     selectTool,
     closeTool,
-    setStickyTool
+    setStickyTool,
+    setToolActiveSection
 } from '../../actions/desktop';
 
 import { List } from 'immutable';
@@ -66,6 +67,9 @@ class DesktopComponent extends Component {
                     if (toolState.isInDockRegion) this.props.onToolDock(tool);
                 };
 
+                const onActiveSectionChange = newActiveSection =>
+                    this.props.onToolActiveSectionChange(tool, newActiveSection);
+
                 windows.push(
                     <ToolWindow
                         key={tool.id}
@@ -82,6 +86,7 @@ class DesktopComponent extends Component {
                         onStickRegionEnter={onStickRegionEnter}
                         onStickRegionLeave={onStickRegionLeave}
                         onStopDrag={onStopDrag}
+                        onActiveSectionChange={onActiveSectionChange}
                     />
                 );
             });
@@ -102,6 +107,7 @@ class DesktopComponent extends Component {
                     onToolSelect={this.props.onActiveToolChange}
                     onToolUndock={this.props.onToolUndock}
                     onToolTitleChange={this.props.onToolTitleChange}
+                    onToolActiveSectionChange={this.props.onToolActiveSectionChange}
                 />
             </MainRegion>
         );
@@ -118,7 +124,6 @@ DesktopComponent.propTypes = {
         PropTypes.string
     ),
 
-    toolsPanelActiveTool: PropTypes.instanceOf(ToolType),
     toolsPanelIsExpanded: PropTypes.bool,
 
     onToolsPanelCollapse: PropTypes.func,
@@ -129,7 +134,8 @@ DesktopComponent.propTypes = {
     onToolClose: PropTypes.func,
     onToolFocus: PropTypes.func,
     onToolStickRegionEnter: PropTypes.func,
-    onToolStickRegionLeave: PropTypes.func
+    onToolStickRegionLeave: PropTypes.func,
+    onToolActiveSectionChange: PropTypes.func
 };
 
 DesktopComponent.defaultProps = {
@@ -139,15 +145,20 @@ DesktopComponent.defaultProps = {
 
 DesktopComponent.displayName = 'Desktop';
 
-const mapStateToProps = state => ({
-    toolStates: state.desktop.toolStates,
-    toolsPanelIsExpanded: state.desktop.toolsPanelIsExpanded
+const mapStateToProps = ({ desktop }) => ({
+    toolStates: desktop.toolStates,
+    toolsPanelIsExpanded: desktop.toolsPanelIsExpanded
 });
 
 const mapDispatchToProps = dispatch => ({
-    onToolsPanelCollapse: () => void dispatch(collapseToolsPanel()),
-    onActiveToolChange: tool => void dispatch(selectTool(tool.id)),
-    onToolDock: tool => void dispatch(dockTool(tool.id)),
+    onToolsPanelCollapse: () =>
+        void dispatch(collapseToolsPanel()),
+
+    onActiveToolChange: tool =>
+        void dispatch(selectTool(tool.id)),
+
+    onToolDock: tool =>
+        void dispatch(dockTool(tool.id)),
 
     onToolUndock: (tool, nextActiveTool) =>
         void dispatch(undockTool(
@@ -155,10 +166,20 @@ const mapDispatchToProps = dispatch => ({
             nextActiveTool !== null ? nextActiveTool.id : null)
         ),
 
-    onToolClose: tool => void dispatch(closeTool(tool.id)),
-    onToolFocus: tool => void dispatch(focusTool(tool.id)),
-    onToolStickRegionEnter: tool => void dispatch(setStickyTool(tool.id)),
-    onToolStickRegionLeave: () => void dispatch(setStickyTool(null))
+    onToolClose: tool =>
+        void dispatch(closeTool(tool.id)),
+
+    onToolFocus: tool =>
+        void dispatch(focusTool(tool.id)),
+
+    onToolStickRegionEnter: tool =>
+        void dispatch(setStickyTool(tool.id)),
+
+    onToolStickRegionLeave: () =>
+        void dispatch(setStickyTool(null)),
+
+    onToolActiveSectionChange: (tool, newActiveSection) =>
+        void dispatch(setToolActiveSection(tool.id, newActiveSection))
 });
 
 export const Desktop = connect(mapStateToProps, mapDispatchToProps)(DesktopComponent);

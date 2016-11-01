@@ -46,7 +46,6 @@ export class ToolWindow extends Component {
 
         this.state = {
             dragging: false,
-            activeSection: 0,
             actionsAreaHasBorder: false
         };
 
@@ -230,9 +229,7 @@ export class ToolWindow extends Component {
     }
 
     _handleNavigation(newActiveSection) {
-        this.setState({
-            activeSection: newActiveSection
-        });
+        this.props.onActiveSectionChange(newActiveSection)
     }
 
     render() {
@@ -251,7 +248,7 @@ export class ToolWindow extends Component {
                 <BlockContentNavigation>
                     <Tabs
                         colorMode="dark"
-                        selected={this.state.activeSection}
+                        selected={this.props.toolState.activeSection}
                         onSelectTab={this._handleNavigation}
                     >
                         {tabs}
@@ -327,7 +324,7 @@ export class ToolWindow extends Component {
             }));
         }
 
-        const activeSection = sections.get(this.state.activeSection) || null;
+        const activeSection = sections.get(this.props.toolState.activeSection) || null;
 
         const ContentComponent = activeSection !== null
             ? activeSection.component
@@ -409,7 +406,8 @@ ToolWindow.propTypes = {
     onStartDrag: PropTypes.func,
     onStopDrag: PropTypes.func,
     onStickRegionEnter: PropTypes.func,
-    onStickRegionLeave: PropTypes.func
+    onStickRegionLeave: PropTypes.func,
+    onActiveSectionChange: PropTypes.func
 };
 
 ToolWindow.defaultProps = {
@@ -430,7 +428,8 @@ ToolWindow.defaultProps = {
     onStartDrag: noop,
     onStopDrag: noop,
     onStickRegionEnter: noop,
-    onStickRegionLeave: noop
+    onStickRegionLeave: noop,
+    onActiveSectionChange: noop
 };
 
 ToolWindow.displayName = 'ToolWindow';

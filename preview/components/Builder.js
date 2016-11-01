@@ -94,10 +94,15 @@ class BuilderComponent extends Component {
      * @private
      */
     _renderPlaceholderForDraggedComponent(containerId, afterIdx) {
+        const rootId = this.props.draggedComponentId > -1
+            ? this.props.draggedComponentId
+            : 0;
+
         //noinspection JSValidateTypes
         return (
             <Builder
-                component={this.props.draggedComponent}
+                components={this.props.draggedComponents}
+                rootId={rootId}
                 isPlaceholder
                 afterIdx={afterIdx}
                 containerId={containerId}
@@ -140,14 +145,16 @@ class BuilderComponent extends Component {
 
         const isComposite = isCompositeComponent(component.name, this.props.meta);
 
-        component.children.forEach((childComponent, idx) => {
+        component.children.forEach((childComponentId, idx) => {
+            const childComponent = this.props.components.get(childComponentId);
+
             // Do not render disabled regions in composite components
             if (!isPlaceholder && isComposite && !component.regionsEnabled.has(idx))
                 return;
 
             const needPlaceholders =
                 !isPlaceholder &&
-                this.props.draggedComponent !== null &&
+                this.props.draggingComponent &&
                 childComponent.id === this.props.draggingOverComponentId;
 
             if (needPlaceholders) {
@@ -204,17 +211,15 @@ class BuilderComponent extends Component {
 
     /**
      *
-     * @param {ProjectComponent} component
+     * @param {Object} component
      * @param {boolean} [isPlaceholder=false]
      * @param {boolean} [isPlaceholderRoot=false]
      * @return {ReactElement}
      * @private
      */
     _renderComponent(component, isPlaceholder = false, isPlaceholderRoot = false) {
-        if (!component) return null;
-
         // Do not render component that's being dragged right now
-        if (component === this.props.draggedComponent && !isPlaceholder) return null;
+        if (component.id === this.props.draggedComponentId && !isPlaceholder) return null;
 
         // Handle special components like Text, Outlet etc.
         if (isPseudoComponent(component)) return this._renderPseudoComponent(component);
@@ -230,7 +235,7 @@ class BuilderComponent extends Component {
             this._patchComponentProps(props, isHTMLComponent, component.id);
 
             const willRenderPlaceholderInside =
-                this.props.draggedComponent !== null &&
+                this.props.draggingComponent &&
                 !props.children &&
                 isContainerComponent(component.name, this.props.meta);
 
@@ -243,17 +248,15 @@ class BuilderComponent extends Component {
             }
         }
         else {
-            const isNewComponentPlaceholder = component.id === null;
-
-            props.key = isNewComponentPlaceholder
-                ? Math.floor(Math.random() * 1000000) + 1000000
-                : component.id;
+            props.key = component.isNew
+                ? `new-${component.id}`
+                : String(component.id);
 
             if (isPlaceholderRoot)
                 this._patchPlaceholderRootProps(props, isHTMLComponent);
 
             const willRenderContentPlaceholder =
-                isNewComponentPlaceholder &&
+                component.isNew &&
                 !props.children &&
                 isContainerComponent(component.name, this.props.meta);
 
@@ -269,40 +272,43 @@ class BuilderComponent extends Component {
     }
 
     render() {
-        if (!this.props.component && this.props.draggedComponent) {
-            // Render placeholder for root component that is being dragged
-            return this._renderPlaceholderForDraggedComponent(-1, -1);
-        }
-        else {
+        if (this.props.rootId > -1) {
+            const rootComponent = this.props.components.get(this.props.rootId);
+
             // Render as usual
             return this._renderComponent(
-                this.props.component,
+                rootComponent,
                 this.props.isPlaceholder,
                 this.props.isPlaceholder
             );
+        }
+        else if (this.props.draggingComponent && !this.props.isPlaceholder) {
+            return this._renderPlaceholderForDraggedComponent(-1, -1);
+        }
+        else {
+            return null;
         }
     }
 }
 
 BuilderComponent.propTypes = {
-    component: ImmutablePropTypes.contains({
-        id: React.PropTypes.number,
-        name: React.PropTypes.string,
-        props: ImmutablePropTypes.map,
-        children: ImmutablePropTypes.list
-    }),
+    components: PropTypes.any, // Immutable map of <number, Component>
+    rootId: PropTypes.number,
 
     isPlaceholder: PropTypes.bool,
     afterIdx: PropTypes.any, // number on null
     containerId: PropTypes.any, // number on null
 
     meta: PropTypes.object,
-    draggedComponent: PropTypes.any,
-    draggingOverComponentId: PropTypes.any // number or null
+    draggingComponent: PropTypes.bool,
+    draggedComponentId: PropTypes.number,
+    draggedComponents: PropTypes.any,
+    draggingOverComponentId: PropTypes.number
 };
 
 BuilderComponent.defaultProps = {
-    component: null,
+    components: null,
+    rootId: -1,
     isPlaceholder: false,
     afterIdx: null,
     containerId: null
@@ -312,8 +318,10 @@ BuilderComponent.displayName = 'Builder';
 
 const mapStateToProps = state => ({
     meta: state.project.meta,
-    draggedComponent: state.preview.draggedComponent,
-    draggingOverComponentId: state.preview.draggingOverComponentId
+    draggingComponent: state.project.draggingComponent,
+    draggedComponentId: state.project.draggedComponentId,
+    draggedComponents: state.project.draggedComponents,
+    draggingOverComponentId: state.project.draggingOverComponentId
 });
 
 const Builder = connect(mapStateToProps)(BuilderComponent);

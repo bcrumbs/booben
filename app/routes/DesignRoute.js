@@ -25,7 +25,7 @@ import { Dialog } from '@reactackle/reactackle';
 
 import store from '../store';
 
-import ProjectRecord from '../models/Project';
+import ProjectRecord, { getComponentById } from '../models/Project';
 import ProjectComponentRecord from '../models/ProjectComponent';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
@@ -44,10 +44,8 @@ import {
 
 import { getLocalizedText } from '../utils';
 
-
 //noinspection JSUnresolvedVariable
 import defaultComponentLayoutIcon from '../img/layout_default.svg';
-
 
 import { List } from 'immutable';
 
@@ -123,29 +121,17 @@ class DesignRoute extends Component {
         // TODO: Insert component
     }
 
-    _getParentComponent(component) {
-        const indexEntry = this.props.componentsIndex.get(component.id);
-        if (indexEntry.path.get(indexEntry.path.size - 2) !== 'children') return null;
-        return this.props.project.getIn(indexEntry.path.slice(0, -2));
-    }
-
     render() {
-        const { getLocalizedText } = this.props;
-        const src = `/preview/${this.props.params.projectName}/index.html`,
+        const { getLocalizedText } = this.props,
+            src = `/preview/${this.props.params.projectName}/index.html`,
             routeId = parseInt(this.props.params.routeId),
             isIndexRoute = this.props.location.pathname.endsWith('/index'),
-            routeIndexEntry = this.props.routesIndex.get(routeId);
-
-        // TODO: Show error screen
-        if (!routeIndexEntry) return null;
-
-        const route = this.props.project.getIn(routeIndexEntry.path);
-
+            route = this.props.project.routes.get(routeId);
 
         const libraryTool = new ToolRecord({
             id: TOOL_ID_LIBRARY,
             icon: LIBRARY_ICON,
-            name: 'Components Library',
+            name: getLocalizedText('componentsLibrary'),
             title: getLocalizedText('componentsLibrary'),
             sections: List([
                 new ToolSectionRecord({
@@ -156,11 +142,10 @@ class DesignRoute extends Component {
             windowMinWidth: 360
         });
 
-
         const treeTool = new ToolRecord({
             id: TOOL_ID_COMPONENTS_TREE,
             icon: COMPONENTS_TREE_ICON,
-            name: 'Elements Tree',
+            name: getLocalizedText('elementsTree'),
             title: getLocalizedText('elementsTree'),
             sections: List([
                 new ToolSectionRecord({
@@ -182,9 +167,11 @@ class DesignRoute extends Component {
 
         if (singleComponentSelected) {
             const componentId = this.props.selectedComponentIds.first(),
-                componentIndexData = this.props.componentsIndex.get(componentId),
-                component = this.props.project.getIn(componentIndexData.path),
-                parentComponent = this._getParentComponent(component);
+                component = getComponentById(this.props.project, componentId);
+
+            const parentComponent = component.parentId > -1
+                ? getComponentById(this.props.project, component.parentId)
+                : null;
 
             const isRegion = parentComponent
                 ? isCompositeComponent(parentComponent.name, this.props.meta)
@@ -229,7 +216,7 @@ class DesignRoute extends Component {
         const propsEditorTool = new ToolRecord({
             id: TOOL_ID_PROPS_EDITOR,
             icon: PROPS_EDITOR_ICON,
-            name: 'Component configuration',
+            name: getLocalizedText('componentConfiguration'),
             title: title,
             titleEditable: singleComponentSelected,
             titlePlaceholder: getLocalizedText('enterTitle'),
@@ -292,11 +279,10 @@ class DesignRoute extends Component {
                     store={store}
                     url={src}
                     path={route.fullPath}
-                    isIndexRoute={isIndexRoute}
                 />
 
                 <Dialog
-                    title={ getLocalizedText('selectLayout') }
+                    title={getLocalizedText('selectLayout')}
                     backdrop
                     minWidth={400}
                     visible={this.props.selectingComponentLayout}
@@ -305,7 +291,7 @@ class DesignRoute extends Component {
                 </Dialog>
 
                 <Dialog
-                    title={ getLocalizedText('deleteComponent') }
+                    title={getLocalizedText('deleteComponent')}
                     backdrop
                     minWidth={400}
                     buttons={confirmDeleteDialogButtons}
@@ -315,7 +301,7 @@ class DesignRoute extends Component {
                     onClose={this._handleConfirmDeleteComponentDialogClose}
                     onEnterKeyPress={this._handleDeleteComponentConfirm}
                 >
-                    { getLocalizedText('deleteThisComponentQuestion') }
+                    {getLocalizedText('deleteThisComponentQuestion')}
                 </Dialog>
             </Desktop>
         );
@@ -326,8 +312,6 @@ DesignRoute.propTypes = {
     project: PropTypes.instanceOf(ProjectRecord),
     meta: PropTypes.object,
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
-    componentsIndex: ImmutablePropTypes.map,
-    routesIndex: ImmutablePropTypes.map,
     selectingComponentLayout: PropTypes.bool,
     draggedComponent: PropTypes.instanceOf(ProjectComponentRecord),
     language: PropTypes.string,
@@ -336,17 +320,14 @@ DesignRoute.propTypes = {
     onDeleteComponent: PropTypes.func
 };
 
-const mapStateToProps = state => ({
-    project: state.project.data,
-    meta: state.project.meta,
-    selectedComponentIds: state.preview.selectedItems,
-    componentsIndex: state.project.componentsIndex,
-    routesIndex: state.project.routesIndex,
-    selectingComponentLayout: state.design.selectingComponentLayout,
-    draggedComponent: state.preview.draggedComponent,
-    language: state.app.language,
-    getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
-
+const mapStateToProps = ({ project, design, app }) => ({
+    project: project.data,
+    meta: project.meta,
+    selectedComponentIds: project.selectedItems,
+    selectingComponentLayout: design.selectingComponentLayout,
+    draggedComponent: project.draggedComponent,
+    language: app.language,
+    getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
 });
 
 const mapDispatchToProps = dispatch => ({

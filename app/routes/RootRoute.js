@@ -9,10 +9,7 @@ import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux'
 import { Link } from 'react-router';
 
-import {
-    getRoutes,
-    getLocalizedText
-} from '../utils';
+import { getLocalizedText } from '../utils';
 
 import {
     App,
@@ -72,21 +69,39 @@ const toggleFullscreen = () => {
 };
 
 const RootRoute = props => {
-    const routeMenuItems = getRoutes(props.projectData.routes).map(route => (
-        <HeaderMenuItem
-            key={route.id}
-            text={route.path}
-            linkHref={`/${props.projectName}/design/${route.id}`}
-            linkComponent={TopMenuLink}
-        />
-    ));
-    const { getLocalizedText } = props;
+    const { getLocalizedText } = props,
+        routeMenuItems = [];
+
+    props.project.routes.forEach(route => {
+        routeMenuItems.push(
+            <HeaderMenuItem
+                key={route.id}
+                text={route.fullPath}
+                linkHref={`/${props.projectName}/design/${route.id}`}
+                linkComponent={TopMenuLink}
+            />
+        );
+
+        if (route.haveIndex) {
+            routeMenuItems.push(
+                <HeaderMenuItem
+                    key={`${route.id}-index`}
+                    text={`${route.fullPath} - index`}
+                    linkHref={`/${props.projectName}/design/${route.id}/index`}
+                    linkComponent={TopMenuLink}
+                />
+            )
+        }
+    });
+
+    const title = getLocalizedText('projectTitle', { projectName: props.projectName});
+
     return (
         <App fixed>
             <TopRegion fixed={false}>
                 <Header size="blank">
                     <HeaderRegion size='blank'>
-                        <HeaderLogoBox title={ getLocalizedText('projectTitle', { projectName: props.projectName}) }/>
+                        <HeaderLogoBox title={title} />
                     </HeaderRegion>
 
                     <HeaderRegion region="main" size='blank'>
@@ -94,12 +109,12 @@ const RootRoute = props => {
                             <HeaderMenuGroup>
                                 <HeaderMenuList>
                                     <HeaderMenuItem
-                                        text={ getLocalizedText('structure') }
+                                        text={getLocalizedText('structure')}
                                         linkHref={`/${props.projectName}/structure`}
                                         linkComponent={TopMenuLink}
                                     />
 
-                                    <HeaderMenuItem text={ getLocalizedText('design') }>
+                                    <HeaderMenuItem text={getLocalizedText('design')}>
                                         <HeaderMenuGroup mode="dark">
                                             <HeaderMenuList>
                                                 {routeMenuItems}
@@ -107,8 +122,8 @@ const RootRoute = props => {
                                         </HeaderMenuGroup>
                                     </HeaderMenuItem>
 
-                                    <HeaderMenuItem text={ getLocalizedText('data') } />
-                                    <HeaderMenuItem text={ getLocalizedText('settings') } />
+                                    <HeaderMenuItem text={getLocalizedText('data')} />
+                                    <HeaderMenuItem text={getLocalizedText('settings')} />
                                 </HeaderMenuList>
                             </HeaderMenuGroup>
                         </HeaderMenu>
@@ -119,11 +134,11 @@ const RootRoute = props => {
                             <HeaderMenuGroup>
                                 <HeaderMenuList>
                                     <HeaderMenuItem
-                                        text={ getLocalizedText('preview') }
+                                        text={getLocalizedText('preview')}
                                         linkHref={`/${props.projectName}/preview`}
                                         linkComponent={TopMenuLink}
                                     />
-                                    <HeaderMenuItem text={ getLocalizedText('publish') } />
+                                    <HeaderMenuItem text={getLocalizedText('publish')} />
                                 </HeaderMenuList>
                             </HeaderMenuGroup>
                         </HeaderMenu>
@@ -139,7 +154,7 @@ const RootRoute = props => {
                         <FooterMenu inline dense mode="light">
                             <FooterMenuGroup>
                                 <FooterMenuList>
-                                    <FooterMenuItem text={ getLocalizedText('faq') }/>
+                                    <FooterMenuItem text={getLocalizedText('faq')}/>
                                 </FooterMenuList>
                             </FooterMenuGroup>
                         </FooterMenu>
@@ -150,17 +165,17 @@ const RootRoute = props => {
                             <FooterMenuGroup>
                                 <FooterMenuList>
                                     <FooterMenuItem
-                                        text={ getLocalizedText('showComponentsTitle') }
+                                        text={getLocalizedText('showComponentsTitle')}
                                         subcomponentRight={<ToggleButton />}
                                     />
 
                                     <FooterMenuItem
-                                        text={ getLocalizedText('showPlaceholders') }
+                                        text={getLocalizedText('showPlaceholders')}
                                         subcomponentRight={<ToggleButton />}
                                     />
 
                                     <FooterMenuItem
-                                        text={ getLocalizedText('toggleFullScreen') }
+                                        text={getLocalizedText('toggleFullScreen')}
                                         onClick={toggleFullscreen}
                                     />
                                 </FooterMenuList>
@@ -177,15 +192,15 @@ const RootRoute = props => {
 
 RootRoute.propTypes = {
     projectName: PropTypes.string,
-    projectData: PropTypes.instanceOf(ProjectRecord)
+    project: PropTypes.instanceOf(ProjectRecord)
 };
 
 RootRoute.displayName = 'RootRoute';
 
-const mapStateToProps = ({ project: { projectName, data: projectData }, app: { language, localization }}) => ({
-    projectName,
-    projectData,
-    getLocalizedText(...args) { return getLocalizedText(localization, language, ...args) }
+const mapStateToProps = ({ project, app }) => ({
+    projectName: project.projectName,
+    project: project.data,
+    getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
 });
 
 export default connect(mapStateToProps)(RootRoute);

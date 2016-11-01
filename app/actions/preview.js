@@ -5,13 +5,12 @@ export const PREVIEW_DESELECT_COMPONENT = 'PREVIEW_DESELECT_COMPONENT';
 export const PREVIEW_TOGGLE_COMPONENT_SELECTION = 'PREVIEW_TOGGLE_COMPONENT_SELECTION';
 export const PREVIEW_HIGHLIGHT_COMPONENT = 'PREVIEW_HIGHLIGHT_COMPONENT';
 export const PREVIEW_UNHIGHLIGHT_COMPONENT = 'PREVIEW_UNHIGHLIGHT_COMPONENT';
-export const PREVIEW_TOGGLE_HIGHLIGHTING = 'PREVIEW_TOGGLE_HIGHLIGHTING';
-export const PREVIEW_SET_BOUNDARY_COMPONENT = 'PREVIEW_SET_BOUNDARY_COMPONENT';
-export const PREVIEW_SET_IS_INDEX_ROUTE = 'PREVIEW_SET_IS_INDEX_ROUTE';
-export const PREVIEW_START_DRAG_COMPONENT = 'PREVIEW_START_DRAG_COMPONENT';
-export const PREVIEW_STOP_DRAG_COMPONENT = 'PREVIEW_STOP_DRAG_COMPONENT';
+export const PREVIEW_SET_CURRENT_ROUTE = 'PREVIEW_SET_CURRENT_ROUTE';
+export const PREVIEW_START_DRAG_NEW_COMPONENT = 'PREVIEW_START_DRAG_NEW_COMPONENT';
+export const PREVIEW_START_DRAG_EXISTING_COMPONENT = 'PREVIEW_START_DRAG_EXISTING_COMPONENT';
 export const PREVIEW_DRAG_OVER_COMPONENT = 'PREVIEW_DRAG_OVER_COMPONENT';
 export const PREVIEW_DRAG_OVER_PLACEHOLDER = 'PREVIEW_DRAG_OVER_PLACEHOLDER';
+export const PREVIEW_DROP_COMPONENT = 'PREVIEW_DROP_COMPONENT';
 
 /**
  * @param {Object} componentId
@@ -61,48 +60,34 @@ export const unhighlightPreviewComponent = componentId => ({
 });
 
 /**
+ * @param {number} routeId
+ * @param {boolean} isIndexRoute
  * @return {Object}
  */
-export const toggleHighlighting = enable => ({
-    type: PREVIEW_TOGGLE_HIGHLIGHTING,
-    enable
+export const setCurrentRoute = (routeId, isIndexRoute) => ({
+    type: PREVIEW_SET_CURRENT_ROUTE,
+    routeId,
+    isIndexRoute
 });
 
 /**
  *
- * @param {?number} componentId
+ * @param {Immutable.Map} components
  * @return {Object}
  */
-export const setBoundaryComponent = componentId => ({
-    type: PREVIEW_SET_BOUNDARY_COMPONENT,
+export const startDragNewComponent = components => ({
+    type: PREVIEW_START_DRAG_NEW_COMPONENT,
+    components
+});
+
+/**
+ *
+ * @param {number} componentId
+ * @return {Object}
+ */
+export const startDragExistingComponent = componentId => ({
+    type: PREVIEW_START_DRAG_EXISTING_COMPONENT,
     componentId
-});
-
-/**
- * @param  {boolean} value
- * @return {Object}
- */
-export const setIsIndexRoute = value => ({
-    type: PREVIEW_SET_IS_INDEX_ROUTE,
-    value
-});
-
-/**
- *
- * @param {Immutable.Record} component
- * @return {Object}
- */
-export const startDragComponent = component => ({
-    type: PREVIEW_START_DRAG_COMPONENT,
-    component
-});
-
-/**
- *
- * @return {Object}
- */
-export const stopDragComponent = () => ({
-    type: PREVIEW_STOP_DRAG_COMPONENT
 });
 
 /**
@@ -125,4 +110,12 @@ export const dragOverPlaceholder = (containerId, afterIdx) => ({
     type: PREVIEW_DRAG_OVER_PLACEHOLDER,
     containerId,
     afterIdx
+});
+
+/**
+ *
+ * @return {Object}
+ */
+export const dropComponent = () => ({
+    type: PREVIEW_DROP_COMPONENT
 });

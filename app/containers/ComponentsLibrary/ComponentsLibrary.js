@@ -30,12 +30,9 @@ import {
     focusComponent
 } from '../../actions/components-library';
 
-import {
-    startDragComponent,
-    toggleHighlighting
-} from '../../actions/preview';
+import { startDragNewComponent } from '../../actions/preview';
 
-import { projectComponentToImmutable } from '../../models/ProjectComponent';
+import { componentsToImmutable } from '../../models/ProjectComponent';
 
 import { List } from 'immutable';
 
@@ -49,6 +46,7 @@ import {
     pointIsInCircle
 } from '../../utils/misc';
 
+//noinspection JSUnresolvedVariable
 import defaultComponentIcon from '../../img/component_default.svg';
 
 /**
@@ -141,7 +139,7 @@ const extractGroupsDataFromMeta = meta => {
                 fullName: `${libMeta.namespace}.${componentMeta.displayName}`,
                 text: componentMeta.strings[componentMeta.textKey],
                 descriptionText: componentMeta.strings[componentMeta.descriptionTextKey],
-                iconURL: defaultComponentIcon // TODO: Use icon from metadata if we're have it
+                iconURL: defaultComponentIcon // TODO: Use icon from metadata if we have it
             });
         });
     });
@@ -153,7 +151,7 @@ const extractGroupsDataFromMeta = meta => {
  *
  * @param {Object} componentMeta
  * @param {string} language
- * @returns {Object}
+ * @return {Object}
  */
 const buildDefaultProps = (componentMeta, language) => {
     const ret = {};
@@ -219,7 +217,7 @@ class ComponentsLibraryComponent extends Component {
     /**
      * 
      * @param {string} componentName
-     * @returns {Function}
+     * @return {Function}
      * @private
      */
     _getOnFocusHandler(componentName) {
@@ -232,15 +230,19 @@ class ComponentsLibraryComponent extends Component {
     /**
      * 
      * @param {LibraryComponentData} componentData
-     * @returns {?ProjectComponent}
+     * @return {?Immutable.Map<number, ProjectComponent>}
      * @private
      */
-    _createComponent(componentData) {
+    _createComponents(componentData) {
         const componentMeta = getComponentMeta(componentData.fullName, this.props.meta);
         if (!componentMeta) return null;
+        
+        // Ids of detached components must start with zero
+        let nextId = 0;
 
         const component = {
-            id: null,
+            id: nextId++,
+            isNew: true,
             name: componentData.fullName,
             title: '',
             props: buildDefaultProps(componentMeta, this.props.language),
@@ -267,7 +269,8 @@ class ComponentsLibraryComponent extends Component {
                 );
 
                 component.children.push({
-                    id: null,
+                    id: nextId++,
+                    isNew: true,
                     name: regionComponentName,
                     title: '',
                     props,
@@ -278,7 +281,7 @@ class ComponentsLibraryComponent extends Component {
             });
         }
 
-        return projectComponentToImmutable(component);
+        return componentsToImmutable(component, -1, false, -1);
     }
 
     /**
@@ -314,12 +317,8 @@ class ComponentsLibraryComponent extends Component {
             if (willStartDrag) {
                 this.willTryStartDrag = false;
                 window.removeEventListener('mousemove', this._handleMouseMove);
-                const component = this._createComponent(this.draggedComponentData);
-
-                if (component) {
-                    this.props.onComponentStartDrag(component);
-                    this.props.onToggleHighlighting(false);
-                }
+                const components = this._createComponents(this.draggedComponentData);
+                if (components) this.props.onComponentStartDrag(components);
             }
         }
     }
@@ -381,25 +380,23 @@ ComponentsLibraryComponent.propTypes = {
 
     onExpandedGroupsChange: PropTypes.func,
     onFocusComponent: PropTypes.func,
-    onComponentStartDrag: PropTypes.func,
-    onToggleHighlighting: PropTypes.func
+    onComponentStartDrag: PropTypes.func
 };
 
 ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
 
-const mapStateToProps = state => ({
-    meta: state.project.meta,
-    selectedComponentIds: state.preview.selectedItems,
-    expandedGroups: state.componentsLibrary.expandedGroups,
-    focusedComponentName: state.componentsLibrary.focusedComponentName,
-    language: state.app.language
+const mapStateToProps = ({ project, componentsLibrary, app }) => ({
+    meta: project.meta,
+    selectedComponentIds: project.selectedItems,
+    expandedGroups: componentsLibrary.expandedGroups,
+    focusedComponentName: componentsLibrary.focusedComponentName,
+    language: app.language
 });
 
 const mapDispatchToProps = dispatch => ({
     onExpandedGroupsChange: groups => void dispatch(setExpandedGroups(groups)),
     onFocusComponent: componentName => void dispatch(focusComponent(componentName)),
-    onComponentStartDrag: component => void dispatch(startDragComponent(component)),
-    onToggleHighlighting: enable => void dispatch(toggleHighlighting(enable))
+    onComponentStartDrag: components => void dispatch(startDragNewComponent(components))
 });
 
 export const ComponentsLibrary = connect(

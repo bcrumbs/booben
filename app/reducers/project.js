@@ -27,6 +27,24 @@ import {
     PROJECT_COMPONENT_TOGGLE_REGION
 } from '../actions/project';
 
+import {
+    PREVIEW_SELECT_COMPONENT,
+    PREVIEW_DESELECT_COMPONENT,
+    PREVIEW_TOGGLE_COMPONENT_SELECTION,
+    PREVIEW_HIGHLIGHT_COMPONENT,
+    PREVIEW_UNHIGHLIGHT_COMPONENT,
+    PREVIEW_SET_CURRENT_ROUTE,
+    PREVIEW_START_DRAG_NEW_COMPONENT,
+    PREVIEW_START_DRAG_EXISTING_COMPONENT,
+    PREVIEW_DROP_COMPONENT,
+    PREVIEW_DRAG_OVER_COMPONENT,
+    PREVIEW_DRAG_OVER_PLACEHOLDER
+} from '../actions/preview';
+
+import {
+    STRUCTURE_SELECT_ROUTE
+} from '../actions/structure';
+
 import ProjectRoute from '../models/ProjectRoute';
 import ProjectComponentProp from '../models/ProjectComponentProp';
 import SourceDataStatic from '../models/SourceDataStatic';
@@ -35,9 +53,20 @@ import SourceDataConst from '../models/SourceDataConst';
 import SourceDataAction from '../models/SourceDataAction';
 import SourceDataDesigner from '../models/SourceDataDesigner';
 
-import { projectToImmutable } from '../models/Project';
+import {
+    projectToImmutable,
+    getMaxRouteId,
+    getMaxComponentId,
+    gatherRoutesTreeIds,
+    gatherComponentsTreeIds,
+    getRouteByComponentId,
+    getComponentById
+} from '../models/Project';
 
-import { Record, List, Map } from 'immutable';
+import { Record, Set } from 'immutable';
+
+import { concatPath } from '../utils';
+import { getComponentMeta } from '../utils/meta';
 
 const propSourceDataToImmutable = {
     static: input => new SourceDataStatic(input),
@@ -47,326 +76,167 @@ const propSourceDataToImmutable = {
     designer: input => new SourceDataDesigner(input)
 };
 
-const ComponentsIndexEntry = Record({
-    path: List(),
-    routeId: null,
-    isIndexRoute: false
-});
-
-const RoutesIndexEntry = Record({
-    path: List()
-});
-
-/**
- *
- * @param {Project} project
- * @return {Immutable.Map<number, ComponentsIndexEntry>}
- */
-const buildComponentsIndex = project => Map().withMutations(ret => {
-    const visitComponent = (component, routeId, path, isIndexRoute) => {
-        ret.set(component.id, new ComponentsIndexEntry({
-            path: List(path),
-            routeId,
-            isIndexRoute
-        }));
-
-        component.children.forEach((child, idx) => void visitComponent(
-            child,
-            routeId,
-            [].concat(path, 'children', idx),
-            isIndexRoute
-        ));
-    };
-
-    const visitRoute = (route, path) => {
-        if (route.component !== null) {
-            visitComponent(
-                route.component,
-                route.id,
-                [].concat(path, 'component'),
-                false
-            );
-        }
-
-        if (route.indexComponent !== null) {
-            visitComponent(
-                route.indexComponent,
-                route.id,
-                [].concat(path, 'indexComponent'),
-                true
-            );
-        }
-
-        route.children.forEach((child, idx) =>
-            void visitRoute(child, [].concat(path, 'children', idx)));
-    };
-
-    project.routes.forEach((route, idx) => void visitRoute(route, ['routes', idx]));
-});
-
-/**
- *
- * @param {Project} project
- * @return {Immutable.Map<number, RoutesIndexEntry>}
- */
-const buildRoutesIndex = project => Map().withMutations(ret => {
-    const visitRoute = (route, path) => {
-        ret.set(route.id, new RoutesIndexEntry({
-            path: List(path)
-        }));
-
-        route.children.forEach((child, idx) =>
-            void visitRoute(child, [].concat(path, 'children', idx)));
-    };
-
-    project.routes.forEach((route, idx) => void visitRoute(route, ['routes', idx]));
-});
-
-/**
- *
- * @param {ProjectComponent} component
- * @returns {number}
- */
-const getMaxComponentId = component => {
-    if (!component) return -1;
-
-    const reducer = (acc, component) =>
-        Math.max(acc, component.id, component.children.reduce(reducer, acc));
-
-    return Math.max(component.id, component.children.reduce(reducer, -1));
-};
-
-/**
- *
- * @param {Project} project
- * @returns {number}
- */
-const getLastComponentId = project => {
-    const reducer = (acc, route) => {
-        const id1 = getMaxComponentId(route.component),
-            id2 = getMaxComponentId(route.indexComponent),
-            id3 = route.children.reduce(reducer, acc);
-
-        return Math.max(acc, id1 ,id2, id3);
-    };
-
-    return project.routes.reduce(reducer, -1);
-};
-
-/**
- *
- * @param {Project} project
- * @returns {number}
- */
-const getLastRouteId = project => {
-    const reducer = (acc, route) =>
-        Math.max(acc, route.id, route.children.reduce(reducer, acc));
-
-    return project.routes.reduce(reducer, -1);
-};
-
-/**
- *
- * @param {Immutable.Map} state
- * @param {ProjectRoute} route
- * @returns {Immutable.Map}
- */
-const deleteRouteFromIndex = (state, route) => {
-    route.children.forEach(childRoute => {
-        state = deleteRouteFromIndex(state, childRoute);
-    });
-
-    return state.deleteIn(['routesIndex', route.id]);
-};
-
-/**
- *
- * @param {Immutable.Map} state
- * @param {ProjectComponent} component
- * @returns {Immutable.Map}
- */
-const deleteComponentFromIndex = (state, component) => {
-    component.children.forEach(childComponent => {
-        state = deleteComponentFromIndex(state, childComponent);
-    });
-
-    return state.deleteIn(['componentsIndex', component.id]);
-};
-
-/**
- *
- * @param {Immutable.Map} state
- * @param {ProjectComponent} component
- * @param {Immutable.List} path
- * @param {number} routeId
- * @param {boolean} isIndexRoute
- * @return {Immutable.Map}
- */
-const addComponentToIndex = (state, component, path, routeId, isIndexRoute) =>
-    state.update('componentsIndex', index => index.withMutations(mut => {
-        const visitComponent = (c, path) => {
-            mut.set(c.id, new ComponentsIndexEntry({
-                path,
-                routeId: routeId,
-                isIndexRoute: isIndexRoute
-            }));
-
-            c.children.forEach((childComponent, idx) => void visitComponent(
-                childComponent,
-                path.concat(['children', idx])
-            ));
-        };
-
-        visitComponent(component, path);
-    }));
-
-const deepReplaceComponentPathPrefix = (state, componentId, newPathPrefix) => {
-    const pathToComponent = state.getIn(['componentsIndex', componentId, 'path']),
-        component = state.getIn(['data', ...pathToComponent]);
-
-    component.children.forEach(child => {
-        state = deepReplaceComponentPathPrefix(state, child.id, newPathPrefix);
-    });
-
-    const oldPath = state.getIn(['componentsIndex', componentId, 'path']);
-
-    return state.setIn(
-        ['componentsIndex', componentId, 'path'],
-        newPathPrefix.concat(oldPath.slice(newPathPrefix.size))
-    );
-};
-
-const deleteComponent = (state, id) => {
-    const componentIndexEntry = state.componentsIndex.get(id),
-        componentPath = componentIndexEntry.path,
-        componentIndex = componentPath.last(),
-        component = state.getIn(['data', ...componentPath]);
-
-    state = deleteComponentFromIndex(state, component);
-
-    if (List.isList(component)) {
-        const componentsToShift = component.slice(componentIndex + 1);
-
-        if (componentsToShift.size) {
-            componentsToShift.forEach(item => {
-                const basePath = state.getIn(['componentsIndex', item.id, 'path']);
-
-                state = deepReplaceComponentPathPrefix(
-                    state,
-                    item.id,
-                    basePath.slice(0, -1).concat(basePath.last() - 1)
-                );
-            });
-        }
-    }
-
-    return state.deleteIn(['data', ...componentPath]);
-};
-
-/**
- *
- * @param {Immutable.Map} state
- * @param {number} containerId
- * @param {number} afterIdx
- * @param {ProjectComponent} component
- * @returns {Immutable.Map}
- */
-const insertComponent = (state, containerId, afterIdx, component) => {
-    const containerIndexEntry = state.getIn(['componentsIndex', containerId]),
-        containerPath = containerIndexEntry.path,
-        containerChildren = state.getIn(['data', ...containerPath, 'children']),
-        part0 = containerChildren.slice(0, afterIdx + 1),
-        part1 = containerChildren.slice(afterIdx + 1),
-        newContainerChildren = part0.push(component).concat(part1);
-
-    // Update project structure: insert new component
-    state = state.setIn(['data', ...containerPath, 'children'], newContainerChildren);
-
-    // Update component index: shift indexes of existing components
-    part1.forEach(childComponent => {
-        const oldPrefix = state.getIn(['componentsIndex', childComponent.id, 'path']),
-            newPrefix = oldPrefix.update(oldPrefix.size - 1, n => n + 1);
-
-        state = deepReplaceComponentPathPrefix(state, childComponent.id, newPrefix);
-    });
-
-    // Update component index: add entries for new components
-    return addComponentToIndex(
-        state,
-        component,
-        containerPath.concat(['children', afterIdx + 1]),
-        containerIndexEntry.routeId,
-        containerIndexEntry.isIndexRoute
-    );
-};
-
-/**
- *
- * @param {Immutable.Map} state
- * @param {number} routeId
- * @param {boolean} isIndexRoute
- * @param {ProjectComponent} component
- * @returns {Immutable.Map}
- */
-const setRootComponent = (state, routeId, isIndexRoute, component) => {
-    const routePath = state.getIn(['routesIndex', routeId, 'path']),
-        componentPath = routePath.concat(isIndexRoute ? 'indexComponent' : 'component');
-
-    state = state.setIn(['data', ...componentPath], component);
-
-    return addComponentToIndex(
-        state,
-        component,
-        componentPath,
-        routeId,
-        isIndexRoute
-    );
-};
-
-/**
- *
- * @param {Project} project
- * @param {ProjectComponent} component
- * @return {ProjectComponent}
- */
-const setComponentId = (project, component) => {
-    let lastComponentId = getLastComponentId(project);
-
-    const setId = component => component.merge({
-        id: ++lastComponentId,
-        children: component.children.map(setId)
-    });
-
-    return setId(component);
-};
-
-/**
- * @class
- * @extends Immutable.Record
- */
 const ProjectState = Record({
     projectName: '',
     loadState: NOT_LOADED,
     data: null,
     meta: null,
     error: null,
-    componentsIndex: Map(),
-    routesIndex: Map()
+    lastRouteId: -1,
+    lastComponentId: -1,
+
+    selectedItems: Set(),
+    highlightedItems: Set(),
+    highlightingEnabled: true,
+    currentRouteIsIndexRoute: false,
+    currentRouteId: -1,
+    draggingComponent: false,
+    draggedComponentId: -1,
+    draggedComponents: null,
+    draggingOverComponentId: -1,
+    draggingOverPlaceholder: false,
+    placeholderContainerId: -1,
+    placeholderAfter: -1,
+
+    selectedRouteId: -1,
+    indexRouteSelected: false,
+
+    selectingComponentLayout: false
 });
 
-/**
- *
- * @param {Immutable.Map} state
- * @param {Immutable.List<number>} where
- * @param {number} idx
- * @param {string} field
- * @param {*} newValue
- * @return {Immutable.Map}
- */
-const updateRouteField = (state, where, idx, field, newValue) => state.setIn(
-    ['data', 'routes'].concat(...where.map(idx => [idx, 'children']), idx, field),
-    newValue
-);
+const addComponents = (state, routeId, isIndexRoute, parentComponentId, position, components) => {
+    const nextComponentId = state.lastComponentId + 1;
+
+    state = state.updateIn(
+        ['data', 'routes', routeId, 'components'],
+
+        routeComponents => routeComponents.withMutations(routeComponentsMut =>
+            void components.forEach(newComponent =>
+                void routeComponentsMut.set(
+                    newComponent.id + nextComponentId,
+
+                    newComponent
+                        .merge({
+                            id: newComponent.id + nextComponentId,
+                            isNew: false,
+                            parentId: newComponent.parentId === -1
+                                ? parentComponentId
+                                : newComponent.parentId + nextComponentId,
+
+                            routeId: routeId,
+                            isIndexRoute: isIndexRoute
+                        })
+                        .update(
+                            'children',
+                            childIds => childIds.map(id => id + nextComponentId)
+                        )
+                )
+            )
+        )
+    );
+
+    if (parentComponentId !== -1) {
+        const pathToChildrenIdsList = [
+            'data',
+            'routes',
+            routeId,
+            'components',
+            parentComponentId,
+            'children'
+        ];
+
+        state = state.updateIn(
+            pathToChildrenIdsList,
+            childComponentIds => childComponentIds.insert(position, nextComponentId)
+        )
+    }
+    else {
+        state = state.setIn(
+            ['data', 'routes', routeId, isIndexRoute ? 'indexComponent' : 'component'],
+            nextComponentId
+        );
+    }
+
+    return state.update(
+        'lastComponentId',
+        lastComponentId => lastComponentId + components.size
+    );
+};
+
+const deleteComponent = (state, componentId) => {
+    const route = getRouteByComponentId(state.data, componentId),
+        component = route.components.get(componentId),
+        idsToDelete = gatherComponentsTreeIds(route, componentId);
+
+    state = state.updateIn(
+        ['data', 'routes', route.id, 'components'],
+
+        components => components.withMutations(mut =>
+            void idsToDelete.forEach(id => void mut.delete(id)))
+    );
+
+    if (component.parentId === -1) {
+        if (route.component === componentId)
+            state = state.setIn(['data', 'routes', route.id, 'component'], -1);
+
+        if (route.indexComponent === componentId)
+            state = state.setIn(['data', 'routes', route.id, 'indexComponent'], -1);
+    }
+    else {
+        state = state.updateIn(
+            ['data', 'routes', route.id, 'components', component.parentId, 'children'],
+            children => children.filter(id => id !== componentId)
+        );
+    }
+
+    return state;
+};
+
+const moveComponent = (state, componentId, targetComponentId, position) => {
+    const route = getRouteByComponentId(state.data, componentId),
+        component = route.components.get(componentId);
+
+    if (component.parentId === -1)
+        throw new Error('Cannot move root component');
+
+    const sourceChildrenListPath = [
+        'data',
+        'routes',
+        route.id,
+        'components',
+        component.parentId,
+        'children'
+    ];
+
+    state = state.updateIn(
+        sourceChildrenListPath,
+        ids => ids.filter(id => id !== componentId)
+    );
+
+    const targetChildrenListPath = [
+        'data',
+        'routes',
+        route.id,
+        'components',
+        targetComponentId,
+        'children'
+    ];
+
+    return state.updateIn(
+        targetChildrenListPath,
+        ids => ids.insert(position, componentId)
+    );
+};
+
+const initDNDState = state => state.merge({
+    draggingComponent: false,
+    draggedComponents: null,
+    draggingOverComponentId: -1,
+    draggingOverPlaceholder: false,
+    placeholderContainerId: -1,
+    placeholderAfter: -1,
+    highlightingEnabled: true
+});
 
 export default (state = new ProjectState(), action) => {
     switch (action.type) {
@@ -378,14 +248,23 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PROJECT_LOADED: {
+            const project = projectToImmutable(action.project),
+                lastRouteId = getMaxRouteId(project),
+                lastComponentId = getMaxComponentId(project);
+
             return state
                 .merge({
                     projectName: action.project.name,
                     loadState: LOADED,
-                    data: projectToImmutable(action.project),
+                    data: project,
                     error: null,
-                    componentsIndex: buildComponentsIndex(action.project),
-                    routesIndex: buildRoutesIndex(action.project)
+                    lastRouteId,
+                    lastComponentId,
+                    selectedRouteId: project.rootRoutes.size > 0
+                        ? project.rootRoutes.get(0)
+                        : -1,
+
+                    indexRouteSelected: false
                 })
                 .set('meta', action.metadata); // Prevent conversion to Immutable.Map
         }
@@ -396,156 +275,159 @@ export default (state = new ProjectState(), action) => {
                 data: null,
                 meta: null,
                 error: action.error,
-                componentsIndex: Map()
+                lastRouteId: -1,
+                lastComponentId: -1
             });
         }
 
         case PROJECT_ROUTE_CREATE: {
-            const newRouteId = getLastRouteId(state.data) + 1;
+            const newRouteId = state.lastRouteId + 1;
 
-            const routesListPath = action.where.reduce(
-                (prev, cur) => prev.concat(cur, 'children'),
-                ['routes']
-            );
+            const parentRoute = action.parentRouteId > -1
+                ? state.data.routes.get(action.parentRouteId)
+                : null;
 
-            const newRoutePosition = state.getIn(['data', ...routesListPath]).size,
-                newRoutePath = routesListPath.concat(newRoutePosition);
+            const fullPath = parentRoute
+                ? concatPath(parentRoute.fullPath, action.path)
+                : action.path;
 
             const newRoute = new ProjectRoute({
                 id: newRouteId,
+                parentId: action.parentRouteId,
                 path: action.path,
+                fullPath,
                 title: action.title
             });
 
-            const newRouteIndex = new RoutesIndexEntry({
-                path: List(newRoutePath)
-            });
+            state = state.setIn(['data', 'routes', newRouteId], newRoute);
 
-            return state
-                .setIn(['data', ...newRoutePath], newRoute)
-                .setIn(['routesIndex', newRouteId], newRouteIndex);
+            const pathToIdsList = action.parentRouteId === -1
+                ? ['data', 'rootRoutes']
+                : ['data', 'routes', action.parentRouteId, 'children'];
+
+
+            state = state.updateIn(pathToIdsList, list => list.push(newRouteId));
+
+            return state.set('lastRouteId', newRouteId);
         }
 
         case PROJECT_ROUTE_DELETE: {
-            const routesListPath = action.where.reduce(
-                (prev, cur) => prev.concat(cur, 'children'),
-                ['routes']
+            const deletedRoute = state.data.routes.get(action.routeId),
+                deletedRouteIds = gatherRoutesTreeIds(state.data, action.routeId);
+
+            // De-select and de-highlight all componenets
+            state = state.merge({
+                selectedItems: Set(),
+                highlightedItems: Set()
+            });
+
+            // Delete routes
+            state = state.updateIn(
+                ['data', 'routes'],
+                routes => routes.filter(route => !deletedRouteIds.has(route.id))
             );
 
-            const route = state.getIn(['data', ...routesListPath, action.idx]);
+            // Update rootRoutes or parent's children list
+            const pathToIdsList = deletedRoute.parentId === -1
+                ? ['data', 'rootRoutes']
+                : ['data', 'routes', deletedRoute.parentId, 'children'];
 
-            // Clean components index
-            if (route.component)
-                state = deleteComponentFromIndex(state, route.component);
+            state = state.updateIn(
+                pathToIdsList,
+                routeIds => routeIds.filter(routeId => routeId !== action.routeId)
+            );
 
-            if (route.indexComponent)
-                state = deleteComponentFromIndex(state, route.indexComponent);
+            // Update selected route
+            const deletedRouteIsSelected =
+                state.selectedRouteId > -1 &&
+                deletedRouteIds.has(state.selectedRouteId);
 
-            // Clean routes index
-            state = deleteRouteFromIndex(state, route);
+            if (deletedRouteIsSelected) {
+                state = state.merge({
+                    selectedRouteId: state.data.routes.size > 0
+                        ? state.data.routes.get(0)
+                        : -1,
 
-            // Delete route from project
-            state = state.deleteIn(['data', ...routesListPath, action.idx]);
-
-            const routesToUpdateIndex = state
-                .getIn(['data', ...routesListPath])
-                .slice(action.idx);
-
-            // 'routes' + <index, 'children'> for each level
-            const pathIndexToDecrement = 1 + action.where.size * 2;
-
-            const shiftIndexInComponentPath = component => {
-                state = state.updateIn(
-                    ['componentsIndex', component.id, 'path', pathIndexToDecrement],
-                    n => n - 1
-                );
-
-                component.children.forEach(shiftIndexInComponentPath);
-            };
-
-            const shiftIndexInRoutePath = route => {
-                console.log(['routesIndex', route.id, 'path', pathIndexToDecrement]);
-                console.log(state.getIn(['routesIndex', route.id, 'path']));
-
-                state = state.updateIn(
-                    ['routesIndex', route.id, 'path', pathIndexToDecrement],
-                    n => n - 1
-                );
-
-                if (route.component) shiftIndexInComponentPath(route.component);
-                if (route.indexComponent) shiftIndexInComponentPath(route.indexComponent);
-
-                route.children.forEach(shiftIndexInRoutePath);
-            };
-
-            routesToUpdateIndex.forEach(shiftIndexInRoutePath);
+                    indexRouteSelected: false
+                });
+            }
 
             return state;
         }
 
         case PROJECT_ROUTE_UPDATE_FIELD: {
-            return updateRouteField(
-                state,
-                action.where,
-                action.idx,
-                action.field,
+            return state.setIn(
+                ['data', 'routes', action.routeId, action.field],
                 action.newValue
             );
         }
 
         case PROJECT_COMPONENT_CREATE_ROOT: {
-            return setRootComponent(
+            const route = state.getIn(['data', 'routes', action.routeId]);
+
+            const alreadyHaveComponent = action.isIndexRoute
+                ? route.indexComponent !== -1
+                : route.component !== -1;
+
+            if (alreadyHaveComponent) {
+                throw new Error(
+                    `Route ${action.routeId} already has ` +
+                    `${action.isIndexRoute ? 'index' : 'root'} component`
+                );
+            }
+
+            return addComponents(
                 state,
                 action.routeId,
                 action.isIndexRoute,
-                setComponentId(state.data, action.component)
-            )
+                -1,
+                0,
+                action.components
+            );
         }
 
         case PROJECT_COMPONENT_CREATE: {
-            return insertComponent(
+            const route = getRouteByComponentId(state.data, action.parentComponentId),
+                parentComponent = route.components.get(action.parentComponentId);
+
+            return addComponents(
                 state,
-                action.targetId,
+                route.id,
+                parentComponent.isIndexRoute,
+                parentComponent.id,
                 action.position,
-                setComponentId(state.data, action.component)
+                action.components
             );
         }
 
         case PROJECT_COMPONENT_MOVE: {
-            const componentPath = state.getIn(
-                ['componentsIndex', action.sourceId, 'path']
-            );
-
-            const component = state.getIn(['data', ...componentPath]),
-                componentPosition = componentPath.last(),
-                parentComponent = state.getIn(['data', ...componentPath.slice(0, -2)]);
-
-            let targetPosition = action.position;
-
-            state = deleteComponent(state, action.sourceId);
-
-            if (
-                parentComponent.id === action.targetId &&
-                action.position > componentPosition
-            ) {
-                targetPosition = targetPosition - 1;
-            }
-
-            return insertComponent(
+            return moveComponent(
                 state,
-                action.targetId,
-                targetPosition,
-                component
+                action.componentId,
+                action.targetComponentId,
+                action.position
             );
         }
 
         case PROJECT_COMPONENT_DELETE: {
+            state = state.update(
+                'selectedItems',
+                selectedItems => selectedItems.delete(action.componentId)
+            );
+
+            state = state.update(
+                'highlightedItems',
+                highlightedItems => highlightedItems.delete(action.componentId)
+            );
+
+            if (state.draggedComponentId === action.componentId)
+                state = initDNDState(state);
+
             return deleteComponent(state, action.componentId);
         }
 
         case PROJECT_COMPONENT_UPDATE_PROP_VALUE: {
-            const componentIndexEntry = state.componentsIndex.get(action.componentId),
-                path = componentIndexEntry.path,
+            const route = getRouteByComponentId(state.data, action.componentId),
                 convertSourceData = propSourceDataToImmutable[action.newSource];
 
             const newValue = new ProjectComponentProp({
@@ -553,27 +435,213 @@ export default (state = new ProjectState(), action) => {
                 sourceData: convertSourceData(action.newSourceData)
             });
 
-            return state.setIn(['data', ...path, 'props', action.propName], newValue);
+            const path = [
+                'data',
+                'routes',
+                route.id,
+                'components',
+                action.componentId,
+                'props',
+                action.propName
+            ];
+
+            return state.setIn(path, newValue);
         }
 
         case PROJECT_COMPONENT_RENAME: {
-            const componentIndexEntry = state.componentsIndex.get(action.componentId),
-                path = componentIndexEntry.path;
+            const route = getRouteByComponentId(state.data, action.componentId);
 
-            return state.setIn(['data', ...path, 'title'], action.newTitle);
+            const path = [
+                'data',
+                'routes',
+                route.id,
+                'components',
+                action.componentId,
+                'title'
+            ];
+
+            return state.setIn(path, action.newTitle);
         }
 
         case PROJECT_COMPONENT_TOGGLE_REGION: {
-            const componentIndexEntry = state.componentsIndex.get(action.componentId),
-                path = componentIndexEntry.path;
+            const route = getRouteByComponentId(state.data, action.componentId);
 
-            return state.updateIn(
-                ['data', ...path, 'regionsEnabled'],
+            const path = [
+                'data',
+                'routes',
+                route.id,
+                'components',
+                action.componentId,
+                'regionsEnabled'
+            ];
 
-                regionsEnabled => action.enable
-                    ? regionsEnabled.add(action.regionIdx)
-                    : regionsEnabled.delete(action.regionIdx)
+            return state.updateIn(path, regionsEnabled => action.enable
+                ? regionsEnabled.add(action.regionIdx)
+                : regionsEnabled.delete(action.regionIdx)
             );
+        }
+
+        case PREVIEW_HIGHLIGHT_COMPONENT: {
+            return state.update('highlightedItems', set => set.add(action.componentId));
+        }
+
+        case PREVIEW_UNHIGHLIGHT_COMPONENT: {
+            return state.update('highlightedItems', set => set.delete(action.componentId));
+        }
+
+        case PREVIEW_SELECT_COMPONENT: {
+            if (action.exclusive) {
+                return state.set('selectedItems', Set([action.componentId]));
+            }
+            else {
+                return state.update('selectedItems', set => set.add(action.componentId));
+            }
+        }
+
+        case PREVIEW_DESELECT_COMPONENT: {
+            return state.update('selectedItems', set => set.delete(action.componentId));
+        }
+
+        case PREVIEW_TOGGLE_COMPONENT_SELECTION: {
+            const updater = state.selectedItems.has(action.componentId)
+                ? set => set.delete(action.componentId)
+                : set => set.add(action.componentId);
+
+            return state.update('selectedItems', updater);
+        }
+
+        case PREVIEW_SET_CURRENT_ROUTE: {
+            return state.merge({
+                currentRouteId: action.routeId,
+                currentRouteIsIndexRoute: action.isIndexRoute
+            });
+        }
+
+        case PREVIEW_START_DRAG_NEW_COMPONENT: {
+            return state.merge({
+                draggingComponent: true,
+                draggedComponentId: -1,
+                draggedComponents: action.components,
+                highlightingEnabled: false,
+                highlightedItems: Set()
+            });
+        }
+
+        case PREVIEW_START_DRAG_EXISTING_COMPONENT: {
+            const route = getRouteByComponentId(action.componentId);
+
+            return state.merge({
+                draggingComponent: true,
+                draggedComponentId: action.componentId,
+                draggedComponents: route.components,
+                highlightingEnabled: false,
+                highlightedItems: Set()
+            });
+        }
+
+        case PREVIEW_DROP_COMPONENT: {
+            if (!state.draggingComponent) return state;
+            if (!state.draggingOverPlaceholder) return initDNDState(state);
+
+            let willDrop = false;
+
+            if (state.placeholderContainerId === -1) {
+                willDrop = true;
+            }
+            else {
+                const container = getComponentById(
+                    state.data,
+                    state.placeholderContainerId
+                );
+
+                willDrop =
+                    container.routeId === state.currentRouteId &&
+                    container.isIndexRoute === state.currentRouteIsIndexRoute
+            }
+
+            if (!willDrop) return initDNDState(state);
+
+            if (state.draggedComponentId > -1) {
+                // We're dragging an existing component
+                state = moveComponent(
+                    state,
+                    state.draggedComponentId,
+                    state.placeholderContainerId,
+                    state.placeholderAfter + 1
+                );
+
+                return initDNDState(state);
+            }
+            else {
+                // We're dragging a new component from palette
+                const rootComponent = state.draggedComponents.get(0);
+
+                const componentMeta = getComponentMeta(
+                    rootComponent.name,
+                    state.meta
+                );
+
+                const isCompositeComponentWithMultipleLayouts =
+                    componentMeta.kind === 'composite' &&
+                    componentMeta.layouts.length > 1;
+
+                if (isCompositeComponentWithMultipleLayouts) {
+                    return state.merge({
+                        selectingComponentLayout: true,
+                        draggingComponent: false
+                    });
+                }
+                else {
+                    if (state.placeholderContainerId === -1) {
+                        // Creating root component for current route
+                        state = addComponents(
+                            state,
+                            state.currentRouteId,
+                            state.currentRouteIsIndexRoute,
+                            -1,
+                            0,
+                            state.draggedComponents
+                        );
+                    }
+                    else {
+                        // Creating nested component
+                        state = addComponents(
+                            state,
+                            state.currentRouteId,
+                            state.currentRouteIsIndexRoute,
+                            state.placeholderContainerId,
+                            state.placeholderAfter + 1,
+                            state.draggedComponents
+                        );
+                    }
+
+                    return initDNDState(state);
+                }
+            }
+        }
+
+        case PREVIEW_DRAG_OVER_COMPONENT: {
+            return state.merge({
+                draggingOverComponentId: action.componentId,
+                draggingOverPlaceholder: false,
+                placeholderContainerId: -1,
+                placeholderAfter: -1
+            });
+        }
+
+        case PREVIEW_DRAG_OVER_PLACEHOLDER: {
+            return state.merge({
+                draggingOverPlaceholder: true,
+                placeholderContainerId: action.containerId,
+                placeholderAfter: action.afterIdx
+            });
+        }
+
+        case STRUCTURE_SELECT_ROUTE: {
+            return state.merge({
+                selectedRouteId: action.routeId,
+                indexRouteSelected: action.indexRouteSelected
+            });
         }
 
         default:

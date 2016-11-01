@@ -5,17 +5,17 @@
 'use strict';
 
 /**
- * @typedef {Object|Immutable.Record} Project
+ * @typedef {Object} Project
  * @property {number} version
  * @property {string} name
  * @property {?string} author
  * @property {string[]} componentLibs
  * @property {?string} relayEndpointURL
- * @property {ProjectRoute[]|Immutable.List<ProjectRoute>} routes
+ * @property {ProjectRoute[]} routes
  */
 
 /**
- * @typedef {Object|Immutable.Record} ProjectRoute
+ * @typedef {Object} ProjectRoute
  * @property {number} id
  * @property {string} path
  * @property {string} title
@@ -25,45 +25,45 @@
  * @property {?ProjectComponent} indexComponent
  * @property {boolean} haveRedirect
  * @property {string} redirectTo
- * @property {ProjectRoute[]|Immutable.List<ProjectRoute>} children
+ * @property {ProjectRoute[]} children
  * @property {?ProjectComponent} component
  */
 
 /**
- * @typedef {Object|Immutable.Record} ProjectComponent
+ * @typedef {Object} ProjectComponent
  * @property {?number} id - Unique component ID or null for placeholders
  * @property {string} name - Component name with namespace (e.g. "Namespace.MyComponent")
  * @property {string} title - User-defined title
- * @property {Object<string, ProjectComponentProp>|Immutable.Map<string, ProjectComponentProp>} props
- * @property {ProjectComponent[]|Immutable.List<ProjectComponent>} children
- * @property {number[]|Immutable.Set<number>} regionsEnabled
+ * @property {Object<string, ProjectComponentProp>} props
+ * @property {ProjectComponent[]} children
+ * @property {number[]} regionsEnabled
  */
 
 /**
- * @typedef {Object|Immutable.Record} ProjectComponentProp
+ * @typedef {Object} ProjectComponentProp
  * @property {string} source
  * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataAction|SourceDataDesigner} sourceData
  */
 
 /**
- * @typedef {Object|Immutable.Record} SourceDataStatic
+ * @typedef {Object} SourceDataStatic
  * @property {*} value
  */
 
 // TODO: Define SourceDataData, SourceDataConst, SourceDataDesigner, SourceDataAction
 
 /**
- * @typedef {Object|Immutable.Record} SourceDataData
+ * @typedef {Object} SourceDataData
  */
 
 /**
- * @typedef {Object|Immutable.Record} SourceDataConst
+ * @typedef {Object} SourceDataConst
  */
 
 /**
- * @typedef {Object|Immutable.Record} SourceDataDesigner
+ * @typedef {Object} SourceDataDesigner
  */
 
 /**
- * @typedef {Object|Immutable.Record} SourceDataAction
+ * @typedef {Object} SourceDataAction
  */

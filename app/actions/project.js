@@ -5,6 +5,7 @@
 'use strict';
 
 import { getProject, getMetadata } from '../api';
+import { Record, Map } from 'immutable';
 
 /**
  *
@@ -77,14 +78,14 @@ export const PROJECT_ROUTE_CREATE = 'PROJECT_ROUTE_CREATE';
 
 /**
  *
- * @param {number[]} where - indexes of routes in path
+ * @param {number} parentRouteId - id of parent route (or -1 for root route)
  * @param {string} path
  * @param {string} title
  * @return {Object}
  */
-export const createRoute = (where, path, title) => ({
+export const createRoute = (parentRouteId, path, title) => ({
     type: PROJECT_ROUTE_CREATE,
-    where,
+    parentRouteId,
     path,
     title
 });
@@ -97,14 +98,12 @@ export const PROJECT_ROUTE_DELETE = 'PROJECT_ROUTE_DELETE';
 
 /**
  *
- * @param {Immutable.List<number>} where - indexes of routes in path
- * @param {number} idx - index of route to delete
+ * @param {number} routeId
  * @return {Object}
  */
-export const deleteRoute = (where, idx) => ({
+export const deleteRoute = routeId => ({
     type: PROJECT_ROUTE_DELETE,
-    where,
-    idx
+    routeId
 });
 
 /**
@@ -115,16 +114,14 @@ export const PROJECT_ROUTE_UPDATE_FIELD = 'PROJECT_ROUTE_UPDATE_FIELD';
 
 /**
  *
- * @param {number[]|Immutable.List<number>} where - indexes of routes in path
- * @param {number} idx - index of route to rename
+ * @param {number} routeId
  * @param {string} field
  * @param {*} newValue
  * @return {Object}
  */
-export const updateRouteField = (where, idx, field, newValue) => ({
+export const updateRouteField = (routeId, field, newValue) => ({
     type: PROJECT_ROUTE_UPDATE_FIELD,
-    where,
-    idx,
+    routeId,
     field,
     newValue
 });
@@ -153,13 +150,15 @@ export const PROJECT_COMPONENT_MOVE = 'PROJECT_COMPONENT_MOVE';
 
 /**
  *
- * @param {number[]} where - index of component
+ * @param {number} componentId
+ * @param {number} targetComponentId
+ * @param {number} position
  * @return {Object}
  */
-export const moveComponent = (sourceId, targetId, position) => ({
+export const moveComponent = (componentId, targetComponentId, position) => ({
     type: PROJECT_COMPONENT_MOVE,
-    sourceId,
-    targetId,
+    componentId,
+    targetComponentId,
     position
 });
 
@@ -172,14 +171,14 @@ export const PROJECT_COMPONENT_CREATE_ROOT = 'PROJECT_COMPONENT_CREATE_ROOT';
 /**
  * @param  {number}  routeId
  * @param  {boolean} isIndexRoute
- * @param  {ProjectComponent}  component
- * @return {object}
+ * @param  {Immutable.Map} components
+ * @return {Object}
  */
-export const createRootComponent = (routeId, isIndexRoute, component) => ({
+export const createRootComponent = (routeId, isIndexRoute, components) => ({
     type: PROJECT_COMPONENT_CREATE_ROOT,
     routeId,
     isIndexRoute,
-    component
+    components
 });
 
 /**
@@ -189,15 +188,15 @@ export const createRootComponent = (routeId, isIndexRoute, component) => ({
 export const PROJECT_COMPONENT_CREATE = 'PROJECT_COMPONENT_CREATE';
 
 /**
- * @param  {number} targetId
+ * @param  {number} parentComponentId
  * @param  {number} position
- * @param  {ProjectComponent} component
+ * @param  {Immutable.Map} components
  */
-export const createComponent = (targetId, position, component) => ({
+export const createComponent = (parentComponentId, position, components) => ({
     type: PROJECT_COMPONENT_CREATE,
-    targetId,
+    parentComponentId,
     position,
-    component
+    components
 });
 
 /**

@@ -46,7 +46,7 @@ class ComponentsTreeViewComponent extends Component {
 
         this._renderItem = this._renderItem.bind(this);
     }
-
+    
     shouldComponentUpdate(nextProps) {
         return nextProps.route !== this.props.route ||
             nextProps.isIndexRoute !== this.props.isIndexRoute ||
@@ -55,34 +55,36 @@ class ComponentsTreeViewComponent extends Component {
             nextProps.highlightedItemIds !== this.props.highlightedItemIds;
     }
 
-    _handleExpand(itemId, state) {
-        if (state) this.props.onExpandItem(itemId);
-        else this.props.onCollapseItem(itemId);
+    _handleExpand(componentId, state) {
+        if (state) this.props.onExpandItem(componentId);
+        else this.props.onCollapseItem(componentId);
     }
 
-    _handleSelect(itemId, state) {
-        if (state) this.props.onSelectItem(itemId);
-        else this.props.onDeselectItem(itemId);
+    _handleSelect(componentId, state) {
+        if (state) this.props.onSelectItem(componentId);
+        else this.props.onDeselectItem(componentId);
+    }
+    
+    _handleHover(componentId, state) {
+        if (state) this.props.onHighlightItem(componentId);
+        else this.props.onUnhighlightItem(componentId);
     }
 
-    _handleHover(itemId, state) {
-        if (state) this.props.onHighlightItem(itemId);
-        else this.props.onUnhighlightItem(itemId);
-    }
+    _renderItem(componentId, idx) {
+        const component = this.props.route.components.get(componentId);
 
-    _renderItem(item, idx) {
-        const children = item.children.size > 0
-            ? this._renderList(item.children)
+        const children = component.children.size > 0
+            ? this._renderList(component.children)
             : null;
 
         let title, subtitle;
 
-        if (item.title) {
-            title = item.title;
-            subtitle = item.name;
+        if (component.title) {
+            title = component.title;
+            subtitle = component.name;
         }
         else {
-            title = item.name;
+            title = component.name;
             subtitle = '';
         }
 
@@ -91,35 +93,36 @@ class ComponentsTreeViewComponent extends Component {
                 key={idx}
                 title={title}
                 subtitle={subtitle}
-                expanded={this.props.expandedItemIds.has(item.id)}
-                active={this.props.selectedItemIds.has(item.id)}
-                hovered={this.props.highlightedItemIds.has(item.id)}
+                expanded={this.props.expandedItemIds.has(componentId)}
+                active={this.props.selectedItemIds.has(componentId)}
+                hovered={this.props.highlightedItemIds.has(componentId)}
+                onExpand={this._handleExpand.bind(this, componentId)}
+                onSelect={this._handleSelect.bind(this, componentId)}
+                onHover={this._handleHover.bind(this, componentId)}
                 children={children}
-                onExpand={this._handleExpand.bind(this, item.id)}
-                onSelect={this._handleSelect.bind(this, item.id)}
-                onHover={this._handleHover.bind(this, item.id)}
             />
         );
     }
 
-    _renderList(items) {
+    _renderList(componentIds) {
         return (
             <ComponentsTreeList>
-                {items.map(this._renderItem)}
+                {componentIds.map(this._renderItem)}
             </ComponentsTreeList>
         )
     }
 
     render() {
         const { getLocalizedText } = this.props;
+
         const rootComponent = this.props.isIndexRoute
             ? this.props.route.indexComponent
             : this.props.route.component;
 
-        if (!rootComponent) {
+        if (rootComponent === -1) {
             return (
                 <BlockContentPlaceholder
-                    text={ getLocalizedText('thereAreNoComponentsInThisRoute') }
+                    text={getLocalizedText('thereAreNoComponentsInThisRoute')}
                 />
             );
         }
@@ -152,11 +155,11 @@ ComponentsTreeViewComponent.propTypes = {
 
 ComponentsTreeViewComponent.displayName = 'ComponentsTreeView';
 
-const mapStateToProps = state => ({
-    expandedItemIds: state.design.treeExpandedItemIds,
-    selectedItemIds: state.preview.selectedItems,
-    highlightedItemIds: state.preview.highlightedItems,
-    getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
+const mapStateToProps = ({ design, project, app }) => ({
+    expandedItemIds: design.treeExpandedItemIds,
+    selectedItemIds: project.selectedItems,
+    highlightedItemIds: project.highlightedItems,
+    getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
 });
 
 const mapDispatchToProps = dispatch => ({

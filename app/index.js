@@ -36,7 +36,7 @@ const setToolsOnEnter = toolIds => () => void store.dispatch(setTools(toolIds));
  */
 window.abc = (lang) => store.dispatch(loadLocalization(lang));
 
-store.dispatch(loadLocalization('en'))
+store.dispatch(loadLocalization('en'));
 
 const playgroundToolIds = [];
 playgroundRouteTools.forEach(group =>

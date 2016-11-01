@@ -25,7 +25,7 @@ import {
     BlockContentPlaceholder
 } from '../../components/BlockContent/BlockContent';
 
-import ProjectRecord from '../../models/Project';
+import ProjectRecord, { getComponentById } from '../../models/Project';
 
 import { updateComponentPropValue } from '../../actions/project';
 
@@ -114,11 +114,6 @@ const getStaticOneOfValue = (source, sourceData, options) =>
         : options[0].value;
 
 class ComponentPropsEditorComponent extends Component {
-    _getComponent(componentId) {
-        const componentIndexEntry = this.props.componentsIndex.get(componentId);
-        return this.props.project.getIn(componentIndexEntry.path);
-    }
-
     _handleStaticValueChange(propName, newValue) {
         const componentId = this.props.selectedComponentIds.first();
         this.props.onPropValueChange(
@@ -292,20 +287,25 @@ class ComponentPropsEditorComponent extends Component {
 
     render() {
         const { getLocalizedText } = this.props;
+
         if (this.props.selectedComponentIds.size === 0) {
             return (
-                <BlockContentPlaceholder text={ getLocalizedText('selectAComponent') }/>
+                <BlockContentPlaceholder
+                    text={getLocalizedText('selectAComponent')}
+                />
             );
         }
 
         if (this.props.selectedComponentIds.size > 1) {
             return (
-                <BlockContentPlaceholder text={ getLocalizedText('multipleComponentsSelected') }/>
+                <BlockContentPlaceholder
+                    text={getLocalizedText('multipleComponentsSelected')}
+                />
             );
         }
 
         const componentId = this.props.selectedComponentIds.first(),
-            component = this._getComponent(componentId),
+            component = getComponentById(this.props.project, componentId),
             componentMeta = getComponentMeta(component.name, this.props.meta);
 
         if (!componentMeta) return null;
@@ -333,7 +333,7 @@ class ComponentPropsEditorComponent extends Component {
         if (renderablePropNames.length === 0) {
             return (
                 <BlockContentPlaceholder
-                    text={ getLocalizedText('thisComponentDoesntHaveEditableAttributes') }
+                    text={getLocalizedText('thisComponentDoesntHaveEditableAttributes')}
                 />
             );
         }
@@ -393,22 +393,21 @@ class ComponentPropsEditorComponent extends Component {
 }
 
 ComponentPropsEditorComponent.propTypes = {
-    selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     project: PropTypes.instanceOf(ProjectRecord),
     meta: PropTypes.any,
-    componentsIndex: ImmutablePropTypes.map,
+    selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     language: PropTypes.string,
 
+    getLocalizedText: PropTypes.func,
     onPropValueChange: PropTypes.func
 };
 
-const mapStateToProps = state => ({
-    selectedComponentIds: state.preview.selectedItems,
-    project: state.project.data,
-    meta: state.project.meta,
-    componentsIndex: state.project.componentsIndex,
-    language: state.app.language,
-    getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
+const mapStateToProps = ({ project, app }) => ({
+    project: project.data,
+    meta: project.meta,
+    selectedComponentIds: project.selectedItems,
+    language: app.language,
+    getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
 });
 
 const mapDispatchToProps = dispatch => ({

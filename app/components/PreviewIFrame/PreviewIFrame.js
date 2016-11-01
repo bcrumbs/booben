@@ -7,8 +7,6 @@ import React, { Component, PropTypes } from 'react';
 
 import store from '../../store';
 
-import { setIsIndexRoute } from '../../actions/preview';
-
 const EVENTS_FOR_PARENT_FRAME = [
     'mousemove',
     'mouseup',
@@ -29,7 +27,6 @@ export class PreviewIFrame extends Component {
 
         this._iframe = null;
         this._nextPath = null;
-        this._nextIsIndexRoute = null;
 
         this._saveIFrameRef = this._saveIFrameRef.bind(this);
     }
@@ -70,9 +67,8 @@ export class PreviewIFrame extends Component {
                 });
 
                 if (this._nextPath !== null) {
-                    this._goTo(this._nextPath, this._nextIsIndexRoute);
+                    this._goTo(this._nextPath);
                     this._nextPath = null;
-                    this._nextIsIndexRoute = null;
                 }
             }
             else {
@@ -84,13 +80,8 @@ export class PreviewIFrame extends Component {
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.path !== this.props.path) {
-            if (this.state.loaded) {
-                this._goTo(nextProps.path, nextProps.isIndexRoute);
-            }
-            else {
-                this._nextPath = nextProps.path;
-                this._nextIsIndexRoute = nextProps.isIndexRoute;
-            }
+            if (this.state.loaded) this._goTo(nextProps.path);
+            else this._nextPath = nextProps.path;
         }
     }
 
@@ -102,11 +93,8 @@ export class PreviewIFrame extends Component {
         this._iframe = ref;
     }
 
-    _goTo(path, isIndexRoute) {
-        if (this.state.history) {
-            this.state.history.push(path);
-            store.dispatch(setIsIndexRoute(isIndexRoute));
-        }
+    _goTo(path) {
+        if (this.state.history) this.state.history.push(path);
     }
 
     render() {
@@ -130,14 +118,12 @@ PreviewIFrame.propTypes = {
     url: PropTypes.string.isRequired,
     path: PropTypes.string,
     store: PropTypes.any,
-    interactive: PropTypes.bool,
-    isIndexRoute: PropTypes.bool
+    interactive: PropTypes.bool
 };
 
 PreviewIFrame.defaultProps = {
     url: '',
     path: '/',
     store: {},
-    interactive: false,
-    isIndexRoute: false
+    interactive: false
 };
