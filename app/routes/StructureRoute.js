@@ -44,6 +44,11 @@ import {
     RouteNewButton
 } from '../components/RoutesList/RoutesList';
 
+import {
+  ComponentBreadcrumbs,
+  ComponentBreadcrumbItem
+} from '../components/ComponentBreadcrumbs/ComponentBreadcrumbs';
+
 import { List } from 'immutable';
 
 import history from '../history';
@@ -386,7 +391,8 @@ class StructureRoute extends Component {
                 onFocus={this._handleRouteSelect.bind(this, route, false)}
                 onGo={this._handleRouteGo.bind(this, route.id, false)}
             >
-                {children}
+                { children }
+
             </RouteCard>
         );
     }
