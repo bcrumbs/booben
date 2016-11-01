@@ -151,9 +151,8 @@ class Preview extends Component {
         this._handleMouseOut = this._handleMouseOut.bind(this);
         this._handleClick = this._handleClick.bind(this);
         this._handleChangeRoute = this._handleChangeRoute.bind(this);
-        this._createRoute = this._createRoute.bind(this);
 
-        this._receiveRoutes(props.project.routes);
+        this._updateRoutes(props.project.routes, props.project.rootRoutes);
     }
 
     componentDidMount() {
@@ -169,8 +168,8 @@ class Preview extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.project.routes !== this.props.project.routes)
-            this._receiveRoutes(nextProps.project.routes);
+        if (nextProps.project !== this.props.project)
+            this._updateRoutes(nextProps.project.routes, nextProps.project.rootRoutes);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -201,12 +200,13 @@ class Preview extends Component {
 
     /**
      *
+     * @param {Object} routes
      * @param {number} routeId
      * @return {Object}
      * @private
      */
-    _createRoute(routeId) {
-        const route = this.props.project.routes.get(routeId);
+    _createRoute(routes, routeId) {
+        const route = routes.get(routeId);
 
         const ret = {
             path: route.path,
@@ -215,8 +215,11 @@ class Preview extends Component {
 
         ret.onEnter = this._handleChangeRoute.bind(this, route.id, false);
 
-        if (route.children.size > 0)
-            ret.childRoutes = route.children.map(this._createRoute).toArray();
+        if (route.children.size > 0) {
+            ret.childRoutes = route.children
+                .map(childRouteId => this._createRoute(routes, childRouteId))
+                .toArray();
+        }
 
         if (route.haveRedirect) {
             ret.onEnter = (_, replace) => replace(route.redirectTo);
@@ -232,26 +235,18 @@ class Preview extends Component {
     }
 
     /**
+     * Build routes config for react-router
      *
-     * @param {Immutable.List<ProjectRoute>} routes
+     * @param {Immutable.Map} routes
+     * @param {Immutable.List<number>} rootRouteIds
      * @private
      */
-    _receiveRoutes(routes) {
-        this.routes = routes.map(this._createRoute).toArray();
+    _updateRoutes(routes, rootRouteIds) {
+        this.routes = rootRouteIds
+            .map(routeId => this._createRoute(routes, routeId))
+            .toArray();
+
         this.routerKey++;
-    }
-
-    /**
-     *
-     * @return {?number}
-     * @private
-     */
-    _getCurrentRootComponentId() {
-        const route = this.props.project.routes.get(this.props.currentRouteId);
-
-        return this.props.currentRouteIsIndexRoute
-            ? route.indexComponent
-            : route.component
     }
 
     /**

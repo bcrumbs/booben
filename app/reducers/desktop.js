@@ -16,7 +16,8 @@ import {
     DESKTOP_TOOL_SELECT,
     DESKTOP_TOOL_CLOSE,
     DESKTOP_TOOL_OPEN,
-    DESKTOP_SET_STICKY_TOOL
+    DESKTOP_SET_STICKY_TOOL,
+    DESKTOP_TOOL_SET_ACTIVE_SECTION
 } from '../actions/desktop';
 
 import ToolStateRecord from '../models/ToolState';
@@ -61,7 +62,7 @@ const changeToolStateProp = (state, toolId, prop, value) => {
 
 export default (state = new DesktopState(), action) => {
     switch (action.type) {
-        case DESKTOP_SET_TOOLS:
+        case DESKTOP_SET_TOOLS: {
             const newToolStates = {};
 
             action.toolIds.forEach(toolId => {
@@ -76,8 +77,7 @@ export default (state = new DesktopState(), action) => {
                 : state;
 
             const needToChangeActiveTool =
-                state.activeToolId === null ||
-                !action.toolIds.includes(state.activeToolId);
+                state.activeToolId === null || !action.toolIds.includes(state.activeToolId);
 
             if (needToChangeActiveTool) {
                 return selectTool(state, action.toolIds.get(0) || null);
@@ -85,14 +85,17 @@ export default (state = new DesktopState(), action) => {
             else {
                 return state;
             }
+        }
 
-        case DESKTOP_COLLAPSE_TOOLS_PANEL:
+        case DESKTOP_COLLAPSE_TOOLS_PANEL: {
             return state.set('toolsPanelIsExpanded', false);
+        }
 
-        case DESKTOP_EXPAND_TOOLS_PANEL:
+        case DESKTOP_EXPAND_TOOLS_PANEL: {
             return state.set('toolsPanelIsExpanded', true);
+        }
 
-        case DESKTOP_TOOL_DOCK:
+        case DESKTOP_TOOL_DOCK: {
             if (state.activeToolId !== null) {
                 state = state.setIn(
                     ['toolStates', state.activeToolId, 'isActiveInToolsPanel'],
@@ -119,8 +122,9 @@ export default (state = new DesktopState(), action) => {
             else {
                 return state;
             }
+        }
 
-        case DESKTOP_TOOL_UNDOCK:
+        case DESKTOP_TOOL_UNDOCK: {
             if (state.toolStates.has(action.toolId)) {
                 if (state.activeToolId !== null) {
                     state = state.setIn(
@@ -143,14 +147,17 @@ export default (state = new DesktopState(), action) => {
             else {
                 return state;
             }
+        }
 
-        case DESKTOP_TOOL_CLOSE:
+        case DESKTOP_TOOL_CLOSE: {
             return changeToolStateProp(state, action.toolId, 'closed', true);
+        }
 
-        case DESKTOP_TOOL_OPEN:
+        case DESKTOP_TOOL_OPEN: {
             return changeToolStateProp(state, action.toolId, 'closed', false);
+        }
 
-        case DESKTOP_TOOL_FOCUS:
+        case DESKTOP_TOOL_FOCUS: {
             if (state.toolStates.has(action.toolId)) {
                 const newTopZIndex = state.topToolZIndex + 1;
 
@@ -161,11 +168,13 @@ export default (state = new DesktopState(), action) => {
             else {
                 return state;
             }
+        }
             
-        case DESKTOP_TOOL_SELECT:
+        case DESKTOP_TOOL_SELECT: {
             return selectTool(state, action.toolId);
+        }
 
-        case DESKTOP_SET_STICKY_TOOL:
+        case DESKTOP_SET_STICKY_TOOL: {
             if (action.toolId === state.stickyToolId) return state;
 
             if (state.stickyToolId !== null) {
@@ -183,6 +192,16 @@ export default (state = new DesktopState(), action) => {
             else {
                 return state.set('stickyToolId', null);
             }
+        }
+
+        case DESKTOP_TOOL_SET_ACTIVE_SECTION: {
+            if (!state.toolStates.has(action.toolId)) return state;
+
+            return state.setIn(
+                ['toolStates', action.toolId, 'activeSection'],
+                action.newActiveSection
+            );
+        }
 
         default: return state;
     }

@@ -52,10 +52,10 @@ class Overlay extends Component {
         const syntheticPadding = -2,
             scrollTop = window.pageYOffset;
 
-        width = width + syntheticPadding;
-        height = height + syntheticPadding;
-        left = Math.round(left - syntheticPadding / 2);
-        top = Math.round(top - syntheticPadding / 2 + scrollTop);
+        width = width + syntheticPadding + 1;
+        height = height + syntheticPadding + 1;
+        left = Math.round(left - syntheticPadding / 2 - 1);
+        top = Math.round(top - syntheticPadding / 2 + scrollTop - 1);
 
         const border = `2px solid ${color}`;
 

@@ -85,7 +85,7 @@ const RootRoute = props => {
         if (route.haveIndex) {
             routeMenuItems.push(
                 <HeaderMenuItem
-                    key={route.id}
+                    key={`${route.id}-index`}
                     text={`${route.fullPath} - index`}
                     linkHref={`/${props.projectName}/design/${route.id}/index`}
                     linkComponent={TopMenuLink}

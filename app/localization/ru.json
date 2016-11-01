@@ -15,6 +15,8 @@
   "edit": "Редактировать",
   "cancel": "Отменить",
   "delete": "Удалить",
+  "routeEditorTitle": "Конфигурация маршрута",
+  "noRouteSelected": "Выберите маршрут",
   "route": "Маршрут",
   "routeTitle": "Название маршрута",
   "createNewRoute": "Создать новый маршрут",

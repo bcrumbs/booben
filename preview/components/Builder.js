@@ -94,10 +94,15 @@ class BuilderComponent extends Component {
      * @private
      */
     _renderPlaceholderForDraggedComponent(containerId, afterIdx) {
+        const rootId = this.props.draggedComponentId > -1
+            ? this.props.draggedComponentId
+            : 0;
+
         //noinspection JSValidateTypes
         return (
             <Builder
-                component={this.props.draggedComponent}
+                components={this.props.draggedComponents}
+                rootId={rootId}
                 isPlaceholder
                 afterIdx={afterIdx}
                 containerId={containerId}
@@ -295,7 +300,7 @@ BuilderComponent.propTypes = {
     containerId: PropTypes.any, // number on null
 
     meta: PropTypes.object,
-    draggingComponent: PropTypes.boolean,
+    draggingComponent: PropTypes.bool,
     draggedComponentId: PropTypes.number,
     draggedComponents: PropTypes.any,
     draggingOverComponentId: PropTypes.number

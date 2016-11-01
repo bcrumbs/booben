@@ -242,6 +242,7 @@ class ComponentsLibraryComponent extends Component {
 
         const component = {
             id: nextId++,
+            isNew: true,
             name: componentData.fullName,
             title: '',
             props: buildDefaultProps(componentMeta, this.props.language),
@@ -269,6 +270,7 @@ class ComponentsLibraryComponent extends Component {
 
                 component.children.push({
                     id: nextId++,
+                    isNew: true,
                     name: regionComponentName,
                     title: '',
                     props,

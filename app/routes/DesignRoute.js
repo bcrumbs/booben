@@ -167,8 +167,11 @@ class DesignRoute extends Component {
 
         if (singleComponentSelected) {
             const componentId = this.props.selectedComponentIds.first(),
-                component = getComponentById(this.props.project, componentId),
-                parentComponent = getComponentById(component.parentId);
+                component = getComponentById(this.props.project, componentId);
+
+            const parentComponent = component.parentId > -1
+                ? getComponentById(this.props.project, component.parentId)
+                : null;
 
             const isRegion = parentComponent
                 ? isCompositeComponent(parentComponent.name, this.props.meta)

@@ -12,7 +12,8 @@ import { connect } from 'react-redux';
 import {
     BlockContentBox,
     BlockContentBoxItem,
-    BlockContentBoxHeading
+    BlockContentBoxHeading,
+    BlockContentPlaceholder
 } from '../../components/BlockContent/BlockContent';
 
 import {
@@ -69,10 +70,13 @@ class RouteEditorComponent extends Component {
     }
 
     render() {
-        if (this.props.selectedRouteId === -1) return null;
+        const { getLocalizedText } = this.props;
 
-        const { getLocalizedText } = this.props,
-            route = this.props.routes.get(this.props.selectedRouteId);
+        if (this.props.selectedRouteId === -1) return (
+            <BlockContentPlaceholder text={getLocalizedText('noRouteSelected')} />
+        );
+
+        const route = this.props.routes.get(this.props.selectedRouteId);
 
         if (this.props.indexRouteSelected) {
             return (
@@ -158,8 +162,9 @@ class RouteEditorComponent extends Component {
 }
 
 RouteEditorComponent.propTypes = {
-    routes: ImmutablePropTypes.listOf(
-        PropTypes.instanceOf(ProjectRouteRecord)
+    routes: ImmutablePropTypes.mapOf(
+        PropTypes.instanceOf(ProjectRouteRecord),
+        PropTypes.number
     ),
 
     selectedRouteId: PropTypes.number,
@@ -175,10 +180,10 @@ RouteEditorComponent.propTypes = {
 
 RouteEditorComponent.displayName = 'RouteEditor';
 
-const mapStateToProps = ({ project, structure, app }) => ({
+const mapStateToProps = ({ project, app }) => ({
     routes: project.data.routes,
-    selectedRouteId: structure.selectedRouteId,
-    indexRouteSelected: structure.indexRouteSelected,
+    selectedRouteId: project.selectedRouteId,
+    indexRouteSelected: project.indexRouteSelected,
     language: app.language,
     getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
 });

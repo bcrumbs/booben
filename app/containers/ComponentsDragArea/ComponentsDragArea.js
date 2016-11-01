@@ -34,7 +34,10 @@ class ComponentsDragAreaComponent extends Component {
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.draggingComponent) {
-            if (!this.dragging) this._handleStartDrag();
+            if (!this.dragging) this._handleStartDrag(
+                nextProps.draggedComponents,
+                nextProps.draggedComponentId
+            );
         }
         else {
             if (this.dragging) this._handleStopDrag();
@@ -43,14 +46,11 @@ class ComponentsDragAreaComponent extends Component {
 
     /**
      *
+     * @param {Object} component
      * @returns {HTMLElement}
      * @private
      */
-    _createAvatarElement() {
-        const component = this.props.draggedComponents.get(
-            this.props.draggedComponentId > -1 ? this.props.draggedComponentId : 0
-        );
-
+    _createAvatarElement(component) {
         const ret = document.createElement('div');
         ret.innerText = component.title || component.name;
         ret.style.position = 'absolute';
@@ -60,11 +60,18 @@ class ComponentsDragAreaComponent extends Component {
 
     /**
      *
+     * @param {Immutable.Map} draggedComponents
+     * @param {number} draggedComponentId
      * @private
      */
-    _handleStartDrag() {
+    _handleStartDrag(draggedComponents, draggedComponentId) {
         window.addEventListener('mousemove', this._handleMouseMove);
-        this.avatarElement = this._createAvatarElement();
+
+        const component = draggedComponents.get(
+            draggedComponentId > -1 ? draggedComponentId : 0
+        );
+
+        this.avatarElement = this._createAvatarElement(component);
         document.body.appendChild(this.avatarElement);
         this.dragging = true;
     }

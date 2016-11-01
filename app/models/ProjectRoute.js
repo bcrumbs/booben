@@ -54,6 +54,7 @@ export const projectRouteToImmutable = (input, fullPath, parentId) => new Projec
     })
 });
 
-export const getMaxComponentId = route => route.components.keysSeq().max();
+export const getMaxComponentId = route =>
+    route.components.size > 0 ? route.components.keySeq().max() : -1;
 
 export default ProjectRouteRecord;

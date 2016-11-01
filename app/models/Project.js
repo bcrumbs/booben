@@ -5,10 +5,13 @@
 'use strict';
 
 import { Record, List, Map, Set } from 'immutable';
+
 import {
     projectRouteToImmutable,
     getMaxComponentId as _getMaxComponentId
 } from './ProjectRoute';
+
+import { concatPath } from '../utils';
 
 const ProjectRecord = Record({
     name: '',
@@ -25,12 +28,6 @@ export const projectToImmutable = input => new ProjectRecord({
     componentLibs: List(input.componentLibs),
     relayEndpointURL: input.relayEndpointURL || '',
     routes: Map().withMutations(routes => {
-        const concatPath = (prefix, path) => {
-            if (prefix === '') return path;
-            if (prefix === '/') return '/' + path;
-            return prefix + '/' + path;
-        };
-
         const visitRoute = (route, pathPrefix, parentRouteId) => {
             const fullPath = concatPath(pathPrefix, route.path);
             routes.set(route.id, projectRouteToImmutable(route, fullPath, parentRouteId));
@@ -46,7 +43,7 @@ export const projectToImmutable = input => new ProjectRecord({
 export const getMaxRouteId = project => project.routes.keySeq().max();
 
 export const getMaxComponentId = project =>
-    Math.max(...project.routes.map(_getMaxComponentId));
+    Math.max(-1, ...project.routes.toList().map(_getMaxComponentId));
 
 export const gatherRoutesTreeIds = (project, rootRouteId) =>
     Set().withMutations(ret => {

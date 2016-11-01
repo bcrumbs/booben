@@ -99,10 +99,6 @@ class StructureRoute extends Component {
         this._renderRouteCard = this._renderRouteCard.bind(this);
     }
 
-    componentDidMount() {
-        if (this.props.selectedRouteId === -1) this._selectFirstRoute();
-    }
-
     /**
      *
      * @param {Object} ref
@@ -110,19 +106,6 @@ class StructureRoute extends Component {
      */
     _saveNewRouteTitleInputRef(ref) {
         this._newRouteTitleInput = ref;
-    }
-
-    /**
-     *
-     * @private
-     */
-    _selectFirstRoute() {
-        if (this.props.project.routes.size > 0) {
-            this._handleRouteSelect(this.props.project.routes.get(0));
-        }
-        else {
-            this._handleRouteSelect(null);
-        }
     }
 
     /**
@@ -140,7 +123,7 @@ class StructureRoute extends Component {
             ? this.props.indexRouteSelected === isIndexRoute
             : !this.props.indexRouteSelected;
 
-        if (!sameRoute && !sameIsIndex) this.props.onSelectRoute(route, isIndexRoute);
+        if (!sameRoute || !sameIsIndex) this.props.onSelectRoute(route, isIndexRoute);
     }
 
     /**
@@ -190,7 +173,6 @@ class StructureRoute extends Component {
      */
     _handleDeleteRouteConfirm(closeDialog) {
         this.props.onDeleteRoute(this.props.selectedRouteId);
-        this._selectFirstRoute();
         closeDialog();
     }
 
@@ -413,7 +395,7 @@ class StructureRoute extends Component {
         const { getLocalizedText } = this.props;
 
         const selectedRoute = this.props.selectedRouteId !== -1
-            ? this.props.project.get(this.props.selectedRouteId)
+            ? this.props.project.routes.get(this.props.selectedRouteId)
             : null;
 
         const routeEditorToolMainButtons = selectedRoute
@@ -440,7 +422,7 @@ class StructureRoute extends Component {
             ? this.props.indexRouteSelected
                 ? `${selectedRoute.title || selectedRoute.path} - Index`
                 : selectedRoute.title
-            : '';
+            : getLocalizedText('routeEditorTitle');
 
         const titleEditable = !!selectedRoute && !this.props.indexRouteSelected;
 
@@ -449,7 +431,7 @@ class StructureRoute extends Component {
                 new ToolRecord({
                     id: TOOL_ID_ROUTE_EDITOR,
                     icon: 'random',
-                    name: 'Route',
+                    name: getLocalizedText('routeEditorTitle'),
                     title: title,
                     titleEditable: titleEditable,
                     titlePlaceholder: getLocalizedText('routeTitle'),
@@ -566,11 +548,11 @@ StructureRoute.propTypes = {
 
 StructureRoute.displayName = 'StructureRoute';
 
-const mapStateToProps = ({ project, structure, app }) => ({
+const mapStateToProps = ({ project, app }) => ({
     project: project.data,
     projectName: project.projectName,
-    selectedRouteId: structure.selectedRouteId,
-    indexRouteSelected: structure.indexRouteSelected,
+    selectedRouteId: project.selectedRouteId,
+    indexRouteSelected: project.indexRouteSelected,
     getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
 });
 

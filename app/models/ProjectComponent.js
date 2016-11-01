@@ -41,6 +41,7 @@ export const projectComponentToImmutable = (input, routeId, isIndexRoute, parent
     new ProjectComponentRecord({
         id: input.id,
         parentId,
+        isNew: !!input.isNew,
         name: input.name,
         title: input.title,
 
@@ -57,7 +58,7 @@ export const projectComponentToImmutable = (input, routeId, isIndexRoute, parent
     });
 
 export const componentsToImmutable = (input, routeId, isIndexRoute, parentId) =>
-    Map.withMutations(mut => {
+    Map().withMutations(mut => {
         const visitComponent = (component, parentId) => {
             mut.set(
                 component.id,

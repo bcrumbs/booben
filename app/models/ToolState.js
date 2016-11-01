@@ -12,5 +12,6 @@ export default Record({
     zIndex: 0,
     sideRegionIsVisible: false,
     isInDockRegion: false,
-    isActiveInToolsPanel: false
+    isActiveInToolsPanel: false,
+    activeSection: 0
 });

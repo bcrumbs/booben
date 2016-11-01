@@ -94,12 +94,16 @@ export const ToolPanel = props => {
             props.onToolUndock(activeTool, nextActiveTool);
         };
 
+        const onActiveSectionChange = newActiveSection =>
+            props.onToolActiveSectionChange(activeTool, newActiveSection);
+
         panelContent = (
             <ToolPanelContent
                 tool={activeTool}
                 toolState={activeToolState}
                 onTitleChange={onTitleChange}
                 onUndock={onUndock}
+                onActiveSectionChange={onActiveSectionChange}
                 onCollapse={props.onCollapse}
             />
         );
@@ -132,7 +136,8 @@ ToolPanel.propTypes = {
     onCollapse: PropTypes.func,
     onToolUndock: PropTypes.func,
     onToolSelect: PropTypes.func,
-    onToolTitleChange: PropTypes.func
+    onToolTitleChange: PropTypes.func,
+    onToolActiveSectionChange: PropTypes.func
 };
 
 ToolPanel.defaultProps = {
@@ -142,7 +147,8 @@ ToolPanel.defaultProps = {
     onCollapse: noop,
     onToolUndock: noop,
     onToolSelect: noop,
-    onToolTitleChange: noop
+    onToolTitleChange: noop,
+    onToolActiveSectionChange: noop
 };
 
 ToolPanel.displayName = 'ToolPanel';

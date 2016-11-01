@@ -72,3 +72,11 @@ export const setStickyTool = toolId => ({
     type: DESKTOP_SET_STICKY_TOOL,
     toolId
 });
+
+export const DESKTOP_TOOL_SET_ACTIVE_SECTION = 'DESKTOP_TOOL_SET_ACTIVE_SECTION';
+
+export const setToolActiveSection = (toolId, newActiveSection) => ({
+    type: DESKTOP_TOOL_SET_ACTIVE_SECTION,
+    toolId,
+    newActiveSection
+});
