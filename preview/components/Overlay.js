@@ -161,7 +161,7 @@ class Overlay extends Component {
 
             if (boundaryComponentId > -1) {
                 rootComponentBox = this._renderBoundingBoxes(
-                    Set([this.props.boundaryComponentId]),
+                    Set([boundaryComponentId]),
                     'red'
                 );
             }
