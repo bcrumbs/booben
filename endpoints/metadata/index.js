@@ -403,6 +403,157 @@ const metaSchema = {
             },
             minItems: 1,
             required: false
+        },
+
+        placement: {
+            type: 'object',
+            properties: {
+                inside: {
+                    type: 'object',
+                    properties: {
+                        include: {
+                            type: 'array',
+                            minItems: 1,
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    all: {
+                                        type: 'boolean',
+                                        required: false
+                                    },
+                                    component: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
+                                    group: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
+                                    maxNum: {
+                                        type: 'int',
+                                        minimum: 1,
+                                        required: false
+                                    }
+                                }
+                            }
+                        },
+
+                        exclude: {
+                            type: 'array',
+                            minItems: 1,
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    component: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
+                                    group: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    required: false
+                },
+                after: {
+                    type: 'object',
+                    properties: {
+                        include: {
+                            type: 'array',
+                            minItems: 1,
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    component: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
+                                    group: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    }
+                                }
+                            }
+                        },
+
+                        exclude: {
+                            type: 'array',
+                            minItems: 1,
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    component: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
+                                    group: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    required: false
+                },
+                before: {
+                    type: 'object',
+                    properties: {
+                        include: {
+                            type: 'array',
+                            minItems: 1,
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    component: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
+                                    group: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    }
+                                }
+                            }
+                        },
+
+                        exclude: {
+                            type: 'array',
+                            minItems: 1,
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    component: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
+                                    group: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    required: false
+                }
+            },
+            required: false
         }
     }
 };
