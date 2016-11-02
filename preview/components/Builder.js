@@ -2,14 +2,21 @@
 
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
 // The real components.js will be generated during build process
 import _components from '../components.js';
 
 import patchComponent from '../patchComponent';
-import { isContainerComponent, isCompositeComponent } from '../../app/utils/meta';
+
+import { getComponentById } from '../../app/models/Project';
+
+import {
+    isContainerComponent,
+    isCompositeComponent,
+    canInsertComponent
+} from '../../app/utils/meta';
+
 import { objectMap } from '../../app/utils/misc';
 
 const components = objectMap(_components, ns => objectMap(ns, patchComponent));
@@ -97,6 +104,24 @@ class BuilderComponent extends Component {
         const rootId = this.props.draggedComponentId > -1
             ? this.props.draggedComponentId
             : 0;
+
+        if (containerId > -1) {
+            const rootComponent = this.props.draggedComponents.get(rootId),
+                containerComponent = getComponentById(this.props.project, containerId);
+
+            const containerChildrenNames = containerComponent.children
+                .map(id => getComponentById(this.props.project, id).name);
+
+            const canDropHere = canInsertComponent(
+                rootComponent.name,
+                containerComponent.name,
+                containerChildrenNames,
+                afterIdx + 1,
+                this.props.meta
+            );
+
+            if (!canDropHere) return null;
+        }
 
         //noinspection JSValidateTypes
         return (
@@ -294,11 +319,11 @@ class BuilderComponent extends Component {
 BuilderComponent.propTypes = {
     components: PropTypes.any, // Immutable map of <number, Component>
     rootId: PropTypes.number,
-
     isPlaceholder: PropTypes.bool,
     afterIdx: PropTypes.any, // number on null
     containerId: PropTypes.any, // number on null
 
+    project: PropTypes.any,
     meta: PropTypes.object,
     draggingComponent: PropTypes.bool,
     draggedComponentId: PropTypes.number,
@@ -317,6 +342,7 @@ BuilderComponent.defaultProps = {
 BuilderComponent.displayName = 'Builder';
 
 const mapStateToProps = state => ({
+    project: state.project.data,
     meta: state.project.meta,
     draggingComponent: state.project.draggingComponent,
     draggedComponentId: state.project.draggedComponentId,

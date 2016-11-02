@@ -463,6 +463,7 @@ const metaSchema = {
                     required: false
                 },
                 after: {
+                    // Not used yet
                     type: 'object',
                     properties: {
                         include: {
@@ -508,6 +509,7 @@ const metaSchema = {
                     required: false
                 },
                 before: {
+                    // Not used yet
                     type: 'object',
                     properties: {
                         include: {

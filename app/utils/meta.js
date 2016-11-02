@@ -47,6 +47,15 @@ export const parseComponentName = componentName => {
 
 /**
  *
+ * @param {string} namespace
+ * @param {string} name
+ * @return {string}
+ */
+export const formatComponentName = (namespace, name) =>
+    namespace ? `${namespace}.${name}` : name;
+
+/**
+ *
  * @param {string} componentName
  * @param {Object} meta
  * @return {?Object}
@@ -102,4 +111,68 @@ export const isCompositeComponent = (componentName, meta) =>
 export const getString = (componentMeta, stringId, language) => {
     if (!componentMeta.strings[stringId]) return null;
     return componentMeta.strings[stringId][language] || null;
+};
+
+/**
+ *
+ * @param {string} componentName
+ * @param {string} containerName
+ * @param {string[]|Immutable.List<string>} containerChildrenNames
+ * @param {number} position
+ * @param {Object} meta
+ * @return {boolean}
+ */
+export const canInsertComponent = (componentName, containerName, containerChildrenNames, position, meta) => {
+    const componentMeta = getComponentMeta(componentName, meta),
+        { namespace } = parseComponentName(componentName),
+        containerMeta = getComponentMeta(containerName, meta);
+
+    const sameComponentsNum = containerChildrenNames
+        .reduce((acc, cur) => acc + (cur === componentName ? 1 : 0), 0);
+
+    if (!componentMeta.placement) return true;
+
+    if (componentMeta.placement.inside) {
+        if (componentMeta.placement.inside.exclude) {
+            const deny = componentMeta.placement.inside.exclude.some(exclusion => {
+                if (exclusion.component) {
+                    const exclusionComponentName = formatComponentName(
+                        namespace,
+                        exclusion.component
+                    );
+
+                    return containerName === exclusionComponentName;
+                }
+                else if (exclusion.group) {
+                    return containerMeta.group === exclusion.group;
+                }
+                else {
+                    return false;
+                }
+            });
+
+            if (deny) return false;
+        }
+        else if (componentMeta.placement.inside.include) {
+            const allow = componentMeta.placement.inside.include.some(inclusion => {
+                if (inclusion.component) {
+                    const inclusionComponentName = formatComponentName(
+                        namespace,
+                        inclusion.component
+                    );
+
+                    if (containerName !== inclusionComponentName) return false;
+                }
+                else if (inclusion.group) {
+                    if (containerMeta.group !== inclusion.group) return false;
+                }
+
+                return !inclusion.maxNum || sameComponentsNum < inclusion.maxNum;
+            });
+
+            if (!allow) return false;
+        }
+    }
+
+    return true;
 };

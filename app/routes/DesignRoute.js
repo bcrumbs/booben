@@ -229,8 +229,10 @@ class DesignRoute extends Component {
 
         let layoutSelectionDialogContent = null;
         if (this.props.selectingComponentLayout) {
+            const draggedComponent = this.props.draggedComponents.get(0);
+
             const draggedComponentMeta =
-                getComponentMeta(this.props.draggedComponent.name, this.props.meta);
+                getComponentMeta(draggedComponent.name, this.props.meta);
 
             const items = draggedComponentMeta.layouts.map((layout, idx) => {
                 const icon = layout.icon || defaultComponentLayoutIcon;
@@ -313,7 +315,7 @@ DesignRoute.propTypes = {
     meta: PropTypes.object,
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     selectingComponentLayout: PropTypes.bool,
-    draggedComponent: PropTypes.instanceOf(ProjectComponentRecord),
+    draggedComponents: PropTypes.instanceOf(ProjectComponentRecord),
     language: PropTypes.string,
     
     getLocalizedText: PropTypes.func,
@@ -321,12 +323,12 @@ DesignRoute.propTypes = {
     onDeleteComponent: PropTypes.func
 };
 
-const mapStateToProps = ({ project, design, app }) => ({
+const mapStateToProps = ({ project, app }) => ({
     project: project.data,
     meta: project.meta,
     selectedComponentIds: project.selectedItems,
-    selectingComponentLayout: design.selectingComponentLayout,
-    draggedComponent: project.draggedComponent,
+    selectingComponentLayout: project.selectingComponentLayout,
+    draggedComponents: project.draggedComponents,
     language: app.language,
     getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
 });
