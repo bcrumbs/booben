@@ -44,11 +44,6 @@ import {
     RouteNewButton
 } from '../components/RoutesList/RoutesList';
 
-import {
-  ComponentBreadcrumbs,
-  ComponentBreadcrumbItem
-} from '../components/ComponentBreadcrumbs/ComponentBreadcrumbs';
-
 import { List } from 'immutable';
 
 import history from '../history';

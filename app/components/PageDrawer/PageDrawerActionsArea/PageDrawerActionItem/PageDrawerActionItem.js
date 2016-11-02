@@ -4,6 +4,24 @@ import React, { Component, PropTypes } from 'react';
 import { Button }  from '@reactackle/reactackle';
 import { combineWithTooltip } from '@reactackle/reactackle/components/Tooltip/Tooltip';
 
+/*
+ * Combined with tooltip
+ */
+
+const
+  propTypes = {
+    icon: PropTypes.string,
+    title: PropTypes.string,
+    isActive: PropTypes.bool,
+    onPress: PropTypes.func
+  },
+  defaultProps = {
+    icon: null,
+    title: null,
+    isActive: false,
+    onPress: () => /* istanbul ignore next */ {}
+  };
+
 class PageDrawerActionItemComponent extends Component {
   constructor(props){
     super(props);
@@ -25,7 +43,7 @@ class PageDrawerActionItemComponent extends Component {
       else {
           button = <Button text={props.title} onPress={props.onPress} />;
       }
-      console.log(this.Tooltip)
+
       return (
           <div className={className}
             onFocus={this._showTooltip}
@@ -40,21 +58,8 @@ class PageDrawerActionItemComponent extends Component {
   };
 }
 
-PageDrawerActionItemComponent.propTypes = {
-    icon: PropTypes.string,
-    title: PropTypes.string,
-    isActive: PropTypes.bool,
-    onPress: PropTypes.func
-};
-
-PageDrawerActionItemComponent.defaultProps = {
-    icon: null,
-    title: null,
-    isActive: false,
-    onPress: () => /* istanbul ignore next */ {}
-};
-
+PageDrawerActionItemComponent.propTypes = propTypes;
+PageDrawerActionItemComponent.defaultProps = defaultProps;
 PageDrawerActionItemComponent.displayName = 'PageDrawerActionItem';
 
-console.log(combineWithTooltip + [])
 export const PageDrawerActionItem = combineWithTooltip(PageDrawerActionItemComponent, true);
