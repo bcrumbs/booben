@@ -31,7 +31,8 @@ import {
     selectPreviewComponent,
     deselectPreviewComponent,
     highlightPreviewComponent,
-    unhighlightPreviewComponent
+    unhighlightPreviewComponent,
+    startDragExistingComponent
 } from '../../actions/preview';
 
 import ProjectRouteRecord from '../../models/ProjectRoute';
@@ -61,6 +62,7 @@ class ComponentsTreeViewComponent extends Component {
     }
 
     _handleSelect(componentId, state) {
+        this.props.onStartDragItem(componentId);
         if (state) this.props.onSelectItem(componentId);
         else this.props.onDeselectItem(componentId);
     }
@@ -169,7 +171,8 @@ const mapDispatchToProps = dispatch => ({
     onSelectItem: id => void dispatch(selectPreviewComponent(id, true)),
     onDeselectItem: id => void dispatch(deselectPreviewComponent(id)),
     onHighlightItem: id => void dispatch(highlightPreviewComponent(id)),
-    onUnhighlightItem: id => void dispatch(unhighlightPreviewComponent(id))
+    onUnhighlightItem: id => void dispatch(unhighlightPreviewComponent(id)),
+    onStartDragItem: id => void dispatch(startDragExistingComponent(id)),
 });
 
 export const ComponentsTreeView = connect(

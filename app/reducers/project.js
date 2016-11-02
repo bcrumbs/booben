@@ -528,7 +528,7 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PREVIEW_START_DRAG_EXISTING_COMPONENT: {
-            const route = getRouteByComponentId(action.componentId);
+            const route = getRouteByComponentId(state.data, action.componentId);
 
             return state.merge({
                 draggingComponent: true,
