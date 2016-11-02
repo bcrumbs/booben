@@ -432,7 +432,7 @@ const metaSchema = {
                                         required: false
                                     },
                                     maxNum: {
-                                        type: 'int',
+                                        type: 'number',
                                         minimum: 1,
                                         required: false
                                     }
@@ -755,6 +755,7 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings, componentName 
     }
 
     const hasDefaultValue =
+        propMeta.source &&
         propMeta.source.indexOf('static') > -1 &&
         propMeta.sourceConfigs &&
         propMeta.sourceConfigs.static &&
@@ -771,7 +772,9 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings, componentName 
         );
     }
 
-    const hasConstValue = propMeta.source.indexOf('const') > -1 &&
+    const hasConstValue =
+        propMeta.source &&
+        propMeta.source.indexOf('const') > -1 &&
         propMeta.sourceConfigs &&
         propMeta.sourceConfigs.const &&
         typeof propMeta.sourceConfigs.const.value !== 'undefined';
@@ -840,6 +843,7 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings, componentName 
     }
     else if (propMeta.type === 'string') {
         const hasDefaultTextKey =
+            propMeta.source &&
             propMeta.source.indexOf('static') > -1 &&
             propMeta.sourceConfigs.static &&
             propMeta.sourceConfigs.static.defaultTextKey;
@@ -1177,14 +1181,11 @@ exports.gatherMetadata = moduleDir => co(function* () {
                 }
             }
             catch (err) {
-                const newErr = new Error(
+                err.message =
                     `Error while reading components metadata of '${ret.namespace}': ` +
-                    err.message || err.toString()
-                );
+                    err.message || err.toString();
 
-                newErr.stack = err.stack;
-
-                throw newErr;
+                throw err;
             }
         }
     }
