@@ -33,7 +33,8 @@ import ButtonRecord from '../models/Button';
 
 import {
     renameComponent,
-    deleteComponent
+    deleteComponent,
+    selectLayoutForNewComponent
 } from '../actions/project';
 
 import {
@@ -48,7 +49,6 @@ import { getLocalizedText } from '../utils';
 import defaultComponentLayoutIcon from '../img/layout_default.svg';
 
 import { List } from 'immutable';
-
 
 const TOOL_ID_LIBRARY = 'componentsLibrary';
 const TOOL_ID_COMPONENTS_TREE = 'componentsTree';
@@ -81,7 +81,7 @@ class DesignRoute extends Component {
 
     /**
      *
-     * @param {ToolRecord} tool
+     * @param {Object} tool
      * @param {string} newTitle
      * @private
      */
@@ -102,23 +102,33 @@ class DesignRoute extends Component {
         });
     }
 
+    /**
+     *
+     * @param {Function} closeDialog
+     * @private
+     */
     _handleDeleteComponentConfirm(closeDialog) {
         this.props.onDeleteComponent(this.props.selectedComponentIds.first());
         closeDialog();
     }
 
+    /**
+     *
+     * @param {Function} closeDialog
+     * @private
+     */
     _handleDeleteComponentCancel(closeDialog) {
         closeDialog();
     }
 
+    /**
+     *
+     * @private
+     */
     _handleConfirmDeleteComponentDialogClose() {
         this.setState({
             confirmDeleteComponentDialogIsVisible: false
         });
-    }
-
-    _handleLayoutSelection(layoutIdx) {
-        // TODO: Insert component
     }
 
     render() {
@@ -254,7 +264,7 @@ class DesignRoute extends Component {
                         image={icon}
                         title={title}
                         subtitle={subtitle}
-                        onClick={this._handleLayoutSelection.bind(this, idx)}
+                        onClick={this.props.onSelectLayout.bind(null, idx)}
                     />
                 );
             });
@@ -317,10 +327,11 @@ DesignRoute.propTypes = {
     selectingComponentLayout: PropTypes.bool,
     draggedComponents: PropTypes.instanceOf(ProjectComponentRecord),
     language: PropTypes.string,
-    
     getLocalizedText: PropTypes.func,
+
     onRenameComponent: PropTypes.func,
-    onDeleteComponent: PropTypes.func
+    onDeleteComponent: PropTypes.func,
+    onSelectLayout: PropTypes.func
 };
 
 const mapStateToProps = ({ project, app }) => ({
@@ -337,7 +348,11 @@ const mapDispatchToProps = dispatch => ({
     onRenameComponent: (componentId, newTitle) =>
         void dispatch(renameComponent(componentId, newTitle)),
 
-    onDeleteComponent: componentId => dispatch(deleteComponent(componentId))
+    onDeleteComponent: componentId =>
+        void dispatch(deleteComponent(componentId)),
+
+    onSelectLayout: layoutIdx =>
+        void dispatch(selectLayoutForNewComponent(layoutIdx))
 });
 
 export default connect(

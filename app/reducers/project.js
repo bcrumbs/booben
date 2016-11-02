@@ -24,7 +24,8 @@ import {
     PROJECT_COMPONENT_CREATE_ROOT,
     PROJECT_COMPONENT_UPDATE_PROP_VALUE,
     PROJECT_COMPONENT_RENAME,
-    PROJECT_COMPONENT_TOGGLE_REGION
+    PROJECT_COMPONENT_TOGGLE_REGION,
+    PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT
 } from '../actions/project';
 
 import {
@@ -40,6 +41,8 @@ import {
     PREVIEW_DRAG_OVER_COMPONENT,
     PREVIEW_DRAG_OVER_PLACEHOLDER
 } from '../actions/preview';
+
+import { APP_LOCALIZATION_LOAD_SUCCESS } from '../actions/app';
 
 import {
     STRUCTURE_SELECT_ROUTE
@@ -66,7 +69,7 @@ import {
 import { Record, Set } from 'immutable';
 
 import { concatPath } from '../utils';
-import { getComponentMeta } from '../utils/meta';
+import { getComponentMeta, constructComponent } from '../utils/meta';
 
 const propSourceDataToImmutable = {
     static: input => new SourceDataStatic(input),
@@ -101,6 +104,7 @@ const ProjectState = Record({
     selectedRouteId: -1,
     indexRouteSelected: false,
 
+    languageForComponentProps: 'en',
     selectingComponentLayout: false
 });
 
@@ -237,6 +241,31 @@ const initDNDState = state => state.merge({
     placeholderAfter: -1,
     highlightingEnabled: true
 });
+
+const insertDraggedComponents = (state, components) => {
+    if (state.placeholderContainerId === -1) {
+        // Creating root component for current route
+        return addComponents(
+            state,
+            state.currentRouteId,
+            state.currentRouteIsIndexRoute,
+            -1,
+            0,
+            components
+        );
+    }
+    else {
+        // Creating nested component
+        return addComponents(
+            state,
+            state.currentRouteId,
+            state.currentRouteIsIndexRoute,
+            state.placeholderContainerId,
+            state.placeholderAfter + 1,
+            components
+        );
+    }
+};
 
 export default (state = new ProjectState(), action) => {
     switch (action.type) {
@@ -518,6 +547,8 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PREVIEW_START_DRAG_NEW_COMPONENT: {
+            if (state.selectingComponentLayout) return state;
+
             return state.merge({
                 draggingComponent: true,
                 draggedComponentId: -1,
@@ -528,6 +559,8 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PREVIEW_START_DRAG_EXISTING_COMPONENT: {
+            if (state.selectingComponentLayout) return state;
+
             const route = getRouteByComponentId(action.componentId);
 
             return state.merge({
@@ -586,38 +619,36 @@ export default (state = new ProjectState(), action) => {
                     componentMeta.layouts.length > 1;
 
                 if (isCompositeComponentWithMultipleLayouts) {
+                    // The component is composite and has multiple layouts,
+                    // need to ask user which one to use
                     return state.merge({
                         selectingComponentLayout: true,
                         draggingComponent: false
                     });
                 }
                 else {
-                    if (state.placeholderContainerId === -1) {
-                        // Creating root component for current route
-                        state = addComponents(
-                            state,
-                            state.currentRouteId,
-                            state.currentRouteIsIndexRoute,
-                            -1,
-                            0,
-                            state.draggedComponents
-                        );
-                    }
-                    else {
-                        // Creating nested component
-                        state = addComponents(
-                            state,
-                            state.currentRouteId,
-                            state.currentRouteIsIndexRoute,
-                            state.placeholderContainerId,
-                            state.placeholderAfter + 1,
-                            state.draggedComponents
-                        );
-                    }
-
+                    // No layout options, inserting what we already have
+                    state = insertDraggedComponents(state, state.draggedComponents);
                     return initDNDState(state);
                 }
             }
+        }
+
+        case PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT: {
+            if (!state.selectingComponentLayout) return state;
+
+            const components = action.layoutIdx === 0
+                ? state.draggedComponents
+                : constructComponent(
+                    state.draggedComponents.get(0).name,
+                    action.layoutIdx,
+                    state.languageForComponentProps,
+                    state.meta
+                );
+
+            state = insertDraggedComponents(state, components);
+            state = state.set('selectingComponentLayout', false);
+            return initDNDState(state);
         }
 
         case PREVIEW_DRAG_OVER_COMPONENT: {
@@ -642,6 +673,10 @@ export default (state = new ProjectState(), action) => {
                 selectedRouteId: action.routeId,
                 indexRouteSelected: action.indexRouteSelected
             });
+        }
+
+        case APP_LOCALIZATION_LOAD_SUCCESS: {
+            return state.set('languageForComponentProps', action.language);
         }
 
         default:

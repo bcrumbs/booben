@@ -7,6 +7,10 @@
 import HTMLMeta from '../../app/meta/html';
 import miscMeta from '../../app/meta/misc';
 
+import { componentsToImmutable } from '../models/ProjectComponent';
+
+import { objectForEach } from './misc';
+
 /**
  *
  * @param {string} namespace
@@ -175,4 +179,108 @@ export const canInsertComponent = (componentName, containerName, containerChildr
     }
 
     return true;
+};
+
+/**
+ *
+ * @param {Object} componentMeta
+ * @param {string} language
+ * @return {Object}
+ */
+const buildDefaultProps = (componentMeta, language) => {
+    const ret = {};
+
+    objectForEach(componentMeta.props, (propMeta, propName) => {
+        if (propMeta.source.indexOf('static') > -1 && propMeta.sourceConfigs.static) {
+            if (typeof propMeta.sourceConfigs.static.default !== 'undefined') {
+                ret[propName] = {
+                    source: 'static',
+                    sourceData: {
+                        value: propMeta.sourceConfigs.static.default
+                    }
+                };
+            }
+            else if (propMeta.sourceConfigs.static.defaultTextKey) {
+                const key = propMeta.sourceConfigs.static.defaultTextKey,
+                    translations = componentMeta.strings[key];
+
+                ret[propName] = {
+                    source: 'static',
+                    sourceData: {
+                        value: translations[language] || ''
+                    }
+                };
+            }
+        }
+        else if (propMeta.source.indexOf('const') > -1 && propMeta.sourceConfigs.const) {
+            if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
+                ret[propName] = {
+                    source: 'const',
+                    sourceData: {
+                        value: propMeta.sourceConfigs.const.value
+                    }
+                }
+            }
+        }
+    });
+
+    return ret;
+};
+
+/**
+ *
+ * @param {string} componentName
+ * @param {number} layoutIdx
+ * @param {string} language
+ * @param {Object} meta
+ * @return {Immutable.Map}
+ */
+export const constructComponent = (componentName, layoutIdx, language, meta) => {
+    const componentMeta = getComponentMeta(componentName, meta);
+
+    // Ids of detached components must start with zero
+    let nextId = 0;
+
+    const component = {
+        id: nextId++,
+        isNew: true,
+        name: componentName,
+        title: '',
+        props: buildDefaultProps(componentMeta, language),
+        children: []
+    };
+
+    if (componentMeta.kind === 'composite') {
+        component.regionsEnabled = [];
+
+        const { namespace } = parseComponentName(componentName),
+            layout = componentMeta.layouts[layoutIdx];
+
+        layout.regions.forEach((region, idx) => {
+            const regionComponentName = `${namespace}.${region.component}`;
+
+            const regionComponentMeta = getComponentMeta(
+                regionComponentName,
+                this.props.meta
+            );
+
+            const props = Object.assign(
+                buildDefaultProps(regionComponentMeta, language),
+                region.props || {}
+            );
+
+            component.children.push({
+                id: nextId++,
+                isNew: true,
+                name: regionComponentName,
+                title: '',
+                props,
+                children: []
+            });
+
+            if (region.defaultEnabled) component.regionsEnabled.push(idx);
+        });
+    }
+
+    return componentsToImmutable(component, -1, false, -1);
 };

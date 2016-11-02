@@ -4,8 +4,6 @@
 
 'use strict';
 
-// TODO: Get all strings from i18n
-
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -32,19 +30,11 @@ import {
 
 import { startDragNewComponent } from '../../actions/preview';
 
-import { componentsToImmutable } from '../../models/ProjectComponent';
-
 import { List } from 'immutable';
 
-import {
-    getComponentMeta,
-    parseComponentName
-} from '../../utils/meta';
-
-import {
-    objectForEach,
-    pointIsInCircle
-} from '../../utils/misc';
+import { getLocalizedText } from '../../utils';
+import { constructComponent } from '../../utils/meta';
+import { objectForEach, pointIsInCircle } from '../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 import defaultComponentIcon from '../../img/component_default.svg';
@@ -139,58 +129,12 @@ const extractGroupsDataFromMeta = meta => {
                 fullName: `${libMeta.namespace}.${componentMeta.displayName}`,
                 text: componentMeta.strings[componentMeta.textKey],
                 descriptionText: componentMeta.strings[componentMeta.descriptionTextKey],
-                iconURL: defaultComponentIcon // TODO: Use icon from metadata if we have it
+                iconURL: componentMeta.icon || defaultComponentIcon
             });
         });
     });
 
     return groups;
-};
-
-/**
- *
- * @param {Object} componentMeta
- * @param {string} language
- * @return {Object}
- */
-const buildDefaultProps = (componentMeta, language) => {
-    const ret = {};
-    
-    objectForEach(componentMeta.props, (propMeta, propName) => {
-        if (propMeta.source.indexOf('static') > -1 && propMeta.sourceConfigs.static) {
-            if (typeof propMeta.sourceConfigs.static.default !== 'undefined') {
-                ret[propName] = {
-                    source: 'static',
-                    sourceData: {
-                        value: propMeta.sourceConfigs.static.default
-                    }
-                };
-            }
-            else if (propMeta.sourceConfigs.static.defaultTextKey) {
-                const key = propMeta.sourceConfigs.static.defaultTextKey,
-                    translations = componentMeta.strings[key];
-
-                ret[propName] = {
-                    source: 'static',
-                    sourceData: {
-                        value: translations[language] || ''
-                    }
-                };
-            }
-        }
-        else if (propMeta.source.indexOf('const') > -1 && propMeta.sourceConfigs.const) {
-            if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
-                ret[propName] = {
-                    source: 'const',
-                    sourceData: {
-                        value: propMeta.sourceConfigs.const.value
-                    }
-                }
-            }
-        }
-    });
-    
-    return ret;
 };
 
 class ComponentsLibraryComponent extends Component {
@@ -199,6 +143,7 @@ class ComponentsLibraryComponent extends Component {
 
         this.onFocusHandlersCache = {};
         this.componentGroups = extractGroupsDataFromMeta(props.meta);
+        this.sortLanguage = '';
         this.willTryStartDrag = false;
         this.dragStartX = 0;
         this.dragStartY = 0;
@@ -225,63 +170,6 @@ class ComponentsLibraryComponent extends Component {
             this.onFocusHandlersCache[componentName] =
                 this.props.onFocusComponent.bind(null, componentName)
         );
-    }
-
-    /**
-     * 
-     * @param {LibraryComponentData} componentData
-     * @return {?Immutable.Map<number, ProjectComponent>}
-     * @private
-     */
-    _createComponents(componentData) {
-        const componentMeta = getComponentMeta(componentData.fullName, this.props.meta);
-        if (!componentMeta) return null;
-        
-        // Ids of detached components must start with zero
-        let nextId = 0;
-
-        const component = {
-            id: nextId++,
-            isNew: true,
-            name: componentData.fullName,
-            title: '',
-            props: buildDefaultProps(componentMeta, this.props.language),
-            children: []
-        };
-
-        if (componentMeta.kind === 'composite') {
-            component.regionsEnabled = [];
-
-            const { namespace } = parseComponentName(componentData.fullName),
-                defaultLayout = componentMeta.layouts[0];
-
-            defaultLayout.regions.forEach((region, idx) => {
-                const regionComponentName = `${namespace}.${region.component}`;
-
-                const regionComponentMeta = getComponentMeta(
-                    regionComponentName,
-                    this.props.meta
-                );
-
-                const props = Object.assign(
-                    buildDefaultProps(regionComponentMeta, this.props.language),
-                    region.props || {}
-                );
-
-                component.children.push({
-                    id: nextId++,
-                    isNew: true,
-                    name: regionComponentName,
-                    title: '',
-                    props,
-                    children: []
-                });
-
-                if (region.defaultEnabled) component.regionsEnabled.push(idx);
-            });
-        }
-
-        return componentsToImmutable(component, -1, false, -1);
     }
 
     /**
@@ -317,35 +205,44 @@ class ComponentsLibraryComponent extends Component {
             if (willStartDrag) {
                 this.willTryStartDrag = false;
                 window.removeEventListener('mousemove', this._handleMouseMove);
-                const components = this._createComponents(this.draggedComponentData);
-                if (components) this.props.onComponentStartDrag(components);
+
+                this.props.onComponentStartDrag(constructComponent(
+                    this.draggedComponentData.fullName,
+                    0,
+                    this.props.language,
+                    this.props.meta
+                ));
             }
         }
     }
 
     render() {
+        const { getLocalizedText, focusedComponentName, language } = this.props;
+
         const accordionItems = List(this.componentGroups.map(group => {
-            const items = group.components
-                .sort((a, b) => {
-                    const aText = a.text[this.props.language],
-                        bText = b.text[this.props.language];
+            if (this.sortLanguage !== language) {
+                group.components.sort((a, b) => {
+                    const aText = a.text[language],
+                        bText = b.text[language];
 
                     return aText < bText ? -1 : aText > bText ? 1 : 0;
-                })
-                .map((c, idx) => (
-                    <ComponentTag
-                        key={idx}
-                        title={c.text[this.props.language]}
-                        image={c.iconURL}
-                        focused={this.props.focusedComponentName === c.fullName}
-                        onFocus={this._getOnFocusHandler(c.fullName)}
-                        onStartDrag={this._handleStartDrag.bind(this, c)}
-                    />
-                ));
+                });
+            }
+
+            const items = group.components.map((c, idx) => (
+                <ComponentTag
+                    key={idx}
+                    title={c.text[language]}
+                    image={c.iconURL}
+                    focused={focusedComponentName === c.fullName}
+                    onFocus={this._getOnFocusHandler(c.fullName)}
+                    onStartDrag={this._handleStartDrag.bind(this, c)}
+                />
+            ));
 
             const title = group.isDefault
-                ? `${group.namespace} - Uncategorized`
-                : `${group.namespace} - ${group.text[this.props.language]}`;
+                ? `${group.namespace} - ${getLocalizedText('uncategorizedComponents')}`
+                : `${group.namespace} - ${group.text[language]}`;
 
             return new AccordionItemRecord({
                 id: group.name,
@@ -357,6 +254,8 @@ class ComponentsLibraryComponent extends Component {
                 )
             })
         }));
+
+        this.sortLanguage = language;
 
         return (
             <BlockContentBox isBordered>
@@ -377,6 +276,7 @@ ComponentsLibraryComponent.propTypes = {
     expandedGroups: ImmutablePropTypes.setOf(PropTypes.string),
     focusedComponentName: PropTypes.string,
     language: PropTypes.string,
+    getLocalizedText: PropTypes.func,
 
     onExpandedGroupsChange: PropTypes.func,
     onFocusComponent: PropTypes.func,
@@ -390,7 +290,8 @@ const mapStateToProps = ({ project, componentsLibrary, app }) => ({
     selectedComponentIds: project.selectedItems,
     expandedGroups: componentsLibrary.expandedGroups,
     focusedComponentName: componentsLibrary.focusedComponentName,
-    language: app.language
+    language: app.language,
+    getLocalizedText: (...args) => getLocalizedText(app.localization, app.language, ...args)
 });
 
 const mapDispatchToProps = dispatch => ({

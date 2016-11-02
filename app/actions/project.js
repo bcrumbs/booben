@@ -258,3 +258,20 @@ export const toggleComponentRegion = (componentId, regionIdx, enable) => ({
     regionIdx,
     enable
 });
+
+/**
+ *
+ * @type {string}
+ * @const
+ */
+export const PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT = 'PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT';
+
+/**
+ *
+ * @param {number} layoutIdx
+ * @return {Object}
+ */
+export const selectLayoutForNewComponent = layoutIdx => ({
+    type: PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
+    layoutIdx
+});
