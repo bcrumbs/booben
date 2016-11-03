@@ -122,7 +122,7 @@ export const getString = (componentMeta, stringId, language) => {
  * @param {string} componentName
  * @param {string} containerName
  * @param {string[]|Immutable.List<string>} containerChildrenNames
- * @param {number} position
+ * @param {number} position - -1 = ignore position constraints
  * @param {Object} meta
  * @return {boolean}
  */

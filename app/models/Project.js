@@ -8,8 +8,15 @@ import { Record, List, Map, Set } from 'immutable';
 
 import {
     projectRouteToImmutable,
-    getMaxComponentId as _getMaxComponentId
+    getMaxComponentId as _getMaxComponentId,
+    getOutletComponentId,
+    getParentComponentId,
+    isRootRoute
 } from './ProjectRoute';
+
+import {
+    isRootComponent
+} from './ProjectComponent';
 
 import { concatPath } from '../utils';
 
@@ -74,5 +81,33 @@ export const getRouteByComponentId = (project, componentId) =>
 
 export const getComponentById = (project, componentId) =>
     getRouteByComponentId(project, componentId).components.get(componentId);
+
+export const getEnclosingComponent = (project, componentId) => {
+    const route = getRouteByComponentId(project, componentId),
+        component = route.components.get(componentId);
+
+    if (!isRootComponent(component)) {
+        return route.components.get(component.parentId);
+    }
+    else {
+        if (component.isIndexRoute) {
+            const outletId = getOutletComponentId(route);
+            if (outletId === -1) return null;
+            const parentId = getParentComponentId(route, outletId);
+            return parentId > -1 ? route.components.get(parentId) : null;
+        }
+        else if (!isRootRoute(route)) {
+            const parentRoute = project.routes.get(route.parentId),
+                outletId = getOutletComponentId(parentRoute);
+
+            if (outletId === -1) return null;
+            const parentId = getParentComponentId(parentRoute, outletId);
+            return parentId > -1 ? parentRoute.components.get(parentId) : null;
+        }
+        else {
+            return null;
+        }
+    }
+};
 
 export default ProjectRecord;
