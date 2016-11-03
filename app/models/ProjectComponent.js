@@ -72,4 +72,6 @@ export const componentsToImmutable = (input, routeId, isIndexRoute, parentId) =>
         visitComponent(input, parentId);
     });
 
+export const isRootComponent = component => component.parentId === -1;
+
 export default ProjectComponentRecord;

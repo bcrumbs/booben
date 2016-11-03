@@ -34,8 +34,11 @@ import {
 
 import { List } from 'immutable';
 
+import { getComponentById } from '../../models/Project';
+import { getChildComponents } from '../../models/ProjectRoute';
+
 import { getLocalizedText } from '../../utils';
-import { constructComponent } from '../../utils/meta';
+import { constructComponent, canInsertComponent } from '../../utils/meta';
 import { objectForEach, pointIsInCircle } from '../../utils/misc';
 
 //noinspection JSUnresolvedVariable
@@ -138,12 +141,27 @@ class ComponentsLibraryComponent extends Component {
 
         this.onFocusHandlersCache = {};
         this.componentGroups = extractGroupsDataFromMeta(props.meta);
+
         this.sortLanguage = '';
 
     }
 
+    componentWillReceiveProps(nextProps) {
+        if (nextProps.language !== this.props.language) {
+            this.componentGroups.forEach(group => {
+                group.components.sort((a, b) => {
+                    const aText = a.text[nextProps.language],
+                        bText = b.text[nextProps.language];
+
+                    return aText < bText ? -1 : aText > bText ? 1 : 0;
+                });
+            });
+        }
+    }
+
     shouldComponentUpdate(nextProps) {
-        return nextProps.selectedComponentIds !== this.props.selectedComponentIds ||
+        return nextProps.project !== this.props.project ||
+            nextProps.selectedComponentIds !== this.props.selectedComponentIds ||
             nextProps.expandedGroups !== this.props.expandedGroups ||
             nextProps.focusedComponentName !== this.props.focusedComponentName ||
             nextProps.language !== this.props.language;
@@ -166,16 +184,38 @@ class ComponentsLibraryComponent extends Component {
     render() {
         const { getLocalizedText, focusedComponentName, language } = this.props;
 
-        const accordionItems = List(this.componentGroups.map(group => {
-            if (this.sortLanguage !== language) {
-                group.components.sort((a, b) => {
-                    const aText = a.text[language],
-                        bText = b.text[language];
+        let groups = this.componentGroups;
 
-                    return aText < bText ? -1 : aText > bText ? 1 : 0;
-                });
-            }
+        if (this.props.selectedComponentIds.size === 1) {
+            const selectedComponentId = this.props.selectedComponentIds.first();
 
+            const selectedComponent = getComponentById(
+                this.props.project,
+                selectedComponentId
+            );
+
+            const route = this.props.project.routes.get(selectedComponent.routeId),
+                childComponents = getChildComponents(route, selectedComponentId);
+
+            const childComponentNames =
+                childComponents.map(childComponent => childComponent.name);
+
+            groups = groups.map(group => {
+                const components = group.components.filter(c => canInsertComponent(
+                    c.fullName,
+                    selectedComponent.name,
+                    childComponentNames,
+                    -1,
+                    this.props.meta
+                ));
+
+                return Object.assign({}, group, { components });
+            });
+        }
+
+        groups = groups.filter(group => group.components.length > 0);
+
+        const accordionItems = List(groups.map(group => {
             const items = group.components.map((c, idx) => (
                 <ComponentTag
                     key={idx}
@@ -202,8 +242,6 @@ class ComponentsLibraryComponent extends Component {
             })
         }));
 
-        this.sortLanguage = language;
-
         return (
             <BlockContentBox isBordered>
                 <Accordion
@@ -218,7 +256,10 @@ class ComponentsLibraryComponent extends Component {
 };
 
 ComponentsLibraryComponent.propTypes = {
+    project: PropTypes.any,
     meta: PropTypes.object,
+    currentRouteId: PropTypes.number,
+    currentRouteIsIndexRoute: PropTypes.bool,
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     expandedGroups: ImmutablePropTypes.setOf(PropTypes.string),
     focusedComponentName: PropTypes.string,
@@ -232,7 +273,10 @@ ComponentsLibraryComponent.propTypes = {
 ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
 
 const mapStateToProps = ({ project, componentsLibrary, app }) => ({
+    project: project.data,
     meta: project.meta,
+    currentRouteId: project.currentRouteId,
+    currentRouteIsIndexRoute: project.currentRouteIsIndexRoute,
     selectedComponentIds: project.selectedItems,
     expandedGroups: componentsLibrary.expandedGroups,
     focusedComponentName: componentsLibrary.focusedComponentName,

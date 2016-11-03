@@ -5,8 +5,8 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { hashHistory } from 'react-router';
 
-import Preview from './components/Preview';
-import Overlay from './components/Overlay';
+import Preview from './containers/Preview';
+import Overlay from './containers/Overlay';
 
 window.JSSY = {
     initialized: false,

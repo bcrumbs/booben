@@ -4,8 +4,6 @@
 
 'use strict';
 
-// TODO: Get strings from i18n
-
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -119,7 +117,7 @@ class ComponentsTreeViewComponent extends Component {
             <ComponentsTreeList>
                 {componentIds.map(this._renderItem)}
             </ComponentsTreeList>
-        )
+        );
     }
 
     render() {
@@ -143,7 +141,7 @@ class ComponentsTreeViewComponent extends Component {
                     {this._renderList(List([rootComponent]))}
                 </ComponentsTree>
             </BlockContentBox>
-        )
+        );
     }
 }
 
@@ -154,8 +152,8 @@ ComponentsTreeViewComponent.propTypes = {
     expandedItemIds: ImmutablePropTypes.setOf(PropTypes.number),
     selectedItemIds: ImmutablePropTypes.setOf(PropTypes.number),
     highlightedItemIds: ImmutablePropTypes.setOf(PropTypes.number),
-
     getLocalizedText: PropTypes.func,
+
     onExpandItem: PropTypes.func,
     onCollapseItem: PropTypes.func,
     onSelectItem: PropTypes.func,
@@ -170,7 +168,7 @@ const mapStateToProps = ({ design, project, app }) => ({
     expandedItemIds: design.treeExpandedItemIds,
     selectedItemIds: project.selectedItems,
     highlightedItemIds: project.highlightedItems,
-    getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
+    getLocalizedText: (...args) => getLocalizedText(app.localization, app.language, ...args)
 });
 
 const mapDispatchToProps = dispatch => ({
