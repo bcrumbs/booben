@@ -257,12 +257,8 @@ export const constructComponent = (componentName, layoutIdx, language, meta) => 
             layout = componentMeta.layouts[layoutIdx];
 
         layout.regions.forEach((region, idx) => {
-            const regionComponentName = `${namespace}.${region.component}`;
-
-            const regionComponentMeta = getComponentMeta(
-                regionComponentName,
-                this.props.meta
-            );
+            const regionComponentName = `${namespace}.${region.component}`,
+                regionComponentMeta = getComponentMeta(regionComponentName, meta);
 
             const props = Object.assign(
                 buildDefaultProps(regionComponentMeta, language),

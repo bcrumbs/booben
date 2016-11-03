@@ -15,7 +15,7 @@ export const ComponentLayoutSelectionItem = props => {
     }
 
     return (
-        <div className="component-layout-item">
+        <div className="component-layout-item" onClick={props.onClick}>
             <div className="component-layout-item-image-box">
                 <img src={props.image} />
             </div>
