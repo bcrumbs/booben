@@ -12,6 +12,10 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
 import {
+  dragHandler
+} from '../../hocs/dragHandler';
+
+import {
     ComponentsTree,
     ComponentsTreeItem,
     ComponentsTreeList
@@ -62,7 +66,6 @@ class ComponentsTreeViewComponent extends Component {
     }
 
     _handleSelect(componentId, state) {
-        this.props.onStartDragItem(componentId);
         if (state) this.props.onSelectItem(componentId);
         else this.props.onDeselectItem(componentId);
     }
@@ -70,6 +73,10 @@ class ComponentsTreeViewComponent extends Component {
     _handleHover(componentId, state) {
         if (state) this.props.onHighlightItem(componentId);
         else this.props.onUnhighlightItem(componentId);
+    }
+
+    _handleMouseDown(componentId, event) {
+        this._handleStartDragExistingComponent(event, componentId);
     }
 
     _renderItem(componentId, idx) {
@@ -101,6 +108,7 @@ class ComponentsTreeViewComponent extends Component {
                 onExpand={this._handleExpand.bind(this, componentId)}
                 onSelect={this._handleSelect.bind(this, componentId)}
                 onHover={this._handleHover.bind(this, componentId)}
+                onMouseDown={this._handleMouseDown.bind(this, componentId)}
                 children={children}
             />
         );
@@ -178,4 +186,4 @@ const mapDispatchToProps = dispatch => ({
 export const ComponentsTreeView = connect(
     mapStateToProps,
     mapDispatchToProps
-)(ComponentsTreeViewComponent);
+)(dragHandler(ComponentsTreeViewComponent));

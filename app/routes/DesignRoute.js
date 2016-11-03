@@ -325,7 +325,7 @@ DesignRoute.propTypes = {
     meta: PropTypes.object,
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     selectingComponentLayout: PropTypes.bool,
-    draggedComponents: PropTypes.instanceOf(ProjectComponentRecord),
+    draggedComponents: ImmutablePropTypes.mapOf(PropTypes.instanceOf(ProjectComponentRecord)),
     language: PropTypes.string,
     getLocalizedText: PropTypes.func,
 

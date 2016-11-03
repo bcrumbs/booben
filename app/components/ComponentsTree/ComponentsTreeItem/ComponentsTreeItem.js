@@ -98,6 +98,7 @@ export class ComponentsTreeItem extends Component {
                         onFocus={onHoverIn}
                         onBlur={onHoverOut}
                         onClick={() => this.props.onSelect(!this.props.active)}
+                        onMouseDown={ this.props.onMouseDown }
                     >
                         <div
                             ref={this._saveTitleRef}
@@ -125,7 +126,8 @@ ComponentsTreeItem.propTypes = {
     hovered: PropTypes.bool,
     onExpand: PropTypes.func,
     onSelect: PropTypes.func,
-    onHover: PropTypes.func
+    onHover: PropTypes.func,
+    onMouseDown: PropTypes.func,
 };
 
 ComponentsTreeItem.defaultProps = {
@@ -135,7 +137,8 @@ ComponentsTreeItem.defaultProps = {
     hovered: false,
     onExpand: noop,
     onSelect: noop,
-    onHover: noop
+    onHover: noop,
+    onMouseDown: noop,
 };
 
 ComponentsTreeItem.displayName = 'ComponentsTreeItem';

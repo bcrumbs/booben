@@ -1,5 +1,5 @@
 /**
-  * @author Oleg Nosov
+  * @author Oleg Nosov <olegnosov1@gmail.com>
   */
 'use strict';
 

@@ -10,6 +10,10 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
 import {
+  dragHandler
+} from '../../hocs/dragHandler';
+
+import {
     Accordion,
     AccordionItemRecord
 } from '../../components/Accordion/Accordion';
@@ -28,8 +32,6 @@ import {
     focusComponent
 } from '../../actions/components-library';
 
-import { startDragNewComponent } from '../../actions/preview';
-
 import { List } from 'immutable';
 
 import { getLocalizedText } from '../../utils';
@@ -38,13 +40,6 @@ import { objectForEach, pointIsInCircle } from '../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 import defaultComponentIcon from '../../img/component_default.svg';
-
-/**
- * 
- * @type {number}
- * @const
- */
-const START_DRAG_THRESHOLD = 10;
 
 /**
  * @typedef {Object} LibraryComponentData
@@ -144,12 +139,7 @@ class ComponentsLibraryComponent extends Component {
         this.onFocusHandlersCache = {};
         this.componentGroups = extractGroupsDataFromMeta(props.meta);
         this.sortLanguage = '';
-        this.willTryStartDrag = false;
-        this.dragStartX = 0;
-        this.dragStartY = 0;
-        this.draggedComponentData = null;
 
-        this._handleMouseMove = this._handleMouseMove.bind(this);
     }
 
     shouldComponentUpdate(nextProps) {
@@ -160,7 +150,7 @@ class ComponentsLibraryComponent extends Component {
     }
 
     /**
-     * 
+     *
      * @param {string} componentName
      * @return {Function}
      * @private
@@ -172,49 +162,6 @@ class ComponentsLibraryComponent extends Component {
         );
     }
 
-    /**
-     *
-     * @param {LibraryComponentData} componentData
-     * @param {MouseEvent} event
-     * @private
-     */
-    _handleStartDrag(componentData, event) {
-        event.preventDefault();
-        window.addEventListener('mousemove', this._handleMouseMove);
-        this.willTryStartDrag = true;
-        this.dragStartX = event.pageX;
-        this.dragStartY = event.pageY;
-        this.draggedComponentData = componentData;
-    }
-
-    /**
-     *
-     * @param {MouseEvent} event
-     * @private
-     */
-    _handleMouseMove(event) {
-        if (this.willTryStartDrag) {
-            const willStartDrag = !pointIsInCircle(
-                event.pageX,
-                event.pageY,
-                this.dragStartX,
-                this.dragStartY,
-                START_DRAG_THRESHOLD
-            );
-
-            if (willStartDrag) {
-                this.willTryStartDrag = false;
-                window.removeEventListener('mousemove', this._handleMouseMove);
-
-                this.props.onComponentStartDrag(constructComponent(
-                    this.draggedComponentData.fullName,
-                    0,
-                    this.props.language,
-                    this.props.meta
-                ));
-            }
-        }
-    }
 
     render() {
         const { getLocalizedText, focusedComponentName, language } = this.props;
@@ -236,7 +183,7 @@ class ComponentsLibraryComponent extends Component {
                     image={c.iconURL}
                     focused={focusedComponentName === c.fullName}
                     onFocus={this._getOnFocusHandler(c.fullName)}
-                    onStartDrag={this._handleStartDrag.bind(this, c)}
+                    onStartDrag={event => this._handleStartDragNewComponent(event, c)}
                 />
             ));
 
@@ -268,7 +215,7 @@ class ComponentsLibraryComponent extends Component {
             </BlockContentBox>
         );
     }
-}
+};
 
 ComponentsLibraryComponent.propTypes = {
     meta: PropTypes.object,
@@ -280,7 +227,6 @@ ComponentsLibraryComponent.propTypes = {
 
     onExpandedGroupsChange: PropTypes.func,
     onFocusComponent: PropTypes.func,
-    onComponentStartDrag: PropTypes.func
 };
 
 ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
@@ -297,10 +243,9 @@ const mapStateToProps = ({ project, componentsLibrary, app }) => ({
 const mapDispatchToProps = dispatch => ({
     onExpandedGroupsChange: groups => void dispatch(setExpandedGroups(groups)),
     onFocusComponent: componentName => void dispatch(focusComponent(componentName)),
-    onComponentStartDrag: components => void dispatch(startDragNewComponent(components))
 });
 
 export const ComponentsLibrary = connect(
     mapStateToProps,
     mapDispatchToProps
-)(ComponentsLibraryComponent);
+)(dragHandler(ComponentsLibraryComponent));
