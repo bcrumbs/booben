@@ -403,6 +403,159 @@ const metaSchema = {
             },
             minItems: 1,
             required: false
+        },
+
+        placement: {
+            type: 'object',
+            properties: {
+                inside: {
+                    type: 'object',
+                    properties: {
+                        include: {
+                            type: 'array',
+                            minItems: 1,
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    all: {
+                                        type: 'boolean',
+                                        required: false
+                                    },
+                                    component: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
+                                    group: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
+                                    maxNum: {
+                                        type: 'number',
+                                        minimum: 1,
+                                        required: false
+                                    }
+                                }
+                            }
+                        },
+
+                        exclude: {
+                            type: 'array',
+                            minItems: 1,
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    component: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
+                                    group: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    required: false
+                },
+                after: {
+                    // Not used yet
+                    type: 'object',
+                    properties: {
+                        include: {
+                            type: 'array',
+                            minItems: 1,
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    component: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
+                                    group: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    }
+                                }
+                            }
+                        },
+
+                        exclude: {
+                            type: 'array',
+                            minItems: 1,
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    component: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
+                                    group: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    required: false
+                },
+                before: {
+                    // Not used yet
+                    type: 'object',
+                    properties: {
+                        include: {
+                            type: 'array',
+                            minItems: 1,
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    component: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
+                                    group: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    }
+                                }
+                            }
+                        },
+
+                        exclude: {
+                            type: 'array',
+                            minItems: 1,
+                            items: {
+                                type: 'object',
+                                properties: {
+                                    component: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
+                                    group: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    required: false
+                }
+            },
+            required: false
         }
     }
 };
@@ -604,6 +757,7 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings, componentName 
     }
 
     const hasDefaultValue =
+        propMeta.source &&
         propMeta.source.indexOf('static') > -1 &&
         propMeta.sourceConfigs &&
         propMeta.sourceConfigs.static &&
@@ -620,7 +774,9 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings, componentName 
         );
     }
 
-    const hasConstValue = propMeta.source.indexOf('const') > -1 &&
+    const hasConstValue =
+        propMeta.source &&
+        propMeta.source.indexOf('const') > -1 &&
         propMeta.sourceConfigs &&
         propMeta.sourceConfigs.const &&
         typeof propMeta.sourceConfigs.const.value !== 'undefined';
@@ -689,6 +845,7 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings, componentName 
     }
     else if (propMeta.type === 'string') {
         const hasDefaultTextKey =
+            propMeta.source &&
             propMeta.source.indexOf('static') > -1 &&
             propMeta.sourceConfigs.static &&
             propMeta.sourceConfigs.static.defaultTextKey;
@@ -1026,14 +1183,11 @@ exports.gatherMetadata = moduleDir => co(function* () {
                 }
             }
             catch (err) {
-                const newErr = new Error(
+                err.message =
                     `Error while reading components metadata of '${ret.namespace}': ` +
-                    err.message || err.toString()
-                );
+                    err.message || err.toString();
 
-                newErr.stack = err.stack;
-
-                throw newErr;
+                throw err;
             }
         }
     }

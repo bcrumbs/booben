@@ -28,6 +28,13 @@ co(function* () {
     console.log(`Metadata is OK in ${libraryPath}`);
     process.exit();
 }).catch(err => {
-    console.error(err.message || err.toString());
+    let message = err.message || err.toString();
+    if (err.validationErrors) {
+        message +=
+            `\nValidation errors:\n` +
+            err.validationErrors.map(e => JSON.stringify(e)).join('\n');
+    }
+
+    console.error(message);
     process.exit(1);
 });
