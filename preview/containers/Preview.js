@@ -19,6 +19,10 @@ import {
 } from '../../app/actions/preview';
 
 import { getComponentById } from '../../app/models/Project';
+import {
+    getOutletComponentId,
+    getParentComponentId
+} from '../../app/models/ProjectRoute';
 
 import { pointIsInCircle } from '../../app/utils/misc';
 
@@ -118,13 +122,15 @@ const getClosestComponentOrPlaceholder = el => {
  *
  * @param {Immutable.Map<number, ProjectComponent>} components
  * @param {number} rootId
+ * @param {number} enclosingComponentId
  * @return {Function}
  */
-const makeBuilder = (components, rootId) => {
+const makeBuilder = (components, rootId, enclosingComponentId) => {
     const ret = ({ children }) => (
         <Builder
             components={components}
             rootId={rootId}
+            enclosingComponentId={enclosingComponentId}
             children={children}
         />
     );
@@ -202,22 +208,37 @@ class Preview extends Component {
      *
      * @param {Object} routes
      * @param {number} routeId
+     * @param {number} [enclosingComponentId=-1]
      * @return {Object}
      * @private
      */
-    _createRoute(routes, routeId) {
+    _createRoute(routes, routeId, enclosingComponentId = -1) {
         const route = routes.get(routeId);
 
         const ret = {
             path: route.path,
-            component: makeBuilder(route.components, route.component)
+            component: makeBuilder(
+                route.components,
+                route.component,
+                enclosingComponentId
+            )
         };
 
         ret.onEnter = this._handleChangeRoute.bind(this, route.id, false);
 
+        const outletId = getOutletComponentId(route);
+
+        const enclosingComponentIdForChildRoute = outletId > -1
+            ? getParentComponentId(route, outletId)
+            : -1;
+
         if (route.children.size > 0) {
             ret.childRoutes = route.children
-                .map(childRouteId => this._createRoute(routes, childRouteId))
+                .map(childRouteId => this._createRoute(
+                    routes,
+                    childRouteId,
+                    enclosingComponentIdForChildRoute)
+                )
                 .toArray();
         }
 
@@ -226,7 +247,12 @@ class Preview extends Component {
         }
         else if (route.haveIndex) {
             ret.indexRoute = {
-                component: makeBuilder(route.components, route.indexComponent),
+                component: makeBuilder(
+                    route.components,
+                    route.indexComponent,
+                    enclosingComponentIdForChildRoute
+                ),
+
                 onEnter: this._handleChangeRoute.bind(this, route.id, true)
             };
         }

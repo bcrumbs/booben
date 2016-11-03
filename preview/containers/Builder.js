@@ -7,6 +7,8 @@ import { connect } from 'react-redux';
 // The real components.js will be generated during build process
 import _components from '../components.js';
 
+import { ContentPlaceholder } from '../components/ContentPlaceholder';
+
 import patchComponent from '../patchComponent';
 
 import { getComponentById } from '../../app/models/Project';
@@ -79,7 +81,7 @@ const buildProps = props => {
 class BuilderComponent extends Component {
     /**
      *
-     * @param {ProjectComponent} component
+     * @param {Object} component
      * @return {*}
      * @private
      */
@@ -105,23 +107,32 @@ class BuilderComponent extends Component {
             ? this.props.draggedComponentId
             : 0;
 
-        if (containerId > -1) {
-            const rootComponent = this.props.draggedComponents.get(rootId),
-                containerComponent = getComponentById(this.props.project, containerId);
+        const rootComponent = this.props.draggedComponents.get(rootId);
 
+        const containerComponent = containerId > -1
+            ? getComponentById(this.props.project, containerId)
+            : this.props.enclosingComponentId > -1
+                ? getComponentById(
+                    this.props.project,
+                    this.props.enclosingComponentId
+                )
+                : null;
+
+        let canDropHere = true;
+        if (containerComponent) {
             const containerChildrenNames = containerComponent.children
                 .map(id => getComponentById(this.props.project, id).name);
 
-            const canDropHere = canInsertComponent(
+            canDropHere = canInsertComponent(
                 rootComponent.name,
                 containerComponent.name,
                 containerChildrenNames,
                 afterIdx + 1,
                 this.props.meta
             );
-
-            if (!canDropHere) return null;
         }
+
+        if (!canDropHere) return null;
 
         //noinspection JSValidateTypes
         return (
@@ -132,27 +143,6 @@ class BuilderComponent extends Component {
                 afterIdx={afterIdx}
                 containerId={containerId}
             />
-        );
-    }
-
-    /**
-     *
-     * @return {ReactElement}
-     * @private
-     */
-    _renderContentPlaceholder() {
-        // TODO: Replace this shit with actual placeholder
-        const style = {
-            width: '100%',
-            height: '100%',
-            minHeight: '20px',
-            backgroundColor: '#555555',
-            opacity: '.5'
-        };
-
-        //noinspection JSValidateTypes
-        return (
-            <div style={style} />
         );
     }
 
@@ -287,7 +277,7 @@ class BuilderComponent extends Component {
 
             // Render fake content inside placeholders for container components
             if (willRenderContentPlaceholder)
-                props.children = this._renderContentPlaceholder();
+                props.children = <ContentPlaceholder/>
         }
 
         //noinspection JSValidateTypes
@@ -319,6 +309,7 @@ class BuilderComponent extends Component {
 BuilderComponent.propTypes = {
     components: PropTypes.any, // Immutable map of <number, Component>
     rootId: PropTypes.number,
+    enclosingComponentId: PropTypes.number,
     isPlaceholder: PropTypes.bool,
     afterIdx: PropTypes.any, // number on null
     containerId: PropTypes.any, // number on null
@@ -334,6 +325,7 @@ BuilderComponent.propTypes = {
 BuilderComponent.defaultProps = {
     components: null,
     rootId: -1,
+    enclosingComponentId: -1,
     isPlaceholder: false,
     afterIdx: null,
     containerId: null
