@@ -119,5 +119,5 @@ Temporary Items
 
 
 jssy-projects/
-dev-config.json
+dev-config*.json
 public/
