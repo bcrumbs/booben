@@ -34,8 +34,15 @@ import {
     deselectPreviewComponent,
     highlightPreviewComponent,
     unhighlightPreviewComponent,
-    startDragExistingComponent
+    startDragExistingComponent,
+    dragOverComponent
 } from '../../actions/preview';
+
+import {
+    isContainerComponent,
+    isCompositeComponent,
+    canInsertComponent
+} from '../../utils/meta';
 
 import ProjectRouteRecord from '../../models/ProjectRoute';
 
@@ -55,7 +62,8 @@ class ComponentsTreeViewComponent extends Component {
             nextProps.isIndexRoute !== this.props.isIndexRoute ||
             nextProps.expandedItemIds !== this.props.expandedItemIds ||
             nextProps.selectedItemIds !== this.props.selectedItemIds ||
-            nextProps.highlightedItemIds !== this.props.highlightedItemIds;
+            nextProps.highlightedItemIds !== this.props.highlightedItemIds ||
+            nextProps.draggingComponent !== this.props.draggingComponent;
     }
 
     _handleExpand(componentId, state) {
@@ -69,6 +77,7 @@ class ComponentsTreeViewComponent extends Component {
     }
 
     _handleHover(componentId, state) {
+        if (this.props.draggingComponent) this.props.onDragOverComponent(componentId);
         if (state) this.props.onHighlightItem(componentId);
         else this.props.onUnhighlightItem(componentId);
     }
@@ -77,12 +86,21 @@ class ComponentsTreeViewComponent extends Component {
         this._handleStartDragExistingComponent(event, componentId);
     }
 
+    _renderLine() {
+        return (
+          <ComponentsTreeItem key="line-divider" title="---------------" children={null}/>
+        );
+    }
+
     _renderItem(componentId, idx) {
+
         const component = this.props.route.components.get(componentId);
 
+        const isCurrentElementActiveContainer = isContainerComponent(component.name, this.props.meta) && componentId === this.props.placeholderContainerId;
+
         const children = component.children.size > 0
-            ? this._renderList(component.children)
-            : null;
+            ? this._renderList(component.children, isCurrentElementActiveContainer)
+            : ( isCurrentElementActiveContainer ? <ComponentsTreeList children={this._renderLine()} /> : null);
 
         let title, subtitle;
 
@@ -97,10 +115,11 @@ class ComponentsTreeViewComponent extends Component {
 
         return (
             <ComponentsTreeItem
+                componentId={componentId}
                 key={idx}
                 title={title}
                 subtitle={subtitle}
-                expanded={this.props.expandedItemIds.has(componentId)}
+                expanded={this.props.expandedItemIds.has(componentId) || true}
                 active={this.props.selectedItemIds.has(componentId)}
                 hovered={this.props.highlightedItemIds.has(componentId)}
                 onExpand={this._handleExpand.bind(this, componentId)}
@@ -112,10 +131,24 @@ class ComponentsTreeViewComponent extends Component {
         );
     }
 
-    _renderList(componentIds) {
+    _renderList(componentIds, showLine) {
+
+        const indexOfLine =
+          componentIds.findIndex(id => id === this.props.draggingOverComponentId);
+
+        const indexOfLinePlaceholder =
+          indexOfLine + (this.props.placeholderAfter >= indexOfLine);
+
+        const modifiedComponentIds =
+          indexOfLine + 1 && this.props.draggingOverPlaceholder && showLine
+          ?
+            componentIds.map(this._renderItem).insert(indexOfLinePlaceholder, this._renderLine())
+          :
+            componentIds.map(this._renderItem);
+
         return (
             <ComponentsTreeList>
-                {componentIds.map(this._renderItem)}
+                {modifiedComponentIds}
             </ComponentsTreeList>
         );
     }
@@ -168,6 +201,16 @@ const mapStateToProps = ({ design, project, app }) => ({
     expandedItemIds: design.treeExpandedItemIds,
     selectedItemIds: project.selectedItems,
     highlightedItemIds: project.highlightedItems,
+
+    draggingComponent: project.draggingComponent,
+    draggedComponentId: project.draggedComponentId,
+    draggedComponents: project.draggedComponents,
+    draggingOverComponentId: project.draggingOverComponentId,
+    draggingOverPlaceholder: project.draggingOverPlaceholder,
+    placeholderContainerId: project.placeholderContainerId,
+    placeholderAfter: project.placeholderAfter,
+    meta: project.meta,
+
     getLocalizedText: (...args) => getLocalizedText(app.localization, app.language, ...args)
 });
 
@@ -179,6 +222,7 @@ const mapDispatchToProps = dispatch => ({
     onHighlightItem: id => void dispatch(highlightPreviewComponent(id)),
     onUnhighlightItem: id => void dispatch(unhighlightPreviewComponent(id)),
     onStartDragItem: id => void dispatch(startDragExistingComponent(id)),
+    onDragOverComponent: id => void dispatch(dragOverComponent(id))
 });
 
 export const ComponentsTreeView = connectDragHandler(

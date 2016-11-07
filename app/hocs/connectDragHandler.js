@@ -39,7 +39,7 @@ const mapStateToProps = ({ app, project }) => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onNewComponentStartDrag: components => void dispatch(startDragNewComponent(components)),
+  onNewComponentStartDrag: components => void dispatch(selectTool('componentsTree')) || void dispatch(startDragNewComponent(components)),
   onExistingComponentStartDrag: id => void dispatch(startDragExistingComponent(id)),
 });
 

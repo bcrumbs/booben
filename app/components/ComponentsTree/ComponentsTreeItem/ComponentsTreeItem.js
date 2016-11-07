@@ -88,8 +88,12 @@ export class ComponentsTreeItem extends Component {
         const onHoverIn = () => this.props.onHover(true),
             onHoverOut = () => this.props.onHover(false);
 
+        const customProps = {
+          'data-jssy-id': this.props.componentId
+        };
+
         return (
-            <li className={className}>
+            <li className={className} {...customProps} >
                 <div className="components-tree-item-content">
                     {icon}
 
