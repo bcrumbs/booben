@@ -14,7 +14,6 @@ export const ComponentTag = props => {
         <div
             className={className}
             onMouseDown={props.onStartDrag}
-            onClick={props.onFocus}
         >
             <div className="component-tag">
                 <picture className="component-tag-image">
@@ -36,8 +35,7 @@ ComponentTag.propTypes = {
     title: PropTypes.string,
     focused: PropTypes.bool,
 
-    onStartDrag: PropTypes.func,
-    onFocus: PropTypes.func
+    onStartDrag: PropTypes.func
 };
 
 ComponentTag.defaultProps = {
@@ -45,8 +43,7 @@ ComponentTag.defaultProps = {
     title: '',
     focused: false,
 
-    onStartDrag: noop,
-    onFocus: noop
+    onStartDrag: noop
 };
 
 ComponentTag.displayName = 'ComponentTag';

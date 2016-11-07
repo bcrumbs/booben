@@ -131,6 +131,8 @@ export const canInsertComponent = (componentName, containerName, containerChildr
         { namespace } = parseComponentName(componentName),
         containerMeta = getComponentMeta(containerName, meta);
 
+    if (containerMeta.kind !== 'container') return false;
+
     const sameComponentsNum = containerChildrenNames
         .reduce((acc, cur) => acc + (cur === componentName ? 1 : 0), 0);
 

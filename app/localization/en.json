@@ -49,6 +49,9 @@
 
   "uncategorizedComponents": "Uncategorized",
 
-  "thereAreNoComponentsInThisRoute": "There are no components in this route"
+  "thereAreNoComponentsInThisRoute": "There are no components in this route",
 
+  "noComponentsCanBeInsertedInsideSelectedComponent": "No components can be inserted inside selected component",
+  "showAllComponents": "Show all components",
+  "noComponentsInLibrary": "No components in library"
 }

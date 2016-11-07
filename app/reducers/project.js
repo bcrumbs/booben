@@ -42,11 +42,17 @@ import {
     PREVIEW_DRAG_OVER_PLACEHOLDER
 } from '../actions/preview';
 
-import { APP_LOCALIZATION_LOAD_SUCCESS } from '../actions/app';
+import {
+    APP_LOCALIZATION_LOAD_SUCCESS
+} from '../actions/app';
 
 import {
     STRUCTURE_SELECT_ROUTE
 } from '../actions/structure';
+
+import {
+    LIBRARY_SHOW_ALL_COMPONENTS
+} from '../actions/components-library';
 
 import ProjectRoute from '../models/ProjectRoute';
 import ProjectComponentProp from '../models/ProjectComponentProp';
@@ -91,6 +97,7 @@ const ProjectState = Record({
     selectedItems: Set(),
     highlightedItems: Set(),
     highlightingEnabled: true,
+    showAllComponentsOnPalette: false,
     currentRouteId: -1,
     currentRouteIsIndexRoute: false,
     draggingComponent: false,
@@ -519,6 +526,8 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PREVIEW_SELECT_COMPONENT: {
+            state = state.set('showAllComponentsOnPalette', false);
+
             if (action.exclusive) {
                 return state.set('selectedItems', Set([action.componentId]));
             }
@@ -528,10 +537,14 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PREVIEW_DESELECT_COMPONENT: {
-            return state.update('selectedItems', set => set.delete(action.componentId));
+            return state
+                .set('showAllComponentsOnPalette', false)
+                .update('selectedItems', set => set.delete(action.componentId));
         }
 
         case PREVIEW_TOGGLE_COMPONENT_SELECTION: {
+            state = state.set('showAllComponentsOnPalette', false);
+
             const updater = state.selectedItems.has(action.componentId)
                 ? set => set.delete(action.componentId)
                 : set => set.add(action.componentId);
@@ -678,6 +691,10 @@ export default (state = new ProjectState(), action) => {
 
         case APP_LOCALIZATION_LOAD_SUCCESS: {
             return state.set('languageForComponentProps', action.language);
+        }
+
+        case LIBRARY_SHOW_ALL_COMPONENTS: {
+            return state.set('showAllComponentsOnPalette', true);
         }
 
         default:

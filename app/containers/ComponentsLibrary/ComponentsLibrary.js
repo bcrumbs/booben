@@ -7,7 +7,6 @@
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { connect } from 'react-redux';
 
 import {
   connectDragHandler
@@ -19,7 +18,8 @@ import {
 } from '../../components/Accordion/Accordion';
 
 import {
-    BlockContentBox
+    BlockContentBox,
+    BlockContentPlaceholder
 } from '../../components/BlockContent/BlockContent';
 
 import {
@@ -29,8 +29,10 @@ import {
 
 import {
     setExpandedGroups,
-    focusComponent
+    showAllComponents
 } from '../../actions/components-library';
+
+import { Button } from '@reactackle/reactackle';
 
 import { List } from 'immutable';
 
@@ -38,8 +40,8 @@ import { getComponentById } from '../../models/Project';
 import { getChildComponents } from '../../models/ProjectRoute';
 
 import { getLocalizedText } from '../../utils';
-import { constructComponent, canInsertComponent } from '../../utils/meta';
-import { objectForEach, pointIsInCircle } from '../../utils/misc';
+import { canInsertComponent } from '../../utils/meta';
+import { objectForEach } from '../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 import defaultComponentIcon from '../../img/component_default.svg';
@@ -139,11 +141,7 @@ class ComponentsLibraryComponent extends Component {
     constructor(props) {
         super(props);
 
-        this.onFocusHandlersCache = {};
         this.componentGroups = extractGroupsDataFromMeta(props.meta);
-
-        this.sortLanguage = '';
-
     }
 
     componentWillReceiveProps(nextProps) {
@@ -163,30 +161,35 @@ class ComponentsLibraryComponent extends Component {
         return nextProps.project !== this.props.project ||
             nextProps.selectedComponentIds !== this.props.selectedComponentIds ||
             nextProps.expandedGroups !== this.props.expandedGroups ||
-            nextProps.focusedComponentName !== this.props.focusedComponentName ||
-            nextProps.language !== this.props.language;
+            nextProps.showAllComponentsOnPalette !== this.props.showAllComponentsOnPalette ||
+            nextProps.language !== this.props.language ||
+            nextProps.draggingComponent !== this.props.draggingComponent ||
+            nextProps.draggedComponents !== this.props.draggedComponents ||
+            nextProps.draggedComponentId !== this.props.draggedComponentId;
     }
-
-    /**
-     *
-     * @param {string} componentName
-     * @return {Function}
-     * @private
-     */
-    _getOnFocusHandler(componentName) {
-        return this.onFocusHandlersCache[componentName] || (
-            this.onFocusHandlersCache[componentName] =
-                this.props.onFocusComponent.bind(null, componentName)
-        );
-    }
-
 
     render() {
-        const { getLocalizedText, focusedComponentName, language } = this.props;
+        const {
+            getLocalizedText,
+            language,
+            draggingComponent,
+            draggedComponents,
+            draggedComponentId,
+            showAllComponentsOnPalette
+        } = this.props;
 
-        let groups = this.componentGroups;
+        const focusedComponentName = draggingComponent
+            ? draggedComponents.get(draggedComponentId > -1 ? draggedComponentId : 0).name
+            : '';
 
-        if (this.props.selectedComponentIds.size === 1) {
+        let groups = this.componentGroups,
+            filteredBySelectedComponent = false;
+
+        const willFilterBySelectedComponent =
+            this.props.selectedComponentIds.size === 1 &&
+            !showAllComponentsOnPalette;
+
+        if (willFilterBySelectedComponent) {
             const selectedComponentId = this.props.selectedComponentIds.first();
 
             const selectedComponent = getComponentById(
@@ -211,9 +214,33 @@ class ComponentsLibraryComponent extends Component {
 
                 return Object.assign({}, group, { components });
             });
+
+            filteredBySelectedComponent = true;
         }
 
         groups = groups.filter(group => group.components.length > 0);
+
+        if (!groups.length) {
+            if (filteredBySelectedComponent) {
+                return (
+                    <BlockContentPlaceholder
+                        text={getLocalizedText('noComponentsCanBeInsertedInsideSelectedComponent')}
+                    >
+                        <Button
+                            text={getLocalizedText('showAllComponents')}
+                            onPress={this.props.onShowAllComponents}
+                        />
+                    </BlockContentPlaceholder>
+                );
+            }
+            else {
+                return (
+                    <BlockContentPlaceholder
+                        text={getLocalizedText('noComponentsInLibrary')}
+                    />
+                );
+            }
+        }
 
         const accordionItems = List(groups.map(group => {
             const items = group.components.map((c, idx) => (
@@ -222,7 +249,6 @@ class ComponentsLibraryComponent extends Component {
                     title={c.text[language]}
                     image={c.iconURL}
                     focused={focusedComponentName === c.fullName}
-                    onFocus={this._getOnFocusHandler(c.fullName)}
                     onStartDrag={event => this._handleStartDragNewComponent(event, c)}
                 />
             ));
@@ -253,7 +279,7 @@ class ComponentsLibraryComponent extends Component {
             </BlockContentBox>
         );
     }
-};
+}
 
 ComponentsLibraryComponent.propTypes = {
     project: PropTypes.any,
@@ -262,12 +288,15 @@ ComponentsLibraryComponent.propTypes = {
     currentRouteIsIndexRoute: PropTypes.bool,
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     expandedGroups: ImmutablePropTypes.setOf(PropTypes.string),
-    focusedComponentName: PropTypes.string,
     language: PropTypes.string,
+    draggingComponent: PropTypes.bool,
+    draggedComponents: ImmutablePropTypes.map,
+    draggedComponentId: PropTypes.number,
+    showAllComponentsOnPalette: PropTypes.bool,
     getLocalizedText: PropTypes.func,
 
     onExpandedGroupsChange: PropTypes.func,
-    onFocusComponent: PropTypes.func,
+    onShowAllComponents: PropTypes.func
 };
 
 ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
@@ -279,14 +308,17 @@ const mapStateToProps = ({ project, componentsLibrary, app }) => ({
     currentRouteIsIndexRoute: project.currentRouteIsIndexRoute,
     selectedComponentIds: project.selectedItems,
     expandedGroups: componentsLibrary.expandedGroups,
-    focusedComponentName: componentsLibrary.focusedComponentName,
     language: app.language,
+    draggingComponent: project.draggingComponent,
+    draggedComponents: project.draggedComponents,
+    draggedComponentId: project.draggedComponentId,
+    showAllComponentsOnPalette: project.showAllComponentsOnPalette,
     getLocalizedText: (...args) => getLocalizedText(app.localization, app.language, ...args)
 });
 
 const mapDispatchToProps = dispatch => ({
     onExpandedGroupsChange: groups => void dispatch(setExpandedGroups(groups)),
-    onFocusComponent: componentName => void dispatch(focusComponent(componentName)),
+    onShowAllComponents: () => void dispatch(showAllComponents())
 });
 
 export const ComponentsLibrary = connectDragHandler(

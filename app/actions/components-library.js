@@ -7,12 +7,13 @@
 /**
  *
  * @type {string}
+ * @const
  */
 export const LIBRARY_EXPANDED_GROUPS = 'LIBRARY_EXPANDED_GROUPS';
 
 /**
  *
- * @param {Immutable.Set} groups
+ * @param {Immutable.Set<string>} groups
  * @return {Object}
  */
 export const setExpandedGroups = groups => ({
@@ -23,15 +24,14 @@ export const setExpandedGroups = groups => ({
 /**
  *
  * @type {string}
+ * @const
  */
-export const LIBRARY_FOCUS_COMPONENT = 'LIBRARY_FOCUS_COMPONENT';
+export const LIBRARY_SHOW_ALL_COMPONENTS = 'LIBRARY_SHOW_ALL_COMPONENTS';
 
 /**
  *
- * @param {string} componentName
  * @return {Object}
  */
-export const focusComponent = componentName => ({
-    type: LIBRARY_FOCUS_COMPONENT,
-    componentName
+export const showAllComponents = () => ({
+    type: LIBRARY_SHOW_ALL_COMPONENTS
 });

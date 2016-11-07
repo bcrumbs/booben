@@ -49,5 +49,9 @@
 
   "uncategorizedComponents": "Без категории",
 
-  "thereAreNoComponentsInThisRoute": "В этом маршруте нет компонентов"
+  "thereAreNoComponentsInThisRoute": "В этом маршруте нет компонентов",
+
+  "noComponentsCanBeInsertedInsideSelectedComponent": "Нет компонентов, которые могут быть вставлены в выделенный компонент",
+  "showAllComponents": "Показать все компоненты",
+  "noComponentsInLibrary": "В библиотеке нет компонентов"
 }
