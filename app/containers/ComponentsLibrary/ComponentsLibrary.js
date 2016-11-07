@@ -10,8 +10,8 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
 import {
-  dragHandler
-} from '../../hocs/dragHandler';
+  connectDragHandler
+} from '../../hocs/connectDragHandler';
 
 import {
     Accordion,
@@ -289,7 +289,7 @@ const mapDispatchToProps = dispatch => ({
     onFocusComponent: componentName => void dispatch(focusComponent(componentName)),
 });
 
-export const ComponentsLibrary = connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(dragHandler(ComponentsLibraryComponent));
+export const ComponentsLibrary = connectDragHandler(
+  mapStateToProps,
+  mapDispatchToProps
+)(ComponentsLibraryComponent);

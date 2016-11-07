@@ -10,8 +10,8 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
 import {
-  dragHandler
-} from '../../hocs/dragHandler';
+    connectDragHandler
+} from '../../hocs/connectDragHandler';
 
 import {
     ComponentsTree,
@@ -181,7 +181,7 @@ const mapDispatchToProps = dispatch => ({
     onStartDragItem: id => void dispatch(startDragExistingComponent(id)),
 });
 
-export const ComponentsTreeView = connect(
-    mapStateToProps,
-    mapDispatchToProps
-)(dragHandler(ComponentsTreeViewComponent));
+export const ComponentsTreeView = connectDragHandler(
+  mapStateToProps,
+  mapDispatchToProps
+)(ComponentsTreeViewComponent);

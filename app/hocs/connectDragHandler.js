@@ -12,6 +12,10 @@ import {
   startDragExistingComponent
 } from '../actions/preview';
 
+import {
+  selectTool
+} from '../actions/desktop';
+
 /**
  *
  * @type {number}
@@ -41,11 +45,15 @@ const mapDispatchToProps = dispatch => ({
 
 
 /**
-  * @param {React.Component} WrappedComponent
-  * @return {React.Component}
+  * @param {Function=} mapStateToPropsWrapped
+  * @param {Function=} mapDispatchToPropsWrapped
+  * @return {function(WrappedComponent:React.Component):Connect(React.Component)}
   */
-export const dragHandler = (WrappedComponent) =>
-  connect(mapStateToProps, mapDispatchToProps)(
+export const connectDragHandler = (mapStateToPropsWrapped, mapDispatchToPropsWrapped) => WrappedComponent =>
+  connect(
+    v => Object.assign({}, mapStateToProps(v), (mapStateToPropsWrapped ? mapStateToPropsWrapped(v) : {})),
+    v => Object.assign({}, mapDispatchToProps(v), (mapDispatchToPropsWrapped ? mapDispatchToPropsWrapped(v) : {}))
+    )(
     Object.assign(
       class extends WrappedComponent {
         constructor(props) {
