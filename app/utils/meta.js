@@ -152,6 +152,10 @@ export const canInsertComponent = (componentName, containerName, containerChildr
                 else if (exclusion.group) {
                     return containerMeta.group === exclusion.group;
                 }
+                else if (exclusion.tag) {
+                    return !!containerMeta.tags &&
+                        containerMeta.tags.indexOf(exclusion.tag) > -1;
+                }
                 else {
                     return false;
                 }
@@ -171,6 +175,13 @@ export const canInsertComponent = (componentName, containerName, containerChildr
                 }
                 else if (inclusion.group) {
                     if (containerMeta.group !== inclusion.group) return false;
+                }
+                else if (inclusion.tag) {
+                    if (
+                        !containerMeta.tags ||
+                        containerMeta.tags.indexOf(inclusion.tag) === -1
+                    )
+                        return false;
                 }
 
                 return !inclusion.maxNum || sameComponentsNum < inclusion.maxNum;

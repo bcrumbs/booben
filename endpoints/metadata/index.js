@@ -297,6 +297,16 @@ const metaSchema = {
             required: false
         },
 
+        tags: {
+            type: 'array',
+            items: {
+                type: 'string',
+                allowEmpty: false
+            },
+            uniqueItems: true,
+            required: false
+        },
+
         kind: {
             type: 'string',
             enum: ['atomic', 'container', 'composite'],
@@ -431,6 +441,11 @@ const metaSchema = {
                                         allowEmpty: false,
                                         required: false
                                     },
+                                    tag: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
                                     maxNum: {
                                         type: 'number',
                                         minimum: 1,
@@ -452,6 +467,11 @@ const metaSchema = {
                                         required: false
                                     },
                                     group: {
+                                        type: 'string',
+                                        allowEmpty: false,
+                                        required: false
+                                    },
+                                    tag: {
                                         type: 'string',
                                         allowEmpty: false,
                                         required: false
