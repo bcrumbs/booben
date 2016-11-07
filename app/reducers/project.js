@@ -25,7 +25,10 @@ import {
     PROJECT_COMPONENT_UPDATE_PROP_VALUE,
     PROJECT_COMPONENT_RENAME,
     PROJECT_COMPONENT_TOGGLE_REGION,
-    PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT
+    PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
+    PROJECT_CONSTRUCT_COMPONENT_FOR_PROP,
+    PROJECT_CANCEL_CONSTRUCT_COMPONENT_FOR_PROP,
+    PROJECT_SAVE_COMPONENT_FOR_PROP
 } from '../actions/project';
 
 import {
@@ -663,6 +666,18 @@ export default (state = new ProjectState(), action) => {
             state = insertDraggedComponents(state, components);
             state = state.set('selectingComponentLayout', false);
             return initDNDState(state);
+        }
+
+        case PROJECT_CONSTRUCT_COMPONENT_FOR_PROP: {
+            // TODO: Make some kind of constructors stack and push a new one here
+        }
+
+        case PROJECT_CANCEL_CONSTRUCT_COMPONENT_FOR_PROP: {
+            // TODO: Pop constructors stack
+        }
+
+        case PROJECT_SAVE_COMPONENT_FOR_PROP: {
+            // TODO: Save value for prop and pop constructors stack
         }
 
         case PREVIEW_DRAG_OVER_COMPONENT: {

@@ -1,48 +1,60 @@
+'use strict';
+
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 
 import {
-	Button,
-	ToggleButton
+    Button,
+    ToggleButton
 } from '@reactackle/reactackle';
 
 import { PropLabel } from '../PropLabel/PropLabel';
 
-export const PropConstructor = props => {
-    let className = 'prop-constructor-wrapper';
+import { noop } from '../../../../utils/misc';
 
-	let toggle = false;
-	if (props.hasToggle) {
-		toggle = <ToggleButton />
-	}
+export const PropConstructor = props => {
+    let toggle = null;
+    if (props.hasToggle) {
+        toggle = (
+            <ToggleButton />
+        );
+    }
 
     return (
-	    <div className={className}>
-		    <div className="prop-constructor-content">
-			    <PropLabel label={props.label} tooltip={props.tooltip}/>
+        <div className="prop-constructor-wrapper">
+            <div className="prop-constructor-content">
+                <PropLabel label={props.label} tooltip={props.tooltip}/>
 
-			    <div className="prop-constructor-button">
-			        <Button kind="link" text="Set component"/>
-			    </div>
-		    </div>
+                <div className="prop-constructor-button">
+                    <Button
+                        kind="link"
+                        text={props.buttonText}
+                        onPress={props.onSetComponent}
+                    />
+                </div>
+            </div>
 
-		    { toggle }
-	    </div>
+            {toggle}
+        </div>
     );
 };
 
 PropConstructor.propTypes = {
-	label: PropTypes.string,
-	tooltip: PropTypes.string,
-	hasToggle: PropTypes.bool
+    label: PropTypes.string,
+    tooltip: PropTypes.string,
+    hasToggle: PropTypes.bool,
+    buttonText: PropTypes.string,
+
+    onSetComponent: PropTypes.func
 };
 
 PropConstructor.defaultProps = {
-	label: '',
-	tooltip: null,
-	hasToggle: false
+    label: '',
+    tooltip: null,
+    hasToggle: false,
+    buttonText: '',
+
+    onSetComponent: noop
 };
 
 PropConstructor.displayName = 'PropConstructor';
-
-
-

@@ -275,3 +275,52 @@ export const selectLayoutForNewComponent = layoutIdx => ({
     type: PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
     layoutIdx
 });
+
+/**
+ *
+ * @type {string}
+ * @const
+ */
+export const PROJECT_CONSTRUCT_COMPONENT_FOR_PROP = 'PROJECT_CONSTRUCT_COMPONENT_FOR_PROP';
+
+/**
+ *
+ * @param {number} componentId
+ * @param {string} propName
+ * @return {Object}
+ */
+export const constructComponentForProp = (componentId, propName) => ({
+    type: PROJECT_CONSTRUCT_COMPONENT_FOR_PROP,
+    componentId,
+    propName
+});
+
+/**
+ *
+ * @type {string}
+ * @const
+ */
+export const PROJECT_CANCEL_CONSTRUCT_COMPONENT_FOR_PROP = 'PROJECT_CANCEL_CONSTRUCT_COMPONENT_FOR_PROP';
+
+/**
+ *
+ * @return {Object}
+ */
+export const cancelConstructComponentForProp = () => ({
+    type: PROJECT_CANCEL_CONSTRUCT_COMPONENT_FOR_PROP
+});
+
+/**
+ *
+ * @type {string}
+ * @const
+ */
+export const PROJECT_SAVE_COMPONENT_FOR_PROP = 'PROJECT_SAVE_COMPONENT_FOR_PROP';
+
+/**
+ *
+ * @return {Object}
+ */
+export const saveComponentForProp = () => ({
+    type: PROJECT_SAVE_COMPONENT_FOR_PROP
+});

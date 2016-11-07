@@ -41,7 +41,7 @@ export const PropsItem = props => {
         wrapperClassName= 'prop-item-wrapper';
 
     if (props.type) className += ` prop-type-${props.type}`;
-    if (props.subtreeOn) wrapperClassName+= ' ' + 'sublevel-is-visible';
+    if (props.subtreeOn) wrapperClassName += ' sublevel-is-visible';
 
     let actions = null;
     if (props.linkable) {
@@ -99,7 +99,7 @@ export const PropsItem = props => {
         );
     }
     else if (props.type === 'list') {
-        content =
+        content = (
             <SelectBox
                 label={props.label}
                 dense
@@ -109,10 +109,17 @@ export const PropsItem = props => {
                 onSelect={props.onChange}
                 tooltip={props.tooltip}
             />
+        );
     }
     else if (props.type === 'constructor') {
-        content =
-            <PropConstructor label={props.label} tooltip={props.tooltip}/>
+        content = (
+            <PropConstructor
+                label={props.label}
+                tooltip={props.tooltip}
+                buttonText={props.setComponentButtonText}
+                onSetComponent={props.onChange}
+            />
+        );
     }
 
     else if (props.type === 'constructor-toggle') {
@@ -182,16 +189,16 @@ export const PropsItem = props => {
     return (
         <div className={className}>
             <div className={wrapperClassName}>
-                { image }
+                {image}
 
                 <div className="prop-item-content-box">
-                    { content }
+                    {content}
                 </div>
 
-                { actions }
+                {actions}
             </div>
 
-            { props.children }
+            {props.children}
         </div>
     );
 };
@@ -214,8 +221,10 @@ PropsItem.propTypes = {
     image: PropTypes.string,
     subtreeOn: PropTypes.bool,
     options: PropTypes.array,
-    onChange: PropTypes.func,
-	tooltip: PropTypes.string
+	tooltip: PropTypes.string,
+    setComponentButtonText: PropTypes.string,
+
+    onChange: PropTypes.func
 };
 
 PropsItem.defaultProps = {
@@ -227,8 +236,10 @@ PropsItem.defaultProps = {
     image: '',
     subtreeOn: false,
     options: [],
-    onChange: noop,
-	tooltip: null
+	tooltip: null,
+    setComponentButtonText: '',
+
+    onChange: noop
 };
 
 PropsItem.displayName = 'PropsItem';

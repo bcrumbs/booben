@@ -46,6 +46,7 @@
   "selectAComponent": "Select a component",
   "multipleComponentsSelected": "Multiple components selected",
   "thisComponentDoesntHaveEditableAttributes": "This component doesn't have editable attributes",
+  "setComponent": "Set component",
 
   "uncategorizedComponents": "Uncategorized",
 

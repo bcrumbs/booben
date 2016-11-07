@@ -27,7 +27,10 @@ import {
 
 import ProjectRecord, { getComponentById } from '../../models/Project';
 
-import { updateComponentPropValue } from '../../actions/project';
+import {
+    updateComponentPropValue,
+    constructComponentForProp
+} from '../../actions/project';
 
 import { getString, getComponentMeta } from '../../utils/meta';
 
@@ -114,6 +117,11 @@ const getStaticOneOfValue = (source, sourceData, options) =>
         : options[0].value;
 
 class ComponentPropsEditorComponent extends Component {
+    _handleSetComponent(propName) {
+        const componentId = this.props.selectedComponentIds.first();
+        this.props.onConstructComponent(componentId, propName);
+    }
+
     _handleStaticValueChange(propName, newValue) {
         const componentId = this.props.selectedComponentIds.first();
         this.props.onPropValueChange(
@@ -259,8 +267,21 @@ class ComponentPropsEditorComponent extends Component {
     }
 
     _renderComponentProp(componentMeta, propName, propValue) {
-        // TODO: Render something
-        return null;
+        const { getLocalizedText } = this.props,
+            propMeta = componentMeta.props[propName];
+
+        const label =
+            getString(componentMeta, propMeta.textKey, lang) || propName;
+
+        return (
+            <PropsItem
+                key={propName}
+                type="constructor"
+                label={label}
+                setComponentButtonText={getLocalizedText('setComponent')}
+                onChange={this._handleSetComponent.bind(this, propName)}
+            />
+        );
     }
 
     _renderPropsItem(componentMeta, propName, value) {
@@ -397,9 +418,10 @@ ComponentPropsEditorComponent.propTypes = {
     meta: PropTypes.any,
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     language: PropTypes.string,
-
     getLocalizedText: PropTypes.func,
-    onPropValueChange: PropTypes.func
+
+    onPropValueChange: PropTypes.func,
+    onConstructComponent: PropTypes.func
 };
 
 const mapStateToProps = ({ project, app }) => ({
@@ -407,7 +429,7 @@ const mapStateToProps = ({ project, app }) => ({
     meta: project.meta,
     selectedComponentIds: project.selectedItems,
     language: app.language,
-    getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
+    getLocalizedText: (...args) => getLocalizedText(app.localization, app.language, ...args)
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -417,6 +439,12 @@ const mapDispatchToProps = dispatch => ({
             propName,
             newSource,
             newSourceData
+        )),
+
+    onConstructComponent: (componentId, propName) =>
+        void dispatch(constructComponentForProp(
+            componentId,
+            propName
         ))
 });
 
