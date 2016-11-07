@@ -51,8 +51,8 @@ const mapDispatchToProps = dispatch => ({
   */
 export const connectDragHandler = (mapStateToPropsWrapped, mapDispatchToPropsWrapped) => WrappedComponent =>
   connect(
-    v => Object.assign({}, mapStateToProps(v), (mapStateToPropsWrapped ? mapStateToPropsWrapped(v) : {})),
-    v => Object.assign({}, mapDispatchToProps(v), (mapDispatchToPropsWrapped ? mapDispatchToPropsWrapped(v) : {}))
+    v => Object.assign({}, mapStateToProps(v), mapStateToPropsWrapped ? mapStateToPropsWrapped(v) : {}),
+    v => Object.assign({}, mapDispatchToProps(v), mapDispatchToPropsWrapped ? mapDispatchToPropsWrapped(v) : {})
     )(
     Object.assign(
       class extends WrappedComponent {
@@ -68,6 +68,7 @@ export const connectDragHandler = (mapStateToPropsWrapped, mapDispatchToPropsWra
 
           this._handleStartDragNewComponent = this._handleStartDragNewComponent.bind(this);
           this._handleStartDragExistingComponent = this._handleStartDragExistingComponent.bind(this);
+          this.__handleStartDragComponent = this.__handleStartDragComponent.bind(this);
           this.__handleMouseMove = this.__handleMouseMove.bind(this);
           this.__handleMouseUp = this.__handleMouseUp.bind(this);
         }
@@ -78,6 +79,7 @@ export const connectDragHandler = (mapStateToPropsWrapped, mapDispatchToPropsWra
           window.removeEventListener('mouseup', this.__handleMouseUp);
         }
 
+
         /**
          *
          * @param {MouseEvent} event
@@ -85,7 +87,7 @@ export const connectDragHandler = (mapStateToPropsWrapped, mapDispatchToPropsWra
          * @private
          */
         _handleStartDragNewComponent(event, componentData) {
-          this._handleStartDragExistingComponent(event);
+          this.__handleStartDragComponent(event);
           this.draggedComponentData = componentData;
           this.draggedNewComponent = true;
         }
@@ -97,15 +99,23 @@ export const connectDragHandler = (mapStateToPropsWrapped, mapDispatchToPropsWra
          * @private
          */
         _handleStartDragExistingComponent(event, componentId) {
+          this.__handleStartDragComponent(event);
+          this.draggedComponentId = componentId;
+          this.draggedNewComponent = false;
+        }
+
+        /**
+         *
+         * @param {MouseEvent} event
+         * @private
+         */
+        __handleStartDragComponent(event) {
           event.preventDefault();
           window.addEventListener('mousemove', this.__handleMouseMove);
           window.addEventListener('mouseup', this.__handleMouseUp);
           this.willTryStartDrag = true;
           this.dragStartX = event.pageX;
           this.dragStartY = event.pageY;
-          this.draggedComponentId = componentId;
-          this.draggedComponentData = null,
-          this.draggedNewComponent = false;
         }
 
         /**
