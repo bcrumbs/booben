@@ -132,10 +132,6 @@ export const canInsertComponent = (componentName, containerName, containerChildr
         containerMeta = getComponentMeta(containerName, meta);
 
     if (containerMeta.kind !== 'container') return false;
-
-    const sameComponentsNum = containerChildrenNames
-        .reduce((acc, cur) => acc + (cur === componentName ? 1 : 0), 0);
-
     if (!componentMeta.placement) return true;
 
     if (componentMeta.placement.inside) {
@@ -153,8 +149,7 @@ export const canInsertComponent = (componentName, containerName, containerChildr
                     return containerMeta.group === exclusion.group;
                 }
                 else if (exclusion.tag) {
-                    return !!containerMeta.tags &&
-                        containerMeta.tags.indexOf(exclusion.tag) > -1;
+                    return containerMeta.tags.has(exclusion.tag);
                 }
                 else {
                     return false;
@@ -164,6 +159,9 @@ export const canInsertComponent = (componentName, containerName, containerChildr
             if (deny) return false;
         }
         else if (componentMeta.placement.inside.include) {
+            const sameComponentsNum = containerChildrenNames
+                .reduce((acc, cur) => acc + (cur === componentName ? 1 : 0), 0);
+
             const allow = componentMeta.placement.inside.include.some(inclusion => {
                 if (inclusion.component) {
                     const inclusionComponentName = formatComponentName(
@@ -177,11 +175,7 @@ export const canInsertComponent = (componentName, containerName, containerChildr
                     if (containerMeta.group !== inclusion.group) return false;
                 }
                 else if (inclusion.tag) {
-                    if (
-                        !containerMeta.tags ||
-                        containerMeta.tags.indexOf(inclusion.tag) === -1
-                    )
-                        return false;
+                    if (!containerMeta.tags.has(inclusion.tag)) return false;
                 }
 
                 return !inclusion.maxNum || sameComponentsNum < inclusion.maxNum;

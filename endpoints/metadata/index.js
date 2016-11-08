@@ -648,7 +648,22 @@ const mainMetaSchema = {
             required: false
         },
 
-        strings: Object.assign({ required: false }, stringsSchema)
+        strings: Object.assign({ required: false }, stringsSchema),
+
+        tags: {
+            patternProperties: {
+                '.*': {
+                    type: 'array',
+                    minItems: 1,
+                    items: {
+                        type: 'string',
+                        allowEmpty: false
+                    },
+                    uniqueItems: true
+                }
+            },
+            required: false
+        }
     }
 };
 
@@ -1199,6 +1214,8 @@ exports.gatherMetadata = moduleDir => co(function* () {
                         );
                     }
 
+                    maybeMeta.tags = new Set(maybeMeta.tags || []);
+
                     ret.components[maybeMeta.displayName] = maybeMeta;
                 }
             }
@@ -1210,6 +1227,21 @@ exports.gatherMetadata = moduleDir => co(function* () {
                 throw err;
             }
         }
+    }
+
+    if (ret.tags) {
+        Object.keys(ret.tags).forEach(tag => {
+            ret.tags[tag].forEach(componentName => {
+                if (!ret.components[componentName]) {
+                    throw new Error(
+                        `Unknown component '${componentName}' ` +
+                        `in tags section (tag '${tag}') of jssy.json`
+                    );
+                }
+
+                ret.components[componentName].tags.add(tag);
+            });
+        });
     }
 
     return ret;
