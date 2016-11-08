@@ -135,30 +135,7 @@ export const canInsertComponent = (componentName, containerName, containerChildr
     if (!componentMeta.placement) return true;
 
     if (componentMeta.placement.inside) {
-        if (componentMeta.placement.inside.exclude) {
-            const deny = componentMeta.placement.inside.exclude.some(exclusion => {
-                if (exclusion.component) {
-                    const exclusionComponentName = formatComponentName(
-                        namespace,
-                        exclusion.component
-                    );
-
-                    return containerName === exclusionComponentName;
-                }
-                else if (exclusion.group) {
-                    return containerMeta.group === exclusion.group;
-                }
-                else if (exclusion.tag) {
-                    return containerMeta.tags.has(exclusion.tag);
-                }
-                else {
-                    return false;
-                }
-            });
-
-            if (deny) return false;
-        }
-        else if (componentMeta.placement.inside.include) {
+        if (componentMeta.placement.inside.include) {
             const sameComponentsNum = containerChildrenNames
                 .reduce((acc, cur) => acc + (cur === componentName ? 1 : 0), 0);
 
@@ -182,6 +159,30 @@ export const canInsertComponent = (componentName, containerName, containerChildr
             });
 
             if (!allow) return false;
+        }
+
+        if (componentMeta.placement.inside.exclude) {
+            const deny = componentMeta.placement.inside.exclude.some(exclusion => {
+                if (exclusion.component) {
+                    const exclusionComponentName = formatComponentName(
+                        namespace,
+                        exclusion.component
+                    );
+
+                    return containerName === exclusionComponentName;
+                }
+                else if (exclusion.group) {
+                    return containerMeta.group === exclusion.group;
+                }
+                else if (exclusion.tag) {
+                    return containerMeta.tags.has(exclusion.tag);
+                }
+                else {
+                    return false;
+                }
+            });
+
+            if (deny) return false;
         }
     }
 
