@@ -268,6 +268,7 @@ class ComponentPropsEditorComponent extends Component {
 
     _renderComponentProp(componentMeta, propName, propValue) {
         const { getLocalizedText } = this.props,
+            lang = this.props.language,
             propMeta = componentMeta.props[propName];
 
         const label =

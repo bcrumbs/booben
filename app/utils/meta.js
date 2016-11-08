@@ -229,6 +229,14 @@ const buildDefaultProps = (componentMeta, language) => {
                     }
                 }
             }
+            else if (typeof propMeta.sourceConfigs.const.jssyConstId !== 'undefined') {
+                ret[propName] = {
+                    source: 'const',
+                    sourceData: {
+                        jssyConstId: propMeta.sourceConfigs.const.jssyConstId
+                    }
+                }
+            }
         }
     });
 

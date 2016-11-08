@@ -13,6 +13,8 @@ import patchComponent from '../patchComponent';
 
 import { getComponentById } from '../../app/models/Project';
 
+import jssyConstants from '../../app/constants/jssyConstants';
+
 import {
     isContainerComponent,
     isCompositeComponent,
@@ -69,9 +71,27 @@ const buildProps = props => {
         if (prop.source == 'static') {
             ret[key] = prop.sourceData.value;
         }
+        else if (prop.source === 'data') {
+            // TODO: Handle data source
+        }
         else if (prop.source === 'const') {
-            if (typeof prop.sourceData.value !== 'undefined')
+            if (typeof prop.sourceData.value !== 'undefined') {
                 ret[key] = prop.sourceData.value;
+            }
+            else if (typeof prop.sourceData.jssyConstId !== 'undefined') {
+                ret[key] = jssyConstants[prop.sourceData.jssyConstId];
+            }
+        }
+        else if (prop.source === 'designer') {
+            if (prop.sourceData.component) {
+                // TODO: Create Builder
+            }
+            else {
+                ret[key] = () => null;
+            }
+        }
+        else if (prop.source === 'actions') {
+            // TODO: Handle actions source
         }
     });
 

@@ -18,10 +18,7 @@ import {
     PROJECT_ROUTE_CREATE,
     PROJECT_ROUTE_DELETE,
     PROJECT_ROUTE_UPDATE_FIELD,
-    PROJECT_COMPONENT_CREATE,
     PROJECT_COMPONENT_DELETE,
-    PROJECT_COMPONENT_MOVE,
-    PROJECT_COMPONENT_CREATE_ROOT,
     PROJECT_COMPONENT_UPDATE_PROP_VALUE,
     PROJECT_COMPONENT_RENAME,
     PROJECT_COMPONENT_TOGGLE_REGION,
@@ -59,10 +56,6 @@ import {
 
 import ProjectRoute from '../models/ProjectRoute';
 import ProjectComponentProp from '../models/ProjectComponentProp';
-import SourceDataStatic from '../models/SourceDataStatic';
-import SourceDataData from '../models/SourceDataData';
-import SourceDataConst from '../models/SourceDataConst';
-import SourceDataAction from '../models/SourceDataAction';
 import SourceDataDesigner from '../models/SourceDataDesigner';
 
 import {
@@ -70,23 +63,29 @@ import {
     getMaxRouteId,
     getMaxComponentId,
     gatherRoutesTreeIds,
-    gatherComponentsTreeIds,
-    getRouteByComponentId,
     getComponentById
 } from '../models/Project';
 
-import { Record, Set } from 'immutable';
+import {
+    propSourceDataToImmutable,
+    gatherComponentsTreeIds,
+    isRootComponent
+} from '../models/ProjectComponent';
+
+import { Record, Set, Stack } from 'immutable';
 
 import { concatPath } from '../utils';
 import { getComponentMeta, constructComponent } from '../utils/meta';
 
-const propSourceDataToImmutable = {
-    static: input => new SourceDataStatic(input),
-    data: input => new SourceDataData(input),
-    const: input => new SourceDataConst(input),
-    action: input => new SourceDataAction(input),
-    designer: input => new SourceDataDesigner(input)
-};
+const NestedConstructor = Record({
+    components: null,
+    rootId: -1,
+    componentId: -1,
+    prop: '',
+    lastComponentId: -1,
+    selectedComponentIds: Set(),
+    highlightedComponentIds: Set()
+});
 
 const ProjectState = Record({
     projectName: '',
@@ -115,16 +114,95 @@ const ProjectState = Record({
     indexRouteSelected: false,
 
     languageForComponentProps: 'en',
-    selectingComponentLayout: false
+    selectingComponentLayout: false,
+
+    nestedConstructors: Stack()
 });
 
-const addComponents = (state, routeId, isIndexRoute, parentComponentId, position, components) => {
-    const nextComponentId = state.lastComponentId + 1;
+const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
+
+const openNestedConstructor = (state, nestedConstructor) => state.update(
+    'nestedConstructors',
+    nestedConstructors => nestedConstructors.push(nestedConstructor)
+);
+
+const closeAllNestedConstructors = state => state.set('nestedConstructors', Stack());
+
+const closeTopNestedConstructor = state => state.update(
+    'nestedConstructors',
+    nestedConstructors => nestedConstructors.pop()
+);
+
+const getPathToCurrentComponents = state => haveNestedConstructors(state)
+    ? ['nestedConstructors', 0, 'components']
+    : ['data', 'routes', state.currentRouteId, 'components'];
+
+const getPathToCurrentLastComponentId = state => haveNestedConstructors(state)
+    ? ['nestedConstructors', 0, 'lastComponentId']
+    : ['lastComponentId'];
+
+const getPathToCurrentRootComponentId = state => haveNestedConstructors(state)
+    ? ['nestedConstructors', 0, 'rootId']
+
+    : [
+        'data',
+        'routes',
+        state.currentRouteId,
+        state.currentRouteIsIndexRoute ? 'indexComponent' : 'component'
+    ];
+
+const getPathToCurrentSelectedComponentIds = state => haveNestedConstructors(state)
+    ? ['nestedConstructors', 0, 'selectedComponentIds']
+    : ['selectedItems'];
+
+const getPathToCurrentHighlightedComponentIds = state => haveNestedConstructors(state)
+    ? ['nestedConstructors', 0, 'highlightedComponentIds']
+    : ['highlightedItems'];
+
+const selectComponent = (state, componentId) => state.updateIn(
+    getPathToCurrentSelectedComponentIds(state),
+    selectedComponentIds => selectedComponentIds.add(componentId)
+);
+
+const selectComponentExclusive = (state, componentId) =>
+    state.setIn(getPathToCurrentSelectedComponentIds(state), Set([componentId]));
+
+const toggleComponentSelection = (state, componentId) => {
+    const pathToCurrentSelectedComponentIds = getPathToCurrentSelectedComponentIds(state),
+        currentSelectedComponentIds = state.getIn(pathToCurrentSelectedComponentIds);
+
+    const updater = currentSelectedComponentIds.has(componentId)
+        ? selectedComponentIds => selectedComponentIds.delete(componentId)
+        : selectedComponentIds => selectedComponentIds.add(componentId);
+
+    return state.updateIn(pathToCurrentSelectedComponentIds, updater);
+};
+
+const deselectComponent = (state, componentId) => state.updateIn(
+    getPathToCurrentSelectedComponentIds(state),
+    selectedComponentIds => selectedComponentIds.delete(componentId)
+);
+
+const highlightComponent = (state, componentId) => state.updateIn(
+    getPathToCurrentHighlightedComponentIds(state),
+    highlightedComponentIds => highlightedComponentIds.add(componentId)
+);
+
+const unhighlightComponent = (state, componentId) => state.updateIn(
+    getPathToCurrentHighlightedComponentIds(state),
+    highlightedComponentIds => highlightedComponentIds.delete(componentId)
+);
+
+const addComponents = (state, parentComponentId, position, components) => {
+    const pathToCurrentLastComponentId = getPathToCurrentLastComponentId(state),
+        lastComponentId = state.getIn(pathToCurrentLastComponentId),
+        nextComponentId = lastComponentId + 1,
+        pathToCurrentComponents = getPathToCurrentComponents(state);
 
     state = state.updateIn(
-        ['data', 'routes', routeId, 'components'],
+        pathToCurrentComponents,
 
-        routeComponents => routeComponents.withMutations(routeComponentsMut =>
+        updatedComponents => updatedComponents.withMutations(routeComponentsMut =>
             void components.forEach(newComponent =>
                 void routeComponentsMut.set(
                     newComponent.id + nextComponentId,
@@ -137,8 +215,8 @@ const addComponents = (state, routeId, isIndexRoute, parentComponentId, position
                                 ? parentComponentId
                                 : newComponent.parentId + nextComponentId,
 
-                            routeId: routeId,
-                            isIndexRoute: isIndexRoute
+                            routeId: state.currentRouteId,
+                            isIndexRoute: state.currentRouteIsIndexRoute
                         })
                         .update(
                             'children',
@@ -150,14 +228,10 @@ const addComponents = (state, routeId, isIndexRoute, parentComponentId, position
     );
 
     if (parentComponentId !== -1) {
-        const pathToChildrenIdsList = [
-            'data',
-            'routes',
-            routeId,
-            'components',
+        const pathToChildrenIdsList = [].concat(pathToCurrentComponents, [
             parentComponentId,
             'children'
-        ];
+        ]);
 
         state = state.updateIn(
             pathToChildrenIdsList,
@@ -165,40 +239,47 @@ const addComponents = (state, routeId, isIndexRoute, parentComponentId, position
         )
     }
     else {
-        state = state.setIn(
-            ['data', 'routes', routeId, isIndexRoute ? 'indexComponent' : 'component'],
-            nextComponentId
-        );
+        state = state.setIn(getPathToCurrentRootComponentId(state), nextComponentId);
     }
 
     return state.update(
-        'lastComponentId',
+        pathToCurrentLastComponentId,
         lastComponentId => lastComponentId + components.size
     );
 };
 
 const deleteComponent = (state, componentId) => {
-    const route = getRouteByComponentId(state.data, componentId),
-        component = route.components.get(componentId),
-        idsToDelete = gatherComponentsTreeIds(route, componentId);
+    const pathToCurrentComponents = getPathToCurrentComponents(state),
+        currentComponents = state.getIn(pathToCurrentComponents);
+
+    if (!currentComponents.has(componentId)) {
+        throw new Error(
+            'An attempt was made to delete a component ' +
+            'that is not in current editing area'
+        );
+    }
+
+    const component = currentComponents.get(componentId),
+        idsToDelete = gatherComponentsTreeIds(currentComponents, componentId);
 
     state = state.updateIn(
-        ['data', 'routes', route.id, 'components'],
+        pathToCurrentComponents,
 
-        components => components.withMutations(mut =>
-            void idsToDelete.forEach(id => void mut.delete(id)))
+        components => components.withMutations(componentsMut =>
+            void idsToDelete.forEach(id => void componentsMut.delete(id)))
     );
 
-    if (component.parentId === -1) {
-        if (route.component === componentId)
-            state = state.setIn(['data', 'routes', route.id, 'component'], -1);
-
-        if (route.indexComponent === componentId)
-            state = state.setIn(['data', 'routes', route.id, 'indexComponent'], -1);
+    if (isRootComponent(component)) {
+        state = state.setIn(getPathToCurrentRootComponentId(state), -1);
     }
     else {
+        const pathToChildrenIdsList = [].concat(pathToCurrentComponents, [
+            component.parentId,
+            'children'
+        ]);
+
         state = state.updateIn(
-            ['data', 'routes', route.id, 'components', component.parentId, 'children'],
+            pathToChildrenIdsList,
             children => children.filter(id => id !== componentId)
         );
     }
@@ -207,34 +288,42 @@ const deleteComponent = (state, componentId) => {
 };
 
 const moveComponent = (state, componentId, targetComponentId, position) => {
-    const route = getRouteByComponentId(state.data, componentId),
-        component = route.components.get(componentId);
+    const pathToCurrentComponents = getPathToCurrentComponents(state),
+        currentComponents = state.getIn(pathToCurrentComponents);
+
+    if (!currentComponents.has(componentId)) {
+        throw new Error(
+            'An attempt was made to move a component ' +
+            'that is not in current editing area'
+        );
+    }
+
+    if (!currentComponents.has(targetComponentId)) {
+        throw new Error(
+            'An attempt was made to move a component ' +
+            'outside current editing area'
+        );
+    }
+
+    const component = currentComponents.get(componentId);
 
     if (component.parentId === -1)
         throw new Error('Cannot move root component');
 
-    const sourceChildrenListPath = [
-        'data',
-        'routes',
-        route.id,
-        'components',
+    const sourceChildrenListPath = [].concat(pathToCurrentComponents, [
         component.parentId,
         'children'
-    ];
+    ]);
 
     state = state.updateIn(
         sourceChildrenListPath,
         ids => ids.filter(id => id !== componentId)
     );
 
-    const targetChildrenListPath = [
-        'data',
-        'routes',
-        route.id,
-        'components',
+    const targetChildrenListPath = [].concat(pathToCurrentComponents, [
         targetComponentId,
         'children'
-    ];
+    ]);
 
     return state.updateIn(
         targetChildrenListPath,
@@ -254,28 +343,27 @@ const initDNDState = state => state.merge({
 
 const insertDraggedComponents = (state, components) => {
     if (state.placeholderContainerId === -1) {
-        // Creating root component for current route
-        return addComponents(
-            state,
-            state.currentRouteId,
-            state.currentRouteIsIndexRoute,
-            -1,
-            0,
-            components
-        );
+        // Creating root component
+        return addComponents(state, -1, 0, components);
     }
     else {
         // Creating nested component
         return addComponents(
             state,
-            state.currentRouteId,
-            state.currentRouteIsIndexRoute,
             state.placeholderContainerId,
             state.placeholderAfter + 1,
             components
         );
     }
 };
+
+const selectFirstRoute = state => state.merge({
+    selectedRouteId: state.data.routes.size > 0
+        ? state.data.routes.get(0)
+        : -1,
+
+    indexRouteSelected: false
+});
 
 export default (state = new ProjectState(), action) => {
     switch (action.type) {
@@ -354,7 +442,7 @@ export default (state = new ProjectState(), action) => {
             const deletedRoute = state.data.routes.get(action.routeId),
                 deletedRouteIds = gatherRoutesTreeIds(state.data, action.routeId);
 
-            // De-select and de-highlight all componenets
+            // De-select and de-highlight all components
             state = state.merge({
                 selectedItems: Set(),
                 highlightedItems: Set()
@@ -381,15 +469,7 @@ export default (state = new ProjectState(), action) => {
                 state.selectedRouteId > -1 &&
                 deletedRouteIds.has(state.selectedRouteId);
 
-            if (deletedRouteIsSelected) {
-                state = state.merge({
-                    selectedRouteId: state.data.routes.size > 0
-                        ? state.data.routes.get(0)
-                        : -1,
-
-                    indexRouteSelected: false
-                });
-            }
+            if (deletedRouteIsSelected) state = selectFirstRoute(state);
 
             return state;
         }
@@ -401,63 +481,9 @@ export default (state = new ProjectState(), action) => {
             );
         }
 
-        case PROJECT_COMPONENT_CREATE_ROOT: {
-            const route = state.getIn(['data', 'routes', action.routeId]);
-
-            const alreadyHaveComponent = action.isIndexRoute
-                ? route.indexComponent !== -1
-                : route.component !== -1;
-
-            if (alreadyHaveComponent) {
-                throw new Error(
-                    `Route ${action.routeId} already has ` +
-                    `${action.isIndexRoute ? 'index' : 'root'} component`
-                );
-            }
-
-            return addComponents(
-                state,
-                action.routeId,
-                action.isIndexRoute,
-                -1,
-                0,
-                action.components
-            );
-        }
-
-        case PROJECT_COMPONENT_CREATE: {
-            const route = getRouteByComponentId(state.data, action.parentComponentId),
-                parentComponent = route.components.get(action.parentComponentId);
-
-            return addComponents(
-                state,
-                route.id,
-                parentComponent.isIndexRoute,
-                parentComponent.id,
-                action.position,
-                action.components
-            );
-        }
-
-        case PROJECT_COMPONENT_MOVE: {
-            return moveComponent(
-                state,
-                action.componentId,
-                action.targetComponentId,
-                action.position
-            );
-        }
-
         case PROJECT_COMPONENT_DELETE: {
-            state = state.update(
-                'selectedItems',
-                selectedItems => selectedItems.delete(action.componentId)
-            );
-
-            state = state.update(
-                'highlightedItems',
-                highlightedItems => highlightedItems.delete(action.componentId)
-            );
+            state = deselectComponent(state, action.componentId);
+            state = unhighlightComponent(state, action.componentId);
 
             if (state.draggedComponentId === action.componentId)
                 state = initDNDState(state);
@@ -466,53 +492,67 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PROJECT_COMPONENT_UPDATE_PROP_VALUE: {
-            const route = getRouteByComponentId(state.data, action.componentId),
-                convertSourceData = propSourceDataToImmutable[action.newSource];
+            const pathToCurrentComponents = getPathToCurrentComponents(state),
+                currentComponents = state.getIn(pathToCurrentComponents);
+
+            if (!currentComponents.has(action.componentId)) {
+                throw new Error(
+                    'An attempt was made to update a component ' +
+                    'that is not in current editing area'
+                );
+            }
 
             const newValue = new ProjectComponentProp({
                 source: action.newSource,
-                sourceData: convertSourceData(action.newSourceData)
+                sourceData: propSourceDataToImmutable(
+                    action.newSource,
+                    action.newSourceData
+                )
             });
 
-            const path = [
-                'data',
-                'routes',
-                route.id,
-                'components',
+            const path = [].concat(pathToCurrentComponents, [
                 action.componentId,
                 'props',
                 action.propName
-            ];
+            ]);
 
             return state.setIn(path, newValue);
         }
 
         case PROJECT_COMPONENT_RENAME: {
-            const route = getRouteByComponentId(state.data, action.componentId);
+            const pathToCurrentComponents = getPathToCurrentComponents(state),
+                currentComponents = state.getIn(pathToCurrentComponents);
 
-            const path = [
-                'data',
-                'routes',
-                route.id,
-                'components',
+            if (!currentComponents.has(action.componentId)) {
+                throw new Error(
+                    'An attempt was made to update a component ' +
+                    'that is not in current editing area'
+                );
+            }
+
+            const path = [].concat(pathToCurrentComponents, [
                 action.componentId,
                 'title'
-            ];
+            ]);
 
             return state.setIn(path, action.newTitle);
         }
 
         case PROJECT_COMPONENT_TOGGLE_REGION: {
-            const route = getRouteByComponentId(state.data, action.componentId);
+            const pathToCurrentComponents = getPathToCurrentComponents(state),
+                currentComponents = state.getIn(pathToCurrentComponents);
 
-            const path = [
-                'data',
-                'routes',
-                route.id,
-                'components',
+            if (!currentComponents.has(action.componentId)) {
+                throw new Error(
+                    'An attempt was made to update a component ' +
+                    'that is not in current editing area'
+                );
+            }
+
+            const path = [].concat(pathToCurrentComponents, [
                 action.componentId,
                 'regionsEnabled'
-            ];
+            ]);
 
             return state.updateIn(path, regionsEnabled => action.enable
                 ? regionsEnabled.add(action.regionIdx)
@@ -521,41 +561,34 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PREVIEW_HIGHLIGHT_COMPONENT: {
-            return state.update('highlightedItems', set => set.add(action.componentId));
+            return highlightComponent(state, action.componentId);
         }
 
         case PREVIEW_UNHIGHLIGHT_COMPONENT: {
-            return state.update('highlightedItems', set => set.delete(action.componentId));
+            return unhighlightComponent(state, action.componentId);
         }
 
         case PREVIEW_SELECT_COMPONENT: {
             state = state.set('showAllComponentsOnPalette', false);
 
-            if (action.exclusive) {
-                return state.set('selectedItems', Set([action.componentId]));
-            }
-            else {
-                return state.update('selectedItems', set => set.add(action.componentId));
-            }
+            return action.exclusive
+                ? selectComponentExclusive(state, action.componentId)
+                : selectComponent(state, action.componentId);
         }
 
         case PREVIEW_DESELECT_COMPONENT: {
-            return state
-                .set('showAllComponentsOnPalette', false)
-                .update('selectedItems', set => set.delete(action.componentId));
+            state = state.set('showAllComponentsOnPalette', false);
+            return deselectComponent(state, action.componentId);
         }
 
         case PREVIEW_TOGGLE_COMPONENT_SELECTION: {
             state = state.set('showAllComponentsOnPalette', false);
-
-            const updater = state.selectedItems.has(action.componentId)
-                ? set => set.delete(action.componentId)
-                : set => set.add(action.componentId);
-
-            return state.update('selectedItems', updater);
+            return toggleComponentSelection(state, action.componentId);
         }
 
         case PREVIEW_SET_CURRENT_ROUTE: {
+            state = closeAllNestedConstructors(state);
+
             return state.merge({
                 currentRouteId: action.routeId,
                 currentRouteIsIndexRoute: action.isIndexRoute
@@ -575,15 +608,22 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PREVIEW_START_DRAG_EXISTING_COMPONENT: {
-
             if (state.selectingComponentLayout) return state;
 
-            const route = getRouteByComponentId(state.data, action.componentId);
+            const pathToCurrentComponents = getPathToCurrentComponents(state),
+                currentComponents = state.getIn(pathToCurrentComponents);
+
+            if (!currentComponents.has(action.componentId)) {
+                throw new Error(
+                    'An attempt was made to drag a component ' +
+                    'that is not in current editing area'
+                );
+            }
 
             return state.merge({
                 draggingComponent: true,
                 draggedComponentId: action.componentId,
-                draggedComponents: route.components,
+                draggedComponents: currentComponents,
                 highlightingEnabled: false,
                 highlightedItems: Set()
             });
@@ -592,24 +632,6 @@ export default (state = new ProjectState(), action) => {
         case PREVIEW_DROP_COMPONENT: {
             if (!state.draggingComponent) return state;
             if (!state.draggingOverPlaceholder) return initDNDState(state);
-
-            let willDrop = false;
-
-            if (state.placeholderContainerId === -1) {
-                willDrop = true;
-            }
-            else {
-                const container = getComponentById(
-                    state.data,
-                    state.placeholderContainerId
-                );
-
-                willDrop =
-                    container.routeId === state.currentRouteId &&
-                    container.isIndexRoute === state.currentRouteIsIndexRoute
-            }
-
-            if (!willDrop) return initDNDState(state);
 
             if (state.draggedComponentId > -1) {
                 // We're dragging an existing component
@@ -624,20 +646,16 @@ export default (state = new ProjectState(), action) => {
             }
             else {
                 // We're dragging a new component from palette
-                const rootComponent = state.draggedComponents.get(0);
-
-                const componentMeta = getComponentMeta(
-                    rootComponent.name,
-                    state.meta
-                );
+                const rootComponent = state.draggedComponents.get(0),
+                    componentMeta = getComponentMeta(rootComponent.name, state.meta);
 
                 const isCompositeComponentWithMultipleLayouts =
                     componentMeta.kind === 'composite' &&
                     componentMeta.layouts.length > 1;
 
                 if (isCompositeComponentWithMultipleLayouts) {
-                    // The component is composite and has multiple layouts,
-                    // need to ask user which one to use
+                    // The component is composite and has multiple layouts;
+                    // we need to ask user which one to use
                     return state.merge({
                         selectingComponentLayout: true,
                         draggingComponent: false
@@ -656,6 +674,7 @@ export default (state = new ProjectState(), action) => {
 
             const components = action.layoutIdx === 0
                 ? state.draggedComponents
+
                 : constructComponent(
                     state.draggedComponents.get(0).name,
                     action.layoutIdx,
@@ -669,15 +688,67 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PROJECT_CONSTRUCT_COMPONENT_FOR_PROP: {
-            // TODO: Make some kind of constructors stack and push a new one here
+            const component = getComponentById(state.data, action.componentId),
+                prop = component.props.get(action.propName);
+
+            const currentSourceData = (prop && prop.source === 'designer')
+                ? prop.sourceData
+                : null;
+
+            const nestedConstructorData = {
+                componentId: action.componentId,
+                prop: action.propName
+            };
+
+            if (currentSourceData) {
+                Object.assign(nestedConstructorData, {
+                    components: currentSourceData.components,
+                    rootId: currentSourceData.rootId,
+                    lastComponentId: currentSourceData.components.size > 0
+                        ? currentSourceData.components.keySeq().max()
+                        : -1
+                });
+            }
+
+            return openNestedConstructor(
+                state,
+                new NestedConstructor(nestedConstructorData)
+            );
         }
 
         case PROJECT_CANCEL_CONSTRUCT_COMPONENT_FOR_PROP: {
-            // TODO: Pop constructors stack
+            return closeTopNestedConstructor(state);
         }
 
         case PROJECT_SAVE_COMPONENT_FOR_PROP: {
-            // TODO: Save value for prop and pop constructors stack
+            const topConstructor = state.nestedConstructors.peek();
+            state = closeTopNestedConstructor(state);
+
+            const pathToCurrentComponents = getPathToCurrentComponents(state),
+                currentComponents = state.getIn(pathToCurrentComponents);
+
+            if (!currentComponents.has(topConstructor.componentId)) {
+                throw new Error(
+                    'Failed to save component created by nested constructor: ' +
+                    'owner component is not in current editing area'
+                );
+            }
+
+            const newValue = new ProjectComponentProp({
+                source: 'designer',
+                sourceData: new SourceDataDesigner({
+                    components: topConstructor.components,
+                    rootId: topConstructor.rootId
+                })
+            });
+
+            const path = [].concat(pathToCurrentComponents, [
+                topConstructor.componentId,
+                'props',
+                topConstructor.prop
+            ]);
+
+            return state.setIn(path, newValue);
         }
 
         case PREVIEW_DRAG_OVER_COMPONENT: {

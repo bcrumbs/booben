@@ -12,6 +12,7 @@
  * @property {string} descriptionTextKey - Key for the string used for component description.
  * @property {string} kind - Can be "atomic", "container" or "composite".
  * @property {string} [group] - Component group id.
+ * @property {Set<string>} tags - Component tags.
  * @property {boolean} [hidden] - If true, this component will not be shown in the library.
  * @property {Object<string, ComponentPropMeta>} props - Description of component's props.
  * @property {ComponentLayout[]} [layouts] - Available layouts for composite components.
@@ -43,7 +44,7 @@
  * @property {string} descriptionTextKey - Key for prop description string.
  * @property {string} type - Type of the prop. Can be one of the built-in types ("string", "int", "float", "bool", "oneOf", "arrayOf", "shape", "component", "func") or one of user-defined types.
  * @property {Object} [ofType] - For "arrayOf" type only - type of array items.
- * @property {Object.<string, ComponentPropMeta>} [fields] - For "shape" type only.
+ * @property {Object<string, ComponentPropMeta>} [fields] - For "shape" type only.
  * @property {OneOfOption[]} [options] - For "oneOf" type only.
  * @property {string[]} source - Available sources for prop's value. Must be a subset of <"static", "data", "const", "designer", "actions">.
  * @property {Object} [sourceConfigs]
@@ -51,6 +52,7 @@
  * @property {DataSourceConfig} [sourceConfigs.data]
  * @property {ConstSourceConfig} [sourceConfigs.const]
  * @property {DesignerSourceConfig} [sourceConfigs.designer]
+ * @property {ActionsSourceConfig} [sourceConfigs.actions]
  */
 
 /**
@@ -68,9 +70,13 @@
  * @property {number} [maxItems] - Max items num (for "arrayOf" type only).
  */
 
-// TODO: Define DataSourceConfig
+// TODO: Define DataSourceConfig & ActionSourceConfig
 /**
  * @typedef {Object} DataSourceConfig
+ */
+
+/**
+ * @typedef {Object} ActionsSourceConfig
  */
 
 /**
@@ -88,6 +94,6 @@
  * @typedef {Object} TypeMeta - Type definition. All fields have same meanings as in ComponentPropMeta
  * @property {string} type
  * @property {Object} [ofType]
- * @property {Object.<string, ComponentPropMeta>} [fields]
+ * @property {Object<string, ComponentPropMeta>} [fields]
  * @property {OneOfOption[]} [options]
  */

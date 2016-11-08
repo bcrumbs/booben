@@ -13,7 +13,8 @@ const co = require('co'),
 
 /**
  *
- * @type {Set}
+ * @type {Set<string>}
+ * @const
  */
 const internalTypes = new Set([
     'string',
@@ -138,6 +139,32 @@ const propSchema = {
                     properties: {
                         wrapper: {
                             type: 'string',
+                            required: false
+                        },
+                        props: {
+                            type: 'object',
+                            patternProperties: {
+                                '.*': {
+                                    type: 'object',
+                                    properties: {
+                                        textKey: {
+                                            type: 'string',
+                                            allowEmpty: false,
+                                            required: true
+                                        },
+                                        descriptionTextKey: {
+                                            type: 'string',
+                                            allowEmpty: false,
+                                            required: true
+                                        },
+                                        type: {
+                                            type: 'string',
+                                            allowEmpty: false,
+                                            required: true
+                                        }
+                                    }
+                                }
+                            },
                             required: false
                         }
                     },
@@ -1192,6 +1219,8 @@ exports.gatherMetadata = moduleDir => co(function* () {
         err.validationErrors = errors;
         throw err;
     }
+
+    if (!mainMeta.componentGroups) mainMeta.componentGroups = {};
 
     ret = Object.assign(ret, mainMeta);
 

@@ -29,13 +29,28 @@ const ProjectComponentRecord = Record({
     isIndexRoute: false
 });
 
-const propSourceDataToImmutable = {
+const propSourceDataToImmutableFns = {
     static: input => new SourceDataStatic(input),
     data: input => new SourceDataData(input),
     const: input => new SourceDataConst(input),
     action: input => new SourceDataAction(input),
-    designer: input => new SourceDataDesigner(input)
+
+    designer: input => new SourceDataDesigner(
+        input.component
+            ? {
+                rootId: input.component.id,
+                components: componentsToImmutable(input.component, -1, false, -1)
+            }
+
+            : {
+                rootId: -1,
+                components: null
+            }
+    )
 };
+
+export const propSourceDataToImmutable = (source, sourceData) =>
+    propSourceDataToImmutableFns[source](sourceData);
 
 export const projectComponentToImmutable = (input, routeId, isIndexRoute, parentId) =>
     new ProjectComponentRecord({
@@ -47,7 +62,7 @@ export const projectComponentToImmutable = (input, routeId, isIndexRoute, parent
 
         props: Map(objectMap(input.props, propMeta => new ProjectComponentProp({
             source: propMeta.source,
-            sourceData: propSourceDataToImmutable[propMeta.source](propMeta.sourceData)
+            sourceData: propSourceDataToImmutable(propMeta.source, propMeta.sourceData)
         }))),
 
         children: List(input.children.map(childComponent => childComponent.id)),
@@ -73,5 +88,17 @@ export const componentsToImmutable = (input, routeId, isIndexRoute, parentId) =>
     });
 
 export const isRootComponent = component => component.parentId === -1;
+
+export const gatherComponentsTreeIds = (components, rootComponentId) =>
+    Set().withMutations(ret => {
+        const visitComponent = component => {
+            ret.add(component.id);
+
+            component.children.forEach(childComponentId =>
+                void visitComponent(components.get(childComponentId)));
+        };
+
+        visitComponent(components.get(rootComponentId));
+    });
 
 export default ProjectComponentRecord;
