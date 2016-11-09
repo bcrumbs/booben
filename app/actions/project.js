@@ -146,63 +146,6 @@ export const deleteComponent = componentId => ({
  *
  * @type {string}
  */
-export const PROJECT_COMPONENT_MOVE = 'PROJECT_COMPONENT_MOVE';
-
-/**
- *
- * @param {number} componentId
- * @param {number} targetComponentId
- * @param {number} position
- * @return {Object}
- */
-export const moveComponent = (componentId, targetComponentId, position) => ({
-    type: PROJECT_COMPONENT_MOVE,
-    componentId,
-    targetComponentId,
-    position
-});
-
-/**
- *
- * @type {string}
- */
-export const PROJECT_COMPONENT_CREATE_ROOT = 'PROJECT_COMPONENT_CREATE_ROOT';
-
-/**
- * @param  {number}  routeId
- * @param  {boolean} isIndexRoute
- * @param  {Immutable.Map} components
- * @return {Object}
- */
-export const createRootComponent = (routeId, isIndexRoute, components) => ({
-    type: PROJECT_COMPONENT_CREATE_ROOT,
-    routeId,
-    isIndexRoute,
-    components
-});
-
-/**
- *
- * @type {string}
- */
-export const PROJECT_COMPONENT_CREATE = 'PROJECT_COMPONENT_CREATE';
-
-/**
- * @param  {number} parentComponentId
- * @param  {number} position
- * @param  {Immutable.Map} components
- */
-export const createComponent = (parentComponentId, position, components) => ({
-    type: PROJECT_COMPONENT_CREATE,
-    parentComponentId,
-    position,
-    components
-});
-
-/**
- *
- * @type {string}
- */
 export const PROJECT_COMPONENT_UPDATE_PROP_VALUE = 'PROJECT_COMPONENT_UPDATE_PROP_VALUE';
 
 /**

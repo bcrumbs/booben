@@ -17,17 +17,13 @@ import StructureRoute, { STRUCTURE_TOOL_IDS } from './routes/StructureRoute';
 import DesignRoute, { DESIGN_TOOL_IDS } from './routes/DesignRoute';
 import PreviewRoute from './routes/PreviewRoute';
 
-import PlaygroundRoute from './routes/PlaygroundRoute';
+import PlaygroundRoute, { PLAYGROUND_TOOL_IDS } from './routes/PlaygroundRoute';
 
 import store from './store';
 import history from './history';
 
 import { setTools } from './actions/desktop';
 import { loadLocalization } from './actions/app';
-
-import playgroundRouteTools from './tools/playground';
-
-import { List } from 'immutable';
 
 const setToolsOnEnter = toolIds => () => void store.dispatch(setTools(toolIds));
 
@@ -38,11 +34,6 @@ window.abc = (lang) => store.dispatch(loadLocalization(lang));
 
 store.dispatch(loadLocalization('en'));
 
-const playgroundToolIds = [];
-playgroundRouteTools.forEach(group =>
-    void group.forEach(tool =>
-        void playgroundToolIds.push(tool.id)));
-
 window.addEventListener('DOMContentLoaded', () => {
     ReactDOM.render(
         <Provider store={store}>
@@ -50,7 +41,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 <Route
                     path="/playground"
                     component={PlaygroundRoute}
-                    onEnter={setToolsOnEnter(List(playgroundToolIds))}
+                    onEnter={setToolsOnEnter(PLAYGROUND_TOOL_IDS)}
                 />
 
                 <Route path="/:projectName" component={AppRoute}>

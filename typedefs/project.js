@@ -34,6 +34,7 @@
  * @property {?number} id - Unique component ID or null for placeholders
  * @property {string} name - Component name with namespace (e.g. "Namespace.MyComponent")
  * @property {string} title - User-defined title
+ * @property {boolean} isWrapper
  * @property {Object<string, ProjectComponentProp>} props
  * @property {ProjectComponent[]} children
  * @property {number[]} regionsEnabled
@@ -42,7 +43,7 @@
 /**
  * @typedef {Object} ProjectComponentProp
  * @property {string} source
- * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataAction|SourceDataDesigner} sourceData
+ * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner} sourceData
  */
 
 /**
@@ -50,20 +51,23 @@
  * @property {*} value
  */
 
-// TODO: Define SourceDataData, SourceDataConst, SourceDataDesigner, SourceDataAction
+/**
+ * @typedef {Object} SourceDataConst
+ * @property {*} [value]
+ * @property {string} [jssyConstId]
+ */
+
+/**
+ * @typedef {Object} SourceDataDesigner
+ * @property {?ProjectComponent} component
+ */
+
+// TODO: Define SourceDataData & SourceDataActions
 
 /**
  * @typedef {Object} SourceDataData
  */
 
 /**
- * @typedef {Object} SourceDataConst
- */
-
-/**
- * @typedef {Object} SourceDataDesigner
- */
-
-/**
- * @typedef {Object} SourceDataAction
+ * @typedef {Object} SourceDataActions
  */

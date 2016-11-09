@@ -22,12 +22,12 @@ export class ComponentsTreeItem extends Component {
 
         this._titleRef = null;
 
+        // FIXME: This shit is unreadable, refactor it!
         Object.keys(props).forEach(
-          name => typeof props[name] === 'function' && (this[`_${name}`] = (...args) => props[name](props.componentId, ...args))
+            name => typeof props[name] === 'function' && (this[`_${name}`] = (...args) => props[name](props.componentId, ...args))
         );
 
         this._saveTitleRef = this._saveTitleRef.bind(this);
-
     }
 
     componentDidMount() {

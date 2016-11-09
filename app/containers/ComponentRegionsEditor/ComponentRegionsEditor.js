@@ -22,8 +22,9 @@ import ProjectRecord, { getComponentById } from '../../models/Project';
 
 import { toggleComponentRegion } from '../../actions/project';
 
-import { getComponentMeta, getString } from '../../utils/meta';
+import { currentSelectedComponentIdsSelector } from '../../selectors';
 
+import { getComponentMeta, getString } from '../../utils/meta';
 import { getLocalizedText } from '../../utils';
 
 //noinspection JSUnresolvedVariable
@@ -79,12 +80,12 @@ ComponentRegionsEditorComponent.propTypes = {
 
 ComponentRegionsEditorComponent.displayName = 'ComponentRegionsEditor';
 
-const mapStateToProps = ({ project, app }) => ({
-    project: project.data,
-    meta: project.meta,
-    selectedComponentIds: project.selectedItems,
-    language: app.language,
-    getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
+const mapStateToProps = state => ({
+    project: state.project.data,
+    meta: state.project.meta,
+    selectedComponentIds: currentSelectedComponentIdsSelector(state),
+    language: state.app.language,
+    getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
 });
 
 const mapDispatchToProps = dispatch => ({

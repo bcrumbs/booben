@@ -13,6 +13,8 @@ import patchComponent from '../patchComponent';
 
 import { getComponentById } from '../../app/models/Project';
 
+import jssyConstants from '../../app/constants/jssyConstants';
+
 import {
     isContainerComponent,
     isCompositeComponent,
@@ -59,7 +61,7 @@ const getComponentByName = (name = '') => {
 /**
  * Constructs props object
  *
- * @param  {Immutable.Map<string, ProjectComponentProp>} props
+ * @param  {Immutable.Map<string, Object>} props
  * @return {Object<string, *>}
  */
 const buildProps = props => {
@@ -70,8 +72,33 @@ const buildProps = props => {
             ret[key] = prop.sourceData.value;
         }
         else if (prop.source === 'const') {
-            if (typeof prop.sourceData.value !== 'undefined')
+            if (typeof prop.sourceData.value !== 'undefined') {
                 ret[key] = prop.sourceData.value;
+            }
+            else if (typeof prop.sourceData.jssyConstId !== 'undefined') {
+                ret[key] = jssyConstants[prop.sourceData.jssyConstId];
+            }
+        }
+        else if (prop.source === 'designer') {
+            if (prop.sourceData.components && prop.sourceData.rootId > -1) {
+                ret[key] = ({ children }) => (
+                    <Builder
+                        components={prop.sourceData.components}
+                        rootId={prop.sourceData.rootId}
+                        dontPatch
+                        children={children}
+                    />
+                );
+            }
+            else {
+                ret[key] = () => null;
+            }
+        }
+        else if (prop.source === 'actions') {
+            // TODO: Handle actions source
+        }
+        else if (prop.source === 'data') {
+            // TODO: Handle data source
         }
     });
 
@@ -247,7 +274,9 @@ class BuilderComponent extends Component {
 
         if (!isPlaceholder) {
             props.key = component.id;
-            this._patchComponentProps(props, isHTMLComponent, component.id);
+
+            if (!this.props.dontPatch)
+                this._patchComponentProps(props, isHTMLComponent, component.id);
 
             const willRenderPlaceholderInside =
                 this.props.draggingComponent &&
@@ -267,7 +296,7 @@ class BuilderComponent extends Component {
                 ? `new-${component.id}`
                 : String(component.id);
 
-            if (isPlaceholderRoot)
+            if (isPlaceholderRoot && !this.props.dontPatch)
                 this._patchPlaceholderRootProps(props, isHTMLComponent);
 
             const willRenderContentPlaceholder =
@@ -309,6 +338,7 @@ class BuilderComponent extends Component {
 BuilderComponent.propTypes = {
     components: PropTypes.any, // Immutable map of <number, Component>
     rootId: PropTypes.number,
+    dontPatch: PropTypes.bool,
     enclosingComponentId: PropTypes.number,
     isPlaceholder: PropTypes.bool,
     afterIdx: PropTypes.any, // number on null
@@ -325,6 +355,7 @@ BuilderComponent.propTypes = {
 BuilderComponent.defaultProps = {
     components: null,
     rootId: -1,
+    dontPatch: false,
     enclosingComponentId: -1,
     isPlaceholder: false,
     afterIdx: null,
