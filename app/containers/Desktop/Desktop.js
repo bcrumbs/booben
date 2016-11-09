@@ -112,7 +112,7 @@ class DesktopComponent extends Component {
             </MainRegion>
         );
     }
-} 
+}
 
 DesktopComponent.propTypes = {
     toolGroups: ImmutablePropTypes.listOf(

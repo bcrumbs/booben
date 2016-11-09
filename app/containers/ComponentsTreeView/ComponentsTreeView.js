@@ -10,7 +10,7 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
 import {
-    connectDragHandler
+  connectDragHandler
 } from '../../hocs/connectDragHandler';
 
 import {
@@ -35,7 +35,8 @@ import {
     highlightPreviewComponent,
     unhighlightPreviewComponent,
     startDragExistingComponent,
-    dragOverComponent
+    dragOverComponent,
+    dragOverPlaceholder
 } from '../../actions/preview';
 
 import {
@@ -55,15 +56,21 @@ class ComponentsTreeViewComponent extends Component {
         super(props);
 
         this._renderItem = this._renderItem.bind(this);
+        this._handleExpand = this._handleExpand.bind(this);
+        this._handleSelect = this._handleSelect.bind(this);
+        this._handleHover = this._handleHover.bind(this);
+        this._handleMouseDown = this._handleMouseDown.bind(this);
     }
 
     shouldComponentUpdate(nextProps) {
+        console.log('scu11');
         return nextProps.route !== this.props.route ||
             nextProps.isIndexRoute !== this.props.isIndexRoute ||
             nextProps.expandedItemIds !== this.props.expandedItemIds ||
             nextProps.selectedItemIds !== this.props.selectedItemIds ||
             nextProps.highlightedItemIds !== this.props.highlightedItemIds ||
-            nextProps.draggingComponent !== this.props.draggingComponent;
+            nextProps.draggingComponent !== this.props.draggingComponent ||
+            nextProps.placeholderContainerId !== this.props.placeholderContainerId;
     }
 
     _handleExpand(componentId, state) {
@@ -77,8 +84,36 @@ class ComponentsTreeViewComponent extends Component {
     }
 
     _handleHover(componentId, state) {
-        if (this.props.draggingComponent) this.props.onDragOverComponent(componentId);
-        if (state) this.props.onHighlightItem(componentId);
+        if (state) {
+          const component = this.props.route.components.get(componentId);
+
+          if (this.props.draggingComponent) {
+            const currentPlaceholderContainerComponent =
+              isContainerComponent(component.name, this.props.meta)
+              ?
+                component
+              :
+                this.props.route.components.get(component.parentId);
+
+            if (currentPlaceholderContainerComponent) {
+              const rootComponent = this.props.route.components.get(this.props.isIndexRoute
+                 ? this.props.route.indexComponent
+                 : this.props.route.component);
+
+              const indexOfPlaceholder = currentPlaceholderContainerComponent === component ? -1 : currentPlaceholderContainerComponent.children.indexOf(componentId) + 1;
+
+              canInsertComponent(
+                  rootComponent.name,
+                  currentPlaceholderContainerComponent.name,
+                  currentPlaceholderContainerComponent.children,
+                  indexOfPlaceholder,
+                  this.props.meta
+              ) && this.props.onDragOverPlaceholder(currentPlaceholderContainerComponent.id, indexOfPlaceholder);
+            }
+          }
+
+          this.props.onHighlightItem(componentId);
+        }
         else this.props.onUnhighlightItem(componentId);
     }
 
@@ -88,7 +123,7 @@ class ComponentsTreeViewComponent extends Component {
 
     _renderLine() {
         return (
-          <ComponentsTreeItem key="line-divider" title="---------------" children={null}/>
+          <ComponentsTreeItem componentId={-1} key="line-divider" title="---------------" children={null}/>
         );
     }
 
@@ -96,11 +131,30 @@ class ComponentsTreeViewComponent extends Component {
 
         const component = this.props.route.components.get(componentId);
 
-        const isCurrentElementActiveContainer = isContainerComponent(component.name, this.props.meta) && componentId === this.props.placeholderContainerId;
+        const rootComponent = this.props.route.components.get(this.props.isIndexRoute
+           ? this.props.route.indexComponent
+           : this.props.route.component);
+
+
+       const indexOfLine =
+         component.children ? component.children.indexOf(this.props.draggingOverComponentId) : -1;
+
+        const isCurrentComponentActiveContainer =
+          componentId === this.props.placeholderContainerId
+          &&
+            isContainerComponent(component.name, this.props.meta)
+          &&
+            canInsertComponent(
+              rootComponent.name,
+              component.name,
+              component.children,
+              indexOfLine,
+              this.props.meta
+            );
 
         const children = component.children.size > 0
-            ? this._renderList(component.children, isCurrentElementActiveContainer)
-            : ( isCurrentElementActiveContainer ? <ComponentsTreeList children={this._renderLine()} /> : null);
+            ? this._renderList(component.children, isCurrentComponentActiveContainer, indexOfLine)
+            : ( isCurrentComponentActiveContainer ? <ComponentsTreeList children={this._renderLine()} /> : null);
 
         let title, subtitle;
 
@@ -122,25 +176,25 @@ class ComponentsTreeViewComponent extends Component {
                 expanded={this.props.expandedItemIds.has(componentId) || true}
                 active={this.props.selectedItemIds.has(componentId)}
                 hovered={this.props.highlightedItemIds.has(componentId)}
-                onExpand={this._handleExpand.bind(this, componentId)}
-                onSelect={this._handleSelect.bind(this, componentId)}
-                onHover={this._handleHover.bind(this, componentId)}
-                onMouseDown={this._handleMouseDown.bind(this, componentId)}
+                onExpand={this._handleExpand}
+                onSelect={this._handleSelect}
+                onHover={this._handleHover}
+                onMouseDown={this._handleMouseDown}
                 children={children}
             />
         );
     }
 
-    _renderList(componentIds, showLine) {
-
-        const indexOfLine =
-          componentIds.findIndex(id => id === this.props.draggingOverComponentId);
+    _renderList(componentIds, showLine, indexOfLine) {
 
         const indexOfLinePlaceholder =
-          indexOfLine + (this.props.placeholderAfter >= indexOfLine);
+          indexOfLine + 1 ?
+            indexOfLine + (this.props.placeholderAfter >= indexOfLine)
+          : (this.props.placeholderAfter + 1 ? this.props.placeholderAfter : 0);
+
 
         const modifiedComponentIds =
-          indexOfLine + 1 && this.props.draggingOverPlaceholder && showLine
+          this.props.draggingOverPlaceholder && showLine
           ?
             componentIds.map(this._renderItem).insert(indexOfLinePlaceholder, this._renderLine())
           :
@@ -222,7 +276,8 @@ const mapDispatchToProps = dispatch => ({
     onHighlightItem: id => void dispatch(highlightPreviewComponent(id)),
     onUnhighlightItem: id => void dispatch(unhighlightPreviewComponent(id)),
     onStartDragItem: id => void dispatch(startDragExistingComponent(id)),
-    onDragOverComponent: id => void dispatch(dragOverComponent(id))
+    onDragOverComponent: id => void dispatch(dragOverComponent(id)),
+    onDragOverPlaceholder: (id, afterIdx) => void dispatch(dragOverPlaceholder(id, afterIdx))
 });
 
 export const ComponentsTreeView = connectDragHandler(

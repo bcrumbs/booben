@@ -28,6 +28,7 @@ const
   propTypes = {
     meta: PropTypes.object,
     language: PropTypes.string,
+    draggingComponent: PropTypes.bool,
 
     onNewComponentStartDrag: PropTypes.func,
     onExistingComponentStartDrag: PropTypes.func,
@@ -36,10 +37,12 @@ const
 const mapStateToProps = ({ app, project }) => ({
   meta: project.meta,
   language: app.language,
+  draggingComponent: project.draggingComponent,
 });
 
 const mapDispatchToProps = dispatch => ({
-  onNewComponentStartDrag: components => void dispatch(selectTool('componentsTree')) || void dispatch(startDragNewComponent(components)),
+  onToolSelect: toolName => void dispatch(selectTool(toolName)),
+  onNewComponentStartDrag: components => void dispatch(startDragNewComponent(components)),
   onExistingComponentStartDrag: id => void dispatch(startDragExistingComponent(id)),
 });
 
@@ -71,6 +74,11 @@ export const connectDragHandler = (mapStateToPropsWrapped, mapDispatchToPropsWra
           this.__handleStartDragComponent = this.__handleStartDragComponent.bind(this);
           this.__handleMouseMove = this.__handleMouseMove.bind(this);
           this.__handleMouseUp = this.__handleMouseUp.bind(this);
+        }
+
+        componentWillReceiveProps(nextProps) {
+          super.componentWillReceiveProps && super.componentWillReceiveProps(nextProps);
+          !nextProps.draggingComponent && this.props.draggingComponent && this.props.onToolSelect('componentsLibrary');
         }
 
         componentWillUnmount() {
@@ -161,6 +169,7 @@ export const connectDragHandler = (mapStateToPropsWrapped, mapDispatchToPropsWra
                     this.props.onExistingComponentStartDrag(
                       this.draggedComponentId
                     );
+                  this.props.onToolSelect('componentsTree');
               }
           }
         }
