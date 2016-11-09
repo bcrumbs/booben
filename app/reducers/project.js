@@ -206,7 +206,6 @@ const addComponents = (state, parentComponentId, position, components) => {
         nextComponentId = lastComponentId + 1,
         pathToCurrentComponents = getPathToCurrentComponents(state);
 
-    console.log(pathToCurrentComponents);
     state = state.updateIn(
         pathToCurrentComponents,
 

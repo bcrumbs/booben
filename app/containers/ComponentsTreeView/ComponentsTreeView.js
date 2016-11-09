@@ -114,36 +114,49 @@ class ComponentsTreeViewComponent extends Component {
 
     _handleHover(componentId, state) {
         if (state) {
-          const component = this.props.route.components.get(componentId);
+            const component = this.props.components.get(componentId);
 
-          if (this.props.draggingComponent) {
-            const currentPlaceholderContainerComponent =
-              isContainerComponent(component.name, this.props.meta)
-              ?
-                component
-              :
-                this.props.route.components.get(component.parentId);
+            if (this.props.draggingComponent) {
+                const currentPlaceholderContainer =
+                    isContainerComponent(component.name, this.props.meta)
+                        ? component
+                        : this.props.components.get(component.parentId);
 
-            if (currentPlaceholderContainerComponent) {
-              const rootComponent = this.props.route.components.get(this.props.isIndexRoute
-                 ? this.props.route.indexComponent
-                 : this.props.route.component);
+                if (currentPlaceholderContainer) {
+                    const rootComponent =
+                        this.props.components.get(this.props.rootComponentId);
 
-              const indexOfPlaceholder = currentPlaceholderContainerComponent === component ? -1 : currentPlaceholderContainerComponent.children.indexOf(componentId) + 1;
+                    const indexOfPlaceholder = currentPlaceholderContainer === component
+                        ? -1
+                        : currentPlaceholderContainer.children.indexOf(componentId) + 1;
 
-              canInsertComponent(
-                  rootComponent.name,
-                  currentPlaceholderContainerComponent.name,
-                  currentPlaceholderContainerComponent.children,
-                  indexOfPlaceholder,
-                  this.props.meta
-              ) && this.props.onDragOverPlaceholder(currentPlaceholderContainerComponent.id, indexOfPlaceholder);
+                    const currentPlaceholderContainerChildrenNames =
+                        currentPlaceholderContainer.children.map(
+                            childId => this.props.components.get(childId).name
+                        );
+
+                    const canInsert = canInsertComponent(
+                        rootComponent.name,
+                        currentPlaceholderContainer.name,
+                        currentPlaceholderContainerChildrenNames,
+                        indexOfPlaceholder,
+                        this.props.meta
+                    );
+
+                    if (canInsert) {
+                        this.props.onDragOverPlaceholder(
+                            currentPlaceholderContainer.id,
+                            indexOfPlaceholder
+                        );
+                    }
+                }
             }
-          }
 
-          this.props.onHighlightItem(componentId);
+            this.props.onHighlightItem(componentId);
         }
-        else this.props.onUnhighlightItem(componentId);
+        else {
+            this.props.onUnhighlightItem(componentId);
+        }
     }
 
     _handleMouseDown(componentId, event) {
@@ -152,7 +165,12 @@ class ComponentsTreeViewComponent extends Component {
 
     _renderLine() {
         return (
-          <ComponentsTreeItem componentId={-1} key="line-divider" title="---------------" children={null}/>
+            <ComponentsTreeItem
+                componentId={-1}
+                key="line-divider"
+                title="---------------"
+                children={null}
+            />
         );
     }
 
@@ -261,6 +279,17 @@ ComponentsTreeViewComponent.propTypes = {
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     highlightedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     expandedItemIds: ImmutablePropTypes.setOf(PropTypes.number),
+    draggingComponent: PropTypes.bool,
+    draggedComponentId: PropTypes.number,
+    draggedComponents: ImmutablePropTypes.mapOf(
+        PropTypes.instanceOf(ProjectComponentRecord),
+        PropTypes.number
+    ),
+    draggingOverComponentId: PropTypes.number,
+    draggingOverPlaceholder: PropTypes.bool,
+    placeholderContainerId: PropTypes.number,
+    placeholderAfter: PropTypes.number,
+    meta: PropTypes.object,
     getLocalizedText: PropTypes.func,
 
     onExpandItem: PropTypes.func,
@@ -279,14 +308,14 @@ const mapStateToProps = state => ({
     selectedComponentIds: currentSelectedComponentIdsSelector(state),
     highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
     expandedItemIds: state.design.treeExpandedItemIds,
-    draggingComponent: project.draggingComponent,
-    draggedComponentId: project.draggedComponentId,
-    draggedComponents: project.draggedComponents,
-    draggingOverComponentId: project.draggingOverComponentId,
-    draggingOverPlaceholder: project.draggingOverPlaceholder,
-    placeholderContainerId: project.placeholderContainerId,
-    placeholderAfter: project.placeholderAfter,
-    meta: project.meta,
+    draggingComponent: state.project.draggingComponent,
+    draggedComponentId: state.project.draggedComponentId,
+    draggedComponents: state.project.draggedComponents,
+    draggingOverComponentId: state.project.draggingOverComponentId,
+    draggingOverPlaceholder: state.project.draggingOverPlaceholder,
+    placeholderContainerId: state.project.placeholderContainerId,
+    placeholderAfter: state.project.placeholderAfter,
+    meta: state.project.meta,
     getLocalizedText: (...args) => getLocalizedText(state.app.localization, state.app.language, ...args)
 });
 

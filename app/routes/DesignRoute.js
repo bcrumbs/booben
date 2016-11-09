@@ -277,8 +277,6 @@ class DesignRoute extends Component {
 
         return (
             <Desktop
-                route={route}
-                isIndexRoute={isIndexRoute}
                 toolGroups={toolGroups}
                 onToolTitleChange={this._handleToolTitleChange}
             >
