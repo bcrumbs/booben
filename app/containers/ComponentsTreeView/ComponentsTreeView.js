@@ -55,15 +55,26 @@ class ComponentsTreeViewComponent extends Component {
     constructor(props) {
         super(props);
 
+        this.isMouseOver = false;
+
         this._renderItem = this._renderItem.bind(this);
         this._handleExpand = this._handleExpand.bind(this);
         this._handleSelect = this._handleSelect.bind(this);
         this._handleHover = this._handleHover.bind(this);
         this._handleMouseDown = this._handleMouseDown.bind(this);
+        this._handleMouseMove = this._handleMouseMove.bind(this);
+        this._createElementRef = this._createElementRef.bind(this);
+    }
+
+    componentDidMount() {
+      document.addEventListener('mousemove', this._handleMouseMove);
+    }
+
+    componentWillReceiveProps(nextProps) {
+      !this.isMouseOver && !nextProps.draggingComponent && this.props.draggingComponent && this.props.onToolSelect('componentsLibrary');
     }
 
     shouldComponentUpdate(nextProps) {
-        console.log('scu11');
         return nextProps.route !== this.props.route ||
             nextProps.isIndexRoute !== this.props.isIndexRoute ||
             nextProps.expandedItemIds !== this.props.expandedItemIds ||
@@ -71,6 +82,18 @@ class ComponentsTreeViewComponent extends Component {
             nextProps.highlightedItemIds !== this.props.highlightedItemIds ||
             nextProps.draggingComponent !== this.props.draggingComponent ||
             nextProps.placeholderContainerId !== this.props.placeholderContainerId;
+    }
+
+    componentWillUnmount() {
+      document.removeEventListener('mousemove', this._handleMouseMove);
+    }
+
+    _createElementRef(ref) {
+      this.element = ref;
+    }
+
+    _handleMouseMove(event) {
+      this.isMouseOver = this.element && this.element.contains(event.target);
     }
 
     _handleExpand(componentId, state) {
@@ -173,7 +196,7 @@ class ComponentsTreeViewComponent extends Component {
                 key={idx}
                 title={title}
                 subtitle={subtitle}
-                expanded={this.props.expandedItemIds.has(componentId) || true}
+                expanded={this.props.expandedItemIds.has(componentId) || this.props.draggingComponent}
                 active={this.props.selectedItemIds.has(componentId)}
                 hovered={this.props.highlightedItemIds.has(componentId)}
                 onExpand={this._handleExpand}
@@ -224,7 +247,7 @@ class ComponentsTreeViewComponent extends Component {
 
         return (
             <BlockContentBox isBordered flex>
-                <ComponentsTree>
+                <ComponentsTree createRef={this._createElementRef} >
                     {this._renderList(List([rootComponent]))}
                 </ComponentsTree>
             </BlockContentBox>

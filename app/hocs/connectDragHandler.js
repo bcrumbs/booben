@@ -76,17 +76,11 @@ export const connectDragHandler = (mapStateToPropsWrapped, mapDispatchToPropsWra
           this.__handleMouseUp = this.__handleMouseUp.bind(this);
         }
 
-        componentWillReceiveProps(nextProps) {
-          super.componentWillReceiveProps && super.componentWillReceiveProps(nextProps);
-          !nextProps.draggingComponent && this.props.draggingComponent && this.props.onToolSelect('componentsLibrary');
-        }
-
         componentWillUnmount() {
           super.componentWillUnmount && super.componentWillUnmount();
           window.removeEventListener('mousemove', this.__handleMouseMove);
           window.removeEventListener('mouseup', this.__handleMouseUp);
         }
-
 
         /**
          *

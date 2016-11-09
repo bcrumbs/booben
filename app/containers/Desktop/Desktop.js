@@ -74,6 +74,8 @@ class DesktopComponent extends Component {
                     <ToolWindow
                         key={tool.id}
                         tool={tool}
+                        route={this.props.route}
+                        isIndexRoute={this.props.isIndexRoute}
                         toolState={toolState}
                         constrainPosition
                         marginRight={8}
@@ -108,6 +110,8 @@ class DesktopComponent extends Component {
                     onToolUndock={this.props.onToolUndock}
                     onToolTitleChange={this.props.onToolTitleChange}
                     onToolActiveSectionChange={this.props.onToolActiveSectionChange}
+                    route={this.props.route}
+                    isIndexRoute={this.props.isIndexRoute}
                 />
             </MainRegion>
         );
@@ -125,6 +129,8 @@ DesktopComponent.propTypes = {
     ),
 
     toolsPanelIsExpanded: PropTypes.bool,
+    route: PropTypes.object,
+    isIndexRoute: PropTypes.bool,
 
     onToolsPanelCollapse: PropTypes.func,
     onActiveToolChange: PropTypes.func,
