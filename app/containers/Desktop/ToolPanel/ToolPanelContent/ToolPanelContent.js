@@ -78,7 +78,7 @@ export const ToolPanelContent = props => {
         ? activeSection.component
         : null;
 
-    const content = ContentComponent ? <ContentComponent/> : null;
+    const content = ContentComponent ? <ContentComponent route={props.route} isIndexRoute={props.isIndexRoute}/>  : null;
 
     let actionsArea = null;
     const mainButtons = tool.mainButtons,
@@ -153,6 +153,8 @@ export const ToolPanelContent = props => {
 ToolPanelContent.propTypes = {
     tool: PropTypes.instanceOf(ToolType).isRequired,
     toolState: PropTypes.instanceOf(ToolStateType).isRequired,
+    route: PropTypes.object,
+    isIndexRoute: PropTypes.bool,
 
     onTitleChange: PropTypes.func,
     onUndock: PropTypes.func,
