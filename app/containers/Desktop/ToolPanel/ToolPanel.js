@@ -101,6 +101,8 @@ export const ToolPanel = props => {
             <ToolPanelContent
                 tool={activeTool}
                 toolState={activeToolState}
+                route={props.route}
+                isIndexRoute={props.isIndexRoute}
                 onTitleChange={onTitleChange}
                 onUndock={onUndock}
                 onActiveSectionChange={onActiveSectionChange}
@@ -133,6 +135,8 @@ ToolPanel.propTypes = {
         PropTypes.string
     ),
     isExpanded: PropTypes.bool,
+    route: PropTypes.object,
+    isIndexRoute: PropTypes.bool,
     onCollapse: PropTypes.func,
     onToolUndock: PropTypes.func,
     onToolSelect: PropTypes.func,

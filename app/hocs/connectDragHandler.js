@@ -28,6 +28,7 @@ const
   propTypes = {
     meta: PropTypes.object,
     language: PropTypes.string,
+    draggingComponent: PropTypes.bool,
 
     onNewComponentStartDrag: PropTypes.func,
     onExistingComponentStartDrag: PropTypes.func,
@@ -36,9 +37,11 @@ const
 const mapStateToProps = ({ app, project }) => ({
   meta: project.meta,
   language: app.language,
+  draggingComponent: project.draggingComponent,
 });
 
 const mapDispatchToProps = dispatch => ({
+  onToolSelect: toolName => void dispatch(selectTool(toolName)),
   onNewComponentStartDrag: components => void dispatch(startDragNewComponent(components)),
   onExistingComponentStartDrag: id => void dispatch(startDragExistingComponent(id)),
 });
@@ -78,7 +81,6 @@ export const connectDragHandler = (mapStateToPropsWrapped, mapDispatchToPropsWra
           window.removeEventListener('mousemove', this.__handleMouseMove);
           window.removeEventListener('mouseup', this.__handleMouseUp);
         }
-
 
         /**
          *
@@ -161,6 +163,7 @@ export const connectDragHandler = (mapStateToPropsWrapped, mapDispatchToPropsWra
                     this.props.onExistingComponentStartDrag(
                       this.draggedComponentId
                     );
+                  this.props.onToolSelect('componentsTree');
               }
           }
         }

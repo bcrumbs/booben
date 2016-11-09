@@ -160,9 +160,7 @@ class DesignRoute extends Component {
             sections: List([
                 new ToolSectionRecord({
                     name: '',
-                    component: () => (
-                        <ComponentsTreeView route={route} isIndexRoute={isIndexRoute} />
-                    )
+                    component: ComponentsTreeView
                 })
             ])
         });
@@ -283,6 +281,8 @@ class DesignRoute extends Component {
 
         return (
             <Desktop
+                route={route}
+                isIndexRoute={isIndexRoute}
                 toolGroups={toolGroups}
                 onToolTitleChange={this._handleToolTitleChange}
             >

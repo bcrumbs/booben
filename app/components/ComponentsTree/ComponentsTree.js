@@ -5,7 +5,7 @@ import './ComponentsTree.scss';
 import React from 'react';
 
 export const ComponentsTree = props => (
-	<div className="components-tree">
+	<div className="components-tree" ref={props.createRef}>
 		{props.children}
 	</div>
 );
