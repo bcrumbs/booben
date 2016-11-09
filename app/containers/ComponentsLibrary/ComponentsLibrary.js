@@ -38,6 +38,12 @@ import { List } from 'immutable';
 
 import { getComponentById } from '../../models/Project';
 import { getChildComponents } from '../../models/ProjectRoute';
+import ProjectComponentRecord from '../../models/ProjectComponent';
+
+import {
+    currentSelectedComponentIdsSelector,
+    currentComponentsSelector
+} from '../../selectors';
 
 import { getLocalizedText } from '../../utils';
 import { canInsertComponent } from '../../utils/meta';
@@ -158,7 +164,7 @@ class ComponentsLibraryComponent extends Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        return nextProps.project !== this.props.project ||
+        return nextProps.components !== this.props.components ||
             nextProps.selectedComponentIds !== this.props.selectedComponentIds ||
             nextProps.expandedGroups !== this.props.expandedGroups ||
             nextProps.showAllComponentsOnPalette !== this.props.showAllComponentsOnPalette ||
@@ -190,18 +196,11 @@ class ComponentsLibraryComponent extends Component {
             !showAllComponentsOnPalette;
 
         if (willFilterBySelectedComponent) {
-            const selectedComponentId = this.props.selectedComponentIds.first();
+            const selectedComponentId = this.props.selectedComponentIds.first(),
+                selectedComponent = this.props.components.get(selectedComponentId);
 
-            const selectedComponent = getComponentById(
-                this.props.project,
-                selectedComponentId
-            );
-
-            const route = this.props.project.routes.get(selectedComponent.routeId),
-                childComponents = getChildComponents(route, selectedComponentId);
-
-            const childComponentNames =
-                childComponents.map(childComponent => childComponent.name);
+            const childComponentNames = selectedComponent.children
+                .map(childId => this.props.components.get(childId).name);
 
             groups = groups.map(group => {
                 const components = group.components.filter(c => canInsertComponent(
@@ -282,10 +281,11 @@ class ComponentsLibraryComponent extends Component {
 }
 
 ComponentsLibraryComponent.propTypes = {
-    project: PropTypes.any,
     meta: PropTypes.object,
-    currentRouteId: PropTypes.number,
-    currentRouteIsIndexRoute: PropTypes.bool,
+    components: ImmutablePropTypes.mapOf(
+        PropTypes.instanceOf(ProjectComponentRecord),
+        PropTypes.number
+    ),
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     expandedGroups: ImmutablePropTypes.setOf(PropTypes.string),
     language: PropTypes.string,
@@ -301,19 +301,17 @@ ComponentsLibraryComponent.propTypes = {
 
 ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
 
-const mapStateToProps = ({ project, componentsLibrary, app }) => ({
-    project: project.data,
-    meta: project.meta,
-    currentRouteId: project.currentRouteId,
-    currentRouteIsIndexRoute: project.currentRouteIsIndexRoute,
-    selectedComponentIds: project.selectedItems,
-    expandedGroups: componentsLibrary.expandedGroups,
-    language: app.language,
-    draggingComponent: project.draggingComponent,
-    draggedComponents: project.draggedComponents,
-    draggedComponentId: project.draggedComponentId,
-    showAllComponentsOnPalette: project.showAllComponentsOnPalette,
-    getLocalizedText: (...args) => getLocalizedText(app.localization, app.language, ...args)
+const mapStateToProps = state => ({
+    meta: state.project.meta,
+    components: currentComponentsSelector(state),
+    selectedComponentIds: currentSelectedComponentIdsSelector(state),
+    expandedGroups: state.componentsLibrary.expandedGroups,
+    language: state.app.language,
+    draggingComponent: state.project.draggingComponent,
+    draggedComponents: state.project.draggedComponents,
+    draggedComponentId: state.project.draggedComponentId,
+    showAllComponentsOnPalette: state.project.showAllComponentsOnPalette,
+    getLocalizedText: (...args) => getLocalizedText(state.app.localization, state.app.language, ...args)
 });
 
 const mapDispatchToProps = dispatch => ({

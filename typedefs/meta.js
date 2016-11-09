@@ -86,8 +86,17 @@
  */
 
 /**
+ * @typedef {Object} DesignerSourceConfigPropDesc
+ * @property {string} textKey
+ * @property {string} descriptionSourceKey
+ * @property {string} type
+ */
+
+/**
  * @typedef {Object} DesignerSourceConfig
- * @property {string} wrapper - Wrapper component name
+ * @property {string} [wrapper] - Wrapper component name
+ * @property {number} [wrapperLayout] - Layout number cor composite wrapper component
+ * @property {Object<string, DesignerSourceConfigPropDesc>} [props]
  */
 
 /**

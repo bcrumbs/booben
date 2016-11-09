@@ -141,6 +141,11 @@ const propSchema = {
                             type: 'string',
                             required: false
                         },
+                        wrapperLayout: {
+                            type: 'integer',
+                            minimum: 0,
+                            required: false
+                        },
                         props: {
                             type: 'object',
                             patternProperties: {

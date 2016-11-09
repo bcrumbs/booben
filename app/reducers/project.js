@@ -72,13 +72,18 @@ import {
     isRootComponent
 } from '../models/ProjectComponent';
 
-import { Record, Set, Stack } from 'immutable';
+import { Record, Map, Set, List } from 'immutable';
 
 import { concatPath } from '../utils';
-import { getComponentMeta, constructComponent } from '../utils/meta';
+import {
+    getComponentMeta,
+    constructComponent,
+    parseComponentName,
+    formatComponentName
+} from '../utils/meta';
 
 const NestedConstructor = Record({
-    components: null,
+    components: Map(),
     rootId: -1,
     componentId: -1,
     prop: '',
@@ -116,21 +121,23 @@ const ProjectState = Record({
     languageForComponentProps: 'en',
     selectingComponentLayout: false,
 
-    nestedConstructors: Stack()
+    nestedConstructors: List()
 });
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
 
+const getTopNestedConstructor = state => state.nestedConstructors.first() || null;
+
 const openNestedConstructor = (state, nestedConstructor) => state.update(
     'nestedConstructors',
-    nestedConstructors => nestedConstructors.push(nestedConstructor)
+    nestedConstructors => nestedConstructors.unshift(nestedConstructor)
 );
 
-const closeAllNestedConstructors = state => state.set('nestedConstructors', Stack());
+const closeAllNestedConstructors = state => state.set('nestedConstructors', List());
 
 const closeTopNestedConstructor = state => state.update(
     'nestedConstructors',
-    nestedConstructors => nestedConstructors.pop()
+    nestedConstructors => nestedConstructors.shift()
 );
 
 const getPathToCurrentComponents = state => haveNestedConstructors(state)
@@ -199,6 +206,7 @@ const addComponents = (state, parentComponentId, position, components) => {
         nextComponentId = lastComponentId + 1,
         pathToCurrentComponents = getPathToCurrentComponents(state);
 
+    console.log(pathToCurrentComponents);
     state = state.updateIn(
         pathToCurrentComponents,
 
@@ -242,7 +250,7 @@ const addComponents = (state, parentComponentId, position, components) => {
         state = state.setIn(getPathToCurrentRootComponentId(state), nextComponentId);
     }
 
-    return state.update(
+    return state.updateIn(
         pathToCurrentLastComponentId,
         lastComponentId => lastComponentId + components.size
     );
@@ -688,8 +696,19 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PROJECT_CONSTRUCT_COMPONENT_FOR_PROP: {
-            const component = getComponentById(state.data, action.componentId),
-                prop = component.props.get(action.propName);
+            const pathToCurrentComponents = getPathToCurrentComponents(state),
+                components = state.getIn(pathToCurrentComponents),
+                component = components.get(action.componentId),
+                prop = component.props.get(action.propName),
+                componentMeta = getComponentMeta(component.name, state.meta),
+                propMeta = componentMeta.props[action.propName];
+
+            if (propMeta.source.indexOf('designer') === -1) {
+                throw new Error(
+                    'An attempt was made to construct a component ' +
+                    'for prop that does not have \'designer\' source option'
+                );
+            }
 
             const currentSourceData = (prop && prop.source === 'designer')
                 ? prop.sourceData
@@ -709,11 +728,31 @@ export default (state = new ProjectState(), action) => {
                         : -1
                 });
             }
+            else if (propMeta.sourceConfigs.designer.wrapper) {
+                const { namespace } = parseComponentName(component.name);
 
-            return openNestedConstructor(
-                state,
-                new NestedConstructor(nestedConstructorData)
-            );
+                const wrapperFullName = formatComponentName(
+                    namespace,
+                    propMeta.sourceConfigs.designer.wrapper
+                );
+
+                const wrapperComponents = constructComponent(
+                    wrapperFullName,
+                    propMeta.sourceConfigs.designer.wrapperLayout || 0,
+                    state.languageForComponentProps,
+                    state.meta,
+                    { isNew: false, isWrapper: true }
+                );
+
+                Object.assign(nestedConstructorData, {
+                    components: wrapperComponents,
+                    rootId: 0,
+                    lastComponentId: wrapperComponents.size - 1
+                })
+            }
+
+            const nestedConstructor = new NestedConstructor(nestedConstructorData);
+            return openNestedConstructor(state, nestedConstructor);
         }
 
         case PROJECT_CANCEL_CONSTRUCT_COMPONENT_FOR_PROP: {
@@ -721,7 +760,7 @@ export default (state = new ProjectState(), action) => {
         }
 
         case PROJECT_SAVE_COMPONENT_FOR_PROP: {
-            const topConstructor = state.nestedConstructors.peek();
+            const topConstructor = getTopNestedConstructor(state);
             state = closeTopNestedConstructor(state);
 
             const pathToCurrentComponents = getPathToCurrentComponents(state),

@@ -19,6 +19,7 @@ const ProjectComponentRecord = Record({
     id: -1,
     parentId: -1,
     isNew: false,
+    isWrapper: false,
     name: '',
     title: '',
     props: Map(),
@@ -57,6 +58,7 @@ export const projectComponentToImmutable = (input, routeId, isIndexRoute, parent
         id: input.id,
         parentId,
         isNew: !!input.isNew,
+        isWrapper: !!input.isWrapper,
         name: input.name,
         title: input.title,
 

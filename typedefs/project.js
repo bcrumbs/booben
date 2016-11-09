@@ -34,6 +34,7 @@
  * @property {?number} id - Unique component ID or null for placeholders
  * @property {string} name - Component name with namespace (e.g. "Namespace.MyComponent")
  * @property {string} title - User-defined title
+ * @property {boolean} isWrapper
  * @property {Object<string, ProjectComponentProp>} props
  * @property {ProjectComponent[]} children
  * @property {number[]} regionsEnabled

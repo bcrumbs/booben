@@ -244,14 +244,33 @@ const buildDefaultProps = (componentMeta, language) => {
 };
 
 /**
+ * @typedef {Object} ConstructComponentOptions
+ * @property {boolean} [isWrapper=false]
+ * @property {boolean} [isNew=true]
+ */
+
+/**
+ *
+ * @type {ConstructComponentOptions}
+ * @const
+ */
+const constructComponentDefaultOptions = {
+    isWrapper: false,
+    isNew: true
+};
+
+/**
  *
  * @param {string} componentName
  * @param {number} layoutIdx
  * @param {string} language
  * @param {Object} meta
+ * @param {ConstructComponentOptions} [options]
  * @return {Immutable.Map}
  */
-export const constructComponent = (componentName, layoutIdx, language, meta) => {
+export const constructComponent = (componentName, layoutIdx, language, meta, options) => {
+    options = Object.assign({}, constructComponentDefaultOptions, options || {});
+
     const componentMeta = getComponentMeta(componentName, meta);
 
     // Ids of detached components must start with zero
@@ -259,7 +278,8 @@ export const constructComponent = (componentName, layoutIdx, language, meta) => 
 
     const component = {
         id: nextId++,
-        isNew: true,
+        isNew: options.isNew,
+        isWrapper: options.isWrapper,
         name: componentName,
         title: '',
         props: buildDefaultProps(componentMeta, language),
@@ -283,7 +303,8 @@ export const constructComponent = (componentName, layoutIdx, language, meta) => 
 
             component.children.push({
                 id: nextId++,
-                isNew: true,
+                isNew: options.isNew,
+                isWrapper: options.isWrapper,
                 name: regionComponentName,
                 title: '',
                 props,

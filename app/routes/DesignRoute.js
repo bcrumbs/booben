@@ -160,20 +160,22 @@ class DesignRoute extends Component {
             sections: List([
                 new ToolSectionRecord({
                     name: '',
-                    component: () => (
-                        <ComponentsTreeView route={route} isIndexRoute={isIndexRoute} />
-                    )
+                    component: ComponentsTreeView
                 })
             ])
         });
 
         const singleComponentSelected = this.props.selectedComponentIds.size === 1;
-        let title, subtitle, mainButtons, sections;
 
         const propsEditorSection = new ToolSectionRecord({
             name: 'General',
             component: ComponentPropsEditor
         });
+
+        let title = '',
+            subtitle = '',
+            mainButtons = List(),
+            sections = List([propsEditorSection]);
 
         if (singleComponentSelected) {
             const componentId = this.props.selectedComponentIds.first(),
@@ -191,36 +193,28 @@ class DesignRoute extends Component {
             subtitle = component.name;
 
             if (!isRegion) {
-                mainButtons = List([
-                    new ButtonRecord({
-                        text: getLocalizedText('delete'),
-                        disabled: !singleComponentSelected,
-                        onPress: this._handleDeleteComponentButtonPress
-                    })
-                ]);
+                if (!component.isWrapper) {
+                    mainButtons = mainButtons.push(
+                        new ButtonRecord({
+                            text: getLocalizedText('delete'),
+                            disabled: !singleComponentSelected,
+                            onPress: this._handleDeleteComponentButtonPress
+                        })
+                    )
+                }
 
                 if (isCompositeComponent(component.name, this.props.meta)) {
-                    const regionsEditorSection = new ToolSectionRecord({
-                        name: 'Regions',
-                        component: ComponentRegionsEditor
-                    });
-
-                    sections = List([propsEditorSection, regionsEditorSection]);
+                    sections = sections.push(
+                        new ToolSectionRecord({
+                            name: 'Regions',
+                            component: ComponentRegionsEditor
+                        })
+                    );
                 }
-                else {
-                    sections = List([propsEditorSection]);
-                }
-            }
-            else {
-                mainButtons = List();
-                sections = List([propsEditorSection]);
             }
         }
         else {
-            title =  getLocalizedText('componentConfiguration');
-            subtitle = '';
-            mainButtons = List();
-            sections = List([propsEditorSection])
+            title = getLocalizedText('componentConfiguration');
         }
 
         const propsEditorTool = new ToolRecord({

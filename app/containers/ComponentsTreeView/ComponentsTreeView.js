@@ -7,7 +7,6 @@
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { connect } from 'react-redux';
 
 import {
     connectDragHandler
@@ -37,7 +36,14 @@ import {
     startDragExistingComponent
 } from '../../actions/preview';
 
-import ProjectRouteRecord from '../../models/ProjectRoute';
+import {
+    currentComponentsSelector,
+    currentRootComponentIdSelector,
+    currentSelectedComponentIdsSelector,
+    currentHighlightedComponentIdsSelector
+} from '../../selectors';
+
+import ProjectComponentRecord from '../../models/ProjectComponent';
 
 import { getLocalizedText } from '../../utils';
 
@@ -51,11 +57,11 @@ class ComponentsTreeViewComponent extends Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        return nextProps.route !== this.props.route ||
-            nextProps.isIndexRoute !== this.props.isIndexRoute ||
+        return nextProps.components !== this.props.components ||
+            nextProps.rootComponentId !== this.props.rootComponentId ||
             nextProps.expandedItemIds !== this.props.expandedItemIds ||
-            nextProps.selectedItemIds !== this.props.selectedItemIds ||
-            nextProps.highlightedItemIds !== this.props.highlightedItemIds;
+            nextProps.selectedComponentIds !== this.props.selectedComponentIds ||
+            nextProps.highlightedComponentIds !== this.props.highlightedComponentIds;
     }
 
     _handleExpand(componentId, state) {
@@ -78,7 +84,7 @@ class ComponentsTreeViewComponent extends Component {
     }
 
     _renderItem(componentId, idx) {
-        const component = this.props.route.components.get(componentId);
+        const component = this.props.components.get(componentId);
 
         const children = component.children.size > 0
             ? this._renderList(component.children)
@@ -101,8 +107,8 @@ class ComponentsTreeViewComponent extends Component {
                 title={title}
                 subtitle={subtitle}
                 expanded={this.props.expandedItemIds.has(componentId)}
-                active={this.props.selectedItemIds.has(componentId)}
-                hovered={this.props.highlightedItemIds.has(componentId)}
+                active={this.props.selectedComponentIds.has(componentId)}
+                hovered={this.props.highlightedComponentIds.has(componentId)}
                 onExpand={this._handleExpand.bind(this, componentId)}
                 onSelect={this._handleSelect.bind(this, componentId)}
                 onHover={this._handleHover.bind(this, componentId)}
@@ -123,11 +129,7 @@ class ComponentsTreeViewComponent extends Component {
     render() {
         const { getLocalizedText } = this.props;
 
-        const rootComponent = this.props.isIndexRoute
-            ? this.props.route.indexComponent
-            : this.props.route.component;
-
-        if (rootComponent === -1) {
+        if (this.props.rootComponentId === -1) {
             return (
                 <BlockContentPlaceholder
                     text={getLocalizedText('thereAreNoComponentsInThisRoute')}
@@ -138,7 +140,7 @@ class ComponentsTreeViewComponent extends Component {
         return (
             <BlockContentBox isBordered flex>
                 <ComponentsTree>
-                    {this._renderList(List([rootComponent]))}
+                    {this._renderList(List([this.props.rootComponentId]))}
                 </ComponentsTree>
             </BlockContentBox>
         );
@@ -146,12 +148,14 @@ class ComponentsTreeViewComponent extends Component {
 }
 
 ComponentsTreeViewComponent.propTypes = {
-    route: PropTypes.instanceOf(ProjectRouteRecord).isRequired,
-    isIndexRoute: PropTypes.bool.isRequired,
-
+    components: ImmutablePropTypes.mapOf(
+        PropTypes.instanceOf(ProjectComponentRecord),
+        PropTypes.number
+    ),
+    rootComponentId: PropTypes.number,
+    selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
+    highlightedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     expandedItemIds: ImmutablePropTypes.setOf(PropTypes.number),
-    selectedItemIds: ImmutablePropTypes.setOf(PropTypes.number),
-    highlightedItemIds: ImmutablePropTypes.setOf(PropTypes.number),
     getLocalizedText: PropTypes.func,
 
     onExpandItem: PropTypes.func,
@@ -164,11 +168,13 @@ ComponentsTreeViewComponent.propTypes = {
 
 ComponentsTreeViewComponent.displayName = 'ComponentsTreeView';
 
-const mapStateToProps = ({ design, project, app }) => ({
-    expandedItemIds: design.treeExpandedItemIds,
-    selectedItemIds: project.selectedItems,
-    highlightedItemIds: project.highlightedItems,
-    getLocalizedText: (...args) => getLocalizedText(app.localization, app.language, ...args)
+const mapStateToProps = state => ({
+    components: currentComponentsSelector(state),
+    rootComponentId: currentRootComponentIdSelector(state),
+    selectedComponentIds: currentSelectedComponentIdsSelector(state),
+    highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
+    expandedItemIds: state.design.treeExpandedItemIds,
+    getLocalizedText: (...args) => getLocalizedText(state.app.localization, state.app.language, ...args)
 });
 
 const mapDispatchToProps = dispatch => ({
