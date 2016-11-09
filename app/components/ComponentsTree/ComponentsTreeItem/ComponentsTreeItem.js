@@ -22,7 +22,12 @@ export class ComponentsTreeItem extends Component {
 
         this._titleRef = null;
 
+        Object.keys(props).forEach(
+          name => typeof props[name] === 'function' && (this[`_${name}`] = (...args) => props[name](props.componentId, ...args))
+        );
+
         this._saveTitleRef = this._saveTitleRef.bind(this);
+
     }
 
     componentDidMount() {
@@ -74,7 +79,7 @@ export class ComponentsTreeItem extends Component {
                 <div className="components-tree-item-icon">
                     <Button
                         icon="chevron-down"
-                        onPress={() => this.props.onExpand(!this.props.expanded)}
+                        onPress={() => this._onExpand(!this.props.expanded)}
                     />
                 </div>
             );
@@ -85,20 +90,24 @@ export class ComponentsTreeItem extends Component {
         let titleClassName = 'components-tree-item-title';
         if (this.props.hovered) titleClassName += ' is-hovered';
 
-        const onHoverIn = () => this.props.onHover(true),
-            onHoverOut = () => this.props.onHover(false);
+        const onHoverIn = () => this._onHover(true),
+            onHoverOut = () => this._onHover(false);
 
+        const customProps = {
+          'data-jssy-id': this.props.componentId
+        };
+        
         return (
-            <li className={className}>
+            <li className={className} {...customProps}  >
                 <div className="components-tree-item-content">
                     {icon}
 
                     <button
                         className={buttonClassName}
-                        onFocus={onHoverIn}
-                        onBlur={onHoverOut}
-                        onClick={() => this.props.onSelect(!this.props.active)}
-                        onMouseDown={ this.props.onMouseDown }
+                        onMouseEnter={onHoverIn}
+                        onMouseLeave={onHoverOut}
+                        onClick={() => this._onSelect(!this.props.active)}
+                        onMouseDown={ this._onMouseDown }
                     >
                         <div
                             ref={this._saveTitleRef}
@@ -120,6 +129,7 @@ export class ComponentsTreeItem extends Component {
 }
 
 ComponentsTreeItem.propTypes = {
+    componentId: PropTypes.number.isRequired,
     title: PropTypes.string,
     active: PropTypes.bool,
     expanded: PropTypes.bool,
