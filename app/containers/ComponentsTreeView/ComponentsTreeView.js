@@ -15,7 +15,8 @@ import {
 import {
     ComponentsTree,
     ComponentsTreeItem,
-    ComponentsTreeList
+    ComponentsTreeList,
+	ComponentsTreeLine,
 } from '../../components/ComponentsTree/ComponentsTree';
 
 import {
@@ -84,6 +85,7 @@ class ComponentsTreeViewComponent extends Component {
 
     shouldComponentUpdate(nextProps) {
         return nextProps.components !== this.props.components ||
+			nextProps.placeholderAfter !== this.props.placeholderAfter ||
             nextProps.rootComponentId !== this.props.rootComponentId ||
             nextProps.expandedItemIds !== this.props.expandedItemIds ||
             nextProps.selectedComponentIds !== this.props.selectedComponentIds ||
@@ -102,6 +104,7 @@ class ComponentsTreeViewComponent extends Component {
 
     _handleMouseMove(event) {
         this.isMouseOver = this.element && this.element.contains(event.target);
+
     }
 
     _handleExpand(componentId, state) {
@@ -114,23 +117,22 @@ class ComponentsTreeViewComponent extends Component {
         else this.props.onDeselectItem(componentId);
     }
 
-    _handleHover(componentId, state) {
+    _handleHover(componentId, state, isCursorOnTop, event) {
         if (state) {
             const component = this.props.components.get(componentId);
 
             if (this.props.draggingComponent) {
                 const currentPlaceholderContainer =
-                    isContainerComponent(component.name, this.props.meta)
-                        ? component
-                        : this.props.components.get(component.parentId);
+                	this.props.components.get(component.parentId);
 
                 if (currentPlaceholderContainer) {
                     const rootComponent =
                         this.props.components.get(this.props.rootComponentId);
 
-                    const indexOfPlaceholder = currentPlaceholderContainer === component
-                        ? -1
-                        : currentPlaceholderContainer.children.indexOf(componentId) + 1;
+					const indexOfPlaceholder =
+						currentPlaceholderContainer.children.indexOf(componentId)
+						-
+						isCursorOnTop;
 
                     const currentPlaceholderContainerChildrenNames =
                         currentPlaceholderContainer.children.map(
@@ -145,20 +147,29 @@ class ComponentsTreeViewComponent extends Component {
                         this.props.meta
                     );
 
-                    if (canInsert)
-                        this.props.onDragOverPlaceholder(
+                    if (canInsert) {
+						this.props.onDragOverComponent(
+							componentId
+						);
+						this.props.onDragOverPlaceholder(
                             currentPlaceholderContainer.id,
                             indexOfPlaceholder
                         );
+
+					}
 
                 }
             }
 
             this.props.onHighlightItem(componentId);
         }
-        else
+        else {
             this.props.onUnhighlightItem(componentId);
-
+			if (!this.element.contains(event.target)) {
+				this.props.onDragOverComponent(-1);
+				this.props.onDragOverPlaceholder(-1, -1);
+			}
+		}
     }
 
     _handleMouseDown(componentId, event) {
@@ -167,12 +178,7 @@ class ComponentsTreeViewComponent extends Component {
 
     _renderLine() {
         return (
-            <ComponentsTreeItem
-                componentId={-1}
-                key="line-divider"
-                title="---------------"
-                children={null}
-            />
+            <ComponentsTreeLine key="divider-line"/>
         );
     }
 
@@ -187,16 +193,14 @@ class ComponentsTreeViewComponent extends Component {
 
         const isCurrentComponentActiveContainer =
           componentId === this.props.placeholderContainerId
-          &&
-            isContainerComponent(component.name, this.props.meta)
-          &&
+		  &&
             canInsertComponent(
               rootComponent.name,
               component.name,
-              component.children,
+              component.children.map(childId => this.props.components.get(childId).name),
               indexOfLine,
               this.props.meta
-            );
+		  );
 
         const children = component.children.size > 0
             ? this._renderList(
@@ -246,16 +250,13 @@ class ComponentsTreeViewComponent extends Component {
             indexOfLine + (this.props.placeholderAfter >= indexOfLine)
           : (this.props.placeholderAfter + 1 ? this.props.placeholderAfter : 0);
 
-
         const children =
           this.props.draggingOverPlaceholder && showLine
-          ?
-            componentIds.map(this._renderItem).insert(
+          ? componentIds.map(this._renderItem).insert(
 				indexOfLinePlaceholder,
 				this._renderLine()
 			)
-          :
-            componentIds.map(this._renderItem);
+          : componentIds.map(this._renderItem);
 
         return (
             <ComponentsTreeList>
@@ -331,7 +332,8 @@ const mapStateToProps = state => ({
     placeholderContainerId: state.project.placeholderContainerId,
     placeholderAfter: state.project.placeholderAfter,
     meta: state.project.meta,
-    getLocalizedText: (...args) => getLocalizedText(state.app.localization, state.app.language, ...args)
+    getLocalizedText: (...args) =>
+		getLocalizedText(state.app.localization, state.app.language, ...args)
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -343,7 +345,8 @@ const mapDispatchToProps = dispatch => ({
     onUnhighlightItem: id => void dispatch(unhighlightPreviewComponent(id)),
     onStartDragItem: id => void dispatch(startDragExistingComponent(id)),
     onDragOverComponent: id => void dispatch(dragOverComponent(id)),
-    onDragOverPlaceholder: (id, afterIdx) => void dispatch(dragOverPlaceholder(id, afterIdx))
+    onDragOverPlaceholder: (id, afterIdx) =>
+		void dispatch(dragOverPlaceholder(id, afterIdx))
 });
 
 export const ComponentsTreeView = connectDragHandler(

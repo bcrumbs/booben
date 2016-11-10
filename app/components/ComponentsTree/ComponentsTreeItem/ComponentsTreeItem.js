@@ -20,22 +20,45 @@ export class ComponentsTreeItem extends Component {
             haveTooltip: false
         };
 
+		this._isCursorOnTop = false;
         this._titleRef = null;
 
-        this._onExpand = (...args) => this.props.onExpand(this.props.componentId, ...args);
-        this._onSelect = (...args) => this.props.onSelect(this.props.componentId, ...args);
-        this._onHover = (...args) => this.props.onHover(this.props.componentId, ...args);
-        this._onMouseDown = (...args) => this.props.onMouseDown(this.props.componentId, ...args);
+        this._onExpand = (...args) =>
+			this.props.onExpand(this.props.componentId, ...args);
+        this._onSelect = (...args) =>
+			this.props.onSelect(this.props.componentId, !this.props.active, ...args);
+        this._onHoverIn = (...args) =>
+			this.props.onHover(
+				this.props.componentId,
+				true,
+				this._isCursorOnTop,
+				...args
+			);
+        this._onHoverOut = (...args) =>
+			this.props.onHover(
+				this.props.componentId,
+				false,
+				this._isCursorOnTop,
+				...args
+			);
+        this._onMouseDown = (...args) =>
+			this.props.onMouseDown(this.props.componentId, ...args);
+		this._handleMouseMove = this._handleMouseMove.bind(this);
         this._saveTitleRef = this._saveTitleRef.bind(this);
     }
 
     componentDidMount() {
         this._updateHaveTooltip();
+		window.addEventListener('mousemove', this._handleMouseMove);
     }
 
     componentDidUpdate() {
         this._updateHaveTooltip();
     }
+
+	componentWillUnmount() {
+		window.removeEventListener('mousemove', this._handleMouseMove);
+	}
 
     _updateHaveTooltip() {
         const needTooltip = !!this._titleRef && isEllipsisActive(this._titleRef);
@@ -47,6 +70,23 @@ export class ComponentsTreeItem extends Component {
     _saveTitleRef(ref) {
         this._titleRef = ref;
     }
+
+	_handleMouseMove(event) {
+
+		const boundingClientRect = this._titleRef.getBoundingClientRect();
+		const elementY = event.pageY - boundingClientRect.top;
+
+		if (
+			this._titleRef.contains(event.target)
+			&&
+			this._isCursorOnTop !== elementY < boundingClientRect.height / 2
+		) {
+			this._isCursorOnTop = elementY < boundingClientRect.height / 2;
+			this._onHoverIn(event);
+		}
+
+		this._isCursorOnTop = elementY < boundingClientRect.height / 2;
+	}
 
     render() {
         let className = 'components-tree-item';
@@ -89,8 +129,6 @@ export class ComponentsTreeItem extends Component {
         let titleClassName = 'components-tree-item-title';
         if (this.props.hovered) titleClassName += ' is-hovered';
 
-        const onHoverIn = () => this._onHover(true),
-            onHoverOut = () => this._onHover(false);
 
         return (
             <li className={className}>
@@ -99,16 +137,17 @@ export class ComponentsTreeItem extends Component {
 
                     <button
                         className={buttonClassName}
-                        onMouseEnter={onHoverIn}
-                        onMouseLeave={onHoverOut}
-                        onClick={() => this._onSelect(!this.props.active)}
-                        onMouseDown={ this._onMouseDown }
+                        onFocus={this._onHoverIn}
+                        onBlur={this._onHoverOut}
+                        onClick={this._onSelect}
+                        onMouseDown={this._onMouseDown}
                     >
                         <div
                             ref={this._saveTitleRef}
                             className={titleClassName}
-                            onMouseOver={onHoverIn}
-                            onMouseOut={onHoverOut}
+                            onMouseOver={this._onHoverIn}
+                            onMouseOut={this._onHoverOut}
+
                         >
                             {this.props.title}
                         </div>

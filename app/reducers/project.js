@@ -328,7 +328,7 @@ const moveComponent = (state, componentId, targetComponentId, position) => {
 
             return idx === position
                 ? ids
-                : ids.delete(idx).insert(position, componentId);
+                : ids.delete(idx).insert(position - (idx < position), componentId);
         });
     }
 
