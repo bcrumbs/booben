@@ -49,7 +49,6 @@ import ProjectComponentRecord from '../../models/ProjectComponent';
 
 import {
     isContainerComponent,
-    isCompositeComponent,
     canInsertComponent
 } from '../../utils/meta';
 
@@ -73,11 +72,14 @@ class ComponentsTreeViewComponent extends Component {
     }
 
     componentDidMount() {
-      document.addEventListener('mousemove', this._handleMouseMove);
+        document.addEventListener('mousemove', this._handleMouseMove);
     }
 
     componentWillReceiveProps(nextProps) {
-      !this.isMouseOver && !nextProps.draggingComponent && this.props.draggingComponent && this.props.onToolSelect('componentsLibrary');
+        !this.isMouseOver
+		&& !nextProps.draggingComponent
+		&& this.props.draggingComponent
+		&& this.props.onToolSelect('componentsLibrary');
     }
 
     shouldComponentUpdate(nextProps) {
@@ -143,20 +145,20 @@ class ComponentsTreeViewComponent extends Component {
                         this.props.meta
                     );
 
-                    if (canInsert) {
+                    if (canInsert)
                         this.props.onDragOverPlaceholder(
                             currentPlaceholderContainer.id,
                             indexOfPlaceholder
                         );
-                    }
+
                 }
             }
 
             this.props.onHighlightItem(componentId);
         }
-        else {
+        else
             this.props.onUnhighlightItem(componentId);
-        }
+
     }
 
     _handleMouseDown(componentId, event) {
@@ -178,8 +180,10 @@ class ComponentsTreeViewComponent extends Component {
         const component = this.props.components.get(componentId),
             rootComponent = this.props.components.get(this.props.rootComponentId);
 
-       const indexOfLine =
-         component.children ? component.children.indexOf(this.props.draggingOverComponentId) : -1;
+        const indexOfLine =
+        	component.children
+			? component.children.indexOf(this.props.draggingOverComponentId)
+			: -1;
 
         const isCurrentComponentActiveContainer =
           componentId === this.props.placeholderContainerId
@@ -195,8 +199,16 @@ class ComponentsTreeViewComponent extends Component {
             );
 
         const children = component.children.size > 0
-            ? this._renderList(component.children, isCurrentComponentActiveContainer, indexOfLine)
-            : ( isCurrentComponentActiveContainer ? <ComponentsTreeList children={this._renderLine()} /> : null);
+            ? this._renderList(
+				component.children,
+				isCurrentComponentActiveContainer,
+				indexOfLine
+			)
+            : (
+				isCurrentComponentActiveContainer
+				? <ComponentsTreeList children={this._renderLine()} />
+				: null
+			);
 
         let title, subtitle;
 
@@ -235,16 +247,19 @@ class ComponentsTreeViewComponent extends Component {
           : (this.props.placeholderAfter + 1 ? this.props.placeholderAfter : 0);
 
 
-        const modifiedComponentIds =
+        const children =
           this.props.draggingOverPlaceholder && showLine
           ?
-            componentIds.map(this._renderItem).insert(indexOfLinePlaceholder, this._renderLine())
+            componentIds.map(this._renderItem).insert(
+				indexOfLinePlaceholder,
+				this._renderLine()
+			)
           :
             componentIds.map(this._renderItem);
 
         return (
             <ComponentsTreeList>
-                {modifiedComponentIds}
+                {children}
             </ComponentsTreeList>
         );
     }
@@ -252,13 +267,13 @@ class ComponentsTreeViewComponent extends Component {
     render() {
         const { getLocalizedText } = this.props;
 
-        if (this.props.rootComponentId === -1) {
+        if (this.props.rootComponentId === -1)
             return (
                 <BlockContentPlaceholder
                     text={getLocalizedText('thereAreNoComponentsInThisRoute')}
                 />
             );
-        }
+
 
         return (
             <BlockContentBox isBordered flex>
@@ -277,7 +292,7 @@ ComponentsTreeViewComponent.propTypes = {
     ),
     rootComponentId: PropTypes.number,
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
-    highlightedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
+   	highlightedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     expandedItemIds: ImmutablePropTypes.setOf(PropTypes.number),
     draggingComponent: PropTypes.bool,
     draggedComponentId: PropTypes.number,

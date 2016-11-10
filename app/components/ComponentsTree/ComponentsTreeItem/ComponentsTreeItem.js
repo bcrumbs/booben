@@ -22,11 +22,10 @@ export class ComponentsTreeItem extends Component {
 
         this._titleRef = null;
 
-        // FIXME: This shit is unreadable, refactor it!
-        Object.keys(props).forEach(
-            name => typeof props[name] === 'function' && (this[`_${name}`] = (...args) => props[name](props.componentId, ...args))
-        );
-
+        this._onExpand = (...args) => this.props.onExpand(this.props.componentId, ...args);
+        this._onSelect = (...args) => this.props.onSelect(this.props.componentId, ...args);
+        this._onHover = (...args) => this.props.onHover(this.props.componentId, ...args);
+        this._onMouseDown = (...args) => this.props.onMouseDown(this.props.componentId, ...args);
         this._saveTitleRef = this._saveTitleRef.bind(this);
     }
 
@@ -93,12 +92,8 @@ export class ComponentsTreeItem extends Component {
         const onHoverIn = () => this._onHover(true),
             onHoverOut = () => this._onHover(false);
 
-        const customProps = {
-          'data-jssy-id': this.props.componentId
-        };
-        
         return (
-            <li className={className} {...customProps}  >
+            <li className={className}>
                 <div className="components-tree-item-content">
                     {icon}
 
