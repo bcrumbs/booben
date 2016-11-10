@@ -6,7 +6,7 @@
     "func-names": [0],
     "key-spacing": [2, {
       "beforeColon": false,
-      "afterColon": true,
+      "afterColon": true
     }],
     "no-shadow": [0],
     "semi": [2, "always"],
@@ -44,6 +44,6 @@
 
 
   "globals": {
-    "__PREFIX_LINKS__": true,
-  },
+    "__PREFIX_LINKS__": true
+  }
 }
