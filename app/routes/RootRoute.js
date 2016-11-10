@@ -90,11 +90,11 @@ const RootRoute = props => {
                     linkHref={`/${props.projectName}/design/${route.id}/index`}
                     linkComponent={TopMenuLink}
                 />
-            )
+            );
         }
     });
 
-    const title = getLocalizedText('projectTitle', { projectName: props.projectName});
+    const title = getLocalizedText('projectTitle', { projectName: props.projectName });
 
     return (
         <App fixed>
@@ -187,13 +187,13 @@ const RootRoute = props => {
 
             <ComponentsDragArea/>
         </App>
-    )
+    );
 };
 
 RootRoute.propTypes = {
     projectName: PropTypes.string,
     project: PropTypes.instanceOf(ProjectRecord),
-    
+
     getLocalizedText: PropTypes.func
 };
 
@@ -202,7 +202,12 @@ RootRoute.displayName = 'RootRoute';
 const mapStateToProps = ({ project, app }) => ({
     projectName: project.projectName,
     project: project.data,
-    getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
+    getLocalizedText: (...args) =>
+		getLocalizedText(
+			app.localization,
+			app.language,
+			...args
+		),
 });
 
 export default connect(mapStateToProps)(RootRoute);
