@@ -161,9 +161,12 @@ class BuilderComponent extends Component {
 
         if (!canDropHere) return null;
 
+        const key = `placeholder-${containerId}:${afterIdx}`;
+
         //noinspection JSValidateTypes
         return (
             <Builder
+                key={key}
                 components={this.props.draggedComponents}
                 rootId={rootId}
                 isPlaceholder

@@ -49,11 +49,16 @@ class Overlay extends Component {
     _renderBoundingBoxes(componentIds, color) {
         //noinspection JSValidateTypes
         return componentIds.map(id => {
-            const element = this._getDOMElementByComponentId(id) || null;
+            const element = this._getDOMElementByComponentId(id) || null,
+                key = `${id}-${color}`;
 
             return (
-                <OverlayBoundingBox element={element} color={color}/>
-            )
+                <OverlayBoundingBox
+                    key={key}
+                    element={element}
+                    color={color}
+                />
+            );
         });
     }
 
