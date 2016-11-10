@@ -66,6 +66,12 @@ const getClosestComponentId = el => {
 
     while (current) {
         if (el === containerNode) break;
+
+        if (current.nodeType !== Node.ELEMENT_NODE) {
+            current = current.parentNode;
+            continue;
+        }
+
         const dataJssyId = current.getAttribute('data-jssy-id');
         if (dataJssyId) return parseInt(dataJssyId, 10);
         if (current.hasAttribute('data-reactroot')) break;
@@ -92,7 +98,14 @@ const getClosestComponentOrPlaceholder = el => {
     let current = el;
 
     while (current) {
+        if (current.nodeType !== Node.ELEMENT_NODE) {
+            if (!current.parentNode) break;
+            current = current.parentNode;
+            continue;
+        }
+
         const dataJssyId = current.getAttribute('data-jssy-id');
+
         if (dataJssyId) {
             return {
                 isPlaceholder: false,
