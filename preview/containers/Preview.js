@@ -18,6 +18,10 @@ import {
     setCurrentRoute
 } from '../../app/actions/preview';
 
+import {
+    topNestedConstructorSelector
+} from '../../app/selectors';
+
 import { getComponentById } from '../../app/models/Project';
 import {
     getOutletComponentId,
@@ -25,6 +29,10 @@ import {
 } from '../../app/models/ProjectRoute';
 
 import { pointIsInCircle } from '../../app/utils/misc';
+
+
+const setImmediate = setImmediate || (fn => setTimeout(fn, 0));
+const clearImmediate = clearImmediate || clearTimeout;
 
 
 /**
@@ -150,6 +158,9 @@ class Preview extends Component {
         this.routes = null;
         this.routerKey = 0;
 
+        this.unhighilightTimer = -1;
+        this.unhighlightedComponentId = -1;
+
         this._handleMouseDown = this._handleMouseDown.bind(this);
         this._handleMouseMove = this._handleMouseMove.bind(this);
         this._handleMouseUp = this._handleMouseUp.bind(this);
@@ -179,7 +190,8 @@ class Preview extends Component {
     }
 
     shouldComponentUpdate(nextProps) {
-        return nextProps.project !== this.props.project;
+        return nextProps.project !== this.props.project ||
+            nextProps.topNestedConstructor !== this.props.topNestedConstructor;
     }
 
     componentWillUnmount() {
@@ -191,6 +203,8 @@ class Preview extends Component {
             containerNode.removeEventListener('click', this._handleClick, false);
             containerNode.removeEventListener('mouseup', this._handleMouseUp);
             window.top.removeEventListener('mouseup', this._handleMouseUp);
+
+            if (this.unhighilightTimer > -1) clearImmediate(this.unhighilightTimer);
         }
     }
 
@@ -290,6 +304,20 @@ class Preview extends Component {
 
     /**
      *
+     * @param {number} componentId
+     * @return {boolean}
+     * @private
+     */
+    _canInteractWithComponent(componentId) {
+        // We can interact with any component in nested constructors
+        if (this.props.topNestedConstructor) return true;
+
+        // If we're not in nested constructor, check if component is in current route
+        return this._componentIsInCurrentRoute(componentId);
+    }
+
+    /**
+     *
      * @param {MouseEvent} event
      * @private
      */
@@ -301,7 +329,7 @@ class Preview extends Component {
         //noinspection JSCheckFunctionSignatures
         const componentId = getClosestComponentId(event.target);
 
-        if (componentId > -1 && this._componentIsInCurrentRoute(componentId)) {
+        if (componentId > -1 && this._canInteractWithComponent(componentId)) {
             getContainer().addEventListener('mousemove', this._handleMouseMove);
             this.componentIdToDrag = componentId;
             this.dragStartX = event.pageX;
@@ -354,8 +382,21 @@ class Preview extends Component {
             //noinspection JSCheckFunctionSignatures
             const componentId = getClosestComponentId(event.target);
 
-            if (componentId > -1 && this._componentIsInCurrentRoute(componentId))
-                this.props.onHighlightComponent(componentId);
+            if (componentId > -1 && this._canInteractWithComponent(componentId)) {
+                if (this.unhighilightTimer > -1) {
+                    clearImmediate(this.unhighilightTimer);
+                    this.unhighilightTimer = -1;
+                }
+
+                if (this.unhighlightedComponentId !== componentId) {
+                    if (this.unhighlightedComponentId > -1)
+                        this.props.onUnhighlightComponent(this.unhighlightedComponentId);
+
+                    this.props.onHighlightComponent(componentId);
+                }
+
+                this.unhighlightedComponentId = -1;
+            }
         }
 
         if (this.props.draggingComponent) {
@@ -368,7 +409,7 @@ class Preview extends Component {
                         overWhat.placeholderAfter
                     );
                 }
-                else if (this._componentIsInCurrentRoute(overWhat.componentId)) {
+                else if (this._canInteractWithComponent(overWhat.componentId)) {
                     this.props.onDragOverComponent(overWhat.componentId);
                 }
             }
@@ -385,8 +426,20 @@ class Preview extends Component {
             //noinspection JSCheckFunctionSignatures
             const componentId = getClosestComponentId(event.target);
 
-            if (componentId > -1 && this._componentIsInCurrentRoute(componentId))
-                this.props.onUnhighlightComponent(componentId);
+            if (componentId > -1 && this._canInteractWithComponent(componentId)) {
+                if (this.unhighilightTimer > -1) {
+                    clearImmediate(this.unhighilightTimer);
+                    this.props.onUnhighlightComponent(this.unhighlightedComponentId);
+                }
+
+                this.unhighilightTimer = setImmediate(() => {
+                    this.unhighilightTimer = -1;
+                    this.unhighlightedComponentId = -1;
+                    this.props.onUnhighlightComponent(componentId);
+                });
+
+                this.unhighlightedComponentId = componentId;
+            }
         }
     }
 
@@ -400,19 +453,29 @@ class Preview extends Component {
             //noinspection JSCheckFunctionSignatures
             const componentId = getClosestComponentId(event.target);
 
-            if (componentId > -1 && this._componentIsInCurrentRoute(componentId))
+            if (componentId > -1 && this._canInteractWithComponent(componentId))
                 this.props.onToggleComponentSelection(componentId);
         }
     }
 
     render() {
-        return (
-            <Router
-                key={this.routerKey}
-                history={hashHistory}
-                routes={this.routes}
-            />
-        );
+        if (this.props.topNestedConstructor) {
+            return (
+                <Builder
+                    components={this.props.topNestedConstructor.components}
+                    rootId={this.props.topNestedConstructor.rootId}
+                />
+            );
+        }
+        else {
+            return (
+                <Router
+                    key={this.routerKey}
+                    history={hashHistory}
+                    routes={this.routes}
+                />
+            );
+        }
     }
 }
 
@@ -427,6 +490,7 @@ Preview.propTypes = {
     highlightingEnabled: PropTypes.bool,
     currentRouteId: PropTypes.number,
     currentRouteIsIndexRoute: PropTypes.bool,
+    topNestedConstructor: PropTypes.any,
 
     onToggleComponentSelection: PropTypes.func,
     onHighlightComponent: PropTypes.func,
@@ -444,13 +508,14 @@ Preview.defaultProps = {
 
 Preview.displayName = 'Preview';
 
-const mapStateToProps = ({ project }) => ({
-    project: project.data,
-    meta: project.meta,
-    draggingComponent: project.draggingComponent,
-    highlightingEnabled: project.highlightingEnabled,
-    currentRouteId: project.currentRouteId,
-    currentRouteIsIndexRoute: project.currentRouteIsIndexRoute
+const mapStateToProps = (state) => ({
+    project: state.project.data,
+    meta: state.project.meta,
+    draggingComponent: state.project.draggingComponent,
+    highlightingEnabled: state.project.highlightingEnabled,
+    currentRouteId: state.project.currentRouteId,
+    currentRouteIsIndexRoute: state.project.currentRouteIsIndexRoute,
+    topNestedConstructor: topNestedConstructorSelector(state)
 });
 
 const mapDispatchToProps = dispatch => ({

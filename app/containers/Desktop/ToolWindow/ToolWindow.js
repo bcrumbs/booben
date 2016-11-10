@@ -330,7 +330,7 @@ export class ToolWindow extends Component {
             ? activeSection.component
             : null;
 
-        const content = ContentComponent ? <ContentComponent route={this.props.route} isIndexRoute={this.props.isIndexRoute}/> : null;
+        const content = ContentComponent ? <ContentComponent /> : null;
 
         const mainRegion = (
             <DraggableWindowRegion>
@@ -398,8 +398,6 @@ ToolWindow.propTypes = {
     stickRegionRight: PropTypes.number,
     stickRegionTop: PropTypes.number,
     stickRegionBottom: PropTypes.number,
-    route: PropTypes.object,
-    isIndexRoute: PropTypes.bool,
 
     onTitleChange: PropTypes.func,
     onClose: PropTypes.func,

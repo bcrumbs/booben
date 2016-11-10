@@ -20,6 +20,8 @@ const defaults = {
     'watch': false
 };
 
+let performingCleanup = false;
+
 co(function* () {
     const argv = Object.assign(defaults, minimist(process.argv.slice(2)));
 
@@ -57,6 +59,8 @@ co(function* () {
         });
 
         process.on('SIGINT', () => void co(function* () {
+            if (performingCleanup) return;
+            performingCleanup = true;
             console.log('Closing watcher...');
             yield watching.close();
             if (argv['clean']) yield previewBuilder.cleanProjectDir(projectName);

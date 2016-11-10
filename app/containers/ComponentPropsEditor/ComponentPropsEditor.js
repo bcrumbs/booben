@@ -4,14 +4,10 @@
 
 'use strict';
 
-// TODO: Get strings from i18n
-
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
-
-import { getLocalizedText } from '../../utils';
 
 import {
     PropsList,
@@ -25,13 +21,19 @@ import {
     BlockContentPlaceholder
 } from '../../components/BlockContent/BlockContent';
 
-import ProjectRecord, { getComponentById } from '../../models/Project';
+import ProjectComponentRecord from '../../models/ProjectComponent';
 
 import {
     updateComponentPropValue,
     constructComponentForProp
 } from '../../actions/project';
 
+import {
+    currentComponentsSelector,
+    currentSelectedComponentIdsSelector
+} from '../../selectors';
+
+import { getLocalizedText } from '../../utils';
 import { getString, getComponentMeta } from '../../utils/meta';
 
 /**
@@ -268,6 +270,7 @@ class ComponentPropsEditorComponent extends Component {
 
     _renderComponentProp(componentMeta, propName, propValue) {
         const { getLocalizedText } = this.props,
+            lang = this.props.language,
             propMeta = componentMeta.props[propName];
 
         const label =
@@ -326,7 +329,7 @@ class ComponentPropsEditorComponent extends Component {
         }
 
         const componentId = this.props.selectedComponentIds.first(),
-            component = getComponentById(this.props.project, componentId),
+            component = this.props.components.get(componentId),
             componentMeta = getComponentMeta(component.name, this.props.meta);
 
         if (!componentMeta) return null;
@@ -414,8 +417,11 @@ class ComponentPropsEditorComponent extends Component {
 }
 
 ComponentPropsEditorComponent.propTypes = {
-    project: PropTypes.instanceOf(ProjectRecord),
     meta: PropTypes.any,
+    components: ImmutablePropTypes.mapOf(
+        PropTypes.instanceOf(ProjectComponentRecord),
+        PropTypes.number
+    ),
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     language: PropTypes.string,
     getLocalizedText: PropTypes.func,
@@ -424,12 +430,12 @@ ComponentPropsEditorComponent.propTypes = {
     onConstructComponent: PropTypes.func
 };
 
-const mapStateToProps = ({ project, app }) => ({
-    project: project.data,
-    meta: project.meta,
-    selectedComponentIds: project.selectedItems,
-    language: app.language,
-    getLocalizedText: (...args) => getLocalizedText(app.localization, app.language, ...args)
+const mapStateToProps = state => ({
+    meta: state.project.meta,
+    components: currentComponentsSelector(state),
+    selectedComponentIds: currentSelectedComponentIdsSelector(state),
+    language: state.app.language,
+    getLocalizedText: (...args) => getLocalizedText(state.app.localization, state.app.language, ...args)
 });
 
 const mapDispatchToProps = dispatch => ({
