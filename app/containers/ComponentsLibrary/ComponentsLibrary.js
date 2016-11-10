@@ -7,6 +7,7 @@
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import { createSelector } from 'reselect';
 
 import {
   connectDragHandler
@@ -34,11 +35,7 @@ import {
 
 import { Button } from '@reactackle/reactackle';
 
-import { List } from 'immutable';
-
-import { getComponentById } from '../../models/Project';
-import { getChildComponents } from '../../models/ProjectRoute';
-import ProjectComponentRecord from '../../models/ProjectComponent';
+import { List, Record, Map, OrderedMap } from 'immutable';
 
 import {
     currentSelectedComponentIdsSelector,
@@ -52,49 +49,39 @@ import { objectForEach } from '../../utils/misc';
 //noinspection JSUnresolvedVariable
 import defaultComponentIcon from '../../img/component_default.svg';
 
-/**
- * @typedef {Object} LibraryComponentData
- * @property {string} name
- * @property {string} fullName
- * @property {Object<string, string>} text
- * @property {Object<string, string>} descriptionText
- * @property {string} iconURL
- */
+const LibraryComponentData = Record({
+    name: '',
+    fullName: '',
+    text: Map(),
+    descriptionText: Map(),
+    iconURL: ''
+});
 
-/**
- * @typedef {Object} LibraryGroupData
- * @property {string} name
- * @property {string} namespace
- * @property {Object<string, string>} text
- * @property {Object<string, string>} descriptionText
- * @property {boolean} isDefault
- * @property {LibraryComponentData[]} components
- */
+const LibraryGroupData = Record({
+    name: '',
+    namespace: '',
+    text: Map(),
+    descriptionText: Map(),
+    isDefault: false,
+    components: List()
+});
 
-/**
- *
- * @param {Object} meta
- * @return {LibraryGroupData[]}
- */
 const extractGroupsDataFromMeta = meta => {
-    const groups = [],
-        groupsByName = new Map();
+    let groups = OrderedMap();
 
     objectForEach(meta, libMeta => {
         objectForEach(libMeta.componentGroups, (groupData, groupName) => {
             const fullName = `${libMeta.namespace}.${groupName}`;
 
-            const group = {
+            const libraryGroup = new LibraryGroupData({
                 name: fullName,
                 namespace: libMeta.namespace,
-                text: libMeta.strings[groupData.textKey],
-                descriptionText: libMeta.strings[groupData.descriptionTextKey],
-                isDefault: false,
-                components: []
-            };
+                text: Map(libMeta.strings[groupData.textKey]),
+                descriptionText: Map(libMeta.strings[groupData.descriptionTextKey]),
+                isDefault: false
+            });
 
-            groups.push(group);
-            groupsByName.set(fullName, group);
+            groups = groups.set(fullName, libraryGroup);
         });
 
         objectForEach(libMeta.components, componentMeta => {
@@ -111,63 +98,103 @@ const extractGroupsDataFromMeta = meta => {
                 groupName = `${libMeta.namespace}.${componentMeta.group}`
             }
 
-            let group;
-
-            if (defaultGroup && !groupsByName.has(groupName)) {
-                group = {
+            if (defaultGroup && !groups.has(groupName)) {
+                const group = new LibraryGroupData({
                     name: groupName,
                     namespace: libMeta.namespace,
-                    text: null,
-                    descriptionText: null,
-                    isDefault: true,
-                    components: []
-                };
+                    isDefault: true
+                });
 
-                groups.push(group);
-                groupsByName.set(groupName, group);
-            }
-            else {
-                group = groupsByName.get(groupName);
+                groups = groups.set(groupName, group);
             }
 
-            group.components.push({
+            const text = componentMeta.strings[componentMeta.textKey],
+                description = componentMeta.strings[componentMeta.descriptionTextKey];
+
+            const libraryComponent = new LibraryComponentData({
                 name: componentMeta.displayName,
                 fullName: `${libMeta.namespace}.${componentMeta.displayName}`,
-                text: componentMeta.strings[componentMeta.textKey],
-                descriptionText: componentMeta.strings[componentMeta.descriptionTextKey],
+                text: Map(text),
+                descriptionText: Map(description),
                 iconURL: componentMeta.icon || defaultComponentIcon
             });
+
+            groups = groups.updateIn(
+                [groupName, 'components'],
+                components => components.push(libraryComponent)
+            );
         });
     });
 
-    return groups;
+    return groups.toList().filter(group => !group.components.isEmpty());
 };
 
+const libraryGroupsSelector = createSelector(
+    state => state.project.meta,
+    extractGroupsDataFromMeta
+);
+
+const compareComponents = language => (a, b) => {
+    const aText = a.text.get(language) || '',
+        bText = b.text.get(language) || '';
+
+    return aText < bText ? -1 : aText > bText ? 1 : 0;
+};
+
+const libraryGroupsSortedByLanguageSelector = createSelector(
+    libraryGroupsSelector,
+    state => state.app.language,
+
+    (groups, language) =>
+        groups.map(group =>
+            group.update('components', components =>
+                components.sort(compareComponents(language))
+            )
+        )
+);
+
+const libraryGroupsFilteredSelector = createSelector(
+    libraryGroupsSortedByLanguageSelector,
+    currentSelectedComponentIdsSelector,
+    currentComponentsSelector,
+    state => state.project.showAllComponentsOnPalette,
+    state => state.project.meta,
+
+    (groups, selectedComponentIds, components, showAllComponentsOnPalette, meta) => {
+        const willFilterBySelectedComponent =
+            selectedComponentIds.size === 1 &&
+            !showAllComponentsOnPalette;
+
+        if (!willFilterBySelectedComponent) return { groups, filtered: false };
+
+        const selectedComponentId = selectedComponentIds.first(),
+            selectedComponent = components.get(selectedComponentId);
+
+        const childComponentNames = selectedComponent.children
+            .map(childId => components.get(childId).name);
+
+        return {
+            groups: groups.map(group =>
+                group.update('components', components =>
+                    components.filter(c => canInsertComponent(
+                        c.fullName,
+                        selectedComponent.name,
+                        childComponentNames,
+                        -1,
+                        meta
+                    ))
+                )
+            ),
+
+            filtered: true
+        };
+    }
+);
+
 class ComponentsLibraryComponent extends Component {
-    constructor(props) {
-        super(props);
-
-        this.componentGroups = extractGroupsDataFromMeta(props.meta);
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.language !== this.props.language) {
-            this.componentGroups.forEach(group => {
-                group.components.sort((a, b) => {
-                    const aText = a.text[nextProps.language],
-                        bText = b.text[nextProps.language];
-
-                    return aText < bText ? -1 : aText > bText ? 1 : 0;
-                });
-            });
-        }
-    }
-
     shouldComponentUpdate(nextProps) {
-        return nextProps.components !== this.props.components ||
-            nextProps.selectedComponentIds !== this.props.selectedComponentIds ||
+        return nextProps.componentGroups !== this.props.componentGroups ||
             nextProps.expandedGroups !== this.props.expandedGroups ||
-            nextProps.showAllComponentsOnPalette !== this.props.showAllComponentsOnPalette ||
             nextProps.language !== this.props.language ||
             nextProps.draggingComponent !== this.props.draggingComponent ||
             nextProps.draggedComponents !== this.props.draggedComponents ||
@@ -180,47 +207,17 @@ class ComponentsLibraryComponent extends Component {
             language,
             draggingComponent,
             draggedComponents,
-            draggedComponentId,
-            showAllComponentsOnPalette
+            draggedComponentId
         } = this.props;
 
         const focusedComponentName = draggingComponent
             ? draggedComponents.get(draggedComponentId > -1 ? draggedComponentId : 0).name
             : '';
 
-        let groups = this.componentGroups,
-            filteredBySelectedComponent = false;
+        const { groups, filtered } = this.props.componentGroups;
 
-        const willFilterBySelectedComponent =
-            this.props.selectedComponentIds.size === 1 &&
-            !showAllComponentsOnPalette;
-
-        if (willFilterBySelectedComponent) {
-            const selectedComponentId = this.props.selectedComponentIds.first(),
-                selectedComponent = this.props.components.get(selectedComponentId);
-
-            const childComponentNames = selectedComponent.children
-                .map(childId => this.props.components.get(childId).name);
-
-            groups = groups.map(group => {
-                const components = group.components.filter(c => canInsertComponent(
-                    c.fullName,
-                    selectedComponent.name,
-                    childComponentNames,
-                    -1,
-                    this.props.meta
-                ));
-
-                return Object.assign({}, group, { components });
-            });
-
-            filteredBySelectedComponent = true;
-        }
-
-        groups = groups.filter(group => group.components.length > 0);
-
-        if (!groups.length) {
-            if (filteredBySelectedComponent) {
+        if (groups.isEmpty()) {
+            if (filtered) {
                 return (
                     <BlockContentPlaceholder
                         text={getLocalizedText('noComponentsCanBeInsertedInsideSelectedComponent')}
@@ -241,11 +238,11 @@ class ComponentsLibraryComponent extends Component {
             }
         }
 
-        const accordionItems = List(groups.map(group => {
+        const accordionItems = groups.map(group => {
             const items = group.components.map((c, idx) => (
                 <ComponentTag
                     key={idx}
-                    title={c.text[language]}
+                    title={c.text.get(language)}
                     image={c.iconURL}
                     focused={focusedComponentName === c.fullName}
                     onStartDrag={event => this._handleStartDragNewComponent(event, c)}
@@ -254,7 +251,7 @@ class ComponentsLibraryComponent extends Component {
 
             const title = group.isDefault
                 ? `${group.namespace} - ${getLocalizedText('uncategorizedComponents')}`
-                : `${group.namespace} - ${group.text[language]}`;
+                : `${group.namespace} - ${group.text.get(language)}`;
 
             return new AccordionItemRecord({
                 id: group.name,
@@ -265,7 +262,7 @@ class ComponentsLibraryComponent extends Component {
                     </ComponentTagWrapper>
                 )
             })
-        }));
+        });
 
         return (
             <BlockContentBox isBordered>
@@ -280,19 +277,18 @@ class ComponentsLibraryComponent extends Component {
     }
 }
 
+const ComponentGroupsType = PropTypes.shape({
+    groups: ImmutablePropTypes.listOf(PropTypes.instanceOf(LibraryGroupData)),
+    filtered: PropTypes.bool
+});
+
 ComponentsLibraryComponent.propTypes = {
-    meta: PropTypes.object,
-    components: ImmutablePropTypes.mapOf(
-        PropTypes.instanceOf(ProjectComponentRecord),
-        PropTypes.number
-    ),
-    selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
+    componentGroups: ComponentGroupsType,
     expandedGroups: ImmutablePropTypes.setOf(PropTypes.string),
     language: PropTypes.string,
     draggingComponent: PropTypes.bool,
     draggedComponents: ImmutablePropTypes.map,
     draggedComponentId: PropTypes.number,
-    showAllComponentsOnPalette: PropTypes.bool,
     getLocalizedText: PropTypes.func,
 
     onExpandedGroupsChange: PropTypes.func,
@@ -302,15 +298,12 @@ ComponentsLibraryComponent.propTypes = {
 ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
 
 const mapStateToProps = state => ({
-    meta: state.project.meta,
-    components: currentComponentsSelector(state),
-    selectedComponentIds: currentSelectedComponentIdsSelector(state),
+    componentGroups: libraryGroupsFilteredSelector(state),
     expandedGroups: state.componentsLibrary.expandedGroups,
     language: state.app.language,
     draggingComponent: state.project.draggingComponent,
     draggedComponents: state.project.draggedComponents,
     draggedComponentId: state.project.draggedComponentId,
-    showAllComponentsOnPalette: state.project.showAllComponentsOnPalette,
     getLocalizedText: (...args) => getLocalizedText(state.app.localization, state.app.language, ...args)
 });
 

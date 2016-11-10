@@ -317,6 +317,21 @@ const moveComponent = (state, componentId, targetComponentId, position) => {
     if (component.parentId === -1)
         throw new Error('Cannot move root component');
 
+    if (component.parentId === targetComponentId) {
+        const childrenPath = [].concat(pathToCurrentComponents, [
+            component.parentId,
+            'children'
+        ]);
+
+        return state.updateIn(childrenPath, ids => {
+            const idx = ids.indexOf(componentId);
+
+            return idx === position
+                ? ids
+                : ids.delete(idx).insert(position, componentId);
+        });
+    }
+
     const sourceChildrenListPath = [].concat(pathToCurrentComponents, [
         component.parentId,
         'children'
