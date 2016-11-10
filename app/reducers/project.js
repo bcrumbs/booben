@@ -332,15 +332,19 @@ const moveComponent = (state, componentId, targetComponentId, position) => {
         'children'
     ]);
 
-    return state.updateIn(
+    state = state.updateIn(
         targetChildrenListPath,
         ids => ids.insert(position, componentId)
     );
+
+    const pathToParentId = [].concat(pathToCurrentComponents, [componentId, 'parentId']);
+    return state.setIn(pathToParentId, targetComponentId);
 };
 
 const initDNDState = state => state.merge({
     draggingComponent: false,
     draggedComponents: null,
+    draggedComponentId: -1,
     draggingOverComponentId: -1,
     draggingOverPlaceholder: false,
     placeholderContainerId: -1,

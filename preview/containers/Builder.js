@@ -137,7 +137,7 @@ class BuilderComponent extends Component {
         const rootComponent = this.props.draggedComponents.get(rootId);
 
         const containerComponent = containerId > -1
-            ? getComponentById(this.props.project, containerId)
+            ? this.props.components.get(containerId)
             : this.props.enclosingComponentId > -1
                 ? getComponentById(
                     this.props.project,
@@ -148,7 +148,7 @@ class BuilderComponent extends Component {
         let canDropHere = true;
         if (containerComponent) {
             const containerChildrenNames = containerComponent.children
-                .map(id => getComponentById(this.props.project, id).name);
+                .map(id => this.props.components.get(id).name);
 
             canDropHere = canInsertComponent(
                 rootComponent.name,
@@ -282,8 +282,12 @@ class BuilderComponent extends Component {
                 this._patchComponentProps(props, isHTMLComponent, component.id);
 
             const willRenderPlaceholderInside =
-                this.props.draggingComponent &&
-                !props.children &&
+                this.props.draggingComponent && (
+                    !props.children || (
+                        component.children.size === 1 &&
+                        component.children.first() === this.props.draggedComponentId
+                    )
+                ) &&
                 isContainerComponent(component.name, this.props.meta);
 
             // Render placeholders inside empty containers when user is dragging something
@@ -295,9 +299,7 @@ class BuilderComponent extends Component {
             }
         }
         else {
-            props.key = component.isNew
-                ? `new-${component.id}`
-                : String(component.id);
+            props.key = 'placeholder-' + String(Math.floor(Math.random() * 1000000000));
 
             if (isPlaceholderRoot && !this.props.dontPatch)
                 this._patchPlaceholderRootProps(props, isHTMLComponent);
