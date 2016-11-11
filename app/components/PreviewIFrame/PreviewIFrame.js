@@ -33,7 +33,7 @@ export class PreviewIFrame extends PureComponent {
 
     componentDidMount() {
         const contentWindow = this._iframe.contentWindow,
-            { store, interactive } = this.props;
+            { store, interactive, containerStyle } = this.props;
 
         EVENTS_FOR_PARENT_FRAME.forEach(eventName => {
             contentWindow.addEventListener(eventName, event => {
@@ -58,7 +58,8 @@ export class PreviewIFrame extends PureComponent {
             if (contentWindow.JSSY) {
                 const { history } = contentWindow.JSSY.initPreview({
                     store,
-                    interactive
+                    interactive,
+                    containerStyle
                 });
 
                 this.setState({
@@ -118,12 +119,14 @@ PreviewIFrame.propTypes = {
     url: PropTypes.string.isRequired,
     path: PropTypes.string,
     store: PropTypes.any,
-    interactive: PropTypes.bool
+    interactive: PropTypes.bool,
+    containerStyle: PropTypes.string
 };
 
 PreviewIFrame.defaultProps = {
     url: '',
     path: '/',
     store: {},
-    interactive: false
+    interactive: false,
+    containerStyle: ''
 };

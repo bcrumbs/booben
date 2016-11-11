@@ -625,6 +625,17 @@ const mainMetaSchema = {
             required: true
         },
 
+        containerStyle: {
+            type: 'object',
+            patternProperties: {
+                '.*': {
+                    type: 'string',
+                    allowEmpty: false
+                }
+            },
+            required: false
+        },
+
         loaders: {
             type: 'object',
             patternProperties: {
@@ -1223,6 +1234,12 @@ exports.gatherMetadata = moduleDir => co(function* () {
         const err = new Error(`Invalid main metadata`);
         err.validationErrors = errors;
         throw err;
+    }
+
+    if (mainMeta.containerStyle && !mainMeta.globalStyle) {
+        throw new Error(
+            `containerStyle only allowed when globalStyle is true`
+        );
     }
 
     if (!mainMeta.componentGroups) mainMeta.componentGroups = {};

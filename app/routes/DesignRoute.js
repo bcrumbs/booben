@@ -8,6 +8,7 @@
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
+import { createSelector } from 'reselect';
 
 import { Desktop } from '../containers/Desktop/Desktop';
 import { ComponentsLibrary } from '../containers/ComponentsLibrary/ComponentsLibrary';
@@ -63,6 +64,21 @@ export const DESIGN_TOOL_IDS = List([
     TOOL_ID_COMPONENTS_TREE,
     TOOL_ID_PROPS_EDITOR
 ]);
+
+const containerStyleSelector = createSelector(
+    state => state.project.meta,
+
+    meta => {
+        const combinedStyle = Object.keys(meta).reduce(
+            (acc, cur) => Object.assign(acc, meta[cur].containerStyle || {}),
+            {}
+        );
+
+        return Object.keys(combinedStyle)
+            .map(prop => `${prop}:${combinedStyle[prop]}`)
+            .join(';');
+    }
+);
 
 class DesignRoute extends PureComponent {
     constructor(props) {
@@ -285,6 +301,7 @@ class DesignRoute extends PureComponent {
                     store={store}
                     url={src}
                     path={route.fullPath}
+                    containerStyle={this.props.previewContainerStyle}
                 />
 
                 <Dialog
@@ -317,6 +334,7 @@ class DesignRoute extends PureComponent {
 DesignRoute.propTypes = {
     project: PropTypes.instanceOf(ProjectRecord),
     meta: PropTypes.object,
+    previewContainerStyle: PropTypes.string,
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     selectingComponentLayout: PropTypes.bool,
     draggedComponents: ImmutablePropTypes.mapOf(PropTypes.instanceOf(ProjectComponentRecord)),
@@ -328,14 +346,15 @@ DesignRoute.propTypes = {
     onSelectLayout: PropTypes.func
 };
 
-const mapStateToProps = ({ project, app }) => ({
-    project: project.data,
-    meta: project.meta,
-    selectedComponentIds: project.selectedItems,
-    selectingComponentLayout: project.selectingComponentLayout,
-    draggedComponents: project.draggedComponents,
-    language: app.language,
-    getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
+const mapStateToProps = state => ({
+    project: state.project.data,
+    meta: state.project.meta,
+    previewContainerStyle: containerStyleSelector(state),
+    selectedComponentIds: state.project.selectedItems,
+    selectingComponentLayout: state.project.selectingComponentLayout,
+    draggedComponents: state.project.draggedComponents,
+    language: state.app.language,
+    getLocalizedText: (...args) => getLocalizedText(state.app.localization, state.app.language, ...args)
 });
 
 const mapDispatchToProps = dispatch => ({

@@ -24,18 +24,24 @@ window.JSSY = {
  * @param {Object} params
  * @param {Object} params.store
  * @param {boolean} params.interactive
+ * @param {string} params.containerStyle
  */
 
 window.JSSY.initPreview = params => {
     if (window.JSSY.initialized)
         return { history: hashHistory };
 
+    const containerNode = document.getElementById(PREVIEW_DOM_CONTAINER_ID),
+        overlayNode = document.getElementById(PREVIEW_DOM_OVERLAY_ID);
+
+    containerNode.setAttribute('style', params.containerStyle);
+
     ReactDOM.render(
         <Provider store={params.store}>
             <Preview interactive={params.interactive} />
         </Provider>,
 
-        document.getElementById(PREVIEW_DOM_CONTAINER_ID)
+        containerNode
     );
 
     if (params.interactive) {
@@ -44,7 +50,7 @@ window.JSSY.initPreview = params => {
                 <Overlay />
             </Provider>,
 
-            document.getElementById(PREVIEW_DOM_OVERLAY_ID)
+            overlayNode
         );
     }
 
@@ -59,10 +65,13 @@ window.JSSY.cleanup = () => {
 
     if (!initialized) return;
 
-    if (params.interactive)
-        ReactDOM.unmountComponentAtNode(document.getElementById(PREVIEW_DOM_OVERLAY_ID));
+    const containerNode = document.getElementById(PREVIEW_DOM_CONTAINER_ID),
+        overlayNode = document.getElementById(PREVIEW_DOM_OVERLAY_ID);
 
-    ReactDOM.unmountComponentAtNode(document.getElementById(PREVIEW_DOM_CONTAINER_ID));
+    if (params.interactive)
+        ReactDOM.unmountComponentAtNode(overlayNode);
+
+    ReactDOM.unmountComponentAtNode(containerNode);
 
     window.JSSY.initialized = false;
     window.JSSY.params = null;
