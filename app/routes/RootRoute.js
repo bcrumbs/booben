@@ -70,25 +70,32 @@ const toggleFullscreen = () => {
 
 const RootRoute = props => {
     const { getLocalizedText } = props,
-        routeMenuItems = [];
+        routeMenuItems = [],
+        currentPath = props.location.pathname;
 
     props.project.routes.forEach(route => {
+        const href = `/${props.projectName}/design/${route.id}`;
+
         routeMenuItems.push(
             <HeaderMenuItem
                 key={route.id}
                 text={route.fullPath}
-                linkHref={`/${props.projectName}/design/${route.id}`}
+                linkHref={href}
                 linkComponent={TopMenuLink}
+                isActive={href === currentPath}
             />
         );
 
         if (route.haveIndex) {
+            const indexHref = `/${props.projectName}/design/${route.id}/index`;
+
             routeMenuItems.push(
                 <HeaderMenuItem
                     key={`${route.id}-index`}
                     text={`${route.fullPath} - index`}
-                    linkHref={`/${props.projectName}/design/${route.id}/index`}
+                    linkHref={indexHref}
                     linkComponent={TopMenuLink}
+                    isActive={indexHref === currentPath}
                 />
             );
         }
