@@ -9,6 +9,7 @@ import Builder from './Builder';
 
 import {
     toggleComponentSelection,
+    selectPreviewComponent,
     highlightPreviewComponent,
     unhighlightPreviewComponent,
     startDragExistingComponent,
@@ -464,12 +465,15 @@ class Preview extends PureComponent {
      * @private
      */
     _handleClick(event) {
-        if (event.ctrlKey) {
+        if (event.button === 0) {
+            // Left button
             //noinspection JSCheckFunctionSignatures
             const componentId = getClosestComponentId(event.target);
 
-            if (componentId > -1 && this._canInteractWithComponent(componentId))
-                this.props.onToggleComponentSelection(componentId);
+            if (componentId > -1 && this._canInteractWithComponent(componentId)) {
+                if (event.ctrlKey) this.props.onToggleComponentSelection(componentId);
+                else this.props.onSelectSingleComponent(componentId);
+            }
         }
     }
 
@@ -508,6 +512,7 @@ Preview.propTypes = {
     topNestedConstructor: PropTypes.any,
 
     onToggleComponentSelection: PropTypes.func,
+    onSelectSingleComponent: PropTypes.func,
     onHighlightComponent: PropTypes.func,
     onUnhighlightComponent: PropTypes.func,
     onComponentStartDrag: PropTypes.func,
@@ -536,6 +541,9 @@ const mapStateToProps = (state) => ({
 const mapDispatchToProps = dispatch => ({
     onToggleComponentSelection: componentId =>
         void dispatch(toggleComponentSelection(componentId)),
+
+    onSelectSingleComponent: componentId =>
+        void dispatch(selectPreviewComponent(componentId, true)),
 
     onHighlightComponent: componentId =>
         void dispatch(highlightPreviewComponent(componentId)),
