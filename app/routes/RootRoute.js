@@ -9,8 +9,6 @@ import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 
-import { getLocalizedText } from '../utils';
-
 import {
     App,
     TopRegion,
@@ -34,6 +32,13 @@ import {
 import { ComponentsDragArea } from '../containers/ComponentsDragArea/ComponentsDragArea';
 
 import ProjectRecord from '../models/Project';
+
+import {
+    toggleContentPlaceholders,
+    toggleComponentTitles
+} from '../actions/app';
+
+import { getLocalizedText } from '../utils';
 
 const TopMenuLink = props =>
     <Link to={props.href} className={props.className}>
@@ -173,12 +178,22 @@ const RootRoute = props => {
                                 <FooterMenuList>
                                     <FooterMenuItem
                                         text={getLocalizedText('showComponentsTitle')}
-                                        subcomponentRight={<ToggleButton />}
+                                        subcomponentRight={
+                                            <ToggleButton
+                                                checked={props.showComponentTitles}
+                                                onCheck={props.onToggleComponentTitles}
+                                            />
+                                        }
                                     />
 
                                     <FooterMenuItem
                                         text={getLocalizedText('showPlaceholders')}
-                                        subcomponentRight={<ToggleButton />}
+                                        subcomponentRight={
+                                            <ToggleButton
+                                                checked={props.showContentPlaceholders}
+                                                onCheck={props.onToggleContentPlaceholders}
+                                            />
+                                        }
                                     />
 
                                     <FooterMenuItem
@@ -200,8 +215,12 @@ const RootRoute = props => {
 RootRoute.propTypes = {
     projectName: PropTypes.string,
     project: PropTypes.instanceOf(ProjectRecord),
+    showContentPlaceholders: PropTypes.bool,
+    showComponentTitles: PropTypes.bool,
+    getLocalizedText: PropTypes.func,
 
-    getLocalizedText: PropTypes.func
+    onToggleContentPlaceholders: PropTypes.func,
+    onToggleComponentTitles: PropTypes.func
 };
 
 RootRoute.displayName = 'RootRoute';
@@ -209,12 +228,21 @@ RootRoute.displayName = 'RootRoute';
 const mapStateToProps = ({ project, app }) => ({
     projectName: project.projectName,
     project: project.data,
-    getLocalizedText: (...args) =>
-		getLocalizedText(
-			app.localization,
-			app.language,
-			...args
-		),
+    showContentPlaceholders: app.showContentPlaceholders,
+    showComponentTitles: app.showComponentTitles,
+    getLocalizedText: (...args) => getLocalizedText(
+        app.localization,
+        app.language,
+        ...args
+    )
 });
 
-export default connect(mapStateToProps)(RootRoute);
+const mapDispatchToProps = dispatch => ({
+    onToggleContentPlaceholders: enable =>
+        void dispatch(toggleContentPlaceholders(enable)),
+
+    onToggleComponentTitles: enable =>
+        void dispatch(toggleComponentTitles(enable))
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(RootRoute);

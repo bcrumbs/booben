@@ -7,7 +7,9 @@
 import {
     APP_LOCALIZATION_LOADING,
     APP_LOCALIZATION_LOAD_SUCCESS,
-    APP_LOCALIZATION_LOAD_FAILURE
+    APP_LOCALIZATION_LOAD_FAILURE,
+    APP_TOGGLE_CONTENT_PLACEHOLDERS,
+    APP_TOGGLE_COMPONENT_TITLES
 } from '../actions/app';
 
 import {
@@ -24,6 +26,8 @@ const AppState = Record({
     localizationLoadState: NOT_LOADED,
     localizationLoadError: null,
     localization: {},
+    showContentPlaceholders: false,
+    showComponentTitles: false
 });
 
 export default (state = new AppState(), action) => {
@@ -45,6 +49,14 @@ export default (state = new AppState(), action) => {
                 localization: action.localization,
                 localizationLoadState: LOADED
             });
+        }
+
+        case APP_TOGGLE_CONTENT_PLACEHOLDERS: {
+            return state.set('showContentPlaceholders', action.enable);
+        }
+
+        case APP_TOGGLE_COMPONENT_TITLES: {
+            return state.set('showComponentTitles', action.enable);
         }
 
         default:

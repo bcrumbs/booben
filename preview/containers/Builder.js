@@ -281,21 +281,32 @@ class BuilderComponent extends PureComponent {
             if (!this.props.dontPatch)
                 this._patchComponentProps(props, isHTMLComponent, component.id);
 
-            const willRenderPlaceholderInside =
-                this.props.draggingComponent && (
-                    !props.children || (
-                        component.children.size === 1 &&
-                        component.children.first() === this.props.draggedComponentId
-                    )
-                ) &&
-                isContainerComponent(component.name, this.props.meta);
+            if (this.props.draggingComponent) {
+                // User is dragging something
+                const willRenderPlaceholderInside =
+                    isContainerComponent(component.name, this.props.meta) && (
+                        !props.children || (
+                            component.children.size === 1 &&
+                            component.children.first() === this.props.draggedComponentId
+                        )
+                    );
 
-            // Render placeholders inside empty containers when user is dragging something
-            if (willRenderPlaceholderInside) {
-                props.children = this._renderPlaceholderForDraggedComponent(
-                    component.id,
-                    -1
-                );
+                // Render placeholders inside empty containers
+                if (willRenderPlaceholderInside) {
+                    props.children = this._renderPlaceholderForDraggedComponent(
+                        component.id,
+                        -1
+                    );
+                }
+            }
+            else if (this.props.showContentPlaceholders) {
+                // Content placeholders are enabled
+                const willRenderContentPlaceholder =
+                    !props.children &&
+                    isContainerComponent(component.name, this.props.meta);
+
+                if (willRenderContentPlaceholder)
+                    props.children = <ContentPlaceholder />;
             }
         }
         else {
@@ -305,13 +316,12 @@ class BuilderComponent extends PureComponent {
                 this._patchPlaceholderRootProps(props, isHTMLComponent);
 
             const willRenderContentPlaceholder =
-                component.isNew &&
                 !props.children &&
                 isContainerComponent(component.name, this.props.meta);
 
             // Render fake content inside placeholders for container components
             if (willRenderContentPlaceholder)
-                props.children = <ContentPlaceholder/>
+                props.children = <ContentPlaceholder />;
         }
 
         //noinspection JSValidateTypes
@@ -354,7 +364,8 @@ BuilderComponent.propTypes = {
     draggingComponent: PropTypes.bool,
     draggedComponentId: PropTypes.number,
     draggedComponents: PropTypes.any,
-    draggingOverComponentId: PropTypes.number
+    draggingOverComponentId: PropTypes.number,
+    showContentPlaceholders: PropTypes.bool
 };
 
 BuilderComponent.defaultProps = {
@@ -375,7 +386,8 @@ const mapStateToProps = state => ({
     draggingComponent: state.project.draggingComponent,
     draggedComponentId: state.project.draggedComponentId,
     draggedComponents: state.project.draggedComponents,
-    draggingOverComponentId: state.project.draggingOverComponentId
+    draggingOverComponentId: state.project.draggingOverComponentId,
+    showContentPlaceholders: state.app.showContentPlaceholders
 });
 
 const Builder = connect(mapStateToProps)(BuilderComponent);
