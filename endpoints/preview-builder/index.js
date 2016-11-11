@@ -18,6 +18,7 @@ const co = require('co'),
     config = require('../../config'),
     gatherMetadata = require('../metadata').gatherMetadata,
     constants = require('../../common/constants'),
+    sharedConstants = require('../../common/shared-constants'),
     logger = require('../../common/logger');
 
 /**
@@ -37,6 +38,7 @@ const previewSrcDir = path.resolve(path.join(__dirname, '..', '..', 'preview'));
  * @param {string|string[]} modules
  * @param {Object} [options]
  * @param {boolean} [options.legacyBundling=false]
+ * @param {Function} [options.log]
  * @returns {Promise}
  */
 const npmInstall = (dir, modules, options) => co(function* () {
@@ -50,7 +52,18 @@ const npmInstall = (dir, modules, options) => co(function* () {
         `${options.legacyBundling ? ' --legacy-bundling' : ''} ` +
         `${modules.join(' ')}`;
 
-    yield exec(cmd, { cwd: dir });
+    const [stdout, stderr] = yield exec(cmd, { cwd: dir });
+
+    if (options.log) {
+        if (stdout) {
+            options.log('NPM output:');
+            options.log(stdout);
+        }
+        if (stderr) {
+            options.log('NPM errors:');
+            options.log(stderr);
+        }
+    }
 });
 
 /**
@@ -153,7 +166,10 @@ const generateWebpackConfig = (projectDir, libsData) => {
             new HtmlWebpackPlugin({
                 template: 'index.ejs',
                 inject: 'body',
-                hash: true
+                hash: true,
+
+                jssyContainerId: sharedConstants.PREVIEW_DOM_CONTAINER_ID,
+                jssyOverlayId: sharedConstants.PREVIEW_DOM_OVERLAY_ID
             })
         ],
 
@@ -203,9 +219,13 @@ const loaderStringParsers = {
  *
  * @param {string} projectDir
  * @param {LibData[]} libsData
+ * @param {Object} [options]
+ * @param {Function} [options.npmLogger]
  * @returns {Promise}
  */
-const installLoaders = (projectDir, libsData) => co(function* () {
+const installLoaders = (projectDir, libsData, options) => co(function* () {
+    options = options || {};
+
     const requiredModulesSet = new Set(),
         loaderModulesSet = new Set();
 
@@ -230,7 +250,7 @@ const installLoaders = (projectDir, libsData) => co(function* () {
     });
 
     const requiredModules = Array.from(requiredModulesSet.values());
-    yield npmInstall(projectDir, requiredModules);
+    yield npmInstall(projectDir, requiredModules, { log: options.npmLogger });
 
     const loaderModules = Array.from(loaderModulesSet.values()),
         loadersPeerDepsSet = new Set();
@@ -256,7 +276,7 @@ const installLoaders = (projectDir, libsData) => co(function* () {
 
     const loadersPeerDeps = Array.from(loadersPeerDepsSet.values());
     if (loadersPeerDeps.length > 0) {
-        yield npmInstall(projectDir, loadersPeerDeps);
+        yield npmInstall(projectDir, loadersPeerDeps, { log: options.npmLogger });
     }
 });
 
@@ -310,6 +330,7 @@ const clean = projectDir => co(function* () {
  * @property {boolean} [clean=true]
  * @property {boolean} [watch=false]
  * @property {Function} [watchHandler]
+ * @property {Function} [npmLogger]
  */
 
 /**
@@ -321,7 +342,8 @@ const defaultOptions = {
     noInstallLoaders: false,
     clean: true,
     watch: false,
-    watchHandler: () => {}
+    watchHandler: () => {},
+    npmLogger: () => {}
 };
 
 /**
@@ -337,7 +359,10 @@ exports.buildPreviewApp = (project, options) => co(function* () {
 
     if (project.componentLibs.length > 0) {
         logger.debug(`[${project.name}] Installing component libraries`);
-        yield npmInstall(projectDir, project.componentLibs, { legacyBundling: true });
+        yield npmInstall(projectDir, project.componentLibs, {
+            legacyBundling: true,
+            log: options.npmLogger }
+        );
     }
 
     const modulesDir = path.join(projectDir, 'node_modules');
@@ -383,7 +408,7 @@ exports.buildPreviewApp = (project, options) => co(function* () {
 
     if (!options.noInstallLoaders) {
         logger.debug(`[${project.name}] Installing webpack loaders`);
-        yield installLoaders(projectDir, libsData);
+        yield installLoaders(projectDir, libsData, { npmLogger: options.npmLogger });
     }
 
     logger.debug(`[${project.name}] Generating code for components bundle`);

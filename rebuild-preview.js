@@ -17,7 +17,8 @@ const co = require('co'),
 const defaults = {
     'clean': true,
     'install-loaders': true,
-    'watch': false
+    'watch': false,
+    'log-npm': false
 };
 
 let performingCleanup = false;
@@ -46,6 +47,8 @@ co(function* () {
 
     const project = require(path.join(projectDir, constants.PROJECT_FILE));
 
+    const npmLogger = argv['log-npm'] ? console.log : () => {};
+
     if (argv['watch']) {
         const handler = (err, stats) => {
             if (err) console.error(err);
@@ -55,7 +58,8 @@ co(function* () {
         const watching = yield previewBuilder.buildPreviewApp(project, {
             noInstallLoaders: !argv['install-loaders'],
             watch: true,
-            watchHandler: handler
+            watchHandler: handler,
+            npmLogger
         });
 
         process.on('SIGINT', () => void co(function* () {
@@ -70,7 +74,8 @@ co(function* () {
     else {
         yield previewBuilder.buildPreviewApp(project, {
             clean: argv['clean'],
-            noInstallLoaders: !argv['install-loaders']
+            noInstallLoaders: !argv['install-loaders'],
+            npmLogger
         });
 
         process.exit(0);

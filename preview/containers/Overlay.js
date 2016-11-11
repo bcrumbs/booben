@@ -1,7 +1,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Set } from 'immutable';
 import { connect } from 'react-redux';
@@ -15,6 +15,8 @@ import {
 import { OverlayContainer } from '../components/OverlayContainer';
 import { OverlayBoundingBox } from '../components/OverlayBoundingBox';
 
+import { PREVIEW_DOM_CONTAINER_ID } from '../../common/shared-constants';
+
 /**
  *
  * @type {?HTMLElement}
@@ -26,9 +28,9 @@ let container = null;
  * @return {HTMLElement}
  */
 const getContainer = () =>
-    container || (container = document.getElementById('container'));
+    container || (container = document.getElementById(PREVIEW_DOM_CONTAINER_ID));
 
-class Overlay extends Component {
+class Overlay extends PureComponent {
     /**
      *
      * @param {number} id

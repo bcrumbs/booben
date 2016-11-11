@@ -1,9 +1,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
-import { compose } from 'redux';
-
+import React, { PureComponent, PropTypes } from 'react';
 import {
     Button,
     Tooltip
@@ -13,7 +11,7 @@ import { noop } from '../../../utils/misc';
 
 const isEllipsisActive = el => el.offsetWidth < el.scrollWidth;
 
-export class ComponentsTreeItem extends Component {
+export class ComponentsTreeItem extends PureComponent {
     constructor(props) {
         super(props);
 

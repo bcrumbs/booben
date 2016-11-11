@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import { Button }  from '@reactackle/reactackle';
 import { combineWithTooltip } from '@reactackle/reactackle/components/Tooltip/Tooltip';
 
@@ -22,7 +22,7 @@ const
     onPress: () => /* istanbul ignore next */ {}
   };
 
-class PageDrawerActionItemComponent extends Component {
+class PageDrawerActionItemComponent extends PureComponent {
   constructor(props){
     super(props);
   }

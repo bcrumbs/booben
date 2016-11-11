@@ -5,7 +5,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 
 import {
@@ -40,7 +40,7 @@ export const STICK_REGION_RIGHT = 1;
 export const STICK_REGION_TOP = 2;
 export const STICK_REGION_BOTTOM = 3;
 
-export class ToolWindow extends Component {
+export class ToolWindow extends PureComponent {
     constructor(props) {
         super(props);
 

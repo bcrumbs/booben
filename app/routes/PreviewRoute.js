@@ -1,12 +1,12 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component } from 'react';
+import React, { PureComponent } from 'react';
 
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
 import store from '../store';
 
-export default class PreviewRoute extends Component {
+export default class PreviewRoute extends PureComponent {
     render() {
         return (
             <PreviewIFrame

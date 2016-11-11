@@ -3,7 +3,7 @@
 import './PreviewIFrame.scss';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 
 import store from '../../store';
 
@@ -16,7 +16,7 @@ const EVENTS_FOR_PARENT_FRAME = [
     'click'
 ];
 
-export class PreviewIFrame extends Component {
+export class PreviewIFrame extends PureComponent {
     constructor(props) {
         super(props);
 
@@ -87,10 +87,6 @@ export class PreviewIFrame extends Component {
             if (this.state.loaded) this._goTo(nextProps.path);
             else this._nextPath = nextProps.path;
         }
-    }
-
-    shouldComponentUpdate(nextProps) {
-        return nextProps.url !== this.props.url;
     }
 
     _saveIFrameRef(ref) {

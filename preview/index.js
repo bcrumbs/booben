@@ -8,6 +8,11 @@ import { hashHistory } from 'react-router';
 import Preview from './containers/Preview';
 import Overlay from './containers/Overlay';
 
+import {
+    PREVIEW_DOM_CONTAINER_ID,
+    PREVIEW_DOM_OVERLAY_ID
+} from '../common/shared-constants';
+
 window.JSSY = {
     initialized: false,
     params: null
@@ -30,7 +35,7 @@ window.JSSY.initPreview = params => {
             <Preview interactive={params.interactive} />
         </Provider>,
 
-        document.getElementById('container')
+        document.getElementById(PREVIEW_DOM_CONTAINER_ID)
     );
 
     if (params.interactive) {
@@ -39,7 +44,7 @@ window.JSSY.initPreview = params => {
                 <Overlay />
             </Provider>,
 
-            document.getElementById('overlay')
+            document.getElementById(PREVIEW_DOM_OVERLAY_ID)
         );
     }
 
@@ -55,9 +60,9 @@ window.JSSY.cleanup = () => {
     if (!initialized) return;
 
     if (params.interactive)
-        ReactDOM.unmountComponentAtNode(document.getElementById('overlay'));
+        ReactDOM.unmountComponentAtNode(document.getElementById(PREVIEW_DOM_OVERLAY_ID));
 
-    ReactDOM.unmountComponentAtNode(document.getElementById('container'));
+    ReactDOM.unmountComponentAtNode(document.getElementById(PREVIEW_DOM_CONTAINER_ID));
 
     window.JSSY.initialized = false;
     window.JSSY.params = null;

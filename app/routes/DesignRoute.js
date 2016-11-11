@@ -5,7 +5,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
@@ -64,7 +64,7 @@ export const DESIGN_TOOL_IDS = List([
     TOOL_ID_PROPS_EDITOR
 ]);
 
-class DesignRoute extends Component {
+class DesignRoute extends PureComponent {
     constructor(props) {
         super(props);
 

@@ -5,7 +5,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
@@ -118,7 +118,7 @@ const getStaticOneOfValue = (source, sourceData, options) =>
         ? (sourceData ? sourceData.value : options[0].value)
         : options[0].value;
 
-class ComponentPropsEditorComponent extends Component {
+class ComponentPropsEditorComponent extends PureComponent {
     _handleSetComponent(propName) {
         const componentId = this.props.selectedComponentIds.first();
         this.props.onConstructComponent(componentId, propName);

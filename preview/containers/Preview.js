@@ -1,7 +1,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import { Router, hashHistory } from 'react-router';
 import { connect } from 'react-redux';
 
@@ -30,6 +30,8 @@ import {
 
 import { pointIsInCircle } from '../../app/utils/misc';
 
+import { PREVIEW_DOM_CONTAINER_ID } from '../../common/shared-constants';
+
 
 const setImmediate = setImmediate || (fn => setTimeout(fn, 0));
 const clearImmediate = clearImmediate || clearTimeout;
@@ -46,7 +48,7 @@ let _container = null;
  * @return {HTMLElement}
  */
 const getContainer = () =>
-    _container || (_container = document.getElementById('container'));
+    _container || (_container = document.getElementById(PREVIEW_DOM_CONTAINER_ID));
 
 /**
  *
@@ -160,7 +162,7 @@ const makeBuilder = (components, rootId, enclosingComponentId) => {
     return ret;
 };
 
-class Preview extends Component {
+class Preview extends PureComponent {
     constructor(props) {
         super(props);
 

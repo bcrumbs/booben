@@ -1,7 +1,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 
 import {
@@ -15,7 +15,7 @@ import ButtonType from '../../../models/Button';
 
 import { noop } from '../../../utils/misc';
 
-export class BlockContentTitle extends Component {
+export class BlockContentTitle extends PureComponent {
     constructor(props) {
         super(props);
         

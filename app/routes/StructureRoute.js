@@ -7,7 +7,7 @@
 // TODO: Get all text from i18n
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 
@@ -64,7 +64,7 @@ const TOOL_ID_ROUTE_EDITOR = 'routeEditor';
  */
 export const STRUCTURE_TOOL_IDS = List([TOOL_ID_ROUTE_EDITOR]);
 
-class StructureRoute extends Component {
+class StructureRoute extends PureComponent {
     constructor(props) {
         super(props);
 
