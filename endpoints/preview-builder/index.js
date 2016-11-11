@@ -18,6 +18,7 @@ const co = require('co'),
     config = require('../../config'),
     gatherMetadata = require('../metadata').gatherMetadata,
     constants = require('../../common/constants'),
+    sharedConstants = require('../../common/shared-constants'),
     logger = require('../../common/logger');
 
 /**
@@ -165,7 +166,10 @@ const generateWebpackConfig = (projectDir, libsData) => {
             new HtmlWebpackPlugin({
                 template: 'index.ejs',
                 inject: 'body',
-                hash: true
+                hash: true,
+
+                jssyContainerId: sharedConstants.PREVIEW_DOM_CONTAINER_ID,
+                jssyOverlayId: sharedConstants.PREVIEW_DOM_OVERLAY_ID
             })
         ],
 

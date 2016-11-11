@@ -30,6 +30,8 @@ import {
 
 import { pointIsInCircle } from '../../app/utils/misc';
 
+import { PREVIEW_DOM_CONTAINER_ID } from '../../common/shared-constants';
+
 
 const setImmediate = setImmediate || (fn => setTimeout(fn, 0));
 const clearImmediate = clearImmediate || clearTimeout;
@@ -46,7 +48,7 @@ let _container = null;
  * @return {HTMLElement}
  */
 const getContainer = () =>
-    _container || (_container = document.getElementById('container'));
+    _container || (_container = document.getElementById(PREVIEW_DOM_CONTAINER_ID));
 
 /**
  *
