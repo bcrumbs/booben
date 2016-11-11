@@ -2,6 +2,7 @@
 
 //noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
+import { compose } from 'redux';
 
 import {
     Button,
@@ -17,48 +18,43 @@ export class ComponentsTreeItem extends Component {
         super(props);
 
         this.state = {
-            haveTooltip: false
+            haveTooltip: false,
         };
 
-		this._isCursorOnTop = false;
         this._titleRef = null;
 
-        this._onExpand = (...args) =>
-			this.props.onExpand(this.props.componentId, ...args);
-        this._onSelect = (...args) =>
-			this.props.onSelect(this.props.componentId, !this.props.active, ...args);
-        this._onHoverIn = (...args) =>
+        this._handleExpand = (event) =>
+			this.props.onExpand(this.props.componentId, !this.props.expanded, event);
+        this._handleSelect = (event) =>
+			this.props.onSelect(this.props.componentId, !this.props.active, event);
+        this._handleHoverIn = (event) =>
 			this.props.onHover(
 				this.props.componentId,
 				true,
-				this._isCursorOnTop,
-				...args
+				this._titleRef,
+				event
 			);
-        this._onHoverOut = (...args) =>
+        this._handleHoverOut = (event) =>
 			this.props.onHover(
 				this.props.componentId,
 				false,
-				this._isCursorOnTop,
-				...args
+				this._titleRef,
+				event
 			);
-        this._onMouseDown = (...args) =>
-			this.props.onMouseDown(this.props.componentId, ...args);
-		this._handleMouseMove = this._handleMouseMove.bind(this);
-        this._saveTitleRef = this._saveTitleRef.bind(this);
+        this._handleMouseDown = (event) =>
+			this.props.onMouseDown(this.props.componentId, event);
+		this._createItemRef = (ref) =>
+			this.props.createItemRef(this.props.componentId, ref);
+        this._createTitleRef = this._createTitleRef.bind(this);
     }
 
     componentDidMount() {
         this._updateHaveTooltip();
-		window.addEventListener('mousemove', this._handleMouseMove);
     }
 
     componentDidUpdate() {
         this._updateHaveTooltip();
     }
-
-	componentWillUnmount() {
-		window.removeEventListener('mousemove', this._handleMouseMove);
-	}
 
     _updateHaveTooltip() {
         const needTooltip = !!this._titleRef && isEllipsisActive(this._titleRef);
@@ -67,26 +63,9 @@ export class ComponentsTreeItem extends Component {
             this.setState({ haveTooltip: true });
     }
 
-    _saveTitleRef(ref) {
+    _createTitleRef(ref) {
         this._titleRef = ref;
     }
-
-	_handleMouseMove(event) {
-
-		const boundingClientRect = this._titleRef.getBoundingClientRect();
-		const elementY = event.pageY - boundingClientRect.top;
-
-		if (
-			this._titleRef.contains(event.target)
-			&&
-			this._isCursorOnTop !== elementY < boundingClientRect.height / 2
-		) {
-			this._isCursorOnTop = elementY < boundingClientRect.height / 2;
-			this._onHoverIn(event);
-		}
-
-		this._isCursorOnTop = elementY < boundingClientRect.height / 2;
-	}
 
     render() {
         let className = 'components-tree-item';
@@ -118,7 +97,7 @@ export class ComponentsTreeItem extends Component {
                 <div className="components-tree-item-icon">
                     <Button
                         icon="chevron-down"
-                        onPress={() => this._onExpand(!this.props.expanded)}
+                        onPress={this._handleExpand}
                     />
                 </div>
             );
@@ -131,23 +110,29 @@ export class ComponentsTreeItem extends Component {
 
 
         return (
-            <li className={className}>
+            <li
+				className={className}
+			>
                 <div className="components-tree-item-content">
                     {icon}
 
                     <button
                         className={buttonClassName}
-                        onFocus={this._onHoverIn}
-                        onBlur={this._onHoverOut}
-                        onClick={this._onSelect}
-                        onMouseDown={this._onMouseDown}
+                        onFocus={this._handleHoverIn}
+                        onBlur={this._handleHoverOut}
+                        onClick={this._handleSelect}
+                        onMouseDown={this._handleMouseDown}
                     >
                         <div
-                            ref={this._saveTitleRef}
+                            ref={
+								(ref) => {
+									this._createTitleRef(ref),
+									this._createItemRef(ref);
+								}
+							}
                             className={titleClassName}
-                            onMouseOver={this._onHoverIn}
-                            onMouseOut={this._onHoverOut}
-
+                            onMouseOver={this._handleHoverIn}
+                            onMouseOut={this._handleHoverOut}
                         >
                             {this.props.title}
                         </div>
@@ -172,6 +157,7 @@ ComponentsTreeItem.propTypes = {
     onSelect: PropTypes.func,
     onHover: PropTypes.func,
     onMouseDown: PropTypes.func,
+	createItemRef: PropTypes.func,
 };
 
 ComponentsTreeItem.defaultProps = {
@@ -183,6 +169,7 @@ ComponentsTreeItem.defaultProps = {
     onSelect: noop,
     onHover: noop,
     onMouseDown: noop,
+	createItemRef: noop,
 };
 
 ComponentsTreeItem.displayName = 'ComponentsTreeItem';

@@ -50,6 +50,7 @@ import ProjectComponentRecord from '../../models/ProjectComponent';
 
 import {
     isContainerComponent,
+	isCompositeComponent,
     canInsertComponent
 } from '../../utils/meta';
 
@@ -62,6 +63,8 @@ class ComponentsTreeViewComponent extends Component {
         super(props);
 
         this.isMouseOver = false;
+		this.isCursorOnTop = true;
+		this.expandTimeout = null;
 
         this._renderItem = this._renderItem.bind(this);
         this._handleExpand = this._handleExpand.bind(this);
@@ -70,6 +73,11 @@ class ComponentsTreeViewComponent extends Component {
         this._handleMouseDown = this._handleMouseDown.bind(this);
         this._handleMouseMove = this._handleMouseMove.bind(this);
         this._createElementRef = this._createElementRef.bind(this);
+		this._createItemRef = this._createItemRef.bind(this);
+		this._expandAfterTime = this._expandAfterTime.bind(this);
+		this._clearExpandTimeout = this._clearExpandTimeout.bind(this);
+
+		this.itemRefs = new Map();
     }
 
     componentDidMount() {
@@ -96,15 +104,87 @@ class ComponentsTreeViewComponent extends Component {
 
     componentWillUnmount() {
         document.removeEventListener('mousemove', this._handleMouseMove);
+		this.itemRefs.clear();
+		this._clearExpandTimeout();
     }
 
     _createElementRef(ref) {
         this.element = ref;
     }
 
-    _handleMouseMove(event) {
-        this.isMouseOver = this.element && this.element.contains(event.target);
+	_createItemRef(componentId, ref) {
+		this.itemRefs.forEach((v, k) => !v && this.itemRefs.delete(k));
+		this.itemRefs.set(componentId, ref);
+	}
 
+	_isCursorOnElementTop(element, event) {
+		const boundingClientRect = element.getBoundingClientRect();
+		const elementY = event.pageY - boundingClientRect.top;
+		return elementY < boundingClientRect.height / 2;
+	}
+
+	_clearExpandTimeout() {
+		clearTimeout(this.expandTimeout);
+	}
+
+	_expandAfterTime(componentId, time) {
+		const component = this.props.components.get(componentId);
+
+		const expandComponentAndTryToInsert = (componentId, component) =>
+			(!time || this.props.highlightedComponentIds.has(componentId))
+			&& (
+				this.props.onExpandItem(componentId),
+				this.props.draggingComponent
+				&&
+				canInsertComponent(
+					this.props.components.get(this.props.rootComponentId).name,
+					component.name,
+					component.children.map(
+						childId => this.props.components.get(childId).name
+					),
+					-1,
+					this.props.meta
+				) && this.props.onDragOverPlaceholder(componentId, -1)
+			);
+
+		this.expandTimeout = time
+			?	setTimeout(
+					expandComponentAndTryToInsert, time, componentId, component
+				)
+			: expandComponentAndTryToInsert(componentId, component);
+
+	}
+
+    _handleMouseMove(event) {
+		if (this.props.draggingComponent) {
+	        this.isMouseOver = this.element && this.element.contains(event.target);
+			if (this.isMouseOver && this.props.draggingOverComponentId + 1) {
+				const itemElement = this.itemRefs.get(this.props.draggingOverComponentId);
+
+				if (itemElement)
+					if (!itemElement.contains(event.target)) {
+						const boundingClientRect = itemElement.getBoundingClientRect();
+
+						if (
+							event.pageX < boundingClientRect.left
+							|| event.pageX > boundingClientRect.right
+						) {
+							this.props.onDragOverComponent(-1);
+							this.props.onDragOverPlaceholder(-1, -1);
+						}
+					}
+					else
+						this._isCursorOnElementTop(itemElement, event)
+							!== this.isCursorOnTop
+						&& this._handleHover(
+							this.props.draggingOverComponentId,
+							true,
+							itemElement,
+							event
+						);
+
+			}
+		}
     }
 
     _handleExpand(componentId, state) {
@@ -117,7 +197,8 @@ class ComponentsTreeViewComponent extends Component {
         else this.props.onDeselectItem(componentId);
     }
 
-    _handleHover(componentId, state, isCursorOnTop, event) {
+    _handleHover(componentId, state, element, event) {
+		this._clearExpandTimeout();
         if (state) {
             const component = this.props.components.get(componentId);
 
@@ -125,14 +206,32 @@ class ComponentsTreeViewComponent extends Component {
                 const currentPlaceholderContainer =
                 	this.props.components.get(component.parentId);
 
+					if (
+						isContainerComponent(component.name, this.props.meta)
+						|| isCompositeComponent(component.name, this.props.meta)
+					) this._expandAfterTime(
+						componentId,
+						currentPlaceholderContainer
+						&& isCompositeComponent(
+							currentPlaceholderContainer.name,
+							this.props.meta
+						)
+						|| componentId === this.props.rootComponentId
+						 	? 0 : this.props.timeToExpand
+					);
+
                 if (currentPlaceholderContainer) {
                     const rootComponent =
                         this.props.components.get(this.props.rootComponentId);
 
+
+
+					this.isCursorOnTop = this._isCursorOnElementTop(element, event);
+
 					const indexOfPlaceholder =
 						currentPlaceholderContainer.children.indexOf(componentId)
 						-
-						isCursorOnTop;
+						this.isCursorOnTop;
 
                     const currentPlaceholderContainerChildrenNames =
                         currentPlaceholderContainer.children.map(
@@ -163,17 +262,14 @@ class ComponentsTreeViewComponent extends Component {
 
             this.props.onHighlightItem(componentId);
         }
-        else {
+        else
             this.props.onUnhighlightItem(componentId);
-			if (!this.element.contains(event.target)) {
-				this.props.onDragOverComponent(-1);
-				this.props.onDragOverPlaceholder(-1, -1);
-			}
-		}
+
     }
 
     _handleMouseDown(componentId, event) {
-        this._handleStartDragExistingComponent(event, componentId);
+        componentId !== this.props.rootComponentId
+		&& this._handleStartDragExistingComponent(event, componentId);
     }
 
     _renderLine() {
@@ -231,7 +327,7 @@ class ComponentsTreeViewComponent extends Component {
                 key={idx}
                 title={title}
                 subtitle={subtitle}
-                expanded={this.props.expandedItemIds.has(componentId) || this.props.draggingComponent}
+                expanded={this.props.expandedItemIds.has(componentId)}
                 active={this.props.selectedComponentIds.has(componentId)}
                 hovered={this.props.highlightedComponentIds.has(componentId)}
                 onExpand={this._handleExpand}
@@ -239,6 +335,7 @@ class ComponentsTreeViewComponent extends Component {
                 onHover={this._handleHover}
                 onMouseDown={this._handleMouseDown}
                 children={children}
+				createItemRef={this._createItemRef}
             />
         );
     }
@@ -246,17 +343,17 @@ class ComponentsTreeViewComponent extends Component {
     _renderList(componentIds, showLine, indexOfLine) {
 
         const indexOfLinePlaceholder =
-          indexOfLine + 1 ?
-            indexOfLine + (this.props.placeholderAfter >= indexOfLine)
-          : (this.props.placeholderAfter + 1 ? this.props.placeholderAfter : 0);
+			indexOfLine + 1
+				? indexOfLine + (this.props.placeholderAfter >= indexOfLine)
+				: (this.props.placeholderAfter + 1 ? this.props.placeholderAfter : 0);
 
         const children =
-          this.props.draggingOverPlaceholder && showLine
-          ? componentIds.map(this._renderItem).insert(
-				indexOfLinePlaceholder,
-				this._renderLine()
-			)
-          : componentIds.map(this._renderItem);
+			this.props.draggingOverPlaceholder && showLine
+				? componentIds.map(this._renderItem).insert(
+					indexOfLinePlaceholder,
+					this._renderLine()
+				)
+				: componentIds.map(this._renderItem);
 
         return (
             <ComponentsTreeList>
@@ -287,6 +384,8 @@ class ComponentsTreeViewComponent extends Component {
 }
 
 ComponentsTreeViewComponent.propTypes = {
+	timeToExpand: PropTypes.number,
+
     components: ImmutablePropTypes.mapOf(
         PropTypes.instanceOf(ProjectComponentRecord),
         PropTypes.number
@@ -314,6 +413,10 @@ ComponentsTreeViewComponent.propTypes = {
     onDeselectItem: PropTypes.func,
     onHighlightItem: PropTypes.func,
     onUnhighlightItem: PropTypes.func
+};
+
+ComponentsTreeViewComponent.defaultProps = {
+	timeToExpand: 1000,
 };
 
 ComponentsTreeViewComponent.displayName = 'ComponentsTreeView';
