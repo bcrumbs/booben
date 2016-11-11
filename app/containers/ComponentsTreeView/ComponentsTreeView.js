@@ -5,7 +5,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 
 import {
@@ -57,7 +57,7 @@ import { getLocalizedText } from '../../utils';
 
 import { List } from 'immutable';
 
-class ComponentsTreeViewComponent extends Component {
+class ComponentsTreeViewComponent extends PureComponent {
     constructor(props) {
         super(props);
 
@@ -81,17 +81,6 @@ class ComponentsTreeViewComponent extends Component {
 		&& !nextProps.draggingComponent
 		&& this.props.draggingComponent
 		&& this.props.onToolSelect('componentsLibrary');
-    }
-
-    shouldComponentUpdate(nextProps) {
-        return nextProps.components !== this.props.components ||
-			nextProps.placeholderAfter !== this.props.placeholderAfter ||
-            nextProps.rootComponentId !== this.props.rootComponentId ||
-            nextProps.expandedItemIds !== this.props.expandedItemIds ||
-            nextProps.selectedComponentIds !== this.props.selectedComponentIds ||
-            nextProps.highlightedComponentIds !== this.props.highlightedComponentIds ||
-            nextProps.draggingComponent !== this.props.draggingComponent ||
-            nextProps.placeholderContainerId !== this.props.placeholderContainerId;
     }
 
     componentWillUnmount() {

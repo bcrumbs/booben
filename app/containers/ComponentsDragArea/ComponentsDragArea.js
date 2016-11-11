@@ -5,7 +5,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { PropTypes, Component } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
 
 /**
@@ -15,7 +15,7 @@ import { connect } from 'react-redux';
  */
 const OFFSET_DND_AVATAR = 10;
 
-class ComponentsDragAreaComponent extends Component {
+class ComponentsDragAreaComponent extends PureComponent {
     constructor(props) {
         super(props);
 

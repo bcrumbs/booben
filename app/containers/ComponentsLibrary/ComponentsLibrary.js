@@ -5,7 +5,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { createSelector } from 'reselect';
 
@@ -191,16 +191,7 @@ const libraryGroupsFilteredSelector = createSelector(
     }
 );
 
-class ComponentsLibraryComponent extends Component {
-    shouldComponentUpdate(nextProps) {
-        return nextProps.componentGroups !== this.props.componentGroups ||
-            nextProps.expandedGroups !== this.props.expandedGroups ||
-            nextProps.language !== this.props.language ||
-            nextProps.draggingComponent !== this.props.draggingComponent ||
-            nextProps.draggedComponents !== this.props.draggedComponents ||
-            nextProps.draggedComponentId !== this.props.draggedComponentId;
-    }
-
+class ComponentsLibraryComponent extends PureComponent {
     render() {
         const {
             getLocalizedText,

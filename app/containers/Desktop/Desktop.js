@@ -5,7 +5,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
@@ -35,7 +35,7 @@ import { List } from 'immutable';
 
 import { noop } from '../../utils/misc';
 
-class DesktopComponent extends Component {
+class DesktopComponent extends PureComponent {
     render() {
         const windows = [];
 

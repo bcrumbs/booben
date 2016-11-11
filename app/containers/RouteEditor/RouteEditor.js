@@ -5,7 +5,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
@@ -27,7 +27,7 @@ import { updateRouteField } from '../../actions/project';
 
 import { getLocalizedText } from '../../utils';
 
-class RouteEditorComponent extends Component {
+class RouteEditorComponent extends PureComponent {
     constructor(props) {
         super(props);
 
@@ -37,12 +37,6 @@ class RouteEditorComponent extends Component {
         this._handleHaveRedirectChange = this._handleHaveRedirectChange.bind(this);
         this._handleRedirectToChange = this._handleRedirectToChange.bind(this);
         this._handleIndexRouteDescriptionChange = this._handleIndexRouteDescriptionChange.bind(this);
-    }
-
-    shouldComponentUpdate(nextProps) {
-        return nextProps.selectedRouteId !== this.props.selectedRouteId ||
-            nextProps.routes !== this.props.routes ||
-            nextProps.language !== this.props.language;
     }
 
     _handlePathChange(newPath) {

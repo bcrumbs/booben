@@ -1,7 +1,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import { Router, hashHistory } from 'react-router';
 import { connect } from 'react-redux';
 
@@ -160,7 +160,7 @@ const makeBuilder = (components, rootId, enclosingComponentId) => {
     return ret;
 };
 
-class Preview extends Component {
+class Preview extends PureComponent {
     constructor(props) {
         super(props);
 

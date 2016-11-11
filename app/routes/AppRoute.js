@@ -5,7 +5,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux'
 
 import { loadProject } from '../actions/project';
@@ -16,7 +16,7 @@ import {
     LOAD_ERROR
 } from '../constants/loadStates';
 
-class AppRoute extends Component {
+class AppRoute extends PureComponent {
     componentDidMount() {
         const projectName = this.props.params.projectName;
         this.props.onProjectRequest(projectName);

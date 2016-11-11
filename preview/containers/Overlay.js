@@ -1,7 +1,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Set } from 'immutable';
 import { connect } from 'react-redux';
@@ -28,7 +28,7 @@ let container = null;
 const getContainer = () =>
     container || (container = document.getElementById('container'));
 
-class Overlay extends Component {
+class Overlay extends PureComponent {
     /**
      *
      * @param {number} id

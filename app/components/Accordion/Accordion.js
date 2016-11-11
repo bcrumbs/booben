@@ -3,18 +3,13 @@
 import './Accordion.scss';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { AccordionItem } from './AccordionItem/AccordionItem';
 import { Set, Record } from 'immutable';
 import { noop } from '../../utils/misc';
 
-export class Accordion extends Component {
-    shouldComponentUpdate(nextProps) {
-        return nextProps.items !== this.props.items ||
-            nextProps.expandedItemIds !== this.props.expandedItemIds;
-    }
-
+export class Accordion extends PureComponent {
     componentWillReceiveProps(nextProps) {
         const willUpdateExpandedItems =
             nextProps.items !== this.props.items &&

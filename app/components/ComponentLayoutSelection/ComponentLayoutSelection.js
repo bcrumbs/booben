@@ -3,7 +3,7 @@
 import './ComponentLayoutSelection.scss';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 
 export const ComponentLayoutSelection = props => (
     <div className="component-layout-selection-wrapper">

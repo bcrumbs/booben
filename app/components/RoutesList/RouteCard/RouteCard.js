@@ -1,11 +1,11 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import { Icon } from '@reactackle/reactackle';
 import { noop } from '../../../utils/misc';
 
-export class RouteCard extends Component {
+export class RouteCard extends PureComponent {
     constructor(props) {
         super(props);
 

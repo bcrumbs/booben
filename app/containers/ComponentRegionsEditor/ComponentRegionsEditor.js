@@ -5,7 +5,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
@@ -30,7 +30,7 @@ import { getLocalizedText } from '../../utils';
 //noinspection JSUnresolvedVariable
 import defaultRegionIcon from '../../img/layout_default.svg';
 
-class ComponentRegionsEditorComponent extends Component {
+class ComponentRegionsEditorComponent extends PureComponent {
     _handleRegionToggle(regionIdx, enable) {
         const componentId = this.props.selectedComponentIds.first();
         this.props.onToggleRegion(componentId, regionIdx, enable);

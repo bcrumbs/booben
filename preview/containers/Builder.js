@@ -1,7 +1,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
 
 // The real components.js will be generated during build process
@@ -105,7 +105,7 @@ const buildProps = props => {
     return ret;
 };
 
-class BuilderComponent extends Component {
+class BuilderComponent extends PureComponent {
     /**
      *
      * @param {Object} component
