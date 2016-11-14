@@ -83,9 +83,13 @@ import {
 	ComponentActionsList
 } from '../components/ComponentInteractions/ComponentInteractions';
 
+import { HeaderRoute } from '../components/HeaderRoute/HeaderRoute';
+import { IsolationView } from '../components/IsolationView/IsolationView';
+
 import {
-	HeaderRoute
-} from '../components/HeaderRoute/HeaderRoute';
+	DataList,
+	DataItem
+} from '../components/DataList/DataList';
 
 import { Desktop } from '../containers/Desktop/Desktop';
 
@@ -95,28 +99,36 @@ import ToolRecord from '../models/Tool';
 
 import { List, Set } from 'immutable';
 
-
-const toolWindowSections = List([
+// DATA
+const toolDataSections = List([
 	new ToolSectionRecord({
-		name: 'Section 1',
+		name: 'Context',
 		component: () => (
 			<BlockContentBox>
-				<BlockContentBoxHeading>Header 1</BlockContentBoxHeading>
+				<BlockContentBoxHeading>Parent Props</BlockContentBoxHeading>
 				<BlockContentBoxItem>
-					Content block 1. Lorem ipsum dolor sit amet,
-					consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
-				</BlockContentBoxItem>
+					<DataList>
+						<DataItem
+							title="SomeParentProp"
+							type="type"
+							subtitle="SomeParentProp - description"
+						    clickable
+						/>
 
-				<BlockContentBoxItem>
-					Content block 2. Lorem ipsum dolor sit amet,
-					consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
+						<DataItem
+							title="SomeParentProp"
+							type="type"
+							subtitle="SomeParentProp - description"
+							clickable
+						/>
+					</DataList>
 				</BlockContentBoxItem>
 			</BlockContentBox>
 		)
 	}),
 
 	new ToolSectionRecord({
-		name: 'Section 2',
+		name: 'Types',
 		component: () => (
 			<BlockContentBox>
 				<BlockContentBoxHeading>Header 2</BlockContentBoxHeading>
@@ -131,25 +143,24 @@ const toolWindowSections = List([
 				</BlockContentBoxItem>
 			</BlockContentBox>
 		)
-	})
-]);
-
-const toolWindowMainActions = List([
-	new ButtonRecord({
-		text: 'Edit content',
-		onPress: () => {}
 	}),
 
-	new ButtonRecord({
-		text: 'Save',
-		onPress: () => {}
-	})
-]);
+	new ToolSectionRecord({
+		name: 'Functions',
+		component: () => (
+			<BlockContentBox>
+				<BlockContentBoxHeading>Header 2</BlockContentBoxHeading>
+				<BlockContentBoxItem>
+					Content block 3. Lorem ipsum dolor sit amet,
+					consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
+				</BlockContentBoxItem>
 
-const toolWindowSecondaryActions = List([
-	new ButtonRecord({
-		icon: 'trash-o',
-		onPress: () => {}
+				<BlockContentBoxItem>
+					Content block 4. Lorem ipsum dolor sit amet,
+					consectetuer adipiscing elit. Aenean commodo ligula eget dolor.
+				</BlockContentBoxItem>
+			</BlockContentBox>
+		)
 	})
 ]);
 
@@ -377,6 +388,18 @@ export const PLAYGROUND_TOOL_IDS = List([
 const toolGroups = List([
 	List([
 		new ToolRecord({
+			id: 'tool1',
+			icon: 'file-text-o',
+			name: 'Data',
+			title: 'Data',
+			undockable: true,
+			closable: false,
+			sections: toolDataSections,
+			mainButtons: '',
+			secondaryButtons: ''
+		}),
+
+		new ToolRecord({
 			id: 'tool8',
 			icon: 'play',
 			name: 'Action Tab Content',
@@ -423,15 +446,15 @@ const toolGroups = List([
 		}),
 
 		new ToolRecord({
-			id: 'tool1',
+			id: 'tool2',
 			icon: 'cube',
 			name: 'Components Library',
 			title: 'Components Library',
 			undockable: true,
 			closable: false,
 			sections: toolComponentsWindowSections,
-			mainButtons: toolWindowMainActions, // Delete it
-			secondaryButtons: toolWindowSecondaryActions // Delete it
+			mainButtons: '',
+			secondaryButtons: ''
 		}),
 
 		new ToolRecord({
@@ -442,20 +465,8 @@ const toolGroups = List([
 			undockable: true,
 			closable: false,
 			sections: toolComponentsPlaceholderWindowSections,
-			mainButtons: toolWindowMainActions, // Delete it
-			secondaryButtons: toolWindowSecondaryActions // Delete it
-		}),
-
-		new ToolRecord({
-			id: 'tool2',
-			icon: 'file-text-o',
-			name: 'Data',
-			title: 'Fuck you, i\'m drunk',
-			undockable: true,
-			closable: false,
-			sections: toolWindowSections,
-			mainButtons: toolWindowMainActions,
-			secondaryButtons: toolWindowSecondaryActions
+			mainButtons: '',
+			secondaryButtons: ''
 		})
 	])
 ]);
@@ -568,48 +579,7 @@ export default class Playground extends React.Component {
 		                <HeaderRoute />
 
 		                <PanelContent>
-			                <Container>
-
-				                <Row>
-					                <Column>
-						                <RoutesList>
-							                <RouteCard title="Root" subtitle="/" redirect>
-								                <RoutesList>
-									                <RouteCard title="Index"  index/>
-									                <RouteCard title="Parsers" subtitle="parsers" >
-										                <RoutesList>
-										                    <RouteCard title="Route 1" subtitle="route1" focused >
-											                    <RoutesList>
-												                    <RouteCard title="Route 2" subtitle="route2" />
-												                    <RouteCard title="Route 3" subtitle="route3">
-													                    <RoutesList>
-														                    <RouteCard title="Index" index/>
-														                    <RouteCard title="Route 4" subtitle="route4" />
-
-														                    {/*<ComponentBreadcrumbs>*/}
-																				{/*<ComponentBreadcrumbItem placeholder />*/}
-															                    {/*<ComponentBreadcrumbItem text="Routes List"/>*/}
-															                    {/*<ComponentBreadcrumbItem separator />*/}
-																				{/*<ComponentBreadcrumbItem text="Route Card" disabled />*/}
-																				{/*<ComponentBreadcrumbItem separator />*/}
-																				{/*<ComponentBreadcrumbItem text="Routes List" />*/}
-														                    {/*</ComponentBreadcrumbs>*/}
-
-													                    </RoutesList>
-												                    </RouteCard>
-												                    <RouteNewButton text="New Route" />
-											                    </RoutesList>
-										                    </RouteCard>
-									                    </RoutesList>
-									                </RouteCard>
-									                <RouteCard title="Parser" subtitle="parser-{parseParserTitle}" />
-								                </RoutesList>
-							                </RouteCard>
-							                <RouteNewButton text="New Root"  />
-						                </RoutesList>
-					                </Column>
-				                </Row>
-			                </Container>
+			                <IsolationView />
 		                </PanelContent>
 	                </Panel>
                 </Desktop>
