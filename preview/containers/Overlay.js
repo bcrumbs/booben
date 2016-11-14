@@ -10,8 +10,7 @@ import {
     currentSelectedComponentIdsSelector,
     currentHighlightedComponentIdsSelector,
     currentRootComponentIdSelector,
-    currentComponentsSelector,
-    currentRootComponentIdSelector
+    currentComponentsSelector
 } from '../../app/selectors';
 
 import { OverlayContainer } from '../components/OverlayContainer';

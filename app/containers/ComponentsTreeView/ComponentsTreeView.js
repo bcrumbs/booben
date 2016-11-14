@@ -311,22 +311,22 @@ class ComponentsTreeViewComponent extends PureComponent {
         }
 
         return (
-            <ComponentsTreeItem
-                componentId={componentId}
-                key={idx}
-                title={title}
-                subtitle={subtitle}
-                expanded={this.props.expandedItemIds.has(componentId)}
-                active={this.props.selectedComponentIds.has(componentId)}
-                hovered={this.props.highlightedComponentIds.has(componentId)}
-                onExpand={this._handleExpand}
-                onSelect={this._handleSelect}
-                onHover={this._handleHover}
-                onMouseDown={this._handleMouseDown}
-                children={children}
+			<ComponentsTreeItem
+				componentId={componentId}
+				key={idx}
+				title={title}
+				subtitle={subtitle}
+				expanded={this.props.expandedItemIds.has(componentId)}
+				active={this.props.selectedComponentIds.has(componentId)}
+				hovered={this.props.highlightedComponentIds.has(componentId)}
+				onExpand={this._handleExpand}
+				onSelect={this._handleSelect}
+				onHover={this._handleHover}
+				onMouseDown={this._handleMouseDown}
+				children={children}
 				createItemRef={this._createItemRef}
-            />
-        );
+			/>
+		);
     }
 
     _renderList(componentIds, showLine, indexOfLine) {
