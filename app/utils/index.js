@@ -1,7 +1,6 @@
 'use strict';
 
 import IntlMessageFormat from 'intl-messageformat';
-import { Map } from 'immutable';
 
 /**
  *
