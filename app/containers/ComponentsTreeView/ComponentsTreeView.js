@@ -62,8 +62,8 @@ const CURSOR_STATES = {
 	TOP: 'TOP',
 	MIDDLE: 'MIDDLE',
 	BOTTOM: 'BOTTOM',
-	BETWEEN_BEFORE: 'BETWEEN_BEFORE',
-	BETWEEN_AFTER: 'BETWEEN_AFTER',
+	BEFORE: 'BEFORE',
+	AFTER: 'AFTER',
 	OUT: 'OUT',
 };
 
@@ -209,7 +209,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 					if (
 						this.cursorState === CURSOR_STATES.MIDDLE
 						&& !isContainerComponent(component.name, this.props.meta)
-					) return this._resetDrag();
+					) return void this._resetDrag();
 
 
 	                if (currentPlaceholderContainer) {
@@ -226,7 +226,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 								-
 								(
 									[
-										CURSOR_STATES.BETWEEN_BEFORE,
+										CURSOR_STATES.BEFORE,
 									 	CURSOR_STATES.TOP
 									].includes(this.cursorState)
 								);
@@ -289,7 +289,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 
 		const { top, bottom, left, right } = itemRef.getBoundingClientRect();
 
-		if (pageX < left || pageY > right) return CURSOR_STATES.OUT;
+		if (pageX < left || pageX > right) return CURSOR_STATES.OUT;
 
 		const positionY = pageY;
 
@@ -306,8 +306,8 @@ class ComponentsTreeViewComponent extends PureComponent {
 			)
 			|| (
 				positionY - top < 0
-					? 'BETWEEN_BEFORE'
-					: 'BETWEEN_AFTER'
+					? 'BEFORE'
+					: 'AFTER'
 			)
 		];
 
@@ -318,7 +318,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 		let minHeightDiff = Infinity;
 		this.itemRefs.forEach(
 			(ref, componentId) => {
-				const { top, bottom }= ref.getBoundingClientRect();
+				const { top, bottom } = ref.getBoundingClientRect();
 				[top, bottom].forEach(val => {
 					const diff = Math.abs(event.y - val);
 					if (diff < minHeightDiff) {
