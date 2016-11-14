@@ -12,11 +12,12 @@ export const PropTreeItem = props => {
 
 	let value = null;
 
-	let icon = null;
+	let iconLeft = null,
+		iconRight = null;
 	if (props.children) {
-		icon =
-			<div className="prop-tree-item-icon-left prop-tree-item-icon-collapse">
-				<Button icon="chevron-down" />
+		iconRight =
+			<div className="prop-tree-item-icon prop-tree-item-icon-right prop-tree-item-icon-collapse">
+				<Button icon="chevron-right" />
 			</div>;
 
 		className += ' ' + 'has-sublevel';
@@ -29,8 +30,8 @@ export const PropTreeItem = props => {
 	}
 
 	if (props.type === 'constructor') {
-		icon =
-			<div className="prop-tree-item-icon-left prop-tree-item-icon-remove">
+		iconLeft =
+			<div className="prop-tree-item-icon prop-tree-item-icon-left prop-tree-item-icon-remove">
 				<Button icon="times" />
 			</div>;
 
@@ -45,10 +46,9 @@ export const PropTreeItem = props => {
 
 	} else if (props.valueType && props.valueType !== 'constructor' ){
 
-		value = <PropsItem type={props.valueType} linkable label="set value"/>;
+		value = <PropsItem type={props.valueType} linkable label=""/>;
 
 	} else {
-
 		value = '';
 		contentClassName += ' ' + 'value-not-settable';
 	}
@@ -56,10 +56,13 @@ export const PropTreeItem = props => {
     return (
         <div className={className}>
 	        <div className={contentClassName}>
-		        { icon }
-		        <div className='prop-tree-item-title-box'>
-			        <div className="prop-tree-item-title">{props.title}</div>
-			        <div className="prop-tree-item-type">{props.type}</div>
+		        <div className='prop-tree-item-title-wrapper'>
+			        { iconLeft }
+			        <div className='prop-tree-item-title-box'>
+				        <span className="prop-tree-item-title">{props.title}</span>
+				        <span className="prop-tree-item-type">{props.type}</span>
+			        </div>
+			        { iconRight }
 		        </div>
 		        <div className="prop-tree-item-value-box">
 			        { value }

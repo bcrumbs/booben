@@ -1,0 +1,21 @@
+@charset "UTF-8";
+@import 'variables';
+
+@include exports(header-route) {
+	// =================================================================================================================
+	// BASE
+	// =================================================================================================================
+	.header-title {
+		.breadcrumbs {
+			margin-top: 0;
+			margin-left: 0;
+		}
+
+		.breadcrumbs-item-title,
+		.breadcrumbs-separator{
+			font-size: inherit;
+			line-height: inherit;
+		}
+	}
+}
+

@@ -26,11 +26,13 @@ export const PropLabel = props => {
 
 PropLabel.propTypes = {
     label: PropTypes.string,
+    subtitle: PropTypes.string,
     tooltip: PropTypes.string
 };
 
 PropLabel.defaultProps = {
     label: '',
+	subtitle: '',
     tooltip: ''
 };
 
