@@ -15,16 +15,24 @@ const breadcrumbsItemsList = [
 		title: 'ParentComponent'
 	},
 	{
-		title: 'Content',
+		title: 'SomeChildComponent',
 		isActive: true
 	}
 ];
+
+/*
+	If structure's more than 1 level deep, place Breadcrumbs into HeaderTitle
+	Ex:
+	 <HeaderTitle>
+	    <Breadcrumbs items={breadcrumbsItemsList} />
+	 </HeaderTitle>
+*/
 
 export const HeaderRoute = props => (
 	<Header>
 		<HeaderRegion spread alignY="center">
 			<HeaderTitle>
-				<Breadcrumbs items={breadcrumbsItemsList} />
+				ParentComponentTitle
 			</HeaderTitle>
 		</HeaderRegion>
 		<HeaderRegion>
