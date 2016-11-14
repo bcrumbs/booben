@@ -6,7 +6,7 @@ import IntlMessageFormat from 'intl-messageformat';
  *
  * @param {string} prefix
  * @param {string} path
- * @returns {string}
+ * @return {string}
  */
 export const concatPath = (prefix, path) => {
     if (prefix === '') return path;
@@ -20,7 +20,7 @@ export const concatPath = (prefix, path) => {
   * @param {string} language
   * @param {string} id
   * @param {Object} [values={}]
-  * @returns {string}
+  * @return {string}
   */
 export const getLocalizedText = (localization, language, id, values = {}) =>
 	new IntlMessageFormat(localization.get(id), language).format(values);
