@@ -11,6 +11,7 @@ import {
     TopRegion,
     BottomRegion,
 	Button,
+	Breadcrumbs,
 	Column,
 	Container,
 	Dialog,
@@ -504,6 +505,16 @@ const footerMenuRight = [
 	}
 ];
 
+const breadcrumbsItems = [
+	{
+		title: 'ParentComponent'
+	},
+	{
+		title: 'Content',
+		isActive: true
+	}
+];
+
 export default class Playground extends React.Component {
     render() {
         return (
@@ -553,6 +564,7 @@ export default class Playground extends React.Component {
 
                 <Desktop toolGroups={toolGroups}>
 	                <Panel headerFixed={true} maxHeight="initial">
+
 
 		                <PanelContent>
 			                <Container>
