@@ -288,6 +288,12 @@ $prop-toggle: 'props-type-toggle';
 		}
 	}
 
+	// BREADCRUMBS
+	.prop-tree-breadcrumbs .breadcrumbs {
+		margin-top: 0;
+		margin-left: 0;
+	}
+
 	// LIST
 	.prop-tree-list {
 		.prop-tree-item & {
@@ -416,7 +422,7 @@ $prop-toggle: 'props-type-toggle';
 	// Action
 	.prop-tree-item-action-row {
 		margin: $prop-tree-action-margin-top 0 $prop-tree-action-margin-bottom;
-		padding-left: $prop-tree-icon-box-size + $prop-tree-icon-margin;
+		padding-left: $prop-tree-icon-box-size + $prop-tree-icon-margin - $base-module; // $base-module - button padding
 		text-align: $prop-tree-action-align;
 	}
 }

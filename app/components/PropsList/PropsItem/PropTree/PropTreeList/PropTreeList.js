@@ -8,7 +8,12 @@ export const PropTreeList = props => {
 	if (props.addButton) {
 		addButton =
 			<div className="prop-tree-item-action-row">
-				<Button text="Add field" kind="link" />
+				<Button
+					text="Add field"
+					icon="plus"
+					size="small"
+				    narrow
+				/>
 			</div>
 		;
 	}

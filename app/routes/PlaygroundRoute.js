@@ -328,7 +328,7 @@ const toolComponentLayoutWindowSections = List([
 					<PropsItem type="list" label="some child item" tooltip={'i am tooltip'}/>
 					<PropsItem type="toggle" label="some child item" tooltip={'i am tooltip'}/>
 					<PropsItem type="constructor-toggle" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem type="tree" label="Prop tree" tooltip={'i am tooltip'}/>
+					<PropsItem type="tree" label="Prop-1" tooltip={'i am tooltip'}/>
 				</BlockContentBoxItem>
 			</BlockContentBox>
 		)
