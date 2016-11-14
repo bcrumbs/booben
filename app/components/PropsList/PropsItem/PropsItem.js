@@ -128,29 +128,7 @@ export const PropsItem = props => {
     }
 
     else if (props.type === 'tree') {
-        content =
-            <PropTree>
-                <PropTreeList>
-                    <PropTreeItem title="prop-1" opened>
-                        <PropTreeList>
-                            <PropTreeItem title="buttons" opened>
-                                <PropTreeList addButton>
-                                    <PropTreeItem title="button1" type="constructor" valueType="constructor" />
-                                    <PropTreeItem title="button2" type="constructor" valueType="constructor" />
-                                </PropTreeList>
-                            </PropTreeItem>
-                            <PropTreeItem title="onClick" type="function" valueType="input" />
-                            <PropTreeItem title="value" type="number" valueType="input" />
-                            <PropTreeItem title="some array">
-                                <PropTreeList>
-                                    <PropTreeItem title='1' type="arrayItem" valueType="input" />
-                                    <PropTreeItem title='2' type="arrayItem" valueType="input" />
-                                </PropTreeList>
-                            </PropTreeItem>
-                        </PropTreeList>
-                    </PropTreeItem>
-                </PropTreeList>
-            </PropTree>
+        content = <PropTree />
     }
 
     else if (props.type === 'array') {

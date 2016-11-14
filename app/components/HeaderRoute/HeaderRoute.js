@@ -10,7 +10,7 @@ import {
 
 import './HeaderRoute.scss';
 
-const breadcrumbsItems = [
+const breadcrumbsItemsList = [
 	{
 		title: 'ParentComponent'
 	},
@@ -24,7 +24,7 @@ export const HeaderRoute = props => (
 	<Header>
 		<HeaderRegion spread alignY="center">
 			<HeaderTitle>
-				<Breadcrumbs items="breadcrumbsItems"/>
+				<Breadcrumbs items={breadcrumbsItemsList} />
 			</HeaderTitle>
 		</HeaderRegion>
 		<HeaderRegion>
