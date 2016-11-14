@@ -1,6 +1,7 @@
 'use strict';
 
 import IntlMessageFormat from 'intl-messageformat';
+import { Map } from 'immutable';
 
 /**
  *
@@ -23,4 +24,4 @@ export const concatPath = (prefix, path) => {
   * @returns {string}
   */
 export const getLocalizedText = (localization, language, id, values = {}) =>
-  Object.keys(localization).length && (new IntlMessageFormat(localization.get(id), language)).format(values) || '';
+	new IntlMessageFormat(localization.get(id), language).format(values);
