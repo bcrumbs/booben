@@ -154,7 +154,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 				this.closestItemComponentId =
 				 		this._getClosestCursorItemComponentId(event);
 
-				if (!(this.closestItemComponentId + 1)) return;
+				if (!~this.closestItemComponentId) return;
 
 				const itemElement = this.itemRefs.get(
 					this.closestItemComponentId
@@ -167,7 +167,11 @@ class ComponentsTreeViewComponent extends PureComponent {
 				) this._resetDrag();
 				else {
 
-					this.cursorState = this.getCursorState(event, itemElement);
+					const cursorState = this.getCursorState(event, itemElement);
+
+                    if (this.cursorState === cursorState) return;
+
+                    this.cursorState = cursorState;
 
 					const highlighted =
 							this.props.highlightedComponentIds.includes(
@@ -314,6 +318,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 	}
 
 	_getClosestCursorItemComponentId(event) {
+        // TODO optimize that terrible solution
 		let closestItemComponentId = -1;
 		let minHeightDiff = Infinity;
 		this.itemRefs.forEach(
