@@ -8,6 +8,7 @@
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
+import { createSelector } from 'reselect';
 
 import {
     PropsList,
@@ -30,11 +31,14 @@ import {
 
 import {
     currentComponentsSelector,
-    currentSelectedComponentIdsSelector
+    currentSelectedComponentIdsSelector,
+    topNestedConstructorSelector,
+    topNestedConstructorComponentSelector
 } from '../../selectors';
 
 import { getLocalizedText } from '../../utils';
 import { getString, getComponentMeta } from '../../utils/meta';
+import { objectSome } from '../../utils/misc';
 
 /**
  *
@@ -118,6 +122,36 @@ const getStaticOneOfValue = (source, sourceData, options) =>
         ? (sourceData ? sourceData.value : options[0].value)
         : options[0].value;
 
+/**
+ *
+ * @param {Object} propValue
+ * @return {boolean}
+ */
+const isLinkedProp = propValue =>
+    propValue.source === 'data' || (
+        propValue.source === 'static' &&
+        !!propValue.sourceData.ownerPropName
+    );
+
+const ownerPropsSelector = createSelector(
+    topNestedConstructorSelector,
+    topNestedConstructorComponentSelector,
+    state => state.project.meta,
+
+    (topNestedConstructor, ownerComponent, meta) => {
+        if (!topNestedConstructor || !ownerComponent) return null;
+
+        const ownerComponentMeta = getComponentMeta(ownerComponent.name, meta),
+            ownerComponentProp = topNestedConstructor.prop,
+            ownerComponentPropMeta = ownerComponentMeta.props[ownerComponentProp];
+
+        return ownerComponentPropMeta.source.indexOf('designer') > -1
+            ? ownerComponentPropMeta.sourceConfigs.designer.props || null
+            : null;
+    }
+);
+
+
 class ComponentPropsEditorComponent extends PureComponent {
     _handleSetComponent(propName) {
         const componentId = this.props.selectedComponentIds.first();
@@ -134,17 +168,41 @@ class ComponentPropsEditorComponent extends PureComponent {
         );
     }
 
+    _isPropLinkable(propMeta) {
+        if (propMeta.source.indexOf('data') > -1) return true;
+
+        if (this.props.ownerProps) {
+            // TODO: Better check for types compatibility
+            return objectSome(
+                this.props.ownerProps,
+                ownerProp => ownerProp.type === propMeta.type
+            );
+        }
+        else {
+            return false;
+        }
+    }
+
+    /**
+     *
+     * @param {ComponentMeta} componentMeta
+     * @param {string} propName
+     * @param {Object} propValue
+     * @returns {ReactElement}
+     * @private
+     */
     _renderStringProp(componentMeta, propName, propValue) {
         const source = propValue ? propValue.source : 'static',
             sourceData = propValue ? propValue.sourceData : null,
             value = getStaticStringValue(source, sourceData),
             propMeta = componentMeta.props[propName],
-            isLinked = source === 'data',
-            linkable = propMeta.source.indexOf('data') > -1;
+            isLinked = isLinkedProp(propValue),
+            linkable = this._isPropLinkable(propMeta);
 
         const label =
             getString(componentMeta, propMeta.textKey, this.props.language) || propName;
 
+        //noinspection JSValidateTypes
         return (
             <PropsItem
                 key={propName}
@@ -163,8 +221,8 @@ class ComponentPropsEditorComponent extends PureComponent {
             sourceData = propValue ? propValue.sourceData : null,
             value = getStaticIntValue(source, sourceData),
             propMeta = componentMeta.props[propName],
-            isLinked = source === 'data',
-            linkable = propMeta.source.indexOf('data') > -1;
+            isLinked = isLinkedProp(propValue),
+            linkable = this._isPropLinkable(propMeta);
 
         const label =
             getString(componentMeta, propMeta.textKey, this.props.language) || propName;
@@ -190,8 +248,8 @@ class ComponentPropsEditorComponent extends PureComponent {
             sourceData = propValue ? propValue.sourceData : null,
             value = getStaticFloatValue(source, sourceData),
             propMeta = componentMeta.props[propName],
-            isLinked = source === 'data',
-            linkable = propMeta.source.indexOf('data') > -1;
+            isLinked = isLinkedProp(propValue),
+            linkable = this._isPropLinkable(propMeta);
 
         const label =
             getString(componentMeta, propMeta.textKey, this.props.language) || propName;
@@ -217,8 +275,8 @@ class ComponentPropsEditorComponent extends PureComponent {
             sourceData = propValue ? propValue.sourceData : null,
             value = getStaticBoolValue(source, sourceData),
             propMeta = componentMeta.props[propName],
-            isLinked = source === 'data',
-            linkable = propMeta.source.indexOf('data') > -1;
+            isLinked = isLinkedProp(propValue),
+            linkable = this._isPropLinkable(propMeta);
 
         const label =
             getString(componentMeta, propMeta.textKey, this.props.language) || propName;
@@ -242,8 +300,8 @@ class ComponentPropsEditorComponent extends PureComponent {
             sourceData = propValue ? propValue.sourceData : null,
             propMeta = componentMeta.props[propName],
             value = getStaticOneOfValue(source, sourceData, propMeta.options),
-            isLinked = source === 'data',
-            linkable = propMeta.source.indexOf('data') > -1;
+            isLinked = isLinkedProp(propValue),
+            linkable = this._isPropLinkable(propMeta);
 
         const label =
             getString(componentMeta, propMeta.textKey, lang) || propName;
@@ -424,6 +482,7 @@ ComponentPropsEditorComponent.propTypes = {
     ),
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     language: PropTypes.string,
+    ownerProps: PropTypes.object,
     getLocalizedText: PropTypes.func,
 
     onPropValueChange: PropTypes.func,
@@ -435,7 +494,12 @@ const mapStateToProps = state => ({
     components: currentComponentsSelector(state),
     selectedComponentIds: currentSelectedComponentIdsSelector(state),
     language: state.app.language,
-    getLocalizedText: (...args) => getLocalizedText(state.app.localization, state.app.language, ...args)
+    ownerProps: ownerPropsSelector(state),
+    getLocalizedText: (...args) => getLocalizedText(
+        state.app.localization,
+        state.app.language,
+        ...args
+    )
 });
 
 const mapDispatchToProps = dispatch => ({

@@ -27,6 +27,11 @@ import {
 } from '../components/IsolationView/IsolationView';
 
 import {
+    DataList,
+    DataItem
+} from '../components/DataList/DataList';
+
+import {
     Dialog,
     Header,
     HeaderRegion,
@@ -39,7 +44,7 @@ import {
 
 import store from '../store';
 
-import ProjectRecord, { getComponentById } from '../models/Project';
+import ProjectRecord from '../models/Project';
 import ProjectComponentRecord from '../models/ProjectComponent';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
@@ -50,12 +55,22 @@ import {
     deleteComponent,
     selectLayoutForNewComponent,
     saveComponentForProp,
-    cancelConstructComponentForProp
+    cancelConstructComponentForProp,
+    linkWithOwnerProp,
+    linkWithOwnerPropCancel,
+    linkWithOwnerPropConfirm
 } from '../actions/project';
 
 import {
-    haveNestedConstructorsSelector
+    haveNestedConstructorsSelector,
+    topNestedConstructorSelector,
+    topNestedConstructorComponentSelector,
+    singleComponentSelectedSelector,
+    firstSelectedComponentIdSelector,
+    currentComponentsSelector
 } from '../selectors';
+
+import { NestedConstructor } from '../reducers/project';
 
 import {
     getComponentMeta,
@@ -151,6 +166,8 @@ class DesignRoute extends PureComponent {
         this._handleDeleteComponentConfirm = this._handleDeleteComponentConfirm.bind(this);
         this._handleDeleteComponentCancel = this._handleDeleteComponentCancel.bind(this);
         this._handleConfirmDeleteComponentDialogClose = this._handleConfirmDeleteComponentDialogClose.bind(this);
+        this._handleSelectOwnerPropDialogConfirm = this._handleSelectOwnerPropDialogConfirm.bind(this);
+        this._handleSelectOwnerPropDialogCancel = this._handleSelectOwnerPropDialogCancel.bind(this);
     }
 
     /**
@@ -161,8 +178,7 @@ class DesignRoute extends PureComponent {
      */
     _handleToolTitleChange(tool, newTitle) {
         if (tool.id === TOOL_ID_PROPS_EDITOR) {
-            const componentId = this.props.selectedComponentIds.first();
-            this.props.onRenameComponent(componentId, newTitle);
+            this.props.onRenameComponent(this.props.firstSelectedComponentId, newTitle);
         }
     }
 
@@ -182,7 +198,7 @@ class DesignRoute extends PureComponent {
      * @private
      */
     _handleDeleteComponentConfirm(closeDialog) {
-        this.props.onDeleteComponent(this.props.selectedComponentIds.first());
+        this.props.onDeleteComponent(this.props.firstSelectedComponentId);
         closeDialog();
     }
 
@@ -205,7 +221,25 @@ class DesignRoute extends PureComponent {
         });
     }
 
+    /**
+     *
+     * @param {string} ownerPropName
+     * @private
+     */
+    _handleSelectOwnerPropDialogConfirm(ownerPropName) {
+        this.props.onLinkWithOwnerPropConfirm(ownerPropName);
+    }
+
+    /**
+     *
+     * @private
+     */
+    _handleSelectOwnerPropDialogCancel() {
+        this.props.onLinkWithOwnerPropCancel();
+    }
+
     render() {
+        // TODO: Handle index routes
         const { getLocalizedText } = this.props,
             src = `/preview/${this.props.params.projectName}/index.html`,
             routeId = parseInt(this.props.params.routeId),
@@ -239,8 +273,6 @@ class DesignRoute extends PureComponent {
             ])
         });
 
-        const singleComponentSelected = this.props.selectedComponentIds.size === 1;
-
         const propsEditorSection = new ToolSectionRecord({
             name: 'General',
             component: ComponentPropsEditor
@@ -251,33 +283,33 @@ class DesignRoute extends PureComponent {
             mainButtons = List(),
             sections = List([propsEditorSection]);
 
-        if (singleComponentSelected) {
-            const componentId = this.props.selectedComponentIds.first(),
-                component = getComponentById(this.props.project, componentId);
+        if (this.props.singleComponentSelected) {
+            const selectedComponent = this.props.components.get(
+                this.props.firstSelectedComponentId
+            );
 
-            const parentComponent = component.parentId > -1
-                ? getComponentById(this.props.project, component.parentId)
+            const parentComponent = selectedComponent.parentId > -1
+                ? this.props.components.get(selectedComponent.parentId)
                 : null;
 
             const isRegion = parentComponent
                 ? isCompositeComponent(parentComponent.name, this.props.meta)
                 : false;
 
-            title = component.title;
-            subtitle = component.name;
+            title = selectedComponent.title;
+            subtitle = selectedComponent.name;
 
             if (!isRegion) {
-                if (!component.isWrapper) {
+                if (!selectedComponent.isWrapper) {
                     mainButtons = mainButtons.push(
                         new ButtonRecord({
                             text: getLocalizedText('delete'),
-                            disabled: !singleComponentSelected,
                             onPress: this._handleDeleteComponentButtonPress
                         })
                     )
                 }
 
-                if (isCompositeComponent(component.name, this.props.meta)) {
+                if (isCompositeComponent(selectedComponent.name, this.props.meta)) {
                     sections = sections.push(
                         new ToolSectionRecord({
                             name: 'Regions',
@@ -296,7 +328,7 @@ class DesignRoute extends PureComponent {
             icon: PROPS_EDITOR_ICON,
             name: getLocalizedText('componentConfiguration'),
             title: title,
-            titleEditable: singleComponentSelected,
+            titleEditable: this.props.singleComponentSelected,
             titlePlaceholder: getLocalizedText('enterTitle'),
             subtitle: subtitle,
             mainButtons: mainButtons,
@@ -405,6 +437,59 @@ class DesignRoute extends PureComponent {
             content = previewIFrame;
         }
 
+        let selectOwnerPropDialogContent = null;
+        if (this.props.singleComponentSelected && this.props.selectingOwnerProp) {
+            const ownerComponent = this.props.topNestedConstructorComponent;
+
+            const ownerComponentMeta = getComponentMeta(
+                ownerComponent.name,
+                this.props.meta
+            );
+
+            const ownerComponentPropName = this.props.topNestedConstructor.prop,
+                ownerComponentPropMeta = ownerComponentMeta.props[ownerComponentPropName],
+                ownerProps = ownerComponentPropMeta.sourceConfigs.designer.props;
+
+            const items = Object.keys(ownerProps).map((ownerPropName, idx) => {
+                const prop = ownerProps[ownerPropName];
+
+                const title = getString(
+                    ownerComponentMeta,
+                    prop.textKey,
+                    this.props.language
+                );
+
+                const subtitle = getString(
+                    ownerComponentMeta,
+                    prop.descriptionTextKey,
+                    this.props.language
+                );
+
+                return (
+                    <DataItem
+                        key={idx}
+                        title={title}
+                        subtitle={subtitle}
+                        type={prop.type}
+                        clickable
+                        arg={ownerPropName}
+                        onClick={this._handleSelectOwnerPropDialogConfirm}
+                    />
+                );
+            });
+
+            selectOwnerPropDialogContent = (
+                <DataList>
+                    {items}
+                </DataList>
+            );
+        }
+
+        const selectOwnerPropDialogButtons = [{
+            text: getLocalizedText('cancel'),
+            onPress: this._handleSelectOwnerPropDialogCancel
+        }];
+
         return (
             <Desktop
                 toolGroups={toolGroups}
@@ -434,6 +519,17 @@ class DesignRoute extends PureComponent {
                 >
                     {getLocalizedText('deleteThisComponentQuestion')}
                 </Dialog>
+
+                <Dialog
+                    title="Select prop"
+                    minWidth={400}
+                    buttons={selectOwnerPropDialogButtons}
+                    visible={this.props.selectingOwnerProp}
+                    closeOnEscape
+                    onClose={this._handleSelectOwnerPropDialogCancel}
+                >
+                    {selectOwnerPropDialogContent}
+                </Dialog>
             </Desktop>
         );
     }
@@ -441,33 +537,52 @@ class DesignRoute extends PureComponent {
 
 DesignRoute.propTypes = {
     project: PropTypes.instanceOf(ProjectRecord),
+    components: ImmutablePropTypes.mapOf(
+        PropTypes.instanceOf(ProjectComponentRecord),
+        PropTypes.number
+    ),
     meta: PropTypes.object,
     previewContainerStyle: PropTypes.string,
-    selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
+    singleComponentSelected: PropTypes.bool,
+    firstSelectedComponentId: PropTypes.number,
     selectingComponentLayout: PropTypes.bool,
-    draggedComponents: ImmutablePropTypes.mapOf(PropTypes.instanceOf(ProjectComponentRecord)),
+    draggedComponents: ImmutablePropTypes.mapOf(
+        PropTypes.instanceOf(ProjectComponentRecord),
+        PropTypes.number
+    ),
     language: PropTypes.string,
     haveNestedConstructor: PropTypes.bool,
     nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(PropTypes.string),
+    selectingOwnerProp: PropTypes.bool,
+    topNestedConstructor: PropTypes.instanceOf(NestedConstructor),
+    topNestedConstructorComponent: PropTypes.instanceOf(ProjectComponentRecord),
     getLocalizedText: PropTypes.func,
 
     onRenameComponent: PropTypes.func,
     onDeleteComponent: PropTypes.func,
     onSelectLayout: PropTypes.func,
     onSaveComponentForProp: PropTypes.func,
-    onCancelConstructComponentForProp: PropTypes.func
+    onCancelConstructComponentForProp: PropTypes.func,
+    onLinkWithOwnerProp: PropTypes.func,
+    onLinkWithOwnerPropConfirm: PropTypes.func,
+    onLinkWithOwnerPropCancel: PropTypes.func
 };
 
 const mapStateToProps = state => ({
     project: state.project.data,
+    components: currentComponentsSelector(state),
     meta: state.project.meta,
     previewContainerStyle: containerStyleSelector(state),
-    selectedComponentIds: state.project.selectedItems,
+    singleComponentSelected: singleComponentSelectedSelector(state),
+    firstSelectedComponentId: firstSelectedComponentIdSelector(state),
     selectingComponentLayout: state.project.selectingComponentLayout,
     draggedComponents: state.project.draggedComponents,
-    language: state.app.language,
+    language: state.project.languageForComponentProps,
     haveNestedConstructor: haveNestedConstructorsSelector(state),
     nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
+    selectingOwnerProp: state.project.selectingOwnerProp,
+    topNestedConstructor: topNestedConstructorSelector(state),
+    topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
     getLocalizedText: (...args) => getLocalizedText(
         state.app.localization,
         state.app.language,
@@ -489,7 +604,16 @@ const mapDispatchToProps = dispatch => ({
         void dispatch(saveComponentForProp()),
 
     onCancelConstructComponentForProp: () =>
-        void dispatch(cancelConstructComponentForProp())
+        void dispatch(cancelConstructComponentForProp()),
+
+    onLinkWithOwnerProp: (componentId, propName) =>
+        void dispatch(linkWithOwnerProp(componentId, propName)),
+
+    onLinkWithOwnerPropConfirm: ownerPropName =>
+        void dispatch(linkWithOwnerPropConfirm(ownerPropName)),
+
+    onLinkWithOwnerPropCancel: () =>
+        void dispatch(linkWithOwnerPropCancel())
 });
 
 export default connect(

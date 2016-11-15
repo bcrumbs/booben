@@ -21,7 +21,7 @@ import {
     canInsertComponent
 } from '../../app/utils/meta';
 
-import { objectMap } from '../../app/utils/misc';
+import { objectMap, returnNull } from '../../app/utils/misc';
 
 const components = objectMap(_components, ns => objectMap(ns, patchComponent));
 
@@ -59,17 +59,46 @@ const getComponentByName = (name = '') => {
 };
 
 /**
+ *
+ * @param {Object} propValueDescriptor
+ * @param {string} propName
+ * @return {Function}
+ */
+const makeBuilderForProp = (propValueDescriptor, propName) => {
+    // TODO: Memoize
+    const ret = props => (
+        <Builder
+            components={propValueDescriptor.sourceData.components}
+            rootId={propValueDescriptor.sourceData.rootId}
+            dontPatch
+            propsFromOwner={props}
+            children={props.children}
+        />
+    );
+
+    ret.displayName = `Builder(${propName})`;
+
+    return ret;
+};
+
+/**
  * Constructs props object
  *
- * @param  {Immutable.Map<string, Object>} props
+ * @param {Immutable.Map<string, Object>} propValueDescriptors
+ * @param {?Object<string, *>} propsFromOwner
  * @return {Object<string, *>}
  */
-const buildProps = props => {
+const buildProps = (propValueDescriptors, propsFromOwner) => {
     const ret = {};
 
-    props.forEach((prop, key) => {
+    propValueDescriptors.forEach((prop, key) => {
         if (prop.source == 'static') {
-            ret[key] = prop.sourceData.value;
+            if (typeof prop.ownerPropName !== 'undefined') {
+                ret[key] = propsFromOwner[prop.ownerPropName];
+            }
+            else {
+                ret[key] = prop.sourceData.value;
+            }
         }
         else if (prop.source === 'const') {
             if (typeof prop.sourceData.value !== 'undefined') {
@@ -81,17 +110,10 @@ const buildProps = props => {
         }
         else if (prop.source === 'designer') {
             if (prop.sourceData.components && prop.sourceData.rootId > -1) {
-                ret[key] = ({ children }) => (
-                    <Builder
-                        components={prop.sourceData.components}
-                        rootId={prop.sourceData.rootId}
-                        dontPatch
-                        children={children}
-                    />
-                );
+                ret[key] = makeBuilderForProp(prop, key);
             }
             else {
-                ret[key] = () => null;
+                ret[key] = returnNull;
             }
         }
         else if (prop.source === 'actions') {
@@ -117,7 +139,7 @@ class BuilderComponent extends PureComponent {
             return this.props.children;
         }
         else if (component.name === 'Text') {
-            const props = buildProps(component.props);
+            const props = buildProps(component.props, this.props.propsFromOwner);
             return props.text || '';
         }
     }
@@ -270,7 +292,7 @@ class BuilderComponent extends PureComponent {
         if (isPseudoComponent(component)) return this._renderPseudoComponent(component);
 
         const Component = getComponentByName(component.name),
-            props = buildProps(component.props),
+            props = buildProps(component.props, this.props.propsFromOwner),
             isHTMLComponent = typeof Component === 'string';
 
         props.children = this._renderComponentChildren(component, isPlaceholder);
@@ -358,6 +380,7 @@ BuilderComponent.propTypes = {
     isPlaceholder: PropTypes.bool,
     afterIdx: PropTypes.any, // number on null
     containerId: PropTypes.any, // number on null
+    propsFromOwner: PropTypes.object,
 
     project: PropTypes.any,
     meta: PropTypes.object,
@@ -374,8 +397,9 @@ BuilderComponent.defaultProps = {
     dontPatch: false,
     enclosingComponentId: -1,
     isPlaceholder: false,
-    afterIdx: null,
-    containerId: null
+    afterIdx: -1,
+    containerId: -1,
+    propsFromOwner: {}
 };
 
 BuilderComponent.displayName = 'Builder';

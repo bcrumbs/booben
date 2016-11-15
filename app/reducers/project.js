@@ -25,7 +25,10 @@ import {
     PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
     PROJECT_CONSTRUCT_COMPONENT_FOR_PROP,
     PROJECT_CANCEL_CONSTRUCT_COMPONENT_FOR_PROP,
-    PROJECT_SAVE_COMPONENT_FOR_PROP
+    PROJECT_SAVE_COMPONENT_FOR_PROP,
+    PROJECT_LINK_WITH_OWNER_PROP,
+    PROJECT_LINK_WITH_OWNER_PROP_CONFIRM,
+    PROJECT_LINK_WITH_OWNER_PROP_CANCEL,
 } from '../actions/project';
 
 import {
@@ -82,7 +85,7 @@ import {
     formatComponentName
 } from '../utils/meta';
 
-const NestedConstructor = Record({
+export const NestedConstructor = Record({
     components: Map(),
     rootId: -1,
     componentId: -1,
@@ -121,7 +124,10 @@ const ProjectState = Record({
     languageForComponentProps: 'en',
     selectingComponentLayout: false,
 
-    nestedConstructors: List()
+    nestedConstructors: List(),
+    selectingOwnerProp: false,
+    ownerPropForComponentId: -1,
+    ownerPropForComponentProp: ''
 });
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
@@ -806,6 +812,32 @@ export default (state = new ProjectState(), action) => {
             ]);
 
             return state.setIn(path, newValue);
+        }
+
+        case PROJECT_LINK_WITH_OWNER_PROP: {
+            return state.merge({
+                selectingOwnerProp: true,
+                ownerPropForComponentId: action.componentId,
+                ownerPropForComponentProp: action.propName
+            });
+        }
+
+        case PROJECT_LINK_WITH_OWNER_PROP_CONFIRM: {
+            // TODO: Update component
+
+            return state.merge({
+                selectingOwnerProp: false,
+                ownerPropForComponentId: -1,
+                ownerPropForComponentProp: ''
+            });
+        }
+
+        case PROJECT_LINK_WITH_OWNER_PROP_CANCEL: {
+            return state.merge({
+                selectingOwnerProp: false,
+                ownerPropForComponentId: -1,
+                ownerPropForComponentProp: ''
+            });
         }
 
         case PREVIEW_DRAG_OVER_COMPONENT: {
