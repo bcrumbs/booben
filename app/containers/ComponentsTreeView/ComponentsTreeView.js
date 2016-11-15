@@ -208,12 +208,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 					|| isCompositeComponent(component.name, this.props.meta)
 				) this._expandAfterTime(
 					this.closestItemComponentId,
-					parentComponent
-					&& isCompositeComponent(
-						parentComponent.name,
-						this.props.meta
-					)
-					|| this.closestItemComponentId === this.props.rootComponentId
+					this.closestItemComponentId === this.props.rootComponentId
 						? 0 : this.props.timeToExpand
 				);
 
