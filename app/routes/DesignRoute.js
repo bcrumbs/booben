@@ -379,13 +379,13 @@ class DesignRoute extends PureComponent {
                         </HeaderRegion>
                         <HeaderRegion>
                             <Button
-                                text="Cancel"
+                                text={getLocalizedText('cancel')}
                                 light
                                 onPress={this.props.onCancelConstructComponentForProp}
                             />
 
                             <Button
-                                text="OK"
+                                text={getLocalizedText('ok')}
                                 light
                                 onPress={this.props.onSaveComponentForProp}
                             />
