@@ -82,7 +82,7 @@ class ComponentsTreeViewComponent extends PureComponent {
         this._handleMouseMove = this._handleMouseMove.bind(this);
         this._createElementRef = this._createElementRef.bind(this);
 		this._createItemRef = this._createItemRef.bind(this);
-		this._createLineRef = this._createLineRef.bind(this)
+		this._createLineRef = this._createLineRef.bind(this);
 		this._expandAfterTime = this._expandAfterTime.bind(this);
 		this._clearExpandTimeout = this._clearExpandTimeout.bind(this);
 		this._resetDrag = this._resetDrag.bind(this);
@@ -132,7 +132,6 @@ class ComponentsTreeViewComponent extends PureComponent {
 	_createLineRef(ref) {
 		this.lineElement = ref;
 	}
-
 
 	_isCursorOnElementTop(element, event) {
 		const boundingClientRect = element.getBoundingClientRect();
@@ -221,6 +220,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 				const parentComponent =
 						this.props.components.get(component.parentId);
 
+
                 const currentPlaceholderContainer =
 					willDropInCurrentContainer
 					|| !parentComponent
@@ -246,6 +246,18 @@ class ComponentsTreeViewComponent extends PureComponent {
 					!currentPlaceholderContainer
 					|| currentPlaceholderContainer.id === this.props.rootComponentId
 				) return;
+
+
+				for (
+					let parentId = currentPlaceholderContainer.id;
+					parentId + 1;
+				) {
+					if (parentId === this.props.draggedComponentId) return;
+					const component = this.props.components.get(parentId);
+					if (component)
+						parentId = component.parentId;
+					else break;
+				}
 
                 const rootComponent =
                     this.props.components.get(this.props.rootComponentId);
