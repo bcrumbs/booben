@@ -1,5 +1,31 @@
 @charset "UTF-8";
 @import '~@reactackle/reactackle/utils/global';
 
+// =====================================================================================================================
 // Base Variables
 // =====================================================================================================================
+
+// =================================================================================================================
+// DATA
+// =================================================================================================================
+$isv-data-padding-y:        $base-module*2.5 !default;
+$isv-data-padding-x:        $base-module*2.5 !default;
+
+$isv-data-font-size:        fs(-1)!default;
+$isv-data-color:            $grey-500!default;
+$isv-data-font-weight:      $font-weight-normal!default;
+$isv-data-text-transform:   none!default;
+$isv-data-line-height:      $txt-caption-lineheight!default;
+
+// =================================================================================================================
+// VIEW
+// =================================================================================================================
+$isv-view-padding-y:        $isv-data-padding-y !default;
+$isv-view-padding-x:        $isv-data-padding-x !default;
+
+// RULER
+$isv-ruler-thickness:       $base-module*3 !default;
+
+$isv-ruler-bg-color:        transparentize($black, 0.95) !default;
+$isv-ruler-hover-bg-color:  transparentize($black, 0.85) !default;
+

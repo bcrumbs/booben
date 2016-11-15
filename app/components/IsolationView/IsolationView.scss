@@ -6,5 +6,72 @@
 	// BASE
 	// =================================================================================================================
 
+	// =================================================================================================================
+	// DATA
+	// =================================================================================================================
+	.isolation_data-box {
+		padding: $isv-data-padding-y $isv-data-padding-x;
+
+		font-size: $isv-data-font-size;
+		color: $isv-data-color;
+		font-weight: $isv-data-font-weight;
+		text-transform: $isv-data-text-transform;
+		line-height: $isv-data-line-height;
+		text-align: left;
+	}
+
+	// =================================================================================================================
+	// VIEW
+	// =================================================================================================================
+	.isolation_view-box {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: $isv-view-padding-y $isv-view-padding-x;
+		padding-bottom: $isv-ruler-thickness;
+		padding-right: $isv-ruler-thickness;
+		overflow-x: auto;
+	}
+
+	.isolation_view {
+		background-color: $white;
+		border: 1px solid $color-border;
+		position: relative;
+		flex-grow: 1;
+	}
+
+	.isolation_view-row {
+		width: 100%;
+		flex-shrink: 0;
+		display: flex;
+	}
+
+	// =================================================================================================================
+	// RULERS
+	// =================================================================================================================
+	.isolation_view-ruler {
+		background-color: $isv-ruler-bg-color;
+		flex-shrink: 0;
+		@include single-transition(background-color);
+
+		&:hover {
+			background-color: $isv-ruler-hover-bg-color;
+		}
+
+		&.ruler-position-x {
+			width: $isv-ruler-thickness;
+		}
+
+		&.ruler-position-y {
+			height: $isv-ruler-thickness;
+			flex-grow: 1;
+		}
+
+		&.ruler-position-entire {
+			height: $isv-ruler-thickness;
+			width: $isv-ruler-thickness;
+		}
+	}
 }
 

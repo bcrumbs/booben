@@ -579,7 +579,15 @@ export default class Playground extends React.Component {
 		                <HeaderRoute />
 
 		                <PanelContent>
-			                <IsolationView />
+			                <IsolationView
+				                adaptive
+				                width="auto"
+				                minWidth="300px"
+				                maxWidth="none"
+				                height="auto"
+				                minHeight="300px"
+				                maxHeight="none"
+			                />
 		                </PanelContent>
 	                </Panel>
                 </Desktop>

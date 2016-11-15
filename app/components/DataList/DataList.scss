@@ -15,6 +15,7 @@
 	// =================================================================================================================
 	.data-list-item {
 		padding: $data-item-padding-y $data-item-padding-x;
+		border-radius: $data-item-border-radius;
 
 		@include single-transition(background-color);
 		@include user-select;
