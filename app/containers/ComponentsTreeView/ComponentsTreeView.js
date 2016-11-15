@@ -82,11 +82,13 @@ class ComponentsTreeViewComponent extends PureComponent {
         this._handleMouseMove = this._handleMouseMove.bind(this);
         this._createElementRef = this._createElementRef.bind(this);
 		this._createItemRef = this._createItemRef.bind(this);
+		this._createLineRef = this._createLineRef.bind(this)
 		this._expandAfterTime = this._expandAfterTime.bind(this);
 		this._clearExpandTimeout = this._clearExpandTimeout.bind(this);
 		this._resetDrag = this._resetDrag.bind(this);
-		this._haveChildPlaceholderContainer
-			= this._haveChildPlaceholderContainer.bind(this);
+		this._containsPlaceholderContainer
+			= this._containsPlaceholderContainer.bind(this);
+		this._scrollToLine = this._scrollToLine.bind(this);
 
 		this.itemRefs = new Map();
     }
@@ -95,12 +97,22 @@ class ComponentsTreeViewComponent extends PureComponent {
         document.addEventListener('mousemove', this._handleMouseMove);
     }
 
+	_scrollToLine() {
+		if (!this.lineElement) return;
+		const { top, bottom } = this.lineElement.getBoundingClientRect();
+		//this.element.scrollBy(document.body.offsetHeight - top);
+	}
+
     componentWillReceiveProps(nextProps) {
         !this.isMouseOver
 		&& !nextProps.draggingComponent
 		&& this.props.draggingComponent
 		&& this.props.onToolSelect('componentsLibrary');
     }
+
+	componentDidUpdate() {
+		this._scrollToLine();
+	}
 
     componentWillUnmount() {
         document.removeEventListener('mousemove', this._handleMouseMove);
@@ -116,6 +128,11 @@ class ComponentsTreeViewComponent extends PureComponent {
 		this.itemRefs.forEach((v, k) => !v && this.itemRefs.delete(k));
 		this.itemRefs.set(componentId, ref);
 	}
+
+	_createLineRef(ref) {
+		this.lineElement = ref;
+	}
+
 
 	_isCursorOnElementTop(element, event) {
 		const boundingClientRect = element.getBoundingClientRect();
@@ -191,6 +208,13 @@ class ComponentsTreeViewComponent extends PureComponent {
 					: 	highlighted &&
 						this.props.onUnhighlightItem(this.closestItemComponentId);
 
+				const willDropInCurrentContainer =
+					this.cursorState === CURSOR_STATES.MIDDLE
+					||	this.cursorState === CURSOR_STATES.BOTTOM
+					&&	this.props.expandedItemIds.includes(
+						this.closestItemComponentId
+					);
+
 				const component =
 						this.props.components.get(this.closestItemComponentId);
 
@@ -198,10 +222,10 @@ class ComponentsTreeViewComponent extends PureComponent {
 						this.props.components.get(component.parentId);
 
                 const currentPlaceholderContainer =
-					this.cursorState !== CURSOR_STATES.MIDDLE
-					&& parentComponent
-					?	parentComponent
-					:	component;
+					willDropInCurrentContainer
+					|| !parentComponent
+					?	component
+					:	parentComponent;
 
 				if (
 					isContainerComponent(component.name, this.props.meta)
@@ -227,7 +251,7 @@ class ComponentsTreeViewComponent extends PureComponent {
                     this.props.components.get(this.props.rootComponentId);
 
 				const indexOfPlaceholder =
-					this.cursorState === CURSOR_STATES.MIDDLE
+					willDropInCurrentContainer
 					?	currentPlaceholderContainer.children.size
 					:	currentPlaceholderContainer.children.indexOf(
 							this.closestItemComponentId
@@ -265,7 +289,6 @@ class ComponentsTreeViewComponent extends PureComponent {
                         currentPlaceholderContainer.id,
                         indexOfPlaceholder
                     );
-
 				}
 			}
 		}
@@ -315,14 +338,14 @@ class ComponentsTreeViewComponent extends PureComponent {
 
 	}
 
-	_haveChildPlaceholderContainer(componentId) {
-		if (!this.props.draggingComponent || this.isMouseOver) return false;
+	_containsPlaceholderContainer(componentId) {
+		if (!this.props.draggingComponent) return false;
 		if (componentId === this.props.placeholderContainerId) return true;
 		else {
 			const children = this.props.components.get(componentId).children;
 			if (!children) return false;
 			else
-				return children.map(this._haveChildPlaceholderContainer).includes(true);
+				return children.map(this._containsPlaceholderContainer).includes(true);
 
 		}
 
@@ -353,7 +376,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     _renderLine() {
         return (
-            <ComponentsTreeLine key="divider-line"/>
+            <ComponentsTreeLine createRef={this._createLineRef} key="divider-line"/>
         );
     }
 
@@ -400,6 +423,9 @@ class ComponentsTreeViewComponent extends PureComponent {
             subtitle = '';
         }
 
+		const containsPlaceholderContainer
+				= this._containsPlaceholderContainer(componentId);
+
         return (
 			<ComponentsTreeItem
 				componentId={componentId}
@@ -408,10 +434,13 @@ class ComponentsTreeViewComponent extends PureComponent {
 				subtitle={subtitle}
 				expanded={
 					this.props.expandedItemIds.has(componentId)
-					|| this._haveChildPlaceholderContainer(componentId)
+					|| !this.isMouseOver && containsPlaceholderContainer
 				}
 				active={this.props.selectedComponentIds.has(componentId)}
-				hovered={this.props.highlightedComponentIds.has(componentId)}
+				hovered={
+					this.props.highlightedComponentIds.has(componentId)
+					|| isCurrentComponentActiveContainer
+				}
 				onExpand={this._handleExpand}
 				onSelect={this._handleSelect}
 				onHover={this._handleHover}
