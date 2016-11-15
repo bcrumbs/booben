@@ -119,6 +119,18 @@ export const getString = (componentMeta, stringId, language) => {
 
 /**
  *
+ * @param {Object} componentMeta
+ * @param {string} prop
+ * @param {string} language
+ * @returns {?string}
+ */
+export const getComponentPropName = (componentMeta, prop, language) => {
+    const stringId = componentMeta.props[prop].textKey;
+    return getString(componentMeta, stringId, language);
+};
+
+/**
+ *
  * @param {string} componentName
  * @param {string} containerName
  * @param {string[]|Immutable.List<string>} containerChildrenNames
