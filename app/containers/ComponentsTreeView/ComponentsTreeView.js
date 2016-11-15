@@ -151,13 +151,13 @@ class ComponentsTreeViewComponent extends PureComponent {
 		if (this.props.draggingComponent) {
 	        this.isMouseOver = this.element && this.element.contains(event.target);
 			if (this.isMouseOver) {
-				this.closestItemComponentId =
+				const closestItemComponentId =
 				 		this._getClosestCursorItemComponentId(event);
 
-				if (!~this.closestItemComponentId) return;
+				if (closestItemComponentId === -1) return;
 
 				const itemElement = this.itemRefs.get(
-					this.closestItemComponentId
+					closestItemComponentId
 				);
 
 				if (
@@ -169,9 +169,13 @@ class ComponentsTreeViewComponent extends PureComponent {
 
 					const cursorState = this.getCursorState(event, itemElement);
 
-                    if (this.cursorState === cursorState) return;
+                    if (
+						this.cursorState === cursorState
+						 && this.closestItemComponentId === closestItemComponentId
+					) return;
 
                     this.cursorState = cursorState;
+					this.closestItemComponentId = closestItemComponentId;
 
 					const highlighted =
 							this.props.highlightedComponentIds.includes(
