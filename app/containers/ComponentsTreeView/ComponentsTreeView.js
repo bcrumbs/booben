@@ -85,7 +85,8 @@ class ComponentsTreeViewComponent extends PureComponent {
 		this._expandAfterTime = this._expandAfterTime.bind(this);
 		this._clearExpandTimeout = this._clearExpandTimeout.bind(this);
 		this._resetDrag = this._resetDrag.bind(this);
-		this._isExpanded = this._isExpanded.bind(this);
+		this._haveChildPlaceholderContainer
+			= this._haveChildPlaceholderContainer.bind(this);
 
 		this.itemRefs = new Map();
     }
@@ -143,8 +144,8 @@ class ComponentsTreeViewComponent extends PureComponent {
 
 	_resetDrag() {
 		if (this.props.draggingOverComponentId + 1) {
-			this.props.onDragOverComponent(-1);
 			this.props.onDragOverPlaceholder(-1, -1);
+			this.props.onDragOverComponent(-1);
 		}
 	}
 
@@ -222,7 +223,10 @@ class ComponentsTreeViewComponent extends PureComponent {
 				) return void this._resetDrag();
 
 
-                if (!currentPlaceholderContainer) return;
+                if (
+					!currentPlaceholderContainer
+					|| currentPlaceholderContainer.id === this.props.rootComponentId
+				) return;
 
                 const rootComponent =
                     this.props.components.get(this.props.rootComponentId);
@@ -316,13 +320,14 @@ class ComponentsTreeViewComponent extends PureComponent {
 
 	}
 
-	_isExpanded(componentId) {
+	_haveChildPlaceholderContainer(componentId) {
+		if (!this.props.draggingComponent || this.isMouseOver) return false;
 		if (componentId === this.props.placeholderContainerId) return true;
 		else {
 			const children = this.props.components.get(componentId).children;
 			if (!children) return false;
 			else
-				return children.map(this._isExpanded).includes(true);
+				return children.map(this._haveChildPlaceholderContainer).includes(true);
 
 		}
 
@@ -408,7 +413,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 				subtitle={subtitle}
 				expanded={
 					this.props.expandedItemIds.has(componentId)
-					|| this._isExpanded(componentId)
+					|| this._haveChildPlaceholderContainer(componentId)
 				}
 				active={this.props.selectedComponentIds.has(componentId)}
 				hovered={this.props.highlightedComponentIds.has(componentId)}
