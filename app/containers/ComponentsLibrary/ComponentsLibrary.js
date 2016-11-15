@@ -184,7 +184,7 @@ const libraryGroupsFilteredSelector = createSelector(
                         meta
                     ))
                 )
-            ),
+            ).filter(group => !group.components.isEmpty()),
 
             filtered: true
         };

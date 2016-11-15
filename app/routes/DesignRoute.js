@@ -22,7 +22,20 @@ import {
     ComponentLayoutSelectionItem
 } from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
-import { Dialog } from '@reactackle/reactackle';
+import {
+    IsolationView
+} from '../components/IsolationView/IsolationView';
+
+import {
+    Dialog,
+    Header,
+    HeaderRegion,
+    HeaderTitle,
+    Panel,
+    PanelContent,
+    Button,
+    Breadcrumbs
+} from '@reactackle/reactackle';
 
 import store from '../store';
 
@@ -35,13 +48,20 @@ import ButtonRecord from '../models/Button';
 import {
     renameComponent,
     deleteComponent,
-    selectLayoutForNewComponent
+    selectLayoutForNewComponent,
+    saveComponentForProp,
+    cancelConstructComponentForProp
 } from '../actions/project';
+
+import {
+    haveNestedConstructorsSelector
+} from '../selectors';
 
 import {
     getComponentMeta,
     isCompositeComponent,
-    getString
+    getString,
+    getComponentPropName
 } from '../utils/meta';
 
 import { getLocalizedText } from '../utils';
@@ -78,6 +98,44 @@ const containerStyleSelector = createSelector(
             .map(prop => `${prop}:${combinedStyle[prop]}`)
             .join(';');
     }
+);
+
+const nestedConstructorBreadcrumbsSelector = createSelector(
+    state => state.project.data,
+    state => state.project.currentRouteId,
+    state => state.project.nestedConstructors,
+    state => state.project.meta,
+    state => state.project.languageForComponentProps,
+
+    (project, currentRouteId, nestedConstructors, meta, language) => {
+        const returnEmpty =
+            !project ||
+            currentRouteId === -1 ||
+            nestedConstructors.isEmpty();
+
+        if (returnEmpty) return List();
+
+        return nestedConstructors.reduceRight((acc, cur) => {
+            const component = acc.components.get(cur.componentId),
+                title = component.title || component.name,
+                componentMeta = getComponentMeta(component.name, meta),
+                propName = getComponentPropName(componentMeta, cur.prop, language);
+
+            return {
+                ret: acc.ret.push(title, propName),
+                components: cur.components
+            };
+        }, {
+            ret: List(),
+            components: project.routes.get(currentRouteId).components
+        }).ret;
+    }
+);
+
+const NestedConstructorsBreadcrumbsItem = props => (
+    <span className={props.className}>
+        {props.children}
+    </span>
 );
 
 class DesignRoute extends PureComponent {
@@ -291,18 +349,68 @@ class DesignRoute extends PureComponent {
             { text: getLocalizedText('cancel'), onPress: this._handleDeleteComponentCancel }
         ];
 
+        const previewIFrame = (
+            <PreviewIFrame
+                interactive
+                store={store}
+                url={src}
+                path={route.fullPath}
+                containerStyle={this.props.previewContainerStyle}
+            />
+        );
+
+        let content;
+        if (this.props.haveNestedConstructor) {
+            // Render additional UI for nested constructor
+            const breadcrumbsItems = this.props.nestedConstructorBreadcrumbs
+                .toArray()
+                .map(item => ({ title: item }));
+
+            content = (
+                <Panel headerFixed maxHeight="initial">
+                    <Header>
+                        <HeaderRegion spread alignY="center">
+                            <HeaderTitle>
+                                <Breadcrumbs
+                                    items={breadcrumbsItems}
+                                    linkComponent={NestedConstructorsBreadcrumbsItem}
+                                />
+                            </HeaderTitle>
+                        </HeaderRegion>
+                        <HeaderRegion>
+                            <Button
+                                text={getLocalizedText('cancel')}
+                                light
+                                onPress={this.props.onCancelConstructComponentForProp}
+                            />
+
+                            <Button
+                                text={getLocalizedText('ok')}
+                                light
+                                onPress={this.props.onSaveComponentForProp}
+                            />
+                        </HeaderRegion>
+                    </Header>
+
+                    <PanelContent>
+                        <IsolationView>
+                            {previewIFrame}
+                        </IsolationView>
+                    </PanelContent>
+                </Panel>
+            );
+        }
+        else {
+            // Render main constructor only
+            content = previewIFrame;
+        }
+
         return (
             <Desktop
                 toolGroups={toolGroups}
                 onToolTitleChange={this._handleToolTitleChange}
             >
-                <PreviewIFrame
-                    interactive
-                    store={store}
-                    url={src}
-                    path={route.fullPath}
-                    containerStyle={this.props.previewContainerStyle}
-                />
+                {content}
 
                 <Dialog
                     title={getLocalizedText('selectLayout')}
@@ -339,11 +447,15 @@ DesignRoute.propTypes = {
     selectingComponentLayout: PropTypes.bool,
     draggedComponents: ImmutablePropTypes.mapOf(PropTypes.instanceOf(ProjectComponentRecord)),
     language: PropTypes.string,
+    haveNestedConstructor: PropTypes.bool,
+    nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(PropTypes.string),
     getLocalizedText: PropTypes.func,
 
     onRenameComponent: PropTypes.func,
     onDeleteComponent: PropTypes.func,
-    onSelectLayout: PropTypes.func
+    onSelectLayout: PropTypes.func,
+    onSaveComponentForProp: PropTypes.func,
+    onCancelConstructComponentForProp: PropTypes.func
 };
 
 const mapStateToProps = state => ({
@@ -354,7 +466,13 @@ const mapStateToProps = state => ({
     selectingComponentLayout: state.project.selectingComponentLayout,
     draggedComponents: state.project.draggedComponents,
     language: state.app.language,
-    getLocalizedText: (...args) => getLocalizedText(state.app.localization, state.app.language, ...args)
+    haveNestedConstructor: haveNestedConstructorsSelector(state),
+    nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
+    getLocalizedText: (...args) => getLocalizedText(
+        state.app.localization,
+        state.app.language,
+        ...args
+    )
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -365,7 +483,13 @@ const mapDispatchToProps = dispatch => ({
         void dispatch(deleteComponent(componentId)),
 
     onSelectLayout: layoutIdx =>
-        void dispatch(selectLayoutForNewComponent(layoutIdx))
+        void dispatch(selectLayoutForNewComponent(layoutIdx)),
+
+    onSaveComponentForProp: () =>
+        void dispatch(saveComponentForProp()),
+
+    onCancelConstructComponentForProp: () =>
+        void dispatch(cancelConstructComponentForProp())
 });
 
 export default connect(

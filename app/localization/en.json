@@ -13,6 +13,7 @@
 
   "create": "Create",
   "edit": "Edit",
+  "ok": "Ok",
   "cancel": "Cancel",
   "delete": "Delete",
   "routeEditorTitle": "Route configuration",
