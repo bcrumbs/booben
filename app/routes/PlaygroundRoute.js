@@ -84,12 +84,16 @@ import {
 } from '../components/ComponentInteractions/ComponentInteractions';
 
 import { HeaderRoute } from '../components/HeaderRoute/HeaderRoute';
-import { IsolationView } from '../components/IsolationView/IsolationView';
 
 import {
 	DataList,
 	DataItem
 } from '../components/DataList/DataList';
+
+import {
+	ConstructionPane,
+	ConstructionTool
+} from '../components/ConstructionPane/ConstructionPane';
 
 import { Desktop } from '../containers/Desktop/Desktop';
 
@@ -98,6 +102,21 @@ import ButtonRecord from '../models/Button';
 import ToolRecord from '../models/Tool';
 
 import { List, Set } from 'immutable';
+
+// DATA
+const toolIsolationSections = List([
+	new ToolSectionRecord({
+		name: 'Settings',
+		component: () => (
+			<BlockContentBox isBordered>
+				<BlockContentBoxHeading>Size</BlockContentBoxHeading>
+				<BlockContentBoxItem>
+					<ConstructionTool />
+				</BlockContentBoxItem>
+			</BlockContentBox>
+		)
+	})
+]);
 
 // DATA
 const toolDataSections = List([
@@ -237,7 +256,7 @@ const toolRouteWindowSections = List([
 
 				<BlockContentBoxItem>
 					<PropsList>
-						<PropsItem type="tree" />
+						<PropsItem view="tree" />
 					</PropsList>
 				</BlockContentBoxItem>
 
@@ -328,18 +347,18 @@ const toolComponentLayoutWindowSections = List([
 			<BlockContentBox isBordered>
 				<BlockContentBoxHeading>Component Templates</BlockContentBoxHeading>
 				<BlockContentBoxItem>
-					<PropsItem type="toggle" image="https://c.tadst.com/gfx/750w/penguin-awareness-day-fun1.jpg?1" label="some item">
+					<PropsItem view="toggle" image="https://c.tadst.com/gfx/750w/penguin-awareness-day-fun1.jpg?1" label="some item">
 						<PropsList>
-							<PropsItem type="constructor" label="some child item"/>
+							<PropsItem view="constructor" label="some child item"/>
 						</PropsList>
 					</PropsItem>
-					<PropsItem type="constructor" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem type="input" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem type="textarea" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem type="list" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem type="toggle" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem type="constructor-toggle" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem type="tree" label="Prop-1" tooltip={'i am tooltip'}/>
+					<PropsItem view="constructor" label="some child item" type='constructor' tooltip={'i am tooltip'}/>
+					<PropsItem view="input" label="some child item" tooltip={'i am tooltip'}/>
+					<PropsItem view="textarea" type='string' label="some child item" tooltip={'i am tooltip'}/>
+					<PropsItem view="list" label="some child item" tooltip={'i am tooltip'}/>
+					<PropsItem view="toggle" label="some child item" tooltip={'i am tooltip'}/>
+					<PropsItem view="constructor-toggle" label="some child item" tooltip={'i am tooltip'}/>
+					<PropsItem view="tree" label="Prop-1" tooltip={'i am tooltip'}/>
 				</BlockContentBoxItem>
 			</BlockContentBox>
 		)
@@ -382,11 +401,24 @@ export const PLAYGROUND_TOOL_IDS = List([
 	'tool5',
 	'tool6',
 	'tool7',
-	'tool8'
+	'tool8',
+	'tool9'
 ]);
 
 const toolGroups = List([
 	List([
+		new ToolRecord({
+			id: 'tool9',
+			icon: 'cog',
+			name: 'Artboard Properties',
+			title: 'Artboard Properties',
+			undockable: true,
+			closable: false,
+			sections: toolIsolationSections,
+			mainButtons: '',
+			secondaryButtons: ''
+		}),
+		
 		new ToolRecord({
 			id: 'tool1',
 			icon: 'file-text-o',
@@ -574,12 +606,12 @@ export default class Playground extends React.Component {
                 </TopRegion>
 
                 <Desktop toolGroups={toolGroups}>
-	                <Panel headerFixed={true} maxHeight="initial">
+	                <Panel headerFixed={true} maxHeight="initial" spread>
 
 		                <HeaderRoute />
 
 		                <PanelContent>
-			                <IsolationView />
+			                <ConstructionPane />
 		                </PanelContent>
 	                </Panel>
                 </Desktop>

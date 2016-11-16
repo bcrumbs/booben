@@ -4,7 +4,7 @@ import { Breadcrumbs } from '@reactackle/reactackle';
 
 import { BlockContentBoxHeading } from '../../../BlockContent/BlockContentBox/BlockContentBoxHeading/BlockContentBoxHeading';
 import { PropLabel } from '../PropLabel/PropLabel';
-import { PropTreeItem } from './PropTreeItem/PropTreeItem';
+import { PropsItem } from '../PropsItem';
 import { PropTreeList } from './PropTreeList/PropTreeList';
 import { PropTreeBreadcrumbs } from './PropTreeBreadcrumbs/PropTreeBreadcrumbs';
 
@@ -15,21 +15,21 @@ export const PropTree = props => (
 	    </BlockContentBoxHeading>
 	    /* FIRST LEVEL */
 	    <PropTreeList>
-		    <PropTreeItem title="buttons">
+		    <PropsItem label="buttons" view="object">
 			    <PropTreeList>
-				    <PropTreeItem title="button1" type="constructor" valueType="constructor" />
-				    <PropTreeItem title="button2" type="constructor" valueType="constructor" />
+				    <PropsItem label="button1" type="constructor" view="constructor" buttonText="Set component" />
+				    <PropsItem label="button2" type="constructor" view="constructor" buttonText="Set component" />
 			    </PropTreeList>
-		    </PropTreeItem>
-		    <PropTreeItem title="onClick" type="function" valueType="input" />
-		    <PropTreeItem title="value" type="number" valueType="input" />
+		    </PropsItem>
+		    <PropsItem label="onClick" type="function" view="input" />
+		    <PropsItem label="value" type="number" view="input" />
 	    </PropTreeList>
 
 	    /* INNER LEVELS
 		    <PropTreeBreadcrumbs />
 		    <PropTreeList addButton>
-			    <PropTreeItem title="button1" type="constructor" valueType="constructor" />
-			    <PropTreeItem title="button2" type="constructor" valueType="constructor" />
+			    <PropsItem label="button1" type="constructor" view="constructor" buttonText="Set component" />
+			    <PropsItem label="button2" type="constructor" view="constructor" buttonText="Set component" />
 		    </PropTreeList>
 	    */
     </div>
@@ -47,7 +47,6 @@ PropTree.defaultProps = {
 PropTree.displayName = 'PropTree';
 
 export * from './PropTreeList/PropTreeList';
-export * from './PropTreeItem/PropTreeItem';
 
 /* TREE EXAMPLE - DELETE THIS
 	<PropTreeList>

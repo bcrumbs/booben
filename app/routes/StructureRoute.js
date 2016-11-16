@@ -479,7 +479,7 @@ class StructureRoute extends PureComponent {
                 toolGroups={toolGroups}
                 onToolTitleChange={this._handleToolTitleChange}
             >
-                <Panel headerFixed maxHeight="initial">
+                <Panel headerFixed maxHeight="initial" spread>
                     <Header>
                         <HeaderRegion spread alignY="center">
                             <HeaderTitle>

@@ -24,8 +24,8 @@ import {
 } from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
 import {
-    IsolationView
-} from '../components/IsolationView/IsolationView';
+	ConstructionPane
+} from '../components/ConstructionPane/ConstructionPane';
 
 import {
     Dialog,
@@ -406,9 +406,9 @@ class DesignRoute extends PureComponent {
                     </Header>
 
                     <PanelContent>
-                        <IsolationView>
+                        <ConstructionPane>
                             {previewIFrame}
-                        </IsolationView>
+                        </ConstructionPane>
                     </PanelContent>
                 </Panel>
             );

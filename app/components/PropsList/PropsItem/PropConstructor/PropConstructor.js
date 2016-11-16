@@ -23,8 +23,6 @@ export const PropConstructor = props => {
     return (
         <div className="prop-constructor-wrapper">
             <div className="prop-constructor-content">
-                <PropLabel label={props.label} tooltip={props.tooltip}/>
-
                 <div className="prop-constructor-button">
                     <Button
                         kind="link"
@@ -40,17 +38,13 @@ export const PropConstructor = props => {
 };
 
 PropConstructor.propTypes = {
-    label: PropTypes.string,
-    tooltip: PropTypes.string,
-    hasToggle: PropTypes.bool,
+   hasToggle: PropTypes.bool,
     buttonText: PropTypes.string,
 
     onSetComponent: PropTypes.func
 };
 
 PropConstructor.defaultProps = {
-    label: '',
-    tooltip: null,
     hasToggle: false,
     buttonText: '',
 

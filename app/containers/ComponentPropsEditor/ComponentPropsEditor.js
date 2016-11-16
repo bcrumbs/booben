@@ -249,7 +249,7 @@ class ComponentPropsEditorComponent extends PureComponent {
         return (
             <PropsItem
                 key={propName}
-                type="input"
+                view="input"
                 label={label}
                 value={value}
                 linkable={linkable}
@@ -285,7 +285,7 @@ class ComponentPropsEditorComponent extends PureComponent {
         return (
             <PropsItem
                 key={propName}
-                type="input"
+                view="input"
                 label={label}
                 value={String(value)}
                 linkable={linkable}
@@ -321,7 +321,7 @@ class ComponentPropsEditorComponent extends PureComponent {
         return (
             <PropsItem
                 key={propName}
-                type="input"
+                view="input"
                 label={label}
                 value={String(value)}
                 linkable={linkable}
@@ -354,7 +354,7 @@ class ComponentPropsEditorComponent extends PureComponent {
         return (
             <PropsItem
                 key={propName}
-                type="toggle"
+                view="toggle"
                 label={label}
                 value={value}
                 linkable={linkable}
@@ -394,7 +394,7 @@ class ComponentPropsEditorComponent extends PureComponent {
         return (
             <PropsItem
                 key={propName}
-                type="list"
+                view="list"
                 label={label}
                 value={value}
                 options={options}
@@ -425,7 +425,7 @@ class ComponentPropsEditorComponent extends PureComponent {
         return (
             <PropsItem
                 key={propName}
-                type="constructor"
+                view="constructor"
                 label={label}
                 setComponentButtonText={getLocalizedText('setComponent')}
                 onChange={this._handleSetComponent.bind(this, propName)}
