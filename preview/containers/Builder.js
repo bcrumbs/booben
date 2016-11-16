@@ -156,11 +156,12 @@ class BuilderComponent extends PureComponent {
      * @private
      */
     _renderPlaceholderForDraggedComponent(containerId, afterIdx) {
-        const rootId = this.props.draggedComponentId > -1
+        const rootDraggedComponentId = this.props.draggedComponentId > -1
             ? this.props.draggedComponentId
             : 0;
 
-        const rootComponent = this.props.draggedComponents.get(rootId);
+        const rootDraggedComponent =
+            this.props.draggedComponents.get(rootDraggedComponentId);
 
         const containerComponent = containerId > -1
             ? this.props.components.get(containerId)
@@ -177,7 +178,7 @@ class BuilderComponent extends PureComponent {
                 .map(id => this.props.components.get(id).name);
 
             canDropHere = canInsertComponent(
-                rootComponent.name,
+                rootDraggedComponent.name,
                 containerComponent.name,
                 containerChildrenNames,
                 afterIdx + 1,
@@ -194,7 +195,7 @@ class BuilderComponent extends PureComponent {
             <Builder
                 key={key}
                 components={this.props.draggedComponents}
-                rootId={rootId}
+                rootId={rootDraggedComponentId}
                 isPlaceholder
                 afterIdx={afterIdx}
                 containerId={containerId}
