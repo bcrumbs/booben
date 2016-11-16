@@ -9,26 +9,9 @@ const co = require('co'),
     fs = require('mz/fs'),
     rv = require('revalidator'),
     AsyncTreeWalker = require('@common/tree').AsyncTreeWalker,
-    constants = require('../../common/constants');
+    constants = require('../../common/constants'),
+    sharedConstants = require('../../common/shared-constants');
 
-/**
- *
- * @type {Set<string>}
- * @const
- */
-const internalTypes = new Set([
-    'string',
-    'bool',
-    'int',
-    'float',
-    'oneOf',
-    'object',
-    'shape',
-    'array',
-    'arrayOf',
-    'func',
-    'component'
-]);
 
 const propSchema = {
     type: 'object',
@@ -1096,7 +1079,7 @@ const readComponentMeta = metaDir => co(function* () {
             );
         }
 
-        if (internalTypes.has(propMeta.type)) {
+        if (sharedConstants.BUILT_IN_PROP_TYPES.has(propMeta.type)) {
             checkAdditionalPropTypeData(
                 props[i],
                 propMeta,

@@ -37,8 +37,13 @@ import {
     topNestedConstructorComponentSelector
 } from '../../selectors';
 
+import {
+    getString,
+    getComponentMeta,
+    isCompatibleType,
+    resolveTypedef
+} from '../../utils/meta';
 import { getLocalizedText } from '../../utils';
-import { getString, getComponentMeta } from '../../utils/meta';
 import { objectSome } from '../../utils/misc';
 
 /**
@@ -134,16 +139,23 @@ const isLinkedProp = propValue =>
         !!propValue.sourceData.ownerPropName
     );
 
-const ownerPropsSelector = createSelector(
-    topNestedConstructorSelector,
+const ownerComponentMetaSelector = createSelector(
     topNestedConstructorComponentSelector,
     state => state.project.meta,
 
-    (topNestedConstructor, ownerComponent, meta) => {
-        if (!topNestedConstructor || !ownerComponent) return null;
+    (ownerComponent, meta) => ownerComponent
+        ? getComponentMeta(ownerComponent.name, meta)
+        : null
+);
 
-        const ownerComponentMeta = getComponentMeta(ownerComponent.name, meta),
-            ownerComponentProp = topNestedConstructor.prop,
+const ownerPropsSelector = createSelector(
+    topNestedConstructorSelector,
+    ownerComponentMetaSelector,
+
+    (topNestedConstructor, ownerComponentMeta) => {
+        if (!ownerComponentMeta) return null;
+
+        const ownerComponentProp = topNestedConstructor.prop,
             ownerComponentPropMeta = ownerComponentMeta.props[ownerComponentProp];
 
         return ownerComponentPropMeta.source.indexOf('designer') > -1
@@ -192,23 +204,26 @@ class ComponentPropsEditorComponent extends PureComponent {
 
     /**
      *
-     * @param {ComponentPropMeta} propMeta
+     * @param {ComponentMeta} componentMeta
+     * @param {string} propName
      * @return {boolean}
      * @private
      */
-    _isPropLinkable(propMeta) {
+    _isPropLinkable(componentMeta, propName) {
+        const propMeta = componentMeta.props[propName];
         if (propMeta.source.indexOf('data') > -1) return true;
+        if (!this.props.ownerProps) return false;
 
-        if (this.props.ownerProps) {
-            // TODO: Better check for types compatibility
-            return objectSome(
-                this.props.ownerProps,
-                ownerProp => ownerProp.type === propMeta.type
+        const propTypedef = resolveTypedef(componentMeta, propMeta);
+
+        return objectSome(this.props.ownerProps, ownerProp => {
+            const ownerPropTypedef = resolveTypedef(
+                this.props.ownerComponentMeta,
+                ownerProp
             );
-        }
-        else {
-            return false;
-        }
+
+            return isCompatibleType(propTypedef, ownerPropTypedef);
+        });
     }
 
     /**
@@ -225,7 +240,7 @@ class ComponentPropsEditorComponent extends PureComponent {
             value = getStaticStringValue(source, sourceData),
             propMeta = componentMeta.props[propName],
             isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(propMeta);
+            linkable = this._isPropLinkable(componentMeta, propName);
 
         const label =
             getString(componentMeta, propMeta.textKey, this.props.language) || propName;
@@ -259,7 +274,7 @@ class ComponentPropsEditorComponent extends PureComponent {
             value = getStaticIntValue(source, sourceData),
             propMeta = componentMeta.props[propName],
             isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(propMeta);
+            linkable = this._isPropLinkable(componentMeta, propName);
 
         const label =
             getString(componentMeta, propMeta.textKey, this.props.language) || propName;
@@ -295,7 +310,7 @@ class ComponentPropsEditorComponent extends PureComponent {
             value = getStaticFloatValue(source, sourceData),
             propMeta = componentMeta.props[propName],
             isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(propMeta);
+            linkable = this._isPropLinkable(componentMeta, propName);
 
         const label =
             getString(componentMeta, propMeta.textKey, this.props.language) || propName;
@@ -331,7 +346,7 @@ class ComponentPropsEditorComponent extends PureComponent {
             value = getStaticBoolValue(source, sourceData),
             propMeta = componentMeta.props[propName],
             isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(propMeta);
+            linkable = this._isPropLinkable(componentMeta, propName);
 
         const label =
             getString(componentMeta, propMeta.textKey, this.props.language) || propName;
@@ -365,7 +380,7 @@ class ComponentPropsEditorComponent extends PureComponent {
             propMeta = componentMeta.props[propName],
             value = getStaticOneOfValue(source, sourceData, propMeta.options),
             isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(propMeta);
+            linkable = this._isPropLinkable(componentMeta, propName);
 
         const label =
             getString(componentMeta, propMeta.textKey, lang) || propName;
@@ -563,6 +578,7 @@ ComponentPropsEditorComponent.propTypes = {
     ),
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     language: PropTypes.string,
+    ownerComponentMeta: PropTypes.object,
     ownerProps: PropTypes.object,
     getLocalizedText: PropTypes.func,
 
@@ -576,6 +592,7 @@ const mapStateToProps = state => ({
     components: currentComponentsSelector(state),
     selectedComponentIds: currentSelectedComponentIdsSelector(state),
     language: state.app.language,
+    ownerComponentMeta: ownerComponentMetaSelector(state),
     ownerProps: ownerPropsSelector(state),
     getLocalizedText: (...args) => getLocalizedText(
         state.app.localization,

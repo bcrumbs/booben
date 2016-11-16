@@ -4,12 +4,14 @@
 
 'use strict';
 
-import HTMLMeta from '../../app/meta/html';
-import miscMeta from '../../app/meta/misc';
+import HTMLMeta from '../meta/html';
+import miscMeta from '../meta/misc';
 
 import { componentsToImmutable } from '../models/ProjectComponent';
 
 import { objectForEach } from './misc';
+
+import { BUILT_IN_PROP_TYPES } from '../../common/shared-constants';
 
 /**
  *
@@ -329,3 +331,78 @@ export const constructComponent = (componentName, layoutIdx, language, meta, opt
 
     return componentsToImmutable(component, -1, false, -1);
 };
+
+/**
+ *
+ * @return {boolean}
+ */
+const returnTrue = () => true;
+
+/**
+ *
+ * @type {Object<string, function(typedef1: TypeDefinition, typedef2: TypeDefinition): boolean>}
+ * @const
+ */
+const typeCheckers = {
+    'string': returnTrue,
+    'bool': returnTrue,
+    'int': returnTrue,
+    'float': returnTrue,
+
+    'oneOf': (typedef1, typedef2) => {
+        if (typedef1.options.length !== typedef2.options.length) return false;
+
+        return typedef1.options.every(option1 =>
+            !!typedef2.options.find(option2 => option2.value === option1.value));
+    },
+
+    'object': returnTrue,
+
+    'shape': (typedef1, typedef2) => {
+        const keys1 = Object.keys(typedef1.fields),
+            keys2 = Object.keys(typedef2.fields);
+
+        if (keys1.length !== keys2.length) return false;
+
+        return keys1.every(key => {
+            if (!typedef2.fields.hasOwnProperty(key)) return false;
+            return isCompatibleType(typedef1.fields[key], typedef2.fields[key]);
+        });
+    },
+
+    'array': returnTrue(),
+    'arrayOf': (typedef1, typedef2) => isCompatibleType(typedef1.ofType, typedef2.ofType),
+    'component': returnTrue(),
+    'func': () => false // TODO: Write actual checker
+};
+
+/**
+ *
+ * @param {TypeDefinition} typedef1
+ * @param {TypeDefinition} typedef2
+ * @return {boolean}
+ */
+export const isCompatibleType = (typedef1, typedef2) => {
+    if (typedef1.type !== typedef2.type) return false;
+    return typeCheckers[typedef1.type](typedef1, typedef2);
+};
+
+/**
+ *
+ * @param {ComponentMeta} componentMeta
+ * @param {TypeDefinition} typedef
+ * @returns {TypeDefinition}
+ */
+export const resolveTypedef = (componentMeta, typedef) => {
+    if (BUILT_IN_PROP_TYPES.has(typedef.type)) return typedef;
+    return componentMeta.types[typedef.type] || null;
+};
+
+/**
+ *
+ * @param {ComponentMeta} componentMeta
+ * @param {string} propName
+ * @returns {TypeDefinition}
+ */
+export const getPropTypedef = (componentMeta, propName) =>
+    resolveTypedef(componentMeta, componentMeta.props[propName]);

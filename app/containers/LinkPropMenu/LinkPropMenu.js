@@ -26,7 +26,13 @@ import { linkWithOwnerProp } from '../../actions/project';
 import ProjectComponentRecord from '../../models/ProjectComponent';
 import { NestedConstructor } from '../../reducers/project';
 
-import { getComponentMeta, getString } from '../../utils/meta';
+import {
+    getComponentMeta,
+    isCompatibleType,
+    getString,
+    getPropTypedef,
+    resolveTypedef
+} from '../../utils/meta';
 
 class LinkPropMenuComponent extends PureComponent {
     render() {
@@ -44,7 +50,7 @@ class LinkPropMenuComponent extends PureComponent {
 
             const ownerComponentPropName = this.props.topNestedConstructor.prop,
                 ownerComponentPropMeta = ownerComponentMeta.props[ownerComponentPropName],
-                ownerProps = ownerComponentPropMeta.sourceConfigs.designer.props;
+                ownerPropsMeta = ownerComponentPropMeta.sourceConfigs.designer.props;
 
             const linkTargetComponent =
                 this.props.components.get(this.props.linkingPropOfComponentId);
@@ -54,26 +60,32 @@ class LinkPropMenuComponent extends PureComponent {
                 this.props.meta
             );
 
-            const linkTargetPropMeta =
-                linkTargetComponentMeta.props[this.props.linkingPropName];
+            const linkTargetPropTypedef = getPropTypedef(
+                linkTargetComponentMeta,
+                this.props.linkingPropName
+            );
 
-            // TODO: Improve type check
-            const items = Object.keys(ownerProps)
-                .filter(ownerPropName =>
-                    ownerProps[ownerPropName].type === linkTargetPropMeta.type
-                )
+            const items = Object.keys(ownerPropsMeta)
+                .filter(ownerPropName => {
+                    const ownerPropTypedef = resolveTypedef(
+                        ownerComponentMeta,
+                        ownerPropsMeta[ownerPropName]
+                    );
+
+                    return isCompatibleType(ownerPropTypedef, linkTargetPropTypedef);
+                })
                 .map((ownerPropName, idx) => {
-                    const prop = ownerProps[ownerPropName];
+                    const ownerPropMeta = ownerPropsMeta[ownerPropName];
 
                     const title = getString(
                         ownerComponentMeta,
-                        prop.textKey,
+                        ownerPropMeta.textKey,
                         this.props.language
                     );
 
                     const subtitle = getString(
                         ownerComponentMeta,
-                        prop.descriptionTextKey,
+                        ownerPropMeta.descriptionTextKey,
                         this.props.language
                     );
 
@@ -82,7 +94,7 @@ class LinkPropMenuComponent extends PureComponent {
                             key={idx}
                             title={title || ownerPropName}
                             subtitle={subtitle}
-                            type={prop.type}
+                            type={ownerPropMeta.type}
                             clickable
                             arg={ownerPropName}
                             onClick={this.props.onLinkWithOwnerProp}
