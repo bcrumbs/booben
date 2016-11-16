@@ -56,9 +56,8 @@ import {
     selectLayoutForNewComponent,
     saveComponentForProp,
     cancelConstructComponentForProp,
-    linkWithOwnerProp,
-    linkWithOwnerPropCancel,
-    linkWithOwnerPropConfirm
+    linkPropCancel,
+    linkWithOwnerProp
 } from '../actions/project';
 
 import {
@@ -166,8 +165,8 @@ class DesignRoute extends PureComponent {
         this._handleDeleteComponentConfirm = this._handleDeleteComponentConfirm.bind(this);
         this._handleDeleteComponentCancel = this._handleDeleteComponentCancel.bind(this);
         this._handleConfirmDeleteComponentDialogClose = this._handleConfirmDeleteComponentDialogClose.bind(this);
-        this._handleSelectOwnerPropDialogConfirm = this._handleSelectOwnerPropDialogConfirm.bind(this);
-        this._handleSelectOwnerPropDialogCancel = this._handleSelectOwnerPropDialogCancel.bind(this);
+        this._handleLinkWithOwnerProp = this._handleLinkWithOwnerProp.bind(this);
+        this._handleLinkPropDialogCancel = this._handleLinkPropDialogCancel.bind(this);
     }
 
     /**
@@ -226,16 +225,16 @@ class DesignRoute extends PureComponent {
      * @param {string} ownerPropName
      * @private
      */
-    _handleSelectOwnerPropDialogConfirm(ownerPropName) {
-        this.props.onLinkWithOwnerPropConfirm(ownerPropName);
+    _handleLinkWithOwnerProp(ownerPropName) {
+        this.props.onLinkWithOwnerProp(ownerPropName);
     }
 
     /**
      *
      * @private
      */
-    _handleSelectOwnerPropDialogCancel() {
-        this.props.onLinkWithOwnerPropCancel();
+    _handleLinkPropDialogCancel() {
+        this.props.onLinkPropCancel();
     }
 
     render() {
@@ -437,57 +436,65 @@ class DesignRoute extends PureComponent {
             content = previewIFrame;
         }
 
-        let selectOwnerPropDialogContent = null;
-        if (this.props.singleComponentSelected && this.props.selectingOwnerProp) {
+        let linkPropDialogContent = null;
+        if (this.props.singleComponentSelected && this.props.linkingProp) {
             const ownerComponent = this.props.topNestedConstructorComponent;
 
-            const ownerComponentMeta = getComponentMeta(
-                ownerComponent.name,
-                this.props.meta
-            );
-
-            const ownerComponentPropName = this.props.topNestedConstructor.prop,
-                ownerComponentPropMeta = ownerComponentMeta.props[ownerComponentPropName],
-                ownerProps = ownerComponentPropMeta.sourceConfigs.designer.props;
-
-            const items = Object.keys(ownerProps).map((ownerPropName, idx) => {
-                const prop = ownerProps[ownerPropName];
-
-                const title = getString(
-                    ownerComponentMeta,
-                    prop.textKey,
-                    this.props.language
+            if (ownerComponent) {
+                // We're in a nested constructor
+                // so we can link with owner component props
+                const ownerComponentMeta = getComponentMeta(
+                    ownerComponent.name,
+                    this.props.meta
                 );
 
-                const subtitle = getString(
-                    ownerComponentMeta,
-                    prop.descriptionTextKey,
-                    this.props.language
-                );
+                const ownerComponentPropName = this.props.topNestedConstructor.prop,
+                    ownerComponentPropMeta = ownerComponentMeta.props[ownerComponentPropName],
+                    ownerProps = ownerComponentPropMeta.sourceConfigs.designer.props;
 
-                return (
-                    <DataItem
-                        key={idx}
-                        title={title}
-                        subtitle={subtitle}
-                        type={prop.type}
-                        clickable
-                        arg={ownerPropName}
-                        onClick={this._handleSelectOwnerPropDialogConfirm}
-                    />
-                );
-            });
+                // TODO: Filter owner props by type
 
-            selectOwnerPropDialogContent = (
-                <DataList>
-                    {items}
-                </DataList>
-            );
+                const items = Object.keys(ownerProps).map((ownerPropName, idx) => {
+                    const prop = ownerProps[ownerPropName];
+
+                    const title = getString(
+                        ownerComponentMeta,
+                        prop.textKey,
+                        this.props.language
+                    );
+
+                    const subtitle = getString(
+                        ownerComponentMeta,
+                        prop.descriptionTextKey,
+                        this.props.language
+                    );
+
+                    return (
+                        <DataItem
+                            key={idx}
+                            title={title || ownerPropName}
+                            subtitle={subtitle}
+                            type={prop.type}
+                            clickable
+                            arg={ownerPropName}
+                            onClick={this._handleLinkWithOwnerProp}
+                        />
+                    );
+                });
+
+                linkPropDialogContent = (
+                    <DataList>
+                        {items}
+                    </DataList>
+                );
+            }
+
+            // TODO: Add UI for linking with server data
         }
 
-        const selectOwnerPropDialogButtons = [{
+        const linkPropDialogButtons = [{
             text: getLocalizedText('cancel'),
-            onPress: this._handleSelectOwnerPropDialogCancel
+            onPress: this._handleLinkPropDialogCancel
         }];
 
         return (
@@ -523,12 +530,12 @@ class DesignRoute extends PureComponent {
                 <Dialog
                     title="Select prop"
                     minWidth={400}
-                    buttons={selectOwnerPropDialogButtons}
-                    visible={this.props.selectingOwnerProp}
+                    buttons={linkPropDialogButtons}
+                    visible={this.props.linkingProp}
                     closeOnEscape
-                    onClose={this._handleSelectOwnerPropDialogCancel}
+                    onClose={this._handleLinkPropDialogCancel}
                 >
-                    {selectOwnerPropDialogContent}
+                    {linkPropDialogContent}
                 </Dialog>
             </Desktop>
         );
@@ -553,7 +560,7 @@ DesignRoute.propTypes = {
     language: PropTypes.string,
     haveNestedConstructor: PropTypes.bool,
     nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(PropTypes.string),
-    selectingOwnerProp: PropTypes.bool,
+    linkingProp: PropTypes.bool,
     topNestedConstructor: PropTypes.instanceOf(NestedConstructor),
     topNestedConstructorComponent: PropTypes.instanceOf(ProjectComponentRecord),
     getLocalizedText: PropTypes.func,
@@ -564,8 +571,7 @@ DesignRoute.propTypes = {
     onSaveComponentForProp: PropTypes.func,
     onCancelConstructComponentForProp: PropTypes.func,
     onLinkWithOwnerProp: PropTypes.func,
-    onLinkWithOwnerPropConfirm: PropTypes.func,
-    onLinkWithOwnerPropCancel: PropTypes.func
+    onLinkPropCancel: PropTypes.func
 };
 
 const mapStateToProps = state => ({
@@ -580,7 +586,7 @@ const mapStateToProps = state => ({
     language: state.project.languageForComponentProps,
     haveNestedConstructor: haveNestedConstructorsSelector(state),
     nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
-    selectingOwnerProp: state.project.selectingOwnerProp,
+    linkingProp: state.project.linkingProp,
     topNestedConstructor: topNestedConstructorSelector(state),
     topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
     getLocalizedText: (...args) => getLocalizedText(
@@ -606,14 +612,11 @@ const mapDispatchToProps = dispatch => ({
     onCancelConstructComponentForProp: () =>
         void dispatch(cancelConstructComponentForProp()),
 
-    onLinkWithOwnerProp: (componentId, propName) =>
-        void dispatch(linkWithOwnerProp(componentId, propName)),
+    onLinkWithOwnerProp: ownerPropName =>
+        void dispatch(linkWithOwnerProp(ownerPropName)),
 
-    onLinkWithOwnerPropConfirm: ownerPropName =>
-        void dispatch(linkWithOwnerPropConfirm(ownerPropName)),
-
-    onLinkWithOwnerPropCancel: () =>
-        void dispatch(linkWithOwnerPropCancel())
+    onLinkPropCancel: () =>
+        void dispatch(linkPropCancel())
 });
 
 export default connect(

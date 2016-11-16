@@ -273,7 +273,7 @@ export const saveComponentForProp = () => ({
  * @type {string}
  * @const
  */
-export const PROJECT_LINK_WITH_OWNER_PROP = 'PROJECT_LINK_WITH_OWNER_PROP';
+export const PROJECT_LINK_PROP = 'PROJECT_LINK_PROP';
 
 /**
  *
@@ -281,8 +281,8 @@ export const PROJECT_LINK_WITH_OWNER_PROP = 'PROJECT_LINK_WITH_OWNER_PROP';
  * @param {string} propName
  * @return {Object}
  */
-export const linkWithOwnerProp = (componentId, propName) => ({
-    type: PROJECT_LINK_WITH_OWNER_PROP,
+export const linkProp = (componentId, propName) => ({
+    type: PROJECT_LINK_PROP,
     componentId,
     propName
 });
@@ -292,15 +292,15 @@ export const linkWithOwnerProp = (componentId, propName) => ({
  * @type {string}
  * @const
  */
-export const PROJECT_LINK_WITH_OWNER_PROP_CONFIRM = 'PROJECT_LINK_WITH_OWNER_PROP_CONFIRM';
+export const PROJECT_LINK_WITH_OWNER_PROP = 'PROJECT_LINK_WITH_OWNER_PROP';
 
 /**
  *
  * @param {string} ownerPropName
  * @return {Object}
  */
-export const linkWithOwnerPropConfirm = ownerPropName => ({
-    type: PROJECT_LINK_WITH_OWNER_PROP_CONFIRM,
+export const linkWithOwnerProp = ownerPropName => ({
+    type: PROJECT_LINK_WITH_OWNER_PROP,
     ownerPropName
 });
 
@@ -309,12 +309,12 @@ export const linkWithOwnerPropConfirm = ownerPropName => ({
  * @type {string}
  * @const
  */
-export const PROJECT_LINK_WITH_OWNER_PROP_CANCEL = 'PROJECT_LINK_WITH_OWNER_PROP_CANCEL';
+export const PROJECT_LINK_PROP_CANCEL = 'PROJECT_LINK_PROP_CANCEL';
 
 /**
  *
  * @return {Object}
  */
-export const linkWithOwnerPropCancel = () => ({
-    type: PROJECT_LINK_WITH_OWNER_PROP_CANCEL
+export const linkPropCancel = () => ({
+    type: PROJECT_LINK_PROP_CANCEL
 });

@@ -26,7 +26,8 @@ import ProjectComponentRecord from '../../models/ProjectComponent';
 
 import {
     updateComponentPropValue,
-    constructComponentForProp
+    constructComponentForProp,
+    linkProp
 } from '../../actions/project';
 
 import {
@@ -153,11 +154,22 @@ const ownerPropsSelector = createSelector(
 
 
 class ComponentPropsEditorComponent extends PureComponent {
+    /**
+     *
+     * @param {string} propName
+     * @private
+     */
     _handleSetComponent(propName) {
         const componentId = this.props.selectedComponentIds.first();
         this.props.onConstructComponent(componentId, propName);
     }
 
+    /**
+     *
+     * @param {string} propName
+     * @param {*} newValue
+     * @private
+     */
     _handleStaticValueChange(propName, newValue) {
         const componentId = this.props.selectedComponentIds.first();
         this.props.onPropValueChange(
@@ -168,6 +180,22 @@ class ComponentPropsEditorComponent extends PureComponent {
         );
     }
 
+    /**
+     *
+     * @param {string} propName
+     * @private
+     */
+    _handleLinkProp(propName) {
+        const componentId = this.props.selectedComponentIds.first();
+        this.props.onLinkProp(componentId, propName);
+    }
+
+    /**
+     *
+     * @param {ComponentPropMeta} propMeta
+     * @return {boolean}
+     * @private
+     */
     _isPropLinkable(propMeta) {
         if (propMeta.source.indexOf('data') > -1) return true;
 
@@ -212,10 +240,19 @@ class ComponentPropsEditorComponent extends PureComponent {
                 linkable={linkable}
                 disabled={isLinked}
                 onChange={this._handleStaticValueChange.bind(this, propName)}
+                onLink={this._handleLinkProp.bind(this, propName)}
             />
         );
     }
 
+    /**
+     *
+     * @param {ComponentMeta} componentMeta
+     * @param {string} propName
+     * @param {Object} propValue
+     * @returns {ReactElement}
+     * @private
+     */
     _renderIntProp(componentMeta, propName, propValue) {
         const source = propValue ? propValue.source : 'static',
             sourceData = propValue ? propValue.sourceData : null,
@@ -239,10 +276,19 @@ class ComponentPropsEditorComponent extends PureComponent {
                 linkable={linkable}
                 disabled={isLinked}
                 onChange={onChange}
+                onLink={this._handleLinkProp.bind(this, propName)}
             />
         );
     }
 
+    /**
+     *
+     * @param {ComponentMeta} componentMeta
+     * @param {string} propName
+     * @param {Object} propValue
+     * @returns {ReactElement}
+     * @private
+     */
     _renderFloatProp(componentMeta, propName, propValue) {
         const source = propValue ? propValue.source : 'static',
             sourceData = propValue ? propValue.sourceData : null,
@@ -266,10 +312,19 @@ class ComponentPropsEditorComponent extends PureComponent {
                 linkable={linkable}
                 disabled={isLinked}
                 onChange={onChange}
+                onLink={this._handleLinkProp.bind(this, propName)}
             />
         );
     }
 
+    /**
+     *
+     * @param {ComponentMeta} componentMeta
+     * @param {string} propName
+     * @param {Object} propValue
+     * @returns {ReactElement}
+     * @private
+     */
     _renderBoolProp(componentMeta, propName, propValue) {
         const source = propValue ? propValue.source : 'static',
             sourceData = propValue ? propValue.sourceData : null,
@@ -290,10 +345,19 @@ class ComponentPropsEditorComponent extends PureComponent {
                 linkable={linkable}
                 disabled={isLinked}
                 onChange={this._handleStaticValueChange.bind(this, propName)}
+                onLink={this._handleLinkProp.bind(this, propName)}
             />
         );
     }
 
+    /**
+     *
+     * @param {ComponentMeta} componentMeta
+     * @param {string} propName
+     * @param {Object} propValue
+     * @returns {ReactElement}
+     * @private
+     */
     _renderOneOfProp(componentMeta, propName, propValue) {
         const lang = this.props.language,
             source = propValue ? propValue.source : 'static',
@@ -322,10 +386,19 @@ class ComponentPropsEditorComponent extends PureComponent {
                 linkable={linkable}
                 disabled={isLinked}
                 onChange={this._handleStaticValueChange.bind(this, propName)}
+                onLink={this._handleLinkProp.bind(this, propName)}
             />
         );
     }
 
+    /**
+     *
+     * @param {ComponentMeta} componentMeta
+     * @param {string} propName
+     * @param {Object} propValue
+     * @returns {ReactElement}
+     * @private
+     */
     _renderComponentProp(componentMeta, propName, propValue) {
         const { getLocalizedText } = this.props,
             lang = this.props.language,
@@ -345,23 +418,31 @@ class ComponentPropsEditorComponent extends PureComponent {
         );
     }
 
-    _renderPropsItem(componentMeta, propName, value) {
+    /**
+     *
+     * @param {ComponentMeta} componentMeta
+     * @param {string} propName
+     * @param {Object} propValue
+     * @returns {?ReactElement}
+     * @private
+     */
+    _renderPropsItem(componentMeta, propName, propValue) {
         const propMeta = componentMeta.props[propName];
         if (!propMeta) return null;
 
         switch (propMeta.type) {
             case 'string':
-                return this._renderStringProp(componentMeta, propName, value);
+                return this._renderStringProp(componentMeta, propName, propValue);
             case 'int':
-                return this._renderIntProp(componentMeta, propName, value);
+                return this._renderIntProp(componentMeta, propName, propValue);
             case 'float':
-                return this._renderFloatProp(componentMeta, propName, value);
+                return this._renderFloatProp(componentMeta, propName, propValue);
             case 'bool':
-                return this._renderBoolProp(componentMeta, propName, value);
+                return this._renderBoolProp(componentMeta, propName, propValue);
             case 'oneOf':
-                return this._renderOneOfProp(componentMeta, propName, value);
+                return this._renderOneOfProp(componentMeta, propName, propValue);
             case 'component':
-                return this._renderComponentProp(componentMeta, propName, value);
+                return this._renderComponentProp(componentMeta, propName, propValue);
             default:
                 return null;
         }
@@ -486,7 +567,8 @@ ComponentPropsEditorComponent.propTypes = {
     getLocalizedText: PropTypes.func,
 
     onPropValueChange: PropTypes.func,
-    onConstructComponent: PropTypes.func
+    onConstructComponent: PropTypes.func,
+    onLinkProp: PropTypes.func
 };
 
 const mapStateToProps = state => ({
@@ -515,7 +597,10 @@ const mapDispatchToProps = dispatch => ({
         void dispatch(constructComponentForProp(
             componentId,
             propName
-        ))
+        )),
+
+    onLinkProp: (componentId, propName) =>
+        void dispatch(linkProp(componentId, propName))
 });
 
 export const ComponentPropsEditor = connect(

@@ -26,9 +26,9 @@ import {
     PROJECT_CONSTRUCT_COMPONENT_FOR_PROP,
     PROJECT_CANCEL_CONSTRUCT_COMPONENT_FOR_PROP,
     PROJECT_SAVE_COMPONENT_FOR_PROP,
+    PROJECT_LINK_PROP,
     PROJECT_LINK_WITH_OWNER_PROP,
-    PROJECT_LINK_WITH_OWNER_PROP_CONFIRM,
-    PROJECT_LINK_WITH_OWNER_PROP_CANCEL,
+    PROJECT_LINK_PROP_CANCEL,
 } from '../actions/project';
 
 import {
@@ -59,14 +59,14 @@ import {
 
 import ProjectRoute from '../models/ProjectRoute';
 import ProjectComponentProp from '../models/ProjectComponentProp';
+import SourceDataStatic from '../models/SourceDataStatic';
 import SourceDataDesigner from '../models/SourceDataDesigner';
 
 import {
     projectToImmutable,
     getMaxRouteId,
     getMaxComponentId,
-    gatherRoutesTreeIds,
-    getComponentById
+    gatherRoutesTreeIds
 } from '../models/Project';
 
 import {
@@ -125,9 +125,9 @@ const ProjectState = Record({
     selectingComponentLayout: false,
 
     nestedConstructors: List(),
-    selectingOwnerProp: false,
-    ownerPropForComponentId: -1,
-    ownerPropForComponentProp: ''
+    linkingProp: false,
+    linkingPropOfComponentId: -1,
+    linkingPropName: ''
 });
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
@@ -814,29 +814,50 @@ export default (state = new ProjectState(), action) => {
             return state.setIn(path, newValue);
         }
 
+        case PROJECT_LINK_PROP: {
+            return state.merge({
+                linkingProp: true,
+                linkingPropOfComponentId: action.componentId,
+                linkingPropName: action.propName
+            });
+        }
+
         case PROJECT_LINK_WITH_OWNER_PROP: {
+            const pathToCurrentComponents = getPathToCurrentComponents(state);
+
+            const path = [].concat(pathToCurrentComponents, [
+                state.linkingPropOfComponentId,
+                'props',
+                state.linkingPropName
+            ]);
+
+            const oldValue = state.getIn(path);
+
+            const newValue = new ProjectComponentProp({
+                source: 'static',
+                sourceData: new SourceDataStatic({
+                    value: oldValue.source === 'static'
+                        ? oldValue.sourceData.value
+                        : null, // TODO: Construct default value for type
+
+                    ownerPropName: action.ownerPropName
+                })
+            });
+
+            state = state.setIn(path, newValue);
+
             return state.merge({
-                selectingOwnerProp: true,
-                ownerPropForComponentId: action.componentId,
-                ownerPropForComponentProp: action.propName
+                linkingProp: false,
+                linkingPropOfComponentId: -1,
+                linkingPropName: ''
             });
         }
 
-        case PROJECT_LINK_WITH_OWNER_PROP_CONFIRM: {
-            // TODO: Update component
-
+        case PROJECT_LINK_PROP_CANCEL: {
             return state.merge({
-                selectingOwnerProp: false,
-                ownerPropForComponentId: -1,
-                ownerPropForComponentProp: ''
-            });
-        }
-
-        case PROJECT_LINK_WITH_OWNER_PROP_CANCEL: {
-            return state.merge({
-                selectingOwnerProp: false,
-                ownerPropForComponentId: -1,
-                ownerPropForComponentProp: ''
+                linkingProp: false,
+                linkingPropOfComponentId: -1,
+                linkingPropName: ''
             });
         }
 

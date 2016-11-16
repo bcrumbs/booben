@@ -70,7 +70,7 @@ export const objectMap = (object, fn) => {
  * @return {boolean}
  */
 export const objectSome = (object, predicate) =>
-    Object.keys(object).some(key => fn(object[key], key, object));
+    Object.keys(object).some(key => predicate(object[key], key, object));
 
 /**
  *
@@ -79,7 +79,7 @@ export const objectSome = (object, predicate) =>
  * @return {boolean}
  */
 export const objectEvery = (object, predicate) =>
-    Object.keys(object).every(key => fn(object[key], key, object));
+    Object.keys(object).every(key => predicate(object[key], key, object));
 
 /**
  *

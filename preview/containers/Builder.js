@@ -93,8 +93,8 @@ const buildProps = (propValueDescriptors, propsFromOwner) => {
 
     propValueDescriptors.forEach((prop, key) => {
         if (prop.source == 'static') {
-            if (typeof prop.ownerPropName !== 'undefined') {
-                ret[key] = propsFromOwner[prop.ownerPropName];
+            if (propsFromOwner && prop.sourceData.ownerPropName) {
+                ret[key] = propsFromOwner[prop.sourceData.ownerPropName];
             }
             else {
                 ret[key] = prop.sourceData.value;
@@ -139,7 +139,11 @@ class BuilderComponent extends PureComponent {
             return this.props.children;
         }
         else if (component.name === 'Text') {
-            const props = buildProps(component.props, this.props.propsFromOwner);
+            const propsFromOwner = this.props.ignoreOwnerProps
+                ? null
+                : this.props.propsFromOwner;
+
+            const props = buildProps(component.props, propsFromOwner);
             return props.text || '';
         }
     }
@@ -291,8 +295,13 @@ class BuilderComponent extends PureComponent {
         // Handle special components like Text, Outlet etc.
         if (isPseudoComponent(component)) return this._renderPseudoComponent(component);
 
-        const Component = getComponentByName(component.name),
-            props = buildProps(component.props, this.props.propsFromOwner),
+        const Component = getComponentByName(component.name);
+
+        const propsFromOwner = this.props.ignoreOwnerProps
+            ? null
+            : this.props.propsFromOwner;
+
+        const props = buildProps(component.props, propsFromOwner),
             isHTMLComponent = typeof Component === 'string';
 
         props.children = this._renderComponentChildren(component, isPlaceholder);
@@ -381,6 +390,7 @@ BuilderComponent.propTypes = {
     afterIdx: PropTypes.any, // number on null
     containerId: PropTypes.any, // number on null
     propsFromOwner: PropTypes.object,
+    ignoreOwnerProps: PropTypes.bool,
 
     project: PropTypes.any,
     meta: PropTypes.object,
@@ -399,7 +409,8 @@ BuilderComponent.defaultProps = {
     isPlaceholder: false,
     afterIdx: -1,
     containerId: -1,
-    propsFromOwner: {}
+    propsFromOwner: {},
+    ignoreOwnerProps: false
 };
 
 BuilderComponent.displayName = 'Builder';

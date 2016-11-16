@@ -31,7 +31,7 @@ export const topNestedConstructorComponentSelector = createSelector(
     currentRouteSelector,
 
     (nestedConstructors, currentRoute) => {
-        if (nestedConstructors.isEmpty) return null;
+        if (nestedConstructors.isEmpty()) return null;
 
         const topNestedConstructor = nestedConstructors.first(),
             componentId = topNestedConstructor.componentId;
