@@ -82,7 +82,7 @@ class RouteEditorComponent extends PureComponent {
                     <BlockContentBoxItem>
                         <PropsList>
                             <PropsItem
-                                type="textarea"
+	                            view="textarea"
                                 label={getLocalizedText('description')}
                                 value={route.indexRouteDescription}
                                 onChange={this._handleIndexRouteDescriptionChange}
@@ -99,7 +99,7 @@ class RouteEditorComponent extends PureComponent {
         if (route.haveRedirect) {
             redirectUrlInput = (
                 <PropsItem
-                    type="input"
+	                view="input"
                     label={ getLocalizedText('redirectTo') }
                     value={route.redirectTo}
                     onChange={this._handleRedirectToChange}
@@ -109,7 +109,7 @@ class RouteEditorComponent extends PureComponent {
         else {
             haveIndexToggle = (
                 <PropsItem
-                    type="toggle"
+	                view="toggle"
                     label={ getLocalizedText('indexRoute') }
                     value={route.haveIndex}
                     onChange={this._handleHaveIndexChange}
@@ -126,21 +126,21 @@ class RouteEditorComponent extends PureComponent {
                 <BlockContentBoxItem>
                     <PropsList>
                         <PropsItem
-                            type="input"
+	                        view="input"
                             label={getLocalizedText('path')}
                             value={route.path}
                             onChange={this._handlePathChange}
                         />
 
                         <PropsItem
-                            type="textarea"
+	                        view="textarea"
                             label={getLocalizedText('description')}
                             value={route.description}
                             onChange={this._handleDescriptionChange}
                         />
 
                         <PropsItem
-                            type="toggle"
+	                        view="toggle"
                             label={getLocalizedText('indexRedirect')}
                             value={route.haveRedirect}
                             onChange={this._handleHaveRedirectChange}

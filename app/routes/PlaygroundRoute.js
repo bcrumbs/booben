@@ -256,7 +256,7 @@ const toolRouteWindowSections = List([
 
 				<BlockContentBoxItem>
 					<PropsList>
-						<PropsItem type="tree" />
+						<PropsItem view="tree" />
 					</PropsList>
 				</BlockContentBoxItem>
 
