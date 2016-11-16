@@ -1,9 +1,9 @@
 'use strict';
 
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 
 import {
-    Button,
     Checkbox,
     Input,
     SelectBox,
@@ -45,7 +45,11 @@ export const PropsItem = props => {
 
     let actions = null;
     if (props.linkable) {
-        actions = <PropLinkButton />;
+        actions = (
+            <PropLinkButton
+                onPress={props.onLink}
+            />
+        );
     }
 
     let image = null;
@@ -202,7 +206,8 @@ PropsItem.propTypes = {
 	tooltip: PropTypes.string,
     setComponentButtonText: PropTypes.string,
 
-    onChange: PropTypes.func
+    onChange: PropTypes.func,
+    onLink: PropTypes.func
 };
 
 PropsItem.defaultProps = {
@@ -217,7 +222,8 @@ PropsItem.defaultProps = {
 	tooltip: null,
     setComponentButtonText: '',
 
-    onChange: noop
+    onChange: noop,
+    onLink: noop
 };
 
 PropsItem.displayName = 'PropsItem';

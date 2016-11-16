@@ -15,6 +15,7 @@ import { ComponentsLibrary } from '../containers/ComponentsLibrary/ComponentsLib
 import { ComponentsTreeView } from '../containers/ComponentsTreeView/ComponentsTreeView';
 import { ComponentPropsEditor } from '../containers/ComponentPropsEditor/ComponentPropsEditor';
 import { ComponentRegionsEditor } from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
+import { LinkPropMenu } from '../containers/LinkPropMenu/LinkPropMenu';
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
 
 import {
@@ -39,7 +40,7 @@ import {
 
 import store from '../store';
 
-import ProjectRecord, { getComponentById } from '../models/Project';
+import ProjectRecord from '../models/Project';
 import ProjectComponentRecord from '../models/ProjectComponent';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
@@ -50,11 +51,15 @@ import {
     deleteComponent,
     selectLayoutForNewComponent,
     saveComponentForProp,
-    cancelConstructComponentForProp
+    cancelConstructComponentForProp,
+    linkPropCancel
 } from '../actions/project';
 
 import {
-    haveNestedConstructorsSelector
+    haveNestedConstructorsSelector,
+    singleComponentSelectedSelector,
+    firstSelectedComponentIdSelector,
+    currentComponentsSelector
 } from '../selectors';
 
 import {
@@ -151,6 +156,7 @@ class DesignRoute extends PureComponent {
         this._handleDeleteComponentConfirm = this._handleDeleteComponentConfirm.bind(this);
         this._handleDeleteComponentCancel = this._handleDeleteComponentCancel.bind(this);
         this._handleConfirmDeleteComponentDialogClose = this._handleConfirmDeleteComponentDialogClose.bind(this);
+        this._handleLinkPropDialogCancel = this._handleLinkPropDialogCancel.bind(this);
     }
 
     /**
@@ -161,8 +167,7 @@ class DesignRoute extends PureComponent {
      */
     _handleToolTitleChange(tool, newTitle) {
         if (tool.id === TOOL_ID_PROPS_EDITOR) {
-            const componentId = this.props.selectedComponentIds.first();
-            this.props.onRenameComponent(componentId, newTitle);
+            this.props.onRenameComponent(this.props.firstSelectedComponentId, newTitle);
         }
     }
 
@@ -182,7 +187,7 @@ class DesignRoute extends PureComponent {
      * @private
      */
     _handleDeleteComponentConfirm(closeDialog) {
-        this.props.onDeleteComponent(this.props.selectedComponentIds.first());
+        this.props.onDeleteComponent(this.props.firstSelectedComponentId);
         closeDialog();
     }
 
@@ -205,7 +210,16 @@ class DesignRoute extends PureComponent {
         });
     }
 
+    /**
+     *
+     * @private
+     */
+    _handleLinkPropDialogCancel() {
+        this.props.onLinkPropCancel();
+    }
+
     render() {
+        // TODO: Handle index routes
         const { getLocalizedText } = this.props,
             src = `/preview/${this.props.params.projectName}/index.html`,
             routeId = parseInt(this.props.params.routeId),
@@ -239,8 +253,6 @@ class DesignRoute extends PureComponent {
             ])
         });
 
-        const singleComponentSelected = this.props.selectedComponentIds.size === 1;
-
         const propsEditorSection = new ToolSectionRecord({
             name: 'General',
             component: ComponentPropsEditor
@@ -251,33 +263,33 @@ class DesignRoute extends PureComponent {
             mainButtons = List(),
             sections = List([propsEditorSection]);
 
-        if (singleComponentSelected) {
-            const componentId = this.props.selectedComponentIds.first(),
-                component = getComponentById(this.props.project, componentId);
+        if (this.props.singleComponentSelected) {
+            const selectedComponent = this.props.components.get(
+                this.props.firstSelectedComponentId
+            );
 
-            const parentComponent = component.parentId > -1
-                ? getComponentById(this.props.project, component.parentId)
+            const parentComponent = selectedComponent.parentId > -1
+                ? this.props.components.get(selectedComponent.parentId)
                 : null;
 
             const isRegion = parentComponent
                 ? isCompositeComponent(parentComponent.name, this.props.meta)
                 : false;
 
-            title = component.title;
-            subtitle = component.name;
+            title = selectedComponent.title;
+            subtitle = selectedComponent.name;
 
             if (!isRegion) {
-                if (!component.isWrapper) {
+                if (!selectedComponent.isWrapper) {
                     mainButtons = mainButtons.push(
                         new ButtonRecord({
                             text: getLocalizedText('delete'),
-                            disabled: !singleComponentSelected,
                             onPress: this._handleDeleteComponentButtonPress
                         })
                     )
                 }
 
-                if (isCompositeComponent(component.name, this.props.meta)) {
+                if (isCompositeComponent(selectedComponent.name, this.props.meta)) {
                     sections = sections.push(
                         new ToolSectionRecord({
                             name: 'Regions',
@@ -296,7 +308,7 @@ class DesignRoute extends PureComponent {
             icon: PROPS_EDITOR_ICON,
             name: getLocalizedText('componentConfiguration'),
             title: title,
-            titleEditable: singleComponentSelected,
+            titleEditable: this.props.singleComponentSelected,
             titlePlaceholder: getLocalizedText('enterTitle'),
             subtitle: subtitle,
             mainButtons: mainButtons,
@@ -359,6 +371,7 @@ class DesignRoute extends PureComponent {
             />
         );
 
+        // TODO: Prevent re-creation of PreviewIFrame on haveNestedConstructor change
         let content;
         if (this.props.haveNestedConstructor) {
             // Render additional UI for nested constructor
@@ -405,6 +418,11 @@ class DesignRoute extends PureComponent {
             content = previewIFrame;
         }
 
+        const linkPropDialogButtons = [{
+            text: getLocalizedText('cancel'),
+            onPress: this._handleLinkPropDialogCancel
+        }];
+
         return (
             <Desktop
                 toolGroups={toolGroups}
@@ -434,6 +452,17 @@ class DesignRoute extends PureComponent {
                 >
                     {getLocalizedText('deleteThisComponentQuestion')}
                 </Dialog>
+
+                <Dialog
+                    title="Select prop"
+                    minWidth={400}
+                    buttons={linkPropDialogButtons}
+                    visible={this.props.linkingProp}
+                    closeOnEscape
+                    onClose={this._handleLinkPropDialogCancel}
+                >
+                    <LinkPropMenu/>
+                </Dialog>
             </Desktop>
         );
     }
@@ -441,33 +470,46 @@ class DesignRoute extends PureComponent {
 
 DesignRoute.propTypes = {
     project: PropTypes.instanceOf(ProjectRecord),
+    components: ImmutablePropTypes.mapOf(
+        PropTypes.instanceOf(ProjectComponentRecord),
+        PropTypes.number
+    ),
     meta: PropTypes.object,
     previewContainerStyle: PropTypes.string,
-    selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
+    singleComponentSelected: PropTypes.bool,
+    firstSelectedComponentId: PropTypes.number,
     selectingComponentLayout: PropTypes.bool,
-    draggedComponents: ImmutablePropTypes.mapOf(PropTypes.instanceOf(ProjectComponentRecord)),
+    draggedComponents: ImmutablePropTypes.mapOf(
+        PropTypes.instanceOf(ProjectComponentRecord),
+        PropTypes.number
+    ),
     language: PropTypes.string,
     haveNestedConstructor: PropTypes.bool,
     nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(PropTypes.string),
+    linkingProp: PropTypes.bool,
     getLocalizedText: PropTypes.func,
 
     onRenameComponent: PropTypes.func,
     onDeleteComponent: PropTypes.func,
     onSelectLayout: PropTypes.func,
     onSaveComponentForProp: PropTypes.func,
-    onCancelConstructComponentForProp: PropTypes.func
+    onCancelConstructComponentForProp: PropTypes.func,
+    onLinkPropCancel: PropTypes.func
 };
 
 const mapStateToProps = state => ({
     project: state.project.data,
+    components: currentComponentsSelector(state),
     meta: state.project.meta,
     previewContainerStyle: containerStyleSelector(state),
-    selectedComponentIds: state.project.selectedItems,
+    singleComponentSelected: singleComponentSelectedSelector(state),
+    firstSelectedComponentId: firstSelectedComponentIdSelector(state),
     selectingComponentLayout: state.project.selectingComponentLayout,
     draggedComponents: state.project.draggedComponents,
-    language: state.app.language,
+    language: state.project.languageForComponentProps,
     haveNestedConstructor: haveNestedConstructorsSelector(state),
     nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
+    linkingProp: state.project.linkingProp,
     getLocalizedText: (...args) => getLocalizedText(
         state.app.localization,
         state.app.language,
@@ -489,7 +531,10 @@ const mapDispatchToProps = dispatch => ({
         void dispatch(saveComponentForProp()),
 
     onCancelConstructComponentForProp: () =>
-        void dispatch(cancelConstructComponentForProp())
+        void dispatch(cancelConstructComponentForProp()),
+
+    onLinkPropCancel: () =>
+        void dispatch(linkPropCancel())
 });
 
 export default connect(

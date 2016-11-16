@@ -564,7 +564,11 @@ const mapStateToProps = ({ project, app }) => ({
     projectName: project.projectName,
     selectedRouteId: project.selectedRouteId,
     indexRouteSelected: project.indexRouteSelected,
-    getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
+    getLocalizedText: (...args) => getLocalizedText(
+        app.localization,
+        app.language,
+        ...args
+    )
 });
 
 const mapDispatchToProps = dispatch => ({

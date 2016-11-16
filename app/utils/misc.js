@@ -10,6 +10,11 @@
 export const noop = /* istanbul ignore next */ () => {};
 
 /**
+ * Returns null :)
+ */
+export const returnNull = /* istanbul ignore next */ () => null;
+
+/**
  *
  * @param {Function} fn
  * @param {number} threshold
@@ -57,6 +62,24 @@ export const objectMap = (object, fn) => {
     });
     return ret;
 };
+
+/**
+ *
+ * @param {Object} object
+ * @param {function(value: *, key: string, object: Object): boolean} predicate
+ * @return {boolean}
+ */
+export const objectSome = (object, predicate) =>
+    Object.keys(object).some(key => predicate(object[key], key, object));
+
+/**
+ *
+ * @param {Object} object
+ * @param {function(value: *, key: string, object: Object): boolean} predicate
+ * @return {boolean}
+ */
+export const objectEvery = (object, predicate) =>
+    Object.keys(object).every(key => predicate(object[key], key, object));
 
 /**
  *

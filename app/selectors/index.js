@@ -26,6 +26,24 @@ export const currentComponentsSelector = createSelector(
         : currentRoute ? currentRoute.components : null
 );
 
+export const topNestedConstructorComponentSelector = createSelector(
+    state => state.project.nestedConstructors,
+    currentRouteSelector,
+
+    (nestedConstructors, currentRoute) => {
+        if (nestedConstructors.isEmpty()) return null;
+
+        const topNestedConstructor = nestedConstructors.first(),
+            componentId = topNestedConstructor.componentId;
+
+        const components = nestedConstructors.size === 1
+            ? currentRoute.components
+            : nestedConstructors.get(1).components;
+
+        return components.get(componentId) || null;
+    }
+);
+
 export const currentRootComponentIdSelector = createSelector(
     topNestedConstructorSelector,
     currentRouteSelector,
@@ -48,6 +66,12 @@ export const currentSelectedComponentIdsSelector = createSelector(
         ? topNestedConstructor.selectedComponentIds
         : selectedItems
 );
+
+export const singleComponentSelectedSelector = state =>
+    currentSelectedComponentIdsSelector(state).size === 1;
+
+export const firstSelectedComponentIdSelector = state =>
+    currentSelectedComponentIdsSelector(state).first();
 
 export const currentHighlightedComponentIdsSelector = createSelector(
     topNestedConstructorSelector,
