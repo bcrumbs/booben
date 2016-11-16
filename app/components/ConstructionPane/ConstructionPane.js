@@ -118,12 +118,9 @@ export const ConstructionPane = props => {
 			</div>
 		</div>;
 
-	return (
-		<div className={className}>
-
-			{ rulerX }
-			{ rulerY }
-
+	let isolation = false;
+	if (props.isolated) {
+		isolation =
 			<div className="construction-pane_canvas">
 				<div className="construction-pane_artboard-box"  style={ARTBOARD_BOX_STYLE}>
 					<div className="construction-pane_artboard" style={ARTBOARD_STYLE}>
@@ -138,12 +135,26 @@ export const ConstructionPane = props => {
 						{ expanderY }
 					</div>
 				</div>
-			</div>
+			</div>;
+
+		className += 'is-isolated';
+	}
+
+	return (
+		<div className={className}>
+
+			{ rulerX }
+			{ rulerY }
+
+			{props.children}
+
+			{isolation}
 		</div>
 	);
 };
 
 ConstructionPane.propTypes = {
+	isolated: PropTypes.bool,
 	rulers: PropTypes.bool,
 	adaptive: PropTypes.bool,
 
@@ -165,6 +176,7 @@ ConstructionPane.propTypes = {
 };
 
 ConstructionPane.defaultProps = {
+	isolated: false,
 	rulers: false,
 	adaptive: true,
 
