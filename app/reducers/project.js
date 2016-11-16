@@ -844,9 +844,7 @@ export default (state = new ProjectState(), action) => {
                 })
             });
 
-            state = state.setIn(path, newValue);
-
-            return state.merge({
+            return state.setIn(path, newValue).merge({
                 linkingProp: false,
                 linkingPropOfComponentId: -1,
                 linkingPropName: ''

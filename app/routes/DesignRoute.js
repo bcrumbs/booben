@@ -15,6 +15,7 @@ import { ComponentsLibrary } from '../containers/ComponentsLibrary/ComponentsLib
 import { ComponentsTreeView } from '../containers/ComponentsTreeView/ComponentsTreeView';
 import { ComponentPropsEditor } from '../containers/ComponentPropsEditor/ComponentPropsEditor';
 import { ComponentRegionsEditor } from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
+import { LinkPropMenu } from '../containers/LinkPropMenu/LinkPropMenu';
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
 
 import {
@@ -25,11 +26,6 @@ import {
 import {
     IsolationView
 } from '../components/IsolationView/IsolationView';
-
-import {
-    DataList,
-    DataItem
-} from '../components/DataList/DataList';
 
 import {
     Dialog,
@@ -56,20 +52,15 @@ import {
     selectLayoutForNewComponent,
     saveComponentForProp,
     cancelConstructComponentForProp,
-    linkPropCancel,
-    linkWithOwnerProp
+    linkPropCancel
 } from '../actions/project';
 
 import {
     haveNestedConstructorsSelector,
-    topNestedConstructorSelector,
-    topNestedConstructorComponentSelector,
     singleComponentSelectedSelector,
     firstSelectedComponentIdSelector,
     currentComponentsSelector
 } from '../selectors';
-
-import { NestedConstructor } from '../reducers/project';
 
 import {
     getComponentMeta,
@@ -165,7 +156,6 @@ class DesignRoute extends PureComponent {
         this._handleDeleteComponentConfirm = this._handleDeleteComponentConfirm.bind(this);
         this._handleDeleteComponentCancel = this._handleDeleteComponentCancel.bind(this);
         this._handleConfirmDeleteComponentDialogClose = this._handleConfirmDeleteComponentDialogClose.bind(this);
-        this._handleLinkWithOwnerProp = this._handleLinkWithOwnerProp.bind(this);
         this._handleLinkPropDialogCancel = this._handleLinkPropDialogCancel.bind(this);
     }
 
@@ -218,15 +208,6 @@ class DesignRoute extends PureComponent {
         this.setState({
             confirmDeleteComponentDialogIsVisible: false
         });
-    }
-
-    /**
-     *
-     * @param {string} ownerPropName
-     * @private
-     */
-    _handleLinkWithOwnerProp(ownerPropName) {
-        this.props.onLinkWithOwnerProp(ownerPropName);
     }
 
     /**
@@ -390,6 +371,7 @@ class DesignRoute extends PureComponent {
             />
         );
 
+        // TODO: Prevent re-creation of PreviewIFrame on haveNestedConstructor change
         let content;
         if (this.props.haveNestedConstructor) {
             // Render additional UI for nested constructor
@@ -436,62 +418,6 @@ class DesignRoute extends PureComponent {
             content = previewIFrame;
         }
 
-        let linkPropDialogContent = null;
-        if (this.props.singleComponentSelected && this.props.linkingProp) {
-            const ownerComponent = this.props.topNestedConstructorComponent;
-
-            if (ownerComponent) {
-                // We're in a nested constructor
-                // so we can link with owner component props
-                const ownerComponentMeta = getComponentMeta(
-                    ownerComponent.name,
-                    this.props.meta
-                );
-
-                const ownerComponentPropName = this.props.topNestedConstructor.prop,
-                    ownerComponentPropMeta = ownerComponentMeta.props[ownerComponentPropName],
-                    ownerProps = ownerComponentPropMeta.sourceConfigs.designer.props;
-
-                // TODO: Filter owner props by type
-
-                const items = Object.keys(ownerProps).map((ownerPropName, idx) => {
-                    const prop = ownerProps[ownerPropName];
-
-                    const title = getString(
-                        ownerComponentMeta,
-                        prop.textKey,
-                        this.props.language
-                    );
-
-                    const subtitle = getString(
-                        ownerComponentMeta,
-                        prop.descriptionTextKey,
-                        this.props.language
-                    );
-
-                    return (
-                        <DataItem
-                            key={idx}
-                            title={title || ownerPropName}
-                            subtitle={subtitle}
-                            type={prop.type}
-                            clickable
-                            arg={ownerPropName}
-                            onClick={this._handleLinkWithOwnerProp}
-                        />
-                    );
-                });
-
-                linkPropDialogContent = (
-                    <DataList>
-                        {items}
-                    </DataList>
-                );
-            }
-
-            // TODO: Add UI for linking with server data
-        }
-
         const linkPropDialogButtons = [{
             text: getLocalizedText('cancel'),
             onPress: this._handleLinkPropDialogCancel
@@ -535,7 +461,7 @@ class DesignRoute extends PureComponent {
                     closeOnEscape
                     onClose={this._handleLinkPropDialogCancel}
                 >
-                    {linkPropDialogContent}
+                    <LinkPropMenu/>
                 </Dialog>
             </Desktop>
         );
@@ -561,8 +487,6 @@ DesignRoute.propTypes = {
     haveNestedConstructor: PropTypes.bool,
     nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(PropTypes.string),
     linkingProp: PropTypes.bool,
-    topNestedConstructor: PropTypes.instanceOf(NestedConstructor),
-    topNestedConstructorComponent: PropTypes.instanceOf(ProjectComponentRecord),
     getLocalizedText: PropTypes.func,
 
     onRenameComponent: PropTypes.func,
@@ -570,7 +494,6 @@ DesignRoute.propTypes = {
     onSelectLayout: PropTypes.func,
     onSaveComponentForProp: PropTypes.func,
     onCancelConstructComponentForProp: PropTypes.func,
-    onLinkWithOwnerProp: PropTypes.func,
     onLinkPropCancel: PropTypes.func
 };
 
@@ -587,8 +510,6 @@ const mapStateToProps = state => ({
     haveNestedConstructor: haveNestedConstructorsSelector(state),
     nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
     linkingProp: state.project.linkingProp,
-    topNestedConstructor: topNestedConstructorSelector(state),
-    topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
     getLocalizedText: (...args) => getLocalizedText(
         state.app.localization,
         state.app.language,
@@ -611,9 +532,6 @@ const mapDispatchToProps = dispatch => ({
 
     onCancelConstructComponentForProp: () =>
         void dispatch(cancelConstructComponentForProp()),
-
-    onLinkWithOwnerProp: ownerPropName =>
-        void dispatch(linkWithOwnerProp(ownerPropName)),
 
     onLinkPropCancel: () =>
         void dispatch(linkPropCancel())
