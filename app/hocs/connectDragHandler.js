@@ -30,6 +30,7 @@ const
     language: PropTypes.string,
     draggingComponent: PropTypes.bool,
 
+	onToolSelect: PropTypes.func,
     onNewComponentStartDrag: PropTypes.func,
     onExistingComponentStartDrag: PropTypes.func,
   };

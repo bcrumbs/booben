@@ -7,10 +7,11 @@ const
 		autoScrollUpDown: PropTypes.bool,
 		additionalPixels: PropTypes.number,
 		stepDiffDivider: PropTypes.number,
+		createElementRef: PropTypes.func,
 	},
 	defaultProps = {
 		scrollingStepTime: 10,
-		autoScrollUpDown: true,
+		autoScrollUpDown: false,
 		additionalPixels: 40,
 		stepDiffDivider: 4,
 	};
@@ -51,10 +52,11 @@ export const autoScrollUpDown = WrappedComponent =>
 								this.element
 							 	&&	this.element.scrollTop >= 0
 								&& 	this.element.scrollTop <= this.element.scrollHeight
-								&&	(this.element.scrollTop +=
+								&&	(
+									this.element.scrollTop +=
 										this.props.fixedScrollingStep || this.scrollStep
 								)
-					)
+						)
 				, this.props.scrollingStepTime);
 			}
 
@@ -67,8 +69,8 @@ export const autoScrollUpDown = WrappedComponent =>
 
 			_handleMouseMove(event) {
 				if (
-					!this.element.contains(event.target)
-					|| !this.props.autoScrollUpDown
+					!this.props.autoScrollUpDown
+					||	!this.element.contains(event.target)
 				) return void this._stopSteppingScroll();
 
 				const { top, bottom } = this.element.getBoundingClientRect();
@@ -99,13 +101,14 @@ export const autoScrollUpDown = WrappedComponent =>
 
 
 				this.scrollState === SCROLL_STATES.NONE
-					? this._stopSteppingScroll()
-					: this.scrollInterval === null && this._startSteppingScroll();
+					?	this._stopSteppingScroll()
+					:	this.scrollInterval === null && this._startSteppingScroll();
 
 			}
 
 			_createElementRef(ref) {
 				this.element = ref;
+				this.props.createElementRef && this.props.createElementRef(ref);
 			}
 
 			render() {

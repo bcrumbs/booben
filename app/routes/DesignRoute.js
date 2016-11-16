@@ -76,9 +76,9 @@ import defaultComponentLayoutIcon from '../img/layout_default.svg';
 
 import { List } from 'immutable';
 
-const TOOL_ID_LIBRARY = 'componentsLibrary';
-const TOOL_ID_COMPONENTS_TREE = 'componentsTree';
-const TOOL_ID_PROPS_EDITOR = 'componentPropsEditor';
+export const TOOL_ID_LIBRARY = 'componentsLibrary';
+export const TOOL_ID_COMPONENTS_TREE = 'componentsTree';
+export const TOOL_ID_PROPS_EDITOR = 'componentPropsEditor';
 
 const LIBRARY_ICON = 'cubes';
 const COMPONENTS_TREE_ICON = 'sitemap';

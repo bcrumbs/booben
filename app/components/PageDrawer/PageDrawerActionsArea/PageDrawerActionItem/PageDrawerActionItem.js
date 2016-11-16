@@ -46,8 +46,6 @@ class PageDrawerActionItemComponent extends PureComponent {
 
       return (
           <div className={className}
-            onFocus={this._showTooltip}
-            onBlur={this._hideTooltip}
             onMouseEnter={this._showTooltip}
             onMouseLeave={this._hideTooltip}
           >
