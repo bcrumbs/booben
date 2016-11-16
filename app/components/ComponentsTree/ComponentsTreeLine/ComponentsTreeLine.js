@@ -1,8 +1,9 @@
 import React from 'react';
 
-export const ComponentsTreeLine = () =>
+export const ComponentsTreeLine = ({ createRef }) =>
 	// TODO Create normal line please :C
 	<div
+		ref={createRef}
 		className="components-tree-item"
 		style={{height: '4px', marginBottom: '-8px'}}
 	>
