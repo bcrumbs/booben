@@ -84,7 +84,6 @@ import {
 } from '../components/ComponentInteractions/ComponentInteractions';
 
 import { HeaderRoute } from '../components/HeaderRoute/HeaderRoute';
-import { IsolationView } from '../components/IsolationView/IsolationView';
 
 import {
 	DataList,

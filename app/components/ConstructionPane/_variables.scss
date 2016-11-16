@@ -44,3 +44,39 @@ $cpane-ruler-thickness: $base-module*2 !default;
 $cpane-ruler-bg-color: $grey-400 !default;
 $cpane-ruler-items-color: $grey-800 !default;
 
+// =====================================================================================================================
+// @MIXIN
+// =====================================================================================================================
+@mixin diagonal-linear($color-2, $lines: 2, $line-thickness: rem-calc(2), $color-1: transparent, $angle: 135deg) {
+	$generator: ();
+
+	@for $i from 1 through $lines {
+		$generator: append(
+						$generator,
+						(
+								$color-1 $line-thickness*($i*2 - 2),
+								$color-1 $line-thickness*($i*2 - 1),
+								$color-2 $line-thickness*($i*2 - 1),
+								$color-2 $line-thickness*($i*2)
+						),
+						comma
+		)
+	};
+
+	$generator: append(
+					$generator,
+							(
+									$color-1 $line-thickness*(($lines+1) + 1),
+									$color-1 $line-thickness*(($lines+1) + 1)
+							),
+					comma
+	);
+
+	background-image:
+			linear-gradient(
+							$angle,
+							#{$generator}
+			);
+}
+
+

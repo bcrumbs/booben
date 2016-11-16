@@ -40,6 +40,8 @@ export const STICK_REGION_RIGHT = 1;
 export const STICK_REGION_TOP = 2;
 export const STICK_REGION_BOTTOM = 3;
 
+const START_Z_INDEX = 2000;
+
 export class ToolWindow extends PureComponent {
     constructor(props) {
         super(props);
@@ -375,7 +377,7 @@ export class ToolWindow extends PureComponent {
                 isDragged={this.state.dragging}
                 maxHeight={tool.windowMaxHeight}
                 minWidth={tool.windowMinWidth}
-                zIndex={toolState.zIndex}
+                zIndex={START_Z_INDEX + toolState.zIndex}
                 onFocus={this.props.onFocus}
             >
                 {mainRegion}

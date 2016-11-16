@@ -1,29 +1,32 @@
 import React, { PropTypes } from 'react';
+import { autoScrollUpDown } from '../../../hocs/autoScrollUpDown';
 
-export const BlockContentBox = props => {
+const BlockContentBoxComponent = props => {
     let className = `block-content-box-area`;
     if (props.isBordered) className += ' is-bordered';
     if (props.flex) className += ' display-flex';
 
     return (
-        <div className={className}>
+        <div className={className} ref={props.createElementRef}>
             {props.children}
         </div>
     );
 
 };
 
-BlockContentBox.propTypes = {
+BlockContentBoxComponent.propTypes = {
     isBordered: PropTypes.bool,
-    flex: PropTypes.bool
+    flex: PropTypes.bool,
+	createElementRef: PropTypes.func
 };
 
-BlockContentBox.defaultProps = {
+BlockContentBoxComponent.defaultProps = {
     isBordered: false,
 	flex: false
 };
 
-BlockContentBox.displayName = 'BlockContentBox';
+BlockContentBoxComponent.displayName = 'BlockContentBox';
 
+export const BlockContentBox = autoScrollUpDown(BlockContentBoxComponent);
 export * from './BlockContentBoxItem/BlockContentBoxItem'
 export * from './BlockContentBoxHeading/BlockContentBoxHeading'

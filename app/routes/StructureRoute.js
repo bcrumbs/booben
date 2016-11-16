@@ -4,8 +4,6 @@
 
 'use strict';
 
-// TODO: Get all text from i18n
-
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
@@ -30,6 +28,9 @@ import { selectRoute } from '../actions/structure';
 import {
     Panel,
     PanelContent,
+    Header,
+    HeaderRegion,
+    HeaderTitle,
     Container,
     Row,
     Column,
@@ -479,6 +480,14 @@ class StructureRoute extends PureComponent {
                 onToolTitleChange={this._handleToolTitleChange}
             >
                 <Panel headerFixed maxHeight="initial" spread>
+                    <Header>
+                        <HeaderRegion spread alignY="center">
+                            <HeaderTitle>
+                                {getLocalizedText('structure')}
+                            </HeaderTitle>
+                        </HeaderRegion>
+                    </Header>
+
                     <PanelContent>
                         <Container>
                             <Row>
