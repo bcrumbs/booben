@@ -99,8 +99,8 @@ class ComponentsTreeViewComponent extends PureComponent {
 
 	_scrollToLine() {
 		if (!this.lineElement) return;
-		const { top, bottom } = this.lineElement.getBoundingClientRect();
-		//this.element.scrollBy(document.body.offsetHeight - top);
+		!this.isMouseOver
+		&& this.lineElement.scrollIntoView(false);
 	}
 
     componentWillReceiveProps(nextProps) {
@@ -435,8 +435,8 @@ class ComponentsTreeViewComponent extends PureComponent {
             subtitle = '';
         }
 
-		const containsPlaceholderContainer
-				= this._containsPlaceholderContainer(componentId);
+		/*const containsPlaceholderContainer
+				= this._containsPlaceholderContainer(componentId);*/
 
         return (
 			<ComponentsTreeItem
@@ -446,7 +446,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 				subtitle={subtitle}
 				expanded={
 					this.props.expandedItemIds.has(componentId)
-					|| !this.isMouseOver && containsPlaceholderContainer
+					|| !this.isMouseOver && this.props.draggingComponent
 				}
 				active={this.props.selectedComponentIds.has(componentId)}
 				hovered={
