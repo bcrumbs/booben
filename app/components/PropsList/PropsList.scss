@@ -48,8 +48,14 @@ $prop-toggle: 'props-type-toggle';
 	.prop-item-content-box {
 		flex-grow: 1;
 		display: flex;
-		align-items: center;
+		align-items: stretch;
 		max-width: 100%;
+		flex-direction: column;
+
+		.has-image & {
+			min-height: $prop-image-size;
+			justify-content: center;
+		}
 	}
 
 	// Props Image
@@ -96,6 +102,53 @@ $prop-toggle: 'props-type-toggle';
 			min-height: 0;
 			border: 0 solid transparent;
 		}
+
+		.has-image & {
+			height: $prop-image-size;
+			display: flex;
+			align-items: center;
+		}
+	}
+
+	// Icon
+	.prop-item-icon {
+		cursor: $cursor-pointer;
+		border-radius: $prop-icon-border-radius;
+
+		&,
+		.button-icon {
+			@include icon-size(
+							$prop-icon-box-size,
+							$prop-icon-img-size);
+
+			@include icon-style($prop-icon-color);
+
+			&:hover,
+			&:focus {
+				@include icon-style($prop-icon-hover-color);
+			}
+		}
+
+		&:hover,
+		&:focus {
+			.button {
+				background-color: $prop-icon-hover-bg-color;
+			}
+		}
+
+		.button {
+			min-height: 0;
+		}
+	}
+
+	.prop-item-icon-left { margin-right: $prop-icon-margin; }
+	.prop-item-icon-right { margin-left: $prop-icon-margin; }
+
+	.prop-item-icon-collapse {
+		.sublevel-is-opened & .button{
+			transform: rotate(90deg);
+			@include single-transition(transform);
+		}
 	}
 
 	// =================================================================================================================
@@ -126,18 +179,13 @@ $prop-toggle: 'props-type-toggle';
 		}
 	}
 
-	// PROP: toggle
-	// =================================================================================================================
-	.prop-type-toggle {
-		.toggle-button {
-			width: 100%;
-		}
+	.prop-item_label-text {
+		margin-right: $base-module/2
+	}
 
-		.toggle-label {
-			display: flex;
-			align-items: center;
-			min-height: ($prop-action-box-size + $prop-actions-margin-top );
-		}
+	.prop-item_type {
+		font-size: fs(-1);
+		color: $grey-500;
 	}
 
 	// PROP: input
@@ -327,47 +375,6 @@ $prop-toggle: 'props-type-toggle';
 		}
 	}
 
-	// Icon
-	.prop-tree-item-icon {
-		cursor: $cursor-pointer;
-		border-radius: $prop-tree-icon-border-radius;
-
-		&,
-		.button-icon {
-			@include icon-size(
-							$prop-tree-icon-box-size,
-							$prop-tree-icon-img-size);
-
-			@include icon-style($prop-tree-icon-color);
-
-			&:hover,
-			&:focus {
-				@include icon-style($prop-tree-icon-hover-color);
-			}
-		}
-
-		&:hover,
-		&:focus {
-			.button {
-				background-color: $prop-tree-icon-hover-bg-color;
-			}
-		}
-
-		.button {
-			min-height: 0;
-		}
-	}
-
-	.prop-tree-item-icon-left { margin-right: $prop-tree-icon-margin; }
-	.prop-tree-item-icon-right { margin-left: $prop-tree-icon-margin; }
-
-	.prop-tree-item-icon-collapse {
-		.sublevel-is-opened & .button{
-			transform: rotate(90deg);
-			@include single-transition(transform);
-		}
-	}
-
 	// Title
 	.prop-tree-item-title-wrapper {
 		display: flex;
@@ -419,14 +426,14 @@ $prop-toggle: 'props-type-toggle';
 		}
 
 		.prop-tree-item-type-constructor & {
-			padding-left: $prop-tree-icon-box-size + $prop-tree-icon-margin ;
+			padding-left: $prop-icon-box-size + $prop-icon-margin ;
 		}
 	}
 
 	// Action
 	.prop-tree-item-action-row {
 		margin: $prop-tree-action-margin-top 0 $prop-tree-action-margin-bottom;
-		padding-left: $prop-tree-icon-box-size + $prop-tree-icon-margin - $base-module; // $base-module - button padding
+		padding-left: $prop-icon-box-size + $prop-icon-margin - $base-module; // $base-module - button padding
 		text-align: $prop-tree-action-align;
 	}
 }

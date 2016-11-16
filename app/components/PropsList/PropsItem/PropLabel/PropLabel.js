@@ -15,24 +15,25 @@ export const PropLabel = props => {
 
     return (
         <label className="prop-item-label">
-            <div className="label-text">
-                {props.label}
-            </div>
+            <div className="prop-item_label-wrapper">
+                <span className="prop-item_label-text">{props.label}</span>
+                <span className="prop-item_type">{props.type}</span>
 
-            {tooltip}
+	            {tooltip}
+            </div>
         </label>
     );
 };
 
 PropLabel.propTypes = {
     label: PropTypes.string,
-    subtitle: PropTypes.string,
+	type: PropTypes.string,
     tooltip: PropTypes.string
 };
 
 PropLabel.defaultProps = {
     label: '',
-	subtitle: '',
+	type: '',
     tooltip: ''
 };
 

@@ -347,18 +347,18 @@ const toolComponentLayoutWindowSections = List([
 			<BlockContentBox isBordered>
 				<BlockContentBoxHeading>Component Templates</BlockContentBoxHeading>
 				<BlockContentBoxItem>
-					<PropsItem type="toggle" image="https://c.tadst.com/gfx/750w/penguin-awareness-day-fun1.jpg?1" label="some item">
+					<PropsItem view="toggle" image="https://c.tadst.com/gfx/750w/penguin-awareness-day-fun1.jpg?1" label="some item">
 						<PropsList>
-							<PropsItem type="constructor" label="some child item"/>
+							<PropsItem view="constructor" label="some child item"/>
 						</PropsList>
 					</PropsItem>
-					<PropsItem type="constructor" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem type="input" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem type="textarea" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem type="list" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem type="toggle" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem type="constructor-toggle" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem type="tree" label="Prop-1" tooltip={'i am tooltip'}/>
+					<PropsItem view="constructor" label="some child item" type='constructor' tooltip={'i am tooltip'}/>
+					<PropsItem view="input" label="some child item" tooltip={'i am tooltip'}/>
+					<PropsItem view="textarea" type='string' label="some child item" tooltip={'i am tooltip'}/>
+					<PropsItem view="list" label="some child item" tooltip={'i am tooltip'}/>
+					<PropsItem view="toggle" label="some child item" tooltip={'i am tooltip'}/>
+					<PropsItem view="constructor-toggle" label="some child item" tooltip={'i am tooltip'}/>
+					<PropsItem view="tree" label="Prop-1" tooltip={'i am tooltip'}/>
 				</BlockContentBoxItem>
 			</BlockContentBox>
 		)

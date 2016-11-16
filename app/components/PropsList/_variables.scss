@@ -19,6 +19,16 @@ $prop-action-height:            $prop-action-box-size !default;
 
 $prop-actions-margin-left:      $base-module !default;
 
+// Icon
+$prop-icon-border-radius:      $global-radius !default;
+
+$prop-icon-box-size:           rem-calc(28) !default;
+$prop-icon-img-size:           $base-module(16) !default;
+$prop-icon-color:              $icon-dark-inactive-color !default;
+$prop-icon-hover-color:        $icon-dark-default-color !default;
+$prop-icon-hover-bg-color:     $grey-100 !default;
+$prop-icon-margin:             $base-module/2 !default;
+
 // List
 $props-spacing:                 $base-module*2 !default;
 $props-level-offset:            $base-module*3 !default;
@@ -82,16 +92,6 @@ $prop-tree-item-last-margin-bottom: $base-module*1.5 !default;
 
 $prop-tree-value-width:             rem-calc(144) !default;
 $prop-tree-value-spacing:           $base-module !default;
-
-// Icon
-$prop-tree-icon-border-radius:      $global-radius !default;
-
-$prop-tree-icon-box-size:           rem-calc(28) !default;
-$prop-tree-icon-img-size:           $base-module(16) !default;
-$prop-tree-icon-color:              $icon-dark-inactive-color !default;
-$prop-tree-icon-hover-color:        $icon-dark-default-color !default;
-$prop-tree-icon-hover-bg-color:     $grey-100 !default;
-$prop-tree-icon-margin:             $base-module/2 !default;
 
 // Title
 $prop-tree-title-font-size:          fs(0) !default;
