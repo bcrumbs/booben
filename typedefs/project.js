@@ -48,7 +48,8 @@
 
 /**
  * @typedef {Object} SourceDataStatic
- * @property {*} value
+ * @property {*} [value]
+ * @property {string} [ownerPropName]
  */
 
 /**

@@ -153,7 +153,7 @@ export const PROJECT_COMPONENT_UPDATE_PROP_VALUE = 'PROJECT_COMPONENT_UPDATE_PRO
  * @param {number} componentId
  * @param {string} propName
  * @param {string} newSource
- * @param {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataAction|SourceDataDesigner} newSourceData
+ * @param {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner} newSourceData
  * @return {Object}
  */
 export const updateComponentPropValue = (componentId, propName, newSource, newSourceData) => ({
@@ -266,4 +266,55 @@ export const PROJECT_SAVE_COMPONENT_FOR_PROP = 'PROJECT_SAVE_COMPONENT_FOR_PROP'
  */
 export const saveComponentForProp = () => ({
     type: PROJECT_SAVE_COMPONENT_FOR_PROP
+});
+
+/**
+ *
+ * @type {string}
+ * @const
+ */
+export const PROJECT_LINK_PROP = 'PROJECT_LINK_PROP';
+
+/**
+ *
+ * @param {number} componentId
+ * @param {string} propName
+ * @return {Object}
+ */
+export const linkProp = (componentId, propName) => ({
+    type: PROJECT_LINK_PROP,
+    componentId,
+    propName
+});
+
+/**
+ *
+ * @type {string}
+ * @const
+ */
+export const PROJECT_LINK_WITH_OWNER_PROP = 'PROJECT_LINK_WITH_OWNER_PROP';
+
+/**
+ *
+ * @param {string} ownerPropName
+ * @return {Object}
+ */
+export const linkWithOwnerProp = ownerPropName => ({
+    type: PROJECT_LINK_WITH_OWNER_PROP,
+    ownerPropName
+});
+
+/**
+ *
+ * @type {string}
+ * @const
+ */
+export const PROJECT_LINK_PROP_CANCEL = 'PROJECT_LINK_PROP_CANCEL';
+
+/**
+ *
+ * @return {Object}
+ */
+export const linkPropCancel = () => ({
+    type: PROJECT_LINK_PROP_CANCEL
 });

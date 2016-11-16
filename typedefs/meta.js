@@ -17,7 +17,7 @@
  * @property {Object<string, ComponentPropMeta>} props - Description of component's props.
  * @property {ComponentLayout[]} [layouts] - Available layouts for composite components.
  * @property {Object<string, Object<string, string>>} [strings] - String translations. Example: { "string_key": { "en": "...", "ru": "...", ... }, ... }. Can be placed in a separate file (.jssy/strings.json).
- * @property {Object<string, TypeMeta>} [types] - User-defined types. Can be placed in a separate file (.jssy/types.json).
+ * @property {Object<string, TypeDefinition>} [types] - User-defined types. Can be placed in a separate file (.jssy/types.json).
  */
 
 /**
@@ -39,13 +39,23 @@
  */
 
 /**
- * @typedef {Object} ComponentPropMeta
- * @property {string} textKey - Key for prop name string.
- * @property {string} descriptionTextKey - Key for prop description string.
- * @property {string} type - Type of the prop. Can be one of the built-in types ("string", "int", "float", "bool", "oneOf", "arrayOf", "shape", "component", "func") or one of user-defined types.
+ * @typedef {Object} OneOfOption
+ * @property {string} textKey
+ * @property {*} value
+ */
+
+/**
+ * @typedef {Object} TypeDefinition
+ * @property {string} type - Type name. Can be one of the built-in types ({@link BUILT_IN_PROP_TYPES}) or one of user-defined types.
  * @property {Object} [ofType] - For "arrayOf" type only - type of array items.
  * @property {Object<string, ComponentPropMeta>} [fields] - For "shape" type only.
  * @property {OneOfOption[]} [options] - For "oneOf" type only.
+ */
+
+/**
+ * @typedef {TypeDefinition} ComponentPropMeta
+ * @property {string} textKey - Key for prop name string.
+ * @property {string} descriptionTextKey - Key for prop description string.
  * @property {string[]} source - Available sources for prop's value. Must be a subset of <"static", "data", "const", "designer", "actions">.
  * @property {Object} [sourceConfigs]
  * @property {StaticSourceConfig} [sourceConfigs.static]
@@ -53,12 +63,6 @@
  * @property {ConstSourceConfig} [sourceConfigs.const]
  * @property {DesignerSourceConfig} [sourceConfigs.designer]
  * @property {ActionsSourceConfig} [sourceConfigs.actions]
- */
-
-/**
- * @typedef {Object} OneOfOption
- * @property {string} textKey
- * @property {*} value
  */
 
 /**
@@ -86,10 +90,9 @@
  */
 
 /**
- * @typedef {Object} DesignerSourceConfigPropDesc
+ * @typedef {TypeDefinition} DesignerSourceConfigPropDesc
  * @property {string} textKey
  * @property {string} descriptionSourceKey
- * @property {string} type
  */
 
 /**
@@ -97,12 +100,4 @@
  * @property {string} [wrapper] - Wrapper component name
  * @property {number} [wrapperLayout] - Layout number cor composite wrapper component
  * @property {Object<string, DesignerSourceConfigPropDesc>} [props]
- */
-
-/**
- * @typedef {Object} TypeMeta - Type definition. All fields have same meanings as in ComponentPropMeta
- * @property {string} type
- * @property {Object} [ofType]
- * @property {Object<string, ComponentPropMeta>} [fields]
- * @property {OneOfOption[]} [options]
  */

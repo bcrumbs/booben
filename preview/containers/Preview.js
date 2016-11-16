@@ -483,6 +483,7 @@ class Preview extends PureComponent {
                 <Builder
                     components={this.props.topNestedConstructor.components}
                     rootId={this.props.topNestedConstructor.rootId}
+                    ignoreOwnerProps
                 />
             );
         }
