@@ -38,6 +38,7 @@ $prop-toggle: 'props-type-toggle';
 	// =================================================================================================================
 	.prop-item {
 		margin-top: $props-spacing;
+		max-width: 100%;
 	}
 
 	.prop-item-wrapper {
@@ -48,6 +49,7 @@ $prop-toggle: 'props-type-toggle';
 		flex-grow: 1;
 		display: flex;
 		align-items: center;
+		max-width: 100%;
 	}
 
 	// Props Image
@@ -143,6 +145,7 @@ $prop-toggle: 'props-type-toggle';
 	.prop-type-input {
 		.input {
 			width: 100%;
+			max-width: 100%;
 		}
 	}
 
@@ -151,6 +154,7 @@ $prop-toggle: 'props-type-toggle';
 	.prop-type-textarea {
 		.textarea {
 			width: 100%;
+			max-width: 100%;
 		}
 	}
 

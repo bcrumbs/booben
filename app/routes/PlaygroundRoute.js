@@ -91,6 +91,11 @@ import {
 	DataItem
 } from '../components/DataList/DataList';
 
+import {
+	ConstructionPane,
+	ConstructionTool
+} from '../components/ConstructionPane/ConstructionPane';
+
 import { Desktop } from '../containers/Desktop/Desktop';
 
 import ToolSectionRecord from '../models/ToolSection';
@@ -98,6 +103,21 @@ import ButtonRecord from '../models/Button';
 import ToolRecord from '../models/Tool';
 
 import { List, Set } from 'immutable';
+
+// DATA
+const toolIsolationSections = List([
+	new ToolSectionRecord({
+		name: 'Settings',
+		component: () => (
+			<BlockContentBox isBordered>
+				<BlockContentBoxHeading>Size</BlockContentBoxHeading>
+				<BlockContentBoxItem>
+					<ConstructionTool />
+				</BlockContentBoxItem>
+			</BlockContentBox>
+		)
+	})
+]);
 
 // DATA
 const toolDataSections = List([
@@ -382,11 +402,24 @@ export const PLAYGROUND_TOOL_IDS = List([
 	'tool5',
 	'tool6',
 	'tool7',
-	'tool8'
+	'tool8',
+	'tool9'
 ]);
 
 const toolGroups = List([
 	List([
+		new ToolRecord({
+			id: 'tool9',
+			icon: 'cog',
+			name: 'Artboard Properties',
+			title: 'Artboard Properties',
+			undockable: true,
+			closable: false,
+			sections: toolIsolationSections,
+			mainButtons: '',
+			secondaryButtons: ''
+		}),
+		
 		new ToolRecord({
 			id: 'tool1',
 			icon: 'file-text-o',
@@ -574,20 +607,12 @@ export default class Playground extends React.Component {
                 </TopRegion>
 
                 <Desktop toolGroups={toolGroups}>
-	                <Panel headerFixed={true} maxHeight="initial">
+	                <Panel headerFixed={true} maxHeight="initial" spread>
 
 		                <HeaderRoute />
 
 		                <PanelContent>
-			                <IsolationView
-				                adaptive
-				                width="auto"
-				                minWidth="300px"
-				                maxWidth="none"
-				                height="auto"
-				                minHeight="300px"
-				                maxHeight="none"
-			                />
+			                <ConstructionPane />
 		                </PanelContent>
 	                </Panel>
                 </Desktop>

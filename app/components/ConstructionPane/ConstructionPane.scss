@@ -1,0 +1,216 @@
+@charset "UTF-8";
+@import 'variables';
+
+@include exports(construction-pane) {
+	// =================================================================================================================
+	// BASE
+	// =================================================================================================================
+	.construction-pane {
+		width: 100%;
+		max-width: 100%;
+		height: 100%;
+		max-height: 100%;
+		flex-grow: 1;
+		position: absolute;
+		background-color: $cpane-bg-color;
+	}
+
+	// =================================================================================================================
+	// CANVAS
+	// =================================================================================================================
+	.construction-pane_canvas {
+		background-color: $cpane-canvas-bg-color;
+		position: absolute;
+		width: 100%;
+		height: 100%;
+		overflow: auto;
+		padding: $cpane-canvas-padding;
+		display: flex;
+
+		.construction-pane.has-rulers & {
+			max-height: calc(100% - #{$cpane-ruler-thickness});
+			max-width: calc(100% - #{$cpane-ruler-thickness});
+			top: $cpane-ruler-thickness;
+			left: $cpane-ruler-thickness;
+		}
+	}
+
+	.construction-pane_artboard-box {
+		width: 100%;
+		height: 100%;
+		flex-grow: 1;
+		flex-shrink: 0;
+		position: relative;
+	}
+
+	.construction-pane_artboard {
+		background-color: $white;
+		border: 1px solid $color-border;
+		flex-shrink: 0;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate3d(-50%, -50%, 0);
+	}
+
+	// Artboard Data
+	// =================================================================================================================
+	.artboard-data {
+		font-size: $cpane-artboard-data-font-size;
+		line-height: $cpane-artboard-data-line-height;
+		color: $cpane-artboard-data-color;
+		text-transform: $cpane-artboard-data-text-transform;
+
+		position: absolute;
+		width: 100%;
+		top: 0;
+		left: 0;
+		transform: translateY(-100%);
+		pointer-events: none;
+
+		padding: $cpane-artboard-data-padding-y $cpane-artboard-data-padding-x;
+
+		@include user-select;
+	}
+
+	.artboard-data-content {
+		display: flex;
+	}
+
+	.artboard-data_title {
+		flex-grow: 1;
+		flex-shrink: 0;
+	}
+
+	.artboard-data_size {
+		flex-shrink: 0;
+		margin-left: $cpane-artboard-data-items-spacing;
+	}
+
+	// Artboard Expander
+	// =================================================================================================================
+	.construction-pane_artboard-expander {
+		opacity: $cpane-expander-opacity;
+		background-color: $cpane-expander-bg-color;
+		position: absolute;
+		z-index: 9;
+
+		@include single-transition(opacity);
+
+		&:hover {
+			opacity: $cpane-expander-opacity-hover;
+		}
+
+		&.artboard-expander_position-horizontal {
+			width: 100%;
+			height: $cpane-expander-thickness;
+			bottom: -$cpane-expander-thickness;
+			left: 0;
+			cursor: s-resize;
+		}
+
+		&.artboard-expander_position-vertical {
+			width: $cpane-expander-thickness;
+			height: 100%;
+			top: 0;
+			right: -$cpane-expander-thickness;
+			cursor: e-resize;
+		}
+
+		&.artboard-expander_position-entire {
+			width: $cpane-expander-thickness;
+			height:  $cpane-expander-thickness;
+			bottom: -$cpane-expander-thickness;
+			right: -$cpane-expander-thickness;
+			cursor: se-resize;
+
+			&:hover ~ .construction-pane_artboard-expander {
+				opacity: $cpane-expander-opacity-hover;
+			}
+		}
+	}
+
+	.construction-pane_artboard-expander_icon {
+		$line-combo-width: $cpane-expander-icon-line-thickness*3;
+
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate3d(-50%, -50%, 0);
+		z-index: 10;
+
+		.artboard-expander_position-horizontal & {
+			height: $cpane-expander-icon-width;
+			width: $cpane-expander-icon-length;
+
+			background-image:
+					linear-gradient(
+									to bottom,
+									$cpane-expander-icon-color $cpane-expander-icon-line-thickness,
+									transparent $cpane-expander-icon-line-thickness
+					);
+			background-size: $line-combo-width*2;
+			background-position-y: $cpane-expander-icon-width/2 - $line-combo-width + $cpane-expander-icon-line-thickness;
+		}
+
+		.artboard-expander_position-vertical & {
+			width: $cpane-expander-icon-width;
+			height: $cpane-expander-icon-length;
+
+			background-image:
+					linear-gradient(
+									to right,
+									$cpane-expander-icon-color $cpane-expander-icon-line-thickness,
+									transparent $cpane-expander-icon-line-thickness
+					);
+			background-size: $line-combo-width;
+			background-position-x: $cpane-expander-icon-width/2 - $line-combo-width + $cpane-expander-icon-line-thickness;
+		}
+
+		.artboard-expander_position-entire & {
+			$diagonal-thickness: $cpane-expander-icon-line-thickness;
+
+			height: $cpane-expander-icon-width;
+			width: $cpane-expander-icon-width;
+			transform:  translate3d(-50%, -50%, 0) rotate(180deg);
+
+			background-image:
+					linear-gradient(
+									135deg,
+									$cpane-expander-icon-color 0,
+									$cpane-expander-icon-color $cpane-expander-icon-line-thickness,
+									transparent $cpane-expander-icon-line-thickness,
+									transparent $cpane-expander-icon-line-thickness*2,
+									$cpane-expander-icon-color $cpane-expander-icon-line-thickness*2,
+									$cpane-expander-icon-color $cpane-expander-icon-line-thickness*3,
+									transparent $cpane-expander-icon-line-thickness*3,
+									transparent $cpane-expander-icon-line-thickness*4
+					);
+		}
+	}
+
+	// =================================================================================================================
+	// RULERS
+	// =================================================================================================================
+	.construction-pane_ruler {
+		background-color: $cpane-ruler-bg-color;
+		position: absolute;
+		z-index: 9;
+
+		&.ruler_position-horizontal {
+			width: calc(100% - #{$cpane-ruler-thickness});
+			height: $cpane-ruler-thickness;
+			top: 0;
+			left: $cpane-ruler-thickness;
+		}
+
+		&.ruler_position-vertical {
+			width: $cpane-ruler-thickness;
+			height: calc(100% - #{$cpane-ruler-thickness});
+			top: $cpane-ruler-thickness;
+			left: 0;
+		}
+	}
+
+}
+

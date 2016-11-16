@@ -1,13 +1,25 @@
 @charset "UTF-8";
 @import 'variables';
 
-@include exports(isolation-view) {
+@include exports(construction-tool) {
 	// =================================================================================================================
 	// BASE
 	// =================================================================================================================
-	.isolation-view {
-		flex-grow: 1;
-		position: relative;
+	.construction-tool {
+		.input { margin-top: 0 }
 	}
+
+	.construction-tool_data-row {
+		margin-top: $base-module;
+		width: 100%;
+
+		@include user-select;
+	}
+
+	.construction-tool_data-item-additional {
+		font-size: fs(-1);
+		color: $grey-500;
+	}
+
 }
 
