@@ -1,266 +1,254 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 
 import {
-	Button,
-	Checkbox,
-	Input,
-	SelectBox,
-	Textarea,
-	ToggleButton
+    Button,
+    Input,
+    SelectBox,
+    Textarea,
+    ToggleButton
 } from '@reactackle/reactackle';
 
-import {
-	PropItemArray,
-	PropItemArrayHeader,
-	PropItemArrayHeaderRow,
-	PropItemArrayHeaderCell,
-	PropItemArrayBody,
-	PropArrayBodyRow,
-	PropArrayBodyCell,
-	PropArrayBodyCellText
-} from './PropItemArray/PropItemArray';
-
-import {
-	PropTreeBreadcrumbs,
-	PropTreeList
-} from './PropTree/PropTree';
-
-import {PropLabel} from './PropLabel/PropLabel';
-import {PropLinkButton} from './PropLinkButton/PropLinkButton';
-
-import {PropConstructor} from './PropConstructor/PropConstructor';
-import {PropArrayNewRow} from './PropItemArray/PropArrayNewRow/PropArrayNewRow';
+import { PropLabel } from './PropLabel/PropLabel';
+import { PropImage } from './PropImage/PropImage';
 
 import { noop } from '../../../utils/misc';
 
-export const PropsItem = props => {
-	let className = 'prop-item',
-		wrapperClassName= 'prop-item-wrapper';
+export class PropsItem extends PureComponent {
+    constructor(props) {
+        super(props);
+        
+        this._handleToggleOpen = this._handleToggleOpen.bind(this);
+    }
+    
+    _handleToggleOpen() {
+        
+    }
+    
+    render() {
+        let className = 'prop-item',
+            wrapperClassName = 'prop-item-wrapper';
 
-	if (props.view) className += ` prop-type-${props.view}`;
-	if (props.subtreeOn) wrapperClassName += ' sublevel-is-visible';
-	if (props.type === 'arrayOf') className += ' ' + 'is-flat-array';
+        if (this.props.propType.view)
+            className += ` prop-type-${this.props.propType.view}`;
+        
+        if (this.props.subtreeOn) wrapperClassName += ' sublevel-is-visible';
+        if (this.props.dimLabel) className += ' is-flat-array';
 
-	/*
-		PROP VIEWS
-	*/
-	let content = false;
+        if (this.props._isOpen) {
+            wrapperClassName += ' sublevel-is-visible';
+            className += ' sublevel-is-visible';
+        }
 
-	if (props.view === 'input') {
-		content = (
-			<Input
-				value={props.value}
-				disabled={props.disabled}
-				onChange={props.onChange}
-			/>
-		);
-	}
-	else if (props.view === 'textarea') {
-		content = (
-			<Textarea
-				value={props.value}
-				disabled={props.disabled}
-				onChange={props.onChange}
-			/>
-		);
-	}
-	else if (props.view === 'list') {
-		content = (
-			<SelectBox
-				data={props.options}
-				value={props.value}
-				disabled={props.disabled}
-				onSelect={props.onChange}
-			/>
-		);
-	}
-	else if (props.view === 'constructor' || props.view === 'constructor-toggle' ) {
-		content = (
-			<PropConstructor
-				buttonText={props.setComponentButtonText}
-				onSetComponent={props.onChange}
-			/>
-		);
-	}
+        let content = null;
+        if (this.props.propType.view === 'input') {
+            content = (
+                <Input
+                    value={this.props.value}
+                    disabled={this.props.disabled}
+                    onChange={this.props.onChange}
+                />
+            );
+        }
+        else if (this.props.propType.view === 'textarea') {
+            content = (
+                <Textarea
+                    value={this.props.value}
+                    disabled={this.props.disabled}
+                    onChange={this.props.onChange}
+                />
+            );
+        }
+        else if (this.props.propType.view === 'list') {
+            content = (
+                <SelectBox
+                    data={this.props.propType.options}
+                    value={this.props.value}
+                    disabled={this.props.disabled}
+                    onSelect={this.props.onChange}
+                />
+            );
+        }
+        else if (this.props.propType.view === 'constructor') {
+            content = (
+                <Button
+                    kind="link"
+                    text={this.props.setComponentButtonText}
+                    onPress={this.props.onChange}
+                />
+            );
+        }
 
-	/*
-		Common elements
-	 */
+        let toggle = null;
+        if (this.props.propType.view === 'toggle') {
+            toggle = (
+                <div className="prop_action prop_action-toggle">
+                    <ToggleButton
+                        checked={this.props.value}
+                        disabled={this.props.disabled}
+                        onCheck={this.props.onChange}
+                    />
+                </div>
+            );
+        }
 
-	let toggle = null;
-	if (props.view === 'toggle' || props.view === 'constructor-toggle') {
-		toggle =
-			<div className="prop_action prop_action-toggle">
-				<ToggleButton
-					checked={props.value}
-					disabled={props.disabled}
-					onCheck={props.onChange}
-				/>
-			</div>
-	}
+        let label = null;
+        if (this.props.propType.label) {
+            label = (
+                <PropLabel
+                    label={this.props.propType.label}
+                    type={this.props.propType.type}
+                    tooltip={this.props.propType.tooltip}
+                />
+            );
+        }
 
-	let children = null;
-	if (props.children) {
-		children =
-			props.view === 'tree' ?
-				<PropTreeList addButton>
-					<PropTreeBreadcrumbs />
-					{props.children}
-				</PropTreeList>
-				:
-				props.children;
-	}
+        let image = null;
+        if (this.props.propType.image) {
+            image = (
+                <PropImage src={this.props.propType.image} />
+            );
 
-	let label = null;
-	if (
-		props.label
-	) {
-		label =
-			<PropLabel
-				label={props.label}
-				type={props.type}
-				tooltip={props.tooltip}
-			/>;
-	}
+            wrapperClassName += ' has-image';
+        }
 
-	let image = null,
-		iconLeft = null,
-		actionsLeft = null,
-		iconRight = null,
-		actionsRight = null;
+        let actionsLeft = null;
+        if (this.props._deletable) {
+            actionsLeft = (
+                <div className="prop_actions prop_actions-left">
+                    <div className="prop_action prop_action-collapse">
+                        <Button icon="times" onPress={this.props.onDelete} />
+                    </div>
+                </div>
+            );
+        }
 
-	if (props.image) {
-		image = (
-			<div className="prop-item-image-box">
-				<img src={props.image} />
-			</div>
-		);
-	}
+        const isComplexValue =
+            this.props.propType.view === 'shape' ||
+            this.props.propType.view === 'object' ||
+            this.props.propType.view === 'array';
 
-	if (props.removable) {
-		actionsLeft =
-			<div className="prop_actions prop_actions-left">
-				<div className="prop_action prop_action-collapse">
-					<Button icon="times" />
-				</div>
-			</div>;
-	}
+        let collapseAction = null;
+        if (isComplexValue) {
+            collapseAction = (
+                <div className="prop_action prop_action-collapse">
+                    <Button icon="chevron-right" onPress={this._handleToggleOpen}/>
+                </div>
+            );
 
-	let collapsingAction = null,
-		linkingAction = null;
-	if (props.children && props.view !== 'constructor-toggle' && props.view !== 'toggle') {
-		collapsingAction =
-			<div className="prop_action prop_action-collapse">
-				<Button icon="chevron-right" />
-			</div>;
+            className += ' has-sublevel';
+        }
 
-		className += ' ' + 'has-sublevel';
-	}
+        let linkAction = null;
+        if (this.props.propType.linkable) {
+            linkAction = (
+                <div className="prop_action prop_action-linking">
+                    <Button icon="link" onPress={this.props.onLink}/>
+                </div>
+            );
+        }
 
-	if (props.opened) {
-		wrapperClassName += ' ' + 'sublevel-is-visible';
-		className += ' ' + 'sublevel-is-visible';
-	}
+        let actionsRight = null;
+        if (toggle || linkAction || collapseAction) {
+            actionsRight = (
+                <div className="prop_actions prop_actions-right">
+                    {toggle}
+                    {collapseAction}
+                    {linkAction}
+                </div>
+            );
 
-	if (props.linkable) {
-		linkingAction = (
-			<div className="prop_action prop_action-linking">
-				<PropLinkButton
-					onPress={props.onLink}
-				/>
-			</div>
-		);
-	}
+            wrapperClassName += ' has-actions-right';
+        }
 
-	if(linkingAction || collapsingAction) {
-		actionsRight =
-			<div className="prop_actions prop_actions-right">
-				{ toggle }
-				{ collapsingAction }
-				{ linkingAction }
-			</div>
-	}
+        return (
+            <div className={className}>
+                <div className={wrapperClassName}>
+                    {actionsLeft}
+                    {image}
 
-	wrapperClassName +=
-		image ? ' has-image' : '' +
-		iconLeft ? ' has-icon-left' : '' +
-		iconRight ? ' has-icon-right' : '' +
-		actionsRight ? ' has-actions-right' : '';
+                    <div className="prop-item-content-box">
+                        {label}
+                        {content}
+                    </div>
 
-	return (
-		<div className={className}>
-			<div className={wrapperClassName}>
-				{ actionsLeft }
-				{ iconLeft }
-				{ image }
+                    {actionsRight}
+                </div>
 
-				<div className="prop-item-content-box">
-					{label}
-					{content}
-				</div>
+                {this.props.children}
+            </div>
+        );
+    }
+}
 
-				{ actionsRight }
-				{ iconRight }
-			</div>
+const propItemTypeShape = {
+    label: PropTypes.string,
+    type: PropTypes.string,
+    view: PropTypes.oneOf([
+        'input',
+        'textarea',
+        'toggle',
+        'list',
+        'constructor',
+        'object',
+        'shape',
+        'array'
+    ]),
+    image: PropTypes.string,
+    tooltip: PropTypes.string,
+    linkable: PropTypes.bool,
 
-			{children}
-		</div>
-	);
+    // Options for 'list' view
+    options: PropTypes.arrayOf(PropTypes.shape({
+        value: PropTypes.any,
+        text: PropTypes.string,
+        disabled: PropTypes.bool
+    }))
 };
 
+// Fields for 'shape' view
+propItemTypeShape.fields = PropTypes.objectOf(PropTypes.shape(propItemTypeShape));
+
+// Type for 'array' and 'object' views (required for 'array', optional for 'object')
+propItemTypeShape.ofType = PropTypes.shape(propItemTypeShape);
+
+const PropItemType = PropTypes.shape(propItemTypeShape);
+
 PropsItem.propTypes = {
-	type: PropTypes.any,
-	view: PropTypes.oneOf([
-		'input',
-		'textarea',
-		'list',
-		'constructor',
-		'constructor-toggle',
-		'tree',
-		'toggle'
-	]),
-	label: PropTypes.string.isRequired,
-	value: PropTypes.any,
-	image: PropTypes.string,
-	tooltip: PropTypes.string,
-	removable: PropTypes.bool,
-	linkable: PropTypes.bool,
-	disabled: PropTypes.bool,
+    propType: PropItemType.isRequired,
+    value: PropTypes.any,
+    disabled: PropTypes.bool,
+    subtreeOn: PropTypes.bool,
+    dimLabel: PropTypes.bool,
+    setComponentButtonText: PropTypes.string,
 
-	options: PropTypes.array,
-
-	opened: PropTypes.bool,
-	subtreeOn: PropTypes.bool,
-
-	setComponentButtonText: PropTypes.string,
-
-	onChange: PropTypes.func,
-	onLink: PropTypes.func
+    onChange: PropTypes.func,
+    onLink: PropTypes.func,
+    onDelete: PropTypes.func,
+    
+    _secondary: PropTypes.bool,
+    _deletable: PropTypes.bool,
+    _isOpen: PropTypes.bool,
+    _onToggleOpen: PropTypes.func
 };
 
 PropsItem.defaultProps = {
-	type: 'input',
-	view: null,
-	label: '',
-	value: null,
-	image: '',
-	tooltip: null,
-	removable: false,
-	linkable: false,
-	disabled: false,
+    value: null,
+    disabled: false,
+    subtreeOn: false,
+    dimLabel: false,
+    setComponentButtonText: '',
 
-	options: [],
+    onChange: noop,
+    onLink: noop,
+    onDelete: noop,
 
-	opened: false,
-	subtreeOn: false,
-
-	setComponentButtonText: '',
-
-	onChange: noop,
-	onLink: noop
+    _secondary: false,
+    _deletable: false,
+    _isOpen: false,
+    _onToggleOpen: noop
 };
 
 PropsItem.displayName = 'PropsItem';

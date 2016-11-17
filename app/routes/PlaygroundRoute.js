@@ -256,7 +256,7 @@ const toolRouteWindowSections = List([
 
 				<BlockContentBoxItem>
 					<PropsList>
-						<PropsItem view="tree" />
+						<PropsItem view="array" />
 					</PropsList>
 				</BlockContentBoxItem>
 
@@ -381,7 +381,7 @@ const toolComponentLayoutWindowSections = List([
 						tooltip={'some tooltip'}
 						value="typeA.fieldB"
 						linkable
-						removable
+						deletable
 					/>
 					<PropsItem
 						view="input"
@@ -391,7 +391,7 @@ const toolComponentLayoutWindowSections = List([
 						value="typeA.fieldB"
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						removable
+						deletable
 						disabled
 					/>
 				</BlockContentBoxItem>
@@ -417,7 +417,7 @@ const toolComponentLayoutWindowSections = List([
 						tooltip={'some tooltip'}
 						value="typeA.fieldB"
 						linkable
-						removable
+						deletable
 					/>
 					<PropsItem
 						view="textarea"
@@ -427,7 +427,7 @@ const toolComponentLayoutWindowSections = List([
 						value="typeA.fieldB"
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						removable
+						deletable
 						disabled
 					/>
 				</BlockContentBoxItem>
@@ -454,7 +454,7 @@ const toolComponentLayoutWindowSections = List([
 						tooltip={'some tooltip'}
 						setComponentButtonText="Set Component"
 						linkable
-						removable
+						deletable
 					/>
 					<PropsItem
 						view="constructor"
@@ -464,44 +464,7 @@ const toolComponentLayoutWindowSections = List([
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						setComponentButtonText="Set Component"
 						linkable
-						removable
-						disabled
-					/>
-				</BlockContentBoxItem>
-
-				<BlockContentBoxHeading>Prop View: constructor-toggle</BlockContentBoxHeading>
-				<BlockContentBoxItem>
-					<PropsItem
-						view="constructor-toggle"
-						label="without type"
-						setComponentButtonText="Set Component"
-					/>
-					<PropsItem
-						view="constructor-toggle"
-						label="Some prop"
-						type="constructor"
-						tooltip={'some tooltip'}
-						setComponentButtonText="Set Component"
-						linkable
-					/>
-					<PropsItem
-						view="constructor-toggle"
-						label="disabled prop"
-						type="constructor"
-						tooltip={'some tooltip'}
-						setComponentButtonText="Set Component"
-						linkable
-						removable
-					/>
-					<PropsItem
-						view="constructor-toggle"
-						label="disabled prop"
-						type="constructor"
-						tooltip={'some tooltip'}
-						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
-						setComponentButtonText="Set Component"
-						linkable
-						removable
+						deletable
 						disabled
 					/>
 				</BlockContentBoxItem>
@@ -525,7 +488,7 @@ const toolComponentLayoutWindowSections = List([
 						type="bool"
 						tooltip={'some tooltip'}
 						linkable
-						removable
+						deletable
 					/>
 					<PropsItem
 						view="toggle"
@@ -534,7 +497,7 @@ const toolComponentLayoutWindowSections = List([
 						tooltip={'some tooltip'}
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						removable
+						deletable
 						disabled
 					/>
 
@@ -545,7 +508,7 @@ const toolComponentLayoutWindowSections = List([
 						tooltip={'some tooltip'}
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						removable
+						deletable
 					>
 						<PropsList>
 							<PropsItem view="input" label="child item 1"/>
@@ -561,7 +524,7 @@ const toolComponentLayoutWindowSections = List([
 						tooltip={'some tooltip'}
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						removable
+						deletable
 						subtreeOn
 					>
 						<PropsList>
@@ -575,109 +538,109 @@ const toolComponentLayoutWindowSections = List([
 				<BlockContentBoxHeading>Prop View: tree</BlockContentBoxHeading>
 				<BlockContentBoxItem>
 					<PropsItem
-						view="tree"
+						view="array"
 						label="without type"
 					>
 						<PropsList>
-							<PropsItem view="input" label="child item 1" removable/>
-							<PropsItem view="input" label="child item 2" removable/>
-							<PropsItem view="input" label="child item 3" removable/>
+							<PropsItem view="input" label="child item 1" deletable/>
+							<PropsItem view="input" label="child item 2" deletable/>
+							<PropsItem view="input" label="child item 3" deletable/>
 						</PropsList>
 					</PropsItem>
 
 					<PropsItem
-						view="tree"
+						view="array"
 						label="Some prop"
 						type="constructor"
 						tooltip={'some tooltip'}
 						linkable
 					>
 						<PropsList>
-							<PropsItem view="input" label="child item 1" removable/>
-							<PropsItem view="input" label="child item 2" removable/>
-							<PropsItem view="input" label="child item 3" removable/>
+							<PropsItem view="input" label="child item 1" deletable/>
+							<PropsItem view="input" label="child item 2" deletable/>
+							<PropsItem view="input" label="child item 3" deletable/>
 						</PropsList>
 					</PropsItem>
 
 					<PropsItem
-						view="tree"
+						view="array"
 						label="disabled prop"
 						type="constructor"
 						tooltip={'some tooltip'}
 						linkable
-						removable
+						deletable
 					>
 						<PropsList>
-							<PropsItem view="input" label="child item 1" removable/>
-							<PropsItem view="input" label="child item 2" removable/>
-							<PropsItem view="input" label="child item 3" removable/>
+							<PropsItem view="input" label="child item 1" deletable/>
+							<PropsItem view="input" label="child item 2" deletable/>
+							<PropsItem view="input" label="child item 3" deletable/>
 						</PropsList>
 					</PropsItem>
 
 					<PropsItem
-						view="tree"
+						view="array"
 						label="disabled prop"
 						type="constructor"
 						tooltip={'some tooltip'}
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						removable
+						deletable
 						disabled
 					>
 						<PropsList>
-							<PropsItem view="input" label="child item 1" removable/>
-							<PropsItem view="input" label="child item 2" removable/>
-							<PropsItem view="input" label="child item 3" removable/>
+							<PropsItem view="input" label="child item 1" deletable/>
+							<PropsItem view="input" label="child item 2" deletable/>
+							<PropsItem view="input" label="child item 3" deletable/>
 						</PropsList>
 					</PropsItem>
 
 					<PropsItem
-						view="tree"
-						label="has childrens - closed"
+						view="array"
+						label="has children - closed"
 						type="object"
 						tooltip={'some tooltip'}
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						removable
+						deletable
 					>
 						<PropsList>
-							<PropsItem view="input" label="child item 1" removable/>
-							<PropsItem view="input" label="child item 2" removable/>
-							<PropsItem view="input" label="child item 3" removable/>
+							<PropsItem view="input" label="child item 1" deletable/>
+							<PropsItem view="input" label="child item 2" deletable/>
+							<PropsItem view="input" label="child item 3" deletable/>
 						</PropsList>
 					</PropsItem>
 
 					<PropsItem
-						view="tree"
-						label="has childrens - opened"
+						view="array"
+						label="has children - opened"
 						type="object"
 						tooltip={'some tooltip'}
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						removable
-						opened
+						deletable
+						isOpen
 					>
 						<PropsList>
-							<PropsItem view="input" label="child item 1" removable/>
-							<PropsItem view="input" label="child item 2" removable/>
-							<PropsItem view="input" label="child item 3" removable/>
+							<PropsItem view="input" label="child item 1" deletable/>
+							<PropsItem view="input" label="child item 2" deletable/>
+							<PropsItem view="input" label="child item 3" deletable/>
 						</PropsList>
 					</PropsItem>
 
 					<PropsItem
-						view="tree"
-						label="has childrens - opened"
+						view="array"
+						label="has children - opened"
 						type="arrayOf"
 						tooltip={'some tooltip'}
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						removable
-						opened
+						deletable
+						isOpen
 					>
 						<PropsList>
-							<PropsItem view="input" label="child item 1" removable/>
-							<PropsItem view="input" label="child item 2" removable/>
-							<PropsItem view="input" label="child item 3" removable/>
+							<PropsItem view="input" label="child item 1" deletable/>
+							<PropsItem view="input" label="child item 2" deletable/>
+							<PropsItem view="input" label="child item 3" deletable/>
 						</PropsList>
 					</PropsItem>
 				</BlockContentBoxItem>
