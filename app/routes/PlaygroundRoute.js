@@ -368,7 +368,7 @@ const toolComponentLayoutWindowSections = List([
 					/>
 					<PropsItem
 						view="input"
-						label="Some prop"
+						label="some very-very-very extremely long prop label"
 						type="string"
 						tooltip={'some tooltip'}
 						value="typeA.fieldB"
@@ -404,7 +404,7 @@ const toolComponentLayoutWindowSections = List([
 					/>
 					<PropsItem
 						view="textarea"
-						label="Some prop"
+						label="some very-very-very extremely long prop label"
 						type="string"
 						tooltip={'some tooltip'}
 						value="typeA.fieldB"
@@ -441,7 +441,7 @@ const toolComponentLayoutWindowSections = List([
 					/>
 					<PropsItem
 						view="constructor"
-						label="Some prop"
+						label="some very-very-very extremely long prop label"
 						type="constructor"
 						tooltip={'some tooltip'}
 						setComponentButtonText="Set Component"
@@ -478,7 +478,7 @@ const toolComponentLayoutWindowSections = List([
 					/>
 					<PropsItem
 						view="constructor-toggle"
-						label="Some prop"
+						label="some very-very-very extremely long prop label"
 						type="constructor"
 						tooltip={'some tooltip'}
 						setComponentButtonText="Set Component"
@@ -514,7 +514,7 @@ const toolComponentLayoutWindowSections = List([
 					/>
 					<PropsItem
 						view="toggle"
-						label="Some prop"
+						label="some very-very-very extremely long prop label"
 						type="bool"
 						tooltip={'some tooltip'}
 						linkable
@@ -587,7 +587,7 @@ const toolComponentLayoutWindowSections = List([
 
 					<PropsItem
 						view="tree"
-						label="Some prop"
+						label="some very-very-very extremely long prop label"
 						type="constructor"
 						tooltip={'some tooltip'}
 						linkable
@@ -616,7 +616,7 @@ const toolComponentLayoutWindowSections = List([
 
 					<PropsItem
 						view="tree"
-						label="disabled prop"
+						label="some very very very long prop label"
 						type="constructor"
 						tooltip={'some tooltip'}
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
@@ -649,37 +649,31 @@ const toolComponentLayoutWindowSections = List([
 
 					<PropsItem
 						view="tree"
-						label="has childrens - opened"
+						label="Has childrens - opened"
 						type="object"
 						tooltip={'some tooltip'}
-						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						removable
 						opened
 					>
-						<PropsList>
-							<PropsItem view="input" label="child item 1" removable/>
-							<PropsItem view="input" label="child item 2" removable/>
-							<PropsItem view="input" label="child item 3" removable/>
-						</PropsList>
+						<PropsItem view="input" label="child item 1" removable/>
+						<PropsItem view="input" label="child item 2" removable/>
+						<PropsItem view="input" label="child item 3" removable/>
 					</PropsItem>
 
 					<PropsItem
 						view="tree"
-						label="has childrens - opened"
+						label="Has childrens - opened"
 						type="arrayOf"
 						tooltip={'some tooltip'}
-						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						removable
 						opened
 						addNewField
 					>
-						<PropsList>
-							<PropsItem view="input" label="child item 1" removable/>
-							<PropsItem view="input" label="child item 2" removable/>
-							<PropsItem view="input" label="child item 3" removable/>
-						</PropsList>
+
+						<PropsItem view="input" label="child item 1" removable/>
+						<PropsItem view="input" label="child item 2" removable/>
+						<PropsItem view="input" label="child item 3" removable/>
+
 					</PropsItem>
 				</BlockContentBoxItem>
 			</BlockContentBox>
