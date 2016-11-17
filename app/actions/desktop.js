@@ -4,6 +4,10 @@
 
 'use strict';
 
+export const TOOL_ID_LIBRARY = 'componentsLibrary';
+export const TOOL_ID_COMPONENTS_TREE = 'componentsTree';
+export const TOOL_ID_PROPS_EDITOR = 'componentPropsEditor';
+
 export const DESKTOP_SET_TOOLS = 'DESKTOP_SET_TOOLS';
 
 export const setTools = toolIds => ({

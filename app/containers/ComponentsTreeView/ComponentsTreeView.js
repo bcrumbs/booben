@@ -36,7 +36,9 @@ import {
     unhighlightPreviewComponent,
     startDragExistingComponent,
     dragOverComponent,
-    dragOverPlaceholder
+    dragOverPlaceholder,
+	dropComponent,
+	DROP_COMPONENT_AREA_IDS
 } from '../../actions/preview';
 
 import {
@@ -53,10 +55,6 @@ import {
     isCompositeComponent,
     canInsertComponent
 } from '../../utils/meta';
-
-import {
-    selectTool
-} from '../../actions/desktop';
 
 import { getLocalizedText } from '../../utils';
 
@@ -84,6 +82,7 @@ class ComponentsTreeViewComponent extends PureComponent {
         this._handleHover = this._handleHover.bind(this);
         this._handleMouseDown = this._handleMouseDown.bind(this);
         this._handleMouseMove = this._handleMouseMove.bind(this);
+		this._handleMouseUp = this._handleMouseUp.bind(this);
         this._createElementRef = this._createElementRef.bind(this);
         this._createItemRef = this._createItemRef.bind(this);
         this._createLineRef = this._createLineRef.bind(this);
@@ -107,13 +106,6 @@ class ComponentsTreeViewComponent extends PureComponent {
         && this.lineElement.scrollIntoView(false);
     }
 
-    componentWillReceiveProps(nextProps) {
-        !this.isMouseOver
-        && !nextProps.draggingComponent
-        && this.props.draggingComponent
-        && this.props.onToolSelect('componentsLibrary');
-    }
-
     componentDidUpdate() {
         this._scrollToLine();
     }
@@ -135,12 +127,6 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     _createLineRef(ref) {
         this.lineElement = ref;
-    }
-
-    _isCursorOnElementTop(element, event) {
-        const boundingClientRect = element.getBoundingClientRect();
-        const elementY = event.pageY - boundingClientRect.top;
-        return elementY < boundingClientRect.height / 2;
     }
 
     _clearExpandTimeout() {
@@ -171,6 +157,13 @@ class ComponentsTreeViewComponent extends PureComponent {
             this.props.onDragOverComponent(-1);
         }
     }
+
+	_handleMouseUp(event) {
+		if (this.props.draggingComponent) {
+			event.stopPropagation();
+			this.props.onDropComponent(DROP_COMPONENT_AREA_IDS.TREE);
+		}
+	}
 
     _handleMouseMove(event) {
         if (this.props.draggingComponent) {
@@ -513,6 +506,7 @@ class ComponentsTreeViewComponent extends PureComponent {
         return (
             <BlockContentBox
                 createElementRef={this._createElementRef}
+				onMouseUp={this._handleMouseUp}
                 autoScrollUpDown={this.props.draggingComponent}
                 isBordered
                 flex
@@ -556,8 +550,6 @@ ComponentsTreeViewComponent.propTypes = {
     onDeselectItem: PropTypes.func,
     onHighlightItem: PropTypes.func,
     onUnhighlightItem: PropTypes.func,
-    onToolSelect: PropTypes.func,
-    toolsPanelIsExpanded: PropTypes.bool,
 };
 
 ComponentsTreeViewComponent.defaultProps = {
@@ -581,7 +573,6 @@ const mapStateToProps = state => ({
     placeholderContainerId: state.project.placeholderContainerId,
     placeholderAfter: state.project.placeholderAfter,
     meta: state.project.meta,
-    toolsPanelIsExpanded: state.desktop.toolsPanelIsExpanded,
     getLocalizedText: (...args) =>
         getLocalizedText(state.app.localization, state.app.language, ...args)
 });
@@ -597,7 +588,7 @@ const mapDispatchToProps = dispatch => ({
     onDragOverComponent: id => void dispatch(dragOverComponent(id)),
     onDragOverPlaceholder: (id, afterIdx) =>
         void dispatch(dragOverPlaceholder(id, afterIdx)),
-    onToolSelect: toolName => void dispatch(selectTool(toolName))
+	onDropComponent: dropOnAreaId => void dispatch(dropComponent(dropOnAreaId))
 });
 
 export const ComponentsTreeView = connectDragHandler(

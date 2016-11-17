@@ -33,6 +33,7 @@ export const autoScrollUpDown = WrappedComponent =>
 				this.scrollInterval = null;
 				this.scrollState = SCROLL_STATES.NONE;
 				this.scrollStep = 0;
+				this.requestedFrame = false;
 			}
 
 			componentDidMount() {

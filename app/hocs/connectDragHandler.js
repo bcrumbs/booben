@@ -12,10 +12,6 @@ import {
   startDragExistingComponent
 } from '../actions/preview';
 
-import {
-  selectTool
-} from '../actions/desktop';
-
 /**
  *
  * @type {number}
@@ -30,7 +26,6 @@ const
     language: PropTypes.string,
     draggingComponent: PropTypes.bool,
 
-	onToolSelect: PropTypes.func,
     onNewComponentStartDrag: PropTypes.func,
     onExistingComponentStartDrag: PropTypes.func,
   };
@@ -42,7 +37,6 @@ const mapStateToProps = ({ app, project }) => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onToolSelect: toolName => void dispatch(selectTool(toolName)),
   onNewComponentStartDrag: components => void dispatch(startDragNewComponent(components)),
   onExistingComponentStartDrag: id => void dispatch(startDragExistingComponent(id)),
 });
@@ -174,7 +168,6 @@ export const connectDragHandler = (mapStateToPropsWrapped, mapDispatchToPropsWra
 		                    this.props.onExistingComponentStartDrag(
 		                      this.draggedComponentId
 		                    );
-		                  this.props.onToolSelect('componentsTree');
 		              }
 		          }
 		        }

@@ -65,7 +65,7 @@ const isRenderableProp = propMeta =>
  */
 const coerceIntValue = value => {
     let maybeRet = parseInt(value, 10);
-    if (isNaN(maybeRet) || !isFinite(maybeRet)) return 0;
+    if (!isFinite(maybeRet)) return 0;
     return maybeRet;
 };
 
@@ -76,7 +76,7 @@ const coerceIntValue = value => {
  */
 const coerceFloatValue = value => {
     let maybeRet = parseFloat(value);
-    if (isNaN(maybeRet) || !isFinite(maybeRet)) return 0.0;
+    if (!isFinite(maybeRet)) return 0.0;
     return maybeRet;
 };
 
