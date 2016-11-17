@@ -82,8 +82,10 @@ class RouteEditorComponent extends PureComponent {
                     <BlockContentBoxItem>
                         <PropsList>
                             <PropsItem
-	                            view="textarea"
-                                label={getLocalizedText('description')}
+                                propType={{
+                                    label: getLocalizedText('description'),
+                                    view: 'textarea'
+                                }}
                                 value={route.indexRouteDescription}
                                 onChange={this._handleIndexRouteDescriptionChange}
                             />
@@ -99,8 +101,10 @@ class RouteEditorComponent extends PureComponent {
         if (route.haveRedirect) {
             redirectUrlInput = (
                 <PropsItem
-	                view="input"
-                    label={ getLocalizedText('redirectTo') }
+                    propType={{
+                        label: getLocalizedText('redirectTo'),
+                        view: 'input'
+                    }}
                     value={route.redirectTo}
                     onChange={this._handleRedirectToChange}
                 />
@@ -109,8 +113,10 @@ class RouteEditorComponent extends PureComponent {
         else {
             haveIndexToggle = (
                 <PropsItem
-	                view="toggle"
-                    label={ getLocalizedText('indexRoute') }
+                    propType={{
+                        label: getLocalizedText('indexRoute'),
+                        view: 'toggle'
+                    }}
                     value={route.haveIndex}
                     onChange={this._handleHaveIndexChange}
                 />
@@ -126,22 +132,28 @@ class RouteEditorComponent extends PureComponent {
                 <BlockContentBoxItem>
                     <PropsList>
                         <PropsItem
-	                        view="input"
-                            label={getLocalizedText('path')}
+                            propType={{
+                                label: getLocalizedText('path'),
+                                view: 'input'
+                            }}
                             value={route.path}
                             onChange={this._handlePathChange}
                         />
 
                         <PropsItem
-	                        view="textarea"
-                            label={getLocalizedText('description')}
+                            propType={{
+                                label: getLocalizedText('description'),
+                                view: 'textarea'
+                            }}
                             value={route.description}
                             onChange={this._handleDescriptionChange}
                         />
 
                         <PropsItem
-	                        view="toggle"
-                            label={getLocalizedText('indexRedirect')}
+                            propType={{
+                                label: getLocalizedText('indexRedirect'),
+                                view: 'toggle'
+                            }}
                             value={route.haveRedirect}
                             onChange={this._handleHaveRedirectChange}
                         />

@@ -16,7 +16,7 @@ import { PropImage } from './PropImage/PropImage';
 import { PropTreeList } from './PropTreeList/PropTreeList';
 import { PropTreeBreadcrumbs } from './PropTreeBreadcrumbs/PropTreeBreadcrumbs';
 
-import { noop } from '../../../utils/misc';
+import { noop, getValueByPath } from '../../../utils/misc';
 
 const getNestedType = (baseType, index) => {
     if (baseType.view === 'shape') {
@@ -32,12 +32,11 @@ const getNestedType = (baseType, index) => {
         return baseType.ofType;
     }
     else {
-        throw new Error('Shit happened!')
+        throw new Error('Shit happened')
     }
 };
 
-const getCurrentType = (propType, currentPath) =>
-    currentPath.reduce(getNestedType, propType);
+const getTypeByPath = (propType, path) => path.reduce(getNestedType, propType);
 
 const buildTreeBreadcrumbsItems = (propType, currentPath) => {
     const ret = [];
@@ -63,15 +62,48 @@ export class PropsItem extends PureComponent {
     constructor(props) {
         super(props);
         
-        this._handleToggleOpen = this._handleToggleOpen.bind(this);
+        this.state = {
+            isOpen: false,
+            currentPath: []
+        };
+
+        this._handleOpen = this._handleOpen.bind(this);
         this._handleLink = this._handleLink.bind(this);
+        this._handleDelete = this._handleDelete.bind(this);
+        this._handleAddValue = this._handleAddValue.bind(this);
+    }
+
+    _handleOpen() {
+        if (this.props._secondary) {
+            this.props._onOpen();
+        }
+        else {
+            this.setState({
+                isOpen: !this.state.isOpen,
+                currentPath: []
+            });
+        }
     }
     
-    _handleToggleOpen() {
-        
+    _handleOpenInnerValue(index) {
+        this.setState({
+            currentPath: [...this.state.currentPath, index]
+        });
     }
 
     _handleLink() {
+
+    }
+    
+    _handleDelete() {
+        
+    }
+
+    _handleAddValue() {
+
+    }
+
+    _handleNestedValueChange(idx) {
 
     }
     
@@ -84,7 +116,7 @@ export class PropsItem extends PureComponent {
 
         if (this.props.dimLabel) className += ' is-flat-array';
 
-        if (this.props._isOpen) {
+        if (this.state.isOpen) {
             wrapperClassName += ' sublevel-is-visible';
             className += ' sublevel-is-visible';
         }
@@ -166,7 +198,7 @@ export class PropsItem extends PureComponent {
             actionsLeft = (
                 <div className="prop_actions prop_actions-left">
                     <div className="prop_action prop_action-collapse">
-                        <Button icon="times" onPress={this.props._onDelete} />
+                        <Button icon="times" onPress={this._handleDelete} />
                     </div>
                 </div>
             );
@@ -181,7 +213,11 @@ export class PropsItem extends PureComponent {
         if (isComplexValue) {
             collapseAction = (
                 <div className="prop_action prop_action-collapse">
-                    <Button icon="chevron-right" onPress={this._handleToggleOpen}/>
+                    <Button
+                        icon="chevron-right"
+                        disabled={this.props.disabled}
+                        onPress={this._handleOpen}
+                    />
                 </div>
             );
 
@@ -192,7 +228,7 @@ export class PropsItem extends PureComponent {
         if (this.props.propType.linkable) {
             linkAction = (
                 <div className="prop_action prop_action-linking">
-                    <Button icon="link" onPress={this.props.onLink}/>
+                    <Button icon="link" onPress={this._handleLink}/>
                 </div>
             );
         }
@@ -211,20 +247,82 @@ export class PropsItem extends PureComponent {
         }
 
         let children = null;
-        if (!this.props._secondary && this.props._isOpen) {
+        if (!this.props._secondary && this.state.isOpen) {
             let breadcrumbs = null;
-            if (this.props._currentPath.length > 1) {
+            if (this.state.currentPath.length > 1) {
+                const breadcrumbsItems =
+                    buildTreeBreadcrumbsItems(this.state.currentPath);
+                
                 breadcrumbs = (
-                    <PropTreeBreadcrumbs
-                        items={buildTreeBreadcrumbsItems(this.props._currentPath)}
-                    />
+                    <PropTreeBreadcrumbs items={breadcrumbsItems} />
                 );
             }
+            
+            const currentType = getTypeByPath(
+                this.props.propType,
+                this.state.currentPath
+            );
+            
+            const currentValue = getValueByPath(
+                this.props.value,
+                this.state.currentPath
+            );
 
             let childItems = null;
+            if (currentType.view === 'shape') {
+                childItems = Object.keys(currentType.fields).map((fieldName, idx) => (
+                    <PropsItem
+                        key={idx}
+                        propType={currentType.fields[fieldName]}
+                        value={currentType[fieldName]}
+                        setComponentButtonText={this.props.setComponentButtonText}
+                        addButtonText={this.props.addButtonText}
+                        onChange={this._handleNestedValueChange.bind(this, fieldName)}
+                        _secondary
+                        _onOpen={this._handleOpenInnerValue.bind(this, fieldName)}
+                    />
+                ));
+            }
+            else if (currentType.view === 'array') {
+                childItems = currentValue.map((itemValue, idx) => (
+                    <PropsItem
+                        key={idx}
+                        propType={currentType.ofType}
+                        value={itemValue}
+                        setComponentButtonText={this.props.setComponentButtonText}
+                        addButtonText={this.props.addButtonText}
+                        onChange={this._handleNestedValueChange.bind(this, idx)}
+                        _secondary
+                        _deletable
+                        _onOpen={this._handleOpenInnerValue.bind(this, idx)}
+                    />
+                ));
+            }
+            else if (currentType.view === 'object') {
+                childItems = Object.keys(currentValue).map((key, idx) => (
+                    <PropsItem
+                        key={idx}
+                        propType={currentType.ofType}
+                        value={currentValue[key]}
+                        setComponentButtonText={this.props.setComponentButtonText}
+                        addButtonText={this.props.addButtonText}
+                        onChange={this._handleNestedValueChange.bind(this, key)}
+                        _secondary
+                        _deletable
+                        _onOpen={this._handleOpenInnerValue.bind(this, key)}
+                    />
+                ));
+            }
+
+            const canAddValues =
+                currentType.view === 'array' ||
+                currentType.view === 'object';
 
             children = (
-                <PropTreeList>
+                <PropTreeList
+                    addButton={canAddValues}
+                    addButtonText={this.props.addButtonText}
+                >
                     {breadcrumbs}
                     {childItems}
                 </PropTreeList>
@@ -290,18 +388,14 @@ PropsItem.propTypes = {
     disabled: PropTypes.bool,
     dimLabel: PropTypes.bool,
     setComponentButtonText: PropTypes.string,
+    addButtonText: PropTypes.string,
 
     onChange: PropTypes.func,
     onLink: PropTypes.func,
     
     _secondary: PropTypes.bool,
-    _currentPath: PropTypes.arrayOf(PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.number
-    ])),
     _deletable: PropTypes.bool,
-    _isOpen: PropTypes.bool,
-    _onToggleOpen: PropTypes.func,
+    _onOpen: PropTypes.func,
     _onDelete: PropTypes.func
 };
 
@@ -310,15 +404,14 @@ PropsItem.defaultProps = {
     disabled: false,
     dimLabel: false,
     setComponentButtonText: '',
+    addButtonText: '',
 
     onChange: noop,
     onLink: noop,
 
     _secondary: false,
-    _currentPath: [],
     _deletable: false,
-    _isOpen: false,
-    _onToggleOpen: noop,
+    _onOpen: noop,
     _onDelete: noop
 };
 

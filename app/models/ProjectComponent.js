@@ -31,7 +31,28 @@ const ProjectComponentRecord = Record({
 });
 
 const propSourceDataToImmutableFns = {
-    static: input => new SourceDataStatic(input),
+    static: input => {
+        const data = {};
+
+        if (typeof input.value !== 'undefined') {
+            if (Array.isArray(input.value)) {
+                data.value = List(input.value.map(({ source, sourceData }) =>
+                    propSourceDataToImmutable(source, sourceData)));
+            }
+            else if (typeof input.value === 'object' && input.value !== null) {
+                data.value = Map(objectMap(input.value, ({ source, sourceData }) =>
+                    propSourceDataToImmutable(source, sourceData)));
+            }
+            else {
+                data.value = input.value;
+            }
+        }
+
+        if (typeof input.ownerPropName !== 'undefined')
+            data.ownerPropName = input.ownerPropName;
+
+        return new SourceDataStatic(data);
+    },
     data: input => new SourceDataData(input),
     const: input => new SourceDataConst(input),
     action: input => new SourceDataAction(input),

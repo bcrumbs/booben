@@ -83,6 +83,46 @@ export const objectEvery = (object, predicate) =>
 
 /**
  *
+ * @param {Object|Array} value
+ * @param {string|number} index
+ * @return {*}
+ */
+export const getNestedValue = (value, index) => {
+    const wrongValueType = typeof index === 'number'
+        ? !Array.isArray(value)
+        : (typeof value !== 'object' || value === null);
+
+    if (wrongValueType) throw new Error('Wrong type of value');
+    return value[index];
+};
+
+/**
+ *
+ * @param {*} value
+ * @param {(string|number)[]} path
+ * @return {*}
+ */
+export const getValueByPath = (value, path) => path.reduce(getNestedValue, value);
+
+/**
+ *
+ * @param {*} value
+ * @param {(string|number)[]} path
+ * @param {*} newValue
+ * @return {*}
+ */
+export const setValueByPath = (value, path, newValue) => {
+    if (path.length === 0) return newValue;
+
+    for (i = 0; i < path.length - 1; i++)
+        value = value[path[i]];
+
+    value[path[i]] = newValue;
+    return value;
+};
+
+/**
+ *
  * @param {number} x
  * @param {number} y
  * @param {number} cX

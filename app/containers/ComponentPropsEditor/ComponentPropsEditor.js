@@ -44,7 +44,7 @@ import {
     resolveTypedef
 } from '../../utils/meta';
 import { getLocalizedText } from '../../utils';
-import { objectSome } from '../../utils/misc';
+import { objectMap, objectSome } from '../../utils/misc';
 
 /**
  *
@@ -65,7 +65,7 @@ const isRenderableProp = propMeta =>
  */
 const coerceIntValue = value => {
     let maybeRet = parseInt(value, 10);
-    if (isNaN(maybeRet) || !isFinite(maybeRet)) return 0;
+    if (isNaN(maybeRet)) return 0;
     return maybeRet;
 };
 
@@ -76,7 +76,7 @@ const coerceIntValue = value => {
  */
 const coerceFloatValue = value => {
     let maybeRet = parseFloat(value);
-    if (isNaN(maybeRet) || !isFinite(maybeRet)) return 0.0;
+    if (isNaN(maybeRet)) return 0.0;
     return maybeRet;
 };
 
@@ -164,6 +164,56 @@ const ownerPropsSelector = createSelector(
     }
 );
 
+const propTypeToView = {
+    'string': 'input',
+    'bool': 'toggle',
+    'int': 'input',
+    'float': 'input',
+    'oneOf': 'list',
+    'component': 'constructor',
+    'shape': 'shape',
+    'object': 'object',
+    'arrayOf': 'array'
+};
+
+
+const propTypeFromMeta = (componentMeta, propName, typedef, language) => {
+    const name = getString(componentMeta, typedef.textKey, language) || propName,
+        description = getString(componentMeta, typedef.descriptionTextKey, language);
+
+    const ret = {
+        label: name,
+        type: typedef.type, // TODO: Get string from i18n
+        view: propTypeToView[typedef.type],
+        image: '',
+        tooltip: description,
+        linkable: false // TODO: Set linkable properly
+    };
+
+    if (typedef.type === 'oneOf') {
+        ret.options = typedef.options.map(option => ({
+            value: option.value,
+            text: getString(componentMeta, option.textKey, language) || option.textKey
+        }));
+    }
+    else if (typedef.type === 'shape') {
+        ret.fields = objectMap(
+            typedef.fields,
+            (fieldTypedef, fieldName) => propTypeFromMeta(
+                componentMeta,
+                fieldName,
+                fieldTypedef,
+                language
+            )
+        );
+    }
+    else if (typedef.type === 'array' || typedef.type === 'object') {
+        ret.ofType = propTypeFromMeta(componentMeta, '', typedef.ofType, language);
+    }
+
+    return ret;
+};
+
 
 class ComponentPropsEditorComponent extends PureComponent {
     /**
@@ -242,17 +292,19 @@ class ComponentPropsEditorComponent extends PureComponent {
             isLinked = isLinkedProp(propValue),
             linkable = this._isPropLinkable(componentMeta, propName);
 
-        const label =
-            getString(componentMeta, propMeta.textKey, this.props.language) || propName;
+        const propType = propTypeFromMeta(
+            componentMeta,
+            propName,
+            propMeta,
+            this.props.language
+        );
 
         //noinspection JSValidateTypes
         return (
             <PropsItem
                 key={propName}
-                view="input"
-                label={label}
+                propType={propType}
                 value={value}
-                linkable={linkable}
                 disabled={isLinked}
                 onChange={this._handleStaticValueChange.bind(this, propName)}
                 onLink={this._handleLinkProp.bind(this, propName)}
@@ -276,8 +328,12 @@ class ComponentPropsEditorComponent extends PureComponent {
             isLinked = isLinkedProp(propValue),
             linkable = this._isPropLinkable(componentMeta, propName);
 
-        const label =
-            getString(componentMeta, propMeta.textKey, this.props.language) || propName;
+        const propType = propTypeFromMeta(
+            componentMeta,
+            propName,
+            propMeta,
+            this.props.language
+        );
 
         const onChange = newValue =>
             this._handleStaticValueChange(propName, coerceIntValue(newValue));
@@ -285,10 +341,8 @@ class ComponentPropsEditorComponent extends PureComponent {
         return (
             <PropsItem
                 key={propName}
-                view="input"
-                label={label}
+                propType={propType}
                 value={String(value)}
-                linkable={linkable}
                 disabled={isLinked}
                 onChange={onChange}
                 onLink={this._handleLinkProp.bind(this, propName)}
@@ -312,8 +366,12 @@ class ComponentPropsEditorComponent extends PureComponent {
             isLinked = isLinkedProp(propValue),
             linkable = this._isPropLinkable(componentMeta, propName);
 
-        const label =
-            getString(componentMeta, propMeta.textKey, this.props.language) || propName;
+        const propType = propTypeFromMeta(
+            componentMeta,
+            propName,
+            propMeta,
+            this.props.language
+        );
 
         const onChange = newValue =>
             this._handleStaticValueChange(propName, coerceFloatValue(newValue));
@@ -321,10 +379,8 @@ class ComponentPropsEditorComponent extends PureComponent {
         return (
             <PropsItem
                 key={propName}
-                view="input"
-                label={label}
+                propType={propType}
                 value={String(value)}
-                linkable={linkable}
                 disabled={isLinked}
                 onChange={onChange}
                 onLink={this._handleLinkProp.bind(this, propName)}
@@ -348,16 +404,18 @@ class ComponentPropsEditorComponent extends PureComponent {
             isLinked = isLinkedProp(propValue),
             linkable = this._isPropLinkable(componentMeta, propName);
 
-        const label =
-            getString(componentMeta, propMeta.textKey, this.props.language) || propName;
+        const propType = propTypeFromMeta(
+            componentMeta,
+            propName,
+            propMeta,
+            this.props.language
+        );
 
         return (
             <PropsItem
                 key={propName}
-                view="toggle"
-                label={label}
+                propType={propType}
                 value={value}
-                linkable={linkable}
                 disabled={isLinked}
                 onChange={this._handleStaticValueChange.bind(this, propName)}
                 onLink={this._handleLinkProp.bind(this, propName)}
@@ -374,31 +432,25 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @private
      */
     _renderOneOfProp(componentMeta, propName, propValue) {
-        const lang = this.props.language,
-            source = propValue ? propValue.source : 'static',
+        const source = propValue ? propValue.source : 'static',
             sourceData = propValue ? propValue.sourceData : null,
             propMeta = componentMeta.props[propName],
             value = getStaticOneOfValue(source, sourceData, propMeta.options),
             isLinked = isLinkedProp(propValue),
             linkable = this._isPropLinkable(componentMeta, propName);
 
-        const label =
-            getString(componentMeta, propMeta.textKey, lang) || propName;
-
-        const options = propMeta.options.map(option => ({
-            value: option.value,
-            text: getString(componentMeta, option.textKey, lang) || option.textKey,
-            disabled: false
-        }));
+        const propType = propTypeFromMeta(
+            componentMeta,
+            propName,
+            propMeta,
+            this.props.language
+        );
 
         return (
             <PropsItem
                 key={propName}
-                view="list"
-                label={label}
+                propType={propType}
                 value={value}
-                options={options}
-                linkable={linkable}
                 disabled={isLinked}
                 onChange={this._handleStaticValueChange.bind(this, propName)}
                 onLink={this._handleLinkProp.bind(this, propName)}
@@ -419,16 +471,47 @@ class ComponentPropsEditorComponent extends PureComponent {
             lang = this.props.language,
             propMeta = componentMeta.props[propName];
 
-        const label =
-            getString(componentMeta, propMeta.textKey, lang) || propName;
+        const propType = propTypeFromMeta(
+            componentMeta,
+            propName,
+            propMeta,
+            this.props.language
+        );
 
         return (
             <PropsItem
                 key={propName}
-                view="constructor"
-                label={label}
+                propType={propType}
                 setComponentButtonText={getLocalizedText('setComponent')}
                 onChange={this._handleSetComponent.bind(this, propName)}
+            />
+        );
+    }
+
+    _renderShapeProp(componentMeta, propName, propValue) {
+        const source = propValue ? propValue.source : 'static',
+            sourceData = propValue ? propValue.sourceData : null,
+            propMeta = componentMeta.props[propName],
+            isLinked = isLinkedProp(propValue),
+            linkable = this._isPropLinkable(componentMeta, propName);
+
+        const propType = propTypeFromMeta(
+            componentMeta,
+            propName,
+            propMeta,
+            this.props.language
+        );
+
+
+
+        return (
+            <PropsItem
+                key={propName}
+                propType={propType}
+                value={value}
+                disabled={isLinked}
+                onChange={this._handleStaticValueChange.bind(this, propName)}
+                onLink={this._handleLinkProp.bind(this, propName)}
             />
         );
     }
@@ -458,6 +541,8 @@ class ComponentPropsEditorComponent extends PureComponent {
                 return this._renderOneOfProp(componentMeta, propName, propValue);
             case 'component':
                 return this._renderComponentProp(componentMeta, propName, propValue);
+            case 'shape':
+                return this._renderShapeProp(componentMeta, propName, propValue);
             default:
                 return null;
         }
