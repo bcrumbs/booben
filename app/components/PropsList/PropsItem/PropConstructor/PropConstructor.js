@@ -4,8 +4,8 @@
 import React, { PropTypes } from 'react';
 
 import {
-    Button,
-    ToggleButton
+	Button,
+	ToggleButton
 } from '@reactackle/reactackle';
 
 import { PropLabel } from '../PropLabel/PropLabel';
@@ -13,42 +13,42 @@ import { PropLabel } from '../PropLabel/PropLabel';
 import { noop } from '../../../../utils/misc';
 
 export const PropConstructor = props => {
-    let toggle = null;
-    if (props.hasToggle) {
-        toggle = (
-            <ToggleButton />
-        );
-    }
+	let toggle = null;
+	if (props.hasToggle) {
+		toggle = (
+			<ToggleButton />
+		);
+	}
 
-    return (
-        <div className="prop-constructor-wrapper">
-            <div className="prop-constructor-content">
-                <div className="prop-constructor-button">
-                    <Button
-                        kind="link"
-                        text={props.buttonText}
-                        onPress={props.onSetComponent}
-                    />
-                </div>
-            </div>
+	return (
+		<div className="prop-constructor-wrapper">
+			<div className="prop-constructor-content">
+				<div className="prop-constructor-button">
+					<Button
+						kind="link"
+						text={props.buttonText}
+						onPress={props.onSetComponent}
+					/>
+				</div>
+			</div>
 
-            {toggle}
-        </div>
-    );
+			{toggle}
+		</div>
+	);
 };
 
 PropConstructor.propTypes = {
-   hasToggle: PropTypes.bool,
-    buttonText: PropTypes.string,
+	hasToggle: PropTypes.bool,
+	buttonText: PropTypes.string,
 
-    onSetComponent: PropTypes.func
+	onSetComponent: PropTypes.func
 };
 
 PropConstructor.defaultProps = {
-    hasToggle: false,
-    buttonText: '',
+	hasToggle: false,
+	buttonText: '',
 
-    onSetComponent: noop
+	onSetComponent: noop
 };
 
 PropConstructor.displayName = 'PropConstructor';

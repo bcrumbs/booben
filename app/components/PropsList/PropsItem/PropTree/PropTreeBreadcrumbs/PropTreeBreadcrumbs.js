@@ -4,12 +4,12 @@ import { Breadcrumbs } from '@reactackle/reactackle';
 
 const treeList = [
 	{
-		title: 'prop-1',
+		title: 'hasChildrensOpened',
 		subtitle: 'object'
 	},
 	{
 		title: 'buttons',
-		subtitle: 'array',
+		subtitle: 'object',
 		isActive: true
 	}
 ];

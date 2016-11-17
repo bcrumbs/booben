@@ -13,27 +13,14 @@ import {
 } from '@reactackle/reactackle';
 
 import {
-	PropItemArray,
-	PropItemArrayHeader,
-	PropItemArrayHeaderRow,
-	PropItemArrayHeaderCell,
-	PropItemArrayBody,
-	PropArrayBodyRow,
-	PropArrayBodyCell,
-	PropArrayBodyCellText
-} from './PropItemArray/PropItemArray';
-
-import {
-	PropTree,
-	PropTreeList,
-	PropTreeItem
+	PropTreeBreadcrumbs,
+	PropTreeList
 } from './PropTree/PropTree';
 
 import {PropLabel} from './PropLabel/PropLabel';
 import {PropLinkButton} from './PropLinkButton/PropLinkButton';
 
 import {PropConstructor} from './PropConstructor/PropConstructor';
-import {PropArrayNewRow} from './PropItemArray/PropArrayNewRow/PropArrayNewRow';
 
 import { noop } from '../../../utils/misc';
 
@@ -43,10 +30,96 @@ export const PropsItem = props => {
 
 	if (props.view) className += ` prop-type-${props.view}`;
 	if (props.subtreeOn) wrapperClassName += ' sublevel-is-visible';
+	if (props.type === 'arrayOf') className += ' ' + 'is-flat-array';
 
+	/*
+		PROP VIEWS
+	*/
+	let content = false;
+
+	if (props.view === 'input') {
+		content = (
+			<Input
+				value={props.value}
+				disabled={props.disabled}
+				onChange={props.onChange}
+			/>
+		);
+	}
+	else if (props.view === 'textarea') {
+		content = (
+			<Textarea
+				value={props.value}
+				disabled={props.disabled}
+				onChange={props.onChange}
+			/>
+		);
+	}
+	else if (props.view === 'list') {
+		content = (
+			<SelectBox
+				data={props.options}
+				value={props.value}
+				disabled={props.disabled}
+				onSelect={props.onChange}
+			/>
+		);
+	}
+	else if (props.view === 'constructor' || props.view === 'constructor-toggle' ) {
+		content = (
+			<PropConstructor
+				buttonText={props.setComponentButtonText}
+				onSetComponent={props.onChange}
+			/>
+		);
+	}
+
+	/*
+		Common elements
+	 */
+
+	let toggle = null;
+	if (props.view === 'toggle' || props.view === 'constructor-toggle') {
+		toggle =
+			<div className="prop_action prop_action-toggle">
+				<ToggleButton
+					checked={props.value}
+					disabled={props.disabled}
+					onCheck={props.onChange}
+				/>
+			</div>
+	}
+
+	let children = null;
+	if (props.children) {
+		children =
+			props.view === 'tree' ?
+				<PropTreeList
+					addButton
+				    newField={props.addNewField}
+				>
+					<PropTreeBreadcrumbs />
+					{props.children}
+				</PropTreeList>
+				:
+				props.children;
+	}
+
+	let label = null;
+	if (
+		props.label
+	) {
+		label =
+			<PropLabel
+				label={props.label}
+				type={props.type}
+				tooltip={props.tooltip}
+			/>;
+	}
 
 	let image = null,
 		iconLeft = null,
+		actionsLeft = null,
 		iconRight = null,
 		actionsRight = null;
 
@@ -58,35 +131,48 @@ export const PropsItem = props => {
 		);
 	}
 
-	if (props.view === 'constructor') {
-		iconLeft =
-			<div className="prop-item-icon prop-item-icon-left prop-item-icon-remove">
-				<Button icon="times" />
+	if (props.removable) {
+		actionsLeft =
+			<div className="prop_actions prop_actions-left">
+				<div className="prop_action prop_action-collapse">
+					<Button icon="times" />
+				</div>
 			</div>;
 	}
 
+	let collapsingAction = null,
+		linkingAction = null;
 	if (props.children && props.view !== 'constructor-toggle' && props.view !== 'toggle') {
-		iconRight =
-			<div className="prop-item-icon prop-item-icon-right prop-item-icon-collapse">
+		collapsingAction =
+			<div className="prop_action prop_action-collapse">
 				<Button icon="chevron-right" />
 			</div>;
 
 		className += ' ' + 'has-sublevel';
+	}
 
-		if (props.opened) {
-			wrapperClassName += ' ' + 'sublevel-is-opened';
-			className += ' ' + 'sublevel-is-opened';
-		}
+	if (props.opened) {
+		wrapperClassName += ' ' + 'sublevel-is-visible';
+		className += ' ' + 'sublevel-is-visible';
 	}
 
 	if (props.linkable) {
-		actionsRight = (
-			<div className="prop-item-icon prop-item-icon-right prop-item-icon-collapse">
+		linkingAction = (
+			<div className="prop_action prop_action-linking">
 				<PropLinkButton
 					onPress={props.onLink}
 				/>
 			</div>
 		);
+	}
+
+	if(linkingAction || collapsingAction) {
+		actionsRight =
+			<div className="prop_actions prop_actions-right">
+				{ toggle }
+				{ collapsingAction }
+				{ linkingAction }
+			</div>
 	}
 
 	wrapperClassName +=
@@ -95,126 +181,10 @@ export const PropsItem = props => {
 		iconRight ? ' has-icon-right' : '' +
 		actionsRight ? ' has-actions-right' : '';
 
-	let label = null;
-	if (
-		props.label &&
-		( props.view !== 'constructor' || props.view !== 'constructor-toggle' || props.view !== 'tree' || props.view !== 'array')
-	) {
-		label =
-			<PropLabel
-				label={props.label}
-				type={props.type}
-				tooltip={props.tooltip}
-			/>;
-	}
-
-	/*
-	 PROP TYPES
-	 */
-	let content = false;
-
-	if (props.type === 'arrayOf') className += ' ' + 'is-flat-array';
-
-	if (props.view === 'input') {
-		content = (
-			<Input
-				dense
-				value={props.value}
-				disabled={props.disabled}
-				onChange={props.onChange}
-			/>
-		);
-	}
-	else if (props.view === 'textarea') {
-		content = (
-			<Textarea
-				dense
-				value={props.value}
-				disabled={props.disabled}
-				onChange={props.onChange}
-			/>
-		);
-	}
-	else if (props.view === 'toggle') {
-		actionsRight =
-			<div className="prop-item-action prop_action-right">
-				<ToggleButton
-					checked={props.value}
-					disabled={props.disabled}
-					onCheck={props.onChange}
-				/>
-			</div>
-	}
-	else if (props.view === 'list') {
-		content = (
-			<SelectBox
-				dense
-				data={props.options}
-				value={props.value}
-				disabled={props.disabled}
-				onSelect={props.onChange}
-			/>
-		);
-	}
-	else if (props.view === 'constructor') {
-		content = (
-			<PropConstructor
-				buttonText={props.setComponentButtonText}
-				onSetComponent={props.onChange}
-			/>
-		);
-	}
-
-	else if (props.view === 'constructor-toggle') {
-		content =
-			<PropConstructor
-				label={props.label}
-				type={props.type}
-				tooltip={props.tooltip}
-				buttonText={props.constructorButtonText}
-				hasToggle />
-	}
-
-	else if (props.view === 'tree') {
-		content = <PropTree />
-	}
-
-	else if (props.view === 'array') {
-		content =
-			<PropItemArray>
-				<PropItemArrayHeader>
-					<PropItemArrayHeaderRow>
-						<PropItemArrayHeaderCell>Title</PropItemArrayHeaderCell>
-						<PropItemArrayHeaderCell align="center">Sortable</PropItemArrayHeaderCell>
-						<PropItemArrayHeaderCell />
-					</PropItemArrayHeaderRow>
-				</PropItemArrayHeader>
-				<PropItemArrayBody>
-					<PropArrayBodyRow>
-						<PropArrayBodyCell>
-							<PropConstructor label={'body 1-1'} />
-						</PropArrayBodyCell>
-						<PropArrayBodyCell align="center">
-							<Checkbox />
-						</PropArrayBodyCell>
-						<PropArrayBodyCell clearing />
-					</PropArrayBodyRow>
-					<PropArrayBodyRow>
-						<PropArrayBodyCell>
-							<PropConstructor label={'body 2-1'} />
-						</PropArrayBodyCell>
-						<PropArrayBodyCell align="center">
-							<Checkbox />
-						</PropArrayBodyCell>
-						<PropArrayBodyCell clearing />
-					</PropArrayBodyRow>
-				</PropItemArrayBody>
-			</PropItemArray>
-	}
-
 	return (
 		<div className={className}>
 			<div className={wrapperClassName}>
+				{ actionsLeft }
 				{ iconLeft }
 				{ image }
 
@@ -227,34 +197,36 @@ export const PropsItem = props => {
 				{ iconRight }
 			</div>
 
-			{props.children}
+			{children}
 		</div>
 	);
 };
 
 PropsItem.propTypes = {
 	type: PropTypes.any,
-	label: PropTypes.string,
-	constructorButtonText: PropTypes.string,
-	opened: PropTypes.bool,
-	linkable: PropTypes.bool,
-	value: PropTypes.any,
 	view: PropTypes.oneOf([
 		'input',
 		'textarea',
 		'list',
 		'constructor',
 		'constructor-toggle',
-		'array',
 		'tree',
-		'toggle',
-		'object'
+		'toggle'
 	]),
-	disabled: PropTypes.bool,
+	label: PropTypes.string.isRequired,
+	value: PropTypes.any,
 	image: PropTypes.string,
-	subtreeOn: PropTypes.bool,
-	options: PropTypes.array,
 	tooltip: PropTypes.string,
+	removable: PropTypes.bool,
+	linkable: PropTypes.bool,
+	disabled: PropTypes.bool,
+
+	options: PropTypes.array,
+
+	opened: PropTypes.bool,
+	subtreeOn: PropTypes.bool,
+	addNewField: PropTypes.bool,
+
 	setComponentButtonText: PropTypes.string,
 
 	onChange: PropTypes.func,
@@ -263,17 +235,21 @@ PropsItem.propTypes = {
 
 PropsItem.defaultProps = {
 	type: 'input',
-	label: '',
-	constructorButtonText: '',
-	opened: false,
-	linkable: false,
-	value: null,
 	view: null,
-	disabled: false,
+	label: '',
+	value: null,
 	image: '',
-	subtreeOn: false,
-	options: [],
 	tooltip: null,
+	removable: false,
+	linkable: false,
+	disabled: false,
+
+	options: [],
+
+	opened: false,
+	subtreeOn: false,
+	addNewField: false,
+
 	setComponentButtonText: '',
 
 	onChange: noop,

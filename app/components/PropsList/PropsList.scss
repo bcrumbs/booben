@@ -2,43 +2,79 @@
 @import 'variables';
 
 // Type classnames
-$prop-input: 'props-type-input';
-$prop-textarea: 'props-type-textarea';
-$prop-list: 'props-type-list';
-$prop-constructor: 'props-type-constructor';
-$prop-array: 'props-type-array';
-$prop-toggle: 'props-type-toggle';
+$prop-input: 'prop-type-input';
+$prop-textarea: 'prop-type-textarea';
+$prop-list: 'prop-type-list';
+$prop-constructor: 'prop-type-constructor';
+$prop-array: 'prop-type-array';
+$prop-toggle: 'prop-type-toggle';
 
 @include exports(props-list) {
 	// =================================================================================================================
-	// BASE
+	// LIST
 	// =================================================================================================================
-	.props-list {
+	.props-list,
+	.prop-tree_list {
+		background-color: $prop-list-bg-color;
+		border-left: $prop-list-border-left-thickness solid $prop-list-border-left-color;
+		border-bottom: $prop-list-border-bottom-thickness solid $prop-list-border-bottom-color;
+
 		.prop-item & {
-			margin-left: $props-level-offset;
+			// margin-left: $props-level-offset;
+
+			margin-left: -$prop-item-padding-x;
+			margin-right: -$prop-item-padding-x;
+			padding-left: $props-level-offset + $prop-item-padding-x !important;
+
 			opacity: 0;
 			pointer-events: none;
 			position: fixed;
 			margin-bottom: $props-list-margin-bottom;
 		}
 
-		.rop-item-wrapper.has-image + & {
-			margin-left: $props-image-level-offset;
+		.prop-item-wrapper.has-image + & {
+			// margin-left: $props-image-level-offset - $prop-item-padding-x + $props-level-offset;
+
+			margin-left: -$prop-item-padding-x;
+			padding-left: $props-image-level-offset + $props-level-offset !important;
 		}
 
+
 		.sublevel-is-visible + & {
+			opacity: 1;
+			pointer-events: initial;
+			position: relative;
+			padding: $prop-list-padding;
+			margin-top: $props-list-margin-top;
+			padding-top: 0;
+		}
+	}
+
+	.prop-tree_list {
+		.sublevel-is-visible + & .props-list {
 			opacity: 1;
 			pointer-events: initial;
 			position: relative;
 		}
 	}
 
+
 	// =================================================================================================================
 	// PROPS ITEM
 	// =================================================================================================================
 	.prop-item {
-		margin-top: $props-spacing;
-		max-width: 100%;
+		margin: 0 (-$prop-item-padding-x);
+		width: calc(100% + #{$prop-item-padding-x*2});
+		max-width: calc(100% + #{$prop-item-padding-x*2});
+		padding: $prop-item-padding-y $prop-item-padding-x;
+
+		&.sublevel-is-visible {
+			padding-top: $prop-item-opened-padding-y;
+			padding-bottom: $prop-item-opened-padding-y;
+			background-color: $prop-item-opened-bg-color;
+			border-top: $prop-item-opened-border-thickness solid $prop-item-opened-border-color;
+			border-bottom: $prop-item-opened-border-thickness solid $prop-item-opened-border-color;
+		}
 	}
 
 	.prop-item-wrapper {
@@ -67,6 +103,12 @@ $prop-toggle: 'props-type-toggle';
 		align-items: center;
 		justify-content: center;
 		margin-right: $prop-image-spacing;
+		background-repeat: no-repeat;
+		background-position: center;
+		background-size: cover;
+		flex-shrink: 0;
+
+		@include user-select;
 
 		img {
 			max-width: 100%;
@@ -74,15 +116,27 @@ $prop-toggle: 'props-type-toggle';
 		}
 	}
 
-	// Prop Actions (linking)
-	.prop-item-actions-box {
-		margin-left: $prop-actions-margin-left - $prop-action-margin-x;
+	// Prop Actions
+	.prop_actions {
+		display: flex;
+		flex-shrink: 0;
 		margin-top: $prop-actions-margin-top;
 		height: $prop-action-height + $prop-action-margin-y;
+
+		&.prop_actions-left {
+			margin-left: -$prop-action-margin-x;
+			margin-right: $prop-action-margin-x;
+		}
+		&.prop_actions-right {
+			margin-left: $prop-action-margin-x;
+			margin-right: -$prop-action-margin-x;
+		}
 	}
 
-	.prop-item-action {
-		margin: $prop-action-margin-y 0 $prop-action-margin-y $prop-action-margin-x;
+	.prop_action {
+		display: flex;
+		flex-shrink: 0;
+		margin: $prop-action-margin-y $prop-action-margin-x;
 
 		&,
 		.button-icon {
@@ -108,6 +162,17 @@ $prop-toggle: 'props-type-toggle';
 			display: flex;
 			align-items: center;
 		}
+	}
+
+	.prop-item-wrapper.sublevel-is-visible .prop_action-collapse .button{
+		transform: rotate(90deg);
+	}
+
+
+	.prop_action-toggle {
+		display: flex;
+		align-items: center;
+		width: auto;
 	}
 
 	// Icon
@@ -145,11 +210,12 @@ $prop-toggle: 'props-type-toggle';
 	.prop-item-icon-right { margin-left: $prop-icon-margin; }
 
 	.prop-item-icon-collapse {
-		.sublevel-is-opened & .button{
+		.sublevel-is-visible & .button{
 			transform: rotate(90deg);
 			@include single-transition(transform);
 		}
 	}
+
 
 	// =================================================================================================================
 	// PROPS TYPES
@@ -173,19 +239,26 @@ $prop-toggle: 'props-type-toggle';
 		margin-bottom: $prop-label-margin-bottom;
 
 		@include user-select();
-
-		.tooltip-icon {
-			margin-left: $base-module;
-		}
 	}
 
+
 	.prop-item_label-text {
-		margin-right: $base-module/2
+		margin-right: $base-module/2;
+
+		.is-flat-array .props-list & { color: $prop-label-flat-color; }
+
+		.#{$prop-input} &,
+		.#{$prop-textarea} &,
+		.#{$prop-list} & {
+			font-size: fs(-1);
+			color: $grey-600
+		}
 	}
 
 	.prop-item_type {
 		font-size: fs(-1);
 		color: $grey-500;
+		margin-right: $base-module/2;
 	}
 
 	// PROP: input
@@ -203,117 +276,6 @@ $prop-toggle: 'props-type-toggle';
 		.textarea {
 			width: 100%;
 			max-width: 100%;
-		}
-	}
-
-	// PROP: constructor
-	// =================================================================================================================
-	.prop-constructor-wrapper {
-		display: flex;
-		width: 100%
-	}
-
-	.prop-constructor-content {
-		flex-grow: 1;
-
-		& + .toggle-button { margin-left: $prop-constructor-toggle-spacing }
-	}
-
-	.prop-constructor-button {
-		margin-top: $prop-constructor-button-margin-top;
-	}
-
-	// PROP: array
-	// =================================================================================================================
-	.block-content-box-heading + .block-content-box-item {
-		.prop-type-array {
-			margin-top: 0;
-		}
-	}
-
-	.prop-array-table {
-		margin-left: -$prop-array-cell-padding-x;
-		width: calc(100% + #{$prop-array-cell-padding-x*2});
-		border-spacing: 0;
-
-		@include user-select();
-
-		td {
-			padding: $prop-array-cell-padding-y $prop-array-cell-padding-x;
-		}
-	}
-
-	// Header
-	.prop-array-header-cell {
-		font-size: $prop-array-header-font-size;
-		color: $prop-array-header-font-color;
-		font-weight: $prop-array-header-font-weight;
-		line-height: $prop-array-header-line-height;
-	}
-
-	// Body
-	.prop-array-body-row {
-		@include single-transition();
-
-		&:hover {
-			background-color: $prop-array-row-hover-bg-color;
-		}
-	}
-
-	.prop-array-body-cell {
-		font-size: $prop-array-body-font-size;
-		color: $prop-array-body-font-color;
-		font-weight: $prop-array-body-font-weight;
-		line-height: $prop-array-body-line-height;
-	}
-
-	.prop-array-cell-align {
-		#{&}-left { text-align: left; }
-		#{&}-right { text-align: right; }
-		#{&}-center { text-align: center; }
-	}
-
-	// Add new row
-	.prop-array-add-new-row {
-		text-align: right;
-		margin-top: $prop-array-add-row-margin-top;
-		margin-right: -$prop-array-cell-padding-x;
-	}
-
-	.prop-array-body-new-row {
-		background-color: $prop-array-new-row-bg-color;
-		padding: $prop-array-new-row-pad-y $prop-array-new-row-pad-x;
-		display: flex;
-		align-items: flex-end;
-		margin-top: $prop-array-add-row-margin-top;
-		margin-left: -$prop-array-cell-padding-x;
-		width: calc(100% + #{$prop-array-cell-padding-x*2});
-
-		.input { flex-grow: 1 }
-
-		.button {
-			margin-left: $prop-array-new-row-element-spacing;
-		}
-
-		.button-text {
-			padding-left: 0;
-			padding-right: 0;
-		}
-	}
-
-	// Clearing
-	.prop-array-clearing-cell {
-		.button-icon {
-			@include icon-size(
-							$prop-array-clearing-box-size,
-							$prop-array-clearing-img-size);
-
-			@include icon-style($prop-array-clearing-color);
-
-			&:hover,
-			&:focus {
-				@include icon-style($prop-array-clearing-hover-color);
-			}
 		}
 	}
 
@@ -340,7 +302,44 @@ $prop-toggle: 'props-type-toggle';
 		}
 	}
 
+	.prop-tree-item-action-row {
+		text-align: right;
+		margin-right: -$base-module;
+		.prop-item + & { margin-top: $props-list-margin-bottom }
+	}
+
+	.prop-tree_field-new {
+		// margin: $props-list-margin-bottom (-$prop-list-padding-x) (-$prop-list-padding-y);
+		//width: calc(100% + #{$prop-list-padding-x*2});
+		//border-top: 2px solid $color-border;
+
+		margin: $props-list-margin-bottom 0 0;
+
+		padding: $prop-new-field-pad-y $prop-new-field-pad-x;
+		background-color: $prop-new-field-bg-color;
+	}
+
+	.prop-tree_field-new_row {
+		& + & { margin-top: $prop-new-field-element-spacing }
+
+		&.field-new_buttons {
+			margin-right: -$base-module;
+			margin-bottom: -$base-module;
+			text-align: right;
+		}
+
+		&.field-new_title {
+			font-size: fs(1);
+			font-weight: $font-weight-semibold;
+		}
+	}
+
 	// BREADCRUMBS
+	.prop-tree-breadcrumbs {
+		border-bottom: rem-calc(1) solid $color-border;
+		margin-bottom: $base-module;
+	}
+
 	.prop-tree-breadcrumbs .breadcrumbs {
 		margin-top: 0;
 		margin-left: 0;
@@ -348,93 +347,11 @@ $prop-toggle: 'props-type-toggle';
 
 	// LIST
 	.prop-tree-list {
-		.prop-tree-item & {
-			margin-left: $prop-tree-level-offset;
-			margin-top: $prop-tree-items-spacing;
-
-			position: fixed;
-			opacity: 0;
-			pointer-events: none;
-		}
-
-		.sublevel-is-opened + & {
+		.sublevel-is-visible + & {
 			position: relative;
 			opacity: 1;
 			pointer-events: initial;
 		}
-	}
-
-	// ITEM
-	.prop-tree-item {
-		& + & {
-			margin-top: $prop-tree-items-spacing;
-		}
-
-		&:last-child {
-			margin-bottom: $prop-tree-item-last-margin-bottom;
-		}
-	}
-
-	// Title
-	.prop-tree-item-title-wrapper {
-		display: flex;
-		align-items: center;
-	}
-
-	.prop-tree-item-title-box {
-		flex-grow: 1;
-	}
-
-	.prop-tree-item-title {
-		font-size: $prop-tree-title-font-size;
-		line-height: $prop-tree-title-line-height;
-		font-weight: $prop-tree-title-font-weight;
-		text-transform: $prop-tree-title-text-transform;
-		color: $prop-tree-title-color;
-
-		.is-flat-array & { color: $prop-tree-title-flat-color; }
-	}
-
-	.prop-tree-item-type {
-		font-size: $prop-tree-type-font-size;
-		line-height: $prop-tree-type-line-height;
-		font-weight: $prop-tree-type-font-weight;
-		text-transform: $prop-tree-type-text-transform;
-		color: $prop-tree-type-color;
-		margin-left: $base-module/2;
-	}
-
-	// Value
-	.prop-tree-item-value-static {
-		font-size: $prop-tree-value-static-font-size;
-		font-style: $prop-tree-value-font-style;
-		color: $prop-tree-value-static-color;
-	}
-
-	.prop-tree-item-value-box {
-		.prop-item {
-			margin-top: 0;
-		}
-
-		.prop-item-content-box {
-			max-width: calc(100% - #{$prop-action-box-size + $prop-actions-margin-left});
-		}
-
-		.input-content-box,
-		input {
-			max-width: 100%;
-		}
-
-		.prop-tree-item-type-constructor & {
-			padding-left: $prop-icon-box-size + $prop-icon-margin ;
-		}
-	}
-
-	// Action
-	.prop-tree-item-action-row {
-		margin: $prop-tree-action-margin-top 0 $prop-tree-action-margin-bottom;
-		padding-left: $prop-icon-box-size + $prop-icon-margin - $base-module; // $base-module - button padding
-		text-align: $prop-tree-action-align;
 	}
 }
 

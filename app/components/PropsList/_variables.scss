@@ -3,9 +3,19 @@
 
 // Base Variables
 // =====================================================================================================================
+$prop-item-padding-x:           $base-module*2 !default;
+$prop-item-padding-y:           $base-module !default;
+
+//$prop-item-opened-bg-color:     transparentize($grey-100, 1) !default;
+$prop-item-opened-bg-color:     transparent !default;
+$prop-item-opened-border-color: $color-border !default;
+$prop-item-opened-border-thickness: rem-calc(0) !default;
+$prop-item-opened-padding-x:    $prop-item-padding-x !default;
+$prop-item-opened-padding-y:    $prop-item-padding-y !default;
+
 // Image
 $prop-image-size:               $base-module*5 !default;
-$prop-image-bg-color:           $grey-100 !default;
+$prop-image-bg-color:           transparent !default;
 $prop-image-spacing:            $base-module*1.5 !default;
 
 // Actions
@@ -30,18 +40,28 @@ $prop-icon-hover-bg-color:     $grey-100 !default;
 $prop-icon-margin:             $base-module/2 !default;
 
 // List
-$props-spacing:                 $base-module*2 !default;
-$props-level-offset:            $base-module*3 !default;
+$props-level-offset:            $base-module*2.5 !default;
 $props-image-level-offset:      $prop-image-size + $prop-image-spacing !default;
-$props-list-margin-bottom:      $base-module*3 !default;
+$props-list-margin-bottom:      $base-module*1.5 !default;
+$props-list-margin-top:         $base-module*1.5 !default;
+$prop-list-padding-x:           $base-module*2 !default;
+$prop-list-padding-y:           $base-module*2 !default;
+$prop-list-padding:             $prop-list-padding-y $prop-list-padding-x !default;
+$prop-list-bg-color:            $prop-item-opened-bg-color !default;
+
+$prop-list-border-left-color:   transparent !default;
+$prop-list-border-left-thickness: rem-calc(0) !default;
+$prop-list-border-bottom-color:   $grey-200 !default;
+$prop-list-border-bottom-thickness: rem-calc(2) !default;
 
 // PROPS TYPES
 // =====================================================================================================================
 $prop-label-font-size:          fs(0) !default;
-$prop-label-line-height:        1.5 !default;
+$prop-label-line-height:        1.2 !default;
 $prop-label-font-weight:        $font-weight-normal !default;
 $prop-label-text-transform:     none !default;
 $prop-label-color:              $body-font-color !default;
+$prop-label-flat-color:         $grey-500 !default;
 $prop-label-margin-bottom:      0 !default;
 
 // =====================================================================================================================
@@ -51,73 +71,20 @@ $prop-constructor-button-margin-top:    0 !default;
 $prop-constructor-toggle-spacing:       $base-module/2 !default;
 
 // =====================================================================================================================
-// PROP: array
-// =====================================================================================================================
-$prop-array-cell-padding-y:     $base-module !default;
-$prop-array-cell-padding-x:     $base-module !default;
-
-$prop-array-row-hover-bg-color: $grey-100 !default;
-
-$prop-array-header-font-size:   fs(-1) !default;
-$prop-array-header-font-color:  $grey-500 !default;
-$prop-array-header-font-weight: $font-weight-normal !default;
-$prop-array-header-line-height: 1.25 !default;
-
-$prop-array-body-font-size:     fs(0) !default;
-$prop-array-body-font-color:    $body-font-color !default;
-$prop-array-body-font-weight:   $font-weight-normal !default;
-$prop-array-body-line-height:   1.25 !default;
-
-// Add new
-// =====================================================================================================================
-$prop-array-add-row-margin-top:         $base-module !default;
-
-$prop-array-new-row-bg-color:           color($yellow-palette, lightest) !default;
-$prop-array-new-row-pad-y:              $base-module*1.5 !default;
-$prop-array-new-row-pad-x:              $prop-array-cell-padding-x !default;
-$prop-array-new-row-element-spacing:    $base-module/2 !default;
-
-$prop-array-clearing-box-size:          $base-module*4 - rem-calc(4) !default;
-$prop-array-clearing-img-size:          $base-module*2.5 !default;
-$prop-array-clearing-color:             $icon-dark-inactive-color !default;
-$prop-array-clearing-hover-color:       $icon-dark-default-color !default;
-$prop-array-clearing-margin:            $base-module/2 !default;
-
-// =====================================================================================================================
 // PROP: tree
 // =====================================================================================================================
-$prop-tree-level-offset:            $base-module*1.5 !default;
-$prop-tree-items-spacing:           $base-module !default;
-$prop-tree-item-last-margin-bottom: $base-module*1.5 !default;
 
-$prop-tree-value-width:             rem-calc(144) !default;
-$prop-tree-value-spacing:           $base-module !default;
+// New field
+// =====================================================================================================================
+$prop-add-field-margin-top:         $base-module !default;
 
-// Title
-$prop-tree-title-font-size:          fs(0) !default;
-$prop-tree-title-line-height:        1.5 !default;
-$prop-tree-title-font-weight:        $font-weight-normal !default;
-$prop-tree-title-text-transform:     none !default;
-$prop-tree-title-color:              $body-font-color !default;
-$prop-tree-title-flat-color:         $grey-500 !default;
+//$prop-new-field-bg-color:           transparent !default;
+$prop-new-field-bg-color:           color($yellow-palette, lightest) !default;
+$prop-new-field-pad-y:              $prop-list-padding-y !default;
+$prop-new-field-pad-x:              $prop-list-padding-x !default;
+$prop-new-field-element-spacing:    $base-module*2 !default;
 
-$prop-tree-type-font-size:          fs(-1) !default;
-$prop-tree-type-line-height:        1.5 !default;
-$prop-tree-type-font-weight:        $font-weight-normal !default;
-$prop-tree-type-text-transform:     none !default;
-$prop-tree-type-color:              $grey-500 !default;
-
-// Value
-$prop-tree-value-static-font-size:  $prop-tree-title-font-size !default;
-$prop-tree-value-static-color:      $grey-500 !default;
-$prop-tree-value-font-style:        normal !default;
-
-// Action
-$prop-tree-action-margin-top:       $prop-tree-items-spacing !default;
-$prop-tree-action-margin-bottom:    $prop-tree-item-last-margin-bottom !default;
-$prop-tree-action-align:            left !default;
-
-// prop lable size => Prop actions margin top
+// prop label size => Prop actions margin top
 $prop-actions-margin-top:       -($prop-action-height + $prop-action-margin-y - $prop-label-font-size*$prop-label-line-height)/2 !default;
 
 
