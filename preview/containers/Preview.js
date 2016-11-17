@@ -381,9 +381,11 @@ class Preview extends PureComponent {
      * @private
      */
     _handleMouseUp(event) {
-        this.willTryStartDrag = false;
-        if (this.props.draggingComponent)
+        if (this.props.draggingComponent){
+			event.stopPropagation();
+			this.willTryStartDrag = false;
 			this.props.onDropComponent(DROP_COMPONENT_AREA_IDS.PREVIEW);
+		}
     }
 
     /**

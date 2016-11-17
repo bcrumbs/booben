@@ -6,12 +6,13 @@
 
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
+import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { createSelector } from 'reselect';
 
 import {
-  connectDragHandler
-} from '../../hocs/connectDragHandler';
+	dragHandler
+} from '../../hocs/dragHandler';
 
 import {
     Accordion,
@@ -236,7 +237,9 @@ class ComponentsLibraryComponent extends PureComponent {
                     title={c.text.get(language)}
                     image={c.iconURL}
                     focused={focusedComponentName === c.fullName}
-                    onStartDrag={event => this._handleStartDragNewComponent(event, c)}
+                    onStartDrag={event =>
+						this.props.handleStartDragNewComponent(event, c)
+					}
                 />
             ));
 
@@ -274,6 +277,8 @@ const ComponentGroupsType = PropTypes.shape({
 });
 
 ComponentsLibraryComponent.propTypes = {
+	handleStartDragNewComponent: PropTypes.func.isRequired,
+
     componentGroups: ComponentGroupsType,
     expandedGroups: ImmutablePropTypes.setOf(PropTypes.string),
     language: PropTypes.string,
@@ -303,7 +308,8 @@ const mapDispatchToProps = dispatch => ({
     onShowAllComponents: () => void dispatch(showAllComponents())
 });
 
-export const ComponentsLibrary = connectDragHandler(
-  mapStateToProps,
-  mapDispatchToProps
-)(ComponentsLibraryComponent);
+export const ComponentsLibrary = dragHandler(connect(
+	  mapStateToProps,
+	  mapDispatchToProps
+	)(ComponentsLibraryComponent)
+);

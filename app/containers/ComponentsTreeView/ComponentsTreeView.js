@@ -6,11 +6,12 @@
 
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
+import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 
 import {
-    connectDragHandler
-} from '../../hocs/connectDragHandler';
+    dragHandler
+} from '../../hocs/dragHandler';
 
 import {
     ComponentsTree,
@@ -385,7 +386,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     _handleMouseDown(componentId, event) {
         componentId !== this.props.rootComponentId
-        && this._handleStartDragExistingComponent(event, componentId);
+        && this.props.handleStartDragExistingComponent(event, componentId);
     }
 
     _renderLine() {
@@ -522,6 +523,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 ComponentsTreeViewComponent.propTypes = {
     timeToExpand: PropTypes.number,
     borderPixels: PropTypes.number,
+	handleStartDragExistingComponent: PropTypes.func.isRequired,
 
     components: ImmutablePropTypes.mapOf(
         PropTypes.instanceOf(ProjectComponentRecord),
@@ -591,7 +593,8 @@ const mapDispatchToProps = dispatch => ({
 	onDropComponent: dropOnAreaId => void dispatch(dropComponent(dropOnAreaId))
 });
 
-export const ComponentsTreeView = connectDragHandler(
-  mapStateToProps,
-  mapDispatchToProps
-)(ComponentsTreeViewComponent);
+export const ComponentsTreeView = dragHandler(connect(
+	  mapStateToProps,
+	  mapDispatchToProps
+	)(ComponentsTreeViewComponent)
+);
