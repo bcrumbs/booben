@@ -13,17 +13,6 @@ import {
 } from '@reactackle/reactackle';
 
 import {
-	PropItemArray,
-	PropItemArrayHeader,
-	PropItemArrayHeaderRow,
-	PropItemArrayHeaderCell,
-	PropItemArrayBody,
-	PropArrayBodyRow,
-	PropArrayBodyCell,
-	PropArrayBodyCellText
-} from './PropItemArray/PropItemArray';
-
-import {
 	PropTreeBreadcrumbs,
 	PropTreeList
 } from './PropTree/PropTree';
@@ -32,7 +21,6 @@ import {PropLabel} from './PropLabel/PropLabel';
 import {PropLinkButton} from './PropLinkButton/PropLinkButton';
 
 import {PropConstructor} from './PropConstructor/PropConstructor';
-import {PropArrayNewRow} from './PropItemArray/PropArrayNewRow/PropArrayNewRow';
 
 import { noop } from '../../../utils/misc';
 
@@ -106,7 +94,10 @@ export const PropsItem = props => {
 	if (props.children) {
 		children =
 			props.view === 'tree' ?
-				<PropTreeList addButton>
+				<PropTreeList
+					addButton
+				    newField={props.addNewField}
+				>
 					<PropTreeBreadcrumbs />
 					{props.children}
 				</PropTreeList>
@@ -234,6 +225,7 @@ PropsItem.propTypes = {
 
 	opened: PropTypes.bool,
 	subtreeOn: PropTypes.bool,
+	addNewField: PropTypes.bool,
 
 	setComponentButtonText: PropTypes.string,
 
@@ -256,6 +248,7 @@ PropsItem.defaultProps = {
 
 	opened: false,
 	subtreeOn: false,
+	addNewField: false,
 
 	setComponentButtonText: '',
 

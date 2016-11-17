@@ -1,6 +1,10 @@
 import React, { PropTypes } from 'react';
 
-import { Button } from '@reactackle/reactackle';
+import {
+	Button,
+	Input,
+	SelectBox
+} from '@reactackle/reactackle';
 
 export const PropTreeList = props => {
 
@@ -18,21 +22,34 @@ export const PropTreeList = props => {
 		;
 	}
 
+	let newField = null;
+	if (props.newField) {
+		newField =
+			<div className='prop-tree_field-new'>
+				<Input label={'Field title'} dense />
+				<SelectBox label={'Type'} dense />
+				<Button text="Save" />
+			</div>;
+	}
+
 
 	return (
 		<div className='prop-tree_list'>
 			{ props.children }
 			{ addButton }
+			{ newField }
 		</div>
 	);
 };
 
 PropTreeList.propTypes = {
-	addButton: PropTypes.bool
+	addButton: PropTypes.bool,
+	newField: PropTypes.bool
 };
 
 PropTreeList.defaultProps = {
-	addButton: false
+	addButton: false,
+	newField: false
 };
 
 PropTreeList.displayName = 'PropTreeList';

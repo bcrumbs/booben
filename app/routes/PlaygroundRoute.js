@@ -673,6 +673,7 @@ const toolComponentLayoutWindowSections = List([
 						linkable
 						removable
 						opened
+						addNewField
 					>
 						<PropsList>
 							<PropsItem view="input" label="child item 1" removable/>
