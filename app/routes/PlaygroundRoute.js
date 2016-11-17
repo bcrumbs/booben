@@ -339,26 +339,347 @@ const toolComponentTemplatesWindowSections = List([
 	})
 ]);
 
+const sampleData = [
+	{
+		value: '1',
+		text: 'item 1'
+	},
+	{
+		value: '2',
+		text: 'item 2'
+	},
+	{
+		value: '3',
+		text: 'item 3'
+	}
+];
+
 // Component Props : Step 2 - layout
 const toolComponentLayoutWindowSections = List([
 	new ToolSectionRecord({
 		name: 'Route Editing',
 		component: () => (
 			<BlockContentBox isBordered>
-				<BlockContentBoxHeading>Component Templates</BlockContentBoxHeading>
+				<BlockContentBoxHeading>Prop View: Input</BlockContentBoxHeading>
 				<BlockContentBoxItem>
-					<PropsItem view="toggle" image="https://c.tadst.com/gfx/750w/penguin-awareness-day-fun1.jpg?1" label="some item">
+					<PropsItem
+						view="input"
+						label="without type"
+					/>
+					<PropsItem
+						view="input"
+						label="Some prop"
+						type="string"
+						tooltip={'some tooltip'}
+						value="typeA.fieldB"
+					    linkable
+					/>
+					<PropsItem
+						view="input"
+						label="disabled prop"
+						type="string"
+						tooltip={'some tooltip'}
+						value="typeA.fieldB"
+						linkable
+						removable
+					/>
+					<PropsItem
+						view="input"
+						label="disabled prop"
+						type="string"
+						tooltip={'some tooltip'}
+						value="typeA.fieldB"
+						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
+						linkable
+						removable
+						disabled
+					/>
+				</BlockContentBoxItem>
+
+				<BlockContentBoxHeading>Prop View: textarea</BlockContentBoxHeading>
+				<BlockContentBoxItem>
+					<PropsItem
+						view="textarea"
+						label="without type"
+					/>
+					<PropsItem
+						view="textarea"
+						label="Some prop"
+						type="string"
+						tooltip={'some tooltip'}
+						value="typeA.fieldB"
+						linkable
+					/>
+					<PropsItem
+						view="textarea"
+						label="disabled prop"
+						type="string"
+						tooltip={'some tooltip'}
+						value="typeA.fieldB"
+						linkable
+						removable
+					/>
+					<PropsItem
+						view="textarea"
+						label="disabled prop"
+						type="string"
+						tooltip={'some tooltip'}
+						value="typeA.fieldB"
+						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
+						linkable
+						removable
+						disabled
+					/>
+				</BlockContentBoxItem>
+
+				<BlockContentBoxHeading>Prop View: constructor</BlockContentBoxHeading>
+				<BlockContentBoxItem>
+					<PropsItem
+						view="constructor"
+						label="without type"
+						setComponentButtonText="Set Component"
+					/>
+					<PropsItem
+						view="constructor"
+						label="Some prop"
+						type="constructor"
+						tooltip={'some tooltip'}
+						setComponentButtonText="Set Component"
+						linkable
+					/>
+					<PropsItem
+						view="constructor"
+						label="disabled prop"
+						type="constructor"
+						tooltip={'some tooltip'}
+						setComponentButtonText="Set Component"
+						linkable
+						removable
+					/>
+					<PropsItem
+						view="constructor"
+						label="disabled prop"
+						type="constructor"
+						tooltip={'some tooltip'}
+						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
+						setComponentButtonText="Set Component"
+						linkable
+						removable
+						disabled
+					/>
+				</BlockContentBoxItem>
+
+				<BlockContentBoxHeading>Prop View: constructor-toggle</BlockContentBoxHeading>
+				<BlockContentBoxItem>
+					<PropsItem
+						view="constructor-toggle"
+						label="without type"
+						setComponentButtonText="Set Component"
+					/>
+					<PropsItem
+						view="constructor-toggle"
+						label="Some prop"
+						type="constructor"
+						tooltip={'some tooltip'}
+						setComponentButtonText="Set Component"
+						linkable
+					/>
+					<PropsItem
+						view="constructor-toggle"
+						label="disabled prop"
+						type="constructor"
+						tooltip={'some tooltip'}
+						setComponentButtonText="Set Component"
+						linkable
+						removable
+					/>
+					<PropsItem
+						view="constructor-toggle"
+						label="disabled prop"
+						type="constructor"
+						tooltip={'some tooltip'}
+						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
+						setComponentButtonText="Set Component"
+						linkable
+						removable
+						disabled
+					/>
+				</BlockContentBoxItem>
+
+				<BlockContentBoxHeading>Prop View: toggle</BlockContentBoxHeading>
+				<BlockContentBoxItem>
+					<PropsItem
+						view="toggle"
+						label="without type"
+					/>
+					<PropsItem
+						view="toggle"
+						label="Some prop"
+						type="bool"
+						tooltip={'some tooltip'}
+						linkable
+					/>
+					<PropsItem
+						view="toggle"
+						label="disabled prop"
+						type="bool"
+						tooltip={'some tooltip'}
+						linkable
+						removable
+					/>
+					<PropsItem
+						view="toggle"
+						label="disabled prop"
+						type="bool"
+						tooltip={'some tooltip'}
+						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
+						linkable
+						removable
+						disabled
+					/>
+
+					<PropsItem
+						view="toggle"
+						label="has childrens - closed"
+						type="bool"
+						tooltip={'some tooltip'}
+						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
+						linkable
+						removable
+					>
 						<PropsList>
-							<PropsItem view="constructor" label="some child item"/>
+							<PropsItem view="input" label="child item 1"/>
+							<PropsItem view="input" label="child item 2"/>
+							<PropsItem view="input" label="child item 3"/>
 						</PropsList>
 					</PropsItem>
-					<PropsItem view="constructor" label="some child item" type='constructor' tooltip={'i am tooltip'}/>
-					<PropsItem view="input" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem view="textarea" type='string' label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem view="list" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem view="toggle" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem view="constructor-toggle" label="some child item" tooltip={'i am tooltip'}/>
-					<PropsItem view="tree" label="Prop-1" tooltip={'i am tooltip'}/>
+
+					<PropsItem
+						view="toggle"
+						label="has childrens - opened"
+						type="bool"
+						tooltip={'some tooltip'}
+						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
+						linkable
+						removable
+						subtreeOn
+					>
+						<PropsList>
+							<PropsItem view="input" label="child item 1"/>
+							<PropsItem view="input" label="child item 2"/>
+							<PropsItem view="input" label="child item 3"/>
+						</PropsList>
+					</PropsItem>
+				</BlockContentBoxItem>
+
+				<BlockContentBoxHeading>Prop View: tree</BlockContentBoxHeading>
+				<BlockContentBoxItem>
+					<PropsItem
+						view="tree"
+						label="without type"
+					>
+						<PropsList>
+							<PropsItem view="input" label="child item 1" removable/>
+							<PropsItem view="input" label="child item 2" removable/>
+							<PropsItem view="input" label="child item 3" removable/>
+						</PropsList>
+					</PropsItem>
+
+					<PropsItem
+						view="tree"
+						label="Some prop"
+						type="constructor"
+						tooltip={'some tooltip'}
+						linkable
+					>
+						<PropsList>
+							<PropsItem view="input" label="child item 1" removable/>
+							<PropsItem view="input" label="child item 2" removable/>
+							<PropsItem view="input" label="child item 3" removable/>
+						</PropsList>
+					</PropsItem>
+
+					<PropsItem
+						view="tree"
+						label="disabled prop"
+						type="constructor"
+						tooltip={'some tooltip'}
+						linkable
+						removable
+					>
+						<PropsList>
+							<PropsItem view="input" label="child item 1" removable/>
+							<PropsItem view="input" label="child item 2" removable/>
+							<PropsItem view="input" label="child item 3" removable/>
+						</PropsList>
+					</PropsItem>
+
+					<PropsItem
+						view="tree"
+						label="disabled prop"
+						type="constructor"
+						tooltip={'some tooltip'}
+						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
+						linkable
+						removable
+						disabled
+					>
+						<PropsList>
+							<PropsItem view="input" label="child item 1" removable/>
+							<PropsItem view="input" label="child item 2" removable/>
+							<PropsItem view="input" label="child item 3" removable/>
+						</PropsList>
+					</PropsItem>
+
+					<PropsItem
+						view="tree"
+						label="has childrens - closed"
+						type="object"
+						tooltip={'some tooltip'}
+						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
+						linkable
+						removable
+					>
+						<PropsList>
+							<PropsItem view="input" label="child item 1" removable/>
+							<PropsItem view="input" label="child item 2" removable/>
+							<PropsItem view="input" label="child item 3" removable/>
+						</PropsList>
+					</PropsItem>
+
+					<PropsItem
+						view="tree"
+						label="has childrens - opened"
+						type="object"
+						tooltip={'some tooltip'}
+						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
+						linkable
+						removable
+						opened
+					>
+						<PropsList>
+							<PropsItem view="input" label="child item 1" removable/>
+							<PropsItem view="input" label="child item 2" removable/>
+							<PropsItem view="input" label="child item 3" removable/>
+						</PropsList>
+					</PropsItem>
+
+					<PropsItem
+						view="tree"
+						label="has childrens - opened"
+						type="arrayOf"
+						tooltip={'some tooltip'}
+						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
+						linkable
+						removable
+						opened
+					>
+						<PropsList>
+							<PropsItem view="input" label="child item 1" removable/>
+							<PropsItem view="input" label="child item 2" removable/>
+							<PropsItem view="input" label="child item 3" removable/>
+						</PropsList>
+					</PropsItem>
 				</BlockContentBoxItem>
 			</BlockContentBox>
 		)
@@ -395,10 +716,10 @@ const toolComponentActionsWindowSections = List([
 
 // TODO: Add tool id to this list when creating new tools
 export const PLAYGROUND_TOOL_IDS = List([
+	'tool5',
 	'tool1',
 	'tool2',
 	'tool4',
-	'tool5',
 	'tool6',
 	'tool7',
 	'tool8',
@@ -407,6 +728,18 @@ export const PLAYGROUND_TOOL_IDS = List([
 
 const toolGroups = List([
 	List([
+		new ToolRecord({
+			id: 'tool5',
+			icon: 'cog',
+			name: 'Parsers',
+			title: 'Route Settings',
+			undockable: true,
+			closable: false,
+			sections: toolComponentLayoutWindowSections,
+			mainButtons: toolRouteWindowMainActions,
+			secondaryButtons: toolRouteWindowSecondaryActions
+		}),
+
 		new ToolRecord({
 			id: 'tool9',
 			icon: 'cog',
@@ -453,18 +786,6 @@ const toolGroups = List([
 			sections: toolComponentTemplatesWindowSections,
 			mainButtons: '',
 			secondaryButtons: ''
-		}),
-
-		new ToolRecord({
-			id: 'tool5',
-			icon: 'cog',
-			name: 'Parsers',
-			title: 'Route Settings',
-			undockable: true,
-			closable: false,
-			sections: toolComponentLayoutWindowSections,
-			mainButtons: toolRouteWindowMainActions,
-			secondaryButtons: toolRouteWindowSecondaryActions
 		}),
 
 		new ToolRecord({

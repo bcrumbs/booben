@@ -20,7 +20,7 @@ export const PropTreeList = props => {
 
 
 	return (
-		<div className='prop-tree-list'>
+		<div className='prop-tree_list'>
 			{ props.children }
 			{ addButton }
 		</div>

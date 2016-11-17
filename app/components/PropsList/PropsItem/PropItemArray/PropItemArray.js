@@ -35,3 +35,34 @@ export * from './PropItemArrayBody/PropItemArrayBody';
 export * from './PropItemArrayBody/PropArrayBodyRow/PropArrayBodyRow';
 export * from './PropItemArrayBody/PropArrayBodyCell/PropArrayBodyCell';
 
+/* example
+	<PropItemArray>
+		<PropItemArrayHeader>
+			<PropItemArrayHeaderRow>
+				<PropItemArrayHeaderCell>Title</PropItemArrayHeaderCell>
+				<PropItemArrayHeaderCell align="center">Sortable</PropItemArrayHeaderCell>
+				<PropItemArrayHeaderCell />
+			</PropItemArrayHeaderRow>
+		</PropItemArrayHeader>
+		<PropItemArrayBody>
+			<PropArrayBodyRow>
+				<PropArrayBodyCell>
+					<PropConstructor label={'body 1-1'} />
+				</PropArrayBodyCell>
+				<PropArrayBodyCell align="center">
+					<Checkbox />
+				</PropArrayBodyCell>
+				<PropArrayBodyCell clearing />
+			</PropArrayBodyRow>
+			<PropArrayBodyRow>
+				<PropArrayBodyCell>
+					<PropConstructor label={'body 2-1'} />
+				</PropArrayBodyCell>
+				<PropArrayBodyCell align="center">
+					<Checkbox />
+				</PropArrayBodyCell>
+				<PropArrayBodyCell clearing />
+			</PropArrayBodyRow>
+		</PropItemArrayBody>
+	</PropItemArray>
+*/

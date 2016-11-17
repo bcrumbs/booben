@@ -11,9 +11,10 @@ $prop-toggle: 'props-type-toggle';
 
 @include exports(props-list) {
 	// =================================================================================================================
-	// BASE
+	// LIST
 	// =================================================================================================================
-	.props-list {
+	.props-list,
+	.prop-tree_list {
 		.prop-item & {
 			margin-left: $props-level-offset;
 			opacity: 0;
@@ -22,11 +23,23 @@ $prop-toggle: 'props-type-toggle';
 			margin-bottom: $props-list-margin-bottom;
 		}
 
-		.rop-item-wrapper.has-image + & {
+		.prop-item-wrapper.has-image + & {
+			margin-left: $props-image-level-offset;
+		}
+
+		.prop-item-wrapper.has-image + &  {
 			margin-left: $props-image-level-offset;
 		}
 
 		.sublevel-is-visible + & {
+			opacity: 1;
+			pointer-events: initial;
+			position: relative;
+		}
+	}
+
+	.prop-tree_list {
+		.sublevel-is-visible + & .props-list {
 			opacity: 1;
 			pointer-events: initial;
 			position: relative;
@@ -68,21 +81,33 @@ $prop-toggle: 'props-type-toggle';
 		justify-content: center;
 		margin-right: $prop-image-spacing;
 
+		@include user-select;
+
 		img {
 			max-width: 100%;
 			max-height: 100%;
 		}
 	}
 
-	// Prop Actions (linking)
-	.prop-item-actions-box {
-		margin-left: $prop-actions-margin-left - $prop-action-margin-x;
+	// Prop Actions
+	.prop_actions {
+		display: flex;
+		flex-shrink: 0;
 		margin-top: $prop-actions-margin-top;
 		height: $prop-action-height + $prop-action-margin-y;
+
+		&.prop_actions-left {
+			margin-left: -$prop-action-margin-x;
+			margin-right: $prop-action-margin-x;
+		}
+		&.prop_actions-right {
+			margin-left: $prop-action-margin-x;
+			margin-right: -$prop-action-margin-x;
+		}
 	}
 
-	.prop-item-action {
-		margin: $prop-action-margin-y 0 $prop-action-margin-y $prop-action-margin-x;
+	.prop_action {
+		margin: $prop-action-margin-y $prop-action-margin-x;
 
 		&,
 		.button-icon {
@@ -108,6 +133,10 @@ $prop-toggle: 'props-type-toggle';
 			display: flex;
 			align-items: center;
 		}
+	}
+
+	.prop-item-wrapper.sublevel-is-visible .prop_action-collapse .button{
+		transform: rotate(90deg);
 	}
 
 	// Icon
@@ -151,6 +180,7 @@ $prop-toggle: 'props-type-toggle';
 		}
 	}
 
+
 	// =================================================================================================================
 	// PROPS TYPES
 	// =================================================================================================================
@@ -180,7 +210,9 @@ $prop-toggle: 'props-type-toggle';
 	}
 
 	.prop-item_label-text {
-		margin-right: $base-module/2
+		margin-right: $base-module/2;
+
+		.is-flat-array .props-list & { color: $prop-tree-title-flat-color; }
 	}
 
 	.prop-item_type {
@@ -391,8 +423,6 @@ $prop-toggle: 'props-type-toggle';
 		font-weight: $prop-tree-title-font-weight;
 		text-transform: $prop-tree-title-text-transform;
 		color: $prop-tree-title-color;
-
-		.is-flat-array & { color: $prop-tree-title-flat-color; }
 	}
 
 	.prop-tree-item-type {
