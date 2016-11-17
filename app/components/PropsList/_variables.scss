@@ -51,39 +51,6 @@ $prop-constructor-button-margin-top:    0 !default;
 $prop-constructor-toggle-spacing:       $base-module/2 !default;
 
 // =====================================================================================================================
-// PROP: array
-// =====================================================================================================================
-$prop-array-cell-padding-y:     $base-module !default;
-$prop-array-cell-padding-x:     $base-module !default;
-
-$prop-array-row-hover-bg-color: $grey-100 !default;
-
-$prop-array-header-font-size:   fs(-1) !default;
-$prop-array-header-font-color:  $grey-500 !default;
-$prop-array-header-font-weight: $font-weight-normal !default;
-$prop-array-header-line-height: 1.25 !default;
-
-$prop-array-body-font-size:     fs(0) !default;
-$prop-array-body-font-color:    $body-font-color !default;
-$prop-array-body-font-weight:   $font-weight-normal !default;
-$prop-array-body-line-height:   1.25 !default;
-
-// Add new
-// =====================================================================================================================
-$prop-array-add-row-margin-top:         $base-module !default;
-
-$prop-array-new-row-bg-color:           color($yellow-palette, lightest) !default;
-$prop-array-new-row-pad-y:              $base-module*1.5 !default;
-$prop-array-new-row-pad-x:              $prop-array-cell-padding-x !default;
-$prop-array-new-row-element-spacing:    $base-module/2 !default;
-
-$prop-array-clearing-box-size:          $base-module*4 - rem-calc(4) !default;
-$prop-array-clearing-img-size:          $base-module*2.5 !default;
-$prop-array-clearing-color:             $icon-dark-inactive-color !default;
-$prop-array-clearing-hover-color:       $icon-dark-default-color !default;
-$prop-array-clearing-margin:            $base-module/2 !default;
-
-// =====================================================================================================================
 // PROP: tree
 // =====================================================================================================================
 $prop-tree-level-offset:            $base-module*1.5 !default;
@@ -117,7 +84,17 @@ $prop-tree-action-margin-top:       $prop-tree-items-spacing !default;
 $prop-tree-action-margin-bottom:    $prop-tree-item-last-margin-bottom !default;
 $prop-tree-action-align:            left !default;
 
-// prop lable size => Prop actions margin top
+
+// New field
+// =====================================================================================================================
+$prop-add-field-margin-top:         $base-module !default;
+
+$prop-new-field-bg-color:           color($yellow-palette, lightest) !default;
+$prop-new-field-pad-y:              $base-module*1.5 !default;
+$prop-new-field-pad-x:              $base-module*2 !default;
+$prop-new-field-element-spacing:    $base-module*2 !default;
+
+// prop label size => Prop actions margin top
 $prop-actions-margin-top:       -($prop-action-height + $prop-action-margin-y - $prop-label-font-size*$prop-label-line-height)/2 !default;
 
 

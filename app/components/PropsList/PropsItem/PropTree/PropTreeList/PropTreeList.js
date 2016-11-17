@@ -26,9 +26,19 @@ export const PropTreeList = props => {
 	if (props.newField) {
 		newField =
 			<div className='prop-tree_field-new'>
-				<Input label={'Field title'} dense />
-				<SelectBox label={'Type'} dense />
-				<Button text="Save" />
+				<div className='prop-tree_field-new_row field-new_title'>
+					New field
+				</div>
+
+				<div className='prop-tree_field-new_row'>
+					<Input label={'Field title'} dense />
+				</div>
+				<div className='prop-tree_field-new_row'>
+					<SelectBox label={'Type'} dense />
+				</div>
+				<div className='prop-tree_field-new_row field-new_buttons'>
+					<Button text="Save" narrow/>
+				</div>
 			</div>;
 	}
 

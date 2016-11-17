@@ -255,100 +255,6 @@ $prop-toggle: 'props-type-toggle';
 		margin-top: $prop-constructor-button-margin-top;
 	}
 
-	// PROP: array
-	// =================================================================================================================
-	.block-content-box-heading + .block-content-box-item {
-		.prop-type-array {
-			margin-top: 0;
-		}
-	}
-
-	.prop-array-table {
-		margin-left: -$prop-array-cell-padding-x;
-		width: calc(100% + #{$prop-array-cell-padding-x*2});
-		border-spacing: 0;
-
-		@include user-select();
-
-		td {
-			padding: $prop-array-cell-padding-y $prop-array-cell-padding-x;
-		}
-	}
-
-	// Header
-	.prop-array-header-cell {
-		font-size: $prop-array-header-font-size;
-		color: $prop-array-header-font-color;
-		font-weight: $prop-array-header-font-weight;
-		line-height: $prop-array-header-line-height;
-	}
-
-	// Body
-	.prop-array-body-row {
-		@include single-transition();
-
-		&:hover {
-			background-color: $prop-array-row-hover-bg-color;
-		}
-	}
-
-	.prop-array-body-cell {
-		font-size: $prop-array-body-font-size;
-		color: $prop-array-body-font-color;
-		font-weight: $prop-array-body-font-weight;
-		line-height: $prop-array-body-line-height;
-	}
-
-	.prop-array-cell-align {
-		#{&}-left { text-align: left; }
-		#{&}-right { text-align: right; }
-		#{&}-center { text-align: center; }
-	}
-
-	// Add new row
-	.prop-array-add-new-row {
-		text-align: right;
-		margin-top: $prop-array-add-row-margin-top;
-		margin-right: -$prop-array-cell-padding-x;
-	}
-
-	.prop-array-body-new-row {
-		background-color: $prop-array-new-row-bg-color;
-		padding: $prop-array-new-row-pad-y $prop-array-new-row-pad-x;
-		display: flex;
-		align-items: flex-end;
-		margin-top: $prop-array-add-row-margin-top;
-		margin-left: -$prop-array-cell-padding-x;
-		width: calc(100% + #{$prop-array-cell-padding-x*2});
-
-		.input { flex-grow: 1 }
-
-		.button {
-			margin-left: $prop-array-new-row-element-spacing;
-		}
-
-		.button-text {
-			padding-left: 0;
-			padding-right: 0;
-		}
-	}
-
-	// Clearing
-	.prop-array-clearing-cell {
-		.button-icon {
-			@include icon-size(
-							$prop-array-clearing-box-size,
-							$prop-array-clearing-img-size);
-
-			@include icon-style($prop-array-clearing-color);
-
-			&:hover,
-			&:focus {
-				@include icon-style($prop-array-clearing-hover-color);
-			}
-		}
-	}
-
 	// =================================================================================================================
 	// PROP: tree
 	// =================================================================================================================
@@ -369,6 +275,26 @@ $prop-toggle: 'props-type-toggle';
 				text-transform: inherit;
 				line-height: inherit;
 			}
+		}
+	}
+
+	.prop-tree_field-new {
+		margin-top: $prop-add-field-margin-top;
+		padding: $prop-new-field-pad-y $prop-new-field-pad-x;
+		background-color: $prop-new-field-bg-color;
+	}
+
+	.prop-tree_field-new_row {
+		& + & { margin-top: $prop-new-field-element-spacing }
+
+		&.field-new_buttons {
+			margin-right: -$base-module;
+			text-align: right;
+		}
+
+		&.field-new_title {
+			font-size: fs(0);
+			font-weight: $font-weight-semibold;
 		}
 	}
 
