@@ -84,6 +84,7 @@ import {
 } from '../components/ComponentInteractions/ComponentInteractions';
 
 import { HeaderRoute } from '../components/HeaderRoute/HeaderRoute';
+import { ProjectSave } from '../components/ProjectSave/ProjectSave';
 
 import {
 	DataList,
@@ -884,7 +885,7 @@ export default class Playground extends React.Component {
                             <HeaderLogoBox title="Project X"/>
                         </HeaderRegion>
 
-                        <HeaderRegion region="main" size='blank'>
+                        <HeaderRegion spread size='blank'>
                             <HeaderMenu inline={true}  dense={true}>
 	                            <HeaderMenu inline={true}  dense={true} mode={'light'}>
 		                            <HeaderMenuGroup>
@@ -905,6 +906,10 @@ export default class Playground extends React.Component {
 	                            </HeaderMenu>
                             </HeaderMenu>
                         </HeaderRegion>
+
+	                    <HeaderRegion size="blank">
+		                    <ProjectSave status="error"/>
+	                    </HeaderRegion>
 
                         <HeaderRegion size='blank'>
 	                        <HeaderMenu inline={true}  dense={true}>
