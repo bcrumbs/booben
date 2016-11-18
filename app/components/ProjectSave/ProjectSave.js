@@ -5,7 +5,8 @@ import {
 	Tooltip
 } from '@reactackle/reactackle';
 
-import { combineWithTooltip } from '@reactackle/reactackle/components/Tooltip/Tooltip';
+import { combineWithTooltip } from
+	'@reactackle/reactackle/components/Tooltip/combineWithTooltip';
 
 import './ProjectSave.scss';
 
@@ -15,7 +16,13 @@ import './ProjectSave.scss';
 
 const
 	propTypes = {
-		status: PropTypes.oneOf(["error", "success", "progress", "default"])
+		status: PropTypes.oneOf(["error", "success", "progress", "default"]),
+
+		toggleTooltip: PropTypes.func,
+		showTooltip: PropTypes.func,
+		hideTooltip: PropTypes.func,
+		isTooltipActive: PropTypes.bool,
+		Tooltip: PropTypes.func,
 	},
 	defaultProps = {
 		status: 'default'
@@ -55,11 +62,11 @@ class ProjectSaveComponent extends Component {
 		return (
 			<div
 				className={className}
-				onClick={this._toggleTooltip}
-				onFocus={this._showTooltip}
-				onBlur={this._hideTooltip}
-				onMouseEnter={this._showTooltip}
-				onMouseLeave={this._hideTooltip}
+				onClick={this.props.toggleTooltip}
+				onFocus={this.props.showTooltip}
+				onBlur={this.props.hideTooltip}
+				onMouseEnter={this.props.showTooltip}
+				onMouseLeave={this.props.hideTooltip}
 			>
 				<div className="project-save_icon">
 					<Icon name="floppy-o"/>
@@ -71,7 +78,7 @@ class ProjectSaveComponent extends Component {
 					</div>
 				</div>
 
-				<this.Tooltip text={tooltipText}/>
+				<this.props.Tooltip text={tooltipText}/>
 			</div>
 		);
 	}
@@ -82,4 +89,3 @@ ProjectSaveComponent.defaultProps = defaultProps;
 ProjectSaveComponent.displayName = 'ProjectSave';
 
 export const ProjectSave = combineWithTooltip(ProjectSaveComponent, true);
-
