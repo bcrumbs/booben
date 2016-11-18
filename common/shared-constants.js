@@ -31,6 +31,7 @@ exports.BUILT_IN_PROP_TYPES = new Set([
     'oneOf',
     'object',
     'shape',
+    'objectOf',
     'array',
     'arrayOf',
     'func',

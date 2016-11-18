@@ -41,22 +41,11 @@ import {
     getString,
     getComponentMeta,
     isCompatibleType,
-    resolveTypedef
+    resolveTypedef,
+    isScalarType
 } from '../../utils/meta';
 import { getLocalizedText } from '../../utils';
 import { objectMap, objectSome } from '../../utils/misc';
-
-/**
- *
- * @param {Object} propMeta
- * @return {boolean}
- */
-const isRenderableProp = propMeta =>
-    propMeta.source.indexOf('static') > -1 ||
-    propMeta.source.indexOf('data') > -1 || (
-        propMeta.type === 'component' &&
-        propMeta.source.indexOf('designer') > -1
-    );
 
 /**
  *
@@ -82,51 +71,15 @@ const coerceFloatValue = value => {
 
 /**
  *
- * @param {string} source
- * @param {Object} sourceData
- * @return {string}
+ * @param {Object} propMeta
+ * @return {boolean}
  */
-const getStaticStringValue = (source, sourceData) =>
-    source === 'static' ? (sourceData ? sourceData.value : '') : '';
-
-/**
- *
- * @param {string} source
- * @param {Object} sourceData
- * @return {number}
- */
-const getStaticIntValue = (source, sourceData) =>
-    source === 'static' ? (sourceData ? sourceData.value : 0) : 0;
-
-/**
- *
- * @param {string} source
- * @param {Object} sourceData
- * @return {number}
- */
-const getStaticFloatValue = (source, sourceData) =>
-    source === 'static' ? (sourceData ? sourceData.value : 0.0) : 0.0;
-
-/**
- *
- * @param {string} source
- * @param {Object} sourceData
- * @return {number}
- */
-const getStaticBoolValue = (source, sourceData) =>
-    source === 'static' ? (sourceData ? sourceData.value : false) : false;
-
-/**
- *
- * @param {string} source
- * @param {Object} sourceData
- * @param {Object[]} options
- * @return {*}
- */
-const getStaticOneOfValue = (source, sourceData, options) =>
-    source === 'static'
-        ? (sourceData ? sourceData.value : options[0].value)
-        : options[0].value;
+const isRenderableProp = propMeta =>
+    propMeta.source.indexOf('static') > -1 ||
+    propMeta.source.indexOf('data') > -1 || (
+        propMeta.type === 'component' &&
+        propMeta.source.indexOf('designer') > -1
+    );
 
 /**
  *
@@ -164,6 +117,51 @@ const ownerPropsSelector = createSelector(
     }
 );
 
+/**
+ *
+ * @param {TypeDefinition} propMeta
+ * @param {Object} propValue - It is an {@link Immutable.Record} actually (see app/models/ProjectComponentProp.js)
+ * @return {*}
+ */
+const transformValue = (propMeta, propValue) => {
+    if (!propValue) return null;
+
+    const isLinked = isLinkedProp(propValue);
+    let value = null;
+
+    if (!isLinked) {
+        if (propValue.source === 'static') {
+            if (isScalarType(propMeta)) {
+                value = propValue.sourceData.value;
+            }
+            else if (propMeta.type === 'shape') {
+                value = objectMap(propMeta.fields, (fieldMeta, fieldName) =>
+                    transformValue(fieldMeta, propValue.sourceData.value.get(fieldName)));
+            }
+            else if (propMeta.type === 'object') {
+                propValue.sourceData.value.map(nestedValue =>
+                    transformValue(propMeta.ofType, nestedValue)).toJS();
+            }
+            else if (propMeta.type === 'arrayOf') {
+                value = propValue.sourceData.value.map(nestedValue =>
+                    transformValue(propMeta.ofType, nestedValue)).toJS();
+            }
+        }
+        else if (propValue.source === 'designer') {
+            // true if component exists, false otherwise
+            if (propMeta.type === 'component')
+                value = propValue.sourceData.rootId !== -1;
+        }
+    }
+
+    return { value, isLinked };
+};
+
+/**
+ *
+ * @type {Object<string, string>}
+ * @const
+ */
 const propTypeToView = {
     'string': 'input',
     'bool': 'toggle',
@@ -172,48 +170,12 @@ const propTypeToView = {
     'oneOf': 'list',
     'component': 'constructor',
     'shape': 'shape',
-    'object': 'object',
-    'arrayOf': 'array'
+    'objectOn': 'object',
+    'arrayOf': 'array',
+    'object': 'empty',
+    'array': 'empty',
+    'func': 'empty'
 };
-
-
-const propTypeFromMeta = (componentMeta, propName, typedef, language) => {
-    const name = getString(componentMeta, typedef.textKey, language) || propName,
-        description = getString(componentMeta, typedef.descriptionTextKey, language);
-
-    const ret = {
-        label: name,
-        type: typedef.type, // TODO: Get string from i18n
-        view: propTypeToView[typedef.type],
-        image: '',
-        tooltip: description,
-        linkable: false // TODO: Set linkable properly
-    };
-
-    if (typedef.type === 'oneOf') {
-        ret.options = typedef.options.map(option => ({
-            value: option.value,
-            text: getString(componentMeta, option.textKey, language) || option.textKey
-        }));
-    }
-    else if (typedef.type === 'shape') {
-        ret.fields = objectMap(
-            typedef.fields,
-            (fieldTypedef, fieldName) => propTypeFromMeta(
-                componentMeta,
-                fieldName,
-                fieldTypedef,
-                language
-            )
-        );
-    }
-    else if (typedef.type === 'array' || typedef.type === 'object') {
-        ret.ofType = propTypeFromMeta(componentMeta, '', typedef.ofType, language);
-    }
-
-    return ret;
-};
-
 
 class ComponentPropsEditorComponent extends PureComponent {
     /**
@@ -255,12 +217,11 @@ class ComponentPropsEditorComponent extends PureComponent {
     /**
      *
      * @param {ComponentMeta} componentMeta
-     * @param {string} propName
+     * @param {ComponentPropMeta} propMeta
      * @return {boolean}
      * @private
      */
-    _isPropLinkable(componentMeta, propName) {
-        const propMeta = componentMeta.props[propName];
+    _isPropLinkable(componentMeta, propMeta) {
         if (propMeta.source.indexOf('data') > -1) return true;
         if (!this.props.ownerProps) return false;
 
@@ -279,242 +240,59 @@ class ComponentPropsEditorComponent extends PureComponent {
     /**
      *
      * @param {ComponentMeta} componentMeta
-     * @param {string} propName
-     * @param {Object} propValue
-     * @returns {ReactElement}
+     * @param {ComponentPropMeta} propMeta
+     * @returns {PropsItemPropType}
      * @private
      */
-    _renderStringProp(componentMeta, propName, propValue) {
-        const source = propValue ? propValue.source : 'static',
-            sourceData = propValue ? propValue.sourceData : null,
-            value = getStaticStringValue(source, sourceData),
-            propMeta = componentMeta.props[propName],
-            isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(componentMeta, propName);
-
-        const propType = propTypeFromMeta(
+    _propTypeFromMeta(componentMeta, propMeta) {
+        const name = getString(
             componentMeta,
-            propName,
-            propMeta,
+            propMeta.textKey,
             this.props.language
         );
 
-        //noinspection JSValidateTypes
-        return (
-            <PropsItem
-                key={propName}
-                propType={propType}
-                value={value}
-                disabled={isLinked}
-                onChange={this._handleStaticValueChange.bind(this, propName)}
-                onLink={this._handleLinkProp.bind(this, propName)}
-            />
-        );
-    }
-
-    /**
-     *
-     * @param {ComponentMeta} componentMeta
-     * @param {string} propName
-     * @param {Object} propValue
-     * @returns {ReactElement}
-     * @private
-     */
-    _renderIntProp(componentMeta, propName, propValue) {
-        const source = propValue ? propValue.source : 'static',
-            sourceData = propValue ? propValue.sourceData : null,
-            value = getStaticIntValue(source, sourceData),
-            propMeta = componentMeta.props[propName],
-            isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(componentMeta, propName);
-
-        const propType = propTypeFromMeta(
+        const description = getString(
             componentMeta,
-            propName,
-            propMeta,
+            propMeta.descriptionTextKey,
             this.props.language
         );
 
-        const onChange = newValue =>
-            this._handleStaticValueChange(propName, coerceIntValue(newValue));
+        const propType = {
+            label: name,
+            type: propMeta.type, // TODO: Get string from i18n
+            view: propTypeToView[propMeta.type],
+            image: '',
+            tooltip: description,
+            linkable: this._isPropLinkable(componentMeta, propMeta),
+            transformValue: null
+        };
 
-        return (
-            <PropsItem
-                key={propName}
-                propType={propType}
-                value={String(value)}
-                disabled={isLinked}
-                onChange={onChange}
-                onLink={this._handleLinkProp.bind(this, propName)}
-            />
-        );
-    }
+        if (propMeta.type === 'int') {
+            propType.transformValue = coerceIntValue;
+        }
+        else if (propMeta.type === 'float') {
+            propType.transformValue = coerceFloatValue;
+        }
+        else if (propMeta.type === 'oneOf') {
+            propType.options = propMeta.options.map(option => ({
+                value: option.value,
+                text: getString(
+                    componentMeta,
+                    option.textKey,
+                    this.props.language
+                ) || option.textKey
+            }));
+        }
+        else if (propMeta.type === 'shape') {
+            propType.fields = objectMap(propMeta.fields, (fieldMeta, fieldName) =>
+                this._propTypeFromMeta(componentMeta, fieldMeta));
+        }
+        else if (propMeta.type === 'arrayOf' || propMeta.type === 'objectOf') {
+            propType.ofType = this._propTypeFromMeta(componentMeta, propMeta.ofType);
+        }
 
-    /**
-     *
-     * @param {ComponentMeta} componentMeta
-     * @param {string} propName
-     * @param {Object} propValue
-     * @returns {ReactElement}
-     * @private
-     */
-    _renderFloatProp(componentMeta, propName, propValue) {
-        const source = propValue ? propValue.source : 'static',
-            sourceData = propValue ? propValue.sourceData : null,
-            value = getStaticFloatValue(source, sourceData),
-            propMeta = componentMeta.props[propName],
-            isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(componentMeta, propName);
-
-        const propType = propTypeFromMeta(
-            componentMeta,
-            propName,
-            propMeta,
-            this.props.language
-        );
-
-        const onChange = newValue =>
-            this._handleStaticValueChange(propName, coerceFloatValue(newValue));
-
-        return (
-            <PropsItem
-                key={propName}
-                propType={propType}
-                value={String(value)}
-                disabled={isLinked}
-                onChange={onChange}
-                onLink={this._handleLinkProp.bind(this, propName)}
-            />
-        );
-    }
-
-    /**
-     *
-     * @param {ComponentMeta} componentMeta
-     * @param {string} propName
-     * @param {Object} propValue
-     * @returns {ReactElement}
-     * @private
-     */
-    _renderBoolProp(componentMeta, propName, propValue) {
-        const source = propValue ? propValue.source : 'static',
-            sourceData = propValue ? propValue.sourceData : null,
-            value = getStaticBoolValue(source, sourceData),
-            propMeta = componentMeta.props[propName],
-            isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(componentMeta, propName);
-
-        const propType = propTypeFromMeta(
-            componentMeta,
-            propName,
-            propMeta,
-            this.props.language
-        );
-
-        return (
-            <PropsItem
-                key={propName}
-                propType={propType}
-                value={value}
-                disabled={isLinked}
-                onChange={this._handleStaticValueChange.bind(this, propName)}
-                onLink={this._handleLinkProp.bind(this, propName)}
-            />
-        );
-    }
-
-    /**
-     *
-     * @param {ComponentMeta} componentMeta
-     * @param {string} propName
-     * @param {Object} propValue
-     * @returns {ReactElement}
-     * @private
-     */
-    _renderOneOfProp(componentMeta, propName, propValue) {
-        const source = propValue ? propValue.source : 'static',
-            sourceData = propValue ? propValue.sourceData : null,
-            propMeta = componentMeta.props[propName],
-            value = getStaticOneOfValue(source, sourceData, propMeta.options),
-            isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(componentMeta, propName);
-
-        const propType = propTypeFromMeta(
-            componentMeta,
-            propName,
-            propMeta,
-            this.props.language
-        );
-
-        return (
-            <PropsItem
-                key={propName}
-                propType={propType}
-                value={value}
-                disabled={isLinked}
-                onChange={this._handleStaticValueChange.bind(this, propName)}
-                onLink={this._handleLinkProp.bind(this, propName)}
-            />
-        );
-    }
-
-    /**
-     *
-     * @param {ComponentMeta} componentMeta
-     * @param {string} propName
-     * @param {Object} propValue
-     * @returns {ReactElement}
-     * @private
-     */
-    _renderComponentProp(componentMeta, propName, propValue) {
-        const { getLocalizedText } = this.props,
-            lang = this.props.language,
-            propMeta = componentMeta.props[propName];
-
-        const propType = propTypeFromMeta(
-            componentMeta,
-            propName,
-            propMeta,
-            this.props.language
-        );
-
-        return (
-            <PropsItem
-                key={propName}
-                propType={propType}
-                setComponentButtonText={getLocalizedText('setComponent')}
-                onChange={this._handleSetComponent.bind(this, propName)}
-            />
-        );
-    }
-
-    _renderShapeProp(componentMeta, propName, propValue) {
-        const source = propValue ? propValue.source : 'static',
-            sourceData = propValue ? propValue.sourceData : null,
-            propMeta = componentMeta.props[propName],
-            isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(componentMeta, propName);
-
-        const propType = propTypeFromMeta(
-            componentMeta,
-            propName,
-            propMeta,
-            this.props.language
-        );
-
-
-
-        return (
-            <PropsItem
-                key={propName}
-                propType={propType}
-                value={value}
-                disabled={isLinked}
-                onChange={this._handleStaticValueChange.bind(this, propName)}
-                onLink={this._handleLinkProp.bind(this, propName)}
-            />
-        );
-    }
+        return propType;
+    };
 
     /**
      *
@@ -528,24 +306,21 @@ class ComponentPropsEditorComponent extends PureComponent {
         const propMeta = componentMeta.props[propName];
         if (!propMeta) return null;
 
-        switch (propMeta.type) {
-            case 'string':
-                return this._renderStringProp(componentMeta, propName, propValue);
-            case 'int':
-                return this._renderIntProp(componentMeta, propName, propValue);
-            case 'float':
-                return this._renderFloatProp(componentMeta, propName, propValue);
-            case 'bool':
-                return this._renderBoolProp(componentMeta, propName, propValue);
-            case 'oneOf':
-                return this._renderOneOfProp(componentMeta, propName, propValue);
-            case 'component':
-                return this._renderComponentProp(componentMeta, propName, propValue);
-            case 'shape':
-                return this._renderShapeProp(componentMeta, propName, propValue);
-            default:
-                return null;
-        }
+        const propType = this._propTypeFromMeta(componentMeta, propMeta),
+            value = transformValue(propMeta, propValue);
+
+        return (
+            <PropsItem
+                key={propName}
+                propType={propType}
+                value={value}
+                setComponentButtonText={this.props.getLocalizedText('setComponent')}
+                editComponentButtonText={'Edit component'}
+                addButtonText={'Add item'}
+                onChange={this._handleStaticValueChange.bind(this, propName)}
+                onLink={this._handleLinkProp.bind(this, propName)}
+            />
+        );
     }
 
     render() {

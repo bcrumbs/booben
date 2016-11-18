@@ -47,7 +47,7 @@
 /**
  * @typedef {Object} TypeDefinition
  * @property {string} type - Type name. Can be one of the built-in types ({@link BUILT_IN_PROP_TYPES}) or one of user-defined types.
- * @property {Object} [ofType] - For "arrayOf" type only - type of array items.
+ * @property {ComponentPropMeta} [ofType] - For "arrayOf" and "objectOf" types only - type of items.
  * @property {Object<string, ComponentPropMeta>} [fields] - For "shape" type only.
  * @property {OneOfOption[]} [options] - For "oneOf" type only.
  */

@@ -86,7 +86,10 @@ class RouteEditorComponent extends PureComponent {
                                     label: getLocalizedText('description'),
                                     view: 'textarea'
                                 }}
-                                value={route.indexRouteDescription}
+                                value={{
+                                    value: route.indexRouteDescription,
+                                    linked: false
+                                }}
                                 onChange={this._handleIndexRouteDescriptionChange}
                             />
                         </PropsList>
@@ -105,7 +108,10 @@ class RouteEditorComponent extends PureComponent {
                         label: getLocalizedText('redirectTo'),
                         view: 'input'
                     }}
-                    value={route.redirectTo}
+                    value={{
+                        value: route.redirectTo,
+                        linked: false
+                    }}
                     onChange={this._handleRedirectToChange}
                 />
             );
@@ -117,7 +123,10 @@ class RouteEditorComponent extends PureComponent {
                         label: getLocalizedText('indexRoute'),
                         view: 'toggle'
                     }}
-                    value={route.haveIndex}
+                    value={{
+                        value: route.haveIndex,
+                        linked: false
+                    }}
                     onChange={this._handleHaveIndexChange}
                 />
             );
@@ -136,7 +145,10 @@ class RouteEditorComponent extends PureComponent {
                                 label: getLocalizedText('path'),
                                 view: 'input'
                             }}
-                            value={route.path}
+                            value={{
+                                value: route.path,
+                                linked: false
+                            }}
                             onChange={this._handlePathChange}
                         />
 
@@ -145,7 +157,10 @@ class RouteEditorComponent extends PureComponent {
                                 label: getLocalizedText('description'),
                                 view: 'textarea'
                             }}
-                            value={route.description}
+                            value={{
+                                value: route.description,
+                                linked: false
+                            }}
                             onChange={this._handleDescriptionChange}
                         />
 
@@ -154,7 +169,10 @@ class RouteEditorComponent extends PureComponent {
                                 label: getLocalizedText('indexRedirect'),
                                 view: 'toggle'
                             }}
-                            value={route.haveRedirect}
+                            value={{
+                                value: route.haveRedirect,
+                                linked: false
+                            }}
                             onChange={this._handleHaveRedirectChange}
                         />
 

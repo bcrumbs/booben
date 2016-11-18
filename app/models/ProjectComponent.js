@@ -36,12 +36,22 @@ const propSourceDataToImmutableFns = {
 
         if (typeof input.value !== 'undefined') {
             if (Array.isArray(input.value)) {
-                data.value = List(input.value.map(({ source, sourceData }) =>
-                    propSourceDataToImmutable(source, sourceData)));
+                data.value = List(input.value.map(
+                    ({ source, sourceData }) => new ProjectComponentProp({
+                        source,
+                        sourceData: propSourceDataToImmutable(source, sourceData)
+                    }))
+                );
             }
             else if (typeof input.value === 'object' && input.value !== null) {
-                data.value = Map(objectMap(input.value, ({ source, sourceData }) =>
-                    propSourceDataToImmutable(source, sourceData)));
+                data.value = Map(objectMap(
+                    input.value,
+
+                    ({ source, sourceData }) => new ProjectComponentProp({
+                        source,
+                        sourceData: propSourceDataToImmutable(source, sourceData)
+                    }))
+                );
             }
             else {
                 data.value = input.value;

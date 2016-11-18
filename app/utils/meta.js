@@ -9,7 +9,7 @@ import miscMeta from '../meta/misc';
 
 import { componentsToImmutable } from '../models/ProjectComponent';
 
-import { objectForEach } from './misc';
+import { isObject, objectMap, objectForEach } from './misc';
 
 import { BUILT_IN_PROP_TYPES } from '../../common/shared-constants';
 
@@ -203,6 +203,31 @@ export const canInsertComponent = (componentName, containerName, containerChildr
     return true;
 };
 
+const buildDefaultValue = (value, source) => {
+    if (Array.isArray(value)) {
+        return {
+            source,
+            sourceData: {
+                value: value.map(v => buildDefaultValue(v, source))
+            }
+        };
+    }
+    else if (isObject(value)) {
+        return {
+            source,
+            sourceData: {
+                value: objectMap(value, v => buildDefaultValue(v, source))
+            }
+        }
+    }
+    else {
+        return {
+            source,
+            sourceData: { value }
+        };
+    }
+};
+
 /**
  *
  * @param {Object} componentMeta
@@ -215,12 +240,8 @@ const buildDefaultProps = (componentMeta, language) => {
     objectForEach(componentMeta.props, (propMeta, propName) => {
         if (propMeta.source.indexOf('static') > -1 && propMeta.sourceConfigs.static) {
             if (typeof propMeta.sourceConfigs.static.default !== 'undefined') {
-                ret[propName] = {
-                    source: 'static',
-                    sourceData: {
-                        value: propMeta.sourceConfigs.static.default
-                    }
-                };
+                ret[propName] =
+                    buildDefaultValue(propMeta.sourceConfigs.static.default, 'static');
             }
             else if (propMeta.sourceConfigs.static.defaultTextKey) {
                 const key = propMeta.sourceConfigs.static.defaultTextKey,
@@ -236,12 +257,8 @@ const buildDefaultProps = (componentMeta, language) => {
         }
         else if (propMeta.source.indexOf('const') > -1 && propMeta.sourceConfigs.const) {
             if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
-                ret[propName] = {
-                    source: 'const',
-                    sourceData: {
-                        value: propMeta.sourceConfigs.const.value
-                    }
-                }
+                ret[propName] =
+                    buildDefaultValue(propMeta.sourceConfigs.const.value, 'const');
             }
             else if (typeof propMeta.sourceConfigs.const.jssyConstId !== 'undefined') {
                 ret[propName] = {
@@ -397,6 +414,28 @@ export const resolveTypedef = (componentMeta, typedef) => {
     if (BUILT_IN_PROP_TYPES.has(typedef.type)) return typedef;
     return componentMeta.types[typedef.type] || null;
 };
+
+/**
+ *
+ * @type {Set<string>}
+ * @const
+ */
+const scalarTypes = new Set([
+    'string',
+    'int',
+    'float',
+    'bool',
+    'oneOf',
+    'component',
+    'func'
+]);
+
+/**
+ *
+ * @param {TypeDefinition} typedef
+ * @return {boolean}
+ */
+export const isScalarType = typedef => scalarTypes.has(typedef.type);
 
 /**
  *
