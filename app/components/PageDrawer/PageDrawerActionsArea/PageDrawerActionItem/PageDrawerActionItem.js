@@ -2,7 +2,8 @@
 
 import React, { PureComponent, PropTypes } from 'react';
 import { Button }  from '@reactackle/reactackle';
-import { combineWithTooltip } from '@reactackle/reactackle/components/Tooltip/Tooltip';
+import { combineWithTooltip } from
+	'@reactackle/reactackle/components/Tooltip/combineWithTooltip';
 
 /*
  * Combined with tooltip
@@ -13,7 +14,13 @@ const
     icon: PropTypes.string,
     title: PropTypes.string,
     isActive: PropTypes.bool,
-    onPress: PropTypes.func
+    onPress: PropTypes.func,
+
+	toggleTooltip: PropTypes.func,
+	showTooltip: PropTypes.func,
+	hideTooltip: PropTypes.func,
+	isTooltipActive: PropTypes.bool,
+	Tooltip: PropTypes.func,
   },
   defaultProps = {
     icon: null,
@@ -46,14 +53,14 @@ class PageDrawerActionItemComponent extends PureComponent {
 
       return (
           <div className={className}
-            onMouseEnter={this._showTooltip}
-            onMouseLeave={this._hideTooltip}
+            onMouseEnter={props.showTooltip}
+            onMouseLeave={props.hideTooltip}
           >
               {button}
-              <this.Tooltip text={props.title}/>
+              <props.Tooltip text={props.title}/>
           </div>
       );
-  };
+  }
 }
 
 PageDrawerActionItemComponent.propTypes = propTypes;

@@ -230,6 +230,8 @@ class ComponentsTreeViewComponent extends PureComponent {
                 ?    component
                 :    parentComponent;
 
+			this._clearExpandTimeout();
+			
             if (
                 isContainerComponent(component.name, this.props.meta)
                 || isCompositeComponent(component.name, this.props.meta)
@@ -305,7 +307,8 @@ class ComponentsTreeViewComponent extends PureComponent {
                     currentPlaceholderContainer.id,
                     indexOfPlaceholder
                 );
-            }
+            } else
+				this._resetDrag();
         }
     }
 
@@ -373,7 +376,7 @@ class ComponentsTreeViewComponent extends PureComponent {
             (ref, componentId) => {
                 const { top, bottom } = ref.getBoundingClientRect();
                 [top, bottom].forEach(val => {
-                    const diff = Math.abs(event.y - val);
+                    const diff = Math.abs(event.pageY - val);
                     if (diff < minHeightDiff) {
                         minHeightDiff = diff;
                         closestItemComponentId = componentId;
