@@ -136,17 +136,17 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     _expandAfterTime(componentId, time) {
         const expandComponent = (componentId) =>
-            (!time || this.props.highlightedComponentIds.has(componentId))
+            (
+			this.props.highlightedComponentIds.has(componentId)
+			||	this.props.selectedComponentIds.has(componentId)
+			)
             && this.props.draggingComponent
             && !this.props.expandedItemIds.has(componentId)
             && this.props.onExpandItem(componentId);
 
-        this.expandTimeout = time
-            ?    setTimeout(
-                    expandComponent, time, componentId
-                )
-            :     expandComponent(componentId);
-
+		this.expandTimeout = setTimeout(
+        	expandComponent, time, componentId
+        );
     }
 
     _resetDrag() {
@@ -231,15 +231,14 @@ class ComponentsTreeViewComponent extends PureComponent {
                 :    parentComponent;
 
 			this._clearExpandTimeout();
-			
-            if (
-                isContainerComponent(component.name, this.props.meta)
-                || isCompositeComponent(component.name, this.props.meta)
-            ) this._expandAfterTime(
-                this.closestItemComponentId,
-                this.closestItemComponentId === this.props.rootComponentId
-                    ? 0 : this.props.timeToExpand
-            );
+
+			if (
+				isContainerComponent(component.name, this.props.meta)
+				|| isCompositeComponent(component.name, this.props.meta)
+			) this._expandAfterTime(
+				this.closestItemComponentId,
+				this.props.timeToExpand
+			);
 
             if (
                 this.cursorState === CURSOR_STATES.MIDDLE
@@ -411,7 +410,8 @@ class ComponentsTreeViewComponent extends PureComponent {
 
         const isCurrentComponentActiveContainer =
           componentId === this.props.placeholderContainerId
-          &&
+          && this.props.draggingComponent
+		  &&
             canInsertComponent(
                 this.props.draggedComponents.get(
                     this.props.draggedComponentId + 1
@@ -458,6 +458,7 @@ class ComponentsTreeViewComponent extends PureComponent {
                 expanded={
                     this.props.expandedItemIds.has(componentId)
                     || !this.isMouseOver && this.props.draggingComponent
+					|| componentId === this.props.rootComponentId
                 }
                 active={this.props.selectedComponentIds.has(componentId)}
                 hovered={

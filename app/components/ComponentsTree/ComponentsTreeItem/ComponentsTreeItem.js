@@ -29,14 +29,12 @@ export class ComponentsTreeItem extends PureComponent {
 			this.props.onHover(
 				this.props.componentId,
 				true,
-				this._titleRef,
 				event
 			);
         this._handleHoverOut = (event) =>
 			this.props.onHover(
 				this.props.componentId,
 				false,
-				this._titleRef,
 				event
 			);
         this._handleMouseDown = (event) =>
