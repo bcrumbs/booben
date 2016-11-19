@@ -110,15 +110,17 @@ const buildTreeBreadcrumbsItems = (rootPropType, currentPath) => {
     let currentType = rootPropType;
 
     for (let i = 0, l = currentPath.length; i < l; i++) {
+        const nestedType = getNestedType(currentType, currentPath[i]);
+
         ret.push({
             title: currentType.view === 'shape'
-                ? currentType.label
+                ? nestedType.label
                 : currentPath[i],
 
-            subtitle: currentType.type
+            subtitle: nestedType.type
         });
 
-        currentType = getNestedType(currentType, currentPath[i]);
+        currentType = nestedType;
     }
 
     return ret;
