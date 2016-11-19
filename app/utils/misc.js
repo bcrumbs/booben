@@ -91,6 +91,37 @@ export const objectEvery = (object, predicate) =>
 
 /**
  *
+ * @param {Object} object
+ * @param {function(value: *, key: string, object: Object): boolean} predicate
+ * @return {Object}
+ */
+export const objectFilter = (object, predicate) => {
+    const ret = {};
+    objectForEach(object, (value, key, object) => {
+        if (predicate(value, key, object)) ret[key] = fn(value, key, object);
+    });
+    return ret;
+};
+
+/**
+ *
+ * @param {*} value
+ * @return {*}
+ */
+export const clone = value => {
+    if (Array.isArray(value)) {
+        return value.map(clone);
+    }
+    else if (isObject(value)) {
+        return objectMap(value, clone);
+    }
+    else {
+        return value;
+    }
+};
+
+/**
+ *
  * @param {number} x
  * @param {number} y
  * @param {number} cX

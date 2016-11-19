@@ -36,6 +36,7 @@ import { noop } from '../../../utils/misc';
  * @property {PropsItemPropTypeOption[]} [options]
  * @property {Object<string, PropsItemPropType>} [fields]
  * @property {PropsItemPropType} [ofType]
+ * @property {Function} [transformValue]
  */
 
 /**
@@ -136,7 +137,6 @@ export class PropsItem extends PureComponent {
         };
 
         this._handleOpen = this._handleOpen.bind(this);
-        this._handleLink = this._handleLink.bind(this);
         this._handleDelete = this._handleDelete.bind(this);
         this._handleAddValue = this._handleAddValue.bind(this);
         this._handleChange = this._handleChange.bind(this);
@@ -169,20 +169,48 @@ export class PropsItem extends PureComponent {
         });
     }
 
-    _handleLink() {
-
+    /**
+     *
+     * @param {string|number} index
+     * @private
+     */
+    _handleNestedValueLink(index) {
+        this.props.onLinkNested(this.state.currentPath, index);
     }
-    
-    _handleDelete() {
-        
+
+    /**
+     *
+     * @param {string|number} index
+     * @private
+     */
+    _handleDelete(index) {
+        this.props.onDeleteValue(this.state.currentPath, index);
     }
 
+    /**
+     *
+     * @private
+     */
     _handleAddValue() {
-
+        this.props.onAddValue(this.state.currentPath);
     }
 
-    _handleNestedValueChange(idx, newValue) {
+    /**
+     *
+     * @param {string|number} index
+     * @param {*} newValue
+     * @private
+     */
+    _handleNestedValueChange(index, newValue) {
+        const currentType = getTypeByPath(
+            this.props.propType,
+            [].concat(this.state.currentPath, index)
+        );
 
+        if (typeof currentType.transformValue === 'function')
+            newValue = currentType.transformValue(newValue);
+
+        this.props.onChangeNested(this.state.currentPath, index, newValue);
     }
 
     _handleChange(newValue) {
@@ -190,6 +218,101 @@ export class PropsItem extends PureComponent {
             newValue = this.props.propType.transformValue(newValue);
 
         this.props.onChange(newValue);
+    }
+
+    _renderBreadcrumbs() {
+        if (this.state.currentPath.length > 0) {
+            const breadcrumbsItems = buildTreeBreadcrumbsItems(
+                this.props.propType,
+                this.state.currentPath
+            );
+
+            return (
+                <PropTreeBreadcrumbs items={breadcrumbsItems}/>
+            );
+        }
+        else {
+            return null;
+        }
+    }
+
+    _renderNestedItems() {
+        const breadcrumbs = this._renderBreadcrumbs();
+
+        const currentType = getTypeByPath(
+            this.props.propType,
+            this.state.currentPath
+        );
+
+        const currentValue = getValueByPath(
+            this.props.value,
+            this.state.currentPath
+        );
+
+        let childItems = null;
+        if (currentType.view === 'shape') {
+            childItems = Object.keys(currentType.fields).map((fieldName, idx) => (
+                <PropsItem
+                    key={idx}
+                    propType={currentType.fields[fieldName]}
+                    value={currentValue.value[fieldName]}
+                    setComponentButtonText={this.props.setComponentButtonText}
+                    addButtonText={this.props.addButtonText}
+                    onChange={this._handleNestedValueChange.bind(this, fieldName)}
+                    onLink={this._handleNestedValueLink.bind(this, fieldName)}
+                    _secondary
+                    _onOpen={this._handleOpenInnerValue.bind(this, fieldName)}
+                />
+            ));
+        }
+        else if (currentType.view === 'array') {
+            childItems = currentValue.value.map((itemValue, idx) => (
+                <PropsItem
+                    key={idx}
+                    propType={currentType.ofType}
+                    value={itemValue}
+                    setComponentButtonText={this.props.setComponentButtonText}
+                    addButtonText={this.props.addButtonText}
+                    onChange={this._handleNestedValueChange.bind(this, idx)}
+                    onLink={this._handleNestedValueLink.bind(this, idx)}
+                    _secondary
+                    _deletable
+                    _onOpen={this._handleOpenInnerValue.bind(this, idx)}
+                    _onDelete={this._handleDelete.bind(this, idx)}
+                />
+            ));
+        }
+        else if (currentType.view === 'object') {
+            childItems = Object.keys(currentValue.value).map((key, idx) => (
+                <PropsItem
+                    key={idx}
+                    propType={currentType.ofType}
+                    value={currentValue[key]}
+                    setComponentButtonText={this.props.setComponentButtonText}
+                    addButtonText={this.props.addButtonText}
+                    onChange={this._handleNestedValueChange.bind(this, key)}
+                    onLink={this._handleNestedValueLink.bind(this, key)}
+                    _secondary
+                    _deletable
+                    _onOpen={this._handleOpenInnerValue.bind(this, key)}
+                    _onDelete={this._handleDelete.bind(this, idx)}
+                />
+            ));
+        }
+
+        const canAddValues =
+            currentType.view === 'array' ||
+            currentType.view === 'object';
+
+        return (
+            <PropTreeList
+                addButton={canAddValues}
+                addButtonText={this.props.addButtonText}
+            >
+                {breadcrumbs}
+                {childItems}
+            </PropTreeList>
+        );
     }
     
     render() {
@@ -241,7 +364,7 @@ export class PropsItem extends PureComponent {
         if (this.props.propType.linkable) {
             linkAction = (
                 <div className="prop_action prop_action-linking">
-                    <Button icon="link" onPress={this._handleLink}/>
+                    <Button icon="link" onPress={this.props.onLink}/>
                 </div>
             );
         }
@@ -325,94 +448,12 @@ export class PropsItem extends PureComponent {
                 className += ' has-sublevel';
             }
 
-            if (!this.props._secondary && this.state.isOpen) {
-                let breadcrumbs = null;
-                if (this.state.currentPath.length > 0) {
-                    const breadcrumbsItems = buildTreeBreadcrumbsItems(
-                        this.props.propType,
-                        this.state.currentPath
-                    );
-
-                    breadcrumbs = (
-                        <PropTreeBreadcrumbs items={breadcrumbsItems}/>
-                    );
-                }
-
-                const currentType = getTypeByPath(
-                    this.props.propType,
-                    this.state.currentPath
-                );
-
-                const currentValue = getValueByPath(
-                    this.props.value,
-                    this.state.currentPath
-                );
-
-                let childItems = null;
-                if (currentType.view === 'shape') {
-                    childItems = Object.keys(currentType.fields).map((fieldName, idx) => (
-                        <PropsItem
-                            key={idx}
-                            propType={currentType.fields[fieldName]}
-                            value={currentValue.value[fieldName]}
-                            setComponentButtonText={this.props.setComponentButtonText}
-                            addButtonText={this.props.addButtonText}
-                            onChange={this._handleNestedValueChange.bind(this, fieldName)}
-                            _secondary
-                            _onOpen={this._handleOpenInnerValue.bind(this, fieldName)}
-                        />
-                    ));
-                }
-                else if (currentType.view === 'array') {
-                    childItems = currentValue.value.map((itemValue, idx) => (
-                        <PropsItem
-                            key={idx}
-                            propType={currentType.ofType}
-                            value={itemValue}
-                            setComponentButtonText={this.props.setComponentButtonText}
-                            addButtonText={this.props.addButtonText}
-                            onChange={this._handleNestedValueChange.bind(this, idx)}
-                            _secondary
-                            _deletable
-                            _onOpen={this._handleOpenInnerValue.bind(this, idx)}
-                        />
-                    ));
-                }
-                else if (currentType.view === 'object') {
-                    childItems = Object.keys(currentValue.value).map((key, idx) => (
-                        <PropsItem
-                            key={idx}
-                            propType={currentType.ofType}
-                            value={currentValue[key]}
-                            setComponentButtonText={this.props.setComponentButtonText}
-                            addButtonText={this.props.addButtonText}
-                            onChange={this._handleNestedValueChange.bind(this, key)}
-                            _secondary
-                            _deletable
-                            _onOpen={this._handleOpenInnerValue.bind(this, key)}
-                        />
-                    ));
-                }
-
-                const canAddValues =
-                    currentType.view === 'array' ||
-                    currentType.view === 'object';
-
-                children = (
-                    <PropTreeList
-                        addButton={canAddValues}
-                        addButtonText={this.props.addButtonText}
-                    >
-                        {breadcrumbs}
-                        {childItems}
-                    </PropTreeList>
-                );
-            }
+            if (!this.props._secondary && this.state.isOpen)
+                children = this._renderNestedItems();
         }
         else {
             // TODO: Render something for linked value
         }
-
 
         let actionsRight = null;
         if (toggle || linkAction || collapseAction) {
@@ -496,8 +537,12 @@ PropsItem.propTypes = {
     addButtonText: PropTypes.string,
 
     onChange: PropTypes.func,
+    onChangeNested: PropTypes.func,
+    onAddValue: PropTypes.func,
+    onDeleteValue: PropTypes.func,
     onLink: PropTypes.func,
-    
+    onLinkNested: PropTypes.func,
+
     _secondary: PropTypes.bool,
     _deletable: PropTypes.bool,
     _dimLabel: PropTypes.bool,
@@ -512,7 +557,11 @@ PropsItem.defaultProps = {
     addButtonText: '',
 
     onChange: noop,
+    onChangeNested: noop,
+    onAddValue: noop,
+    onDeleteValue: noop,
     onLink: noop,
+    onLinkNested: noop,
 
     _secondary: false,
     _deletable: false,

@@ -548,6 +548,8 @@ export default (state = new ProjectState(), action) => {
                 action.propName
             ]);
 
+            // TODO: Handle action.path
+
             return state.setIn(path, newValue);
         }
 

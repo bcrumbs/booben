@@ -44,8 +44,9 @@ import {
     resolveTypedef,
     isScalarType
 } from '../../utils/meta';
+
 import { getLocalizedText } from '../../utils';
-import { objectMap, objectSome } from '../../utils/misc';
+import { clone, objectMap, objectSome } from '../../utils/misc';
 
 /**
  *
@@ -199,6 +200,18 @@ class ComponentPropsEditorComponent extends PureComponent {
         this.props.onPropValueChange(
             componentId,
             propName,
+            [],
+            'static',
+            { value: newValue }
+        );
+    }
+
+    _handleStaticNestedValueChange(propName, where, index, newValue) {
+        const componentId = this.props.selectedComponentIds.first();
+        this.props.onPropValueChange(
+            componentId,
+            propName,
+            [].concat(where, index),
             'static',
             { value: newValue }
         );
@@ -245,6 +258,8 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @private
      */
     _propTypeFromMeta(componentMeta, propMeta) {
+        // TODO: Memoize
+
         const name = getString(
             componentMeta,
             propMeta.textKey,
@@ -257,38 +272,43 @@ class ComponentPropsEditorComponent extends PureComponent {
             this.props.language
         );
 
+        const editable = propMeta.source.indexOf('static') > -1;
+
         const propType = {
             label: name,
             type: propMeta.type, // TODO: Get string from i18n
-            view: propTypeToView[propMeta.type],
+            view: editable ? propTypeToView[propMeta.type] : 'empty',
             image: '',
             tooltip: description,
             linkable: this._isPropLinkable(componentMeta, propMeta),
-            transformValue: null
+            transformValue: null,
+            createValue: null
         };
 
-        if (propMeta.type === 'int') {
-            propType.transformValue = coerceIntValue;
-        }
-        else if (propMeta.type === 'float') {
-            propType.transformValue = coerceFloatValue;
-        }
-        else if (propMeta.type === 'oneOf') {
-            propType.options = propMeta.options.map(option => ({
-                value: option.value,
-                text: getString(
-                    componentMeta,
-                    option.textKey,
-                    this.props.language
-                ) || option.textKey
-            }));
-        }
-        else if (propMeta.type === 'shape') {
-            propType.fields = objectMap(propMeta.fields, (fieldMeta, fieldName) =>
-                this._propTypeFromMeta(componentMeta, fieldMeta));
-        }
-        else if (propMeta.type === 'arrayOf' || propMeta.type === 'objectOf') {
-            propType.ofType = this._propTypeFromMeta(componentMeta, propMeta.ofType);
+        if (editable) {
+            if (propMeta.type === 'int') {
+                propType.transformValue = coerceIntValue;
+            }
+            else if (propMeta.type === 'float') {
+                propType.transformValue = coerceFloatValue;
+            }
+            else if (propMeta.type === 'oneOf') {
+                propType.options = propMeta.options.map(option => ({
+                    value: option.value,
+                    text: getString(
+                        componentMeta,
+                        option.textKey,
+                        this.props.language
+                    ) || option.textKey
+                }));
+            }
+            else if (propMeta.type === 'shape') {
+                propType.fields = objectMap(propMeta.fields, (fieldMeta, fieldName) =>
+                    this._propTypeFromMeta(componentMeta, fieldMeta));
+            }
+            else if (propMeta.type === 'arrayOf' || propMeta.type === 'objectOf') {
+                propType.ofType = this._propTypeFromMeta(componentMeta, propMeta.ofType);
+            }
         }
 
         return propType;
@@ -309,6 +329,9 @@ class ComponentPropsEditorComponent extends PureComponent {
         const propType = this._propTypeFromMeta(componentMeta, propMeta),
             value = transformValue(propMeta, propValue);
 
+        // TODO: Handle complex value changes & linking
+
+        //noinspection JSValidateTypes
         return (
             <PropsItem
                 key={propName}
@@ -318,6 +341,7 @@ class ComponentPropsEditorComponent extends PureComponent {
                 editComponentButtonText={'Edit component'}
                 addButtonText={'Add item'}
                 onChange={this._handleStaticValueChange.bind(this, propName)}
+                onChangeNested={this._handleStaticNestedValueChange.bind(this, propName)}
                 onLink={this._handleLinkProp.bind(this, propName)}
             />
         );
@@ -462,10 +486,11 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    onPropValueChange: (componentId, propName, newSource, newSourceData) =>
+    onPropValueChange: (componentId, propName, path, newSource, newSourceData) =>
         void dispatch(updateComponentPropValue(
             componentId,
             propName,
+            path,
             newSource,
             newSourceData
         )),

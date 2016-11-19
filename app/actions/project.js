@@ -152,14 +152,16 @@ export const PROJECT_COMPONENT_UPDATE_PROP_VALUE = 'PROJECT_COMPONENT_UPDATE_PRO
  *
  * @param {number} componentId
  * @param {string} propName
+ * @param {(string|number)[]} path
  * @param {string} newSource
  * @param {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner} newSourceData
  * @return {Object}
  */
-export const updateComponentPropValue = (componentId, propName, newSource, newSourceData) => ({
+export const updateComponentPropValue = (componentId, propName, path, newSource, newSourceData) => ({
     type: PROJECT_COMPONENT_UPDATE_PROP_VALUE,
     componentId,
     propName,
+    path,
     newSource,
     newSourceData
 });
