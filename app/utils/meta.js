@@ -203,26 +203,31 @@ export const canInsertComponent = (componentName, containerName, containerChildr
     return true;
 };
 
-const buildDefaultValue = (value, source) => {
+/**
+ *
+ * @param {*} value
+ * @return {ProjectComponentProp}
+ */
+const _buildDefaultStaticValue = value => {
     if (Array.isArray(value)) {
         return {
-            source,
+            source: 'static',
             sourceData: {
-                value: value.map(v => buildDefaultValue(v, source))
+                value: value.map(v => _buildDefaultStaticValue(v))
             }
         };
     }
     else if (isObject(value)) {
         return {
-            source,
+            source: 'static',
             sourceData: {
-                value: objectMap(value, v => buildDefaultValue(v, source))
+                value: objectMap(value, v => _buildDefaultStaticValue(v))
             }
         }
     }
     else {
         return {
-            source,
+            source: 'static',
             sourceData: { value }
         };
     }
@@ -230,35 +235,44 @@ const buildDefaultValue = (value, source) => {
 
 /**
  *
- * @param {Object} componentMeta
+ * @param {ComponentMeta} componentMeta
+ * @param {ComponentPropMeta} propMeta
  * @param {string} language
- * @return {Object}
+ * @return {ProjectComponentProp}
+ */
+export const buildDefaultStaticValue = (componentMeta, propMeta, language) => {
+    const value = propMeta.sourceConfigs.static.defaultTextKey
+        ? getString(
+            componentMeta,
+            propMeta.sourceConfigs.static.defaultTextKey,
+            language
+        )
+        : propMeta.sourceConfigs.static.default;
+
+    return _buildDefaultStaticValue(value);
+};
+
+/**
+ *
+ * @param {ComponentMeta} componentMeta
+ * @param {string} language
+ * @return {Object<string, ProjectComponentProp>}
  */
 const buildDefaultProps = (componentMeta, language) => {
     const ret = {};
 
     objectForEach(componentMeta.props, (propMeta, propName) => {
-        if (propMeta.source.indexOf('static') > -1 && propMeta.sourceConfigs.static) {
-            if (typeof propMeta.sourceConfigs.static.default !== 'undefined') {
-                ret[propName] =
-                    buildDefaultValue(propMeta.sourceConfigs.static.default, 'static');
-            }
-            else if (propMeta.sourceConfigs.static.defaultTextKey) {
-                const key = propMeta.sourceConfigs.static.defaultTextKey,
-                    translations = componentMeta.strings[key];
-
-                ret[propName] = {
-                    source: 'static',
-                    sourceData: {
-                        value: translations[language] || ''
-                    }
-                };
-            }
+        if (propMeta.source.indexOf('static') > -1) {
+            ret[propName] = buildDefaultStaticValue(componentMeta, propMeta, language);
         }
         else if (propMeta.source.indexOf('const') > -1 && propMeta.sourceConfigs.const) {
             if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
-                ret[propName] =
-                    buildDefaultValue(propMeta.sourceConfigs.const.value, 'const');
+                ret[propName] = {
+                    source: 'const',
+                    sourceData: {
+                        value: propMeta.sourceConfigs.const.value
+                    }
+                };
             }
             else if (typeof propMeta.sourceConfigs.const.jssyConstId !== 'undefined') {
                 ret[propName] = {
@@ -445,3 +459,27 @@ export const isScalarType = typedef => scalarTypes.has(typedef.type);
  */
 export const getPropTypedef = (componentMeta, propName) =>
     resolveTypedef(componentMeta, componentMeta.props[propName]);
+
+/**
+ *
+ * @param {TypeDefinition} typedef
+ * @param {(string|number)[]} valuePath
+ * @return {TypeDefinition}
+ */
+export const getNestedTypedef = (typedef, valuePath) => valuePath.reduce((acc, cur) => {
+    if (typeof cur === 'string') {
+        if (acc.type === 'objectOf') return acc.ofType;
+        else if (acc.type === 'shape') return acc.fields[cur];
+        else throw new Error(`getNestedTypedef(): incompatible type: ${acc.type}`);
+    }
+    else if (typeof cur === 'number') {
+        if (acc.type === 'arrayOf') return acc.ofType;
+        else throw new Error(`getNestedTypedef(): incompatible type: ${acc.type}`);
+    }
+    else {
+        throw new Error(
+            `getNestedTypedef(): valuePath can contain ` +
+            `only numbers and strings, got ${cur}`
+        );
+    }
+}, typedef);

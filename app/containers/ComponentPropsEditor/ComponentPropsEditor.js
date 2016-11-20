@@ -26,6 +26,7 @@ import ProjectComponentRecord from '../../models/ProjectComponent';
 
 import {
     updateComponentPropValue,
+    addComponentPropValue,
     constructComponentForProp,
     linkProp
 } from '../../actions/project';
@@ -42,11 +43,13 @@ import {
     getComponentMeta,
     isCompatibleType,
     resolveTypedef,
-    isScalarType
+    isScalarType,
+    getNestedTypedef,
+    buildDefaultStaticValue
 } from '../../utils/meta';
 
 import { getLocalizedText } from '../../utils';
-import { clone, objectMap, objectSome } from '../../utils/misc';
+import { objectMap, objectSome } from '../../utils/misc';
 
 /**
  *
@@ -179,6 +182,21 @@ const propTypeToView = {
 };
 
 class ComponentPropsEditorComponent extends PureComponent {
+    constructor(props) {
+        super(props);
+
+        this._formatArrayItemLabel = this._formatArrayItemLabel.bind(this);
+        this._formatObjectItemLabel = this._formatObjectItemLabel.bind(this);
+    }
+
+    _formatArrayItemLabel(index) {
+        return `Item ${index}`; // TODO: Get string from i18n
+    }
+
+    _formatObjectItemLabel(key) {
+        return key;
+    }
+
     /**
      *
      * @param {string} propName
@@ -217,6 +235,34 @@ class ComponentPropsEditorComponent extends PureComponent {
         );
     }
 
+    _handleAddValue(propName, where, index) {
+        const componentId = this.props.selectedComponentIds.first(),
+            component = this.props.components.get(componentId),
+            componentMeta = getComponentMeta(component.name, this.props.meta),
+            propMeta = componentMeta.props[propName],
+            nestedPropMeta = getNestedTypedef(propMeta, where),
+            newValueType = nestedPropMeta.ofType;
+
+        const { source, sourceData } = buildDefaultStaticValue(
+            componentMeta,
+            newValueType,
+            this.props.language
+        );
+
+        this.props.onAddPropValue(
+            componentId,
+            propName,
+            where,
+            index,
+            source,
+            sourceData
+        );
+    }
+
+    _handleDeleteValue(propName, where, index) {
+
+    }
+
     /**
      *
      * @param {string} propName
@@ -225,6 +271,10 @@ class ComponentPropsEditorComponent extends PureComponent {
     _handleLinkProp(propName) {
         const componentId = this.props.selectedComponentIds.first();
         this.props.onLinkProp(componentId, propName);
+    }
+
+    _handleLinkNestedProp(propName, where, index) {
+
     }
 
     /**
@@ -272,7 +322,8 @@ class ComponentPropsEditorComponent extends PureComponent {
             this.props.language
         );
 
-        const editable = propMeta.source.indexOf('static') > -1;
+        const editable = propMeta.source.indexOf('static') > -1,
+            linkable = this._isPropLinkable(componentMeta, propMeta);
 
         const propType = {
             label: name,
@@ -280,9 +331,9 @@ class ComponentPropsEditorComponent extends PureComponent {
             view: editable ? propTypeToView[propMeta.type] : 'empty',
             image: '',
             tooltip: description,
-            linkable: this._isPropLinkable(componentMeta, propMeta),
+            linkable: linkable,
             transformValue: null,
-            createValue: null
+            formatItemLabel: null
         };
 
         if (editable) {
@@ -306,8 +357,13 @@ class ComponentPropsEditorComponent extends PureComponent {
                 propType.fields = objectMap(propMeta.fields, (fieldMeta, fieldName) =>
                     this._propTypeFromMeta(componentMeta, fieldMeta));
             }
-            else if (propMeta.type === 'arrayOf' || propMeta.type === 'objectOf') {
+            else if (propMeta.type === 'arrayOf') {
                 propType.ofType = this._propTypeFromMeta(componentMeta, propMeta.ofType);
+                propType.formatItemLabel = this._formatArrayItemLabel;
+            }
+            else if (propMeta.type === 'objectOf') {
+                propType.ofType = this._propTypeFromMeta(componentMeta, propMeta.ofType);
+                propType.formatItemLabel = this._formatObjectItemLabel;
             }
         }
 
@@ -323,13 +379,11 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @private
      */
     _renderPropsItem(componentMeta, propName, propValue) {
-        const propMeta = componentMeta.props[propName];
-        if (!propMeta) return null;
+        const { getLocalizedText } = this.props;
 
-        const propType = this._propTypeFromMeta(componentMeta, propMeta),
+        const propMeta = componentMeta.props[propName],
+            propType = this._propTypeFromMeta(componentMeta, propMeta),
             value = transformValue(propMeta, propValue);
-
-        // TODO: Handle complex value changes & linking
 
         //noinspection JSValidateTypes
         return (
@@ -337,12 +391,15 @@ class ComponentPropsEditorComponent extends PureComponent {
                 key={propName}
                 propType={propType}
                 value={value}
-                setComponentButtonText={this.props.getLocalizedText('setComponent')}
-                editComponentButtonText={'Edit component'}
-                addButtonText={'Add item'}
+                setComponentButtonText={getLocalizedText('setComponent')}
+                editComponentButtonText={getLocalizedText('editComponent')}
+                addButtonText={getLocalizedText('addValue')}
                 onChange={this._handleStaticValueChange.bind(this, propName)}
                 onChangeNested={this._handleStaticNestedValueChange.bind(this, propName)}
+                onAddValue={this._handleAddValue.bind(this, propName)}
+                onDeleteValue={this._handleDeleteValue.bind(this, propName)}
                 onLink={this._handleLinkProp.bind(this, propName)}
+                onLinkNested={this._handleLinkNestedProp(this, propName)}
             />
         );
     }
@@ -467,6 +524,7 @@ ComponentPropsEditorComponent.propTypes = {
     getLocalizedText: PropTypes.func,
 
     onPropValueChange: PropTypes.func,
+    onAddPropValue: PropTypes.func,
     onConstructComponent: PropTypes.func,
     onLinkProp: PropTypes.func
 };
@@ -493,6 +551,16 @@ const mapDispatchToProps = dispatch => ({
             path,
             newSource,
             newSourceData
+        )),
+
+    onAddPropValue: (componentId, propName, path, index, source, sourceData) =>
+        void dispatch(addComponentPropValue(
+            componentId,
+            propName,
+            path,
+            index,
+            source,
+            sourceData
         )),
 
     onConstructComponent: (componentId, propName) =>

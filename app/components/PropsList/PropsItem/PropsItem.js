@@ -37,6 +37,7 @@ import { noop } from '../../../utils/misc';
  * @property {Object<string, PropsItemPropType>} [fields]
  * @property {PropsItemPropType} [ofType]
  * @property {Function} [transformValue]
+ * @property {Function} [formatItemLabel]
  */
 
 /**
@@ -93,40 +94,6 @@ export const getNestedValue = (value, index) => value.value[index];
  */
 export const getValueByPath = (value, path) => path.reduce(getNestedValue, value);
 
-/**
- * @typedef {Object} PropsItemBreadcrumbsItem
- * @property {string} title
- * @property {string} subtitle
- */
-
-/**
- *
- * @param {PropsItemPropType} rootPropType
- * @param {(string|number)[]} currentPath
- * @returns {PropsItemBreadcrumbsItem[]}
- */
-const buildTreeBreadcrumbsItems = (rootPropType, currentPath) => {
-    const ret = [];
-
-    let currentType = rootPropType;
-
-    for (let i = 0, l = currentPath.length; i < l; i++) {
-        const nestedType = getNestedType(currentType, currentPath[i]);
-
-        ret.push({
-            title: currentType.view === 'shape'
-                ? nestedType.label
-                : currentPath[i],
-
-            subtitle: nestedType.type
-        });
-
-        currentType = nestedType;
-    }
-
-    return ret;
-};
-
 export class PropsItem extends PureComponent {
     constructor(props) {
         super(props);
@@ -138,8 +105,8 @@ export class PropsItem extends PureComponent {
 
         this._handleOpen = this._handleOpen.bind(this);
         this._handleDelete = this._handleDelete.bind(this);
-        this._handleAddValue = this._handleAddValue.bind(this);
         this._handleChange = this._handleChange.bind(this);
+        this._handleAddButtonPress = this._handleAddButtonPress.bind(this);
     }
 
     /**
@@ -163,7 +130,7 @@ export class PropsItem extends PureComponent {
      * @param {string|number} index
      * @private
      */
-    _handleOpenInnerValue(index) {
+    _handleOpenNestedValue(index) {
         this.setState({
             currentPath: [...this.state.currentPath, index]
         });
@@ -189,10 +156,29 @@ export class PropsItem extends PureComponent {
 
     /**
      *
+     * @param {string|number} index
      * @private
      */
-    _handleAddValue() {
-        this.props.onAddValue(this.state.currentPath);
+    _handleAddValue(index) {
+        this.props.onAddValue(this.state.currentPath, index);
+    }
+
+    /**
+     *
+     * @private
+     */
+    _handleAddButtonPress() {
+        const currentType = getTypeByPath(
+            this.props.propType,
+            this.state.currentPath
+        );
+
+        if (currentType.view === 'array') {
+            this._handleAddValue(-1);
+        }
+        else if (currentType.view === 'object') {
+            // TODO: Show name input
+        }
     }
 
     /**
@@ -221,19 +207,31 @@ export class PropsItem extends PureComponent {
     }
 
     _renderBreadcrumbs() {
-        if (this.state.currentPath.length > 0) {
-            const breadcrumbsItems = buildTreeBreadcrumbsItems(
-                this.props.propType,
-                this.state.currentPath
-            );
+        if (this.state.currentPath.length === 0) return null;
 
-            return (
-                <PropTreeBreadcrumbs items={breadcrumbsItems}/>
-            );
+        const items = [];
+
+        let currentType = this.props.propType;
+
+        for (let i = 0, l = this.state.currentPath.length; i < l; i++) {
+            const nestedType = getNestedType(currentType, this.state.currentPath[i]);
+
+            items.push({
+                title: currentType.view === 'shape'
+                    ? nestedType.label
+                    : typeof this.state.currentPath[i] === 'string'
+                        ? this.state.currentPath[i]
+                        : `Item ${this.state.currentPath[i]}`, // TODO: Get from i18n->props
+
+                subtitle: nestedType.type
+            });
+
+            currentType = nestedType;
         }
-        else {
-            return null;
-        }
+
+        return (
+            <PropTreeBreadcrumbs items={items}/>
+        );
     }
 
     _renderNestedItems() {
@@ -249,6 +247,7 @@ export class PropsItem extends PureComponent {
             this.state.currentPath
         );
 
+        // TODO: Get strings from i18n->props
         let childItems = null;
         if (currentType.view === 'shape') {
             childItems = Object.keys(currentType.fields).map((fieldName, idx) => (
@@ -261,7 +260,7 @@ export class PropsItem extends PureComponent {
                     onChange={this._handleNestedValueChange.bind(this, fieldName)}
                     onLink={this._handleNestedValueLink.bind(this, fieldName)}
                     _secondary
-                    _onOpen={this._handleOpenInnerValue.bind(this, fieldName)}
+                    _onOpen={this._handleOpenNestedValue.bind(this, fieldName)}
                 />
             ));
         }
@@ -276,8 +275,9 @@ export class PropsItem extends PureComponent {
                     onChange={this._handleNestedValueChange.bind(this, idx)}
                     onLink={this._handleNestedValueLink.bind(this, idx)}
                     _secondary
+                    _label={currentType.formatItemLabel(idx)}
                     _deletable
-                    _onOpen={this._handleOpenInnerValue.bind(this, idx)}
+                    _onOpen={this._handleOpenNestedValue.bind(this, idx)}
                     _onDelete={this._handleDelete.bind(this, idx)}
                 />
             ));
@@ -293,8 +293,9 @@ export class PropsItem extends PureComponent {
                     onChange={this._handleNestedValueChange.bind(this, key)}
                     onLink={this._handleNestedValueLink.bind(this, key)}
                     _secondary
+                    _label={currentType.formatItemLabel(key)}
                     _deletable
-                    _onOpen={this._handleOpenInnerValue.bind(this, key)}
+                    _onOpen={this._handleOpenNestedValue.bind(this, key)}
                     _onDelete={this._handleDelete.bind(this, idx)}
                 />
             ));
@@ -308,6 +309,7 @@ export class PropsItem extends PureComponent {
             <PropTreeList
                 addButton={canAddValues}
                 addButtonText={this.props.addButtonText}
+                onAdd={this._handleAddButtonPress}
             >
                 {breadcrumbs}
                 {childItems}
@@ -322,7 +324,8 @@ export class PropsItem extends PureComponent {
         if (this.props.propType.view)
             className += ` prop-type-${this.props.propType.view}`;
 
-        if (this.props._dimLabel) className += ' is-flat-array';
+        if (this.props.propType.view === 'array' || this.props.propType.view === 'object')
+            className += ' is-flat-array';
 
         if (this.state.isOpen) {
             wrapperClassName += ' sublevel-is-visible';
@@ -330,10 +333,11 @@ export class PropsItem extends PureComponent {
         }
 
         let label = null;
-        if (this.props.propType.label) {
+        const labelText = this.props._label || this.props.propType.label;
+        if (labelText) {
             label = (
                 <PropLabel
-                    label={this.props.propType.label}
+                    label={labelText}
                     type={this.props.propType.type}
                     tooltip={this.props.propType.tooltip}
                 />
@@ -354,7 +358,7 @@ export class PropsItem extends PureComponent {
             actionsLeft = (
                 <div className="prop_actions prop_actions-left">
                     <div className="prop_action prop_action-collapse">
-                        <Button icon="times" onPress={this._handleDelete} />
+                        <Button icon="times" onPress={this.props._onDelete} />
                     </div>
                 </div>
             );
@@ -545,7 +549,7 @@ PropsItem.propTypes = {
 
     _secondary: PropTypes.bool,
     _deletable: PropTypes.bool,
-    _dimLabel: PropTypes.bool,
+    _label: PropTypes.string,
     _onOpen: PropTypes.func,
     _onDelete: PropTypes.func
 };
@@ -565,7 +569,7 @@ PropsItem.defaultProps = {
 
     _secondary: false,
     _deletable: false,
-    _dimLabel: false,
+    _label: '',
     _onOpen: noop,
     _onDelete: noop
 };

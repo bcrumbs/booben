@@ -48,6 +48,8 @@
   "multipleComponentsSelected": "Multiple components selected",
   "thisComponentDoesntHaveEditableAttributes": "This component doesn't have editable attributes",
   "setComponent": "Set component",
+  "editComponent": "Edit component",
+  "addValue": "Add item",
 
   "uncategorizedComponents": "Uncategorized",
 

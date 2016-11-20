@@ -48,6 +48,8 @@
   "multipleComponentsSelected": "Выбрано несколько компонентов",
   "thisComponentDoesntHaveEditableAttributes": "Этот компонент не имеет изменяемых атрибутов",
   "setComponent": "Создать компонент",
+  "editComponent": "Изменить компонент",
+  "addValue": "Добавить",
 
   "uncategorizedComponents": "Без категории",
 

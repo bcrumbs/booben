@@ -145,6 +145,7 @@ export const deleteComponent = componentId => ({
 /**
  *
  * @type {string}
+ * @const
  */
 export const PROJECT_COMPONENT_UPDATE_PROP_VALUE = 'PROJECT_COMPONENT_UPDATE_PROP_VALUE';
 
@@ -164,6 +165,33 @@ export const updateComponentPropValue = (componentId, propName, path, newSource,
     path,
     newSource,
     newSourceData
+});
+
+/**
+ *
+ * @type {string}
+ * @const
+ */
+export const PROJECT_COMPONENT_ADD_PROP_VALUE = 'PROJECT_COMPONENT_ADD_PROP_VALUE';
+
+/**
+ *
+ * @param {number} componentId
+ * @param {string} propName
+ * @param {(string|number)[]} path
+ * @param {string|number} index
+ * @param {string} source
+ * @param {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner} sourceData
+ * @return {Object}
+ */
+export const addComponentPropValue = (componentId, propName, path, index, source, sourceData) => ({
+    type: PROJECT_COMPONENT_ADD_PROP_VALUE,
+    componentId,
+    propName,
+    path,
+    index,
+    source,
+    sourceData
 });
 
 /**
