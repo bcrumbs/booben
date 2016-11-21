@@ -11,6 +11,7 @@ import { componentsToImmutable } from '../models/ProjectComponent';
 
 import { isObject, objectMap, objectForEach } from './misc';
 
+import { NO_VALUE } from  '../../app/constants/misc';
 import { BUILT_IN_PROP_TYPES } from '../../common/shared-constants';
 
 /**
@@ -205,6 +206,46 @@ export const canInsertComponent = (componentName, containerName, containerChildr
 
 /**
  *
+ * @param {ComponentPropMeta} propMeta
+ * @param {string} source
+ * @return {boolean}
+ */
+export const isValidSourceForProp = (propMeta, source) =>
+    propMeta.source.indexOf(source) > -1;
+
+/**
+ *
+ * @param {ComponentMeta} componentMeta
+ * @param {ComponentPropMeta} propMeta
+ * @param {string} language
+ * @return {ProjectComponentProp}
+ */
+export const buildDefaultConstValue = (componentMeta, propMeta, language) => {
+    if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
+        return {
+            source: 'const',
+            sourceData: {
+                value: propMeta.sourceConfigs.const.value
+            }
+        };
+    }
+    else if (typeof propMeta.sourceConfigs.const.jssyConstId !== 'undefined') {
+        return {
+            source: 'const',
+            sourceData: {
+                jssyConstId: propMeta.sourceConfigs.const.jssyConstId
+            }
+        }
+    }
+    else {
+        return NO_VALUE;
+    }
+};
+
+// TODO: Refactor & improve this
+
+/**
+ *
  * @param {*} value
  * @return {ProjectComponentProp}
  */
@@ -255,6 +296,42 @@ export const buildDefaultStaticValue = (componentMeta, propMeta, language) => {
 /**
  *
  * @param {ComponentMeta} componentMeta
+ * @param {ComponentPropMeta} propMeta
+ * @param {string} language
+ * @return {ProjectComponentProp}
+ */
+export const buildDefaultDesignerValue = (componentMeta, propMeta, language) => ({
+    source: 'designer',
+    sourceData: {
+        rootId: -1
+    }
+});
+
+/**
+ *
+ * @type {Object<string, function(componentMeta: ComponentMeta, propMeta: ComponentPropMeta, language: string): ProjectComponentProp|NO_VALUE>}
+ * @const
+ */
+const defaultValueBuilders = {
+    'static': buildDefaultStaticValue,
+    'const': buildDefaultConstValue,
+    'designer': buildDefaultDesignerValue
+};
+
+/**
+ *
+ * @type {string[]}
+ * @const
+ */
+const sourcePriority = [
+    'const',
+    'static',
+    'designer'
+];
+
+/**
+ *
+ * @param {ComponentMeta} componentMeta
  * @param {string} language
  * @return {Object<string, ProjectComponentProp>}
  */
@@ -262,24 +339,17 @@ const buildDefaultProps = (componentMeta, language) => {
     const ret = {};
 
     objectForEach(componentMeta.props, (propMeta, propName) => {
-        if (propMeta.source.indexOf('static') > -1) {
-            ret[propName] = buildDefaultStaticValue(componentMeta, propMeta, language);
-        }
-        else if (propMeta.source.indexOf('const') > -1 && propMeta.sourceConfigs.const) {
-            if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
-                ret[propName] = {
-                    source: 'const',
-                    sourceData: {
-                        value: propMeta.sourceConfigs.const.value
-                    }
-                };
-            }
-            else if (typeof propMeta.sourceConfigs.const.jssyConstId !== 'undefined') {
-                ret[propName] = {
-                    source: 'const',
-                    sourceData: {
-                        jssyConstId: propMeta.sourceConfigs.const.jssyConstId
-                    }
+        for (let i = 0, l = sourcePriority.length; i < l; i++) {
+            if (isValidSourceForProp(propMeta, sourcePriority[i])) {
+                const defaultValue = defaultValueBuilders[sourcePriority[i]](
+                    componentMeta,
+                    propMeta,
+                    language
+                );
+
+                if (defaultValue !== NO_VALUE) {
+                    ret[propName] = defaultValue;
+                    break;
                 }
             }
         }
@@ -388,6 +458,8 @@ const typeCheckers = {
     },
 
     'object': returnTrue,
+    'objectOf': (typedef1, typedef2) =>
+        isCompatibleType(typedef1.ofType, typedef2.ofType),
 
     'shape': (typedef1, typedef2) => {
         const keys1 = Object.keys(typedef1.fields),
@@ -402,7 +474,9 @@ const typeCheckers = {
     },
 
     'array': returnTrue(),
-    'arrayOf': (typedef1, typedef2) => isCompatibleType(typedef1.ofType, typedef2.ofType),
+    'arrayOf': (typedef1, typedef2) =>
+        isCompatibleType(typedef1.ofType, typedef2.ofType),
+
     'component': returnTrue(),
     'func': () => false // TODO: Write actual checker
 };

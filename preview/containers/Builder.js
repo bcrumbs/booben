@@ -17,6 +17,8 @@ import jssyConstants from '../../app/constants/jssyConstants';
 
 import { List, Map } from 'immutable';
 
+import { NO_VALUE } from  '../../app/constants/misc';
+
 import {
     isContainerComponent,
     isCompositeComponent,
@@ -85,12 +87,6 @@ const makeBuilderForProp = (propValueDescriptor, propName) => {
 
     return ret;
 };
-
-const NO_VALUE = (() => {
-    function NO_VALUE() {}
-    NO_VALUE.prototype = Object.create(null);
-    return new NO_VALUE();
-})();
 
 /**
  *
