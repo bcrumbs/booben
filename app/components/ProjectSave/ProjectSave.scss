@@ -1,0 +1,48 @@
+@charset "UTF-8";
+@import 'variables';
+
+@include exports(project-save) {
+	// =================================================================================================================
+	// BASE
+	// =================================================================================================================
+	.project-save {
+		display: flex;
+		align-items: center;
+		color: $white;
+		cursor: $cursor-pointer;
+		padding: 0 $menu-item-padding-x*2 0 $menu-item-padding-x;
+
+		&:hover {
+			background-color: $menu-item-hover-bg-color-light;
+		}
+	}
+
+	.project-save_icon {
+		@include icon-size($outer-size: $icon-height, $icon-size: $icon-image-size, $outer-width: $icon-width);
+		@include icon-style($icon-color: $icon-light-inactive-color, $bg-color: null);
+		margin-right: $base-module/2;
+	}
+
+	.project-save_title {
+		color: inherit;
+		font-size: fs(0);
+		white-space: nowrap;
+		padding: $menu-item-padding-y 0;
+		display: flex;
+		align-items: center;
+	}
+
+	.project-save_state_icon {
+		$icon-status-box-size: rem-calc(16);
+		$icon-status-size: rem-calc(10);
+
+		@include icon-size($outer-size: $icon-status-box-size, $icon-size: $icon-status-size);
+		margin-left: $base-module;
+		border-radius: $global-rounded;
+
+		&.state_icon-error {
+			@include icon-style($icon-color: $white, $bg-color: $color-alert);
+		}
+	}
+}
+

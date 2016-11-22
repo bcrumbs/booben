@@ -24,15 +24,18 @@ const SCROLL_STATES = {
 
 export const autoScrollUpDown = WrappedComponent =>
 	Object.assign(
-		class extends Component {
+		class AutoScrollUpDown extends Component {
 			constructor(props) {
 				super(props);
 				this._handleMouseMove = this._handleMouseMove.bind(this);
 				this._createElementRef = this._createElementRef.bind(this);
+				this._scroll = this._scroll.bind(this);
 
 				this.scrollInterval = null;
 				this.scrollState = SCROLL_STATES.NONE;
 				this.scrollStep = 0;
+				this.requestedFrameId = null;
+				this.frameIsRequested = false;
 			}
 
 			componentDidMount() {
@@ -44,19 +47,26 @@ export const autoScrollUpDown = WrappedComponent =>
 				this._stopSteppingScroll();
 			}
 
+			_scroll() {
+				if (this.element
+					&&	this.element.scrollTop >= 0
+					&& 	this.element.scrollTop <= this.element.scrollHeight
+				)	this.element.scrollTop +=
+						this.props.fixedScrollingStep || this.scrollStep;
+				this.frameIsRequested = false;
+			}
+
 			_startSteppingScroll() {
 				this.scrollInterval = setInterval(
-					() =>
-						requestAnimationFrame(
-							() =>
-								this.element
-							 	&&	this.element.scrollTop >= 0
-								&& 	this.element.scrollTop <= this.element.scrollHeight
-								&&	(
-									this.element.scrollTop +=
-										this.props.fixedScrollingStep || this.scrollStep
-								)
-						)
+					() => {
+						if (this.frameIsRequested)
+							cancelAnimationFrame(this.requestedFrameId);
+						this.frameIsRequested = true;
+						this.requestedFrameId =
+							requestAnimationFrame(
+								this._scroll
+							);
+					}
 				, this.props.scrollingStepTime);
 			}
 

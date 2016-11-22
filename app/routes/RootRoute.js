@@ -116,7 +116,7 @@ const RootRoute = props => {
                         <HeaderLogoBox title={title} />
                     </HeaderRegion>
 
-                    <HeaderRegion region="main" size='blank'>
+                    <HeaderRegion spread size='blank'>
                         <HeaderMenu inline dense mode="light">
                             <HeaderMenuGroup>
                                 <HeaderMenuList>

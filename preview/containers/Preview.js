@@ -16,7 +16,8 @@ import {
     dragOverComponent,
     dragOverPlaceholder,
     dropComponent,
-    setCurrentRoute
+    setCurrentRoute,
+	DROP_COMPONENT_AREA_IDS
 } from '../../app/actions/preview';
 
 import {
@@ -196,7 +197,6 @@ class Preview extends PureComponent {
             containerNode.addEventListener('mousedown', this._handleMouseDown, false);
             containerNode.addEventListener('click', this._handleClick, false);
             containerNode.addEventListener('mouseup', this._handleMouseUp);
-            window.top.addEventListener('mouseup', this._handleMouseUp);
         }
     }
 
@@ -218,8 +218,6 @@ class Preview extends PureComponent {
             containerNode.removeEventListener('mousedown', this._handleMouseDown, false);
             containerNode.removeEventListener('click', this._handleClick, false);
             containerNode.removeEventListener('mouseup', this._handleMouseUp);
-            window.top.removeEventListener('mouseup', this._handleMouseUp);
-
             if (this.unhighilightTimer > -1) clearImmediate(this.unhighilightTimer);
         }
     }
@@ -383,9 +381,11 @@ class Preview extends PureComponent {
      * @private
      */
     _handleMouseUp(event) {
-        event.stopPropagation();
-        this.willTryStartDrag = false;
-        if (this.props.draggingComponent) this.props.onDropComponent();
+        if (this.props.draggingComponent){
+			event.stopPropagation();
+			this.willTryStartDrag = false;
+			this.props.onDropComponent(DROP_COMPONENT_AREA_IDS.PREVIEW);
+		}
     }
 
     /**

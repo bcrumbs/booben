@@ -7,7 +7,11 @@ const BlockContentBoxComponent = props => {
     if (props.flex) className += ' display-flex';
 
     return (
-        <div className={className} ref={props.createElementRef}>
+        <div
+			className={className}
+			ref={props.createElementRef}
+			onMouseUp={props.onMouseUp}
+		>
             {props.children}
         </div>
     );
@@ -17,6 +21,7 @@ const BlockContentBoxComponent = props => {
 BlockContentBoxComponent.propTypes = {
     isBordered: PropTypes.bool,
     flex: PropTypes.bool,
+	onMouseUp: PropTypes.func,
 	createElementRef: PropTypes.func
 };
 

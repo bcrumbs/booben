@@ -17,8 +17,17 @@ import {
     DESKTOP_TOOL_CLOSE,
     DESKTOP_TOOL_OPEN,
     DESKTOP_SET_STICKY_TOOL,
-    DESKTOP_TOOL_SET_ACTIVE_SECTION
+    DESKTOP_TOOL_SET_ACTIVE_SECTION,
+	TOOL_ID_COMPONENTS_TREE
 } from '../actions/desktop';
+
+import {
+	PREVIEW_START_DRAG_NEW_COMPONENT,
+	PREVIEW_START_DRAG_EXISTING_COMPONENT,
+	PREVIEW_DROP_COMPONENT,
+	DROP_COMPONENT_AREA_IDS
+} from '../actions/preview';
+
 
 import ToolStateRecord from '../models/ToolState';
 
@@ -28,6 +37,7 @@ const DesktopState = Record({
     activeToolId: null,
     topToolZIndex: 0,
     stickyToolId: null,
+	previousActiveToolId: null,
 });
 
 const selectTool = (state, toolId) => {
@@ -58,6 +68,25 @@ const changeToolStateProp = (state, toolId, prop, value) => {
         return state.setIn(['toolStates', toolId, prop], value);
     else
         return state;
+};
+
+const setNecessaryToolActiveAfterDragStart = (state) => {
+	state = state.set('previousActiveToolId', state.activeToolId);
+	if (
+		state.activeToolId === TOOL_ID_COMPONENTS_TREE
+		|| !state.toolStates.get(TOOL_ID_COMPONENTS_TREE).docked
+	) return state;
+	else return selectTool(state, TOOL_ID_COMPONENTS_TREE);
+};
+
+const setNecessaryToolActiveAfterDrop = (state, dropOnAreaId) => {
+	if (
+		state.previousActiveToolId === TOOL_ID_COMPONENTS_TREE
+		|| !state.toolStates.get(TOOL_ID_COMPONENTS_TREE).docked
+		|| dropOnAreaId === DROP_COMPONENT_AREA_IDS.TREE
+	) return state;
+	else return selectTool(state, state.previousActiveToolId)
+					.set('previousActiveToolId', null);
 };
 
 export default (state = new DesktopState(), action) => {
@@ -169,7 +198,7 @@ export default (state = new DesktopState(), action) => {
                 return state;
             }
         }
-            
+
         case DESKTOP_TOOL_SELECT: {
             return selectTool(state, action.toolId);
         }
@@ -202,6 +231,18 @@ export default (state = new DesktopState(), action) => {
                 action.newActiveSection
             );
         }
+
+		case PREVIEW_START_DRAG_NEW_COMPONENT: {
+			return setNecessaryToolActiveAfterDragStart(state);
+		}
+
+		case PREVIEW_START_DRAG_EXISTING_COMPONENT: {
+			return setNecessaryToolActiveAfterDragStart(state);
+		}
+
+		case PREVIEW_DROP_COMPONENT: {
+			return setNecessaryToolActiveAfterDrop(state, action.dropOnAreaId);
+		}
 
         default: return state;
     }

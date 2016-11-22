@@ -84,6 +84,7 @@ import {
 } from '../components/ComponentInteractions/ComponentInteractions';
 
 import { HeaderRoute } from '../components/HeaderRoute/HeaderRoute';
+import { ProjectSave } from '../components/ProjectSave/ProjectSave';
 
 import {
 	DataList,
@@ -256,7 +257,7 @@ const toolRouteWindowSections = List([
 
 				<BlockContentBoxItem>
 					<PropsList>
-						<PropsItem view="array" />
+						<PropsItem view="tree" />
 					</PropsList>
 				</BlockContentBoxItem>
 
@@ -368,7 +369,7 @@ const toolComponentLayoutWindowSections = List([
 					/>
 					<PropsItem
 						view="input"
-						label="Some prop"
+						label="some very-very-very extremely long prop label"
 						type="string"
 						tooltip={'some tooltip'}
 						value="typeA.fieldB"
@@ -381,7 +382,7 @@ const toolComponentLayoutWindowSections = List([
 						tooltip={'some tooltip'}
 						value="typeA.fieldB"
 						linkable
-						deletable
+						removable
 					/>
 					<PropsItem
 						view="input"
@@ -391,7 +392,7 @@ const toolComponentLayoutWindowSections = List([
 						value="typeA.fieldB"
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						deletable
+						removable
 						disabled
 					/>
 				</BlockContentBoxItem>
@@ -404,7 +405,7 @@ const toolComponentLayoutWindowSections = List([
 					/>
 					<PropsItem
 						view="textarea"
-						label="Some prop"
+						label="some very-very-very extremely long prop label"
 						type="string"
 						tooltip={'some tooltip'}
 						value="typeA.fieldB"
@@ -417,7 +418,7 @@ const toolComponentLayoutWindowSections = List([
 						tooltip={'some tooltip'}
 						value="typeA.fieldB"
 						linkable
-						deletable
+						removable
 					/>
 					<PropsItem
 						view="textarea"
@@ -427,7 +428,7 @@ const toolComponentLayoutWindowSections = List([
 						value="typeA.fieldB"
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						deletable
+						removable
 						disabled
 					/>
 				</BlockContentBoxItem>
@@ -441,7 +442,7 @@ const toolComponentLayoutWindowSections = List([
 					/>
 					<PropsItem
 						view="constructor"
-						label="Some prop"
+						label="some very-very-very extremely long prop label"
 						type="constructor"
 						tooltip={'some tooltip'}
 						setComponentButtonText="Set Component"
@@ -454,7 +455,7 @@ const toolComponentLayoutWindowSections = List([
 						tooltip={'some tooltip'}
 						setComponentButtonText="Set Component"
 						linkable
-						deletable
+						removable
 					/>
 					<PropsItem
 						view="constructor"
@@ -464,7 +465,44 @@ const toolComponentLayoutWindowSections = List([
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						setComponentButtonText="Set Component"
 						linkable
-						deletable
+						removable
+						disabled
+					/>
+				</BlockContentBoxItem>
+
+				<BlockContentBoxHeading>Prop View: constructor-toggle</BlockContentBoxHeading>
+				<BlockContentBoxItem>
+					<PropsItem
+						view="constructor-toggle"
+						label="without type"
+						setComponentButtonText="Set Component"
+					/>
+					<PropsItem
+						view="constructor-toggle"
+						label="some very-very-very extremely long prop label"
+						type="constructor"
+						tooltip={'some tooltip'}
+						setComponentButtonText="Set Component"
+						linkable
+					/>
+					<PropsItem
+						view="constructor-toggle"
+						label="disabled prop"
+						type="constructor"
+						tooltip={'some tooltip'}
+						setComponentButtonText="Set Component"
+						linkable
+						removable
+					/>
+					<PropsItem
+						view="constructor-toggle"
+						label="disabled prop"
+						type="constructor"
+						tooltip={'some tooltip'}
+						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
+						setComponentButtonText="Set Component"
+						linkable
+						removable
 						disabled
 					/>
 				</BlockContentBoxItem>
@@ -477,7 +515,7 @@ const toolComponentLayoutWindowSections = List([
 					/>
 					<PropsItem
 						view="toggle"
-						label="Some prop"
+						label="some very-very-very extremely long prop label"
 						type="bool"
 						tooltip={'some tooltip'}
 						linkable
@@ -488,7 +526,7 @@ const toolComponentLayoutWindowSections = List([
 						type="bool"
 						tooltip={'some tooltip'}
 						linkable
-						deletable
+						removable
 					/>
 					<PropsItem
 						view="toggle"
@@ -497,7 +535,7 @@ const toolComponentLayoutWindowSections = List([
 						tooltip={'some tooltip'}
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						deletable
+						removable
 						disabled
 					/>
 
@@ -508,7 +546,7 @@ const toolComponentLayoutWindowSections = List([
 						tooltip={'some tooltip'}
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						deletable
+						removable
 					>
 						<PropsList>
 							<PropsItem view="input" label="child item 1"/>
@@ -524,7 +562,7 @@ const toolComponentLayoutWindowSections = List([
 						tooltip={'some tooltip'}
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						deletable
+						removable
 						subtreeOn
 					>
 						<PropsList>
@@ -538,110 +576,105 @@ const toolComponentLayoutWindowSections = List([
 				<BlockContentBoxHeading>Prop View: tree</BlockContentBoxHeading>
 				<BlockContentBoxItem>
 					<PropsItem
-						view="array"
+						view="tree"
 						label="without type"
 					>
 						<PropsList>
-							<PropsItem view="input" label="child item 1" deletable/>
-							<PropsItem view="input" label="child item 2" deletable/>
-							<PropsItem view="input" label="child item 3" deletable/>
+							<PropsItem view="input" label="child item 1" removable/>
+							<PropsItem view="input" label="child item 2" removable/>
+							<PropsItem view="input" label="child item 3" removable/>
 						</PropsList>
 					</PropsItem>
 
 					<PropsItem
-						view="array"
-						label="Some prop"
+						view="tree"
+						label="some very-very-very extremely long prop label"
 						type="constructor"
 						tooltip={'some tooltip'}
 						linkable
 					>
 						<PropsList>
-							<PropsItem view="input" label="child item 1" deletable/>
-							<PropsItem view="input" label="child item 2" deletable/>
-							<PropsItem view="input" label="child item 3" deletable/>
+							<PropsItem view="input" label="child item 1" removable/>
+							<PropsItem view="input" label="child item 2" removable/>
+							<PropsItem view="input" label="child item 3" removable/>
 						</PropsList>
 					</PropsItem>
 
 					<PropsItem
-						view="array"
+						view="tree"
 						label="disabled prop"
 						type="constructor"
 						tooltip={'some tooltip'}
 						linkable
-						deletable
+						removable
 					>
 						<PropsList>
-							<PropsItem view="input" label="child item 1" deletable/>
-							<PropsItem view="input" label="child item 2" deletable/>
-							<PropsItem view="input" label="child item 3" deletable/>
+							<PropsItem view="input" label="child item 1" removable/>
+							<PropsItem view="input" label="child item 2" removable/>
+							<PropsItem view="input" label="child item 3" removable/>
 						</PropsList>
 					</PropsItem>
 
 					<PropsItem
-						view="array"
-						label="disabled prop"
+						view="tree"
+						label="some very very very long prop label"
 						type="constructor"
 						tooltip={'some tooltip'}
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						deletable
+						removable
 						disabled
 					>
 						<PropsList>
-							<PropsItem view="input" label="child item 1" deletable/>
-							<PropsItem view="input" label="child item 2" deletable/>
-							<PropsItem view="input" label="child item 3" deletable/>
+							<PropsItem view="input" label="child item 1" removable/>
+							<PropsItem view="input" label="child item 2" removable/>
+							<PropsItem view="input" label="child item 3" removable/>
 						</PropsList>
 					</PropsItem>
 
 					<PropsItem
-						view="array"
-						label="has children - closed"
+						view="tree"
+						label="has childrens - closed"
 						type="object"
 						tooltip={'some tooltip'}
 						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						deletable
+						removable
 					>
 						<PropsList>
-							<PropsItem view="input" label="child item 1" deletable/>
-							<PropsItem view="input" label="child item 2" deletable/>
-							<PropsItem view="input" label="child item 3" deletable/>
+							<PropsItem view="input" label="child item 1" removable/>
+							<PropsItem view="input" label="child item 2" removable/>
+							<PropsItem view="input" label="child item 3" removable/>
 						</PropsList>
 					</PropsItem>
 
 					<PropsItem
-						view="array"
-						label="has children - opened"
+						view="tree"
+						label="Has childrens - opened"
 						type="object"
 						tooltip={'some tooltip'}
-						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						deletable
-						isOpen
+						opened
 					>
-						<PropsList>
-							<PropsItem view="input" label="child item 1" deletable/>
-							<PropsItem view="input" label="child item 2" deletable/>
-							<PropsItem view="input" label="child item 3" deletable/>
-						</PropsList>
+						<PropsItem view="input" label="child item 1" removable/>
+						<PropsItem view="input" label="child item 2" removable/>
+						<PropsItem view="input" label="child item 3" removable/>
 					</PropsItem>
 
 					<PropsItem
-						view="array"
-						label="has children - opened"
+						view="tree"
+						label="Has childrens - opened"
 						type="arrayOf"
 						tooltip={'some tooltip'}
-						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
 						linkable
-						deletable
-						isOpen
+						opened
+						addNewField
 					>
-						<PropsList>
-							<PropsItem view="input" label="child item 1" deletable/>
-							<PropsItem view="input" label="child item 2" deletable/>
-							<PropsItem view="input" label="child item 3" deletable/>
-						</PropsList>
+
+						<PropsItem view="input" label="child item 1" removable/>
+						<PropsItem view="input" label="child item 2" removable/>
+						<PropsItem view="input" label="child item 3" removable/>
+
 					</PropsItem>
 				</BlockContentBoxItem>
 			</BlockContentBox>
@@ -852,7 +885,7 @@ export default class Playground extends React.Component {
                             <HeaderLogoBox title="Project X"/>
                         </HeaderRegion>
 
-                        <HeaderRegion region="main" size='blank'>
+                        <HeaderRegion spread size='blank'>
                             <HeaderMenu inline={true}  dense={true}>
 	                            <HeaderMenu inline={true}  dense={true} mode={'light'}>
 		                            <HeaderMenuGroup>
@@ -873,6 +906,10 @@ export default class Playground extends React.Component {
 	                            </HeaderMenu>
                             </HeaderMenu>
                         </HeaderRegion>
+
+	                    <HeaderRegion size="blank">
+		                    <ProjectSave status="error"/>
+	                    </HeaderRegion>
 
                         <HeaderRegion size='blank'>
 	                        <HeaderMenu inline={true}  dense={true}>

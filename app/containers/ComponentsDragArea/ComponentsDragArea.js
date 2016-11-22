@@ -8,6 +8,8 @@
 import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
 
+import { dropComponent, DROP_COMPONENT_AREA_IDS } from '../../actions/preview';
+
 /**
  *
  * @type {number}
@@ -27,10 +29,15 @@ class ComponentsDragAreaComponent extends PureComponent {
         this.animationFrame = null;
 
         this._handleMouseMove = this._handleMouseMove.bind(this);
+		this._handleMouseUp = this._handleMouseUp.bind(this);
         this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
 
         if (props.draggingComponent) this._handleStartDrag();
     }
+
+	componentDidMount() {
+		window.addEventListener('mouseup', this._handleMouseUp);
+	}
 
     componentWillReceiveProps(nextProps) {
         if (nextProps.draggingComponent) {
@@ -43,6 +50,10 @@ class ComponentsDragAreaComponent extends PureComponent {
             if (this.dragging) this._handleStopDrag();
         }
     }
+
+	componentWillUnmount() {
+		window.removeEventListener('mouseup', this._handleMouseUp);
+	}
 
     /**
      *
@@ -113,6 +124,13 @@ class ComponentsDragAreaComponent extends PureComponent {
         }
     }
 
+	_handleMouseUp(event) {
+		if (this.props.draggingComponent) {
+			event.stopPropagation();
+			this.props.onDropComponent(DROP_COMPONENT_AREA_IDS.OUT);
+		}
+	}
+
     /**
      *
      * @private
@@ -142,6 +160,10 @@ const mapStateToProps = ({ project }) => ({
     draggedComponents: project.draggedComponents
 });
 
+const mapDispatchToProps = dispatch => ({
+	onDropComponent: dropOnAreaId => dispatch(dropComponent(dropOnAreaId))
+});
+
 export const ComponentsDragArea = connect(
-    mapStateToProps
+    mapStateToProps, mapDispatchToProps
 )(ComponentsDragAreaComponent);
