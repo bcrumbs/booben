@@ -172,9 +172,10 @@ export class PropsItem extends PureComponent {
 
     /**
      *
+     * @param {string} [name]
      * @private
      */
-    _handleAddButtonPress() {
+    _handleAddButtonPress(name) {
         const currentType = getTypeByPath(
             this.props.propType,
             this.state.currentPath
@@ -184,7 +185,7 @@ export class PropsItem extends PureComponent {
             this._handleAddValue(-1);
         }
         else if (currentType.view === 'object') {
-            // TODO: Show name input
+            this._handleAddValue(name);
         }
     }
 
@@ -259,7 +260,6 @@ export class PropsItem extends PureComponent {
             this.state.currentPath
         );
 
-        // TODO: Get strings from i18n->props
         let childItems = null;
         if (currentType.view === 'shape') {
             childItems = Object.keys(currentType.fields).map((fieldName, idx) => (
@@ -317,10 +317,17 @@ export class PropsItem extends PureComponent {
             currentType.view === 'array' ||
             currentType.view === 'object';
 
+        const needNameOnAdd = currentType.view === 'object';
+
         return (
             <PropTreeList
                 addButton={canAddValues}
+                askNameOnAdd={needNameOnAdd}
                 addButtonText={this.props.addButtonText}
+                addDialogTitleText={this.props.addDialogTitleText}
+                addDialogSaveButtonText={this.props.addDialogSaveButtonText}
+                addDialogCancelButtonText={this.props.addDialogCancelButtonText}
+                addDialogInputLabelText={this.props.addDialogInputLabelText}
                 onAdd={this._handleAddButtonPress}
             >
                 {breadcrumbs}
@@ -551,6 +558,10 @@ PropsItem.propTypes = {
     setComponentButtonText: PropTypes.string,
     editComponentButtonText: PropTypes.string,
     addButtonText: PropTypes.string,
+    addDialogTitleText: PropTypes.string,
+    addDialogInputLabelText: PropTypes.string,
+    addDialogSaveButtonText: PropTypes.string,
+    addDialogCancelButtonText: PropTypes.string,
 
     onChange: PropTypes.func,
     onChangeNested: PropTypes.func,
@@ -571,6 +582,10 @@ PropsItem.defaultProps = {
     setComponentButtonText: '',
     editComponentButtonText: '',
     addButtonText: '',
+    addDialogTitleText: '',
+    addDialogInputLabelText: '',
+    addDialogSaveButtonText: '',
+    addDialogCancelButtonText: '',
 
     onChange: noop,
     onChangeNested: noop,
@@ -587,18 +602,3 @@ PropsItem.defaultProps = {
 };
 
 PropsItem.displayName = 'PropsItem';
-
-/*
- <div className='prop-tree_field-new'>
- <div className='prop-tree_field-new_row field-new_title'>
- New field
- </div>
-
- <div className='prop-tree_field-new_row'>
- <Input label={'Field title'} dense />
- </div>
- <div className='prop-tree_field-new_row field-new_buttons'>
- <Button text="Save" narrow/>
- </div>
- </div>
- */

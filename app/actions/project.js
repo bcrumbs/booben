@@ -339,12 +339,14 @@ export const PROJECT_LINK_PROP = 'PROJECT_LINK_PROP';
  *
  * @param {number} componentId
  * @param {string} propName
+ * @param {(string|number)[]} [path=[]]
  * @return {Object}
  */
-export const linkProp = (componentId, propName) => ({
+export const linkProp = (componentId, propName, path = []) => ({
     type: PROJECT_LINK_PROP,
     componentId,
-    propName
+    propName,
+    path
 });
 
 /**

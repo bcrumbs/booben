@@ -8,7 +8,11 @@ import { Breadcrumbs } from '@reactackle/reactackle';
 import { noop } from '../../../../utils/misc';
 
 const LinkComponent = props => (
-    <span className={props.className} onClick={props.onClick}>
+    <span
+        className={props.className}
+        style={{ cursor: 'pointer' }}
+        onClick={props.onClick}
+    >
         {props.children}
     </span>
 );

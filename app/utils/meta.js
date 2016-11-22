@@ -213,7 +213,7 @@ export const canInsertComponent = (
 
 /**
  *
- * @param {ComponentPropMeta} propMeta
+ * @param {PropTypeDefinition} propMeta
  * @param {string} source
  * @return {boolean}
  */
@@ -223,7 +223,7 @@ export const isValidSourceForProp = (propMeta, source) =>
 /**
  *
  * @param {ComponentMeta} componentMeta
- * @param {ComponentPropMeta} propMeta
+ * @param {PropTypeDefinition} propMeta
  * @param {string} language
  * @return {ProjectComponentProp}
  */
@@ -259,7 +259,7 @@ const makeSimpleStaticValue = value => ({ source: 'static', sourceData: { value 
 /**
  *
  * @param {ComponentMeta} componentMeta
- * @param {ComponentPropMeta} propMeta
+ * @param {PropTypeDefinition} propMeta
  * @param {string} language
  * @param {*|NO_VALUE} [_inheritedDefaultValue=NO_VALUE]
  * @return {ProjectComponentProp}
@@ -348,7 +348,7 @@ const buildDefaultStaticValue = (
 /**
  *
  * @param {ComponentMeta} componentMeta
- * @param {ComponentPropMeta} propMeta
+ * @param {PropTypeDefinition} propMeta
  * @param {string} language
  * @return {ProjectComponentProp}
  */

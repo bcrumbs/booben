@@ -48,7 +48,8 @@ import {
     resolveTypedef,
     isScalarType,
     getNestedTypedef,
-    buildDefaultValue
+    buildDefaultValue,
+    isValidSourceForProp
 } from '../../utils/meta';
 
 import { getLocalizedText } from '../../utils';
@@ -145,7 +146,7 @@ const transformValue = (propMeta, propValue) => {
                 value = objectMap(propMeta.fields, (fieldMeta, fieldName) =>
                     transformValue(fieldMeta, propValue.sourceData.value.get(fieldName)));
             }
-            else if (propMeta.type === 'object') {
+            else if (propMeta.type === 'objectOf') {
                 propValue.sourceData.value.map(nestedValue =>
                     transformValue(propMeta.ofType, nestedValue)).toJS();
             }
@@ -163,6 +164,15 @@ const transformValue = (propMeta, propValue) => {
 
     return { value, isLinked };
 };
+
+/**
+ *
+ * @param {PropTypeDefinition} propMeta
+ * @return {boolean}
+ */
+const isEditableProp = propMeta =>
+    isValidSourceForProp(propMeta, 'static') ||
+    isValidSourceForProp(propMeta, 'designer');
 
 /**
  *
@@ -228,7 +238,8 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @param {*} newValue
      * @private
      */
-    _handleStaticValueChange(propName, newValue) {
+    _handleValueChange(propName, newValue) {
+        // TODO: Special handling of component-type values (call this._handleSetComponent)
         const componentId = this.props.selectedComponentIds.first();
         this.props.onPropValueChange(
             componentId,
@@ -247,7 +258,7 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @param {*} newValue
      * @private
      */
-    _handleStaticNestedValueChange(propName, where, index, newValue) {
+    _handleNestedValueChange(propName, where, index, newValue) {
         const componentId = this.props.selectedComponentIds.first();
         this.props.onPropValueChange(
             componentId,
@@ -317,11 +328,12 @@ class ComponentPropsEditorComponent extends PureComponent {
      */
     _handleLinkProp(propName) {
         const componentId = this.props.selectedComponentIds.first();
-        this.props.onLinkProp(componentId, propName);
+        this.props.onLinkProp(componentId, propName, []);
     }
 
     _handleLinkNestedProp(propName, where, index) {
-
+        const componentId = this.props.selectedComponentIds.first();
+        this.props.onLinkProp(componentId, propName, [...where, index]);
     }
 
     /**
@@ -369,10 +381,10 @@ class ComponentPropsEditorComponent extends PureComponent {
             this.props.language
         );
 
-        const editable = propMeta.source.indexOf('static') > -1,
+        const editable = isEditableProp(propMeta),
             linkable = this._isPropLinkable(componentMeta, propMeta);
 
-        const propType = {
+        const ret = {
             label: name,
             type: propMeta.type, // TODO: Get string from i18n
             view: editable ? propTypeToView[propMeta.type] : 'empty',
@@ -385,13 +397,13 @@ class ComponentPropsEditorComponent extends PureComponent {
 
         if (editable) {
             if (propMeta.type === 'int') {
-                propType.transformValue = coerceIntValue;
+                ret.transformValue = coerceIntValue;
             }
             else if (propMeta.type === 'float') {
-                propType.transformValue = coerceFloatValue;
+                ret.transformValue = coerceFloatValue;
             }
             else if (propMeta.type === 'oneOf') {
-                propType.options = propMeta.options.map(option => ({
+                ret.options = propMeta.options.map(option => ({
                     value: option.value,
                     text: getString(
                         componentMeta,
@@ -401,20 +413,20 @@ class ComponentPropsEditorComponent extends PureComponent {
                 }));
             }
             else if (propMeta.type === 'shape') {
-                propType.fields = objectMap(propMeta.fields, (fieldMeta, fieldName) =>
+                ret.fields = objectMap(propMeta.fields, (fieldMeta, fieldName) =>
                     this._propTypeFromMeta(componentMeta, fieldMeta));
             }
             else if (propMeta.type === 'arrayOf') {
-                propType.ofType = this._propTypeFromMeta(componentMeta, propMeta.ofType);
-                propType.formatItemLabel = this._formatArrayItemLabel;
+                ret.ofType = this._propTypeFromMeta(componentMeta, propMeta.ofType);
+                ret.formatItemLabel = this._formatArrayItemLabel;
             }
             else if (propMeta.type === 'objectOf') {
-                propType.ofType = this._propTypeFromMeta(componentMeta, propMeta.ofType);
-                propType.formatItemLabel = this._formatObjectItemLabel;
+                ret.ofType = this._propTypeFromMeta(componentMeta, propMeta.ofType);
+                ret.formatItemLabel = this._formatObjectItemLabel;
             }
         }
 
-        return propType;
+        return ret;
     };
 
     /**
@@ -441,12 +453,12 @@ class ComponentPropsEditorComponent extends PureComponent {
                 setComponentButtonText={getLocalizedText('setComponent')}
                 editComponentButtonText={getLocalizedText('editComponent')}
                 addButtonText={getLocalizedText('addValue')}
-                onChange={this._handleStaticValueChange.bind(this, propName)}
-                onChangeNested={this._handleStaticNestedValueChange.bind(this, propName)}
+                onChange={this._handleValueChange.bind(this, propName)}
+                onChangeNested={this._handleNestedValueChange.bind(this, propName)}
                 onAddValue={this._handleAddValue.bind(this, propName)}
                 onDeleteValue={this._handleDeleteValue.bind(this, propName)}
                 onLink={this._handleLinkProp.bind(this, propName)}
-                onLinkNested={this._handleLinkNestedProp(this, propName)}
+                onLinkNested={this._handleLinkNestedProp.bind(this, propName)}
             />
         );
     }
@@ -617,8 +629,8 @@ const mapDispatchToProps = dispatch => ({
     onConstructComponent: (componentId, propName) =>
         void dispatch(constructComponentForProp(componentId, propName)),
 
-    onLinkProp: (componentId, propName) =>
-        void dispatch(linkProp(componentId, propName))
+    onLinkProp: (componentId, propName, path) =>
+        void dispatch(linkProp(componentId, propName, path))
 });
 
 export const ComponentPropsEditor = connect(

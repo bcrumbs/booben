@@ -87,6 +87,8 @@ import {
     formatComponentName
 } from '../utils/meta';
 
+import { NO_VALUE } from "../constants/misc";
+
 export const NestedConstructor = Record({
     components: Map(),
     rootId: -1,
@@ -129,7 +131,8 @@ const ProjectState = Record({
     nestedConstructors: List(),
     linkingProp: false,
     linkingPropOfComponentId: -1,
-    linkingPropName: ''
+    linkingPropName: '',
+    linkingPropPath: []
 });
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
@@ -908,18 +911,19 @@ export default (state = new ProjectState(), action) => {
             return state.merge({
                 linkingProp: true,
                 linkingPropOfComponentId: action.componentId,
-                linkingPropName: action.propName
+                linkingPropName: action.propName,
+                linkingPropPath: action.path
             });
         }
 
         case PROJECT_LINK_WITH_OWNER_PROP: {
             const pathToCurrentComponents = getPathToCurrentComponents(state);
 
-            const path = [].concat(pathToCurrentComponents, [
-                state.linkingPropOfComponentId,
-                'props',
-                state.linkingPropName
-            ]);
+            const path = [].concat(
+                pathToCurrentComponents,
+                [state.linkingPropOfComponentId, 'props', state.linkingPropName],
+                ...action.path.map(index => ['sourceData', 'value', index])
+            );
 
             const oldValue = state.getIn(path);
 
@@ -928,7 +932,7 @@ export default (state = new ProjectState(), action) => {
                 sourceData: new SourceDataStatic({
                     value: oldValue.source === 'static'
                         ? oldValue.sourceData.value
-                        : null, // TODO: Construct default value for type
+                        : NO_VALUE, // TODO: Build default value for type when link will be removed
 
                     ownerPropName: action.ownerPropName
                 })
@@ -937,7 +941,8 @@ export default (state = new ProjectState(), action) => {
             return state.setIn(path, newValue).merge({
                 linkingProp: false,
                 linkingPropOfComponentId: -1,
-                linkingPropName: ''
+                linkingPropName: '',
+                linkingPropPath: []
             });
         }
 
@@ -945,7 +950,8 @@ export default (state = new ProjectState(), action) => {
             return state.merge({
                 linkingProp: false,
                 linkingPropOfComponentId: -1,
-                linkingPropName: ''
+                linkingPropName: '',
+                linkingPropPath: []
             });
         }
 
