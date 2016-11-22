@@ -141,7 +141,13 @@ export const getComponentPropName = (componentMeta, prop, language) => {
  * @param {Object} meta
  * @return {boolean}
  */
-export const canInsertComponent = (componentName, containerName, containerChildrenNames, position, meta) => {
+export const canInsertComponent = (
+    componentName,
+    containerName,
+    containerChildrenNames,
+    position,
+    meta
+) => {
     const componentMeta = getComponentMeta(componentName, meta),
         { namespace } = parseComponentName(componentName),
         containerMeta = getComponentMeta(containerName, meta);
@@ -220,7 +226,7 @@ export const isValidSourceForProp = (propMeta, source) =>
  * @param {string} language
  * @return {ProjectComponentProp}
  */
-export const buildDefaultConstValue = (componentMeta, propMeta, language) => {
+const buildDefaultConstValue = (componentMeta, propMeta, language) => {
     if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
         return {
             source: 'const',
@@ -229,7 +235,8 @@ export const buildDefaultConstValue = (componentMeta, propMeta, language) => {
             }
         };
     }
-    else if (typeof propMeta.sourceConfigs.const.jssyConstId !== 'undefined') {
+
+    if (typeof propMeta.sourceConfigs.const.jssyConstId !== 'undefined') {
         return {
             source: 'const',
             sourceData: {
@@ -237,60 +244,104 @@ export const buildDefaultConstValue = (componentMeta, propMeta, language) => {
             }
         }
     }
-    else {
-        return NO_VALUE;
-    }
-};
 
-// TODO: Refactor & improve this
+    return NO_VALUE;
+};
 
 /**
  *
  * @param {*} value
  * @return {ProjectComponentProp}
  */
-const _buildDefaultStaticValue = value => {
-    if (Array.isArray(value)) {
-        return {
-            source: 'static',
-            sourceData: {
-                value: value.map(v => _buildDefaultStaticValue(v))
-            }
-        };
-    }
-    else if (isObject(value)) {
-        return {
-            source: 'static',
-            sourceData: {
-                value: objectMap(value, v => _buildDefaultStaticValue(v))
-            }
-        }
-    }
-    else {
-        return {
-            source: 'static',
-            sourceData: { value }
-        };
-    }
-};
+const makeSimpleStaticValue = value => ({ source: 'static', sourceData: { value } });
 
 /**
  *
  * @param {ComponentMeta} componentMeta
  * @param {ComponentPropMeta} propMeta
  * @param {string} language
+ * @param {*|NO_VALUE} [_inheritedDefaultValue=NO_VALUE]
  * @return {ProjectComponentProp}
  */
-export const buildDefaultStaticValue = (componentMeta, propMeta, language) => {
-    const value = propMeta.sourceConfigs.static.defaultTextKey
-        ? getString(
+const buildDefaultStaticValue = (
+    componentMeta,
+    propMeta,
+    language,
+    _inheritedDefaultValue = NO_VALUE
+) => {
+    if (propMeta.sourceConfigs.static.defaultTextKey) {
+        return makeSimpleStaticValue(getString(
             componentMeta,
             propMeta.sourceConfigs.static.defaultTextKey,
             language
-        )
+        ));
+    }
+
+    const defaultValue = _inheritedDefaultValue !== NO_VALUE
+        ? _inheritedDefaultValue
         : propMeta.sourceConfigs.static.default;
 
-    return _buildDefaultStaticValue(value);
+    if (propMeta.type === 'shape') {
+        if (defaultValue === null) return makeSimpleStaticValue(null);
+
+        const value = {};
+
+        objectForEach(propMeta.fields, (fieldMeta, fieldName) => {
+            const inherited = typeof defaultValue[fieldName] !== 'undefined'
+                ? defaultValue[fieldName]
+                : NO_VALUE;
+
+            value[fieldName] = _buildDefaultValue(
+                componentMeta,
+                fieldMeta,
+                language,
+                inherited
+            );
+        });
+
+        return makeSimpleStaticValue(value);
+    }
+
+    if (propMeta.type === 'objectOf') {
+        if (defaultValue === null) return makeSimpleStaticValue(null);
+
+        const value = {};
+
+        objectForEach(defaultValue, (fieldValue, fieldName) => {
+            value[fieldName] = _buildDefaultValue(
+                componentMeta,
+                propMeta.ofType,
+                language,
+                fieldValue
+            );
+        });
+
+        return makeSimpleStaticValue(value);
+    }
+
+    if (propMeta.type === 'arrayOf') {
+        const value = defaultValue.map(fieldValue => _buildDefaultValue(
+            componentMeta,
+            propMeta.ofType,
+            language,
+            fieldValue
+        ));
+
+        return makeSimpleStaticValue(value);
+    }
+
+    if (propMeta.type === 'object') {
+        if (defaultValue === null) return makeSimpleStaticValue(null);
+        // TODO: Handle default value somehow
+        return makeSimpleStaticValue({});
+    }
+
+    if (propMeta.type === 'array') {
+        // TODO: Handle default value somehow
+        return makeSimpleStaticValue([]);
+    }
+
+    return makeSimpleStaticValue(defaultValue);
 };
 
 /**
@@ -300,7 +351,7 @@ export const buildDefaultStaticValue = (componentMeta, propMeta, language) => {
  * @param {string} language
  * @return {ProjectComponentProp}
  */
-export const buildDefaultDesignerValue = (componentMeta, propMeta, language) => ({
+const buildDefaultDesignerValue = (componentMeta, propMeta, language) => ({
     source: 'designer',
     sourceData: {
         rootId: -1
@@ -309,7 +360,7 @@ export const buildDefaultDesignerValue = (componentMeta, propMeta, language) => 
 
 /**
  *
- * @type {Object<string, function(componentMeta: ComponentMeta, propMeta: ComponentPropMeta, language: string): ProjectComponentProp|NO_VALUE>}
+ * @type {Object<string, function(componentMeta: ComponentMeta, propMeta: ComponentPropMeta, language: string, _inheritedDefaultValue: *|NO_VALUE): ProjectComponentProp|NO_VALUE>}
  * @const
  */
 const defaultValueBuilders = {
@@ -332,6 +383,46 @@ const sourcePriority = [
 /**
  *
  * @param {ComponentMeta} componentMeta
+ * @param {ComponentPropMeta} propMeta
+ * @param {string} language
+ * @param {*|NO_VALUE} [_inheritedDefaultValue=NO_VALUE]
+ * @return {ProjectComponentProp|NO_VALUE}
+ */
+const _buildDefaultValue = (
+    componentMeta,
+    propMeta,
+    language,
+    _inheritedDefaultValue = NO_VALUE
+) => {
+    for (let i = 0, l = sourcePriority.length; i < l; i++) {
+        if (isValidSourceForProp(propMeta, sourcePriority[i])) {
+            const defaultValue = defaultValueBuilders[sourcePriority[i]](
+                componentMeta,
+                propMeta,
+                language,
+                _inheritedDefaultValue
+            );
+
+            if (defaultValue !== NO_VALUE) return defaultValue;
+        }
+    }
+
+    return NO_VALUE;
+};
+
+/**
+ *
+ * @param {ComponentMeta} componentMeta
+ * @param {ComponentPropMeta} propMeta
+ * @param {string} language
+ * @return {ProjectComponentProp|NO_VALUE}
+ */
+export const buildDefaultValue = (componentMeta, propMeta, language) =>
+    _buildDefaultValue(componentMeta, propMeta, language);
+
+/**
+ *
+ * @param {ComponentMeta} componentMeta
  * @param {string} language
  * @return {Object<string, ProjectComponentProp>}
  */
@@ -339,20 +430,8 @@ const buildDefaultProps = (componentMeta, language) => {
     const ret = {};
 
     objectForEach(componentMeta.props, (propMeta, propName) => {
-        for (let i = 0, l = sourcePriority.length; i < l; i++) {
-            if (isValidSourceForProp(propMeta, sourcePriority[i])) {
-                const defaultValue = defaultValueBuilders[sourcePriority[i]](
-                    componentMeta,
-                    propMeta,
-                    language
-                );
-
-                if (defaultValue !== NO_VALUE) {
-                    ret[propName] = defaultValue;
-                    break;
-                }
-            }
-        }
+        const defaultValue = buildDefaultValue(componentMeta, propMeta, language);
+        if (defaultValue !== NO_VALUE) ret[propName] = defaultValue;
     });
 
     return ret;

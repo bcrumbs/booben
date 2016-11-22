@@ -17,7 +17,7 @@
  * @property {Object<string, ComponentPropMeta>} props - Description of component's props.
  * @property {ComponentLayout[]} [layouts] - Available layouts for composite components.
  * @property {Object<string, Object<string, string>>} [strings] - String translations. Example: { "string_key": { "en": "...", "ru": "...", ... }, ... }. Can be placed in a separate file (.jssy/strings.json).
- * @property {Object<string, TypeDefinition>} [types] - User-defined types. Can be placed in a separate file (.jssy/types.json).
+ * @property {Object<string, PropTypeDefinition>} [types] - User-defined types. Can be placed in a separate file (.jssy/types.json).
  */
 
 /**
@@ -47,15 +47,14 @@
 /**
  * @typedef {Object} TypeDefinition
  * @property {string} type - Type name. Can be one of the built-in types ({@link BUILT_IN_PROP_TYPES}) or one of user-defined types.
- * @property {ComponentPropMeta} [ofType] - For "arrayOf" and "objectOf" types only - type of items.
+ * @property {boolean} [notNull] - For "shape", "objectOf" and "object" types only.
+ * @property {PropTypeDefinition} [ofType] - For "arrayOf" and "objectOf" types only - type of items.
  * @property {Object<string, ComponentPropMeta>} [fields] - For "shape" type only.
  * @property {OneOfOption[]} [options] - For "oneOf" type only.
  */
 
 /**
- * @typedef {TypeDefinition} ComponentPropMeta
- * @property {string} textKey - Key for prop name string.
- * @property {string} descriptionTextKey - Key for prop description string.
+ * @typedef {TypeDefinition} PropTypeDefinition
  * @property {string[]} source - Available sources for prop's value. Must be a subset of <"static", "data", "const", "designer", "actions">.
  * @property {Object} [sourceConfigs]
  * @property {StaticSourceConfig} [sourceConfigs.static]
@@ -63,6 +62,13 @@
  * @property {ConstSourceConfig} [sourceConfigs.const]
  * @property {DesignerSourceConfig} [sourceConfigs.designer]
  * @property {ActionsSourceConfig} [sourceConfigs.actions]
+ */
+
+/**
+ * @typedef {PropTypeDefinition} ComponentPropMeta
+ * @property {string} textKey - Key for prop name string.
+ * @property {string} descriptionTextKey - Key for prop description string.
+ *
  */
 
 /**

@@ -38,6 +38,8 @@ import {
     topNestedConstructorComponentSelector
 } from '../../selectors';
 
+import { NO_VALUE } from "../../constants/misc";
+
 import {
     getString,
     getComponentMeta,
@@ -45,7 +47,7 @@ import {
     resolveTypedef,
     isScalarType,
     getNestedTypedef,
-    buildDefaultStaticValue
+    buildDefaultValue
 } from '../../utils/meta';
 
 import { getLocalizedText } from '../../utils';
@@ -91,7 +93,7 @@ const isRenderableProp = propMeta =>
  * @return {boolean}
  */
 const isLinkedProp = propValue =>
-    propValue.source === 'data' || (
+    propValue.source === 'data' || ( // TODO: Check that it is actually linked
         propValue.source === 'static' &&
         !!propValue.sourceData.ownerPropName
     );
@@ -174,7 +176,7 @@ const propTypeToView = {
     'oneOf': 'list',
     'component': 'constructor',
     'shape': 'shape',
-    'objectOn': 'object',
+    'objectOf': 'object',
     'arrayOf': 'array',
     'object': 'empty',
     'array': 'empty',
@@ -243,19 +245,28 @@ class ComponentPropsEditorComponent extends PureComponent {
             nestedPropMeta = getNestedTypedef(propMeta, where),
             newValueType = nestedPropMeta.ofType;
 
-        const { source, sourceData } = buildDefaultStaticValue(
+        const value = buildDefaultValue(
             componentMeta,
             newValueType,
             this.props.language
         );
+
+        if (value === NO_VALUE) {
+            throw new Error(
+                `Failed to construct a new value for 'arrayOf' or 'objectOf' prop. ` +
+                `Component: '${component.name}', ` +
+                `prop: '${propName}', ` +
+                `where: ${where.map(String).join('.') || '[top level]'}`
+            );
+        }
 
         this.props.onAddPropValue(
             componentId,
             propName,
             where,
             index,
-            source,
-            sourceData
+            value.source,
+            value.sourceData
         );
     }
 
