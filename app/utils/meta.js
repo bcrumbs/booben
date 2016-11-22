@@ -9,9 +9,10 @@ import miscMeta from '../meta/misc';
 
 import { componentsToImmutable } from '../models/ProjectComponent';
 
-import { isObject, objectMap, objectForEach } from './misc';
+import { objectForEach } from './misc';
 
 import { NO_VALUE } from  '../../app/constants/misc';
+
 import { BUILT_IN_PROP_TYPES } from '../../common/shared-constants';
 
 /**
