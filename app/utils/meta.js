@@ -537,11 +537,15 @@ const typeCheckers = {
             !!typedef2.options.find(option2 => option2.value === option1.value));
     },
 
-    'object': returnTrue,
+    'object': (typedef1, typedef2) => !!typedef1.notNull === !!typedef2.notNull,
+
     'objectOf': (typedef1, typedef2) =>
+        !!typedef1.notNull === !!typedef2.notNull &&
         isCompatibleType(typedef1.ofType, typedef2.ofType),
 
     'shape': (typedef1, typedef2) => {
+        if (!!typedef1.notNull !== !!typedef2.notNull) return false;
+
         const keys1 = Object.keys(typedef1.fields),
             keys2 = Object.keys(typedef2.fields);
 
@@ -554,6 +558,7 @@ const typeCheckers = {
     },
 
     'array': returnTrue(),
+
     'arrayOf': (typedef1, typedef2) =>
         isCompatibleType(typedef1.ofType, typedef2.ofType),
 
