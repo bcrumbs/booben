@@ -587,3 +587,18 @@ PropsItem.defaultProps = {
 };
 
 PropsItem.displayName = 'PropsItem';
+
+/*
+ <div className='prop-tree_field-new'>
+ <div className='prop-tree_field-new_row field-new_title'>
+ New field
+ </div>
+
+ <div className='prop-tree_field-new_row'>
+ <Input label={'Field title'} dense />
+ </div>
+ <div className='prop-tree_field-new_row field-new_buttons'>
+ <Button text="Save" narrow/>
+ </div>
+ </div>
+ */
