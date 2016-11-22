@@ -184,7 +184,14 @@ export const PROJECT_COMPONENT_ADD_PROP_VALUE = 'PROJECT_COMPONENT_ADD_PROP_VALU
  * @param {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner} sourceData
  * @return {Object}
  */
-export const addComponentPropValue = (componentId, propName, path, index, source, sourceData) => ({
+export const addComponentPropValue = (
+    componentId,
+    propName,
+    path,
+    index,
+    source,
+    sourceData
+) => ({
     type: PROJECT_COMPONENT_ADD_PROP_VALUE,
     componentId,
     propName,
@@ -192,6 +199,29 @@ export const addComponentPropValue = (componentId, propName, path, index, source
     index,
     source,
     sourceData
+});
+
+/**
+ *
+ * @type {string}
+ * @const
+ */
+export const PROJECT_COMPONENT_DELETE_PROP_VALUE = 'PROJECT_COMPONENT_DELETE_PROP_VALUE';
+
+/**
+ *
+ * @param {number} componentId
+ * @param {string} propName
+ * @param {(string|number)[]} path
+ * @param {string|number} index
+ * @return {Object}
+ */
+export const deleteComponentPropValue = (componentId, propName, path, index) => ({
+    type: PROJECT_COMPONENT_DELETE_PROP_VALUE,
+    componentId,
+    propName,
+    path,
+    index
 });
 
 /**

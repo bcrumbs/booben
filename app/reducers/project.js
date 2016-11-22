@@ -21,6 +21,7 @@ import {
     PROJECT_COMPONENT_DELETE,
     PROJECT_COMPONENT_UPDATE_PROP_VALUE,
     PROJECT_COMPONENT_ADD_PROP_VALUE,
+    PROJECT_COMPONENT_DELETE_PROP_VALUE,
     PROJECT_COMPONENT_RENAME,
     PROJECT_COMPONENT_TOGGLE_REGION,
     PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
@@ -582,20 +583,57 @@ export default (state = new ProjectState(), action) => {
 
             return state.updateIn(path, mapOrList => {
                 if (List.isList(mapOrList)) {
-                    if (typeof action.index !== 'number') {
+                    if (typeof action.index !== 'number')
                         throw new Error('');
-                    }
 
                     return action.index > -1
                         ? mapOrList.insert(action.index, newValue)
                         : mapOrList.push(newValue);
                 }
                 else if (Map.isMap(mapOrList)) {
-                    if (typeof action.index !== 'string' || !action.index) {
+                    if (typeof action.index !== 'string' || !action.index)
                         throw new Error('');
-                    }
 
                     return mapOrList.set(action.index, newValue);
+                }
+                else {
+                    throw new Error('');
+                }
+            });
+        }
+
+        case PROJECT_COMPONENT_DELETE_PROP_VALUE: {
+            const pathToCurrentComponents = getPathToCurrentComponents(state),
+                currentComponents = state.getIn(pathToCurrentComponents);
+
+            if (!currentComponents.has(action.componentId)) {
+                throw new Error(
+                    'An attempt was made to update a component ' +
+                    'that is not in current editing area'
+                );
+            }
+
+            const path = [].concat(pathToCurrentComponents, [
+                action.componentId,
+                'props',
+                action.propName
+            ], ...action.path.map(index => ['sourceData', 'value', index]),
+                'sourceData',
+                'value'
+            );
+
+            return state.updateIn(path, mapOrList => {
+                if (List.isList(mapOrList)) {
+                    if (typeof action.index !== 'number')
+                        throw new Error('');
+
+                    return mapOrList.delete(action.index);
+                }
+                else if (Map.isMap(mapOrList)) {
+                    if (typeof action.index !== 'string' || !action.index)
+                        throw new Error('');
+
+                    return mapOrList.delete(action.index);
                 }
                 else {
                     throw new Error('');

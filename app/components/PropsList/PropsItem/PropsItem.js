@@ -107,6 +107,7 @@ export class PropsItem extends PureComponent {
         this._handleDelete = this._handleDelete.bind(this);
         this._handleChange = this._handleChange.bind(this);
         this._handleAddButtonPress = this._handleAddButtonPress.bind(this);
+        this._handleBreadcrumbsItemSelect = this._handleBreadcrumbsItemSelect.bind(this);
     }
 
     /**
@@ -133,6 +134,12 @@ export class PropsItem extends PureComponent {
     _handleOpenNestedValue(index) {
         this.setState({
             currentPath: [...this.state.currentPath, index]
+        });
+    }
+
+    _handleBreadcrumbsItemSelect(index) {
+        this.setState({
+            currentPath: this.state.currentPath.slice(0, index)
         });
     }
 
@@ -209,19 +216,21 @@ export class PropsItem extends PureComponent {
     _renderBreadcrumbs() {
         if (this.state.currentPath.length === 0) return null;
 
-        const items = [];
+        const items = [{
+            title: this.props.propType.label,
+            subtitle: this.props.propType.type
+        }];
 
         let currentType = this.props.propType;
 
         for (let i = 0, l = this.state.currentPath.length; i < l; i++) {
-            const nestedType = getNestedType(currentType, this.state.currentPath[i]);
+            const pathElement = this.state.currentPath[i],
+                nestedType = getNestedType(currentType, pathElement);
 
             items.push({
                 title: currentType.view === 'shape'
                     ? nestedType.label
-                    : typeof this.state.currentPath[i] === 'string'
-                        ? this.state.currentPath[i]
-                        : `Item ${this.state.currentPath[i]}`, // TODO: Get from i18n->props
+                    : currentType.formatItemLabel(pathElement),
 
                 subtitle: nestedType.type
             });
@@ -230,7 +239,10 @@ export class PropsItem extends PureComponent {
         }
 
         return (
-            <PropTreeBreadcrumbs items={items}/>
+            <PropTreeBreadcrumbs
+                items={items}
+                onItemSelect={this._handleBreadcrumbsItemSelect}
+            />
         );
     }
 
@@ -283,9 +295,9 @@ export class PropsItem extends PureComponent {
             ));
         }
         else if (currentType.view === 'object') {
-            childItems = Object.keys(currentValue.value).map((key, idx) => (
+            childItems = Object.keys(currentValue.value).map(key => (
                 <PropsItem
-                    key={idx}
+                    key={key}
                     propType={currentType.ofType}
                     value={currentValue[key]}
                     setComponentButtonText={this.props.setComponentButtonText}
@@ -296,7 +308,7 @@ export class PropsItem extends PureComponent {
                     _label={currentType.formatItemLabel(key)}
                     _deletable
                     _onOpen={this._handleOpenNestedValue.bind(this, key)}
-                    _onDelete={this._handleDelete.bind(this, idx)}
+                    _onDelete={this._handleDelete.bind(this, key)}
                 />
             ));
         }

@@ -27,6 +27,7 @@ import ProjectComponentRecord from '../../models/ProjectComponent';
 import {
     updateComponentPropValue,
     addComponentPropValue,
+    deleteComponentPropValue,
     constructComponentForProp,
     linkProp
 } from '../../actions/project';
@@ -191,10 +192,22 @@ class ComponentPropsEditorComponent extends PureComponent {
         this._formatObjectItemLabel = this._formatObjectItemLabel.bind(this);
     }
 
+    /**
+     *
+     * @param {number} index
+     * @return {string}
+     * @private
+     */
     _formatArrayItemLabel(index) {
         return `Item ${index}`; // TODO: Get string from i18n
     }
 
+    /**
+     *
+     * @param {string} key
+     * @return {string}
+     * @private
+     */
     _formatObjectItemLabel(key) {
         return key;
     }
@@ -226,6 +239,14 @@ class ComponentPropsEditorComponent extends PureComponent {
         );
     }
 
+    /**
+     *
+     * @param {string} propName
+     * @param {(string|number)[]} where
+     * @param {string|number} index
+     * @param {*} newValue
+     * @private
+     */
     _handleStaticNestedValueChange(propName, where, index, newValue) {
         const componentId = this.props.selectedComponentIds.first();
         this.props.onPropValueChange(
@@ -237,6 +258,13 @@ class ComponentPropsEditorComponent extends PureComponent {
         );
     }
 
+    /**
+     *
+     * @param {string} propName
+     * @param {(string|number)[]} where
+     * @param {string|number} index
+     * @private
+     */
     _handleAddValue(propName, where, index) {
         const componentId = this.props.selectedComponentIds.first(),
             component = this.props.components.get(componentId),
@@ -270,8 +298,16 @@ class ComponentPropsEditorComponent extends PureComponent {
         );
     }
 
+    /**
+     *
+     * @param {string} propName
+     * @param {(string|number)[]} where
+     * @param {string|number} index
+     * @private
+     */
     _handleDeleteValue(propName, where, index) {
-
+        const componentId = this.props.selectedComponentIds.first();
+        this.props.onDeletePropValue(componentId, propName, where, index);
     }
 
     /**
@@ -536,6 +572,7 @@ ComponentPropsEditorComponent.propTypes = {
 
     onPropValueChange: PropTypes.func,
     onAddPropValue: PropTypes.func,
+    onDeletePropValue: PropTypes.func,
     onConstructComponent: PropTypes.func,
     onLinkProp: PropTypes.func
 };
@@ -574,11 +611,11 @@ const mapDispatchToProps = dispatch => ({
             sourceData
         )),
 
+    onDeletePropValue: (componentId, propName, path, index) =>
+        void dispatch(deleteComponentPropValue(componentId, propName, path, index)),
+
     onConstructComponent: (componentId, propName) =>
-        void dispatch(constructComponentForProp(
-            componentId,
-            propName
-        )),
+        void dispatch(constructComponentForProp(componentId, propName)),
 
     onLinkProp: (componentId, propName) =>
         void dispatch(linkProp(componentId, propName))
