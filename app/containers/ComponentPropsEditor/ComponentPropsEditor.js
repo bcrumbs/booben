@@ -225,45 +225,28 @@ class ComponentPropsEditorComponent extends PureComponent {
     /**
      *
      * @param {string} propName
+     * @param {*} newValue
+     * @param {(string|number)[]} [path=[]]
      * @private
      */
-    _handleSetComponent(propName) {
+    _handleSetComponent(propName, newValue, path = []) {
         const componentId = this.props.selectedComponentIds.first();
-        this.props.onConstructComponent(componentId, propName);
+        this.props.onConstructComponent(componentId, propName, path);
     }
 
     /**
      *
      * @param {string} propName
      * @param {*} newValue
+     * @param {(string|number)[]} [path=[]]
      * @private
      */
-    _handleValueChange(propName, newValue) {
-        // TODO: Special handling of component-type values (call this._handleSetComponent)
+    _handleValueChange(propName, newValue, path = []) {
         const componentId = this.props.selectedComponentIds.first();
         this.props.onPropValueChange(
             componentId,
             propName,
-            [],
-            'static',
-            { value: newValue }
-        );
-    }
-
-    /**
-     *
-     * @param {string} propName
-     * @param {(string|number)[]} where
-     * @param {string|number} index
-     * @param {*} newValue
-     * @private
-     */
-    _handleNestedValueChange(propName, where, index, newValue) {
-        const componentId = this.props.selectedComponentIds.first();
-        this.props.onPropValueChange(
-            componentId,
-            propName,
-            [].concat(where, index),
+            path,
             'static',
             { value: newValue }
         );
@@ -324,16 +307,12 @@ class ComponentPropsEditorComponent extends PureComponent {
     /**
      *
      * @param {string} propName
+     * @param {(string|number)[]} [path=[]]
      * @private
      */
-    _handleLinkProp(propName) {
+    _handleLinkProp(propName, path = []) {
         const componentId = this.props.selectedComponentIds.first();
-        this.props.onLinkProp(componentId, propName, []);
-    }
-
-    _handleLinkNestedProp(propName, where, index) {
-        const componentId = this.props.selectedComponentIds.first();
-        this.props.onLinkProp(componentId, propName, [...where, index]);
+        this.props.onLinkProp(componentId, propName, path);
     }
 
     /**
@@ -444,6 +423,10 @@ class ComponentPropsEditorComponent extends PureComponent {
             propType = this._propTypeFromMeta(componentMeta, propMeta),
             value = transformValue(propMeta, propValue);
 
+        const onChange = propType.view === 'constructor'
+            ? this._handleSetComponent.bind(this, propName)
+            : this._handleValueChange.bind(this, propName);
+
         //noinspection JSValidateTypes
         return (
             <PropsItem
@@ -453,12 +436,14 @@ class ComponentPropsEditorComponent extends PureComponent {
                 setComponentButtonText={getLocalizedText('setComponent')}
                 editComponentButtonText={getLocalizedText('editComponent')}
                 addButtonText={getLocalizedText('addValue')}
-                onChange={this._handleValueChange.bind(this, propName)}
-                onChangeNested={this._handleNestedValueChange.bind(this, propName)}
+                addDialogTitleText={getLocalizedText('addValueDialogTitle')}
+                addDialogInputLabelText={getLocalizedText('addValueNameInputLabel')}
+                addDialogSaveButtonText={getLocalizedText('save')}
+                addDialogCancelButtonText={getLocalizedText('cancel')}
+                onChange={onChange}
                 onAddValue={this._handleAddValue.bind(this, propName)}
                 onDeleteValue={this._handleDeleteValue.bind(this, propName)}
                 onLink={this._handleLinkProp.bind(this, propName)}
-                onLinkNested={this._handleLinkNestedProp.bind(this, propName)}
             />
         );
     }
@@ -626,8 +611,8 @@ const mapDispatchToProps = dispatch => ({
     onDeletePropValue: (componentId, propName, path, index) =>
         void dispatch(deleteComponentPropValue(componentId, propName, path, index)),
 
-    onConstructComponent: (componentId, propName) =>
-        void dispatch(constructComponentForProp(componentId, propName)),
+    onConstructComponent: (componentId, propName, path) =>
+        void dispatch(constructComponentForProp(componentId, propName, path)),
 
     onLinkProp: (componentId, propName, path) =>
         void dispatch(linkProp(componentId, propName, path))

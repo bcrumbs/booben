@@ -290,12 +290,14 @@ export const PROJECT_CONSTRUCT_COMPONENT_FOR_PROP = 'PROJECT_CONSTRUCT_COMPONENT
  *
  * @param {number} componentId
  * @param {string} propName
+ * @param {(string|number)[]} path
  * @return {Object}
  */
-export const constructComponentForProp = (componentId, propName) => ({
+export const constructComponentForProp = (componentId, propName, path) => ({
     type: PROJECT_CONSTRUCT_COMPONENT_FOR_PROP,
     componentId,
-    propName
+    propName,
+    path
 });
 
 /**

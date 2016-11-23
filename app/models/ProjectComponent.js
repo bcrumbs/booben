@@ -75,8 +75,7 @@ const propSourceDataToImmutableFns = {
             }
 
             : {
-                rootId: -1,
-                components: null
+                rootId: -1
             }
     )
 };

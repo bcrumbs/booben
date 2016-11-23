@@ -355,7 +355,8 @@ const buildDefaultStaticValue = (
 const buildDefaultDesignerValue = (componentMeta, propMeta, language) => ({
     source: 'designer',
     sourceData: {
-        rootId: -1
+        rootId: -1,
+        component: null
     }
 });
 

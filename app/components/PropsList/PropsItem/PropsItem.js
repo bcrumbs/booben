@@ -149,7 +149,7 @@ export class PropsItem extends PureComponent {
      * @private
      */
     _handleNestedValueLink(index) {
-        this.props.onLinkNested(this.state.currentPath, index);
+        this.props.onLink([...this.state.currentPath, index]);
     }
 
     /**
@@ -204,14 +204,14 @@ export class PropsItem extends PureComponent {
         if (typeof currentType.transformValue === 'function')
             newValue = currentType.transformValue(newValue);
 
-        this.props.onChangeNested(this.state.currentPath, index, newValue);
+        this.props.onChange(newValue, [...this.state.currentPath, index]);
     }
 
     _handleChange(newValue) {
         if (typeof this.props.propType.transformValue === 'function')
             newValue = this.props.propType.transformValue(newValue);
 
-        this.props.onChange(newValue);
+        this.props.onChange(newValue, []);
     }
 
     _renderBreadcrumbs() {
@@ -269,6 +269,10 @@ export class PropsItem extends PureComponent {
                     value={currentValue.value[fieldName]}
                     setComponentButtonText={this.props.setComponentButtonText}
                     addButtonText={this.props.addButtonText}
+                    addDialogTitleText={this.props.addDialogTitleText}
+                    addDialogInputLabelText={this.props.addDialogInputLabelText}
+                    addDialogSaveButtonText={this.props.addDialogSaveButtonText}
+                    addDialogCancelButtonText={this.props.addDialogCancelButtonText}
                     onChange={this._handleNestedValueChange.bind(this, fieldName)}
                     onLink={this._handleNestedValueLink.bind(this, fieldName)}
                     _secondary
@@ -284,6 +288,10 @@ export class PropsItem extends PureComponent {
                     value={itemValue}
                     setComponentButtonText={this.props.setComponentButtonText}
                     addButtonText={this.props.addButtonText}
+                    addDialogTitleText={this.props.addDialogTitleText}
+                    addDialogInputLabelText={this.props.addDialogInputLabelText}
+                    addDialogSaveButtonText={this.props.addDialogSaveButtonText}
+                    addDialogCancelButtonText={this.props.addDialogCancelButtonText}
                     onChange={this._handleNestedValueChange.bind(this, idx)}
                     onLink={this._handleNestedValueLink.bind(this, idx)}
                     _secondary
@@ -302,6 +310,10 @@ export class PropsItem extends PureComponent {
                     value={currentValue[key]}
                     setComponentButtonText={this.props.setComponentButtonText}
                     addButtonText={this.props.addButtonText}
+                    addDialogTitleText={this.props.addDialogTitleText}
+                    addDialogInputLabelText={this.props.addDialogInputLabelText}
+                    addDialogSaveButtonText={this.props.addDialogSaveButtonText}
+                    addDialogCancelButtonText={this.props.addDialogCancelButtonText}
                     onChange={this._handleNestedValueChange.bind(this, key)}
                     onLink={this._handleNestedValueLink.bind(this, key)}
                     _secondary
@@ -387,7 +399,7 @@ export class PropsItem extends PureComponent {
         if (this.props.propType.linkable) {
             linkAction = (
                 <div className="prop_action prop_action-linking">
-                    <Button icon="link" onPress={this.props.onLink}/>
+                    <Button icon="link" onPress={() => void this.props.onLink([])}/>
                 </div>
             );
         }
@@ -450,6 +462,16 @@ export class PropsItem extends PureComponent {
                         />
                     </div>
                 );
+            }
+            else {
+                const isNullable = (
+                    this.props.propType.view === 'shape' ||
+                    this.props.propType.view === 'object'
+                ) && !this.props.propType.notNull;
+
+                if (isNullable) {
+                    // TODO: Make null switch
+                }
             }
 
             const isComplexValue =
@@ -535,6 +557,12 @@ const propItemTypeShape = {
     linkable: PropTypes.bool,
     transformValue: PropTypes.func,
 
+    // For 'object' and 'array' views
+    formatItemLabel: PropTypes.func,
+
+    // For 'object' and 'shape' views
+    notNull: PropTypes.bool,
+
     // Options for 'list' view
     options: PropTypes.arrayOf(PropTypes.shape({
         value: PropTypes.any,
@@ -564,7 +592,6 @@ PropsItem.propTypes = {
     addDialogCancelButtonText: PropTypes.string,
 
     onChange: PropTypes.func,
-    onChangeNested: PropTypes.func,
     onAddValue: PropTypes.func,
     onDeleteValue: PropTypes.func,
     onLink: PropTypes.func,
@@ -588,7 +615,6 @@ PropsItem.defaultProps = {
     addDialogCancelButtonText: '',
 
     onChange: noop,
-    onChangeNested: noop,
     onAddValue: noop,
     onDeleteValue: noop,
     onLink: noop,

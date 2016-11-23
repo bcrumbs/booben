@@ -71,22 +71,15 @@ const getComponentByName = (name = '') => {
  * @param {string} propName
  * @return {Function}
  */
-const makeBuilderForProp = (propValueDescriptor, propName) => {
-    // TODO: Memoize
-    const ret = props => (
-        <Builder
-            components={propValueDescriptor.sourceData.components}
-            rootId={propValueDescriptor.sourceData.rootId}
-            dontPatch
-            propsFromOwner={props}
-            children={props.children}
-        />
-    );
-
-    ret.displayName = `Builder(${propName})`;
-
-    return ret;
-};
+const makeBuilderForProp = (propValueDescriptor, propName) => props => (
+    <Builder
+        components={propValueDescriptor.sourceData.components}
+        rootId={propValueDescriptor.sourceData.rootId}
+        dontPatch
+        propsFromOwner={props}
+        children={props.children}
+    />
+);
 
 /**
  *
@@ -123,7 +116,7 @@ const buildPropValue = (prop, propsFromOwner) => {
     }
     else if (prop.source === 'designer') {
         if (prop.sourceData.components && prop.sourceData.rootId > -1) {
-            return makeBuilderForProp(prop, key);
+            return makeBuilderForProp(prop);
         }
         else {
             return returnNull;

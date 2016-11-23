@@ -94,6 +94,7 @@ export const NestedConstructor = Record({
     rootId: -1,
     componentId: -1,
     prop: '',
+    path: [],
     lastComponentId: -1,
     selectedComponentIds: Set(),
     highlightedComponentIds: Set()
@@ -833,7 +834,8 @@ export default (state = new ProjectState(), action) => {
 
             const nestedConstructorData = {
                 componentId: action.componentId,
-                prop: action.propName
+                prop: action.propName,
+                path: action.path
             };
 
             if (currentSourceData) {
@@ -902,18 +904,19 @@ export default (state = new ProjectState(), action) => {
                 topConstructor.componentId,
                 'props',
                 topConstructor.prop
-            ]);
+            ], ...topConstructor.path.map(index => ['sourceData', 'value', index]));
 
             return state.setIn(path, newValue);
         }
 
         case PROJECT_LINK_PROP: {
-            return state.merge({
-                linkingProp: true,
-                linkingPropOfComponentId: action.componentId,
-                linkingPropName: action.propName,
-                linkingPropPath: action.path
-            });
+            return state
+                .merge({
+                    linkingProp: true,
+                    linkingPropOfComponentId: action.componentId,
+                    linkingPropName: action.propName
+                })
+                .set('linkingPropPath', action.path); // Prevent conversion to List
         }
 
         case PROJECT_LINK_WITH_OWNER_PROP: {
@@ -922,7 +925,7 @@ export default (state = new ProjectState(), action) => {
             const path = [].concat(
                 pathToCurrentComponents,
                 [state.linkingPropOfComponentId, 'props', state.linkingPropName],
-                ...action.path.map(index => ['sourceData', 'value', index])
+                ...state.linkingPropPath.map(index => ['sourceData', 'value', index])
             );
 
             const oldValue = state.getIn(path);
@@ -938,21 +941,24 @@ export default (state = new ProjectState(), action) => {
                 })
             });
 
-            return state.setIn(path, newValue).merge({
-                linkingProp: false,
-                linkingPropOfComponentId: -1,
-                linkingPropName: '',
-                linkingPropPath: []
-            });
+            return state
+                .setIn(path, newValue)
+                .merge({
+                    linkingProp: false,
+                    linkingPropOfComponentId: -1,
+                    linkingPropName: ''
+                })
+                .set('linkingPropPath', action.path); // Prevent conversion to List
         }
 
         case PROJECT_LINK_PROP_CANCEL: {
-            return state.merge({
-                linkingProp: false,
-                linkingPropOfComponentId: -1,
-                linkingPropName: '',
-                linkingPropPath: []
-            });
+            return state
+                .merge({
+                    linkingProp: false,
+                    linkingPropOfComponentId: -1,
+                    linkingPropName: ''
+                })
+                .set('linkingPropPath', action.path); // Prevent conversion to List
         }
 
         case PREVIEW_DRAG_OVER_COMPONENT: {
