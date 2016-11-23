@@ -15,13 +15,20 @@ import { getComponentById } from '../../app/models/Project';
 
 import jssyConstants from '../../app/constants/jssyConstants';
 
+import { List, Map } from 'immutable';
+
+import { NO_VALUE } from  '../../app/constants/misc';
+
 import {
     isContainerComponent,
     isCompositeComponent,
     canInsertComponent
 } from '../../app/utils/meta';
 
-import { objectMap, returnNull } from '../../app/utils/misc';
+import {
+    objectMap,
+    returnNull
+} from '../../app/utils/misc';
 
 const components = objectMap(_components, ns => objectMap(ns, patchComponent));
 
@@ -64,21 +71,65 @@ const getComponentByName = (name = '') => {
  * @param {string} propName
  * @return {Function}
  */
-const makeBuilderForProp = (propValueDescriptor, propName) => {
-    // TODO: Memoize
-    const ret = props => (
-        <Builder
-            components={propValueDescriptor.sourceData.components}
-            rootId={propValueDescriptor.sourceData.rootId}
-            dontPatch
-            propsFromOwner={props}
-            children={props.children}
-        />
-    );
+const makeBuilderForProp = (propValueDescriptor, propName) => props => (
+    <Builder
+        components={propValueDescriptor.sourceData.components}
+        rootId={propValueDescriptor.sourceData.rootId}
+        dontPatch
+        propsFromOwner={props}
+        children={props.children}
+    />
+);
 
-    ret.displayName = `Builder(${propName})`;
+/**
+ *
+ * @param {Object} prop
+ * @param {?Object<string, *>} propsFromOwner
+ * @return {*}
+ */
+const buildPropValue = (prop, propsFromOwner) => {
+    if (prop.source == 'static') {
+        if (propsFromOwner && prop.sourceData.ownerPropName) {
+            return propsFromOwner[prop.sourceData.ownerPropName];
+        }
+        else {
+            if (List.isList(prop.sourceData.value)) {
+                return prop.sourceData.value.map(nestedProp =>
+                    buildPropValue(nestedProp, propsFromOwner)).toJS();
+            }
+            else if (Map.isMap(prop.sourceData.value)) {
+                return prop.sourceData.value.map(nestedProp =>
+                    buildPropValue(nestedProp, propsFromOwner)).toJS();
+            }
+            else {
+                return prop.sourceData.value;
+            }
+        }
+    }
+    else if (prop.source === 'const') {
+        if (typeof prop.sourceData.value !== 'undefined') {
+            return prop.sourceData.value;
+        }
+        else if (typeof prop.sourceData.jssyConstId !== 'undefined') {
+            return jssyConstants[prop.sourceData.jssyConstId];
+        }
+    }
+    else if (prop.source === 'designer') {
+        if (prop.sourceData.components && prop.sourceData.rootId > -1) {
+            return makeBuilderForProp(prop);
+        }
+        else {
+            return returnNull;
+        }
+    }
+    else if (prop.source === 'actions') {
+        // TODO: Handle actions source
+    }
+    else if (prop.source === 'data') {
+        // TODO: Handle data source
+    }
 
-    return ret;
+    return NO_VALUE;
 };
 
 /**
@@ -92,36 +143,8 @@ const buildProps = (propValueDescriptors, propsFromOwner) => {
     const ret = {};
 
     propValueDescriptors.forEach((prop, key) => {
-        if (prop.source == 'static') {
-            if (propsFromOwner && prop.sourceData.ownerPropName) {
-                ret[key] = propsFromOwner[prop.sourceData.ownerPropName];
-            }
-            else {
-                ret[key] = prop.sourceData.value;
-            }
-        }
-        else if (prop.source === 'const') {
-            if (typeof prop.sourceData.value !== 'undefined') {
-                ret[key] = prop.sourceData.value;
-            }
-            else if (typeof prop.sourceData.jssyConstId !== 'undefined') {
-                ret[key] = jssyConstants[prop.sourceData.jssyConstId];
-            }
-        }
-        else if (prop.source === 'designer') {
-            if (prop.sourceData.components && prop.sourceData.rootId > -1) {
-                ret[key] = makeBuilderForProp(prop, key);
-            }
-            else {
-                ret[key] = returnNull;
-            }
-        }
-        else if (prop.source === 'actions') {
-            // TODO: Handle actions source
-        }
-        else if (prop.source === 'data') {
-            // TODO: Handle data source
-        }
+        const value = buildPropValue(prop, propsFromOwner);
+        if (value !== NO_VALUE) ret[key] = value;
     });
 
     return ret;

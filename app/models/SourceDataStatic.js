@@ -10,4 +10,3 @@ export default Record({
     value: null,
     ownerPropName: ''
 });
- 

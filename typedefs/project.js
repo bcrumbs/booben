@@ -31,7 +31,7 @@
 
 /**
  * @typedef {Object} ProjectComponent
- * @property {?number} id - Unique component ID or null for placeholders
+ * @property {number} id - Unique component ID
  * @property {string} name - Component name with namespace (e.g. "Namespace.MyComponent")
  * @property {string} title - User-defined title
  * @property {boolean} isWrapper
@@ -47,8 +47,16 @@
  */
 
 /**
+ * @typedef {Object<string, ProjectComponentProp>} SourceDataStaticObjectValue
+ */
+
+/**
+ * @typedef {ProjectComponentProp[]} SourceDataStaticArrayValue
+ */
+
+/**
  * @typedef {Object} SourceDataStatic
- * @property {*} [value]
+ * @property {scalar|SourceDataStaticObjectValue|SourceDataStaticArrayValue} [value]
  * @property {string} [ownerPropName]
  */
 

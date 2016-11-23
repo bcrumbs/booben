@@ -4,9 +4,9 @@
 
 'use strict';
 
-import { Record } from 'immutable';
+import { Record, Map } from 'immutable';
 
 export default Record({
-    components: null,
+    components: Map(),
     rootId: -1
 });

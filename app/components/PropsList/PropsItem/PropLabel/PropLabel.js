@@ -14,17 +14,23 @@ export const PropLabel = props => {
     }
 
     let type = null;
-	if (props.type) {
-		type = <span className="prop-item_type">{props.type}</span>;
-	}
+    if (props.type) {
+        type = (
+            <span className="prop-item_type">
+                {props.type}
+            </span>
+        );
+    }
 
     return (
         <label className="prop-item-label">
             <div className="prop-item_label-wrapper">
-                <span className="prop-item_label-text">{props.label}</span>
+                <span className="prop-item_label-text">
+                    {props.label}
+                </span>
 
-	            { type }
-	            { tooltip }
+                {type}
+                {tooltip}
             </div>
         </label>
     );
@@ -32,13 +38,13 @@ export const PropLabel = props => {
 
 PropLabel.propTypes = {
     label: PropTypes.string.isRequired,
-	type: PropTypes.string,
+    type: PropTypes.string,
     tooltip: PropTypes.string
 };
 
 PropLabel.defaultProps = {
     label: '',
-	type: '',
+    type: '',
     tooltip: ''
 };
 
