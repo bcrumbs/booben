@@ -71,11 +71,25 @@
  * @property {?ProjectComponent} component
  */
 
-// TODO: Define SourceDataData & SourceDataActions
+/**
+ * @typedef {Object} QueryPathStepArgument
+ * @property {string} source
+ * @property {SourceDataStatic} sourceData
+ */
+
+/**
+ * @typedef {Object} QueryPathStep
+ * @property {string} field
+ * @property {Object<string, QueryPathStepArgument>} args
+ */
 
 /**
  * @typedef {Object} SourceDataData
+ * @property {string} [context] - id of data context; applicable only for owned components
+ * @property {QueryPathStep[]} queryPath
  */
+
+// TODO: Define SourceDataActions
 
 /**
  * @typedef {Object} SourceDataActions

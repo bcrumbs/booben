@@ -80,10 +80,12 @@
  * @property {number} [maxItems] - Max items num (for "arrayOf" type only).
  */
 
-// TODO: Define DataSourceConfig & ActionSourceConfig
 /**
  * @typedef {Object} DataSourceConfig
+ * @property {string} [pushDataContext] - For non-scalar types only
  */
+
+// TODO: Define ActionSourceConfig
 
 /**
  * @typedef {Object} ActionsSourceConfig
@@ -99,11 +101,12 @@
  * @typedef {TypeDefinition} DesignerSourceConfigPropDesc
  * @property {string} textKey
  * @property {string} descriptionSourceKey
+ * @property {string} [dataContext]
  */
 
 /**
  * @typedef {Object} DesignerSourceConfig
  * @property {string} [wrapper] - Wrapper component name
- * @property {number} [wrapperLayout] - Layout number cor composite wrapper component
+ * @property {number} [wrapperLayout] - Layout number for composite wrapper component
  * @property {Object<string, DesignerSourceConfigPropDesc>} [props]
  */
