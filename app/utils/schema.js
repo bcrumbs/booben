@@ -170,7 +170,15 @@ export const parseGraphQLSchema = schema => {
 
 		return Object.assign({
 			nonNull: hasKind(field.type, 'NON_NULL'),
-			kind
+			kind,
+			args: field.args && field.args.reduce(
+				(acc, arg) => Object.assign(
+					acc,
+					{
+						[arg.name]: getFieldDescription(arg)
+					}
+				)
+			, {})
 		}, getTypeDescription(field.type, kind));
 	};
 
