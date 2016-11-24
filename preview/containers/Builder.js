@@ -39,7 +39,8 @@ const components = objectMap(_components, ns => objectMap(ns, patchComponent));
  */
 const pseudoComponents = new Set([
     'Text',
-    'Outlet'
+    'Outlet',
+    'List'
 ]);
 
 /**
@@ -68,10 +69,9 @@ const getComponentByName = (name = '') => {
 /**
  *
  * @param {Object} propValueDescriptor
- * @param {string} propName
  * @return {Function}
  */
-const makeBuilderForProp = (propValueDescriptor, propName) => props => (
+const makeBuilderForProp = propValueDescriptor => props => (
     <Builder
         components={propValueDescriptor.sourceData.components}
         rootId={propValueDescriptor.sourceData.rootId}
@@ -158,16 +158,24 @@ class BuilderComponent extends PureComponent {
      * @private
      */
     _renderPseudoComponent(component) {
+        const propsFromOwner = this.props.ignoreOwnerProps
+            ? null
+            : this.props.propsFromOwner;
+
         if (component.name === 'Outlet') {
             return this.props.children;
         }
         else if (component.name === 'Text') {
-            const propsFromOwner = this.props.ignoreOwnerProps
-                ? null
-                : this.props.propsFromOwner;
-
             const props = buildProps(component.props, propsFromOwner);
             return props.text || '';
+        }
+        else if (component.name === 'List') {
+            const props = buildProps(component.props, propsFromOwner),
+                ItemComponent = props.component;
+
+            return props.data.map((item, idx) => (
+                <ItemComponent key={idx} item={item}/>
+            ));
         }
     }
 
