@@ -31,7 +31,8 @@ import {
     isCompatibleType,
     getString,
     getPropTypedef,
-    resolveTypedef
+    resolveTypedef,
+    getNestedTypedef
 } from '../../utils/meta';
 
 class LinkPropMenuComponent extends PureComponent {
@@ -60,9 +61,13 @@ class LinkPropMenuComponent extends PureComponent {
                 this.props.meta
             );
 
-            const linkTargetPropTypedef = getPropTypedef(
-                linkTargetComponentMeta,
-                this.props.linkingPropName
+            const linkTargetPropTypedef = getNestedTypedef(
+                getPropTypedef(
+                    linkTargetComponentMeta,
+                    this.props.linkingPropName
+                ),
+
+                this.props.linkingPropPath
             );
 
             const items = Object.keys(ownerPropsMeta)
@@ -125,6 +130,12 @@ LinkPropMenuComponent.propTypes = {
     linkingProp: PropTypes.bool,
     linkingPropOfComponentId: PropTypes.number,
     linkingPropName: PropTypes.string,
+    linkingPropPath: PropTypes.arrayOf(
+        PropTypes.oneOfType([
+            PropTypes.string,
+            PropTypes.number
+        ])
+    ),
     topNestedConstructor: PropTypes.instanceOf(NestedConstructor),
     topNestedConstructorComponent: PropTypes.instanceOf(ProjectComponentRecord),
     language: PropTypes.string,
@@ -141,6 +152,7 @@ const mapStateToProps = state => ({
     linkingProp: state.project.linkingProp,
     linkingPropOfComponentId: state.project.linkingPropOfComponentId,
     linkingPropName: state.project.linkingPropName,
+    linkingPropPath: state.project.linkingPropPath,
     topNestedConstructor: topNestedConstructorSelector(state),
     topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
     language: state.project.languageForComponentProps

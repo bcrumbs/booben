@@ -82,9 +82,14 @@ class RouteEditorComponent extends PureComponent {
                     <BlockContentBoxItem>
                         <PropsList>
                             <PropsItem
-	                            view="textarea"
-                                label={getLocalizedText('description')}
-                                value={route.indexRouteDescription}
+                                propType={{
+                                    label: getLocalizedText('description'),
+                                    view: 'textarea'
+                                }}
+                                value={{
+                                    value: route.indexRouteDescription,
+                                    linked: false
+                                }}
                                 onChange={this._handleIndexRouteDescriptionChange}
                             />
                         </PropsList>
@@ -99,9 +104,14 @@ class RouteEditorComponent extends PureComponent {
         if (route.haveRedirect) {
             redirectUrlInput = (
                 <PropsItem
-	                view="input"
-                    label={ getLocalizedText('redirectTo') }
-                    value={route.redirectTo}
+                    propType={{
+                        label: getLocalizedText('redirectTo'),
+                        view: 'input'
+                    }}
+                    value={{
+                        value: route.redirectTo,
+                        linked: false
+                    }}
                     onChange={this._handleRedirectToChange}
                 />
             );
@@ -109,9 +119,14 @@ class RouteEditorComponent extends PureComponent {
         else {
             haveIndexToggle = (
                 <PropsItem
-	                view="toggle"
-                    label={ getLocalizedText('indexRoute') }
-                    value={route.haveIndex}
+                    propType={{
+                        label: getLocalizedText('indexRoute'),
+                        view: 'toggle'
+                    }}
+                    value={{
+                        value: route.haveIndex,
+                        linked: false
+                    }}
                     onChange={this._handleHaveIndexChange}
                 />
             );
@@ -126,23 +141,38 @@ class RouteEditorComponent extends PureComponent {
                 <BlockContentBoxItem>
                     <PropsList>
                         <PropsItem
-	                        view="input"
-                            label={getLocalizedText('path')}
-                            value={route.path}
+                            propType={{
+                                label: getLocalizedText('path'),
+                                view: 'input'
+                            }}
+                            value={{
+                                value: route.path,
+                                linked: false
+                            }}
                             onChange={this._handlePathChange}
                         />
 
                         <PropsItem
-	                        view="textarea"
-                            label={getLocalizedText('description')}
-                            value={route.description}
+                            propType={{
+                                label: getLocalizedText('description'),
+                                view: 'textarea'
+                            }}
+                            value={{
+                                value: route.description,
+                                linked: false
+                            }}
                             onChange={this._handleDescriptionChange}
                         />
 
                         <PropsItem
-	                        view="toggle"
-                            label={getLocalizedText('indexRedirect')}
-                            value={route.haveRedirect}
+                            propType={{
+                                label: getLocalizedText('indexRedirect'),
+                                view: 'toggle'
+                            }}
+                            value={{
+                                value: route.haveRedirect,
+                                linked: false
+                            }}
                             onChange={this._handleHaveRedirectChange}
                         />
 
