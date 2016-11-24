@@ -9,6 +9,7 @@ export const FIELD_KINDS = {
 	LIST: 'LIST',
 	CONNECTION: 'CONNECTION'
 };
+
 /**
  *
  * @param {Object} type
@@ -65,6 +66,7 @@ const getRelayConnections = types => {
 	);
 
 	if (nodeType) {
+		// TODO Refactor and optimize
 		const { possibleTypes } = nodeType;
 
 		possibleTypes.forEach(
@@ -90,7 +92,6 @@ const getRelayConnections = types => {
 											edge: nodeDependentType,
 											node: possibleNodeType
 										};
-
 								}
 							);
 						}
@@ -131,6 +132,9 @@ export const parseGraphQLSchema = schema => {
 
 	const connections = getRelayConnections(schema.types);
 
+	// -----------------------------------------------
+	// TODO Correct and refactor
+
 	const hasKind = (type, kind) =>
 		kind === FIELD_KINDS['CONNECTION']
 		?	!!connections[type.name]
@@ -162,7 +166,7 @@ export const parseGraphQLSchema = schema => {
 			hasKind(field.type, 'LIST')
 			?	'LIST'
 			:	(
-				hasKind(field.type, 'CONNECTION')
+				hasKind(field.type, FIELD_KINDS['CONNECTION'])
 				?	'CONNECTION'
 				:	'SINGLE'
 			)
@@ -181,6 +185,8 @@ export const parseGraphQLSchema = schema => {
 			, {})
 		}, getTypeDescription(field.type, kind));
 	};
+
+	// -----------------------------------------------
 
 	schema.types.forEach(
 		type => void(normalizedTypes[type.name] = convertToSchemaType(
