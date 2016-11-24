@@ -12,6 +12,8 @@ const co = require('co'),
     constants = require('../../common/constants'),
     sharedConstants = require('../../common/shared-constants');
 
+// TODO: Move from revalidator to ajv
+
 const validationOptions = {
     validateFormats: true,
     validateFormatsStrict: true,
@@ -109,7 +111,11 @@ const propSchema = {
                 data: {
                     type: 'object',
                     properties: {
-
+                        pushDataContext: {
+                            type: 'string',
+                            allowEmpty: false,
+                            required: false
+                        }
                     },
                     required: false
                 },
@@ -158,10 +164,15 @@ const propSchema = {
                                             allowEmpty: false,
                                             required: true
                                         },
+                                        dataContext: {
+                                            type: 'string',
+                                            allowEmpty: false,
+                                            required: false
+                                        },
                                         type: {
                                             type: 'string',
                                             allowEmpty: false,
-                                            required: true
+                                            required: false
                                         }
                                     }
                                 }
@@ -176,18 +187,6 @@ const propSchema = {
                     type: 'object',
                     properties: {
 
-                    },
-                    required: false
-                },
-
-                interpolations: {
-                    type: 'object',
-                    properties: {
-                        name: {
-                            type: 'string',
-                            allowEmpty: false,
-                            required: true
-                        }
                     },
                     required: false
                 }
@@ -860,15 +859,16 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings, componentName 
         propMeta.sourceConfigs.static &&
         typeof propMeta.sourceConfigs.static.default !== 'undefined';
 
-    const defaultValueIsInvalid =
-        !!hasDefaultValue &&
-        !isValidValue(propMeta.sourceConfigs.static.default, propMeta);
+    if (hasDefaultValue) {
+        const defaultValueIsInvalid =
+            !isValidValue(propMeta.sourceConfigs.static.default, propMeta);
 
-    if (defaultValueIsInvalid) {
-        throw new Error(
-            `'${componentName}': Default static value of prop '${propName}' ` +
-            `is not valid for type '${typeToString(propMeta)}'`
-        );
+        if (defaultValueIsInvalid) {
+            throw new Error(
+                `'${componentName}': Default static value of prop '${propName}' ` +
+                `is not valid for type '${typeToString(propMeta)}'`
+            );
+        }
     }
 
     const hasConstValue =
@@ -878,15 +878,47 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings, componentName 
         propMeta.sourceConfigs.const &&
         typeof propMeta.sourceConfigs.const.value !== 'undefined';
 
-    const constValueIsInvalid =
-        !!hasConstValue &&
-        !isValidValue(propMeta.sourceConfigs.const.value, propMeta);
+    if (hasConstValue) {
+        const constValueIsInvalid =
+            !isValidValue(propMeta.sourceConfigs.const.value, propMeta);
 
-    if (constValueIsInvalid) {
-        throw new Error(
-            `'${componentName}': Const value of prop '${propName}' ` +
-            `is not valid for type '${typeToString(propMeta)}'`
-        );
+        if (constValueIsInvalid) {
+            throw new Error(
+                `'${componentName}': Const value of prop '${propName}' ` +
+                `is not valid for type '${typeToString(propMeta)}'`
+            );
+        }
+    }
+
+    const hasOwnerProps =
+        propMeta.source &&
+        propMeta.source.indexOf('designer') > -1 &&
+        propMeta.sourceConfigs &&
+        propMeta.sourceConfigs.designer &&
+        propMeta.sourceConfigs.designer.props;
+
+    if (hasOwnerProps) {
+        Object.keys(propMeta.sourceConfigs.designer.props).forEach(key => {
+            const ownerProp = propMeta.sourceConfigs.designer.props[key];
+
+            if (!strings[ownerProp.textKey]) {
+                throw new Error(
+                    `Unknown string '${ownerProp.textKey}' ` +
+                    `in owner props list of prop '${propName}' ` +
+                    `of component '${componentName}'`
+                );
+            }
+
+            if (!strings[ownerProp.descriptionTextKey]) {
+                throw new Error(
+                    `Unknown string '${ownerProp.descriptionTextKey}' ` +
+                    `in owner props list of prop '${propName}' ` +
+                    `of component '${componentName}'`
+                );
+            }
+        });
+
+        // TODO: Check dataContext
     }
 
     if (propMeta.type === 'oneOf') {

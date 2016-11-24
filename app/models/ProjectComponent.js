@@ -8,7 +8,7 @@ import { Record, List, Map, Set } from 'immutable';
 
 import ProjectComponentProp from './ProjectComponentProp';
 import SourceDataStatic from './SourceDataStatic';
-import SourceDataData from './SourceDataData';
+import SourceDataData, { QueryPathStep, QueryPathStepArgument } from './SourceDataData';
 import SourceDataConst from './SourceDataConst';
 import SourceDataAction from './SourceDataAction';
 import SourceDataDesigner from './SourceDataDesigner';
@@ -63,7 +63,18 @@ const propSourceDataToImmutableFns = {
 
         return new SourceDataStatic(data);
     },
-    data: input => new SourceDataData(input),
+
+    data: input => new SourceDataData({
+        dataContextIndex: input.dataContextIndex,
+        queryPath: List(input.queryPath.map(step => new QueryPathStep({
+            field: step.field,
+            args: Map(objectMap(step.args, arg => new QueryPathStepArgument({
+                source: arg.source,
+                sourceData: propSourceDataToImmutable(arg.source, arg.sourceData)
+            })))
+        })))
+    }),
+
     const: input => new SourceDataConst(input),
     action: input => new SourceDataAction(input),
 
