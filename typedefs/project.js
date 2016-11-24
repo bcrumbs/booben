@@ -10,7 +10,7 @@
  * @property {string} name
  * @property {?string} author
  * @property {string[]} componentLibs
- * @property {?string} relayEndpointURL
+ * @property {?string} graphQLEndpointURL
  * @property {ProjectRoute[]} routes
  */
 

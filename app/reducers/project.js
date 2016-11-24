@@ -15,6 +15,9 @@ import {
     PROJECT_REQUEST,
     PROJECT_LOADED,
     PROJECT_LOAD_FAILED,
+	PROJECT_SCHEMA_REQUEST,
+	PROJECT_SCHEMA_LOAD_SUCCESS,
+	PROJECT_SCHEMA_LOAD_FAILURE,
     PROJECT_ROUTE_CREATE,
     PROJECT_ROUTE_DELETE,
     PROJECT_ROUTE_UPDATE_FIELD,
@@ -84,6 +87,9 @@ import {
     parseComponentName,
     formatComponentName
 } from '../utils/meta';
+import {
+	parseGraphQLSchema
+} from '../utils/schema';
 
 export const NestedConstructor = Record({
     components: Map(),
@@ -99,6 +105,7 @@ const ProjectState = Record({
     projectName: '',
     loadState: NOT_LOADED,
     data: null,
+	schema: null,
     meta: null,
     error: null,
     lastRouteId: -1,
@@ -409,7 +416,8 @@ export default (state = new ProjectState(), action) => {
         case PROJECT_LOADED: {
             const project = projectToImmutable(action.project),
                 lastRouteId = getMaxRouteId(project),
-                lastComponentId = getMaxComponentId(project);
+                lastComponentId = getMaxComponentId(project),
+				schema = parseGraphQLSchema(action.schema);
 
             return state
                 .merge({
@@ -422,21 +430,10 @@ export default (state = new ProjectState(), action) => {
                     selectedRouteId: project.rootRoutes.size > 0
                         ? project.rootRoutes.get(0)
                         : -1,
-
+					schema,
                     indexRouteSelected: false
                 })
                 .set('meta', action.metadata); // Prevent conversion to Immutable.Map
-        }
-
-        case PROJECT_LOAD_FAILED: {
-            return state.merge({
-                loadState: LOAD_ERROR,
-                data: null,
-                meta: null,
-                error: action.error,
-                lastRouteId: -1,
-                lastComponentId: -1
-            });
         }
 
         case PROJECT_ROUTE_CREATE: {
@@ -772,7 +769,7 @@ export default (state = new ProjectState(), action) => {
                     components: wrapperComponents,
                     rootId: 0,
                     lastComponentId: wrapperComponents.size - 1
-                })
+                });
             }
 
             const nestedConstructor = new NestedConstructor(nestedConstructorData);

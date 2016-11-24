@@ -43,7 +43,7 @@ const bodySchema = {
             }
         },
 
-        relayEndpointURL: {
+        graphQLEndpointURL: {
             type: ['string', 'null'],
             required: false,
             allowEmpty: false,
@@ -59,7 +59,7 @@ const allowedFields = Object.keys(bodySchema.properties);
  * @property {string} name
  * @property {?string} [author]
  * @property {string[]} [componentLibs]
- * @property {?string} [relayEndpointURL]
+ * @property {?string} [graphQLEndpointURL]
  */
 
 /**
@@ -72,7 +72,7 @@ const createProjectData = input => ({
     name: input.name,
     author: input.author || null,
     componentLibs: input.componentLibs || defaultComponentLibs,
-    relayEndpointURL: input.relayEndpointURL || null,
+    graphQLEndpointURL: input.graphQLEndpointURL || null,
     routes: []
 });
 

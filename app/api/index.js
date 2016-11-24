@@ -1,8 +1,9 @@
 /**
  * @author Dmitriy Bizyaev
  */
-
 'use strict';
+
+import { introspectionQuery } from 'graphql/utilities';
 
 /**
  *
@@ -37,9 +38,10 @@ export const getMetadata = projectName =>
         });
 
 /**
-  * @param {string} language
-  * @return {Promise.<Object>}
-  */
+ *
+ * @param {string} language
+ * @return {Promise.<Object>}
+ */
 export const getLocalization = language =>
     fetch(`localization/${language}.json`)
         .then(res => res.json())
@@ -47,3 +49,26 @@ export const getLocalization = language =>
             if (data.error) throw new Error(data.error);
             return data;
         });
+
+/**
+ *
+ * @param {string} url
+ * @return {Promise.<Object>}
+ */
+export const getFullGraphQLSchema = url =>
+	fetch(
+		url, {
+			method: 'POST',
+			body: JSON.stringify(
+				{ query: introspectionQuery }
+			),
+			headers: {
+		      "content-type": "application/json"
+		  	}
+		}
+	)
+		.then(res => res.json())
+		.then(data => {
+			if (data.error) throw new Error(data.error);
+			return data.data.__schema;
+		});
