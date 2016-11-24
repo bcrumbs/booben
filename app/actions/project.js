@@ -156,6 +156,7 @@ export const deleteComponent = componentId => ({
 /**
  *
  * @type {string}
+ * @const
  */
 export const PROJECT_COMPONENT_UPDATE_PROP_VALUE = 'PROJECT_COMPONENT_UPDATE_PROP_VALUE';
 
@@ -163,16 +164,75 @@ export const PROJECT_COMPONENT_UPDATE_PROP_VALUE = 'PROJECT_COMPONENT_UPDATE_PRO
  *
  * @param {number} componentId
  * @param {string} propName
+ * @param {(string|number)[]} path
  * @param {string} newSource
  * @param {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner} newSourceData
  * @return {Object}
  */
-export const updateComponentPropValue = (componentId, propName, newSource, newSourceData) => ({
+export const updateComponentPropValue = (componentId, propName, path, newSource, newSourceData) => ({
     type: PROJECT_COMPONENT_UPDATE_PROP_VALUE,
     componentId,
     propName,
+    path,
     newSource,
     newSourceData
+});
+
+/**
+ *
+ * @type {string}
+ * @const
+ */
+export const PROJECT_COMPONENT_ADD_PROP_VALUE = 'PROJECT_COMPONENT_ADD_PROP_VALUE';
+
+/**
+ *
+ * @param {number} componentId
+ * @param {string} propName
+ * @param {(string|number)[]} path
+ * @param {string|number} index
+ * @param {string} source
+ * @param {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner} sourceData
+ * @return {Object}
+ */
+export const addComponentPropValue = (
+    componentId,
+    propName,
+    path,
+    index,
+    source,
+    sourceData
+) => ({
+    type: PROJECT_COMPONENT_ADD_PROP_VALUE,
+    componentId,
+    propName,
+    path,
+    index,
+    source,
+    sourceData
+});
+
+/**
+ *
+ * @type {string}
+ * @const
+ */
+export const PROJECT_COMPONENT_DELETE_PROP_VALUE = 'PROJECT_COMPONENT_DELETE_PROP_VALUE';
+
+/**
+ *
+ * @param {number} componentId
+ * @param {string} propName
+ * @param {(string|number)[]} path
+ * @param {string|number} index
+ * @return {Object}
+ */
+export const deleteComponentPropValue = (componentId, propName, path, index) => ({
+    type: PROJECT_COMPONENT_DELETE_PROP_VALUE,
+    componentId,
+    propName,
+    path,
+    index
 });
 
 /**
@@ -241,12 +301,14 @@ export const PROJECT_CONSTRUCT_COMPONENT_FOR_PROP = 'PROJECT_CONSTRUCT_COMPONENT
  *
  * @param {number} componentId
  * @param {string} propName
+ * @param {(string|number)[]} path
  * @return {Object}
  */
-export const constructComponentForProp = (componentId, propName) => ({
+export const constructComponentForProp = (componentId, propName, path) => ({
     type: PROJECT_CONSTRUCT_COMPONENT_FOR_PROP,
     componentId,
-    propName
+    propName,
+    path
 });
 
 /**
@@ -290,12 +352,14 @@ export const PROJECT_LINK_PROP = 'PROJECT_LINK_PROP';
  *
  * @param {number} componentId
  * @param {string} propName
+ * @param {(string|number)[]} [path=[]]
  * @return {Object}
  */
-export const linkProp = (componentId, propName) => ({
+export const linkProp = (componentId, propName, path = []) => ({
     type: PROJECT_LINK_PROP,
     componentId,
-    propName
+    propName,
+    path
 });
 
 /**

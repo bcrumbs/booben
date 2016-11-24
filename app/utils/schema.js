@@ -132,7 +132,7 @@ export const parseGraphQLSchema = schema => {
 	const connections = getRelayConnections(schema.types);
 
 	const hasKind = (type, kind) =>
-		kind === 'CONNECTION'
+		kind === FIELD_KINDS['CONNECTION']
 		?	!!connections[type.name]
 		:	(
 			type.kind === kind

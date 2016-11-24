@@ -12,6 +12,15 @@ const co = require('co'),
     constants = require('../../common/constants'),
     sharedConstants = require('../../common/shared-constants');
 
+// TODO: Move from revalidator to ajv
+
+const validationOptions = {
+    validateFormats: true,
+    validateFormatsStrict: true,
+    validateFormatExtensions: true,
+    additionalProperties: false,
+    cast: false
+};
 
 const propSchema = {
     type: 'object',
@@ -38,6 +47,12 @@ const propSchema = {
             type: 'string',
             allowEmpty: false,
             required: true
+        },
+
+        // For 'shape', 'objectOf' and 'object' types
+        notNull: {
+            type: 'boolean',
+            required: false
         },
 
         source: {
@@ -96,7 +111,11 @@ const propSchema = {
                 data: {
                     type: 'object',
                     properties: {
-
+                        pushDataContext: {
+                            type: 'string',
+                            allowEmpty: false,
+                            required: false
+                        }
                     },
                     required: false
                 },
@@ -145,10 +164,15 @@ const propSchema = {
                                             allowEmpty: false,
                                             required: true
                                         },
+                                        dataContext: {
+                                            type: 'string',
+                                            allowEmpty: false,
+                                            required: false
+                                        },
                                         type: {
                                             type: 'string',
                                             allowEmpty: false,
-                                            required: true
+                                            required: false
                                         }
                                     }
                                 }
@@ -163,18 +187,6 @@ const propSchema = {
                     type: 'object',
                     properties: {
 
-                    },
-                    required: false
-                },
-
-                interpolations: {
-                    type: 'object',
-                    properties: {
-                        name: {
-                            type: 'string',
-                            allowEmpty: false,
-                            required: true
-                        }
                     },
                     required: false
                 }
@@ -229,11 +241,11 @@ const typesSchema = {
             properties: {
                 type: {
                     type: 'string',
-                    enum: ['oneOf', 'arrayOf', 'shape'],
+                    enum: ['oneOf', 'arrayOf', 'shape', 'objectOf'],
                     required: true
                 },
 
-                // For 'arrayOf' type
+                // For 'arrayOf' and 'objectOf' types
                 ofType: Object.assign({ required: false }, propSchema),
 
                 // For 'shape' type
@@ -693,20 +705,18 @@ const mainMetaSchema = {
     }
 };
 
-const isNumber = value => typeof value === 'number' && !isNaN(value) && isFinite(value);
+/**
+ *
+ * @param {*} value
+ * @return {boolean}
+ */
+const isNumber = value => typeof value === 'number' && !isNaN(value);
 
-const propertiesAreEqual = (object1, object2) => {
-    const keys1 = Object.keys(object1),
-        keys2 = Object.keys(object2);
-
-    if (keys1.length !== keys2.length) return false;
-
-    return keys1.every(key => object2.hasOwnProperty(key));
-};
-
-const everyProperty = (object, predicate) =>
-    Object.keys(object).every(key => predicate(object[key], key, object));
-
+/**
+ *
+ * @type {Object<string, function(value: *, typedef: TypeDefinition): boolean>}
+ * @const
+ */
 const valueValidators = {
     'string': value => typeof value === 'string',
     'bool': value => typeof value === 'boolean',
@@ -718,31 +728,45 @@ const valueValidators = {
     'arrayOf': (value, typedef) =>
         Array.isArray(value) && value.every(item => isValidValue(item, typedef.ofType)),
 
-    'object': value => typeof value === 'object', // It can be null
+    'object': (value, typedef) =>
+        typeof value === 'object' && (!typedef.notNull || value !== null),
+
+    'objectOf': (value, typedef) =>
+        typeof value === 'object' && (
+            value === null
+                ? !typedef.notNull
+
+                : Object.keys(value).every(key =>
+                    isValidValue(value[key], typedef.ofType))
+        ),
 
     'shape': (value, typedef) =>
         typeof value === 'object' && (
-            value === null || (
-                propertiesAreEqual(
-                    value,
-                    typedef.fields
-                ) &&
+            value === null
+                ? !typedef.notNull
 
-                everyProperty(
-                    value,
-
-                    (fieldValue, fieldName) =>
-                        isValidValue(fieldValue, typedef.fields[fieldName])
-                )
-            )
+                : Object.keys(value).every(key =>
+                    typedef.fields.hasOwnProperty(key) &&
+                    isValidValue(value[key], typedef.fields[key]))
         ),
 
     'component': value => true, // TODO: Write validator for component-type value
     'func': value => true // TODO: Write validator for func-type value
 };
 
+/**
+ *
+ * @param {*} value
+ * @param {TypeDefinition} typedef
+ * @return {boolean}
+ */
 const isValidValue = (value, typedef) => valueValidators[typedef.type](value, typedef);
 
+/**
+ *
+ * @type {Object<string, function(typedef: TypeDefinition): string>}
+ * @const
+ */
 const typePrinters = {
     'string': () => 'string',
     'bool': () => 'bool',
@@ -750,15 +774,16 @@ const typePrinters = {
     'float': () => 'float',
 
     'oneOf': typedef =>
-        `oneOf(${typedef.options.map(option => option.value).join(', ')})`,
+        `oneOf(${typedef.options.map(({ value }) => JSON.stringify(value)).join(', ')})`,
 
     'array': () => 'array',
     'arrayOf': typedef => `arrayOf(${typeToString(typedef.ofType)})`,
     'object': () => 'object',
+    'objectOf': typedef => `objectOf(${typeToString(typedef.ofType)})`,
 
     'shape': typedef => {
         const structure = Object.keys(typedef.fields)
-            .map(key => `${key}:${typeToString(typedef.fields[key])}`).join(',');
+            .map(key => `${key}:${typeToString(typedef.fields[key])}`).join(', ');
 
         return `shape(${structure})`
     },
@@ -767,8 +792,18 @@ const typePrinters = {
     'func': () => 'func',
 };
 
+/**
+ *
+ * @param {TypeDefinition} typedef
+ * @return {string}
+ */
 const typeToString = typedef => typePrinters[typedef.type](typedef);
 
+/**
+ *
+ * @param {string} filename
+ * @return {Promise<*>}
+ */
 const readJSONFile = filename => co(function* () {
     let json;
 
@@ -792,14 +827,14 @@ const readJSONFile = filename => co(function* () {
     return data;
 });
 
-const metaValidationOptions = {
-    validateFormats: true,
-    validateFormatsStrict: true,
-    validateFormatExtensions: true,
-    additionalProperties: false,
-    cast: false
-};
-
+/**
+ *
+ * @param {string} propName
+ * @param {ComponentPropMeta} propMeta
+ * @param {Object<string, Object<string, string>>} strings
+ * @param {string} componentName
+ * @throws {Error}
+ */
 const checkAdditionalPropTypeData = (propName, propMeta, strings, componentName = '') => {
     if (propMeta.textKey && !strings[propMeta.textKey]) {
         throw new Error(
@@ -824,15 +859,16 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings, componentName 
         propMeta.sourceConfigs.static &&
         typeof propMeta.sourceConfigs.static.default !== 'undefined';
 
-    const defaultValueIsInvalid =
-        !!hasDefaultValue &&
-        !isValidValue(propMeta.sourceConfigs.static.default, propMeta);
+    if (hasDefaultValue) {
+        const defaultValueIsInvalid =
+            !isValidValue(propMeta.sourceConfigs.static.default, propMeta);
 
-    if (defaultValueIsInvalid) {
-        throw new Error(
-            `'${componentName}': Default static value of prop '${propName}' ` +
-            `is not valid for type '${typeToString(propMeta)}'`
-        );
+        if (defaultValueIsInvalid) {
+            throw new Error(
+                `'${componentName}': Default static value of prop '${propName}' ` +
+                `is not valid for type '${typeToString(propMeta)}'`
+            );
+        }
     }
 
     const hasConstValue =
@@ -842,15 +878,47 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings, componentName 
         propMeta.sourceConfigs.const &&
         typeof propMeta.sourceConfigs.const.value !== 'undefined';
 
-    const constValueIsInvalid =
-        !!hasConstValue &&
-        !isValidValue(propMeta.sourceConfigs.const.value, propMeta);
+    if (hasConstValue) {
+        const constValueIsInvalid =
+            !isValidValue(propMeta.sourceConfigs.const.value, propMeta);
 
-    if (constValueIsInvalid) {
-        throw new Error(
-            `'${componentName}': Const value of prop '${propName}' ` +
-            `is not valid for type '${typeToString(propMeta)}'`
-        );
+        if (constValueIsInvalid) {
+            throw new Error(
+                `'${componentName}': Const value of prop '${propName}' ` +
+                `is not valid for type '${typeToString(propMeta)}'`
+            );
+        }
+    }
+
+    const hasOwnerProps =
+        propMeta.source &&
+        propMeta.source.indexOf('designer') > -1 &&
+        propMeta.sourceConfigs &&
+        propMeta.sourceConfigs.designer &&
+        propMeta.sourceConfigs.designer.props;
+
+    if (hasOwnerProps) {
+        Object.keys(propMeta.sourceConfigs.designer.props).forEach(key => {
+            const ownerProp = propMeta.sourceConfigs.designer.props[key];
+
+            if (!strings[ownerProp.textKey]) {
+                throw new Error(
+                    `Unknown string '${ownerProp.textKey}' ` +
+                    `in owner props list of prop '${propName}' ` +
+                    `of component '${componentName}'`
+                );
+            }
+
+            if (!strings[ownerProp.descriptionTextKey]) {
+                throw new Error(
+                    `Unknown string '${ownerProp.descriptionTextKey}' ` +
+                    `in owner props list of prop '${propName}' ` +
+                    `of component '${componentName}'`
+                );
+            }
+        });
+
+        // TODO: Check dataContext
     }
 
     if (propMeta.type === 'oneOf') {
@@ -874,11 +942,12 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings, componentName 
         }
     }
     else if (propMeta.type === 'arrayOf') {
-        if (typeof propMeta.ofType === 'undefined')
+        if (typeof propMeta.ofType === 'undefined') {
             throw new Error(
                 `'${componentName}': Prop '${propName}' ` +
                 `of type 'arrayOf' must have 'ofType' field`
             );
+        }
 
         checkAdditionalPropTypeData(
             propName + '.[]',
@@ -887,12 +956,28 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings, componentName 
             componentName
         );
     }
+    else if (propMeta.type === 'objectOf') {
+        if (typeof propMeta.ofType === 'undefined') {
+            throw new Error(
+                `'${componentName}': Prop '${propName}' ` +
+                `of type 'objectOf' must have 'ofType' field`
+            );
+        }
+
+        checkAdditionalPropTypeData(
+            propName + '.{}',
+            propMeta.ofType,
+            strings,
+            componentName
+        );
+    }
     else if (propMeta.type === 'shape') {
-        if (typeof propMeta.fields === 'undefined')
+        if (typeof propMeta.fields === 'undefined') {
             throw new Error(
                 `'${componentName}': Prop '${propName}' ` +
                 `of type 'shape' must have 'fields' field`
             );
+        }
 
         const fields = Object.keys(propMeta.fields);
 
@@ -925,38 +1010,56 @@ const checkAdditionalPropTypeData = (propName, propMeta, strings, componentName 
     }
 };
 
+/**
+ *
+ * @param {string} typeName
+ * @param {TypeDefinition} typedef
+ * @param {Object<string, Object<string, string>>} strings
+ * @throws {Error}
+ */
 const checkAdditionalTypedefTypeData = (typeName, typedef, strings) => {
     if (typedef.type === 'oneOf') {
-        if (typeof typedef.options === 'undefined')
+        if (typeof typedef.options === 'undefined') {
             throw new Error(
                 `Type '${typeName}' (oneOf) must have 'options' field`
             );
+        }
 
         for (let i = 0, l = typedef.options.length; i < l; i++) {
             const optionTextKey = typedef.options[i].textKey;
 
-            if (!strings[optionTextKey])
+            if (!strings[optionTextKey]) {
                 throw new Error(
                     `Unknown string '${optionTextKey}' ` +
                     `in options list of type '${typeName}'`
                 );
+            }
         }
     }
-
-    if (typedef.type === 'arrayOf') {
-        if (typeof typedef.ofType === 'undefined')
+    else if (typedef.type === 'arrayOf') {
+        if (typeof typedef.ofType === 'undefined') {
             throw new Error(
                 `Type '${typeName}' (arrayOf) must have 'ofType' field`
             );
+        }
 
         checkAdditionalPropTypeData('[]', typedef.ofType, strings);
     }
+    else if (typedef.type === 'objectOf') {
+        if (typeof typedef.ofType === 'undefined') {
+            throw new Error(
+                `Type '${typeName}' (objectOf) must have 'ofType' field`
+            );
+        }
 
-    if (typedef.type === 'shape') {
-        if (typeof typedef.fields === 'undefined')
+        checkAdditionalPropTypeData('{}', typedef.ofType, strings);
+    }
+    else if (typedef.type === 'shape') {
+        if (typeof typedef.fields === 'undefined') {
             throw new Error(
                 `Type '${typeName}' (shape) must have 'fields' field`
             );
+        }
 
         const fields = Object.keys(typedef.fields);
 
@@ -965,6 +1068,12 @@ const checkAdditionalTypedefTypeData = (typeName, typedef, strings) => {
     }
 };
 
+/**
+ *
+ * @param {string} metaDir
+ * @param {Object<string, Object<string, string>>} strings
+ * @return {Promise<Object<string, PropTypeDefinition>>}
+ */
 const readTypedefs = (metaDir, strings) => co(function* () {
     const typesFile = path.join(metaDir, constants.METADATA_TYPES_FILE),
         types = yield readJSONFile(typesFile);
@@ -998,6 +1107,11 @@ const readTypedefs = (metaDir, strings) => co(function* () {
     return types;
 });
 
+/**
+ *
+ * @param {string} metaDir
+ * @return {Promise<Object<string, Object<string, string>>>}
+ */
 const readStrings = metaDir => co(function* () {
     const stringsFile = path.join(metaDir, constants.METADATA_STRINGS_FILE),
         strings = yield readJSONFile(stringsFile);
@@ -1026,6 +1140,11 @@ const readStrings = metaDir => co(function* () {
     return strings;
 });
 
+/**
+ *
+ * @param {string} metaDir
+ * @return {Promise<ComponentMeta>}
+ */
 const readComponentMeta = metaDir => co(function* () {
     const metaFile = path.join(metaDir, constants.METADATA_FILE),
         meta = yield readJSONFile(metaFile);
@@ -1033,7 +1152,7 @@ const readComponentMeta = metaDir => co(function* () {
     let validationResult;
 
     try {
-        validationResult = rv.validate(meta, metaSchema, metaValidationOptions);
+        validationResult = rv.validate(meta, metaSchema, validationOptions);
     }
     catch(err) {
         throw new Error(
@@ -1147,6 +1266,11 @@ const readComponentMeta = metaDir => co(function* () {
     return meta;
 });
 
+/**
+ *
+ * @param {string} dir
+ * @return {Promise<boolean>}
+ */
 const isDirectory = dir => co(function* () {
     let stats;
     try {
@@ -1186,15 +1310,15 @@ const getChildNodes = ({ dir }) => co(function* () {
  * @property {string} namespace
  * @property {boolean} globalStyle
  * @property {string[]} import
- * @property {Object.<string, string[]>} loaders
- * @property {Object.<string, Object>} components
+ * @property {Object<string, string[]>} loaders
+ * @property {Object<string, Object>} components
  * @property {Object} packageJSON
  */
 
 /**
  *
  * @param {string} moduleDir
- * @returns {Promise.<LibMetadata>}
+ * @returns {Promise<LibMetadata>}
  */
 exports.gatherMetadata = moduleDir => co(function* () {
     let ret = {},

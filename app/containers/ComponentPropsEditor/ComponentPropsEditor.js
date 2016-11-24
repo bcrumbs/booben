@@ -26,6 +26,8 @@ import ProjectComponentRecord from '../../models/ProjectComponent';
 
 import {
     updateComponentPropValue,
+    addComponentPropValue,
+    deleteComponentPropValue,
     constructComponentForProp,
     linkProp
 } from '../../actions/project';
@@ -37,14 +39,43 @@ import {
     topNestedConstructorComponentSelector
 } from '../../selectors';
 
+import { NO_VALUE } from "../../constants/misc";
+
 import {
     getString,
     getComponentMeta,
     isCompatibleType,
-    resolveTypedef
+    resolveTypedef,
+    isScalarType,
+    getNestedTypedef,
+    buildDefaultValue,
+    isValidSourceForProp
 } from '../../utils/meta';
+
 import { getLocalizedText } from '../../utils';
-import { objectSome } from '../../utils/misc';
+import { objectMap, objectSome } from '../../utils/misc';
+
+/**
+ *
+ * @param {string} value
+ * @return {number}
+ */
+const coerceIntValue = value => {
+    let maybeRet = parseInt(value, 10);
+    if (isNaN(maybeRet)) return 0;
+    return maybeRet;
+};
+
+/**
+ *
+ * @param {string} value
+ * @return {number}
+ */
+const coerceFloatValue = value => {
+    let maybeRet = parseFloat(value);
+    if (isNaN(maybeRet)) return 0.0;
+    return maybeRet;
+};
 
 /**
  *
@@ -60,81 +91,11 @@ const isRenderableProp = propMeta =>
 
 /**
  *
- * @param {string} value
- * @return {number}
- */
-const coerceIntValue = value => {
-    let maybeRet = parseInt(value, 10);
-    if (!isFinite(maybeRet)) return 0;
-    return maybeRet;
-};
-
-/**
- *
- * @param {string} value
- * @return {number}
- */
-const coerceFloatValue = value => {
-    let maybeRet = parseFloat(value);
-    if (!isFinite(maybeRet)) return 0.0;
-    return maybeRet;
-};
-
-/**
- *
- * @param {string} source
- * @param {Object} sourceData
- * @return {string}
- */
-const getStaticStringValue = (source, sourceData) =>
-    source === 'static' ? (sourceData ? sourceData.value : '') : '';
-
-/**
- *
- * @param {string} source
- * @param {Object} sourceData
- * @return {number}
- */
-const getStaticIntValue = (source, sourceData) =>
-    source === 'static' ? (sourceData ? sourceData.value : 0) : 0;
-
-/**
- *
- * @param {string} source
- * @param {Object} sourceData
- * @return {number}
- */
-const getStaticFloatValue = (source, sourceData) =>
-    source === 'static' ? (sourceData ? sourceData.value : 0.0) : 0.0;
-
-/**
- *
- * @param {string} source
- * @param {Object} sourceData
- * @return {number}
- */
-const getStaticBoolValue = (source, sourceData) =>
-    source === 'static' ? (sourceData ? sourceData.value : false) : false;
-
-/**
- *
- * @param {string} source
- * @param {Object} sourceData
- * @param {Object[]} options
- * @return {*}
- */
-const getStaticOneOfValue = (source, sourceData, options) =>
-    source === 'static'
-        ? (sourceData ? sourceData.value : options[0].value)
-        : options[0].value;
-
-/**
- *
  * @param {Object} propValue
  * @return {boolean}
  */
 const isLinkedProp = propValue =>
-    propValue.source === 'data' || (
+    propValue.source === 'data' || ( // TODO: Check that it is actually linked
         propValue.source === 'static' &&
         !!propValue.sourceData.ownerPropName
     );
@@ -164,29 +125,128 @@ const ownerPropsSelector = createSelector(
     }
 );
 
+/**
+ *
+ * @param {TypeDefinition} propMeta
+ * @param {Object} propValue - It is an {@link Immutable.Record} actually (see app/models/ProjectComponentProp.js)
+ * @return {*}
+ */
+const transformValue = (propMeta, propValue) => {
+    if (!propValue) return null;
+
+    const isLinked = isLinkedProp(propValue);
+    let value = null;
+
+    if (!isLinked) {
+        if (propValue.source === 'static') {
+            if (isScalarType(propMeta)) {
+                value = propValue.sourceData.value;
+            }
+            else if (propMeta.type === 'shape') {
+                value = objectMap(propMeta.fields, (fieldMeta, fieldName) =>
+                    transformValue(fieldMeta, propValue.sourceData.value.get(fieldName)));
+            }
+            else if (propMeta.type === 'objectOf') {
+                propValue.sourceData.value.map(nestedValue =>
+                    transformValue(propMeta.ofType, nestedValue)).toJS();
+            }
+            else if (propMeta.type === 'arrayOf') {
+                value = propValue.sourceData.value.map(nestedValue =>
+                    transformValue(propMeta.ofType, nestedValue)).toJS();
+            }
+        }
+        else if (propValue.source === 'designer') {
+            // true if component exists, false otherwise
+            if (propMeta.type === 'component')
+                value = propValue.sourceData.rootId !== -1;
+        }
+    }
+
+    return { value, isLinked };
+};
+
+/**
+ *
+ * @param {PropTypeDefinition} propMeta
+ * @return {boolean}
+ */
+const isEditableProp = propMeta =>
+    isValidSourceForProp(propMeta, 'static') ||
+    isValidSourceForProp(propMeta, 'designer');
+
+/**
+ *
+ * @type {Object<string, string>}
+ * @const
+ */
+const propTypeToView = {
+    'string': 'input',
+    'bool': 'toggle',
+    'int': 'input',
+    'float': 'input',
+    'oneOf': 'list',
+    'component': 'constructor',
+    'shape': 'shape',
+    'objectOf': 'object',
+    'arrayOf': 'array',
+    'object': 'empty',
+    'array': 'empty',
+    'func': 'empty'
+};
 
 class ComponentPropsEditorComponent extends PureComponent {
+    constructor(props) {
+        super(props);
+
+        this._formatArrayItemLabel = this._formatArrayItemLabel.bind(this);
+        this._formatObjectItemLabel = this._formatObjectItemLabel.bind(this);
+    }
+
     /**
      *
-     * @param {string} propName
+     * @param {number} index
+     * @return {string}
      * @private
      */
-    _handleSetComponent(propName) {
-        const componentId = this.props.selectedComponentIds.first();
-        this.props.onConstructComponent(componentId, propName);
+    _formatArrayItemLabel(index) {
+        return `Item ${index}`; // TODO: Get string from i18n
+    }
+
+    /**
+     *
+     * @param {string} key
+     * @return {string}
+     * @private
+     */
+    _formatObjectItemLabel(key) {
+        return key;
     }
 
     /**
      *
      * @param {string} propName
      * @param {*} newValue
+     * @param {(string|number)[]} [path=[]]
      * @private
      */
-    _handleStaticValueChange(propName, newValue) {
+    _handleSetComponent(propName, newValue, path = []) {
+        const componentId = this.props.selectedComponentIds.first();
+        this.props.onConstructComponent(componentId, propName, path);
+    }
+
+    /**
+     *
+     * @param {string} propName
+     * @param {*} newValue
+     * @param {(string|number)[]} [path=[]]
+     * @private
+     */
+    _handleValueChange(propName, newValue, path = []) {
         const componentId = this.props.selectedComponentIds.first();
         this.props.onPropValueChange(
             componentId,
             propName,
+            path,
             'static',
             { value: newValue }
         );
@@ -195,22 +255,74 @@ class ComponentPropsEditorComponent extends PureComponent {
     /**
      *
      * @param {string} propName
+     * @param {(string|number)[]} where
+     * @param {string|number} index
      * @private
      */
-    _handleLinkProp(propName) {
+    _handleAddValue(propName, where, index) {
+        const componentId = this.props.selectedComponentIds.first(),
+            component = this.props.components.get(componentId),
+            componentMeta = getComponentMeta(component.name, this.props.meta),
+            propMeta = componentMeta.props[propName],
+            nestedPropMeta = getNestedTypedef(propMeta, where),
+            newValueType = nestedPropMeta.ofType;
+
+        const value = buildDefaultValue(
+            componentMeta,
+            newValueType,
+            this.props.language
+        );
+
+        if (value === NO_VALUE) {
+            throw new Error(
+                `Failed to construct a new value for 'arrayOf' or 'objectOf' prop. ` +
+                `Component: '${component.name}', ` +
+                `prop: '${propName}', ` +
+                `where: ${where.map(String).join('.') || '[top level]'}`
+            );
+        }
+
+        this.props.onAddPropValue(
+            componentId,
+            propName,
+            where,
+            index,
+            value.source,
+            value.sourceData
+        );
+    }
+
+    /**
+     *
+     * @param {string} propName
+     * @param {(string|number)[]} where
+     * @param {string|number} index
+     * @private
+     */
+    _handleDeleteValue(propName, where, index) {
         const componentId = this.props.selectedComponentIds.first();
-        this.props.onLinkProp(componentId, propName);
+        this.props.onDeletePropValue(componentId, propName, where, index);
+    }
+
+    /**
+     *
+     * @param {string} propName
+     * @param {(string|number)[]} [path=[]]
+     * @private
+     */
+    _handleLinkProp(propName, path = []) {
+        const componentId = this.props.selectedComponentIds.first();
+        this.props.onLinkProp(componentId, propName, path);
     }
 
     /**
      *
      * @param {ComponentMeta} componentMeta
-     * @param {string} propName
+     * @param {ComponentPropMeta} propMeta
      * @return {boolean}
      * @private
      */
-    _isPropLinkable(componentMeta, propName) {
-        const propMeta = componentMeta.props[propName];
+    _isPropLinkable(componentMeta, propMeta) {
         if (propMeta.source.indexOf('data') > -1) return true;
         if (!this.props.ownerProps) return false;
 
@@ -229,209 +341,72 @@ class ComponentPropsEditorComponent extends PureComponent {
     /**
      *
      * @param {ComponentMeta} componentMeta
-     * @param {string} propName
-     * @param {Object} propValue
-     * @returns {ReactElement}
+     * @param {ComponentPropMeta} propMeta
+     * @returns {PropsItemPropType}
      * @private
      */
-    _renderStringProp(componentMeta, propName, propValue) {
-        const source = propValue ? propValue.source : 'static',
-            sourceData = propValue ? propValue.sourceData : null,
-            value = getStaticStringValue(source, sourceData),
-            propMeta = componentMeta.props[propName],
-            isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(componentMeta, propName);
+    _propTypeFromMeta(componentMeta, propMeta) {
+        // TODO: Memoize
 
-        const label =
-            getString(componentMeta, propMeta.textKey, this.props.language) || propName;
-
-        //noinspection JSValidateTypes
-        return (
-            <PropsItem
-                key={propName}
-                view="input"
-                label={label}
-                value={value}
-                linkable={linkable}
-                disabled={isLinked}
-                onChange={this._handleStaticValueChange.bind(this, propName)}
-                onLink={this._handleLinkProp.bind(this, propName)}
-            />
+        const name = getString(
+            componentMeta,
+            propMeta.textKey,
+            this.props.language
         );
-    }
 
-    /**
-     *
-     * @param {ComponentMeta} componentMeta
-     * @param {string} propName
-     * @param {Object} propValue
-     * @returns {ReactElement}
-     * @private
-     */
-    _renderIntProp(componentMeta, propName, propValue) {
-        const source = propValue ? propValue.source : 'static',
-            sourceData = propValue ? propValue.sourceData : null,
-            value = getStaticIntValue(source, sourceData),
-            propMeta = componentMeta.props[propName],
-            isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(componentMeta, propName);
-
-        const label =
-            getString(componentMeta, propMeta.textKey, this.props.language) || propName;
-
-        const onChange = newValue =>
-            this._handleStaticValueChange(propName, coerceIntValue(newValue));
-
-        return (
-            <PropsItem
-                key={propName}
-                view="input"
-                label={label}
-                value={String(value)}
-                linkable={linkable}
-                disabled={isLinked}
-                onChange={onChange}
-                onLink={this._handleLinkProp.bind(this, propName)}
-            />
+        const description = getString(
+            componentMeta,
+            propMeta.descriptionTextKey,
+            this.props.language
         );
-    }
 
-    /**
-     *
-     * @param {ComponentMeta} componentMeta
-     * @param {string} propName
-     * @param {Object} propValue
-     * @returns {ReactElement}
-     * @private
-     */
-    _renderFloatProp(componentMeta, propName, propValue) {
-        const source = propValue ? propValue.source : 'static',
-            sourceData = propValue ? propValue.sourceData : null,
-            value = getStaticFloatValue(source, sourceData),
-            propMeta = componentMeta.props[propName],
-            isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(componentMeta, propName);
+        const editable = isEditableProp(propMeta),
+            linkable = this._isPropLinkable(componentMeta, propMeta);
 
-        const label =
-            getString(componentMeta, propMeta.textKey, this.props.language) || propName;
+        const ret = {
+            label: name,
+            type: propMeta.type, // TODO: Get string from i18n
+            view: editable ? propTypeToView[propMeta.type] : 'empty',
+            image: '',
+            tooltip: description,
+            linkable: linkable,
+            transformValue: null,
+            formatItemLabel: null
+        };
 
-        const onChange = newValue =>
-            this._handleStaticValueChange(propName, coerceFloatValue(newValue));
+        if (editable) {
+            if (propMeta.type === 'int') {
+                ret.transformValue = coerceIntValue;
+            }
+            else if (propMeta.type === 'float') {
+                ret.transformValue = coerceFloatValue;
+            }
+            else if (propMeta.type === 'oneOf') {
+                ret.options = propMeta.options.map(option => ({
+                    value: option.value,
+                    text: getString(
+                        componentMeta,
+                        option.textKey,
+                        this.props.language
+                    ) || option.textKey
+                }));
+            }
+            else if (propMeta.type === 'shape') {
+                ret.fields = objectMap(propMeta.fields, (fieldMeta, fieldName) =>
+                    this._propTypeFromMeta(componentMeta, fieldMeta));
+            }
+            else if (propMeta.type === 'arrayOf') {
+                ret.ofType = this._propTypeFromMeta(componentMeta, propMeta.ofType);
+                ret.formatItemLabel = this._formatArrayItemLabel;
+            }
+            else if (propMeta.type === 'objectOf') {
+                ret.ofType = this._propTypeFromMeta(componentMeta, propMeta.ofType);
+                ret.formatItemLabel = this._formatObjectItemLabel;
+            }
+        }
 
-        return (
-            <PropsItem
-                key={propName}
-                view="input"
-                label={label}
-                value={String(value)}
-                linkable={linkable}
-                disabled={isLinked}
-                onChange={onChange}
-                onLink={this._handleLinkProp.bind(this, propName)}
-            />
-        );
-    }
-
-    /**
-     *
-     * @param {ComponentMeta} componentMeta
-     * @param {string} propName
-     * @param {Object} propValue
-     * @returns {ReactElement}
-     * @private
-     */
-    _renderBoolProp(componentMeta, propName, propValue) {
-        const source = propValue ? propValue.source : 'static',
-            sourceData = propValue ? propValue.sourceData : null,
-            value = getStaticBoolValue(source, sourceData),
-            propMeta = componentMeta.props[propName],
-            isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(componentMeta, propName);
-
-        const label =
-            getString(componentMeta, propMeta.textKey, this.props.language) || propName;
-
-        return (
-            <PropsItem
-                key={propName}
-                view="toggle"
-                label={label}
-                value={value}
-                linkable={linkable}
-                disabled={isLinked}
-                onChange={this._handleStaticValueChange.bind(this, propName)}
-                onLink={this._handleLinkProp.bind(this, propName)}
-            />
-        );
-    }
-
-    /**
-     *
-     * @param {ComponentMeta} componentMeta
-     * @param {string} propName
-     * @param {Object} propValue
-     * @returns {ReactElement}
-     * @private
-     */
-    _renderOneOfProp(componentMeta, propName, propValue) {
-        const lang = this.props.language,
-            source = propValue ? propValue.source : 'static',
-            sourceData = propValue ? propValue.sourceData : null,
-            propMeta = componentMeta.props[propName],
-            value = getStaticOneOfValue(source, sourceData, propMeta.options),
-            isLinked = isLinkedProp(propValue),
-            linkable = this._isPropLinkable(componentMeta, propName);
-
-        const label =
-            getString(componentMeta, propMeta.textKey, lang) || propName;
-
-        const options = propMeta.options.map(option => ({
-            value: option.value,
-            text: getString(componentMeta, option.textKey, lang) || option.textKey,
-            disabled: false
-        }));
-
-        return (
-            <PropsItem
-                key={propName}
-                view="list"
-                label={label}
-                value={value}
-                options={options}
-                linkable={linkable}
-                disabled={isLinked}
-                onChange={this._handleStaticValueChange.bind(this, propName)}
-                onLink={this._handleLinkProp.bind(this, propName)}
-            />
-        );
-    }
-
-    /**
-     *
-     * @param {ComponentMeta} componentMeta
-     * @param {string} propName
-     * @param {Object} propValue
-     * @returns {ReactElement}
-     * @private
-     */
-    _renderComponentProp(componentMeta, propName, propValue) {
-        const { getLocalizedText } = this.props,
-            lang = this.props.language,
-            propMeta = componentMeta.props[propName];
-
-        const label =
-            getString(componentMeta, propMeta.textKey, lang) || propName;
-
-        return (
-            <PropsItem
-                key={propName}
-                view="constructor"
-                label={label}
-                setComponentButtonText={getLocalizedText('setComponent')}
-                onChange={this._handleSetComponent.bind(this, propName)}
-            />
-        );
-    }
+        return ret;
+    };
 
     /**
      *
@@ -442,25 +417,35 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @private
      */
     _renderPropsItem(componentMeta, propName, propValue) {
-        const propMeta = componentMeta.props[propName];
-        if (!propMeta) return null;
+        const { getLocalizedText } = this.props;
 
-        switch (propMeta.type) {
-            case 'string':
-                return this._renderStringProp(componentMeta, propName, propValue);
-            case 'int':
-                return this._renderIntProp(componentMeta, propName, propValue);
-            case 'float':
-                return this._renderFloatProp(componentMeta, propName, propValue);
-            case 'bool':
-                return this._renderBoolProp(componentMeta, propName, propValue);
-            case 'oneOf':
-                return this._renderOneOfProp(componentMeta, propName, propValue);
-            case 'component':
-                return this._renderComponentProp(componentMeta, propName, propValue);
-            default:
-                return null;
-        }
+        const propMeta = componentMeta.props[propName],
+            propType = this._propTypeFromMeta(componentMeta, propMeta),
+            value = transformValue(propMeta, propValue);
+
+        const onChange = propType.view === 'constructor'
+            ? this._handleSetComponent.bind(this, propName)
+            : this._handleValueChange.bind(this, propName);
+
+        //noinspection JSValidateTypes
+        return (
+            <PropsItem
+                key={propName}
+                propType={propType}
+                value={value}
+                setComponentButtonText={getLocalizedText('setComponent')}
+                editComponentButtonText={getLocalizedText('editComponent')}
+                addButtonText={getLocalizedText('addValue')}
+                addDialogTitleText={getLocalizedText('addValueDialogTitle')}
+                addDialogInputLabelText={getLocalizedText('addValueNameInputLabel')}
+                addDialogSaveButtonText={getLocalizedText('save')}
+                addDialogCancelButtonText={getLocalizedText('cancel')}
+                onChange={onChange}
+                onAddValue={this._handleAddValue.bind(this, propName)}
+                onDeleteValue={this._handleDeleteValue.bind(this, propName)}
+                onLink={this._handleLinkProp.bind(this, propName)}
+            />
+        );
     }
 
     render() {
@@ -583,6 +568,8 @@ ComponentPropsEditorComponent.propTypes = {
     getLocalizedText: PropTypes.func,
 
     onPropValueChange: PropTypes.func,
+    onAddPropValue: PropTypes.func,
+    onDeletePropValue: PropTypes.func,
     onConstructComponent: PropTypes.func,
     onLinkProp: PropTypes.func
 };
@@ -602,22 +589,33 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-    onPropValueChange: (componentId, propName, newSource, newSourceData) =>
+    onPropValueChange: (componentId, propName, path, newSource, newSourceData) =>
         void dispatch(updateComponentPropValue(
             componentId,
             propName,
+            path,
             newSource,
             newSourceData
         )),
 
-    onConstructComponent: (componentId, propName) =>
-        void dispatch(constructComponentForProp(
+    onAddPropValue: (componentId, propName, path, index, source, sourceData) =>
+        void dispatch(addComponentPropValue(
             componentId,
-            propName
+            propName,
+            path,
+            index,
+            source,
+            sourceData
         )),
 
-    onLinkProp: (componentId, propName) =>
-        void dispatch(linkProp(componentId, propName))
+    onDeletePropValue: (componentId, propName, path, index) =>
+        void dispatch(deleteComponentPropValue(componentId, propName, path, index)),
+
+    onConstructComponent: (componentId, propName, path) =>
+        void dispatch(constructComponentForProp(componentId, propName, path)),
+
+    onLinkProp: (componentId, propName, path) =>
+        void dispatch(linkProp(componentId, propName, path))
 });
 
 export const ComponentPropsEditor = connect(

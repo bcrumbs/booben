@@ -4,8 +4,19 @@
 
 'use strict';
 
-import { Record } from 'immutable';
+import { Record, List, Map } from 'immutable';
 
-// TODO: Add some props
+export const QueryPathStepArgument = Record({
+    source: '',
+    sourceData: null
+});
+
+export const QueryPathStep = Record({
+    field: '',
+    args: Map()
+});
+
 export default Record({
+    dataContextIndex: 0,
+    queryPath: List()
 });

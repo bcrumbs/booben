@@ -8,7 +8,7 @@ import { Record, List, Map, Set } from 'immutable';
 
 import ProjectComponentProp from './ProjectComponentProp';
 import SourceDataStatic from './SourceDataStatic';
-import SourceDataData from './SourceDataData';
+import SourceDataData, { QueryPathStep, QueryPathStepArgument } from './SourceDataData';
 import SourceDataConst from './SourceDataConst';
 import SourceDataAction from './SourceDataAction';
 import SourceDataDesigner from './SourceDataDesigner';
@@ -31,8 +31,50 @@ const ProjectComponentRecord = Record({
 });
 
 const propSourceDataToImmutableFns = {
-    static: input => new SourceDataStatic(input),
-    data: input => new SourceDataData(input),
+    static: input => {
+        const data = {};
+
+        if (typeof input.value !== 'undefined') {
+            if (Array.isArray(input.value)) {
+                data.value = List(input.value.map(
+                    ({ source, sourceData }) => new ProjectComponentProp({
+                        source,
+                        sourceData: propSourceDataToImmutable(source, sourceData)
+                    }))
+                );
+            }
+            else if (typeof input.value === 'object' && input.value !== null) {
+                data.value = Map(objectMap(
+                    input.value,
+
+                    ({ source, sourceData }) => new ProjectComponentProp({
+                        source,
+                        sourceData: propSourceDataToImmutable(source, sourceData)
+                    }))
+                );
+            }
+            else {
+                data.value = input.value;
+            }
+        }
+
+        if (typeof input.ownerPropName !== 'undefined')
+            data.ownerPropName = input.ownerPropName;
+
+        return new SourceDataStatic(data);
+    },
+
+    data: input => new SourceDataData({
+        dataContextIndex: input.dataContextIndex,
+        queryPath: List(input.queryPath.map(step => new QueryPathStep({
+            field: step.field,
+            args: Map(objectMap(step.args, arg => new QueryPathStepArgument({
+                source: arg.source,
+                sourceData: propSourceDataToImmutable(arg.source, arg.sourceData)
+            })))
+        })))
+    }),
+
     const: input => new SourceDataConst(input),
     action: input => new SourceDataAction(input),
 
@@ -44,8 +86,7 @@ const propSourceDataToImmutableFns = {
             }
 
             : {
-                rootId: -1,
-                components: null
+                rootId: -1
             }
     )
 };
