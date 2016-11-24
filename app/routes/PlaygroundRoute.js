@@ -85,6 +85,7 @@ import {
 
 import { HeaderRoute } from '../components/HeaderRoute/HeaderRoute';
 import { ProjectSave } from '../components/ProjectSave/ProjectSave';
+import { DataWindow } from '../components/DataWindow/DataWindow';
 
 import {
 	DataList,
@@ -932,7 +933,7 @@ export default class Playground extends React.Component {
 		                <HeaderRoute />
 
 		                <PanelContent>
-			                <ConstructionPane />
+			                <DataWindow />
 		                </PanelContent>
 	                </Panel>
                 </Desktop>

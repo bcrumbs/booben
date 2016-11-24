@@ -95,7 +95,7 @@ export const PropsItem = props => {
 		children =
 			props.view === 'tree' ?
 				<PropTreeList
-					addButton
+					addButton={props.addNewFieldButton}
 				    newField={props.addNewField}
 				>
 					<PropTreeBreadcrumbs />
@@ -225,6 +225,7 @@ PropsItem.propTypes = {
 
 	opened: PropTypes.bool,
 	subtreeOn: PropTypes.bool,
+	addNewFieldButton: PropTypes.bool,
 	addNewField: PropTypes.bool,
 
 	setComponentButtonText: PropTypes.string,
@@ -248,6 +249,7 @@ PropsItem.defaultProps = {
 
 	opened: false,
 	subtreeOn: false,
+    addNewFieldButton: false,
 	addNewField: false,
 
 	setComponentButtonText: '',

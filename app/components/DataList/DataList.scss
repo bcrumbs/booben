@@ -14,8 +14,8 @@
 	// DATA ITEM
 	// =================================================================================================================
 	.data-list-item {
-		padding: $data-item-padding-y $data-item-padding-x;
 		border-radius: $data-item-border-radius;
+		display: flex;
 
 		@include single-transition(background-color);
 		@include user-select;
@@ -29,7 +29,30 @@
 			}
 		}
 
+
+
 		& + & { margin-top: $data-item-spacing }
+	}
+
+	// Content
+	// =================================================================================================================
+	.data-item_content-box {
+		padding: $data-item-padding-y $data-item-padding-x;
+		flex-grow: 1;
+
+		.is-chosen & {
+			background-color: color($yellow-palette, lightest);
+			border-radius: $global-radius;
+		}
+	}
+
+	// Arguments
+	.data-item_arguments-box {
+		margin-top: $base-module/4;
+
+		.button {
+			margin-left: -$base-module;
+		}
 	}
 
 	// Data Title
@@ -44,12 +67,13 @@
 		margin-right: $data-item-type-spacing;
 	}
 
-	.data-item_subtitle {
+	.data-item_description {
 		font-size: $data-item-subtitle-font-size;
 		font-weight: $data-item-subtitle-font-weight;
 		line-height: $data-item-subtitle-line-height;
 		text-transform: $data-item-subtitle-transform;
 		color: $data-item-subtitle-color;
+		margin-top: $base-module/2;
 	}
 
 	.data-item_type {
@@ -58,6 +82,13 @@
 		line-height: $data-item-type-line-height;
 		text-transform: $data-item-type-transform;
 		color: $data-item-type-color;
+		margin-right: $data-item-type-spacing;
+	}
+
+	// ACTIONS
+	// =================================================================================================================
+	.data-item_actions {
+		margin-left: $base-module/2;
 	}
 
 }

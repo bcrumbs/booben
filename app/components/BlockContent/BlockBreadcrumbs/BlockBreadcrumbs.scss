@@ -6,21 +6,44 @@
 	// Base
 	// =================================================================================================================
 	.block-breadcrumbs {
-		.breadcrumbs-item-anchor {
-			padding: $blockcrumbs-item-padding;
-			border-radius: fs(0);
+		padding: 0 $bcontent-base-pad-x;
+
+		.breadcrumbs {
+			margin-left: 0
+		}
+	}
+
+
+	.breadcrumbs-item-anchor {
+		.block-breadcrumbs & {
+			border-radius: $blockcrumbs-item-border-radius;
 		}
 
-		.breadcrumbs-item.is-active .breadcrumbs-item-anchor {
+		.block-breadcrumbs .breadcrumbs-item.is-active & {
 			background-color: $blockcrumbs-item-active-bg-color;
 			opacity: 1;
 		}
+	}
 
-		.breadcrumbs-item-title {
-			font-size: $blockcrumbs-item-title-font-size;
+	.breadcrumbs-item-text {
+		.block-breadcrumbs & {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			justify-content: center;
 		}
+	}
 
-		.breadcrumbs-item-subtitle {
+	.breadcrumbs-item-title {
+		.block-breadcrumbs &,
+		.block-breadcrumbs .breadcrumbs-item.is-active & {
+			font-size: $blockcrumbs-item-title-font-size;
+			color: $blockcrumbs-item-title-color;
+		}
+	}
+
+	.breadcrumbs-item-subtitle {
+		.block-breadcrumbs & {
 			font-size: $blockcrumbs-item-subtitle-font-size;
 			line-height: $blockcrumbs-item-subtitle-line-height;
 		}
