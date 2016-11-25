@@ -150,6 +150,35 @@ const buildProps = (propValueDescriptors, propsFromOwner) => {
     return ret;
 };
 
+/**
+ *
+ * @param {Object} component
+ * @return {boolean}
+ */
+const hasDataProps = component =>
+    component.props.some(value => value.source === 'data');
+
+/**
+ *
+ * @param {Immutable.Map<number, Object>} components
+ * @param {Object} component
+ * @return {boolean}
+ */
+const hasDataPropsDeep = (components, component) =>
+    hasDataProps(component) ||
+
+    component.children.some(childId =>
+        hasDataPropsDeep(components, components.get(childId))) ||
+
+    component.props.some(propValue =>
+        propValue.source === 'designer' &&
+        propValue.sourceData.rootId > -1 &&
+        hasDataPropsDeep(
+            propValue.sourceData.components,
+            propValue.sourceData.components.get(propValue.sourceData.rootId)
+        ));
+
+
 class BuilderComponent extends PureComponent {
     /**
      *
