@@ -17,7 +17,6 @@ $prop-toggle: 'prop-type-toggle';
 	.prop-tree_list {
 		background-color: $prop-list-bg-color;
 		border-left: $prop-list-border-left-thickness solid $prop-list-border-left-color;
-		border-bottom: $prop-list-border-bottom-thickness solid $prop-list-border-bottom-color;
 
 		.prop-item & {
 			// margin-left: $props-level-offset;
@@ -30,6 +29,7 @@ $prop-toggle: 'prop-type-toggle';
 			pointer-events: none;
 			position: fixed;
 			margin-bottom: $props-list-margin-bottom;
+			border-bottom: $prop-list-border-bottom-thickness solid $prop-list-border-bottom-color;
 		}
 
 		.prop-item-wrapper.has-image + & {
@@ -237,8 +237,27 @@ $prop-toggle: 'prop-type-toggle';
 		color: $prop-label-color;
 		display: flex;
 		margin-bottom: $prop-label-margin-bottom;
+		position: relative;
 
 		@include user-select();
+
+		.prop-item-wrapper.is-required & {
+			padding-left: $prop-required-size + $base-module/2;
+		}
+		.prop-item-wrapper.is-required &::before {
+			content: '';
+			width: $prop-required-size;
+			height: $prop-required-size;
+			flex-shrink: 0;
+			display: block;
+			border-radius: 50%;
+			background-color: $color-alert;
+
+			position: absolute;
+			top: $prop-label-font-size*$prop-label-line-height/2 + rem-calc(1); // rem-calc(1) - for visual balance
+			transform: translateY(-50%);
+			left: 0;
+		}
 	}
 
 

@@ -5,7 +5,8 @@
 // BASE VARIABLES
 // =====================================================================================================================
 $bcontent-base-pad-y:           $base-module*2 !default;
-$bcontent-base-pad-x:           $base-module*2 !default;
+$bcontent-base-pad-x:           $base-module*2.5 !default;
+$bcontent-base-pad-y-lrg:       $bcontent-base-pad-x !default;
 
 // =====================================================================================================================
 // ELEMENTS
@@ -63,7 +64,7 @@ $bcontent-actions-box-padding:      $base-module $base-module ($base-module - $b
 // =====================================================================================================================
 $bcontent-box-pad-x:                $bcontent-base-pad-x !default;
 $bcontent-box-pad-y:                $bcontent-base-pad-y !default;
-$bcontent-box-pad-y-last:           $bcontent-box-pad-y*1.5 !default;
+$bcontent-box-pad-y-last:           $bcontent-base-pad-y-lrg !default;
 
 $bcontent-box-border-color:         $bcontent-title-area-border-color !default;
 

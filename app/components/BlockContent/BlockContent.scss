@@ -122,6 +122,10 @@
 		.block-content-title-area + &.is-bordered {
 				border-top: 1px solid $bcontent-box-border-color;
 		}
+
+		&.is-bordered {
+			border-top: 1px solid $bcontent-box-border-color;
+		}
 	}
 
 	// CONTENT AREA

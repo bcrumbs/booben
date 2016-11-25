@@ -351,6 +351,9 @@ export class PropsItem extends PureComponent {
     render() {
         let className = 'prop-item',
             wrapperClassName = 'prop-item-wrapper';
+        
+        if (this.props.propType.required)
+            wrapperClassName += ` is-required`;
 
         if (this.props.propType.view)
             className += ` prop-type-${this.props.propType.view}`;
@@ -393,6 +396,12 @@ export class PropsItem extends PureComponent {
                     </div>
                 </div>
             );
+        }
+    
+        let subcomponentLeft = null;
+        if (this.props.propType.subcomponentLeft) {
+            subcomponentLeft =
+                <div className="prop_subcomponent prop_subcomponent-left">{this.props.propType.subcomponentLeft}</div>;
         }
 
         let linkAction = null;
@@ -516,6 +525,7 @@ export class PropsItem extends PureComponent {
         return (
             <div className={className}>
                 <div className={wrapperClassName}>
+                    {subcomponentLeft}
                     {actionsLeft}
                     {image}
 
@@ -555,7 +565,10 @@ const propItemTypeShape = {
     image: PropTypes.string,
     tooltip: PropTypes.string,
     linkable: PropTypes.bool,
+    required: PropTypes.bool,
+    displayRequired: PropTypes.bool,
     transformValue: PropTypes.func,
+    subcomponentLeft: PropTypes.object,
 
     // For 'object' and 'array' views
     formatItemLabel: PropTypes.func,

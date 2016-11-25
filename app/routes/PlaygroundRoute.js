@@ -258,13 +258,9 @@ const toolRouteWindowSections = List([
 
 				<BlockContentBoxItem>
 					<PropsList>
-						<PropsItem view="tree" />
 					</PropsList>
 				</BlockContentBoxItem>
 
-				<BlockContentBoxItem>
-					<BlockBreadcrumbs items={treeItems}/>
-				</BlockContentBoxItem>
 			</BlockContentBox>
 		)
 	})
@@ -364,319 +360,319 @@ const toolComponentLayoutWindowSections = List([
 			<BlockContentBox isBordered>
 				<BlockContentBoxHeading>Prop View: Input</BlockContentBoxHeading>
 				<BlockContentBoxItem>
-					<PropsItem
-						view="input"
-						label="without type"
-					/>
-					<PropsItem
-						view="input"
-						label="some very-very-very extremely long prop label"
-						type="string"
-						tooltip={'some tooltip'}
-						value="typeA.fieldB"
-					    linkable
-					/>
-					<PropsItem
-						view="input"
-						label="disabled prop"
-						type="string"
-						tooltip={'some tooltip'}
-						value="typeA.fieldB"
-						linkable
-						removable
-					/>
-					<PropsItem
-						view="input"
-						label="disabled prop"
-						type="string"
-						tooltip={'some tooltip'}
-						value="typeA.fieldB"
-						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
-						linkable
-						removable
-						disabled
-					/>
+					{/*<PropsItem*/}
+						{/*view="input"*/}
+						{/*label="without type"*/}
+					{/*/>*/}
+					{/*<PropsItem*/}
+						{/*view="input"*/}
+						{/*label="some very-very-very extremely long prop label"*/}
+						{/*type="string"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*value="typeA.fieldB"*/}
+					    {/*linkable*/}
+					{/*/>*/}
+					{/*<PropsItem*/}
+						{/*view="input"*/}
+						{/*label="disabled prop"*/}
+						{/*type="string"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*value="typeA.fieldB"*/}
+						{/*linkable*/}
+						{/*removable*/}
+					{/*/>*/}
+					{/*<PropsItem*/}
+						{/*view="input"*/}
+						{/*label="disabled prop"*/}
+						{/*type="string"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*value="typeA.fieldB"*/}
+						{/*image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
+						{/*linkable*/}
+						{/*removable*/}
+						{/*disabled*/}
+					{/*/>*/}
 				</BlockContentBoxItem>
 
 				<BlockContentBoxHeading>Prop View: textarea</BlockContentBoxHeading>
 				<BlockContentBoxItem>
-					<PropsItem
-						view="textarea"
-						label="without type"
-					/>
-					<PropsItem
-						view="textarea"
-						label="some very-very-very extremely long prop label"
-						type="string"
-						tooltip={'some tooltip'}
-						value="typeA.fieldB"
-						linkable
-					/>
-					<PropsItem
-						view="textarea"
-						label="disabled prop"
-						type="string"
-						tooltip={'some tooltip'}
-						value="typeA.fieldB"
-						linkable
-						removable
-					/>
-					<PropsItem
-						view="textarea"
-						label="disabled prop"
-						type="string"
-						tooltip={'some tooltip'}
-						value="typeA.fieldB"
-						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
-						linkable
-						removable
-						disabled
-					/>
+					{/*<PropsItem*/}
+						{/*view="textarea"*/}
+						{/*label="without type"*/}
+					{/*/>*/}
+					{/*<PropsItem*/}
+						{/*view="textarea"*/}
+						{/*label="some very-very-very extremely long prop label"*/}
+						{/*type="string"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*value="typeA.fieldB"*/}
+						{/*linkable*/}
+					{/*/>*/}
+					{/*<PropsItem*/}
+						{/*view="textarea"*/}
+						{/*label="disabled prop"*/}
+						{/*type="string"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*value="typeA.fieldB"*/}
+						{/*linkable*/}
+						{/*removable*/}
+					{/*/>*/}
+					{/*<PropsItem*/}
+						{/*view="textarea"*/}
+						{/*label="disabled prop"*/}
+						{/*type="string"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*value="typeA.fieldB"*/}
+						{/*image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
+						{/*linkable*/}
+						{/*removable*/}
+						{/*disabled*/}
+					{/*/>*/}
 				</BlockContentBoxItem>
 
 				<BlockContentBoxHeading>Prop View: constructor</BlockContentBoxHeading>
 				<BlockContentBoxItem>
-					<PropsItem
-						view="constructor"
-						label="without type"
-						setComponentButtonText="Set Component"
-					/>
-					<PropsItem
-						view="constructor"
-						label="some very-very-very extremely long prop label"
-						type="constructor"
-						tooltip={'some tooltip'}
-						setComponentButtonText="Set Component"
-						linkable
-					/>
-					<PropsItem
-						view="constructor"
-						label="disabled prop"
-						type="constructor"
-						tooltip={'some tooltip'}
-						setComponentButtonText="Set Component"
-						linkable
-						removable
-					/>
-					<PropsItem
-						view="constructor"
-						label="disabled prop"
-						type="constructor"
-						tooltip={'some tooltip'}
-						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
-						setComponentButtonText="Set Component"
-						linkable
-						removable
-						disabled
-					/>
+					{/*<PropsItem*/}
+						{/*view="constructor"*/}
+						{/*label="without type"*/}
+						{/*setComponentButtonText="Set Component"*/}
+					{/*/>*/}
+					{/*<PropsItem*/}
+						{/*view="constructor"*/}
+						{/*label="some very-very-very extremely long prop label"*/}
+						{/*type="constructor"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*setComponentButtonText="Set Component"*/}
+						{/*linkable*/}
+					{/*/>*/}
+					{/*<PropsItem*/}
+						{/*view="constructor"*/}
+						{/*label="disabled prop"*/}
+						{/*type="constructor"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*setComponentButtonText="Set Component"*/}
+						{/*linkable*/}
+						{/*removable*/}
+					{/*/>*/}
+					{/*<PropsItem*/}
+						{/*view="constructor"*/}
+						{/*label="disabled prop"*/}
+						{/*type="constructor"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
+						{/*setComponentButtonText="Set Component"*/}
+						{/*linkable*/}
+						{/*removable*/}
+						{/*disabled*/}
+					{/*/>*/}
 				</BlockContentBoxItem>
 
 				<BlockContentBoxHeading>Prop View: constructor-toggle</BlockContentBoxHeading>
 				<BlockContentBoxItem>
-					<PropsItem
-						view="constructor-toggle"
-						label="without type"
-						setComponentButtonText="Set Component"
-					/>
-					<PropsItem
-						view="constructor-toggle"
-						label="some very-very-very extremely long prop label"
-						type="constructor"
-						tooltip={'some tooltip'}
-						setComponentButtonText="Set Component"
-						linkable
-					/>
-					<PropsItem
-						view="constructor-toggle"
-						label="disabled prop"
-						type="constructor"
-						tooltip={'some tooltip'}
-						setComponentButtonText="Set Component"
-						linkable
-						removable
-					/>
-					<PropsItem
-						view="constructor-toggle"
-						label="disabled prop"
-						type="constructor"
-						tooltip={'some tooltip'}
-						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
-						setComponentButtonText="Set Component"
-						linkable
-						removable
-						disabled
-					/>
+					{/*<PropsItem*/}
+						{/*view="constructor-toggle"*/}
+						{/*label="without type"*/}
+						{/*setComponentButtonText="Set Component"*/}
+					{/*/>*/}
+					{/*<PropsItem*/}
+						{/*view="constructor-toggle"*/}
+						{/*label="some very-very-very extremely long prop label"*/}
+						{/*type="constructor"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*setComponentButtonText="Set Component"*/}
+						{/*linkable*/}
+					{/*/>*/}
+					{/*<PropsItem*/}
+						{/*view="constructor-toggle"*/}
+						{/*label="disabled prop"*/}
+						{/*type="constructor"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*setComponentButtonText="Set Component"*/}
+						{/*linkable*/}
+						{/*removable*/}
+					{/*/>*/}
+					{/*<PropsItem*/}
+						{/*view="constructor-toggle"*/}
+						{/*label="disabled prop"*/}
+						{/*type="constructor"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
+						{/*setComponentButtonText="Set Component"*/}
+						{/*linkable*/}
+						{/*removable*/}
+						{/*disabled*/}
+					{/*/>*/}
 				</BlockContentBoxItem>
 
 				<BlockContentBoxHeading>Prop View: toggle</BlockContentBoxHeading>
 				<BlockContentBoxItem>
-					<PropsItem
-						view="toggle"
-						label="without type"
-					/>
-					<PropsItem
-						view="toggle"
-						label="some very-very-very extremely long prop label"
-						type="bool"
-						tooltip={'some tooltip'}
-						linkable
-					/>
-					<PropsItem
-						view="toggle"
-						label="disabled prop"
-						type="bool"
-						tooltip={'some tooltip'}
-						linkable
-						removable
-					/>
-					<PropsItem
-						view="toggle"
-						label="disabled prop"
-						type="bool"
-						tooltip={'some tooltip'}
-						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
-						linkable
-						removable
-						disabled
-					/>
-
-					<PropsItem
-						view="toggle"
-						label="has childrens - closed"
-						type="bool"
-						tooltip={'some tooltip'}
-						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
-						linkable
-						removable
-					>
-						<PropsList>
-							<PropsItem view="input" label="child item 1"/>
-							<PropsItem view="input" label="child item 2"/>
-							<PropsItem view="input" label="child item 3"/>
-						</PropsList>
-					</PropsItem>
-
-					<PropsItem
-						view="toggle"
-						label="has childrens - opened"
-						type="bool"
-						tooltip={'some tooltip'}
-						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
-						linkable
-						removable
-						subtreeOn
-					>
-						<PropsList>
-							<PropsItem view="input" label="child item 1"/>
-							<PropsItem view="input" label="child item 2"/>
-							<PropsItem view="input" label="child item 3"/>
-						</PropsList>
-					</PropsItem>
+					{/*<PropsItem*/}
+						{/*view="toggle"*/}
+						{/*label="without type"*/}
+					{/*/>*/}
+					{/*<PropsItem*/}
+						{/*view="toggle"*/}
+						{/*label="some very-very-very extremely long prop label"*/}
+						{/*type="bool"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*linkable*/}
+					{/*/>*/}
+					{/*<PropsItem*/}
+						{/*view="toggle"*/}
+						{/*label="disabled prop"*/}
+						{/*type="bool"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*linkable*/}
+						{/*removable*/}
+					{/*/>*/}
+					{/*<PropsItem*/}
+						{/*view="toggle"*/}
+						{/*label="disabled prop"*/}
+						{/*type="bool"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
+						{/*linkable*/}
+						{/*removable*/}
+						{/*disabled*/}
+					{/*/>*/}
+                    
+					{/*<PropsItem*/}
+						{/*view="toggle"*/}
+						{/*label="has childrens - closed"*/}
+						{/*type="bool"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
+						{/*linkable*/}
+						{/*removable*/}
+					{/*>*/}
+						{/*<PropsList>*/}
+							{/*<PropsItem view="input" label="child item 1"/>*/}
+							{/*<PropsItem view="input" label="child item 2"/>*/}
+							{/*<PropsItem view="input" label="child item 3"/>*/}
+						{/*</PropsList>*/}
+					{/*</PropsItem>*/}
+                    
+					{/*<PropsItem*/}
+						{/*view="toggle"*/}
+						{/*label="has childrens - opened"*/}
+						{/*type="bool"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
+						{/*linkable*/}
+						{/*removable*/}
+						{/*subtreeOn*/}
+					{/*>*/}
+						{/*<PropsList>*/}
+							{/*<PropsItem view="input" label="child item 1"/>*/}
+							{/*<PropsItem view="input" label="child item 2"/>*/}
+							{/*<PropsItem view="input" label="child item 3"/>*/}
+						{/*</PropsList>*/}
+					{/*</PropsItem>*/}
 				</BlockContentBoxItem>
 
 				<BlockContentBoxHeading>Prop View: tree</BlockContentBoxHeading>
 				<BlockContentBoxItem>
-					<PropsItem
-						view="tree"
-						label="without type"
-					>
-						<PropsList>
-							<PropsItem view="input" label="child item 1" removable/>
-							<PropsItem view="input" label="child item 2" removable/>
-							<PropsItem view="input" label="child item 3" removable/>
-						</PropsList>
-					</PropsItem>
-
-					<PropsItem
-						view="tree"
-						label="some very-very-very extremely long prop label"
-						type="constructor"
-						tooltip={'some tooltip'}
-						linkable
-					>
-						<PropsList>
-							<PropsItem view="input" label="child item 1" removable/>
-							<PropsItem view="input" label="child item 2" removable/>
-							<PropsItem view="input" label="child item 3" removable/>
-						</PropsList>
-					</PropsItem>
-
-					<PropsItem
-						view="tree"
-						label="disabled prop"
-						type="constructor"
-						tooltip={'some tooltip'}
-						linkable
-						removable
-					>
-						<PropsList>
-							<PropsItem view="input" label="child item 1" removable/>
-							<PropsItem view="input" label="child item 2" removable/>
-							<PropsItem view="input" label="child item 3" removable/>
-						</PropsList>
-					</PropsItem>
-
-					<PropsItem
-						view="tree"
-						label="some very very very long prop label"
-						type="constructor"
-						tooltip={'some tooltip'}
-						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
-						linkable
-						removable
-						disabled
-					>
-						<PropsList>
-							<PropsItem view="input" label="child item 1" removable/>
-							<PropsItem view="input" label="child item 2" removable/>
-							<PropsItem view="input" label="child item 3" removable/>
-						</PropsList>
-					</PropsItem>
-
-					<PropsItem
-						view="tree"
-						label="has childrens - closed"
-						type="object"
-						tooltip={'some tooltip'}
-						image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"
-						linkable
-						removable
-					>
-						<PropsList>
-							<PropsItem view="input" label="child item 1" removable/>
-							<PropsItem view="input" label="child item 2" removable/>
-							<PropsItem view="input" label="child item 3" removable/>
-						</PropsList>
-					</PropsItem>
-
-					<PropsItem
-						view="tree"
-						label="Has childrens - opened"
-						type="object"
-						tooltip={'some tooltip'}
-						linkable
-						opened
-					>
-						<PropsItem view="input" label="child item 1" removable/>
-						<PropsItem view="input" label="child item 2" removable/>
-						<PropsItem view="input" label="child item 3" removable/>
-					</PropsItem>
-
-					<PropsItem
-						view="tree"
-						label="Has childrens - opened"
-						type="arrayOf"
-						tooltip={'some tooltip'}
-						linkable
-						opened
-						addNewField
-					>
-
-						<PropsItem view="input" label="child item 1" removable/>
-						<PropsItem view="input" label="child item 2" removable/>
-						<PropsItem view="input" label="child item 3" removable/>
-
-					</PropsItem>
+					{/*<PropsItem*/}
+						{/*view="tree"*/}
+						{/*label="without type"*/}
+					{/*>*/}
+						{/*<PropsList>*/}
+							{/*<PropsItem view="input" label="child item 1" removable/>*/}
+							{/*<PropsItem view="input" label="child item 2" removable/>*/}
+							{/*<PropsItem view="input" label="child item 3" removable/>*/}
+						{/*</PropsList>*/}
+					{/*</PropsItem>*/}
+                    
+					{/*<PropsItem*/}
+						{/*view="tree"*/}
+						{/*label="some very-very-very extremely long prop label"*/}
+						{/*type="constructor"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*linkable*/}
+					{/*>*/}
+						{/*<PropsList>*/}
+							{/*<PropsItem view="input" label="child item 1" removable/>*/}
+							{/*<PropsItem view="input" label="child item 2" removable/>*/}
+							{/*<PropsItem view="input" label="child item 3" removable/>*/}
+						{/*</PropsList>*/}
+					{/*</PropsItem>*/}
+                    
+					{/*<PropsItem*/}
+						{/*view="tree"*/}
+						{/*label="disabled prop"*/}
+						{/*type="constructor"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*linkable*/}
+						{/*removable*/}
+					{/*>*/}
+						{/*<PropsList>*/}
+							{/*<PropsItem view="input" label="child item 1" removable/>*/}
+							{/*<PropsItem view="input" label="child item 2" removable/>*/}
+							{/*<PropsItem view="input" label="child item 3" removable/>*/}
+						{/*</PropsList>*/}
+					{/*</PropsItem>*/}
+                    
+					{/*<PropsItem*/}
+						{/*view="tree"*/}
+						{/*label="some very very very long prop label"*/}
+						{/*type="constructor"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
+						{/*linkable*/}
+						{/*removable*/}
+						{/*disabled*/}
+					{/*>*/}
+						{/*<PropsList>*/}
+							{/*<PropsItem view="input" label="child item 1" removable/>*/}
+							{/*<PropsItem view="input" label="child item 2" removable/>*/}
+							{/*<PropsItem view="input" label="child item 3" removable/>*/}
+						{/*</PropsList>*/}
+					{/*</PropsItem>*/}
+                    
+					{/*<PropsItem*/}
+						{/*view="tree"*/}
+						{/*label="has childrens - closed"*/}
+						{/*type="object"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
+						{/*linkable*/}
+						{/*removable*/}
+					{/*>*/}
+						{/*<PropsList>*/}
+							{/*<PropsItem view="input" label="child item 1" removable/>*/}
+							{/*<PropsItem view="input" label="child item 2" removable/>*/}
+							{/*<PropsItem view="input" label="child item 3" removable/>*/}
+						{/*</PropsList>*/}
+					{/*</PropsItem>*/}
+                    
+					{/*<PropsItem*/}
+						{/*view="tree"*/}
+						{/*label="Has childrens - opened"*/}
+						{/*type="object"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*linkable*/}
+						{/*opened*/}
+					{/*>*/}
+						{/*<PropsItem view="input" label="child item 1" removable/>*/}
+						{/*<PropsItem view="input" label="child item 2" removable/>*/}
+						{/*<PropsItem view="input" label="child item 3" removable/>*/}
+					{/*</PropsItem>*/}
+                    
+					{/*<PropsItem*/}
+						{/*view="tree"*/}
+						{/*label="Has childrens - opened"*/}
+						{/*type="arrayOf"*/}
+						{/*tooltip={'some tooltip'}*/}
+						{/*linkable*/}
+						{/*opened*/}
+						{/*addNewField*/}
+					{/*>*/}
+                    
+						{/*<PropsItem view="input" label="child item 1" removable/>*/}
+						{/*<PropsItem view="input" label="child item 2" removable/>*/}
+						{/*<PropsItem view="input" label="child item 3" removable/>*/}
+                    
+					{/*</PropsItem>*/}
 				</BlockContentBoxItem>
 			</BlockContentBox>
 		)

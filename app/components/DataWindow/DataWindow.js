@@ -5,6 +5,7 @@ import React, { PureComponent, PropTypes } from 'react';
 import {
 	Button,
 	Breadcrumbs,
+    Checkbox,
 	Dialog
 } from '@reactackle/reactackle';
 
@@ -25,64 +26,162 @@ import { DataWindowContent } from './DataWindowContent/DataWindowContent';
 
 import './DataWindow.scss';
 
-const SAMPLE_DATA = [
-	{ title: 'Query' },
-	{ title: 'AllMonkeys' }
-];
-
-const SAMPLE_CONTENT = {
-    title: "AllMonkeys",
-    subtitle: "type: object",
-    description: "Some AllMonkeys description",
-    backButton: false,
-    list: [
-        {
-            title: "SomeProp1",
-            type: "string",
-            tooltip: "Some description",
-            description: "some description",
-            required: true,
-            argsButton: true,
-            argsRequired: true,
-            chosen: true,
-            connection: true
-        },
-        {
-            title: "SomeProp2",
-            type: "object",
-            tooltip: "Some description",
-            description: "some description",
-            required: true,
-            argsButton: false,
-            argsRequired: true,
-            chosen: false,
-            connection: false
-        },
-        {
-            title: "SomeProp3",
-            type: "string",
-            tooltip: "Some description",
-            required: true,
-            argsButton: true,
-            argsRequired: true,
-            chosen: false,
-            connection: false
-        }
+const SAMPLE_STEP_ONE = {
+    breadcrumbs: [],
+    content: {
+        title: "",
+        subtitle: "",
+        description: "",
+        backButton: false,
+        list: [
+            {
+                title: "Query",
+                actionType: "jump",
+                connection: true
+            },
+            {
+                title: "Functions",
+                actionType: "jump",
+                connection: true
+            },
+            {
+                title: "Context",
+                actionType: "jump",
+                connection: true
+            },
+            {
+                title: "State",
+                actionType: "jump",
+                connection: true
+            }
         
+        ]
+    },
+    actions: []
+};
+
+const SAMPLE_TYPE = {
+    breadcrumbs: [
+        {title: 'Data'},
+        {title: 'allMonkeys'}
+    ],
+    
+    content: {
+        title: "allMonkeys",
+        subtitle: "type: Monkey",
+        description: "Some allMonkeys description",
+        argsButton: true,
+        contentHeading: 'Fields',
+        list: [
+            {
+                title: "SomeField1",
+                type: "string",
+                tooltip: "Some description",
+                actionType: "select",
+                clickable: true,
+                required: true,
+                argsButton: true,
+                chosen: true,
+                connection: true,
+                state: "error"
+            },
+            {
+                title: "SomeField2",
+                type: "object",
+                tooltip: "Some description",
+                actionType: "select",
+                clickable: true,
+                required: true,
+                argsButton: true,
+                chosen: false,
+                connection: true,
+                state: "error"
+            },
+            {
+                title: "SomeField3",
+                type: "string",
+                tooltip: "Some description",
+                actionType: "select",
+                clickable: true,
+                required: true,
+                argsButton: true,
+                chosen: false,
+                connection: false,
+                state: "success"
+            }
+        
+        ]
+    },
+    actions: []
+};
+
+const SAMPLE_ARGUMENTS = {
+    breadcrumbs:[],
+    
+    content: {
+        title: "SomeField2 Args",
+        subtitle: "type: object",
+        description: "Some AllMonkeys description",
+        list: [],
+        children: [
+            <PropsList>
+                <PropsItem
+                    propType={{
+                        subcomponentLeft: <Checkbox  label=""/>,
+                        label: 'eatBananas',
+                        view: 'toggle',
+                        type: 'bool',
+                        required: true
+                    }}
+                    value={{
+                        value: ''
+                    }}
+                />
+                <PropsItem
+                    propType={{
+                        subcomponentLeft: <Checkbox label=""/>,
+                        label: 'filter',
+                        view: 'shape',
+                        type: 'filterType',
+                        required: true
+                    }}
+                    value={{
+                        value: ''
+                    }}
+                >
+                    <PropsItem
+                        propType={{
+                            subcomponentLeft: <Checkbox />,
+                            label: 'country',
+                            view: 'input',
+                            type: 'string'
+                        }}
+                        value={{
+                            value: ''
+                        }}
+                    />
+                    <PropsItem
+                        propType={{
+                            subcomponentLeft: <Checkbox />,
+                            label: 'population',
+                            view: 'input',
+                            type: 'int'
+                        }}
+                        value={{
+                            value: ''
+                        }}
+                    />
+                </PropsItem>
+            </PropsList>
+        ],
+    },
+    actions: [
+        {text: 'Back to %Somewhere%'},
+        {text: 'Apply'}
     ]
 };
 
-const SAMPLE_ARGUMENTS_WINDOW = {
-    title: "SomeField2 Args",
-    subtitle: "type: object",
-    description: "Some AllMonkeys description",
-    backButton: true,
-    list: []
-};
-
-const DIALOG_BUTTONS = [
-    { text: 'Apply' }
-];
+const CONTENT_TYPE = SAMPLE_ARGUMENTS;
 
 export const DataWindow= props => {
     return (
@@ -92,56 +191,35 @@ export const DataWindow= props => {
 		        visible
 		        haveCloseButton
                 scrollable
-                windowTitle={props.dialogTitle}
-                buttons={DIALOG_BUTTONS}
+                buttons={CONTENT_TYPE.actions}
                 paddingSize="none"
+                title="%PropName% Data"
                 dialogContentFlex
 	        >
-		        <BlockContent>
-			        <BlockContentTitle title="PropName Data"/>
-
-			        <BlockContentNavigation isBordered>
-				        <BlockBreadcrumbs
-					        items={SAMPLE_DATA}
-					        mode="dark"
-				        />
-			        </BlockContentNavigation>
-
-			        <BlockContentBox isBordered>
-                        <DataWindowContent
-                            title={SAMPLE_ARGUMENTS_WINDOW.title}
-                            subtitle={SAMPLE_ARGUMENTS_WINDOW.subtitle}
-                            description={SAMPLE_ARGUMENTS_WINDOW.description}
-                            list={SAMPLE_ARGUMENTS_WINDOW.list}
-                            backButton={SAMPLE_ARGUMENTS_WINDOW.backButton}
-                        >
-                            <PropsList>
-                                <PropsItem
-                                    type="bool"
-                                    view="toggle"
-                                    label="eatBananas"
-                                />
-                                <PropsItem
-                                    type="filterType"
-                                    view="tree"
-                                    label="filter"
-                                    subtreeOn
-                                >
-                                    <PropsItem
-                                        type="string"
-                                        view="input"
-                                        label="country"
-                                    />
-                                    <PropsItem
-                                        type="int"
-                                        view="input"
-                                        label="population"
-                                    />
-                                </PropsItem>
-                            </PropsList>
-                        </DataWindowContent>
-                    </BlockContentBox>
-		        </BlockContent>
+                <div className="data-window_content">
+                    <BlockContent>
+                        <BlockContentNavigation isBordered>
+                            <BlockBreadcrumbs
+                                items={CONTENT_TYPE.breadcrumbs}
+                                mode="dark"
+                            />
+                        </BlockContentNavigation>
+    
+                        <BlockContentBox isBordered>
+                            <DataWindowContent
+                                title={CONTENT_TYPE.content.title}
+                                subtitle={CONTENT_TYPE.content.subtitle}
+                                description={CONTENT_TYPE.content.description}
+                                contentHeading={CONTENT_TYPE.content.contentHeading}
+                                argsButton={CONTENT_TYPE.content.argsButton}
+                                list={CONTENT_TYPE.content.list}
+                                children={CONTENT_TYPE.content.children}
+                            >
+                                
+                            </DataWindowContent>
+                        </BlockContentBox>
+                    </BlockContent>
+                </div>
 	        </Dialog>
         </div>
     );
@@ -156,3 +234,4 @@ DataWindow.defaultProps = {
 };
 
 DataWindow.displayName = 'DataWindow';
+

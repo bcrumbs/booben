@@ -19,17 +19,11 @@ import {
 export const DataWindowContent= props => {
     let title = null,
         subtitle = null,
+        argsButton = null,
+        descriptionHeading = null,
         description = null,
-        content = null,
-        backButton = null;
-    
-    if (props.backButton) {
-        backButton =
-            <div className="data-window_back">
-                <Button icon="chevron-left"/>
-            </div>
-    }
-    
+        content = null;
+        
     if (props.subtitle) {
         subtitle =
             <div className="data-window_subtitle">
@@ -37,20 +31,26 @@ export const DataWindowContent= props => {
             </div>
     }
     
-    if (props.list) {
-        content =
+    if (props.argsButton) {
+        argsButton =
             <BlockContentBoxItem>
-                <DataList data={props.list} />
-                {props.children}
-            </BlockContentBoxItem>;
+                <div className="data-window_heading-buttons">
+                    <Button text="Set Arguments" narrow/>
+                </div>
+            </BlockContentBoxItem>
     }
+    
+    let contentHeading = <BlockContentBoxHeading>{props.contentHeading}</BlockContentBoxHeading>;
+    content =
+        <BlockContentBoxItem>
+            <DataList data={props.list} />
+            {props.children}
+        </BlockContentBoxItem>;
     
     if (props.title) {
         title =
             <BlockContentBoxItem>
                 <div className="data-window_title-box">
-                    {backButton}
-                    
                     <div className="data-window_title-content">
                         <div className="data-window_title">
                             {props.title}
@@ -62,18 +62,20 @@ export const DataWindowContent= props => {
     }
     
     if (props.description) {
-        description =
-            <div className="data-window_description-box">
-                <BlockContentBoxHeading>Description</BlockContentBoxHeading>
-                <BlockContentBoxItem>{props.description}</BlockContentBoxItem>
-            </div>
+        descriptionHeading = <BlockContentBoxHeading>Description</BlockContentBoxHeading>;
+        description = <BlockContentBoxItem>{props.description}</BlockContentBoxItem>;
     }
     
     return (
         <div className="data-window_content">
-            {title}
-            {description}
-            {content}
+            <div className="data-window_content-heading">
+                { title }
+                { descriptionHeading }
+                { description }
+                { argsButton }
+            </div>
+            { contentHeading }
+            { content }
         </div>
     );
 };
@@ -82,20 +84,18 @@ DataWindowContent.propTypes = {
 	title: PropTypes.string,
     subtitle: PropTypes.string,
     description: PropTypes.string,
-    list: PropTypes.arrayOf,
-    
-    /*
-        We use backButton for attributes editing screen only
-     */
-    backButton: PropTypes.bool
+    contentHeading: PropTypes.string,
+    argsButton: PropTypes.bool,
+    list: PropTypes.arrayOf
 };
 
 DataWindowContent.defaultProps = {
 	title: '',
     subtitle: '',
     description: '',
-    list: [],
-    backButton: false
+    contentHeading: '',
+    argsButton: false,
+    list: []
 };
 
 DataWindowContent.displayName = 'DataWindowContent';
