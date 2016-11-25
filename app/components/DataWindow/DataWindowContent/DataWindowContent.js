@@ -18,12 +18,20 @@ import {
 
 export const DataWindowContent= props => {
     let title = null,
+        type = null,
         subtitle = null,
         argsButton = null,
         descriptionHeading = null,
         description = null,
         content = null;
         
+    if (props.type) {
+        type =
+            <div className="data-window_type">
+                {props.type}
+            </div>
+    }
+    
     if (props.subtitle) {
         subtitle =
             <div className="data-window_subtitle">
@@ -55,6 +63,7 @@ export const DataWindowContent= props => {
                         <div className="data-window_title">
                             {props.title}
                         </div>
+                        {type}
                         {subtitle}
                     </div>
                 </div>
@@ -82,6 +91,7 @@ export const DataWindowContent= props => {
 
 DataWindowContent.propTypes = {
 	title: PropTypes.string,
+    type: PropTypes.string,
     subtitle: PropTypes.string,
     description: PropTypes.string,
     contentHeading: PropTypes.string,
@@ -91,6 +101,7 @@ DataWindowContent.propTypes = {
 
 DataWindowContent.defaultProps = {
 	title: '',
+    type: '',
     subtitle: '',
     description: '',
     contentHeading: '',

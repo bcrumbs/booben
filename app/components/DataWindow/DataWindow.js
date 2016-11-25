@@ -71,7 +71,7 @@ const SAMPLE_TYPE = {
     
     content: {
         title: "allMonkeys",
-        subtitle: "type: Monkey",
+        type: "type: Monkey",
         description: "Some allMonkeys description",
         argsButton: true,
         contentHeading: 'Fields',
@@ -291,7 +291,7 @@ const SAMPLE_ARGUMENTS_TOTAL = {
     ]
 };
 
-const CONTENT_TYPE = SAMPLE_ARGUMENTS_TOTAL;
+const CONTENT_TYPE = SAMPLE_TYPE;
 
 export const DataWindow= props => {
     return (
@@ -319,6 +319,7 @@ export const DataWindow= props => {
                         <BlockContentBox isBordered>
                             <DataWindowContent
                                 title={CONTENT_TYPE.content.title}
+                                type={CONTENT_TYPE.content.type}
                                 subtitle={CONTENT_TYPE.content.subtitle}
                                 description={CONTENT_TYPE.content.description}
                                 contentHeading={CONTENT_TYPE.content.contentHeading}
