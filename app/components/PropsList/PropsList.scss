@@ -241,10 +241,10 @@ $prop-toggle: 'prop-type-toggle';
 
 		@include user-select();
 
-		.prop-item-wrapper.is-required & {
+		.prop-item-wrapper.has-required-sign & {
 			padding-left: $prop-required-size + $base-module/2;
 		}
-		.prop-item-wrapper.is-required &::before {
+		.prop-item-wrapper.has-required-sign &::before {
 			content: '';
 			width: $prop-required-size;
 			height: $prop-required-size;

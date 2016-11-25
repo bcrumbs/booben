@@ -99,3 +99,5 @@ DataWindowContent.defaultProps = {
 };
 
 DataWindowContent.displayName = 'DataWindowContent';
+
+export * from "./DataWindowContentGroup/DataWindowContentGroup";

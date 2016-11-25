@@ -354,6 +354,9 @@ export class PropsItem extends PureComponent {
         
         if (this.props.propType.required)
             wrapperClassName += ` is-required`;
+        
+        if (this.props.propType.required && this.props.propType.displayRequired)
+            wrapperClassName += ` has-required-sign`;
 
         if (this.props.propType.view)
             className += ` prop-type-${this.props.propType.view}`;

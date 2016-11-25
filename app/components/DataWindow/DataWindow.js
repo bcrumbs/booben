@@ -22,7 +22,10 @@ import {
     PropsItem
 } from "../PropsList/PropsList";
 
-import { DataWindowContent } from './DataWindowContent/DataWindowContent';
+import {
+    DataWindowContent,
+    DataWindowContentGroup
+} from './DataWindowContent/DataWindowContent';
 
 import './DataWindow.scss';
 
@@ -120,8 +123,8 @@ const SAMPLE_ARGUMENTS = {
     
     content: {
         title: "SomeField2 Args",
-        subtitle: "type: object",
-        description: "Some AllMonkeys description",
+        subtitle: "",
+        description: "",
         list: [],
         children: [
             <PropsList>
@@ -181,7 +184,102 @@ const SAMPLE_ARGUMENTS = {
     ]
 };
 
-const CONTENT_TYPE = SAMPLE_ARGUMENTS;
+const SAMPLE_ARGUMENTS_TOTAL = {
+    breadcrumbs:[],
+    
+    content: {
+        title: "Arguments Required",
+        subtitle: "Please, fill required arguments",
+        description: "",
+        list: [],
+        children: [
+            <DataWindowContentGroup title="allMonkeys">
+                <PropsList>
+                    <PropsItem
+                        propType={{
+                            subcomponentLeft: <Checkbox  label=""/>,
+                            label: 'eatBananas',
+                            view: 'toggle',
+                            type: 'bool',
+                            required: true
+                        }}
+                        value={{
+                            value: ''
+                        }}
+                    />
+                    <PropsItem
+                        propType={{
+                            subcomponentLeft: <Checkbox label=""/>,
+                            label: 'filter',
+                            view: 'shape',
+                            type: 'filterType',
+                            required: true
+                        }}
+                        value={{
+                            value: ''
+                        }}
+                    >
+                        <PropsItem
+                            propType={{
+                                subcomponentLeft: <Checkbox />,
+                                label: 'country',
+                                view: 'input',
+                                type: 'string'
+                            }}
+                            value={{
+                                value: ''
+                            }}
+                        />
+                        <PropsItem
+                            propType={{
+                                subcomponentLeft: <Checkbox />,
+                                label: 'population',
+                                view: 'input',
+                                type: 'int'
+                            }}
+                            value={{
+                                value: ''
+                            }}
+                        />
+                    </PropsItem>
+                </PropsList>
+            </DataWindowContentGroup>,
+            <DataWindowContentGroup title="someField">
+                <PropsList>
+                    <PropsItem
+                        propType={{
+                            subcomponentLeft: <Checkbox  label=""/>,
+                            label: 'eatBananas',
+                            view: 'toggle',
+                            type: 'bool',
+                            required: true
+                        }}
+                        value={{
+                            value: ''
+                        }}
+                    />
+                    <PropsItem
+                        propType={{
+                            subcomponentLeft: <Checkbox />,
+                            label: 'country',
+                            view: 'input',
+                            type: 'string'
+                        }}
+                        value={{
+                            value: ''
+                        }}
+                    />
+                </PropsList>
+            </DataWindowContentGroup>
+        ],
+    },
+    actions: [
+        {text: 'Back to %Somewhere%'},
+        {text: 'Apply'}
+    ]
+};
+
+const CONTENT_TYPE = SAMPLE_ARGUMENTS_TOTAL;
 
 export const DataWindow= props => {
     return (
