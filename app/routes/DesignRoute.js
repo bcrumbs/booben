@@ -17,6 +17,7 @@ import { ComponentPropsEditor } from '../containers/ComponentPropsEditor/Compone
 import { ComponentRegionsEditor } from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
 import { LinkPropMenu } from '../containers/LinkPropMenu/LinkPropMenu';
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
+import { DataWindow } from '../components/DataWindow/DataWindow';
 
 import {
     ComponentLayoutSelection,
@@ -429,7 +430,7 @@ class DesignRoute extends PureComponent {
                 onToolTitleChange={this._handleToolTitleChange}
             >
                 {content}
-
+				<DataWindow />
                 <Dialog
                     title={getLocalizedText('selectLayout')}
                     backdrop

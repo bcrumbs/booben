@@ -436,10 +436,11 @@ export default (state = new ProjectState(), action) => {
                     selectedRouteId: project.rootRoutes.size > 0
                         ? project.rootRoutes.get(0)
                         : -1,
-					schema,
                     indexRouteSelected: false
                 })
-                .set('meta', action.metadata); // Prevent conversion to Immutable.Map
+				// Prevent conversion to Immutable.Map
+                .set('meta', action.metadata)
+				.set('schema', schema);	
         }
 
         case PROJECT_ROUTE_CREATE: {

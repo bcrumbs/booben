@@ -27,6 +27,10 @@ import {
     DataWindowContentGroup
 } from './DataWindowContent/DataWindowContent';
 
+import {
+	connect
+} from 'react-redux';
+
 import './DataWindow.scss';
 
 const SAMPLE_STEP_ONE = {
@@ -57,7 +61,7 @@ const SAMPLE_STEP_ONE = {
                 actionType: "jump",
                 connection: true
             }
-        
+
         ]
     },
     actions: []
@@ -68,7 +72,7 @@ const SAMPLE_TYPE = {
         {title: 'Data'},
         {title: 'allMonkeys'}
     ],
-    
+
     content: {
         title: "allMonkeys",
         subtitle: "type: Monkey",
@@ -112,7 +116,7 @@ const SAMPLE_TYPE = {
                 connection: false,
                 state: "success"
             }
-        
+
         ]
     },
     actions: []
@@ -120,7 +124,7 @@ const SAMPLE_TYPE = {
 
 const SAMPLE_ARGUMENTS = {
     breadcrumbs:[],
-    
+
     content: {
         title: "SomeField2 Args",
         subtitle: "",
@@ -184,11 +188,49 @@ const SAMPLE_ARGUMENTS = {
     ]
 };
 
+const createContentType = ({ types, queryTypeName }, currentTypeName = queryTypeName) => {
+	const type = types[currentTypeName];
+	return {
+		breadcrumbs: [],
+		content: {
+			title: currentTypeName,
+			subtitle: "Please, fill required arguments",
+			description: types[currentTypeName].description,
+			list: [],
+			children: [
+				<DataWindowContentGroup title={type.name} >
+					<PropsList >
+						{
+							Object.keys(type.fields).map(fieldName => {
+								const field = type.fields[fieldName];
+								return (
+									<PropsItem
+										key={fieldName}
+										propType={{
+											type: field.type,
+											label: fieldName
+										}}
+										value=""
+									/>
+								);
+							})
+						}
+					</PropsList>
+				</DataWindowContentGroup>
+			]
+		},
+		actions: [
+	        {text: 'Back to %Somewhere%'},
+	        {text: 'Apply'}
+	    ]
+	};
+};
+
 const SAMPLE_ARGUMENTS_TOTAL = {
     breadcrumbs:[],
-    
+
     content: {
-        title: "Arguments Required",
+        title: "Argument",
         subtitle: "Please, fill required arguments",
         description: "",
         list: [],
@@ -281,55 +323,68 @@ const SAMPLE_ARGUMENTS_TOTAL = {
 
 const CONTENT_TYPE = SAMPLE_ARGUMENTS_TOTAL;
 
-export const DataWindow= props => {
-    return (
-        <div className="data-window">
-	        <Dialog
-		        backdrop
-		        visible
-		        haveCloseButton
-                scrollable
-                buttons={CONTENT_TYPE.actions}
-                paddingSize="none"
-                title="%PropName% Data"
-                dialogContentFlex
-	        >
-                <div className="data-window_content">
-                    <BlockContent>
-                        <BlockContentNavigation isBordered>
-                            <BlockBreadcrumbs
-                                items={CONTENT_TYPE.breadcrumbs}
-                                mode="dark"
-                            />
-                        </BlockContentNavigation>
-    
-                        <BlockContentBox isBordered>
-                            <DataWindowContent
-                                title={CONTENT_TYPE.content.title}
-                                subtitle={CONTENT_TYPE.content.subtitle}
-                                description={CONTENT_TYPE.content.description}
-                                contentHeading={CONTENT_TYPE.content.contentHeading}
-                                argsButton={CONTENT_TYPE.content.argsButton}
-                                list={CONTENT_TYPE.content.list}
-                                children={CONTENT_TYPE.content.children}
-                            >
-                                
-                            </DataWindowContent>
-                        </BlockContentBox>
-                    </BlockContent>
-                </div>
-	        </Dialog>
-        </div>
-    );
+class DataWindowComponent extends PureComponent {
+	render() {
+		console.log(this.props.schema)
+		const CONTENT_TYPE = createContentType(this.props.schema);
+        return (
+			<div className="data-window">
+		        <Dialog
+			        backdrop
+			        visible
+			        haveCloseButton
+	                scrollable
+	                buttons={CONTENT_TYPE.actions}
+	                paddingSize="none"
+	                title="%PropName% Data"
+	                dialogContentFlex
+		        >
+	                <div className="data-window_content">
+	                    <BlockContent>
+	                        <BlockContentNavigation isBordered>
+	                            <BlockBreadcrumbs
+	                                items={CONTENT_TYPE.breadcrumbs}
+	                                mode="dark"
+	                            />
+	                        </BlockContentNavigation>
+
+	                        <BlockContentBox isBordered>
+	                            <DataWindowContent
+	                                title={CONTENT_TYPE.content.title}
+	                                subtitle={CONTENT_TYPE.content.subtitle}
+	                                description={CONTENT_TYPE.content.description}
+	                                contentHeading={CONTENT_TYPE.content.contentHeading}
+	                                argsButton={CONTENT_TYPE.content.argsButton}
+	                                list={CONTENT_TYPE.content.list}
+	                                children={CONTENT_TYPE.content.children}
+	                            >
+
+	                            </DataWindowContent>
+	                        </BlockContentBox>
+	                    </BlockContent>
+	                </div>
+		        </Dialog>
+	        </div>
+    	);
+	}
+}
+
+DataWindowComponent.propTypes = {
+	dialogTitle: PropTypes.string,
+
+	schema: PropTypes.object
 };
 
-DataWindow.propTypes = {
-	dialogTitle: PropTypes.string
-};
-
-DataWindow.defaultProps = {
+DataWindowComponent.defaultProps = {
 	dialogTitle: 'InitialComponent — PropName'
 };
 
-DataWindow.displayName = 'DataWindow';
+DataWindowComponent.displayName = 'DataWindow';
 
+const mapStateToProps = state => ({
+	schema: state.project.schema
+});
+
+export const DataWindow = connect(
+	mapStateToProps
+)(DataWindowComponent);

@@ -219,7 +219,6 @@ export const parseGraphQLSchema = schema => {
 			if (
 				!graphQLPrimitiveTypes.has(type.name)
 				&&	!/^__.*/.test(type.name)
-				&&	type.kind !== 'INTERFACE'
 			)
 				normalizedTypes[type.name] = convertToSchemaType(
 					type,
