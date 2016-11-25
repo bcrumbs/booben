@@ -274,7 +274,11 @@ const SAMPLE_ARGUMENTS_TOTAL = {
         ],
     },
     actions: [
-        {text: 'Back to %Somewhere%'},
+        {
+            text: '%Somewhere%',
+            subtitle: 'back to',
+            icon: 'chevron-left'
+        },
         {text: 'Apply'}
     ]
 };
