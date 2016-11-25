@@ -178,8 +178,14 @@ const SAMPLE_ARGUMENTS = {
             </PropsList>
         ],
     },
-    actions: [
-        {text: 'Back to %Somewhere%'},
+    buttonLeft: [
+        {
+            text: '%Somewhere%',
+            subtitle: 'back to',
+            icon: 'chevron-left'
+        }
+    ],
+    buttons: [
         {text: 'Apply'}
     ]
 };
@@ -273,12 +279,14 @@ const SAMPLE_ARGUMENTS_TOTAL = {
             </DataWindowContentGroup>
         ],
     },
-    actions: [
+    buttonsLeft: [
         {
             text: '%Somewhere%',
             subtitle: 'back to',
             icon: 'chevron-left'
-        },
+        }
+    ],
+    buttons: [
         {text: 'Apply'}
     ]
 };
@@ -293,7 +301,8 @@ export const DataWindow= props => {
 		        visible
 		        haveCloseButton
                 scrollable
-                buttons={CONTENT_TYPE.actions}
+                buttonsLeft={CONTENT_TYPE.buttonsLeft}
+                buttons={CONTENT_TYPE.buttons}
                 paddingSize="none"
                 title="%PropName% Data"
                 dialogContentFlex
