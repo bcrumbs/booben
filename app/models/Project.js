@@ -24,7 +24,7 @@ const ProjectRecord = Record({
     name: '',
     author: '',
     componentLibs: List(),
-    relayEndpointURL: null,
+    graphQLEndpointURL: null,
     routes: Map(),
     rootRoutes: List()
 });
@@ -33,7 +33,7 @@ export const projectToImmutable = input => new ProjectRecord({
     name: input.name,
     author: input.author,
     componentLibs: List(input.componentLibs),
-    relayEndpointURL: input.relayEndpointURL || '',
+    graphQLEndpointURL: input.graphQLEndpointURL || '',
     routes: Map().withMutations(routes => {
         const visitRoute = (route, pathPrefix, parentRouteId) => {
             const fullPath = concatPath(pathPrefix, route.path);

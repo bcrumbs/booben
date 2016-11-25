@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { getProject, getMetadata } from '../api';
+import { getProject, getMetadata, getFullGraphQLSchema } from '../api';
 import { Record, Map } from 'immutable';
 
 /**
@@ -33,12 +33,14 @@ export const PROJECT_LOADED = 'PROJECT_LOADED';
  *
  * @param {Object} project
  * @param {Object} metadata
+ * @param {Object} [schema=null]
  * @return {Object}
  */
-const projectLoaded = (project, metadata) => ({
+const projectLoaded = (project, metadata, schema = null) => ({
     type: PROJECT_LOADED,
     project,
-    metadata
+    metadata,
+	schema
 });
 
 /**
@@ -66,9 +68,18 @@ export const loadProject = projectName => dispatch => {
     dispatch(requestProject(projectName));
 
     Promise.all([getProject(projectName), getMetadata(projectName)])
-        .then(([project, metadata]) => void dispatch(projectLoaded(project, metadata)))
-        .catch(err => void dispatch(projectLoadFailed(err)))
+        .then(([project, metadata]) => {
+			if (project.graphQLEndpointURL)
+				getFullGraphQLSchema(project.graphQLEndpointURL)
+					.then(schema =>
+						void dispatch(projectLoaded(project, metadata, schema))
+					)
+					.catch(error => void dispatch(projectLoadFailed(error)));
+			else dispatch(projectLoaded(project, metadata));
+		})
+        .catch(err => void dispatch(projectLoadFailed(err)));
 };
+
 
 /**
  *
@@ -243,13 +254,13 @@ export const renameComponent = (componentId, newTitle) => ({
 });
 
 /**
- * 
+ *
  * @type {string}
  */
 export const PROJECT_COMPONENT_TOGGLE_REGION = 'PROJECT_COMPONENT_TOGGLE_REGION';
 
 /**
- * 
+ *
  * @param {number} componentId
  * @param {number} regionIdx
  * @param {boolean} enable

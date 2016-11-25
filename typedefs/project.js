@@ -10,7 +10,7 @@
  * @property {string} name
  * @property {?string} author
  * @property {string[]} componentLibs
- * @property {?string} relayEndpointURL
+ * @property {?string} graphQLEndpointURL
  * @property {ProjectRoute[]} routes
  */
 
@@ -85,7 +85,7 @@
 
 /**
  * @typedef {Object} SourceDataData
- * @property {string} [context] - id of data context; applicable only for owned components
+ * @property {number} [dataContextIndex] - 0 = query root; can be >0 only in own components
  * @property {QueryPathStep[]} queryPath
  */
 
