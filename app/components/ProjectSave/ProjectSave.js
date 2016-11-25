@@ -1,8 +1,7 @@
 'use strict';
 import React, {Component, PropTypes} from 'react';
 import {
-	Icon,
-	Tooltip
+	Icon
 } from '@reactackle/reactackle';
 
 import { combineWithTooltip } from

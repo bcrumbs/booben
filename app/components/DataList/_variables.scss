@@ -8,7 +8,7 @@
 // =====================================================================================================================
 // DATA ITEM
 // =====================================================================================================================
-$data-item-padding-x:               $base-module !default;
+$data-item-padding-x:               $base-module*2 !default;
 $data-item-padding-y:               $base-module !default;
 $data-item-spacing:                 0 !default;
 $data-item-border-radius:           $global-radius !default;
@@ -35,3 +35,14 @@ $data-item-type-line-height:        $txt-caption-lineheight !default;
 $data-item-type-transform:          none !default;
 $data-item-type-color:              $grey-500 !default;
 $data-item-type-spacing:            $base-module/2 !default;
+
+// Arguments
+$data-item-margin-x:                $base-module/4 !default;
+$data-item-margin-y:                $base-module/4 !default;
+
+// ACTIONS
+// =====================================================================================================================
+$data-item-actions-spacing:         $base-module/2 !default;
+$data-item-action-size:             $base-module*4.25 !default; // medium btn size
+
+

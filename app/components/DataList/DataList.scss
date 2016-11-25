@@ -14,23 +14,75 @@
 	// DATA ITEM
 	// =================================================================================================================
 	.data-list-item {
-		padding: $data-item-padding-y $data-item-padding-x;
 		border-radius: $data-item-border-radius;
+		display: flex;
+		cursor: $cursor-pointer;
 
 		@include single-transition(background-color);
 		@include user-select;
 
-		&.is-clickable {
-			cursor: $cursor-pointer;
+		& + & { margin-top: $data-item-spacing }
 
-			&:hover,
-			&:focus {
-				background-color: $data-item-hover-bg-color;
+		&.action-type-jump:hover {
+			background-color: transparentize($black, 0.93);
+		}
+
+		&.action-type-jump {
+			.button:hover,
+			.button:active,
+			.button:focus {
+				background-color: transparent !important;
 			}
 		}
 
-		& + & { margin-top: $data-item-spacing }
+		&.action-type-select:hover {
+			.data-item_content-box {
+				background-color: color($yellow-palette, lightest);
+			}
+		}
 	}
+
+	// Content
+	// =================================================================================================================
+	.data-item_content-box {
+		padding: $data-item-padding-y $data-item-padding-x;
+		flex-grow: 1;
+		max-width: calc(100% - #{$data-item-actions-spacing + $data-item-action-size + $data-item-padding-x});
+		border-radius: $global-radius;
+
+		@include single-transition(background-color);
+
+		.is-chosen & {
+			background-color: color($yellow-palette, lightest);
+		}
+	}
+
+	.data-item_content {
+		position: relative;
+	}
+
+	// Buttons
+	.data-item_buttons {
+		opacity: 0;
+		pointer-events: none;
+		position: fixed;
+		margin: (-$data-item-margin-y) (-$data-item-margin-x - $base-module);
+		width: calc(100% + #{$data-item-margin-x*2 + $base-module*2});
+		text-align: right;
+
+		@include single-transition(opacity);
+
+		.data-list-item.is-chosen & {
+			opacity: 1;
+			pointer-events: initial;
+			position: relative;
+		}
+
+		.button {
+			margin: $data-item-margin-y $data-item-margin-x;
+		}
+	}
+
 
 	// Data Title
 	// =================================================================================================================
@@ -44,12 +96,13 @@
 		margin-right: $data-item-type-spacing;
 	}
 
-	.data-item_subtitle {
+	.data-item_description {
 		font-size: $data-item-subtitle-font-size;
 		font-weight: $data-item-subtitle-font-weight;
 		line-height: $data-item-subtitle-line-height;
 		text-transform: $data-item-subtitle-transform;
 		color: $data-item-subtitle-color;
+		margin-top: $base-module/2;
 	}
 
 	.data-item_type {
@@ -58,6 +111,13 @@
 		line-height: $data-item-type-line-height;
 		text-transform: $data-item-type-transform;
 		color: $data-item-type-color;
+		margin-right: $data-item-type-spacing;
+	}
+
+	// ACTIONS
+	// =================================================================================================================
+	.data-item_actions {
+		margin-left: $data-item-actions-spacing;
 	}
 
 }

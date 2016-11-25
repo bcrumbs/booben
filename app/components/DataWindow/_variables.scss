@@ -1,0 +1,23 @@
+@charset "UTF-8";
+@import '~@reactackle/reactackle/utils/global';
+
+// =====================================================================================================================
+// BASE VARIABLES
+// =====================================================================================================================
+
+// =================================================================================================================
+// WINDOW CONTENT
+// =================================================================================================================
+// TITLE
+// =================================================================================================================
+$dwindow-title-font-size:           fs(4)!default;
+$dwindow-title-line-height:         1.25 !default;
+$dwindow-title-color:               $body-font-color !default;
+$dwindow-title-font-weight:         $font-weight-normal !default;
+$dwindow-title-text-transform:      none!default;
+
+$dwindow-subtitle-font-size:           fs(0)!default;
+$dwindow-subtitle-line-height:         1.25 !default;
+$dwindow-subtitle-color:               $color-text-medium !default;
+$dwindow-subtitle-font-weight:         $font-weight-normal !default;
+$dwindow-subtitle-text-transform:      none!default;

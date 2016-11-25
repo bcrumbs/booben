@@ -16,7 +16,7 @@ export const LayoutSelection= props => {
         <div className="layout-selection-modal-wrapper">
 	        <Dialog
 		        visible
-		        haveCloseButton={false}
+		        haveCloseButton
 		        title="Choose Layout"
 	        >
 		        <div className="layout-selection-wrapper">

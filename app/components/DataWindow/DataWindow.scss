@@ -1,0 +1,51 @@
+@charset "UTF-8";
+@import 'variables';
+
+@include exports(data-window) {
+	// =================================================================================================================
+	// BASE
+	// =================================================================================================================
+	.data-window_content {
+		width: rem-calc(420);
+	}
+
+	.data-window_content-heading {
+		background-color: $grey-100;
+	}
+
+	.data-window_heading-buttons {
+		margin-right: -$base-module;
+		margin-bottom: -$base-module;
+		text-align: right
+	}
+
+	// =================================================================================================================
+	// WINDOW CONTENT
+	// =================================================================================================================
+	// TITLE
+	// =================================================================================================================
+	.data-window_title-box {
+		display: flex;
+	}
+
+	.data-window_title-content {
+		flex-grow: 1;
+	}
+
+	.data-window_title {
+		font-size: $dwindow-title-font-size;
+		line-height: $dwindow-title-line-height;
+		color: $dwindow-title-color;
+		font-weight: $dwindow-title-font-weight;
+		text-transform: $dwindow-title-text-transform;
+	}
+
+	.data-window_subtitle {
+		font-size: $dwindow-subtitle-font-size;
+		line-height: $dwindow-subtitle-line-height;
+		color: $dwindow-subtitle-color;
+		font-weight: $dwindow-subtitle-font-weight;
+		text-transform: $dwindow-subtitle-text-transform;
+	}
+
+}
