@@ -46,6 +46,10 @@
 		color: $dwindow-subtitle-color;
 		font-weight: $dwindow-subtitle-font-weight;
 		text-transform: $dwindow-subtitle-text-transform;
+
+		.data-window_title + & {
+			margin-top: $dwindow-subtitle-title-spacing;
+		}
 	}
 
 }

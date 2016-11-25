@@ -9,8 +9,11 @@ import {
 export const DataWindowContentGroup= props => {
     return (
         <div className="data-window_content-group">
-            <div className="data-window_content-group_heading">
+            <div className="data-window_content-group_title">
                 {props.title}
+            </div>
+            <div className="data-window_content-group_subtitle">
+                {props.subtitle}
             </div>
             <div className="data-window_content-group_content">
                 {props.children}
@@ -20,11 +23,13 @@ export const DataWindowContentGroup= props => {
 };
 
 DataWindowContentGroup.propTypes = {
-	title: PropTypes.string
+	title: PropTypes.string,
+	subtitle: PropTypes.string
 };
 
 DataWindowContentGroup.defaultProps = {
-	title: ''
+	title: '',
+	subtitle: ''
 };
 
 DataWindowContentGroup.displayName = 'DataWindowContentGroup';

@@ -1,5 +1,6 @@
 @charset "UTF-8";
 @import '~@reactackle/reactackle/utils/global';
+@import '~@reactackle/reactackle/components/Dialog/variables';
 
 // =====================================================================================================================
 // BASE VARIABLES
@@ -8,14 +9,18 @@ $bcontent-base-pad-y:           $base-module*2 !default;
 $bcontent-base-pad-x:           $base-module*2.5 !default;
 $bcontent-base-pad-y-lrg:       $bcontent-base-pad-x !default;
 
+// Use Cases
+$bcontent-indialog-base-pad-y:           $bcontent-base-pad-y !default;
+$bcontent-indialog-base-pad-x:           $dialog-window-title-padding-x !default;
+$bcontent-indialog-base-pad-y-lrg:       $bcontent-indialog-base-pad-x !default;
+
 // =====================================================================================================================
 // ELEMENTS
 // =====================================================================================================================
 
 // TITLE
 // =====================================================================================================================
-$bcontent-title-pad-y:              $base-module*1.5 !default;
-$bcontent-title-pad-x:              $bcontent-base-pad-x !default;
+$bcontent-title-pad-y:              $bcontent-base-pad-y !default;
 $bcontent-title-area-min-height:    $base-module*7 !default;
 $bcontent-title-elements-space-x:   $base-module !default;
 
@@ -62,16 +67,12 @@ $bcontent-actions-box-padding:      $base-module $base-module ($base-module - $b
 
 // CONTENT
 // =====================================================================================================================
-$bcontent-box-pad-x:                $bcontent-base-pad-x !default;
-$bcontent-box-pad-y:                $bcontent-base-pad-y !default;
-$bcontent-box-pad-y-last:           $bcontent-base-pad-y-lrg !default;
-
 $bcontent-box-border-color:         $bcontent-title-area-border-color !default;
 
 $bcontent-box-font-size:            fs(0) !default;
 
-$bcontent-box-header-top:           $bcontent-box-pad-y*1.5 !default;
-$bcontent-box-header-bottom:        $bcontent-box-pad-y !default;
+$bcontent-box-header-top:           $bcontent-base-pad-y*1.5 !default;
+$bcontent-box-header-bottom:        $bcontent-base-pad-y !default;
 $bcontent-box-header-font-size:     fs(0) !default;
 $bcontent-box-header-line-height:   $base-module*2/$bcontent-box-header-font-size !default;
 $bcontent-box-header-color:         $grey-500 !default;
@@ -80,7 +81,6 @@ $bcontent-box-header-transform:     uppercase !default;
 
 // Empty
 $bcontent-empty-bg-color:           $grey-200 !default;
-$bcontent-empty-padding:            $bcontent-box-pad-y $bcontent-box-pad-x !default;
 
 $bcontent-empty-text-color:         $grey-600 !default;
 $bcontent-empty-text-size:          fs(0) !default;

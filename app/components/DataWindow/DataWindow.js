@@ -193,7 +193,7 @@ const SAMPLE_ARGUMENTS_TOTAL = {
         description: "",
         list: [],
         children: [
-            <DataWindowContentGroup title="allMonkeys">
+            <DataWindowContentGroup title="allMonkeys" subtitle="data > allMonkeys">
                 <PropsList>
                     <PropsItem
                         propType={{
@@ -244,7 +244,7 @@ const SAMPLE_ARGUMENTS_TOTAL = {
                     </PropsItem>
                 </PropsList>
             </DataWindowContentGroup>,
-            <DataWindowContentGroup title="someField">
+            <DataWindowContentGroup title="someField" subtitle="data > allMonkeys > someField">
                 <PropsList>
                     <PropsItem
                         propType={{
