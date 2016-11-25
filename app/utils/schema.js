@@ -10,6 +10,14 @@ export const FIELD_KINDS = {
 	CONNECTION: 'CONNECTION'
 };
 
+export const graphQLPrimitiveTypes = new Set([
+	'Int',
+	'Float',
+	'Boolean',
+	'String',
+	'ID'
+]);
+
 /**
  *
  * @param {Object} type
@@ -115,7 +123,10 @@ const convertToSchemaType = (type, getFieldDescription) => {
 				}
 			)
 		, {}),
-		description: type.description || null
+		description: type.description || '',
+		interfaces: type.interfaces && type.interfaces.length
+					? type.interfaces.map(({ name }) => name)
+					: []
 	};
 	return schemaType;
 };
@@ -150,15 +161,11 @@ export const parseGraphQLSchema = schema => {
 
 	const getTypeDescription = (type, kind) =>
 		kind === FIELD_KINDS['CONNECTION']
-		?	{ type: 'object', objectType: connections[type.name].node.name }
+		?	{ type: connections[type.name].node.name }
 		:	(
 				type.ofType
 			?	getTypeDescription(type.ofType, kind)
-			: 	(
-				type.kind === 'OBJECT'
-				?	{ type: 'object', objectType: type.name }
-				: 	{ type: type.name }
-			)
+			:  	{ type: type.name }
 		);
 
 
@@ -176,7 +183,7 @@ export const parseGraphQLSchema = schema => {
 		return Object.assign({
 			nonNull: haveKind(field.type, 'NON_NULL'),
 			kind,
-			description: field.description || null,
+			description: field.description || '',
 			args: field.args && field.args.length
 					?	field.args.reduce(
 							(acc, arg) => Object.assign(
@@ -189,23 +196,31 @@ export const parseGraphQLSchema = schema => {
 								}
 							)
 						, {})
-					:	null
+					:	[]
 		}, getTypeDescription(field.type, kind));
 	};
 
 	// -----------------------------------------------
 
 	schema.types.forEach(
-		type => void(normalizedTypes[type.name] = convertToSchemaType(
-			type,
-			getFieldDescription
-		))
+		type => {
+			if (
+				!graphQLPrimitiveTypes.has(type.name)
+				&&	!/^__.*/.test(type.name)
+				&&	type.kind !== 'INTERFACE'
+			)
+				normalizedTypes[type.name] = convertToSchemaType(
+					type,
+					getFieldDescription
+				);
+		}
 	);
 
 	objectForEach(connections,
 		({ edge }, key) => {
 			delete normalizedTypes[key];
 			delete normalizedTypes[edge.name];
+			if (normalizedTypes['PageInfo']) delete normalizedTypes['PageInfo'];
 		}
 	);
 
