@@ -97,6 +97,7 @@ const getRelayConnections = types => {
 									if (edgeDependentType.fields.find(
 										({ name }) => name === 'pageInfo'
 									))	connections[edgeDependentType.name] = {
+											data: edgeDependentType,
 											edge: nodeDependentType,
 											node: possibleNodeType
 										};
@@ -161,9 +162,20 @@ export const parseGraphQLSchema = schema => {
 
 	const getTypeDescription = (type, kind) =>
 		kind === FIELD_KINDS['CONNECTION']
-		?	{ type: connections[type.name].node.name }
+		?	{
+				type: connections[type.name].node.name,
+				connectionFields:
+					connections[type.name].data
+						.fields
+							.filter(({ name }) => !['edges', 'pageInfo'].includes(name))
+							.reduce((acc, field) => Object.assign(
+								acc, {
+									[field.name]: getFieldDescription(field)
+								}
+							), {})
+			}
 		:	(
-				type.ofType
+			type.ofType
 			?	getTypeDescription(type.ofType, kind)
 			:  	{ type: type.name }
 		);
