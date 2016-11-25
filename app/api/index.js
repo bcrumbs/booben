@@ -63,7 +63,7 @@ export const getFullGraphQLSchema = url =>
 				{ query: introspectionQuery }
 			),
 			headers: {
-		      "content-type": "application/json"
+		     	'content-type': 'application/json'
 		  	}
 		}
 	)

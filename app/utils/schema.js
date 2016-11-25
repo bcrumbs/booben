@@ -114,7 +114,8 @@ const convertToSchemaType = (type, getFieldDescription) => {
 					)
 				}
 			)
-		, {})
+		, {}),
+		description: type.description || null
 	};
 	return schemaType;
 };
@@ -135,54 +136,60 @@ export const parseGraphQLSchema = schema => {
 	// -----------------------------------------------
 	// TODO Correct and refactor
 
-	const hasKind = (type, kind) =>
+	const haveKind = (type, kind) =>
 		kind === FIELD_KINDS['CONNECTION']
 		?	!!connections[type.name]
 		:	(
 			type.kind === kind
 			||	(
 				type.ofType
-				?	hasKind(type.ofType)
+				?	haveKind(type.ofType)
 				:	false
 			)
 		);
 
 	const getTypeDescription = (type, kind) =>
 		kind === FIELD_KINDS['CONNECTION']
-		?	{type: 'object', objectType: connections[type.name].node.name}
+		?	{ type: 'object', objectType: connections[type.name].node.name }
 		:	(
 				type.ofType
 			?	getTypeDescription(type.ofType, kind)
 			: 	(
 				type.kind === 'OBJECT'
-				?	{type: 'object', objectType: type.name}
-				: 	{type: type.name}
+				?	{ type: 'object', objectType: type.name }
+				: 	{ type: type.name }
 			)
 		);
 
 
 	const getFieldDescription = (field) => {
 		const kind = FIELD_KINDS[
-			hasKind(field.type, 'LIST')
+			haveKind(field.type, 'LIST')
 			?	'LIST'
 			:	(
-				hasKind(field.type, FIELD_KINDS['CONNECTION'])
+				haveKind(field.type, FIELD_KINDS['CONNECTION'])
 				?	'CONNECTION'
 				:	'SINGLE'
 			)
 		];
 
 		return Object.assign({
-			nonNull: hasKind(field.type, 'NON_NULL'),
+			nonNull: haveKind(field.type, 'NON_NULL'),
 			kind,
-			args: field.args && field.args.reduce(
-				(acc, arg) => Object.assign(
-					acc,
-					{
-						[arg.name]: getFieldDescription(arg)
-					}
-				)
-			, {})
+			description: field.description || null,
+			args: field.args && field.args.length
+					?	field.args.reduce(
+							(acc, arg) => Object.assign(
+								acc,
+								{
+									[arg.name]: Object.assign({},
+										getFieldDescription(arg),
+										{ defaultValue: arg.defaultValue || null }
+									)
+								}
+							)
+						, {})
+					:	null
 		}, getTypeDescription(field.type, kind));
 	};
 
