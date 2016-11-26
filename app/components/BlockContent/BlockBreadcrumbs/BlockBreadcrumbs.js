@@ -5,29 +5,18 @@ import {
 } from '@reactackle/reactackle';
 import './BlockBreadcrumbs.scss';
 
-const
-	propTypes = {
-		items: PropTypes.arrayOf(),
-		mode: PropTypes.oneOf(['light', 'dark']) /* color of elements. if light, breadcrumbs text will be white */
-	},
-	defaultProps = {
-		items: [],
-		mode: 'dark'
-	};
-
 export const BlockBreadcrumbs = props => {
     let className = 'block-breadcrumbs';
 
     return (
         <div className={className}>
             <Breadcrumbs
-	            mode={props.mode}
-                items={props.items}
+	            {...props}
             />
         </div>
     );
 };
 
-BlockBreadcrumbs.propTypes = propTypes;
-BlockBreadcrumbs.defaultProps = defaultProps;
+BlockBreadcrumbs.propTypes = Breadcrumbs.propTypes;
+BlockBreadcrumbs.defaultProps = Breadcrumbs.defaultProps;
 BlockBreadcrumbs.displayName = 'BlockBreadcrumbs';

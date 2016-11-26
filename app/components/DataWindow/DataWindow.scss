@@ -40,6 +40,18 @@
 		text-transform: $dwindow-title-text-transform;
 	}
 
+	.data-window_type {
+		font-size: $dwindow-type-font-size;
+		line-height: $dwindow-type-line-height;
+		color: $dwindow-type-color;
+		font-weight: $dwindow-type-font-weight;
+		text-transform: $dwindow-type-text-transform;
+
+		.data-window_title + & {
+			margin-top: $dwindow-type-title-spacing;
+		}
+	}
+
 	.data-window_subtitle {
 		font-size: $dwindow-subtitle-font-size;
 		line-height: $dwindow-subtitle-line-height;
@@ -47,6 +59,7 @@
 		font-weight: $dwindow-subtitle-font-weight;
 		text-transform: $dwindow-subtitle-text-transform;
 
+		.data-window_type + &,
 		.data-window_title + & {
 			margin-top: $dwindow-subtitle-title-spacing;
 		}

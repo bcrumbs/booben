@@ -18,19 +18,27 @@ import {
 
 export const DataWindowContent= props => {
     let title = null,
+        type = null,
         subtitle = null,
         argsButton = null,
         descriptionHeading = null,
         description = null,
         content = null;
-        
+
+    if (props.type) {
+        type =
+            <div className="data-window_type">
+                {props.type}
+            </div>
+    }
+
     if (props.subtitle) {
         subtitle =
             <div className="data-window_subtitle">
                 {props.subtitle}
             </div>
     }
-    
+
     if (props.argsButton) {
         argsButton =
             <BlockContentBoxItem>
@@ -39,14 +47,14 @@ export const DataWindowContent= props => {
                 </div>
             </BlockContentBoxItem>
     }
-    
+
     let contentHeading = <BlockContentBoxHeading>{props.contentHeading}</BlockContentBoxHeading>;
     content =
         <BlockContentBoxItem>
             <DataList data={props.list} />
             {props.children}
         </BlockContentBoxItem>;
-    
+
     if (props.title) {
         title =
             <BlockContentBoxItem>
@@ -55,17 +63,18 @@ export const DataWindowContent= props => {
                         <div className="data-window_title">
                             {props.title}
                         </div>
+                        {type}
                         {subtitle}
                     </div>
                 </div>
             </BlockContentBoxItem>;
     }
-    
+
     if (props.description) {
         descriptionHeading = <BlockContentBoxHeading>Description</BlockContentBoxHeading>;
         description = <BlockContentBoxItem>{props.description}</BlockContentBoxItem>;
     }
-    
+
     return (
         <div className="data-window_content">
             <div className="data-window_content-heading">
@@ -82,15 +91,17 @@ export const DataWindowContent= props => {
 
 DataWindowContent.propTypes = {
 	title: PropTypes.string,
+    type: PropTypes.string,
     subtitle: PropTypes.string,
     description: PropTypes.string,
     contentHeading: PropTypes.string,
     argsButton: PropTypes.bool,
-    list: PropTypes.arrayOf
+    list: PropTypes.arrayOf(PropTypes.object)
 };
 
 DataWindowContent.defaultProps = {
 	title: '',
+    type: '',
     subtitle: '',
     description: '',
     contentHeading: '',

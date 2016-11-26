@@ -5,7 +5,7 @@ import { DataItem } from './DataItem/DataItem';
 
 export const DataList = props => {
     let className = 'data-list';
-    
+
     let list = props.data.map((item, idx) => (
         <DataItem
             key={idx}
@@ -22,7 +22,7 @@ export const DataList = props => {
 };
 
 DataList.propTypes = {
-    data: PropTypes.arrayOf
+    data: PropTypes.arrayOf(PropTypes.object)
 };
 
 DataList.defaultProps = {

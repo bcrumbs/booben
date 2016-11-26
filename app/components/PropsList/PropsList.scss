@@ -67,6 +67,7 @@ $prop-toggle: 'prop-type-toggle';
 		width: calc(100% + #{$prop-item-padding-x*2});
 		max-width: calc(100% + #{$prop-item-padding-x*2});
 		padding: $prop-item-padding-y $prop-item-padding-x;
+		min-height: $prop-action-box-size + $prop-item-padding-y*2;
 
 		&.sublevel-is-visible {
 			padding-top: $prop-item-opened-padding-y;
@@ -79,19 +80,22 @@ $prop-toggle: 'prop-type-toggle';
 
 	.prop-item-wrapper {
 		display: flex;
+		align-items: flex-start;
 	}
 
 	.prop-item-content-box {
 		flex-grow: 1;
-		display: flex;
-		align-items: stretch;
 		max-width: 100%;
 		flex-direction: column;
+		justify-content: center;
+		min-height: $prop-action-box-size;
+		display: flex;
 
 		.has-image & {
 			min-height: $prop-image-size;
 			justify-content: center;
 		}
+
 	}
 
 	// Props Image
@@ -116,11 +120,22 @@ $prop-toggle: 'prop-type-toggle';
 		}
 	}
 
+	// Prop subcomponent
+	.prop_subcomponent {
+		min-height: $prop-action-box-size;
+		display: flex;
+		align-items: center;
+
+		.checkbox-content {
+			display: flex;
+		}
+	}
+
 	// Prop Actions
 	.prop_actions {
 		display: flex;
 		flex-shrink: 0;
-		margin-top: $prop-actions-margin-top;
+		//margin-top: $prop-actions-margin-top;
 		height: $prop-action-height + $prop-action-margin-y;
 
 		&.prop_actions-left {
@@ -238,6 +253,8 @@ $prop-toggle: 'prop-type-toggle';
 		display: flex;
 		margin-bottom: $prop-label-margin-bottom;
 		position: relative;
+		min-height: $prop-action-box-size;
+		align-items: center;
 
 		@include user-select();
 
