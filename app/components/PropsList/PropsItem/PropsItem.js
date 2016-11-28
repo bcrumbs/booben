@@ -537,6 +537,14 @@ export class PropsItem extends PureComponent {
                         removable
                     />
                 );
+    
+                if (
+                    this.props.propType.view === 'input' ||
+                    this.props.propType.view === 'textarea' ||
+                    this.props.propType.view === 'list'
+                ) {
+                    content = null;
+                }
             }
         }
 
