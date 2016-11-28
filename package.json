@@ -28,7 +28,6 @@
     "convict": "^1.4.0",
     "express": "^4.14.0",
     "graphql": "^0.8.2",
-    "graphql-tag": "^1.0.0",
     "html-webpack-plugin": "^2.22.0",
     "immutable": "^3.8.1",
     "intel": "^1.1.1",

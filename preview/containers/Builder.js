@@ -3,6 +3,7 @@
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
+import { graphql } from 'react-apollo';
 
 // The real components.js will be generated during build process
 import _components from '../components.js';
@@ -22,11 +23,16 @@ import { NO_VALUE } from  '../../app/constants/misc';
 import {
     isContainerComponent,
     isCompositeComponent,
-    canInsertComponent
+    canInsertComponent,
+    getComponentMeta,
+    parseComponentName
 } from '../../app/utils/meta';
+
+import { randomName } from '../../app/utils/graphql';
 
 import {
     objectMap,
+    objectForEach,
     returnNull
 } from '../../app/utils/misc';
 
@@ -53,16 +59,16 @@ const isPseudoComponent = component => pseudoComponents.has(component.name);
 /**
  * Get component from library
  *
- * @param  {string} name - Name of component with namespace (e.g. MyNamespace.MyComponent)
+ * @param  {string} componentName - Name of component with namespace (e.g. MyNamespace.MyComponent)
  * @return {Function|string} React component
  */
-const getComponentByName = (name = '') => {
-    const [namespace, componentName] = name.split('.');
-    if (!namespace || !componentName) throw new Error(`Invalid component name: ${name}`);
-    if (namespace === 'HTML') return componentName;
-    if (!components[namespace]) throw new Error(`Namespace not found: ${namespace}`);
-    const component = components[namespace][componentName];
-    if (!component) throw new Error(`Component not found: ${name}`);
+const getComponentByName = (componentName = '') => {
+    const { namespace, name } = parseComponentName(componentName);
+    if (!namespace || !name) throw new Error(`Invalid component name: '${componentName}'`);
+    if (namespace === 'HTML') return name;
+    if (!components[namespace]) throw new Error(`Namespace not found: '${namespace}'`);
+    const component = components[namespace][name];
+    if (!component) throw new Error(`Component not found: '${componentName}'`);
     return component;
 };
 
@@ -125,9 +131,6 @@ const buildPropValue = (prop, propsFromOwner) => {
     else if (prop.source === 'actions') {
         // TODO: Handle actions source
     }
-    else if (prop.source === 'data') {
-        // TODO: Handle data source
-    }
 
     return NO_VALUE;
 };
@@ -178,8 +181,140 @@ const hasDataPropsDeep = (components, component) =>
             propValue.sourceData.components.get(propValue.sourceData.rootId)
         ));
 
+const toGraphQLScalarValue = (value, type) => {
+    if (type === 'String') return { kind: 'StringValue', value };
+    if (type === 'Int') return { kind: 'IntValue', value: `${value}` };
+    if (type === 'Float') return { kind: 'FloatValue', value: `${value}` };
+    if (type === 'Boolean') return { kind: 'BooleanValue', value };
+    if (type === 'ID') return { kind: 'StringValue', value }; // ???
+    throw new Error('');
+};
+
 
 class BuilderComponent extends PureComponent {
+    _buildGraphQLValue(value, type, kind) {
+        // TODO: Deal with values
+        if (value.source === 'static') {
+            if (value.sourceData.ownerPropName) {
+                return NO_VALUE;
+            }
+            else {
+                return NO_VALUE;
+            }
+        }
+        else {
+            return NO_VALUE;
+        }
+    }
+
+    _buildGraphQLArgument(argName, argValue, fieldDefinition) {
+        const value = this._buildGraphQLValue(
+            argValue,
+            fieldDefinition.type,
+            fieldDefinition.kind
+        );
+
+        return value === NO_VALUE ? NO_VALUE : {
+            kind: 'Argument',
+            name: { kind: 'Name', value: argName },
+            value
+        };
+    }
+
+    _buildGraphQLFragment(propValue, fragmentName) {
+        const onType =
+            this.props.gqlRootTypesStack[propValue.sourceData.dataContextIndex];
+
+        const ret = {
+            kind: 'FragmentDefinition',
+            name: {
+                kind: 'Name',
+                value: fragmentName
+            },
+            typeCondition: {
+                kind: 'NamedType',
+                name: {
+                    kind: 'Name',
+                    value: onType
+                }
+            },
+            directives: [],
+            selectionSet: null
+        };
+
+        let currentNode = ret;
+        let currentTypeDefinition = this.props.schema.types[onType];
+
+        propValue.sourceData.queryPath.forEach(step => {
+            const args = [];
+
+            step.args.forEach((argValue, argName) => {
+                const arg = this._buildGraphQLArgument(
+                    argName,
+                    argValue,
+                    currentTypeDefinition.fields[step.field]
+                );
+
+                if (arg !== NO_VALUE) args.push(arg);
+            });
+
+            const node = {
+                kind: 'Field',
+                alias: null,
+                name: {
+                    kind: 'Name',
+                    value: step.field
+                },
+                arguments: args,
+                directives: [],
+                selectionSet: null
+            };
+
+            currentNode.selectionSet = {
+                kind: 'SelectionSet',
+                selections: [node]
+            };
+
+            currentNode = node;
+
+            currentTypeDefinition =
+                this.props.schema.types[currentTypeDefinition.fields[step.field].type];
+        });
+
+        return ret;
+    }
+
+    _buildGraphQLFragmentsForComponent(component) {
+        const componentMeta = getComponentMeta(component.name, this.props.meta);
+
+        const ret = [];
+
+        const visitValue = (value, typedef) => {
+            if (value.source === 'data') {
+                ret.push(this._buildGraphQLFragment(value, randomName()));
+            }
+            else if (value.source === 'static' && !value.sourceData.ownerPropName) {
+                if (typedef.type === 'shape' && value.sourceData.value !== null) {
+                    objectForEach(typedef.fields, (fieldTypedef, fieldName) =>
+                        void visitValue(value.sourceData.value[fieldName], fieldTypedef));
+                }
+                else if (typedef.type === 'objectOf' && value.sourceData.value !== null) {
+                    value.sourceData.value.forEach(fieldValue =>
+                        void visitValue(fieldValue, typedef.ofType));
+                }
+                else if (typedef.type === 'arrayOf') {
+                    value.sourceData.value.forEach(itemValue =>
+                        void visitValue(itemValue, typedef.ofType));
+                }
+            }
+        };
+
+        component.props.forEach((propValue, propName) =>
+            void visitValue(propValue, componentMeta.props[propName]));
+
+        return ret;
+    }
+
     /**
      *
      * @param {Object} component
@@ -452,9 +587,11 @@ BuilderComponent.propTypes = {
     containerId: PropTypes.any, // number on null
     propsFromOwner: PropTypes.object,
     ignoreOwnerProps: PropTypes.bool,
+    gqlRootTypesStack: PropTypes.arrayOf(PropTypes.string),
 
     project: PropTypes.any,
     meta: PropTypes.object,
+    schema: PropTypes.object,
     draggingComponent: PropTypes.bool,
     draggedComponentId: PropTypes.number,
     draggedComponents: PropTypes.any,
@@ -471,7 +608,8 @@ BuilderComponent.defaultProps = {
     afterIdx: -1,
     containerId: -1,
     propsFromOwner: {},
-    ignoreOwnerProps: false
+    ignoreOwnerProps: false,
+    gqlRootTypesStack: []
 };
 
 BuilderComponent.displayName = 'Builder';
@@ -479,6 +617,7 @@ BuilderComponent.displayName = 'Builder';
 const mapStateToProps = state => ({
     project: state.project.data,
     meta: state.project.meta,
+    schema: state.project.schema,
     draggingComponent: state.project.draggingComponent,
     draggedComponentId: state.project.draggedComponentId,
     draggedComponents: state.project.draggedComponents,

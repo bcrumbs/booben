@@ -85,7 +85,7 @@
 
 /**
  * @typedef {Object} SourceDataData
- * @property {number} [dataContextIndex] - 0 = query root; can be >0 only in own components
+ * @property {number} dataContextIndex - 0 = query root; can be >0 only in own components
  * @property {QueryPathStep[]} queryPath
  */
 
