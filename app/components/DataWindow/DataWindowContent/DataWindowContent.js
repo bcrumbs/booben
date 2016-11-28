@@ -43,7 +43,11 @@ export const DataWindowContent= props => {
         argsButton =
             <BlockContentBoxItem>
                 <div className="data-window_heading-buttons">
-                    <Button text="Set Arguments" narrow/>
+                    <Button
+						text="Set Arguments"
+						onPress={props.onSetArgumentsClick}
+						narrow
+					/>
                 </div>
             </BlockContentBoxItem>
     }

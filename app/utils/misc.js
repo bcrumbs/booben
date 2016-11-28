@@ -98,7 +98,7 @@ export const objectEvery = (object, predicate) =>
 export const objectFilter = (object, predicate) => {
     const ret = {};
     objectForEach(object, (value, key, object) => {
-        if (predicate(value, key, object)) ret[key] = fn(value, key, object);
+        if (predicate(value, key, object)) ret[key] = object[key];
     });
     return ret;
 };

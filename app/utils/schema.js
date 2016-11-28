@@ -112,6 +112,7 @@ const getRelayConnections = types => {
 	return connections;
 };
 
+
 const convertToSchemaType = (type, getFieldDescription) => {
 	const schemaType = {
 		fields: type.fields && type.fields.reduce(
@@ -125,6 +126,7 @@ const convertToSchemaType = (type, getFieldDescription) => {
 			)
 		, {}),
 		description: type.description || '',
+		name: type.name,
 		interfaces: type.interfaces && type.interfaces.length
 					? type.interfaces.map(({ name }) => name)
 					: []
@@ -195,6 +197,7 @@ export const parseGraphQLSchema = schema => {
 		return Object.assign({
 			nonNull: haveKind(field.type, 'NON_NULL'),
 			kind,
+			name: field.name,
 			description: field.description || '',
 			args: field.args && field.args.length
 					?	field.args.reduce(
@@ -234,6 +237,8 @@ export const parseGraphQLSchema = schema => {
 			if (normalizedTypes['PageInfo']) delete normalizedTypes['PageInfo'];
 		}
 	);
+
+	delete normalizedTypes[queryType.name].fields.node;
 
 	return { types: normalizedTypes, queryTypeName: queryType.name };
 };

@@ -32,6 +32,12 @@ import {
 } from '../../utils/schema';
 
 import {
+	clone,
+	objectFilter,
+	objectSome
+} from '../../utils/misc';
+
+import {
 	connect
 } from 'react-redux';
 
@@ -272,8 +278,11 @@ class DataWindowComponent extends PureComponent {
 		super(props);
 		this.state = {
 			currentPath: [
-				{ title: 'Data' }
+				{ name: 'Data' }
 			],
+			previousPath: [
+			],
+			argumentsForCurrentPathLast: false,
 			argumentsPath: [],
 			argumentsMode: false,
 			selectedFieldName: '',
@@ -283,27 +292,70 @@ class DataWindowComponent extends PureComponent {
 			this._handleJumpToCurrentPathIndex.bind(this);
 		this._handleFieldSelect = this._handleFieldSelect.bind(this);
 		this._handleSetArgumentsClick = this._handleSetArgumentsClick.bind(this);
-		this._handleApplyClick = this._handleApplyClick.bind(this);
+		this._handleDataApplyClick = this._handleDataApplyClick.bind(this);
 		this._handleBackToPress = this._handleBackToPress.bind(this);
-		this._handleArgumentsApply = this._handleArgumentsApply.bind(this);
+		this._getCurrentArguments = this._getCurrentArguments.bind(this);
 	}
 
-	_handleJumpIntoField(title, typeName, kind, args) {
-		console.log(args)
+	_equalFieldPaths(path1, path2) {
+		if (!path1 || !path2) return false;
+		return ['name', 'type', 'kind'].every(
+			name => path1[name] === path2[name]
+		);
+	}
+
+	_handleJumpIntoField(name, type, kind, args, isCurentPathLast) {
+		const { previousPath, currentPath } = this.state;
+
 		this.setState({
 			argumentsPath: [],
 			argumentsMode: false,
-			currentPath: [...this.state.currentPath, { title, typeName, kind, args }]
+			argumentsForCurrentPathLast: false,
+			currentPath: [
+				...(
+					isCurentPathLast
+					?	currentPath.slice(0, -1)
+					:	currentPath
+				),
+				{
+					name,
+					type,
+					kind,
+					args:
+						isCurentPathLast
+						?	args
+						:	args
+							||	this._getCurrentArguments(name)
+							||	{}
+				}
+			],
+			previousPath:
+				this._equalFieldPaths(
+					previousPath[currentPath.length],
+					{ name, type, kind }
+				) || isCurentPathLast
+				?	previousPath
+				:	[]
 		});
 	}
 
 	_handleJumpToCurrentPathIndex(index) {
+		const lengthDiff =
+			this.state.currentPath.length
+			-
+			this.state.previousPath.length;
 		if (index + 1 !== this.state.currentPath.length)
 			this.setState({
 				currentPath: this.state.currentPath.slice(
 					0,
 					index + 1
 				),
+				previousPath:
+					this.state.currentPath.slice(0).concat(
+						lengthDiff < 0
+						?	this.state.previousPath.slice(lengthDiff)
+						:	[]
+					),
 				selectedFieldName: ''
 			});
 	}
@@ -313,48 +365,87 @@ class DataWindowComponent extends PureComponent {
 			this.setState({ selectedFieldName });
 	}
 
-	_handleSetArgumentsClick() {
-		this.setState({ argumentsMode: true });
+	_handleSetArgumentsClick(argumentsForCurrentPathLast) {
+
+		this.setState({
+			argumentsMode: true,
+			argumentsForCurrentPathLast,
+		});
 	}
 
-	_handleArgumentsApply(jumpIntoField, ...args) {
-		if (jumpIntoField) this._handleJumpIntoField(...args);
-		else
-			this.setState({
-				argumentsPath: [],
-				argumentsMode: false,
-				currentPath: [...this.state.currentPath.slice(0, -1),
-					args
-				]
-			});
-	}
 
-	_handleApplyClick(fieldName) {
+	_handleDataApplyClick(fieldName) {
 
 	}
 
 	_handleBackToPress() {
+		const argumentsMode = !!this.state.argumentsPath.length;
 		if (this.state.argumentsMode)
 			this.setState({
 				argumentsPath: this.state.argumentsPath.slice(0, -1),
-				argumentsMode: !!this.state.argumentsPath.length
+				argumentsMode,
+				argumentsForCurrentPathLast:
+					this.state.argumentsForCurrentPathLast
+					&&	argumentsMode
 			});
 		else
 			this._handleJumpToCurrentPathIndex(this.state.currentPath.length - 2);
 	}
 
 
+	_getCurrentPathByIndex(index) {
+		return this.state.currentPath.slice(index)[0];
+	}
+
+	_getFieldTypeName(field) {
+		return field.type
+				+ (
+					field.kind === 'CONNECTION'
+					?	' connection'
+					:	field.kind === 'LIST'
+						?	' list'
+						:	''
+				);
+	}
 
 	get breadcrumbs() {
 		return this.state.currentPath.map(
-			({ title }) => ({
-				title
+			({ name }) => ({
+				title: name
 			})
 		);
 	}
 
-	get currentPathLast() {
-		return this.state.currentPath[this.state.currentPath.length - 1];
+	_getCurrentArguments(fieldName) {
+		const previousPathField =
+			this.state.previousPath[this.state.currentPath.length];
+
+		if (this.state.currentPath.length === 1) return {};
+
+		return !this.state.argumentsForCurrentPathLast
+			?	previousPathField
+				&&	this._equalFieldPaths(
+					previousPathField,
+					this.props.schema.types[this._getCurrentPathByIndex(-1).type]
+						.fields[fieldName || this.state.selectedFieldName]
+				)
+				&&	previousPathField.args
+			:	this._getCurrentPathByIndex(-1).args;
+
+	}
+
+	get currentEditingField() {
+		const { types, queryTypeName } = this.props.schema;
+		return this.state.currentPath.length > 2
+			?	this.state.argumentsMode && !this.state.argumentsForCurrentPathLast
+				?	types[this._getCurrentPathByIndex(-1).type]
+							.fields[this.state.selectedFieldName]
+				:	types[this._getCurrentPathByIndex(-2).type]
+							.fields[this._getCurrentPathByIndex(-1).name]
+			:	this.state.currentPath.length === 2
+				&& !this.state.argumentsForCurrentPathLast && this.state.argumentsMode
+				?	types[queryTypeName].fields[this.state.selectedFieldName]
+				:	null;
 	}
 
 	get DataLayout() {
@@ -397,17 +488,18 @@ class DataWindowComponent extends PureComponent {
 		field,
 		fieldName,
 		backToFieldName,
+		args = {},
 		handleFieldChange,
 		handleJumpInto,
 		handleBackToPress,
-		handleArgumentsApply
+		handleJumpIntoField
 	){
-		let argsValue = {};
+		let argsValue = clone(args);
 		return (
 			{
 			    content: {
 			        title: `${fieldName} arguments`,
-			        subtitle: "Please, fill required arguments",
+			        subtitle: 'Please, fill required arguments',
 			        description: field.description,
 			        children: [
 			                <PropsList key={1}>
@@ -427,14 +519,15 @@ class DataWindowComponent extends PureComponent {
 														:	'input'
 													:	'shape',
 					                            type: arg.type,
-
-					                            required: true
+					                            required: !arg.nonNull,
+												notNull: arg.nonNull
 					                        }}
-											onChange={value =>
+											onChange={
+												value =>
 												argsValue[argName] = value
 											}
 											value={
-												null
+												{ value: argsValue[argName] }
 											}
 					                    />
 									);
@@ -451,12 +544,12 @@ class DataWindowComponent extends PureComponent {
 			        },
 			        {
 						text: 'Apply',
-						onPress: () => handleArgumentsApply(
-							backToFieldName !== fieldName,
+						onPress: () => handleJumpIntoField(
 							fieldName,
 							field.type,
 							field.kind,
-							argsValue
+							argsValue,
+							backToFieldName === fieldName,
 						)
 					}
 			    ]
@@ -465,89 +558,128 @@ class DataWindowComponent extends PureComponent {
 	}
 
 	createContentType(
-		types,
+		type,
 		currentPathLast,
 		selectedFieldName,
+		hasArgs,
 		breadcrumbs,
+		getFieldTypeName,
 		handleFieldSelect,
 		handleSetArgumentsClick,
 		handleApplyClick,
 		handleJumpIntoField,
 		handleBackToPress
 	) {
-		const type = types[currentPathLast.typeName];
 		return {
 			breadcrumbs,
 			content: {
-				title: currentPathLast.title,
+				title: currentPathLast.name,
 				subtitle: `type: ${
-					currentPathLast.typeName
-					+ (
-						currentPathLast.kind === 'CONNECTION'
-						? ' connection'
-						: ''
-					)
+					getFieldTypeName(currentPathLast)
 				}`,
 				description: type.description,
-				argsButton: true,
+				argsButton: hasArgs,
 		        contentHeading: 'Fields',
-				list: Object.keys(type.fields).map(fieldName => {
+				list: Object.keys(type.fields).reduce((acc, fieldName) => {
 					const field = type.fields[fieldName];
-					return (
-						{
-			                title: fieldName,
-			                type: field.type,
+					const connectionFields =
+						field.kind === 'CONNECTION'
+						?	field.connectionFields
+						:	{};
+					return acc.concat(
+						[{
+			                title: fieldName +
+								(this.state.previousPath.some(field1 => this._equalFieldPaths(field1, field))
+								?	' visited'
+								:	''),
+			                type: getFieldTypeName(field),
 			                tooltip: field.description,
 			                actionType: 'select',
 			                clickable: true,
-			                required: true,
 			                argsButton: !!Object.keys(field.args).length,
 			                chosen: fieldName === selectedFieldName,
 			                connection: !graphQLPrimitiveTypes.has(field.type),
-							canBeApplied: true,
+							canBeApplied: graphQLPrimitiveTypes.has(field.type),
 			                state: "error",
 							onSelect: () => handleFieldSelect(fieldName),
 							onApplyClick: () => handleApplyClick(fieldName),
-							onSetArgumentsClick: () => handleSetArgumentsClick(fieldName),
+							onSetArgumentsClick: () => handleSetArgumentsClick(false),
 							onJumpIntoClick: () => handleJumpIntoField(
 								fieldName,
 								field.type,
-								field.kind
+								field.kind,
+								void 0,
+								false
 							)
-			            }
-					);
+			            }]).concat(
+							Object.keys(connectionFields).map(connectionFieldName =>
+								{
+								const field = connectionFields[connectionFieldName];
+								const name = `${fieldName} ${connectionFieldName}`;
+								return {
+					                title: name,
+					                type: getFieldTypeName(field),
+					                tooltip: field.description,
+					                actionType: 'select',
+					                clickable: true,
+					                argsButton: !!Object.keys(field.args).length,
+					                chosen: name === selectedFieldName,
+					                connection: !graphQLPrimitiveTypes.has(field.type),
+									canBeApplied: graphQLPrimitiveTypes.has(field.type),
+					                state: "error",
+									onSelect: () => handleFieldSelect(name),
+									onApplyClick: () => handleApplyClick(name),
+									onSetArgumentsClick: () => handleSetArgumentsClick(false),
+									onJumpIntoClick: () => handleJumpIntoField(
+										name,
+										field.type,
+										field.kind,
+										void 0,
+										false
+									)
+					            };
+							})
+						);
 
-				})
+				}, [])
 			},
 			children: [],
 		};
 	}
 
 	render() {
+		const { currentEditingField } = this;
 		const CONTENT_TYPE =
 			!this.state.argumentsMode
 			?
 				this.state.currentPath.length - 1
 				?	this.createContentType(
-						this.props.schema.types,
-						this.currentPathLast,
+						this.props.schema.types[this._getCurrentPathByIndex(-1).type],
+						this._getCurrentPathByIndex(-1),
 						this.state.selectedFieldName,
+						!!(currentEditingField
+							&& Object.keys(
+								currentEditingField.args
+							).length
+						),
 						this.breadcrumbs,
+						this._getFieldTypeName,
 						this._handleFieldSelect,
 						this._handleSetArgumentsClick,
-						this._handleApplyClick,
+						this._handleDataApplyClick,
 						this._handleJumpIntoField,
 						this._handleBackToPress
 					)
 				:	this.DataLayout
 			:	this.createContentArgumentsType(
-					this.props.schema.types[this.currentPathLast.typeName].fields[this.state.selectedFieldName],
-					this.state.selectedFieldName,
-					this.currentPathLast.title,
+					currentEditingField,
+					currentEditingField.name,
+					this._getCurrentPathByIndex(-1).name,
+					this._getCurrentArguments(),
 					this._handleArgsChange,
 					this._handleJumpIntoField,
 					this._handleBackToPress,
-					this._handleArgumentsApply
+					this._handleJumpIntoField
 			);
 		return (
 		<div className="data-window">
@@ -580,6 +712,11 @@ class DataWindowComponent extends PureComponent {
                                 description={CONTENT_TYPE.content.description}
                                 contentHeading={CONTENT_TYPE.content.contentHeading}
                                 argsButton={CONTENT_TYPE.content.argsButton}
+								onSetArgumentsClick={
+									() => this._handleSetArgumentsClick(
+										true
+									)
+								}
                                 list={CONTENT_TYPE.content.list}
                                 children={CONTENT_TYPE.content.children}
                             >

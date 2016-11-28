@@ -60,7 +60,11 @@ export const DataItem = props => {
                 { description }
                 <div className="data-item_buttons">
                     { argsButton }
-                    <Button text="Apply" onPress={props.onApplyClick} narrow />
+                    {
+						props.canBeApplied
+						?	<Button text="Apply" onPress={props.onApplyClick} narrow />
+						:	null
+					}
                 </div>
             </div>
     }
