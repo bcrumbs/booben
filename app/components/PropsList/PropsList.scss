@@ -297,6 +297,19 @@ $prop-toggle: 'prop-type-toggle';
 		margin-right: $base-module/2;
 	}
 
+	.prop_action-toggle {
+		.toggle-label {
+			display: flex;
+			align-items: center;
+		}
+
+		.toggle-label-text {
+			color: $color-text-medium;
+			font-size: fs(-1);
+			padding-top: 1px; // 1px is for visual balance
+		}
+	}
+
 	// PROP: input
 	// =================================================================================================================
 	.prop-type-input {
@@ -345,10 +358,6 @@ $prop-toggle: 'prop-type-toggle';
 	}
 
 	.prop-tree_field-new {
-		// margin: $props-list-margin-bottom (-$prop-list-padding-x) (-$prop-list-padding-y);
-		//width: calc(100% + #{$prop-list-padding-x*2});
-		//border-top: 2px solid $color-border;
-
 		margin: $props-list-margin-bottom 0 0;
 
 		padding: $prop-new-field-pad-y $prop-new-field-pad-x;

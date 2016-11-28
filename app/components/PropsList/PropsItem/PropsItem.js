@@ -7,6 +7,7 @@ import {
     Button,
     Input,
     SelectBox,
+    Tag,
     Textarea,
     ToggleButton
 } from '@reactackle/reactackle';
@@ -417,6 +418,7 @@ export class PropsItem extends PureComponent {
         }
 
         let content = null,
+            valueWrapper = null,
             toggle = null,
             collapseAction = null,
             children = null;
@@ -483,6 +485,15 @@ export class PropsItem extends PureComponent {
 
                 if (isNullable) {
                     // TODO: Make null switch
+                    toggle = (
+                        <div className="prop_action prop_action-toggle">
+                            <ToggleButton
+                                label = "Null"
+                                checked={this.props.value.value}
+                                disabled={this.props.disabled}
+                            />
+                        </div>
+                    );
                 }
             }
 
@@ -509,7 +520,24 @@ export class PropsItem extends PureComponent {
                 children = this._renderNestedItems();
         }
         else {
-            // TODO: Render something for linked value
+            if (this.props.propType.view === 'toggle') {
+                toggle = null;
+                valueWrapper = (
+                    <Tag
+                        text='%value%'
+                        bounded
+                        removable
+                    />
+                );
+            } else {
+                valueWrapper = (
+                    <Tag
+                        text='%value%'
+                        bounded
+                        removable
+                    />
+                );
+            }
         }
 
         let actionsRight = null;
@@ -534,7 +562,12 @@ export class PropsItem extends PureComponent {
 
                     <div className="prop-item-content-box">
                         {label}
-                        {content}
+                        <div className="prop-item_value-wrapper">
+                            {valueWrapper}
+                        </div>
+                        <div className="prop-item_value-wrapper">
+                            {content}
+                        </div>
                     </div>
 
                     {actionsRight}

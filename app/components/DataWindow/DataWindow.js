@@ -291,7 +291,7 @@ const SAMPLE_ARGUMENTS_TOTAL = {
     ]
 };
 
-const CONTENT_TYPE = SAMPLE_TYPE;
+const CONTENT_TYPE = SAMPLE_ARGUMENTS_TOTAL;
 
 export const DataWindow= props => {
     return (
