@@ -23,4 +23,4 @@ export const concatPath = (prefix, path) => {
   * @return {string}
   */
 export const getLocalizedText = (localization, language, id, values = {}) =>
-	new IntlMessageFormat(localization.get(id), language).format(values);
+	new IntlMessageFormat(localization.get(id) || '', language).format(values);

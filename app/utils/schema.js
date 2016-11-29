@@ -18,13 +18,14 @@ export const graphQLPrimitiveTypes = new Set([
 	'ID'
 ]);
 
-export const metaToGraphQLPrimitiveType = typeName => (
+export const equalMetaToGraphQLTypeNames = (metaTypeName, graphQLTypeName) => (
 	{
-		int: 'Int',
-		float: 'Float',
-		bool: 'Boolean',
-		string: 'String'
-	}[typeName]	|| null
+		Int: 'int',
+		Float: 'float',
+		Boolean: 'bool',
+		String: 'string',
+		ID: 'string'
+	}[graphQLTypeName] === metaTypeName
 );
 
 
@@ -194,7 +195,7 @@ export const parseGraphQLSchema = schema => {
 		);
 
 
-	const getFieldDescription = (field) => {
+	const getFieldDescription = (field, isArgumentField) => {
 		const kind = FIELD_KINDS[
 			haveKind(field.type, 'LIST')
 			?	'LIST'
@@ -205,7 +206,7 @@ export const parseGraphQLSchema = schema => {
 			)
 		];
 
-		return Object.assign({
+		const fieldDescription = Object.assign({
 			nonNull: haveKind(field.type, 'NON_NULL'),
 			kind,
 			name: field.name,
@@ -216,14 +217,18 @@ export const parseGraphQLSchema = schema => {
 								acc,
 								{
 									[arg.name]: Object.assign({},
-										getFieldDescription(arg),
+										getFieldDescription(arg, true),
 										{ defaultValue: arg.defaultValue || null }
 									)
 								}
 							)
 						, {})
-					:	[]
+					:	{}
 		}, getTypeDescription(field.type, kind));
+
+		if (typeof isArgumentField === 'boolean' && isArgumentField)
+			delete fieldDescription.args;
+		return fieldDescription;
 	};
 
 	// -----------------------------------------------

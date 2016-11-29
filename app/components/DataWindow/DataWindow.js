@@ -29,7 +29,8 @@ import {
 
 import {
 	graphQLPrimitiveTypes,
-	metaToGraphQLPrimitiveType
+	equalMetaToGraphQLTypeNames,
+	FIELD_KINDS
 } from '../../utils/schema';
 
 import {
@@ -39,8 +40,27 @@ import {
 } from '../../utils/misc';
 
 import {
+	linkPropCancel,
+	updateComponentPropValue
+}	from '../../actions/project';
+
+import {
 	connect
 } from 'react-redux';
+
+import {
+    currentComponentsSelector,
+    singleComponentSelectedSelector,
+    topNestedConstructorSelector,
+    topNestedConstructorComponentSelector
+} from '../../selectors';
+
+import {
+    getComponentMeta,
+    getPropTypedef,
+    resolveTypedef,
+    getNestedTypedef
+} from '../../utils/meta';
 
 import './DataWindow.scss';
 
@@ -145,8 +165,23 @@ class DataWindowComponent extends PureComponent {
 	}
 
 
-	_handleDataApplyClick(fieldName) {
-
+	_handleDataApplyClick() {
+		const { types } = this.props.schema;
+		this.props.onUpdateComponentPropValue(
+			this.props.linkingPropOfComponentId,
+			this.props.linkingPropName,
+			this.props.linkingPropPath,
+			'data',
+			{
+				queryPath: this.state.currentPath.slice(1).concat(
+					[
+						types[this._getCurrentPathByIndex(-1).type]
+							.fields[this.state.selectedFieldName]
+					]
+				)
+			}
+		);
+		this.props.onLinkPropCancel();
 	}
 
 	_handleBackToPress() {
@@ -171,7 +206,7 @@ class DataWindowComponent extends PureComponent {
 	_getFieldTypeName(field) {
 		return field.type
 				+ (
-					field.kind === 'CONNECTION'
+					field.kind === FIELD_KINDS.CONNECTION
 					?	' connection'
 					:	field.kind === 'LIST'
 						?	' list'
@@ -336,7 +371,8 @@ class DataWindowComponent extends PureComponent {
 		handleFieldSelect,
 		handleSetArgumentsClick,
 		handleApplyClick,
-		handleJumpIntoField
+		handleJumpIntoField,
+		propType
 	) {
 		return (
 			{
@@ -348,8 +384,8 @@ class DataWindowComponent extends PureComponent {
 				argsButton: !!Object.keys(field.args).length,
 				chosen: fieldName === selectedFieldName,
 				connection: !graphQLPrimitiveTypes.has(field.type),
-				canBeApplied: graphQLPrimitiveTypes.has(field.type),
-				state: "error",
+				canBeApplied: equalMetaToGraphQLTypeNames(propType, field.type),
+				state: 'error',
 				onSelect: () => handleFieldSelect(fieldName),
 				onApplyClick: () => handleApplyClick(fieldName),
 				onSetArgumentsClick: () => handleSetArgumentsClick(false),
@@ -375,7 +411,8 @@ class DataWindowComponent extends PureComponent {
 		handleSetArgumentsClick,
 		handleApplyClick,
 		handleJumpIntoField,
-		createContentField
+		createContentField,
+		propType
 	) {
 		return {
 			breadcrumbs,
@@ -390,7 +427,7 @@ class DataWindowComponent extends PureComponent {
 				list: Object.keys(type.fields).reduce((acc, fieldName) => {
 					const field = type.fields[fieldName];
 					const connectionFields =
-						field.kind === 'CONNECTION'
+						field.kind === FIELD_KINDS.CONNECTION
 						?	field.connectionFields
 						:	{};
 					return acc.concat(
@@ -402,7 +439,8 @@ class DataWindowComponent extends PureComponent {
 							handleFieldSelect,
 							handleSetArgumentsClick,
 							handleApplyClick,
-							handleJumpIntoField
+							handleJumpIntoField,
+							propType
 						)]).concat(
 							Object.keys(connectionFields).map(connectionFieldName =>
 								createContentField(
@@ -413,7 +451,8 @@ class DataWindowComponent extends PureComponent {
 									handleFieldSelect,
 									handleSetArgumentsClick,
 									handleApplyClick,
-									handleJumpIntoField
+									handleJumpIntoField,
+									propType
 								)
 							)
 						);
@@ -425,6 +464,24 @@ class DataWindowComponent extends PureComponent {
 
 	render() {
 		const { currentEditingField } = this;
+
+		const linkTargetComponent =
+			this.props.components.get(this.props.linkingPropOfComponentId);
+
+		const linkTargetComponentMeta = getComponentMeta(
+			linkTargetComponent.name,
+			this.props.meta
+		);
+
+		const linkTargetPropTypedef = getNestedTypedef(
+			getPropTypedef(
+				linkTargetComponentMeta,
+				this.props.linkingPropName
+			),
+
+			this.props.linkingPropPath
+		);
+
 		const CONTENT_TYPE =
 			!this.state.argumentsMode
 			?
@@ -444,7 +501,8 @@ class DataWindowComponent extends PureComponent {
 						this._handleSetArgumentsClick,
 						this._handleDataApplyClick,
 						this._handleJumpIntoField,
-						this.createContentField
+						this.createContentField,
+						linkTargetPropTypedef.type
 					)
 				:	this.DataLayout
 			:	this.createContentArgumentsType(
@@ -461,13 +519,16 @@ class DataWindowComponent extends PureComponent {
 		<div className="data-window">
 	        <Dialog
 		        backdrop
-		        visible
+		        visible={this.props.linkingProp}
+				onClose={this.props.onLinkPropCancel}
 		        haveCloseButton
+				closeOnEscape
+				closeOnBackdropClick
                 scrollable
                 buttonsLeft={CONTENT_TYPE.buttonsLeft}
                 buttons={CONTENT_TYPE.buttons}
                 paddingSize="none"
-                title="%PropName% Data"
+                title={`${this.props.linkingPropName} Data`}
                 dialogContentFlex
 	        >
                 <div className="data-window_content">
@@ -509,12 +570,14 @@ class DataWindowComponent extends PureComponent {
 
 
 DataWindowComponent.propTypes = {
-	dialogTitle: PropTypes.string,
-	possibleDataTypes: PropTypes.arrayOf(PropTypes.string),
+	possiblePropDataTypes: PropTypes.arrayOf(PropTypes.string),
 
 	schema: PropTypes.object,
-	meta: PropTypes.object
-
+	meta: PropTypes.object,
+	linkingProp: PropTypes.bool,
+	linkingPropOfComponentId: PropTypes.number,
+	linkingPropName: PropTypes.string,
+	linkingPropPath: PropTypes.array
 };
 
 DataWindowComponent.defaultProps = {
@@ -525,9 +588,22 @@ DataWindowComponent.displayName = 'DataWindow';
 
 const mapStateToProps = state => ({
 	schema: state.project.schema,
-	meta: state.project.met
+	meta: state.project.meta,
+	linkingProp: state.project.linkingProp,
+	linkingPropOfComponentId: state.project.linkingPropOfComponentId,
+	linkingPropName: state.project.linkingPropName,
+	linkingPropPath: state.project.linkingPropPath,
+	components: currentComponentsSelector(state)
+});
+
+const mapDispatchToProps = dispatch => ({
+	onLinkPropCancel: () =>
+        void dispatch(linkPropCancel()),
+	onUpdateComponentPropValue: (...args) =>
+		void dispatch(updateComponentPropValue(...args))
 });
 
 export const DataWindow = connect(
-	mapStateToProps
+	mapStateToProps,
+	mapDispatchToProps
 )(DataWindowComponent);

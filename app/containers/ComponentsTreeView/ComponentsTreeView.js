@@ -457,8 +457,11 @@ class ComponentsTreeViewComponent extends PureComponent {
                 subtitle={subtitle}
                 expanded={
                     this.props.expandedItemIds.has(componentId)
-                    || !this.isMouseOver && this.props.draggingComponent
-					|| componentId === this.props.rootComponentId
+					||	this.props.draggingComponent
+                    &&	(
+						!this.isMouseOver
+						||	componentId === this.props.rootComponentId
+					)
                 }
                 active={this.props.selectedComponentIds.has(componentId)}
                 hovered={

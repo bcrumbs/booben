@@ -453,16 +453,7 @@ class DesignRoute extends PureComponent {
                     {getLocalizedText('deleteThisComponentQuestion')}
                 </Dialog>
 
-                <Dialog
-                    title="Select prop"
-                    minWidth={400}
-                    buttons={linkPropDialogButtons}
-                    visible={this.props.linkingProp}
-                    closeOnEscape
-                    onClose={this._handleLinkPropDialogCancel}
-                >
-                    <LinkPropMenu/>
-                </Dialog>
+                { this.props.linkingProp && <DataWindow /> }
             </Desktop>
         );
     }
