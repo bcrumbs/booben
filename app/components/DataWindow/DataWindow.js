@@ -28,7 +28,8 @@ import {
 } from './DataWindowContent/DataWindowContent';
 
 import {
-	graphQLPrimitiveTypes
+	graphQLPrimitiveTypes,
+	metaToGraphQLPrimitiveType
 } from '../../utils/schema';
 
 import {
@@ -42,236 +43,6 @@ import {
 } from 'react-redux';
 
 import './DataWindow.scss';
-
-const SAMPLE_TYPE = {
-    breadcrumbs: [
-        {title: 'Data'},
-        {title: 'allMonkeys'}
-    ],
-
-    content: {
-        title: "allMonkeys",
-        type: "type: Monkey",
-        description: "Some allMonkeys description",
-        argsButton: true,
-        contentHeading: 'Fields',
-        list: [
-            {
-                title: "SomeField1",
-                type: "string",
-                tooltip: "Some description",
-                actionType: "select",
-                clickable: true,
-                required: true,
-                argsButton: true,
-                chosen: true,
-                connection: true,
-                state: "error"
-            },
-            {
-                title: "SomeField2",
-                type: "object",
-                tooltip: "Some description",
-                actionType: "select",
-                clickable: true,
-                required: true,
-                argsButton: true,
-                chosen: false,
-                connection: true,
-                state: "error"
-            },
-            {
-                title: "SomeField3",
-                type: "string",
-                tooltip: "Some description",
-                actionType: "select",
-                clickable: true,
-                required: true,
-                argsButton: true,
-                chosen: false,
-                connection: false,
-                state: "success"
-            }
-
-        ]
-    },
-    actions: []
-};
-
-const SAMPLE_ARGUMENTS = {
-    breadcrumbs:[],
-
-    content: {
-        title: "SomeField2 Args",
-        subtitle: "",
-        description: "",
-        list: [],
-        children: [
-            <PropsList>
-                <PropsItem
-                    propType={{
-                        subcomponentLeft: <Checkbox  label=""/>,
-                        label: 'eatBananas',
-                        view: 'toggle',
-                        type: 'bool',
-                        required: true
-                    }}
-                    value={{
-                        value: ''
-                    }}
-                />
-                <PropsItem
-                    propType={{
-                        subcomponentLeft: <Checkbox label=""/>,
-                        label: 'filter',
-                        view: 'shape',
-                        type: 'filterType',
-                        required: true
-                    }}
-                    value={{
-                        value: ''
-                    }}
-                >
-                    <PropsItem
-                        propType={{
-                            subcomponentLeft: <Checkbox />,
-                            label: 'country',
-                            view: 'input',
-                            type: 'string'
-                        }}
-                        value={{
-                            value: ''
-                        }}
-                    />
-                    <PropsItem
-                        propType={{
-                            subcomponentLeft: <Checkbox />,
-                            label: 'population',
-                            view: 'input',
-                            type: 'int'
-                        }}
-                        value={{
-                            value: ''
-                        }}
-                    />
-                </PropsItem>
-            </PropsList>
-        ],
-    },
-    buttonLeft: [
-        {
-            text: '%Somewhere%',
-            subtitle: 'back to',
-            icon: 'chevron-left'
-        }
-    ],
-    buttons: [
-        {text: 'Apply'}
-    ]
-};
-
-const SAMPLE_ARGUMENTS_TOTAL = {
-    breadcrumbs:[],
-
-    content: {
-        title: "Argument",
-        subtitle: "Please, fill required arguments",
-        description: "",
-        list: [],
-        children: [
-            <DataWindowContentGroup title="allMonkeys" subtitle="data > allMonkeys">
-                <PropsList>
-                    <PropsItem
-                        propType={{
-                            subcomponentLeft: <Checkbox  label=""/>,
-                            label: 'eatBananas',
-                            view: 'toggle',
-                            type: 'bool',
-                            required: true
-                        }}
-                        value={{
-                            value: ''
-                        }}
-                    />
-                    <PropsItem
-                        propType={{
-                            subcomponentLeft: <Checkbox label=""/>,
-                            label: 'filter',
-                            view: 'shape',
-                            type: 'filterType',
-                            required: true
-                        }}
-                        value={{
-                            value: ''
-                        }}
-                    >
-                        <PropsItem
-                            propType={{
-                                subcomponentLeft: <Checkbox />,
-                                label: 'country',
-                                view: 'input',
-                                type: 'string'
-                            }}
-                            value={{
-                                value: ''
-                            }}
-                        />
-                        <PropsItem
-                            propType={{
-                                subcomponentLeft: <Checkbox />,
-                                label: 'population',
-                                view: 'input',
-                                type: 'int'
-                            }}
-                            value={{
-                                value: ''
-                            }}
-                        />
-                    </PropsItem>
-                </PropsList>
-            </DataWindowContentGroup>,
-            <DataWindowContentGroup title="someField" subtitle="data > allMonkeys > someField">
-                <PropsList>
-                    <PropsItem
-                        propType={{
-                            subcomponentLeft: <Checkbox  label=""/>,
-                            label: 'eatBananas',
-                            view: 'toggle',
-                            type: 'bool',
-                            required: true
-                        }}
-                        value={{
-                            value: ''
-                        }}
-                    />
-                    <PropsItem
-                        propType={{
-                            subcomponentLeft: <Checkbox />,
-                            label: 'country',
-                            view: 'input',
-                            type: 'string'
-                        }}
-                        value={{
-                            value: ''
-                        }}
-                    />
-                </PropsList>
-            </DataWindowContentGroup>
-        ],
-    },
-    buttonsLeft: [
-        {
-            text: '%Somewhere%',
-            subtitle: 'back to',
-            icon: 'chevron-left'
-        }
-    ],
-    buttons: [
-        {text: 'Apply'}
-    ]
-};
-
-const CONTENT_TYPE = SAMPLE_TYPE;
 
 class DataWindowComponent extends PureComponent {
 	constructor(props){
@@ -304,7 +75,7 @@ class DataWindowComponent extends PureComponent {
 		);
 	}
 
-	_handleJumpIntoField(name, type, kind, args, isCurentPathLast) {
+	_handleJumpIntoField(name, type, kind, args, isCurrentPathLast) {
 		const { previousPath, currentPath } = this.state;
 
 		this.setState({
@@ -313,7 +84,7 @@ class DataWindowComponent extends PureComponent {
 			argumentsForCurrentPathLast: false,
 			currentPath: [
 				...(
-					isCurentPathLast
+					isCurrentPathLast
 					?	currentPath.slice(0, -1)
 					:	currentPath
 				),
@@ -322,7 +93,7 @@ class DataWindowComponent extends PureComponent {
 					type,
 					kind,
 					args:
-						isCurentPathLast
+						isCurrentPathLast
 						?	args
 						:	args
 							||	this._getCurrentArguments(name)
@@ -333,7 +104,7 @@ class DataWindowComponent extends PureComponent {
 				this._equalFieldPaths(
 					previousPath[currentPath.length],
 					{ name, type, kind }
-				) || isCurentPathLast
+				) || isCurrentPathLast
 				?	previousPath
 				:	[]
 		});
@@ -557,6 +328,42 @@ class DataWindowComponent extends PureComponent {
 		);
 	}
 
+	createContentField(
+		field,
+		fieldName,
+		selectedFieldName,
+		getFieldTypeName,
+		handleFieldSelect,
+		handleSetArgumentsClick,
+		handleApplyClick,
+		handleJumpIntoField
+	) {
+		return (
+			{
+				title: fieldName,
+				type: getFieldTypeName(field),
+				tooltip: field.description,
+				actionType: 'select',
+				clickable: true,
+				argsButton: !!Object.keys(field.args).length,
+				chosen: fieldName === selectedFieldName,
+				connection: !graphQLPrimitiveTypes.has(field.type),
+				canBeApplied: graphQLPrimitiveTypes.has(field.type),
+				state: "error",
+				onSelect: () => handleFieldSelect(fieldName),
+				onApplyClick: () => handleApplyClick(fieldName),
+				onSetArgumentsClick: () => handleSetArgumentsClick(false),
+				onJumpIntoClick: () => handleJumpIntoField(
+					fieldName,
+					field.type,
+					field.kind,
+					void 0,
+					false
+				)
+			}
+		);
+	}
+
 	createContentType(
 		type,
 		currentPathLast,
@@ -568,7 +375,7 @@ class DataWindowComponent extends PureComponent {
 		handleSetArgumentsClick,
 		handleApplyClick,
 		handleJumpIntoField,
-		handleBackToPress
+		createContentField
 	) {
 		return {
 			breadcrumbs,
@@ -587,60 +394,29 @@ class DataWindowComponent extends PureComponent {
 						?	field.connectionFields
 						:	{};
 					return acc.concat(
-						[{
-			                title: fieldName +
-								(this.state.previousPath.some(field1 => this._equalFieldPaths(field1, field))
-								?	' visited'
-								:	''),
-			                type: getFieldTypeName(field),
-			                tooltip: field.description,
-			                actionType: 'select',
-			                clickable: true,
-			                argsButton: !!Object.keys(field.args).length,
-			                chosen: fieldName === selectedFieldName,
-			                connection: !graphQLPrimitiveTypes.has(field.type),
-							canBeApplied: graphQLPrimitiveTypes.has(field.type),
-			                state: "error",
-							onSelect: () => handleFieldSelect(fieldName),
-							onApplyClick: () => handleApplyClick(fieldName),
-							onSetArgumentsClick: () => handleSetArgumentsClick(false),
-							onJumpIntoClick: () => handleJumpIntoField(
-								fieldName,
-								field.type,
-								field.kind,
-								void 0,
-								false
-							)
-			            }]).concat(
+						[createContentField(
+							field,
+							fieldName,
+							selectedFieldName,
+							getFieldTypeName,
+							handleFieldSelect,
+							handleSetArgumentsClick,
+							handleApplyClick,
+							handleJumpIntoField
+						)]).concat(
 							Object.keys(connectionFields).map(connectionFieldName =>
-								{
-								const field = connectionFields[connectionFieldName];
-								const name = `${fieldName} ${connectionFieldName}`;
-								return {
-					                title: name,
-					                type: getFieldTypeName(field),
-					                tooltip: field.description,
-					                actionType: 'select',
-					                clickable: true,
-					                argsButton: !!Object.keys(field.args).length,
-					                chosen: name === selectedFieldName,
-					                connection: !graphQLPrimitiveTypes.has(field.type),
-									canBeApplied: graphQLPrimitiveTypes.has(field.type),
-					                state: "error",
-									onSelect: () => handleFieldSelect(name),
-									onApplyClick: () => handleApplyClick(name),
-									onSetArgumentsClick: () => handleSetArgumentsClick(false),
-									onJumpIntoClick: () => handleJumpIntoField(
-										name,
-										field.type,
-										field.kind,
-										void 0,
-										false
-									)
-					            };
-							})
+								createContentField(
+									connectionFields[connectionFieldName],
+									fieldName + ' ' + connectionFieldName,
+									selectedFieldName,
+									getFieldTypeName,
+									handleFieldSelect,
+									handleSetArgumentsClick,
+									handleApplyClick,
+									handleJumpIntoField
+								)
+							)
 						);
-
 				}, [])
 			},
 			children: [],
@@ -668,7 +444,7 @@ class DataWindowComponent extends PureComponent {
 						this._handleSetArgumentsClick,
 						this._handleDataApplyClick,
 						this._handleJumpIntoField,
-						this._handleBackToPress
+						this.createContentField
 					)
 				:	this.DataLayout
 			:	this.createContentArgumentsType(
@@ -734,8 +510,11 @@ class DataWindowComponent extends PureComponent {
 
 DataWindowComponent.propTypes = {
 	dialogTitle: PropTypes.string,
+	possibleDataTypes: PropTypes.arrayOf(PropTypes.string),
 
-	schema: PropTypes.object
+	schema: PropTypes.object,
+	meta: PropTypes.object
+
 };
 
 DataWindowComponent.defaultProps = {
@@ -745,7 +524,8 @@ DataWindowComponent.defaultProps = {
 DataWindowComponent.displayName = 'DataWindow';
 
 const mapStateToProps = state => ({
-	schema: state.project.schema
+	schema: state.project.schema,
+	meta: state.project.met
 });
 
 export const DataWindow = connect(

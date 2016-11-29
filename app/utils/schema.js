@@ -18,6 +18,17 @@ export const graphQLPrimitiveTypes = new Set([
 	'ID'
 ]);
 
+export const metaToGraphQLPrimitiveType = typeName => (
+	{
+		int: 'Int',
+		float: 'Float',
+		bool: 'Boolean',
+		string: 'String'
+	}[typeName]	|| null
+);
+
+
+
 /**
  *
  * @param {Object} type
@@ -217,10 +228,12 @@ export const parseGraphQLSchema = schema => {
 
 	// -----------------------------------------------
 
+
 	schema.types.forEach(
 		type => {
 			if (
-				!graphQLPrimitiveTypes.has(type.name)
+				type.kind !== 'INTERFACE'
+				&&	!graphQLPrimitiveTypes.has(type.name)
 				&&	!/^__.*/.test(type.name)
 			)
 				normalizedTypes[type.name] = convertToSchemaType(

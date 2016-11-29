@@ -430,7 +430,6 @@ class DesignRoute extends PureComponent {
                 onToolTitleChange={this._handleToolTitleChange}
             >
                 {content}
-				<DataWindow />
                 <Dialog
                     title={getLocalizedText('selectLayout')}
                     backdrop
