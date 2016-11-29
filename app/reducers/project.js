@@ -77,21 +77,29 @@ import {
 import {
     propSourceDataToImmutable,
     gatherComponentsTreeIds,
-    isRootComponent
+    isRootComponent,
+    getValueByPath
 } from '../models/ProjectComponent';
 
 import { Record, Map, Set, List } from 'immutable';
 
 import { concatPath } from '../utils';
+
 import {
     getComponentMeta,
     constructComponent,
     parseComponentName,
-    formatComponentName
+    formatComponentName,
+    findPropByDataContext,
+    getNestedTypedef
 } from '../utils/meta';
+
 import {
-	parseGraphQLSchema
+    parseGraphQLSchema,
+    getTypeNameByPath
 } from '../utils/schema';
+
+import { objectForEach } from '../utils/misc';
 
 import { NO_VALUE } from "../constants/misc";
 
@@ -103,7 +111,8 @@ export const NestedConstructor = Record({
     path: [],
     lastComponentId: -1,
     selectedComponentIds: Set(),
-    highlightedComponentIds: Set()
+    highlightedComponentIds: Set(),
+    dataContextTypes: Map()
 });
 
 const ProjectState = Record({
@@ -438,9 +447,9 @@ export default (state = new ProjectState(), action) => {
                     selectedRouteId: project.rootRoutes.size > 0
                         ? project.rootRoutes.get(0)
                         : -1,
-					schema,
                     indexRouteSelected: false
                 })
+                .set('schema', schema)
                 .set('meta', action.metadata); // Prevent conversion to Immutable.Map
         }
 
@@ -816,9 +825,13 @@ export default (state = new ProjectState(), action) => {
             const pathToCurrentComponents = getPathToCurrentComponents(state),
                 components = state.getIn(pathToCurrentComponents),
                 component = components.get(action.componentId),
-                prop = component.props.get(action.propName),
-                componentMeta = getComponentMeta(component.name, state.meta),
-                propMeta = componentMeta.props[action.propName];
+                currentValue = getValueByPath(component, action.propName, action.path),
+                componentMeta = getComponentMeta(component.name, state.meta);
+
+            const propMeta = getNestedTypedef(
+                componentMeta.props[action.propName],
+                action.path
+            );
 
             if (propMeta.source.indexOf('designer') === -1) {
                 throw new Error(
@@ -827,22 +840,18 @@ export default (state = new ProjectState(), action) => {
                 );
             }
 
-            const currentSourceData = (prop && prop.source === 'designer')
-                ? prop.sourceData
-                : null;
-
             const nestedConstructorData = {
                 componentId: action.componentId,
                 prop: action.propName,
                 path: action.path
             };
 
-            if (currentSourceData) {
+            if (currentValue && currentValue.source === 'designer') {
                 Object.assign(nestedConstructorData, {
-                    components: currentSourceData.components,
-                    rootId: currentSourceData.rootId,
-                    lastComponentId: currentSourceData.components.size > 0
-                        ? currentSourceData.components.keySeq().max()
+                    components: currentValue.sourceData.components,
+                    rootId: currentValue.sourceData.rootId,
+                    lastComponentId: currentValue.sourceData.components.size > 0
+                        ? currentValue.sourceData.components.keySeq().max()
                         : -1
                 });
             }
@@ -868,6 +877,43 @@ export default (state = new ProjectState(), action) => {
                     lastComponentId: wrapperComponents.size - 1
                 });
             }
+
+            // Resolve types for data contexts
+            nestedConstructorData.dataContextTypes = Map().withMutations(ret => {
+                const ownerProps = propMeta.sourceConfigs.designer.props;
+                if (!ownerProps) return;
+
+                objectForEach(ownerProps, ownerPropMeta => {
+                    if (ownerPropMeta.dataContext) {
+                        const dataContextPropName = findPropByDataContext(
+                            componentMeta,
+                            ownerPropMeta.dataContext
+                        );
+
+                        if (!dataContextPropName) return;
+
+                        const dataPropValue =
+                            component.props.get(dataContextPropName);
+
+                        if (dataPropValue.source !== 'data') return;
+
+                        const rootType = dataPropValue.sourceData.dataContext
+                            ? getTopNestedConstructor(state).dataContextTypes.get(
+                                dataPropValue.sourceData.dataContext
+                            )
+                            : '';
+
+                        const path = dataPropValue.sourceData.queryPath
+                            .map(step => step.field)
+                            .toJS();
+
+                        ret.set(
+                            ownerPropMeta.dataContext,
+                            getTypeNameByPath(state.schema, path, rootType)
+                        );
+                    }
+                });
+            });
 
             const nestedConstructor = new NestedConstructor(nestedConstructorData);
             return openNestedConstructor(state, nestedConstructor);

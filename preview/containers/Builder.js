@@ -222,8 +222,9 @@ class BuilderComponent extends PureComponent {
     }
 
     _buildGraphQLFragment(propValue, fragmentName) {
-        const onType =
-            this.props.gqlRootTypesStack[propValue.sourceData.dataContextIndex];
+        const onType = propValue.sourceData.dataContext
+            ? this.props.dataContextTypes.get(propValue.sourceData.dataContext)
+            : this.props.schema.queryTypeName;
 
         const ret = {
             kind: 'FragmentDefinition',
@@ -587,7 +588,7 @@ BuilderComponent.propTypes = {
     containerId: PropTypes.any, // number on null
     propsFromOwner: PropTypes.object,
     ignoreOwnerProps: PropTypes.bool,
-    gqlRootTypesStack: PropTypes.arrayOf(PropTypes.string),
+    dataContextTypes: PropTypes.object, // Immutable.Map<string, string>
 
     project: PropTypes.any,
     meta: PropTypes.object,
@@ -609,7 +610,7 @@ BuilderComponent.defaultProps = {
     containerId: -1,
     propsFromOwner: {},
     ignoreOwnerProps: false,
-    gqlRootTypesStack: []
+    dataContextTypes: Map()
 };
 
 BuilderComponent.displayName = 'Builder';

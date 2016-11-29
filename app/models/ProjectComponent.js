@@ -144,4 +144,9 @@ export const gatherComponentsTreeIds = (components, rootComponentId) =>
         visitComponent(components.get(rootComponentId));
     });
 
+export const getValueByPath = (component, propName, path) => path.reduce(
+    (acc, cur) => acc.sourceData.value.get(cur),
+    component.props.get(propName)
+);
+
 export default ProjectComponentRecord;

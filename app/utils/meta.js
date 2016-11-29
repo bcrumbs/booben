@@ -643,3 +643,25 @@ export const getNestedTypedef = (typedef, valuePath) => valuePath.reduce((acc, c
         );
     }
 }, typedef);
+
+/**
+ *
+ * @param {ComponentMeta} componentMeta
+ * @param {string} dataContext
+ * @return {string}
+ */
+export const findPropByDataContext = (componentMeta, dataContext) => {
+    const propNames = Object.keys(componentMeta.props);
+    for (let i = 0, l = propNames.length; i < l; i++) {
+        const propMeta = componentMeta.props[propNames[i]];
+
+        const found =
+            isValidSourceForProp(propMeta, 'data') &&
+            propMeta.sourceConfigs.data &&
+            propMeta.sourceConfigs.data.pushDataContext === dataContext;
+
+        if (found) return propNames[i];
+    }
+
+    return '';
+};

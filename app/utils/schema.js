@@ -238,3 +238,15 @@ export const parseGraphQLSchema = schema => {
 
 	return { types: normalizedTypes, queryTypeName: queryType.name };
 };
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string[]} path - Array of field names
+ * @param {string} [startType='']
+ * @return {string}
+ */
+export const getTypeNameByPath = (schema, path, startType = '') => path.reduce(
+    (acc, cur) => schema.types[acc].fields[cur].type,
+    startType || schema.queryTypeName
+);
