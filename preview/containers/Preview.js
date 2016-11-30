@@ -143,27 +143,6 @@ const getClosestComponentOrPlaceholder = el => {
     return null;
 };
 
-/**
- *
- * @param {Immutable.Map<number, ProjectComponent>} components
- * @param {number} rootId
- * @param {number} enclosingComponentId
- * @return {Function}
- */
-const makeBuilder = (components, rootId, enclosingComponentId) => {
-    const ret = ({ children }) => (
-        <Builder
-            components={components}
-            rootId={rootId}
-            enclosingComponentId={enclosingComponentId}
-            children={children}
-        />
-    );
-
-    ret.displayName = `Builder(${rootId === -1 ? 'null' : rootId})`;
-    return ret;
-};
-
 class Preview extends Component {
     constructor(props) {
         super(props);
@@ -234,6 +213,33 @@ class Preview extends Component {
 
     /**
      *
+     * @param {Immutable.Map<number, ProjectComponent>} components
+     * @param {number} rootId
+     * @param {number} enclosingComponentId
+     * @return {Function}
+     */
+    _makeBuilder(components, rootId, enclosingComponentId) {
+        const dataContextTree = {
+            type: this.props.schema.queryTypeName,
+            children: {}
+        };
+
+        const ret = ({ children }) => (
+            <Builder
+                components={components}
+                rootId={rootId}
+                enclosingComponentId={enclosingComponentId}
+                dataContextTree={dataContextTree}
+                children={children}
+            />
+        );
+
+        ret.displayName = `Builder(${rootId === -1 ? 'null' : rootId})`;
+        return ret;
+    };
+
+    /**
+     *
      * @param {Object} routes
      * @param {number} routeId
      * @param {number} [enclosingComponentId=-1]
@@ -245,7 +251,7 @@ class Preview extends Component {
 
         const ret = {
             path: route.path,
-            component: makeBuilder(
+            component: this._makeBuilder(
                 route.components,
                 route.component,
                 enclosingComponentId
@@ -275,7 +281,7 @@ class Preview extends Component {
         }
         else if (route.haveIndex) {
             ret.indexRoute = {
-                component: makeBuilder(
+                component: this._makeBuilder(
                     route.components,
                     route.indexComponent,
                     enclosingComponentIdForChildRoute
@@ -506,6 +512,7 @@ Preview.propTypes = {
     // 'cause this value comes from another frame with another instance of immutable.js
     project: PropTypes.any,
     meta: PropTypes.object,
+    schema: PropTypes.object,
     draggingComponent: PropTypes.bool,
     highlightingEnabled: PropTypes.bool,
     currentRouteId: PropTypes.number,
@@ -532,6 +539,7 @@ Preview.displayName = 'Preview';
 const mapStateToProps = (state) => ({
     project: state.project.data,
     meta: state.project.meta,
+    schema: state.project.schema,
     draggingComponent: state.project.draggingComponent,
     highlightingEnabled: state.project.highlightingEnabled,
     currentRouteId: state.project.currentRouteId,

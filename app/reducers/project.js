@@ -111,8 +111,7 @@ export const NestedConstructor = Record({
     path: [],
     lastComponentId: -1,
     selectedComponentIds: Set(),
-    highlightedComponentIds: Set(),
-    dataContextTypes: Map()
+    highlightedComponentIds: Set()
 });
 
 const ProjectState = Record({
@@ -877,43 +876,6 @@ export default (state = new ProjectState(), action) => {
                     lastComponentId: wrapperComponents.size - 1
                 });
             }
-
-            // Resolve types for data contexts
-            nestedConstructorData.dataContextTypes = Map().withMutations(ret => {
-                const ownerProps = propMeta.sourceConfigs.designer.props;
-                if (!ownerProps) return;
-
-                objectForEach(ownerProps, ownerPropMeta => {
-                    if (ownerPropMeta.dataContext) {
-                        const dataContextPropName = findPropByDataContext(
-                            componentMeta,
-                            ownerPropMeta.dataContext
-                        );
-
-                        if (!dataContextPropName) return;
-
-                        const dataPropValue =
-                            component.props.get(dataContextPropName);
-
-                        if (dataPropValue.source !== 'data') return;
-
-                        const rootType = dataPropValue.sourceData.dataContext
-                            ? getTopNestedConstructor(state).dataContextTypes.get(
-                                dataPropValue.sourceData.dataContext
-                            )
-                            : '';
-
-                        const path = dataPropValue.sourceData.queryPath
-                            .map(step => step.field)
-                            .toJS();
-
-                        ret.set(
-                            ownerPropMeta.dataContext,
-                            getTypeNameByPath(state.schema, path, rootType)
-                        );
-                    }
-                });
-            });
 
             const nestedConstructor = new NestedConstructor(nestedConstructorData);
             return openNestedConstructor(state, nestedConstructor);

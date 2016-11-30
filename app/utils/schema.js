@@ -242,11 +242,29 @@ export const parseGraphQLSchema = schema => {
 /**
  *
  * @param {DataSchema} schema
+ * @param {string} fieldName
+ * @param {string} onType
+ * @return {string}
+ */
+export const getTypeNameByField = (schema, fieldName, onType) => {
+    const [ownFieldName, connectionFieldName] = fieldName.split('/');
+
+    let field = schema.types[onType].fields[ownFieldName];
+
+    if (connectionFieldName)
+        field = field.connectionFields[connectionFieldName];
+
+    return field.type;
+};
+
+/**
+ *
+ * @param {DataSchema} schema
  * @param {string[]} path - Array of field names
  * @param {string} [startType='']
  * @return {string}
  */
 export const getTypeNameByPath = (schema, path, startType = '') => path.reduce(
-    (acc, cur) => schema.types[acc].fields[cur].type,
+    (acc, cur) => getTypeNameByField(schema, cur, acc),
     startType || schema.queryTypeName
 );

@@ -65,7 +65,7 @@ const propSourceDataToImmutableFns = {
     },
 
     data: input => new SourceDataData({
-        dataContextIndex: input.dataContextIndex,
+        dataContext: List(input.dataContext),
         queryPath: List(input.queryPath.map(step => new QueryPathStep({
             field: step.field,
             args: Map(objectMap(step.args, arg => new QueryPathStepArgument({

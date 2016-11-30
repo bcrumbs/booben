@@ -85,7 +85,7 @@
 
 /**
  * @typedef {Object} SourceDataData
- * @property {string} [dataContext]
+ * @property {string[]} dataContext
  * @property {QueryPathStep[]} queryPath
  */
 

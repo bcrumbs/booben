@@ -25,14 +25,22 @@ import {
     isCompositeComponent,
     canInsertComponent,
     getComponentMeta,
-    parseComponentName
+    parseComponentName,
+    isValidSourceForProp
 } from '../../app/utils/meta';
+
+import {
+    FIELD_KINDS,
+    getTypeNameByField,
+    getTypeNameByPath
+} from '../../app/utils/schema';
 
 import { randomName } from '../../app/utils/graphql';
 
 import {
     objectMap,
     objectForEach,
+    clone,
     returnNull
 } from '../../app/utils/misc';
 
@@ -64,122 +72,20 @@ const isPseudoComponent = component => pseudoComponents.has(component.name);
  */
 const getComponentByName = (componentName = '') => {
     const { namespace, name } = parseComponentName(componentName);
-    if (!namespace || !name) throw new Error(`Invalid component name: '${componentName}'`);
+    if (!namespace || !name)
+        throw new Error(`Invalid component name: '${componentName}'`);
+
     if (namespace === 'HTML') return name;
-    if (!components[namespace]) throw new Error(`Namespace not found: '${namespace}'`);
+
+    if (!components[namespace])
+        throw new Error(`Namespace not found: '${namespace}'`);
+
     const component = components[namespace][name];
-    if (!component) throw new Error(`Component not found: '${componentName}'`);
+    if (!component)
+        throw new Error(`Component not found: '${componentName}'`);
+
     return component;
 };
-
-/**
- *
- * @param {Object} propValueDescriptor
- * @return {Function}
- */
-const makeBuilderForProp = propValueDescriptor => props => (
-    <Builder
-        components={propValueDescriptor.sourceData.components}
-        rootId={propValueDescriptor.sourceData.rootId}
-        dontPatch
-        propsFromOwner={props}
-        children={props.children}
-    />
-);
-
-/**
- *
- * @param {Object} prop
- * @param {?Object<string, *>} propsFromOwner
- * @return {*}
- */
-const buildPropValue = (prop, propsFromOwner) => {
-    if (prop.source == 'static') {
-        if (propsFromOwner && prop.sourceData.ownerPropName) {
-            return propsFromOwner[prop.sourceData.ownerPropName];
-        }
-        else {
-            if (List.isList(prop.sourceData.value)) {
-                return prop.sourceData.value.map(nestedProp =>
-                    buildPropValue(nestedProp, propsFromOwner)).toJS();
-            }
-            else if (Map.isMap(prop.sourceData.value)) {
-                return prop.sourceData.value.map(nestedProp =>
-                    buildPropValue(nestedProp, propsFromOwner)).toJS();
-            }
-            else {
-                return prop.sourceData.value;
-            }
-        }
-    }
-    else if (prop.source === 'const') {
-        if (typeof prop.sourceData.value !== 'undefined') {
-            return prop.sourceData.value;
-        }
-        else if (typeof prop.sourceData.jssyConstId !== 'undefined') {
-            return jssyConstants[prop.sourceData.jssyConstId];
-        }
-    }
-    else if (prop.source === 'designer') {
-        if (prop.sourceData.components && prop.sourceData.rootId > -1) {
-            return makeBuilderForProp(prop);
-        }
-        else {
-            return returnNull;
-        }
-    }
-    else if (prop.source === 'actions') {
-        // TODO: Handle actions source
-    }
-
-    return NO_VALUE;
-};
-
-/**
- * Constructs props object
- *
- * @param {Immutable.Map<string, Object>} propValueDescriptors
- * @param {?Object<string, *>} propsFromOwner
- * @return {Object<string, *>}
- */
-const buildProps = (propValueDescriptors, propsFromOwner) => {
-    const ret = {};
-
-    propValueDescriptors.forEach((prop, key) => {
-        const value = buildPropValue(prop, propsFromOwner);
-        if (value !== NO_VALUE) ret[key] = value;
-    });
-
-    return ret;
-};
-
-/**
- *
- * @param {Object} component
- * @return {boolean}
- */
-const hasDataProps = component =>
-    component.props.some(value => value.source === 'data');
-
-/**
- *
- * @param {Immutable.Map<number, Object>} components
- * @param {Object} component
- * @return {boolean}
- */
-const hasDataPropsDeep = (components, component) =>
-    hasDataProps(component) ||
-
-    component.children.some(childId =>
-        hasDataPropsDeep(components, components.get(childId))) ||
-
-    component.props.some(propValue =>
-        propValue.source === 'designer' &&
-        propValue.sourceData.rootId > -1 &&
-        hasDataPropsDeep(
-            propValue.sourceData.components,
-            propValue.sourceData.components.get(propValue.sourceData.rootId)
-        ));
 
 const toGraphQLScalarValue = (value, type) => {
     if (type === 'String') return { kind: 'StringValue', value };
@@ -192,129 +98,158 @@ const toGraphQLScalarValue = (value, type) => {
 
 
 class BuilderComponent extends PureComponent {
-    _buildGraphQLValue(value, type, kind) {
-        // TODO: Deal with values
-        if (value.source === 'static') {
-            if (value.sourceData.ownerPropName) {
-                return NO_VALUE;
+    /**
+     *
+     * @param {Object} propValue
+     * @param {PropTypeDefinition} propMeta
+     * @param {Object<string, string>} nextDataContextTree
+     * @return {Function}
+     */
+    _makeBuilderForProp(propValue, propMeta, nextDataContextTree) {
+        return props => (
+            <Builder
+                components={propValue.sourceData.components}
+                rootId={propValue.sourceData.rootId}
+                dontPatch
+                propsFromOwner={props}
+                dataContextTree={nextDataContextTree}
+                children={props.children}
+            />
+        );
+    }
+
+    /**
+     *
+     * @param {Object} propValue
+     * @param {PropTypeDefinition} propMeta
+     * @param {Object} nextDataContextTree
+     * @return {*}
+     */
+    _buildPropValue(propValue, propMeta, nextDataContextTree) {
+        if (propValue.source == 'static') {
+            if (propValue.sourceData.ownerPropName && !this.props.ignoreOwnerProps) {
+                return this.props.propsFromOwner[propValue.sourceData.ownerPropName];
             }
             else {
-                return NO_VALUE;
+                if (propMeta.type === 'shape') {
+                    if (propValue.sourceData.value === null) return null;
+
+                    return objectMap(propMeta.fields, (fieldMeta, fieldName) => {
+                        const fieldValue = propValue.sourceData.value.get(fieldName);
+
+                        return this._buildPropValue(
+                            fieldValue,
+                            fieldMeta,
+                            nextDataContextTree
+                        );
+                    });
+                }
+                else if (propMeta.type === 'objectOf') {
+                    if (propValue.sourceData.value === null) return null;
+
+                    return propValue.sourceData.value.map(nestedValue =>
+                        this._buildPropValue(
+                            nestedValue,
+                            propMeta.ofType,
+                            nextDataContextTree)
+                    ).toJS();
+                }
+                else if (propMeta.type === 'arrayOf') {
+                    return propValue.sourceData.value.map(nestedValue =>
+                        this._buildPropValue(
+                            nestedValue,
+                            propMeta.ofType,
+                            nextDataContextTree)
+                    ).toJS();
+                }
+                else {
+                    return propValue.sourceData.value;
+                }
             }
         }
-        else {
-            return NO_VALUE;
+        else if (propValue.source === 'const') {
+            if (typeof propValue.sourceData.value !== 'undefined') {
+                return propValue.sourceData.value;
+            }
+            else if (typeof propValue.sourceData.jssyConstId !== 'undefined') {
+                return jssyConstants[propValue.sourceData.jssyConstId];
+            }
         }
+        else if (propValue.source === 'designer') {
+            if (propValue.sourceData.components && propValue.sourceData.rootId > -1) {
+                return this._makeBuilderForProp(
+                    propValue,
+                    propMeta,
+                    nextDataContextTree
+                );
+            }
+            else {
+                return returnNull;
+            }
+        }
+        else if (propValue.source === 'actions') {
+            // TODO: Handle actions source
+        }
+
+        return NO_VALUE;
     }
 
-    _buildGraphQLArgument(argName, argValue, fieldDefinition) {
-        const value = this._buildGraphQLValue(
-            argValue,
-            fieldDefinition.type,
-            fieldDefinition.kind
-        );
+    /**
+     * Constructs props object
+     *
+     * @param {Object} component
+     * @return {Object<string, *>}
+     */
+    _buildProps(component) {
+        const componentMeta = getComponentMeta(component.name, this.props.meta),
+            nextDataContextTree = clone(this.props.dataContextTree);
+        
+        objectForEach(componentMeta.props, (propMeta, propName) => {
+            const hasDataContextDefinition =
+                isValidSourceForProp(propMeta, 'data') &&
+                propMeta.sourceConfigs.data.pushDataContext;
 
-        return value === NO_VALUE ? NO_VALUE : {
-            kind: 'Argument',
-            name: { kind: 'Name', value: argName },
-            value
-        };
-    }
+            if (!hasDataContextDefinition) return;
 
-    _buildGraphQLFragment(propValue, fragmentName) {
-        const onType = propValue.sourceData.dataContext
-            ? this.props.dataContextTypes.get(propValue.sourceData.dataContext)
-            : this.props.schema.queryTypeName;
+            const propValue = component.props.get(propName);
+            if (propValue && propValue.source === 'data') {
+                const dataContext = propMeta.sourceConfigs.data.pushDataContext;
 
-        const ret = {
-            kind: 'FragmentDefinition',
-            name: {
-                kind: 'Name',
-                value: fragmentName
-            },
-            typeCondition: {
-                kind: 'NamedType',
-                name: {
-                    kind: 'Name',
-                    value: onType
-                }
-            },
-            directives: [],
-            selectionSet: null
-        };
-
-        let currentNode = ret;
-        let currentTypeDefinition = this.props.schema.types[onType];
-
-        propValue.sourceData.queryPath.forEach(step => {
-            const args = [];
-
-            step.args.forEach((argValue, argName) => {
-                const arg = this._buildGraphQLArgument(
-                    argName,
-                    argValue,
-                    currentTypeDefinition.fields[step.field]
+                const dataContextTreeNode = propValue.sourceData.dataContext.reduce(
+                    (acc, cur) => acc.children[cur],
+                    nextDataContextTree
                 );
 
-                if (arg !== NO_VALUE) args.push(arg);
-            });
+                const path = propValue.sourceData.queryPath.map(step => step.field);
 
-            const node = {
-                kind: 'Field',
-                alias: null,
-                name: {
-                    kind: 'Name',
-                    value: step.field
-                },
-                arguments: args,
-                directives: [],
-                selectionSet: null
-            };
+                dataContextTreeNode.children[dataContext] = {
+                    type: getTypeNameByPath(
+                        this.props.schema,
+                        path,
+                        dataContextTreeNode.type
+                    ),
 
-            currentNode.selectionSet = {
-                kind: 'SelectionSet',
-                selections: [node]
-            };
+                    children: {}
+                };
+            }
+        });
 
-            currentNode = node;
+        const ret = {};
 
-            currentTypeDefinition =
-                this.props.schema.types[currentTypeDefinition.fields[step.field].type];
+        component.props.forEach((propValue, propName) => {
+            const propMeta = componentMeta.props[propName];
+
+            const value = this._buildPropValue(
+                propValue,
+                propMeta,
+                nextDataContextTree
+            );
+            
+            if (value !== NO_VALUE) ret[propName] = value;
         });
 
         return ret;
-    }
-
-    _buildGraphQLFragmentsForComponent(component) {
-        const componentMeta = getComponentMeta(component.name, this.props.meta);
-
-        const ret = [];
-
-        const visitValue = (value, typedef) => {
-            if (value.source === 'data') {
-                ret.push(this._buildGraphQLFragment(value, randomName()));
-            }
-            else if (value.source === 'static' && !value.sourceData.ownerPropName) {
-                if (typedef.type === 'shape' && value.sourceData.value !== null) {
-                    objectForEach(typedef.fields, (fieldTypedef, fieldName) =>
-                        void visitValue(value.sourceData.value[fieldName], fieldTypedef));
-                }
-                else if (typedef.type === 'objectOf' && value.sourceData.value !== null) {
-                    value.sourceData.value.forEach(fieldValue =>
-                        void visitValue(fieldValue, typedef.ofType));
-                }
-                else if (typedef.type === 'arrayOf') {
-                    value.sourceData.value.forEach(itemValue =>
-                        void visitValue(itemValue, typedef.ofType));
-                }
-            }
-        };
-
-        component.props.forEach((propValue, propName) =>
-            void visitValue(propValue, componentMeta.props[propName]));
-
-        return ret;
-    }
+    };
 
     /**
      *
@@ -323,19 +258,15 @@ class BuilderComponent extends PureComponent {
      * @private
      */
     _renderPseudoComponent(component) {
-        const propsFromOwner = this.props.ignoreOwnerProps
-            ? null
-            : this.props.propsFromOwner;
-
         if (component.name === 'Outlet') {
             return this.props.children;
         }
         else if (component.name === 'Text') {
-            const props = buildProps(component.props, propsFromOwner);
+            const props = this._buildProps(component);
             return props.text || '';
         }
         else if (component.name === 'List') {
-            const props = buildProps(component.props, propsFromOwner),
+            const props = this._buildProps(component),
                 ItemComponent = props.component;
 
             return props.data.map((item, idx) => (
@@ -492,13 +423,8 @@ class BuilderComponent extends PureComponent {
         // Handle special components like Text, Outlet etc.
         if (isPseudoComponent(component)) return this._renderPseudoComponent(component);
 
-        const Component = getComponentByName(component.name);
-
-        const propsFromOwner = this.props.ignoreOwnerProps
-            ? null
-            : this.props.propsFromOwner;
-
-        const props = buildProps(component.props, propsFromOwner),
+        const Component = getComponentByName(component.name),
+            props = this._buildProps(component),
             isHTMLComponent = typeof Component === 'string';
 
         props.children = this._renderComponentChildren(component, isPlaceholder);
@@ -579,16 +505,16 @@ class BuilderComponent extends PureComponent {
 }
 
 BuilderComponent.propTypes = {
-    components: PropTypes.any, // Immutable map of <number, Component>
+    components: PropTypes.object, // Immutable.Map<number, Component>
     rootId: PropTypes.number,
     dontPatch: PropTypes.bool,
     enclosingComponentId: PropTypes.number,
     isPlaceholder: PropTypes.bool,
-    afterIdx: PropTypes.any, // number on null
-    containerId: PropTypes.any, // number on null
+    afterIdx: PropTypes.number,
+    containerId: PropTypes.number,
     propsFromOwner: PropTypes.object,
     ignoreOwnerProps: PropTypes.bool,
-    dataContextTypes: PropTypes.object, // Immutable.Map<string, string>
+    dataContextTree: PropTypes.object,
 
     project: PropTypes.any,
     meta: PropTypes.object,
@@ -610,7 +536,7 @@ BuilderComponent.defaultProps = {
     containerId: -1,
     propsFromOwner: {},
     ignoreOwnerProps: false,
-    dataContextTypes: Map()
+    dataContextTree: null
 };
 
 BuilderComponent.displayName = 'Builder';
