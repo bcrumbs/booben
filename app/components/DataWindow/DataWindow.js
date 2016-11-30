@@ -35,8 +35,7 @@ import {
 
 import {
 	clone,
-	objectFilter,
-	objectSome
+	objectFilter
 } from '../../utils/misc';
 
 import {
@@ -49,16 +48,12 @@ import {
 } from 'react-redux';
 
 import {
-    currentComponentsSelector,
-    singleComponentSelectedSelector,
-    topNestedConstructorSelector,
-    topNestedConstructorComponentSelector
+    currentComponentsSelector
 } from '../../selectors';
 
 import {
     getComponentMeta,
     getPropTypedef,
-    resolveTypedef,
     getNestedTypedef
 } from '../../utils/meta';
 
@@ -76,16 +71,18 @@ class DataWindowComponent extends PureComponent {
 			argumentsForCurrentPathLast: false,
 			argumentsPath: [],
 			argumentsMode: false,
+			allArgumentsMode: false,
 			selectedFieldName: '',
 		};
 		this._handleJumpIntoField = this._handleJumpIntoField.bind(this);
 		this._handleJumpToCurrentPathIndex =
 			this._handleJumpToCurrentPathIndex.bind(this);
 		this._handleFieldSelect = this._handleFieldSelect.bind(this);
-		this._handleSetArgumentsClick = this._handleSetArgumentsClick.bind(this);
-		this._handleDataApplyClick = this._handleDataApplyClick.bind(this);
+		this._handleSetArgumentsPress = this._handleSetArgumentsPress.bind(this);
+		this._handleDataApplyPress = this._handleDataApplyPress.bind(this);
+		this._handleArgumentsApplyPress = this._handleArgumentsApplyPress.bind(this);
 		this._handleBackToPress = this._handleBackToPress.bind(this);
-		this._getCurrentArguments = this._getCurrentArguments.bind(this);
+		this._getCurrentEditingFields = this._getCurrentEditingFields.bind(this);
 	}
 
 	_equalFieldPaths(path1, path2) {
@@ -101,6 +98,7 @@ class DataWindowComponent extends PureComponent {
 		this.setState({
 			argumentsPath: [],
 			argumentsMode: false,
+			allArgumentsMode: false,
 			argumentsForCurrentPathLast: false,
 			currentPath: [
 				...(
@@ -113,11 +111,7 @@ class DataWindowComponent extends PureComponent {
 					type,
 					kind,
 					args:
-						isCurrentPathLast
-						?	args
-						:	args
-							||	this._getCurrentArguments(name)
-							||	{}
+						args || this.currentArguments[0] || {}
 				}
 			],
 			previousPath:
@@ -156,16 +150,29 @@ class DataWindowComponent extends PureComponent {
 			this.setState({ selectedFieldName });
 	}
 
-	_handleSetArgumentsClick(argumentsForCurrentPathLast) {
-
+	_handleSetArgumentsPress(argumentsForCurrentPathLast) {
 		this.setState({
 			argumentsMode: true,
 			argumentsForCurrentPathLast,
 		});
 	}
 
+	_handleArgumentsApplyPress(args) {
+		if (!this.state.allArgumentsMode) {
+			const { name, kind, type } = this._getCurrentEditingFields()[0];
+			this._handleJumpIntoField(
+				name,
+				type,
+				kind,
+				args[0],
+				this.state.argumentsForCurrentPathLast
+			);
+		} else {
+			this._applyPropData(args);
+		}
+	}
 
-	_handleDataApplyClick() {
+	_applyPropData(args = []) {
 		const { types } = this.props.schema;
 		this.props.onUpdateComponentPropValue(
 			this.props.linkingPropOfComponentId,
@@ -173,15 +180,43 @@ class DataWindowComponent extends PureComponent {
 			this.props.linkingPropPath,
 			'data',
 			{
-				queryPath: this.state.currentPath.slice(1).concat(
+				queryPath: this.state.currentPath.slice(2).concat(
 					[
 						types[this._getCurrentPathByIndex(-1).type]
 							.fields[this.state.selectedFieldName]
 					]
+				).map((pathStep, num) =>
+					({
+						field: pathStep.name,
+						args:
+							Object.keys(args[num] || pathStep.args).reduce(
+								(acc, argName) => Object.assign(acc,
+									{
+										[argName]: {
+											source: 'static',
+											sourceData: {
+												value: pathStep.args[argName]
+											}
+										}
+									}
+								)
+							, {})
+					})
 				)
 			}
 		);
 		this.props.onLinkPropCancel();
+	}
+
+	_handleDataApplyPress() {
+		if (this._getCurrentEditingFields(true).some(this.haveArguments))
+			this.setState({
+				argumentsMode: true,
+				allArgumentsMode: true,
+			});
+		else
+			this._applyPropData();
+
 	}
 
 	_handleBackToPress() {
@@ -190,6 +225,9 @@ class DataWindowComponent extends PureComponent {
 			this.setState({
 				argumentsPath: this.state.argumentsPath.slice(0, -1),
 				argumentsMode,
+				allArgumentsMode:
+					this.state.argumentsForCurrentPathLast
+					&&	argumentsMode,
 				argumentsForCurrentPathLast:
 					this.state.argumentsForCurrentPathLast
 					&&	argumentsMode
@@ -222,36 +260,70 @@ class DataWindowComponent extends PureComponent {
 		);
 	}
 
-	_getCurrentArguments(fieldName) {
+	get currentArguments() {
 		const previousPathField =
 			this.state.previousPath[this.state.currentPath.length];
 
 		if (this.state.currentPath.length === 1) return {};
 
-		return !this.state.argumentsForCurrentPathLast
-			?	previousPathField
-				&&	this._equalFieldPaths(
-					previousPathField,
-					this.props.schema.types[this._getCurrentPathByIndex(-1).type]
-						.fields[fieldName || this.state.selectedFieldName]
-				)
-				&&	previousPathField.args
-			:	this._getCurrentPathByIndex(-1).args;
+		return this.state.allArgumentsMode
+			?	this.state.currentPath.slice(2).map(({ args }) => args)
+			: [
+				!this.state.argumentsForCurrentPathLast
+				?	previousPathField
+					&&	this._equalFieldPaths(
+						previousPathField,
+						this.props.schema.types[this._getCurrentPathByIndex(-1).type]
+							.fields[this.state.selectedFieldName]
+					)
+					&&	previousPathField.args
+				:	this._getCurrentPathByIndex(-1).args
+			];
 
 	}
 
-	get currentEditingField() {
+	_getCurrentEditingFields(allCurrentPathFields) {
 		const { types, queryTypeName } = this.props.schema;
 		return this.state.currentPath.length > 2
-			?	this.state.argumentsMode && !this.state.argumentsForCurrentPathLast
-				?	types[this._getCurrentPathByIndex(-1).type]
-							.fields[this.state.selectedFieldName]
-				:	types[this._getCurrentPathByIndex(-2).type]
-							.fields[this._getCurrentPathByIndex(-1).name]
-			:	this.state.currentPath.length === 2
+			?	this.state.allArgumentsMode || allCurrentPathFields
+				?	this.state.currentPath.slice(2).reduce((path, { name }) =>
+					{
+						const parentField = types[
+							path.length
+							?	path[path.length - 1].type
+							:	queryTypeName
+						];
+
+						const fieldConnections = objectFilter(parentField.fields,
+							({ kind }) => kind === FIELD_KINDS.CONNECTION
+						);
+
+						return path.concat(
+							parentField.fields[name]
+							||	Object.keys(fieldConnections).reduce(
+								(_, fieldConnectionName)	=>
+									_ || fieldConnections[fieldConnectionName]
+										.connectionFields[name.split(' ')[1]]
+							, void 0)
+						);
+
+					}
+					, [])
+				:
+					[
+						this.state.argumentsMode
+						&&	!this.state.argumentsForCurrentPathLast
+						?	types[this._getCurrentPathByIndex(-1).type]
+									.fields[this.state.selectedFieldName]
+						:	types[this._getCurrentPathByIndex(-2).type]
+									.fields[this._getCurrentPathByIndex(-1).name]
+					]
+			:	[
+				this.state.currentPath.length === 2
 				&& !this.state.argumentsForCurrentPathLast && this.state.argumentsMode
 				?	types[queryTypeName].fields[this.state.selectedFieldName]
-				:	null;
+				:	null
+			];
 	}
 
 	get DataLayout() {
@@ -259,8 +331,8 @@ class DataWindowComponent extends PureComponent {
 		    content: {
 		        list: [
 		            {
-		                title: "Query",
-		                actionType: "jump",
+		                title: 'Query',
+		                actionType: 'jump',
 		                connection: true,
 						onSelect: () => this._handleJumpIntoField(
 							'Query',
@@ -269,18 +341,18 @@ class DataWindowComponent extends PureComponent {
 						)
 		            },
 		            {
-		                title: "Functions",
-		                actionType: "jump",
+		                title: 'Functions',
+		                actionType: 'jump',
 		                connection: true
 		            },
 		            {
-		                title: "Context",
-		                actionType: "jump",
+		                title: 'Context',
+		                actionType: 'jump',
 		                connection: true
 		            },
 		            {
-		                title: "State",
-		                actionType: "jump",
+		                title: 'State',
+		                actionType: 'jump',
 		                connection: true
 		            }
 
@@ -289,57 +361,85 @@ class DataWindowComponent extends PureComponent {
 		});
 	}
 
+	haveArguments(field) {
+		return !!(field && field.args && !!Object.keys(field.args).length);
+	}
+
+	createContentArgumentField(
+		argField,
+		argFieldName,
+		parentArgValueReference
+	) {
+		return (
+			 <PropsItem
+				key={argFieldName}
+				propType={{
+					label: argFieldName,
+					view:
+						graphQLPrimitiveTypes.has(argField.type)
+						?
+							argField.type === 'Boolean'
+							?	'select'
+							:	'input'
+						:	'shape',
+					type: argField.type,
+					required: !argField.nonNull,
+					notNull: argField.nonNull
+				}}
+				onChange={
+					value =>
+					parentArgValueReference[argFieldName] = value
+				}
+				value={
+					{ value: parentArgValueReference[argFieldName] }
+				}
+			/>
+		);
+	}
 
 	createContentArgumentsType(
-		field,
-		fieldName,
+		fieldsBlocks,
+		fieldsArgsValues,
 		backToFieldName,
-		args = {},
-		handleFieldChange,
-		handleJumpInto,
+		haveArguments,
+		createContentArgumentField,
+		handleJumpIntoField,
 		handleBackToPress,
-		handleJumpIntoField
-	){
-		let argsValue = clone(args);
+		handleApplyPress,
+		title = fieldsBlocks.length - 1
+				?	`All arguments`
+				:	`${fieldsBlocks[0].name} arguments`,
+		subtitle = 'Please, fill required arguments',
+		description = '',
+	) {
+		let argsValues = clone(fieldsArgsValues).map(
+			value => value || {}
+		);
 		return (
 			{
 			    content: {
-			        title: `${fieldName} arguments`,
-			        subtitle: 'Please, fill required arguments',
-			        description: field.description,
+			        title,
+			        subtitle,
+			        description,
 			        children: [
-			                <PropsList key={1}>
-							{
-								 Object.keys(field.args).map(argName => {
-									const arg = field.args[argName];
-					                return (
-										 <PropsItem
-										 	key={argName}
-					                        propType={{
-					                            label: argName,
-					                            view:
-													graphQLPrimitiveTypes.has(arg.type)
-													?
-														arg.type === 'Boolean'
-														?	'select'
-														:	'input'
-													:	'shape',
-					                            type: arg.type,
-					                            required: !arg.nonNull,
-												notNull: arg.nonNull
-					                        }}
-											onChange={
-												value =>
-												argsValue[argName] = value
-											}
-											value={
-												{ value: argsValue[argName] }
-											}
-					                    />
-									);
-								})
-							}
-			                </PropsList>
+						fieldsBlocks.filter(haveArguments).map((field, blockNumber) =>
+							<DataWindowContentGroup
+								title={field.name}
+							>
+				                <PropsList key={blockNumber}>
+								{
+									 Object.keys(field.args).map(
+										 argName =>
+										 	createContentArgumentField(
+												field.args[argName],
+												argName,
+												argsValues[blockNumber]
+											)
+									 )
+								}
+				                </PropsList>
+							</DataWindowContentGroup>
+						)
 			        ],
 			    },
 			    buttons: [
@@ -350,13 +450,7 @@ class DataWindowComponent extends PureComponent {
 			        },
 			        {
 						text: 'Apply',
-						onPress: () => handleJumpIntoField(
-							fieldName,
-							field.type,
-							field.kind,
-							argsValue,
-							backToFieldName === fieldName,
-						)
+						onPress: () => handleApplyPress(argsValues)
 					}
 			    ]
 			}
@@ -463,7 +557,7 @@ class DataWindowComponent extends PureComponent {
 	}
 
 	render() {
-		const { currentEditingField } = this;
+		const currentEditingFields = this._getCurrentEditingFields();
 
 		const linkTargetComponent =
 			this.props.components.get(this.props.linkingPropOfComponentId);
@@ -490,31 +584,28 @@ class DataWindowComponent extends PureComponent {
 						this.props.schema.types[this._getCurrentPathByIndex(-1).type],
 						this._getCurrentPathByIndex(-1),
 						this.state.selectedFieldName,
-						!!(currentEditingField
-							&& Object.keys(
-								currentEditingField.args
-							).length
-						),
+						this.haveArguments(currentEditingFields[0]),
 						this.breadcrumbs,
 						this._getFieldTypeName,
 						this._handleFieldSelect,
-						this._handleSetArgumentsClick,
-						this._handleDataApplyClick,
+						this._handleSetArgumentsPress,
+						this._handleDataApplyPress,
 						this._handleJumpIntoField,
 						this.createContentField,
 						linkTargetPropTypedef.type
 					)
 				:	this.DataLayout
 			:	this.createContentArgumentsType(
-					currentEditingField,
-					currentEditingField.name,
-					this._getCurrentPathByIndex(-1).name,
-					this._getCurrentArguments(),
-					this._handleArgsChange,
-					this._handleJumpIntoField,
-					this._handleBackToPress,
-					this._handleJumpIntoField
-			);
+						currentEditingFields,
+						this.currentArguments,
+						this._getCurrentPathByIndex(-1).name,
+						this.haveArguments,
+						this.createContentArgumentField,
+						this._handleJumpIntoField,
+						this._handleBackToPress,
+						this._handleArgumentsApplyPress
+					);
+
 		return (
 		<div className="data-window">
 	        <Dialog
@@ -550,7 +641,7 @@ class DataWindowComponent extends PureComponent {
                                 contentHeading={CONTENT_TYPE.content.contentHeading}
                                 argsButton={CONTENT_TYPE.content.argsButton}
 								onSetArgumentsClick={
-									() => this._handleSetArgumentsClick(
+									() => this._handleSetArgumentsPress(
 										true
 									)
 								}
