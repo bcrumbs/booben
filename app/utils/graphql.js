@@ -4,9 +4,12 @@
 
 'use strict';
 
+import { Record, Map } from 'immutable';
+
 import { NO_VALUE } from '../constants/misc';
-import { getTypeNameByField, FIELD_KINDS } from './schema';
+import { getTypeNameByField, getTypeNameByPath, FIELD_KINDS } from './schema';
 import { getComponentMeta } from './meta';
+import { objectForEach } from './misc';
 
 const UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const LOWERCASE_LETTERS = 'abcdefghijklmnopqrstuvwxyz';
@@ -40,7 +43,7 @@ export const randomName = (len = 12) => {
  */
 const resolveGraphQLType = (propValue, dataContextTree) => {
     const context = propValue.sourceData.dataContext.reduce(
-        (acc, cur) => acc.children[cur],
+        (acc, cur) => acc.children.get(cur),
         dataContextTree
     );
 
@@ -91,21 +94,11 @@ const buildGraphQLArgument = (argName, argValue, fieldDefinition) => {
 };
 
 /**
- * @typedef {Object} DataContextTreeNode
- * @property {string} type
- * @property {Object<string, DataContextTreeNode>} children
- */
-
-/**
- * @typedef {DataContextTreeNode} DataContextTree
- */
-
-/**
  *
  * @param {Object} propValue - Actually it's Immutable.Record; see models/ProjectComponentProp
  * @param {string} fragmentName
  * @param {DataSchema} schema
- * @param {DataContextTree} dataContextTree
+ * @param {Object} dataContextTree
  * @return {Object}
  */
 const buildGraphQLFragment = (propValue, fragmentName, schema, dataContextTree) => {
@@ -284,40 +277,87 @@ const buildGraphQLFragment = (propValue, fragmentName, schema, dataContextTree) 
     return ret;
 };
 
+const DataContextTreeNode = Record({
+    type: '',
+    fragmentId: -1,
+    children: Map()
+});
+
 /**
  *
- * @param {Object} component - Actually it's an Immutable.Record; see models/ProjectComponent
+ * @param {Object} component - Actually it's an Immutable.Record; see models/ProjectComponent.js
  * @param {DataSchema} schema
- * @param {DataContextTree} dataContextTree
  * @return {Object[]}
  */
-export const buildGraphQLFragmentsForComponent = (component, schema, dataContextTree) => {
+export const buildGraphQLFragmentsForComponent = (component, schema) => {
     const componentMeta = getComponentMeta(component.name, this.props.meta);
+
+    let dataContextTree = new DataContextTreeNode({
+        type: schema.queryTypeName,
+        children: Map()
+    });
 
     const ret = [];
 
-    const visitValue = (value, typedef) => {
-        if (value.source === 'data') {
-            ret.push(buildGraphQLFragment(value, randomName(), schema, dataContextTree));
-        }
-        else if (value.source === 'static' && !value.sourceData.ownerPropName) {
-            if (typedef.type === 'shape' && value.sourceData.value !== null) {
-                objectForEach(typedef.fields, (fieldTypedef, fieldName) =>
-                    void visitValue(value.sourceData.value[fieldName], fieldTypedef));
+    const designerPropsWithComponent = [];
+
+    const visitValue = (propValue, typedef) => {
+        if (propValue.source === 'data') {
+            const fragment = buildGraphQLFragment(
+                propValue,
+                randomName(),
+                schema,
+                dataContextTree
+            );
+
+            const fragmentId = ret.push(fragment) - 1;
+
+            if (typedef.sourceConfigs.data.pushDataContext) {
+                const newDataContextNode = new DataContextTreeNode({
+                    type: getTypeNameByPath(
+                        schema,
+                        propValue.sourceData.queryPath.map(step => step.field)
+                    ),
+
+                    fragmentId
+                });
+
+                dataContextTree = dataContextTree.update('children', children =>
+                    children.set(
+                        typedef.sourceConfigs.data.pushDataContext,
+                        newDataContextNode
+                    )
+                );
             }
-            else if (typedef.type === 'objectOf' && value.sourceData.value !== null) {
-                value.sourceData.value.forEach(fieldValue =>
+        }
+        else if (propValue.source === 'static' && !propValue.sourceData.ownerPropName) {
+            if (typedef.type === 'shape' && propValue.sourceData.value !== null) {
+                objectForEach(typedef.fields, (fieldTypedef, fieldName) =>
+                    void visitValue(propValue.sourceData.value[fieldName], fieldTypedef));
+            }
+            else if (typedef.type === 'objectOf' && propValue.sourceData.value !== null) {
+                propValue.sourceData.value.forEach(fieldValue =>
                     void visitValue(fieldValue, typedef.ofType));
             }
             else if (typedef.type === 'arrayOf') {
-                value.sourceData.value.forEach(itemValue =>
+                propValue.sourceData.value.forEach(itemValue =>
                     void visitValue(itemValue, typedef.ofType));
             }
+        }
+        else if (propValue.source === 'designer' && propValue.sourceData.rootId > -1) {
+            designerPropsWithComponent.push({
+                propValue,
+                typedef
+            });
         }
     };
 
     component.props.forEach((propValue, propName) =>
         void visitValue(propValue, componentMeta.props[propName]));
+
+    designerPropsWithComponent.forEach(({ propValue, typedef }) => {
+        // TODO: Attach fragments to fragments
+    });
 
     return ret;
 };

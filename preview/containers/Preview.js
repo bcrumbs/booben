@@ -219,17 +219,11 @@ class Preview extends Component {
      * @return {Function}
      */
     _makeBuilder(components, rootId, enclosingComponentId) {
-        const dataContextTree = {
-            type: this.props.schema.queryTypeName,
-            children: {}
-        };
-
         const ret = ({ children }) => (
             <Builder
                 components={components}
                 rootId={rootId}
                 enclosingComponentId={enclosingComponentId}
-                dataContextTree={dataContextTree}
                 children={children}
             />
         );
@@ -512,7 +506,6 @@ Preview.propTypes = {
     // 'cause this value comes from another frame with another instance of immutable.js
     project: PropTypes.any,
     meta: PropTypes.object,
-    schema: PropTypes.object,
     draggingComponent: PropTypes.bool,
     highlightingEnabled: PropTypes.bool,
     currentRouteId: PropTypes.number,
@@ -539,7 +532,6 @@ Preview.displayName = 'Preview';
 const mapStateToProps = (state) => ({
     project: state.project.data,
     meta: state.project.meta,
-    schema: state.project.schema,
     draggingComponent: state.project.draggingComponent,
     highlightingEnabled: state.project.highlightingEnabled,
     currentRouteId: state.project.currentRouteId,

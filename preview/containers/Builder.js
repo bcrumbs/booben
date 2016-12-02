@@ -101,18 +101,15 @@ class BuilderComponent extends PureComponent {
     /**
      *
      * @param {Object} propValue
-     * @param {PropTypeDefinition} propMeta
-     * @param {Object<string, string>} nextDataContextTree
      * @return {Function}
      */
-    _makeBuilderForProp(propValue, propMeta, nextDataContextTree) {
+    _makeBuilderForProp(propValue) {
         return props => (
             <Builder
                 components={propValue.sourceData.components}
                 rootId={propValue.sourceData.rootId}
                 dontPatch
                 propsFromOwner={props}
-                dataContextTree={nextDataContextTree}
                 children={props.children}
             />
         );
@@ -122,10 +119,9 @@ class BuilderComponent extends PureComponent {
      *
      * @param {Object} propValue
      * @param {PropTypeDefinition} propMeta
-     * @param {Object} nextDataContextTree
      * @return {*}
      */
-    _buildPropValue(propValue, propMeta, nextDataContextTree) {
+    _buildPropValue(propValue, propMeta) {
         if (propValue.source == 'static') {
             if (propValue.sourceData.ownerPropName && !this.props.ignoreOwnerProps) {
                 return this.props.propsFromOwner[propValue.sourceData.ownerPropName];
@@ -139,8 +135,7 @@ class BuilderComponent extends PureComponent {
 
                         return this._buildPropValue(
                             fieldValue,
-                            fieldMeta,
-                            nextDataContextTree
+                            fieldMeta
                         );
                     });
                 }
@@ -150,16 +145,17 @@ class BuilderComponent extends PureComponent {
                     return propValue.sourceData.value.map(nestedValue =>
                         this._buildPropValue(
                             nestedValue,
-                            propMeta.ofType,
-                            nextDataContextTree)
+                            propMeta.ofType
+                        )
                     ).toJS();
                 }
                 else if (propMeta.type === 'arrayOf') {
                     return propValue.sourceData.value.map(nestedValue =>
                         this._buildPropValue(
                             nestedValue,
-                            propMeta.ofType,
-                            nextDataContextTree)
+                            propMeta.ofType
+
+                        )
                     ).toJS();
                 }
                 else {
@@ -177,11 +173,7 @@ class BuilderComponent extends PureComponent {
         }
         else if (propValue.source === 'designer') {
             if (propValue.sourceData.components && propValue.sourceData.rootId > -1) {
-                return this._makeBuilderForProp(
-                    propValue,
-                    propMeta,
-                    nextDataContextTree
-                );
+                return this._makeBuilderForProp(propValue);
             }
             else {
                 return returnNull;
@@ -201,38 +193,7 @@ class BuilderComponent extends PureComponent {
      * @return {Object<string, *>}
      */
     _buildProps(component) {
-        const componentMeta = getComponentMeta(component.name, this.props.meta),
-            nextDataContextTree = clone(this.props.dataContextTree);
-        
-        objectForEach(componentMeta.props, (propMeta, propName) => {
-            const hasDataContextDefinition =
-                isValidSourceForProp(propMeta, 'data') &&
-                propMeta.sourceConfigs.data.pushDataContext;
-
-            if (!hasDataContextDefinition) return;
-
-            const propValue = component.props.get(propName);
-            if (propValue && propValue.source === 'data') {
-                const dataContext = propMeta.sourceConfigs.data.pushDataContext;
-
-                const dataContextTreeNode = propValue.sourceData.dataContext.reduce(
-                    (acc, cur) => acc.children[cur],
-                    nextDataContextTree
-                );
-
-                const path = propValue.sourceData.queryPath.map(step => step.field);
-
-                dataContextTreeNode.children[dataContext] = {
-                    type: getTypeNameByPath(
-                        this.props.schema,
-                        path,
-                        dataContextTreeNode.type
-                    ),
-
-                    children: {}
-                };
-            }
-        });
+        const componentMeta = getComponentMeta(component.name, this.props.meta);
 
         const ret = {};
 
@@ -241,8 +202,7 @@ class BuilderComponent extends PureComponent {
 
             const value = this._buildPropValue(
                 propValue,
-                propMeta,
-                nextDataContextTree
+                propMeta
             );
             
             if (value !== NO_VALUE) ret[propName] = value;
