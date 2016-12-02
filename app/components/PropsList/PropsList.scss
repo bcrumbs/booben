@@ -244,7 +244,40 @@ $prop-toggle: 'prop-type-toggle';
 		}
 	}
 
+	.prop-item_label-box {
+		display: flex;
+		width: 100%;
+	}
+
+	.prop-item_require-mark {
+		$size: $base-module*1.75;
+
+		margin-right: $base-module/2;
+		display: flex;
+		align-items: center;
+		height: $prop-label-font-size*$prop-label-line-height*2;
+
+		.require-mark {
+			border-radius: $global-rounded;
+			background-color: $color-alert;
+			flex-shrink: 0;
+
+			@include icon-size(
+					$size,
+					rem-calc(8)
+			);
+
+			@include icon-style($white);
+
+			.requirement-is-fullfilled & {
+				background-color: $color-success;
+			}
+		}
+
+	}
+
 	.prop-item-label {
+		flex-grow: 1;
 		font-size: $prop-label-font-size;
 		line-height: $prop-label-line-height;
 		font-weight: $prop-label-font-weight;

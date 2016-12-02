@@ -6,6 +6,7 @@ import React, { PureComponent, PropTypes } from 'react';
 import {
     Button,
     Input,
+    Icon,
     SelectBox,
     Tag,
     Textarea,
@@ -353,11 +354,23 @@ export class PropsItem extends PureComponent {
         let className = 'prop-item',
             wrapperClassName = 'prop-item-wrapper';
         
-        if (this.props.propType.required)
+        let requireMark = null;
+        if (this.props.propType.itemRequired) {
             wrapperClassName += ` is-required`;
-        
-        if (this.props.propType.required && this.props.propType.displayRequired)
-            wrapperClassName += ` has-required-sign`;
+            
+            let markIcon = this.props.propType.requirementFullfilled
+                ? <Icon name="check" />
+                : <Icon name="exclamation" />;
+            
+            requireMark = (
+                <div className="prop-item_require-mark">
+                    <div className="require-mark">{ markIcon }</div>
+                </div>
+            )
+        }
+    
+        if (this.props.propType.requirementFullfilled)
+            className += ` requirement-is-fullfilled`;
 
         if (this.props.propType.view)
             className += ` prop-type-${this.props.propType.view}`;
@@ -374,11 +387,14 @@ export class PropsItem extends PureComponent {
         const labelText = this.props._label || this.props.propType.label;
         if (labelText) {
             label = (
-                <PropLabel
-                    label={labelText}
-                    type={this.props.propType.type}
-                    tooltip={this.props.propType.tooltip}
-                />
+                <div className="prop-item_label-box">
+                    { requireMark }
+                    <PropLabel
+                        label={labelText}
+                        type={this.props.propType.type}
+                        tooltip={this.props.propType.tooltip}
+                    />
+                </div>
             );
         }
 
@@ -609,8 +625,8 @@ const propItemTypeShape = {
     image: PropTypes.string,
     tooltip: PropTypes.string,
     linkable: PropTypes.bool,
-    required: PropTypes.bool,
-    displayRequired: PropTypes.bool,
+    itemRequired: PropTypes.bool,
+    requirementFullfilled: PropTypes.bool,
     transformValue: PropTypes.func,
     subcomponentLeft: PropTypes.object,
 

@@ -207,7 +207,8 @@ const SAMPLE_ARGUMENTS_TOTAL = {
                             label: 'eatBananas',
                             view: 'toggle',
                             type: 'bool',
-                            required: true
+                            itemRequired: true,
+                            requirementFullfilled: true
                         }}
                         value={{
                             value: ''
@@ -219,7 +220,7 @@ const SAMPLE_ARGUMENTS_TOTAL = {
                             label: 'filter',
                             view: 'shape',
                             type: 'filterType',
-                            required: true
+                            itemRequired: true
                         }}
                         value={{
                             value: ''
