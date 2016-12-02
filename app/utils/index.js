@@ -16,11 +16,11 @@ export const concatPath = (prefix, path) => {
 
 /**
   *
-  * @param {Immutable.Map<string, string>} localization
+  * @param {Object} localization
   * @param {string} language
   * @param {string} id
   * @param {Object} [values={}]
   * @return {string}
   */
 export const getLocalizedText = (localization, language, id, values = {}) =>
-	new IntlMessageFormat(localization.get(id), language).format(values);
+	new IntlMessageFormat(localization[id], language).format(values);
