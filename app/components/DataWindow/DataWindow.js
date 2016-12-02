@@ -94,11 +94,12 @@ class DataWindowComponent extends PureComponent {
 
 	_handleJumpIntoField(name, type, kind, args, isCurrentPathLast) {
 		const { previousPath, currentPath } = this.state;
+		const isPrimitiveType = this._isPrimitiveGraphQLType(type);
 
 		this.setState({
 			argumentsPath: [],
-			argumentsMode: false,
-			allArgumentsMode: false,
+			argumentsMode: isPrimitiveType,
+			allArgumentsMode: isPrimitiveType,
 			argumentsForCurrentPathLast: false,
 			currentPath: [
 				...(
@@ -111,7 +112,13 @@ class DataWindowComponent extends PureComponent {
 					type,
 					kind,
 					args:
-						args || this.currentArguments[0] || {}
+						args
+						||	this._getCurrentArguments(
+								isCurrentPathLast,
+								false,
+								name
+							).slice(-1)[0]
+						||	{}
 				}
 			],
 			previousPath:
@@ -141,7 +148,9 @@ class DataWindowComponent extends PureComponent {
 						?	this.state.previousPath.slice(lengthDiff)
 						:	[]
 					),
-				selectedFieldName: ''
+				selectedFieldName: '',
+				argumentsMode: false,
+				allArgumentsMode: false
 			});
 	}
 
@@ -167,41 +176,51 @@ class DataWindowComponent extends PureComponent {
 				args[0],
 				this.state.argumentsForCurrentPathLast
 			);
-		} else {
+		} else
 			this._applyPropData(args);
-		}
 	}
 
 	_applyPropData(args = []) {
-		const { types } = this.props.schema;
+		const currentArguments = this._getCurrentArguments(false, true);
 		this.props.onUpdateComponentPropValue(
 			this.props.linkingPropOfComponentId,
 			this.props.linkingPropName,
 			this.props.linkingPropPath,
 			'data',
 			{
-				queryPath: this.state.currentPath.slice(2).concat(
-					[
-						types[this._getCurrentPathByIndex(-1).type]
-							.fields[this.state.selectedFieldName]
-					]
-				).map((pathStep, num) =>
-					({
-						field: pathStep.name,
-						args:
-							Object.keys(args[num] || pathStep.args).reduce(
-								(acc, argName) => Object.assign(acc,
-									{
-										[argName]: {
-											source: 'static',
-											sourceData: {
-												value: pathStep.args[argName]
+				queryPath: (
+					this._getCurrentEditingFields(true).concat(
+						this.state.allArgumentsMode
+						&&	this._isPrimitiveGraphQLType(
+							this._getCurrentPathByIndex(-1).type
+						)
+						?	[]
+						:	[ this.selectedField ]
+					)
+				).map((pathStep, num) => {
+						const currentArg =
+							args[num]
+							|| currentArguments[num];
+						return {
+							field: pathStep.name,
+							args:
+								Object.keys(currentArg || {}).reduce(
+									(acc, argName) => Object.assign(acc,
+										{
+											[argName]: {
+												source: 'static',
+												sourceData: {
+													value:
+														(currentArg)[
+															argName
+														]
+												}
 											}
 										}
-									}
-								)
-							, {})
-					})
+									)
+								, {})
+						};
+					}
 				)
 			}
 		);
@@ -209,29 +228,39 @@ class DataWindowComponent extends PureComponent {
 	}
 
 	_handleDataApplyPress() {
-		if (this._getCurrentEditingFields(true).some(this.haveArguments))
-			this.setState({
-				argumentsMode: true,
-				allArgumentsMode: true,
-			});
+		if (!this._getCurrentEditingFields(true).concat([this.selectedField]).some(
+			({ args }) => Object.keys(args).length
+		))
+		 	this._applyPropData();
 		else
-			this._applyPropData();
+			this._handleJumpIntoField(
+				this.selectedField.name,
+				this.selectedField.type,
+				this.selectedField.kind,
+				{}
+			);
 
 	}
 
 	_handleBackToPress() {
 		const argumentsMode = !!this.state.argumentsPath.length;
 		if (this.state.argumentsMode)
-			this.setState({
-				argumentsPath: this.state.argumentsPath.slice(0, -1),
-				argumentsMode,
-				allArgumentsMode:
-					this.state.argumentsForCurrentPathLast
-					&&	argumentsMode,
-				argumentsForCurrentPathLast:
-					this.state.argumentsForCurrentPathLast
-					&&	argumentsMode
-			});
+			if (this.state.allArgumentsMode)
+				this._handleJumpToCurrentPathIndex(
+					this.state.currentPath.length - 2
+				);
+			else
+				this.setState({
+					argumentsPath: this.state.argumentsPath.slice(0, -1),
+					argumentsMode,
+					allArgumentsMode:
+						this.state.argumentsForCurrentPathLast
+						&&	argumentsMode,
+					argumentsForCurrentPathLast:
+						this.state.argumentsForCurrentPathLast
+						&&	argumentsMode
+				});
+
 		else
 			this._handleJumpToCurrentPathIndex(this.state.currentPath.length - 2);
 	}
@@ -252,6 +281,10 @@ class DataWindowComponent extends PureComponent {
 				);
 	}
 
+	_isPrimitiveGraphQLType(type) {
+		return graphQLPrimitiveTypes.has(type);
+	}
+
 	get breadcrumbs() {
 		return this.state.currentPath.map(
 			({ name }) => ({
@@ -260,24 +293,37 @@ class DataWindowComponent extends PureComponent {
 		);
 	}
 
-	get currentArguments() {
+	get selectedField() {
+		const { types } = this.props.schema;
+		const currentPathLast = this._getCurrentPathByIndex(-1);
+		return this._isPrimitiveGraphQLType(currentPathLast.type)
+			?	types[this._getCurrentPathByIndex(-2)].fields[currentPathLast.name]
+			:	types[currentPathLast.type].fields[this.state.selectedFieldName];
+	}
+
+	_getCurrentArguments(
+		lastPath,
+		allArgumentsMode,
+		fieldName = this.state.selectedFieldName
+	) {
 		const previousPathField =
 			this.state.previousPath[this.state.currentPath.length];
 
-		if (this.state.currentPath.length === 1) return {};
+		if (this.state.currentPath.length === 1) return [{}];
 
-		return this.state.allArgumentsMode
+		return	allArgumentsMode
 			?	this.state.currentPath.slice(2).map(({ args }) => args)
-			: [
-				!this.state.argumentsForCurrentPathLast
-				?	previousPathField
+			:	[
+				!lastPath
+				&&
+					previousPathField
 					&&	this._equalFieldPaths(
 						previousPathField,
 						this.props.schema.types[this._getCurrentPathByIndex(-1).type]
-							.fields[this.state.selectedFieldName]
+							.fields[fieldName]
 					)
 					&&	previousPathField.args
-				:	this._getCurrentPathByIndex(-1).args
+				||	this._getCurrentPathByIndex(-1).args
 			];
 
 	}
@@ -362,27 +408,36 @@ class DataWindowComponent extends PureComponent {
 	}
 
 	haveArguments(field) {
-		return !!(field && field.args && !!Object.keys(field.args).length);
+		return !!(field && field.args && Object.keys(field.args).length);
 	}
 
 	createContentArgumentField(
 		argField,
 		argFieldName,
-		parentArgValueReference
+		parentArgValueReference,
+		isPrimitiveGraphQLType
 	) {
+		/*parentArgValueReference[argFieldName] =
+			parentArgValueReference[argFieldName] || argField.defaultValue;*/
+
 		return (
 			 <PropsItem
 				key={argFieldName}
 				propType={{
 					label: argFieldName,
 					view:
-						graphQLPrimitiveTypes.has(argField.type)
+						isPrimitiveGraphQLType(argField.type)
 						?
 							argField.type === 'Boolean'
 							?	'select'
 							:	'input'
 						:	'shape',
 					type: argField.type,
+					fields:
+						!isPrimitiveGraphQLType(argField.type)
+						?	this.props.schema.types[argField.type].fields
+						:	[]
+					,
 					required: !argField.nonNull,
 					notNull: argField.nonNull
 				}}
@@ -403,6 +458,7 @@ class DataWindowComponent extends PureComponent {
 		backToFieldName,
 		haveArguments,
 		createContentArgumentField,
+		isPrimitiveGraphQLType,
 		handleJumpIntoField,
 		handleBackToPress,
 		handleApplyPress,
@@ -422,23 +478,27 @@ class DataWindowComponent extends PureComponent {
 			        subtitle,
 			        description,
 			        children: [
-						fieldsBlocks.filter(haveArguments).map((field, blockNumber) =>
-							<DataWindowContentGroup
-								title={field.name}
-							>
-				                <PropsList key={blockNumber}>
-								{
-									 Object.keys(field.args).map(
-										 argName =>
-										 	createContentArgumentField(
-												field.args[argName],
-												argName,
-												argsValues[blockNumber]
-											)
-									 )
-								}
-				                </PropsList>
-							</DataWindowContentGroup>
+						fieldsBlocks.map((field, blockNumber) =>
+							haveArguments(field)
+							?
+								<DataWindowContentGroup
+									title={field.name}
+								>
+					                <PropsList key={blockNumber}>
+									{
+										 Object.keys(field.args).map(
+											 argName =>
+											 	createContentArgumentField(
+													field.args[argName],
+													argName,
+													argsValues[blockNumber],
+													isPrimitiveGraphQLType
+												)
+										 )
+									}
+					                </PropsList>
+								</DataWindowContentGroup>
+							: 	null
 						)
 			        ],
 			    },
@@ -462,6 +522,7 @@ class DataWindowComponent extends PureComponent {
 		fieldName,
 		selectedFieldName,
 		getFieldTypeName,
+		isPrimitiveGraphQLType,
 		handleFieldSelect,
 		handleSetArgumentsClick,
 		handleApplyClick,
@@ -477,7 +538,7 @@ class DataWindowComponent extends PureComponent {
 				clickable: true,
 				argsButton: !!Object.keys(field.args).length,
 				chosen: fieldName === selectedFieldName,
-				connection: !graphQLPrimitiveTypes.has(field.type),
+				connection: !isPrimitiveGraphQLType(field.type),
 				canBeApplied: equalMetaToGraphQLTypeNames(propType, field.type),
 				state: 'error',
 				onSelect: () => handleFieldSelect(fieldName),
@@ -501,6 +562,7 @@ class DataWindowComponent extends PureComponent {
 		hasArgs,
 		breadcrumbs,
 		getFieldTypeName,
+		isPrimitiveGraphQLType,
 		handleFieldSelect,
 		handleSetArgumentsClick,
 		handleApplyClick,
@@ -530,6 +592,7 @@ class DataWindowComponent extends PureComponent {
 							fieldName,
 							selectedFieldName,
 							getFieldTypeName,
+							isPrimitiveGraphQLType,
 							handleFieldSelect,
 							handleSetArgumentsClick,
 							handleApplyClick,
@@ -542,6 +605,7 @@ class DataWindowComponent extends PureComponent {
 									fieldName + ' ' + connectionFieldName,
 									selectedFieldName,
 									getFieldTypeName,
+									isPrimitiveGraphQLType,
 									handleFieldSelect,
 									handleSetArgumentsClick,
 									handleApplyClick,
@@ -587,6 +651,7 @@ class DataWindowComponent extends PureComponent {
 						this.haveArguments(currentEditingFields[0]),
 						this.breadcrumbs,
 						this._getFieldTypeName,
+						this._isPrimitiveGraphQLType,
 						this._handleFieldSelect,
 						this._handleSetArgumentsPress,
 						this._handleDataApplyPress,
@@ -597,10 +662,19 @@ class DataWindowComponent extends PureComponent {
 				:	this.DataLayout
 			:	this.createContentArgumentsType(
 						currentEditingFields,
-						this.currentArguments,
-						this._getCurrentPathByIndex(-1).name,
+						this._getCurrentArguments(
+							this.state.argumentsForCurrentPathLast,
+							this.state.allArgumentsMode
+						),
+						this._getCurrentPathByIndex(
+							this._isPrimitiveGraphQLType(
+								this._getCurrentPathByIndex(-1).type)
+						?	-2
+						:	-1
+						).name,
 						this.haveArguments,
 						this.createContentArgumentField,
+						this._isPrimitiveGraphQLType,
 						this._handleJumpIntoField,
 						this._handleBackToPress,
 						this._handleArgumentsApplyPress
