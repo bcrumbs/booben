@@ -15,7 +15,7 @@
  * @property {Set<string>} tags - Component tags.
  * @property {boolean} [hidden] - If true, this component will not be shown in the library.
  * @property {Object<string, ComponentPropMeta>} props - Description of component's props.
- * @property {ComponentLayout[]} [layouts] - Available layouts for composite components.
+ * @property {ComponentLayout[]} [layouts] - Available layouts for composite component.
  * @property {Object<string, Object<string, string>>} [strings] - String translations. Example: { "string_key": { "en": "...", "ru": "...", ... }, ... }. Can be placed in a separate file (.jssy/strings.json).
  * @property {Object<string, PropTypeDefinition>} [types] - User-defined types. Can be placed in a separate file (.jssy/types.json).
  */

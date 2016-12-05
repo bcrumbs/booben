@@ -287,10 +287,11 @@ const DataContextTreeNode = Record({
  *
  * @param {Object} component - Actually it's an Immutable.Record; see models/ProjectComponent.js
  * @param {DataSchema} schema
+ * @param {Object} meta
  * @return {Object[]}
  */
-export const buildGraphQLFragmentsForComponent = (component, schema) => {
-    const componentMeta = getComponentMeta(component.name, this.props.meta);
+export const buildGraphQLFragmentsForComponent = (component, schema, meta) => {
+    const componentMeta = getComponentMeta(component.name, meta);
 
     let dataContextTree = new DataContextTreeNode({
         type: schema.queryTypeName,
