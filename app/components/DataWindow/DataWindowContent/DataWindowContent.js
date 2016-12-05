@@ -21,7 +21,6 @@ export const DataWindowContent= props => {
         type = null,
         subtitle = null,
         argsButton = null,
-        descriptionHeading = null,
         description = null,
         content = null;
         
@@ -48,11 +47,13 @@ export const DataWindowContent= props => {
             </BlockContentBoxItem>
     }
     
-    let contentHeading = <BlockContentBoxHeading>{props.contentHeading}</BlockContentBoxHeading>;
-    content =
+    let contentHeading = null;
+    if (props.contentHeading) contentHeading = <BlockContentBoxHeading>{props.contentHeading}</BlockContentBoxHeading>;
+    
+    let list = null;
+    if (props.list) list =
         <BlockContentBoxItem>
-            <DataList data={props.list} />
-            {props.children}
+            { list }
         </BlockContentBoxItem>;
     
     if (props.title) {
@@ -71,20 +72,22 @@ export const DataWindowContent= props => {
     }
     
     if (props.description) {
-        descriptionHeading = <BlockContentBoxHeading>Description</BlockContentBoxHeading>;
         description = <BlockContentBoxItem>{props.description}</BlockContentBoxItem>;
     }
     
+    let heading = null;
+    if ( title ) heading =
+        <div className="data-window_content-heading">
+            { title }
+            { description }
+            { argsButton }
+        </div>;
+    
     return (
         <div className="data-window_content">
-            <div className="data-window_content-heading">
-                { title }
-                { descriptionHeading }
-                { description }
-                { argsButton }
-            </div>
+            { heading }
             { contentHeading }
-            { content }
+            { props.children }
         </div>
     );
 };

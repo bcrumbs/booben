@@ -12,6 +12,7 @@ import {
 import {
 	BlockContent,
 	BlockContentBox,
+	BlockContentBoxItem,
 	BlockContentNavigation,
 	BlockContentTitle,
 	BlockBreadcrumbs
@@ -26,6 +27,9 @@ import {
     DataWindowContent,
     DataWindowContentGroup
 } from './DataWindowContent/DataWindowContent';
+
+import { FunctionArgumentsList } from '../FunctionArgumentsList/FunctionArgumentsList';
+import { FunctionEditor } from '../FunctionEditor/FunctionEditor';
 
 import './DataWindow.scss';
 
@@ -61,6 +65,156 @@ const SAMPLE_STEP_ONE = {
         ]
     },
     actions: []
+};
+const SAMPLE_FUNCS_LIST = {
+    breadcrumbs: [],
+    content: {
+        title: "",
+        subtitle: "",
+        description: "",
+        backButton: false,
+        list: [
+            {
+                title: "Randomize",
+                description: "Randomizer description",
+                actionType: "jump",
+                connection: true
+            },
+            {
+                title: "Average",
+                description: "Some description",
+                actionType: "jump",
+                connection: true
+            }
+        ]
+    },
+    actions: []
+};
+const SAMPLE_FUNCTION_INFO = {
+    breadcrumbs:[
+        { title: 'Functions '},
+        {
+            title: 'Average',
+            isActive: true
+        }
+    ],
+    
+    content: {
+        title: "Average (Func title)",
+        type: "averageFuncName | output: string",
+        description: "Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. ",
+        list: [],
+        children: [
+            <PropsList>
+                <PropsItem
+                    propType={{
+                        label: 'Variable a',
+                        view: 'input',
+                        type: 'int',
+                        required: true,
+                        linkable: true
+                    }}
+                    value={{
+                        value: ''
+                    }}
+                />
+                <PropsItem
+                    propType={{
+                        label: 'Variable b',
+                        view: 'input',
+                        type: 'int',
+                        required: true,
+                        linkable: true
+                    }}
+                    value={{
+                        value: ''
+                    }}
+                />
+                <PropsItem
+                    propType={{
+                        label: 'Variable c',
+                        view: 'input',
+                        type: 'int',
+                        required: true,
+                        linkable: true
+                    }}
+                    value={{
+                        value: ''
+                    }}
+                />
+            </PropsList>
+        ],
+    },
+    buttonsLeft: [
+        {
+            text: 'Functions',
+            subtitle: 'back to',
+            icon: 'chevron-left'
+        }
+    ],
+    buttons: [
+        {text: 'Apply'}
+    ]
+};
+const SAMPLE_NEW_FUNCTION = {
+    breadcrumbs: [],
+    content: {
+        title: "New Function",
+        subtitle: "",
+        description: "",
+        backButton: false,
+        list: [],
+        children: [
+            <BlockContentBoxItem>
+                <PropsList>
+                    <PropsItem
+                        propType={{
+                            label: 'Function title',
+                            view: 'input'
+                        }}
+                        value={{
+                            value: ''
+                        }}
+                    />
+                    <PropsItem
+                        propType={{
+                            label: 'Output type',
+                            type: 'Выводим через SelectBox (list)',
+                            view: 'input'
+                        }}
+                        value={{
+                            value: ''
+                        }}
+                    />
+                    <PropsItem
+                        propType={{
+                            label: 'Description',
+                            view: 'textarea'
+                        }}
+                        value={{
+                            value: ''
+                        }}
+                    />
+                </PropsList>
+            </BlockContentBoxItem>,
+            <FunctionArgumentsList />
+        ],
+    },
+    buttons: [
+        {text: 'Cancel'},
+        {text: 'Next'}
+    ]
+};
+const SAMPLE_FUNCTION_EDITOR = {
+    content: {
+        children: [
+            <FunctionEditor />
+        ],
+    },
+    buttons: [
+        {text: 'Cancel'},
+        {text: 'Save'}
+    ]
 };
 
 const SAMPLE_TYPE = {
@@ -292,9 +446,19 @@ const SAMPLE_ARGUMENTS_TOTAL = {
     ]
 };
 
-const CONTENT_TYPE = SAMPLE_ARGUMENTS_TOTAL;
+const CONTENT_TYPE = SAMPLE_FUNCTION_EDITOR;
 
 export const DataWindow= props => {
+    let breadcrumbs = null;
+    if (CONTENT_TYPE.breadcrumbs)
+        breadcrumbs =
+            <BlockContentNavigation isBordered>
+                <BlockBreadcrumbs
+                    items={CONTENT_TYPE.breadcrumbs}
+                    mode="dark"
+                />
+            </BlockContentNavigation>;
+    
     return (
         <div className="data-window">
 	        <Dialog
@@ -310,12 +474,7 @@ export const DataWindow= props => {
 	        >
                 <div className="data-window_content">
                     <BlockContent>
-                        <BlockContentNavigation isBordered>
-                            <BlockBreadcrumbs
-                                items={CONTENT_TYPE.breadcrumbs}
-                                mode="dark"
-                            />
-                        </BlockContentNavigation>
+                        { breadcrumbs }
     
                         <BlockContentBox isBordered>
                             <DataWindowContent
