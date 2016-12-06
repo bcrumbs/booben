@@ -57,7 +57,7 @@ import {
     canInsertComponent
 } from '../../utils/meta';
 
-import { getLocalizedText } from '../../utils';
+import { getLocalizedTextFromState } from '../../utils';
 
 import { List } from 'immutable';
 
@@ -582,8 +582,7 @@ const mapStateToProps = state => ({
     placeholderContainerId: state.project.placeholderContainerId,
     placeholderAfter: state.project.placeholderAfter,
     meta: state.project.meta,
-    getLocalizedText: (...args) =>
-        getLocalizedText(state.app.localization, state.app.language, ...args)
+    getLocalizedText: getLocalizedTextFromState(state)
 });
 
 const mapDispatchToProps = dispatch => ({

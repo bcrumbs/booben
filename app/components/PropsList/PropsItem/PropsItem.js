@@ -97,7 +97,7 @@ export const getValueByPath = (value, path) => path.reduce(getNestedValue, value
 export class PropsItem extends PureComponent {
     constructor(props) {
         super(props);
-        
+
         this.state = {
             isOpen: false,
             currentPath: []
@@ -347,14 +347,14 @@ export class PropsItem extends PureComponent {
             </PropTreeList>
         );
     }
-    
+
     render() {
         let className = 'prop-item',
             wrapperClassName = 'prop-item-wrapper';
-        
+
         if (this.props.propType.required)
             wrapperClassName += ` is-required`;
-        
+
         if (this.props.propType.required && this.props.propType.displayRequired)
             wrapperClassName += ` has-required-sign`;
 
@@ -400,7 +400,7 @@ export class PropsItem extends PureComponent {
                 </div>
             );
         }
-    
+
         let subcomponentLeft = null;
         if (this.props.propType.subcomponentLeft) {
             subcomponentLeft =

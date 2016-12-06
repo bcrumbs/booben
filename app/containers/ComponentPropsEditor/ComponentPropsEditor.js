@@ -52,7 +52,7 @@ import {
     isValidSourceForProp
 } from '../../utils/meta';
 
-import { getLocalizedText } from '../../utils';
+import { getLocalizedTextFromState } from '../../utils';
 import { objectMap, objectSome } from '../../utils/misc';
 
 /**
@@ -581,11 +581,7 @@ const mapStateToProps = state => ({
     language: state.app.language,
     ownerComponentMeta: ownerComponentMetaSelector(state),
     ownerProps: ownerPropsSelector(state),
-    getLocalizedText: (...args) => getLocalizedText(
-        state.app.localization,
-        state.app.language,
-        ...args
-    )
+    getLocalizedText: getLocalizedTextFromState(state)
 });
 
 const mapDispatchToProps = dispatch => ({

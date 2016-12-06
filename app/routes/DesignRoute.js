@@ -70,7 +70,7 @@ import {
     getComponentPropName
 } from '../utils/meta';
 
-import { getLocalizedText } from '../utils';
+import { getLocalizedTextFromState } from '../utils';
 
 //noinspection JSUnresolvedVariable
 import defaultComponentLayoutIcon from '../img/layout_default.svg';
@@ -220,6 +220,7 @@ class DesignRoute extends PureComponent {
     }
 
     render() {
+		console.log('rendered')
         // TODO: Handle index routes
         const { getLocalizedText } = this.props,
             src = `/preview/${this.props.params.projectName}/index.html`,
@@ -501,11 +502,7 @@ const mapStateToProps = state => ({
     haveNestedConstructor: haveNestedConstructorsSelector(state),
     nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
     linkingProp: state.project.linkingProp,
-    getLocalizedText: (...args) => getLocalizedText(
-        state.app.localization,
-        state.app.language,
-        ...args
-    )
+    getLocalizedText: getLocalizedTextFromState(state)
 });
 
 const mapDispatchToProps = dispatch => ({

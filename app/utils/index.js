@@ -2,6 +2,8 @@
 
 import IntlMessageFormat from 'intl-messageformat';
 
+const localizationFuncsMap = new WeakMap();
+
 /**
  *
  * @param {string} prefix
@@ -24,3 +26,19 @@ export const concatPath = (prefix, path) => {
   */
 export const getLocalizedText = (localization, language, id, values = {}) =>
 	new IntlMessageFormat(localization.get(id) || '', language).format(values);
+
+
+/**
+  *
+  * @param {Object} state
+  * @return {Function<string, string>:string}
+  */
+export const getLocalizedTextFromState = state =>
+	localizationFuncsMap.get(state.app.localization)
+	||	localizationFuncsMap.set(state.app.localization,
+			(...args) => getLocalizedText(
+					state.app.localization,
+					state.app.language,
+					...args
+				)
+		).get(state.app.localization);

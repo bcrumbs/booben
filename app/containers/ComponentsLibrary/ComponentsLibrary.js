@@ -43,7 +43,7 @@ import {
     currentComponentsSelector
 } from '../../selectors';
 
-import { getLocalizedText } from '../../utils';
+import { getLocalizedTextFromState } from '../../utils';
 import { canInsertComponent } from '../../utils/meta';
 import { objectForEach } from '../../utils/misc';
 
@@ -300,7 +300,7 @@ const mapStateToProps = state => ({
     draggingComponent: state.project.draggingComponent,
     draggedComponents: state.project.draggedComponents,
     draggedComponentId: state.project.draggedComponentId,
-    getLocalizedText: (...args) => getLocalizedText(state.app.localization, state.app.language, ...args)
+    getLocalizedText: getLocalizedTextFromState(state)
 });
 
 const mapDispatchToProps = dispatch => ({
