@@ -10,6 +10,7 @@
 		flex-direction: column;
 		align-items: stretch;
 		flex-grow: 1;
+		max-width: 100%;
 	}
 
 	// =================================================================================================================
@@ -130,6 +131,7 @@
 	// =================================================================================================================
 	.block-content-navigation-area {
 		flex-shrink: 0;
+		width: 100%;
 
 		.block-content-title-area + &.is-bordered {
 				border-top: 1px solid $bcontent-box-border-color;
@@ -146,6 +148,7 @@
 		flex-grow: 1;
 		overflow-y: auto;
 		font-size: $bcontent-box-font-size;
+		width: 100%;
 
 		.block-content-navigation-area + &,
 		.block-content-title-area + & {
@@ -198,6 +201,7 @@
 	.block-content-box-item {
 		padding: $bcontent-base-pad-y $bcontent-base-pad-x;
 		flex-shrink: 0;
+		width: 100%;
 
 		& & {
 			margin-left: -$bcontent-base-pad-x;

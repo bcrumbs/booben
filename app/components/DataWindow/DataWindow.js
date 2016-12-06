@@ -5,11 +5,14 @@ import React, { PureComponent, PropTypes } from 'react';
 import {
 	Button,
 	Breadcrumbs,
+    Tabs,
+    Tab,
     Checkbox,
 	Dialog
 } from '@reactackle/reactackle';
 
 import {
+    BlockActionBar,
 	BlockContent,
 	BlockContentBox,
 	BlockContentBoxItem,
@@ -29,9 +32,71 @@ import {
 } from './DataWindowContent/DataWindowContent';
 
 import { FunctionArgumentsList } from '../FunctionArgumentsList/FunctionArgumentsList';
-import { FunctionEditor } from '../FunctionEditor/FunctionEditor';
+import {
+    FunctionEditor,
+    FunctionEditorLibrary
+} from '../FunctionEditor/FunctionEditor';
 
 import './DataWindow.scss';
+
+const LIBRARY_DATA = [
+    {
+        title: 'Function 1',
+        subtitle: 'Short description of function 1'
+    },
+    {
+        title: 'Function 2',
+        subtitle: 'Short description of function 2'
+    },
+    {
+        title: 'Function 3',
+        subtitle: 'Short description of function 3'
+    },
+    {
+        title: 'Function 4',
+        subtitle: 'Short description of function 4'
+    },
+    {
+        title: 'Function 5',
+        subtitle: 'Short description of function 5'
+    },
+    {
+        title: 'Function 6',
+        subtitle: 'Short description of function 6'
+    },
+    {
+        title: 'Function 7',
+        subtitle: 'Short description of function 7'
+    },
+    {
+        title: 'Function 8',
+        subtitle: 'Short description of function 8'
+    },
+    {
+        title: 'Function 9',
+        subtitle: 'Short description of function 9'
+    },
+    {
+        title: 'Function 10',
+        subtitle: 'Short description of function 10'
+    },
+    {
+        title: 'Function 11',
+        subtitle: 'Short description of function 11'
+    },
+    {
+        title: 'Function 12',
+        subtitle: 'Short description of function 12'
+    },
+    {
+        title: 'Function 13',
+        subtitle: 'Short description of function 13'
+    },
+    {
+        title: 'Function 14',
+        subtitle: 'Short description of function 14'
+    }
+];
 
 const SAMPLE_STEP_ONE = {
     breadcrumbs: [],
@@ -67,7 +132,10 @@ const SAMPLE_STEP_ONE = {
     actions: []
 };
 const SAMPLE_FUNCS_LIST = {
-    breadcrumbs: [],
+    tabs: [
+        <Tab text="Library Functions" />,
+        <Tab text="User Functions" />
+    ],
     content: {
         title: "",
         subtitle: "",
@@ -206,11 +274,19 @@ const SAMPLE_NEW_FUNCTION = {
     ]
 };
 const SAMPLE_FUNCTION_EDITOR = {
+    actionBar: [
+        {
+            text: 'Show library',
+            active: true
+        }
+    ],
     content: {
         children: [
-            <FunctionEditor />
+            <FunctionEditor/>
         ],
     },
+    regionAsideShow: false, /* Change this to true to show Library (regionAside)*/
+    regionAside: [<FunctionEditorLibrary data={LIBRARY_DATA} />] ,
     buttons: [
         {text: 'Cancel'},
         {text: 'Save'}
@@ -446,7 +522,7 @@ const SAMPLE_ARGUMENTS_TOTAL = {
     ]
 };
 
-const CONTENT_TYPE = SAMPLE_FUNCTION_EDITOR;
+const CONTENT_TYPE = SAMPLE_FUNCS_LIST;
 
 export const DataWindow= props => {
     let breadcrumbs = null;
@@ -458,6 +534,22 @@ export const DataWindow= props => {
                     mode="dark"
                 />
             </BlockContentNavigation>;
+    
+    let actionBar = null;
+    if (CONTENT_TYPE.actionBar)
+        actionBar =
+            <BlockActionBar items={CONTENT_TYPE.actionBar} />;
+    
+    let tabs = null;
+    if (CONTENT_TYPE.tabs)
+        tabs =
+            <BlockContentNavigation isBordered>
+                <Tabs
+                    children={CONTENT_TYPE.tabs}
+                    colorMode="dark"
+                />
+            </BlockContentNavigation>;
+            
     
     return (
         <div className="data-window">
@@ -471,12 +563,19 @@ export const DataWindow= props => {
                 paddingSize="none"
                 title="%PropName% Data"
                 dialogContentFlex
+                regionAside={CONTENT_TYPE.regionAside}
+                regionAsideShow={CONTENT_TYPE.regionAsideShow}
 	        >
                 <div className="data-window_content">
                     <BlockContent>
+                        { actionBar }
+                        { tabs }
                         { breadcrumbs }
     
-                        <BlockContentBox isBordered>
+                        <BlockContentBox
+                            isBordered
+                            flex
+                        >
                             <DataWindowContent
                                 title={CONTENT_TYPE.content.title}
                                 type={CONTENT_TYPE.content.type}
