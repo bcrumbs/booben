@@ -220,7 +220,6 @@ class DesignRoute extends PureComponent {
     }
 
     render() {
-		console.log('rendered')
         // TODO: Handle index routes
         const { getLocalizedText } = this.props,
             src = `/preview/${this.props.params.projectName}/index.html`,

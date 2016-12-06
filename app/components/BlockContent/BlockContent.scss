@@ -188,11 +188,22 @@
 				padding-bottom: $bcontent-indialog-base-pad-y-lrg;
 			}
 		}
+
+		.block-content-box-item & {
+			padding-left: 0;
+			padding-right: 0;
+		}
 	}
 
 	.block-content-box-item {
 		padding: $bcontent-base-pad-y $bcontent-base-pad-x;
 		flex-shrink: 0;
+
+		& & {
+			margin-left: -$bcontent-base-pad-x;
+			margin-right: -$bcontent-base-pad-x;
+			width: calc(100% + #{$bcontent-base-pad-x*2});
+		}
 
 		&.is-blank {
 			padding: 0;

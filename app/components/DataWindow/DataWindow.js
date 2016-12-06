@@ -26,7 +26,6 @@ import {
 
 import './DataWindow.scss';
 
-
 class DataWindowComponent extends PureComponent {
 	constructor(props) {
 		super(props);

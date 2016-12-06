@@ -440,7 +440,7 @@ export default (state = new ProjectState(), action) => {
                 })
 				// Prevent conversion to Immutable.Map
                 .set('meta', action.metadata)
-				.set('schema', schema);	
+				.set('schema', schema);
         }
 
         case PROJECT_ROUTE_CREATE: {

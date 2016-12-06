@@ -6,7 +6,9 @@ import React, { PureComponent, PropTypes } from 'react';
 import {
     Button,
     Input,
+    Icon,
     SelectBox,
+    Tag,
     Textarea,
     ToggleButton
 } from '@reactackle/reactackle';
@@ -352,11 +354,23 @@ export class PropsItem extends PureComponent {
         let className = 'prop-item',
             wrapperClassName = 'prop-item-wrapper';
 
-        if (this.props.propType.required)
+        let requireMark = null;
+        if (this.props.propType.itemRequired) {
             wrapperClassName += ` is-required`;
 
-        if (this.props.propType.required && this.props.propType.displayRequired)
-            wrapperClassName += ` has-required-sign`;
+            let markIcon = this.props.propType.requirementFullfilled
+                ? <Icon name="check" />
+                : <Icon name="exclamation" />;
+
+            requireMark = (
+                <div className="prop-item_require-mark">
+                    <div className="require-mark">{ markIcon }</div>
+                </div>
+            )
+        }
+
+        if (this.props.propType.requirementFullfilled)
+            className += ` requirement-is-fullfilled`;
 
         if (this.props.propType.view)
             className += ` prop-type-${this.props.propType.view}`;
@@ -373,11 +387,14 @@ export class PropsItem extends PureComponent {
         const labelText = this.props._label || this.props.propType.label;
         if (labelText) {
             label = (
-                <PropLabel
-                    label={labelText}
-                    type={this.props.propType.type}
-                    tooltip={this.props.propType.tooltip}
-                />
+                <div className="prop-item_label-box">
+                    { requireMark }
+                    <PropLabel
+                        label={labelText}
+                        type={this.props.propType.type}
+                        tooltip={this.props.propType.tooltip}
+                    />
+                </div>
             );
         }
 
@@ -417,6 +434,7 @@ export class PropsItem extends PureComponent {
         }
 
         let content = null,
+            valueWrapper = null,
             toggle = null,
             collapseAction = null,
             children = null;
@@ -483,6 +501,15 @@ export class PropsItem extends PureComponent {
 
                 if (isNullable) {
                     // TODO: Make null switch
+                    toggle = (
+                        <div className="prop_action prop_action-toggle">
+                            <ToggleButton
+                                label = "Null"
+                                checked={this.props.value.value}
+                                disabled={this.props.disabled}
+                            />
+                        </div>
+                    );
                 }
             }
 
@@ -509,7 +536,32 @@ export class PropsItem extends PureComponent {
                 children = this._renderNestedItems();
         }
         else {
-            // TODO: Render something for linked value
+            if (this.props.propType.view === 'toggle') {
+                toggle = null;
+                valueWrapper = (
+                    <Tag
+                        text='%value%'
+                        bounded
+                        removable
+                    />
+                );
+            } else {
+                valueWrapper = (
+                    <Tag
+                        text='%value%'
+                        bounded
+                        removable
+                    />
+                );
+
+                if (
+                    this.props.propType.view === 'input' ||
+                    this.props.propType.view === 'textarea' ||
+                    this.props.propType.view === 'list'
+                ) {
+                    content = null;
+                }
+            }
         }
 
         let actionsRight = null;
@@ -534,7 +586,12 @@ export class PropsItem extends PureComponent {
 
                     <div className="prop-item-content-box">
                         {label}
-                        {content}
+                        <div className="prop-item_value-wrapper">
+                            {valueWrapper}
+                        </div>
+                        <div className="prop-item_value-wrapper">
+                            {content}
+                        </div>
                     </div>
 
                     {actionsRight}
@@ -568,8 +625,8 @@ const propItemTypeShape = {
     image: PropTypes.string,
     tooltip: PropTypes.string,
     linkable: PropTypes.bool,
-    required: PropTypes.bool,
-    displayRequired: PropTypes.bool,
+    itemRequired: PropTypes.bool,
+    requirementFullfilled: PropTypes.bool,
     transformValue: PropTypes.func,
     subcomponentLeft: PropTypes.object,
 
