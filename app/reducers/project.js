@@ -423,7 +423,7 @@ export default (state = new ProjectState(), action) => {
             const project = projectToImmutable(action.project),
                 lastRouteId = getMaxRouteId(project),
                 lastComponentId = getMaxComponentId(project),
-				schema = parseGraphQLSchema(action.schema);
+				schema = action.schema && parseGraphQLSchema(action.schema);
 
             return state
                 .merge({
@@ -438,9 +438,9 @@ export default (state = new ProjectState(), action) => {
                         : -1,
                     indexRouteSelected: false
                 })
-					// Prevent conversion to Immutable.Map
-					.set('meta', action.metadata)
-					.set('schema', schema);
+				// Prevent conversion to Immutable.Map
+                .set('meta', action.metadata)
+				.set('schema', schema);
         }
 
         case PROJECT_ROUTE_CREATE: {
