@@ -27,6 +27,11 @@ import {
     DataWindowContentGroup
 } from '../DataWindowContent/DataWindowContent';
 
+import {
+	getString,
+	getComponentMeta
+} from '../../../utils/meta';
+
 export class DataWindowDataLayout extends PureComponent {
 	get CONTENT_TYPE() {
 		return ({
@@ -61,6 +66,18 @@ export class DataWindowDataLayout extends PureComponent {
 
 	render() {
 		const { CONTENT_TYPE } = this;
+
+		const componentMeta = getComponentMeta(
+			linkTargetComponent.name,
+			this.props.meta
+		);
+
+		const propName =
+			getString(
+				componentMeta,
+				propMeta.textKey,
+				this.props.language
+			);
 		return (
 			<div className="data-window">
 				<Dialog
@@ -80,11 +97,16 @@ export class DataWindowDataLayout extends PureComponent {
 					<div className="data-window_content">
 						<BlockContent>
 							<BlockContentNavigation isBordered>
-								<BlockBreadcrumbs
-									items={CONTENT_TYPE.breadcrumbs}
-									mode="dark"
-									onItemClick={this._handleJumpToCurrentPathIndex}
-								/>
+							{
+								!!CONTENT_TYPE.breadcrumbs
+								&&
+									<BlockBreadcrumbs
+										items={CONTENT_TYPE.breadcrumbs}
+										mode="dark"
+										onItemClick={this._handleJumpToCurrentPathIndex}
+										overflow={true}
+									/>
+							}
 							</BlockContentNavigation>
 
 							<BlockContentBox isBordered>
@@ -122,6 +144,7 @@ DataWindowDataLayout.propTypes = {
 	linkingPropOfComponentId: PropTypes.number,
 	linkingPropName: PropTypes.string,
 	linkingPropPath: PropTypes.array,
+	language: PropTypes.string,
 
 	backToMainLayout: PropTypes.func,
 	setSelectedPath: PropTypes.func

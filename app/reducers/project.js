@@ -423,7 +423,7 @@ export default (state = new ProjectState(), action) => {
             const project = projectToImmutable(action.project),
                 lastRouteId = getMaxRouteId(project),
                 lastComponentId = getMaxComponentId(project),
-				schema = parseGraphQLSchema(action.schema);
+				schema = action.schema && parseGraphQLSchema(action.schema);
 
             return state
                 .merge({

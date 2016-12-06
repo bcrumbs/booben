@@ -74,7 +74,8 @@ DataWindowComponent.propTypes = {
 	linkingProp: PropTypes.bool,
 	linkingPropOfComponentId: PropTypes.number,
 	linkingPropName: PropTypes.string,
-	linkingPropPath: PropTypes.array
+	linkingPropPath: PropTypes.array,
+	language: PropTypes.string,
 };
 
 DataWindowComponent.defaultProps = {
@@ -90,6 +91,7 @@ const mapStateToProps = state => ({
 	linkingPropOfComponentId: state.project.linkingPropOfComponentId,
 	linkingPropName: state.project.linkingPropName,
 	linkingPropPath: state.project.linkingPropPath,
+	language: state.app.language,
 	components: currentComponentsSelector(state)
 });
 

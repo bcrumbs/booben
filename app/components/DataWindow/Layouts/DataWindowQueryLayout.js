@@ -35,8 +35,8 @@ import {
 } from '../../../utils/meta';
 
 
-const setObjectValueByPath = (object, value, path) => {
-	return Object.assign({}, object,
+const setObjectValueByPath = (object, value, path) =>
+	Object.assign({}, object,
 		{
 			[path[0]]:
 				path.length === 1
@@ -44,14 +44,39 @@ const setObjectValueByPath = (object, value, path) => {
 				:	setObjectValueByPath(object[path[0]], value, path.slice(1))
 		}
 	);
-}
 
 
+const parseIntValue = value => {
+	const parsedValue = parseInt(value, 10);
+	return Number.isSafeInteger(parsedValue) ? parsedValue: 0;
+};
+
+const parseFloatValue = value => {
+
+	let parsedValue = parseFloat(value);
+
+	const matchedDecimal = value.match(/\.\d*/);
+
+	const fixBy =
+		matchedDecimal
+		&&	matchedDecimal[0]
+		&&	matchedDecimal[0].length - 1;
+
+
+	return isFinite(parsedValue)
+	?
+		value.endsWith('.') && value.match(/\./g).length === 1
+		?	parsedValue + '.'
+		:	!(parsedValue % 1)
+			?	parsedValue.toFixed(fixBy + 1 ? fixBy: 0)
+			:	parsedValue + ''
+	:	'0.0';
+};
 
 const getTransformFunction = (typeName) => (
 	{
-		Int: parseInt,
-		Float: parseFloat,
+		Int: parseIntValue,
+		Float: parseFloatValue,
 	}[typeName]
 );
 
@@ -76,7 +101,7 @@ class DataWindowQueryArgumentsFieldForm extends Component {
 						value: (
 							typeof obj[name] === 'object'
 							?	this._convertObjectToValue(obj[name])
-							:	obj[name]
+							:	obj[name] + ''
 						)
 					}
 				}
@@ -144,55 +169,63 @@ class DataWindowQueryArgumentsFieldForm extends Component {
 	}
 
 	render(){
-
 		const {
 			argField,
 			argFieldName,
 			types,
 			setNewArgumentValue
 		} = this.props;
-			const { fieldValue, propType } = this._createValueAndPropTypeTree(
-				argField,
-				argFieldName,
-				clone(this.state.fieldValue),
-				types
-			);
 
-			return (
-				 <PropsItem
-					key={argFieldName}
-					propType={propType}
-					onChange={
-						(value, path) => {
-							const newFieldValue = setObjectValueByPath(
-								this.state.fieldValue,
-								value,
-								[argFieldName].concat(path),
-							);
+		const { fieldValue, propType } = this._createValueAndPropTypeTree(
+			argField,
+			argFieldName,
+			clone(this.state.fieldValue),
+			types
+		);
 
-							this.setState({ fieldValue: newFieldValue });
+		return (
+			 <PropsItem
+				key={argFieldName}
+				propType={propType}
+				onChange={
+					(value, path) => {
+						const newFieldValue = setObjectValueByPath(
+							this.state.fieldValue,
+							value,
+							[argFieldName].concat(path),
+						);
 
-							setNewArgumentValue(
-								newFieldValue
-							);
-						}
+						this.setState({ fieldValue: newFieldValue });
+
+						setNewArgumentValue(
+							newFieldValue
+						);
 					}
-					value={
-						{
-							value: isPrimitiveGraphQLType(
-								argField.type
+				}
+				value={
+					{
+						value: isPrimitiveGraphQLType(
+							argField.type
+						)
+						?	fieldValue + ''
+						:	this._convertObjectToValue(
+								fieldValue
 							)
-							?	fieldValue
-							:	this._convertObjectToValue(
-									fieldValue
-								)
-						}
 					}
-				/>
-			);
+				}
+			/>
+		);
 	}
 
 }
+
+DataWindowQueryArgumentsFieldForm.propTypes = {
+	argField: PropTypes.object,
+	argFieldName: PropTypes.string,
+	argFieldValue:	PropTypes.any,
+	setNewArgumentValue: PropTypes.func,
+	types: PropTypes.object
+};
 
 export class DataWindowQueryLayout extends DataWindowDataLayout {
 	constructor(props){
@@ -662,6 +695,12 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						field.kind === FIELD_KINDS.CONNECTION
 						?	field.connectionFields
 						:	{};
+
+					if (
+						field.kind === 'SINGLE'
+						&&	!equalMetaToGraphQLTypeNames(propType, field.type)
+					)	return acc;
+
 					return acc.concat(
 						[createContentField(
 							field,
@@ -675,7 +714,19 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 							handleJumpIntoField,
 							propType
 						)]).concat(
-							Object.keys(connectionFields).map(connectionFieldName =>
+							Object.keys(connectionFields).filter(
+								connectionFieldName => {
+									const connectionField
+										= field.connectionFields[connectionFieldName];
+									if (connectionField.kind === 'SINGLE'
+										&&	!equalMetaToGraphQLTypeNames(
+												propType,
+												connectionField.type
+											)
+									)	return false;
+									return true;
+								}
+							).map(connectionFieldName =>
 								createContentField(
 									connectionFields[connectionFieldName],
 									fieldName + ' ' + connectionFieldName,
@@ -718,6 +769,13 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 			this.props.linkingPropPath
 		);
 
+		console.log(
+			currentEditingFields,
+			linkTargetComponent,
+			linkTargetComponentMeta,
+			linkTargetPropTypedef
+		)
+
 		return (
 			!this.state.argumentsMode
 			?	this.createContentType(
@@ -727,7 +785,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						this.haveArguments(currentEditingFields[0]),
 						this.breadcrumbs,
 						this._getFieldTypeName,
-
 						this._handleFieldSelect,
 						this._handleSetArgumentsPress,
 						this._handleDataApplyPress,

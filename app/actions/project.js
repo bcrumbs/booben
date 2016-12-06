@@ -69,6 +69,7 @@ export const loadProject = projectName => dispatch => {
 
     Promise.all([getProject(projectName), getMetadata(projectName)])
         .then(([project, metadata]) => {
+			console.log(project.graphQLEndpointURL)
 			if (project.graphQLEndpointURL)
 				getFullGraphQLSchema(project.graphQLEndpointURL)
 					.then(schema =>

@@ -16,7 +16,6 @@
   "author": "Dmitriy Bizyaev",
   "license": "UNLICENCED",
   "dependencies": {
-	"@jssy/jssy-test-components": "^0.3.2",
     "@common/async-utils": "^0.2.1",
     "@common/tree": "^0.1.1",
     "apollo-client": "^0.5.6",
@@ -55,7 +54,7 @@
     "webpack-hot-middleware": "^2.12.2"
   },
   "devDependencies": {
-    "@reactackle/reactackle": "0.1.0-dev333",
+    "@reactackle/reactackle": "0.1.0-dev340",
     "babel-eslint": "^7.1.0",
     "copy-webpack-plugin": "^4.0.0",
     "css-loader": "^0.24.0",

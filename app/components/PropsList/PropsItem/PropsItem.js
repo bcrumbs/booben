@@ -443,6 +443,7 @@ export class PropsItem extends PureComponent {
             if (this.props.propType.view === 'input') {
                 content = (
                     <Input
+						stateless={true}
                         value={this.props.value.value}
                         disabled={this.props.disabled}
                         onChange={this._handleChange}
@@ -452,6 +453,7 @@ export class PropsItem extends PureComponent {
             else if (this.props.propType.view === 'textarea') {
                 content = (
                     <Textarea
+						stateless={true}
                         value={this.props.value.value}
                         disabled={this.props.disabled}
                         onChange={this._handleChange}
@@ -461,6 +463,7 @@ export class PropsItem extends PureComponent {
             else if (this.props.propType.view === 'list') {
                 content = (
                     <SelectBox
+						stateless={true}
                         data={this.props.propType.options}
                         value={this.props.value.value}
                         disabled={this.props.disabled}
