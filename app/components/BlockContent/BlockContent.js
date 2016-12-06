@@ -22,6 +22,7 @@ BlockContent.defaultProps = {
 
 BlockContent.displayName = 'BlockContent';
 
+export * from './BlockActionBar/BlockActionBar';
 export * from './BlockContentTitle/BlockContentTitle';
 export * from './BlockContentBox/BlockContentBox';
 export * from './BlockContentNavigation/BlockContentNavigation';

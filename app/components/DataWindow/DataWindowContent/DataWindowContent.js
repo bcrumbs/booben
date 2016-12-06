@@ -53,7 +53,7 @@ export const DataWindowContent= props => {
     let list = null;
     if (props.list) list =
         <BlockContentBoxItem>
-            { list }
+            <DataList data={ props.list } />
         </BlockContentBoxItem>;
     
     if (props.title) {
@@ -87,6 +87,7 @@ export const DataWindowContent= props => {
         <div className="data-window_content">
             { heading }
             { contentHeading }
+            { list }
             { props.children }
         </div>
     );

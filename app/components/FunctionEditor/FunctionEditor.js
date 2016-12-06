@@ -15,7 +15,7 @@ export const FunctionEditor = props => {
     return (
         <div className={className} >
             <div className='function-editor_heading'>
-                <BlockContentBoxItem isBordered>
+                <BlockContentBoxItem>
                     <pre>
                         function myFunction (
                             arg1 (string), arg2 (bool)
@@ -37,3 +37,5 @@ FunctionEditor.defaultProps = {
 };
 
 FunctionEditor.displayName = 'FunctionEditor';
+
+export * from './FunctionEditorLibrary/FunctionEditorLibrary';

@@ -8,7 +8,7 @@
 	.data-list {
 		margin: (-$data-item-padding-y) (-$data-item-padding-x);
 		margin-right: -$data-item-padding-x - $base-module;
-		width: calc(100% + #{$data-item-padding-x*2 + $base-module});
+		width: calc(100% + #{$data-item-padding-x*2});
 	}
 
 	// =================================================================================================================
