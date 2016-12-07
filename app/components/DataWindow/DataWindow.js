@@ -13,7 +13,9 @@ import {
 } from 'react-redux';
 
 import {
-    currentComponentsSelector
+    currentComponentsSelector,
+	currentRouteSelector,
+	getComponentGraphQLQueryArgs
 } from '../../selectors';
 
 import {
@@ -76,6 +78,7 @@ DataWindowComponent.propTypes = {
 	linkingPropName: PropTypes.string,
 	linkingPropPath: PropTypes.array,
 	language: PropTypes.string,
+	queryArgsList: PropTypes.any
 };
 
 DataWindowComponent.defaultProps = {
@@ -92,7 +95,8 @@ const mapStateToProps = state => ({
 	linkingPropName: state.project.linkingPropName,
 	linkingPropPath: state.project.linkingPropPath,
 	language: state.app.language,
-	components: currentComponentsSelector(state)
+	components: currentComponentsSelector(state),
+	queryArgsList: getComponentGraphQLQueryArgs(state)
 });
 
 const mapDispatchToProps = dispatch => ({

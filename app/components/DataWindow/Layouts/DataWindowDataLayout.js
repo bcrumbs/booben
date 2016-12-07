@@ -29,7 +29,9 @@ import {
 
 import {
 	getString,
-	getComponentMeta
+	getComponentMeta,
+	getNestedTypedef,
+	getPropTypedef
 } from '../../../utils/meta';
 
 export class DataWindowDataLayout extends PureComponent {
@@ -67,17 +69,29 @@ export class DataWindowDataLayout extends PureComponent {
 	render() {
 		const { CONTENT_TYPE } = this;
 
-		const componentMeta = getComponentMeta(
+		const linkTargetComponent =
+			this.props.components.get(this.props.linkingPropOfComponentId);
+
+		const linkTargetComponentMeta = getComponentMeta(
 			linkTargetComponent.name,
 			this.props.meta
 		);
 
+		const linkTargetPropTypedef = getNestedTypedef(
+			getPropTypedef(
+				linkTargetComponentMeta,
+				this.props.linkingPropName
+			),
+			this.props.linkingPropPath
+		);
+
 		const propName =
 			getString(
-				componentMeta,
-				propMeta.textKey,
+				linkTargetComponentMeta,
+				linkTargetPropTypedef.textKey,
 				this.props.language
 			);
+			
 		return (
 			<div className="data-window">
 				<Dialog
@@ -91,7 +105,7 @@ export class DataWindowDataLayout extends PureComponent {
 					buttonsLeft={CONTENT_TYPE.buttonsLeft}
 					buttons={CONTENT_TYPE.buttons}
 					paddingSize="none"
-					title={`${this.props.linkingPropName} Data`}
+					title={`${propName} Data`}
 					dialogContentFlex
 				>
 					<div className="data-window_content">

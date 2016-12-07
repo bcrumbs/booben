@@ -355,6 +355,9 @@ export class PropsItem extends PureComponent {
             wrapperClassName = 'prop-item-wrapper';
 
         let requireMark = null;
+
+		const message = this.props.value.message;
+
         if (this.props.propType.itemRequired) {
             wrapperClassName += ` is-required`;
 
@@ -591,6 +594,9 @@ export class PropsItem extends PureComponent {
                         {label}
                         <div className="prop-item_value-wrapper">
                             {valueWrapper}
+						<div className="prop-item_message-wrapper">
+							{message}
+						</div>
                         </div>
                         <div className="prop-item_value-wrapper">
                             {content}
@@ -608,7 +614,8 @@ export class PropsItem extends PureComponent {
 
 const ValueType = PropTypes.shape({
     value: PropTypes.any,
-    isLinked: PropTypes.bool
+    isLinked: PropTypes.bool,
+	message: PropTypes.string,
 });
 
 const propItemTypeShape = {

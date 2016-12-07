@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { Component, PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 
 import {
 	DataWindowDataLayout
@@ -33,7 +33,6 @@ import {
     getPropTypedef,
     getNestedTypedef
 } from '../../../utils/meta';
-
 
 const setObjectValueByPath = (object, value, path) =>
 	Object.assign({}, object,
@@ -83,7 +82,7 @@ const getTransformFunction = (typeName) => (
 const isPrimitiveGraphQLType = (typeName) =>
 	graphQLPrimitiveTypes.has(typeName);
 
-class DataWindowQueryArgumentsFieldForm extends Component {
+class DataWindowQueryArgumentsFieldForm extends PureComponent {
 	constructor(props){
 		super(props);
 		this.state = {
@@ -253,6 +252,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		this._handleArgumentsApplyPress = this._handleArgumentsApplyPress.bind(this);
 		this._handleBackToPress = this._handleBackToPress.bind(this);
 		this._getCurrentEditingFields = this._getCurrentEditingFields.bind(this);
+		this._getBoundArguments = this._getBoundArguments.bind(this);
 	}
 
 	_equalFieldPaths(path1, path2) {
@@ -265,6 +265,44 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	_handleJumpIntoField(name, type, kind, args, isCurrentPathLast) {
 		const { previousPath, currentPath } = this.state;
 		const isPrimitiveType = isPrimitiveGraphQLType(type);
+
+		const boundArguments = this._getBoundArguments(
+			...(
+				isCurrentPathLast
+				?	currentPath.slice(0, -1)
+				:	currentPath
+			),
+			{
+				name,
+				type,
+				kind,
+			}
+		);
+
+		const argsForField =
+			isCurrentPathLast
+			?
+				args
+				||	this._getBoundArguments(
+					...(
+						isCurrentPathLast
+						?	currentPath.slice(0, -1)
+						:	currentPath
+					),
+					{
+						name,
+						type,
+						kind,
+					}
+				)
+				|| {}
+			:
+				this._getCurrentArguments(
+						isCurrentPathLast,
+						false,
+						name
+					).slice(-1)[0]
+				||	{};
 
 		this.setState({
 			argumentsPath: [],
@@ -281,14 +319,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 					name,
 					type,
 					kind,
-					args:
-						args
-						||	this._getCurrentArguments(
-								isCurrentPathLast,
-								false,
-								name
-							).slice(-1)[0]
-						||	{}
+					args: argsForField,
+					areArgsBound: !!boundArguments
 				}
 			],
 			previousPath:
@@ -449,7 +481,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 				+ (
 					field.kind === FIELD_KINDS.CONNECTION
 					?	' connection'
-					:	field.kind === 'LIST'
+					:	field.kind === FIELD_KINDS.LIST
 						?	' list'
 						:	''
 				);
@@ -547,10 +579,9 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		return !!(field && field.args && Object.keys(field.args).length);
 	}
 
-	setNewArgumentValue(argValue, fieldName, value) {
+	setNewArgumentValue(argValue, value) {
 		Object.assign(argValue, value);
 	}
-
 
 	createContentArgumentsType(
 		fields,
@@ -595,10 +626,12 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 													argFieldValue={
 														argsValues[fieldNumber]
 													}
+													areArgumentsBound={
+														field.
+													}
 													setNewArgumentValue={value =>
 														setNewArgumentValue(
 															argsValues[fieldNumber],
-															argName,
 															value
 														)
 													}
@@ -697,7 +730,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						:	{};
 
 					if (
-						field.kind === 'SINGLE'
+						field.kind === FIELD_KINDS.SINGLE
 						&&	!equalMetaToGraphQLTypeNames(propType, field.type)
 					)	return acc;
 
@@ -707,7 +740,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 							fieldName,
 							selectedFieldName,
 							getFieldTypeName,
-
 							handleFieldSelect,
 							handleSetArgumentsClick,
 							handleApplyClick,
@@ -718,7 +750,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 								connectionFieldName => {
 									const connectionField
 										= field.connectionFields[connectionFieldName];
-									if (connectionField.kind === 'SINGLE'
+									if (connectionField.kind === FIELD_KINDS.SINGLE
 										&&	!equalMetaToGraphQLTypeNames(
 												propType,
 												connectionField.type
@@ -749,7 +781,21 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		};
 	}
 
+	_getBoundArguments(path) {
+		let args = void 0;
+		this.props.queryArgsList.forEach(
+			propName => {
+				const currentQueryNode = this.props.queryArgsList[propName];
+				for (let k = 0; k < path.length; k++)
+					if (currentQueryNode[k].field !== path[k].name) return;
+				args = currentQueryNode[path.length - 1].args;
+			}
+		);
+		return args;
+	}
+
 	get CONTENT_TYPE() {
+		console.log(this.props.queryArgsList);
 		const currentEditingFields = this._getCurrentEditingFields();
 
 		const linkTargetComponent =
@@ -768,13 +814,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
 			this.props.linkingPropPath
 		);
-
-		console.log(
-			currentEditingFields,
-			linkTargetComponent,
-			linkTargetComponentMeta,
-			linkTargetPropTypedef
-		)
 
 		return (
 			!this.state.argumentsMode
