@@ -13,7 +13,7 @@ import SourceDataConst from './SourceDataConst';
 import SourceDataAction from './SourceDataAction';
 import SourceDataDesigner from './SourceDataDesigner';
 
-import { objectMap } from '../utils/misc';
+import { objectMap, objectForEach } from '../utils/misc';
 
 const ProjectComponentRecord = Record({
     id: -1,
@@ -148,5 +148,42 @@ export const getValueByPath = (component, propName, path) => path.reduce(
     (acc, cur) => acc.sourceData.value.get(cur),
     component.props.get(propName)
 );
+
+export const walkSimpleProps = (component, componentMeta, visitor) => {
+    const visitValue = (propValue, propMeta, path) => {
+        if (propValue.source === 'static' && !propValue.sourceData.ownerPropName) {
+            if (propMeta.type === 'shape' && propValue.sourceData.value !== null) {
+                objectForEach(propMeta.fields, (fieldTypedef, fieldName) =>
+                    void visitValue(
+                        propValue.sourceData.value[fieldName],
+                        fieldTypedef,
+                        [...path, fieldName]
+                    ));
+            }
+            else if (propMeta.type === 'objectOf' && propValue.sourceData.value !== null) {
+                propValue.sourceData.value.forEach((fieldValue, key) =>
+                    void visitValue(fieldValue, propMeta.ofType, [...path, key]));
+            }
+            else if (propMeta.type === 'arrayOf') {
+                propValue.sourceData.value.forEach((itemValue, idx) =>
+                    void visitValue(itemValue, propMeta.ofType, [...path, idx]));
+            }
+            else {
+                visitor(propValue, propMeta, path);
+            }
+        }
+        else {
+            visitor(propValue, propMeta, path);
+        }
+    };
+
+    component.props.forEach(
+        (propValue, propName) => visitValue(
+            propValue,
+            componentMeta.props[propName],
+            [propName]
+        )
+    );
+};
 
 export default ProjectComponentRecord;

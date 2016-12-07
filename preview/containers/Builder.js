@@ -16,7 +16,7 @@ import { getComponentById } from '../../app/models/Project';
 
 import jssyConstants from '../../app/constants/jssyConstants';
 
-import { List, Map } from 'immutable';
+import { List } from 'immutable';
 
 import { NO_VALUE } from  '../../app/constants/misc';
 
@@ -25,22 +25,18 @@ import {
     isCompositeComponent,
     canInsertComponent,
     getComponentMeta,
-    parseComponentName,
-    isValidSourceForProp
+    parseComponentName
 } from '../../app/utils/meta';
 
-import {
-    FIELD_KINDS,
-    getTypeNameByField,
-    getTypeNameByPath
-} from '../../app/utils/schema';
+import { FIELD_KINDS } from '../../app/utils/schema';
 
-import { randomName } from '../../app/utils/graphql';
+import {
+    buildQueryForComponent,
+    mapDataToComponentProps
+} from '../../app/utils/graphql';
 
 import {
     objectMap,
-    objectForEach,
-    clone,
     returnNull
 } from '../../app/utils/misc';
 
@@ -85,15 +81,6 @@ const getComponentByName = (componentName = '') => {
         throw new Error(`Component not found: '${componentName}'`);
 
     return component;
-};
-
-const toGraphQLScalarValue = (value, type) => {
-    if (type === 'String') return { kind: 'StringValue', value };
-    if (type === 'Int') return { kind: 'IntValue', value: `${value}` };
-    if (type === 'Float') return { kind: 'FloatValue', value: `${value}` };
-    if (type === 'Boolean') return { kind: 'BooleanValue', value };
-    if (type === 'ID') return { kind: 'StringValue', value }; // ???
-    throw new Error('');
 };
 
 
@@ -177,6 +164,42 @@ class BuilderComponent extends PureComponent {
             }
             else {
                 return returnNull;
+            }
+        }
+        else if (propValue.source === 'data') {
+            // TODO: Replace hardcoded shit with real values
+            // TODO: Remove duplicated code (see mapDataToComponentProps in utils/graphql.js)
+
+            if (propValue.sourceData.dataContext.size > 0) {
+                const data = this.props.propsFromOwner['item'],
+                    { schema } = this.props;
+
+                return propValue.sourceData.queryPath.reduce((acc, queryStep) => {
+                    const typeDefinition = schema.types[acc.type],
+                        [fieldName, connectionFieldName] = queryStep.field.split('/'),
+                        fieldDefinition = typeDefinition.fields[fieldName];
+
+                    if (fieldDefinition.kind === FIELD_KINDS.CONNECTION) {
+                        if (connectionFieldName) {
+                            return {
+                                data: data[fieldName][connectionFieldName],
+                                type: fieldDefinition.connectionFields[connectionFieldName].type
+                            };
+                        }
+                        else {
+                            return {
+                                data: data[fieldName].edges.map(edge => edge.node),
+                                type: fieldDefinition.type
+                            }
+                        }
+                    }
+                    else {
+                        return {
+                            data: data[fieldName],
+                            type: fieldDefinition.type
+                        };
+                    }
+                }, { data, type: 'Film' }).data
             }
         }
         else if (propValue.source === 'actions') {
@@ -438,10 +461,48 @@ class BuilderComponent extends PureComponent {
                 props.children = <ContentPlaceholder />;
         }
 
-        //noinspection JSValidateTypes
-        return (
-            <Component {...props} />
+        const graphQLQuery = buildQueryForComponent(
+            component,
+            this.props.schema,
+            this.props.meta
         );
+
+        if (graphQLQuery) {
+            const Container = graphql(graphQLQuery, {
+                props: ({ ownProps, data }) => {
+                    console.log(data);
+
+                    if (!data.__typename) return ownProps;
+
+                    return Object.assign(
+                        {},
+                        ownProps,
+
+                        mapDataToComponentProps(
+                            component,
+                            data,
+                            this.props.schema,
+                            this.props.meta
+                        )
+                    );
+                },
+
+                options: {
+                    pollInterval: 1000
+                }
+            })(Component);
+
+            //noinspection JSValidateTypes
+            return (
+                <Container {...props}/>
+            );
+        }
+        else {
+            //noinspection JSValidateTypes
+            return (
+                <Component {...props} />
+            );
+        }
     }
 
     render() {
