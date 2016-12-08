@@ -209,7 +209,11 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 						?	fieldValue + ''
 						:	this._convertObjectToValue(
 								fieldValue
-							)
+							),
+						message:
+							this.props.areArgsBound
+							?	'Arguments bound'
+							:	''
 					}
 				}
 			/>
@@ -271,31 +275,19 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 				isCurrentPathLast
 				?	currentPath.slice(0, -1)
 				:	currentPath
-			),
+			,
 			{
 				name,
 				type,
 				kind,
 			}
-		);
+		));
 
 		const argsForField =
 			isCurrentPathLast
 			?
 				args
-				||	this._getBoundArguments(
-					...(
-						isCurrentPathLast
-						?	currentPath.slice(0, -1)
-						:	currentPath
-					),
-					{
-						name,
-						type,
-						kind,
-					}
-				)
-				|| {}
+				||	boundArguments
 			:
 				this._getCurrentArguments(
 						isCurrentPathLast,
@@ -588,6 +580,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		fieldsArgsValues,
 		backToFieldName,
 		types,
+		areArgumentsBound,
 		haveArguments,
 		createContentArgumentField,
 		setNewArgumentValue,
@@ -627,7 +620,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 														argsValues[fieldNumber]
 													}
 													areArgumentsBound={
-														field.
+														areArgumentsBound
 													}
 													setNewArgumentValue={value =>
 														setNewArgumentValue(
@@ -783,12 +776,19 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
 	_getBoundArguments(path) {
 		let args = void 0;
-		this.props.queryArgsList.forEach(
+		this.props.queryArgsList
+		&&	this.props.queryArgsList.forEach(
 			propName => {
-				const currentQueryNode = this.props.queryArgsList[propName];
-				for (let k = 0; k < path.length; k++)
-					if (currentQueryNode[k].field !== path[k].name) return;
-				args = currentQueryNode[path.length - 1].args;
+				const currentQueryNode = this.prop
+
+
+
+				s.queryArgsList.get(propName);
+				for (let k = 0; k < path.length; k++) {
+					const pathStep = currentQueryNode.get(k);
+					if (pathStep.field !== path[k].name) return;
+				}
+				args = currentQueryNode.get(path.length - 1).args;
 			}
 		);
 		return args;
@@ -844,6 +844,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						?	-2
 						:	-1
 						).name,
+						this._getCurrentPathByIndex(-1).areArgumentsBound,
 						this.props.schema.types,
 						this.haveArguments,
 						this.createContentArgumentField,
