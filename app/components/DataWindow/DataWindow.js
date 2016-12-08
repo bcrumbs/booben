@@ -81,10 +81,6 @@ DataWindowComponent.propTypes = {
 	queryArgsList: PropTypes.any
 };
 
-DataWindowComponent.defaultProps = {
-	dialogTitle: 'InitialComponent — PropName'
-};
-
 DataWindowComponent.displayName = 'DataWindow';
 
 const mapStateToProps = state => ({

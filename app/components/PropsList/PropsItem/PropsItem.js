@@ -108,6 +108,7 @@ export class PropsItem extends PureComponent {
         this._handleOpen = this._handleOpen.bind(this);
         this._handleDelete = this._handleDelete.bind(this);
         this._handleChange = this._handleChange.bind(this);
+		this._handleValueNullSwitch = this._handleValueNullSwitch.bind(this);
         this._handleAddButtonPress = this._handleAddButtonPress.bind(this);
         this._handleBreadcrumbsItemSelect = this._handleBreadcrumbsItemSelect.bind(this);
     }
@@ -144,6 +145,14 @@ export class PropsItem extends PureComponent {
             currentPath: this.state.currentPath.slice(0, index)
         });
     }
+
+	_handleValueNullSwitch() {
+		this.props.onNullSwitch([]);
+	}
+
+	_handleNestedValueNullSwitch(index) {
+		this.props.onNullSwitch([...this.state.currentPath, index]);
+	}
 
     /**
      *
@@ -262,6 +271,10 @@ export class PropsItem extends PureComponent {
             this.state.currentPath
         );
 
+
+		if (!currentValue || currentValue.value === null) return null;
+
+
         let childItems = null;
         if (currentType.view === 'shape') {
             childItems = Object.keys(currentType.fields).map((fieldName, idx) => (
@@ -277,6 +290,7 @@ export class PropsItem extends PureComponent {
                     addDialogCancelButtonText={this.props.addDialogCancelButtonText}
                     onChange={this._handleNestedValueChange.bind(this, fieldName)}
                     onLink={this._handleNestedValueLink.bind(this, fieldName)}
+					onNullSwitch={this._handleNestedValueNullSwitch.bind(this, fieldName)}
                     _secondary
                     _onOpen={this._handleOpenNestedValue.bind(this, fieldName)}
                 />
@@ -296,6 +310,7 @@ export class PropsItem extends PureComponent {
                     addDialogCancelButtonText={this.props.addDialogCancelButtonText}
                     onChange={this._handleNestedValueChange.bind(this, idx)}
                     onLink={this._handleNestedValueLink.bind(this, idx)}
+					onNullSwitch={this._handleNestedValueNullSwitch.bind(this, idx)}
                     _secondary
                     _label={currentType.formatItemLabel(idx)}
                     _deletable
@@ -318,6 +333,7 @@ export class PropsItem extends PureComponent {
                     addDialogCancelButtonText={this.props.addDialogCancelButtonText}
                     onChange={this._handleNestedValueChange.bind(this, key)}
                     onLink={this._handleNestedValueLink.bind(this, key)}
+					onNullSwitch={this._handleNestedValueNullSwitch.bind(this, key)}
                     _secondary
                     _label={currentType.formatItemLabel(key)}
                     _deletable
@@ -443,37 +459,39 @@ export class PropsItem extends PureComponent {
             children = null;
 
         if (!this.props.value.isLinked) {
-            if (this.props.propType.view === 'input') {
-                content = (
-                    <Input
-						stateless={true}
-                        value={this.props.value.value}
-                        disabled={this.props.disabled}
-                        onChange={this._handleChange}
-                    />
-                );
-            }
-            else if (this.props.propType.view === 'textarea') {
-                content = (
-                    <Textarea
-						stateless={true}
-                        value={this.props.value.value}
-                        disabled={this.props.disabled}
-                        onChange={this._handleChange}
-                    />
-                );
-            }
-            else if (this.props.propType.view === 'list') {
-                content = (
-                    <SelectBox
-						stateless={true}
-                        data={this.props.propType.options}
-                        value={this.props.value.value}
-                        disabled={this.props.disabled}
-                        onSelect={this._handleChange}
-                    />
-                );
-            }
+			if (this.props.value.value !== null) {
+	            if (this.props.propType.view === 'input') {
+	                content = (
+	                    <Input
+							stateless={true}
+	                        value={this.props.value.value}
+	                        disabled={this.props.disabled}
+	                        onChange={this._handleChange}
+	                    />
+	                );
+	            }
+	            else if (this.props.propType.view === 'textarea') {
+	                content = (
+	                    <Textarea
+							stateless={true}
+	                        value={this.props.value.value}
+	                        disabled={this.props.disabled}
+	                        onChange={this._handleChange}
+	                    />
+	                );
+	            }
+	            else if (this.props.propType.view === 'list') {
+	                content = (
+	                    <SelectBox
+							stateless={true}
+	                        data={this.props.propType.options}
+	                        value={this.props.value.value}
+	                        disabled={this.props.disabled}
+	                        onSelect={this._handleChange}
+	                    />
+	                );
+	            }
+			}
             else if (this.props.propType.view === 'constructor') {
                 const text = this.props.value.value
                     ? this.props.editComponentButtonText
@@ -500,10 +518,7 @@ export class PropsItem extends PureComponent {
                 );
             }
             else {
-                const isNullable = (
-                    this.props.propType.view === 'shape' ||
-                    this.props.propType.view === 'object'
-                ) && !this.props.propType.notNull;
+                const isNullable = !this.props.notNull;
 
                 if (isNullable) {
                     // TODO: Make null switch
@@ -511,8 +526,9 @@ export class PropsItem extends PureComponent {
                         <div className="prop_action prop_action-toggle">
                             <ToggleButton
                                 label = "Null"
-                                checked={this.props.value.value}
+                                checked={this.props.value.value !== null}
                                 disabled={this.props.disabled}
+								onCheck={this._handleValueNullSwitch}
                             />
                         </div>
                     );
@@ -678,6 +694,7 @@ PropsItem.propTypes = {
     onAddValue: PropTypes.func,
     onDeleteValue: PropTypes.func,
     onLink: PropTypes.func,
+	onNullSwitch: PropTypes.func,
     onLinkNested: PropTypes.func,
 
     _secondary: PropTypes.bool,
@@ -701,6 +718,7 @@ PropsItem.defaultProps = {
     onAddValue: noop,
     onDeleteValue: noop,
     onLink: noop,
+	onNullSwitch: noop,
     onLinkNested: noop,
 
     _secondary: false,

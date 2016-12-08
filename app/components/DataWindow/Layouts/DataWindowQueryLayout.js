@@ -2,6 +2,11 @@
 
 import React, { PureComponent, PropTypes } from 'react';
 
+
+import {
+    Checkbox
+} from '@reactackle/reactackle';
+
 import {
 	DataWindowDataLayout
 }	from './DataWindowDataLayout';
@@ -43,6 +48,12 @@ const setObjectValueByPath = (object, value, path) =>
 				:	setObjectValueByPath(object[path[0]], value, path.slice(1))
 		}
 	);
+
+const getObjectValueByPath = (object, path) =>
+	path.length === 1
+	?	object[path[0]]
+	:	getObjectValueByPath(object[path[0]], path.slice(1));
+
 
 
 const parseIntValue = value => {
@@ -88,18 +99,22 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 		this.state = {
 			fieldValue: props.argFieldValue
 		};
+		this._handleChange = this._handleChange.bind(this);
+		this._handleNullSwitch = this._handleNullSwitch.bind(this);
 		this._convertObjectToValue = this._convertObjectToValue.bind(this);
 		this._createValueAndPropTypeTree = this._createValueAndPropTypeTree.bind(this);
 	}
 
 	_convertObjectToValue(obj){
-		return Object.keys(obj).reduce(
+		return obj && Object.keys(obj).reduce(
 			(acc, name) => Object.assign(acc, {
 				[name]:
 					{
 						value: (
 							typeof obj[name] === 'object'
-							?	this._convertObjectToValue(obj[name])
+							?	obj[name] === null
+								?	obj[name]
+								:	this._convertObjectToValue(obj[name])
 							:	obj[name] + ''
 						)
 					}
@@ -117,35 +132,45 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 			?	Object.keys(types[argField.type].fields).reduce((acc, fieldName) => {
 					const field = types[argField.type].fields[fieldName];
 
-					argFieldValue[argFieldName] =
-						argFieldValue[argFieldName]
-							||	(
-								!isPrimitiveGraphQLType(argField.type)
-							 	?	{}
-								:	''
+					if (argFieldValue !== null) {
+						argFieldValue[argFieldName] =
+							typeof argFieldValue[argFieldName] === 'undefined'
+							?	(
+									!isPrimitiveGraphQLType(argField.type)
+									?	{}
+									:	''
+							)
+							:	argFieldValue[argFieldName];
+							const {
+								fieldValue,
+								propType
+							} = this._createValueAndPropTypeTree(
+								field,
+								fieldName,
+								argFieldValue[argFieldName],
+								types,
 							);
+							argFieldValue[argFieldName]
+							&&	(argFieldValue[argFieldName][fieldName] = fieldValue);
 
-					const {
-						fieldValue,
-						propType
-					} = this._createValueAndPropTypeTree(
-						field,
-						fieldName,
-						argFieldValue[argFieldName],
-						types,
-					);
+							return Object.assign(acc, {
+								[fieldName]: propType
+							});
 
-					argFieldValue[argFieldName][fieldName] = fieldValue;
-
-					return Object.assign(acc, {
-						[fieldName]: propType
-					});
+					}
+					else return acc;
 				}
 				, {})
 			:	{};
 
 		return {
-			fieldValue: argFieldValue[argFieldName] || '',
+			fieldValue:
+			 	argFieldValue
+				&&	(
+					typeof argFieldValue[argFieldName] === 'undefined'
+					?	''
+					:	argFieldValue[argFieldName]
+				),
 			propType: {
 			   label: argFieldName,
 			   view:
@@ -167,12 +192,49 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 		};
 	}
 
+	_handleChange(value, path) {
+		const newFieldValue = setObjectValueByPath(
+			this.state.fieldValue,
+			value,
+			[this.props.argFieldName].concat(path),
+		);
+
+		this.setState({ fieldValue: newFieldValue });
+
+		this.props.setNewArgumentValue(
+			newFieldValue
+		);
+	}
+
+	_handleNullSwitch(path) {
+		const oldValue =
+			getObjectValueByPath(
+				this.state.fieldValue,
+				[this.props.argFieldName].concat(path)
+			);
+		const newFieldValue = setObjectValueByPath(
+			this.state.fieldValue,
+			oldValue === null
+			?	void 0
+			:	null,
+			[this.props.argFieldName].concat(path),
+		);
+
+		this.setState(
+			{ fieldValue: newFieldValue }
+		);
+
+		this.props.setNewArgumentValue(
+			newFieldValue
+		);
+
+	}
+
 	render(){
 		const {
 			argField,
 			argFieldName,
-			types,
-			setNewArgumentValue
+			types
 		} = this.props;
 
 		const { fieldValue, propType } = this._createValueAndPropTypeTree(
@@ -187,32 +249,23 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 				key={argFieldName}
 				propType={propType}
 				onChange={
-					(value, path) => {
-						const newFieldValue = setObjectValueByPath(
-							this.state.fieldValue,
-							value,
-							[argFieldName].concat(path),
-						);
-
-						this.setState({ fieldValue: newFieldValue });
-
-						setNewArgumentValue(
-							newFieldValue
-						);
-					}
+					this._handleChange
+				}
+				onNullSwitch={
+					this._handleNullSwitch
 				}
 				value={
 					{
 						value: isPrimitiveGraphQLType(
 							argField.type
 						)
-						?	fieldValue + ''
+						?	fieldValue
 						:	this._convertObjectToValue(
 								fieldValue
 							),
 						message:
-							this.props.areArgsBound
-							?	'Arguments bound'
+							this.props.argumentsBound
+							?	'Arguments already in use'
 							:	''
 					}
 				}
@@ -256,7 +309,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		this._handleArgumentsApplyPress = this._handleArgumentsApplyPress.bind(this);
 		this._handleBackToPress = this._handleBackToPress.bind(this);
 		this._getCurrentEditingFields = this._getCurrentEditingFields.bind(this);
-		this._getBoundArguments = this._getBoundArguments.bind(this);
+		this._getBoundArgumentsByPath = this._getBoundArgumentsByPath.bind(this);
+		this._areArgumentsBound = this._areArgumentsBound.bind(this);
 	}
 
 	_equalFieldPaths(path1, path2) {
@@ -270,31 +324,14 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		const { previousPath, currentPath } = this.state;
 		const isPrimitiveType = isPrimitiveGraphQLType(type);
 
-		const boundArguments = this._getBoundArguments(
-			...(
-				isCurrentPathLast
-				?	currentPath.slice(0, -1)
-				:	currentPath
-			,
-			{
-				name,
-				type,
-				kind,
-			}
-		));
-
 		const argsForField =
-			isCurrentPathLast
-			?
-				args
-				||	boundArguments
-			:
-				this._getCurrentArguments(
-						isCurrentPathLast,
-						false,
-						name
-					).slice(-1)[0]
-				||	{};
+			args
+			||	this._getCurrentArguments(
+							isCurrentPathLast,
+							false,
+							name
+				).slice(-1)[0]
+			||	{};
 
 		this.setState({
 			argumentsPath: [],
@@ -312,7 +349,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 					type,
 					kind,
 					args: argsForField,
-					areArgsBound: !!boundArguments
 				}
 			],
 			previousPath:
@@ -378,7 +414,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	}
 
 	_applyPropData(args = []) {
-		const currentArguments = this._getCurrentArguments(false, true);
 		this.props.onUpdateComponentPropValue(
 			this.props.linkingPropOfComponentId,
 			this.props.linkingPropName,
@@ -396,8 +431,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 					)
 				).map((pathStep, num) => {
 						const currentArg =
-							args[num]
-							|| currentArguments[num];
+							args[num];
 						return {
 							field: pathStep.name,
 							args:
@@ -491,7 +525,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		const { types } = this.props.schema;
 		const currentPathLast = this._getCurrentPathByIndex(-1);
 		return isPrimitiveGraphQLType(currentPathLast.type)
-			?	types[this._getCurrentPathByIndex(-2)].fields[currentPathLast.name]
+			?	types[this._getCurrentPathByIndex(-2).type].fields[currentPathLast.name]
 			:	types[currentPathLast.type].fields[this.state.selectedFieldName];
 	}
 
@@ -505,8 +539,22 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
 		if (this.state.currentPath.length === 1) return [{}];
 
+		const boundArguments = !allArgumentsMode && this._getBoundArgumentsByPath(
+			!lastPath
+			?	this.state.currentPath.slice(2)
+					.concat(
+						this.selectedField
+						?	[this.selectedField]
+						:	[]
+					)
+			:	this.state.currentPath.slice(2)
+		);
+
 		return	allArgumentsMode
-			?	this.state.currentPath.slice(2).map(({ args }) => args)
+			?	this.state.currentPath.slice(2).map(
+					({ args }) =>
+						args
+				)
 			:	[
 				!lastPath
 				?
@@ -517,8 +565,9 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 							.fields[fieldName]
 					)
 					&&	previousPathField.args
+					||	boundArguments
 					||	{}
-				:	this._getCurrentPathByIndex(-1).args
+				:	this._getCurrentPathByIndex(-1).args || boundArguments
 			];
 
 	}
@@ -578,9 +627,9 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	createContentArgumentsType(
 		fields,
 		fieldsArgsValues,
+		areArgumentsBound,
 		backToFieldName,
 		types,
-		areArgumentsBound,
 		haveArguments,
 		createContentArgumentField,
 		setNewArgumentValue,
@@ -619,8 +668,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 													argFieldValue={
 														argsValues[fieldNumber]
 													}
-													areArgumentsBound={
-														areArgumentsBound
+													argumentsBound={
+														areArgumentsBound[fieldNumber]
 													}
 													setNewArgumentValue={value =>
 														setNewArgumentValue(
@@ -774,28 +823,52 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		};
 	}
 
-	_getBoundArguments(path) {
+	_getBoundArgumentsByPath(path) {
 		let args = void 0;
 		this.props.queryArgsList
 		&&	this.props.queryArgsList.forEach(
-			propName => {
-				const currentQueryNode = this.prop
-
-
-
-				s.queryArgsList.get(propName);
+			currentQueryNode => {
 				for (let k = 0; k < path.length; k++) {
 					const pathStep = currentQueryNode.get(k);
-					if (pathStep.field !== path[k].name) return;
+					if (pathStep.field !== path[k].name) return true;
 				}
-				args = currentQueryNode.get(path.length - 1).args;
+				args = currentQueryNode.get(path.length - 1).toJS().args;
+				return false;
 			}
+		);
+		args && Object.keys(args).forEach(
+			argName => args[argName] = args[argName].sourceData.value
 		);
 		return args;
 	}
 
+	_areArgumentsBound(fields) {
+		const currentPath = this.state.currentPath.concat(
+			!this.state.argumentsForCurrentPathLast
+			&&	!this.state.allArgumentsMode
+			?	[this.selectedField]
+			:	[]
+		);
+		let currentPathIndex = 1;
+		return fields.map(field => {
+			while(
+				++currentPathIndex < currentPath.length
+				&&
+				!this._equalFieldPaths(
+					currentPath[currentPathIndex], field
+				)
+			);
+			return !!(this._equalFieldPaths(
+				currentPath[currentPathIndex], field
+			) && this._getBoundArgumentsByPath(
+				currentPath.slice(
+					2, currentPathIndex + 1
+				)
+			));
+		});
+	}
+
 	get CONTENT_TYPE() {
-		console.log(this.props.queryArgsList);
 		const currentEditingFields = this._getCurrentEditingFields();
 
 		const linkTargetComponent =
@@ -837,6 +910,9 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 							this.state.argumentsForCurrentPathLast,
 							this.state.allArgumentsMode
 						),
+						this._areArgumentsBound(
+							currentEditingFields
+						),
 						this._getCurrentPathByIndex(
 							isPrimitiveGraphQLType(
 								this._getCurrentPathByIndex(-1).type
@@ -844,7 +920,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						?	-2
 						:	-1
 						).name,
-						this._getCurrentPathByIndex(-1).areArgumentsBound,
 						this.props.schema.types,
 						this.haveArguments,
 						this.createContentArgumentField,
