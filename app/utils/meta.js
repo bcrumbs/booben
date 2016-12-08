@@ -9,7 +9,7 @@ import miscMeta from '../meta/misc';
 
 import { componentsToImmutable } from '../models/ProjectComponent';
 
-import { objectForEach } from './misc';
+import { objectForEach, objectSome } from './misc';
 
 import { NO_VALUE } from  '../../app/constants/misc';
 
@@ -646,6 +646,15 @@ export const getNestedTypedef = (typedef, valuePath) => valuePath.reduce((acc, c
 
 /**
  *
+ * @param {PropTypeDefinition} propMeta
+ * @return {boolean}
+ */
+export const propHasDataContest = propMeta =>
+    !!propMeta.sourceConfigs.data &&
+    !!propMeta.sourceConfigs.data.pushDataContext;
+
+/**
+ *
  * @param {ComponentMeta} componentMeta
  * @param {string} dataContext
  * @return {string}
@@ -665,3 +674,16 @@ export const findPropByDataContext = (componentMeta, dataContext) => {
 
     return '';
 };
+
+/**
+ *
+ * @param {PropTypeDefinition} propMeta
+ * @return {boolean}
+ */
+export const propUsesDataContexts = propMeta =>
+    !!propMeta.sourceConfigs.designer.props &&
+
+    objectSome(
+        propMeta.sourceConfigs.designer.props,
+        ownerPropMeta => !!ownerPropMeta.dataContext
+    );

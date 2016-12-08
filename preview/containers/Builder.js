@@ -4,6 +4,8 @@
 import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { graphql } from 'react-apollo';
+import _merge from 'lodash.merge';
+import _mapValues from 'lodash.mapvalues';
 
 // The real components.js will be generated during build process
 import _components from '../components.js';
@@ -28,19 +30,17 @@ import {
     parseComponentName
 } from '../../app/utils/meta';
 
-import { FIELD_KINDS } from '../../app/utils/schema';
-
 import {
     buildQueryForComponent,
-    mapDataToComponentProps
+    mapDataToComponentProps,
+    extractPropValueFromData
 } from '../../app/utils/graphql';
 
 import {
-    objectMap,
     returnNull
 } from '../../app/utils/misc';
 
-const components = objectMap(_components, ns => objectMap(ns, patchComponent));
+const components = _mapValues(_components, ns => _mapValues(ns, patchComponent));
 
 /**
  *
@@ -117,7 +117,7 @@ class BuilderComponent extends PureComponent {
                 if (propMeta.type === 'shape') {
                     if (propValue.sourceData.value === null) return null;
 
-                    return objectMap(propMeta.fields, (fieldMeta, fieldName) => {
+                    return _mapValues(propMeta.fields, (fieldMeta, fieldName) => {
                         const fieldValue = propValue.sourceData.value.get(fieldName);
 
                         return this._buildPropValue(
@@ -168,38 +168,16 @@ class BuilderComponent extends PureComponent {
         }
         else if (propValue.source === 'data') {
             // TODO: Replace hardcoded shit with real values
-            // TODO: Remove duplicated code (see mapDataToComponentProps in utils/graphql.js)
 
             if (propValue.sourceData.dataContext.size > 0) {
-                const data = this.props.propsFromOwner['item'],
-                    { schema } = this.props;
+                const data = this.props.propsFromOwner['item'];
 
-                return propValue.sourceData.queryPath.reduce((acc, queryStep) => {
-                    const typeDefinition = schema.types[acc.type],
-                        [fieldName, connectionFieldName] = queryStep.field.split('/'),
-                        fieldDefinition = typeDefinition.fields[fieldName];
-
-                    if (fieldDefinition.kind === FIELD_KINDS.CONNECTION) {
-                        if (connectionFieldName) {
-                            return {
-                                data: data[fieldName][connectionFieldName],
-                                type: fieldDefinition.connectionFields[connectionFieldName].type
-                            };
-                        }
-                        else {
-                            return {
-                                data: data[fieldName].edges.map(edge => edge.node),
-                                type: fieldDefinition.type
-                            }
-                        }
-                    }
-                    else {
-                        return {
-                            data: data[fieldName],
-                            type: fieldDefinition.type
-                        };
-                    }
-                }, { data, type: 'Film' }).data
+                return extractPropValueFromData(
+                    propValue,
+                    data,
+                    this.props.schema,
+                    'Film'
+                );
             }
         }
         else if (propValue.source === 'actions') {
@@ -406,10 +384,21 @@ class BuilderComponent extends PureComponent {
         // Handle special components like Text, Outlet etc.
         if (isPseudoComponent(component)) return this._renderPseudoComponent(component);
 
+        // Get component class
         const Component = getComponentByName(component.name),
-            props = this._buildProps(component),
             isHTMLComponent = typeof Component === 'string';
 
+        // Build props
+        const props = this._buildProps(component);
+
+        // Build GraphQL query
+        const graphQLQuery = buildQueryForComponent(
+            component,
+            this.props.schema,
+            this.props.meta
+        );
+
+        // Render children
         props.children = this._renderComponentChildren(component, isPlaceholder);
 
         if (!isPlaceholder) {
@@ -461,30 +450,22 @@ class BuilderComponent extends PureComponent {
                 props.children = <ContentPlaceholder />;
         }
 
-        const graphQLQuery = buildQueryForComponent(
-            component,
-            this.props.schema,
-            this.props.meta
-        );
-
         if (graphQLQuery) {
             const Container = graphql(graphQLQuery, {
                 props: ({ ownProps, data }) => {
                     console.log(data);
 
-                    if (!data.__typename) return ownProps;
+                    // TODO: Better check
+                    if (Object.keys(data).length <= 9) return ownProps;
 
-                    return Object.assign(
-                        {},
-                        ownProps,
-
-                        mapDataToComponentProps(
-                            component,
-                            data,
-                            this.props.schema,
-                            this.props.meta
-                        )
+                    const dataProps = mapDataToComponentProps(
+                        component,
+                        data,
+                        this.props.schema,
+                        this.props.meta
                     );
+
+                    return _merge({}, ownProps, dataProps);
                 },
 
                 options: {

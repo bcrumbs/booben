@@ -82,29 +82,6 @@ export const objectSome = (object, predicate) =>
 
 /**
  *
- * @param {Object} object
- * @param {function(value: *, key: string, object: Object): boolean} predicate
- * @return {boolean}
- */
-export const objectEvery = (object, predicate) =>
-    Object.keys(object).every(key => predicate(object[key], key, object));
-
-/**
- *
- * @param {Object} object
- * @param {function(value: *, key: string, object: Object): boolean} predicate
- * @return {Object}
- */
-export const objectFilter = (object, predicate) => {
-    const ret = {};
-    objectForEach(object, (value, key, object) => {
-        if (predicate(value, key, object)) ret[key] = fn(value, key, object);
-    });
-    return ret;
-};
-
-/**
- *
  * @param {*} value
  * @return {*}
  */

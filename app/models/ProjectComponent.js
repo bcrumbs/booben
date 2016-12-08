@@ -132,17 +132,20 @@ export const componentsToImmutable = (input, routeId, isIndexRoute, parentId) =>
 
 export const isRootComponent = component => component.parentId === -1;
 
+export const walkComponentsTree = (components, rootComponentId, visiter) => {
+    const component = components.get(rootComponentId);
+    visiter(component);
+
+    component.children.forEach(childId =>
+        void walkComponentsTree(components, childId, visiter));
+};
+
 export const gatherComponentsTreeIds = (components, rootComponentId) =>
-    Set().withMutations(ret => {
-        const visitComponent = component => {
-            ret.add(component.id);
-
-            component.children.forEach(childComponentId =>
-                void visitComponent(components.get(childComponentId)));
-        };
-
-        visitComponent(components.get(rootComponentId));
-    });
+    Set().withMutations(ret => void walkComponentsTree(
+        components,
+        rootComponentId,
+        component => void ret.add(component.id)
+    ));
 
 export const getValueByPath = (component, propName, path) => path.reduce(
     (acc, cur) => acc.sourceData.value.get(cur),

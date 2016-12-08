@@ -4,12 +4,13 @@
 
 'use strict';
 
+import _set from 'lodash.set';
+import _forOwn from 'lodash.forown';
 import { Record, Map } from 'immutable';
 import { NO_VALUE } from '../constants/misc';
-import { walkSimpleProps } from '../models/ProjectComponent';
+import { walkSimpleProps, walkComponentsTree } from '../models/ProjectComponent';
 import { getTypeNameByField, getTypeNameByPath, FIELD_KINDS } from './schema';
-import { getComponentMeta } from './meta';
-import { objectSome } from './misc';
+import { getComponentMeta, propHasDataContest, propUsesDataContexts } from './meta';
 
 const UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const LOWERCASE_LETTERS = 'abcdefghijklmnopqrstuvwxyz';
@@ -158,7 +159,12 @@ const buildGraphQLArgument = (argName, argValue, fieldDefinition) => {
  * @param {Object} dataContextTree
  * @return {Object}
  */
-const buildGraphQLFragment = (propValue, fragmentName, schema, dataContextTree) => {
+const buildGraphQLFragmentForValue = (
+    propValue,
+    fragmentName,
+    schema,
+    dataContextTree
+) => {
     const onType = resolveGraphQLType(propValue, dataContextTree);
 
     const ret = {
@@ -340,39 +346,103 @@ const DataContextTreeNode = Record({
     children: Map()
 });
 
-// TODO: Heavy refactoring needed
+const getDataContextTreeNode = (dataContextTree, propValue) =>
+    dataContextTree.getIn([].concat(
+        ...propValue.sourceData.dataContext.map(
+            context => ['children', context]
+        )
+    ));
+
+const pushDataContext = (
+    dataContextTree,
+    propValue,
+    propMeta,
+    fragment,
+    schema,
+    startType = schema.queryTypeName
+) => {
+    const newDataContextNode = new DataContextTreeNode({
+        type: getTypeNameByPath(
+            schema,
+            propValue.sourceData.queryPath.map(step => step.field),
+            startType
+        ),
+
+        fragment
+    });
+
+    const path = [].concat(
+        ...propValue.sourceData.dataContext.map(
+            dataContextId => ['children', dataContextId]
+        ),
+
+        'children'
+    );
+
+    return dataContextTree.updateIn(path, children =>
+        children.set(
+            propMeta.sourceConfigs.data.pushDataContext,
+            newDataContextNode
+        )
+    );
+};
+
+const buildAndAttachFragmentsForDesignerProp = (
+    propValue,
+    propMeta,
+    dataContextTree,
+    meta,
+    schema
+) => {
+    if (!propUsesDataContexts(propMeta)) return [];
+
+    const ret = [];
+
+    const visitComponent = component => {
+        const fragmentsForComponent = buildGraphQLFragmentsForOwnComponent(
+            component,
+            schema,
+            meta,
+            dataContextTree
+        );
+
+        fragmentsForComponent.forEach(fragment => {
+            ret.push(fragment);
+        });
+    };
+
+    walkComponentsTree(
+        propValue.sourceData.components,
+        propValue.sourceData.rootId,
+        visitComponent
+    );
+
+    return ret;
+};
+
 /**
  *
  * @param {Object} component - Actually it's an Immutable.Record; see models/ProjectComponent.js
  * @param {DataSchema} schema
  * @param {Object} meta
- * @param {Object} [_dataContextTree=null]
- * @param {boolean} [_nested=false]
+ * @param {Object} dataContextTree
  * @return {Object[]}
  */
-const buildGraphQLFragmentsForComponent = (
+const buildGraphQLFragmentsForOwnComponent = (
     component,
     schema,
     meta,
-    _dataContextTree = null,
-    _nested = false
+    dataContextTree
 ) => {
-    const componentMeta = getComponentMeta(component.name, meta);
-
-    const ret = [];
-
-    const designerPropsWithComponent = [];
-
-    let dataContextTree = _dataContextTree || new DataContextTreeNode({
-        type: schema.queryTypeName,
-        children: Map()
-    });
+    const componentMeta = getComponentMeta(component.name, meta),
+        ret = [],
+        designerPropsWithComponent = [];
 
     walkSimpleProps(component, componentMeta, (propValue, propMeta) => {
         if (propValue.source === 'data') {
-            if (!_nested && propValue.sourceData.dataContext.size > 0) return;
+            if (propValue.sourceData.dataContext.size === 0) return;
 
-            const fragment = buildGraphQLFragment(
+            const fragment = buildGraphQLFragmentForValue(
                 propValue,
                 randomName(),
                 schema,
@@ -381,43 +451,23 @@ const buildGraphQLFragmentsForComponent = (
 
             ret.push(fragment);
 
-            if (_nested && propValue.sourceData.dataContext.size > 0) {
-                const parentFragment = dataContextTree.getIn([].concat(
-                    ...propValue.sourceData.dataContext.map(
-                        context => ['children', context]
-                    ),
+            const dataContextTreeNode = getDataContextTreeNode(
+                dataContextTree,
+                propValue
+            );
 
-                    'fragment'
-                ));
+            const parentFragment = dataContextTreeNode.fragment;
 
-                attachFragmentToFragment(fragment, parentFragment);
-            }
+            attachFragmentToFragment(fragment, parentFragment);
 
-            const hasNewDataContext =
-                propMeta.sourceConfigs.data &&
-                propMeta.sourceConfigs.data.pushDataContext;
-
-            if (hasNewDataContext) {
-                const newDataContextNode = new DataContextTreeNode({
-                    type: getTypeNameByPath(
-                        schema,
-                        propValue.sourceData.queryPath.map(step => step.field)
-                    )
-                }).set('fragment', fragment);
-
-                const path = [].concat(
-                    ...propValue.sourceData.dataContext.map(
-                        dataContextId => ['children', dataContextId]
-                    ),
-
-                    'children'
-                );
-
-                dataContextTree = dataContextTree.updateIn(path, children =>
-                    children.set(
-                        propMeta.sourceConfigs.data.pushDataContext,
-                        newDataContextNode
-                    )
+            if (propHasDataContest(propMeta)) {
+                dataContextTree = pushDataContext(
+                    dataContextTree,
+                    propValue,
+                    propMeta,
+                    fragment,
+                    schema,
+                    dataContextTreeNode.type
                 );
             }
         }
@@ -429,44 +479,90 @@ const buildGraphQLFragmentsForComponent = (
         }
     });
 
-    designerPropsWithComponent.forEach(({ propValue, propMeta }) => {
-        const havePropsWithDataContext =
-            !!propMeta.sourceConfigs.designer.props &&
-
-            objectSome(
-                propMeta.sourceConfigs.designer.props,
-                ownerPropMeta => !!ownerPropMeta.dataContext
-            );
-
-        if (!havePropsWithDataContext) return;
-
-        const visitComponent = component => {
-            const fragmentsForComponent = buildGraphQLFragmentsForComponent(
-                component,
-                schema,
-                meta,
+    if (designerPropsWithComponent.length > 0) {
+        const additionalFragments = designerPropsWithComponent
+            .map(({ propValue, propMeta }) => buildAndAttachFragmentsForDesignerProp(
+                propValue,
+                propMeta,
                 dataContextTree,
-                true
-            );
+                meta,
+                schema
+            ));
 
-            fragmentsForComponent.forEach(fragment => {
-                ret.push(fragment);
-            });
+        return ret.concat(...additionalFragments);
+    }
+    else {
+        return ret;
+    }
+};
 
-            const childComponents = component.children.map(
-                childId => propValue.sourceData.components.get(childId)
-            );
+/**
+ *
+ * @param {Object} component - Actually it's an Immutable.Record; see models/ProjectComponent.js
+ * @param {DataSchema} schema
+ * @param {Object} meta
+ * @return {Object[]}
+ */
+const buildGraphQLFragmentsForComponent = (
+    component,
+    schema,
+    meta
+) => {
+    const componentMeta = getComponentMeta(component.name, meta),
+        ret = [],
+        designerPropsWithComponent = [];
 
-            childComponents.forEach(visitComponent);
-        };
-
-        const rootComponent =
-            propValue.sourceData.components.get(propValue.sourceData.rootId);
-
-        visitComponent(rootComponent);
+    let dataContextTree = new DataContextTreeNode({
+        type: schema.queryTypeName,
+        children: Map()
     });
 
-    return ret;
+    walkSimpleProps(component, componentMeta, (propValue, propMeta) => {
+        if (propValue.source === 'data') {
+            if (propValue.sourceData.dataContext.size > 0) return;
+
+            const fragment = buildGraphQLFragmentForValue(
+                propValue,
+                randomName(),
+                schema,
+                dataContextTree
+            );
+
+            ret.push(fragment);
+
+            if (propHasDataContest(propMeta)) {
+                dataContextTree = pushDataContext(
+                    dataContextTree,
+                    propValue,
+                    propMeta,
+                    fragment,
+                    schema
+                );
+            }
+        }
+        else if (propValue.source === 'designer' && propValue.sourceData.rootId > -1) {
+            designerPropsWithComponent.push({
+                propValue,
+                propMeta
+            });
+        }
+    });
+
+    if (designerPropsWithComponent.length > 0) {
+        const additionalFragments = designerPropsWithComponent
+            .map(({ propValue, propMeta }) => buildAndAttachFragmentsForDesignerProp(
+                propValue,
+                propMeta,
+                dataContextTree,
+                meta,
+                schema
+            ));
+
+        return ret.concat(...additionalFragments);
+    }
+    else {
+        return ret;
+    }
 };
 
 export const buildQueryForComponent = (component, schema, meta) => {
@@ -508,41 +604,55 @@ export const buildQueryForComponent = (component, schema, meta) => {
     };
 };
 
-export const mapDataToComponentProps = (component, data, schema, meta) => {
-    const componentMeta = getComponentMeta(component.name, meta);
+/**
+ *
+ * @param {Object} propValue
+ * @param {Object} data
+ * @param {DataSchema} schema
+ * @param {string} [rootType]
+ * @return {*}
+ */
+export const extractPropValueFromData = (
+    propValue,
+    data,
+    schema,
+    rootType = schema.queryTypeName
+) => {
+    return propValue.sourceData.queryPath.reduce((acc, queryStep) => {
+        const typeDefinition = schema.types[acc.type],
+            [fieldName, connectionFieldName] = queryStep.field.split('/'),
+            fieldDefinition = typeDefinition.fields[fieldName];
 
-    const ret = {};
+        if (fieldDefinition.kind === FIELD_KINDS.CONNECTION) {
+            if (connectionFieldName) {
+                return {
+                    data: data[fieldName][connectionFieldName],
+                    type: fieldDefinition.connectionFields[connectionFieldName].type
+                };
+            }
+            else {
+                return {
+                    data: data[fieldName].edges.map(edge => edge.node),
+                    type: fieldDefinition.type
+                }
+            }
+        }
+        else {
+            return {
+                data: data[fieldName],
+                type: fieldDefinition.type
+            };
+        }
+    }, { data, type: rootType }).data;
+};
+
+export const mapDataToComponentProps = (component, data, schema, meta) => {
+    const componentMeta = getComponentMeta(component.name, meta),
+        ret = {};
 
     walkSimpleProps(component, componentMeta, (propValue, propMeta, path) => {
-        if (propValue.source === 'data') {
-            // TODO: Use path
-            ret[path[0]] = propValue.sourceData.queryPath.reduce((acc, queryStep) => {
-                const typeDefinition = schema.types[acc.type],
-                    [fieldName, connectionFieldName] = queryStep.field.split('/'),
-                    fieldDefinition = typeDefinition.fields[fieldName];
-
-                if (fieldDefinition.kind = FIELD_KINDS.CONNECTION) {
-                    if (connectionFieldName) {
-                        return {
-                            data: data[fieldName][connectionFieldName],
-                            type: fieldDefinition.connectionFields[connectionFieldName].type
-                        };
-                    }
-                    else {
-                        return {
-                            data: data[fieldName].edges.map(edge => edge.node),
-                            type: fieldDefinition.type
-                        }
-                    }
-                }
-                else {
-                    return {
-                        data: data[fieldName],
-                        type: fieldDefinition.type
-                    };
-                }
-            }, { data, type: schema.queryTypeName }).data;
-        }
+        if (propValue.source === 'data')
+            _set(ret, path, extractPropValueFromData(propValue, data, schema));
     });
 
     return ret;
