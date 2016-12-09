@@ -85,7 +85,7 @@ import {
 
 import { HeaderRoute } from '../components/HeaderRoute/HeaderRoute';
 import { ProjectSave } from '../components/ProjectSave/ProjectSave';
-import { DataWindow } from '../components/DataWindow/DataWindow';
+import { DataWindow } from '../containers/DataWindow/DataWindow';
 
 import {
 	DataList,
@@ -535,7 +535,7 @@ const toolComponentLayoutWindowSections = List([
 						{/*removable*/}
 						{/*disabled*/}
 					{/*/>*/}
-                    
+
 					{/*<PropsItem*/}
 						{/*view="toggle"*/}
 						{/*label="has childrens - closed"*/}
@@ -551,7 +551,7 @@ const toolComponentLayoutWindowSections = List([
 							{/*<PropsItem view="input" label="child item 3"/>*/}
 						{/*</PropsList>*/}
 					{/*</PropsItem>*/}
-                    
+
 					{/*<PropsItem*/}
 						{/*view="toggle"*/}
 						{/*label="has childrens - opened"*/}
@@ -582,7 +582,7 @@ const toolComponentLayoutWindowSections = List([
 							{/*<PropsItem view="input" label="child item 3" removable/>*/}
 						{/*</PropsList>*/}
 					{/*</PropsItem>*/}
-                    
+
 					{/*<PropsItem*/}
 						{/*view="tree"*/}
 						{/*label="some very-very-very extremely long prop label"*/}
@@ -596,7 +596,7 @@ const toolComponentLayoutWindowSections = List([
 							{/*<PropsItem view="input" label="child item 3" removable/>*/}
 						{/*</PropsList>*/}
 					{/*</PropsItem>*/}
-                    
+
 					{/*<PropsItem*/}
 						{/*view="tree"*/}
 						{/*label="disabled prop"*/}
@@ -611,7 +611,7 @@ const toolComponentLayoutWindowSections = List([
 							{/*<PropsItem view="input" label="child item 3" removable/>*/}
 						{/*</PropsList>*/}
 					{/*</PropsItem>*/}
-                    
+
 					{/*<PropsItem*/}
 						{/*view="tree"*/}
 						{/*label="some very very very long prop label"*/}
@@ -628,7 +628,7 @@ const toolComponentLayoutWindowSections = List([
 							{/*<PropsItem view="input" label="child item 3" removable/>*/}
 						{/*</PropsList>*/}
 					{/*</PropsItem>*/}
-                    
+
 					{/*<PropsItem*/}
 						{/*view="tree"*/}
 						{/*label="has childrens - closed"*/}
@@ -644,7 +644,7 @@ const toolComponentLayoutWindowSections = List([
 							{/*<PropsItem view="input" label="child item 3" removable/>*/}
 						{/*</PropsList>*/}
 					{/*</PropsItem>*/}
-                    
+
 					{/*<PropsItem*/}
 						{/*view="tree"*/}
 						{/*label="Has childrens - opened"*/}
@@ -657,7 +657,7 @@ const toolComponentLayoutWindowSections = List([
 						{/*<PropsItem view="input" label="child item 2" removable/>*/}
 						{/*<PropsItem view="input" label="child item 3" removable/>*/}
 					{/*</PropsItem>*/}
-                    
+
 					{/*<PropsItem*/}
 						{/*view="tree"*/}
 						{/*label="Has childrens - opened"*/}
@@ -667,11 +667,11 @@ const toolComponentLayoutWindowSections = List([
 						{/*opened*/}
 						{/*addNewField*/}
 					{/*>*/}
-                    
+
 						{/*<PropsItem view="input" label="child item 1" removable/>*/}
 						{/*<PropsItem view="input" label="child item 2" removable/>*/}
 						{/*<PropsItem view="input" label="child item 3" removable/>*/}
-                    
+
 					{/*</PropsItem>*/}
 				</BlockContentBoxItem>
 			</BlockContentBox>
@@ -744,7 +744,7 @@ const toolGroups = List([
 			mainButtons: '',
 			secondaryButtons: ''
 		}),
-		
+
 		new ToolRecord({
 			id: 'tool1',
 			icon: 'file-text-o',

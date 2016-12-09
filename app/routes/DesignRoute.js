@@ -17,7 +17,7 @@ import { ComponentPropsEditor } from '../containers/ComponentPropsEditor/Compone
 import { ComponentRegionsEditor } from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
 import { LinkPropMenu } from '../containers/LinkPropMenu/LinkPropMenu';
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
-import { DataWindow } from '../components/DataWindow/DataWindow';
+import { DataWindow } from '../containers/DataWindow/DataWindow';
 
 import {
     ComponentLayoutSelection,

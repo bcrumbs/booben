@@ -20,13 +20,13 @@ import {
 
 import {
 	DataWindowDataLayout
-} from './Layouts/DataWindowDataLayout';
+} from '../../components/DataWindow/Layouts/DataWindowDataLayout';
 
 import {
 	DataWindowQueryLayout
-} from './Layouts/DataWindowQueryLayout';
+} from '../../components/DataWindow/Layouts/DataWindowQueryLayout';
 
-import './DataWindow.scss';
+import '../../components/DataWindow/DataWindow.scss';
 
 class DataWindowComponent extends PureComponent {
 	constructor(props) {

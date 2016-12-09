@@ -58,7 +58,9 @@ const getObjectValueByPath = (object, path) =>
 
 const parseIntValue = value => {
 	const parsedValue = parseInt(value, 10);
-	return Number.isSafeInteger(parsedValue) ? parsedValue: 0;
+	return '' + (
+		Number.isSafeInteger(parsedValue) ? parsedValue: 0
+	);
 };
 
 const parseFloatValue = value => {
@@ -96,13 +98,44 @@ const isPrimitiveGraphQLType = (typeName) =>
 class DataWindowQueryArgumentsFieldForm extends PureComponent {
 	constructor(props){
 		super(props);
-		this.state = {
-			fieldValue: props.argFieldValue
-		};
+		this.state = this._convertPropsToStateValueAndPropType(
+			props.argField,
+			props.argFieldName,
+			props.argFieldValue,
+			props.types
+		);
 		this._handleChange = this._handleChange.bind(this);
 		this._handleNullSwitch = this._handleNullSwitch.bind(this);
 		this._convertObjectToValue = this._convertObjectToValue.bind(this);
 		this._createValueAndPropTypeTree = this._createValueAndPropTypeTree.bind(this);
+	}
+
+	componentWillReceiveProps(nextProps) {
+		this.setState(
+			this._convertPropsToStateValueAndPropType(
+				nextProps.argField,
+				nextProps.argFieldName,
+				nextProps.argFieldValue,
+				nextProps.types
+			)
+		);
+	}
+
+	_convertPropsToStateValueAndPropType(...args) {
+		const {
+			fieldValue,
+			propType
+		} = this._createValueAndPropTypeTree(
+			...args
+		);
+
+		return ({
+			fieldValue: {
+				[args[1]]: fieldValue,
+
+			},
+			propType
+		});
 	}
 
 	_convertObjectToValue(obj){
@@ -124,8 +157,15 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 		, {});
 	}
 
+	_createValueAndPropTypeTree(argField, argFieldName, argFieldConstValue, types) {
+		let argFieldValue;
 
-	_createValueAndPropTypeTree(argField, argFieldName, argFieldValue = {}, types) {
+		if (typeof argFieldConstValue === 'undefined')
+			argFieldValue = {};
+		else if (argFieldConstValue === null)
+			argFieldValue = null;
+		else
+			argFieldValue = clone(argFieldConstValue);
 
 		const subFields =
 			!isPrimitiveGraphQLType(argField.type)
@@ -141,21 +181,23 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 									:	''
 							)
 							:	argFieldValue[argFieldName];
-							const {
-								fieldValue,
-								propType
-							} = this._createValueAndPropTypeTree(
-								field,
-								fieldName,
-								argFieldValue[argFieldName],
-								types,
-							);
-							argFieldValue[argFieldName]
-							&&	(argFieldValue[argFieldName][fieldName] = fieldValue);
 
-							return Object.assign(acc, {
-								[fieldName]: propType
-							});
+						const {
+							fieldValue,
+							propType
+						} = this._createValueAndPropTypeTree(
+							field,
+							fieldName,
+							argFieldValue[argFieldName],
+							types,
+						);
+
+						argFieldValue[argFieldName]
+						&&	(argFieldValue[argFieldName][fieldName] = fieldValue);
+
+						return Object.assign(acc, {
+							[fieldName]: propType
+						});
 
 					}
 					else return acc;
@@ -184,25 +226,35 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 			   transformValue: getTransformFunction(
 					 argField.type
 			   ),
-			   required: argField.nonNull,
-			   displayRequired: argField.nonNull,
-			   notNull: argField.nonNull,
+			   required: !!argField.nonNull,
+			   displayRequired: !!argField.nonNull,
+			   notNull: !!argField.nonNull,
 			   fields: subFields
 			}
 		};
 	}
 
 	_handleChange(value, path) {
-		const newFieldValue = setObjectValueByPath(
+		const newValue = setObjectValueByPath(
 			this.state.fieldValue,
 			value,
 			[this.props.argFieldName].concat(path),
 		);
 
-		this.setState({ fieldValue: newFieldValue });
+		const {
+			fieldValue,
+			propType
+		} = this._convertPropsToStateValueAndPropType(
+			this.props.argField,
+			this.props.argFieldName,
+			newValue,
+			this.props.types
+		);
+
+		this.setState({ fieldValue, propType });
 
 		this.props.setNewArgumentValue(
-			newFieldValue
+			fieldValue
 		);
 	}
 
@@ -212,7 +264,7 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 				this.state.fieldValue,
 				[this.props.argFieldName].concat(path)
 			);
-		const newFieldValue = setObjectValueByPath(
+		const newValue = setObjectValueByPath(
 			this.state.fieldValue,
 			oldValue === null
 			?	void 0
@@ -220,29 +272,35 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 			[this.props.argFieldName].concat(path),
 		);
 
-		this.setState(
-			{ fieldValue: newFieldValue }
+		const {
+			fieldValue,
+			propType
+		} = this._convertPropsToStateValueAndPropType(
+			this.props.argField,
+			this.props.argFieldName,
+			newValue,
+			this.props.types
 		);
+
+		this.setState({ fieldValue, propType });
 
 		this.props.setNewArgumentValue(
-			newFieldValue
+			fieldValue
 		);
-
 	}
 
 	render(){
 		const {
 			argField,
 			argFieldName,
-			types
 		} = this.props;
 
-		const { fieldValue, propType } = this._createValueAndPropTypeTree(
-			argField,
-			argFieldName,
-			clone(this.state.fieldValue),
-			types
-		);
+		const {
+			fieldValue,
+			propType
+		} = this.state;
+
+		const currentFieldValue = fieldValue[argFieldName];
 
 		return (
 			 <PropsItem
@@ -259,9 +317,9 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 						value: isPrimitiveGraphQLType(
 							argField.type
 						)
-						?	fieldValue
+						?	currentFieldValue
 						:	this._convertObjectToValue(
-								fieldValue
+								currentFieldValue
 							),
 						message:
 							this.props.argumentsBound
@@ -311,6 +369,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		this._getCurrentEditingFields = this._getCurrentEditingFields.bind(this);
 		this._getBoundArgumentsByPath = this._getBoundArgumentsByPath.bind(this);
 		this._areArgumentsBound = this._areArgumentsBound.bind(this);
+		this._createSourceDataObject = this._createSourceDataObject.bind(this);
 	}
 
 	_equalFieldPaths(path1, path2) {
@@ -435,22 +494,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						return {
 							field: pathStep.name,
 							args:
-								Object.keys(currentArg || {}).reduce(
-									(acc, argName) => Object.assign(acc,
-										{
-											[argName]: {
-												source: 'static',
-												sourceData: {
-													value: (currentArg)[
-														argName
-													]
-												}
-
-
-											}
-										}
-									)
-								, {})
+								this._createSourceDataObject(currentArg || {})
 						};
 					}
 				)
@@ -593,7 +637,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 							||	Object.keys(fieldConnections).reduce(
 								(_, fieldConnectionName)	=>
 									_ || fieldConnections[fieldConnectionName]
-										.connectionFields[name.split(' ')[1]]
+										.connectionFields[name.split('/')[1]]
 							, void 0)
 						);
 
@@ -622,6 +666,24 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
 	setNewArgumentValue(argValue, value) {
 		Object.assign(argValue, value);
+	}
+
+	_createSourceDataObject(obj) {
+		return typeof obj === 'object'
+					?  Object.keys(obj).reduce((acc, key) =>
+							Object.assign(
+								acc,
+								{
+									[key]: {
+										source: 'static',
+										sourceData: {
+											value:	this._createSourceDataObject(obj[key])
+										}
+									}
+								}
+							)
+					  , {})
+			 :	obj;
 	}
 
 	createContentArgumentsType(
@@ -803,10 +865,9 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 							).map(connectionFieldName =>
 								createContentField(
 									connectionFields[connectionFieldName],
-									fieldName + ' ' + connectionFieldName,
+									fieldName + '/' + connectionFieldName,
 									selectedFieldName,
 									getFieldTypeName,
-
 									handleFieldSelect,
 									handleSetArgumentsClick,
 									handleApplyClick,
@@ -836,8 +897,22 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 				return false;
 			}
 		);
+		const extractValue = (arg) =>
+			typeof arg.sourceData.value === 'object'
+			?	Object.keys(
+					arg.sourceData.value
+				).reduce((acc, argName) =>
+					Object.assign(
+						acc,
+						{
+							[argName]:	extractValue(arg.sourceData.value[argName])
+						}
+					)
+				, {})
+			:	arg.sourceData.value;
+
 		args && Object.keys(args).forEach(
-			argName => args[argName] = args[argName].sourceData.value
+			argName => args[argName] = extractValue(args[argName])
 		);
 		return args;
 	}

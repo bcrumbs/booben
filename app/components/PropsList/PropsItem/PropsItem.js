@@ -86,7 +86,7 @@ const getTypeByPath = (propType, path) => path.reduce(getNestedType, propType);
  * @param {string|number} index
  * @return {*}
  */
-export const getNestedValue = (value, index) => value.value[index];
+export const getNestedValue = (value, index) => value.value ? value.value[index]: void 0;
 
 /**
  *
@@ -270,7 +270,6 @@ export class PropsItem extends PureComponent {
             this.props.value,
             this.state.currentPath
         );
-
 
 		if (!currentValue || currentValue.value === null) return null;
 
@@ -518,8 +517,10 @@ export class PropsItem extends PureComponent {
                 );
             }
             else {
-                const isNullable = !this.props.notNull;
-
+                const isNullable =
+					typeof this.props.propType.notNull === 'boolean'
+					&&	!this.props.propType.notNull;
+					
                 if (isNullable) {
                     // TODO: Make null switch
                     toggle = (
