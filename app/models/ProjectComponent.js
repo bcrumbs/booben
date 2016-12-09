@@ -5,6 +5,8 @@
 'use strict';
 
 import { Record, List, Map, Set } from 'immutable';
+import _forOwn from 'lodash.forown';
+import _mapValues from 'lodash.mapvalues';
 
 import ProjectComponentProp from './ProjectComponentProp';
 import SourceDataStatic from './SourceDataStatic';
@@ -12,8 +14,6 @@ import SourceDataData, { QueryPathStep, QueryPathStepArgument } from './SourceDa
 import SourceDataConst from './SourceDataConst';
 import SourceDataAction from './SourceDataAction';
 import SourceDataDesigner from './SourceDataDesigner';
-
-import { objectMap, objectForEach } from '../utils/misc';
 
 const ProjectComponentRecord = Record({
     id: -1,
@@ -44,7 +44,7 @@ const propSourceDataToImmutableFns = {
                 );
             }
             else if (typeof input.value === 'object' && input.value !== null) {
-                data.value = Map(objectMap(
+                data.value = Map(_mapValues(
                     input.value,
 
                     ({ source, sourceData }) => new ProjectComponentProp({
@@ -68,7 +68,7 @@ const propSourceDataToImmutableFns = {
         dataContext: List(input.dataContext),
         queryPath: List(input.queryPath.map(step => new QueryPathStep({
             field: step.field,
-            args: Map(objectMap(step.args, arg => new QueryPathStepArgument({
+            args: Map(_mapValues(step.args, arg => new QueryPathStepArgument({
                 source: arg.source,
                 sourceData: propSourceDataToImmutable(arg.source, arg.sourceData)
             })))
@@ -103,7 +103,7 @@ export const projectComponentToImmutable = (input, routeId, isIndexRoute, parent
         name: input.name,
         title: input.title,
 
-        props: Map(objectMap(input.props, propMeta => new ProjectComponentProp({
+        props: Map(_mapValues(input.props, propMeta => new ProjectComponentProp({
             source: propMeta.source,
             sourceData: propSourceDataToImmutable(propMeta.source, propMeta.sourceData)
         }))),
@@ -156,9 +156,9 @@ export const walkSimpleProps = (component, componentMeta, visitor) => {
     const visitValue = (propValue, propMeta, path) => {
         if (propValue.source === 'static' && !propValue.sourceData.ownerPropName) {
             if (propMeta.type === 'shape' && propValue.sourceData.value !== null) {
-                objectForEach(propMeta.fields, (fieldTypedef, fieldName) =>
+                _forOwn(propMeta.fields, (fieldTypedef, fieldName) =>
                     void visitValue(
-                        propValue.sourceData.value[fieldName],
+                        propValue.sourceData.value.get(fieldName),
                         fieldTypedef,
                         [...path, fieldName]
                     ));

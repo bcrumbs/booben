@@ -95,7 +95,7 @@ const isRenderableProp = propMeta =>
  * @return {boolean}
  */
 const isLinkedProp = propValue =>
-    propValue.source === 'data' || ( // TODO: Check that it is actually linked
+    propValue.source === 'data' || (
         propValue.source === 'static' &&
         !!propValue.sourceData.ownerPropName
     );
@@ -132,7 +132,7 @@ const ownerPropsSelector = createSelector(
  * @return {*}
  */
 const transformValue = (propMeta, propValue) => {
-    if (!propValue) return null;
+    if (!propValue) return { value: null, isLinked: false };
 
     const isLinked = isLinkedProp(propValue);
     let value = null;

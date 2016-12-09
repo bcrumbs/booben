@@ -88,15 +88,18 @@ class BuilderComponent extends PureComponent {
     /**
      *
      * @param {Object} propValue
+     * @param {Object} theMap
      * @return {Function}
      */
-    _makeBuilderForProp(propValue) {
+    _makeBuilderForProp(propValue, theMap) {
         return props => (
             <Builder
                 components={propValue.sourceData.components}
                 rootId={propValue.sourceData.rootId}
                 dontPatch
                 propsFromOwner={props}
+                theMap={theMap}
+                dataContextInfo={theMap.get(propValue)}
                 children={props.children}
             />
         );
@@ -106,9 +109,10 @@ class BuilderComponent extends PureComponent {
      *
      * @param {Object} propValue
      * @param {PropTypeDefinition} propMeta
+     * @param {Immutable.Map<Object, Object>} theMap
      * @return {*}
      */
-    _buildPropValue(propValue, propMeta) {
+    _buildPropValue(propValue, propMeta, theMap) {
         if (propValue.source == 'static') {
             if (propValue.sourceData.ownerPropName && !this.props.ignoreOwnerProps) {
                 return this.props.propsFromOwner[propValue.sourceData.ownerPropName];
@@ -122,7 +126,8 @@ class BuilderComponent extends PureComponent {
 
                         return this._buildPropValue(
                             fieldValue,
-                            fieldMeta
+                            fieldMeta,
+                            theMap
                         );
                     });
                 }
@@ -132,7 +137,8 @@ class BuilderComponent extends PureComponent {
                     return propValue.sourceData.value.map(nestedValue =>
                         this._buildPropValue(
                             nestedValue,
-                            propMeta.ofType
+                            propMeta.ofType,
+                            theMap
                         )
                     ).toJS();
                 }
@@ -140,8 +146,8 @@ class BuilderComponent extends PureComponent {
                     return propValue.sourceData.value.map(nestedValue =>
                         this._buildPropValue(
                             nestedValue,
-                            propMeta.ofType
-
+                            propMeta.ofType,
+                            theMap
                         )
                     ).toJS();
                 }
@@ -151,32 +157,33 @@ class BuilderComponent extends PureComponent {
             }
         }
         else if (propValue.source === 'const') {
-            if (typeof propValue.sourceData.value !== 'undefined') {
-                return propValue.sourceData.value;
-            }
-            else if (typeof propValue.sourceData.jssyConstId !== 'undefined') {
+            if (propValue.sourceData.jssyConstId) {
                 return jssyConstants[propValue.sourceData.jssyConstId];
+            }
+            else {
+                return propValue.sourceData.value;
             }
         }
         else if (propValue.source === 'designer') {
             if (propValue.sourceData.components && propValue.sourceData.rootId > -1) {
-                return this._makeBuilderForProp(propValue);
+                return this._makeBuilderForProp(propValue, theMap);
             }
             else {
                 return returnNull;
             }
         }
         else if (propValue.source === 'data') {
-            // TODO: Replace hardcoded shit with real values
-
             if (propValue.sourceData.dataContext.size > 0) {
-                const data = this.props.propsFromOwner['item'];
+                const dataContextInfo =
+                    this.props.dataContextInfo[propValue.sourceData.dataContext.last()];
+
+                const data = this.props.propsFromOwner[dataContextInfo.ownerPropName];
 
                 return extractPropValueFromData(
                     propValue,
                     data,
                     this.props.schema,
-                    'Film'
+                    dataContextInfo.type
                 );
             }
         }
@@ -191,9 +198,10 @@ class BuilderComponent extends PureComponent {
      * Constructs props object
      *
      * @param {Object} component
+     * @param {Immutable.Map<Object, Object>} theMap
      * @return {Object<string, *>}
      */
-    _buildProps(component) {
+    _buildProps(component, theMap) {
         const componentMeta = getComponentMeta(component.name, this.props.meta);
 
         const ret = {};
@@ -203,7 +211,8 @@ class BuilderComponent extends PureComponent {
 
             const value = this._buildPropValue(
                 propValue,
-                propMeta
+                propMeta,
+                theMap
             );
             
             if (value !== NO_VALUE) ret[propName] = value;
@@ -388,14 +397,17 @@ class BuilderComponent extends PureComponent {
         const Component = getComponentByName(component.name),
             isHTMLComponent = typeof Component === 'string';
 
-        // Build props
-        const props = this._buildProps(component);
-
         // Build GraphQL query
-        const graphQLQuery = buildQueryForComponent(
+        const { query: graphQLQuery, theMap } = buildQueryForComponent(
             component,
             this.props.schema,
             this.props.meta
+        );
+
+        // Build props
+        const props = this._buildProps(
+            component,
+            this.props.theMap ? this.props.theMap.merge(theMap) : theMap
         );
 
         // Render children
@@ -453,8 +465,6 @@ class BuilderComponent extends PureComponent {
         if (graphQLQuery) {
             const Container = graphql(graphQLQuery, {
                 props: ({ ownProps, data }) => {
-                    console.log(data);
-
                     // TODO: Better check
                     if (Object.keys(data).length <= 9) return ownProps;
 
@@ -515,8 +525,9 @@ BuilderComponent.propTypes = {
     afterIdx: PropTypes.number,
     containerId: PropTypes.number,
     propsFromOwner: PropTypes.object,
+    theMap: PropTypes.object,
+    dataContextInfo: PropTypes.object,
     ignoreOwnerProps: PropTypes.bool,
-    dataContextTree: PropTypes.object,
 
     project: PropTypes.any,
     meta: PropTypes.object,
@@ -537,8 +548,9 @@ BuilderComponent.defaultProps = {
     afterIdx: -1,
     containerId: -1,
     propsFromOwner: {},
+    theMap: null,
+    dataContextInfo: null,
     ignoreOwnerProps: false,
-    dataContextTree: null
 };
 
 BuilderComponent.displayName = 'Builder';

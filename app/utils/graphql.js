@@ -390,25 +390,50 @@ const pushDataContext = (
 const buildAndAttachFragmentsForDesignerProp = (
     propValue,
     propMeta,
+    dataValuesByDataContext,
     dataContextTree,
+    theMap,
     meta,
     schema
 ) => {
-    if (!propUsesDataContexts(propMeta)) return [];
+    if (!propMeta.sourceConfigs.designer.props) return { fragments: [], theMap };
 
-    const ret = [];
+    let usesDataContexts = false;
+
+    _forOwn(propMeta.sourceConfigs.designer.props, (ownerPropMeta, ownerPropName) => {
+        if (ownerPropMeta.dataContext) {
+            const dataPropValue = dataValuesByDataContext[ownerPropMeta.dataContext];
+
+            if (dataPropValue) {
+                usesDataContexts = true;
+
+                const node = getDataContextTreeNode(dataContextTree, dataPropValue);
+
+                theMap = theMap.update(propValue, data => Object.assign(data || {}, {
+                    [ownerPropMeta.dataContext]: {
+                        ownerPropName,
+                        type: node.children.get(ownerPropMeta.dataContext).type
+                    }
+                }));
+            }
+        }
+    });
+
+    if (!usesDataContexts) return { fragments: [], theMap };
+
+    const fragments = [];
 
     const visitComponent = component => {
-        const fragmentsForComponent = buildGraphQLFragmentsForOwnComponent(
+        const ret = buildGraphQLFragmentsForOwnComponent(
             component,
             schema,
             meta,
-            dataContextTree
+            dataContextTree,
+            theMap
         );
 
-        fragmentsForComponent.forEach(fragment => {
-            ret.push(fragment);
-        });
+        ret.fragments.forEach(fragment => void fragments.push(fragment));
+        theMap = ret.theMap;
     };
 
     walkComponentsTree(
@@ -417,7 +442,7 @@ const buildAndAttachFragmentsForDesignerProp = (
         visitComponent
     );
 
-    return ret;
+    return { fragments, theMap };
 };
 
 /**
@@ -426,22 +451,23 @@ const buildAndAttachFragmentsForDesignerProp = (
  * @param {DataSchema} schema
  * @param {Object} meta
  * @param {Object} dataContextTree
- * @return {Object[]}
+ * @param {Object} theMap
+ * @return {Object}
  */
 const buildGraphQLFragmentsForOwnComponent = (
     component,
     schema,
     meta,
-    dataContextTree
+    dataContextTree,
+    theMap
 ) => {
     const componentMeta = getComponentMeta(component.name, meta),
-        ret = [],
-        designerPropsWithComponent = [];
+        fragments = [],
+        designerPropsWithComponent = [],
+        dataValuesByDataContext = {};
 
     walkSimpleProps(component, componentMeta, (propValue, propMeta) => {
-        if (propValue.source === 'data') {
-            if (propValue.sourceData.dataContext.size === 0) return;
-
+        if (propValue.source === 'data' && propValue.sourceData.dataContext.size > 0) {
             const fragment = buildGraphQLFragmentForValue(
                 propValue,
                 randomName(),
@@ -449,7 +475,7 @@ const buildGraphQLFragmentsForOwnComponent = (
                 dataContextTree
             );
 
-            ret.push(fragment);
+            fragments.push(fragment);
 
             const dataContextTreeNode = getDataContextTreeNode(
                 dataContextTree,
@@ -461,6 +487,9 @@ const buildGraphQLFragmentsForOwnComponent = (
             attachFragmentToFragment(fragment, parentFragment);
 
             if (propHasDataContest(propMeta)) {
+                dataValuesByDataContext[propMeta.sourceConfigs.data.pushDataContext] =
+                    propValue;
+
                 dataContextTree = pushDataContext(
                     dataContextTree,
                     propValue,
@@ -480,20 +509,23 @@ const buildGraphQLFragmentsForOwnComponent = (
     });
 
     if (designerPropsWithComponent.length > 0) {
-        const additionalFragments = designerPropsWithComponent
-            .map(({ propValue, propMeta }) => buildAndAttachFragmentsForDesignerProp(
+        designerPropsWithComponent.forEach(({ propValue, propMeta }) => {
+            const ret = buildAndAttachFragmentsForDesignerProp(
                 propValue,
                 propMeta,
+                dataValuesByDataContext,
                 dataContextTree,
+                theMap,
                 meta,
                 schema
-            ));
+            );
 
-        return ret.concat(...additionalFragments);
+            theMap = ret.theMap;
+            ret.fragments.forEach(fragment => void fragments.push(fragment));
+        });
     }
-    else {
-        return ret;
-    }
+
+    return { fragments, theMap };
 };
 
 /**
@@ -501,7 +533,7 @@ const buildGraphQLFragmentsForOwnComponent = (
  * @param {Object} component - Actually it's an Immutable.Record; see models/ProjectComponent.js
  * @param {DataSchema} schema
  * @param {Object} meta
- * @return {Object[]}
+ * @return {Object}
  */
 const buildGraphQLFragmentsForComponent = (
     component,
@@ -509,7 +541,7 @@ const buildGraphQLFragmentsForComponent = (
     meta
 ) => {
     const componentMeta = getComponentMeta(component.name, meta),
-        ret = [],
+        fragments = [],
         designerPropsWithComponent = [];
 
     let dataContextTree = new DataContextTreeNode({
@@ -517,10 +549,10 @@ const buildGraphQLFragmentsForComponent = (
         children: Map()
     });
 
-    walkSimpleProps(component, componentMeta, (propValue, propMeta) => {
-        if (propValue.source === 'data') {
-            if (propValue.sourceData.dataContext.size > 0) return;
+    const dataValuesByDataContext = {};
 
+    walkSimpleProps(component, componentMeta, (propValue, propMeta) => {
+        if (propValue.source === 'data' && propValue.sourceData.dataContext.size === 0) {
             const fragment = buildGraphQLFragmentForValue(
                 propValue,
                 randomName(),
@@ -528,9 +560,12 @@ const buildGraphQLFragmentsForComponent = (
                 dataContextTree
             );
 
-            ret.push(fragment);
+            fragments.push(fragment);
 
             if (propHasDataContest(propMeta)) {
+                dataValuesByDataContext[propMeta.sourceConfigs.data.pushDataContext] =
+                    propValue;
+
                 dataContextTree = pushDataContext(
                     dataContextTree,
                     propValue,
@@ -548,33 +583,39 @@ const buildGraphQLFragmentsForComponent = (
         }
     });
 
+    let theMap = Map();
+
     if (designerPropsWithComponent.length > 0) {
-        const additionalFragments = designerPropsWithComponent
-            .map(({ propValue, propMeta }) => buildAndAttachFragmentsForDesignerProp(
+        designerPropsWithComponent.forEach(({ propValue, propMeta }) => {
+            const ret = buildAndAttachFragmentsForDesignerProp(
                 propValue,
                 propMeta,
+                dataValuesByDataContext,
                 dataContextTree,
+                theMap,
                 meta,
                 schema
-            ));
+            );
 
-        return ret.concat(...additionalFragments);
+            theMap = ret.theMap;
+            ret.fragments.forEach(fragment => void fragments.push(fragment));
+        });
     }
-    else {
-        return ret;
-    }
+
+    return { fragments, theMap };
 };
 
 export const buildQueryForComponent = (component, schema, meta) => {
-    const fragments = buildGraphQLFragmentsForComponent(component, schema, meta);
+    const { fragments, theMap } =
+        buildGraphQLFragmentsForComponent(component, schema, meta);
 
-    if (!fragments.length) return null;
+    if (!fragments.length) return { query: null, theMap };
 
     const rootFragments = fragments.filter(
         fragment => fragment.typeCondition.name.value === schema.queryTypeName
     );
 
-    return {
+    const query = {
         kind: 'Document',
         definitions: [
             {
@@ -602,6 +643,8 @@ export const buildQueryForComponent = (component, schema, meta) => {
             ...fragments
         ]
     };
+
+    return { query, theMap };
 };
 
 /**
