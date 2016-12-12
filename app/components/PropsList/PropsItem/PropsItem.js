@@ -242,7 +242,8 @@ export class PropsItem extends PureComponent {
             items.push({
                 title: currentType.view === 'shape'
                     ? nestedType.label
-                    : currentType.formatItemLabel(pathElement),
+                    : currentType.formatItemLabel
+						&&	currentType.formatItemLabel(pathElement),
 
                 subtitle: nestedType.type
             });
@@ -311,7 +312,7 @@ export class PropsItem extends PureComponent {
                     onLink={this._handleNestedValueLink.bind(this, idx)}
 					onNullSwitch={this._handleNestedValueNullSwitch.bind(this, idx)}
                     _secondary
-                    _label={currentType.formatItemLabel(idx)}
+
                     _deletable
                     _onOpen={this._handleOpenNestedValue.bind(this, idx)}
                     _onDelete={this._handleDelete.bind(this, idx)}
@@ -371,7 +372,7 @@ export class PropsItem extends PureComponent {
 
         let requireMark = null;
 
-		const message = this.props.value.message;
+		const message = this.props.value && this.props.value.message;
 
         if (this.props.propType.itemRequired) {
             wrapperClassName += ` is-required`;
@@ -520,7 +521,7 @@ export class PropsItem extends PureComponent {
                 const isNullable =
 					typeof this.props.propType.notNull === 'boolean'
 					&&	!this.props.propType.notNull;
-					
+
                 if (isNullable) {
                     // TODO: Make null switch
                     toggle = (

@@ -39,22 +39,55 @@ import {
     getNestedTypedef
 } from '../../../utils/meta';
 
-const setObjectValueByPath = (object, value, path) =>
-	Object.assign({}, object,
-		{
-			[path[0]]:
-				path.length === 1
-				?	value
-				:	setObjectValueByPath(object[path[0]], value, path.slice(1))
-		}
-	);
+const setObjectValueByPath = (object, value, path) => {
+	if (!Array.isArray(object))
+		return Object.assign({}, object,
+			{
+				[path[0]]:
+					path.length === 1
+					?	value
+					:	setObjectValueByPath(object[path[0]], value, path.slice(1))
+			}
+		);
+	else {
+		const newObj = [...object];
+		const index = path[0] + 1
+				? path[0]
+				: newObj.push({}) - 1;
+
+		const currentValue = path.length === 1
+		?	value
+		:	setObjectValueByPath(newObj[index], value, path.slice(1));
+
+		newObj[index] = currentValue;
+
+		return newObj;
+	}
+};
 
 const getObjectValueByPath = (object, path) =>
 	path.length === 1
 	?	object[path[0]]
 	:	getObjectValueByPath(object[path[0]], path.slice(1));
 
-
+const removeObjectValueByPath = (object, path) => {
+	if (Array.isArray(object))
+		if (path.length === 1)
+			return object.slice(0, path[0]).concat(object.slice(path[0] + 1));
+		else return object.slice(0, path[0]).concat([
+			removeObjectValueByPath(object[path[0]], path.slice(1))
+		]).concat(object.slice(path[0] + 1));
+	else if (path.length === 1) {
+		const newObj = Object.assign({}, object);
+		delete newObj[path[0]];
+		return newObj;
+	} else return Object.assign({},
+		object, {
+			[path[0]]:
+				removeObjectValueByPath(object[path[0]], path.slice(1))
+		}
+	);
+};
 
 const parseIntValue = value => {
 	const parsedValue = parseInt(value, 10);
@@ -85,20 +118,39 @@ const parseFloatValue = value => {
 	:	'0.0';
 };
 
-const getTransformFunction = (typeName) => (
+const getTransformFunction = typeName => (
 	{
 		Int: parseIntValue,
 		Float: parseFloatValue,
 	}[typeName]
 );
 
-const isPrimitiveGraphQLType = (typeName) =>
+const isPrimitiveGraphQLType = typeName =>
 	graphQLPrimitiveTypes.has(typeName);
+
+const getDefaultArgFieldValue = (type, kind) => {
+	const defaultValue =
+		isPrimitiveGraphQLType(
+			type
+		)	?	(
+				type === 'Boolean'
+				?	false
+				:	type === 'String'
+					?	''
+					:	type === 'Int'
+						?	0
+						:	'0.0'
+			)
+			:	{};
+	if (kind === FIELD_KINDS.LIST) return [defaultValue];
+	else return defaultValue;
+};
+
 
 class DataWindowQueryArgumentsFieldForm extends PureComponent {
 	constructor(props){
 		super(props);
-		this.state = this._convertPropsToStateValueAndPropType(
+		this.state = this._convertValueAndPropTypeTreeToState(
 			props.argField,
 			props.argFieldName,
 			props.argFieldValue,
@@ -108,11 +160,13 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 		this._handleNullSwitch = this._handleNullSwitch.bind(this);
 		this._convertObjectToValue = this._convertObjectToValue.bind(this);
 		this._createValueAndPropTypeTree = this._createValueAndPropTypeTree.bind(this);
+		this._handleAdd = this._handleAdd.bind(this);
+		this._handleRemove = this._handleRemove.bind(this);
 	}
 
 	componentWillReceiveProps(nextProps) {
 		this.setState(
-			this._convertPropsToStateValueAndPropType(
+			this._convertValueAndPropTypeTreeToState(
 				nextProps.argField,
 				nextProps.argFieldName,
 				nextProps.argFieldValue,
@@ -121,7 +175,7 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 		);
 	}
 
-	_convertPropsToStateValueAndPropType(...args) {
+	_convertValueAndPropTypeTreeToState(...args) {
 		const {
 			fieldValue,
 			propType
@@ -132,33 +186,41 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 		return ({
 			fieldValue: {
 				[args[1]]: fieldValue,
-
 			},
 			propType
 		});
 	}
 
 	_convertObjectToValue(obj){
-		return obj && Object.keys(obj).reduce(
-			(acc, name) => Object.assign(acc, {
-				[name]:
-					{
-						value: (
-							typeof obj[name] === 'object'
-							?	obj[name] === null
-								?	obj[name]
-								:	this._convertObjectToValue(obj[name])
-							:	obj[name] + ''
-						)
-					}
-				}
-			)
+		return	{
+			value: (
+				typeof obj === 'object' && obj !== null
+				?	!Array.isArray(obj)
+					?	Object.keys(obj).reduce(
+							(acc, name) => Object.assign(acc, {
+								[name]:
+										this._convertObjectToValue(obj[name])
+								}
+							)
 
-		, {});
+						, {})
+				  	:	obj.map(this._convertObjectToValue)
+				:	 obj
+			),
+
+			message: (
+				this.props.argumentsBound
+						?	'Arguments already in use'
+						: 	void 0
+			)
+		};
 	}
 
 	_createValueAndPropTypeTree(argField, argFieldName, argFieldConstValue, types) {
-		let argFieldValue;
+		let argFieldValue,
+			ofType = void 0;
+
+		const isComposite = argField.kind === FIELD_KINDS.LIST;
 
 		if (typeof argFieldConstValue === 'undefined')
 			argFieldValue = {};
@@ -167,19 +229,18 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 		else
 			argFieldValue = clone(argFieldConstValue);
 
+		if (isComposite && typeof argFieldValue[argFieldName] === 'undefined')
+			argFieldValue[argFieldName] = [void 0];
+
 		const subFields =
-			!isPrimitiveGraphQLType(argField.type)
+			!isPrimitiveGraphQLType(argField.type) && !isComposite
 			?	Object.keys(types[argField.type].fields).reduce((acc, fieldName) => {
 					const field = types[argField.type].fields[fieldName];
 
 					if (argFieldValue !== null) {
 						argFieldValue[argFieldName] =
 							typeof argFieldValue[argFieldName] === 'undefined'
-							?	(
-									!isPrimitiveGraphQLType(argField.type)
-									?	{}
-									:	''
-							)
+							?	getDefaultArgFieldValue(argField.type, argField.kind)
 							:	argFieldValue[argFieldName];
 
 						const {
@@ -205,23 +266,39 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 				, {})
 			:	{};
 
+		if (isComposite) {
+			ofType = argFieldValue[argFieldName]
+							.map(value => this._createValueAndPropTypeTree(
+									Object.assign(
+										{},	argField, { kind: FIELD_KINDS.SINGLE }
+									), argFieldName, { [argFieldName]: value }, types
+					));
+			argFieldValue[argFieldName] = ofType.map(
+				({ fieldValue }) => fieldValue
+			);
+		}
+
+
 		return {
 			fieldValue:
 			 	argFieldValue
 				&&	(
 					typeof argFieldValue[argFieldName] === 'undefined'
-					?	''
+					?	getDefaultArgFieldValue(argField.type, argField.kind)
 					:	argFieldValue[argFieldName]
 				),
 			propType: {
 			   label: argFieldName,
 			   view:
-				   isPrimitiveGraphQLType(argField.type)
-				   ?
-					   argField.type === 'Boolean'
-					   ?	'select'
-					   :	'input'
-				   :	'shape',
+			   	   argField.kind === FIELD_KINDS.LIST
+				   ?   'array'
+				   :
+					   isPrimitiveGraphQLType(argField.type)
+					   ?
+						   argField.type === 'Boolean'
+						   ?	'select'
+						   :	'input'
+					   :	'shape',
 			   type: argField.type,
 			   transformValue: getTransformFunction(
 					 argField.type
@@ -229,7 +306,8 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 			   required: !!argField.nonNull,
 			   displayRequired: !!argField.nonNull,
 			   notNull: !!argField.nonNull,
-			   fields: subFields
+			   fields: subFields,
+			   ofType: ofType && ofType[0] && ofType[0].propType
 			}
 		};
 	}
@@ -240,11 +318,37 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 			value,
 			[this.props.argFieldName].concat(path),
 		);
+		const {
+			fieldValue,
+			propType
+		} = this._convertValueAndPropTypeTreeToState(
+			this.props.argField,
+			this.props.argFieldName,
+			newValue,
+			this.props.types
+		);
+
+		this.setState({ fieldValue, propType });
+
+		this.props.setNewArgumentValue(
+			fieldValue
+		);
+	}
+
+	_handleAdd(path, index) {
+		this._handleChange(void 0, path.concat([index]));
+	}
+
+	_handleRemove(path, index) {
+		const newValue = removeObjectValueByPath(
+			this.state.fieldValue,
+			[this.props.argFieldName].concat(path.concat([index])),
+		);
 
 		const {
 			fieldValue,
 			propType
-		} = this._convertPropsToStateValueAndPropType(
+		} = this._convertValueAndPropTypeTreeToState(
 			this.props.argField,
 			this.props.argFieldName,
 			newValue,
@@ -275,7 +379,7 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 		const {
 			fieldValue,
 			propType
-		} = this._convertPropsToStateValueAndPropType(
+		} = this._convertValueAndPropTypeTreeToState(
 			this.props.argField,
 			this.props.argFieldName,
 			newValue,
@@ -291,7 +395,6 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 
 	render(){
 		const {
-			argField,
 			argFieldName,
 		} = this.props;
 
@@ -312,20 +415,16 @@ class DataWindowQueryArgumentsFieldForm extends PureComponent {
 				onNullSwitch={
 					this._handleNullSwitch
 				}
+				onAddValue={
+					this._handleAdd
+				}
+				onDeleteValue={
+					this._handleRemove
+				}
 				value={
-					{
-						value: isPrimitiveGraphQLType(
-							argField.type
-						)
-						?	currentFieldValue
-						:	this._convertObjectToValue(
+					this._convertObjectToValue(
 								currentFieldValue
-							),
-						message:
-							this.props.argumentsBound
-							?	'Arguments already in use'
-							:	''
-					}
+							)
 				}
 			/>
 		);
@@ -369,7 +468,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		this._getCurrentEditingFields = this._getCurrentEditingFields.bind(this);
 		this._getBoundArgumentsByPath = this._getBoundArgumentsByPath.bind(this);
 		this._areArgumentsBound = this._areArgumentsBound.bind(this);
-		this._createSourceDataObject = this._createSourceDataObject.bind(this);
 	}
 
 	_equalFieldPaths(path1, path2) {
@@ -494,7 +592,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						return {
 							field: pathStep.name,
 							args:
-								this._createSourceDataObject(currentArg || {})
+								DataWindowQueryLayout
+									.createSourceDataObject(currentArg || {})
 						};
 					}
 				)
@@ -668,16 +767,52 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		Object.assign(argValue, value);
 	}
 
-	_createSourceDataObject(obj) {
-		return typeof obj === 'object'
-					?  Object.keys(obj).reduce((acc, key) =>
+	static extractSourceDataValue(obj) {
+		return typeof obj.sourceData.value === 'object' && obj.sourceData.value !== null
+		?	Array.isArray(obj.sourceData.value)
+			?	obj.sourceData.value.map(
+				value => DataWindowQueryLayout.extractSourceDataValue(value)
+			)
+			:	Object.keys(
+				obj.sourceData.value
+			).reduce((acc, objName) =>
+				Object.assign(
+					acc,
+					{
+						[objName]:	DataWindowQueryLayout.extractSourceDataValue(
+							obj.sourceData.value[objName]
+						)
+					}
+				)
+			, {})
+		:	obj.sourceData.value;
+	}
+
+	static createSourceDataObject(obj) {
+		return typeof obj === 'object' && obj !== null
+				?	Array.isArray(obj)
+					?	obj.map(value => ({
+						source: 'static',
+						sourceData: {
+							value:
+								DataWindowQueryLayout
+									.createSourceDataObject(
+										value
+							)
+						}
+					}))
+					:	Object.keys(obj).reduce((acc, key) =>
 							Object.assign(
 								acc,
 								{
 									[key]: {
 										source: 'static',
 										sourceData: {
-											value:	this._createSourceDataObject(obj[key])
+											value:
+												DataWindowQueryLayout
+													.createSourceDataObject(
+														obj[key]
+											)
 										}
 									}
 								}
@@ -897,22 +1032,11 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 				return false;
 			}
 		);
-		const extractValue = (arg) =>
-			typeof arg.sourceData.value === 'object'
-			?	Object.keys(
-					arg.sourceData.value
-				).reduce((acc, argName) =>
-					Object.assign(
-						acc,
-						{
-							[argName]:	extractValue(arg.sourceData.value[argName])
-						}
-					)
-				, {})
-			:	arg.sourceData.value;
 
 		args && Object.keys(args).forEach(
-			argName => args[argName] = extractValue(args[argName])
+			argName => args[argName] = DataWindowQueryLayout.extractSourceDataValue(
+				args[argName]
+			)
 		);
 		return args;
 	}
