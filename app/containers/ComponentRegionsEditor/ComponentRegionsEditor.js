@@ -18,11 +18,15 @@ import {
     PropsItem
 } from '../../components/PropsList/PropsList';
 
-import ProjectRecord, { getComponentById } from '../../models/Project';
+import ProjectRecord from '../../models/Project';
+import ProjectComponent from '../../models/ProjectComponent';
 
 import { toggleComponentRegion } from '../../actions/project';
 
-import { currentSelectedComponentIdsSelector } from '../../selectors';
+import {
+    currentComponentsSelector,
+    currentSelectedComponentIdsSelector
+} from '../../selectors';
 
 import { getComponentMeta, getString } from '../../utils/meta';
 import { getLocalizedTextFromState } from '../../utils';
@@ -40,7 +44,7 @@ class ComponentRegionsEditorComponent extends PureComponent {
         if (this.props.selectedComponentIds.size !== 1) return null;
 
         const componentId = this.props.selectedComponentIds.first(),
-            component = getComponentById(this.props.project, componentId),
+            component = this.props.currentComponents.get(componentId),
             componentMeta = getComponentMeta(component.name, this.props.meta);
 
         if (componentMeta.kind !== 'composite') return null;
@@ -77,6 +81,10 @@ class ComponentRegionsEditorComponent extends PureComponent {
 ComponentRegionsEditorComponent.propTypes = {
     project: PropTypes.instanceOf(ProjectRecord),
     meta: PropTypes.object,
+    currentComponents: ImmutablePropTypes.mapOf(
+        PropTypes.instanceOf(ProjectComponent),
+        PropTypes.number
+    ),
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     language: PropTypes.string,
 
@@ -89,6 +97,7 @@ ComponentRegionsEditorComponent.displayName = 'ComponentRegionsEditor';
 const mapStateToProps = state => ({
     project: state.project.data,
     meta: state.project.meta,
+    currentComponents: currentComponentsSelector(state),
     selectedComponentIds: currentSelectedComponentIdsSelector(state),
     language: state.app.language,
     getLocalizedText: getLocalizedTextFromState(state)
