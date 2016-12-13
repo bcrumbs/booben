@@ -165,6 +165,17 @@ const transformValue = (propMeta, propValue) => {
                 value = propValue.sourceData.rootId !== -1;
         }
     }
+    else {
+        if (propValue.source === 'data') {
+            value = propValue.sourceData.queryPath
+                .map(step => step.field)
+                .toJS()
+                .join(' -> ');
+        }
+        else if (propValue.source === 'static') {
+            value = propValue.sourceData.ownerPropName;
+        }
+    }
 
     return { value, isLinked };
 };
