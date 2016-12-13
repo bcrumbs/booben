@@ -2,7 +2,7 @@
  * @author olegnn <olegnosov1@gmail.com>
  */
 
-import { objectForEach } from './misc';
+import _forOwn from 'lodash.forown';
 
 export const FIELD_KINDS = {
 	SINGLE: 'SINGLE',
@@ -261,7 +261,7 @@ export const parseGraphQLSchema = schema => {
 		}
 	);
 
-	objectForEach(connections,
+	_forOwn(connections,
 		({ edge }, key) => {
 			delete normalizedTypes[key];
 			delete normalizedTypes[edge.name];
@@ -273,3 +273,33 @@ export const parseGraphQLSchema = schema => {
 
 	return { types: normalizedTypes, queryTypeName: queryType.name };
 };
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string} fieldName
+ * @param {string} onType
+ * @return {string}
+ */
+export const getTypeNameByField = (schema, fieldName, onType) => {
+    const [ownFieldName, connectionFieldName] = fieldName.split('/');
+
+    let field = schema.types[onType].fields[ownFieldName];
+
+    if (connectionFieldName)
+        field = field.connectionFields[connectionFieldName];
+
+    return field.type;
+};
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string[]} path - Array of field names
+ * @param {string} [startType='']
+ * @return {string}
+ */
+export const getTypeNameByPath = (schema, path, startType = '') => path.reduce(
+    (acc, cur) => getTypeNameByField(schema, cur, acc),
+    startType || schema.queryTypeName
+);

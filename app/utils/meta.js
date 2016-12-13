@@ -9,7 +9,8 @@ import miscMeta from '../meta/misc';
 
 import { componentsToImmutable } from '../models/ProjectComponent';
 
-import { objectForEach } from './misc';
+import { objectSome } from './misc';
+import _forOwn from 'lodash.forown';
 
 import { NO_VALUE } from  '../../app/constants/misc';
 
@@ -287,7 +288,7 @@ const buildDefaultStaticValue = (
 
         const value = {};
 
-        objectForEach(propMeta.fields, (fieldMeta, fieldName) => {
+        _forOwn(propMeta.fields, (fieldMeta, fieldName) => {
             const inherited = typeof defaultValue[fieldName] !== 'undefined'
                 ? defaultValue[fieldName]
                 : NO_VALUE;
@@ -308,7 +309,7 @@ const buildDefaultStaticValue = (
 
         const value = {};
 
-        objectForEach(defaultValue, (fieldValue, fieldName) => {
+        _forOwn(defaultValue, (fieldValue, fieldName) => {
             value[fieldName] = _buildDefaultValue(
                 componentMeta,
                 propMeta.ofType,
@@ -431,7 +432,7 @@ export const buildDefaultValue = (componentMeta, propMeta, language) =>
 const buildDefaultProps = (componentMeta, language) => {
     const ret = {};
 
-    objectForEach(componentMeta.props, (propMeta, propName) => {
+    _forOwn(componentMeta.props, (propMeta, propName) => {
         const defaultValue = buildDefaultValue(componentMeta, propMeta, language);
         if (defaultValue !== NO_VALUE) ret[propName] = defaultValue;
     });
@@ -586,7 +587,7 @@ export const isCompatibleType = (typedef1, typedef2) => {
  */
 export const resolveTypedef = (componentMeta, typedef) => {
     if (BUILT_IN_PROP_TYPES.has(typedef.type)) return typedef;
-    return componentMeta.types[typedef.type] || null;
+    return componentMeta.types ? (componentMeta.types[typedef.type] || null) : null;
 };
 
 /**
@@ -643,3 +644,47 @@ export const getNestedTypedef = (typedef, valuePath) => valuePath.reduce((acc, c
         );
     }
 }, typedef);
+
+/**
+ *
+ * @param {PropTypeDefinition} propMeta
+ * @return {boolean}
+ */
+export const propHasDataContest = propMeta =>
+    !!propMeta.sourceConfigs.data &&
+    !!propMeta.sourceConfigs.data.pushDataContext;
+
+/**
+ *
+ * @param {ComponentMeta} componentMeta
+ * @param {string} dataContext
+ * @return {string}
+ */
+export const findPropByDataContext = (componentMeta, dataContext) => {
+    const propNames = Object.keys(componentMeta.props);
+    for (let i = 0, l = propNames.length; i < l; i++) {
+        const propMeta = componentMeta.props[propNames[i]];
+
+        const found =
+            isValidSourceForProp(propMeta, 'data') &&
+            propMeta.sourceConfigs.data &&
+            propMeta.sourceConfigs.data.pushDataContext === dataContext;
+
+        if (found) return propNames[i];
+    }
+
+    return '';
+};
+
+/**
+ *
+ * @param {PropTypeDefinition} propMeta
+ * @return {boolean}
+ */
+export const propUsesDataContexts = propMeta =>
+    !!propMeta.sourceConfigs.designer.props &&
+
+    objectSome(
+        propMeta.sourceConfigs.designer.props,
+        ownerPropMeta => !!ownerPropMeta.dataContext
+    );

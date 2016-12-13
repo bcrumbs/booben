@@ -140,16 +140,30 @@ export class PropsItem extends PureComponent {
         });
     }
 
+    /**
+     *
+     * @param {number} index
+     * @private
+     */
     _handleBreadcrumbsItemSelect(index) {
         this.setState({
             currentPath: this.state.currentPath.slice(0, index)
         });
     }
 
+    /**
+     *
+     * @private
+     */
 	_handleValueNullSwitch() {
 		this.props.onNullSwitch([]);
 	}
 
+    /**
+     *
+     * @param {number} index
+     * @private
+     */
 	_handleNestedValueNullSwitch(index) {
 		this.props.onNullSwitch([...this.state.currentPath, index]);
 	}
@@ -274,7 +288,6 @@ export class PropsItem extends PureComponent {
 
 		if (!currentValue || currentValue.value === null) return null;
 
-
         let childItems = null;
         if (currentType.view === 'shape') {
             childItems = Object.keys(currentType.fields).map((fieldName, idx) => (
@@ -283,6 +296,7 @@ export class PropsItem extends PureComponent {
                     propType={currentType.fields[fieldName]}
                     value={currentValue.value[fieldName]}
                     setComponentButtonText={this.props.setComponentButtonText}
+                    editComponentButtonText={this.props.editComponentButtonText}
                     addButtonText={this.props.addButtonText}
                     addDialogTitleText={this.props.addDialogTitleText}
                     addDialogInputLabelText={this.props.addDialogInputLabelText}
@@ -303,6 +317,7 @@ export class PropsItem extends PureComponent {
                     propType={currentType.ofType}
                     value={itemValue}
                     setComponentButtonText={this.props.setComponentButtonText}
+                    editComponentButtonText={this.props.editComponentButtonText}
                     addButtonText={this.props.addButtonText}
                     addDialogTitleText={this.props.addDialogTitleText}
                     addDialogInputLabelText={this.props.addDialogInputLabelText}
@@ -330,6 +345,7 @@ export class PropsItem extends PureComponent {
                     propType={currentType.ofType}
                     value={currentValue[key]}
                     setComponentButtonText={this.props.setComponentButtonText}
+                    editComponentButtonText={this.props.editComponentButtonText}
                     addButtonText={this.props.addButtonText}
                     addDialogTitleText={this.props.addDialogTitleText}
                     addDialogInputLabelText={this.props.addDialogInputLabelText}
@@ -443,8 +459,11 @@ export class PropsItem extends PureComponent {
 
         let subcomponentLeft = null;
         if (this.props.propType.subcomponentLeft) {
-            subcomponentLeft =
-                <div className="prop_subcomponent prop_subcomponent-left">{this.props.propType.subcomponentLeft}</div>;
+            subcomponentLeft = (
+                <div className="prop_subcomponent prop_subcomponent-left">
+                    {this.props.propType.subcomponentLeft}
+                </div>
+            );
         }
 
         let linkAction = null;
@@ -463,39 +482,37 @@ export class PropsItem extends PureComponent {
             children = null;
 
         if (!this.props.value.isLinked) {
-			if (this.props.value.value !== null) {
-	            if (this.props.propType.view === 'input') {
-	                content = (
-	                    <Input
-							stateless={true}
-	                        value={this.props.value.value}
-	                        disabled={this.props.disabled}
-	                        onChange={this._handleChange}
-	                    />
-	                );
-	            }
-	            else if (this.props.propType.view === 'textarea') {
-	                content = (
-	                    <Textarea
-							stateless={true}
-	                        value={this.props.value.value}
-	                        disabled={this.props.disabled}
-	                        onChange={this._handleChange}
-	                    />
-	                );
-	            }
-	            else if (this.props.propType.view === 'list') {
-	                content = (
-	                    <SelectBox
-							stateless={true}
-	                        data={this.props.propType.options}
-	                        value={this.props.value.value}
-	                        disabled={this.props.disabled}
-	                        onSelect={this._handleChange}
-	                    />
-	                );
-	            }
-			}
+            if (this.props.propType.view === 'input') {
+                content = (
+                    <Input
+                        stateless={true}
+                        value={this.props.value.value}
+                        disabled={this.props.disabled}
+                        onChange={this._handleChange}
+                    />
+                );
+            }
+            else if (this.props.propType.view === 'textarea') {
+                content = (
+                    <Textarea
+                        stateless={true}
+                        value={this.props.value.value}
+                        disabled={this.props.disabled}
+                        onChange={this._handleChange}
+                    />
+                );
+            }
+            else if (this.props.propType.view === 'list') {
+                content = (
+                    <SelectBox
+                        stateless={true}
+                        data={this.props.propType.options}
+                        value={this.props.value.value}
+                        disabled={this.props.disabled}
+                        onSelect={this._handleChange}
+                    />
+                );
+            }
             else if (this.props.propType.view === 'constructor') {
                 const text = this.props.value.value
                     ? this.props.editComponentButtonText
@@ -509,8 +526,7 @@ export class PropsItem extends PureComponent {
                     />
                 );
             }
-
-            if (this.props.propType.view === 'toggle') {
+            else if (this.props.propType.view === 'toggle') {
                 toggle = (
                     <div className="prop_action prop_action-toggle">
                         <ToggleButton
@@ -522,12 +538,13 @@ export class PropsItem extends PureComponent {
                 );
             }
             else {
+                // TODO: Do not replace toggle
+
                 const isNullable =
 					typeof this.props.propType.notNull === 'boolean'
 					&&	!this.props.propType.notNull;
 
                 if (isNullable) {
-                    // TODO: Make null switch
                     toggle = (
                         <div className="prop_action prop_action-toggle">
                             <ToggleButton
@@ -564,32 +581,13 @@ export class PropsItem extends PureComponent {
                 children = this._renderNestedItems();
         }
         else {
-            if (this.props.propType.view === 'toggle') {
-                toggle = null;
-                valueWrapper = (
-                    <Tag
-                        text='%value%'
-                        bounded
-                        removable
-                    />
-                );
-            } else {
-                valueWrapper = (
-                    <Tag
-                        text='%value%'
-                        bounded
-                        removable
-                    />
-                );
-
-                if (
-                    this.props.propType.view === 'input' ||
-                    this.props.propType.view === 'textarea' ||
-                    this.props.propType.view === 'list'
-                ) {
-                    content = null;
-                }
-            }
+            valueWrapper = (
+                <Tag
+                    text={this.props.value.value}
+                    bounded
+                    removable
+                />
+            );
         }
 
         let actionsRight = null;
@@ -616,10 +614,12 @@ export class PropsItem extends PureComponent {
                         {label}
                         <div className="prop-item_value-wrapper">
                             {valueWrapper}
-						<div className="prop-item_message-wrapper">
-							{message}
-						</div>
+
+                            <div className="prop-item_message-wrapper">
+                                {message}
+                            </div>
                         </div>
+
                         <div className="prop-item_value-wrapper">
                             {content}
                         </div>

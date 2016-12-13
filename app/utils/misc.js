@@ -16,33 +16,6 @@ export const returnNull = /* istanbul ignore next */ () => null;
 
 /**
  *
- * @param {Function} fn
- * @param {number} threshold
- * @returns {Function}
- */
-export const throttle = (fn, threshold) => {
-    let last,
-        deferTimer;
-
-    return (...args) => {
-        const now = Date.now();
-
-        if (last && now < last + threshold) {
-            clearTimeout(deferTimer);
-            deferTimer = setTimeout(() => {
-                last = now;
-                fn(...args);
-            }, threshold);
-        }
-        else {
-            last = now;
-            fn(...args);
-        }
-    };
-};
-
-/**
- *
  * @param {*} maybeObject
  * @return {boolean}
  */
@@ -84,15 +57,6 @@ export const objectSome = (object, predicate) =>
  *
  * @param {Object} object
  * @param {function(value: *, key: string, object: Object): boolean} predicate
- * @return {boolean}
- */
-export const objectEvery = (object, predicate) =>
-    Object.keys(object).every(key => predicate(object[key], key, object));
-
-/**
- *
- * @param {Object} object
- * @param {function(value: *, key: string, object: Object): boolean} predicate
  * @return {Object}
  */
 export const objectFilter = (object, predicate) => {
@@ -102,7 +66,6 @@ export const objectFilter = (object, predicate) => {
     });
     return ret;
 };
-
 /**
  *
  * @param {*} value

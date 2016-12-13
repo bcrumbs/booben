@@ -77,20 +77,24 @@ import {
 import {
     propSourceDataToImmutable,
     gatherComponentsTreeIds,
-    isRootComponent
+    isRootComponent,
+    getValueByPath
 } from '../models/ProjectComponent';
 
 import { Record, Map, Set, List } from 'immutable';
 
 import { concatPath } from '../utils';
+
 import {
     getComponentMeta,
     constructComponent,
     parseComponentName,
-    formatComponentName
+    formatComponentName,
+    getNestedTypedef
 } from '../utils/meta';
+
 import {
-	parseGraphQLSchema
+    parseGraphQLSchema
 } from '../utils/schema';
 
 import { NO_VALUE } from "../constants/misc";
@@ -423,7 +427,7 @@ export default (state = new ProjectState(), action) => {
             const project = projectToImmutable(action.project),
                 lastRouteId = getMaxRouteId(project),
                 lastComponentId = getMaxComponentId(project),
-				schema = action.schema && parseGraphQLSchema(action.schema);
+				schema = action.schema ? parseGraphQLSchema(action.schema) : null;
 
             return state
                 .merge({
@@ -438,9 +442,8 @@ export default (state = new ProjectState(), action) => {
                         : -1,
                     indexRouteSelected: false
                 })
-				// Prevent conversion to Immutable.Map
-                .set('meta', action.metadata)
-				.set('schema', schema);
+                .set('schema', schema)
+                .set('meta', action.metadata); // Prevent conversion to Immutable.Map
         }
 
         case PROJECT_ROUTE_CREATE: {
@@ -815,9 +818,13 @@ export default (state = new ProjectState(), action) => {
             const pathToCurrentComponents = getPathToCurrentComponents(state),
                 components = state.getIn(pathToCurrentComponents),
                 component = components.get(action.componentId),
-                prop = component.props.get(action.propName),
-                componentMeta = getComponentMeta(component.name, state.meta),
-                propMeta = componentMeta.props[action.propName];
+                currentValue = getValueByPath(component, action.propName, action.path),
+                componentMeta = getComponentMeta(component.name, state.meta);
+
+            const propMeta = getNestedTypedef(
+                componentMeta.props[action.propName],
+                action.path
+            );
 
             if (propMeta.source.indexOf('designer') === -1) {
                 throw new Error(
@@ -826,22 +833,18 @@ export default (state = new ProjectState(), action) => {
                 );
             }
 
-            const currentSourceData = (prop && prop.source === 'designer')
-                ? prop.sourceData
-                : null;
-
             const nestedConstructorData = {
                 componentId: action.componentId,
                 prop: action.propName,
                 path: action.path
             };
 
-            if (currentSourceData) {
+            if (currentValue && currentValue.source === 'designer') {
                 Object.assign(nestedConstructorData, {
-                    components: currentSourceData.components,
-                    rootId: currentSourceData.rootId,
-                    lastComponentId: currentSourceData.components.size > 0
-                        ? currentSourceData.components.keySeq().max()
+                    components: currentValue.sourceData.components,
+                    rootId: currentValue.sourceData.rootId,
+                    lastComponentId: currentValue.sourceData.components.size > 0
+                        ? currentValue.sourceData.components.keySeq().max()
                         : -1
                 });
             }

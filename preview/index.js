@@ -3,6 +3,8 @@
 import ReactDOM from 'react-dom';
 import React from 'react';
 import { Provider } from 'react-redux';
+import { ApolloProvider } from 'react-apollo';
+import ApolloClient, { createNetworkInterface } from 'apollo-client';
 import { hashHistory } from 'react-router';
 
 import Preview from './containers/Preview';
@@ -12,6 +14,9 @@ import {
     PREVIEW_DOM_CONTAINER_ID,
     PREVIEW_DOM_OVERLAY_ID
 } from '../common/shared-constants';
+
+import { LOADED } from '../app/constants/loadStates';
+
 
 window.JSSY = {
     initialized: false,
@@ -26,7 +31,6 @@ window.JSSY = {
  * @param {boolean} params.interactive
  * @param {string} params.containerStyle
  */
-
 window.JSSY.initPreview = params => {
     if (window.JSSY.initialized)
         return { history: hashHistory };
@@ -36,19 +40,48 @@ window.JSSY.initPreview = params => {
 
     containerNode.setAttribute('style', params.containerStyle);
 
+    const state = params.store.getState();
+
+    if (state.project.loadState !== LOADED)
+        throw new Error('initPreview() failed: project is not loaded');
+
+    const graphQLEndpointURL = state.project.data.graphQLEndpointURL;
+
+    let ProviderComponent, providerProps;
+
+    if (graphQLEndpointURL) {
+        ProviderComponent = ApolloProvider;
+
+        const client = new ApolloClient({
+            networkInterface: createNetworkInterface({ uri: graphQLEndpointURL })
+        });
+
+        providerProps = {
+            client,
+            store: params.store
+        }
+    }
+    else {
+        ProviderComponent = Provider;
+
+        providerProps = {
+            store: params.store
+        }
+    }
+
     ReactDOM.render(
-        <Provider store={params.store}>
+        <ProviderComponent {...providerProps}>
             <Preview interactive={params.interactive} />
-        </Provider>,
+        </ProviderComponent>,
 
         containerNode
     );
 
     if (params.interactive) {
         ReactDOM.render(
-            <Provider store={params.store}>
+            <ProviderComponent {...providerProps}>
                 <Overlay />
-            </Provider>,
+            </ProviderComponent>,
 
             overlayNode
         );
