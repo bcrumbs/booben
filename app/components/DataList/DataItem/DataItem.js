@@ -23,61 +23,67 @@ export const DataItem = props => {
         description = null,
         argsButton = null,
         actionsRight = null;
-    
+
     if (props.tooltip) {
         tooltip = (
             <TooltipIcon text={props.tooltip} />
         );
     }
-    
+
     if (props.argsButton) {
-        argsButton = <Button text="Set Arguments" narrow/>;
+        argsButton = <Button
+						onPress={props.onSetArgumentsClick}
+						text="Set Arguments"
+						narrow
+					 />;
     }
-    
+
     if (props.connection) {
         actionsRight =
             <div className="data-item_actions data-item_actions-right">
                 <div className="data-item_actions data-item_actions-right">
-                    <Button icon="chevron-right" />
+                    <Button onPress={props.onJumpIntoClick} icon="chevron-right" />
                 </div>
             </div>
     }
-    
+
     if (props.description) {
         description =
             <div className="data-item_description">
                 {props.description}
             </div>
     }
-    
-    if (description || argsButton) {
+
+    if (description || argsButton || props.canBeApplied) {
         content =
             <div className="data-item_content">
                 { description }
                 <div className="data-item_buttons">
                     { argsButton }
-                    <Button text="Apply" narrow />
+                    {
+						props.canBeApplied
+						?	<Button text="Apply" onPress={props.onApplyClick} narrow />
+						:	null
+					}
                 </div>
             </div>
     }
-    
-    const onClick = props.onClick;
 
     return (
-        <div className={className} onClick={() => void onClick(props.arg)}>
-           <div className='data-item_content-box'>
-                
-                <div className='data-item_title-box'>
+        <div className={className} onClick={props.onSelect}>
+           <div className="data-item_content-box">
+
+                <div className="data-item_title-box">
                     <div className="data-item_title">
                         <span className="data-item_title-text">{props.title}</span>
                         <span className="data-item_type">{props.type}</span>
                         {tooltip}
                     </div>
                 </div>
-                
+
                 { content }
             </div>
-    
+
             { actionsRight }
         </div>
     );
@@ -95,8 +101,12 @@ DataItem.propTypes = {
     state: PropTypes.oneOf(["error", "success"]),
     connection: PropTypes.bool,
     arg: PropTypes.any,
+	canBeApplied: PropTypes.bool,
 
-    onClick: PropTypes.func
+    onSelect: PropTypes.func,
+	onSetArgumentsClick: PropTypes.func,
+	onApplyClick: PropTypes.func,
+	onJumpIntoClick: PropTypes.func
 };
 
 DataItem.defaultProps = {
@@ -111,8 +121,12 @@ DataItem.defaultProps = {
     state: null,
     connection: false,
     arg: null,
+	canBeApplied: false,
 
-    onClick: noop
+    onSelect: noop,
+    onSetArgumentsClick: noop,
+    onApplyClick: noop,
+	onJumpIntoClick: noop
 };
 
 DataItem.displayName = 'DataItem';

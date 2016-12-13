@@ -49,7 +49,7 @@ import { List } from 'immutable';
 
 import history from '../history';
 
-import { getLocalizedText } from '../utils';
+import { getLocalizedTextFromState } from '../utils';
 
 /**
  *
@@ -564,11 +564,7 @@ const mapStateToProps = ({ project, app }) => ({
     projectName: project.projectName,
     selectedRouteId: project.selectedRouteId,
     indexRouteSelected: project.indexRouteSelected,
-    getLocalizedText: (...args) => getLocalizedText(
-        app.localization,
-        app.language,
-        ...args
-    )
+    getLocalizedText: getLocalizedTextFromState({ app })
 });
 
 const mapDispatchToProps = dispatch => ({

@@ -46,9 +46,10 @@ export default (state = new AppState(), action) => {
         case APP_LOCALIZATION_LOAD_SUCCESS: {
             return state.merge({
                 language: action.language,
-                localization: action.localization,
                 localizationLoadState: LOADED
-            });
+            }).set(
+				'localization', action.localization
+			);
         }
 
         case APP_TOGGLE_CONTENT_PLACEHOLDERS: {

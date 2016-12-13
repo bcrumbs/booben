@@ -52,7 +52,7 @@ import {
     isValidSourceForProp
 } from '../../utils/meta';
 
-import { getLocalizedText } from '../../utils';
+import { getLocalizedTextFromState } from '../../utils';
 import { objectSome } from '../../utils/misc';
 import _mapValues from 'lodash.mapvalues';
 
@@ -63,7 +63,7 @@ import _mapValues from 'lodash.mapvalues';
  */
 const coerceIntValue = value => {
     let maybeRet = parseInt(value, 10);
-    if (isNaN(maybeRet)) return 0;
+    if (!isFinite(maybeRet)) return 0;
     return maybeRet;
 };
 
@@ -74,7 +74,7 @@ const coerceIntValue = value => {
  */
 const coerceFloatValue = value => {
     let maybeRet = parseFloat(value);
-    if (isNaN(maybeRet)) return 0.0;
+    if (!isFinite(maybeRet)) return 0.0;
     return maybeRet;
 };
 
@@ -587,11 +587,7 @@ const mapStateToProps = state => ({
     language: state.app.language,
     ownerComponentMeta: ownerComponentMetaSelector(state),
     ownerProps: ownerPropsSelector(state),
-    getLocalizedText: (...args) => getLocalizedText(
-        state.app.localization,
-        state.app.language,
-        ...args
-    )
+    getLocalizedText: getLocalizedTextFromState(state)
 });
 
 const mapDispatchToProps = dispatch => ({

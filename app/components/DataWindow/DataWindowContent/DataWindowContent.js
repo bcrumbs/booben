@@ -24,37 +24,41 @@ export const DataWindowContent= props => {
         descriptionHeading = null,
         description = null,
         content = null;
-        
+
     if (props.type) {
         type =
             <div className="data-window_type">
                 {props.type}
             </div>
     }
-    
+
     if (props.subtitle) {
         subtitle =
             <div className="data-window_subtitle">
                 {props.subtitle}
             </div>
     }
-    
+
     if (props.argsButton) {
         argsButton =
             <BlockContentBoxItem>
                 <div className="data-window_heading-buttons">
-                    <Button text="Set Arguments" narrow/>
+                    <Button
+						text="Set Arguments"
+						onPress={props.onSetArgumentsClick}
+						narrow
+					/>
                 </div>
             </BlockContentBoxItem>
     }
-    
+
     let contentHeading = <BlockContentBoxHeading>{props.contentHeading}</BlockContentBoxHeading>;
     content =
         <BlockContentBoxItem>
             <DataList data={props.list} />
             {props.children}
         </BlockContentBoxItem>;
-    
+
     if (props.title) {
         title =
             <BlockContentBoxItem>
@@ -69,12 +73,12 @@ export const DataWindowContent= props => {
                 </div>
             </BlockContentBoxItem>;
     }
-    
+
     if (props.description) {
         descriptionHeading = <BlockContentBoxHeading>Description</BlockContentBoxHeading>;
         description = <BlockContentBoxItem>{props.description}</BlockContentBoxItem>;
     }
-    
+
     return (
         <div className="data-window_content">
             <div className="data-window_content-heading">
@@ -96,7 +100,7 @@ DataWindowContent.propTypes = {
     description: PropTypes.string,
     contentHeading: PropTypes.string,
     argsButton: PropTypes.bool,
-    list: PropTypes.arrayOf
+    list: PropTypes.arrayOf(PropTypes.object)
 };
 
 DataWindowContent.defaultProps = {

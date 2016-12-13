@@ -18,6 +18,18 @@ export const graphQLPrimitiveTypes = new Set([
 	'ID'
 ]);
 
+export const equalMetaToGraphQLTypeNames = (metaTypeName, graphQLTypeName) => (
+	{
+		Int: 'int',
+		Float: 'float',
+		Boolean: 'bool',
+		String: 'string',
+		ID: 'string'
+	}[graphQLTypeName] === metaTypeName
+);
+
+
+
 /**
  *
  * @param {Object} type
@@ -112,9 +124,12 @@ const getRelayConnections = types => {
 	return connections;
 };
 
+
 const convertToSchemaType = (type, getFieldDescription) => {
+	const fields = type.fields || type.inputFields;
+
 	const schemaType = {
-		fields: type.fields && type.fields.reduce(
+		fields: fields.reduce(
 			(acc, field) => Object.assign(
 				acc,
 				{
@@ -125,6 +140,7 @@ const convertToSchemaType = (type, getFieldDescription) => {
 			)
 		, {}),
 		description: type.description || '',
+		name: type.name,
 		interfaces: type.interfaces && type.interfaces.length
 					? type.interfaces.map(({ name }) => name)
 					: []
@@ -155,7 +171,7 @@ export const parseGraphQLSchema = schema => {
 			type.kind === kind
 			||	(
 				type.ofType
-				?	haveKind(type.ofType)
+				?	haveKind(type.ofType, kind)
 				:	false
 			)
 		);
@@ -181,7 +197,7 @@ export const parseGraphQLSchema = schema => {
 		);
 
 
-	const getFieldDescription = (field) => {
+	const getFieldDescription = (field, isArgumentField) => {
 		const kind = FIELD_KINDS[
 			haveKind(field.type, 'LIST')
 			?	'LIST'
@@ -192,9 +208,10 @@ export const parseGraphQLSchema = schema => {
 			)
 		];
 
-		return Object.assign({
+		const fieldDescription = Object.assign({
 			nonNull: haveKind(field.type, 'NON_NULL'),
 			kind,
+			name: field.name,
 			description: field.description || '',
 			args: field.args && field.args.length
 					?	field.args.reduce(
@@ -202,24 +219,29 @@ export const parseGraphQLSchema = schema => {
 								acc,
 								{
 									[arg.name]: Object.assign({},
-										getFieldDescription(arg),
+										getFieldDescription(arg, true),
 										{ defaultValue: arg.defaultValue || null }
 									)
 								}
 							)
 						, {})
-					:	[]
+					:	{}
 		}, getTypeDescription(field.type, kind));
+
+		if (typeof isArgumentField === 'boolean' && isArgumentField)
+			delete fieldDescription.args;
+		return fieldDescription;
 	};
 
 	// -----------------------------------------------
 
+
 	schema.types.forEach(
 		type => {
 			if (
-				!graphQLPrimitiveTypes.has(type.name)
+				type.kind !== 'INTERFACE'
+				&&	!graphQLPrimitiveTypes.has(type.name)
 				&&	!/^__.*/.test(type.name)
-				&&	type.kind !== 'INTERFACE'
 			)
 				normalizedTypes[type.name] = convertToSchemaType(
 					type,
@@ -235,6 +257,8 @@ export const parseGraphQLSchema = schema => {
 			if (normalizedTypes['PageInfo']) delete normalizedTypes['PageInfo'];
 		}
 	);
+
+	delete normalizedTypes[queryType.name].fields.node;
 
 	return { types: normalizedTypes, queryTypeName: queryType.name };
 };

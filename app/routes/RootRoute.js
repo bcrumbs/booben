@@ -38,7 +38,7 @@ import {
     toggleComponentTitles
 } from '../actions/app';
 
-import { getLocalizedText } from '../utils';
+import { getLocalizedTextFromState } from '../utils';
 
 const TopMenuLink = props =>
     <Link to={props.href} className={props.className}>
@@ -230,11 +230,7 @@ const mapStateToProps = ({ project, app }) => ({
     project: project.data,
     showContentPlaceholders: app.showContentPlaceholders,
     showComponentTitles: app.showComponentTitles,
-    getLocalizedText: (...args) => getLocalizedText(
-        app.localization,
-        app.language,
-        ...args
-    )
+    getLocalizedText: getLocalizedTextFromState({ app })
 });
 
 const mapDispatchToProps = dispatch => ({
