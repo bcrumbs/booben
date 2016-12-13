@@ -43,9 +43,9 @@ import {
     currentComponentsSelector
 } from '../../selectors';
 
-import { getLocalizedText } from '../../utils';
+import { getLocalizedTextFromState } from '../../utils';
 import { canInsertComponent } from '../../utils/meta';
-import { objectForEach } from '../../utils/misc';
+import _forOwn from 'lodash.forown'
 
 //noinspection JSUnresolvedVariable
 import defaultComponentIcon from '../../img/component_default.svg';
@@ -70,8 +70,8 @@ const LibraryGroupData = Record({
 const extractGroupsDataFromMeta = meta => {
     let groups = OrderedMap();
 
-    objectForEach(meta, libMeta => {
-        objectForEach(libMeta.componentGroups, (groupData, groupName) => {
+    _forOwn(meta, libMeta => {
+        _forOwn(libMeta.componentGroups, (groupData, groupName) => {
             const fullName = `${libMeta.namespace}.${groupName}`;
 
             const libraryGroup = new LibraryGroupData({
@@ -85,7 +85,7 @@ const extractGroupsDataFromMeta = meta => {
             groups = groups.set(fullName, libraryGroup);
         });
 
-        objectForEach(libMeta.components, componentMeta => {
+        _forOwn(libMeta.components, componentMeta => {
             if (componentMeta.hidden) return;
 
             let defaultGroup = false,
@@ -300,7 +300,7 @@ const mapStateToProps = state => ({
     draggingComponent: state.project.draggingComponent,
     draggedComponents: state.project.draggedComponents,
     draggedComponentId: state.project.draggedComponentId,
-    getLocalizedText: (...args) => getLocalizedText(state.app.localization, state.app.language, ...args)
+    getLocalizedText: getLocalizedTextFromState(state)
 });
 
 const mapDispatchToProps = dispatch => ({

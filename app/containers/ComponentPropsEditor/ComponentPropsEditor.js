@@ -52,8 +52,9 @@ import {
     isValidSourceForProp
 } from '../../utils/meta';
 
-import { getLocalizedText } from '../../utils';
-import { objectMap, objectSome } from '../../utils/misc';
+import { getLocalizedTextFromState } from '../../utils';
+import { objectSome } from '../../utils/misc';
+import _mapValues from 'lodash.mapvalues';
 
 /**
  *
@@ -95,7 +96,10 @@ const isRenderableProp = propMeta =>
  * @return {boolean}
  */
 const isLinkedProp = propValue =>
-    propValue.source === 'data' || ( // TODO: Check that it is actually linked
+    (
+        propValue.source === 'data' &&
+        !!propValue.sourceData.queryPath
+    ) || (
         propValue.source === 'static' &&
         !!propValue.sourceData.ownerPropName
     );
@@ -132,7 +136,7 @@ const ownerPropsSelector = createSelector(
  * @return {*}
  */
 const transformValue = (propMeta, propValue) => {
-    if (!propValue) return null;
+    if (!propValue) return { value: null, isLinked: false };
 
     const isLinked = isLinkedProp(propValue);
     let value = null;
@@ -143,7 +147,7 @@ const transformValue = (propMeta, propValue) => {
                 value = propValue.sourceData.value;
             }
             else if (propMeta.type === 'shape') {
-                value = objectMap(propMeta.fields, (fieldMeta, fieldName) =>
+                value = _mapValues(propMeta.fields, (fieldMeta, fieldName) =>
                     transformValue(fieldMeta, propValue.sourceData.value.get(fieldName)));
             }
             else if (propMeta.type === 'objectOf') {
@@ -159,6 +163,17 @@ const transformValue = (propMeta, propValue) => {
             // true if component exists, false otherwise
             if (propMeta.type === 'component')
                 value = propValue.sourceData.rootId !== -1;
+        }
+    }
+    else {
+        if (propValue.source === 'data') {
+            value = propValue.sourceData.queryPath
+                .map(step => step.field)
+                .toJS()
+                .join(' -> ');
+        }
+        else if (propValue.source === 'static') {
+            value = propValue.sourceData.ownerPropName;
         }
     }
 
@@ -329,6 +344,8 @@ class ComponentPropsEditorComponent extends PureComponent {
         const propTypedef = resolveTypedef(componentMeta, propMeta);
 
         return objectSome(this.props.ownerProps, ownerProp => {
+            if (ownerProp.dataContext) return false;
+
             const ownerPropTypedef = resolveTypedef(
                 this.props.ownerComponentMeta,
                 ownerProp
@@ -392,7 +409,7 @@ class ComponentPropsEditorComponent extends PureComponent {
                 }));
             }
             else if (propMeta.type === 'shape') {
-                ret.fields = objectMap(propMeta.fields, (fieldMeta, fieldName) =>
+                ret.fields = _mapValues(propMeta.fields, (fieldMeta, fieldName) =>
                     this._propTypeFromMeta(componentMeta, fieldMeta));
             }
             else if (propMeta.type === 'arrayOf') {
@@ -581,11 +598,7 @@ const mapStateToProps = state => ({
     language: state.app.language,
     ownerComponentMeta: ownerComponentMetaSelector(state),
     ownerProps: ownerPropsSelector(state),
-    getLocalizedText: (...args) => getLocalizedText(
-        state.app.localization,
-        state.app.language,
-        ...args
-    )
+    getLocalizedText: getLocalizedTextFromState(state)
 });
 
 const mapDispatchToProps = dispatch => ({

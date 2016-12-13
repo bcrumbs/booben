@@ -3,183 +3,174 @@
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
+import { graphql } from 'react-apollo';
+import _merge from 'lodash.merge';
+import _mapValues from 'lodash.mapvalues';
+import { List } from 'immutable';
 
-// The real components.js will be generated during build process
-import _components from '../components.js';
+import { getComponentById } from '../../app/models/Project';
+import jssyConstants from '../../app/constants/jssyConstants';
+import { NO_VALUE } from  '../../app/constants/misc';
 
 import { ContentPlaceholder } from '../components/ContentPlaceholder';
 
-import patchComponent from '../patchComponent';
-
-import { getComponentById } from '../../app/models/Project';
-
-import jssyConstants from '../../app/constants/jssyConstants';
-
-import { List, Map } from 'immutable';
-
-import { NO_VALUE } from  '../../app/constants/misc';
+import getComponentByName from '../getComponentByName';
+import isPseudoComponent from '../isPseudoComponent';
 
 import {
     isContainerComponent,
     isCompositeComponent,
-    canInsertComponent
+    canInsertComponent,
+    getComponentMeta
 } from '../../app/utils/meta';
 
 import {
-    objectMap,
+    buildQueryForComponent,
+    mapDataToComponentProps,
+    extractPropValueFromData
+} from '../../app/utils/graphql';
+
+import {
     returnNull
 } from '../../app/utils/misc';
 
-const components = objectMap(_components, ns => objectMap(ns, patchComponent));
+class BuilderComponent extends PureComponent {
+    /**
+     *
+     * @param {Object} propValue
+     * @param {Object} theMap
+     * @return {Function}
+     */
+    _makeBuilderForProp(propValue, theMap) {
+        return props => (
+            <Builder
+                components={propValue.sourceData.components}
+                rootId={propValue.sourceData.rootId}
+                dontPatch
+                propsFromOwner={props}
+                theMap={theMap}
+                dataContextInfo={theMap.get(propValue)}
+                children={props.children}
+            />
+        );
+    }
 
-/**
- *
- * @type {Set<string>}
- * @const
- */
-const pseudoComponents = new Set([
-    'Text',
-    'Outlet',
-    'List'
-]);
-
-/**
- *
- * @param {ProjectComponent} component
- * @return {boolean}
- */
-const isPseudoComponent = component => pseudoComponents.has(component.name);
-
-/**
- * Get component from library
- *
- * @param  {string} name - Name of component with namespace (e.g. MyNamespace.MyComponent)
- * @return {Function|string} React component
- */
-const getComponentByName = (name = '') => {
-    const [namespace, componentName] = name.split('.');
-    if (!namespace || !componentName) throw new Error(`Invalid component name: ${name}`);
-    if (namespace === 'HTML') return componentName;
-    if (!components[namespace]) throw new Error(`Namespace not found: ${namespace}`);
-    const component = components[namespace][componentName];
-    if (!component) throw new Error(`Component not found: ${name}`);
-    return component;
-};
-
-/**
- *
- * @param {Object} propValueDescriptor
- * @return {Function}
- */
-const makeBuilderForProp = propValueDescriptor => props => (
-    <Builder
-        components={propValueDescriptor.sourceData.components}
-        rootId={propValueDescriptor.sourceData.rootId}
-        dontPatch
-        propsFromOwner={props}
-        children={props.children}
-    />
-);
-
-/**
- *
- * @param {Object} prop
- * @param {?Object<string, *>} propsFromOwner
- * @return {*}
- */
-const buildPropValue = (prop, propsFromOwner) => {
-    if (prop.source == 'static') {
-        if (propsFromOwner && prop.sourceData.ownerPropName) {
-            return propsFromOwner[prop.sourceData.ownerPropName];
-        }
-        else {
-            if (List.isList(prop.sourceData.value)) {
-                return prop.sourceData.value.map(nestedProp =>
-                    buildPropValue(nestedProp, propsFromOwner)).toJS();
-            }
-            else if (Map.isMap(prop.sourceData.value)) {
-                return prop.sourceData.value.map(nestedProp =>
-                    buildPropValue(nestedProp, propsFromOwner)).toJS();
+    /**
+     *
+     * @param {Object} propValue
+     * @param {PropTypeDefinition} propMeta
+     * @param {Immutable.Map<Object, Object>} theMap
+     * @return {*}
+     */
+    _buildPropValue(propValue, propMeta, theMap) {
+        if (propValue.source == 'static') {
+            if (propValue.sourceData.ownerPropName && !this.props.ignoreOwnerProps) {
+                return this.props.propsFromOwner[propValue.sourceData.ownerPropName];
             }
             else {
-                return prop.sourceData.value;
+                if (propMeta.type === 'shape') {
+                    if (propValue.sourceData.value === null) return null;
+
+                    return _mapValues(propMeta.fields, (fieldMeta, fieldName) => {
+                        const fieldValue = propValue.sourceData.value.get(fieldName);
+
+                        return this._buildPropValue(
+                            fieldValue,
+                            fieldMeta,
+                            theMap
+                        );
+                    });
+                }
+                else if (propMeta.type === 'objectOf') {
+                    if (propValue.sourceData.value === null) return null;
+
+                    return propValue.sourceData.value.map(nestedValue =>
+                        this._buildPropValue(
+                            nestedValue,
+                            propMeta.ofType,
+                            theMap
+                        )
+                    ).toJS();
+                }
+                else if (propMeta.type === 'arrayOf') {
+                    return propValue.sourceData.value.map(nestedValue =>
+                        this._buildPropValue(
+                            nestedValue,
+                            propMeta.ofType,
+                            theMap
+                        )
+                    ).toJS();
+                }
+                else {
+                    return propValue.sourceData.value;
+                }
             }
         }
-    }
-    else if (prop.source === 'const') {
-        if (typeof prop.sourceData.value !== 'undefined') {
-            return prop.sourceData.value;
+        else if (propValue.source === 'const') {
+            if (propValue.sourceData.jssyConstId) {
+                return jssyConstants[propValue.sourceData.jssyConstId];
+            }
+            else {
+                return propValue.sourceData.value;
+            }
         }
-        else if (typeof prop.sourceData.jssyConstId !== 'undefined') {
-            return jssyConstants[prop.sourceData.jssyConstId];
+        else if (propValue.source === 'designer') {
+            if (propValue.sourceData.components && propValue.sourceData.rootId > -1) {
+                return this._makeBuilderForProp(propValue, theMap);
+            }
+            else {
+                return returnNull;
+            }
         }
-    }
-    else if (prop.source === 'designer') {
-        if (prop.sourceData.components && prop.sourceData.rootId > -1) {
-            return makeBuilderForProp(prop);
+        else if (propValue.source === 'data') {
+            if (propValue.sourceData.dataContext.size > 0 && this.props.dataContextInfo) {
+                const dataContextInfo =
+                    this.props.dataContextInfo[propValue.sourceData.dataContext.last()];
+
+                const data = this.props.propsFromOwner[dataContextInfo.ownerPropName];
+
+                return extractPropValueFromData(
+                    propValue,
+                    data,
+                    this.props.schema,
+                    dataContextInfo.type
+                );
+            }
         }
-        else {
-            return returnNull;
+        else if (propValue.source === 'actions') {
+            // TODO: Handle actions source
         }
-    }
-    else if (prop.source === 'actions') {
-        // TODO: Handle actions source
-    }
-    else if (prop.source === 'data') {
-        // TODO: Handle data source
+
+        return NO_VALUE;
     }
 
-    return NO_VALUE;
-};
+    /**
+     * Constructs props object
+     *
+     * @param {Object} component
+     * @param {Immutable.Map<Object, Object>} theMap
+     * @return {Object<string, *>}
+     */
+    _buildProps(component, theMap) {
+        const componentMeta = getComponentMeta(component.name, this.props.meta);
 
-/**
- * Constructs props object
- *
- * @param {Immutable.Map<string, Object>} propValueDescriptors
- * @param {?Object<string, *>} propsFromOwner
- * @return {Object<string, *>}
- */
-const buildProps = (propValueDescriptors, propsFromOwner) => {
-    const ret = {};
+        const ret = {};
 
-    propValueDescriptors.forEach((prop, key) => {
-        const value = buildPropValue(prop, propsFromOwner);
-        if (value !== NO_VALUE) ret[key] = value;
-    });
+        component.props.forEach((propValue, propName) => {
+            const propMeta = componentMeta.props[propName];
 
-    return ret;
-};
+            const value = this._buildPropValue(
+                propValue,
+                propMeta,
+                theMap
+            );
+            
+            if (value !== NO_VALUE) ret[propName] = value;
+        });
 
-/**
- *
- * @param {Object} component
- * @return {boolean}
- */
-const hasDataProps = component =>
-    component.props.some(value => value.source === 'data');
+        return ret;
+    };
 
-/**
- *
- * @param {Immutable.Map<number, Object>} components
- * @param {Object} component
- * @return {boolean}
- */
-const hasDataPropsDeep = (components, component) =>
-    hasDataProps(component) ||
-
-    component.children.some(childId =>
-        hasDataPropsDeep(components, components.get(childId))) ||
-
-    component.props.some(propValue =>
-        propValue.source === 'designer' &&
-        propValue.sourceData.rootId > -1 &&
-        hasDataPropsDeep(
-            propValue.sourceData.components,
-            propValue.sourceData.components.get(propValue.sourceData.rootId)
-        ));
-
-
-class BuilderComponent extends PureComponent {
     /**
      *
      * @param {Object} component
@@ -187,19 +178,15 @@ class BuilderComponent extends PureComponent {
      * @private
      */
     _renderPseudoComponent(component) {
-        const propsFromOwner = this.props.ignoreOwnerProps
-            ? null
-            : this.props.propsFromOwner;
-
         if (component.name === 'Outlet') {
             return this.props.children;
         }
         else if (component.name === 'Text') {
-            const props = buildProps(component.props, propsFromOwner);
+            const props = this._buildProps(component);
             return props.text || '';
         }
         else if (component.name === 'List') {
-            const props = buildProps(component.props, propsFromOwner),
+            const props = this._buildProps(component),
                 ItemComponent = props.component;
 
             return props.data.map((item, idx) => (
@@ -356,15 +343,24 @@ class BuilderComponent extends PureComponent {
         // Handle special components like Text, Outlet etc.
         if (isPseudoComponent(component)) return this._renderPseudoComponent(component);
 
-        const Component = getComponentByName(component.name);
-
-        const propsFromOwner = this.props.ignoreOwnerProps
-            ? null
-            : this.props.propsFromOwner;
-
-        const props = buildProps(component.props, propsFromOwner),
+        // Get component class
+        const Component = getComponentByName(component.name),
             isHTMLComponent = typeof Component === 'string';
 
+        // Build GraphQL query
+        const { query: graphQLQuery, theMap } = buildQueryForComponent(
+            component,
+            this.props.schema,
+            this.props.meta
+        );
+
+        // Build props
+        const props = this._buildProps(
+            component,
+            this.props.theMap ? this.props.theMap.merge(theMap) : theMap
+        );
+
+        // Render children
         props.children = this._renderComponentChildren(component, isPlaceholder);
 
         if (!isPlaceholder) {
@@ -416,10 +412,38 @@ class BuilderComponent extends PureComponent {
                 props.children = <ContentPlaceholder />;
         }
 
-        //noinspection JSValidateTypes
-        return (
-            <Component {...props} />
-        );
+        if (graphQLQuery) {
+            const Container = graphql(graphQLQuery, {
+                props: ({ ownProps, data }) => {
+                    // TODO: Better check
+                    if (Object.keys(data).length <= 9) return ownProps;
+
+                    const dataProps = mapDataToComponentProps(
+                        component,
+                        data,
+                        this.props.schema,
+                        this.props.meta
+                    );
+
+                    return _merge({}, ownProps, dataProps);
+                },
+
+                options: {
+                    pollInterval: 1000
+                }
+            })(Component);
+
+            //noinspection JSValidateTypes
+            return (
+                <Container {...props}/>
+            );
+        }
+        else {
+            //noinspection JSValidateTypes
+            return (
+                <Component {...props} />
+            );
+        }
     }
 
     render() {
@@ -443,18 +467,21 @@ class BuilderComponent extends PureComponent {
 }
 
 BuilderComponent.propTypes = {
-    components: PropTypes.any, // Immutable map of <number, Component>
+    components: PropTypes.object, // Immutable.Map<number, Component>
     rootId: PropTypes.number,
     dontPatch: PropTypes.bool,
     enclosingComponentId: PropTypes.number,
     isPlaceholder: PropTypes.bool,
-    afterIdx: PropTypes.any, // number on null
-    containerId: PropTypes.any, // number on null
+    afterIdx: PropTypes.number,
+    containerId: PropTypes.number,
     propsFromOwner: PropTypes.object,
+    theMap: PropTypes.object,
+    dataContextInfo: PropTypes.object,
     ignoreOwnerProps: PropTypes.bool,
 
     project: PropTypes.any,
     meta: PropTypes.object,
+    schema: PropTypes.object,
     draggingComponent: PropTypes.bool,
     draggedComponentId: PropTypes.number,
     draggedComponents: PropTypes.any,
@@ -471,7 +498,9 @@ BuilderComponent.defaultProps = {
     afterIdx: -1,
     containerId: -1,
     propsFromOwner: {},
-    ignoreOwnerProps: false
+    theMap: null,
+    dataContextInfo: null,
+    ignoreOwnerProps: false,
 };
 
 BuilderComponent.displayName = 'Builder';
@@ -479,6 +508,7 @@ BuilderComponent.displayName = 'Builder';
 const mapStateToProps = state => ({
     project: state.project.data,
     meta: state.project.meta,
+    schema: state.project.schema,
     draggingComponent: state.project.draggingComponent,
     draggedComponentId: state.project.draggedComponentId,
     draggedComponents: state.project.draggedComponents,

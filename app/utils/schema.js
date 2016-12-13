@@ -2,7 +2,7 @@
  * @author olegnn <olegnosov1@gmail.com>
  */
 
-import { objectForEach } from './misc';
+import _forOwn from 'lodash.forown';
 
 export const FIELD_KINDS = {
 	SINGLE: 'SINGLE',
@@ -17,6 +17,21 @@ export const graphQLPrimitiveTypes = new Set([
 	'String',
 	'ID'
 ]);
+
+export const equalMetaToGraphQLTypeNames = (metaTypeName, graphQLTypeName) => (
+	{
+		Int: 'int',
+		Float: 'float',
+		Boolean: 'bool',
+		String: 'string',
+		ID: 'string'
+	}[graphQLTypeName] === metaTypeName
+);
+
+export const isPrimitiveGraphQLType = typeName =>
+				graphQLPrimitiveTypes.has(typeName);
+
+
 
 /**
  *
@@ -112,9 +127,12 @@ const getRelayConnections = types => {
 	return connections;
 };
 
+
 const convertToSchemaType = (type, getFieldDescription) => {
+	const fields = type.fields || type.inputFields;
+
 	const schemaType = {
-		fields: type.fields && type.fields.reduce(
+		fields: fields.reduce(
 			(acc, field) => Object.assign(
 				acc,
 				{
@@ -125,6 +143,7 @@ const convertToSchemaType = (type, getFieldDescription) => {
 			)
 		, {}),
 		description: type.description || '',
+		name: type.name,
 		interfaces: type.interfaces && type.interfaces.length
 					? type.interfaces.map(({ name }) => name)
 					: []
@@ -148,14 +167,14 @@ export const parseGraphQLSchema = schema => {
 	// -----------------------------------------------
 	// TODO Correct and refactor
 
-	const haveKind = (type, kind) =>
+	const haveKind = (type, kind, deep = true) =>
 		kind === FIELD_KINDS['CONNECTION']
 		?	!!connections[type.name]
 		:	(
 			type.kind === kind
 			||	(
-				type.ofType
-				?	haveKind(type.ofType)
+				type.ofType && deep
+				?	haveKind(type.ofType, kind, deep)
 				:	false
 			)
 		);
@@ -175,13 +194,21 @@ export const parseGraphQLSchema = schema => {
 							), {})
 			}
 		:	(
-			type.ofType
-			?	getTypeDescription(type.ofType, kind)
-			:  	{ type: type.name }
+				type.ofType
+				?	getTypeDescription(type.ofType, kind)
+				:  	kind !== FIELD_KINDS.LIST
+					?
+						{
+							type: type.name
+						}
+					:	{
+							type: type.name,
+							nonNullMember: haveKind(type, 'NON_NULL')
+						}
 		);
 
 
-	const getFieldDescription = (field) => {
+	const getFieldDescription = (field, isArgumentField) => {
 		const kind = FIELD_KINDS[
 			haveKind(field.type, 'LIST')
 			?	'LIST'
@@ -192,9 +219,10 @@ export const parseGraphQLSchema = schema => {
 			)
 		];
 
-		return Object.assign({
-			nonNull: haveKind(field.type, 'NON_NULL'),
+		const fieldDescription = Object.assign({
+			nonNull: haveKind(field.type, 'NON_NULL', false),
 			kind,
+			name: field.name,
 			description: field.description || '',
 			args: field.args && field.args.length
 					?	field.args.reduce(
@@ -202,24 +230,29 @@ export const parseGraphQLSchema = schema => {
 								acc,
 								{
 									[arg.name]: Object.assign({},
-										getFieldDescription(arg),
+										getFieldDescription(arg, true),
 										{ defaultValue: arg.defaultValue || null }
 									)
 								}
 							)
 						, {})
-					:	[]
+					:	{}
 		}, getTypeDescription(field.type, kind));
+
+		if (typeof isArgumentField === 'boolean' && isArgumentField)
+			delete fieldDescription.args;
+		return fieldDescription;
 	};
 
 	// -----------------------------------------------
 
+
 	schema.types.forEach(
 		type => {
 			if (
-				!graphQLPrimitiveTypes.has(type.name)
+				type.kind !== 'INTERFACE'
+				&&	!graphQLPrimitiveTypes.has(type.name)
 				&&	!/^__.*/.test(type.name)
-				&&	type.kind !== 'INTERFACE'
 			)
 				normalizedTypes[type.name] = convertToSchemaType(
 					type,
@@ -228,7 +261,7 @@ export const parseGraphQLSchema = schema => {
 		}
 	);
 
-	objectForEach(connections,
+	_forOwn(connections,
 		({ edge }, key) => {
 			delete normalizedTypes[key];
 			delete normalizedTypes[edge.name];
@@ -236,5 +269,37 @@ export const parseGraphQLSchema = schema => {
 		}
 	);
 
+	delete normalizedTypes[queryType.name].fields.node;
+
 	return { types: normalizedTypes, queryTypeName: queryType.name };
 };
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string} fieldName
+ * @param {string} onType
+ * @return {string}
+ */
+export const getTypeNameByField = (schema, fieldName, onType) => {
+    const [ownFieldName, connectionFieldName] = fieldName.split('/');
+
+    let field = schema.types[onType].fields[ownFieldName];
+
+    if (connectionFieldName)
+        field = field.connectionFields[connectionFieldName];
+
+    return field.type;
+};
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string[]} path - Array of field names
+ * @param {string} [startType='']
+ * @return {string}
+ */
+export const getTypeNameByPath = (schema, path, startType = '') => path.reduce(
+    (acc, cur) => getTypeNameByField(schema, cur, acc),
+    startType || schema.queryTypeName
+);

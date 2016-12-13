@@ -6,6 +6,7 @@
 
 import { Record } from 'immutable';
 
-// TODO: Add some props
 export default Record({
+    value: null,
+    jssyConstId: ''
 });

@@ -18,14 +18,17 @@ import {
     PropsItem
 } from '../../components/PropsList/PropsList';
 
-import ProjectRecord, { getComponentById } from '../../models/Project';
+import ProjectComponent from '../../models/ProjectComponent';
 
 import { toggleComponentRegion } from '../../actions/project';
 
-import { currentSelectedComponentIdsSelector } from '../../selectors';
+import {
+    currentComponentsSelector,
+    currentSelectedComponentIdsSelector
+} from '../../selectors';
 
 import { getComponentMeta, getString } from '../../utils/meta';
-import { getLocalizedText } from '../../utils';
+import { getLocalizedTextFromState } from '../../utils';
 
 //noinspection JSUnresolvedVariable
 import defaultRegionIcon from '../../img/layout_default.svg';
@@ -40,7 +43,7 @@ class ComponentRegionsEditorComponent extends PureComponent {
         if (this.props.selectedComponentIds.size !== 1) return null;
 
         const componentId = this.props.selectedComponentIds.first(),
-            component = getComponentById(this.props.project, componentId),
+            component = this.props.currentComponents.get(componentId),
             componentMeta = getComponentMeta(component.name, this.props.meta);
 
         if (componentMeta.kind !== 'composite') return null;
@@ -50,10 +53,16 @@ class ComponentRegionsEditorComponent extends PureComponent {
         const items = layoutMeta.regions.map((region, idx) => (
             <PropsItem
                 key={idx}
-                view="toggle"
-                image={region.icon || defaultRegionIcon}
-                label={getString(componentMeta, region.textKey, this.props.language)}
-                value={component.regionsEnabled.has(idx)}
+                propType={{
+                    view: 'toggle',
+                    label: getString(componentMeta, region.textKey, this.props.language),
+                    image: region.icon || defaultRegionIcon,
+                    linkable: false
+                }}
+                value={{
+                    value: component.regionsEnabled.has(idx),
+                    linked: false
+                }}
                 onChange={this._handleRegionToggle.bind(this, idx)}
             />
         ));
@@ -69,23 +78,26 @@ class ComponentRegionsEditorComponent extends PureComponent {
 }
 
 ComponentRegionsEditorComponent.propTypes = {
-    project: PropTypes.instanceOf(ProjectRecord),
     meta: PropTypes.object,
+    currentComponents: ImmutablePropTypes.mapOf(
+        PropTypes.instanceOf(ProjectComponent),
+        PropTypes.number
+    ),
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     language: PropTypes.string,
-
     getLocalizedText: PropTypes.func,
+
     onToggleRegion: PropTypes.func
 };
 
 ComponentRegionsEditorComponent.displayName = 'ComponentRegionsEditor';
 
 const mapStateToProps = state => ({
-    project: state.project.data,
     meta: state.project.meta,
+    currentComponents: currentComponentsSelector(state),
     selectedComponentIds: currentSelectedComponentIdsSelector(state),
     language: state.app.language,
-    getLocalizedText(...args) { return getLocalizedText(state.app.localization, state.app.language, ...args) }
+    getLocalizedText: getLocalizedTextFromState(state)
 });
 
 const mapDispatchToProps = dispatch => ({

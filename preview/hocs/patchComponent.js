@@ -7,7 +7,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { noop } from '../app/utils/misc';
+import { noop } from '../../app/utils/misc';
 
 const patchDOMElement = componentInstance => {
     const componentId = componentInstance.props.__jssy_component_id__;

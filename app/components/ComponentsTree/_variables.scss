@@ -10,16 +10,11 @@ $ctree-pad-y:                   $base-module*1.5 !default;
 $ctree-level-offset:            $base-module !default;
 $ctree-level-0-pad-right:       0 !default;
 
-// Line
-$ctree-line-color:              $grey-800 !default;
-$ctree-line-thickness:          2px !default;
-$ctree-line-box-height:         $ctree-line-thickness + 1px*2 !default;
-
 // Tree item
 $ctree-item-max-width:          rem-calc(300) !default;
 $ctree-item-min-width:          rem-calc(100) !default;
 
-$ctree-item-spacing:            $ctree-line-box-height !default;
+$ctree-item-spacing:            $base-module/2 !default;
 $ctree-item-pad-x:              $base-module !default;
 $ctree-item-pad-y:              $base-module/2 !default;
 $ctree-item-color:              $body-font-color !default;
@@ -36,7 +31,3 @@ $ctree-item-icon-img-size:      $base-module*1.25 !default;
 $ctree-item-icon-color:         $icon-dark-inactive-color !default;
 $ctree-item-focus-icon-color:   $icon-dark-default-color !default;
 $ctree-item-icon-spacing:       0 !default;
-
-
-
-

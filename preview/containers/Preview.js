@@ -1,7 +1,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { PureComponent, PropTypes } from 'react';
+import React, { Component, PropTypes } from 'react';
 import { Router, hashHistory } from 'react-router';
 import { connect } from 'react-redux';
 
@@ -143,28 +143,7 @@ const getClosestComponentOrPlaceholder = el => {
     return null;
 };
 
-/**
- *
- * @param {Immutable.Map<number, ProjectComponent>} components
- * @param {number} rootId
- * @param {number} enclosingComponentId
- * @return {Function}
- */
-const makeBuilder = (components, rootId, enclosingComponentId) => {
-    const ret = ({ children }) => (
-        <Builder
-            components={components}
-            rootId={rootId}
-            enclosingComponentId={enclosingComponentId}
-            children={children}
-        />
-    );
-
-    ret.displayName = `Builder(${rootId === -1 ? 'null' : rootId})`;
-    return ret;
-};
-
-class Preview extends PureComponent {
+class Preview extends Component {
     constructor(props) {
         super(props);
 
@@ -234,6 +213,27 @@ class Preview extends PureComponent {
 
     /**
      *
+     * @param {Immutable.Map<number, ProjectComponent>} components
+     * @param {number} rootId
+     * @param {number} enclosingComponentId
+     * @return {Function}
+     */
+    _makeBuilder(components, rootId, enclosingComponentId) {
+        const ret = ({ children }) => (
+            <Builder
+                components={components}
+                rootId={rootId}
+                enclosingComponentId={enclosingComponentId}
+                children={children}
+            />
+        );
+
+        ret.displayName = `Builder(${rootId === -1 ? 'null' : rootId})`;
+        return ret;
+    };
+
+    /**
+     *
      * @param {Object} routes
      * @param {number} routeId
      * @param {number} [enclosingComponentId=-1]
@@ -245,7 +245,7 @@ class Preview extends PureComponent {
 
         const ret = {
             path: route.path,
-            component: makeBuilder(
+            component: this._makeBuilder(
                 route.components,
                 route.component,
                 enclosingComponentId
@@ -275,7 +275,7 @@ class Preview extends PureComponent {
         }
         else if (route.haveIndex) {
             ret.indexRoute = {
-                component: makeBuilder(
+                component: this._makeBuilder(
                     route.components,
                     route.indexComponent,
                     enclosingComponentIdForChildRoute
