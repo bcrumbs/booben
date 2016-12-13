@@ -44,8 +44,10 @@ import {
 function canBeApplied(metaType, graphQLType) {
 	if (metaType.type === 'arrayOf') {
 		if (metaType.ofType.type === 'object')
-			return graphQLType.kind === FIELD_KINDS.CONNECTION
-					||	graphQLType.kind === FIELD_KINDS.LIST;
+			return (
+				graphQLType.kind === FIELD_KINDS.CONNECTION
+					||	graphQLType.kind === FIELD_KINDS.LIST
+			) && !isPrimitiveGraphQLType(graphQLType.type);
 		if (
 			(
 				graphQLType.kind === FIELD_KINDS.CONNECTION
@@ -500,7 +502,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		handleJumpIntoField,
 		handleBackToPress,
 		handleApplyPress,
-		title = fields.length - 1
+		allArgumentsMode,
+		title = allArgumentsMode
 				?	`All arguments`
 				:	`${fields[0].name} arguments`,
 		subtitle = 'Please, fill required arguments',
@@ -826,7 +829,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						this.setNewArgumentValue,
 						this._handleJumpIntoField,
 						this._handleBackToPress,
-						this._handleArgumentsApplyPress
+						this._handleArgumentsApplyPress,
+						this.state.allArgumentsMode
 					)
 		);
 	}
