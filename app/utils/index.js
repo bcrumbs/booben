@@ -30,7 +30,7 @@ export const getLocalizedText = (localization, language, id, values = {}) =>
 /**
   *
   * @param {Object} state
-  * @return {Function<string, string>:string}
+  * @return {function(string, string): string}
   */
 export const getLocalizedTextFromState = state =>
 	localizationFuncsMap.get(state.app.localization)
