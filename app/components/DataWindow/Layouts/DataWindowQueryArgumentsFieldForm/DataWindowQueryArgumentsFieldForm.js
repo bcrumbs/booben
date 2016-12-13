@@ -155,9 +155,9 @@ export class DataWindowQueryArgumentsFieldForm extends PureComponent {
 			}
 		);
 
-		nextProps.setNewArgumentValue(
+		nextProps.setNewArgumentValue({
 			[nextProps.argFieldName]: fieldValue
-		);
+		});
 	}
 
 	_convertValueAndPropTypeTreeToState(...args) {

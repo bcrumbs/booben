@@ -314,9 +314,9 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 				= this.state.selectedFieldName.includes('/');
 			if (isSelectedFieldConnectionField) {
 				const fieldName = this.state.selectedFieldName.split('/');
-				return types[currentPathLast.type].fields[
+				return Object.assign({}, types[currentPathLast.type].fields[
 					fieldName[0]
-				].connectionFields[fieldName[1]];
+				].connectionFields[fieldName[1]], { name: this.state.selectedFieldName});
 			}
 			return types[currentPathLast.type].fields[this.state.selectedFieldName];
 		}
@@ -385,11 +385,11 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
 						return path.concat(
 							parentField.fields[name]
-							||	Object.keys(fieldConnections).reduce(
+							||	Object.assign({}, Object.keys(fieldConnections).reduce(
 								(_, fieldConnectionName)	=>
 									_ || fieldConnections[fieldConnectionName]
 										.connectionFields[name.split('/')[1]]
-							, void 0)
+							, void 0), { name })
 						);
 
 					}
