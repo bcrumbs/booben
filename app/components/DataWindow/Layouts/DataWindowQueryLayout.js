@@ -2,7 +2,6 @@
 
 import React, { PureComponent, PropTypes } from 'react';
 
-
 import {
     Checkbox
 } from '@reactackle/reactackle';
@@ -17,13 +16,16 @@ import {
 } from '../DataWindowContent/DataWindowContent';
 
 import {
+	DataWindowQueryArgumentsFieldForm
+} from './DataWindowQueryArgumentsFieldForm/DataWindowQueryArgumentsFieldForm';
+
+import {
     PropsList,
     PropsItem
 } from '../../PropsList/PropsList';
 
-
 import {
-	graphQLPrimitiveTypes,
+	isPrimitiveGraphQLType,
 	equalMetaToGraphQLTypeNames,
 	FIELD_KINDS
 } from '../../../utils/schema';
@@ -39,406 +41,42 @@ import {
     getNestedTypedef
 } from '../../../utils/meta';
 
-const setObjectValueByPath = (object, value, path) => {
-	if (!Array.isArray(object))
-		return Object.assign({}, object,
-			{
-				[path[0]]:
-					path.length === 1
-					?	value
-					:	setObjectValueByPath(object[path[0]], value, path.slice(1))
-			}
-		);
-	else {
-		const newObj = [...object];
-		const index = path[0] + 1
-				? path[0]
-				: newObj.push({}) - 1;
-
-		const currentValue = path.length === 1
-		?	value
-		:	setObjectValueByPath(newObj[index], value, path.slice(1));
-
-		newObj[index] = currentValue;
-
-		return newObj;
-	}
-};
-
-const getObjectValueByPath = (object, path) =>
-	path.length === 1
-	?	object[path[0]]
-	:	getObjectValueByPath(object[path[0]], path.slice(1));
-
-const removeObjectValueByPath = (object, path) => {
-	if (Array.isArray(object))
-		if (path.length === 1)
-			return object.slice(0, path[0]).concat(object.slice(path[0] + 1));
-		else return object.slice(0, path[0]).concat([
-			removeObjectValueByPath(object[path[0]], path.slice(1))
-		]).concat(object.slice(path[0] + 1));
-	else if (path.length === 1) {
-		const newObj = Object.assign({}, object);
-		delete newObj[path[0]];
-		return newObj;
-	} else return Object.assign({},
-		object, {
-			[path[0]]:
-				removeObjectValueByPath(object[path[0]], path.slice(1))
-		}
-	);
-};
-
-const parseIntValue = value => {
-	const parsedValue = parseInt(value, 10);
-	return '' + (
-		Number.isSafeInteger(parsedValue) ? parsedValue: 0
-	);
-};
-
-const parseFloatValue = value => {
-
-	let parsedValue = parseFloat(value);
-
-	const matchedDecimal = value.match(/\.\d*/);
-
-	const fixBy =
-		matchedDecimal
-		&&	matchedDecimal[0]
-		&&	matchedDecimal[0].length - 1;
-
-
-	return isFinite(parsedValue)
-	?
-		value.endsWith('.') && value.match(/\./g).length === 1
-		?	parsedValue + '.'
-		:	!(parsedValue % 1)
-			?	parsedValue.toFixed(fixBy + 1 ? fixBy: 0)
-			:	parsedValue + ''
-	:	'0.0';
-};
-
-const getTransformFunction = typeName => (
-	{
-		Int: parseIntValue,
-		Float: parseFloatValue,
-	}[typeName]
-);
-
-const isPrimitiveGraphQLType = typeName =>
-	graphQLPrimitiveTypes.has(typeName);
-
-const getDefaultArgFieldValue = (type, kind) => {
-	const defaultValue =
-		isPrimitiveGraphQLType(
-			type
-		)	?	(
-				type === 'Boolean'
-				?	false
-				:	type === 'String'
-					?	''
-					:	type === 'Int'
-						?	0
-						:	'0.0'
+function canBeApplied(metaType, graphQLType) {
+	if (metaType.type === 'arrayOf') {
+		if (metaType.ofType.type === 'object')
+			return graphQLType.kind === FIELD_KINDS.CONNECTION
+					||	graphQLType.kind === FIELD_KINDS.LIST;
+		if (
+			(
+				graphQLType.kind === FIELD_KINDS.CONNECTION
+				||	graphQLType.kind === FIELD_KINDS.LIST
 			)
-			:	{};
-	if (kind === FIELD_KINDS.LIST) return [defaultValue];
-	else return defaultValue;
-};
-
-
-class DataWindowQueryArgumentsFieldForm extends PureComponent {
-	constructor(props){
-		super(props);
-		this.state = this._convertValueAndPropTypeTreeToState(
-			props.argField,
-			props.argFieldName,
-			props.argFieldValue,
-			props.types
-		);
-		this._handleChange = this._handleChange.bind(this);
-		this._handleNullSwitch = this._handleNullSwitch.bind(this);
-		this._convertObjectToValue = this._convertObjectToValue.bind(this);
-		this._createValueAndPropTypeTree = this._createValueAndPropTypeTree.bind(this);
-		this._handleAdd = this._handleAdd.bind(this);
-		this._handleRemove = this._handleRemove.bind(this);
+			&&
+			equalMetaToGraphQLTypeNames(metaType.ofType.type, graphQLType.type)
+		)	return true;
 	}
-
-	componentWillReceiveProps(nextProps) {
-		this.setState(
-			this._convertValueAndPropTypeTreeToState(
-				nextProps.argField,
-				nextProps.argFieldName,
-				nextProps.argFieldValue,
-				nextProps.types
-			)
-		);
-	}
-
-	_convertValueAndPropTypeTreeToState(...args) {
-		const {
-			fieldValue,
-			propType
-		} = this._createValueAndPropTypeTree(
-			...args
-		);
-
-		return ({
-			fieldValue: {
-				[args[1]]: fieldValue,
-			},
-			propType
-		});
-	}
-
-	_convertObjectToValue(obj){
-		return	{
-			value: (
-				typeof obj === 'object' && obj !== null
-				?	!Array.isArray(obj)
-					?	Object.keys(obj).reduce(
-							(acc, name) => Object.assign(acc, {
-								[name]:
-										this._convertObjectToValue(obj[name])
-								}
-							)
-
-						, {})
-				  	:	obj.map(this._convertObjectToValue)
-				:	 obj
-			),
-
-			message: (
-				this.props.argumentsBound
-						?	'Arguments already in use'
-						: 	void 0
-			)
-		};
-	}
-
-	_createValueAndPropTypeTree(argField, argFieldName, argFieldConstValue, types) {
-		let argFieldValue,
-			ofType = void 0;
-
-		const isComposite = argField.kind === FIELD_KINDS.LIST;
-
-		if (typeof argFieldConstValue === 'undefined')
-			argFieldValue = {};
-		else if (argFieldConstValue === null)
-			argFieldValue = null;
-		else
-			argFieldValue = clone(argFieldConstValue);
-
-		if (isComposite && typeof argFieldValue[argFieldName] === 'undefined')
-			argFieldValue[argFieldName] = [void 0];
-
-		const subFields =
-			!isPrimitiveGraphQLType(argField.type) && !isComposite
-			?	Object.keys(types[argField.type].fields).reduce((acc, fieldName) => {
-					const field = types[argField.type].fields[fieldName];
-
-					if (argFieldValue !== null) {
-						argFieldValue[argFieldName] =
-							typeof argFieldValue[argFieldName] === 'undefined'
-							?	getDefaultArgFieldValue(argField.type, argField.kind)
-							:	argFieldValue[argFieldName];
-
-						const {
-							fieldValue,
-							propType
-						} = this._createValueAndPropTypeTree(
-							field,
-							fieldName,
-							argFieldValue[argFieldName],
-							types,
-						);
-
-						argFieldValue[argFieldName]
-						&&	(argFieldValue[argFieldName][fieldName] = fieldValue);
-
-						return Object.assign(acc, {
-							[fieldName]: propType
-						});
-
-					}
-					else return acc;
-				}
-				, {})
-			:	{};
-
-		if (isComposite) {
-			ofType = argFieldValue[argFieldName]
-							.map(value => this._createValueAndPropTypeTree(
-									Object.assign(
-										{},	argField, { kind: FIELD_KINDS.SINGLE }
-									), argFieldName, { [argFieldName]: value }, types
-					));
-			argFieldValue[argFieldName] = ofType.map(
-				({ fieldValue }) => fieldValue
-			);
-		}
-
-
-		return {
-			fieldValue:
-			 	argFieldValue
-				&&	(
-					typeof argFieldValue[argFieldName] === 'undefined'
-					?	getDefaultArgFieldValue(argField.type, argField.kind)
-					:	argFieldValue[argFieldName]
-				),
-			propType: {
-			   label: argFieldName,
-			   view:
-			   	   argField.kind === FIELD_KINDS.LIST
-				   ?   'array'
-				   :
-					   isPrimitiveGraphQLType(argField.type)
-					   ?
-						   argField.type === 'Boolean'
-						   ?	'select'
-						   :	'input'
-					   :	'shape',
-			   type: argField.type,
-			   transformValue: getTransformFunction(
-					 argField.type
-			   ),
-			   required: !!argField.nonNull,
-			   displayRequired: !!argField.nonNull,
-			   notNull: !!argField.nonNull,
-			   fields: subFields,
-			   ofType: ofType && ofType[0] && ofType[0].propType
-			}
-		};
-	}
-
-	_handleChange(value, path) {
-		const newValue = setObjectValueByPath(
-			this.state.fieldValue,
-			value,
-			[this.props.argFieldName].concat(path),
-		);
-		const {
-			fieldValue,
-			propType
-		} = this._convertValueAndPropTypeTreeToState(
-			this.props.argField,
-			this.props.argFieldName,
-			newValue,
-			this.props.types
-		);
-
-		this.setState({ fieldValue, propType });
-
-		this.props.setNewArgumentValue(
-			fieldValue
-		);
-	}
-
-	_handleAdd(path, index) {
-		this._handleChange(void 0, path.concat([index]));
-	}
-
-	_handleRemove(path, index) {
-		const newValue = removeObjectValueByPath(
-			this.state.fieldValue,
-			[this.props.argFieldName].concat(path.concat([index])),
-		);
-
-		const {
-			fieldValue,
-			propType
-		} = this._convertValueAndPropTypeTreeToState(
-			this.props.argField,
-			this.props.argFieldName,
-			newValue,
-			this.props.types
-		);
-
-		this.setState({ fieldValue, propType });
-
-		this.props.setNewArgumentValue(
-			fieldValue
-		);
-	}
-
-	_handleNullSwitch(path) {
-		const oldValue =
-			getObjectValueByPath(
-				this.state.fieldValue,
-				[this.props.argFieldName].concat(path)
-			);
-		const newValue = setObjectValueByPath(
-			this.state.fieldValue,
-			oldValue === null
-			?	void 0
-			:	null,
-			[this.props.argFieldName].concat(path),
-		);
-
-		const {
-			fieldValue,
-			propType
-		} = this._convertValueAndPropTypeTreeToState(
-			this.props.argField,
-			this.props.argFieldName,
-			newValue,
-			this.props.types
-		);
-
-		this.setState({ fieldValue, propType });
-
-		this.props.setNewArgumentValue(
-			fieldValue
-		);
-	}
-
-	render(){
-		const {
-			argFieldName,
-		} = this.props;
-
-		const {
-			fieldValue,
-			propType
-		} = this.state;
-
-		const currentFieldValue = fieldValue[argFieldName];
-
-		return (
-			 <PropsItem
-				key={argFieldName}
-				propType={propType}
-				onChange={
-					this._handleChange
-				}
-				onNullSwitch={
-					this._handleNullSwitch
-				}
-				onAddValue={
-					this._handleAdd
-				}
-				onDeleteValue={
-					this._handleRemove
-				}
-				value={
-					this._convertObjectToValue(
-								currentFieldValue
-							)
-				}
-			/>
-		);
-	}
-
+	else
+		if (
+			graphQLType.kind === FIELD_KINDS.SINGLE
+			&&
+			equalMetaToGraphQLTypeNames(metaType.type, graphQLType.type)
+		) return true;
+	return false;
 }
 
-DataWindowQueryArgumentsFieldForm.propTypes = {
-	argField: PropTypes.object,
-	argFieldName: PropTypes.string,
-	argFieldValue:	PropTypes.any,
-	setNewArgumentValue: PropTypes.func,
-	types: PropTypes.object
-};
+function showField(metaType, graphQLType) {
+	return canBeApplied(metaType, graphQLType)
+			||	(
+				!isPrimitiveGraphQLType(graphQLType.type)
+				&&	graphQLType.kind === FIELD_KINDS.SINGLE
+			);
+}
+
+function canGoIntoField(metaType, graphQLType) {
+	return  graphQLType.kind === FIELD_KINDS.SINGLE
+			&& !isPrimitiveGraphQLType(graphQLType.type);
+}
+
 
 export class DataWindowQueryLayout extends DataWindowDataLayout {
 	constructor(props){
@@ -479,7 +117,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
 	_handleJumpIntoField(name, type, kind, args, isCurrentPathLast) {
 		const { previousPath, currentPath } = this.state;
-		const isPrimitiveType = isPrimitiveGraphQLType(type);
+		const isDataApplied = canBeApplied(this.currentPropType, { type, kind });
 
 		const argsForField =
 			args
@@ -492,8 +130,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
 		this.setState({
 			argumentsPath: [],
-			argumentsMode: isPrimitiveType,
-			allArgumentsMode: isPrimitiveType,
+			argumentsMode: isDataApplied,
+			allArgumentsMode: isDataApplied,
 			argumentsForCurrentPathLast: false,
 			currentPath: [
 				...(
@@ -579,12 +217,10 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 			{
 				queryPath: (
 					this._getCurrentEditingFields(true).concat(
-						this.state.allArgumentsMode
-						&&	isPrimitiveGraphQLType(
-							this._getCurrentPathByIndex(-1).type
-						)
-						?	[]
-						:	[ this.selectedField ]
+						!this.state.allArgumentsMode
+						&&	this.selectedField
+						?	[ this.selectedField ]
+						:	[]
 					)
 				).map((pathStep, num) => {
 						const currentArg =
@@ -603,7 +239,11 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	}
 
 	_handleDataApplyPress() {
-		if (!this._getCurrentEditingFields(true).concat([this.selectedField]).some(
+		if (!this._getCurrentEditingFields(true).concat(
+			this.selectedField
+			?	[ this.selectedField ]
+			:	[]
+		).some(
 			({ args }) => Object.keys(args).length
 		))
 		 	this._applyPropData();
@@ -667,9 +307,19 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	get selectedField() {
 		const { types } = this.props.schema;
 		const currentPathLast = this._getCurrentPathByIndex(-1);
-		return isPrimitiveGraphQLType(currentPathLast.type)
-			?	types[this._getCurrentPathByIndex(-2).type].fields[currentPathLast.name]
-			:	types[currentPathLast.type].fields[this.state.selectedFieldName];
+		if (!isPrimitiveGraphQLType(currentPathLast.type)) {
+			const isSelectedFieldConnectionField
+				= this.state.selectedFieldName.includes('/');
+			if (isSelectedFieldConnectionField) {
+				const fieldName = this.state.selectedFieldName.split('/');
+				return types[currentPathLast.type].fields[
+					fieldName[0]
+				].connectionFields[fieldName[1]];
+			}
+			return types[currentPathLast.type].fields[this.state.selectedFieldName];
+		}
+		else return types[this._getCurrentPathByIndex(-2).type]
+							.fields[currentPathLast.name];
 	}
 
 	_getCurrentArguments(
@@ -751,12 +401,11 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						:	types[this._getCurrentPathByIndex(-2).type]
 									.fields[this._getCurrentPathByIndex(-1).name]
 					]
-			:	[
-				this.state.currentPath.length === 2
+			:	this.state.currentPath.length === 2
 				&& !this.state.argumentsForCurrentPathLast && this.state.argumentsMode
-				?	types[queryTypeName].fields[this.state.selectedFieldName]
-				:	null
-			];
+				?	[types[queryTypeName].fields[this.state.selectedFieldName]]
+				:	[]
+			;
 	}
 
 	haveArguments(field) {
@@ -792,15 +441,16 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		return typeof obj === 'object' && obj !== null
 				?	Array.isArray(obj)
 					?	obj.map(value => ({
-						source: 'static',
-						sourceData: {
-							value:
-								DataWindowQueryLayout
-									.createSourceDataObject(
-										value
-							)
-						}
-					}))
+							source: 'static',
+							sourceData: {
+								value:
+									DataWindowQueryLayout
+										.createSourceDataObject(
+											value
+										)
+							}
+						})
+					)
 					:	Object.keys(obj).reduce((acc, key) =>
 							Object.assign(
 								acc,
@@ -821,6 +471,23 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 			 :	obj;
 	}
 
+	/**
+	 * @param {Array<Object>} fields
+	 * @param {Array<Object>} fieldsArgsValues
+	 * @param {Array<boolean>} areArgumentsBound
+	 * @param {Object<Object>} types
+	 * @param {Function} haveArguments
+	 * @param {Function} createContentArgumentField
+	 * @param {Function} setNewArgumentValue
+	 * @param {Function} handleJumpIntoField
+	 * @param {Function} handleBackToPress
+	 * @param {Function} handleApplyPress
+	 * @param {string=} title
+	 * @param {string=} subtitle
+	 * @param {string=} description
+	 * @return {Object}
+	 *
+	 */
 	createContentArgumentsType(
 		fields,
 		fieldsArgsValues,
@@ -900,6 +567,19 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		);
 	}
 
+	/**
+	 * @param {Object} field
+	 * @param {string} fieldName
+	 * @param {string} selectedFieldName
+	 * @param {Function<>:string} getFieldTypeName
+	 * @param {Function} handleFieldSelect
+	 * @param {Function} handleSetArgumentsClick
+	 * @param {Function} handleApplyClick
+	 * @param {Function} handleJumpIntoField
+	 * @param {string} propType
+	 * @return {Object}
+	 *
+	 */
 	createContentField(
 		field,
 		fieldName,
@@ -920,9 +600,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 				clickable: true,
 				argsButton: !!Object.keys(field.args).length,
 				chosen: fieldName === selectedFieldName,
-				connection: !isPrimitiveGraphQLType(field.type),
-				canBeApplied: equalMetaToGraphQLTypeNames(propType, field.type),
-				state: 'error',
+				connection: canGoIntoField(propType, field),
+				canBeApplied: canBeApplied(propType, field),
 				onSelect: () => handleFieldSelect(fieldName),
 				onApplyClick: () => handleApplyClick(fieldName),
 				onSetArgumentsClick: () => handleSetArgumentsClick(false),
@@ -937,6 +616,22 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		);
 	}
 
+	/**
+	 * @param {Object} type - Schema type
+	 * @param {Object} currentPathLast
+	 * @param {string} selectedFieldName
+	 * @param {boolean} hasArgs
+	 * @param {Array<Object>} breadcrumbs
+	 * @param {Function<Object>:string} getFieldTypeName
+	 * @param {Function} handleFieldSelect
+	 * @param {Function} handleSetArgumentsClick
+	 * @param {Function} handleApplyClick
+	 * @param {Function} handleJumpIntoField
+	 * @param {Function} createContentField
+	 * @param {string} propType
+	 * @return {Object}
+	 *
+	 */
 	createContentType(
 		type,
 		currentPathLast,
@@ -969,8 +664,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						:	{};
 
 					if (
-						field.kind === FIELD_KINDS.SINGLE
-						&&	!equalMetaToGraphQLTypeNames(propType, field.type)
+						!showField(propType, field)
 					)	return acc;
 
 					return acc.concat(
@@ -989,13 +683,10 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 								connectionFieldName => {
 									const connectionField
 										= field.connectionFields[connectionFieldName];
-									if (connectionField.kind === FIELD_KINDS.SINGLE
-										&&	!equalMetaToGraphQLTypeNames(
-												propType,
-												connectionField.type
-											)
-									)	return false;
-									return true;
+									return showField(
+										propType,
+										connectionField
+									);
 								}
 							).map(connectionFieldName =>
 								createContentField(
@@ -1019,6 +710,10 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		};
 	}
 
+	/**
+	 * @param {Array<Object>} path
+	 * @return {undefined|Object} - arguments for path's last node
+	 */
 	_getBoundArgumentsByPath(path) {
 		let args = void 0;
 		this.props.queryArgsList
@@ -1026,7 +721,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 			currentQueryNode => {
 				for (let k = 0; k < path.length; k++) {
 					const pathStep = currentQueryNode.get(k);
-					if (pathStep.field !== path[k].name) return true;
+					if (!pathStep || pathStep.field !== path[k].name) return true;
 				}
 				args = currentQueryNode.get(path.length - 1).toJS().args;
 				return false;
@@ -1041,6 +736,11 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		return args;
 	}
 
+	/**
+	 * @param {Array<Object>} fields - graphQLSchema fields
+	 * @return {Array<boolean>} - every element represents
+	 * arguments state for this field (bound or not)
+	 */
 	_areArgumentsBound(fields) {
 		const currentPath = this.state.currentPath.concat(
 			!this.state.argumentsForCurrentPathLast
@@ -1083,9 +783,10 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 				linkTargetComponentMeta,
 				this.props.linkingPropName
 			),
-
 			this.props.linkingPropPath
 		);
+
+		this.currentPropType = linkTargetPropTypedef;
 
 		return (
 			!this.state.argumentsMode
@@ -1101,7 +802,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						this._handleDataApplyPress,
 						this._handleJumpIntoField,
 						this.createContentField,
-						linkTargetPropTypedef.type
+						linkTargetPropTypedef
 					)
 			:	this.createContentArgumentsType(
 						currentEditingFields,

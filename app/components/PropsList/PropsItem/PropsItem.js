@@ -312,7 +312,11 @@ export class PropsItem extends PureComponent {
                     onLink={this._handleNestedValueLink.bind(this, idx)}
 					onNullSwitch={this._handleNestedValueNullSwitch.bind(this, idx)}
                     _secondary
-
+					_label={
+						currentType.formatItemLabel
+							?	currentType.formatItemLabel(idx)
+							:	''
+					}
                     _deletable
                     _onOpen={this._handleOpenNestedValue.bind(this, idx)}
                     _onDelete={this._handleDelete.bind(this, idx)}

@@ -28,6 +28,9 @@ export const equalMetaToGraphQLTypeNames = (metaTypeName, graphQLTypeName) => (
 	}[graphQLTypeName] === metaTypeName
 );
 
+export const isPrimitiveGraphQLType = typeName =>
+				graphQLPrimitiveTypes.has(typeName);
+
 
 
 /**
@@ -164,14 +167,14 @@ export const parseGraphQLSchema = schema => {
 	// -----------------------------------------------
 	// TODO Correct and refactor
 
-	const haveKind = (type, kind) =>
+	const haveKind = (type, kind, deep = true) =>
 		kind === FIELD_KINDS['CONNECTION']
 		?	!!connections[type.name]
 		:	(
 			type.kind === kind
 			||	(
-				type.ofType
-				?	haveKind(type.ofType, kind)
+				type.ofType && deep
+				?	haveKind(type.ofType, kind, deep)
 				:	false
 			)
 		);
@@ -191,9 +194,17 @@ export const parseGraphQLSchema = schema => {
 							), {})
 			}
 		:	(
-			type.ofType
-			?	getTypeDescription(type.ofType, kind)
-			:  	{ type: type.name }
+				type.ofType
+				?	getTypeDescription(type.ofType, kind)
+				:  	kind !== FIELD_KINDS.LIST
+					?
+						{
+							type: type.name
+						}
+					:	{
+							type: type.name,
+							nonNullMember: haveKind(type, 'NON_NULL')
+						}
 		);
 
 
@@ -209,7 +220,7 @@ export const parseGraphQLSchema = schema => {
 		];
 
 		const fieldDescription = Object.assign({
-			nonNull: haveKind(field.type, 'NON_NULL'),
+			nonNull: haveKind(field.type, 'NON_NULL', false),
 			kind,
 			name: field.name,
 			description: field.description || '',
