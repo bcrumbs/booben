@@ -18,7 +18,6 @@ import {
     PropsItem
 } from '../../components/PropsList/PropsList';
 
-import ProjectRecord from '../../models/Project';
 import ProjectComponent from '../../models/ProjectComponent';
 
 import { toggleComponentRegion } from '../../actions/project';
@@ -79,7 +78,6 @@ class ComponentRegionsEditorComponent extends PureComponent {
 }
 
 ComponentRegionsEditorComponent.propTypes = {
-    project: PropTypes.instanceOf(ProjectRecord),
     meta: PropTypes.object,
     currentComponents: ImmutablePropTypes.mapOf(
         PropTypes.instanceOf(ProjectComponent),
@@ -87,15 +85,14 @@ ComponentRegionsEditorComponent.propTypes = {
     ),
     selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
     language: PropTypes.string,
-
     getLocalizedText: PropTypes.func,
+
     onToggleRegion: PropTypes.func
 };
 
 ComponentRegionsEditorComponent.displayName = 'ComponentRegionsEditor';
 
 const mapStateToProps = state => ({
-    project: state.project.data,
     meta: state.project.meta,
     currentComponents: currentComponentsSelector(state),
     selectedComponentIds: currentSelectedComponentIdsSelector(state),
