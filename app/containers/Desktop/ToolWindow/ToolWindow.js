@@ -33,7 +33,8 @@ import ButtonType from '../../../models/Button';
 import ToolType from '../../../models/Tool';
 import ToolStateType from '../../../models/ToolState';
 
-import { noop, throttle } from '../../../utils/misc';
+import throttle from 'lodash.throttle';
+import { noop } from '../../../utils/misc';
 
 export const STICK_REGION_LEFT = 0;
 export const STICK_REGION_RIGHT = 1;

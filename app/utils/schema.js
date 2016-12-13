@@ -2,7 +2,7 @@
  * @author olegnn <olegnosov1@gmail.com>
  */
 
-import { objectForEach } from './misc';
+import _forOwn from 'lodash.forown';
 
 export const FIELD_KINDS = {
 	SINGLE: 'SINGLE',
@@ -228,7 +228,7 @@ export const parseGraphQLSchema = schema => {
 		}
 	);
 
-	objectForEach(connections,
+	_forOwn(connections,
 		({ edge }, key) => {
 			delete normalizedTypes[key];
 			delete normalizedTypes[edge.name];

@@ -268,6 +268,7 @@ export class PropsItem extends PureComponent {
                     propType={currentType.fields[fieldName]}
                     value={currentValue.value[fieldName]}
                     setComponentButtonText={this.props.setComponentButtonText}
+                    editComponentButtonText={this.props.editComponentButtonText}
                     addButtonText={this.props.addButtonText}
                     addDialogTitleText={this.props.addDialogTitleText}
                     addDialogInputLabelText={this.props.addDialogInputLabelText}
@@ -287,6 +288,7 @@ export class PropsItem extends PureComponent {
                     propType={currentType.ofType}
                     value={itemValue}
                     setComponentButtonText={this.props.setComponentButtonText}
+                    editComponentButtonText={this.props.editComponentButtonText}
                     addButtonText={this.props.addButtonText}
                     addDialogTitleText={this.props.addDialogTitleText}
                     addDialogInputLabelText={this.props.addDialogInputLabelText}
@@ -309,6 +311,7 @@ export class PropsItem extends PureComponent {
                     propType={currentType.ofType}
                     value={currentValue[key]}
                     setComponentButtonText={this.props.setComponentButtonText}
+                    editComponentButtonText={this.props.editComponentButtonText}
                     addButtonText={this.props.addButtonText}
                     addDialogTitleText={this.props.addDialogTitleText}
                     addDialogInputLabelText={this.props.addDialogInputLabelText}
@@ -403,8 +406,11 @@ export class PropsItem extends PureComponent {
     
         let subcomponentLeft = null;
         if (this.props.propType.subcomponentLeft) {
-            subcomponentLeft =
-                <div className="prop_subcomponent prop_subcomponent-left">{this.props.propType.subcomponentLeft}</div>;
+            subcomponentLeft = (
+                <div className="prop_subcomponent prop_subcomponent-left">
+                    {this.props.propType.subcomponentLeft}
+                </div>
+            );
         }
 
         let linkAction = null;

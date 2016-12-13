@@ -90,16 +90,12 @@ import {
     constructComponent,
     parseComponentName,
     formatComponentName,
-    findPropByDataContext,
     getNestedTypedef
 } from '../utils/meta';
 
 import {
-    parseGraphQLSchema,
-    getTypeNameByPath
+    parseGraphQLSchema
 } from '../utils/schema';
-
-import { objectForEach } from '../utils/misc';
 
 import { NO_VALUE } from "../constants/misc";
 

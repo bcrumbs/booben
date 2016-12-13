@@ -6,28 +6,22 @@ import { connect } from 'react-redux';
 import { graphql } from 'react-apollo';
 import _merge from 'lodash.merge';
 import _mapValues from 'lodash.mapvalues';
+import { List } from 'immutable';
 
-// The real components.js will be generated during build process
-import _components from '../components.js';
+import { getComponentById } from '../../app/models/Project';
+import jssyConstants from '../../app/constants/jssyConstants';
+import { NO_VALUE } from  '../../app/constants/misc';
 
 import { ContentPlaceholder } from '../components/ContentPlaceholder';
 
-import patchComponent from '../patchComponent';
-
-import { getComponentById } from '../../app/models/Project';
-
-import jssyConstants from '../../app/constants/jssyConstants';
-
-import { List } from 'immutable';
-
-import { NO_VALUE } from  '../../app/constants/misc';
+import getComponentByName from '../getComponentByName';
+import isPseudoComponent from '../isPseudoComponent';
 
 import {
     isContainerComponent,
     isCompositeComponent,
     canInsertComponent,
-    getComponentMeta,
-    parseComponentName
+    getComponentMeta
 } from '../../app/utils/meta';
 
 import {
@@ -39,50 +33,6 @@ import {
 import {
     returnNull
 } from '../../app/utils/misc';
-
-const components = _mapValues(_components, ns => _mapValues(ns, patchComponent));
-
-/**
- *
- * @type {Set<string>}
- * @const
- */
-const pseudoComponents = new Set([
-    'Text',
-    'Outlet',
-    'List'
-]);
-
-/**
- *
- * @param {ProjectComponent} component
- * @return {boolean}
- */
-const isPseudoComponent = component => pseudoComponents.has(component.name);
-
-/**
- * Get component from library
- *
- * @param  {string} componentName - Name of component with namespace (e.g. MyNamespace.MyComponent)
- * @return {Function|string} React component
- */
-const getComponentByName = (componentName = '') => {
-    const { namespace, name } = parseComponentName(componentName);
-    if (!namespace || !name)
-        throw new Error(`Invalid component name: '${componentName}'`);
-
-    if (namespace === 'HTML') return name;
-
-    if (!components[namespace])
-        throw new Error(`Namespace not found: '${namespace}'`);
-
-    const component = components[namespace][name];
-    if (!component)
-        throw new Error(`Component not found: '${componentName}'`);
-
-    return component;
-};
-
 
 class BuilderComponent extends PureComponent {
     /**
@@ -173,7 +123,7 @@ class BuilderComponent extends PureComponent {
             }
         }
         else if (propValue.source === 'data') {
-            if (propValue.sourceData.dataContext.size > 0) {
+            if (propValue.sourceData.dataContext.size > 0 && this.props.dataContextInfo) {
                 const dataContextInfo =
                     this.props.dataContextInfo[propValue.sourceData.dataContext.last()];
 
