@@ -50,10 +50,16 @@ class ComponentRegionsEditorComponent extends PureComponent {
         const items = layoutMeta.regions.map((region, idx) => (
             <PropsItem
                 key={idx}
-                view="toggle"
-                image={region.icon || defaultRegionIcon}
-                label={getString(componentMeta, region.textKey, this.props.language)}
-                value={component.regionsEnabled.has(idx)}
+                propType={{
+                    view: 'toggle',
+                    label: getString(componentMeta, region.textKey, this.props.language),
+                    image: region.icon || defaultRegionIcon,
+                    linkable: false
+                }}
+                value={{
+                    value: component.regionsEnabled.has(idx),
+                    linked: false
+                }}
                 onChange={this._handleRegionToggle.bind(this, idx)}
             />
         ));
