@@ -739,14 +739,14 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	 * @return {undefined|Object} - arguments for path's last node
 	 */
 	_getBoundArgumentsByPath(path) {
-		const args = this.props.queryArgsMap
+		const args = this.props.queryArgsMap.get('')
 				&&
 				this.props.queryArgsMap
 					.get('').get(path.map(({ name }) => name).join(' '));
 
 		const formattedArgs = args ? args.toJS() : {};
 
-		return Object.keys(formattedArgs).reduce((acc, key) =>
+		return args && Object.keys(formattedArgs).reduce((acc, key) =>
 			Object.assign(
 				acc, {
 					[key]:
