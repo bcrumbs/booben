@@ -42,27 +42,27 @@ import {
 } from '../../../utils/meta';
 
 function canBeApplied(metaType, graphQLType) {
+  //TODO make equality check deeper? or not? or ...?
+  const isGraphQLTypeList =
+    graphQLType.kind === FIELD_KINDS.CONNECTION
+    ||	graphQLType.kind === FIELD_KINDS.LIST;
+
 	if (metaType.type === 'arrayOf') {
 		if (metaType.ofType.type === 'object')
-			return (
-				graphQLType.kind === FIELD_KINDS.CONNECTION
-					||	graphQLType.kind === FIELD_KINDS.LIST
-			) && !isPrimitiveGraphQLType(graphQLType.type);
-		if (
-			(
-				graphQLType.kind === FIELD_KINDS.CONNECTION
-				||	graphQLType.kind === FIELD_KINDS.LIST
-			)
-			&&
-			equalMetaToGraphQLTypeNames(metaType.ofType.type, graphQLType.type)
-		)	return true;
-	}
-	else
-		if (
-			graphQLType.kind === FIELD_KINDS.SINGLE
-			&&
-			equalMetaToGraphQLTypeNames(metaType.type, graphQLType.type)
-		) return true;
+			return isGraphQLTypeList && !isPrimitiveGraphQLType(graphQLType.type);
+    else if (
+        isGraphQLTypeList
+  			&&
+  			equalMetaToGraphQLTypeNames(metaType.ofType.type, graphQLType.type)
+  		)	return true;
+	}  else	if (
+    		graphQLType.kind === FIELD_KINDS.SINGLE
+    		&& (
+          metaType.type === 'oneOf'
+          && equalMetaToGraphQLTypeNames(metaType.ofType.type, graphQLType.type)
+    		  || equalMetaToGraphQLTypeNames(metaType.type, graphQLType.type)
+        )
+     ) return true;
 	return false;
 }
 
