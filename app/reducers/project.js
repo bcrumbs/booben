@@ -74,7 +74,8 @@ import {
     sourceDataToImmutable,
     gatherComponentsTreeIds,
     isRootComponent,
-    getValueByPath
+    getValueByPath,
+    QueryArgumentValue
 } from '../models/ProjectComponent';
 
 import { Record, Map, Set, List } from 'immutable';
@@ -94,6 +95,8 @@ import {
 } from '../utils/schema';
 
 import { NO_VALUE } from '../constants/misc';
+
+import _mapValues from 'lodash.mapvalues';
 
 export const NestedConstructor = Record({
     components: Map(),
@@ -549,22 +552,36 @@ export default (state = new ProjectState(), action) => {
                 action.componentId
 			]);
 
-			const pathToQueryArgs = pathToComponent.concat('queryArgs');
+			if (action.newQueryArgs) {
+                const pathToQueryArgs = pathToComponent.concat('queryArgs');
+
+                const toMerge = _mapValues(
+                    action.newQueryArgs,
+
+                    argsByContext => _mapValues(
+                        argsByContext,
+
+                        argsByPath => _mapValues(
+                            argsByPath,
+
+                            arg => new QueryArgumentValue({
+                                source: arg.source,
+                                sourceData: sourceDataToImmutable(
+                                    arg.source,
+                                    arg.sourceData
+                                )
+                            })
+                        )
+                    )
+                );
+
+                state = state.mergeIn(pathToQueryArgs, toMerge);
+            }
 
             const pathToProp = pathToComponent.concat([
                 'props',
                 action.propName
             ], ...action.path.map(index => ['sourceData', 'value', index]));
-
-			if (Object.keys(action.newQueryArgs).length)
-				if (state.getIn(pathToQueryArgs))
-					state = state.mergeIn(pathToQueryArgs,
-						action.newQueryArgs
-					);
-				else
-					state = state.setIn(pathToQueryArgs,
-						action.newQueryArgs
-					);
 
             return state.setIn(pathToProp, newPropValue);
         }
