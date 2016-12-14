@@ -4,16 +4,14 @@
 
 'use strict';
 
+import _forOwn from 'lodash.forown';
+
 import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';
 
 import { componentsToImmutable } from '../models/ProjectComponent';
 
-import { objectSome } from './misc';
-import _forOwn from 'lodash.forown';
-
 import { NO_VALUE } from  '../../app/constants/misc';
-
 import { BUILT_IN_PROP_TYPES } from '../../common/shared-constants';
 
 /**
@@ -653,38 +651,3 @@ export const getNestedTypedef = (typedef, valuePath) => valuePath.reduce((acc, c
 export const propHasDataContest = propMeta =>
     !!propMeta.sourceConfigs.data &&
     !!propMeta.sourceConfigs.data.pushDataContext;
-
-/**
- *
- * @param {ComponentMeta} componentMeta
- * @param {string} dataContext
- * @return {string}
- */
-export const findPropByDataContext = (componentMeta, dataContext) => {
-    const propNames = Object.keys(componentMeta.props);
-    for (let i = 0, l = propNames.length; i < l; i++) {
-        const propMeta = componentMeta.props[propNames[i]];
-
-        const found =
-            isValidSourceForProp(propMeta, 'data') &&
-            propMeta.sourceConfigs.data &&
-            propMeta.sourceConfigs.data.pushDataContext === dataContext;
-
-        if (found) return propNames[i];
-    }
-
-    return '';
-};
-
-/**
- *
- * @param {PropTypeDefinition} propMeta
- * @return {boolean}
- */
-export const propUsesDataContexts = propMeta =>
-    !!propMeta.sourceConfigs.designer.props &&
-
-    objectSome(
-        propMeta.sourceConfigs.designer.props,
-        ownerPropMeta => !!ownerPropMeta.dataContext
-    );

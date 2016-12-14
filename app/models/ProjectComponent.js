@@ -10,7 +10,7 @@ import _mapValues from 'lodash.mapvalues';
 
 import ProjectComponentProp from './ProjectComponentProp';
 import SourceDataStatic from './SourceDataStatic';
-import SourceDataData, { QueryPathStep, QueryPathStepArgument } from './SourceDataData';
+import SourceDataData, { QueryPathStep } from './SourceDataData';
 import SourceDataConst from './SourceDataConst';
 import SourceDataAction from './SourceDataAction';
 import SourceDataDesigner from './SourceDataDesigner';
@@ -27,7 +27,8 @@ const ProjectComponentRecord = Record({
     layout: 0,
     regionsEnabled: Set(),
     routeId: -1,
-    isIndexRoute: false
+    isIndexRoute: false,
+    queryArgs: Map()
 });
 
 const propSourceDataToImmutableFns = {
@@ -39,7 +40,7 @@ const propSourceDataToImmutableFns = {
                 data.value = List(input.value.map(
                     ({ source, sourceData }) => new ProjectComponentProp({
                         source,
-                        sourceData: propSourceDataToImmutable(source, sourceData)
+                        sourceData: sourceDataToImmutable(source, sourceData)
                     }))
                 );
             }
@@ -49,7 +50,7 @@ const propSourceDataToImmutableFns = {
 
                     ({ source, sourceData }) => new ProjectComponentProp({
                         source,
-                        sourceData: propSourceDataToImmutable(source, sourceData)
+                        sourceData: sourceDataToImmutable(source, sourceData)
                     }))
                 );
             }
@@ -67,11 +68,7 @@ const propSourceDataToImmutableFns = {
     data: input => new SourceDataData({
         dataContext: List(input.dataContext),
         queryPath: List(input.queryPath.map(step => new QueryPathStep({
-            field: step.field,
-            args: Map(_mapValues(step.args, arg => new QueryPathStepArgument({
-                source: arg.source,
-                sourceData: propSourceDataToImmutable(arg.source, arg.sourceData)
-            })))
+            field: step.field
         })))
     }),
 
@@ -91,8 +88,13 @@ const propSourceDataToImmutableFns = {
     )
 };
 
-export const propSourceDataToImmutable = (source, sourceData) =>
+export const sourceDataToImmutable = (source, sourceData) =>
     propSourceDataToImmutableFns[source](sourceData);
+
+const QueryArgumentValue = Record({
+    source: '',
+    sourceData: null
+});
 
 export const projectComponentToImmutable = (input, routeId, isIndexRoute, parentId) =>
     new ProjectComponentRecord({
@@ -103,16 +105,32 @@ export const projectComponentToImmutable = (input, routeId, isIndexRoute, parent
         name: input.name,
         title: input.title,
 
-        props: Map(_mapValues(input.props, propMeta => new ProjectComponentProp({
-            source: propMeta.source,
-            sourceData: propSourceDataToImmutable(propMeta.source, propMeta.sourceData)
+        props: Map(_mapValues(input.props, propValue => new ProjectComponentProp({
+            source: propValue.source,
+            sourceData: sourceDataToImmutable(propValue.source, propValue.sourceData)
         }))),
 
         children: List(input.children.map(childComponent => childComponent.id)),
         layout: typeof input.layout === 'number' ? input.layout : 0,
         regionsEnabled: input.regionsEnabled ? Set(input.regionsEnabled) : Set(),
         routeId,
-        isIndexRoute
+        isIndexRoute,
+
+        queryArgs: Map(_mapValues(
+            input.queryArgs,
+
+            dataContextArgs => Map(_mapValues(
+                dataContextArgs,
+
+                args => Map(_mapValues(args, argValue => new QueryArgumentValue({
+                    source: argValue.source,
+                    sourceData: sourceDataToImmutable(
+                        argValue.source,
+                        argValue.sourceData
+                    )
+                })))
+            ))
+        ))
     });
 
 export const componentsToImmutable = (input, routeId, isIndexRoute, parentId) =>

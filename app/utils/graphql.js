@@ -6,11 +6,11 @@
 
 import _set from 'lodash.set';
 import _forOwn from 'lodash.forown';
-import { Record, Map } from 'immutable';
+import { Record, Map, List } from 'immutable';
 import { NO_VALUE } from '../constants/misc';
 import { walkSimpleProps, walkComponentsTree } from '../models/ProjectComponent';
 import { getTypeNameByField, getTypeNameByPath, FIELD_KINDS } from './schema';
-import { getComponentMeta, propHasDataContest, propUsesDataContexts } from './meta';
+import { getComponentMeta, propHasDataContest } from './meta';
 
 const UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const LOWERCASE_LETTERS = 'abcdefghijklmnopqrstuvwxyz';
@@ -105,24 +105,26 @@ const toGraphQLScalarValue = (value, type) => {
     if (type === 'Float') return { kind: 'FloatValue', value: `${value}` };
     if (type === 'Boolean') return { kind: 'BooleanValue', value };
     if (type === 'ID') return { kind: 'StringValue', value }; // ???
-    throw new Error('');
+
+    throw new Error(`toGraphQLScalarValue(): Unknown type: '${type}'.`);
 };
 
-/**
- *
- * @param {Object} propValue - Actually it's Immutable.Record; see models/ProjectComponentProp
- * @param {string} type
- * @param {string} kind
- * @return {Object|NO_VALUE}
- */
-const buildGraphQLValue = (propValue, type, kind) => {
-    // TODO: Deal with values
+const buildGraphQLValue = (propValue, schemaTypeDef) => {
+    const { type, kind, nonNull } = schemaTypeDef;
+
+    // TODO: Deal with more complex values
     if (propValue.source === 'static') {
         if (propValue.sourceData.ownerPropName) {
             return NO_VALUE;
         }
-        else {
+        else if (List.isList(propValue.sourceData.value)) {
             return NO_VALUE;
+        }
+        else if (Map.isMap(propValue.sourceData.value)) {
+            return NO_VALUE;
+        }
+        else {
+            return toGraphQLScalarValue(propValue.sourceData.value, type);
         }
     }
     else {
@@ -138,11 +140,8 @@ const buildGraphQLValue = (propValue, type, kind) => {
  * @return {Object}
  */
 const buildGraphQLArgument = (argName, argValue, fieldDefinition) => {
-    const value = buildGraphQLValue(
-        argValue,
-        fieldDefinition.type,
-        fieldDefinition.kind
-    );
+    const argDefinition = fieldDefinition.args[argName],
+        value = buildGraphQLValue(argValue, argDefinition);
 
     return value === NO_VALUE ? NO_VALUE : {
         kind: 'Argument',
@@ -151,8 +150,24 @@ const buildGraphQLArgument = (argName, argValue, fieldDefinition) => {
     };
 };
 
+const getQueryStepArgValues = (component, propValue, stepIdx) => {
+    const keyForDataContextArgs = propValue.sourceData.dataContext.toJS().join(' ');
+
+    const keyForQueryArgs = propValue.sourceData.queryPath
+        .slice(0, stepIdx + 1)
+        .map(step => step.field)
+        .toJS()
+        .join(' ');
+
+    return component.queryArgs.getIn([
+        keyForDataContextArgs,
+        keyForQueryArgs
+    ]);
+};
+
 /**
  *
+ * @param {Object} component - Actually it's Immutable.Record; see models/ProjectComponent
  * @param {Object} propValue - Actually it's Immutable.Record; see models/ProjectComponentProp
  * @param {string} fragmentName
  * @param {DataSchema} schema
@@ -160,6 +175,7 @@ const buildGraphQLArgument = (argName, argValue, fieldDefinition) => {
  * @return {Object}
  */
 const buildGraphQLFragmentForValue = (
+    component,
     propValue,
     fragmentName,
     schema,
@@ -187,7 +203,8 @@ const buildGraphQLFragmentForValue = (
     let currentNode = ret,
         currentType = onType;
 
-    propValue.sourceData.queryPath.forEach(step => {
+    //noinspection JSCheckFunctionSignatures
+    propValue.sourceData.queryPath.forEach((step, idx) => {
         const [fieldName, connectionFieldName] = step.field.split('/'),
             currentTypeDefinition = schema.types[currentType],
             currentFieldDefinition = currentTypeDefinition.fields[fieldName];
@@ -199,13 +216,15 @@ const buildGraphQLFragmentForValue = (
                 );
             }
 
-            const args = [];
+            const args = [],
+                argumentValues = getQueryStepArgValues(component, propValue, idx);
 
-            if (step.args) {
-                step.args.forEach((argValue, argName) => {
+            if (argumentValues) {
+                argumentValues.forEach((argValue, argName) => {
                     const arg = buildGraphQLArgument(
                         argName,
                         argValue,
+
                         currentTypeDefinition
                             .fields[fieldName]
                             .connectionFields[connectionFieldName]
@@ -296,10 +315,11 @@ const buildGraphQLFragmentForValue = (
             currentNode = node.selectionSet.selections[0].selectionSet.selections[0];
         }
         else {
-            const args = [];
+            const args = [],
+                argumentValues = getQueryStepArgValues(component, propValue, idx);
 
-            if (step.args) {
-                step.args.forEach((argValue, argName) => {
+            if (argumentValues) {
+                argumentValues.forEach((argValue, argName) => {
                     const arg = buildGraphQLArgument(
                         argName,
                         argValue,
@@ -469,6 +489,7 @@ const buildGraphQLFragmentsForOwnComponent = (
     walkSimpleProps(component, componentMeta, (propValue, propMeta) => {
         if (propValue.source === 'data' && propValue.sourceData.dataContext.size > 0) {
             const fragment = buildGraphQLFragmentForValue(
+                component,
                 propValue,
                 randomName(),
                 schema,
@@ -554,6 +575,7 @@ const buildGraphQLFragmentsForComponent = (
     walkSimpleProps(component, componentMeta, (propValue, propMeta) => {
         if (propValue.source === 'data' && propValue.sourceData.dataContext.size === 0) {
             const fragment = buildGraphQLFragmentForValue(
+                component,
                 propValue,
                 randomName(),
                 schema,
@@ -669,20 +691,20 @@ export const extractPropValueFromData = (
         if (fieldDefinition.kind === FIELD_KINDS.CONNECTION) {
             if (connectionFieldName) {
                 return {
-                    data: data[fieldName][connectionFieldName],
+                    data: acc.data[fieldName][connectionFieldName],
                     type: fieldDefinition.connectionFields[connectionFieldName].type
                 };
             }
             else {
                 return {
-                    data: data[fieldName].edges.map(edge => edge.node),
+                    data: acc.data[fieldName].edges.map(edge => edge.node),
                     type: fieldDefinition.type
                 }
             }
         }
         else {
             return {
-                data: data[fieldName],
+                data: acc.data[fieldName],
                 type: fieldDefinition.type
             };
         }

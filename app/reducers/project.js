@@ -71,7 +71,7 @@ import {
 } from '../models/Project';
 
 import {
-    propSourceDataToImmutable,
+    sourceDataToImmutable,
     gatherComponentsTreeIds,
     isRootComponent,
     getValueByPath
@@ -93,7 +93,7 @@ import {
     parseGraphQLSchema
 } from '../utils/schema';
 
-import { NO_VALUE } from "../constants/misc";
+import { NO_VALUE } from '../constants/misc';
 
 export const NestedConstructor = Record({
     components: Map(),
@@ -228,9 +228,9 @@ const addComponents = (state, parentComponentId, position, components) => {
     state = state.updateIn(
         pathToCurrentComponents,
 
-        updatedComponents => updatedComponents.withMutations(routeComponentsMut =>
+        updatedComponents => updatedComponents.withMutations(updatedComponentsMut =>
             void components.forEach(newComponent =>
-                void routeComponentsMut.set(
+                void updatedComponentsMut.set(
                     newComponent.id + nextComponentId,
 
                     newComponent
@@ -539,7 +539,7 @@ export default (state = new ProjectState(), action) => {
 
             const newValue = new ProjectComponentProp({
                 source: action.newSource,
-                sourceData: propSourceDataToImmutable(
+                sourceData: sourceDataToImmutable(
                     action.newSource,
                     action.newSourceData
                 )
@@ -567,7 +567,7 @@ export default (state = new ProjectState(), action) => {
 
             const newValue = new ProjectComponentProp({
                 source: action.source,
-                sourceData: propSourceDataToImmutable(
+                sourceData: sourceDataToImmutable(
                     action.source,
                     action.sourceData
                 )
