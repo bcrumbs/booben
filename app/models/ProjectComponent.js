@@ -97,7 +97,7 @@ const propSourceDataToImmutableFns = {
 export const sourceDataToImmutable = (source, sourceData) =>
     propSourceDataToImmutableFns[source](sourceData);
 
-const QueryArgumentValue = Record({
+export const QueryArgumentValue = Record({
     source: '',
     sourceData: null
 });
