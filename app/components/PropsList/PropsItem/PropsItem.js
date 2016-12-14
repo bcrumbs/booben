@@ -467,7 +467,7 @@ export class PropsItem extends PureComponent {
         }
 
         let linkAction = null;
-        if (this.props.propType.linkable) {
+        if (this.props.propType.linkable || true) {
             linkAction = (
                 <div className="prop_action prop_action-linking">
                     <Button icon="link" onPress={() => void this.props.onLink([])}/>

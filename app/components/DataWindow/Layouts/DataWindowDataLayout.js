@@ -59,9 +59,19 @@ export class DataWindowDataLayout extends PureComponent {
 						title: 'State',
 						actionType: 'jump',
 						connection: true
-					}
-
-				]
+					},
+				].concat(
+					this.props.topNestedConstructorComponent
+					?	[
+						{
+							title: 'Owner component',
+							actionType: 'jump',
+							connection: true,
+							onSelect: () => this.props.setSelectedPath('OwnerComponent')
+						}
+					]
+					:	[]
+				)
 			}
 		});
 	}
@@ -90,8 +100,8 @@ export class DataWindowDataLayout extends PureComponent {
 				linkTargetComponentMeta,
 				linkTargetPropTypedef.textKey,
 				this.props.language
-			);
-			
+			) || this.props.linkingPropName;
+
 		return (
 			<div className="data-window">
 				<Dialog
@@ -150,8 +160,6 @@ export class DataWindowDataLayout extends PureComponent {
 
 
 DataWindowDataLayout.propTypes = {
-	possiblePropDataTypes: PropTypes.arrayOf(PropTypes.string),
-
 	schema: PropTypes.object,
 	meta: PropTypes.object,
 	linkingProp: PropTypes.bool,

@@ -169,13 +169,21 @@ export const PROJECT_COMPONENT_UPDATE_PROP_VALUE = 'PROJECT_COMPONENT_UPDATE_PRO
  * @param {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner} newSourceData
  * @return {Object}
  */
-export const updateComponentPropValue = (componentId, propName, path, newSource, newSourceData) => ({
+export const updateComponentPropValue = (
+	componentId,
+	propName,
+	path,
+	newSource,
+	newSourceData,
+	newQueryArgs = {}
+) => ({
     type: PROJECT_COMPONENT_UPDATE_PROP_VALUE,
     componentId,
     propName,
     path,
     newSource,
-    newSourceData
+    newSourceData,
+	newQueryArgs
 });
 
 /**

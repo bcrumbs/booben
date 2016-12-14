@@ -87,10 +87,10 @@ const getAllQueryPaths = prop =>
 	&&	prop.sourceData.queryPath;
 
 export const getComponentGraphQLQueryArgs = createSelector(
-	currentRouteSelector,
+	currentComponentsSelector,
 	state => state.project.linkingPropOfComponentId,
-	(currentRoute, componentId) =>
-		currentRoute.components
+	(components, componentId) =>
+		components
 			.get(componentId).props
 				.map(getAllQueryPaths)
 				.filter(v => v)

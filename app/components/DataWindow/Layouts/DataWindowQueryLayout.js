@@ -50,19 +50,21 @@ function canBeApplied(metaType, graphQLType) {
 	if (metaType.type === 'arrayOf') {
 		if (metaType.ofType.type === 'object')
 			return isGraphQLTypeList && !isPrimitiveGraphQLType(graphQLType.type);
-    else if (
-        isGraphQLTypeList
-  			&&
-  			equalMetaToGraphQLTypeNames(metaType.ofType.type, graphQLType.type)
-  		)	return true;
+    	else if (
+	        isGraphQLTypeList
+	  			&&
+	  			equalMetaToGraphQLTypeNames(metaType.ofType.type, graphQLType.type)
+	  		)	return true;
 	}  else	if (
     		graphQLType.kind === FIELD_KINDS.SINGLE
     		&& (
-          metaType.type === 'oneOf'
-          && equalMetaToGraphQLTypeNames(metaType.ofType.type, graphQLType.type)
-    		  || equalMetaToGraphQLTypeNames(metaType.type, graphQLType.type)
-        )
-     ) return true;
+	          metaType.type === 'oneOf'
+	          && metaType.ofType.options.some(
+				  option => equalMetaToGraphQLTypeNames(option.type, graphQLType.type)
+			  )
+	    		  || equalMetaToGraphQLTypeNames(metaType.type, graphQLType.type)
+	        )
+     	) return true;
 	return false;
 }
 
@@ -211,31 +213,40 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	}
 
 	_applyPropData(args = []) {
+		const queryPath = this._getCurrentEditingFields(true).concat(
+				!this.state.allArgumentsMode
+				&&	this.selectedField
+				?	[ this.selectedField ]
+				:	[]
+			).map((pathStep, num) => {
+				const currentArg =
+					args[num];
+				return {
+					field: pathStep.name,
+				};
+			}
+		);
+
+		const queryArgs = args.reduce((acc, currentArg, num) => Object.assign(acc, {
+				['']: Object.assign(
+					{}, acc[''], {
+						[queryPath.slice(0, num + 1).map(({ field }) => field).join(' ')]:
+							DataWindowQueryLayout
+								.createSourceDataObject(currentArg)
+					}
+				)
+			}, {})
+		, {});
 		this.props.onUpdateComponentPropValue(
 			this.props.linkingPropOfComponentId,
 			this.props.linkingPropName,
 			this.props.linkingPropPath,
 			'data',
 			{
-				queryPath: (
-					this._getCurrentEditingFields(true).concat(
-						!this.state.allArgumentsMode
-						&&	this.selectedField
-						?	[ this.selectedField ]
-						:	[]
-					)
-				).map((pathStep, num) => {
-						const currentArg =
-							args[num];
-						return {
-							field: pathStep.name,
-							args:
-								DataWindowQueryLayout
-									.createSourceDataObject(currentArg || {})
-						};
-					}
-				)
-			}
+				queryPath
+			},
+			queryArgs
+
 		);
 		this.props.onLinkPropCancel();
 	}
@@ -422,7 +433,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		return typeof obj.sourceData.value === 'object' && obj.sourceData.value !== null
 		?	Array.isArray(obj.sourceData.value)
 			?	obj.sourceData.value.map(
-				value => DataWindowQueryLayout.extractSourceDataValue(value)
+				DataWindowQueryLayout.extractSourceDataValue
 			)
 			:	Object.keys(
 				obj.sourceData.value
@@ -772,6 +783,9 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	}
 
 	get CONTENT_TYPE() {
+		const ownerComponent = this.props.topNestedConstructorComponent;
+		console.log(ownerComponent);
+
 		const currentEditingFields = this._getCurrentEditingFields();
 
 		const linkTargetComponent =
