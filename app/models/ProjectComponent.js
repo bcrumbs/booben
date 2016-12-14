@@ -65,12 +65,18 @@ const propSourceDataToImmutableFns = {
         return new SourceDataStatic(data);
     },
 
-    data: input => new SourceDataData({
-        dataContext: List(input.dataContext),
-        queryPath: List(input.queryPath.map(step => new QueryPathStep({
-            field: step.field
-        })))
-    }),
+    data: input => {
+        const data = {
+            queryPath: List(input.queryPath.map(step => new QueryPathStep({
+                field: step.field
+            })))
+        };
+
+        if (typeof input.dataContext !== 'undefined')
+            data.dataContext = List(input.dataContext);
+
+        return new SourceDataData(data);
+    },
 
     const: input => new SourceDataConst(input),
     action: input => new SourceDataAction(input),
