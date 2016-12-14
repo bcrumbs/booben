@@ -157,6 +157,7 @@ const convertToSchemaType = (type, getFieldDescription) => {
  * @return {Object}
  */
 export const parseGraphQLSchema = schema => {
+	window.aSchema = schema;
 	// TODO mutationType and subscriptionType
 	const queryType = schema.types.find(({ name }) => name === schema.queryType.name);
 
@@ -271,6 +272,7 @@ export const parseGraphQLSchema = schema => {
 
 	delete normalizedTypes[queryType.name].fields.node;
 
+	window.schema = { types: normalizedTypes, queryTypeName: queryType.name };
 	return { types: normalizedTypes, queryTypeName: queryType.name };
 };
 

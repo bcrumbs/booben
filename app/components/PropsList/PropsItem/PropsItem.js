@@ -482,38 +482,40 @@ export class PropsItem extends PureComponent {
             children = null;
 
         if (!this.props.value.isLinked) {
-            if (this.props.propType.view === 'input') {
-                content = (
-                    <Input
-                        stateless={true}
-                        value={this.props.value.value}
-                        disabled={this.props.disabled}
-                        onChange={this._handleChange}
-                    />
-                );
-            }
-            else if (this.props.propType.view === 'textarea') {
-                content = (
-                    <Textarea
-                        stateless={true}
-                        value={this.props.value.value}
-                        disabled={this.props.disabled}
-                        onChange={this._handleChange}
-                    />
-                );
-            }
-            else if (this.props.propType.view === 'list') {
-                content = (
-                    <SelectBox
-                        stateless={true}
-                        data={this.props.propType.options}
-                        value={this.props.value.value}
-                        disabled={this.props.disabled}
-                        onSelect={this._handleChange}
-                    />
-                );
-            }
-            else if (this.props.propType.view === 'constructor') {
+			if (this.props.value.value !== null) {
+	            if (this.props.propType.view === 'input') {
+	                content = (
+	                    <Input
+	                        stateless={true}
+	                        value={this.props.value.value}
+	                        disabled={this.props.disabled}
+	                        onChange={this._handleChange}
+	                    />
+	                );
+	            }
+	            else if (this.props.propType.view === 'textarea') {
+	                content = (
+	                    <Textarea
+	                        stateless={true}
+	                        value={this.props.value.value}
+	                        disabled={this.props.disabled}
+	                        onChange={this._handleChange}
+	                    />
+	                );
+	            }
+	            else if (this.props.propType.view === 'list') {
+	                content = (
+	                    <SelectBox
+	                        stateless={true}
+	                        data={this.props.propType.options}
+	                        value={this.props.value.value}
+	                        disabled={this.props.disabled}
+	                        onSelect={this._handleChange}
+	                    />
+	                );
+	            }
+			}
+            if (this.props.propType.view === 'constructor') {
                 const text = this.props.value.value
                     ? this.props.editComponentButtonText
                     : this.props.setComponentButtonText;

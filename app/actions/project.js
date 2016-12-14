@@ -183,7 +183,9 @@ export const updateComponentPropValue = (
     path,
     newSource,
     newSourceData,
-	newQueryArgs
+	newQueryArgs: Object.keys(newQueryArgs).length
+					?	newQueryArgs
+					:	null
 });
 
 /**
