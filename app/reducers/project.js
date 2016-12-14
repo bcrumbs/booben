@@ -537,7 +537,7 @@ export default (state = new ProjectState(), action) => {
                 );
             }
 
-            const newValue = new ProjectComponentProp({
+            const newPropValue = new ProjectComponentProp({
                 source: action.newSource,
                 sourceData: sourceDataToImmutable(
                     action.newSource,
@@ -545,13 +545,28 @@ export default (state = new ProjectState(), action) => {
                 )
             });
 
-            const path = [].concat(pathToCurrentComponents, [
-                action.componentId,
+			const pathToComponent = [].concat(pathToCurrentComponents, [
+                action.componentId
+			]);
+
+			const pathToQueryArgs = pathToComponent.concat('queryArgs');
+
+            const pathToProp = pathToComponent.concat([
                 'props',
                 action.propName
             ], ...action.path.map(index => ['sourceData', 'value', index]));
 
-            return state.setIn(path, newValue);
+			if (Object.keys(action.newQueryArgs).length)
+				if (state.getIn(pathToQueryArgs))
+					state = state.mergeIn(pathToQueryArgs,
+						action.newQueryArgs
+					);
+				else
+					state = state.setIn(pathToQueryArgs,
+						action.newQueryArgs
+					);
+
+            return state.setIn(pathToProp, newPropValue);
         }
 
         case PROJECT_COMPONENT_ADD_PROP_VALUE: {

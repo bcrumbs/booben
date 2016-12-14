@@ -218,16 +218,13 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 				&&	this.selectedField
 				?	[ this.selectedField ]
 				:	[]
-			).map((pathStep, num) => {
-				const currentArg =
-					args[num];
-				return {
-					field: pathStep.name,
-				};
-			}
+			).map(pathStep => ({
+				field: pathStep.name,
+			})
 		);
 
-		const queryArgs = args.reduce((acc, currentArg, num) => Object.assign(acc, {
+		const queryArgs = args.filter(obj => Object.keys(obj).length)
+								.reduce((acc, currentArg, num) => Object.assign(acc, {
 				['']: Object.assign(
 					{}, acc[''], {
 						[queryPath.slice(0, num + 1).map(({ field }) => field).join(' ')]:
