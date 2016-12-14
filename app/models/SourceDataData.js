@@ -4,16 +4,15 @@
 
 'use strict';
 
-import { Record, List, Map } from 'immutable';
+import { Record, List } from 'immutable';
 
-export const QueryPathStepArgument = Record({
+export const QueryArgumentValue = Record({
     source: '',
     sourceData: null
 });
 
 export const QueryPathStep = Record({
-    field: '',
-    args: Map()
+    field: ''
 });
 
 export default Record({

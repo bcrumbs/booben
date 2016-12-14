@@ -15,9 +15,6 @@ import {
     PROJECT_REQUEST,
     PROJECT_LOADED,
     PROJECT_LOAD_FAILED,
-	PROJECT_SCHEMA_REQUEST,
-	PROJECT_SCHEMA_LOAD_SUCCESS,
-	PROJECT_SCHEMA_LOAD_FAILURE,
     PROJECT_ROUTE_CREATE,
     PROJECT_ROUTE_DELETE,
     PROJECT_ROUTE_UPDATE_FIELD,
@@ -75,7 +72,7 @@ import {
 } from '../models/Project';
 
 import {
-    propSourceDataToImmutable,
+    sourceDataToImmutable,
     gatherComponentsTreeIds,
     isRootComponent,
     getValueByPath
@@ -97,7 +94,7 @@ import {
     parseGraphQLSchema
 } from '../utils/schema';
 
-import { NO_VALUE } from "../constants/misc";
+import { NO_VALUE } from '../constants/misc';
 
 export const NestedConstructor = Record({
     components: Map(),
@@ -232,9 +229,9 @@ const addComponents = (state, parentComponentId, position, components) => {
     state = state.updateIn(
         pathToCurrentComponents,
 
-        updatedComponents => updatedComponents.withMutations(routeComponentsMut =>
+        updatedComponents => updatedComponents.withMutations(updatedComponentsMut =>
             void components.forEach(newComponent =>
-                void routeComponentsMut.set(
+                void updatedComponentsMut.set(
                     newComponent.id + nextComponentId,
 
                     newComponent
@@ -429,6 +426,8 @@ export default (state = new ProjectState(), action) => {
                 lastComponentId = getMaxComponentId(project),
 				schema = action.schema ? parseGraphQLSchema(action.schema) : null;
 
+            console.log(schema);
+
             return state
                 .merge({
                     projectName: action.project.name,
@@ -543,7 +542,7 @@ export default (state = new ProjectState(), action) => {
 
             const newValue = new ProjectComponentProp({
                 source: action.newSource,
-                sourceData: propSourceDataToImmutable(
+                sourceData: sourceDataToImmutable(
                     action.newSource,
                     action.newSourceData
                 )
@@ -571,7 +570,7 @@ export default (state = new ProjectState(), action) => {
 
             const newValue = new ProjectComponentProp({
                 source: action.source,
-                sourceData: propSourceDataToImmutable(
+                sourceData: sourceDataToImmutable(
                     action.source,
                     action.sourceData
                 )
