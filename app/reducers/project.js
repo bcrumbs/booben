@@ -426,8 +426,6 @@ export default (state = new ProjectState(), action) => {
                 lastComponentId = getMaxComponentId(project),
 				schema = action.schema ? parseGraphQLSchema(action.schema) : null;
 
-            console.log(schema);
-
             return state
                 .merge({
                     projectName: action.project.name,
