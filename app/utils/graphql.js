@@ -493,7 +493,13 @@ const buildGraphQLFragmentsForOwnComponent = (
         dataValuesByDataContext = {};
 
     walkSimpleProps(component, componentMeta, (propValue, propMeta) => {
-        if (propValue.source === 'data' && propValue.sourceData.dataContext.size > 0) {
+        if (propValue.source === 'data') {
+            const isGoodProp =
+                propValue.sourceData.queryPath !== null &&
+                propValue.sourceData.dataContext.size > 0;
+
+            if (!isGoodProp) return;
+
             const fragment = buildGraphQLFragmentForValue(
                 component,
                 propValue,
@@ -579,7 +585,13 @@ const buildGraphQLFragmentsForComponent = (
     const dataValuesByDataContext = {};
 
     walkSimpleProps(component, componentMeta, (propValue, propMeta) => {
-        if (propValue.source === 'data' && propValue.sourceData.dataContext.size === 0) {
+        if (propValue.source === 'data') {
+            const isGoodProp =
+                propValue.sourceData.queryPath !== null &&
+                propValue.sourceData.dataContext.size === 0;
+
+            if (!isGoodProp) return;
+
             const fragment = buildGraphQLFragmentForValue(
                 component,
                 propValue,

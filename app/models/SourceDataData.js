@@ -17,5 +17,5 @@ export const QueryPathStep = Record({
 
 export default Record({
     dataContext: List(),
-    queryPath: List()
+    queryPath: null
 });
