@@ -201,13 +201,19 @@ const buildGraphQLFragmentForValue = (
     };
 
     let currentNode = ret,
-        currentType = onType;
+        currentType = onType,
+        badPath = false;
 
     //noinspection JSCheckFunctionSignatures
     propValue.sourceData.queryPath.forEach((step, idx) => {
         const [fieldName, connectionFieldName] = step.field.split('/'),
             currentTypeDefinition = schema.types[currentType],
             currentFieldDefinition = currentTypeDefinition.fields[fieldName];
+
+        if (!currentFieldDefinition) {
+            badPath = true;
+            return false;
+        }
 
         if (connectionFieldName) {
             if (currentFieldDefinition.kind !== FIELD_KINDS.CONNECTION) {
@@ -357,7 +363,7 @@ const buildGraphQLFragmentForValue = (
         );
     });
 
-    return ret;
+    return badPath ? null : ret;
 };
 
 const DataContextTreeNode = Record({
