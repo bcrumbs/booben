@@ -1,11 +1,12 @@
-
 'use strict';
 
 import React, { PureComponent, PropTypes } from 'react';
+import ImmutablePropTypes from 'react-immutable-proptypes';
 
 import {
 	linkPropCancel,
-	updateComponentPropValue
+	updateComponentPropValue,
+	linkWithOwnerProp
 }	from '../../actions/project';
 
 import {
@@ -13,10 +14,16 @@ import {
 } from 'react-redux';
 
 import {
+	getComponentGraphQLQueryArgs,
     currentComponentsSelector,
-	currentRouteSelector,
-	getComponentGraphQLQueryArgs
+	singleComponentSelectedSelector,
+	topNestedConstructorSelector,
+	topNestedConstructorComponentSelector,
 } from '../../selectors';
+
+import ProjectComponentRecord from '../../models/ProjectComponent';
+
+import { NestedConstructor } from '../../reducers/project';
 
 import {
 	DataWindowDataLayout
@@ -25,6 +32,10 @@ import {
 import {
 	DataWindowQueryLayout
 } from '../../components/DataWindow/Layouts/DataWindowQueryLayout';
+
+import {
+	DataWindowOwnerComponentLayout
+} from '../../components/DataWindow/Layouts/DataWindowOwnerComponentLayout';
 
 import '../../components/DataWindow/DataWindow.scss';
 
@@ -50,7 +61,9 @@ class DataWindowComponent extends PureComponent {
 		const component =
 			this.state.selectedPath === 'Query'
 			?	DataWindowQueryLayout
-			:	DataWindowDataLayout;
+			:	this.state.selectedPath === 'OwnerComponent'
+				?	DataWindowOwnerComponentLayout
+				:	DataWindowDataLayout;
 
 
 		return React.createElement(
@@ -69,8 +82,10 @@ class DataWindowComponent extends PureComponent {
 
 
 DataWindowComponent.propTypes = {
-	possiblePropDataTypes: PropTypes.arrayOf(PropTypes.string),
-
+	components: ImmutablePropTypes.mapOf(
+        PropTypes.instanceOf(ProjectComponentRecord),
+        PropTypes.number
+    ),
 	schema: PropTypes.object,
 	meta: PropTypes.object,
 	linkingProp: PropTypes.bool,
@@ -78,7 +93,13 @@ DataWindowComponent.propTypes = {
 	linkingPropName: PropTypes.string,
 	linkingPropPath: PropTypes.array,
 	language: PropTypes.string,
-	queryArgsList: PropTypes.any
+	queryArgsList: PropTypes.any,
+	topNestedConstructor: PropTypes.instanceOf(NestedConstructor),
+    topNestedConstructorComponent: PropTypes.instanceOf(ProjectComponentRecord),
+
+	onLinkPropCancel: PropTypes.func,
+	onUpdateComponentPropValue: PropTypes.func,
+	onLinkWithOwnerProp: PropTypes.func
 };
 
 DataWindowComponent.displayName = 'DataWindow';
@@ -92,14 +113,19 @@ const mapStateToProps = state => ({
 	linkingPropPath: state.project.linkingPropPath,
 	language: state.app.language,
 	components: currentComponentsSelector(state),
-	queryArgsList: getComponentGraphQLQueryArgs(state)
+	queryArgsList: getComponentGraphQLQueryArgs(state),
+	singleComponentSelected: singleComponentSelectedSelector(state),
+	topNestedConstructor: topNestedConstructorSelector(state),
+	topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
 });
 
 const mapDispatchToProps = dispatch => ({
 	onLinkPropCancel: () =>
         void dispatch(linkPropCancel()),
 	onUpdateComponentPropValue: (...args) =>
-		void dispatch(updateComponentPropValue(...args))
+		void dispatch(updateComponentPropValue(...args)),
+	onLinkWithOwnerProp: ownerPropName =>
+        void dispatch(linkWithOwnerProp(ownerPropName))
 });
 
 export const DataWindow = connect(
