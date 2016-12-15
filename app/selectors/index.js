@@ -82,16 +82,9 @@ export const currentHighlightedComponentIdsSelector = createSelector(
         : highlightedItems
 );
 
-const getAllQueryPaths = prop =>
-	prop.source === 'data'
-	&&	prop.sourceData.queryPath;
-
 export const getComponentGraphQLQueryArgs = createSelector(
 	currentComponentsSelector,
 	state => state.project.linkingPropOfComponentId,
 	(components, componentId) =>
-		components
-			.get(componentId).props
-				.map(getAllQueryPaths)
-				.filter(v => v)
+		components.get(componentId).queryArgs
 );

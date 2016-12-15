@@ -81,6 +81,14 @@ function canGoIntoField(metaType, graphQLType) {
 			&& !isPrimitiveGraphQLType(graphQLType.type);
 }
 
+function allValuesAreNull(obj) {
+	return typeof obj === 'object' && obj !== null
+	?	Array.isArray(obj)
+		?	obj.every(allValuesAreNull)
+		:	Object.keys(obj).every(key => allValuesAreNull(obj[key]))
+	:	obj === null;
+}
+
 
 export class DataWindowQueryLayout extends DataWindowDataLayout {
 	constructor(props){
@@ -223,16 +231,19 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 			})
 		);
 
-		const queryArgs = args.filter(obj => Object.keys(obj).length)
-								.reduce((acc, currentArg, num) => Object.assign(acc, {
+		const queryArgs = args.reduce((acc, currentArg, num) =>
+			Object.keys(currentArg).length && !allValuesAreNull(currentArg)
+			?	Object.assign(acc, {
 				['']: Object.assign(
 					{}, acc[''], {
-						[queryPath.slice(0, num + 1).map(({ field }) => field).join(' ')]:
-							DataWindowQueryLayout
-								.createSourceDataObject(currentArg)
+						[queryPath.slice(0, num + 1)
+							.map(({ field }) => field).join(' ')]:
+								DataWindowQueryLayout
+									.createSourceDataObject(currentArg)
 					}
 				)
 			}, {})
+			:	acc
 		, {});
 		this.props.onUpdateComponentPropValue(
 			this.props.linkingPropOfComponentId,
@@ -450,7 +461,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	static createSourceDataObject(obj) {
 		return typeof obj === 'object' && obj !== null
 				?	Array.isArray(obj)
-					?	obj.map(value => ({
+					?	obj.filter(v => !allValuesAreNull(v)).map(value => ({
 							source: 'static',
 							sourceData: {
 								value:
@@ -461,7 +472,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 							}
 						})
 					)
-					:	Object.keys(obj).reduce((acc, key) =>
+					:	Object.keys(obj).filter(key => !allValuesAreNull(obj[key])
+						).reduce((acc, key) =>
 							Object.assign(
 								acc,
 								{
@@ -727,25 +739,21 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	 * @return {undefined|Object} - arguments for path's last node
 	 */
 	_getBoundArgumentsByPath(path) {
-		let args = void 0;
-		this.props.queryArgsList
-		&&	this.props.queryArgsList.forEach(
-			currentQueryNode => {
-				for (let k = 0; k < path.length; k++) {
-					const pathStep = currentQueryNode.get(k);
-					if (!pathStep || pathStep.field !== path[k].name) return true;
-				}
-				args = currentQueryNode.get(path.length - 1).toJS().args;
-				return false;
-			}
-		);
+		const args = this.props.queryArgsMap.get('')
+				&&
+				this.props.queryArgsMap
+					.get('').get(path.map(({ name }) => name).join(' '));
 
-		args && Object.keys(args).forEach(
-			argName => args[argName] = DataWindowQueryLayout.extractSourceDataValue(
-				args[argName]
+		const formattedArgs = args ? args.toJS() : {};
+
+		return args && Object.keys(formattedArgs).reduce((acc, key) =>
+			Object.assign(
+				acc, {
+					[key]:
+						DataWindowQueryLayout.extractSourceDataValue(formattedArgs[key])
+				}
 			)
-		);
-		return args;
+		,{});
 	}
 
 	/**

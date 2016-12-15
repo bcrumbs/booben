@@ -13,6 +13,8 @@ import {
 	clone
 } from '../../../../utils/misc';
 
+const DEFAULT_VALUE_NON_NULL_PRIMITIVE = {};
+
 const setObjectValueByPath = (object, value, path) => {
 	if (!Array.isArray(object))
 		return Object.assign({}, object,
@@ -107,7 +109,7 @@ const getDefaultArgFieldValue = (type, kind) => {
 		)	?	(
 				type === 'Boolean'
 				?	false
-				:	type === 'String'
+				:	type === 'String' || type === 'ID'
 					?	''
 					:	0
 			)
@@ -214,15 +216,20 @@ export class DataWindowQueryArgumentsFieldForm extends PureComponent {
 		else if (argFieldConstValue === null)
 			argFieldValue = null;
 		else
-			argFieldValue = clone(argFieldConstValue);
+			argFieldValue = Object.assign({}, argFieldConstValue);
 
 		if (isComposite && typeof argFieldValue[argFieldName] === 'undefined')
 			argFieldValue[argFieldName] = [void 0];
-		else if (argFieldValue !== null)
-				argFieldValue[argFieldName] =
-					typeof argFieldValue[argFieldName] === 'undefined'
-					?	getDefaultArgFieldValue(argField.type, argField.kind)
-					:	argFieldValue[argFieldName];
+
+		argFieldValue[argFieldName] =
+			typeof argFieldValue[argFieldName] === 'undefined'
+			?	null
+			:	argFieldValue[argFieldName] === DEFAULT_VALUE_NON_NULL_PRIMITIVE
+				?	getDefaultArgFieldValue(
+						argField.type,
+						argField.kind,
+					)
+				:	argFieldValue[argFieldName];
 
 		const subFields =
 			!isPrimitiveGraphQLType(argField.type)
@@ -359,7 +366,7 @@ export class DataWindowQueryArgumentsFieldForm extends PureComponent {
 		const newValue = setObjectValueByPath(
 			this.state.fieldValue,
 			oldValue === null
-			?	void 0
+			?	DEFAULT_VALUE_NON_NULL_PRIMITIVE
 			:	null,
 			[this.props.argFieldName].concat(path),
 		);

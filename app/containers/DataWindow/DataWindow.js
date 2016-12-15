@@ -93,7 +93,7 @@ DataWindowComponent.propTypes = {
 	linkingPropName: PropTypes.string,
 	linkingPropPath: PropTypes.array,
 	language: PropTypes.string,
-	queryArgsList: PropTypes.any,
+	queryArgsMap: PropTypes.any,
 	topNestedConstructor: PropTypes.instanceOf(NestedConstructor),
     topNestedConstructorComponent: PropTypes.instanceOf(ProjectComponentRecord),
 
@@ -113,7 +113,7 @@ const mapStateToProps = state => ({
 	linkingPropPath: state.project.linkingPropPath,
 	language: state.app.language,
 	components: currentComponentsSelector(state),
-	queryArgsList: getComponentGraphQLQueryArgs(state),
+	queryArgsMap: getComponentGraphQLQueryArgs(state),
 	singleComponentSelected: singleComponentSelectedSelector(state),
 	topNestedConstructor: topNestedConstructorSelector(state),
 	topNestedConstructorComponent: topNestedConstructorComponentSelector(state),

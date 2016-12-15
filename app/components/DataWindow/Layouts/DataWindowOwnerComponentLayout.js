@@ -28,7 +28,6 @@ import {
 export class DataWindowOwnerComponentLayout extends PureComponent {
 
     render() {
-        if (!this.props.singleComponentSelected || !this.props.linkingProp) return null;
 
         const ownerComponent = this.props.topNestedConstructorComponent;
 
@@ -132,4 +131,4 @@ DataWindowOwnerComponentLayout.propTypes = {
     onLinkWithOwnerProp: PropTypes.func,
 };
 
-DataWindowOwnerComponentLayout.displayName = 'LinkPropMenu';
+DataWindowOwnerComponentLayout.displayName = 'DataWindowOwnerComponentLayout';
