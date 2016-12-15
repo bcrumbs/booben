@@ -84,10 +84,10 @@ const coerceFloatValue = value => {
  * @return {boolean}
  */
 const isRenderableProp = propMeta =>
-    propMeta.source.indexOf('static') > -1 ||
-    propMeta.source.indexOf('data') > -1 || (
+    isValidSourceForProp(propMeta, 'static') ||
+    isValidSourceForProp(propMeta, 'data') || (
         propMeta.type === 'component' &&
-        propMeta.source.indexOf('designer') > -1
+        isValidSourceForProp(propMeta, 'designer')
     );
 
 /**
@@ -128,37 +128,44 @@ const ownerPropsSelector = createSelector(
 
 /**
  *
- * @param {TypeDefinition} propMeta
+ * @param {ComponentMeta} componentMeta
+ * @param {ComponentPropMeta} propMeta
  * @param {Object} propValue - It is an {@link Immutable.Record} actually (see app/models/ProjectComponentProp.js)
  * @return {*}
  */
-const transformValue = (propMeta, propValue) => {
+const transformValue = (componentMeta, propMeta, propValue) => {
     if (!propValue) return { value: null, isLinked: false };
 
-    const isLinked = isLinkedProp(propValue);
+    const typedef = resolveTypedef(componentMeta, propMeta),
+        isLinked = isLinkedProp(propValue);
+
     let value = null;
 
     if (!isLinked) {
         if (propValue.source === 'static') {
-            if (isScalarType(propMeta)) {
+            if (isScalarType(typedef)) {
                 value = propValue.sourceData.value;
             }
-            else if (propMeta.type === 'shape') {
-                value = _mapValues(propMeta.fields, (fieldMeta, fieldName) =>
-                    transformValue(fieldMeta, propValue.sourceData.value.get(fieldName)));
+            else if (typedef.type === 'shape') {
+                value = _mapValues(typedef.fields, (fieldMeta, fieldName) =>
+                    transformValue(
+                        componentMeta,
+                        fieldMeta,
+                        propValue.sourceData.value.get(fieldName))
+                    );
             }
-            else if (propMeta.type === 'objectOf') {
+            else if (typedef.type === 'objectOf') {
                 propValue.sourceData.value.map(nestedValue =>
-                    transformValue(propMeta.ofType, nestedValue)).toJS();
+                    transformValue(componentMeta, typedef.ofType, nestedValue)).toJS();
             }
-            else if (propMeta.type === 'arrayOf') {
+            else if (typedef.type === 'arrayOf') {
                 value = propValue.sourceData.value.map(nestedValue =>
-                    transformValue(propMeta.ofType, nestedValue)).toJS();
+                    transformValue(componentMeta, typedef.ofType, nestedValue)).toJS();
             }
         }
         else if (propValue.source === 'designer') {
             // true if component exists, false otherwise
-            if (propMeta.type === 'component')
+            if (typedef.type === 'component')
                 value = propValue.sourceData.rootId !== -1;
         }
     }
@@ -364,6 +371,8 @@ class ComponentPropsEditorComponent extends PureComponent {
     _propTypeFromMeta(componentMeta, propMeta) {
         // TODO: Memoize
 
+        const typedef = resolveTypedef(componentMeta, propMeta);
+
         const name = getString(
             componentMeta,
             propMeta.textKey,
@@ -381,8 +390,8 @@ class ComponentPropsEditorComponent extends PureComponent {
 
         const ret = {
             label: name,
-            type: propMeta.type, // TODO: Get string from i18n
-            view: editable ? propTypeToView[propMeta.type] : 'empty',
+            type: typedef.type, // TODO: Get string from i18n
+            view: editable ? propTypeToView[typedef.type] : 'empty',
             image: '',
             tooltip: description,
             linkable: linkable,
@@ -391,14 +400,14 @@ class ComponentPropsEditorComponent extends PureComponent {
         };
 
         if (editable) {
-            if (propMeta.type === 'int') {
+            if (typedef.type === 'int') {
                 ret.transformValue = coerceIntValue;
             }
-            else if (propMeta.type === 'float') {
+            else if (typedef.type === 'float') {
                 ret.transformValue = coerceFloatValue;
             }
-            else if (propMeta.type === 'oneOf') {
-                ret.options = propMeta.options.map(option => ({
+            else if (typedef.type === 'oneOf') {
+                ret.options = typedef.options.map(option => ({
                     value: option.value,
                     text: getString(
                         componentMeta,
@@ -407,16 +416,16 @@ class ComponentPropsEditorComponent extends PureComponent {
                     ) || option.textKey
                 }));
             }
-            else if (propMeta.type === 'shape') {
-                ret.fields = _mapValues(propMeta.fields, (fieldMeta, fieldName) =>
+            else if (typedef.type === 'shape') {
+                ret.fields = _mapValues(typedef.fields, (fieldMeta, fieldName) =>
                     this._propTypeFromMeta(componentMeta, fieldMeta));
             }
-            else if (propMeta.type === 'arrayOf') {
-                ret.ofType = this._propTypeFromMeta(componentMeta, propMeta.ofType);
+            else if (typedef.type === 'arrayOf') {
+                ret.ofType = this._propTypeFromMeta(componentMeta, typedef.ofType);
                 ret.formatItemLabel = this._formatArrayItemLabel;
             }
-            else if (propMeta.type === 'objectOf') {
-                ret.ofType = this._propTypeFromMeta(componentMeta, propMeta.ofType);
+            else if (typedef.type === 'objectOf') {
+                ret.ofType = this._propTypeFromMeta(componentMeta, typedef.ofType);
                 ret.formatItemLabel = this._formatObjectItemLabel;
             }
         }
@@ -437,7 +446,7 @@ class ComponentPropsEditorComponent extends PureComponent {
 
         const propMeta = componentMeta.props[propName],
             propType = this._propTypeFromMeta(componentMeta, propMeta),
-            value = transformValue(propMeta, propValue);
+            value = transformValue(componentMeta, propMeta, propValue);
 
         const onChange = propType.view === 'constructor'
             ? this._handleSetComponent.bind(this, propName)
