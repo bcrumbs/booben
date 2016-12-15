@@ -14,8 +14,6 @@ import {
 
 import {
 	isPrimitiveGraphQLType,
-	equalMetaToGraphQLTypeNames,
-	FIELD_KINDS
 } from '../../../utils/schema';
 
 export class DataWindowContextLayout extends DataWindowQueryLayout {
@@ -131,8 +129,8 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
 							isPrimitiveGraphQLType(
 								this._getCurrentPathByIndex(-1).type
 							)
-						?	-2
-						:	-1
+							?	-2
+							:	-1
 						).name,
 						this.props.schema.types,
 						this.haveArguments,

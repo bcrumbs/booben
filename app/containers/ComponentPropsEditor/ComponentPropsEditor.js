@@ -96,10 +96,7 @@ const isRenderableProp = propMeta =>
  * @return {boolean}
  */
 const isLinkedProp = propValue =>
-    (
-        propValue.source === 'data' &&
-        !!propValue.sourceData.queryPath
-    ) || (
+    propValue.source === 'data' || (
         propValue.source === 'static' &&
         !!propValue.sourceData.ownerPropName
     );
@@ -167,10 +164,12 @@ const transformValue = (propMeta, propValue) => {
     }
     else {
         if (propValue.source === 'data') {
-            value = propValue.sourceData.queryPath
-                .map(step => step.field)
-                .toJS()
-                .join(' -> ');
+            if (propValue.sourceData.queryPath) {
+                value = propValue.sourceData.queryPath
+                    .map(step => step.field)
+                    .toJS()
+                    .join(' -> ');
+            }
         }
         else if (propValue.source === 'static') {
             value = propValue.sourceData.ownerPropName;

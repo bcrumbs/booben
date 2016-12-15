@@ -583,13 +583,15 @@ export class PropsItem extends PureComponent {
                 children = this._renderNestedItems();
         }
         else {
-            valueWrapper = (
-                <Tag
-                    text={this.props.value.value}
-                    bounded
-                    removable
-                />
-            );
+            if (this.props.value.value) {
+                valueWrapper = (
+                    <Tag
+                        text={this.props.value.value}
+                        bounded
+                        removable
+                    />
+                );
+            }
         }
 
         let actionsRight = null;

@@ -63,6 +63,7 @@ import ProjectRoute from '../models/ProjectRoute';
 import ProjectComponentProp from '../models/ProjectComponentProp';
 import SourceDataStatic from '../models/SourceDataStatic';
 import SourceDataDesigner from '../models/SourceDataDesigner';
+import SourceDataData from '../models/SourceDataData';
 
 import {
     projectToImmutable,
@@ -76,10 +77,12 @@ import {
     gatherComponentsTreeIds,
     isRootComponent,
     getValueByPath,
+    walkSimpleProps,
+    walkComponentsTree,
     QueryArgumentValue
 } from '../models/ProjectComponent';
 
-import { Record, Map, Set, List } from 'immutable';
+import { Record, Map, Set, List, is } from 'immutable';
 
 import { concatPath } from '../utils';
 
@@ -414,6 +417,112 @@ const selectFirstRoute = state => state.merge({
     indexRouteSelected: false
 });
 
+const isPrefixList = (maybePrefix, list) => {
+    if (maybePrefix.size > list.size) return false;
+    return maybePrefix.every((item, idx) => is(item, list.get(idx)));
+};
+
+const expandPropPath = propPath => propPath
+    .slice(0, -1)
+    .reduce((acc, cur) => acc.concat([cur, 'sourceData', 'value']), [])
+    .concat(propPath[propPath.length - 1]);
+
+const clearOutdatedDataProps = (
+    state,
+    updatedComponentId,
+    updatedDataPropName
+) => {
+    const currentComponentsPath = getPathToCurrentComponents(state),
+        currentComponents = state.getIn(currentComponentsPath),
+        updatedComponent = currentComponents.get(updatedComponentId);
+
+    const oldValue = updatedComponent.props.get(updatedDataPropName);
+    if (oldValue.source !== 'data') return state;
+
+    const componentMeta = getComponentMeta(updatedComponent.name, state.meta),
+        updatedPropMeta = componentMeta.props[updatedDataPropName];
+
+    const pushedDataContext = updatedPropMeta.sourceConfigs.data.pushDataContext;
+    if (!pushedDataContext) return state;
+
+    const outdatedDataContext = oldValue.sourceData.dataContext.push(pushedDataContext);
+
+    const visitDesignerProp = (designerPropValue, path) => {
+        walkComponentsTree(
+            designerPropValue.sourceData.components,
+            designerPropValue.sourceData.rootId,
+
+            component => {
+                const componentId = component.id;
+
+                walkSimpleProps(
+                    component,
+                    getComponentMeta(component.name, state.meta),
+
+                    (propValue, _, pathToProp) => {
+                        if (propValue.source === 'data') {
+                            const containsOutdatedDataContext = isPrefixList(
+                                outdatedDataContext,
+                                propValue.sourceData.dataContext
+                            );
+
+                            if (containsOutdatedDataContext) {
+                                const pathToUpdatedValue = [].concat(path, [
+                                    'sourceData',
+                                    'components',
+                                    componentId,
+                                    'props'
+                                ], expandPropPath(pathToProp));
+
+                                const newSourceData = new SourceDataData({
+                                    queryPath: null
+                                });
+
+                                state = state.updateIn(
+                                    pathToUpdatedValue,
+
+                                    updatedvalue => updatedvalue.set(
+                                        'sourceData',
+                                        newSourceData
+                                    )
+                                );
+                            }
+                        }
+                        else if (propValue.source === 'designer') {
+                            if (propValue.sourceData.rootId > -1) {
+                                const pathToNextDesignerValue = [].concat(path, [
+                                    'sourceData',
+                                    'components',
+                                    componentId,
+                                    'props'
+                                ], expandPropPath(pathToProp));
+
+                                visitDesignerProp(
+                                    state.getIn(pathToNextDesignerValue),
+                                    pathToNextDesignerValue
+                                );
+                            }
+                        }
+                    }
+                );
+            }
+        );
+    };
+
+    walkSimpleProps(updatedComponent, componentMeta, (propValue, _, pathToProp) => {
+        if (propValue.source === 'designer' && propValue.sourceData.rootId > -1) {
+            const pathToValue = [].concat(currentComponentsPath, [
+                updatedComponentId,
+                'props'
+            ], expandPropPath(pathToProp));
+
+            visitDesignerProp(propValue, pathToValue);
+        }
+    });
+
+    return state;
+};
+
 export default (state = new ProjectState(), action) => {
     switch (action.type) {
         case PROJECT_REQUEST: {
@@ -581,6 +690,16 @@ export default (state = new ProjectState(), action) => {
                 throw new Error(
                     'An attempt was made to update a component ' +
                     'that is not in current editing area'
+                );
+            }
+
+            // Data prop with pushDataContext cannot be nested,
+            // so we need to clearOutdatedDataProps only when updating top-level prop
+            if (!action.path || !action.path.length) {
+                state = clearOutdatedDataProps(
+                    state,
+                    action.componentId,
+                    action.propName
                 );
             }
 
