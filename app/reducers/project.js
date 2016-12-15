@@ -441,10 +441,10 @@ const clearOutdatedDataProps = (
     const componentMeta = getComponentMeta(updatedComponent.name, state.meta),
         updatedPropMeta = componentMeta.props[updatedDataPropName];
 
-    if (!updatedPropMeta.pushDataContext) return state;
+    const pushedDataContext = updatedPropMeta.sourceConfigs.data.pushDataContext;
+    if (!pushedDataContext) return state;
 
-    const outdatedDataContext = oldValue.sourceData.dataContext
-        .push(updatedPropMeta.pushDataContext);
+    const outdatedDataContext = oldValue.sourceData.dataContext.push(pushedDataContext);
 
     const visitDesignerProp = (designerPropValue, path) => {
         walkComponentsTree(
@@ -466,16 +466,16 @@ const clearOutdatedDataProps = (
                             );
 
                             if (containsOutdatedDataContext) {
-                                const newSourceData = new SourceDataData({
-                                    queryPath: null
-                                });
-
                                 const pathToUpdatedValue = [].concat(path, [
                                     'sourceData',
                                     'components',
                                     componentId,
                                     'props'
                                 ], expandPropPath(pathToProp));
+
+                                const newSourceData = new SourceDataData({
+                                    queryPath: null
+                                });
 
                                 state = state.updateIn(
                                     pathToUpdatedValue,
@@ -510,12 +510,16 @@ const clearOutdatedDataProps = (
 
     walkSimpleProps(updatedComponent, componentMeta, (propValue, _, pathToProp) => {
         if (propValue.source === 'designer' && propValue.sourceData.rootId > -1) {
-            visitDesignerProp(propValue, [].concat(currentComponentsPath, [
+            const pathToValue = [].concat(currentComponentsPath, [
                 updatedComponentId,
                 'props'
-            ], expandPropPath(pathToProp)));
+            ], expandPropPath(pathToProp));
+
+            visitDesignerProp(propValue, pathToValue);
         }
     });
+
+    return state;
 };
 
 export default (state = new ProjectState(), action) => {

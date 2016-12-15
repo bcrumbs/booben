@@ -4,6 +4,7 @@
 import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { graphql } from 'react-apollo';
+import { NetworkStatus } from 'apollo-client';
 import _merge from 'lodash.merge';
 import _mapValues from 'lodash.mapvalues';
 import { List } from 'immutable';
@@ -416,7 +417,7 @@ class BuilderComponent extends PureComponent {
             const Container = graphql(graphQLQuery, {
                 props: ({ ownProps, data }) => {
                     // TODO: Better check
-                    if (Object.keys(data).length <= 9) return ownProps;
+                    if (Object.keys(data).length <= 10) return ownProps;
 
                     const dataProps = mapDataToComponentProps(
                         component,
@@ -429,7 +430,8 @@ class BuilderComponent extends PureComponent {
                 },
 
                 options: {
-                    pollInterval: 1000
+                    forceFetch: true,
+                    notifyOnNetworkStatusChange: true
                 }
             })(Component);
 
