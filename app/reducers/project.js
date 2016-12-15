@@ -436,7 +436,7 @@ const clearOutdatedDataProps = (
         updatedComponent = currentComponents.get(updatedComponentId);
 
     const oldValue = updatedComponent.props.get(updatedDataPropName);
-    if (oldValue.source !== 'data') return state;
+    if (oldValue.source !== 'data' || !oldValue.sourceData.queryPath) return state;
 
     const componentMeta = getComponentMeta(updatedComponent.name, state.meta),
         updatedPropMeta = componentMeta.props[updatedDataPropName];
