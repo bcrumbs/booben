@@ -9,10 +9,6 @@ import {
 	FIELD_KINDS
 } from '../../../../utils/schema';
 
-import {
-	clone
-} from '../../../../utils/misc';
-
 const DEFAULT_VALUE_NON_NULL_PRIMITIVE = {};
 
 const setObjectValueByPath = (object, value, path) => {

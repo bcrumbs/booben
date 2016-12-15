@@ -188,6 +188,26 @@ export const updateComponentPropValue = (
 					:	null
 });
 
+export const PROJECT_COMPONENT_UPDATE_QUERY_ARGS = 'PROJECT_COMPONENT_UPDATE_QUERY_ARGS';
+
+/**
+ *
+ * @param {number} componentId
+ * @param {Object} newQueryArgs
+ * @return {Object}
+ */
+export const updateComponentQueryArgs = (
+	componentId,
+	newQueryArgs = {}
+) => ({
+    type: PROJECT_COMPONENT_UPDATE_QUERY_ARGS,
+    componentId,
+	newQueryArgs: Object.keys(newQueryArgs).length
+					?	newQueryArgs
+					:	null
+});
+
+
 /**
  *
  * @type {string}

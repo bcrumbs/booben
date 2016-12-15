@@ -51,15 +51,25 @@ export class DataWindowDataLayout extends PureComponent {
 						connection: true
 					},
 					{
-						title: 'Context',
-						actionType: 'jump',
-						connection: true
-					},
-					{
 						title: 'State',
 						actionType: 'jump',
 						connection: true
 					},
+					{
+						title: 'Film - context',
+						actionType: 'jump',
+						connection: true,
+						onSelect:
+							() =>
+								this.props.setSelectedPath(
+									'Context', {
+										contextFieldType:
+											{ name: 'Film', type: 'Film'},
+										contextQueryPath: 'film films moreFilms',
+										context: 'item'
+									}
+								)
+					}
 				].concat(
 					this.props.topNestedConstructorComponent
 					?	[
@@ -68,7 +78,11 @@ export class DataWindowDataLayout extends PureComponent {
 							actionType: 'jump',
 							connection: true,
 							onSelect: () => this.props.setSelectedPath('OwnerComponent')
-						}
+						},
+						...[
+
+							//this.props.topNestedConstructor.get('props')
+						]
 					]
 					:	[]
 				)

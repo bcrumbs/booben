@@ -6,7 +6,8 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import {
 	linkPropCancel,
 	updateComponentPropValue,
-	linkWithOwnerProp
+	updateComponentQueryArgs,
+	linkWithOwnerProp,
 }	from '../../actions/project';
 
 import {
@@ -37,6 +38,10 @@ import {
 	DataWindowOwnerComponentLayout
 } from '../../components/DataWindow/Layouts/DataWindowOwnerComponentLayout';
 
+import {
+	DataWindowContextLayout
+} from '../../components/DataWindow/Layouts/DataWindowContextLayout';
+
 import '../../components/DataWindow/DataWindow.scss';
 
 class DataWindowComponent extends PureComponent {
@@ -44,26 +49,30 @@ class DataWindowComponent extends PureComponent {
 		super(props);
 		this.state = {
 			selectedPath: void 0,
+			selectedPathProps: {}
 		};
 		this._setSelectedPath = this._setSelectedPath.bind(this);
 		this._backToMainLayout = this._backToMainLayout.bind(this);
 	}
 
-	_setSelectedPath(selectedPath) {
-		this.setState({ selectedPath });
+	_setSelectedPath(selectedPath, selectedPathProps = {}) {
+		this.setState({ selectedPath, selectedPathProps });
 	}
 
 	_backToMainLayout() {
-		this.setState({ selectedPath: void 0 });
+		this.setState({ selectedPath: void 0, selectedPathProps: {} });
 	}
 
 	render() {
+		const { selectedPathProps } = this.state;
 		const component =
 			this.state.selectedPath === 'Query'
 			?	DataWindowQueryLayout
 			:	this.state.selectedPath === 'OwnerComponent'
 				?	DataWindowOwnerComponentLayout
-				:	DataWindowDataLayout;
+				:	this.state.selectedPath === 'Context'
+					?	DataWindowContextLayout
+					:	DataWindowDataLayout;
 
 
 		return React.createElement(
@@ -73,8 +82,9 @@ class DataWindowComponent extends PureComponent {
 				this.props,
 				{
 					backToMainLayout: this._backToMainLayout,
-					setSelectedPath: this._setSelectedPath
-				}
+					setSelectedPath: this._setSelectedPath,
+				},
+				selectedPathProps
 			)
 		);
 	}
@@ -124,6 +134,8 @@ const mapDispatchToProps = dispatch => ({
         void dispatch(linkPropCancel()),
 	onUpdateComponentPropValue: (...args) =>
 		void dispatch(updateComponentPropValue(...args)),
+	onUpdateComponentQueryArgs: (...args) =>
+		void dispatch(updateComponentQueryArgs(...args)),
 	onLinkWithOwnerProp: ownerPropName =>
         void dispatch(linkWithOwnerProp(ownerPropName))
 });

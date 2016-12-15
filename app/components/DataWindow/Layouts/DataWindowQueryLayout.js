@@ -81,15 +81,6 @@ function canGoIntoField(metaType, graphQLType) {
 			&& !isPrimitiveGraphQLType(graphQLType.type);
 }
 
-function allValuesAreNull(obj) {
-	return typeof obj === 'object' && obj !== null
-	?	Array.isArray(obj)
-		?	obj.every(allValuesAreNull)
-		:	Object.keys(obj).every(key => allValuesAreNull(obj[key]))
-	:	obj === null;
-}
-
-
 export class DataWindowQueryLayout extends DataWindowDataLayout {
 	constructor(props){
 		super(props);
@@ -232,7 +223,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		);
 
 		const queryArgs = args.reduce((acc, currentArg, num) =>
-			Object.keys(currentArg).length && !allValuesAreNull(currentArg)
+			Object.keys(currentArg).length
+			&& !DataWindowQueryLayout.allValuesAreNull(currentArg)
 			?	Object.assign(acc, {
 				['']: Object.assign(
 					{}, acc[''], {
@@ -317,6 +309,10 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 				);
 	}
 
+	get currentSelectionPath() {
+		return this.state.currentPath.slice(2);
+	}
+
 	get breadcrumbs() {
 		return this.state.currentPath.map(
 			({ name }) => ({
@@ -351,21 +347,21 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		const previousPathField =
 			this.state.previousPath[this.state.currentPath.length];
 
-		if (this.state.currentPath.length === 1) return [{}];
+		if (!this.currentSelectionPath.length) return [{}];
 
 		const boundArguments = !allArgumentsMode && this._getBoundArgumentsByPath(
 			!lastPath
-			?	this.state.currentPath.slice(2)
+			?	this.currentSelectionPath
 					.concat(
 						this.selectedField
 						?	[this.selectedField]
 						:	[]
 					)
-			:	this.state.currentPath.slice(2)
+			:	this.currentSelectionPath
 		);
 
 		return	allArgumentsMode
-			?	this.state.currentPath.slice(2).map(
+			?	this.currentSelectionPath.map(
 					({ args }) =>
 						args
 				)
@@ -387,15 +383,15 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	}
 
 	_getCurrentEditingFields(allCurrentPathFields) {
-		const { types, queryTypeName } = this.props.schema;
-		return this.state.currentPath.length > 2
+		const { types } = this.props.schema;
+		return this.currentSelectionPath.length
 			?	this.state.allArgumentsMode || allCurrentPathFields
-				?	this.state.currentPath.slice(2).reduce((path, { name }) =>
+				?	this.currentSelectionPath.reduce((path, { name }) =>
 					{
 						const parentField = types[
 							path.length
 							?	path[path.length - 1].type
-							:	queryTypeName
+							:	this._getCurrentPathByIndex(-2).type
 						];
 
 						const fieldConnections = objectFilter(parentField.fields,
@@ -422,9 +418,11 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						:	types[this._getCurrentPathByIndex(-2).type]
 									.fields[this._getCurrentPathByIndex(-1).name]
 					]
-			:	this.state.currentPath.length === 2
+			:	!this.currentSelectionPath.length
 				&& !this.state.argumentsForCurrentPathLast && this.state.argumentsMode
-				?	[types[queryTypeName].fields[this.state.selectedFieldName]]
+				?	[types[
+						this._getCurrentPathByIndex(-1).type
+					].fields[this.state.selectedFieldName]]
 				:	[]
 			;
 	}
@@ -435,6 +433,16 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
 	setNewArgumentValue(argValue, value) {
 		Object.assign(argValue, value);
+	}
+
+	static allValuesAreNull(obj) {
+		return typeof obj === 'object' && obj !== null
+		?	Array.isArray(obj)
+			?	obj.every(DataWindowQueryLayout.allValuesAreNull)
+			:	Object.keys(obj).every(
+					key => DataWindowQueryLayout.allValuesAreNull(obj[key])
+				)
+		:	obj === null;
 	}
 
 	static extractSourceDataValue(obj) {
@@ -461,7 +469,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	static createSourceDataObject(obj) {
 		return typeof obj === 'object' && obj !== null
 				?	Array.isArray(obj)
-					?	obj.filter(v => !allValuesAreNull(v)).map(value => ({
+					?	obj.filter(
+						v => !DataWindowQueryLayout.allValuesAreNull(v)).map(value => ({
 							source: 'static',
 							sourceData: {
 								value:
@@ -472,7 +481,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 							}
 						})
 					)
-					:	Object.keys(obj).filter(key => !allValuesAreNull(obj[key])
+					:	Object.keys(obj).filter(
+							key => !DataWindowQueryLayout.allValuesAreNull(obj[key])
 						).reduce((acc, key) =>
 							Object.assign(
 								acc,
@@ -762,7 +772,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	 * arguments state for this field (bound or not)
 	 */
 	_areArgumentsBound(fields) {
-		const currentPath = this.state.currentPath.concat(
+		const currentPath = this.currentSelectionPath.concat(
 			!this.state.argumentsForCurrentPathLast
 			&&	!this.state.allArgumentsMode
 			?	[this.selectedField]
@@ -789,7 +799,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
 	get CONTENT_TYPE() {
 		const ownerComponent = this.props.topNestedConstructorComponent;
-		console.log(ownerComponent);
 
 		const currentEditingFields = this._getCurrentEditingFields();
 
