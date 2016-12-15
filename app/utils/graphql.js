@@ -20,6 +20,16 @@ const LETTERS_LEN = LETTERS.length;
 const ALL_CHARS = LETTERS + NUMBERS;
 const ALL_CHARS_LEN = ALL_CHARS.length;
 
+const IS_FINISHED_FRAGMENT = Symbol();
+
+const SCALAR_TYPES = new Set([
+    'String',
+    'Boolean',
+    'Int',
+    'Float',
+    'Enum'
+]);
+
 /**
  *
  * @param {number} [len=12]
@@ -81,6 +91,7 @@ const attachFragmentToFragment = (fragment, destinationFragment, path = null) =>
         directives: []
     });
 
+    if (fragment[IS_FINISHED_FRAGMENT]) destinationFragment[IS_FINISHED_FRAGMENT] = true;
     return destinationFragment;
 };
 
@@ -363,7 +374,10 @@ const buildGraphQLFragmentForValue = (
         );
     });
 
-    return badPath ? null : ret;
+    if (badPath) return null;
+
+    ret[IS_FINISHED_FRAGMENT] = SCALAR_TYPES.has(currentType);
+    return ret;
 };
 
 const DataContextTreeNode = Record({
@@ -649,11 +663,12 @@ export const buildQueryForComponent = (component, schema, meta) => {
     const { fragments, theMap } =
         buildGraphQLFragmentsForComponent(component, schema, meta);
 
-    if (!fragments.length) return { query: null, theMap };
-
-    const rootFragments = fragments.filter(
-        fragment => fragment.typeCondition.name.value === schema.queryTypeName
+    const rootFragments = fragments.filter(fragment =>
+        fragment.typeCondition.name.value === schema.queryTypeName &&
+        fragment[IS_FINISHED_FRAGMENT]
     );
+
+    if (!rootFragments.length) return { query: null, theMap };
 
     const query = {
         kind: 'Document',
