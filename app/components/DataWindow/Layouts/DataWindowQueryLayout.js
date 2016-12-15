@@ -388,10 +388,13 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 			?	this.state.allArgumentsMode || allCurrentPathFields
 				?	this.currentSelectionPath.reduce((path, { name }) =>
 					{
+
 						const parentField = types[
 							path.length
 							?	path[path.length - 1].type
-							:	this._getCurrentPathByIndex(-2).type
+							:	this._getCurrentPathByIndex(
+								-1 - this.currentSelectionPath.length
+							).type
 						];
 
 						const fieldConnections = objectFilter(parentField.fields,
@@ -403,7 +406,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 							||	Object.assign({}, Object.keys(fieldConnections).reduce(
 								(_, fieldConnectionName)	=>
 									_ || fieldConnections[fieldConnectionName]
-										.connectionFields[name.split('/')[1]]
+											.connectionFields[name.split('/')[1]]
 							, void 0), { name })
 						);
 
