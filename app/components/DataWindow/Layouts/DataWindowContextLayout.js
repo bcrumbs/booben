@@ -48,7 +48,7 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
 			?	Object.assign(acc, {
 				[this.props.context]: Object.assign(
 					{}, acc[this.props.context], {
-						[this.props.contextQueryPath + ' ' + queryPath.slice(0, num + 1)
+						[queryPath.slice(0, num + 1)
 							.map(({ field }) => field).join(' ')]:
 								DataWindowQueryLayout
 									.createSourceDataObject(currentArg)
@@ -68,10 +68,33 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
 			}
 		);
 		this.props.onUpdateComponentQueryArgs(
-			this.props.topNestedConstructorComponent.get('id'),
+			this.props.topNestedConstructorComponent.id,
 			queryArgs
 		);
 		this.props.onLinkPropCancel();
+	}
+
+	/**
+	 * @param {Array<Object>} path
+	 * @return {undefined|Object} - arguments for path's last node
+	 */
+	_getBoundArgumentsByPath(path) {
+		const queryArgsMap = this.props.topNestedConstructorComponent.queryArgs;
+		const args = queryArgsMap.get(this.props.context)
+				&&
+				queryArgsMap
+					.get(this.props.context).get(path.map(({ name }) => name).join(' '));
+
+		const formattedArgs = args ? args.toJS() : {};
+
+		return args && Object.keys(formattedArgs).reduce((acc, key) =>
+			Object.assign(
+				acc, {
+					[key]:
+						DataWindowQueryLayout.extractSourceDataValue(formattedArgs[key])
+				}
+			)
+		,{});
 	}
 
 	get currentSelectionPath() {
@@ -150,7 +173,6 @@ DataWindowContextLayout.propTypes = Object.assign(
 	DataWindowQueryLayout.propTypes,
 	{
 		contextFieldType: PropTypes.object,
-		contextQueryPath: PropTypes.string,
 		context: PropTypes.string
 	}
 );
