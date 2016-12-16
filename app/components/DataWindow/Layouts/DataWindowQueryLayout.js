@@ -328,10 +328,10 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 			const isSelectedFieldConnectionField
 				= fieldName.includes('/');
 			if (isSelectedFieldConnectionField) {
-				const fieldName = fieldName.split('/');
+				const compositeFieldName = fieldName.split('/');
 				return Object.assign({}, types[currentPathLast.type].fields[
-					fieldName[0]
-				].connectionFields[fieldName[1]], { name: fieldName});
+					compositeFieldName[0]
+				].connectionFields[compositeFieldName[1]], { name: fieldName});
 			}
 			return types[currentPathLast.type].fields[fieldName];
 		}

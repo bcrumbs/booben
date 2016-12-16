@@ -34,8 +34,8 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
 	_applyPropData(args = []) {
 		const queryPath = this._getCurrentEditingFields(true).concat(
 				!this.state.allArgumentsMode
-				&&	this.selectedField
-				?	[ this.selectedField ]
+				&&	this._getSelectedField()
+				?	[ this._getSelectedField() ]
 				:	[]
 			).map(pathStep => ({
 				field: pathStep.name,
