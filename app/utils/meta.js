@@ -221,6 +221,15 @@ export const isValidSourceForProp = (propMeta, source) =>
 
 /**
  *
+ * @param {PropTypeDefinition} propMeta
+ * @return {boolean}
+ */
+export const propHasDataContext = propMeta =>
+    isValidSourceForProp(propMeta, 'data') &&
+    !!propMeta.sourceConfigs.data.pushDataContext;
+
+/**
+ *
  * @param {ComponentMeta} componentMeta
  * @param {PropTypeDefinition} propMeta
  * @param {string} language

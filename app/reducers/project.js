@@ -91,7 +91,8 @@ import {
     constructComponent,
     parseComponentName,
     formatComponentName,
-    getNestedTypedef
+    getNestedTypedef,
+    propHasDataContext
 } from '../utils/meta';
 
 import {
@@ -442,10 +443,10 @@ const clearOutdatedDataProps = (
     const componentMeta = getComponentMeta(updatedComponent.name, state.meta),
         updatedPropMeta = componentMeta.props[updatedDataPropName];
 
-    const pushedDataContext = updatedPropMeta.sourceConfigs.data.pushDataContext;
-    if (!pushedDataContext) return state;
+    if (!propHasDataContext(updatedPropMeta)) return state;
 
-    const outdatedDataContext = oldValue.sourceData.dataContext.push(pushedDataContext);
+    const outdatedDataContext = oldValue.sourceData.dataContext
+        .push(updatedPropMeta.sourceConfigs.data.pushDataContext);
 
     const visitDesignerProp = (designerPropValue, path) => {
         walkComponentsTree(
@@ -693,6 +694,14 @@ export default (state = new ProjectState(), action) => {
                 );
             }
 
+            const newPropValue = new ProjectComponentProp({
+                source: action.newSource,
+                sourceData: sourceDataToImmutable(
+                    action.newSource,
+                    action.newSourceData
+                )
+            });
+
             // Data prop with pushDataContext cannot be nested,
             // so we need to clearOutdatedDataProps only when updating top-level prop
             if (!action.path || !action.path.length) {
@@ -702,14 +711,6 @@ export default (state = new ProjectState(), action) => {
                     action.propName
                 );
             }
-
-            const newPropValue = new ProjectComponentProp({
-                source: action.newSource,
-                sourceData: sourceDataToImmutable(
-                    action.newSource,
-                    action.newSourceData
-                )
-            });
 
 			const pathToComponent = [].concat(pathToCurrentComponents, [
                 action.componentId
