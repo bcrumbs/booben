@@ -173,7 +173,8 @@ const getComponentById = (state, componentId) =>
 const getBottomNestedConstructorComponent = state =>
     getComponentById(state, state.nestedConstructors.last().componentId);
 
-const getComponentWithQueryArgs = (state, updatedComponentId, isRootQuery) => isRootQuery
+export const getComponentWithQueryArgs =
+	(state, updatedComponentId, isRootQuery) => isRootQuery
     ? getComponentById(state, updatedComponentId)
     : getBottomNestedConstructorComponent(state);
 
@@ -187,7 +188,6 @@ const getPathToCurrentLastComponentId = state => haveNestedConstructors(state)
 
 const getPathToCurrentRootComponentId = state => haveNestedConstructors(state)
     ? ['nestedConstructors', 0, 'rootId']
-
     : [
         'data',
         'routes',
@@ -650,49 +650,6 @@ export default (state = new ProjectState(), action) => {
             return deleteComponent(state, action.componentId);
         }
 
-		case PROJECT_COMPONENT_UPDATE_QUERY_ARGS: {
-			const pathToCurrentComponents = getPathToCurrentComponents(state),
-                currentComponents = state.getIn(pathToCurrentComponents);
-
-			if (!currentComponents.has(action.componentId)) {
-                throw new Error(
-                    'An attempt was made to update a component ' +
-                    'that is not in current editing area'
-                );
-            }
-
-			const pathToComponent = [].concat(pathToCurrentComponents, [
-                action.componentId
-			]);
-
-			if (action.newQueryArgs) {
-                const pathToQueryArgs = pathToComponent.concat('queryArgs');
-
-                const toMerge = _mapValues(
-                    action.newQueryArgs,
-
-                    argsByContext => _mapValues(
-                        argsByContext,
-
-                        argsByPath => _mapValues(
-                            argsByPath,
-
-                            arg => new QueryArgumentValue({
-                                source: arg.source,
-                                sourceData: sourceDataToImmutable(
-                                    arg.source,
-                                    arg.sourceData
-                                )
-                            })
-                        )
-                    )
-                );
-				return state.mergeIn(pathToQueryArgs, toMerge);
-			}
-
-			return state;
-		}
-
         case PROJECT_COMPONENT_UPDATE_PROP_VALUE: {
             const pathToCurrentComponents = getPathToCurrentComponents(state),
                 currentComponents = state.getIn(pathToCurrentComponents);
@@ -727,7 +684,18 @@ export default (state = new ProjectState(), action) => {
 			]);
 
 			if (action.newQueryArgs) {
-                const pathToQueryArgs = pathToComponent.concat('queryArgs');
+
+				const pathToQueryArgs = (
+					action.isRootQuery
+					?	[
+						'data',
+						'routes',
+						state.currentRouteId,
+						'components',
+						action.componentId
+					]
+					:	pathToComponent
+				).concat('queryArgs');
 
                 const toMerge = _mapValues(
                     action.newQueryArgs,

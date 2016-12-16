@@ -108,6 +108,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		this._handleBackToPress = this._handleBackToPress.bind(this);
 		this._getCurrentEditingFields = this._getCurrentEditingFields.bind(this);
 		this._getBoundArgumentsByPath = this._getBoundArgumentsByPath.bind(this);
+		this._getSelectedField = this._getSelectedField.bind(this);
 		this._areArgumentsBound = this._areArgumentsBound.bind(this);
 	}
 
@@ -214,8 +215,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	_applyPropData(args = []) {
 		const queryPath = this._getCurrentEditingFields(true).concat(
 				!this.state.allArgumentsMode
-				&&	this.selectedField
-				?	[ this.selectedField ]
+				&&	this._getSelectedField()
+				?	[ this._getSelectedField() ]
 				:	[]
 			).map(pathStep => ({
 				field: pathStep.name,
@@ -252,8 +253,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
 	_handleDataApplyPress() {
 		if (!this._getCurrentEditingFields(true).concat(
-			this.selectedField
-			?	[ this.selectedField ]
+			this._getSelectedField()
+			?	[ this._getSelectedField() ]
 			:	[]
 		).some(
 			({ args }) => Object.keys(args).length
@@ -261,10 +262,10 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		 	this._applyPropData();
 		else
 			this._handleJumpIntoField(
-				this.selectedField.name,
-				this.selectedField.type,
-				this.selectedField.kind,
-				{}
+				this._getSelectedField().name,
+				this._getSelectedField().type,
+				this._getSelectedField().kind,
+				void 0
 			);
 
 	}
@@ -320,19 +321,19 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		);
 	}
 
-	get selectedField() {
+	_getSelectedField(fieldName = this.state.selectedFieldName) {
 		const { types } = this.props.schema;
 		const currentPathLast = this._getCurrentPathByIndex(-1);
 		if (!isPrimitiveGraphQLType(currentPathLast.type)) {
 			const isSelectedFieldConnectionField
-				= this.state.selectedFieldName.includes('/');
+				= fieldName.includes('/');
 			if (isSelectedFieldConnectionField) {
-				const fieldName = this.state.selectedFieldName.split('/');
+				const fieldName = fieldName.split('/');
 				return Object.assign({}, types[currentPathLast.type].fields[
 					fieldName[0]
-				].connectionFields[fieldName[1]], { name: this.state.selectedFieldName});
+				].connectionFields[fieldName[1]], { name: fieldName});
 			}
-			return types[currentPathLast.type].fields[this.state.selectedFieldName];
+			return types[currentPathLast.type].fields[fieldName];
 		}
 		else return types[this._getCurrentPathByIndex(-2).type]
 							.fields[currentPathLast.name];
@@ -350,8 +351,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 			!lastPath
 			?	this.currentSelectionPath
 					.concat(
-						this.selectedField
-						?	[this.selectedField]
+						this._getSelectedField(fieldName)
+						?	[this._getSelectedField(fieldName)]
 						:	[]
 					)
 			:	this.currentSelectionPath
@@ -736,9 +737,10 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	 * @return {undefined|Object} - arguments for path's last node
 	 */
 	_getBoundArgumentsByPath(path) {
-		const args = this.props.queryArgsMap.get('')
+		const queryArgsMap = this.props.currentComponentWithQueryArgs.queryArgs;
+		const args = queryArgsMap.get('')
 				&&
-				this.props.queryArgsMap
+				queryArgsMap
 					.get('').get(path.map(({ name }) => name).join(' '));
 
 		const formattedArgs = args ? args.toJS() : {};
@@ -762,7 +764,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		const currentPath = this.currentSelectionPath.concat(
 			!this.state.argumentsForCurrentPathLast
 			&&	!this.state.allArgumentsMode
-			?	[this.selectedField]
+			?	[this._getSelectedField()]
 			:	[]
 		);
 		let currentPathIndex = -1;

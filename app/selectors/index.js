@@ -5,6 +5,7 @@
 'use strict';
 
 import { createSelector } from 'reselect';
+import { getComponentWithQueryArgs } from '../reducers/project';
 
 export const haveNestedConstructorsSelector = state =>
     !state.project.nestedConstructors.isEmpty();
@@ -82,9 +83,19 @@ export const currentHighlightedComponentIdsSelector = createSelector(
         : highlightedItems
 );
 
-export const getComponentGraphQLQueryArgs = createSelector(
-	currentComponentsSelector,
+export const getCurrentComponentWithQueryArgs = createSelector(
+	state => state,
 	state => state.project.linkingPropOfComponentId,
-	(components, componentId) =>
-		components.get(componentId).queryArgs
+	(state, componentId) =>
+		getComponentWithQueryArgs(state.project, componentId, true)
+);
+
+export const getRootComponentWithQueryArgs = createSelector(
+	state => state,
+	haveNestedConstructorsSelector,
+	state => state.project.linkingPropOfComponentId,
+	(state, haveNestedConstructorsSelector, componentId) =>
+		 haveNestedConstructorsSelector
+		 ?	getComponentWithQueryArgs(state.project, componentId, false)
+		 :	null
 );

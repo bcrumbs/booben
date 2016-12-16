@@ -65,11 +65,9 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
 			{
 				dataContext: [this.props.context],
 				queryPath
-			}
-		);
-		this.props.onUpdateComponentQueryArgs(
-			this.props.topNestedConstructorComponent.id,
-			queryArgs
+			},
+			queryArgs,
+			true
 		);
 		this.props.onLinkPropCancel();
 	}
@@ -79,7 +77,7 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
 	 * @return {undefined|Object} - arguments for path's last node
 	 */
 	_getBoundArgumentsByPath(path) {
-		const queryArgsMap = this.props.topNestedConstructorComponent.queryArgs;
+		const queryArgsMap = this.props.currentComponentWithQueryArgs.queryArgs;
 		const args = queryArgsMap.get(this.props.context)
 				&&
 				queryArgsMap
