@@ -347,8 +347,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		const previousPathField =
 			this.state.previousPath[this.state.currentPath.length];
 
-		if (!this.currentSelectionPath.length) return [{}];
-
 		const boundArguments = !allArgumentsMode && this._getBoundArgumentsByPath(
 			!lastPath
 			?	this.currentSelectionPath
@@ -546,6 +544,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		let argsValues = clone(fieldsArgsValues).map(
 			value => value || {}
 		);
+		console.log(arguments)
 		return (
 			{
 			    content: {
@@ -752,6 +751,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	 * @return {undefined|Object} - arguments for path's last node
 	 */
 	_getBoundArgumentsByPath(path) {
+		console.log(path);
 		const args = this.props.queryArgsMap.get('')
 				&&
 				this.props.queryArgsMap
@@ -781,7 +781,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 			?	[this.selectedField]
 			:	[]
 		);
-		let currentPathIndex = 1;
+		let currentPathIndex = -1;
 		return fields.map(field => {
 			while(
 				++currentPathIndex < currentPath.length
@@ -794,7 +794,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 				currentPath[currentPathIndex], field
 			) && this._getBoundArgumentsByPath(
 				currentPath.slice(
-					2, currentPathIndex + 1
+					0, currentPathIndex + 1
 				)
 			));
 		});
