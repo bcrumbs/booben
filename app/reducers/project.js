@@ -169,7 +169,9 @@ const closeTopNestedConstructor = state => state.update(
 
 const getBottomNestedConstructorComponent = state => {
     const nc = state.nestedConstructors.last();
-    return nc ? nc.components.get(nc.componentId) : null;
+    if (!nc) return null;
+    const currentRoute = state.data.routes.get(state.currentRouteId);
+    return currentRoute.components.get(nc.componentId);
 };
 
 const getPathToCurrentComponents = state => haveNestedConstructors(state)
