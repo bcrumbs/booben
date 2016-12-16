@@ -224,7 +224,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
 		const queryArgs = args.reduce((acc, currentArg, num) =>
 			Object.keys(currentArg).length
-			&& !DataWindowQueryLayout.allValuesAreNull(currentArg)
 			?	Object.assign(acc, {
 				['']: Object.assign(
 					{}, acc[''], {
@@ -436,16 +435,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		Object.assign(argValue, value);
 	}
 
-	static allValuesAreNull(obj) {
-		return typeof obj === 'object' && obj !== null
-		?	Array.isArray(obj)
-			?	obj.every(DataWindowQueryLayout.allValuesAreNull)
-			:	Object.keys(obj).every(
-					key => DataWindowQueryLayout.allValuesAreNull(obj[key])
-				)
-		:	obj === null;
-	}
-
 	static extractSourceDataValue(obj) {
 		return typeof obj.sourceData.value === 'object' && obj.sourceData.value !== null
 		?	Array.isArray(obj.sourceData.value)
@@ -470,8 +459,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	static createSourceDataObject(obj) {
 		return typeof obj === 'object' && obj !== null
 				?	Array.isArray(obj)
-					?	obj.filter(
-						v => !DataWindowQueryLayout.allValuesAreNull(v)).map(value => ({
+					?	obj.map(value => ({
 							source: 'static',
 							sourceData: {
 								value:
@@ -482,9 +470,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 							}
 						})
 					)
-					:	Object.keys(obj).filter(
-							key => !DataWindowQueryLayout.allValuesAreNull(obj[key])
-						).reduce((acc, key) =>
+					:	Object.keys(obj).reduce((acc, key) =>
 							Object.assign(
 								acc,
 								{
@@ -544,7 +530,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		let argsValues = clone(fieldsArgsValues).map(
 			value => value || {}
 		);
-		console.log(arguments)
 		return (
 			{
 			    content: {
@@ -751,7 +736,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	 * @return {undefined|Object} - arguments for path's last node
 	 */
 	_getBoundArgumentsByPath(path) {
-		console.log(path);
 		const args = this.props.queryArgsMap.get('')
 				&&
 				this.props.queryArgsMap
@@ -801,8 +785,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	}
 
 	get CONTENT_TYPE() {
-		const ownerComponent = this.props.topNestedConstructorComponent;
-
 		const currentEditingFields = this._getCurrentEditingFields();
 
 		const linkTargetComponent =
