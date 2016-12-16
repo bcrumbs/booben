@@ -108,6 +108,7 @@ export class PropsItem extends PureComponent {
         this._handleOpen = this._handleOpen.bind(this);
         this._handleDelete = this._handleDelete.bind(this);
         this._handleChange = this._handleChange.bind(this);
+        this._handleSetComponent = this._handleSetComponent.bind(this);
 		this._handleValueNullSwitch = this._handleValueNullSwitch.bind(this);
         this._handleAddButtonPress = this._handleAddButtonPress.bind(this);
         this._handleBreadcrumbsItemSelect = this._handleBreadcrumbsItemSelect.bind(this);
@@ -232,11 +233,19 @@ export class PropsItem extends PureComponent {
         this.props.onChange(newValue, [...this.state.currentPath, index]);
     }
 
+    _handleNestedSetComponent(index) {
+        this.props.onSetComponent([...this.state.currentPath, index]);
+    }
+
     _handleChange(newValue) {
         if (typeof this.props.propType.transformValue === 'function')
             newValue = this.props.propType.transformValue(newValue);
 
         this.props.onChange(newValue, []);
+    }
+
+    _handleSetComponent() {
+        this.props.onSetComponent([]);
     }
 
     _renderBreadcrumbs() {
@@ -303,6 +312,7 @@ export class PropsItem extends PureComponent {
                     addDialogSaveButtonText={this.props.addDialogSaveButtonText}
                     addDialogCancelButtonText={this.props.addDialogCancelButtonText}
                     onChange={this._handleNestedValueChange.bind(this, fieldName)}
+                    onSetComponent={this._handleNestedSetComponent.bind(this, fieldName)}
                     onLink={this._handleNestedValueLink.bind(this, fieldName)}
 					onNullSwitch={this._handleNestedValueNullSwitch.bind(this, fieldName)}
                     _secondary
@@ -324,6 +334,7 @@ export class PropsItem extends PureComponent {
                     addDialogSaveButtonText={this.props.addDialogSaveButtonText}
                     addDialogCancelButtonText={this.props.addDialogCancelButtonText}
                     onChange={this._handleNestedValueChange.bind(this, idx)}
+                    onSetComponent={this._handleNestedSetComponent.bind(this, idx)}
                     onLink={this._handleNestedValueLink.bind(this, idx)}
 					onNullSwitch={this._handleNestedValueNullSwitch.bind(this, idx)}
                     _secondary
@@ -352,6 +363,7 @@ export class PropsItem extends PureComponent {
                     addDialogSaveButtonText={this.props.addDialogSaveButtonText}
                     addDialogCancelButtonText={this.props.addDialogCancelButtonText}
                     onChange={this._handleNestedValueChange.bind(this, key)}
+                    onSetComponent={this._handleNestedSetComponent.bind(this, key)}
                     onLink={this._handleNestedValueLink.bind(this, key)}
 					onNullSwitch={this._handleNestedValueNullSwitch.bind(this, key)}
                     _secondary
@@ -524,7 +536,7 @@ export class PropsItem extends PureComponent {
                     <Button
                         kind="link"
                         text={text}
-                        onPress={this._handleChange}
+                        onPress={this._handleSetComponent}
                     />
                 );
             }
@@ -701,6 +713,7 @@ PropsItem.propTypes = {
     addDialogCancelButtonText: PropTypes.string,
 
     onChange: PropTypes.func,
+    onSetComponent: PropTypes.func,
     onAddValue: PropTypes.func,
     onDeleteValue: PropTypes.func,
     onLink: PropTypes.func,
@@ -725,6 +738,7 @@ PropsItem.defaultProps = {
     addDialogCancelButtonText: '',
 
     onChange: noop,
+    onSetComponent: noop,
     onAddValue: noop,
     onDeleteValue: noop,
     onLink: noop,
