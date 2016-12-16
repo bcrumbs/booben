@@ -167,10 +167,15 @@ const closeTopNestedConstructor = state => state.update(
     nestedConstructors => nestedConstructors.shift()
 );
 
-const getBottomNestedConstructorComponent = state => {
-    const nc = state.nestedConstructors.last();
-    return nc ? nc.components.get(nc.componentId) : null;
-};
+const getComponentById = (state, componentId) =>
+    state.data.routes.get(state.currentRouteId).components.get(componentId);
+
+const getBottomNestedConstructorComponent = state =>
+    getComponentById(state, state.nestedConstructors.last().componentId);
+
+const getComponentWithQueryArgs = (state, updatedComponentId, isRootQuery) => isRootQuery
+    ? getComponentById(state, updatedComponentId)
+    : getBottomNestedConstructorComponent(state);
 
 const getPathToCurrentComponents = state => haveNestedConstructors(state)
     ? ['nestedConstructors', 0, 'components']
