@@ -175,7 +175,8 @@ export const updateComponentPropValue = (
 	path,
 	newSource,
 	newSourceData,
-	newQueryArgs = {}
+	newQueryArgs = {},
+	isRootQuery = false
 ) => ({
     type: PROJECT_COMPONENT_UPDATE_PROP_VALUE,
     componentId,
@@ -185,28 +186,9 @@ export const updateComponentPropValue = (
     newSourceData,
 	newQueryArgs: Object.keys(newQueryArgs).length
 					?	newQueryArgs
-					:	null
+					:	null,
+	isRootQuery
 });
-
-export const PROJECT_COMPONENT_UPDATE_QUERY_ARGS = 'PROJECT_COMPONENT_UPDATE_QUERY_ARGS';
-
-/**
- *
- * @param {number} componentId
- * @param {Object} newQueryArgs
- * @return {Object}
- */
-export const updateComponentQueryArgs = (
-	componentId,
-	newQueryArgs = {}
-) => ({
-    type: PROJECT_COMPONENT_UPDATE_QUERY_ARGS,
-    componentId,
-	newQueryArgs: Object.keys(newQueryArgs).length
-					?	newQueryArgs
-					:	null
-});
-
 
 /**
  *

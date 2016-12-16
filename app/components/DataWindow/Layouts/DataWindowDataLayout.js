@@ -52,7 +52,7 @@ const getLastType = (types, type, path) => {
 
 export class DataWindowDataLayout extends PureComponent {
 	get CONTENT_TYPE() {
-		const ownerComponent = this.props.topNestedConstructorComponent;
+		const ownerComponent = this.props.rootComponentWithQueryArgs;
 		let contexts = [];
 		if (ownerComponent) {
 			const meta = getComponentMeta(ownerComponent.name, this.props.meta);
@@ -112,7 +112,7 @@ export class DataWindowDataLayout extends PureComponent {
 						connection: true
 					},
 				].concat(
-					this.props.topNestedConstructorComponent
+					this.props.rootComponentWithQueryArgs
 					?	[
 						{
 							title: 'Owner component',
@@ -226,6 +226,7 @@ export class DataWindowDataLayout extends PureComponent {
 
 
 DataWindowDataLayout.propTypes = {
+	components: PropTypes.any,
 	schema: PropTypes.object,
 	meta: PropTypes.object,
 	linkingProp: PropTypes.bool,
@@ -233,6 +234,14 @@ DataWindowDataLayout.propTypes = {
 	linkingPropName: PropTypes.string,
 	linkingPropPath: PropTypes.array,
 	language: PropTypes.string,
+	currentComponentWithQueryArgs: PropTypes.any,
+	rootComponentWithQueryArgs: PropTypes.any,
+	topNestedConstructor: PropTypes.any,
+	topNestedConstructorComponent: PropTypes.any,
+
+	onLinkPropCancel: PropTypes.func,
+	onUpdateComponentPropValue: PropTypes.func,
+	onLinkWithOwnerProp: PropTypes.func,
 
 	backToMainLayout: PropTypes.func,
 	setSelectedPath: PropTypes.func

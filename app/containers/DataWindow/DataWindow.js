@@ -15,7 +15,8 @@ import {
 } from 'react-redux';
 
 import {
-	getComponentGraphQLQueryArgs,
+	getCurrentComponentWithQueryArgs,
+	getRootComponentWithQueryArgs,
     currentComponentsSelector,
 	singleComponentSelectedSelector,
 	topNestedConstructorSelector,
@@ -103,7 +104,8 @@ DataWindowComponent.propTypes = {
 	linkingPropName: PropTypes.string,
 	linkingPropPath: PropTypes.array,
 	language: PropTypes.string,
-	queryArgsMap: PropTypes.any,
+	currentComponentWithQueryArgs: PropTypes.any,
+	rootComponentWithQueryArgs: PropTypes.any,
 	topNestedConstructor: PropTypes.instanceOf(NestedConstructor),
     topNestedConstructorComponent: PropTypes.instanceOf(ProjectComponentRecord),
 
@@ -123,7 +125,8 @@ const mapStateToProps = state => ({
 	linkingPropPath: state.project.linkingPropPath,
 	language: state.app.language,
 	components: currentComponentsSelector(state),
-	queryArgsMap: getComponentGraphQLQueryArgs(state),
+	currentComponentWithQueryArgs: getCurrentComponentWithQueryArgs(state),
+	rootComponentWithQueryArgs: getRootComponentWithQueryArgs(state),
 	singleComponentSelected: singleComponentSelectedSelector(state),
 	topNestedConstructor: topNestedConstructorSelector(state),
 	topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
@@ -134,8 +137,6 @@ const mapDispatchToProps = dispatch => ({
         void dispatch(linkPropCancel()),
 	onUpdateComponentPropValue: (...args) =>
 		void dispatch(updateComponentPropValue(...args)),
-	onUpdateComponentQueryArgs: (...args) =>
-		void dispatch(updateComponentQueryArgs(...args)),
 	onLinkWithOwnerProp: ownerPropName =>
         void dispatch(linkWithOwnerProp(ownerPropName))
 });
