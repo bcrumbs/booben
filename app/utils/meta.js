@@ -329,12 +329,25 @@ const buildDefaultStaticValue = (
     }
 
     if (propMeta.type === 'arrayOf') {
-        const value = defaultValue.map(fieldValue => _buildDefaultValue(
-            componentMeta,
-            propMeta.ofType,
-            language,
-            fieldValue
-        ));
+        let value = [];
+
+        if (defaultValue) {
+            value = defaultValue.map(fieldValue => _buildDefaultValue(
+                componentMeta,
+                propMeta.ofType,
+                language,
+                fieldValue
+            ));
+        }
+        else if (propMeta.sourceConfigs.static.defaultNum) {
+            for (let i = 0; i < propMeta.sourceConfigs.static.defaultNum; i++) {
+                value.push(_buildDefaultValue(
+                    componentMeta,
+                    propMeta.ofType,
+                    language
+                ));
+            }
+        }
 
         return makeSimpleStaticValue(value);
     }
@@ -370,13 +383,29 @@ const buildDefaultDesignerValue = (componentMeta, propMeta, language) => ({
 
 /**
  *
+ * @param {ComponentMeta} componentMeta
+ * @param {PropTypeDefinition} propMeta
+ * @param {string} language
+ * @return {ProjectComponentProp}
+ */
+const buildDefaultDataValue = (componentMeta, propMeta, language) => ({
+    source: 'data',
+    sourceData: {
+        dataContext: [],
+        queryPath: null
+    }
+});
+
+/**
+ *
  * @type {Object<string, function(componentMeta: ComponentMeta, propMeta: ComponentPropMeta, language: string, _inheritedDefaultValue: *|NO_VALUE): ProjectComponentProp|NO_VALUE>}
  * @const
  */
 const defaultValueBuilders = {
     'static': buildDefaultStaticValue,
     'const': buildDefaultConstValue,
-    'designer': buildDefaultDesignerValue
+    'designer': buildDefaultDesignerValue,
+    'data': buildDefaultDataValue
 };
 
 /**
@@ -387,7 +416,8 @@ const defaultValueBuilders = {
 const sourcePriority = [
     'const',
     'static',
-    'designer'
+    'designer',
+    'data'
 ];
 
 /**
@@ -594,7 +624,10 @@ export const isCompatibleType = (typedef1, typedef2) => {
  */
 export const resolveTypedef = (componentMeta, typedef) => {
     if (BUILT_IN_PROP_TYPES.has(typedef.type)) return typedef;
-    return componentMeta.types ? (componentMeta.types[typedef.type] || null) : null;
+
+    return componentMeta.types
+        ? Object.assign({}, typedef, componentMeta.types[typedef.type])
+        : null;
 };
 
 /**

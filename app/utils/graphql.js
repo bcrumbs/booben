@@ -161,16 +161,20 @@ const buildGraphQLArgument = (argName, argValue, fieldDefinition) => {
     };
 };
 
-const getQueryStepArgValues = (component, propValue, stepIdx) => {
-    const keyForDataContextArgs = propValue.sourceData.dataContext.toJS().join(' ');
+const getQueryStepArgValues = (component, ownerComponentsChain, propValue, stepIdx) => {
+    const propDataContext = propValue.sourceData.dataContext,
+        keyForDataContextArgs = propDataContext.join(' ');
 
     const keyForQueryArgs = propValue.sourceData.queryPath
         .slice(0, stepIdx + 1)
         .map(step => step.field)
-        .toJS()
         .join(' ');
 
-    return component.queryArgs.getIn([
+    const componentWithQueryArgs = propDataContext.size === 0
+        ? component
+        : ownerComponentsChain[ownerComponentsChain.length - propDataContext.size];
+
+    return componentWithQueryArgs.queryArgs.getIn([
         keyForDataContextArgs,
         keyForQueryArgs
     ]);
@@ -179,6 +183,7 @@ const getQueryStepArgValues = (component, propValue, stepIdx) => {
 /**
  *
  * @param {Object} component - Actually it's Immutable.Record; see models/ProjectComponent
+ * @param {Object[]} ownerComponentsChain
  * @param {Object} propValue - Actually it's Immutable.Record; see models/ProjectComponentProp
  * @param {string} fragmentName
  * @param {DataSchema} schema
@@ -187,6 +192,7 @@ const getQueryStepArgValues = (component, propValue, stepIdx) => {
  */
 const buildGraphQLFragmentForValue = (
     component,
+    ownerComponentsChain,
     propValue,
     fragmentName,
     schema,
@@ -233,8 +239,14 @@ const buildGraphQLFragmentForValue = (
                 );
             }
 
-            const args = [],
-                argumentValues = getQueryStepArgValues(component, propValue, idx);
+            const args = [];
+
+            const argumentValues = getQueryStepArgValues(
+                component,
+                ownerComponentsChain,
+                propValue,
+                idx
+            );
 
             if (argumentValues) {
                 argumentValues.forEach((argValue, argName) => {
@@ -333,7 +345,12 @@ const buildGraphQLFragmentForValue = (
         }
         else {
             const args = [],
-                argumentValues = getQueryStepArgValues(component, propValue, idx);
+                argumentValues = getQueryStepArgValues(
+                    component,
+                    ownerComponentsChain,
+                    propValue,
+                    idx
+                );
 
             if (argumentValues) {
                 argumentValues.forEach((argValue, argName) => {
@@ -430,6 +447,7 @@ const pushDataContext = (
 const buildAndAttachFragmentsForDesignerProp = (
     propValue,
     propMeta,
+    ownerComponentsChain,
     dataValuesByDataContext,
     dataContextTree,
     theMap,
@@ -466,6 +484,7 @@ const buildAndAttachFragmentsForDesignerProp = (
     const visitComponent = component => {
         const ret = buildGraphQLFragmentsForOwnComponent(
             component,
+            ownerComponentsChain,
             schema,
             meta,
             dataContextTree,
@@ -488,6 +507,7 @@ const buildAndAttachFragmentsForDesignerProp = (
 /**
  *
  * @param {Object} component - Actually it's an Immutable.Record; see models/ProjectComponent.js
+ * @param {Object[]} ownerComponentsChain
  * @param {DataSchema} schema
  * @param {Object} meta
  * @param {Object} dataContextTree
@@ -496,6 +516,7 @@ const buildAndAttachFragmentsForDesignerProp = (
  */
 const buildGraphQLFragmentsForOwnComponent = (
     component,
+    ownerComponentsChain,
     schema,
     meta,
     dataContextTree,
@@ -516,6 +537,7 @@ const buildGraphQLFragmentsForOwnComponent = (
 
             const fragment = buildGraphQLFragmentForValue(
                 component,
+                ownerComponentsChain,
                 propValue,
                 randomName(),
                 schema,
@@ -560,6 +582,7 @@ const buildGraphQLFragmentsForOwnComponent = (
             const ret = buildAndAttachFragmentsForDesignerProp(
                 propValue,
                 propMeta,
+                [...ownerComponentsChain, component],
                 dataValuesByDataContext,
                 dataContextTree,
                 theMap,
@@ -608,6 +631,7 @@ const buildGraphQLFragmentsForComponent = (
 
             const fragment = buildGraphQLFragmentForValue(
                 component,
+                [],
                 propValue,
                 randomName(),
                 schema,
@@ -644,6 +668,7 @@ const buildGraphQLFragmentsForComponent = (
             const ret = buildAndAttachFragmentsForDesignerProp(
                 propValue,
                 propMeta,
+                [component],
                 dataValuesByDataContext,
                 dataContextTree,
                 theMap,

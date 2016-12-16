@@ -246,11 +246,10 @@ class ComponentPropsEditorComponent extends PureComponent {
     /**
      *
      * @param {string} propName
-     * @param {*} newValue
      * @param {(string|number)[]} [path=[]]
      * @private
      */
-    _handleSetComponent(propName, newValue, path = []) {
+    _handleSetComponent(propName, path = []) {
         const componentId = this.props.selectedComponentIds.first();
         this.props.onConstructComponent(componentId, propName, path);
     }
@@ -375,18 +374,18 @@ class ComponentPropsEditorComponent extends PureComponent {
 
         const name = getString(
             componentMeta,
-            propMeta.textKey,
+            typedef.textKey,
             this.props.language
         );
 
         const description = getString(
             componentMeta,
-            propMeta.descriptionTextKey,
+            typedef.descriptionTextKey,
             this.props.language
         );
 
-        const editable = isEditableProp(propMeta),
-            linkable = this._isPropLinkable(componentMeta, propMeta);
+        const editable = isEditableProp(typedef),
+            linkable = this._isPropLinkable(componentMeta, typedef);
 
         const ret = {
             label: name,
@@ -448,10 +447,6 @@ class ComponentPropsEditorComponent extends PureComponent {
             propType = this._propTypeFromMeta(componentMeta, propMeta),
             value = transformValue(componentMeta, propMeta, propValue);
 
-        const onChange = propType.view === 'constructor'
-            ? this._handleSetComponent.bind(this, propName)
-            : this._handleValueChange.bind(this, propName);
-
         //noinspection JSValidateTypes
         return (
             <PropsItem
@@ -465,7 +460,8 @@ class ComponentPropsEditorComponent extends PureComponent {
                 addDialogInputLabelText={getLocalizedText('addValueNameInputLabel')}
                 addDialogSaveButtonText={getLocalizedText('save')}
                 addDialogCancelButtonText={getLocalizedText('cancel')}
-                onChange={onChange}
+                onChange={this._handleValueChange.bind(this, propName)}
+                onSetComponent={this._handleSetComponent.bind(this, propName)}
                 onAddValue={this._handleAddValue.bind(this, propName)}
                 onDeleteValue={this._handleDeleteValue.bind(this, propName)}
                 onLink={this._handleLinkProp.bind(this, propName)}
