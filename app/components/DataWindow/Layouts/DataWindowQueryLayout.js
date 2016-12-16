@@ -737,6 +737,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	 * @return {undefined|Object} - arguments for path's last node
 	 */
 	_getBoundArgumentsByPath(path) {
+		console.log(this.props.topNestedConstructorComponent)
 		const queryArgsMap = this.props.currentComponentWithQueryArgs.queryArgs;
 		const args = queryArgsMap.get('')
 				&&

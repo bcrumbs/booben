@@ -50,10 +50,16 @@ const getLastType = (types, type, path) => {
 	:	getLastType(types, types[typeName], path.slice(1));
 };
 
+const getAllPossibleContexts = (ownerComponent, currentComponent, context) => {
+	return ownerComponent.chi
+};
+
 export class DataWindowDataLayout extends PureComponent {
 	get CONTENT_TYPE() {
 		const ownerComponent = this.props.rootComponentWithQueryArgs;
 		let contexts = [];
+		console.log(this.props.rootComponentWithQueryArgs)
+		console.log(this.props.currentComponentWithQueryArgs);
 		if (ownerComponent) {
 			const meta = getComponentMeta(ownerComponent.name, this.props.meta);
 			const { props } = ownerComponent;
