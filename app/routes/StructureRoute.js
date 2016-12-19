@@ -9,6 +9,8 @@ import React, { PureComponent, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 import { connect } from 'react-redux';
 
+import { HeaderRoute } from '../components/HeaderRoute/HeaderRoute';
+
 import { Desktop } from '../containers/Desktop/Desktop';
 import { RouteEditor } from '../containers/RouteEditor/RouteEditor';
 
@@ -36,7 +38,8 @@ import {
     Column,
     Dialog,
     Input,
-    Form
+    Form,
+FormItem
 } from '@reactackle/reactackle';
 
 import {
@@ -405,10 +408,14 @@ class StructureRoute extends PureComponent {
                 new ButtonRecord({
                     text: getLocalizedText('edit'),
                     onPress: this._handleSelectedRouteGo
-                }),
-
+                })
+            ])
+            : List();
+    
+        const routeEditorToolSecondaryButtons = selectedRoute
+            ? List([
                 new ButtonRecord({
-                    text: getLocalizedText('delete'),
+                    icon: 'trash-o',
                     onPress: this._handleDeleteRoutePress
                 })
             ])
@@ -440,6 +447,7 @@ class StructureRoute extends PureComponent {
                     subtitle: selectedRoute ? selectedRoute.path : '',
                     sections: routeEditorToolSections,
                     mainButtons: routeEditorToolMainButtons,
+                    secondaryButtons: routeEditorToolSecondaryButtons,
                     windowMinWidth: 360
                 })
             ])
@@ -480,13 +488,9 @@ class StructureRoute extends PureComponent {
                 onToolTitleChange={this._handleToolTitleChange}
             >
                 <Panel headerFixed maxHeight="initial" spread>
-                    <Header>
-                        <HeaderRegion spread alignY="center">
-                            <HeaderTitle>
-                                {getLocalizedText('structure')}
-                            </HeaderTitle>
-                        </HeaderRegion>
-                    </Header>
+                    <HeaderRoute
+                        title={getLocalizedText('structure')}
+                    />
 
                     <PanelContent>
                         <Container>
@@ -525,18 +529,21 @@ class StructureRoute extends PureComponent {
                     onClose={this._handleCreateRouteDialogClose}
                 >
                     <Form>
-                        <Input
-                            ref={this._saveNewRouteTitleInputRef}
-                            label={getLocalizedText('title')}
-                            value={this.state.newRouteTitle}
-                            onChange={this._handleNewRouteTitleChange}
-                        />
-
-                        <Input
-                            label={getLocalizedText('path')}
-                            value={this.state.newRoutePath}
-                            onChange={this._handleNewRoutePathChange}
-                        />
+                        <FormItem>
+                            <Input
+                                ref={this._saveNewRouteTitleInputRef}
+                                label={getLocalizedText('title')}
+                                value={this.state.newRouteTitle}
+                                onChange={this._handleNewRouteTitleChange}
+                            />
+                        </FormItem>
+                        <FormItem>
+                            <Input
+                                label={getLocalizedText('path')}
+                                value={this.state.newRoutePath}
+                                onChange={this._handleNewRoutePathChange}
+                            />
+                        </FormItem>
                     </Form>
                 </Dialog>
             </Desktop>

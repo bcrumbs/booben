@@ -3,7 +3,7 @@
 
 // Base Variables
 // =====================================================================================================================
-$pdrawer-width:             rem-calc(400) !default;
+$pdrawer-width:             rem-calc(360) !default;
 
 $pdrawer-padding-x:         $base-module*2 !default;
 $pdrawer-padding-y:         $pdrawer-padding-x !default;
@@ -19,7 +19,7 @@ $pdrawer-actions-icon-img-size:             $base-module*2 !default;
 
 $pdrawer-actions-item-opacity-default:      0.46 !default;
 $pdrawer-actions-item-opacity-hover:        0.8 !default;
-$pdrawer-actions-item-active-bg-color:      transparentize($black, 0.9) !default;
+$pdrawer-actions-item-active-bg-color:      $grey-200 !default;
 
 $pdrawer-icon-actions-area-width:           $pdrawer-actions-icon-item-size !default;
 

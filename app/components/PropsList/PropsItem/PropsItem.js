@@ -374,6 +374,9 @@ export class PropsItem extends PureComponent {
 
         if (this.props.propType.view)
             className += ` prop-type-${this.props.propType.view}`;
+    
+        if (this.props.propType.colorScheme)
+            wrapperClassName += ` prop-color-scheme-${this.props.propType.colorScheme}`;
 
         if (this.props.propType.view === 'array' || this.props.propType.view === 'object')
             className += ' is-flat-array';
@@ -431,6 +434,11 @@ export class PropsItem extends PureComponent {
                     <Button icon="link" onPress={() => void this.props.onLink([])}/>
                 </div>
             );
+        }
+        
+        let message = null;
+        if (this.props.propType.message) {
+            message = <div className="prop-item_message-wrapper">{ this.props.propType.message }</div>;
         }
 
         let content = null,
@@ -587,7 +595,8 @@ export class PropsItem extends PureComponent {
                     <div className="prop-item-content-box">
                         {label}
                         <div className="prop-item_value-wrapper">
-                            {valueWrapper}
+                            { valueWrapper }
+                            { message }
                         </div>
                         <div className="prop-item_value-wrapper">
                             {content}
@@ -611,6 +620,8 @@ const ValueType = PropTypes.shape({
 const propItemTypeShape = {
     label: PropTypes.string,
     type: PropTypes.string,
+    message: PropTypes.string,
+    colorScheme: PropTypes.oneOf(['alert']),
     view: PropTypes.oneOf([
         'input',
         'textarea',

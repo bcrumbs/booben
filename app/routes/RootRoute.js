@@ -112,11 +112,16 @@ const RootRoute = props => {
         <App fixed>
             <TopRegion fixed={false}>
                 <Header size="blank">
-                    <HeaderRegion size='blank'>
+                    <HeaderRegion
+                        size='blank'
+                    >
                         <HeaderLogoBox title={title} />
                     </HeaderRegion>
 
-                    <HeaderRegion spread size='blank'>
+                    <HeaderRegion
+                        spread
+                        size='blank'
+                    >
                         <HeaderMenu inline dense mode="light">
                             <HeaderMenuGroup>
                                 <HeaderMenuList>
@@ -162,7 +167,10 @@ const RootRoute = props => {
 
             <BottomRegion>
                 <Footer>
-                    <FooterRegion region="main" size='blank'>
+                    <FooterRegion
+                        spread
+                        size='blank'
+                    >
                         <FooterMenu inline dense mode="light">
                             <FooterMenuGroup>
                                 <FooterMenuList>

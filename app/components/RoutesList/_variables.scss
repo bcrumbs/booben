@@ -13,7 +13,9 @@ $rcard-padding-y:           $base-module !default;
 
 $rcard-bg-color:            $white !default;
 $rcard-hover-bg-color:      $grey-100 !default;
-$rcard-focus-bg-color:      color($yellow-palette, lightest) !default;
+$rcard-focus-bg-color:      $rcard-bg-color !default;
+$rcard-focus-border-left-thickness:   $base-module !default;
+$rcard-focus-border-left-color:   $color-secondary !default;
 $rcard-border-radius:       $global-radius !default;
 $rcard-spacing:             $base-module !default;
 $rcard-last-child-margin-bottom: $rcard-spacing*2 !default;
@@ -59,8 +61,8 @@ $rcard-min-height:              $rcard-padding-y*2 + $rcard-title-font-size*$rca
 $rcard-max-width:               $rcard-min-height*5 !default;
 
 // Index
-$rcard-index-bg-color:          $grey-200 !default;
-$rcard-index-hover-bg-color:    $grey-300 !default;
+$rcard-index-bg-color:          color($palette-secondary, 50) !default;
+$rcard-index-hover-bg-color:    color($palette-secondary, 100) !default;
 $rcard-index-focus-bg-color:    $rcard-focus-bg-color !default;
 
 $rcard-index-color:             $grey-700 !default;

@@ -60,6 +60,13 @@
 		.accordion-item-is-expanded & {
 			color: $accordion-expanded-title-font-color;
 			font-weight: $accordion-expanded-title-font-weight;
+
+			//span {
+			//	padding: $base-module*0.75 $base-module*1.25;
+			//	margin-left: -$base-module*1.25;
+			//	background-color: color($beige, 100);
+			//	border-radius: $global-radius;
+			//}
 		}
 
 		.accordion-item-is-collapsed & {

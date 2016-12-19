@@ -231,6 +231,17 @@ $prop-toggle: 'prop-type-toggle';
 		}
 	}
 
+	// MESSAGE
+	.prop-item_message-wrapper {
+		font-size: fs(-1);
+		color: $color-text-medium;
+		line-height: 1.25;
+
+		.prop-color-scheme-alert & {
+			color: $color-alert
+		}
+	}
+
 
 	// =================================================================================================================
 	// PROPS TYPES

@@ -133,7 +133,7 @@ class RouteEditorComponent extends PureComponent {
         }
 
         return (
-            <BlockContentBox>
+            <BlockContentBox isBordered>
                 <BlockContentBoxHeading>
                     {getLocalizedText('routeProperties')}
                 </BlockContentBoxHeading>

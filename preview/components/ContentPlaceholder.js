@@ -11,8 +11,10 @@ export const ContentPlaceholder = () => {
         width: '100%',
         height: '100%',
         minHeight: '20px',
-        backgroundColor: '#555555',
-        opacity: '.5'
+        flexGrow: '1',
+        backgroundColor: 'rgba(0, 113, 216, 0.2)',
+        border: '1px solid #fff',
+        boxSizing: 'border-box'
     };
 
     return (

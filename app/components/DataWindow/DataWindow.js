@@ -555,7 +555,7 @@ export const DataWindow= props => {
         <div className="data-window">
 	        <Dialog
 		        backdrop
-		        visible
+		        
 		        haveCloseButton
                 scrollable
                 buttonsLeft={CONTENT_TYPE.buttonsLeft}
