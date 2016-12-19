@@ -691,7 +691,11 @@ export default (state = new ProjectState(), action) => {
 						'routes',
 						state.currentRouteId,
 						'components',
-						action.componentId
+						getComponentWithQueryArgs(
+							state,
+							action.componentId,
+							false
+						).id
 					]
 					:	pathToComponent
 				).concat('queryArgs');
