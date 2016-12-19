@@ -44,7 +44,6 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
 
 		const queryArgs = args.reduce((acc, currentArg, num) =>
 			Object.keys(currentArg).length
-			&& !DataWindowContextLayout.allValuesAreNull(currentArg)
 			?	Object.assign(acc, {
 				[this.props.context]: Object.assign(
 					{}, acc[this.props.context], {
@@ -63,7 +62,7 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
 			this.props.linkingPropPath,
 			'data',
 			{
-				dataContext: [this.props.context],
+				dataContext: this.props.context,
 				queryPath
 			},
 			queryArgs,
@@ -78,10 +77,11 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
 	 */
 	_getBoundArgumentsByPath(path) {
 		const queryArgsMap = this.props.currentComponentWithQueryArgs.queryArgs;
-		const args = queryArgsMap.get(this.props.context)
+		const stringifiedContext = this.props.context.join(' ');
+		const args = queryArgsMap.get(stringifiedContext)
 				&&
 				queryArgsMap
-					.get(this.props.context).get(path.map(({ name }) => name).join(' '));
+					.get(stringifiedContext).get(path.map(({ name }) => name).join(' '));
 
 		const formattedArgs = args ? args.toJS() : {};
 
@@ -171,7 +171,7 @@ DataWindowContextLayout.propTypes = Object.assign(
 	DataWindowQueryLayout.propTypes,
 	{
 		contextFieldType: PropTypes.object,
-		context: PropTypes.string
+		context: PropTypes.array
 	}
 );
 
