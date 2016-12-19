@@ -34,64 +34,14 @@ import {
 	getPropTypedef
 } from '../../../utils/meta';
 
-const getLastType = (types, type, path) => {
-	const pathStep = path.get(0);
-	let typeName;
-	if (pathStep.includes('/')) {
-		const [fieldName, connectionFieldName] = pathStep.split('/');
-		typeName = type
-					.fields[fieldName]
-						.connectionFields[connectionFieldName].type;
-	}
-	else typeName = type.fields[pathStep].type;
 
-	return path.size === 1
-	?	types[typeName]
-	:	getLastType(types, types[typeName], path.slice(1));
+
+const getAllPossibleContexts = (ownerComponent, currentComponent, context) => {
+	//?
 };
 
 export class DataWindowDataLayout extends PureComponent {
 	get CONTENT_TYPE() {
-		const ownerComponent = this.props.rootComponentWithQueryArgs;
-		let contexts = [];
-		if (ownerComponent) {
-			const meta = getComponentMeta(ownerComponent.name, this.props.meta);
-			const { props } = ownerComponent;
-			contexts = Object.keys(meta.props).map(
-					propName => {
-						const propMeta = meta.props[propName];
-						if (propMeta.source.includes('data')) {
-							const context = propMeta.sourceConfigs.data.pushDataContext;
-							const prop = props.get(propName);
-							if (context
-								&&	prop.source === 'data'
-								&&	prop.sourceData
-								&&	prop.sourceData.queryPath
-							) {
-								const { types, queryTypeName } = this.props.schema;
-								const { queryPath } = prop.sourceData;
-
-								const type = getLastType(
-									types,
-									types[queryTypeName],
-									prop.sourceData.queryPath.map(({ field }) => field)
-								).name;
-
-								return {
-									context,
-									contextFieldType: {
-										name: type,
-										type
-									}
-								};
-							}
-						}
-						return void 0;
-					}
-			).filter(v => v);
-
-		}
-
 		return ({
 			content: {
 				list: [
@@ -120,7 +70,7 @@ export class DataWindowDataLayout extends PureComponent {
 							connection: true,
 							onSelect: () => this.props.setSelectedPath('OwnerComponent')
 						},
-						...contexts.map(({ context, contextFieldType }) =>
+						...this.props.contexts.map(({ context, contextFieldType }) =>
 							({
 								title: `${contextFieldType.name} - context`,
 								actionType: 'jump',

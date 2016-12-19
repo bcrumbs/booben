@@ -19,7 +19,6 @@ import {
     PROJECT_ROUTE_UPDATE_FIELD,
     PROJECT_COMPONENT_DELETE,
     PROJECT_COMPONENT_UPDATE_PROP_VALUE,
-	PROJECT_COMPONENT_UPDATE_QUERY_ARGS,
     PROJECT_COMPONENT_ADD_PROP_VALUE,
     PROJECT_COMPONENT_DELETE_PROP_VALUE,
     PROJECT_COMPONENT_RENAME,
@@ -692,7 +691,11 @@ export default (state = new ProjectState(), action) => {
 						'routes',
 						state.currentRouteId,
 						'components',
-						action.componentId
+						getComponentWithQueryArgs(
+							state,
+							action.componentId,
+							false
+						).id
 					]
 					:	pathToComponent
 				).concat('queryArgs');

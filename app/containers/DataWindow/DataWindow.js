@@ -21,6 +21,7 @@ import {
 	singleComponentSelectedSelector,
 	topNestedConstructorSelector,
 	topNestedConstructorComponentSelector,
+	getAllPossibleNestedContexts 
 } from '../../selectors';
 
 import ProjectComponentRecord from '../../models/ProjectComponent';
@@ -106,6 +107,7 @@ DataWindowComponent.propTypes = {
 	language: PropTypes.string,
 	currentComponentWithQueryArgs: PropTypes.any,
 	rootComponentWithQueryArgs: PropTypes.any,
+	contexts: PropTypes.array,
 	topNestedConstructor: PropTypes.instanceOf(NestedConstructor),
     topNestedConstructorComponent: PropTypes.instanceOf(ProjectComponentRecord),
 
@@ -130,6 +132,7 @@ const mapStateToProps = state => ({
 	singleComponentSelected: singleComponentSelectedSelector(state),
 	topNestedConstructor: topNestedConstructorSelector(state),
 	topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
+	contexts: getAllPossibleNestedContexts(state)
 });
 
 const mapDispatchToProps = dispatch => ({
