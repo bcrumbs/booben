@@ -20,7 +20,7 @@
 		padding-right: $ctree-level-0-pad-right;
 
 		.components-tree-item & {
-			margin-top: 0;
+			margin-top: $ctree-item-spacing;
 			margin-left: $ctree-level-offset;
 			padding-right: 0;
 		}
@@ -42,19 +42,9 @@
 	// =================================================================================================================
 	.components-tree-item {
 		position: relative;
-		margin-top: $ctree-item-spacing;
-		margin-bottom: $ctree-item-spacing;
 
-		.components-tree_line-wrapper + & {
-			margin-top: 0;
-		}
-
-		& + .components-tree_line-wrapper {
-			margin-top: -$ctree-line-box-height;
-		}
-
-		&.is-moving {
-			opacity: 0.5;
+		& + & {
+			margin-top: $ctree-item-spacing;
 		}
 	}
 
@@ -139,32 +129,5 @@
 	.components-tree-item-icon .button {
 		min-height: 0;
 		border-width: 0;
-	}
-
-	// TREE LINE
-	// =================================================================================================================
-	.components-tree_line-wrapper {
-		height: $ctree-line-box-height;
-	}
-
-	.components-tree_line {
-		height: $ctree-line-box-height;
-		width: calc(100% - #{$ctree-item-icon-box-size - $ctree-item-pad-x});
-		margin-left: $ctree-item-icon-box-size - $ctree-item-pad-x;
-		position: relative;
-		border-left: $ctree-line-thickness solid $ctree-line-color;
-		border-right: $ctree-line-thickness solid $ctree-line-color;
-
-		&::after {
-			content: '';
-			width: 100%;
-			height: $ctree-line-thickness;
-			position: absolute;
-			top: 50%;
-			left: 0;
-			margin-top: -$ctree-line-thickness/2;
-			z-index: 1;
-			background-color: $ctree-line-color;
-		}
 	}
 }

@@ -123,8 +123,8 @@ const generateWebpackConfig = (projectDir, libsData) => {
         apply(resolver) {
             resolver.plugin('resolve', (context, request) => {
                 const isComponentsFile =
-                    /preview(\/|\\)containers/.test(context) &&
-                    request.path === '../components.js';
+                    /preview/.test(context) &&
+                    request.path === './components.js';
 
                 if (isComponentsFile)
                     request.path = path.resolve(projectDir, 'components.js');

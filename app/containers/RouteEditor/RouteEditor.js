@@ -25,7 +25,7 @@ import ProjectRouteRecord from '../../models/ProjectRoute';
 
 import { updateRouteField } from '../../actions/project';
 
-import { getLocalizedText } from '../../utils';
+import { getLocalizedTextFromState } from '../../utils';
 
 class RouteEditorComponent extends PureComponent {
     constructor(props) {
@@ -210,7 +210,7 @@ const mapStateToProps = ({ project, app }) => ({
     selectedRouteId: project.selectedRouteId,
     indexRouteSelected: project.indexRouteSelected,
     language: app.language,
-    getLocalizedText(...args) { return getLocalizedText(app.localization, app.language, ...args) }
+    getLocalizedText: getLocalizedTextFromState({ app })
 });
 
 const mapDispatchToProps = dispatch => ({

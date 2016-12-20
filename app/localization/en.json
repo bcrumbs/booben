@@ -60,5 +60,17 @@
 
     "noComponentsCanBeInsertedInsideSelectedComponent": "No components can be inserted inside selected component",
     "showAllComponents": "Show all components",
-    "noComponentsInLibrary": "No components in library"
+    "noComponentsInLibrary": "No components in library",
+
+	"data": "Data",
+	"query": "Query",
+	"functions": "Functions",
+	"context": "Context",
+	"state": "State",
+
+	"propNameData": "{propName} data",
+	"fields": "Fields",
+	"typeName": "Type: {typeName} {additionalKindName}"
+
+
 }

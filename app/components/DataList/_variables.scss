@@ -10,7 +10,7 @@
 // =====================================================================================================================
 $data-item-padding-x:               $base-module*1.5 !default;
 $data-item-padding-y:               $base-module !default;
-$data-item-spacing:                 0 !default;
+$data-item-spacing:                 $base-module/2 !default;
 $data-item-border-radius:           $global-radius !default;
 
 $data-item-hover-bg-color:          transparentize($black, 0.93) !default;

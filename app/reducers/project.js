@@ -14,10 +14,6 @@ import {
 import {
     PROJECT_REQUEST,
     PROJECT_LOADED,
-    PROJECT_LOAD_FAILED,
-	PROJECT_SCHEMA_REQUEST,
-	PROJECT_SCHEMA_LOAD_SUCCESS,
-	PROJECT_SCHEMA_LOAD_FAILURE,
     PROJECT_ROUTE_CREATE,
     PROJECT_ROUTE_DELETE,
     PROJECT_ROUTE_UPDATE_FIELD,
@@ -66,6 +62,7 @@ import ProjectRoute from '../models/ProjectRoute';
 import ProjectComponentProp from '../models/ProjectComponentProp';
 import SourceDataStatic from '../models/SourceDataStatic';
 import SourceDataDesigner from '../models/SourceDataDesigner';
+import SourceDataData from '../models/SourceDataData';
 
 import {
     projectToImmutable,
@@ -75,25 +72,35 @@ import {
 } from '../models/Project';
 
 import {
-    propSourceDataToImmutable,
+    sourceDataToImmutable,
     gatherComponentsTreeIds,
-    isRootComponent
+    isRootComponent,
+    getValueByPath,
+    walkSimpleProps,
+    walkComponentsTree,
+    QueryArgumentValue
 } from '../models/ProjectComponent';
 
-import { Record, Map, Set, List } from 'immutable';
+import { Record, Map, Set, List, is } from 'immutable';
 
 import { concatPath } from '../utils';
+
 import {
     getComponentMeta,
     constructComponent,
     parseComponentName,
-    formatComponentName
+    formatComponentName,
+    getNestedTypedef,
+    propHasDataContext
 } from '../utils/meta';
+
 import {
-	parseGraphQLSchema
+    parseGraphQLSchema
 } from '../utils/schema';
 
-import { NO_VALUE } from "../constants/misc";
+import { NO_VALUE } from '../constants/misc';
+
+import _mapValues from 'lodash.mapvalues';
 
 export const NestedConstructor = Record({
     components: Map(),
@@ -159,6 +166,17 @@ const closeTopNestedConstructor = state => state.update(
     nestedConstructors => nestedConstructors.shift()
 );
 
+const getComponentById = (state, componentId) =>
+    state.data.routes.get(state.currentRouteId).components.get(componentId);
+
+const getBottomNestedConstructorComponent = state =>
+    getComponentById(state, state.nestedConstructors.last().componentId);
+
+export const getComponentWithQueryArgs =
+	(state, updatedComponentId, isRootQuery) => isRootQuery
+    ? getComponentById(state, updatedComponentId)
+    : getBottomNestedConstructorComponent(state);
+
 const getPathToCurrentComponents = state => haveNestedConstructors(state)
     ? ['nestedConstructors', 0, 'components']
     : ['data', 'routes', state.currentRouteId, 'components'];
@@ -169,7 +187,6 @@ const getPathToCurrentLastComponentId = state => haveNestedConstructors(state)
 
 const getPathToCurrentRootComponentId = state => haveNestedConstructors(state)
     ? ['nestedConstructors', 0, 'rootId']
-
     : [
         'data',
         'routes',
@@ -228,9 +245,9 @@ const addComponents = (state, parentComponentId, position, components) => {
     state = state.updateIn(
         pathToCurrentComponents,
 
-        updatedComponents => updatedComponents.withMutations(routeComponentsMut =>
+        updatedComponents => updatedComponents.withMutations(updatedComponentsMut =>
             void components.forEach(newComponent =>
-                void routeComponentsMut.set(
+                void updatedComponentsMut.set(
                     newComponent.id + nextComponentId,
 
                     newComponent
@@ -410,6 +427,112 @@ const selectFirstRoute = state => state.merge({
     indexRouteSelected: false
 });
 
+const isPrefixList = (maybePrefix, list) => {
+    if (maybePrefix.size > list.size) return false;
+    return maybePrefix.every((item, idx) => is(item, list.get(idx)));
+};
+
+const expandPropPath = propPath => propPath
+    .slice(0, -1)
+    .reduce((acc, cur) => acc.concat([cur, 'sourceData', 'value']), [])
+    .concat(propPath[propPath.length - 1]);
+
+const clearOutdatedDataProps = (
+    state,
+    updatedComponentId,
+    updatedDataPropName
+) => {
+    const currentComponentsPath = getPathToCurrentComponents(state),
+        currentComponents = state.getIn(currentComponentsPath),
+        updatedComponent = currentComponents.get(updatedComponentId);
+
+    const oldValue = updatedComponent.props.get(updatedDataPropName);
+    if (oldValue.source !== 'data' || !oldValue.sourceData.queryPath) return state;
+
+    const componentMeta = getComponentMeta(updatedComponent.name, state.meta),
+        updatedPropMeta = componentMeta.props[updatedDataPropName];
+
+    if (!propHasDataContext(updatedPropMeta)) return state;
+
+    const outdatedDataContext = oldValue.sourceData.dataContext
+        .push(updatedPropMeta.sourceConfigs.data.pushDataContext);
+
+    const visitDesignerProp = (designerPropValue, path) => {
+        walkComponentsTree(
+            designerPropValue.sourceData.components,
+            designerPropValue.sourceData.rootId,
+
+            component => {
+                const componentId = component.id;
+
+                walkSimpleProps(
+                    component,
+                    getComponentMeta(component.name, state.meta),
+
+                    (propValue, _, pathToProp) => {
+                        if (propValue.source === 'data') {
+                            const containsOutdatedDataContext = isPrefixList(
+                                outdatedDataContext,
+                                propValue.sourceData.dataContext
+                            );
+
+                            if (containsOutdatedDataContext) {
+                                const pathToUpdatedValue = [].concat(path, [
+                                    'sourceData',
+                                    'components',
+                                    componentId,
+                                    'props'
+                                ], expandPropPath(pathToProp));
+
+                                const newSourceData = new SourceDataData({
+                                    queryPath: null
+                                });
+
+                                state = state.updateIn(
+                                    pathToUpdatedValue,
+
+                                    updatedvalue => updatedvalue.set(
+                                        'sourceData',
+                                        newSourceData
+                                    )
+                                );
+                            }
+                        }
+                        else if (propValue.source === 'designer') {
+                            if (propValue.sourceData.rootId > -1) {
+                                const pathToNextDesignerValue = [].concat(path, [
+                                    'sourceData',
+                                    'components',
+                                    componentId,
+                                    'props'
+                                ], expandPropPath(pathToProp));
+
+                                visitDesignerProp(
+                                    state.getIn(pathToNextDesignerValue),
+                                    pathToNextDesignerValue
+                                );
+                            }
+                        }
+                    }
+                );
+            }
+        );
+    };
+
+    walkSimpleProps(updatedComponent, componentMeta, (propValue, _, pathToProp) => {
+        if (propValue.source === 'designer' && propValue.sourceData.rootId > -1) {
+            const pathToValue = [].concat(currentComponentsPath, [
+                updatedComponentId,
+                'props'
+            ], expandPropPath(pathToProp));
+
+            visitDesignerProp(propValue, pathToValue);
+        }
+    });
+
+    return state;
+};
+
 export default (state = new ProjectState(), action) => {
     switch (action.type) {
         case PROJECT_REQUEST: {
@@ -423,7 +546,7 @@ export default (state = new ProjectState(), action) => {
             const project = projectToImmutable(action.project),
                 lastRouteId = getMaxRouteId(project),
                 lastComponentId = getMaxComponentId(project),
-				schema = action.schema && parseGraphQLSchema(action.schema);
+				schema = action.schema ? parseGraphQLSchema(action.schema) : null;
 
             return state
                 .merge({
@@ -438,9 +561,8 @@ export default (state = new ProjectState(), action) => {
                         : -1,
                     indexRouteSelected: false
                 })
-				// Prevent conversion to Immutable.Map
-                .set('meta', action.metadata)
-				.set('schema', schema);
+                .set('schema', schema)
+                .set('meta', action.metadata); // Prevent conversion to Immutable.Map
         }
 
         case PROJECT_ROUTE_CREATE: {
@@ -538,21 +660,75 @@ export default (state = new ProjectState(), action) => {
                 );
             }
 
-            const newValue = new ProjectComponentProp({
+            const newPropValue = new ProjectComponentProp({
                 source: action.newSource,
-                sourceData: propSourceDataToImmutable(
+                sourceData: sourceDataToImmutable(
                     action.newSource,
                     action.newSourceData
                 )
             });
 
-            const path = [].concat(pathToCurrentComponents, [
-                action.componentId,
+            // Data prop with pushDataContext cannot be nested,
+            // so we need to clearOutdatedDataProps only when updating top-level prop
+            if (!action.path || !action.path.length) {
+                state = clearOutdatedDataProps(
+                    state,
+                    action.componentId,
+                    action.propName
+                );
+            }
+
+			const pathToComponent = [].concat(pathToCurrentComponents, [
+                action.componentId
+			]);
+
+			if (action.newQueryArgs) {
+
+				const pathToQueryArgs = (
+					action.isRootQuery
+					?	[
+						'data',
+						'routes',
+						state.currentRouteId,
+						'components',
+						getComponentWithQueryArgs(
+							state,
+							action.componentId,
+							false
+						).id
+					]
+					:	pathToComponent
+				).concat('queryArgs');
+
+                const toMerge = _mapValues(
+                    action.newQueryArgs,
+
+                    argsByContext => _mapValues(
+                        argsByContext,
+
+                        argsByPath => _mapValues(
+                            argsByPath,
+
+                            arg => new QueryArgumentValue({
+                                source: arg.source,
+                                sourceData: sourceDataToImmutable(
+                                    arg.source,
+                                    arg.sourceData
+                                )
+                            })
+                        )
+                    )
+                );
+
+                state = state.mergeIn(pathToQueryArgs, toMerge);
+            }
+
+            const pathToProp = pathToComponent.concat([
                 'props',
                 action.propName
             ], ...action.path.map(index => ['sourceData', 'value', index]));
 
-            return state.setIn(path, newValue);
+            return state.setIn(pathToProp, newPropValue);
         }
 
         case PROJECT_COMPONENT_ADD_PROP_VALUE: {
@@ -568,7 +744,7 @@ export default (state = new ProjectState(), action) => {
 
             const newValue = new ProjectComponentProp({
                 source: action.source,
-                sourceData: propSourceDataToImmutable(
+                sourceData: sourceDataToImmutable(
                     action.source,
                     action.sourceData
                 )
@@ -815,9 +991,13 @@ export default (state = new ProjectState(), action) => {
             const pathToCurrentComponents = getPathToCurrentComponents(state),
                 components = state.getIn(pathToCurrentComponents),
                 component = components.get(action.componentId),
-                prop = component.props.get(action.propName),
-                componentMeta = getComponentMeta(component.name, state.meta),
-                propMeta = componentMeta.props[action.propName];
+                currentValue = getValueByPath(component, action.propName, action.path),
+                componentMeta = getComponentMeta(component.name, state.meta);
+
+            const propMeta = getNestedTypedef(
+                componentMeta.props[action.propName],
+                action.path
+            );
 
             if (propMeta.source.indexOf('designer') === -1) {
                 throw new Error(
@@ -826,22 +1006,18 @@ export default (state = new ProjectState(), action) => {
                 );
             }
 
-            const currentSourceData = (prop && prop.source === 'designer')
-                ? prop.sourceData
-                : null;
-
             const nestedConstructorData = {
                 componentId: action.componentId,
                 prop: action.propName,
                 path: action.path
             };
 
-            if (currentSourceData) {
+            if (currentValue && currentValue.source === 'designer') {
                 Object.assign(nestedConstructorData, {
-                    components: currentSourceData.components,
-                    rootId: currentSourceData.rootId,
-                    lastComponentId: currentSourceData.components.size > 0
-                        ? currentSourceData.components.keySeq().max()
+                    components: currentValue.sourceData.components,
+                    rootId: currentValue.sourceData.rootId,
+                    lastComponentId: currentValue.sourceData.components.size > 0
+                        ? currentValue.sourceData.components.keySeq().max()
                         : -1
                 });
             }

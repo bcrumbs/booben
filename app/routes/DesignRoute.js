@@ -17,6 +17,7 @@ import { ComponentPropsEditor } from '../containers/ComponentPropsEditor/Compone
 import { ComponentRegionsEditor } from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
 import { LinkPropMenu } from '../containers/LinkPropMenu/LinkPropMenu';
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
+import { DataWindow } from '../containers/DataWindow/DataWindow';
 
 import {
     ComponentLayoutSelection,
@@ -69,7 +70,7 @@ import {
     getComponentPropName
 } from '../utils/meta';
 
-import { getLocalizedText } from '../utils';
+import { getLocalizedTextFromState } from '../utils';
 
 //noinspection JSUnresolvedVariable
 import defaultComponentLayoutIcon from '../img/layout_default.svg';
@@ -429,7 +430,6 @@ class DesignRoute extends PureComponent {
                 onToolTitleChange={this._handleToolTitleChange}
             >
                 {content}
-
                 <Dialog
                     title={getLocalizedText('selectLayout')}
                     backdrop
@@ -453,16 +453,7 @@ class DesignRoute extends PureComponent {
                     {getLocalizedText('deleteThisComponentQuestion')}
                 </Dialog>
 
-                <Dialog
-                    title="Select prop"
-                    minWidth={400}
-                    buttons={linkPropDialogButtons}
-                    visible={this.props.linkingProp}
-                    closeOnEscape
-                    onClose={this._handleLinkPropDialogCancel}
-                >
-                    <LinkPropMenu/>
-                </Dialog>
+                { this.props.linkingProp && <DataWindow /> }
             </Desktop>
         );
     }
@@ -510,11 +501,7 @@ const mapStateToProps = state => ({
     haveNestedConstructor: haveNestedConstructorsSelector(state),
     nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
     linkingProp: state.project.linkingProp,
-    getLocalizedText: (...args) => getLocalizedText(
-        state.app.localization,
-        state.app.language,
-        ...args
-    )
+    getLocalizedText: getLocalizedTextFromState(state)
 });
 
 const mapDispatchToProps = dispatch => ({

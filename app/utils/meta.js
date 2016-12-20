@@ -4,15 +4,14 @@
 
 'use strict';
 
+import _forOwn from 'lodash.forown';
+
 import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';
 
 import { componentsToImmutable } from '../models/ProjectComponent';
 
-import { objectForEach } from './misc';
-
 import { NO_VALUE } from  '../../app/constants/misc';
-
 import { BUILT_IN_PROP_TYPES } from '../../common/shared-constants';
 
 /**
@@ -222,6 +221,15 @@ export const isValidSourceForProp = (propMeta, source) =>
 
 /**
  *
+ * @param {PropTypeDefinition} propMeta
+ * @return {boolean}
+ */
+export const propHasDataContext = propMeta =>
+    isValidSourceForProp(propMeta, 'data') &&
+    !!propMeta.sourceConfigs.data.pushDataContext;
+
+/**
+ *
  * @param {ComponentMeta} componentMeta
  * @param {PropTypeDefinition} propMeta
  * @param {string} language
@@ -287,7 +295,7 @@ const buildDefaultStaticValue = (
 
         const value = {};
 
-        objectForEach(propMeta.fields, (fieldMeta, fieldName) => {
+        _forOwn(propMeta.fields, (fieldMeta, fieldName) => {
             const inherited = typeof defaultValue[fieldName] !== 'undefined'
                 ? defaultValue[fieldName]
                 : NO_VALUE;
@@ -308,7 +316,7 @@ const buildDefaultStaticValue = (
 
         const value = {};
 
-        objectForEach(defaultValue, (fieldValue, fieldName) => {
+        _forOwn(defaultValue, (fieldValue, fieldName) => {
             value[fieldName] = _buildDefaultValue(
                 componentMeta,
                 propMeta.ofType,
@@ -321,12 +329,25 @@ const buildDefaultStaticValue = (
     }
 
     if (propMeta.type === 'arrayOf') {
-        const value = defaultValue.map(fieldValue => _buildDefaultValue(
-            componentMeta,
-            propMeta.ofType,
-            language,
-            fieldValue
-        ));
+        let value = [];
+
+        if (defaultValue) {
+            value = defaultValue.map(fieldValue => _buildDefaultValue(
+                componentMeta,
+                propMeta.ofType,
+                language,
+                fieldValue
+            ));
+        }
+        else if (propMeta.sourceConfigs.static.defaultNum) {
+            for (let i = 0; i < propMeta.sourceConfigs.static.defaultNum; i++) {
+                value.push(_buildDefaultValue(
+                    componentMeta,
+                    propMeta.ofType,
+                    language
+                ));
+            }
+        }
 
         return makeSimpleStaticValue(value);
     }
@@ -362,13 +383,29 @@ const buildDefaultDesignerValue = (componentMeta, propMeta, language) => ({
 
 /**
  *
+ * @param {ComponentMeta} componentMeta
+ * @param {PropTypeDefinition} propMeta
+ * @param {string} language
+ * @return {ProjectComponentProp}
+ */
+const buildDefaultDataValue = (componentMeta, propMeta, language) => ({
+    source: 'data',
+    sourceData: {
+        dataContext: [],
+        queryPath: null
+    }
+});
+
+/**
+ *
  * @type {Object<string, function(componentMeta: ComponentMeta, propMeta: ComponentPropMeta, language: string, _inheritedDefaultValue: *|NO_VALUE): ProjectComponentProp|NO_VALUE>}
  * @const
  */
 const defaultValueBuilders = {
     'static': buildDefaultStaticValue,
     'const': buildDefaultConstValue,
-    'designer': buildDefaultDesignerValue
+    'designer': buildDefaultDesignerValue,
+    'data': buildDefaultDataValue
 };
 
 /**
@@ -379,7 +416,8 @@ const defaultValueBuilders = {
 const sourcePriority = [
     'const',
     'static',
-    'designer'
+    'designer',
+    'data'
 ];
 
 /**
@@ -431,7 +469,7 @@ export const buildDefaultValue = (componentMeta, propMeta, language) =>
 const buildDefaultProps = (componentMeta, language) => {
     const ret = {};
 
-    objectForEach(componentMeta.props, (propMeta, propName) => {
+    _forOwn(componentMeta.props, (propMeta, propName) => {
         const defaultValue = buildDefaultValue(componentMeta, propMeta, language);
         if (defaultValue !== NO_VALUE) ret[propName] = defaultValue;
     });
@@ -586,7 +624,10 @@ export const isCompatibleType = (typedef1, typedef2) => {
  */
 export const resolveTypedef = (componentMeta, typedef) => {
     if (BUILT_IN_PROP_TYPES.has(typedef.type)) return typedef;
-    return componentMeta.types[typedef.type] || null;
+
+    return componentMeta.types
+        ? Object.assign({}, typedef, componentMeta.types[typedef.type])
+        : null;
 };
 
 /**
@@ -643,3 +684,12 @@ export const getNestedTypedef = (typedef, valuePath) => valuePath.reduce((acc, c
         );
     }
 }, typedef);
+
+/**
+ *
+ * @param {PropTypeDefinition} propMeta
+ * @return {boolean}
+ */
+export const propHasDataContest = propMeta =>
+    !!propMeta.sourceConfigs.data &&
+    !!propMeta.sourceConfigs.data.pushDataContext;

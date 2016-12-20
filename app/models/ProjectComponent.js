@@ -5,15 +5,15 @@
 'use strict';
 
 import { Record, List, Map, Set } from 'immutable';
+import _forOwn from 'lodash.forown';
+import _mapValues from 'lodash.mapvalues';
 
 import ProjectComponentProp from './ProjectComponentProp';
 import SourceDataStatic from './SourceDataStatic';
-import SourceDataData, { QueryPathStep, QueryPathStepArgument } from './SourceDataData';
+import SourceDataData, { QueryPathStep } from './SourceDataData';
 import SourceDataConst from './SourceDataConst';
 import SourceDataAction from './SourceDataAction';
 import SourceDataDesigner from './SourceDataDesigner';
-
-import { objectMap } from '../utils/misc';
 
 const ProjectComponentRecord = Record({
     id: -1,
@@ -27,7 +27,8 @@ const ProjectComponentRecord = Record({
     layout: 0,
     regionsEnabled: Set(),
     routeId: -1,
-    isIndexRoute: false
+    isIndexRoute: false,
+    queryArgs: Map()
 });
 
 const propSourceDataToImmutableFns = {
@@ -39,17 +40,17 @@ const propSourceDataToImmutableFns = {
                 data.value = List(input.value.map(
                     ({ source, sourceData }) => new ProjectComponentProp({
                         source,
-                        sourceData: propSourceDataToImmutable(source, sourceData)
+                        sourceData: sourceDataToImmutable(source, sourceData)
                     }))
                 );
             }
             else if (typeof input.value === 'object' && input.value !== null) {
-                data.value = Map(objectMap(
+                data.value = Map(_mapValues(
                     input.value,
 
                     ({ source, sourceData }) => new ProjectComponentProp({
                         source,
-                        sourceData: propSourceDataToImmutable(source, sourceData)
+                        sourceData: sourceDataToImmutable(source, sourceData)
                     }))
                 );
             }
@@ -64,16 +65,21 @@ const propSourceDataToImmutableFns = {
         return new SourceDataStatic(data);
     },
 
-    data: input => new SourceDataData({
-        dataContextIndex: input.dataContextIndex,
-        queryPath: List(input.queryPath.map(step => new QueryPathStep({
-            field: step.field,
-            args: Map(objectMap(step.args, arg => new QueryPathStepArgument({
-                source: arg.source,
-                sourceData: propSourceDataToImmutable(arg.source, arg.sourceData)
-            })))
-        })))
-    }),
+    data: input => {
+        const data = {
+            queryPath: input.queryPath
+                ? List(input.queryPath.map(step => new QueryPathStep({
+                    field: step.field
+                })))
+                : null,
+
+            dataContext: input.dataContext
+                ? List(input.dataContext)
+                : List()
+        };
+
+        return new SourceDataData(data);
+    },
 
     const: input => new SourceDataConst(input),
     action: input => new SourceDataAction(input),
@@ -91,8 +97,13 @@ const propSourceDataToImmutableFns = {
     )
 };
 
-export const propSourceDataToImmutable = (source, sourceData) =>
+export const sourceDataToImmutable = (source, sourceData) =>
     propSourceDataToImmutableFns[source](sourceData);
+
+export const QueryArgumentValue = Record({
+    source: '',
+    sourceData: null
+});
 
 export const projectComponentToImmutable = (input, routeId, isIndexRoute, parentId) =>
     new ProjectComponentRecord({
@@ -103,16 +114,32 @@ export const projectComponentToImmutable = (input, routeId, isIndexRoute, parent
         name: input.name,
         title: input.title,
 
-        props: Map(objectMap(input.props, propMeta => new ProjectComponentProp({
-            source: propMeta.source,
-            sourceData: propSourceDataToImmutable(propMeta.source, propMeta.sourceData)
+        props: Map(_mapValues(input.props, propValue => new ProjectComponentProp({
+            source: propValue.source,
+            sourceData: sourceDataToImmutable(propValue.source, propValue.sourceData)
         }))),
 
         children: List(input.children.map(childComponent => childComponent.id)),
         layout: typeof input.layout === 'number' ? input.layout : 0,
         regionsEnabled: input.regionsEnabled ? Set(input.regionsEnabled) : Set(),
         routeId,
-        isIndexRoute
+        isIndexRoute,
+
+        queryArgs: Map(_mapValues(
+            input.queryArgs,
+
+            dataContextArgs => Map(_mapValues(
+                dataContextArgs,
+
+                args => Map(_mapValues(args, argValue => new QueryArgumentValue({
+                    source: argValue.source,
+                    sourceData: sourceDataToImmutable(
+                        argValue.source,
+                        argValue.sourceData
+                    )
+                })))
+            ))
+        ))
     });
 
 export const componentsToImmutable = (input, routeId, isIndexRoute, parentId) =>
@@ -132,16 +159,61 @@ export const componentsToImmutable = (input, routeId, isIndexRoute, parentId) =>
 
 export const isRootComponent = component => component.parentId === -1;
 
+export const walkComponentsTree = (components, rootComponentId, visitor) => {
+    const component = components.get(rootComponentId);
+    visitor(component);
+
+    component.children.forEach(childId =>
+        void walkComponentsTree(components, childId, visitor));
+};
+
 export const gatherComponentsTreeIds = (components, rootComponentId) =>
-    Set().withMutations(ret => {
-        const visitComponent = component => {
-            ret.add(component.id);
+    Set().withMutations(ret => void walkComponentsTree(
+        components,
+        rootComponentId,
+        component => void ret.add(component.id)
+    ));
 
-            component.children.forEach(childComponentId =>
-                void visitComponent(components.get(childComponentId)));
-        };
+export const getValueByPath = (component, propName, path) => path.reduce(
+    (acc, cur) => acc.sourceData.value.get(cur),
+    component.props.get(propName)
+);
 
-        visitComponent(components.get(rootComponentId));
-    });
+export const walkSimpleProps = (component, componentMeta, visitor) => {
+    const visitValue = (propValue, propMeta, path) => {
+        if (propValue.source === 'static' && !propValue.sourceData.ownerPropName) {
+            if (propMeta.type === 'shape' && propValue.sourceData.value !== null) {
+                _forOwn(propMeta.fields, (fieldTypedef, fieldName) =>
+                    void visitValue(
+                        propValue.sourceData.value.get(fieldName),
+                        fieldTypedef,
+                        [...path, fieldName]
+                    ));
+            }
+            else if (propMeta.type === 'objectOf' && propValue.sourceData.value !== null) {
+                propValue.sourceData.value.forEach((fieldValue, key) =>
+                    void visitValue(fieldValue, propMeta.ofType, [...path, key]));
+            }
+            else if (propMeta.type === 'arrayOf') {
+                propValue.sourceData.value.forEach((itemValue, idx) =>
+                    void visitValue(itemValue, propMeta.ofType, [...path, idx]));
+            }
+            else {
+                visitor(propValue, propMeta, path);
+            }
+        }
+        else {
+            visitor(propValue, propMeta, path);
+        }
+    };
+
+    component.props.forEach(
+        (propValue, propName) => visitValue(
+            propValue,
+            componentMeta.props[propName],
+            [propName]
+        )
+    );
+};
 
 export default ProjectComponentRecord;

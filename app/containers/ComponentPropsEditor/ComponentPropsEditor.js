@@ -52,8 +52,9 @@ import {
     isValidSourceForProp
 } from '../../utils/meta';
 
-import { getLocalizedText } from '../../utils';
-import { objectMap, objectSome } from '../../utils/misc';
+import { getLocalizedTextFromState } from '../../utils';
+import { objectSome } from '../../utils/misc';
+import _mapValues from 'lodash.mapvalues';
 
 /**
  *
@@ -83,10 +84,10 @@ const coerceFloatValue = value => {
  * @return {boolean}
  */
 const isRenderableProp = propMeta =>
-    propMeta.source.indexOf('static') > -1 ||
-    propMeta.source.indexOf('data') > -1 || (
+    isValidSourceForProp(propMeta, 'static') ||
+    isValidSourceForProp(propMeta, 'data') || (
         propMeta.type === 'component' &&
-        propMeta.source.indexOf('designer') > -1
+        isValidSourceForProp(propMeta, 'designer')
     );
 
 /**
@@ -95,7 +96,7 @@ const isRenderableProp = propMeta =>
  * @return {boolean}
  */
 const isLinkedProp = propValue =>
-    propValue.source === 'data' || ( // TODO: Check that it is actually linked
+    propValue.source === 'data' || (
         propValue.source === 'static' &&
         !!propValue.sourceData.ownerPropName
     );
@@ -127,38 +128,58 @@ const ownerPropsSelector = createSelector(
 
 /**
  *
- * @param {TypeDefinition} propMeta
+ * @param {ComponentMeta} componentMeta
+ * @param {ComponentPropMeta} propMeta
  * @param {Object} propValue - It is an {@link Immutable.Record} actually (see app/models/ProjectComponentProp.js)
  * @return {*}
  */
-const transformValue = (propMeta, propValue) => {
-    if (!propValue) return null;
+const transformValue = (componentMeta, propMeta, propValue) => {
+    if (!propValue) return { value: null, isLinked: false };
 
-    const isLinked = isLinkedProp(propValue);
+    const typedef = resolveTypedef(componentMeta, propMeta),
+        isLinked = isLinkedProp(propValue);
+
     let value = null;
 
     if (!isLinked) {
         if (propValue.source === 'static') {
-            if (isScalarType(propMeta)) {
+            if (isScalarType(typedef)) {
                 value = propValue.sourceData.value;
             }
-            else if (propMeta.type === 'shape') {
-                value = objectMap(propMeta.fields, (fieldMeta, fieldName) =>
-                    transformValue(fieldMeta, propValue.sourceData.value.get(fieldName)));
+            else if (typedef.type === 'shape') {
+                value = _mapValues(typedef.fields, (fieldMeta, fieldName) =>
+                    transformValue(
+                        componentMeta,
+                        fieldMeta,
+                        propValue.sourceData.value.get(fieldName))
+                    );
             }
-            else if (propMeta.type === 'objectOf') {
+            else if (typedef.type === 'objectOf') {
                 propValue.sourceData.value.map(nestedValue =>
-                    transformValue(propMeta.ofType, nestedValue)).toJS();
+                    transformValue(componentMeta, typedef.ofType, nestedValue)).toJS();
             }
-            else if (propMeta.type === 'arrayOf') {
+            else if (typedef.type === 'arrayOf') {
                 value = propValue.sourceData.value.map(nestedValue =>
-                    transformValue(propMeta.ofType, nestedValue)).toJS();
+                    transformValue(componentMeta, typedef.ofType, nestedValue)).toJS();
             }
         }
         else if (propValue.source === 'designer') {
             // true if component exists, false otherwise
-            if (propMeta.type === 'component')
+            if (typedef.type === 'component')
                 value = propValue.sourceData.rootId !== -1;
+        }
+    }
+    else {
+        if (propValue.source === 'data') {
+            if (propValue.sourceData.queryPath) {
+                value = propValue.sourceData.queryPath
+                    .map(step => step.field)
+                    .toJS()
+                    .join(' -> ');
+            }
+        }
+        else if (propValue.source === 'static') {
+            value = propValue.sourceData.ownerPropName;
         }
     }
 
@@ -225,11 +246,10 @@ class ComponentPropsEditorComponent extends PureComponent {
     /**
      *
      * @param {string} propName
-     * @param {*} newValue
      * @param {(string|number)[]} [path=[]]
      * @private
      */
-    _handleSetComponent(propName, newValue, path = []) {
+    _handleSetComponent(propName, path = []) {
         const componentId = this.props.selectedComponentIds.first();
         this.props.onConstructComponent(componentId, propName, path);
     }
@@ -329,6 +349,8 @@ class ComponentPropsEditorComponent extends PureComponent {
         const propTypedef = resolveTypedef(componentMeta, propMeta);
 
         return objectSome(this.props.ownerProps, ownerProp => {
+            if (ownerProp.dataContext) return false;
+
             const ownerPropTypedef = resolveTypedef(
                 this.props.ownerComponentMeta,
                 ownerProp
@@ -348,25 +370,27 @@ class ComponentPropsEditorComponent extends PureComponent {
     _propTypeFromMeta(componentMeta, propMeta) {
         // TODO: Memoize
 
+        const typedef = resolveTypedef(componentMeta, propMeta);
+
         const name = getString(
             componentMeta,
-            propMeta.textKey,
+            typedef.textKey,
             this.props.language
         );
 
         const description = getString(
             componentMeta,
-            propMeta.descriptionTextKey,
+            typedef.descriptionTextKey,
             this.props.language
         );
 
-        const editable = isEditableProp(propMeta),
-            linkable = this._isPropLinkable(componentMeta, propMeta);
+        const editable = isEditableProp(typedef),
+            linkable = this._isPropLinkable(componentMeta, typedef);
 
         const ret = {
             label: name,
-            type: propMeta.type, // TODO: Get string from i18n
-            view: editable ? propTypeToView[propMeta.type] : 'empty',
+            type: typedef.type, // TODO: Get string from i18n
+            view: editable ? propTypeToView[typedef.type] : 'empty',
             image: '',
             tooltip: description,
             linkable: linkable,
@@ -375,14 +399,14 @@ class ComponentPropsEditorComponent extends PureComponent {
         };
 
         if (editable) {
-            if (propMeta.type === 'int') {
+            if (typedef.type === 'int') {
                 ret.transformValue = coerceIntValue;
             }
-            else if (propMeta.type === 'float') {
+            else if (typedef.type === 'float') {
                 ret.transformValue = coerceFloatValue;
             }
-            else if (propMeta.type === 'oneOf') {
-                ret.options = propMeta.options.map(option => ({
+            else if (typedef.type === 'oneOf') {
+                ret.options = typedef.options.map(option => ({
                     value: option.value,
                     text: getString(
                         componentMeta,
@@ -391,16 +415,16 @@ class ComponentPropsEditorComponent extends PureComponent {
                     ) || option.textKey
                 }));
             }
-            else if (propMeta.type === 'shape') {
-                ret.fields = objectMap(propMeta.fields, (fieldMeta, fieldName) =>
+            else if (typedef.type === 'shape') {
+                ret.fields = _mapValues(typedef.fields, (fieldMeta, fieldName) =>
                     this._propTypeFromMeta(componentMeta, fieldMeta));
             }
-            else if (propMeta.type === 'arrayOf') {
-                ret.ofType = this._propTypeFromMeta(componentMeta, propMeta.ofType);
+            else if (typedef.type === 'arrayOf') {
+                ret.ofType = this._propTypeFromMeta(componentMeta, typedef.ofType);
                 ret.formatItemLabel = this._formatArrayItemLabel;
             }
-            else if (propMeta.type === 'objectOf') {
-                ret.ofType = this._propTypeFromMeta(componentMeta, propMeta.ofType);
+            else if (typedef.type === 'objectOf') {
+                ret.ofType = this._propTypeFromMeta(componentMeta, typedef.ofType);
                 ret.formatItemLabel = this._formatObjectItemLabel;
             }
         }
@@ -421,11 +445,7 @@ class ComponentPropsEditorComponent extends PureComponent {
 
         const propMeta = componentMeta.props[propName],
             propType = this._propTypeFromMeta(componentMeta, propMeta),
-            value = transformValue(propMeta, propValue);
-
-        const onChange = propType.view === 'constructor'
-            ? this._handleSetComponent.bind(this, propName)
-            : this._handleValueChange.bind(this, propName);
+            value = transformValue(componentMeta, propMeta, propValue);
 
         //noinspection JSValidateTypes
         return (
@@ -440,7 +460,8 @@ class ComponentPropsEditorComponent extends PureComponent {
                 addDialogInputLabelText={getLocalizedText('addValueNameInputLabel')}
                 addDialogSaveButtonText={getLocalizedText('save')}
                 addDialogCancelButtonText={getLocalizedText('cancel')}
-                onChange={onChange}
+                onChange={this._handleValueChange.bind(this, propName)}
+                onSetComponent={this._handleSetComponent.bind(this, propName)}
                 onAddValue={this._handleAddValue.bind(this, propName)}
                 onDeleteValue={this._handleDeleteValue.bind(this, propName)}
                 onLink={this._handleLinkProp.bind(this, propName)}
@@ -581,11 +602,7 @@ const mapStateToProps = state => ({
     language: state.app.language,
     ownerComponentMeta: ownerComponentMetaSelector(state),
     ownerProps: ownerPropsSelector(state),
-    getLocalizedText: (...args) => getLocalizedText(
-        state.app.localization,
-        state.app.language,
-        ...args
-    )
+    getLocalizedText: getLocalizedTextFromState(state)
 });
 
 const mapDispatchToProps = dispatch => ({
