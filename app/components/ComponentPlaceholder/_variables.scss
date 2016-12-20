@@ -10,8 +10,8 @@ $cplaceholder-min-width:        rem-calc(100) !default;
 $cplaceholder-min-height:       $cplaceholder-min-width !default;
 
 $cplaceholder-main-color:       $darkblue !default;
-$cplaceholder-bg-color:         transparentize($cplaceholder-main-color, 0.6) !default;
-$cplaceholder-border-color:     scale_color($cplaceholder-main-color, $lightness:40%) !default;
+$cplaceholder-bg-color:         transparentize($color-blueprint, 0.9) !default;
+$cplaceholder-border-color:     $color-blueprint !default;
 $cplaceholder-border-width:     1px !default;
 $cplaceholder-border-radius:    0 !default;
 

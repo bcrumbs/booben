@@ -18,7 +18,7 @@ export const AccordionItem = props => {
         <div className={className}>
             <div className="accordion-title-box" onClick={props.onToggleExpanded}>
                 <div className="accordion-title">
-                    {props.title}
+                    <span>{props.title}</span>
                 </div>
 
                 <div className="accordion-title-icon accordion-icon-collapse">

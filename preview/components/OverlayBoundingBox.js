@@ -20,20 +20,21 @@ export const OverlayBoundingBox = props => {
     const syntheticPadding = -2,
         scrollTop = window.pageYOffset;
 
-    width = width + syntheticPadding + 1;
-    height = height + syntheticPadding + 1;
+    width = width + syntheticPadding + 0.5;
+    height = height + syntheticPadding + 0.5;
     left = Math.round(left - syntheticPadding / 2 - 1);
     top = Math.round(top - syntheticPadding / 2 + scrollTop - 1);
 
-    const border = `2px solid ${props.color}`;
+    const border = `1px solid ${props.color}`;
 
     const style = {
         height: '1px',
         width: '1px',
         position: 'absolute',
-        zIndex: '1000',
+        zIndex: '9999',
         left: `${left}px`,
-        top: `${top}px`
+        top: `${top}px`,
+        boxSizing: 'border-box'
     };
 
     const topBorderStyle = {
@@ -41,9 +42,9 @@ export const OverlayBoundingBox = props => {
         width: `${width}px`,
         left: '0',
         top: '0',
-        borderTop: border,
+        borderBottom: border,
         position: 'absolute',
-        opacity: '.5'
+        boxSizing: 'border-box'
     };
 
     const bottomLeftStyle = {
@@ -51,9 +52,9 @@ export const OverlayBoundingBox = props => {
         width: '0',
         left: '0',
         top: '0',
-        borderLeft: border,
+        borderRight: border,
         position: 'absolute',
-        opacity: '.5'
+        boxSizing: 'border-box'
     };
 
     const bottomBottomStyle = {
@@ -61,9 +62,9 @@ export const OverlayBoundingBox = props => {
         width: `${width}px`,
         left: '0',
         bottom: `${-height}px`,
-        borderBottom: border,
+        borderTop: border,
         position: 'absolute',
-        opacity: '.5'
+        boxSizing: 'border-box'
     };
 
     const bottomRightStyle = {
@@ -71,9 +72,9 @@ export const OverlayBoundingBox = props => {
         width: '0',
         right: `${-width}px`,
         top: '0',
-        borderRight: border,
+        borderLeft: border,
         position: 'absolute',
-        opacity: '.5'
+        boxSizing: 'border-box'
     };
 
     //noinspection JSValidateTypes

@@ -28,19 +28,29 @@ const breadcrumbsItemsList = [
 	 </HeaderTitle>
 */
 
-export const HeaderRoute = props => (
-	<Header>
-		<HeaderRegion spread alignY="center">
-			<HeaderTitle>
-				ParentComponentTitle
-			</HeaderTitle>
-		</HeaderRegion>
-		<HeaderRegion>
-			<Button text="Cancel"  light/>
-			<Button text="Save"  light />
-		</HeaderRegion>
-	</Header>
-);
+export const HeaderRoute = props => {
+    let actions = null;
+    if (props.actions) {
+        actions =
+            <HeaderRegion>
+                <Button text="Cancel"  light/>
+                <Button text="Save"  light />
+            </HeaderRegion>;
+    }
+    
+    return(
+        <div className="route-header-wrapper">
+            <Header>
+                <HeaderRegion spread alignY="center">
+                    <HeaderTitle>
+                        { props.title }
+                    </HeaderTitle>
+                </HeaderRegion>
+                { actions }
+            </Header>
+        </div>
+    )
+};
 
 HeaderRoute.displayName = 'HeaderRoute';
 

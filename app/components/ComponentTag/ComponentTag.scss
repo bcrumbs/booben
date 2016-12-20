@@ -17,7 +17,7 @@
 	.component-tag-box {
 		padding: $component-tag-box-padding;
 		border-radius: $component-tag-box-border-radius;
-		border: 1px solid transparent;
+		border: $component-tag-box-border-thickness solid transparent;
 		margin: $component-tag-box-spacing-y $component-tag-box-spacing-x;
 		cursor: $component-tag-box-cursor;
 		flex-shrink: 0;
@@ -28,6 +28,7 @@
 		align-items: stretch;
 
 		@include single-transition();
+		@include transition-property(border, background);
 		@include user-select();
 
 		@if $component-tag-box-spacing-x != 0 {
@@ -45,7 +46,7 @@
 		&.is-focused {
 			background-color: $component-tag-box-focus-bg-color;
 			border-radius: $component-tag-box-border-radius;
-			border-color: $component-tag-box-hover-border-color;
+			border-color: $component-tag-box-focus-border-color;
 
 			@if $component-tag-box-focus-box-shadow {
 				@include box-shadow(0);
@@ -97,6 +98,10 @@
 		font-weight: $component-tag-title-font-weight;
 		text-transform: $component-tag-title-text-transform;
 
+		@include single-transition;
+		@include transition-property(color);
+
+		.component-tag-box:hover & ,
 		.component-tag-box:focus & ,
 		.component-tag-box.is-focused & {
 			color: $component-tag-title-focus-font-color;

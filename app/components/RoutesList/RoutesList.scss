@@ -69,6 +69,7 @@
 
 		@include box-shadow();
 		@include single-transition();
+		@include transition-property(background-color, box-shadow, border);
 		@include user-select();
 
 		&:hover {
@@ -82,6 +83,8 @@
 
 		.route-card-wrapper.is-focused & {
 			background-color: $rcard-focus-bg-color;
+			border-left: $rcard-focus-border-left-thickness solid $rcard-focus-border-left-color;
+			cursor: $cursor-default;
 		}
 	}
 
@@ -127,6 +130,7 @@
 	// ADD NEW ROUTE
 	.route-new-button {
 		margin-top: $rcard-new-margin-top;
+		margin-bottom: $rcard-new-margin-top*1.5 !important;
 
 		.button {
 			border: $rcard-new-border-thickness $rcard-new-border-style $rcard-new-border-color;

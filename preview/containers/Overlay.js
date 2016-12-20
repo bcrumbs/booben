@@ -79,11 +79,11 @@ class Overlay extends PureComponent {
 
     render() {
         const highlightBoxes = this.props.highlightingEnabled
-            ? this._renderBoundingBoxes(this.props.highlightedComponentIds, 'yellow')
+            ? this._renderBoundingBoxes(this.props.highlightedComponentIds, 'rgba(0, 113, 216, 0.3)')
             : null;
 
         const selectBoxes =
-            this._renderBoundingBoxes(this.props.selectedComponentIds, 'green');
+            this._renderBoundingBoxes(this.props.selectedComponentIds, 'rgba(0, 113, 216, 1)');
 
         let rootComponentBox = null;
         if (this.props.draggingComponent && this.props.boundaryComponentId > -1) {
