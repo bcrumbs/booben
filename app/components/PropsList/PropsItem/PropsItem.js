@@ -6,6 +6,7 @@ import React, { PureComponent, PropTypes } from 'react';
 import {
     Button,
     Input,
+    Checkbox,
     Icon,
     SelectBox,
     Tag,
@@ -402,20 +403,21 @@ export class PropsItem extends PureComponent {
         let className = 'prop-item',
             wrapperClassName = 'prop-item-wrapper';
 
-        let requireMark = null;
-
 		const message = this.props.value && this.props.value.message;
 
+        let requireMark = null;
         if (this.props.propType.itemRequired) {
             wrapperClassName += ` is-required`;
 
-            let markIcon = this.props.propType.requirementFullfilled
+            const markIcon = this.props.propType.requirementFullfilled
                 ? <Icon name="check" />
                 : <Icon name="exclamation" />;
 
             requireMark = (
                 <div className="prop-item_require-mark">
-                    <div className="require-mark">{ markIcon }</div>
+                    <div className="require-mark">
+                        {markIcon}
+                    </div>
                 </div>
             )
         }
@@ -439,7 +441,8 @@ export class PropsItem extends PureComponent {
         if (labelText) {
             label = (
                 <div className="prop-item_label-box">
-                    { requireMark }
+                    {requireMark}
+
                     <PropLabel
                         label={labelText}
                         type={this.props.propType.type}
@@ -469,15 +472,6 @@ export class PropsItem extends PureComponent {
             );
         }
 
-        let subcomponentLeft = null;
-        if (this.props.propType.subcomponentLeft) {
-            subcomponentLeft = (
-                <div className="prop_subcomponent prop_subcomponent-left">
-                    {this.props.propType.subcomponentLeft}
-                </div>
-            );
-        }
-
         let linkAction = null;
         if (this.props.propType.linkable) {
             linkAction = (
@@ -491,43 +485,51 @@ export class PropsItem extends PureComponent {
             valueWrapper = null,
             toggle = null,
             collapseAction = null,
+            subcomponentLeft = null,
             children = null;
 
         if (!this.props.value.isLinked) {
-			if (this.props.value.value !== null) {
-	            if (this.props.propType.view === 'input') {
-	                content = (
-	                    <Input
-	                        stateless={true}
-	                        value={this.props.value.value}
-	                        disabled={this.props.disabled}
-	                        onChange={this._handleChange}
-	                    />
-	                );
-	            }
-	            else if (this.props.propType.view === 'textarea') {
-	                content = (
-	                    <Textarea
-	                        stateless={true}
-	                        value={this.props.value.value}
-	                        disabled={this.props.disabled}
-	                        onChange={this._handleChange}
-	                    />
-	                );
-	            }
-	            else if (this.props.propType.view === 'list') {
-	                content = (
-	                    <SelectBox
-	                        stateless={true}
-	                        data={this.props.propType.options}
-	                        value={this.props.value.value}
-	                        disabled={this.props.disabled}
-	                        onSelect={this._handleChange}
-	                    />
-	                );
-	            }
-			}
-            if (this.props.propType.view === 'constructor') {
+            const disabled = this.props.value.value === null || this.props.disabled;
+
+            if (this.props.propType.view === 'input') {
+                const text = this.props.value.value !== null
+                    ? this.props.value.value
+                    : '';
+
+                content = (
+                    <Input
+                        value={text}
+                        disabled={disabled}
+                        onChange={this._handleChange}
+                    />
+                );
+            }
+            else if (this.props.propType.view === 'textarea') {
+                const text = this.props.value.value !== null
+                    ? this.props.value.value
+                    : '';
+
+                content = (
+                    <Textarea
+                        stateless={true}
+                        value={text}
+                        disabled={disabled}
+                        onChange={this._handleChange}
+                    />
+                );
+            }
+            else if (this.props.propType.view === 'list') {
+                content = (
+                    <SelectBox
+                        stateless={true}
+                        data={this.props.propType.options}
+                        value={this.props.value.value}
+                        disabled={disabled}
+                        onSelect={this._handleChange}
+                    />
+                );
+            }
+            else if (this.props.propType.view === 'constructor') {
                 const text = this.props.value.value
                     ? this.props.editComponentButtonText
                     : this.props.setComponentButtonText;
@@ -536,63 +538,47 @@ export class PropsItem extends PureComponent {
                     <Button
                         kind="link"
                         text={text}
+                        disabled={disabled}
                         onPress={this._handleSetComponent}
                     />
                 );
             }
             else if (this.props.propType.view === 'toggle') {
+                const checked = !!this.props.value.value;
+
                 toggle = (
                     <div className="prop_action prop_action-toggle">
                         <ToggleButton
-                            checked={this.props.value.value}
-                            disabled={this.props.disabled}
+                            checked={checked}
+                            disabled={disabled}
                             onCheck={this._handleChange}
                         />
                     </div>
                 );
             }
             else {
-                // TODO: Do not replace toggle
+                const isComplexValue =
+                    this.props.propType.view === 'shape' ||
+                    this.props.propType.view === 'object' ||
+                    this.props.propType.view === 'array';
 
-                const isNullable =
-					typeof this.props.propType.notNull === 'boolean'
-					&&	!this.props.propType.notNull;
-
-                if (isNullable) {
-                    toggle = (
-                        <div className="prop_action prop_action-toggle">
-                            <ToggleButton
-                                label = "Null"
-                                checked={this.props.value.value !== null}
+                if (isComplexValue) {
+                    collapseAction = (
+                        <div className="prop_action prop_action-collapse">
+                            <Button
+                                icon="chevron-right"
                                 disabled={this.props.disabled}
-								onCheck={this._handleValueNullSwitch}
+                                onPress={this._handleOpen}
                             />
                         </div>
                     );
+
+                    className += ' has-sublevel';
                 }
+
+                if (!this.props._secondary && this.state.isOpen)
+                    children = this._renderNestedItems();
             }
-
-            const isComplexValue =
-                this.props.propType.view === 'shape' ||
-                this.props.propType.view === 'object' ||
-                this.props.propType.view === 'array';
-
-            if (isComplexValue) {
-                collapseAction = (
-                    <div className="prop_action prop_action-collapse">
-                        <Button
-                            icon="chevron-right"
-                            disabled={this.props.disabled}
-                            onPress={this._handleOpen}
-                        />
-                    </div>
-                );
-
-                className += ' has-sublevel';
-            }
-
-            if (!this.props._secondary && this.state.isOpen)
-                children = this._renderNestedItems();
         }
         else {
             if (this.props.value.value) {
@@ -604,6 +590,19 @@ export class PropsItem extends PureComponent {
                     />
                 );
             }
+        }
+
+        const isNullable = this.props.propType.notNull === false;
+
+        if (isNullable) {
+            subcomponentLeft = (
+                <div className="prop_subcomponent prop_subcomponent-left">
+                    <Checkbox
+                        checked={this.props.value.value !== null}
+                        onCheck={this._handleValueNullSwitch}
+                    />
+                </div>
+            );
         }
 
         let actionsRight = null;
@@ -676,7 +675,6 @@ const propItemTypeShape = {
     itemRequired: PropTypes.bool,
     requirementFullfilled: PropTypes.bool,
     transformValue: PropTypes.func,
-    subcomponentLeft: PropTypes.object,
 
     // For 'object' and 'array' views
     formatItemLabel: PropTypes.func,
