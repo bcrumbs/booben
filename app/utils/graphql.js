@@ -128,6 +128,9 @@ const buildGraphQLValue = (propValue, schemaTypeDef) => {
         if (propValue.sourceData.ownerPropName) {
             return NO_VALUE;
         }
+        else if (propValue.sourceData.value === null) {
+            return NO_VALUE;
+        }
         else if (List.isList(propValue.sourceData.value)) {
             return NO_VALUE;
         }
