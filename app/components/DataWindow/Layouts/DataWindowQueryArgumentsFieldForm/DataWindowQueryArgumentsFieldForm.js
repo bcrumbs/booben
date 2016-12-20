@@ -11,6 +11,13 @@ import {
 
 const DEFAULT_VALUE_NON_NULL_PRIMITIVE = {};
 
+
+/**
+ * @param {Object} object
+ * @param {any} value
+ * @param {Array<string|number>} path
+ * @return {Object}
+ */
 const setObjectValueByPath = (object, value, path) => {
 	if (!Array.isArray(object))
 		return Object.assign({}, object,
@@ -37,11 +44,21 @@ const setObjectValueByPath = (object, value, path) => {
 	}
 };
 
+/**
+ * @param {Object} object
+ * @param {Array<string|number>} path
+ * @return {any}
+ */
 const getObjectValueByPath = (object, path) =>
 	path.length === 1
 	?	object[path[0]]
 	:	getObjectValueByPath(object[path[0]], path.slice(1));
 
+/**
+ * @param {Object} object
+ * @param {Array<string|number>} path
+ * @return {Object}
+ */
 const removeObjectValueByPath = (object, path) => {
 	if (Array.isArray(object))
 		if (path.length === 1)

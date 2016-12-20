@@ -107,6 +107,11 @@ export const getRootComponentWithQueryArgs = createSelector(
 		 :	null
 );
 
+/**
+ * @param {Object} parentComponent
+ * @param {Object} childComponent
+ * @return {bool}
+ */
 const containComponent = (parentComponent, childComponent) =>
 	parentComponent === childComponent || parentComponent.props.some(
 		prop =>
@@ -116,6 +121,12 @@ const containComponent = (parentComponent, childComponent) =>
 
 	);
 
+/**
+ * @param <Array<Object>} types
+ * @param {Object} types
+ * @param {Array<string>} path
+ * @return {Object|undefined}
+ */
 const getLastType = (types, type, path) => {
 	const pathStep = path[0];
 	let typeName;
@@ -132,6 +143,14 @@ const getLastType = (types, type, path) => {
 	:	getLastType(types, types[typeName], path.slice(1));
 };
 
+/**
+ * @param {Object} prop
+ * @param {Object} schema
+ * @prop {string} queryTypeName
+ * @prop {Array<Object>} types
+ * @param {Array<Object>=} contexts
+ * @param {Array<string>=} context
+ */
 const getContextQueryPath = (
 	prop,
 	{ queryTypeName, types },
@@ -189,6 +208,13 @@ const getContextQueryPath = (
 	}
 };
 
+/**
+ * @param {Object} component
+ * @param {Object} schema
+ * @param {Array<Object>} contexts
+ * @param {Object} topComponent
+ * @return {Array<Object>}
+ */
 const getAllNestedContexts = (component, schema, contexts, topComponent) =>
 	component.props.reduce(
 		(acc, prop) => {
@@ -214,6 +240,12 @@ const getAllNestedContexts = (component, schema, contexts, topComponent) =>
 		}
 	, []).filter(v => v);
 
+/**
+ * @param {Object} component
+ * @param {Object} schema
+ * @param {Object} meta
+ * @return {Array<Object>}
+ */
 const getAllRootContexts = (component, schema, meta) => {
 	const propsMeta = getComponentMeta(component.name, meta).props;
 	return Object.keys(propsMeta).map(
