@@ -518,7 +518,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		handleJumpIntoField,
 		handleBackToPress,
 		handleApplyPress,
-		handleJumpToCurrentPathIndex,
 		title = allArgumentsMode
 				?	`All arguments`
 				:	`${fields[0].name} arguments`,
@@ -669,7 +668,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	) {
 		return {
 			breadcrumbs,
-			handleBreadcrumbsClick: handleJumpToCurrentPathIndex,
+			onBreadcrumbsClick: handleJumpToCurrentPathIndex,
 			content: {
 				title: currentPathLast.name,
 				subtitle: `type: ${
@@ -848,8 +847,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						this._handleJumpIntoField,
 						this._handleBackToPress,
 						this._handleArgumentsApplyPress,
-						this._handleJumpToCurrentPathIndex,
-
 					)
 		);
 	}

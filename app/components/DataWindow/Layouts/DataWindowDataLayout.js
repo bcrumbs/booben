@@ -138,7 +138,7 @@ export class DataWindowDataLayout extends PureComponent {
 										items={CONTENT_TYPE.breadcrumbs}
 										mode="dark"
 										onItemClick={
-											CONTENT_TYPE.handleBreadcrumbsClick
+											CONTENT_TYPE.onBreadcrumbsClick
 										}
 										overflow={true}
 									/>

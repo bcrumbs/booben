@@ -162,8 +162,6 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
 						this._handleJumpIntoField,
 						this._handleBackToPress,
 						this._handleArgumentsApplyPress,
-						this._handleJumpToCurrentPathIndex,
-
 					)
 		);
 	}
