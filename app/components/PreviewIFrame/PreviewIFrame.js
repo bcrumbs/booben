@@ -5,8 +5,6 @@ import './PreviewIFrame.scss';
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 
-import store from '../../store';
-
 const EVENTS_FOR_PARENT_FRAME = [
     'mousemove',
     'mouseup',
@@ -21,12 +19,10 @@ export class PreviewIFrame extends PureComponent {
         super(props);
 
         this.state = {
-            loaded: false,
-            history: null
+            loaded: false
         };
 
         this._iframe = null;
-        this._nextPath = null;
 
         this._saveIFrameRef = this._saveIFrameRef.bind(this);
     }
@@ -35,10 +31,12 @@ export class PreviewIFrame extends PureComponent {
         const contentWindow = this._iframe.contentWindow,
             { store, interactive, containerStyle } = this.props;
 
+        // Re-dispatch events from iframe to parent frame
         EVENTS_FOR_PARENT_FRAME.forEach(eventName => {
             contentWindow.addEventListener(eventName, event => {
                 const boundingClientRect = this._iframe.getBoundingClientRect();
 
+                //noinspection JSCheckFunctionSignatures
                 const evt = new CustomEvent(eventName, {
                     bubbles: true,
                     cancelable: false
@@ -56,26 +54,18 @@ export class PreviewIFrame extends PureComponent {
 
         contentWindow.addEventListener('DOMContentLoaded', () => {
             if (contentWindow.JSSY) {
-                const { history } = contentWindow.JSSY.initPreview({
+                //noinspection JSCheckFunctionSignatures
+                contentWindow.JSSY.initPreview({
                     store,
                     interactive,
                     containerStyle
                 });
-
-                this.setState({
-                    loaded: true,
-                    history
-                });
-
-                if (this._nextPath !== null) {
-                    this._goTo(this._nextPath);
-                    this._nextPath = null;
-                }
             }
             else {
                 // TODO: Show warning?
-                this.setState({ loaded: true });
             }
+
+            this.setState({ loaded: true });
         });
     }
 
@@ -83,19 +73,8 @@ export class PreviewIFrame extends PureComponent {
         this._iframe.contentWindow.JSSY.cleanup();
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (nextProps.path !== this.props.path) {
-            if (this.state.loaded) this._goTo(nextProps.path);
-            else this._nextPath = nextProps.path;
-        }
-    }
-
     _saveIFrameRef(ref) {
         this._iframe = ref;
-    }
-
-    _goTo(path) {
-        if (this.state.history) this.state.history.push(path);
     }
 
     render() {
@@ -105,7 +84,7 @@ export class PreviewIFrame extends PureComponent {
         	<section className="preview-iframe-wrapper">
                 <iframe
                     ref={this._saveIFrameRef}
-                    src={`${this.props.url}#${this.props.path}`}
+                    src={this.props.url}
                     className="preview-iframe"
                 />
 	        </section>
@@ -117,7 +96,6 @@ PreviewIFrame.displayName = 'PreviewIFrame';
 
 PreviewIFrame.propTypes = {
     url: PropTypes.string.isRequired,
-    path: PropTypes.string,
     store: PropTypes.any,
     interactive: PropTypes.bool,
     containerStyle: PropTypes.string
@@ -125,7 +103,6 @@ PreviewIFrame.propTypes = {
 
 PreviewIFrame.defaultProps = {
     url: '',
-    path: '/',
     store: {},
     interactive: false,
     containerStyle: ''

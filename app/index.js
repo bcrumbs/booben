@@ -23,9 +23,18 @@ import store from './store';
 import history from './history';
 
 import { setTools } from './actions/desktop';
+import { setCurrentRoute } from './actions/preview';
 import { loadLocalization } from './actions/app';
 
 const setToolsOnEnter = toolIds => () => void store.dispatch(setTools(toolIds));
+
+const onDesignRouteEnter = ({ location, params }) => {
+    const routeId = Number(params.routeId),
+        isIndexRoute = location.pathname.endsWith('/index');
+
+    store.dispatch(setCurrentRoute(routeId, isIndexRoute));
+    store.dispatch(setTools(DESIGN_TOOL_IDS));
+};
 
 /*
  * Testing
@@ -57,7 +66,7 @@ window.addEventListener('DOMContentLoaded', () => {
                         <Route
                             path="design/:routeId(/index)"
                             component={DesignRoute}
-                            onEnter={setToolsOnEnter(DESIGN_TOOL_IDS)}
+                            onEnter={onDesignRouteEnter}
                         />
                     </Route>
 

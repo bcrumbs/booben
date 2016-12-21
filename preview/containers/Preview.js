@@ -16,7 +16,6 @@ import {
     dragOverComponent,
     dragOverPlaceholder,
     dropComponent,
-    setCurrentRoute,
 	DROP_COMPONENT_AREA_IDS
 } from '../../app/actions/preview';
 
@@ -163,7 +162,6 @@ class Preview extends Component {
         this._handleMouseOver = this._handleMouseOver.bind(this);
         this._handleMouseOut = this._handleMouseOut.bind(this);
         this._handleClick = this._handleClick.bind(this);
-        this._handleChangeRoute = this._handleChangeRoute.bind(this);
 
         this._updateRoutes(props.project.routes, props.project.rootRoutes);
     }
@@ -180,13 +178,15 @@ class Preview extends Component {
     }
 
     componentWillReceiveProps(nextProps) {
-        if (nextProps.project !== this.props.project)
+        if (this.props.interactive && nextProps.project !== this.props.project)
             this._updateRoutes(nextProps.project.routes, nextProps.project.rootRoutes);
     }
 
     shouldComponentUpdate(nextProps) {
         return nextProps.project !== this.props.project ||
-            nextProps.topNestedConstructor !== this.props.topNestedConstructor;
+            nextProps.topNestedConstructor !== this.props.topNestedConstructor ||
+            nextProps.currentRouteId !== this.props.currentRouteId ||
+            nextProps.currentRouteIsIndexRoute !== this.props.currentRouteIsIndexRoute;
     }
 
     componentWillUnmount() {
@@ -199,16 +199,6 @@ class Preview extends Component {
             containerNode.removeEventListener('mouseup', this._handleMouseUp);
             if (this.unhighilightTimer > -1) clearImmediate(this.unhighilightTimer);
         }
-    }
-
-    /**
-     *
-     * @param {number} routeId
-     * @param {boolean} isIndexRoute
-     * @private
-     */
-    _handleChangeRoute(routeId, isIndexRoute) {
-        this.props.onRouteChange(routeId, isIndexRoute);
     }
 
     /**
@@ -252,8 +242,6 @@ class Preview extends Component {
             )
         };
 
-        ret.onEnter = this._handleChangeRoute.bind(this, route.id, false);
-
         const outletId = getOutletComponentId(route);
 
         const enclosingComponentIdForChildRoute = outletId > -1
@@ -279,9 +267,7 @@ class Preview extends Component {
                     route.components,
                     route.indexComponent,
                     enclosingComponentIdForChildRoute
-                ),
-
-                onEnter: this._handleChangeRoute.bind(this, route.id, true)
+                )
             };
         }
 
@@ -477,15 +463,56 @@ class Preview extends Component {
         }
     }
 
-    render() {
-        if (this.props.topNestedConstructor) {
-            return (
+    _createBuilderForCurrentRoute() {
+        let currentRouteId = this.props.currentRouteId;
+
+        if (currentRouteId === -1) return null;
+
+        let currentRoute = this.props.project.routes.get(currentRouteId),
+            currentRootComponentId = this.props.currentRouteIsIndexRoute
+                ? currentRoute.indexComponent
+                : currentRoute.component,
+            ret = null;
+
+        do {
+            ret = (
                 <Builder
-                    components={this.props.topNestedConstructor.components}
-                    rootId={this.props.topNestedConstructor.rootId}
-                    ignoreOwnerProps
+                    components={currentRoute.components}
+                    rootId={currentRootComponentId}
+                    children={ret}
                 />
             );
+
+            currentRouteId = currentRoute.parentId;
+
+            if (currentRouteId > -1) {
+                currentRoute = this.props.project.routes.get(currentRouteId);
+                currentRootComponentId = currentRoute.component;
+            }
+            else {
+                currentRoute = null;
+                currentRootComponentId = -1;
+            }
+        }
+        while (currentRoute);
+
+        return ret;
+    }
+
+    render() {
+        if (this.props.interactive) {
+            if (this.props.topNestedConstructor) {
+                return (
+                    <Builder
+                        components={this.props.topNestedConstructor.components}
+                        rootId={this.props.topNestedConstructor.rootId}
+                        ignoreOwnerProps
+                    />
+                );
+            }
+            else {
+                return this._createBuilderForCurrentRoute();
+            }
         }
         else {
             return (
@@ -520,7 +547,6 @@ Preview.propTypes = {
     onDragOverComponent: PropTypes.func,
     onDragOverPlaceholder: PropTypes.func,
     onDropComponent: PropTypes.func,
-    onRouteChange: PropTypes.func
 };
 
 Preview.defaultProps = {
@@ -536,7 +562,7 @@ const mapStateToProps = (state) => ({
     highlightingEnabled: state.project.highlightingEnabled,
     currentRouteId: state.project.currentRouteId,
     currentRouteIsIndexRoute: state.project.currentRouteIsIndexRoute,
-    topNestedConstructor: topNestedConstructorSelector(state)
+    topNestedConstructor: topNestedConstructorSelector(state),
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -563,9 +589,6 @@ const mapDispatchToProps = dispatch => ({
 
     onDropComponent: () =>
         void dispatch(dropComponent()),
-
-    onRouteChange: (routeId, isIndexRoute) =>
-        void dispatch(setCurrentRoute(routeId, isIndexRoute))
 });
 
 export default connect(

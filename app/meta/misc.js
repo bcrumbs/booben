@@ -29,6 +29,7 @@ export default {
                     }
                 }
             },
+            propGroups: [],
             strings: {
                 'name': {
                     en: 'Text'
@@ -53,6 +54,8 @@ export default {
             textKey: 'name',
             descriptionTextKey: 'description',
             kind: 'atomic',
+            props: {},
+            propGroups: [],
             strings: {
                 'name': {
                     en: 'Outlet'
@@ -101,6 +104,7 @@ export default {
                     }
                 }
             },
+            propGroups: [],
             strings: {
                 'name': {
                     en: 'List'

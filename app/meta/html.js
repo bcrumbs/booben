@@ -14,6 +14,7 @@ export default {
             descriptionTextKey: 'description',
             kind: 'container',
             props: {},
+            propGroups: [],
             strings: {
                 'name': {
                     en: 'div'
@@ -21,8 +22,7 @@ export default {
                 'description': {
                     en: ''
                 }
-            },
-            propGroups: []
+            }
         }
     }
 };

@@ -4,7 +4,6 @@
 import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { graphql } from 'react-apollo';
-import { NetworkStatus } from 'apollo-client';
 import _merge from 'lodash.merge';
 import _mapValues from 'lodash.mapvalues';
 import { List } from 'immutable';
@@ -14,6 +13,9 @@ import jssyConstants from '../../app/constants/jssyConstants';
 import { NO_VALUE } from  '../../app/constants/misc';
 
 import { ContentPlaceholder } from '../components/ContentPlaceholder';
+import { Outlet } from '../components/Outlet';
+
+import { currentSelectedComponentIdsSelector } from '../../app/selectors';
 
 import getComponentByName from '../getComponentByName';
 import isPseudoComponent from '../isPseudoComponent';
@@ -180,7 +182,7 @@ class BuilderComponent extends PureComponent {
      */
     _renderPseudoComponent(component) {
         if (component.name === 'Outlet') {
-            return this.props.children;
+            return this.props.children || <Outlet/>;
         }
         else if (component.name === 'Text') {
             const props = this._buildProps(component);
@@ -329,6 +331,11 @@ class BuilderComponent extends PureComponent {
         }
     }
 
+    _willRenderContentPlaceholder(component) {
+        return this.props.showContentPlaceholders ||
+            this.props.selectedComponentIds.has(component.id);
+    }
+
     /**
      *
      * @param {Object} component
@@ -388,7 +395,7 @@ class BuilderComponent extends PureComponent {
                     );
                 }
             }
-            else if (this.props.showContentPlaceholders) {
+            else if (this._willRenderContentPlaceholder(component)) {
                 // Content placeholders are enabled
                 const willRenderContentPlaceholder =
                     !props.children &&
@@ -488,7 +495,8 @@ BuilderComponent.propTypes = {
     draggedComponentId: PropTypes.number,
     draggedComponents: PropTypes.any,
     draggingOverComponentId: PropTypes.number,
-    showContentPlaceholders: PropTypes.bool
+    showContentPlaceholders: PropTypes.bool,
+    selectedComponentIds: PropTypes.object // Immutable.Set<number>
 };
 
 BuilderComponent.defaultProps = {
@@ -515,7 +523,8 @@ const mapStateToProps = state => ({
     draggedComponentId: state.project.draggedComponentId,
     draggedComponents: state.project.draggedComponents,
     draggingOverComponentId: state.project.draggingOverComponentId,
-    showContentPlaceholders: state.app.showContentPlaceholders
+    showContentPlaceholders: state.app.showContentPlaceholders,
+    selectedComponentIds: currentSelectedComponentIdsSelector(state)
 });
 
 const Builder = connect(mapStateToProps)(BuilderComponent);
