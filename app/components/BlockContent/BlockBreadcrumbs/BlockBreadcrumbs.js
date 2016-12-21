@@ -1,20 +1,20 @@
 import React, { PropTypes } from 'react';
 import {
-	Icon,
-	Breadcrumbs
+    Icon,
+    Breadcrumbs,
 } from '@reactackle/reactackle';
 import './BlockBreadcrumbs.scss';
 
 export const BlockBreadcrumbs = props => {
-    let className = 'block-breadcrumbs';
+  const className = 'block-breadcrumbs';
 
-    return (
-        <div className={className}>
-            <Breadcrumbs
-	            {...props}
-            />
-        </div>
-    );
+  return (
+    <div className={className}>
+      <Breadcrumbs
+        {...props}
+      />
+    </div>
+  );
 };
 
 BlockBreadcrumbs.propTypes = Breadcrumbs.propTypes;

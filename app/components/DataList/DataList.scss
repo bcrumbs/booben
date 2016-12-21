@@ -2,128 +2,128 @@
 @import 'variables';
 
 @include exports(data-list) {
-	// =================================================================================================================
-	// DATA LIST
-	// =================================================================================================================
-	.data-list {
-		margin: (-$data-item-padding-y) (-$data-item-padding-x);
-		margin-right: -$data-item-padding-x - $base-module;
-		width: calc(100% + #{$data-item-padding-x*2 + $base-module});
-	}
+    // =================================================================================================================
+    // DATA LIST
+    // =================================================================================================================
+    .data-list {
+        margin: (-$data-item-padding-y) (-$data-item-padding-x);
+        margin-right: -$data-item-padding-x - $base-module;
+        width: calc(100% + #{$data-item-padding-x*2 + $base-module});
+    }
 
-	// =================================================================================================================
-	// DATA ITEM
-	// =================================================================================================================
-	.data-list-item {
-		border-radius: $data-item-border-radius;
-		display: flex;
+    // =================================================================================================================
+    // DATA ITEM
+    // =================================================================================================================
+    .data-list-item {
+        border-radius: $data-item-border-radius;
+        display: flex;
 
-		@include single-transition(background-color);
-		@include user-select;
+        @include single-transition(background-color);
+        @include user-select;
 
-		& + & { margin-top: $data-item-spacing }
+        & + & { margin-top: $data-item-spacing }
 
-		&.action-type-jump {
-			cursor: $cursor-pointer;
+        &.action-type-jump {
+            cursor: $cursor-pointer;
 
-			&:hover {
-				background-color: transparentize($black, 0.93);
-			}
-		}
+            &:hover {
+                background-color: transparentize($black, 0.93);
+            }
+        }
 
-		&.action-type-jump {
-			.button:hover,
-			.button:active,
-			.button:focus {
-				background-color: transparent !important;
-			}
-		}
-	}
+        &.action-type-jump {
+            .button:hover,
+            .button:active,
+            .button:focus {
+                background-color: transparent !important;
+            }
+        }
+    }
 
-	// Content
-	// =================================================================================================================
-	.data-item_content-box {
-		padding: $data-item-padding-y $data-item-padding-x;
-		flex-grow: 1;
-		max-width: calc(100% - #{$data-item-actions-spacing + $data-item-action-size + $data-item-padding-x});
-		border-radius: $global-radius;
+    // Content
+    // =================================================================================================================
+    .data-item_content-box {
+        padding: $data-item-padding-y $data-item-padding-x;
+        flex-grow: 1;
+        max-width: calc(100% - #{$data-item-actions-spacing + $data-item-action-size + $data-item-padding-x});
+        border-radius: $global-radius;
 
-		@include single-transition(background-color);
+        @include single-transition(background-color);
 
-		.action-type-select &:hover {
-			cursor: $cursor-pointer;
-			background-color: transparentize($black, 0.93);
-		}
+        .action-type-select &:hover {
+            cursor: $cursor-pointer;
+            background-color: transparentize($black, 0.93);
+        }
 
-		.is-chosen &,
-		.is-chosen &:hover {
-			cursor: $cursor-pointer;
-			background-color: color($yellow-palette, lightest);
-		}
-	}
+        .is-chosen &,
+        .is-chosen &:hover {
+            cursor: $cursor-pointer;
+            background-color: color($yellow-palette, lightest);
+        }
+    }
 
-	.data-item_content {
-		position: relative;
-	}
+    .data-item_content {
+        position: relative;
+    }
 
-	// Buttons
-	.data-item_buttons {
-		opacity: 0;
-		pointer-events: none;
-		position: fixed;
-		margin: (-$data-item-margin-y) (-$data-item-margin-x - $base-module);
-		width: calc(100% + #{$data-item-margin-x*2 + $base-module*2});
-		text-align: right;
+    // Buttons
+    .data-item_buttons {
+        opacity: 0;
+        pointer-events: none;
+        position: fixed;
+        margin: (-$data-item-margin-y) (-$data-item-margin-x - $base-module);
+        width: calc(100% + #{$data-item-margin-x*2 + $base-module*2});
+        text-align: right;
 
-		@include single-transition(opacity);
+        @include single-transition(opacity);
 
-		.data-list-item.is-chosen & {
-			opacity: 1;
-			pointer-events: initial;
-			position: relative;
-		}
+        .data-list-item.is-chosen & {
+            opacity: 1;
+            pointer-events: initial;
+            position: relative;
+        }
 
-		.button {
-			margin: $data-item-margin-y $data-item-margin-x;
-		}
-	}
+        .button {
+            margin: $data-item-margin-y $data-item-margin-x;
+        }
+    }
 
 
-	// Data Title
-	// =================================================================================================================
-	.data-item_title-text {
-		font-size: $data-item-title-font-size;
-		font-weight: $data-item-title-font-weight;
-		line-height: $data-item-title-line-height;
-		text-transform: $data-item-title-transform;
-		color: $data-item-title-color;
+    // Data Title
+    // =================================================================================================================
+    .data-item_title-text {
+        font-size: $data-item-title-font-size;
+        font-weight: $data-item-title-font-weight;
+        line-height: $data-item-title-line-height;
+        text-transform: $data-item-title-transform;
+        color: $data-item-title-color;
 
-		margin-right: $data-item-type-spacing;
-	}
+        margin-right: $data-item-type-spacing;
+    }
 
-	.data-item_description {
-		font-size: $data-item-subtitle-font-size;
-		font-weight: $data-item-subtitle-font-weight;
-		line-height: $data-item-subtitle-line-height;
-		text-transform: $data-item-subtitle-transform;
-		color: $data-item-subtitle-color;
-		margin-top: $base-module/2;
-	}
+    .data-item_description {
+        font-size: $data-item-subtitle-font-size;
+        font-weight: $data-item-subtitle-font-weight;
+        line-height: $data-item-subtitle-line-height;
+        text-transform: $data-item-subtitle-transform;
+        color: $data-item-subtitle-color;
+        margin-top: $base-module/2;
+    }
 
-	.data-item_type {
-		font-size: $data-item-type-font-size;
-		font-weight: $data-item-type-font-weight;
-		line-height: $data-item-type-line-height;
-		text-transform: $data-item-type-transform;
-		color: $data-item-type-color;
-		margin-right: $data-item-type-spacing;
-	}
+    .data-item_type {
+        font-size: $data-item-type-font-size;
+        font-weight: $data-item-type-font-weight;
+        line-height: $data-item-type-line-height;
+        text-transform: $data-item-type-transform;
+        color: $data-item-type-color;
+        margin-right: $data-item-type-spacing;
+    }
 
-	// ACTIONS
-	// =================================================================================================================
-	.data-item_actions {
-		margin-left: $data-item-actions-spacing;
-	}
+    // ACTIONS
+    // =================================================================================================================
+    .data-item_actions {
+        margin-left: $data-item-actions-spacing;
+    }
 
 }
 

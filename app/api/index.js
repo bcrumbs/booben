@@ -1,6 +1,7 @@
 /**
  * @author Dmitriy Bizyaev
  */
+
 'use strict';
 
 import { introspectionQuery } from 'graphql/utilities';
@@ -20,8 +21,8 @@ export const getProject = projectName =>
     fetch(`${API_URL_PREFIX}/projects/${projectName}`)
         .then(res => res.json())
         .then(data => {
-            if (data.error) throw new Error(data.error);
-            return data;
+          if (data.error) throw new Error(data.error);
+          return data;
         });
 
 /**
@@ -33,8 +34,8 @@ export const getMetadata = projectName =>
     fetch(`${API_URL_PREFIX}/projects/${projectName}/metadata`)
         .then(res => res.json())
         .then(data => {
-            if (data.error) throw new Error(data.error);
-            return data;
+          if (data.error) throw new Error(data.error);
+          return data;
         });
 
 /**
@@ -46,8 +47,8 @@ export const getLocalization = language =>
     fetch(`localization/${language}.json`)
         .then(res => res.json())
         .then(data => {
-            if (data.error) throw new Error(data.error);
-            return data;
+          if (data.error) throw new Error(data.error);
+          return data;
         });
 
 /**
@@ -56,19 +57,19 @@ export const getLocalization = language =>
  * @return {Promise.<Object>}
  */
 export const getFullGraphQLSchema = url =>
-	fetch(
-		url, {
-			method: 'POST',
-			body: JSON.stringify(
-				{ query: introspectionQuery }
-			),
-			headers: {
-		     	'content-type': 'application/json'
-		  	}
-		}
-	)
-		.then(res => res.json())
-		.then(data => {
-			if (data.error) throw new Error(data.error);
-			return data.data.__schema;
-		});
+    fetch(
+        url, {
+          method: 'POST',
+          body: JSON.stringify(
+                { query: introspectionQuery },
+            ),
+          headers: {
+            'content-type': 'application/json',
+          },
+        },
+    )
+        .then(res => res.json())
+        .then(data => {
+          if (data.error) throw new Error(data.error);
+          return data.data.__schema;
+        });

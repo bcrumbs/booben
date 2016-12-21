@@ -7,7 +7,7 @@
 import { Record } from 'immutable';
 
 export default Record({
-    source: '',
-    sourceData: null
+  source: '',
+  sourceData: null,
 });
- 
+

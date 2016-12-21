@@ -1,23 +1,22 @@
 import React, { PropTypes } from 'react';
 
 export const BlockContentActionsRegion = props => {
-    let className = `block-content-actions-region`;
-    if (props.type) className += ' region-' + props.type;
+  let className = 'block-content-actions-region';
+  if (props.type) className += ` region-${props.type}`;
 
-    return (
-        <div className={className}>
-            {props.children}
-        </div>
-    );
-
+  return (
+    <div className={className}>
+      {props.children}
+    </div>
+  );
 };
 
 BlockContentActionsRegion.propTypes = {
-    type: PropTypes.oneOf(['main', 'secondary'])
+  type: PropTypes.oneOf(['main', 'secondary']),
 };
 
 BlockContentActionsRegion.defaultProps = {
-    type: 'main'
+  type: 'main',
 };
 
 BlockContentActionsRegion.displayName = 'BlockContentActionsRegion';

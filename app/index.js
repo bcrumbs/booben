@@ -29,55 +29,55 @@ import { loadLocalization } from './actions/app';
 const setToolsOnEnter = toolIds => () => void store.dispatch(setTools(toolIds));
 
 const onDesignRouteEnter = ({ location, params }) => {
-    const routeId = Number(params.routeId),
-        isIndexRoute = location.pathname.endsWith('/index');
+  const routeId = Number(params.routeId),
+    isIndexRoute = location.pathname.endsWith('/index');
 
-    store.dispatch(setCurrentRoute(routeId, isIndexRoute));
-    store.dispatch(setTools(DESIGN_TOOL_IDS));
+  store.dispatch(setCurrentRoute(routeId, isIndexRoute));
+  store.dispatch(setTools(DESIGN_TOOL_IDS));
 };
 
 /*
  * Testing
  */
-window.abc = (lang) => store.dispatch(loadLocalization(lang));
+window.abc = lang => store.dispatch(loadLocalization(lang));
 
 store.dispatch(loadLocalization('en'));
 
 window.addEventListener('DOMContentLoaded', () => {
-    ReactDOM.render(
-        <Provider store={store}>
-            <Router history={history}>
-                <Route
-                    path="/playground"
-                    component={PlaygroundRoute}
-                    onEnter={setToolsOnEnter(PLAYGROUND_TOOL_IDS)}
-                />
+  ReactDOM.render(
+    <Provider store={store}>
+      <Router history={history}>
+        <Route
+          path="/playground"
+          component={PlaygroundRoute}
+          onEnter={setToolsOnEnter(PLAYGROUND_TOOL_IDS)}
+        />
 
-                <Route path="/:projectName" component={AppRoute}>
-                    <Route component={RootRoute}>
-                        <IndexRedirect to="/:projectName/structure" />
+        <Route path="/:projectName" component={AppRoute}>
+          <Route component={RootRoute}>
+            <IndexRedirect to="/:projectName/structure" />
 
-                        <Route
-                            path="structure"
-                            component={StructureRoute}
-                            onEnter={setToolsOnEnter(STRUCTURE_TOOL_IDS)}
-                        />
+            <Route
+              path="structure"
+              component={StructureRoute}
+              onEnter={setToolsOnEnter(STRUCTURE_TOOL_IDS)}
+            />
 
-                        <Route
-                            path="design/:routeId(/index)"
-                            component={DesignRoute}
-                            onEnter={onDesignRouteEnter}
-                        />
-                    </Route>
+            <Route
+              path="design/:routeId(/index)"
+              component={DesignRoute}
+              onEnter={onDesignRouteEnter}
+            />
+          </Route>
 
-                    <Route
-                        path="preview"
-                        component={PreviewRoute}
-                    />
-                </Route>
-            </Router>
-        </Provider>,
+          <Route
+            path="preview"
+            component={PreviewRoute}
+          />
+        </Route>
+      </Router>
+    </Provider>,
 
-        document.getElementById('container')
+        document.getElementById('container'),
     );
 });

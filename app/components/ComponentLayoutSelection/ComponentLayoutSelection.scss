@@ -2,81 +2,81 @@
 @import 'variables';
 
 @include exports(component-layout-selection) {
-	// =================================================================================================================
-	// BASE
-	// =================================================================================================================
-	.component-layout-selection-wrapper {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-		margin-left: -$layout-item-pad-x;
-		width: calc(100% + #{$layout-item-pad-x*2});
-	}
+    // =================================================================================================================
+    // BASE
+    // =================================================================================================================
+    .component-layout-selection-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-left: -$layout-item-pad-x;
+        width: calc(100% + #{$layout-item-pad-x*2});
+    }
 
-	.component-layout-selection-list {
-		width: 100%;
-		max-width: 100%;
-		display: flex;
-		flex-wrap: wrap;
-	}
+    .component-layout-selection-list {
+        width: 100%;
+        max-width: 100%;
+        display: flex;
+        flex-wrap: wrap;
+    }
 
-	// ITEM
-	.component-layout-item {
-		margin: $layout-items-margin-y $layout-items-margin-x;
-		padding: $layout-item-pad-y $layout-item-pad-x;
-		cursor: $cursor-pointer;
-		width: calc(#{$layout-item-width} - #{$layout-items-margin-x*2});
-		max-width: calc(#{$layout-item-width} - #{$layout-items-margin-x});
-		border-radius: $layout-item-border-radius;
-		border: $layout-item-hover-border-thickness $layout-item-hover-border-style transparent;
-		flex-grow: 1;
+    // ITEM
+    .component-layout-item {
+        margin: $layout-items-margin-y $layout-items-margin-x;
+        padding: $layout-item-pad-y $layout-item-pad-x;
+        cursor: $cursor-pointer;
+        width: calc(#{$layout-item-width} - #{$layout-items-margin-x*2});
+        max-width: calc(#{$layout-item-width} - #{$layout-items-margin-x});
+        border-radius: $layout-item-border-radius;
+        border: $layout-item-hover-border-thickness $layout-item-hover-border-style transparent;
+        flex-grow: 1;
 
-		@include single-transition();
-		@include user-select();
+        @include single-transition();
+        @include user-select();
 
-		&:hover {
-			border: $layout-item-hover-border-thickness $layout-item-hover-border-style $layout-item-hover-border-color;
-		}
-	}
+        &:hover {
+            border: $layout-item-hover-border-thickness $layout-item-hover-border-style $layout-item-hover-border-color;
+        }
+    }
 
-	// IMAGE
-	// =================================================================================================================
-	.component-layout-item-image-box {
-		width: $layout-item-img-size;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background-color: $layout-item-img-bg-color;
+    // IMAGE
+    // =================================================================================================================
+    .component-layout-item-image-box {
+        width: $layout-item-img-size;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: $layout-item-img-bg-color;
 
-		img {
-			max-width: 100%;
-			max-height: 100%;
-		}
-	}
+        img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+    }
 
-	// TITLE
-	// =================================================================================================================
-	.component-layout-item-title-box {
-		margin-top: $layout-item-title-margin-top;
-		margin-bottom: $layout-item-title-margin-bottom;
-	}
+    // TITLE
+    // =================================================================================================================
+    .component-layout-item-title-box {
+        margin-top: $layout-item-title-margin-top;
+        margin-bottom: $layout-item-title-margin-bottom;
+    }
 
-	.component-layout-item-title {
-		font-size: $layout-item-title-font-size;
-		line-height: $layout-item-title-line-height;
-		color: $layout-item-title-color;
-		text-transform: $layout-item-title-text-transform;
-		font-weight: $layout-item-title-font-weight;
-		text-align: $layout-item-title-text-align;
-	}
+    .component-layout-item-title {
+        font-size: $layout-item-title-font-size;
+        line-height: $layout-item-title-line-height;
+        color: $layout-item-title-color;
+        text-transform: $layout-item-title-text-transform;
+        font-weight: $layout-item-title-font-weight;
+        text-align: $layout-item-title-text-align;
+    }
 
-	.component-layout-item-subtitle {
-		font-size: $layout-item-subtitle-font-size;
-		line-height: $layout-item-subtitle-line-height;
-		color: $layout-item-subtitle-color;
-		text-transform: $layout-item-subtitle-text-transform;
-		font-weight: $layout-item-subtitle-font-weight;
-		margin-top: $layout-item-subtitle-spacing;
-		text-align: $layout-item-subtitle-text-align;
-	}
+    .component-layout-item-subtitle {
+        font-size: $layout-item-subtitle-font-size;
+        line-height: $layout-item-subtitle-line-height;
+        color: $layout-item-subtitle-color;
+        text-transform: $layout-item-subtitle-text-transform;
+        font-weight: $layout-item-subtitle-font-weight;
+        margin-top: $layout-item-subtitle-spacing;
+        text-align: $layout-item-subtitle-text-align;
+    }
 }

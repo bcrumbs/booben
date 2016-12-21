@@ -2,187 +2,187 @@
 @import 'variables';
 
 @include exports(routes-list) {
-	// =================================================================================================================
-	// BASE
-	// =================================================================================================================
-	.routes-list-wrapper {
-		width: 100%;
-		margin: 0;
-		padding: 0;
-		list-style-type: none;
-		position: relative;
-	}
+    // =================================================================================================================
+    // BASE
+    // =================================================================================================================
+    .routes-list-wrapper {
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+        position: relative;
+    }
 
-	// ROUTE CARD
-	// =================================================================================================================
-	.route-card-item {
-		& + & {
-			margin-top: $rcard-spacing;
-		}
+    // ROUTE CARD
+    // =================================================================================================================
+    .route-card-item {
+        & + & {
+            margin-top: $rcard-spacing;
+        }
 
-		.routes-list-wrapper {
-			margin-top: $rcard-spacing;
+        .routes-list-wrapper {
+            margin-top: $rcard-spacing;
 
-			li:last-child {
-				margin-bottom: $rcard-last-child-margin-bottom;
-			}
-		}
-	}
+            li:last-child {
+                margin-bottom: $rcard-last-child-margin-bottom;
+            }
+        }
+    }
 
-	.route-card-item .routes-list-wrapper {
-		margin-left: $rcard-offset-left;
+    .route-card-item .routes-list-wrapper {
+        margin-left: $rcard-offset-left;
 
-		@if $rcard-level-multiplicator != 0 {
-			@include level-offset(1) {
-				@include level-offset(2) {
-					@include level-offset(3) {
-						@include level-offset(4) {
-							@include level-offset(5) {
-								@include level-offset(6) {
-									@include level-offset(7) {
-										@include level-offset(8) {
-											@include level-offset(9) {
-												@include level-offset(10)
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
+        @if $rcard-level-multiplicator != 0 {
+            @include level-offset(1) {
+                @include level-offset(2) {
+                    @include level-offset(3) {
+                        @include level-offset(4) {
+                            @include level-offset(5) {
+                                @include level-offset(6) {
+                                    @include level-offset(7) {
+                                        @include level-offset(8) {
+                                            @include level-offset(9) {
+                                                @include level-offset(10)
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
-	.route-card {
-		background-color: $rcard-bg-color;
-		border-radius: $rcard-border-radius;
-		width: 100%;
-		max-width: $rcard-max-width;
-		min-height: $rcard-min-height;
-		padding: $rcard-padding-y $rcard-padding-x;
-		display: flex;
-		align-items: center;
-		cursor: $cursor-pointer;
-		position: relative;
+    .route-card {
+        background-color: $rcard-bg-color;
+        border-radius: $rcard-border-radius;
+        width: 100%;
+        max-width: $rcard-max-width;
+        min-height: $rcard-min-height;
+        padding: $rcard-padding-y $rcard-padding-x;
+        display: flex;
+        align-items: center;
+        cursor: $cursor-pointer;
+        position: relative;
 
-		@include box-shadow();
-		@include single-transition();
-		@include transition-property(background-color, box-shadow, border);
-		@include user-select();
+        @include box-shadow();
+        @include single-transition();
+        @include transition-property(background-color, box-shadow, border);
+        @include user-select();
 
-		&:hover {
-			background-color: $rcard-hover-bg-color;
-		}
+        &:hover {
+            background-color: $rcard-hover-bg-color;
+        }
 
-		&:focus {
-			outline: none;
-			background-color: $rcard-hover-bg-color;
-		}
+        &:focus {
+            outline: none;
+            background-color: $rcard-hover-bg-color;
+        }
 
-		.route-card-wrapper.is-focused & {
-			background-color: $rcard-focus-bg-color;
-			border-left: $rcard-focus-border-left-thickness solid $rcard-focus-border-left-color;
-			cursor: $cursor-default;
-		}
-	}
+        .route-card-wrapper.is-focused & {
+            background-color: $rcard-focus-bg-color;
+            border-left: $rcard-focus-border-left-thickness solid $rcard-focus-border-left-color;
+            cursor: $cursor-default;
+        }
+    }
 
-	.route-card-wrapper.is-focused {
-		// Vertical Ruler
-		+ .routes-list-wrapper {
-			&::before {
-				position: absolute;
-				content: '';
-				top: 0;
-				left: $rcard-ruler-offset;
-				height: 100%;
-				width: $rcard-ruler-thickness;
-				border-left: $rcard-ruler-thickness $rcard-ruler-style $rcard-ruler-color;
-				z-index: 1;
-			}
-		}
-	}
+    .route-card-wrapper.is-focused {
+        // Vertical Ruler
+        + .routes-list-wrapper {
+            &::before {
+                position: absolute;
+                content: '';
+                top: 0;
+                left: $rcard-ruler-offset;
+                height: 100%;
+                width: $rcard-ruler-thickness;
+                border-left: $rcard-ruler-thickness $rcard-ruler-style $rcard-ruler-color;
+                z-index: 1;
+            }
+        }
+    }
 
-	// CONTENT
-	.route-card-content {
-		flex-grow: 1;
-	}
+    // CONTENT
+    .route-card-content {
+        flex-grow: 1;
+    }
 
-	.route-title-box {
-		display: flex;
-	}
+    .route-title-box {
+        display: flex;
+    }
 
-	.route-title {
-		font-size: $rcard-title-font-size;
-		line-height: $rcard-title-line-height;
-		font-weight: $rcard-title-font-weight;
-		color: $rcard-title-font-color;
-	}
+    .route-title {
+        font-size: $rcard-title-font-size;
+        line-height: $rcard-title-line-height;
+        font-weight: $rcard-title-font-weight;
+        color: $rcard-title-font-color;
+    }
 
-	.route-subtitle {
-		font-size: $rcard-subtitle-font-size;
-		line-height: $rcard-subtitle-line-height;
-		font-weight: $rcard-subtitle-font-weight;
-		color: $rcard-subtitle-font-color;
-	}
+    .route-subtitle {
+        font-size: $rcard-subtitle-font-size;
+        line-height: $rcard-subtitle-line-height;
+        font-weight: $rcard-subtitle-font-weight;
+        color: $rcard-subtitle-font-color;
+    }
 
-	// ADD NEW ROUTE
-	.route-new-button {
-		margin-top: $rcard-new-margin-top;
-		margin-bottom: $rcard-new-margin-top*1.5 !important;
+    // ADD NEW ROUTE
+    .route-new-button {
+        margin-top: $rcard-new-margin-top;
+        margin-bottom: $rcard-new-margin-top*1.5 !important;
 
-		.button {
-			border: $rcard-new-border-thickness $rcard-new-border-style $rcard-new-border-color;
-			background-color: $rcard-new-bg-color;
-			color: $rcard-new-color;
+        .button {
+            border: $rcard-new-border-thickness $rcard-new-border-style $rcard-new-border-color;
+            background-color: $rcard-new-bg-color;
+            color: $rcard-new-color;
 
-			&:hover,
-			&:focus {
-				border: $rcard-new-hover-border-thickness $rcard-new-hover-border-style $rcard-new-hover-border-color;
-				background-color: $rcard-new-hover-bg-color;
-				color: $rcard-new-hover-color;
-			}
-		}
-	}
+            &:hover,
+            &:focus {
+                border: $rcard-new-hover-border-thickness $rcard-new-hover-border-style $rcard-new-hover-border-color;
+                background-color: $rcard-new-hover-bg-color;
+                color: $rcard-new-hover-color;
+            }
+        }
+    }
 
-	.route-new-child-button {
-		margin-bottom: $rcard-spacing;
-	}
+    .route-new-child-button {
+        margin-bottom: $rcard-spacing;
+    }
 
-	// ICONS
-	.route-icon {
-		margin-left: $rcard-icon-index-margin-left;
+    // ICONS
+    .route-icon {
+        margin-left: $rcard-icon-index-margin-left;
 
-		@include icon-size(
-						$rcard-icon-index-box-size,
-						$rcard-icon-index-img-size);
+        @include icon-size(
+                        $rcard-icon-index-box-size,
+                        $rcard-icon-index-img-size);
 
-		@include icon-style($rcard-icon-index-color);
-	}
+        @include icon-style($rcard-icon-index-color);
+    }
 
-	// DEFAULT index
-	.route-card-wrapper.is-index {
-		.route-card {
-			background-color: $rcard-index-bg-color;
-			min-height: 0;
+    // DEFAULT index
+    .route-card-wrapper.is-index {
+        .route-card {
+            background-color: $rcard-index-bg-color;
+            min-height: 0;
 
-			&:hover,
-			&:focus {
-				background-color: $rcard-index-hover-bg-color;
-				outline: none;
-				@include box-shadow();
-			}
-		}
+            &:hover,
+            &:focus {
+                background-color: $rcard-index-hover-bg-color;
+                outline: none;
+                @include box-shadow();
+            }
+        }
 
-		&.is-focused .route-card {
-			background-color: $rcard-index-focus-bg-color;
-		}
+        &.is-focused .route-card {
+            background-color: $rcard-index-focus-bg-color;
+        }
 
-		.route-title {
-			color: $rcard-index-color;
-			font-size: $rcard-index-title-font-size;
-			line-height: $rcard-index-line-height;
-		}
-	}
+        .route-title {
+            color: $rcard-index-color;
+            font-size: $rcard-index-title-font-size;
+            line-height: $rcard-index-line-height;
+        }
+    }
 }

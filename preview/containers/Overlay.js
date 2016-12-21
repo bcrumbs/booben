@@ -1,6 +1,6 @@
 'use strict';
 
-//noinspection JSUnresolvedVariable
+// noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Set } from 'immutable';
@@ -10,7 +10,7 @@ import {
     currentSelectedComponentIdsSelector,
     currentHighlightedComponentIdsSelector,
     currentRootComponentIdSelector,
-    currentComponentsSelector
+    currentComponentsSelector,
 } from '../../app/selectors';
 
 import { OverlayContainer } from '../components/OverlayContainer';
@@ -39,9 +39,9 @@ class Overlay extends PureComponent {
      * @return {HTMLElement}
      * @private
      */
-    _getDOMElementByComponentId(id) {
-        return getContainer().querySelector(`[data-jssy-id="${id}"]`);
-    }
+  _getDOMElementByComponentId(id) {
+    return getContainer().querySelector(`[data-jssy-id="${id}"]`);
+  }
 
     /**
      *
@@ -50,86 +50,86 @@ class Overlay extends PureComponent {
      * @return {Immutable.List<ReactElement>}
      * @private
      */
-    _renderBoundingBoxes(componentIds, color) {
-        //noinspection JSValidateTypes
-        return componentIds.map(id => {
-            const element = this._getDOMElementByComponentId(id) || null,
-                key = `${id}-${color}`;
+  _renderBoundingBoxes(componentIds, color) {
+        // noinspection JSValidateTypes
+    return componentIds.map(id => {
+      const element = this._getDOMElementByComponentId(id) || null,
+        key = `${id}-${color}`;
 
-            return (
-                <OverlayBoundingBox
-                    key={key}
-                    element={element}
-                    color={color}
-                />
-            );
-        });
-    }
+      return (
+        <OverlayBoundingBox
+          key={key}
+          element={element}
+          color={color}
+        />
+      );
+    });
+  }
 
-    _renderTitles() {
+  _renderTitles() {
         // TODO: Handle cases when multiple titles appear in the same place
-        return this.props.components.map(component => (
-            <OverlayComponentTitle
-                key={component.id}
-                element={this._getDOMElementByComponentId(component.id)}
-                title={component.title || component.name}
-            />
+    return this.props.components.map(component => (
+      <OverlayComponentTitle
+        key={component.id}
+        element={this._getDOMElementByComponentId(component.id)}
+        title={component.title || component.name}
+      />
         ));
-    }
+  }
 
-    render() {
-        const highlightBoxes = this.props.highlightingEnabled
+  render() {
+    const highlightBoxes = this.props.highlightingEnabled
             ? this._renderBoundingBoxes(this.props.highlightedComponentIds, 'rgba(0, 113, 216, 0.3)')
             : null;
 
-        const selectBoxes =
+    const selectBoxes =
             this._renderBoundingBoxes(this.props.selectedComponentIds, 'rgba(0, 113, 216, 1)');
 
-        let rootComponentBox = null;
-        if (this.props.draggingComponent && this.props.boundaryComponentId > -1) {
-            rootComponentBox = this._renderBoundingBoxes(
+    let rootComponentBox = null;
+    if (this.props.draggingComponent && this.props.boundaryComponentId > -1) {
+      rootComponentBox = this._renderBoundingBoxes(
                 Set([this.props.boundaryComponentId]),
-                'red'
+                'red',
             );
-        }
+    }
 
-        const titles = this.props.showComponentTitles
+    const titles = this.props.showComponentTitles
             ? this._renderTitles()
             : null;
 
-        return (
-            <OverlayContainer>
-                {highlightBoxes}
-                {selectBoxes}
-                {rootComponentBox}
-                {titles}
-            </OverlayContainer>
-        );
-    }
+    return (
+      <OverlayContainer>
+        {highlightBoxes}
+        {selectBoxes}
+        {rootComponentBox}
+        {titles}
+      </OverlayContainer>
+    );
+  }
 }
 
 Overlay.propTypes = {
-    components: ImmutablePropTypes.map,
-    rootComponentId: PropTypes.number,
-    selectedComponentIds: ImmutablePropTypes.set,
-    highlightedComponentIds: ImmutablePropTypes.set,
-    boundaryComponentId: PropTypes.number,
-    highlightingEnabled: PropTypes.bool,
-    draggingComponent: PropTypes.bool,
-    showComponentTitles: PropTypes.bool
+  components: ImmutablePropTypes.map,
+  rootComponentId: PropTypes.number,
+  selectedComponentIds: ImmutablePropTypes.set,
+  highlightedComponentIds: ImmutablePropTypes.set,
+  boundaryComponentId: PropTypes.number,
+  highlightingEnabled: PropTypes.bool,
+  draggingComponent: PropTypes.bool,
+  showComponentTitles: PropTypes.bool,
 };
 
 const mapStateToProps = state => ({
-    components: currentComponentsSelector(state),
-    rootComponentId: currentRootComponentIdSelector(state),
-    selectedComponentIds: currentSelectedComponentIdsSelector(state),
-    highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
-    boundaryComponentId: currentRootComponentIdSelector(state),
-    highlightingEnabled: state.project.highlightingEnabled,
-    draggingComponent: state.project.draggingComponent,
-    showComponentTitles: state.app.showComponentTitles
+  components: currentComponentsSelector(state),
+  rootComponentId: currentRootComponentIdSelector(state),
+  selectedComponentIds: currentSelectedComponentIdsSelector(state),
+  highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
+  boundaryComponentId: currentRootComponentIdSelector(state),
+  highlightingEnabled: state.project.highlightingEnabled,
+  draggingComponent: state.project.draggingComponent,
+  showComponentTitles: state.app.showComponentTitles,
 });
 
 export default connect(
-    mapStateToProps
+    mapStateToProps,
 )(Overlay);

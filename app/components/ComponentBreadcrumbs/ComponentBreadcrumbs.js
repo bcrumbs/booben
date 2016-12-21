@@ -3,13 +3,13 @@ import './ComponentBreadcrumbs.scss';
 import React, { PropTypes } from 'react';
 
 export const ComponentBreadcrumbs = props => {
-    let className = 'component-breadcrumbs';
+  const className = 'component-breadcrumbs';
 
-    return (
-        <div className={className}>
-            { props.children }
-        </div>
-    );
+  return (
+    <div className={className}>
+      { props.children }
+    </div>
+  );
 };
 
 ComponentBreadcrumbs.propTypes = {

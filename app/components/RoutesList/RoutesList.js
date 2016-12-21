@@ -2,13 +2,13 @@
 
 import './RoutesList.scss';
 
-//noinspection JSUnresolvedVariable
+// noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 
 export const RoutesList = props => (
-    <ul className="routes-list-wrapper">
-        {props.children}
-    </ul>
+  <ul className="routes-list-wrapper">
+    {props.children}
+  </ul>
 );
 
 RoutesList.displayName = 'RoutesList';

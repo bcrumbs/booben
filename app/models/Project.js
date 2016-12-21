@@ -11,42 +11,42 @@ import {
     getMaxComponentId as _getMaxComponentId,
     getOutletComponentId,
     getParentComponentId,
-    isRootRoute
+    isRootRoute,
 } from './ProjectRoute';
 
 import {
-    isRootComponent
+    isRootComponent,
 } from './ProjectComponent';
 
 import { concatPath } from '../utils';
 
 const ProjectRecord = Record({
-    name: '',
-    author: '',
-    componentLibs: List(),
-    graphQLEndpointURL: null,
-    routes: Map(),
-    rootRoutes: List()
+  name: '',
+  author: '',
+  componentLibs: List(),
+  graphQLEndpointURL: null,
+  routes: Map(),
+  rootRoutes: List(),
 });
 
 export const projectToImmutable = input => new ProjectRecord({
-    name: input.name,
-    author: input.author,
-    componentLibs: List(input.componentLibs),
-    graphQLEndpointURL: input.graphQLEndpointURL || '',
-    routes: Map().withMutations(routes => {
-        const visitRoute = (route, pathPrefix, parentRouteId) => {
-            const fullPath = concatPath(pathPrefix, route.path);
-            routes.set(route.id, projectRouteToImmutable(route, fullPath, parentRouteId));
+  name: input.name,
+  author: input.author,
+  componentLibs: List(input.componentLibs),
+  graphQLEndpointURL: input.graphQLEndpointURL || '',
+  routes: Map().withMutations(routes => {
+    const visitRoute = (route, pathPrefix, parentRouteId) => {
+      const fullPath = concatPath(pathPrefix, route.path);
+      routes.set(route.id, projectRouteToImmutable(route, fullPath, parentRouteId));
 
-            route.children.forEach(childRoute =>
+      route.children.forEach(childRoute =>
                 visitRoute(childRoute, fullPath, route.id));
-        };
+    };
 
-        input.routes.forEach(route => visitRoute(route, '', -1));
-    }),
+    input.routes.forEach(route => visitRoute(route, '', -1));
+  }),
 
-    rootRoutes: List(input.routes.map(route => route.id))
+  rootRoutes: List(input.routes.map(route => route.id)),
 });
 
 export const getMaxRouteId = project => project.routes.keySeq().max();
@@ -56,14 +56,14 @@ export const getMaxComponentId = project =>
 
 export const gatherRoutesTreeIds = (project, rootRouteId) =>
     Set().withMutations(ret => {
-        const visitRoute = route => {
-            ret.add(route.id);
+      const visitRoute = route => {
+        ret.add(route.id);
 
-            route.children.forEach(childRouteId =>
+        route.children.forEach(childRouteId =>
                 void visitRoute(project.routes.get(childRouteId)));
-        };
+      };
 
-        visitRoute(project.routes.get(rootRouteId));
+      visitRoute(project.routes.get(rootRouteId));
     });
 
 export const getRouteByComponentId = (project, componentId) =>

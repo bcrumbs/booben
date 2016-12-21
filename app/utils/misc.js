@@ -37,11 +37,11 @@ export const objectForEach = (object, fn) =>
  * @return {Object}
  */
 export const objectMap = (object, fn) => {
-    const ret = {};
-    objectForEach(object, (value, key, object) => {
-        ret[key] = fn(value, key, object);
-    });
-    return ret;
+  const ret = {};
+  objectForEach(object, (value, key, object) => {
+    ret[key] = fn(value, key, object);
+  });
+  return ret;
 };
 
 /**
@@ -60,11 +60,11 @@ export const objectSome = (object, predicate) =>
  * @return {Object}
  */
 export const objectFilter = (object, predicate) => {
-    const ret = {};
-    objectForEach(object, (value, key, object) => {
-        if (predicate(value, key, object)) ret[key] = object[key];
-    });
-    return ret;
+  const ret = {};
+  objectForEach(object, (value, key, object) => {
+    if (predicate(value, key, object)) ret[key] = object[key];
+  });
+  return ret;
 };
 /**
  *
@@ -72,15 +72,14 @@ export const objectFilter = (object, predicate) => {
  * @return {*}
  */
 export const clone = value => {
-    if (Array.isArray(value)) {
-        return value.map(clone);
-    }
-    else if (isObject(value)) {
-        return objectMap(value, clone);
-    }
-    else {
+  if (Array.isArray(value))
+    return value.map(clone);
+
+  else if (isObject(value))
+    return objectMap(value, clone);
+
+  else
         return value;
-    }
 };
 
 /**
@@ -93,8 +92,8 @@ export const clone = value => {
  * @return {boolean}
  */
 export const pointIsInCircle = (x, y, cX, cY, r) => {
-    const xx = x - cX,
-        yy = y - cY;
+  const xx = x - cX,
+    yy = y - cY;
 
-    return xx * xx + yy * yy <= r * r;
+  return xx * xx + yy * yy <= r * r;
 };
