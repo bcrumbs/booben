@@ -127,6 +127,7 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
 						this.props.schema.types[this._getCurrentPathByIndex(-1).type],
 						this._getCurrentPathByIndex(-1),
 						this.state.selectedFieldName,
+						linkTargetPropTypedef,
 						this.haveArguments(currentEditingFields[0]),
 						this.breadcrumbs,
 						this._getFieldTypeName,
@@ -135,7 +136,7 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
 						this._handleDataApplyPress,
 						this._handleJumpIntoField,
 						this.createContentField,
-						linkTargetPropTypedef
+						this._handleJumpToCurrentPathIndex
 					)
 			:	this.createContentArgumentsType(
 						currentEditingFields,
@@ -150,9 +151,10 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
 							isPrimitiveGraphQLType(
 								this._getCurrentPathByIndex(-1).type
 							)
-							?	-2
-							:	-1
+						?	-2
+						:	-1
 						).name,
+						this.state.allArgumentsMode,
 						this.props.schema.types,
 						this.haveArguments,
 						this.createContentArgumentField,
@@ -160,7 +162,8 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
 						this._handleJumpIntoField,
 						this._handleBackToPress,
 						this._handleArgumentsApplyPress,
-						this.state.allArgumentsMode
+						this._handleJumpToCurrentPathIndex,
+
 					)
 		);
 	}
@@ -175,4 +178,4 @@ DataWindowContextLayout.propTypes = Object.assign(
 	}
 );
 
-DataWindowQueryLayout.displayName = 'DataWindowQueryLayout';
+DataWindowContextLayout.displayName = 'DataWindowContextLayout';
