@@ -11,7 +11,7 @@ import miscMeta from '../meta/misc';
 
 import { componentsToImmutable } from '../models/ProjectComponent';
 
-import { NO_VALUE } from  '../../app/constants/misc';
+import { NO_VALUE } from '../../app/constants/misc';
 import { BUILT_IN_PROP_TYPES } from '../../common/shared-constants';
 
 /**
@@ -21,9 +21,9 @@ import { BUILT_IN_PROP_TYPES } from '../../common/shared-constants';
  * @returns {?Object}
  */
 export const getNamespaceMeta = (namespace, meta) => {
-    if (namespace === '') return miscMeta;
-    if (namespace === 'HTML') return HTMLMeta;
-    return meta[namespace] || null;
+  if (namespace === '') return miscMeta;
+  if (namespace === 'HTML') return HTMLMeta;
+  return meta[namespace] || null;
 };
 
 /**
@@ -33,8 +33,8 @@ export const getNamespaceMeta = (namespace, meta) => {
  * @returns {?Object[]}
  */
 export const getComponentsMeta = (namespace, meta) => {
-    const namespaceMeta = getNamespaceMeta(namespace, meta);
-    return namespaceMeta ? namespaceMeta.components : null;
+  const namespaceMeta = getNamespaceMeta(namespace, meta);
+  return namespaceMeta ? namespaceMeta.components : null;
 };
 
 /**
@@ -43,13 +43,13 @@ export const getComponentsMeta = (namespace, meta) => {
  * @return {{namespace: string, name: string}}
  */
 export const parseComponentName = componentName => {
-    let [namespace, name] = componentName.split('.');
-    if (!name) {
-        name = namespace;
-        namespace = '';
-    }
+  let [namespace, name] = componentName.split('.');
+  if (!name) {
+    name = namespace;
+    namespace = '';
+  }
 
-    return { namespace, name };
+  return { namespace, name };
 };
 
 /**
@@ -68,14 +68,14 @@ export const formatComponentName = (namespace, name) =>
  * @return {?Object}
  */
 export const getComponentMeta = (componentName, meta) => {
-    const { namespace, name } = parseComponentName(componentName);
+  const { namespace, name } = parseComponentName(componentName);
 
-    let components;
-    if (namespace === '') components = miscMeta.components;
-    else if (namespace === 'HTML') components = HTMLMeta.components;
-    else components = meta[namespace] ? meta[namespace].components : null;
+  let components;
+  if (namespace === '') components = miscMeta.components;
+  else if (namespace === 'HTML') components = HTMLMeta.components;
+  else components = meta[namespace] ? meta[namespace].components : null;
 
-    return components ? (components[name] || null) : null;
+  return components ? (components[name] || null) : null;
 };
 
 /**
@@ -85,9 +85,9 @@ export const getComponentMeta = (componentName, meta) => {
  * @return {string}
  */
 export const getComponentKind = (componentName, meta) => {
-    const componentMeta = getComponentMeta(componentName, meta);
-    if (!componentMeta) throw new Error(`Unknown component: ${componentName}`);
-    return componentMeta.kind;
+  const componentMeta = getComponentMeta(componentName, meta);
+  if (!componentMeta) throw new Error(`Unknown component: ${componentName}`);
+  return componentMeta.kind;
 };
 
 /**
@@ -116,8 +116,8 @@ export const isCompositeComponent = (componentName, meta) =>
  * @return {?string}
  */
 export const getString = (componentMeta, stringId, language) => {
-    if (!componentMeta.strings[stringId]) return null;
-    return componentMeta.strings[stringId][language] || null;
+  if (!componentMeta.strings[stringId]) return null;
+  return componentMeta.strings[stringId][language] || null;
 };
 
 /**
@@ -128,8 +128,8 @@ export const getString = (componentMeta, stringId, language) => {
  * @returns {?string}
  */
 export const getComponentPropName = (componentMeta, prop, language) => {
-    const stringId = componentMeta.props[prop].textKey;
-    return getString(componentMeta, stringId, language);
+  const stringId = componentMeta.props[prop].textKey;
+  return getString(componentMeta, stringId, language);
 };
 
 /**
@@ -146,68 +146,64 @@ export const canInsertComponent = (
     containerName,
     containerChildrenNames,
     position,
-    meta
+    meta,
 ) => {
-    const componentMeta = getComponentMeta(componentName, meta),
-        { namespace } = parseComponentName(componentName),
-        containerMeta = getComponentMeta(containerName, meta);
+  const componentMeta = getComponentMeta(componentName, meta),
+    { namespace } = parseComponentName(componentName),
+    containerMeta = getComponentMeta(containerName, meta);
 
-    if (containerMeta.kind !== 'container') return false;
-    if (!componentMeta.placement) return true;
+  if (containerMeta.kind !== 'container') return false;
+  if (!componentMeta.placement) return true;
 
-    if (componentMeta.placement.inside) {
-        if (componentMeta.placement.inside.include) {
-            const sameComponentsNum = containerChildrenNames
+  if (componentMeta.placement.inside) {
+    if (componentMeta.placement.inside.include) {
+      const sameComponentsNum = containerChildrenNames
                 .reduce((acc, cur) => acc + (cur === componentName ? 1 : 0), 0);
 
-            const allow = componentMeta.placement.inside.include.some(inclusion => {
-                if (inclusion.component) {
-                    const inclusionComponentName = formatComponentName(
+      const allow = componentMeta.placement.inside.include.some(inclusion => {
+        if (inclusion.component) {
+          const inclusionComponentName = formatComponentName(
                         namespace,
-                        inclusion.component
+                        inclusion.component,
                     );
 
-                    if (containerName !== inclusionComponentName) return false;
-                }
-                else if (inclusion.group) {
-                    if (containerMeta.group !== inclusion.group) return false;
-                }
-                else if (inclusion.tag) {
-                    if (!containerMeta.tags.has(inclusion.tag)) return false;
-                }
+          if (containerName !== inclusionComponentName) return false;
+        } else if (inclusion.group) {
+          if (containerMeta.group !== inclusion.group) return false;
+        } else if (inclusion.tag)
+          if (!containerMeta.tags.has(inclusion.tag)) return false;
 
-                return !inclusion.maxNum || sameComponentsNum < inclusion.maxNum;
-            });
 
-            if (!allow) return false;
-        }
+        return !inclusion.maxNum || sameComponentsNum < inclusion.maxNum;
+      });
 
-        if (componentMeta.placement.inside.exclude) {
-            const deny = componentMeta.placement.inside.exclude.some(exclusion => {
-                if (exclusion.component) {
-                    const exclusionComponentName = formatComponentName(
-                        namespace,
-                        exclusion.component
-                    );
-
-                    return containerName === exclusionComponentName;
-                }
-                else if (exclusion.group) {
-                    return containerMeta.group === exclusion.group;
-                }
-                else if (exclusion.tag) {
-                    return containerMeta.tags.has(exclusion.tag);
-                }
-                else {
-                    return false;
-                }
-            });
-
-            if (deny) return false;
-        }
+      if (!allow) return false;
     }
 
-    return true;
+    if (componentMeta.placement.inside.exclude) {
+      const deny = componentMeta.placement.inside.exclude.some(exclusion => {
+        if (exclusion.component) {
+          const exclusionComponentName = formatComponentName(
+                        namespace,
+                        exclusion.component,
+                    );
+
+          return containerName === exclusionComponentName;
+        } else if (exclusion.group)
+          return containerMeta.group === exclusion.group;
+
+        else if (exclusion.tag)
+          return containerMeta.tags.has(exclusion.tag);
+
+        else
+                    return false;
+      });
+
+      if (deny) return false;
+    }
+  }
+
+  return true;
 };
 
 /**
@@ -236,25 +232,25 @@ export const propHasDataContext = propMeta =>
  * @return {ProjectComponentProp}
  */
 const buildDefaultConstValue = (componentMeta, propMeta, language) => {
-    if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
-        return {
-            source: 'const',
-            sourceData: {
-                value: propMeta.sourceConfigs.const.value
-            }
-        };
-    }
+  if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
+    return {
+      source: 'const',
+      sourceData: {
+        value: propMeta.sourceConfigs.const.value,
+      },
+    };
+  }
 
-    if (typeof propMeta.sourceConfigs.const.jssyConstId !== 'undefined') {
-        return {
-            source: 'const',
-            sourceData: {
-                jssyConstId: propMeta.sourceConfigs.const.jssyConstId
-            }
-        }
-    }
+  if (typeof propMeta.sourceConfigs.const.jssyConstId !== 'undefined') {
+    return {
+      source: 'const',
+      sourceData: {
+        jssyConstId: propMeta.sourceConfigs.const.jssyConstId,
+      },
+    };
+  }
 
-    return NO_VALUE;
+  return NO_VALUE;
 };
 
 /**
@@ -276,94 +272,93 @@ const buildDefaultStaticValue = (
     componentMeta,
     propMeta,
     language,
-    _inheritedDefaultValue = NO_VALUE
+    _inheritedDefaultValue = NO_VALUE,
 ) => {
-    if (propMeta.sourceConfigs.static.defaultTextKey) {
-        return makeSimpleStaticValue(getString(
+  if (propMeta.sourceConfigs.static.defaultTextKey) {
+    return makeSimpleStaticValue(getString(
             componentMeta,
             propMeta.sourceConfigs.static.defaultTextKey,
-            language
+            language,
         ));
-    }
+  }
 
-    const defaultValue = _inheritedDefaultValue !== NO_VALUE
+  const defaultValue = _inheritedDefaultValue !== NO_VALUE
         ? _inheritedDefaultValue
         : propMeta.sourceConfigs.static.default;
 
-    if (propMeta.type === 'shape') {
-        if (defaultValue === null) return makeSimpleStaticValue(null);
+  if (propMeta.type === 'shape') {
+    if (defaultValue === null) return makeSimpleStaticValue(null);
 
-        const value = {};
+    const value = {};
 
-        _forOwn(propMeta.fields, (fieldMeta, fieldName) => {
-            const inherited = typeof defaultValue[fieldName] !== 'undefined'
+    _forOwn(propMeta.fields, (fieldMeta, fieldName) => {
+      const inherited = typeof defaultValue[fieldName] !== 'undefined'
                 ? defaultValue[fieldName]
                 : NO_VALUE;
 
-            value[fieldName] = _buildDefaultValue(
+      value[fieldName] = _buildDefaultValue(
                 componentMeta,
                 fieldMeta,
                 language,
-                inherited
+                inherited,
             );
-        });
+    });
 
-        return makeSimpleStaticValue(value);
-    }
+    return makeSimpleStaticValue(value);
+  }
 
-    if (propMeta.type === 'objectOf') {
-        if (defaultValue === null) return makeSimpleStaticValue(null);
+  if (propMeta.type === 'objectOf') {
+    if (defaultValue === null) return makeSimpleStaticValue(null);
 
-        const value = {};
+    const value = {};
 
-        _forOwn(defaultValue, (fieldValue, fieldName) => {
-            value[fieldName] = _buildDefaultValue(
+    _forOwn(defaultValue, (fieldValue, fieldName) => {
+      value[fieldName] = _buildDefaultValue(
                 componentMeta,
                 propMeta.ofType,
                 language,
-                fieldValue
+                fieldValue,
             );
-        });
+    });
 
-        return makeSimpleStaticValue(value);
-    }
+    return makeSimpleStaticValue(value);
+  }
 
-    if (propMeta.type === 'arrayOf') {
-        let value = [];
+  if (propMeta.type === 'arrayOf') {
+    let value = [];
 
-        if (defaultValue) {
-            value = defaultValue.map(fieldValue => _buildDefaultValue(
+    if (defaultValue) {
+      value = defaultValue.map(fieldValue => _buildDefaultValue(
                 componentMeta,
                 propMeta.ofType,
                 language,
-                fieldValue
+                fieldValue,
             ));
-        }
-        else if (propMeta.sourceConfigs.static.defaultNum) {
-            for (let i = 0; i < propMeta.sourceConfigs.static.defaultNum; i++) {
-                value.push(_buildDefaultValue(
+    } else if (propMeta.sourceConfigs.static.defaultNum) {
+      for (let i = 0; i < propMeta.sourceConfigs.static.defaultNum; i++) {
+        value.push(_buildDefaultValue(
                     componentMeta,
                     propMeta.ofType,
-                    language
+                    language,
                 ));
-            }
-        }
-
-        return makeSimpleStaticValue(value);
+      }
     }
 
-    if (propMeta.type === 'object') {
-        if (defaultValue === null) return makeSimpleStaticValue(null);
+    return makeSimpleStaticValue(value);
+  }
+
+  if (propMeta.type === 'object') {
+    if (defaultValue === null) return makeSimpleStaticValue(null);
         // TODO: Handle default value somehow
-        return makeSimpleStaticValue({});
-    }
+    return makeSimpleStaticValue({});
+  }
 
-    if (propMeta.type === 'array') {
+  if (propMeta.type === 'array') {
         // TODO: Handle default value somehow
-        return makeSimpleStaticValue([]);
-    }
+    return makeSimpleStaticValue([]);
+  }
 
-    return makeSimpleStaticValue(defaultValue);
+  return makeSimpleStaticValue(defaultValue);
 };
 
 /**
@@ -374,11 +369,11 @@ const buildDefaultStaticValue = (
  * @return {ProjectComponentProp}
  */
 const buildDefaultDesignerValue = (componentMeta, propMeta, language) => ({
-    source: 'designer',
-    sourceData: {
-        rootId: -1,
-        component: null
-    }
+  source: 'designer',
+  sourceData: {
+    rootId: -1,
+    component: null,
+  },
 });
 
 /**
@@ -389,11 +384,11 @@ const buildDefaultDesignerValue = (componentMeta, propMeta, language) => ({
  * @return {ProjectComponentProp}
  */
 const buildDefaultDataValue = (componentMeta, propMeta, language) => ({
-    source: 'data',
-    sourceData: {
-        dataContext: [],
-        queryPath: null
-    }
+  source: 'data',
+  sourceData: {
+    dataContext: [],
+    queryPath: null,
+  },
 });
 
 /**
@@ -402,10 +397,10 @@ const buildDefaultDataValue = (componentMeta, propMeta, language) => ({
  * @const
  */
 const defaultValueBuilders = {
-    'static': buildDefaultStaticValue,
-    'const': buildDefaultConstValue,
-    'designer': buildDefaultDesignerValue,
-    'data': buildDefaultDataValue
+  static: buildDefaultStaticValue,
+  const: buildDefaultConstValue,
+  designer: buildDefaultDesignerValue,
+  data: buildDefaultDataValue,
 };
 
 /**
@@ -414,10 +409,10 @@ const defaultValueBuilders = {
  * @const
  */
 const sourcePriority = [
-    'const',
-    'static',
-    'designer',
-    'data'
+  'const',
+  'static',
+  'designer',
+  'data',
 ];
 
 /**
@@ -432,22 +427,22 @@ const _buildDefaultValue = (
     componentMeta,
     propMeta,
     language,
-    _inheritedDefaultValue = NO_VALUE
+    _inheritedDefaultValue = NO_VALUE,
 ) => {
-    for (let i = 0, l = sourcePriority.length; i < l; i++) {
-        if (isValidSourceForProp(propMeta, sourcePriority[i])) {
-            const defaultValue = defaultValueBuilders[sourcePriority[i]](
+  for (let i = 0, l = sourcePriority.length; i < l; i++) {
+    if (isValidSourceForProp(propMeta, sourcePriority[i])) {
+      const defaultValue = defaultValueBuilders[sourcePriority[i]](
                 componentMeta,
                 propMeta,
                 language,
-                _inheritedDefaultValue
+                _inheritedDefaultValue,
             );
 
-            if (defaultValue !== NO_VALUE) return defaultValue;
-        }
+      if (defaultValue !== NO_VALUE) return defaultValue;
     }
+  }
 
-    return NO_VALUE;
+  return NO_VALUE;
 };
 
 /**
@@ -467,14 +462,14 @@ export const buildDefaultValue = (componentMeta, propMeta, language) =>
  * @return {Object<string, ProjectComponentProp>}
  */
 const buildDefaultProps = (componentMeta, language) => {
-    const ret = {};
+  const ret = {};
 
-    _forOwn(componentMeta.props, (propMeta, propName) => {
-        const defaultValue = buildDefaultValue(componentMeta, propMeta, language);
-        if (defaultValue !== NO_VALUE) ret[propName] = defaultValue;
-    });
+  _forOwn(componentMeta.props, (propMeta, propName) => {
+    const defaultValue = buildDefaultValue(componentMeta, propMeta, language);
+    if (defaultValue !== NO_VALUE) ret[propName] = defaultValue;
+  });
 
-    return ret;
+  return ret;
 };
 
 /**
@@ -489,8 +484,8 @@ const buildDefaultProps = (componentMeta, language) => {
  * @const
  */
 const constructComponentDefaultOptions = {
-    isWrapper: false,
-    isNew: true
+  isWrapper: false,
+  isNew: true,
 };
 
 /**
@@ -503,53 +498,53 @@ const constructComponentDefaultOptions = {
  * @return {Immutable.Map}
  */
 export const constructComponent = (componentName, layoutIdx, language, meta, options) => {
-    options = Object.assign({}, constructComponentDefaultOptions, options || {});
+  options = Object.assign({}, constructComponentDefaultOptions, options || {});
 
-    const componentMeta = getComponentMeta(componentName, meta);
+  const componentMeta = getComponentMeta(componentName, meta);
 
     // Ids of detached components must start with zero
-    let nextId = 0;
+  let nextId = 0;
 
-    const component = {
+  const component = {
+    id: nextId++,
+    isNew: options.isNew,
+    isWrapper: options.isWrapper,
+    name: componentName,
+    title: '',
+    props: buildDefaultProps(componentMeta, language),
+    children: [],
+  };
+
+  if (componentMeta.kind === 'composite') {
+    component.regionsEnabled = [];
+
+    const { namespace } = parseComponentName(componentName),
+      layout = componentMeta.layouts[layoutIdx];
+
+    layout.regions.forEach((region, idx) => {
+      const regionComponentName = `${namespace}.${region.component}`,
+        regionComponentMeta = getComponentMeta(regionComponentName, meta);
+
+      const props = Object.assign(
+                buildDefaultProps(regionComponentMeta, language),
+                region.props || {},
+            );
+
+      component.children.push({
         id: nextId++,
         isNew: options.isNew,
         isWrapper: options.isWrapper,
-        name: componentName,
+        name: regionComponentName,
         title: '',
-        props: buildDefaultProps(componentMeta, language),
-        children: []
-    };
+        props,
+        children: [],
+      });
 
-    if (componentMeta.kind === 'composite') {
-        component.regionsEnabled = [];
+      if (region.defaultEnabled) component.regionsEnabled.push(idx);
+    });
+  }
 
-        const { namespace } = parseComponentName(componentName),
-            layout = componentMeta.layouts[layoutIdx];
-
-        layout.regions.forEach((region, idx) => {
-            const regionComponentName = `${namespace}.${region.component}`,
-                regionComponentMeta = getComponentMeta(regionComponentName, meta);
-
-            const props = Object.assign(
-                buildDefaultProps(regionComponentMeta, language),
-                region.props || {}
-            );
-
-            component.children.push({
-                id: nextId++,
-                isNew: options.isNew,
-                isWrapper: options.isWrapper,
-                name: regionComponentName,
-                title: '',
-                props,
-                children: []
-            });
-
-            if (region.defaultEnabled) component.regionsEnabled.push(idx);
-        });
-    }
-
-    return componentsToImmutable(component, -1, false, -1);
+  return componentsToImmutable(component, -1, false, -1);
 };
 
 /**
@@ -564,45 +559,45 @@ const returnTrue = () => true;
  * @const
  */
 const typeCheckers = {
-    'string': returnTrue,
-    'bool': returnTrue,
-    'int': returnTrue,
-    'float': returnTrue,
+  string: returnTrue,
+  bool: returnTrue,
+  int: returnTrue,
+  float: returnTrue,
 
-    'oneOf': (typedef1, typedef2) => {
-        if (typedef1.options.length !== typedef2.options.length) return false;
+  oneOf: (typedef1, typedef2) => {
+    if (typedef1.options.length !== typedef2.options.length) return false;
 
-        return typedef1.options.every(option1 =>
+    return typedef1.options.every(option1 =>
             !!typedef2.options.find(option2 => option2.value === option1.value));
-    },
+  },
 
-    'object': (typedef1, typedef2) => !!typedef1.notNull === !!typedef2.notNull,
+  object: (typedef1, typedef2) => !!typedef1.notNull === !!typedef2.notNull,
 
-    'objectOf': (typedef1, typedef2) =>
+  objectOf: (typedef1, typedef2) =>
         !!typedef1.notNull === !!typedef2.notNull &&
         isCompatibleType(typedef1.ofType, typedef2.ofType),
 
-    'shape': (typedef1, typedef2) => {
-        if (!!typedef1.notNull !== !!typedef2.notNull) return false;
+  shape: (typedef1, typedef2) => {
+    if (!!typedef1.notNull !== !!typedef2.notNull) return false;
 
-        const keys1 = Object.keys(typedef1.fields),
-            keys2 = Object.keys(typedef2.fields);
+    const keys1 = Object.keys(typedef1.fields),
+      keys2 = Object.keys(typedef2.fields);
 
-        if (keys1.length !== keys2.length) return false;
+    if (keys1.length !== keys2.length) return false;
 
-        return keys1.every(key => {
-            if (!typedef2.fields.hasOwnProperty(key)) return false;
-            return isCompatibleType(typedef1.fields[key], typedef2.fields[key]);
-        });
-    },
+    return keys1.every(key => {
+      if (!typedef2.fields.hasOwnProperty(key)) return false;
+      return isCompatibleType(typedef1.fields[key], typedef2.fields[key]);
+    });
+  },
 
-    'array': returnTrue(),
+  array: returnTrue(),
 
-    'arrayOf': (typedef1, typedef2) =>
+  arrayOf: (typedef1, typedef2) =>
         isCompatibleType(typedef1.ofType, typedef2.ofType),
 
-    'component': returnTrue(),
-    'func': () => false // TODO: Write actual checker
+  component: returnTrue(),
+  func: () => false, // TODO: Write actual checker
 };
 
 /**
@@ -612,8 +607,8 @@ const typeCheckers = {
  * @return {boolean}
  */
 export const isCompatibleType = (typedef1, typedef2) => {
-    if (typedef1.type !== typedef2.type) return false;
-    return typeCheckers[typedef1.type](typedef1, typedef2);
+  if (typedef1.type !== typedef2.type) return false;
+  return typeCheckers[typedef1.type](typedef1, typedef2);
 };
 
 /**
@@ -623,9 +618,9 @@ export const isCompatibleType = (typedef1, typedef2) => {
  * @returns {TypeDefinition}
  */
 export const resolveTypedef = (componentMeta, typedef) => {
-    if (BUILT_IN_PROP_TYPES.has(typedef.type)) return typedef;
+  if (BUILT_IN_PROP_TYPES.has(typedef.type)) return typedef;
 
-    return componentMeta.types
+  return componentMeta.types
         ? Object.assign({}, typedef, componentMeta.types[typedef.type])
         : null;
 };
@@ -636,13 +631,13 @@ export const resolveTypedef = (componentMeta, typedef) => {
  * @const
  */
 const scalarTypes = new Set([
-    'string',
-    'int',
-    'float',
-    'bool',
-    'oneOf',
-    'component',
-    'func'
+  'string',
+  'int',
+  'float',
+  'bool',
+  'oneOf',
+  'component',
+  'func',
 ]);
 
 /**
@@ -668,21 +663,19 @@ export const getPropTypedef = (componentMeta, propName) =>
  * @return {TypeDefinition}
  */
 export const getNestedTypedef = (typedef, valuePath) => valuePath.reduce((acc, cur) => {
-    if (typeof cur === 'string') {
-        if (acc.type === 'objectOf') return acc.ofType;
-        else if (acc.type === 'shape') return acc.fields[cur];
-        else throw new Error(`getNestedTypedef(): incompatible type: ${acc.type}`);
-    }
-    else if (typeof cur === 'number') {
-        if (acc.type === 'arrayOf') return acc.ofType;
-        else throw new Error(`getNestedTypedef(): incompatible type: ${acc.type}`);
-    }
-    else {
-        throw new Error(
-            `getNestedTypedef(): valuePath can contain ` +
-            `only numbers and strings, got ${cur}`
+  if (typeof cur === 'string') {
+    if (acc.type === 'objectOf') return acc.ofType;
+    else if (acc.type === 'shape') return acc.fields[cur];
+    else throw new Error(`getNestedTypedef(): incompatible type: ${acc.type}`);
+  } else if (typeof cur === 'number') {
+    if (acc.type === 'arrayOf') return acc.ofType;
+    else throw new Error(`getNestedTypedef(): incompatible type: ${acc.type}`);
+  } else {
+    throw new Error(
+            'getNestedTypedef(): valuePath can contain ' +
+            `only numbers and strings, got ${cur}`,
         );
-    }
+  }
 }, typedef);
 
 /**

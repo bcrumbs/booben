@@ -10,9 +10,9 @@
  * @const
  */
 const pseudoComponents = new Set([
-    'Text',
-    'Outlet',
-    'List'
+  'Text',
+  'Outlet',
+  'List',
 ]);
 
 /**

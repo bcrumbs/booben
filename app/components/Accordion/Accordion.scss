@@ -2,126 +2,126 @@
 @import 'variables';
 
 @include exports(accordion) {
-	// =================================================================================================================
-	// Base
-	// =================================================================================================================
-	.accordion {
-		width: 100%;
-	}
+  // =================================================================================================================
+  // Base
+  // =================================================================================================================
+  .accordion {
+    width: 100%;
+  }
 
-	// =================================================================================================================
-	// ACCORDION ITEM
-	// =================================================================================================================
-	.accordion-item {
-		& + & {
-			border-top: $accordion-item-separator-thickness solid $accordion-item-separator-color;
-		}
-	}
+  // =================================================================================================================
+  // ACCORDION ITEM
+  // =================================================================================================================
+  .accordion-item {
+    & + & {
+      border-top: $accordion-item-separator-thickness solid $accordion-item-separator-color;
+    }
+  }
 
-	// Title box
-	// =================================================================================================================
-	.accordion-title-box {
-		display: flex;
-		min-height: $accordion-title-box-min-height;
-		align-items: $accordion-title-box-y-align;
-		cursor: $cursor-pointer;
-		background-color: $accordion-bg-color;
+  // Title box
+  // =================================================================================================================
+  .accordion-title-box {
+    display: flex;
+    min-height: $accordion-title-box-min-height;
+    align-items: $accordion-title-box-y-align;
+    cursor: $cursor-pointer;
+    background-color: $accordion-bg-color;
 
-		@include single-transition();
+    @include single-transition();
 
-		&:hover {
-			background-color: $accordion-title-box-hover-bg-color;
-		}
+    &:hover {
+      background-color: $accordion-title-box-hover-bg-color;
+    }
 
-		.accordion-item-is-collapsed & {
-			opacity: $accordion-collapsed-opacity;
+    .accordion-item-is-collapsed & {
+      opacity: $accordion-collapsed-opacity;
 
-			&:hover {
-				opacity: 1;
-			}
-		}
-	}
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
 
-	// Title
-	.accordion-title {
-		font-size: $accordion-title-font-size;
-		line-height: $accordion-title-line-height;
-		text-transform: $accordion-title-text-transform;
-		padding: 0;
-		padding-top: $accordion-title-pad-y;
-		padding-bottom: $accordion-title-pad-y;
-		padding-left: $accordion-item-pad-x;
-		flex-grow: 1;
-		position: relative;
-		z-index: 2;
+  // Title
+  .accordion-title {
+    font-size: $accordion-title-font-size;
+    line-height: $accordion-title-line-height;
+    text-transform: $accordion-title-text-transform;
+    padding: 0;
+    padding-top: $accordion-title-pad-y;
+    padding-bottom: $accordion-title-pad-y;
+    padding-left: $accordion-item-pad-x;
+    flex-grow: 1;
+    position: relative;
+    z-index: 2;
 
-		@include user-select();
+    @include user-select();
 
-		.accordion-item-is-expanded & {
-			color: $accordion-expanded-title-font-color;
-			font-weight: $accordion-expanded-title-font-weight;
+    .accordion-item-is-expanded & {
+      color: $accordion-expanded-title-font-color;
+      font-weight: $accordion-expanded-title-font-weight;
 
-			//span {
-			//	padding: $base-module*0.75 $base-module*1.25;
-			//	margin-left: -$base-module*1.25;
-			//	background-color: color($beige, 100);
-			//	border-radius: $global-radius;
-			//}
-		}
+      //span {
+      //  padding: $base-module*0.75 $base-module*1.25;
+      //  margin-left: -$base-module*1.25;
+      //  background-color: color($beige, 100);
+      //  border-radius: $global-radius;
+      //}
+    }
 
-		.accordion-item-is-collapsed & {
-			color: $accordion-collapsed-title-font-color;
-			font-weight: $accordion-collapsed-title-font-weight;
-		}
-	}
+    .accordion-item-is-collapsed & {
+      color: $accordion-collapsed-title-font-color;
+      font-weight: $accordion-collapsed-title-font-weight;
+    }
+  }
 
-	// Icon
-	.accordion-title-icon {
-		margin-top: $accordion-title-pad-y + ($accordion-title-font-size*$accordion-title-line-height - $accordion-icon-box-size);
-		margin-bottom: $accordion-title-pad-y + ($accordion-title-font-size*$accordion-title-line-height - $accordion-icon-box-size);
-		margin-right: $accordion-item-pad-x;
+  // Icon
+  .accordion-title-icon {
+    margin-top: $accordion-title-pad-y + ($accordion-title-font-size*$accordion-title-line-height - $accordion-icon-box-size);
+    margin-bottom: $accordion-title-pad-y + ($accordion-title-font-size*$accordion-title-line-height - $accordion-icon-box-size);
+    margin-right: $accordion-item-pad-x;
 
-		@include single-transition();
-		@include icon-size(
-				$outer-size: $accordion-icon-box-size,
-				$icon-size: $accordion-icon-img-size
-		);
+    @include single-transition();
+    @include icon-size(
+        $outer-size: $accordion-icon-box-size,
+        $icon-size: $accordion-icon-img-size
+    );
 
-		.accordion-item-is-expanded & {
-			@include icon-style($accordion-expanded-icon-color);
-			transform: rotate(180deg);
-		}
+    .accordion-item-is-expanded & {
+      @include icon-style($accordion-expanded-icon-color);
+      transform: rotate(180deg);
+    }
 
-		.accordion-item-is-collapsed & {
-			@include icon-style($accordion-collapsed-icon-color);
-		}
+    .accordion-item-is-collapsed & {
+      @include icon-style($accordion-collapsed-icon-color);
+    }
 
-		.accordion-title + & {
-			margin-left: $accordion-icon-spacing;
-		}
-	}
+    .accordion-title + & {
+      margin-left: $accordion-icon-spacing;
+    }
+  }
 
-	// Content Box
-	// =================================================================================================================
-	.accordion-item-content-box {
-		pointer-events: none;
-		opacity: 0;
-		position: absolute;
-		z-index: -1;
-		transform: translateY($accordion-offset-animated);
+  // Content Box
+  // =================================================================================================================
+  .accordion-item-content-box {
+    pointer-events: none;
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+    transform: translateY($accordion-offset-animated);
 
-		@include single-transition(transform);
+    @include single-transition(transform);
 
-		.accordion-item-is-expanded & {
-			pointer-events: auto;
-			opacity: 1;
-			position: relative;
-			z-index: 1;
-			transform: translateY(0);
-		}
+    .accordion-item-is-expanded & {
+      pointer-events: auto;
+      opacity: 1;
+      position: relative;
+      z-index: 1;
+      transform: translateY(0);
+    }
 
-		&:not(.accordion-content-blank) {
-			padding: $accordion-content-pad-y $accordion-item-pad-x;
-		}
-	}
+    &:not(.accordion-content-blank) {
+      padding: $accordion-content-pad-y $accordion-item-pad-x;
+    }
+  }
 }

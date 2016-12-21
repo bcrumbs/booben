@@ -2,22 +2,22 @@
 @import 'variables';
 
 @include exports(function-editor) {
-	// =================================================================================================================
-	// BASE
-	// =================================================================================================================
-	.function-editor_heading{
-		background-color: $grey-100;
-		color: $color-text-medium;
+  // =================================================================================================================
+  // BASE
+  // =================================================================================================================
+  .function-editor_heading{
+    background-color: $grey-100;
+    color: $color-text-medium;
 
-		@include user-select;
-	}
+    @include user-select;
+  }
 
-	.function-editor_wrapper {
-		min-height: rem-calc(300);
-		display: flex;
-		align-items: stretch;
+  .function-editor_wrapper {
+    min-height: rem-calc(300);
+    display: flex;
+    align-items: stretch;
 
-		* { width: 100% }
-	}
+    * { width: 100% }
+  }
 }
 

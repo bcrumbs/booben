@@ -4,21 +4,21 @@
 
 'use strict';
 
-//noinspection JSUnresolvedVariable
+// noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 
 export const PropImage = props => (
-    <div className="prop-item-image-box">
-        <img src={props.src} />
-    </div>
+  <div className="prop-item-image-box">
+    <img src={props.src} />
+  </div>
 );
 
 PropImage.propTypes = {
-    src: PropTypes.string
+  src: PropTypes.string,
 };
 
 PropImage.defaultProps = {
-    src: ''
+  src: '',
 };
 
 PropImage.diplayName = 'PropImage';

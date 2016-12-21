@@ -19,9 +19,9 @@ export const APP_TOGGLE_COMPONENT_TITLES = 'APP_TOGGLE_COMPONENT_TITLES';
  * @return {Object}
  */
 export const localizationLoadSuccess = (language, localization) => ({
-    type: APP_LOCALIZATION_LOAD_SUCCESS,
-    language,
-    localization
+  type: APP_LOCALIZATION_LOAD_SUCCESS,
+  language,
+  localization,
 });
 
 
@@ -30,15 +30,15 @@ export const localizationLoadSuccess = (language, localization) => ({
  * @return {Object}
  */
 export const localizationLoadFailure = error => ({
-    type: APP_LOCALIZATION_LOAD_FAILURE,
-    error
+  type: APP_LOCALIZATION_LOAD_FAILURE,
+  error,
 });
 
 /**
  * @return {Object}
  */
 export const localizationLoading = () => ({
-    type: APP_LOCALIZATION_LOADING
+  type: APP_LOCALIZATION_LOADING,
 });
 
 /**
@@ -46,9 +46,9 @@ export const localizationLoading = () => ({
  * @return {function(dispatch: function(action: Object))}
  */
 export const loadLocalization = language => dispatch => {
-    dispatch(localizationLoading());
-    getLocalization(language)
-        .then((localization) => dispatch(localizationLoadSuccess(language, localization)))
+  dispatch(localizationLoading());
+  getLocalization(language)
+        .then(localization => dispatch(localizationLoadSuccess(language, localization)))
         .catch(localizationLoadFailure);
 };
 
@@ -58,8 +58,8 @@ export const loadLocalization = language => dispatch => {
  * @return {Object}
  */
 export const toggleContentPlaceholders = enable => ({
-    type: APP_TOGGLE_CONTENT_PLACEHOLDERS,
-    enable
+  type: APP_TOGGLE_CONTENT_PLACEHOLDERS,
+  enable,
 });
 
 /**
@@ -68,6 +68,6 @@ export const toggleContentPlaceholders = enable => ({
  * @return {Object}
  */
 export const toggleComponentTitles = enable => ({
-    type: APP_TOGGLE_COMPONENT_TITLES,
-    enable
+  type: APP_TOGGLE_COMPONENT_TITLES,
+  enable,
 });

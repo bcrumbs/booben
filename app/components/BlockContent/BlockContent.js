@@ -2,22 +2,22 @@ import './BlockContent.scss';
 import React, { PropTypes } from 'react';
 
 export const BlockContent = props => {
-    let className = 'block-content';
-    if (props.isEmpty) className += ' is-empty';
+  let className = 'block-content';
+  if (props.isEmpty) className += ' is-empty';
 
-    return (
-        <div className={className}>
-            { props.children }
-        </div>
-    );
+  return (
+    <div className={className}>
+      { props.children }
+    </div>
+  );
 };
 
 BlockContent.propTypes = {
-    isEmpty: PropTypes.bool
+  isEmpty: PropTypes.bool,
 };
 
 BlockContent.defaultProps = {
-    isEmpty: false
+  isEmpty: false,
 };
 
 BlockContent.displayName = 'BlockContent';

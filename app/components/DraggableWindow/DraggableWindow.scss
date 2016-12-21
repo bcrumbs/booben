@@ -2,63 +2,63 @@
 @import 'variables';
 
 @include exports(draggable-window) {
-	// =================================================================================================================
-	// Base
-	// =================================================================================================================
-	.draggable-window {
-		background-color: $dragwindow-bg-color;
-		border-radius: $dragwindow-border-radius;
-		display: flex;
-		align-items: stretch;
-		max-height: calc(100vh - #{$dragwindow-section-margins*2});
-		margin: $dragwindow-section-margins;
-		max-width: calc(100% - #{$dragwindow-section-margins*2});
+  // =================================================================================================================
+  // Base
+  // =================================================================================================================
+  .draggable-window {
+    background-color: $dragwindow-bg-color;
+    border-radius: $dragwindow-border-radius;
+    display: flex;
+    align-items: stretch;
+    max-height: calc(100vh - #{$dragwindow-section-margins*2});
+    margin: $dragwindow-section-margins;
+    max-width: calc(100% - #{$dragwindow-section-margins*2});
 
-		@include box-shadow($dragwindow-elevation-default);
+    @include box-shadow($dragwindow-elevation-default);
 
-		&.is-dragged {
-			cursor: $cursor-move;
+    &.is-dragged {
+      cursor: $cursor-move;
 
-			@include box-shadow($dragwindow-elevation-dragging);
+      @include box-shadow($dragwindow-elevation-dragging);
 
-			* {
-				pointer-events: none !important;
-				@include user-select();
-			}
-		}
-	}
+      * {
+        pointer-events: none !important;
+        @include user-select();
+      }
+    }
+  }
 
-	// REGION: common
-	.draggable-window-region {
-		width: $dragwindow-section-max-width;
-		min-height: $dragwindow-min-height;
-		flex-shrink: 0;
-		flex-grow: 1;
-		display: flex;
-		flex-direction: column;
-	}
+  // REGION: common
+  .draggable-window-region {
+    width: $dragwindow-section-max-width;
+    min-height: $dragwindow-min-height;
+    flex-shrink: 0;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+  }
 
-	// REGION: aside
-	.draggable-window-region-aside {
-		background-color: $dragwindow-aside-bg-color;
-		overflow: hidden;
-		position: relative;
+  // REGION: aside
+  .draggable-window-region-aside {
+    background-color: $dragwindow-aside-bg-color;
+    overflow: hidden;
+    position: relative;
 
-		// Shadow
-		&::before {
-			$width: 2px;
+    // Shadow
+    &::before {
+      $width: 2px;
 
-			content: '';
-			position: absolute;
-			z-index: 1;
-			top: -5%;
-			bottom: -5%;
-			left: -$width;
-			height: 110%;
-			width: $width;
-			box-shadow: 1px 0 6px 0 rgba(0,0,0,0.22);
-		}
-	}
+      content: '';
+      position: absolute;
+      z-index: 1;
+      top: -5%;
+      bottom: -5%;
+      left: -$width;
+      height: 110%;
+      width: $width;
+      box-shadow: 1px 0 6px 0 rgba(0,0,0,0.22);
+    }
+  }
 
 
 }

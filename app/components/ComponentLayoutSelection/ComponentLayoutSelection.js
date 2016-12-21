@@ -2,15 +2,15 @@
 
 import './ComponentLayoutSelection.scss';
 
-//noinspection JSUnresolvedVariable
+// noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 
 export const ComponentLayoutSelection = props => (
-    <div className="component-layout-selection-wrapper">
-        <div className="component-layout-selection-list">
-            {props.children}
-        </div>
+  <div className="component-layout-selection-wrapper">
+    <div className="component-layout-selection-list">
+      {props.children}
     </div>
+  </div>
 );
 
 ComponentLayoutSelection.displayName = 'ComponentLayoutSelection';

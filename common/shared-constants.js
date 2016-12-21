@@ -24,16 +24,16 @@ exports.PREVIEW_DOM_OVERLAY_ID = '__jssy_overlay__';
  * @const
  */
 exports.BUILT_IN_PROP_TYPES = new Set([
-    'string',
-    'bool',
-    'int',
-    'float',
-    'oneOf',
-    'shape',
-    'object',
-    'objectOf',
-    'array',
-    'arrayOf',
-    'func',
-    'component'
+  'string',
+  'bool',
+  'int',
+  'float',
+  'oneOf',
+  'shape',
+  'object',
+  'objectOf',
+  'array',
+  'arrayOf',
+  'func',
+  'component',
 ]);

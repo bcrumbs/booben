@@ -4,7 +4,7 @@
 
 'use strict';
 
-//noinspection JSUnresolvedVariable
+// noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
@@ -12,14 +12,14 @@ import { createSelector } from 'reselect';
 
 import {
     PropsList,
-    PropsItem
+    PropsItem,
 } from '../../components/PropsList/PropsList';
 
 import {
     BlockContentBox,
     BlockContentBoxHeading,
     BlockContentBoxItem,
-    BlockContentPlaceholder
+    BlockContentPlaceholder,
 } from '../../components/BlockContent/BlockContent';
 
 import ProjectComponentRecord from '../../models/ProjectComponent';
@@ -29,17 +29,17 @@ import {
     addComponentPropValue,
     deleteComponentPropValue,
     constructComponentForProp,
-    linkProp
+    linkProp,
 } from '../../actions/project';
 
 import {
     currentComponentsSelector,
     currentSelectedComponentIdsSelector,
     topNestedConstructorSelector,
-    topNestedConstructorComponentSelector
+    topNestedConstructorComponentSelector,
 } from '../../selectors';
 
-import { NO_VALUE } from "../../constants/misc";
+import { NO_VALUE } from '../../constants/misc';
 
 import {
     getString,
@@ -49,7 +49,7 @@ import {
     isScalarType,
     getNestedTypedef,
     buildDefaultValue,
-    isValidSourceForProp
+    isValidSourceForProp,
 } from '../../utils/meta';
 
 import { getLocalizedTextFromState } from '../../utils';
@@ -62,9 +62,9 @@ import _mapValues from 'lodash.mapvalues';
  * @return {number}
  */
 const coerceIntValue = value => {
-    let maybeRet = parseInt(value, 10);
-    if (!isFinite(maybeRet)) return 0;
-    return maybeRet;
+  const maybeRet = parseInt(value, 10);
+  if (!isFinite(maybeRet)) return 0;
+  return maybeRet;
 };
 
 /**
@@ -73,9 +73,9 @@ const coerceIntValue = value => {
  * @return {number}
  */
 const coerceFloatValue = value => {
-    let maybeRet = parseFloat(value);
-    if (!isFinite(maybeRet)) return 0.0;
-    return maybeRet;
+  const maybeRet = parseFloat(value);
+  if (!isFinite(maybeRet)) return 0.0;
+  return maybeRet;
 };
 
 /**
@@ -107,7 +107,7 @@ const ownerComponentMetaSelector = createSelector(
 
     (ownerComponent, meta) => ownerComponent
         ? getComponentMeta(ownerComponent.name, meta)
-        : null
+        : null,
 );
 
 const ownerPropsSelector = createSelector(
@@ -115,15 +115,15 @@ const ownerPropsSelector = createSelector(
     ownerComponentMetaSelector,
 
     (topNestedConstructor, ownerComponentMeta) => {
-        if (!ownerComponentMeta) return null;
+      if (!ownerComponentMeta) return null;
 
-        const ownerComponentProp = topNestedConstructor.prop,
-            ownerComponentPropMeta = ownerComponentMeta.props[ownerComponentProp];
+      const ownerComponentProp = topNestedConstructor.prop,
+        ownerComponentPropMeta = ownerComponentMeta.props[ownerComponentProp];
 
-        return ownerComponentPropMeta.source.indexOf('designer') > -1
+      return ownerComponentPropMeta.source.indexOf('designer') > -1
             ? ownerComponentPropMeta.sourceConfigs.designer.props || null
             : null;
-    }
+    },
 );
 
 /**
@@ -134,56 +134,49 @@ const ownerPropsSelector = createSelector(
  * @return {*}
  */
 const transformValue = (componentMeta, propMeta, propValue) => {
-    if (!propValue) return { value: null, isLinked: false };
+  if (!propValue) return { value: null, isLinked: false };
 
-    const typedef = resolveTypedef(componentMeta, propMeta),
-        isLinked = isLinkedProp(propValue);
+  const typedef = resolveTypedef(componentMeta, propMeta),
+    isLinked = isLinkedProp(propValue);
 
-    let value = null;
+  let value = null;
 
-    if (!isLinked) {
-        if (propValue.source === 'static') {
-            if (isScalarType(typedef)) {
-                value = propValue.sourceData.value;
-            }
-            else if (typedef.type === 'shape') {
-                value = _mapValues(typedef.fields, (fieldMeta, fieldName) =>
+  if (!isLinked) {
+    if (propValue.source === 'static') {
+      if (isScalarType(typedef))
+        value = propValue.sourceData.value;
+
+      else if (typedef.type === 'shape') {
+        value = _mapValues(typedef.fields, (fieldMeta, fieldName) =>
                     transformValue(
                         componentMeta,
                         fieldMeta,
-                        propValue.sourceData.value.get(fieldName))
+                        propValue.sourceData.value.get(fieldName)),
                     );
-            }
-            else if (typedef.type === 'objectOf') {
-                propValue.sourceData.value.map(nestedValue =>
+      } else if (typedef.type === 'objectOf') {
+        propValue.sourceData.value.map(nestedValue =>
                     transformValue(componentMeta, typedef.ofType, nestedValue)).toJS();
-            }
-            else if (typedef.type === 'arrayOf') {
-                value = propValue.sourceData.value.map(nestedValue =>
+      } else if (typedef.type === 'arrayOf') {
+        value = propValue.sourceData.value.map(nestedValue =>
                     transformValue(componentMeta, typedef.ofType, nestedValue)).toJS();
-            }
-        }
-        else if (propValue.source === 'designer') {
+      }
+    } else if (propValue.source === 'designer') {
             // true if component exists, false otherwise
-            if (typedef.type === 'component')
-                value = propValue.sourceData.rootId !== -1;
-        }
+      if (typedef.type === 'component')
+        value = propValue.sourceData.rootId !== -1;
     }
-    else {
-        if (propValue.source === 'data') {
-            if (propValue.sourceData.queryPath) {
-                value = propValue.sourceData.queryPath
+  } else if (propValue.source === 'data') {
+    if (propValue.sourceData.queryPath) {
+      value = propValue.sourceData.queryPath
                     .map(step => step.field)
                     .toJS()
                     .join(' -> ');
-            }
-        }
-        else if (propValue.source === 'static') {
-            value = propValue.sourceData.ownerPropName;
-        }
     }
+  } else if (propValue.source === 'static')
+    value = propValue.sourceData.ownerPropName;
 
-    return { value, isLinked };
+
+  return { value, isLinked };
 };
 
 /**
@@ -201,27 +194,27 @@ const isEditableProp = propMeta =>
  * @const
  */
 const propTypeToView = {
-    'string': 'input',
-    'bool': 'toggle',
-    'int': 'input',
-    'float': 'input',
-    'oneOf': 'list',
-    'component': 'constructor',
-    'shape': 'shape',
-    'objectOf': 'object',
-    'arrayOf': 'array',
-    'object': 'empty',
-    'array': 'empty',
-    'func': 'empty'
+  string: 'input',
+  bool: 'toggle',
+  int: 'input',
+  float: 'input',
+  oneOf: 'list',
+  component: 'constructor',
+  shape: 'shape',
+  objectOf: 'object',
+  arrayOf: 'array',
+  object: 'empty',
+  array: 'empty',
+  func: 'empty',
 };
 
 class ComponentPropsEditorComponent extends PureComponent {
-    constructor(props) {
-        super(props);
+  constructor(props) {
+    super(props);
 
-        this._formatArrayItemLabel = this._formatArrayItemLabel.bind(this);
-        this._formatObjectItemLabel = this._formatObjectItemLabel.bind(this);
-    }
+    this._formatArrayItemLabel = this._formatArrayItemLabel.bind(this);
+    this._formatObjectItemLabel = this._formatObjectItemLabel.bind(this);
+  }
 
     /**
      *
@@ -229,9 +222,9 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @return {string}
      * @private
      */
-    _formatArrayItemLabel(index) {
-        return `Item ${index}`; // TODO: Get string from i18n
-    }
+  _formatArrayItemLabel(index) {
+    return `Item ${index}`; // TODO: Get string from i18n
+  }
 
     /**
      *
@@ -239,9 +232,9 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @return {string}
      * @private
      */
-    _formatObjectItemLabel(key) {
-        return key;
-    }
+  _formatObjectItemLabel(key) {
+    return key;
+  }
 
     /**
      *
@@ -249,10 +242,10 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @param {(string|number)[]} [path=[]]
      * @private
      */
-    _handleSetComponent(propName, path = []) {
-        const componentId = this.props.selectedComponentIds.first();
-        this.props.onConstructComponent(componentId, propName, path);
-    }
+  _handleSetComponent(propName, path = []) {
+    const componentId = this.props.selectedComponentIds.first();
+    this.props.onConstructComponent(componentId, propName, path);
+  }
 
     /**
      *
@@ -261,16 +254,16 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @param {(string|number)[]} [path=[]]
      * @private
      */
-    _handleValueChange(propName, newValue, path = []) {
-        const componentId = this.props.selectedComponentIds.first();
-        this.props.onPropValueChange(
+  _handleValueChange(propName, newValue, path = []) {
+    const componentId = this.props.selectedComponentIds.first();
+    this.props.onPropValueChange(
             componentId,
             propName,
             path,
             'static',
-            { value: newValue }
+            { value: newValue },
         );
-    }
+  }
 
     /**
      *
@@ -279,38 +272,38 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @param {string|number} index
      * @private
      */
-    _handleAddValue(propName, where, index) {
-        const componentId = this.props.selectedComponentIds.first(),
-            component = this.props.components.get(componentId),
-            componentMeta = getComponentMeta(component.name, this.props.meta),
-            propMeta = componentMeta.props[propName],
-            nestedPropMeta = getNestedTypedef(propMeta, where),
-            newValueType = nestedPropMeta.ofType;
+  _handleAddValue(propName, where, index) {
+    const componentId = this.props.selectedComponentIds.first(),
+      component = this.props.components.get(componentId),
+      componentMeta = getComponentMeta(component.name, this.props.meta),
+      propMeta = componentMeta.props[propName],
+      nestedPropMeta = getNestedTypedef(propMeta, where),
+      newValueType = nestedPropMeta.ofType;
 
-        const value = buildDefaultValue(
+    const value = buildDefaultValue(
             componentMeta,
             newValueType,
-            this.props.language
+            this.props.language,
         );
 
-        if (value === NO_VALUE) {
-            throw new Error(
-                `Failed to construct a new value for 'arrayOf' or 'objectOf' prop. ` +
+    if (value === NO_VALUE) {
+      throw new Error(
+                'Failed to construct a new value for \'arrayOf\' or \'objectOf\' prop. ' +
                 `Component: '${component.name}', ` +
                 `prop: '${propName}', ` +
-                `where: ${where.map(String).join('.') || '[top level]'}`
+                `where: ${where.map(String).join('.') || '[top level]'}`,
             );
-        }
+    }
 
-        this.props.onAddPropValue(
+    this.props.onAddPropValue(
             componentId,
             propName,
             where,
             index,
             value.source,
-            value.sourceData
+            value.sourceData,
         );
-    }
+  }
 
     /**
      *
@@ -319,10 +312,10 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @param {string|number} index
      * @private
      */
-    _handleDeleteValue(propName, where, index) {
-        const componentId = this.props.selectedComponentIds.first();
-        this.props.onDeletePropValue(componentId, propName, where, index);
-    }
+  _handleDeleteValue(propName, where, index) {
+    const componentId = this.props.selectedComponentIds.first();
+    this.props.onDeletePropValue(componentId, propName, where, index);
+  }
 
     /**
      *
@@ -330,10 +323,10 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @param {(string|number)[]} [path=[]]
      * @private
      */
-    _handleLinkProp(propName, path = []) {
-        const componentId = this.props.selectedComponentIds.first();
-        this.props.onLinkProp(componentId, propName, path);
-    }
+  _handleLinkProp(propName, path = []) {
+    const componentId = this.props.selectedComponentIds.first();
+    this.props.onLinkProp(componentId, propName, path);
+  }
 
     /**
      *
@@ -342,23 +335,23 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @return {boolean}
      * @private
      */
-    _isPropLinkable(componentMeta, propMeta) {
-        if (propMeta.source.indexOf('data') > -1) return true;
-        if (!this.props.ownerProps) return false;
+  _isPropLinkable(componentMeta, propMeta) {
+    if (propMeta.source.indexOf('data') > -1) return true;
+    if (!this.props.ownerProps) return false;
 
-        const propTypedef = resolveTypedef(componentMeta, propMeta);
+    const propTypedef = resolveTypedef(componentMeta, propMeta);
 
-        return objectSome(this.props.ownerProps, ownerProp => {
-            if (ownerProp.dataContext) return false;
+    return objectSome(this.props.ownerProps, ownerProp => {
+      if (ownerProp.dataContext) return false;
 
-            const ownerPropTypedef = resolveTypedef(
+      const ownerPropTypedef = resolveTypedef(
                 this.props.ownerComponentMeta,
-                ownerProp
+                ownerProp,
             );
 
-            return isCompatibleType(propTypedef, ownerPropTypedef);
-        });
-    }
+      return isCompatibleType(propTypedef, ownerPropTypedef);
+    });
+  }
 
     /**
      *
@@ -367,70 +360,67 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @returns {PropsItemPropType}
      * @private
      */
-    _propTypeFromMeta(componentMeta, propMeta) {
+  _propTypeFromMeta(componentMeta, propMeta) {
         // TODO: Memoize
 
-        const typedef = resolveTypedef(componentMeta, propMeta);
+    const typedef = resolveTypedef(componentMeta, propMeta);
 
-        const name = getString(
+    const name = getString(
             componentMeta,
             typedef.textKey,
-            this.props.language
+            this.props.language,
         );
 
-        const description = getString(
+    const description = getString(
             componentMeta,
             typedef.descriptionTextKey,
-            this.props.language
+            this.props.language,
         );
 
-        const editable = isEditableProp(typedef),
-            linkable = this._isPropLinkable(componentMeta, typedef);
+    const editable = isEditableProp(typedef),
+      linkable = this._isPropLinkable(componentMeta, typedef);
 
-        const ret = {
-            label: name,
-            type: typedef.type, // TODO: Get string from i18n
-            view: editable ? propTypeToView[typedef.type] : 'empty',
-            image: '',
-            tooltip: description,
-            linkable: linkable,
-            transformValue: null,
-            formatItemLabel: null
-        };
+    const ret = {
+      label: name,
+      type: typedef.type, // TODO: Get string from i18n
+      view: editable ? propTypeToView[typedef.type] : 'empty',
+      image: '',
+      tooltip: description,
+      linkable,
+      transformValue: null,
+      formatItemLabel: null,
+    };
 
-        if (editable) {
-            if (typedef.type === 'int') {
-                ret.transformValue = coerceIntValue;
-            }
-            else if (typedef.type === 'float') {
-                ret.transformValue = coerceFloatValue;
-            }
-            else if (typedef.type === 'oneOf') {
-                ret.options = typedef.options.map(option => ({
-                    value: option.value,
-                    text: getString(
+    if (editable) {
+      if (typedef.type === 'int')
+        ret.transformValue = coerceIntValue;
+
+      else if (typedef.type === 'float')
+        ret.transformValue = coerceFloatValue;
+
+      else if (typedef.type === 'oneOf') {
+        ret.options = typedef.options.map(option => ({
+          value: option.value,
+          text: getString(
                         componentMeta,
                         option.textKey,
-                        this.props.language
-                    ) || option.textKey
-                }));
-            }
-            else if (typedef.type === 'shape') {
-                ret.fields = _mapValues(typedef.fields, (fieldMeta, fieldName) =>
+                        this.props.language,
+                    ) || option.textKey,
+        }));
+      } else if (typedef.type === 'shape') {
+        ret.fields = _mapValues(typedef.fields, (fieldMeta, fieldName) =>
                     this._propTypeFromMeta(componentMeta, fieldMeta));
-            }
-            else if (typedef.type === 'arrayOf') {
-                ret.ofType = this._propTypeFromMeta(componentMeta, typedef.ofType);
-                ret.formatItemLabel = this._formatArrayItemLabel;
-            }
-            else if (typedef.type === 'objectOf') {
-                ret.ofType = this._propTypeFromMeta(componentMeta, typedef.ofType);
-                ret.formatItemLabel = this._formatObjectItemLabel;
-            }
-        }
+      } else if (typedef.type === 'arrayOf') {
+        ret.ofType = this._propTypeFromMeta(componentMeta, typedef.ofType);
+        ret.formatItemLabel = this._formatArrayItemLabel;
+      } else if (typedef.type === 'objectOf') {
+        ret.ofType = this._propTypeFromMeta(componentMeta, typedef.ofType);
+        ret.formatItemLabel = this._formatObjectItemLabel;
+      }
+    }
 
-        return ret;
-    };
+    return ret;
+  }
 
     /**
      *
@@ -440,202 +430,202 @@ class ComponentPropsEditorComponent extends PureComponent {
      * @returns {?ReactElement}
      * @private
      */
-    _renderPropsItem(componentMeta, propName, propValue) {
-        const { getLocalizedText } = this.props;
+  _renderPropsItem(componentMeta, propName, propValue) {
+    const { getLocalizedText } = this.props;
 
-        const propMeta = componentMeta.props[propName],
-            propType = this._propTypeFromMeta(componentMeta, propMeta),
-            value = transformValue(componentMeta, propMeta, propValue);
+    const propMeta = componentMeta.props[propName],
+      propType = this._propTypeFromMeta(componentMeta, propMeta),
+      value = transformValue(componentMeta, propMeta, propValue);
 
-        //noinspection JSValidateTypes
-        return (
-            <PropsItem
-                key={propName}
-                propType={propType}
-                value={value}
-                setComponentButtonText={getLocalizedText('setComponent')}
-                editComponentButtonText={getLocalizedText('editComponent')}
-                addButtonText={getLocalizedText('addValue')}
-                addDialogTitleText={getLocalizedText('addValueDialogTitle')}
-                addDialogInputLabelText={getLocalizedText('addValueNameInputLabel')}
-                addDialogSaveButtonText={getLocalizedText('save')}
-                addDialogCancelButtonText={getLocalizedText('cancel')}
-                onChange={this._handleValueChange.bind(this, propName)}
-                onSetComponent={this._handleSetComponent.bind(this, propName)}
-                onAddValue={this._handleAddValue.bind(this, propName)}
-                onDeleteValue={this._handleDeleteValue.bind(this, propName)}
-                onLink={this._handleLinkProp.bind(this, propName)}
-            />
-        );
+        // noinspection JSValidateTypes
+    return (
+      <PropsItem
+        key={propName}
+        propType={propType}
+        value={value}
+        setComponentButtonText={getLocalizedText('setComponent')}
+        editComponentButtonText={getLocalizedText('editComponent')}
+        addButtonText={getLocalizedText('addValue')}
+        addDialogTitleText={getLocalizedText('addValueDialogTitle')}
+        addDialogInputLabelText={getLocalizedText('addValueNameInputLabel')}
+        addDialogSaveButtonText={getLocalizedText('save')}
+        addDialogCancelButtonText={getLocalizedText('cancel')}
+        onChange={this._handleValueChange.bind(this, propName)}
+        onSetComponent={this._handleSetComponent.bind(this, propName)}
+        onAddValue={this._handleAddValue.bind(this, propName)}
+        onDeleteValue={this._handleDeleteValue.bind(this, propName)}
+        onLink={this._handleLinkProp.bind(this, propName)}
+      />
+    );
+  }
+
+  render() {
+    const { getLocalizedText } = this.props;
+
+    if (this.props.selectedComponentIds.size === 0) {
+      return (
+        <BlockContentPlaceholder
+          text={getLocalizedText('selectAComponent')}
+        />
+      );
     }
 
-    render() {
-        const { getLocalizedText } = this.props;
+    if (this.props.selectedComponentIds.size > 1) {
+      return (
+        <BlockContentPlaceholder
+          text={getLocalizedText('multipleComponentsSelected')}
+        />
+      );
+    }
 
-        if (this.props.selectedComponentIds.size === 0) {
-            return (
-                <BlockContentPlaceholder
-                    text={getLocalizedText('selectAComponent')}
-                />
-            );
-        }
+    const componentId = this.props.selectedComponentIds.first(),
+      component = this.props.components.get(componentId),
+      componentMeta = getComponentMeta(component.name, this.props.meta);
 
-        if (this.props.selectedComponentIds.size > 1) {
-            return (
-                <BlockContentPlaceholder
-                    text={getLocalizedText('multipleComponentsSelected')}
-                />
-            );
-        }
+    if (!componentMeta) return null;
 
-        const componentId = this.props.selectedComponentIds.first(),
-            component = this.props.components.get(componentId),
-            componentMeta = getComponentMeta(component.name, this.props.meta);
+    const propGroups = componentMeta.propGroups.map(groupData => ({
+      name: groupData.name,
 
-        if (!componentMeta) return null;
-
-        const propGroups = componentMeta.propGroups.map(groupData => ({
-            name: groupData.name,
-
-            title: getString(
+      title: getString(
                 componentMeta,
                 groupData.textKey,
-                this.props.language
+                this.props.language,
             ),
 
-            props: []
-        }));
+      props: [],
+    }));
 
-        const propsByGroup = new Map();
-        propGroups.forEach(group => void propsByGroup.set(group.name, group.props));
+    const propsByGroup = new Map();
+    propGroups.forEach(group => void propsByGroup.set(group.name, group.props));
 
-        const propsWithoutGroup = [];
+    const propsWithoutGroup = [];
 
-        const renderablePropNames = Object.keys(componentMeta.props)
+    const renderablePropNames = Object.keys(componentMeta.props)
             .filter(propName => isRenderableProp(componentMeta.props[propName]));
 
-        if (renderablePropNames.length === 0) {
-            return (
-                <BlockContentPlaceholder
-                    text={getLocalizedText('thisComponentDoesntHaveEditableAttributes')}
-                />
-            );
-        }
-
-        renderablePropNames.forEach(propName => {
-            const propMeta = componentMeta.props[propName];
-            if (propMeta.group) propsByGroup.get(propMeta.group).push(propName);
-            else propsWithoutGroup.push(propName);
-        });
-
-        const content = [];
-
-        propGroups.forEach((group, idx) => {
-            content.push(
-                <BlockContentBoxHeading key={2 * idx}>
-                    {group.title}
-                </BlockContentBoxHeading>
-            );
-
-            const controls = group.props.map(propName => this._renderPropsItem(
-                componentMeta,
-                propName,
-                component.props.get(propName) || null
-            ));
-
-            content.push(
-                <BlockContentBoxItem key={2 * idx + 1}>
-                    <PropsList>
-                        {controls}
-                    </PropsList>
-                </BlockContentBoxItem>
-            );
-        });
-
-        if (propsWithoutGroup.length > 0) {
-            const controls = propsWithoutGroup.map(propName => this._renderPropsItem(
-                componentMeta,
-                propName,
-                component.props.get(propName) || null
-            ));
-
-            content.push(
-                <BlockContentBoxItem key={2 * propGroups.length}>
-                    <PropsList>
-                        {controls}
-                    </PropsList>
-                </BlockContentBoxItem>
-            );
-        }
-
-        return (
-            <BlockContentBox isBordered>
-                {content}
-            </BlockContentBox>
-        );
+    if (renderablePropNames.length === 0) {
+      return (
+        <BlockContentPlaceholder
+          text={getLocalizedText('thisComponentDoesntHaveEditableAttributes')}
+        />
+      );
     }
+
+    renderablePropNames.forEach(propName => {
+      const propMeta = componentMeta.props[propName];
+      if (propMeta.group) propsByGroup.get(propMeta.group).push(propName);
+      else propsWithoutGroup.push(propName);
+    });
+
+    const content = [];
+
+    propGroups.forEach((group, idx) => {
+      content.push(
+        <BlockContentBoxHeading key={2 * idx}>
+          {group.title}
+        </BlockContentBoxHeading>,
+            );
+
+      const controls = group.props.map(propName => this._renderPropsItem(
+                componentMeta,
+                propName,
+                component.props.get(propName) || null,
+            ));
+
+      content.push(
+        <BlockContentBoxItem key={2 * idx + 1}>
+          <PropsList>
+            {controls}
+          </PropsList>
+        </BlockContentBoxItem>,
+            );
+    });
+
+    if (propsWithoutGroup.length > 0) {
+      const controls = propsWithoutGroup.map(propName => this._renderPropsItem(
+                componentMeta,
+                propName,
+                component.props.get(propName) || null,
+            ));
+
+      content.push(
+        <BlockContentBoxItem key={2 * propGroups.length}>
+          <PropsList>
+            {controls}
+          </PropsList>
+        </BlockContentBoxItem>,
+            );
+    }
+
+    return (
+      <BlockContentBox isBordered>
+        {content}
+      </BlockContentBox>
+    );
+  }
 }
 
 ComponentPropsEditorComponent.propTypes = {
-    meta: PropTypes.any,
-    components: ImmutablePropTypes.mapOf(
+  meta: PropTypes.any,
+  components: ImmutablePropTypes.mapOf(
         PropTypes.instanceOf(ProjectComponentRecord),
-        PropTypes.number
+        PropTypes.number,
     ),
-    selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
-    language: PropTypes.string,
-    ownerComponentMeta: PropTypes.object,
-    ownerProps: PropTypes.object,
-    getLocalizedText: PropTypes.func,
+  selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
+  language: PropTypes.string,
+  ownerComponentMeta: PropTypes.object,
+  ownerProps: PropTypes.object,
+  getLocalizedText: PropTypes.func,
 
-    onPropValueChange: PropTypes.func,
-    onAddPropValue: PropTypes.func,
-    onDeletePropValue: PropTypes.func,
-    onConstructComponent: PropTypes.func,
-    onLinkProp: PropTypes.func
+  onPropValueChange: PropTypes.func,
+  onAddPropValue: PropTypes.func,
+  onDeletePropValue: PropTypes.func,
+  onConstructComponent: PropTypes.func,
+  onLinkProp: PropTypes.func,
 };
 
 const mapStateToProps = state => ({
-    meta: state.project.meta,
-    components: currentComponentsSelector(state),
-    selectedComponentIds: currentSelectedComponentIdsSelector(state),
-    language: state.app.language,
-    ownerComponentMeta: ownerComponentMetaSelector(state),
-    ownerProps: ownerPropsSelector(state),
-    getLocalizedText: getLocalizedTextFromState(state)
+  meta: state.project.meta,
+  components: currentComponentsSelector(state),
+  selectedComponentIds: currentSelectedComponentIdsSelector(state),
+  language: state.app.language,
+  ownerComponentMeta: ownerComponentMetaSelector(state),
+  ownerProps: ownerPropsSelector(state),
+  getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
-    onPropValueChange: (componentId, propName, path, newSource, newSourceData) =>
+  onPropValueChange: (componentId, propName, path, newSource, newSourceData) =>
         void dispatch(updateComponentPropValue(
             componentId,
             propName,
             path,
             newSource,
-            newSourceData
+            newSourceData,
         )),
 
-    onAddPropValue: (componentId, propName, path, index, source, sourceData) =>
+  onAddPropValue: (componentId, propName, path, index, source, sourceData) =>
         void dispatch(addComponentPropValue(
             componentId,
             propName,
             path,
             index,
             source,
-            sourceData
+            sourceData,
         )),
 
-    onDeletePropValue: (componentId, propName, path, index) =>
+  onDeletePropValue: (componentId, propName, path, index) =>
         void dispatch(deleteComponentPropValue(componentId, propName, path, index)),
 
-    onConstructComponent: (componentId, propName, path) =>
+  onConstructComponent: (componentId, propName, path) =>
         void dispatch(constructComponentForProp(componentId, propName, path)),
 
-    onLinkProp: (componentId, propName, path) =>
-        void dispatch(linkProp(componentId, propName, path))
+  onLinkProp: (componentId, propName, path) =>
+        void dispatch(linkProp(componentId, propName, path)),
 });
 
 export const ComponentPropsEditor = connect(
     mapStateToProps,
-    mapDispatchToProps
+    mapDispatchToProps,
 )(ComponentPropsEditorComponent);

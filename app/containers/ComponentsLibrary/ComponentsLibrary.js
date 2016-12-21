@@ -4,34 +4,34 @@
 
 'use strict';
 
-//noinspection JSUnresolvedVariable
+// noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { createSelector } from 'reselect';
 
 import {
-	dragHandler
+  dragHandler,
 } from '../../hocs/dragHandler';
 
 import {
     Accordion,
-    AccordionItemRecord
+    AccordionItemRecord,
 } from '../../components/Accordion/Accordion';
 
 import {
     BlockContentBox,
-    BlockContentPlaceholder
+    BlockContentPlaceholder,
 } from '../../components/BlockContent/BlockContent';
 
 import {
     ComponentTag,
-    ComponentTagWrapper
+    ComponentTagWrapper,
 } from '../../components/ComponentTag/ComponentTag';
 
 import {
     setExpandedGroups,
-    showAllComponents
+    showAllComponents,
 } from '../../actions/components-library';
 
 import { Button } from '@reactackle/reactackle';
@@ -40,106 +40,105 @@ import { List, Record, Map, OrderedMap } from 'immutable';
 
 import {
     currentSelectedComponentIdsSelector,
-    currentComponentsSelector
+    currentComponentsSelector,
 } from '../../selectors';
 
 import { getLocalizedTextFromState } from '../../utils';
 import { canInsertComponent } from '../../utils/meta';
-import _forOwn from 'lodash.forown'
+import _forOwn from 'lodash.forown';
 
-//noinspection JSUnresolvedVariable
+// noinspection JSUnresolvedVariable
 import defaultComponentIcon from '../../img/component_default.svg';
 
 const LibraryComponentData = Record({
-    name: '',
-    fullName: '',
-    text: Map(),
-    descriptionText: Map(),
-    iconURL: ''
+  name: '',
+  fullName: '',
+  text: Map(),
+  descriptionText: Map(),
+  iconURL: '',
 });
 
 const LibraryGroupData = Record({
-    name: '',
-    namespace: '',
-    text: Map(),
-    descriptionText: Map(),
-    isDefault: false,
-    components: List()
+  name: '',
+  namespace: '',
+  text: Map(),
+  descriptionText: Map(),
+  isDefault: false,
+  components: List(),
 });
 
 const extractGroupsDataFromMeta = meta => {
-    let groups = OrderedMap();
+  let groups = OrderedMap();
 
-    _forOwn(meta, libMeta => {
-        _forOwn(libMeta.componentGroups, (groupData, groupName) => {
-            const fullName = `${libMeta.namespace}.${groupName}`;
+  _forOwn(meta, libMeta => {
+    _forOwn(libMeta.componentGroups, (groupData, groupName) => {
+      const fullName = `${libMeta.namespace}.${groupName}`;
 
-            const libraryGroup = new LibraryGroupData({
-                name: fullName,
-                namespace: libMeta.namespace,
-                text: Map(libMeta.strings[groupData.textKey]),
-                descriptionText: Map(libMeta.strings[groupData.descriptionTextKey]),
-                isDefault: false
-            });
+      const libraryGroup = new LibraryGroupData({
+        name: fullName,
+        namespace: libMeta.namespace,
+        text: Map(libMeta.strings[groupData.textKey]),
+        descriptionText: Map(libMeta.strings[groupData.descriptionTextKey]),
+        isDefault: false,
+      });
 
-            groups = groups.set(fullName, libraryGroup);
-        });
-
-        _forOwn(libMeta.components, componentMeta => {
-            if (componentMeta.hidden) return;
-
-            let defaultGroup = false,
-                groupName;
-
-            if (!componentMeta.group) {
-                defaultGroup = true;
-                groupName = `${libMeta.namespace}.__default__`
-            }
-            else {
-                groupName = `${libMeta.namespace}.${componentMeta.group}`
-            }
-
-            if (defaultGroup && !groups.has(groupName)) {
-                const group = new LibraryGroupData({
-                    name: groupName,
-                    namespace: libMeta.namespace,
-                    isDefault: true
-                });
-
-                groups = groups.set(groupName, group);
-            }
-
-            const text = componentMeta.strings[componentMeta.textKey],
-                description = componentMeta.strings[componentMeta.descriptionTextKey];
-
-            const libraryComponent = new LibraryComponentData({
-                name: componentMeta.displayName,
-                fullName: `${libMeta.namespace}.${componentMeta.displayName}`,
-                text: Map(text),
-                descriptionText: Map(description),
-                iconURL: componentMeta.icon || defaultComponentIcon
-            });
-
-            groups = groups.updateIn(
-                [groupName, 'components'],
-                components => components.push(libraryComponent)
-            );
-        });
+      groups = groups.set(fullName, libraryGroup);
     });
 
-    return groups.toList().filter(group => !group.components.isEmpty());
+    _forOwn(libMeta.components, componentMeta => {
+      if (componentMeta.hidden) return;
+
+      let defaultGroup = false,
+        groupName;
+
+      if (!componentMeta.group) {
+        defaultGroup = true;
+        groupName = `${libMeta.namespace}.__default__`;
+      } else
+                groupName = `${libMeta.namespace}.${componentMeta.group}`;
+
+
+      if (defaultGroup && !groups.has(groupName)) {
+        const group = new LibraryGroupData({
+          name: groupName,
+          namespace: libMeta.namespace,
+          isDefault: true,
+        });
+
+        groups = groups.set(groupName, group);
+      }
+
+      const text = componentMeta.strings[componentMeta.textKey],
+        description = componentMeta.strings[componentMeta.descriptionTextKey];
+
+      const libraryComponent = new LibraryComponentData({
+        name: componentMeta.displayName,
+        fullName: `${libMeta.namespace}.${componentMeta.displayName}`,
+        text: Map(text),
+        descriptionText: Map(description),
+        iconURL: componentMeta.icon || defaultComponentIcon,
+      });
+
+      groups = groups.updateIn(
+                [groupName, 'components'],
+                components => components.push(libraryComponent),
+            );
+    });
+  });
+
+  return groups.toList().filter(group => !group.components.isEmpty());
 };
 
 const libraryGroupsSelector = createSelector(
     state => state.project.meta,
-    extractGroupsDataFromMeta
+    extractGroupsDataFromMeta,
 );
 
 const compareComponents = language => (a, b) => {
-    const aText = a.text.get(language) || '',
-        bText = b.text.get(language) || '';
+  const aText = a.text.get(language) || '',
+    bText = b.text.get(language) || '';
 
-    return aText < bText ? -1 : aText > bText ? 1 : 0;
+  return aText < bText ? -1 : aText > bText ? 1 : 0;
 };
 
 const libraryGroupsSortedByLanguageSelector = createSelector(
@@ -149,9 +148,9 @@ const libraryGroupsSortedByLanguageSelector = createSelector(
     (groups, language) =>
         groups.map(group =>
             group.update('components', components =>
-                components.sort(compareComponents(language))
-            )
-        )
+                components.sort(compareComponents(language)),
+            ),
+        ),
 );
 
 const libraryGroupsFilteredSelector = createSelector(
@@ -162,154 +161,153 @@ const libraryGroupsFilteredSelector = createSelector(
     state => state.project.meta,
 
     (groups, selectedComponentIds, components, showAllComponentsOnPalette, meta) => {
-        const willFilterBySelectedComponent =
+      const willFilterBySelectedComponent =
             selectedComponentIds.size === 1 &&
             !showAllComponentsOnPalette;
 
-        if (!willFilterBySelectedComponent) return { groups, filtered: false };
+      if (!willFilterBySelectedComponent) return { groups, filtered: false };
 
-        const selectedComponentId = selectedComponentIds.first(),
-            selectedComponent = components.get(selectedComponentId);
+      const selectedComponentId = selectedComponentIds.first(),
+        selectedComponent = components.get(selectedComponentId);
 
-        const childComponentNames = selectedComponent.children
+      const childComponentNames = selectedComponent.children
             .map(childId => components.get(childId).name);
 
-        return {
-            groups: groups.map(group =>
+      return {
+        groups: groups.map(group =>
                 group.update('components', components =>
                     components.filter(c => canInsertComponent(
                         c.fullName,
                         selectedComponent.name,
                         childComponentNames,
                         -1,
-                        meta
-                    ))
-                )
+                        meta,
+                    )),
+                ),
             ).filter(group => !group.components.isEmpty()),
 
-            filtered: true
-        };
-    }
+        filtered: true,
+      };
+    },
 );
 
 class ComponentsLibraryComponent extends PureComponent {
-    render() {
-        const {
+  render() {
+    const {
             getLocalizedText,
             language,
             draggingComponent,
             draggedComponents,
-            draggedComponentId
+            draggedComponentId,
         } = this.props;
 
-        const focusedComponentName = draggingComponent
+    const focusedComponentName = draggingComponent
             ? draggedComponents.get(draggedComponentId > -1 ? draggedComponentId : 0).name
             : '';
 
-        const { groups, filtered } = this.props.componentGroups;
+    const { groups, filtered } = this.props.componentGroups;
 
-        if (groups.isEmpty()) {
-            if (filtered) {
-                return (
-                    <BlockContentPlaceholder
-                        text={getLocalizedText('noComponentsCanBeInsertedInsideSelectedComponent')}
-                    >
-                        <Button
-                            text={getLocalizedText('showAllComponents')}
-                            onPress={this.props.onShowAllComponents}
-                        />
-                    </BlockContentPlaceholder>
-                );
-            }
-            else {
-                return (
-                    <BlockContentPlaceholder
-                        text={getLocalizedText('noComponentsInLibrary')}
-                    />
-                );
-            }
-        }
+    if (groups.isEmpty()) {
+      if (filtered) {
+        return (
+          <BlockContentPlaceholder
+            text={getLocalizedText('noComponentsCanBeInsertedInsideSelectedComponent')}
+          >
+            <Button
+              text={getLocalizedText('showAllComponents')}
+              onPress={this.props.onShowAllComponents}
+            />
+          </BlockContentPlaceholder>
+        );
+      } else {
+        return (
+          <BlockContentPlaceholder
+            text={getLocalizedText('noComponentsInLibrary')}
+          />
+        );
+      }
+    }
 
-        const accordionItems = groups.map(group => {
-            const items = group.components.map((c, idx) => (
-                <ComponentTag
-                    key={idx}
-                    title={c.text.get(language)}
-                    image={c.iconURL}
-                    focused={focusedComponentName === c.fullName}
-                    onStartDrag={event =>
-						this.props.handleStartDragNewComponent(event, c)
-					}
-                />
+    const accordionItems = groups.map(group => {
+      const items = group.components.map((c, idx) => (
+        <ComponentTag
+          key={idx}
+          title={c.text.get(language)}
+          image={c.iconURL}
+          focused={focusedComponentName === c.fullName}
+          onStartDrag={event =>
+            this.props.handleStartDragNewComponent(event, c)
+          }
+        />
             ));
 
-            const title = group.isDefault
+      const title = group.isDefault
                 ? `${group.namespace} - ${getLocalizedText('uncategorizedComponents')}`
                 : `${group.namespace} - ${group.text.get(language)}`;
 
-            return new AccordionItemRecord({
-                id: group.name,
-                title: title,
-                content: (
-                    <ComponentTagWrapper>
-                        {items}
-                    </ComponentTagWrapper>
-                )
-            })
-        });
+      return new AccordionItemRecord({
+        id: group.name,
+        title,
+        content: (
+          <ComponentTagWrapper>
+            {items}
+          </ComponentTagWrapper>
+                ),
+      });
+    });
 
-        return (
-            <BlockContentBox isBordered>
-                <Accordion
-                    single
-                    items={accordionItems}
-                    expandedItemIds={this.props.expandedGroups}
-                    onExpandedItemsChange={this.props.onExpandedGroupsChange}
-                />
-            </BlockContentBox>
-        );
-    }
+    return (
+      <BlockContentBox isBordered>
+        <Accordion
+          single
+          items={accordionItems}
+          expandedItemIds={this.props.expandedGroups}
+          onExpandedItemsChange={this.props.onExpandedGroupsChange}
+        />
+      </BlockContentBox>
+    );
+  }
 }
 
 const ComponentGroupsType = PropTypes.shape({
-    groups: ImmutablePropTypes.listOf(PropTypes.instanceOf(LibraryGroupData)),
-    filtered: PropTypes.bool
+  groups: ImmutablePropTypes.listOf(PropTypes.instanceOf(LibraryGroupData)),
+  filtered: PropTypes.bool,
 });
 
 ComponentsLibraryComponent.propTypes = {
-	handleStartDragNewComponent: PropTypes.func.isRequired,
+  handleStartDragNewComponent: PropTypes.func.isRequired,
 
-    componentGroups: ComponentGroupsType,
-    expandedGroups: ImmutablePropTypes.setOf(PropTypes.string),
-    language: PropTypes.string,
-    draggingComponent: PropTypes.bool,
-    draggedComponents: ImmutablePropTypes.map,
-    draggedComponentId: PropTypes.number,
-    getLocalizedText: PropTypes.func,
+  componentGroups: ComponentGroupsType,
+  expandedGroups: ImmutablePropTypes.setOf(PropTypes.string),
+  language: PropTypes.string,
+  draggingComponent: PropTypes.bool,
+  draggedComponents: ImmutablePropTypes.map,
+  draggedComponentId: PropTypes.number,
+  getLocalizedText: PropTypes.func,
 
-    onExpandedGroupsChange: PropTypes.func,
-    onShowAllComponents: PropTypes.func
+  onExpandedGroupsChange: PropTypes.func,
+  onShowAllComponents: PropTypes.func,
 };
 
 ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
 
 const mapStateToProps = state => ({
-    componentGroups: libraryGroupsFilteredSelector(state),
-    expandedGroups: state.componentsLibrary.expandedGroups,
-    language: state.app.language,
-    draggingComponent: state.project.draggingComponent,
-    draggedComponents: state.project.draggedComponents,
-    draggedComponentId: state.project.draggedComponentId,
-    getLocalizedText: getLocalizedTextFromState(state)
+  componentGroups: libraryGroupsFilteredSelector(state),
+  expandedGroups: state.componentsLibrary.expandedGroups,
+  language: state.app.language,
+  draggingComponent: state.project.draggingComponent,
+  draggedComponents: state.project.draggedComponents,
+  draggedComponentId: state.project.draggedComponentId,
+  getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
-    onExpandedGroupsChange: groups => void dispatch(setExpandedGroups(groups)),
-    onShowAllComponents: () => void dispatch(showAllComponents())
+  onExpandedGroupsChange: groups => void dispatch(setExpandedGroups(groups)),
+  onShowAllComponents: () => void dispatch(showAllComponents()),
 });
 
 export const ComponentsLibrary = dragHandler(connect(
-	  mapStateToProps,
-	  mapDispatchToProps
-	)(ComponentsLibraryComponent)
+    mapStateToProps,
+    mapDispatchToProps,
+  )(ComponentsLibraryComponent),
 );

@@ -1,22 +1,21 @@
 import React, { PropTypes } from 'react';
 
 export const BlockContentBoxHeading = props => {
-    let className = `block-content-box-heading`;
-    if (props.isBordered) className += ' is-bordered';
+  let className = 'block-content-box-heading';
+  if (props.isBordered) className += ' is-bordered';
 
-    return (
-        <div className={className}>
-            {props.children}
-        </div>
-    );
-
+  return (
+    <div className={className}>
+      {props.children}
+    </div>
+  );
 };
 
 BlockContentBoxHeading.propTypes = {
-    isBordered: PropTypes.bool
+  isBordered: PropTypes.bool,
 };
 
 BlockContentBoxHeading.defaultProps = {
-    isBordered: false
+  isBordered: false,
 };
 BlockContentBoxHeading.displayName = 'BlockContentBoxHeading';

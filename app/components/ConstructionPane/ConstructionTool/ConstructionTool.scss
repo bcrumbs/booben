@@ -2,24 +2,24 @@
 @import 'variables';
 
 @include exports(construction-tool) {
-	// =================================================================================================================
-	// BASE
-	// =================================================================================================================
-	.construction-tool {
-		.input { margin-top: 0 }
-	}
+  // =================================================================================================================
+  // BASE
+  // =================================================================================================================
+  .construction-tool {
+    .input { margin-top: 0 }
+  }
 
-	.construction-tool_data-row {
-		margin-top: $base-module;
-		width: 100%;
+  .construction-tool_data-row {
+    margin-top: $base-module;
+    width: 100%;
 
-		@include user-select;
-	}
+    @include user-select;
+  }
 
-	.construction-tool_data-item-additional {
-		font-size: fs(-1);
-		color: $grey-500;
-	}
+  .construction-tool_data-item-additional {
+    font-size: fs(-1);
+    color: $grey-500;
+  }
 
 }
 

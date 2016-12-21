@@ -19,18 +19,18 @@ const patchedComponents = _mapValues(components, ns => _mapValues(ns, patchCompo
  * @return {Function|string} React component
  */
 export default (componentName = '') => {
-    const { namespace, name } = parseComponentName(componentName);
-    if (!namespace || !name)
-        throw new Error(`Invalid component name: '${componentName}'`);
+  const { namespace, name } = parseComponentName(componentName);
+  if (!namespace || !name)
+    throw new Error(`Invalid component name: '${componentName}'`);
 
-    if (namespace === 'HTML') return name;
+  if (namespace === 'HTML') return name;
 
-    if (!patchedComponents[namespace])
-        throw new Error(`Namespace not found: '${namespace}'`);
+  if (!patchedComponents[namespace])
+    throw new Error(`Namespace not found: '${namespace}'`);
 
-    const component = patchedComponents[namespace][name];
-    if (!component)
-        throw new Error(`Component not found: '${componentName}'`);
+  const component = patchedComponents[namespace][name];
+  if (!component)
+    throw new Error(`Component not found: '${componentName}'`);
 
-    return component;
+  return component;
 };

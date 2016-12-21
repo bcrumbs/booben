@@ -1,33 +1,33 @@
 'use strict';
 
-//noinspection JSUnresolvedVariable
+// noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 
 import './FunctionEditor.scss';
 
 import {
-    BlockContentBoxItem
+    BlockContentBoxItem,
 } from '../BlockContent/BlockContent';
 
 export const FunctionEditor = props => {
-    let className = 'function-editor';
+  const className = 'function-editor';
 
-    return (
-        <div className={className} >
-            <div className='function-editor_heading'>
-                <BlockContentBoxItem isBordered>
-                    <pre>
+  return (
+    <div className={className} >
+      <div className="function-editor_heading">
+        <BlockContentBoxItem isBordered>
+          <pre>
                         function myFunction (
                             arg1 (string), arg2 (bool)
                         )
                     </pre>
-                </BlockContentBoxItem>
-            </div>
-            <div className='function-editor_wrapper'>
+        </BlockContentBoxItem>
+      </div>
+      <div className="function-editor_wrapper">
                 Here'll be editor
             </div>
-        </div>
-    );
+    </div>
+  );
 };
 
 FunctionEditor.propTypes = {

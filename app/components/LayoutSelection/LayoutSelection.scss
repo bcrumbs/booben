@@ -2,91 +2,91 @@
 @import 'variables';
 
 @include exports(layout-selection) {
-	// =================================================================================================================
-	// BASE
-	// =================================================================================================================
-	.layout-selection-modal-wrapper {
-		.dialog-title {
-			padding-top: $layout-modal-title-padding-top;
-			padding-bottom: $layout-modal-title-padding-bottom;
+  // =================================================================================================================
+  // BASE
+  // =================================================================================================================
+  .layout-selection-modal-wrapper {
+    .dialog-title {
+      padding-top: $layout-modal-title-padding-top;
+      padding-bottom: $layout-modal-title-padding-bottom;
 
-			.dialog-title-text {
-				width: 100%;
-				text-align: $layout-modal-title-text-align;
-				font-size: $layout-modal-title-font-size;
-				line-height: $layout-modal-title-line-height;
-				font-weight: $layout-modal-title-font-weight;
-			}
-		}
-	}
+      .dialog-title-text {
+        width: 100%;
+        text-align: $layout-modal-title-text-align;
+        font-size: $layout-modal-title-font-size;
+        line-height: $layout-modal-title-line-height;
+        font-weight: $layout-modal-title-font-weight;
+      }
+    }
+  }
 
-	.layout-selection-wrapper {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: center;
-	}
+  .layout-selection-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 
-	.layout-selection-list {
-		max-width: 4*($layout-item-width + $layout-items-margin-x*2);
-		display: flex;
-		flex-wrap: wrap;
-	}
+  .layout-selection-list {
+    max-width: 4*($layout-item-width + $layout-items-margin-x*2);
+    display: flex;
+    flex-wrap: wrap;
+  }
 
-	// ITEM
-	.layout-item {
-		margin: $layout-items-margin-y $layout-items-margin-x;
-		padding: $layout-item-pad-y $layout-item-pad-x;
-		cursor: $cursor-pointer;
-		width: $layout-item-width;
-		border-radius: $layout-item-border-radius;
-		border: $layout-item-hover-border-thickness $layout-item-hover-border-style transparent;
+  // ITEM
+  .layout-item {
+    margin: $layout-items-margin-y $layout-items-margin-x;
+    padding: $layout-item-pad-y $layout-item-pad-x;
+    cursor: $cursor-pointer;
+    width: $layout-item-width;
+    border-radius: $layout-item-border-radius;
+    border: $layout-item-hover-border-thickness $layout-item-hover-border-style transparent;
 
-		@include single-transition();
+    @include single-transition();
 
-		&:hover {
-			border: $layout-item-hover-border-thickness $layout-item-hover-border-style $layout-item-hover-border-color;
-		}
-	}
+    &:hover {
+      border: $layout-item-hover-border-thickness $layout-item-hover-border-style $layout-item-hover-border-color;
+    }
+  }
 
-	// IMAGE
-	// =================================================================================================================
-	.layout-item-image-box {
-		width: $layout-item-img-size;
-		height: $layout-item-img-size;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		background-color: $layout-item-img-bg-color;
+  // IMAGE
+  // =================================================================================================================
+  .layout-item-image-box {
+    width: $layout-item-img-size;
+    height: $layout-item-img-size;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: $layout-item-img-bg-color;
 
-		img {
-			max-width: 100%;
-			max-height: 100%;
-		}
-	}
+    img {
+      max-width: 100%;
+      max-height: 100%;
+    }
+  }
 
-	// TITLE
-	// =================================================================================================================
-	.layout-item-title-box {
-		margin-top: $layout-item-title-margin-top;
-		margin-bottom: $layout-item-title-margin-bottom;
-	}
+  // TITLE
+  // =================================================================================================================
+  .layout-item-title-box {
+    margin-top: $layout-item-title-margin-top;
+    margin-bottom: $layout-item-title-margin-bottom;
+  }
 
-	.layout-item-title {
-		font-size: $layout-item-title-font-size;
-		line-height: $layout-item-title-line-height;
-		color: $layout-item-title-color;
-		text-transform: $layout-item-title-text-transform;
-		font-weight: $layout-item-title-font-weight;
-		text-align: $layout-item-title-text-align;
-	}
+  .layout-item-title {
+    font-size: $layout-item-title-font-size;
+    line-height: $layout-item-title-line-height;
+    color: $layout-item-title-color;
+    text-transform: $layout-item-title-text-transform;
+    font-weight: $layout-item-title-font-weight;
+    text-align: $layout-item-title-text-align;
+  }
 
-	.layout-item-subtitle {
-		font-size: $layout-item-subtitle-font-size;
-		line-height: $layout-item-subtitle-line-height;
-		color: $layout-item-subtitle-color;
-		text-transform: $layout-item-subtitle-text-transform;
-		font-weight: $layout-item-subtitle-font-weight;
-		margin-top: $layout-item-subtitle-spacing;
-		text-align: $layout-item-subtitle-text-align;
-	}
+  .layout-item-subtitle {
+    font-size: $layout-item-subtitle-font-size;
+    line-height: $layout-item-subtitle-line-height;
+    color: $layout-item-subtitle-color;
+    text-transform: $layout-item-subtitle-text-transform;
+    font-weight: $layout-item-subtitle-font-weight;
+    margin-top: $layout-item-subtitle-spacing;
+    text-align: $layout-item-subtitle-text-align;
+  }
 }

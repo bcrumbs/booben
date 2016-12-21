@@ -2,132 +2,132 @@
 @import 'variables';
 
 @include exports(components-tree) {
-	// =================================================================================================================
-	// BASE
-	// =================================================================================================================
-	// ITEMS LIST
-	// =================================================================================================================
-	.components-tree {
-		padding: $ctree-pad-y $ctree-pad-x;
-		padding-left: $ctree-pad-x - $ctree-item-pad-x;
-		flex-shrink: 0;
-	}
+  // =================================================================================================================
+  // BASE
+  // =================================================================================================================
+  // ITEMS LIST
+  // =================================================================================================================
+  .components-tree {
+    padding: $ctree-pad-y $ctree-pad-x;
+    padding-left: $ctree-pad-x - $ctree-item-pad-x;
+    flex-shrink: 0;
+  }
 
-	.components-tree-list {
-		margin: 0;
-		list-style-type: none;
-		padding: 0;
-		padding-right: $ctree-level-0-pad-right;
+  .components-tree-list {
+    margin: 0;
+    list-style-type: none;
+    padding: 0;
+    padding-right: $ctree-level-0-pad-right;
 
-		.components-tree-item & {
-			margin-top: $ctree-item-spacing;
-			margin-left: $ctree-level-offset;
-			padding-right: 0;
-		}
+    .components-tree-item & {
+      margin-top: $ctree-item-spacing;
+      margin-left: $ctree-level-offset;
+      padding-right: 0;
+    }
 
-		.sublevel-is-hidden & {
-			opacity: 0;
-			position: fixed;
-			pointer-events: none;
-		}
+    .sublevel-is-hidden & {
+      opacity: 0;
+      position: fixed;
+      pointer-events: none;
+    }
 
-		.sublevel-is-visible & {
-			opacity: 1;
-			pointer-events: initial;
-			position: relative;
-		}
-	}
+    .sublevel-is-visible & {
+      opacity: 1;
+      pointer-events: initial;
+      position: relative;
+    }
+  }
 
-	// TREE ITEM
-	// =================================================================================================================
-	.components-tree-item {
-		position: relative;
+  // TREE ITEM
+  // =================================================================================================================
+  .components-tree-item {
+    position: relative;
 
-		& + & {
-			margin-top: $ctree-item-spacing;
-		}
-	}
+    & + & {
+      margin-top: $ctree-item-spacing;
+    }
+  }
 
-	.components-tree-item-content {
-		height: $ctree-item-content-height;
-		display: flex;
-		align-items: center;
-		max-width: $ctree-item-max-width;
+  .components-tree-item-content {
+    height: $ctree-item-content-height;
+    display: flex;
+    align-items: center;
+    max-width: $ctree-item-max-width;
 
-		.components-tree-item:not(.has-sublevel) & {
-			padding-left: $ctree-item-icon-box-size + $ctree-item-icon-spacing;
-		}
-	}
+    .components-tree-item:not(.has-sublevel) & {
+      padding-left: $ctree-item-icon-box-size + $ctree-item-icon-spacing;
+    }
+  }
 
-	// TITLE
-	.components-tree-item-title-wrapper {
-		&,
-		&:hover,
-		&:focus {
-			background-color: transparent;
-			border: 0 solid transparent;
-			outline: none;
-			box-shadow: none;
-			padding: 0;
-		}
-	}
+  // TITLE
+  .components-tree-item-title-wrapper {
+    &,
+    &:hover,
+    &:focus {
+      background-color: transparent;
+      border: 0 solid transparent;
+      outline: none;
+      box-shadow: none;
+      padding: 0;
+    }
+  }
 
-	.components-tree-item-title {
-		padding: $ctree-item-pad-y $ctree-item-pad-x;
-		border-radius: $ctree-item-border-radius;
-		color: $ctree-item-color;
-		font-size: $ctree-item-font-size;
-		line-height: $ctree-item-line-height;
-		cursor: $cursor-pointer;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-		flex-grow: 1;
-		min-width: $ctree-item-min-width;
-		max-width: $ctree-item-max-width - ($ctree-item-icon-box-size + $ctree-item-icon-spacing) - $ctree-item-pad-x*2;
-		overflow: hidden;
-		text-align: left;
+  .components-tree-item-title {
+    padding: $ctree-item-pad-y $ctree-item-pad-x;
+    border-radius: $ctree-item-border-radius;
+    color: $ctree-item-color;
+    font-size: $ctree-item-font-size;
+    line-height: $ctree-item-line-height;
+    cursor: $cursor-pointer;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    flex-grow: 1;
+    min-width: $ctree-item-min-width;
+    max-width: $ctree-item-max-width - ($ctree-item-icon-box-size + $ctree-item-icon-spacing) - $ctree-item-pad-x*2;
+    overflow: hidden;
+    text-align: left;
 
-		@include single-transition();
+    @include single-transition();
 
-		&.is-hovered {
-			background-color: $ctree-item-hover-bg-color;
-		}
+    &.is-hovered {
+      background-color: $ctree-item-hover-bg-color;
+    }
 
-		.components-tree-item-title-wrapper.is-active & {
-			background-color: $ctree-item-focus-bg-color;
-			cursor: $cursor-default
-		}
-	}
+    .components-tree-item-title-wrapper.is-active & {
+      background-color: $ctree-item-focus-bg-color;
+      cursor: $cursor-default
+    }
+  }
 
-	// Icon
-	.components-tree-item-icon {
-		margin-right: $ctree-item-icon-spacing;
-	}
+  // Icon
+  .components-tree-item-icon {
+    margin-right: $ctree-item-icon-spacing;
+  }
 
-	.components-tree-item-icon,
-	.components-tree-item-icon .button-icon {
-		@include icon-size(
-				$ctree-item-icon-box-size,
-				$ctree-item-icon-img-size
-		);
+  .components-tree-item-icon,
+  .components-tree-item-icon .button-icon {
+    @include icon-size(
+        $ctree-item-icon-box-size,
+        $ctree-item-icon-img-size
+    );
 
-		.components-tree-item.item-is-active &,
-		.components-tree-item.sublevel-is-visible & {
-			transform: rotate(180deg);
-			@include icon-style(
-					$ctree-item-focus-icon-color
-			) ;
-		}
-		.components-tree-item.sublevel-is-hidden & {
-			transform: rotate(0deg);
-			@include icon-style(
-					$ctree-item-icon-color
-			) ;
-		}
-	}
+    .components-tree-item.item-is-active &,
+    .components-tree-item.sublevel-is-visible & {
+      transform: rotate(180deg);
+      @include icon-style(
+          $ctree-item-focus-icon-color
+      ) ;
+    }
+    .components-tree-item.sublevel-is-hidden & {
+      transform: rotate(0deg);
+      @include icon-style(
+          $ctree-item-icon-color
+      ) ;
+    }
+  }
 
-	.components-tree-item-icon .button {
-		min-height: 0;
-		border-width: 0;
-	}
+  .components-tree-item-icon .button {
+    min-height: 0;
+    border-width: 0;
+  }
 }

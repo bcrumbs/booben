@@ -25,7 +25,7 @@ export const currentComponentsSelector = createSelector(
 
     (topNestedConstructor, currentRoute) => topNestedConstructor
         ? topNestedConstructor.components
-        : currentRoute ? currentRoute.components : null
+        : currentRoute ? currentRoute.components : null,
 );
 
 export const topNestedConstructorComponentSelector = createSelector(
@@ -33,17 +33,17 @@ export const topNestedConstructorComponentSelector = createSelector(
     currentRouteSelector,
 
     (nestedConstructors, currentRoute) => {
-        if (nestedConstructors.isEmpty()) return null;
+      if (nestedConstructors.isEmpty()) return null;
 
-        const topNestedConstructor = nestedConstructors.first(),
-            componentId = topNestedConstructor.componentId;
+      const topNestedConstructor = nestedConstructors.first(),
+        componentId = topNestedConstructor.componentId;
 
-        const components = nestedConstructors.size === 1
+      const components = nestedConstructors.size === 1
             ? currentRoute.components
             : nestedConstructors.get(1).components;
 
-        return components.get(componentId) || null;
-    }
+      return components.get(componentId) || null;
+    },
 );
 
 export const currentRootComponentIdSelector = createSelector(
@@ -57,7 +57,7 @@ export const currentRootComponentIdSelector = createSelector(
             ? currentRouteIsIndexRoute
                 ? currentRoute.indexComponent
                 : currentRoute.component
-            : -1
+            : -1,
 );
 
 export const currentSelectedComponentIdsSelector = createSelector(
@@ -66,7 +66,7 @@ export const currentSelectedComponentIdsSelector = createSelector(
 
     (topNestedConstructor, selectedItems) => topNestedConstructor
         ? topNestedConstructor.selectedComponentIds
-        : selectedItems
+        : selectedItems,
 );
 
 export const singleComponentSelectedSelector = state =>
@@ -81,30 +81,30 @@ export const currentHighlightedComponentIdsSelector = createSelector(
 
     (topNestedConstructor, highlightedItems) => topNestedConstructor
         ? topNestedConstructor.highlightedComponentIds
-        : highlightedItems
+        : highlightedItems,
 );
 
 export const getCurrentComponentWithQueryArgs = createSelector(
-	state => state.project,
-	state => state.project.linkingPropOfComponentId,
-	haveNestedConstructorsSelector,
-	topNestedConstructorComponentSelector,
+  state => state.project,
+  state => state.project.linkingPropOfComponentId,
+  haveNestedConstructorsSelector,
+  topNestedConstructorComponentSelector,
 
-	(project, componentId, haveNestedConstructors, nestedConstructorsTopComponent) =>
-		haveNestedConstructors
-		?	nestedConstructorsTopComponent
-		:	getComponentWithQueryArgs(project, componentId, true)
+  (project, componentId, haveNestedConstructors, nestedConstructorsTopComponent) =>
+    haveNestedConstructors
+    ? nestedConstructorsTopComponent
+    : getComponentWithQueryArgs(project, componentId, true),
 );
 
 export const getRootComponentWithQueryArgs = createSelector(
-	state => state.project,
-	state => state.linkingPropOfComponentId,
-	haveNestedConstructorsSelector,
+  state => state.project,
+  state => state.linkingPropOfComponentId,
+  haveNestedConstructorsSelector,
 
-	(project, componentId, haveNestedConstructorsSelector) =>
-		 haveNestedConstructorsSelector
-		 ?	getComponentWithQueryArgs(project, componentId, false)
-		 :	null
+  (project, componentId, haveNestedConstructorsSelector) =>
+     haveNestedConstructorsSelector
+     ? getComponentWithQueryArgs(project, componentId, false)
+     : null,
 );
 
 /**
@@ -113,13 +113,13 @@ export const getRootComponentWithQueryArgs = createSelector(
  * @return {bool}
  */
 const containComponent = (parentComponent, childComponent) =>
-	parentComponent === childComponent || parentComponent.props.some(
-		prop =>
-			prop.source === 'designer' && prop.sourceData.components.some(
-				component => containComponent(component, childComponent)
-			)
+  parentComponent === childComponent || parentComponent.props.some(
+    prop =>
+      prop.source === 'designer' && prop.sourceData.components.some(
+        component => containComponent(component, childComponent),
+      ),
 
-	);
+  );
 
 /**
  * @param <Array<Object>} types
@@ -128,19 +128,18 @@ const containComponent = (parentComponent, childComponent) =>
  * @return {Object|undefined}
  */
 const getLastType = (types, type, path) => {
-	const pathStep = path[0];
-	let typeName;
-	if (pathStep.includes('/')) {
-		const [fieldName, connectionFieldName] = pathStep.split('/');
-		typeName = type
-					.fields[fieldName]
-						.connectionFields[connectionFieldName].type;
-	}
-	else typeName = type.fields[pathStep].type;
+  const pathStep = path[0];
+  let typeName;
+  if (pathStep.includes('/')) {
+    const [fieldName, connectionFieldName] = pathStep.split('/');
+    typeName = type
+          .fields[fieldName]
+            .connectionFields[connectionFieldName].type;
+  } else typeName = type.fields[pathStep].type;
 
-	return path.length === 1
-	?	types[typeName]
-	:	getLastType(types, types[typeName], path.slice(1));
+  return path.length === 1
+  ? types[typeName]
+  : getLastType(types, types[typeName], path.slice(1));
 };
 
 /**
@@ -152,60 +151,60 @@ const getLastType = (types, type, path) => {
  * @param {Array<string>=} context
  */
 const getContextQueryPath = (
-	prop,
-	{ queryTypeName, types },
-	contexts = [],
-	context = void 0,
+  prop,
+  { queryTypeName, types },
+  contexts = [],
+  context = void 0,
 ) => {
-	if (prop.source === 'data'
-		&&	prop.sourceData
-		&&	prop.sourceData.queryPath
-	) {
-		let isDataContext = false;
+  if (prop.source === 'data'
+    && prop.sourceData
+    && prop.sourceData.queryPath
+  ) {
+    let isDataContext = false;
 
-		context = typeof context === 'undefined'
-				   ?	(isDataContext = true, prop.sourceData.toJS().dataContext)
-				   :	context;
+    context = typeof context === 'undefined'
+           ? (isDataContext = true, prop.sourceData.toJS().dataContext)
+           : context;
 
-		if (!context || !context.length) return;
+    if (!context || !context.length) return;
 
-		if (isDataContext) context = [...context, ...context.slice(-1)];
+    if (isDataContext) context = [...context, ...context.slice(-1)];
 
-		let queryPath = prop.sourceData.queryPath.map(({ field }) => field).toJS();
+    let queryPath = prop.sourceData.queryPath.map(({ field }) => field).toJS();
 
-		const queryPathPrefix = contexts.find(
-			searchContext => searchContext && context.slice(0, -1).every(
-				(contextName, key) => searchContext.context[key] === contextName
-			)
-		);
+    const queryPathPrefix = contexts.find(
+      searchContext => searchContext && context.slice(0, -1).every(
+        (contextName, key) => searchContext.context[key] === contextName,
+      ),
+    );
 
-		if (queryPathPrefix) queryPath = queryPathPrefix.contextQueryPath.concat(queryPath);
+    if (queryPathPrefix) queryPath = queryPathPrefix.contextQueryPath.concat(queryPath);
 
 
-		let type = getLastType(
-			types,
-			types[queryTypeName],
-			queryPath
-		);
+    let type = getLastType(
+      types,
+      types[queryTypeName],
+      queryPath,
+    );
 
-		if (!type) {
-			queryPath = queryPath.slice(0, -1);
-			type = getLastType(
-				types,
-				types[queryTypeName],
-				queryPath
-			);
-		}
+    if (!type) {
+      queryPath = queryPath.slice(0, -1);
+      type = getLastType(
+        types,
+        types[queryTypeName],
+        queryPath,
+      );
+    }
 
-		return {
-			context,
-			contextQueryPath: queryPath,
-			contextFieldType: {
-				name: type.name,
-				type: type.name
-			}
-		};
-	}
+    return {
+      context,
+      contextQueryPath: queryPath,
+      contextFieldType: {
+        name: type.name,
+        type: type.name,
+      },
+    };
+  }
 };
 
 /**
@@ -216,29 +215,30 @@ const getContextQueryPath = (
  * @return {Array<Object>}
  */
 const getAllNestedContexts = (component, schema, contexts, topComponent) =>
-	component.props.reduce(
-		(acc, prop) => {
-			if (prop.source === 'designer') {
-				return acc.concat(
-					prop.sourceData.components.reduce(
-						(contextAcc, component) => contextAcc.concat(
-							getAllNestedContexts(
-								component,
-								schema,
-								[...contexts, ...contextAcc],
-								topComponent
-							)
-						)
-					, [])
-				);
-			}
-			else return acc.concat(
-				containComponent(component, topComponent)
-				?	[getContextQueryPath(prop, schema, [...contexts, ...acc])]
-				:	[]
-			);
-		}
-	, []).filter(v => v);
+  component.props.reduce(
+    (acc, prop) => {
+      if (prop.source === 'designer') {
+        return acc.concat(
+          prop.sourceData.components.reduce(
+            (contextAcc, component) => contextAcc.concat(
+              getAllNestedContexts(
+                component,
+                schema,
+                [...contexts, ...contextAcc],
+                topComponent,
+              ),
+            )
+          , []),
+        );
+      } else {
+        return acc.concat(
+        containComponent(component, topComponent)
+        ? [getContextQueryPath(prop, schema, [...contexts, ...acc])]
+        : [],
+      );
+      }
+    }
+  , []).filter(v => v);
 
 /**
  * @param {Object} component
@@ -247,60 +247,60 @@ const getAllNestedContexts = (component, schema, contexts, topComponent) =>
  * @return {Array<Object>}
  */
 const getAllRootContexts = (component, schema, meta) => {
-	const propsMeta = getComponentMeta(component.name, meta).props;
-	return Object.keys(propsMeta).map(
-		propName => {
-			const propMeta = propsMeta[propName];
-			if (propMeta.source.includes('data')) {
-				const context = propMeta.sourceConfigs.data.pushDataContext;
+  const propsMeta = getComponentMeta(component.name, meta).props;
+  return Object.keys(propsMeta).map(
+    propName => {
+      const propMeta = propsMeta[propName];
+      if (propMeta.source.includes('data')) {
+        const context = propMeta.sourceConfigs.data.pushDataContext;
 
-				return getContextQueryPath(component.props.get(
-					propName
-				), schema, [], [ context ]);
-			}
-		}
-	).filter(v => v);
+        return getContextQueryPath(component.props.get(
+          propName,
+        ), schema, [], [context]);
+      }
+    },
+  ).filter(v => v);
 };
 
 export const getAllPossibleNestedContexts = createSelector(
-	state => state.project,
-	state => state.project.linkingPropOfComponentId,
-	state => state.project.schema,
-	state => state.project.meta,
-	getRootComponentWithQueryArgs,
-	haveNestedConstructorsSelector,
-	topNestedConstructorComponentSelector,
-	(
-		project,
-		componentId,
-		schema,
-		meta,
-		rootComponentWithQueryArgs,
-		haveNestedConstructorsSelector,
-		topNestedConstructorComponent
-	) => {
-		if (haveNestedConstructorsSelector && schema) {
-			const rootContexts = getAllRootContexts(
-				rootComponentWithQueryArgs,
-				schema,
-				meta
-			);
-			return project.nestedConstructors.size === 1
-				?	rootContexts
-				:	project.nestedConstructors.slice(1).reverse().reduce(
-				(acc, { components }) => acc.concat(
-					components.reduce(
-						(acc, component) =>
-							acc.concat(getAllNestedContexts(
-								component,
-								schema,
-								[...acc, ...rootContexts],
-								topNestedConstructorComponent
-							)
-						)
-					, []).filter(v => v)
-				)
-			, []);
-		} else return null;
-	}
+  state => state.project,
+  state => state.project.linkingPropOfComponentId,
+  state => state.project.schema,
+  state => state.project.meta,
+  getRootComponentWithQueryArgs,
+  haveNestedConstructorsSelector,
+  topNestedConstructorComponentSelector,
+  (
+    project,
+    componentId,
+    schema,
+    meta,
+    rootComponentWithQueryArgs,
+    haveNestedConstructorsSelector,
+    topNestedConstructorComponent,
+  ) => {
+    if (haveNestedConstructorsSelector && schema) {
+      const rootContexts = getAllRootContexts(
+        rootComponentWithQueryArgs,
+        schema,
+        meta,
+      );
+      return project.nestedConstructors.size === 1
+        ? rootContexts
+        : project.nestedConstructors.slice(1).reverse().reduce(
+        (acc, { components }) => acc.concat(
+          components.reduce(
+            (acc, component) =>
+              acc.concat(getAllNestedContexts(
+                component,
+                schema,
+                [...acc, ...rootContexts],
+                topNestedConstructorComponent,
+              ),
+            )
+          , []).filter(v => v),
+        )
+      , []);
+    } else return null;
+  },
 );

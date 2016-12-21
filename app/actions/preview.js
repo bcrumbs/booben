@@ -8,15 +8,15 @@ export const PREVIEW_UNHIGHLIGHT_COMPONENT = 'PREVIEW_UNHIGHLIGHT_COMPONENT';
 export const PREVIEW_SET_CURRENT_ROUTE = 'PREVIEW_SET_CURRENT_ROUTE';
 export const PREVIEW_START_DRAG_NEW_COMPONENT = 'PREVIEW_START_DRAG_NEW_COMPONENT';
 export const PREVIEW_START_DRAG_EXISTING_COMPONENT
-				= 'PREVIEW_START_DRAG_EXISTING_COMPONENT';
+        = 'PREVIEW_START_DRAG_EXISTING_COMPONENT';
 export const PREVIEW_DRAG_OVER_COMPONENT = 'PREVIEW_DRAG_OVER_COMPONENT';
 export const PREVIEW_DRAG_OVER_PLACEHOLDER = 'PREVIEW_DRAG_OVER_PLACEHOLDER';
 export const PREVIEW_DROP_COMPONENT = 'PREVIEW_DROP_COMPONENT';
 
 export const DROP_COMPONENT_AREA_IDS = {
-	'TREE': 'TREE',
-	'PREVIEW': 'PREVIEW',
-	'OUT': 'OUT'
+  TREE: 'TREE',
+  PREVIEW: 'PREVIEW',
+  OUT: 'OUT',
 };
 
 /**
@@ -25,9 +25,9 @@ export const DROP_COMPONENT_AREA_IDS = {
  * @return {Object}
  */
 export const selectPreviewComponent = (componentId, exclusive = false) => ({
-    type: PREVIEW_SELECT_COMPONENT,
-    componentId,
-    exclusive
+  type: PREVIEW_SELECT_COMPONENT,
+  componentId,
+  exclusive,
 });
 
 /**
@@ -35,8 +35,8 @@ export const selectPreviewComponent = (componentId, exclusive = false) => ({
  * @return {Object}
  */
 export const deselectPreviewComponent = componentId => ({
-    type: PREVIEW_DESELECT_COMPONENT,
-    componentId
+  type: PREVIEW_DESELECT_COMPONENT,
+  componentId,
 });
 
 /**
@@ -44,8 +44,8 @@ export const deselectPreviewComponent = componentId => ({
  * @return {Object}
  */
 export const toggleComponentSelection = componentId => ({
-    type: PREVIEW_TOGGLE_COMPONENT_SELECTION,
-    componentId
+  type: PREVIEW_TOGGLE_COMPONENT_SELECTION,
+  componentId,
 });
 
 /**
@@ -53,8 +53,8 @@ export const toggleComponentSelection = componentId => ({
  * @return {Object}
  */
 export const highlightPreviewComponent = componentId => ({
-    type: PREVIEW_HIGHLIGHT_COMPONENT,
-    componentId
+  type: PREVIEW_HIGHLIGHT_COMPONENT,
+  componentId,
 });
 
 /**
@@ -62,8 +62,8 @@ export const highlightPreviewComponent = componentId => ({
  * @return {Object}
  */
 export const unhighlightPreviewComponent = componentId => ({
-    type: PREVIEW_UNHIGHLIGHT_COMPONENT,
-    componentId
+  type: PREVIEW_UNHIGHLIGHT_COMPONENT,
+  componentId,
 });
 
 /**
@@ -72,9 +72,9 @@ export const unhighlightPreviewComponent = componentId => ({
  * @return {Object}
  */
 export const setCurrentRoute = (routeId, isIndexRoute) => ({
-    type: PREVIEW_SET_CURRENT_ROUTE,
-    routeId,
-    isIndexRoute
+  type: PREVIEW_SET_CURRENT_ROUTE,
+  routeId,
+  isIndexRoute,
 });
 
 /**
@@ -83,8 +83,8 @@ export const setCurrentRoute = (routeId, isIndexRoute) => ({
  * @return {Object}
  */
 export const startDragNewComponent = components => ({
-    type: PREVIEW_START_DRAG_NEW_COMPONENT,
-    components
+  type: PREVIEW_START_DRAG_NEW_COMPONENT,
+  components,
 });
 
 /**
@@ -93,8 +93,8 @@ export const startDragNewComponent = components => ({
  * @return {Object}
  */
 export const startDragExistingComponent = componentId => ({
-    type: PREVIEW_START_DRAG_EXISTING_COMPONENT,
-    componentId
+  type: PREVIEW_START_DRAG_EXISTING_COMPONENT,
+  componentId,
 });
 
 /**
@@ -103,8 +103,8 @@ export const startDragExistingComponent = componentId => ({
  * @return {Object}
  */
 export const dragOverComponent = componentId => ({
-    type: PREVIEW_DRAG_OVER_COMPONENT,
-    componentId
+  type: PREVIEW_DRAG_OVER_COMPONENT,
+  componentId,
 });
 
 /**
@@ -114,9 +114,9 @@ export const dragOverComponent = componentId => ({
  * @return {Object}
  */
 export const dragOverPlaceholder = (containerId, afterIdx) => ({
-    type: PREVIEW_DRAG_OVER_PLACEHOLDER,
-    containerId,
-    afterIdx
+  type: PREVIEW_DRAG_OVER_PLACEHOLDER,
+  containerId,
+  afterIdx,
 });
 
 /**
@@ -124,6 +124,6 @@ export const dragOverPlaceholder = (containerId, afterIdx) => ({
  * @return {Object}
  */
 export const dropComponent = dropOnAreaId => ({
-    type: PREVIEW_DROP_COMPONENT,
-	dropOnAreaId
+  type: PREVIEW_DROP_COMPONENT,
+  dropOnAreaId,
 });

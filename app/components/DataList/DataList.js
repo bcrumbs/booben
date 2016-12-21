@@ -4,29 +4,29 @@ import './DataList.scss';
 import { DataItem } from './DataItem/DataItem';
 
 export const DataList = props => {
-    let className = 'data-list';
+  const className = 'data-list';
 
-    let list = props.data.map((item, idx) => (
-        <DataItem
-            key={idx}
-            {...item}
-        />
+  const list = props.data.map((item, idx) => (
+    <DataItem
+      key={idx}
+      {...item}
+    />
     ));
 
-	return (
-		<div className={className}>
-			{ list }
-			{ props.children }
-		</div>
-	);
+  return (
+    <div className={className}>
+      { list }
+      { props.children }
+    </div>
+  );
 };
 
 DataList.propTypes = {
-    data: PropTypes.arrayOf(PropTypes.object)
+  data: PropTypes.arrayOf(PropTypes.object),
 };
 
 DataList.defaultProps = {
-    data: []
+  data: [],
 };
 
 DataList.displayName = 'DataList';

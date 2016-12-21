@@ -74,9 +74,9 @@ $rcard-index-pad-x:             $base-module*1.5 !default;
 
 // MIXINS
 @mixin level-offset($level) {
-	.route-card-wrapper .routes-list-wrapper {
-		margin-left: $rcard-offset-left*$rcard-level-multiplicator*$level;
+  .route-card-wrapper .routes-list-wrapper {
+    margin-left: $rcard-offset-left*$rcard-level-multiplicator*$level;
 
-		@content;
-	}
+    @content;
+  }
 }

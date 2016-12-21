@@ -2,244 +2,244 @@
 @import 'variables';
 
 @include exports(page-drawer) {
-	// =================================================================================================================
-	// BASE
-	// =================================================================================================================
-	.page-drawer {
-		flex-shrink: 0;
-		overflow: hidden;
-		position: relative;
-		display: flex;
-		align-items: stretch;
-		width: $pdrawer-width;
+  // =================================================================================================================
+  // BASE
+  // =================================================================================================================
+  .page-drawer {
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    width: $pdrawer-width;
 
-		@include box-shadow();
-	}
+    @include box-shadow();
+  }
 
-	.page-drawer-wrapper {
-		flex-shrink: 0;
-		overflow: hidden;
-		position: relative;
-		display: flex;
-		align-items: stretch;
-		width: $pdrawer-width;
-	}
+  .page-drawer-wrapper {
+    flex-shrink: 0;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    width: $pdrawer-width;
+  }
 
-	.page-drawer-content {
-		display: flex;
-		flex-direction: column;
-		width: 100%;
-	}
+  .page-drawer-content {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+  }
 
-	// Actions Area
-	// =================================================================================================================
-	.page-drawer-actions-area {
-		min-width: $pdrawer-icon-actions-area-width;
-		display: flex;
-		flex-shrink: 0;
-		flex-direction: column;
-		background-color: $pdrawer-actions-area-bg-color;
-		border-right: $pdrawer-actions-area-border-right-width solid $pdrawer-actions-area-border-right-color;
-		position: relative;
-		z-index: 2;
-		overflow: hidden;
-		overflow-y: auto;
-	}
+  // Actions Area
+  // =================================================================================================================
+  .page-drawer-actions-area {
+    min-width: $pdrawer-icon-actions-area-width;
+    display: flex;
+    flex-shrink: 0;
+    flex-direction: column;
+    background-color: $pdrawer-actions-area-bg-color;
+    border-right: $pdrawer-actions-area-border-right-width solid $pdrawer-actions-area-border-right-color;
+    position: relative;
+    z-index: 2;
+    overflow: hidden;
+    overflow-y: auto;
+  }
 
-	.page-drawer-actions-group {
-		padding: $pdrawer-actions-group-padding;
-		flex-shrink: 0;
+  .page-drawer-actions-group {
+    padding: $pdrawer-actions-group-padding;
+    flex-shrink: 0;
 
-		& + & {
-			border-top: $pdrawer-actions-separator-thickness solid $pdrawer-actions-separator-color;
-		}
+    & + & {
+      border-top: $pdrawer-actions-separator-thickness solid $pdrawer-actions-separator-color;
+    }
 
-		&:last-child {
-			flex-grow: 1;
-		}
-	}
+    &:last-child {
+      flex-grow: 1;
+    }
+  }
 
-	.page-drawer-action-item {
-		display: flex;
-		flex-shrink: 0;
-		background-color: transparent;
-		@include single-transition(background-color);
+  .page-drawer-action-item {
+    display: flex;
+    flex-shrink: 0;
+    background-color: transparent;
+    @include single-transition(background-color);
 
-		.button {
-			border-radius: 0;
-			border-width: 0;
-			opacity: $pdrawer-actions-item-opacity-default;
-			@include single-transition();
-		}
+    .button {
+      border-radius: 0;
+      border-width: 0;
+      opacity: $pdrawer-actions-item-opacity-default;
+      @include single-transition();
+    }
 
-		.button-icon {
-			@include icon-size($pdrawer-actions-icon-item-size, $pdrawer-actions-icon-img-size);
-		}
+    .button-icon {
+      @include icon-size($pdrawer-actions-icon-item-size, $pdrawer-actions-icon-img-size);
+    }
 
-		&:hover,
-		&:focus {
-			.button { opacity: $pdrawer-actions-item-opacity-hover}
-		}
+    &:hover,
+    &:focus {
+      .button { opacity: $pdrawer-actions-item-opacity-hover}
+    }
 
-		&.is-active {
-			background-color: $pdrawer-actions-item-active-bg-color;
+    &.is-active {
+      background-color: $pdrawer-actions-item-active-bg-color;
 
-			.button {
-				opacity: 1;
-			}
+      .button {
+        opacity: 1;
+      }
 
-			&:hover,
-			&:focus {
-				.button {
-					cursor: $cursor-default;
-					background-color: transparent;
-				}
-			}
-		}
-	}
+      &:hover,
+      &:focus {
+        .button {
+          cursor: $cursor-default;
+          background-color: transparent;
+        }
+      }
+    }
+  }
 
-	.page-drawer-action-placeholder {
-		padding: $pdrawer-action-placeholder-padding;
-		width: $pdrawer-actions-icon-item-size;
-		height: $pdrawer-actions-icon-item-size;
-		flex-shrink: 0;
+  .page-drawer-action-placeholder {
+    padding: $pdrawer-action-placeholder-padding;
+    width: $pdrawer-actions-icon-item-size;
+    height: $pdrawer-actions-icon-item-size;
+    flex-shrink: 0;
 
-		.action-placeholder-box {
-			border-radius: $pdrawer-action-placeholder-box-border-radius;
-			background-color: $pdrawer-action-placeholder-box-bg-color;
-			border: 1px solid $pdrawer-action-placeholder-box-border-color;
+    .action-placeholder-box {
+      border-radius: $pdrawer-action-placeholder-box-border-radius;
+      background-color: $pdrawer-action-placeholder-box-bg-color;
+      border: 1px solid $pdrawer-action-placeholder-box-border-color;
 
-			width: $pdrawer-actions-icon-item-size - $pdrawer-action-placeholder-padding*2;
-			height: $pdrawer-actions-icon-item-size - $pdrawer-action-placeholder-padding*2;
-		}
-	}
+      width: $pdrawer-actions-icon-item-size - $pdrawer-action-placeholder-padding*2;
+      height: $pdrawer-actions-icon-item-size - $pdrawer-action-placeholder-padding*2;
+    }
+  }
 
-	// Content Area
-	// =================================================================================================================
-	.page-drawer-content {
-		flex-grow: 1;
-		background-color: $pdrawer-content-area-bg-color;
-		width: 100%;
+  // Content Area
+  // =================================================================================================================
+  .page-drawer-content {
+    flex-grow: 1;
+    background-color: $pdrawer-content-area-bg-color;
+    width: 100%;
 
-		.page-drawer-has-actions & {
-			width: $pdrawer-width - $pdrawer-icon-actions-area-width;
-		}
-	}
+    .page-drawer-has-actions & {
+      width: $pdrawer-width - $pdrawer-icon-actions-area-width;
+    }
+  }
 
-	// =================================================================================================================
-	// ELEMENTS
-	// =================================================================================================================
-	// Content title
-	// =================================================================================================================
-	.page-drawer-content-area {
-		position: relative;
-		overflow-y: auto;
-		z-index: 1;
-	}
+  // =================================================================================================================
+  // ELEMENTS
+  // =================================================================================================================
+  // Content title
+  // =================================================================================================================
+  .page-drawer-content-area {
+    position: relative;
+    overflow-y: auto;
+    z-index: 1;
+  }
 
-	.page-drawer-content-title {
-		display: flex;
-		padding: $pdrawer-content-title-padding;
-		padding-right: $base-module;
-		border-bottom: 1px solid $pdrawer-content-border-color;
-		flex-shrink: 0;
-	}
+  .page-drawer-content-title {
+    display: flex;
+    padding: $pdrawer-content-title-padding;
+    padding-right: $base-module;
+    border-bottom: 1px solid $pdrawer-content-border-color;
+    flex-shrink: 0;
+  }
 
-	.page-drawer-content-title-box {
-		font-size: $pdrawer-content-title-font-size;
-		line-height: $pdrawer-content-title-line-height;
-		color: $pdrawer-content-title-color;
-		font-weight: $pdrawer-content-title-font-weight;
-		text-transform: $pdrawer-content-title-transform;
-		flex-grow: 1;
-		display: flex;
-		align-items: center;
-	}
+  .page-drawer-content-title-box {
+    font-size: $pdrawer-content-title-font-size;
+    line-height: $pdrawer-content-title-line-height;
+    color: $pdrawer-content-title-color;
+    font-weight: $pdrawer-content-title-font-weight;
+    text-transform: $pdrawer-content-title-transform;
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+  }
 
-	.page-drawer-content-actions-box {
-		display: flex;
-		margin-left: $pdrawer-title-actions-margin-left - $pdrawer-title-actions-spacing/2;
+  .page-drawer-content-actions-box {
+    display: flex;
+    margin-left: $pdrawer-title-actions-margin-left - $pdrawer-title-actions-spacing/2;
 
-		.button {
-			margin: 0 $pdrawer-title-actions-spacing/2;
-		}
-	}
+    .button {
+      margin: 0 $pdrawer-title-actions-spacing/2;
+    }
+  }
 
-	// Content block
-	.page-drawer-content-body {
-		overflow-y: auto;
-		flex-shrink: initial;
-		flex-grow: 1;
-		font-size: $pdrawer-content-body-font-size;
-	}
+  // Content block
+  .page-drawer-content-body {
+    overflow-y: auto;
+    flex-shrink: initial;
+    flex-grow: 1;
+    font-size: $pdrawer-content-body-font-size;
+  }
 
-	.page-drawer-content-block {
-		padding: $pdrawer-content-body-padding;
+  .page-drawer-content-block {
+    padding: $pdrawer-content-body-padding;
 
-		& + & { padding-top: 0 }
-	}
+    & + & { padding-top: 0 }
+  }
 
-	// Content actions
-	.page-drawer-content-actions  {
-		flex-shrink: 0;
-		display: flex;
-		text-align: right;
-		justify-content: flex-end;
+  // Content actions
+  .page-drawer-content-actions  {
+    flex-shrink: 0;
+    display: flex;
+    text-align: right;
+    justify-content: flex-end;
 
-		&.is-bordered {
-			border-top: 1px solid $pdrawer-content-border-color;
-		}
-	}
+    &.is-bordered {
+      border-top: 1px solid $pdrawer-content-border-color;
+    }
+  }
 
-	.page-drawer-content-actions-region {
-		padding: $pdrawer-content-actions-box-padding;
-		display: flex;
-		text-align: right;
-		justify-content: flex-end;
+  .page-drawer-content-actions-region {
+    padding: $pdrawer-content-actions-box-padding;
+    display: flex;
+    text-align: right;
+    justify-content: flex-end;
 
-		.button {
-			margin: $pdrawer-content-actions-spacing-y/2 $pdrawer-content-actions-spacing-x/2;
-			padding: 0;
-		}
+    .button {
+      margin: $pdrawer-content-actions-spacing-y/2 $pdrawer-content-actions-spacing-x/2;
+      padding: 0;
+    }
 
-		&.region-main { flex-grow: 1; }
-	}
+    &.region-main { flex-grow: 1; }
+  }
 
-	// =================================================================================================================
-	// STATES
-	// =================================================================================================================
-	// STATE: Collapsed
-	// =================================================================================================================
-	.page-drawer.is-collapsed {
-		// Common
-		.page-drawer-content {
-			position: absolute;
-			opacity: 0;
-			pointer-events: none;
-		}
+  // =================================================================================================================
+  // STATES
+  // =================================================================================================================
+  // STATE: Collapsed
+  // =================================================================================================================
+  .page-drawer.is-collapsed {
+    // Common
+    .page-drawer-content {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
 
-		// Without actions area
-		width: 0;
+    // Without actions area
+    width: 0;
 
-		.page-drawer-wrapper {
-			width: 0;
-			transform: translateX(100%);
-		}
+    .page-drawer-wrapper {
+      width: 0;
+      transform: translateX(100%);
+    }
 
-		// With actions area
-		&.page-drawer-has-actions {
-			width: $pdrawer-icon-actions-area-width;
+    // With actions area
+    &.page-drawer-has-actions {
+      width: $pdrawer-icon-actions-area-width;
 
-			.page-drawer-wrapper {
-				width: $pdrawer-icon-actions-area-width;
-				transform: translateX(calc(100% - #{$pdrawer-icon-actions-area-width}));
-			}
+      .page-drawer-wrapper {
+        width: $pdrawer-icon-actions-area-width;
+        transform: translateX(calc(100% - #{$pdrawer-icon-actions-area-width}));
+      }
 
-			.page-drawer-actions-area {
-				border-right-width: 0;
-			}
-		}
+      .page-drawer-actions-area {
+        border-right-width: 0;
+      }
+    }
 
-	}
+  }
 }
 
