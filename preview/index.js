@@ -5,7 +5,6 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { ApolloProvider } from 'react-apollo';
 import ApolloClient, { createNetworkInterface } from 'apollo-client';
-import { hashHistory } from 'react-router';
 
 import Preview from './containers/Preview';
 import Overlay from './containers/Overlay';
@@ -32,8 +31,7 @@ window.JSSY = {
  * @param {string} params.containerStyle
  */
 window.JSSY.initPreview = params => {
-    if (window.JSSY.initialized)
-        return { history: hashHistory };
+    if (window.JSSY.initialized) return;
 
     const containerNode = document.getElementById(PREVIEW_DOM_CONTAINER_ID),
         overlayNode = document.getElementById(PREVIEW_DOM_OVERLAY_ID);
@@ -89,8 +87,6 @@ window.JSSY.initPreview = params => {
 
     window.JSSY.initialized = true;
     window.JSSY.params = params;
-
-    return { history: hashHistory };
 };
 
 window.JSSY.cleanup = () => {

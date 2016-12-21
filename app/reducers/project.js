@@ -891,7 +891,9 @@ export default (state = new ProjectState(), action) => {
 
             return state.merge({
                 currentRouteId: action.routeId,
-                currentRouteIsIndexRoute: action.isIndexRoute
+                currentRouteIsIndexRoute: action.isIndexRoute,
+                selectedItems: Set(),
+                highlightedItems: Set()
             });
         }
 

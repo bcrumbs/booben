@@ -15,7 +15,6 @@ import { ComponentsLibrary } from '../containers/ComponentsLibrary/ComponentsLib
 import { ComponentsTreeView } from '../containers/ComponentsTreeView/ComponentsTreeView';
 import { ComponentPropsEditor } from '../containers/ComponentPropsEditor/ComponentPropsEditor';
 import { ComponentRegionsEditor } from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
-import { LinkPropMenu } from '../containers/LinkPropMenu/LinkPropMenu';
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
 import { DataWindow } from '../containers/DataWindow/DataWindow';
 
@@ -152,12 +151,18 @@ class DesignRoute extends PureComponent {
             confirmDeleteComponentDialogIsVisible: false
         };
 
-        this._handleToolTitleChange = this._handleToolTitleChange.bind(this);
-        this._handleDeleteComponentButtonPress = this._handleDeleteComponentButtonPress.bind(this);
-        this._handleDeleteComponentConfirm = this._handleDeleteComponentConfirm.bind(this);
-        this._handleDeleteComponentCancel = this._handleDeleteComponentCancel.bind(this);
-        this._handleConfirmDeleteComponentDialogClose = this._handleConfirmDeleteComponentDialogClose.bind(this);
-        this._handleLinkPropDialogCancel = this._handleLinkPropDialogCancel.bind(this);
+        this._handleToolTitleChange =
+            this._handleToolTitleChange.bind(this);
+        this._handleDeleteComponentButtonPress =
+            this._handleDeleteComponentButtonPress.bind(this);
+        this._handleDeleteComponentConfirm =
+            this._handleDeleteComponentConfirm.bind(this);
+        this._handleDeleteComponentCancel =
+            this._handleDeleteComponentCancel.bind(this);
+        this._handleConfirmDeleteComponentDialogClose =
+            this._handleConfirmDeleteComponentDialogClose.bind(this);
+        this._handleLinkPropDialogCancel =
+            this._handleLinkPropDialogCancel.bind(this);
     }
 
     /**
@@ -220,12 +225,8 @@ class DesignRoute extends PureComponent {
     }
 
     render() {
-        // TODO: Handle index routes
         const { getLocalizedText } = this.props,
-            src = `/preview/${this.props.params.projectName}/index.html`,
-            routeId = parseInt(this.props.params.routeId),
-            isIndexRoute = this.props.location.pathname.endsWith('/index'),
-            route = this.props.project.routes.get(routeId);
+            src = `/preview/${this.props.params.projectName}/index.html`;
 
         const libraryTool = new ToolRecord({
             id: TOOL_ID_LIBRARY,
@@ -357,17 +358,19 @@ class DesignRoute extends PureComponent {
             );
         }
 
-        const confirmDeleteDialogButtons = [
-            { text: getLocalizedText('delete'), onPress: this._handleDeleteComponentConfirm },
-            { text: getLocalizedText('cancel'), onPress: this._handleDeleteComponentCancel }
-        ];
+        const confirmDeleteDialogButtons = [{
+            text: getLocalizedText('delete'),
+            onPress: this._handleDeleteComponentConfirm
+        }, {
+            text: getLocalizedText('cancel'),
+            onPress: this._handleDeleteComponentCancel
+        }];
 
         const previewIFrame = (
             <PreviewIFrame
                 interactive
                 store={store}
                 url={src}
-                path={route.fullPath}
                 containerStyle={this.props.previewContainerStyle}
             />
         );
@@ -419,10 +422,7 @@ class DesignRoute extends PureComponent {
             content = previewIFrame;
         }
 
-        const linkPropDialogButtons = [{
-            text: getLocalizedText('cancel'),
-            onPress: this._handleLinkPropDialogCancel
-        }];
+        const dataWindow = this.props.linkingProp ? <DataWindow /> : null;
 
         return (
             <Desktop
@@ -453,7 +453,7 @@ class DesignRoute extends PureComponent {
                     {getLocalizedText('deleteThisComponentQuestion')}
                 </Dialog>
 
-                { this.props.linkingProp && <DataWindow /> }
+                {dataWindow}
             </Desktop>
         );
     }

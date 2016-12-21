@@ -63,17 +63,6 @@ export const getOutletComponentId = route =>
 export const getParentComponentId = (route, componentId) =>
     route.components.get(componentId).parentId;
 
-export const getParentComponent = (route, componentId) => {
-    const component = route.components.get(componentId);
-    return component.parentId > -1
-        ? route.components.get(component.parentId)
-        : null;
-};
-
-export const getChildComponents = (route, componentId) =>
-    route.components.get(componentId).children.map(childId =>
-        route.components.get(childId));
-
 export const isRootRoute = route => route.parentId === -1;
 
 export default ProjectRouteRecord;

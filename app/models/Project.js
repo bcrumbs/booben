@@ -38,7 +38,9 @@ export const projectToImmutable = input => new ProjectRecord({
         const visitRoute = (route, pathPrefix, parentRouteId) => {
             const fullPath = concatPath(pathPrefix, route.path);
             routes.set(route.id, projectRouteToImmutable(route, fullPath, parentRouteId));
-            route.children.forEach(route => visitRoute(route, fullPath, route.id));
+
+            route.children.forEach(childRoute =>
+                visitRoute(childRoute, fullPath, route.id));
         };
 
         input.routes.forEach(route => visitRoute(route, '', -1));

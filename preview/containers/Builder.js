@@ -4,7 +4,6 @@
 import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { graphql } from 'react-apollo';
-import { NetworkStatus } from 'apollo-client';
 import _merge from 'lodash.merge';
 import _mapValues from 'lodash.mapvalues';
 import { List } from 'immutable';
@@ -14,6 +13,7 @@ import jssyConstants from '../../app/constants/jssyConstants';
 import { NO_VALUE } from  '../../app/constants/misc';
 
 import { ContentPlaceholder } from '../components/ContentPlaceholder';
+import { Outlet } from '../components/Outlet';
 
 import getComponentByName from '../getComponentByName';
 import isPseudoComponent from '../isPseudoComponent';
@@ -180,7 +180,7 @@ class BuilderComponent extends PureComponent {
      */
     _renderPseudoComponent(component) {
         if (component.name === 'Outlet') {
-            return this.props.children;
+            return this.props.children || <Outlet/>;
         }
         else if (component.name === 'Text') {
             const props = this._buildProps(component);
