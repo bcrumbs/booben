@@ -421,7 +421,7 @@ const insertDraggedComponents = (state, components) => {
 
 const selectFirstRoute = state => state.merge({
     selectedRouteId: state.data.routes.size > 0
-        ? state.data.routes.get(0)
+        ? state.data.routes.get(0).id
         : -1,
 
     indexRouteSelected: false

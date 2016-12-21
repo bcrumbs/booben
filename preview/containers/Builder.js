@@ -15,6 +15,8 @@ import { NO_VALUE } from  '../../app/constants/misc';
 import { ContentPlaceholder } from '../components/ContentPlaceholder';
 import { Outlet } from '../components/Outlet';
 
+import { currentSelectedComponentIdsSelector } from '../../app/selectors';
+
 import getComponentByName from '../getComponentByName';
 import isPseudoComponent from '../isPseudoComponent';
 
@@ -329,6 +331,11 @@ class BuilderComponent extends PureComponent {
         }
     }
 
+    _willRenderContentPlaceholder(component) {
+        return this.props.showContentPlaceholders ||
+            this.props.selectedComponentIds.has(component.id);
+    }
+
     /**
      *
      * @param {Object} component
@@ -388,7 +395,7 @@ class BuilderComponent extends PureComponent {
                     );
                 }
             }
-            else if (this.props.showContentPlaceholders) {
+            else if (this._willRenderContentPlaceholder(component)) {
                 // Content placeholders are enabled
                 const willRenderContentPlaceholder =
                     !props.children &&
@@ -488,7 +495,8 @@ BuilderComponent.propTypes = {
     draggedComponentId: PropTypes.number,
     draggedComponents: PropTypes.any,
     draggingOverComponentId: PropTypes.number,
-    showContentPlaceholders: PropTypes.bool
+    showContentPlaceholders: PropTypes.bool,
+    selectedComponentIds: PropTypes.object // Immutable.Set<number>
 };
 
 BuilderComponent.defaultProps = {
@@ -515,7 +523,8 @@ const mapStateToProps = state => ({
     draggedComponentId: state.project.draggedComponentId,
     draggedComponents: state.project.draggedComponents,
     draggingOverComponentId: state.project.draggingOverComponentId,
-    showContentPlaceholders: state.app.showContentPlaceholders
+    showContentPlaceholders: state.app.showContentPlaceholders,
+    selectedComponentIds: currentSelectedComponentIdsSelector(state)
 });
 
 const Builder = connect(mapStateToProps)(BuilderComponent);
