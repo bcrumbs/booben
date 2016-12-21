@@ -5,18 +5,14 @@
 'use strict';
 
 import { Record, List, Map, Set } from 'immutable';
+import _forOwn from 'lodash.forown';
 
 import {
     projectRouteToImmutable,
     getMaxComponentId as _getMaxComponentId,
-    getOutletComponentId,
-    getParentComponentId,
-    isRootRoute
 } from './ProjectRoute';
 
-import {
-    isRootComponent
-} from './ProjectComponent';
+import { projectFunctionToImmutable } from './ProjectFunction';
 
 import { concatPath } from '../utils';
 
@@ -26,7 +22,8 @@ const ProjectRecord = Record({
     componentLibs: List(),
     graphQLEndpointURL: null,
     routes: Map(),
-    rootRoutes: List()
+    rootRoutes: List(),
+    functions: Map()
 });
 
 export const projectToImmutable = input => new ProjectRecord({
@@ -46,7 +43,13 @@ export const projectToImmutable = input => new ProjectRecord({
         input.routes.forEach(route => visitRoute(route, '', -1));
     }),
 
-    rootRoutes: List(input.routes.map(route => route.id))
+    rootRoutes: List(input.routes.map(route => route.id)),
+
+    functions: Map().withMutations(fns => {
+        _forOwn(input.functions, (fn, name) => {
+            fns.set(name, projectFunctionToImmutable(fn))
+        });
+    })
 });
 
 export const getMaxRouteId = project => project.routes.keySeq().max();

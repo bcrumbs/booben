@@ -22,7 +22,8 @@ export default {
                 'description': {
                     en: ''
                 }
-            }
+            },
+            tags: new Set()
         }
     }
 };

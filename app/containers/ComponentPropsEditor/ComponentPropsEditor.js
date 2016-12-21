@@ -85,6 +85,7 @@ const coerceFloatValue = value => {
  */
 const isRenderableProp = propMeta =>
     isValidSourceForProp(propMeta, 'static') ||
+    isValidSourceForProp(propMeta, 'function') ||
     isValidSourceForProp(propMeta, 'data') || (
         propMeta.type === 'component' &&
         isValidSourceForProp(propMeta, 'designer')
@@ -96,7 +97,8 @@ const isRenderableProp = propMeta =>
  * @return {boolean}
  */
 const isLinkedProp = propValue =>
-    propValue.source === 'data' || (
+    propValue.source === 'data' ||
+    propValue.source === 'function' || (
         propValue.source === 'static' &&
         !!propValue.sourceData.ownerPropName
     );
@@ -177,6 +179,9 @@ const transformValue = (componentMeta, propMeta, propValue) => {
                     .toJS()
                     .join(' -> ');
             }
+        }
+        else if (propValue.source === 'function') {
+            value = propValue.sourceData.function;
         }
         else if (propValue.source === 'static') {
             value = propValue.sourceData.ownerPropName;
@@ -344,6 +349,7 @@ class ComponentPropsEditorComponent extends PureComponent {
      */
     _isPropLinkable(componentMeta, propMeta) {
         if (propMeta.source.indexOf('data') > -1) return true;
+        if (propMeta.source.indexOf('function') > -1) return true;
         if (!this.props.ownerProps) return false;
 
         const propTypedef = resolveTypedef(componentMeta, propMeta);

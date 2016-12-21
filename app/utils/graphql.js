@@ -455,7 +455,8 @@ const buildAndAttachFragmentsForDesignerProp = (
     dataContextTree,
     theMap,
     meta,
-    schema
+    schema,
+    project
 ) => {
     if (!propMeta.sourceConfigs.designer.props) return { fragments: [], theMap };
 
@@ -490,6 +491,7 @@ const buildAndAttachFragmentsForDesignerProp = (
             ownerComponentsChain,
             schema,
             meta,
+            project,
             dataContextTree,
             theMap
         );
@@ -513,6 +515,7 @@ const buildAndAttachFragmentsForDesignerProp = (
  * @param {Object[]} ownerComponentsChain
  * @param {DataSchema} schema
  * @param {Object} meta
+ * @param {Object} project
  * @param {Object} dataContextTree
  * @param {Object} theMap
  * @return {Object}
@@ -522,6 +525,7 @@ const buildGraphQLFragmentsForOwnComponent = (
     ownerComponentsChain,
     schema,
     meta,
+    project,
     dataContextTree,
     theMap
 ) => {
@@ -529,6 +533,11 @@ const buildGraphQLFragmentsForOwnComponent = (
         fragments = [],
         designerPropsWithComponent = [],
         dataValuesByDataContext = {};
+
+    const walkSimplePropsOptions = {
+        project,
+        walkFunctionArgs: true
+    };
 
     walkSimpleProps(component, componentMeta, (propValue, propMeta) => {
         if (propValue.source === 'data') {
@@ -578,7 +587,7 @@ const buildGraphQLFragmentsForOwnComponent = (
                 propMeta
             });
         }
-    });
+    }, walkSimplePropsOptions);
 
     if (designerPropsWithComponent.length > 0) {
         designerPropsWithComponent.forEach(({ propValue, propMeta }) => {
@@ -590,7 +599,8 @@ const buildGraphQLFragmentsForOwnComponent = (
                 dataContextTree,
                 theMap,
                 meta,
-                schema
+                schema,
+                project
             );
 
             theMap = ret.theMap;
@@ -606,12 +616,14 @@ const buildGraphQLFragmentsForOwnComponent = (
  * @param {Object} component - Actually it's an Immutable.Record; see models/ProjectComponent.js
  * @param {DataSchema} schema
  * @param {Object} meta
+ * @param {Object} project
  * @return {Object}
  */
 const buildGraphQLFragmentsForComponent = (
     component,
     schema,
-    meta
+    meta,
+    project
 ) => {
     const componentMeta = getComponentMeta(component.name, meta),
         fragments = [],
@@ -623,6 +635,11 @@ const buildGraphQLFragmentsForComponent = (
     });
 
     const dataValuesByDataContext = {};
+
+    const walkSimplePropsOptions = {
+        project,
+        walkFunctionArgs: true
+    };
 
     walkSimpleProps(component, componentMeta, (propValue, propMeta) => {
         if (propValue.source === 'data') {
@@ -662,7 +679,7 @@ const buildGraphQLFragmentsForComponent = (
                 propMeta
             });
         }
-    });
+    }, walkSimplePropsOptions);
 
     let theMap = Map();
 
@@ -676,7 +693,8 @@ const buildGraphQLFragmentsForComponent = (
                 dataContextTree,
                 theMap,
                 meta,
-                schema
+                schema,
+                project
             );
 
             theMap = ret.theMap;
@@ -687,9 +705,9 @@ const buildGraphQLFragmentsForComponent = (
     return { fragments, theMap };
 };
 
-export const buildQueryForComponent = (component, schema, meta) => {
+export const buildQueryForComponent = (component, schema, meta, project) => {
     const { fragments, theMap } =
-        buildGraphQLFragmentsForComponent(component, schema, meta);
+        buildGraphQLFragmentsForComponent(component, schema, meta, project);
 
     const rootFragments = fragments.filter(fragment =>
         fragment.typeCondition.name.value === schema.queryTypeName &&

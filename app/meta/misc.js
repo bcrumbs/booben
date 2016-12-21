@@ -21,11 +21,13 @@ export default {
                     textKey: 'props_text',
                     descriptionTextKey: 'props_text_desc',
                     type: 'string',
-                    source: ['static', 'data'],
+                    source: ['static', 'function', 'data'],
                     sourceConfigs: {
                         static: {
                             defaultTextKey: 'default'
-                        }
+                        },
+                        function: {},
+                        data: {}
                     }
                 }
             },
@@ -46,7 +48,8 @@ export default {
                 'default': {
                     en: 'Text'
                 }
-            }
+            },
+            tags: new Set()
         },
 
         Outlet: {
@@ -63,7 +66,8 @@ export default {
                 'description': {
                     en: ''
                 }
-            }
+            },
+            tags: new Set()
         },
 
         List: {
@@ -130,7 +134,8 @@ export default {
                 'props_component_props_item_desc': {
                     en: ''
                 }
-            }
+            },
+            tags: new Set()
         }
     }
 };

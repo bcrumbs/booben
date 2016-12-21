@@ -34,6 +34,10 @@ import {
 } from '../../app/utils/graphql';
 
 import {
+    getFunctionInfo
+} from '../../app/utils/functions';
+
+import {
     returnNull
 } from '../../app/utils/misc';
 
@@ -61,20 +65,20 @@ class BuilderComponent extends PureComponent {
     /**
      *
      * @param {Object} propValue
-     * @param {PropTypeDefinition} propMeta
+     * @param {TypeDefinition} typedef
      * @param {Immutable.Map<Object, Object>} theMap
      * @return {*}
      */
-    _buildPropValue(propValue, propMeta, theMap) {
+    _buildPropValue(propValue, typedef, theMap) {
         if (propValue.source == 'static') {
             if (propValue.sourceData.ownerPropName && !this.props.ignoreOwnerProps) {
                 return this.props.propsFromOwner[propValue.sourceData.ownerPropName];
             }
             else {
-                if (propMeta.type === 'shape') {
+                if (typedef.type === 'shape') {
                     if (propValue.sourceData.value === null) return null;
 
-                    return _mapValues(propMeta.fields, (fieldMeta, fieldName) => {
+                    return _mapValues(typedef.fields, (fieldMeta, fieldName) => {
                         const fieldValue = propValue.sourceData.value.get(fieldName);
 
                         return this._buildPropValue(
@@ -84,22 +88,22 @@ class BuilderComponent extends PureComponent {
                         );
                     });
                 }
-                else if (propMeta.type === 'objectOf') {
+                else if (typedef.type === 'objectOf') {
                     if (propValue.sourceData.value === null) return null;
 
                     return propValue.sourceData.value.map(nestedValue =>
                         this._buildPropValue(
                             nestedValue,
-                            propMeta.ofType,
+                            typedef.ofType,
                             theMap
                         )
                     ).toJS();
                 }
-                else if (propMeta.type === 'arrayOf') {
+                else if (typedef.type === 'arrayOf') {
                     return propValue.sourceData.value.map(nestedValue =>
                         this._buildPropValue(
                             nestedValue,
-                            propMeta.ofType,
+                            typedef.ofType,
                             theMap
                         )
                     ).toJS();
@@ -139,6 +143,35 @@ class BuilderComponent extends PureComponent {
                     dataContextInfo.type
                 );
             }
+        }
+        else if (propValue.source === 'function') {
+            const fnInfo = getFunctionInfo(
+                propValue.sourceData.functionSource,
+                propValue.sourceData.function,
+                this.props.project
+            );
+
+            if (!fnInfo) return NO_VALUE;
+
+            const argValues = fnInfo.args.map(argInfo => {
+                const argValue = propValue.sourceData.args.get(argInfo.name);
+
+                let ret = NO_VALUE;
+
+                if (argValue) {
+                    ret = this._buildPropValue(
+                        argValue,
+                        argInfo.typedef,
+                        theMap
+                    );
+                }
+
+                if (ret === NO_VALUE) ret = argInfo.defaultValue;
+                return ret;
+            });
+
+            // TODO: Pass fns as last argument
+            return fnInfo.fn(...argValues, {});
         }
         else if (propValue.source === 'actions') {
             // TODO: Handle actions source
@@ -359,7 +392,8 @@ class BuilderComponent extends PureComponent {
         const { query: graphQLQuery, theMap } = buildQueryForComponent(
             component,
             this.props.schema,
-            this.props.meta
+            this.props.meta,
+            this.props.project
         );
 
         // Build props

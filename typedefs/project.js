@@ -12,6 +12,7 @@
  * @property {string[]} componentLibs
  * @property {?string} graphQLEndpointURL
  * @property {ProjectRoute[]} routes
+ * @property {Object<string, ProjectFunction>} functions
  */
 
 /**
@@ -50,7 +51,7 @@
 /**
  * @typedef {Object} ProjectComponentProp
  * @property {string} source
- * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner} sourceData
+ * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner|SourceDataFunction} sourceData
  */
 
 /**
@@ -93,4 +94,29 @@
 
 /**
  * @typedef {Object} SourceDataActions
+ */
+
+/**
+ * @typedef {Object} SourceDataFunction
+ * @property {string} functionSource - Can be 'project' or 'builtin'.
+ * @property {string} function - Function name
+ * @property {Object<string, SourceDataStatic|SourceDataData|SourceDataConst|SourceDataFunction>} args
+ */
+
+/**
+ * @typedef {Object} ProjectFunction
+ * @property {string} title
+ * @property {string} description
+ * @property {FunctionArgument[]} args
+ * @property {TypeDefinition} returnType
+ * @property {string} body
+ */
+
+/**
+ * @typedef {Object} FunctionArgument
+ * @property {string} name
+ * @property {string} description
+ * @property {TypeDefinition} typedef
+ * @property {boolean} isRequired
+ * @property {*} [defaultValue]
  */
