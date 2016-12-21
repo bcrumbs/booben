@@ -41,7 +41,7 @@ import {
     getNestedTypedef
 } from '../../../utils/meta';
 
-function canBeApplied(metaType, graphQLType) {
+const canBeApplied = (metaType, graphQLType) => {
   //TODO make equality check deeper? or not? or ...?
   const isGraphQLTypeList =
     graphQLType.kind === FIELD_KINDS.CONNECTION
@@ -66,20 +66,18 @@ function canBeApplied(metaType, graphQLType) {
 	        )
      	) return true;
 	return false;
-}
+};
 
-function showField(metaType, graphQLType) {
-	return canBeApplied(metaType, graphQLType)
-			||	(
-				!isPrimitiveGraphQLType(graphQLType.type)
-				&&	graphQLType.kind === FIELD_KINDS.SINGLE
-			);
-}
+const showField = (metaType, graphQLType) =>
+	canBeApplied(metaType, graphQLType)
+		||	(
+			!isPrimitiveGraphQLType(graphQLType.type)
+			&&	graphQLType.kind === FIELD_KINDS.SINGLE
+		);
 
-function canGoIntoField(metaType, graphQLType) {
-	return  graphQLType.kind === FIELD_KINDS.SINGLE
-			&& !isPrimitiveGraphQLType(graphQLType.type);
-}
+const canGoIntoField = (metaType, graphQLType) =>
+	graphQLType.kind === FIELD_KINDS.SINGLE
+		&& !isPrimitiveGraphQLType(graphQLType.type);
 
 export class DataWindowQueryLayout extends DataWindowDataLayout {
 	constructor(props){
@@ -93,7 +91,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 			previousPath: [
 			],
 			argumentsForCurrentPathLast: false,
-			argumentsPath: [],
 			argumentsMode: false,
 			allArgumentsMode: false,
 			selectedFieldName: '',
@@ -119,7 +116,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		);
 	}
 
-	_handleJumpIntoField(name, type, kind, args, isCurrentPathLast) {
+	_handleJumpIntoField(name, type, kind, args, isCurrentPathLast = false) {
 		const { previousPath, currentPath } = this.state;
 		const isDataApplied = canBeApplied(this.currentPropType, { type, kind });
 
@@ -133,7 +130,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 			||	{};
 
 		this.setState({
-			argumentsPath: [],
 			argumentsMode: isDataApplied,
 			allArgumentsMode: isDataApplied,
 			argumentsForCurrentPathLast: false,
@@ -271,7 +267,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	}
 
 	_handleBackToPress() {
-		const argumentsMode = !!this.state.argumentsPath.length;
+		const argumentsMode = false;
 		if (this.state.argumentsMode)
 			if (this.state.allArgumentsMode)
 				this._handleJumpToCurrentPathIndex(
@@ -279,7 +275,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 				);
 			else
 				this.setState({
-					argumentsPath: this.state.argumentsPath.slice(0, -1),
 					argumentsMode,
 					allArgumentsMode:
 						this.state.argumentsForCurrentPathLast
@@ -495,6 +490,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	 * @param {Array<Object>} fields
 	 * @param {Array<Object>} fieldsArgsValues
 	 * @param {Array<boolean>} areArgumentsBound
+	 * @param {bool} allArgumentsMode
+	 * @param {string} backToFieldName
 	 * @param {Object<Object>} types
 	 * @param {Function} haveArguments
 	 * @param {Function} createContentArgumentField
@@ -502,7 +499,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	 * @param {Function} handleJumpIntoField
 	 * @param {Function} handleBackToPress
 	 * @param {Function} handleApplyPress
-	 * @param {bool} allArgumentsMode
 	 * @param {string=} title
 	 * @param {string=} subtitle
 	 * @param {string=} description
@@ -513,6 +509,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		fields,
 		fieldsArgsValues,
 		areArgumentsBound,
+		allArgumentsMode,
 		backToFieldName,
 		types,
 		haveArguments,
@@ -521,7 +518,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		handleJumpIntoField,
 		handleBackToPress,
 		handleApplyPress,
-		allArgumentsMode,
+		handleJumpToCurrentPathIndex,
 		title = allArgumentsMode
 				?	`All arguments`
 				:	`${fields[0].name} arguments`,
@@ -593,12 +590,12 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	 * @param {Object} field
 	 * @param {string} fieldName
 	 * @param {string} selectedFieldName
+	 * @param {string} propType
 	 * @param {Function<>:string} getFieldTypeName
 	 * @param {Function} handleFieldSelect
 	 * @param {Function} handleSetArgumentsClick
 	 * @param {Function} handleApplyClick
 	 * @param {Function} handleJumpIntoField
-	 * @param {string} propType
 	 * @return {Object}
 	 *
 	 */
@@ -606,12 +603,12 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		field,
 		fieldName,
 		selectedFieldName,
+		propType,
 		getFieldTypeName,
 		handleFieldSelect,
 		handleSetArgumentsClick,
 		handleApplyClick,
-		handleJumpIntoField,
-		propType
+		handleJumpIntoField
 	) {
 		return (
 			{
@@ -642,6 +639,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	 * @param {Object} type - Schema type
 	 * @param {Object} currentPathLast
 	 * @param {string} selectedFieldName
+	 * @param {string} propType
 	 * @param {boolean} hasArgs
 	 * @param {Array<Object>} breadcrumbs
 	 * @param {Function<Object>:string} getFieldTypeName
@@ -650,7 +648,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 	 * @param {Function} handleApplyClick
 	 * @param {Function} handleJumpIntoField
 	 * @param {Function} createContentField
-	 * @param {string} propType
+	 * @param {Function} handleJumpToCurrentPathIndex
 	 * @return {Object}
 	 *
 	 */
@@ -658,6 +656,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		type,
 		currentPathLast,
 		selectedFieldName,
+		propType,
 		hasArgs,
 		breadcrumbs,
 		getFieldTypeName,
@@ -666,10 +665,11 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 		handleApplyClick,
 		handleJumpIntoField,
 		createContentField,
-		propType
+		handleJumpToCurrentPathIndex
 	) {
 		return {
 			breadcrumbs,
+			handleBreadcrumbsClick: handleJumpToCurrentPathIndex,
 			content: {
 				title: currentPathLast.name,
 				subtitle: `type: ${
@@ -694,12 +694,12 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 							field,
 							fieldName,
 							selectedFieldName,
+							propType,
 							getFieldTypeName,
 							handleFieldSelect,
 							handleSetArgumentsClick,
 							handleApplyClick,
-							handleJumpIntoField,
-							propType
+							handleJumpIntoField
 						)]).concat(
 							Object.keys(connectionFields).filter(
 								connectionFieldName => {
@@ -715,12 +715,12 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 									connectionFields[connectionFieldName],
 									fieldName + '/' + connectionFieldName,
 									selectedFieldName,
+									propType,
 									getFieldTypeName,
 									handleFieldSelect,
 									handleSetArgumentsClick,
 									handleApplyClick,
-									handleJumpIntoField,
-									propType
+									handleJumpIntoField
 								)
 							)
 						);
@@ -813,6 +813,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						this.props.schema.types[this._getCurrentPathByIndex(-1).type],
 						this._getCurrentPathByIndex(-1),
 						this.state.selectedFieldName,
+						linkTargetPropTypedef,
 						this.haveArguments(currentEditingFields[0]),
 						this.breadcrumbs,
 						this._getFieldTypeName,
@@ -821,7 +822,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						this._handleDataApplyPress,
 						this._handleJumpIntoField,
 						this.createContentField,
-						linkTargetPropTypedef
+						this._handleJumpToCurrentPathIndex
 					)
 			:	this.createContentArgumentsType(
 						currentEditingFields,
@@ -839,6 +840,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						?	-2
 						:	-1
 						).name,
+						this.state.allArgumentsMode,
 						this.props.schema.types,
 						this.haveArguments,
 						this.createContentArgumentField,
@@ -846,7 +848,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 						this._handleJumpIntoField,
 						this._handleBackToPress,
 						this._handleArgumentsApplyPress,
-						this.state.allArgumentsMode
+						this._handleJumpToCurrentPathIndex,
+
 					)
 		);
 	}

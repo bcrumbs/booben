@@ -34,12 +34,6 @@ import {
 	getPropTypedef
 } from '../../../utils/meta';
 
-
-
-const getAllPossibleContexts = (ownerComponent, currentComponent, context) => {
-	//?
-};
-
 export class DataWindowDataLayout extends PureComponent {
 	get CONTENT_TYPE() {
 		return ({
@@ -143,7 +137,9 @@ export class DataWindowDataLayout extends PureComponent {
 									<BlockBreadcrumbs
 										items={CONTENT_TYPE.breadcrumbs}
 										mode="dark"
-										onItemClick={this._handleJumpToCurrentPathIndex}
+										onItemClick={
+											CONTENT_TYPE.handleBreadcrumbsClick
+										}
 										overflow={true}
 									/>
 							}
