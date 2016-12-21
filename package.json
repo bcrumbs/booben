@@ -14,10 +14,11 @@
     "url": "ssh://git@gitlab.ordbuy.com:29184/jssy/jssy.git"
   },
   "author": "Dmitriy Bizyaev",
-  "license": "UNLICENCED",
+  "license": "UNLICENSED",
   "dependencies": {
     "@common/async-utils": "^0.2.1",
     "@common/tree": "^0.1.1",
+    "@reactackle/reactackle": "0.1.0-dev383",
     "apollo-client": "^0.5.21",
     "babel-core": "^6.14.0",
     "babel-loader": "^6.2.5",
@@ -58,16 +59,16 @@
     "webpack-hot-middleware": "^2.12.2"
   },
   "devDependencies": {
-    "@reactackle/reactackle": "0.1.0-dev383",
     "babel-eslint": "^7.1.0",
     "copy-webpack-plugin": "^4.0.0",
     "css-loader": "^0.24.0",
-    "eslint": "^3.9.1",
+    "eslint": "^3.12.2",
+    "eslint-config-airbnb": "^13.0.0",
     "eslint-config-pedant": "^0.8.0",
     "eslint-find-rules": "^1.14.3",
-    "eslint-plugin-import": "^2.1.0",
+    "eslint-plugin-import": "^2.2.0",
     "eslint-plugin-jsx-a11y": "^2.2.3",
-    "eslint-plugin-react": "^6.6.0",
+    "eslint-plugin-react": "^6.8.0",
     "file-loader": "^0.9.0",
     "history": "^2.1.2",
     "image-webpack-loader": "^2.0.0",
