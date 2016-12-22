@@ -1,16 +1,27 @@
+'use strict';
+
+// noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
-import { Icon, Tooltip } from '@reactackle/reactackle';
+import { Icon } from '@reactackle/reactackle';
+
+const propTypes = {
+  title: PropTypes.string.isRequired,
+  icon: PropTypes.string,
+};
+
+const defaultProps = {
+  icon: '',
+};
 
 export const BlockContentShortcut = props => {
-  let className = 'block-content-shortcut';
-
-  let icon = null,
-    text = null,
-    tooltip = null;
+  let className = 'block-content-shortcut',
+    icon = null,
+    text = null;
 
   if (props.icon) {
-    icon = <Icon name={props.icon} />;
-    tooltip = <Tooltip text={props.title} />;
+    icon = (
+      <Icon name={props.icon} />
+    );
   } else {
     className += ' shortcut-without-icon';
 
@@ -18,26 +29,17 @@ export const BlockContentShortcut = props => {
       <span className="shortcut-text">
         {props.title}
       </span>
-        );
+    );
   }
 
   return (
     <div className={className}>
       {icon}
       {text}
-      {tooltip}
     </div>
   );
 };
 
-BlockContentShortcut.propTypes = {
-  icon: PropTypes.string,
-  title: PropTypes.string.isRequired,
-};
-
-BlockContentShortcut.defaultProps = {
-  icon: '',
-  title: '',
-};
-
+BlockContentShortcut.propTypes = propTypes;
+BlockContentShortcut.defaultProps = defaultProps;
 BlockContentShortcut.displayName = 'BlockContentShortcut';

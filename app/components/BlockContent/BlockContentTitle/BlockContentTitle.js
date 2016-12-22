@@ -3,21 +3,43 @@
 // noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import { List } from 'immutable';
 
 import {
     Icon,
     Button,
 } from '@reactackle/reactackle';
 
-import { List } from 'immutable';
-
 import ButtonType from '../../../models/Button';
-
 import { noop } from '../../../utils/misc';
 
+const propTypes = {
+  title: PropTypes.string.isRequired,
+  isEditable: PropTypes.bool,
+  titlePlaceHolder: PropTypes.string,
+  subtitle: PropTypes.string,
+  iconLeft: PropTypes.string,
+  buttons: ImmutablePropTypes.listOf(
+    PropTypes.instanceOf(ButtonType),
+  ),
+  onLeftIconMouseDown: PropTypes.func,
+  onTitleChange: PropTypes.func,
+};
+
+const defaultProps = {
+  title: '',
+  isEditable: false,
+  titlePlaceHolder: '',
+  subtitle: null,
+  iconLeft: null,
+  buttons: List(),
+  onLeftIconMouseDown: noop,
+  onTitleChange: noop,
+};
+
 export class BlockContentTitle extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(...args) {
+    super(...args);
 
     this.state = {
       editingTitle: false,
@@ -46,7 +68,6 @@ export class BlockContentTitle extends PureComponent {
 
   render() {
     const prefix = 'block-content';
-
     let titleClassName = `${prefix}-title-box`;
     if (this.props.isEditable) titleClassName += ' is-editable';
     if (this.state.editingTitle) titleClassName += ' editing-is-on';
@@ -60,26 +81,27 @@ export class BlockContentTitle extends PureComponent {
         >
           <Icon name={this.props.iconLeft} />
         </div>
-            );
+      );
     }
-
 
     let buttonsArea = null;
     if (this.props.buttons.size > 0) {
+      /* eslint-disable react/jsx-handler-names */
       const buttons = this.props.buttons.map((button, idx) => (
         <Button
-          key={idx}
+          key={String(idx)}
           icon={button.icon}
           disabled={button.disabled}
           onPress={button.onPress}
         />
-            ));
+      ));
+      /* eslint-enable react/jsx-handler-names */
 
       buttonsArea = (
         <div className={`${prefix}-title-actions-wrapper`}>
           {buttons}
         </div>
-            );
+      );
     }
 
     const disabled = !this.props.isEditable ? 'disabled' : '';
@@ -95,7 +117,7 @@ export class BlockContentTitle extends PureComponent {
           onBlur={this._handleTitleInputBlur}
         />
       </div>
-        );
+    );
 
     let subtitle = null;
     if (this.props.subtitle) {
@@ -105,7 +127,7 @@ export class BlockContentTitle extends PureComponent {
             {this.props.subtitle}
           </span>
         </div>
-            );
+      );
     }
 
     return (
@@ -123,28 +145,6 @@ export class BlockContentTitle extends PureComponent {
   }
 }
 
-BlockContentTitle.propTypes = {
-  title: PropTypes.string.isRequired,
-  isEditable: PropTypes.bool,
-  titlePlaceHolder: PropTypes.string,
-  subtitle: PropTypes.string,
-  iconLeft: PropTypes.string,
-  buttons: ImmutablePropTypes.listOf(
-        PropTypes.instanceOf(ButtonType),
-    ),
-  onLeftIconMouseDown: PropTypes.func,
-  onTitleChange: PropTypes.func,
-};
-
-BlockContentTitle.defaultProps = {
-  title: '',
-  isEditable: false,
-  titlePlaceHolder: '',
-  subtitle: null,
-  iconLeft: null,
-  buttons: List(),
-  onLeftIconMouseDown: noop,
-  onTitleChange: noop,
-};
-
+BlockContentTitle.propTypes = propTypes;
+BlockContentTitle.defaultProps = defaultProps;
 BlockContentTitle.displayName = 'BlockContentTitle';

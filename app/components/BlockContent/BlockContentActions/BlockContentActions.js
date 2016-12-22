@@ -1,4 +1,15 @@
+'use strict';
+
+// noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
+
+const propTypes = {
+  isBordered: PropTypes.bool,
+};
+
+const defaultProps = {
+  isBordered: false,
+};
 
 export const BlockContentActions = props => {
   let className = 'block-content-actions-area';
@@ -11,14 +22,8 @@ export const BlockContentActions = props => {
   );
 };
 
-BlockContentActions.propTypes = {
-  isBordered: PropTypes.bool,
-};
-
-BlockContentActions.defaultProps = {
-  isBordered: false,
-};
-
+BlockContentActions.propTypes = propTypes;
+BlockContentActions.defaultProps = defaultProps;
 BlockContentActions.displayName = 'BlockContentActions';
 
 export * from './BlockContentActionsRegion/BlockContentActionsRegion';

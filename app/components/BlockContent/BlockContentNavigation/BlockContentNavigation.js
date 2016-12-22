@@ -1,4 +1,15 @@
+'use strict';
+
+// noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
+
+const propTypes = {
+  isBordered: PropTypes.bool,
+};
+
+const defaultProps = {
+  isBordered: true,
+};
 
 export const BlockContentNavigation = props => {
   let className = 'block-content-navigation-area';
@@ -11,12 +22,6 @@ export const BlockContentNavigation = props => {
   );
 };
 
-BlockContentNavigation.propTypes = {
-  isBordered: PropTypes.bool,
-};
-
-BlockContentNavigation.defaultProps = {
-  isBordered: true,
-};
-
+BlockContentNavigation.propTypes = propTypes;
+BlockContentNavigation.defaultProps = defaultProps;
 BlockContentNavigation.displayName = 'BlockContentNavigation';

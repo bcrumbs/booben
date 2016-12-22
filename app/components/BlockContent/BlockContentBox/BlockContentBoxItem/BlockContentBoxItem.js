@@ -1,4 +1,19 @@
+'use strict';
+
+// noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
+
+const propTypes = {
+  isBordered: PropTypes.bool,
+  blank: PropTypes.bool,
+  flexMain: PropTypes.bool, // If true, flex-grow will be st to '1' for this block
+};
+
+const defaultProps = {
+  isBordered: false,
+  blank: false,
+  flexMain: false,
+};
 
 export const BlockContentBoxItem = props => {
   let className = 'block-content-box-item';
@@ -13,16 +28,6 @@ export const BlockContentBoxItem = props => {
   );
 };
 
-BlockContentBoxItem.propTypes = {
-  isBordered: PropTypes.bool,
-  blank: PropTypes.bool,
-  flexMain: PropTypes.bool, // If true, flex-grpw will be st to '1' for this block
-};
-
-BlockContentBoxItem.defaultProps = {
-  isBordered: false,
-  blank: false,
-  flexMain: false,
-};
-
+BlockContentBoxItem.propTypes = propTypes;
+BlockContentBoxItem.defaultProps = defaultProps;
 BlockContentBoxItem.displayName = 'BlockContentBoxItem';

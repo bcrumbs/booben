@@ -1,4 +1,15 @@
+'use strict';
+
+// noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
+
+const propTypes = {
+  isBordered: PropTypes.bool,
+};
+
+const defaultProps = {
+  isBordered: false,
+};
 
 export const BlockContentBoxHeading = props => {
   let className = 'block-content-box-heading';
@@ -11,11 +22,6 @@ export const BlockContentBoxHeading = props => {
   );
 };
 
-BlockContentBoxHeading.propTypes = {
-  isBordered: PropTypes.bool,
-};
-
-BlockContentBoxHeading.defaultProps = {
-  isBordered: false,
-};
+BlockContentBoxHeading.propTypes = propTypes;
+BlockContentBoxHeading.defaultProps = defaultProps;
 BlockContentBoxHeading.displayName = 'BlockContentBoxHeading';
