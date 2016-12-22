@@ -1,39 +1,55 @@
 'use strict';
 
 // noinspection JSUnresolvedVariable
-import React, { PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import { Icon } from '@reactackle/reactackle';
 import { noop } from '../../../utils/misc';
 
-export const AccordionItem = props => {
-  let className = 'accordion-item';
+export class AccordionItem extends PureComponent {
+  constructor(...args) {
+    super(...args);
 
-  className += props.expanded
-        ? ' accordion-item-is-expanded'
-        : ' accordion-item-is-collapsed';
+    this._handleToggleExpand = this._handleToggleExpand.bind(this);
+  }
 
-  if (props.contentBlank) className += ' accordion-content-blank';
+  _handleToggleExpand() {
+    this.props.onToggleExpanded(this.props.itemId);
+  }
 
-  return (
-    <div className={className}>
-      <div className="accordion-title-box" onClick={props.onToggleExpanded}>
-        <div className="accordion-title">
-          <span>{props.title}</span>
+  render() {
+    let className = 'accordion-item';
+
+    className += this.props.expanded
+      ? ' accordion-item-is-expanded'
+      : ' accordion-item-is-collapsed';
+
+    if (this.props.contentBlank) className += ' accordion-content-blank';
+
+    return (
+      <div className={className}>
+        <div
+          className="accordion-title-box"
+          onClick={this._handleToggleExpand}
+        >
+          <div className="accordion-title">
+            <span>{this.props.title}</span>
+          </div>
+
+          <div className="accordion-title-icon accordion-icon-collapse">
+            <Icon name="chevron-down" />
+          </div>
         </div>
 
-        <div className="accordion-title-icon accordion-icon-collapse">
-          <Icon name="chevron-down" />
+        <div className="accordion-item-content-box">
+          {this.props.children}
         </div>
       </div>
-
-      <div className="accordion-item-content-box">
-        {props.children}
-      </div>
-    </div>
-  );
-};
+    );
+  }
+}
 
 AccordionItem.propTypes = {
+  itemId: PropTypes.string,
   title: PropTypes.string,
   expanded: PropTypes.bool,
   contentBlank: PropTypes.bool,
@@ -41,6 +57,7 @@ AccordionItem.propTypes = {
 };
 
 AccordionItem.defaultProps = {
+  itemId: '',
   title: '',
   expanded: false,
   contentBlank: false,
