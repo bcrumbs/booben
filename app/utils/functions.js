@@ -12,7 +12,7 @@
  * @return {?Object}
  */
 export const getFunctionInfo = (functionSource, functionName, project) => {
-    if (functionSource === 'project') return project.functions.get(functionName);
+  if (functionSource === 'project') return project.functions.get(functionName);
     // TODO: Handle 'builtin' source
-    return null;
+  return null;
 };

@@ -7,14 +7,14 @@
 import { Record, Map } from 'immutable';
 
 const SourceDataFunction = Record({
-    functionSource: 'project',
-    function: '',
-    args: Map()
+  functionSource: 'project',
+  function: '',
+  args: Map(),
 });
 
 export const FunctionArgValue = Record({
-    source: '',
-    sourceData: null
+  source: '',
+  sourceData: null,
 });
 
 export default SourceDataFunction;
