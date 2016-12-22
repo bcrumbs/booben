@@ -204,7 +204,7 @@ const accordionItems = List([
     title: 'Navigation',
     content: (
       <ComponentTagWrapper>
-        <ComponentTag title="Accordion" image="https://drscdn.500px.org/photo/118771829/m%3D2048/420d2f6430f878b8a0db28195b1ff8a3"/>
+        <ComponentTag title="Accordion" image="https://drscdn.500px.org/photo/118771829/m%3D2048/420d2f6430f878b8a0db28195b1ff8a3" />
         <ComponentTag title="Block Content" focused />
         <ComponentTag title="Component Placeholder" />
         <ComponentTag title="Component Tag" />
@@ -219,7 +219,7 @@ const toolComponentsWindowSections = List([
     name: 'Section 1',
     component: () => (
       <BlockContentBox isBordered>
-        <Accordion single items={accordionItems} expandedItemIds={Set(['tab3'])}/>
+        <Accordion single items={accordionItems} expandedItemIds={Set(['tab3'])} />
       </BlockContentBox>
         ),
   }),
@@ -230,7 +230,7 @@ const toolComponentsPlaceholderWindowSections = List([
     name: 'Section 1',
     component: () => (
       <BlockContentPlaceholder text="Ooops!">
-        <Button text='Show All Components' />
+        <Button text="Show All Components" />
       </BlockContentPlaceholder>
         ),
   }),
@@ -257,7 +257,7 @@ const toolRouteWindowSections = List([
         <BlockContentBoxHeading>Tree Prop</BlockContentBoxHeading>
 
         <BlockContentBoxItem>
-          <PropsList/>
+          <PropsList />
         </BlockContentBoxItem>
 
       </BlockContentBox>
@@ -297,7 +297,7 @@ const toolSitemapWindowSections = List([
                         <ComponentsTreeList>
                           <ComponentsTreeItem title="Components Tree List" showSublevel hasTooltip>
                             <ComponentsTreeList>
-                              <ComponentsTreeItem title="Components Tree Item" showSublevel hasTooltip/>
+                              <ComponentsTreeItem title="Components Tree Item" showSublevel hasTooltip />
                               <ComponentsTreeItem title="Some extremely long tree item item item item item item" hasTooltip showSublevel active />
                               <ComponentsTreeItem title="Another extremely long tree item item item item item item" hasTooltip />
                             </ComponentsTreeList>
@@ -699,7 +699,7 @@ const toolComponentActionsWindowSections = List([
           <ComponentActionEditing />
         </BlockContentBoxItem>
         <BlockContentBoxItem isBordered flexMain>
-          <ComponentActionsList items={componentActionsList}/>
+          <ComponentActionsList items={componentActionsList} />
         </BlockContentBoxItem>
       </BlockContentBox>
         ),
@@ -878,7 +878,7 @@ export default class Playground extends React.Component {
         <TopRegion fixed={false}>
           <Header size="blank">
             <HeaderRegion size="blank">
-              <HeaderLogoBox title="Project X"/>
+              <HeaderLogoBox title="Project X" />
             </HeaderRegion>
 
             <HeaderRegion spread size="blank">
@@ -895,7 +895,7 @@ export default class Playground extends React.Component {
                           </HeaderMenuList>
                         </HeaderMenuGroup>
                       </HeaderMenuItem>
-                      <HeaderMenuItem text="Data" isActive={true}/>
+                      <HeaderMenuItem text="Data" isActive />
                       <HeaderMenuItem text="Settings" />
                     </HeaderMenuList>
                   </HeaderMenuGroup>
@@ -904,7 +904,7 @@ export default class Playground extends React.Component {
             </HeaderRegion>
 
             <HeaderRegion size="blank">
-              <ProjectSave status="error"/>
+              <ProjectSave status="error" />
             </HeaderRegion>
 
             <HeaderRegion size="blank">
@@ -948,8 +948,8 @@ export default class Playground extends React.Component {
               <FooterMenu inline dense mode="light">
                 <FooterMenuGroup>
                   <FooterMenuList>
-                    <FooterMenuItem text="Show component's title" subcomponentRight={<ToggleButton />}/>
-                    <FooterMenuItem text="Show placeholders" subcomponentRight={<ToggleButton />}/>
+                    <FooterMenuItem text="Show component's title" subcomponentRight={<ToggleButton />} />
+                    <FooterMenuItem text="Show placeholders" subcomponentRight={<ToggleButton />} />
                     <FooterMenuItem text="Toggle fullscreen" />
                   </FooterMenuList>
                 </FooterMenuGroup>

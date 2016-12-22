@@ -55,8 +55,9 @@ const propSourceDataToImmutableFns = {
                       sourceData: sourceDataToImmutable(source, sourceData),
                     })),
                 );
-      } else
-                data.value = input.value;
+      } else {
+        data.value = input.value;
+      }
     }
 
     if (typeof input.ownerPropName !== 'undefined')

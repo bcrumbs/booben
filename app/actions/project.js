@@ -75,7 +75,7 @@ export const loadProject = projectName => dispatch => {
                         void dispatch(projectLoaded(project, metadata, schema)),
                     )
                     .catch(error => void dispatch(projectLoadFailed(error)));
-          } else dispatch(projectLoaded(project, metadata));
+          } else { dispatch(projectLoaded(project, metadata)); }
         })
         .catch(err => void dispatch(projectLoadFailed(err)));
 };

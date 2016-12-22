@@ -85,9 +85,8 @@ const attachFragmentToFragment = (
           selection => selection.kind === 'Field',
         )
         : null
-    ) {
+    )
       currentNode = fieldSelection;
-    }
   }
 
   if (!currentNode.selectionSet) {
@@ -142,17 +141,16 @@ const buildGraphQLValue = (propValue, schemaTypeDef) => {
 
     // TODO: Deal with more complex values
   if (propValue.source === 'static') {
-    if (propValue.sourceData.ownerPropName) {
+    if (propValue.sourceData.ownerPropName)
       return NO_VALUE;
-    } else if (propValue.sourceData.value === null) {
+    else if (propValue.sourceData.value === null)
       return NO_VALUE;
-    } else if (List.isList(propValue.sourceData.value)) {
+    else if (List.isList(propValue.sourceData.value))
       return NO_VALUE;
-    } else if (Map.isMap(propValue.sourceData.value)) {
+    else if (Map.isMap(propValue.sourceData.value))
       return NO_VALUE;
-    } else {
+    else
       return toGraphQLScalarValue(propValue.sourceData.value, type);
-    }
   } else {
     return NO_VALUE;
   }
@@ -365,7 +363,7 @@ const buildGraphQLFragmentForValue = (
       currentNode = node.selectionSet.selections[0].selectionSet.selections[0];
     } else {
       const args = [];
-      
+
       const argumentValues = getQueryStepArgValues(
         component,
         ownerComponentsChain,
@@ -588,7 +586,7 @@ const buildGraphQLFragmentsForOwnComponent = (
       const parentFragment = dataContextTreeNode.fragment;
 
       attachFragmentToFragment(fragment, parentFragment);
-  
+
       const hasDataContext =
         isPropTypeDefinition(typedef) &&
         propHasDataContest(typedef);
@@ -690,7 +688,7 @@ const buildGraphQLFragmentsForComponent = (
       );
 
       fragments.push(fragment);
-      
+
       const hasDataContext =
         isPropTypeDefinition(typedef) &&
         propHasDataContest(typedef);

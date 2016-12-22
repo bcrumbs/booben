@@ -58,14 +58,11 @@ const toggleFullscreen = () => {
 
     else if (document.documentElement.webkitRequestFullscreen)
       document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-  } else if (document.cancelFullScreen)
-    document.cancelFullScreen();
-
-  else if (document.mozCancelFullScreen)
+  } else if (document.cancelFullScreen) { document.cancelFullScreen(); } else if (document.mozCancelFullScreen) {
     document.mozCancelFullScreen();
-
-  else if (document.webkitCancelFullScreen)
+  } else if (document.webkitCancelFullScreen) {
     document.webkitCancelFullScreen();
+  }
 };
 
 const RootRoute = props => {
@@ -169,7 +166,7 @@ const RootRoute = props => {
             <FooterMenu inline dense mode="light">
               <FooterMenuGroup>
                 <FooterMenuList>
-                  <FooterMenuItem text={getLocalizedText('faq')}/>
+                  <FooterMenuItem text={getLocalizedText('faq')} />
                 </FooterMenuList>
               </FooterMenuGroup>
             </FooterMenu>
@@ -210,7 +207,7 @@ const RootRoute = props => {
         </Footer>
       </BottomRegion>
 
-      <ComponentsDragArea/>
+      <ComponentsDragArea />
     </App>
   );
 };

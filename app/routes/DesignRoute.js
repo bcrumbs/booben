@@ -299,8 +299,9 @@ class DesignRoute extends PureComponent {
                     );
         }
       }
-    } else
-            title = getLocalizedText('componentConfiguration');
+    } else {
+      title = getLocalizedText('componentConfiguration');
+    }
 
 
     const propsEditorTool = new ToolRecord({

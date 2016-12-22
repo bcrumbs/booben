@@ -80,10 +80,10 @@ export const OverlayBoundingBox = props => {
     // noinspection JSValidateTypes
   return (
     <div style={style}>
-      <div style={topBorderStyle}/>
-      <div style={bottomLeftStyle}/>
-      <div style={bottomBottomStyle}/>
-      <div style={bottomRightStyle}/>
+      <div style={topBorderStyle} />
+      <div style={bottomLeftStyle} />
+      <div style={bottomBottomStyle} />
+      <div style={bottomRightStyle} />
     </div>
   );
 };

@@ -15,12 +15,12 @@ export const ComponentBreadcrumbItem = props => {
   if (props.separator) {
     className += ' ' + 'component-breadcrumbs-separator';
     content = <div className={textClassName}>&gt;</div>;
-  } else if (props.text)
+  } else if (props.text) {
     content = <div className={textClassName}>{ props.text }</div>;
-  else if (props.placeholder) {
+  } else if (props.placeholder) {
     content =
           (<div className="component-breadcrumb-placeholder">
-            <ComponentPlaceholder isPlaced/>
+            <ComponentPlaceholder isPlaced />
           </div>);
   }
 

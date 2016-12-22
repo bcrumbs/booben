@@ -42,7 +42,7 @@ export const DataItem = props => {
     actionsRight =
           (<div className="data-item_actions data-item_actions-right">
             <div className="data-item_actions data-item_actions-right">
-              <Button onPress={props.onJumpIntoClick} icon="chevron-right"/>
+              <Button onPress={props.onJumpIntoClick} icon="chevron-right" />
             </div>
           </div>);
   }
@@ -62,7 +62,7 @@ export const DataItem = props => {
               { argsButton }
               {
                         props.canBeApplied
-                        ? <Button text="Apply" onPress={props.onApplyClick} narrow/>
+                        ? <Button text="Apply" onPress={props.onApplyClick} narrow />
                         : null
                     }
             </div>

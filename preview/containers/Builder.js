@@ -71,10 +71,9 @@ class BuilderComponent extends PureComponent {
      */
   _buildPropValue(propValue, typedef, theMap) {
     if (propValue.source == 'static') {
-      if (propValue.sourceData.ownerPropName && !this.props.ignoreOwnerProps)
+      if (propValue.sourceData.ownerPropName && !this.props.ignoreOwnerProps) {
         return this.props.propsFromOwner[propValue.sourceData.ownerPropName];
-
-      else if (typedef.type === 'shape') {
+      } else if (typedef.type === 'shape') {
         if (propValue.sourceData.value === null) return null;
 
         return _mapValues(typedef.fields, (fieldMeta, fieldName) => {
@@ -104,8 +103,9 @@ class BuilderComponent extends PureComponent {
                             theMap,
                         ),
                     ).toJS();
-      } else
-                    return propValue.sourceData.value;
+      } else {
+        return propValue.sourceData.value;
+      }
     } else if (propValue.source === 'const') {
       if (propValue.sourceData.jssyConstId)
         return jssyConstants[propValue.sourceData.jssyConstId];
@@ -201,10 +201,9 @@ class BuilderComponent extends PureComponent {
      * @private
      */
   _renderPseudoComponent(component) {
-    if (component.name === 'Outlet')
+    if (component.name === 'Outlet') {
       return this.props.children || <Outlet />;
-
-    else if (component.name === 'Text') {
+    } else if (component.name === 'Text') {
       const props = this._buildProps(component);
       return props.text || '';
     } else if (component.name === 'List') {
@@ -212,7 +211,7 @@ class BuilderComponent extends PureComponent {
         ItemComponent = props.component;
 
       return props.data.map((item, idx) => (
-        <ItemComponent key={idx} item={item}/>
+        <ItemComponent key={idx} item={item} />
             ));
     }
   }
@@ -310,8 +309,9 @@ class BuilderComponent extends PureComponent {
                     component.id,
                     idx,
                 ));
-      } else
-                ret.push(this._renderComponent(childComponent, isPlaceholder));
+      } else {
+        ret.push(this._renderComponent(childComponent, isPlaceholder));
+      }
     });
 
     return ret;
@@ -459,7 +459,7 @@ class BuilderComponent extends PureComponent {
 
             // noinspection JSValidateTypes
       return (
-        <Container {...props}/>
+        <Container {...props} />
       );
     } else {
             // noinspection JSValidateTypes
@@ -479,11 +479,11 @@ class BuilderComponent extends PureComponent {
                 this.props.isPlaceholder,
                 this.props.isPlaceholder,
             );
-    } else if (this.props.draggingComponent && !this.props.isPlaceholder)
+    } else if (this.props.draggingComponent && !this.props.isPlaceholder) {
       return this._renderPlaceholderForDraggedComponent(-1, -1);
-
-    else
-            return null;
+    } else {
+      return null;
+    }
   }
 }
 
