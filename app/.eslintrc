@@ -11,7 +11,7 @@
     "arrow-parens": [2, "as-needed",  { "requireForBlockBody": false }],
     "no-confusing-arrow": [0],
     "no-void": [0],
-    "no-param-reassign": [1, { "props": true }],
+    "no-param-reassign": [2, { "props": true }],
     "no-iterator": [0],
     "no-plusplus": [0],
     "dot-notation": [1],
@@ -22,7 +22,7 @@
     "func-names": [0],
     "curly": [2, "multi", "consistent"],
     "no-continue": [0],
-    "global-require": [1],
+    "global-require": [2],
     "no-use-before-define": [1],
     "no-else-return": [0],
     "no-shadow": [0],
@@ -101,7 +101,7 @@
     "react/jsx-wrap-multilines": [2],
 
     "import/prefer-default-export": [0],
-    "import/no-dynamic-require": [1]
+    "import/no-dynamic-require": [2]
   },
 
 
