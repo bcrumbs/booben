@@ -47,7 +47,7 @@ class ComponentsDragAreaComponent extends PureComponent {
                 nextProps.draggedComponentId,
             );
       }
-    } else if (this.dragging) this._handleStopDrag();
+    } else if (this.dragging) { this._handleStopDrag(); }
   }
 
   componentWillUnmount() {

@@ -43,12 +43,9 @@ class ProjectSaveComponent extends Component {
                 (<div className="project-save_state_icon state_icon-error">
                   <Icon name="exclamation" />
                 </div>);
-    } else if (this.props.status === 'success')
-      title = 'Saved!';
-    else if (this.props.status === 'progress')
-      title = 'Saving...';
-    else
-            title = 'Save';
+    } else if (this.props.status === 'success') { title = 'Saved!'; } else if (this.props.status === 'progress') { title = 'Saving...'; } else {
+      title = 'Save';
+    }
 
 
     if (this.props.status === 'error')
@@ -69,7 +66,7 @@ class ProjectSaveComponent extends Component {
         onMouseLeave={this.props.hideTooltip}
       >
         <div className="project-save_icon">
-          <Icon name="floppy-o"/>
+          <Icon name="floppy-o" />
         </div>
         <div className="project-save_title-wrapper">
           <div className="project-save_title">
@@ -78,7 +75,7 @@ class ProjectSaveComponent extends Component {
           </div>
         </div>
 
-        <this.props.Tooltip text={tooltipText}/>
+        <this.props.Tooltip text={tooltipText} />
       </div>
     );
   }

@@ -94,8 +94,9 @@ const extractGroupsDataFromMeta = meta => {
       if (!componentMeta.group) {
         defaultGroup = true;
         groupName = `${libMeta.namespace}.__default__`;
-      } else
-                groupName = `${libMeta.namespace}.${componentMeta.group}`;
+      } else {
+        groupName = `${libMeta.namespace}.${componentMeta.group}`;
+      }
 
 
       if (defaultGroup && !groups.has(groupName)) {

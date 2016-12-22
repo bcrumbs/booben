@@ -308,8 +308,9 @@ class ComponentsTreeViewComponent extends PureComponent {
                     currentPlaceholderContainer.id,
                     indexOfPlaceholder,
                 );
-      } else
-                this._resetDrag();
+      } else {
+        this._resetDrag();
+      }
     }
   }
 
@@ -357,8 +358,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 
   _containsPlaceholderContainer(componentId) {
     if (!this.props.draggingComponent) return false;
-    if (componentId === this.props.placeholderContainerId) return true;
-    else {
+    if (componentId === this.props.placeholderContainerId) { return true; } else {
       const children = this.props.components.get(componentId).children;
       if (!children) return false;
       else

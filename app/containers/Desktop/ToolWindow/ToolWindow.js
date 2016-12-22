@@ -152,19 +152,19 @@ export class ToolWindow extends PureComponent {
 
     if (this.inStickRegionLeft) {
       if (!isInStickRegion.left) this.props.onStickRegionLeave(STICK_REGION_LEFT);
-    } else if (isInStickRegion.left) this.props.onStickRegionEnter(STICK_REGION_LEFT);
+    } else if (isInStickRegion.left) { this.props.onStickRegionEnter(STICK_REGION_LEFT); }
 
     if (this.inStickRegionRight) {
       if (!isInStickRegion.right) this.props.onStickRegionLeave(STICK_REGION_RIGHT);
-    } else if (isInStickRegion.right) this.props.onStickRegionEnter(STICK_REGION_RIGHT);
+    } else if (isInStickRegion.right) { this.props.onStickRegionEnter(STICK_REGION_RIGHT); }
 
     if (this.inStickRegionTop) {
       if (!isInStickRegion.top) this.props.onStickRegionLeave(STICK_REGION_TOP);
-    } else if (isInStickRegion.top) this.props.onStickRegionEnter(STICK_REGION_TOP);
+    } else if (isInStickRegion.top) { this.props.onStickRegionEnter(STICK_REGION_TOP); }
 
     if (this.inStickRegionBottom) {
       if (!isInStickRegion.bottom) this.props.onStickRegionLeave(STICK_REGION_BOTTOM);
-    } else if (isInStickRegion.bottom) this.props.onStickRegionEnter(STICK_REGION_BOTTOM);
+    } else if (isInStickRegion.bottom) { this.props.onStickRegionEnter(STICK_REGION_BOTTOM); }
 
     this.inStickRegionLeft = isInStickRegion.left;
     this.inStickRegionRight = isInStickRegion.right;
@@ -354,7 +354,7 @@ export class ToolWindow extends PureComponent {
         sideRegion = (
           <DraggableWindowRegion type="aside">
             <BlockContent>
-              <SideRegionContentComponent/>
+              <SideRegionContentComponent />
             </BlockContent>
           </DraggableWindowRegion>
                 );

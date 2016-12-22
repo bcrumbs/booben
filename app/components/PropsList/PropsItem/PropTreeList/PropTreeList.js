@@ -27,8 +27,9 @@ export class PropTreeList extends Component {
         isTitleDialogVisible: true,
         name: '',
       });
-    } else
-            this.props.onAdd();
+    } else {
+      this.props.onAdd();
+    }
   }
 
   _handleNameChange(newName) {

@@ -135,7 +135,7 @@ const getLastType = (types, type, path) => {
     typeName = type
                     .fields[fieldName]
                         .connectionFields[connectionFieldName].type;
-  } else typeName = type.fields[pathStep].type;
+  } else { typeName = type.fields[pathStep].type; }
 
   return path.length === 1
     ? types[typeName]
@@ -301,6 +301,6 @@ export const getAllPossibleNestedContexts = createSelector(
                     , []).filter(v => v),
                 )
             , []);
-      } else return null;
+      } else { return null; }
     },
 );

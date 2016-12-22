@@ -57,8 +57,7 @@ const selectTool = (state, toolId) => {
               activeToolId: toolId,
               toolsPanelIsExpanded: true,
             });
-  } else
-        return state.set('activeToolId', null);
+  } else { return state.set('activeToolId', null); }
 };
 
 const changeToolStateProp = (state, toolId, prop, value) => {
@@ -82,8 +81,7 @@ const setNecessaryToolActiveAfterDrop = (state, dropOnAreaId) => {
         state.previousActiveToolId === TOOL_ID_COMPONENTS_TREE
         || !state.toolStates.get(TOOL_ID_COMPONENTS_TREE).docked
         || dropOnAreaId === DROP_COMPONENT_AREA_IDS.TREE
-    ) return state;
-  else {
+    ) { return state; } else {
     return selectTool(state, state.previousActiveToolId)
                     .set('previousActiveToolId', null);
   }
@@ -146,8 +144,9 @@ export default (state = new DesktopState(), action) => {
                       stickyToolId: null,
                       activeToolId: action.toolId,
                     });
-      } else
-                return state;
+      } else {
+        return state;
+      }
     }
 
     case DESKTOP_TOOL_UNDOCK: {
@@ -169,8 +168,7 @@ export default (state = new DesktopState(), action) => {
         return state
                     .setIn(['toolStates', action.toolId, 'docked'], false)
                     .set('activeToolId', action.nextActiveToolId);
-      } else
-                return state;
+      } else { return state; }
     }
 
     case DESKTOP_TOOL_CLOSE: {
@@ -188,8 +186,9 @@ export default (state = new DesktopState(), action) => {
         return state
                     .setIn(['toolStates', action.toolId, 'zIndex'], newTopZIndex)
                     .set('topToolZIndex', newTopZIndex);
-      } else
-                return state;
+      } else {
+        return state;
+      }
     }
 
     case DESKTOP_TOOL_SELECT: {
@@ -210,8 +209,9 @@ export default (state = new DesktopState(), action) => {
         return state
                     .setIn(['toolStates', action.toolId, 'isInDockRegion'], true)
                     .set('stickyToolId', action.toolId);
-      } else
-                return state.set('stickyToolId', null);
+      } else {
+        return state.set('stickyToolId', null);
+      }
     }
 
     case DESKTOP_TOOL_SET_ACTIVE_SECTION: {

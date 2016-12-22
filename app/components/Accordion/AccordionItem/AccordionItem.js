@@ -22,7 +22,7 @@ export const AccordionItem = props => {
         </div>
 
         <div className="accordion-title-icon accordion-icon-collapse">
-          <Icon name="chevron-down"/>
+          <Icon name="chevron-down" />
         </div>
       </div>
 

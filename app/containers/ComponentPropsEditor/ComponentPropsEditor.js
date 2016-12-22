@@ -145,10 +145,7 @@ const transformValue = (componentMeta, propMeta, propValue) => {
 
   if (!isLinked) {
     if (propValue.source === 'static') {
-      if (isScalarType(typedef))
-        value = propValue.sourceData.value;
-
-      else if (typedef.type === 'shape') {
+      if (isScalarType(typedef)) { value = propValue.sourceData.value; } else if (typedef.type === 'shape') {
         value = _mapValues(typedef.fields, (fieldMeta, fieldName) =>
                     transformValue(
                         componentMeta,
@@ -174,11 +171,9 @@ const transformValue = (componentMeta, propMeta, propValue) => {
                     .toJS()
                     .join(' -> ');
     }
-  } else if (propValue.source === 'function')
-    value = propValue.sourceData.function;
-
-  else if (propValue.source === 'static')
+  } else if (propValue.source === 'function') { value = propValue.sourceData.function; } else if (propValue.source === 'static') {
     value = propValue.sourceData.ownerPropName;
+  }
 
   return { value, isLinked };
 };
@@ -397,13 +392,11 @@ class ComponentPropsEditorComponent extends PureComponent {
     };
 
     if (editable) {
-      if (typedef.type === 'int')
+      if (typedef.type === 'int') {
         ret.transformValue = coerceIntValue;
-
-      else if (typedef.type === 'float')
+      } else if (typedef.type === 'float') {
         ret.transformValue = coerceFloatValue;
-
-      else if (typedef.type === 'oneOf') {
+      } else if (typedef.type === 'oneOf') {
         ret.options = typedef.options.map(option => ({
           value: option.value,
           text: getString(
