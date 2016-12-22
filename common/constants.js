@@ -8,7 +8,7 @@
  *
  * @type {RegExp}
  */
-exports.PROJECT_NAME_REGEX = /^[a-zA-Z0-9_\-]{2,128}$/;
+exports.PROJECT_NAME_REGEX = /^[a-zA-Z0-9_-]{2,128}$/;
 
 /**
  *
