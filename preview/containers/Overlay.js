@@ -7,10 +7,10 @@ import { Set } from 'immutable';
 import { connect } from 'react-redux';
 
 import {
-    currentSelectedComponentIdsSelector,
-    currentHighlightedComponentIdsSelector,
-    currentRootComponentIdSelector,
-    currentComponentsSelector,
+  currentSelectedComponentIdsSelector,
+  currentHighlightedComponentIdsSelector,
+  currentRootComponentIdSelector,
+  currentComponentsSelector,
 } from '../../app/selectors';
 
 import { OverlayContainer } from '../components/OverlayContainer';
@@ -18,6 +18,20 @@ import { OverlayBoundingBox } from '../components/OverlayBoundingBox';
 import { OverlayComponentTitle } from '../components/OverlayComponentTitle';
 
 import { PREVIEW_DOM_CONTAINER_ID } from '../../common/shared-constants';
+
+const propTypes = {
+  components: ImmutablePropTypes.map.isRequired,
+  selectedComponentIds: ImmutablePropTypes.set.isRequired,
+  highlightedComponentIds: ImmutablePropTypes.set.isRequired,
+  boundaryComponentId: PropTypes.number.isRequired,
+  highlightingEnabled: PropTypes.bool.isRequired,
+  draggingComponent: PropTypes.bool.isRequired,
+  showComponentTitles: PropTypes.bool.isRequired,
+};
+
+const HIGHLIGHT_COLOR = 'rgba(0, 113, 216, 0.3)';
+const SELECT_COLOR = 'rgba(0, 113, 216, 1)';
+const BOUNDARY_COLOR = 'red';
 
 /**
  *
@@ -30,30 +44,29 @@ let container = null;
  * @return {HTMLElement}
  */
 const getContainer = () =>
-    container || (container = document.getElementById(PREVIEW_DOM_CONTAINER_ID));
+  container || (container = document.getElementById(PREVIEW_DOM_CONTAINER_ID));
+
+/**
+ *
+ * @param {number} id
+ * @return {HTMLElement}
+ * @private
+ */
+const getDOMElementByComponentId = id =>
+  getContainer().querySelector(`[data-jssy-id="${id}"]`) || null;
 
 class Overlay extends PureComponent {
-    /**
-     *
-     * @param {number} id
-     * @return {HTMLElement}
-     * @private
-     */
-  _getDOMElementByComponentId(id) {
-    return getContainer().querySelector(`[data-jssy-id="${id}"]`);
-  }
-
-    /**
-     *
-     * @param {Immutable.List<number>} componentIds
-     * @param {string} color
-     * @return {Immutable.List<ReactElement>}
-     * @private
-     */
+  /**
+   *
+   * @param {Immutable.List<number>} componentIds
+   * @param {string} color
+   * @return {Immutable.List<ReactElement>}
+   * @private
+   */
   _renderBoundingBoxes(componentIds, color) {
-        // noinspection JSValidateTypes
+    // noinspection JSValidateTypes
     return componentIds.map(id => {
-      const element = this._getDOMElementByComponentId(id) || null,
+      const element = getDOMElementByComponentId(id),
         key = `${id}-${color}`;
 
       return (
@@ -66,36 +79,51 @@ class Overlay extends PureComponent {
     });
   }
 
+  /**
+   *
+   * @return {Immutable.Seq<ReactElement>}
+   * @private
+   */
   _renderTitles() {
-        // TODO: Handle cases when multiple titles appear in the same place
-    return this.props.components.map(component => (
-      <OverlayComponentTitle
-        key={component.id}
-        element={this._getDOMElementByComponentId(component.id)}
-        title={component.title || component.name}
-      />
-        ));
+    // TODO: Handle cases when multiple titles appear in the same place
+
+    // noinspection JSValidateTypes
+    return this.props.components.valueSeq().map(component => {
+      const element = getDOMElementByComponentId(component.id),
+        title = component.title || component.name;
+
+      return (
+        <OverlayComponentTitle
+          key={component.id}
+          element={element}
+          title={title}
+        />
+      );
+    });
   }
 
   render() {
     const highlightBoxes = this.props.highlightingEnabled
-            ? this._renderBoundingBoxes(this.props.highlightedComponentIds, 'rgba(0, 113, 216, 0.3)')
-            : null;
+      ? this._renderBoundingBoxes(
+        this.props.highlightedComponentIds,
+        HIGHLIGHT_COLOR,
+      )
+      : null;
 
     const selectBoxes =
-            this._renderBoundingBoxes(this.props.selectedComponentIds, 'rgba(0, 113, 216, 1)');
+      this._renderBoundingBoxes(this.props.selectedComponentIds, SELECT_COLOR);
 
     let rootComponentBox = null;
     if (this.props.draggingComponent && this.props.boundaryComponentId > -1) {
       rootComponentBox = this._renderBoundingBoxes(
-                Set([this.props.boundaryComponentId]),
-                'red',
-            );
+        Set([this.props.boundaryComponentId]),
+        BOUNDARY_COLOR,
+      );
     }
 
     const titles = this.props.showComponentTitles
-            ? this._renderTitles()
-            : null;
+      ? this._renderTitles()
+      : null;
 
     return (
       <OverlayContainer>
@@ -108,20 +136,11 @@ class Overlay extends PureComponent {
   }
 }
 
-Overlay.propTypes = {
-  components: ImmutablePropTypes.map,
-  rootComponentId: PropTypes.number,
-  selectedComponentIds: ImmutablePropTypes.set,
-  highlightedComponentIds: ImmutablePropTypes.set,
-  boundaryComponentId: PropTypes.number,
-  highlightingEnabled: PropTypes.bool,
-  draggingComponent: PropTypes.bool,
-  showComponentTitles: PropTypes.bool,
-};
+Overlay.propTypes = propTypes;
+Overlay.displayName = 'Overlay';
 
 const mapStateToProps = state => ({
   components: currentComponentsSelector(state),
-  rootComponentId: currentRootComponentIdSelector(state),
   selectedComponentIds: currentSelectedComponentIdsSelector(state),
   highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
   boundaryComponentId: currentRootComponentIdSelector(state),
@@ -130,6 +149,4 @@ const mapStateToProps = state => ({
   showComponentTitles: state.app.showComponentTitles,
 });
 
-export default connect(
-    mapStateToProps,
-)(Overlay);
+export default connect(mapStateToProps)(Overlay);
