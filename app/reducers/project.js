@@ -559,8 +559,8 @@ export default (state = new ProjectState(), action) => {
           lastRouteId,
           lastComponentId,
           selectedRouteId: project.rootRoutes.size > 0
-                ? project.rootRoutes.get(0)
-                : -1,
+            ? project.rootRoutes.get(0)
+            : -1,
           indexRouteSelected: false,
         })
         .set('schema', schema)
@@ -656,27 +656,27 @@ export default (state = new ProjectState(), action) => {
 
       if (!currentComponents.has(action.componentId)) {
         throw new Error(
-                    'An attempt was made to update a component ' +
-                    'that is not in current editing area',
-                );
+          'An attempt was made to update a component ' +
+          'that is not in current editing area',
+        );
       }
 
       const newPropValue = new ProjectComponentProp({
         source: action.newSource,
         sourceData: sourceDataToImmutable(
-                    action.newSource,
-                    action.newSourceData,
-                ),
+          action.newSource,
+          action.newSourceData,
+        ),
       });
 
-            // Data prop with pushDataContext cannot be nested,
-            // so we need to clearOutdatedDataProps only when updating top-level prop
+      // Data prop with pushDataContext cannot be nested,
+      // so we need to clearOutdatedDataProps only when updating top-level prop
       if (!action.path || !action.path.length) {
         state = clearOutdatedDataProps(
-                    state,
-                    action.componentId,
-                    action.propName,
-                );
+          state,
+          action.componentId,
+          action.propName,
+        );
       }
 
       const pathToComponent = [].concat(pathToCurrentComponents, [
@@ -685,40 +685,40 @@ export default (state = new ProjectState(), action) => {
 
       if (action.newQueryArgs) {
         const pathToQueryArgs = (
-                    action.isRootQuery
-                    ? [
-                      'data',
-                      'routes',
-                      state.currentRouteId,
-                      'components',
-                      getComponentWithQueryArgs(
-                            state,
-                            action.componentId,
-                            false,
-                        ).id,
-                    ]
-                    : pathToComponent
-                ).concat('queryArgs');
+          action.isRootQuery
+          ? [
+            'data',
+            'routes',
+            state.currentRouteId,
+            'components',
+            getComponentWithQueryArgs(
+              state,
+              action.componentId,
+              false,
+            ).id,
+          ]
+          : pathToComponent
+        ).concat('queryArgs');
 
         const toMerge = _mapValues(
-                    action.newQueryArgs,
+          action.newQueryArgs,
 
-                    argsByContext => _mapValues(
-                        argsByContext,
+          argsByContext => _mapValues(
+            argsByContext,
 
-                        argsByPath => _mapValues(
-                            argsByPath,
+            argsByPath => _mapValues(
+              argsByPath,
 
-                            arg => new QueryArgumentValue({
-                              source: arg.source,
-                              sourceData: sourceDataToImmutable(
-                                    arg.source,
-                                    arg.sourceData,
-                                ),
-                            }),
-                        ),
-                    ),
-                );
+              arg => new QueryArgumentValue({
+                source: arg.source,
+                sourceData: sourceDataToImmutable(
+                  arg.source,
+                  arg.sourceData,
+                ),
+              }),
+            ),
+          ),
+        );
 
         state = state.mergeIn(pathToQueryArgs, toMerge);
       }
@@ -737,17 +737,17 @@ export default (state = new ProjectState(), action) => {
 
       if (!currentComponents.has(action.componentId)) {
         throw new Error(
-                    'An attempt was made to update a component ' +
-                    'that is not in current editing area',
-                );
+          'An attempt was made to update a component ' +
+          'that is not in current editing area',
+        );
       }
 
       const newValue = new ProjectComponentProp({
         source: action.source,
         sourceData: sourceDataToImmutable(
-                    action.source,
-                    action.sourceData,
-                ),
+          action.source,
+          action.sourceData,
+        ),
       });
 
       const path = [].concat(pathToCurrentComponents, [
@@ -755,9 +755,9 @@ export default (state = new ProjectState(), action) => {
         'props',
         action.propName,
       ], ...action.path.map(index => ['sourceData', 'value', index]),
-                'sourceData',
-                'value',
-            );
+        'sourceData',
+        'value',
+      );
 
       return state.updateIn(path, mapOrList => {
         if (List.isList(mapOrList)) {
@@ -765,11 +765,12 @@ export default (state = new ProjectState(), action) => {
             throw new Error('');
 
           return action.index > -1
-                        ? mapOrList.insert(action.index, newValue)
-                        : mapOrList.push(newValue);
+            ? mapOrList.insert(action.index, newValue)
+            : mapOrList.push(newValue);
         } else if (Map.isMap(mapOrList)) {
-          if (typeof action.index !== 'string' || !action.index)
+          if (typeof action.index !== 'string' || !action.index) {
             throw new Error('');
+          }
 
           return mapOrList.set(action.index, newValue);
         } else {

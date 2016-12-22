@@ -4,12 +4,10 @@
 
 'use strict';
 
-/**
- *
- * @type {string}
- * @const
- */
-export const LIBRARY_EXPANDED_GROUPS = 'LIBRARY_EXPANDED_GROUPS';
+export const LIBRARY_EXPANDED_GROUPS =
+  'LIBRARY_EXPANDED_GROUPS';
+export const LIBRARY_SHOW_ALL_COMPONENTS =
+  'LIBRARY_SHOW_ALL_COMPONENTS';
 
 /**
  *
@@ -20,13 +18,6 @@ export const setExpandedGroups = groups => ({
   type: LIBRARY_EXPANDED_GROUPS,
   groups,
 });
-
-/**
- *
- * @type {string}
- * @const
- */
-export const LIBRARY_SHOW_ALL_COMPONENTS = 'LIBRARY_SHOW_ALL_COMPONENTS';
 
 /**
  *
