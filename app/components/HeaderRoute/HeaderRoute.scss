@@ -2,27 +2,27 @@
 @import 'variables';
 
 @include exports(header-route) {
-	// =================================================================================================================
-	// BASE
-	// =================================================================================================================
-	.route-header-wrapper {
-		.header,
-		.header-wrapper {
-			background-color: color($bg, 500);
-		}
-	}
+    // =================================================================================================================
+    // BASE
+    // =================================================================================================================
+    .route-header-wrapper {
+        .header,
+        .header-wrapper {
+            background-color: color($bg, 500);
+        }
+    }
 
-	.header-title {
-		.breadcrumbs {
-			margin-top: 0;
-			margin-left: 0;
-		}
+    .header-title {
+        .breadcrumbs {
+            margin-top: 0;
+            margin-left: 0;
+        }
 
-		.breadcrumbs-item-title,
-		.breadcrumbs-separator{
-			font-size: inherit;
-			line-height: inherit;
-		}
-	}
+        .breadcrumbs-item-title,
+        .breadcrumbs-separator{
+            font-size: inherit;
+            line-height: inherit;
+        }
+    }
 }
 

@@ -2,50 +2,50 @@
 @import 'variables';
 
 @include exports(block-breadcrumbs) {
-	// =================================================================================================================
-	// Base
-	// =================================================================================================================
-	.block-breadcrumbs {
-		padding: 0 $bcontent-base-pad-x;
+    // =================================================================================================================
+    // Base
+    // =================================================================================================================
+    .block-breadcrumbs {
+        padding: 0 $bcontent-base-pad-x;
 
-		.breadcrumbs {
-			margin-left: 0
-		}
-	}
+        .breadcrumbs {
+            margin-left: 0
+        }
+    }
 
 
-	.breadcrumbs-item-anchor {
-		.block-breadcrumbs & {
-			border-radius: $blockcrumbs-item-border-radius;
-		}
+    .breadcrumbs-item-anchor {
+        .block-breadcrumbs & {
+            border-radius: $blockcrumbs-item-border-radius;
+        }
 
-		.block-breadcrumbs .breadcrumbs-item.is-active & {
-			background-color: $blockcrumbs-item-active-bg-color;
-			opacity: 1;
-		}
-	}
+        .block-breadcrumbs .breadcrumbs-item.is-active & {
+            background-color: $blockcrumbs-item-active-bg-color;
+            opacity: 1;
+        }
+    }
 
-	.breadcrumbs-item-text {
-		.block-breadcrumbs & {
-			display: flex;
-			flex-direction: column;
-			align-items: flex-start;
-			justify-content: center;
-		}
-	}
+    .breadcrumbs-item-text {
+        .block-breadcrumbs & {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+        }
+    }
 
-	.breadcrumbs-item-title {
-		.block-breadcrumbs &,
-		.block-breadcrumbs .breadcrumbs-item.is-active & {
-			font-size: $blockcrumbs-item-title-font-size;
-			color: $blockcrumbs-item-title-color;
-		}
-	}
+    .breadcrumbs-item-title {
+        .block-breadcrumbs &,
+        .block-breadcrumbs .breadcrumbs-item.is-active & {
+            font-size: $blockcrumbs-item-title-font-size;
+            color: $blockcrumbs-item-title-color;
+        }
+    }
 
-	.breadcrumbs-item-subtitle {
-		.block-breadcrumbs & {
-			font-size: $blockcrumbs-item-subtitle-font-size;
-			line-height: $blockcrumbs-item-subtitle-line-height;
-		}
-	}
+    .breadcrumbs-item-subtitle {
+        .block-breadcrumbs & {
+            font-size: $blockcrumbs-item-subtitle-font-size;
+            line-height: $blockcrumbs-item-subtitle-line-height;
+        }
+    }
 }

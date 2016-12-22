@@ -11,9 +11,9 @@ const localizationFuncsMap = new WeakMap();
  * @return {string}
  */
 export const concatPath = (prefix, path) => {
-    if (prefix === '') return path;
-    if (prefix === '/') return '/' + path;
-    return prefix + '/' + path;
+  if (prefix === '') return path;
+  if (prefix === '/') return `/${path}`;
+  return `${prefix}/${path}`;
 };
 
 /**
@@ -25,7 +25,7 @@ export const concatPath = (prefix, path) => {
   * @return {string}
   */
 export const getLocalizedText = (localization, language, id, values = {}) =>
-	new IntlMessageFormat(localization[id], language).format(values);
+    new IntlMessageFormat(localization[id], language).format(values);
 
 /**
   *
@@ -33,11 +33,11 @@ export const getLocalizedText = (localization, language, id, values = {}) =>
   * @return {function(string, string): string}
   */
 export const getLocalizedTextFromState = state =>
-	localizationFuncsMap.get(state.app.localization)
-	||	localizationFuncsMap.set(state.app.localization,
-			(...args) => getLocalizedText(
-					state.app.localization,
-					state.app.language,
-					...args
-				)
-		).get(state.app.localization);
+    localizationFuncsMap.get(state.app.localization)
+    || localizationFuncsMap.set(state.app.localization,
+            (...args) => getLocalizedText(
+                    state.app.localization,
+                    state.app.language,
+                    ...args,
+                ),
+        ).get(state.app.localization);

@@ -7,6 +7,6 @@
 import { Record, Map } from 'immutable';
 
 export default Record({
-    components: Map(),
-    rootId: -1
+  components: Map(),
+  rootId: -1,
 });

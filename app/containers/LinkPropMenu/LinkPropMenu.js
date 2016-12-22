@@ -4,21 +4,21 @@
 
 'use strict';
 
-//noinspection JSUnresolvedVariable
+// noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
 import {
     DataList,
-    DataItem
+    DataItem,
 } from '../../components/DataList/DataList';
 
 import {
     currentComponentsSelector,
     singleComponentSelectedSelector,
     topNestedConstructorSelector,
-    topNestedConstructorComponentSelector
+    topNestedConstructorComponentSelector,
 } from '../../selectors';
 
 import { linkWithOwnerProp } from '../../actions/project';
@@ -32,138 +32,137 @@ import {
     getString,
     getPropTypedef,
     resolveTypedef,
-    getNestedTypedef
+    getNestedTypedef,
 } from '../../utils/meta';
 
 class LinkPropMenuComponent extends PureComponent {
-    render() {
-        if (!this.props.singleComponentSelected || !this.props.linkingProp) return null;
+  render() {
+    if (!this.props.singleComponentSelected || !this.props.linkingProp) return null;
 
-        const ownerComponent = this.props.topNestedConstructorComponent;
+    const ownerComponent = this.props.topNestedConstructorComponent;
 
-        if (ownerComponent) {
+    if (ownerComponent) {
             // We're in a nested constructor
             // so we can link with owner component props
-            const ownerComponentMeta = getComponentMeta(
+      const ownerComponentMeta = getComponentMeta(
                 ownerComponent.name,
-                this.props.meta
+                this.props.meta,
             );
 
-            const ownerComponentPropName = this.props.topNestedConstructor.prop,
-                ownerComponentPropMeta = ownerComponentMeta.props[ownerComponentPropName],
-                ownerPropsMeta = ownerComponentPropMeta.sourceConfigs.designer.props;
+      const ownerComponentPropName = this.props.topNestedConstructor.prop,
+        ownerComponentPropMeta = ownerComponentMeta.props[ownerComponentPropName],
+        ownerPropsMeta = ownerComponentPropMeta.sourceConfigs.designer.props;
 
-            const linkTargetComponent =
+      const linkTargetComponent =
                 this.props.components.get(this.props.linkingPropOfComponentId);
 
-            const linkTargetComponentMeta = getComponentMeta(
+      const linkTargetComponentMeta = getComponentMeta(
                 linkTargetComponent.name,
-                this.props.meta
+                this.props.meta,
             );
 
-            const linkTargetPropTypedef = getNestedTypedef(
+      const linkTargetPropTypedef = getNestedTypedef(
                 getPropTypedef(
                     linkTargetComponentMeta,
-                    this.props.linkingPropName
+                    this.props.linkingPropName,
                 ),
 
-                this.props.linkingPropPath
+                this.props.linkingPropPath,
             );
 
-            const items = Object.keys(ownerPropsMeta)
+      const items = Object.keys(ownerPropsMeta)
                 .filter(ownerPropName => {
-                    const ownerPropTypedef = resolveTypedef(
+                  const ownerPropTypedef = resolveTypedef(
                         ownerComponentMeta,
-                        ownerPropsMeta[ownerPropName]
+                        ownerPropsMeta[ownerPropName],
                     );
 
-                    return isCompatibleType(ownerPropTypedef, linkTargetPropTypedef);
+                  return isCompatibleType(ownerPropTypedef, linkTargetPropTypedef);
                 })
                 .map((ownerPropName, idx) => {
-                    const ownerPropMeta = ownerPropsMeta[ownerPropName];
+                  const ownerPropMeta = ownerPropsMeta[ownerPropName];
 
-                    const title = getString(
+                  const title = getString(
                         ownerComponentMeta,
                         ownerPropMeta.textKey,
-                        this.props.language
+                        this.props.language,
                     );
 
-                    const subtitle = getString(
+                  const subtitle = getString(
                         ownerComponentMeta,
                         ownerPropMeta.descriptionTextKey,
-                        this.props.language
+                        this.props.language,
                     );
 
-                    return (
-                        <DataItem
-                            key={idx}
-                            title={title || ownerPropName}
-                            subtitle={subtitle}
-                            type={ownerPropMeta.type}
-                            clickable
-                            arg={ownerPropName}
-                            onClick={this.props.onLinkWithOwnerProp}
-                        />
-                    );
+                  return (
+                    <DataItem
+                      key={idx}
+                      title={title || ownerPropName}
+                      subtitle={subtitle}
+                      type={ownerPropMeta.type}
+                      clickable
+                      arg={ownerPropName}
+                      onClick={this.props.onLinkWithOwnerProp}
+                    />
+                  );
                 });
 
-            return (
-                <DataList>
-                    {items}
-                </DataList>
-            );
-        }
-        else {
+      return (
+        <DataList>
+          {items}
+        </DataList>
+      );
+    } else {
             // TODO: Add UI for linking with server data
-            return null;
-        }
+      return null;
     }
+  }
 }
 
 LinkPropMenuComponent.propTypes = {
-    components: ImmutablePropTypes.mapOf(
+  components: ImmutablePropTypes.mapOf(
         PropTypes.instanceOf(ProjectComponentRecord),
-        PropTypes.number
+        PropTypes.number,
     ),
-    meta: PropTypes.object,
-    singleComponentSelected: PropTypes.bool,
-    linkingProp: PropTypes.bool,
-    linkingPropOfComponentId: PropTypes.number,
-    linkingPropName: PropTypes.string,
-    linkingPropPath: PropTypes.arrayOf(
+  meta: PropTypes.object,
+  singleComponentSelected: PropTypes.bool,
+  linkingProp: PropTypes.bool,
+  linkingPropOfComponentId: PropTypes.number,
+  linkingPropName: PropTypes.string,
+  linkingPropPath: PropTypes.arrayOf(
         PropTypes.oneOfType([
-            PropTypes.string,
-            PropTypes.number
-        ])
+          PropTypes.string,
+          PropTypes.number,
+        ]),
     ),
-    topNestedConstructor: PropTypes.instanceOf(NestedConstructor),
-    topNestedConstructorComponent: PropTypes.instanceOf(ProjectComponentRecord),
-    language: PropTypes.string,
+  topNestedConstructor: PropTypes.instanceOf(NestedConstructor),
+  topNestedConstructorComponent: PropTypes.instanceOf(ProjectComponentRecord),
+  language: PropTypes.string,
 
-    onLinkWithOwnerProp: PropTypes.func
+  onLinkWithOwnerProp: PropTypes.func,
 };
 
 LinkPropMenuComponent.displayName = 'LinkPropMenu';
 
 const mapStateToProps = state => ({
-    components: currentComponentsSelector(state),
-    meta: state.project.meta,
-    singleComponentSelected: singleComponentSelectedSelector(state),
-    linkingProp: state.project.linkingProp,
-    linkingPropOfComponentId: state.project.linkingPropOfComponentId,
-    linkingPropName: state.project.linkingPropName,
-    linkingPropPath: state.project.linkingPropPath,
-    topNestedConstructor: topNestedConstructorSelector(state),
-    topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
-    language: state.project.languageForComponentProps
+  components: currentComponentsSelector(state),
+  meta: state.project.meta,
+  singleComponentSelected: singleComponentSelectedSelector(state),
+  linkingProp: state.project.linkingProp,
+  linkingPropOfComponentId: state.project.linkingPropOfComponentId,
+  linkingPropName: state.project.linkingPropName,
+  linkingPropPath: state.project.linkingPropPath,
+  topNestedConstructor: topNestedConstructorSelector(state),
+  topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
+  language: state.project.languageForComponentProps,
 });
 
 const mapDispatchToProps = dispatch => ({
-    onLinkWithOwnerProp: ownerPropName =>
-        void dispatch(linkWithOwnerProp(ownerPropName))
+  onLinkWithOwnerProp: ownerPropName =>
+        void dispatch(linkWithOwnerProp(ownerPropName)),
 });
 
 export const LinkPropMenu = connect(
     mapStateToProps,
-    mapDispatchToProps
+    mapDispatchToProps,
 )(LinkPropMenuComponent);

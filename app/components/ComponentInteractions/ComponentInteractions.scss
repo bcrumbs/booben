@@ -2,100 +2,100 @@
 @import 'variables';
 
 @include exports(component-interactions) {
-	// =================================================================================================================
-	// BASE
-	// =================================================================================================================
-	// ACTION: Editing
-	// =================================================================================================================
-	// Title
-	.component-action-editing-title {
-		font-size: $cinteractions-editing-title-font-size;
-		font-weight: $cinteractions-editing-title-font-weight;
-		color: $cinteractions-editing-title-color;
-		text-transform: $cinteractions-editing-title-text-transform;
-		line-height: $cinteractions-editing-title-line-height;
+    // =================================================================================================================
+    // BASE
+    // =================================================================================================================
+    // ACTION: Editing
+    // =================================================================================================================
+    // Title
+    .component-action-editing-title {
+        font-size: $cinteractions-editing-title-font-size;
+        font-weight: $cinteractions-editing-title-font-weight;
+        color: $cinteractions-editing-title-color;
+        text-transform: $cinteractions-editing-title-text-transform;
+        line-height: $cinteractions-editing-title-line-height;
 
-		margin-top: $cinteractions-editing-title-margin-top;
-		margin-bottom: $cinteractions-editing-title-margin-bottom;
-	}
+        margin-top: $cinteractions-editing-title-margin-top;
+        margin-bottom: $cinteractions-editing-title-margin-bottom;
+    }
 
-	// Buttons
-	.component-action-buttons-wrapper {
-		text-align: right;
-		margin-top: $cinteractions-buttons-box-margin-top;
-		margin-#{$cinteractions-buttons-align}: - $cinteractions-button-margin-x - $base-module; // $base-module - button's inner padding
+    // Buttons
+    .component-action-buttons-wrapper {
+        text-align: right;
+        margin-top: $cinteractions-buttons-box-margin-top;
+        margin-#{$cinteractions-buttons-align}: - $cinteractions-button-margin-x - $base-module; // $base-module - button's inner padding
 
-		.button {
-			margin: $cinteractions-button-margin-y $cinteractions-button-margin-x;
-		}
-	}
+        .button {
+            margin: $cinteractions-button-margin-y $cinteractions-button-margin-x;
+        }
+    }
 
-	// ACTION: Item
-	// =================================================================================================================
-	.component-action-item {
-		display: flex;
+    // ACTION: Item
+    // =================================================================================================================
+    .component-action-item {
+        display: flex;
 
-		& + & {
-			margin-top: $cinteractions-actions-spacing;
-		}
-	}
+        & + & {
+            margin-top: $cinteractions-actions-spacing;
+        }
+    }
 
-	// Text
-	.component-action-title-box {
-		flex-grow: 1;
-		margin-right: $cinteractions-action-text-margin-right;
+    // Text
+    .component-action-title-box {
+        flex-grow: 1;
+        margin-right: $cinteractions-action-text-margin-right;
 
-		@include user-select();
-	}
+        @include user-select();
+    }
 
-	.component-action-title {
-		font-size: $cinteractions-action-title-font-size;
-		font-weight: $cinteractions-action-title-font-weight;
-		color: $cinteractions-action-title-color;
-		text-transform: $cinteractions-action-title-text-transform;
-		line-height: $cinteractions-action-title-line-height;
-	}
+    .component-action-title {
+        font-size: $cinteractions-action-title-font-size;
+        font-weight: $cinteractions-action-title-font-weight;
+        color: $cinteractions-action-title-color;
+        text-transform: $cinteractions-action-title-text-transform;
+        line-height: $cinteractions-action-title-line-height;
+    }
 
-	.component-action-description {
-		font-size: $cinteractions-action-description-font-size;
-		font-weight: $cinteractions-action-description-font-weight;
-		color: $cinteractions-action-description-color;
-		text-transform: $cinteractions-action-description-text-transform;
-		line-height: $cinteractions-action-description-line-height;
-	}
+    .component-action-description {
+        font-size: $cinteractions-action-description-font-size;
+        font-weight: $cinteractions-action-description-font-weight;
+        color: $cinteractions-action-description-color;
+        text-transform: $cinteractions-action-description-text-transform;
+        line-height: $cinteractions-action-description-line-height;
+    }
 
-	// Buttons
-	.component-action-buttons {
-		margin-right: -$cinteractions-item-button-spacing-x;
-		margin-left: -$cinteractions-item-button-spacing-x;
-		display: flex;
+    // Buttons
+    .component-action-buttons {
+        margin-right: -$cinteractions-item-button-spacing-x;
+        margin-left: -$cinteractions-item-button-spacing-x;
+        display: flex;
 
-		.button {
-			min-height: 0;
-			margin: 0 $cinteractions-item-button-spacing-x;
-			border-width: 0;
+        .button {
+            min-height: 0;
+            margin: 0 $cinteractions-item-button-spacing-x;
+            border-width: 0;
 
-			&,
-			.button-icon {
-				@include icon-size(
-								$cinteractions-item-button-box-size,
-								$cinteractions-item-button-img-size
-				);
-			}
+            &,
+            .button-icon {
+                @include icon-size(
+                                $cinteractions-item-button-box-size,
+                                $cinteractions-item-button-img-size
+                );
+            }
 
-			@include icon-style(
-							$cinteractions-item-button-color
-			);
+            @include icon-style(
+                            $cinteractions-item-button-color
+            );
 
-			&:hover,
-			&:focus {
-				@include icon-style(
-								$cinteractions-item-button-focus-color
-				);
-			}
-		}
-	}
+            &:hover,
+            &:focus {
+                @include icon-style(
+                                $cinteractions-item-button-focus-color
+                );
+            }
+        }
+    }
 
-	// ACTIONS LIST
-	// =================================================================================================================
+    // ACTIONS LIST
+    // =================================================================================================================
 }

@@ -7,15 +7,15 @@
 import { Record, List } from 'immutable';
 
 export const QueryArgumentValue = Record({
-    source: '',
-    sourceData: null
+  source: '',
+  sourceData: null,
 });
 
 export const QueryPathStep = Record({
-    field: ''
+  field: '',
 });
 
 export default Record({
-    dataContext: List(),
-    queryPath: null
+  dataContext: List(),
+  queryPath: null,
 });

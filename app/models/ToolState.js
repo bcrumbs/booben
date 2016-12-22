@@ -7,11 +7,11 @@
 import { Record } from 'immutable';
 
 export default Record({
-    closed: false,
-    docked: true,
-    zIndex: 0,
-    sideRegionIsVisible: false,
-    isInDockRegion: false,
-    isActiveInToolsPanel: false,
-    activeSection: 0
+  closed: false,
+  docked: true,
+  zIndex: 0,
+  sideRegionIsVisible: false,
+  isInDockRegion: false,
+  isActiveInToolsPanel: false,
+  activeSection: 0,
 });

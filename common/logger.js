@@ -5,7 +5,7 @@
 'use strict';
 
 const intel = require('intel'),
-    config = require('../config');
+  config = require('../config');
 
 /**
  * @typedef {Object} LoggerConfig
@@ -24,27 +24,27 @@ let logger = null;
  * @returns {Logger}
  */
 const getLogger = config => {
-    if (logger) return logger;
+  if (logger) return logger;
 
-    config = config || {};
+  config = config || {};
 
-    if (!config.logLevel) throw new Error('logLevel is required');
+  if (!config.logLevel) throw new Error('logLevel is required');
 
-    const format = config.noTimestamp
+  const format = config.noTimestamp
         ? '%(levelname)s - %(message)s'
         : '%(date)s - %(levelname)s - %(message)s';
 
-    const consoleHandlerOptions = {
-        level: intel[config.logLevel.toUpperCase()],
-        formatter: new intel.Formatter({ format})
-    };
+  const consoleHandlerOptions = {
+    level: intel[config.logLevel.toUpperCase()],
+    formatter: new intel.Formatter({ format }),
+  };
 
-    intel.addHandler(new intel.handlers.Console(consoleHandlerOptions));
+  intel.addHandler(new intel.handlers.Console(consoleHandlerOptions));
 
-    return logger = intel.getLogger('main');
+  return logger = intel.getLogger('main');
 };
 
 module.exports = getLogger({
-    logLevel: config.get('logLevel'),
-    noTimestamp: false
+  logLevel: config.get('logLevel'),
+  noTimestamp: false,
 });

@@ -12,10 +12,10 @@ import rootReducer from './reducers';
 const middleware = [thunkMiddleware];
 
 if (process.env.NODE_ENV === 'development')
-    middleware.push(createLogger());
+  middleware.push(createLogger());
 
 const fns = [
-    applyMiddleware(...middleware)
+  applyMiddleware(...middleware),
 ];
 
 const willAddReduxDevTools =
