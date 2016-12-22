@@ -101,6 +101,7 @@ import {
 import { NO_VALUE } from '../constants/misc';
 
 import _mapValues from 'lodash.mapvalues';
+import _forOwn from 'lodash.forown';
 
 export const NestedConstructor = Record({
   components: Map(),
@@ -544,34 +545,40 @@ export default (state = new ProjectState(), action) => {
         lastRouteId = getMaxRouteId(project),
         lastComponentId = getMaxComponentId(project),
         schema = action.schema ? parseGraphQLSchema(action.schema) : null;
+      
+      _forOwn(action.metadata, libMeta => {
+        _forOwn(libMeta.components, componentMeta => {
+          componentMeta.tags = new Set(componentMeta.tags);
+        });
+      });
 
       return state
-                .merge({
-                  projectName: action.project.name,
-                  loadState: LOADED,
-                  data: project,
-                  error: null,
-                  lastRouteId,
-                  lastComponentId,
-                  selectedRouteId: project.rootRoutes.size > 0
-                        ? project.rootRoutes.get(0)
-                        : -1,
-                  indexRouteSelected: false,
-                })
-                .set('schema', schema)
-                .set('meta', action.metadata); // Prevent conversion to Immutable.Map
+        .merge({
+          projectName: action.project.name,
+          loadState: LOADED,
+          data: project,
+          error: null,
+          lastRouteId,
+          lastComponentId,
+          selectedRouteId: project.rootRoutes.size > 0
+                ? project.rootRoutes.get(0)
+                : -1,
+          indexRouteSelected: false,
+        })
+        .set('schema', schema)
+        .set('meta', action.metadata); // Prevent conversion to Immutable.Map
     }
 
     case PROJECT_ROUTE_CREATE: {
       const newRouteId = state.lastRouteId + 1;
 
       const parentRoute = action.parentRouteId > -1
-                ? state.data.routes.get(action.parentRouteId)
-                : null;
+        ? state.data.routes.get(action.parentRouteId)
+        : null;
 
       const fullPath = parentRoute
-                ? concatPath(parentRoute.fullPath, action.path)
-                : action.path;
+        ? concatPath(parentRoute.fullPath, action.path)
+        : action.path;
 
       const newRoute = new ProjectRoute({
         id: newRouteId,
@@ -584,9 +591,8 @@ export default (state = new ProjectState(), action) => {
       state = state.setIn(['data', 'routes', newRouteId], newRoute);
 
       const pathToIdsList = action.parentRouteId === -1
-                ? ['data', 'rootRoutes']
-                : ['data', 'routes', action.parentRouteId, 'children'];
-
+        ? ['data', 'rootRoutes']
+        : ['data', 'routes', action.parentRouteId, 'children'];
 
       state = state.updateIn(pathToIdsList, list => list.push(newRouteId));
 
@@ -597,32 +603,32 @@ export default (state = new ProjectState(), action) => {
       const deletedRoute = state.data.routes.get(action.routeId),
         deletedRouteIds = gatherRoutesTreeIds(state.data, action.routeId);
 
-            // De-select and de-highlight all components
+      // De-select and de-highlight all components
       state = state.merge({
         selectedItems: Set(),
         highlightedItems: Set(),
       });
 
-            // Delete routes
+      // Delete routes
       state = state.updateIn(
-                ['data', 'routes'],
-                routes => routes.filter(route => !deletedRouteIds.has(route.id)),
-            );
+        ['data', 'routes'],
+        routes => routes.filter(route => !deletedRouteIds.has(route.id)),
+      );
 
-            // Update rootRoutes or parent's children list
+      // Update rootRoutes or parent's children list
       const pathToIdsList = deletedRoute.parentId === -1
-                ? ['data', 'rootRoutes']
-                : ['data', 'routes', deletedRoute.parentId, 'children'];
+        ? ['data', 'rootRoutes']
+        : ['data', 'routes', deletedRoute.parentId, 'children'];
 
       state = state.updateIn(
-                pathToIdsList,
-                routeIds => routeIds.filter(routeId => routeId !== action.routeId),
-            );
+        pathToIdsList,
+        routeIds => routeIds.filter(routeId => routeId !== action.routeId),
+      );
 
-            // Update selected route
+      // Update selected route
       const deletedRouteIsSelected =
-                state.selectedRouteId > -1 &&
-                deletedRouteIds.has(state.selectedRouteId);
+        state.selectedRouteId > -1 &&
+        deletedRouteIds.has(state.selectedRouteId);
 
       if (deletedRouteIsSelected) state = selectFirstRoute(state);
 
@@ -631,9 +637,9 @@ export default (state = new ProjectState(), action) => {
 
     case PROJECT_ROUTE_UPDATE_FIELD: {
       return state.setIn(
-                ['data', 'routes', action.routeId, action.field],
-                action.newValue,
-            );
+        ['data', 'routes', action.routeId, action.field],
+        action.newValue,
+      );
     }
 
     case PROJECT_COMPONENT_DELETE: {
