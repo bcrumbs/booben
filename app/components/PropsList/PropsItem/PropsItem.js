@@ -65,8 +65,7 @@ const getNestedType = (baseType, index) => {
   } else if (baseType.view === 'object') {
     if (typeof index !== 'string') throw new Error('Shit happened');
     return baseType.ofType;
-  } else
-        throw new Error('Shit happened');
+  } else { throw new Error('Shit happened'); }
 };
 
 /**
@@ -116,10 +115,9 @@ export class PropsItem extends PureComponent {
      * @private
      */
   _handleOpen() {
-    if (this.props._secondary)
+    if (this.props._secondary) {
       this.props._onOpen();
-
-    else {
+    } else {
       this.setState({
         isOpen: !this.state.isOpen,
         currentPath: [],
@@ -469,7 +467,7 @@ export class PropsItem extends PureComponent {
     if (this.props.propType.linkable) {
       linkAction = (
         <div className="prop_action prop_action-linking">
-          <Button icon="link" onPress={() => void this.props.onLink([])}/>
+          <Button icon="link" onPress={() => void this.props.onLink([])} />
         </div>
             );
     }

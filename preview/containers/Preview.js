@@ -257,10 +257,7 @@ class Preview extends Component {
                 .toArray();
     }
 
-    if (route.haveRedirect)
-      ret.onEnter = (_, replace) => replace(route.redirectTo);
-
-    else if (route.haveIndex) {
+    if (route.haveRedirect) { ret.onEnter = (_, replace) => replace(route.redirectTo); } else if (route.haveIndex) {
       ret.indexRoute = {
         component: this._makeBuilder(
                     route.components,
@@ -409,8 +406,7 @@ class Preview extends Component {
                         overWhat.containerId,
                         overWhat.placeholderAfter,
                     );
-        } else if (this._canInteractWithComponent(overWhat.componentId))
-          this.props.onDragOverComponent(overWhat.componentId);
+        } else if (this._canInteractWithComponent(overWhat.componentId)) { this.props.onDragOverComponent(overWhat.componentId); }
       }
     }
   }
@@ -505,8 +501,9 @@ class Preview extends Component {
             ignoreOwnerProps
           />
         );
-      } else
-                return this._createBuilderForCurrentRoute();
+      } else {
+        return this._createBuilderForCurrentRoute();
+      }
     } else {
       return (
         <Router

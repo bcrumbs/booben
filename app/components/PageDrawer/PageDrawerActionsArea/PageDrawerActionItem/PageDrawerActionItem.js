@@ -43,11 +43,12 @@ class PageDrawerActionItemComponent extends PureComponent {
       button = null;
 
     if (props.icon) {
-      button = <Button icon={props.icon} onPress={props.onPress}/>;
+      button = <Button icon={props.icon} onPress={props.onPress} />;
 
       className += ' has-tooltip';
-    } else
-          button = <Button text={props.title} onPress={props.onPress}/>;
+    } else {
+      button = <Button text={props.title} onPress={props.onPress} />;
+    }
 
 
     return (
@@ -57,7 +58,7 @@ class PageDrawerActionItemComponent extends PureComponent {
         onMouseLeave={props.hideTooltip}
       >
         {button}
-        <props.Tooltip text={props.title}/>
+        <props.Tooltip text={props.title} />
       </div>
     );
   }

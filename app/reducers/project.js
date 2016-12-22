@@ -281,8 +281,7 @@ const addComponents = (state, parentComponentId, position, components) => {
             pathToChildrenIdsList,
             childComponentIds => childComponentIds.insert(position, nextComponentId),
         );
-  } else
-        state = state.setIn(getPathToCurrentRootComponentId(state), nextComponentId);
+  } else { state = state.setIn(getPathToCurrentRootComponentId(state), nextComponentId); }
 
 
   return state.updateIn(
@@ -312,10 +311,9 @@ const deleteComponent = (state, componentId) => {
             void idsToDelete.forEach(id => void componentsMut.delete(id))),
     );
 
-  if (isRootComponent(component))
+  if (isRootComponent(component)) {
     state = state.setIn(getPathToCurrentRootComponentId(state), -1);
-
-  else {
+  } else {
     const pathToChildrenIdsList = [].concat(pathToCurrentComponents, [
       component.parentId,
       'children',
@@ -774,8 +772,9 @@ export default (state = new ProjectState(), action) => {
             throw new Error('');
 
           return mapOrList.set(action.index, newValue);
-        } else
-                    throw new Error('');
+        } else {
+          throw new Error('');
+        }
       });
     }
 
@@ -810,8 +809,9 @@ export default (state = new ProjectState(), action) => {
             throw new Error('');
 
           return mapOrList.delete(action.index);
-        } else
-                    throw new Error('');
+        } else {
+          throw new Error('');
+        }
       });
     }
 

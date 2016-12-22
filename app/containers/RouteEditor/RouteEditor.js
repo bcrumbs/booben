@@ -68,7 +68,7 @@ class RouteEditorComponent extends PureComponent {
 
     if (this.props.selectedRouteId === -1) {
       return (
-        <BlockContentPlaceholder text={getLocalizedText('noRouteSelected')}/>
+        <BlockContentPlaceholder text={getLocalizedText('noRouteSelected')} />
       );
     }
 

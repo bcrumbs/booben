@@ -35,7 +35,7 @@ export const HeaderRoute = props => {
     actions =
             (<HeaderRegion>
               <Button text="Cancel" light />
-              <Button text="Save" light/>
+              <Button text="Save" light />
             </HeaderRegion>);
   }
 

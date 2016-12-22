@@ -32,7 +32,7 @@ PaneRuler.defaultProps = {
 */
 const ArtboardExpander = props => (
   <div className={`construction-pane_artboard-expander artboard-expander_position-${props.position}`}>
-    <div className='construction-pane_artboard-expander_icon' />
+    <div className="construction-pane_artboard-expander_icon" />
   </div>
     );
 
@@ -90,15 +90,15 @@ export const ConstructionPane = props => {
     expanderEntire = null;
 
   if (!props.height)
-    expanderY = <ArtboardExpander position="vertical"/>;
+    expanderY = <ArtboardExpander position="vertical" />;
 
 
   if (!props.width)
-    expanderX = <ArtboardExpander position="horizontal"/>;
+    expanderX = <ArtboardExpander position="horizontal" />;
 
 
   if (!props.width && !props.height)
-    expanderEntire = <ArtboardExpander position="entire"/>;
+    expanderEntire = <ArtboardExpander position="entire" />;
 
 
     /*

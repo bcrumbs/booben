@@ -57,7 +57,7 @@ export const FunctionArgumentsList = props => {
         :
             (<div className="function-arguments_list-button">
               <BlockContentBoxItem>
-                <Button icon="plus" text="New argument" narrow/>
+                <Button icon="plus" text="New argument" narrow />
               </BlockContentBoxItem>;
             </div>);
 

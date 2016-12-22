@@ -39,7 +39,7 @@ export const ToolPanel = props => {
 
       if (toolState.isInDockRegion) {
         icons.push(
-          <PageDrawerActionPlaceholder key={toolIdx}/>,
+          <PageDrawerActionPlaceholder key={toolIdx} />,
                 );
       } else if (toolState.docked) {
         if (toolState.isActiveInToolsPanel) activeTool = tool;

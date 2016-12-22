@@ -28,13 +28,9 @@ export class Accordion extends PureComponent {
   _handleToggleExpanded(itemId) {
     let newExpandedIds;
 
-    if (this.props.expandedItemIds && this.props.expandedItemIds.has(itemId))
-      newExpandedIds = this.props.expandedItemIds.delete(itemId);
-
-    else if (this.props.single)
+    if (this.props.expandedItemIds && this.props.expandedItemIds.has(itemId)) { newExpandedIds = this.props.expandedItemIds.delete(itemId); } else if (this.props.single) {
       newExpandedIds = Set([itemId]);
-
-    else {
+    } else {
       newExpandedIds = this.props.expandedItemIds
                 ? this.props.expandedItemIds.add(itemId)
                 : new Set([itemId]);

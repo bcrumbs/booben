@@ -64,7 +64,7 @@ const canBeApplied = (metaType, graphQLType) => {
               )
                   || equalMetaToGraphQLTypeNames(metaType.type, graphQLType.type)
             )
-         ) return true;
+         ) { return true; }
   return false;
 };
 
@@ -205,8 +205,9 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
                 args[0],
                 this.state.argumentsForCurrentPathLast,
             );
-    } else
-            this._applyPropData(args);
+    } else {
+      this._applyPropData(args);
+    }
   }
 
   _applyPropData(args = []) {
@@ -255,9 +256,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
             : [],
         ).some(
             ({ args }) => Object.keys(args).length,
-        ))
-      this._applyPropData();
-    else {
+        )) { this._applyPropData(); } else {
       this._handleJumpIntoField(
                 this._getSelectedField().name,
                 this._getSelectedField().type,
@@ -285,8 +284,9 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
                         && argumentsMode,
         });
       }
-    } else
-            this._handleJumpToCurrentPathIndex(this.state.currentPath.length - 2);
+    } else {
+      this._handleJumpToCurrentPathIndex(this.state.currentPath.length - 2);
+    }
   }
 
 

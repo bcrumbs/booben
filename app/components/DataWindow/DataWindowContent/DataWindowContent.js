@@ -55,7 +55,7 @@ export const DataWindowContent = props => {
   const contentHeading = <BlockContentBoxHeading>{props.contentHeading}</BlockContentBoxHeading>;
   content =
         (<BlockContentBoxItem>
-          <DataList data={props.list}/>
+          <DataList data={props.list} />
           {props.children}
         </BlockContentBoxItem>);
 

@@ -170,8 +170,9 @@ export const canInsertComponent = (
           if (containerName !== inclusionComponentName) return false;
         } else if (inclusion.group) {
           if (containerMeta.group !== inclusion.group) return false;
-        } else if (inclusion.tag)
+        } else if (inclusion.tag) {
           if (!containerMeta.tags.has(inclusion.tag)) return false;
+        }
 
 
         return !inclusion.maxNum || sameComponentsNum < inclusion.maxNum;
@@ -189,14 +190,11 @@ export const canInsertComponent = (
                     );
 
           return containerName === exclusionComponentName;
-        } else if (exclusion.group)
-          return containerMeta.group === exclusion.group;
-
-        else if (exclusion.tag)
+        } else if (exclusion.group) { return containerMeta.group === exclusion.group; } else if (exclusion.tag) {
           return containerMeta.tags.has(exclusion.tag);
-
-        else
-                    return false;
+        } else {
+          return false;
+        }
       });
 
       if (deny) return false;
@@ -678,7 +676,7 @@ export const getNestedTypedef = (typedef, valuePath) => valuePath.reduce(
       );
     }
   },
-  
+
   typedef,
 );
 

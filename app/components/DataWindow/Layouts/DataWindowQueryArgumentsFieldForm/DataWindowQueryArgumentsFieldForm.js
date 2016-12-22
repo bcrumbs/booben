@@ -61,9 +61,9 @@ const getObjectValueByPath = (object, path) =>
  */
 const removeObjectValueByPath = (object, path) => {
   if (Array.isArray(object)) {
-    if (path.length === 1)
+    if (path.length === 1) {
       return object.slice(0, path[0]).concat(object.slice(path[0] + 1));
-    else {
+    } else {
       return object.slice(0, path[0]).concat([
         removeObjectValueByPath(object[path[0]], path.slice(1)),
       ]).concat(object.slice(path[0] + 1));
