@@ -6,11 +6,16 @@
 
 import { getLocalization } from '../api';
 
-export const APP_LOCALIZATION_LOADING = 'APP_LOCALIZATION_LOADING';
-export const APP_LOCALIZATION_LOAD_SUCCESS = 'APP_LOCALIZATION_LOAD_SUCCESS';
-export const APP_LOCALIZATION_LOAD_FAILURE = 'APP_LOCALIZATION_LOAD_FAILURE';
-export const APP_TOGGLE_CONTENT_PLACEHOLDERS = 'APP_TOGGLE_CONTENT_PLACEHOLDERS';
-export const APP_TOGGLE_COMPONENT_TITLES = 'APP_TOGGLE_COMPONENT_TITLES';
+export const APP_LOCALIZATION_LOADING =
+  'APP_LOCALIZATION_LOADING';
+export const APP_LOCALIZATION_LOAD_SUCCESS =
+  'APP_LOCALIZATION_LOAD_SUCCESS';
+export const APP_LOCALIZATION_LOAD_FAILURE =
+  'APP_LOCALIZATION_LOAD_FAILURE';
+export const APP_TOGGLE_CONTENT_PLACEHOLDERS =
+  'APP_TOGGLE_CONTENT_PLACEHOLDERS';
+export const APP_TOGGLE_COMPONENT_TITLES =
+  'APP_TOGGLE_COMPONENT_TITLES';
 
 /**
  *
@@ -48,8 +53,11 @@ export const localizationLoading = () => ({
 export const loadLocalization = language => dispatch => {
   dispatch(localizationLoading());
   getLocalization(language)
-        .then(localization => dispatch(localizationLoadSuccess(language, localization)))
-        .catch(localizationLoadFailure);
+    .then(localization => dispatch(localizationLoadSuccess(
+      language,
+      localization,
+    )))
+    .catch(localizationLoadFailure);
 };
 
 /**

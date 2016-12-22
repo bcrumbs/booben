@@ -1338,7 +1338,7 @@ const getChildNodes = ({ dir }) => co(function* () {
 /**
  *
  * @param {string} moduleDir
- * @returns {Promise<LibMetadata>}
+ * @return {Promise<LibMetadata>}
  */
 exports.gatherMetadata = moduleDir => co(function* () {
     let ret = {},
@@ -1421,6 +1421,11 @@ exports.gatherMetadata = moduleDir => co(function* () {
             });
         });
     }
+    
+    Object.keys(ret.components).forEach(componentName => {
+      ret.components[componentName].tags =
+        Array.from(ret.components[componentName].tags);
+    });
 
     return ret;
 });

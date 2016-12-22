@@ -4,12 +4,8 @@
 
 'use strict';
 
-/**
- *
- * @type {string}
- * @const
- */
-export const STRUCTURE_SELECT_ROUTE = 'STRUCTURE_SELECT_ROUTE';
+export const STRUCTURE_SELECT_ROUTE =
+  'STRUCTURE_SELECT_ROUTE';
 
 /**
  *

@@ -463,8 +463,8 @@ class Preview extends Component {
 
     let currentRoute = this.props.project.routes.get(currentRouteId),
       currentRootComponentId = this.props.currentRouteIsIndexRoute
-                ? currentRoute.indexComponent
-                : currentRoute.component,
+        ? currentRoute.indexComponent
+        : currentRoute.component,
       ret = null;
 
     do {
