@@ -40,7 +40,7 @@
 
 /**
  * @typedef {Object} OneOfOption
- * @property {string} textKey
+ * @property {string} [textKey]
  * @property {*} value
  */
 
@@ -48,8 +48,8 @@
  * @typedef {Object} TypeDefinition
  * @property {string} type - Type name. Can be one of the built-in types ({@link BUILT_IN_PROP_TYPES}) or one of user-defined types.
  * @property {boolean} [notNull] - For "shape", "objectOf" and "object" types only.
- * @property {PropTypeDefinition} [ofType] - For "arrayOf" and "objectOf" types only - type of items.
- * @property {Object<string, ComponentPropMeta>} [fields] - For "shape" type only.
+ * @property {TypeDefinition} [ofType] - For "arrayOf" and "objectOf" types only - type of items.
+ * @property {Object<string, TypeDefinition>} [fields] - For "shape" type only.
  * @property {OneOfOption[]} [options] - For "oneOf" type only.
  */
 

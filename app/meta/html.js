@@ -23,6 +23,7 @@ export default {
           en: '',
         },
       },
+      tags: new Set(),
     },
   },
 };

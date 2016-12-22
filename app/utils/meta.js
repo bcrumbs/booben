@@ -662,21 +662,34 @@ export const getPropTypedef = (componentMeta, propName) =>
  * @param {(string|number)[]} valuePath
  * @return {TypeDefinition}
  */
-export const getNestedTypedef = (typedef, valuePath) => valuePath.reduce((acc, cur) => {
-  if (typeof cur === 'string') {
-    if (acc.type === 'objectOf') return acc.ofType;
-    else if (acc.type === 'shape') return acc.fields[cur];
-    else throw new Error(`getNestedTypedef(): incompatible type: ${acc.type}`);
-  } else if (typeof cur === 'number') {
-    if (acc.type === 'arrayOf') return acc.ofType;
-    else throw new Error(`getNestedTypedef(): incompatible type: ${acc.type}`);
-  } else {
-    throw new Error(
-            'getNestedTypedef(): valuePath can contain ' +
-            `only numbers and strings, got ${cur}`,
-        );
-  }
-}, typedef);
+export const getNestedTypedef = (typedef, valuePath) => valuePath.reduce(
+  (acc, cur) => {
+    if (typeof cur === 'string') {
+      if (acc.type === 'objectOf') return acc.ofType;
+      else if (acc.type === 'shape') return acc.fields[cur];
+      else throw new Error(`getNestedTypedef(): incompatible type: ${acc.type}`);
+    } else if (typeof cur === 'number') {
+      if (acc.type === 'arrayOf') return acc.ofType;
+      else throw new Error(`getNestedTypedef(): incompatible type: ${acc.type}`);
+    } else {
+      throw new Error(
+        'getNestedTypedef(): valuePath can contain ' +
+        `only numbers and strings, got ${cur}`,
+      );
+    }
+  },
+  
+  typedef,
+);
+
+/**
+ *
+ * @param {TypeDefinition} typedef
+ * @return {boolean}
+ */
+export const isPropTypeDefinition = typedef =>
+  !!typedef.source &&
+  !!typedef.sourceConfigs;
 
 /**
  *
