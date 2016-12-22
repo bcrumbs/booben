@@ -200,33 +200,37 @@ export const walkSimpleProps = (
 ) => {
   if (walkFunctionArgs && !project) {
     throw new Error(
-            'walkSimpleProps(): walkFunctionArgs is true, but no project',
-        );
+      'walkSimpleProps(): walkFunctionArgs is true, but no project',
+    );
   }
 
   const visitValue = (propValue, typedef, path) => {
     if (propValue.source === 'static' && !propValue.sourceData.ownerPropName) {
       if (typedef.type === 'shape' && propValue.sourceData.value !== null) {
         _forOwn(typedef.fields, (fieldTypedef, fieldName) =>
-                    void visitValue(
-                        propValue.sourceData.value.get(fieldName),
-                        fieldTypedef,
-                        [...path, fieldName],
-                    ));
-      } else if (typedef.type === 'objectOf' && propValue.sourceData.value !== null) {
+          void visitValue(
+            propValue.sourceData.value.get(fieldName),
+            fieldTypedef,
+            [...path, fieldName],
+          ));
+      } else if (
+        typedef.type === 'objectOf' &&
+        propValue.sourceData.value !== null
+      ) {
         propValue.sourceData.value.forEach((fieldValue, key) =>
-                    void visitValue(fieldValue, typedef.ofType, [...path, key]));
+          void visitValue(fieldValue, typedef.ofType, [...path, key]));
       } else if (typedef.type === 'arrayOf') {
         propValue.sourceData.value.forEach((itemValue, idx) =>
-                    void visitValue(itemValue, typedef.ofType, [...path, idx]));
-      } else
-                visitor(propValue, typedef, path);
+          void visitValue(itemValue, typedef.ofType, [...path, idx]));
+      } else {
+        visitor(propValue, typedef, path);
+      }
     } else if (walkFunctionArgs && propValue.source === 'function') {
       const fnInfo = getFunctionInfo(
-                propValue.sourceData.functionSource,
-                propValue.sourceData.function,
-                project,
-            );
+        propValue.sourceData.functionSource,
+        propValue.sourceData.function,
+        project,
+      );
 
       fnInfo.args.forEach(argInfo => {
         const argName = argInfo.name,
@@ -234,17 +238,18 @@ export const walkSimpleProps = (
 
         if (argValue) visitValue(argValue, argInfo.typedef, [...path, argName]);
       });
-    } else
-            visitor(propValue, typedef, path);
+    } else {
+      visitor(propValue, typedef, path);
+    }
   };
 
   component.props.forEach(
-        (propValue, propName) => visitValue(
-            propValue,
-            componentMeta.props[propName],
-            [propName],
-        ),
-    );
+    (propValue, propName) => visitValue(
+      propValue,
+      componentMeta.props[propName],
+      [propName],
+    ),
+  );
 };
 
 export default ProjectComponentRecord;
