@@ -84,7 +84,10 @@ module.exports = {
           if (/reactackle/.test(path)) return false;
           return /node_modules/.test(path);
         },
-        loader: 'babel?presets[]=es2015&presets[]=react',
+        loader: 'babel?' +
+                 'presets[]=es2015' +
+                 '&presets[]=react' +
+                 '&plugins[]=transform-object-rest-spread',
       },
       {
         test: /\.scss$/,

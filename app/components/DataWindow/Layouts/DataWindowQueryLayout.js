@@ -1,17 +1,12 @@
 'use strict';
 
-import React, { PureComponent, PropTypes } from 'react';
-
-import {
-    Checkbox,
-} from '@reactackle/reactackle';
+import React from 'react';
 
 import {
     DataWindowDataLayout,
 } from './DataWindowDataLayout';
 
 import {
-    DataWindowContent,
     DataWindowContentGroup,
 } from '../DataWindowContent/DataWindowContent';
 
@@ -21,7 +16,6 @@ import {
 
 import {
     PropsList,
-    PropsItem,
 } from '../../PropsList/PropsList';
 
 import {
@@ -53,16 +47,22 @@ const canBeApplied = (metaType, graphQLType) => {
     else if (
             isGraphQLTypeList
                   &&
-                  equalMetaToGraphQLTypeNames(metaType.ofType.type, graphQLType.type)
+                  equalMetaToGraphQLTypeNames(
+                    metaType.ofType.type, graphQLType.type,
+                  )
               ) return true;
   } else if (
             graphQLType.kind === FIELD_KINDS.SINGLE
             && (
               metaType.type === 'oneOf'
               && metaType.ofType.options.some(
-                  option => equalMetaToGraphQLTypeNames(option.type, graphQLType.type),
+                  option => equalMetaToGraphQLTypeNames(
+                              option.type, graphQLType.type,
+                            ),
               )
-                  || equalMetaToGraphQLTypeNames(metaType.type, graphQLType.type)
+                  || equalMetaToGraphQLTypeNames(
+                      metaType.type, graphQLType.type,
+                     )
             )
          ) { return true; }
   return false;
@@ -80,6 +80,33 @@ const canGoIntoField = (metaType, graphQLType) =>
         && !isPrimitiveGraphQLType(graphQLType.type);
 
 export class DataWindowQueryLayout extends DataWindowDataLayout {
+
+  static getFieldTypeName(field) {
+    switch (field.kind) {
+      case FIELD_KINDS.CONNECTION:
+        return ' connection';
+      case FIELD_KINDS.LIST:
+        return ' list';
+      default:
+        return '';
+    }
+  }
+
+  static equalFieldPaths(path1, path2) {
+    if (!path1 || !path2) return false;
+    return ['name', 'type', 'kind'].every(
+            name => path1[name] === path2[name],
+        );
+  }
+
+  static haveArguments(field) {
+    return !!(field && field.args && Object.keys(field.args).length);
+  }
+
+  static setNewArgumentValue(argValue, value) {
+    Object.assign(argValue, value);
+  }
+
   constructor(props) {
     super(props);
     const { queryTypeName } = this.props.schema;
@@ -101,19 +128,13 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
     this._handleFieldSelect = this._handleFieldSelect.bind(this);
     this._handleSetArgumentsPress = this._handleSetArgumentsPress.bind(this);
     this._handleDataApplyPress = this._handleDataApplyPress.bind(this);
-    this._handleArgumentsApplyPress = this._handleArgumentsApplyPress.bind(this);
+    this._handleArgumentsApplyPress
+          = this._handleArgumentsApplyPress.bind(this);
     this._handleBackToPress = this._handleBackToPress.bind(this);
     this._getCurrentEditingFields = this._getCurrentEditingFields.bind(this);
     this._getBoundArgumentsByPath = this._getBoundArgumentsByPath.bind(this);
     this._getSelectedField = this._getSelectedField.bind(this);
     this._areArgumentsBound = this._areArgumentsBound.bind(this);
-  }
-
-  _equalFieldPaths(path1, path2) {
-    if (!path1 || !path2) return false;
-    return ['name', 'type', 'kind'].every(
-            name => path1[name] === path2[name],
-        );
   }
 
   _handleJumpIntoField(name, type, kind, args, isCurrentPathLast = false) {
@@ -147,7 +168,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
         },
       ],
       previousPath:
-                this._equalFieldPaths(
+                DataWindowQueryLayout.equalFieldPaths(
                     previousPath[currentPath.length],
                     { name, type, kind },
                 ) || isCurrentPathLast
@@ -162,7 +183,10 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
             -
             this.state.previousPath.length;
 
-    if (!index) return this.props.backToMainLayout();
+    if (!index) {
+      this.props.backToMainLayout();
+      return;
+    }
 
     if (index + 1 !== this.state.currentPath.length) {
       this.setState({
@@ -236,16 +260,16 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
             : acc
         , {});
     this.props.onUpdateComponentPropValue(
-            this.props.linkingPropOfComponentId,
-            this.props.linkingPropName,
-            this.props.linkingPropPath,
-            'data',
+      this.props.linkingPropOfComponentId,
+      this.props.linkingPropName,
+      this.props.linkingPropPath,
+      'data',
       {
         queryPath,
       },
-            queryArgs,
+      queryArgs,
 
-        );
+    );
     this.props.onLinkPropCancel();
   }
 
@@ -256,13 +280,15 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
             : [],
         ).some(
             ({ args }) => Object.keys(args).length,
-        )) { this._applyPropData(); } else {
+        )) {
+      this._applyPropData();
+    } else {
       this._handleJumpIntoField(
-                this._getSelectedField().name,
-                this._getSelectedField().type,
-                this._getSelectedField().kind,
-                void 0,
-            );
+          this._getSelectedField().name,
+          this._getSelectedField().type,
+          this._getSelectedField().kind,
+          void 0,
+      );
     }
   }
 
@@ -292,17 +318,6 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
   _getCurrentPathByIndex(index) {
     return this.state.currentPath.slice(index)[0];
-  }
-
-  _getFieldTypeName(field) {
-    return field.type
-                + (
-                    field.kind === FIELD_KINDS.CONNECTION
-                    ? ' connection'
-                    : field.kind === FIELD_KINDS.LIST
-                        ? ' list'
-                        : ''
-                );
   }
 
   get currentSelectionPath() {
@@ -364,10 +379,11 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
               !lastPath
                 ?
                     previousPathField
-                    && this._equalFieldPaths(
+                    && DataWindowQueryLayout.qualFieldPaths(
                         previousPathField,
-                        this.props.schema.types[this._getCurrentPathByIndex(-1).type]
-                            .fields[fieldName],
+                        this.props.schema.types[
+                          this._getCurrentPathByIndex(-1).type
+                        ].fields[fieldName],
                     )
                     && previousPathField.args
                     || boundArguments
@@ -378,6 +394,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
   _getCurrentEditingFields(allCurrentPathFields) {
     const { types } = this.props.schema;
+    // TODO refactor
+    // eslint-disable-next-line
     return this.currentSelectionPath.length
             ? this.state.allArgumentsMode || allCurrentPathFields
                 ? this.currentSelectionPath.reduce((path, { name }) => {
@@ -394,13 +412,13 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
                         );
 
                   return path.concat(
-                            parentField.fields[name]
-                            || Object.assign({}, Object.keys(fieldConnections).reduce(
-                                (_, fieldConnectionName) =>
-                                    _ || fieldConnections[fieldConnectionName]
-                                            .connectionFields[name.split('/')[1]]
-                            , void 0), { name }),
-                        );
+                      parentField.fields[name]
+                      || Object.assign({}, Object.keys(fieldConnections).reduce(
+                          (_, fieldConnectionName) =>
+                              _ || fieldConnections[fieldConnectionName]
+                                      .connectionFields[name.split('/')[1]]
+                      , void 0), { name }),
+                  );
                 }
                     , [])
                 :
@@ -410,23 +428,16 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
                         ? types[this._getCurrentPathByIndex(-1).type]
                                     .fields[this.state.selectedFieldName]
                         : types[this._getCurrentPathByIndex(-2).type]
-                                    .fields[this._getCurrentPathByIndex(-1).name],
+                               .fields[this._getCurrentPathByIndex(-1).name],
             ]
             : !this.currentSelectionPath.length
-                && !this.state.argumentsForCurrentPathLast && this.state.argumentsMode
+                && !this.state.argumentsForCurrentPathLast
+                && this.state.argumentsMode
                 ? [types[
                         this._getCurrentPathByIndex(-1).type
                     ].fields[this.state.selectedFieldName]]
                 : []
             ;
-  }
-
-  haveArguments(field) {
-    return !!(field && field.args && Object.keys(field.args).length);
-  }
-
-  setNewArgumentValue(argValue, value) {
-    Object.assign(argValue, value);
   }
 
   static extractSourceDataValue(obj) {
@@ -457,10 +468,10 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
                       source: 'static',
                       sourceData: {
                         value:
-                                    DataWindowQueryLayout
-                                        .createSourceDataObject(
-                                            value,
-                                        ),
+                          DataWindowQueryLayout
+                              .createSourceDataObject(
+                                  value,
+                              ),
                       },
                     }),
                     )
@@ -472,10 +483,10 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
                                   source: 'static',
                                   sourceData: {
                                     value:
-                                                DataWindowQueryLayout
-                                                    .createSourceDataObject(
-                                                        obj[key],
-                                            ),
+                                      DataWindowQueryLayout
+                                          .createSourceDataObject(
+                                              obj[key],
+                                    ),
                                   },
                                 },
                               },
@@ -533,39 +544,39 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
         description,
         children: [
           fields.map((field, fieldNumber) =>
-                            haveArguments(field)
-                            ?
-                              <DataWindowContentGroup
-                                title={field.name}
-                              >
-                                <PropsList key={fieldNumber}>
-                                  {
-                                         Object.keys(field.args).map(
-                                             argName =>
-                                               <DataWindowQueryArgumentsFieldForm
-                                                 argField={field.args[argName]}
-                                                 argFieldName={argName}
-                                                 argFieldValue={
-                                                        argsValues[fieldNumber]
-                                                    }
-                                                 argumentsBound={
-                                                        areArgumentsBound[fieldNumber]
-                                                    }
-                                                 setNewArgumentValue={value =>
-                                                        setNewArgumentValue(
-                                                            argsValues[fieldNumber],
-                                                            value,
-                                                        )
-                                                    }
-                                                 types={types}
-                                                 key={argName}
-                                               />,
-                                         )
-                                    }
-                                </PropsList>
-                              </DataWindowContentGroup>
-                            : null,
-                        ),
+              haveArguments(field)
+              ?
+                <DataWindowContentGroup
+                  title={field.name}
+                >
+                  <PropsList key={field.name}>
+                    {
+                           Object.keys(field.args).map(
+                               argName =>
+                                 <DataWindowQueryArgumentsFieldForm
+                                   argField={field.args[argName]}
+                                   argFieldName={argName}
+                                   argFieldValue={
+                                          argsValues[fieldNumber]
+                                      }
+                                   argumentsBound={
+                                          areArgumentsBound[fieldNumber]
+                                      }
+                                   setNewArgumentValue={value =>
+                                          setNewArgumentValue(
+                                              argsValues[fieldNumber],
+                                              value,
+                                          )
+                                      }
+                                   types={types}
+                                   key={argName}
+                                 />,
+                           )
+                      }
+                  </PropsList>
+                </DataWindowContentGroup>
+              : null,
+          ),
         ],
       },
       buttons: [
@@ -688,39 +699,42 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
           return acc.concat(
             [createContentField(
-                            field,
-                            fieldName,
-                            selectedFieldName,
+                field,
+                fieldName,
+                selectedFieldName,
+                propType,
+                getFieldTypeName,
+                handleFieldSelect,
+                handleSetArgumentsClick,
+                handleApplyClick,
+                handleJumpIntoField,
+            )]).concat(
+                Object.keys(connectionFields).filter(
+                    connectionFieldName => {
+                      const connectionField
+                            = field
+                                .connectionFields[
+                                  connectionFieldName
+                                ];
+                      return showField(
                             propType,
-                            getFieldTypeName,
-                            handleFieldSelect,
-                            handleSetArgumentsClick,
-                            handleApplyClick,
-                            handleJumpIntoField,
-                        )]).concat(
-                            Object.keys(connectionFields).filter(
-                                connectionFieldName => {
-                                  const connectionField
-                                        = field.connectionFields[connectionFieldName];
-                                  return showField(
-                                        propType,
-                                        connectionField,
-                                    );
-                                },
-                            ).map(connectionFieldName =>
-                                createContentField(
-                                    connectionFields[connectionFieldName],
-                                    `${fieldName}/${connectionFieldName}`,
-                                    selectedFieldName,
-                                    propType,
-                                    getFieldTypeName,
-                                    handleFieldSelect,
-                                    handleSetArgumentsClick,
-                                    handleApplyClick,
-                                    handleJumpIntoField,
-                                ),
-                            ),
+                            connectionField,
                         );
+                    },
+                ).map(connectionFieldName =>
+                    createContentField(
+                        connectionFields[connectionFieldName],
+                        `${fieldName}/${connectionFieldName}`,
+                        selectedFieldName,
+                        propType,
+                        getFieldTypeName,
+                        handleFieldSelect,
+                        handleSetArgumentsClick,
+                        handleApplyClick,
+                        handleJumpIntoField,
+                    ),
+                ),
+            );
         }, []),
         onSetArgumentsClick:
                     () => handleSetArgumentsClick(true),
@@ -746,7 +760,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
             Object.assign(
                 acc, {
                   [key]:
-                        DataWindowQueryLayout.extractSourceDataValue(formattedArgs[key]),
+                        DataWindowQueryLayout
+                          .extractSourceDataValue(formattedArgs[key]),
                 },
             )
         , {});
@@ -769,11 +784,11 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
       while (
                 ++currentPathIndex < currentPath.length
                 &&
-                !this._equalFieldPaths(
+                !DataWindowQueryLayout.equalFieldPaths(
                     currentPath[currentPathIndex], field,
                 )
             );
-      return !!(this._equalFieldPaths(
+      return !!(DataWindowQueryLayout.equalFieldPaths(
                 currentPath[currentPathIndex], field,
             ) && this._getBoundArgumentsByPath(
                 currentPath.slice(
@@ -807,45 +822,47 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
     return (
             !this.state.argumentsMode
             ? this.createContentType(
-                        this.props.schema.types[this._getCurrentPathByIndex(-1).type],
-                        this._getCurrentPathByIndex(-1),
-                        this.state.selectedFieldName,
-                        linkTargetPropTypedef,
-                        this.haveArguments(currentEditingFields[0]),
-                        this.breadcrumbs,
-                        this._getFieldTypeName,
-                        this._handleFieldSelect,
-                        this._handleSetArgumentsPress,
-                        this._handleDataApplyPress,
-                        this._handleJumpIntoField,
-                        this.createContentField,
-                        this._handleJumpToCurrentPathIndex,
-                    )
+                  this.props.schema.types[
+                      this._getCurrentPathByIndex(-1).type
+                  ],
+                  this._getCurrentPathByIndex(-1),
+                  this.state.selectedFieldName,
+                  linkTargetPropTypedef,
+                  DataWindowQueryLayout.haveArguments(currentEditingFields[0]),
+                  this.breadcrumbs,
+                  DataWindowQueryLayout.getFieldTypeName,
+                  this._handleFieldSelect,
+                  this._handleSetArgumentsPress,
+                  this._handleDataApplyPress,
+                  this._handleJumpIntoField,
+                  this.createContentField,
+                  this._handleJumpToCurrentPathIndex,
+              )
             : this.createContentArgumentsType(
-                        currentEditingFields,
-                        this._getCurrentArguments(
-                            this.state.argumentsForCurrentPathLast,
-                            this.state.allArgumentsMode,
-                        ),
-                        this._areArgumentsBound(
-                            currentEditingFields,
-                        ),
-                        this._getCurrentPathByIndex(
-                            isPrimitiveGraphQLType(
-                                this._getCurrentPathByIndex(-1).type,
-                            )
-                        ? -2
-                        : -1,
-                        ).name,
-                        this.state.allArgumentsMode,
-                        this.props.schema.types,
-                        this.haveArguments,
-                        this.createContentArgumentField,
-                        this.setNewArgumentValue,
-                        this._handleJumpIntoField,
-                        this._handleBackToPress,
-                        this._handleArgumentsApplyPress,
-                    )
+                currentEditingFields,
+                this._getCurrentArguments(
+                    this.state.argumentsForCurrentPathLast,
+                    this.state.allArgumentsMode,
+                ),
+                this._areArgumentsBound(
+                    currentEditingFields,
+                ),
+                this._getCurrentPathByIndex(
+                    isPrimitiveGraphQLType(
+                        this._getCurrentPathByIndex(-1).type,
+                      )
+                  ? -2
+                  : -1,
+                ).name,
+                this.state.allArgumentsMode,
+                this.props.schema.types,
+                DataWindowQueryLayout.haveArguments,
+                this.createContentArgumentField,
+                DataWindowQueryLayout.setNewArgumentValue,
+                this._handleJumpIntoField,
+                this._handleBackToPress,
+                this._handleArgumentsApplyPress,
+            )
     );
   }
 }

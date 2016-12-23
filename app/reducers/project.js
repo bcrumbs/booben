@@ -543,7 +543,7 @@ export default (state = new ProjectState(), action) => {
         lastRouteId = getMaxRouteId(project),
         lastComponentId = getMaxComponentId(project),
         schema = action.schema ? parseGraphQLSchema(action.schema) : null;
-      
+      console.log(action.metadata);
       _forOwn(action.metadata, libMeta => {
         _forOwn(libMeta.components, componentMeta => {
           componentMeta.tags = new Set(componentMeta.tags);
