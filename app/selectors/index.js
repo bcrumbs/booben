@@ -90,7 +90,12 @@ export const getCurrentComponentWithQueryArgs = createSelector(
     haveNestedConstructorsSelector,
     topNestedConstructorComponentSelector,
 
-    (project, componentId, haveNestedConstructors, nestedConstructorsTopComponent) =>
+    (
+      project,
+      componentId,
+      haveNestedConstructors,
+      nestedConstructorsTopComponent,
+    ) =>
         haveNestedConstructors
         ? nestedConstructorsTopComponent
         : getComponentWithQueryArgs(project, componentId, true),
@@ -166,7 +171,7 @@ const getContextQueryPath = (
                    ? (isDataContext = true, prop.sourceData.toJS().dataContext)
                    : context;
 
-    if (!context || !context.length) return;
+    if (!context || !context.length) return void 0;
 
     if (isDataContext) context = [...context, ...context.slice(-1)];
 
@@ -174,11 +179,13 @@ const getContextQueryPath = (
 
     const queryPathPrefix = contexts.find(
             searchContext => searchContext && context.slice(0, -1).every(
-                (contextName, key) => searchContext.context[key] === contextName,
+                (contextName, key) =>
+                    searchContext.context[key] === contextName,
             ),
         );
 
-    if (queryPathPrefix) queryPath = queryPathPrefix.contextQueryPath.concat(queryPath);
+    if (queryPathPrefix)
+      queryPath = queryPathPrefix.contextQueryPath.concat(queryPath);
 
 
     let type = getLastType(
@@ -258,6 +265,7 @@ const getAllRootContexts = (component, schema, meta) => {
                     propName,
                 ), schema, [], [context]);
           }
+          return void 0;
         },
     ).filter(v => v);
 };

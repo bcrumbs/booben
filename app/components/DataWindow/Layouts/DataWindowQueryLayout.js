@@ -247,16 +247,16 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
     const queryArgs = args.reduce((acc, currentArg, num) =>
             Object.keys(currentArg).length
-            ? Object.assign(acc, {
-              '': Object.assign(
-                    {}, acc[''], {
-                      [queryPath.slice(0, num + 1)
-                            .map(({ field }) => field).join(' ')]:
-                                DataWindowQueryLayout
-                                    .createSourceDataObject(currentArg),
-                    },
-                ),
-            }, {})
+            ? {
+              ...acc,
+              '': {
+                ...acc[''],
+                [queryPath.slice(0, num + 1)
+                        .map(({ field }) => field).join(' ')]:
+                            DataWindowQueryLayout
+                                .createSourceDataObject(currentArg),
+              },
+            }
             : acc
         , {});
     this.props.onUpdateComponentPropValue(
@@ -379,7 +379,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
               !lastPath
                 ?
                     previousPathField
-                    && DataWindowQueryLayout.qualFieldPaths(
+                    && DataWindowQueryLayout.equalFieldPaths(
                         previousPathField,
                         this.props.schema.types[
                           this._getCurrentPathByIndex(-1).type
@@ -395,7 +395,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
   _getCurrentEditingFields(allCurrentPathFields) {
     const { types } = this.props.schema;
     // TODO refactor
-    // eslint-disable-next-line
+    /* eslint-disable */
     return this.currentSelectionPath.length
             ? this.state.allArgumentsMode || allCurrentPathFields
                 ? this.currentSelectionPath.reduce((path, { name }) => {
@@ -407,17 +407,21 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
                             ).type
                         ];
 
-                  const fieldConnections = objectFilter(parentField.fields,
+                  const fieldConnections
+                        = objectFilter(parentField.fields,
                             ({ kind }) => kind === FIELD_KINDS.CONNECTION,
                         );
 
                   return path.concat(
                       parentField.fields[name]
-                      || Object.assign({}, Object.keys(fieldConnections).reduce(
+                      || {
+                        ...Object.keys(fieldConnections).reduce(
                           (_, fieldConnectionName) =>
                               _ || fieldConnections[fieldConnectionName]
                                       .connectionFields[name.split('/')[1]]
-                      , void 0), { name }),
+                          , void 0),
+                        name,
+                      },
                   );
                 }
                     , [])
@@ -436,63 +440,70 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
                 ? [types[
                         this._getCurrentPathByIndex(-1).type
                     ].fields[this.state.selectedFieldName]]
-                : []
-            ;
+                : [];
+    /*eslint-enable*/
   }
 
-  static extractSourceDataValue(obj) {
-    return typeof obj.sourceData.value === 'object' && obj.sourceData.value !== null
-        ? Array.isArray(obj.sourceData.value)
-            ? obj.sourceData.value.map(
-                DataWindowQueryLayout.extractSourceDataValue,
-            )
-            : Object.keys(
-                obj.sourceData.value,
-            ).reduce((acc, objName) =>
-                Object.assign(
-                    acc,
-                  {
-                    [objName]: DataWindowQueryLayout.extractSourceDataValue(
-                            obj.sourceData.value[objName],
-                        ),
-                  },
-                )
-            , {})
-        : obj.sourceData.value;
+  static extractSourceDataValue({ sourceData }) {
+    const { value } = sourceData;
+    if (typeof value === 'object' && value !== null) {
+      if (Array.isArray(value)) {
+        return (
+          value.map(
+              DataWindowQueryLayout.extractSourceDataValue,
+          )
+        );
+      } else {
+        return (
+          Object.keys(
+              value,
+          ).reduce((acc, objName) =>
+              Object.assign(
+                  acc,
+                {
+                  [objName]: DataWindowQueryLayout.extractSourceDataValue(
+                          value[objName],
+                      ),
+                },
+              )
+          , {})
+        );
+      }
+    } else { return value; }
   }
 
   static createSourceDataObject(obj) {
-    return typeof obj === 'object' && obj !== null
-                ? Array.isArray(obj)
-                    ? obj.map(value => ({
-                      source: 'static',
-                      sourceData: {
-                        value:
-                          DataWindowQueryLayout
-                              .createSourceDataObject(
-                                  value,
-                              ),
-                      },
-                    }),
-                    )
-                    : Object.keys(obj).reduce((acc, key) =>
-                            Object.assign(
-                                acc,
-                              {
-                                [key]: {
-                                  source: 'static',
-                                  sourceData: {
-                                    value:
-                                      DataWindowQueryLayout
-                                          .createSourceDataObject(
-                                              obj[key],
-                                    ),
-                                  },
-                                },
-                              },
-                            )
-                      , {})
-             : obj;
+    if (typeof obj === 'object' && obj !== null) {
+      if (Array.isArray(obj)) {
+        return obj.map(value => ({
+          source: 'static',
+          sourceData: {
+            value:
+                DataWindowQueryLayout
+                    .createSourceDataObject(
+                        value,
+                    ),
+          },
+        }),
+        );
+      } else {
+        return Object.keys(obj).reduce((acc, key) =>
+                ({
+                  ...acc,
+                  [key]: {
+                    source: 'static',
+                    sourceData: {
+                      value:
+                        DataWindowQueryLayout
+                            .createSourceDataObject(
+                                obj[key],
+                      ),
+                    },
+                  },
+                })
+          , {});
+      }
+    } else { return obj; }
   }
 
     /**

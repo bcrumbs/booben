@@ -1,5 +1,17 @@
-import './BlockContent.scss';
+'use strict';
+
+// noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
+
+import './BlockContent.scss';
+
+const propTypes = {
+  isEmpty: PropTypes.bool,
+};
+
+const defaultProps = {
+  isEmpty: false,
+};
 
 export const BlockContent = props => {
   let className = 'block-content';
@@ -7,19 +19,13 @@ export const BlockContent = props => {
 
   return (
     <div className={className}>
-      { props.children }
+      {props.children}
     </div>
   );
 };
 
-BlockContent.propTypes = {
-  isEmpty: PropTypes.bool,
-};
-
-BlockContent.defaultProps = {
-  isEmpty: false,
-};
-
+BlockContent.propTypes = propTypes;
+BlockContent.defaultProps = defaultProps;
 BlockContent.displayName = 'BlockContent';
 
 export * from './BlockContentTitle/BlockContentTitle';

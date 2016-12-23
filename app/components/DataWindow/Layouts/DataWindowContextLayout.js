@@ -10,16 +10,13 @@ import {
 export class DataWindowContextLayout extends DataWindowQueryLayout {
   constructor(props) {
     super(props);
-    this.state = Object.assign(
-            {},
-            this.state,
-      {
-        currentPath: [
-                    { name: 'Data' },
-          props.contextFieldType,
-        ],
-      },
-        );
+    this.state = {
+      ...this.state,
+      currentPath: [
+        { name: 'Data' },
+        props.contextFieldType,
+      ],
+    };
   }
 
   _applyPropData(args = []) {
@@ -35,16 +32,20 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
 
     const queryArgs = args.reduce((acc, currentArg, num) =>
             Object.keys(currentArg).length
-            ? Object.assign(acc, {
-              [this.props.context]: Object.assign(
-                    {}, acc[this.props.context], {
-                      [queryPath.slice(0, num + 1)
+            ? {
+              ...acc,
+              '': {
+                ...acc[''],
+                [this.props.context]:
+                {
+                  ...acc[this.props.context],
+                  [queryPath.slice(0, num + 1)
                             .map(({ field }) => field).join(' ')]:
                                 DataWindowQueryLayout
                                     .createSourceDataObject(currentArg),
-                    },
-                ),
-            }, {})
+                },
+              },
+            }
             : acc
         , {});
     this.props.onUpdateComponentPropValue(
@@ -78,13 +79,12 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
     const formattedArgs = args ? args.toJS() : {};
 
     return args && Object.keys(formattedArgs).reduce((acc, key) =>
-            Object.assign(
-                acc, {
-                  [key]:
-                        DataWindowContextLayout
-                          .extractSourceDataValue(formattedArgs[key]),
-                },
-            )
+            ({
+              ...acc,
+              [key]:
+                    DataWindowContextLayout
+                      .extractSourceDataValue(formattedArgs[key]),
+            })
         , {});
   }
 

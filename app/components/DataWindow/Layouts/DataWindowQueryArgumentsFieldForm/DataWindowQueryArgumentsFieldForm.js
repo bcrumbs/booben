@@ -452,7 +452,6 @@ export class DataWindowQueryArgumentsFieldForm extends PureComponent {
       />
     );
   }
-
 }
 
 DataWindowQueryArgumentsFieldForm.propTypes = {

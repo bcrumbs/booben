@@ -1,4 +1,15 @@
+'use strict';
+
+// noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
+
+const propTypes = {
+  type: PropTypes.oneOf(['main', 'secondary']),
+};
+
+const defaultProps = {
+  type: 'main',
+};
 
 export const BlockContentActionsRegion = props => {
   let className = 'block-content-actions-region';
@@ -11,12 +22,6 @@ export const BlockContentActionsRegion = props => {
   );
 };
 
-BlockContentActionsRegion.propTypes = {
-  type: PropTypes.oneOf(['main', 'secondary']),
-};
-
-BlockContentActionsRegion.defaultProps = {
-  type: 'main',
-};
-
+BlockContentActionsRegion.propTypes = propTypes;
+BlockContentActionsRegion.defaultProps = defaultProps;
 BlockContentActionsRegion.displayName = 'BlockContentActionsRegion';

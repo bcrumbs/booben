@@ -3,9 +3,6 @@
 import React, { PureComponent, PropTypes } from 'react';
 
 import {
-    Button,
-    Breadcrumbs,
-    Checkbox,
     Dialog,
 } from '@reactackle/reactackle';
 
@@ -13,18 +10,11 @@ import {
     BlockContent,
     BlockContentBox,
     BlockContentNavigation,
-    BlockContentTitle,
     BlockBreadcrumbs,
 } from '../../BlockContent/BlockContent';
 
 import {
-    PropsList,
-    PropsItem,
-} from '../../PropsList/PropsList';
-
-import {
     DataWindowContent,
-    DataWindowContentGroup,
 } from '../DataWindowContent/DataWindowContent';
 
 import {
@@ -56,32 +46,32 @@ export class DataWindowDataLayout extends PureComponent {
             connection: true,
           },
         ].concat(
-                    this.props.rootComponentWithQueryArgs
-                    ? [
-                      {
-                        title: 'Owner component',
-                        actionType: 'jump',
-                        connection: true,
-                        onSelect: () => this.props.setSelectedPath('OwnerComponent'),
-                      },
-                      ...this.props.contexts.map(({ context, contextFieldType }) =>
-                            ({
-                              title: `${contextFieldType.name} - context`,
-                              actionType: 'jump',
-                              connection: true,
-                              onSelect:
-                                    () =>
-                                        this.props.setSelectedPath(
-                                            'Context', {
-                                              contextFieldType,
-                                              context,
-                                            },
-                                        ),
-                            }),
-                        ),
-                    ]
-                    : [],
+            this.props.rootComponentWithQueryArgs
+            ? [
+              {
+                title: 'Owner component',
+                actionType: 'jump',
+                connection: true,
+                onSelect: () => this.props.setSelectedPath('OwnerComponent'),
+              },
+              ...this.props.contexts.map(({ context, contextFieldType }) =>
+                    ({
+                      title: `${contextFieldType.name} - context`,
+                      actionType: 'jump',
+                      connection: true,
+                      onSelect:
+                            () =>
+                                this.props.setSelectedPath(
+                                    'Context', {
+                                      contextFieldType,
+                                      context,
+                                    },
+                                ),
+                    }),
                 ),
+            ]
+            : [],
+        ),
       },
     });
   }
@@ -132,17 +122,17 @@ export class DataWindowDataLayout extends PureComponent {
             <BlockContent>
               <BlockContentNavigation isBordered>
                 {
-                                !!CONTENT_TYPE.breadcrumbs
-                                &&
-                                <BlockBreadcrumbs
-                                  items={CONTENT_TYPE.breadcrumbs}
-                                  mode="dark"
-                                  onItemClick={
-                                            CONTENT_TYPE.onBreadcrumbsClick
-                                        }
-                                  overflow
-                                />
+                    !!CONTENT_TYPE.breadcrumbs
+                    &&
+                    <BlockBreadcrumbs
+                      items={CONTENT_TYPE.breadcrumbs}
+                      mode="dark"
+                      onItemClick={
+                                CONTENT_TYPE.onBreadcrumbsClick
                             }
+                      overflow
+                    />
+                }
               </BlockContentNavigation>
 
               <BlockContentBox isBordered>
@@ -154,8 +144,8 @@ export class DataWindowDataLayout extends PureComponent {
                   contentHeading={CONTENT_TYPE.content.contentHeading}
                   argsButton={CONTENT_TYPE.content.argsButton}
                   onSetArgumentsClick={
-                                        CONTENT_TYPE.content.onSetArgumentsClick
-                                    }
+                      CONTENT_TYPE.content.onSetArgumentsClick
+                  }
                   list={CONTENT_TYPE.content.list}
                   children={CONTENT_TYPE.content.children}
                 />
@@ -168,8 +158,9 @@ export class DataWindowDataLayout extends PureComponent {
   }
 }
 
-
+/* eslint-disable */
 DataWindowDataLayout.propTypes = {
+  contexts: PropTypes.array,
   components: PropTypes.any,
   schema: PropTypes.object,
   meta: PropTypes.object,
