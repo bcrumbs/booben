@@ -60,5 +60,21 @@
 
     "noComponentsCanBeInsertedInsideSelectedComponent": "Нет компонентов, которые могут быть вставлены в выделенный компонент",
     "showAllComponents": "Показать все компоненты",
-    "noComponentsInLibrary": "В библиотеке нет компонентов"
+    "noComponentsInLibrary": "В библиотеке нет компонентов",
+
+    "query": "Запрос",
+    "functions": "Функции",
+    "state": "Локальные данные",
+    "ownerComponent": "Родительский компонент",
+    "dataWindowTitle": "Данные для {propName}",
+    "dataWindowContextField": "{fieldName} - контекст ({fieldPath})",
+    "allArguments": "Все аргументы",
+    "argumentsForField": "Аргументы для {fieldName}",
+    "pleaseFillAllRequiredArguments": "Пожалуйста, введите все требуемые аргументы",
+
+    "fields": "Поля",
+    "typeName": "Тип: {name} {kind}",
+    "listKind": "cписок",
+    "connectionKind": "cоединение"
+
 }

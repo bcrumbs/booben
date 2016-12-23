@@ -30,18 +30,18 @@ export class DataWindowDataLayout extends PureComponent {
       content: {
         list: [
           {
-            title: 'Query',
+            title: this.props.getLocalizedText('query'),
             actionType: 'jump',
             connection: true,
             onSelect: () => this.props.setSelectedPath('Query'),
           },
           {
-            title: 'Functions',
+            title: this.props.getLocalizedText('functions'),
             actionType: 'jump',
             connection: true,
           },
           {
-            title: 'State',
+            title: this.props.getLocalizedText('state'),
             actionType: 'jump',
             connection: true,
           },
@@ -49,14 +49,25 @@ export class DataWindowDataLayout extends PureComponent {
             this.props.rootComponentWithQueryArgs
             ? [
               {
-                title: 'Owner component',
+                title: this.props.getLocalizedText('ownerComponent'),
                 actionType: 'jump',
                 connection: true,
                 onSelect: () => this.props.setSelectedPath('OwnerComponent'),
               },
-              ...this.props.contexts.map(({ context, contextFieldType }) =>
+              ...this.props.contexts.map((
+                {
+                  context,
+                  contextFieldType,
+                  contextQueryPath,
+                }) =>
                     ({
-                      title: `${contextFieldType.name} - context`,
+                      title: this.props.getLocalizedText(
+                        'dataWindowContextField',
+                        {
+                          fieldName: contextFieldType.name,
+                          fieldPath: contextQueryPath.join('->'),
+                        },
+                      ),
                       actionType: 'jump',
                       connection: true,
                       onSelect:
@@ -115,7 +126,12 @@ export class DataWindowDataLayout extends PureComponent {
           buttonsLeft={CONTENT_TYPE.buttonsLeft}
           buttons={CONTENT_TYPE.buttons}
           paddingSize="none"
-          title={`${propName} Data`}
+          title={
+            this.props.getLocalizedText(
+              'dataWindowTitle',
+              { propName },
+            )
+          }
           dialogContentFlex
         >
           <div className="data-window_content">
@@ -173,6 +189,7 @@ DataWindowDataLayout.propTypes = {
   rootComponentWithQueryArgs: PropTypes.any,
   topNestedConstructor: PropTypes.any,
   topNestedConstructorComponent: PropTypes.any,
+  getLocalizedText: PropTypes.func,
 
   onLinkPropCancel: PropTypes.func,
   onUpdateComponentPropValue: PropTypes.func,

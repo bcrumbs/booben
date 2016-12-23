@@ -4,15 +4,14 @@ import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 
 import {
-    linkPropCancel,
-    updateComponentPropValue,
-    updateComponentQueryArgs,
-    linkWithOwnerProp,
-} from '../../actions/project';
+  connect,
+} from 'react-redux';
 
 import {
-    connect,
-} from 'react-redux';
+    linkPropCancel,
+    updateComponentPropValue,
+    linkWithOwnerProp,
+} from '../../actions/project';
 
 import {
     getCurrentComponentWithQueryArgs,
@@ -27,6 +26,8 @@ import {
 import ProjectComponentRecord from '../../models/ProjectComponent';
 
 import { NestedConstructor } from '../../reducers/project';
+
+import { getLocalizedTextFromState } from '../../utils';
 
 import {
     DataWindowDataLayout,
@@ -78,21 +79,18 @@ class DataWindowComponent extends PureComponent {
 
 
     return React.createElement(
-            component,
-            Object.assign(
-                {},
-                this.props,
-              {
-                backToMainLayout: this._backToMainLayout,
-                setSelectedPath: this._setSelectedPath,
-              },
-                selectedPathProps,
-            ),
-        );
+      component,
+      {
+        ...this.props,
+        backToMainLayout: this._backToMainLayout,
+        setSelectedPath: this._setSelectedPath,
+        ...selectedPathProps,
+      },
+    );
   }
 }
 
-
+/* eslint-disable */
 DataWindowComponent.propTypes = {
   components: ImmutablePropTypes.mapOf(
         PropTypes.instanceOf(ProjectComponentRecord),
@@ -110,11 +108,13 @@ DataWindowComponent.propTypes = {
   contexts: PropTypes.array,
   topNestedConstructor: PropTypes.instanceOf(NestedConstructor),
   topNestedConstructorComponent: PropTypes.instanceOf(ProjectComponentRecord),
+  getLocalizedText: PropTypes.func,
 
   onLinkPropCancel: PropTypes.func,
   onUpdateComponentPropValue: PropTypes.func,
   onLinkWithOwnerProp: PropTypes.func,
 };
+/* eslint-enable */
 
 DataWindowComponent.displayName = 'DataWindow';
 
@@ -133,6 +133,7 @@ const mapStateToProps = state => ({
   topNestedConstructor: topNestedConstructorSelector(state),
   topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
   contexts: getAllPossibleNestedContexts(state),
+  getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({

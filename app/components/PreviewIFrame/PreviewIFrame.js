@@ -1,9 +1,9 @@
 'use strict';
 
-import './PreviewIFrame.scss';
-
 // noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
+
+import './PreviewIFrame.scss';
 
 const EVENTS_FOR_PARENT_FRAME = [
   'mousemove',

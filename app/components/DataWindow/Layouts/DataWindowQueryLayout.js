@@ -80,18 +80,6 @@ const canGoIntoField = (metaType, graphQLType) =>
         && !isPrimitiveGraphQLType(graphQLType.type);
 
 export class DataWindowQueryLayout extends DataWindowDataLayout {
-
-  static getFieldTypeName(field) {
-    switch (field.kind) {
-      case FIELD_KINDS.CONNECTION:
-        return ' connection';
-      case FIELD_KINDS.LIST:
-        return ' list';
-      default:
-        return '';
-    }
-  }
-
   static equalFieldPaths(path1, path2) {
     if (!path1 || !path2) return false;
     return ['name', 'type', 'kind'].every(
@@ -112,8 +100,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
     const { queryTypeName } = this.props.schema;
     this.state = {
       currentPath: [
-                { name: 'Data' },
-                { name: 'Query', type: queryTypeName },
+                { displayName: 'data', name: 'Data' },
+                { displayName: 'query', name: 'Query', type: queryTypeName },
       ],
       previousPath: [
       ],
@@ -135,6 +123,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
     this._getBoundArgumentsByPath = this._getBoundArgumentsByPath.bind(this);
     this._getSelectedField = this._getSelectedField.bind(this);
     this._areArgumentsBound = this._areArgumentsBound.bind(this);
+    this._getFieldTypeName = this._getFieldTypeName.bind(this);
   }
 
   _handleJumpIntoField(name, type, kind, args, isCurrentPathLast = false) {
@@ -204,6 +193,17 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
         argumentsMode: false,
         allArgumentsMode: false,
       });
+    }
+  }
+
+  _getFieldTypeName(field) {
+    switch (field.kind) {
+      case FIELD_KINDS.CONNECTION:
+        return this.props.getLocalizedText('connectionKind');
+      case FIELD_KINDS.LIST:
+        return this.props.getLocalizedText('listKind');
+      default:
+        return '';
     }
   }
 
@@ -326,8 +326,10 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
 
   get breadcrumbs() {
     return this.state.currentPath.map(
-            ({ name }) => ({
-              title: name,
+            ({ name, displayName }) => ({
+              title: typeof displayName === 'undefined'
+                    ? name
+                    : this.props.getLocalizedText(displayName),
             }),
         );
   }
@@ -529,8 +531,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
     fields,
     fieldsArgsValues,
     areArgumentsBound,
-    allArgumentsMode,
     backToFieldName,
+    allArgumentsMode,
     types,
     haveArguments,
     createContentArgumentField,
@@ -538,10 +540,14 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
     handleJumpIntoField,
     handleBackToPress,
     handleApplyPress,
+    getLocalizedText,
     title = allArgumentsMode
-                ? 'All arguments'
-                : `${fields[0].name} arguments`,
-    subtitle = 'Please, fill required arguments',
+                ? getLocalizedText('allArguments')
+                : getLocalizedText('argumentsForField',
+                  {
+                    fieldName: fields[0].name,
+                  }),
+    subtitle = getLocalizedText('pleaseFillAllRequiredArguments'),
     description = '',
     ) {
     const argsValues = clone(fieldsArgsValues).map(
@@ -627,7 +633,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
     handleFieldSelect,
     handleSetArgumentsClick,
     handleApplyClick,
-    handleJumpIntoField,
+    handleJumpIntoField
     ) {
     return (
     {
@@ -662,6 +668,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
      * @param {boolean} hasArgs
      * @param {Array<Object>} breadcrumbs
      * @param {Function<Object>:string} getFieldTypeName
+     * @param {Function} getLocalizedText
      * @param {Function} handleFieldSelect
      * @param {Function} handleSetArgumentsClick
      * @param {Function} handleApplyClick
@@ -679,6 +686,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
     hasArgs,
     breadcrumbs,
     getFieldTypeName,
+    getLocalizedText,
     handleFieldSelect,
     handleSetArgumentsClick,
     handleApplyClick,
@@ -690,13 +698,20 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
       breadcrumbs,
       onBreadcrumbsClick: handleJumpToCurrentPathIndex,
       content: {
-        title: currentPathLast.name,
-        subtitle: `type: ${
-                    getFieldTypeName(currentPathLast)
-                }`,
+        title:
+          typeof currentPathLast.displayName === 'undefined'
+          ? currentPathLast.name
+          : getLocalizedText(currentPathLast.displayName),
+        subtitle: getLocalizedText(
+          'typeName',
+          {
+            name: currentPathLast.type,
+            kind: getFieldTypeName(currentPathLast),
+          },
+        ),
         description: type.description,
         argsButton: hasArgs,
-        contentHeading: 'Fields',
+        contentHeading: getLocalizedText('fields'),
         list: Object.keys(type.fields).reduce((acc, fieldName) => {
           const field = type.fields[fieldName];
           const connectionFields =
@@ -841,7 +856,8 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
                   linkTargetPropTypedef,
                   DataWindowQueryLayout.haveArguments(currentEditingFields[0]),
                   this.breadcrumbs,
-                  DataWindowQueryLayout.getFieldTypeName,
+                  this._getFieldTypeName,
+                  this.props.getLocalizedText,
                   this._handleFieldSelect,
                   this._handleSetArgumentsPress,
                   this._handleDataApplyPress,
@@ -873,6 +889,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
                 this._handleJumpIntoField,
                 this._handleBackToPress,
                 this._handleArgumentsApplyPress,
+                this.props.getLocalizedText
             )
     );
   }

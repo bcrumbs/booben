@@ -62,15 +62,22 @@
     "showAllComponents": "Show all components",
     "noComponentsInLibrary": "No components in library",
 
-    "data": "Data",
     "query": "Query",
     "functions": "Functions",
     "context": "Context",
     "state": "State",
+    "ownerComponent": "Owner component",
+    "dataWindowTitle": "{propName} data",
+    "dataWindowContextField": "{fieldName} - context ({fieldPath})",
+    "allArguments": "All arguments",
+    "argumentsForField": "{fieldName} arguments",
+    "pleaseFillAllRequiredArguments": "Please, fill all required arguments",
 
-    "propNameData": "{propName} data",
+
     "fields": "Fields",
-    "typeName": "Type: {typeName} {additionalKindName}"
+    "typeName": "Type: {name} {kind}",
+    "listKind": "list",
+    "connectionKind": "connection"
 
 
 }
