@@ -33,7 +33,7 @@ export const DataItem = props => {
   if (props.argsButton) {
     argsButton = (<Button
       onPress={props.onSetArgumentsClick}
-      text="Set Arguments"
+      text={props.argsButtonText}
       narrow
     />);
   }
@@ -61,10 +61,15 @@ export const DataItem = props => {
             <div className="data-item_buttons">
               { argsButton }
               {
-                        props.canBeApplied
-                        ? <Button text="Apply" onPress={props.onApplyClick} narrow />
-                        : null
-                    }
+                props.canBeApplied
+                ?
+                  <Button
+                    text={props.applyButtonText}
+                    onPress={props.onApplyClick}
+                    narrow
+                  />
+                : null
+              }
             </div>
           </div>);
   }
@@ -97,11 +102,13 @@ DataItem.propTypes = {
   actionType: PropTypes.oneOf(['jump', 'select']),
   required: PropTypes.bool,
   argsButton: PropTypes.bool,
+  argsButtonText: PropTypes.string,
   chosen: PropTypes.bool,
   state: PropTypes.oneOf(['error', 'success']),
   connection: PropTypes.bool,
   arg: PropTypes.any,
   canBeApplied: PropTypes.bool,
+  applyButtonText: PropTypes.string,
 
   onSelect: PropTypes.func,
   onSetArgumentsClick: PropTypes.func,
@@ -122,6 +129,8 @@ DataItem.defaultProps = {
   connection: false,
   arg: null,
   canBeApplied: false,
+  applyButtonText: 'Apply',
+  argsButtonText: 'Set arguments',
 
   onSelect: noop,
   onSetArgumentsClick: noop,

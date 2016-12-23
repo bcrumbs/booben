@@ -69,12 +69,15 @@
     "dataWindowTitle": "Данные для {propName}",
     "dataWindowContextField": "{fieldName} - контекст ({fieldPath})",
     "allArguments": "Все аргументы",
-    "argumentsForField": "Аргументы для {fieldName}",
+    "argumentsForField": "Аргументы для {name}",
     "pleaseFillAllRequiredArguments": "Пожалуйста, введите все требуемые аргументы",
 
     "fields": "Поля",
     "typeName": "Тип: {name} {kind}",
     "listKind": "cписок",
-    "connectionKind": "cоединение"
+    "connectionKind": "cоединение",
+    "apply": "Применить",
+    "backTo": "Назад к {name}",
+    "setArguments": "Установить аргументы"
 
 }

@@ -13,7 +13,7 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
     this.state = {
       ...this.state,
       currentPath: [
-        { name: 'Data' },
+        { name: 'Data', displayName: 'data' },
         props.contextFieldType,
       ],
     };

@@ -159,6 +159,7 @@ export class DataWindowDataLayout extends PureComponent {
                   description={CONTENT_TYPE.content.description}
                   contentHeading={CONTENT_TYPE.content.contentHeading}
                   argsButton={CONTENT_TYPE.content.argsButton}
+                  argsButtonText={CONTENT_TYPE.content.argsButtonText}
                   onSetArgumentsClick={
                       CONTENT_TYPE.content.onSetArgumentsClick
                   }

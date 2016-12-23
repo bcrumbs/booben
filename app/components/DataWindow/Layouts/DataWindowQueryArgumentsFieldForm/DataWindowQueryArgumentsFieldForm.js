@@ -433,22 +433,22 @@ export class DataWindowQueryArgumentsFieldForm extends PureComponent {
         key={argFieldName}
         propType={propType}
         onChange={
-                    this._handleChange
-                }
+          this._handleChange
+        }
         onNullSwitch={
-                    this._handleNullSwitch
-                }
+          this._handleNullSwitch
+        }
         onAddValue={
-                    this._handleAdd
-                }
+          this._handleAdd
+        }
         onDeleteValue={
-                    this._handleRemove
-                }
+          this._handleRemove
+        }
         value={
-                    this._convertObjectToValue(
-                        currentFieldValue,
-                    )
-                }
+          this._convertObjectToValue(
+              currentFieldValue,
+          )
+        }
       />
     );
   }

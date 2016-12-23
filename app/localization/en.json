@@ -70,14 +70,16 @@
     "dataWindowTitle": "{propName} data",
     "dataWindowContextField": "{fieldName} - context ({fieldPath})",
     "allArguments": "All arguments",
-    "argumentsForField": "{fieldName} arguments",
+    "argumentsForField": "{name} arguments",
     "pleaseFillAllRequiredArguments": "Please, fill all required arguments",
 
 
     "fields": "Fields",
     "typeName": "Type: {name} {kind}",
     "listKind": "list",
-    "connectionKind": "connection"
-
+    "connectionKind": "connection",
+    "apply": "Apply",
+    "backTo": "Back to {name}",
+    "setArguments": "Set arguments"
 
 }

@@ -521,6 +521,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
      * @param {Function} handleJumpIntoField
      * @param {Function} handleBackToPress
      * @param {Function} handleApplyPress
+     * @param {Function} getLocalizedText
      * @param {string=} title
      * @param {string=} subtitle
      * @param {string=} description
@@ -545,7 +546,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
                 ? getLocalizedText('allArguments')
                 : getLocalizedText('argumentsForField',
                   {
-                    fieldName: fields[0].name,
+                    name: fields[0].name,
                   }),
     subtitle = getLocalizedText('pleaseFillAllRequiredArguments'),
     description = '',
@@ -598,12 +599,12 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
       },
       buttons: [
         {
-          text: `Back to ${backToFieldName}`,
+          text: getLocalizedText('backTo', { name: backToFieldName }),
           icon: 'chevron-left',
           onPress: handleBackToPress,
         },
         {
-          text: 'Apply',
+          text: getLocalizedText('apply'),
           onPress: () => handleApplyPress(argsValues),
         },
       ],
@@ -617,6 +618,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
      * @param {string} selectedFieldName
      * @param {string} propType
      * @param {Function<>:string} getFieldTypeName
+     * @param {Function<>:string} getLocalizedText
      * @param {Function} handleFieldSelect
      * @param {Function} handleSetArgumentsClick
      * @param {Function} handleApplyClick
@@ -630,6 +632,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
     selectedFieldName,
     propType,
     getFieldTypeName,
+    getLocalizedText,
     handleFieldSelect,
     handleSetArgumentsClick,
     handleApplyClick,
@@ -643,9 +646,11 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
       actionType: 'select',
       clickable: true,
       argsButton: !!Object.keys(field.args).length,
+      argsButtonText: getLocalizedText('setArguments'),
       chosen: fieldName === selectedFieldName,
       connection: canGoIntoField(propType, field),
       canBeApplied: canBeApplied(propType, field),
+      applyButtonText: getLocalizedText('apply'),
       onSelect: () => handleFieldSelect(fieldName),
       onApplyClick: () => handleApplyClick(fieldName),
       onSetArgumentsClick: () => handleSetArgumentsClick(false),
@@ -711,6 +716,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
         ),
         description: type.description,
         argsButton: hasArgs,
+        argsButtonText: getLocalizedText('setArguments'),
         contentHeading: getLocalizedText('fields'),
         list: Object.keys(type.fields).reduce((acc, fieldName) => {
           const field = type.fields[fieldName];
@@ -730,6 +736,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
                 selectedFieldName,
                 propType,
                 getFieldTypeName,
+                getLocalizedText,
                 handleFieldSelect,
                 handleSetArgumentsClick,
                 handleApplyClick,
@@ -754,6 +761,7 @@ export class DataWindowQueryLayout extends DataWindowDataLayout {
                         selectedFieldName,
                         propType,
                         getFieldTypeName,
+                        getLocalizedText,
                         handleFieldSelect,
                         handleSetArgumentsClick,
                         handleApplyClick,
