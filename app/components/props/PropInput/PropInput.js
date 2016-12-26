@@ -23,6 +23,7 @@ const defaultProps = {
 };
 
 export class PropInput extends PropBase {
+  //noinspection JSUnusedGlobalSymbols
   /**
    *
    * @return {ReactElement}
@@ -30,12 +31,14 @@ export class PropInput extends PropBase {
    * @private
    */
   _renderContent() {
+    if (this.props.checkable && !this.props.checked) return null;
+    
     //noinspection JSValidateTypes
     return (
       <Input
+        stateless
         value={this.props.value}
         disabled={this.props.disabled}
-        stateless
         onChange={this.props.onChange}
       />
     );

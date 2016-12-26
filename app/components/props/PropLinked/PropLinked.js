@@ -21,6 +21,7 @@ const defaultProps = {
 };
 
 export class PropLinked extends PropBase {
+  //noinspection JSUnusedGlobalSymbols
   /**
    *
    * @return {ReactElement}
@@ -28,6 +29,8 @@ export class PropLinked extends PropBase {
    * @private
    */
   _renderContent() {
+    if (this.props.checkable && !this.props.checked) return null;
+    
     //noinspection JSValidateTypes
     return (
       <Tag

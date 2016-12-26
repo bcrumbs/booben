@@ -6,35 +6,23 @@
 
 //noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
+import { ToggleButton } from '@reactackle/reactackle';
 import { PropBase } from '../PropBase/PropBase';
-import { PropAction } from '../PropBase/PropAction/PropAction';
 import { noop } from '../../../utils/misc';
 
 const propTypes = {
-  expanded: PropTypes.bool,
+  value: PropTypes.bool,
+  disabled: PropTypes.bool,
   onToggle: PropTypes.func,
 };
 
 const defaultProps = {
-  expanded: false,
+  value: false,
+  disabled: false,
   onToggle: noop,
 };
 
 export class PropExpandable extends PropBase {
-  constructor(...args) {
-    super(...args);
-  
-    this._handleExpandAction = this._handleExpandAction.bind(this);
-  }
-  
-  /**
-   *
-   * @private
-   */
-  _handleExpandAction() {
-    this.props.onToggle({ expanded: !this.props.expanded });
-  }
-  
   //noinspection JSUnusedGlobalSymbols
   /**
    *
@@ -47,37 +35,14 @@ export class PropExpandable extends PropBase {
     
     //noinspection JSValidateTypes
     return [
-      <PropAction
-        key="collapse"
-        id="collapse"
-        icon="chevron-right"
-        onPress={this._handleExpandAction}
-      />,
+      <div key="toggle" className="prop_action prop_action-toggle">
+        <ToggleButton
+          checked={this.props.value}
+          disabled={this.props.disabled}
+          onCheck={this.props.onToggle}
+        />
+      </div>,
     ];
-  }
-  
-  //noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @return {string[]}
-   * @override
-   * @private
-   */
-  _getAdditionalClassNames() {
-    return this.props.expanded
-      ? ['has-sublevels', 'sublevel-is-visible']
-      : ['has-sublevels'];
-  }
-  
-  //noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @return {string[]}
-   * @override
-   * @private
-   */
-  _getAdditionalWrapperClassNames() {
-    return this.props.expanded ? ['sublevel-is-visible'] : [];
   }
   
   //noinspection JSUnusedGlobalSymbols

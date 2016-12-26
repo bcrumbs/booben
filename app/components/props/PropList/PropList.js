@@ -29,20 +29,22 @@ const defaultProps = {
 };
 
 export class PropList extends PropBase {
+  //noinspection JSUnusedGlobalSymbols
   /**
-   *
    * @return {ReactElement}
    * @override
    * @private
    */
   _renderContent() {
+    if (this.props.checkable && !this.props.checked) return null;
+    
     //noinspection JSValidateTypes
     return (
       <SelectBox
+        stateless
         data={this.props.options}
         value={this.props.value}
         disabled={this.props.disabled}
-        stateless
         onSelect={this.props.onSelect}
       />
     );

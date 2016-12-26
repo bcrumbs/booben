@@ -49,13 +49,6 @@ const defaultProps = {
   onDelete: noop,
 };
 
-/**
- * @typedef {Object} PropActionObject
- * @property {string} id
- * @property {string} icon
- * @property {Function} handler
- */
-
 export class PropBase extends PureComponent {
   /**
    *
@@ -77,10 +70,10 @@ export class PropBase extends PureComponent {
 
   /**
    *
-   * @return {PropActionObject[]}
+   * @return {ReactElement[]}
    * @private
    */
-  _getAdditionalActions() {
+  _renderAdditionalActions() {
     return [];
   }
 
@@ -97,6 +90,9 @@ export class PropBase extends PureComponent {
   render() {
     let className = 'prop-item',
       wrapperClassName = 'prop-item-wrapper';
+  
+    className += ` ${this._getAdditionalClassNames().join(' ')}`;
+    wrapperClassName += ` ${this._getAdditionalWrapperClassNames().join(' ')}`;
 
     let label = null;
     if (this.props.label) {
@@ -148,6 +144,15 @@ export class PropBase extends PureComponent {
       wrapperClassName += ' has-image';
     }
   
+    let message = null;
+    if (this.props.message) {
+      message = (
+        <div className="prop-item_message-wrapper">
+          {this.props.message}
+        </div>
+      );
+    }
+  
     let actionsLeft = null;
     if (this.props.deletable) {
       actionsLeft = (
@@ -160,12 +165,27 @@ export class PropBase extends PureComponent {
         </div>
       );
     }
+  
+    const actionItemsRight = this._renderAdditionalActions();
+  
+    if (this.props.linkable) {
+      const linkAction = (
+        <PropAction
+          key="linking"
+          id="linking"
+          icon="link"
+          onPress={this.props.onLink}
+        />
+      );
     
-    let message = null;
-    if (this.props.message) {
-      message = (
-        <div className="prop-item_message-wrapper">
-          {this.props.message}
+      actionItemsRight.push(linkAction);
+    }
+  
+    let actionsRight = null;
+    if (actionItemsRight.length) {
+      actionsRight = (
+        <div className="prop_actions prop_actions-right">
+          {actionItemsRight}
         </div>
       );
     }
@@ -183,39 +203,6 @@ export class PropBase extends PureComponent {
     }
     
     const content = this._renderContent();
-    className += ` ${this._getAdditionalClassNames().join(' ')}`;
-    wrapperClassName += ` ${this._getAdditionalWrapperClassNames().join(' ')}`;
-    
-    const actionItemsRight = this._getAdditionalActions().map(actionData => (
-      <PropAction
-        key={actionData.id}
-        id={actionData.id}
-        icon={actionData.icon}
-        onPress={actionData.handler}
-      />
-    ));
-    
-    if (this.props.linkable) {
-      const linkAction = (
-        <PropAction
-          key="linking"
-          id="linking"
-          icon="link"
-          onPress={this.props.onLink}
-        />
-      );
-      
-      actionItemsRight.push(linkAction);
-    }
-    
-    let actionsRight = null;
-    if (actionItemsRight.length) {
-      actionsRight = (
-        <div className="prop_actions prop_actions-right">
-          {actionItemsRight}
-        </div>
-      );
-    }
     
     return (
       <div className={className}>
