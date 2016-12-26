@@ -7,6 +7,7 @@
 import { PropBase } from '../PropBase/PropBase';
 
 export class PropEmpty extends PropBase {
+  //noinspection JSUnusedGlobalSymbols
   /**
    *
    * @return {null}

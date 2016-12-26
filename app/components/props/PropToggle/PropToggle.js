@@ -22,7 +22,7 @@ const defaultProps = {
   onToggle: noop,
 };
 
-export class PropExpandable extends PropBase {
+export class PropToggle extends PropBase {
   //noinspection JSUnusedGlobalSymbols
   /**
    *
@@ -57,6 +57,6 @@ export class PropExpandable extends PropBase {
   }
 }
 
-PropExpandable.propTypes = { ...PropBase.propTypes, ...propTypes };
-PropExpandable.defaultProps = { ...PropBase.defaultProps, ...defaultProps };
-PropExpandable.displayName = 'PropExpandable';
+PropToggle.propTypes = { ...PropBase.propTypes, ...propTypes };
+PropToggle.defaultProps = { ...PropBase.defaultProps, ...defaultProps };
+PropToggle.displayName = 'PropToggle';

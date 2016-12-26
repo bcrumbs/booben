@@ -82,7 +82,8 @@ const getTypeByPath = (propType, path) => path.reduce(getNestedType, propType);
  * @param {string|number} index
  * @return {*}
  */
-export const getNestedValue = (value, index) => value.value ? value.value[index] : void 0;
+export const getNestedValue =
+  (value, index) => value.value ? value.value[index] : void 0;
 
 /**
  *
@@ -90,7 +91,8 @@ export const getNestedValue = (value, index) => value.value ? value.value[index]
  * @param {(string|number)[]} path
  * @return {*}
  */
-export const getValueByPath = (value, path) => path.reduce(getNestedValue, value);
+export const getValueByPath =
+  (value, path) => path.reduce(getNestedValue, value);
 
 export class PropsItem extends PureComponent {
   constructor(props) {
@@ -101,13 +103,20 @@ export class PropsItem extends PureComponent {
       currentPath: [],
     };
 
-    this._handleOpen = this._handleOpen.bind(this);
-    this._handleDelete = this._handleDelete.bind(this);
-    this._handleChange = this._handleChange.bind(this);
-    this._handleSetComponent = this._handleSetComponent.bind(this);
-    this._handleValueNullSwitch = this._handleValueNullSwitch.bind(this);
-    this._handleAddButtonPress = this._handleAddButtonPress.bind(this);
-    this._handleBreadcrumbsItemSelect = this._handleBreadcrumbsItemSelect.bind(this);
+    this._handleOpen =
+      this._handleOpen.bind(this);
+    this._handleDelete =
+      this._handleDelete.bind(this);
+    this._handleChange =
+      this._handleChange.bind(this);
+    this._handleSetComponent =
+      this._handleSetComponent.bind(this);
+    this._handleValueNullSwitch =
+      this._handleValueNullSwitch.bind(this);
+    this._handleAddButtonPress =
+      this._handleAddButtonPress.bind(this);
+    this._handleBreadcrumbsItemSelect =
+      this._handleBreadcrumbsItemSelect.bind(this);
   }
 
     /**
@@ -419,7 +428,10 @@ export class PropsItem extends PureComponent {
     if (this.props.propType.view)
       className += ` prop-type-${this.props.propType.view}`;
 
-    if (this.props.propType.view === 'array' || this.props.propType.view === 'object')
+    if (
+      this.props.propType.view === 'array' ||
+      this.props.propType.view === 'object'
+    )
       className += ' is-flat-array';
 
     if (this.state.isOpen) {
@@ -674,7 +686,8 @@ const propItemTypeShape = {
 };
 
 // Fields for 'shape' view
-propItemTypeShape.fields = PropTypes.objectOf(PropTypes.shape(propItemTypeShape));
+propItemTypeShape.fields =
+  PropTypes.objectOf(PropTypes.shape(propItemTypeShape));
 
 // Type for 'array' and 'object' views
 propItemTypeShape.ofType = PropTypes.shape(propItemTypeShape);
@@ -699,7 +712,6 @@ PropsItem.propTypes = {
   onDeleteValue: PropTypes.func,
   onLink: PropTypes.func,
   onNullSwitch: PropTypes.func,
-  onLinkNested: PropTypes.func,
 
   _secondary: PropTypes.bool,
   _deletable: PropTypes.bool,
@@ -724,7 +736,6 @@ PropsItem.defaultProps = {
   onDeleteValue: noop,
   onLink: noop,
   onNullSwitch: noop,
-  onLinkNested: noop,
 
   _secondary: false,
   _deletable: false,
