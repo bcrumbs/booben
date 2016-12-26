@@ -15,6 +15,15 @@ export const noop = /* istanbul ignore next */ () => {};
 export const returnNull = /* istanbul ignore next */ () => null;
 
 /**
+ * Returns its first argument
+ *
+ * @template T
+ * @param {T} arg
+ * @return {T}
+ */
+export const returnArg = /* istanbul ignore next */ arg => arg;
+
+/**
  *
  * @param {*} maybeObject
  * @return {boolean}
