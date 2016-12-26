@@ -42,16 +42,15 @@ export const FunctionArgumentPropType = PropTypes.shape({
   type: PropTypes.string.isRequired,
 });
 
-FunctionArgumentsList.propTypes = {
+const propTypes = {
   items: PropTypes.arrayOf(FunctionArgumentPropType),
-  newArgument: PropTypes.bool,
   getLocalizedText: PropTypes.func,
 
   onAdd: PropTypes.func,
   onDelete: PropTypes.func,
 };
 
-FunctionArgumentsList.defaultProps = {
+const defaultProps = {
   items: [],
   newArgument: false,
   getLocalizedText: returnArg,

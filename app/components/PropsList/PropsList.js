@@ -1,7 +1,7 @@
 'use strict';
 
-import './PropsList.scss';
 import React from 'react';
+import './PropsList.scss';
 
 export const PropsList = props => (
   <div className="props-list">
