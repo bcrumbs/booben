@@ -3,7 +3,7 @@
 // noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 
-import { Button } from '@reactackle/reactackle';
+import { Button, Input } from '@reactackle/reactackle';
 import { noop } from '../../../../utils/misc';
 
 export class PropTreeList extends Component {

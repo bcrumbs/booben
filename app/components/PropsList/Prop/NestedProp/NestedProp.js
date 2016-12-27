@@ -1,0 +1,216 @@
+/**
+ * @author Dmitriy Bizyaev
+ */
+
+'use strict';
+
+// noinspection JSUnresolvedVariable
+import React, { PureComponent, PropTypes } from 'react';
+
+import {
+  PropEmpty,
+  PropInput,
+  PropTextarea,
+  PropList,
+  PropToggle,
+  PropComponent,
+  PropExpandable,
+} from '../../../props';
+
+import { ValueShape, PropTypeShape, isComplexView } from '../Prop';
+import { noop } from '../../../../utils/misc';
+
+const propTypes = {
+  propType: PropTypeShape.isRequired,
+  value: ValueShape.isRequired,
+  index: PropTypes.oneOfType([PropTypes.string, PropTypes.number]).isRequired,
+  label: PropTypes.string.isRequired,
+  deletable: PropTypes.bool,
+  disabled: PropTypes.bool,
+  
+  onChange: PropTypes.func,
+  onSetComponent: PropTypes.func,
+  onLink: PropTypes.func,
+  onUnlink: PropTypes.func,
+  onCheck: PropTypes.func,
+  onOpen: PropTypes.func,
+  onDelete: PropTypes.func,
+};
+
+const defaultProps = {
+  deletable: false,
+  disabled: false,
+  
+  onChange: noop,
+  onSetComponent: noop,
+  onLink: noop,
+  onUnlink: noop,
+  onCheck: noop,
+  onOpen: noop,
+  onDelete: noop,
+};
+
+export class NestedProp extends PureComponent {
+  constructor(props) {
+    super(props);
+    
+    this._handleOpen = this._handleOpen.bind(this);
+    this._handleDelete = this._handleDelete.bind(this);
+    this._handleCheck = this._handleCheck.bind(this);
+    this._handleChange = this._handleChange.bind(this);
+    this._handleSetComponent = this._handleSetComponent.bind(this);
+    this._handleLink = this._handleLink.bind(this);
+    this._handleUnlink = this._handleUnlink.bind(this);
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleOpen() {
+    this.props.onOpen({ index: this.props.index });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleDelete() {
+    this.props.onDelete({ index: this.props.index });
+  }
+  
+  /**
+   *
+   * @param {boolean} checked
+   * @private
+   */
+  _handleCheck({ checked }) {
+    this.props.onCheck({ checked, index: this.props.index });
+  }
+  
+  /**
+   *
+   * @param {*} value
+   * @private
+   */
+  _handleChange({ value }) {
+    this.props.onChange({ value, index: this.props.index });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleSetComponent() {
+    this.props.onSetComponent({ index: this.props.index });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleLink() {
+    this.props.onLink({ index: this.props.index });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleUnlink() {
+    this.props.onUnlink({ index: this.props.index });
+  }
+  
+  render() {
+    const {
+      propType,
+      value,
+      disabled,
+      deletable,
+      label,
+    } = this.props;
+    
+    const commonProps = {
+      deletable,
+      label,
+      secondaryLabel: propType.secondaryLabel,
+      image: propType.image,
+      tooltip: propType.tooltip,
+      message: value.message,
+      linkable: !!propType.linkable,
+      linked: !!value.linked,
+      linkedWith: value.linkedWith || '',
+      checkable: !!propType.checkable,
+      checked: !!value.checked,
+      onDelete: this._handleDelete,
+      onCheck: this._handleCheck,
+      onLink: this._handleLink,
+      onUnlink: this._handleUnlink,
+    };
+    
+    if (propType.view === 'input') {
+      return (
+        <PropInput
+          {...commonProps}
+          value={value.value}
+          disabled={disabled}
+          onChange={this._handleChange}
+        />
+      );
+    } else if (propType.view === 'textarea') {
+      return (
+        <PropTextarea
+          {...commonProps}
+          value={value.value}
+          disabled={disabled}
+          onChange={this._handleChange}
+        />
+      );
+    } else if (propType.view === 'toggle') {
+      return (
+        <PropToggle
+          {...commonProps}
+          value={value.value}
+          disabled={disabled}
+          onChange={this._handleChange}
+        />
+      );
+    } else if (propType.view === 'list') {
+      return (
+        <PropList
+          {...commonProps}
+          options={propType.options}
+          value={value.value}
+          disabled={disabled}
+          onChange={this._handleChange}
+        />
+      );
+    } else if (propType.view === 'constructor') {
+      return (
+        <PropComponent
+          {...commonProps}
+          haveComponent={value.value}
+          disabled={disabled}
+          onSetComponent={this._handleSetComponent}
+        />
+      );
+    } else if (propType.view === 'empty') {
+      return (
+        <PropEmpty {...commonProps} />
+      );
+    } else if (isComplexView(propType.view)) {
+      return (
+        <PropExpandable
+          {...commonProps}
+          onToggle={this._handleOpen}
+        />
+      );
+    } else {
+      return null;
+    }
+  }
+}
+
+NestedProp.propTypes = propTypes;
+NestedProp.defaultProps = defaultProps;
+NestedProp.displayName = 'NestedProp';

@@ -5,7 +5,7 @@
 'use strict';
 
 // noinspection JSUnresolvedVariable
-import React, { PureComponent, PropTypes } from 'react';
+import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 
@@ -29,7 +29,9 @@ import {
     ToggleButton,
 } from '@reactackle/reactackle';
 
-import { ComponentsDragArea } from '../containers/ComponentsDragArea/ComponentsDragArea';
+import {
+  ComponentsDragArea,
+} from '../containers/ComponentsDragArea/ComponentsDragArea';
 
 import ProjectRecord from '../models/Project';
 
@@ -40,25 +42,32 @@ import {
 
 import { getLocalizedTextFromState } from '../utils';
 
-const TopMenuLink = props =>
-  <Link to={props.href} className={props.className}>
-    {props.children}
-  </Link>;
+/* eslint-disable react/prop-types */
+const TopMenuLink = ({ href, className, children }) => (
+  <Link to={href} className={className}>
+    {children}
+  </Link>
+);
+/* eslint-enable react/prop-types */
 
 const toggleFullscreen = () => {
-  if (!document.fullscreenElement &&
-        !document.mozFullScreenElement &&
-        !document.webkitFullscreenElement
-    ) {
-    if (document.documentElement.requestFullscreen)
+  if (
+    !document.fullscreenElement &&
+    !document.mozFullScreenElement &&
+    !document.webkitFullscreenElement
+  ) {
+    if (document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen();
-
-    else if (document.documentElement.mozRequestFullScreen)
+    } else if (document.documentElement.mozRequestFullScreen) {
       document.documentElement.mozRequestFullScreen();
-
-    else if (document.documentElement.webkitRequestFullscreen)
-      document.documentElement.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-  } else if (document.cancelFullScreen) { document.cancelFullScreen(); } else if (document.mozCancelFullScreen) {
+    } else if (document.documentElement.webkitRequestFullscreen) {
+      document.documentElement.webkitRequestFullscreen(
+        Element.ALLOW_KEYBOARD_INPUT,
+      );
+    }
+  } else if (document.cancelFullScreen) {
+    document.cancelFullScreen();
+  } else if (document.mozCancelFullScreen) {
     document.mozCancelFullScreen();
   } else if (document.webkitCancelFullScreen) {
     document.webkitCancelFullScreen();
@@ -81,7 +90,7 @@ const RootRoute = props => {
         linkComponent={TopMenuLink}
         isActive={href === currentPath}
       />,
-        );
+    );
 
     if (route.haveIndex) {
       const indexHref = `/${props.projectName}/design/${route.id}/index`;
@@ -94,11 +103,13 @@ const RootRoute = props => {
           linkComponent={TopMenuLink}
           isActive={indexHref === currentPath}
         />,
-            );
+      );
     }
   });
 
-  const title = getLocalizedText('projectTitle', { projectName: props.projectName });
+  const title = getLocalizedText('projectTitle', {
+    projectName: props.projectName,
+  });
 
   return (
     <App fixed>
@@ -183,7 +194,7 @@ const RootRoute = props => {
                         checked={props.showComponentTitles}
                         onCheck={props.onToggleComponentTitles}
                       />
-                                        }
+                    }
                   />
 
                   <FooterMenuItem
@@ -193,7 +204,7 @@ const RootRoute = props => {
                         checked={props.showContentPlaceholders}
                         onCheck={props.onToggleContentPlaceholders}
                       />
-                                        }
+                    }
                   />
 
                   <FooterMenuItem
@@ -213,14 +224,15 @@ const RootRoute = props => {
 };
 
 RootRoute.propTypes = {
-  projectName: PropTypes.string,
-  project: PropTypes.instanceOf(ProjectRecord),
-  showContentPlaceholders: PropTypes.bool,
-  showComponentTitles: PropTypes.bool,
-  getLocalizedText: PropTypes.func,
+  location: PropTypes.object.isRequired,
+  projectName: PropTypes.string.isRequired,
+  project: PropTypes.instanceOf(ProjectRecord).isRequired,
+  showContentPlaceholders: PropTypes.bool.isRequired,
+  showComponentTitles: PropTypes.bool.isRequired,
+  getLocalizedText: PropTypes.func.isRequired,
 
-  onToggleContentPlaceholders: PropTypes.func,
-  onToggleComponentTitles: PropTypes.func,
+  onToggleContentPlaceholders: PropTypes.func.isRequired,
+  onToggleComponentTitles: PropTypes.func.isRequired,
 };
 
 RootRoute.displayName = 'RootRoute';
@@ -235,10 +247,10 @@ const mapStateToProps = ({ project, app }) => ({
 
 const mapDispatchToProps = dispatch => ({
   onToggleContentPlaceholders: enable =>
-        void dispatch(toggleContentPlaceholders(enable)),
+    void dispatch(toggleContentPlaceholders(enable)),
 
   onToggleComponentTitles: enable =>
-        void dispatch(toggleComponentTitles(enable)),
+    void dispatch(toggleComponentTitles(enable)),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(RootRoute);

@@ -13,16 +13,25 @@ import { noop } from '../../../utils/misc';
 const propTypes = {
   value: PropTypes.bool,
   disabled: PropTypes.bool,
-  onToggle: PropTypes.func,
+  onChange: PropTypes.func,
 };
 
 const defaultProps = {
   value: false,
   disabled: false,
-  onToggle: noop,
+  onChange: noop,
 };
 
 export class PropToggle extends PropBase {
+  constructor(props) {
+    super(props);
+    this._handleChange = this._handleChange.bind(this);
+  }
+  
+  _handleChange(newValue) {
+    this.props.onChange({ value: newValue });
+  }
+  
   //noinspection JSUnusedGlobalSymbols
   /**
    *
@@ -39,7 +48,7 @@ export class PropToggle extends PropBase {
         <ToggleButton
           checked={this.props.value}
           disabled={this.props.disabled}
-          onCheck={this.props.onToggle}
+          onCheck={this._handleChange}
         />
       </div>,
     ];

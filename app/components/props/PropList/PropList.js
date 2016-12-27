@@ -18,17 +18,26 @@ const propTypes = {
     disabled: PropTypes.bool,
   })),
   disabled: PropTypes.bool,
-  onSelect: PropTypes.func,
+  onChange: PropTypes.func,
 };
 
 const defaultProps = {
   value: null,
   options: [],
   disabled: false,
-  onSelect: noop,
+  onChange: noop,
 };
 
 export class PropList extends PropBase {
+  constructor(props) {
+    super(props);
+    this._handleChange = this._handleChange.bind(this);
+  }
+  
+  _handleChange(newValue) {
+    this.props.onChange({ value: newValue });
+  }
+  
   //noinspection JSUnusedGlobalSymbols
   /**
    * @return {ReactElement}
@@ -45,7 +54,7 @@ export class PropList extends PropBase {
         data={this.props.options}
         value={this.props.value}
         disabled={this.props.disabled}
-        onSelect={this.props.onSelect}
+        onSelect={this._handleChange}
       />
     );
   }

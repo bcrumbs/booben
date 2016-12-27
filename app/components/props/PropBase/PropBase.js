@@ -6,7 +6,7 @@
 
 // noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
-import { Icon, Checkbox } from '@reactackle/reactackle';
+import { Icon, Checkbox, Tag } from '@reactackle/reactackle';
 import { PropLabel } from './PropLabel/PropLabel';
 import { PropImage } from './PropImage/PropImage';
 import { PropAction } from './PropAction/PropAction';
@@ -19,6 +19,8 @@ const propTypes = {
   tooltip: PropTypes.string,
   message: PropTypes.string,
   linkable: PropTypes.bool,
+  linked: PropTypes.bool,
+  linkedWith: PropTypes.string,
   required: PropTypes.bool,
   requirementFulfilled: PropTypes.bool,
   checkable: PropTypes.bool,
@@ -26,6 +28,7 @@ const propTypes = {
   deletable: PropTypes.bool,
 
   onLink: PropTypes.func,
+  onUnlink: PropTypes.func,
   onCheck: PropTypes.func,
   onDelete: PropTypes.func,
 };
@@ -37,19 +40,26 @@ const defaultProps = {
   tooltip: '',
   message: '',
   linkable: false,
+  linked: false,
+  linkedWith: '',
   required: false,
   requirementFulfilled: false,
-  disabled: false,
   checkable: false,
   checked: false,
   deletable: false,
 
   onLink: noop,
+  onUnlink: noop,
   onCheck: noop,
   onDelete: noop,
 };
 
 export class PropBase extends PureComponent {
+  constructor(props) {
+    super(props);
+    this._handleCheck = this._handleCheck.bind(this);
+  }
+  
   /**
    *
    * @return {string[]}
@@ -85,6 +95,32 @@ export class PropBase extends PureComponent {
    */
   _renderContent() {
     throw new Error('Do not use PropBase class directly.');
+  }
+  
+  /**
+   *
+   * @return {ReactElement}
+   * @private
+   */
+  _renderLinked() {
+    //noinspection JSValidateTypes
+    return (
+      <Tag
+        text={this.props.linkedWith}
+        bounded
+        removable
+        onRemove={this.props.onUnlink}
+      />
+    );
+  }
+  
+  /**
+   *
+   * @param {boolean} checked
+   * @private
+   */
+  _handleCheck(checked) {
+    this.props.onCheck({ checked });
   }
 
   render() {
@@ -196,13 +232,15 @@ export class PropBase extends PureComponent {
         <div className="prop_subcomponent prop_subcomponent-left">
           <Checkbox
             checked={this.props.checked}
-            onCheck={this.props.onCheck}
+            onCheck={this._handleCheck}
           />
         </div>
       );
     }
     
-    const content = this._renderContent();
+    const content = this.props.linked
+      ? this._renderLinked()
+      : this._renderContent();
     
     return (
       <div className={className}>

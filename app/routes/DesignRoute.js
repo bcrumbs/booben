@@ -9,12 +9,37 @@ import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
+import { List } from 'immutable';
+
+import {
+  Dialog,
+  Header,
+  HeaderRegion,
+  HeaderTitle,
+  Panel,
+  PanelContent,
+  Button,
+  Breadcrumbs,
+} from '@reactackle/reactackle';
 
 import { Desktop } from '../containers/Desktop/Desktop';
-import { ComponentsLibrary } from '../containers/ComponentsLibrary/ComponentsLibrary';
-import { ComponentsTreeView } from '../containers/ComponentsTreeView/ComponentsTreeView';
-import { ComponentPropsEditor } from '../containers/ComponentPropsEditor/ComponentPropsEditor';
-import { ComponentRegionsEditor } from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
+
+import {
+  ComponentsLibrary,
+} from '../containers/ComponentsLibrary/ComponentsLibrary';
+
+import {
+  ComponentsTreeView,
+} from '../containers/ComponentsTreeView/ComponentsTreeView';
+
+import {
+  ComponentPropsEditor,
+} from '../containers/ComponentPropsEditor/ComponentPropsEditor';
+
+import {
+  ComponentRegionsEditor,
+} from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
+
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
 import { DataWindow } from '../containers/DataWindow/DataWindow';
 
@@ -27,20 +52,8 @@ import {
     ConstructionPane,
 } from '../components/ConstructionPane/ConstructionPane';
 
-import {
-    Dialog,
-    Header,
-    HeaderRegion,
-    HeaderTitle,
-    Panel,
-    PanelContent,
-    Button,
-    Breadcrumbs,
-} from '@reactackle/reactackle';
-
 import store from '../store';
 
-import ProjectRecord from '../models/Project';
 import ProjectComponentRecord from '../models/ProjectComponent';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
@@ -74,8 +87,6 @@ import { getLocalizedTextFromState } from '../utils';
 // noinspection JSUnresolvedVariable
 import defaultComponentLayoutIcon from '../img/layout_default.svg';
 
-import { List } from 'immutable';
-
 export const TOOL_ID_LIBRARY = 'componentsLibrary';
 export const TOOL_ID_COMPONENTS_TREE = 'componentsTree';
 export const TOOL_ID_PROPS_EDITOR = 'componentPropsEditor';
@@ -95,13 +106,13 @@ const containerStyleSelector = createSelector(
 
     meta => {
       const combinedStyle = Object.keys(meta).reduce(
-            (acc, cur) => Object.assign(acc, meta[cur].containerStyle || {}),
-            {},
-        );
+        (acc, cur) => Object.assign(acc, meta[cur].containerStyle || {}),
+        {},
+      );
 
       return Object.keys(combinedStyle)
-            .map(prop => `${prop}:${combinedStyle[prop]}`)
-            .join(';');
+        .map(prop => `${prop}:${combinedStyle[prop]}`)
+        .join(';');
     },
 );
 
@@ -114,9 +125,9 @@ const nestedConstructorBreadcrumbsSelector = createSelector(
 
     (project, currentRouteId, nestedConstructors, meta, language) => {
       const returnEmpty =
-            !project ||
-            currentRouteId === -1 ||
-            nestedConstructors.isEmpty();
+        !project ||
+        currentRouteId === -1 ||
+        nestedConstructors.isEmpty();
 
       if (returnEmpty) return List();
 
@@ -137,11 +148,13 @@ const nestedConstructorBreadcrumbsSelector = createSelector(
     },
 );
 
+/* eslint-disable react/prop-types */
 const NestedConstructorsBreadcrumbsItem = props => (
   <span className={props.className}>
     {props.children}
   </span>
 );
+/* eslint-enable react/prop-types */
 
 class DesignRoute extends PureComponent {
   constructor(props) {
@@ -152,28 +165,32 @@ class DesignRoute extends PureComponent {
     };
 
     this._handleToolTitleChange =
-            this._handleToolTitleChange.bind(this);
+      this._handleToolTitleChange.bind(this);
     this._handleDeleteComponentButtonPress =
-            this._handleDeleteComponentButtonPress.bind(this);
+      this._handleDeleteComponentButtonPress.bind(this);
     this._handleDeleteComponentConfirm =
-            this._handleDeleteComponentConfirm.bind(this);
+      this._handleDeleteComponentConfirm.bind(this);
     this._handleDeleteComponentCancel =
-            this._handleDeleteComponentCancel.bind(this);
+      this._handleDeleteComponentCancel.bind(this);
     this._handleConfirmDeleteComponentDialogClose =
-            this._handleConfirmDeleteComponentDialogClose.bind(this);
+      this._handleConfirmDeleteComponentDialogClose.bind(this);
     this._handleLinkPropDialogCancel =
-            this._handleLinkPropDialogCancel.bind(this);
+      this._handleLinkPropDialogCancel.bind(this);
   }
 
-    /**
-     *
-     * @param {Object} tool
-     * @param {string} newTitle
-     * @private
-     */
+  /**
+   *
+   * @param {Object} tool
+   * @param {string} newTitle
+   * @private
+   */
   _handleToolTitleChange(tool, newTitle) {
-    if (tool.id === TOOL_ID_PROPS_EDITOR)
-      this.props.onRenameComponent(this.props.firstSelectedComponentId, newTitle);
+    if (tool.id === TOOL_ID_PROPS_EDITOR) {
+      this.props.onRenameComponent(
+        this.props.firstSelectedComponentId,
+        newTitle,
+      );
+    }
   }
 
     /**
@@ -266,16 +283,16 @@ class DesignRoute extends PureComponent {
 
     if (this.props.singleComponentSelected) {
       const selectedComponent = this.props.components.get(
-                this.props.firstSelectedComponentId,
-            );
+        this.props.firstSelectedComponentId,
+      );
 
       const parentComponent = selectedComponent.parentId > -1
-                ? this.props.components.get(selectedComponent.parentId)
-                : null;
+        ? this.props.components.get(selectedComponent.parentId)
+        : null;
 
       const isRegion = parentComponent
-                ? isCompositeComponent(parentComponent.name, this.props.meta)
-                : false;
+        ? isCompositeComponent(parentComponent.name, this.props.meta)
+        : false;
 
       title = selectedComponent.title;
       subtitle = selectedComponent.name;
@@ -283,26 +300,25 @@ class DesignRoute extends PureComponent {
       if (!isRegion) {
         if (!selectedComponent.isWrapper) {
           mainButtons = mainButtons.push(
-                        new ButtonRecord({
-                          text: getLocalizedText('delete'),
-                          onPress: this._handleDeleteComponentButtonPress,
-                        }),
-                    );
+            new ButtonRecord({
+              text: getLocalizedText('delete'),
+              onPress: this._handleDeleteComponentButtonPress,
+            }),
+          );
         }
 
         if (isCompositeComponent(selectedComponent.name, this.props.meta)) {
           sections = sections.push(
-                        new ToolSectionRecord({
-                          name: 'Regions',
-                          component: ComponentRegionsEditor,
-                        }),
-                    );
+            new ToolSectionRecord({
+              name: 'Regions',
+              component: ComponentRegionsEditor,
+            }),
+          );
         }
       }
     } else {
       title = getLocalizedText('componentConfiguration');
     }
-
 
     const propsEditorTool = new ToolRecord({
       id: TOOL_ID_PROPS_EDITOR,
@@ -323,25 +339,26 @@ class DesignRoute extends PureComponent {
       const draggedComponent = this.props.draggedComponents.get(0);
 
       const draggedComponentMeta =
-                getComponentMeta(draggedComponent.name, this.props.meta);
+        getComponentMeta(draggedComponent.name, this.props.meta);
 
       const items = draggedComponentMeta.layouts.map((layout, idx) => {
         const icon = layout.icon || defaultComponentLayoutIcon;
 
         const title = getString(
-                    draggedComponentMeta,
-                    layout.textKey,
-                    this.props.language,
-                );
+          draggedComponentMeta,
+          layout.textKey,
+          this.props.language,
+        );
 
         const subtitle = getString(
-                    draggedComponentMeta,
-                    layout.descriptionTextKey,
-                    this.props.language,
-                );
+          draggedComponentMeta,
+          layout.descriptionTextKey,
+          this.props.language,
+        );
 
         return (
           <ComponentLayoutSelectionItem
+            key={String(idx)}
             image={icon}
             title={title}
             subtitle={subtitle}
@@ -351,10 +368,8 @@ class DesignRoute extends PureComponent {
       });
 
       layoutSelectionDialogContent = (
-        <ComponentLayoutSelection>
-          {items}
-        </ComponentLayoutSelection>
-            );
+        <ComponentLayoutSelection>{items}</ComponentLayoutSelection>
+      );
     }
 
     const confirmDeleteDialogButtons = [{
@@ -372,15 +387,15 @@ class DesignRoute extends PureComponent {
         url={src}
         containerStyle={this.props.previewContainerStyle}
       />
-        );
+    );
 
-        // TODO: Prevent re-creation of PreviewIFrame on haveNestedConstructor change
+    // TODO: Prevent re-creation of PreviewIFrame on haveNestedConstructor change
     let content;
     if (this.props.haveNestedConstructor) {
-            // Render additional UI for nested constructor
+      // Render additional UI for nested constructor
       const breadcrumbsItems = this.props.nestedConstructorBreadcrumbs
-                .toArray()
-                .map(item => ({ title: item }));
+        .toArray()
+        .map(item => ({ title: item }));
 
       content = (
         <Panel headerFixed maxHeight="initial">
@@ -416,7 +431,7 @@ class DesignRoute extends PureComponent {
         </Panel>
             );
     } else {
-            // Render main constructor only
+      // Render main constructor only
       content = previewIFrame;
     }
 
@@ -458,7 +473,6 @@ class DesignRoute extends PureComponent {
 }
 
 DesignRoute.propTypes = {
-  project: PropTypes.instanceOf(ProjectRecord),
   components: ImmutablePropTypes.mapOf(
         PropTypes.instanceOf(ProjectComponentRecord),
         PropTypes.number,
@@ -487,7 +501,6 @@ DesignRoute.propTypes = {
 };
 
 const mapStateToProps = state => ({
-  project: state.project.data,
   components: currentComponentsSelector(state),
   meta: state.project.meta,
   previewContainerStyle: containerStyleSelector(state),

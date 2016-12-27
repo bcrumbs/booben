@@ -1,3 +1,7 @@
+/**
+ * @author Ekaterina Marova
+ */
+
 'use strict';
 
 import React from 'react';

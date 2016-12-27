@@ -78,6 +78,6 @@ window.addEventListener('DOMContentLoaded', () => {
       </Router>
     </Provider>,
 
-        document.getElementById('container'),
-    );
+    document.getElementById('container'),
+  );
 });

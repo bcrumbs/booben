@@ -207,15 +207,12 @@ export class PropsItem extends PureComponent {
      */
   _handleAddButtonPress(name) {
     const currentType = getTypeByPath(
-            this.props.propType,
-            this.state.currentPath,
-        );
+      this.props.propType,
+      this.state.currentPath,
+    );
 
-    if (currentType.view === 'array')
-      this._handleAddValue(-1);
-
-    else if (currentType.view === 'object')
-      this._handleAddValue(name);
+    if (currentType.view === 'array') this._handleAddValue(-1);
+    else if (currentType.view === 'object') this._handleAddValue(name);
   }
 
     /**
@@ -226,9 +223,9 @@ export class PropsItem extends PureComponent {
      */
   _handleNestedValueChange(index, newValue) {
     const currentType = getTypeByPath(
-            this.props.propType,
-            [].concat(this.state.currentPath, index),
-        );
+      this.props.propType,
+      [].concat(this.state.currentPath, index),
+    );
 
     if (typeof currentType.transformValue === 'function')
       newValue = currentType.transformValue(newValue);
@@ -289,14 +286,14 @@ export class PropsItem extends PureComponent {
     const breadcrumbs = this._renderBreadcrumbs();
 
     const currentType = getTypeByPath(
-            this.props.propType,
-            this.state.currentPath,
-        );
+      this.props.propType,
+      this.state.currentPath,
+    );
 
     const currentValue = getValueByPath(
-            this.props.value,
-            this.state.currentPath,
-        );
+      this.props.value,
+      this.state.currentPath,
+    );
 
     if (!currentValue || currentValue.value === null) return null;
 
@@ -410,8 +407,8 @@ export class PropsItem extends PureComponent {
       wrapperClassName += ' is-required';
 
       const markIcon = this.props.propType.requirementFullfilled
-                ? <Icon name="check" />
-                : <Icon name="exclamation" />;
+        ? <Icon name="check" />
+        : <Icon name="exclamation" />;
 
       requireMark = (
         <div className="prop-item_require-mark">
@@ -419,7 +416,7 @@ export class PropsItem extends PureComponent {
             {markIcon}
           </div>
         </div>
-            );
+      );
     }
 
     if (this.props.propType.requirementFullfilled)
@@ -668,7 +665,7 @@ const propItemTypeShape = {
   tooltip: PropTypes.string,
   linkable: PropTypes.bool,
   itemRequired: PropTypes.bool,
-  requirementFullfilled: PropTypes.bool,
+  requirementFulfilled: PropTypes.bool,
   transformValue: PropTypes.func,
 
     // For 'object' and 'array' views

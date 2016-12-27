@@ -1,42 +1,35 @@
+// TODO: Figure out WTF is this
+
 'use strict';
 
 import React from 'react';
+
 import {
     Button,
     Header,
     HeaderRegion,
     HeaderTitle,
-    Breadcrumbs,
 } from '@reactackle/reactackle';
 
 import './HeaderRoute.scss';
 
-const breadcrumbsItemsList = [
-  {
-    title: 'ParentComponent',
-  },
-  {
-    title: 'SomeChildComponent',
-    isActive: true,
-  },
-];
-
 /*
-    If structure's more than 1 level deep, place Breadcrumbs into HeaderTitle
-    Ex:
-     <HeaderTitle>
-        <Breadcrumbs items={breadcrumbsItemsList} />
-     </HeaderTitle>
+  If structure's more than 1 level deep, place Breadcrumbs into HeaderTitle
+  Ex:
+   <HeaderTitle>
+      <Breadcrumbs items={breadcrumbsItemsList} />
+   </HeaderTitle>
 */
 
 export const HeaderRoute = props => {
   let actions = null;
   if (props.actions) {
-    actions =
-            (<HeaderRegion>
-              <Button text="Cancel" light />
-              <Button text="Save" light />
-            </HeaderRegion>);
+    actions = (
+      <HeaderRegion>
+        <Button text="Cancel" light />
+        <Button text="Save" light />
+      </HeaderRegion>
+    );
   }
 
   return (
@@ -44,14 +37,13 @@ export const HeaderRoute = props => {
       <Header>
         <HeaderRegion spread alignY="center">
           <HeaderTitle>
-            { props.title }
+            {props.title}
           </HeaderTitle>
         </HeaderRegion>
-        { actions }
+        {actions}
       </Header>
     </div>
   );
 };
 
 HeaderRoute.displayName = 'HeaderRoute';
-

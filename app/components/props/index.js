@@ -5,7 +5,6 @@
 'use strict';
 
 export * from './PropEmpty/PropEmpty';
-export * from './PropLinked/PropLinked';
 export * from './PropExpandable/PropExpandable';
 export * from './PropInput/PropInput';
 export * from './PropTextarea/PropTextarea';

@@ -4,16 +4,15 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
-
 import { loadProject } from '../actions/project';
 
 import {
-    NOT_LOADED,
-    LOADING,
-    LOAD_ERROR,
+  NOT_LOADED,
+  LOADING,
+  LOAD_ERROR,
 } from '../constants/loadStates';
 
 class AppRoute extends PureComponent {
@@ -23,25 +22,42 @@ class AppRoute extends PureComponent {
   }
 
   render() {
-    const loadState = this.props.projectLoadState;
+    const {
+      projectLoadState,
+      projectLoadError,
+      children,
+    } = this.props;
 
-        // TODO: Create loading screen
-    if (loadState === LOADING || loadState === NOT_LOADED)
-      return <div>Loading project...</div>;
+    // TODO: Create loading screen
+    if (projectLoadState === LOADING || projectLoadState === NOT_LOADED) {
+      return (
+        <div>
+          Loading project...
+        </div>
+      );
+    }
 
-        // TODO: Create error screen
-    if (loadState === LOAD_ERROR)
-      return <div>Failed to load project: {this.props.projectLoadError.message}</div>;
+    // TODO: Create error screen
+    if (projectLoadState === LOAD_ERROR) {
+      return (
+        <div>
+          Failed to load project: {projectLoadError.message}
+        </div>
+      );
+    }
 
-    return this.props.children;
+    return children;
   }
 }
 
 AppRoute.propTypes = {
-  projectName: PropTypes.string,
-  projectLoadState: PropTypes.number,
-  projectLoadError: PropTypes.object,
-  onProjectRequest: PropTypes.func,
+  params: PropTypes.shape({
+    projectName: PropTypes.string.isRequired,
+  }).isRequired,
+  projectName: PropTypes.string.isRequired,
+  projectLoadState: PropTypes.number.isRequired,
+  projectLoadError: PropTypes.object.isRequired,
+  onProjectRequest: PropTypes.func.isRequired,
 };
 
 AppRoute.displayName = 'AppRoute';
@@ -57,6 +73,6 @@ const mapDispatchToProps = dispatch => ({
 });
 
 export default connect(
-    mapStateToProps,
-    mapDispatchToProps,
+  mapStateToProps,
+  mapDispatchToProps,
 )(AppRoute);
