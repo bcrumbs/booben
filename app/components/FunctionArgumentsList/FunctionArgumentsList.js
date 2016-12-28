@@ -3,7 +3,8 @@
 // noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
 
-import { PropsItem } from '../PropsList/PropsItem/PropsItem';
+import { PropsList } from '../PropsList/PropsList';
+import { PropEmpty } from '../props';
 
 import {
     BlockContentBoxItem,
@@ -11,31 +12,16 @@ import {
 } from '../BlockContent/BlockContent';
 
 import {
-  FunctionArgumentNew
+  FunctionArgumentNew,
 } from './FunctionArgumentNew/FunctionArgumentNew';
 
 import {
-  FunctionAddArgumentButton
+  FunctionAddArgumentButton,
 } from './FunctionAddArgumentButton/FunctionAddArgumentButton';
 
 import './FunctionArgumentsList.scss';
 
 import { returnArg, noop } from '../../utils/misc';
-
-const FunctionArgumentItem = props => (
-  <PropsItem
-    propType={{
-      label: props.label,
-      type: props.type,
-      view: 'empty',
-    }}
-    value={{
-      value: '',
-    }}
-
-    _deletable
-  />
-);
 
 export const FunctionArgumentPropType = PropTypes.shape({
   name: PropTypes.string.isRequired,
@@ -93,17 +79,18 @@ export class FunctionArgumentsList extends Component {
   render() {
     const { items, getLocalizedText } = this.props;
 
-    const list = items.map((item, idx) => (
-      <FunctionArgumentItem
-        key={item.name}
-        label={item.name}
-        type={item.type}
+    const list = items.map(({ name, type }) => (
+      <PropEmpty
+        key={name}
+        label={name}
+        secondaryLabel={type}
+        deletable
       />
     ));
 
     const argumentsAdd = this.state.creatingNewArgument
       ? <FunctionArgumentNew />
-      : <FunctionAddArgumentButton onPress={this._handleAddButtonPress}/>;
+      : <FunctionAddArgumentButton onPress={this._handleAddButtonPress} />;
 
     return (
       <div className="function-arguments_list" >
@@ -113,7 +100,9 @@ export class FunctionArgumentsList extends Component {
 
         <BlockContentBoxItem>
           <div className="function-arguments_list-items" >
-            {list}
+            <PropsList>
+              {list}
+            </PropsList>
           </div>
         </BlockContentBoxItem>
 

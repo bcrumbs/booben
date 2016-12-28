@@ -404,6 +404,7 @@ class DesignRoute extends PureComponent {
               <HeaderTitle>
                 <Breadcrumbs
                   items={breadcrumbsItems}
+                  mode="light"
                   linkComponent={NestedConstructorsBreadcrumbsItem}
                 />
               </HeaderTitle>

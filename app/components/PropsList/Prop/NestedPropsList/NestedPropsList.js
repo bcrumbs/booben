@@ -49,7 +49,7 @@ export class NestedPropsList extends PureComponent {
         name: '',
       });
     } else {
-      this.props.onAdd();
+      this.props.onAdd({});
     }
   }
   

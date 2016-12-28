@@ -17,7 +17,13 @@ import {
   PropExpandable,
 } from '../../../props';
 
-import { ValueShape, PropTypeShape, isComplexView } from '../Prop';
+import {
+  PropViews,
+  ValueShape,
+  PropTypeShape,
+  isComplexView,
+} from '../common';
+
 import { noop } from '../../../../utils/misc';
 
 const propTypes = {
@@ -148,25 +154,37 @@ export class NestedProp extends PureComponent {
       onUnlink: this._handleUnlink,
     };
     
-    if (propType.view === 'input') {
+    if (propType.view === PropViews.INPUT) {
+      const optionalProps = {};
+
+      if (propType.transformValue)
+        optionalProps.transformValue = propType.transformValue;
+
       return (
         <PropInput
           {...commonProps}
+          {...optionalProps}
           value={value.value}
           disabled={disabled}
           onChange={this._handleChange}
         />
       );
-    } else if (propType.view === 'textarea') {
+    } else if (propType.view === PropViews.TEXTAREA) {
+      const optionalProps = {};
+
+      if (propType.transformValue)
+        optionalProps.transformValue = propType.transformValue;
+
       return (
         <PropTextarea
           {...commonProps}
+          {...optionalProps}
           value={value.value}
           disabled={disabled}
           onChange={this._handleChange}
         />
       );
-    } else if (propType.view === 'toggle') {
+    } else if (propType.view === PropViews.TOGGLE) {
       return (
         <PropToggle
           {...commonProps}
@@ -175,7 +193,7 @@ export class NestedProp extends PureComponent {
           onChange={this._handleChange}
         />
       );
-    } else if (propType.view === 'list') {
+    } else if (propType.view === PropViews.LIST) {
       return (
         <PropList
           {...commonProps}
@@ -185,7 +203,7 @@ export class NestedProp extends PureComponent {
           onChange={this._handleChange}
         />
       );
-    } else if (propType.view === 'constructor') {
+    } else if (propType.view === PropViews.COMPONENT) {
       return (
         <PropComponent
           {...commonProps}
@@ -194,7 +212,7 @@ export class NestedProp extends PureComponent {
           onSetComponent={this._handleSetComponent}
         />
       );
-    } else if (propType.view === 'empty') {
+    } else if (propType.view === PropViews.EMPTY) {
       return (
         <PropEmpty {...commonProps} />
       );

@@ -15,4 +15,4 @@ export const PropsList = props => (
 
 PropsList.displayName = 'PropsList';
 
-export * from './PropsItem/PropsItem';
+export * from './Prop/Prop';
