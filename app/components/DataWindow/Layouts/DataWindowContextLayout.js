@@ -30,15 +30,17 @@ export class DataWindowContextLayout extends DataWindowQueryLayout {
             }),
         );
 
+    const stringifiedContext = this.props.context.join(' ');
+
     const queryArgs = args.reduce((acc, currentArg, num) =>
             Object.keys(currentArg).length
             ? {
               ...acc,
               '': {
                 ...acc[''],
-                [this.props.context]:
+                [stringifiedContext]:
                 {
-                  ...acc[this.props.context],
+                  ...acc[stringifiedContext],
                   [queryPath.slice(0, num + 1)
                             .map(({ field }) => field).join(' ')]:
                                 DataWindowQueryLayout
