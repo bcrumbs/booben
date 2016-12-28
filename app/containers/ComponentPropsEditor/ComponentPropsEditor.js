@@ -166,11 +166,12 @@ const transformValue = (componentMeta, propMeta, propValue) => {
   if (!propValue) return { value: null, isLinked: false };
 
   const typedef = resolveTypedef(componentMeta, propMeta),
-    isLinked = isLinkedProp(propValue);
+    linked = isLinkedProp(propValue);
 
   let value = null;
+  let linkedWith = '';
 
-  if (!isLinked) {
+  if (!linked) {
     if (propValue.source === 'static') {
       if (isScalarType(typedef)) {
         value = propValue.sourceData.value;
@@ -195,18 +196,18 @@ const transformValue = (componentMeta, propMeta, propValue) => {
     }
   } else if (propValue.source === 'data') {
     if (propValue.sourceData.queryPath) {
-      value = propValue.sourceData.queryPath
+      linkedWith = propValue.sourceData.queryPath
         .map(step => step.field)
         .toJS()
         .join(' -> ');
     }
   } else if (propValue.source === 'function') {
-    value = propValue.sourceData.function;
+    linkedWith = propValue.sourceData.function;
   } else if (propValue.source === 'static') {
-    value = propValue.sourceData.ownerPropName;
+    linkedWith = propValue.sourceData.ownerPropName;
   }
 
-  return { value, isLinked };
+  return { value, linked, linkedWith };
 };
 
 /**
