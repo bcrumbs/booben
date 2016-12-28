@@ -29,7 +29,7 @@ export const returnArg = /* istanbul ignore next */ arg => arg;
  * @return {boolean}
  */
 export const isObject = maybeObject =>
-    typeof maybeObject === 'object' && maybeObject !== null;
+  typeof maybeObject === 'object' && maybeObject !== null;
 
 /**
  *
@@ -37,7 +37,7 @@ export const isObject = maybeObject =>
  * @param {function(value: *, key: string, object: Object)} fn
  */
 export const objectForEach = (object, fn) =>
-    void Object.keys(object).forEach(key => void fn(object[key], key, object));
+  void Object.keys(object).forEach(key => void fn(object[key], key, object));
 
 /**
  *
@@ -60,7 +60,7 @@ export const objectMap = (object, fn) => {
  * @return {boolean}
  */
 export const objectSome = (object, predicate) =>
-    Object.keys(object).some(key => predicate(object[key], key, object));
+  Object.keys(object).some(key => predicate(object[key], key, object));
 
 /**
  *
@@ -81,14 +81,9 @@ export const objectFilter = (object, predicate) => {
  * @return {*}
  */
 export const clone = value => {
-  if (Array.isArray(value))
-    return value.map(clone);
-
-  else if (isObject(value))
-    return objectMap(value, clone);
-
-  else
-        return value;
+  if (Array.isArray(value)) return value.map(clone);
+  else if (isObject(value)) return objectMap(value, clone);
+  else return value;
 };
 
 /**

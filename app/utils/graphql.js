@@ -79,6 +79,7 @@ const attachFragmentToFragment = (
   } else {
     let fieldSelection;
 
+    /* eslint-disable no-cond-assign */
     while (
       fieldSelection = currentNode.selectionSet
         ? currentNode.selectionSet.selections.find(
@@ -87,6 +88,7 @@ const attachFragmentToFragment = (
         : null
     )
       currentNode = fieldSelection;
+    /* eslint-enable no-cond-assign */
   }
 
   if (!currentNode.selectionSet) {
@@ -241,7 +243,8 @@ const buildGraphQLFragmentForValue = (
     currentType = onType,
     badPath = false;
 
-    // noinspection JSCheckFunctionSignatures
+  /* eslint-disable consistent-return */
+  //noinspection JSCheckFunctionSignatures
   propValue.sourceData.queryPath.forEach((step, idx) => {
     const [fieldName, connectionFieldName] = step.field.split('/'),
       currentTypeDefinition = schema.types[currentType],
@@ -409,6 +412,7 @@ const buildGraphQLFragmentForValue = (
       currentType,
     );
   });
+  /* eslint-enable consistent-return */
 
   if (badPath) return null;
 

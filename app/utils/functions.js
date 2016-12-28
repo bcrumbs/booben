@@ -13,6 +13,6 @@
  */
 export const getFunctionInfo = (functionSource, functionName, project) => {
   if (functionSource === 'project') return project.functions.get(functionName);
-    // TODO: Handle 'builtin' source
+  // TODO: Handle 'builtin' source
   return null;
 };
