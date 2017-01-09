@@ -1,16 +1,17 @@
+'use strict';
+
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 
-import {
-    PropsItem,
-} from '../../../PropsList/PropsList';
+import { Prop } from '../../../PropsList/PropsList';
 
 import {
-    isPrimitiveGraphQLType,
-    FIELD_KINDS,
+  isPrimitiveGraphQLType,
+  FIELD_KINDS,
 } from '../../../../utils/schema';
 
 const DEFAULT_VALUE_NON_NULL_PRIMITIVE
-      = Symbol('DEFAULT_VALUE_NON_NULL_PRIMITIVE');
+  = Symbol('DEFAULT_VALUE_NON_NULL_PRIMITIVE');
 
 
 /**
@@ -24,20 +25,20 @@ const setObjectValueByPath = (object, value, path) => {
     return {
       ...object,
       [path[0]]:
-            path.length === 1
-            ? value
-            : setObjectValueByPath(object[path[0]], value, path.slice(1)),
+        path.length === 1
+          ? value
+          : setObjectValueByPath(object[path[0]], value, path.slice(1)),
 
     };
   } else {
     const newObj = [...object];
     const index = path[0] + 1
-                ? path[0]
-                : newObj.push({}) - 1;
+      ? path[0]
+      : newObj.push({}) - 1;
 
     const currentValue = path.length === 1
-        ? value
-        : setObjectValueByPath(newObj[index], value, path.slice(1));
+      ? value
+      : setObjectValueByPath(newObj[index], value, path.slice(1));
 
     newObj[index] = currentValue;
 
@@ -51,7 +52,7 @@ const setObjectValueByPath = (object, value, path) => {
  * @return {any}
  */
 const getObjectValueByPath = (object, path) =>
-    path.length === 1
+  path.length === 1
     ? object[path[0]]
     : getObjectValueByPath(object[path[0]], path.slice(1));
 
@@ -85,7 +86,7 @@ const removeObjectValueByPath = (object, path) => {
 const parseIntValue = value => {
   const parsedValue = parseInt(value, 10);
   return `${
-        Number.isSafeInteger(parsedValue) ? parsedValue : 0
+    Number.isSafeInteger(parsedValue) ? parsedValue : 0
   }`;
 };
 
@@ -95,19 +96,19 @@ const parseFloatValue = value => {
   const matchedDecimal = value.match(/\.\d*/);
 
   const fixBy =
-        matchedDecimal
-        && matchedDecimal[0]
-        && matchedDecimal[0].length - 1;
+    matchedDecimal
+    && matchedDecimal[0]
+    && matchedDecimal[0].length - 1;
 
   const fixedValue =
-        !(parsedValue % 1)
-        ? parsedValue.toFixed(fixBy + 1 ? fixBy : 0)
-        : `${parsedValue}`;
+    !(parsedValue % 1)
+      ? parsedValue.toFixed(fixBy + 1 ? fixBy : 0)
+      : `${parsedValue}`;
 
   const valueEndsWithPoint =
-        value.endsWith('.') && value.match(/\./g).length === 1
-        ? `${parsedValue}.`
-        : fixedValue;
+    value.endsWith('.') && value.match(/\./g).length === 1
+      ? `${parsedValue}.`
+      : fixedValue;
 
   return isFinite(parsedValue)
     ? valueEndsWithPoint
@@ -139,14 +140,15 @@ const getDefaultArgFieldValue = (type, kind) => {
 };
 
 export class DataWindowQueryArgumentsFieldForm extends PureComponent {
-
   static createValueAndPropTypeTree(
-    argField, argFieldName, argFieldConstValue, types,
+    argField,
+    argFieldName,
+    argFieldConstValue,
+    types,
   ) {
     const isComposite = argField.kind === FIELD_KINDS.LIST;
     let argFieldValue,
       ofType = void 0;
-
 
     if (typeof argFieldConstValue === 'undefined')
       argFieldValue = {};
@@ -164,9 +166,9 @@ export class DataWindowQueryArgumentsFieldForm extends PureComponent {
         argFieldValue[argFieldName] === DEFAULT_VALUE_NON_NULL_PRIMITIVE
       ) {
       argFieldValue[argFieldName] = getDefaultArgFieldValue(
-                        argField.type,
-                        argField.kind,
-                    );
+        argField.type,
+        argField.kind,
+      );
     }
 
     const subFields =
@@ -335,21 +337,21 @@ export class DataWindowQueryArgumentsFieldForm extends PureComponent {
     };
   }
 
-  _handleChange(value, path) {
+  _handleChange({ value, path }) {
     const newValue = setObjectValueByPath(
-            this.state.fieldValue,
-            value,
-            [this.props.argFieldName].concat(path),
-        );
+      this.state.fieldValue,
+      value,
+      [this.props.argFieldName].concat(path),
+    );
     const {
-            fieldValue,
-            propType,
-        } = this._convertValueAndPropTypeTreeToState(
-            this.props.argField,
-            this.props.argFieldName,
-            newValue,
-            this.props.types,
-        );
+      fieldValue,
+      propType,
+    } = this._convertValueAndPropTypeTreeToState(
+      this.props.argField,
+      this.props.argFieldName,
+      newValue,
+      this.props.types,
+    );
 
     this.setState({ fieldValue, propType });
 
@@ -364,91 +366,66 @@ export class DataWindowQueryArgumentsFieldForm extends PureComponent {
 
   _handleRemove(path, index) {
     const newValue = removeObjectValueByPath(
-            this.state.fieldValue,
-            [this.props.argFieldName].concat(path.concat([index])),
-        );
+      this.state.fieldValue,
+      [this.props.argFieldName].concat(path.concat([index])),
+    );
 
     const {
-            fieldValue,
-            propType,
-        } = this._convertValueAndPropTypeTreeToState(
-            this.props.argField,
-            this.props.argFieldName,
-            newValue,
-            this.props.types,
-        );
+      fieldValue,
+      propType,
+    } = this._convertValueAndPropTypeTreeToState(
+      this.props.argField,
+      this.props.argFieldName,
+      newValue,
+      this.props.types,
+    );
 
     this.setState({ fieldValue, propType });
 
     this.props.setNewArgumentValue(
-            fieldValue,
-        );
+      fieldValue,
+    );
   }
 
-  _handleNullSwitch(path) {
-    const oldValue =
-            getObjectValueByPath(
-                this.state.fieldValue,
-                [this.props.argFieldName].concat(path),
-            );
+  _handleNullSwitch({ checked, path }) {
     const newValue = setObjectValueByPath(
-            this.state.fieldValue,
-            oldValue === null
-            ? DEFAULT_VALUE_NON_NULL_PRIMITIVE
-            : null,
-            [this.props.argFieldName].concat(path),
-        );
+      this.state.fieldValue,
+      checked
+      ? DEFAULT_VALUE_NON_NULL_PRIMITIVE
+      : null,
+      [this.props.argFieldName].concat(path),
+    );
 
     const {
-            fieldValue,
-            propType,
-        } = this._convertValueAndPropTypeTreeToState(
-            this.props.argField,
-            this.props.argFieldName,
-            newValue,
-            this.props.types,
-        );
+      fieldValue,
+      propType,
+    } = this._convertValueAndPropTypeTreeToState(
+      this.props.argField,
+      this.props.argFieldName,
+      newValue,
+      this.props.types,
+    );
 
     this.setState({ fieldValue, propType });
 
-    this.props.setNewArgumentValue(
-            fieldValue,
-        );
+    this.props.setNewArgumentValue(fieldValue);
   }
 
   render() {
-    const {
-            argFieldName,
-        } = this.props;
-
-    const {
-            fieldValue,
-            propType,
-        } = this.state;
-
+    const { argFieldName } = this.props;
+    const { fieldValue, propType } = this.state;
     const currentFieldValue = fieldValue[argFieldName];
 
     return (
-      <PropsItem
+      <Prop
         key={argFieldName}
         propType={propType}
-        onChange={
-          this._handleChange
-        }
-        onNullSwitch={
-          this._handleNullSwitch
-        }
-        onAddValue={
-          this._handleAdd
-        }
-        onDeleteValue={
-          this._handleRemove
-        }
-        value={
-          this._convertObjectToValue(
-              currentFieldValue,
-          )
-        }
+        value={this._convertObjectToValue(currentFieldValue)}
+        checkable
+        onChange={this._handleChange}
+        onCheck={this._handleNullSwitch}
+        onAddValue={this._handleAdd}
+        onDeleteValue={this._handleRemove}
       />
     );
   }

@@ -14,12 +14,9 @@ import {
     BlockContentBoxItem,
 } from '../../components/BlockContent/BlockContent';
 
-import {
-    PropsItem,
-} from '../../components/PropsList/PropsList';
-
+import { PropsList } from '../../components/PropsList/PropsList';
+import { PropToggle } from '../../components/props';
 import ProjectComponent from '../../models/ProjectComponent';
-
 import { toggleComponentRegion } from '../../actions/project';
 
 import {
@@ -28,15 +25,14 @@ import {
 } from '../../selectors';
 
 import { getComponentMeta, getString } from '../../utils/meta';
-import { getLocalizedTextFromState } from '../../utils';
 
 // noinspection JSUnresolvedVariable
 import defaultRegionIcon from '../../img/layout_default.svg';
 
 class ComponentRegionsEditorComponent extends PureComponent {
-  _handleRegionToggle(regionIdx, enable) {
+  _handleRegionToggle(regionIdx, { value }) {
     const componentId = this.props.selectedComponentIds.first();
-    this.props.onToggleRegion(componentId, regionIdx, enable);
+    this.props.onToggleRegion(componentId, regionIdx, value);
   }
 
   render() {
@@ -50,27 +46,24 @@ class ComponentRegionsEditorComponent extends PureComponent {
 
     const layoutMeta = componentMeta.layouts[component.layout];
 
+    /* eslint-disable react/jsx-no-bind */
     const items = layoutMeta.regions.map((region, idx) => (
-      <PropsItem
-        key={idx}
-        propType={{
-          view: 'toggle',
-          label: getString(componentMeta, region.textKey, this.props.language),
-          image: region.icon || defaultRegionIcon,
-          linkable: false,
-        }}
-        value={{
-          value: component.regionsEnabled.has(idx),
-          linked: false,
-        }}
+      <PropToggle
+        key={String(idx)}
+        label={getString(componentMeta, region.textKey, this.props.language)}
+        image={region.icon || defaultRegionIcon}
+        value={component.regionsEnabled.has(idx)}
         onChange={this._handleRegionToggle.bind(this, idx)}
       />
-        ));
+    ));
+    /* eslint-enable react/jsx-no-bind */
 
     return (
       <BlockContentBox isBordered>
         <BlockContentBoxItem>
-          {items}
+          <PropsList>
+            {items}
+          </PropsList>
         </BlockContentBoxItem>
       </BlockContentBox>
     );
@@ -78,16 +71,15 @@ class ComponentRegionsEditorComponent extends PureComponent {
 }
 
 ComponentRegionsEditorComponent.propTypes = {
-  meta: PropTypes.object,
+  meta: PropTypes.object.isRequired,
   currentComponents: ImmutablePropTypes.mapOf(
-        PropTypes.instanceOf(ProjectComponent),
-        PropTypes.number,
-    ),
-  selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number),
-  language: PropTypes.string,
-  getLocalizedText: PropTypes.func,
+    PropTypes.instanceOf(ProjectComponent),
+    PropTypes.number,
+  ).isRequired,
+  selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number).isRequired,
+  language: PropTypes.string.isRequired,
 
-  onToggleRegion: PropTypes.func,
+  onToggleRegion: PropTypes.func.isRequired,
 };
 
 ComponentRegionsEditorComponent.displayName = 'ComponentRegionsEditor';
@@ -97,15 +89,14 @@ const mapStateToProps = state => ({
   currentComponents: currentComponentsSelector(state),
   selectedComponentIds: currentSelectedComponentIdsSelector(state),
   language: state.app.language,
-  getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
   onToggleRegion: (componentId, regionIdx, enable) =>
-        void dispatch(toggleComponentRegion(componentId, regionIdx, enable)),
+    void dispatch(toggleComponentRegion(componentId, regionIdx, enable)),
 });
 
 export const ComponentRegionsEditor = connect(
-    mapStateToProps,
-    mapDispatchToProps,
+  mapStateToProps,
+  mapDispatchToProps,
 )(ComponentRegionsEditorComponent);

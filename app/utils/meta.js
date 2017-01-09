@@ -5,12 +5,9 @@
 'use strict';
 
 import _forOwn from 'lodash.forown';
-
 import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';
-
 import { componentsToImmutable } from '../models/ProjectComponent';
-
 import { NO_VALUE } from '../../app/constants/misc';
 import { BUILT_IN_PROP_TYPES } from '../../common/shared-constants';
 
@@ -59,7 +56,7 @@ export const parseComponentName = componentName => {
  * @return {string}
  */
 export const formatComponentName = (namespace, name) =>
-    namespace ? `${namespace}.${name}` : name;
+  namespace ? `${namespace}.${name}` : name;
 
 /**
  *
@@ -97,7 +94,7 @@ export const getComponentKind = (componentName, meta) => {
  * @return {boolean}
  */
 export const isContainerComponent = (componentName, meta) =>
-    getComponentKind(componentName, meta) === 'container';
+  getComponentKind(componentName, meta) === 'container';
 
 /**
  *
@@ -106,7 +103,7 @@ export const isContainerComponent = (componentName, meta) =>
  * @return {boolean}
  */
 export const isCompositeComponent = (componentName, meta) =>
-    getComponentKind(componentName, meta) === 'composite';
+  getComponentKind(componentName, meta) === 'composite';
 
 /**
  *
@@ -142,11 +139,11 @@ export const getComponentPropName = (componentMeta, prop, language) => {
  * @return {boolean}
  */
 export const canInsertComponent = (
-    componentName,
-    containerName,
-    containerChildrenNames,
-    position,
-    meta,
+  componentName,
+  containerName,
+  containerChildrenNames,
+  position,
+  meta,
 ) => {
   const componentMeta = getComponentMeta(componentName, meta),
     { namespace } = parseComponentName(componentName),
@@ -158,14 +155,14 @@ export const canInsertComponent = (
   if (componentMeta.placement.inside) {
     if (componentMeta.placement.inside.include) {
       const sameComponentsNum = containerChildrenNames
-                .reduce((acc, cur) => acc + (cur === componentName ? 1 : 0), 0);
+        .reduce((acc, cur) => acc + (cur === componentName ? 1 : 0), 0);
 
       const allow = componentMeta.placement.inside.include.some(inclusion => {
         if (inclusion.component) {
           const inclusionComponentName = formatComponentName(
-                        namespace,
-                        inclusion.component,
-                    );
+            namespace,
+            inclusion.component,
+          );
 
           if (containerName !== inclusionComponentName) return false;
         } else if (inclusion.group) {
@@ -173,7 +170,6 @@ export const canInsertComponent = (
         } else if (inclusion.tag) {
           if (!containerMeta.tags.has(inclusion.tag)) return false;
         }
-
 
         return !inclusion.maxNum || sameComponentsNum < inclusion.maxNum;
       });
@@ -185,12 +181,14 @@ export const canInsertComponent = (
       const deny = componentMeta.placement.inside.exclude.some(exclusion => {
         if (exclusion.component) {
           const exclusionComponentName = formatComponentName(
-                        namespace,
-                        exclusion.component,
-                    );
+            namespace,
+            exclusion.component,
+          );
 
           return containerName === exclusionComponentName;
-        } else if (exclusion.group) { return containerMeta.group === exclusion.group; } else if (exclusion.tag) {
+        } else if (exclusion.group) {
+          return containerMeta.group === exclusion.group;
+        } else if (exclusion.tag) {
           return containerMeta.tags.has(exclusion.tag);
         } else {
           return false;
@@ -211,7 +209,7 @@ export const canInsertComponent = (
  * @return {boolean}
  */
 export const isValidSourceForProp = (propMeta, source) =>
-    propMeta.source.indexOf(source) > -1;
+  propMeta.source.indexOf(source) > -1;
 
 /**
  *
@@ -219,17 +217,16 @@ export const isValidSourceForProp = (propMeta, source) =>
  * @return {boolean}
  */
 export const propHasDataContext = propMeta =>
-    isValidSourceForProp(propMeta, 'data') &&
-    !!propMeta.sourceConfigs.data.pushDataContext;
+  isValidSourceForProp(propMeta, 'data') &&
+  !!propMeta.sourceConfigs.data.pushDataContext;
 
 /**
  *
  * @param {ComponentMeta} componentMeta
  * @param {PropTypeDefinition} propMeta
- * @param {string} language
  * @return {ProjectComponentProp}
  */
-const buildDefaultConstValue = (componentMeta, propMeta, language) => {
+const buildDefaultConstValue = (componentMeta, propMeta) => {
   if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
     return {
       source: 'const',
@@ -256,7 +253,10 @@ const buildDefaultConstValue = (componentMeta, propMeta, language) => {
  * @param {*} value
  * @return {ProjectComponentProp}
  */
-const makeSimpleStaticValue = value => ({ source: 'static', sourceData: { value } });
+const makeSimpleStaticValue = value => ({
+  source: 'static',
+  sourceData: { value },
+});
 
 /**
  *
@@ -267,22 +267,22 @@ const makeSimpleStaticValue = value => ({ source: 'static', sourceData: { value 
  * @return {ProjectComponentProp}
  */
 const buildDefaultStaticValue = (
-    componentMeta,
-    propMeta,
-    language,
-    _inheritedDefaultValue = NO_VALUE,
+  componentMeta,
+  propMeta,
+  language,
+  _inheritedDefaultValue = NO_VALUE,
 ) => {
   if (propMeta.sourceConfigs.static.defaultTextKey) {
     return makeSimpleStaticValue(getString(
-            componentMeta,
-            propMeta.sourceConfigs.static.defaultTextKey,
-            language,
-        ));
+      componentMeta,
+      propMeta.sourceConfigs.static.defaultTextKey,
+      language,
+    ));
   }
 
   const defaultValue = _inheritedDefaultValue !== NO_VALUE
-        ? _inheritedDefaultValue
-        : propMeta.sourceConfigs.static.default;
+    ? _inheritedDefaultValue
+    : propMeta.sourceConfigs.static.default;
 
   if (propMeta.type === 'shape') {
     if (defaultValue === null) return makeSimpleStaticValue(null);
@@ -291,15 +291,15 @@ const buildDefaultStaticValue = (
 
     _forOwn(propMeta.fields, (fieldMeta, fieldName) => {
       const inherited = typeof defaultValue[fieldName] !== 'undefined'
-                ? defaultValue[fieldName]
-                : NO_VALUE;
+        ? defaultValue[fieldName]
+        : NO_VALUE;
 
       value[fieldName] = _buildDefaultValue(
-                componentMeta,
-                fieldMeta,
-                language,
-                inherited,
-            );
+        componentMeta,
+        fieldMeta,
+        language,
+        inherited,
+      );
     });
 
     return makeSimpleStaticValue(value);
@@ -312,11 +312,11 @@ const buildDefaultStaticValue = (
 
     _forOwn(defaultValue, (fieldValue, fieldName) => {
       value[fieldName] = _buildDefaultValue(
-                componentMeta,
-                propMeta.ofType,
-                language,
-                fieldValue,
-            );
+        componentMeta,
+        propMeta.ofType,
+        language,
+        fieldValue,
+      );
     });
 
     return makeSimpleStaticValue(value);
@@ -327,18 +327,18 @@ const buildDefaultStaticValue = (
 
     if (defaultValue) {
       value = defaultValue.map(fieldValue => _buildDefaultValue(
-                componentMeta,
-                propMeta.ofType,
-                language,
-                fieldValue,
-            ));
+        componentMeta,
+        propMeta.ofType,
+        language,
+        fieldValue,
+      ));
     } else if (propMeta.sourceConfigs.static.defaultNum) {
       for (let i = 0; i < propMeta.sourceConfigs.static.defaultNum; i++) {
         value.push(_buildDefaultValue(
-                    componentMeta,
-                    propMeta.ofType,
-                    language,
-                ));
+          componentMeta,
+          propMeta.ofType,
+          language,
+        ));
       }
     }
 
@@ -347,12 +347,12 @@ const buildDefaultStaticValue = (
 
   if (propMeta.type === 'object') {
     if (defaultValue === null) return makeSimpleStaticValue(null);
-        // TODO: Handle default value somehow
+    // TODO: Handle default value somehow
     return makeSimpleStaticValue({});
   }
 
   if (propMeta.type === 'array') {
-        // TODO: Handle default value somehow
+    // TODO: Handle default value somehow
     return makeSimpleStaticValue([]);
   }
 
@@ -422,19 +422,19 @@ const sourcePriority = [
  * @return {ProjectComponentProp|NO_VALUE}
  */
 const _buildDefaultValue = (
-    componentMeta,
-    propMeta,
-    language,
-    _inheritedDefaultValue = NO_VALUE,
+  componentMeta,
+  propMeta,
+  language,
+  _inheritedDefaultValue = NO_VALUE,
 ) => {
   for (let i = 0, l = sourcePriority.length; i < l; i++) {
     if (isValidSourceForProp(propMeta, sourcePriority[i])) {
       const defaultValue = defaultValueBuilders[sourcePriority[i]](
-                componentMeta,
-                propMeta,
-                language,
-                _inheritedDefaultValue,
-            );
+        componentMeta,
+        propMeta,
+        language,
+        _inheritedDefaultValue,
+      );
 
       if (defaultValue !== NO_VALUE) return defaultValue;
     }
@@ -451,7 +451,7 @@ const _buildDefaultValue = (
  * @return {ProjectComponentProp|NO_VALUE}
  */
 export const buildDefaultValue = (componentMeta, propMeta, language) =>
-    _buildDefaultValue(componentMeta, propMeta, language);
+  _buildDefaultValue(componentMeta, propMeta, language);
 
 /**
  *
@@ -495,7 +495,13 @@ const constructComponentDefaultOptions = {
  * @param {ConstructComponentOptions} [options]
  * @return {Immutable.Map}
  */
-export const constructComponent = (componentName, layoutIdx, language, meta, options) => {
+export const constructComponent = (
+  componentName,
+  layoutIdx,
+  language,
+  meta,
+  options
+) => {
   options = Object.assign({}, constructComponentDefaultOptions, options || {});
 
   const componentMeta = getComponentMeta(componentName, meta);
@@ -524,9 +530,9 @@ export const constructComponent = (componentName, layoutIdx, language, meta, opt
         regionComponentMeta = getComponentMeta(regionComponentName, meta);
 
       const props = Object.assign(
-                buildDefaultProps(regionComponentMeta, language),
-                region.props || {},
-            );
+        buildDefaultProps(regionComponentMeta, language),
+        region.props || {},
+      );
 
       component.children.push({
         id: nextId++,
@@ -566,14 +572,14 @@ const typeCheckers = {
     if (typedef1.options.length !== typedef2.options.length) return false;
 
     return typedef1.options.every(option1 =>
-            !!typedef2.options.find(option2 => option2.value === option1.value));
+      !!typedef2.options.find(option2 => option2.value === option1.value));
   },
 
   object: (typedef1, typedef2) => !!typedef1.notNull === !!typedef2.notNull,
 
   objectOf: (typedef1, typedef2) =>
-        !!typedef1.notNull === !!typedef2.notNull &&
-        isCompatibleType(typedef1.ofType, typedef2.ofType),
+    !!typedef1.notNull === !!typedef2.notNull &&
+    isCompatibleType(typedef1.ofType, typedef2.ofType),
 
   shape: (typedef1, typedef2) => {
     if (!!typedef1.notNull !== !!typedef2.notNull) return false;
@@ -592,7 +598,7 @@ const typeCheckers = {
   array: returnTrue(),
 
   arrayOf: (typedef1, typedef2) =>
-        isCompatibleType(typedef1.ofType, typedef2.ofType),
+    isCompatibleType(typedef1.ofType, typedef2.ofType),
 
   component: returnTrue(),
   func: () => false, // TODO: Write actual checker
@@ -619,8 +625,8 @@ export const resolveTypedef = (componentMeta, typedef) => {
   if (BUILT_IN_PROP_TYPES.has(typedef.type)) return typedef;
 
   return componentMeta.types
-        ? Object.assign({}, typedef, componentMeta.types[typedef.type])
-        : null;
+    ? Object.assign({}, typedef, componentMeta.types[typedef.type])
+    : null;
 };
 
 /**
@@ -652,7 +658,7 @@ export const isScalarType = typedef => scalarTypes.has(typedef.type);
  * @returns {TypeDefinition}
  */
 export const getPropTypedef = (componentMeta, propName) =>
-    resolveTypedef(componentMeta, componentMeta.props[propName]);
+  resolveTypedef(componentMeta, componentMeta.props[propName]);
 
 /**
  *
@@ -663,12 +669,23 @@ export const getPropTypedef = (componentMeta, propName) =>
 export const getNestedTypedef = (typedef, valuePath) => valuePath.reduce(
   (acc, cur) => {
     if (typeof cur === 'string') {
-      if (acc.type === 'objectOf') return acc.ofType;
-      else if (acc.type === 'shape') return acc.fields[cur];
-      else throw new Error(`getNestedTypedef(): incompatible type: ${acc.type}`);
+      if (acc.type === 'objectOf') {
+        return acc.ofType;
+      } else if (acc.type === 'shape') {
+        return acc.fields[cur];
+      } else {
+        throw new Error(
+          `getNestedTypedef(): incompatible type: ${acc.type}`,
+        );
+      }
     } else if (typeof cur === 'number') {
-      if (acc.type === 'arrayOf') return acc.ofType;
-      else throw new Error(`getNestedTypedef(): incompatible type: ${acc.type}`);
+      if (acc.type === 'arrayOf') {
+        return acc.ofType;
+      } else {
+        throw new Error(
+          `getNestedTypedef(): incompatible type: ${acc.type}`,
+        );
+      }
     } else {
       throw new Error(
         'getNestedTypedef(): valuePath can contain ' +
@@ -695,5 +712,5 @@ export const isPropTypeDefinition = typedef =>
  * @return {boolean}
  */
 export const propHasDataContest = propMeta =>
-    !!propMeta.sourceConfigs.data &&
-    !!propMeta.sourceConfigs.data.pushDataContext;
+  !!propMeta.sourceConfigs.data &&
+  !!propMeta.sourceConfigs.data.pushDataContext;

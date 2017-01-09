@@ -1,3 +1,7 @@
+/**
+ * @author Dmitriy Bizyaev
+ */
+
 'use strict';
 
 // noinspection JSUnresolvedVariable
@@ -8,22 +12,15 @@ import { noop } from '../../../utils/misc';
 export class RouteCard extends PureComponent {
   constructor(props) {
     super(props);
-
     this._refCallback = this._refCallback.bind(this);
-    this._handleEditIndexClick = this._handleEditIndexClick.bind(this);
   }
 
   _refCallback(el) {
     if (el) el.addEventListener('dblclick', this.props.onGo);
   }
 
-  _handleEditIndexClick() {
-    this.props.onEditIndexClick();
-  }
-
   render() {
     let className = 'route-card-wrapper';
-
     if (this.props.redirect) className += ' has-redirect';
     if (this.props.isIndex) className += ' is-index';
     if (this.props.focused) className += ' is-focused';
@@ -34,7 +31,7 @@ export class RouteCard extends PureComponent {
         <div className="route-icon">
           <Icon name="random" />
         </div>
-            );
+      );
     }
 
     let subtitle = null;
@@ -43,7 +40,7 @@ export class RouteCard extends PureComponent {
         <div className="route-subtitle">
           {this.props.subtitle}
         </div>
-            );
+      );
     }
 
     return (
@@ -51,7 +48,7 @@ export class RouteCard extends PureComponent {
         <div className={className}>
           <div
             className="route-card"
-            tabIndex="1"
+            tabIndex="0"
             onClick={this.props.onFocus}
             ref={this._refCallback}
           >
@@ -76,6 +73,7 @@ RouteCard.propTypes = {
   title: PropTypes.string,
   subtitle: PropTypes.string,
   isIndex: PropTypes.bool,
+  redirect: PropTypes.bool,
   focused: PropTypes.bool,
   onFocus: PropTypes.func,
   onGo: PropTypes.func,
@@ -85,6 +83,7 @@ RouteCard.defaultProps = {
   title: '',
   subtitle: '',
   isIndex: false,
+  redirect: false,
   focused: false,
   onFocus: noop,
   onGo: noop,

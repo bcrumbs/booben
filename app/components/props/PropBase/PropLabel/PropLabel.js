@@ -2,24 +2,34 @@
 
 // noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
-
 import { TooltipIcon } from '@reactackle/reactackle';
+
+const propTypes = {
+  label: PropTypes.string.isRequired,
+  secondaryLabel: PropTypes.string,
+  tooltip: PropTypes.string,
+};
+
+const defaultProps = {
+  secondaryLabel: '',
+  tooltip: '',
+};
 
 export const PropLabel = props => {
   let tooltip = null;
   if (props.tooltip) {
     tooltip = (
       <TooltipIcon text={props.tooltip} />
-        );
+    );
   }
 
-  let type = null;
-  if (props.type) {
-    type = (
+  let secondaryLabel = null;
+  if (props.secondaryLabel) {
+    secondaryLabel = (
       <span className="prop-item_type">
-        {props.type}
+        {props.secondaryLabel}
       </span>
-        );
+    );
   }
 
   return (
@@ -29,23 +39,13 @@ export const PropLabel = props => {
           {props.label}
         </span>
 
-        {type}
+        {secondaryLabel}
         {tooltip}
       </div>
     </label>
   );
 };
 
-PropLabel.propTypes = {
-  label: PropTypes.string.isRequired,
-  type: PropTypes.string,
-  tooltip: PropTypes.string,
-};
-
-PropLabel.defaultProps = {
-  label: '',
-  type: '',
-  tooltip: '',
-};
-
+PropLabel.propTypes = propTypes;
+PropLabel.defaultProps = defaultProps;
 PropLabel.displayName = 'PropLabel';

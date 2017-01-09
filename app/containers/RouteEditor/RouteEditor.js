@@ -10,57 +10,64 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
 import {
-    BlockContentBox,
-    BlockContentBoxItem,
-    BlockContentBoxHeading,
-    BlockContentPlaceholder,
+  BlockContentBox,
+  BlockContentBoxItem,
+  BlockContentBoxHeading,
+  BlockContentPlaceholder,
 } from '../../components/BlockContent/BlockContent';
 
+import { PropsList } from '../../components/PropsList/PropsList';
+
 import {
-    PropsList,
-    PropsItem,
-} from '../../components/PropsList/PropsList';
+  PropInput,
+  PropTextarea,
+  PropToggle,
+} from '../../components/props';
 
 import ProjectRouteRecord from '../../models/ProjectRoute';
-
 import { updateRouteField } from '../../actions/project';
-
 import { getLocalizedTextFromState } from '../../utils';
 
 class RouteEditorComponent extends PureComponent {
   constructor(props) {
     super(props);
 
-    this._handlePathChange = this._handlePathChange.bind(this);
-    this._handleDescriptionChange = this._handleDescriptionChange.bind(this);
-    this._handleHaveIndexChange = this._handleHaveIndexChange.bind(this);
-    this._handleHaveRedirectChange = this._handleHaveRedirectChange.bind(this);
-    this._handleRedirectToChange = this._handleRedirectToChange.bind(this);
-    this._handleIndexRouteDescriptionChange = this._handleIndexRouteDescriptionChange.bind(this);
+    this._handlePathChange =
+      this._handlePathChange.bind(this);
+    this._handleDescriptionChange =
+      this._handleDescriptionChange.bind(this);
+    this._handleHaveIndexChange =
+      this._handleHaveIndexChange.bind(this);
+    this._handleHaveRedirectChange =
+      this._handleHaveRedirectChange.bind(this);
+    this._handleRedirectToChange =
+      this._handleRedirectToChange.bind(this);
+    this._handleIndexRouteDescriptionChange =
+      this._handleIndexRouteDescriptionChange.bind(this);
   }
 
-  _handlePathChange(newPath) {
-    this.props.onPathChange(this.props.selectedRouteId, newPath);
+  _handlePathChange({ value }) {
+    this.props.onPathChange(this.props.selectedRouteId, value);
   }
 
-  _handleDescriptionChange(newValue) {
-    this.props.onDescriptionChange(this.props.selectedRouteId, newValue);
+  _handleDescriptionChange({ value }) {
+    this.props.onDescriptionChange(this.props.selectedRouteId, value);
   }
 
-  _handleHaveIndexChange(newValue) {
-    this.props.onHaveIndexChange(this.props.selectedRouteId, newValue);
+  _handleHaveIndexChange({ value }) {
+    this.props.onHaveIndexChange(this.props.selectedRouteId, value);
   }
 
-  _handleHaveRedirectChange(newValue) {
-    this.props.onHaveRedirectChange(this.props.selectedRouteId, newValue);
+  _handleHaveRedirectChange({ value }) {
+    this.props.onHaveRedirectChange(this.props.selectedRouteId, value);
   }
 
-  _handleRedirectToChange(newValue) {
-    this.props.onRedirectToChange(this.props.selectedRouteId, newValue);
+  _handleRedirectToChange({ value }) {
+    this.props.onRedirectToChange(this.props.selectedRouteId, value);
   }
 
-  _handleIndexRouteDescriptionChange(newValue) {
-    this.props.onIndexRouteDescriptionChange(this.props.selectedRouteId, newValue);
+  _handleIndexRouteDescriptionChange({ value }) {
+    this.props.onIndexRouteDescriptionChange(this.props.selectedRouteId, value);
   }
 
   render() {
@@ -83,15 +90,9 @@ class RouteEditorComponent extends PureComponent {
 
           <BlockContentBoxItem>
             <PropsList>
-              <PropsItem
-                propType={{
-                  label: getLocalizedText('description'),
-                  view: 'textarea',
-                }}
-                value={{
-                  value: route.indexRouteDescription,
-                  linked: false,
-                }}
+              <PropTextarea
+                label={getLocalizedText('description')}
+                value={route.indexRouteDescription}
                 onChange={this._handleIndexRouteDescriptionChange}
               />
             </PropsList>
@@ -105,32 +106,20 @@ class RouteEditorComponent extends PureComponent {
 
     if (route.haveRedirect) {
       redirectUrlInput = (
-        <PropsItem
-          propType={{
-            label: getLocalizedText('redirectTo'),
-            view: 'input',
-          }}
-          value={{
-            value: route.redirectTo,
-            linked: false,
-          }}
+        <PropInput
+          label={getLocalizedText('redirectTo')}
+          value={route.redirectTo}
           onChange={this._handleRedirectToChange}
         />
-            );
+      );
     } else {
       haveIndexToggle = (
-        <PropsItem
-          propType={{
-            label: getLocalizedText('indexRoute'),
-            view: 'toggle',
-          }}
-          value={{
-            value: route.haveIndex,
-            linked: false,
-          }}
+        <PropToggle
+          label={getLocalizedText('indexRoute')}
+          value={route.haveIndex}
           onChange={this._handleHaveIndexChange}
         />
-            );
+      );
     }
 
     return (
@@ -141,39 +130,21 @@ class RouteEditorComponent extends PureComponent {
 
         <BlockContentBoxItem>
           <PropsList>
-            <PropsItem
-              propType={{
-                label: getLocalizedText('path'),
-                view: 'input',
-              }}
-              value={{
-                value: route.path,
-                linked: false,
-              }}
+            <PropInput
+              label={getLocalizedText('path')}
+              value={route.path}
               onChange={this._handlePathChange}
             />
-
-            <PropsItem
-              propType={{
-                label: getLocalizedText('description'),
-                view: 'textarea',
-              }}
-              value={{
-                value: route.description,
-                linked: false,
-              }}
+  
+            <PropTextarea
+              label={getLocalizedText('description')}
+              value={route.description}
               onChange={this._handleDescriptionChange}
             />
-
-            <PropsItem
-              propType={{
-                label: getLocalizedText('indexRedirect'),
-                view: 'toggle',
-              }}
-              value={{
-                value: route.haveRedirect,
-                linked: false,
-              }}
+  
+            <PropToggle
+              label={getLocalizedText('indexRedirect')}
+              value={route.haveRedirect}
               onChange={this._handleHaveRedirectChange}
             />
 
@@ -188,20 +159,20 @@ class RouteEditorComponent extends PureComponent {
 
 RouteEditorComponent.propTypes = {
   routes: ImmutablePropTypes.mapOf(
-        PropTypes.instanceOf(ProjectRouteRecord),
-        PropTypes.number,
-    ),
+    PropTypes.instanceOf(ProjectRouteRecord),
+    PropTypes.number,
+  ).isRequired,
 
-  selectedRouteId: PropTypes.number,
-  indexRouteSelected: PropTypes.bool,
+  selectedRouteId: PropTypes.number.isRequired,
+  indexRouteSelected: PropTypes.bool.isRequired,
 
-  getLocalizedText: PropTypes.func,
-  onPathChange: PropTypes.func,
-  onDescriptionChange: PropTypes.func,
-  onHaveIndexChange: PropTypes.func,
-  onHaveRedirectChange: PropTypes.func,
-  onRedirectToChange: PropTypes.func,
-  onIndexRouteDescriptionChange: PropTypes.func,
+  getLocalizedText: PropTypes.func.isRequired,
+  onPathChange: PropTypes.func.isRequired,
+  onDescriptionChange: PropTypes.func.isRequired,
+  onHaveIndexChange: PropTypes.func.isRequired,
+  onHaveRedirectChange: PropTypes.func.isRequired,
+  onRedirectToChange: PropTypes.func.isRequired,
+  onIndexRouteDescriptionChange: PropTypes.func.isRequired,
 };
 
 RouteEditorComponent.displayName = 'RouteEditor';
@@ -216,25 +187,25 @@ const mapStateToProps = ({ project, app }) => ({
 
 const mapDispatchToProps = dispatch => ({
   onPathChange: (routeId, newValue) =>
-        void dispatch(updateRouteField(routeId, 'path', newValue)),
+    void dispatch(updateRouteField(routeId, 'path', newValue)),
 
   onDescriptionChange: (routeId, newValue) =>
-        void dispatch(updateRouteField(routeId, 'description', newValue)),
+    void dispatch(updateRouteField(routeId, 'description', newValue)),
 
   onHaveIndexChange: (routeId, newValue) =>
-        void dispatch(updateRouteField(routeId, 'haveIndex', newValue)),
+    void dispatch(updateRouteField(routeId, 'haveIndex', newValue)),
 
   onHaveRedirectChange: (routeId, newValue) =>
-        void dispatch(updateRouteField(routeId, 'haveRedirect', newValue)),
+    void dispatch(updateRouteField(routeId, 'haveRedirect', newValue)),
 
   onRedirectToChange: (routeId, newValue) =>
-        void dispatch(updateRouteField(routeId, 'redirectTo', newValue)),
+    void dispatch(updateRouteField(routeId, 'redirectTo', newValue)),
 
   onIndexRouteDescriptionChange: (routeId, newValue) =>
-        void dispatch(updateRouteField(routeId, 'indexRouteDescription', newValue)),
+    void dispatch(updateRouteField(routeId, 'indexRouteDescription', newValue)),
 });
 
 export const RouteEditor = connect(
-    mapStateToProps,
-    mapDispatchToProps,
+  mapStateToProps,
+  mapDispatchToProps,
 )(RouteEditorComponent);
