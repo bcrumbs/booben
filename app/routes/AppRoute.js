@@ -54,10 +54,16 @@ AppRoute.propTypes = {
   params: PropTypes.shape({
     projectName: PropTypes.string.isRequired,
   }).isRequired,
-  projectName: PropTypes.string.isRequired,
-  projectLoadState: PropTypes.number.isRequired,
-  projectLoadError: PropTypes.object.isRequired,
+  projectName: PropTypes.string,
+  projectLoadState: PropTypes.number,
+  projectLoadError: PropTypes.object,
   onProjectRequest: PropTypes.func.isRequired,
+};
+
+AppRoute.defaultProps = {
+  projectName: '',
+  projectLoadState: NOT_LOADED,
+  projectLoadError: null,
 };
 
 AppRoute.displayName = 'AppRoute';

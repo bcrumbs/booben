@@ -1,50 +1,46 @@
 'use strict';
 
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import { connect } from 'react-redux';
 
 import {
-  connect,
-} from 'react-redux';
-
-import {
-    linkPropCancel,
-    updateComponentPropValue,
-    linkWithOwnerProp,
+  linkPropCancel,
+  updateComponentPropValue,
+  linkWithOwnerProp,
 } from '../../actions/project';
 
 import {
-    getCurrentComponentWithQueryArgs,
-    getRootComponentWithQueryArgs,
-    currentComponentsSelector,
-    singleComponentSelectedSelector,
-    topNestedConstructorSelector,
-    topNestedConstructorComponentSelector,
-    getAllPossibleNestedContexts,
+  getCurrentComponentWithQueryArgs,
+  getRootComponentWithQueryArgs,
+  currentComponentsSelector,
+  singleComponentSelectedSelector,
+  topNestedConstructorSelector,
+  topNestedConstructorComponentSelector,
+  getAllPossibleNestedContexts,
 } from '../../selectors';
 
 import ProjectComponentRecord from '../../models/ProjectComponent';
-
 import { NestedConstructor } from '../../reducers/project';
 
-import { getLocalizedTextFromState } from '../../utils';
-
 import {
-    DataWindowDataLayout,
+  DataWindowDataLayout,
 } from '../../components/DataWindow/Layouts/DataWindowDataLayout';
 
 import {
-    DataWindowQueryLayout,
+  DataWindowQueryLayout,
 } from '../../components/DataWindow/Layouts/DataWindowQueryLayout';
 
 import {
-    DataWindowOwnerComponentLayout,
+  DataWindowOwnerComponentLayout,
 } from '../../components/DataWindow/Layouts/DataWindowOwnerComponentLayout';
 
 import {
-    DataWindowContextLayout,
+  DataWindowContextLayout,
 } from '../../components/DataWindow/Layouts/DataWindowContextLayout';
 
+import { getLocalizedTextFromState } from '../../utils';
 import '../../components/DataWindow/DataWindow.scss';
 
 class DataWindowComponent extends PureComponent {
@@ -69,13 +65,13 @@ class DataWindowComponent extends PureComponent {
   render() {
     const { selectedPathProps } = this.state;
     const component =
-            this.state.selectedPath === 'Query'
-            ? DataWindowQueryLayout
-            : this.state.selectedPath === 'OwnerComponent'
-                ? DataWindowOwnerComponentLayout
-                : this.state.selectedPath === 'Context'
-                    ? DataWindowContextLayout
-                    : DataWindowDataLayout;
+      this.state.selectedPath === 'Query'
+      ? DataWindowQueryLayout
+      : this.state.selectedPath === 'OwnerComponent'
+        ? DataWindowOwnerComponentLayout
+        : this.state.selectedPath === 'Context'
+          ? DataWindowContextLayout
+          : DataWindowDataLayout;
 
 
     return React.createElement(
@@ -90,31 +86,29 @@ class DataWindowComponent extends PureComponent {
   }
 }
 
-/* eslint-disable */
 DataWindowComponent.propTypes = {
+  schema: PropTypes.object.isRequired,
+  meta: PropTypes.object.isRequired,
+  linkingProp: PropTypes.bool.isRequired,
+  linkingPropOfComponentId: PropTypes.number.isRequired,
+  linkingPropName: PropTypes.string.isRequired,
+  linkingPropPath: PropTypes.array.isRequired,
+  language: PropTypes.string.isRequired,
   components: ImmutablePropTypes.mapOf(
-        PropTypes.instanceOf(ProjectComponentRecord),
-        PropTypes.number,
-    ),
-  schema: PropTypes.object,
-  meta: PropTypes.object,
-  linkingProp: PropTypes.bool,
-  linkingPropOfComponentId: PropTypes.number,
-  linkingPropName: PropTypes.string,
-  linkingPropPath: PropTypes.array,
-  language: PropTypes.string,
-  currentComponentWithQueryArgs: PropTypes.any,
-  rootComponentWithQueryArgs: PropTypes.any,
-  contexts: PropTypes.array,
-  topNestedConstructor: PropTypes.instanceOf(NestedConstructor),
-  topNestedConstructorComponent: PropTypes.instanceOf(ProjectComponentRecord),
-  getLocalizedText: PropTypes.func,
+    PropTypes.instanceOf(ProjectComponentRecord),
+    PropTypes.number,
+  ).isRequired,
+  currentComponentWithQueryArgs: PropTypes.any.isRequired,
+  rootComponentWithQueryArgs: PropTypes.any.isRequired,
+  topNestedConstructor: PropTypes.instanceOf(NestedConstructor).isRequired,
+  topNestedConstructorComponent: PropTypes.instanceOf(ProjectComponentRecord).isRequired,
+  contexts: PropTypes.array.isRequired,
+  getLocalizedText: PropTypes.func.isRequired,
 
-  onLinkPropCancel: PropTypes.func,
-  onUpdateComponentPropValue: PropTypes.func,
-  onLinkWithOwnerProp: PropTypes.func,
+  onLinkPropCancel: PropTypes.func.isRequired,
+  onUpdateComponentPropValue: PropTypes.func.isRequired,
+  onLinkWithOwnerProp: PropTypes.func.isRequired,
 };
-/* eslint-enable */
 
 DataWindowComponent.displayName = 'DataWindow';
 
@@ -138,14 +132,14 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   onLinkPropCancel: () =>
-        void dispatch(linkPropCancel()),
+    void dispatch(linkPropCancel()),
   onUpdateComponentPropValue: (...args) =>
-        void dispatch(updateComponentPropValue(...args)),
+    void dispatch(updateComponentPropValue(...args)),
   onLinkWithOwnerProp: ownerPropName =>
-        void dispatch(linkWithOwnerProp(ownerPropName)),
+    void dispatch(linkWithOwnerProp(ownerPropName)),
 });
 
 export const DataWindow = connect(
-    mapStateToProps,
-    mapDispatchToProps,
+  mapStateToProps,
+  mapDispatchToProps,
 )(DataWindowComponent);

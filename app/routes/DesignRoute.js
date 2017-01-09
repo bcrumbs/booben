@@ -176,6 +176,8 @@ class DesignRoute extends PureComponent {
       this._handleConfirmDeleteComponentDialogClose.bind(this);
     this._handleLinkPropDialogCancel =
       this._handleLinkPropDialogCancel.bind(this);
+    this._handleLayoutSelection =
+      this._handleLayoutSelection.bind(this);
   }
 
   /**
@@ -238,6 +240,62 @@ class DesignRoute extends PureComponent {
      */
   _handleLinkPropDialogCancel() {
     this.props.onLinkPropCancel();
+  }
+  
+  /**
+   *
+   * @param {number} layoutIdx
+   * @private
+   */
+  _handleLayoutSelection({ layoutIdx }) {
+    this.props.onSelectLayout(layoutIdx);
+  }
+  
+  /**
+   *
+   * @return {?ReactElement}
+   * @private
+   */
+  _renderLayoutSelectionDialogContent() {
+    if (!this.props.selectingComponentLayout) return null;
+  
+    const draggedComponent = this.props.draggedComponents.get(0);
+  
+    const draggedComponentMeta =
+      getComponentMeta(draggedComponent.name, this.props.meta);
+  
+    const items = draggedComponentMeta.layouts.map((layout, idx) => {
+      const icon = layout.icon || defaultComponentLayoutIcon;
+    
+      const title = getString(
+        draggedComponentMeta,
+        layout.textKey,
+        this.props.language,
+      );
+    
+      const subtitle = getString(
+        draggedComponentMeta,
+        layout.descriptionTextKey,
+        this.props.language,
+      );
+    
+      return (
+        <ComponentLayoutSelectionItem
+          key={String(idx)}
+          image={icon}
+          title={title}
+          subtitle={subtitle}
+          onSelect={this._handleLayoutSelection}
+        />
+      );
+    });
+  
+    //noinspection JSValidateTypes
+    return (
+      <ComponentLayoutSelection>
+        {items}
+      </ComponentLayoutSelection>
+    );
   }
 
   render() {
@@ -334,43 +392,8 @@ class DesignRoute extends PureComponent {
 
     const toolGroups = List([List([libraryTool, treeTool, propsEditorTool])]);
 
-    let layoutSelectionDialogContent = null;
-    if (this.props.selectingComponentLayout) {
-      const draggedComponent = this.props.draggedComponents.get(0);
-
-      const draggedComponentMeta =
-        getComponentMeta(draggedComponent.name, this.props.meta);
-
-      const items = draggedComponentMeta.layouts.map((layout, idx) => {
-        const icon = layout.icon || defaultComponentLayoutIcon;
-
-        const title = getString(
-          draggedComponentMeta,
-          layout.textKey,
-          this.props.language,
-        );
-
-        const subtitle = getString(
-          draggedComponentMeta,
-          layout.descriptionTextKey,
-          this.props.language,
-        );
-
-        return (
-          <ComponentLayoutSelectionItem
-            key={String(idx)}
-            image={icon}
-            title={title}
-            subtitle={subtitle}
-            onClick={this.props.onSelectLayout.bind(null, idx)}
-          />
-        );
-      });
-
-      layoutSelectionDialogContent = (
-        <ComponentLayoutSelection>{items}</ComponentLayoutSelection>
-      );
-    }
+    const layoutSelectionDialogContent =
+      this._renderLayoutSelectionDialogContent();
 
     const confirmDeleteDialogButtons = [{
       text: getLocalizedText('delete'),
@@ -430,7 +453,7 @@ class DesignRoute extends PureComponent {
             </ConstructionPane>
           </PanelContent>
         </Panel>
-            );
+      );
     } else {
       // Render main constructor only
       content = previewIFrame;
@@ -444,6 +467,7 @@ class DesignRoute extends PureComponent {
         onToolTitleChange={this._handleToolTitleChange}
       >
         {content}
+        
         <Dialog
           title={getLocalizedText('selectLayout')}
           backdrop
@@ -474,19 +498,22 @@ class DesignRoute extends PureComponent {
 }
 
 DesignRoute.propTypes = {
+  params: PropTypes.shape({
+    projectName: PropTypes.string.isRequired,
+  }).isRequired,
   components: ImmutablePropTypes.mapOf(
-        PropTypes.instanceOf(ProjectComponentRecord),
-        PropTypes.number,
-    ),
+    PropTypes.instanceOf(ProjectComponentRecord),
+    PropTypes.number,
+  ),
   meta: PropTypes.object,
   previewContainerStyle: PropTypes.string,
   singleComponentSelected: PropTypes.bool,
   firstSelectedComponentId: PropTypes.number,
   selectingComponentLayout: PropTypes.bool,
   draggedComponents: ImmutablePropTypes.mapOf(
-        PropTypes.instanceOf(ProjectComponentRecord),
-        PropTypes.number,
-    ),
+    PropTypes.instanceOf(ProjectComponentRecord),
+    PropTypes.number,
+  ),
   language: PropTypes.string,
   haveNestedConstructor: PropTypes.bool,
   nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(PropTypes.string),
@@ -518,25 +545,20 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   onRenameComponent: (componentId, newTitle) =>
-        void dispatch(renameComponent(componentId, newTitle)),
-
+    void dispatch(renameComponent(componentId, newTitle)),
   onDeleteComponent: componentId =>
-        void dispatch(deleteComponent(componentId)),
-
+    void dispatch(deleteComponent(componentId)),
   onSelectLayout: layoutIdx =>
-        void dispatch(selectLayoutForNewComponent(layoutIdx)),
-
+    void dispatch(selectLayoutForNewComponent(layoutIdx)),
   onSaveComponentForProp: () =>
-        void dispatch(saveComponentForProp()),
-
+    void dispatch(saveComponentForProp()),
   onCancelConstructComponentForProp: () =>
-        void dispatch(cancelConstructComponentForProp()),
-
+    void dispatch(cancelConstructComponentForProp()),
   onLinkPropCancel: () =>
-        void dispatch(linkPropCancel()),
+    void dispatch(linkPropCancel()),
 });
 
 export default connect(
-    mapStateToProps,
-    mapDispatchToProps,
+  mapStateToProps,
+  mapDispatchToProps,
 )(DesignRoute);
