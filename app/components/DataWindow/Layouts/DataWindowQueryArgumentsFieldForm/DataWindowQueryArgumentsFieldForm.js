@@ -314,7 +314,7 @@ export class DataWindowQueryArgumentsFieldForm extends PureComponent {
 
   _convertObjectToValue(obj) {
     return {
-      value: (// eslint-disable-next-line
+      value: (
                 typeof obj === 'object' && obj !== null
                 ? !Array.isArray(obj)
                     ? Object.keys(obj).reduce(
