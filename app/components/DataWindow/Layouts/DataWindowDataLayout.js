@@ -54,32 +54,28 @@ export class DataWindowDataLayout extends PureComponent {
                 connection: true,
                 onSelect: () => this.props.setSelectedPath('OwnerComponent'),
               },
-              ...this.props.contexts.map((
-                {
-                  context,
-                  contextFieldType,
-                  contextQueryPath,
-                }) =>
-                    ({
-                      title: this.props.getLocalizedText(
-                        'dataWindowContextField',
-                        {
-                          fieldName: contextFieldType.name,
-                          fieldPath: contextQueryPath.join('->'),
-                        },
-                      ),
-                      actionType: 'jump',
-                      connection: true,
-                      onSelect:
-                            () =>
-                                this.props.setSelectedPath(
-                                    'Context', {
-                                      contextFieldType,
-                                      context,
-                                    },
-                                ),
-                    }),
+                
+              ...this.props.contexts.map(({
+                context,
+                contextFieldType,
+                contextQueryPath,
+              }) => ({
+                title: this.props.getLocalizedText(
+                  'dataWindowContextField',
+                  {
+                    fieldName: contextFieldType.name,
+                    fieldPath: contextQueryPath.join('->'),
+                  },
                 ),
+                actionType: 'jump',
+                connection: true,
+                onSelect: () => this.props.setSelectedPath(
+                  'Context', {
+                    contextFieldType,
+                    context,
+                  },
+                ),
+              })),
             ]
             : [],
         ),

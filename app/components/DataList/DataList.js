@@ -1,33 +1,13 @@
-import React, { PropTypes } from 'react';
+'use strict';
+
+import React from 'react';
 import './DataList.scss';
 
-import { DataItem } from './DataItem/DataItem';
-
-export const DataList = props => {
-  const className = 'data-list';
-
-  const list = props.data.map((item, idx) => (
-    <DataItem
-      key={idx}
-      {...item}
-    />
-    ));
-
-  return (
-    <div className={className}>
-      { list }
-      { props.children }
-    </div>
-  );
-};
-
-DataList.propTypes = {
-  data: PropTypes.arrayOf(PropTypes.object),
-};
-
-DataList.defaultProps = {
-  data: [],
-};
+export const DataList = ({ children }) => (
+  <div className="data-list">
+    {children}
+  </div>
+);
 
 DataList.displayName = 'DataList';
 
