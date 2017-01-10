@@ -45,12 +45,19 @@ class LinkPropMenuComponent extends PureComponent {
     };
     
     this._handleSelectSource = this._handleSelectSource.bind(this);
+    this._handleReturn = this._handleReturn.bind(this);
     this._handleSelectOwnerProp = this._handleSelectOwnerProp.bind(this);
   }
   
   _handleSelectSource({ id }) {
     this.setState({
       selectedSourceId: id,
+    });
+  }
+  
+  _handleReturn() {
+    this.setState({
+      selectedSourceId: '',
     });
   }
   
@@ -91,8 +98,8 @@ class LinkPropMenuComponent extends PureComponent {
         title: 'Query', // TODO: Get string from i18n
       });
       
-      if (this.props.contexts.length) {
-        this.props.contexts.forEach(ctx => {
+      if (this.props.dataContexts) {
+        this.props.dataContexts.forEach(ctx => {
           console.log(ctx);
         });
       }
@@ -147,6 +154,7 @@ class LinkPropMenuComponent extends PureComponent {
         linkTargetPropTypedef={linkTargetPropTypedef}
         language={this.props.language}
         onSelect={this._handleSelectOwnerProp}
+        onReturn={this._handleReturn}
       />
     );
   }
@@ -156,19 +164,20 @@ class LinkPropMenuComponent extends PureComponent {
       !this.props.singleComponentSelected ||
       !this.props.linkingProp
     ) return null;
+    
+    let content = null;
 
     if (!this.state.selectedSourceId)
-      return this._renderSourceSelection();
+      content = this._renderSourceSelection();
     else if (this.state.selectedSourceId === 'owner')
-      return this._renderOwnerPropSelection();
-    else
-      return null;
+      content = this._renderOwnerPropSelection();
+    
+    return content;
   }
 }
 
 LinkPropMenuComponent.propTypes = {
-  contexts: PropTypes.array.isRequired,
-  
+  dataContexts: PropTypes.array,
   components: ImmutablePropTypes.mapOf(
     PropTypes.instanceOf(ProjectComponentRecord),
     PropTypes.number,
@@ -184,20 +193,25 @@ LinkPropMenuComponent.propTypes = {
       PropTypes.number,
     ]),
   ).isRequired,
-  topNestedConstructor: PropTypes.instanceOf(NestedConstructor).isRequired,
+  topNestedConstructor: PropTypes.instanceOf(NestedConstructor),
   topNestedConstructorComponent: PropTypes.instanceOf(
     ProjectComponentRecord,
-  ).isRequired,
+  ),
   language: PropTypes.string.isRequired,
 
   onLinkWithOwnerProp: PropTypes.func.isRequired,
 };
 
+LinkPropMenuComponent.defaultProps = {
+  dataContexts: null,
+  topNestedConstructor: null,
+  topNestedConstructorComponent: null,
+};
+
 LinkPropMenuComponent.displayName = 'LinkPropMenu';
 
 const mapStateToProps = state => ({
-  contexts: getAllPossibleNestedContexts(state),
-  
+  dataContexts: getAllPossibleNestedContexts(state),
   components: currentComponentsSelector(state),
   meta: state.project.meta,
   singleComponentSelected: singleComponentSelectedSelector(state),

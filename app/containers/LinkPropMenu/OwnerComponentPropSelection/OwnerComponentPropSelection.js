@@ -5,7 +5,15 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
+
+import {
+  BlockContent,
+  BlockContentBox,
+  BlockContentBoxItem,
+  BlockContentNavigation,
+  BlockBreadcrumbs,
+} from '../../../components/BlockContent/BlockContent';
 
 import {
   DataList,
@@ -26,67 +34,105 @@ const propTypes = {
   linkTargetPropTypedef: PropTypes.object.isRequired,
   language: PropTypes.string.isRequired,
   onSelect: PropTypes.func,
+  onReturn: PropTypes.func,
 };
 
 const defaultProps = {
   onSelect: noop,
+  onReturn: noop,
 };
 
-export const OwnerComponentPropSelection = ({
-  ownerMeta,
-  ownerPropName,
-  linkTargetPropTypedef,
-  language,
-  onSelect,
-}) => {
-  const ownerPropMeta = ownerMeta.props[ownerPropName],
-    ownerPropsMeta = ownerPropMeta.sourceConfigs.designer.props;
+export class OwnerComponentPropSelection extends PureComponent {
+  constructor(props) {
+    super(props);
+    
+    this._handleBreadcrumbsClick = this._handleBreadcrumbsClick.bind(this);
+  }
   
-  const items = Object.keys(ownerPropsMeta)
-    .filter(ownerPropName => {
-      const ownerPropTypedef = resolveTypedef(
-        ownerMeta,
-        ownerPropsMeta[ownerPropName],
-      );
-      
-      return isCompatibleType(ownerPropTypedef, linkTargetPropTypedef);
-    })
-    .map(ownerPropName => {
-      const ownerPropMeta = ownerPropsMeta[ownerPropName];
-      
-      const title = getString(
-        ownerMeta,
-        ownerPropMeta.textKey,
-        language,
-      );
-      
-      const subtitle = getString(
-        ownerMeta,
-        ownerPropMeta.descriptionTextKey,
-        language,
-      );
-      
-      return (
-        <DataItem
-          key={ownerPropName}
-          id={ownerPropName}
-          title={title || ownerPropName}
-          subtitle={subtitle}
-          type={ownerPropMeta.type}
-          clickable
-          arg={ownerPropName}
-          onClick={onSelect}
-        />
-      );
-    });
+  _handleBreadcrumbsClick(itemIndex) {
+    if (itemIndex === 0) this.props.onReturn();
+  }
   
-  return (
-    <DataList>
-      {items}
-    </DataList>
-  );
-};
+  render() {
+    const {
+      ownerMeta,
+      ownerPropName,
+      linkTargetPropTypedef,
+      language,
+      onSelect,
+    } = this.props;
+    
+    const ownerPropMeta = ownerMeta.props[ownerPropName],
+      ownerPropsMeta = ownerPropMeta.sourceConfigs.designer.props;
+  
+    const items = Object.keys(ownerPropsMeta)
+      .filter(ownerPropName => {
+        const ownerPropTypedef = resolveTypedef(
+          ownerMeta,
+          ownerPropsMeta[ownerPropName],
+        );
+      
+        return isCompatibleType(ownerPropTypedef, linkTargetPropTypedef);
+      })
+      .map(ownerPropName => {
+        const ownerPropMeta = ownerPropsMeta[ownerPropName];
+      
+        const title = getString(
+          ownerMeta,
+          ownerPropMeta.textKey,
+          language,
+        );
+      
+        const description = getString(
+          ownerMeta,
+          ownerPropMeta.descriptionTextKey,
+          language,
+        );
+      
+        return (
+          <DataItem
+            key={ownerPropName}
+            id={ownerPropName}
+            title={title || ownerPropName}
+            description={description}
+            type={ownerPropMeta.type}
+            clickable
+            arg={ownerPropName}
+            onSelect={onSelect}
+          />
+        );
+      });
+  
+    // TODO: Get strings from i18n
+    const breadcrumbsItems = [{
+      title: 'Data',
+    }, {
+      title: 'Owner component',
+    }];
+  
+    return (
+      <BlockContent>
+        <BlockContentNavigation>
+          <BlockBreadcrumbs
+            items={breadcrumbsItems}
+            mode="dark"
+            overflow
+            onItemClick={this._handleBreadcrumbsClick}
+          />
+        </BlockContentNavigation>
+      
+        <BlockContentBox isBordered>
+          <BlockContentBoxItem>
+            <DataList>
+              {items}
+            </DataList>
+          </BlockContentBoxItem>
+        </BlockContentBox>
+      </BlockContent>
+    );
+  }
+}
 
-OwnerComponentPropSelection.displayName = 'OwnerComponentPropSelection';
 OwnerComponentPropSelection.propTypes = propTypes;
 OwnerComponentPropSelection.defaultProps = defaultProps;
+OwnerComponentPropSelection.displayName = 'OwnerComponentPropSelection';

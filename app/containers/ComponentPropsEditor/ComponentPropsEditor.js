@@ -46,7 +46,6 @@ import {
   getComponentMeta,
   isCompatibleType,
   resolveTypedef,
-  isScalarType,
   getNestedTypedef,
   buildDefaultValue,
   isValidSourceForProp,
@@ -173,7 +172,13 @@ const transformValue = (componentMeta, propMeta, propValue) => {
 
   if (!linked) {
     if (propValue.source === 'static') {
-      if (isScalarType(typedef)) {
+      if (typedef.type === 'int' || typedef.type === 'float') {
+        value = String(propValue.sourceData.value);
+      } else if (
+        typedef.type === 'string' ||
+        typedef.type === 'bool' ||
+        typedef.type === 'oneOf'
+      ) {
         value = propValue.sourceData.value;
       } else if (typedef.type === 'shape') {
         value = _mapValues(typedef.fields, (fieldMeta, fieldName) =>

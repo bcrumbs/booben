@@ -6,6 +6,13 @@
 
 //noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
+
+import {
+  BlockContent,
+  BlockContentBox,
+  BlockContentBoxItem,
+} from '../../../components/BlockContent/BlockContent';
+
 import { DataList, DataItem } from '../../../components/DataList/DataList';
 import { noop } from '../../../utils/misc';
 
@@ -28,17 +35,25 @@ export const LinkSourceSelection = props => {
       key={item.id}
       id={item.id}
       title={item.title}
+      actionType="jump"
+      connection
       onSelect={props.onSelect}
     />
   ));
   
   return (
-    <DataList>
-      {items}
-    </DataList>
+    <BlockContent>
+      <BlockContentBox isBordered>
+        <BlockContentBoxItem>
+          <DataList>
+            {items}
+          </DataList>
+        </BlockContentBoxItem>
+      </BlockContentBox>
+    </BlockContent>
   );
 };
 
-LinkSourceSelection.displayName = 'LinkSourceSelection';
 LinkSourceSelection.propTypes = propTypes;
 LinkSourceSelection.defaultProps = defaultProps;
+LinkSourceSelection.displayName = 'LinkSourceSelection';

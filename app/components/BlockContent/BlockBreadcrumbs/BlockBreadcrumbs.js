@@ -2,7 +2,6 @@
 
 import React from 'react';
 import { Breadcrumbs } from '@reactackle/reactackle';
-
 import './BlockBreadcrumbs.scss';
 
 export const BlockBreadcrumbs = props => (
