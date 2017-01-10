@@ -1,8 +1,17 @@
 'use strict';
 
+//noinspection JSUnresolvedVariable
+import React, { PropTypes } from 'react';
+import { noop } from '../../utils/misc';
 import './ComponentsTree.scss';
 
-import React from 'react';
+const propTypes = {
+  createElementRef: PropTypes.func,
+};
+
+const defaultProps = {
+  createElementRef: noop,
+};
 
 export const ComponentsTree = props => (
   <div className="components-tree" ref={props.createElementRef}>
@@ -10,6 +19,8 @@ export const ComponentsTree = props => (
   </div>
 );
 
+ComponentsTree.propTypes = propTypes;
+ComponentsTree.defaultProps = defaultProps;
 ComponentsTree.displayName = 'ComponentsTree';
 
 export * from './ComponentsTreeList/ComponentsTreeList';

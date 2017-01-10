@@ -1,9 +1,25 @@
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import { Icon } from '@reactackle/reactackle';
 import { noop } from '../../../utils/misc';
+
+const propTypes = {
+  itemId: PropTypes.string,
+  title: PropTypes.string,
+  expanded: PropTypes.bool,
+  contentBlank: PropTypes.bool,
+  onToggleExpanded: PropTypes.func,
+};
+
+const defaultProps = {
+  itemId: '',
+  title: '',
+  expanded: false,
+  contentBlank: false,
+  onToggleExpanded: noop,
+};
 
 export class AccordionItem extends PureComponent {
   constructor(...args) {
@@ -48,20 +64,6 @@ export class AccordionItem extends PureComponent {
   }
 }
 
-AccordionItem.propTypes = {
-  itemId: PropTypes.string,
-  title: PropTypes.string,
-  expanded: PropTypes.bool,
-  contentBlank: PropTypes.bool,
-  onToggleExpanded: PropTypes.func,
-};
-
-AccordionItem.defaultProps = {
-  itemId: '',
-  title: '',
-  expanded: false,
-  contentBlank: false,
-  onToggleExpanded: noop,
-};
-
+AccordionItem.propTypes = propTypes;
+AccordionItem.defaultProps = defaultProps;
 AccordionItem.displayName = 'AccordionItem';

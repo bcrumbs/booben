@@ -1,6 +1,6 @@
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 import { TooltipIcon } from '@reactackle/reactackle';
 

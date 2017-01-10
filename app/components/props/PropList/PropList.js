@@ -34,13 +34,18 @@ export class PropList extends PropBase {
     this._handleChange = this._handleChange.bind(this);
   }
   
+  /**
+   *
+   * @param {*} newValue
+   * @private
+   */
   _handleChange(newValue) {
     this.props.onChange({ value: newValue });
   }
   
   //noinspection JSUnusedGlobalSymbols
   /**
-   * @return {ReactElement}
+   * @return {?ReactElement}
    * @override
    * @private
    */

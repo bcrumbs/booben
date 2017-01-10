@@ -39,7 +39,6 @@ const propTypes = {
   value: ValueShape.isRequired,
   disabled: PropTypes.bool,
   getLocalizedText: PropTypes.func,
-  
   onChange: PropTypes.func,
   onSetComponent: PropTypes.func,
   onAddValue: PropTypes.func,
@@ -52,7 +51,6 @@ const propTypes = {
 const defaultProps = {
   disabled: false,
   getLocalizedText: returnArg,
-  
   onChange: noop,
   onSetComponent: noop,
   onAddValue: noop,

@@ -5,7 +5,6 @@
 'use strict';
 
 import { Record, List, Map } from 'immutable';
-
 import { projectComponentToImmutable } from './ProjectComponent';
 
 const ProjectRouteRecord = Record({
@@ -25,7 +24,11 @@ const ProjectRouteRecord = Record({
   components: Map(),
 });
 
-export const projectRouteToImmutable = (input, fullPath, parentId) => new ProjectRouteRecord({
+export const projectRouteToImmutable = (
+  input,
+  fullPath,
+  parentId,
+) => new ProjectRouteRecord({
   id: input.id,
   parentId,
   path: input.path,
@@ -41,27 +44,35 @@ export const projectRouteToImmutable = (input, fullPath, parentId) => new Projec
   components: Map().withMutations(components => {
     const visitComponent = (component, isIndexRoute, parentId) => {
       components.set(
-                component.id,
-                projectComponentToImmutable(component, input.id, isIndexRoute, parentId),
-            );
+        component.id,
+        projectComponentToImmutable(
+          component,
+          input.id,
+          isIndexRoute,
+          parentId,
+        ),
+      );
 
       component.children.forEach(childComponent =>
-                visitComponent(childComponent, isIndexRoute, component.id));
+        visitComponent(childComponent, isIndexRoute, component.id));
     };
 
-    if (input.component !== null) visitComponent(input.component, false, -1);
-    if (input.indexComponent !== null) visitComponent(input.indexComponent, true, -1);
+    if (input.component !== null)
+      visitComponent(input.component, false, -1);
+    
+    if (input.indexComponent !== null)
+      visitComponent(input.indexComponent, true, -1);
   }),
 });
 
 export const getMaxComponentId = route =>
-    route.components.size > 0 ? route.components.keySeq().max() : -1;
+  route.components.size > 0 ? route.components.keySeq().max() : -1;
 
 export const getOutletComponentId = route =>
-    route.components.findKey(component => component.name === 'Outlet') || -1;
+  route.components.findKey(component => component.name === 'Outlet') || -1;
 
 export const getParentComponentId = (route, componentId) =>
-    route.components.get(componentId).parentId;
+  route.components.get(componentId).parentId;
 
 export const isRootRoute = route => route.parentId === -1;
 

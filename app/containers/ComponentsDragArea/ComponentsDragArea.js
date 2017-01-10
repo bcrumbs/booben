@@ -4,20 +4,18 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
-import React, { PureComponent, PropTypes } from 'react';
+//noinspection JSUnresolvedVariable
+import { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
-
 import { dropComponent, DROP_COMPONENT_AREA_IDS } from '../../actions/preview';
 
 /**
  *
  * @type {number}
- * @const
  */
 const OFFSET_DND_AVATAR = 10;
 
-class ComponentsDragAreaComponent extends PureComponent {
+class ComponentsDragAreaComponent extends Component {
   constructor(props) {
     super(props);
 
@@ -32,7 +30,12 @@ class ComponentsDragAreaComponent extends PureComponent {
     this._handleMouseUp = this._handleMouseUp.bind(this);
     this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
 
-    if (props.draggingComponent) this._handleStartDrag();
+    if (props.draggingComponent) {
+      this._handleStartDrag(
+        props.draggedComponents,
+        props.draggedComponentId,
+      );
+    }
   }
 
   componentDidMount() {
@@ -43,23 +46,25 @@ class ComponentsDragAreaComponent extends PureComponent {
     if (nextProps.draggingComponent) {
       if (!this.dragging) {
         this._handleStartDrag(
-                nextProps.draggedComponents,
-                nextProps.draggedComponentId,
-            );
+          nextProps.draggedComponents,
+          nextProps.draggedComponentId,
+        );
       }
-    } else if (this.dragging) { this._handleStopDrag(); }
+    } else if (this.dragging) {
+      this._handleStopDrag();
+    }
   }
 
   componentWillUnmount() {
     window.removeEventListener('mouseup', this._handleMouseUp);
   }
 
-    /**
-     *
-     * @param {Object} component
-     * @returns {HTMLElement}
-     * @private
-     */
+  /**
+   *
+   * @param {Object} component
+   * @returns {HTMLElement}
+   * @private
+   */
   _createAvatarElement(component) {
     const ret = document.createElement('div');
     ret.innerText = component.title || component.name;
@@ -68,28 +73,27 @@ class ComponentsDragAreaComponent extends PureComponent {
     return ret;
   }
 
-    /**
-     *
-     * @param {Immutable.Map} draggedComponents
-     * @param {number} draggedComponentId
-     * @private
-     */
+  /**
+   *
+   * @param {Immutable.Map} draggedComponents
+   * @param {number} draggedComponentId
+   * @private
+   */
   _handleStartDrag(draggedComponents, draggedComponentId) {
     window.addEventListener('mousemove', this._handleMouseMove);
-
-    const component = draggedComponents.get(
-            draggedComponentId > -1 ? draggedComponentId : 0,
-        );
+    
+    const componentId = draggedComponentId > -1 ? draggedComponentId : 0,
+      component = draggedComponents.get(componentId);
 
     this.avatarElement = this._createAvatarElement(component);
     document.body.appendChild(this.avatarElement);
     this.dragging = true;
   }
 
-    /**
-     *
-     * @private
-     */
+  /**
+   *
+   * @private
+   */
   _handleStopDrag() {
     window.removeEventListener('mousemove', this._handleMouseMove);
 
@@ -106,11 +110,11 @@ class ComponentsDragAreaComponent extends PureComponent {
     this.dragging = false;
   }
 
-    /**
-     *
-     * @param {MouseEvent} event
-     * @private
-     */
+  /**
+   *
+   * @param {MouseEvent} event
+   * @private
+   */
   _handleMouseMove(event) {
     this.posX = event.pageX + OFFSET_DND_AVATAR;
     this.posY = event.pageY + OFFSET_DND_AVATAR;
@@ -119,10 +123,15 @@ class ComponentsDragAreaComponent extends PureComponent {
       this.needRAF = false;
 
       this.animationFrame =
-                window.requestAnimationFrame(this._handleAnimationFrame);
+        window.requestAnimationFrame(this._handleAnimationFrame);
     }
   }
-
+  
+  /**
+   *
+   * @param {MouseEvent} event
+   * @private
+   */
   _handleMouseUp(event) {
     if (this.props.draggingComponent) {
       event.stopPropagation();
@@ -130,12 +139,14 @@ class ComponentsDragAreaComponent extends PureComponent {
     }
   }
 
-    /**
-     *
-     * @private
-     */
+  /**
+   *
+   * @private
+   */
   _handleAnimationFrame() {
-    this.avatarElement.style.transform = `translate(${this.posX}px, ${this.posY}px)`;
+    this.avatarElement.style.transform =
+      `translate(${this.posX}px, ${this.posY}px)`;
+    
     this.animationFrame = null;
     this.needRAF = true;
   }
@@ -145,10 +156,12 @@ class ComponentsDragAreaComponent extends PureComponent {
   }
 }
 
+//noinspection JSUnresolvedVariable
 ComponentsDragAreaComponent.propTypes = {
-  draggingComponent: PropTypes.bool,
-  draggedComponentId: PropTypes.number,
-  draggedComponents: PropTypes.any,
+  draggingComponent: PropTypes.bool.isRequired,
+  draggedComponentId: PropTypes.number.isRequired,
+  draggedComponents: PropTypes.any.isRequired,
+  onDropComponent: PropTypes.func.isRequired,
 };
 
 ComponentsDragAreaComponent.displayName = 'ComponentsDragArea';
@@ -164,5 +177,6 @@ const mapDispatchToProps = dispatch => ({
 });
 
 export const ComponentsDragArea = connect(
-    mapStateToProps, mapDispatchToProps,
+  mapStateToProps,
+  mapDispatchToProps,
 )(ComponentsDragAreaComponent);

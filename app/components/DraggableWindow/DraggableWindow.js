@@ -1,7 +1,25 @@
 'use strict';
 
-import './DraggableWindow.scss';
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
+import { noop } from '../../utils/misc';
+import './DraggableWindow.scss';
+
+const propTypes = {
+  isDragged: PropTypes.bool,
+  maxHeight: PropTypes.number,
+  minWidth: PropTypes.number,
+  zIndex: PropTypes.number,
+  onFocus: PropTypes.func,
+};
+
+const defaultProps = {
+  isDragged: false,
+  maxHeight: 0,
+  minWidth: 0,
+  zIndex: 0,
+  onFocus: noop,
+};
 
 export const DraggableWindow = props => {
   let className = 'draggable-window';
@@ -26,22 +44,8 @@ export const DraggableWindow = props => {
   );
 };
 
-DraggableWindow.propTypes = {
-  isDragged: PropTypes.bool,
-  maxHeight: PropTypes.number,
-  minWidth: PropTypes.number,
-  zIndex: PropTypes.number,
-  onFocus: PropTypes.func,
-};
-
-DraggableWindow.defaultProps = {
-  isDragged: false,
-  maxHeight: 0,
-  minWidth: 0,
-  zIndex: 0,
-  onFocus: /* istanbul ignore next */ () => {},
-};
-
+DraggableWindow.propTypes = propTypes;
+DraggableWindow.defaultProps = defaultProps;
 DraggableWindow.displayName = 'DraggableWindow';
 
 export * from './DraggableWindowRegion/DraggableWindowRegion';

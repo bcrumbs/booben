@@ -1,4 +1,5 @@
-import React, { PropTypes } from 'react';
+'use strict';
+
 import './ComponentInteractions.scss';
 
 export * from './ComponentActionEditing/ComponentActionEditing';

@@ -4,7 +4,7 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import { Icon, Checkbox, Tag } from '@reactackle/reactackle';
 import { PropLabel } from './PropLabel/PropLabel';
@@ -26,7 +26,6 @@ const propTypes = {
   checkable: PropTypes.bool,
   checked: PropTypes.bool,
   deletable: PropTypes.bool,
-
   onLink: PropTypes.func,
   onUnlink: PropTypes.func,
   onCheck: PropTypes.func,
@@ -47,7 +46,6 @@ const defaultProps = {
   checkable: false,
   checked: false,
   deletable: false,
-
   onLink: noop,
   onUnlink: noop,
   onCheck: noop,
@@ -138,7 +136,7 @@ export class PropBase extends PureComponent {
     
         let markIcon = null;
         if (this.props.requirementFulfilled) {
-          className += ' requirement-is-fullfilled';
+          className += ' requirement-is-fulfilled';
       
           markIcon = (
             <Icon name="check" />

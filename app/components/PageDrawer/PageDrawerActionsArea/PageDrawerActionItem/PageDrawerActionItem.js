@@ -1,33 +1,38 @@
 'use strict';
 
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import { Button } from '@reactackle/reactackle';
-import { combineWithTooltip } from
-    '@reactackle/reactackle/components/Tooltip/combineWithTooltip';
+
+import {
+  combineWithTooltip,
+} from '@reactackle/reactackle/components/Tooltip/combineWithTooltip';
+
+import { noop } from '../../../../utils/misc';
 
 /*
  * Combined with tooltip
  */
 
-const
-  propTypes = {
-    icon: PropTypes.string,
-    title: PropTypes.string,
-    isActive: PropTypes.bool,
-    onPress: PropTypes.func,
+const propTypes = {
+  icon: PropTypes.string,
+  title: PropTypes.string,
+  isActive: PropTypes.bool,
+  onPress: PropTypes.func,
 
-    toggleTooltip: PropTypes.func,
-    showTooltip: PropTypes.func,
-    hideTooltip: PropTypes.func,
-    isTooltipActive: PropTypes.bool,
-    Tooltip: PropTypes.func,
-  },
-  defaultProps = {
-    icon: null,
-    title: null,
-    isActive: false,
-    onPress: () => /* istanbul ignore next */ {},
-  };
+  toggleTooltip: PropTypes.func,
+  showTooltip: PropTypes.func,
+  hideTooltip: PropTypes.func,
+  isTooltipActive: PropTypes.bool,
+  Tooltip: PropTypes.func,
+};
+
+const defaultProps = {
+  icon: null,
+  title: null,
+  isActive: false,
+  onPress: noop,
+};
 
 class PageDrawerActionItemComponent extends PureComponent {
   constructor(props) {
@@ -68,4 +73,5 @@ PageDrawerActionItemComponent.propTypes = propTypes;
 PageDrawerActionItemComponent.defaultProps = defaultProps;
 PageDrawerActionItemComponent.displayName = 'PageDrawerActionItem';
 
-export const PageDrawerActionItem = combineWithTooltip(PageDrawerActionItemComponent, true);
+export const PageDrawerActionItem =
+  combineWithTooltip(PageDrawerActionItemComponent, true);

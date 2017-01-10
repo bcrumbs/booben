@@ -1,6 +1,6 @@
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 
 import {
@@ -9,6 +9,42 @@ import {
 } from '@reactackle/reactackle';
 
 import { noop, returnArg } from '../../../utils/misc';
+
+const propTypes = {
+  id: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
+  description: PropTypes.string,
+  type: PropTypes.string,
+  tooltip: PropTypes.string,
+  actionType: PropTypes.oneOf(['jump', 'select']),
+  argsButton: PropTypes.bool,
+  chosen: PropTypes.bool,
+  state: PropTypes.oneOf(['error', 'success']),
+  connection: PropTypes.bool,
+  canBeApplied: PropTypes.bool,
+  getLocalizedText: PropTypes.func,
+  onSelect: PropTypes.func,
+  onSetArgumentsClick: PropTypes.func,
+  onApplyClick: PropTypes.func,
+  onJumpIntoClick: PropTypes.func,
+};
+
+const defaultProps = {
+  description: '',
+  type: '',
+  tooltip: '',
+  actionType: 'select',
+  argsButton: false,
+  chosen: false,
+  state: null,
+  connection: false,
+  canBeApplied: false,
+  getLocalizedText: returnArg,
+  onSelect: noop,
+  onSetArgumentsClick: noop,
+  onApplyClick: noop,
+  onJumpIntoClick: noop,
+};
 
 export class DataItem extends PureComponent {
   constructor(props) {
@@ -120,42 +156,6 @@ export class DataItem extends PureComponent {
   }
 }
 
-DataItem.propTypes = {
-  id: PropTypes.string.isRequired,
-  title: PropTypes.string.isRequired,
-  description: PropTypes.string,
-  type: PropTypes.string,
-  tooltip: PropTypes.string,
-  actionType: PropTypes.oneOf(['jump', 'select']),
-  argsButton: PropTypes.bool,
-  chosen: PropTypes.bool,
-  state: PropTypes.oneOf(['error', 'success']),
-  connection: PropTypes.bool,
-  canBeApplied: PropTypes.bool,
-  getLocalizedText: PropTypes.func,
-
-  onSelect: PropTypes.func,
-  onSetArgumentsClick: PropTypes.func,
-  onApplyClick: PropTypes.func,
-  onJumpIntoClick: PropTypes.func,
-};
-
-DataItem.defaultProps = {
-  description: '',
-  type: '',
-  tooltip: '',
-  actionType: 'select',
-  argsButton: false,
-  chosen: false,
-  state: null,
-  connection: false,
-  canBeApplied: false,
-  getLocalizedText: returnArg,
-
-  onSelect: noop,
-  onSetArgumentsClick: noop,
-  onApplyClick: noop,
-  onJumpIntoClick: noop,
-};
-
+DataItem.propTypes = propTypes;
+DataItem.defaultProps = defaultProps;
 DataItem.displayName = 'DataItem';

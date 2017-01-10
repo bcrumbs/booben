@@ -1,3 +1,5 @@
+// TODO: Figure out WTF is this
+
 'use strict';
 
 import React, { PureComponent, PropTypes } from 'react';

@@ -5,9 +5,10 @@
 'use strict';
 
 import { Record } from 'immutable';
+import { returnNull } from '../utils/misc';
 
 export default Record({
   name: '',
-  component: () => null,
-  sideRegionComponent: () => null,
+  component: returnNull,
+  sideRegionComponent: returnNull,
 });

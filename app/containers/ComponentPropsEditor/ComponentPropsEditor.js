@@ -4,7 +4,7 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
@@ -55,6 +55,7 @@ import { NO_VALUE } from '../../constants/misc';
 import { getLocalizedTextFromState } from '../../utils';
 import { objectSome } from '../../utils/misc';
 
+//noinspection JSUnresolvedVariable
 const propTypes = {
   meta: PropTypes.object.isRequired,
   components: ImmutablePropTypes.mapOf(
@@ -516,6 +517,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     const { getLocalizedText } = this.props;
 
     if (this.props.selectedComponentIds.size === 0) {
+      //noinspection JSCheckFunctionSignatures
       return (
         <BlockContentPlaceholder
           text={getLocalizedText('selectAComponent')}
@@ -524,6 +526,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     }
 
     if (this.props.selectedComponentIds.size > 1) {
+      //noinspection JSCheckFunctionSignatures
       return (
         <BlockContentPlaceholder
           text={getLocalizedText('multipleComponentsSelected')}
@@ -556,6 +559,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       .filter(propName => isRenderableProp(componentMeta.props[propName]));
 
     if (renderablePropNames.length === 0) {
+      //noinspection JSCheckFunctionSignatures
       return (
         <BlockContentPlaceholder
           text={getLocalizedText('thisComponentDoesntHaveEditableAttributes')}

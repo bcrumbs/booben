@@ -1,32 +1,38 @@
-import React, { PropTypes } from 'react';
-import { ComponentActionListItem } from './ComponentActionListItem/ComponentActionListItem';
+'use strict';
 
-const
-  propTypes = {
-    items: PropTypes.arrayOf(
-            PropTypes.shape({
-              title: PropTypes.string,
-              description: PropTypes.string.isRequired,
-            }),
-        ).isRequired,
-  },
-  defaultProps = {
-    items: [],
-  };
+//noinspection JSUnresolvedVariable
+import React, { PropTypes } from 'react';
+
+import {
+  ComponentActionListItem,
+} from './ComponentActionListItem/ComponentActionListItem';
+
+const propTypes = {
+  items: PropTypes.arrayOf(PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    title: PropTypes.string.isRequired,
+    description: PropTypes.string.isRequired,
+  })),
+};
+
+const defaultProps = {
+  items: [],
+};
 
 export const ComponentActionsList = props => {
   const className = 'component-actions-list';
 
-  const ActionsList = props.items.map((item, idx, array) => (
+  const actionsList = props.items.map(item => (
     <ComponentActionListItem
+      key={item.id}
       title={item.title}
       description={item.description}
     />
-    ));
+  ));
 
   return (
     <div className={className}>
-      { ActionsList }
+      {actionsList}
     </div>
   );
 };

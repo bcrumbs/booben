@@ -1,14 +1,13 @@
 'use strict';
 
+//noinspection JSUnresolvedVariable
+import React from 'react';
 import './ComponentLayoutSelection.scss';
 
-// noinspection JSUnresolvedVariable
-import React, { PureComponent, PropTypes } from 'react';
-
-export const ComponentLayoutSelection = props => (
+export const ComponentLayoutSelection = ({ children }) => (
   <div className="component-layout-selection-wrapper">
     <div className="component-layout-selection-list">
-      {props.children}
+      {children}
     </div>
   </div>
 );

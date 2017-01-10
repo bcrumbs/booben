@@ -1,8 +1,7 @@
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
-
 import { autoScrollUpDown } from '../../../hocs/autoScrollUpDown';
 import { noop } from '../../../utils/misc';
 

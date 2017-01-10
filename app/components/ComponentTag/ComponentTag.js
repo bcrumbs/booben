@@ -1,10 +1,23 @@
 'use strict';
 
-import './ComponentTag.scss';
-
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 import { noop } from '../../utils/misc';
+import './ComponentTag.scss';
+
+const propTypes = {
+  image: PropTypes.string,
+  title: PropTypes.string,
+  focused: PropTypes.bool,
+  onStartDrag: PropTypes.func,
+};
+
+const defaultProps = {
+  image: '',
+  title: '',
+  focused: false,
+  onStartDrag: noop,
+};
 
 export const ComponentTag = props => {
   let className = 'component-tag-box';
@@ -17,7 +30,7 @@ export const ComponentTag = props => {
     >
       <div className="component-tag">
         <picture className="component-tag-image">
-          <img src={props.image} />
+          <img src={props.image} alt="" role="presentation" />
         </picture>
 
         <div className="component-tag-title-box">
@@ -30,22 +43,8 @@ export const ComponentTag = props => {
   );
 };
 
-ComponentTag.propTypes = {
-  image: PropTypes.string,
-  title: PropTypes.string,
-  focused: PropTypes.bool,
-
-  onStartDrag: PropTypes.func,
-};
-
-ComponentTag.defaultProps = {
-  image: '',
-  title: '',
-  focused: false,
-
-  onStartDrag: noop,
-};
-
+ComponentTag.propTypes = propTypes;
+ComponentTag.defaultProps = defaultProps;
 ComponentTag.displayName = 'ComponentTag';
 
 export * from './ComponentTagWrapper/ComponentTagWrapper';

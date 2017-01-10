@@ -2,9 +2,9 @@
 
 import React from 'react';
 
-export const ComponentsTreeList = props => (
+export const ComponentsTreeList = ({ children }) => (
   <ul className="components-tree-list">
-    {props.children}
+    {children}
   </ul>
 );
 

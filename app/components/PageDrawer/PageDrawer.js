@@ -1,7 +1,33 @@
+'use strict';
+
+//noinspection JSUnresolvedVariable
+import React, { PropTypes } from 'react';
+
+import {
+  PageDrawerActionsArea,
+} from './PageDrawerActionsArea/PageDrawerActionsArea';
+
 import './PageDrawer.scss';
 
-import React, { PropTypes } from 'react';
-import { PageDrawerActionsArea } from './PageDrawerActionsArea/PageDrawerActionsArea';
+// TODO: Figure out WTF is going on here
+
+const propTypes = {
+  defaultExpanded: PropTypes.bool,
+  isExpanded: PropTypes.bool,
+  isEmpty: PropTypes.bool,
+  title: PropTypes.string,
+  collapseButtonText: PropTypes.string,
+  mode: PropTypes.oneOf(['overlay', 'shift', 'resize']),
+};
+
+const defaultProps = {
+  defaultExpanded: true,
+  isExpanded: true,
+  isEmpty: true,
+  title: '',
+  collapseButtonText: 'collapse',
+  mode: 'resize',
+};
 
 export const PageDrawer = props => {
   let className = 'page-drawer',
@@ -30,16 +56,16 @@ export const PageDrawer = props => {
 
   let collapseButton = null;
   if (props.collapseButtonText) {
-    collapseButton =
-            (<a className="page-drawer-collapse-button" >
-              {props.collapseButtonText}
-            </a>);
+    collapseButton = (
+      <a className="page-drawer-collapse-button" >
+        {props.collapseButtonText}
+      </a>
+    );
   }
 
-  let actions = null;
-  if (props.actions)
-    actions = props.data.map(item => getActions(item));
-
+  const actions = props.actions
+    ? props.data.map(item => getActions(item))
+    : null;
 
   let actionsArea = null;
   if (props.actionsType || collapseButton) {
@@ -48,36 +74,20 @@ export const PageDrawer = props => {
         {collapseButton}
         {actions}
       </PageDrawerActionsArea>
-        );
+    );
   }
 
   return (
     <div className={className}>
       <div className="page-drawer-wrapper">
-        { props.children }
+        {props.children}
       </div>
     </div>
   );
 };
 
-PageDrawer.propTypes = {
-  defaultExpanded: PropTypes.bool,
-  isExpanded: PropTypes.bool,
-  isEmpty: PropTypes.bool,
-  title: PropTypes.string,
-  collapseButtonText: PropTypes.string,
-  mode: PropTypes.oneOf(['overlay', 'shift', 'resize']),
-};
-
-PageDrawer.defaultProps = {
-  defaultExpanded: true,
-  isExpanded: true,
-  isEmpty: true,
-  title: '',
-  collapseButtonText: 'collapse',
-  mode: 'resize',
-};
-
+PageDrawer.propTypes = propTypes;
+PageDrawer.defaultProps = defaultProps;
 PageDrawer.displayName = 'PageDrawer';
 
 export * from './PageDrawerActionsArea/PageDrawerActionsArea';

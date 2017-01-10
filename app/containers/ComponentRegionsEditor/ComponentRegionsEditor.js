@@ -4,14 +4,14 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
 import {
-    BlockContentBox,
-    BlockContentBoxItem,
+  BlockContentBox,
+  BlockContentBoxItem,
 } from '../../components/BlockContent/BlockContent';
 
 import { PropsList } from '../../components/PropsList/PropsList';
@@ -20,13 +20,13 @@ import ProjectComponent from '../../models/ProjectComponent';
 import { toggleComponentRegion } from '../../actions/project';
 
 import {
-    currentComponentsSelector,
-    currentSelectedComponentIdsSelector,
+  currentComponentsSelector,
+  currentSelectedComponentIdsSelector,
 } from '../../selectors';
 
 import { getComponentMeta, getString } from '../../utils/meta';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import defaultRegionIcon from '../../img/layout_default.svg';
 
 class ComponentRegionsEditorComponent extends PureComponent {
@@ -70,6 +70,7 @@ class ComponentRegionsEditorComponent extends PureComponent {
   }
 }
 
+//noinspection JSUnresolvedVariable
 ComponentRegionsEditorComponent.propTypes = {
   meta: PropTypes.object.isRequired,
   currentComponents: ImmutablePropTypes.mapOf(
@@ -78,7 +79,6 @@ ComponentRegionsEditorComponent.propTypes = {
   ).isRequired,
   selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number).isRequired,
   language: PropTypes.string.isRequired,
-
   onToggleRegion: PropTypes.func.isRequired,
 };
 

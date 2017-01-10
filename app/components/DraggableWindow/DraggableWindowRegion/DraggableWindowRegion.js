@@ -1,4 +1,15 @@
+'use strict';
+
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
+
+const propTypes = {
+  type: PropTypes.oneOf(['main', 'aside']),
+};
+
+const defaultProps = {
+  type: 'main',
+};
 
 export const DraggableWindowRegion = props => {
   let className = 'draggable-window-region';
@@ -11,12 +22,6 @@ export const DraggableWindowRegion = props => {
   );
 };
 
-DraggableWindowRegion.propTypes = {
-  type: PropTypes.oneOf(['main', 'aside']),
-};
-
-DraggableWindowRegion.defaultProps = {
-  type: 'main',
-};
-
+DraggableWindowRegion.propTypes = propTypes;
+DraggableWindowRegion.defaultProps = defaultProps;
 DraggableWindowRegion.displayName = 'DraggableWindowRegion';

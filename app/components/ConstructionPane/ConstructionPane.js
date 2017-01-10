@@ -6,8 +6,8 @@ const DIMENSION_DEFAULT = '300px';
 const DIMENSION_TOLERANCE = '50px';
 
 /*
-    PANE RULERS
-    (we'll postpone it till better times)
+  PANE RULERS
+  (we'll postpone it till better times)
 */
 const PaneRuler = props => {
   const rulerPoints = false;

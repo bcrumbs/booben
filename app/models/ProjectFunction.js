@@ -15,6 +15,8 @@ export const ProjectFunctionArgument = Record({
   defaultValue: null,
 });
 
+/* eslint-disable no-new-func */
+
 const ProjectFunction = Record({
   title: '',
   description: '',
@@ -31,10 +33,12 @@ export const projectFunctionToImmutable = input => new ProjectFunction({
   body: input.body,
   returnType: input.returnType,
   fn: new Function(
-        ...input.args.map(arg => arg.name),
-        FUNCTION_FNS_ARG_NAME,
-        input.body,
-    ),
+    ...input.args.map(arg => arg.name),
+    FUNCTION_FNS_ARG_NAME,
+    input.body,
+  ),
 });
+
+/* eslint-enable no-new-func */
 
 export default ProjectFunction;

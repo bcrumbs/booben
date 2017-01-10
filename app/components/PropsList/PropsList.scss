@@ -280,7 +280,7 @@ $prop-toggle: 'prop-type-toggle';
 
             @include icon-style($white);
 
-            .requirement-is-fullfilled & {
+            .requirement-is-fulfilled & {
                 background-color: $color-success;
             }
         }

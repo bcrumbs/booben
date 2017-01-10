@@ -30,6 +30,11 @@ export class PropInput extends PropBase {
     this._handleChange = this._handleChange.bind(this);
   }
   
+  /**
+   *
+   * @param {string} newValue
+   * @private
+   */
   _handleChange(newValue) {
     this.props.onChange({ value: this.props.transformValue(newValue) });
   }
@@ -37,7 +42,7 @@ export class PropInput extends PropBase {
   //noinspection JSUnusedGlobalSymbols
   /**
    *
-   * @return {ReactElement}
+   * @return {?ReactElement}
    * @override
    * @private
    */

@@ -2,8 +2,20 @@
 
 // noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
-
 import './PreviewIFrame.scss';
+
+const propTypes = {
+  url: PropTypes.string.isRequired,
+  store: PropTypes.any,
+  interactive: PropTypes.bool,
+  containerStyle: PropTypes.string,
+};
+
+const defaultProps = {
+  store: {},
+  interactive: false,
+  containerStyle: '',
+};
 
 const EVENTS_FOR_PARENT_FRAME = [
   'mousemove',
@@ -28,15 +40,20 @@ export class PreviewIFrame extends PureComponent {
   }
 
   componentDidMount() {
-    const contentWindow = this._iframe.contentWindow,
-      { store, interactive, containerStyle } = this.props;
+    const {
+      store,
+      interactive,
+      containerStyle,
+    } = this.props;
+  
+    const contentWindow = this._iframe.contentWindow;
 
-        // Re-dispatch events from iframe to parent frame
+    // Re-dispatch events from iframe to parent frame
     EVENTS_FOR_PARENT_FRAME.forEach(eventName => {
       contentWindow.addEventListener(eventName, event => {
         const boundingClientRect = this._iframe.getBoundingClientRect();
 
-                // noinspection JSCheckFunctionSignatures
+        //noinspection JSCheckFunctionSignatures
         const evt = new CustomEvent(eventName, {
           bubbles: true,
           cancelable: false,
@@ -54,14 +71,14 @@ export class PreviewIFrame extends PureComponent {
 
     contentWindow.addEventListener('DOMContentLoaded', () => {
       if (contentWindow.JSSY) {
-                // noinspection JSCheckFunctionSignatures
+        //noinspection JSCheckFunctionSignatures
         contentWindow.JSSY.initPreview({
           store,
           interactive,
           containerStyle,
         });
       } else {
-                // TODO: Show warning?
+        // TODO: Show warning?
       }
 
       this.setState({ loaded: true });
@@ -77,7 +94,7 @@ export class PreviewIFrame extends PureComponent {
   }
 
   render() {
-        // TODO: Render preloader if this.state.loaded === false
+    // TODO: Render preloader if this.state.loaded === false
 
     return (
       <section className="preview-iframe-wrapper">
@@ -91,18 +108,6 @@ export class PreviewIFrame extends PureComponent {
   }
 }
 
+PreviewIFrame.propTypes = propTypes;
+PreviewIFrame.defaultProps = defaultProps;
 PreviewIFrame.displayName = 'PreviewIFrame';
-
-PreviewIFrame.propTypes = {
-  url: PropTypes.string.isRequired,
-  store: PropTypes.any,
-  interactive: PropTypes.bool,
-  containerStyle: PropTypes.string,
-};
-
-PreviewIFrame.defaultProps = {
-  url: '',
-  store: {},
-  interactive: false,
-  containerStyle: '',
-};

@@ -4,7 +4,7 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
 import store from '../store';

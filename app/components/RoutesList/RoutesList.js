@@ -1,9 +1,8 @@
 'use strict';
 
-import './RoutesList.scss';
-
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
+import './RoutesList.scss';
 
 export const RoutesList = props => (
   <ul className="routes-list-wrapper">

@@ -557,7 +557,6 @@ StructureRoute.propTypes = {
   projectName: PropTypes.string.isRequired,
   selectedRouteId: PropTypes.number.isRequired,
   indexRouteSelected: PropTypes.bool.isRequired,
-
   getLocalizedText: PropTypes.func.isRequired,
   onSelectRoute: PropTypes.func.isRequired,
   onCreateRoute: PropTypes.func.isRequired,
@@ -578,13 +577,10 @@ const mapStateToProps = ({ project, app }) => ({
 const mapDispatchToProps = dispatch => ({
   onSelectRoute: (route, indexRouteSelected) =>
     void dispatch(selectRoute(route ? route.id : -1, indexRouteSelected)),
-
   onCreateRoute: (parentRouteId, path, title) =>
     void dispatch(createRoute(parentRouteId, path, title)),
-
   onDeleteRoute: routeId =>
     void dispatch(deleteRoute(routeId)),
-
   onRenameRoute: (routeId, newTitle) =>
     void dispatch(updateRouteField(routeId, 'title', newTitle)),
 });

@@ -4,19 +4,58 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import { Icon } from '@reactackle/reactackle';
 import { noop } from '../../../utils/misc';
 
+const propTypes = {
+  title: PropTypes.string,
+  subtitle: PropTypes.string,
+  isIndex: PropTypes.bool,
+  redirect: PropTypes.bool,
+  focused: PropTypes.bool,
+  onFocus: PropTypes.func,
+  onGo: PropTypes.func,
+};
+
+const defaultProps = {
+  title: '',
+  subtitle: '',
+  isIndex: false,
+  redirect: false,
+  focused: false,
+  onFocus: noop,
+  onGo: noop,
+};
+
 export class RouteCard extends PureComponent {
   constructor(props) {
     super(props);
-    this._refCallback = this._refCallback.bind(this);
+    this._element = null;
+    this._saveRef = this._saveRef.bind(this);
+  }
+  
+  componentDidMount() {
+    this._element.addEventListener('dblclick', this.props.onGo);
+  }
+  
+  componentWillUpdate(nextProps) {
+    if (nextProps.onGo !== this.props.onGo)
+      this._element.removeEventListener('dblclick', this.props.onGo);
+  }
+  
+  componentDidUpdate(prevProps) {
+    if (prevProps.onGo !== this.props.onGo)
+      this._element.addEventListener('dblclick', this.props.onGo);
+  }
+  
+  componentWillUnmount() {
+    this._element.removeEventListener('dblclick', this.props.onGo);
   }
 
-  _refCallback(el) {
-    if (el) el.addEventListener('dblclick', this.props.onGo);
+  _saveRef(el) {
+    this._element = el;
   }
 
   render() {
@@ -50,7 +89,7 @@ export class RouteCard extends PureComponent {
             className="route-card"
             tabIndex="0"
             onClick={this.props.onFocus}
-            ref={this._refCallback}
+            ref={this._saveRef}
           >
             <div className="route-card-content">
               <div className="route-title-box">
@@ -69,24 +108,6 @@ export class RouteCard extends PureComponent {
   }
 }
 
-RouteCard.propTypes = {
-  title: PropTypes.string,
-  subtitle: PropTypes.string,
-  isIndex: PropTypes.bool,
-  redirect: PropTypes.bool,
-  focused: PropTypes.bool,
-  onFocus: PropTypes.func,
-  onGo: PropTypes.func,
-};
-
-RouteCard.defaultProps = {
-  title: '',
-  subtitle: '',
-  isIndex: false,
-  redirect: false,
-  focused: false,
-  onFocus: noop,
-  onGo: noop,
-};
-
+RouteCard.propTypes = propTypes;
+RouteCard.defaultProps = defaultProps;
 RouteCard.displayName = 'RouteCard';

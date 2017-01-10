@@ -1,8 +1,24 @@
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import { noop } from '../../../utils/misc';
+
+const propTypes = {
+  layoutIdx: PropTypes.number,
+  image: PropTypes.string,
+  title: PropTypes.string,
+  subtitle: PropTypes.string,
+  onSelect: PropTypes.func,
+};
+
+const defaultProps = {
+  layoutIdx: -1,
+  image: '',
+  title: '',
+  subtitle: '',
+  onSelect: noop,
+};
 
 export class ComponentLayoutSelectionItem extends PureComponent {
   constructor(props) {
@@ -46,20 +62,6 @@ export class ComponentLayoutSelectionItem extends PureComponent {
   }
 }
 
-ComponentLayoutSelectionItem.propTypes = {
-  layoutIdx: PropTypes.number,
-  image: PropTypes.string,
-  title: PropTypes.string,
-  subtitle: PropTypes.string,
-  onSelect: PropTypes.func,
-};
-
-ComponentLayoutSelectionItem.defaultProps = {
-  layoutIdx: -1,
-  image: '',
-  title: '',
-  subtitle: '',
-  onSelect: noop,
-};
-
+ComponentLayoutSelectionItem.propTypes = propTypes;
+ComponentLayoutSelectionItem.defaultProps = defaultProps;
 ComponentLayoutSelectionItem.displayName = 'ComponentLayoutSelectionItem';

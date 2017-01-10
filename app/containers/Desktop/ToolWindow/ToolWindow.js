@@ -4,37 +4,81 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
+import { List } from 'immutable';
+import throttle from 'lodash.throttle';
 
 import {
-    DraggableWindow,
-    DraggableWindowRegion,
+  Button,
+  Tabs,
+  Tab,
+} from '@reactackle/reactackle';
+
+import {
+  DraggableWindow,
+  DraggableWindowRegion,
 } from '../../../components/DraggableWindow/DraggableWindow';
 
 import {
-    BlockContent,
-    BlockContentTitle,
-    BlockContentNavigation,
-    BlockContentActions,
-    BlockContentActionsRegion,
+  BlockContent,
+  BlockContentTitle,
+  BlockContentNavigation,
+  BlockContentActions,
+  BlockContentActionsRegion,
 } from '../../../components/BlockContent/BlockContent';
-
-import {
-    Button,
-    Tabs,
-    Tab,
-} from '@reactackle/reactackle';
-
-import { List } from 'immutable';
 
 import ButtonType from '../../../models/Button';
 import ToolType from '../../../models/Tool';
 import ToolStateType from '../../../models/ToolState';
 
-import throttle from 'lodash.throttle';
 import { noop } from '../../../utils/misc';
+
+//noinspection JSUnresolvedVariable
+const propTypes = {
+  tool: PropTypes.instanceOf(ToolType).isRequired,
+  toolState: PropTypes.instanceOf(ToolStateType).isRequired,
+  constrainPosition: PropTypes.bool,
+  marginLeft: PropTypes.number,
+  marginRight: PropTypes.number,
+  marginTop: PropTypes.number,
+  marginBottom: PropTypes.number,
+  stickRegionLeft: PropTypes.number,
+  stickRegionRight: PropTypes.number,
+  stickRegionTop: PropTypes.number,
+  stickRegionBottom: PropTypes.number,
+  onTitleChange: PropTypes.func,
+  onClose: PropTypes.func,
+  onDock: PropTypes.func,
+  onFocus: PropTypes.func,
+  onStartDrag: PropTypes.func,
+  onStopDrag: PropTypes.func,
+  onStickRegionEnter: PropTypes.func,
+  onStickRegionLeave: PropTypes.func,
+  onActiveSectionChange: PropTypes.func,
+};
+
+const defaultProps = {
+  constrainPosition: true,
+  marginLeft: 0,
+  marginRight: 0,
+  marginTop: 0,
+  marginBottom: 0,
+  stickRegionLeft: 0,
+  stickRegionRight: 0,
+  stickRegionTop: 0,
+  stickRegionBottom: 0,
+  onTitleChange: noop,
+  onClose: noop,
+  onDock: noop,
+  onFocus: noop,
+  onStartDrag: noop,
+  onStopDrag: noop,
+  onStickRegionEnter: noop,
+  onStickRegionLeave: noop,
+  onActiveSectionChange: noop,
+};
 
 export const STICK_REGION_LEFT = 0;
 export const STICK_REGION_RIGHT = 1;
@@ -61,7 +105,10 @@ export class ToolWindow extends PureComponent {
   }
 
   componentDidMount() {
+    /* eslint-disable react/no-find-dom-node */
     this.domNode = ReactDOM.findDOMNode(this);
+    /* eslint-enable react/no-find-dom-node */
+    
     this.currentTranslateX = 0;
     this.currentTranslateY = 0;
     this.dragStartDiffX = 0;
@@ -78,12 +125,12 @@ export class ToolWindow extends PureComponent {
     this._updateActionsAreaBorder();
   }
 
-  componentWillUnmount() {
-    this.domNode = null;
-  }
-
   componentDidUpdate() {
     this._updateActionsAreaBorder();
+  }
+  
+  componentWillUnmount() {
+    this.domNode = null;
   }
 
   _handleMouseMove(event) {
@@ -102,7 +149,7 @@ export class ToolWindow extends PureComponent {
     if (this.needRAF) {
       this.needRAF = false;
       this.animationFrame =
-                window.requestAnimationFrame(this._handleAnimationFrame);
+        window.requestAnimationFrame(this._handleAnimationFrame);
     }
 
     this._updateStickRegion();
@@ -110,15 +157,15 @@ export class ToolWindow extends PureComponent {
 
   _updateActionsAreaBorder() {
     const haveActionsArea =
-            this.props.tool.mainButtons.size > 0 ||
-            this.props.tool.secondaryButtons.size > 0;
+      this.props.tool.mainButtons.size > 0 ||
+      this.props.tool.secondaryButtons.size > 0;
 
     let needBorder = false;
 
     if (haveActionsArea) {
-            // Ugly hack
+      // Ugly hack
       const actionsAreaEl =
-                this.domNode.querySelector('.block-content-actions-area');
+        this.domNode.querySelector('.block-content-actions-area');
 
       if (actionsAreaEl) {
         const contentAreaEl = actionsAreaEl.previousElementSibling;
@@ -128,43 +175,57 @@ export class ToolWindow extends PureComponent {
       }
     }
 
-    if (this.state.actionsAreaHasBorder !== needBorder) {
-      this.setState({
-        actionsAreaHasBorder: needBorder,
-      });
-    }
+    if (this.state.actionsAreaHasBorder !== needBorder)
+      this.setState({ actionsAreaHasBorder: needBorder });
   }
 
   _updateStickRegion() {
     const {
-            width,
-            height,
-            containerWidth,
-            containerHeight,
-        } = this;
+      width,
+      height,
+      containerWidth,
+      containerHeight,
+    } = this;
 
     const isInStickRegion = {
       left: this.dx < this.props.marginLeft + this.props.stickRegionLeft,
-      right: this.dx > containerWidth - width - this.props.marginRight - this.props.stickRegionRight,
+      
+      right: this.dx > containerWidth - width
+        - this.props.marginRight - this.props.stickRegionRight,
+      
       top: this.dy < this.props.marginTop + this.props.stickRegionTop,
-      bottom: this.dy > containerHeight - height - this.props.marginBottom - this.props.stickRegionBottom,
+      
+      bottom: this.dy > containerHeight - height
+        - this.props.marginBottom - this.props.stickRegionBottom,
     };
 
     if (this.inStickRegionLeft) {
-      if (!isInStickRegion.left) this.props.onStickRegionLeave(STICK_REGION_LEFT);
-    } else if (isInStickRegion.left) { this.props.onStickRegionEnter(STICK_REGION_LEFT); }
+      if (!isInStickRegion.left)
+        this.props.onStickRegionLeave(STICK_REGION_LEFT);
+    } else if (isInStickRegion.left) {
+      this.props.onStickRegionEnter(STICK_REGION_LEFT);
+    }
 
     if (this.inStickRegionRight) {
-      if (!isInStickRegion.right) this.props.onStickRegionLeave(STICK_REGION_RIGHT);
-    } else if (isInStickRegion.right) { this.props.onStickRegionEnter(STICK_REGION_RIGHT); }
+      if (!isInStickRegion.right)
+        this.props.onStickRegionLeave(STICK_REGION_RIGHT);
+    } else if (isInStickRegion.right) {
+      this.props.onStickRegionEnter(STICK_REGION_RIGHT);
+    }
 
     if (this.inStickRegionTop) {
-      if (!isInStickRegion.top) this.props.onStickRegionLeave(STICK_REGION_TOP);
-    } else if (isInStickRegion.top) { this.props.onStickRegionEnter(STICK_REGION_TOP); }
+      if (!isInStickRegion.top)
+        this.props.onStickRegionLeave(STICK_REGION_TOP);
+    } else if (isInStickRegion.top) {
+      this.props.onStickRegionEnter(STICK_REGION_TOP);
+    }
 
     if (this.inStickRegionBottom) {
-      if (!isInStickRegion.bottom) this.props.onStickRegionLeave(STICK_REGION_BOTTOM);
-    } else if (isInStickRegion.bottom) { this.props.onStickRegionEnter(STICK_REGION_BOTTOM); }
+      if (!isInStickRegion.bottom)
+        this.props.onStickRegionLeave(STICK_REGION_BOTTOM);
+    } else if (isInStickRegion.bottom) {
+      this.props.onStickRegionEnter(STICK_REGION_BOTTOM);
+    }
 
     this.inStickRegionLeft = isInStickRegion.left;
     this.inStickRegionRight = isInStickRegion.right;
@@ -178,6 +239,7 @@ export class ToolWindow extends PureComponent {
 
     this.width = this.domNode.clientWidth;
     this.height = this.domNode.clientHeight;
+    //noinspection JSUnresolvedVariable
     this.container = this.domNode.parentNode;
     this.containerWidth = this.container.clientWidth;
     this.containerHeight = this.container.clientHeight;
@@ -222,6 +284,17 @@ export class ToolWindow extends PureComponent {
   _handleNavigation(newActiveSection) {
     this.props.onActiveSectionChange(newActiveSection);
   }
+  
+  _renderButtons(buttons) {
+    return buttons.map(({ icon, text, onPress }, idx) => (
+      <Button
+        key={String(idx)}
+        icon={icon}
+        text={text}
+        onPress={onPress}
+      />
+    ));
+  }
 
   render() {
     const { tool, toolState } = this.props;
@@ -232,8 +305,8 @@ export class ToolWindow extends PureComponent {
 
     if (sectionsNum > 1) {
       const tabs = sections.map((section, idx) => (
-        <Tab key={idx} text={section.name} />
-            ));
+        <Tab key={String(idx)} text={section.name} />
+      ));
 
       navArea = (
         <BlockContentNavigation>
@@ -245,7 +318,7 @@ export class ToolWindow extends PureComponent {
             {tabs}
           </Tabs>
         </BlockContentNavigation>
-            );
+      );
     }
 
     let actionsArea = null;
@@ -257,38 +330,24 @@ export class ToolWindow extends PureComponent {
     if (mainButtonsNum > 0 || secondaryButtonsNum > 0) {
       let mainActionsRegion = null;
       if (mainButtonsNum > 0) {
-        const buttons = mainButtons.map((button, idx) => (
-          <Button
-            key={idx}
-            icon={button.icon}
-            text={button.text}
-            onPress={button.onPress}
-          />
-                ));
+        const buttons = this._renderButtons(mainButtons);
 
         mainActionsRegion = (
           <BlockContentActionsRegion type="main">
             {buttons}
           </BlockContentActionsRegion>
-                );
+        );
       }
 
       let secondaryButtonsRegion = null;
       if (secondaryButtonsNum > 0) {
-        const buttons = secondaryButtons.map((button, idx) => (
-          <Button
-            key={idx}
-            icon={button.icon}
-            text={button.text}
-            onPress={button.onPress}
-          />
-                ));
+        const buttons = this._renderButtons(secondaryButtons);
 
         secondaryButtonsRegion = (
           <BlockContentActionsRegion type="secondary">
             {buttons}
           </BlockContentActionsRegion>
-                );
+        );
       }
 
       actionsArea = (
@@ -296,7 +355,7 @@ export class ToolWindow extends PureComponent {
           {secondaryButtonsRegion}
           {mainActionsRegion}
         </BlockContentActions>
-            );
+      );
     }
 
     let titleButtons = List();
@@ -315,11 +374,12 @@ export class ToolWindow extends PureComponent {
       }));
     }
 
-    const activeSection = sections.get(this.props.toolState.activeSection) || null;
+    const activeSection =
+      sections.get(this.props.toolState.activeSection) || null;
 
     const ContentComponent = activeSection !== null
-            ? activeSection.component
-            : null;
+      ? activeSection.component
+      : null;
 
     const content = ContentComponent ? <ContentComponent /> : null;
 
@@ -342,13 +402,13 @@ export class ToolWindow extends PureComponent {
           {actionsArea}
         </BlockContent>
       </DraggableWindowRegion>
-        );
+    );
 
     let sideRegion = null;
     if (toolState.sideRegionIsVisible) {
       const SideRegionContentComponent = activeSection !== null
-                ? activeSection.sideRegionComponent
-                : null;
+        ? activeSection.sideRegionComponent
+        : null;
 
       if (SideRegionContentComponent !== null) {
         sideRegion = (
@@ -357,7 +417,7 @@ export class ToolWindow extends PureComponent {
               <SideRegionContentComponent />
             </BlockContent>
           </DraggableWindowRegion>
-                );
+        );
       }
     }
 
@@ -376,51 +436,6 @@ export class ToolWindow extends PureComponent {
   }
 }
 
-ToolWindow.propTypes = {
-  tool: PropTypes.instanceOf(ToolType).isRequired,
-  toolState: PropTypes.instanceOf(ToolStateType).isRequired,
-
-  constrainPosition: PropTypes.bool,
-  marginLeft: PropTypes.number,
-  marginRight: PropTypes.number,
-  marginTop: PropTypes.number,
-  marginBottom: PropTypes.number,
-  stickRegionLeft: PropTypes.number,
-  stickRegionRight: PropTypes.number,
-  stickRegionTop: PropTypes.number,
-  stickRegionBottom: PropTypes.number,
-
-  onTitleChange: PropTypes.func,
-  onClose: PropTypes.func,
-  onDock: PropTypes.func,
-  onFocus: PropTypes.func,
-  onStartDrag: PropTypes.func,
-  onStopDrag: PropTypes.func,
-  onStickRegionEnter: PropTypes.func,
-  onStickRegionLeave: PropTypes.func,
-  onActiveSectionChange: PropTypes.func,
-};
-
-ToolWindow.defaultProps = {
-  constrainPosition: true,
-  marginLeft: 0,
-  marginRight: 0,
-  marginTop: 0,
-  marginBottom: 0,
-  stickRegionLeft: 0,
-  stickRegionRight: 0,
-  stickRegionTop: 0,
-  stickRegionBottom: 0,
-
-  onTitleChange: noop,
-  onClose: noop,
-  onDock: noop,
-  onFocus: noop,
-  onStartDrag: noop,
-  onStopDrag: noop,
-  onStickRegionEnter: noop,
-  onStickRegionLeave: noop,
-  onActiveSectionChange: noop,
-};
-
+ToolWindow.propTypes = propTypes;
+ToolWindow.defaultProps = defaultProps;
 ToolWindow.displayName = 'ToolWindow';

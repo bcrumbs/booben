@@ -1,5 +1,6 @@
 'use strict';
 
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 
 export const PageDrawerActionsArea = props => {

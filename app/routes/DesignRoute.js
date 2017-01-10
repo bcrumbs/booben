@@ -4,7 +4,7 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
@@ -84,7 +84,7 @@ import {
 
 import { getLocalizedTextFromState } from '../utils';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import defaultComponentLayoutIcon from '../img/layout_default.svg';
 
 export const TOOL_ID_LIBRARY = 'componentsLibrary';
@@ -530,7 +530,6 @@ DesignRoute.propTypes = {
   nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(PropTypes.string),
   linkingProp: PropTypes.bool,
   getLocalizedText: PropTypes.func,
-
   onRenameComponent: PropTypes.func,
   onDeleteComponent: PropTypes.func,
   onSelectLayout: PropTypes.func,

@@ -4,29 +4,29 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 
 import {
-    App,
-    TopRegion,
-    BottomRegion,
-    Header,
-    HeaderRegion,
-    HeaderLogoBox,
-    HeaderMenu,
-    HeaderMenuGroup,
-    HeaderMenuList,
-    HeaderMenuItem,
-    Footer,
-    FooterRegion,
-    FooterMenu,
-    FooterMenuGroup,
-    FooterMenuList,
-    FooterMenuItem,
-    ToggleButton,
+  App,
+  TopRegion,
+  BottomRegion,
+  Header,
+  HeaderRegion,
+  HeaderLogoBox,
+  HeaderMenu,
+  HeaderMenuGroup,
+  HeaderMenuList,
+  HeaderMenuItem,
+  Footer,
+  FooterRegion,
+  FooterMenu,
+  FooterMenuGroup,
+  FooterMenuList,
+  FooterMenuItem,
+  ToggleButton,
 } from '@reactackle/reactackle';
 
 import {
@@ -36,8 +36,8 @@ import {
 import ProjectRecord from '../models/Project';
 
 import {
-    toggleContentPlaceholders,
-    toggleComponentTitles,
+  toggleContentPlaceholders,
+  toggleComponentTitles,
 } from '../actions/app';
 
 import { getLocalizedTextFromState } from '../utils';
@@ -230,7 +230,6 @@ RootRoute.propTypes = {
   showContentPlaceholders: PropTypes.bool.isRequired,
   showComponentTitles: PropTypes.bool.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
-
   onToggleContentPlaceholders: PropTypes.func.isRequired,
   onToggleComponentTitles: PropTypes.func.isRequired,
 };
@@ -248,9 +247,11 @@ const mapStateToProps = ({ project, app }) => ({
 const mapDispatchToProps = dispatch => ({
   onToggleContentPlaceholders: enable =>
     void dispatch(toggleContentPlaceholders(enable)),
-
   onToggleComponentTitles: enable =>
     void dispatch(toggleComponentTitles(enable)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(RootRoute);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(RootRoute);

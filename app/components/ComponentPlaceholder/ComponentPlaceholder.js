@@ -1,9 +1,18 @@
 'use strict';
 
+//noinspection JSUnresolvedVariable
+import React, { PropTypes } from 'react';
 import './ComponentPlaceholder.scss';
 
-// noinspection JSUnresolvedVariable
-import React, { PropTypes } from 'react';
+const propTypes = {
+  title: PropTypes.string,
+  isPlaced: PropTypes.bool,
+};
+
+const defaultProps = {
+  title: '',
+  isPlaced: false,
+};
 
 export const ComponentPlaceholder = props => {
   let className = 'component-placeholder';
@@ -11,10 +20,11 @@ export const ComponentPlaceholder = props => {
 
   let content = false;
   if (props.title) {
-    content =
-          (<div className="component-placeholder-title">
-            {props.title}
-          </div>);
+    content = (
+      <div className="component-placeholder-title">
+        {props.title}
+      </div>
+    );
   }
 
   return (
@@ -24,14 +34,6 @@ export const ComponentPlaceholder = props => {
   );
 };
 
-ComponentPlaceholder.propTypes = {
-  title: PropTypes.string,
-  isPlaced: PropTypes.bool,
-};
-
-ComponentPlaceholder.defaultProps = {
-  title: '',
-  isPlaced: false,
-};
-
+ComponentPlaceholder.propTypes = propTypes;
+ComponentPlaceholder.defaultProps = defaultProps;
 ComponentPlaceholder.displayName = 'ComponentPlaceholder';
