@@ -1,38 +1,43 @@
 'use strict';
 
-import React, { PureComponent, PropTypes } from 'react';
+//noinspection JSUnresolvedVariable
+import React, { PropTypes } from 'react';
 
-export const LayoutSelectionItem = props => {
-  const className = 'layout-item';
-
-  let subtitle = null;
-  if (props.subtitle)
-    subtitle = <div className="layout-item-subtitle">{ props.subtitle }</div>;
-
-
-  return (
-    <div className={className}>
-      <div className="layout-item-image-box">
-        <img src={props.image} />
-      </div>
-      <div className="layout-item-title-box">
-        <div className="layout-item-title">{ props.title }</div>
-        { subtitle }
-      </div>
-    </div>
-  );
-};
-
-LayoutSelectionItem.propTypes = {
+const propTypes = {
   image: PropTypes.string,
   title: PropTypes.string,
   subtitle: PropTypes.string,
 };
 
-LayoutSelectionItem.defaultProps = {
+const defaultProps = {
   image: '',
   title: '',
   subtitle: '',
 };
 
+export const LayoutSelectionItem = props => {
+  let subtitle = null;
+  if (props.subtitle) {
+    subtitle = (
+      <div className="layout-item-subtitle">
+        {props.subtitle}
+      </div>
+    );
+  }
+
+  return (
+    <div className="layout-item">
+      <div className="layout-item-image-box">
+        <img src={props.image} alt="" role="presentation" />
+      </div>
+      <div className="layout-item-title-box">
+        <div className="layout-item-title">{props.title}</div>
+        {subtitle}
+      </div>
+    </div>
+  );
+};
+
+LayoutSelectionItem.propTypes = propTypes;
+LayoutSelectionItem.defaultProps = defaultProps;
 LayoutSelectionItem.displayName = 'LayoutSelectionItem';

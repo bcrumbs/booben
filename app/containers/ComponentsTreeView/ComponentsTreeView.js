@@ -8,58 +8,55 @@
 import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import { List } from 'immutable';
+
+import { dragHandler } from '../../hocs/dragHandler';
 
 import {
-    dragHandler,
-} from '../../hocs/dragHandler';
-
-import {
-    ComponentsTree,
-    ComponentsTreeItem,
-    ComponentsTreeList,
-    ComponentsTreeLine,
+  ComponentsTree,
+  ComponentsTreeItem,
+  ComponentsTreeList,
+  ComponentsTreeLine,
 } from '../../components/ComponentsTree/ComponentsTree';
 
 import {
-    BlockContentBox,
-    BlockContentPlaceholder,
+  BlockContentBox,
+  BlockContentPlaceholder,
 } from '../../components/BlockContent/BlockContent';
 
 import {
-    expandTreeItem,
-    collapseTreeItem,
+  expandTreeItem,
+  collapseTreeItem,
 } from '../../actions/design';
 
 import {
-    selectPreviewComponent,
-    deselectPreviewComponent,
-    highlightPreviewComponent,
-    unhighlightPreviewComponent,
-    startDragExistingComponent,
-    dragOverComponent,
-    dragOverPlaceholder,
-    dropComponent,
-    DROP_COMPONENT_AREA_IDS,
+  selectPreviewComponent,
+  deselectPreviewComponent,
+  highlightPreviewComponent,
+  unhighlightPreviewComponent,
+  startDragExistingComponent,
+  dragOverComponent,
+  dragOverPlaceholder,
+  dropComponent,
+  DROP_COMPONENT_AREA_IDS,
 } from '../../actions/preview';
 
 import {
-    currentComponentsSelector,
-    currentRootComponentIdSelector,
-    currentSelectedComponentIdsSelector,
-    currentHighlightedComponentIdsSelector,
+  currentComponentsSelector,
+  currentRootComponentIdSelector,
+  currentSelectedComponentIdsSelector,
+  currentHighlightedComponentIdsSelector,
 } from '../../selectors';
 
 import ProjectComponentRecord from '../../models/ProjectComponent';
 
 import {
-    isContainerComponent,
-    isCompositeComponent,
-    canInsertComponent,
+  isContainerComponent,
+  isCompositeComponent,
+  canInsertComponent,
 } from '../../utils/meta';
 
 import { getLocalizedTextFromState } from '../../utils';
-
-import { List } from 'immutable';
 
 const CURSOR_STATES = {
   TOP: 'TOP',
@@ -91,7 +88,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     this._clearExpandTimeout = this._clearExpandTimeout.bind(this);
     this._resetDrag = this._resetDrag.bind(this);
     this._containsPlaceholderContainer
-            = this._containsPlaceholderContainer.bind(this);
+      = this._containsPlaceholderContainer.bind(this);
     this._scrollToLine = this._scrollToLine.bind(this);
 
     this.itemRefs = new Map();
@@ -99,12 +96,6 @@ class ComponentsTreeViewComponent extends PureComponent {
 
   componentDidMount() {
     document.addEventListener('mousemove', this._handleMouseMove);
-  }
-
-  _scrollToLine() {
-    if (!this.lineElement) return;
-    !this.isMouseOver
-        && this.lineElement.scrollIntoView(false);
   }
 
   componentDidUpdate() {
@@ -115,6 +106,11 @@ class ComponentsTreeViewComponent extends PureComponent {
     document.removeEventListener('mousemove', this._handleMouseMove);
     this.itemRefs.clear();
     this._clearExpandTimeout();
+  }
+  
+  _scrollToLine() {
+    if (!this.lineElement) return;
+    if (this.isMouseOver) this.lineElement.scrollIntoView(false);
   }
 
   _createElementRef(ref) {
@@ -151,9 +147,9 @@ class ComponentsTreeViewComponent extends PureComponent {
 
   _resetDrag() {
     if (
-            this.props.draggingOverComponentId + 1
-            || this.props.placeholderContainerId + 1
-        ) {
+      this.props.draggingOverComponentId + 1 ||
+      this.props.placeholderContainerId + 1
+    ) {
       this.props.onDragOverPlaceholder(-1, -1);
       this.props.onDragOverComponent(-1);
     }
@@ -173,86 +169,87 @@ class ComponentsTreeViewComponent extends PureComponent {
       if (!this.isMouseOver) return;
 
       const closestItemComponentId =
-                     this._getClosestCursorItemComponentId(event);
+        this._getClosestCursorItemComponentId(event);
 
       if (closestItemComponentId === -1) return;
 
       const itemElement = this.itemRefs.get(
-                closestItemComponentId,
-            );
+        closestItemComponentId,
+      );
 
-      if (!itemElement) return void this._resetDrag();
+      if (!itemElement) {
+        this._resetDrag();
+        return;
+      }
 
-      const cursorState
-                = this.getCursorState(
-                    event,
-                    itemElement,
-                    this.props.borderPixels,
-                );
+      const cursorState = this._getCursorState(
+        event,
+        itemElement,
+        this.props.borderPixels,
+      );
 
       if (
-                cursorState === CURSOR_STATES.OUT
-                || this.cursorState === cursorState
-                && this.closestItemComponentId === closestItemComponentId
-            ) return;
+        cursorState === CURSOR_STATES.OUT ||
+        this.cursorState === cursorState &&
+        this.closestItemComponentId === closestItemComponentId
+      ) return;
 
       this.cursorState = cursorState;
       this.closestItemComponentId = closestItemComponentId;
 
-      const highlighted =
-                    this.props.highlightedComponentIds.includes(
-                        this.closestItemComponentId,
-                    );
-
-      this.cursorState === CURSOR_STATES.MIDDLE
-                ? !highlighted &&
-                    this.props.onHighlightItem(this.closestItemComponentId)
-                : highlighted &&
-                    this.props.onUnhighlightItem(this.closestItemComponentId);
+      const highlighted = this.props.highlightedComponentIds
+        .includes(this.closestItemComponentId);
+      
+      if (this.cursorState === CURSOR_STATES.MIDDLE) {
+        if (!highlighted)
+          this.props.onHighlightItem(this.closestItemComponentId);
+      } else if (highlighted) {
+        this.props.onUnhighlightItem(this.closestItemComponentId);
+      }
 
       const willDropInCurrentContainer =
-                this.cursorState === CURSOR_STATES.MIDDLE
-                || this.cursorState === CURSOR_STATES.BOTTOM
-                && this.props.expandedItemIds.includes(
-                    this.closestItemComponentId,
-                );
+        this.cursorState === CURSOR_STATES.MIDDLE
+        || this.cursorState === CURSOR_STATES.BOTTOM
+        && this.props.expandedItemIds.includes(
+            this.closestItemComponentId,
+        );
 
       const component =
-                    this.props.components.get(this.closestItemComponentId);
+        this.props.components.get(this.closestItemComponentId);
 
       const parentComponent =
-                    this.props.components.get(component.parentId);
-
+        this.props.components.get(component.parentId);
 
       const currentPlaceholderContainer =
-                willDropInCurrentContainer
-                || !parentComponent
-                ? component
-                : parentComponent;
+        willDropInCurrentContainer
+        || !parentComponent
+        ? component
+        : parentComponent;
 
       this._clearExpandTimeout();
 
       if (
-                isContainerComponent(component.name, this.props.meta)
-                || isCompositeComponent(component.name, this.props.meta)
-            ) {
+        isContainerComponent(component.name, this.props.meta) ||
+        isCompositeComponent(component.name, this.props.meta)
+      ) {
         this._expandAfterTime(
-                this.closestItemComponentId,
-                this.props.timeToExpand,
-            );
+          this.closestItemComponentId,
+          this.props.timeToExpand,
+        );
       }
 
       if (
-                this.cursorState === CURSOR_STATES.MIDDLE
-                && !isContainerComponent(component.name, this.props.meta)
-            ) return void this._resetDrag();
-
+        this.cursorState === CURSOR_STATES.MIDDLE &&
+        !isContainerComponent(component.name, this.props.meta)
+      ) {
+        this._resetDrag();
+        return;
+      }
 
       if (
-                !currentPlaceholderContainer
-                || currentPlaceholderContainer.id === this.props.rootComponentId
-            ) return;
-
+        !currentPlaceholderContainer ||
+        currentPlaceholderContainer.id === this.props.rootComponentId
+      ) return;
 
       for (
                 let parentId = currentPlaceholderContainer.id;
@@ -277,37 +274,38 @@ class ComponentsTreeViewComponent extends PureComponent {
                     );
 
       const currentPlaceholderContainerChildrenNames =
-                currentPlaceholderContainer.children.map(
-                    childId => this.props.components.get(childId).name,
-                );
+        currentPlaceholderContainer.children.map(
+          childId => this.props.components.get(childId).name,
+        );
 
       const canInsert = canInsertComponent(
-                this.props.draggedComponents.get(
-                    this.props.draggedComponentId + 1
-                        ? this.props.draggedComponentId
-                        : 0,
-                ).name,
-                currentPlaceholderContainer.name,
-                currentPlaceholderContainerChildrenNames,
-                indexOfPlaceholder,
-                this.props.meta,
-            );
+        this.props.draggedComponents.get(
+          this.props.draggedComponentId + 1
+            ? this.props.draggedComponentId
+            : 0,
+        ).name,
+        currentPlaceholderContainer.name,
+        currentPlaceholderContainerChildrenNames,
+        indexOfPlaceholder,
+        this.props.meta,
+      );
 
       if (canInsert) {
-        this.props.draggingOverComponentId
-                    !== this.closestItemComponentId
-                && this.props.onDragOverComponent(
-                    this.closestItemComponentId,
-                );
-        (
-                this.props.placeholderContainerId
-                    !== currentPlaceholderContainer.id
-                || this.props.placeholderAfter
-                    !== indexOfPlaceholder
-                ) && this.props.onDragOverPlaceholder(
-                    currentPlaceholderContainer.id,
-                    indexOfPlaceholder,
-                );
+        if (this.props.draggingOverComponentId !== this.closestItemComponentId)
+          this.props.onDragOverComponent(this.closestItemComponentId);
+        
+        const willFireDragOverPlaceholder =
+          this.props.placeholderContainerId !==
+            currentPlaceholderContainer.id ||
+          this.props.placeholderAfter !==
+            indexOfPlaceholder;
+        
+        if (willFireDragOverPlaceholder) {
+          this.props.onDragOverPlaceholder(
+            currentPlaceholderContainer.id,
+            indexOfPlaceholder,
+          );
+        }
       } else {
         this._resetDrag();
       }
@@ -327,10 +325,11 @@ class ComponentsTreeViewComponent extends PureComponent {
   _handleHover(componentId, state) {
     if (state && !this.props.draggingComponent)
       this.props.onHighlightItem(componentId);
-    else this.props.onUnhighlightItem(componentId);
+    else
+      this.props.onUnhighlightItem(componentId);
   }
 
-  getCursorState({ pageX, pageY }, itemRef, additionalPixels) {
+  _getCursorState({ pageX, pageY }, itemRef, additionalPixels) {
     const { top, bottom, left, right } = itemRef.getBoundingClientRect();
 
     if (pageX < left || pageX > right) return CURSOR_STATES.OUT;
@@ -358,11 +357,12 @@ class ComponentsTreeViewComponent extends PureComponent {
 
   _containsPlaceholderContainer(componentId) {
     if (!this.props.draggingComponent) return false;
-    if (componentId === this.props.placeholderContainerId) { return true; } else {
+    if (componentId === this.props.placeholderContainerId) {
+      return true;
+    } else {
       const children = this.props.components.get(componentId).children;
       if (!children) return false;
-      else
-                return children.map(this._containsPlaceholderContainer).includes(true);
+      return children.map(this._containsPlaceholderContainer).includes(true);
     }
   }
 
@@ -370,23 +370,24 @@ class ComponentsTreeViewComponent extends PureComponent {
     let closestItemComponentId = -1;
     let minHeightDiff = Infinity;
     this.itemRefs.forEach(
-            (ref, componentId) => {
-              const { top, bottom } = ref.getBoundingClientRect();
-              [top, bottom].forEach(val => {
-                const diff = Math.abs(event.pageY - val);
-                if (diff < minHeightDiff) {
-                  minHeightDiff = diff;
-                  closestItemComponentId = componentId;
-                }
-              });
-            },
-        );
+      (ref, componentId) => {
+        const { top, bottom } = ref.getBoundingClientRect();
+        [top, bottom].forEach(val => {
+          const diff = Math.abs(event.pageY - val);
+          if (diff < minHeightDiff) {
+            minHeightDiff = diff;
+            closestItemComponentId = componentId;
+          }
+        });
+      },
+    );
+    
     return closestItemComponentId;
   }
 
   _handleMouseDown(componentId, event) {
-    componentId !== this.props.rootComponentId
-        && this.props.handleStartDragExistingComponent(event, componentId);
+    if (componentId !== this.props.rootComponentId)
+      this.props.handleStartDragExistingComponent(event, componentId);
   }
 
   _renderLine() {
@@ -401,40 +402,41 @@ class ComponentsTreeViewComponent extends PureComponent {
   _renderItem(componentId, idx) {
     const component = this.props.components.get(componentId);
 
-    const indexOfLine =
-            component.children
-            ? component.children.indexOf(this.props.draggingOverComponentId)
-            : -1;
+    const indexOfLine = component.children
+      ? component.children.indexOf(this.props.draggingOverComponentId)
+      : -1;
 
     const isCurrentComponentActiveContainer =
-          componentId === this.props.placeholderContainerId
-          && this.props.draggingComponent
-          &&
-            canInsertComponent(
-                this.props.draggedComponents.get(
-                    this.props.draggedComponentId + 1
-                        ? this.props.draggedComponentId
-                        : 0,
-                ).name,
-                component.name,
-                component.children.map(
-                    childId => this.props.components.get(childId).name,
-                ),
-                indexOfLine,
-                this.props.meta,
-          );
-
-    const children = component.children.size > 0
-            ? this._renderList(
-                component.children,
-                isCurrentComponentActiveContainer,
-                indexOfLine,
-            )
-            : (
-                isCurrentComponentActiveContainer
-                ? <ComponentsTreeList children={this._renderLine()} />
-                : null
-            );
+      componentId === this.props.placeholderContainerId &&
+      this.props.draggingComponent &&
+      canInsertComponent(
+        this.props.draggedComponents.get(
+          this.props.draggedComponentId + 1
+            ? this.props.draggedComponentId
+            : 0,
+        ).name,
+        component.name,
+        component.children.map(
+          childId => this.props.components.get(childId).name,
+        ),
+        indexOfLine,
+        this.props.meta,
+      );
+    
+    let children = null;
+    if (component.children.size > 0) {
+      children = this._renderList(
+        component.children,
+        isCurrentComponentActiveContainer,
+        indexOfLine,
+      );
+    } else if (isCurrentComponentActiveContainer) {
+      children = (
+        <ComponentsTreeList>
+          {this._renderLine()}
+        </ComponentsTreeList>
+      );
+    }
 
     let title,
       subtitle;
@@ -446,6 +448,19 @@ class ComponentsTreeViewComponent extends PureComponent {
       title = component.name;
       subtitle = '';
     }
+    
+    const expanded =
+      this.props.expandedItemIds.has(componentId) ||
+      this.props.draggingComponent && (
+        !this.isMouseOver ||
+        componentId === this.props.rootComponentId
+      );
+    
+    const hovered =
+      this.props.highlightedComponentIds.has(componentId) ||
+      isCurrentComponentActiveContainer;
+    
+    const active = this.props.selectedComponentIds.has(componentId);
 
     return (
       <ComponentsTreeItem
@@ -453,42 +468,35 @@ class ComponentsTreeViewComponent extends PureComponent {
         key={idx}
         title={title}
         subtitle={subtitle}
-        expanded={
-                    this.props.expandedItemIds.has(componentId)
-                    || this.props.draggingComponent
-                    && (
-                        !this.isMouseOver
-                        || componentId === this.props.rootComponentId
-                    )
-                }
-        active={this.props.selectedComponentIds.has(componentId)}
-        hovered={
-                    this.props.highlightedComponentIds.has(componentId)
-                    || isCurrentComponentActiveContainer
-                }
+        expanded={expanded}
+        active={active}
+        hovered={hovered}
         onExpand={this._handleExpand}
         onSelect={this._handleSelect}
         onHover={this._handleHover}
         onMouseDown={this._handleMouseDown}
-        children={children}
         createItemRef={this._createItemRef}
-      />
+      >
+        {children}
+      </ComponentsTreeItem>
     );
   }
 
   _renderList(componentIds, showLine, indexOfLine) {
-    const indexOfLinePlaceholder =
-            indexOfLine + 1
-                ? indexOfLine + (this.props.placeholderAfter >= indexOfLine)
-                : (this.props.placeholderAfter + 1 ? this.props.placeholderAfter : 0);
+    let indexOfLinePlaceholder = 0;
+    if (indexOfLine + 1) {
+      indexOfLinePlaceholder =
+        indexOfLine + (this.props.placeholderAfter >= indexOfLine);
+    } else if (this.props.placeholderAfter + 1) {
+      indexOfLinePlaceholder = this.props.placeholderAfter;
+    }
 
-    const children =
-            this.props.draggingOverPlaceholder && showLine
-                ? componentIds.map(this._renderItem).insert(
-                    indexOfLinePlaceholder,
-                    this._renderLine(),
-                )
-                : componentIds.map(this._renderItem);
+    const children = this.props.draggingOverPlaceholder && showLine
+      ? componentIds.map(this._renderItem).insert(
+        indexOfLinePlaceholder,
+        this._renderLine(),
+      )
+      : componentIds.map(this._renderItem);
 
     return (
       <ComponentsTreeList>
@@ -507,7 +515,6 @@ class ComponentsTreeViewComponent extends PureComponent {
         />
       );
     }
-
 
     return (
       <BlockContentBox
@@ -584,21 +591,31 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onExpandItem: id => void dispatch(expandTreeItem(id)),
-  onCollapseItem: id => void dispatch(collapseTreeItem(id)),
-  onSelectItem: id => void dispatch(selectPreviewComponent(id, true)),
-  onDeselectItem: id => void dispatch(deselectPreviewComponent(id)),
-  onHighlightItem: id => void dispatch(highlightPreviewComponent(id)),
-  onUnhighlightItem: id => void dispatch(unhighlightPreviewComponent(id)),
-  onStartDragItem: id => void dispatch(startDragExistingComponent(id)),
-  onDragOverComponent: id => void dispatch(dragOverComponent(id)),
+  onExpandItem: id =>
+    void dispatch(expandTreeItem(id)),
+  onCollapseItem: id =>
+    void dispatch(collapseTreeItem(id)),
+  onSelectItem: id =>
+    void dispatch(selectPreviewComponent(id, true)),
+  onDeselectItem: id =>
+    void dispatch(deselectPreviewComponent(id)),
+  onHighlightItem: id =>
+    void dispatch(highlightPreviewComponent(id)),
+  onUnhighlightItem: id =>
+    void dispatch(unhighlightPreviewComponent(id)),
+  onStartDragItem: id =>
+    void dispatch(startDragExistingComponent(id)),
+  onDragOverComponent: id =>
+    void dispatch(dragOverComponent(id)),
   onDragOverPlaceholder: (id, afterIdx) =>
-        void dispatch(dragOverPlaceholder(id, afterIdx)),
-  onDropComponent: dropOnAreaId => void dispatch(dropComponent(dropOnAreaId)),
+    void dispatch(dragOverPlaceholder(id, afterIdx)),
+  onDropComponent: dropOnAreaId =>
+    void dispatch(dropComponent(dropOnAreaId)),
 });
 
-export const ComponentsTreeView = dragHandler(connect(
-      mapStateToProps,
-      mapDispatchToProps,
-    )(ComponentsTreeViewComponent),
+export const ComponentsTreeView = dragHandler(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  )(ComponentsTreeViewComponent),
 );

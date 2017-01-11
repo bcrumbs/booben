@@ -2,16 +2,27 @@
 
 'use strict';
 
-import React from 'react';
+//noinspection JSUnresolvedVariable
+import React, { PropTypes } from 'react';
 
 import {
-    Button,
-    Header,
-    HeaderRegion,
-    HeaderTitle,
+  Button,
+  Header,
+  HeaderRegion,
+  HeaderTitle,
 } from '@reactackle/reactackle';
 
 import './HeaderRoute.scss';
+
+const propTypes = {
+  actions: PropTypes.bool,
+  title: PropTypes.string,
+};
+
+const defaultProps = {
+  actions: false,
+  title: '',
+};
 
 /*
   If structure's more than 1 level deep, place Breadcrumbs into HeaderTitle
@@ -46,4 +57,6 @@ export const HeaderRoute = props => {
   );
 };
 
+HeaderRoute.propTypes = propTypes;
+HeaderRoute.defaultProps = defaultProps;
 HeaderRoute.displayName = 'HeaderRoute';
