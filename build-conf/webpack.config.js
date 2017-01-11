@@ -1,24 +1,24 @@
 'use strict';
 
 const path = require('path'),
+  webpack = require('webpack'),
   HtmlWebpackPlugin = require('html-webpack-plugin');
-const webpack = require('webpack');
+
+// eslint-disable-next-line import/no-extraneous-dependencies
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const prod = process.argv.includes('-p');
-
 
 const APP_SRC_DIR = '../app';
 const APP_DIST_DIR = '../public';
 const REACTACKLE_THEME_FILE = '../app/_reactackle_theme.scss';
 
-
 const rewriteThemePathResolverPlugin = {
   apply(resolver) {
     resolver.plugin('resolve', (context, request) => {
       const isReactackleThemeFile =
-                /@reactackle(\/|\\)reactackle/.test(context) &&
-                request.path === '../_theme.scss';
+        /@reactackle(\/|\\)reactackle/.test(context) &&
+        request.path === '../_theme.scss';
 
       if (isReactackleThemeFile)
         request.path = path.resolve(__dirname, REACTACKLE_THEME_FILE);
@@ -65,7 +65,7 @@ module.exports = {
     }),
 
     new CopyWebpackPlugin([
-          { from: 'localization', to: 'localization' },
+      { from: 'localization', to: 'localization' },
     ]),
   ],
 
@@ -85,9 +85,9 @@ module.exports = {
           return /node_modules/.test(path);
         },
         loader: 'babel?' +
-                 'presets[]=es2015' +
-                 '&presets[]=react' +
-                 '&plugins[]=transform-object-rest-spread',
+         'presets[]=es2015' +
+         '&presets[]=react' +
+         '&plugins[]=transform-object-rest-spread',
       },
       {
         test: /\.scss$/,

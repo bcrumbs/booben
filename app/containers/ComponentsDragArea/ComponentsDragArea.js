@@ -160,8 +160,12 @@ class ComponentsDragAreaComponent extends Component {
 ComponentsDragAreaComponent.propTypes = {
   draggingComponent: PropTypes.bool.isRequired,
   draggedComponentId: PropTypes.number.isRequired,
-  draggedComponents: PropTypes.any.isRequired,
+  draggedComponents: PropTypes.any,
   onDropComponent: PropTypes.func.isRequired,
+};
+
+ComponentsDragAreaComponent.defaultProps = {
+  draggedComponents: null,
 };
 
 ComponentsDragAreaComponent.displayName = 'ComponentsDragArea';

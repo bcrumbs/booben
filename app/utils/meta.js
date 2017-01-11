@@ -10,29 +10,7 @@ import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
 import { NO_VALUE } from '../../app/constants/misc';
 import { BUILT_IN_PROP_TYPES } from '../../common/shared-constants';
-
-/**
- *
- * @param {string} namespace
- * @param {Object} meta
- * @returns {?Object}
- */
-export const getNamespaceMeta = (namespace, meta) => {
-  if (namespace === '') return miscMeta;
-  if (namespace === 'HTML') return HTMLMeta;
-  return meta[namespace] || null;
-};
-
-/**
- *
- * @param {string} namespace
- * @param {Object} meta
- * @returns {?Object[]}
- */
-export const getComponentsMeta = (namespace, meta) => {
-  const namespaceMeta = getNamespaceMeta(namespace, meta);
-  return namespaceMeta ? namespaceMeta.components : null;
-};
+import { hasOwnProperty, returnTrue, returnFalse } from './misc';
 
 /**
  *
@@ -272,6 +250,7 @@ const buildDefaultStaticValue = (
   language,
   _inheritedDefaultValue = NO_VALUE,
 ) => {
+  /* eslint-disable no-use-before-define */
   if (propMeta.sourceConfigs.static.defaultTextKey) {
     return makeSimpleStaticValue(getString(
       componentMeta,
@@ -357,16 +336,14 @@ const buildDefaultStaticValue = (
   }
 
   return makeSimpleStaticValue(defaultValue);
+  /* eslint-enable no-use-before-define */
 };
 
 /**
  *
- * @param {ComponentMeta} componentMeta
- * @param {PropTypeDefinition} propMeta
- * @param {string} language
  * @return {ProjectComponentProp}
  */
-const buildDefaultDesignerValue = (componentMeta, propMeta, language) => ({
+const buildDefaultDesignerValue = () => ({
   source: 'designer',
   sourceData: {
     rootId: -1,
@@ -376,12 +353,9 @@ const buildDefaultDesignerValue = (componentMeta, propMeta, language) => ({
 
 /**
  *
- * @param {ComponentMeta} componentMeta
- * @param {PropTypeDefinition} propMeta
- * @param {string} language
  * @return {ProjectComponentProp}
  */
-const buildDefaultDataValue = (componentMeta, propMeta, language) => ({
+const buildDefaultDataValue = () => ({
   source: 'data',
   sourceData: {
     dataContext: [],
@@ -500,13 +474,13 @@ export const constructComponent = (
   layoutIdx,
   language,
   meta,
-  options
+  options,
 ) => {
   options = Object.assign({}, constructComponentDefaultOptions, options || {});
 
   const componentMeta = getComponentMeta(componentName, meta);
 
-    // Ids of detached components must start with zero
+  // Ids of detached components must start with zero
   let nextId = 0;
 
   const component = {
@@ -553,16 +527,11 @@ export const constructComponent = (
 
 /**
  *
- * @return {boolean}
- */
-const returnTrue = () => true;
-
-/**
- *
  * @type {Object<string, function(typedef1: TypeDefinition, typedef2: TypeDefinition): boolean>}
  * @const
  */
 const typeCheckers = {
+  /* eslint-disable no-use-before-define */
   string: returnTrue,
   bool: returnTrue,
   int: returnTrue,
@@ -590,18 +559,19 @@ const typeCheckers = {
     if (keys1.length !== keys2.length) return false;
 
     return keys1.every(key => {
-      if (!typedef2.fields.hasOwnProperty(key)) return false;
+      if (!hasOwnProperty(typedef2, key)) return false;
       return isCompatibleType(typedef1.fields[key], typedef2.fields[key]);
     });
   },
 
-  array: returnTrue(),
+  array: returnTrue,
 
   arrayOf: (typedef1, typedef2) =>
     isCompatibleType(typedef1.ofType, typedef2.ofType),
 
-  component: returnTrue(),
-  func: () => false, // TODO: Write actual checker
+  component: returnTrue,
+  func: returnFalse, // TODO: Write actual checker
+  /* eslint-enable no-use-before-define */
 };
 
 /**
@@ -628,28 +598,6 @@ export const resolveTypedef = (componentMeta, typedef) => {
     ? Object.assign({}, typedef, componentMeta.types[typedef.type])
     : null;
 };
-
-/**
- *
- * @type {Set<string>}
- * @const
- */
-const scalarTypes = new Set([
-  'string',
-  'int',
-  'float',
-  'bool',
-  'oneOf',
-  'component',
-  'func',
-]);
-
-/**
- *
- * @param {TypeDefinition} typedef
- * @return {boolean}
- */
-export const isScalarType = typedef => scalarTypes.has(typedef.type);
 
 /**
  *

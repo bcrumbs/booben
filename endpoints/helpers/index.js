@@ -11,11 +11,11 @@
  * @param {Object} data
  */
 exports.sendJSON = (res, code, data) => {
-    res.writeHead(code, {
-        'content-type': 'application/json'
-    });
+  res.writeHead(code, {
+    'content-type': 'application/json',
+  });
 
-    res.end(typeof data === 'string' ? data : JSON.stringify(data));
+  res.end(typeof data === 'string' ? data : JSON.stringify(data));
 };
 
 /**
@@ -26,6 +26,6 @@ exports.sendJSON = (res, code, data) => {
  * @param {Object} [extraFields]
  */
 exports.sendError = (res, code, text, extraFields) =>
-    void exports.sendJSON(res, code || 500, Object.assign({
-        error: text || 'An evil error has occurred. Sorry about that.'
-    }, extraFields || {}));
+  void exports.sendJSON(res, code || 500, Object.assign({
+    error: text || 'An evil error has occurred. Sorry about that.',
+  }, extraFields || {}));

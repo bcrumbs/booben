@@ -4,13 +4,14 @@
 
 'use strict';
 
-// The real components.js will be generated during build process
-import components from './components.js';
-import patchComponent from './hocs/patchComponent';
 import _mapValues from 'lodash.mapvalues';
+// The real components.js will be generated during build process
+import components from './components';
+import patchComponent from './hocs/patchComponent';
 import { parseComponentName } from '../app/utils/meta';
 
-const patchedComponents = _mapValues(components, ns => _mapValues(ns, patchComponent));
+const patchedComponents =
+  _mapValues(components, ns => _mapValues(ns, patchComponent));
 
 /**
  * Get component from library

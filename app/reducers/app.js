@@ -4,22 +4,22 @@
 
 'use strict';
 
+import { Record } from 'immutable';
+
 import {
-    APP_LOCALIZATION_LOADING,
-    APP_LOCALIZATION_LOAD_SUCCESS,
-    APP_LOCALIZATION_LOAD_FAILURE,
-    APP_TOGGLE_CONTENT_PLACEHOLDERS,
-    APP_TOGGLE_COMPONENT_TITLES,
+  APP_LOCALIZATION_LOADING,
+  APP_LOCALIZATION_LOAD_SUCCESS,
+  APP_LOCALIZATION_LOAD_FAILURE,
+  APP_TOGGLE_CONTENT_PLACEHOLDERS,
+  APP_TOGGLE_COMPONENT_TITLES,
 } from '../actions/app';
 
 import {
-    NOT_LOADED,
-    LOADING,
-    LOADED,
-    LOAD_ERROR,
+  NOT_LOADED,
+  LOADING,
+  LOADED,
+  LOAD_ERROR,
 } from '../constants/loadStates';
-
-import { Record } from 'immutable';
 
 const AppState = Record({
   language: 'en',
@@ -44,12 +44,12 @@ export default (state = new AppState(), action) => {
     }
 
     case APP_LOCALIZATION_LOAD_SUCCESS: {
-      return state.merge({
-        language: action.language,
-        localizationLoadState: LOADED,
-      }).set(
-                'localization', action.localization,
-            );
+      return state
+        .merge({
+          language: action.language,
+          localizationLoadState: LOADED,
+        })
+        .set('localization', action.localization);
     }
 
     case APP_TOGGLE_CONTENT_PLACEHOLDERS: {
@@ -60,7 +60,8 @@ export default (state = new AppState(), action) => {
       return state.set('showComponentTitles', action.enable);
     }
 
-    default:
+    default: {
       return state;
+    }
   }
 };

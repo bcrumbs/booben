@@ -4,18 +4,28 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
+
+const propTypes = {
+  element: PropTypes.any, // DOM element actually
+  color: PropTypes.string,
+};
+
+const defaultProps = {
+  element: null,
+  color: 'grey',
+};
 
 export const OverlayBoundingBox = props => {
   if (!props.element) return null;
 
   let {
-        left,
-        top,
-        width,
-        height,
-    } = props.element.getBoundingClientRect();
+    left,
+    top,
+    width,
+    height,
+  } = props.element.getBoundingClientRect();
 
   const syntheticPadding = -2,
     scrollTop = window.pageYOffset;
@@ -77,7 +87,6 @@ export const OverlayBoundingBox = props => {
     boxSizing: 'border-box',
   };
 
-    // noinspection JSValidateTypes
   return (
     <div style={style}>
       <div style={topBorderStyle} />
@@ -88,14 +97,6 @@ export const OverlayBoundingBox = props => {
   );
 };
 
-OverlayBoundingBox.propTypes = {
-  element: PropTypes.any, // DOM element actually
-  color: PropTypes.string,
-};
-
-OverlayBoundingBox.defaultProps = {
-  element: null,
-  color: 'grey',
-};
-
+OverlayBoundingBox.propTypes = propTypes;
+OverlayBoundingBox.defaultProps = defaultProps;
 OverlayBoundingBox.displayName = 'OverlayBoundingBox';

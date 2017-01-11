@@ -4,18 +4,28 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
+
+const propTypes = {
+  element: PropTypes.any, // DOM element actually
+  title: PropTypes.string,
+};
+
+const defaultProps = {
+  element: null,
+  title: '',
+};
 
 export const OverlayComponentTitle = props => {
   if (!props.element) return null;
 
-  let {
-        left,
-        top,
-        width,
-        height,
-    } = props.element.getBoundingClientRect();
+  const {
+    left,
+    top,
+    width,
+    height,
+  } = props.element.getBoundingClientRect();
 
   if (width === 0 || height === 0) return null;
 
@@ -33,14 +43,6 @@ export const OverlayComponentTitle = props => {
   );
 };
 
-OverlayComponentTitle.propTypes = {
-  element: PropTypes.any, // DOM element actually
-  title: PropTypes.string,
-};
-
-OverlayComponentTitle.defaultProps = {
-  element: null,
-  title: '',
-};
-
+OverlayComponentTitle.propTypes = propTypes;
+OverlayComponentTitle.defaultProps = defaultProps;
 OverlayComponentTitle.displayName = 'OverlayComponentTitle';

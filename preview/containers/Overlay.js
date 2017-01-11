@@ -1,6 +1,6 @@
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Set } from 'immutable';
@@ -16,9 +16,9 @@ import {
 import { OverlayContainer } from '../components/OverlayContainer';
 import { OverlayBoundingBox } from '../components/OverlayBoundingBox';
 import { OverlayComponentTitle } from '../components/OverlayComponentTitle';
-
 import { PREVIEW_DOM_CONTAINER_ID } from '../../common/shared-constants';
 
+//noinspection JSUnresolvedVariable
 const propTypes = {
   components: ImmutablePropTypes.map.isRequired,
   selectedComponentIds: ImmutablePropTypes.set.isRequired,
@@ -64,7 +64,7 @@ class Overlay extends PureComponent {
    * @private
    */
   _renderBoundingBoxes(componentIds, color) {
-    // noinspection JSValidateTypes
+    //noinspection JSValidateTypes
     return componentIds.map(id => {
       const element = getDOMElementByComponentId(id),
         key = `${id}-${color}`;
@@ -87,7 +87,7 @@ class Overlay extends PureComponent {
   _renderTitles() {
     // TODO: Handle cases when multiple titles appear in the same place
 
-    // noinspection JSValidateTypes
+    //noinspection JSValidateTypes
     return this.props.components.valueSeq().map(component => {
       const element = getDOMElementByComponentId(component.id),
         title = component.title || component.name;

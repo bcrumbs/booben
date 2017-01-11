@@ -290,11 +290,15 @@ ComponentsLibraryComponent.propTypes = {
   expandedGroups: ImmutablePropTypes.setOf(PropTypes.string).isRequired,
   language: PropTypes.string.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
-  draggedComponents: ImmutablePropTypes.map.isRequired,
+  draggedComponents: ImmutablePropTypes.map,
   draggedComponentId: PropTypes.number.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   onExpandedGroupsChange: PropTypes.func.isRequired,
   onShowAllComponents: PropTypes.func.isRequired,
+};
+
+ComponentsLibraryComponent.defaultProps = {
+  draggedComponents: null,
 };
 
 ComponentsLibraryComponent.displayName = 'ComponentsLibrary';

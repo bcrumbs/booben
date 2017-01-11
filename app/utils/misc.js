@@ -11,8 +11,21 @@ export const noop = /* istanbul ignore next */ () => {};
 
 /**
  * Returns null :)
+ * @return {null}
  */
 export const returnNull = /* istanbul ignore next */ () => null;
+
+/**
+ * Returns true
+ * @return {boolean}
+ */
+export const returnTrue = () => true;
+
+/**
+ * Returns false
+ * @return {boolean}
+ */
+export const returnFalse = () => false;
 
 /**
  * Returns its first argument
@@ -30,6 +43,15 @@ export const returnArg = /* istanbul ignore next */ arg => arg;
  */
 export const isObject = maybeObject =>
   typeof maybeObject === 'object' && maybeObject !== null;
+
+/**
+ *
+ * @param {Object} object
+ * @param {string} key
+ * @return {boolean}
+ */
+export const hasOwnProperty = (object, key) =>
+  Object.prototype.hasOwnProperty.call(object, key);
 
 /**
  *

@@ -19,17 +19,17 @@ export const graphQLPrimitiveTypes = new Set([
 ]);
 
 export const equalMetaToGraphQLTypeNames = (metaTypeName, graphQLTypeName) => (
-    {
-      Int: 'int',
-      Float: 'float',
-      Boolean: 'bool',
-      String: 'string',
-      ID: 'string',
-    }[graphQLTypeName] === metaTypeName
+  {
+    Int: 'int',
+    Float: 'float',
+    Boolean: 'bool',
+    String: 'string',
+    ID: 'string',
+  }[graphQLTypeName] === metaTypeName
 );
 
 export const isPrimitiveGraphQLType = typeName =>
-                graphQLPrimitiveTypes.has(typeName);
+  graphQLPrimitiveTypes.has(typeName);
 
 
 /**
@@ -41,10 +41,7 @@ export const isPrimitiveGraphQLType = typeName =>
 const containType = (type, searchForTypeName) => {
   if (!type) return false;
   if (type.name === searchForTypeName) return true;
-  else
-        if (type.ofType)
-          return containType(type.ofType, searchForTypeName);
-
+  else if (type.ofType) return containType(type.ofType, searchForTypeName);
   return false;
 };
 
@@ -55,18 +52,17 @@ const containType = (type, searchForTypeName) => {
  * @return {Array<Object>}
  */
 const findAllDependentTypes = (types, searchForTypeName) =>
-    types.reduce(
-        (dependentTypes, currentType) =>
-            dependentTypes.concat(
-                currentType.fields
-                && currentType.fields.some(
-                    ({ type }) =>
-                        containType(type, searchForTypeName),
-                )
-                ? [currentType]
-                : [],
-            )
-    , []);
+  types.reduce(
+    (dependentTypes, currentType) =>
+      dependentTypes.concat(
+        currentType.fields
+        && currentType.fields.some(
+          ({ type }) => containType(type, searchForTypeName),
+        )
+        ? [currentType]
+        : [],
+      )
+  , []);
 
 /**
  *
@@ -77,53 +73,49 @@ const getRelayConnections = types => {
   const connections = {};
 
   const nodeType = types.find(
-        ({ name, kind, fields }) =>
-            name === 'Node'
-            && kind === 'INTERFACE'
-            && fields.find(
-                ({ type }) =>
-                    type.kind === 'NON_NULL'
-                    && type.ofType.name === 'ID',
-            ),
+    ({ name, kind, fields }) =>
+      name === 'Node'
+      && kind === 'INTERFACE'
+      && fields.find(
+        ({ type }) => type.kind === 'NON_NULL' && type.ofType.name === 'ID',
+      ),
     );
 
   if (nodeType) {
-        // TODO Refactor and optimize
+    // TODO Refactor and optimize
     const { possibleTypes } = nodeType;
 
     possibleTypes.forEach(
-            possibleNodeType => {
-              const nodeDependentTypes = findAllDependentTypes(
-                    types,
-                    possibleNodeType.name,
-                );
-
-              nodeDependentTypes.forEach(
-                    nodeDependentType => {
-                      if (nodeDependentType.fields.filter(
-                            ({ name }) => ['cursor', 'node'].includes(name),
-                        ).length === 2) {
-                        const edgeDependentTypes
-                                = findAllDependentTypes(types, nodeDependentType.name);
-
-                        edgeDependentTypes.forEach(
-                                edgeDependentType => {
-                                  if (edgeDependentType.fields.find(
-                                        ({ name }) => name === 'pageInfo',
-                                    )) {
-                                    connections[edgeDependentType.name] = {
-                                      data: edgeDependentType,
-                                      edge: nodeDependentType,
-                                      node: possibleNodeType,
-                                    };
-                                  }
-                                },
-                            );
-                      }
-                    },
-                );
-            },
+      possibleNodeType => {
+        const nodeDependentTypes = findAllDependentTypes(
+          types,
+          possibleNodeType.name,
         );
+
+        nodeDependentTypes.forEach(
+          nodeDependentType => {
+            if (nodeDependentType.fields.filter(
+                  ({ name }) => ['cursor', 'node'].includes(name),
+              ).length === 2) {
+              const edgeDependentTypes =
+                findAllDependentTypes(types, nodeDependentType.name);
+
+              edgeDependentTypes.forEach(edgeDependentType => {
+                if (edgeDependentType.fields.find(
+                    ({ name }) => name === 'pageInfo',
+                )) {
+                  connections[edgeDependentType.name] = {
+                    data: edgeDependentType,
+                    edge: nodeDependentType,
+                    node: possibleNodeType,
+                  };
+                }
+              });
+            }
+          },
+        );
+      },
+    );
   }
   return connections;
 };
@@ -132,24 +124,18 @@ const getRelayConnections = types => {
 const convertToSchemaType = (type, getFieldDescription) => {
   const fields = type.fields || type.inputFields;
 
-  const schemaType = {
+  return {
     fields: fields.reduce(
-            (acc, field) => Object.assign(
-                acc,
-              {
-                [field.name]: getFieldDescription(
-                        field,
-                    ),
-              },
-            )
-        , {}),
+      (acc, field) => Object.assign(acc, {
+        [field.name]: getFieldDescription(field),
+      })
+    , {}),
     description: type.description || '',
     name: type.name,
     interfaces: type.interfaces && type.interfaces.length
-                    ? type.interfaces.map(({ name }) => name)
-                    : [],
+      ? type.interfaces.map(({ name }) => name)
+      : [],
   };
-  return schemaType;
 };
 
 /**
@@ -158,67 +144,64 @@ const convertToSchemaType = (type, getFieldDescription) => {
  * @return {Object}
  */
 export const parseGraphQLSchema = schema => {
-    // TODO mutationType and subscriptionType
-  const queryType = schema.types.find(({ name }) => name === schema.queryType.name);
+  // TODO mutationType and subscriptionType
+  const queryType =
+    schema.types.find(({ name }) => name === schema.queryType.name);
 
   const normalizedTypes = {};
-
   const connections = getRelayConnections(schema.types);
 
-    // -----------------------------------------------
-    // TODO Correct and refactor
+  // -----------------------------------------------
+  // TODO Correct and refactor
 
   const haveKind = (type, kind, deep = true) =>
-        kind === FIELD_KINDS.CONNECTION
-        ? !!connections[type.name]
-        : (
-            type.kind === kind
-            || (
-                type.ofType && deep
-                ? haveKind(type.ofType, kind, deep)
-                : false
-            )
-        );
+    kind === FIELD_KINDS.CONNECTION
+    ? !!connections[type.name]
+    : (
+      type.kind === kind
+      || (
+        type.ofType && deep
+        ? haveKind(type.ofType, kind, deep)
+        : false
+      )
+    );
 
   const getTypeDescription = (type, kind) =>
-        kind === FIELD_KINDS.CONNECTION
-        ? {
-          type: connections[type.name].node.name,
-          connectionFields:
-                    connections[type.name].data
-                        .fields
-                            .filter(({ name }) => !['edges', 'pageInfo'].includes(name))
-                            .reduce((acc, field) => Object.assign(
-                                acc, {
-                                  [field.name]: getFieldDescription(field),
-                                },
-                            ), {}),
-        }
-        : (
-                type.ofType
-                ? getTypeDescription(type.ofType, kind)
-                : kind !== FIELD_KINDS.LIST
-                    ?
-                {
-                  type: type.name,
-                }
-                    : {
-                      type: type.name,
-                      nonNullMember: haveKind(type, 'NON_NULL'),
-                    }
-        );
+    kind === FIELD_KINDS.CONNECTION
+    ? {
+      type: connections[type.name].node.name,
+      connectionFields: connections[type.name].data
+        .fields
+        .filter(({ name }) => !['edges', 'pageInfo'].includes(name))
+        .reduce((acc, field) => Object.assign(acc, {
+          [field.name]: getFieldDescription(field),
+        }), {}),
+    }
+    : (
+      type.ofType
+      ? getTypeDescription(type.ofType, kind)
+      : kind !== FIELD_KINDS.LIST
+          ?
+      {
+        type: type.name,
+      }
+          : {
+            type: type.name,
+            nonNullMember: haveKind(type, 'NON_NULL'),
+          }
+    );
 
 
   const getFieldDescription = (field, isArgumentField) => {
     const kind = FIELD_KINDS[
-            haveKind(field.type, 'LIST')
-            ? 'LIST'
-            : (
-                haveKind(field.type, FIELD_KINDS.CONNECTION)
-                ? 'CONNECTION'
-                : 'SINGLE'
-            )
-        ];
+      haveKind(field.type, 'LIST')
+      ? 'LIST'
+      : (
+          haveKind(field.type, FIELD_KINDS.CONNECTION)
+          ? 'CONNECTION'
+          : 'SINGLE'
+      )
+    ];
 
     const fieldDescription = Object.assign({
       nonNull: haveKind(field.type, 'NON_NULL', false),
@@ -226,18 +209,18 @@ export const parseGraphQLSchema = schema => {
       name: field.name,
       description: field.description || '',
       args: field.args && field.args.length
-                    ? field.args.reduce(
-                            (acc, arg) => Object.assign(
-                                acc,
-                              {
-                                [arg.name]: Object.assign({},
-                                        getFieldDescription(arg, true),
-                                        { defaultValue: arg.defaultValue || null },
-                                    ),
-                              },
-                            )
-                        , {})
-                    : {},
+        ? field.args.reduce(
+                (acc, arg) => Object.assign(
+                    acc,
+                  {
+                    [arg.name]: Object.assign({},
+                            getFieldDescription(arg, true),
+                            { defaultValue: arg.defaultValue || null },
+                        ),
+                  },
+                )
+            , {})
+        : {},
     }, getTypeDescription(field.type, kind));
 
     if (typeof isArgumentField === 'boolean' && isArgumentField)
@@ -245,31 +228,29 @@ export const parseGraphQLSchema = schema => {
     return fieldDescription;
   };
 
-    // -----------------------------------------------
+  // -----------------------------------------------
 
 
   schema.types.forEach(
-        type => {
-          if (
-                type.kind !== 'INTERFACE'
-                && !graphQLPrimitiveTypes.has(type.name)
-                && !/^__.*/.test(type.name)
-            ) {
-            normalizedTypes[type.name] = convertToSchemaType(
-                    type,
-                    getFieldDescription,
-                );
-          }
-        },
-    );
+    type => {
+      if (
+        type.kind !== 'INTERFACE'
+        && !graphQLPrimitiveTypes.has(type.name)
+        && !/^__.*/.test(type.name)
+      ) {
+        normalizedTypes[type.name] = convertToSchemaType(
+          type,
+          getFieldDescription,
+        );
+      }
+    },
+  );
 
-  _forOwn(connections,
-        ({ edge }, key) => {
-          delete normalizedTypes[key];
-          delete normalizedTypes[edge.name];
-          if (normalizedTypes.PageInfo) delete normalizedTypes.PageInfo;
-        },
-    );
+  _forOwn(connections, ({ edge }, key) => {
+    delete normalizedTypes[key];
+    delete normalizedTypes[edge.name];
+    if (normalizedTypes.PageInfo) delete normalizedTypes.PageInfo;
+  });
 
   delete normalizedTypes[queryType.name].fields.node;
 
@@ -305,6 +286,6 @@ export const getTypeNameByField = (schema, fieldName, onType) => {
  * @return {string}
  */
 export const getTypeNameByPath = (schema, path, startType = '') => path.reduce(
-    (acc, cur) => getTypeNameByField(schema, cur, acc),
-    startType || schema.queryTypeName,
+  (acc, cur) => getTypeNameByField(schema, cur, acc),
+  startType || schema.queryTypeName,
 );

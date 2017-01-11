@@ -4,58 +4,60 @@
 
 'use strict';
 
+import { Record, Map, Set, List, is } from 'immutable';
+import _mapValues from 'lodash.mapvalues';
+
 import {
-    NOT_LOADED,
-    LOADING,
-    LOADED,
-    LOAD_ERROR,
+  NOT_LOADED,
+  LOADING,
+  LOADED,
 } from '../constants/loadStates';
 
 import {
-    PROJECT_REQUEST,
-    PROJECT_LOADED,
-    PROJECT_ROUTE_CREATE,
-    PROJECT_ROUTE_DELETE,
-    PROJECT_ROUTE_UPDATE_FIELD,
-    PROJECT_COMPONENT_DELETE,
-    PROJECT_COMPONENT_UPDATE_PROP_VALUE,
-    PROJECT_COMPONENT_ADD_PROP_VALUE,
-    PROJECT_COMPONENT_DELETE_PROP_VALUE,
-    PROJECT_COMPONENT_RENAME,
-    PROJECT_COMPONENT_TOGGLE_REGION,
-    PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
-    PROJECT_CONSTRUCT_COMPONENT_FOR_PROP,
-    PROJECT_CANCEL_CONSTRUCT_COMPONENT_FOR_PROP,
-    PROJECT_SAVE_COMPONENT_FOR_PROP,
-    PROJECT_LINK_PROP,
-    PROJECT_LINK_WITH_OWNER_PROP,
-    PROJECT_LINK_PROP_CANCEL,
+  PROJECT_REQUEST,
+  PROJECT_LOADED,
+  PROJECT_ROUTE_CREATE,
+  PROJECT_ROUTE_DELETE,
+  PROJECT_ROUTE_UPDATE_FIELD,
+  PROJECT_COMPONENT_DELETE,
+  PROJECT_COMPONENT_UPDATE_PROP_VALUE,
+  PROJECT_COMPONENT_ADD_PROP_VALUE,
+  PROJECT_COMPONENT_DELETE_PROP_VALUE,
+  PROJECT_COMPONENT_RENAME,
+  PROJECT_COMPONENT_TOGGLE_REGION,
+  PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
+  PROJECT_CONSTRUCT_COMPONENT_FOR_PROP,
+  PROJECT_CANCEL_CONSTRUCT_COMPONENT_FOR_PROP,
+  PROJECT_SAVE_COMPONENT_FOR_PROP,
+  PROJECT_LINK_PROP,
+  PROJECT_LINK_WITH_OWNER_PROP,
+  PROJECT_LINK_PROP_CANCEL,
 } from '../actions/project';
 
 import {
-    PREVIEW_SELECT_COMPONENT,
-    PREVIEW_DESELECT_COMPONENT,
-    PREVIEW_TOGGLE_COMPONENT_SELECTION,
-    PREVIEW_HIGHLIGHT_COMPONENT,
-    PREVIEW_UNHIGHLIGHT_COMPONENT,
-    PREVIEW_SET_CURRENT_ROUTE,
-    PREVIEW_START_DRAG_NEW_COMPONENT,
-    PREVIEW_START_DRAG_EXISTING_COMPONENT,
-    PREVIEW_DROP_COMPONENT,
-    PREVIEW_DRAG_OVER_COMPONENT,
-    PREVIEW_DRAG_OVER_PLACEHOLDER,
+  PREVIEW_SELECT_COMPONENT,
+  PREVIEW_DESELECT_COMPONENT,
+  PREVIEW_TOGGLE_COMPONENT_SELECTION,
+  PREVIEW_HIGHLIGHT_COMPONENT,
+  PREVIEW_UNHIGHLIGHT_COMPONENT,
+  PREVIEW_SET_CURRENT_ROUTE,
+  PREVIEW_START_DRAG_NEW_COMPONENT,
+  PREVIEW_START_DRAG_EXISTING_COMPONENT,
+  PREVIEW_DROP_COMPONENT,
+  PREVIEW_DRAG_OVER_COMPONENT,
+  PREVIEW_DRAG_OVER_PLACEHOLDER,
 } from '../actions/preview';
 
 import {
-    APP_LOCALIZATION_LOAD_SUCCESS,
+  APP_LOCALIZATION_LOAD_SUCCESS,
 } from '../actions/app';
 
 import {
-    STRUCTURE_SELECT_ROUTE,
+  STRUCTURE_SELECT_ROUTE,
 } from '../actions/structure';
 
 import {
-    LIBRARY_SHOW_ALL_COMPONENTS,
+  LIBRARY_SHOW_ALL_COMPONENTS,
 } from '../actions/components-library';
 
 import ProjectRoute from '../models/ProjectRoute';
@@ -65,42 +67,38 @@ import SourceDataDesigner from '../models/SourceDataDesigner';
 import SourceDataData from '../models/SourceDataData';
 
 import {
-    projectToImmutable,
-    getMaxRouteId,
-    getMaxComponentId,
-    gatherRoutesTreeIds,
+  projectToImmutable,
+  getMaxRouteId,
+  getMaxComponentId,
+  gatherRoutesTreeIds,
 } from '../models/Project';
 
 import {
-    sourceDataToImmutable,
-    gatherComponentsTreeIds,
-    isRootComponent,
-    getValueByPath,
-    walkSimpleProps,
-    walkComponentsTree,
-    QueryArgumentValue,
+  sourceDataToImmutable,
+  gatherComponentsTreeIds,
+  isRootComponent,
+  getValueByPath,
+  walkSimpleProps,
+  walkComponentsTree,
+  QueryArgumentValue,
 } from '../models/ProjectComponent';
-
-import { Record, Map, Set, List, is } from 'immutable';
 
 import { concatPath } from '../utils';
 
 import {
-    getComponentMeta,
-    constructComponent,
-    parseComponentName,
-    formatComponentName,
-    getNestedTypedef,
-    propHasDataContext,
+  getComponentMeta,
+  constructComponent,
+  parseComponentName,
+  formatComponentName,
+  getNestedTypedef,
+  propHasDataContext,
 } from '../utils/meta';
 
 import {
-    parseGraphQLSchema,
+  parseGraphQLSchema,
 } from '../utils/schema';
 
 import { NO_VALUE } from '../constants/misc';
-
-import _mapValues from 'lodash.mapvalues';
 
 export const NestedConstructor = Record({
   components: Map(),
@@ -152,88 +150,97 @@ const ProjectState = Record({
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
 
-const getTopNestedConstructor = state => state.nestedConstructors.first() || null;
+const getTopNestedConstructor = state =>
+  state.nestedConstructors.first() || null;
 
 const openNestedConstructor = (state, nestedConstructor) => state.update(
-    'nestedConstructors',
-    nestedConstructors => nestedConstructors.unshift(nestedConstructor),
+  'nestedConstructors',
+  nestedConstructors => nestedConstructors.unshift(nestedConstructor),
 );
 
-const closeAllNestedConstructors = state => state.set('nestedConstructors', List());
+const closeAllNestedConstructors = state =>
+  state.set('nestedConstructors', List());
 
 const closeTopNestedConstructor = state => state.update(
-    'nestedConstructors',
-    nestedConstructors => nestedConstructors.shift(),
+  'nestedConstructors',
+  nestedConstructors => nestedConstructors.shift(),
 );
 
 const getComponentById = (state, componentId) =>
-    state.data.routes.get(state.currentRouteId).components.get(componentId);
+  state.data.routes.get(state.currentRouteId).components.get(componentId);
 
 const getBottomNestedConstructorComponent = state =>
-    getComponentById(state, state.nestedConstructors.last().componentId);
+  getComponentById(state, state.nestedConstructors.last().componentId);
 
-export const getComponentWithQueryArgs =
-    (state, updatedComponentId, isRootQuery) => isRootQuery
-    ? getComponentById(state, updatedComponentId)
-    : getBottomNestedConstructorComponent(state);
+export const getComponentWithQueryArgs = (
+  state,
+  updatedComponentId,
+  isRootQuery,
+) => isRootQuery
+  ? getComponentById(state, updatedComponentId)
+  : getBottomNestedConstructorComponent(state);
 
 const getPathToCurrentComponents = state => haveNestedConstructors(state)
-    ? ['nestedConstructors', 0, 'components']
-    : ['data', 'routes', state.currentRouteId, 'components'];
+  ? ['nestedConstructors', 0, 'components']
+  : ['data', 'routes', state.currentRouteId, 'components'];
 
 const getPathToCurrentLastComponentId = state => haveNestedConstructors(state)
-    ? ['nestedConstructors', 0, 'lastComponentId']
-    : ['lastComponentId'];
+  ? ['nestedConstructors', 0, 'lastComponentId']
+  : ['lastComponentId'];
 
 const getPathToCurrentRootComponentId = state => haveNestedConstructors(state)
-    ? ['nestedConstructors', 0, 'rootId']
-    : [
-      'data',
-      'routes',
-      state.currentRouteId,
-      state.currentRouteIsIndexRoute ? 'indexComponent' : 'component',
-    ];
+  ? ['nestedConstructors', 0, 'rootId']
+  : [
+    'data',
+    'routes',
+    state.currentRouteId,
+    state.currentRouteIsIndexRoute ? 'indexComponent' : 'component',
+  ];
 
-const getPathToCurrentSelectedComponentIds = state => haveNestedConstructors(state)
+const getPathToCurrentSelectedComponentIds = state =>
+  haveNestedConstructors(state)
     ? ['nestedConstructors', 0, 'selectedComponentIds']
     : ['selectedItems'];
 
-const getPathToCurrentHighlightedComponentIds = state => haveNestedConstructors(state)
+const getPathToCurrentHighlightedComponentIds = state =>
+  haveNestedConstructors(state)
     ? ['nestedConstructors', 0, 'highlightedComponentIds']
     : ['highlightedItems'];
 
 const selectComponent = (state, componentId) => state.updateIn(
-    getPathToCurrentSelectedComponentIds(state),
-    selectedComponentIds => selectedComponentIds.add(componentId),
+  getPathToCurrentSelectedComponentIds(state),
+  selectedComponentIds => selectedComponentIds.add(componentId),
 );
 
 const selectComponentExclusive = (state, componentId) =>
-    state.setIn(getPathToCurrentSelectedComponentIds(state), Set([componentId]));
+  state.setIn(getPathToCurrentSelectedComponentIds(state), Set([componentId]));
 
 const toggleComponentSelection = (state, componentId) => {
-  const pathToCurrentSelectedComponentIds = getPathToCurrentSelectedComponentIds(state),
-    currentSelectedComponentIds = state.getIn(pathToCurrentSelectedComponentIds);
+  const pathToCurrentSelectedComponentIds =
+      getPathToCurrentSelectedComponentIds(state);
+  const currentSelectedComponentIds =
+    state.getIn(pathToCurrentSelectedComponentIds);
 
   const updater = currentSelectedComponentIds.has(componentId)
-        ? selectedComponentIds => selectedComponentIds.delete(componentId)
-        : selectedComponentIds => selectedComponentIds.add(componentId);
+    ? selectedComponentIds => selectedComponentIds.delete(componentId)
+    : selectedComponentIds => selectedComponentIds.add(componentId);
 
   return state.updateIn(pathToCurrentSelectedComponentIds, updater);
 };
 
 const deselectComponent = (state, componentId) => state.updateIn(
-    getPathToCurrentSelectedComponentIds(state),
-    selectedComponentIds => selectedComponentIds.delete(componentId),
+  getPathToCurrentSelectedComponentIds(state),
+  selectedComponentIds => selectedComponentIds.delete(componentId),
 );
 
 const highlightComponent = (state, componentId) => state.updateIn(
-    getPathToCurrentHighlightedComponentIds(state),
-    highlightedComponentIds => highlightedComponentIds.add(componentId),
+  getPathToCurrentHighlightedComponentIds(state),
+  highlightedComponentIds => highlightedComponentIds.add(componentId),
 );
 
 const unhighlightComponent = (state, componentId) => state.updateIn(
-    getPathToCurrentHighlightedComponentIds(state),
-    highlightedComponentIds => highlightedComponentIds.delete(componentId),
+  getPathToCurrentHighlightedComponentIds(state),
+  highlightedComponentIds => highlightedComponentIds.delete(componentId),
 );
 
 const addComponents = (state, parentComponentId, position, components) => {
@@ -243,32 +250,32 @@ const addComponents = (state, parentComponentId, position, components) => {
     pathToCurrentComponents = getPathToCurrentComponents(state);
 
   state = state.updateIn(
-        pathToCurrentComponents,
+    pathToCurrentComponents,
 
-        updatedComponents => updatedComponents.withMutations(updatedComponentsMut =>
-            void components.forEach(newComponent =>
-                void updatedComponentsMut.set(
-                    newComponent.id + nextComponentId,
+    updatedComponents => updatedComponents.withMutations(updatedComponentsMut =>
+      void components.forEach(newComponent =>
+        void updatedComponentsMut.set(
+          newComponent.id + nextComponentId,
 
-                    newComponent
-                        .merge({
-                          id: newComponent.id + nextComponentId,
-                          isNew: false,
-                          parentId: newComponent.parentId === -1
-                                ? parentComponentId
-                                : newComponent.parentId + nextComponentId,
+          newComponent
+            .merge({
+              id: newComponent.id + nextComponentId,
+              isNew: false,
+              parentId: newComponent.parentId === -1
+                ? parentComponentId
+                : newComponent.parentId + nextComponentId,
 
-                          routeId: state.currentRouteId,
-                          isIndexRoute: state.currentRouteIsIndexRoute,
-                        })
-                        .update(
-                            'children',
-                            childIds => childIds.map(id => id + nextComponentId),
-                        ),
-                ),
+              routeId: state.currentRouteId,
+              isIndexRoute: state.currentRouteIsIndexRoute,
+            })
+            .update(
+              'children',
+              childIds => childIds.map(id => id + nextComponentId),
             ),
         ),
-    );
+      ),
+    ),
+  );
 
   if (parentComponentId !== -1) {
     const pathToChildrenIdsList = [].concat(pathToCurrentComponents, [
@@ -277,16 +284,20 @@ const addComponents = (state, parentComponentId, position, components) => {
     ]);
 
     state = state.updateIn(
-            pathToChildrenIdsList,
-            childComponentIds => childComponentIds.insert(position, nextComponentId),
-        );
-  } else { state = state.setIn(getPathToCurrentRootComponentId(state), nextComponentId); }
-
+      pathToChildrenIdsList,
+      childComponentIds => childComponentIds.insert(position, nextComponentId),
+    );
+  } else {
+    state = state.setIn(
+      getPathToCurrentRootComponentId(state),
+      nextComponentId,
+    );
+  }
 
   return state.updateIn(
-        pathToCurrentLastComponentId,
-        lastComponentId => lastComponentId + components.size,
-    );
+    pathToCurrentLastComponentId,
+    lastComponentId => lastComponentId + components.size,
+  );
 };
 
 const deleteComponent = (state, componentId) => {
@@ -295,20 +306,20 @@ const deleteComponent = (state, componentId) => {
 
   if (!currentComponents.has(componentId)) {
     throw new Error(
-            'An attempt was made to delete a component ' +
-            'that is not in current editing area',
-        );
+      'An attempt was made to delete a component ' +
+      'that is not in current editing area',
+    );
   }
 
   const component = currentComponents.get(componentId),
     idsToDelete = gatherComponentsTreeIds(currentComponents, componentId);
 
   state = state.updateIn(
-        pathToCurrentComponents,
+    pathToCurrentComponents,
 
-        components => components.withMutations(componentsMut =>
-            void idsToDelete.forEach(id => void componentsMut.delete(id))),
-    );
+    components => components.withMutations(componentsMut =>
+      void idsToDelete.forEach(id => void componentsMut.delete(id))),
+  );
 
   if (isRootComponent(component)) {
     state = state.setIn(getPathToCurrentRootComponentId(state), -1);
@@ -319,9 +330,9 @@ const deleteComponent = (state, componentId) => {
     ]);
 
     state = state.updateIn(
-            pathToChildrenIdsList,
-            children => children.filter(id => id !== componentId),
-        );
+      pathToChildrenIdsList,
+      children => children.filter(id => id !== componentId),
+    );
   }
 
   return state;
@@ -333,16 +344,16 @@ const moveComponent = (state, componentId, targetComponentId, position) => {
 
   if (!currentComponents.has(componentId)) {
     throw new Error(
-            'An attempt was made to move a component ' +
-            'that is not in current editing area',
-        );
+      'An attempt was made to move a component ' +
+      'that is not in current editing area',
+    );
   }
 
   if (!currentComponents.has(targetComponentId)) {
     throw new Error(
-            'An attempt was made to move a component ' +
-            'outside current editing area',
-        );
+      'An attempt was made to move a component ' +
+      'outside current editing area',
+    );
   }
 
   const component = currentComponents.get(componentId);
@@ -360,8 +371,8 @@ const moveComponent = (state, componentId, targetComponentId, position) => {
       const idx = ids.indexOf(componentId);
 
       return idx === position
-                ? ids
-                : ids.delete(idx).insert(position - (idx < position), componentId);
+        ? ids
+        : ids.delete(idx).insert(position - (idx < position), componentId);
     });
   }
 
@@ -371,9 +382,9 @@ const moveComponent = (state, componentId, targetComponentId, position) => {
   ]);
 
   state = state.updateIn(
-        sourceChildrenListPath,
-        ids => ids.filter(id => id !== componentId),
-    );
+    sourceChildrenListPath,
+    ids => ids.filter(id => id !== componentId),
+  );
 
   const targetChildrenListPath = [].concat(pathToCurrentComponents, [
     targetComponentId,
@@ -381,11 +392,15 @@ const moveComponent = (state, componentId, targetComponentId, position) => {
   ]);
 
   state = state.updateIn(
-        targetChildrenListPath,
-        ids => ids.insert(position, componentId),
-    );
+    targetChildrenListPath,
+    ids => ids.insert(position, componentId),
+  );
 
-  const pathToParentId = [].concat(pathToCurrentComponents, [componentId, 'parentId']);
+  const pathToParentId = [].concat(
+    pathToCurrentComponents,
+    [componentId, 'parentId'],
+  );
+  
   return state.setIn(pathToParentId, targetComponentId);
 };
 
@@ -402,23 +417,23 @@ const initDNDState = state => state.merge({
 
 const insertDraggedComponents = (state, components) => {
   if (state.placeholderContainerId === -1) {
-        // Creating root component
+    // Creating root component
     return addComponents(state, -1, 0, components);
   } else {
-        // Creating nested component
+    // Creating nested component
     return addComponents(
-            state,
-            state.placeholderContainerId,
-            state.placeholderAfter + 1,
-            components,
-        );
+      state,
+      state.placeholderContainerId,
+      state.placeholderAfter + 1,
+      components,
+    );
   }
 };
 
 const selectFirstRoute = state => state.merge({
   selectedRouteId: state.data.routes.size > 0
-        ? state.data.routes.get(0).id
-        : -1,
+    ? state.data.routes.get(0).id
+    : -1,
 
   indexRouteSelected: false,
 });
@@ -429,21 +444,23 @@ const isPrefixList = (maybePrefix, list) => {
 };
 
 const expandPropPath = propPath => propPath
-    .slice(0, -1)
-    .reduce((acc, cur) => acc.concat([cur, 'sourceData', 'value']), [])
-    .concat(propPath[propPath.length - 1]);
+  .slice(0, -1)
+  .reduce((acc, cur) => acc.concat([cur, 'sourceData', 'value']), [])
+  .concat(propPath[propPath.length - 1]);
 
 const clearOutdatedDataProps = (
-    state,
-    updatedComponentId,
-    updatedDataPropName,
+  state,
+  updatedComponentId,
+  updatedDataPropName,
 ) => {
   const currentComponentsPath = getPathToCurrentComponents(state),
     currentComponents = state.getIn(currentComponentsPath),
     updatedComponent = currentComponents.get(updatedComponentId);
 
   const oldValue = updatedComponent.props.get(updatedDataPropName);
-  if (oldValue.source !== 'data' || !oldValue.sourceData.queryPath) return state;
+  
+  if (oldValue.source !== 'data' || !oldValue.sourceData.queryPath)
+    return state;
 
   const componentMeta = getComponentMeta(updatedComponent.name, state.meta),
     updatedPropMeta = componentMeta.props[updatedDataPropName];
@@ -451,80 +468,81 @@ const clearOutdatedDataProps = (
   if (!propHasDataContext(updatedPropMeta)) return state;
 
   const outdatedDataContext = oldValue.sourceData.dataContext
-        .push(updatedPropMeta.sourceConfigs.data.pushDataContext);
+      .push(updatedPropMeta.sourceConfigs.data.pushDataContext);
 
   const visitDesignerProp = (designerPropValue, path) => {
     walkComponentsTree(
-            designerPropValue.sourceData.components,
-            designerPropValue.sourceData.rootId,
+      designerPropValue.sourceData.components,
+      designerPropValue.sourceData.rootId,
 
-            component => {
-              const componentId = component.id;
+      component => {
+        const componentId = component.id;
 
-              walkSimpleProps(
-                    component,
-                    getComponentMeta(component.name, state.meta),
+        walkSimpleProps(
+          component,
+          getComponentMeta(component.name, state.meta),
 
-                    (propValue, _, pathToProp) => {
-                      if (propValue.source === 'data') {
-                        const containsOutdatedDataContext = isPrefixList(
-                                outdatedDataContext,
-                                propValue.sourceData.dataContext,
-                            );
+          (propValue, _, pathToProp) => {
+            if (propValue.source === 'data') {
+              const containsOutdatedDataContext = isPrefixList(
+                outdatedDataContext,
+                propValue.sourceData.dataContext,
+              );
 
-                        if (containsOutdatedDataContext) {
-                          const pathToUpdatedValue = [].concat(path, [
-                            'sourceData',
-                            'components',
-                            componentId,
-                            'props',
-                          ], expandPropPath(pathToProp));
+              if (containsOutdatedDataContext) {
+                const pathToUpdatedValue = [].concat(path, [
+                  'sourceData',
+                  'components',
+                  componentId,
+                  'props',
+                ], expandPropPath(pathToProp));
 
-                          const newSourceData = new SourceDataData({
-                            queryPath: null,
-                          });
+                const newSourceData = new SourceDataData({
+                  queryPath: null,
+                });
 
-                          state = state.updateIn(
-                                    pathToUpdatedValue,
+                state = state.updateIn(
+                  pathToUpdatedValue,
 
-                                    updatedvalue => updatedvalue.set(
-                                        'sourceData',
-                                        newSourceData,
-                                    ),
-                                );
-                        }
-                      } else if (propValue.source === 'designer') {
-                        if (propValue.sourceData.rootId > -1) {
-                          const pathToNextDesignerValue = [].concat(path, [
-                            'sourceData',
-                            'components',
-                            componentId,
-                            'props',
-                          ], expandPropPath(pathToProp));
-
-                          visitDesignerProp(
-                                    state.getIn(pathToNextDesignerValue),
-                                    pathToNextDesignerValue,
-                                );
-                        }
-                      }
-                    },
+                  updatedValue => updatedValue.set(
+                    'sourceData',
+                    newSourceData,
+                  ),
                 );
-            },
-        );
-  };
+              }
+            } else if (propValue.source === 'designer') {
+              if (propValue.sourceData.rootId > -1) {
+                const pathToNextDesignerValue = [].concat(path, [
+                  'sourceData',
+                  'components',
+                  componentId,
+                  'props',
+                ], expandPropPath(pathToProp));
 
-  walkSimpleProps(updatedComponent, componentMeta, (propValue, _, pathToProp) => {
+                visitDesignerProp(
+                  state.getIn(pathToNextDesignerValue),
+                  pathToNextDesignerValue,
+                );
+              }
+            }
+          },
+        );
+      },
+    );
+  };
+  
+  const visitProp = (propValue, _, pathToProp) => {
     if (propValue.source === 'designer' && propValue.sourceData.rootId > -1) {
       const pathToValue = [].concat(currentComponentsPath, [
         updatedComponentId,
         'props',
       ], expandPropPath(pathToProp));
-
+    
       visitDesignerProp(propValue, pathToValue);
     }
-  });
+  };
 
+  walkSimpleProps(updatedComponent, componentMeta, visitProp);
   return state;
 };
 
@@ -544,32 +562,32 @@ export default (state = new ProjectState(), action) => {
         schema = action.schema ? parseGraphQLSchema(action.schema) : null;
 
       return state
-                .merge({
-                  projectName: action.project.name,
-                  loadState: LOADED,
-                  data: project,
-                  error: null,
-                  lastRouteId,
-                  lastComponentId,
-                  selectedRouteId: project.rootRoutes.size > 0
-                        ? project.rootRoutes.get(0)
-                        : -1,
-                  indexRouteSelected: false,
-                })
-                .set('schema', schema)
-                .set('meta', action.metadata); // Prevent conversion to Immutable.Map
+        .merge({
+          projectName: action.project.name,
+          loadState: LOADED,
+          data: project,
+          error: null,
+          lastRouteId,
+          lastComponentId,
+          selectedRouteId: project.rootRoutes.size > 0
+            ? project.rootRoutes.get(0)
+            : -1,
+          indexRouteSelected: false,
+        })
+        .set('schema', schema)
+        .set('meta', action.metadata); // Prevent conversion to Immutable.Map
     }
 
     case PROJECT_ROUTE_CREATE: {
       const newRouteId = state.lastRouteId + 1;
 
       const parentRoute = action.parentRouteId > -1
-                ? state.data.routes.get(action.parentRouteId)
-                : null;
+        ? state.data.routes.get(action.parentRouteId)
+        : null;
 
       const fullPath = parentRoute
-                ? concatPath(parentRoute.fullPath, action.path)
-                : action.path;
+        ? concatPath(parentRoute.fullPath, action.path)
+        : action.path;
 
       const newRoute = new ProjectRoute({
         id: newRouteId,
@@ -582,56 +600,54 @@ export default (state = new ProjectState(), action) => {
       state = state.setIn(['data', 'routes', newRouteId], newRoute);
 
       const pathToIdsList = action.parentRouteId === -1
-                ? ['data', 'rootRoutes']
-                : ['data', 'routes', action.parentRouteId, 'children'];
-
-
-      state = state.updateIn(pathToIdsList, list => list.push(newRouteId));
-
-      return state.set('lastRouteId', newRouteId);
+        ? ['data', 'rootRoutes']
+        : ['data', 'routes', action.parentRouteId, 'children'];
+      
+      return state
+        .updateIn(pathToIdsList, list => list.push(newRouteId))
+        .set('lastRouteId', newRouteId);
     }
 
     case PROJECT_ROUTE_DELETE: {
       const deletedRoute = state.data.routes.get(action.routeId),
         deletedRouteIds = gatherRoutesTreeIds(state.data, action.routeId);
 
-            // De-select and de-highlight all components
+      // De-select and de-highlight all components
       state = state.merge({
         selectedItems: Set(),
         highlightedItems: Set(),
       });
 
-            // Delete routes
+      // Delete routes
       state = state.updateIn(
-                ['data', 'routes'],
-                routes => routes.filter(route => !deletedRouteIds.has(route.id)),
-            );
+        ['data', 'routes'],
+        routes => routes.filter(route => !deletedRouteIds.has(route.id)),
+      );
 
-            // Update rootRoutes or parent's children list
+      // Update rootRoutes or parent's children list
       const pathToIdsList = deletedRoute.parentId === -1
-                ? ['data', 'rootRoutes']
-                : ['data', 'routes', deletedRoute.parentId, 'children'];
+        ? ['data', 'rootRoutes']
+        : ['data', 'routes', deletedRoute.parentId, 'children'];
 
       state = state.updateIn(
-                pathToIdsList,
-                routeIds => routeIds.filter(routeId => routeId !== action.routeId),
-            );
+        pathToIdsList,
+        routeIds => routeIds.filter(routeId => routeId !== action.routeId),
+      );
 
-            // Update selected route
+      // Update selected route
       const deletedRouteIsSelected =
-                state.selectedRouteId > -1 &&
-                deletedRouteIds.has(state.selectedRouteId);
+        state.selectedRouteId > -1 &&
+        deletedRouteIds.has(state.selectedRouteId);
 
       if (deletedRouteIsSelected) state = selectFirstRoute(state);
-
       return state;
     }
 
     case PROJECT_ROUTE_UPDATE_FIELD: {
       return state.setIn(
-                ['data', 'routes', action.routeId, action.field],
-                action.newValue,
-            );
+        ['data', 'routes', action.routeId, action.field],
+        action.newValue,
+      );
     }
 
     case PROJECT_COMPONENT_DELETE: {
@@ -650,27 +666,27 @@ export default (state = new ProjectState(), action) => {
 
       if (!currentComponents.has(action.componentId)) {
         throw new Error(
-                    'An attempt was made to update a component ' +
-                    'that is not in current editing area',
-                );
+          'An attempt was made to update a component ' +
+          'that is not in current editing area',
+        );
       }
 
       const newPropValue = new ProjectComponentProp({
         source: action.newSource,
         sourceData: sourceDataToImmutable(
-                    action.newSource,
-                    action.newSourceData,
-                ),
+          action.newSource,
+          action.newSourceData,
+        ),
       });
 
-            // Data prop with pushDataContext cannot be nested,
-            // so we need to clearOutdatedDataProps only when updating top-level prop
+      // Data prop with pushDataContext cannot be nested,
+      // so we need to clearOutdatedDataProps only when updating top-level prop
       if (!action.path || !action.path.length) {
         state = clearOutdatedDataProps(
-                    state,
-                    action.componentId,
-                    action.propName,
-                );
+          state,
+          action.componentId,
+          action.propName,
+        );
       }
 
       const pathToComponent = [].concat(pathToCurrentComponents, [
@@ -679,40 +695,40 @@ export default (state = new ProjectState(), action) => {
 
       if (action.newQueryArgs) {
         const pathToQueryArgs = (
-                    action.isRootQuery
-                    ? [
-                      'data',
-                      'routes',
-                      state.currentRouteId,
-                      'components',
-                      getComponentWithQueryArgs(
-                            state,
-                            action.componentId,
-                            false,
-                        ).id,
-                    ]
-                    : pathToComponent
-                ).concat('queryArgs');
+          action.isRootQuery
+          ? [
+            'data',
+            'routes',
+            state.currentRouteId,
+            'components',
+            getComponentWithQueryArgs(
+              state,
+              action.componentId,
+              false,
+            ).id,
+          ]
+          : pathToComponent
+        ).concat('queryArgs');
 
         const toMerge = _mapValues(
-                    action.newQueryArgs,
+          action.newQueryArgs,
 
-                    argsByContext => _mapValues(
-                        argsByContext,
+          argsByContext => _mapValues(
+            argsByContext,
 
-                        argsByPath => _mapValues(
-                            argsByPath,
+            argsByPath => _mapValues(
+              argsByPath,
 
-                            arg => new QueryArgumentValue({
-                              source: arg.source,
-                              sourceData: sourceDataToImmutable(
-                                    arg.source,
-                                    arg.sourceData,
-                                ),
-                            }),
-                        ),
-                    ),
-                );
+              arg => new QueryArgumentValue({
+                source: arg.source,
+                sourceData: sourceDataToImmutable(
+                  arg.source,
+                  arg.sourceData,
+                ),
+              }),
+            ),
+          ),
+        );
 
         state = state.mergeIn(pathToQueryArgs, toMerge);
       }
@@ -731,27 +747,26 @@ export default (state = new ProjectState(), action) => {
 
       if (!currentComponents.has(action.componentId)) {
         throw new Error(
-                    'An attempt was made to update a component ' +
-                    'that is not in current editing area',
-                );
+          'An attempt was made to update a component ' +
+          'that is not in current editing area',
+        );
       }
 
       const newValue = new ProjectComponentProp({
         source: action.source,
         sourceData: sourceDataToImmutable(
-                    action.source,
-                    action.sourceData,
-                ),
+          action.source,
+          action.sourceData,
+        ),
       });
 
-      const path = [].concat(pathToCurrentComponents, [
-        action.componentId,
-        'props',
-        action.propName,
-      ], ...action.path.map(index => ['sourceData', 'value', index]),
-                'sourceData',
-                'value',
-            );
+      const path = [].concat(
+        pathToCurrentComponents,
+        [action.componentId, 'props', action.propName],
+        ...action.path.map(index => ['sourceData', 'value', index]),
+        'sourceData',
+        'value',
+      );
 
       return state.updateIn(path, mapOrList => {
         if (List.isList(mapOrList)) {
@@ -759,8 +774,8 @@ export default (state = new ProjectState(), action) => {
             throw new Error('');
 
           return action.index > -1
-                        ? mapOrList.insert(action.index, newValue)
-                        : mapOrList.push(newValue);
+            ? mapOrList.insert(action.index, newValue)
+            : mapOrList.push(newValue);
         } else if (Map.isMap(mapOrList)) {
           if (typeof action.index !== 'string' || !action.index)
             throw new Error('');
@@ -778,19 +793,18 @@ export default (state = new ProjectState(), action) => {
 
       if (!currentComponents.has(action.componentId)) {
         throw new Error(
-                    'An attempt was made to update a component ' +
-                    'that is not in current editing area',
-                );
+          'An attempt was made to update a component ' +
+          'that is not in current editing area',
+        );
       }
 
-      const path = [].concat(pathToCurrentComponents, [
-        action.componentId,
-        'props',
-        action.propName,
-      ], ...action.path.map(index => ['sourceData', 'value', index]),
-                'sourceData',
-                'value',
-            );
+      const path = [].concat(
+        pathToCurrentComponents,
+        [action.componentId, 'props', action.propName],
+        ...action.path.map(index => ['sourceData', 'value', index]),
+        'sourceData',
+        'value',
+      );
 
       return state.updateIn(path, mapOrList => {
         if (List.isList(mapOrList)) {
@@ -815,9 +829,9 @@ export default (state = new ProjectState(), action) => {
 
       if (!currentComponents.has(action.componentId)) {
         throw new Error(
-                    'An attempt was made to update a component ' +
-                    'that is not in current editing area',
-                );
+          'An attempt was made to update a component ' +
+          'that is not in current editing area',
+        );
       }
 
       const path = [].concat(pathToCurrentComponents, [
@@ -834,9 +848,9 @@ export default (state = new ProjectState(), action) => {
 
       if (!currentComponents.has(action.componentId)) {
         throw new Error(
-                    'An attempt was made to update a component ' +
-                    'that is not in current editing area',
-                );
+          'An attempt was made to update a component ' +
+          'that is not in current editing area',
+        );
       }
 
       const path = [].concat(pathToCurrentComponents, [
@@ -845,9 +859,9 @@ export default (state = new ProjectState(), action) => {
       ]);
 
       return state.updateIn(path, regionsEnabled => action.enable
-                ? regionsEnabled.add(action.regionIdx)
-                : regionsEnabled.delete(action.regionIdx),
-            );
+        ? regionsEnabled.add(action.regionIdx)
+        : regionsEnabled.delete(action.regionIdx),
+      );
     }
 
     case PREVIEW_HIGHLIGHT_COMPONENT: {
@@ -862,8 +876,8 @@ export default (state = new ProjectState(), action) => {
       state = state.set('showAllComponentsOnPalette', false);
 
       return action.exclusive
-                ? selectComponentExclusive(state, action.componentId)
-                : selectComponent(state, action.componentId);
+        ? selectComponentExclusive(state, action.componentId)
+        : selectComponent(state, action.componentId);
     }
 
     case PREVIEW_DESELECT_COMPONENT: {
@@ -907,9 +921,9 @@ export default (state = new ProjectState(), action) => {
 
       if (!currentComponents.has(action.componentId)) {
         throw new Error(
-                    'An attempt was made to drag a component ' +
-                    'that is not in current editing area',
-                );
+          'An attempt was made to drag a component ' +
+          'that is not in current editing area',
+        );
       }
 
       return state.merge({
@@ -926,33 +940,33 @@ export default (state = new ProjectState(), action) => {
       if (!state.draggingOverPlaceholder) return initDNDState(state);
 
       if (state.draggedComponentId > -1) {
-                // We're dragging an existing component
+        // We're dragging an existing component
         state = moveComponent(
-                    state,
-                    state.draggedComponentId,
-                    state.placeholderContainerId,
-                    state.placeholderAfter + 1,
-                );
+          state,
+          state.draggedComponentId,
+          state.placeholderContainerId,
+          state.placeholderAfter + 1,
+        );
 
         return initDNDState(state);
       } else {
-                // We're dragging a new component from palette
+        // We're dragging a new component from palette
         const rootComponent = state.draggedComponents.get(0),
           componentMeta = getComponentMeta(rootComponent.name, state.meta);
 
         const isCompositeComponentWithMultipleLayouts =
-                    componentMeta.kind === 'composite' &&
-                    componentMeta.layouts.length > 1;
+          componentMeta.kind === 'composite' &&
+          componentMeta.layouts.length > 1;
 
         if (isCompositeComponentWithMultipleLayouts) {
-                    // The component is composite and has multiple layouts;
-                    // we need to ask user which one to use
+          // The component is composite and has multiple layouts;
+          // we need to ask user which one to use
           return state.merge({
             selectingComponentLayout: true,
             draggingComponent: false,
           });
         } else {
-                    // No layout options, inserting what we already have
+          // No layout options, inserting what we already have
           state = insertDraggedComponents(state, state.draggedComponents);
           return initDNDState(state);
         }
@@ -963,14 +977,14 @@ export default (state = new ProjectState(), action) => {
       if (!state.selectingComponentLayout) return state;
 
       const components = action.layoutIdx === 0
-                ? state.draggedComponents
+        ? state.draggedComponents
 
-                : constructComponent(
-                    state.draggedComponents.get(0).name,
-                    action.layoutIdx,
-                    state.languageForComponentProps,
-                    state.meta,
-                );
+        : constructComponent(
+          state.draggedComponents.get(0).name,
+          action.layoutIdx,
+          state.languageForComponentProps,
+          state.meta,
+        );
 
       state = insertDraggedComponents(state, components);
       state = state.set('selectingComponentLayout', false);
@@ -985,15 +999,15 @@ export default (state = new ProjectState(), action) => {
         componentMeta = getComponentMeta(component.name, state.meta);
 
       const propMeta = getNestedTypedef(
-                componentMeta.props[action.propName],
-                action.path,
-            );
+        componentMeta.props[action.propName],
+        action.path,
+      );
 
       if (propMeta.source.indexOf('designer') === -1) {
         throw new Error(
-                    'An attempt was made to construct a component ' +
-                    'for prop that does not have \'designer\' source option',
-                );
+          'An attempt was made to construct a component ' +
+          'for prop that does not have \'designer\' source option',
+        );
       }
 
       const nestedConstructorData = {
@@ -1007,24 +1021,24 @@ export default (state = new ProjectState(), action) => {
           components: currentValue.sourceData.components,
           rootId: currentValue.sourceData.rootId,
           lastComponentId: currentValue.sourceData.components.size > 0
-                        ? currentValue.sourceData.components.keySeq().max()
-                        : -1,
+            ? currentValue.sourceData.components.keySeq().max()
+            : -1,
         });
       } else if (propMeta.sourceConfigs.designer.wrapper) {
         const { namespace } = parseComponentName(component.name);
 
         const wrapperFullName = formatComponentName(
-                    namespace,
-                    propMeta.sourceConfigs.designer.wrapper,
-                );
+          namespace,
+          propMeta.sourceConfigs.designer.wrapper,
+        );
 
         const wrapperComponents = constructComponent(
-                    wrapperFullName,
-                    propMeta.sourceConfigs.designer.wrapperLayout || 0,
-                    state.languageForComponentProps,
-                    state.meta,
-                    { isNew: false, isWrapper: true },
-                );
+          wrapperFullName,
+          propMeta.sourceConfigs.designer.wrapperLayout || 0,
+          state.languageForComponentProps,
+          state.meta,
+          { isNew: false, isWrapper: true },
+        );
 
         Object.assign(nestedConstructorData, {
           components: wrapperComponents,
@@ -1050,9 +1064,9 @@ export default (state = new ProjectState(), action) => {
 
       if (!currentComponents.has(topConstructor.componentId)) {
         throw new Error(
-                    'Failed to save component created by nested constructor: ' +
-                    'owner component is not in current editing area',
-                );
+          'Failed to save component created by nested constructor: ' +
+          'owner component is not in current editing area',
+        );
       }
 
       const newValue = new ProjectComponentProp({
@@ -1063,33 +1077,33 @@ export default (state = new ProjectState(), action) => {
         }),
       });
 
-      const path = [].concat(pathToCurrentComponents, [
-        topConstructor.componentId,
-        'props',
-        topConstructor.prop,
-      ], ...topConstructor.path.map(index => ['sourceData', 'value', index]));
+      const path = [].concat(
+        pathToCurrentComponents,
+        [topConstructor.componentId, 'props', topConstructor.prop],
+        ...topConstructor.path.map(index => ['sourceData', 'value', index]),
+      );
 
       return state.setIn(path, newValue);
     }
 
     case PROJECT_LINK_PROP: {
       return state
-                .merge({
-                  linkingProp: true,
-                  linkingPropOfComponentId: action.componentId,
-                  linkingPropName: action.propName,
-                })
-                .set('linkingPropPath', action.path); // Prevent conversion to List
+        .merge({
+          linkingProp: true,
+          linkingPropOfComponentId: action.componentId,
+          linkingPropName: action.propName,
+        })
+        .set('linkingPropPath', action.path); // Prevent conversion to List
     }
 
     case PROJECT_LINK_WITH_OWNER_PROP: {
       const pathToCurrentComponents = getPathToCurrentComponents(state);
 
       const path = [].concat(
-                pathToCurrentComponents,
-                [state.linkingPropOfComponentId, 'props', state.linkingPropName],
-                ...state.linkingPropPath.map(index => ['sourceData', 'value', index]),
-            );
+        pathToCurrentComponents,
+        [state.linkingPropOfComponentId, 'props', state.linkingPropName],
+        ...state.linkingPropPath.map(index => ['sourceData', 'value', index]),
+      );
 
       const oldValue = state.getIn(path);
 
@@ -1097,31 +1111,31 @@ export default (state = new ProjectState(), action) => {
         source: 'static',
         sourceData: new SourceDataStatic({
           value: oldValue.source === 'static'
-                        ? oldValue.sourceData.value
-                        : NO_VALUE, // TODO: Build default value for type when link will be removed
+            ? oldValue.sourceData.value
+            : NO_VALUE, // TODO: Build default value for type when link will be removed
 
           ownerPropName: action.ownerPropName,
         }),
       });
 
       return state
-                .setIn(path, newValue)
-                .merge({
-                  linkingProp: false,
-                  linkingPropOfComponentId: -1,
-                  linkingPropName: '',
-                })
-                .set('linkingPropPath', action.path); // Prevent conversion to List
+        .setIn(path, newValue)
+        .merge({
+          linkingProp: false,
+          linkingPropOfComponentId: -1,
+          linkingPropName: '',
+        })
+        .set('linkingPropPath', action.path); // Prevent conversion to List
     }
 
     case PROJECT_LINK_PROP_CANCEL: {
       return state
-                .merge({
-                  linkingProp: false,
-                  linkingPropOfComponentId: -1,
-                  linkingPropName: '',
-                })
-                .set('linkingPropPath', action.path); // Prevent conversion to List
+        .merge({
+          linkingProp: false,
+          linkingPropOfComponentId: -1,
+          linkingPropName: '',
+        })
+        .set('linkingPropPath', action.path); // Prevent conversion to List
     }
 
     case PREVIEW_DRAG_OVER_COMPONENT: {

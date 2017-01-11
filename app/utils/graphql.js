@@ -139,6 +139,7 @@ const toGraphQLScalarValue = (value, type) => {
 };
 
 const buildGraphQLValue = (propValue, schemaTypeDef) => {
+  // eslint-disable-next-line no-unused-vars
   const { type, kind, nonNull } = schemaTypeDef;
 
     // TODO: Deal with more complex values
@@ -509,6 +510,7 @@ const buildAndAttachFragmentsForDesignerProp = (
   const fragments = [];
 
   const visitComponent = component => {
+    // eslint-disable-next-line no-use-before-define
     const ret = buildGraphQLFragmentsForOwnComponent(
       component,
       ownerComponentsChain,

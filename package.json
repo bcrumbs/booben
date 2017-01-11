@@ -64,8 +64,8 @@
     "webpack-hot-middleware": "^2.12.2"
   },
   "devDependencies": {
-    "@eslint/eslint-config-client": "^0.1.7",
-    "@eslint/eslint-config-server": "^0.1.5",
+    "@eslint/eslint-config-client": "^0.2.1",
+    "@eslint/eslint-config-server": "^0.2.2",
     "babel-eslint": "^7.1.0",
     "babel-plugin-transform-object-rest-spread": "^6.20.2",
     "copy-webpack-plugin": "^4.0.0",

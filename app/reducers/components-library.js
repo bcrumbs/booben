@@ -4,12 +4,11 @@
 
 'use strict';
 
+import { Record, Set } from 'immutable';
+
 import {
     LIBRARY_EXPANDED_GROUPS,
-    LIBRARY_FOCUS_COMPONENT,
 } from '../actions/components-library';
-
-import { Record, Set } from 'immutable';
 
 const LibraryState = Record({
   expandedGroups: Set(),
@@ -17,10 +16,12 @@ const LibraryState = Record({
 
 export default (state = new LibraryState(), action) => {
   switch (action.type) {
-    case LIBRARY_EXPANDED_GROUPS:
+    case LIBRARY_EXPANDED_GROUPS: {
       return state.set('expandedGroups', action.groups);
+    }
 
-    default:
+    default: {
       return state;
+    }
   }
 };

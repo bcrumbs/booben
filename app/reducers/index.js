@@ -5,7 +5,6 @@
 'use strict';
 
 import { combineReducers } from 'redux';
-
 import app from './app';
 import project from './project';
 import desktop from './desktop';

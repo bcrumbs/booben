@@ -10,12 +10,11 @@ import Preview from './containers/Preview';
 import Overlay from './containers/Overlay';
 
 import {
-    PREVIEW_DOM_CONTAINER_ID,
-    PREVIEW_DOM_OVERLAY_ID,
+  PREVIEW_DOM_CONTAINER_ID,
+  PREVIEW_DOM_OVERLAY_ID,
 } from '../common/shared-constants';
 
 import { LOADED } from '../app/constants/loadStates';
-
 
 window.JSSY = {
   initialized: false,
@@ -81,8 +80,8 @@ window.JSSY.initPreview = params => {
         <Overlay />
       </ProviderComponent>,
 
-            overlayNode,
-        );
+      overlayNode,
+    );
   }
 
   window.JSSY.initialized = true;

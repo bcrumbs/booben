@@ -6,9 +6,9 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-
 import { noop } from '../../app/utils/misc';
 
+/* eslint-disable react/no-find-dom-node */
 const patchDOMElement = componentInstance => {
   const componentId = componentInstance.props.__jssy_component_id__;
 
@@ -31,6 +31,7 @@ const patchDOMElement = componentInstance => {
     }
   }
 };
+/* eslint-enable react/no-find-dom-node */
 
 const wrapLifecycleHook = fn => function (...args) {
   patchDOMElement(this);
@@ -38,14 +39,16 @@ const wrapLifecycleHook = fn => function (...args) {
 };
 
 const patchClassComponent = component => {
-  const originalComponentDidMount = component.prototype.componentDidMount || noop,
-    originalComponentDidUpdate = component.prototype.componentDidUpdate || noop;
+  const originalComponentDidMount =
+    component.prototype.componentDidMount || noop;
+  const originalComponentDidUpdate =
+    component.prototype.componentDidUpdate || noop;
 
   component.prototype.componentDidMount =
-        wrapLifecycleHook(originalComponentDidMount);
+    wrapLifecycleHook(originalComponentDidMount);
 
   component.prototype.componentDidUpdate =
-        wrapLifecycleHook(originalComponentDidUpdate);
+    wrapLifecycleHook(originalComponentDidUpdate);
 
   return component;
 };
@@ -63,7 +66,7 @@ const patchFunctionComponent = component => {
     render() {
       return component(this.props);
     }
-    };
+  };
 
   if (typeof component.propTypes !== 'undefined')
     ret.propTypes = component.propTypes;
