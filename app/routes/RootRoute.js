@@ -29,6 +29,8 @@ import {
   ToggleButton,
 } from '@reactackle/reactackle';
 
+import { ProjectSave } from '../components/ProjectSave/ProjectSave';
+
 import {
   ComponentsDragArea,
 } from '../containers/ComponentsDragArea/ComponentsDragArea';
@@ -147,6 +149,10 @@ const RootRoute = props => {
                 </HeaderMenuList>
               </HeaderMenuGroup>
             </HeaderMenu>
+          </HeaderRegion>
+  
+          <HeaderRegion size="blank">
+            <ProjectSave />
           </HeaderRegion>
 
           <HeaderRegion size="blank">

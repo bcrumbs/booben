@@ -141,7 +141,7 @@ export const ToolPanel = props => {
   }
 
   return (
-    <PageDrawer isExpanded={isExpanded}>
+    <PageDrawer isExpanded={isExpanded} hasActions>
       <PageDrawerActionsArea>
         {panelSwitcherGroups}
       </PageDrawerActionsArea>

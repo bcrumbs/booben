@@ -1,3 +1,4 @@
+/* eslint-disable */
 'use strict';
 
 //noinspection JSUnresolvedVariable
@@ -143,3 +144,4 @@ export const DataWindow = connect(
   mapStateToProps,
   mapDispatchToProps,
 )(DataWindowComponent);
+/* eslint-enable */

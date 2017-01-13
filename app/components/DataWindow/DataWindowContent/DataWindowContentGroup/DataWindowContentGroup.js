@@ -1,11 +1,17 @@
 'use strict';
 
-import React, { PureComponent, PropTypes } from 'react';
+//noinspection JSUnresolvedVariable
+import React, { PropTypes } from 'react';
 
-import {
-    BlockContentBoxItem,
-    BlockContentBoxHeading,
-} from '../../../BlockContent/BlockContent';
+const propTypes = {
+  title: PropTypes.string,
+  subtitle: PropTypes.string,
+};
+
+const defaultProps = {
+  title: '',
+  subtitle: '',
+};
 
 export const DataWindowContentGroup = props => (
   <div className="data-window_content-group">
@@ -19,16 +25,8 @@ export const DataWindowContentGroup = props => (
       {props.children}
     </div>
   </div>
-    );
+);
 
-DataWindowContentGroup.propTypes = {
-  title: PropTypes.string,
-  subtitle: PropTypes.string,
-};
-
-DataWindowContentGroup.defaultProps = {
-  title: '',
-  subtitle: '',
-};
-
+DataWindowContentGroup.propTypes = propTypes;
+DataWindowContentGroup.defaultProps = defaultProps;
 DataWindowContentGroup.displayName = 'DataWindowContentGroup';

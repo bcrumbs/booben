@@ -13,6 +13,7 @@ import { PropAction } from './PropAction/PropAction';
 import { noop } from '../../../utils/misc';
 
 const propTypes = {
+  id: PropTypes.string,
   label: PropTypes.string,
   secondaryLabel: PropTypes.string,
   image: PropTypes.string,
@@ -33,6 +34,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+  id: '',
   label: '',
   secondaryLabel: '',
   image: '',
@@ -56,6 +58,8 @@ export class PropBase extends PureComponent {
   constructor(props) {
     super(props);
     this._handleCheck = this._handleCheck.bind(this);
+    this._handleDelete = this._handleDelete.bind(this);
+    this._handleLink = this._handleLink.bind(this);
   }
   
   /**
@@ -118,7 +122,23 @@ export class PropBase extends PureComponent {
    * @private
    */
   _handleCheck(checked) {
-    this.props.onCheck({ checked });
+    this.props.onCheck({ checked, id: this.props.id });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleDelete() {
+    this.props.onDelete({ id: this.props.id });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleLink() {
+    this.props.onLink({ id: this.props.id });
   }
 
   render() {
@@ -194,7 +214,7 @@ export class PropBase extends PureComponent {
           <PropAction
             id="collapse"
             icon="times"
-            onPress={this.props.onDelete}
+            onPress={this._handleDelete}
           />
         </div>
       );
@@ -208,7 +228,7 @@ export class PropBase extends PureComponent {
           key="linking"
           id="linking"
           icon="link"
-          onPress={this.props.onLink}
+          onPress={this._handleLink}
         />
       );
     

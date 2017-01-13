@@ -3,6 +3,14 @@
 //noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 
+const propTypes = {
+  overlay: PropTypes.bool,
+};
+
+const defaultProps = {
+  overlay: false,
+};
+
 export const PageDrawerActionsArea = props => {
   let className = 'page-drawer-actions-area';
   if (props.overlay) className += ' is-overlayed';
@@ -14,16 +22,8 @@ export const PageDrawerActionsArea = props => {
   );
 };
 
-PageDrawerActionsArea.propTypes = {
-  actionsType: PropTypes.oneOf(['text', 'icon']),
-  actions: PropTypes.string,
-};
-
-PageDrawerActionsArea.defaultProps = {
-  actionsType: 'icon',
-  actions: '',
-};
-
+PageDrawerActionsArea.propTypes = propTypes;
+PageDrawerActionsArea.defaultProps = defaultProps;
 PageDrawerActionsArea.displayName = 'PageDrawerActionsArea';
 
 export * from './PageDrawerActionsGroup/PageDrawerActionsGroup';

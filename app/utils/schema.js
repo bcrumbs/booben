@@ -18,19 +18,19 @@ export const graphQLPrimitiveTypes = new Set([
   'ID',
 ]);
 
-export const equalMetaToGraphQLTypeNames = (metaTypeName, graphQLTypeName) => (
-  {
-    Int: 'int',
-    Float: 'float',
-    Boolean: 'bool',
-    String: 'string',
-    ID: 'string',
-  }[graphQLTypeName] === metaTypeName
-);
+const graphQLTypeToJssyType = {
+  Int: 'int',
+  Float: 'float',
+  Boolean: 'bool',
+  String: 'string',
+  ID: 'string',
+};
+
+export const equalMetaToGraphQLTypeNames = (metaTypeName, graphQLTypeName) =>
+  graphQLTypeToJssyType[graphQLTypeName] === metaTypeName;
 
 export const isPrimitiveGraphQLType = typeName =>
   graphQLPrimitiveTypes.has(typeName);
-
 
 /**
  *
@@ -92,34 +92,31 @@ const getRelayConnections = types => {
           possibleNodeType.name,
         );
 
-        nodeDependentTypes.forEach(
-          nodeDependentType => {
-            if (nodeDependentType.fields.filter(
-                  ({ name }) => ['cursor', 'node'].includes(name),
-              ).length === 2) {
-              const edgeDependentTypes =
-                findAllDependentTypes(types, nodeDependentType.name);
+        nodeDependentTypes.forEach(nodeDependentType => {
+          if (nodeDependentType.fields.filter(
+            ({ name }) => name === 'cursor' || name === 'node',
+          ).length === 2) {
+            const edgeDependentTypes =
+              findAllDependentTypes(types, nodeDependentType.name);
 
-              edgeDependentTypes.forEach(edgeDependentType => {
-                if (edgeDependentType.fields.find(
-                    ({ name }) => name === 'pageInfo',
-                )) {
-                  connections[edgeDependentType.name] = {
-                    data: edgeDependentType,
-                    edge: nodeDependentType,
-                    node: possibleNodeType,
-                  };
-                }
-              });
-            }
-          },
-        );
+            edgeDependentTypes.forEach(edgeDependentType => {
+              if (edgeDependentType.fields.find(
+                ({ name }) => name === 'pageInfo',
+              )) {
+                connections[edgeDependentType.name] = {
+                  data: edgeDependentType,
+                  edge: nodeDependentType,
+                  node: possibleNodeType,
+                };
+              }
+            });
+          }
+        });
       },
     );
   }
   return connections;
 };
-
 
 const convertToSchemaType = (type, getFieldDescription) => {
   const fields = type.fields || type.inputFields;
@@ -154,54 +151,52 @@ export const parseGraphQLSchema = schema => {
   // -----------------------------------------------
   // TODO Correct and refactor
 
-  const haveKind = (type, kind, deep = true) =>
-    kind === FIELD_KINDS.CONNECTION
-    ? !!connections[type.name]
-    : (
-      type.kind === kind
-      || (
-        type.ofType && deep
-        ? haveKind(type.ofType, kind, deep)
-        : false
-      )
-    );
+  const haveKind = (type, kind, deep = true) => {
+    if (kind === FIELD_KINDS.CONNECTION) return !!connections[type.name];
+    if (type.kind === kind) return true;
+    if (type.ofType && deep) return haveKind(type.ofType, kind, deep);
+    return false;
+  };
 
-  const getTypeDescription = (type, kind) =>
-    kind === FIELD_KINDS.CONNECTION
-    ? {
-      type: connections[type.name].node.name,
-      connectionFields: connections[type.name].data
-        .fields
-        .filter(({ name }) => !['edges', 'pageInfo'].includes(name))
-        .reduce((acc, field) => Object.assign(acc, {
-          [field.name]: getFieldDescription(field),
-        }), {}),
+  const getTypeDescription = (type, kind) => {
+    /* eslint-disable no-use-before-define */
+    if (kind === FIELD_KINDS.CONNECTION) {
+      return {
+        type: connections[type.name].node.name,
+        connectionFields: connections[type.name].data.fields
+          .filter(({ name }) => !['edges', 'pageInfo'].includes(name))
+          .reduce((acc, field) => Object.assign(acc, {
+            [field.name]: getFieldDescription(field),
+          }), {}),
+      };
     }
-    : (
-      type.ofType
-      ? getTypeDescription(type.ofType, kind)
-      : kind !== FIELD_KINDS.LIST
-          ?
-      {
+    
+    if (type.ofType) return getTypeDescription(type.ofType, kind);
+    
+    if (kind !== FIELD_KINDS.LIST) {
+      return {
         type: type.name,
-      }
-          : {
-            type: type.name,
-            nonNullMember: haveKind(type, 'NON_NULL'),
-          }
-    );
+      };
+    }
+    
+    return {
+      type: type.name,
+      nonNullMember: haveKind(type, 'NON_NULL'),
+    };
+    /* eslint-enable no-use-before-define */
+  };
 
 
   const getFieldDescription = (field, isArgumentField) => {
-    const kind = FIELD_KINDS[
-      haveKind(field.type, 'LIST')
-      ? 'LIST'
-      : (
-          haveKind(field.type, FIELD_KINDS.CONNECTION)
-          ? 'CONNECTION'
-          : 'SINGLE'
-      )
-    ];
+    let kindString;
+    if (haveKind(field.type, 'LIST'))
+      kindString = 'LIST';
+    else if (haveKind(field.type, FIELD_KINDS.CONNECTION))
+      kindString = 'CONNECTION';
+    else
+      kindString = 'SINGLE';
+    
+    const kind = FIELD_KINDS[kindString];
 
     const fieldDescription = Object.assign({
       nonNull: haveKind(field.type, 'NON_NULL', false),
@@ -210,41 +205,36 @@ export const parseGraphQLSchema = schema => {
       description: field.description || '',
       args: field.args && field.args.length
         ? field.args.reduce(
-                (acc, arg) => Object.assign(
-                    acc,
-                  {
-                    [arg.name]: Object.assign({},
-                            getFieldDescription(arg, true),
-                            { defaultValue: arg.defaultValue || null },
-                        ),
-                  },
-                )
-            , {})
+          (acc, arg) => Object.assign(acc, {
+            [arg.name]: Object.assign(
+              {},
+              getFieldDescription(arg, true),
+              { defaultValue: arg.defaultValue || null },
+            ),
+          }), {})
         : {},
     }, getTypeDescription(field.type, kind));
 
     if (typeof isArgumentField === 'boolean' && isArgumentField)
       delete fieldDescription.args;
+    
     return fieldDescription;
   };
 
   // -----------------------------------------------
 
-
-  schema.types.forEach(
-    type => {
-      if (
-        type.kind !== 'INTERFACE'
-        && !graphQLPrimitiveTypes.has(type.name)
-        && !/^__.*/.test(type.name)
-      ) {
-        normalizedTypes[type.name] = convertToSchemaType(
-          type,
-          getFieldDescription,
-        );
-      }
-    },
-  );
+  schema.types.forEach(type => {
+    if (
+      type.kind !== 'INTERFACE'
+      && !graphQLPrimitiveTypes.has(type.name)
+      && !/^__.*/.test(type.name)
+    ) {
+      normalizedTypes[type.name] = convertToSchemaType(
+        type,
+        getFieldDescription,
+      );
+    }
+  });
 
   _forOwn(connections, ({ edge }, key) => {
     delete normalizedTypes[key];

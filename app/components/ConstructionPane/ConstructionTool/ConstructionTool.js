@@ -1,14 +1,16 @@
-import React, { PropTypes } from 'react';
+'use strict';
+
+import React from 'react';
 
 import {
-    Column,
-    Input,
-    Row,
+  Column,
+  Input,
+  Row,
 } from '@reactackle/reactackle';
 
 import './ConstructionTool.scss';
 
-export const ConstructionTool = props => {
+export const ConstructionTool = () => {
   const className = 'construction-tool';
 
   return (
@@ -23,8 +25,12 @@ export const ConstructionTool = props => {
         >
           <Input label="Width" value="300px" />
           <div className="construction-tool_data-row">
-            <div className="construction-tool_data-item-additional">min-width: 0</div>
-            <div className="construction-tool_data-item-additional">max-width: 100%</div>
+            <div className="construction-tool_data-item-additional">
+              min-width: 0
+            </div>
+            <div className="construction-tool_data-item-additional">
+              max-width: 100%
+            </div>
           </div>
         </Column>
 
@@ -34,21 +40,17 @@ export const ConstructionTool = props => {
         >
           <Input label="Height" value="300px" />
           <div className="construction-tool_data-row">
-            <div className="construction-tool_data-item-additional">min-width: 0</div>
-            <div className="construction-tool_data-item-additional">max-width: 100%</div>
+            <div className="construction-tool_data-item-additional">
+              min-width: 0
+            </div>
+            <div className="construction-tool_data-item-additional">
+              max-width: 100%
+            </div>
           </div>
         </Column>
       </Row>
     </div>
   );
-};
-
-ConstructionTool.propTypes = {
-
-};
-
-ConstructionTool.defaultProps = {
-
 };
 
 ConstructionTool.displayName = 'ConstructionTool';

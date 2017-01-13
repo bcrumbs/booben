@@ -6,15 +6,8 @@
 
 // noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
-
-import {
-  Button,
-} from '@reactackle/reactackle';
-
-import {
-  BlockContentBoxItem,
-} from '../../BlockContent/BlockContent';
-
+import { Button } from '@reactackle/reactackle';
+import { BlockContentBoxItem } from '../../BlockContent/BlockContent';
 import { returnArg, noop } from '../../../utils/misc';
 
 const propTypes = {

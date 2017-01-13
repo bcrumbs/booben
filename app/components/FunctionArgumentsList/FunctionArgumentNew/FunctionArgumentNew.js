@@ -1,16 +1,17 @@
 'use strict';
 
-// noinspection JSUnresolvedVariable
-import React, { PropTypes } from 'react';
+//noinspection JSUnresolvedVariable
+import React, { PureComponent, PropTypes } from 'react';
 
 import {
-    Input,
-    Button,
+  Input,
+  SelectBox,
+  Button,
 } from '@reactackle/reactackle';
 
 import {
-    BlockContentBoxItem,
-    BlockContentBoxHeading,
+  BlockContentBoxItem,
+  BlockContentBoxHeading,
 } from '../../BlockContent/BlockContent';
 
 import { returnArg, noop } from '../../../utils/misc';
@@ -25,30 +26,75 @@ const defaultProps = {
   onAdd: noop,
 };
 
-// TODO: Convert to class and save inputs' values on this
+const typeOptions = [
+  { value: 'string', text: 'string', disabled: false },
+  { value: 'bool', text: 'bool', disabled: false },
+  { value: 'int', text: 'int', disabled: false },
+  { value: 'float', text: 'float', disabled: false },
+];
 
-export const FunctionArgumentNew = ({ getLocalizedText, onAdd }) => (
-  <div className="function-arguments_new-wrapper" >
-    <BlockContentBoxItem>
-      <BlockContentBoxHeading>
-        {getLocalizedText('replace_me:New Argument')}
-      </BlockContentBoxHeading>
-
-      <div className="inputs-row" >
-        <Input label={getLocalizedText('replace_me:Title')} />
-        <Input label={getLocalizedText('replace_me:Type')} />
+export class FunctionArgumentNew extends PureComponent {
+  constructor(props) {
+    super(props);
+    
+    this._name = '';
+    this._type = 'string';
+    
+    this._handleNameChange = this._handleNameChange.bind(this);
+    this._handleTypeChange = this._handleTypeChange.bind(this);
+    this._handleAddButtonPress = this._handleAddButtonPress.bind(this);
+  }
+  
+  _handleNameChange(newName) {
+    this._name = newName;
+  }
+  
+  _handleTypeChange(newType) {
+    this._type = newType;
+  }
+  
+  _handleAddButtonPress() {
+    this.props.onAdd({
+      name: this._name,
+      type: this._type,
+    });
+  }
+  
+  render() {
+    const { getLocalizedText } = this.props;
+    
+    return (
+      <div className="function-arguments_new-wrapper" >
+        <BlockContentBoxItem>
+          <BlockContentBoxHeading>
+            {getLocalizedText('replace_me:New Argument')}
+          </BlockContentBoxHeading>
+      
+          <div className="inputs-row" >
+            <Input
+              label={getLocalizedText('replace_me:Title')}
+              onChange={this._handleNameChange}
+            />
+            
+            <SelectBox
+              label={getLocalizedText('replace_me:Type')}
+              data={typeOptions}
+              onSelect={this._handleTypeChange}
+            />
+          </div>
+      
+          <div className="button-row" >
+            <Button
+              text={getLocalizedText('replace_me:Add argument')}
+              narrow
+              onPress={this._handleAddButtonPress}
+            />
+          </div>
+        </BlockContentBoxItem>
       </div>
-
-      <div className="button-row" >
-        <Button
-          text={getLocalizedText('replace_me:Add argument')}
-          narrow
-          onPress={onAdd}
-        />
-      </div>
-    </BlockContentBoxItem>
-  </div>
-);
+    );
+  }
+}
 
 FunctionArgumentNew.propTypes = propTypes;
 FunctionArgumentNew.defaultProps = defaultProps;

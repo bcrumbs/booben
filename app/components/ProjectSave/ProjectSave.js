@@ -1,5 +1,7 @@
 'use strict';
 
+// TODO Get all strings from i18n
+
 //noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 import { Icon } from '@reactackle/reactackle';
@@ -16,12 +18,10 @@ import './ProjectSave.scss';
 
 const propTypes = {
   status: PropTypes.oneOf(['error', 'success', 'progress', 'default']),
-
-  toggleTooltip: PropTypes.func,
-  showTooltip: PropTypes.func,
-  hideTooltip: PropTypes.func,
-  isTooltipActive: PropTypes.bool,
-  Tooltip: PropTypes.func,
+  toggleTooltip: PropTypes.func.isRequired,
+  showTooltip: PropTypes.func.isRequired,
+  hideTooltip: PropTypes.func.isRequired,
+  Tooltip: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -58,6 +58,9 @@ const ProjectSaveComponent = props => {
   else
     tooltipText = 'Last saved at 12:56 12/11/2016';
   
+  const TooltipComponent = props.Tooltip;
+  
+  /* eslint-disable react/jsx-handler-names */
   return (
     <div
       className={className}
@@ -77,9 +80,10 @@ const ProjectSaveComponent = props => {
         </div>
       </div>
       
-      <props.Tooltip text={tooltipText} />
+      <TooltipComponent text={tooltipText} />
     </div>
   );
+  /* eslint-enable react/jsx-handler-names */
 };
 
 ProjectSaveComponent.propTypes = propTypes;

@@ -1,8 +1,7 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
+/* eslint-disable */
 'use strict';
+
+// TODO: Delete this file after refactoring
 
 // noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';

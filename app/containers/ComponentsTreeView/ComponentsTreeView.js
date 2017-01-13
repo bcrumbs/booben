@@ -1,3 +1,6 @@
+/* eslint-disable */
+// TODO: Refactor this shit
+
 /**
  * @author Dmitriy Bizyaev
  */

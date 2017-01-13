@@ -99,9 +99,11 @@ class LinkPropMenuComponent extends PureComponent {
       });
       
       if (this.props.dataContexts) {
-        this.props.dataContexts.forEach(ctx => {
-          console.log(ctx);
-        });
+        // TODO: Add data contexts
+        
+        // this.props.dataContexts.forEach(ctx => {
+        //
+        // });
       }
     }
     

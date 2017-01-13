@@ -1,4 +1,7 @@
+/* eslint-disable */
 'use strict';
+
+// TODO: Delete this file after refactoring
 
 import React, { PureComponent, PropTypes } from 'react';
 

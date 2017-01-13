@@ -6,7 +6,6 @@
 
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
-import { Icon } from '@reactackle/reactackle';
 import ProjectRoute from '../../../models/ProjectRoute';
 import { noop } from '../../../utils/misc';
 
@@ -24,7 +23,7 @@ const defaultProps = {
   onGo: noop,
 };
 
-export class RouteCard extends PureComponent {
+export class IndexRouteCard extends PureComponent {
   constructor(props) {
     super(props);
     this._element = null;
@@ -54,43 +53,25 @@ export class RouteCard extends PureComponent {
   _handleDoubleClick() {
     this.props.onGo({
       route: this.props.route,
-      isIndexRoute: false,
+      isIndexRoute: true,
     });
   }
   
   _handleCardClick() {
     this.props.onFocus({
       route: this.props.route,
-      isIndexRoute: false,
+      isIndexRoute: true,
     });
   }
-
+  
   _saveRef(el) {
     this._element = el;
   }
-
+  
   render() {
-    const {
-      route,
-      focused,
-      children,
-    } = this.props;
+    let className = 'route-card-wrapper is-index';
+    if (this.props.focused) className += ' is-focused';
     
-    let className = 'route-card-wrapper';
-    if (route.haveRedirect) className += ' has-redirect';
-    if (focused) className += ' is-focused';
-
-    let icon = null;
-    if (route.haveRedirect) {
-      icon = (
-        <div className="route-icon">
-          <Icon name="random" />
-        </div>
-      );
-    }
-    
-    const title = route.title || route.path;
-
     return (
       <li className="route-card-item">
         <div className={className}>
@@ -102,23 +83,16 @@ export class RouteCard extends PureComponent {
           >
             <div className="route-card-content">
               <div className="route-title-box">
-                <span className="route-title">{title}</span>
-                {icon}
-              </div>
-  
-              <div className="route-subtitle">
-                {route.path}
+                <span className="route-title">Index</span>
               </div>
             </div>
           </div>
         </div>
-
-        {children}
       </li>
     );
   }
 }
 
-RouteCard.propTypes = propTypes;
-RouteCard.defaultProps = defaultProps;
-RouteCard.displayName = 'RouteCard';
+IndexRouteCard.propTypes = propTypes;
+IndexRouteCard.defaultProps = defaultProps;
+IndexRouteCard.displayName = 'IndexRouteCard';

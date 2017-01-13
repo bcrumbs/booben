@@ -13,4 +13,5 @@ export const RoutesList = props => (
 RoutesList.displayName = 'RoutesList';
 
 export * from './RouteCard/RouteCard';
+export * from './IndexRouteCard/IndexRouteCard';
 export * from './RouteNewButton/RouteNewButton';

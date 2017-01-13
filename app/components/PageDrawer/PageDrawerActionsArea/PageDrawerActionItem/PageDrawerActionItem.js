@@ -1,7 +1,7 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { PureComponent, PropTypes } from 'react';
+import React, { PropTypes } from 'react';
 import { Button } from '@reactackle/reactackle';
 
 import {
@@ -10,21 +10,14 @@ import {
 
 import { noop } from '../../../../utils/misc';
 
-/*
- * Combined with tooltip
- */
-
 const propTypes = {
+  showTooltip: PropTypes.func.isRequired,
+  hideTooltip: PropTypes.func.isRequired,
+  Tooltip: PropTypes.func.isRequired,
   icon: PropTypes.string,
   title: PropTypes.string,
   isActive: PropTypes.bool,
   onPress: PropTypes.func,
-
-  toggleTooltip: PropTypes.func,
-  showTooltip: PropTypes.func,
-  hideTooltip: PropTypes.func,
-  isTooltipActive: PropTypes.bool,
-  Tooltip: PropTypes.func,
 };
 
 const defaultProps = {
@@ -34,40 +27,37 @@ const defaultProps = {
   onPress: noop,
 };
 
-class PageDrawerActionItemComponent extends PureComponent {
-  constructor(props) {
-    super(props);
-  }
-  render() {
-    const { props } = this;
-
-    let className = 'page-drawer-action-item';
-    if (props.isActive) className += ' is-active';
-
-    let tooltip = null,
-      button = null;
-
-    if (props.icon) {
-      button = <Button icon={props.icon} onPress={props.onPress} />;
-
-      className += ' has-tooltip';
-    } else {
-      button = <Button text={props.title} onPress={props.onPress} />;
-    }
-
-
-    return (
-      <div
-        className={className}
-        onMouseEnter={props.showTooltip}
-        onMouseLeave={props.hideTooltip}
-      >
-        {button}
-        <props.Tooltip text={props.title} />
-      </div>
+const PageDrawerActionItemComponent = props => {
+  let className = 'page-drawer-action-item';
+  if (props.isActive) className += ' is-active';
+  
+  let button = null;
+  if (props.icon) {
+    className += ' has-tooltip';
+    button = (
+      <Button icon={props.icon} onPress={props.onPress} />
+    );
+  } else {
+    button = (
+      <Button text={props.title} onPress={props.onPress} />
     );
   }
-}
+  
+  const TooltipComponent = props.Tooltip;
+  
+  /* eslint-disable react/jsx-handler-names */
+  return (
+    <div
+      className={className}
+      onMouseEnter={props.showTooltip}
+      onMouseLeave={props.hideTooltip}
+    >
+      {button}
+      <TooltipComponent text={props.title} />
+    </div>
+  );
+  /* eslint-enable react/jsx-handler-names */
+};
 
 PageDrawerActionItemComponent.propTypes = propTypes;
 PageDrawerActionItemComponent.defaultProps = defaultProps;

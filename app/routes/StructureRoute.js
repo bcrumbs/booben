@@ -24,6 +24,7 @@ import {
 import {
   RoutesList,
   RouteCard,
+  IndexRouteCard,
   RouteNewButton,
 } from '../components/RoutesList/RoutesList';
 
@@ -44,6 +45,7 @@ import {
 import { selectRoute } from '../actions/structure';
 import history from '../history';
 import { getLocalizedTextFromState } from '../utils';
+import { noop, returnArg } from '../utils/misc';
 
 /**
  *
@@ -71,6 +73,12 @@ class StructureRoute extends PureComponent {
 
     this._newRouteTitleInput = null;
 
+    this._handleRouteSelect =
+      this._handleRouteSelect.bind(this);
+    this._handleRouteGo =
+      this._handleRouteGo.bind(this);
+    this._handleNewRoutePress =
+      this._handleNewRoutePress.bind(this);
     this._saveNewRouteTitleInputRef =
       this._saveNewRouteTitleInputRef.bind(this);
     this._handleSelectedRouteGo =
@@ -111,10 +119,10 @@ class StructureRoute extends PureComponent {
   /**
    *
    * @param {Object} route
-   * @param {boolean} [isIndexRoute=false]
+   * @param {boolean} isIndexRoute
    * @private
    */
-  _handleRouteSelect(route, isIndexRoute = false) {
+  _handleRouteSelect({ route, isIndexRoute }) {
     const sameRoute = route
       ? route.id === this.props.selectedRouteId
       : this.props.selectedRouteId === -1;
@@ -129,13 +137,13 @@ class StructureRoute extends PureComponent {
 
   /**
    *
-   * @param {number} routeId
-   * @param {boolean} isIndex
+   * @param {Object} route
+   * @param {boolean} isIndexRoute
    * @private
    */
-  _handleRouteGo(routeId, isIndex) {
-    let path = `/${this.props.projectName}/design/${routeId}`;
-    if (isIndex) path += '/index';
+  _handleRouteGo({ route, isIndexRoute }) {
+    let path = `/${this.props.projectName}/design/${route.id}`;
+    if (isIndexRoute) path += '/index';
     history.push(path);
   }
 
@@ -144,10 +152,10 @@ class StructureRoute extends PureComponent {
    * @private
    */
   _handleSelectedRouteGo() {
-    this._handleRouteGo(
-      this.props.selectedRouteId,
-      this.props.indexRouteSelected,
-    );
+    this._handleRouteGo({
+      route: this.props.selectedRouteId,
+      isIndexRoute: this.props.indexRouteSelected,
+    });
   }
 
   /**
@@ -191,10 +199,12 @@ class StructureRoute extends PureComponent {
 
   /**
    *
-   * @param {number} parentId
+   * @param {Object} parentRoute
    * @private
    */
-  _handleNewRoutePress(parentId) {
+  _handleNewRoutePress({ parentRoute }) {
+    const parentId = parentRoute ? parentRoute.id : -1;
+    
     this.setState({
       createRouteDialogIsVisible: true,
       createRouteParentId: parentId,
@@ -202,7 +212,8 @@ class StructureRoute extends PureComponent {
       newRouteTitle: '',
     });
 
-    if (this._newRouteTitleInput) this._newRouteTitleInput.focus();
+    // TODO: Figure out why this._newRouteTitleInput is null
+    // this._newRouteTitleInput.focus();
   }
 
   /**
@@ -301,51 +312,39 @@ class StructureRoute extends PureComponent {
       : null;
 
     if (parentRoute && parentRoute.haveIndex && !parentRoute.haveRedirect) {
-      const onIndexRouteFocus = this._handleRouteSelect.bind(
-        this,
-        parentRoute,
-        true,
-      );
-
-      const onIndexRouteGo =
-        this._handleRouteGo.bind(this, parentRoute.id, true);
-
       const isSelected =
         this.props.selectedRouteId === parentRoute.id &&
         this.props.indexRouteSelected;
       
       if (routeCards) {
         routeCards = routeCards.unshift(
-          <RouteCard
+          <IndexRouteCard
             key={`${String(parentRoute.id)}-index`}
-            title="Index"
-            isIndex
+            route={parentRoute}
             focused={isSelected}
-            onFocus={onIndexRouteFocus}
-            onGo={onIndexRouteGo}
+            onFocus={this._handleRouteSelect}
+            onGo={this._handleRouteGo}
           />,
         );
       }
     }
-
-    let button = null;
     
     const needButton = parentRoute === null || (
       !this.props.indexRouteSelected &&
       this.props.selectedRouteId !== -1 &&
       parentRoute.id === this.props.selectedRouteId
     );
-
+  
+    let button = null;
     if (needButton) {
       const text = getLocalizedText(parentRoute ? 'newRoute' : 'newRootRoute');
 
-      const onPress = this._handleNewRoutePress.bind(
-        this,
-        parentRoute ? parentRoute.id : -1,
-      );
-
       button = (
-        <RouteNewButton text={text} onPress={onPress} />
+        <RouteNewButton
+          parentRoute={parentRoute}
+          text={text}
+          onPress={this._handleNewRoutePress}
+        />
       );
     }
 
@@ -385,24 +384,25 @@ class StructureRoute extends PureComponent {
     return (
       <RouteCard
         key={String(route.id)}
-        title={route.title || route.path}
-        subtitle={route.path}
+        route={route}
         focused={isSelected}
-        onFocus={this._handleRouteSelect.bind(this, route, false)}
-        onGo={this._handleRouteGo.bind(this, route.id, false)}
+        onFocus={this._handleRouteSelect}
+        onGo={this._handleRouteGo}
       >
         {children}
       </RouteCard>
     );
   }
-
-  render() {
+  
+  _getTools() {
+    // TODO: Memoize
+    
     const { getLocalizedText } = this.props;
-
+    
     const selectedRoute = this.props.selectedRouteId !== -1
       ? this.props.project.routes.get(this.props.selectedRouteId)
       : null;
-
+    
     const routeEditorToolMainButtons = selectedRoute
       ? List([
         new ButtonRecord({
@@ -411,7 +411,7 @@ class StructureRoute extends PureComponent {
         }),
       ])
       : List();
-
+  
     const routeEditorToolSecondaryButtons = selectedRoute
       ? List([
         new ButtonRecord({
@@ -420,13 +420,13 @@ class StructureRoute extends PureComponent {
         }),
       ])
       : List();
-
+  
     const routeEditorToolSections = List([
       new ToolSectionRecord({
         component: RouteEditor,
       }),
     ]);
-    
+  
     let title;
     if (selectedRoute) {
       title = this.props.indexRouteSelected
@@ -435,10 +435,10 @@ class StructureRoute extends PureComponent {
     } else {
       title = getLocalizedText('routeEditorTitle');
     }
-
+  
     const titleEditable = !!selectedRoute && !this.props.indexRouteSelected;
-
-    const toolGroups = List([
+  
+    return List([
       List([
         new ToolRecord({
           id: TOOL_ID_ROUTE_EDITOR,
@@ -455,7 +455,13 @@ class StructureRoute extends PureComponent {
         }),
       ]),
     ]);
+  }
 
+  render() {
+    const { getLocalizedText } = this.props;
+  
+    const toolGroups = this._getTools();
+  
     const routesList = this._renderRouteList(
       this.props.project.routes,
       null,
@@ -552,16 +558,28 @@ class StructureRoute extends PureComponent {
   }
 }
 
+//noinspection JSUnresolvedVariable
 StructureRoute.propTypes = {
   project: PropTypes.instanceOf(ProjectRecord).isRequired,
-  projectName: PropTypes.string.isRequired,
-  selectedRouteId: PropTypes.number.isRequired,
-  indexRouteSelected: PropTypes.bool.isRequired,
-  getLocalizedText: PropTypes.func.isRequired,
-  onSelectRoute: PropTypes.func.isRequired,
-  onCreateRoute: PropTypes.func.isRequired,
-  onDeleteRoute: PropTypes.func.isRequired,
-  onRenameRoute: PropTypes.func.isRequired,
+  projectName: PropTypes.string,
+  selectedRouteId: PropTypes.number,
+  indexRouteSelected: PropTypes.bool,
+  getLocalizedText: PropTypes.func,
+  onSelectRoute: PropTypes.func,
+  onCreateRoute: PropTypes.func,
+  onDeleteRoute: PropTypes.func,
+  onRenameRoute: PropTypes.func,
+};
+
+StructureRoute.defaultProps = {
+  projectName: '',
+  selectedRouteId: -1,
+  indexRouteSelected: false,
+  getLocalizedText: returnArg,
+  onSelectRoute: noop,
+  onCreateRoute: noop,
+  onDeleteRoute: noop,
+  onRenameRoute: noop,
 };
 
 StructureRoute.displayName = 'StructureRoute';
