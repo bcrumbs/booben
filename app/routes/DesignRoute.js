@@ -82,6 +82,7 @@ import {
   getComponentPropName,
 } from '../utils/meta';
 
+import { URL_PREVIEW_PREFIX } from '../../common/shared-constants';
 import { getLocalizedTextFromState } from '../utils';
 
 //noinspection JSUnresolvedVariable
@@ -304,7 +305,7 @@ class DesignRoute extends PureComponent {
 
   render() {
     const { getLocalizedText } = this.props,
-      src = `/preview/${this.props.params.projectName}/index.html`;
+      src = `${URL_PREVIEW_PREFIX}/${this.props.params.projectName}/index.html`;
 
     const libraryTool = new ToolRecord({
       id: TOOL_ID_LIBRARY,

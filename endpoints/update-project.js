@@ -12,6 +12,7 @@ const co = require('co'),
   config = require('../config'),
   helpers = require('./helpers'),
   constants = require('../common/constants'),
+  sharedConstants = require('../common/shared-constants'),
   misc = require('../utils/misc');
 
 const projectsDir = config.get('projectsDir');
@@ -32,7 +33,7 @@ const bodySchema = {
 const allowedFields = Object.keys(bodySchema.properties);
 
 module.exports = {
-  url: `${constants.URL_API_PREFIX}/projects/:name`,
+  url: `${sharedConstants.URL_API_PREFIX}/projects/:name`,
   method: 'patch',
   handlers: [
     bodyParser.json(),

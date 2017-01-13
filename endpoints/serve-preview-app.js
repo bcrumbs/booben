@@ -6,12 +6,13 @@
 
 const path = require('path'),
   config = require('../config'),
-  constants = require('../common/constants');
+  constants = require('../common/constants'),
+  sharedConstants = require('../common/shared-constants');
 
 const projectsDir = config.get('projectsDir');
 
 module.exports = {
-  url: `${constants.URL_PREVIEW_PREFIX}/:name/:filename`,
+  url: `${sharedConstants.URL_PREVIEW_PREFIX}/:name/:filename`,
   method: 'get',
   handlers: [
     (req, res) => {

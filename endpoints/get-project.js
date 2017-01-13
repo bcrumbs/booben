@@ -7,13 +7,14 @@
 const path = require('path'),
   config = require('../config'),
   helpers = require('./helpers'),
-  constants = require('../common/constants');
+  constants = require('../common/constants'),
+  sharedConstants = require('../common/shared-constants');
 
 const projectsDir = config.get('projectsDir'),
   env = config.get('env');
 
 module.exports = {
-  url: `${constants.URL_API_PREFIX}/projects/:name`,
+  url: `${sharedConstants.URL_API_PREFIX}/projects/:name`,
   method: 'get',
   handlers: [
     (req, res) => {

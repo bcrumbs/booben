@@ -14,6 +14,7 @@ const co = require('co'),
   helpers = require('./helpers'),
   buildPreviewApp = require('./preview-builder').buildPreviewApp,
   constants = require('../common/constants'),
+  sharedConstants = require('../common/shared-constants'),
   logger = require('../common/logger'),
   misc = require('../utils/misc');
 
@@ -77,7 +78,7 @@ const createProjectData = input => ({
 });
 
 module.exports = {
-  url: `${constants.URL_API_PREFIX}/projects`,
+  url: `${sharedConstants.URL_API_PREFIX}/projects`,
   method: 'post',
   handlers: [
     bodyParser.json(),

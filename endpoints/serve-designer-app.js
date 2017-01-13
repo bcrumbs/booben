@@ -9,12 +9,13 @@ const co = require('co'),
   fs = require('mz/fs'),
   helpers = require('./helpers'),
   config = require('../config'),
-  constants = require('../common/constants');
+  constants = require('../common/constants'),
+  sharedConstants = require('../common/shared-constants');
 
 const env = config.get('env');
 
 module.exports = {
-  url: `${constants.URL_APP_PREFIX}/:name/*`,
+  url: `${sharedConstants.URL_APP_PREFIX}/:name/*`,
   method: 'get',
   handlers: [
     (req, res) => void co(function* () {
