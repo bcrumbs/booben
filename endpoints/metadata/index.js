@@ -10,7 +10,8 @@ const co = require('co'),
   rv = require('revalidator'),
   AsyncTreeWalker = require('@common/tree').AsyncTreeWalker,
   constants = require('../../common/constants'),
-  sharedConstants = require('../../common/shared-constants');
+  sharedConstants = require('../../common/shared-constants'),
+  { isValidValue, printType } = require('../../shared/types');
 
 // TODO: Move from revalidator to ajv
 
@@ -707,129 +708,6 @@ const mainMetaSchema = {
 
 /**
  *
- * @param {*} value
- * @return {boolean}
- */
-const isNumber = value => typeof value === 'number' && !isNaN(value);
-
-/**
- *
- * @param {Object} object
- * @param {string} key
- * @return {boolean}
- */
-const hasOwnProperty = (object, key) =>
-  Object.prototype.hasOwnProperty.call(object, key);
-
-/**
- *
- * @type {Object<string, function(value: *, typedef: TypeDefinition): boolean>}
- * @const
- */
-const valueValidators = {
-  /* eslint-disable quote-props, no-use-before-define */
-  'string': value => typeof value === 'string',
-  'bool': value => typeof value === 'boolean',
-  'int': value => isNumber(value) && value % 1 === 0,
-  'float': value => isNumber(value),
-  'oneOf': (value, typedef) =>
-    typedef.options.some(option => option.value === value),
-  
-  'array': value => Array.isArray(value),
-
-  'arrayOf': (value, typedef, types) =>
-    Array.isArray(value) && value.every(item =>
-      isValidValue(item, typedef.ofType, types)),
-
-  'object': (value, typedef) =>
-    typeof value === 'object' && (!typedef.notNull || value !== null),
-
-  'objectOf': (value, typedef, types) =>
-    typeof value === 'object' && (
-      value === null
-        ? !typedef.notNull
-
-        : Object.keys(value).every(key =>
-          isValidValue(value[key], typedef.ofType, types))
-    ),
-
-  'shape': (value, typedef, types) =>
-    typeof value === 'object' && (
-      value === null
-        ? !typedef.notNull
-
-        : Object.keys(value).every(key =>
-          hasOwnProperty(typedef.fields, key) &&
-          isValidValue(value[key], typedef.fields[key], types))
-    ),
-  
-  'component': () => true, // TODO: Write validator for component-type value
-  'func': () => true, // TODO: Write validator for func-type value
-  /* eslint-enable quote-props, no-use-before-define */
-};
-
-/**
- *
- * @param {*} value
- * @param {TypeDefinition} typedef
- * @param {Object<string, Object>} types
- * @return {boolean}
- */
-const isValidValue = (value, typedef, types) => {
-  if (sharedConstants.BUILT_IN_PROP_TYPES.has(typedef.type)) {
-    return valueValidators[typedef.type](value, typedef, types);
-  } else {
-    const resolvedType = types[typedef.type];
-    return valueValidators[resolvedType.type](value, resolvedType, types);
-  }
-};
-
-/**
- *
- * @type {Object<string, function(typedef: TypeDefinition): string>}
- * @const
- */
-const typePrinters = {
-  /* eslint-disable quote-props, no-use-before-define */
-  'string': () => 'string',
-  'bool': () => 'bool',
-  'int': () => 'int',
-  'float': () => 'float',
-
-  'oneOf': typedef => {
-    const options = typedef.options
-      .map(({ value }) => JSON.stringify(value))
-      .join(', ');
-    
-    return `oneOf(${options})`;
-  },
-
-  'array': () => 'array',
-  'arrayOf': typedef => `arrayOf(${typeToString(typedef.ofType)})`,
-  'object': () => 'object',
-  'objectOf': typedef => `objectOf(${typeToString(typedef.ofType)})`,
-
-  'shape': typedef => {
-    const structure = Object.keys(typedef.fields)
-      .map(key => `${key}:${typeToString(typedef.fields[key])}`).join(', ');
-
-    return `shape(${structure})`;
-  },
-
-  'component': () => 'component',
-  'func': () => 'func',
-  /* eslint-enable quote-props, no-use-before-define */
-};
-
-/**
- *
- * @param {TypeDefinition} typedef
- * @return {string}
- */
-const typeToString = typedef => typePrinters[typedef.type](typedef);
-
-/**
- *
  * @param {string} filename
  * @return {Promise<*>}
  */
@@ -900,7 +778,7 @@ const checkAdditionalPropTypeData = (
     if (defaultValueIsInvalid) {
       throw new Error(
         `'${componentName}': Default static value of prop '${propName}' ` +
-        `is not valid for type '${typeToString(propMeta)}'`
+        `is not valid for type '${printType(propMeta, types)}'`
       );
     }
   }
@@ -919,7 +797,7 @@ const checkAdditionalPropTypeData = (
     if (constValueIsInvalid) {
       throw new Error(
         `'${componentName}': Const value of prop '${propName}' ` +
-        `is not valid for type '${typeToString(propMeta)}'`
+        `is not valid for type '${printType(propMeta, types)}'`
       );
     }
   }

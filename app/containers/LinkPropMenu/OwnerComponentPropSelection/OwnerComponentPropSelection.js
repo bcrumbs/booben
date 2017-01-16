@@ -20,17 +20,14 @@ import {
   DataItem,
 } from '../../../components/DataList/DataList';
 
-import {
-  resolveTypedef,
-  isCompatibleType,
-  getString,
-} from '../../../utils/meta';
-
+import { getString } from '../../../utils/meta';
+import { isEqualType } from '../../../../shared/types';
 import { noop } from '../../../utils/misc';
 
 const propTypes = {
   ownerMeta: PropTypes.object.isRequired,
   ownerPropName: PropTypes.string.isRequired,
+  linkTargetComponentMeta: PropTypes.object.isRequired,
   linkTargetPropTypedef: PropTypes.object.isRequired,
   language: PropTypes.string.isRequired,
   onSelect: PropTypes.func,
@@ -58,6 +55,7 @@ export class OwnerComponentPropSelection extends PureComponent {
       ownerMeta,
       ownerPropName,
       linkTargetPropTypedef,
+      linkTargetComponentMeta,
       language,
       onSelect,
     } = this.props;
@@ -66,14 +64,12 @@ export class OwnerComponentPropSelection extends PureComponent {
       ownerPropsMeta = ownerPropMeta.sourceConfigs.designer.props;
   
     const items = Object.keys(ownerPropsMeta)
-      .filter(ownerPropName => {
-        const ownerPropTypedef = resolveTypedef(
-          ownerMeta,
-          ownerPropsMeta[ownerPropName],
-        );
-      
-        return isCompatibleType(ownerPropTypedef, linkTargetPropTypedef);
-      })
+      .filter(ownerPropName => isEqualType(
+        ownerPropsMeta[ownerPropName],
+        linkTargetPropTypedef,
+        ownerMeta.types,
+        linkTargetComponentMeta.types,
+      ))
       .map(ownerPropName => {
         const ownerPropMeta = ownerPropsMeta[ownerPropName];
       

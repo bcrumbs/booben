@@ -44,12 +44,15 @@ import {
 import {
   getString,
   getComponentMeta,
-  isCompatibleType,
-  resolveTypedef,
-  getNestedTypedef,
   buildDefaultValue,
   isValidSourceForProp,
 } from '../../utils/meta';
+
+import {
+  isEqualType,
+  resolveTypedef,
+  getNestedTypedef,
+} from '../../../shared/types';
 
 import { NO_VALUE } from '../../constants/misc';
 import { getLocalizedTextFromState } from '../../utils';
@@ -165,7 +168,7 @@ const ownerPropsSelector = createSelector(
 const transformValue = (componentMeta, propMeta, propValue) => {
   if (!propValue) return { value: null, isLinked: false };
 
-  const typedef = resolveTypedef(componentMeta, propMeta),
+  const typedef = resolveTypedef(propMeta, componentMeta.types),
     linked = isLinkedProp(propValue);
 
   let value = null;
@@ -320,8 +323,8 @@ class ComponentPropsEditorComponent extends PureComponent {
       component = this.props.components.get(componentId),
       componentMeta = getComponentMeta(component.name, this.props.meta),
       propMeta = componentMeta.props[propName],
-      nestedPropMeta = getNestedTypedef(propMeta, where),
-      newValueType = nestedPropMeta.ofType;
+      nestedPropMeta = getNestedTypedef(propMeta, where, componentMeta.types),
+      newValueType = resolveTypedef(nestedPropMeta.ofType, componentMeta.types);
 
     const value = buildDefaultValue(
       componentMeta,
@@ -395,17 +398,15 @@ class ComponentPropsEditorComponent extends PureComponent {
     if (propMeta.source.indexOf('function') > -1) return true;
     if (!this.props.ownerProps) return false;
 
-    const propTypedef = resolveTypedef(componentMeta, propMeta);
-
     return objectSome(this.props.ownerProps, ownerProp => {
       if (ownerProp.dataContext) return false;
 
-      const ownerPropTypedef = resolveTypedef(
-        this.props.ownerComponentMeta,
+      return isEqualType(
+        propMeta,
         ownerProp,
+        componentMeta.types,
+        this.props.ownerComponentMeta.types,
       );
-
-      return isCompatibleType(propTypedef, ownerPropTypedef);
     });
   }
 
@@ -418,7 +419,7 @@ class ComponentPropsEditorComponent extends PureComponent {
    */
   _propTypeFromMeta(componentMeta, propMeta) {
     // TODO: Memoize
-    const typedef = resolveTypedef(componentMeta, propMeta);
+    const typedef = resolveTypedef(propMeta, componentMeta.types);
 
     const name = getString(
       componentMeta,

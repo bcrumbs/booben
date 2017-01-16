@@ -90,9 +90,10 @@ import {
   constructComponent,
   parseComponentName,
   formatComponentName,
-  getNestedTypedef,
   propHasDataContext,
 } from '../utils/meta';
+
+import { getNestedTypedef } from '../../shared/types';
 
 import {
   parseGraphQLSchema,
@@ -1001,6 +1002,7 @@ export default (state = new ProjectState(), action) => {
       const propMeta = getNestedTypedef(
         componentMeta.props[action.propName],
         action.path,
+        componentMeta.types,
       );
 
       if (propMeta.source.indexOf('designer') === -1) {

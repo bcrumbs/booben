@@ -28,13 +28,8 @@ import {
 import { linkWithOwnerProp } from '../../actions/project';
 import ProjectComponentRecord from '../../models/ProjectComponent';
 import { NestedConstructor } from '../../reducers/project';
-
-import {
-  getComponentMeta,
-  getPropTypedef,
-  getNestedTypedef,
-  isValidSourceForProp,
-} from '../../utils/meta';
+import { getNestedTypedef } from '../../../shared/types';
+import { getComponentMeta, isValidSourceForProp } from '../../utils/meta';
 
 class LinkPropMenuComponent extends PureComponent {
   constructor(props) {
@@ -64,24 +59,31 @@ class LinkPropMenuComponent extends PureComponent {
   _handleSelectOwnerProp({ id }) {
     this.props.onLinkWithOwnerProp(id);
   }
-  
-  _renderSourceSelection() {
+
+  _getLinkTargetData() {
     const linkTargetComponent =
       this.props.components.get(this.props.linkingPropOfComponentId);
-  
+
     const linkTargetComponentMeta = getComponentMeta(
       linkTargetComponent.name,
       this.props.meta,
     );
-  
+
     const linkTargetPropTypedef = getNestedTypedef(
-      getPropTypedef(
-        linkTargetComponentMeta,
-        this.props.linkingPropName,
-      ),
-    
+      linkTargetComponentMeta.props[this.props.linkingPropName],
       this.props.linkingPropPath,
+      linkTargetComponentMeta.types,
     );
+
+    return {
+      linkTargetComponent,
+      linkTargetComponentMeta,
+      linkTargetPropTypedef,
+    };
+  }
+  
+  _renderSourceSelection() {
+    const { linkTargetPropTypedef } = this._getLinkTargetData();
     
     const items = [];
     
@@ -123,36 +125,18 @@ class LinkPropMenuComponent extends PureComponent {
   }
   
   _renderOwnerPropSelection() {
-    const ownerComponent = this.props.topNestedConstructorComponent;
-  
-    const ownerMeta = getComponentMeta(
-      ownerComponent.name,
-      this.props.meta,
-    );
-  
-    const ownerPropName = this.props.topNestedConstructor.prop;
-  
-    const linkTargetComponent =
-      this.props.components.get(this.props.linkingPropOfComponentId);
-  
-    const linkTargetComponentMeta = getComponentMeta(
-      linkTargetComponent.name,
-      this.props.meta,
-    );
-  
-    const linkTargetPropTypedef = getNestedTypedef(
-      getPropTypedef(
-        linkTargetComponentMeta,
-        this.props.linkingPropName,
-      ),
-    
-      this.props.linkingPropPath,
-    );
+    const ownerComponent = this.props.topNestedConstructorComponent,
+      ownerMeta = getComponentMeta(ownerComponent.name, this.props.meta),
+      ownerPropName = this.props.topNestedConstructor.prop;
+
+    const { linkTargetComponentMeta, linkTargetPropTypedef } =
+      this._getLinkTargetData();
     
     return (
       <OwnerComponentPropSelection
         ownerMeta={ownerMeta}
         ownerPropName={ownerPropName}
+        linkTargetComponentMeta={linkTargetComponentMeta}
         linkTargetPropTypedef={linkTargetPropTypedef}
         language={this.props.language}
         onSelect={this._handleSelectOwnerProp}

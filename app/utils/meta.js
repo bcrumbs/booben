@@ -9,8 +9,6 @@ import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
 import { NO_VALUE } from '../../app/constants/misc';
-import { BUILT_IN_PROP_TYPES } from '../../common/shared-constants';
-import { hasOwnProperty, returnTrue, returnFalse } from './misc';
 
 /**
  *
@@ -392,14 +390,14 @@ const sourcePriority = [
  * @param {ComponentMeta} componentMeta
  * @param {ComponentPropMeta} propMeta
  * @param {string} language
- * @param {*|NO_VALUE} [_inheritedDefaultValue=NO_VALUE]
+ * @param {*|NO_VALUE} [inheritedDefaultValue=NO_VALUE]
  * @return {ProjectComponentProp|NO_VALUE}
  */
 const _buildDefaultValue = (
   componentMeta,
   propMeta,
   language,
-  _inheritedDefaultValue = NO_VALUE,
+  inheritedDefaultValue = NO_VALUE,
 ) => {
   for (let i = 0, l = sourcePriority.length; i < l; i++) {
     if (isValidSourceForProp(propMeta, sourcePriority[i])) {
@@ -407,7 +405,7 @@ const _buildDefaultValue = (
         componentMeta,
         propMeta,
         language,
-        _inheritedDefaultValue,
+        inheritedDefaultValue,
       );
 
       if (defaultValue !== NO_VALUE) return defaultValue;
@@ -445,28 +443,14 @@ const buildDefaultProps = (componentMeta, language) => {
 };
 
 /**
- * @typedef {Object} ConstructComponentOptions
- * @property {boolean} [isWrapper=false]
- * @property {boolean} [isNew=true]
- */
-
-/**
- *
- * @type {ConstructComponentOptions}
- * @const
- */
-const constructComponentDefaultOptions = {
-  isWrapper: false,
-  isNew: true,
-};
-
-/**
+ * Constructs new immutable ProjectComponent record
  *
  * @param {string} componentName
  * @param {number} layoutIdx
  * @param {string} language
  * @param {Object} meta
- * @param {ConstructComponentOptions} [options]
+ * @param {boolean} [isNew=true]
+ * @param {boolean} [isWrapper=false]
  * @return {Immutable.Map}
  */
 export const constructComponent = (
@@ -474,10 +458,8 @@ export const constructComponent = (
   layoutIdx,
   language,
   meta,
-  options,
+  { isWrapper = false, isNew = true } = {},
 ) => {
-  options = Object.assign({}, constructComponentDefaultOptions, options || {});
-
   const componentMeta = getComponentMeta(componentName, meta);
 
   // Ids of detached components must start with zero
@@ -485,8 +467,8 @@ export const constructComponent = (
 
   const component = {
     id: nextId++,
-    isNew: options.isNew,
-    isWrapper: options.isWrapper,
+    isNew,
+    isWrapper,
     name: componentName,
     title: '',
     props: buildDefaultProps(componentMeta, language),
@@ -510,8 +492,8 @@ export const constructComponent = (
 
       component.children.push({
         id: nextId++,
-        isNew: options.isNew,
-        isWrapper: options.isWrapper,
+        isNew,
+        isWrapper,
         name: regionComponentName,
         title: '',
         props,
@@ -524,126 +506,6 @@ export const constructComponent = (
 
   return componentsToImmutable(component, -1, false, -1);
 };
-
-/**
- *
- * @type {Object<string, function(typedef1: TypeDefinition, typedef2: TypeDefinition): boolean>}
- * @const
- */
-const typeCheckers = {
-  /* eslint-disable no-use-before-define */
-  string: returnTrue,
-  bool: returnTrue,
-  int: returnTrue,
-  float: returnTrue,
-
-  oneOf: (typedef1, typedef2) => {
-    if (typedef1.options.length !== typedef2.options.length) return false;
-
-    return typedef1.options.every(option1 =>
-      !!typedef2.options.find(option2 => option2.value === option1.value));
-  },
-
-  object: (typedef1, typedef2) => !!typedef1.notNull === !!typedef2.notNull,
-
-  objectOf: (typedef1, typedef2) =>
-    !!typedef1.notNull === !!typedef2.notNull &&
-    isCompatibleType(typedef1.ofType, typedef2.ofType),
-
-  shape: (typedef1, typedef2) => {
-    if (!!typedef1.notNull !== !!typedef2.notNull) return false;
-
-    const keys1 = Object.keys(typedef1.fields),
-      keys2 = Object.keys(typedef2.fields);
-
-    if (keys1.length !== keys2.length) return false;
-
-    return keys1.every(key => {
-      if (!hasOwnProperty(typedef2, key)) return false;
-      return isCompatibleType(typedef1.fields[key], typedef2.fields[key]);
-    });
-  },
-
-  array: returnTrue,
-
-  arrayOf: (typedef1, typedef2) =>
-    isCompatibleType(typedef1.ofType, typedef2.ofType),
-
-  component: returnTrue,
-  func: returnFalse, // TODO: Write actual checker
-  /* eslint-enable no-use-before-define */
-};
-
-/**
- *
- * @param {TypeDefinition} typedef1
- * @param {TypeDefinition} typedef2
- * @return {boolean}
- */
-export const isCompatibleType = (typedef1, typedef2) => {
-  if (typedef1.type !== typedef2.type) return false;
-  return typeCheckers[typedef1.type](typedef1, typedef2);
-};
-
-/**
- *
- * @param {ComponentMeta} componentMeta
- * @param {TypeDefinition} typedef
- * @returns {TypeDefinition}
- */
-export const resolveTypedef = (componentMeta, typedef) => {
-  if (BUILT_IN_PROP_TYPES.has(typedef.type)) return typedef;
-
-  return componentMeta.types
-    ? Object.assign({}, typedef, componentMeta.types[typedef.type])
-    : null;
-};
-
-/**
- *
- * @param {ComponentMeta} componentMeta
- * @param {string} propName
- * @returns {TypeDefinition}
- */
-export const getPropTypedef = (componentMeta, propName) =>
-  resolveTypedef(componentMeta, componentMeta.props[propName]);
-
-/**
- *
- * @param {TypeDefinition} typedef
- * @param {(string|number)[]} valuePath
- * @return {TypeDefinition}
- */
-export const getNestedTypedef = (typedef, valuePath) => valuePath.reduce(
-  (acc, cur) => {
-    if (typeof cur === 'string') {
-      if (acc.type === 'objectOf') {
-        return acc.ofType;
-      } else if (acc.type === 'shape') {
-        return acc.fields[cur];
-      } else {
-        throw new Error(
-          `getNestedTypedef(): incompatible type: ${acc.type}`,
-        );
-      }
-    } else if (typeof cur === 'number') {
-      if (acc.type === 'arrayOf') {
-        return acc.ofType;
-      } else {
-        throw new Error(
-          `getNestedTypedef(): incompatible type: ${acc.type}`,
-        );
-      }
-    } else {
-      throw new Error(
-        'getNestedTypedef(): valuePath can contain ' +
-        `only numbers and strings, got ${cur}`,
-      );
-    }
-  },
-
-  typedef,
-);
 
 /**
  *
