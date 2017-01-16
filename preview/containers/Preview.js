@@ -31,7 +31,7 @@ import {
 } from '../../app/models/ProjectRoute';
 
 import { pointIsInCircle } from '../../app/utils/misc';
-import { PREVIEW_DOM_CONTAINER_ID } from '../../common/shared-constants';
+import { PREVIEW_DOM_CONTAINER_ID } from '../../shared/constants';
 
 const setImmediate = window.setImmediate || (fn => setTimeout(fn, 0));
 const clearImmediate = window.clearImmediate || window.clearTimeout;

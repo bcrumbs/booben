@@ -12,7 +12,7 @@ import Overlay from './containers/Overlay';
 import {
   PREVIEW_DOM_CONTAINER_ID,
   PREVIEW_DOM_OVERLAY_ID,
-} from '../common/shared-constants';
+} from '../shared/constants';
 
 import { LOADED } from '../app/constants/loadStates';
 

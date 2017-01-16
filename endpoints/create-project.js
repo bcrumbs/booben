@@ -14,7 +14,7 @@ const co = require('co'),
   helpers = require('./helpers'),
   buildPreviewApp = require('./preview-builder').buildPreviewApp,
   constants = require('../common/constants'),
-  sharedConstants = require('../common/shared-constants'),
+  sharedConstants = require('../shared/constants'),
   logger = require('../common/logger'),
   misc = require('../utils/misc');
 

@@ -10,7 +10,7 @@ const co = require('co'),
   helpers = require('./helpers'),
   config = require('../config'),
   constants = require('../common/constants'),
-  sharedConstants = require('../common/shared-constants');
+  sharedConstants = require('../shared/constants');
 
 const env = config.get('env');
 

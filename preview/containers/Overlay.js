@@ -16,7 +16,7 @@ import {
 import { OverlayContainer } from '../components/OverlayContainer';
 import { OverlayBoundingBox } from '../components/OverlayBoundingBox';
 import { OverlayComponentTitle } from '../components/OverlayComponentTitle';
-import { PREVIEW_DOM_CONTAINER_ID } from '../../common/shared-constants';
+import { PREVIEW_DOM_CONTAINER_ID } from '../../shared/constants';
 
 //noinspection JSUnresolvedVariable
 const propTypes = {

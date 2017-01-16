@@ -9,9 +9,13 @@ const co = require('co'),
   fs = require('mz/fs'),
   rv = require('revalidator'),
   AsyncTreeWalker = require('@common/tree').AsyncTreeWalker,
-  constants = require('../../common/constants'),
-  sharedConstants = require('../../common/shared-constants'),
-  { isValidValue, printType } = require('../../shared/types');
+  constants = require('../../common/constants');
+
+const {
+  isValidValue,
+  printType,
+  BUILT_IN_PROP_TYPES,
+} = require('../../shared/types');
 
 // TODO: Move from revalidator to ajv
 
@@ -1121,7 +1125,7 @@ const readComponentMeta = metaDir => co(function* () {
       );
     }
 
-    if (sharedConstants.BUILT_IN_PROP_TYPES.has(propMeta.type)) {
+    if (BUILT_IN_PROP_TYPES.has(propMeta.type)) {
       checkAdditionalPropTypeData(
         props[i],
         propMeta,

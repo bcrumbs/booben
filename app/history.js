@@ -6,7 +6,7 @@
 
 import { createHistory } from 'history';
 import { useRouterHistory } from 'react-router';
-import { URL_APP_PREFIX } from '../common/shared-constants';
+import { URL_APP_PREFIX } from '../shared/constants';
 
 export default useRouterHistory(createHistory)({
   basename: URL_APP_PREFIX,

@@ -82,7 +82,7 @@ import {
   getComponentPropName,
 } from '../utils/meta';
 
-import { URL_PREVIEW_PREFIX } from '../../common/shared-constants';
+import { URL_PREVIEW_PREFIX } from '../../shared/constants';
 import { getLocalizedTextFromState } from '../utils';
 
 //noinspection JSUnresolvedVariable

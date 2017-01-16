@@ -7,7 +7,7 @@
 const path = require('path'),
   config = require('../config'),
   constants = require('../common/constants'),
-  sharedConstants = require('../common/shared-constants');
+  sharedConstants = require('../shared/constants');
 
 const projectsDir = config.get('projectsDir');
 

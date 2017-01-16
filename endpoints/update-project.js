@@ -12,7 +12,7 @@ const co = require('co'),
   config = require('../config'),
   helpers = require('./helpers'),
   constants = require('../common/constants'),
-  sharedConstants = require('../common/shared-constants'),
+  sharedConstants = require('../shared/constants'),
   misc = require('../utils/misc');
 
 const projectsDir = config.get('projectsDir');

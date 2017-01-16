@@ -17,7 +17,7 @@ const co = require('co'),
   config = require('../../config'),
   gatherMetadata = require('../metadata').gatherMetadata,
   constants = require('../../common/constants'),
-  sharedConstants = require('../../common/shared-constants'),
+  sharedConstants = require('../../shared/constants'),
   logger = require('../../common/logger');
 
 /**
