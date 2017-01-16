@@ -12,8 +12,7 @@ const co = require('co'),
   config = require('../config'),
   helpers = require('./helpers'),
   constants = require('../common/constants'),
-  sharedConstants = require('../shared/constants'),
-  misc = require('../utils/misc');
+  sharedConstants = require('../shared/constants');
 
 const projectsDir = config.get('projectsDir');
 
@@ -30,7 +29,13 @@ const bodySchema = {
   },
 };
 
-const allowedFields = Object.keys(bodySchema.properties);
+const validationOptions = {
+  validateFormats: true,
+  validateFormatsStrict: true,
+  validateFormatExtensions: true,
+  additionalProperties: false,
+  cast: false,
+};
 
 module.exports = {
   url: `${sharedConstants.URL_API_PREFIX}/projects/:name`,
@@ -44,8 +49,11 @@ module.exports = {
         return;
       }
 
-      const input = misc.sanitizeObject(req.body, allowedFields),
-        { valid, errors } = rv.validate(input, bodySchema);
+      const { valid, errors } = rv.validate(
+        req.body,
+        bodySchema,
+        validationOptions
+      );
 
       if (!valid) {
         helpers.sendError(res, 400, 'Invalid request body', { errors });
@@ -80,7 +88,7 @@ module.exports = {
         return;
       }
 
-      projectData = Object.assign(projectData, input);
+      projectData = Object.assign(projectData, req.body);
 
       try {
         yield fs.writeFile(projectFile, JSON.stringify(projectData));

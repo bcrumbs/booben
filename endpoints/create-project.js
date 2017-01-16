@@ -15,8 +15,7 @@ const co = require('co'),
   buildPreviewApp = require('./preview-builder').buildPreviewApp,
   constants = require('../common/constants'),
   sharedConstants = require('../shared/constants'),
-  logger = require('../common/logger'),
-  misc = require('../utils/misc');
+  logger = require('../common/logger');
 
 const projectsDir = config.get('projectsDir'),
   defaultComponentLibs = config.get('defaultComponentLibs');
@@ -53,8 +52,6 @@ const bodySchema = {
   },
 };
 
-const allowedFields = Object.keys(bodySchema.properties);
-
 /**
  * @typedef {Object} CreateProjectInput
  * @property {string} name
@@ -77,6 +74,14 @@ const createProjectData = input => ({
   routes: [],
 });
 
+const validationOptions = {
+  validateFormats: true,
+  validateFormatsStrict: true,
+  validateFormatExtensions: true,
+  additionalProperties: false,
+  cast: false,
+};
+
 module.exports = {
   url: `${sharedConstants.URL_API_PREFIX}/projects`,
   method: 'post',
@@ -84,15 +89,18 @@ module.exports = {
     bodyParser.json(),
 
     (req, res) => void co(function* () {
-      const input = misc.sanitizeObject(req.body, allowedFields),
-        { valid, errors } = rv.validate(input, bodySchema);
+      const { valid, errors } = rv.validate(
+        req.body,
+        bodySchema,
+        validationOptions
+      );
 
       if (!valid) {
         helpers.sendError(res, 400, 'Invalid request body', { errors });
         return;
       }
 
-      const projectData = createProjectData(input),
+      const projectData = createProjectData(req.body),
         projectDir = path.join(projectsDir, projectData.name);
 
       try {
