@@ -89,6 +89,28 @@ export const clone = value => {
 
 /**
  *
+ * @template T
+ * @template N
+ * @param {T[]} array
+ * @param {function(item: T): string} keyFn
+ * @param {function(item: T): N} [valueFn]
+ * @return {Object<string, N>}
+ */
+export const arrayToObject = (array, keyFn, valueFn = returnArg) =>
+  array.reduce(
+    (acc, cur) => Object.assign(acc, { [keyFn(cur)]: valueFn(cur) }),
+    {},
+  );
+
+/**
+ *
+ * @param {string} key
+ * @return {function(object: Object): *}
+ */
+export const getter = key => object => object[key];
+
+/**
+ *
  * @param {number} x
  * @param {number} y
  * @param {number} cX

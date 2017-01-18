@@ -83,8 +83,6 @@ import {
   QueryArgumentValue,
 } from '../models/ProjectComponent';
 
-import { concatPath } from '../utils';
-
 import {
   getComponentMeta,
   constructComponent,
@@ -94,11 +92,8 @@ import {
 } from '../utils/meta';
 
 import { getNestedTypedef } from '../../shared/types';
-
-import {
-  parseGraphQLSchema,
-} from '../utils/schema';
-
+import { concatPath } from '../utils';
+import { parseGraphQLSchema } from '../utils/schema';
 import { NO_VALUE } from '../constants/misc';
 
 export const NestedConstructor = Record({
@@ -469,7 +464,7 @@ const clearOutdatedDataProps = (
   if (!propHasDataContext(updatedPropMeta)) return state;
 
   const outdatedDataContext = oldValue.sourceData.dataContext
-      .push(updatedPropMeta.sourceConfigs.data.pushDataContext);
+    .push(updatedPropMeta.sourceConfigs.data.pushDataContext);
 
   const visitDesignerProp = (designerPropValue, path) => {
     walkComponentsTree(
@@ -477,11 +472,12 @@ const clearOutdatedDataProps = (
       designerPropValue.sourceData.rootId,
 
       component => {
-        const componentId = component.id;
+        const componentId = component.id,
+          componentMeta = getComponentMeta(component.name, state.meta);
 
         walkSimpleProps(
           component,
-          getComponentMeta(component.name, state.meta),
+          componentMeta,
 
           (propValue, _, pathToProp) => {
             if (propValue.source === 'data') {
@@ -561,7 +557,7 @@ export default (state = new ProjectState(), action) => {
         lastRouteId = getMaxRouteId(project),
         lastComponentId = getMaxComponentId(project),
         schema = action.schema ? parseGraphQLSchema(action.schema) : null;
-
+      
       return state
         .merge({
           projectName: action.project.name,
