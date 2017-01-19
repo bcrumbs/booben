@@ -12,6 +12,7 @@ import {
   APP_LOCALIZATION_LOAD_FAILURE,
   APP_TOGGLE_CONTENT_PLACEHOLDERS,
   APP_TOGGLE_COMPONENT_TITLES,
+  APP_SHOW_FOOTER_TOGGLES,
 } from '../actions/app';
 
 import {
@@ -26,6 +27,7 @@ const AppState = Record({
   localizationLoadState: NOT_LOADED,
   localizationLoadError: null,
   localization: {},
+  showFooterToggles: false,
   showContentPlaceholders: false,
   showComponentTitles: false,
 });
@@ -51,6 +53,9 @@ const handlers = {
   
   [APP_TOGGLE_COMPONENT_TITLES]: (state, action) =>
     state.set('showComponentTitles', action.enable),
+  
+  [APP_SHOW_FOOTER_TOGGLES]: (state, action) =>
+    state.set('showFooterToggles', action.show),
 };
 
 export default (state = new AppState(), action) =>

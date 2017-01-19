@@ -44,13 +44,23 @@ import {
 
 import { getLocalizedTextFromState } from '../utils';
 
-/* eslint-disable react/prop-types */
 const TopMenuLink = ({ href, className, children }) => (
   <Link to={href} className={className}>
     {children}
   </Link>
 );
-/* eslint-enable react/prop-types */
+
+TopMenuLink.propTypes = {
+  href: PropTypes.string,
+  className: PropTypes.string,
+};
+
+TopMenuLink.defaultProps = {
+  href: '',
+  className: '',
+};
+
+TopMenuLink.displayName = 'TopMenuLink';
 
 const toggleFullscreen = () => {
   if (
@@ -112,6 +122,35 @@ const RootRoute = props => {
   const title = getLocalizedText('projectTitle', {
     projectName: props.projectName,
   });
+  
+  let showComponentsTitleItem = null,
+    showPlaceholdersItem = null;
+  
+  if (props.showFooterToggles) {
+    showComponentsTitleItem = (
+      <FooterMenuItem
+        text={getLocalizedText('showComponentsTitle')}
+        subcomponentRight={
+          <ToggleButton
+            checked={props.showComponentTitles}
+            onCheck={props.onToggleComponentTitles}
+          />
+        }
+      />
+    );
+    
+    showPlaceholdersItem = (
+      <FooterMenuItem
+        text={getLocalizedText('showPlaceholders')}
+        subcomponentRight={
+          <ToggleButton
+            checked={props.showContentPlaceholders}
+            onCheck={props.onToggleContentPlaceholders}
+          />
+        }
+      />
+    );
+  }
 
   return (
     <App fixed>
@@ -193,26 +232,9 @@ const RootRoute = props => {
             <FooterMenu inline dense mode="light">
               <FooterMenuGroup>
                 <FooterMenuList>
-                  <FooterMenuItem
-                    text={getLocalizedText('showComponentsTitle')}
-                    subcomponentRight={
-                      <ToggleButton
-                        checked={props.showComponentTitles}
-                        onCheck={props.onToggleComponentTitles}
-                      />
-                    }
-                  />
-
-                  <FooterMenuItem
-                    text={getLocalizedText('showPlaceholders')}
-                    subcomponentRight={
-                      <ToggleButton
-                        checked={props.showContentPlaceholders}
-                        onCheck={props.onToggleContentPlaceholders}
-                      />
-                    }
-                  />
-
+                  {showComponentsTitleItem}
+                  {showPlaceholdersItem}
+                  
                   <FooterMenuItem
                     text={getLocalizedText('toggleFullScreen')}
                     onClick={toggleFullscreen}
@@ -229,10 +251,12 @@ const RootRoute = props => {
   );
 };
 
+//noinspection JSUnresolvedVariable
 RootRoute.propTypes = {
   location: PropTypes.object.isRequired,
   projectName: PropTypes.string.isRequired,
   project: PropTypes.instanceOf(ProjectRecord).isRequired,
+  showFooterToggles: PropTypes.bool.isRequired,
   showContentPlaceholders: PropTypes.bool.isRequired,
   showComponentTitles: PropTypes.bool.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
@@ -245,6 +269,7 @@ RootRoute.displayName = 'RootRoute';
 const mapStateToProps = ({ project, app }) => ({
   projectName: project.projectName,
   project: project.data,
+  showFooterToggles: app.showFooterToggles,
   showContentPlaceholders: app.showContentPlaceholders,
   showComponentTitles: app.showComponentTitles,
   getLocalizedText: getLocalizedTextFromState({ app }),
