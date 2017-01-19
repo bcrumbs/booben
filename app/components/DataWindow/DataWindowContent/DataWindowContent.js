@@ -16,6 +16,30 @@ import {
 
 import { noop } from '../../../utils/misc';
 
+const propTypes = {
+  title: PropTypes.string,
+  type: PropTypes.string,
+  subtitle: PropTypes.string,
+  description: PropTypes.string,
+  contentHeading: PropTypes.string,
+  argsButton: PropTypes.bool,
+  argsButtonText: PropTypes.string,
+  list: PropTypes.arrayOf(PropTypes.object),
+  onSetArgumentsClick: PropTypes.func,
+};
+
+const defaultProps = {
+  title: '',
+  type: '',
+  subtitle: '',
+  description: '',
+  contentHeading: '',
+  argsButton: false,
+  argsButtonText: 'Set arguments',
+  list: [],
+  onSetArgumentsClick: noop,
+};
+
 export const DataWindowContent = props => {
   let type = null;
   if (props.type) {
@@ -118,30 +142,8 @@ export const DataWindowContent = props => {
   );
 };
 
-DataWindowContent.propTypes = {
-  title: PropTypes.string,
-  type: PropTypes.string,
-  subtitle: PropTypes.string,
-  description: PropTypes.string,
-  contentHeading: PropTypes.string,
-  argsButton: PropTypes.bool,
-  argsButtonText: PropTypes.string,
-  list: PropTypes.arrayOf(PropTypes.object),
-  onSetArgumentsClick: PropTypes.func,
-};
-
-DataWindowContent.defaultProps = {
-  title: '',
-  type: '',
-  subtitle: '',
-  description: '',
-  contentHeading: '',
-  argsButton: false,
-  argsButtonText: 'Set arguments',
-  list: [],
-  onSetArgumentsClick: noop,
-};
-
+DataWindowContent.propTypes = propTypes;
+DataWindowContent.defaultProps = defaultProps;
 DataWindowContent.displayName = 'DataWindowContent';
 
 export * from './DataWindowContentGroup/DataWindowContentGroup';

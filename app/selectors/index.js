@@ -261,6 +261,7 @@ const getAllNestedContexts = (component, schema, contexts, topComponent) =>
  */
 const getAllRootContexts = (component, schema, meta) => {
   const propsMeta = getComponentMeta(component.name, meta).props;
+  
   return Object.keys(propsMeta).map(
     propName => {
       const propMeta = propsMeta[propName];
@@ -298,31 +299,29 @@ export const getAllPossibleNestedContexts = createSelector(
     haveNestedConstructorsSelector,
     topNestedConstructorComponent,
   ) => {
-    if (haveNestedConstructorsSelector && schema) {
-      const rootContexts = getAllRootContexts(
-        rootComponentWithQueryArgs,
-        schema,
-        meta,
-      );
-      
-      return project.nestedConstructors.size === 1
-        ? rootContexts
-        : project.nestedConstructors.slice(1).reverse().reduce(
-        (acc, { components }) => acc.concat(
-          components.reduce(
-            (acc, component) =>
-              acc.concat(getAllNestedContexts(
-                component,
-                schema,
-                [...acc, ...rootContexts],
-                topNestedConstructorComponent,
-              ),
-            )
-          , []).filter(v => v),
-        )
-      , []);
-    }
+    if (!schema || !haveNestedConstructorsSelector) return [];
   
-    return [];
+    const rootContexts = getAllRootContexts(
+      rootComponentWithQueryArgs,
+      schema,
+      meta,
+    );
+    
+    if (project.nestedConstructors.size === 1) return rootContexts;
+  
+    return project.nestedConstructors.slice(1).reverse().reduce(
+      (acc, { components }) => acc.concat(components
+        .reduce((acc, component) =>
+          acc.concat(getAllNestedContexts(
+            component,
+            schema,
+            [...acc, ...rootContexts],
+            topNestedConstructorComponent,
+            ),
+          ), [])
+        .filter(v => v),
+      ),
+      [],
+    );
   },
 );

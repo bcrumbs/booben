@@ -19,10 +19,10 @@ const defaultProps = {
   stepDiffDivider: 4,
 };
 
-const SCROLL_STATES = {
-  UP: 'UP',
-  DOWN: 'DOWN',
-  NONE: 'NONE',
+const ScrollStates = {
+  NONE: 0,
+  UP: 1,
+  DOWN: 2,
 };
 
 export const autoScrollUpDown = WrappedComponent => {
@@ -34,7 +34,7 @@ export const autoScrollUpDown = WrappedComponent => {
       this._scroll = this._scroll.bind(this);
     
       this.scrollInterval = null;
-      this.scrollState = SCROLL_STATES.NONE;
+      this.scrollState = ScrollStates.NONE;
       this.scrollStep = 0;
       this.requestedFrameId = null;
       this.frameIsRequested = false;
@@ -93,14 +93,15 @@ export const autoScrollUpDown = WrappedComponent => {
       const { additionalPixels } = this.props;
       const diff = Math.min(pageY - top, bottom - pageY);
       
-      let scrollStateString = 'NONE';
-      if (diff < additionalPixels)
-        scrollStateString = ((top + bottom) / 2 < pageY ? 'DOWN' : 'UP');
-
-      const scrollState = SCROLL_STATES[scrollStateString];
+      let scrollState = ScrollStates.NONE;
+      if (diff < additionalPixels) {
+        scrollState = ((top + bottom) / 2 < pageY)
+          ? ScrollStates.DOWN
+          : ScrollStates.UP;
+      }
 
       const scrollStep =
-        (scrollState === SCROLL_STATES.DOWN ? 1 : -1) *
+        (scrollState === ScrollStates.DOWN ? 1 : -1) *
         (additionalPixels - diff) / this.props.stepDiffDivider | 0;
 
       if (this.scrollState === scrollState && this.scrollStep === scrollStep)
@@ -109,7 +110,7 @@ export const autoScrollUpDown = WrappedComponent => {
       this.scrollState = scrollState;
       this.scrollStep = scrollStep;
       
-      if (this.scrollState === SCROLL_STATES.NONE)
+      if (this.scrollState === ScrollStates.NONE)
         this._stopSteppingScroll();
       else if (this.scrollInterval === null)
         this._startSteppingScroll();
