@@ -7,7 +7,7 @@
 //noinspection JSUnresolvedVariable
 import { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
-import { dropComponent, DROP_COMPONENT_AREA_IDS } from '../../actions/preview';
+import { dropComponent, DropComponentAreas } from '../../actions/preview';
 
 /**
  *
@@ -135,7 +135,7 @@ class ComponentsDragAreaComponent extends Component {
   _handleMouseUp(event) {
     if (this.props.draggingComponent) {
       event.stopPropagation();
-      this.props.onDropComponent(DROP_COMPONENT_AREA_IDS.OUT);
+      this.props.onDropComponent(DropComponentAreas.OUT);
     }
   }
 

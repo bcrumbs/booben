@@ -1,7 +1,11 @@
 /**
-  * @author Oleg Nosov <olegnosov1@gmail.com>
-  *
-  */
+ * @author Oleg Nosov <olegnosov1@gmail.com>
+ *
+ */
+
+'use strict';
+
+//noinspection JSUnresolvedVariable
 import React, { PropTypes, Component } from 'react';
 import { connect } from 'react-redux';
 import { pointIsInCircle } from '../utils/misc';
@@ -19,6 +23,7 @@ import {
  */
 const START_DRAG_THRESHOLD = 10;
 
+//noinspection JSUnresolvedVariable
 const propTypes = {
   meta: PropTypes.object.isRequired,
   language: PropTypes.string.isRequired,
@@ -41,7 +46,7 @@ const mapDispatchToProps = dispatch => ({
 });
 
 /**
- * @param {React.Component} WrappedComponent
+ * @param {Function} WrappedComponent
  * @return {Function}
  */
 export const dragHandler = WrappedComponent => {
@@ -160,23 +165,21 @@ export const dragHandler = WrappedComponent => {
     }
   
     render() {
-      // TODO: Change prop names of handlers and remove eslint-disable
-      /* eslint-disable react/jsx-handler-names */
       return (
         <WrappedComponent
           {...this.props}
-          handleStartDragNewComponent={this._handleStartDragNewComponent}
-          handleStartDragExistingComponent={
-            this._handleStartDragExistingComponent
-          }
+          onStartDragNewComponent={this._handleStartDragNewComponent}
+          onStartDragExistingComponent={this._handleStartDragExistingComponent}
         />
       );
-      /* eslint-enable react/jsx-handler-names */
     }
   };
   
+  //noinspection JSUnresolvedVariable
   ret.displayName = `dragHandler(${WrappedComponent.displayName})`;
+  //noinspection JSUnresolvedVariable
   ret.propTypes = { ...WrappedComponent.propTypes, ...propTypes };
+  //noinspection JSUnresolvedVariable
   ret.defaultProps = { ...WrappedComponent.defaultProps };
   
   return connect(

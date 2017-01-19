@@ -87,7 +87,7 @@ const projectLoadFailed = error => ({
 export const loadProject = projectName => dispatch => {
   dispatch(requestProject(projectName));
 
-  // noinspection JSCheckFunctionSignatures
+  //noinspection JSCheckFunctionSignatures
   Promise.all([getProject(projectName), getMetadata(projectName)])
     .then(([project, metadata]) => {
       if (project.graphQLEndpointURL) {
@@ -96,7 +96,9 @@ export const loadProject = projectName => dispatch => {
             void dispatch(projectLoaded(project, metadata, schema)),
           )
           .catch(error => void dispatch(projectLoadFailed(error)));
-      } else { dispatch(projectLoaded(project, metadata)); }
+      } else {
+        dispatch(projectLoaded(project, metadata));
+      }
     })
     .catch(err => void dispatch(projectLoadFailed(err)));
 };
@@ -161,13 +163,13 @@ export const deleteComponent = componentId => ({
  * @return {Object}
  */
 export const updateComponentPropValue = (
-    componentId,
-    propName,
-    path,
-    newSource,
-    newSourceData,
-    newQueryArgs = {},
-    isRootQuery = false,
+  componentId,
+  propName,
+  path,
+  newSource,
+  newSourceData,
+  newQueryArgs = {},
+  isRootQuery = false,
 ) => ({
   type: PROJECT_COMPONENT_UPDATE_PROP_VALUE,
   componentId,
@@ -192,12 +194,12 @@ export const updateComponentPropValue = (
  * @return {Object}
  */
 export const addComponentPropValue = (
-    componentId,
-    propName,
-    path,
-    index,
-    source,
-    sourceData,
+  componentId,
+  propName,
+  path,
+  index,
+  source,
+  sourceData,
 ) => ({
   type: PROJECT_COMPONENT_ADD_PROP_VALUE,
   componentId,

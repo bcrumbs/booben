@@ -195,44 +195,52 @@ const libraryGroupsFilteredSelector = createSelector(
 );
 
 class ComponentsLibraryComponent extends PureComponent {
-  render() {
+  _getFocusedComponentName() {
     const {
-      getLocalizedText,
-      language,
       draggingComponent,
       draggedComponents,
       draggedComponentId,
     } = this.props;
+    
+    if (draggingComponent) {
+      const id = draggedComponentId > -1 ? draggedComponentId : 0;
+      return draggedComponents.get(id).name;
+    }
+    
+    return '';
+  }
+  
+  render() {
+    const {
+      getLocalizedText,
+      language,
+    } = this.props;
 
-    const focusedComponentName = draggingComponent
-      ? draggedComponents.get(
-        draggedComponentId > -1 ? draggedComponentId : 0,
-      ).name
-      : '';
+    const focusedComponentName = this._getFocusedComponentName();
 
     const { groups, filtered } = this.props.componentGroups;
 
     if (groups.isEmpty()) {
       if (filtered) {
+        const noComponentsText = getLocalizedText(
+          'noComponentsCanBeInsertedInsideSelectedComponent',
+        );
+        
+        const showAllComponentsText = getLocalizedText('showAllComponents');
+        
         return (
-          <BlockContentPlaceholder
-            text={
-              getLocalizedText(
-                'noComponentsCanBeInsertedInsideSelectedComponent',
-              )
-            }
-          >
+          <BlockContentPlaceholder text={noComponentsText}>
             <Button
-              text={getLocalizedText('showAllComponents')}
+              text={showAllComponentsText}
               onPress={this.props.onShowAllComponents}
             />
           </BlockContentPlaceholder>
         );
       } else {
+        const noComponentsText = getLocalizedText('noComponentsInLibrary');
+        
         return (
-          <BlockContentPlaceholder
-            text={getLocalizedText('noComponentsInLibrary')}
-          />
+          <BlockContentPlaceholder text={noComponentsText} />
         );
       }
     }
@@ -245,7 +253,7 @@ class ComponentsLibraryComponent extends PureComponent {
           image={component.iconURL}
           focused={focusedComponentName === component.fullName}
           onStartDrag={
-            event => this.props.handleStartDragNewComponent(event, component)
+            event => this.props.onStartDragNewComponent(event, component)
           }
         />
       ));
@@ -285,7 +293,6 @@ const ComponentGroupsType = PropTypes.shape({
 
 //noinspection JSUnresolvedVariable
 ComponentsLibraryComponent.propTypes = {
-  handleStartDragNewComponent: PropTypes.func.isRequired,
   componentGroups: ComponentGroupsType.isRequired,
   expandedGroups: ImmutablePropTypes.setOf(PropTypes.string).isRequired,
   language: PropTypes.string.isRequired,
@@ -293,6 +300,7 @@ ComponentsLibraryComponent.propTypes = {
   draggedComponents: ImmutablePropTypes.map,
   draggedComponentId: PropTypes.number.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
+  onStartDragNewComponent: PropTypes.func.isRequired,
   onExpandedGroupsChange: PropTypes.func.isRequired,
   onShowAllComponents: PropTypes.func.isRequired,
 };

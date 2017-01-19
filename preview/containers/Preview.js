@@ -19,7 +19,7 @@ import {
   dragOverComponent,
   dragOverPlaceholder,
   dropComponent,
-  DROP_COMPONENT_AREA_IDS,
+  DropComponentAreas,
 } from '../../app/actions/preview';
 
 import { topNestedConstructorSelector } from '../../app/selectors';
@@ -405,7 +405,7 @@ class Preview extends Component {
     if (this.props.draggingComponent) {
       event.stopPropagation();
       this.willTryStartDrag = false;
-      this.props.onDropComponent(DROP_COMPONENT_AREA_IDS.PREVIEW);
+      this.props.onDropComponent(DropComponentAreas.PREVIEW);
     }
   }
 

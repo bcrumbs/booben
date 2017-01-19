@@ -69,6 +69,15 @@ export const getComponentKind = (componentName, meta) => {
  * @param {Object} meta
  * @return {boolean}
  */
+export const isAtomicComponent = (componentName, meta) =>
+  getComponentKind(componentName, meta) === 'atomic';
+
+/**
+ *
+ * @param {string} componentName
+ * @param {Object} meta
+ * @return {boolean}
+ */
 export const isContainerComponent = (componentName, meta) =>
   getComponentKind(componentName, meta) === 'container';
 
@@ -524,3 +533,18 @@ export const isPropTypeDefinition = typedef =>
 export const propHasDataContest = propMeta =>
   !!propMeta.sourceConfigs.data &&
   !!propMeta.sourceConfigs.data.pushDataContext;
+
+/**
+ *
+ * @param {Object} metadata
+ * @return {Object}
+ */
+export const transformMetadata = metadata => {
+  _forOwn(metadata, libMeta => {
+    _forOwn(libMeta.components, componentMeta => {
+      componentMeta.tags = new Set(componentMeta.tags);
+    });
+  });
+  
+  return metadata;
+};

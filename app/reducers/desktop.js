@@ -25,7 +25,7 @@ import {
   PREVIEW_START_DRAG_NEW_COMPONENT,
   PREVIEW_START_DRAG_EXISTING_COMPONENT,
   PREVIEW_DROP_COMPONENT,
-  DROP_COMPONENT_AREA_IDS,
+  DropComponentAreas,
 } from '../actions/preview';
 
 import ToolStateRecord from '../models/ToolState';
@@ -82,7 +82,7 @@ const setNecessaryToolActiveAfterDrop = (state, dropOnAreaId) => {
   const willSelectPreviousTool =
     state.previousActiveToolId !== TOOL_ID_COMPONENTS_TREE &&
     state.toolStates.get(TOOL_ID_COMPONENTS_TREE).docked &&
-    dropOnAreaId !== DROP_COMPONENT_AREA_IDS.TREE;
+    dropOnAreaId !== DropComponentAreas.TREE;
   
   if (willSelectPreviousTool)
     state = selectTool(state, state.previousActiveToolId);

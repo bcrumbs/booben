@@ -84,6 +84,7 @@ import {
 } from '../models/ProjectComponent';
 
 import {
+  transformMetadata,
   getComponentMeta,
   constructComponent,
   parseComponentName,
@@ -554,6 +555,7 @@ const handlers = {
     const project = projectToImmutable(action.project),
       lastRouteId = getMaxRouteId(project),
       lastComponentId = getMaxComponentId(project),
+      meta = transformMetadata(action.metadata),
       schema = action.schema ? parseGraphQLSchema(action.schema) : null;
   
     return state
@@ -569,8 +571,8 @@ const handlers = {
           : -1,
         indexRouteSelected: false,
       })
-      .set('schema', schema)
-      .set('meta', action.metadata); // Prevent conversion to Immutable.Map
+      .set('meta', meta)
+      .set('schema', schema);
   },
   
   [PROJECT_ROUTE_CREATE]: (state, action) => {
