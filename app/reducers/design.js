@@ -7,8 +7,8 @@
 import { Record, Set, List } from 'immutable';
 
 import {
-    DESIGN_TREE_COLLAPSE_ITEM,
-    DESIGN_TREE_EXPAND_ITEM,
+  DESIGN_TREE_COLLAPSE_ITEM,
+  DESIGN_TREE_EXPAND_ITEM,
 } from '../actions/design';
 
 const DesignState = Record({
@@ -17,38 +17,35 @@ const DesignState = Record({
 
 const isArrayOrList = value => Array.isArray(value) || List.isList(value);
 
-export default (state = new DesignState(), action) => {
-  switch (action.type) {
-    case DESIGN_TREE_EXPAND_ITEM: {
-      if (isArrayOrList(action.componentId)) {
-        return state.update(
-          'treeExpandedItemIds',
-          ids => ids.union(action.componentId),
-        );
-      } else {
-        return state.update(
-          'treeExpandedItemIds',
-          ids => ids.add(action.componentId),
-        );
-      }
+const handlers = {
+  [DESIGN_TREE_EXPAND_ITEM]: (state, action) => {
+    if (isArrayOrList(action.componentId)) {
+      return state.update(
+        'treeExpandedItemIds',
+        ids => ids.union(action.componentId),
+      );
+    } else {
+      return state.update(
+        'treeExpandedItemIds',
+        ids => ids.add(action.componentId),
+      );
     }
-
-    case DESIGN_TREE_COLLAPSE_ITEM: {
-      if (isArrayOrList(action.componentId)) {
-        return state.update(
-          'treeExpandedItemIds',
-          ids => ids.subtract(action.componentId),
-        );
-      } else {
-        return state.update(
-          'treeExpandedItemIds',
-          ids => ids.delete(action.componentId),
-        );
-      }
+  },
+  
+  [DESIGN_TREE_COLLAPSE_ITEM]: (state, action) => {
+    if (isArrayOrList(action.componentId)) {
+      return state.update(
+        'treeExpandedItemIds',
+        ids => ids.subtract(action.componentId),
+      );
+    } else {
+      return state.update(
+        'treeExpandedItemIds',
+        ids => ids.delete(action.componentId),
+      );
     }
-
-    default: {
-      return state;
-    }
-  }
+  },
 };
+
+export default (state = new DesignState(), action) =>
+  handlers[action.type] ? handlers[action.type](state, action) : state;
