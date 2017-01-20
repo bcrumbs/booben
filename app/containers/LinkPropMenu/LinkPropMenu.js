@@ -4,7 +4,7 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
@@ -16,6 +16,8 @@ import {
 import {
   OwnerComponentPropSelection,
 } from './OwnerComponentPropSelection/OwnerComponentPropSelection';
+
+import { DataWindow } from '../../components/DataWindow/DataWindow';
 
 import {
   currentComponentsSelector,
@@ -158,7 +160,11 @@ class LinkPropMenuComponent extends PureComponent {
     else if (this.state.selectedSourceId === 'owner')
       content = this._renderOwnerPropSelection();
     
-    return content;
+    return (
+      <DataWindow>
+        {content}
+      </DataWindow>
+    );
   }
 }
 

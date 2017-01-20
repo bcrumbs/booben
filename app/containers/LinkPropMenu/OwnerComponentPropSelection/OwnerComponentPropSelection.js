@@ -117,7 +117,7 @@ export class OwnerComponentPropSelection extends PureComponent {
           />
         </BlockContentNavigation>
       
-        <BlockContentBox isBordered>
+        <BlockContentBox isBordered flex>
           <BlockContentBoxItem>
             <DataList>
               {items}

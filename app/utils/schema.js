@@ -3,6 +3,7 @@
  */
 
 import { arrayToObject, getter } from './misc';
+import _mapValues from 'lodash.mapvalues';
 
 /**
  * @typedef {Object} GQLSchema
@@ -113,7 +114,7 @@ import { arrayToObject, getter } from './misc';
  *
  * @type {Object<string, string>}
  */
-export const FIELD_KINDS = {
+export const FieldKinds = {
   SINGLE: 0,
   LIST: 1,
   CONNECTION: 2,
@@ -548,7 +549,7 @@ export const parseGraphQLSchema = schema => {
     return {
       type: argTypeInfo.typeName,
       description: arg.description || '',
-      kind: argTypeInfo.isList ? FIELD_KINDS.LIST : FIELD_KINDS.SINGLE,
+      kind: argTypeInfo.isList ? FieldKinds.LIST : FieldKinds.SINGLE,
       nonNull: argTypeInfo.nonNull,
       nonNullMember: argTypeInfo.nonNullMember,
       defaultValue: arg.defaultValue,
@@ -574,7 +575,7 @@ export const parseGraphQLSchema = schema => {
     return {
       type: nodeType.name,
       description: field.description || '',
-      kind: FIELD_KINDS.CONNECTION,
+      kind: FieldKinds.CONNECTION,
       nonNull: true,
       nonNullMember: false,
       args: arrayToObject(args, getter('name'), convertArg),
@@ -603,7 +604,7 @@ export const parseGraphQLSchema = schema => {
     return {
       type: fieldTypeInfo.typeName,
       description: field.description || '',
-      kind: fieldTypeInfo.isList ? FIELD_KINDS.LIST : FIELD_KINDS.SINGLE,
+      kind: fieldTypeInfo.isList ? FieldKinds.LIST : FieldKinds.SINGLE,
       nonNull: fieldTypeInfo.nonNull,
       nonNullMember: fieldTypeInfo.nonNullMember,
       args: field.args
@@ -704,3 +705,45 @@ export const getTypeNameByPath = (schema, path, startType = '') => path.reduce(
   (acc, cur) => getTypeNameByField(schema, cur, acc),
   startType || schema.queryTypeName,
 );
+
+/**
+ *
+ * @param {DataField} field
+ * @param {DataSchema} schema
+ * @return {TypeDefinition}
+ */
+export const getJssyTypeOfField = (field, schema) => {
+  // TODO: Finish me
+  let ret;
+  
+  if (isScalarGraphQLType(field.type)) {
+    ret = {
+      type: graphQLScalarTypeToJssyType[field.type],
+    };
+  } else if (schema.types[field.type]) {
+    const type = schema.types[field.type];
+    
+    ret = {
+      type: 'shape',
+      fields: _mapValues(
+        type.fields,
+        typeField => getJssyTypeOfField(typeField, schema),
+      ),
+    };
+  } else if (schema.enums[field.type]) {
+    ret = {
+      type: 'enum',
+      options: schema.enums[field.type].values.map(value => ({
+        value: value.name,
+      })),
+    };
+  }
+  
+  if (field.kind === 'LIST') {
+    
+  } else {
+    
+  }
+  
+  return ret;
+};

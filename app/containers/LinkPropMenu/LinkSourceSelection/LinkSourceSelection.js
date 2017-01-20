@@ -43,7 +43,7 @@ export const LinkSourceSelection = props => {
   
   return (
     <BlockContent>
-      <BlockContentBox isBordered>
+      <BlockContentBox isBordered flex>
         <BlockContentBoxItem>
           <DataList>
             {items}
