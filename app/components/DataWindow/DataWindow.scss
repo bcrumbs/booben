@@ -5,12 +5,9 @@
     // =================================================================================================================
     // BASE
     // =================================================================================================================
-    .data-window_content {
+    // TODO Remove width after adding common style props to reactackle Dialog
+    	.data-window_content {
         width: rem-calc(420);
-    }
-
-    .data-window_content-heading {
-        background-color: $grey-100;
     }
 
     .data-window_heading-buttons {

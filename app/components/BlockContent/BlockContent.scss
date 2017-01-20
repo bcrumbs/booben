@@ -195,6 +195,16 @@
         }
     }
 
+	// CONTENT ITEM GROUP
+	// =================================================================================================================
+    .block-content_item-group {
+	    &.color-scheme-dim {
+		    background-color: $grey-100;
+	    }
+    }
+
+	// CONTENT ITEM
+	// =================================================================================================================
     .block-content-box-item {
         padding: $bcontent-base-pad-y $bcontent-base-pad-x;
         flex-shrink: 0;
