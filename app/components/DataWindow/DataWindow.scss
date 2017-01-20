@@ -62,4 +62,32 @@
         }
     }
 
+	// =================================================================================================================
+	// CONTENT GROUP
+	// =================================================================================================================
+	.data-window_content-group_title {
+		font-size: fs(1);
+		color: $body-font-color;
+		font-weight: $font-weight-semibold;
+
+		margin-top: $bcontent-box-header-top;
+		margin-bottom: $bcontent-box-header-bottom/2;
+
+		@include user-select();
+	}
+	.data-window_content-group_subtitle {
+		font-size: fs(-1);
+		color: $color-text-medium;
+		font-weight: $font-weight-normal;
+
+		margin-top: $bcontent-box-header-top;
+		margin-bottom: $bcontent-box-header-bottom/2;
+
+		@include user-select();
+
+		.data-window_content-group_title + & {
+			margin-top: -$bcontent-box-header-bottom ;
+		}
+	}
+
 }
