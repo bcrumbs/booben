@@ -29,11 +29,13 @@ import {
   DataWindowHeadingButtons,
 } from '../../../components/DataWindow/DataWindow';
 
-import { returnArg } from '../../../utils/misc';
+import { isCompatibleType } from '../../../../shared/types';
+import { getJssyTypeOfField } from '../../../utils/schema';
+import { returnArg, objectSome } from '../../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 const propTypes = {
-  types: PropTypes.objectOf(PropTypes.object).isRequired,
+  schema: PropTypes.object.isRequired,
   rootTypeName: PropTypes.string.isRequired,
   linkTargetComponentMeta: PropTypes.object.isRequired,
   linkTargetPropTypedef: PropTypes.object.isRequired,
@@ -44,6 +46,51 @@ const defaultProps = {
   getLocalizedText: returnArg,
 };
 
+const fieldHasCompatibleSubFields = (
+  fieldJssyTypedef,
+  linkTargetPropTypedef,
+  linkTargetComponentMeta,
+) =>
+  fieldJssyTypedef.type === 'shape' &&
+    
+  objectSome(
+    fieldJssyTypedef.fields,
+    
+    fieldTypedef =>
+    isCompatibleType(
+        fieldTypedef,
+        linkTargetPropTypedef,
+        {},
+        linkTargetComponentMeta.types,
+      ) ||
+      fieldHasCompatibleSubFields(
+        fieldTypedef,
+        linkTargetPropTypedef,
+        linkTargetComponentMeta,
+      ),
+  );
+
+const getFieldCompatibility = (
+  jssyType,
+  linkTargetPropTypedef,
+  linkTargetComponentMeta,
+) => {
+  const isCompatible = isCompatibleType(
+    jssyType,
+    linkTargetPropTypedef,
+    {},
+    linkTargetComponentMeta.types,
+  );
+  
+  const hasCompatibleSubFields = fieldHasCompatibleSubFields(
+    jssyType,
+    linkTargetPropTypedef,
+    linkTargetComponentMeta,
+  );
+  
+  return { isCompatible, hasCompatibleSubFields };
+};
+
 export class DataSelection extends PureComponent {
   constructor(props) {
     super(props);
@@ -51,7 +98,11 @@ export class DataSelection extends PureComponent {
     this.state = {
       currentTypeName: props.rootTypeName,
       currentPath: [],
+      selectedField: null,
     };
+    
+    this._handleFieldJumpInto = this._handleFieldJumpInto.bind(this);
+    this._handleFieldSelect = this._handleFieldSelect.bind(this);
   }
   
   _getBreadcrumbsItems() {
@@ -61,15 +112,58 @@ export class DataSelection extends PureComponent {
   
   /**
    *
+   * @param {string} fieldName
+   * @private
+   */
+  _handleFieldJumpInto({ id: fieldName }) {
+    const nextTypeName = this.props.schema
+      .types[this.state.currentTypeName]
+      .fields[fieldName]
+      .type;
+    
+    this.setState({
+      currentPath: this.state.currentPath.concat(fieldName),
+      currentTypeName: nextTypeName,
+    });
+  }
+  
+  /**
+   *
+   * @param {string} fieldName
+   * @private
+   */
+  _handleFieldSelect({ id: fieldName }) {
+    this.setState({
+      selectedField: fieldName,
+    });
+  }
+  
+  /**
+   *
    * @param {DataObjectType} type
    * @return {ReactElement[]}
    * @private
    */
   _renderFields(type) {
+    const {
+      schema,
+      linkTargetPropTypedef,
+      linkTargetComponentMeta,
+    } = this.props;
+    
     const ret = [];
-  
-    // TODO: Use target type to filter fields
-    _forOwn(type.fields, (fieldName, field) => {
+    
+    _forOwn(type.fields, (field, fieldName) => {
+      const jssyType = getJssyTypeOfField(field, schema);
+      
+      const { isCompatible, hasCompatibleSubFields } = getFieldCompatibility(
+        jssyType,
+        linkTargetPropTypedef,
+        linkTargetComponentMeta,
+      );
+      
+      if (!isCompatible && !hasCompatibleSubFields) return;
+      
       ret.push(
         <DataItem
           key={fieldName}
@@ -77,12 +171,28 @@ export class DataSelection extends PureComponent {
           title={fieldName}
           description={field.description}
           type={field.type}
+          actionType={isCompatible ? 'select' : 'jump'}
+          connection={hasCompatibleSubFields}
+          onJumpIntoClick={this._handleFieldJumpInto}
+          onSelect={this._handleFieldSelect}
         />,
       );
       
       if (field.connectionFields) {
-        _forOwn(field.connectionFields, (connFieldName, connField) => {
+        _forOwn(field.connectionFields, (connField, connFieldName) => {
           const fullName = `${fieldName}/${connFieldName}`;
+          const connFieldJssyType = getJssyTypeOfField(connField, schema);
+  
+          const {
+            isCompatible,
+            hasCompatibleSubFields,
+          } = getFieldCompatibility(
+            connFieldJssyType,
+            linkTargetPropTypedef,
+            linkTargetComponentMeta,
+          );
+  
+          if (!isCompatible && !hasCompatibleSubFields) return;
           
           ret.push(
             <DataItem
@@ -91,6 +201,10 @@ export class DataSelection extends PureComponent {
               title={fullName}
               description={connField.description}
               type={connField.type}
+              actionType={isCompatible ? 'select' : 'jump'}
+              connection={hasCompatibleSubFields}
+              onJumpIntoClick={this._handleFieldJumpInto}
+              onSelect={this._handleFieldSelect}
             />,
           );
         });
@@ -101,7 +215,7 @@ export class DataSelection extends PureComponent {
   }
   
   render() {
-    const { types, getLocalizedText } = this.props;
+    const { schema: { types }, getLocalizedText } = this.props;
     const { currentTypeName } = this.state;
     
     /** @type {DataObjectType} */

@@ -2,12 +2,7 @@
 
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
-
-import {
-    Button,
-    TooltipIcon,
-} from '@reactackle/reactackle';
-
+import { Button, TooltipIcon } from '@reactackle/reactackle';
 import { noop, returnArg } from '../../../utils/misc';
 
 const propTypes = {
@@ -51,10 +46,25 @@ export class DataItem extends PureComponent {
     super(props);
     
     this._handleSelect = this._handleSelect.bind(this);
+    this._handleJumpInto = this._handleJumpInto.bind(this);
+    this._handleApplyClick = this._handleApplyClick.bind(this);
+    this._handleSetArgumentsClick = this._handleSetArgumentsClick.bind(this);
   }
   
   _handleSelect() {
     this.props.onSelect({ id: this.props.id });
+  }
+  
+  _handleJumpInto() {
+    this.props.onJumpIntoClick({ id: this.props.id });
+  }
+  
+  _handleApplyClick() {
+    this.props.onApplyClick({ id: this.props.id });
+  }
+  
+  _handleSetArgumentsClick() {
+    this.props.onSetArgumentsClick({ id: this.props.id });
   }
   
   render() {
@@ -80,7 +90,7 @@ export class DataItem extends PureComponent {
     if (this.props.argsButton) {
       argsButton = (
         <Button
-          onPress={this.props.onSetArgumentsClick}
+          onPress={this._handleSetArgumentsClick}
           text={this.props.getLocalizedText('setArguments')}
           narrow
         />
@@ -93,7 +103,7 @@ export class DataItem extends PureComponent {
           <div className="data-item_actions data-item_actions-right">
             <Button
               icon="chevron-right"
-              onPress={this.props.onJumpIntoClick}
+              onPress={this._handleJumpInto}
             />
           </div>
         </div>
@@ -114,7 +124,7 @@ export class DataItem extends PureComponent {
         applyButton = (
           <Button
             text={this.props.getLocalizedText('apply')}
-            onPress={this.props.onApplyClick}
+            onPress={this._handleApplyClick}
             narrow
           />
         );

@@ -67,6 +67,13 @@ const returnNull = /* istanbul ignore next */ () => null;
 
 /**
  *
+ * @param {*} arg
+ * @return {*}
+ */
+const returnArg = /* istanbul ignore next */ arg => arg;
+
+/**
+ *
  * @param {Object} object
  * @param {string} key
  * @return {boolean}
@@ -74,34 +81,78 @@ const returnNull = /* istanbul ignore next */ () => null;
 const hasOwnProperty = /* istanbul ignore next */ (object, key) =>
   Object.prototype.hasOwnProperty.call(object, key);
 
+/**
+ *
+ * @param {OneOfOption[]} options1
+ * @param {OneOfOption[]} options2
+ * @return {boolean}
+ */
+const oneOfOptionsAreEqual = (options1, options2) => {
+  if (options1.length !== options2.length) return false;
+  
+  return options1.every(option1 =>
+    !!options2.find(option2 => option2.value === option1.value));
+};
+
 /* eslint-disable quote-props, no-use-before-define */
 const TYPES = {
   'string': {
     validate: value => typeof value === 'string',
     print: () => 'string',
     isEqualType: returnTrue,
+    isCompatibleType: (_, typedef2) =>
+      typedef2.type === 'string' ||
+      typedef2.type === 'int' ||
+      typedef2.type === 'float',
     makeDefaultValue: () => '',
+    coerce: {
+      'string': returnArg,
+      'int': value => String(value),
+      'float': value => String(value),
+    },
   },
   
   'bool': {
     validate: value => typeof value === 'boolean',
     print: () => 'bool',
     isEqualType: returnTrue,
+    isCompatibleType: (_, typedef2) =>
+      typedef2.type === 'bool' ||
+      typedef2.type === 'string' ||
+      typedef2.type === 'int' ||
+      typedef2.type === 'float',
     makeDefaultValue: () => false,
+    coerce: {
+      'bool': returnArg,
+      'string': value => value.length !== 0,
+      'int': value => value !== 0,
+      'float': value => value !== 0,
+    },
   },
   
   'int': {
     validate: value => isNumber(value) && value % 1 === 0,
     print: () => 'int',
     isEqualType: returnTrue,
+    isCompatibleType: (_, typedef2) => typedef2.type === 'int',
     makeDefaultValue: () => 0,
+    coerce: {
+      'int': returnArg,
+    },
   },
   
   'float': {
     validate: value => isNumber(value),
     print: () => 'float',
     isEqualType: returnTrue,
-    makeDefaultValue: () => 0.0,
+    isCompatibleType: (_, typedef2) =>
+      typedef2.type === 'float' ||
+      typedef2.type === 'int',
+    makeDefaultValue: () => 0,
+    coerce: {
+      'float': returnArg,
+      'int': value => Math.round(value),
+    },
   },
   
   'oneOf': {
@@ -116,21 +167,37 @@ const TYPES = {
       return `oneOf(${options})`;
     },
     
-    isEqualType: (typedef1, typedef2) => {
-      if (typedef1.options.length !== typedef2.options.length) return false;
-
-      return typedef1.options.every(option1 =>
-        !!typedef2.options.find(option2 => option2.value === option1.value));
-    },
+    isEqualType: (typedef1, typedef2) => oneOfOptionsAreEqual(
+      typedef1.options,
+      typedef2.options
+    ),
+  
+    isCompatibleType: (typedef1, typedef2) =>
+      typedef2.type === 'oneOf' &&
+      oneOfOptionsAreEqual(
+        typedef1.options,
+        typedef2.options
+      ),
 
     makeDefaultValue: typedef => typedef.options[0].value,
+    coerce: {
+      'oneOf': returnArg,
+    },
   },
   
   'array': {
     validate: value => Array.isArray(value),
     print: () => 'array',
     isEqualType: returnTrue,
+    isCompatibleType: (_, typedef2) =>
+      typedef2.type === 'array' ||
+      typedef2.type === 'arrayOf',
+    
     makeDefaultValue: () => [],
+    coerce: {
+      'array': returnArg,
+      'arrayOf': returnArg,
+    },
   },
   
   'arrayOf': {
@@ -148,8 +215,32 @@ const TYPES = {
         userTypedefs1,
         userTypedefs2
       ),
+  
+    isCompatibleType: (typedef1, typedef2, userTypedefs1, userTypedefs2) =>
+      typedef2.type === 'arrayOf' &&
+      isCompatibleType(
+        typedef1.ofType,
+        typedef2.ofType,
+        userTypedefs1,
+        userTypedefs2
+      ),
 
     makeDefaultValue: () => [],
+    coerce: {
+      'arrayOf': (
+        value,
+        typedefFrom,
+        typedefTo,
+        userTypedefsFrom,
+        userTypedefsTo
+      ) => value.map(item => coerceValue(
+        item,
+        typedefFrom.ofType,
+        typedefTo.ofType,
+        userTypedefsFrom,
+        userTypedefsTo
+      )),
+    },
   },
   
   'object': {
@@ -160,8 +251,25 @@ const TYPES = {
     
     isEqualType: (typedef1, typedef2) =>
       !!typedef1.notNull === !!typedef2.notNull,
+    
+    isCompatibleType: (typedef1, typedef2) =>
+      (
+        typedef2.type === 'object' ||
+        typedef2.type === 'objectOf' ||
+        typedef2.type === 'shape'
+      ) && (
+        typedef1.notNull
+          ? typedef2.notNull
+          : true
+      ),
 
     makeDefaultValue: typedef => typedef.notNull ? {} : null,
+  
+    coerce: {
+      'object': returnArg,
+      'objectOf': returnArg,
+      'shape': returnArg,
+    },
   },
   
   'objectOf': {
@@ -184,8 +292,40 @@ const TYPES = {
         userTypedefs1,
         userTypedefs2
       ),
+  
+    isCompatibleType: (typedef1, typedef2, userTypedefs1, userTypedefs2) =>
+      typedef2.type === 'objectOf' &&
+      isCompatibleType(
+        typedef1.ofType,
+        typedef2.ofType,
+        userTypedefs1,
+        userTypedefs2
+      ) && (
+        typedef1.notNull
+          ? typedef2.notNull
+          : true
+      ),
 
     makeDefaultValue: typedef => typedef.notNull ? {} : null,
+    coerce: {
+      'objectOf': (
+        value,
+        typedefFrom,
+        typedefTo,
+        userTypedefsFrom,
+        userTypedefsTo
+      ) => {
+        if (value === null) return null;
+        
+        return _mapValues(value, item => coerceValue(
+          item,
+          typedefFrom.ofType,
+          typedefTo.ofType,
+          userTypedefsFrom,
+          userTypedefsTo
+        ));
+      },
+    },
   },
   
   'shape': {
@@ -225,6 +365,27 @@ const TYPES = {
         );
       });
     },
+  
+    isCompatibleType: (typedef1, typedef2, userTypedefs1, userTypedefs2) => {
+      if (typedef2.type !== 'shape') return false;
+      if (typedef1.notNull && !typedef2.notNull) return false;
+  
+      const keys1 = Object.keys(typedef1.fields),
+        keys2 = Object.keys(typedef2.fields);
+  
+      if (keys1.length !== keys2.length) return false;
+  
+      return keys1.every(key => {
+        if (!hasOwnProperty(typedef2, key)) return false;
+    
+        return isCompatibleType(
+          typedef1.fields[key],
+          typedef2.fields[key],
+          userTypedefs1,
+          userTypedefs2
+        );
+      });
+    },
 
     makeDefaultValue: (typedef, userTypedefs) => typedef.notNull
       ? _mapValues(
@@ -232,20 +393,44 @@ const TYPES = {
         fieldTypedef => makeDefaultValue(fieldTypedef, userTypedefs)
       )
       : null,
+  
+    coerce: {
+      'shape': (
+        value,
+        typedefFrom,
+        typedefTo,
+        userTypedefsFrom,
+        userTypedefsTo
+      ) => {
+        if (value === null) return null;
+        
+        return _mapValues(typedefFrom.fields, (_, fieldName) => coerceValue(
+          value[fieldName],
+          typedefFrom.fields[fieldName],
+          typedefTo.fields[fieldName],
+          userTypedefsFrom,
+          userTypedefsTo
+        ));
+      },
+    },
   },
   
   'component': {
     validate: returnTrue, // TODO: Write validator for component-type value
     print: /* istanbul ignore next */ () => 'component',
     isEqualType: returnTrue,
+    isCompatibleType: (_, typedef2) => typedef2.type === 'component',
     makeDefaultValue: returnNull,
+    coerce: {},
   },
   
   'func': {
     validate: returnTrue, // TODO: Write validator for func-type value
     print: /* istanbul ignore next */ () => 'func',
     isEqualType: returnFalse, // TODO: Write actual checker
+    isCompatibleType: returnFalse, // TODO: Write actual checker
     makeDefaultValue: returnNull,
+    coerce: {},
   },
 };
 /* eslint-enable quote-props, no-use-before-define */
@@ -335,6 +520,38 @@ const isEqualType = exports.isEqualType = (
 
 /**
  *
+ * @param {TypeDefinition} typedef1
+ * @param {TypeDefinition} typedef2
+ * @param {?Object<string, TypeDefinition>} userTypedefs1
+ * @param {?Object<string, TypeDefinition>} userTypedefs2
+ * @return {boolean}
+ */
+const isCompatibleType = exports.isCompatibleType = (
+  typedef1,
+  typedef2,
+  userTypedefs1,
+  userTypedefs2
+) => {
+  const resolvedTypedef1 = resolveTypedef(typedef1, userTypedefs1);
+  
+  if (!resolvedTypedef1)
+    throw new Error(`Cannot resolve type '${typedef1.type}'`);
+  
+  const resolvedTypedef2 = resolveTypedef(typedef2, userTypedefs2);
+  
+  if (!resolvedTypedef2)
+    throw new Error(`Cannot resolve type '${typedef2.type}'`);
+  
+  return TYPES[resolvedTypedef1.type].isCompatibleType(
+    resolvedTypedef1,
+    resolvedTypedef2,
+    userTypedefs1,
+    userTypedefs2
+  );
+};
+
+/**
+ *
  * @param {TypeDefinition} typedef
  * @param {(string|number)[]} valuePath
  * @param {?Object<string, TypeDefinition>} userTypedefs
@@ -387,4 +604,40 @@ const makeDefaultValue = exports.makeDefaultValue = (typedef, userTypedefs) => {
     throw new Error(`Cannot resolve type '${typedef.type}'`);
 
   return TYPES[resolvedTypedef.type].makeDefaultValue(typedef, userTypedefs);
+};
+
+const coerceValue = exports.coerceValue = (
+  value,
+  typedefFrom,
+  typedefTo,
+  userTypedefsFrom,
+  userTypedefsTo
+) => {
+  const resolvedTypedefFrom = resolveTypedef(typedefFrom, userTypedefsFrom);
+  
+  if (!resolvedTypedefFrom)
+    throw new Error(`Cannot resolve type '${typedefFrom.type}'`);
+  
+  const resolvedTypedefTo = resolveTypedef(typedefTo, userTypedefsTo);
+  
+  if (!resolvedTypedefTo)
+    throw new Error(`Cannot resolve type '${typedefTo.type}'`);
+  
+  const coerceFn =
+    TYPES[resolvedTypedefTo.type].coerce[resolvedTypedefFrom.type];
+  
+  if (!coerceFn) {
+    throw new Error(
+      `Cannot coerce '${resolvedTypedefFrom.type}' ` +
+      `to '${resolvedTypedefTo.type}'`
+    );
+  }
+  
+  return coerceFn(
+    value,
+    resolvedTypedefFrom,
+    resolvedTypedefTo,
+    userTypedefsFrom,
+    userTypedefsTo
+  );
 };

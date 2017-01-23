@@ -2,8 +2,8 @@
  * @author Dmitriy Bizyaev
  */
 
-import { arrayToObject, getter } from './misc';
 import _mapValues from 'lodash.mapvalues';
+import { arrayToObject, getter } from './misc';
 
 /**
  * @typedef {Object} GQLSchema
@@ -706,6 +706,8 @@ export const getTypeNameByPath = (schema, path, startType = '') => path.reduce(
   startType || schema.queryTypeName,
 );
 
+const getJssyTypeOfFieldMemo = new Map();
+
 /**
  *
  * @param {DataField} field
@@ -713,7 +715,16 @@ export const getTypeNameByPath = (schema, path, startType = '') => path.reduce(
  * @return {TypeDefinition}
  */
 export const getJssyTypeOfField = (field, schema) => {
-  // TODO: Finish me
+  // TODO: Deal with circles
+  let memoBySchema = getJssyTypeOfFieldMemo.get(schema);
+  if (!memoBySchema) {
+    memoBySchema = new Map();
+    getJssyTypeOfFieldMemo.set(schema, memoBySchema);
+  }
+  
+  const memoized = memoBySchema.get(field);
+  if (memoized) return memoized;
+  
   let ret;
   
   if (isScalarGraphQLType(field.type)) {
@@ -727,23 +738,32 @@ export const getJssyTypeOfField = (field, schema) => {
       type: 'shape',
       fields: _mapValues(
         type.fields,
-        typeField => getJssyTypeOfField(typeField, schema),
+        subField => getJssyTypeOfField(subField, schema),
       ),
     };
   } else if (schema.enums[field.type]) {
     ret = {
-      type: 'enum',
+      type: 'oneOf',
       options: schema.enums[field.type].values.map(value => ({
         value: value.name,
       })),
     };
-  }
-  
-  if (field.kind === 'LIST') {
-    
   } else {
-    
+    throw new Error(`Unknown field type in schema: '${field.type}'`);
   }
   
+  if (field.kind === FieldKinds.LIST || field.type === FieldKinds.CONNECTION) {
+    if (field.nonNullMember && ret.type === 'shape')
+      ret.notNull = true;
+    
+    ret = {
+      type: 'arrayOf',
+      ofType: ret,
+    };
+  } else if (field.nonNull && ret.type === 'shape') {
+    ret.notNull = true;
+  }
+  
+  memoBySchema.set(field, ret);
   return ret;
 };

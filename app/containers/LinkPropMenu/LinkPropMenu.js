@@ -17,6 +17,7 @@ import {
   OwnerComponentPropSelection,
 } from './OwnerComponentPropSelection/OwnerComponentPropSelection';
 
+import { DataSelection } from './DataSelection/DataSelection';
 import { DataWindow } from '../../components/DataWindow/DataWindow';
 
 import {
@@ -32,6 +33,7 @@ import ProjectComponentRecord from '../../models/ProjectComponent';
 import { NestedConstructor } from '../../reducers/project';
 import { getNestedTypedef } from '../../../shared/types';
 import { getComponentMeta, isValidSourceForProp } from '../../utils/meta';
+import { getLocalizedTextFromState } from '../../utils';
 
 class LinkPropMenuComponent extends PureComponent {
   constructor(props) {
@@ -147,18 +149,37 @@ class LinkPropMenuComponent extends PureComponent {
     );
   }
   
+  _renderQuerySelection() {
+    const { schema, getLocalizedText } = this.props;
+  
+    const { linkTargetComponentMeta, linkTargetPropTypedef } =
+      this._getLinkTargetData();
+    
+    return (
+      <DataSelection
+        schema={schema}
+        rootTypeName={schema.queryTypeName}
+        linkTargetComponentMeta={linkTargetComponentMeta}
+        linkTargetPropTypedef={linkTargetPropTypedef}
+        getLocalizedText={getLocalizedText}
+      />
+    );
+  }
+  
   render() {
-    if (
-      !this.props.singleComponentSelected ||
-      !this.props.linkingProp
-    ) return null;
+    const { singleComponentSelected, linkingProp } = this.props;
+    const { selectedSourceId } = this.state;
+    
+    if (!singleComponentSelected || !linkingProp) return null;
     
     let content = null;
 
-    if (!this.state.selectedSourceId)
+    if (!selectedSourceId)
       content = this._renderSourceSelection();
-    else if (this.state.selectedSourceId === 'owner')
+    else if (selectedSourceId === 'owner')
       content = this._renderOwnerPropSelection();
+    else if (selectedSourceId === 'query')
+      content = this._renderQuerySelection();
     
     return (
       <DataWindow>
@@ -175,6 +196,7 @@ LinkPropMenuComponent.propTypes = {
     PropTypes.number,
   ).isRequired,
   meta: PropTypes.object.isRequired,
+  schema: PropTypes.object.isRequired,
   singleComponentSelected: PropTypes.bool.isRequired,
   linkingProp: PropTypes.bool.isRequired,
   linkingPropOfComponentId: PropTypes.number.isRequired,
@@ -190,7 +212,7 @@ LinkPropMenuComponent.propTypes = {
     ProjectComponentRecord,
   ),
   language: PropTypes.string.isRequired,
-
+  getLocalizedText: PropTypes.func.isRequired,
   onLinkWithOwnerProp: PropTypes.func.isRequired,
 };
 
@@ -206,6 +228,7 @@ const mapStateToProps = state => ({
   dataContexts: getAllPossibleNestedContexts(state),
   components: currentComponentsSelector(state),
   meta: state.project.meta,
+  schema: state.project.schema,
   singleComponentSelected: singleComponentSelectedSelector(state),
   linkingProp: state.project.linkingProp,
   linkingPropOfComponentId: state.project.linkingPropOfComponentId,
@@ -214,6 +237,7 @@ const mapStateToProps = state => ({
   topNestedConstructor: topNestedConstructorSelector(state),
   topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
   language: state.project.languageForComponentProps,
+  getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
