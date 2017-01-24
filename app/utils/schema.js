@@ -218,6 +218,7 @@ const findGQLField = (type, fieldName) => {
 /**
  * @typedef {Object} DataTypeInfo
  * @property {string} typeName
+ * @property {string} typeKind
  * @property {boolean} isList
  * @property {boolean} nonNull
  * @property {boolean} nonNullMember
@@ -251,6 +252,7 @@ const collectTypeInfo = type => {
   
   return {
     typeName: currentType.name,
+    typeKind: currentType.kind,
     isList,
     nonNull,
     nonNullMember,
@@ -617,6 +619,19 @@ export const parseGraphQLSchema = schema => {
   /**
    *
    * @param {GQLField} field
+   * @return {boolean}
+   */
+  const includeGQLField = field => {
+    const { typeKind } = collectTypeInfo(field.type);
+    
+    // We don't know (yet) how to deal with INTERFACE and UNION types
+    return typeKind !== GQLTypeKinds.INTERFACE &&
+      typeKind !== GQLTypeKinds.UNION;
+  };
+  
+  /**
+   *
+   * @param {GQLField} field
    * @return {DataField}
    */
   const convertGQLField = field =>
@@ -659,7 +674,12 @@ export const parseGraphQLSchema = schema => {
       name: type.name,
       description: type.description || '',
       fields: fields
-        ? arrayToObject(fields, getter('name'), convertGQLField)
+        ? arrayToObject(
+          fields,
+          getter('name'),
+          convertGQLField,
+          includeGQLField,
+        )
         : {},
       interfaces: type.interfaces.map(iface => iface.name),
     };
@@ -715,7 +735,6 @@ const getJssyTypeOfFieldMemo = new Map();
  * @return {TypeDefinition}
  */
 export const getJssyTypeOfField = (field, schema) => {
-  // TODO: Deal with circles
   let memoBySchema = getJssyTypeOfFieldMemo.get(schema);
   if (!memoBySchema) {
     memoBySchema = new Map();
@@ -727,6 +746,9 @@ export const getJssyTypeOfField = (field, schema) => {
   
   let ret;
   
+  let deferredSubFields = null;
+  let deferredSubFieldsTarget = null;
+  
   if (isScalarGraphQLType(field.type)) {
     ret = {
       type: graphQLScalarTypeToJssyType[field.type],
@@ -736,11 +758,11 @@ export const getJssyTypeOfField = (field, schema) => {
     
     ret = {
       type: 'shape',
-      fields: _mapValues(
-        type.fields,
-        subField => getJssyTypeOfField(subField, schema),
-      ),
+      fields: null,
     };
+    
+    deferredSubFields = type.fields;
+    deferredSubFieldsTarget = ret;
   } else if (schema.enums[field.type]) {
     ret = {
       type: 'oneOf',
@@ -752,7 +774,7 @@ export const getJssyTypeOfField = (field, schema) => {
     throw new Error(`Unknown field type in schema: '${field.type}'`);
   }
   
-  if (field.kind === FieldKinds.LIST || field.type === FieldKinds.CONNECTION) {
+  if (field.kind === FieldKinds.LIST || field.kind === FieldKinds.CONNECTION) {
     if (field.nonNullMember && ret.type === 'shape')
       ret.notNull = true;
     
@@ -765,5 +787,13 @@ export const getJssyTypeOfField = (field, schema) => {
   }
   
   memoBySchema.set(field, ret);
+  
+  if (deferredSubFields) {
+    deferredSubFieldsTarget.fields = _mapValues(
+      deferredSubFields,
+      subField => getJssyTypeOfField(subField, schema),
+    );
+  }
+  
   return ret;
 };

@@ -50,36 +50,47 @@ const fieldHasCompatibleSubFields = (
   fieldJssyTypedef,
   linkTargetPropTypedef,
   linkTargetComponentMeta,
-) =>
-  fieldJssyTypedef.type === 'shape' &&
+  failedTypedefs = new Set(),
+) => {
+  if (fieldJssyTypedef.type !== 'shape') return false;
+  
+  return objectSome(fieldJssyTypedef.fields, fieldTypedef => {
+    const isCompatible = isCompatibleType(
+      linkTargetPropTypedef,
+      fieldTypedef,
+      linkTargetComponentMeta.types,
+      {},
+    );
     
-  objectSome(
-    fieldJssyTypedef.fields,
+    if (isCompatible) return true;
     
-    fieldTypedef =>
-    isCompatibleType(
-        fieldTypedef,
-        linkTargetPropTypedef,
-        {},
-        linkTargetComponentMeta.types,
-      ) ||
-      fieldHasCompatibleSubFields(
-        fieldTypedef,
-        linkTargetPropTypedef,
-        linkTargetComponentMeta,
-      ),
-  );
+    // failedTypedefs set is used to take care of possible circular references
+    // that can present in typedefs generated from GraphQL schemas
+    if (failedTypedefs.has(fieldTypedef)) return false;
+    failedTypedefs.add(fieldTypedef);
+    
+    return fieldHasCompatibleSubFields(
+      fieldTypedef,
+      linkTargetPropTypedef,
+      linkTargetComponentMeta,
+      failedTypedefs,
+    );
+  });
+};
 
 const getFieldCompatibility = (
   jssyType,
   linkTargetPropTypedef,
   linkTargetComponentMeta,
 ) => {
+  console.log(linkTargetPropTypedef);
+  console.log(jssyType);
+  
   const isCompatible = isCompatibleType(
-    jssyType,
     linkTargetPropTypedef,
-    {},
+    jssyType,
     linkTargetComponentMeta.types,
+    {},
   );
   
   const hasCompatibleSubFields = fieldHasCompatibleSubFields(
@@ -169,7 +180,7 @@ export class DataSelection extends PureComponent {
           key={fieldName}
           id={fieldName}
           title={fieldName}
-          description={field.description}
+          tooltip={field.description}
           type={field.type}
           actionType={isCompatible ? 'select' : 'jump'}
           connection={hasCompatibleSubFields}
@@ -199,7 +210,7 @@ export class DataSelection extends PureComponent {
               key={fullName}
               id={fullName}
               title={fullName}
-              description={connField.description}
+              tooltip={connField.description}
               type={connField.type}
               actionType={isCompatible ? 'select' : 'jump'}
               connection={hasCompatibleSubFields}
@@ -223,8 +234,25 @@ export class DataSelection extends PureComponent {
     
     const breadCrumbsItems = this._getBreadcrumbsItems();
     const fieldsList = this._renderFields(currentType);
-    const setArgumentsText = getLocalizedText('replace_me:Set Arguments');
-    const descriptionText = getLocalizedText('replace_me:Description');
+    const setArgumentsText = getLocalizedText('setArguments');
+    const descriptionText = getLocalizedText('description');
+    const fieldsText = getLocalizedText('fields');
+    
+    let descriptionHeading = null;
+    let descriptionItem = null;
+    if (currentType.description) {
+      descriptionHeading = (
+        <BlockContentBoxHeading>
+          {descriptionText}
+        </BlockContentBoxHeading>
+      );
+  
+      descriptionItem = (
+        <BlockContentBoxItem>
+          {currentType.description}
+        </BlockContentBoxItem>
+      );
+    }
     
     return (
       <BlockContent>
@@ -238,13 +266,8 @@ export class DataSelection extends PureComponent {
               <DataWindowTitle title={currentType.name} />
             </BlockContentBoxItem>
   
-            <BlockContentBoxHeading>
-              {descriptionText}
-            </BlockContentBoxHeading>
-            
-            <BlockContentBoxItem>
-              {currentType.description}
-            </BlockContentBoxItem>
+            {descriptionHeading}
+            {descriptionItem}
   
             <BlockContentBoxItem>
               <DataWindowHeadingButtons>
@@ -254,7 +277,7 @@ export class DataSelection extends PureComponent {
           </BlockContentBoxGroup>
   
           <BlockContentBoxHeading>
-            Content heading (WTF is this?)
+            {fieldsText}
           </BlockContentBoxHeading>
   
           <BlockContentBoxItem>
