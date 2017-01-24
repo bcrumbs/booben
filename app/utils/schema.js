@@ -797,3 +797,10 @@ export const getJssyTypeOfField = (field, schema) => {
   
   return ret;
 };
+
+/**
+ *
+ * @param {DataField} field
+ * @return {boolean}
+ */
+export const fieldHasArguments = field => Object.keys(field.args).length > 0;

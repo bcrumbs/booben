@@ -46,8 +46,26 @@ export class OwnerComponentPropSelection extends PureComponent {
     this._handleBreadcrumbsClick = this._handleBreadcrumbsClick.bind(this);
   }
   
+  /**
+   *
+   * @param {number} itemIndex
+   * @private
+   */
   _handleBreadcrumbsClick(itemIndex) {
     if (itemIndex === 0) this.props.onReturn();
+  }
+  
+  /**
+   *
+   * @return {{ title: string }[]}
+   * @private
+   */
+  _getBreadcrumbsItems() {
+    return [{
+      title: 'Sources',
+    }, {
+      title: 'Owner component',
+    }];
   }
   
   render() {
@@ -98,13 +116,8 @@ export class OwnerComponentPropSelection extends PureComponent {
           />
         );
       });
-  
-    // TODO: Get strings from i18n
-    const breadcrumbsItems = [{
-      title: 'Data',
-    }, {
-      title: 'Owner component',
-    }];
+    
+    const breadcrumbsItems = this._getBreadcrumbsItems();
   
     return (
       <BlockContent>

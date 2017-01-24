@@ -13,7 +13,7 @@ const propTypes = {
   tooltip: PropTypes.string,
   actionType: PropTypes.oneOf(['jump', 'select']),
   argsButton: PropTypes.bool,
-  chosen: PropTypes.bool,
+  selected: PropTypes.bool,
   state: PropTypes.oneOf(['error', 'success']),
   connection: PropTypes.bool,
   canBeApplied: PropTypes.bool,
@@ -30,7 +30,7 @@ const defaultProps = {
   tooltip: '',
   actionType: 'select',
   argsButton: false,
-  chosen: false,
+  selected: false,
   state: null,
   connection: false,
   canBeApplied: false,
@@ -69,7 +69,7 @@ export class DataItem extends PureComponent {
   
   render() {
     let className = 'data-list-item';
-    if (this.props.chosen) className += ' is-chosen';
+    if (this.props.selected) className += ' is-chosen';
     if (this.props.state) className += ` state-${this.props.state}`;
     
     if (this.props.actionType)

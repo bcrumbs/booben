@@ -30,8 +30,16 @@ import {
 } from '../../../components/DataWindow/DataWindow';
 
 import { isCompatibleType } from '../../../../shared/types';
-import { getJssyTypeOfField } from '../../../utils/schema';
-import { returnArg, objectSome } from '../../../utils/misc';
+
+import {
+  FieldKinds,
+  getJssyTypeOfField,
+  getTypeNameByField,
+  getTypeNameByPath,
+  fieldHasArguments,
+} from '../../../utils/schema';
+
+import { returnArg, objectSome, noop } from '../../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 const propTypes = {
@@ -40,10 +48,12 @@ const propTypes = {
   linkTargetComponentMeta: PropTypes.object.isRequired,
   linkTargetPropTypedef: PropTypes.object.isRequired,
   getLocalizedText: PropTypes.func,
+  onReturn: PropTypes.func,
 };
 
 const defaultProps = {
   getLocalizedText: returnArg,
+  onReturn: noop,
 };
 
 const fieldHasCompatibleSubFields = (
@@ -65,7 +75,7 @@ const fieldHasCompatibleSubFields = (
     if (isCompatible) return true;
     
     // failedTypedefs set is used to take care of possible circular references
-    // that can present in typedefs generated from GraphQL schemas
+    // that can be present in typedefs generated from GraphQL schemas
     if (failedTypedefs.has(fieldTypedef)) return false;
     failedTypedefs.add(fieldTypedef);
     
@@ -83,9 +93,6 @@ const getFieldCompatibility = (
   linkTargetPropTypedef,
   linkTargetComponentMeta,
 ) => {
-  console.log(linkTargetPropTypedef);
-  console.log(jssyType);
-  
   const isCompatible = isCompatibleType(
     linkTargetPropTypedef,
     jssyType,
@@ -112,13 +119,62 @@ export class DataSelection extends PureComponent {
       selectedField: null,
     };
     
+    this._handleBreadcrumbsClick = this._handleBreadcrumbsClick.bind(this);
     this._handleFieldJumpInto = this._handleFieldJumpInto.bind(this);
     this._handleFieldSelect = this._handleFieldSelect.bind(this);
   }
   
+  /**
+   *
+   * @return {{ title: string }[]}
+   * @private
+   */
   _getBreadcrumbsItems() {
-    // TODO: Make items
-    return [];
+    // TODO: Get strings from i18n
+    return [{ title: 'Sources' }, { title: 'Data' }]
+      .concat(this.state.currentPath.map(fieldName => ({ title: fieldName })));
+  }
+  
+  /**
+   *
+   * @param {DataField} field
+   * @return {string}
+   * @private
+   */
+  _formatFieldType(field) {
+    // TODO: Get strings from i18n
+    
+    if (field.kind === FieldKinds.LIST)
+      return `List of ${field.type}`;
+    
+    if (field.kind === FieldKinds.CONNECTION)
+      return `Connection to ${field.type}`;
+    
+    return field.type;
+  }
+  
+  /**
+   *
+   * @param {number} itemIndex
+   * @private
+   */
+  _handleBreadcrumbsClick(itemIndex) {
+    const { schema, onReturn } = this.props;
+    const { currentPath } = this.state;
+    
+    if (itemIndex === currentPath.length + 1) return;
+    
+    if (itemIndex > 0) {
+      const nextPath = currentPath.slice(0, itemIndex - 1);
+      const nextTypeName = getTypeNameByPath(schema, nextPath);
+      
+      this.setState({
+        currentPath: nextPath,
+        currentTypeName: nextTypeName,
+      });
+    } else {
+      onReturn();
+    }
   }
   
   /**
@@ -127,13 +183,14 @@ export class DataSelection extends PureComponent {
    * @private
    */
   _handleFieldJumpInto({ id: fieldName }) {
-    const nextTypeName = this.props.schema
-      .types[this.state.currentTypeName]
-      .fields[fieldName]
-      .type;
+    const { schema } = this.props;
+    const { currentPath, currentTypeName } = this.state;
+    
+    const nextPath = currentPath.concat(fieldName);
+    const nextTypeName = getTypeNameByField(schema, fieldName, currentTypeName);
     
     this.setState({
-      currentPath: this.state.currentPath.concat(fieldName),
+      currentPath: nextPath,
       currentTypeName: nextTypeName,
     });
   }
@@ -147,6 +204,43 @@ export class DataSelection extends PureComponent {
     this.setState({
       selectedField: fieldName,
     });
+  }
+  
+  /**
+   *
+   * @param {string} fieldName
+   * @param {DataField} field
+   * @param {boolean} isCompatible
+   * @param {boolean} hasCompatibleSubFields
+   * @return {?ReactElement}
+   * @private
+   */
+  _renderField(fieldName, field, isCompatible, hasCompatibleSubFields) {
+    const { getLocalizedText } = this.props;
+    const { selectedField } = this.state;
+  
+    const fieldType = this._formatFieldType(field);
+    const selected = fieldName === selectedField;
+    const hasApplyButton = selected && isCompatible;
+    const hasArgsButton = selected && fieldHasArguments(field);
+    
+    //noinspection JSValidateTypes
+    return (
+      <DataItem
+        key={fieldName}
+        id={fieldName}
+        title={fieldName}
+        tooltip={field.description}
+        type={fieldType}
+        selected={selected}
+        canBeApplied={hasApplyButton}
+        argsButton={hasArgsButton}
+        connection={hasCompatibleSubFields}
+        getLocalizedText={getLocalizedText}
+        onJumpIntoClick={this._handleFieldJumpInto}
+        onSelect={this._handleFieldSelect}
+      />
+    );
   }
   
   /**
@@ -175,110 +269,108 @@ export class DataSelection extends PureComponent {
       
       if (!isCompatible && !hasCompatibleSubFields) return;
       
-      ret.push(
-        <DataItem
-          key={fieldName}
-          id={fieldName}
-          title={fieldName}
-          tooltip={field.description}
-          type={field.type}
-          actionType={isCompatible ? 'select' : 'jump'}
-          connection={hasCompatibleSubFields}
-          onJumpIntoClick={this._handleFieldJumpInto}
-          onSelect={this._handleFieldSelect}
-        />,
-      );
+      ret.push(this._renderField(
+        fieldName,
+        field,
+        isCompatible,
+        hasCompatibleSubFields,
+      ));
       
-      if (field.connectionFields) {
-        _forOwn(field.connectionFields, (connField, connFieldName) => {
-          const fullName = `${fieldName}/${connFieldName}`;
-          const connFieldJssyType = getJssyTypeOfField(connField, schema);
-  
-          const {
-            isCompatible,
-            hasCompatibleSubFields,
-          } = getFieldCompatibility(
-            connFieldJssyType,
-            linkTargetPropTypedef,
-            linkTargetComponentMeta,
-          );
-  
-          if (!isCompatible && !hasCompatibleSubFields) return;
-          
-          ret.push(
-            <DataItem
-              key={fullName}
-              id={fullName}
-              title={fullName}
-              tooltip={connField.description}
-              type={connField.type}
-              actionType={isCompatible ? 'select' : 'jump'}
-              connection={hasCompatibleSubFields}
-              onJumpIntoClick={this._handleFieldJumpInto}
-              onSelect={this._handleFieldSelect}
-            />,
-          );
-        });
-      }
+      if (!field.connectionFields) return;
+      
+      _forOwn(field.connectionFields, (connField, connFieldName) => {
+        const fullName = `${fieldName}/${connFieldName}`;
+        const connFieldJssyType = getJssyTypeOfField(connField, schema);
+    
+        const {
+          isCompatible,
+          hasCompatibleSubFields,
+        } = getFieldCompatibility(
+          connFieldJssyType,
+          linkTargetPropTypedef,
+          linkTargetComponentMeta,
+        );
+    
+        if (!isCompatible && !hasCompatibleSubFields) return;
+    
+        ret.push(this._renderField(
+          fullName,
+          connField,
+          isCompatible,
+          hasCompatibleSubFields,
+        ));
+      });
     });
     
     return ret;
   }
   
   render() {
-    const { schema: { types }, getLocalizedText } = this.props;
-    const { currentTypeName } = this.state;
+    const { schema, getLocalizedText } = this.props;
+    const { currentPath, currentTypeName } = this.state;
     
     /** @type {DataObjectType} */
-    const currentType = types[currentTypeName];
+    const currentType = schema.types[currentTypeName];
     
     const breadCrumbsItems = this._getBreadcrumbsItems();
     const fieldsList = this._renderFields(currentType);
-    const setArgumentsText = getLocalizedText('setArguments');
-    const descriptionText = getLocalizedText('description');
-    const fieldsText = getLocalizedText('fields');
+    let dataWindowHeading = null;
+    let fieldsHeading = null;
     
-    let descriptionHeading = null;
-    let descriptionItem = null;
-    if (currentType.description) {
-      descriptionHeading = (
-        <BlockContentBoxHeading>
-          {descriptionText}
-        </BlockContentBoxHeading>
+    if (currentPath.length > 0) {
+      const prevTypeName = getTypeNameByPath(schema, currentPath.slice(0, -1));
+      const currentFieldName = currentPath[currentPath.length - 1];
+      const currentField = schema.types[prevTypeName].fields[currentFieldName];
+      const currentFieldHasArgs = fieldHasArguments(currentField);
+      const setArgumentsText = getLocalizedText('setArguments');
+      const fieldsText = getLocalizedText('fields');
+      let buttons = null;
+      
+      if (currentFieldHasArgs) {
+        buttons = (
+          <BlockContentBoxItem>
+            <DataWindowHeadingButtons>
+              <Button text={setArgumentsText} narrow />
+            </DataWindowHeadingButtons>
+          </BlockContentBoxItem>
+        );
+      }
+      
+      dataWindowHeading = (
+        <BlockContentBoxGroup dim>
+          <BlockContentBoxItem>
+            <DataWindowTitle
+              title={currentFieldName}
+              type={currentType.name}
+              subtitle={currentType.description}
+            />
+          </BlockContentBoxItem>
+          
+          {buttons}
+        </BlockContentBoxGroup>
       );
   
-      descriptionItem = (
-        <BlockContentBoxItem>
-          {currentType.description}
-        </BlockContentBoxItem>
+      fieldsHeading = (
+        <BlockContentBoxHeading>
+          {fieldsText}
+        </BlockContentBoxHeading>
       );
     }
     
     return (
       <BlockContent>
         <BlockContentNavigation isBordered>
-          <BlockBreadcrumbs mode="dark" items={breadCrumbsItems} />
+          <BlockBreadcrumbs
+            items={breadCrumbsItems}
+            mode="dark"
+            overflow
+            onItemClick={this._handleBreadcrumbsClick}
+          />
         </BlockContentNavigation>
         
         <BlockContentBox isBordered flex>
-          <BlockContentBoxGroup dim>
-            <BlockContentBoxItem>
-              <DataWindowTitle title={currentType.name} />
-            </BlockContentBoxItem>
-  
-            {descriptionHeading}
-            {descriptionItem}
-  
-            <BlockContentBoxItem>
-              <DataWindowHeadingButtons>
-                <Button text={setArgumentsText} narrow />
-              </DataWindowHeadingButtons>
-            </BlockContentBoxItem>
-          </BlockContentBoxGroup>
-  
-          <BlockContentBoxHeading>
-            {fieldsText}
-          </BlockContentBoxHeading>
+          {dataWindowHeading}
+          {fieldsHeading}
   
           <BlockContentBoxItem>
             <DataList>

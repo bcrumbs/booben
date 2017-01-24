@@ -162,6 +162,7 @@ class LinkPropMenuComponent extends PureComponent {
         linkTargetComponentMeta={linkTargetComponentMeta}
         linkTargetPropTypedef={linkTargetPropTypedef}
         getLocalizedText={getLocalizedText}
+        onReturn={this._handleReturn}
       />
     );
   }
