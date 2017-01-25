@@ -730,18 +730,18 @@ const getJssyTypeOfFieldMemo = new Map();
 
 /**
  *
- * @param {DataField} field
+ * @param {DataFieldTypeDefinition} fieldTypedef
  * @param {DataSchema} schema
  * @return {TypeDefinition}
  */
-export const getJssyTypeOfField = (field, schema) => {
+export const getJssyTypeOfField = (fieldTypedef, schema) => {
   let memoBySchema = getJssyTypeOfFieldMemo.get(schema);
   if (!memoBySchema) {
     memoBySchema = new Map();
     getJssyTypeOfFieldMemo.set(schema, memoBySchema);
   }
   
-  const memoized = memoBySchema.get(field);
+  const memoized = memoBySchema.get(fieldTypedef);
   if (memoized) return memoized;
   
   let ret;
@@ -749,12 +749,12 @@ export const getJssyTypeOfField = (field, schema) => {
   let deferredSubFields = null;
   let deferredSubFieldsTarget = null;
   
-  if (isScalarGraphQLType(field.type)) {
+  if (isScalarGraphQLType(fieldTypedef.type)) {
     ret = {
-      type: graphQLScalarTypeToJssyType[field.type],
+      type: graphQLScalarTypeToJssyType[fieldTypedef.type],
     };
-  } else if (schema.types[field.type]) {
-    const type = schema.types[field.type];
+  } else if (schema.types[fieldTypedef.type]) {
+    const type = schema.types[fieldTypedef.type];
     
     ret = {
       type: 'shape',
@@ -763,30 +763,33 @@ export const getJssyTypeOfField = (field, schema) => {
     
     deferredSubFields = type.fields;
     deferredSubFieldsTarget = ret;
-  } else if (schema.enums[field.type]) {
+  } else if (schema.enums[fieldTypedef.type]) {
     ret = {
       type: 'oneOf',
-      options: schema.enums[field.type].values.map(value => ({
+      options: schema.enums[fieldTypedef.type].values.map(value => ({
         value: value.name,
       })),
     };
   } else {
-    throw new Error(`Unknown field type in schema: '${field.type}'`);
+    throw new Error(`Unknown field type in schema: '${fieldTypedef.type}'`);
   }
   
-  if (field.kind === FieldKinds.LIST || field.kind === FieldKinds.CONNECTION) {
-    if (field.nonNullMember && ret.type === 'shape')
+  if (
+    fieldTypedef.kind === FieldKinds.LIST ||
+    fieldTypedef.kind === FieldKinds.CONNECTION
+  ) {
+    if (fieldTypedef.nonNullMember && ret.type === 'shape')
       ret.notNull = true;
     
     ret = {
       type: 'arrayOf',
       ofType: ret,
     };
-  } else if (field.nonNull && ret.type === 'shape') {
+  } else if (fieldTypedef.nonNull && ret.type === 'shape') {
     ret.notNull = true;
   }
   
-  memoBySchema.set(field, ret);
+  memoBySchema.set(fieldTypedef, ret);
   
   if (deferredSubFields) {
     deferredSubFieldsTarget.fields = _mapValues(

@@ -41,7 +41,7 @@ import {
 } from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
 
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
-import { LinkPropMenu } from '../containers/LinkPropMenu/LinkPropMenu';
+import { LinkPropDialog } from '../containers/LinkPropDialog/LinkPropDialog';
 
 import {
   ComponentLayoutSelection,
@@ -65,7 +65,6 @@ import {
   selectLayoutForNewComponent,
   saveComponentForProp,
   cancelConstructComponentForProp,
-  linkPropCancel,
 } from '../actions/project';
 
 import {
@@ -179,8 +178,6 @@ class DesignRoute extends PureComponent {
       this._handleDeleteComponentCancel.bind(this);
     this._handleConfirmDeleteComponentDialogClose =
       this._handleConfirmDeleteComponentDialogClose.bind(this);
-    this._handleLinkPropDialogCancel =
-      this._handleLinkPropDialogCancel.bind(this);
     this._handleLayoutSelection =
       this._handleLayoutSelection.bind(this);
   }
@@ -237,14 +234,6 @@ class DesignRoute extends PureComponent {
     this.setState({
       confirmDeleteComponentDialogIsVisible: false,
     });
-  }
-
-    /**
-     *
-     * @private
-     */
-  _handleLinkPropDialogCancel() {
-    this.props.onLinkPropCancel();
   }
   
   /**
@@ -493,17 +482,8 @@ class DesignRoute extends PureComponent {
         >
           {getLocalizedText('deleteThisComponentQuestion')}
         </Dialog>
-        
-        <Dialog
-          title="Link attribute value"
-          backdrop
-          minWidth={420}
-          visible={this.props.linkingProp}
-          haveCloseButton
-          onClose={this.props.onLinkPropCancel}
-        >
-          <LinkPropMenu />
-        </Dialog>
+  
+        <LinkPropDialog />
       </Desktop>
     );
   }
@@ -529,14 +509,12 @@ DesignRoute.propTypes = {
   language: PropTypes.string,
   haveNestedConstructor: PropTypes.bool,
   nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(PropTypes.string),
-  linkingProp: PropTypes.bool,
   getLocalizedText: PropTypes.func,
   onRenameComponent: PropTypes.func,
   onDeleteComponent: PropTypes.func,
   onSelectLayout: PropTypes.func,
   onSaveComponentForProp: PropTypes.func,
   onCancelConstructComponentForProp: PropTypes.func,
-  onLinkPropCancel: PropTypes.func,
 };
 
 const mapStateToProps = state => ({
@@ -550,7 +528,6 @@ const mapStateToProps = state => ({
   language: state.project.languageForComponentProps,
   haveNestedConstructor: haveNestedConstructorsSelector(state),
   nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
-  linkingProp: state.project.linkingProp,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -565,8 +542,6 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(saveComponentForProp()),
   onCancelConstructComponentForProp: () =>
     void dispatch(cancelConstructComponentForProp()),
-  onLinkPropCancel: () =>
-    void dispatch(linkPropCancel()),
 });
 
 export default connect(

@@ -29,6 +29,8 @@ import {
   ValueShape,
   PropTypeShape,
   isComplexView,
+  jssyTypeToView,
+  jssyValueToPropValue,
 } from './common';
 
 import { noop, returnArg } from '../../../utils/misc';
@@ -533,4 +535,5 @@ Prop.propTypes = propTypes;
 Prop.defaultProps = defaultProps;
 Prop.displayName = 'Prop';
 
-export { PropViews };
+// Export utils
+export { PropViews, jssyTypeToView, jssyValueToPropValue };

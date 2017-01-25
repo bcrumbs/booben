@@ -7,6 +7,7 @@
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import _forOwn from 'lodash.forown';
+import _mapValues from 'lodash.mapvalues';
 import { Button } from '@reactackle/reactackle';
 
 import {
@@ -25,6 +26,13 @@ import {
 } from '../../../components/DataList/DataList';
 
 import {
+  PropsList,
+  Prop,
+  jssyTypeToView,
+  jssyValueToPropValue,
+} from '../../../components/PropsList/PropsList';
+
+import {
   DataWindowTitle,
   DataWindowHeadingButtons,
 } from '../../../components/DataWindow/DataWindow';
@@ -39,22 +47,59 @@ import {
   fieldHasArguments,
 } from '../../../utils/schema';
 
-import { returnArg, objectSome, noop } from '../../../utils/misc';
+import {
+  returnArg,
+  noop,
+  objectSome,
+  objectToArray,
+} from '../../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 const propTypes = {
   schema: PropTypes.object.isRequired,
   rootTypeName: PropTypes.string.isRequired,
+  argValues: PropTypes.object.isRequired,
   linkTargetComponentMeta: PropTypes.object.isRequired,
   linkTargetPropTypedef: PropTypes.object.isRequired,
   getLocalizedText: PropTypes.func,
   onReturn: PropTypes.func,
+  onReplaceButtons: PropTypes.func,
 };
 
 const defaultProps = {
   getLocalizedText: returnArg,
   onReturn: noop,
+  onReplaceButtons: noop,
 };
+
+/**
+ *
+ * @param {string} value
+ * @return {number}
+ */
+const coerceIntValue = value => {
+  const maybeRet = parseInt(value, 10);
+  if (!isFinite(maybeRet)) return 0;
+  return maybeRet;
+};
+
+/**
+ *
+ * @param {string} value
+ * @return {number}
+ */
+const coerceFloatValue = value => {
+  const maybeRet = parseFloat(value);
+  if (!isFinite(maybeRet)) return 0.0;
+  return maybeRet;
+};
+
+/**
+ *
+ * @param {number} index
+ * @return {string}
+ */
+const formatArrayItemLabel = index => `Item ${index}`; // TODO: Get string from i18n
 
 const fieldHasCompatibleSubFields = (
   fieldJssyTypedef,
@@ -117,11 +162,23 @@ export class DataSelection extends PureComponent {
       currentTypeName: props.rootTypeName,
       currentPath: [],
       selectedField: null,
+      settingArguments: false,
+      argumentsFieldName: '',
+      argumentsPathToField: [],
+      argumentsField: null,
+      currentArgValues: props.argValues,
+      tmpArgValues: null,
     };
     
     this._handleBreadcrumbsClick = this._handleBreadcrumbsClick.bind(this);
     this._handleFieldJumpInto = this._handleFieldJumpInto.bind(this);
     this._handleFieldSelect = this._handleFieldSelect.bind(this);
+    this._handleSetArgumentsOnCurrentField =
+      this._handleSetArgumentsOnCurrentField.bind(this);
+    this._handleSetArgumentsOnDataItem =
+      this._handleSetArgumentsOnDataItem.bind(this);
+    this._handleCancelSetArguments = this._handleCancelSetArguments.bind(this);
+    this._handleApplyArguments = this._handleApplyArguments.bind(this);
   }
   
   /**
@@ -133,6 +190,25 @@ export class DataSelection extends PureComponent {
     // TODO: Get strings from i18n
     return [{ title: 'Sources' }, { title: 'Data' }]
       .concat(this.state.currentPath.map(fieldName => ({ title: fieldName })));
+  }
+  
+  /**
+   *
+   * @return {?DataField}
+   * @private
+   */
+  _getCurrentField() {
+    const { schema } = this.props;
+    const { currentPath } = this.state;
+    
+    if (currentPath.length > 0) {
+      const prevTypeName = getTypeNameByPath(schema, currentPath.slice(0, -1));
+      const currentFieldName = currentPath[currentPath.length - 1];
+  
+      return schema.types[prevTypeName].fields[currentFieldName];
+    } else {
+      return null;
+    }
   }
   
   /**
@@ -210,6 +286,103 @@ export class DataSelection extends PureComponent {
    *
    * @param {string} fieldName
    * @param {DataField} field
+   * @param {string[]} pathToField
+   * @private
+   */
+  _switchToArgumentsForm(fieldName, field, pathToField) {
+    // TODO: Get strings from i18n
+    
+    this.props.onReplaceButtons({
+      buttons: [{
+        text: 'Back',
+        icon: 'chevron-left',
+        onPress: this._handleCancelSetArguments,
+      }, {
+        text: 'Apply',
+        onPress: this._handleApplyArguments,
+      }],
+    });
+    
+    this.setState({
+      settingArguments: true,
+      argumentsFieldName: fieldName,
+      argumentsField: field,
+      argumentsPathToField: pathToField,
+      tmpArgValues: this.state.currentArgValues, // TODO: Create default values for missing args
+    });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleSetArgumentsOnCurrentField() {
+    const { currentPath } = this.state;
+    
+    const currentFieldName = currentPath[currentPath.length - 1];
+    const currentField = this._getCurrentField();
+    
+    this._switchToArgumentsForm(
+      currentFieldName,
+      currentField,
+      [].concat(currentPath),
+    );
+  }
+  
+  /**
+   *
+   * @param {string} fieldName
+   * @private
+   */
+  _handleSetArgumentsOnDataItem({ id: fieldName }) {
+    const { schema } = this.props;
+    const { currentPath, currentTypeName } = this.state;
+    
+    const field = schema.types[currentTypeName].fields[fieldName];
+    
+    this._switchToArgumentsForm(
+      fieldName,
+      field,
+      [].concat(currentPath, fieldName),
+    );
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleCancelSetArguments() {
+    this.props.onReplaceButtons({ buttons: [] });
+    
+    this.setState({
+      settingArguments: false,
+      argumentsFieldName: '',
+      argumentsField: null,
+      argumentsPathToField: [],
+      tmpArgValues: null,
+    });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleApplyArguments() {
+    this.props.onReplaceButtons({ buttons: [] });
+  
+    this.setState({
+      settingArguments: false,
+      argumentsFieldName: '',
+      argumentsField: null,
+      argumentsPathToField: [],
+      currentArgValues: this.state.tmpArgValues,
+    });
+  }
+  
+  /**
+   *
+   * @param {string} fieldName
+   * @param {DataField} field
    * @param {boolean} isCompatible
    * @param {boolean} hasCompatibleSubFields
    * @return {?ReactElement}
@@ -239,6 +412,7 @@ export class DataSelection extends PureComponent {
         getLocalizedText={getLocalizedText}
         onJumpIntoClick={this._handleFieldJumpInto}
         onSelect={this._handleFieldSelect}
+        onSetArgumentsClick={this._handleSetArgumentsOnDataItem}
       />
     );
   }
@@ -246,17 +420,17 @@ export class DataSelection extends PureComponent {
   /**
    *
    * @param {DataObjectType} type
-   * @return {ReactElement[]}
+   * @return {ReactElement}
    * @private
    */
-  _renderFields(type) {
+  _renderFieldsList(type) {
     const {
       schema,
       linkTargetPropTypedef,
       linkTargetComponentMeta,
     } = this.props;
     
-    const ret = [];
+    const items = [];
     
     _forOwn(type.fields, (field, fieldName) => {
       const jssyType = getJssyTypeOfField(field, schema);
@@ -269,7 +443,7 @@ export class DataSelection extends PureComponent {
       
       if (!isCompatible && !hasCompatibleSubFields) return;
       
-      ret.push(this._renderField(
+      items.push(this._renderField(
         fieldName,
         field,
         isCompatible,
@@ -293,7 +467,7 @@ export class DataSelection extends PureComponent {
     
         if (!isCompatible && !hasCompatibleSubFields) return;
     
-        ret.push(this._renderField(
+        items.push(this._renderField(
           fullName,
           connField,
           isCompatible,
@@ -302,10 +476,15 @@ export class DataSelection extends PureComponent {
       });
     });
     
-    return ret;
+    //noinspection JSValidateTypes
+    return (
+      <DataList>
+        {items}
+      </DataList>
+    );
   }
   
-  render() {
+  _renderFieldSelection() {
     const { schema, getLocalizedText } = this.props;
     const { currentPath, currentTypeName } = this.state;
     
@@ -313,14 +492,13 @@ export class DataSelection extends PureComponent {
     const currentType = schema.types[currentTypeName];
     
     const breadCrumbsItems = this._getBreadcrumbsItems();
-    const fieldsList = this._renderFields(currentType);
+    const fieldsList = this._renderFieldsList(currentType);
     let dataWindowHeading = null;
     let fieldsHeading = null;
     
     if (currentPath.length > 0) {
-      const prevTypeName = getTypeNameByPath(schema, currentPath.slice(0, -1));
       const currentFieldName = currentPath[currentPath.length - 1];
-      const currentField = schema.types[prevTypeName].fields[currentFieldName];
+      const currentField = this._getCurrentField();
       const currentFieldHasArgs = fieldHasArguments(currentField);
       const setArgumentsText = getLocalizedText('setArguments');
       const fieldsText = getLocalizedText('fields');
@@ -330,7 +508,11 @@ export class DataSelection extends PureComponent {
         buttons = (
           <BlockContentBoxItem>
             <DataWindowHeadingButtons>
-              <Button text={setArgumentsText} narrow />
+              <Button
+                text={setArgumentsText}
+                narrow
+                onPress={this._handleSetArgumentsOnCurrentField}
+              />
             </DataWindowHeadingButtons>
           </BlockContentBoxItem>
         );
@@ -373,13 +555,146 @@ export class DataSelection extends PureComponent {
           {fieldsHeading}
   
           <BlockContentBoxItem>
-            <DataList>
-              {fieldsList}
-            </DataList>
+            {fieldsList}
           </BlockContentBoxItem>
         </BlockContentBox>
       </BlockContent>
     );
+  }
+  
+  /**
+   *
+   * @param {DataFieldTypeDefinition} dataFieldTypedef
+   * @param {TypeDefinition} jssyTypedef
+   * @param {string} [name='']
+   * @return {PropsItemPropType}
+   * @private
+   */
+  _getPropTypeForArgument(dataFieldTypedef, jssyTypedef, name = '') {
+    const { schema } = this.props;
+    
+    const ret = {
+      label: name,
+      secondaryLabel: jssyTypedef.type,
+      view: jssyTypeToView(jssyTypedef.type),
+      image: '',
+      tooltip: dataFieldTypedef.description,
+      linkable: false,
+      checkable: !dataFieldTypedef.nonNull,
+      required: dataFieldTypedef.nonNull,
+      transformValue: null,
+      formatItemLabel: null,
+    };
+  
+    if (jssyTypedef.type === 'int') {
+      ret.transformValue = coerceIntValue;
+    } else if (jssyTypedef.type === 'float') {
+      ret.transformValue = coerceFloatValue;
+    } else if (jssyTypedef.type === 'oneOf') {
+      ret.options = jssyTypedef.options.map(option => ({
+        value: option.value,
+        text: String(option.value),
+      }));
+    } else if (jssyTypedef.type === 'shape') {
+      /** @type {DataObjectType} */
+      const dataType = schema.types[dataFieldTypedef.type];
+      
+      ret.fields = _mapValues(jssyTypedef.fields, (fieldTypedef, fieldName) => {
+        const nestedDataFieldTypedef = dataType.fields[fieldName];
+        
+        return this._getPropTypeForArgument(
+          nestedDataFieldTypedef,
+          fieldTypedef,
+          fieldName,
+        );
+      });
+    } else if (jssyTypedef.type === 'arrayOf') {
+      ret.ofType = this._getPropTypeForArgument(
+        dataFieldTypedef,
+        jssyTypedef.ofType,
+      );
+      ret.formatItemLabel = formatArrayItemLabel;
+    } else if (jssyTypedef.type === 'objectOf') {
+      ret.ofType = this._getPropTypeForArgument(
+        dataFieldTypedef,
+        jssyTypedef.ofType,
+      );
+      ret.formatItemLabel = returnArg;
+    }
+    
+    return ret;
+  }
+  
+  /**
+   *
+   * @param {DataField} field
+   * @return {ReactElement}
+   * @private
+   */
+  _renderArgumentsList(field) {
+    const { schema, getLocalizedText } = this.props;
+    const { argumentsPathToField, tmpArgValues } = this.state;
+    
+    const argValuesForField = tmpArgValues.get(argumentsPathToField.join(' '));
+    
+    const items = objectToArray(field.args, (arg, argName) => {
+      const jssyTypedef = getJssyTypeOfField(arg, schema);
+      const propType = this._getPropTypeForArgument(arg, jssyTypedef, argName);
+      // TODO: Make value for Prop
+      
+      return (
+        <Prop
+          key={argName}
+          propName={argName}
+          propType={propType}
+          value={{}}
+          getLocalizedText={getLocalizedText}
+        />
+      );
+    });
+    
+    return (
+      <PropsList>
+        {items}
+      </PropsList>
+    );
+  }
+  
+  _renderArgumentsForm() {
+    const { getLocalizedText } = this.props;
+    const { argumentsFieldName, argumentsField } = this.state;
+    
+    const titleText = getLocalizedText('argumentsForField', {
+      name: argumentsFieldName,
+    });
+    
+    const subtitleText = getLocalizedText('pleaseFillAllRequiredArguments');
+    const argsList = this._renderArgumentsList(argumentsField);
+    
+    return (
+      <BlockContent>
+        <BlockContentBox isBordered flex>
+          <BlockContentBoxGroup dim>
+            <BlockContentBoxItem>
+              <DataWindowTitle
+                title={titleText}
+                subtitle={subtitleText}
+              />
+            </BlockContentBoxItem>
+          </BlockContentBoxGroup>
+  
+          <BlockContentBoxItem>
+            {argsList}
+          </BlockContentBoxItem>
+        </BlockContentBox>
+      </BlockContent>
+    );
+  }
+  
+  render() {
+    return this.state.settingArguments
+      ? this._renderArgumentsForm()
+      : this._renderFieldSelection();
   }
 }
 

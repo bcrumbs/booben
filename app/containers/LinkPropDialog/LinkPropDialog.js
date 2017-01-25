@@ -8,6 +8,7 @@
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
+import { Dialog } from '@reactackle/reactackle';
 
 import {
   LinkSourceSelection,
@@ -28,40 +29,51 @@ import {
   getAllPossibleNestedContexts,
 } from '../../selectors';
 
-import { linkWithOwnerProp } from '../../actions/project';
+import { linkWithOwnerProp, linkPropCancel } from '../../actions/project';
 import ProjectComponentRecord from '../../models/ProjectComponent';
 import { NestedConstructor } from '../../reducers/project';
 import { getNestedTypedef } from '../../../shared/types';
 import { getComponentMeta, isValidSourceForProp } from '../../utils/meta';
 import { getLocalizedTextFromState } from '../../utils';
 
-class LinkPropMenuComponent extends PureComponent {
+class LinkPropDialogComponent extends PureComponent {
   constructor(props) {
     super(props);
     
     this.state = {
       selectedSourceId: '',
+      dialogButtons: [],
     };
     
     this._handleSelectSource = this._handleSelectSource.bind(this);
     this._handleReturn = this._handleReturn.bind(this);
     this._handleSelectOwnerProp = this._handleSelectOwnerProp.bind(this);
+    this._handleReplaceDialogButtons =
+      this._handleReplaceDialogButtons.bind(this);
   }
   
   _handleSelectSource({ id }) {
     this.setState({
       selectedSourceId: id,
+      dialogButtons: [],
     });
   }
   
   _handleReturn() {
     this.setState({
       selectedSourceId: '',
+      dialogButtons: [],
     });
   }
   
   _handleSelectOwnerProp({ id }) {
     this.props.onLinkWithOwnerProp(id);
+  }
+  
+  _handleReplaceDialogButtons({ buttons }) {
+    this.setState({
+      dialogButtons: buttons,
+    });
   }
 
   _getLinkTargetData() {
@@ -163,6 +175,7 @@ class LinkPropMenuComponent extends PureComponent {
         linkTargetPropTypedef={linkTargetPropTypedef}
         getLocalizedText={getLocalizedText}
         onReturn={this._handleReturn}
+        onReplaceButtons={this._handleReplaceDialogButtons}
       />
     );
   }
@@ -183,14 +196,25 @@ class LinkPropMenuComponent extends PureComponent {
       content = this._renderQuerySelection();
     
     return (
-      <DataWindow>
-        {content}
-      </DataWindow>
+      <Dialog
+        title="Link attribute value"
+        backdrop
+        minWidth={420}
+        visible={this.props.linkingProp}
+        haveCloseButton
+        buttons={this.state.dialogButtons}
+        onClose={this.props.onLinkPropCancel}
+      >
+        <DataWindow>
+          {content}
+        </DataWindow>
+      </Dialog>
     );
   }
 }
 
-LinkPropMenuComponent.propTypes = {
+//noinspection JSUnresolvedVariable
+LinkPropDialogComponent.propTypes = {
   dataContexts: PropTypes.array,
   components: ImmutablePropTypes.mapOf(
     PropTypes.instanceOf(ProjectComponentRecord),
@@ -214,16 +238,17 @@ LinkPropMenuComponent.propTypes = {
   ),
   language: PropTypes.string.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
+  onLinkPropCancel: PropTypes.func.isRequired,
   onLinkWithOwnerProp: PropTypes.func.isRequired,
 };
 
-LinkPropMenuComponent.defaultProps = {
+LinkPropDialogComponent.defaultProps = {
   dataContexts: null,
   topNestedConstructor: null,
   topNestedConstructorComponent: null,
 };
 
-LinkPropMenuComponent.displayName = 'LinkPropMenu';
+LinkPropDialogComponent.displayName = 'LinkPropDialog';
 
 const mapStateToProps = state => ({
   dataContexts: getAllPossibleNestedContexts(state),
@@ -242,11 +267,13 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+  onLinkPropCancel: () =>
+    void dispatch(linkPropCancel()),
   onLinkWithOwnerProp: ownerPropName =>
     void dispatch(linkWithOwnerProp(ownerPropName)),
 });
 
-export const LinkPropMenu = connect(
+export const LinkPropDialog = connect(
   mapStateToProps,
   mapDispatchToProps,
-)(LinkPropMenuComponent);
+)(LinkPropDialogComponent);
