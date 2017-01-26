@@ -438,10 +438,10 @@ const TYPES = {
 /**
  *
  * @param {TypeDefinition} typedef
- * @param {?Object<string, TypeDefinition>} userTypedefs
+ * @param {?Object<string, TypeDefinition>} [userTypedefs=null]
  * @returns {?TypeDefinition}
  */
-const resolveTypedef = exports.resolveTypedef = (typedef, userTypedefs) => {
+const resolveTypedef = (typedef, userTypedefs = null) => {
   if (BUILT_IN_PROP_TYPES.has(typedef.type)) return typedef;
 
   return (userTypedefs && userTypedefs[typedef.type])
@@ -453,10 +453,10 @@ const resolveTypedef = exports.resolveTypedef = (typedef, userTypedefs) => {
  *
  * @param {*} value
  * @param {TypeDefinition} typedef
- * @param {?Object<string, TypeDefinition>} userTypedefs
+ * @param {?Object<string, TypeDefinition>} [userTypedefs=null]
  * @return {boolean}
  */
-const isValidValue = exports.isValidValue = (value, typedef, userTypedefs) => {
+const isValidValue = (value, typedef, userTypedefs = null) => {
   const resolvedTypedef = resolveTypedef(typedef, userTypedefs);
 
   if (!resolvedTypedef)
@@ -472,10 +472,10 @@ const isValidValue = exports.isValidValue = (value, typedef, userTypedefs) => {
 /**
  *
  * @param {TypeDefinition} typedef
- * @param {?Object<string, TypeDefinition>} userTypedefs
+ * @param {?Object<string, TypeDefinition>} [userTypedefs=null]
  * @return {string}
  */
-const printType = exports.printType = (typedef, userTypedefs) => {
+const printType = (typedef, userTypedefs = null) => {
   const resolvedTypedef = resolveTypedef(typedef, userTypedefs);
 
   if (!resolvedTypedef)
@@ -488,15 +488,15 @@ const printType = exports.printType = (typedef, userTypedefs) => {
  *
  * @param {TypeDefinition} typedef1
  * @param {TypeDefinition} typedef2
- * @param {?Object<string, TypeDefinition>} userTypedefs1
- * @param {?Object<string, TypeDefinition>} userTypedefs2
+ * @param {?Object<string, TypeDefinition>} [userTypedefs1=null]
+ * @param {?Object<string, TypeDefinition>} [userTypedefs2=null]
  * @return {boolean}
  */
-const isEqualType = exports.isEqualType = (
+const isEqualType = (
   typedef1,
   typedef2,
-  userTypedefs1,
-  userTypedefs2
+  userTypedefs1 = null,
+  userTypedefs2 = null
 ) => {
   const resolvedTypedef1 = resolveTypedef(typedef1, userTypedefs1);
 
@@ -522,15 +522,15 @@ const isEqualType = exports.isEqualType = (
  *
  * @param {TypeDefinition} typedef1
  * @param {TypeDefinition} typedef2
- * @param {?Object<string, TypeDefinition>} userTypedefs1
- * @param {?Object<string, TypeDefinition>} userTypedefs2
+ * @param {?Object<string, TypeDefinition>} [userTypedefs1=null]
+ * @param {?Object<string, TypeDefinition>} [userTypedefs2=null]
  * @return {boolean}
  */
-const isCompatibleType = exports.isCompatibleType = (
+const isCompatibleType = (
   typedef1,
   typedef2,
-  userTypedefs1,
-  userTypedefs2
+  userTypedefs1 = null,
+  userTypedefs2 = null
 ) => {
   const resolvedTypedef1 = resolveTypedef(typedef1, userTypedefs1);
   
@@ -554,13 +554,13 @@ const isCompatibleType = exports.isCompatibleType = (
  *
  * @param {TypeDefinition} typedef
  * @param {(string|number)[]} valuePath
- * @param {?Object<string, TypeDefinition>} userTypedefs
+ * @param {?Object<string, TypeDefinition>} [userTypedefs=null]
  * @return {TypeDefinition}
  */
-exports.getNestedTypedef = (
+const getNestedTypedef = (
   typedef,
   valuePath,
-  userTypedefs
+  userTypedefs = null
 ) => valuePath.reduce(
   (acc, cur) => {
     const resolvedTypedef = resolveTypedef(acc, userTypedefs);
@@ -597,7 +597,13 @@ exports.getNestedTypedef = (
   typedef
 );
 
-const makeDefaultValue = exports.makeDefaultValue = (typedef, userTypedefs) => {
+/**
+ *
+ * @param {TypeDefinition} typedef
+ * @param {?Object<string, TypeDefinition>} [userTypedefs=null]
+ * @return {*}
+ */
+const makeDefaultValue = (typedef, userTypedefs = null) => {
   const resolvedTypedef = resolveTypedef(typedef, userTypedefs);
 
   if (!resolvedTypedef)
@@ -606,12 +612,20 @@ const makeDefaultValue = exports.makeDefaultValue = (typedef, userTypedefs) => {
   return TYPES[resolvedTypedef.type].makeDefaultValue(typedef, userTypedefs);
 };
 
-const coerceValue = exports.coerceValue = (
+/**
+ *
+ * @param {*} value
+ * @param {TypeDefinition} typedefFrom
+ * @param {TypeDefinition} typedefTo
+ * @param {?Object<string, TypeDefinition>} [userTypedefsFrom=null]
+ * @param {?Object<string, TypeDefinition>} [userTypedefsTo=null]
+ */
+const coerceValue = (
   value,
   typedefFrom,
   typedefTo,
-  userTypedefsFrom,
-  userTypedefsTo
+  userTypedefsFrom = null,
+  userTypedefsTo = null
 ) => {
   const resolvedTypedefFrom = resolveTypedef(typedefFrom, userTypedefsFrom);
   
@@ -641,3 +655,12 @@ const coerceValue = exports.coerceValue = (
     userTypedefsTo
   );
 };
+
+exports.resolveTypedef = resolveTypedef;
+exports.getNestedTypedef = getNestedTypedef;
+exports.isValidValue = isValidValue;
+exports.printType = printType;
+exports.isEqualType = isEqualType;
+exports.isCompatibleType = isCompatibleType;
+exports.makeDefaultValue = makeDefaultValue;
+exports.coerceValue = coerceValue;

@@ -162,10 +162,14 @@ const isLinkedProp = propValue =>
  * It is an {@link Immutable.Record} actually
  * (see app/models/ProjectComponentProp.js)
  * @param {TypeDefinition} typedef
- * @param {?Object<string, TypeDefinition>} userTypedefs
+ * @param {?Object<string, TypeDefinition>} [userTypedefs=null]
  * @return {PropsItemValue}
  */
-export const jssyValueToPropValue = (propValue, typedef, userTypedefs) => {
+export const jssyValueToPropValue = (
+  propValue,
+  typedef,
+  userTypedefs = null,
+) => {
   if (!propValue) return { value: null, isLinked: false };
   
   const resolvedTypedef = resolveTypedef(typedef, userTypedefs),

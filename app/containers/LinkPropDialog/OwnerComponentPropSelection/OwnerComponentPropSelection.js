@@ -24,6 +24,7 @@ import { getString } from '../../../utils/meta';
 import { isEqualType } from '../../../../shared/types';
 import { noop } from '../../../utils/misc';
 
+//noinspection JSUnresolvedVariable
 const propTypes = {
   ownerMeta: PropTypes.object.isRequired,
   ownerPropName: PropTypes.string.isRequired,
@@ -44,6 +45,7 @@ export class OwnerComponentPropSelection extends PureComponent {
     super(props);
     
     this._handleBreadcrumbsClick = this._handleBreadcrumbsClick.bind(this);
+    this._handleSelect = this._handleSelect.bind(this);
   }
   
   /**
@@ -53,6 +55,15 @@ export class OwnerComponentPropSelection extends PureComponent {
    */
   _handleBreadcrumbsClick(itemIndex) {
     if (itemIndex === 0) this.props.onReturn();
+  }
+  
+  /**
+   *
+   * @param {string} propName
+   * @private
+   */
+  _handleSelect({ id: propName }) {
+    this.props.onSelect({ propName });
   }
   
   /**
@@ -75,7 +86,6 @@ export class OwnerComponentPropSelection extends PureComponent {
       linkTargetPropTypedef,
       linkTargetComponentMeta,
       language,
-      onSelect,
     } = this.props;
     
     const ownerPropMeta = ownerMeta.props[ownerPropName],
@@ -112,7 +122,7 @@ export class OwnerComponentPropSelection extends PureComponent {
             type={ownerPropMeta.type}
             clickable
             arg={ownerPropName}
-            onSelect={onSelect}
+            onSelect={this._handleSelect}
           />
         );
       });

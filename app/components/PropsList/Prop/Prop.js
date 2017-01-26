@@ -253,7 +253,11 @@ export class Prop extends PureComponent {
     
     const index = currentType.view === PropViews.ARRAY ? -1 : name;
   
-    this.props.onAddValue({ propName, index, where: this.state.currentPath });
+    this.props.onAddValue({
+      propName,
+      index,
+      where: this.state.currentPath,
+    });
   }
   
   /**

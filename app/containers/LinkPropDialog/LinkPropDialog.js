@@ -47,7 +47,8 @@ class LinkPropDialogComponent extends PureComponent {
     
     this._handleSelectSource = this._handleSelectSource.bind(this);
     this._handleReturn = this._handleReturn.bind(this);
-    this._handleSelectOwnerProp = this._handleSelectOwnerProp.bind(this);
+    this._handleLinkWithOwnerProp = this._handleLinkWithOwnerProp.bind(this);
+    this._handleLinkWithData = this._handleLinkWithData.bind(this);
     this._handleReplaceDialogButtons =
       this._handleReplaceDialogButtons.bind(this);
   }
@@ -66,8 +67,12 @@ class LinkPropDialogComponent extends PureComponent {
     });
   }
   
-  _handleSelectOwnerProp({ id }) {
-    this.props.onLinkWithOwnerProp(id);
+  _handleLinkWithOwnerProp({ propName }) {
+    this.props.onLinkWithOwnerProp(propName);
+  }
+  
+  _handleLinkWithData({ path, args }) {
+    // TODO: Save changes to project
   }
   
   _handleReplaceDialogButtons({ buttons }) {
@@ -155,7 +160,7 @@ class LinkPropDialogComponent extends PureComponent {
         linkTargetComponentMeta={linkTargetComponentMeta}
         linkTargetPropTypedef={linkTargetPropTypedef}
         language={this.props.language}
-        onSelect={this._handleSelectOwnerProp}
+        onSelect={this._handleLinkWithOwnerProp}
         onReturn={this._handleReturn}
       />
     );
@@ -164,8 +169,13 @@ class LinkPropDialogComponent extends PureComponent {
   _renderQuerySelection() {
     const { schema, getLocalizedText } = this.props;
   
-    const { linkTargetComponentMeta, linkTargetPropTypedef } =
-      this._getLinkTargetData();
+    const {
+      linkTargetComponent,
+      linkTargetComponentMeta,
+      linkTargetPropTypedef,
+    } = this._getLinkTargetData();
+    
+    const argValues = linkTargetComponent.queryArgs.get('') || Map();
     
     return (
       <DataSelection
@@ -173,7 +183,9 @@ class LinkPropDialogComponent extends PureComponent {
         rootTypeName={schema.queryTypeName}
         linkTargetComponentMeta={linkTargetComponentMeta}
         linkTargetPropTypedef={linkTargetPropTypedef}
+        argValues={argValues}
         getLocalizedText={getLocalizedText}
+        onSelect={this._handleLinkWithData}
         onReturn={this._handleReturn}
         onReplaceButtons={this._handleReplaceDialogButtons}
       />
