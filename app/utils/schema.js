@@ -94,7 +94,8 @@ import { arrayToObject, getter } from './misc';
  * @typedef {Object} DataFieldTypeDefinition
  * @property {string} description
  * @property {string} type
- * @property {number} kind - Can be 'SINGLE', 'LIST' or 'CONNECTION'.
+ * @property {number} kind - Can be FieldKinds.SINGLE, FieldKinds.LIST
+ * or FieldKinds.CONNECTION.
  * @property {boolean} nonNull
  * @property {boolean} nonNullMember
  */

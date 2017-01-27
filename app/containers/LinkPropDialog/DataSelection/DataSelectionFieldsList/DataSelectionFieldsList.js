@@ -101,6 +101,7 @@ export class DataSelectionFieldsList extends PureComponent {
     this._handleFieldSelect = this._handleFieldSelect.bind(this);
     this._handleJumpIntoField = this._handleJumpIntoField.bind(this);
     this._handleSetFieldArguments = this._handleSetFieldArguments.bind(this);
+    this._handleApplyClick = this._handleApplyClick.bind(this);
   }
   
   /**
@@ -131,6 +132,15 @@ export class DataSelectionFieldsList extends PureComponent {
   _handleSetFieldArguments({ id: fieldName }) {
     this.props.onSetFieldArguments({ fieldName });
   }
+
+  /**
+   *
+   * @param {string} fieldName
+   * @private
+   */
+  _handleApplyClick({ id: fieldName }) {
+    this.props.onApply({ fieldName });
+  }
   
   /**
    *
@@ -160,7 +170,7 @@ export class DataSelectionFieldsList extends PureComponent {
    * @private
    */
   _renderField(fieldName, field, isCompatible, hasCompatibleSubFields) {
-    const { getLocalizedText, onApply } = this.props;
+    const { getLocalizedText } = this.props;
     const { selectedFieldName } = this.state;
     
     const fieldType = this._formatFieldType(field);
@@ -184,7 +194,7 @@ export class DataSelectionFieldsList extends PureComponent {
         onSelect={this._handleFieldSelect}
         onJumpIntoClick={this._handleJumpIntoField}
         onSetArgumentsClick={this._handleSetFieldArguments}
-        onApplyClick={onApply}
+        onApplyClick={this._handleApplyClick}
       />
     );
   }
