@@ -13,6 +13,7 @@ import {
   getJssyTypeOfField,
   fieldHasArguments,
   FieldKinds,
+  formatFieldName,
 } from '../../../../utils/schema';
 
 import { isCompatibleType } from '../../../../../shared/types';
@@ -230,7 +231,7 @@ export class DataSelectionFieldsList extends PureComponent {
       if (!field.connectionFields) return;
     
       _forOwn(field.connectionFields, (connField, connFieldName) => {
-        const fullName = `${fieldName}/${connFieldName}`;
+        const fullName = formatFieldName(fieldName, connFieldName);
         const connFieldJssyType = getJssyTypeOfField(connField, schema);
       
         const {

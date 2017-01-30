@@ -21,6 +21,7 @@ import {
 import {
   DataWindowTitle,
   DataWindowHeadingButtons,
+  DataWindowContentGroup,
 } from '../../../components/DataWindow/DataWindow';
 
 import {
@@ -35,6 +36,7 @@ import {
   getTypeNameByField,
   getTypeNameByPath,
   fieldHasArguments,
+  getFieldsByPath,
 } from '../../../utils/schema';
 
 import {
@@ -45,6 +47,7 @@ import {
 
 //noinspection JSUnresolvedVariable
 const propTypes = {
+  dataContext: PropTypes.arrayOf(PropTypes.string).isRequired,
   schema: PropTypes.object.isRequired,
   rootTypeName: PropTypes.string.isRequired,
   argValues: PropTypes.object.isRequired,
@@ -63,17 +66,32 @@ const defaultProps = {
   onReplaceButtons: noop,
 };
 
+const Views = {
+  FIELDS_LIST: 0,
+  ARGS_FORM: 1,
+  FULL_ARGS_FORM: 2,
+};
+
 export class DataSelection extends PureComponent {
   constructor(props) {
     super(props);
     
     this.state = {
+      currentView: Views.FIELDS_LIST,
+      
+      // For FIELDS_LIST view
       currentTypeName: props.rootTypeName,
       currentPath: [],
-      settingArguments: false,
+      
+      // For ARGS_FORM view
       argumentsFieldName: '',
       argumentsPathToField: [],
       argumentsField: null,
+  
+      // For FULL_ARGS_FORM view
+      finalFieldName: '',
+      
+      // For ARGS_FORM and FULL_ARGS_FORM views
       currentArgValues: props.argValues,
       tmpArgValues: null,
     };
@@ -90,10 +108,12 @@ export class DataSelection extends PureComponent {
       this._handleCancelSetArguments.bind(this);
     this._handleApplyArguments =
       this._handleApplyArguments.bind(this);
-    this._handleArgsUpdate =
-      this._handleArgsUpdate.bind(this);
+    this._handleCurrentArgsUpdate =
+      this._handleCurrentArgsUpdate.bind(this);
     this._handleApplyLink =
       this._handleApplyLink.bind(this);
+    this._handleFullArgumentsFormApply =
+      this._handleFullArgumentsFormApply.bind(this);
   }
   
   /**
@@ -116,13 +136,123 @@ export class DataSelection extends PureComponent {
     const { schema } = this.props;
     const { currentPath } = this.state;
     
-    if (currentPath.length > 0) {
-      const prevTypeName = getTypeNameByPath(schema, currentPath.slice(0, -1));
-      const currentFieldName = currentPath[currentPath.length - 1];
+    if (currentPath.length === 0) return null;
   
-      return schema.types[prevTypeName].fields[currentFieldName];
+    const prevTypeName = getTypeNameByPath(schema, currentPath.slice(0, -1));
+    const currentFieldName = currentPath[currentPath.length - 1];
+  
+    return schema.types[prevTypeName].fields[currentFieldName];
+  }
+  
+  /**
+   *
+   * @return {boolean}
+   * @private
+   */
+  _haveUndefinedRequiredArgs(path) {
+    const { schema, rootTypeName } = this.props;
+    const { currentArgValues } = this.state;
+    
+    const fields = getFieldsByPath(schema, path, rootTypeName);
+    
+    return fields.some((field, idx) => {
+      const args = field.args;
+      const valuesKey = path.slice(0, idx + 1).join(' ');
+      const values = currentArgValues.get(valuesKey);
+      
+      return objectSome(args, (arg, argName) =>
+      arg.nonNull && (!values || !values.get(argName)));
+    });
+  }
+  
+  /**
+   *
+   * @param {string} fieldName
+   * @param {DataField} field
+   * @param {string[]} pathToField
+   * @private
+   */
+  _switchToArgumentsForm(fieldName, field, pathToField) {
+    const { getLocalizedText } = this.props;
+    const applyText = getLocalizedText('apply');
+    const backText = getLocalizedText('back');
+    
+    this.props.onReplaceButtons({
+      buttons: [{
+        text: backText,
+        icon: 'chevron-left',
+        onPress: this._handleCancelSetArguments,
+      }, {
+        text: applyText,
+        onPress: this._handleApplyArguments,
+      }],
+    });
+    
+    this.setState({
+      currentView: Views.ARGS_FORM,
+      argumentsFieldName: fieldName,
+      argumentsField: field,
+      argumentsPathToField: pathToField,
+      tmpArgValues: this.state.currentArgValues,
+    });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _switchToFullArgumentsForm(finalFieldName) {
+    const { getLocalizedText } = this.props;
+    const applyText = getLocalizedText('apply');
+    const backText = getLocalizedText('back');
+    
+    this.props.onReplaceButtons({
+      buttons: [{
+        text: backText,
+        icon: 'chevron-left',
+        onPress: this._handleCancelSetArguments,
+      }, {
+        text: applyText,
+        onPress: this._handleFullArgumentsFormApply,
+      }],
+    });
+    
+    this.setState({
+      currentView: Views.FULL_ARGS_FORM,
+      tmpArgValues: this.state.currentArgValues,
+      finalFieldName,
+    });
+  }
+  
+  _apply(finalFieldName) {
+    const { dataContext, onSelect } = this.props;
+    const { currentPath, currentArgValues } = this.state;
+    
+    onSelect({
+      dataContext,
+      path: [...currentPath, finalFieldName],
+      args: currentArgValues,
+    });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleFullArgumentsFormApply() {
+    const { currentPath, finalFieldName, tmpArgValues } = this.state;
+    const fullPath = [...currentPath, finalFieldName];
+    
+    if (this._haveUndefinedRequiredArgs(fullPath)) {
+      // TODO: Scroll to the first invalid field and show red messages
     } else {
-      return null;
+      this.setState({
+        view: Views.FIELDS_LIST,
+        currentArgValues: tmpArgValues,
+        finalFieldName: '',
+      });
+      
+      this._apply(finalFieldName);
     }
   }
   
@@ -170,36 +300,6 @@ export class DataSelection extends PureComponent {
   
   /**
    *
-   * @param {string} fieldName
-   * @param {DataField} field
-   * @param {string[]} pathToField
-   * @private
-   */
-  _switchToArgumentsForm(fieldName, field, pathToField) {
-    // TODO: Get strings from i18n
-    
-    this.props.onReplaceButtons({
-      buttons: [{
-        text: 'Back',
-        icon: 'chevron-left',
-        onPress: this._handleCancelSetArguments,
-      }, {
-        text: 'Apply',
-        onPress: this._handleApplyArguments,
-      }],
-    });
-    
-    this.setState({
-      settingArguments: true,
-      argumentsFieldName: fieldName,
-      argumentsField: field,
-      argumentsPathToField: pathToField,
-      tmpArgValues: this.state.currentArgValues,
-    });
-  }
-  
-  /**
-   *
    * @private
    */
   _handleSetArgumentsOnCurrentField() {
@@ -238,11 +338,25 @@ export class DataSelection extends PureComponent {
    * @param {Object} args
    * @private
    */
-  _handleArgsUpdate({ args }) {
+  _handleCurrentArgsUpdate({ args }) {
     const { argumentsPathToField, tmpArgValues } = this.state;
     
     this.setState({
       tmpArgValues: tmpArgValues.set(argumentsPathToField.join(' '), args),
+    });
+  }
+  
+  /**
+   *
+   * @param {string[]} pathToField
+   * @param {Object} args
+   * @private
+   */
+  _handleArgsUpdate({ pathToField, args }) {
+    const { tmpArgValues } = this.state;
+    
+    this.setState({
+      tmpArgValues: tmpArgValues.set(pathToField.join(' '), args),
     });
   }
   
@@ -254,11 +368,12 @@ export class DataSelection extends PureComponent {
     this.props.onReplaceButtons({ buttons: [] });
     
     this.setState({
-      settingArguments: false,
+      currentView: Views.FIELDS_LIST,
       argumentsFieldName: '',
       argumentsField: null,
       argumentsPathToField: [],
       tmpArgValues: null,
+      finalFieldName: '',
     });
   }
   
@@ -270,60 +385,23 @@ export class DataSelection extends PureComponent {
     this.props.onReplaceButtons({ buttons: [] });
   
     this.setState({
-      settingArguments: false,
+      currentView: Views.FIELDS_LIST,
       argumentsFieldName: '',
       argumentsField: null,
       argumentsPathToField: [],
       currentArgValues: this.state.tmpArgValues,
+      tmpArgValues: null,
     });
   }
   
-  /**
-   *
-   * @return {boolean}
-   * @private
-   */
-  _haveUndefinedRequiredArgs() {
-    const { schema, rootTypeName } = this.props;
-    const { currentPath, currentArgValues } = this.state;
+  _handleApplyLink({ fieldName }) {
+    const { currentPath } = this.state;
+    const fullPath = [...currentPath, fieldName];
     
-    let currentType = schema.types[rootTypeName],
-      i = 0;
-    
-    while (i < currentPath.length) {
-      const field = currentType.fields[currentPath[i]];
-      const args = field.args;
-      const argValues = currentArgValues.get(currentPath.slice(0, i + 1));
-      const haveUndefinedRequiredArgs = objectSome(
-        args,
-        (arg, argName) =>
-          arg.nonNull && (
-            !argValues ||
-            !argValues.get(argName)
-          ),
-      );
-      
-      if (haveUndefinedRequiredArgs) return true;
-      
-      i++;
-      currentType = schema.types[field.type];
-    }
-    
-    return false;
-  }
-  
-  _handleApplyLink() {
-    const { onSelect } = this.props;
-    const { currentPath, currentArgValues } = this.state;
-    
-    if (this._haveUndefinedRequiredArgs()) {
-      // TODO: Show args editor for all fields
-    } else {
-      onSelect({
-        path: currentPath,
-        args: currentArgValues,
-      });
-    }
+    if (this._haveUndefinedRequiredArgs(fullPath))
+      this._switchToFullArgumentsForm(fieldName);
+    else
+      this._apply(fieldName);
   }
   
   _renderFieldSelection() {
@@ -452,7 +530,7 @@ export class DataSelection extends PureComponent {
               schema={schema}
               fieldArgs={fieldArgs}
               getLocalizedText={getLocalizedText}
-              onArgsUpdate={this._handleArgsUpdate}
+              onArgsUpdate={this._handleCurrentArgsUpdate}
             />
           </BlockContentBoxItem>
         </BlockContentBox>
@@ -460,10 +538,67 @@ export class DataSelection extends PureComponent {
     );
   }
   
+  _renderFullArgumentsForm() {
+    const { schema, rootTypeName, getLocalizedText } = this.props;
+    const { currentPath, finalFieldName, tmpArgValues } = this.state;
+    
+    const fullPath = [...currentPath, finalFieldName];
+    const fields = getFieldsByPath(schema, fullPath, rootTypeName);
+    
+    const contentGroups = fields
+      .filter(fieldHasArguments)
+      .map((field, idx) => {
+        const fieldName = fullPath[idx];
+        const pathToField = fullPath.slice(0, idx + 1);
+        const valuesKey = pathToField.join(' ');
+        const values = tmpArgValues.get(valuesKey) || null;
+        
+        const onArgsUpdate = ({ args }) =>
+          void this._handleArgsUpdate({ pathToField, args });
+        
+        return (
+          <DataWindowContentGroup key={fieldName} title={fieldName}>
+            <DataSelectionArgsEditor
+              field={field}
+              schema={schema}
+              fieldArgs={values}
+              getLocalizedText={getLocalizedText}
+              onArgsUpdate={onArgsUpdate}
+            />
+          </DataWindowContentGroup>
+        );
+      });
+  
+    const titleText = getLocalizedText('allArguments');
+    const subtitleText = getLocalizedText('pleaseFillAllRequiredArguments');
+    
+    return (
+      <BlockContent>
+        <BlockContentBox isBordered flex>
+          <BlockContentBoxGroup dim>
+            <BlockContentBoxItem>
+              <DataWindowTitle
+                title={titleText}
+                subtitle={subtitleText}
+              />
+            </BlockContentBoxItem>
+          </BlockContentBoxGroup>
+  
+          <BlockContentBoxItem>
+            {contentGroups}
+          </BlockContentBoxItem>
+        </BlockContentBox>
+      </BlockContent>
+    );
+  }
+  
   render() {
-    return this.state.settingArguments
-      ? this._renderArgumentsForm()
-      : this._renderFieldSelection();
+    switch (this.state.currentView) {
+      case Views.FIELDS_LIST: return this._renderFieldSelection();
+      case Views.ARGS_FORM: return this._renderArgumentsForm();
+      case Views.FULL_ARGS_FORM: return this._renderFullArgumentsForm();
+      default: return null;
+    }
   }
 }
 

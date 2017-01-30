@@ -8,6 +8,8 @@
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
+import { Map } from 'immutable';
+import _forOwn from 'lodash.forown';
 import { Dialog } from '@reactackle/reactackle';
 
 import {
@@ -26,14 +28,20 @@ import {
   singleComponentSelectedSelector,
   topNestedConstructorSelector,
   topNestedConstructorComponentSelector,
-  getAllPossibleNestedContexts,
+  currentComponentsStackSelector,
 } from '../../selectors';
 
 import { linkWithOwnerProp, linkPropCancel } from '../../actions/project';
 import ProjectComponentRecord from '../../models/ProjectComponent';
 import { NestedConstructor } from '../../reducers/project';
 import { getNestedTypedef } from '../../../shared/types';
-import { getComponentMeta, isValidSourceForProp } from '../../utils/meta';
+
+import {
+  getComponentMeta,
+  isValidSourceForProp,
+  findPropThatPushedDataContext,
+} from '../../utils/meta';
+
 import { getLocalizedTextFromState } from '../../utils';
 
 class LinkPropDialogComponent extends PureComponent {
@@ -42,6 +50,7 @@ class LinkPropDialogComponent extends PureComponent {
     
     this.state = {
       selectedSourceId: '',
+      selectedSourceData: null,
       dialogButtons: [],
     };
     
@@ -53,9 +62,10 @@ class LinkPropDialogComponent extends PureComponent {
       this._handleReplaceDialogButtons.bind(this);
   }
   
-  _handleSelectSource({ id }) {
+  _handleSelectSource({ id, data }) {
     this.setState({
       selectedSourceId: id,
+      selectedSourceData: data,
       dialogButtons: [],
     });
   }
@@ -63,6 +73,7 @@ class LinkPropDialogComponent extends PureComponent {
   _handleReturn() {
     this.setState({
       selectedSourceId: '',
+      selectedSourceData: null,
       dialogButtons: [],
     });
   }
@@ -71,7 +82,7 @@ class LinkPropDialogComponent extends PureComponent {
     this.props.onLinkWithOwnerProp(propName);
   }
   
-  _handleLinkWithData({ path, args }) {
+  _handleLinkWithData({ dataContext, path, args }) {
     // TODO: Save changes to project
   }
   
@@ -104,11 +115,18 @@ class LinkPropDialogComponent extends PureComponent {
   }
   
   _renderSourceSelection() {
+    const {
+      meta,
+      topNestedConstructor,
+      topNestedConstructorComponent,
+      currentComponentsStack,
+    } = this.props;
+    
     const { linkTargetPropTypedef } = this._getLinkTargetData();
     
     const items = [];
     
-    if (this.props.topNestedConstructorComponent) {
+    if (topNestedConstructor) {
       items.push({
         id: 'owner',
         title: 'Owner component', // TODO: Get string from i18n
@@ -118,15 +136,40 @@ class LinkPropDialogComponent extends PureComponent {
     if (isValidSourceForProp(linkTargetPropTypedef, 'data')) {
       items.push({
         id: 'query',
-        title: 'Query', // TODO: Get string from i18n
+        title: 'Data', // TODO: Get string from i18n
       });
       
-      if (this.props.dataContexts) {
-        // TODO: Add data contexts
+      if (topNestedConstructor) {
+        // TODO: Collect data contexts info using the currentComponentsStack
         
-        // this.props.dataContexts.forEach(ctx => {
+        // const ownerComponent = topNestedConstructorComponent;
+        // const ownerComponentMeta = getComponentMeta(ownerComponent.name, meta);
+        // const ownerComponentDesignerPropMeta =
+        //   ownerComponentMeta.props[topNestedConstructor.prop];
         //
-        // });
+        // _forOwn(
+        //   ownerComponentDesignerPropMeta.sourceConfigs.designer.props,
+        //   ownerPropMeta => {
+        //     if (!ownerPropMeta.dataContext) return;
+        //
+        //     const dataContextOriginData = findPropThatPushedDataContext(
+        //       ownerComponentMeta,
+        //       ownerPropMeta.dataContext,
+        //     );
+        //
+        //     if (!dataContextOriginData) return;
+        //
+        //     const dataContextOriginValue =
+        //       ownerComponent.props.get(dataContextOriginData.propName);
+        //
+        //     if (
+        //       dataContextOriginValue.source !== 'data' ||
+        //       !dataContextOriginValue.sourceData.queryPath
+        //     ) return;
+        //
+        //     console.log(dataContextOriginValue.sourceData.dataContext.toJS().concat(ownerPropMeta.dataContext));
+        //   },
+        // );
       }
     }
     
@@ -166,7 +209,7 @@ class LinkPropDialogComponent extends PureComponent {
     );
   }
   
-  _renderQuerySelection() {
+  _renderDataSelection(dataContext, rootTypeName) {
     const { schema, getLocalizedText } = this.props;
   
     const {
@@ -179,8 +222,9 @@ class LinkPropDialogComponent extends PureComponent {
     
     return (
       <DataSelection
+        dataContext={dataContext}
         schema={schema}
-        rootTypeName={schema.queryTypeName}
+        rootTypeName={rootTypeName}
         linkTargetComponentMeta={linkTargetComponentMeta}
         linkTargetPropTypedef={linkTargetPropTypedef}
         argValues={argValues}
@@ -193,29 +237,47 @@ class LinkPropDialogComponent extends PureComponent {
   }
   
   render() {
-    const { singleComponentSelected, linkingProp } = this.props;
-    const { selectedSourceId } = this.state;
+    const {
+      schema,
+      singleComponentSelected,
+      linkingProp,
+      onLinkPropCancel,
+    } = this.props;
     
-    if (!singleComponentSelected || !linkingProp) return null;
+    const {
+      selectedSourceId,
+      selectedSourceData,
+      dialogButtons,
+    } = this.state;
+    
+    const visible = singleComponentSelected && linkingProp;
     
     let content = null;
 
-    if (!selectedSourceId)
-      content = this._renderSourceSelection();
-    else if (selectedSourceId === 'owner')
-      content = this._renderOwnerPropSelection();
-    else if (selectedSourceId === 'query')
-      content = this._renderQuerySelection();
+    if (visible) {
+      if (!selectedSourceId) {
+        content = this._renderSourceSelection();
+      } else if (selectedSourceId === 'owner') {
+        content = this._renderOwnerPropSelection();
+      } else if (selectedSourceId === 'query') {
+        content = this._renderDataSelection([], schema.queryTypeName);
+      } else if (selectedSourceId.startsWith('context')) {
+        content = this._renderDataSelection(
+          selectedSourceData.dataContext,
+          selectedSourceData.rootTypeName,
+        );
+      }
+    }
     
     return (
       <Dialog
         title="Link attribute value"
         backdrop
         minWidth={420}
-        visible={this.props.linkingProp}
+        visible={visible}
         haveCloseButton
-        buttons={this.state.dialogButtons}
-        onClose={this.props.onLinkPropCancel}
+        buttons={dialogButtons}
+        onClose={onLinkPropCancel}
       >
         <DataWindow>
           {content}
@@ -227,10 +289,12 @@ class LinkPropDialogComponent extends PureComponent {
 
 //noinspection JSUnresolvedVariable
 LinkPropDialogComponent.propTypes = {
-  dataContexts: PropTypes.array,
   components: ImmutablePropTypes.mapOf(
     PropTypes.instanceOf(ProjectComponentRecord),
     PropTypes.number,
+  ).isRequired,
+  currentComponentsStack: ImmutablePropTypes.listOf(
+    PropTypes.instanceOf(ProjectComponentRecord),
   ).isRequired,
   meta: PropTypes.object.isRequired,
   schema: PropTypes.object.isRequired,
@@ -255,7 +319,6 @@ LinkPropDialogComponent.propTypes = {
 };
 
 LinkPropDialogComponent.defaultProps = {
-  dataContexts: null,
   topNestedConstructor: null,
   topNestedConstructorComponent: null,
 };
@@ -263,8 +326,8 @@ LinkPropDialogComponent.defaultProps = {
 LinkPropDialogComponent.displayName = 'LinkPropDialog';
 
 const mapStateToProps = state => ({
-  dataContexts: getAllPossibleNestedContexts(state),
   components: currentComponentsSelector(state),
+  currentComponentsStack: currentComponentsStackSelector(state),
   meta: state.project.meta,
   schema: state.project.schema,
   singleComponentSelected: singleComponentSelectedSelector(state),

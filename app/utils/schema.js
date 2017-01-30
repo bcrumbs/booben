@@ -123,6 +123,12 @@ export const FieldKinds = {
 
 /**
  *
+ * @type {string}
+ */
+const CONNECTION_FIELD_NAME_SEPARATOR = '/';
+
+/**
+ *
  * @type {Object<string, string>}
  */
 const GQLTypeKinds = {
@@ -699,15 +705,38 @@ export const parseGraphQLSchema = schema => {
 
 /**
  *
- * @param {DataSchema} schema
+ * @param {string} fullFieldName
+ * @return {{fieldName: string, connectionFieldName: string}}
+ */
+export const parseFieldName = fullFieldName => {
+  const [fieldName, connectionFieldName = ''] =
+    fullFieldName.split(CONNECTION_FIELD_NAME_SEPARATOR);
+  
+  return { fieldName, connectionFieldName };
+};
+
+/**
+ *
  * @param {string} fieldName
+ * @param {string} connectionFieldName
+ * @return {string}
+ */
+export const formatFieldName = (fieldName, connectionFieldName) => {
+  if (connectionFieldName) return `${fieldName}/${connectionFieldName}`;
+  return fieldName;
+};
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string} fullFieldName
  * @param {string} onType
  * @return {string}
  */
-export const getTypeNameByField = (schema, fieldName, onType) => {
-  const [ownFieldName, connectionFieldName] = fieldName.split('/');
+export const getTypeNameByField = (schema, fullFieldName, onType) => {
+  const { fieldName, connectionFieldName } = parseFieldName(fullFieldName);
 
-  let field = schema.types[onType].fields[ownFieldName];
+  let field = schema.types[onType].fields[fieldName];
 
   if (connectionFieldName)
     field = field.connectionFields[connectionFieldName];
@@ -808,3 +837,34 @@ export const getJssyTypeOfField = (fieldTypedef, schema) => {
  * @return {boolean}
  */
 export const fieldHasArguments = field => Object.keys(field.args).length > 0;
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string[]} path
+ * @param {string} rootTypeName
+ * @return {DataField[]}
+ */
+export const getFieldsByPath = (
+  schema,
+  path,
+  rootTypeName = schema.queryTypeName,
+) => {
+  const ret = [];
+  let currentType = schema.types[rootTypeName];
+  let i = 0;
+  
+  while (i < path.length) {
+    const { fieldName, connectionFieldName } = parseFieldName(path[i]);
+    let field = currentType.fields[fieldName];
+    
+    if (connectionFieldName)
+      field = field.connectionFields[connectionFieldName];
+    
+    ret.push(field);
+    currentType = schema.types[field.type];
+    i++;
+  }
+  
+  return ret;
+};

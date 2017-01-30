@@ -536,6 +536,26 @@ export const propHasDataContest = propMeta =>
 
 /**
  *
+ * @param {ComponentMeta} componentMeta
+ * @param {string} dataContext
+ * @return {?{ propName: string, propMeta: ComponentPropMeta }}
+ */
+export const findPropThatPushedDataContext = (componentMeta, dataContext) => {
+  const propNames = Object.keys(componentMeta.props);
+  
+  for (let i = 0; i < propNames.length; i++) {
+    const propMeta = componentMeta.props[propNames[i]];
+    if (
+      propMeta.sourceConfigs.data &&
+      propMeta.sourceConfigs.data.pushDataContext === dataContext
+    ) return { propName: propNames[i], propMeta };
+  }
+  
+  return null;
+};
+
+/**
+ *
  * @param {Object} metadata
  * @return {Object}
  */

@@ -206,9 +206,17 @@ export class DataSelectionArgsEditor extends PureComponent {
    * @private
    */
   _handleUpdateValue({ propName: argName, value, path }) {
-    const { fieldArgs, onArgsUpdate } = this.props;
+    const { field, schema, fieldArgs, onArgsUpdate } = this.props;
     
     let newArgs = fieldArgs || Map();
+    
+    if (!newArgs.has(argName)) {
+      const arg = field.args[argName];
+      const jssyTypedef = getJssyTypeOfField(arg, schema);
+      const initialValue = staticJssyValueFromJs(makeDefaultValue(jssyTypedef));
+      newArgs = newArgs.set(argName, initialValue);
+    }
+    
     const pathToValue = [argName, 'sourceData', 'value']
       .concat(...path.map(step => [step, 'sourceData', 'value']));
     

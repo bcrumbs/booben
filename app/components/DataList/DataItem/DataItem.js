@@ -11,6 +11,7 @@ const propTypes = {
   description: PropTypes.string,
   type: PropTypes.string,
   tooltip: PropTypes.string,
+  data: PropTypes.any,
   actionType: PropTypes.oneOf(['jump', 'select']),
   argsButton: PropTypes.bool,
   selected: PropTypes.bool,
@@ -28,6 +29,7 @@ const defaultProps = {
   description: '',
   type: '',
   tooltip: '',
+  data: null,
   actionType: 'select',
   argsButton: false,
   selected: false,
@@ -52,19 +54,23 @@ export class DataItem extends PureComponent {
   }
   
   _handleSelect() {
-    this.props.onSelect({ id: this.props.id });
+    const { id, data } = this.props;
+    this.props.onSelect({ id, data });
   }
   
   _handleJumpInto() {
-    this.props.onJumpIntoClick({ id: this.props.id });
+    const { id, data } = this.props;
+    this.props.onJumpIntoClick({ id, data });
   }
   
   _handleApplyClick() {
-    this.props.onApplyClick({ id: this.props.id });
+    const { id, data } = this.props;
+    this.props.onApplyClick({ id, data });
   }
   
   _handleSetArgumentsClick() {
-    this.props.onSetArgumentsClick({ id: this.props.id });
+    const { id, data } = this.props;
+    this.props.onSetArgumentsClick({ id, data });
   }
   
   render() {

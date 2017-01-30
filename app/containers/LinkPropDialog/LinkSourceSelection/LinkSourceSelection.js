@@ -20,6 +20,7 @@ const propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
     id: PropTypes.string,
     title: PropTypes.string,
+    data: PropTypes.any,
   })),
   onSelect: PropTypes.func,
 };
@@ -35,6 +36,7 @@ export const LinkSourceSelection = props => {
       key={item.id}
       id={item.id}
       title={item.title}
+      data={item.data}
       actionType="jump"
       connection
       onSelect={props.onSelect}

@@ -98,11 +98,12 @@ import { parseGraphQLSchema } from '../utils/schema';
 import { NO_VALUE } from '../constants/misc';
 
 export const NestedConstructor = Record({
-  components: Map(),
-  rootId: -1,
   componentId: -1,
   prop: '',
   path: [],
+  
+  components: Map(),
+  rootId: -1,
   lastComponentId: -1,
   selectedComponentIds: Set(),
   highlightedComponentIds: Set(),
@@ -763,6 +764,7 @@ const handlers = {
       'value',
     );
   
+    // TODO: Write error messages
     return state.updateIn(path, mapOrList => {
       if (List.isList(mapOrList)) {
         if (typeof action.index !== 'number')
