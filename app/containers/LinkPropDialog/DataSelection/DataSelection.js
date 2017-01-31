@@ -122,8 +122,14 @@ export class DataSelection extends PureComponent {
    * @private
    */
   _getBreadcrumbsItems() {
+    const { dataContext, rootTypeName } = this.props;
+    
     // TODO: Get strings from i18n
-    return [{ title: 'Sources' }, { title: 'Data' }]
+    const firstItemTitle = dataContext.length > 0
+      ? `Context - ${rootTypeName}`
+      : 'Data';
+    
+    return [{ title: 'Sources' }, { title: firstItemTitle }]
       .concat(this.state.currentPath.map(fieldName => ({ title: fieldName })));
   }
   

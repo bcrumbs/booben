@@ -5,8 +5,9 @@
 'use strict';
 
 import { createSelector } from 'reselect';
-import { getComponentWithQueryArgs } from '../reducers/project';
-import { getComponentMeta } from '../utils/meta';
+import _forOwn from 'lodash.forown';
+import { getComponentMeta, findPropThatPushedDataContext } from '../utils/meta';
+import { getTypeNameByPath } from '../utils/schema';
 
 export const haveNestedConstructorsSelector = state =>
   !state.project.nestedConstructors.isEmpty();
@@ -93,13 +94,89 @@ export const currentHighlightedComponentIdsSelector = createSelector(
 );
 
 export const currentComponentsStackSelector = createSelector(
-  state => state.project,
+  state => state.project.nestedConstructors,
+  currentRouteSelector,
   
-  project => project.nestedConstructors.map((nestedConstructor, idx, list) => {
-    const componentsMap = (idx > 0)
-      ? list.get(idx - 1).components
-      : project.data.routes.get(project.currentRouteId).components;
+  (nestedConstructors, currentRoute) =>
+    nestedConstructors.map((nestedConstructor, idx, list) => {
+      const componentsMap = (idx < list.size - 1)
+        ? list.get(idx + 1).components
+        : currentRoute.components;
+      
+      return componentsMap.get(nestedConstructor.componentId);
+    }),
+);
+
+export const availableDataContextsSelector = createSelector(
+  state => state.project.meta,
+  state => state.project.schema,
+  topNestedConstructorSelector,
+  topNestedConstructorComponentSelector,
+  currentComponentsStackSelector,
   
-    return componentsMap.get(nestedConstructor.componentId);
-  }),
+  (
+    meta,
+    schema,
+    topNestedConstructor,
+    topNestedConstructorComponent,
+    currentComponentsStack,
+  ) => {
+    if (!topNestedConstructor) return [];
+  
+    const ownerComponent = topNestedConstructorComponent;
+    const ownerComponentMeta = getComponentMeta(ownerComponent.name, meta);
+    const ownerComponentDesignerPropMeta =
+      ownerComponentMeta.props[topNestedConstructor.prop];
+  
+    const dataContexts = [];
+  
+    _forOwn(
+      ownerComponentDesignerPropMeta.sourceConfigs.designer.props,
+      ownerPropMeta => {
+        if (!ownerPropMeta.dataContext) return;
+      
+        const dataContextOriginData = findPropThatPushedDataContext(
+          ownerComponentMeta,
+          ownerPropMeta.dataContext,
+        );
+      
+        if (!dataContextOriginData) return;
+      
+        const dataContextOriginValue =
+          ownerComponent.props.get(dataContextOriginData.propName);
+      
+        if (
+          dataContextOriginValue.source !== 'data' ||
+          !dataContextOriginValue.sourceData.queryPath
+        ) return;
+      
+        const dataContext = dataContextOriginValue.sourceData.dataContext
+          .toJS()
+          .concat(ownerPropMeta.dataContext);
+      
+        dataContexts.push(dataContext);
+      },
+    );
+  
+    const depth = currentComponentsStack.size;
+  
+    return dataContexts.map(dataContext => {
+      const typeName = dataContext.reduce((acc, cur, idx) => {
+        const component = currentComponentsStack.get(depth - idx - 1);
+        const componentMeta = getComponentMeta(component.name, meta);
+        const { propName: dataPropName } =
+          findPropThatPushedDataContext(componentMeta, cur);
+      
+        // Data props with data context cannot be nested
+        const dataPropValue = component.props.get(dataPropName);
+        const path = dataPropValue.sourceData.queryPath
+          .map(step => step.field)
+          .toJS();
+      
+        return getTypeNameByPath(schema, path, acc);
+      }, schema.queryTypeName);
+    
+      return { dataContext, typeName };
+    });
+  },
 );

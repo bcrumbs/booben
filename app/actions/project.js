@@ -42,6 +42,8 @@ export const PROJECT_LINK_PROP =
   'PROJECT_LINK_PROP';
 export const PROJECT_LINK_WITH_OWNER_PROP =
   'PROJECT_LINK_WITH_OWNER_PROP';
+export const PROJECT_LINK_WITH_DATA =
+  'PROJECT_LINK_WITH_DATA';
 export const PROJECT_LINK_PROP_CANCEL =
   'PROJECT_LINK_PROP_CANCEL';
 
@@ -319,6 +321,19 @@ export const linkProp = (componentId, propName, path = []) => ({
 export const linkWithOwnerProp = ownerPropName => ({
   type: PROJECT_LINK_WITH_OWNER_PROP,
   ownerPropName,
+});
+
+/**
+ *
+ * @param {string[]} dataContext
+ * @param {string[]} path
+ * @param {Immutable.Map<string, Object>} args
+ */
+export const linkWithData = (dataContext, path, args) => ({
+  type: PROJECT_LINK_WITH_DATA,
+  dataContext,
+  path,
+  args,
 });
 
 /**

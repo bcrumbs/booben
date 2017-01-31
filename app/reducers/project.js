@@ -5,7 +5,6 @@
 'use strict';
 
 import { Record, Map, Set, List, is } from 'immutable';
-import _mapValues from 'lodash.mapvalues';
 
 import {
   NOT_LOADED,
@@ -31,6 +30,7 @@ import {
   PROJECT_SAVE_COMPONENT_FOR_PROP,
   PROJECT_LINK_PROP,
   PROJECT_LINK_WITH_OWNER_PROP,
+  PROJECT_LINK_WITH_DATA,
   PROJECT_LINK_PROP_CANCEL,
 } from '../actions/project';
 
@@ -64,7 +64,11 @@ import ProjectRoute from '../models/ProjectRoute';
 import ProjectComponentProp from '../models/ProjectComponentProp';
 import SourceDataStatic from '../models/SourceDataStatic';
 import SourceDataDesigner from '../models/SourceDataDesigner';
-import SourceDataData from '../models/SourceDataData';
+
+import SourceDataData, {
+  QueryPathStep,
+  QueryArgumentValue
+} from '../models/SourceDataData';
 
 import {
   projectToImmutable,
@@ -80,7 +84,6 @@ import {
   getValueByPath,
   walkSimpleProps,
   walkComponentsTree,
-  QueryArgumentValue,
 } from '../models/ProjectComponent';
 
 import {
@@ -685,49 +688,10 @@ const handlers = {
       );
     }
   
-    const pathToComponent = [].concat(pathToCurrentComponents, [
+    const pathToComponent = [].concat(
+      pathToCurrentComponents,
       action.componentId,
-    ]);
-  
-    if (action.newQueryArgs) {
-      const pathToQueryArgs = (
-        action.isRootQuery
-          ? [
-            'data',
-            'routes',
-            state.currentRouteId,
-            'components',
-            getComponentWithQueryArgs(
-              state,
-              action.componentId,
-              false,
-            ).id,
-          ]
-          : pathToComponent
-      ).concat('queryArgs');
-    
-      const toMerge = _mapValues(
-        action.newQueryArgs,
-      
-        argsByContext => _mapValues(
-          argsByContext,
-        
-          argsByPath => _mapValues(
-            argsByPath,
-          
-            arg => new QueryArgumentValue({
-              source: arg.source,
-              sourceData: sourceDataToImmutable(
-                arg.source,
-                arg.sourceData,
-              ),
-            }),
-          ),
-        ),
-      );
-    
-      state = state.mergeIn(pathToQueryArgs, toMerge);
-    }
+    );
   
     const pathToProp = pathToComponent.concat([
       'props',
@@ -1090,6 +1054,16 @@ const handlers = {
     .set('linkingPropPath', action.path), // Prevent conversion to List
   
   [PROJECT_LINK_WITH_OWNER_PROP]: (state, action) => {
+    // Data prop with pushDataContext cannot be nested,
+    // so we need to clearOutdatedDataProps only when updating top-level prop
+    if (!state.linkingPropPath || !state.linkingPropPath.length) {
+      state = clearOutdatedDataProps(
+        state,
+        state.linkingPropOfComponentId,
+        state.linkingPropName,
+      );
+    }
+    
     const pathToCurrentComponents = getPathToCurrentComponents(state);
   
     const path = [].concat(
@@ -1117,8 +1091,47 @@ const handlers = {
         linkingProp: false,
         linkingPropOfComponentId: -1,
         linkingPropName: '',
-      })
-      .set('linkingPropPath', action.path); // Prevent conversion to List
+      });
+  },
+  
+  [PROJECT_LINK_WITH_DATA]: (state, action) => {
+    // Data prop with pushDataContext cannot be nested,
+    // so we need to clearOutdatedDataProps only when updating top-level prop
+    if (!state.linkingPropPath || !state.linkingPropPath.length) {
+      state = clearOutdatedDataProps(
+        state,
+        state.linkingPropOfComponentId,
+        state.linkingPropName,
+      );
+    }
+    
+    const pathToCurrentComponents = getPathToCurrentComponents(state);
+  
+    const path = [].concat(
+      pathToCurrentComponents,
+      [state.linkingPropOfComponentId, 'props', state.linkingPropName],
+      ...state.linkingPropPath.map(index => ['sourceData', 'value', index]),
+    );
+    
+    const newValue = new ProjectComponentProp({
+      source: 'data',
+      sourceData: new SourceDataData({
+        dataContext: List(action.dataContext),
+        queryPath: List(action.path.map(field => new QueryPathStep({
+          field,
+        }))),
+      }),
+    });
+    
+    // TODO: Find path to queryArgs and update them!
+  
+    return state
+      .setIn(path, newValue)
+      .merge({
+        linkingProp: false,
+        linkingPropOfComponentId: -1,
+        linkingPropName: '',
+      });
   },
   
   [PROJECT_LINK_PROP_CANCEL]: (state, action) => state

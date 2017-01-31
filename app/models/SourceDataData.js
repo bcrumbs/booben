@@ -6,6 +6,7 @@
 
 import { Record, List } from 'immutable';
 
+// TODO: Remove it and use JssyValue instead
 export const QueryArgumentValue = Record({
   source: '',
   sourceData: null,
