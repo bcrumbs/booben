@@ -1,22 +1,13 @@
+'use strict';
+
+import React from 'react';
 import './ComponentBreadcrumbs.scss';
 
-import React, { PropTypes } from 'react';
-
-export const ComponentBreadcrumbs = props => {
-  const className = 'component-breadcrumbs';
-
-  return (
-    <div className={className}>
-      { props.children }
-    </div>
-  );
-};
-
-ComponentBreadcrumbs.propTypes = {
-};
-
-ComponentBreadcrumbs.defaultProps = {
-};
+export const ComponentBreadcrumbs = ({ children }) => (
+  <div className="component-breadcrumbs">
+    {children}
+  </div>
+);
 
 ComponentBreadcrumbs.displayName = 'ComponentBreadcrumbs';
 

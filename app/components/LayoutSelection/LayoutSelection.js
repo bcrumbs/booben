@@ -1,11 +1,9 @@
+// TODO: Figure out WTF is this
+
 'use strict';
 
-import React, { PureComponent, PropTypes } from 'react';
-
-import {
-    Button,
-    Dialog,
-} from '@reactackle/reactackle';
+import React from 'react';
+import { Dialog } from '@reactackle/reactackle';
 
 import './LayoutSelection.scss';
 
@@ -18,19 +16,12 @@ export const LayoutSelection = props => (
     >
       <div className="layout-selection-wrapper">
         <div className="layout-selection-list">
-          { props.children }
+          {props.children}
         </div>
       </div>
     </Dialog>
   </div>
-    );
-
-LayoutSelection.propTypes = {
-
-};
-
-LayoutSelection.defaultProps = {
-};
+);
 
 LayoutSelection.displayName = 'LayoutSelection';
 

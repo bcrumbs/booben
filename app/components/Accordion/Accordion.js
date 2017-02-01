@@ -4,7 +4,7 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Set, Record } from 'immutable';
@@ -12,6 +12,30 @@ import { Set, Record } from 'immutable';
 import './Accordion.scss';
 import { AccordionItem } from './AccordionItem/AccordionItem';
 import { noop } from '../../utils/misc';
+
+export const AccordionItemRecord = Record({
+  id: '',
+  title: '',
+  content: null,
+});
+
+const propTypes = {
+  items: ImmutablePropTypes.listOf(
+    PropTypes.instanceOf(AccordionItemRecord),
+  ),
+  expandedItemIds: ImmutablePropTypes.setOf(
+    PropTypes.string,
+  ),
+  single: PropTypes.bool,
+  onExpandedItemsChange: PropTypes.func,
+};
+
+const defaultProps = {
+  items: [],
+  expandedItemIds: null,
+  single: false,
+  onExpandedItemsChange: noop,
+};
 
 export class Accordion extends PureComponent {
   constructor(...args) {
@@ -30,9 +54,8 @@ export class Accordion extends PureComponent {
         nextProps.items.map(item => item.id),
       );
 
-      if (newExpandedItemIds !== this.props.expandedItemIds) {
+      if (newExpandedItemIds !== this.props.expandedItemIds)
         this.props.onExpandedItemsChange(newExpandedItemIds);
-      }
     }
   }
 
@@ -81,28 +104,6 @@ export class Accordion extends PureComponent {
   }
 }
 
-export const AccordionItemRecord = Record({
-  id: '',
-  title: '',
-  content: null,
-});
-
-Accordion.propTypes = {
-  items: ImmutablePropTypes.listOf(
-    PropTypes.instanceOf(AccordionItemRecord),
-  ),
-  expandedItemIds: ImmutablePropTypes.setOf(
-    PropTypes.string,
-  ),
-  single: PropTypes.bool,
-  onExpandedItemsChange: PropTypes.func,
-};
-
-Accordion.defaultProps = {
-  items: [],
-  expandedItemIds: null,
-  single: false,
-  onExpandedItemsChange: noop,
-};
-
+Accordion.propTypes = propTypes;
+Accordion.defaultProps = defaultProps;
 Accordion.displayName = 'Accordion';

@@ -1,6 +1,6 @@
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 
 const propTypes = {
@@ -12,8 +12,7 @@ const defaultProps = {
 };
 
 export const BlockContentActionsRegion = props => {
-  let className = 'block-content-actions-region';
-  if (props.type) className += ` region-${props.type}`;
+  const className = `block-content-actions-region region-${props.type}`;
 
   return (
     <div className={className}>

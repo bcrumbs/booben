@@ -5,40 +5,19 @@
 'use strict';
 
 const co = require('co'),
-  path = require('path'),
   http = require('http'),
   express = require('express'),
   config = require('./config'),
-  constants = require('./common/constants'),
   logger = require('./common/logger');
 
 let httpServer;
-
-const setupWebpackDevMiddleware = app => {
-  const webpack = require('webpack'),
-    webpackDevMiddleware = require('webpack-dev-middleware'),
-    webpackHotMiddleware = require('webpack-hot-middleware'),
-    webpackDevConfig = require('./build-conf/webpack.dev.config');
-
-  const compilerDev = webpack(webpackDevConfig);
-
-  app.use(webpackDevMiddleware(compilerDev, {
-    publicPath: `${constants.URL_APP_DEV_PREFIX}/`,
-    stats: {
-      colors: true,
-    },
-  }));
-
-  app.use(webpackHotMiddleware(compilerDev, {
-    log: console.log,
-  }));
-};
 
 const setupEndpoint = (app, endpoint) => {
   app[endpoint.method](endpoint.url, ...endpoint.handlers);
 };
 
-const cb = (resolve, reject) => (err, res) => void (err ? reject(err) : resolve(res));
+const cb = (resolve, reject) =>
+  (err, res) => void (err ? reject(err) : resolve(res));
 
 const start = () => co(function* () {
   const app = express();
@@ -53,16 +32,12 @@ const start = () => co(function* () {
   setupEndpoint(app, require('./endpoints/create-project'));
   setupEndpoint(app, require('./endpoints/update-project'));
 
-  if (config.get('env') === 'development') {
-        // setupWebpackDevMiddleware(app);
-  }
-
   httpServer = http.createServer(app);
 
   const port = config.get('port');
 
   yield new Promise((resolve, reject) =>
-        void httpServer.listen(port, cb(resolve, reject)));
+    void httpServer.listen(port, cb(resolve, reject)));
 
   logger.info(`Server is listening on port ${port}`);
 });

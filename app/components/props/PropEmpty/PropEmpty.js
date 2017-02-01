@@ -10,7 +10,7 @@ export class PropEmpty extends PropBase {
   //noinspection JSUnusedGlobalSymbols
   /**
    *
-   * @return {null}
+   * @return {?ReactElement}
    * @override
    * @private
    */

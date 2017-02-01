@@ -4,63 +4,59 @@
 
 'use strict';
 
+import { Record } from 'immutable';
+
 import {
-    APP_LOCALIZATION_LOADING,
-    APP_LOCALIZATION_LOAD_SUCCESS,
-    APP_LOCALIZATION_LOAD_FAILURE,
-    APP_TOGGLE_CONTENT_PLACEHOLDERS,
-    APP_TOGGLE_COMPONENT_TITLES,
+  APP_LOCALIZATION_LOADING,
+  APP_LOCALIZATION_LOAD_SUCCESS,
+  APP_LOCALIZATION_LOAD_FAILURE,
+  APP_TOGGLE_CONTENT_PLACEHOLDERS,
+  APP_TOGGLE_COMPONENT_TITLES,
+  APP_SHOW_FOOTER_TOGGLES,
 } from '../actions/app';
 
 import {
-    NOT_LOADED,
-    LOADING,
-    LOADED,
-    LOAD_ERROR,
+  NOT_LOADED,
+  LOADING,
+  LOADED,
+  LOAD_ERROR,
 } from '../constants/loadStates';
-
-import { Record } from 'immutable';
 
 const AppState = Record({
   language: 'en',
   localizationLoadState: NOT_LOADED,
   localizationLoadError: null,
   localization: {},
+  showFooterToggles: false,
   showContentPlaceholders: false,
   showComponentTitles: false,
 });
 
-export default (state = new AppState(), action) => {
-  switch (action.type) {
-    case APP_LOCALIZATION_LOADING: {
-      return state.set('localizationLoadState', LOADING);
-    }
-
-    case APP_LOCALIZATION_LOAD_FAILURE: {
-      return state.merge({
-        localizationLoadState: LOAD_ERROR,
-        localizationLoadError: action.error,
-      });
-    }
-
-    case APP_LOCALIZATION_LOAD_SUCCESS: {
-      return state.merge({
-        language: action.language,
-        localizationLoadState: LOADED,
-      }).set(
-                'localization', action.localization,
-            );
-    }
-
-    case APP_TOGGLE_CONTENT_PLACEHOLDERS: {
-      return state.set('showContentPlaceholders', action.enable);
-    }
-
-    case APP_TOGGLE_COMPONENT_TITLES: {
-      return state.set('showComponentTitles', action.enable);
-    }
-
-    default:
-      return state;
-  }
+const handlers = {
+  [APP_LOCALIZATION_LOADING]: state =>
+    state.set('localizationLoadState', LOADING),
+  
+  [APP_LOCALIZATION_LOAD_FAILURE]: (state, action) => state.merge({
+    localizationLoadState: LOAD_ERROR,
+    localizationLoadError: action.error,
+  }),
+  
+  [APP_LOCALIZATION_LOAD_SUCCESS]: (state, action) => state
+    .merge({
+      language: action.language,
+      localizationLoadState: LOADED,
+    })
+    .set('localization', action.localization),
+  
+  [APP_TOGGLE_CONTENT_PLACEHOLDERS]: (state, action) =>
+    state.set('showContentPlaceholders', action.enable),
+  
+  [APP_TOGGLE_COMPONENT_TITLES]: (state, action) =>
+    state.set('showComponentTitles', action.enable),
+  
+  [APP_SHOW_FOOTER_TOGGLES]: (state, action) =>
+    state.set('showFooterToggles', action.show),
 };
+
+export default (state = new AppState(), action) =>
+  handlers[action.type] ? handlers[action.type](state, action) : state;

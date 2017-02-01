@@ -29,6 +29,8 @@ import {
   ValueShape,
   PropTypeShape,
   isComplexView,
+  jssyTypeToView,
+  jssyValueToPropValue,
 } from './common';
 
 import { noop, returnArg } from '../../../utils/misc';
@@ -39,7 +41,6 @@ const propTypes = {
   value: ValueShape.isRequired,
   disabled: PropTypes.bool,
   getLocalizedText: PropTypes.func,
-  
   onChange: PropTypes.func,
   onSetComponent: PropTypes.func,
   onAddValue: PropTypes.func,
@@ -52,7 +53,6 @@ const propTypes = {
 const defaultProps = {
   disabled: false,
   getLocalizedText: returnArg,
-  
   onChange: noop,
   onSetComponent: noop,
   onAddValue: noop,
@@ -253,7 +253,11 @@ export class Prop extends PureComponent {
     
     const index = currentType.view === PropViews.ARRAY ? -1 : name;
   
-    this.props.onAddValue({ propName, index, where: this.state.currentPath });
+    this.props.onAddValue({
+      propName,
+      index,
+      where: this.state.currentPath,
+    });
   }
   
   /**
@@ -535,4 +539,5 @@ Prop.propTypes = propTypes;
 Prop.defaultProps = defaultProps;
 Prop.displayName = 'Prop';
 
-export { PropViews };
+// Export utils
+export { PropViews, jssyTypeToView, jssyValueToPropValue };

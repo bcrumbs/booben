@@ -7,15 +7,13 @@
 import { Record, List, Map, Set } from 'immutable';
 import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';
-
-import ProjectComponentProp from './ProjectComponentProp';
+import JssyValue from './JssyValue';
 import SourceDataStatic from './SourceDataStatic';
 import SourceDataData, { QueryPathStep } from './SourceDataData';
 import SourceDataConst from './SourceDataConst';
-import SourceDataFunction, { FunctionArgValue } from './SourceDataFunction';
+import SourceDataFunction from './SourceDataFunction';
 import SourceDataAction from './SourceDataAction';
 import SourceDataDesigner from './SourceDataDesigner';
-
 import { getFunctionInfo } from '../utils/functions';
 
 const ProjectComponentRecord = Record({
@@ -34,6 +32,7 @@ const ProjectComponentRecord = Record({
   queryArgs: Map(),
 });
 
+/* eslint-disable no-use-before-define */
 const propSourceDataToImmutableFns = {
   static: input => {
     const data = {};
@@ -41,20 +40,20 @@ const propSourceDataToImmutableFns = {
     if (typeof input.value !== 'undefined') {
       if (Array.isArray(input.value)) {
         data.value = List(input.value.map(
-                    ({ source, sourceData }) => new ProjectComponentProp({
-                      source,
-                      sourceData: sourceDataToImmutable(source, sourceData),
-                    })),
-                );
+          ({ source, sourceData }) => new JssyValue({
+            source,
+            sourceData: sourceDataToImmutable(source, sourceData),
+          })),
+        );
       } else if (typeof input.value === 'object' && input.value !== null) {
         data.value = Map(_mapValues(
-                    input.value,
+          input.value,
 
-                    ({ source, sourceData }) => new ProjectComponentProp({
-                      source,
-                      sourceData: sourceDataToImmutable(source, sourceData),
-                    })),
-                );
+          ({ source, sourceData }) => new JssyValue({
+            source,
+            sourceData: sourceDataToImmutable(source, sourceData),
+          })),
+        );
       } else {
         data.value = input.value;
       }
@@ -69,14 +68,14 @@ const propSourceDataToImmutableFns = {
   data: input => {
     const data = {
       queryPath: input.queryPath
-                ? List(input.queryPath.map(step => new QueryPathStep({
-                  field: step.field,
-                })))
-                : null,
+        ? List(input.queryPath.map(step => new QueryPathStep({
+          field: step.field,
+        })))
+        : null,
 
       dataContext: input.dataContext
-                ? List(input.dataContext)
-                : List(),
+        ? List(input.dataContext)
+        : List(),
     };
 
     return new SourceDataData(data);
@@ -87,7 +86,7 @@ const propSourceDataToImmutableFns = {
     function: input.function,
     args: Map().withMutations(args => {
       _forOwn(input.args, (arg, name) => {
-        args.set(name, new FunctionArgValue({
+        args.set(name, new JssyValue({
           source: arg.source,
           sourceData: sourceDataToImmutable(arg.source, arg.sourceData),
         }));
@@ -99,77 +98,84 @@ const propSourceDataToImmutableFns = {
   action: input => new SourceDataAction(input),
 
   designer: input => new SourceDataDesigner(
-        input.component
-            ? {
-              rootId: input.component.id,
-              components: componentsToImmutable(input.component, -1, false, -1),
-            }
+    input.component
+      ? {
+        rootId: input.component.id,
+        components: componentsToImmutable(input.component, -1, false, -1),
+      }
 
-            : {
-              rootId: -1,
-            },
-    ),
+      : {
+        rootId: -1,
+      },
+  ),
 };
+/* eslint-enable no-use-before-define */
 
 export const sourceDataToImmutable = (source, sourceData) =>
     propSourceDataToImmutableFns[source](sourceData);
 
-export const QueryArgumentValue = Record({
-  source: '',
-  sourceData: null,
+export const projectComponentToImmutable = (
+  input,
+  routeId,
+  isIndexRoute,
+  parentId,
+) => new ProjectComponentRecord({
+  id: input.id,
+  parentId,
+  isNew: !!input.isNew,
+  isWrapper: !!input.isWrapper,
+  name: input.name,
+  title: input.title,
+
+  props: Map(_mapValues(input.props, propValue => new JssyValue({
+    source: propValue.source,
+    sourceData: sourceDataToImmutable(
+      propValue.source,
+      propValue.sourceData,
+    ),
+  }))),
+
+  children: List(input.children.map(childComponent => childComponent.id)),
+  layout: typeof input.layout === 'number' ? input.layout : 0,
+  regionsEnabled: input.regionsEnabled ? Set(input.regionsEnabled) : Set(),
+  routeId,
+  isIndexRoute,
+
+  queryArgs: Map(_mapValues(
+    input.queryArgs,
+
+    dataContextArgs => Map(_mapValues(
+      dataContextArgs,
+
+      args => Map(_mapValues(args, argValue => new JssyValue({
+        source: argValue.source,
+        sourceData: sourceDataToImmutable(
+          argValue.source,
+          argValue.sourceData,
+        ),
+      }))),
+    )),
+  )),
 });
 
-export const projectComponentToImmutable = (input, routeId, isIndexRoute, parentId) =>
-    new ProjectComponentRecord({
-      id: input.id,
-      parentId,
-      isNew: !!input.isNew,
-      isWrapper: !!input.isWrapper,
-      name: input.name,
-      title: input.title,
+export const componentsToImmutable = (
+  input,
+  routeId,
+  isIndexRoute,
+  parentId,
+) => Map().withMutations(mut => {
+  const visitComponent = (component, parentId) => {
+    mut.set(
+      component.id,
+      projectComponentToImmutable(component, routeId, isIndexRoute, parentId),
+    );
 
-      props: Map(_mapValues(input.props, propValue => new ProjectComponentProp({
-        source: propValue.source,
-        sourceData: sourceDataToImmutable(propValue.source, propValue.sourceData),
-      }))),
+    component.children.forEach(childComponent =>
+      void visitComponent(childComponent, component.id));
+  };
 
-      children: List(input.children.map(childComponent => childComponent.id)),
-      layout: typeof input.layout === 'number' ? input.layout : 0,
-      regionsEnabled: input.regionsEnabled ? Set(input.regionsEnabled) : Set(),
-      routeId,
-      isIndexRoute,
-
-      queryArgs: Map(_mapValues(
-            input.queryArgs,
-
-            dataContextArgs => Map(_mapValues(
-                dataContextArgs,
-
-                args => Map(_mapValues(args, argValue => new QueryArgumentValue({
-                  source: argValue.source,
-                  sourceData: sourceDataToImmutable(
-                        argValue.source,
-                        argValue.sourceData,
-                    ),
-                }))),
-            )),
-        )),
-    });
-
-export const componentsToImmutable = (input, routeId, isIndexRoute, parentId) =>
-    Map().withMutations(mut => {
-      const visitComponent = (component, parentId) => {
-        mut.set(
-                component.id,
-                projectComponentToImmutable(component, routeId, isIndexRoute, parentId),
-            );
-
-        component.children.forEach(childComponent =>
-                void visitComponent(childComponent, component.id));
-      };
-
-      visitComponent(input, parentId);
-    });
+  visitComponent(input, parentId);
+});
 
 export const isRootComponent = component => component.parentId === -1;
 
@@ -178,26 +184,26 @@ export const walkComponentsTree = (components, rootComponentId, visitor) => {
   visitor(component);
 
   component.children.forEach(childId =>
-        void walkComponentsTree(components, childId, visitor));
+    void walkComponentsTree(components, childId, visitor));
 };
 
 export const gatherComponentsTreeIds = (components, rootComponentId) =>
-    Set().withMutations(ret => void walkComponentsTree(
-        components,
-        rootComponentId,
-        component => void ret.add(component.id),
-    ));
+  Set().withMutations(ret => void walkComponentsTree(
+    components,
+    rootComponentId,
+    component => void ret.add(component.id),
+  ));
 
 export const getValueByPath = (component, propName, path) => path.reduce(
-    (acc, cur) => acc.sourceData.value.get(cur),
-    component.props.get(propName),
+  (acc, cur) => acc.sourceData.value.get(cur),
+  component.props.get(propName),
 );
 
 export const walkSimpleProps = (
-    component,
-    componentMeta,
-    visitor,
-    { walkFunctionArgs = false, project = null } = {},
+  component,
+  componentMeta,
+  visitor,
+  { walkFunctionArgs = false, project = null } = {},
 ) => {
   if (walkFunctionArgs && !project) {
     throw new Error(

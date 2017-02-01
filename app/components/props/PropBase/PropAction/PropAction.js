@@ -4,7 +4,7 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 import { Button } from '@reactackle/reactackle';
 import { noop } from '../../../../utils/misc';

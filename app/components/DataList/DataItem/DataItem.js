@@ -1,141 +1,177 @@
 'use strict';
 
-// noinspection JSUnresolvedVariable
-import React, { PropTypes } from 'react';
-import { noop } from '../../../utils/misc';
+//noinspection JSUnresolvedVariable
+import React, { PureComponent, PropTypes } from 'react';
+import { Button, TooltipIcon } from '@reactackle/reactackle';
+import { noop, returnArg } from '../../../utils/misc';
 
-import {
-    Button,
-    RadioGroup,
-    Radio,
-    TooltipIcon,
-} from '@reactackle/reactackle';
-
-export const DataItem = props => {
-  let className = 'data-list-item';
-
-  if (props.chosen) className += ' is-chosen';
-  if (props.state) className += ` state-${props.state}`;
-  if (props.actionType) className += ` action-type-${props.actionType}`;
-
-  let tooltip = null,
-    content = null,
-    description = null,
-    argsButton = null,
-    actionsRight = null;
-
-  if (props.tooltip) {
-    tooltip = (
-      <TooltipIcon text={props.tooltip} />
-        );
-  }
-
-  if (props.argsButton) {
-    argsButton = (<Button
-      onPress={props.onSetArgumentsClick}
-      text={props.argsButtonText}
-      narrow
-    />);
-  }
-
-  if (props.connection) {
-    actionsRight =
-          (<div className="data-item_actions data-item_actions-right">
-            <div className="data-item_actions data-item_actions-right">
-              <Button onPress={props.onJumpIntoClick} icon="chevron-right" />
-            </div>
-          </div>);
-  }
-
-  if (props.description) {
-    description =
-          (<div className="data-item_description">
-            {props.description}
-          </div>);
-  }
-
-  if (description || argsButton || props.canBeApplied) {
-    content =
-          (<div className="data-item_content">
-            { description }
-            <div className="data-item_buttons">
-              { argsButton }
-              {
-                props.canBeApplied
-                ?
-                  <Button
-                    text={props.applyButtonText}
-                    onPress={props.onApplyClick}
-                    narrow
-                  />
-                : null
-              }
-            </div>
-          </div>);
-  }
-
-  return (
-    <div className={className} onClick={props.onSelect}>
-      <div className="data-item_content-box">
-
-        <div className="data-item_title-box">
-          <div className="data-item_title">
-            <span className="data-item_title-text">{props.title}</span>
-            <span className="data-item_type">{props.type}</span>
-            {tooltip}
-          </div>
-        </div>
-
-        { content }
-      </div>
-
-      { actionsRight }
-    </div>
-  );
-};
-
-DataItem.propTypes = {
-  title: PropTypes.string,
+const propTypes = {
+  id: PropTypes.string.isRequired,
+  title: PropTypes.string.isRequired,
   description: PropTypes.string,
   type: PropTypes.string,
   tooltip: PropTypes.string,
+  data: PropTypes.any,
   actionType: PropTypes.oneOf(['jump', 'select']),
-  required: PropTypes.bool,
   argsButton: PropTypes.bool,
-  argsButtonText: PropTypes.string,
-  chosen: PropTypes.bool,
+  selected: PropTypes.bool,
   state: PropTypes.oneOf(['error', 'success']),
   connection: PropTypes.bool,
-  arg: PropTypes.any,
   canBeApplied: PropTypes.bool,
-  applyButtonText: PropTypes.string,
-
+  getLocalizedText: PropTypes.func,
   onSelect: PropTypes.func,
   onSetArgumentsClick: PropTypes.func,
   onApplyClick: PropTypes.func,
   onJumpIntoClick: PropTypes.func,
 };
 
-DataItem.defaultProps = {
-  title: '',
+const defaultProps = {
   description: '',
   type: '',
   tooltip: '',
+  data: null,
   actionType: 'select',
-  required: false,
   argsButton: false,
-  chosen: false,
+  selected: false,
   state: null,
   connection: false,
-  arg: null,
   canBeApplied: false,
-  applyButtonText: 'Apply',
-  argsButtonText: 'Set arguments',
-
+  getLocalizedText: returnArg,
   onSelect: noop,
   onSetArgumentsClick: noop,
   onApplyClick: noop,
   onJumpIntoClick: noop,
 };
 
+export class DataItem extends PureComponent {
+  constructor(props) {
+    super(props);
+    
+    this._handleSelect = this._handleSelect.bind(this);
+    this._handleJumpInto = this._handleJumpInto.bind(this);
+    this._handleApplyClick = this._handleApplyClick.bind(this);
+    this._handleSetArgumentsClick = this._handleSetArgumentsClick.bind(this);
+  }
+  
+  _handleSelect() {
+    const { id, data } = this.props;
+    this.props.onSelect({ id, data });
+  }
+  
+  _handleJumpInto() {
+    const { id, data } = this.props;
+    this.props.onJumpIntoClick({ id, data });
+  }
+  
+  _handleApplyClick() {
+    const { id, data } = this.props;
+    this.props.onApplyClick({ id, data });
+  }
+  
+  _handleSetArgumentsClick() {
+    const { id, data } = this.props;
+    this.props.onSetArgumentsClick({ id, data });
+  }
+  
+  render() {
+    let className = 'data-list-item';
+    if (this.props.selected) className += ' is-chosen';
+    if (this.props.state) className += ` state-${this.props.state}`;
+    
+    if (this.props.actionType)
+      className += ` action-type-${this.props.actionType}`;
+  
+    let tooltip = null,
+      content = null,
+      description = null,
+      argsButton = null,
+      actionsRight = null;
+  
+    if (this.props.tooltip) {
+      tooltip = (
+        <TooltipIcon text={this.props.tooltip} />
+      );
+    }
+  
+    if (this.props.argsButton) {
+      argsButton = (
+        <Button
+          onPress={this._handleSetArgumentsClick}
+          text={this.props.getLocalizedText('setArguments')}
+          narrow
+        />
+      );
+    }
+  
+    if (this.props.connection) {
+      actionsRight = (
+        <div className="data-item_actions data-item_actions-right">
+          <div className="data-item_actions data-item_actions-right">
+            <Button
+              icon="chevron-right"
+              onPress={this._handleJumpInto}
+            />
+          </div>
+        </div>
+      );
+    }
+  
+    if (this.props.description) {
+      description = (
+        <div className="data-item_description">
+          {this.props.description}
+        </div>
+      );
+    }
+  
+    if (description || argsButton || this.props.canBeApplied) {
+      let applyButton = null;
+      if (this.props.canBeApplied) {
+        applyButton = (
+          <Button
+            text={this.props.getLocalizedText('apply')}
+            onPress={this._handleApplyClick}
+            narrow
+          />
+        );
+      }
+    
+      content = (
+        <div className="data-item_content">
+          {description}
+          <div className="data-item_buttons">
+            {argsButton}
+            {applyButton}
+          </div>
+        </div>
+      );
+    }
+  
+    let type = null;
+    if (this.props.type) {
+      type = (
+        <span className="data-item_type">{this.props.type}</span>
+      );
+    }
+  
+    return (
+      <div className={className} onClick={this._handleSelect}>
+        <div className="data-item_content-box">
+          <div className="data-item_title-box">
+            <div className="data-item_title">
+              <span className="data-item_title-text">{this.props.title}</span>
+              {type}
+              {tooltip}
+            </div>
+          </div>
+          {content}
+        </div>
+        {actionsRight}
+      </div>
+    );
+  }
+}
+
+DataItem.propTypes = propTypes;
+DataItem.defaultProps = defaultProps;
 DataItem.displayName = 'DataItem';

@@ -4,34 +4,32 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
+import { List } from 'immutable';
 
 import {
-    MainRegion,
-    Content,
+  MainRegion,
+  Content,
 } from '@reactackle/reactackle';
 
 import { ToolWindow } from './ToolWindow/ToolWindow';
 import { ToolPanel } from './ToolPanel/ToolPanel';
-
 import ToolType from '../../models/Tool';
 import ToolStateType from '../../models/ToolState';
 
 import {
-    collapseToolsPanel,
-    dockTool,
-    undockTool,
-    focusTool,
-    selectTool,
-    closeTool,
-    setStickyTool,
-    setToolActiveSection,
+  collapseToolsPanel,
+  dockTool,
+  undockTool,
+  focusTool,
+  selectTool,
+  closeTool,
+  setStickyTool,
+  setToolActiveSection,
 } from '../../actions/desktop';
-
-import { List } from 'immutable';
 
 import { noop } from '../../utils/misc';
 
@@ -42,8 +40,8 @@ class DesktopComponent extends PureComponent {
     this.props.toolGroups.forEach(tools => {
       tools.forEach(tool => {
         const toolState =
-                    this.props.toolStates.get(tool.id) ||
-                    new ToolStateType();
+          this.props.toolStates.get(tool.id) ||
+          new ToolStateType();
 
         if (toolState.docked || toolState.closed) return;
 
@@ -54,13 +52,13 @@ class DesktopComponent extends PureComponent {
         const onFocus = () => this.props.onToolFocus(tool);
 
         const onTitleChange = newTitle =>
-                    this.props.onToolTitleChange(tool, newTitle);
+          this.props.onToolTitleChange(tool, newTitle);
 
         const onStickRegionEnter = () =>
-                    this.props.onToolStickRegionEnter(tool);
+          this.props.onToolStickRegionEnter(tool);
 
         const onStickRegionLeave = () =>
-                    this.props.onToolStickRegionLeave(tool);
+          this.props.onToolStickRegionLeave(tool);
 
         const onStopDrag = () => {
           const toolState = this.props.toolStates.get(tool.id);
@@ -68,7 +66,7 @@ class DesktopComponent extends PureComponent {
         };
 
         const onActiveSectionChange = newActiveSection =>
-                    this.props.onToolActiveSectionChange(tool, newActiveSection);
+          this.props.onToolActiveSectionChange(tool, newActiveSection);
 
         windows.push(
           <ToolWindow
@@ -88,7 +86,7 @@ class DesktopComponent extends PureComponent {
             onStopDrag={onStopDrag}
             onActiveSectionChange={onActiveSectionChange}
           />,
-                );
+        );
       });
     });
 
@@ -114,28 +112,26 @@ class DesktopComponent extends PureComponent {
   }
 }
 
+//noinspection JSUnresolvedVariable
 DesktopComponent.propTypes = {
   toolGroups: ImmutablePropTypes.listOf(
-        ImmutablePropTypes.listOf(PropTypes.instanceOf(ToolType)),
-    ),
-
+    ImmutablePropTypes.listOf(PropTypes.instanceOf(ToolType)),
+  ),
   toolStates: ImmutablePropTypes.mapOf(
-        PropTypes.instanceOf(ToolStateType),
-        PropTypes.string,
-    ),
-
-  toolsPanelIsExpanded: PropTypes.bool,
-
-  onToolsPanelCollapse: PropTypes.func,
-  onActiveToolChange: PropTypes.func,
+    PropTypes.instanceOf(ToolStateType),
+    PropTypes.string,
+  ).isRequired,
+  toolsPanelIsExpanded: PropTypes.bool.isRequired,
+  onToolsPanelCollapse: PropTypes.func.isRequired,
+  onActiveToolChange: PropTypes.func.isRequired,
   onToolTitleChange: PropTypes.func,
-  onToolDock: PropTypes.func,
-  onToolUndock: PropTypes.func,
-  onToolClose: PropTypes.func,
-  onToolFocus: PropTypes.func,
-  onToolStickRegionEnter: PropTypes.func,
-  onToolStickRegionLeave: PropTypes.func,
-  onToolActiveSectionChange: PropTypes.func,
+  onToolDock: PropTypes.func.isRequired,
+  onToolUndock: PropTypes.func.isRequired,
+  onToolClose: PropTypes.func.isRequired,
+  onToolFocus: PropTypes.func.isRequired,
+  onToolStickRegionEnter: PropTypes.func.isRequired,
+  onToolStickRegionLeave: PropTypes.func.isRequired,
+  onToolActiveSectionChange: PropTypes.func.isRequired,
 };
 
 DesktopComponent.defaultProps = {
@@ -152,34 +148,37 @@ const mapStateToProps = ({ desktop }) => ({
 
 const mapDispatchToProps = dispatch => ({
   onToolsPanelCollapse: () =>
-        void dispatch(collapseToolsPanel()),
+    void dispatch(collapseToolsPanel()),
 
   onActiveToolChange: tool =>
-        void dispatch(selectTool(tool.id)),
+    void dispatch(selectTool(tool.id)),
 
   onToolDock: tool =>
-        void dispatch(dockTool(tool.id)),
+    void dispatch(dockTool(tool.id)),
 
   onToolUndock: (tool, nextActiveTool) =>
-        void dispatch(undockTool(
-            tool.id,
-            nextActiveTool !== null ? nextActiveTool.id : null),
-        ),
+    void dispatch(undockTool(
+      tool.id,
+      nextActiveTool !== null ? nextActiveTool.id : null),
+    ),
 
   onToolClose: tool =>
-        void dispatch(closeTool(tool.id)),
+    void dispatch(closeTool(tool.id)),
 
   onToolFocus: tool =>
-        void dispatch(focusTool(tool.id)),
+    void dispatch(focusTool(tool.id)),
 
   onToolStickRegionEnter: tool =>
-        void dispatch(setStickyTool(tool.id)),
+    void dispatch(setStickyTool(tool.id)),
 
   onToolStickRegionLeave: () =>
-        void dispatch(setStickyTool(null)),
+    void dispatch(setStickyTool(null)),
 
   onToolActiveSectionChange: (tool, newActiveSection) =>
-        void dispatch(setToolActiveSection(tool.id, newActiveSection)),
+    void dispatch(setToolActiveSection(tool.id, newActiveSection)),
 });
 
-export const Desktop = connect(mapStateToProps, mapDispatchToProps)(DesktopComponent);
+export const Desktop = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(DesktopComponent);

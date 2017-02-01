@@ -6,11 +6,6 @@
 
 import { Record, List } from 'immutable';
 
-export const QueryArgumentValue = Record({
-  source: '',
-  sourceData: null,
-});
-
 export const QueryPathStep = Record({
   field: '',
 });

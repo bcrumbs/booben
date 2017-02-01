@@ -31,8 +31,8 @@ co(function* () {
   let message = err.message || err.toString();
   if (err.validationErrors) {
     message +=
-            `\nValidation errors:\n${
-            err.validationErrors.map(e => JSON.stringify(e)).join('\n')}`;
+      `\nValidation errors:\n${
+      err.validationErrors.map(e => JSON.stringify(e)).join('\n')}`;
   }
 
   console.error(message);

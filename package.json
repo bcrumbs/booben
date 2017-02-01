@@ -5,8 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --config ./build-conf/webpack.config.js",
-    "watch": "webpack --config ./build-conf/webpack.config.js --watch",
+    "build": "webpack -d --config ./build-conf/webpack.config.js",
+    "build:prod": "webpack -p --config ./build-conf/webpack.config.js",
+    "build:watch": "webpack -d --config ./build-conf/webpack.config.js --watch",
     "lint": "eslint .",
     "start": "node index.js"
   },
@@ -19,7 +20,7 @@
   "dependencies": {
     "@common/async-utils": "^0.2.1",
     "@common/tree": "^0.1.1",
-    "@reactackle/reactackle": "0.1.0-dev401",
+    "@reactackle/reactackle": "0.1.0-dev415",
     "apollo-client": "^0.5.21",
     "babel-core": "^6.14.0",
     "babel-loader": "^6.2.5",
@@ -64,8 +65,8 @@
     "webpack-hot-middleware": "^2.12.2"
   },
   "devDependencies": {
-    "@eslint/eslint-config-client": "^0.1.7",
-    "@eslint/eslint-config-server": "^0.1.5",
+    "@eslint/eslint-config-client": "^0.2.1",
+    "@eslint/eslint-config-server": "^0.2.2",
     "babel-eslint": "^7.1.0",
     "babel-plugin-transform-object-rest-spread": "^6.20.2",
     "copy-webpack-plugin": "^4.0.0",

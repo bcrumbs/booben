@@ -4,7 +4,7 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
@@ -41,15 +41,15 @@ import {
 } from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
 
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
-import { DataWindow } from '../containers/DataWindow/DataWindow';
+import { LinkPropDialog } from '../containers/LinkPropDialog/LinkPropDialog';
 
 import {
-    ComponentLayoutSelection,
-    ComponentLayoutSelectionItem,
+  ComponentLayoutSelection,
+  ComponentLayoutSelectionItem,
 } from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
 import {
-    ConstructionPane,
+  ConstructionPane,
 } from '../components/ConstructionPane/ConstructionPane';
 
 import store from '../store';
@@ -60,31 +60,31 @@ import ToolSectionRecord from '../models/ToolSection';
 import ButtonRecord from '../models/Button';
 
 import {
-    renameComponent,
-    deleteComponent,
-    selectLayoutForNewComponent,
-    saveComponentForProp,
-    cancelConstructComponentForProp,
-    linkPropCancel,
+  renameComponent,
+  deleteComponent,
+  selectLayoutForNewComponent,
+  saveComponentForProp,
+  cancelConstructComponentForProp,
 } from '../actions/project';
 
 import {
-    haveNestedConstructorsSelector,
-    singleComponentSelectedSelector,
-    firstSelectedComponentIdSelector,
-    currentComponentsSelector,
+  haveNestedConstructorsSelector,
+  singleComponentSelectedSelector,
+  firstSelectedComponentIdSelector,
+  currentComponentsSelector,
 } from '../selectors';
 
 import {
-    getComponentMeta,
-    isCompositeComponent,
-    getString,
-    getComponentPropName,
+  getComponentMeta,
+  isCompositeComponent,
+  getString,
+  getComponentPropName,
 } from '../utils/meta';
 
+import { URL_PREVIEW_PREFIX } from '../../shared/constants';
 import { getLocalizedTextFromState } from '../utils';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import defaultComponentLayoutIcon from '../img/layout_default.svg';
 
 export const TOOL_ID_LIBRARY = 'componentsLibrary';
@@ -102,50 +102,54 @@ export const DESIGN_TOOL_IDS = List([
 ]);
 
 const containerStyleSelector = createSelector(
-    state => state.project.meta,
+  state => state.project.meta,
 
-    meta => {
-      const combinedStyle = Object.keys(meta).reduce(
-        (acc, cur) => Object.assign(acc, meta[cur].containerStyle || {}),
-        {},
-      );
+  meta => {
+    const combinedStyle = Object.keys(meta).reduce(
+      (acc, cur) => Object.assign(acc, meta[cur].containerStyle || {}),
+      {},
+    );
 
-      return Object.keys(combinedStyle)
-        .map(prop => `${prop}:${combinedStyle[prop]}`)
-        .join(';');
-    },
+    return Object.keys(combinedStyle)
+      .map(prop => `${prop}:${combinedStyle[prop]}`)
+      .join(';');
+  },
 );
 
 const nestedConstructorBreadcrumbsSelector = createSelector(
-    state => state.project.data,
-    state => state.project.currentRouteId,
-    state => state.project.nestedConstructors,
-    state => state.project.meta,
-    state => state.project.languageForComponentProps,
+  state => state.project.data,
+  state => state.project.currentRouteId,
+  state => state.project.nestedConstructors,
+  state => state.project.meta,
+  state => state.project.languageForComponentProps,
 
-    (project, currentRouteId, nestedConstructors, meta, language) => {
-      const returnEmpty =
-        !project ||
-        currentRouteId === -1 ||
-        nestedConstructors.isEmpty();
+  (project, currentRouteId, nestedConstructors, meta, language) => {
+    const returnEmpty =
+      !project ||
+      currentRouteId === -1 ||
+      nestedConstructors.isEmpty();
 
-      if (returnEmpty) return List();
-
-      return nestedConstructors.reduceRight((acc, cur) => {
-        const component = acc.components.get(cur.componentId),
-          title = component.title || component.name,
-          componentMeta = getComponentMeta(component.name, meta),
-          propName = getComponentPropName(componentMeta, cur.prop, language);
-
-        return {
-          ret: acc.ret.push(title, propName),
-          components: cur.components,
-        };
-      }, {
-        ret: List(),
-        components: project.routes.get(currentRouteId).components,
-      }).ret;
-    },
+    if (returnEmpty) return List();
+    
+    const initialAccumulator = {
+      ret: List(),
+      components: project.routes.get(currentRouteId).components,
+    };
+    
+    const reducer = (acc, cur) => {
+      const component = acc.components.get(cur.componentId),
+        title = component.title || component.name,
+        componentMeta = getComponentMeta(component.name, meta),
+        propName = getComponentPropName(componentMeta, cur.prop, language);
+  
+      return {
+        ret: acc.ret.push(title, propName),
+        components: cur.components,
+      };
+    };
+    
+    return nestedConstructors.reduceRight(reducer, initialAccumulator).ret;
+  },
 );
 
 /* eslint-disable react/prop-types */
@@ -174,8 +178,6 @@ class DesignRoute extends PureComponent {
       this._handleDeleteComponentCancel.bind(this);
     this._handleConfirmDeleteComponentDialogClose =
       this._handleConfirmDeleteComponentDialogClose.bind(this);
-    this._handleLinkPropDialogCancel =
-      this._handleLinkPropDialogCancel.bind(this);
     this._handleLayoutSelection =
       this._handleLayoutSelection.bind(this);
   }
@@ -232,14 +234,6 @@ class DesignRoute extends PureComponent {
     this.setState({
       confirmDeleteComponentDialogIsVisible: false,
     });
-  }
-
-    /**
-     *
-     * @private
-     */
-  _handleLinkPropDialogCancel() {
-    this.props.onLinkPropCancel();
   }
   
   /**
@@ -300,7 +294,7 @@ class DesignRoute extends PureComponent {
 
   render() {
     const { getLocalizedText } = this.props,
-      src = `/preview/${this.props.params.projectName}/index.html`;
+      src = `${URL_PREVIEW_PREFIX}/${this.props.params.projectName}/index.html`;
 
     const libraryTool = new ToolRecord({
       id: TOOL_ID_LIBRARY,
@@ -459,8 +453,6 @@ class DesignRoute extends PureComponent {
       content = previewIFrame;
     }
 
-    const dataWindow = this.props.linkingProp ? <DataWindow /> : null;
-
     return (
       <Desktop
         toolGroups={toolGroups}
@@ -490,8 +482,8 @@ class DesignRoute extends PureComponent {
         >
           {getLocalizedText('deleteThisComponentQuestion')}
         </Dialog>
-
-        {dataWindow}
+  
+        <LinkPropDialog />
       </Desktop>
     );
   }
@@ -517,15 +509,12 @@ DesignRoute.propTypes = {
   language: PropTypes.string,
   haveNestedConstructor: PropTypes.bool,
   nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(PropTypes.string),
-  linkingProp: PropTypes.bool,
   getLocalizedText: PropTypes.func,
-
   onRenameComponent: PropTypes.func,
   onDeleteComponent: PropTypes.func,
   onSelectLayout: PropTypes.func,
   onSaveComponentForProp: PropTypes.func,
   onCancelConstructComponentForProp: PropTypes.func,
-  onLinkPropCancel: PropTypes.func,
 };
 
 const mapStateToProps = state => ({
@@ -539,7 +528,6 @@ const mapStateToProps = state => ({
   language: state.project.languageForComponentProps,
   haveNestedConstructor: haveNestedConstructorsSelector(state),
   nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
-  linkingProp: state.project.linkingProp,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -554,8 +542,6 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(saveComponentForProp()),
   onCancelConstructComponentForProp: () =>
     void dispatch(cancelConstructComponentForProp()),
-  onLinkPropCancel: () =>
-    void dispatch(linkPropCancel()),
 });
 
 export default connect(

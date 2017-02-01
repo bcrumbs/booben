@@ -11,17 +11,23 @@ export const noop = /* istanbul ignore next */ () => {};
 
 /**
  * Returns null :)
+ * @return {null}
  */
 export const returnNull = /* istanbul ignore next */ () => null;
 
 /**
  * Returns its first argument
- *
  * @template T
  * @param {T} arg
  * @return {T}
  */
 export const returnArg = /* istanbul ignore next */ arg => arg;
+
+/**
+ * Returns true
+ * @return {boolean}
+ */
+export const returnTrue = /* istanbul ignore next */ () => true;
 
 /**
  *
@@ -85,6 +91,64 @@ export const clone = value => {
   else if (isObject(value)) return objectMap(value, clone);
   else return value;
 };
+
+//noinspection JSCheckFunctionSignatures
+/**
+ *
+ * @template T
+ * @template N
+ * @param {T[]} array
+ * @param {function(item: T, idx: number, array: T[]): string} keyFn
+ * @param {function(item: T, idx: number, array: T[]): N} [valueFn]
+ * @param {function(item: T, idx: number, array: T[]): boolean} [includeFn]
+ * @return {Object<string, N>}
+ */
+export const arrayToObject = (
+  array,
+  keyFn,
+  valueFn = returnArg,
+  includeFn = returnTrue,
+) => array.reduce(
+  (acc, cur, idx) => includeFn(cur, idx, array)
+    ? Object.assign(acc, { [keyFn(cur, idx, array)]: valueFn(cur, idx, array) })
+    : acc,
+  
+  {},
+);
+
+/**
+ *
+ * @template T
+ * @template N
+ * @param {Object<string, T>} object
+ * @param {function(item: T, key: string, object: Object<string, T>): N} [itemFn]
+ * @param {function(item: T, key: string, object: Object<string, T>): boolean} [includeFn]
+ * @return {N[]}
+ */
+export const objectToArray = (
+  object,
+  itemFn = returnArg,
+  includeFn = returnTrue,
+) => {
+  const keys = Object.keys(object);
+  const ret = [];
+  
+  keys.forEach(key => {
+    //noinspection JSCheckFunctionSignatures
+    if (!includeFn(object[key], key, object)) return;
+    //noinspection JSCheckFunctionSignatures
+    ret.push(itemFn(object[key], key, object));
+  });
+  
+  return ret;
+};
+
+/**
+ *
+ * @param {string} key
+ * @return {function(object: Object): *}
+ */
+export const getter = key => object => object[key];
 
 /**
  *

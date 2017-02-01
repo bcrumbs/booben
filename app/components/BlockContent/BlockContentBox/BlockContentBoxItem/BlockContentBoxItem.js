@@ -1,12 +1,13 @@
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 
 const propTypes = {
   isBordered: PropTypes.bool,
   blank: PropTypes.bool,
-  flexMain: PropTypes.bool, // If true, flex-grow will be st to '1' for this block
+  // If true, flex-grow will be st to '1' for this block
+  flexMain: PropTypes.bool,
 };
 
 const defaultProps = {

@@ -17,7 +17,7 @@ import {
 import {
   getTypeNameByField,
   getTypeNameByPath,
-  FIELD_KINDS,
+  FieldKinds,
 } from './schema';
 
 import {
@@ -139,6 +139,7 @@ const toGraphQLScalarValue = (value, type) => {
 };
 
 const buildGraphQLValue = (propValue, schemaTypeDef) => {
+  // eslint-disable-next-line no-unused-vars
   const { type, kind, nonNull } = schemaTypeDef;
 
     // TODO: Deal with more complex values
@@ -256,7 +257,7 @@ const buildGraphQLFragmentForValue = (
     }
 
     if (connectionFieldName) {
-      if (currentFieldDefinition.kind !== FIELD_KINDS.CONNECTION) {
+      if (currentFieldDefinition.kind !== FieldKinds.CONNECTION) {
         throw new Error(
           'Got slash field in path, but the field is not a connection',
         );
@@ -317,7 +318,7 @@ const buildGraphQLFragmentForValue = (
       };
 
       currentNode = node.selectionSet.selections[0];
-    } else if (currentFieldDefinition.kind === FIELD_KINDS.CONNECTION) {
+    } else if (currentFieldDefinition.kind === FieldKinds.CONNECTION) {
       // TODO: Handle connection arguments
 
       const node = {
@@ -509,6 +510,7 @@ const buildAndAttachFragmentsForDesignerProp = (
   const fragments = [];
 
   const visitComponent = component => {
+    // eslint-disable-next-line no-use-before-define
     const ret = buildGraphQLFragmentsForOwnComponent(
       component,
       ownerComponentsChain,
@@ -807,7 +809,7 @@ export const extractPropValueFromData = (
     [fieldName, connectionFieldName] = queryStep.field.split('/'),
     fieldDefinition = typeDefinition.fields[fieldName];
 
-  if (fieldDefinition.kind === FIELD_KINDS.CONNECTION) {
+  if (fieldDefinition.kind === FieldKinds.CONNECTION) {
     if (connectionFieldName) {
       return {
         data: acc.data[fieldName][connectionFieldName],

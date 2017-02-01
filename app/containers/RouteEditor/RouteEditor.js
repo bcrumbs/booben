@@ -157,6 +157,7 @@ class RouteEditorComponent extends PureComponent {
   }
 }
 
+//noinspection JSUnresolvedVariable
 RouteEditorComponent.propTypes = {
   routes: ImmutablePropTypes.mapOf(
     PropTypes.instanceOf(ProjectRouteRecord),
@@ -165,7 +166,6 @@ RouteEditorComponent.propTypes = {
 
   selectedRouteId: PropTypes.number.isRequired,
   indexRouteSelected: PropTypes.bool.isRequired,
-
   getLocalizedText: PropTypes.func.isRequired,
   onPathChange: PropTypes.func.isRequired,
   onDescriptionChange: PropTypes.func.isRequired,

@@ -1,9 +1,8 @@
 'use strict';
 
+//noinspection JSUnresolvedVariable
+import React from 'react';
 import './RoutesList.scss';
-
-// noinspection JSUnresolvedVariable
-import React, { PropTypes } from 'react';
 
 export const RoutesList = props => (
   <ul className="routes-list-wrapper">
@@ -14,4 +13,5 @@ export const RoutesList = props => (
 RoutesList.displayName = 'RoutesList';
 
 export * from './RouteCard/RouteCard';
+export * from './IndexRouteCard/IndexRouteCard';
 export * from './RouteNewButton/RouteNewButton';

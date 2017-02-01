@@ -42,6 +42,8 @@ export const PROJECT_LINK_PROP =
   'PROJECT_LINK_PROP';
 export const PROJECT_LINK_WITH_OWNER_PROP =
   'PROJECT_LINK_WITH_OWNER_PROP';
+export const PROJECT_LINK_WITH_DATA =
+  'PROJECT_LINK_WITH_DATA';
 export const PROJECT_LINK_PROP_CANCEL =
   'PROJECT_LINK_PROP_CANCEL';
 
@@ -87,7 +89,7 @@ const projectLoadFailed = error => ({
 export const loadProject = projectName => dispatch => {
   dispatch(requestProject(projectName));
 
-  // noinspection JSCheckFunctionSignatures
+  //noinspection JSCheckFunctionSignatures
   Promise.all([getProject(projectName), getMetadata(projectName)])
     .then(([project, metadata]) => {
       if (project.graphQLEndpointURL) {
@@ -96,7 +98,9 @@ export const loadProject = projectName => dispatch => {
             void dispatch(projectLoaded(project, metadata, schema)),
           )
           .catch(error => void dispatch(projectLoadFailed(error)));
-      } else { dispatch(projectLoaded(project, metadata)); }
+      } else {
+        dispatch(projectLoaded(project, metadata));
+      }
     })
     .catch(err => void dispatch(projectLoadFailed(err)));
 };
@@ -161,13 +165,13 @@ export const deleteComponent = componentId => ({
  * @return {Object}
  */
 export const updateComponentPropValue = (
-    componentId,
-    propName,
-    path,
-    newSource,
-    newSourceData,
-    newQueryArgs = {},
-    isRootQuery = false,
+  componentId,
+  propName,
+  path,
+  newSource,
+  newSourceData,
+  newQueryArgs = {},
+  isRootQuery = false,
 ) => ({
   type: PROJECT_COMPONENT_UPDATE_PROP_VALUE,
   componentId,
@@ -192,12 +196,12 @@ export const updateComponentPropValue = (
  * @return {Object}
  */
 export const addComponentPropValue = (
-    componentId,
-    propName,
-    path,
-    index,
-    source,
-    sourceData,
+  componentId,
+  propName,
+  path,
+  index,
+  source,
+  sourceData,
 ) => ({
   type: PROJECT_COMPONENT_ADD_PROP_VALUE,
   componentId,
@@ -317,6 +321,19 @@ export const linkProp = (componentId, propName, path = []) => ({
 export const linkWithOwnerProp = ownerPropName => ({
   type: PROJECT_LINK_WITH_OWNER_PROP,
   ownerPropName,
+});
+
+/**
+ *
+ * @param {string[]} dataContext
+ * @param {string[]} path
+ * @param {Immutable.Map<string, Object>} args
+ */
+export const linkWithData = (dataContext, path, args) => ({
+  type: PROJECT_LINK_WITH_DATA,
+  dataContext,
+  path,
+  args,
 });
 
 /**

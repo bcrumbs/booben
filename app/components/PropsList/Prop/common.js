@@ -6,6 +6,8 @@
 
 //noinspection JSUnresolvedVariable
 import { PropTypes } from 'react';
+import _mapValues from 'lodash.mapvalues';
+import { resolveTypedef } from '../../../../shared/types';
 
 /**
  * @typedef {Object} PropsItemPropTypeOption
@@ -35,10 +37,10 @@ import { PropTypes } from 'react';
  * @typedef {Object} PropsItemValue
  * @property {*} value
  * @property {boolean} linked
- * @property {string} linkedWith
- * @property {boolean} checked
- * @property {string} message
- * @property {boolean} requirementFulfilled
+ * @property {string} [linkedWith]
+ * @property {boolean} [checked]
+ * @property {string} [message]
+ * @property {boolean} [requirementFulfilled]
  */
 
 /**
@@ -56,6 +58,34 @@ export const PropViews = {
   OBJECT: 7,
   ARRAY: 8,
 };
+
+/**
+ *
+ * @type {Object<string, number>}
+ * @const
+ */
+const JSSY_TYPE_TO_VIEW = {
+  string: PropViews.INPUT,
+  bool: PropViews.TOGGLE,
+  int: PropViews.INPUT,
+  float: PropViews.INPUT,
+  oneOf: PropViews.LIST,
+  component: PropViews.COMPONENT,
+  shape: PropViews.SHAPE,
+  objectOf: PropViews.OBJECT,
+  arrayOf: PropViews.ARRAY,
+  object: PropViews.EMPTY,
+  array: PropViews.EMPTY,
+  func: PropViews.EMPTY,
+};
+
+/**
+ *
+ * @param {string} jssyType
+ * @return {number}
+ */
+export const jssyTypeToView = jssyType =>
+  JSSY_TYPE_TO_VIEW[jssyType] || PropViews.EMPTY;
 
 export const ValueShape = PropTypes.shape({
   value: PropTypes.any,
@@ -113,3 +143,91 @@ const complexViews = new Set([
  * @return {boolean}
  */
 export const isComplexView = view => complexViews.has(view);
+
+/**
+ *
+ * @param {Object} propValue
+ * @return {boolean}
+ */
+const isLinkedProp = propValue =>
+  propValue.source === 'data' ||
+  propValue.source === 'function' || (
+    propValue.source === 'static' &&
+    !!propValue.sourceData.ownerPropName
+  );
+
+/**
+ *
+ * @param {Object} propValue
+ * It is an {@link Immutable.Record} actually
+ * (see app/models/ProjectComponentProp.js)
+ * @param {TypeDefinition} typedef
+ * @param {?Object<string, TypeDefinition>} [userTypedefs=null]
+ * @return {PropsItemValue}
+ */
+export const jssyValueToPropValue = (
+  propValue,
+  typedef,
+  userTypedefs = null,
+) => {
+  if (!propValue) return { value: null, isLinked: false };
+  
+  const resolvedTypedef = resolveTypedef(typedef, userTypedefs),
+    linked = isLinkedProp(propValue);
+  
+  let value = null;
+  let linkedWith = '';
+  
+  if (!linked) {
+    if (propValue.source === 'static') {
+      if (resolvedTypedef.type === 'int' || resolvedTypedef.type === 'float') {
+        value = String(propValue.sourceData.value);
+      } else if (
+        resolvedTypedef.type === 'string' ||
+        resolvedTypedef.type === 'bool' ||
+        resolvedTypedef.type === 'oneOf'
+      ) {
+        value = propValue.sourceData.value;
+      } else if (resolvedTypedef.type === 'shape') {
+        value = _mapValues(resolvedTypedef.fields, (fieldMeta, fieldName) =>
+          jssyValueToPropValue(
+            propValue.sourceData.value.get(fieldName),
+            fieldMeta,
+            userTypedefs,
+          ),
+        );
+      } else if (resolvedTypedef.type === 'objectOf') {
+        propValue.sourceData.value.map(nestedValue => jssyValueToPropValue(
+          nestedValue,
+          resolvedTypedef.ofType,
+          userTypedefs,
+        )).toJS();
+      } else if (resolvedTypedef.type === 'arrayOf') {
+        value = propValue.sourceData.value.map(nestedValue =>
+          jssyValueToPropValue(
+            nestedValue,
+            resolvedTypedef.ofType,
+            userTypedefs,
+          ),
+        ).toJS();
+      }
+    } else if (propValue.source === 'designer') {
+      // true if component exists, false otherwise
+      if (resolvedTypedef.type === 'component')
+        value = propValue.sourceData.rootId !== -1;
+    }
+  } else if (propValue.source === 'data') {
+    if (propValue.sourceData.queryPath) {
+      linkedWith = propValue.sourceData.queryPath
+        .map(step => step.field)
+        .toJS()
+        .join(' -> ');
+    }
+  } else if (propValue.source === 'function') {
+    linkedWith = propValue.sourceData.function;
+  } else if (propValue.source === 'static') {
+    linkedWith = propValue.sourceData.ownerPropName;
+  }
+  
+  return { value, linked, linkedWith };
+};

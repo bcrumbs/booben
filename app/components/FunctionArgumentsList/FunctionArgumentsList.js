@@ -1,14 +1,13 @@
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { Component, PropTypes } from 'react';
-
 import { PropsList } from '../PropsList/PropsList';
 import { PropEmpty } from '../props';
 
 import {
-    BlockContentBoxItem,
-    BlockContentBoxHeading,
+  BlockContentBoxItem,
+  BlockContentBoxHeading,
 } from '../BlockContent/BlockContent';
 
 import {
@@ -19,9 +18,8 @@ import {
   FunctionAddArgumentButton,
 } from './FunctionAddArgumentButton/FunctionAddArgumentButton';
 
-import './FunctionArgumentsList.scss';
-
 import { returnArg, noop } from '../../utils/misc';
+import './FunctionArgumentsList.scss';
 
 export const FunctionArgumentPropType = PropTypes.shape({
   name: PropTypes.string.isRequired,
@@ -31,16 +29,13 @@ export const FunctionArgumentPropType = PropTypes.shape({
 const propTypes = {
   items: PropTypes.arrayOf(FunctionArgumentPropType),
   getLocalizedText: PropTypes.func,
-
   onAdd: PropTypes.func,
   onDelete: PropTypes.func,
 };
 
 const defaultProps = {
   items: [],
-  newArgument: false,
   getLocalizedText: returnArg,
-
   onAdd: noop,
   onDelete: noop,
 };
@@ -64,49 +59,61 @@ export class FunctionArgumentsList extends Component {
     });
   }
 
-  _handleAddArgument(name, type) {
+  _handleAddArgument({ name, type }) {
     this.setState({
       creatingNewArgument: false,
     });
 
-    // TODO: Call onAdd
+    this.props.onAdd({ name, type });
   }
 
-  _handleDeleteArgument(idx) {
-    // TODO: Call onDelete
+  _handleDeleteArgument({ id }) {
+    const idx = parseInt(id, 10);
+    this.props.onDelete({ idx });
   }
 
   render() {
     const { items, getLocalizedText } = this.props;
 
-    const list = items.map(({ name, type }) => (
+    const list = items.map(({ name, type }, idx) => (
       <PropEmpty
         key={name}
+        id={String(idx)}
         label={name}
         secondaryLabel={type}
         deletable
+        onDelete={this._handleDeleteArgument}
       />
     ));
 
     const argumentsAdd = this.state.creatingNewArgument
-      ? <FunctionArgumentNew />
-      : <FunctionAddArgumentButton onPress={this._handleAddButtonPress} />;
+      ? (
+        <FunctionArgumentNew
+          onAdd={this._handleAddArgument}
+        />
+      )
+      : (
+        <FunctionAddArgumentButton
+          getLocalizedText={getLocalizedText}
+          onPress={this._handleAddButtonPress}
+        />
+      );
 
     return (
-      <div className="function-arguments_list" >
+      <div className="function-arguments_list">
         <BlockContentBoxHeading>
           {getLocalizedText('replace_me:Arguments List')}
         </BlockContentBoxHeading>
 
         <BlockContentBoxItem>
-          <div className="function-arguments_list-items" >
+          <div className="function-arguments_list-items">
             <PropsList>
               {list}
             </PropsList>
           </div>
         </BlockContentBoxItem>
 
-        <div className="function-arguments_new" >
+        <div className="function-arguments_new">
           {argumentsAdd}
         </div>
       </div>

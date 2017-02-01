@@ -28,6 +28,11 @@ export class PropToggle extends PropBase {
     this._handleChange = this._handleChange.bind(this);
   }
   
+  /**
+   *
+   * @param {boolean} newValue
+   * @private
+   */
   _handleChange(newValue) {
     this.props.onChange({ value: newValue });
   }
@@ -57,7 +62,7 @@ export class PropToggle extends PropBase {
   //noinspection JSUnusedGlobalSymbols
   /**
    *
-   * @return {null}
+   * @return {?ReactElement}
    * @override
    * @private
    */

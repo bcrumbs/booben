@@ -4,8 +4,15 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
-import React, { PureComponent, PropTypes } from 'react';
+//noinspection JSUnresolvedVariable
+import React, { PropTypes } from 'react';
+import { List } from 'immutable';
+
+import {
+  Button,
+  Tabs,
+  Tab,
+} from '@reactackle/reactackle';
 
 import {
     PageDrawerContentArea,
@@ -19,19 +26,27 @@ import {
     BlockContentNavigation,
 } from '../../../../components/BlockContent/BlockContent';
 
-import {
-    Button,
-    Tabs,
-    Tab,
-} from '@reactackle/reactackle';
-
-import { List } from 'immutable';
-
 import ButtonType from '../../../../models/Button';
 import ToolType from '../../../../models/Tool';
 import ToolStateType from '../../../../models/ToolState';
-
 import { noop } from '../../../../utils/misc';
+
+//noinspection JSUnresolvedVariable
+const propTypes = {
+  tool: PropTypes.instanceOf(ToolType).isRequired,
+  toolState: PropTypes.instanceOf(ToolStateType).isRequired,
+  onTitleChange: PropTypes.func,
+  onUndock: PropTypes.func,
+  onCollapse: PropTypes.func,
+  onActiveSectionChange: PropTypes.func,
+};
+
+const defaultProps = {
+  onTitleChange: noop,
+  onUndock: noop,
+  onCollapse: noop,
+  onActiveSectionChange: noop,
+};
 
 export const ToolPanelContent = props => {
   const { tool, toolState } = props;
@@ -56,8 +71,8 @@ export const ToolPanelContent = props => {
 
   if (sectionsNum > 1) {
     const tabs = sections.map((section, idx) => (
-      <Tab key={idx} text={section.name} />
-        ));
+      <Tab key={String(idx)} text={section.name} />
+    ));
 
     navArea = (
       <BlockContentNavigation>
@@ -69,14 +84,14 @@ export const ToolPanelContent = props => {
           {tabs}
         </Tabs>
       </BlockContentNavigation>
-        );
+    );
   }
 
   const activeSection = sections.get(toolState.activeSection) || null;
 
   const ContentComponent = activeSection !== null
-        ? activeSection.component
-        : null;
+    ? activeSection.component
+    : null;
 
   const content = ContentComponent ? <ContentComponent /> : null;
 
@@ -89,38 +104,38 @@ export const ToolPanelContent = props => {
   if (mainButtonsNum > 0 || secondaryButtonsNum > 0) {
     let mainActionsRegion = null;
     if (mainButtonsNum > 0) {
-      const buttons = mainButtons.map((button, idx) => (
+      const buttons = mainButtons.map(({ icon, text, onPress }, idx) => (
         <Button
-          key={idx}
-          icon={button.icon}
-          text={button.text}
-          onPress={button.onPress}
+          key={String(idx)}
+          icon={icon}
+          text={text}
+          onPress={onPress}
         />
-            ));
+      ));
 
       mainActionsRegion = (
         <BlockContentActionsRegion type="main">
           {buttons}
         </BlockContentActionsRegion>
-            );
+      );
     }
 
     let secondaryButtonsRegion = null;
     if (secondaryButtonsNum > 0) {
-      const buttons = secondaryButtons.map((button, idx) => (
+      const buttons = secondaryButtons.map(({ icon, text, onPress }, idx) => (
         <Button
-          key={idx}
-          icon={button.icon}
-          text={button.text}
-          onPress={button.onPress}
+          key={String(idx)}
+          icon={icon}
+          text={text}
+          onPress={onPress}
         />
-            ));
+      ));
 
       secondaryButtonsRegion = (
         <BlockContentActionsRegion type="secondary">
           {buttons}
         </BlockContentActionsRegion>
-            );
+      );
     }
 
     actionsArea = (
@@ -128,7 +143,7 @@ export const ToolPanelContent = props => {
         {secondaryButtonsRegion}
         {mainActionsRegion}
       </BlockContentActions>
-        );
+    );
   }
 
   return (
@@ -150,21 +165,6 @@ export const ToolPanelContent = props => {
   );
 };
 
-ToolPanelContent.propTypes = {
-  tool: PropTypes.instanceOf(ToolType).isRequired,
-  toolState: PropTypes.instanceOf(ToolStateType).isRequired,
-
-  onTitleChange: PropTypes.func,
-  onUndock: PropTypes.func,
-  onCollapse: PropTypes.func,
-  onActiveSectionChange: PropTypes.func,
-};
-
-ToolPanelContent.defaultProps = {
-  onTitleChange: noop,
-  onUndock: noop,
-  onCollapse: noop,
-  onActiveSectionChange: noop,
-};
-
+ToolPanelContent.propTypes = propTypes;
+ToolPanelContent.defaultProps = defaultProps;
 ToolPanelContent.displayName = 'ToolPanelContent';

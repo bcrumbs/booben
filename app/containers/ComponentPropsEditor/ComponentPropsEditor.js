@@ -4,7 +4,7 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
@@ -15,6 +15,8 @@ import {
   PropsList,
   Prop,
   PropViews,
+  jssyTypeToView,
+  jssyValueToPropValue,
 } from '../../components/PropsList/PropsList';
 
 import {
@@ -44,18 +46,21 @@ import {
 import {
   getString,
   getComponentMeta,
-  isCompatibleType,
-  resolveTypedef,
-  isScalarType,
-  getNestedTypedef,
   buildDefaultValue,
   isValidSourceForProp,
 } from '../../utils/meta';
+
+import {
+  isEqualType,
+  resolveTypedef,
+  getNestedTypedef,
+} from '../../../shared/types';
 
 import { NO_VALUE } from '../../constants/misc';
 import { getLocalizedTextFromState } from '../../utils';
 import { objectSome } from '../../utils/misc';
 
+//noinspection JSUnresolvedVariable
 const propTypes = {
   meta: PropTypes.object.isRequired,
   components: ImmutablePropTypes.mapOf(
@@ -116,18 +121,6 @@ const isRenderableProp = propMeta =>
     isValidSourceForProp(propMeta, 'designer')
   );
 
-/**
- *
- * @param {Object} propValue
- * @return {boolean}
- */
-const isLinkedProp = propValue =>
-  propValue.source === 'data' ||
-  propValue.source === 'function' || (
-    propValue.source === 'static' &&
-    !!propValue.sourceData.ownerPropName
-  );
-
 const ownerComponentMetaSelector = createSelector(
   topNestedConstructorComponentSelector,
   state => state.project.meta,
@@ -155,89 +148,12 @@ const ownerPropsSelector = createSelector(
 
 /**
  *
- * @param {ComponentMeta} componentMeta
- * @param {ComponentPropMeta} propMeta
- * @param {Object} propValue
- * It is an {@link Immutable.Record} actually
- * (see app/models/ProjectComponentProp.js)
- * @return {*}
- */
-const transformValue = (componentMeta, propMeta, propValue) => {
-  if (!propValue) return { value: null, isLinked: false };
-
-  const typedef = resolveTypedef(componentMeta, propMeta),
-    linked = isLinkedProp(propValue);
-
-  let value = null;
-  let linkedWith = '';
-
-  if (!linked) {
-    if (propValue.source === 'static') {
-      if (isScalarType(typedef)) {
-        value = propValue.sourceData.value;
-      } else if (typedef.type === 'shape') {
-        value = _mapValues(typedef.fields, (fieldMeta, fieldName) =>
-          transformValue(
-            componentMeta,
-            fieldMeta,
-            propValue.sourceData.value.get(fieldName)),
-          );
-      } else if (typedef.type === 'objectOf') {
-        propValue.sourceData.value.map(nestedValue =>
-          transformValue(componentMeta, typedef.ofType, nestedValue)).toJS();
-      } else if (typedef.type === 'arrayOf') {
-        value = propValue.sourceData.value.map(nestedValue =>
-          transformValue(componentMeta, typedef.ofType, nestedValue)).toJS();
-      }
-    } else if (propValue.source === 'designer') {
-      // true if component exists, false otherwise
-      if (typedef.type === 'component')
-        value = propValue.sourceData.rootId !== -1;
-    }
-  } else if (propValue.source === 'data') {
-    if (propValue.sourceData.queryPath) {
-      linkedWith = propValue.sourceData.queryPath
-        .map(step => step.field)
-        .toJS()
-        .join(' -> ');
-    }
-  } else if (propValue.source === 'function') {
-    linkedWith = propValue.sourceData.function;
-  } else if (propValue.source === 'static') {
-    linkedWith = propValue.sourceData.ownerPropName;
-  }
-
-  return { value, linked, linkedWith };
-};
-
-/**
- *
  * @param {PropTypeDefinition} propMeta
  * @return {boolean}
  */
 const isEditableProp = propMeta =>
   isValidSourceForProp(propMeta, 'static') ||
   isValidSourceForProp(propMeta, 'designer');
-
-/**
- *
- * @type {Object<string, string>}
- * @const
- */
-const propTypeToView = {
-  string: PropViews.INPUT,
-  bool: PropViews.TOGGLE,
-  int: PropViews.INPUT,
-  float: PropViews.INPUT,
-  oneOf: PropViews.LIST,
-  component: PropViews.COMPONENT,
-  shape: PropViews.SHAPE,
-  objectOf: PropViews.OBJECT,
-  arrayOf: PropViews.ARRAY,
-  object: PropViews.EMPTY,
-  array: PropViews.EMPTY,
-  func: PropViews.EMPTY,
-};
 
 class ComponentPropsEditorComponent extends PureComponent {
   constructor(props) {
@@ -314,8 +230,8 @@ class ComponentPropsEditorComponent extends PureComponent {
       component = this.props.components.get(componentId),
       componentMeta = getComponentMeta(component.name, this.props.meta),
       propMeta = componentMeta.props[propName],
-      nestedPropMeta = getNestedTypedef(propMeta, where),
-      newValueType = nestedPropMeta.ofType;
+      nestedPropMeta = getNestedTypedef(propMeta, where, componentMeta.types),
+      newValueType = resolveTypedef(nestedPropMeta.ofType, componentMeta.types);
 
     const value = buildDefaultValue(
       componentMeta,
@@ -389,17 +305,15 @@ class ComponentPropsEditorComponent extends PureComponent {
     if (propMeta.source.indexOf('function') > -1) return true;
     if (!this.props.ownerProps) return false;
 
-    const propTypedef = resolveTypedef(componentMeta, propMeta);
-
     return objectSome(this.props.ownerProps, ownerProp => {
       if (ownerProp.dataContext) return false;
 
-      const ownerPropTypedef = resolveTypedef(
-        this.props.ownerComponentMeta,
+      return isEqualType(
+        propMeta,
         ownerProp,
+        componentMeta.types,
+        this.props.ownerComponentMeta.types,
       );
-
-      return isCompatibleType(propTypedef, ownerPropTypedef);
     });
   }
 
@@ -412,7 +326,7 @@ class ComponentPropsEditorComponent extends PureComponent {
    */
   _propTypeFromMeta(componentMeta, propMeta) {
     // TODO: Memoize
-    const typedef = resolveTypedef(componentMeta, propMeta);
+    const typedef = resolveTypedef(propMeta, componentMeta.types);
 
     const name = getString(
       componentMeta,
@@ -432,7 +346,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     const ret = {
       label: name,
       secondaryLabel: typedef.type, // TODO: Get string from i18n
-      view: editable ? propTypeToView[typedef.type] : PropViews.EMPTY,
+      view: editable ? jssyTypeToView(typedef.type) : PropViews.EMPTY,
       image: '',
       tooltip: description,
       linkable,
@@ -487,7 +401,7 @@ class ComponentPropsEditorComponent extends PureComponent {
 
     const propMeta = componentMeta.props[propName],
       propType = this._propTypeFromMeta(componentMeta, propMeta),
-      value = transformValue(componentMeta, propMeta, propValue);
+      value = jssyValueToPropValue(propValue, propMeta, componentMeta.types);
 
     //noinspection JSValidateTypes
     return (
@@ -511,6 +425,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     const { getLocalizedText } = this.props;
 
     if (this.props.selectedComponentIds.size === 0) {
+      //noinspection JSCheckFunctionSignatures
       return (
         <BlockContentPlaceholder
           text={getLocalizedText('selectAComponent')}
@@ -519,6 +434,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     }
 
     if (this.props.selectedComponentIds.size > 1) {
+      //noinspection JSCheckFunctionSignatures
       return (
         <BlockContentPlaceholder
           text={getLocalizedText('multipleComponentsSelected')}
@@ -551,6 +467,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       .filter(propName => isRenderableProp(componentMeta.props[propName]));
 
     if (renderablePropNames.length === 0) {
+      //noinspection JSCheckFunctionSignatures
       return (
         <BlockContentPlaceholder
           text={getLocalizedText('thisComponentDoesntHaveEditableAttributes')}

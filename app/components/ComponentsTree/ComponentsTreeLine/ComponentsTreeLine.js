@@ -1,7 +1,20 @@
-import React from 'react';
+'use strict';
 
-export const ComponentsTreeLine = ({ createElementRef }) =>
-    // TODO Create normal line please :C
+// TODO: Style line
+
+//noinspection JSUnresolvedVariable
+import React, { PropTypes } from 'react';
+import { noop } from '../../../utils/misc';
+
+const propTypes = {
+  createElementRef: PropTypes.func,
+};
+
+const defaultProps = {
+  createElementRef: noop,
+};
+
+export const ComponentsTreeLine = ({ createElementRef }) => (
   <div
     ref={createElementRef}
     className="components-tree-item"
@@ -16,11 +29,9 @@ export const ComponentsTreeLine = ({ createElementRef }) =>
         style={{ backgroundColor: 'red', height: 'inherit', width: '100%' }}
       />
     </div>
-  </div>;
+  </div>
+);
 
-ComponentsTreeLine.PropTypes = {
-
-};
-ComponentsTreeLine.defaultProps = {
-
-};
+ComponentsTreeLine.propTypes = propTypes;
+ComponentsTreeLine.defaultProps = defaultProps;
+ComponentsTreeLine.displayName = 'ComponentsTreeLine';

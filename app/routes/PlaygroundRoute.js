@@ -87,7 +87,6 @@ import {
 
 import { HeaderRoute } from '../components/HeaderRoute/HeaderRoute';
 import { ProjectSave } from '../components/ProjectSave/ProjectSave';
-import { DataWindow } from '../containers/DataWindow/DataWindow';
 
 import {
     DataList,
@@ -930,7 +929,8 @@ export default class Playground extends React.Component {
             <HeaderRoute />
 
             <PanelContent>
-              <DataWindow />
+              Тут был старый DataWindow, но его победил Бэтмен.
+              <img src="https://upload.wikimedia.org/wikipedia/en/1/17/Batman-BenAffleck.jpg" alt=""/>
             </PanelContent>
           </Panel>
         </Desktop>

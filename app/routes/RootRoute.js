@@ -4,30 +4,32 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
 
 import {
-    App,
-    TopRegion,
-    BottomRegion,
-    Header,
-    HeaderRegion,
-    HeaderLogoBox,
-    HeaderMenu,
-    HeaderMenuGroup,
-    HeaderMenuList,
-    HeaderMenuItem,
-    Footer,
-    FooterRegion,
-    FooterMenu,
-    FooterMenuGroup,
-    FooterMenuList,
-    FooterMenuItem,
-    ToggleButton,
+  App,
+  TopRegion,
+  BottomRegion,
+  Header,
+  HeaderRegion,
+  HeaderLogoBox,
+  HeaderMenu,
+  HeaderMenuGroup,
+  HeaderMenuList,
+  HeaderMenuItem,
+  Footer,
+  FooterRegion,
+  FooterMenu,
+  FooterMenuGroup,
+  FooterMenuList,
+  FooterMenuItem,
+  ToggleButton,
 } from '@reactackle/reactackle';
+
+import { ProjectSave } from '../components/ProjectSave/ProjectSave';
 
 import {
   ComponentsDragArea,
@@ -36,19 +38,29 @@ import {
 import ProjectRecord from '../models/Project';
 
 import {
-    toggleContentPlaceholders,
-    toggleComponentTitles,
+  toggleContentPlaceholders,
+  toggleComponentTitles,
 } from '../actions/app';
 
 import { getLocalizedTextFromState } from '../utils';
 
-/* eslint-disable react/prop-types */
 const TopMenuLink = ({ href, className, children }) => (
   <Link to={href} className={className}>
     {children}
   </Link>
 );
-/* eslint-enable react/prop-types */
+
+TopMenuLink.propTypes = {
+  href: PropTypes.string,
+  className: PropTypes.string,
+};
+
+TopMenuLink.defaultProps = {
+  href: '',
+  className: '',
+};
+
+TopMenuLink.displayName = 'TopMenuLink';
 
 const toggleFullscreen = () => {
   if (
@@ -110,6 +122,35 @@ const RootRoute = props => {
   const title = getLocalizedText('projectTitle', {
     projectName: props.projectName,
   });
+  
+  let showComponentsTitleItem = null,
+    showPlaceholdersItem = null;
+  
+  if (props.showFooterToggles) {
+    showComponentsTitleItem = (
+      <FooterMenuItem
+        text={getLocalizedText('showComponentsTitle')}
+        subcomponentRight={
+          <ToggleButton
+            checked={props.showComponentTitles}
+            onCheck={props.onToggleComponentTitles}
+          />
+        }
+      />
+    );
+    
+    showPlaceholdersItem = (
+      <FooterMenuItem
+        text={getLocalizedText('showPlaceholders')}
+        subcomponentRight={
+          <ToggleButton
+            checked={props.showContentPlaceholders}
+            onCheck={props.onToggleContentPlaceholders}
+          />
+        }
+      />
+    );
+  }
 
   return (
     <App fixed>
@@ -147,6 +188,10 @@ const RootRoute = props => {
                 </HeaderMenuList>
               </HeaderMenuGroup>
             </HeaderMenu>
+          </HeaderRegion>
+  
+          <HeaderRegion size="blank">
+            <ProjectSave />
           </HeaderRegion>
 
           <HeaderRegion size="blank">
@@ -187,26 +232,9 @@ const RootRoute = props => {
             <FooterMenu inline dense mode="light">
               <FooterMenuGroup>
                 <FooterMenuList>
-                  <FooterMenuItem
-                    text={getLocalizedText('showComponentsTitle')}
-                    subcomponentRight={
-                      <ToggleButton
-                        checked={props.showComponentTitles}
-                        onCheck={props.onToggleComponentTitles}
-                      />
-                    }
-                  />
-
-                  <FooterMenuItem
-                    text={getLocalizedText('showPlaceholders')}
-                    subcomponentRight={
-                      <ToggleButton
-                        checked={props.showContentPlaceholders}
-                        onCheck={props.onToggleContentPlaceholders}
-                      />
-                    }
-                  />
-
+                  {showComponentsTitleItem}
+                  {showPlaceholdersItem}
+                  
                   <FooterMenuItem
                     text={getLocalizedText('toggleFullScreen')}
                     onClick={toggleFullscreen}
@@ -223,14 +251,15 @@ const RootRoute = props => {
   );
 };
 
+//noinspection JSUnresolvedVariable
 RootRoute.propTypes = {
   location: PropTypes.object.isRequired,
   projectName: PropTypes.string.isRequired,
   project: PropTypes.instanceOf(ProjectRecord).isRequired,
+  showFooterToggles: PropTypes.bool.isRequired,
   showContentPlaceholders: PropTypes.bool.isRequired,
   showComponentTitles: PropTypes.bool.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
-
   onToggleContentPlaceholders: PropTypes.func.isRequired,
   onToggleComponentTitles: PropTypes.func.isRequired,
 };
@@ -240,6 +269,7 @@ RootRoute.displayName = 'RootRoute';
 const mapStateToProps = ({ project, app }) => ({
   projectName: project.projectName,
   project: project.data,
+  showFooterToggles: app.showFooterToggles,
   showContentPlaceholders: app.showContentPlaceholders,
   showComponentTitles: app.showComponentTitles,
   getLocalizedText: getLocalizedTextFromState({ app }),
@@ -248,9 +278,11 @@ const mapStateToProps = ({ project, app }) => ({
 const mapDispatchToProps = dispatch => ({
   onToggleContentPlaceholders: enable =>
     void dispatch(toggleContentPlaceholders(enable)),
-
   onToggleComponentTitles: enable =>
     void dispatch(toggleComponentTitles(enable)),
 });
 
-export default connect(mapStateToProps, mapDispatchToProps)(RootRoute);
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(RootRoute);

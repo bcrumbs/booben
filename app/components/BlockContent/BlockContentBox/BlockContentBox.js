@@ -1,8 +1,7 @@
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
-
 import { autoScrollUpDown } from '../../../hocs/autoScrollUpDown';
 import { noop } from '../../../utils/misc';
 
@@ -43,3 +42,4 @@ BlockContentBoxComponent.displayName = 'BlockContentBox';
 export const BlockContentBox = autoScrollUpDown(BlockContentBoxComponent);
 export * from './BlockContentBoxItem/BlockContentBoxItem';
 export * from './BlockContentBoxHeading/BlockContentBoxHeading';
+export * from './BlockContentBoxGroup/BlockContentBoxGroup';

@@ -16,6 +16,8 @@ export const APP_TOGGLE_CONTENT_PLACEHOLDERS =
   'APP_TOGGLE_CONTENT_PLACEHOLDERS';
 export const APP_TOGGLE_COMPONENT_TITLES =
   'APP_TOGGLE_COMPONENT_TITLES';
+export const APP_SHOW_FOOTER_TOGGLES =
+  'APP_SHOW_FOOTER_TOGGLES';
 
 /**
  *
@@ -78,4 +80,14 @@ export const toggleContentPlaceholders = enable => ({
 export const toggleComponentTitles = enable => ({
   type: APP_TOGGLE_COMPONENT_TITLES,
   enable,
+});
+
+/**
+ *
+ * @param {boolean} show
+ * @return {Object}
+ */
+export const showFooterToggles = show => ({
+  type: APP_SHOW_FOOTER_TOGGLES,
+  show,
 });

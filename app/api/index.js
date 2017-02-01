@@ -5,8 +5,7 @@
 'use strict';
 
 import { introspectionQuery } from 'graphql/utilities';
-
-const API_URL_PREFIX = '/api/v1';
+import { URL_API_PREFIX } from '../../shared/constants';
 
 /**
  *
@@ -14,7 +13,7 @@ const API_URL_PREFIX = '/api/v1';
  * @return {Promise<Project>}
  */
 export const getProject = projectName =>
-  fetch(`${API_URL_PREFIX}/projects/${projectName}`)
+  fetch(`${URL_API_PREFIX}/projects/${projectName}`)
     .then(res => res.json())
     .then(data => {
       if (data.error) throw new Error(data.error);
@@ -27,7 +26,7 @@ export const getProject = projectName =>
  * @return {Promise<Object>}
  */
 export const getMetadata = projectName =>
-  fetch(`${API_URL_PREFIX}/projects/${projectName}/metadata`)
+  fetch(`${URL_API_PREFIX}/projects/${projectName}/metadata`)
     .then(res => res.json())
     .then(data => {
       if (data.error) throw new Error(data.error);

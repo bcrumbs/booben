@@ -24,7 +24,7 @@ import history from './history';
 
 import { setTools } from './actions/desktop';
 import { setCurrentRoute } from './actions/preview';
-import { loadLocalization } from './actions/app';
+import { loadLocalization, showFooterToggles } from './actions/app';
 
 const setToolsOnEnter = toolIds => () => void store.dispatch(setTools(toolIds));
 
@@ -34,6 +34,11 @@ const onDesignRouteEnter = ({ location, params }) => {
 
   store.dispatch(setCurrentRoute(routeId, isIndexRoute));
   store.dispatch(setTools(DESIGN_TOOL_IDS));
+  store.dispatch(showFooterToggles(true));
+};
+
+const onDesignRouteLeave = () => {
+  store.dispatch(showFooterToggles(false));
 };
 
 /*
@@ -67,6 +72,7 @@ window.addEventListener('DOMContentLoaded', () => {
               path="design/:routeId(/index)"
               component={DesignRoute}
               onEnter={onDesignRouteEnter}
+              onLeave={onDesignRouteLeave}
             />
           </Route>
 

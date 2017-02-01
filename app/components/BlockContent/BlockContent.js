@@ -1,8 +1,7 @@
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
-
 import './BlockContent.scss';
 
 const propTypes = {

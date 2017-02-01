@@ -1,3 +1,7 @@
+/**
+ * @author Dmitriy Bizyaev
+ */
+
 'use strict';
 
 export const PREVIEW_SELECT_COMPONENT =
@@ -23,10 +27,10 @@ export const PREVIEW_DRAG_OVER_PLACEHOLDER =
 export const PREVIEW_DROP_COMPONENT =
   'PREVIEW_DROP_COMPONENT';
 
-export const DROP_COMPONENT_AREA_IDS = {
-  TREE: 'TREE',
-  PREVIEW: 'PREVIEW',
-  OUT: 'OUT',
+export const DropComponentAreas = {
+  TREE: 0,
+  PREVIEW: 1,
+  OUT: 2,
 };
 
 /**
@@ -133,7 +137,7 @@ export const dragOverPlaceholder = (containerId, afterIdx) => ({
  *
  * @return {Object}
  */
-export const dropComponent = dropOnAreaId => ({
+export const dropComponent = dropArea => ({
   type: PREVIEW_DROP_COMPONENT,
-  dropOnAreaId,
+  dropArea,
 });
