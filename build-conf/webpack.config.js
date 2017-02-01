@@ -1,11 +1,14 @@
 'use strict';
 
+/* eslint-disable import/no-extraneous-dependencies */
+
 const path = require('path'),
   webpack = require('webpack'),
-  HtmlWebpackPlugin = require('html-webpack-plugin');
+  HtmlWebpackPlugin = require('html-webpack-plugin'),
+  ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
 
-// eslint-disable-next-line import/no-extraneous-dependencies
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+
 
 const prod = process.argv.includes('-p');
 
@@ -56,6 +59,10 @@ module.exports = {
       inject: 'body',
       favicon: path.resolve(__dirname, '..', 'app', 'favicon.png'),
       hash: true,
+    }),
+    
+    new ScriptExtHtmlWebpackPlugin({
+      defaultAttribute: 'defer',
     }),
 
     new webpack.DefinePlugin({
