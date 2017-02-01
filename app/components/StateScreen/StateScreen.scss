@@ -1,0 +1,75 @@
+@charset "UTF-8";
+@import 'variables';
+
+@include exports(state-screen) {
+    .state-screen {
+        flex-grow: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        @include animated;
+        @include fadeIn;
+
+        &.exit {
+            @include animated(200ms);
+            @include fadeOut;
+        }
+    }
+
+    .state-screen_error {
+        position: relative;
+    }
+
+    .state-screen_error::before,
+    .state-screen_error::after {
+        display: block;
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-position: center;
+        background-size: cover;
+        background-repeat: no-repeat;
+        z-index: 0;
+    }
+
+    .state-screen_error::before {
+        background-image: url('https://media.giphy.com/media/54thzV477Bgk/giphy.gif');
+    }
+
+    .state-screen_error::after {
+        background-color: rgba(51, 58, 69, 0.95);
+    }
+
+    .state-screen_content {
+        width: 100%;
+        max-width: 640px;
+        text-align: center;
+        position: relative;
+        z-index: 9;
+        padding: 40px;
+    }
+
+    .state-screen_title {
+        font-size: 34px;
+        font-weight: 600;
+        margin-top: -30px;
+    }
+
+    .state-screen_error .state-screen_title {
+        color: #fff;
+    }
+
+    .state-screen_message {
+        font-size: 20px;
+        font-weight: 300;
+    }
+
+    .state-screen_error .state-screen_message {
+        color: rgba(255, 255, 255, 0.6);
+    }
+}
+

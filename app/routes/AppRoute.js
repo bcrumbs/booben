@@ -8,6 +8,9 @@
 import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { loadProject } from '../actions/project';
+import {
+  ErrorScreen
+} from '../components/StateScreen/StateScreen';
 
 import {
   NOT_LOADED,
@@ -40,9 +43,10 @@ class AppRoute extends PureComponent {
     // TODO: Create error screen
     if (projectLoadState === LOAD_ERROR) {
       return (
-        <div>
-          Failed to load project: {projectLoadError.message}
-        </div>
+        <ErrorScreen
+          title="Failed to load project"
+          message={projectLoadError.message}
+        />
       );
     }
 
