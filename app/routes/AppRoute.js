@@ -8,9 +8,7 @@
 import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { loadProject } from '../actions/project';
-import {
-  ErrorScreen
-} from '../components/StateScreen/StateScreen';
+import { ErrorScreen } from '../components/StateScreen/StateScreen';
 
 import {
   NOT_LOADED,
@@ -18,10 +16,32 @@ import {
   LOAD_ERROR,
 } from '../constants/loadStates';
 
+import { removeSplashScreen } from '../utils/dom';
+
 class AppRoute extends PureComponent {
+  constructor(props) {
+    super(props);
+
+    this._spashScreenRemoved = false;
+  }
+
   componentDidMount() {
     const projectName = this.props.params.projectName;
     this.props.onProjectRequest(projectName);
+  }
+
+  componentDidUpdate() {
+    const { projectLoadState } = this.props;
+
+    const willRemoveSplashScreen =
+      !this._spashScreenRemoved &&
+      projectLoadState !== LOADING &&
+      projectLoadState !== NOT_LOADED;
+
+    if (willRemoveSplashScreen) {
+      removeSplashScreen();
+      this._spashScreenRemoved = true;
+    }
   }
 
   render() {
@@ -31,16 +51,9 @@ class AppRoute extends PureComponent {
       children,
     } = this.props;
 
-    // TODO: Create loading screen
-    if (projectLoadState === LOADING || projectLoadState === NOT_LOADED) {
-      return (
-        <div>
-          Loading project...
-        </div>
-      );
-    }
+    if (projectLoadState === LOADING || projectLoadState === NOT_LOADED)
+      return null;
 
-    // TODO: Create error screen
     if (projectLoadState === LOAD_ERROR) {
       return (
         <ErrorScreen

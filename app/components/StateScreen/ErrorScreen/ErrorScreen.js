@@ -1,9 +1,19 @@
 'use strict';
 
-import React, { Component, PropTypes } from 'react';
-import './StateScreen.scss';
+//noinspection JSUnresolvedVariable
+import React, { PropTypes } from 'react';
 
-const ErrorScreen = (props) => (
+const propTypes = {
+  title: PropTypes.string,
+  message: PropTypes.string,
+};
+
+const defaultProps = {
+  title: '',
+  message: '',
+};
+
+export const ErrorScreen = props => (
   <div className="state-screen state-screen_error">
     <div className="state-screen_content">
       <div className="state-screen_title">
@@ -16,7 +26,6 @@ const ErrorScreen = (props) => (
   </div>
 );
 
-StateScreen.propTypes = propTypes;
-StateScreen.defaultProps = defaultProps;
-StateScreen.displayName = 'StateScreen';
-
+ErrorScreen.propTypes = propTypes;
+ErrorScreen.defaultProps = defaultProps;
+ErrorScreen.displayName = 'ErrorScreen';

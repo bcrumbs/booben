@@ -10,11 +10,13 @@ import {
   NOT_LOADED,
   LOADING,
   LOADED,
+  LOAD_ERROR,
 } from '../constants/loadStates';
 
 import {
   PROJECT_REQUEST,
   PROJECT_LOADED,
+  PROJECT_LOAD_FAILED,
   PROJECT_ROUTE_CREATE,
   PROJECT_ROUTE_DELETE,
   PROJECT_ROUTE_UPDATE_FIELD,
@@ -624,6 +626,11 @@ const handlers = {
       .set('meta', meta)
       .set('schema', schema);
   },
+
+  [PROJECT_LOAD_FAILED]: (state, action) => state.merge({
+    loadState: LOAD_ERROR,
+    error: action.error,
+  }),
   
   [PROJECT_ROUTE_CREATE]: (state, action) => {
     const newRouteId = state.lastRouteId + 1;

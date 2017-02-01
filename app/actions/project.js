@@ -81,6 +81,15 @@ const projectLoadFailed = error => ({
   error,
 });
 
+//noinspection JSCheckFunctionSignatures
+/**
+ *
+ * @param {string} projectName
+ * @return {Promise<Object[]>}
+ */
+const loadProjectAndMetadata = projectName =>
+  Promise.all([getProject(projectName), getMetadata(projectName)]);
+
 /**
  *
  * @param {string} projectName
@@ -89,8 +98,7 @@ const projectLoadFailed = error => ({
 export const loadProject = projectName => dispatch => {
   dispatch(requestProject(projectName));
 
-  //noinspection JSCheckFunctionSignatures
-  Promise.all([getProject(projectName), getMetadata(projectName)])
+  loadProjectAndMetadata(projectName)
     .then(([project, metadata]) => {
       if (project.graphQLEndpointURL) {
         getFullGraphQLSchema(project.graphQLEndpointURL)
