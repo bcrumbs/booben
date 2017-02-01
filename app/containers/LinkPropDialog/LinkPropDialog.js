@@ -37,7 +37,12 @@ import {
 } from '../../actions/project';
 
 import ProjectComponentRecord from '../../models/ProjectComponent';
-import { NestedConstructor } from '../../reducers/project';
+
+import {
+  NestedConstructor,
+  makeCurrentQueryArgsGetter,
+} from '../../reducers/project';
+
 import { getNestedTypedef } from '../../../shared/types';
 import { getComponentMeta, isValidSourceForProp } from '../../utils/meta';
 import { getLocalizedTextFromState } from '../../utils';
@@ -88,6 +93,14 @@ class LinkPropDialogComponent extends PureComponent {
     };
   }
   
+  _initState() {
+    this.setState({
+      selectedSourceId: '',
+      selectedSourceData: null,
+      dialogButtons: [],
+    });
+  }
+  
   /**
    *
    * @param {string} id
@@ -107,11 +120,7 @@ class LinkPropDialogComponent extends PureComponent {
    * @private
    */
   _handleReturn() {
-    this.setState({
-      selectedSourceId: '',
-      selectedSourceData: null,
-      dialogButtons: [],
-    });
+    this._initState();
   }
   
   /**
@@ -120,6 +129,7 @@ class LinkPropDialogComponent extends PureComponent {
    * @private
    */
   _handleLinkWithOwnerProp({ propName }) {
+    this._initState();
     this.props.onLinkWithOwnerProp({ propName });
   }
   
@@ -131,7 +141,17 @@ class LinkPropDialogComponent extends PureComponent {
    * @private
    */
   _handleLinkWithData({ dataContext, path, args }) {
+    this._initState();
     this.props.onLinkWithData({ dataContext, path, args });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleDialogClose() {
+    this._initState();
+    this.props.onLinkPropCancel();
   }
   
   /**
@@ -143,20 +163,6 @@ class LinkPropDialogComponent extends PureComponent {
     this.setState({
       dialogButtons: buttons,
     });
-  }
-  
-  /**
-   *
-   * @private
-   */
-  _handleDialogClose() {
-    this.setState({
-      selectedSourceId: '',
-      selectedSourceData: null,
-      dialogButtons: [],
-    });
-    
-    this.props.onLinkPropCancel();
   }
   
   /**
@@ -246,15 +252,14 @@ class LinkPropDialogComponent extends PureComponent {
    * @private
    */
   _renderDataSelection(dataContext, rootTypeName) {
-    const { schema, getLocalizedText } = this.props;
+    const { schema, getCurrentQueryArgs, getLocalizedText } = this.props;
   
     const {
-      linkTargetComponent,
       linkTargetComponentMeta,
       linkTargetPropTypedef,
     } = this._getLinkTargetData();
     
-    const argValues = linkTargetComponent.queryArgs.get('') || Map();
+    const argValues = getCurrentQueryArgs(dataContext) || Map();
     
     //noinspection JSValidateTypes
     return (
@@ -300,6 +305,7 @@ class LinkPropDialogComponent extends PureComponent {
         title="Link attribute value"
         backdrop
         minWidth={420}
+        paddingSize="none"
         visible={visible}
         haveCloseButton
         buttons={dialogButtons}
@@ -339,6 +345,7 @@ LinkPropDialogComponent.propTypes = {
   topNestedConstructorComponent: PropTypes.instanceOf(
     ProjectComponentRecord,
   ),
+  getCurrentQueryArgs: PropTypes.func.isRequired,
   language: PropTypes.string.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   onLinkPropCancel: PropTypes.func.isRequired,
@@ -365,6 +372,7 @@ const mapStateToProps = state => ({
   availableDataContexts: availableDataContextsSelector(state),
   topNestedConstructor: topNestedConstructorSelector(state),
   topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
+  getCurrentQueryArgs: makeCurrentQueryArgsGetter(state.project),
   language: state.project.languageForComponentProps,
   getLocalizedText: getLocalizedTextFromState(state),
 });

@@ -263,7 +263,8 @@ const TYPES = {
           : true
       ),
 
-    makeDefaultValue: typedef => typedef.notNull ? {} : null,
+    makeDefaultValue: (typedef, _, options) =>
+      (typedef.notNull || options.nonNull) ? null : {},
   
     coerce: {
       'object': returnArg,
@@ -305,8 +306,10 @@ const TYPES = {
           ? typedef2.notNull
           : true
       ),
-
-    makeDefaultValue: typedef => typedef.notNull ? {} : null,
+  
+    makeDefaultValue: (typedef, _, options) =>
+      (typedef.notNull || options.nonNull) ? null : {},
+    
     coerce: {
       'objectOf': (
         value,
@@ -387,12 +390,19 @@ const TYPES = {
       });
     },
 
-    makeDefaultValue: (typedef, userTypedefs) => typedef.notNull
-      ? _mapValues(
-        typedef.fields,
-        fieldTypedef => makeDefaultValue(fieldTypedef, userTypedefs)
-      )
-      : null,
+    makeDefaultValue: (typedef, userTypedefs, options) =>
+      (typedef.notNull || options.nonNull)
+        ? _mapValues(
+          typedef.fields,
+          fieldTypedef => _makeDefaultValue(
+            fieldTypedef,
+            userTypedefs,
+            options.deepNonNull
+              ? options
+              : { nonNull: false, deepNonNull: false }
+          )
+        )
+        : null,
   
     coerce: {
       'shape': (
@@ -600,17 +610,48 @@ const getNestedTypedef = (
 /**
  *
  * @param {TypeDefinition} typedef
+ * @param {Object<string, TypeDefinition>} userTypedefs
+ * @param {Object} options
+ * @param {boolean} options.nonNull
+ * @param {boolean} options.deepNonNull
+ * @return {*}
+ */
+const _makeDefaultValue = (typedef, userTypedefs, options) => {
+  const resolvedTypedef = resolveTypedef(typedef, userTypedefs);
+  
+  if (!resolvedTypedef)
+    throw new Error(`Cannot resolve type '${typedef.type}'`);
+  
+  return TYPES[resolvedTypedef.type].makeDefaultValue(
+    typedef,
+    userTypedefs,
+    options
+  );
+};
+
+/**
+ *
+ * @param {TypeDefinition} typedef
  * @param {?Object<string, TypeDefinition>} [userTypedefs=null]
  * @return {*}
  */
-const makeDefaultValue = (typedef, userTypedefs = null) => {
-  const resolvedTypedef = resolveTypedef(typedef, userTypedefs);
+const makeDefaultValue = (typedef, userTypedefs = null) =>
+  _makeDefaultValue(typedef, userTypedefs, {
+    nonNull: false,
+    deepNonNull: false,
+  });
 
-  if (!resolvedTypedef)
-    throw new Error(`Cannot resolve type '${typedef.type}'`);
-
-  return TYPES[resolvedTypedef.type].makeDefaultValue(typedef, userTypedefs);
-};
+/**
+ *
+ * @param {TypeDefinition} typedef
+ * @param {?Object<string, TypeDefinition>} [userTypedefs=null]
+ * @return {*}
+ */
+const makeDefaultNonNullValue = (typedef, userTypedefs = null) =>
+  _makeDefaultValue(typedef, userTypedefs, {
+    nonNull: true,
+    deepNonNull: false,
+  });
 
 /**
  *
@@ -663,4 +704,5 @@ exports.printType = printType;
 exports.isEqualType = isEqualType;
 exports.isCompatibleType = isCompatibleType;
 exports.makeDefaultValue = makeDefaultValue;
+exports.makeDefaultNonNullValue = makeDefaultNonNullValue;
 exports.coerceValue = coerceValue;

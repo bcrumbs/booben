@@ -61,14 +61,10 @@ import {
 } from '../actions/components-library';
 
 import ProjectRoute from '../models/ProjectRoute';
-import ProjectComponentProp from '../models/ProjectComponentProp';
+import JssyValue from '../models/JssyValue';
 import SourceDataStatic from '../models/SourceDataStatic';
 import SourceDataDesigner from '../models/SourceDataDesigner';
-
-import SourceDataData, {
-  QueryPathStep,
-  QueryArgumentValue
-} from '../models/SourceDataData';
+import SourceDataData, { QueryPathStep } from '../models/SourceDataData';
 
 import {
   projectToImmutable,
@@ -166,20 +162,6 @@ const closeTopNestedConstructor = state => state.update(
   'nestedConstructors',
   nestedConstructors => nestedConstructors.shift(),
 );
-
-const getComponentById = (state, componentId) =>
-  state.data.routes.get(state.currentRouteId).components.get(componentId);
-
-const getBottomNestedConstructorComponent = state =>
-  getComponentById(state, state.nestedConstructors.last().componentId);
-
-export const getComponentWithQueryArgs = (
-  state,
-  updatedComponentId,
-  isRootQuery,
-) => isRootQuery
-  ? getComponentById(state, updatedComponentId)
-  : getBottomNestedConstructorComponent(state);
 
 const getPathToCurrentComponents = state => haveNestedConstructors(state)
   ? ['nestedConstructors', 0, 'components']
@@ -449,6 +431,7 @@ const expandPropPath = propPath => propPath
   .reduce((acc, cur) => acc.concat([cur, 'sourceData', 'value']), [])
   .concat(propPath[propPath.length - 1]);
 
+// TODO: Refactor away from using real paths
 const clearOutdatedDataProps = (
   state,
   updatedComponentId,
@@ -546,6 +529,69 @@ const clearOutdatedDataProps = (
 
   walkSimpleProps(updatedComponent, componentMeta, visitProp);
   return state;
+};
+
+const initLinkingPropState = state => state
+  .merge({
+    linkingProp: false,
+    linkingPropOfComponentId: -1,
+    linkingPropName: '',
+  })
+  .set('linkingPropPath', []);
+
+const getPathToComponentWithQueryArgs = (state, dataContext) => {
+  let currentNestedConstructorIndex =
+    state.nestedConstructors.size > 0 ? 0 : -1;
+  
+  let currentNestedConstructor = currentNestedConstructorIndex !== -1
+    ? state.nestedConstructors.get(currentNestedConstructorIndex)
+    : null;
+  
+  let currentComponentId = state.linkingPropOfComponentId;
+  let i = 0;
+  
+  while (i < dataContext.length) {
+    if (currentNestedConstructorIndex === -1)
+      throw new Error('getPathToComponentWithQueryArgs: invalid dataContext');
+    
+    currentComponentId = currentNestedConstructor.componentId;
+    
+    currentNestedConstructorIndex =
+      currentNestedConstructorIndex === state.nestedConstructors.size
+        ? -1
+        : currentNestedConstructorIndex + 1;
+  
+    currentNestedConstructor = currentNestedConstructorIndex !== -1
+      ? state.nestedConstructors.get(currentNestedConstructorIndex)
+      : null;
+    
+    i++;
+  }
+  
+  return currentNestedConstructorIndex !== -1
+    ? [
+      'data',
+      'routes',
+      state.currentRouteId,
+      'components',
+      currentComponentId,
+    ]
+    : [
+      'nestedConstructors',
+      currentNestedConstructorIndex,
+      'components',
+      currentComponentId,
+    ];
+};
+
+export const makeCurrentQueryArgsGetter = state => dataContext => {
+  const pathToQueryArgs = [
+    ...getPathToComponentWithQueryArgs(state, dataContext),
+    'queryArgs',
+    dataContext.join(' '),
+  ];
+  
+  return state.getIn(pathToQueryArgs);
 };
 
 
@@ -670,7 +716,7 @@ const handlers = {
       );
     }
   
-    const newPropValue = new ProjectComponentProp({
+    const newPropValue = new JssyValue({
       source: action.newSource,
       sourceData: sourceDataToImmutable(
         action.newSource,
@@ -688,17 +734,19 @@ const handlers = {
       );
     }
   
-    const pathToComponent = [].concat(
+    const pathToProp = [].concat(
       pathToCurrentComponents,
       action.componentId,
-    );
-  
-    const pathToProp = pathToComponent.concat([
       'props',
       action.propName,
-    ], ...action.path.map(index => ['sourceData', 'value', index]));
-  
-    return state.setIn(pathToProp, newPropValue);
+    );
+    
+    return state.updateIn(
+      pathToProp,
+      propValue => action.path.length === 0
+        ? newPropValue
+        : propValue.setInStatic(action.path, newPropValue),
+    );
   },
   
   [PROJECT_COMPONENT_ADD_PROP_VALUE]: (state, action) => {
@@ -712,40 +760,29 @@ const handlers = {
       );
     }
   
-    const newValue = new ProjectComponentProp({
+    const newValue = new JssyValue({
       source: action.source,
       sourceData: sourceDataToImmutable(
         action.source,
         action.sourceData,
       ),
     });
-  
-    const path = [].concat(
+    
+    const pathToProp = [].concat(
       pathToCurrentComponents,
-      [action.componentId, 'props', action.propName],
-      ...action.path.map(index => ['sourceData', 'value', index]),
-      'sourceData',
-      'value',
+      action.componentId,
+      'props',
+      action.propName,
     );
-  
-    // TODO: Write error messages
-    return state.updateIn(path, mapOrList => {
-      if (List.isList(mapOrList)) {
-        if (typeof action.index !== 'number')
-          throw new Error('');
-      
-        return action.index > -1
-          ? mapOrList.insert(action.index, newValue)
-          : mapOrList.push(newValue);
-      } else if (Map.isMap(mapOrList)) {
-        if (typeof action.index !== 'string' || !action.index)
-          throw new Error('');
-      
-        return mapOrList.set(action.index, newValue);
-      } else {
-        throw new Error('');
-      }
-    });
+    
+    return state.updateIn(
+      pathToProp,
+      propValue => propValue.addValueInStatic(
+        action.path,
+        action.index,
+        newValue,
+      ),
+    );
   },
   
   [PROJECT_COMPONENT_DELETE_PROP_VALUE]: (state, action) => {
@@ -758,30 +795,18 @@ const handlers = {
         'that is not in current editing area',
       );
     }
-  
-    const path = [].concat(
+    
+    const pathToProp = [].concat(
       pathToCurrentComponents,
-      [action.componentId, 'props', action.propName],
-      ...action.path.map(index => ['sourceData', 'value', index]),
-      'sourceData',
-      'value',
+      action.componentId,
+      'props',
+      action.propName,
     );
-  
-    return state.updateIn(path, mapOrList => {
-      if (List.isList(mapOrList)) {
-        if (typeof action.index !== 'number')
-          throw new Error('');
-      
-        return mapOrList.delete(action.index);
-      } else if (Map.isMap(mapOrList)) {
-        if (typeof action.index !== 'string' || !action.index)
-          throw new Error('');
-      
-        return mapOrList.delete(action.index);
-      } else {
-        throw new Error('');
-      }
-    });
+    
+    return state.updateIn(
+      pathToProp,
+      propValue => propValue.deleteValueInStatic(action.path, action.index),
+    );
   },
   
   [PROJECT_COMPONENT_RENAME]: (state, action) => {
@@ -1028,21 +1053,27 @@ const handlers = {
       );
     }
   
-    const newValue = new ProjectComponentProp({
+    const newValue = new JssyValue({
       source: 'designer',
       sourceData: new SourceDataDesigner({
         components: topConstructor.components,
         rootId: topConstructor.rootId,
       }),
     });
-  
-    const path = [].concat(
+    
+    const pathToProp = [].concat(
       pathToCurrentComponents,
-      [topConstructor.componentId, 'props', topConstructor.prop],
-      ...topConstructor.path.map(index => ['sourceData', 'value', index]),
+      topConstructor.componentId,
+      'props',
+      topConstructor.prop,
     );
-  
-    return state.setIn(path, newValue);
+    
+    return state.updateIn(
+      pathToProp,
+      propValue => topConstructor.path.length === 0
+        ? newValue
+        : propValue.setInStatic(topConstructor.path, newValue),
+    );
   },
   
   [PROJECT_LINK_PROP]: (state, action) => state
@@ -1065,16 +1096,15 @@ const handlers = {
     }
     
     const pathToCurrentComponents = getPathToCurrentComponents(state);
-  
-    const path = [].concat(
+    const pathToProp = [].concat(
       pathToCurrentComponents,
-      [state.linkingPropOfComponentId, 'props', state.linkingPropName],
-      ...state.linkingPropPath.map(index => ['sourceData', 'value', index]),
+      state.linkingPropOfComponentId,
+      'props',
+      state.linkingPropName,
     );
-  
-    const oldValue = state.getIn(path);
-  
-    const newValue = new ProjectComponentProp({
+    
+    const oldValue = state.getIn(pathToProp).getInStatic(state.linkingPropPath);
+    const newValue = new JssyValue({
       source: 'static',
       sourceData: new SourceDataStatic({
         value: oldValue.source === 'static'
@@ -1084,14 +1114,15 @@ const handlers = {
         ownerPropName: action.ownerPropName,
       }),
     });
-  
-    return state
-      .setIn(path, newValue)
-      .merge({
-        linkingProp: false,
-        linkingPropOfComponentId: -1,
-        linkingPropName: '',
-      });
+    
+    state = state.updateIn(
+      pathToProp,
+      propValue => state.linkingPropPath.length === 0
+        ? newValue
+        : propValue.setInStatic(state.linkingPropPath, newValue),
+    );
+    
+    return initLinkingPropState(state);
   },
   
   [PROJECT_LINK_WITH_DATA]: (state, action) => {
@@ -1106,14 +1137,14 @@ const handlers = {
     }
     
     const pathToCurrentComponents = getPathToCurrentComponents(state);
-  
-    const path = [].concat(
+    const pathToProp = [].concat(
       pathToCurrentComponents,
-      [state.linkingPropOfComponentId, 'props', state.linkingPropName],
-      ...state.linkingPropPath.map(index => ['sourceData', 'value', index]),
+      state.linkingPropOfComponentId,
+      'props',
+      state.linkingPropName,
     );
     
-    const newValue = new ProjectComponentProp({
+    const newValue = new JssyValue({
       source: 'data',
       sourceData: new SourceDataData({
         dataContext: List(action.dataContext),
@@ -1123,24 +1154,25 @@ const handlers = {
       }),
     });
     
-    // TODO: Find path to queryArgs and update them!
+    const pathToQueryArgs = [
+      ...getPathToComponentWithQueryArgs(state, action.dataContext),
+      'queryArgs',
+      action.dataContext.join(' '),
+    ];
+    
+    state = state.setIn(pathToQueryArgs, action.args);
   
-    return state
-      .setIn(path, newValue)
-      .merge({
-        linkingProp: false,
-        linkingPropOfComponentId: -1,
-        linkingPropName: '',
-      });
+    state = state.updateIn(
+      pathToProp,
+      propValue => state.linkingPropPath.length === 0
+        ? newValue
+        : propValue.setInStatic(state.linkingPropPath, newValue),
+    );
+    
+    return initLinkingPropState(state);
   },
   
-  [PROJECT_LINK_PROP_CANCEL]: (state, action) => state
-    .merge({
-      linkingProp: false,
-      linkingPropOfComponentId: -1,
-      linkingPropName: '',
-    })
-    .set('linkingPropPath', action.path), // Prevent conversion to List
+  [PROJECT_LINK_PROP_CANCEL]: state => initLinkingPropState(state),
   
   [PREVIEW_DRAG_OVER_COMPONENT]: (state, action) => state.merge({
     draggingOverComponentId: action.componentId,

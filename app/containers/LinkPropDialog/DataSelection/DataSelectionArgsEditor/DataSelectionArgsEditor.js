@@ -18,10 +18,11 @@ import {
 
 import {
   makeDefaultValue,
+  makeDefaultNonNullValue,
   getNestedTypedef,
 } from '../../../../../shared/types';
 
-import { staticJssyValueFromJs } from '../../../../models/ProjectComponentProp';
+import JssyValue from '../../../../models/JssyValue';
 import { getJssyTypeOfField } from '../../../../utils/schema';
 import { noop, returnArg, objectToArray } from '../../../../utils/misc';
 
@@ -158,7 +159,7 @@ export class DataSelectionArgsEditor extends PureComponent {
     } else {
       // Argument has no value ("is null" in terms of GraphQL)
       return {
-        value: makeDefaultValue(jssyTypedef),
+        value: makeDefaultNonNullValue(jssyTypedef),
         linked: false,
         checked: false,
       };
@@ -180,19 +181,28 @@ export class DataSelectionArgsEditor extends PureComponent {
     if (checked) {
       const arg = field.args[argName];
       const jssyTypedef = getJssyTypeOfField(arg, schema);
-      const nestedTypedef = getNestedTypedef(jssyTypedef, path);
-      const newValue = staticJssyValueFromJs(makeDefaultValue(nestedTypedef));
-      const pathToValue = [argName]
-        .concat(...path.map(step => ['sourceData', 'value', step]));
       
-      newArgs = newArgs.setIn(pathToValue, newValue);
+      if (!newArgs.has(argName)) {
+        if (path.length === 0) {
+          newArgs = newArgs.set(
+            argName,
+            JssyValue.staticFromJS(makeDefaultNonNullValue(jssyTypedef)),
+          );
+        }
+      } else {
+        const nestedTypedef = getNestedTypedef(jssyTypedef, path);
+  
+        newArgs = newArgs.update(argName, argValue =>
+          argValue.replaceStaticValueIn(
+            path,
+            makeDefaultNonNullValue(nestedTypedef)),
+          );
+      }
     } else if (path.length === 0) {
       newArgs = newArgs.delete(argName);
     } else {
-      const pathToValue = [argName, 'sourceData', 'value']
-        .concat(...path.map(step => [step, 'sourceData', 'value']));
-      
-      newArgs = newArgs.setIn(pathToValue, null);
+      newArgs = newArgs.update(argName, argValue =>
+        argValue.setInStatic(path, JssyValue.STATIC_NULL));
     }
   
     onArgsUpdate({ args: newArgs });
@@ -213,14 +223,18 @@ export class DataSelectionArgsEditor extends PureComponent {
     if (!newArgs.has(argName)) {
       const arg = field.args[argName];
       const jssyTypedef = getJssyTypeOfField(arg, schema);
-      const initialValue = staticJssyValueFromJs(makeDefaultValue(jssyTypedef));
-      newArgs = newArgs.set(argName, initialValue);
+      
+      newArgs = newArgs.set(
+        argName,
+        JssyValue.staticFromJS(makeDefaultNonNullValue(jssyTypedef)),
+      );
     }
     
-    const pathToValue = [argName, 'sourceData', 'value']
-      .concat(...path.map(step => [step, 'sourceData', 'value']));
-    
-    newArgs = newArgs.setIn(pathToValue, value);
+    newArgs = newArgs.update(
+      argName,
+      argValue => argValue.replaceStaticValueIn(path, value),
+    );
+
     onArgsUpdate({ args: newArgs });
   }
   
@@ -233,19 +247,17 @@ export class DataSelectionArgsEditor extends PureComponent {
    */
   _handleAddValue({ propName: argName, index, where }) {
     const { field, schema, fieldArgs, onArgsUpdate } = this.props;
-  
-    let newArgs = fieldArgs || Map();
+    
     const arg = field.args[argName];
     const jssyTypedef = getJssyTypeOfField(arg, schema);
     const nestedTypedef = getNestedTypedef(jssyTypedef, [...where, index]);
-    const newValue = staticJssyValueFromJs(makeDefaultValue(nestedTypedef));
-    const pathToValue = [argName, 'sourceData', 'value']
-      .concat(...where.map(step => [step, 'sourceData', 'value']));
     
-    if (index === -1)
-      newArgs = newArgs.updateIn(pathToValue, list => list.push(newValue));
-    else
-      newArgs = newArgs.setIn([...pathToValue, index], newValue);
+    const newArgs = fieldArgs.update(argName, argValue =>
+      argValue.addJSValueInStatic(
+        where,
+        index,
+        makeDefaultValue(nestedTypedef)),
+    );
     
     onArgsUpdate({ args: newArgs });
   }
@@ -260,11 +272,11 @@ export class DataSelectionArgsEditor extends PureComponent {
   _handleDeleteValue({ propName: argName, index, where }) {
     const { fieldArgs, onArgsUpdate } = this.props;
   
-    let newArgs = fieldArgs || Map();
-    const pathToValue = [argName, 'sourceData', 'value']
-      .concat(...where.map(step => [step, 'sourceData', 'value']), index);
-  
-    newArgs = newArgs.deleteIn(pathToValue);
+    const newArgs = fieldArgs.update(
+      argName,
+      argValue => argValue.deleteValueInStatic(where, index),
+    );
+    
     onArgsUpdate({ args: newArgs });
   }
   

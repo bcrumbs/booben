@@ -7,11 +7,11 @@
 import { Record, List, Map, Set } from 'immutable';
 import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';
-import ProjectComponentProp from './ProjectComponentProp';
+import JssyValue from './JssyValue';
 import SourceDataStatic from './SourceDataStatic';
 import SourceDataData, { QueryPathStep } from './SourceDataData';
 import SourceDataConst from './SourceDataConst';
-import SourceDataFunction, { FunctionArgValue } from './SourceDataFunction';
+import SourceDataFunction from './SourceDataFunction';
 import SourceDataAction from './SourceDataAction';
 import SourceDataDesigner from './SourceDataDesigner';
 import { getFunctionInfo } from '../utils/functions';
@@ -40,7 +40,7 @@ const propSourceDataToImmutableFns = {
     if (typeof input.value !== 'undefined') {
       if (Array.isArray(input.value)) {
         data.value = List(input.value.map(
-          ({ source, sourceData }) => new ProjectComponentProp({
+          ({ source, sourceData }) => new JssyValue({
             source,
             sourceData: sourceDataToImmutable(source, sourceData),
           })),
@@ -49,7 +49,7 @@ const propSourceDataToImmutableFns = {
         data.value = Map(_mapValues(
           input.value,
 
-          ({ source, sourceData }) => new ProjectComponentProp({
+          ({ source, sourceData }) => new JssyValue({
             source,
             sourceData: sourceDataToImmutable(source, sourceData),
           })),
@@ -86,7 +86,7 @@ const propSourceDataToImmutableFns = {
     function: input.function,
     args: Map().withMutations(args => {
       _forOwn(input.args, (arg, name) => {
-        args.set(name, new FunctionArgValue({
+        args.set(name, new JssyValue({
           source: arg.source,
           sourceData: sourceDataToImmutable(arg.source, arg.sourceData),
         }));
@@ -114,11 +114,6 @@ const propSourceDataToImmutableFns = {
 export const sourceDataToImmutable = (source, sourceData) =>
     propSourceDataToImmutableFns[source](sourceData);
 
-export const QueryArgumentValue = Record({
-  source: '',
-  sourceData: null,
-});
-
 export const projectComponentToImmutable = (
   input,
   routeId,
@@ -132,7 +127,7 @@ export const projectComponentToImmutable = (
   name: input.name,
   title: input.title,
 
-  props: Map(_mapValues(input.props, propValue => new ProjectComponentProp({
+  props: Map(_mapValues(input.props, propValue => new JssyValue({
     source: propValue.source,
     sourceData: sourceDataToImmutable(
       propValue.source,
@@ -152,7 +147,7 @@ export const projectComponentToImmutable = (
     dataContextArgs => Map(_mapValues(
       dataContextArgs,
 
-      args => Map(_mapValues(args, argValue => new QueryArgumentValue({
+      args => Map(_mapValues(args, argValue => new JssyValue({
         source: argValue.source,
         sourceData: sourceDataToImmutable(
           argValue.source,
