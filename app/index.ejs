@@ -5,10 +5,38 @@
     <meta name="viewport" content="width=device-width, height=device-height,initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
     <link href="favicon.png" rel="shortcut icon">
     <title><%= htmlWebpackPlugin.options.title %></title>
+    <style>
+        .splash-screen {
+            background-color: #333A45;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .splash-screen_image {
+            font-size: 54px;
+            font-weight: 300;
+            color: #EDEEF1;
+
+            animation-iteration-count: infinite;
+            animation-duration: 15s;
+            animation-fill-mode: both;
+            animation-direction: alternate;
+            -webkit-animation-name: flash;
+            animation-name: flash;
+        }
+    </style>
 </head>
 
 <body ontouchstart="">
-<!-- TODO: Spash screen goes here -->
-<div id="container">Loading...</div>
+<!-- TODO: Splash screen goes here -->
+<div id="container">
+    <div class="splash-screen">
+        <div class="splash-screen_image">
+            JSSY
+        </div>
+    </div>
+</div>
 </body>
 </html>
