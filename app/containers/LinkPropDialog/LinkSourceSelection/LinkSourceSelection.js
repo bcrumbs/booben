@@ -16,6 +16,13 @@ import {
 import { DataList, DataItem } from '../../../components/DataList/DataList';
 import { noop } from '../../../utils/misc';
 
+/**
+ * @typedef {Object} LinkSourceComponentItem
+ * @property {string} id
+ * @property {string} title
+ * @property {*} [data]
+ */
+
 const propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
     id: PropTypes.string,

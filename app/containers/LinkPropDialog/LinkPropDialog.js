@@ -20,6 +20,7 @@ import {
 } from './OwnerComponentPropSelection/OwnerComponentPropSelection';
 
 import { DataSelection } from './DataSelection/DataSelection';
+import { FunctionSelection } from './FunctionSelection/FunctionSelection';
 import { DataWindow } from '../../components/DataWindow/DataWindow';
 
 import {
@@ -72,17 +73,23 @@ class LinkPropDialogComponent extends PureComponent {
    * @private
    */
   _getLinkTargetData() {
-    const linkTargetComponent =
-      this.props.components.get(this.props.linkingPropOfComponentId);
+    const {
+      meta,
+      components,
+      linkingPropOfComponentId,
+      linkingPropName,
+      linkingPropPath,
+    } = this.props;
     
+    const linkTargetComponent = components.get(linkingPropOfComponentId);
     const linkTargetComponentMeta = getComponentMeta(
       linkTargetComponent.name,
-      this.props.meta,
+      meta,
     );
     
     const linkTargetPropTypedef = getNestedTypedef(
-      linkTargetComponentMeta.props[this.props.linkingPropName],
-      this.props.linkingPropPath,
+      linkTargetComponentMeta.props[linkingPropName],
+      linkingPropPath,
       linkTargetComponentMeta.types,
     );
     
@@ -99,6 +106,51 @@ class LinkPropDialogComponent extends PureComponent {
       selectedSourceData: null,
       dialogButtons: [],
     });
+  }
+  
+  /**
+   *
+   * @return {LinkSourceComponentItem[]}
+   * @private
+   */
+  _getAvailableSources() {
+    const { topNestedConstructor, availableDataContexts } = this.props;
+    
+    const { linkTargetPropTypedef } = this._getLinkTargetData();
+    const items = [];
+    
+    if (topNestedConstructor) {
+      items.push({
+        id: 'owner',
+        title: 'Owner component', // TODO: Get string from i18n
+      });
+    }
+    
+    if (isValidSourceForProp(linkTargetPropTypedef, 'data')) {
+      items.push({
+        id: 'query',
+        title: 'Data', // TODO: Get string from i18n
+      });
+      
+      availableDataContexts.forEach(({ dataContext, typeName }, idx) => {
+        items.push({
+          id: `context-${idx}`,
+          title: `Context - ${typeName}`,
+          data: {
+            dataContext,
+            rootTypeName: typeName,
+          },
+        });
+      });
+    }
+    
+    // TODO: Define rules on when to allow to use functions
+    items.push({
+      id: 'function',
+      title: 'Function', // TODO: Get string from i18n
+    });
+    
+    return items;
   }
   
   /**
@@ -171,47 +223,12 @@ class LinkPropDialogComponent extends PureComponent {
    * @private
    */
   _renderSourceSelection() {
-    const { topNestedConstructor, availableDataContexts } = this.props;
-    
-    const { linkTargetPropTypedef } = this._getLinkTargetData();
-    const items = [];
-    
-    if (topNestedConstructor) {
-      items.push({
-        id: 'owner',
-        title: 'Owner component', // TODO: Get string from i18n
-      });
-    }
-    
-    if (isValidSourceForProp(linkTargetPropTypedef, 'data')) {
-      items.push({
-        id: 'query',
-        title: 'Data', // TODO: Get string from i18n
-      });
-  
-      availableDataContexts.forEach(({ dataContext, typeName }, idx) => {
-        items.push({
-          id: `context-${idx}`,
-          title: `Context - ${typeName}`,
-          data: {
-            dataContext,
-            rootTypeName: typeName,
-          },
-        });
-      });
-    }
-    
-    if (isValidSourceForProp(linkTargetPropTypedef, 'function')) {
-      items.push({
-        id: 'function',
-        title: 'Function', // TODO: Get string from i18n
-      });
-    }
+    const sourceItems = this._getAvailableSources();
     
     //noinspection JSValidateTypes
     return (
       <LinkSourceSelection
-        items={items}
+        items={sourceItems}
         onSelect={this._handleSelectSource}
       />
     );
@@ -223,9 +240,19 @@ class LinkPropDialogComponent extends PureComponent {
    * @private
    */
   _renderOwnerPropSelection() {
-    const ownerComponent = this.props.topNestedConstructorComponent,
-      ownerMeta = getComponentMeta(ownerComponent.name, this.props.meta),
-      ownerPropName = this.props.topNestedConstructor.prop;
+    const {
+      meta,
+      topNestedConstructor,
+      topNestedConstructorComponent,
+      language,
+    } = this.props;
+    
+    const ownerMeta = getComponentMeta(
+      topNestedConstructorComponent.name,
+      meta,
+    );
+    
+    const ownerPropName = topNestedConstructor.prop;
 
     const { linkTargetComponentMeta, linkTargetPropTypedef } =
       this._getLinkTargetData();
@@ -237,7 +264,7 @@ class LinkPropDialogComponent extends PureComponent {
         ownerPropName={ownerPropName}
         linkTargetComponentMeta={linkTargetComponentMeta}
         linkTargetPropTypedef={linkTargetPropTypedef}
-        language={this.props.language}
+        language={language}
         onSelect={this._handleLinkWithOwnerProp}
         onReturn={this._handleReturn}
       />
@@ -278,6 +305,12 @@ class LinkPropDialogComponent extends PureComponent {
     );
   }
   
+  _renderFunctionSelection() {
+    return (
+      <FunctionSelection />
+    );
+  }
+  
   render() {
     const { schema, singleComponentSelected, linkingProp } = this.props;
     const { selectedSourceId, selectedSourceData, dialogButtons } = this.state;
@@ -292,6 +325,8 @@ class LinkPropDialogComponent extends PureComponent {
         content = this._renderOwnerPropSelection();
       } else if (selectedSourceId === 'query') {
         content = this._renderDataSelection([], schema.queryTypeName);
+      } else if (selectedSourceId === 'function') {
+        content = this._renderFunctionSelection();
       } else if (selectedSourceId.startsWith('context')) {
         content = this._renderDataSelection(
           selectedSourceData.dataContext,
