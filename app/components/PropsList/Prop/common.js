@@ -7,7 +7,7 @@
 //noinspection JSUnresolvedVariable
 import { PropTypes } from 'react';
 import _mapValues from 'lodash.mapvalues';
-import { resolveTypedef } from '../../../../shared/types';
+import { resolveTypedef } from '@jssy/types';
 
 /**
  * @typedef {Object} PropsItemPropTypeOption

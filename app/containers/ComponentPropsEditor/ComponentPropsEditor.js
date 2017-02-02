@@ -12,6 +12,12 @@ import { createSelector } from 'reselect';
 import _mapValues from 'lodash.mapvalues';
 
 import {
+  isEqualType,
+  resolveTypedef,
+  getNestedTypedef,
+} from '@jssy/types';
+
+import {
   PropsList,
   Prop,
   PropViews,
@@ -49,12 +55,6 @@ import {
   buildDefaultValue,
   isValidSourceForProp,
 } from '../../utils/meta';
-
-import {
-  isEqualType,
-  resolveTypedef,
-  getNestedTypedef,
-} from '../../../shared/types';
 
 import { NO_VALUE } from '../../constants/misc';
 import { getLocalizedTextFromState } from '../../utils';

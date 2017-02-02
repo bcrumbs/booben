@@ -10,17 +10,17 @@ import { Map } from 'immutable';
 import _mapValues from 'lodash.mapvalues';
 
 import {
+  makeDefaultValue,
+  makeDefaultNonNullValue,
+  getNestedTypedef,
+} from '@jssy/types';
+
+import {
   PropsList,
   Prop,
   jssyTypeToView,
   jssyValueToPropValue,
 } from '../../../../components/PropsList/PropsList';
-
-import {
-  makeDefaultValue,
-  makeDefaultNonNullValue,
-  getNestedTypedef,
-} from '../../../../../shared/types';
 
 import JssyValue from '../../../../models/JssyValue';
 import { getJssyTypeOfField } from '../../../../utils/schema';

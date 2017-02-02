@@ -6,6 +6,7 @@
 
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
+import { isEqualType } from '@jssy/types';
 
 import {
   BlockContent,
@@ -21,7 +22,6 @@ import {
 } from '../../../components/DataList/DataList';
 
 import { getString } from '../../../utils/meta';
-import { isEqualType } from '../../../../shared/types';
 import { noop } from '../../../utils/misc';
 
 //noinspection JSUnresolvedVariable

@@ -10,6 +10,7 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { Map } from 'immutable';
 import { Dialog } from '@reactackle/reactackle';
+import { getNestedTypedef } from '@jssy/types';
 
 import {
   LinkSourceSelection,
@@ -44,7 +45,6 @@ import {
   makeCurrentQueryArgsGetter,
 } from '../../reducers/project';
 
-import { getNestedTypedef } from '../../../shared/types';
 import { getComponentMeta, isValidSourceForProp } from '../../utils/meta';
 import { getLocalizedTextFromState } from '../../utils';
 

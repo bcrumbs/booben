@@ -5,6 +5,7 @@
 'use strict';
 
 import { Record, Map, Set, List, is } from 'immutable';
+import { getNestedTypedef } from '@jssy/types';
 
 import {
   NOT_LOADED,
@@ -93,7 +94,6 @@ import {
   propHasDataContext,
 } from '../utils/meta';
 
-import { getNestedTypedef } from '../../shared/types';
 import { concatPath } from '../utils';
 import { parseGraphQLSchema } from '../utils/schema';
 import { NO_VALUE } from '../constants/misc';

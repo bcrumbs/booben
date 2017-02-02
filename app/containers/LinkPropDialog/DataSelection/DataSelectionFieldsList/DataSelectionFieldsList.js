@@ -7,6 +7,7 @@
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import _forOwn from 'lodash.forown';
+import { isCompatibleType } from '@jssy/types';
 import { DataList, DataItem } from '../../../../components/DataList/DataList';
 
 import {
@@ -16,7 +17,6 @@ import {
   formatFieldName,
 } from '../../../../utils/schema';
 
-import { isCompatibleType } from '../../../../../shared/types';
 import { noop, returnArg, objectSome } from '../../../../utils/misc';
 
 //noinspection JSUnresolvedVariable
