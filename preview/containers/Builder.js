@@ -56,7 +56,7 @@ class BuilderComponent extends PureComponent {
   /**
    *
    * @param {Object} propValue
-   * @param {TypeDefinition} typedef
+   * @param {JssyTypeDefinition} typedef
    * @param {Immutable.Map<Object, Object>} theMap
    * @return {*}
    */

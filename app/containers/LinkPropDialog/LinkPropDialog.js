@@ -45,6 +45,7 @@ import {
   makeCurrentQueryArgsGetter,
 } from '../../reducers/project';
 
+import { Functions } from './FunctionSelection/common';
 import { getComponentMeta, isValidSourceForProp } from '../../utils/meta';
 import { getLocalizedTextFromState } from '../../utils';
 
@@ -306,8 +307,14 @@ class LinkPropDialogComponent extends PureComponent {
   }
   
   _renderFunctionSelection() {
+    const { projectFunctions, builtinFunctions } = this.props;
+
     return (
-      <FunctionSelection />
+      <FunctionSelection
+        projectFunctions={projectFunctions}
+        builtinFunctions={builtinFunctions}
+        onReturn={this._handleReturn}
+      />
     );
   }
   
@@ -362,6 +369,8 @@ LinkPropDialogComponent.propTypes = {
   ).isRequired,
   meta: PropTypes.object.isRequired,
   schema: PropTypes.object.isRequired,
+  projectFunctions: ImmutablePropTypes.map.isRequired,
+  builtinFunctions: Functions.isRequired,
   singleComponentSelected: PropTypes.bool.isRequired,
   linkingProp: PropTypes.bool.isRequired,
   linkingPropOfComponentId: PropTypes.number.isRequired,
@@ -399,6 +408,8 @@ const mapStateToProps = state => ({
   components: currentComponentsSelector(state),
   meta: state.project.meta,
   schema: state.project.schema,
+  projectFunctions: state.project.data.functions,
+  builtinFunctions: {}, // TODO: Pass built-in functions here
   singleComponentSelected: singleComponentSelectedSelector(state),
   linkingProp: state.project.linkingProp,
   linkingPropOfComponentId: state.project.linkingPropOfComponentId,

@@ -108,7 +108,7 @@
  * @property {string} title
  * @property {string} description
  * @property {FunctionArgument[]} args
- * @property {TypeDefinition} returnType
+ * @property {JssyTypeDefinition} returnType
  * @property {string} body
  */
 
@@ -116,7 +116,7 @@
  * @typedef {Object} FunctionArgument
  * @property {string} name
  * @property {string} description
- * @property {TypeDefinition} typedef
+ * @property {JssyTypeDefinition} typedef
  * @property {boolean} isRequired
  * @property {*} [defaultValue]
  */
