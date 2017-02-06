@@ -8,6 +8,7 @@
 import { PropTypes } from 'react';
 import _mapValues from 'lodash.mapvalues';
 import { resolveTypedef } from '@jssy/types';
+import { returnArg } from '../../../utils/misc';
 
 /**
  * @typedef {Object} PropsItemPropTypeOption
@@ -160,9 +161,9 @@ const isLinkedProp = propValue =>
  *
  * @param {Object} propValue
  * It is an {@link Immutable.Record} actually
- * (see app/models/ProjectComponentProp.js)
- * @param {TypeDefinition} typedef
- * @param {?Object<string, TypeDefinition>} [userTypedefs=null]
+ * (see app/models/JssyValue.js)
+ * @param {JssyTypeDefinition} typedef
+ * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
  * @return {PropsItemValue}
  */
 export const jssyValueToPropValue = (
@@ -230,4 +231,91 @@ export const jssyValueToPropValue = (
   }
   
   return { value, linked, linkedWith };
+};
+
+/**
+ *
+ * @param {string} value
+ * @return {number}
+ */
+const coerceIntValue = value => {
+  const maybeRet = parseInt(value, 10);
+  if (!isFinite(maybeRet)) return 0;
+  return maybeRet;
+};
+
+/**
+ *
+ * @param {string} value
+ * @return {number}
+ */
+const coerceFloatValue = value => {
+  const maybeRet = parseFloat(value);
+  if (!isFinite(maybeRet)) return 0.0;
+  return maybeRet;
+};
+
+/**
+ *
+ * @template Extra
+ * @param {JssyTypeDefinition} jssyTypedef
+ * @param {Extra} extra
+ * @param {function(jssyTypedef: JssyTypeDefinition, extra: Extra, isField: boolean, fieldName: string): Extra} getNestedExtra
+ * @param {function(propType: PropsItemPropType, extra: Extra, jssyTypedef: JssyTypeDefinition): PropsItemPropType} applyExtra
+ * @return {PropsItemPropType}
+ */
+export const jssyTypedefToPropType = (
+  jssyTypedef,
+  extra,
+  getNestedExtra,
+  applyExtra,
+) => {
+  const ret = {
+    label: '',
+    secondaryLabel: jssyTypedef.type,
+    view: jssyTypeToView(jssyTypedef.type),
+    image: '',
+    tooltip: '',
+    linkable: false,
+    checkable: false,
+    required: false,
+    transformValue: null,
+    formatItemLabel: returnArg,
+  };
+  
+  if (jssyTypedef.type === 'int') {
+    ret.transformValue = coerceIntValue;
+  } else if (jssyTypedef.type === 'float') {
+    ret.transformValue = coerceFloatValue;
+  } else if (jssyTypedef.type === 'oneOf') {
+    ret.options = jssyTypedef.options.map(option => ({
+      value: option.value,
+      text: String(option.value),
+    }));
+  } else if (jssyTypedef.type === 'shape') {
+    ret.fields = _mapValues(jssyTypedef.fields, (fieldTypedef, fieldName) => {
+      const nestedExtra = getNestedExtra(jssyTypedef, extra, true, fieldName);
+      
+      return jssyTypedefToPropType(
+        fieldTypedef,
+        nestedExtra,
+        getNestedExtra,
+        applyExtra,
+      );
+    });
+  } else if (
+    jssyTypedef.type === 'arrayOf' ||
+    jssyTypedef.type === 'objectOf'
+  ) {
+    const nestedExtra = getNestedExtra(jssyTypedef, extra, false, '');
+  
+    ret.ofType = jssyTypedefToPropType(
+      jssyTypedef.ofType,
+      nestedExtra,
+      getNestedExtra,
+      applyExtra,
+    );
+  }
+  
+  return applyExtra(ret, extra, jssyTypedef);
 };

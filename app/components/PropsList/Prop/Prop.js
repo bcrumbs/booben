@@ -31,6 +31,7 @@ import {
   isComplexView,
   jssyTypeToView,
   jssyValueToPropValue,
+  jssyTypedefToPropType,
 } from './common';
 
 import { noop, returnArg } from '../../../utils/misc';
@@ -133,10 +134,8 @@ export class Prop extends PureComponent {
    * @private
    */
   _handleOpen() {
-    this.setState({
-      isOpen: !this.state.isOpen,
-      currentPath: [],
-    });
+    const { isOpen } = this.state;
+    this.setState({ isOpen: !isOpen, currentPath: [] });
   }
   
   /**
@@ -145,9 +144,8 @@ export class Prop extends PureComponent {
    * @private
    */
   _handleOpenNested({ index }) {
-    this.setState({
-      currentPath: [...this.state.currentPath, index],
-    });
+    const { currentPath } = this.state;
+    this.setState({ currentPath: [...currentPath, index] });
   }
   
   /**
@@ -156,9 +154,8 @@ export class Prop extends PureComponent {
    * @private
    */
   _handleBreadcrumbsSelect({ index }) {
-    this.setState({
-      currentPath: this.state.currentPath.slice(0, index),
-    });
+    const { currentPath } = this.state;
+    this.setState({ currentPath: currentPath.slice(0, index) });
   }
   
   /**
@@ -167,8 +164,8 @@ export class Prop extends PureComponent {
    * @private
    */
   _handleCheck({ checked }) {
-    const { propName } = this.props;
-    this.props.onCheck({ propName, checked, path: [] });
+    const { propName, onCheck } = this.props;
+    onCheck({ propName, checked, path: [] });
   }
   
   /**
@@ -178,12 +175,9 @@ export class Prop extends PureComponent {
    * @private
    */
   _handleCheckNested({ checked, index }) {
-    const { propName } = this.props;
-    this.props.onCheck({
-      propName,
-      checked,
-      path: [...this.state.currentPath, index],
-    });
+    const { propName, onCheck } = this.props;
+    const { currentPath } = this.state;
+    onCheck({ propName, checked, path: [...currentPath, index] });
   }
   
   /**
@@ -191,8 +185,8 @@ export class Prop extends PureComponent {
    * @private
    */
   _handleLink() {
-    const { propName } = this.props;
-    this.props.onLink({ propName, path: [] });
+    const { propName, onLink } = this.props;
+    onLink({ propName, path: [] });
   }
   
   /**
@@ -201,8 +195,9 @@ export class Prop extends PureComponent {
    * @private
    */
   _handleLinkNested({ index }) {
-    const { propName } = this.props;
-    this.props.onLink({ propName, path: [...this.state.currentPath, index] });
+    const { propName, onLink } = this.props;
+    const { currentPath } = this.state;
+    onLink({ propName, path: [...currentPath, index] });
   }
   
   /**
@@ -210,8 +205,8 @@ export class Prop extends PureComponent {
    * @private
    */
   _handleUnlink() {
-    const { propName } = this.props;
-    this.props.onUnlink({ propName, path: [] });
+    const { propName, onUnlink } = this.props;
+    onUnlink({ propName, path: [] });
   }
   
   /**
@@ -220,8 +215,9 @@ export class Prop extends PureComponent {
    * @private
    */
   _handleUnlinkNested({ index }) {
-    const { propName } = this.props;
-    this.props.onUnlink({ propName, path: [...this.state.currentPath, index] });
+    const { propName, onUnlink } = this.props;
+    const { currentPath } = this.state;
+    onUnlink({ propName, path: [...currentPath, index] });
   }
   
   /**
@@ -230,12 +226,9 @@ export class Prop extends PureComponent {
    * @private
    */
   _handleDeleteValue({ index }) {
-    const { propName } = this.props;
-    this.props.onDeleteValue({
-      propName,
-      index,
-      where: this.state.currentPath,
-    });
+    const { propName, onDeleteValue } = this.props;
+    const { currentPath } = this.state;
+    onDeleteValue({ propName, index, where: currentPath });
   }
   
   /**
@@ -244,20 +237,12 @@ export class Prop extends PureComponent {
    * @private
    */
   _handleAddValue({ name }) {
-    const { propName } = this.props;
+    const { propName, propType, onAddValue } = this.props;
+    const { currentPath } = this.state;
 
-    const currentType = getTypeByPath(
-      this.props.propType,
-      this.state.currentPath,
-    );
-    
+    const currentType = getTypeByPath(propType, currentPath);
     const index = currentType.view === PropViews.ARRAY ? -1 : name;
-  
-    this.props.onAddValue({
-      propName,
-      index,
-      where: this.state.currentPath,
-    });
+    onAddValue({ propName, index, where: currentPath });
   }
   
   /**
@@ -266,8 +251,8 @@ export class Prop extends PureComponent {
    * @private
    */
   _handleChange({ value }) {
-    const { propName } = this.props;
-    this.props.onChange({ propName, value, path: [] });
+    const { propName, onChange } = this.props;
+    onChange({ propName, value, path: [] });
   }
   
   /**
@@ -277,12 +262,9 @@ export class Prop extends PureComponent {
    * @private
    */
   _handleChangeNested({ index, value }) {
-    const { propName } = this.props;
-    this.props.onChange({
-      propName,
-      value,
-      path: [...this.state.currentPath, index],
-    });
+    const { propName, onChange } = this.props;
+    const { currentPath } = this.state;
+    onChange({ propName, value, path: [...currentPath, index] });
   }
   
   /**
@@ -290,8 +272,8 @@ export class Prop extends PureComponent {
    * @private
    */
   _handleSetComponent() {
-    const { propName } = this.props;
-    this.props.onSetComponent({ propName, path: [] });
+    const { propName, onSetComponent } = this.props;
+    onSetComponent({ propName, path: [] });
   }
   
   /**
@@ -300,26 +282,27 @@ export class Prop extends PureComponent {
    * @private
    */
   _handleSetComponentNested({ index }) {
-    const { propName } = this.props;
-    this.props.onSetComponent({
-      propName,
-      path: [...this.state.currentPath, index],
-    });
+    const { propName, onSetComponent } = this.props;
+    const { currentPath } = this.state;
+    onSetComponent({ propName, path: [...currentPath, index] });
   }
   
   _renderBreadcrumbs() {
-    if (this.state.currentPath.length === 0) return null;
+    const { propType } = this.props;
+    const { currentPath } = this.state;
+    
+    if (currentPath.length === 0) return null;
     
     const items = [{
-      title: this.props.propType.label,
-      subtitle: this.props.propType.type,
+      title: propType.label,
+      subtitle: propType.type,
     }];
     
-    let currentType = this.props.propType;
+    let currentType = propType;
     
-    for (let i = 0, l = this.state.currentPath.length; i < l; i++) {
-      const pathElement = this.state.currentPath[i],
-        nestedType = getNestedType(currentType, pathElement);
+    for (let i = 0, l = currentPath.length; i < l; i++) {
+      const pathElement = currentPath[i];
+      const nestedType = getNestedType(currentType, pathElement);
       
       items.push({
         title: currentType.view === PropViews.SHAPE
@@ -346,8 +329,8 @@ export class Prop extends PureComponent {
 
     if (!isOpen) return null;
   
-    const currentType = getTypeByPath(propType, currentPath),
-      currentValue = getValueByPath(value, currentPath);
+    const currentType = getTypeByPath(propType, currentPath);
+    const currentValue = getValueByPath(value, currentPath);
   
     if (!currentValue || currentValue.value === null) return null;
     
@@ -540,4 +523,9 @@ Prop.defaultProps = defaultProps;
 Prop.displayName = 'Prop';
 
 // Export utils
-export { PropViews, jssyTypeToView, jssyValueToPropValue };
+export {
+  PropViews,
+  jssyTypeToView,
+  jssyValueToPropValue,
+  jssyTypedefToPropType,
+};

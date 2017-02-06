@@ -62,6 +62,7 @@
   "showAllComponents": "Показать все компоненты",
   "noComponentsInLibrary": "В библиотеке нет компонентов",
 
+  "sources": "Источники",
   "query": "Запрос",
   "functions": "Функции",
   "context": "Контекст",
@@ -80,5 +81,29 @@
   "apply": "Применить",
   "backTo": "Назад к {name}",
   "back": "Назад",
-  "setArguments": "Установить аргументы"
+  "setArguments": "Установить аргументы",
+
+  "functions.new.windowTitle": "Новая функция",
+  "functions.new.title": "Имя",
+  "functions.new.desc": "Описание",
+  "functions.new.returnType": "Тип значения",
+  "functions.new.argsList": "Аргументы",
+  "functions.new.newArg.button": "Добавить аргумент",
+  "functions.new.newArg.heading": "Новый аргумент",
+  "functions.new.newArg.title": "Имя",
+  "functions.new.newArg.type": "Тип",
+  "functions.new.newArg.add": "Добавить",
+
+  "types.string": "Строка",
+  "types.int": "Целое число",
+  "types.float": "Число",
+  "types.bool": "Булево значение",
+  "types.oneOf": "Один из",
+  "types.object": "Объект",
+  "types.objectOf": "Объект из",
+  "types.shape": "Структура",
+  "types.array": "Массив",
+  "types.arrayOf": "Массив из",
+  "types.func": "Функция",
+  "types.component": "Компонент"
 }

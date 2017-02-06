@@ -4,7 +4,7 @@
 
 'use strict';
 
-// noinspection JSUnresolvedVariable
+//noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 import { Button } from '@reactackle/reactackle';
 import { BlockContentBoxItem } from '../../BlockContent/BlockContent';
@@ -25,7 +25,7 @@ export const FunctionAddArgumentButton = ({ getLocalizedText, onPress }) => (
     <BlockContentBoxItem>
       <Button
         icon="plus"
-        text={getLocalizedText('replace_me:New argument')}
+        text={getLocalizedText('functions.new.newArg.button')}
         narrow
         onPress={onPress}
       />

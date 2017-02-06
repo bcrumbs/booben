@@ -45,7 +45,6 @@ import {
   makeCurrentQueryArgsGetter,
 } from '../../reducers/project';
 
-import { Functions } from './FunctionSelection/common';
 import { getComponentMeta, isValidSourceForProp } from '../../utils/meta';
 import { getLocalizedTextFromState } from '../../utils';
 
@@ -70,7 +69,7 @@ class LinkPropDialogComponent extends PureComponent {
   
   /**
    *
-   * @return {{linkTargetComponent: Object, linkTargetComponentMeta: ComponentMeta, linkTargetPropTypedef: TypeDefinition}}
+   * @return {{linkTargetComponent: Object, linkTargetComponentMeta: ComponentMeta, linkTargetPropTypedef: JssyTypeDefinition}}
    * @private
    */
   _getLinkTargetData() {
@@ -255,8 +254,10 @@ class LinkPropDialogComponent extends PureComponent {
     
     const ownerPropName = topNestedConstructor.prop;
 
-    const { linkTargetComponentMeta, linkTargetPropTypedef } =
-      this._getLinkTargetData();
+    const {
+      linkTargetComponentMeta,
+      linkTargetPropTypedef,
+    } = this._getLinkTargetData();
     
     //noinspection JSValidateTypes
     return (
@@ -307,13 +308,15 @@ class LinkPropDialogComponent extends PureComponent {
   }
   
   _renderFunctionSelection() {
-    const { projectFunctions, builtinFunctions } = this.props;
+    const { projectFunctions, builtinFunctions, getLocalizedText } = this.props;
 
     return (
       <FunctionSelection
         projectFunctions={projectFunctions}
         builtinFunctions={builtinFunctions}
+        getLocalizedText={getLocalizedText}
         onReturn={this._handleReturn}
+        onReplaceButtons={this._handleReplaceDialogButtons}
       />
     );
   }
@@ -370,7 +373,7 @@ LinkPropDialogComponent.propTypes = {
   meta: PropTypes.object.isRequired,
   schema: PropTypes.object.isRequired,
   projectFunctions: ImmutablePropTypes.map.isRequired,
-  builtinFunctions: Functions.isRequired,
+  builtinFunctions: ImmutablePropTypes.map.isRequired,
   singleComponentSelected: PropTypes.bool.isRequired,
   linkingProp: PropTypes.bool.isRequired,
   linkingPropOfComponentId: PropTypes.number.isRequired,
@@ -409,7 +412,7 @@ const mapStateToProps = state => ({
   meta: state.project.meta,
   schema: state.project.schema,
   projectFunctions: state.project.data.functions,
-  builtinFunctions: {}, // TODO: Pass built-in functions here
+  builtinFunctions: Map(), // TODO: Pass built-in functions here
   singleComponentSelected: singleComponentSelectedSelector(state),
   linkingProp: state.project.linkingProp,
   linkingPropOfComponentId: state.project.linkingPropOfComponentId,

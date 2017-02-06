@@ -50,21 +50,21 @@ export class FunctionArgumentsList extends Component {
 
     this._handleAddButtonPress = this._handleAddButtonPress.bind(this);
     this._handleAddArgument = this._handleAddArgument.bind(this);
+    this._handleCancelAddArgument = this._handleCancelAddArgument.bind(this);
     this._handleDeleteArgument = this._handleDeleteArgument.bind(this);
   }
 
   _handleAddButtonPress() {
-    this.setState({
-      creatingNewArgument: true,
-    });
+    this.setState({ creatingNewArgument: true });
   }
 
   _handleAddArgument({ name, type }) {
-    this.setState({
-      creatingNewArgument: false,
-    });
-
+    this.setState({ creatingNewArgument: false });
     this.props.onAdd({ name, type });
+  }
+  
+  _handleCancelAddArgument() {
+    this.setState({ creatingNewArgument: false });
   }
 
   _handleDeleteArgument({ id }) {
@@ -80,7 +80,7 @@ export class FunctionArgumentsList extends Component {
         key={name}
         id={String(idx)}
         label={name}
-        secondaryLabel={type}
+        secondaryLabel={getLocalizedText(`types.${type}`)}
         deletable
         onDelete={this._handleDeleteArgument}
       />
@@ -89,7 +89,10 @@ export class FunctionArgumentsList extends Component {
     const argumentsAdd = this.state.creatingNewArgument
       ? (
         <FunctionArgumentNew
+          existingArgNames={items.map(item => item.name)}
+          getLocalizedText={getLocalizedText}
           onAdd={this._handleAddArgument}
+          onCancel={this._handleCancelAddArgument}
         />
       )
       : (
@@ -102,7 +105,7 @@ export class FunctionArgumentsList extends Component {
     return (
       <div className="function-arguments_list">
         <BlockContentBoxHeading>
-          {getLocalizedText('replace_me:Arguments List')}
+          {getLocalizedText('functions.new.argsList')}
         </BlockContentBoxHeading>
 
         <BlockContentBoxItem>

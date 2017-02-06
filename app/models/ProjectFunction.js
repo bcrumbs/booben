@@ -29,7 +29,14 @@ const ProjectFunction = Record({
 export const projectFunctionToImmutable = input => new ProjectFunction({
   title: input.title,
   description: input.description,
-  args: List(input.args.map(arg => new ProjectFunctionArgument(arg))),
+  args: List(input.args.map(arg => {
+    const argRecord = new ProjectFunctionArgument(arg);
+    
+    // We need typedef and defaultValue to be plain JS objects
+    return argRecord
+      .set('typedef', arg.typedef)
+      .set('defaultValue', arg.defaultValue);
+  })),
   body: input.body,
   returnType: input.returnType,
   fn: new Function(

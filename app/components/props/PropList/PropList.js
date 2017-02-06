@@ -40,7 +40,7 @@ export class PropList extends PropBase {
    * @private
    */
   _handleChange(newValue) {
-    this.props.onChange({ value: newValue });
+    this.props.onChange({ id: this.props.id, value: newValue });
   }
   
   //noinspection JSUnusedGlobalSymbols

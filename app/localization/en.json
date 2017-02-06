@@ -62,6 +62,7 @@
   "showAllComponents": "Show all components",
   "noComponentsInLibrary": "No components in library",
 
+  "sources": "Sources",
   "query": "Query",
   "functions": "Functions",
   "context": "Context",
@@ -80,5 +81,29 @@
   "apply": "Apply",
   "backTo": "Back to {name}",
   "back": "Back",
-  "setArguments": "Set arguments"
+  "setArguments": "Set arguments",
+
+  "functions.new.windowTitle": "New function",
+  "functions.new.title": "Title",
+  "functions.new.desc": "Description",
+  "functions.new.returnType": "Return type",
+  "functions.new.argsList": "Arguments list",
+  "functions.new.newArg.button": "New Argument",
+  "functions.new.newArg.heading": "New Argument",
+  "functions.new.newArg.title": "Name",
+  "functions.new.newArg.type": "Type",
+  "functions.new.newArg.add": "Add argument",
+
+  "types.string": "String",
+  "types.int": "Integer number",
+  "types.float": "Number",
+  "types.bool": "Boolean",
+  "types.oneOf": "One of",
+  "types.object": "Object",
+  "types.objectOf": "Object of",
+  "types.shape": "Shape",
+  "types.array": "Array",
+  "types.arrayOf": "Array of",
+  "types.func": "Function",
+  "types.component": "Component"
 }

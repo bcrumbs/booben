@@ -20,6 +20,7 @@ import {
   Prop,
   jssyTypeToView,
   jssyValueToPropValue,
+  jssyTypedefToPropType,
 } from '../../../../components/PropsList/PropsList';
 
 import JssyValue from '../../../../models/JssyValue';
@@ -43,28 +44,6 @@ const defaultProps = {
 
 /**
  *
- * @param {string} value
- * @return {number}
- */
-const coerceIntValue = value => {
-  const maybeRet = parseInt(value, 10);
-  if (!isFinite(maybeRet)) return 0;
-  return maybeRet;
-};
-
-/**
- *
- * @param {string} value
- * @return {number}
- */
-const coerceFloatValue = value => {
-  const maybeRet = parseFloat(value);
-  if (!isFinite(maybeRet)) return 0.0;
-  return maybeRet;
-};
-
-/**
- *
  * @param {number} index
  * @return {string}
  */
@@ -83,7 +62,7 @@ export class DataSelectionArgsEditor extends PureComponent {
   /**
    *
    * @param {DataFieldTypeDefinition} dataFieldTypedef
-   * @param {TypeDefinition} jssyTypedef
+   * @param {JssyTypeDefinition} jssyTypedef
    * @param {string} [name='']
    * @return {PropsItemPropType}
    * @private
@@ -91,62 +70,47 @@ export class DataSelectionArgsEditor extends PureComponent {
   _getPropTypeForArgument(dataFieldTypedef, jssyTypedef, name = '') {
     const { schema } = this.props;
     
-    const ret = {
-      label: name,
-      secondaryLabel: jssyTypedef.type,
-      view: jssyTypeToView(jssyTypedef.type),
-      image: '',
-      tooltip: dataFieldTypedef.description,
-      linkable: false,
-      checkable: !dataFieldTypedef.nonNull,
-      required: dataFieldTypedef.nonNull,
-      transformValue: null,
-      formatItemLabel: null,
+    const getNestedExtra = (
+      jssyTypedef,
+      { dataFieldTypedef },
+      isField,
+      fieldName,
+    ) => {
+      if (isField) {
+        const dataType = schema.types[dataFieldTypedef.type];
+        return {
+          dataFieldTypedef: dataType.fields[fieldName],
+          name: fieldName,
+        };
+      } else {
+        return { dataFieldTypedef, name: '' };
+      }
     };
     
-    if (jssyTypedef.type === 'int') {
-      ret.transformValue = coerceIntValue;
-    } else if (jssyTypedef.type === 'float') {
-      ret.transformValue = coerceFloatValue;
-    } else if (jssyTypedef.type === 'oneOf') {
-      ret.options = jssyTypedef.options.map(option => ({
-        value: option.value,
-        text: String(option.value),
-      }));
-    } else if (jssyTypedef.type === 'shape') {
-      /** @type {DataObjectType} */
-      const dataType = schema.types[dataFieldTypedef.type];
+    const applyExtra = (propType, { dataFieldTypedef, name }, jssyTypedef) => {
+      propType.label = name;
+      propType.tooltip = dataFieldTypedef.description;
+      propType.checkable = !dataFieldTypedef.nonNull;
+      propType.required = dataFieldTypedef.nonNull;
       
-      ret.fields = _mapValues(jssyTypedef.fields, (fieldTypedef, fieldName) => {
-        const nestedDataFieldTypedef = dataType.fields[fieldName];
-        
-        return this._getPropTypeForArgument(
-          nestedDataFieldTypedef,
-          fieldTypedef,
-          fieldName,
-        );
-      });
-    } else if (jssyTypedef.type === 'arrayOf') {
-      ret.ofType = this._getPropTypeForArgument(
-        dataFieldTypedef,
-        jssyTypedef.ofType,
-      );
-      ret.formatItemLabel = formatArrayItemLabel;
-    } else if (jssyTypedef.type === 'objectOf') {
-      ret.ofType = this._getPropTypeForArgument(
-        dataFieldTypedef,
-        jssyTypedef.ofType,
-      );
-      ret.formatItemLabel = returnArg;
-    }
+      if (jssyTypedef.type === 'arrayOf')
+        propType.formatItemLabel = formatArrayItemLabel;
+      
+      return propType;
+    };
     
-    return ret;
+    return jssyTypedefToPropType(
+      jssyTypedef,
+      { dataFieldTypedef, name },
+      getNestedExtra,
+      applyExtra,
+    );
   }
   
   /**
    *
    * @param {Object} jssyValue
-   * @param {TypeDefinition} jssyTypedef
+   * @param {JssyTypeDefinition} jssyTypedef
    * @return {PropsItemValue}
    * @private
    */
