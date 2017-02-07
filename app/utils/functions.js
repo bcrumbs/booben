@@ -4,6 +4,8 @@
 
 'use strict';
 
+import _camelCase from 'lodash.camelcase';
+
 /**
  *
  * @type {Object<string, string>}
@@ -27,3 +29,10 @@ export const getFunctionInfo = (functionSource, functionName, project) => {
   // TODO: Handle 'builtin' source
   return null;
 };
+
+/**
+ *
+ * @param {string} title
+ * @return {string}
+ */
+export const functionNameFromTitle = title => _camelCase(title);

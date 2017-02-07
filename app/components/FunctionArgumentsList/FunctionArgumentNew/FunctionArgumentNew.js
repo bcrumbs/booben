@@ -86,11 +86,11 @@ export class FunctionArgumentNew extends PureComponent {
     
     return (
       <div className="function-arguments_new-wrapper" >
+        <BlockContentBoxHeading>
+          {getLocalizedText('functions.new.newArg.heading')}
+        </BlockContentBoxHeading>
+        
         <BlockContentBoxItem>
-          <BlockContentBoxHeading>
-            {getLocalizedText('functions.new.newArg.heading')}
-          </BlockContentBoxHeading>
-      
           <div className="inputs-row" >
             <Input
               label={getLocalizedText('functions.new.newArg.title')}
@@ -118,7 +118,7 @@ export class FunctionArgumentNew extends PureComponent {
             />
   
             <Button
-              text={getLocalizedText('cancel')}
+              text={getLocalizedText('common.cancel')}
               narrow
               onPress={this._handleCancelButtonPress}
             />

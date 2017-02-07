@@ -16,6 +16,8 @@ import {
   BlockContentBoxGroup,
   BlockContentNavigation,
   BlockBreadcrumbs,
+  BlockContentActions,
+  BlockContentActionsRegion,
 } from '../../../components/BlockContent/BlockContent';
 
 import {
@@ -56,14 +58,12 @@ const propTypes = {
   getLocalizedText: PropTypes.func,
   onSelect: PropTypes.func,
   onReturn: PropTypes.func,
-  onReplaceButtons: PropTypes.func,
 };
 
 const defaultProps = {
   getLocalizedText: returnArg,
   onSelect: noop,
   onReturn: noop,
-  onReplaceButtons: noop,
 };
 
 const Views = {
@@ -179,27 +179,14 @@ export class DataSelection extends PureComponent {
    * @private
    */
   _switchToArgumentsForm(fieldName, field, pathToField) {
-    const { getLocalizedText } = this.props;
-    const applyText = getLocalizedText('apply');
-    const backText = getLocalizedText('back');
-    
-    this.props.onReplaceButtons({
-      buttons: [{
-        text: backText,
-        icon: 'chevron-left',
-        onPress: this._handleCancelSetArguments,
-      }, {
-        text: applyText,
-        onPress: this._handleApplyArguments,
-      }],
-    });
+    const { currentArgValues } = this.state;
     
     this.setState({
       currentView: Views.ARGS_FORM,
       argumentsFieldName: fieldName,
       argumentsField: field,
       argumentsPathToField: pathToField,
-      tmpArgValues: this.state.currentArgValues,
+      tmpArgValues: currentArgValues,
     });
   }
   
@@ -208,24 +195,11 @@ export class DataSelection extends PureComponent {
    * @private
    */
   _switchToFullArgumentsForm(finalFieldName) {
-    const { getLocalizedText } = this.props;
-    const applyText = getLocalizedText('apply');
-    const backText = getLocalizedText('back');
-    
-    this.props.onReplaceButtons({
-      buttons: [{
-        text: backText,
-        icon: 'chevron-left',
-        onPress: this._handleCancelSetArguments,
-      }, {
-        text: applyText,
-        onPress: this._handleFullArgumentsFormApply,
-      }],
-    });
+    const { currentArgValues } = this.state;
     
     this.setState({
       currentView: Views.FULL_ARGS_FORM,
-      tmpArgValues: this.state.currentArgValues,
+      tmpArgValues: currentArgValues,
       finalFieldName,
     });
   }
@@ -371,8 +345,6 @@ export class DataSelection extends PureComponent {
    * @private
    */
   _handleCancelSetArguments() {
-    this.props.onReplaceButtons({ buttons: [] });
-    
     this.setState({
       currentView: Views.FIELDS_LIST,
       argumentsFieldName: '',
@@ -388,8 +360,6 @@ export class DataSelection extends PureComponent {
    * @private
    */
   _handleApplyArguments() {
-    this.props.onReplaceButtons({ buttons: [] });
-  
     this.setState({
       currentView: Views.FIELDS_LIST,
       argumentsFieldName: '',
@@ -516,6 +486,8 @@ export class DataSelection extends PureComponent {
     });
     
     const subtitleText = getLocalizedText('pleaseFillAllRequiredArguments');
+    const backText = getLocalizedText('common.back');
+    const applyText = getLocalizedText('common.apply');
     const fieldArgs = tmpArgValues.get(argumentsPathToField.join(' ')) || null;
     
     return (
@@ -540,6 +512,20 @@ export class DataSelection extends PureComponent {
             />
           </BlockContentBoxItem>
         </BlockContentBox>
+        
+        <BlockContentActions>
+          <BlockContentActionsRegion type="main">
+            <Button
+              text={backText}
+              icon="chevron-left"
+              onPress={this._handleCancelSetArguments}
+            />
+            <Button
+              text={applyText}
+              onPress={this._handleApplyArguments}
+            />
+          </BlockContentActionsRegion>
+        </BlockContentActions>
       </BlockContent>
     );
   }
@@ -577,6 +563,8 @@ export class DataSelection extends PureComponent {
   
     const titleText = getLocalizedText('allArguments');
     const subtitleText = getLocalizedText('pleaseFillAllRequiredArguments');
+    const applyText = getLocalizedText('common.apply');
+    const backText = getLocalizedText('common.back');
     
     return (
       <BlockContent>
@@ -594,6 +582,20 @@ export class DataSelection extends PureComponent {
             {contentGroups}
           </BlockContentBoxItem>
         </BlockContentBox>
+  
+        <BlockContentActions>
+          <BlockContentActionsRegion type="main">
+            <Button
+              text={backText}
+              icon="chevron-left"
+              onPress={this._handleCancelSetArguments}
+            />
+            <Button
+              text={applyText}
+              onPress={this._handleFullArgumentsFormApply}
+            />
+          </BlockContentActionsRegion>
+        </BlockContentActions>
       </BlockContent>
     );
   }

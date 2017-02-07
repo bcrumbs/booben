@@ -406,7 +406,7 @@ class StructureRoute extends PureComponent {
     const routeEditorToolMainButtons = selectedRoute
       ? List([
         new ButtonRecord({
-          text: getLocalizedText('edit'),
+          text: getLocalizedText('common.edit'),
           onPress: this._handleSelectedRouteGo,
         }),
       ])
@@ -469,19 +469,19 @@ class StructureRoute extends PureComponent {
     );
 
     const deleteRouteDialogButtons = [{
-      text: getLocalizedText('delete'),
+      text: getLocalizedText('common.delete'),
       onPress: this._handleDeleteRouteConfirm,
     }, {
-      text: getLocalizedText('cancel'),
+      text: getLocalizedText('common.cancel'),
       onPress: this._handleDeleteRouteCancel,
     }];
 
     const createRouteDialogButtons = [{
-      text: getLocalizedText('create'),
+      text: getLocalizedText('common.create'),
       disabled: !this.state.newRouteTitle,
       onPress: this._handleCreateRouteCreate,
     }, {
-      text: getLocalizedText('cancel'),
+      text: getLocalizedText('common.cancel'),
       onPress: this._handleCreateRouteCancel,
     }];
 

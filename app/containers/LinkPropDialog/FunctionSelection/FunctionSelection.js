@@ -10,30 +10,36 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { FunctionsList } from './FunctionsList/FunctionsList';
 import { FunctionWindow } from './FunctionWindow/FunctionWindow';
 import { NewFunctionWindow } from './NewFunctionWindow/NewFunctionWindow';
-import { FunctionSources } from '../../../utils/functions';
+
+import {
+  FunctionSources,
+  functionNameFromTitle,
+} from '../../../utils/functions';
+
 import { noop, returnArg } from '../../../utils/misc';
 
 const propTypes = {
   projectFunctions: ImmutablePropTypes.map,
   builtinFunctions: ImmutablePropTypes.map,
   getLocalizedText: PropTypes.func,
+  onSelect: PropTypes.func,
+  onCreateFunction: PropTypes.func,
   onReturn: PropTypes.func,
-  onReplaceButtons: PropTypes.func,
 };
 
 const defaultProps = {
   projectFunctions: {},
   builtinFunctions: {},
   getLocalizedText: returnArg,
+  onSelect: noop,
+  onCreateFunction: noop,
   onReturn: noop,
-  onReplaceButtons: noop,
 };
 
 const Views = {
   LIST: 0,
   FUNCTION: 1,
   ADD: 2,
-  CODE: 3,
 };
 
 export class FunctionSelection extends PureComponent {
@@ -56,6 +62,8 @@ export class FunctionSelection extends PureComponent {
     this._handleReturnToList = this._handleReturnToList.bind(this);
     this._handleAddFunction = this._handleAddFunction.bind(this);
     this._handleSelectFunction = this._handleSelectFunction.bind(this);
+    this._handleApply = this._handleApply.bind(this);
+    this._handleCreate = this._handleCreate.bind(this);
   }
 
   _handleReturn() {
@@ -81,6 +89,35 @@ export class FunctionSelection extends PureComponent {
       currentView: Views.FUNCTION,
       selectedFunctionId: id,
       selectedFunctionSource: source,
+    });
+  }
+  
+  _handleApply({ argValues }) {
+    const { selectedFunctionId, selectedFunctionSource } = this.state;
+    
+    this.props.onSelect({
+      source: selectedFunctionSource,
+      name: selectedFunctionId,
+      argValues,
+    });
+  }
+  
+  _handleCreate({ title, description, args, returnType, code }) {
+    const name = functionNameFromTitle(title);
+    
+    this.props.onCreateFunction({
+      name,
+      title,
+      description,
+      args,
+      returnType,
+      code,
+    });
+    
+    this.setState({
+      currentView: Views.FUNCTION,
+      selectedFunctionId: name,
+      selectedFunctionSource: 'project',
     });
   }
 
@@ -131,6 +168,7 @@ export class FunctionSelection extends PureComponent {
       <FunctionWindow
         functionDef={functionDef}
         getLocalizedText={getLocalizedText}
+        onApply={this._handleApply}
         onReturn={this._handleReturn}
         onReturnToList={this._handleReturnToList}
       />
@@ -143,6 +181,8 @@ export class FunctionSelection extends PureComponent {
     return (
       <NewFunctionWindow
         getLocalizedText={getLocalizedText}
+        onCreate={this._handleCreate}
+        onCancel={this._handleReturnToList}
       />
     );
   }

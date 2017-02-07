@@ -7,6 +7,7 @@
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import { makeDefaultValue, getNestedTypedef, TypeNames } from '@jssy/types';
+import { Button } from '@reactackle/reactackle';
 import ProjectFunctionRecord from '../../../../models/ProjectFunction';
 import JssyValue from '../../../../models/JssyValue';
 
@@ -17,6 +18,8 @@ import {
   BlockContentBox,
   BlockContentBoxGroup,
   BlockContentBoxItem,
+  BlockContentActions,
+  BlockContentActionsRegion,
 } from '../../../../components/BlockContent/BlockContent';
 
 import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
@@ -34,12 +37,14 @@ import { noop, returnArg } from '../../../../utils/misc';
 const propTypes = {
   functionDef: PropTypes.instanceOf(ProjectFunctionRecord).isRequired,
   getLocalizedText: PropTypes.func,
+  onApply: PropTypes.func,
   onReturn: PropTypes.func,
   onReturnToList: PropTypes.func,
 };
 
 const defaultProps = {
   getLocalizedText: returnArg,
+  onApply: noop,
   onReturn: noop,
   onReturnToList: noop,
 };
@@ -71,6 +76,8 @@ export class FunctionWindow extends PureComponent {
     this._handleChange = this._handleChange.bind(this);
     this._handleAddValue = this._handleAddValue.bind(this);
     this._handleDeleteValue = this._handleDeleteValue.bind(this);
+    this._handleBackButtonPress = this._handleBackButtonPress.bind(this);
+    this._handleApplyButtonPress = this._handleApplyButtonPress.bind(this);
   }
   
   componentWillReceiveProps(nextProps) {
@@ -99,6 +106,7 @@ export class FunctionWindow extends PureComponent {
     
     const applyExtra = (propType, { arg, fieldName }, jssyTypedef) => {
       propType.label = arg ? arg.name : fieldName;
+      propType.secondaryLabel = jssyTypedef.type;
       propType.tooltip = arg.description;
       propType.checkable = arg ? !arg.isRequired : jssyTypedef.notNull;
       propType.required = arg ? arg.isRequired : false;
@@ -206,6 +214,15 @@ export class FunctionWindow extends PureComponent {
     });
   }
   
+  _handleBackButtonPress() {
+    this.props.onReturnToList();
+  }
+  
+  _handleApplyButtonPress() {
+    const { values } = this.state;
+    this.props.onApply({ argValues: values });
+  }
+  
   _renderArgsForm() {
     const { functionDef } = this.props;
     
@@ -235,7 +252,7 @@ export class FunctionWindow extends PureComponent {
   }
 
   render() {
-    const { functionDef } = this.props;
+    const { functionDef, getLocalizedText } = this.props;
     
     const breadcrumbsItems = this._getBreadcrumbsItems();
     const argsForm = this._renderArgsForm();
@@ -264,6 +281,22 @@ export class FunctionWindow extends PureComponent {
             {argsForm}
           </BlockContentBoxItem>
         </BlockContentBox>
+  
+        <BlockContentActions>
+          <BlockContentActionsRegion type="main">
+            <Button
+              text={getLocalizedText('common.apply')}
+              onPress={this._handleApplyButtonPress}
+            />
+          </BlockContentActionsRegion>
+  
+          <BlockContentActionsRegion type="secondary">
+            <Button
+              text={getLocalizedText('functions.backToList')}
+              onPress={this._handleBackButtonPress}
+            />
+          </BlockContentActionsRegion>
+        </BlockContentActions>
       </BlockContent>
     );
   }

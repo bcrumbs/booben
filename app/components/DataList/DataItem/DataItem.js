@@ -54,56 +54,65 @@ export class DataItem extends PureComponent {
   }
   
   _handleSelect() {
-    const { id, data } = this.props;
-    this.props.onSelect({ id, data });
+    const { id, data, onSelect } = this.props;
+    onSelect({ id, data });
   }
   
   _handleJumpInto() {
-    const { id, data } = this.props;
-    this.props.onJumpIntoClick({ id, data });
+    const { id, data, onJumpIntoClick } = this.props;
+    onJumpIntoClick({ id, data });
   }
   
   _handleApplyClick() {
-    const { id, data } = this.props;
-    this.props.onApplyClick({ id, data });
+    const { id, data, onApplyClick } = this.props;
+    onApplyClick({ id, data });
   }
   
   _handleSetArgumentsClick() {
-    const { id, data } = this.props;
-    this.props.onSetArgumentsClick({ id, data });
+    const { id, data, onSetArgumentsClick } = this.props;
+    onSetArgumentsClick({ id, data });
   }
   
   render() {
-    let className = 'data-list-item';
-    if (this.props.selected) className += ' is-chosen';
-    if (this.props.state) className += ` state-${this.props.state}`;
+    const {
+      title,
+      description,
+      tooltip,
+      selected,
+      state,
+      actionType,
+      argsButton,
+      connection,
+      canBeApplied,
+      type,
+      getLocalizedText,
+    } = this.props;
     
-    if (this.props.actionType)
-      className += ` action-type-${this.props.actionType}`;
+    let className = 'data-list-item';
+    if (selected) className += ' is-chosen';
+    if (state) className += ` state-${state}`;
+    if (actionType) className += ` action-type-${actionType}`;
   
-    let tooltip = null,
-      content = null,
-      description = null,
-      argsButton = null,
-      actionsRight = null;
-  
-    if (this.props.tooltip) {
-      tooltip = (
-        <TooltipIcon text={this.props.tooltip} />
+    let tooltipElement = null;
+    if (tooltip) {
+      tooltipElement = (
+        <TooltipIcon text={tooltip} />
       );
     }
   
-    if (this.props.argsButton) {
-      argsButton = (
+    let argsButtonElement = null;
+    if (argsButton) {
+      argsButtonElement = (
         <Button
           onPress={this._handleSetArgumentsClick}
-          text={this.props.getLocalizedText('setArguments')}
+          text={getLocalizedText('setArguments')}
           narrow
         />
       );
     }
   
-    if (this.props.connection) {
+    let actionsRight = null;
+    if (connection) {
       actionsRight = (
         <div className="data-item_actions data-item_actions-right">
           <div className="data-item_actions data-item_actions-right">
@@ -116,20 +125,22 @@ export class DataItem extends PureComponent {
       );
     }
   
-    if (this.props.description) {
-      description = (
+    let descriptionElement = null;
+    if (description) {
+      descriptionElement = (
         <div className="data-item_description">
-          {this.props.description}
+          {description}
         </div>
       );
     }
   
-    if (description || argsButton || this.props.canBeApplied) {
+    let content = null;
+    if (descriptionElement || argsButtonElement || canBeApplied) {
       let applyButton = null;
-      if (this.props.canBeApplied) {
+      if (canBeApplied) {
         applyButton = (
           <Button
-            text={this.props.getLocalizedText('apply')}
+            text={getLocalizedText('common.apply')}
             onPress={this._handleApplyClick}
             narrow
           />
@@ -138,19 +149,19 @@ export class DataItem extends PureComponent {
     
       content = (
         <div className="data-item_content">
-          {description}
+          {descriptionElement}
           <div className="data-item_buttons">
-            {argsButton}
+            {argsButtonElement}
             {applyButton}
           </div>
         </div>
       );
     }
   
-    let type = null;
-    if (this.props.type) {
-      type = (
-        <span className="data-item_type">{this.props.type}</span>
+    let typeElement = null;
+    if (type) {
+      typeElement = (
+        <span className="data-item_type">{type}</span>
       );
     }
   
@@ -159,9 +170,9 @@ export class DataItem extends PureComponent {
         <div className="data-item_content-box">
           <div className="data-item_title-box">
             <div className="data-item_title">
-              <span className="data-item_title-text">{this.props.title}</span>
-              {type}
-              {tooltip}
+              <span className="data-item_title-text">{title}</span>
+              {typeElement}
+              {tooltipElement}
             </div>
           </div>
           {content}

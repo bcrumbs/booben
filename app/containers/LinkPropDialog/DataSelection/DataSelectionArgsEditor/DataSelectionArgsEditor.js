@@ -7,7 +7,6 @@
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import { Map } from 'immutable';
-import _mapValues from 'lodash.mapvalues';
 
 import {
   makeDefaultValue,
@@ -18,7 +17,6 @@ import {
 import {
   PropsList,
   Prop,
-  jssyTypeToView,
   jssyValueToPropValue,
   jssyTypedefToPropType,
 } from '../../../../components/PropsList/PropsList';

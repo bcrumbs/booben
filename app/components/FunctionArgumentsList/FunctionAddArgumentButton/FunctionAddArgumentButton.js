@@ -29,7 +29,7 @@ export const FunctionAddArgumentButton = ({ getLocalizedText, onPress }) => (
         narrow
         onPress={onPress}
       />
-    </BlockContentBoxItem>;
+    </BlockContentBoxItem>
   </div>
 );
 

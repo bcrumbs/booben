@@ -353,7 +353,7 @@ class DesignRoute extends PureComponent {
         if (!selectedComponent.isWrapper) {
           mainButtons = mainButtons.push(
             new ButtonRecord({
-              text: getLocalizedText('delete'),
+              text: getLocalizedText('common.delete'),
               onPress: this._handleDeleteComponentButtonPress,
             }),
           );
@@ -390,10 +390,10 @@ class DesignRoute extends PureComponent {
       this._renderLayoutSelectionDialogContent();
 
     const confirmDeleteDialogButtons = [{
-      text: getLocalizedText('delete'),
+      text: getLocalizedText('common.delete'),
       onPress: this._handleDeleteComponentConfirm,
     }, {
-      text: getLocalizedText('cancel'),
+      text: getLocalizedText('common.cancel'),
       onPress: this._handleDeleteComponentCancel,
     }];
 
@@ -428,13 +428,13 @@ class DesignRoute extends PureComponent {
             </HeaderRegion>
             <HeaderRegion>
               <Button
-                text={getLocalizedText('cancel')}
+                text={getLocalizedText('common.cancel')}
                 light
                 onPress={this.props.onCancelConstructComponentForProp}
               />
 
               <Button
-                text={getLocalizedText('ok')}
+                text={getLocalizedText('common.ok')}
                 light
                 onPress={this.props.onSaveComponentForProp}
               />

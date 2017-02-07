@@ -91,8 +91,8 @@ module.exports = {
           if (/reactackle/.test(path)) return false;
           return /node_modules/.test(path);
         },
-        loader: 'babel?' +
-         'presets[]=es2015' +
+        loader: 'babel' +
+         '?presets[]=es2015' +
          '&presets[]=react' +
          '&plugins[]=transform-object-rest-spread',
       },
@@ -102,6 +102,13 @@ module.exports = {
           'style',
           'css',
           'sass',
+        ],
+      },
+      {
+        test: /\.css$/,
+        loaders: [
+          'style',
+          'css',
         ],
       },
       {

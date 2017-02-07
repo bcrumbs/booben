@@ -55,15 +55,14 @@ class LinkPropDialogComponent extends PureComponent {
     this.state = {
       selectedSourceId: '',
       selectedSourceData: null,
-      dialogButtons: [],
     };
     
     this._handleSelectSource = this._handleSelectSource.bind(this);
     this._handleReturn = this._handleReturn.bind(this);
     this._handleLinkWithOwnerProp = this._handleLinkWithOwnerProp.bind(this);
     this._handleLinkWithData = this._handleLinkWithData.bind(this);
-    this._handleReplaceDialogButtons =
-      this._handleReplaceDialogButtons.bind(this);
+    this._handleLinkWithFunction = this._handleLinkWithFunction.bind(this);
+    this._handleCreateFunction = this._handleCreateFunction.bind(this);
     this._handleDialogClose = this._handleDialogClose.bind(this);
   }
   
@@ -104,7 +103,6 @@ class LinkPropDialogComponent extends PureComponent {
     this.setState({
       selectedSourceId: '',
       selectedSourceData: null,
-      dialogButtons: [],
     });
   }
   
@@ -163,7 +161,6 @@ class LinkPropDialogComponent extends PureComponent {
     this.setState({
       selectedSourceId: id,
       selectedSourceData: data,
-      dialogButtons: [],
     });
   }
   
@@ -199,22 +196,37 @@ class LinkPropDialogComponent extends PureComponent {
   
   /**
    *
+   * @param {string} source
+   * @param {string} name
+   * @param {Immutable.Map<string, Object>} argValues
+   * @private
+   */
+  _handleLinkWithFunction({ source, name, argValues }) {
+    this._initState();
+    // TODO: Dispatch action
+  }
+  
+  /**
+   *
+   * @param {string} name
+   * @param {string} title
+   * @param {string} description
+   * @param {Object[]} args
+   * @param {string} returnType
+   * @param {string} code
+   * @private
+   */
+  _handleCreateFunction({ name, title, description, args, returnType, code }) {
+    // TODO: Dispatch action
+  }
+  
+  /**
+   *
    * @private
    */
   _handleDialogClose() {
     this._initState();
     this.props.onLinkPropCancel();
-  }
-  
-  /**
-   *
-   * @param {Object[]} buttons
-   * @private
-   */
-  _handleReplaceDialogButtons({ buttons }) {
-    this.setState({
-      dialogButtons: buttons,
-    });
   }
   
   /**
@@ -302,7 +314,6 @@ class LinkPropDialogComponent extends PureComponent {
         getLocalizedText={getLocalizedText}
         onSelect={this._handleLinkWithData}
         onReturn={this._handleReturn}
-        onReplaceButtons={this._handleReplaceDialogButtons}
       />
     );
   }
@@ -315,15 +326,16 @@ class LinkPropDialogComponent extends PureComponent {
         projectFunctions={projectFunctions}
         builtinFunctions={builtinFunctions}
         getLocalizedText={getLocalizedText}
+        onSelect={this._handleLinkWithFunction}
+        onCreateFunction={this._handleCreateFunction}
         onReturn={this._handleReturn}
-        onReplaceButtons={this._handleReplaceDialogButtons}
       />
     );
   }
   
   render() {
     const { schema, singleComponentSelected, linkingProp } = this.props;
-    const { selectedSourceId, selectedSourceData, dialogButtons } = this.state;
+    const { selectedSourceId, selectedSourceData } = this.state;
     
     const visible = singleComponentSelected && linkingProp;
     let content = null;
@@ -353,7 +365,6 @@ class LinkPropDialogComponent extends PureComponent {
         paddingSize="none"
         visible={visible}
         haveCloseButton
-        buttons={dialogButtons}
         onClose={this._handleDialogClose}
       >
         <DataWindow>

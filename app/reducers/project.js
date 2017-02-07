@@ -570,7 +570,7 @@ const getPathToComponentWithQueryArgs = (state, dataContext) => {
     i++;
   }
   
-  return currentNestedConstructorIndex !== -1
+  return currentNestedConstructorIndex === -1
     ? [
       'data',
       'routes',

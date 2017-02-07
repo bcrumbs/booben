@@ -7,11 +7,15 @@
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import { TypeNames } from '@jssy/types';
+import { Button } from '@reactackle/reactackle';
 
 import {
   BlockContent,
   BlockContentBox,
   BlockContentBoxItem,
+  BlockContentBoxHeading,
+  BlockContentActions,
+  BlockContentActionsRegion,
 } from '../../../../components/BlockContent/BlockContent';
 
 import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
@@ -26,14 +30,23 @@ import {
   FunctionArgumentsList,
 } from '../../../../components/FunctionArgumentsList/FunctionArgumentsList';
 
-import { returnArg } from '../../../../utils/misc';
+import {
+  FunctionEditor,
+} from '../../../../components/FunctionEditor/FunctionEditor';
+
+import { functionNameFromTitle } from '../../../../utils/functions';
+import { noop, returnArg } from '../../../../utils/misc';
 
 const propTypes = {
   getLocalizedText: PropTypes.func,
+  onCreate: PropTypes.func,
+  onCancel: PropTypes.func,
 };
 
 const defaultProps = {
   getLocalizedText: returnArg,
+  onCreate: noop,
+  onCancel: noop,
 };
 
 const without = (array, idx) => {
@@ -45,15 +58,22 @@ const without = (array, idx) => {
   return ret;
 };
 
+const Views = {
+  DEFINITION: 0,
+  CODE: 1,
+};
+
 export class NewFunctionWindow extends PureComponent {
   constructor(props) {
     super(props);
     
     this.state = {
+      view: Views.DEFINITION,
       title: '',
       description: '',
       returnType: TypeNames.STRING,
       args: [],
+      code: '',
     };
     
     this._handleTitleChange = this._handleTitleChange.bind(this);
@@ -61,6 +81,11 @@ export class NewFunctionWindow extends PureComponent {
     this._handleReturnTypeChange = this._handleReturnTypeChange.bind(this);
     this._handleAddArg = this._handleAddArg.bind(this);
     this._handleDeleteArg = this._handleDeleteArg.bind(this);
+    this._handleCancel = this._handleCancel.bind(this);
+    this._handleNext = this._handleNext.bind(this);
+    this._handleBack = this._handleBack.bind(this);
+    this._handleCreate = this._handleCreate.bind(this);
+    this._handleCodeChange = this._handleCodeChange.bind(this);
   }
   
   _getTypeSelectOptions() {
@@ -72,6 +97,10 @@ export class NewFunctionWindow extends PureComponent {
       { value: TypeNames.FLOAT, text: getLocalizedText('types.float') },
       { value: TypeNames.BOOL, text: getLocalizedText('types.bool') },
     ];
+  }
+  
+  _isNextButtonDisabled() {
+    return !this.state.title;
   }
   
   _handleTitleChange({ value }) {
@@ -96,16 +125,38 @@ export class NewFunctionWindow extends PureComponent {
     this.setState({ args: without(args, idx) });
   }
   
-  render() {
+  _handleCancel() {
+    this.props.onCancel();
+  }
+  
+  _handleNext() {
+    this.setState({ view: Views.CODE });
+  }
+  
+  _handleBack() {
+    this.setState({ view: Views.DEFINITION });
+  }
+  
+  _handleCreate() {
+    const { title, description, args, returnType, code } = this.state;
+    this.props.onCreate({ title, description, args, returnType, code });
+  }
+  
+  _handleCodeChange(code) {
+    this.setState({ code });
+  }
+  
+  _renderDefinitionForm() {
     const { getLocalizedText } = this.props;
     const { title, description, returnType, args } = this.state;
     
     const typeSelectOptions = this._getTypeSelectOptions();
+    const isNextButtonDisabled = this._isNextButtonDisabled();
     
     return (
       <BlockContent>
         <BlockContentBox>
-          <BlockContentBoxItem>
+          <BlockContentBoxItem isBordered>
             <DataWindowTitle
               title={getLocalizedText('functions.new.windowTitle')}
             />
@@ -132,6 +183,10 @@ export class NewFunctionWindow extends PureComponent {
             />
           </BlockContentBoxItem>
   
+          <BlockContentBoxHeading>
+            {getLocalizedText('functions.new.argsList')}
+          </BlockContentBoxHeading>
+  
           <BlockContentBoxItem>
             <FunctionArgumentsList
               items={args}
@@ -141,8 +196,71 @@ export class NewFunctionWindow extends PureComponent {
             />
           </BlockContentBoxItem>
         </BlockContentBox>
+        
+        <BlockContentActions>
+          <BlockContentActionsRegion type="main">
+            <Button
+              text={getLocalizedText('common.cancel')}
+              onPress={this._handleCancel}
+            />
+            <Button
+              text={getLocalizedText('common.next')}
+              disabled={isNextButtonDisabled}
+              onPress={this._handleNext}
+            />
+          </BlockContentActionsRegion>
+        </BlockContentActions>
       </BlockContent>
     );
+  }
+  
+  _renderCodeEditor() {
+    const { getLocalizedText } = this.props;
+    const { title, args, code } = this.state;
+    
+    const functionName = functionNameFromTitle(title);
+    
+    return (
+      <BlockContent>
+        <BlockContentBox isBordered>
+          <BlockContentBoxItem>
+            <FunctionEditor
+              name={functionName}
+              args={args}
+              code={code}
+              onChange={this._handleCodeChange}
+            />
+          </BlockContentBoxItem>
+        </BlockContentBox>
+  
+        <BlockContentActions>
+          <BlockContentActionsRegion type="main">
+            <Button
+              text={getLocalizedText('common.back')}
+              onPress={this._handleBack}
+            />
+            <Button
+              text={getLocalizedText('common.cancel')}
+              onPress={this._handleCancel}
+            />
+            <Button
+              text={getLocalizedText('common.create')}
+              onPress={this._handleCreate}
+            />
+          </BlockContentActionsRegion>
+        </BlockContentActions>
+      </BlockContent>
+    );
+  }
+  
+  render() {
+    const { view } = this.state;
+    
+    switch (view) {
+      case Views.DEFINITION: return this._renderDefinitionForm();
+      case Views.CODE: return this._renderCodeEditor();
+      default: return null;
+    }
   }
 }
 

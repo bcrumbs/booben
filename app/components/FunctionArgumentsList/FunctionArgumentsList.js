@@ -7,7 +7,6 @@ import { PropEmpty } from '../props';
 
 import {
   BlockContentBoxItem,
-  BlockContentBoxHeading,
 } from '../BlockContent/BlockContent';
 
 import {
@@ -104,10 +103,6 @@ export class FunctionArgumentsList extends Component {
 
     return (
       <div className="function-arguments_list">
-        <BlockContentBoxHeading>
-          {getLocalizedText('functions.new.argsList')}
-        </BlockContentBoxHeading>
-
         <BlockContentBoxItem>
           <div className="function-arguments_list-items">
             <PropsList>
