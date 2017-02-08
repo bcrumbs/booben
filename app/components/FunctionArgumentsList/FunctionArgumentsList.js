@@ -7,6 +7,8 @@ import { PropEmpty } from '../props';
 
 import {
   BlockContentBoxItem,
+  BlockContentBoxHeading,
+  BlockContentBoxGroup
 } from '../BlockContent/BlockContent';
 
 import {
@@ -61,7 +63,7 @@ export class FunctionArgumentsList extends Component {
     this.setState({ creatingNewArgument: false });
     this.props.onAdd({ name, type });
   }
-  
+
   _handleCancelAddArgument() {
     this.setState({ creatingNewArgument: false });
   }
@@ -102,19 +104,20 @@ export class FunctionArgumentsList extends Component {
       );
 
     return (
-      <div className="function-arguments_list">
+      <BlockContentBoxGroup>
+        <BlockContentBoxHeading>
+          {getLocalizedText('functions.new.argsList')}
+        </BlockContentBoxHeading>
+
         <BlockContentBoxItem>
-          <div className="function-arguments_list-items">
-            <PropsList>
-              {list}
-            </PropsList>
-          </div>
+          <PropsList>
+            {list}
+          </PropsList>
         </BlockContentBoxItem>
 
-        <div className="function-arguments_new">
-          {argumentsAdd}
-        </div>
-      </div>
+        {argumentsAdd}
+
+      </BlockContentBoxGroup>
     );
   }
 }

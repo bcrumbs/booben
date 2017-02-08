@@ -183,19 +183,14 @@ export class NewFunctionWindow extends PureComponent {
               onChange={this._handleReturnTypeChange}
             />
           </BlockContentBoxItem>
-  
-          <BlockContentBoxHeading>
-            {getLocalizedText('functions.new.argsList')}
-          </BlockContentBoxHeading>
-  
-          <BlockContentBoxItem>
-            <FunctionArgumentsList
-              items={args}
-              getLocalizedText={getLocalizedText}
-              onAdd={this._handleAddArg}
-              onDelete={this._handleDeleteArg}
-            />
-          </BlockContentBoxItem>
+
+          <FunctionArgumentsList
+            items={args}
+            getLocalizedText={getLocalizedText}
+            onAdd={this._handleAddArg}
+            onDelete={this._handleDeleteArg}
+          />
+
         </BlockContentBox>
         
         <BlockContentActions>
@@ -224,7 +219,7 @@ export class NewFunctionWindow extends PureComponent {
     return (
       <BlockContent>
         <BlockContentBox isBordered>
-          <BlockContentBoxItem>
+          <BlockContentBoxItem blank>
             <FunctionEditor
               name={functionName}
               args={args}
@@ -235,11 +230,14 @@ export class NewFunctionWindow extends PureComponent {
         </BlockContentBox>
   
         <BlockContentActions>
-          <BlockContentActionsRegion type="main">
+          <BlockContentActionsRegion type="secondary">
             <Button
               text={getLocalizedText('common.back')}
               onPress={this._handleBack}
+              icon="chevron-left"
             />
+          </BlockContentActionsRegion>
+          <BlockContentActionsRegion type="main">
             <Button
               text={getLocalizedText('common.cancel')}
               onPress={this._handleCancel}
