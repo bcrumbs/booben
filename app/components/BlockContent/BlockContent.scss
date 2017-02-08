@@ -16,6 +16,16 @@
     // ELEMENTS
     // =================================================================================================================
 
+    // THEMING
+    // =================================================================================================================
+    .color-scheme-dim {
+        background-color: $bcontent-theme-dim-bgcolor;
+    }
+
+    .color-scheme-editing {
+        background-color: $bcontent-theme-editing-bgcolor;
+    }
+
     // TITLE AREA
     // =================================================================================================================
     .block-content-title-area {
@@ -198,9 +208,8 @@
 	// CONTENT ITEM GROUP
 	// =================================================================================================================
 	.block-content_item-group {
-		&.color-scheme-dim {
-			background-color: $grey-100;
-		}
+        display: flex;
+        flex-direction: column;
 	}
 
 	// CONTENT ITEM
@@ -216,11 +225,7 @@
 	    }
 
 	    &.is-blank {
-		    padding: 0;
-
-		    &:last-of-type {
-			    padding-bottom: 0
-		    }
+		    padding: 0 !important;
 	    }
 
 	    &.is-bordered {

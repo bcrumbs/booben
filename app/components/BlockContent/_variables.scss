@@ -17,6 +17,11 @@ $bcontent-indialog-base-pad-y-lrg:       $bcontent-indialog-base-pad-x !default;
 // =====================================================================================================================
 // ELEMENTS
 // =====================================================================================================================
+// THEMING
+// =================================================================================================================
+$bcontent-theme-editing-bgcolor:    $color-editing-block !default;
+$bcontent-theme-dim-bgcolor:        $grey-100 !default;
+
 
 // TITLE
 // =====================================================================================================================
@@ -63,7 +68,7 @@ $bcontent-actions-border-color:     $bcontent-title-area-border-color !default;
 $bcontent-actions-spacing-x:        $base-module !default;
 $bcontent-actions-spacing-y:        $base-module/2 !default;
 
-$bcontent-actions-box-padding:      $base-module $base-module ($base-module - $bcontent-actions-spacing-y/2) !default;
+$bcontent-actions-box-padding:      $base-module ($bcontent-base-pad-x - $bcontent-actions-spacing-x) ($base-module - $bcontent-actions-spacing-y/2) !default;
 
 // CONTENT
 // =====================================================================================================================

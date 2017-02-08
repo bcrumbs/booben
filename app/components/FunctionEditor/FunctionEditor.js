@@ -33,41 +33,30 @@ export const FunctionEditor = ({ name, args, code, onChange }) => {
     mode: 'javascript',
     lineNumbers: true,
   };
-  
-  // TODO: Fix CSS before uncommenting that
-  
-  // return (
-  //   <div className="function-editor">
-  //     <div className="function-editor_heading">
-  //       <pre>
-  //         {header}
-  //       </pre>
-  //     </div>
-  //
-  //     <div className="function-editor_wrapper">
-  //       <CodeMirror
-  //         value={code}
-  //         options={codeMirrorOptions}
-  //         preserveScrollPosition
-  //         onChange={onChange}
-  //       />
-  //     </div>
-  //
-  //     <div className="function-editor_heading">
-  //       <pre>
-  //         {footer}
-  //       </pre>
-  //     </div>
-  //   </div>
-  // );
-  
+
   return (
-    <CodeMirror
-      value={code}
-      options={codeMirrorOptions}
-      preserveScrollPosition
-      onChange={onChange}
-    />
+    <div className="function-editor">
+      <div className="function-editor_heading">
+        <pre>
+          {header}
+        </pre>
+      </div>
+
+      <div className="function-editor_wrapper">
+        <CodeMirror
+          value={code}
+          options={codeMirrorOptions}
+          preserveScrollPosition
+          onChange={onChange}
+        />
+      </div>
+
+      <div className="function-editor_heading">
+        <pre>
+          {footer}
+        </pre>
+      </div>
+    </div>
   );
 };
 

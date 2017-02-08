@@ -21,16 +21,16 @@ const defaultProps = {
 };
 
 export const FunctionAddArgumentButton = ({ getLocalizedText, onPress }) => (
-  <div className="function-arguments_list-button">
-    <BlockContentBoxItem>
+  <BlockContentBoxItem>
+    <div className="function-arguments_list-button">
       <Button
         icon="plus"
         text={getLocalizedText('functions.new.newArg.button')}
         narrow
         onPress={onPress}
       />
-    </BlockContentBoxItem>
-  </div>
+    </div>
+  </BlockContentBoxItem>
 );
 
 FunctionAddArgumentButton.propTypes = propTypes;
