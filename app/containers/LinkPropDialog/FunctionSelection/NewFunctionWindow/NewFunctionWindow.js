@@ -12,8 +12,8 @@ import { Button } from '@reactackle/reactackle';
 import {
   BlockContent,
   BlockContentBox,
-  BlockContentBoxItem,
   BlockContentBoxHeading,
+  BlockContentBoxItem,
   BlockContentActions,
   BlockContentActionsRegion,
 } from '../../../../components/BlockContent/BlockContent';
@@ -21,14 +21,21 @@ import {
 import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
 
 import {
+  PropEmpty,
   PropInput,
   PropTextarea,
   PropList,
 } from '../../../../components/props';
 
+import { PropsList } from '../../../../components/PropsList/PropsList';
+
 import {
-  FunctionArgumentsList,
-} from '../../../../components/FunctionArgumentsList/FunctionArgumentsList';
+  FunctionArgumentNew,
+} from './FunctionArgumentNew/FunctionArgumentNew';
+
+import {
+  FunctionAddArgumentButton,
+} from './FunctionAddArgumentButton/FunctionAddArgumentButton';
 
 import {
   FunctionEditor,
@@ -36,6 +43,7 @@ import {
 
 import { functionNameFromTitle } from '../../../../utils/functions';
 import { noop, returnArg } from '../../../../utils/misc';
+import './NewFunctionWindow.scss';
 
 const propTypes = {
   existingFunctionNames: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -75,11 +83,14 @@ export class NewFunctionWindow extends PureComponent {
       returnType: TypeNames.STRING,
       args: [],
       code: '',
+      creatingNewArgument: false,
     };
     
     this._handleTitleChange = this._handleTitleChange.bind(this);
     this._handleDescriptionChange = this._handleDescriptionChange.bind(this);
     this._handleReturnTypeChange = this._handleReturnTypeChange.bind(this);
+    this._handleAddButtonPress = this._handleAddButtonPress.bind(this);
+    this._handleCancelAddArgument = this._handleCancelAddArgument.bind(this);
     this._handleAddArg = this._handleAddArg.bind(this);
     this._handleDeleteArg = this._handleDeleteArg.bind(this);
     this._handleCancel = this._handleCancel.bind(this);
@@ -116,13 +127,22 @@ export class NewFunctionWindow extends PureComponent {
     this.setState({ returnType: value });
   }
   
-  _handleAddArg(arg) {
-    const { args } = this.state;
-    this.setState({ args: [...args, arg] });
+  _handleAddButtonPress() {
+    this.setState({ creatingNewArgument: true });
   }
   
-  _handleDeleteArg({ idx }) {
+  _handleCancelAddArgument() {
+    this.setState({ creatingNewArgument: false });
+  }
+  
+  _handleAddArg(arg) {
     const { args } = this.state;
+    this.setState({ args: [...args, arg], creatingNewArgument: false });
+  }
+  
+  _handleDeleteArg({ id }) {
+    const { args } = this.state;
+    const idx = parseInt(id, 10);
     this.setState({ args: without(args, idx) });
   }
   
@@ -149,10 +169,59 @@ export class NewFunctionWindow extends PureComponent {
   
   _renderDefinitionForm() {
     const { getLocalizedText } = this.props;
-    const { title, description, returnType, args } = this.state;
+    
+    const {
+      title,
+      description,
+      returnType,
+      args,
+      creatingNewArgument,
+    } = this.state;
     
     const typeSelectOptions = this._getTypeSelectOptions();
     const isNextButtonDisabled = this._isNextButtonDisabled();
+    
+    let newArgumentButton = null;
+    if (!creatingNewArgument) {
+      newArgumentButton = (
+        <FunctionAddArgumentButton
+          getLocalizedText={getLocalizedText}
+          onPress={this._handleAddButtonPress}
+        />
+      );
+    }
+    
+    let newArgumentForm = null;
+    if (creatingNewArgument) {
+      newArgumentForm = (
+        <FunctionArgumentNew
+          existingArgNames={args.map(item => item.name)}
+          getLocalizedText={getLocalizedText}
+          onAdd={this._handleAddArg}
+          onCancel={this._handleCancelAddArgument}
+        />
+      );
+    }
+  
+    let argsList = null;
+    if (args.length > 0) {
+      const list = args.map(({ name, type }, idx) => (
+        <PropEmpty
+          key={name}
+          id={String(idx)}
+          label={name}
+          secondaryLabel={getLocalizedText(`types.${type}`)}
+          deletable
+          onDelete={this._handleDeleteArg}
+        />
+      ));
+    
+      argsList = (
+        <PropsList>
+          {list}
+        </PropsList>
+      );
+    }
     
     return (
       <BlockContent>
@@ -183,14 +252,17 @@ export class NewFunctionWindow extends PureComponent {
               onChange={this._handleReturnTypeChange}
             />
           </BlockContentBoxItem>
-
-          <FunctionArgumentsList
-            items={args}
-            getLocalizedText={getLocalizedText}
-            onAdd={this._handleAddArg}
-            onDelete={this._handleDeleteArg}
-          />
-
+          
+          <BlockContentBoxHeading>
+            {getLocalizedText('functions.new.argsList')}
+          </BlockContentBoxHeading>
+          
+          <BlockContentBoxItem>
+            {argsList}
+            {newArgumentButton}
+          </BlockContentBoxItem>
+          
+          {newArgumentForm}
         </BlockContentBox>
         
         <BlockContentActions>

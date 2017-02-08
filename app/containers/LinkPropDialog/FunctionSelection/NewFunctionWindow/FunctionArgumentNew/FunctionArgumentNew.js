@@ -14,9 +14,9 @@ import {
   BlockContentBoxGroup,
   BlockContentBoxItem,
   BlockContentBoxHeading,
-} from '../../BlockContent/BlockContent';
+} from '../../../../../components/BlockContent/BlockContent';
 
-import { returnArg, noop } from '../../../utils/misc';
+import { returnArg, noop } from '../../../../../utils/misc';
 
 const propTypes = {
   existingArgNames: PropTypes.arrayOf(PropTypes.string),

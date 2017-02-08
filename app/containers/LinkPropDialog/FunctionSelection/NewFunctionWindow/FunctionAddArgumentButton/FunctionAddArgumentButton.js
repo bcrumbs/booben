@@ -7,8 +7,7 @@
 //noinspection JSUnresolvedVariable
 import React, { PropTypes } from 'react';
 import { Button } from '@reactackle/reactackle';
-import { BlockContentBoxItem } from '../../BlockContent/BlockContent';
-import { returnArg, noop } from '../../../utils/misc';
+import { returnArg, noop } from '../../../../../utils/misc';
 
 const propTypes = {
   getLocalizedText: PropTypes.func,
@@ -21,16 +20,14 @@ const defaultProps = {
 };
 
 export const FunctionAddArgumentButton = ({ getLocalizedText, onPress }) => (
-  <BlockContentBoxItem>
-    <div className="function-arguments_list-button">
-      <Button
-        icon="plus"
-        text={getLocalizedText('functions.new.newArg.button')}
-        narrow
-        onPress={onPress}
-      />
-    </div>
-  </BlockContentBoxItem>
+  <div className="function-arguments_list-button">
+    <Button
+      icon="plus"
+      text={getLocalizedText('functions.new.newArg.button')}
+      narrow
+      onPress={onPress}
+    />
+  </div>
 );
 
 FunctionAddArgumentButton.propTypes = propTypes;

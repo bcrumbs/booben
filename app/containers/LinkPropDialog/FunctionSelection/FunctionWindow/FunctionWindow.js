@@ -285,7 +285,7 @@ export class FunctionWindow extends PureComponent {
         </BlockContentNavigation>
   
         <BlockContentBox isBordered>
-          <BlockContentBoxGroup dim>
+          <BlockContentBoxGroup colorScheme="dim">
             <BlockContentBoxItem>
               <DataWindowTitle
                 title={functionDef.title}
