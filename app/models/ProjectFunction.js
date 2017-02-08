@@ -26,6 +26,19 @@ const ProjectFunction = Record({
   fn: new Function('return void 0;'),
 });
 
+/**
+ *
+ * @param {string[]} argNames
+ * @param {string} body
+ * @return {Function}
+ */
+export const createJSFunction = (argNames, body) =>
+  new Function(
+    ...argNames,
+    FUNCTION_FNS_ARG_NAME,
+    body,
+  );
+
 export const projectFunctionToImmutable = input => new ProjectFunction({
   title: input.title,
   description: input.description,
@@ -39,11 +52,7 @@ export const projectFunctionToImmutable = input => new ProjectFunction({
   })),
   body: input.body,
   returnType: input.returnType,
-  fn: new Function(
-    ...input.args.map(arg => arg.name),
-    FUNCTION_FNS_ARG_NAME,
-    input.body,
-  ),
+  fn: createJSFunction(input.args.map(arg => arg.name), input.body),
 });
 
 /* eslint-enable no-new-func */

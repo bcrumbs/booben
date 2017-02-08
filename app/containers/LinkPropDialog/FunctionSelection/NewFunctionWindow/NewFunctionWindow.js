@@ -38,6 +38,7 @@ import { functionNameFromTitle } from '../../../../utils/functions';
 import { noop, returnArg } from '../../../../utils/misc';
 
 const propTypes = {
+  existingFunctionNames: PropTypes.arrayOf(PropTypes.string).isRequired,
   getLocalizedText: PropTypes.func,
   onCreate: PropTypes.func,
   onCancel: PropTypes.func,
@@ -215,10 +216,10 @@ export class NewFunctionWindow extends PureComponent {
   }
   
   _renderCodeEditor() {
-    const { getLocalizedText } = this.props;
+    const { existingFunctionNames, getLocalizedText } = this.props;
     const { title, args, code } = this.state;
     
-    const functionName = functionNameFromTitle(title);
+    const functionName = functionNameFromTitle(title, existingFunctionNames);
     
     return (
       <BlockContent>

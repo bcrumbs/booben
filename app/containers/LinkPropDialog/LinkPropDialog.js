@@ -35,7 +35,9 @@ import {
 import {
   linkWithOwnerProp,
   linkWithData,
+  linkWithFunction,
   linkPropCancel,
+  createFunction,
 } from '../../actions/project';
 
 import ProjectComponentRecord from '../../models/ProjectComponent';
@@ -203,7 +205,7 @@ class LinkPropDialogComponent extends PureComponent {
    */
   _handleLinkWithFunction({ source, name, argValues }) {
     this._initState();
-    // TODO: Dispatch action
+    this.props.onLinkWithFunction({ source, name, argValues });
   }
   
   /**
@@ -217,7 +219,14 @@ class LinkPropDialogComponent extends PureComponent {
    * @private
    */
   _handleCreateFunction({ name, title, description, args, returnType, code }) {
-    // TODO: Dispatch action
+    this.props.onCreateFunction({
+      name,
+      title,
+      description,
+      args,
+      returnType,
+      code,
+    });
   }
   
   /**
@@ -409,6 +418,8 @@ LinkPropDialogComponent.propTypes = {
   onLinkPropCancel: PropTypes.func.isRequired,
   onLinkWithOwnerProp: PropTypes.func.isRequired,
   onLinkWithData: PropTypes.func.isRequired,
+  onLinkWithFunction: PropTypes.func.isRequired,
+  onCreateFunction: PropTypes.func.isRequired,
 };
 
 LinkPropDialogComponent.defaultProps = {
@@ -444,6 +455,17 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(linkWithOwnerProp(propName)),
   onLinkWithData: ({ dataContext, path, args }) =>
     void dispatch(linkWithData(dataContext, path, args)),
+  onLinkWithFunction: ({ source, name, argValues }) =>
+    void dispatch(linkWithFunction(source, name, argValues)),
+  onCreateFunction: ({ name, title, description, args, returnType, code }) =>
+    void dispatch(createFunction(
+      name,
+      title,
+      description,
+      args,
+      returnType,
+      code,
+    )),
 });
 
 export const LinkPropDialog = connect(

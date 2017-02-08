@@ -6,6 +6,7 @@
 
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
+import { Map } from 'immutable';
 import { makeDefaultValue, getNestedTypedef, TypeNames } from '@jssy/types';
 import { Button } from '@reactackle/reactackle';
 import ProjectFunctionRecord from '../../../../models/ProjectFunction';
@@ -62,6 +63,19 @@ const makeDefaultValuesForArgs = functionDef =>
  * @return {string}
  */
 const formatArrayItemLabel = index => `Item ${index}`; // TODO: Get string from i18n
+
+/**
+ *
+ * @param {Immutable.List<JssyValue>} argValues
+ * @param {Object} functionDef
+ * @return {Immutable.Map<string, JssyValue>}
+ */
+const argValuesToMap = (argValues, functionDef) =>
+  Map().withMutations(map => {
+    argValues.forEach((value, idx) => {
+      map.set(functionDef.args.get(idx).name, value);
+    });
+  });
 
 export class FunctionWindow extends PureComponent {
   constructor(props) {
@@ -219,8 +233,11 @@ export class FunctionWindow extends PureComponent {
   }
   
   _handleApplyButtonPress() {
+    const { functionDef } = this.props;
     const { values } = this.state;
-    this.props.onApply({ argValues: values });
+    
+    const valuesMap = argValuesToMap(values, functionDef);
+    this.props.onApply({ argValues: valuesMap });
   }
   
   _renderArgsForm() {

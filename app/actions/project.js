@@ -44,8 +44,14 @@ export const PROJECT_LINK_WITH_OWNER_PROP =
   'PROJECT_LINK_WITH_OWNER_PROP';
 export const PROJECT_LINK_WITH_DATA =
   'PROJECT_LINK_WITH_DATA';
+export const PROJECT_LINK_WITH_FUNCTION =
+  'PROJECT_LINK_WITH_FUNCTION';
+export const PROJECT_UNLINK_PROP =
+  'PROJECT_UNLINK_PROP';
 export const PROJECT_LINK_PROP_CANCEL =
   'PROJECT_LINK_PROP_CANCEL';
+export const PROJECT_CREATE_FUNCTION =
+  'PROJECT_CREATE_FUNCTION';
 
 /**
  *
@@ -346,8 +352,60 @@ export const linkWithData = (dataContext, path, args) => ({
 
 /**
  *
+ * @param {string} functionSource
+ * @param {string} functionName
+ * @param {Immutable.Map<string, Object>} argValues
+ * @return {Object}
+ */
+export const linkWithFunction = (functionSource, functionName, argValues) => ({
+  type: PROJECT_LINK_WITH_FUNCTION,
+  functionSource,
+  functionName,
+  argValues,
+});
+
+/**
+ *
+ * @return {Object}
+ */
+export const unlinkProp = (componentId, propName, path) => ({
+  type: PROJECT_UNLINK_PROP,
+  componentId,
+  propName,
+  path,
+});
+
+/**
+ *
  * @return {Object}
  */
 export const linkPropCancel = () => ({
   type: PROJECT_LINK_PROP_CANCEL,
+});
+
+/**
+ *
+ * @param {string} name
+ * @param {string} title
+ * @param {string} description
+ * @param {{ name: string, type: string }[]} args
+ * @param {string} returnType
+ * @param {string} code
+ * @return {Object}
+ */
+export const createFunction = (
+  name,
+  title,
+  description,
+  args,
+  returnType,
+  code,
+) => ({
+  type: PROJECT_CREATE_FUNCTION,
+  name,
+  title,
+  description,
+  args,
+  returnType,
+  code,
 });

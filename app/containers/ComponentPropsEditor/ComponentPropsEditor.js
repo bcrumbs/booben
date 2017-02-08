@@ -40,6 +40,7 @@ import {
   deleteComponentPropValue,
   constructComponentForProp,
   linkProp,
+  unlinkProp,
 } from '../../actions/project';
 
 import {
@@ -399,9 +400,13 @@ class ComponentPropsEditorComponent extends PureComponent {
   _renderPropsItem(componentMeta, propName, propValue) {
     const { getLocalizedText } = this.props;
 
-    const propMeta = componentMeta.props[propName],
-      propType = this._propTypeFromMeta(componentMeta, propMeta),
-      value = jssyValueToPropValue(propValue, propMeta, componentMeta.types);
+    const propMeta = componentMeta.props[propName];
+    const propType = this._propTypeFromMeta(componentMeta, propMeta);
+    const value = jssyValueToPropValue(
+      propValue,
+      propMeta,
+      componentMeta.types,
+    );
 
     //noinspection JSValidateTypes
     return (
@@ -572,7 +577,8 @@ const mapDispatchToProps = dispatch => ({
   onLinkProp: (componentId, propName, path) =>
     void dispatch(linkProp(componentId, propName, path)),
 
-  onUnlinkProp: () => {}, // TODO: Make unlink action
+  onUnlinkProp: (componentId, propName, path) =>
+    void dispatch(unlinkProp(componentId, propName, path)),
 });
 
 export const ComponentPropsEditor = connect(

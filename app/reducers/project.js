@@ -34,7 +34,10 @@ import {
   PROJECT_LINK_PROP,
   PROJECT_LINK_WITH_OWNER_PROP,
   PROJECT_LINK_WITH_DATA,
+  PROJECT_LINK_WITH_FUNCTION,
   PROJECT_LINK_PROP_CANCEL,
+  PROJECT_UNLINK_PROP,
+  PROJECT_CREATE_FUNCTION,
 } from '../actions/project';
 
 import {
@@ -68,6 +71,12 @@ import JssyValue from '../models/JssyValue';
 import SourceDataStatic from '../models/SourceDataStatic';
 import SourceDataDesigner from '../models/SourceDataDesigner';
 import SourceDataData, { QueryPathStep } from '../models/SourceDataData';
+import SourceDataFunction from '../models/SourceDataFunction';
+
+import ProjectFunction, {
+  ProjectFunctionArgument,
+  createJSFunction,
+} from '../models/ProjectFunction';
 
 import {
   projectToImmutable,
@@ -92,6 +101,7 @@ import {
   parseComponentName,
   formatComponentName,
   propHasDataContext,
+  buildDefaultValue,
 } from '../utils/meta';
 
 import { concatPath } from '../utils';
@@ -389,6 +399,152 @@ const moveComponent = (state, componentId, targetComponentId, position) => {
   return state.setIn(pathToParentId, targetComponentId);
 };
 
+const isPrefixList = (maybePrefix, list) => {
+  if (maybePrefix.size > list.size) return false;
+  return maybePrefix.every((item, idx) => is(item, list.get(idx)));
+};
+
+const expandPropPath = propPath => propPath
+  .slice(0, -1)
+  .reduce((acc, cur) => acc.concat([cur, 'sourceData', 'value']), [])
+  .concat(propPath[propPath.length - 1]);
+
+// TODO: Refactor away from using real paths
+const clearOutdatedDataProps = (
+  state,
+  pathToComponents,
+  updatedComponentId,
+  updatedPropName,
+  updatedPath,
+) => {
+  // Data prop with pushDataContext cannot be nested,
+  // so we need to clear outdated data props only when updating top-level prop
+  if (updatedPath.length === 0) return state;
+  
+  const currentComponents = state.getIn(pathToComponents);
+  const updatedComponent = currentComponents.get(updatedComponentId);
+  const oldValue = updatedComponent.props.get(updatedPropName);
+  
+  if (oldValue.source !== 'data' || !oldValue.sourceData.queryPath)
+    return state;
+  
+  const componentMeta = getComponentMeta(updatedComponent.name, state.meta);
+  const updatedPropMeta = componentMeta.props[updatedPropName];
+  
+  if (!propHasDataContext(updatedPropMeta)) return state;
+  
+  const outdatedDataContext = oldValue.sourceData.dataContext
+    .push(updatedPropMeta.sourceConfigs.data.pushDataContext);
+  
+  const visitDesignerProp = (designerPropValue, path) => {
+    walkComponentsTree(
+      designerPropValue.sourceData.components,
+      designerPropValue.sourceData.rootId,
+      
+      component => {
+        const componentId = component.id;
+        const componentMeta = getComponentMeta(component.name, state.meta);
+        
+        walkSimpleProps(
+          component,
+          componentMeta,
+          
+          (propValue, _, pathToProp) => {
+            if (propValue.source === 'data') {
+              const containsOutdatedDataContext = isPrefixList(
+                outdatedDataContext,
+                propValue.sourceData.dataContext,
+              );
+              
+              if (containsOutdatedDataContext) {
+                const pathToUpdatedValue = [].concat(path, [
+                  'sourceData',
+                  'components',
+                  componentId,
+                  'props',
+                ], expandPropPath(pathToProp));
+                
+                const newSourceData = new SourceDataData({
+                  queryPath: null,
+                });
+                
+                state = state.updateIn(
+                  pathToUpdatedValue,
+                  
+                  updatedValue => updatedValue.set(
+                    'sourceData',
+                    newSourceData,
+                  ),
+                );
+              }
+            } else if (propValue.source === 'designer') {
+              if (propValue.sourceData.rootId > -1) {
+                const pathToNextDesignerValue = [].concat(path, [
+                  'sourceData',
+                  'components',
+                  componentId,
+                  'props',
+                ], expandPropPath(pathToProp));
+                
+                visitDesignerProp(
+                  state.getIn(pathToNextDesignerValue),
+                  pathToNextDesignerValue,
+                );
+              }
+            }
+          },
+        );
+      },
+    );
+  };
+  
+  const visitProp = (propValue, _, pathToProp) => {
+    if (propValue.source === 'designer' && propValue.sourceData.rootId > -1) {
+      const pathToValue = [].concat(pathToComponents, [
+        updatedComponentId,
+        'props',
+      ], expandPropPath(pathToProp));
+      
+      visitDesignerProp(propValue, pathToValue);
+    }
+  };
+  
+  walkSimpleProps(updatedComponent, componentMeta, visitProp);
+  return state;
+};
+
+const updateComponentPropValue = (
+  state,
+  componentId,
+  propName,
+  path,
+  newValue,
+) => {
+  const pathToCurrentComponents = getPathToCurrentComponents(state);
+  
+  state = clearOutdatedDataProps(
+    state,
+    pathToCurrentComponents,
+    componentId,
+    propName,
+    path,
+  );
+  
+  const pathToProp = [].concat(
+    pathToCurrentComponents,
+    componentId,
+    'props',
+    propName,
+  );
+  
+  return state.updateIn(
+    pathToProp,
+    propValue => path.length === 0
+      ? newValue
+      : propValue.setInStatic(path, newValue),
+  );
+};
+
 const initDNDState = state => state.merge({
   draggingComponent: false,
   draggedComponents: null,
@@ -422,116 +578,6 @@ const selectFirstRoute = state => state.merge({
 
   indexRouteSelected: false,
 });
-
-const isPrefixList = (maybePrefix, list) => {
-  if (maybePrefix.size > list.size) return false;
-  return maybePrefix.every((item, idx) => is(item, list.get(idx)));
-};
-
-const expandPropPath = propPath => propPath
-  .slice(0, -1)
-  .reduce((acc, cur) => acc.concat([cur, 'sourceData', 'value']), [])
-  .concat(propPath[propPath.length - 1]);
-
-// TODO: Refactor away from using real paths
-const clearOutdatedDataProps = (
-  state,
-  updatedComponentId,
-  updatedDataPropName,
-) => {
-  const currentComponentsPath = getPathToCurrentComponents(state),
-    currentComponents = state.getIn(currentComponentsPath),
-    updatedComponent = currentComponents.get(updatedComponentId);
-
-  const oldValue = updatedComponent.props.get(updatedDataPropName);
-  
-  if (oldValue.source !== 'data' || !oldValue.sourceData.queryPath)
-    return state;
-
-  const componentMeta = getComponentMeta(updatedComponent.name, state.meta),
-    updatedPropMeta = componentMeta.props[updatedDataPropName];
-
-  if (!propHasDataContext(updatedPropMeta)) return state;
-
-  const outdatedDataContext = oldValue.sourceData.dataContext
-    .push(updatedPropMeta.sourceConfigs.data.pushDataContext);
-
-  const visitDesignerProp = (designerPropValue, path) => {
-    walkComponentsTree(
-      designerPropValue.sourceData.components,
-      designerPropValue.sourceData.rootId,
-
-      component => {
-        const componentId = component.id,
-          componentMeta = getComponentMeta(component.name, state.meta);
-
-        walkSimpleProps(
-          component,
-          componentMeta,
-
-          (propValue, _, pathToProp) => {
-            if (propValue.source === 'data') {
-              const containsOutdatedDataContext = isPrefixList(
-                outdatedDataContext,
-                propValue.sourceData.dataContext,
-              );
-
-              if (containsOutdatedDataContext) {
-                const pathToUpdatedValue = [].concat(path, [
-                  'sourceData',
-                  'components',
-                  componentId,
-                  'props',
-                ], expandPropPath(pathToProp));
-
-                const newSourceData = new SourceDataData({
-                  queryPath: null,
-                });
-
-                state = state.updateIn(
-                  pathToUpdatedValue,
-
-                  updatedValue => updatedValue.set(
-                    'sourceData',
-                    newSourceData,
-                  ),
-                );
-              }
-            } else if (propValue.source === 'designer') {
-              if (propValue.sourceData.rootId > -1) {
-                const pathToNextDesignerValue = [].concat(path, [
-                  'sourceData',
-                  'components',
-                  componentId,
-                  'props',
-                ], expandPropPath(pathToProp));
-
-                visitDesignerProp(
-                  state.getIn(pathToNextDesignerValue),
-                  pathToNextDesignerValue,
-                );
-              }
-            }
-          },
-        );
-      },
-    );
-  };
-  
-  const visitProp = (propValue, _, pathToProp) => {
-    if (propValue.source === 'designer' && propValue.sourceData.rootId > -1) {
-      const pathToValue = [].concat(currentComponentsPath, [
-        updatedComponentId,
-        'props',
-      ], expandPropPath(pathToProp));
-    
-      visitDesignerProp(propValue, pathToValue);
-    }
-  };
-
-  walkSimpleProps(updatedComponent, componentMeta, visitProp);
-  return state;
-};
 
 const initLinkingPropState = state => state
   .merge({
@@ -584,6 +630,16 @@ const getPathToComponentWithQueryArgs = (state, dataContext) => {
       'components',
       currentComponentId,
     ];
+};
+
+const updateQueryArgs = (state, dataContext, newQueryArgs) => {
+  const pathToQueryArgs = [
+    ...getPathToComponentWithQueryArgs(state, dataContext),
+    'queryArgs',
+    dataContext.join(' '),
+  ];
+  
+  return state.setIn(pathToQueryArgs, newQueryArgs);
 };
 
 export const makeCurrentQueryArgsGetter = state => dataContext => {
@@ -713,17 +769,7 @@ const handlers = {
   },
   
   [PROJECT_COMPONENT_UPDATE_PROP_VALUE]: (state, action) => {
-    const pathToCurrentComponents = getPathToCurrentComponents(state),
-      currentComponents = state.getIn(pathToCurrentComponents);
-  
-    if (!currentComponents.has(action.componentId)) {
-      throw new Error(
-        'An attempt was made to update a component ' +
-        'that is not in current editing area',
-      );
-    }
-  
-    const newPropValue = new JssyValue({
+    const newValue = new JssyValue({
       source: action.newSource,
       sourceData: sourceDataToImmutable(
         action.newSource,
@@ -731,41 +777,17 @@ const handlers = {
       ),
     });
   
-    // Data prop with pushDataContext cannot be nested,
-    // so we need to clearOutdatedDataProps only when updating top-level prop
-    if (!action.path || !action.path.length) {
-      state = clearOutdatedDataProps(
-        state,
-        action.componentId,
-        action.propName,
-      );
-    }
-  
-    const pathToProp = [].concat(
-      pathToCurrentComponents,
+    return updateComponentPropValue(
+      state,
       action.componentId,
-      'props',
       action.propName,
-    );
-    
-    return state.updateIn(
-      pathToProp,
-      propValue => action.path.length === 0
-        ? newPropValue
-        : propValue.setInStatic(action.path, newPropValue),
+      action.path,
+      newValue,
     );
   },
   
   [PROJECT_COMPONENT_ADD_PROP_VALUE]: (state, action) => {
-    const pathToCurrentComponents = getPathToCurrentComponents(state),
-      currentComponents = state.getIn(pathToCurrentComponents);
-  
-    if (!currentComponents.has(action.componentId)) {
-      throw new Error(
-        'An attempt was made to update a component ' +
-        'that is not in current editing area',
-      );
-    }
+    const pathToCurrentComponents = getPathToCurrentComponents(state);
   
     const newValue = new JssyValue({
       source: action.source,
@@ -793,15 +815,7 @@ const handlers = {
   },
   
   [PROJECT_COMPONENT_DELETE_PROP_VALUE]: (state, action) => {
-    const pathToCurrentComponents = getPathToCurrentComponents(state),
-      currentComponents = state.getIn(pathToCurrentComponents);
-  
-    if (!currentComponents.has(action.componentId)) {
-      throw new Error(
-        'An attempt was made to update a component ' +
-        'that is not in current editing area',
-      );
-    }
+    const pathToCurrentComponents = getPathToCurrentComponents(state);
     
     const pathToProp = [].concat(
       pathToCurrentComponents,
@@ -817,15 +831,7 @@ const handlers = {
   },
   
   [PROJECT_COMPONENT_RENAME]: (state, action) => {
-    const pathToCurrentComponents = getPathToCurrentComponents(state),
-      currentComponents = state.getIn(pathToCurrentComponents);
-  
-    if (!currentComponents.has(action.componentId)) {
-      throw new Error(
-        'An attempt was made to update a component ' +
-        'that is not in current editing area',
-      );
-    }
+    const pathToCurrentComponents = getPathToCurrentComponents(state);
   
     const path = [].concat(pathToCurrentComponents, [
       action.componentId,
@@ -836,15 +842,7 @@ const handlers = {
   },
   
   [PROJECT_COMPONENT_TOGGLE_REGION]: (state, action) => {
-    const pathToCurrentComponents = getPathToCurrentComponents(state),
-      currentComponents = state.getIn(pathToCurrentComponents);
-  
-    if (!currentComponents.has(action.componentId)) {
-      throw new Error(
-        'An attempt was made to update a component ' +
-        'that is not in current editing area',
-      );
-    }
+    const pathToCurrentComponents = getPathToCurrentComponents(state);
   
     const path = [].concat(pathToCurrentComponents, [
       action.componentId,
@@ -909,13 +907,6 @@ const handlers = {
   
     const pathToCurrentComponents = getPathToCurrentComponents(state),
       currentComponents = state.getIn(pathToCurrentComponents);
-  
-    if (!currentComponents.has(action.componentId)) {
-      throw new Error(
-        'An attempt was made to drag a component ' +
-        'that is not in current editing area',
-      );
-    }
   
     return state.merge({
       draggingComponent: true,
@@ -995,13 +986,6 @@ const handlers = {
       componentMeta.types,
     );
   
-    if (propMeta.source.indexOf('designer') === -1) {
-      throw new Error(
-        'An attempt was made to construct a component ' +
-        'for prop that does not have \'designer\' source option',
-      );
-    }
-  
     const nestedConstructorData = {
       componentId: action.componentId,
       prop: action.propName,
@@ -1050,16 +1034,6 @@ const handlers = {
     const topConstructor = getTopNestedConstructor(state);
     state = closeTopNestedConstructor(state);
   
-    const pathToCurrentComponents = getPathToCurrentComponents(state),
-      currentComponents = state.getIn(pathToCurrentComponents);
-  
-    if (!currentComponents.has(topConstructor.componentId)) {
-      throw new Error(
-        'Failed to save component created by nested constructor: ' +
-        'owner component is not in current editing area',
-      );
-    }
-  
     const newValue = new JssyValue({
       source: 'designer',
       sourceData: new SourceDataDesigner({
@@ -1068,18 +1042,12 @@ const handlers = {
       }),
     });
     
-    const pathToProp = [].concat(
-      pathToCurrentComponents,
+    return updateComponentPropValue(
+      state,
       topConstructor.componentId,
-      'props',
       topConstructor.prop,
-    );
-    
-    return state.updateIn(
-      pathToProp,
-      propValue => topConstructor.path.length === 0
-        ? newValue
-        : propValue.setInStatic(topConstructor.path, newValue),
+      topConstructor.path,
+      newValue,
     );
   },
   
@@ -1092,65 +1060,26 @@ const handlers = {
     .set('linkingPropPath', action.path), // Prevent conversion to List
   
   [PROJECT_LINK_WITH_OWNER_PROP]: (state, action) => {
-    // Data prop with pushDataContext cannot be nested,
-    // so we need to clearOutdatedDataProps only when updating top-level prop
-    if (!state.linkingPropPath || !state.linkingPropPath.length) {
-      state = clearOutdatedDataProps(
-        state,
-        state.linkingPropOfComponentId,
-        state.linkingPropName,
-      );
-    }
-    
-    const pathToCurrentComponents = getPathToCurrentComponents(state);
-    const pathToProp = [].concat(
-      pathToCurrentComponents,
-      state.linkingPropOfComponentId,
-      'props',
-      state.linkingPropName,
-    );
-    
-    const oldValue = state.getIn(pathToProp).getInStatic(state.linkingPropPath);
     const newValue = new JssyValue({
       source: 'static',
       sourceData: new SourceDataStatic({
-        value: oldValue.source === 'static'
-          ? oldValue.sourceData.value
-          : NO_VALUE, // TODO: Build default value for type when link will be removed
-      
+        value: NO_VALUE,
         ownerPropName: action.ownerPropName,
       }),
     });
-    
-    state = state.updateIn(
-      pathToProp,
-      propValue => state.linkingPropPath.length === 0
-        ? newValue
-        : propValue.setInStatic(state.linkingPropPath, newValue),
+  
+    state = updateComponentPropValue(
+      state,
+      state.linkingPropOfComponentId,
+      state.linkingPropName,
+      state.linkingPropPath,
+      newValue,
     );
     
     return initLinkingPropState(state);
   },
   
   [PROJECT_LINK_WITH_DATA]: (state, action) => {
-    // Data prop with pushDataContext cannot be nested,
-    // so we need to clearOutdatedDataProps only when updating top-level prop
-    if (!state.linkingPropPath || !state.linkingPropPath.length) {
-      state = clearOutdatedDataProps(
-        state,
-        state.linkingPropOfComponentId,
-        state.linkingPropName,
-      );
-    }
-    
-    const pathToCurrentComponents = getPathToCurrentComponents(state);
-    const pathToProp = [].concat(
-      pathToCurrentComponents,
-      state.linkingPropOfComponentId,
-      'props',
-      state.linkingPropName,
-    );
-    
     const newValue = new JssyValue({
       source: 'data',
       sourceData: new SourceDataData({
@@ -1160,26 +1089,90 @@ const handlers = {
         }))),
       }),
     });
-    
-    const pathToQueryArgs = [
-      ...getPathToComponentWithQueryArgs(state, action.dataContext),
-      'queryArgs',
-      action.dataContext.join(' '),
-    ];
-    
-    state = state.setIn(pathToQueryArgs, action.args);
   
-    state = state.updateIn(
-      pathToProp,
-      propValue => state.linkingPropPath.length === 0
-        ? newValue
-        : propValue.setInStatic(state.linkingPropPath, newValue),
+    state = updateComponentPropValue(
+      state,
+      state.linkingPropOfComponentId,
+      state.linkingPropName,
+      state.linkingPropPath,
+      newValue,
     );
+    
+    state = updateQueryArgs(state, action.dataContext, action.args);
     
     return initLinkingPropState(state);
   },
   
+  [PROJECT_LINK_WITH_FUNCTION]: (state, action) => {
+    const newValue = new JssyValue({
+      source: 'function',
+      sourceData: new SourceDataFunction({
+        functionSource: action.functionSource,
+        function: action.functionName,
+        args: action.argValues,
+      }),
+    });
+    
+    state = updateComponentPropValue(
+      state,
+      state.linkingPropOfComponentId,
+      state.linkingPropName,
+      state.linkingPropPath,
+      newValue,
+    );
+  
+    return initLinkingPropState(state);
+  },
+  
   [PROJECT_LINK_PROP_CANCEL]: state => initLinkingPropState(state),
+  
+  [PROJECT_UNLINK_PROP]: (state, action) => {
+    const pathToCurrentComponents = getPathToCurrentComponents(state);
+    const currentComponents = state.getIn(pathToCurrentComponents);
+    const component = currentComponents.get(action.componentId);
+    const componentMeta = getComponentMeta(component.name, state.meta);
+    const propMeta = componentMeta.props[action.propName];
+    const nestedMeta = getNestedTypedef(
+      propMeta,
+      action.path,
+      componentMeta.types,
+    );
+    
+    const { source, sourceData } = buildDefaultValue(
+      componentMeta,
+      nestedMeta,
+      state.languageForComponentProps,
+    );
+    
+    const newValue = new JssyValue({
+      source,
+      sourceData: sourceDataToImmutable(source, sourceData),
+    });
+    
+    return updateComponentPropValue(
+      state,
+      action.componentId,
+      action.propName,
+      action.path,
+      newValue,
+    );
+  },
+  
+  [PROJECT_CREATE_FUNCTION]: (state, action) => {
+    let fn = new ProjectFunction({
+      title: action.title,
+      description: action.description,
+      args: List(action.args.map(({ name, type }) => {
+        const arg = new ProjectFunctionArgument({ name });
+        return arg.set('typedef', { type });
+      })),
+      body: action.code,
+      fn: createJSFunction(action.args.map(arg => arg.name), action.code),
+    });
+    
+    fn = fn.set('returnType', { type: action.returnType });
+    return state.setIn(['data', 'functions', action.name], fn);
+  },
   
   [PREVIEW_DRAG_OVER_COMPONENT]: (state, action) => state.merge({
     draggingOverComponentId: action.componentId,

@@ -103,7 +103,10 @@ export class FunctionSelection extends PureComponent {
   }
   
   _handleCreate({ title, description, args, returnType, code }) {
-    const name = functionNameFromTitle(title);
+    const { projectFunctions } = this.props;
+    
+    const existingNames = Array.from(projectFunctions.keys());
+    const name = functionNameFromTitle(title, existingNames);
     
     this.props.onCreateFunction({
       name,
@@ -114,11 +117,7 @@ export class FunctionSelection extends PureComponent {
       code,
     });
     
-    this.setState({
-      currentView: Views.FUNCTION,
-      selectedFunctionId: name,
-      selectedFunctionSource: 'project',
-    });
+    this.setState({ currentView: Views.LIST });
   }
 
   _renderFunctionsList() {
@@ -176,10 +175,13 @@ export class FunctionSelection extends PureComponent {
   }
   
   _renderNewFunctionWindow() {
-    const { getLocalizedText } = this.props;
+    const { projectFunctions, getLocalizedText } = this.props;
+    
+    const existingFunctionNames = Array.from(projectFunctions.keys());
     
     return (
       <NewFunctionWindow
+        existingFunctionNames={existingFunctionNames}
         getLocalizedText={getLocalizedText}
         onCreate={this._handleCreate}
         onCancel={this._handleReturnToList}

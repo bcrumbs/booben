@@ -7,7 +7,7 @@
 import { Record, Map } from 'immutable';
 
 const SourceDataFunction = Record({
-  functionSource: 'project', // project = user-defined function
+  functionSource: 'project', // project = user-defined function, builtin = built-in function
   function: '',
   args: Map(),
 });

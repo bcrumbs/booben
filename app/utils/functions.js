@@ -33,6 +33,16 @@ export const getFunctionInfo = (functionSource, functionName, project) => {
 /**
  *
  * @param {string} title
+ * @param {string[]} existingNames
  * @return {string}
  */
-export const functionNameFromTitle = title => _camelCase(title);
+export const functionNameFromTitle = (title, existingNames) => {
+  const baseName = _camelCase(title);
+  let maybeName = baseName;
+  let number = 1;
+  
+  while (existingNames.indexOf(maybeName) !== -1)
+    maybeName = baseName + String(number++);
+  
+  return maybeName;
+};
