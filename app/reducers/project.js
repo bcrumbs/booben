@@ -604,10 +604,9 @@ const getPathToComponentWithQueryArgs = (state, dataContext) => {
     
     currentComponentId = currentNestedConstructor.componentId;
     
-    currentNestedConstructorIndex =
-      currentNestedConstructorIndex === state.nestedConstructors.size
-        ? -1
-        : currentNestedConstructorIndex + 1;
+    currentNestedConstructorIndex = i >= state.nestedConstructors.size - 1
+      ? -1
+      : currentNestedConstructorIndex + 1;
   
     currentNestedConstructor = currentNestedConstructorIndex !== -1
       ? state.nestedConstructors.get(currentNestedConstructorIndex)
