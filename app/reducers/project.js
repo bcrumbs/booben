@@ -715,7 +715,11 @@ const handlers = {
   
     return state
       .updateIn(pathToIdsList, list => list.push(newRouteId))
-      .set('lastRouteId', newRouteId);
+      .merge({
+        lastRouteId: newRouteId,
+        selectedRouteId: newRouteId,
+        indexRouteSelected: false,
+      });
   },
   
   [PROJECT_ROUTE_DELETE]: (state, action) => {

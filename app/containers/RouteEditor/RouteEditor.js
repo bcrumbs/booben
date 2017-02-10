@@ -74,8 +74,9 @@ class RouteEditorComponent extends PureComponent {
     const { getLocalizedText } = this.props;
 
     if (this.props.selectedRouteId === -1) {
+      const text = getLocalizedText('structure.noRouteSelected');
       return (
-        <BlockContentPlaceholder text={getLocalizedText('noRouteSelected')} />
+        <BlockContentPlaceholder text={text} />
       );
     }
 
@@ -85,7 +86,7 @@ class RouteEditorComponent extends PureComponent {
       return (
         <BlockContentBox>
           <BlockContentBoxHeading>
-            {getLocalizedText('indexRouteProperties')}
+            {getLocalizedText('structure.indexRouteProperties')}
           </BlockContentBoxHeading>
 
           <BlockContentBoxItem>
@@ -107,7 +108,7 @@ class RouteEditorComponent extends PureComponent {
     if (route.haveRedirect) {
       redirectUrlInput = (
         <PropInput
-          label={getLocalizedText('redirectTo')}
+          label={getLocalizedText('structure.redirectTo')}
           value={route.redirectTo}
           onChange={this._handleRedirectToChange}
         />
@@ -115,7 +116,7 @@ class RouteEditorComponent extends PureComponent {
     } else {
       haveIndexToggle = (
         <PropToggle
-          label={getLocalizedText('indexRoute')}
+          label={getLocalizedText('structure.indexRoute')}
           value={route.haveIndex}
           onChange={this._handleHaveIndexChange}
         />
@@ -125,13 +126,13 @@ class RouteEditorComponent extends PureComponent {
     return (
       <BlockContentBox isBordered>
         <BlockContentBoxHeading>
-          {getLocalizedText('routeProperties')}
+          {getLocalizedText('structure.routeProperties')}
         </BlockContentBoxHeading>
 
         <BlockContentBoxItem>
           <PropsList>
             <PropInput
-              label={getLocalizedText('path')}
+              label={getLocalizedText('structure.path')}
               value={route.path}
               onChange={this._handlePathChange}
             />
@@ -143,7 +144,7 @@ class RouteEditorComponent extends PureComponent {
             />
   
             <PropToggle
-              label={getLocalizedText('indexRedirect')}
+              label={getLocalizedText('structure.indexRedirect')}
               value={route.haveRedirect}
               onChange={this._handleHaveRedirectChange}
             />

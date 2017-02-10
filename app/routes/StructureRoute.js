@@ -59,6 +59,12 @@ const TOOL_ID_ROUTE_EDITOR = 'routeEditor';
  */
 export const STRUCTURE_TOOL_IDS = List([TOOL_ID_ROUTE_EDITOR]);
 
+/**
+ *
+ * @type {RegExp}
+ */
+const ROUTE_PATH_PATTERN = /^[a-zA-Z0-9\-_]+$/;
+
 class StructureRoute extends PureComponent {
   constructor(props) {
     super(props);
@@ -69,9 +75,16 @@ class StructureRoute extends PureComponent {
       createRouteParentId: -1,
       newRoutePath: '',
       newRouteTitle: '',
+      pathPatternError: false,
     };
 
     this._newRouteTitleInput = null;
+    this._toolGroups = this._getTools(
+      props.project,
+      props.selectedRouteId,
+      props.indexRouteSelected,
+      props.getLocalizedText,
+    );
 
     this._handleRouteSelect =
       this._handleRouteSelect.bind(this);
@@ -99,12 +112,126 @@ class StructureRoute extends PureComponent {
       this._handleNewRouteTitleChange.bind(this);
     this._handleNewRoutePathChange =
       this._handleNewRoutePathChange.bind(this);
+    this._handlePathInputPatternError =
+      this._handlePathInputPatternError.bind(this);
+    this._handlePathInputBlur =
+      this._handlePathInputBlur.bind(this);
     this._handleCreateRouteCancel =
       this._handleCreateRouteCancel.bind(this);
     this._handleCreateRouteCreate =
       this._handleCreateRouteCreate.bind(this);
     this._handleCreateRouteDialogEnterKey =
       this._handleCreateRouteDialogEnterKey.bind(this);
+  }
+  
+  componentWillReceiveProps(nextProps) {
+    const willReCreateTools =
+      nextProps.project !== this.props.project ||
+      nextProps.selectedRouteId !== this.props.selectedRouteId ||
+      nextProps.indexRouteSelected !== this.props.indexRouteSelected ||
+      nextProps.getLocalizedText !== this.props.getLocalizedText;
+    
+    if (willReCreateTools) {
+      this._toolGroups = this._getTools(
+        nextProps.project,
+        nextProps.selectedRouteId,
+        nextProps.indexRouteSelected,
+        nextProps.getLocalizedText,
+      );
+    }
+  }
+  
+  _getTools(project, selectedRouteId, indexRouteSelected, getLocalizedText) {
+    const selectedRoute = selectedRouteId !== -1
+      ? project.routes.get(selectedRouteId)
+      : null;
+    
+    const routeEditorToolMainButtons = selectedRoute
+      ? List([
+        new ButtonRecord({
+          text: getLocalizedText('common.edit'),
+          onPress: this._handleSelectedRouteGo,
+        }),
+      ])
+      : List();
+    
+    const routeEditorToolSecondaryButtons = selectedRoute
+      ? List([
+        new ButtonRecord({
+          icon: 'trash-o',
+          onPress: this._handleDeleteRoutePress,
+        }),
+      ])
+      : List();
+    
+    const routeEditorToolSections = List([
+      new ToolSectionRecord({
+        component: RouteEditor,
+      }),
+    ]);
+    
+    let title;
+    if (selectedRoute) {
+      title = indexRouteSelected
+        ? `${selectedRoute.title || selectedRoute.path} - Index`
+        : selectedRoute.title;
+    } else {
+      title = getLocalizedText('structure.routeEditorTitle');
+    }
+    
+    const titleEditable = !!selectedRoute && !indexRouteSelected;
+    
+    return List([
+      List([
+        new ToolRecord({
+          id: TOOL_ID_ROUTE_EDITOR,
+          icon: 'random',
+          name: getLocalizedText('structure.routeEditorTitle'),
+          title,
+          titleEditable,
+          titlePlaceholder: getLocalizedText('structure.routeTitle'),
+          subtitle: selectedRoute ? selectedRoute.path : '',
+          sections: routeEditorToolSections,
+          mainButtons: routeEditorToolMainButtons,
+          secondaryButtons: routeEditorToolSecondaryButtons,
+          windowMinWidth: 360,
+        }),
+      ]),
+    ]);
+  }
+  
+  _isRouteAlreadyExist() {
+    const { project } = this.props;
+    const { createRouteParentId, newRoutePath } = this.state;
+    
+    const creatingRootRoute = createRouteParentId === -1;
+    
+    if (creatingRootRoute) {
+      const siblingIds = project.rootRoutes;
+      const actualNewRoutePath = `/${newRoutePath}`;
+      
+      const haveExistingRootRoutes = siblingIds.some(
+        routeId => project.routes.get(routeId).path === actualNewRoutePath,
+      );
+      
+      if (haveExistingRootRoutes) return true;
+      
+      const slashRouteId = project.rootRoutes.find(
+        routeId => project.routes.get(routeId).path === '/',
+      );
+      
+      if (typeof slashRouteId === 'undefined') return false;
+      
+      return project.routes.get(slashRouteId).children.some(
+        routeId => project.routes.get(routeId).path === newRoutePath,
+      );
+    } else {
+      const siblingIds = project.routes.get(createRouteParentId).children;
+      
+      return siblingIds.some(
+        routeId => project.routes.get(routeId).path === newRoutePath,
+      );
+    }
   }
 
   /**
@@ -118,32 +245,31 @@ class StructureRoute extends PureComponent {
 
   /**
    *
-   * @param {Object} route
+   * @param {number} routeId
    * @param {boolean} isIndexRoute
    * @private
    */
-  _handleRouteSelect({ route, isIndexRoute }) {
-    const sameRoute = route
-      ? route.id === this.props.selectedRouteId
-      : this.props.selectedRouteId === -1;
+  _handleRouteSelect({ routeId, isIndexRoute }) {
+    const { selectedRouteId, indexRouteSelected, onSelectRoute } = this.props;
 
-    const sameIsIndex = route
-      ? this.props.indexRouteSelected === isIndexRoute
-      : !this.props.indexRouteSelected;
-
-    if (!sameRoute || !sameIsIndex)
-      this.props.onSelectRoute(route, isIndexRoute);
+    if (
+      routeId !== selectedRouteId ||
+      isIndexRoute !== indexRouteSelected
+    ) onSelectRoute(routeId, isIndexRoute);
   }
 
   /**
    *
-   * @param {Object} route
+   * @param {number} routeId
    * @param {boolean} isIndexRoute
    * @private
    */
-  _handleRouteGo({ route, isIndexRoute }) {
-    let path = `/${this.props.projectName}/design/${route.id}`;
-    if (isIndexRoute) path += '/index';
+  _handleRouteGo({ routeId, isIndexRoute }) {
+    const { projectName } = this.props;
+    
+    const path =
+      `/${projectName}/design/${routeId}${isIndexRoute ? '/index' : ''}`;
+    
     history.push(path);
   }
 
@@ -152,9 +278,11 @@ class StructureRoute extends PureComponent {
    * @private
    */
   _handleSelectedRouteGo() {
+    const { selectedRouteId, indexRouteSelected } = this.props;
+    
     this._handleRouteGo({
-      route: this.props.selectedRouteId,
-      isIndexRoute: this.props.indexRouteSelected,
+      routeId: selectedRouteId,
+      isIndexRoute: indexRouteSelected,
     });
   }
 
@@ -163,9 +291,7 @@ class StructureRoute extends PureComponent {
    * @private
    */
   _handleDeleteRoutePress() {
-    this.setState({
-      confirmDeleteDialogIsVisible: true,
-    });
+    this.setState({ confirmDeleteDialogIsVisible: true });
   }
 
   /**
@@ -173,9 +299,7 @@ class StructureRoute extends PureComponent {
    * @private
    */
   _handleDeleteRouteDialogClose() {
-    this.setState({
-      confirmDeleteDialogIsVisible: false,
-    });
+    this.setState({ confirmDeleteDialogIsVisible: false });
   }
 
   /**
@@ -210,10 +334,9 @@ class StructureRoute extends PureComponent {
       createRouteParentId: parentId,
       newRoutePath: '',
       newRouteTitle: '',
+    }, () => {
+      this._newRouteTitleInput.focus();
     });
-
-    // TODO: Figure out why this._newRouteTitleInput is null
-    // this._newRouteTitleInput.focus();
   }
 
   /**
@@ -235,7 +358,24 @@ class StructureRoute extends PureComponent {
   _handleNewRoutePathChange(newPath) {
     this.setState({
       newRoutePath: newPath,
+      pathPatternError: false,
     });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handlePathInputPatternError() {
+    this.setState({ pathPatternError: true });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handlePathInputBlur() {
+    this.setState({ pathPatternError: false });
   }
 
   /**
@@ -264,15 +404,17 @@ class StructureRoute extends PureComponent {
    * @private
    */
   _handleCreateRouteCreate(closeDialog) {
-    const isRootRoute = this.state.createRouteParentId === -1,
-      rawPath = this.state.newRoutePath.trim(),
-      title = this.state.newRouteTitle.trim();
+    const { onCreateRoute } = this.props;
+    const { createRouteParentId, newRoutePath, newRouteTitle } = this.state;
     
+    const isRootRoute = createRouteParentId === -1;
+    const rawPath = newRoutePath.trim();
+    const title = newRouteTitle.trim();
     const path = (isRootRoute && !rawPath.startsWith('/'))
       ? `/${rawPath}`
       : rawPath;
 
-    this.props.onCreateRoute(this.state.createRouteParentId, path, title);
+    onCreateRoute(createRouteParentId, path, title);
     closeDialog();
   }
 
@@ -305,7 +447,11 @@ class StructureRoute extends PureComponent {
    * @private
    */
   _renderRouteList(routes, parentRoute, routesIds) {
-    const { getLocalizedText } = this.props;
+    const {
+      selectedRouteId,
+      indexRouteSelected,
+      getLocalizedText,
+    } = this.props;
 
     let routeCards = routesIds
       ? routesIds.map(routeId => this._renderRouteCard(routes, routeId))
@@ -313,8 +459,8 @@ class StructureRoute extends PureComponent {
 
     if (parentRoute && parentRoute.haveIndex && !parentRoute.haveRedirect) {
       const isSelected =
-        this.props.selectedRouteId === parentRoute.id &&
-        this.props.indexRouteSelected;
+        selectedRouteId === parentRoute.id &&
+        indexRouteSelected;
       
       if (routeCards) {
         routeCards = routeCards.unshift(
@@ -330,14 +476,16 @@ class StructureRoute extends PureComponent {
     }
     
     const needButton = parentRoute === null || (
-      !this.props.indexRouteSelected &&
-      this.props.selectedRouteId !== -1 &&
-      parentRoute.id === this.props.selectedRouteId
+      !indexRouteSelected &&
+      selectedRouteId !== -1 &&
+      parentRoute.id === selectedRouteId
     );
   
     let button = null;
     if (needButton) {
-      const text = getLocalizedText(parentRoute ? 'newRoute' : 'newRootRoute');
+      const text = getLocalizedText(
+        parentRoute ? 'structure.newRoute' : 'structure.newRootRoute',
+      );
 
       button = (
         <RouteNewButton
@@ -365,20 +513,17 @@ class StructureRoute extends PureComponent {
    * @private
    */
   _renderRouteCard(routes, routeId) {
+    const { selectedRouteId, indexRouteSelected } = this.props;
+    
     const route = routes.get(routeId);
-
-    const isSelected =
-      this.props.selectedRouteId === route.id &&
-      !this.props.indexRouteSelected;
+    const isSelected = selectedRouteId === route.id && !indexRouteSelected;
+    const willRenderChildren = route.children.size > 0 || route.haveIndex;
     
     let children = null;
-    if (route.children.size > 0 || route.haveIndex) {
+    if (willRenderChildren)
       children = this._renderRouteList(routes, route, route.children);
-    } else {
-      children = isSelected
-        ? this._renderRouteList(routes, route, null)
-        : null;
-    }
+    else
+      children = isSelected ? this._renderRouteList(routes, route, null) : null;
 
     //noinspection JSValidateTypes
     return (
@@ -393,79 +538,22 @@ class StructureRoute extends PureComponent {
       </RouteCard>
     );
   }
-  
-  _getTools() {
-    // TODO: Memoize
-    
-    const { getLocalizedText } = this.props;
-    
-    const selectedRoute = this.props.selectedRouteId !== -1
-      ? this.props.project.routes.get(this.props.selectedRouteId)
-      : null;
-    
-    const routeEditorToolMainButtons = selectedRoute
-      ? List([
-        new ButtonRecord({
-          text: getLocalizedText('common.edit'),
-          onPress: this._handleSelectedRouteGo,
-        }),
-      ])
-      : List();
-  
-    const routeEditorToolSecondaryButtons = selectedRoute
-      ? List([
-        new ButtonRecord({
-          icon: 'trash-o',
-          onPress: this._handleDeleteRoutePress,
-        }),
-      ])
-      : List();
-  
-    const routeEditorToolSections = List([
-      new ToolSectionRecord({
-        component: RouteEditor,
-      }),
-    ]);
-  
-    let title;
-    if (selectedRoute) {
-      title = this.props.indexRouteSelected
-        ? `${selectedRoute.title || selectedRoute.path} - Index`
-        : selectedRoute.title;
-    } else {
-      title = getLocalizedText('routeEditorTitle');
-    }
-  
-    const titleEditable = !!selectedRoute && !this.props.indexRouteSelected;
-  
-    return List([
-      List([
-        new ToolRecord({
-          id: TOOL_ID_ROUTE_EDITOR,
-          icon: 'random',
-          name: getLocalizedText('routeEditorTitle'),
-          title,
-          titleEditable,
-          titlePlaceholder: getLocalizedText('routeTitle'),
-          subtitle: selectedRoute ? selectedRoute.path : '',
-          sections: routeEditorToolSections,
-          mainButtons: routeEditorToolMainButtons,
-          secondaryButtons: routeEditorToolSecondaryButtons,
-          windowMinWidth: 360,
-        }),
-      ]),
-    ]);
-  }
 
   render() {
-    const { getLocalizedText } = this.props;
-  
-    const toolGroups = this._getTools();
-  
+    const { project, getLocalizedText } = this.props;
+    const {
+      createRouteParentId,
+      newRouteTitle,
+      newRoutePath,
+      confirmDeleteDialogIsVisible,
+      createRouteDialogIsVisible,
+      pathPatternError,
+    } = this.state;
+    
     const routesList = this._renderRouteList(
-      this.props.project.routes,
+      project.routes,
       null,
-      this.props.project.rootRoutes,
+      project.rootRoutes,
     );
 
     const deleteRouteDialogButtons = [{
@@ -475,10 +563,17 @@ class StructureRoute extends PureComponent {
       text: getLocalizedText('common.cancel'),
       onPress: this._handleDeleteRouteCancel,
     }];
-
+  
+    const creatingRootRoute = createRouteParentId === -1;
+    const routeAlreadyExists = this._isRouteAlreadyExist();
+    const isCreateButtonDisabled =
+      !newRouteTitle ||
+      routeAlreadyExists ||
+      (!creatingRootRoute && !newRoutePath);
+    
     const createRouteDialogButtons = [{
       text: getLocalizedText('common.create'),
-      disabled: !this.state.newRouteTitle,
+      disabled: isCreateButtonDisabled,
       onPress: this._handleCreateRouteCreate,
     }, {
       text: getLocalizedText('common.cancel'),
@@ -486,14 +581,34 @@ class StructureRoute extends PureComponent {
     }];
 
     const createRouteDialogTitle = getLocalizedText(
-      this.state.createRouteParentId > -1
-        ? 'createNewRoute'
-        : 'createNewRootRoute',
+      creatingRootRoute
+        ? 'structure.createNewRootRoute'
+        : 'structure.createNewRoute',
     );
+    
+    const pathInputStyle = (routeAlreadyExists || pathPatternError)
+      ? 'error'
+      : 'neutral';
+    
+    let pathInputMessage = '';
+    if (pathPatternError) {
+      pathInputMessage = getLocalizedText('structure.pathErrorMessage');
+    } else if (routeAlreadyExists) {
+      const actualPath = creatingRootRoute
+        ? `/${newRoutePath}`
+        : newRoutePath;
+      
+      pathInputMessage = getLocalizedText(
+        'structure.routeAlreadyExistsMessage',
+        { path: actualPath },
+      );
+    }
+    
+    const pathInputPrefix = creatingRootRoute ? '/' : '';
 
     return (
       <Desktop
-        toolGroups={toolGroups}
+        toolGroups={this._toolGroups}
         onToolTitleChange={this._handleToolTitleChange}
       >
         <Panel headerFixed maxHeight="initial" spread>
@@ -511,17 +626,17 @@ class StructureRoute extends PureComponent {
         </Panel>
 
         <Dialog
-          title={getLocalizedText('deleteRouteQuestion')}
+          title={getLocalizedText('structure.deleteRouteQuestion')}
           buttons={deleteRouteDialogButtons}
           backdrop
           minWidth={400}
-          visible={this.state.confirmDeleteDialogIsVisible}
+          visible={confirmDeleteDialogIsVisible}
           closeOnEscape
           closeOnBackdropClick
           onEnterKeyPress={this._handleDeleteRouteConfirm}
           onClose={this._handleDeleteRouteDialogClose}
         >
-          {getLocalizedText('allChildRoutesWillBeDeletedTooStatement')}
+          {getLocalizedText('structure.deleteRouteConfirmationMessage')}
         </Dialog>
 
         <Dialog
@@ -529,7 +644,7 @@ class StructureRoute extends PureComponent {
           buttons={createRouteDialogButtons}
           backdrop
           minWidth={400}
-          visible={this.state.createRouteDialogIsVisible}
+          visible={createRouteDialogIsVisible}
           closeOnEscape
           closeOnBackdropClick
           onEnterKeyPress={this._handleCreateRouteDialogEnterKey}
@@ -539,16 +654,22 @@ class StructureRoute extends PureComponent {
             <FormItem>
               <Input
                 ref={this._saveNewRouteTitleInputRef}
-                label={getLocalizedText('title')}
-                value={this.state.newRouteTitle}
+                label={getLocalizedText('structure.title')}
+                value={newRouteTitle}
                 onChange={this._handleNewRouteTitleChange}
               />
             </FormItem>
             <FormItem>
               <Input
-                label={getLocalizedText('path')}
-                value={this.state.newRoutePath}
+                label={getLocalizedText('structure.path')}
+                value={newRoutePath}
+                pattern={ROUTE_PATH_PATTERN}
+                prefix={pathInputPrefix}
+                styleMode={pathInputStyle}
+                message={pathInputMessage}
                 onChange={this._handleNewRoutePathChange}
+                onPatternError={this._handlePathInputPatternError}
+                onBlur={this._handlePathInputBlur}
               />
             </FormItem>
           </Form>
@@ -593,8 +714,8 @@ const mapStateToProps = ({ project, app }) => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onSelectRoute: (route, indexRouteSelected) =>
-    void dispatch(selectRoute(route ? route.id : -1, indexRouteSelected)),
+  onSelectRoute: (routeId, indexRouteSelected) =>
+    void dispatch(selectRoute(routeId, indexRouteSelected)),
   onCreateRoute: (parentRouteId, path, title) =>
     void dispatch(createRoute(parentRouteId, path, title)),
   onDeleteRoute: routeId =>

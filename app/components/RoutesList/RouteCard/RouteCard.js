@@ -53,14 +53,14 @@ export class RouteCard extends PureComponent {
   
   _handleDoubleClick() {
     this.props.onGo({
-      route: this.props.route,
+      routeId: this.props.route.id,
       isIndexRoute: false,
     });
   }
   
   _handleCardClick() {
     this.props.onFocus({
-      route: this.props.route,
+      routeId: this.props.route.id,
       isIndexRoute: false,
     });
   }
@@ -70,11 +70,7 @@ export class RouteCard extends PureComponent {
   }
 
   render() {
-    const {
-      route,
-      focused,
-      children,
-    } = this.props;
+    const { route, focused, children } = this.props;
     
     let className = 'route-card-wrapper';
     if (route.haveRedirect) className += ' has-redirect';

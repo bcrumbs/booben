@@ -52,14 +52,14 @@ export class IndexRouteCard extends PureComponent {
   
   _handleDoubleClick() {
     this.props.onGo({
-      route: this.props.route,
+      routeId: this.props.route.id,
       isIndexRoute: true,
     });
   }
   
   _handleCardClick() {
     this.props.onFocus({
-      route: this.props.route,
+      routeId: this.props.route.id,
       isIndexRoute: true,
     });
   }
