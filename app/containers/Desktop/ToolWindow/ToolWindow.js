@@ -93,7 +93,6 @@ export class ToolWindow extends PureComponent {
 
     this.state = {
       dragging: false,
-      actionsAreaHasBorder: false,
     };
 
     this._handleStartDrag = this._handleStartDrag.bind(this);
@@ -105,9 +104,8 @@ export class ToolWindow extends PureComponent {
   }
 
   componentDidMount() {
-    /* eslint-disable react/no-find-dom-node */
+    // eslint-disable-next-line react/no-find-dom-node
     this.domNode = ReactDOM.findDOMNode(this);
-    /* eslint-enable react/no-find-dom-node */
     
     this.currentTranslateX = 0;
     this.currentTranslateY = 0;
@@ -121,12 +119,6 @@ export class ToolWindow extends PureComponent {
     this.inStickRegionTop = false;
     this.inStickRegionBottom = false;
     this.animationFrame = null;
-
-    this._updateActionsAreaBorder();
-  }
-
-  componentDidUpdate() {
-    this._updateActionsAreaBorder();
   }
   
   componentWillUnmount() {
@@ -153,30 +145,6 @@ export class ToolWindow extends PureComponent {
     }
 
     this._updateStickRegion();
-  }
-
-  _updateActionsAreaBorder() {
-    const haveActionsArea =
-      this.props.tool.mainButtons.size > 0 ||
-      this.props.tool.secondaryButtons.size > 0;
-
-    let needBorder = false;
-
-    if (haveActionsArea) {
-      // Ugly hack
-      const actionsAreaEl =
-        this.domNode.querySelector('.block-content-actions-area');
-
-      if (actionsAreaEl) {
-        const contentAreaEl = actionsAreaEl.previousElementSibling;
-
-        if (contentAreaEl)
-          needBorder = contentAreaEl.scrollHeight > contentAreaEl.clientHeight;
-      }
-    }
-
-    if (this.state.actionsAreaHasBorder !== needBorder)
-      this.setState({ actionsAreaHasBorder: needBorder });
   }
 
   _updateStickRegion() {
@@ -351,7 +319,7 @@ export class ToolWindow extends PureComponent {
       }
 
       actionsArea = (
-        <BlockContentActions isBordered={this.state.actionsAreaHasBorder}>
+        <BlockContentActions>
           {secondaryButtonsRegion}
           {mainActionsRegion}
         </BlockContentActions>
