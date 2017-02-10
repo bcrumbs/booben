@@ -640,7 +640,7 @@ ComponentsTreeViewComponent.propTypes = {
   draggedComponents: ImmutablePropTypes.mapOf(
     PropTypes.instanceOf(ProjectComponentRecord),
     PropTypes.number,
-  ).isRequired,
+  ),
   draggingOverComponentId: PropTypes.number.isRequired,
   draggingOverPlaceholder: PropTypes.bool.isRequired,
   placeholderContainerId: PropTypes.number.isRequired,
@@ -662,6 +662,7 @@ ComponentsTreeViewComponent.propTypes = {
 ComponentsTreeViewComponent.defaultProps = {
   timeToExpand: 1000,
   borderPixels: 4,
+  draggedComponents: null,
 };
 
 ComponentsTreeViewComponent.displayName = 'ComponentsTreeView';
