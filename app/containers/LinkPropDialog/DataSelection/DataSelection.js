@@ -152,22 +152,23 @@ export class DataSelection extends PureComponent {
   
   /**
    *
+   * @param {string[]} path
+   * @param {Immutable.Map<string, Immutable.Map<string, Object>>} argValues
    * @return {boolean}
    * @private
    */
-  _haveUndefinedRequiredArgs(path) {
+  _haveUndefinedRequiredArgs(path, argValues) {
     const { schema, rootTypeName } = this.props;
-    const { currentArgValues } = this.state;
     
     const fields = getFieldsByPath(schema, path, rootTypeName);
     
     return fields.some((field, idx) => {
       const args = field.args;
       const valuesKey = path.slice(0, idx + 1).join(' ');
-      const values = currentArgValues.get(valuesKey);
+      const values = argValues.get(valuesKey);
       
       return objectSome(args, (arg, argName) =>
-      arg.nonNull && (!values || !values.get(argName)));
+        arg.nonNull && (!values || !values.get(argName)));
     });
   }
   
@@ -204,14 +205,14 @@ export class DataSelection extends PureComponent {
     });
   }
   
-  _apply(finalFieldName) {
+  _apply(finalFieldName, argValues) {
     const { dataContext, onSelect } = this.props;
-    const { currentPath, currentArgValues } = this.state;
+    const { currentPath } = this.state;
     
     onSelect({
       dataContext,
       path: [...currentPath, finalFieldName],
-      args: currentArgValues,
+      args: argValues,
     });
   }
   
@@ -223,16 +224,10 @@ export class DataSelection extends PureComponent {
     const { currentPath, finalFieldName, tmpArgValues } = this.state;
     const fullPath = [...currentPath, finalFieldName];
     
-    if (this._haveUndefinedRequiredArgs(fullPath)) {
+    if (this._haveUndefinedRequiredArgs(fullPath, tmpArgValues)) {
       // TODO: Scroll to the first invalid field and show red messages
     } else {
-      this.setState({
-        view: Views.FIELDS_LIST,
-        currentArgValues: tmpArgValues,
-        finalFieldName: '',
-      });
-      
-      this._apply(finalFieldName);
+      this._apply(finalFieldName, tmpArgValues);
     }
   }
   
@@ -371,13 +366,13 @@ export class DataSelection extends PureComponent {
   }
   
   _handleApplyLink({ fieldName }) {
-    const { currentPath } = this.state;
+    const { currentPath, currentArgValues } = this.state;
     const fullPath = [...currentPath, fieldName];
     
-    if (this._haveUndefinedRequiredArgs(fullPath))
+    if (this._haveUndefinedRequiredArgs(fullPath, currentArgValues))
       this._switchToFullArgumentsForm(fieldName);
     else
-      this._apply(fieldName);
+      this._apply(fieldName, currentArgValues);
   }
   
   _renderFieldSelection() {
