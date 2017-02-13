@@ -41,7 +41,7 @@ import {
 } from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
 
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
-import { LinkPropDialog } from '../containers/LinkPropDialog/LinkPropDialog';
+import { LinkPropWindow } from '../containers/LinkPropWindow/LinkPropWindow';
 
 import {
   ComponentLayoutSelection,
@@ -65,6 +65,7 @@ import {
   selectLayoutForNewComponent,
   saveComponentForProp,
   cancelConstructComponentForProp,
+  linkPropCancel,
 } from '../actions/project';
 
 import {
@@ -91,15 +92,15 @@ export const TOOL_ID_LIBRARY = 'componentsLibrary';
 export const TOOL_ID_COMPONENTS_TREE = 'componentsTree';
 export const TOOL_ID_PROPS_EDITOR = 'componentPropsEditor';
 
-const LIBRARY_ICON = 'cubes';
-const COMPONENTS_TREE_ICON = 'sitemap';
-const PROPS_EDITOR_ICON = 'sliders';
-
 export const DESIGN_TOOL_IDS = List([
   TOOL_ID_LIBRARY,
   TOOL_ID_COMPONENTS_TREE,
   TOOL_ID_PROPS_EDITOR,
 ]);
+
+const LIBRARY_ICON = 'cubes';
+const COMPONENTS_TREE_ICON = 'sitemap';
+const PROPS_EDITOR_ICON = 'sliders';
 
 const containerStyleSelector = createSelector(
   state => state.project.meta,
@@ -181,6 +182,116 @@ class DesignRoute extends PureComponent {
     this._handleLayoutSelection =
       this._handleLayoutSelection.bind(this);
   }
+  
+  _getLibraryTool() {
+    const { getLocalizedText } = this.props;
+    
+    return new ToolRecord({
+      id: TOOL_ID_LIBRARY,
+      icon: LIBRARY_ICON,
+      name: getLocalizedText('componentsLibrary'),
+      title: getLocalizedText('componentsLibrary'),
+      sections: List([
+        new ToolSectionRecord({
+          name: '',
+          component: ComponentsLibrary,
+        }),
+      ]),
+      windowMinWidth: 360,
+    });
+  }
+  
+  _getTreeTool() {
+    const { getLocalizedText } = this.props;
+    
+    return new ToolRecord({
+      id: TOOL_ID_COMPONENTS_TREE,
+      icon: COMPONENTS_TREE_ICON,
+      name: getLocalizedText('elementsTree'),
+      title: getLocalizedText('elementsTree'),
+      sections: List([
+        new ToolSectionRecord({
+          name: '',
+          component: ComponentsTreeView,
+        }),
+      ]),
+    });
+  }
+  
+  _getPropsEditorTool() {
+    const {
+      meta,
+      components,
+      singleComponentSelected,
+      firstSelectedComponentId,
+      getLocalizedText,
+    } = this.props;
+    
+    const propsEditorSection = new ToolSectionRecord({
+      name: 'General',
+      component: ComponentPropsEditor,
+    });
+  
+    let title = '';
+    let subtitle = '';
+    let mainButtons = List();
+    let sections = List([propsEditorSection]);
+  
+    if (singleComponentSelected) {
+      const selectedComponent = components.get(firstSelectedComponentId);
+      const parentComponent = selectedComponent.parentId > -1
+        ? components.get(selectedComponent.parentId)
+        : null;
+    
+      const isRegion = parentComponent
+        ? isCompositeComponent(parentComponent.name, meta)
+        : false;
+    
+      title = selectedComponent.title;
+      subtitle = selectedComponent.name;
+    
+      if (!isRegion) {
+        if (!selectedComponent.isWrapper) {
+          mainButtons = mainButtons.push(
+            new ButtonRecord({
+              text: getLocalizedText('common.delete'),
+              onPress: this._handleDeleteComponentButtonPress,
+            }),
+          );
+        }
+      
+        if (isCompositeComponent(selectedComponent.name, meta)) {
+          sections = sections.push(
+            new ToolSectionRecord({
+              name: 'Regions',
+              component: ComponentRegionsEditor,
+            }),
+          );
+        }
+      }
+    } else {
+      title = getLocalizedText('componentConfiguration');
+    }
+    
+    return new ToolRecord({
+      id: TOOL_ID_PROPS_EDITOR,
+      icon: PROPS_EDITOR_ICON,
+      name: getLocalizedText('componentConfiguration'),
+      title,
+      titleEditable: singleComponentSelected,
+      titlePlaceholder: getLocalizedText('enterTitle'),
+      subtitle,
+      mainButtons,
+      sections,
+    });
+  }
+  
+  _getTools() {
+    const libraryTool = this._getLibraryTool();
+    const treeTool = this._getTreeTool();
+    const propsEditorTool = this._getPropsEditorTool();
+    return List([List([libraryTool, treeTool, propsEditorTool])]);
+  }
 
   /**
    *
@@ -251,26 +362,25 @@ class DesignRoute extends PureComponent {
    * @private
    */
   _renderLayoutSelectionDialogContent() {
-    if (!this.props.selectingComponentLayout) return null;
+    const {
+      meta,
+      language,
+      selectingComponentLayout,
+      draggedComponents,
+    } = this.props;
+    
+    if (!selectingComponentLayout) return null;
   
-    const draggedComponent = this.props.draggedComponents.get(0);
-  
-    const draggedComponentMeta =
-      getComponentMeta(draggedComponent.name, this.props.meta);
+    const draggedComponent = draggedComponents.get(0);
+    const draggedComponentMeta = getComponentMeta(draggedComponent.name, meta);
   
     const items = draggedComponentMeta.layouts.map((layout, idx) => {
       const icon = layout.icon || defaultComponentLayoutIcon;
-    
-      const title = getString(
-        draggedComponentMeta,
-        layout.textKey,
-        this.props.language,
-      );
-    
+      const title = getString(draggedComponentMeta, layout.textKey, language);
       const subtitle = getString(
         draggedComponentMeta,
         layout.descriptionTextKey,
-        this.props.language,
+        language,
       );
     
       return (
@@ -291,130 +401,42 @@ class DesignRoute extends PureComponent {
       </ComponentLayoutSelection>
     );
   }
-
-  render() {
-    const { getLocalizedText } = this.props,
-      src = `${URL_PREVIEW_PREFIX}/${this.props.params.projectName}/index.html`;
-
-    const libraryTool = new ToolRecord({
-      id: TOOL_ID_LIBRARY,
-      icon: LIBRARY_ICON,
-      name: getLocalizedText('componentsLibrary'),
-      title: getLocalizedText('componentsLibrary'),
-      sections: List([
-        new ToolSectionRecord({
-          name: '',
-          component: ComponentsLibrary,
-        }),
-      ]),
-      windowMinWidth: 360,
-    });
-
-    const treeTool = new ToolRecord({
-      id: TOOL_ID_COMPONENTS_TREE,
-      icon: COMPONENTS_TREE_ICON,
-      name: getLocalizedText('elementsTree'),
-      title: getLocalizedText('elementsTree'),
-      sections: List([
-        new ToolSectionRecord({
-          name: '',
-          component: ComponentsTreeView,
-        }),
-      ]),
-    });
-
-    const propsEditorSection = new ToolSectionRecord({
-      name: 'General',
-      component: ComponentPropsEditor,
-    });
-
-    let title = '',
-      subtitle = '',
-      mainButtons = List(),
-      sections = List([propsEditorSection]);
-
-    if (this.props.singleComponentSelected) {
-      const selectedComponent = this.props.components.get(
-        this.props.firstSelectedComponentId,
-      );
-
-      const parentComponent = selectedComponent.parentId > -1
-        ? this.props.components.get(selectedComponent.parentId)
-        : null;
-
-      const isRegion = parentComponent
-        ? isCompositeComponent(parentComponent.name, this.props.meta)
-        : false;
-
-      title = selectedComponent.title;
-      subtitle = selectedComponent.name;
-
-      if (!isRegion) {
-        if (!selectedComponent.isWrapper) {
-          mainButtons = mainButtons.push(
-            new ButtonRecord({
-              text: getLocalizedText('common.delete'),
-              onPress: this._handleDeleteComponentButtonPress,
-            }),
-          );
-        }
-
-        if (isCompositeComponent(selectedComponent.name, this.props.meta)) {
-          sections = sections.push(
-            new ToolSectionRecord({
-              name: 'Regions',
-              component: ComponentRegionsEditor,
-            }),
-          );
-        }
-      }
-    } else {
-      title = getLocalizedText('componentConfiguration');
-    }
-
-    const propsEditorTool = new ToolRecord({
-      id: TOOL_ID_PROPS_EDITOR,
-      icon: PROPS_EDITOR_ICON,
-      name: getLocalizedText('componentConfiguration'),
-      title,
-      titleEditable: this.props.singleComponentSelected,
-      titlePlaceholder: getLocalizedText('enterTitle'),
-      subtitle,
-      mainButtons,
-      sections,
-    });
-
-    const toolGroups = List([List([libraryTool, treeTool, propsEditorTool])]);
-
-    const layoutSelectionDialogContent =
-      this._renderLayoutSelectionDialogContent();
-
-    const confirmDeleteDialogButtons = [{
-      text: getLocalizedText('common.delete'),
-      onPress: this._handleDeleteComponentConfirm,
-    }, {
-      text: getLocalizedText('common.cancel'),
-      onPress: this._handleDeleteComponentCancel,
-    }];
-
+  
+  /**
+   *
+   * @return {ReactElement}
+   * @private
+   */
+  _renderContent() {
+    const {
+      params,
+      previewContainerStyle,
+      nestedConstructorBreadcrumbs,
+      haveNestedConstructor,
+      getLocalizedText,
+      onCancelConstructComponentForProp,
+      onSaveComponentForProp,
+    } = this.props;
+  
+    const src = `${URL_PREVIEW_PREFIX}/${params.projectName}/index.html`;
+  
     const previewIFrame = (
       <PreviewIFrame
         interactive
         store={store}
         url={src}
-        containerStyle={this.props.previewContainerStyle}
+        containerStyle={previewContainerStyle}
       />
     );
-
+    
     // TODO: Prevent re-creation of PreviewIFrame on haveNestedConstructor change
-    let content;
-    if (this.props.haveNestedConstructor) {
-      // Render additional UI for nested constructor
-      const breadcrumbsItems = this.props.nestedConstructorBreadcrumbs
+    if (haveNestedConstructor) {
+      const breadcrumbsItems = nestedConstructorBreadcrumbs
         .toArray()
         .map(item => ({ title: item }));
-
-      content = (
+    
+      //noinspection JSValidateTypes
+      return (
         <Panel headerFixed maxHeight="initial">
           <Header>
             <HeaderRegion spread alignY="center">
@@ -430,17 +452,17 @@ class DesignRoute extends PureComponent {
               <Button
                 text={getLocalizedText('common.cancel')}
                 light
-                onPress={this.props.onCancelConstructComponentForProp}
+                onPress={onCancelConstructComponentForProp}
               />
-
+            
               <Button
                 text={getLocalizedText('common.ok')}
                 light
-                onPress={this.props.onSaveComponentForProp}
+                onPress={onSaveComponentForProp}
               />
             </HeaderRegion>
           </Header>
-
+        
           <PanelContent>
             <ConstructionPane>
               {previewIFrame}
@@ -449,9 +471,34 @@ class DesignRoute extends PureComponent {
         </Panel>
       );
     } else {
-      // Render main constructor only
-      content = previewIFrame;
+      //noinspection JSValidateTypes
+      return previewIFrame;
     }
+  }
+
+  render() {
+    const {
+      linkingProp,
+      selectingComponentLayout,
+      getLocalizedText,
+      onLinkPropCancel,
+    } = this.props;
+    
+    const { confirmDeleteComponentDialogIsVisible } = this.state;
+
+    const layoutSelectionDialogContent =
+      this._renderLayoutSelectionDialogContent();
+
+    const confirmDeleteDialogButtons = [{
+      text: getLocalizedText('common.delete'),
+      onPress: this._handleDeleteComponentConfirm,
+    }, {
+      text: getLocalizedText('common.cancel'),
+      onPress: this._handleDeleteComponentCancel,
+    }];
+  
+    const toolGroups = this._getTools();
+    const content = this._renderContent();
 
     return (
       <Desktop
@@ -464,7 +511,7 @@ class DesignRoute extends PureComponent {
           title={getLocalizedText('selectLayout')}
           backdrop
           minWidth={400}
-          visible={this.props.selectingComponentLayout}
+          visible={selectingComponentLayout}
         >
           {layoutSelectionDialogContent}
         </Dialog>
@@ -474,7 +521,7 @@ class DesignRoute extends PureComponent {
           backdrop
           minWidth={400}
           buttons={confirmDeleteDialogButtons}
-          visible={this.state.confirmDeleteComponentDialogIsVisible}
+          visible={confirmDeleteComponentDialogIsVisible}
           closeOnEscape
           closeOnBackdropClick
           onClose={this._handleConfirmDeleteComponentDialogClose}
@@ -482,8 +529,18 @@ class DesignRoute extends PureComponent {
         >
           {getLocalizedText('deleteThisComponentQuestion')}
         </Dialog>
-  
-        <LinkPropDialog />
+        
+        <Dialog
+          title="Link attribute value"
+          backdrop
+          minWidth={420}
+          paddingSize="none"
+          visible={linkingProp}
+          haveCloseButton
+          onClose={onLinkPropCancel}
+        >
+          <LinkPropWindow />
+        </Dialog>
       </Desktop>
     );
   }
@@ -509,12 +566,14 @@ DesignRoute.propTypes = {
   language: PropTypes.string,
   haveNestedConstructor: PropTypes.bool,
   nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(PropTypes.string),
+  linkingProp: PropTypes.bool,
   getLocalizedText: PropTypes.func,
   onRenameComponent: PropTypes.func,
   onDeleteComponent: PropTypes.func,
   onSelectLayout: PropTypes.func,
   onSaveComponentForProp: PropTypes.func,
   onCancelConstructComponentForProp: PropTypes.func,
+  onLinkPropCancel: PropTypes.func,
 };
 
 const mapStateToProps = state => ({
@@ -528,6 +587,7 @@ const mapStateToProps = state => ({
   language: state.project.languageForComponentProps,
   haveNestedConstructor: haveNestedConstructorsSelector(state),
   nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
+  linkingProp: state.project.linkingProp,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -542,6 +602,8 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(saveComponentForProp()),
   onCancelConstructComponentForProp: () =>
     void dispatch(cancelConstructComponentForProp()),
+  onLinkPropCancel: () =>
+    void dispatch(linkPropCancel()),
 });
 
 export default connect(

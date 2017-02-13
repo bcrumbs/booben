@@ -9,7 +9,6 @@ import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { Map } from 'immutable';
-import { Dialog } from '@reactackle/reactackle';
 import { getNestedTypedef } from '@jssy/types';
 
 import {
@@ -26,7 +25,6 @@ import { DataWindow } from '../../components/DataWindow/DataWindow';
 
 import {
   currentComponentsSelector,
-  singleComponentSelectedSelector,
   topNestedConstructorSelector,
   topNestedConstructorComponentSelector,
   availableDataContextsSelector,
@@ -36,7 +34,6 @@ import {
   linkWithOwnerProp,
   linkWithData,
   linkWithFunction,
-  linkPropCancel,
   createFunction,
 } from '../../actions/project';
 
@@ -50,7 +47,7 @@ import {
 import { getComponentMeta, isValidSourceForProp } from '../../utils/meta';
 import { getLocalizedTextFromState } from '../../utils';
 
-class LinkPropDialogComponent extends PureComponent {
+class LinkPropWindowComponent extends PureComponent {
   constructor(props) {
     super(props);
     
@@ -65,7 +62,6 @@ class LinkPropDialogComponent extends PureComponent {
     this._handleLinkWithData = this._handleLinkWithData.bind(this);
     this._handleLinkWithFunction = this._handleLinkWithFunction.bind(this);
     this._handleCreateFunction = this._handleCreateFunction.bind(this);
-    this._handleDialogClose = this._handleDialogClose.bind(this);
   }
   
   /**
@@ -99,13 +95,6 @@ class LinkPropDialogComponent extends PureComponent {
       linkTargetComponentMeta,
       linkTargetPropTypedef,
     };
-  }
-  
-  _initState() {
-    this.setState({
-      selectedSourceId: '',
-      selectedSourceData: null,
-    });
   }
   
   /**
@@ -171,7 +160,10 @@ class LinkPropDialogComponent extends PureComponent {
    * @private
    */
   _handleReturn() {
-    this._initState();
+    this.setState({
+      selectedSourceId: '',
+      selectedSourceData: null,
+    });
   }
   
   /**
@@ -180,7 +172,6 @@ class LinkPropDialogComponent extends PureComponent {
    * @private
    */
   _handleLinkWithOwnerProp({ propName }) {
-    this._initState();
     this.props.onLinkWithOwnerProp({ propName });
   }
   
@@ -192,7 +183,6 @@ class LinkPropDialogComponent extends PureComponent {
    * @private
    */
   _handleLinkWithData({ dataContext, path, args }) {
-    this._initState();
     this.props.onLinkWithData({ dataContext, path, args });
   }
   
@@ -204,7 +194,6 @@ class LinkPropDialogComponent extends PureComponent {
    * @private
    */
   _handleLinkWithFunction({ source, name, argValues }) {
-    this._initState();
     this.props.onLinkWithFunction({ source, name, argValues });
   }
   
@@ -227,15 +216,6 @@ class LinkPropDialogComponent extends PureComponent {
       returnType,
       code,
     });
-  }
-  
-  /**
-   *
-   * @private
-   */
-  _handleDialogClose() {
-    this._initState();
-    this.props.onLinkPropCancel();
   }
   
   /**
@@ -343,49 +323,36 @@ class LinkPropDialogComponent extends PureComponent {
   }
   
   render() {
-    const { schema, singleComponentSelected, linkingProp } = this.props;
+    const { schema } = this.props;
     const { selectedSourceId, selectedSourceData } = this.state;
     
-    const visible = singleComponentSelected && linkingProp;
     let content = null;
-
-    if (visible) {
-      if (!selectedSourceId) {
-        content = this._renderSourceSelection();
-      } else if (selectedSourceId === 'owner') {
-        content = this._renderOwnerPropSelection();
-      } else if (selectedSourceId === 'query') {
-        content = this._renderDataSelection([], schema.queryTypeName);
-      } else if (selectedSourceId === 'function') {
-        content = this._renderFunctionSelection();
-      } else if (selectedSourceId.startsWith('context')) {
-        content = this._renderDataSelection(
-          selectedSourceData.dataContext,
-          selectedSourceData.rootTypeName,
-        );
-      }
+    
+    if (!selectedSourceId) {
+      content = this._renderSourceSelection();
+    } else if (selectedSourceId === 'owner') {
+      content = this._renderOwnerPropSelection();
+    } else if (selectedSourceId === 'query') {
+      content = this._renderDataSelection([], schema.queryTypeName);
+    } else if (selectedSourceId === 'function') {
+      content = this._renderFunctionSelection();
+    } else if (selectedSourceId.startsWith('context')) {
+      content = this._renderDataSelection(
+        selectedSourceData.dataContext,
+        selectedSourceData.rootTypeName,
+      );
     }
     
     return (
-      <Dialog
-        title="Link attribute value"
-        backdrop
-        minWidth={420}
-        paddingSize="none"
-        visible={visible}
-        haveCloseButton
-        onClose={this._handleDialogClose}
-      >
-        <DataWindow>
-          {content}
-        </DataWindow>
-      </Dialog>
+      <DataWindow>
+        {content}
+      </DataWindow>
     );
   }
 }
 
 //noinspection JSUnresolvedVariable
-LinkPropDialogComponent.propTypes = {
+LinkPropWindowComponent.propTypes = {
   components: ImmutablePropTypes.mapOf(
     PropTypes.instanceOf(ProjectComponentRecord),
     PropTypes.number,
@@ -394,8 +361,6 @@ LinkPropDialogComponent.propTypes = {
   schema: PropTypes.object.isRequired,
   projectFunctions: ImmutablePropTypes.map.isRequired,
   builtinFunctions: ImmutablePropTypes.map.isRequired,
-  singleComponentSelected: PropTypes.bool.isRequired,
-  linkingProp: PropTypes.bool.isRequired,
   linkingPropOfComponentId: PropTypes.number.isRequired,
   linkingPropName: PropTypes.string.isRequired,
   linkingPropPath: PropTypes.arrayOf(
@@ -415,19 +380,18 @@ LinkPropDialogComponent.propTypes = {
   getCurrentQueryArgs: PropTypes.func.isRequired,
   language: PropTypes.string.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
-  onLinkPropCancel: PropTypes.func.isRequired,
   onLinkWithOwnerProp: PropTypes.func.isRequired,
   onLinkWithData: PropTypes.func.isRequired,
   onLinkWithFunction: PropTypes.func.isRequired,
   onCreateFunction: PropTypes.func.isRequired,
 };
 
-LinkPropDialogComponent.defaultProps = {
+LinkPropWindowComponent.defaultProps = {
   topNestedConstructor: null,
   topNestedConstructorComponent: null,
 };
 
-LinkPropDialogComponent.displayName = 'LinkPropDialog';
+LinkPropWindowComponent.displayName = 'LinkPropDialog';
 
 const mapStateToProps = state => ({
   components: currentComponentsSelector(state),
@@ -435,8 +399,6 @@ const mapStateToProps = state => ({
   schema: state.project.schema,
   projectFunctions: state.project.data.functions,
   builtinFunctions: Map(), // TODO: Pass built-in functions here
-  singleComponentSelected: singleComponentSelectedSelector(state),
-  linkingProp: state.project.linkingProp,
   linkingPropOfComponentId: state.project.linkingPropOfComponentId,
   linkingPropName: state.project.linkingPropName,
   linkingPropPath: state.project.linkingPropPath,
@@ -449,8 +411,6 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onLinkPropCancel: () =>
-    void dispatch(linkPropCancel()),
   onLinkWithOwnerProp: ({ propName }) =>
     void dispatch(linkWithOwnerProp(propName)),
   onLinkWithData: ({ dataContext, path, args }) =>
@@ -468,7 +428,7 @@ const mapDispatchToProps = dispatch => ({
     )),
 });
 
-export const LinkPropDialog = connect(
+export const LinkPropWindow = connect(
   mapStateToProps,
   mapDispatchToProps,
-)(LinkPropDialogComponent);
+)(LinkPropWindowComponent);
