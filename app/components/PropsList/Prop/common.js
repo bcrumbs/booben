@@ -8,7 +8,7 @@
 import { PropTypes } from 'react';
 import _mapValues from 'lodash.mapvalues';
 import { resolveTypedef } from '@jssy/types';
-import { returnArg } from '../../../utils/misc';
+import { returnArg, returnNull } from '../../../utils/misc';
 
 /**
  * @typedef {Object} PropsItemPropTypeOption
@@ -21,7 +21,7 @@ import { returnArg } from '../../../utils/misc';
  * @typedef {Object} PropsItemPropType
  * @property {string} label
  * @property {string} secondaryLabel
- * @property {string} view
+ * @property {number} view
  * @property {string} image
  * @property {string} tooltip
  * @property {boolean} linkable
@@ -147,19 +147,13 @@ export const isComplexView = view => complexViews.has(view);
 
 /**
  *
- * @param {Object} propValue
- * @return {boolean}
+ * @type {string}
  */
-const isLinkedProp = propValue =>
-  propValue.source === 'data' ||
-  propValue.source === 'function' || (
-    propValue.source === 'static' &&
-    !!propValue.sourceData.ownerPropName
-  );
+const LINK_TEXT_ITEMS_SEPARATOR = ' -> ';
 
 /**
  *
- * @param {Object} propValue
+ * @param {Object} jssyValue
  * It is an {@link Immutable.Record} actually
  * (see app/models/JssyValue.js)
  * @param {JssyTypeDefinition} typedef
@@ -167,44 +161,43 @@ const isLinkedProp = propValue =>
  * @return {PropsItemValue}
  */
 export const jssyValueToPropValue = (
-  propValue,
+  jssyValue,
   typedef,
   userTypedefs = null,
 ) => {
-  if (!propValue) return { value: null, isLinked: false };
+  if (!jssyValue) return { value: null, isLinked: false };
   
-  const resolvedTypedef = resolveTypedef(typedef, userTypedefs),
-    linked = isLinkedProp(propValue);
-  
+  const resolvedTypedef = resolveTypedef(typedef, userTypedefs);
+  const linked = jssyValue.isLinked();
   let value = null;
   let linkedWith = '';
   
   if (!linked) {
-    if (propValue.source === 'static') {
+    if (jssyValue.source === 'static') {
       if (resolvedTypedef.type === 'int' || resolvedTypedef.type === 'float') {
-        value = String(propValue.sourceData.value);
+        value = String(jssyValue.sourceData.value);
       } else if (
         resolvedTypedef.type === 'string' ||
         resolvedTypedef.type === 'bool' ||
         resolvedTypedef.type === 'oneOf'
       ) {
-        value = propValue.sourceData.value;
+        value = jssyValue.sourceData.value;
       } else if (resolvedTypedef.type === 'shape') {
         value = _mapValues(resolvedTypedef.fields, (fieldMeta, fieldName) =>
           jssyValueToPropValue(
-            propValue.sourceData.value.get(fieldName),
+            jssyValue.sourceData.value.get(fieldName),
             fieldMeta,
             userTypedefs,
           ),
         );
       } else if (resolvedTypedef.type === 'objectOf') {
-        propValue.sourceData.value.map(nestedValue => jssyValueToPropValue(
+        jssyValue.sourceData.value.map(nestedValue => jssyValueToPropValue(
           nestedValue,
           resolvedTypedef.ofType,
           userTypedefs,
         )).toJS();
       } else if (resolvedTypedef.type === 'arrayOf') {
-        value = propValue.sourceData.value.map(nestedValue =>
+        value = jssyValue.sourceData.value.map(nestedValue =>
           jssyValueToPropValue(
             nestedValue,
             resolvedTypedef.ofType,
@@ -212,22 +205,21 @@ export const jssyValueToPropValue = (
           ),
         ).toJS();
       }
-    } else if (propValue.source === 'designer') {
+    } else if (jssyValue.source === 'designer') {
       // true if component exists, false otherwise
       if (resolvedTypedef.type === 'component')
-        value = propValue.sourceData.rootId !== -1;
+        value = jssyValue.sourceData.rootId !== -1;
     }
-  } else if (propValue.source === 'data') {
-    if (propValue.sourceData.queryPath) {
-      linkedWith = propValue.sourceData.queryPath
+  } else if (jssyValue.source === 'data') {
+    if (jssyValue.sourceData.queryPath) {
+      linkedWith = jssyValue.sourceData.queryPath
         .map(step => step.field)
-        .toJS()
-        .join(' -> ');
+        .join(LINK_TEXT_ITEMS_SEPARATOR);
     }
-  } else if (propValue.source === 'function') {
-    linkedWith = propValue.sourceData.function;
-  } else if (propValue.source === 'static') {
-    linkedWith = propValue.sourceData.ownerPropName;
+  } else if (jssyValue.source === 'function') {
+    linkedWith = jssyValue.sourceData.function;
+  } else if (jssyValue.source === 'static') {
+    linkedWith = jssyValue.sourceData.ownerPropName;
   }
   
   return { value, linked, linkedWith };
@@ -259,17 +251,23 @@ const coerceFloatValue = value => {
  *
  * @template Extra
  * @param {JssyTypeDefinition} jssyTypedef
- * @param {Extra} extra
- * @param {function(jssyTypedef: JssyTypeDefinition, extra: Extra, isField: boolean, fieldName: string): Extra} getNestedExtra
- * @param {function(propType: PropsItemPropType, extra: Extra, jssyTypedef: JssyTypeDefinition): PropsItemPropType} applyExtra
+ * @param {Extra} [extra=null]
+ * @param {?function(jssyTypedef: JssyTypeDefinition, extra: Extra, isField: boolean, fieldName: string): Extra} [getNestedExtra=returnNull]
+ * @param {function(propType: PropsItemPropType, extra: Extra, jssyTypedef: JssyTypeDefinition): PropsItemPropType} [applyExtra=returnArg]
+ * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
  * @return {PropsItemPropType}
  */
 export const jssyTypedefToPropType = (
   jssyTypedef,
-  extra,
-  getNestedExtra,
-  applyExtra,
+  extra = null,
+  getNestedExtra = returnNull,
+  applyExtra = returnArg,
+  userTypedefs = null,
 ) => {
+  jssyTypedef = resolveTypedef(jssyTypedef, userTypedefs);
+  if (typeof getNestedExtra !== 'function') getNestedExtra = returnNull;
+  if (typeof applyExtra !== 'function') applyExtra = returnArg;
+  
   const ret = {
     label: '',
     secondaryLabel: jssyTypedef.type,
@@ -294,6 +292,7 @@ export const jssyTypedefToPropType = (
     }));
   } else if (jssyTypedef.type === 'shape') {
     ret.fields = _mapValues(jssyTypedef.fields, (fieldTypedef, fieldName) => {
+      //noinspection JSCheckFunctionSignatures
       const nestedExtra = getNestedExtra(jssyTypedef, extra, true, fieldName);
       
       return jssyTypedefToPropType(
@@ -301,12 +300,14 @@ export const jssyTypedefToPropType = (
         nestedExtra,
         getNestedExtra,
         applyExtra,
+        userTypedefs,
       );
     });
   } else if (
     jssyTypedef.type === 'arrayOf' ||
     jssyTypedef.type === 'objectOf'
   ) {
+    //noinspection JSCheckFunctionSignatures
     const nestedExtra = getNestedExtra(jssyTypedef, extra, false, '');
   
     ret.ofType = jssyTypedefToPropType(
@@ -314,8 +315,10 @@ export const jssyTypedefToPropType = (
       nestedExtra,
       getNestedExtra,
       applyExtra,
+      userTypedefs,
     );
   }
   
-  return applyExtra(ret, extra, jssyTypedef);
+  //noinspection JSCheckFunctionSignatures
+  return applyExtra(ret, extra, jssyTypedef) || ret;
 };

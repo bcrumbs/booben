@@ -106,6 +106,12 @@ class JssyValue extends JssyValueRecord {
     const realPath = expandPath(path).concat(['sourceData', 'value']);
     return this.updateIn(realPath, listOrMap => listOrMap.delete(index));
   }
+  
+  isLinked() {
+    return this.source === 'function' ||
+      (this.source === 'data' && this.sourceData.queryPath !== null) ||
+      (this.source === 'static' && !!this.sourceData.ownerPropName);
+  }
 }
 
 JssyValue.STATIC_NULL = new JssyValue({
