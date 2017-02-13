@@ -142,7 +142,7 @@
         flex-shrink: 0;
 
         .block-content-title-area + &.is-bordered {
-                border-top: 1px solid $bcontent-box-border-color;
+            border-top: 1px solid $bcontent-box-border-color;
         }
 
         &.is-bordered {
@@ -156,6 +156,20 @@
         flex-grow: 1;
         overflow-y: auto;
         font-size: $bcontent-box-font-size;
+
+        // Bottom border for overflowing content
+        background:
+                /* Shadow covers */
+                linear-gradient(transparentize($white, 1), white 50%) 0 100%,
+
+                    /* Shadows */
+                linear-gradient($color-border 100%, transparentize($color-border, 1)) 0 100%;
+        background-repeat: no-repeat;
+        background-color: white;
+        background-size: 100% 4px, 100% 1px;
+
+        /* Opera doesn't support this in the shorthand */
+        background-attachment: local, scroll;
 
         .block-content-navigation-area + &,
         .block-content-title-area + & {
@@ -205,66 +219,66 @@
         }
     }
 
-	// CONTENT ITEM GROUP
-	// =================================================================================================================
-	.block-content_item-group {
+    // CONTENT ITEM GROUP
+    // =================================================================================================================
+    .block-content_item-group {
         display: flex;
         flex-direction: column;
-	}
+    }
 
-	// CONTENT ITEM
-	// =================================================================================================================
+    // CONTENT ITEM
+    // =================================================================================================================
     .block-content-box-item {
-	    padding: $bcontent-base-pad-y $bcontent-base-pad-x;
-	    flex-shrink: 0;
+        padding: $bcontent-base-pad-y $bcontent-base-pad-x;
+        flex-shrink: 0;
 
-	    & & {
-		    margin-left: -$bcontent-base-pad-x;
-		    margin-right: -$bcontent-base-pad-x;
-		    width: calc(100% + #{$bcontent-base-pad-x*2});
-	    }
+        & & {
+            margin-left: -$bcontent-base-pad-x;
+            margin-right: -$bcontent-base-pad-x;
+            width: calc(100% + #{$bcontent-base-pad-x*2});
+        }
 
-	    &.is-blank {
-		    padding: 0 !important;
-	    }
+        &.is-blank {
+            padding: 0 !important;
+        }
 
-	    &.is-bordered {
-		    border-top: 1px solid $bcontent-box-border-color;
-	    }
+        &.is-bordered {
+            border-top: 1px solid $bcontent-box-border-color;
+        }
 
-	    .block-content-box-heading + &:not(.is-bordered),
-	    &:not(.is-bordered) + &:not(.is-bordered) {
-		    padding-top: 0;
-	    }
+        .block-content-box-heading + &:not(.is-bordered),
+        &:not(.is-bordered) + &:not(.is-bordered) {
+            padding-top: 0;
+        }
 
-	    &:not(.is-bordered) + .block-content-box-heading {
-		    margin-top: $bcontent-box-header-top - $bcontent-base-pad-y;
-	    }
+        &:not(.is-bordered) + .block-content-box-heading {
+            margin-top: $bcontent-box-header-top - $bcontent-base-pad-y;
+        }
 
-	    &.flex-main {
-		    flex-grow: 1
-	    }
+        &.flex-main {
+            flex-grow: 1
+        }
 
-	    .dialog & {
-		    padding: $bcontent-indialog-base-pad-y $bcontent-indialog-base-pad-x;
-	    }
+        .dialog & {
+            padding: $bcontent-indialog-base-pad-y $bcontent-indialog-base-pad-x;
+        }
 
-	    &:first-of-type {
-		    padding-top: $bcontent-base-pad-y-lrg;
+        &:first-of-type {
+            padding-top: $bcontent-base-pad-y-lrg;
 
-		    .dialog & {
-			    padding-top: $bcontent-indialog-base-pad-y-lrg;
-		    }
-	    }
+            .dialog & {
+                padding-top: $bcontent-indialog-base-pad-y-lrg;
+            }
+        }
 
-	    &.last,
-	    &:last-of-type {
-		    padding-bottom: $bcontent-base-pad-y-lrg;
+        &.last,
+        &:last-of-type {
+            padding-bottom: $bcontent-base-pad-y-lrg;
 
-		    .dialog & {
-			    padding-bottom: $bcontent-indialog-base-pad-y-lrg;
-		    }
-	    }
+            .dialog & {
+                padding-bottom: $bcontent-indialog-base-pad-y-lrg;
+            }
+        }
     }
 
     // CONTENT PLACEHOLDER

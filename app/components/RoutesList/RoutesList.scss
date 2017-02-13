@@ -111,6 +111,7 @@
 
     .route-title-box {
         display: flex;
+        min-height: $rcard-icon-index-box-size + rem-calc(1); // 1 - to compensate rounding error
     }
 
     .route-title {
