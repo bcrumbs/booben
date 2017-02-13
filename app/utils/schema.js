@@ -171,7 +171,7 @@ const graphQLScalarTypeToJssyType = {
  * @param {string} graphQLTypeName
  * @return {boolean}
  */
-export const isScalarGraphQLType = graphQLTypeName =>
+const isScalarGraphQLType = graphQLTypeName =>
   GQL_SCALAR_TYPES.has(graphQLTypeName);
 
 const RELAY_TYPE_NODE_INTERFACE = 'Node';
