@@ -168,15 +168,6 @@ const graphQLScalarTypeToJssyType = {
 
 /**
  *
- * @param {string} jssyTypeName
- * @param {string} graphQLTypeName
- * @return {boolean}
- */
-export const equalMetaToGraphQLTypeNames = (jssyTypeName, graphQLTypeName) =>
-  graphQLScalarTypeToJssyType[graphQLTypeName] === jssyTypeName;
-
-/**
- *
  * @param {string} graphQLTypeName
  * @return {boolean}
  */
@@ -199,8 +190,8 @@ const RELAY_PAGEINFO_FIELD_HAS_PREVIOUS_PAGE = 'hasPreviousPage';
 const RELAY_PAGEINFO_FIELD_START_CURSOR = 'startCursor';
 const RELAY_PAGEINFO_FIELD_END_CURSOR = 'endCursor';
 const RELAY_EDGE_FIELDS_NUM = 2;
-const RELAY_EDGE_NODE_FIELD = 'node';
-const RELAY_EDGE_CURSOR_FIELD = 'cursor';
+const RELAY_EDGE_FIELD_NODE = 'node';
+const RELAY_EDGE_FIELD_CURSOR = 'cursor';
 
 /**
  *
@@ -237,10 +228,10 @@ const findGQLField = (type, fieldName) => {
  * @return {DataTypeInfo}
  */
 const collectTypeInfo = type => {
-  let currentType = type,
-    isList = false,
-    nonNull = false,
-    nonNullMember = false;
+  let currentType = type;
+  let isList = false;
+  let nonNull = false;
+  let nonNullMember = false;
   
   if (currentType.kind === GQLTypeKinds.NON_NULL) {
     nonNull = true;
@@ -401,7 +392,7 @@ const isRelayEdgeType = (type, schema) => {
   if (type.kind !== GQLTypeKinds.OBJECT) return false;
   if (!type.fields || type.fields.length < RELAY_EDGE_FIELDS_NUM) return false;
   
-  const cursorField = findGQLField(type, RELAY_EDGE_CURSOR_FIELD);
+  const cursorField = findGQLField(type, RELAY_EDGE_FIELD_CURSOR);
   
   if (
     !cursorField ||
@@ -409,7 +400,7 @@ const isRelayEdgeType = (type, schema) => {
     cursorField.type.ofType.name !== 'String'
   ) return false;
   
-  const nodeField = findGQLField(type, RELAY_EDGE_NODE_FIELD);
+  const nodeField = findGQLField(type, RELAY_EDGE_FIELD_NODE);
   if (!nodeField || nodeField.type.kind !== GQLTypeKinds.OBJECT) return false;
   
   const nodeType = findGQLType(schema, nodeField.type.name);
@@ -499,10 +490,10 @@ const getAdditionalArgsOnRelayConnection = connectionField =>
  * @return {GQLType}
  */
 const getRelayConnectionNodeType = (connectionField, schema) => {
-  const connectionType = getGQLFieldType(connectionField, schema),
-    edgesField = findGQLField(connectionType, RELAY_CONNECTION_FIELD_EDGES),
-    edgeType = findGQLType(schema, edgesField.type.ofType.name),
-    nodeField = findGQLField(edgeType, RELAY_EDGE_NODE_FIELD);
+  const connectionType = getGQLFieldType(connectionField, schema);
+  const edgesField = findGQLField(connectionType, RELAY_CONNECTION_FIELD_EDGES);
+  const edgeType = findGQLType(schema, edgesField.type.ofType.name);
+  const nodeField = findGQLField(edgeType, RELAY_EDGE_FIELD_NODE);
   
   return getGQLFieldType(nodeField, schema);
 };
@@ -735,7 +726,6 @@ export const formatFieldName = (fieldName, connectionFieldName) => {
  */
 export const getTypeNameByField = (schema, fullFieldName, onType) => {
   const { fieldName, connectionFieldName } = parseFieldName(fullFieldName);
-
   let field = schema.types[onType].fields[fieldName];
 
   if (connectionFieldName)
@@ -762,7 +752,7 @@ const getJssyTypeOfFieldMemo = new Map();
  *
  * @param {DataFieldTypeDefinition} fieldTypedef
  * @param {DataSchema} schema
- * @return {TypeDefinition}
+ * @return {JssyTypeDefinition}
  */
 export const getJssyTypeOfField = (fieldTypedef, schema) => {
   let memoBySchema = getJssyTypeOfFieldMemo.get(schema);
@@ -774,10 +764,9 @@ export const getJssyTypeOfField = (fieldTypedef, schema) => {
   const memoized = memoBySchema.get(fieldTypedef);
   if (memoized) return memoized;
   
-  let ret;
-  
   let deferredSubFields = null;
   let deferredSubFieldsTarget = null;
+  let ret;
   
   if (isScalarGraphQLType(fieldTypedef.type)) {
     ret = {
