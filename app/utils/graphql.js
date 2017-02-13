@@ -18,6 +18,7 @@ import {
   getTypeNameByField,
   getTypeNameByPath,
   FieldKinds,
+  parseFieldName,
 } from './schema';
 
 import {
@@ -61,44 +62,54 @@ export const randomName = (len = 12) => {
   return ret;
 };
 
+const getDeepestFieldSelection = fragment => {
+  let currentNode = fragment;
+  let fieldSelection;
+  
+  /* eslint-disable no-cond-assign */
+  while (
+    fieldSelection = currentNode.selectionSet
+      ? currentNode.selectionSet.selections.find(
+        selection => selection.kind === 'Field',
+      )
+      : null
+  ) currentNode = fieldSelection;
+  /* eslint-enable no-cond-assign */
+  
+  return currentNode;
+};
+
+const getSelectionByPath = (fragment, path) => {
+  let currentNode = fragment;
+  
+  path.forEach(field => {
+    const selection = currentNode.selectionSet.selections.find(selection =>
+      selection.kind === 'Field' && selection.name.value === field);
+    
+    if (!selection) throw new Error('getSelectionByPath(): bad path');
+    currentNode = selection;
+  });
+  
+  return currentNode;
+};
+
 const attachFragmentToFragment = (
   fragment,
   destinationFragment,
   path = null,
 ) => {
-  let currentNode = destinationFragment;
+  const selectionNode = path
+    ? getSelectionByPath(destinationFragment, path)
+    : getDeepestFieldSelection(destinationFragment);
 
-  if (path) {
-    path.forEach(field => {
-      const selection = currentNode.selectionSet.selections.find(selection =>
-        selection.kind === 'Field' && selection.name.value === field);
-
-      if (!selection) throw new Error('attachFragmentToFragment(): bad path');
-      currentNode = selection;
-    });
-  } else {
-    let fieldSelection;
-
-    /* eslint-disable no-cond-assign */
-    while (
-      fieldSelection = currentNode.selectionSet
-        ? currentNode.selectionSet.selections.find(
-          selection => selection.kind === 'Field',
-        )
-        : null
-    )
-      currentNode = fieldSelection;
-    /* eslint-enable no-cond-assign */
-  }
-
-  if (!currentNode.selectionSet) {
-    currentNode.selectionSet = {
+  if (!selectionNode.selectionSet) {
+    selectionNode.selectionSet = {
       kind: 'SelectionSet',
       selections: [],
     };
   }
-
-  currentNode.selectionSet.selections.push({
+  
+  selectionNode.selectionSet.selections.push({
     kind: 'FragmentSpread',
     name: {
       kind: 'Name',
@@ -108,6 +119,31 @@ const attachFragmentToFragment = (
   });
 
   return destinationFragment;
+};
+
+const addTypenameField = fragment => {
+  const selectionNode = getDeepestFieldSelection(fragment);
+  
+  if (!selectionNode.selectionSet) {
+    selectionNode.selectionSet = {
+      kind: 'SelectionSet',
+      selections: [],
+    };
+  }
+  
+  selectionNode.selectionSet.selections.push({
+    kind: 'Field',
+    alias: null,
+    name: {
+      kind: 'Name',
+      value: '__typename',
+    },
+    arguments: [],
+    directives: [],
+    selectionSet: null,
+  });
+  
+  return fragment;
 };
 
 /**
@@ -648,6 +684,17 @@ const buildGraphQLFragmentsForOwnComponent = (
   return { fragments, theMap };
 };
 
+const fixUnfinishedFragments = fragments => {
+  fragments.forEach(fragment => {
+    if (!fragment[IS_FINISHED_FRAGMENT]) {
+      addTypenameField(fragment);
+      fragment[IS_FINISHED_FRAGMENT] = true;
+    }
+  });
+  
+  return fragments;
+};
+
 /**
  *
  * @param {Object} component
@@ -743,17 +790,17 @@ const buildGraphQLFragmentsForComponent = (
     });
   }
 
-  return { fragments, theMap };
+  return { fragments: fixUnfinishedFragments(fragments), theMap };
 };
 
 export const buildQueryForComponent = (component, schema, meta, project) => {
   const { fragments, theMap } =
     buildGraphQLFragmentsForComponent(component, schema, meta, project);
+  
+  const isRootFragment = fragment =>
+    fragment.typeCondition.name.value === schema.queryTypeName;
 
-  const rootFragments = fragments.filter(fragment =>
-    fragment.typeCondition.name.value === schema.queryTypeName &&
-    fragment[IS_FINISHED_FRAGMENT],
-  );
+  const rootFragments = fragments.filter(isRootFragment);
 
   if (!rootFragments.length) return { query: null, theMap };
 
@@ -803,9 +850,9 @@ export const extractPropValueFromData = (
   schema,
   rootType = schema.queryTypeName,
 ) => propValue.sourceData.queryPath.reduce((acc, queryStep) => {
-  const typeDefinition = schema.types[acc.type],
-    [fieldName, connectionFieldName] = queryStep.field.split('/'),
-    fieldDefinition = typeDefinition.fields[fieldName];
+  const typeDefinition = schema.types[acc.type];
+  const { fieldName, connectionFieldName } = parseFieldName(queryStep.field);
+  const fieldDefinition = typeDefinition.fields[fieldName];
 
   if (fieldDefinition.kind === FieldKinds.CONNECTION) {
     if (connectionFieldName) {
