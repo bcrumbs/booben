@@ -73,8 +73,8 @@ const attachFragmentToFragment = (
       const selection = currentNode.selectionSet.selections.find(selection =>
         selection.kind === 'Field' && selection.name.value === field);
 
-      if (selection) currentNode = selection;
-      else throw new Error('attachFragmentToFragment(): bad path');
+      if (!selection) throw new Error('attachFragmentToFragment(): bad path');
+      currentNode = selection;
     });
   } else {
     let fieldSelection;
@@ -107,9 +107,6 @@ const attachFragmentToFragment = (
     directives: [],
   });
 
-  if (fragment[IS_FINISHED_FRAGMENT])
-    destinationFragment[IS_FINISHED_FRAGMENT] = true;
-
   return destinationFragment;
 };
 
@@ -121,9 +118,9 @@ const attachFragmentToFragment = (
  */
 const resolveGraphQLType = (propValue, dataContextTree) => {
   const context = propValue.sourceData.dataContext.reduce(
-        (acc, cur) => acc.children.get(cur),
-        dataContextTree,
-    );
+    (acc, cur) => acc.children.get(cur),
+    dataContextTree,
+  );
 
   return context.type;
 };
@@ -167,8 +164,8 @@ const buildGraphQLValue = (propValue, schemaTypeDef) => {
  * @return {Object}
  */
 const buildGraphQLArgument = (argName, argValue, fieldDefinition) => {
-  const argDefinition = fieldDefinition.args[argName],
-    value = buildGraphQLValue(argValue, argDefinition);
+  const argDefinition = fieldDefinition.args[argName];
+  const value = buildGraphQLValue(argValue, argDefinition);
 
   return value === NO_VALUE ? NO_VALUE : {
     kind: 'Argument',
@@ -183,9 +180,8 @@ const getQueryStepArgValues = (
   propValue,
   stepIdx,
 ) => {
-  const propDataContext = propValue.sourceData.dataContext,
-    keyForDataContextArgs = propDataContext.join(' ');
-
+  const propDataContext = propValue.sourceData.dataContext;
+  const keyForDataContextArgs = propDataContext.join(' ');
   const keyForQueryArgs = propValue.sourceData.queryPath
     .slice(0, stepIdx + 1)
     .map(step => step.field)
@@ -208,19 +204,18 @@ const getQueryStepArgValues = (
  * @param {Object[]} ownerComponentsChain
  * @param {Object} propValue
  * Actually it's Immutable.Record; see models/ProjectComponentProp
- * @param {string} fragmentName
  * @param {DataSchema} schema
  * @param {Object} dataContextTree
  * @return {Object}
  */
 const buildGraphQLFragmentForValue = (
-    component,
-    ownerComponentsChain,
-    propValue,
-    fragmentName,
-    schema,
-    dataContextTree,
+  component,
+  ownerComponentsChain,
+  propValue,
+  schema,
+  dataContextTree,
 ) => {
+  const fragmentName = randomName();
   const onType = resolveGraphQLType(propValue, dataContextTree);
 
   const ret = {
@@ -240,16 +235,16 @@ const buildGraphQLFragmentForValue = (
     selectionSet: null,
   };
 
-  let currentNode = ret,
-    currentType = onType,
-    badPath = false;
+  let currentNode = ret;
+  let currentType = onType;
+  let badPath = false;
 
   /* eslint-disable consistent-return */
   //noinspection JSCheckFunctionSignatures
   propValue.sourceData.queryPath.forEach((step, idx) => {
-    const [fieldName, connectionFieldName] = step.field.split('/'),
-      currentTypeDefinition = schema.types[currentType],
-      currentFieldDefinition = currentTypeDefinition.fields[fieldName];
+    const [fieldName, connectionFieldName] = step.field.split('/');
+    const currentTypeDefinition = schema.types[currentType];
+    const currentFieldDefinition = currentTypeDefinition.fields[fieldName];
 
     if (!currentFieldDefinition) {
       badPath = true;
@@ -264,7 +259,6 @@ const buildGraphQLFragmentForValue = (
       }
 
       const args = [];
-
       const argumentValues = getQueryStepArgValues(
         component,
         ownerComponentsChain,
@@ -367,7 +361,6 @@ const buildGraphQLFragmentForValue = (
       currentNode = node.selectionSet.selections[0].selectionSet.selections[0];
     } else {
       const args = [];
-
       const argumentValues = getQueryStepArgValues(
         component,
         ownerComponentsChain,
@@ -427,12 +420,16 @@ const DataContextTreeNode = Record({
   children: Map(),
 });
 
-const getDataContextTreeNode = (dataContextTree, propValue) =>
-  dataContextTree.getIn([].concat(
-    ...propValue.sourceData.dataContext.map(
-      context => ['children', context],
-    ),
-  ));
+const getDataContextTreeNode = (rootNode, propValue) =>
+  rootNode.getIn([].concat(...propValue.sourceData.dataContext.map(
+    context => ['children', context],
+  )));
+
+const getDataContextTreePath = (rootNode, propValue) =>
+  propValue.sourceData.dataContext.reduce(
+    (acc, cur) => acc.push(acc.last().getIn(['children', cur])),
+    List([rootNode]),
+  );
 
 const pushDataContext = (
   dataContextTree,
@@ -555,10 +552,10 @@ const buildGraphQLFragmentsForOwnComponent = (
   dataContextTree,
   theMap,
 ) => {
-  const componentMeta = getComponentMeta(component.name, meta),
-    fragments = [],
-    designerPropsWithComponent = [],
-    dataValuesByDataContext = {};
+  const componentMeta = getComponentMeta(component.name, meta);
+  const fragments = [];
+  const designerPropsWithComponent = [];
+  const dataValuesByDataContext = {};
 
   const walkSimplePropsOptions = {
     project,
@@ -577,21 +574,27 @@ const buildGraphQLFragmentsForOwnComponent = (
         component,
         ownerComponentsChain,
         value,
-        randomName(),
         schema,
         dataContextTree,
       );
 
       fragments.push(fragment);
 
-      const dataContextTreeNode = getDataContextTreeNode(
-        dataContextTree,
-        value,
-      );
+      const dataContextTreeNode =
+        getDataContextTreeNode(dataContextTree, value);
 
       const parentFragment = dataContextTreeNode.fragment;
 
       attachFragmentToFragment(fragment, parentFragment);
+      
+      if (fragment[IS_FINISHED_FRAGMENT]) {
+        const path = getDataContextTreePath(dataContextTree, value);
+        
+        // Skipping root node because it doesn't contain a fragment
+        path.rest().forEach(node => {
+          node.fragment[IS_FINISHED_FRAGMENT] = true;
+        });
+      }
 
       const hasDataContext =
         isPropTypeDefinition(typedef) &&
@@ -660,9 +663,9 @@ const buildGraphQLFragmentsForComponent = (
   meta,
   project,
 ) => {
-  const componentMeta = getComponentMeta(component.name, meta),
-    fragments = [],
-    designerPropsWithComponent = [];
+  const componentMeta = getComponentMeta(component.name, meta);
+  const fragments = [];
+  const designerPropsWithComponent = [];
 
   let dataContextTree = new DataContextTreeNode({
     type: schema.queryTypeName,
@@ -670,11 +673,7 @@ const buildGraphQLFragmentsForComponent = (
   });
 
   const dataValuesByDataContext = {};
-
-  const walkSimplePropsOptions = {
-    project,
-    walkFunctionArgs: true,
-  };
+  const walkSimplePropsOptions = { project, walkFunctionArgs: true };
 
   const visitValue = (value, typedef) => {
     if (value.source === 'data') {
@@ -688,7 +687,6 @@ const buildGraphQLFragmentsForComponent = (
         component,
         [],
         value,
-        randomName(),
         schema,
         dataContextTree,
       );
@@ -830,8 +828,8 @@ export const extractPropValueFromData = (
 }, { data, type: rootType }).data;
 
 export const mapDataToComponentProps = (component, data, schema, meta) => {
-  const componentMeta = getComponentMeta(component.name, meta),
-    ret = {};
+  const componentMeta = getComponentMeta(component.name, meta);
+  const ret = {};
 
   walkSimpleProps(component, componentMeta, (propValue, propMeta, path) => {
     if (propValue.source === 'data')
