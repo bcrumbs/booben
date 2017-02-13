@@ -436,11 +436,7 @@ const buildGraphQLFragmentForValue = (
       currentNode = node;
     }
 
-    currentType = getTypeNameByField(
-      schema,
-      step.field,
-      currentType,
-    );
+    currentType = getTypeNameByField(schema, step.field, currentType);
   });
   /* eslint-enable consistent-return */
 
@@ -879,7 +875,7 @@ export const mapDataToComponentProps = (component, data, schema, meta) => {
   const ret = {};
 
   walkSimpleProps(component, componentMeta, (propValue, propMeta, path) => {
-    if (propValue.source === 'data')
+    if (propValue.source === 'data' && propValue.sourceData.queryPath)
       _set(ret, path, extractPropValueFromData(propValue, data, schema));
   });
 

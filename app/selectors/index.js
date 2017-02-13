@@ -6,6 +6,7 @@
 
 import { createSelector } from 'reselect';
 import _forOwn from 'lodash.forown';
+import { getNestedTypedef } from '@jssy/types';
 import { getComponentMeta, findPropThatPushedDataContext } from '../utils/meta';
 import { getTypeNameByPath } from '../utils/schema';
 
@@ -125,8 +126,11 @@ export const availableDataContextsSelector = createSelector(
   
     const ownerComponent = topNestedConstructorComponent;
     const ownerComponentMeta = getComponentMeta(ownerComponent.name, meta);
-    const ownerComponentDesignerPropMeta =
-      ownerComponentMeta.props[topNestedConstructor.prop];
+    const ownerComponentDesignerPropMeta = getNestedTypedef(
+      ownerComponentMeta.props[topNestedConstructor.prop],
+      topNestedConstructor.path,
+      ownerComponentMeta.types,
+    );
   
     const dataContexts = [];
   
