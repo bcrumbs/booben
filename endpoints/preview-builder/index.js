@@ -118,8 +118,8 @@ const generateBundleCode = libsData => {
  * @return {Object}
  */
 const generateWebpackConfig = (projectDir, libsData) => {
-  const projectNodeModules = path.join(projectDir, 'node_modules'),
-    localNodeModules = path.resolve(__dirname, '..', '..', 'node_modules');
+  const projectNodeModules = path.join(projectDir, 'node_modules');
+  const localNodeModules = path.resolve(__dirname, '..', '..', 'node_modules');
 
   const rewriteComponentsPathResolverPlugin = {
     apply(resolver) {
@@ -210,8 +210,9 @@ const loaderStringParsers = {
     const q = parts[1].split('&').map(str => str.split('='));
 
     const ret = [];
-    q.forEach(qItem => {
-      if (qItem[0] === 'presets[]') ret.push(`babel-preset-${qItem[1]}`);
+    q.forEach(([key, value]) => {
+      if (key === 'presets[]') ret.push(`babel-preset-${value}`);
+      else if (key === 'plugins[]') ret.push(`babel-plugin-${value}`);
     });
 
     return ret;
