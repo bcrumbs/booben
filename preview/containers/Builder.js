@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import { graphql } from 'react-apollo';
 import _merge from 'lodash.merge';
 import _mapValues from 'lodash.mapvalues';
+import { resolveTypedef } from '@jssy/types';
 import { getComponentById } from '../../app/models/Project';
 import jssyConstants from '../../app/constants/jssyConstants';
 import { NO_VALUE } from '../../app/constants/misc';
@@ -57,40 +58,46 @@ class BuilderComponent extends PureComponent {
    *
    * @param {Object} propValue
    * @param {JssyTypeDefinition} typedef
+   * @param {Object<string, JssyTypeDefinition>} userTypedefs
    * @param {Immutable.Map<Object, Object>} theMap
    * @return {*}
    */
-  _buildPropValue(propValue, typedef, theMap) {
+  _buildPropValue(propValue, typedef, userTypedefs, theMap) {
+    const resolvedTypedef = resolveTypedef(typedef, userTypedefs);
+    
     if (propValue.source === 'static') {
       if (propValue.sourceData.ownerPropName && !this.props.ignoreOwnerProps) {
         return this.props.propsFromOwner[propValue.sourceData.ownerPropName];
-      } else if (typedef.type === 'shape') {
+      } else if (resolvedTypedef.type === 'shape') {
         if (propValue.sourceData.value === null) return null;
 
-        return _mapValues(typedef.fields, (fieldMeta, fieldName) => {
+        return _mapValues(resolvedTypedef.fields, (fieldMeta, fieldName) => {
           const fieldValue = propValue.sourceData.value.get(fieldName);
 
           return this._buildPropValue(
             fieldValue,
             fieldMeta,
+            userTypedefs,
             theMap,
           );
         });
-      } else if (typedef.type === 'objectOf') {
+      } else if (resolvedTypedef.type === 'objectOf') {
         if (propValue.sourceData.value === null) return null;
 
         return propValue.sourceData.value.map(nestedValue =>
           this._buildPropValue(
             nestedValue,
-            typedef.ofType,
+            resolvedTypedef.ofType,
+            userTypedefs,
             theMap,
           ),
         ).toJS();
-      } else if (typedef.type === 'arrayOf') {
+      } else if (resolvedTypedef.type === 'arrayOf') {
         return propValue.sourceData.value.map(nestedValue =>
           this._buildPropValue(
             nestedValue,
-            typedef.ofType,
+            resolvedTypedef.ofType,
+            userTypedefs,
             theMap,
           ),
         ).toJS();
@@ -140,6 +147,7 @@ class BuilderComponent extends PureComponent {
           ret = this._buildPropValue(
             argValue,
             argInfo.typedef,
+            userTypedefs,
             theMap,
           );
         }
@@ -175,6 +183,7 @@ class BuilderComponent extends PureComponent {
       const value = this._buildPropValue(
         propValue,
         propMeta,
+        componentMeta.types,
         theMap,
       );
 

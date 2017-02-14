@@ -139,12 +139,17 @@ export class DataSelection extends PureComponent {
    * @private
    */
   _getCurrentField() {
-    const { schema } = this.props;
+    const { schema, rootTypeName } = this.props;
     const { currentPath } = this.state;
     
     if (currentPath.length === 0) return null;
   
-    const prevTypeName = getTypeNameByPath(schema, currentPath.slice(0, -1));
+    const prevTypeName = getTypeNameByPath(
+      schema,
+      currentPath.slice(0, -1),
+      rootTypeName,
+    );
+    
     const currentFieldName = currentPath[currentPath.length - 1];
   
     return schema.types[prevTypeName].fields[currentFieldName];

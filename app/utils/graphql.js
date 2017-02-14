@@ -838,7 +838,7 @@ export const buildQueryForComponent = (component, schema, meta, project) => {
  * @param {Object} data
  * @param {DataSchema} schema
  * @param {string} [rootType]
- * @return {*}
+ * @return {*|NO_VALUE}
  */
 export const extractPropValueFromData = (
   propValue,
@@ -846,6 +846,13 @@ export const extractPropValueFromData = (
   schema,
   rootType = schema.queryTypeName,
 ) => propValue.sourceData.queryPath.reduce((acc, queryStep) => {
+  if (acc.data === null || acc.data === NO_VALUE) {
+    return {
+      data: NO_VALUE,
+      type: '',
+    };
+  }
+  
   const typeDefinition = schema.types[acc.type];
   const { fieldName, connectionFieldName } = parseFieldName(queryStep.field);
   const fieldDefinition = typeDefinition.fields[fieldName];
