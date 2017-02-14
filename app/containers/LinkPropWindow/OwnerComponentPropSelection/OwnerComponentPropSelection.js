@@ -50,11 +50,11 @@ export class OwnerComponentPropSelection extends PureComponent {
   
   /**
    *
-   * @param {number} itemIndex
+   * @param {number} index
    * @private
    */
-  _handleBreadcrumbsClick(itemIndex) {
-    if (itemIndex === 0) this.props.onReturn();
+  _handleBreadcrumbsClick({ index }) {
+    if (index === 0) this.props.onReturn();
   }
   
   /**

@@ -9,12 +9,7 @@ import React, { PureComponent, PropTypes } from 'react';
 import ReactDOM from 'react-dom';
 import { List } from 'immutable';
 import throttle from 'lodash.throttle';
-
-import {
-  Button,
-  Tabs,
-  Tab,
-} from '@reactackle/reactackle';
+import { Button, Tabs } from '@reactackle/reactackle';
 
 import {
   DraggableWindow,
@@ -32,7 +27,6 @@ import {
 import ButtonType from '../../../models/Button';
 import ToolType from '../../../models/Tool';
 import ToolStateType from '../../../models/ToolState';
-
 import { noop } from '../../../utils/misc';
 
 //noinspection JSUnresolvedVariable
@@ -106,7 +100,6 @@ export class ToolWindow extends PureComponent {
   componentDidMount() {
     // eslint-disable-next-line react/no-find-dom-node
     this.domNode = ReactDOM.findDOMNode(this);
-    
     this.currentTranslateX = 0;
     this.currentTranslateY = 0;
     this.dragStartDiffX = 0;
@@ -149,50 +142,56 @@ export class ToolWindow extends PureComponent {
 
   _updateStickRegion() {
     const {
+      dx,
+      dy,
       width,
       height,
       containerWidth,
       containerHeight,
     } = this;
+    
+    const {
+      marginLeft,
+      marginRight,
+      marginTop,
+      marginBottom,
+      stickRegionLeft,
+      stickRegionRight,
+      stickRegionTop,
+      stickRegionBottom,
+      onStickRegionEnter,
+      onStickRegionLeave,
+    } = this.props;
 
     const isInStickRegion = {
-      left: this.dx < this.props.marginLeft + this.props.stickRegionLeft,
-      
-      right: this.dx > containerWidth - width
-        - this.props.marginRight - this.props.stickRegionRight,
-      
-      top: this.dy < this.props.marginTop + this.props.stickRegionTop,
-      
-      bottom: this.dy > containerHeight - height
-        - this.props.marginBottom - this.props.stickRegionBottom,
+      left: dx < marginLeft + stickRegionLeft,
+      right: dx > containerWidth - width - marginRight - stickRegionRight,
+      top: dy < marginTop + stickRegionTop,
+      bottom: dy > containerHeight - height - marginBottom - stickRegionBottom,
     };
 
     if (this.inStickRegionLeft) {
-      if (!isInStickRegion.left)
-        this.props.onStickRegionLeave(STICK_REGION_LEFT);
+      if (!isInStickRegion.left) onStickRegionLeave(STICK_REGION_LEFT);
     } else if (isInStickRegion.left) {
-      this.props.onStickRegionEnter(STICK_REGION_LEFT);
+      onStickRegionEnter(STICK_REGION_LEFT);
     }
 
     if (this.inStickRegionRight) {
-      if (!isInStickRegion.right)
-        this.props.onStickRegionLeave(STICK_REGION_RIGHT);
+      if (!isInStickRegion.right) onStickRegionLeave(STICK_REGION_RIGHT);
     } else if (isInStickRegion.right) {
-      this.props.onStickRegionEnter(STICK_REGION_RIGHT);
+      onStickRegionEnter(STICK_REGION_RIGHT);
     }
 
     if (this.inStickRegionTop) {
-      if (!isInStickRegion.top)
-        this.props.onStickRegionLeave(STICK_REGION_TOP);
+      if (!isInStickRegion.top) onStickRegionLeave(STICK_REGION_TOP);
     } else if (isInStickRegion.top) {
-      this.props.onStickRegionEnter(STICK_REGION_TOP);
+      onStickRegionEnter(STICK_REGION_TOP);
     }
 
     if (this.inStickRegionBottom) {
-      if (!isInStickRegion.bottom)
-        this.props.onStickRegionLeave(STICK_REGION_BOTTOM);
+      if (!isInStickRegion.bottom) onStickRegionLeave(STICK_REGION_BOTTOM);
     } else if (isInStickRegion.bottom) {
-      this.props.onStickRegionEnter(STICK_REGION_BOTTOM);
+      onStickRegionEnter(STICK_REGION_BOTTOM);
     }
 
     this.inStickRegionLeft = isInStickRegion.left;
@@ -213,11 +212,9 @@ export class ToolWindow extends PureComponent {
     this.containerHeight = this.container.clientHeight;
     this.maxDx = this.containerWidth - this.width - this.props.marginRight;
     this.maxDy = this.containerHeight - this.height - this.props.marginBottom;
-
-    this.setState({
-      dragging: true,
-    });
-
+    
+    this.setState({ dragging: true });
+    
     this.dragStartDiffX = this.currentTranslateX - event.clientX;
     this.dragStartDiffY = this.currentTranslateY - event.clientY;
     this.needRAF = true;
@@ -234,10 +231,7 @@ export class ToolWindow extends PureComponent {
       this.animationFrame = null;
     }
 
-    this.setState({
-      dragging: false,
-    });
-
+    this.setState({ dragging: false });
     this.props.onStopDrag();
   }
 
@@ -249,8 +243,8 @@ export class ToolWindow extends PureComponent {
     this.currentTranslateY = this.dy;
   }
 
-  _handleNavigation(newActiveSection) {
-    this.props.onActiveSectionChange(newActiveSection);
+  _handleNavigation({ value }) {
+    this.props.onActiveSectionChange(value);
   }
   
   _renderButtons(buttons) {
@@ -265,36 +259,42 @@ export class ToolWindow extends PureComponent {
   }
 
   render() {
-    const { tool, toolState } = this.props;
-
+    const {
+      tool,
+      toolState,
+      onClose,
+      onDock,
+      onTitleChange,
+      onFocus,
+    } = this.props;
+    
+    const { dragging } = this.state;
+    
+    const sections = tool.sections;
+    const sectionsNum = sections.size;
+  
     let navArea = null;
-    const sections = tool.sections,
-      sectionsNum = sections.size;
-
     if (sectionsNum > 1) {
-      const tabs = sections.map((section, idx) => (
-        <Tab key={String(idx)} text={section.name} />
-      ));
+      const tabs = sections.map(section => ({ text: section.name }));
 
       navArea = (
         <BlockContentNavigation>
           <Tabs
+            tabs={tabs}
             colorMode="dark"
-            selected={this.props.toolState.activeSection}
-            onSelectTab={this._handleNavigation}
-          >
-            {tabs}
-          </Tabs>
+            selected={toolState.activeSection}
+            onChange={this._handleNavigation}
+          />
         </BlockContentNavigation>
       );
     }
-
+    
+    const mainButtons = tool.mainButtons;
+    const secondaryButtons = tool.secondaryButtons;
+    const mainButtonsNum = mainButtons.size;
+    const secondaryButtonsNum = secondaryButtons.size;
+  
     let actionsArea = null;
-    const mainButtons = tool.mainButtons,
-      secondaryButtons = tool.secondaryButtons,
-      mainButtonsNum = mainButtons.size,
-      secondaryButtonsNum = secondaryButtons.size;
-
     if (mainButtonsNum > 0 || secondaryButtonsNum > 0) {
       let mainActionsRegion = null;
       if (mainButtonsNum > 0) {
@@ -329,22 +329,24 @@ export class ToolWindow extends PureComponent {
     let titleButtons = List();
 
     if (tool.undockable) {
-      titleButtons = titleButtons.push(new ButtonType({
+      const dockButton = new ButtonType({
         icon: 'compress',
-        onPress: this.props.onDock,
-      }));
+        onPress: onDock,
+      });
+      
+      titleButtons = titleButtons.push(dockButton);
     }
 
     if (tool.closable) {
-      titleButtons = titleButtons.push(new ButtonType({
+      const closeButton = new ButtonType({
         icon: 'times',
-        onPress: this.props.onClose,
-      }));
+        onPress: onClose,
+      });
+      
+      titleButtons = titleButtons.push(closeButton);
     }
 
-    const activeSection =
-      sections.get(this.props.toolState.activeSection) || null;
-
+    const activeSection = sections.get(toolState.activeSection) || null;
     const ContentComponent = activeSection !== null
       ? activeSection.component
       : null;
@@ -362,7 +364,7 @@ export class ToolWindow extends PureComponent {
             iconLeft="ellipsis-v"
             buttons={titleButtons}
             onLeftIconMouseDown={this._handleStartDrag}
-            onTitleChange={this.props.onTitleChange}
+            onTitleChange={onTitleChange}
           />
 
           {navArea}
@@ -391,11 +393,11 @@ export class ToolWindow extends PureComponent {
 
     return (
       <DraggableWindow
-        isDragged={this.state.dragging}
+        isDragged={dragging}
         maxHeight={tool.windowMaxHeight}
         minWidth={tool.windowMinWidth}
         zIndex={START_Z_INDEX + toolState.zIndex}
-        onFocus={this.props.onFocus}
+        onFocus={onFocus}
       >
         {mainRegion}
         {sideRegion}

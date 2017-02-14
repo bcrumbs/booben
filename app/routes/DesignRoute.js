@@ -134,10 +134,10 @@ const nestedConstructorBreadcrumbsSelector = createSelector(
     };
     
     const reducer = (acc, cur) => {
-      const component = acc.components.get(cur.componentId),
-        title = component.title || component.name,
-        componentMeta = getComponentMeta(component.name, meta),
-        propName = getComponentPropName(componentMeta, cur.prop, language);
+      const component = acc.components.get(cur.componentId);
+      const title = component.title || component.name;
+      const componentMeta = getComponentMeta(component.name, meta);
+      const propName = getComponentPropName(componentMeta, cur.prop, language);
   
       return {
         ret: acc.ret.push(title, propName),
@@ -425,7 +425,6 @@ class DesignRoute extends PureComponent {
       />
     );
     
-    // TODO: Prevent re-creation of PreviewIFrame on haveNestedConstructor change
     if (haveNestedConstructor) {
       const breadcrumbsItems = nestedConstructorBreadcrumbs
         .toArray()
@@ -459,7 +458,7 @@ class DesignRoute extends PureComponent {
             </HeaderRegion>
           </Header>
         
-          <PanelContent key="preview-panel-content">
+          <PanelContent key="preview-panel-content" flex>
             {previewIFrame}
           </PanelContent>
         </Panel>
@@ -467,7 +466,7 @@ class DesignRoute extends PureComponent {
     } else {
       return (
         <Panel spread height="auto" maxHeight="none">
-          <PanelContent key="preview-panel-content">
+          <PanelContent key="preview-panel-content" flex>
             {previewIFrame}
           </PanelContent>
         </Panel>

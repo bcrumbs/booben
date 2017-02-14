@@ -30,11 +30,11 @@ export class PropToggle extends PropBase {
   
   /**
    *
-   * @param {boolean} newValue
+   * @param {boolean} value
    * @private
    */
-  _handleChange(newValue) {
-    this.props.onChange({ value: newValue });
+  _handleChange({ value }) {
+    this.props.onChange({ value });
   }
   
   //noinspection JSUnusedGlobalSymbols
@@ -53,7 +53,7 @@ export class PropToggle extends PropBase {
         <ToggleButton
           checked={this.props.value}
           disabled={this.props.disabled}
-          onCheck={this._handleChange}
+          onChange={this._handleChange}
         />
       </div>,
     ];

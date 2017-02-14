@@ -233,17 +233,17 @@ export class DataSelection extends PureComponent {
   
   /**
    *
-   * @param {number} itemIndex
+   * @param {number} index
    * @private
    */
-  _handleBreadcrumbsClick(itemIndex) {
+  _handleBreadcrumbsClick({ index }) {
     const { schema, onReturn } = this.props;
     const { currentPath } = this.state;
     
-    if (itemIndex === currentPath.length + 1) return;
+    if (index === currentPath.length + 1) return;
     
-    if (itemIndex > 0) {
-      const nextPath = currentPath.slice(0, itemIndex - 1);
+    if (index > 0) {
+      const nextPath = currentPath.slice(0, index - 1);
       const nextTypeName = getTypeNameByPath(schema, nextPath);
       
       this.setState({

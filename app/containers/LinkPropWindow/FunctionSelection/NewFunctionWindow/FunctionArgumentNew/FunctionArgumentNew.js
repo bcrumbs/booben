@@ -3,12 +3,7 @@
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import { TypeNames } from '@jssy/types';
-
-import {
-  Input,
-  SelectBox,
-  Button,
-} from '@reactackle/reactackle';
+import { Input, SelectBox, Button } from '@reactackle/reactackle';
 
 import {
   BlockContentBoxGroup,
@@ -48,7 +43,12 @@ export class FunctionArgumentNew extends PureComponent {
     this._handleAddButtonPress = this._handleAddButtonPress.bind(this);
     this._handleCancelButtonPress = this._handleCancelButtonPress.bind(this);
   }
-
+  
+  /**
+   *
+   * @return {{ value: string, text: string }[]}
+   * @private
+   */
   _getTypeOptions() {
     const { getLocalizedText } = this.props;
 
@@ -59,20 +59,38 @@ export class FunctionArgumentNew extends PureComponent {
       { value: TypeNames.BOOL, text: getLocalizedText('types.bool') },
     ];
   }
-
-  _handleNameChange(newName) {
-    this.setState({ name: newName });
+  
+  /**
+   *
+   * @param {string} value
+   * @private
+   */
+  _handleNameChange({ value }) {
+    this.setState({ name: value });
   }
-
-  _handleTypeChange(newType) {
-    this.setState({ type: newType });
+  
+  /**
+   *
+   * @param {string} value
+   * @private
+   */
+  _handleTypeChange({ value: { value } }) {
+    this.setState({ type: value });
   }
-
+  
+  /**
+   *
+   * @private
+   */
   _handleAddButtonPress() {
     const { name, type } = this.state;
     this.props.onAdd({ name, type });
   }
-
+  
+  /**
+   *
+   * @private
+   */
   _handleCancelButtonPress() {
     this.props.onCancel();
   }
@@ -107,7 +125,7 @@ export class FunctionArgumentNew extends PureComponent {
                 value={type}
                 data={typeOptions}
                 stateless
-                onSelect={this._handleTypeChange}
+                onChange={this._handleTypeChange}
               />
             </div>
 

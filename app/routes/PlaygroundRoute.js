@@ -9,99 +9,75 @@
 import React from 'react';
 
 import {
-    App,
-    TopRegion,
-    BottomRegion,
-    Button,
-    Breadcrumbs,
-    Column,
-    Container,
-    Dialog,
-    DialogContent,
-    Header,
-    HeaderRegion,
-    HeaderTitle,
-    HeaderLogoBox,
-    HeaderMenu,
-    HeaderMenuList,
-    HeaderMenuGroup,
-    HeaderMenuItem,
-    Footer,
-    FooterRegion,
-    FooterMenu,
-    FooterMenuItem,
-    FooterMenuGroup,
-    FooterMenuList,
-    Panel,
-    PanelContent,
-    Row,
-    Tabs,
-    Tab,
-    ToggleButton,
+  App,
+  TopRegion,
+  BottomRegion,
+  Button,
+  Header,
+  HeaderRegion,
+  HeaderLogoBox,
+  HeaderMenu,
+  HeaderMenuList,
+  HeaderMenuGroup,
+  HeaderMenuItem,
+  Footer,
+  FooterRegion,
+  FooterMenu,
+  FooterMenuItem,
+  FooterMenuGroup,
+  FooterMenuList,
+  Panel,
+  PanelContent,
+  ToggleButton,
 } from '@reactackle/reactackle';
 
 import {
-    RoutesList,
-    RouteCard,
-    RouteNewButton,
-} from '../components/RoutesList/RoutesList';
-
-import {
-    BlockContentBox,
-    BlockContentBoxItem,
-    BlockContentBoxHeading,
-    BlockBreadcrumbs,
-    BlockContentPlaceholder,
+  BlockContentBox,
+  BlockContentBoxItem,
+  BlockContentBoxHeading,
+  BlockContentPlaceholder,
 } from '../components/BlockContent/BlockContent';
 
 import {
-    Accordion,
-    AccordionItemRecord,
+  Accordion,
+  AccordionItemRecord,
 } from '../components/Accordion/Accordion';
 
 import {
-    ComponentTag,
-    ComponentTagWrapper,
+  ComponentTag,
+  ComponentTagWrapper,
 } from '../components/ComponentTag/ComponentTag';
 
 import {
-    ComponentsTree,
-    ComponentsTreeList,
-    ComponentsTreeItem,
+  ComponentsTree,
+  ComponentsTreeList,
+  ComponentsTreeItem,
 } from '../components/ComponentsTree/ComponentsTree';
 
 import {
-    PropsList,
-    PropsItem,
-} from '../components/PropsList/PropsList';
-
-import {
-    ComponentLayoutSelection,
-    ComponentLayoutSelectionItem,
+  ComponentLayoutSelection,
+  ComponentLayoutSelectionItem,
 } from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
 import {
-    ComponentActionEditing,
-    ComponentActionsList,
+  ComponentActionEditing,
+  ComponentActionsList,
 } from '../components/ComponentInteractions/ComponentInteractions';
 
-import { HeaderRoute } from '../components/HeaderRoute/HeaderRoute';
 import { ProjectSave } from '../components/ProjectSave/ProjectSave';
 
 import {
-    DataList,
-    DataItem,
+  DataList,
+  DataItem,
 } from '../components/DataList/DataList';
 
 import {
-    ConstructionPane,
-    ConstructionTool,
+  ConstructionTool,
 } from '../components/ConstructionPane/ConstructionPane';
 
 import { Desktop } from '../containers/Desktop/Desktop';
 
 import ToolSectionRecord from '../models/ToolSection';
-import ButtonRecord from '../models/Button';
 import ToolRecord from '../models/Tool';
 
 import { List, Set } from 'immutable';
@@ -237,51 +213,6 @@ const toolComponentsPlaceholderWindowSections = List([
   }),
 ]);
 
-// Route Editing
-const treeItems = [
-  {
-    title: 'prop-1',
-    subtitle: 'object',
-  },
-  {
-    title: 'buttons',
-    subtitle: 'object',
-    isActive: true,
-  },
-];
-
-const toolRouteWindowSections = List([
-  new ToolSectionRecord({
-    name: 'Route Editing',
-    component: () => (
-      <BlockContentBox isBordered>
-        <BlockContentBoxHeading>Tree Prop</BlockContentBoxHeading>
-
-        <BlockContentBoxItem>
-          <PropsList />
-        </BlockContentBoxItem>
-
-      </BlockContentBox>
-        ),
-  }),
-]);
-
-const toolRouteWindowMainActions = List([
-  new ButtonRecord({
-    text: 'Save',
-    onPress: () => {},
-  }),
-]);
-
-const toolRouteWindowSecondaryActions = List([
-  new ButtonRecord({
-    icon: 'trash-o',
-    onPress: () => {},
-  }),
-]);
-
-// Route Editing
-
 const toolSitemapWindowSections = List([
   new ToolSectionRecord({
     name: 'Sitemap',
@@ -337,348 +268,6 @@ const toolComponentTemplatesWindowSections = List([
   }),
 ]);
 
-const sampleData = [
-  {
-    value: '1',
-    text: 'item 1',
-  },
-  {
-    value: '2',
-    text: 'item 2',
-  },
-  {
-    value: '3',
-    text: 'item 3',
-  },
-];
-
-// Component Props : Step 2 - layout
-const toolComponentLayoutWindowSections = List([
-  new ToolSectionRecord({
-    name: 'Route Editing',
-    component: () => (
-      <BlockContentBox isBordered>
-        <BlockContentBoxHeading>Prop View: Input</BlockContentBoxHeading>
-        <BlockContentBoxItem>
-          {/* <PropsItem*/}
-          {/* view="input"*/}
-          {/* label="without type"*/}
-          {/* />*/}
-          {/* <PropsItem*/}
-          {/* view="input"*/}
-          {/* label="some very-very-very extremely long prop label"*/}
-          {/* type="string"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* value="typeA.fieldB"*/}
-          {/* linkable*/}
-          {/* />*/}
-          {/* <PropsItem*/}
-          {/* view="input"*/}
-          {/* label="disabled prop"*/}
-          {/* type="string"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* value="typeA.fieldB"*/}
-          {/* linkable*/}
-          {/* removable*/}
-          {/* />*/}
-          {/* <PropsItem*/}
-          {/* view="input"*/}
-          {/* label="disabled prop"*/}
-          {/* type="string"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* value="typeA.fieldB"*/}
-          {/* image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
-          {/* linkable*/}
-          {/* removable*/}
-          {/* disabled*/}
-          {/* />*/}
-        </BlockContentBoxItem>
-
-        <BlockContentBoxHeading>Prop View: textarea</BlockContentBoxHeading>
-        <BlockContentBoxItem>
-          {/* <PropsItem*/}
-          {/* view="textarea"*/}
-          {/* label="without type"*/}
-          {/* />*/}
-          {/* <PropsItem*/}
-          {/* view="textarea"*/}
-          {/* label="some very-very-very extremely long prop label"*/}
-          {/* type="string"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* value="typeA.fieldB"*/}
-          {/* linkable*/}
-          {/* />*/}
-          {/* <PropsItem*/}
-          {/* view="textarea"*/}
-          {/* label="disabled prop"*/}
-          {/* type="string"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* value="typeA.fieldB"*/}
-          {/* linkable*/}
-          {/* removable*/}
-          {/* />*/}
-          {/* <PropsItem*/}
-          {/* view="textarea"*/}
-          {/* label="disabled prop"*/}
-          {/* type="string"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* value="typeA.fieldB"*/}
-          {/* image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
-          {/* linkable*/}
-          {/* removable*/}
-          {/* disabled*/}
-          {/* />*/}
-        </BlockContentBoxItem>
-
-        <BlockContentBoxHeading>Prop View: constructor</BlockContentBoxHeading>
-        <BlockContentBoxItem>
-          {/* <PropsItem*/}
-          {/* view="constructor"*/}
-          {/* label="without type"*/}
-          {/* setComponentButtonText="Set Component"*/}
-          {/* />*/}
-          {/* <PropsItem*/}
-          {/* view="constructor"*/}
-          {/* label="some very-very-very extremely long prop label"*/}
-          {/* type="constructor"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* setComponentButtonText="Set Component"*/}
-          {/* linkable*/}
-          {/* />*/}
-          {/* <PropsItem*/}
-          {/* view="constructor"*/}
-          {/* label="disabled prop"*/}
-          {/* type="constructor"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* setComponentButtonText="Set Component"*/}
-          {/* linkable*/}
-          {/* removable*/}
-          {/* />*/}
-          {/* <PropsItem*/}
-          {/* view="constructor"*/}
-          {/* label="disabled prop"*/}
-          {/* type="constructor"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
-          {/* setComponentButtonText="Set Component"*/}
-          {/* linkable*/}
-          {/* removable*/}
-          {/* disabled*/}
-          {/* />*/}
-        </BlockContentBoxItem>
-
-        <BlockContentBoxHeading>Prop View: constructor-toggle</BlockContentBoxHeading>
-        <BlockContentBoxItem>
-          {/* <PropsItem*/}
-          {/* view="constructor-toggle"*/}
-          {/* label="without type"*/}
-          {/* setComponentButtonText="Set Component"*/}
-          {/* />*/}
-          {/* <PropsItem*/}
-          {/* view="constructor-toggle"*/}
-          {/* label="some very-very-very extremely long prop label"*/}
-          {/* type="constructor"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* setComponentButtonText="Set Component"*/}
-          {/* linkable*/}
-          {/* />*/}
-          {/* <PropsItem*/}
-          {/* view="constructor-toggle"*/}
-          {/* label="disabled prop"*/}
-          {/* type="constructor"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* setComponentButtonText="Set Component"*/}
-          {/* linkable*/}
-          {/* removable*/}
-          {/* />*/}
-          {/* <PropsItem*/}
-          {/* view="constructor-toggle"*/}
-          {/* label="disabled prop"*/}
-          {/* type="constructor"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
-          {/* setComponentButtonText="Set Component"*/}
-          {/* linkable*/}
-          {/* removable*/}
-          {/* disabled*/}
-          {/* />*/}
-        </BlockContentBoxItem>
-
-        <BlockContentBoxHeading>Prop View: toggle</BlockContentBoxHeading>
-        <BlockContentBoxItem>
-          {/* <PropsItem*/}
-          {/* view="toggle"*/}
-          {/* label="without type"*/}
-          {/* />*/}
-          {/* <PropsItem*/}
-          {/* view="toggle"*/}
-          {/* label="some very-very-very extremely long prop label"*/}
-          {/* type="bool"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* linkable*/}
-          {/* />*/}
-          {/* <PropsItem*/}
-          {/* view="toggle"*/}
-          {/* label="disabled prop"*/}
-          {/* type="bool"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* linkable*/}
-          {/* removable*/}
-          {/* />*/}
-          {/* <PropsItem*/}
-          {/* view="toggle"*/}
-          {/* label="disabled prop"*/}
-          {/* type="bool"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
-          {/* linkable*/}
-          {/* removable*/}
-          {/* disabled*/}
-          {/* />*/}
-
-          {/* <PropsItem*/}
-          {/* view="toggle"*/}
-          {/* label="has childrens - closed"*/}
-          {/* type="bool"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
-          {/* linkable*/}
-          {/* removable*/}
-          {/* >*/}
-          {/* <PropsList>*/}
-          {/* <PropsItem view="input" label="child item 1"/>*/}
-          {/* <PropsItem view="input" label="child item 2"/>*/}
-          {/* <PropsItem view="input" label="child item 3"/>*/}
-          {/* </PropsList>*/}
-          {/* </PropsItem>*/}
-
-          {/* <PropsItem*/}
-          {/* view="toggle"*/}
-          {/* label="has childrens - opened"*/}
-          {/* type="bool"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
-          {/* linkable*/}
-          {/* removable*/}
-          {/* subtreeOn*/}
-          {/* >*/}
-          {/* <PropsList>*/}
-          {/* <PropsItem view="input" label="child item 1"/>*/}
-          {/* <PropsItem view="input" label="child item 2"/>*/}
-          {/* <PropsItem view="input" label="child item 3"/>*/}
-          {/* </PropsList>*/}
-          {/* </PropsItem>*/}
-        </BlockContentBoxItem>
-
-        <BlockContentBoxHeading>Prop View: tree</BlockContentBoxHeading>
-        <BlockContentBoxItem>
-          {/* <PropsItem*/}
-          {/* view="tree"*/}
-          {/* label="without type"*/}
-          {/* >*/}
-          {/* <PropsList>*/}
-          {/* <PropsItem view="input" label="child item 1" removable/>*/}
-          {/* <PropsItem view="input" label="child item 2" removable/>*/}
-          {/* <PropsItem view="input" label="child item 3" removable/>*/}
-          {/* </PropsList>*/}
-          {/* </PropsItem>*/}
-
-          {/* <PropsItem*/}
-          {/* view="tree"*/}
-          {/* label="some very-very-very extremely long prop label"*/}
-          {/* type="constructor"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* linkable*/}
-          {/* >*/}
-          {/* <PropsList>*/}
-          {/* <PropsItem view="input" label="child item 1" removable/>*/}
-          {/* <PropsItem view="input" label="child item 2" removable/>*/}
-          {/* <PropsItem view="input" label="child item 3" removable/>*/}
-          {/* </PropsList>*/}
-          {/* </PropsItem>*/}
-
-          {/* <PropsItem*/}
-          {/* view="tree"*/}
-          {/* label="disabled prop"*/}
-          {/* type="constructor"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* linkable*/}
-          {/* removable*/}
-          {/* >*/}
-          {/* <PropsList>*/}
-          {/* <PropsItem view="input" label="child item 1" removable/>*/}
-          {/* <PropsItem view="input" label="child item 2" removable/>*/}
-          {/* <PropsItem view="input" label="child item 3" removable/>*/}
-          {/* </PropsList>*/}
-          {/* </PropsItem>*/}
-
-          {/* <PropsItem*/}
-          {/* view="tree"*/}
-          {/* label="some very very very long prop label"*/}
-          {/* type="constructor"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
-          {/* linkable*/}
-          {/* removable*/}
-          {/* disabled*/}
-          {/* >*/}
-          {/* <PropsList>*/}
-          {/* <PropsItem view="input" label="child item 1" removable/>*/}
-          {/* <PropsItem view="input" label="child item 2" removable/>*/}
-          {/* <PropsItem view="input" label="child item 3" removable/>*/}
-          {/* </PropsList>*/}
-          {/* </PropsItem>*/}
-
-          {/* <PropsItem*/}
-          {/* view="tree"*/}
-          {/* label="has childrens - closed"*/}
-          {/* type="object"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* image="http://www.funny-animalpictures.com/media/content/items/images/funnyowls0074_O.jpg"*/}
-          {/* linkable*/}
-          {/* removable*/}
-          {/* >*/}
-          {/* <PropsList>*/}
-          {/* <PropsItem view="input" label="child item 1" removable/>*/}
-          {/* <PropsItem view="input" label="child item 2" removable/>*/}
-          {/* <PropsItem view="input" label="child item 3" removable/>*/}
-          {/* </PropsList>*/}
-          {/* </PropsItem>*/}
-
-          {/* <PropsItem*/}
-          {/* view="tree"*/}
-          {/* label="Has childrens - opened"*/}
-          {/* type="object"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* linkable*/}
-          {/* opened*/}
-          {/* >*/}
-          {/* <PropsItem view="input" label="child item 1" removable/>*/}
-          {/* <PropsItem view="input" label="child item 2" removable/>*/}
-          {/* <PropsItem view="input" label="child item 3" removable/>*/}
-          {/* </PropsItem>*/}
-
-          {/* <PropsItem*/}
-          {/* view="tree"*/}
-          {/* label="Has childrens - opened"*/}
-          {/* type="arrayOf"*/}
-          {/* tooltip={'some tooltip'}*/}
-          {/* linkable*/}
-          {/* opened*/}
-          {/* addNewField*/}
-          {/* >*/}
-
-          {/* <PropsItem view="input" label="child item 1" removable/>*/}
-          {/* <PropsItem view="input" label="child item 2" removable/>*/}
-          {/* <PropsItem view="input" label="child item 3" removable/>*/}
-
-          {/* </PropsItem>*/}
-        </BlockContentBoxItem>
-      </BlockContentBox>
-        ),
-  }),
-]);
-
 // Component Props : Action Tab
 const componentActionsList = [
   {
@@ -721,18 +310,6 @@ export const PLAYGROUND_TOOL_IDS = List([
 
 const toolGroups = List([
   List([
-    new ToolRecord({
-      id: 'tool5',
-      icon: 'cog',
-      name: 'Parsers',
-      title: 'Route Settings',
-      undockable: true,
-      closable: false,
-      sections: toolComponentLayoutWindowSections,
-      mainButtons: toolRouteWindowMainActions,
-      secondaryButtons: toolRouteWindowSecondaryActions,
-    }),
-
     new ToolRecord({
       id: 'tool9',
       icon: 'cog',
@@ -817,61 +394,6 @@ const toolGroups = List([
   ]),
 ]);
 
-const headerMainMenu = [
-  {
-    text: 'Structure',
-  },
-  {
-    text: 'Design',
-  },
-  {
-    text: 'Data',
-    isActive: true,
-    submenuList: [
-      {
-        text: 'User Route: Route 1',
-      },
-      {
-        text: 'User Route: Route 2',
-      },
-    ],
-  },
-  {
-    text: 'Settings',
-  },
-];
-const headerMenuSecondary = [
-  {
-    text: 'Preview',
-  },
-  {
-    text: 'Publish',
-  },
-];
-const footerMenuRight = [
-  {
-    text: "Show component's title",
-    subcomponentRight: '<ToggleButton />',
-  },
-  {
-    text: 'Show placeholders',
-    subcomponentRight: '<ToggleButton />',
-  },
-  {
-    text: 'Toggle fullscreen',
-  },
-];
-
-const breadcrumbsItems = [
-  {
-    title: 'ParentComponent',
-  },
-  {
-    title: 'Content',
-    isActive: true,
-  },
-];
-
 export default class Playground extends React.Component {
   render() {
     return (
@@ -925,9 +447,6 @@ export default class Playground extends React.Component {
 
         <Desktop toolGroups={toolGroups}>
           <Panel headerFixed maxHeight="initial" spread>
-
-            <HeaderRoute />
-
             <PanelContent>
               Тут был старый DataWindow, но его победил Бэтмен.
               <img src="https://upload.wikimedia.org/wikipedia/en/1/17/Batman-BenAffleck.jpg" alt=""/>

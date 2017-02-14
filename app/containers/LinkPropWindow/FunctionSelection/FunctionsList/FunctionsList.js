@@ -6,7 +6,7 @@
 
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
-import { Button, Tabs, Tab } from '@reactackle/reactackle';
+import { Button, Tabs } from '@reactackle/reactackle';
 
 import {
   BlockContent,
@@ -74,21 +74,20 @@ export class FunctionsList extends PureComponent {
 
   /**
    *
-   * @param {number} itemIndex
+   * @param {number} index
    * @private
    */
-  _handleBreadcrumbsClick(itemIndex) {
-    if (itemIndex === 0) this.props.onReturn();
+  _handleBreadcrumbsClick({ index }) {
+    if (index === 0) this.props.onReturn();
   }
 
   /**
    *
    * @private
    */
-  _handleTabSelect(tabIndex) {
-    this.setState({
-      activeSection: tabIndex === 0 ? Sections.BUILTIN : Sections.PROJECT,
-    });
+  _handleTabSelect({ value }) {
+    const activeSection = value === 0 ? Sections.BUILTIN : Sections.PROJECT;
+    this.setState({ activeSection });
   }
 
   /**
@@ -154,6 +153,11 @@ export class FunctionsList extends PureComponent {
         </BlockContentBoxItem>
       );
     }
+    
+    const tabs = [
+      { text: 'Library functions' },
+      { text: 'User functions' },
+    ];
 
     return (
       <BlockContent>
@@ -167,13 +171,11 @@ export class FunctionsList extends PureComponent {
 
         <BlockContentNavigation isBordered>
           <Tabs
+            tabs={tabs}
             selected={activeSection}
             colorMode="dark"
-            onSelectTab={this._handleTabSelect}
-          >
-            <Tab text="Library functions" />
-            <Tab text="User functions" />
-          </Tabs>
+            onChange={this._handleTabSelect}
+          />
         </BlockContentNavigation>
 
         <BlockContentBox isBordered>

@@ -305,8 +305,8 @@ export class NewFunctionWindow extends PureComponent {
           <BlockContentActionsRegion type="secondary">
             <Button
               text={getLocalizedText('common.back')}
-              onPress={this._handleBack}
               icon="chevron-left"
+              onPress={this._handleBack}
             />
           </BlockContentActionsRegion>
           <BlockContentActionsRegion type="main">

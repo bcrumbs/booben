@@ -133,7 +133,7 @@ const RootRoute = props => {
         subcomponentRight={
           <ToggleButton
             checked={props.showComponentTitles}
-            onCheck={props.onToggleComponentTitles}
+            onChange={props.onToggleComponentTitles}
           />
         }
       />
@@ -145,7 +145,7 @@ const RootRoute = props => {
         subcomponentRight={
           <ToggleButton
             checked={props.showContentPlaceholders}
-            onCheck={props.onToggleContentPlaceholders}
+            onChange={props.onToggleContentPlaceholders}
           />
         }
       />
@@ -276,10 +276,10 @@ const mapStateToProps = ({ project, app }) => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onToggleContentPlaceholders: enable =>
-    void dispatch(toggleContentPlaceholders(enable)),
-  onToggleComponentTitles: enable =>
-    void dispatch(toggleComponentTitles(enable)),
+  onToggleContentPlaceholders: ({ value }) =>
+    void dispatch(toggleContentPlaceholders(value)),
+  onToggleComponentTitles: ({ value }) =>
+    void dispatch(toggleComponentTitles(value)),
 });
 
 export default connect(

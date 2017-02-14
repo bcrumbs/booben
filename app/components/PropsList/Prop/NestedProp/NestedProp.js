@@ -24,7 +24,7 @@ import {
   isComplexView,
 } from '../common';
 
-import { noop } from '../../../../utils/misc';
+import { noop, returnArg } from '../../../../utils/misc';
 
 const propTypes = {
   propType: PropTypeShape.isRequired,
@@ -33,7 +33,7 @@ const propTypes = {
   label: PropTypes.string.isRequired,
   deletable: PropTypes.bool,
   disabled: PropTypes.bool,
-  
+  getLocalizedText: PropTypes.func,
   onChange: PropTypes.func,
   onSetComponent: PropTypes.func,
   onLink: PropTypes.func,
@@ -46,7 +46,7 @@ const propTypes = {
 const defaultProps = {
   deletable: false,
   disabled: false,
-  
+  getLocalizedText: returnArg,
   onChange: noop,
   onSetComponent: noop,
   onLink: noop,
@@ -134,6 +134,7 @@ export class NestedProp extends PureComponent {
       disabled,
       deletable,
       label,
+      getLocalizedText,
     } = this.props;
     
     const commonProps = {
@@ -209,6 +210,7 @@ export class NestedProp extends PureComponent {
           {...commonProps}
           haveComponent={value.value}
           disabled={disabled}
+          getLocalizedText={getLocalizedText}
           onSetComponent={this._handleSetComponent}
         />
       );

@@ -33,10 +33,8 @@ export class AddNestedValueDialog extends PureComponent {
     this._handleSave = this._handleSave.bind(this);
   }
   
-  _handleNameChange(newName) {
-    this.setState({
-      name: newName,
-    });
+  _handleNameChange({ value }) {
+    this.setState({ name: value });
   }
   
   _handleSave() {

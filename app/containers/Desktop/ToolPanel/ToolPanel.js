@@ -123,7 +123,7 @@ export const ToolPanel = props => {
       props.onToolUndock(activeTool, nextActiveTool);
     };
 
-    const onActiveSectionChange = newActiveSection =>
+    const onActiveSectionChange = ({ newActiveSection }) =>
       props.onToolActiveSectionChange(activeTool, newActiveSection);
 
     panelContent = (

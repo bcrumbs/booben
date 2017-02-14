@@ -4,12 +4,7 @@
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { List } from 'immutable';
-
-import {
-    Icon,
-    Button,
-} from '@reactackle/reactackle';
-
+import { Icon, Button } from '@reactackle/reactackle';
 import ButtonType from '../../../models/Button';
 import { noop } from '../../../utils/misc';
 

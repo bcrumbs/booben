@@ -118,11 +118,11 @@ export class PropBase extends PureComponent {
   
   /**
    *
-   * @param {boolean} checked
+   * @param {boolean} value
    * @private
    */
-  _handleCheck(checked) {
-    this.props.onCheck({ checked, id: this.props.id });
+  _handleCheck({ value }) {
+    this.props.onCheck({ checked: value, id: this.props.id });
   }
   
   /**
@@ -250,7 +250,7 @@ export class PropBase extends PureComponent {
         <div className="prop_subcomponent prop_subcomponent-left">
           <Checkbox
             checked={this.props.checked}
-            onCheck={this._handleCheck}
+            onChange={this._handleCheck}
           />
         </div>
       );

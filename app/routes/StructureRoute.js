@@ -12,6 +12,9 @@ import { List } from 'immutable';
 import {
   Panel,
   PanelContent,
+  Header,
+  HeaderRegion,
+  HeaderTitle,
   Container,
   Row,
   Column,
@@ -28,7 +31,6 @@ import {
   RouteNewButton,
 } from '../components/RoutesList/RoutesList';
 
-import { HeaderRoute } from '../components/HeaderRoute/HeaderRoute';
 import { Desktop } from '../containers/Desktop/Desktop';
 import { RouteEditor } from '../containers/RouteEditor/RouteEditor';
 import ProjectRecord from '../models/Project';
@@ -352,12 +354,12 @@ class StructureRoute extends PureComponent {
 
   /**
    *
-   * @param {string} newPath
+   * @param {string} value
    * @private
    */
-  _handleNewRoutePathChange(newPath) {
+  _handleNewRoutePathChange({ value }) {
     this.setState({
-      newRoutePath: newPath,
+      newRoutePath: value,
       pathPatternError: false,
     });
   }
@@ -380,12 +382,12 @@ class StructureRoute extends PureComponent {
 
   /**
    *
-   * @param {string} newTitle
+   * @param {string} value
    * @private
    */
-  _handleNewRouteTitleChange(newTitle) {
+  _handleNewRouteTitleChange({ value }) {
     this.setState({
-      newRouteTitle: newTitle,
+      newRouteTitle: value,
     });
   }
 
@@ -538,9 +540,39 @@ class StructureRoute extends PureComponent {
       </RouteCard>
     );
   }
+  
+  _renderContent() {
+    const { project, getLocalizedText } = this.props;
+  
+    const routesList =
+      this._renderRouteList(project.routes, null, project.rootRoutes);
+    
+    return (
+      <Panel headerFixed maxHeight="initial" spread>
+        <Header>
+          <HeaderRegion spread alignY="center">
+            <HeaderTitle>
+              {getLocalizedText('structure')}
+            </HeaderTitle>
+          </HeaderRegion>
+        </Header>
+    
+        <PanelContent>
+          <Container>
+            <Row>
+              <Column>
+                {routesList}
+              </Column>
+            </Row>
+          </Container>
+        </PanelContent>
+      </Panel>
+    );
+  }
 
   render() {
-    const { project, getLocalizedText } = this.props;
+    const { getLocalizedText } = this.props;
+    
     const {
       createRouteParentId,
       newRouteTitle,
@@ -549,12 +581,6 @@ class StructureRoute extends PureComponent {
       createRouteDialogIsVisible,
       pathPatternError,
     } = this.state;
-    
-    const routesList = this._renderRouteList(
-      project.routes,
-      null,
-      project.rootRoutes,
-    );
 
     const deleteRouteDialogButtons = [{
       text: getLocalizedText('common.delete'),
@@ -605,25 +631,15 @@ class StructureRoute extends PureComponent {
     }
     
     const pathInputPrefix = creatingRootRoute ? '/' : '';
+    
+    const content = this._renderContent();
 
     return (
       <Desktop
         toolGroups={this._toolGroups}
         onToolTitleChange={this._handleToolTitleChange}
       >
-        <Panel headerFixed maxHeight="initial" spread>
-          <HeaderRoute title={getLocalizedText('structure')} />
-
-          <PanelContent>
-            <Container>
-              <Row>
-                <Column>
-                  {routesList}
-                </Column>
-              </Row>
-            </Container>
-          </PanelContent>
-        </Panel>
+        {content}
 
         <Dialog
           title={getLocalizedText('structure.deleteRouteQuestion')}

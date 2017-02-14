@@ -5,25 +5,20 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import { List } from 'immutable';
+import { Button, Tabs } from '@reactackle/reactackle';
 
 import {
-  Button,
-  Tabs,
-  Tab,
-} from '@reactackle/reactackle';
-
-import {
-    PageDrawerContentArea,
+  PageDrawerContentArea,
 } from '../../../../components/PageDrawer/PageDrawer';
 
 import {
-    BlockContent,
-    BlockContentTitle,
-    BlockContentActions,
-    BlockContentActionsRegion,
-    BlockContentNavigation,
+  BlockContent,
+  BlockContentTitle,
+  BlockContentActions,
+  BlockContentActionsRegion,
+  BlockContentNavigation,
 } from '../../../../components/BlockContent/BlockContent';
 
 import ButtonType from '../../../../models/Button';
@@ -48,122 +43,138 @@ const defaultProps = {
   onActiveSectionChange: noop,
 };
 
-export const ToolPanelContent = props => {
-  const { tool, toolState } = props;
-
-  let titleButtons = List([
-    new ButtonType({
+export class ToolPanelContent extends PureComponent {
+  constructor(props) {
+    super(props);
+    this._handleTabChange = this._handleTabChange.bind(this);
+  }
+  
+  _handleTabChange({ value }) {
+    const { onActiveSectionChange } = this.props;
+    onActiveSectionChange({ newActiveSection: value });
+  }
+  
+  render() {
+    const {
+      tool,
+      toolState,
+      onCollapse,
+      onUndock,
+      onTitleChange,
+    } = this.props;
+    
+    const collapseButton = new ButtonType({
       icon: 'chevron-right',
-      onPress: props.onCollapse,
-    }),
-  ]);
-
-  if (tool.undockable) {
-    titleButtons = titleButtons.unshift(new ButtonType({
-      icon: 'arrows-alt',
-      onPress: props.onUndock,
-    }));
-  }
-
-  let navArea = null;
-  const sections = tool.sections,
-    sectionsNum = sections.size;
-
-  if (sectionsNum > 1) {
-    const tabs = sections.map((section, idx) => (
-      <Tab key={String(idx)} text={section.name} />
-    ));
-
-    navArea = (
-      <BlockContentNavigation>
-        <Tabs
-          colorMode="dark"
-          selected={toolState.activeSection}
-          onSelectTab={props.onActiveSectionChange}
-        >
-          {tabs}
-        </Tabs>
-      </BlockContentNavigation>
-    );
-  }
-
-  const activeSection = sections.get(toolState.activeSection) || null;
-
-  const ContentComponent = activeSection !== null
-    ? activeSection.component
-    : null;
-
-  const content = ContentComponent ? <ContentComponent /> : null;
-
-  let actionsArea = null;
-  const mainButtons = tool.mainButtons,
-    secondaryButtons = tool.secondaryButtons,
-    mainButtonsNum = mainButtons.size,
-    secondaryButtonsNum = secondaryButtons.size;
-
-  if (mainButtonsNum > 0 || secondaryButtonsNum > 0) {
-    let mainActionsRegion = null;
-    if (mainButtonsNum > 0) {
-      const buttons = mainButtons.map(({ icon, text, onPress }, idx) => (
-        <Button
-          key={String(idx)}
-          icon={icon}
-          text={text}
-          onPress={onPress}
-        />
-      ));
-
-      mainActionsRegion = (
-        <BlockContentActionsRegion type="main">
-          {buttons}
-        </BlockContentActionsRegion>
+      onPress: onCollapse,
+    });
+  
+    let titleButtons = List([collapseButton]);
+  
+    if (tool.undockable) {
+      const undockButton = new ButtonType({
+        icon: 'arrows-alt',
+        onPress: onUndock,
+      });
+    
+      titleButtons = titleButtons.unshift(undockButton);
+    }
+  
+    const sections = tool.sections;
+    const sectionsNum = sections.size;
+    let navArea = null;
+  
+    if (sectionsNum > 1) {
+      const tabs = sections.map(section => ({ text: section.name }));
+    
+      navArea = (
+        <BlockContentNavigation>
+          <Tabs
+            tabs={tabs}
+            colorMode="dark"
+            selected={toolState.activeSection}
+            onChange={this._handleTabChange}
+          />
+        </BlockContentNavigation>
       );
     }
-
-    let secondaryButtonsRegion = null;
-    if (secondaryButtonsNum > 0) {
-      const buttons = secondaryButtons.map(({ icon, text, onPress }, idx) => (
-        <Button
-          key={String(idx)}
-          icon={icon}
-          text={text}
-          onPress={onPress}
-        />
-      ));
-
-      secondaryButtonsRegion = (
-        <BlockContentActionsRegion type="secondary">
-          {buttons}
-        </BlockContentActionsRegion>
+  
+    const activeSection = sections.get(toolState.activeSection) || null;
+    const ContentComponent = activeSection !== null
+      ? activeSection.component
+      : null;
+  
+    const content = ContentComponent ? <ContentComponent /> : null;
+  
+    let actionsArea = null;
+    const mainButtons = tool.mainButtons;
+    const secondaryButtons = tool.secondaryButtons;
+    const mainButtonsNum = mainButtons.size;
+    const secondaryButtonsNum = secondaryButtons.size;
+  
+    if (mainButtonsNum > 0 || secondaryButtonsNum > 0) {
+      let mainActionsRegion = null;
+      if (mainButtonsNum > 0) {
+        const buttons = mainButtons.map(({ icon, text, onPress }, idx) => (
+          <Button
+            key={String(idx)}
+            icon={icon}
+            text={text}
+            onPress={onPress}
+          />
+        ));
+      
+        mainActionsRegion = (
+          <BlockContentActionsRegion type="main">
+            {buttons}
+          </BlockContentActionsRegion>
+        );
+      }
+    
+      let secondaryButtonsRegion = null;
+      if (secondaryButtonsNum > 0) {
+        const buttons = secondaryButtons.map(({ icon, text, onPress }, idx) => (
+          <Button
+            key={String(idx)}
+            icon={icon}
+            text={text}
+            onPress={onPress}
+          />
+        ));
+      
+        secondaryButtonsRegion = (
+          <BlockContentActionsRegion type="secondary">
+            {buttons}
+          </BlockContentActionsRegion>
+        );
+      }
+    
+      actionsArea = (
+        <BlockContentActions>
+          {secondaryButtonsRegion}
+          {mainActionsRegion}
+        </BlockContentActions>
       );
     }
-
-    actionsArea = (
-      <BlockContentActions>
-        {secondaryButtonsRegion}
-        {mainActionsRegion}
-      </BlockContentActions>
+  
+    return (
+      <PageDrawerContentArea>
+        <BlockContent>
+          <BlockContentTitle
+            title={tool.title}
+            isEditable={tool.titleEditable}
+            titlePlaceHolder={tool.titlePlaceholder}
+            buttons={titleButtons}
+            onTitleChange={onTitleChange}
+          />
+        
+          {navArea}
+          {content}
+          {actionsArea}
+        </BlockContent>
+      </PageDrawerContentArea>
     );
   }
-
-  return (
-    <PageDrawerContentArea>
-      <BlockContent>
-        <BlockContentTitle
-          title={tool.title}
-          isEditable={tool.titleEditable}
-          titlePlaceHolder={tool.titlePlaceholder}
-          buttons={titleButtons}
-          onTitleChange={props.onTitleChange}
-        />
-
-        {navArea}
-        {content}
-        {actionsArea}
-      </BlockContent>
-    </PageDrawerContentArea>
-  );
-};
+}
 
 ToolPanelContent.propTypes = propTypes;
 ToolPanelContent.defaultProps = defaultProps;

@@ -150,11 +150,11 @@ export class FunctionWindow extends PureComponent {
     return ret;
   }
   
-  _handleBreadcrumbsClick(itemIndex) {
+  _handleBreadcrumbsClick({ index }) {
     const { onReturn, onReturnToList } = this.props;
     
-    if (itemIndex === 0) onReturn();
-    else if (itemIndex === 1) onReturnToList();
+    if (index === 0) onReturn();
+    else if (index === 1) onReturnToList();
   }
   
   _handleCheck({ propName, path, checked }) {

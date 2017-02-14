@@ -41,7 +41,7 @@ export class ComplexPropBreadcrumbs extends PureComponent {
    * @param {number} index
    * @private
    */
-  _handleItemSelect(index) {
+  _handleItemSelect({ index }) {
     this.props.onItemSelect({ index });
   }
   

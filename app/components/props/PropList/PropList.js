@@ -36,11 +36,11 @@ export class PropList extends PropBase {
   
   /**
    *
-   * @param {*} newValue
+   * @param {*} value
    * @private
    */
-  _handleChange(newValue) {
-    this.props.onChange({ id: this.props.id, value: newValue });
+  _handleChange({ value: { value } }) {
+    this.props.onChange({ id: this.props.id, value });
   }
   
   //noinspection JSUnusedGlobalSymbols
@@ -59,7 +59,7 @@ export class PropList extends PropBase {
         data={this.props.options}
         value={this.props.value}
         disabled={this.props.disabled}
-        onSelect={this._handleChange}
+        onChange={this._handleChange}
       />
     );
   }

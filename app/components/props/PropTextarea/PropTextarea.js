@@ -32,13 +32,13 @@ export class PropTextarea extends PropBase {
   
   /**
    *
-   * @param {string} newValue
+   * @param {string} value
    * @private
    */
-  _handleChange(newValue) {
+  _handleChange({ value }) {
     this.props.onChange({
       id: this.props.id,
-      value: this.props.transformValue(newValue),
+      value: this.props.transformValue(value),
     });
   }
   
