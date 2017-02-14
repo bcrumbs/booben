@@ -437,7 +437,7 @@ class DesignRoute extends PureComponent {
     
       //noinspection JSValidateTypes
       return (
-        <Panel headerFixed maxHeight="initial">
+        <Panel headerFixed spread height="auto" maxHeight="none">
           <Header>
             <HeaderRegion spread alignY="center">
               <HeaderTitle>
@@ -464,15 +464,19 @@ class DesignRoute extends PureComponent {
           </Header>
         
           <PanelContent>
-            <ConstructionPane>
-              {previewIFrame}
-            </ConstructionPane>
+            {previewIFrame}
           </PanelContent>
         </Panel>
       );
     } else {
-      //noinspection JSValidateTypes
-      return previewIFrame;
+      return (
+        <Panel spread height="auto" maxHeight="none">
+          <Header size="blank" />
+          <PanelContent>
+            {previewIFrame}
+          </PanelContent>
+        </Panel>
+      );
     }
   }
 
