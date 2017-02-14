@@ -48,10 +48,6 @@ import {
   ComponentLayoutSelectionItem,
 } from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
-import {
-  ConstructionPane,
-} from '../components/ConstructionPane/ConstructionPane';
-
 import store from '../store';
 
 import ProjectComponentRecord from '../models/ProjectComponent';
@@ -463,7 +459,7 @@ class DesignRoute extends PureComponent {
             </HeaderRegion>
           </Header>
         
-          <PanelContent>
+          <PanelContent key="preview-panel-content">
             {previewIFrame}
           </PanelContent>
         </Panel>
@@ -471,8 +467,7 @@ class DesignRoute extends PureComponent {
     } else {
       return (
         <Panel spread height="auto" maxHeight="none">
-          <Header size="blank" />
-          <PanelContent>
+          <PanelContent key="preview-panel-content">
             {previewIFrame}
           </PanelContent>
         </Panel>
