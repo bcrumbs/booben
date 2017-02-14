@@ -48,10 +48,6 @@ import {
   ComponentLayoutSelectionItem,
 } from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
-import {
-  ConstructionPane,
-} from '../components/ConstructionPane/ConstructionPane';
-
 import store from '../store';
 
 import ProjectComponentRecord from '../models/ProjectComponent';
