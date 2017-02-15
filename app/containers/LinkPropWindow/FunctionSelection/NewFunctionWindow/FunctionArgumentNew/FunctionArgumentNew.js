@@ -74,7 +74,7 @@ export class FunctionArgumentNew extends PureComponent {
    * @param {string} value
    * @private
    */
-  _handleTypeChange({ value: { value } }) {
+  _handleTypeChange({ value }) {
     this.setState({ type: value });
   }
   

@@ -39,7 +39,7 @@ export class PropList extends PropBase {
    * @param {*} value
    * @private
    */
-  _handleChange({ value: { value } }) {
+  _handleChange({ value }) {
     this.props.onChange({ id: this.props.id, value });
   }
   
