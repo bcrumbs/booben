@@ -80,14 +80,6 @@ class StructureRoute extends PureComponent {
       pathPatternError: false,
     };
 
-    this._newRouteTitleInput = null;
-    this._toolGroups = this._getTools(
-      props.project,
-      props.selectedRouteId,
-      props.indexRouteSelected,
-      props.getLocalizedText,
-    );
-
     this._handleRouteSelect =
       this._handleRouteSelect.bind(this);
     this._handleRouteGo =
@@ -124,6 +116,14 @@ class StructureRoute extends PureComponent {
       this._handleCreateRouteCreate.bind(this);
     this._handleCreateRouteDialogEnterKey =
       this._handleCreateRouteDialogEnterKey.bind(this);
+  
+    this._newRouteTitleInput = null;
+    this._toolGroups = this._getTools(
+      props.project,
+      props.selectedRouteId,
+      props.indexRouteSelected,
+      props.getLocalizedText,
+    );
   }
   
   componentWillReceiveProps(nextProps) {
