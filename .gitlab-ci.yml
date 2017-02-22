@@ -13,6 +13,8 @@ push_image:
   before_script:
     - "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
   script:
+    - "npm install"
+    - "npm run build"
     - "docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$VERSION ."
     - "docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$VERSION"
   after_script:
@@ -20,4 +22,4 @@ push_image:
   only:
     - master
   tags:
-    - docker
+    - node
