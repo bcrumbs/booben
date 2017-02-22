@@ -1,0 +1,23 @@
+variables:
+  VERSION: "preview1"
+
+stages:
+  - publish
+
+cache:
+  paths:
+  - node_modules/
+
+push_image:
+  stage: publish
+  before_script:
+    - "docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY"
+  script:
+    - "docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$VERSION ."
+    - "docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$VERSION"
+  after_script:
+    - "docker rmi $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$VERSION"
+  only:
+    - master
+  tags:
+    - docker

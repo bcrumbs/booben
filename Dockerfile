@@ -19,12 +19,12 @@ RUN apk update \
     && rm -rf /tmp/* \
     && rm -rf /root/..?* /root/.[!.]* /root/*
 
-VOLUME /var/lib/jssy-projects
+VOLUME /var/lib/jssy
 
 ENV NODE_ENV development
 ENV JSSY_PORT 3000
 ENV JSSY_SERVE_STATIC true
-ENV JSSY_PROJECTS_DIR /var/lib/jssy-projects
+ENV JSSY_PROJECTS_DIR /var/lib/jssy/projects
 
 EXPOSE 3000
 
