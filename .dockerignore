@@ -1,0 +1,12 @@
+**/**
+!common/
+!config/
+!endpoints/
+!preview/
+!public/
+!shared/
+!index.js
+!config.js
+!package.json
+!.npmrc
+!docker-entrypoint.sh
