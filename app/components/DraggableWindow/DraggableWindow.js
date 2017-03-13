@@ -21,6 +21,8 @@ const defaultProps = {
   onFocus: noop,
 };
 
+const DEFAULT_MAX_HEIGHT = '80%';
+
 export const DraggableWindow = props => {
   let className = 'draggable-window';
   if (props.isDragged) className += ' is-dragged';
@@ -31,6 +33,8 @@ export const DraggableWindow = props => {
   };
 
   if (props.maxHeight > 0) style.maxHeight = `${props.maxHeight}px`;
+  else style.maxHeight = DEFAULT_MAX_HEIGHT;
+  
   if (props.minWidth > 0) style.minWidth = `${props.minWidth}px`;
 
   return (

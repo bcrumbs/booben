@@ -100,6 +100,7 @@ export class ToolWindow extends PureComponent {
   componentDidMount() {
     // eslint-disable-next-line react/no-find-dom-node
     this.domNode = ReactDOM.findDOMNode(this);
+    this.container = this.domNode.parentNode;
     this.currentTranslateX = 0;
     this.currentTranslateY = 0;
     this.dragStartDiffX = 0;
@@ -206,8 +207,6 @@ export class ToolWindow extends PureComponent {
 
     this.width = this.domNode.clientWidth;
     this.height = this.domNode.clientHeight;
-    //noinspection JSUnresolvedVariable
-    this.container = this.domNode.parentNode;
     this.containerWidth = this.container.clientWidth;
     this.containerHeight = this.container.clientHeight;
     this.maxDx = this.containerWidth - this.width - this.props.marginRight;

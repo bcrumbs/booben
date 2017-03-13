@@ -93,8 +93,8 @@ export const ToolPanel = props => {
     }
   });
 
-  let panelContent = null,
-    isExpanded = false;
+  let panelContent = null;
+  let isExpanded = false;
 
   if (activeTool !== null) {
     const activeToolState =
@@ -139,9 +139,11 @@ export const ToolPanel = props => {
 
     isExpanded = props.isExpanded;
   }
+  
+  const pageDrawerHasActions = panelSwitcherGroups.length > 0;
 
   return (
-    <PageDrawer isExpanded={isExpanded} hasActions>
+    <PageDrawer isExpanded={isExpanded} hasActions={pageDrawerHasActions}>
       <PageDrawerActionsArea>
         {panelSwitcherGroups}
       </PageDrawerActionsArea>
