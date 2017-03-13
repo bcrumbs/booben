@@ -66,8 +66,8 @@ class Overlay extends PureComponent {
   _renderBoundingBoxes(componentIds, color) {
     //noinspection JSValidateTypes
     return componentIds.map(id => {
-      const element = getDOMElementByComponentId(id),
-        key = `${id}-${color}`;
+      const element = getDOMElementByComponentId(id);
+      const key = `${id}-${color}`;
 
       return (
         <OverlayBoundingBox

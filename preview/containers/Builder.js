@@ -12,9 +12,13 @@ import jssyConstants from '../../app/constants/jssyConstants';
 import { NO_VALUE } from '../../app/constants/misc';
 import { ContentPlaceholder } from '../components/ContentPlaceholder';
 import { Outlet } from '../components/Outlet';
-import { currentSelectedComponentIdsSelector } from '../../app/selectors';
 import getComponentByName from '../getComponentByName';
 import isPseudoComponent from '../isPseudoComponent';
+
+import {
+  currentSelectedComponentIdsSelector,
+  currentHighlightedComponentIdsSelector,
+} from '../../app/selectors';
 
 import {
   isContainerComponent,
@@ -364,6 +368,7 @@ class BuilderComponent extends PureComponent {
     if (!this.props.interactive) return false;
     
     return this.props.showContentPlaceholders ||
+      this.props.highlightedComponentIds.has(component.id) ||
       this.props.selectedComponentIds.has(component.id);
   }
 
@@ -530,6 +535,7 @@ BuilderComponent.propTypes = {
   draggingOverComponentId: PropTypes.number.isRequired,
   showContentPlaceholders: PropTypes.bool.isRequired,
   selectedComponentIds: PropTypes.object.isRequired, // Immutable.Set<number>
+  highlightedComponentIds: PropTypes.object.isRequired, // Immutable.Set<number>
 };
 
 BuilderComponent.defaultProps = {
@@ -560,6 +566,7 @@ const mapStateToProps = state => ({
   draggingOverComponentId: state.project.draggingOverComponentId,
   showContentPlaceholders: state.app.showContentPlaceholders,
   selectedComponentIds: currentSelectedComponentIdsSelector(state),
+  highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
 });
 
 const Builder = connect(mapStateToProps)(BuilderComponent);

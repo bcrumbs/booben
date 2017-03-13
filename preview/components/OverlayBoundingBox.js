@@ -26,9 +26,11 @@ export const OverlayBoundingBox = props => {
     width,
     height,
   } = props.element.getBoundingClientRect();
+  
+  if (!width || !height) return null;
 
-  const syntheticPadding = -2,
-    scrollTop = window.pageYOffset;
+  const syntheticPadding = -2;
+  const scrollTop = window.pageYOffset;
 
   width = width + syntheticPadding + 0.5;
   height = height + syntheticPadding + 0.5;
