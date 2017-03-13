@@ -134,42 +134,38 @@ const handlers = {
         false,
       );
     }
+    
+    if (!state.toolStates.has(action.toolId)) return state;
   
-    if (state.toolStates.has(action.toolId)) {
-      return state
-        .setIn(['toolStates', action.toolId, 'docked'], true)
-        .setIn(['toolStates', action.toolId, 'isActiveInToolsPanel'], true)
-        .merge({
-          stickyToolId: null,
-          activeToolId: action.toolId,
-        });
-    } else {
-      return state;
-    }
+    return state
+      .setIn(['toolStates', action.toolId, 'docked'], true)
+      .setIn(['toolStates', action.toolId, 'isActiveInToolsPanel'], true)
+      .merge({
+        stickyToolId: null,
+        activeToolId: action.toolId,
+      });
   },
   
   [DESKTOP_TOOL_UNDOCK]: (state, action) => {
-    if (state.toolStates.has(action.toolId)) {
-      if (state.activeToolId !== null) {
-        state = state.setIn(
-          ['toolStates', state.activeToolId, 'isActiveInToolsPanel'],
-          false,
-        );
-      }
-    
-      if (action.nextActiveToolId !== null) {
-        state = state.setIn(
-          ['toolStates', action.nextActiveToolId, 'isActiveInToolsPanel'],
-          true,
-        );
-      }
-    
-      return state
-        .setIn(['toolStates', action.toolId, 'docked'], false)
-        .set('activeToolId', action.nextActiveToolId);
-    } else {
-      return state;
+    if (!state.toolStates.has(action.toolId)) return state;
+  
+    if (state.activeToolId !== null) {
+      state = state.setIn(
+        ['toolStates', state.activeToolId, 'isActiveInToolsPanel'],
+        false,
+      );
     }
+  
+    if (action.nextActiveToolId !== null) {
+      state = state.setIn(
+        ['toolStates', action.nextActiveToolId, 'isActiveInToolsPanel'],
+        true,
+      );
+    }
+  
+    return state
+      .setIn(['toolStates', action.toolId, 'docked'], false)
+      .set('activeToolId', action.nextActiveToolId);
   },
   
   [DESKTOP_TOOL_CLOSE]: (state, action) =>
@@ -179,15 +175,13 @@ const handlers = {
     changeToolStateProp(state, action.toolId, 'closed', false),
   
   [DESKTOP_TOOL_FOCUS]: (state, action) => {
-    if (state.toolStates.has(action.toolId)) {
-      const newTopZIndex = state.topToolZIndex + 1;
-    
-      return state
-        .setIn(['toolStates', action.toolId, 'zIndex'], newTopZIndex)
-        .set('topToolZIndex', newTopZIndex);
-    } else {
-      return state;
-    }
+    if (!state.toolStates.has(action.toolId)) return state;
+  
+    const newTopZIndex = state.topToolZIndex + 1;
+  
+    return state
+      .setIn(['toolStates', action.toolId, 'zIndex'], newTopZIndex)
+      .set('topToolZIndex', newTopZIndex);
   },
   
   [DESKTOP_TOOL_SELECT]: (state, action) => selectTool(state, action.toolId),

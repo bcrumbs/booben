@@ -16,6 +16,7 @@ import ToolType from '../../models/Tool';
 import ToolStateType from '../../models/ToolState';
 
 import {
+  expandToolsPanel,
   collapseToolsPanel,
   dockTool,
   undockTool,
@@ -117,6 +118,7 @@ class DesktopComponent extends PureComponent {
       onToolUndock,
       onToolTitleChange,
       onToolActiveSectionChange,
+      onToolsPanelExpand,
       onToolsPanelCollapse,
       onActiveToolChange,
       children,
@@ -135,6 +137,7 @@ class DesktopComponent extends PureComponent {
           isExpanded={toolsPanelIsExpanded}
           toolGroups={toolGroups}
           toolStates={toolStates}
+          onExpand={onToolsPanelExpand}
           onCollapse={onToolsPanelCollapse}
           onToolSelect={onActiveToolChange}
           onToolUndock={onToolUndock}
@@ -156,6 +159,7 @@ DesktopComponent.propTypes = {
     PropTypes.string,
   ).isRequired,
   toolsPanelIsExpanded: PropTypes.bool.isRequired,
+  onToolsPanelExpand: PropTypes.func.isRequired,
   onToolsPanelCollapse: PropTypes.func.isRequired,
   onActiveToolChange: PropTypes.func.isRequired,
   onToolTitleChange: PropTypes.func,
@@ -181,6 +185,7 @@ const mapStateToProps = ({ desktop }) => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+  onToolsPanelExpand: () => void dispatch(expandToolsPanel()),
   onToolsPanelCollapse: () => void dispatch(collapseToolsPanel()),
   onActiveToolChange: tool => void dispatch(selectTool(tool.id)),
   onToolDock: tool => void dispatch(dockTool(tool.id)),

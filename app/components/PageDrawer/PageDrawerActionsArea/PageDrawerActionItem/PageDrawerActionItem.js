@@ -21,8 +21,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-  icon: null,
-  title: null,
+  icon: '',
+  title: '',
   isActive: false,
   onPress: noop,
 };
@@ -33,7 +33,7 @@ const PageDrawerActionItemComponent = props => {
   
   let button = null;
   if (props.icon) {
-    className += ' has-tooltip';
+    if (props.title) className += ' has-tooltip';
     button = (
       <Button icon={props.icon} onPress={props.onPress} />
     );
@@ -43,20 +43,28 @@ const PageDrawerActionItemComponent = props => {
     );
   }
   
-  const TooltipComponent = props.Tooltip;
+  if (props.title) {
+    const TooltipComponent = props.Tooltip;
   
-  /* eslint-disable react/jsx-handler-names */
-  return (
-    <div
-      className={className}
-      onMouseEnter={props.showTooltip}
-      onMouseLeave={props.hideTooltip}
-    >
-      {button}
-      <TooltipComponent text={props.title} />
-    </div>
-  );
-  /* eslint-enable react/jsx-handler-names */
+    /* eslint-disable react/jsx-handler-names */
+    return (
+      <div
+        className={className}
+        onMouseEnter={props.showTooltip}
+        onMouseLeave={props.hideTooltip}
+      >
+        {button}
+        <TooltipComponent text={props.title} />
+      </div>
+    );
+    /* eslint-enable react/jsx-handler-names */
+  } else {
+    return (
+      <div className={className}>
+        {button}
+      </div>
+    );
+  }
 };
 
 PageDrawerActionItemComponent.propTypes = propTypes;

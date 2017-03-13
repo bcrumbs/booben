@@ -35,6 +35,7 @@ const propTypes = {
   ),
   isExpanded: PropTypes.bool,
   onCollapse: PropTypes.func,
+  onExpand: PropTypes.func,
   onToolUndock: PropTypes.func,
   onToolSelect: PropTypes.func,
   onToolTitleChange: PropTypes.func,
@@ -47,6 +48,7 @@ const defaultProps = {
   toolStates: Map(),
   isExpanded: false,
   onCollapse: noop,
+  onExpand: noop,
   onToolUndock: noop,
   onToolSelect: noop,
   onToolTitleChange: noop,
@@ -141,6 +143,18 @@ export const ToolPanel = props => {
   }
   
   const pageDrawerHasActions = panelSwitcherGroups.length > 0;
+  if (!isExpanded && pageDrawerHasActions) {
+    const expandActionGroup = (
+      <PageDrawerActionsGroup key="expand">
+        <PageDrawerActionItem
+          icon="chevron-left"
+          onPress={props.onExpand}
+        />
+      </PageDrawerActionsGroup>
+    );
+    
+    panelSwitcherGroups.unshift(expandActionGroup);
+  }
 
   return (
     <PageDrawer isExpanded={isExpanded} hasActions={pageDrawerHasActions}>
