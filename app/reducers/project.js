@@ -659,11 +659,23 @@ const handlers = {
   }),
   
   [PROJECT_LOADED]: (state, action) => {
-    const project = projectToImmutable(action.project),
-      lastRouteId = getMaxRouteId(project),
-      lastComponentId = getMaxComponentId(project),
-      meta = transformMetadata(action.metadata),
-      schema = action.schema ? parseGraphQLSchema(action.schema) : null;
+    const project = projectToImmutable(action.project);
+    
+    const isInvalidRoute =
+      state.currentRouteId !== -1 &&
+      !project.routes.has(state.currentRouteId);
+    
+    if (isInvalidRoute) {
+      return state.merge({
+        loadState: LOAD_ERROR,
+        error: new Error('Invalid route'),
+      });
+    }
+  
+    const lastRouteId = getMaxRouteId(project);
+    const lastComponentId = getMaxComponentId(project);
+    const meta = transformMetadata(action.metadata);
+    const schema = action.schema ? parseGraphQLSchema(action.schema) : null;
   
     return state
       .merge({
