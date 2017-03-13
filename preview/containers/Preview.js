@@ -517,6 +517,7 @@ class Preview extends Component {
     do {
       ret = (
         <Builder
+          interactive
           components={currentRoute.components}
           rootId={currentRootComponentId}
         >
@@ -544,6 +545,7 @@ class Preview extends Component {
       if (this.props.topNestedConstructor) {
         return (
           <Builder
+            interactive
             components={this.props.topNestedConstructor.components}
             rootId={this.props.topNestedConstructor.rootId}
             ignoreOwnerProps

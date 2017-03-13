@@ -42,6 +42,7 @@ class BuilderComponent extends PureComponent {
   _makeBuilderForProp(propValue, theMap) {
     return props => (
       <Builder
+        interactive={this.props.interactive}
         components={propValue.sourceData.components}
         rootId={propValue.sourceData.rootId}
         dontPatch
@@ -360,6 +361,8 @@ class BuilderComponent extends PureComponent {
   }
 
   _willRenderContentPlaceholder(component) {
+    if (!this.props.interactive) return false;
+    
     return this.props.showContentPlaceholders ||
       this.props.selectedComponentIds.has(component.id);
   }
@@ -386,8 +389,8 @@ class BuilderComponent extends PureComponent {
       return this._renderPseudoComponent(component);
 
     // Get component class
-    const Component = getComponentByName(component.name),
-      isHTMLComponent = typeof Component === 'string';
+    const Component = getComponentByName(component.name);
+    const isHTMLComponent = typeof Component === 'string';
 
     // Build GraphQL query
     const { query: graphQLQuery, theMap } = buildQueryForComponent(
@@ -409,7 +412,7 @@ class BuilderComponent extends PureComponent {
     if (!isPlaceholder) {
       props.key = component.id;
 
-      if (!this.props.dontPatch)
+      if (this.props.interactive && !this.props.dontPatch)
         this._patchComponentProps(props, isHTMLComponent, component.id);
 
       if (this.props.draggingComponent) {
@@ -430,7 +433,6 @@ class BuilderComponent extends PureComponent {
           );
         }
       } else if (this._willRenderContentPlaceholder(component)) {
-        // Content placeholders are enabled
         const willRenderContentPlaceholder =
           !props.children &&
           isContainerComponent(component.name, this.props.meta);
@@ -507,6 +509,7 @@ class BuilderComponent extends PureComponent {
 
 //noinspection JSUnresolvedVariable
 BuilderComponent.propTypes = {
+  interactive: PropTypes.bool,
   components: PropTypes.object, // Immutable.Map<number, Component>
   rootId: PropTypes.number,
   dontPatch: PropTypes.bool,
@@ -530,6 +533,7 @@ BuilderComponent.propTypes = {
 };
 
 BuilderComponent.defaultProps = {
+  interactive: false,
   components: null,
   rootId: -1,
   dontPatch: false,
