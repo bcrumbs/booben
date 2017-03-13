@@ -11,8 +11,8 @@ import ReactDOM from 'react-dom';
 import { Router, Route, IndexRedirect } from 'react-router';
 import { Provider } from 'react-redux';
 
-import AppRoute from './routes/AppRoute';
 import RootRoute from './routes/RootRoute';
+import AppRoute from './routes/AppRoute';
 import StructureRoute, { STRUCTURE_TOOL_IDS } from './routes/StructureRoute';
 import DesignRoute, { DESIGN_TOOL_IDS } from './routes/DesignRoute';
 import PreviewRoute from './routes/PreviewRoute';
@@ -29,8 +29,8 @@ import { loadLocalization, showFooterToggles } from './actions/app';
 const setToolsOnEnter = toolIds => () => void store.dispatch(setTools(toolIds));
 
 const onDesignRouteEnter = ({ location, params }) => {
-  const routeId = Number(params.routeId),
-    isIndexRoute = location.pathname.endsWith('/index');
+  const routeId = Number(params.routeId);
+  const isIndexRoute = location.pathname.endsWith('/index');
 
   store.dispatch(setCurrentRoute(routeId, isIndexRoute));
   store.dispatch(setTools(DESIGN_TOOL_IDS));
@@ -58,8 +58,8 @@ window.addEventListener('DOMContentLoaded', () => {
           onEnter={setToolsOnEnter(PLAYGROUND_TOOL_IDS)}
         />
 
-        <Route path="/:projectName" component={AppRoute}>
-          <Route component={RootRoute}>
+        <Route path="/:projectName" component={RootRoute}>
+          <Route component={AppRoute}>
             <IndexRedirect to="/:projectName/structure" />
 
             <Route
