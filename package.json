@@ -22,7 +22,7 @@
     "@common/tree": "^0.1.1",
     "@jssy/metadata": "^0.1.1",
     "@jssy/types": "^0.1.4",
-    "@reactackle/reactackle": "0.1.0-dev480",
+    "@reactackle/reactackle": "0.1.0-dev490",
     "apollo-client": "^0.5.21",
     "babel-core": "^6.14.0",
     "babel-loader": "^6.2.5",
