@@ -153,6 +153,8 @@ class Preview extends Component {
 
     this.unhighilightTimer = -1;
     this.unhighlightedComponentId = -1;
+  
+    this._router = null;
 
     this._handleMouseDown = this._handleMouseDown.bind(this);
     this._handleMouseMove = this._handleMouseMove.bind(this);
@@ -160,6 +162,8 @@ class Preview extends Component {
     this._handleMouseOver = this._handleMouseOver.bind(this);
     this._handleMouseOut = this._handleMouseOut.bind(this);
     this._handleClick = this._handleClick.bind(this);
+    this._handleNavigate = this._handleNavigate.bind(this);
+    this._handleOpenURL = this._handleOpenURL.bind(this);
 
     this._updateRoutes(props.project.routes, props.project.rootRoutes);
   }
@@ -248,6 +252,8 @@ class Preview extends Component {
         components={components}
         rootId={rootId}
         enclosingComponentId={enclosingComponentId}
+        onNavigate={this._handleNavigate}
+        onOpenURL={this._handleOpenURL}
       >
         {children}
       </Builder>
@@ -495,6 +501,47 @@ class Preview extends Component {
         else this.props.onSelectSingleComponent(componentId);
       }
     }
+  }
+  
+  /**
+   *
+   * @param {number} routeId
+   * @param {Object<string, *>} routeParams
+   * @private
+   */
+  _handleNavigate({ routeId, routeParams }) {
+    const { project } = this.props;
+    
+    const route = project.routes.get(routeId);
+    if (!route) return;
+    
+    const path = route.fullPath
+      .split('/')
+      .map(
+        part => part.startsWith(':')
+          ? String(routeParams[part.slice(1)])
+          : part,
+      )
+      .join('/');
+    
+    hashHistory.push(path);
+  }
+  
+  /**
+   *
+   * @param {string} url
+   * @param {boolean} newWindow
+   * @private
+   */
+  _handleOpenURL({ url, newWindow }) {
+    const doc = window.top.document;
+    const a = doc.createElement('a');
+    
+    a.setAttribute('href', url);
+    if (newWindow) a.setAttribute('target', '_blank');
+    doc.body.appendChild(a);
+    a.click();
+    doc.body.removeChild(a);
   }
   
   /**

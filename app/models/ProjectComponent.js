@@ -12,7 +12,14 @@ import SourceDataStatic from './SourceDataStatic';
 import SourceDataData, { QueryPathStep } from './SourceDataData';
 import SourceDataConst from './SourceDataConst';
 import SourceDataFunction from './SourceDataFunction';
-import SourceDataAction from './SourceDataAction';
+
+import SourceDataActions, {
+  Action,
+  MutationActionParams,
+  NavigateActionParams,
+  URLActionParams,
+} from './SourceDataActions';
+
 import SourceDataDesigner from './SourceDataDesigner';
 import { getFunctionInfo } from '../utils/functions';
 
@@ -33,6 +40,67 @@ const ProjectComponentRecord = Record({
 });
 
 /* eslint-disable no-use-before-define */
+const actionsToImmutable = actions => List(actions.map(action => {
+  const data = {
+    type: action.type,
+  };
+  
+  switch (action.type) {
+    case 'mutation': {
+      data.params = new MutationActionParams({
+        mutation: action.params.mutation,
+        args: Map(_mapValues(
+          action.params.args,
+          argValue => new JssyValue({
+            source: argValue.source,
+            sourceData: sourceDataToImmutable(
+              argValue.source,
+              argValue.sourceData,
+            ),
+          }),
+        )),
+        successActions: actionsToImmutable(action.successActions),
+        errorActions: actionsToImmutable(action.errorActions),
+      });
+      
+      break;
+    }
+    
+    case 'navigate': {
+      data.params = new NavigateActionParams({
+        routeId: action.params.routeId,
+        routeParams: Map(_mapValues(
+          action.params.routeParams,
+          paramValue => new JssyValue({
+            source: paramValue.source,
+            sourceData: sourceDataToImmutable(
+              paramValue.source,
+              paramValue.sourceData,
+            ),
+          }),
+        )),
+      });
+      
+      break;
+    }
+    
+    case 'url': {
+      data.params = new URLActionParams({
+        url: action.params.url,
+        newWindow: action.params.newWindow,
+      });
+      
+      break;
+    }
+    
+    default: {
+      data.params = null;
+    }
+  }
+  
+  return Action(data);
+}));
+
 const propSourceDataToImmutableFns = {
   static: input => {
     const data = {};
@@ -95,7 +163,10 @@ const propSourceDataToImmutableFns = {
   }),
 
   const: input => new SourceDataConst(input),
-  action: input => new SourceDataAction(input),
+  
+  actions: input => new SourceDataActions({
+    actions: actionsToImmutable(input.actions),
+  }),
 
   designer: input => new SourceDataDesigner(
     input.component
@@ -112,7 +183,7 @@ const propSourceDataToImmutableFns = {
 /* eslint-enable no-use-before-define */
 
 export const sourceDataToImmutable = (source, sourceData) =>
-    propSourceDataToImmutableFns[source](sourceData);
+  propSourceDataToImmutableFns[source](sourceData);
 
 export const projectComponentToImmutable = (
   input,

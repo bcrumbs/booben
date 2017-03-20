@@ -34,25 +34,33 @@ import {
 } from '../../app/utils/graphql';
 
 import { getFunctionInfo } from '../../app/utils/functions';
-import { returnNull } from '../../app/utils/misc';
+import { noop, returnNull } from '../../app/utils/misc';
 
 class BuilderComponent extends PureComponent {
   /**
    *
    * @param {Object} propValue
-   * @param {Object} theMap
+   * @param {Immutable.Map<Object, Object>} theMap
    * @return {Function}
    */
   _makeBuilderForProp(propValue, theMap) {
+    const {
+      interactive,
+      onNavigate,
+      onOpenURL,
+    } = this.props;
+    
     return props => (
       <Builder
-        interactive={this.props.interactive}
+        interactive={interactive}
         components={propValue.sourceData.components}
         rootId={propValue.sourceData.rootId}
         dontPatch
         propsFromOwner={props}
         theMap={theMap}
         dataContextInfo={theMap.get(propValue)}
+        onNavigate={onNavigate}
+        onOpenURL={onOpenURL}
       >
         {props.children}
       </Builder>
@@ -61,25 +69,35 @@ class BuilderComponent extends PureComponent {
 
   /**
    *
-   * @param {Object} propValue
+   * @param {Object} jssyValue
    * @param {JssyTypeDefinition} typedef
    * @param {Object<string, JssyTypeDefinition>} userTypedefs
    * @param {Immutable.Map<Object, Object>} theMap
    * @return {*}
    */
-  _buildPropValue(propValue, typedef, userTypedefs, theMap) {
+  _buildValue(jssyValue, typedef, userTypedefs, theMap) {
+    const {
+      project,
+      schema,
+      propsFromOwner,
+      ignoreOwnerProps,
+      dataContextInfo,
+      onNavigate,
+      onOpenURL,
+    } = this.props;
+    
     const resolvedTypedef = resolveTypedef(typedef, userTypedefs);
     
-    if (propValue.source === 'static') {
-      if (propValue.sourceData.ownerPropName && !this.props.ignoreOwnerProps) {
-        return this.props.propsFromOwner[propValue.sourceData.ownerPropName];
+    if (jssyValue.source === 'static') {
+      if (jssyValue.sourceData.ownerPropName && !ignoreOwnerProps) {
+        return propsFromOwner[jssyValue.sourceData.ownerPropName];
       } else if (resolvedTypedef.type === 'shape') {
-        if (propValue.sourceData.value === null) return null;
+        if (jssyValue.sourceData.value === null) return null;
 
         return _mapValues(resolvedTypedef.fields, (fieldMeta, fieldName) => {
-          const fieldValue = propValue.sourceData.value.get(fieldName);
+          const fieldValue = jssyValue.sourceData.value.get(fieldName);
 
-          return this._buildPropValue(
+          return this._buildValue(
             fieldValue,
             fieldMeta,
             userTypedefs,
@@ -87,10 +105,10 @@ class BuilderComponent extends PureComponent {
           );
         });
       } else if (resolvedTypedef.type === 'objectOf') {
-        if (propValue.sourceData.value === null) return null;
+        if (jssyValue.sourceData.value === null) return null;
 
-        return propValue.sourceData.value.map(nestedValue =>
-          this._buildPropValue(
+        return jssyValue.sourceData.value.map(nestedValue =>
+          this._buildValue(
             nestedValue,
             resolvedTypedef.ofType,
             userTypedefs,
@@ -98,8 +116,8 @@ class BuilderComponent extends PureComponent {
           ),
         ).toJS();
       } else if (resolvedTypedef.type === 'arrayOf') {
-        return propValue.sourceData.value.map(nestedValue =>
-          this._buildPropValue(
+        return jssyValue.sourceData.value.map(nestedValue =>
+          this._buildValue(
             nestedValue,
             resolvedTypedef.ofType,
             userTypedefs,
@@ -107,49 +125,46 @@ class BuilderComponent extends PureComponent {
           ),
         ).toJS();
       } else {
-        return propValue.sourceData.value;
+        return jssyValue.sourceData.value;
       }
-    } else if (propValue.source === 'const') {
-      return propValue.sourceData.jssyConstId
-        ? jssyConstants[propValue.sourceData.jssyConstId]
-        : propValue.sourceData.value;
-    } else if (propValue.source === 'designer') {
-      return propValue.sourceData.components && propValue.sourceData.rootId > -1
-        ? this._makeBuilderForProp(propValue, theMap)
+    } else if (jssyValue.source === 'const') {
+      return jssyValue.sourceData.jssyConstId
+        ? jssyConstants[jssyValue.sourceData.jssyConstId]
+        : jssyValue.sourceData.value;
+    } else if (jssyValue.source === 'designer') {
+      return jssyValue.sourceData.components && jssyValue.sourceData.rootId > -1
+        ? this._makeBuilderForProp(jssyValue, theMap)
         : returnNull;
-    } else if (propValue.source === 'data') {
-      if (
-        propValue.sourceData.dataContext.size > 0 &&
-        this.props.dataContextInfo
-      ) {
-        const dataContextInfo =
-          this.props.dataContextInfo[propValue.sourceData.dataContext.last()];
+    } else if (jssyValue.source === 'data') {
+      if (jssyValue.sourceData.dataContext.size > 0 && dataContextInfo) {
+        const ourDataContextInfo =
+          dataContextInfo[jssyValue.sourceData.dataContext.last()];
 
-        const data = this.props.propsFromOwner[dataContextInfo.ownerPropName];
+        const data = propsFromOwner[ourDataContextInfo.ownerPropName];
 
         return extractPropValueFromData(
-          propValue,
+          jssyValue,
           data,
-          this.props.schema,
-          dataContextInfo.type,
+          schema,
+          ourDataContextInfo.type,
         );
       }
-    } else if (propValue.source === 'function') {
+    } else if (jssyValue.source === 'function') {
       const fnInfo = getFunctionInfo(
-        propValue.sourceData.functionSource,
-        propValue.sourceData.function,
-        this.props.project,
+        jssyValue.sourceData.functionSource,
+        jssyValue.sourceData.function,
+        project,
       );
 
       if (!fnInfo) return NO_VALUE;
 
       const argValues = fnInfo.args.map(argInfo => {
-        const argValue = propValue.sourceData.args.get(argInfo.name);
+        const argValue = jssyValue.sourceData.args.get(argInfo.name);
 
         let ret = NO_VALUE;
 
         if (argValue) {
-          ret = this._buildPropValue(
+          ret = this._buildValue(
             argValue,
             argInfo.typedef,
             userTypedefs,
@@ -163,8 +178,45 @@ class BuilderComponent extends PureComponent {
 
       // TODO: Pass fns as last argument
       return fnInfo.fn(...argValues, {});
-    } else if (propValue.source === 'actions') {
-      // TODO: Handle actions source
+    } else if (jssyValue.source === 'actions') {
+      return () => {
+        jssyValue.sourceData.actions.forEach(action => {
+          switch (action.type) {
+            case 'mutation': {
+              // TODO: Call mutation
+              break;
+            }
+            
+            case 'navigate': {
+              const routeParams = {};
+              
+              action.params.routeParams.forEach((paramValue, paramName) => {
+                const value = this._buildValue(
+                  paramValue,
+                  { type: 'string' },
+                  null,
+                  theMap,
+                );
+                
+                if (value !== NO_VALUE) routeParams[paramName] = value;
+              });
+              
+              onNavigate({ routeId: action.params.routeId, routeParams });
+              break;
+            }
+            
+            case 'url': {
+              onOpenURL({
+                url: action.params.url,
+                newWindow: action.params.newWindow,
+              });
+              break;
+            }
+            
+            default:
+          }
+        });
+      };
     }
 
     return NO_VALUE;
@@ -179,13 +231,11 @@ class BuilderComponent extends PureComponent {
    */
   _buildProps(component, theMap) {
     const componentMeta = getComponentMeta(component.name, this.props.meta);
-
     const ret = {};
 
     component.props.forEach((propValue, propName) => {
       const propMeta = componentMeta.props[propName];
-
-      const value = this._buildPropValue(
+      const value = this._buildValue(
         propValue,
         propMeta,
         componentMeta.types,
@@ -206,7 +256,7 @@ class BuilderComponent extends PureComponent {
    */
   _renderPseudoComponent(component) {
     if (component.name === 'Outlet') {
-      return this.props.children || <Outlet />;
+      return this.props.interactive ? <Outlet /> : this.props.children;
     } else if (component.name === 'Text') {
       const props = this._buildProps(component, null);
       return props.text || '';
@@ -536,6 +586,8 @@ BuilderComponent.propTypes = {
   showContentPlaceholders: PropTypes.bool.isRequired,
   selectedComponentIds: PropTypes.object.isRequired, // Immutable.Set<number>
   highlightedComponentIds: PropTypes.object.isRequired, // Immutable.Set<number>
+  onNavigate: PropTypes.func,
+  onOpenURL: PropTypes.func,
 };
 
 BuilderComponent.defaultProps = {
@@ -552,6 +604,8 @@ BuilderComponent.defaultProps = {
   dataContextInfo: null,
   ignoreOwnerProps: false,
   draggedComponents: null,
+  onNavigate: noop,
+  onOpenURL: noop,
 };
 
 BuilderComponent.displayName = 'Builder';

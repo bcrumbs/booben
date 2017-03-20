@@ -5,7 +5,6 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { ApolloProvider } from 'react-apollo';
 import ApolloClient, { createNetworkInterface } from 'apollo-client';
-
 import Preview from './containers/Preview';
 import Overlay from './containers/Overlay';
 
@@ -22,7 +21,7 @@ window.JSSY = {
 };
 
 /**
- * Rendering of preview
+ * Mount Preview and Overlay
  *
  * @param {Object} params
  * @param {Object} params.store
@@ -32,8 +31,8 @@ window.JSSY = {
 window.JSSY.initPreview = params => {
   if (window.JSSY.initialized) return;
 
-  const containerNode = document.getElementById(PREVIEW_DOM_CONTAINER_ID),
-    overlayNode = document.getElementById(PREVIEW_DOM_OVERLAY_ID);
+  const containerNode = document.getElementById(PREVIEW_DOM_CONTAINER_ID);
+  const overlayNode = document.getElementById(PREVIEW_DOM_OVERLAY_ID);
 
   containerNode.setAttribute('style', params.containerStyle);
 
@@ -44,8 +43,8 @@ window.JSSY.initPreview = params => {
 
   const graphQLEndpointURL = state.project.data.graphQLEndpointURL;
 
-  let ProviderComponent,
-    providerProps;
+  let ProviderComponent;
+  let providerProps;
 
   if (graphQLEndpointURL) {
     ProviderComponent = ApolloProvider;
@@ -71,8 +70,8 @@ window.JSSY.initPreview = params => {
       <Preview interactive={params.interactive} />
     </ProviderComponent>,
 
-        containerNode,
-    );
+    containerNode,
+  );
 
   if (params.interactive) {
     ReactDOM.render(
@@ -88,17 +87,18 @@ window.JSSY.initPreview = params => {
   window.JSSY.params = params;
 };
 
+/**
+ * Unmount everything
+ */
 window.JSSY.cleanup = () => {
   const { params, initialized } = window.JSSY;
 
   if (!initialized) return;
 
-  const containerNode = document.getElementById(PREVIEW_DOM_CONTAINER_ID),
-    overlayNode = document.getElementById(PREVIEW_DOM_OVERLAY_ID);
+  const containerNode = document.getElementById(PREVIEW_DOM_CONTAINER_ID);
+  const overlayNode = document.getElementById(PREVIEW_DOM_OVERLAY_ID);
 
-  if (params.interactive)
-    ReactDOM.unmountComponentAtNode(overlayNode);
-
+  if (params.interactive) ReactDOM.unmountComponentAtNode(overlayNode);
   ReactDOM.unmountComponentAtNode(containerNode);
 
   window.JSSY.initialized = false;
