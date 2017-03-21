@@ -23,6 +23,12 @@ export const URLActionParams = Record({
   newWindow: false,
 });
 
+export const MethodCallActionParams = Record({
+  componentId: -1,
+  method: '',
+  args: List(),
+});
+
 export const Action = Record({
   type: 'noop',
   params: null,

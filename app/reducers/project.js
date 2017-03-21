@@ -295,9 +295,14 @@ const addComponents = (state, parentComponentId, position, components) => {
   );
 };
 
+const expandPropPath = propPath => propPath
+  .slice(0, -1)
+  .reduce((acc, cur) => acc.concat([cur, 'sourceData', 'value']), [])
+  .concat(propPath[propPath.length - 1]);
+
 const deleteComponent = (state, componentId) => {
-  const pathToCurrentComponents = getPathToCurrentComponents(state),
-    currentComponents = state.getIn(pathToCurrentComponents);
+  const pathToCurrentComponents = getPathToCurrentComponents(state);
+  const currentComponents = state.getIn(pathToCurrentComponents);
 
   if (!currentComponents.has(componentId)) {
     throw new Error(
@@ -306,8 +311,8 @@ const deleteComponent = (state, componentId) => {
     );
   }
 
-  const component = currentComponents.get(componentId),
-    idsToDelete = gatherComponentsTreeIds(currentComponents, componentId);
+  const component = currentComponents.get(componentId);
+  const idsToDelete = gatherComponentsTreeIds(currentComponents, componentId);
 
   state = state.updateIn(
     pathToCurrentComponents,
@@ -329,13 +334,59 @@ const deleteComponent = (state, componentId) => {
       children => children.filter(id => id !== componentId),
     );
   }
+  
+  // Delete method call actions that point to deleted components
+  state = state.updateIn(
+    pathToCurrentComponents,
+    
+    components => components.map(component => {
+      const componentMeta = getComponentMeta(component.name, state.meta);
+      let actionsToDelete = Map();
+      
+      walkSimpleProps(component, componentMeta, (propValue, _, path) => {
+        if (propValue.source === 'actions') {
+          propValue.sourceData.actions.forEach((action, idx) => {
+            if (
+              action.type === 'method' &&
+              idsToDelete.has(action.params.componentId)
+            ) {
+              if (!actionsToDelete.has(path)) {
+                actionsToDelete = actionsToDelete.set(path, Set([idx]));
+              } else {
+                actionsToDelete = actionsToDelete.update(
+                  path,
+                  indexes => indexes.add(idx),
+                );
+              }
+            }
+          });
+        }
+      });
+  
+      actionsToDelete.forEach((indexes, path) => {
+        const pathToActionsList = [
+          'props',
+          ...expandPropPath(path),
+          'sourceData',
+          'actions',
+        ];
+        
+        component = component.updateIn(
+          pathToActionsList,
+          actions => actions.filter((_, idx) => !indexes.has(idx)),
+        );
+      });
+      
+      return component;
+    }),
+  );
 
   return state;
 };
 
 const moveComponent = (state, componentId, targetComponentId, position) => {
-  const pathToCurrentComponents = getPathToCurrentComponents(state),
-    currentComponents = state.getIn(pathToCurrentComponents);
+  const pathToCurrentComponents = getPathToCurrentComponents(state);
+  const currentComponents = state.getIn(pathToCurrentComponents);
 
   if (!currentComponents.has(componentId)) {
     throw new Error(
@@ -403,11 +454,6 @@ const isPrefixList = (maybePrefix, list) => {
   if (maybePrefix.size > list.size) return false;
   return maybePrefix.every((item, idx) => is(item, list.get(idx)));
 };
-
-const expandPropPath = propPath => propPath
-  .slice(0, -1)
-  .reduce((acc, cur) => acc.concat([cur, 'sourceData', 'value']), [])
-  .concat(propPath[propPath.length - 1]);
 
 // TODO: Refactor away from using real paths
 const clearOutdatedDataProps = (

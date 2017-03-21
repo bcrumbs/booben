@@ -18,6 +18,7 @@ import SourceDataActions, {
   MutationActionParams,
   NavigateActionParams,
   URLActionParams,
+  MethodCallActionParams,
 } from './SourceDataActions';
 
 import SourceDataDesigner from './SourceDataDesigner';
@@ -88,6 +89,22 @@ const actionsToImmutable = actions => List(actions.map(action => {
       data.params = new URLActionParams({
         url: action.params.url,
         newWindow: action.params.newWindow,
+      });
+      
+      break;
+    }
+    
+    case 'method': {
+      data.params = new MethodCallActionParams({
+        componentId: action.params.componentId,
+        method: action.params.method,
+        args: List(action.params.args.map(argValue => new JssyValue({
+          source: argValue.source,
+          sourceData: sourceDataToImmutable(
+            argValue.source,
+            argValue.sourceData,
+          ),
+        }))),
       });
       
       break;

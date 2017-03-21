@@ -8,6 +8,12 @@ import _merge from 'lodash.merge';
 import _mapValues from 'lodash.mapvalues';
 import { resolveTypedef } from '@jssy/types';
 import { getComponentById } from '../../app/models/Project';
+
+import {
+  walkComponentsTree,
+  walkSimpleProps,
+} from '../../app/models/ProjectComponent';
+
 import jssyConstants from '../../app/constants/jssyConstants';
 import { NO_VALUE } from '../../app/constants/misc';
 import { ContentPlaceholder } from '../components/ContentPlaceholder';
@@ -37,6 +43,65 @@ import { getFunctionInfo } from '../../app/utils/functions';
 import { noop, returnNull } from '../../app/utils/misc';
 
 class BuilderComponent extends PureComponent {
+  constructor(props) {
+    super(props);
+    
+    this._renderHints = this._getRenderHints(props.components, props.rootId);
+    this._refs = new Map();
+  }
+  
+  componentWillReceiveProps(nextProps) {
+    if (
+      nextProps.components !== this.props.components ||
+      nextProps.rootId !== this.props.rootId
+    ) {
+      this._renderHints = this._getRenderHints(
+        nextProps.components,
+        nextProps.rootId,
+      );
+    }
+  }
+  
+  _getRenderHints(components, rootId) {
+    const { meta } = this.props;
+    
+    const ret = {
+      needRefs: new Set(),
+      passMutations: new Map(),
+    };
+    
+    if (rootId === -1) return ret;
+  
+    walkComponentsTree(components, rootId, component => {
+      const componentMeta = getComponentMeta(component.name, meta);
+      
+      walkSimpleProps(component, componentMeta, propValue => {
+        if (propValue.source === 'actions') {
+          propValue.sourceData.actions.forEach(action => {
+            if (action.type === 'method') {
+              ret.needRefs.add(action.params.componentId);
+            } else if (action.type === 'mutation') {
+              let mutationsForComponent = ret.passMutations.get(component.id);
+              
+              if (!mutationsForComponent) {
+                mutationsForComponent = new Set();
+                ret.passMutations.set(component.id, mutationsForComponent);
+              }
+              
+              mutationsForComponent.add(action.params.mutation);
+            }
+          });
+        }
+      });
+    });
+    
+    return ret;
+  }
+  
+  _saveComponentRef(componentId, ref) {
+    this._refs.set(componentId, ref);
+  }
+  
   /**
    *
    * @param {Object} propValue
@@ -79,6 +144,7 @@ class BuilderComponent extends PureComponent {
     const {
       project,
       schema,
+      isPlaceholder,
       propsFromOwner,
       ignoreOwnerProps,
       dataContextInfo,
@@ -210,6 +276,37 @@ class BuilderComponent extends PureComponent {
                 url: action.params.url,
                 newWindow: action.params.newWindow,
               });
+              break;
+            }
+            
+            case 'method': {
+              if (isPlaceholder) break;
+              
+              const componentInstance =
+                this._refs.get(action.params.componentId);
+              
+              if (componentInstance) {
+                const args = [];
+                
+                action.params.args.forEach((argValue, idx) => {
+                  const argTypedef = resolveTypedef(
+                    resolvedTypedef.sourceConfigs.actions.args[idx],
+                    userTypedefs,
+                  );
+                  
+                  const value = this._buildValue(
+                    argValue,
+                    argTypedef,
+                    userTypedefs,
+                    theMap,
+                  );
+                  
+                  args.push(value !== NO_VALUE ? value : void 0);
+                });
+  
+                componentInstance[action.params.method](...args);
+              }
+              
               break;
             }
             
@@ -466,6 +563,9 @@ class BuilderComponent extends PureComponent {
 
     if (!isPlaceholder) {
       props.key = component.id;
+      
+      if (this._renderHints.needRefs.has(component.id))
+        props.ref = this._saveComponentRef.bind(this, component.id);
 
       if (this.props.interactive && !this.props.dontPatch)
         this._patchComponentProps(props, isHTMLComponent, component.id);
@@ -496,6 +596,7 @@ class BuilderComponent extends PureComponent {
           props.children = <ContentPlaceholder />;
       }
     } else {
+      // TODO: Get rid of random keys
       props.key =
         `placeholder-${String(Math.floor(Math.random() * 1000000000))}`;
 
@@ -510,9 +611,11 @@ class BuilderComponent extends PureComponent {
       if (willRenderContentPlaceholder)
         props.children = <ContentPlaceholder />;
     }
+    
+    let Renderable = Component;
 
     if (graphQLQuery) {
-      const Container = graphql(graphQLQuery, {
+      Renderable = graphql(graphQLQuery, {
         props: ({ ownProps, data }) => {
           // TODO: Better check
           if (Object.keys(data).length <= 10) return ownProps;
@@ -532,17 +635,23 @@ class BuilderComponent extends PureComponent {
           notifyOnNetworkStatusChange: true,
         },
       })(Component);
-
-      //noinspection JSValidateTypes
-      return (
-        <Container {...props} />
-      );
-    } else {
-      //noinspection JSValidateTypes
-      return (
-        <Component {...props} />
-      );
     }
+    
+    if (!isPlaceholder) {
+      const mutationsForComponent =
+        this._renderHints.passMutations.get(component.id);
+      
+      if (mutationsForComponent) {
+        mutationsForComponent.forEach(mutationName => {
+          // TODO: Wrap in graphql and pass options
+        });
+      }
+    }
+  
+    //noinspection JSValidateTypes
+    return (
+      <Renderable {...props} />
+    );
   }
 
   render() {
