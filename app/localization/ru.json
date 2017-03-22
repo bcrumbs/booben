@@ -54,6 +54,8 @@
   "selectAComponent": "Выбрать компонент",
   "multipleComponentsSelected": "Выбрано несколько компонентов",
   "thisComponentDoesntHaveEditableAttributes": "Этот компонент не имеет изменяемых атрибутов",
+  "propsEditor.systemProps.visible.name": "Видимый",
+  "propsEditor.systemProps.visible.desc": "",
   "setComponent": "Создать компонент",
   "editComponent": "Изменить компонент",
   "addValue": "Добавить",

@@ -19,10 +19,13 @@ import SourceDataActions, {
   NavigateActionParams,
   URLActionParams,
   MethodCallActionParams,
+  PropChangeActionParams,
 } from './SourceDataActions';
 
 import SourceDataDesigner from './SourceDataDesigner';
+import SourceDataState from './SourceDataState';
 import { getFunctionInfo } from '../utils/functions';
+import { SYSTEM_PROPS } from '../constants/misc';
 
 const ProjectComponentRecord = Record({
   id: -1,
@@ -32,6 +35,7 @@ const ProjectComponentRecord = Record({
   name: '',
   title: '',
   props: Map(),
+  systemProps: Map(),
   children: List(),
   layout: 0,
   regionsEnabled: Set(),
@@ -105,6 +109,23 @@ const actionsToImmutable = actions => List(actions.map(action => {
             argValue.sourceData,
           ),
         }))),
+      });
+      
+      break;
+    }
+    
+    case 'prop': {
+      data.params = new PropChangeActionParams({
+        componentId: action.params.componentId,
+        propName: action.params.propName || '',
+        systemPropName: action.params.systemPropName || '',
+        value: new JssyValue({
+          source: action.params.value.source,
+          sourceData: sourceDataToImmutable(
+            action.params.value.source,
+            action.params.value.sourceData,
+          ),
+        }),
       });
       
       break;
@@ -196,11 +217,22 @@ const propSourceDataToImmutableFns = {
         rootId: -1,
       },
   ),
+  
+  state: input => new SourceDataState(input),
 };
 /* eslint-enable no-use-before-define */
 
 export const sourceDataToImmutable = (source, sourceData) =>
   propSourceDataToImmutableFns[source](sourceData);
+
+const propsToImmutable = props =>
+  Map(_mapValues(props, propValue => new JssyValue({
+    source: propValue.source,
+    sourceData: sourceDataToImmutable(
+      propValue.source,
+      propValue.sourceData,
+    ),
+  })));
 
 export const projectComponentToImmutable = (
   input,
@@ -214,15 +246,8 @@ export const projectComponentToImmutable = (
   isWrapper: !!input.isWrapper,
   name: input.name,
   title: input.title,
-
-  props: Map(_mapValues(input.props, propValue => new JssyValue({
-    source: propValue.source,
-    sourceData: sourceDataToImmutable(
-      propValue.source,
-      propValue.sourceData,
-    ),
-  }))),
-
+  props: propsToImmutable(input.props),
+  systemProps: propsToImmutable(input.systemProps),
   children: List(input.children.map(childComponent => childComponent.id)),
   layout: typeof input.layout === 'number' ? input.layout : 0,
   regionsEnabled: input.regionsEnabled ? Set(input.regionsEnabled) : Set(),
@@ -291,15 +316,15 @@ export const walkSimpleProps = (
   component,
   componentMeta,
   visitor,
-  { walkFunctionArgs = false, project = null } = {},
+  { walkFunctionArgs = false, project = null, walkSystemProps = false } = {},
 ) => {
   if (walkFunctionArgs && !project) {
     throw new Error(
-      'walkSimpleProps(): walkFunctionArgs is true, but no project',
+      'walkSimpleProps(): walkFunctionArgs is true, but there\'s no project',
     );
   }
 
-  const visitValue = (propValue, typedef, path) => {
+  const visitValue = (propValue, typedef, path, isSystemProp) => {
     if (propValue.source === 'static' && !propValue.sourceData.ownerPropName) {
       if (typedef.type === 'shape' && propValue.sourceData.value !== null) {
         _forOwn(typedef.fields, (fieldTypedef, fieldName) =>
@@ -307,18 +332,27 @@ export const walkSimpleProps = (
             propValue.sourceData.value.get(fieldName),
             fieldTypedef,
             [...path, fieldName],
+            isSystemProp,
           ));
       } else if (
         typedef.type === 'objectOf' &&
         propValue.sourceData.value !== null
       ) {
-        propValue.sourceData.value.forEach((fieldValue, key) =>
-          void visitValue(fieldValue, typedef.ofType, [...path, key]));
+        propValue.sourceData.value.forEach((fieldValue, key) => void visitValue(
+          fieldValue,
+          typedef.ofType,
+          [...path, key],
+          isSystemProp,
+        ));
       } else if (typedef.type === 'arrayOf') {
-        propValue.sourceData.value.forEach((itemValue, idx) =>
-          void visitValue(itemValue, typedef.ofType, [...path, idx]));
+        propValue.sourceData.value.forEach((itemValue, idx) => void visitValue(
+          itemValue,
+          typedef.ofType,
+          [...path, idx],
+          isSystemProp,
+        ));
       } else {
-        visitor(propValue, typedef, path);
+        visitor(propValue, typedef, path, isSystemProp);
       }
     } else if (walkFunctionArgs && propValue.source === 'function') {
       const fnInfo = getFunctionInfo(
@@ -328,13 +362,20 @@ export const walkSimpleProps = (
       );
 
       fnInfo.args.forEach(argInfo => {
-        const argName = argInfo.name,
-          argValue = propValue.sourceData.args.get(argInfo.name);
+        const argName = argInfo.name;
+        const argValue = propValue.sourceData.args.get(argInfo.name);
 
-        if (argValue) visitValue(argValue, argInfo.typedef, [...path, argName]);
+        if (argValue) {
+          visitValue(
+            argValue,
+            argInfo.typedef,
+            [...path, argName],
+            isSystemProp,
+          );
+        }
       });
     } else {
-      visitor(propValue, typedef, path);
+      visitor(propValue, typedef, path, isSystemProp);
     }
   };
 
@@ -343,8 +384,20 @@ export const walkSimpleProps = (
       propValue,
       componentMeta.props[propName],
       [propName],
+      false,
     ),
   );
+  
+  if (walkSystemProps) {
+    component.systemProps.forEach(
+      (propValue, propName) => visitValue(
+        propValue,
+        SYSTEM_PROPS[propName],
+        [propName],
+        true,
+      ),
+    );
+  }
 };
 
 export default ProjectComponentRecord;

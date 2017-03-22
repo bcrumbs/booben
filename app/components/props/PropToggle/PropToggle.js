@@ -45,7 +45,13 @@ export class PropToggle extends PropBase {
    * @private
    */
   _renderAdditionalActions() {
-    if (this.props.checkable && !this.props.checked) return [];
+    const willHideToggle =
+      this.props.linked || (
+        this.props.checkable &&
+        !this.props.checked
+      );
+    
+    if (willHideToggle) return [];
     
     //noinspection JSValidateTypes
     return [

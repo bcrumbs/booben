@@ -6,6 +6,9 @@ import { connect } from 'react-redux';
 import { graphql } from 'react-apollo';
 import _merge from 'lodash.merge';
 import _mapValues from 'lodash.mapvalues';
+import _forOwn from 'lodash.forown';
+import _get from 'lodash.get';
+import { Map as ImmutableMap } from 'immutable';
 import { resolveTypedef } from '@jssy/types';
 import { getComponentById } from '../../app/models/Project';
 
@@ -15,7 +18,7 @@ import {
 } from '../../app/models/ProjectComponent';
 
 import jssyConstants from '../../app/constants/jssyConstants';
-import { NO_VALUE } from '../../app/constants/misc';
+import { NO_VALUE, SYSTEM_PROPS } from '../../app/constants/misc';
 import { ContentPlaceholder } from '../components/ContentPlaceholder';
 import { Outlet } from '../components/Outlet';
 import getComponentByName from '../getComponentByName';
@@ -42,12 +45,30 @@ import {
 import { getFunctionInfo } from '../../app/utils/functions';
 import { noop, returnNull } from '../../app/utils/misc';
 
+/**
+ *
+ * @param {number} componentId
+ * @param {string} propName
+ * @param {boolean} isSystemProp
+ * @return {string}
+ */
+const serializePropAddress = (componentId, propName, isSystemProp) =>
+  `${isSystemProp ? '_' : ''}.${componentId}.${propName}`;
+
 class BuilderComponent extends PureComponent {
   constructor(props) {
     super(props);
     
     this._renderHints = this._getRenderHints(props.components, props.rootId);
     this._refs = new Map();
+  
+    this.state = {
+      dynamicPropValues: ImmutableMap(),
+      componentsState: this._getInitialComponentsState(
+        props.components,
+        this._renderHints,
+      ),
+    };
   }
   
   componentWillReceiveProps(nextProps) {
@@ -59,15 +80,23 @@ class BuilderComponent extends PureComponent {
         nextProps.components,
         nextProps.rootId,
       );
+      
+      this.setState({
+        componentsState: this._getInitialComponentsState(
+          nextProps.components,
+          this._renderHints,
+        ),
+      });
     }
   }
   
   _getRenderHints(components, rootId) {
-    const { meta } = this.props;
+    const { meta, project } = this.props;
     
     const ret = {
       needRefs: new Set(),
       passMutations: new Map(),
+      activeStateSlots: new Map(),
     };
     
     if (rootId === -1) return ret;
@@ -91,11 +120,71 @@ class BuilderComponent extends PureComponent {
               mutationsForComponent.add(action.params.mutation);
             }
           });
+        } else if (propValue.source === 'state') {
+          let activeStateSlotsForComponent =
+            ret.activeStateSlots.get(propValue.sourceData.componentId);
+          
+          if (!activeStateSlotsForComponent) {
+            activeStateSlotsForComponent = new Set();
+            ret.activeStateSlots.set(
+              propValue.sourceData.componentId,
+              activeStateSlotsForComponent,
+            );
+          }
+  
+          activeStateSlotsForComponent.add(propValue.sourceData.stateSlot);
         }
-      });
+      }, { walkSystemProps: true, walkFunctionArgs: true, project });
     });
     
     return ret;
+  }
+  
+  _buildInitialComponentState(component, activeStateSlots) {
+    const { meta } = this.props;
+    const componentMeta = getComponentMeta(component.name, meta);
+    const ret = {};
+    
+    activeStateSlots.forEach(stateSlotName => {
+      const stateSlot = componentMeta.state[stateSlotName];
+      if (!stateSlot) return;
+      
+      const initialValue = stateSlot.initialValue;
+      
+      if (initialValue.source === 'const') {
+        ret[stateSlotName] = initialValue.sourceData.value;
+      } else if (initialValue.source === 'prop') {
+        const propValue = component.props.get(initialValue.sourceData.propName);
+        
+        if (propValue.source === 'static' || propValue.source === 'const')
+          ret[stateSlotName] = propValue.sourceData.value;
+      }
+    });
+    
+    return ret;
+  }
+  
+  _getInitialComponentsState(components, renderHints) {
+    let componentsState = ImmutableMap();
+    
+    renderHints.activeStateSlots.forEach((slotNames, componentId) => {
+      const component = components.get(componentId);
+      const values = this._buildInitialComponentState(
+        component,
+        Array.from(slotNames),
+      );
+      
+      const componentState = ImmutableMap().withMutations(map => {
+        _forOwn(values, (value, slotName) => void map.set(slotName, value));
+      });
+      
+      componentsState = componentsState.set(
+        componentId,
+        componentState,
+      );
+    });
+    
+    return componentsState;
   }
   
   _saveComponentRef(componentId, ref) {
@@ -109,6 +198,8 @@ class BuilderComponent extends PureComponent {
    * @return {Function}
    */
   _makeBuilderForProp(propValue, theMap) {
+    // TODO: Memoize
+    
     const {
       interactive,
       onNavigate,
@@ -138,10 +229,12 @@ class BuilderComponent extends PureComponent {
    * @param {JssyTypeDefinition} typedef
    * @param {Object<string, JssyTypeDefinition>} userTypedefs
    * @param {Immutable.Map<Object, Object>} theMap
+   * @param {number} componentId
    * @return {*}
    */
-  _buildValue(jssyValue, typedef, userTypedefs, theMap) {
+  _buildValue(jssyValue, typedef, userTypedefs, theMap, componentId) {
     const {
+      interactive,
       project,
       schema,
       isPlaceholder,
@@ -168,6 +261,7 @@ class BuilderComponent extends PureComponent {
             fieldMeta,
             userTypedefs,
             theMap,
+            componentId,
           );
         });
       } else if (resolvedTypedef.type === 'objectOf') {
@@ -179,6 +273,7 @@ class BuilderComponent extends PureComponent {
             resolvedTypedef.ofType,
             userTypedefs,
             theMap,
+            componentId,
           ),
         ).toJS();
       } else if (resolvedTypedef.type === 'arrayOf') {
@@ -188,6 +283,7 @@ class BuilderComponent extends PureComponent {
             resolvedTypedef.ofType,
             userTypedefs,
             theMap,
+            componentId,
           ),
         ).toJS();
       } else {
@@ -235,6 +331,7 @@ class BuilderComponent extends PureComponent {
             argInfo.typedef,
             userTypedefs,
             theMap,
+            componentId,
           );
         }
 
@@ -245,7 +342,47 @@ class BuilderComponent extends PureComponent {
       // TODO: Pass fns as last argument
       return fnInfo.fn(...argValues, {});
     } else if (jssyValue.source === 'actions') {
-      return () => {
+      // No actions in design-time
+      if (interactive) return noop;
+      
+      return (...args) => {
+        const stateUpdates = resolvedTypedef.sourceConfigs.actions.updateState;
+        
+        if (stateUpdates) {
+          const currentState = this.state.componentsState.get(componentId);
+          
+          if (currentState) {
+            let nextState = currentState;
+  
+            _forOwn(stateUpdates, (value, slotName) => {
+              if (!currentState.has(slotName)) return;
+    
+              let newValue = NO_VALUE;
+              if (value.source === 'const') {
+                newValue = value.sourceData.value;
+              } else if (value.source === 'arg') {
+                newValue = _get(
+                  args[value.sourceData.arg],
+                  value.sourceData.path,
+                  NO_VALUE,
+                );
+              }
+    
+              if (newValue !== NO_VALUE)
+                nextState = nextState.set(slotName, newValue);
+            });
+  
+            if (nextState !== currentState) {
+              this.setState({
+                componentsState: this.state.componentsState.set(
+                  componentId,
+                  nextState,
+                ),
+              });
+            }
+          }
+        }
+        
         jssyValue.sourceData.actions.forEach(action => {
           switch (action.type) {
             case 'mutation': {
@@ -262,6 +399,7 @@ class BuilderComponent extends PureComponent {
                   { type: 'string' },
                   null,
                   theMap,
+                  componentId,
                 );
                 
                 if (value !== NO_VALUE) routeParams[paramName] = value;
@@ -299,6 +437,7 @@ class BuilderComponent extends PureComponent {
                     argTypedef,
                     userTypedefs,
                     theMap,
+                    componentId,
                   );
                   
                   args.push(value !== NO_VALUE ? value : void 0);
@@ -310,10 +449,49 @@ class BuilderComponent extends PureComponent {
               break;
             }
             
+            case 'prop': {
+              let propName;
+              let isSystemProp;
+              
+              if (action.params.propName) {
+                propName = action.params.propName;
+                isSystemProp = false;
+              } else {
+                propName = action.params.systemPropName;
+                isSystemProp = true;
+              }
+              
+              const propAddress = serializePropAddress(
+                action.params.componentId,
+                propName,
+                isSystemProp,
+              );
+              
+              this.setState({
+                dynamicPropValues: this.state.dynamicPropValues.set(
+                  propAddress,
+                  action.params.value,
+                ),
+              });
+              
+              break;
+            }
+            
             default:
           }
         });
       };
+    } else if (jssyValue.source === 'state') {
+      const componentState =
+        this.state.componentsState.get(jssyValue.sourceData.componentId);
+      
+      if (
+        !componentState ||
+        !componentState.has(jssyValue.sourceData.stateSlot)
+      )
+        return NO_VALUE;
+      
+      return componentState.get(jssyValue.sourceData.stateSlot);
     }
 
     return NO_VALUE;
@@ -327,21 +505,48 @@ class BuilderComponent extends PureComponent {
    * @return {Object<string, *>}
    */
   _buildProps(component, theMap) {
-    const componentMeta = getComponentMeta(component.name, this.props.meta);
+    const { meta } = this.props;
+    const { dynamicPropValues } = this.state;
+    const componentMeta = getComponentMeta(component.name, meta);
     const ret = {};
 
     component.props.forEach((propValue, propName) => {
       const propMeta = componentMeta.props[propName];
+      const propAddress = serializePropAddress(component.id, propName, false);
+      const dynamicPropValue = dynamicPropValues.get(propAddress);
       const value = this._buildValue(
-        propValue,
+        dynamicPropValue || propValue,
         propMeta,
         componentMeta.types,
         theMap,
+        component.id,
       );
 
       if (value !== NO_VALUE) ret[propName] = value;
     });
 
+    return ret;
+  }
+  
+  _buildSystemProps(component, theMap) {
+    const { dynamicPropValues } = this.state;
+    const ret = {};
+    
+    component.systemProps.forEach((propValue, propName) => {
+      const propMeta = SYSTEM_PROPS[propName];
+      const propAddress = serializePropAddress(component.id, propName, true);
+      const dynamicPropValue = dynamicPropValues.get(propAddress);
+      const value = this._buildValue(
+        dynamicPropValue || propValue,
+        propMeta,
+        null,
+        theMap,
+        component.id,
+      );
+  
+      if (value !== NO_VALUE) ret[propName] = value;
+    });
+    
     return ret;
   }
 
@@ -352,15 +557,18 @@ class BuilderComponent extends PureComponent {
    * @private
    */
   _renderPseudoComponent(component) {
+    const systemProps = this._buildSystemProps(component, null);
+    
+    if (!systemProps.visible) return null;
+    
+    const props = this._buildProps(component, null);
+    
     if (component.name === 'Outlet') {
       return this.props.interactive ? <Outlet /> : this.props.children;
     } else if (component.name === 'Text') {
-      const props = this._buildProps(component, null);
       return props.text || '';
     } else if (component.name === 'List') {
-      const props = this._buildProps(component, null),
-        ItemComponent = props.component;
-
+      const ItemComponent = props.component;
       return props.data.map((item, idx) => (
         <ItemComponent key={String(idx)} item={item} />
       ));
@@ -551,12 +759,18 @@ class BuilderComponent extends PureComponent {
       this.props.meta,
       this.props.project,
     );
-
+    
+    const theMergedMap = this.props.theMap
+      ? this.props.theMap.merge(theMap)
+      : theMap;
+  
+    // Build system props
+    const systemProps = this._buildSystemProps(component, theMergedMap);
+    
+    if (!systemProps.visible) return null;
+    
     // Build props
-    const props = this._buildProps(
-      component,
-      this.props.theMap ? this.props.theMap.merge(theMap) : theMap,
-    );
+    const props = this._buildProps(component, theMergedMap);
 
     // Render children
     props.children = this._renderComponentChildren(component, isPlaceholder);

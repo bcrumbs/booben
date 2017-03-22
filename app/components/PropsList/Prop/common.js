@@ -220,6 +220,8 @@ export const jssyValueToPropValue = (
     linkedWith = jssyValue.sourceData.function;
   } else if (jssyValue.source === 'static') {
     linkedWith = jssyValue.sourceData.ownerPropName;
+  } else if (jssyValue.source === 'state') {
+    linkedWith = `Component ${jssyValue.sourceData.componentId}`;
   }
   
   return { value, linked, linkedWith };

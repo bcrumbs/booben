@@ -109,6 +109,7 @@ class JssyValue extends JssyValueRecord {
   
   isLinked() {
     return this.source === 'function' ||
+      this.source === 'state' ||
       (this.source === 'data' && this.sourceData.queryPath !== null) ||
       (this.source === 'static' && !!this.sourceData.ownerPropName);
   }

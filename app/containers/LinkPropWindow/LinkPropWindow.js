@@ -44,6 +44,7 @@ import {
   makeCurrentQueryArgsGetter,
 } from '../../reducers/project';
 
+import { SYSTEM_PROPS } from '../../constants/misc';
 import { getComponentMeta, isValidSourceForProp } from '../../utils/meta';
 import { getLocalizedTextFromState } from '../../utils';
 
@@ -75,6 +76,7 @@ class LinkPropWindowComponent extends PureComponent {
       components,
       linkingPropOfComponentId,
       linkingPropName,
+      linkingSystemProp,
       linkingPropPath,
     } = this.props;
     
@@ -85,9 +87,12 @@ class LinkPropWindowComponent extends PureComponent {
     );
     
     const linkTargetPropTypedef = getNestedTypedef(
-      linkTargetComponentMeta.props[linkingPropName],
+      linkingSystemProp
+        ? SYSTEM_PROPS[linkingPropName]
+        : linkTargetComponentMeta.props[linkingPropName],
+      
       linkingPropPath,
-      linkTargetComponentMeta.types,
+      linkingSystemProp ? null : linkTargetComponentMeta.types,
     );
     
     return {
@@ -363,6 +368,7 @@ LinkPropWindowComponent.propTypes = {
   builtinFunctions: ImmutablePropTypes.map.isRequired,
   linkingPropOfComponentId: PropTypes.number.isRequired,
   linkingPropName: PropTypes.string.isRequired,
+  linkingSystemProp: PropTypes.bool.isRequired,
   linkingPropPath: PropTypes.arrayOf(
     PropTypes.oneOfType([
       PropTypes.string,
@@ -401,6 +407,7 @@ const mapStateToProps = state => ({
   builtinFunctions: Map(), // TODO: Pass built-in functions here
   linkingPropOfComponentId: state.project.linkingPropOfComponentId,
   linkingPropName: state.project.linkingPropName,
+  linkingSystemProp: state.project.linkingSystemProp,
   linkingPropPath: state.project.linkingPropPath,
   availableDataContexts: availableDataContextsSelector(state),
   topNestedConstructor: topNestedConstructorSelector(state),

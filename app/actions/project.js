@@ -171,6 +171,7 @@ export const deleteComponent = componentId => ({
  *
  * @param {number} componentId
  * @param {string} propName
+ * @param {boolean} isSystemProp
  * @param {(string|number)[]} path
  * @param {string} newSource
  * @param {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner} newSourceData
@@ -181,6 +182,7 @@ export const deleteComponent = componentId => ({
 export const updateComponentPropValue = (
   componentId,
   propName,
+  isSystemProp,
   path,
   newSource,
   newSourceData,
@@ -190,6 +192,7 @@ export const updateComponentPropValue = (
   type: PROJECT_COMPONENT_UPDATE_PROP_VALUE,
   componentId,
   propName,
+  isSystemProp,
   path,
   newSource,
   newSourceData,
@@ -203,6 +206,7 @@ export const updateComponentPropValue = (
  *
  * @param {number} componentId
  * @param {string} propName
+ * @param {boolean} isSystemProp
  * @param {(string|number)[]} path
  * @param {string|number} index
  * @param {string} source
@@ -212,6 +216,7 @@ export const updateComponentPropValue = (
 export const addComponentPropValue = (
   componentId,
   propName,
+  isSystemProp,
   path,
   index,
   source,
@@ -220,6 +225,7 @@ export const addComponentPropValue = (
   type: PROJECT_COMPONENT_ADD_PROP_VALUE,
   componentId,
   propName,
+  isSystemProp,
   path,
   index,
   source,
@@ -230,6 +236,7 @@ export const addComponentPropValue = (
  *
  * @param {number} componentId
  * @param {string} propName
+ * @param {boolean} isSystemProp
  * @param {(string|number)[]} path
  * @param {string|number} index
  * @return {Object}
@@ -237,12 +244,14 @@ export const addComponentPropValue = (
 export const deleteComponentPropValue = (
   componentId,
   propName,
+  isSystemProp,
   path,
   index,
 ) => ({
   type: PROJECT_COMPONENT_DELETE_PROP_VALUE,
   componentId,
   propName,
+  isSystemProp,
   path,
   index,
 });
@@ -287,13 +296,20 @@ export const selectLayoutForNewComponent = layoutIdx => ({
  *
  * @param {number} componentId
  * @param {string} propName
+ * @param {boolean} isSystemProp
  * @param {(string|number)[]} path
  * @return {Object}
  */
-export const constructComponentForProp = (componentId, propName, path) => ({
+export const constructComponentForProp = (
+  componentId,
+  propName,
+  isSystemProp,
+  path,
+) => ({
   type: PROJECT_CONSTRUCT_COMPONENT_FOR_PROP,
   componentId,
   propName,
+  isSystemProp,
   path,
 });
 
@@ -317,13 +333,15 @@ export const saveComponentForProp = () => ({
  *
  * @param {number} componentId
  * @param {string} propName
+ * @param {boolean} isSystemProp
  * @param {(string|number)[]} [path=[]]
  * @return {Object}
  */
-export const linkProp = (componentId, propName, path = []) => ({
+export const linkProp = (componentId, propName, isSystemProp, path = []) => ({
   type: PROJECT_LINK_PROP,
   componentId,
   propName,
+  isSystemProp,
   path,
 });
 
@@ -366,12 +384,16 @@ export const linkWithFunction = (functionSource, functionName, argValues) => ({
 
 /**
  *
- * @return {Object}
+ * @param {number} componentId
+ * @param {string} propName
+ * @param {boolean} isSystemProp
+ * @param {(string|number)[]} path
  */
-export const unlinkProp = (componentId, propName, path) => ({
+export const unlinkProp = (componentId, propName, isSystemProp, path) => ({
   type: PROJECT_UNLINK_PROP,
   componentId,
   propName,
+  isSystemProp,
   path,
 });
 

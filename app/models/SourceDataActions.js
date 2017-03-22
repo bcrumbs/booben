@@ -29,6 +29,13 @@ export const MethodCallActionParams = Record({
   args: List(),
 });
 
+export const PropChangeActionParams = Record({
+  componentId: -1,
+  propName: '',
+  systemPropName: '',
+  value: null,
+});
+
 export const Action = Record({
   type: 'noop',
   params: null,

@@ -12,6 +12,7 @@ import { createSelector } from 'reselect';
 import _mapValues from 'lodash.mapvalues';
 
 import {
+  TypeNames,
   isEqualType,
   resolveTypedef,
   getNestedTypedef,
@@ -57,7 +58,7 @@ import {
   isValidSourceForProp,
 } from '../../utils/meta';
 
-import { NO_VALUE } from '../../constants/misc';
+import { NO_VALUE, SYSTEM_PROPS } from '../../constants/misc';
 import { getLocalizedTextFromState } from '../../utils';
 import { objectSome } from '../../utils/misc';
 
@@ -162,12 +163,22 @@ class ComponentPropsEditorComponent extends PureComponent {
 
     this._formatArrayItemLabel = this._formatArrayItemLabel.bind(this);
     this._formatObjectItemLabel = this._formatObjectItemLabel.bind(this);
-    this._handleSetComponent = this._handleSetComponent.bind(this);
-    this._handleChange = this._handleChange.bind(this);
-    this._handleAddValue = this._handleAddValue.bind(this);
-    this._handleDeleteValue = this._handleDeleteValue.bind(this);
-    this._handleLink = this._handleLink.bind(this);
-    this._handleUnlink = this._handleUnlink.bind(this);
+  
+    this._handleSystemPropSetComponent =
+      this._handleSetComponent.bind(this, true);
+    this._handleSystemPropChange = this._handleChange.bind(this, true);
+    this._handleSystemPropAddValue = this._handleAddValue.bind(this, true);
+    this._handleSystemPropDeleteValue =
+      this._handleDeleteValue.bind(this, true);
+    this._handleSystemPropLink = this._handleLink.bind(this, true);
+    this._handleSystemPropUnlink = this._handleUnlink.bind(this, true);
+  
+    this._handleSetComponent = this._handleSetComponent.bind(this, false);
+    this._handleChange = this._handleChange.bind(this, false);
+    this._handleAddValue = this._handleAddValue.bind(this, false);
+    this._handleDeleteValue = this._handleDeleteValue.bind(this, false);
+    this._handleLink = this._handleLink.bind(this, false);
+    this._handleUnlink = this._handleUnlink.bind(this, false);
   }
 
   /**
@@ -192,27 +203,30 @@ class ComponentPropsEditorComponent extends PureComponent {
 
   /**
    *
+   * @param {boolean} isSystemProp
    * @param {string} propName
    * @param {(string|number)[]} path
    * @private
    */
-  _handleSetComponent({ propName, path }) {
+  _handleSetComponent(isSystemProp, { propName, path }) {
     const componentId = this.props.selectedComponentIds.first();
-    this.props.onConstructComponent(componentId, propName, path);
+    this.props.onConstructComponent(componentId, propName, isSystemProp, path);
   }
 
   /**
    *
+   * @param {boolean} isSystemProp
    * @param {string} propName
    * @param {*} value
    * @param {(string|number)[]} path
    * @private
    */
-  _handleChange({ propName, value, path }) {
+  _handleChange(isSystemProp, { propName, value, path }) {
     const componentId = this.props.selectedComponentIds.first();
     this.props.onPropValueChange(
       componentId,
       propName,
+      isSystemProp,
       path,
       'static',
       { value },
@@ -221,18 +235,27 @@ class ComponentPropsEditorComponent extends PureComponent {
 
   /**
    *
+   * @param {boolean} isSystemProp
    * @param {string} propName
    * @param {(string|number)[]} where
    * @param {string|number} index
    * @private
    */
-  _handleAddValue({ propName, where, index }) {
-    const componentId = this.props.selectedComponentIds.first(),
-      component = this.props.components.get(componentId),
-      componentMeta = getComponentMeta(component.name, this.props.meta),
-      propMeta = componentMeta.props[propName],
-      nestedPropMeta = getNestedTypedef(propMeta, where, componentMeta.types),
-      newValueType = resolveTypedef(nestedPropMeta.ofType, componentMeta.types);
+  _handleAddValue(isSystemProp, { propName, where, index }) {
+    const componentId = this.props.selectedComponentIds.first();
+    const component = this.props.components.get(componentId);
+    const componentMeta = getComponentMeta(component.name, this.props.meta);
+    const propMeta = componentMeta.props[propName];
+    const nestedPropMeta = getNestedTypedef(
+      propMeta,
+      where,
+      componentMeta.types,
+    );
+    
+    const newValueType = resolveTypedef(
+      nestedPropMeta.ofType,
+      componentMeta.types,
+    );
 
     const value = buildDefaultValue(
       componentMeta,
@@ -253,6 +276,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     this.props.onAddPropValue(
       componentId,
       propName,
+      isSystemProp,
       where,
       index,
       value.source,
@@ -262,36 +286,46 @@ class ComponentPropsEditorComponent extends PureComponent {
 
   /**
    *
+   * @param {boolean} isSystemProp
    * @param {string} propName
    * @param {(string|number)[]} where
    * @param {string|number} index
    * @private
    */
-  _handleDeleteValue({ propName, where, index }) {
+  _handleDeleteValue(isSystemProp, { propName, where, index }) {
     const componentId = this.props.selectedComponentIds.first();
-    this.props.onDeletePropValue(componentId, propName, where, index);
+    
+    this.props.onDeletePropValue(
+      componentId,
+      propName,
+      isSystemProp,
+      where,
+      index,
+    );
   }
 
   /**
    *
+   * @param {boolean} isSystemProp
    * @param {string} propName
    * @param {(string|number)[]} path
    * @private
    */
-  _handleLink({ propName, path }) {
+  _handleLink(isSystemProp, { propName, path }) {
     const componentId = this.props.selectedComponentIds.first();
-    this.props.onLinkProp(componentId, propName, path);
+    this.props.onLinkProp(componentId, propName, isSystemProp, path);
   }
 
   /**
    *
+   * @param {boolean} isSystemProp
    * @param {string} propName
    * @param {(string|number)[]} path
    * @private
    */
-  _handleUnlink({ propName, path }) {
+  _handleUnlink(isSystemProp, { propName, path }) {
     const componentId = this.props.selectedComponentIds.first();
-    this.props.onUnlinkProp(componentId, propName, path);
+    this.props.onUnlinkProp(componentId, propName, isSystemProp, path);
   }
 
   /**
@@ -341,8 +375,8 @@ class ComponentPropsEditorComponent extends PureComponent {
       this.props.language,
     );
 
-    const editable = isEditableProp(typedef),
-      linkable = this._isPropLinkable(componentMeta, typedef);
+    const editable = isEditableProp(typedef);
+    const linkable = this._isPropLinkable(componentMeta, typedef);
 
     const ret = {
       label: name,
@@ -425,11 +459,59 @@ class ComponentPropsEditorComponent extends PureComponent {
       />
     );
   }
+  
+  /**
+   *
+   * @param {Object} component
+   * @return {ReactElement}
+   * @private
+   */
+  _renderSystemProps(component) {
+    const { getLocalizedText } = this.props;
+    
+    const visiblePropType = {
+      label: getLocalizedText('propsEditor.systemProps.visible.name'),
+      secondaryLabel: TypeNames.BOOL,
+      view: PropViews.TOGGLE,
+      image: '',
+      tooltip: getLocalizedText('propsEditor.systemProps.visible.desc'),
+      linkable: true,
+      checkable: false,
+      required: false,
+      transformValue: null,
+      formatItemLabel: null,
+    };
+    
+    const visibleValue = jssyValueToPropValue(
+      component.systemProps.get('visible'),
+      SYSTEM_PROPS.visible,
+    );
+    
+    //noinspection JSValidateTypes
+    return (
+      <BlockContentBoxItem key="__system_props__">
+        <PropsList>
+          <Prop
+            propName="visible"
+            propType={visiblePropType}
+            value={visibleValue}
+            getLocalizedText={getLocalizedText}
+            onChange={this._handleSystemPropChange}
+            onSetComponent={this._handleSystemPropSetComponent}
+            onAddValue={this._handleSystemPropAddValue}
+            onDeleteValue={this._handleSystemPropDeleteValue}
+            onLink={this._handleSystemPropLink}
+            onUnlink={this._handleSystemPropUnlink}
+          />
+        </PropsList>
+      </BlockContentBoxItem>
+    );
+  }
 
   render() {
-    const { getLocalizedText } = this.props;
+    const { selectedComponentIds, getLocalizedText } = this.props;
 
-    if (this.props.selectedComponentIds.size === 0) {
+    if (selectedComponentIds.size === 0) {
       //noinspection JSCheckFunctionSignatures
       return (
         <BlockContentPlaceholder
@@ -438,7 +520,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       );
     }
 
-    if (this.props.selectedComponentIds.size > 1) {
+    if (selectedComponentIds.size > 1) {
       //noinspection JSCheckFunctionSignatures
       return (
         <BlockContentPlaceholder
@@ -447,9 +529,9 @@ class ComponentPropsEditorComponent extends PureComponent {
       );
     }
 
-    const componentId = this.props.selectedComponentIds.first(),
-      component = this.props.components.get(componentId),
-      componentMeta = getComponentMeta(component.name, this.props.meta);
+    const componentId = selectedComponentIds.first();
+    const component = this.props.components.get(componentId);
+    const componentMeta = getComponentMeta(component.name, this.props.meta);
 
     if (!componentMeta) return null;
 
@@ -467,7 +549,6 @@ class ComponentPropsEditorComponent extends PureComponent {
     propGroups.forEach(group => void propsByGroup.set(group.name, group.props));
 
     const propsWithoutGroup = [];
-
     const renderablePropNames = Object.keys(componentMeta.props)
       .filter(propName => isRenderableProp(componentMeta.props[propName]));
 
@@ -525,9 +606,12 @@ class ComponentPropsEditorComponent extends PureComponent {
         </BlockContentBoxItem>,
       );
     }
+    
+    const systemProps = this._renderSystemProps(component);
 
     return (
       <BlockContentBox isBordered>
+        {systemProps}
         {content}
       </BlockContentBox>
     );
@@ -549,36 +633,62 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onPropValueChange: (componentId, propName, path, newSource, newSourceData) =>
-    void dispatch(updateComponentPropValue(
-      componentId,
-      propName,
-      path,
-      newSource,
-      newSourceData,
-    )),
+  onPropValueChange: (
+    componentId,
+    propName,
+    isSystemProp,
+    path,
+    newSource,
+    newSourceData,
+  ) => void dispatch(updateComponentPropValue(
+    componentId,
+    propName,
+    isSystemProp,
+    path,
+    newSource,
+    newSourceData,
+  )),
 
-  onAddPropValue: (componentId, propName, path, index, source, sourceData) =>
-    void dispatch(addComponentPropValue(
+  onAddPropValue: (
+    componentId,
+    propName,
+    isSystemProp,
+    path,
+    index,
+    source,
+    sourceData,
+  ) => void dispatch(addComponentPropValue(
+    componentId,
+    propName,
+    isSystemProp,
+    path,
+    index,
+    source,
+    sourceData,
+  )),
+
+  onDeletePropValue: (componentId, propName, isSystemProp, path, index) =>
+    void dispatch(deleteComponentPropValue(
       componentId,
       propName,
+      isSystemProp,
       path,
       index,
-      source,
-      sourceData,
     )),
 
-  onDeletePropValue: (componentId, propName, path, index) =>
-    void dispatch(deleteComponentPropValue(componentId, propName, path, index)),
+  onConstructComponent: (componentId, propName, isSystemProp, path) =>
+    void dispatch(constructComponentForProp(
+      componentId,
+      propName,
+      isSystemProp,
+      path,
+    )),
 
-  onConstructComponent: (componentId, propName, path) =>
-    void dispatch(constructComponentForProp(componentId, propName, path)),
+  onLinkProp: (componentId, propName, isSystemProp, path) =>
+    void dispatch(linkProp(componentId, propName, isSystemProp, path)),
 
-  onLinkProp: (componentId, propName, path) =>
-    void dispatch(linkProp(componentId, propName, path)),
-
-  onUnlinkProp: (componentId, propName, path) =>
-    void dispatch(unlinkProp(componentId, propName, path)),
+  onUnlinkProp: (componentId, propName, isSystemProp, path) =>
+    void dispatch(unlinkProp(componentId, propName, isSystemProp, path)),
 });
 
 export const ComponentPropsEditor = connect(

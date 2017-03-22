@@ -106,11 +106,12 @@ import {
 
 import { concatPath } from '../utils';
 import { parseGraphQLSchema } from '../utils/schema';
-import { NO_VALUE } from '../constants/misc';
+import { NO_VALUE, SYSTEM_PROPS } from '../constants/misc';
 
 export const NestedConstructor = Record({
   componentId: -1,
   prop: '',
+  isSystemProp: false,
   path: [],
   
   components: Map(),
@@ -154,6 +155,7 @@ const ProjectState = Record({
   linkingProp: false,
   linkingPropOfComponentId: -1,
   linkingPropName: '',
+  linkingSystemProp: false,
   linkingPropPath: [],
 });
 
@@ -563,23 +565,26 @@ const updateComponentPropValue = (
   state,
   componentId,
   propName,
+  isSystemProp,
   path,
   newValue,
 ) => {
   const pathToCurrentComponents = getPathToCurrentComponents(state);
   
-  state = clearOutdatedDataProps(
-    state,
-    pathToCurrentComponents,
-    componentId,
-    propName,
-    path,
-  );
+  if (!isSystemProp) {
+    state = clearOutdatedDataProps(
+      state,
+      pathToCurrentComponents,
+      componentId,
+      propName,
+      path,
+    );
+  }
   
   const pathToProp = [].concat(
     pathToCurrentComponents,
     componentId,
-    'props',
+    isSystemProp ? 'systemProps' : 'props',
     propName,
   );
   
@@ -842,6 +847,7 @@ const handlers = {
       state,
       action.componentId,
       action.propName,
+      action.isSystemProp,
       action.path,
       newValue,
     );
@@ -861,7 +867,7 @@ const handlers = {
     const pathToProp = [].concat(
       pathToCurrentComponents,
       action.componentId,
-      'props',
+      action.isSystemProp ? 'systemProps' : 'props',
       action.propName,
     );
     
@@ -881,7 +887,7 @@ const handlers = {
     const pathToProp = [].concat(
       pathToCurrentComponents,
       action.componentId,
-      'props',
+      action.isSystemProp ? 'systemProps' : 'props',
       action.propName,
     );
     
@@ -1050,6 +1056,7 @@ const handlers = {
     const nestedConstructorData = {
       componentId: action.componentId,
       prop: action.propName,
+      isSystemProp: action.isSystemProp,
       path: action.path,
     };
   
@@ -1107,6 +1114,7 @@ const handlers = {
       state,
       topConstructor.componentId,
       topConstructor.prop,
+      topConstructor.isSystemProp,
       topConstructor.path,
       newValue,
     );
@@ -1117,6 +1125,7 @@ const handlers = {
       linkingProp: true,
       linkingPropOfComponentId: action.componentId,
       linkingPropName: action.propName,
+      linkingSystemProp: action.isSystemProp,
     })
     .set('linkingPropPath', action.path), // Prevent conversion to List
   
@@ -1133,6 +1142,7 @@ const handlers = {
       state,
       state.linkingPropOfComponentId,
       state.linkingPropName,
+      state.linkingSystemProp,
       state.linkingPropPath,
       newValue,
     );
@@ -1155,6 +1165,7 @@ const handlers = {
       state,
       state.linkingPropOfComponentId,
       state.linkingPropName,
+      state.linkingSystemProp,
       state.linkingPropPath,
       newValue,
     );
@@ -1178,6 +1189,7 @@ const handlers = {
       state,
       state.linkingPropOfComponentId,
       state.linkingPropName,
+      state.linkingSystemProp,
       state.linkingPropPath,
       newValue,
     );
@@ -1192,11 +1204,14 @@ const handlers = {
     const currentComponents = state.getIn(pathToCurrentComponents);
     const component = currentComponents.get(action.componentId);
     const componentMeta = getComponentMeta(component.name, state.meta);
-    const propMeta = componentMeta.props[action.propName];
+    const propMeta = action.isSystemProp
+      ? SYSTEM_PROPS[action.propName]
+      : componentMeta.props[action.propName];
+    
     const nestedMeta = getNestedTypedef(
       propMeta,
       action.path,
-      componentMeta.types,
+      action.isSystemProp ? null : componentMeta.types,
     );
     
     const { source, sourceData } = buildDefaultValue(
@@ -1214,6 +1229,7 @@ const handlers = {
       state,
       action.componentId,
       action.propName,
+      action.isSystemProp,
       action.path,
       newValue,
     );

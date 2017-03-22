@@ -54,6 +54,8 @@
   "selectAComponent": "Select a component",
   "multipleComponentsSelected": "Multiple components selected",
   "thisComponentDoesntHaveEditableAttributes": "This component doesn't have editable attributes",
+  "propsEditor.systemProps.visible.name": "Visible",
+  "propsEditor.systemProps.visible.desc": "",
   "setComponent": "Set component",
   "editComponent": "Edit component",
   "addValue": "Add item",

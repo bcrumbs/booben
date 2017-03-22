@@ -43,6 +43,7 @@
  * @property {string} title - User-defined title
  * @property {boolean} isWrapper
  * @property {Object<string, ProjectComponentProp>} props
+ * @property {Object<string, ProjectComponentProp>} systemProps
  * @property {ProjectComponent[]} children
  * @property {number[]} regionsEnabled
  * @property {Object<string, Object<string, Object<string, QueryArgumentValue>>>} queryArgs
@@ -51,7 +52,7 @@
 /**
  * @typedef {Object} ProjectComponentProp
  * @property {string} source
- * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner|SourceDataFunction} sourceData
+ * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner|SourceDataFunction|SourceDataState} sourceData
  */
 
 /**
@@ -90,17 +91,63 @@
  * @property {QueryPathStep[]} queryPath
  */
 
-// TODO: Define SourceDataActions
+/**
+ * @typedef {Object} MutationActionParams
+ * @property {string} mutation
+ * @property {Object<string, ProjectComponentProp>} args
+ * @property {Action[]} successActions
+ * @property {Action[]} errorActions
+ */
+
+/**
+ * @typedef {Object} NavigateActionParams
+ * @property {number} routeId
+ * @property {Object<string, ProjectComponentProp>} routeParams
+ */
+
+/**
+ * @typedef {Object} URLActionParams
+ * @property {string} url
+ * @property {boolean} newWindow
+ */
+
+/**
+ * @typedef {Object} MethodCallActionParams
+ * @property {number} componentId
+ * @property {string} method
+ * @property {ProjectComponentProp[]} args
+ */
+
+/**
+ * @typedef {Object} PropChangeActionParams
+ * @property {number} componentId
+ * @property {string} propName
+ * @property {string} systemPropName
+ * @property {ProjectComponentProp} value
+ */
+
+/**
+ * @typedef {Object} Action
+ * @property {string} type
+ * @property {MutationActionParams|NavigateActionParams|URLActionParams|MethodCallActionParams|PropChangeActionParams} params
+ */
 
 /**
  * @typedef {Object} SourceDataActions
+ * @property {Action[]} actions
+ */
+
+/**
+ * @typedef {Object} SourceDataState
+ * @property {number} componentId
+ * @property {string} stateSlot
  */
 
 /**
  * @typedef {Object} SourceDataFunction
  * @property {string} functionSource - Can be 'project' or 'builtin'.
  * @property {string} function - Function name
- * @property {Object<string, SourceDataStatic|SourceDataData|SourceDataConst|SourceDataFunction>} args
+ * @property {Object<string, SourceDataStatic|SourceDataData|SourceDataConst|SourceDataFunction|SourceDataState>} args
  */
 
 /**
