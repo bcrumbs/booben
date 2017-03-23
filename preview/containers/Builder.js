@@ -3,7 +3,7 @@
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
 import { connect } from 'react-redux';
-import { graphql } from 'react-apollo';
+import { graphql, withApollo } from 'react-apollo';
 import _merge from 'lodash.merge';
 import _mapValues from 'lodash.mapvalues';
 import _forOwn from 'lodash.forown';
@@ -36,10 +36,14 @@ import {
   getComponentMeta,
 } from '../../app/utils/meta';
 
+import { getJssyTypeOfField } from '../../app/utils/schema';
+
 import {
   buildQueryForComponent,
   mapDataToComponentProps,
   extractPropValueFromData,
+  getMutationField,
+  buildMutation,
 } from '../../app/utils/graphql';
 
 import { getFunctionInfo } from '../../app/utils/functions';
@@ -95,7 +99,6 @@ class BuilderComponent extends PureComponent {
     
     const ret = {
       needRefs: new Set(),
-      passMutations: new Map(),
       activeStateSlots: new Map(),
     };
     
@@ -107,18 +110,8 @@ class BuilderComponent extends PureComponent {
       walkSimpleProps(component, componentMeta, propValue => {
         if (propValue.source === 'actions') {
           propValue.sourceData.actions.forEach(action => {
-            if (action.type === 'method') {
+            if (action.type === 'method')
               ret.needRefs.add(action.params.componentId);
-            } else if (action.type === 'mutation') {
-              let mutationsForComponent = ret.passMutations.get(component.id);
-              
-              if (!mutationsForComponent) {
-                mutationsForComponent = new Set();
-                ret.passMutations.set(component.id, mutationsForComponent);
-              }
-              
-              mutationsForComponent.add(action.params.mutation);
-            }
           });
         } else if (propValue.source === 'state') {
           let activeStateSlotsForComponent =
@@ -234,6 +227,7 @@ class BuilderComponent extends PureComponent {
    */
   _buildValue(jssyValue, typedef, userTypedefs, theMap, componentId) {
     const {
+      client,
       interactive,
       project,
       schema,
@@ -244,6 +238,8 @@ class BuilderComponent extends PureComponent {
       onNavigate,
       onOpenURL,
     } = this.props;
+    
+    const { componentsState } = this.state;
     
     const resolvedTypedef = resolveTypedef(typedef, userTypedefs);
     
@@ -349,7 +345,7 @@ class BuilderComponent extends PureComponent {
         const stateUpdates = resolvedTypedef.sourceConfigs.actions.updateState;
         
         if (stateUpdates) {
-          const currentState = this.state.componentsState.get(componentId);
+          const currentState = componentsState.get(componentId);
           
           if (currentState) {
             let nextState = currentState;
@@ -374,10 +370,7 @@ class BuilderComponent extends PureComponent {
   
             if (nextState !== currentState) {
               this.setState({
-                componentsState: this.state.componentsState.set(
-                  componentId,
-                  nextState,
-                ),
+                componentsState: componentsState.set(componentId, nextState),
               });
             }
           }
@@ -386,7 +379,38 @@ class BuilderComponent extends PureComponent {
         jssyValue.sourceData.actions.forEach(action => {
           switch (action.type) {
             case 'mutation': {
-              // TODO: Call mutation
+              const mutation = buildMutation(schema, action.params.mutation);
+              if (!mutation) break;
+              
+              const mutationField = getMutationField(
+                schema,
+                action.params.mutation,
+              );
+              
+              const variables = {};
+              
+              action.params.args.forEach((argValue, argName) => {
+                const mutationArg = mutationField.args[argName];
+                const argJssyType = getJssyTypeOfField(mutationArg, schema);
+                const value = this._buildValue(
+                  argValue,
+                  argJssyType,
+                  null,
+                  theMap,
+                  componentId,
+                );
+                
+                if (value !== NO_VALUE) variables[argName] = value;
+              });
+              
+              client.mutate({ mutation, variables })
+                .then(() => {
+                  // TODO: Call successActions
+                })
+                .catch(() => {
+                  // TODO: Call errorActions
+                });
+              
               break;
             }
             
@@ -848,18 +872,7 @@ class BuilderComponent extends PureComponent {
           forceFetch: true,
           notifyOnNetworkStatusChange: true,
         },
-      })(Component);
-    }
-    
-    if (!isPlaceholder) {
-      const mutationsForComponent =
-        this._renderHints.passMutations.get(component.id);
-      
-      if (mutationsForComponent) {
-        mutationsForComponent.forEach(mutationName => {
-          // TODO: Wrap in graphql and pass options
-        });
-      }
+      })(Renderable);
     }
   
     //noinspection JSValidateTypes
@@ -869,15 +882,17 @@ class BuilderComponent extends PureComponent {
   }
 
   render() {
-    if (this.props.rootId > -1) {
-      const rootComponent = this.props.components.get(this.props.rootId);
-      
-      return this._renderComponent(
-        rootComponent,
-        this.props.isPlaceholder,
-        this.props.isPlaceholder,
-      );
-    } else if (this.props.draggingComponent && !this.props.isPlaceholder) {
+    const {
+      components,
+      rootId,
+      isPlaceholder,
+      draggingComponent,
+    } = this.props;
+    
+    if (rootId > -1) {
+      const rootComponent = components.get(rootId);
+      return this._renderComponent(rootComponent, isPlaceholder, isPlaceholder);
+    } else if (draggingComponent && !isPlaceholder) {
       return this._renderPlaceholderForDraggedComponent(-1, -1);
     } else {
       return null;
@@ -887,6 +902,7 @@ class BuilderComponent extends PureComponent {
 
 //noinspection JSUnresolvedVariable
 BuilderComponent.propTypes = {
+  client: PropTypes.object.isRequired, // Comes from react-apollo
   interactive: PropTypes.bool,
   components: PropTypes.object, // Immutable.Map<number, Component>
   rootId: PropTypes.number,
@@ -946,5 +962,5 @@ const mapStateToProps = state => ({
   highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
 });
 
-const Builder = connect(mapStateToProps)(BuilderComponent);
+const Builder = connect(mapStateToProps)(withApollo(BuilderComponent));
 export default Builder;

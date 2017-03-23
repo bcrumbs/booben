@@ -8,7 +8,7 @@ import _forOwn from 'lodash.forown';
 import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
-import { NO_VALUE } from '../../app/constants/misc';
+import { NO_VALUE, SYSTEM_PROPS } from '../../app/constants/misc';
 
 /**
  *
@@ -207,9 +207,9 @@ export const propHasDataContext = propMeta =>
 
 /**
  *
- * @param {ComponentMeta} componentMeta
+ * @param {?ComponentMeta} componentMeta
  * @param {PropTypeDefinition} propMeta
- * @return {ProjectComponentProp}
+ * @return {ProjectComponentProp|Symbol}
  */
 const buildDefaultConstValue = (componentMeta, propMeta) => {
   if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
@@ -245,10 +245,10 @@ const makeSimpleStaticValue = value => ({
 
 /**
  *
- * @param {ComponentMeta} componentMeta
+ * @param {?ComponentMeta} componentMeta
  * @param {PropTypeDefinition} propMeta
  * @param {string} language
- * @param {*|NO_VALUE} [_inheritedDefaultValue=NO_VALUE]
+ * @param {*|Symbol} [_inheritedDefaultValue=NO_VALUE]
  * @return {ProjectComponentProp}
  */
 const buildDefaultStaticValue = (
@@ -259,11 +259,15 @@ const buildDefaultStaticValue = (
 ) => {
   /* eslint-disable no-use-before-define */
   if (propMeta.sourceConfigs.static.defaultTextKey) {
-    return makeSimpleStaticValue(getString(
-      componentMeta,
-      propMeta.sourceConfigs.static.defaultTextKey,
-      language,
-    ));
+    const string = (componentMeta && language)
+      ? getString(
+        componentMeta,
+        propMeta.sourceConfigs.static.defaultTextKey,
+        language,
+      )
+      : '';
+    
+    return makeSimpleStaticValue(string);
   }
 
   const defaultValue = _inheritedDefaultValue !== NO_VALUE
@@ -372,7 +376,7 @@ const buildDefaultDataValue = () => ({
 
 /**
  *
- * @type {Object<string, function(componentMeta: ComponentMeta, propMeta: ComponentPropMeta, language: string, _inheritedDefaultValue: *|NO_VALUE): ProjectComponentProp|NO_VALUE>}
+ * @type {Object<string, function(componentMeta: ComponentMeta, propMeta: ComponentPropMeta, language: string, _inheritedDefaultValue: *|NO_VALUE): ProjectComponentProp|Symbol>}
  * @const
  */
 const defaultValueBuilders = {
@@ -436,14 +440,15 @@ export const buildDefaultValue = (componentMeta, propMeta, language) =>
 
 /**
  *
- * @param {ComponentMeta} componentMeta
- * @param {string} language
+ * @param {Object<string, ComponentPropMeta>} propsMeta
+ * @param {?ComponentMeta} [componentMeta=null]
+ * @param {string} [language='']
  * @return {Object<string, ProjectComponentProp>}
  */
-const buildDefaultProps = (componentMeta, language) => {
+const buildDefaultProps = (propsMeta, componentMeta = null, language = '') => {
   const ret = {};
 
-  _forOwn(componentMeta.props, (propMeta, propName) => {
+  _forOwn(propsMeta, (propMeta, propName) => {
     const defaultValue = buildDefaultValue(componentMeta, propMeta, language);
     if (defaultValue !== NO_VALUE) ret[propName] = defaultValue;
   });
@@ -480,22 +485,27 @@ export const constructComponent = (
     isWrapper,
     name: componentName,
     title: '',
-    props: buildDefaultProps(componentMeta, language),
+    systemProps: buildDefaultProps(SYSTEM_PROPS),
+    props: buildDefaultProps(componentMeta.props, componentMeta, language),
     children: [],
   };
 
   if (componentMeta.kind === 'composite') {
     component.regionsEnabled = [];
 
-    const { namespace } = parseComponentName(componentName),
-      layout = componentMeta.layouts[layoutIdx];
+    const { namespace } = parseComponentName(componentName);
+    const layout = componentMeta.layouts[layoutIdx];
 
     layout.regions.forEach((region, idx) => {
-      const regionComponentName = `${namespace}.${region.component}`,
-        regionComponentMeta = getComponentMeta(regionComponentName, meta);
-
+      const regionComponentName = `${namespace}.${region.component}`;
+      const regionComponentMeta = getComponentMeta(regionComponentName, meta);
       const props = Object.assign(
-        buildDefaultProps(regionComponentMeta, language),
+        buildDefaultProps(
+          regionComponentMeta.props,
+          regionComponentMeta,
+          language,
+        ),
+        
         region.props || {},
       );
 
@@ -505,6 +515,7 @@ export const constructComponent = (
         isWrapper,
         name: regionComponentName,
         title: '',
+        systemProps: buildDefaultProps(SYSTEM_PROPS),
         props,
         children: [],
       });
@@ -518,7 +529,7 @@ export const constructComponent = (
 
 /**
  *
- * @param {TypeDefinition} typedef
+ * @param {PropTypeDefinition} typedef
  * @return {boolean}
  */
 export const isPropTypeDefinition = typedef =>

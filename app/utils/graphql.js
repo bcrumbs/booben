@@ -27,6 +27,8 @@ import {
   propHasDataContest,
 } from './meta';
 
+import { objectToArray } from './misc';
+
 const UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const LOWERCASE_LETTERS = 'abcdefghijklmnopqrstuvwxyz';
 const NUMBERS = '1234567890';
@@ -886,5 +888,189 @@ export const mapDataToComponentProps = (component, data, schema, meta) => {
       _set(ret, path, extractPropValueFromData(propValue, data, schema));
   });
 
+  return ret;
+};
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string} mutationName
+ * @return {?DataField}
+ */
+export const getMutationField = (schema, mutationName) => {
+  if (!schema.mutationTypeName) return null;
+  const mutationType = schema.types[schema.mutationTypeName];
+  return mutationType.fields[mutationName] || null;
+};
+
+/**
+ *
+ * @param {DataFieldTypeDefinition} typeDefinition
+ * @return {Object}
+ */
+const typeDefinitionToGQLTypeAST = typeDefinition => {
+  let ret = {
+    kind: 'NamedType',
+    name: {
+      kind: 'Name',
+      value: typeDefinition.type,
+    },
+  };
+  
+  const kindError =
+    typeDefinition.kind !== FieldKinds.SINGLE &&
+    typeDefinition.kind !== FieldKinds.LIST;
+  
+  if (kindError) {
+    throw new Error(
+      'typeDefinitionToGQLTypeAST(): ' +
+      'Only types of kinds SINGLE and LIST are supported',
+    );
+  }
+  
+  if (typeDefinition.kind === FieldKinds.LIST) {
+    if (typeDefinition.nonNullMember) {
+      ret = {
+        kind: 'NonNullType',
+        type: ret,
+      };
+    }
+    
+    ret = {
+      kind: 'ListType',
+      type: ret,
+    };
+  }
+  
+  if (typeDefinition.nonNull) {
+    ret = {
+      kind: 'NonNullType',
+      type: ret,
+    };
+  }
+  
+  return ret;
+};
+
+/**
+ *
+ * @type {Map<DataSchema, Map<string, Object>>}
+ */
+const mutationsCacheBySchema = new window.Map();
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string} mutationName
+ * @return {?Object}
+ */
+const getMutationFromCache = (schema, mutationName) => {
+  const mutationsBySchema = mutationsCacheBySchema.get(schema);
+  if (!mutationsBySchema) return null;
+  const mutation = mutationsBySchema.get(mutationName);
+  return mutation || null;
+};
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string} mutationName
+ * @param {Object} mutation
+ */
+const saveMutationToCache = (schema, mutationName, mutation) => {
+  let mutationsBySchema = mutationsCacheBySchema.get(schema);
+  if (!mutationsBySchema) {
+    mutationsBySchema = new window.Map();
+    mutationsCacheBySchema.set(schema, mutationsBySchema);
+  }
+  
+  mutationsCacheBySchema.set(mutationName, mutation);
+};
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string} mutationName
+ * @return {?Object}
+ */
+export const buildMutation = (schema, mutationName) => {
+  const mutationField = getMutationField(schema, mutationName);
+  if (!mutationField) return null;
+  
+  const cached = getMutationFromCache(schema, mutationName);
+  if (cached) return cached;
+  
+  const ret = {
+    kind: 'Document',
+    definitions: [
+      {
+        kind: 'OperationDefinition',
+        operation: 'mutation',
+        name: {
+          kind: 'Name',
+          value: randomName(),
+        },
+        variableDefinitions: objectToArray(
+          mutationField.args,
+          
+          (arg, argName) => ({
+            kind: 'VariableDefinition',
+            variable: {
+              kind: 'Variable',
+              name: {
+                kind: 'Name',
+                value: argName,
+              },
+            },
+            type: typeDefinitionToGQLTypeAST(arg),
+            defaultValue: null,
+          }),
+        ),
+        directives: [],
+        selectionSet: {
+          kind: 'SelectionSet',
+          selections: [{
+            kind: 'Field',
+            alias: null,
+            name: {
+              kind: 'Name',
+              value: mutationName,
+            },
+            arguments: objectToArray(mutationField.args, (_, argName) => ({
+              kind: 'Argument',
+              name: {
+                kind: 'Name',
+                value: argName,
+              },
+              value: {
+                kind: 'Variable',
+                name: {
+                  kind: 'Name',
+                  value: argName,
+                },
+              },
+            })),
+            directives: [],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [{
+                kind: 'Field',
+                alias: null,
+                name: {
+                  kind: 'Name',
+                  value: '__typename',
+                },
+                arguments: [],
+                directives: [],
+                selectionSet: null,
+              }],
+            },
+          }],
+        },
+      },
+    ],
+  };
+  
+  saveMutationToCache(schema, mutationName, ret);
   return ret;
 };

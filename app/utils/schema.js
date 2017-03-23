@@ -67,6 +67,7 @@ import { arrayToObject, getter } from './misc';
  * @property {Object<string, DataObjectType>} types
  * @property {Object<string, DataEnumType>} enums
  * @property {?string} queryTypeName
+ * @property {?string} mutationTypeName
  */
 
 /**
@@ -504,19 +505,13 @@ const getRelayConnectionNodeType = (connectionField, schema) => {
  * @return {DataSchema}
  */
 export const parseGraphQLSchema = schema => {
-  // TODO: Handle mutations
-  
-  const queryTypeName = schema.queryType && schema.queryType.name
+  const queryTypeName = (schema.queryType && schema.queryType.name)
     ? schema.queryType.name
     : null;
   
-  if (!queryTypeName) {
-    return {
-      types: {},
-      enums: {},
-      queryTypeName: null,
-    };
-  }
+  const mutationTypeName = (schema.mutationType && schema.mutationType.name)
+    ? schema.mutationType.name
+    : null;
   
   const relayTypes = {
     nodeInterface: findRelayNodeInterface(schema),
@@ -597,6 +592,7 @@ export const parseGraphQLSchema = schema => {
   
     if (!isScalarGraphQLType(fieldTypeInfo.typeName)) {
       const type = findGQLType(schema, fieldTypeInfo.typeName);
+      if (!type) console.log(field);
       if (isObjectType(type)) visitGQLObjectType(type);
       else if (isEnumType(type)) visitGQLEnumType(type);
     }
@@ -679,18 +675,24 @@ export const parseGraphQLSchema = schema => {
           includeGQLField,
         )
         : {},
-      interfaces: type.interfaces.map(iface => iface.name),
+      interfaces: type.interfaces
+        ? type.interfaces.map(iface => iface.name)
+        : [],
     };
   };
   
   /* eslint-enable no-use-before-define */
   
-  visitGQLObjectType(findGQLType(schema, queryTypeName));
+  if (queryTypeName)
+    visitGQLObjectType(findGQLType(schema, queryTypeName));
+  if (mutationTypeName)
+    visitGQLObjectType(findGQLType(schema, mutationTypeName));
   
   return {
     types: retTypes,
     enums: retEnums,
     queryTypeName,
+    mutationTypeName,
   };
 };
 
