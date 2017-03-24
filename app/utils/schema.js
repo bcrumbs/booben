@@ -172,7 +172,7 @@ const graphQLScalarTypeToJssyType = {
  * @param {string} graphQLTypeName
  * @return {boolean}
  */
-const isScalarGraphQLType = graphQLTypeName =>
+export const isScalarGraphQLType = graphQLTypeName =>
   GQL_SCALAR_TYPES.has(graphQLTypeName);
 
 const RELAY_TYPE_NODE_INTERFACE = 'Node';
@@ -592,7 +592,6 @@ export const parseGraphQLSchema = schema => {
   
     if (!isScalarGraphQLType(fieldTypeInfo.typeName)) {
       const type = findGQLType(schema, fieldTypeInfo.typeName);
-      if (!type) console.log(field);
       if (isObjectType(type)) visitGQLObjectType(type);
       else if (isEnumType(type)) visitGQLEnumType(type);
     }

@@ -19,6 +19,7 @@ import {
   getTypeNameByPath,
   FieldKinds,
   parseFieldName,
+  isScalarGraphQLType,
 } from './schema';
 
 import {
@@ -1051,20 +1052,22 @@ export const buildMutation = (schema, mutationName) => {
               },
             })),
             directives: [],
-            selectionSet: {
-              kind: 'SelectionSet',
-              selections: [{
-                kind: 'Field',
-                alias: null,
-                name: {
-                  kind: 'Name',
-                  value: '__typename',
-                },
-                arguments: [],
-                directives: [],
-                selectionSet: null,
-              }],
-            },
+            selectionSet: isScalarGraphQLType(mutationField.type)
+              ? null
+              : {
+                kind: 'SelectionSet',
+                selections: [{
+                  kind: 'Field',
+                  alias: null,
+                  name: {
+                    kind: 'Name',
+                    value: '__typename',
+                  },
+                  arguments: [],
+                  directives: [],
+                  selectionSet: null,
+                }],
+              },
           }],
         },
       },

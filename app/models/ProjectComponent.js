@@ -54,18 +54,9 @@ const actionsToImmutable = actions => List(actions.map(action => {
     case 'mutation': {
       data.params = new MutationActionParams({
         mutation: action.params.mutation,
-        args: Map(_mapValues(
-          action.params.args,
-          argValue => new JssyValue({
-            source: argValue.source,
-            sourceData: sourceDataToImmutable(
-              argValue.source,
-              argValue.sourceData,
-            ),
-          }),
-        )),
-        successActions: actionsToImmutable(action.successActions),
-        errorActions: actionsToImmutable(action.errorActions),
+        args: Map(_mapValues(action.params.args, jssyValueToImmutable)),
+        successActions: actionsToImmutable(action.params.successActions),
+        errorActions: actionsToImmutable(action.params.errorActions),
       });
       
       break;
@@ -76,13 +67,7 @@ const actionsToImmutable = actions => List(actions.map(action => {
         routeId: action.params.routeId,
         routeParams: Map(_mapValues(
           action.params.routeParams,
-          paramValue => new JssyValue({
-            source: paramValue.source,
-            sourceData: sourceDataToImmutable(
-              paramValue.source,
-              paramValue.sourceData,
-            ),
-          }),
+          jssyValueToImmutable,
         )),
       });
       
@@ -102,13 +87,7 @@ const actionsToImmutable = actions => List(actions.map(action => {
       data.params = new MethodCallActionParams({
         componentId: action.params.componentId,
         method: action.params.method,
-        args: List(action.params.args.map(argValue => new JssyValue({
-          source: argValue.source,
-          sourceData: sourceDataToImmutable(
-            argValue.source,
-            argValue.sourceData,
-          ),
-        }))),
+        args: List(action.params.args.map(jssyValueToImmutable)),
       });
       
       break;
@@ -119,13 +98,7 @@ const actionsToImmutable = actions => List(actions.map(action => {
         componentId: action.params.componentId,
         propName: action.params.propName || '',
         systemPropName: action.params.systemPropName || '',
-        value: new JssyValue({
-          source: action.params.value.source,
-          sourceData: sourceDataToImmutable(
-            action.params.value.source,
-            action.params.value.sourceData,
-          ),
-        }),
+        value: jssyValueToImmutable(action.params.value),
       });
       
       break;
@@ -139,27 +112,21 @@ const actionsToImmutable = actions => List(actions.map(action => {
   return Action(data);
 }));
 
+const jssyValueToImmutable = ({ source, sourceData }) => new JssyValue({
+  source,
+  sourceData: sourceDataToImmutable(source, sourceData),
+});
+
 const propSourceDataToImmutableFns = {
   static: input => {
     const data = {};
 
     if (typeof input.value !== 'undefined') {
       if (Array.isArray(input.value)) {
-        data.value = List(input.value.map(
-          ({ source, sourceData }) => new JssyValue({
-            source,
-            sourceData: sourceDataToImmutable(source, sourceData),
-          })),
+        data.value = List(input.value.map(jssyValueToImmutable),
         );
       } else if (typeof input.value === 'object' && input.value !== null) {
-        data.value = Map(_mapValues(
-          input.value,
-
-          ({ source, sourceData }) => new JssyValue({
-            source,
-            sourceData: sourceDataToImmutable(source, sourceData),
-          })),
-        );
+        data.value = Map(_mapValues(input.value, jssyValueToImmutable));
       } else {
         data.value = input.value;
       }
@@ -190,14 +157,7 @@ const propSourceDataToImmutableFns = {
   function: input => new SourceDataFunction({
     functionSource: input.functionSource,
     function: input.function,
-    args: Map().withMutations(args => {
-      _forOwn(input.args, (arg, name) => {
-        args.set(name, new JssyValue({
-          source: arg.source,
-          sourceData: sourceDataToImmutable(arg.source, arg.sourceData),
-        }));
-      });
-    }),
+    args: Map(_mapValues(input.args, jssyValueToImmutable)),
   }),
 
   const: input => new SourceDataConst(input),
@@ -225,14 +185,7 @@ const propSourceDataToImmutableFns = {
 export const sourceDataToImmutable = (source, sourceData) =>
   propSourceDataToImmutableFns[source](sourceData);
 
-const propsToImmutable = props =>
-  Map(_mapValues(props, propValue => new JssyValue({
-    source: propValue.source,
-    sourceData: sourceDataToImmutable(
-      propValue.source,
-      propValue.sourceData,
-    ),
-  })));
+const propsToImmutable = props => Map(_mapValues(props, jssyValueToImmutable));
 
 export const projectComponentToImmutable = (
   input,

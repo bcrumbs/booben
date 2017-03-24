@@ -215,6 +215,148 @@ class BuilderComponent extends PureComponent {
       </Builder>
     );
   }
+  
+  _performAction(action, componentId, theMap) {
+    const {
+      client,
+      meta,
+      schema,
+      components,
+      onNavigate,
+      onOpenURL,
+    } = this.props;
+    
+    const { dynamicPropValues } = this.state;
+    
+    switch (action.type) {
+      case 'mutation': {
+        const mutation = buildMutation(schema, action.params.mutation);
+        if (!mutation) break;
+      
+        const mutationField = getMutationField(schema, action.params.mutation);
+        const variables = {};
+      
+        action.params.args.forEach((argValue, argName) => {
+          const mutationArg = mutationField.args[argName];
+          const argJssyType = getJssyTypeOfField(mutationArg, schema);
+          const value = this._buildValue(
+            argValue,
+            argJssyType,
+            null,
+            theMap,
+            componentId,
+          );
+        
+          if (value !== NO_VALUE) variables[argName] = value;
+        });
+      
+        client.mutate({ mutation, variables })
+          .then(() => {
+            action.params.successActions.forEach(successAction =>
+              void this._performAction(successAction, componentId, theMap));
+          })
+          .catch(() => {
+            action.params.errorActions.forEach(errorAction =>
+              void this._performAction(errorAction, componentId, theMap));
+          });
+      
+        break;
+      }
+    
+      case 'navigate': {
+        const routeParams = {};
+      
+        action.params.routeParams.forEach((paramValue, paramName) => {
+          const value = this._buildValue(
+            paramValue,
+            { type: 'string' },
+            null,
+            theMap,
+            componentId,
+          );
+        
+          if (value !== NO_VALUE) routeParams[paramName] = value;
+        });
+      
+        onNavigate({ routeId: action.params.routeId, routeParams });
+        break;
+      }
+    
+      case 'url': {
+        onOpenURL({
+          url: action.params.url,
+          newWindow: action.params.newWindow,
+        });
+        break;
+      }
+    
+      case 'method': {
+        const component = components.get(action.params.componentId);
+        const componentInstance = this._refs.get(action.params.componentId);
+        if (!component || !componentInstance) break;
+        
+        const componentMeta = getComponentMeta(component.name, meta);
+        const isInvalidMethod =
+          !componentMeta.methods ||
+          !componentMeta.methods[action.params.method];
+        
+        if (isInvalidMethod) break;
+        
+        const args = [];
+      
+        action.params.args.forEach((argValue, idx) => {
+          const argTypedef = resolveTypedef(
+            componentMeta.methods[action.params.method].args[idx],
+            componentMeta.types,
+          );
+        
+          const value = this._buildValue(
+            argValue,
+            argTypedef,
+            componentMeta.types,
+            theMap,
+            componentId,
+          );
+        
+          args.push(value !== NO_VALUE ? value : void 0);
+        });
+      
+        componentInstance[action.params.method](...args);
+      
+        break;
+      }
+    
+      case 'prop': {
+        let propName;
+        let isSystemProp;
+      
+        if (action.params.propName) {
+          propName = action.params.propName;
+          isSystemProp = false;
+        } else {
+          propName = action.params.systemPropName;
+          isSystemProp = true;
+        }
+      
+        const propAddress = serializePropAddress(
+          action.params.componentId,
+          propName,
+          isSystemProp,
+        );
+      
+        this.setState({
+          dynamicPropValues: dynamicPropValues.set(
+            propAddress,
+            action.params.value,
+          ),
+        });
+      
+        break;
+      }
+    
+      default:
+    }
+  }
 
   /**
    *
@@ -227,7 +369,6 @@ class BuilderComponent extends PureComponent {
    */
   _buildValue(jssyValue, typedef, userTypedefs, theMap, componentId) {
     const {
-      client,
       interactive,
       project,
       schema,
@@ -235,8 +376,6 @@ class BuilderComponent extends PureComponent {
       propsFromOwner,
       ignoreOwnerProps,
       dataContextInfo,
-      onNavigate,
-      onOpenURL,
     } = this.props;
     
     const { componentsState } = this.state;
@@ -339,7 +478,7 @@ class BuilderComponent extends PureComponent {
       return fnInfo.fn(...argValues, {});
     } else if (jssyValue.source === 'actions') {
       // No actions in design-time
-      if (interactive) return noop;
+      if (interactive || isPlaceholder) return noop;
       
       return (...args) => {
         const stateUpdates = resolvedTypedef.sourceConfigs.actions.updateState;
@@ -376,134 +515,8 @@ class BuilderComponent extends PureComponent {
           }
         }
         
-        jssyValue.sourceData.actions.forEach(action => {
-          switch (action.type) {
-            case 'mutation': {
-              const mutation = buildMutation(schema, action.params.mutation);
-              if (!mutation) break;
-              
-              const mutationField = getMutationField(
-                schema,
-                action.params.mutation,
-              );
-              
-              const variables = {};
-              
-              action.params.args.forEach((argValue, argName) => {
-                const mutationArg = mutationField.args[argName];
-                const argJssyType = getJssyTypeOfField(mutationArg, schema);
-                const value = this._buildValue(
-                  argValue,
-                  argJssyType,
-                  null,
-                  theMap,
-                  componentId,
-                );
-                
-                if (value !== NO_VALUE) variables[argName] = value;
-              });
-              
-              client.mutate({ mutation, variables })
-                .then(() => {
-                  // TODO: Call successActions
-                })
-                .catch(() => {
-                  // TODO: Call errorActions
-                });
-              
-              break;
-            }
-            
-            case 'navigate': {
-              const routeParams = {};
-              
-              action.params.routeParams.forEach((paramValue, paramName) => {
-                const value = this._buildValue(
-                  paramValue,
-                  { type: 'string' },
-                  null,
-                  theMap,
-                  componentId,
-                );
-                
-                if (value !== NO_VALUE) routeParams[paramName] = value;
-              });
-              
-              onNavigate({ routeId: action.params.routeId, routeParams });
-              break;
-            }
-            
-            case 'url': {
-              onOpenURL({
-                url: action.params.url,
-                newWindow: action.params.newWindow,
-              });
-              break;
-            }
-            
-            case 'method': {
-              if (isPlaceholder) break;
-              
-              const componentInstance =
-                this._refs.get(action.params.componentId);
-              
-              if (componentInstance) {
-                const args = [];
-                
-                action.params.args.forEach((argValue, idx) => {
-                  const argTypedef = resolveTypedef(
-                    resolvedTypedef.sourceConfigs.actions.args[idx],
-                    userTypedefs,
-                  );
-                  
-                  const value = this._buildValue(
-                    argValue,
-                    argTypedef,
-                    userTypedefs,
-                    theMap,
-                    componentId,
-                  );
-                  
-                  args.push(value !== NO_VALUE ? value : void 0);
-                });
-  
-                componentInstance[action.params.method](...args);
-              }
-              
-              break;
-            }
-            
-            case 'prop': {
-              let propName;
-              let isSystemProp;
-              
-              if (action.params.propName) {
-                propName = action.params.propName;
-                isSystemProp = false;
-              } else {
-                propName = action.params.systemPropName;
-                isSystemProp = true;
-              }
-              
-              const propAddress = serializePropAddress(
-                action.params.componentId,
-                propName,
-                isSystemProp,
-              );
-              
-              this.setState({
-                dynamicPropValues: this.state.dynamicPropValues.set(
-                  propAddress,
-                  action.params.value,
-                ),
-              });
-              
-              break;
-            }
-            
-            default:
-          }
-        });
+        jssyValue.sourceData.actions.forEach(action =>
+          void this._performAction(action, componentId, theMap));
       };
     } else if (jssyValue.source === 'state') {
       const componentState =
@@ -588,7 +601,9 @@ class BuilderComponent extends PureComponent {
     const props = this._buildProps(component, null);
     
     if (component.name === 'Outlet') {
-      return this.props.interactive ? <Outlet /> : this.props.children;
+      return this.props.interactive
+        ? (this.props.children || <Outlet />)
+        : this.props.children;
     } else if (component.name === 'Text') {
       return props.text || '';
     } else if (component.name === 'List') {
