@@ -103,16 +103,22 @@ class BuilderComponent extends PureComponent {
     };
     
     if (rootId === -1) return ret;
+    
+    const visitAction = action => {
+      if (action.type === 'method') {
+        ret.needRefs.add(action.params.componentId);
+      } else if (action.type === 'mutation') {
+        action.params.successActions.forEach(visitAction);
+        action.params.errorActions.forEach(visitAction);
+      }
+    };
   
     walkComponentsTree(components, rootId, component => {
       const componentMeta = getComponentMeta(component.name, meta);
       
       walkSimpleProps(component, componentMeta, propValue => {
         if (propValue.source === 'actions') {
-          propValue.sourceData.actions.forEach(action => {
-            if (action.type === 'method')
-              ret.needRefs.add(action.params.componentId);
-          });
+          propValue.sourceData.actions.forEach(visitAction);
         } else if (propValue.source === 'state') {
           let activeStateSlotsForComponent =
             ret.activeStateSlots.get(propValue.sourceData.componentId);

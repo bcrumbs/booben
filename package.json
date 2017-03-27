@@ -20,7 +20,7 @@
   "dependencies": {
     "@common/async-utils": "^0.2.1",
     "@common/tree": "^0.1.1",
-    "@jssy/metadata": "^0.3.0",
+    "@jssy/metadata": "^0.4.0",
     "@jssy/types": "^0.1.4",
     "@reactackle/reactackle": "0.1.0-dev502",
     "apollo-client": "^0.5.21",
