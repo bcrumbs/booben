@@ -8,7 +8,7 @@ import _merge from 'lodash.merge';
 import _mapValues from 'lodash.mapvalues';
 import _forOwn from 'lodash.forown';
 import _get from 'lodash.get';
-import { Map as ImmutableMap } from 'immutable';
+import { Map as ImmutableMap, List as ImmutableList } from 'immutable';
 import { resolveTypedef } from '@jssy/types';
 import { getComponentById } from '../../app/models/Project';
 
@@ -48,6 +48,30 @@ import {
 
 import { getFunctionInfo } from '../../app/utils/functions';
 import { noop, returnNull } from '../../app/utils/misc';
+
+/**
+ *
+ * @param {Object} jssyValue
+ * @return {*}
+ */
+const buildSimplePropValue = jssyValue => {
+  if (jssyValue.source === 'static' && !jssyValue.sourceData.ownerPropName) {
+    if (
+      ImmutableList.isList(jssyValue.sourceData.value) ||
+      ImmutableMap.isMap(jssyValue.sourceData.value)
+    )
+      return jssyValue.sourceData.value.map(buildSimplePropValue).toJS();
+    else
+      return jssyValue.sourceData.value;
+  } else if (
+    jssyValue.source === 'const' &&
+    !jssyValue.sourceData.jssyConstId
+  ) {
+    return jssyValue.value;
+  }
+  
+  throw new Error('buildSimplePropValue(): value is not buildable');
+};
 
 /**
  *
@@ -154,9 +178,7 @@ class BuilderComponent extends PureComponent {
         ret[stateSlotName] = initialValue.sourceData.value;
       } else if (initialValue.source === 'prop') {
         const propValue = component.props.get(initialValue.sourceData.propName);
-        
-        if (propValue.source === 'static' || propValue.source === 'const')
-          ret[stateSlotName] = propValue.sourceData.value;
+        ret[stateSlotName] = buildSimplePropValue(propValue);
       }
     });
     
