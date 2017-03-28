@@ -382,6 +382,7 @@ class DesignRoute extends PureComponent {
       return (
         <ComponentLayoutSelectionItem
           key={String(idx)}
+          layoutIdx={idx}
           image={icon}
           title={title}
           subtitle={subtitle}
