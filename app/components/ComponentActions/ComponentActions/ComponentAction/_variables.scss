@@ -1,0 +1,13 @@
+@charset "UTF-8";
+@import '~@reactackle/reactackle/utils/_global';
+
+// =============================================================================
+// BASE VARIABLES
+// =============================================================================
+$action-heading-icon-box-size:  rem-calc(24) !default;
+$action-heading-icon-img-size:  rem-calc(16) !default;
+$action-heading-icon-spacing:   $base-module !default;
+
+// CASE BOX
+$case-marker-size:      $base-module !default;
+$case-marker-spacing:   $base-module !default;;

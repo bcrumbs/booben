@@ -1,0 +1,78 @@
+@charset "UTF-8";
+@import 'variables';
+
+@include exports(component-action) {
+    // ACTION ITEM
+    // =========================================================================
+    // HEADING
+    .component-action_heading {
+        display: flex;
+    }
+
+    .component-action_link-wrapper {
+        display: flex;
+        flex-grow: 1;
+
+        &:hover {
+            background-color: transparentize(black, 0.95);
+        }
+    }
+
+    .component-action_icon {
+        margin-right: $action-heading-icon-spacing;
+
+        @include icon-size(
+                        $action-heading-icon-box-size,
+                        $action-heading-icon-img-size
+        );
+    }
+
+    .component-action_title {
+        flex-grow: 1;
+    }
+
+    // CASE BOX
+    .component-case{
+        & + & {
+            margin-top: $base-module*2;
+        }
+    }
+
+    .component-case_header {
+        display: flex;
+        align-items: center;
+    }
+
+    .component-case_marker {
+        width: $case-marker-size;
+        height: $case-marker-size;
+        border-radius: 50%;
+        display: block;
+        margin-right: $case-marker-spacing;
+
+        .case-type-success & {
+            background-color: $color-success;
+        }
+
+        .case-type-error & {
+            background-color: $color-alert;
+        }
+    }
+
+    .component-case_title {
+        flex-grow: 1;
+        font-size: fs(-2);
+        color: $color-text-medium;
+        text-transform: uppercase;
+        font-weight: $font-weight-semibold;
+    }
+
+    .component-case_body {
+        padding-left: $case-marker-size + $case-marker-spacing;
+    }
+
+    // BODY
+    .component-action_body {
+        margin-left: $action-heading-icon-box-size + $action-heading-icon-spacing;
+    }
+}

@@ -1,0 +1,12 @@
+@charset "UTF-8";
+@import 'variables';
+
+@include exports(component-handlers) {
+    // HANDLERS LIST
+    // =========================================================================
+    .component-handler {
+        & + & {
+            margin-top: $cinteractions-handlers-spacing;
+        }
+    }
+}

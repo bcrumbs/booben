@@ -1,0 +1,27 @@
+@charset "UTF-8";
+@import '~@reactackle/reactackle/utils/_global';
+
+// =============================================================================
+// BASE VARIABLES
+// =============================================================================
+$coactions-actions-spacing:                 $base-module !default;
+
+// Text
+$coactions-action-text-margin-right:        $base-module*2 !default;
+
+$coactions-action-title-font-size:          fs(0) !default;
+$coactions-action-title-font-weight:        $font-weight-semibold !default;
+$coactions-action-title-color:              $color-text-medium !default;
+$coactions-action-title-color-active:       $body-font-color !default;
+$coactions-action-title-text-transform:     none !default;
+$coactions-action-title-line-height:        1.5 !default;
+
+// Buttons
+$coactions-handler-button-box-size:            rem-calc(32) !default;
+$coactions-handler-button-img-size:            rem-calc(16) !default;
+$coactions-handler-button-color:               $icon-dark-inactive-color !default;
+$coactions-handler-button-focus-color:         $icon-dark-default-color !default;
+$coactions-handler-button-spacing-x:           $base-module/2 !default;
+
+// HANDLER BODY
+$handler-body-offset:                          $base-module/2 !default;

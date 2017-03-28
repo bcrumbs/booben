@@ -60,9 +60,14 @@ import {
 } from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
 import {
-  ComponentActionEditing,
-  ComponentActionsList,
-} from '../components/ComponentInteractions/ComponentInteractions';
+  ComponentHandlers,
+  ComponentActions,
+} from '../components/ComponentActions/index';
+
+import {
+  PropsList,
+  Prop,
+} from '../components/PropsList/PropsList';
 
 import { ProjectSave } from '../components/ProjectSave/ProjectSave';
 
@@ -271,27 +276,60 @@ const toolComponentTemplatesWindowSections = List([
 ]);
 
 // Component Props : Action Tab
-const componentActionsList = [
+const componentActions = [
   {
-    title: 'Tap',
-    description: 'Change "Component A" state to "State 1"',
+    title: 'Show "Preloader"',
   },
   {
-    title: 'Mouse Over',
-    description: 'Animate this: zoom in',
+    title: 'Create Alert',
+    onSuccess: [
+      <ComponentActions items={[
+        {
+          title: 'Some Action',
+        },
+      ]} />
+    ],
+    onError: [<ComponentActions />],
+  },
+  {
+    title: 'Go to route "SomeRoute"',
   },
 ];
 
+const handlerBodySample = [
+  <ComponentActions items={componentActions} />
+];
+
+const componentHandlers = [
+  {
+    title: 'onFocus',
+    description: 'Some description from meta',
+    active: false,
+  },
+  {
+    title: 'onPress',
+    description: 'Some description from meta',
+    active: true,
+    content: handlerBodySample
+  },
+  {
+    title: 'onSomething',
+    description: 'Some description from meta',
+    active: false,
+  },
+];
+
+const step1handlers = <ComponentHandlers items={componentHandlers} />;
+
+const ActionContent = step1handlers;
+
 const toolComponentActionsWindowSections = List([
   new ToolSectionRecord({
-    name: 'Route Editing',
+    name: 'Component Actions',
     component: () => (
       <BlockContentBox isBordered flex>
-        <BlockContentBoxItem>
-          <ComponentActionEditing />
-        </BlockContentBoxItem>
         <BlockContentBoxItem isBordered flexMain>
-          <ComponentActionsList items={componentActionsList} />
+          {ActionContent}
         </BlockContentBoxItem>
       </BlockContentBox>
         ),
@@ -300,18 +338,30 @@ const toolComponentActionsWindowSections = List([
 
 // TODO: Add tool id to this list when creating new tools
 export const PLAYGROUND_TOOL_IDS = List([
+  'tool8',
+  'tool2',
   'tool5',
   'tool1',
-  'tool2',
   'tool4',
   'tool6',
   'tool7',
-  'tool8',
   'tool9',
 ]);
 
 const toolGroups = List([
   List([
+    new ToolRecord({
+      id: 'tool8',
+      icon: 'play',
+      name: 'Action Tab Content',
+      title: 'Action Tab Content',
+      undockable: true,
+      closable: false,
+      sections: toolComponentActionsWindowSections,
+      mainButtons: '',
+      secondaryButtons: '',
+    }),
+    
     new ToolRecord({
       id: 'tool9',
       icon: 'cog',
@@ -332,18 +382,6 @@ const toolGroups = List([
       undockable: true,
       closable: false,
       sections: toolDataSections,
-      mainButtons: '',
-      secondaryButtons: '',
-    }),
-
-    new ToolRecord({
-      id: 'tool8',
-      icon: 'play',
-      name: 'Action Tab Content',
-      title: 'Action Tab Content',
-      undockable: true,
-      closable: false,
-      sections: toolComponentActionsWindowSections,
       mainButtons: '',
       secondaryButtons: '',
     }),
