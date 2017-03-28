@@ -82,6 +82,8 @@ import ToolRecord from '../models/Tool';
 
 import { List, Set } from 'immutable';
 
+import { removeSplashScreen } from '../utils/dom';
+
 // DATA
 const toolIsolationSections = List([
   new ToolSectionRecord({
@@ -395,6 +397,10 @@ const toolGroups = List([
 ]);
 
 export default class Playground extends React.Component {
+  componentDidMount() {
+    removeSplashScreen();
+  }
+  
   render() {
     return (
       <App fixed>
