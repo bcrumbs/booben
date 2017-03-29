@@ -61,13 +61,11 @@ import {
 
 import {
   ComponentHandlers,
+  ComponentHandler,
   ComponentActions,
-} from '../components/ComponentActions/index';
-
-import {
-  PropsList,
-  Prop,
-} from '../components/PropsList/PropsList';
+  ComponentAction,
+  ComponentActionCaseRow,
+} from '../components/actions';
 
 import { ProjectSave } from '../components/ProjectSave/ProjectSave';
 
@@ -276,60 +274,49 @@ const toolComponentTemplatesWindowSections = List([
 ]);
 
 // Component Props : Action Tab
-const componentActions = [
-  {
-    title: 'Show "Preloader"',
-  },
-  {
-    title: 'Create Alert',
-    onSuccess: [
-      <ComponentActions items={[
-        {
-          title: 'Some Action',
-        },
-      ]} />
-    ],
-    onError: [<ComponentActions />],
-  },
-  {
-    title: 'Go to route "SomeRoute"',
-  },
-];
-
-const handlerBodySample = [
-  <ComponentActions items={componentActions} />
-];
-
-const componentHandlers = [
-  {
-    title: 'onFocus',
-    description: 'Some description from meta',
-    active: false,
-  },
-  {
-    title: 'onPress',
-    description: 'Some description from meta',
-    active: true,
-    content: handlerBodySample
-  },
-  {
-    title: 'onSomething',
-    description: 'Some description from meta',
-    active: false,
-  },
-];
-
-const step1handlers = <ComponentHandlers items={componentHandlers} />;
-
-const ActionContent = step1handlers;
-
 const toolComponentActionsWindowSections = List([
   new ToolSectionRecord({
     name: 'Component Actions',
     component: () => (
       <BlockContentBox isBordered flex>
         <BlockContentBoxItem isBordered flexMain>
-          {ActionContent}
+          <ComponentHandlers>
+            <ComponentHandler
+              title="onFocus"
+              description="Some description from meta"
+              active
+            />
+            
+            <ComponentHandler
+              title="onPress"
+              description="Some description from meta"
+              active
+              expanded
+            >
+              <ComponentActions addButtonText="Add action">
+                <ComponentAction title="Show Preloader" />
+                
+                <ComponentAction title="Create Alert">
+                  <ComponentActionCaseRow type="success" title="On success">
+                    <ComponentActions addButtonText="Add action" />
+                  </ComponentActionCaseRow>
+                  
+                  <ComponentActionCaseRow type="error" title="On error">
+                    <ComponentActions addButtonText="Add action">
+                      <ComponentAction title="Some action" />
+                    </ComponentActions>
+                  </ComponentActionCaseRow>
+                </ComponentAction>
+                
+                <ComponentAction title="Go to route SomeRoute" />
+              </ComponentActions>
+            </ComponentHandler>
+            
+            <ComponentHandler
+              title="onSomething"
+              description="Some description from meta"
+            />
+          </ComponentHandlers>
         </BlockContentBoxItem>
       </BlockContentBox>
         ),
