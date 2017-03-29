@@ -40,6 +40,10 @@ import {
   ComponentRegionsEditor,
 } from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
 
+import {
+  ComponentActionsEditor,
+} from '../containers/ComponentActionsEditor/ComponentActionsEditor';
+
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
 import { LinkPropWindow } from '../containers/LinkPropWindow/LinkPropWindow';
 
@@ -76,6 +80,7 @@ import {
   isCompositeComponent,
   getString,
   getComponentPropName,
+  componentHasActions,
 } from '../utils/meta';
 
 import { URL_PREVIEW_PREFIX } from '../../shared/constants';
@@ -264,6 +269,18 @@ class DesignRoute extends PureComponent {
             }),
           );
         }
+      }
+  
+      const selectedComponentMeta =
+        getComponentMeta(selectedComponent.name, meta);
+      
+      if (componentHasActions(selectedComponentMeta)) {
+        sections = sections.push(
+          new ToolSectionRecord({
+            name: 'Actions',
+            component: ComponentActionsEditor,
+          }),
+        );
       }
     } else {
       title = getLocalizedText('componentConfiguration');

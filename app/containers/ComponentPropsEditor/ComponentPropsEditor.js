@@ -88,6 +88,100 @@ const defaultProps = {
   ownerProps: null,
 };
 
+const ownerComponentMetaSelector = createSelector(
+  topNestedConstructorComponentSelector,
+  state => state.project.meta,
+  
+  (ownerComponent, meta) => ownerComponent
+    ? getComponentMeta(ownerComponent.name, meta)
+    : null,
+);
+
+const ownerPropsSelector = createSelector(
+  topNestedConstructorSelector,
+  ownerComponentMetaSelector,
+  
+  (topNestedConstructor, ownerComponentMeta) => {
+    if (!ownerComponentMeta) return null;
+    
+    const ownerComponentProp = topNestedConstructor.prop,
+      ownerComponentPropMeta = ownerComponentMeta.props[ownerComponentProp];
+    
+    return ownerComponentPropMeta.source.indexOf('designer') > -1
+      ? ownerComponentPropMeta.sourceConfigs.designer.props || null
+      : null;
+  },
+);
+
+const mapStateToProps = state => ({
+  meta: state.project.meta,
+  components: currentComponentsSelector(state),
+  selectedComponentIds: currentSelectedComponentIdsSelector(state),
+  language: state.app.language,
+  ownerComponentMeta: ownerComponentMetaSelector(state),
+  ownerProps: ownerPropsSelector(state),
+  getLocalizedText: getLocalizedTextFromState(state),
+});
+
+const mapDispatchToProps = dispatch => ({
+  onPropValueChange: (
+    componentId,
+    propName,
+    isSystemProp,
+    path,
+    newSource,
+    newSourceData,
+  ) => void dispatch(updateComponentPropValue(
+    componentId,
+    propName,
+    isSystemProp,
+    path,
+    newSource,
+    newSourceData,
+  )),
+  
+  onAddPropValue: (
+    componentId,
+    propName,
+    isSystemProp,
+    path,
+    index,
+    source,
+    sourceData,
+  ) => void dispatch(addComponentPropValue(
+    componentId,
+    propName,
+    isSystemProp,
+    path,
+    index,
+    source,
+    sourceData,
+  )),
+  
+  onDeletePropValue: (componentId, propName, isSystemProp, path, index) =>
+    void dispatch(deleteComponentPropValue(
+      componentId,
+      propName,
+      isSystemProp,
+      path,
+      index,
+    )),
+  
+  onConstructComponent: (componentId, propName, isSystemProp, path) =>
+    void dispatch(constructComponentForProp(
+      componentId,
+      propName,
+      isSystemProp,
+      path,
+    )),
+  
+  onLinkProp: (componentId, propName, isSystemProp, path) =>
+    void dispatch(linkProp(componentId, propName, isSystemProp, path)),
+  
+  onUnlinkProp: (componentId, propName, isSystemProp, path) =>
+    void dispatch(unlinkProp(componentId, propName, isSystemProp, path)),
+});
+
 /**
  *
  * @param {string} value
@@ -122,31 +216,6 @@ const isRenderableProp = propMeta =>
     propMeta.type === 'component' &&
     isValidSourceForProp(propMeta, 'designer')
   );
-
-const ownerComponentMetaSelector = createSelector(
-  topNestedConstructorComponentSelector,
-  state => state.project.meta,
-
-  (ownerComponent, meta) => ownerComponent
-    ? getComponentMeta(ownerComponent.name, meta)
-    : null,
-);
-
-const ownerPropsSelector = createSelector(
-  topNestedConstructorSelector,
-  ownerComponentMetaSelector,
-
-  (topNestedConstructor, ownerComponentMeta) => {
-    if (!ownerComponentMeta) return null;
-
-    const ownerComponentProp = topNestedConstructor.prop,
-      ownerComponentPropMeta = ownerComponentMeta.props[ownerComponentProp];
-
-    return ownerComponentPropMeta.source.indexOf('designer') > -1
-      ? ownerComponentPropMeta.sourceConfigs.designer.props || null
-      : null;
-  },
-);
 
 /**
  *
@@ -621,75 +690,6 @@ class ComponentPropsEditorComponent extends PureComponent {
 ComponentPropsEditorComponent.propTypes = propTypes;
 ComponentPropsEditorComponent.defaultProps = defaultProps;
 ComponentPropsEditorComponent.dispalyName = 'ComponentPropsEditor';
-
-const mapStateToProps = state => ({
-  meta: state.project.meta,
-  components: currentComponentsSelector(state),
-  selectedComponentIds: currentSelectedComponentIdsSelector(state),
-  language: state.app.language,
-  ownerComponentMeta: ownerComponentMetaSelector(state),
-  ownerProps: ownerPropsSelector(state),
-  getLocalizedText: getLocalizedTextFromState(state),
-});
-
-const mapDispatchToProps = dispatch => ({
-  onPropValueChange: (
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    newSource,
-    newSourceData,
-  ) => void dispatch(updateComponentPropValue(
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    newSource,
-    newSourceData,
-  )),
-
-  onAddPropValue: (
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    index,
-    source,
-    sourceData,
-  ) => void dispatch(addComponentPropValue(
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    index,
-    source,
-    sourceData,
-  )),
-
-  onDeletePropValue: (componentId, propName, isSystemProp, path, index) =>
-    void dispatch(deleteComponentPropValue(
-      componentId,
-      propName,
-      isSystemProp,
-      path,
-      index,
-    )),
-
-  onConstructComponent: (componentId, propName, isSystemProp, path) =>
-    void dispatch(constructComponentForProp(
-      componentId,
-      propName,
-      isSystemProp,
-      path,
-    )),
-
-  onLinkProp: (componentId, propName, isSystemProp, path) =>
-    void dispatch(linkProp(componentId, propName, isSystemProp, path)),
-
-  onUnlinkProp: (componentId, propName, isSystemProp, path) =>
-    void dispatch(unlinkProp(componentId, propName, isSystemProp, path)),
-});
 
 export const ComponentPropsEditor = connect(
   mapStateToProps,

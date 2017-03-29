@@ -62,6 +62,20 @@
   "addValueDialogTitle": "Add item",
   "addValueNameInputLabel": "Name",
 
+  "actionsEditor.addAction": "Add action",
+  "actionsEditor.actionType": "Action type",
+  "actionsEditor.actionType.method": "Call method",
+  "actionsEditor.actionType.prop": "Change prop value",
+  "actionsEditor.actionType.navigate": "Change route",
+  "actionsEditor.actionType.url": "Open URL",
+  "actionsEditor.actionTitle.mutation": "{mutationTitle}",
+  "actionsEditor.actionTitle.method": "Call '{method}' of '{componentTitle}'",
+  "actionsEditor.actionTitle.prop": "Change value of '{propName}' of '{componentTitle}'",
+  "actionsEditor.actionTitle.navigate": "Navigate to '{routeName}'",
+  "actionsEditor.actionTitle.url": "Open {url}",
+  "actionsEditor.onSuccess": "On success",
+  "actionsEditor.onError": "On error",
+
   "uncategorizedComponents": "Uncategorized",
 
   "thereAreNoComponentsInThisRoute": "There are no components in this route",

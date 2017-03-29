@@ -9,6 +9,7 @@ import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
 import { NO_VALUE, SYSTEM_PROPS } from '../../app/constants/misc';
+import { objectSome } from './misc';
 
 /**
  *
@@ -189,7 +190,7 @@ export const canInsertComponent = (
 
 /**
  *
- * @param {PropTypeDefinition} propMeta
+ * @param {JssyValueDefinition} propMeta
  * @param {string} source
  * @return {boolean}
  */
@@ -198,7 +199,18 @@ export const isValidSourceForProp = (propMeta, source) =>
 
 /**
  *
- * @param {PropTypeDefinition} propMeta
+ * @param {ComponentMeta} componentMeta
+ * @return {boolean}
+ */
+export const componentHasActions = componentMeta =>
+  objectSome(
+    componentMeta.props,
+    propMeta => isValidSourceForProp(propMeta, 'actions'),
+  );
+
+/**
+ *
+ * @param {JssyValueDefinition} propMeta
  * @return {boolean}
  */
 export const propHasDataContext = propMeta =>
@@ -208,7 +220,7 @@ export const propHasDataContext = propMeta =>
 /**
  *
  * @param {?ComponentMeta} componentMeta
- * @param {PropTypeDefinition} propMeta
+ * @param {JssyValueDefinition} propMeta
  * @return {ProjectComponentProp|Symbol}
  */
 const buildDefaultConstValue = (componentMeta, propMeta) => {
@@ -246,7 +258,7 @@ const makeSimpleStaticValue = value => ({
 /**
  *
  * @param {?ComponentMeta} componentMeta
- * @param {PropTypeDefinition} propMeta
+ * @param {JssyValueDefinition} propMeta
  * @param {string} language
  * @param {*|Symbol} [_inheritedDefaultValue=NO_VALUE]
  * @return {ProjectComponentProp}
@@ -374,6 +386,13 @@ const buildDefaultDataValue = () => ({
   },
 });
 
+const buildDefaultActionsValue = () => ({
+  source: 'actions',
+  sourceData: {
+    actions: [],
+  },
+});
+
 /**
  *
  * @type {Object<string, function(componentMeta: ComponentMeta, propMeta: ComponentPropMeta, language: string, _inheritedDefaultValue: *|NO_VALUE): ProjectComponentProp|Symbol>}
@@ -384,6 +403,7 @@ const defaultValueBuilders = {
   const: buildDefaultConstValue,
   designer: buildDefaultDesignerValue,
   data: buildDefaultDataValue,
+  actions: buildDefaultActionsValue,
 };
 
 /**
@@ -396,6 +416,7 @@ const sourcePriority = [
   'static',
   'designer',
   'data',
+  'actions',
 ];
 
 /**
@@ -529,7 +550,7 @@ export const constructComponent = (
 
 /**
  *
- * @param {PropTypeDefinition} typedef
+ * @param {JssyValueDefinition} typedef
  * @return {boolean}
  */
 export const isPropTypeDefinition = typedef =>
@@ -538,7 +559,7 @@ export const isPropTypeDefinition = typedef =>
 
 /**
  *
- * @param {PropTypeDefinition} propMeta
+ * @param {JssyValueDefinition} propMeta
  * @return {boolean}
  */
 export const propHasDataContest = propMeta =>

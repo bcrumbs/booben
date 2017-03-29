@@ -29,18 +29,52 @@ import { getComponentMeta, getString } from '../../utils/meta';
 //noinspection JSUnresolvedVariable
 import defaultRegionIcon from '../../img/layout_default.svg';
 
+const propTypes = {
+  meta: PropTypes.object.isRequired,
+  currentComponents: ImmutablePropTypes.mapOf(
+    PropTypes.instanceOf(ProjectComponent),
+    PropTypes.number,
+  ).isRequired,
+  selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number).isRequired,
+  language: PropTypes.string.isRequired,
+  onToggleRegion: PropTypes.func.isRequired,
+};
+
+const defaultProps = {};
+
+const mapStateToProps = state => ({
+  meta: state.project.meta,
+  currentComponents: currentComponentsSelector(state),
+  selectedComponentIds: currentSelectedComponentIdsSelector(state),
+  language: state.app.language,
+});
+
+const mapDispatchToProps = dispatch => ({
+  onToggleRegion: (componentId, regionIdx, enable) =>
+    void dispatch(toggleComponentRegion(componentId, regionIdx, enable)),
+});
+
 class ComponentRegionsEditorComponent extends PureComponent {
   _handleRegionToggle(regionIdx, { value }) {
-    const componentId = this.props.selectedComponentIds.first();
-    this.props.onToggleRegion(componentId, regionIdx, value);
+    const { selectedComponentIds, onToggleRegion } = this.props;
+    
+    const componentId = selectedComponentIds.first();
+    onToggleRegion(componentId, regionIdx, value);
   }
 
   render() {
-    if (this.props.selectedComponentIds.size !== 1) return null;
+    const {
+      meta,
+      currentComponents,
+      selectedComponentIds,
+      language,
+    } = this.props;
+    
+    if (selectedComponentIds.size !== 1) return null;
 
-    const componentId = this.props.selectedComponentIds.first(),
-      component = this.props.currentComponents.get(componentId),
-      componentMeta = getComponentMeta(component.name, this.props.meta);
+    const componentId = selectedComponentIds.first();
+    const component = currentComponents.get(componentId);
+    const componentMeta = getComponentMeta(component.name, meta);
 
     if (componentMeta.kind !== 'composite') return null;
 
@@ -50,7 +84,7 @@ class ComponentRegionsEditorComponent extends PureComponent {
     const items = layoutMeta.regions.map((region, idx) => (
       <PropToggle
         key={String(idx)}
-        label={getString(componentMeta, region.textKey, this.props.language)}
+        label={getString(componentMeta, region.textKey, language)}
         image={region.icon || defaultRegionIcon}
         value={component.regionsEnabled.has(idx)}
         onChange={this._handleRegionToggle.bind(this, idx)}
@@ -71,30 +105,9 @@ class ComponentRegionsEditorComponent extends PureComponent {
 }
 
 //noinspection JSUnresolvedVariable
-ComponentRegionsEditorComponent.propTypes = {
-  meta: PropTypes.object.isRequired,
-  currentComponents: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponent),
-    PropTypes.number,
-  ).isRequired,
-  selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number).isRequired,
-  language: PropTypes.string.isRequired,
-  onToggleRegion: PropTypes.func.isRequired,
-};
-
+ComponentRegionsEditorComponent.propTypes = propTypes;
+ComponentRegionsEditorComponent.defaultProps = defaultProps;
 ComponentRegionsEditorComponent.displayName = 'ComponentRegionsEditor';
-
-const mapStateToProps = state => ({
-  meta: state.project.meta,
-  currentComponents: currentComponentsSelector(state),
-  selectedComponentIds: currentSelectedComponentIdsSelector(state),
-  language: state.app.language,
-});
-
-const mapDispatchToProps = dispatch => ({
-  onToggleRegion: (componentId, regionIdx, enable) =>
-    void dispatch(toggleComponentRegion(componentId, regionIdx, enable)),
-});
 
 export const ComponentRegionsEditor = connect(
   mapStateToProps,

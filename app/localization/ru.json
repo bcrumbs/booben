@@ -62,6 +62,20 @@
   "addValueDialogTitle": "Добавить",
   "addValueNameInputLabel": "Имя",
 
+  "actionsEditor.addAction": "Добавить действие",
+  "actionsEditor.actionType": "Тип действия",
+  "actionsEditor.actionType.method": "Вызвыать метод",
+  "actionsEditor.actionType.prop": "Изменить значение атрибута",
+  "actionsEditor.actionType.navigate": "Перейти на роут",
+  "actionsEditor.actionType.url": "Открыть URL",
+  "actionsEditor.actionTitle.mutation": "{mutationTitle}",
+  "actionsEditor.actionTitle.method": "Вызвать '{method}' у '{componentTitle}'",
+  "actionsEditor.actionTitle.prop": "Изменить значение '{propName}' у '{componentTitle}'",
+  "actionsEditor.actionTitle.navigate": "Перейти на '{routeName}'",
+  "actionsEditor.actionTitle.url": "Перейти на {url}",
+  "actionsEditor.onSuccess": "Действия при успехе",
+  "actionsEditor.onError": "Действия при ошибке",
+
   "uncategorizedComponents": "Без категории",
 
   "thereAreNoComponentsInThisRoute": "В этом маршруте нет компонентов",

@@ -17,6 +17,7 @@ import {
 import {
   getTypeNameByField,
   getTypeNameByPath,
+  getMutationField,
   FieldKinds,
   parseFieldName,
   isScalarGraphQLType,
@@ -894,18 +895,6 @@ export const mapDataToComponentProps = (component, data, schema, meta) => {
 
 /**
  *
- * @param {DataSchema} schema
- * @param {string} mutationName
- * @return {?DataField}
- */
-export const getMutationField = (schema, mutationName) => {
-  if (!schema.mutationTypeName) return null;
-  const mutationType = schema.types[schema.mutationTypeName];
-  return mutationType.fields[mutationName] || null;
-};
-
-/**
- *
  * @param {DataFieldTypeDefinition} typeDefinition
  * @return {Object}
  */
@@ -995,11 +984,11 @@ const saveMutationToCache = (schema, mutationName, mutation) => {
  * @return {?Object}
  */
 export const buildMutation = (schema, mutationName) => {
-  const mutationField = getMutationField(schema, mutationName);
-  if (!mutationField) return null;
-  
   const cached = getMutationFromCache(schema, mutationName);
   if (cached) return cached;
+  
+  const mutationField = getMutationField(schema, mutationName);
+  if (!mutationField) return null;
   
   const ret = {
     kind: 'Document',

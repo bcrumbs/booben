@@ -27,6 +27,7 @@ import {
   PROJECT_COMPONENT_DELETE_PROP_VALUE,
   PROJECT_COMPONENT_RENAME,
   PROJECT_COMPONENT_TOGGLE_REGION,
+  PROJECT_COMPONENT_DELETE_ACTION,
   PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
   PROJECT_CONSTRUCT_COMPONENT_FOR_PROP,
   PROJECT_CANCEL_CONSTRUCT_COMPONENT_FOR_PROP,
@@ -297,10 +298,14 @@ const addComponents = (state, parentComponentId, position, components) => {
   );
 };
 
-const expandPropPath = propPath => propPath
-  .slice(0, -1)
-  .reduce((acc, cur) => acc.concat([cur, 'sourceData', 'value']), [])
-  .concat(propPath[propPath.length - 1]);
+const expandPropPath = propPath => {
+  if (!propPath.length) return [];
+  
+  return propPath
+    .slice(0, -1)
+    .reduce((acc, cur) => acc.concat([cur, 'sourceData', 'value']), [])
+    .concat(propPath[propPath.length - 1]);
+};
 
 const deleteComponent = (state, componentId) => {
   const pathToCurrentComponents = getPathToCurrentComponents(state);
@@ -910,16 +915,47 @@ const handlers = {
   
   [PROJECT_COMPONENT_TOGGLE_REGION]: (state, action) => {
     const pathToCurrentComponents = getPathToCurrentComponents(state);
-  
-    const path = [].concat(pathToCurrentComponents, [
+    
+    const path = [
+      ...pathToCurrentComponents,
       action.componentId,
       'regionsEnabled',
-    ]);
+    ];
   
     return state.updateIn(path, regionsEnabled => action.enable
       ? regionsEnabled.add(action.regionIdx)
       : regionsEnabled.delete(action.regionIdx),
     );
+  },
+  
+  [PROJECT_COMPONENT_DELETE_ACTION]: (state, action) => {
+    const pathToCurrentComponents = getPathToCurrentComponents(state);
+    
+    const actionIdx = action.actionPath[action.actionPath.length - 1].index;
+    const pathToList = action.actionPath
+      .reduce(
+        (acc, cur) => acc.concat(
+          cur.branch
+            ? ['params', `${cur.branch}Actions`, cur.index]
+            : [cur.index],
+        ),
+        
+        [],
+      )
+      .slice(0, -1);
+    
+    const path = [
+      ...pathToCurrentComponents,
+      action.componentId,
+      action.isSystemProp ? 'systemProps' : 'props',
+      action.propName,
+      ...expandPropPath(action.path),
+      'sourceData',
+      'actions',
+      ...pathToList,
+    ];
+    
+    return state.updateIn(path, actionsList => actionsList.delete(actionIdx));
   },
   
   [PREVIEW_HIGHLIGHT_COMPONENT]: (state, action) =>

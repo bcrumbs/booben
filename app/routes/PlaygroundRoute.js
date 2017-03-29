@@ -319,7 +319,7 @@ const toolComponentActionsWindowSections = List([
           </ComponentHandlers>
         </BlockContentBoxItem>
       </BlockContentBox>
-        ),
+    ),
   }),
 ]);
 

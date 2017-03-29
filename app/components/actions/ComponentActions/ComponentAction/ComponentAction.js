@@ -7,16 +7,18 @@ import { noop } from '../../../../utils/misc';
 import './ComponentAction.scss';
    
 const propTypes = {
-  id: PropTypes.string.isRequired,
+  id: PropTypes.any.isRequired,
   title: PropTypes.string,
   description: PropTypes.string,
   onEdit: PropTypes.func,
+  onDelete: PropTypes.func,
 };
 
 const defaultProps = {
   title: '',
   description: '',
   onEdit: noop,
+  onDelete: noop,
 };
 
 export class ComponentAction extends PureComponent {
@@ -24,11 +26,17 @@ export class ComponentAction extends PureComponent {
     super(props);
     
     this._handleClick = this._handleClick.bind(this);
+    this._handleDeleteButtonClick = this._handleDeleteButtonClick.bind(this);
   }
   
   _handleClick() {
     const { id, onEdit } = this.props;
     onEdit({ actionId: id });
+  }
+  
+  _handleDeleteButtonClick() {
+    const { id, onDelete } = this.props;
+    onDelete({ actionId: id });
   }
   
   render() {
@@ -71,7 +79,11 @@ export class ComponentAction extends PureComponent {
           </a>
           
           <div className="component-action_buttons">
-            <Button icon="times" rounded />
+            <Button
+              icon="times"
+              rounded
+              onPress={this._handleDeleteButtonClick}
+            />
           </div>
         </div>
         

@@ -36,13 +36,12 @@ import {
   getComponentMeta,
 } from '../../app/utils/meta';
 
-import { getJssyTypeOfField } from '../../app/utils/schema';
+import { getJssyTypeOfField, getMutationField } from '../../app/utils/schema';
 
 import {
   buildQueryForComponent,
   mapDataToComponentProps,
   extractPropValueFromData,
-  getMutationField,
   buildMutation,
 } from '../../app/utils/graphql';
 

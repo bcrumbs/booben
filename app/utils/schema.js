@@ -858,3 +858,25 @@ export const getFieldsByPath = (
   
   return ret;
 };
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string} mutationName
+ * @return {?DataField}
+ */
+export const getMutationField = (schema, mutationName) => {
+  if (!schema.mutationTypeName) return null;
+  const mutationType = schema.types[schema.mutationTypeName];
+  return mutationType.fields[mutationName] || null;
+};
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @return {?DataObjectType}
+ */
+export const getMutationType = schema => {
+  if (!schema.mutationTypeName) return null;
+  return schema.types[schema.mutationTypeName];
+};

@@ -30,6 +30,8 @@ export const PROJECT_COMPONENT_RENAME =
   'PROJECT_COMPONENT_RENAME';
 export const PROJECT_COMPONENT_TOGGLE_REGION =
   'PROJECT_COMPONENT_TOGGLE_REGION';
+export const PROJECT_COMPONENT_DELETE_ACTION =
+  'PROJECT_COMPONENT_DELETE_ACTION';
 export const PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT =
   'PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT';
 export const PROJECT_CONSTRUCT_COMPONENT_FOR_PROP =
@@ -280,6 +282,36 @@ export const toggleComponentRegion = (componentId, regionIdx, enable) => ({
   componentId,
   regionIdx,
   enable,
+});
+
+/**
+ * @typedef {Object} ActionPathStep
+ * @property {number} index
+ * @property {string} [branch] - 'success' or 'error'
+ */
+
+/**
+ *
+ * @param {number} componentId
+ * @param {string} propName
+ * @param {boolean} isSystemProp
+ * @param {(string|number)[]} path
+ * @param {ActionPathStep[]} actionPath
+ * @return {Object}
+ */
+export const deleteComponentAction = (
+  componentId,
+  propName,
+  isSystemProp,
+  path,
+  actionPath,
+) => ({
+  type: PROJECT_COMPONENT_DELETE_ACTION,
+  componentId,
+  propName,
+  isSystemProp,
+  path,
+  actionPath,
 });
 
 /**

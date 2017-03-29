@@ -1,58 +1,88 @@
 'use strict';
 
 //noinspection JSUnresolvedVariable
-import React, { PropTypes } from 'react';
+import React, { PureComponent, PropTypes } from 'react';
 import { Button, TooltipIcon } from '@reactackle/reactackle';
+import { noop } from '../../../../utils/misc';
 import './ComponentHandler.scss';
    
 const propTypes = {
+  id: PropTypes.string.isRequired,
   title: PropTypes.string,
   description: PropTypes.string,
-  active: PropTypes.bool,
+  hasActions: PropTypes.bool,
   expanded: PropTypes.bool,
+  onExpand: PropTypes.func,
 };
 
 const defaultProps = {
   title: '',
   description: '',
-  active: false,
+  hasActions: false,
   expanded: false,
+  onExpand: noop,
 };
 
-export const ComponentHandler = props => {
-  let className = 'component-handler';
-  if (props.active) className += ' is-active';
-  if (props.expanded) className += ' is-expanded';
+export class ComponentHandler extends PureComponent {
+  constructor(props) {
+    super(props);
+    
+    this._handleExpandButtonPress = this._handleExpandButtonPress.bind(this);
+  }
   
-  let content = null;
-  if (props.expanded && props.children) {
-    content = (
-      <div className="component-handler_body">
-        {props.children}
+  _handleExpandButtonPress() {
+    const { id, onExpand } = this.props;
+    onExpand({ handlerId: id });
+  }
+  
+  render() {
+    const { title, description, hasActions, expanded, children } = this.props;
+    
+    let className = 'component-handler';
+    if (hasActions) className += ' is-active';
+    if (expanded) className += ' is-expanded';
+  
+    let content = null;
+    if (expanded && children) {
+      content = (
+        <div className="component-handler_body">
+          {children}
+        </div>
+      );
+    }
+  
+    let tooltip = null;
+    if (description) {
+      tooltip = (
+        <TooltipIcon text={description} />
+      );
+    }
+  
+    return (
+      <div className={className}>
+        <div className="component-handler_heading">
+          <div className="component-handler_title">
+            <span className="component-handler_title-text">
+              {title}
+            </span>
+          
+            {tooltip}
+          </div>
+        
+          <div className="component-handler_buttons">
+            <Button
+              icon="chevron-down"
+              rounded
+              onPress={this._handleExpandButtonPress}
+            />
+          </div>
+        </div>
+      
+        {content}
       </div>
     );
   }
-  
-  return (
-    <div className={className}>
-      <div className="component-handler_heading">
-        <div className="component-handler_title">
-          <span className="component-handler_title-text">
-            {props.title}
-          </span>
-          
-          <TooltipIcon text={props.description} />
-        </div>
-        
-        <div className="component-handler_buttons">
-          <Button icon="chevron-down" rounded />
-        </div>
-      </div>
-      
-      {content}
-    </div>
-  );
-};
+}
 
 ComponentHandler.propTypes = propTypes;
 ComponentHandler.defaultProps = defaultProps;
