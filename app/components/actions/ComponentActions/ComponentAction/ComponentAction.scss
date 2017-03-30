@@ -67,6 +67,10 @@
     // =========================================================================
     .component-case {
         margin-top: $base-module*1.5;
+
+        & + & {
+            margin-top: $base-module*2;
+        }
     }
 
     .component-case_header {

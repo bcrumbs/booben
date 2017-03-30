@@ -1,0 +1,13 @@
+@charset "UTF-8";
+@import 'variables';
+
+@include exports(source-divider) {
+    .source-divider {
+        background-color: color($bg, 100);
+        color: $color-text-medium;
+        font-size: fs(-2);
+        line-height: 1.2;
+        padding: $base-module/2 $base-module;
+        width: 100%;
+    }
+}

@@ -1,0 +1,16 @@
+@charset "UTF-8";
+@import 'variables';
+
+@include exports(prop-source-picker) {
+    .source-picker {
+        background-color: $white;
+        border-radius: $global-radius;
+        width: 100%;
+        max-width: 16em;
+        padding: 0;
+        overflow-y: auto;
+        max-height: rem-calc(400);
+
+        @include box-shadow();
+    }
+}

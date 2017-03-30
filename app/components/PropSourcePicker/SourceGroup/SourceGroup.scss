@@ -1,0 +1,18 @@
+@charset "UTF-8";
+@import 'variables';
+
+@include exports(source-group) {
+    .source-group {
+        padding: $base-module 0;
+
+        & + & {
+            border-top: 1px solid $color-border;
+        }
+    }
+
+    .source-list {
+        list-style-type: none;
+        margin: 0;
+        padding: 0;
+    }
+}

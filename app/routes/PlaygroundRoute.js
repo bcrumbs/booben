@@ -13,6 +13,7 @@ import {
   TopRegion,
   BottomRegion,
   Button,
+  Container,
   Header,
   HeaderRegion,
   HeaderLogoBox,
@@ -28,8 +29,16 @@ import {
   FooterMenuList,
   Panel,
   PanelContent,
+  Row,
   ToggleButton,
 } from '@reactackle/reactackle';
+
+import {
+  PropSourcePicker,
+  SourceDivider,
+  SourceGroup,
+  SourceGroupItem
+} from '../components/PropSourcePicker/PropSourcePicker';
 
 import {
   BlockContentBox,
@@ -479,8 +488,36 @@ export default class Playground extends React.Component {
         <Desktop toolGroups={toolGroups}>
           <Panel headerFixed maxHeight="initial" spread>
             <PanelContent>
-              Тут был старый DataWindow, но его победил Бэтмен.
-              <img src="https://upload.wikimedia.org/wikipedia/en/1/17/Batman-BenAffleck.jpg" alt=""/>
+              <Container>
+                <PropSourcePicker>
+                  <SourceDivider title="What dou you want to use as a source?" />
+                  <SourceGroup>
+                    <SourceGroupItem
+                      title="Value"
+                      type="string"
+                      description="Some description"
+                    />
+                    <SourceGroupItem
+                      title="Some other"
+                      type="string"
+                      description="Some description"
+                    />
+                  </SourceGroup>
+                  <SourceDivider title="Options that don't suit by type" />
+                  <SourceGroup>
+                    <SourceGroupItem
+                      title="Some option"
+                      type="bool"
+                      description="Some description"
+                      disabled
+                    />
+                  </SourceGroup>
+                </PropSourcePicker>
+              </Container>
+              
+              
+              <Container>Тут был старый DataWindow, но его победил Бэтмен.</Container>
+              <Container><img src="https://upload.wikimedia.org/wikipedia/en/1/17/Batman-BenAffleck.jpg" alt=""/></Container>
             </PanelContent>
           </Panel>
         </Desktop>
