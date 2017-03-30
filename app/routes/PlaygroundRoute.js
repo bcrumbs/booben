@@ -284,13 +284,12 @@ const toolComponentActionsWindowSections = List([
             <ComponentHandler
               title="onFocus"
               description="Some description from meta"
-              active
             />
             
             <ComponentHandler
               title="onPress"
               description="Some description from meta"
-              active
+              hasActions
               expanded
             >
               <ComponentActions addButtonText="Add action">
@@ -304,6 +303,7 @@ const toolComponentActionsWindowSections = List([
                   <ComponentActionCaseRow type="error" title="On error">
                     <ComponentActions addButtonText="Add action">
                       <ComponentAction title="Some action" />
+                      <ComponentAction title="Some action 2" />
                     </ComponentActions>
                   </ComponentActionCaseRow>
                 </ComponentAction>

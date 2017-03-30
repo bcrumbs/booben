@@ -62,7 +62,7 @@
         }
     }
 
-    .component-handler.is-active .button-icon {
+    .component-handler.is-expanded .button-icon {
         transform: rotate(180deg);
         @include single-transition();
     }
@@ -70,6 +70,7 @@
     // HANDLER BODY
     .component-handler_body {
         padding-left: $handler-body-offset;
+        padding-bottom: $base-module;
     }
 
 }

@@ -2,9 +2,8 @@
 @import 'variables';
 
 @include exports(component-action) {
-    // ACTION ITEM
-    // =========================================================================
     // HEADING
+    // =========================================================================
     .component-action_heading {
         display: flex;
     }
@@ -12,12 +11,17 @@
     .component-action_link-wrapper {
         display: flex;
         flex-grow: 1;
+        border-radius: $global-radius;
+        cursor: $cursor-pointer;
+
+        @include single-transition(background-color);
 
         &:hover {
             background-color: transparentize(black, 0.95);
         }
     }
 
+    // ICON
     .component-action_icon {
         margin-right: $action-heading-icon-spacing;
 
@@ -29,18 +33,46 @@
 
     .component-action_title {
         flex-grow: 1;
+
+        font-size: $action-title-font-size;
+        line-height: $action-title-line-height;
+        font-weight: $action-title-font-weight;
+        text-transform: $action-title-text-transform;
+        color: $action-title-color;
+
+        padding: ($action-button-box-size - $action-title-font-size*$action-title-line-height)/2 0;
+    }
+
+    // TITLE
+
+    // ACTIONS
+    .component-action_buttons {
+        height: $action-button-box-size;
+        display: flex;
+
+        .button {
+            border: 0;
+            min-height: 0;
+        }
+    }
+
+    // BODY
+    // =========================================================================
+    .component-action_body {
+        margin-left: $action-heading-icon-box-size + $action-heading-icon-spacing;
+        padding-bottom: $base-module*1.5;
     }
 
     // CASE BOX
-    .component-case{
-        & + & {
-            margin-top: $base-module*2;
-        }
+    // =========================================================================
+    .component-case {
+        margin-top: $base-module*1.5;
     }
 
     .component-case_header {
         display: flex;
         align-items: center;
+        margin-bottom: $base-module;
     }
 
     .component-case_marker {
@@ -68,11 +100,8 @@
     }
 
     .component-case_body {
-        padding-left: $case-marker-size + $case-marker-spacing;
-    }
-
-    // BODY
-    .component-action_body {
-        margin-left: $action-heading-icon-box-size + $action-heading-icon-spacing;
+        padding-left: $case-marker-size / 2 - $case-border-thickness + $case-marker-spacing;
+        margin-left: ($case-marker-size / 2 - $case-border-thickness/2);
+        border-left: $case-border-thickness $color-border solid;
     }
 }
