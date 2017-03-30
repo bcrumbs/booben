@@ -27,6 +27,7 @@ BlockContent.propTypes = propTypes;
 BlockContent.defaultProps = defaultProps;
 BlockContent.displayName = 'BlockContent';
 
+export * from './BlockContentHeading/BlockContentHeading';
 export * from './BlockContentTitle/BlockContentTitle';
 export * from './BlockContentBox/BlockContentBox';
 export * from './BlockContentNavigation/BlockContentNavigation';

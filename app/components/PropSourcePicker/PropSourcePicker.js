@@ -1,6 +1,7 @@
 'use strict';
 
 import React from 'react';
+
 import './PropSourcePicker.scss';
 
 export const PropSourcePicker = props => (

@@ -42,6 +42,9 @@ import {
 
 import {
   BlockContentBox,
+  BlockContentHeading,
+  BlockBreadcrumbs,
+  BlockContentBoxGroup,
   BlockContentBoxItem,
   BlockContentBoxHeading,
   BlockContentPlaceholder,
@@ -82,6 +85,17 @@ import {
   DataList,
   DataItem,
 } from '../components/DataList/DataList';
+
+import {
+  PropsList
+} from '../components/PropsList/PropsList';
+
+import {
+  PropInput,
+  PropList,
+  PropToggle,
+  PropComponent
+} from '../components/props';
 
 import {
   ConstructionTool,
@@ -332,8 +346,79 @@ const toolComponentActionsWindowSections = List([
   }),
 ]);
 
+// Component Props : Actions / New Action
+const breadcrumbsSample = [
+  {
+    title: 'onChange',
+  }
+];
+
+const actionOptions = [
+  {
+    value: 1,
+    text: 'Call method...'
+  },
+  {
+    value: 2,
+    text: 'Go to route..'
+  },
+  {
+    value: 3,
+    text: 'Create Alert'
+  }
+];
+
+const methodOptions = [
+  {
+    value: 1,
+    text: 'addAlert...'
+  },
+];
+
+const toolComponentActionNewWindowSections = List([
+  new ToolSectionRecord({
+    name: 'Actions',
+    component: () => (
+      <BlockContentBox isBordered>
+        <BlockBreadcrumbs items={breadcrumbsSample} />
+        <BlockContentHeading>New Action</BlockContentHeading>
+        
+        <BlockContentBox>
+          <BlockContentBoxGroup>
+            <BlockContentBoxItem>
+              <PropsList>
+                <PropList
+                  label="Action"
+                  value= {1}
+                  options={actionOptions}
+                />
+                <PropComponent />
+                <PropList
+                  label="Method"
+                  value= {1}
+                  options={methodOptions}
+                />
+              </PropsList>
+            </BlockContentBoxItem>
+          </BlockContentBoxGroup>
+        </BlockContentBox>
+       
+        <BlockContentBox>
+          <BlockContentBoxHeading>Parameters</BlockContentBoxHeading>
+          <BlockContentBoxGroup>
+            <BlockContentBoxItem>
+              and so on
+            </BlockContentBoxItem>
+          </BlockContentBoxGroup>
+        </BlockContentBox>
+      </BlockContentBox>
+    ),
+  }),
+]);
+
 // TODO: Add tool id to this list when creating new tools
 export const PLAYGROUND_TOOL_IDS = List([
+  'tool10',
   'tool8',
   'tool2',
   'tool5',
@@ -346,6 +431,18 @@ export const PLAYGROUND_TOOL_IDS = List([
 
 const toolGroups = List([
   List([
+    new ToolRecord({
+      id: 'tool10',
+      icon: 'play',
+      name: 'Action / New Action',
+      title: 'Button',
+      undockable: true,
+      closable: false,
+      sections: toolComponentActionNewWindowSections,
+      mainButtons: '',
+      secondaryButtons: '',
+    }),
+    
     new ToolRecord({
       id: 'tool8',
       icon: 'play',
