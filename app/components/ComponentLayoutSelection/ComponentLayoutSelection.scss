@@ -9,8 +9,7 @@
         display: flex;
         flex-wrap: wrap;
         justify-content: center;
-        margin-left: -$layout-item-pad-x;
-        width: calc(100% + #{$layout-item-pad-x*2});
+        width: 100%;
     }
 
     .component-layout-selection-list {
@@ -22,20 +21,17 @@
 
     // ITEM
     .component-layout-item {
-        margin: $layout-items-margin-y $layout-items-margin-x;
         padding: $layout-item-pad-y $layout-item-pad-x;
         cursor: $cursor-pointer;
-        width: calc(#{$layout-item-width} - #{$layout-items-margin-x*2});
-        max-width: calc(#{$layout-item-width} - #{$layout-items-margin-x});
-        border-radius: $layout-item-border-radius;
-        border: $layout-item-hover-border-thickness $layout-item-hover-border-style transparent;
+        width: $layout-item-width;
+        max-width: $layout-item-width;
         flex-grow: 1;
 
-        @include single-transition();
+        @include single-transition(background-color);
         @include user-select();
 
         &:hover {
-            border: $layout-item-hover-border-thickness $layout-item-hover-border-style $layout-item-hover-border-color;
+            background-color: transparentize($black, 0.95);
         }
     }
 

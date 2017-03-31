@@ -189,10 +189,6 @@ const AppRoute = props => {
               </HeaderMenuGroup>
             </HeaderMenu>
           </HeaderRegion>
-  
-          <HeaderRegion size="blank">
-            <ProjectSave />
-          </HeaderRegion>
 
           <HeaderRegion size="blank">
             <HeaderMenu inline dense mode="light">
@@ -207,6 +203,10 @@ const AppRoute = props => {
                 </HeaderMenuList>
               </HeaderMenuGroup>
             </HeaderMenu>
+          </HeaderRegion>
+  
+          <HeaderRegion size="blank">
+            <ProjectSave />
           </HeaderRegion>
         </Header>
       </TopRegion>

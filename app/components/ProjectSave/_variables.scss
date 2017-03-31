@@ -3,4 +3,17 @@
 @import '~@reactackle/reactackle/components/Menu/variables';
 
 // Base Variables
-// =====================================================================================================================
+// ============================================================================
+$prsave-bg-color: $color-secondary;
+
+// Animation
+// ============================================================================
+@include keyframes(spinnerRotate) {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+

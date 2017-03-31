@@ -78,7 +78,7 @@ $bcontent-box-font-size:            fs(0) !default;
 
 $bcontent-box-header-top:           $bcontent-base-pad-y*1.5 !default;
 $bcontent-box-header-bottom:        $bcontent-base-pad-y !default;
-$bcontent-box-header-font-size:     fs(0) !default;
+$bcontent-box-header-font-size:     fs(-1) !default;
 $bcontent-box-header-line-height:   $base-module*2/$bcontent-box-header-font-size !default;
 $bcontent-box-header-color:         $grey-500 !default;
 $bcontent-box-header-font-weight:   $font-weight-semibold !default;

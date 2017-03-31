@@ -7,19 +7,11 @@
 // BASE
 $layout-items-per-row:              2 !default;
 
-$layout-items-margin-y:             $base-module/8 !default;
-$layout-items-margin-x:             $base-module/8 !default;
-
 // ITEM
 $layout-item-width:                 100%/$layout-items-per-row !default;
 
-$layout-item-pad-y:                 $base-module/2 !default;
-$layout-item-pad-x:                 $base-module/2 !default;
-$layout-item-border-radius:         $global-radius !default;
-
-$layout-item-hover-border-thickness: rem-calc(1) !default;
-$layout-item-hover-border-style:    solid !default;
-$layout-item-hover-border-color:    $color-border !default;
+$layout-item-pad-y:                 $base-module !default;
+$layout-item-pad-x:                 $base-module !default;
 
 // IMAGE
 $layout-item-img-size:              100% !default;
