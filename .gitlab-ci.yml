@@ -34,7 +34,7 @@ deploy_to_dev:
   environment:
     name: Jssy
     url: http://jssy.ordbuy.com/app/test
-  except:
+  only:
     - master
   tags:
     - rancher
