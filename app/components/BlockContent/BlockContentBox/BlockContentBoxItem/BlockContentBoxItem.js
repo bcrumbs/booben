@@ -8,14 +8,14 @@ const propTypes = {
   blank: PropTypes.bool,
   // If true, flex-grow will be st to '1' for this block
   flexMain: PropTypes.bool,
-  colorScheme: PropTypes.oneOf(['default', 'editing', 'dim'])
+  colorScheme: PropTypes.oneOf(['default', 'editing', 'dim']),
 };
 
 const defaultProps = {
   isBordered: false,
   blank: false,
   flexMain: false,
-  colorScheme: 'default'
+  colorScheme: 'default',
 };
 
 export const BlockContentBoxItem = props => {
@@ -23,7 +23,8 @@ export const BlockContentBoxItem = props => {
   if (props.isBordered) className += ' is-bordered';
   if (props.blank) className += ' is-blank';
   if (props.flexMain) className += ' flex-main';
-  if (props.colorScheme && props.colorScheme != "default") className += ' color-scheme-' + props.colorScheme;
+  if (props.colorScheme !== 'default')
+    className += ` color-scheme-${props.colorScheme}`;
 
   return (
     <div className={className}>
