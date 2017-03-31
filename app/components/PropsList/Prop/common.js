@@ -100,7 +100,7 @@ export const ValueShape = PropTypes.shape({
 const propTypeShapeFields = {
   label: PropTypes.string,
   secondaryLabel: PropTypes.string,
-  view: PropTypes.oneOf(Object.values(PropViews)),
+  view: PropTypes.oneOf(Object.keys(PropViews).map(key => PropViews[key])),
   image: PropTypes.string,
   tooltip: PropTypes.string,
   linkable: PropTypes.bool,
