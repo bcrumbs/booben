@@ -20,7 +20,7 @@ export const NavigateActionParams = Record({
 
 export const URLActionParams = Record({
   url: '',
-  newWindow: false,
+  newWindow: true,
 });
 
 export const MethodCallActionParams = Record({
@@ -36,8 +36,19 @@ export const PropChangeActionParams = Record({
   value: null,
 });
 
+export const createActionParams = type => {
+  switch (type) {
+    case 'mutation': return new MutationActionParams();
+    case 'navigate': return new NavigateActionParams();
+    case 'url': return new URLActionParams();
+    case 'method': return new MethodCallActionParams();
+    case 'prop': return new PropChangeActionParams();
+    default: return null;
+  }
+};
+
 export const Action = Record({
-  type: 'noop',
+  type: '',
   params: null,
 });
 

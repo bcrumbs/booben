@@ -27,6 +27,8 @@ import {
   PROJECT_COMPONENT_DELETE_PROP_VALUE,
   PROJECT_COMPONENT_RENAME,
   PROJECT_COMPONENT_TOGGLE_REGION,
+  PROJECT_COMPONENT_ADD_ACTION,
+  PROJECT_COMPONENT_REPLACE_ACTION,
   PROJECT_COMPONENT_DELETE_ACTION,
   PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
   PROJECT_CONSTRUCT_COMPONENT_FOR_PROP,
@@ -928,21 +930,8 @@ const handlers = {
     );
   },
   
-  [PROJECT_COMPONENT_DELETE_ACTION]: (state, action) => {
+  [PROJECT_COMPONENT_ADD_ACTION]: (state, action) => {
     const pathToCurrentComponents = getPathToCurrentComponents(state);
-    
-    const actionIdx = action.actionPath[action.actionPath.length - 1].index;
-    const pathToList = action.actionPath
-      .reduce(
-        (acc, cur) => acc.concat(
-          cur.branch
-            ? ['params', `${cur.branch}Actions`, cur.index]
-            : [cur.index],
-        ),
-        
-        [],
-      )
-      .slice(0, -1);
     
     const path = [
       ...pathToCurrentComponents,
@@ -950,12 +939,47 @@ const handlers = {
       action.isSystemProp ? 'systemProps' : 'props',
       action.propName,
       ...expandPropPath(action.path),
-      'sourceData',
-      'actions',
-      ...pathToList,
     ];
     
-    return state.updateIn(path, actionsList => actionsList.delete(actionIdx));
+    return state.updateIn(path, jssyValue => jssyValue.addAction(
+      action.actionPath,
+      action.branch,
+      action.action,
+    ));
+  },
+  
+  [PROJECT_COMPONENT_REPLACE_ACTION]: (state, action) => {
+    const pathToCurrentComponents = getPathToCurrentComponents(state);
+  
+    const path = [
+      ...pathToCurrentComponents,
+      action.componentId,
+      action.isSystemProp ? 'systemProps' : 'props',
+      action.propName,
+      ...expandPropPath(action.path),
+    ];
+  
+    return state.updateIn(path, jssyValue => jssyValue.replaceAction(
+      action.actionPath,
+      action.newAction,
+    ));
+  },
+  
+  [PROJECT_COMPONENT_DELETE_ACTION]: (state, action) => {
+    const pathToCurrentComponents = getPathToCurrentComponents(state);
+    
+    const path = [
+      ...pathToCurrentComponents,
+      action.componentId,
+      action.isSystemProp ? 'systemProps' : 'props',
+      action.propName,
+      ...expandPropPath(action.path),
+    ];
+    
+    return state.updateIn(
+      path,
+      jssyValue => jssyValue.deleteAction(action.actionPath),
+    );
   },
   
   [PREVIEW_HIGHLIGHT_COMPONENT]: (state, action) =>
