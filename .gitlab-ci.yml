@@ -33,7 +33,7 @@ deploy_to_dev:
     - rancher-compose --url $URL --access-key $ACCESS_KEY_DEV --secret-key $SECRET_KEY_DEV -p $CI_PROJECT_NAMESPACE -f docker-compose-dev.yml up $CI_PROJECT_NAME -p --force-upgrade -c -d
   environment:
     name: Jssy
-    url: http://jssy.ordbuy.com/app/test
+    url: http://jssy.ordbuy.com/app/test/
   only:
     - master
   tags:

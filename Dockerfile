@@ -1,5 +1,4 @@
 FROM registry.ordbuy.com/common/nodejs:latest
-LABEL maintainer "Dmitriy Bizyaev"
 
 ENV NODE_ENV=development \
     JSSY_PORT=3000 \
