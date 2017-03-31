@@ -23,7 +23,13 @@ import {
   ComponentActionCaseRow,
 } from '../../components/actions';
 
-import { deleteComponentAction } from '../../actions/project';
+import { ActionEditor } from './ActionEditor/ActionEditor';
+
+import {
+  addComponentAction,
+  replaceComponentAction,
+  deleteComponentAction,
+} from '../../actions/project';
 
 import {
   currentComponentsSelector,
@@ -55,6 +61,8 @@ const propTypes = {
   selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number).isRequired,
   language: PropTypes.string.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
+  onAddAction: PropTypes.func.isRequired,
+  onReplaceAction: PropTypes.func.isRequired,
   onDeleteAction: PropTypes.func.isRequired,
 };
 
@@ -73,6 +81,40 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+  onAddAction: ({
+    componentId,
+    propName,
+    isSystemProp,
+    path,
+    actionPath,
+    branch,
+    action,
+  }) => void dispatch(addComponentAction(
+    componentId,
+    propName,
+    isSystemProp,
+    path,
+    actionPath,
+    branch,
+    action,
+  )),
+  
+  onReplaceAction: ({
+    componentId,
+    propName,
+    isSystemProp,
+    path,
+    actionPath,
+    newAction,
+  }) => void dispatch(replaceComponentAction(
+    componentId,
+    propName,
+    isSystemProp,
+    path,
+    actionPath,
+    newAction,
+  )),
+  
   onDeleteAction: ({
     componentId,
     propName,
@@ -88,18 +130,36 @@ const mapDispatchToProps = dispatch => ({
   )),
 });
 
+const Views = {
+  HANDLERS_LIST: 0,
+  NEW_ACTION: 1,
+  EDIT_ACTION: 2,
+};
+
 class ComponentActionsEditorComponent extends PureComponent {
   constructor(props) {
     super(props);
     
     this.state = {
+      currentView: Views.HANDLERS_LIST,
+      
+      // Handle list
       activeHandler: '',
-      editingAction: false,
-      editingActionIdx: 0,
+      
+      // New action
+      newActionPath: [],
+      newActionBranch: '',
+      
+      // Edit action
+      editActionPath: [],
     };
     
     this._handleExpandHandler = this._handleExpandHandler.bind(this);
+    this._handleOpenNewActionForm = this._handleOpenNewActionForm.bind(this);
+    this._handleEditAction = this._handleEditAction.bind(this);
     this._handleDeleteAction = this._handleDeleteAction.bind(this);
+    this._handleActionEditorSave = this._handleActionEditorSave.bind(this);
+    this._handleActionEditorCancel = this._handleActionEditorCancel.bind(this);
   }
   
   _handleExpandHandler({ handlerId }) {
@@ -110,7 +170,22 @@ class ComponentActionsEditorComponent extends PureComponent {
     });
   }
   
-  _handleDeleteAction({ actionId }) {
+  _handleOpenNewActionForm({ actionPath, branch }) {
+    this.setState({
+      currentView: Views.NEW_ACTION,
+      newActionPath: actionPath,
+      newActionBranch: branch,
+    });
+  }
+  
+  _handleEditAction({ actionId: actionPath }) {
+    this.setState({
+      currentView: Views.EDIT_ACTION,
+      editActionPath: actionPath,
+    });
+  }
+  
+  _handleDeleteAction({ actionId: actionPath }) {
     const { selectedComponentIds, onDeleteAction } = this.props;
     const { activeHandler } = this.state;
   
@@ -121,7 +196,52 @@ class ComponentActionsEditorComponent extends PureComponent {
       propName: activeHandler,
       isSystemProp: false,
       path: [],
-      actionPath: actionId,
+      actionPath,
+    });
+  }
+  
+  _handleActionEditorSave({ action }) {
+    const { selectedComponentIds, onAddAction, onReplaceAction } = this.props;
+    
+    const {
+      currentView,
+      activeHandler,
+      newActionPath,
+      newActionBranch,
+      editActionPath,
+    } = this.state;
+  
+    const componentId = selectedComponentIds.first();
+    
+    if (currentView === Views.NEW_ACTION) {
+      onAddAction({
+        componentId,
+        propName: activeHandler,
+        isSystemProp: false,
+        path: [],
+        actionPath: newActionPath,
+        branch: newActionBranch,
+        action,
+      });
+    } else if (currentView === Views.EDIT_ACTION) {
+      onReplaceAction({
+        componentId,
+        propName: activeHandler,
+        isSystemProp: false,
+        path: [],
+        actionPath: editActionPath,
+        newAction: action,
+      });
+    }
+    
+    this.setState({
+      currentView: Views.HANDLERS_LIST,
+    });
+  }
+  
+  _handleActionEditorCancel() {
+    this.setState({
+      currentView: Views.HANDLERS_LIST,
     });
   }
   
@@ -177,13 +297,17 @@ class ComponentActionsEditorComponent extends PureComponent {
       }
       
       case 'url': {
-        return getLocalizedText('actionsEditor.actionTitle.url', {
+        const key = action.params.newWindow
+          ? 'actionsEditor.actionTitle.url.newWindow'
+          : 'actionsEditor.actionTitle.url.sameWindow';
+        
+        return getLocalizedText(key, {
           url: action.params.url,
         });
       }
       
       default:
-        return 'Unknown action';
+        return '';
     }
   }
   
@@ -252,6 +376,7 @@ class ComponentActionsEditorComponent extends PureComponent {
             id={actionPath}
             title={title}
             description={description}
+            onEdit={this._handleEditAction}
             onDelete={this._handleDeleteAction}
           >
             <ComponentActionCaseRow type="success" title={onSuccessText}>
@@ -269,6 +394,8 @@ class ComponentActionsEditorComponent extends PureComponent {
             key={String(idx)}
             id={actionPath}
             title={title}
+            description={description}
+            onEdit={this._handleEditAction}
             onDelete={this._handleDeleteAction}
           />,
         );
@@ -276,13 +403,18 @@ class ComponentActionsEditorComponent extends PureComponent {
     });
     
     return (
-      <ComponentActions addButtonText={addActionText}>
+      <ComponentActions
+        actionPath={path || []}
+        branch={branch}
+        addButtonText={addActionText}
+        onAdd={this._handleOpenNewActionForm}
+      >
         {list}
       </ComponentActions>
     );
   }
   
-  _renderHandlers() {
+  _renderHandlersList() {
     const {
       meta,
       selectedComponentIds,
@@ -329,27 +461,54 @@ class ComponentActionsEditorComponent extends PureComponent {
     });
     
     return (
-      <ComponentHandlers>
-        {handlersList}
-      </ComponentHandlers>
+      <BlockContentBoxItem isBordered flexMain>
+        <ComponentHandlers>
+          {handlersList}
+        </ComponentHandlers>
+      </BlockContentBoxItem>
+    );
+  }
+  
+  _renderNewActionView() {
+    return (
+      <ActionEditor
+        onSave={this._handleActionEditorSave}
+        onCancel={this._handleActionEditorCancel}
+      />
+    );
+  }
+  
+  _renderEditActionView() {
+    const { currentComponents, selectedComponentIds } = this.props;
+    const { activeHandler, editActionPath } = this.state;
+  
+    const componentId = selectedComponentIds.first();
+    const component = currentComponents.get(componentId);
+    const propValue = component.props.get(activeHandler);
+    const action = propValue.getActionByPath(editActionPath);
+    
+    return (
+      <ActionEditor
+        action={action}
+        onSave={this._handleActionEditorSave}
+        onCancel={this._handleActionEditorCancel}
+      />
     );
   }
   
   render() {
     const { selectedComponentIds } = this.props;
-    const { editingAction } = this.state;
+    const { currentView } = this.state;
   
     if (selectedComponentIds.size !== 1) return null;
     
     let content = null;
-    if (!editingAction) {
-      const handlersList = this._renderHandlers();
-      content = (
-        <BlockContentBoxItem isBordered flexMain>
-          {handlersList}
-        </BlockContentBoxItem>
-      );
-    }
+    if (currentView === Views.HANDLERS_LIST)
+      content = this._renderHandlersList();
+    else if (currentView === Views.NEW_ACTION)
+      content = this._renderNewActionView();
+    else if (currentView === Views.EDIT_ACTION)
+      content = this._renderEditActionView();
     
     return (
       <BlockContentBox isBordered flex>

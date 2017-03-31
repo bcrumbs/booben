@@ -30,6 +30,10 @@ export const PROJECT_COMPONENT_RENAME =
   'PROJECT_COMPONENT_RENAME';
 export const PROJECT_COMPONENT_TOGGLE_REGION =
   'PROJECT_COMPONENT_TOGGLE_REGION';
+export const PROJECT_COMPONENT_ADD_ACTION =
+  'PROJECT_COMPONENT_ADD_ACTION';
+export const PROJECT_COMPONENT_REPLACE_ACTION =
+  'PROJECT_COMPONENT_REPLACE_ACTION';
 export const PROJECT_COMPONENT_DELETE_ACTION =
   'PROJECT_COMPONENT_DELETE_ACTION';
 export const PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT =
@@ -289,6 +293,63 @@ export const toggleComponentRegion = (componentId, regionIdx, enable) => ({
  * @property {number} index
  * @property {string} [branch] - 'success' or 'error'
  */
+
+/**
+ *
+ * @param {number} componentId
+ * @param {string} propName
+ * @param {boolean} isSystemProp
+ * @param {(string|number)[]} path
+ * @param {ActionPathStep[]} actionPath
+ * @param {string} branch
+ * @param {Object} action
+ * @return {Object}
+ */
+export const addComponentAction = (
+  componentId,
+  propName,
+  isSystemProp,
+  path,
+  actionPath,
+  branch,
+  action,
+) => ({
+  type: PROJECT_COMPONENT_ADD_ACTION,
+  componentId,
+  propName,
+  isSystemProp,
+  path,
+  actionPath,
+  branch,
+  action,
+});
+
+/**
+ *
+ * @param {number} componentId
+ * @param {string} propName
+ * @param {boolean} isSystemProp
+ * @param {(string|number)[]} path
+ * @param {ActionPathStep[]} actionPath
+ * @param {Object} newAction
+ * @return {Object}
+ */
+export const replaceComponentAction = (
+  componentId,
+  propName,
+  isSystemProp,
+  path,
+  actionPath,
+  newAction,
+) => ({
+  type: PROJECT_COMPONENT_REPLACE_ACTION,
+  componentId,
+  propName,
+  isSystemProp,
+  path,
+  actionPath,
+  newAction,
+});
 
 /**
  *

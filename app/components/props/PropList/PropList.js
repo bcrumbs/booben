@@ -11,7 +11,7 @@ import { PropBase } from '../PropBase/PropBase';
 import { noop } from '../../../utils/misc';
 
 const propTypes = {
-  value: PropTypes.string,
+  value: PropTypes.any,
   options: PropTypes.arrayOf(PropTypes.shape({
     value: PropTypes.any,
     text: PropTypes.string,
