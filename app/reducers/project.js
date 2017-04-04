@@ -109,6 +109,7 @@ import {
 
 import { concatPath } from '../utils';
 import { parseGraphQLSchema } from '../utils/schema';
+import { isInteger } from '../utils/misc';
 import { NO_VALUE, SYSTEM_PROPS } from '../constants/misc';
 
 export const NestedConstructor = Record({
@@ -218,6 +219,7 @@ const selectComponentExclusive = (state, componentId) =>
 const toggleComponentSelection = (state, componentId) => {
   const pathToCurrentSelectedComponentIds =
       getPathToCurrentSelectedComponentIds(state);
+  
   const currentSelectedComponentIds =
     state.getIn(pathToCurrentSelectedComponentIds);
 
@@ -244,10 +246,10 @@ const unhighlightComponent = (state, componentId) => state.updateIn(
 );
 
 const addComponents = (state, parentComponentId, position, components) => {
-  const pathToCurrentLastComponentId = getPathToCurrentLastComponentId(state),
-    lastComponentId = state.getIn(pathToCurrentLastComponentId),
-    nextComponentId = lastComponentId + 1,
-    pathToCurrentComponents = getPathToCurrentComponents(state);
+  const pathToCurrentLastComponentId = getPathToCurrentLastComponentId(state);
+  const lastComponentId = state.getIn(pathToCurrentLastComponentId);
+  const nextComponentId = lastComponentId + 1;
+  const pathToCurrentComponents = getPathToCurrentComponents(state);
 
   state = state.updateIn(
     pathToCurrentComponents,
@@ -312,14 +314,6 @@ const expandPropPath = propPath => {
 const deleteComponent = (state, componentId) => {
   const pathToCurrentComponents = getPathToCurrentComponents(state);
   const currentComponents = state.getIn(pathToCurrentComponents);
-
-  if (!currentComponents.has(componentId)) {
-    throw new Error(
-      'An attempt was made to delete a component ' +
-      'that is not in current editing area',
-    );
-  }
-
   const component = currentComponents.get(componentId);
   const idsToDelete = gatherComponentsTreeIds(currentComponents, componentId);
 
@@ -396,25 +390,7 @@ const deleteComponent = (state, componentId) => {
 const moveComponent = (state, componentId, targetComponentId, position) => {
   const pathToCurrentComponents = getPathToCurrentComponents(state);
   const currentComponents = state.getIn(pathToCurrentComponents);
-
-  if (!currentComponents.has(componentId)) {
-    throw new Error(
-      'An attempt was made to move a component ' +
-      'that is not in current editing area',
-    );
-  }
-
-  if (!currentComponents.has(targetComponentId)) {
-    throw new Error(
-      'An attempt was made to move a component ' +
-      'outside current editing area',
-    );
-  }
-
   const component = currentComponents.get(componentId);
-
-  if (component.parentId === -1)
-    throw new Error('Cannot move root component');
 
   if (component.parentId === targetComponentId) {
     const childrenPath = [].concat(pathToCurrentComponents, [
@@ -480,8 +456,7 @@ const clearOutdatedDataProps = (
   const updatedComponent = currentComponents.get(updatedComponentId);
   const oldValue = updatedComponent.props.get(updatedPropName);
   
-  if (oldValue.source !== 'data' || !oldValue.sourceData.queryPath)
-    return state;
+  if (!oldValue.isLinkedWithData()) return state;
   
   const componentMeta = getComponentMeta(updatedComponent.name, state.meta);
   const updatedPropMeta = componentMeta.props[updatedPropName];
@@ -554,7 +529,7 @@ const clearOutdatedDataProps = (
   };
   
   const visitProp = (propValue, _, pathToProp) => {
-    if (propValue.source === 'designer' && propValue.sourceData.rootId > -1) {
+    if (propValue.hasDesignedComponent()) {
       const pathToValue = [].concat(pathToComponents, [
         updatedComponentId,
         'props',
@@ -707,6 +682,93 @@ export const makeCurrentQueryArgsGetter = state => dataContext => {
   ];
   
   return state.getIn(pathToQueryArgs);
+};
+
+export const PathStartingPoints = {
+  PROJECT: 0,
+  CURRENT_COMPONENTS: 1,
+};
+
+/**
+ * @typedef {Object} Path
+ * @property {number} startingPoint
+ * @property {(string|number)[]} steps
+ */
+
+/**
+ *
+ * @param {string|number} step
+ * @param {*} current
+ * @return {boolean}
+ */
+const isValidPathStep = (step, current) => {
+  if (!current) return false;
+  
+  if (Map.isMap(current)) {
+    return typeof step === 'string';
+  } else if (List.isList(current)) {
+    return isInteger(step) && step >= 0;
+  } else {
+    return !!current.constructor &&
+      !!current.constructor.isValidPathStep &&
+      current.constructor.isValidPathStep(step, current);
+  }
+};
+
+/**
+ *
+ * @param {Path} path
+ * @param {Object} state
+ * @return {(string|number)[]}
+ */
+const expandPathToValue = (path, state) => {
+  let current = null;
+  let ret = [];
+  
+  switch (path.startingPoint) {
+    case PathStartingPoints.PROJECT: {
+      current = state.data;
+      ret = ['data'];
+      break;
+    }
+    
+    case PathStartingPoints.CURRENT_COMPONENTS: {
+      const pathToCurrentComponents = getPathToCurrentComponents(state);
+      current = state.getIn(pathToCurrentComponents);
+      ret = pathToCurrentComponents;
+      break;
+    }
+    
+    default: {
+      throw new Error(
+        `expandPathToValue(): Invalid starting point: ${path.startingPoint}`,
+      );
+    }
+  }
+  
+  path.steps.forEach((step, idx) => {
+    if (!isValidPathStep(step, current)) {
+      throw new Error(
+        `expandPathToValue(): Invalid step at index ${idx}: ${step}`,
+      );
+    }
+    
+    if (Map.isMap(current) || List.isList(current)) {
+      current = current.get(step);
+      ret.push(step);
+    } else {
+      const expandedPath = current.constructor.expandPathStep(step, current);
+      current = current.getIn(expandedPath);
+      ret.push(...expandedPath);
+    }
+  });
+  
+  return ret;
+};
+
+const updateValue = (state, path, newValue) => {
+  const realPath = expandPathToValue(path, state);
+  return state.setIn(realPath, newValue);
 };
 
 

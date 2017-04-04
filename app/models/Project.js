@@ -25,6 +25,11 @@ const ProjectRecord = Record({
   functions: Map(),
 });
 
+const VALID_PATH_STEPS = new Set(['routes']);
+
+ProjectRecord.isValidPathStep = step => VALID_PATH_STEPS.has(step);
+ProjectRecord.expandPathStep = step => step;
+
 export const projectToImmutable = input => new ProjectRecord({
   name: input.name,
   author: input.author,

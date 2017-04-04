@@ -7,6 +7,7 @@
 import { Record, Map, List } from 'immutable';
 import _mapValues from 'lodash.mapvalues';
 import SourceDataStatic from './SourceDataStatic';
+import { isInteger } from '../utils/misc';
 
 const JssyValueRecord = Record({
   source: '',
@@ -35,6 +36,10 @@ const JSValueToStaticValue = value => {
     return value;
 };
 
+const VALID_PATH_STEPS_FUNCTION = new Set(['args']);
+const VALID_PATH_STEPS_DESIGNER = new Set(['components']);
+const VALID_PATH_STEPS_ACTIONS = new Set(['actions']);
+
 class JssyValue extends JssyValueRecord {
   static staticFromJS(value) {
     return new JssyValue({
@@ -43,6 +48,27 @@ class JssyValue extends JssyValueRecord {
         value: JSValueToStaticValue(value),
       }),
     });
+  }
+  
+  static isValidPathStep(step, current) {
+    if (current.source === 'static') {
+      const value = current.sourceData.value;
+      return (Map.isMap(value) && typeof step === 'string') ||
+        (List.isList(value) && isInteger(step) && step >= 0);
+    } else if (current.source === 'function') {
+      return VALID_PATH_STEPS_FUNCTION.has(step);
+    } else if (current.source === 'designer') {
+      return VALID_PATH_STEPS_DESIGNER.has(step);
+    } else if (current.source === 'actions') {
+      return VALID_PATH_STEPS_ACTIONS.has(step);
+    } else {
+      return false;
+    }
+  }
+  
+  static expandPathStep(step, current) {
+    if (current.source === 'static') return ['sourceData', 'value', step];
+    else return step;
   }
   
   getInStatic(path) {
@@ -107,11 +133,31 @@ class JssyValue extends JssyValueRecord {
     return this.updateIn(realPath, listOrMap => listOrMap.delete(index));
   }
   
+  isLinkedWithData() {
+    return this.source === 'data' && this.sourceData.queryPath !== null;
+  }
+  
+  isLinkedWithOwnerProp() {
+    return this.source === 'static' && !!this.sourceData.ownerPropName;
+  }
+  
+  isLinkedWithFunction() {
+    return this.source === 'function';
+  }
+  
+  isLinkedWithState() {
+    return this.source === 'state';
+  }
+  
   isLinked() {
-    return this.source === 'function' ||
-      this.source === 'state' ||
-      (this.source === 'data' && this.sourceData.queryPath !== null) ||
-      (this.source === 'static' && !!this.sourceData.ownerPropName);
+    return this.isLinkedWithData() ||
+      this.isLinkedWithFunction() ||
+      this.isLinkedWithOwnerProp() ||
+      this.isLinkedWithState();
+  }
+  
+  hasDesignedComponent() {
+    return this.source === 'designer' && this.sourceData.rootId !== -1;
   }
   
   getActionByPath(actionPath) {

@@ -31,6 +31,20 @@ export const returnTrue = /* istanbul ignore next */ () => true;
 
 /**
  *
+ * @param {*} value
+ * @return {boolean}
+ */
+export const isNumber = value => typeof value === 'number' && isFinite(value);
+
+/**
+ *
+ * @param {*} value
+ * @return {boolean}
+ */
+export const isInteger = value => isNumber(value) && value % 1 === 0;
+
+/**
+ *
  * @param {*} maybeObject
  * @return {boolean}
  */

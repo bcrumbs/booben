@@ -219,7 +219,7 @@ const isRenderableProp = propMeta =>
 
 /**
  *
- * @param {PropTypeDefinition} propMeta
+ * @param {JssyValueDefinition} propMeta
  * @return {boolean}
  */
 const isEditableProp = propMeta =>
