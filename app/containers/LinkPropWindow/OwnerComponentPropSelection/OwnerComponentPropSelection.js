@@ -88,9 +88,8 @@ export class OwnerComponentPropSelection extends PureComponent {
       language,
     } = this.props;
     
-    const ownerPropMeta = ownerMeta.props[ownerPropName],
-      ownerPropsMeta = ownerPropMeta.sourceConfigs.designer.props;
-  
+    const ownerPropMeta = ownerMeta.props[ownerPropName];
+    const ownerPropsMeta = ownerPropMeta.sourceConfigs.designer.props;
     const items = Object.keys(ownerPropsMeta)
       .filter(ownerPropName => isEqualType(
         ownerPropsMeta[ownerPropName],
@@ -102,13 +101,13 @@ export class OwnerComponentPropSelection extends PureComponent {
         const ownerPropMeta = ownerPropsMeta[ownerPropName];
       
         const title = getString(
-          ownerMeta,
+          ownerMeta.strings,
           ownerPropMeta.textKey,
           language,
         );
       
         const description = getString(
-          ownerMeta,
+          ownerMeta.strings,
           ownerPropMeta.descriptionTextKey,
           language,
         );

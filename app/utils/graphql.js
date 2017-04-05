@@ -25,8 +25,8 @@ import {
 
 import {
   getComponentMeta,
-  isPropTypeDefinition,
-  propHasDataContest,
+  isJssyValueDefinition,
+  valueHasDataContest,
 } from './meta';
 
 import { objectToArray } from './misc';
@@ -633,8 +633,8 @@ const buildGraphQLFragmentsForOwnComponent = (
       }
 
       const hasDataContext =
-        isPropTypeDefinition(typedef) &&
-        propHasDataContest(typedef);
+        isJssyValueDefinition(typedef) &&
+        valueHasDataContest(typedef);
 
       if (hasDataContext) {
         dataValuesByDataContext[typedef.sourceConfigs.data.pushDataContext] =
@@ -741,8 +741,8 @@ const buildGraphQLFragmentsForComponent = (
       fragments.push(fragment);
 
       const hasDataContext =
-        isPropTypeDefinition(typedef) &&
-        propHasDataContest(typedef);
+        isJssyValueDefinition(typedef) &&
+        valueHasDataContest(typedef);
 
       if (hasDataContext) {
         dataValuesByDataContext[typedef.sourceConfigs.data.pushDataContext] =

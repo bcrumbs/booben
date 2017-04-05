@@ -26,9 +26,9 @@ import {
 import { ActionEditor } from './ActionEditor/ActionEditor';
 
 import {
-  addComponentAction,
-  replaceComponentAction,
-  deleteComponentAction,
+  addAction,
+  replaceAction,
+  deleteAction,
 } from '../../actions/project';
 
 import {
@@ -44,7 +44,7 @@ import { getMutationField } from '../../utils/schema';
 import {
   getComponentMeta,
   getString,
-  isValidSourceForProp,
+  isValidSourceForValue,
 } from '../../utils/meta';
 
 const propTypes = {
@@ -89,7 +89,7 @@ const mapDispatchToProps = dispatch => ({
     actionPath,
     branch,
     action,
-  }) => void dispatch(addComponentAction(
+  }) => void dispatch(addAction(
     componentId,
     propName,
     isSystemProp,
@@ -106,7 +106,7 @@ const mapDispatchToProps = dispatch => ({
     path,
     actionPath,
     newAction,
-  }) => void dispatch(replaceComponentAction(
+  }) => void dispatch(replaceAction(
     componentId,
     propName,
     isSystemProp,
@@ -121,7 +121,7 @@ const mapDispatchToProps = dispatch => ({
     isSystemProp,
     path,
     actionPath,
-  }) => void dispatch(deleteComponentAction(
+  }) => void dispatch(deleteAction(
     componentId,
     propName,
     isSystemProp,
@@ -269,8 +269,11 @@ class ComponentActionsEditorComponent extends PureComponent {
           getComponentMeta(targetComponent.name, meta);
         
         const methodMeta = targetComponentMeta.methods[action.params.method];
-        const methodName =
-          getString(targetComponentMeta, methodMeta.textKey, language);
+        const methodName = getString(
+          targetComponentMeta.strings,
+          methodMeta.textKey,
+          language,
+        );
         
         return getLocalizedText('actionsEditor.actionTitle.method', {
           method: methodName,
@@ -330,7 +333,7 @@ class ComponentActionsEditorComponent extends PureComponent {
         const methodMeta = targetComponentMeta.methods[action.params.method];
         
         return getString(
-          targetComponentMeta,
+          targetComponentMeta.strings,
           methodMeta.descriptionTextKey,
           language,
         );
@@ -431,12 +434,17 @@ class ComponentActionsEditorComponent extends PureComponent {
     const handlersList = [];
     
     _forOwn(componentMeta.props, (propMeta, propName) => {
-      if (!isValidSourceForProp(propMeta, 'actions')) return;
+      if (!isValidSourceForValue(propMeta, 'actions')) return;
       
       const value = component.props.get(propName);
-      const title = getString(componentMeta, propMeta.textKey, language);
+      const title = getString(
+        componentMeta.strings,
+        propMeta.textKey,
+        language,
+      );
+      
       const description = getString(
-        componentMeta,
+        componentMeta.strings,
         propMeta.descriptionTextKey,
         language,
       );

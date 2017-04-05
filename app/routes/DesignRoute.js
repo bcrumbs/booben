@@ -389,9 +389,14 @@ class DesignRoute extends PureComponent {
   
     const items = draggedComponentMeta.layouts.map((layout, idx) => {
       const icon = layout.icon || defaultComponentLayoutIcon;
-      const title = getString(draggedComponentMeta, layout.textKey, language);
+      const title = getString(
+        draggedComponentMeta.strings,
+        layout.textKey,
+        language,
+      );
+      
       const subtitle = getString(
-        draggedComponentMeta,
+        draggedComponentMeta.strings,
         layout.descriptionTextKey,
         language,
       );

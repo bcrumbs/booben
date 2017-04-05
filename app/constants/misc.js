@@ -18,7 +18,7 @@ export const FUNCTION_FNS_ARG_NAME = 'fns';
 
 /**
  *
- * @type {Object<string, PropTypeDefinition>}
+ * @type {Object<string, JssyValueDefinition>}
  */
 export const SYSTEM_PROPS = {
   visible: {

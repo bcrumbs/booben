@@ -36,13 +36,14 @@ import {
 import ProjectComponentRecord from '../../models/ProjectComponent';
 
 import {
-  updateComponentPropValue,
-  addComponentPropValue,
-  deleteComponentPropValue,
+  updateJssyValue,
+  addJssyValue,
+  deleteJssyValue,
   constructComponentForProp,
   linkProp,
-  unlinkProp,
 } from '../../actions/project';
+
+import { PathStartingPoints } from '../../reducers/project';
 
 import {
   currentComponentsSelector,
@@ -55,7 +56,10 @@ import {
   getString,
   getComponentMeta,
   buildDefaultValue,
-  isValidSourceForProp,
+  isValidSourceForValue,
+  parseComponentName,
+  formatComponentName,
+  constructComponent,
 } from '../../utils/meta';
 
 import { NO_VALUE, SYSTEM_PROPS } from '../../constants/misc';
@@ -80,7 +84,6 @@ const propTypes = {
   onDeletePropValue: PropTypes.func.isRequired,
   onConstructComponent: PropTypes.func.isRequired,
   onLinkProp: PropTypes.func.isRequired,
-  onUnlinkProp: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -124,62 +127,28 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onPropValueChange: (
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    newSource,
-    newSourceData,
-  ) => void dispatch(updateComponentPropValue(
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    newSource,
-    newSourceData,
-  )),
+  onPropValueChange: (path, newSource, newSourceData) =>
+    void dispatch(updateJssyValue(
+      path,
+      newSource,
+      newSourceData,
+    )),
   
-  onAddPropValue: (
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    index,
-    source,
-    sourceData,
-  ) => void dispatch(addComponentPropValue(
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    index,
-    source,
-    sourceData,
-  )),
-  
-  onDeletePropValue: (componentId, propName, isSystemProp, path, index) =>
-    void dispatch(deleteComponentPropValue(
-      componentId,
-      propName,
-      isSystemProp,
+  onAddPropValue: (path, index, source, sourceData) =>
+    void dispatch(addJssyValue(
       path,
       index,
+      source,
+      sourceData,
     )),
   
-  onConstructComponent: (componentId, propName, isSystemProp, path) =>
-    void dispatch(constructComponentForProp(
-      componentId,
-      propName,
-      isSystemProp,
-      path,
-    )),
+  onDeletePropValue: (path, index) =>
+    void dispatch(deleteJssyValue(path, index)),
   
-  onLinkProp: (componentId, propName, isSystemProp, path) =>
-    void dispatch(linkProp(componentId, propName, isSystemProp, path)),
+  onConstructComponent: (path, components, rootId) =>
+    void dispatch(constructComponentForProp(path, components, rootId)),
   
-  onUnlinkProp: (componentId, propName, isSystemProp, path) =>
-    void dispatch(unlinkProp(componentId, propName, isSystemProp, path)),
+  onLinkProp: path => void dispatch(linkProp(path)),
 });
 
 /**
@@ -210,11 +179,11 @@ const coerceFloatValue = value => {
  * @return {boolean}
  */
 const isRenderableProp = propMeta =>
-  isValidSourceForProp(propMeta, 'static') ||
-  isValidSourceForProp(propMeta, 'function') ||
-  isValidSourceForProp(propMeta, 'data') || (
+  isValidSourceForValue(propMeta, 'static') ||
+  isValidSourceForValue(propMeta, 'function') ||
+  isValidSourceForValue(propMeta, 'data') || (
     propMeta.type === 'component' &&
-    isValidSourceForProp(propMeta, 'designer')
+    isValidSourceForValue(propMeta, 'designer')
   );
 
 /**
@@ -223,8 +192,26 @@ const isRenderableProp = propMeta =>
  * @return {boolean}
  */
 const isEditableProp = propMeta =>
-  isValidSourceForProp(propMeta, 'static') ||
-  isValidSourceForProp(propMeta, 'designer');
+  isValidSourceForValue(propMeta, 'static') ||
+  isValidSourceForValue(propMeta, 'designer');
+
+/**
+ *
+ * @param {number} componentId
+ * @param {boolean} isSystemProp
+ * @param {string} propName
+ * @param {(string|number)[]} path
+ * @return {Path}
+ */
+const buildFullPath = (componentId, isSystemProp, propName, path) => ({
+  startingPoint: PathStartingPoints.CURRENT_COMPONENTS,
+  steps: [
+    componentId,
+    isSystemProp ? 'systemProps' : 'props',
+    propName,
+    ...path,
+  ],
+});
 
 class ComponentPropsEditorComponent extends PureComponent {
   constructor(props) {
@@ -278,8 +265,56 @@ class ComponentPropsEditorComponent extends PureComponent {
    * @private
    */
   _handleSetComponent(isSystemProp, { propName, path }) {
-    const componentId = this.props.selectedComponentIds.first();
-    this.props.onConstructComponent(componentId, propName, isSystemProp, path);
+    const {
+      meta,
+      components,
+      selectedComponentIds,
+      language,
+      onConstructComponent,
+    } = this.props;
+    
+    const componentId = selectedComponentIds.first();
+    const component = components.get(componentId);
+    const currentPropValue = isSystemProp
+      ? component.systemProps.get(propName)
+      : component.props.get(propName);
+    
+    const currentValue = currentPropValue.getInStatic(path);
+    const componentMeta = getComponentMeta(component.name, meta);
+    const valueMeta = getNestedTypedef(
+      componentMeta.props[propName],
+      path,
+      componentMeta.types,
+    );
+  
+    let initialComponents = null;
+    let initialComponentsRootId = -1;
+    
+    const willBuildWrapper =
+      !currentValue.hasDesignedComponent() &&
+      !!valueMeta.sourceConfigs.designer.wrapper;
+    
+    if (willBuildWrapper) {
+      const { namespace } = parseComponentName(component.name);
+  
+      const wrapperFullName = formatComponentName(
+        namespace,
+        valueMeta.sourceConfigs.designer.wrapper,
+      );
+  
+      initialComponents = constructComponent(
+        wrapperFullName,
+        valueMeta.sourceConfigs.designer.wrapperLayout || 0,
+        language,
+        meta,
+        { isNew: false, isWrapper: true },
+      );
+  
+      initialComponentsRootId = 0;
+    }
+    
+    const fullPath = buildFullPath(componentId, isSystemProp, propName, path);
+    onConstructComponent(fullPath, initialComponents, initialComponentsRootId);
   }
 
   /**
@@ -291,15 +326,11 @@ class ComponentPropsEditorComponent extends PureComponent {
    * @private
    */
   _handleChange(isSystemProp, { propName, value, path }) {
-    const componentId = this.props.selectedComponentIds.first();
-    this.props.onPropValueChange(
-      componentId,
-      propName,
-      isSystemProp,
-      path,
-      'static',
-      { value },
-    );
+    const { selectedComponentIds, onPropValueChange } = this.props;
+    
+    const componentId = selectedComponentIds.first();
+    const fullPath = buildFullPath(componentId, isSystemProp, propName, path);
+    onPropValueChange(fullPath, 'static', { value });
   }
 
   /**
@@ -311,25 +342,36 @@ class ComponentPropsEditorComponent extends PureComponent {
    * @private
    */
   _handleAddValue(isSystemProp, { propName, where, index }) {
-    const componentId = this.props.selectedComponentIds.first();
-    const component = this.props.components.get(componentId);
-    const componentMeta = getComponentMeta(component.name, this.props.meta);
-    const propMeta = componentMeta.props[propName];
+    const {
+      meta,
+      components,
+      selectedComponentIds,
+      language,
+      onAddPropValue,
+    } = this.props;
+    
+    const componentId = selectedComponentIds.first();
+    const component = components.get(componentId);
+    const componentMeta = getComponentMeta(component.name, meta);
+    const propMeta = isSystemProp
+      ? SYSTEM_PROPS[propName]
+      : componentMeta.props[propName];
+    
     const nestedPropMeta = getNestedTypedef(
       propMeta,
       where,
-      componentMeta.types,
+      isSystemProp ? null : componentMeta.types,
     );
     
     const newValueType = resolveTypedef(
       nestedPropMeta.ofType,
-      componentMeta.types,
+      isSystemProp ? null : componentMeta.types,
     );
 
     const value = buildDefaultValue(
-      componentMeta,
       newValueType,
-      this.props.language,
+      isSystemProp ? null : componentMeta.strings,
+      language,
     );
 
     if (value === NO_VALUE) {
@@ -341,16 +383,9 @@ class ComponentPropsEditorComponent extends PureComponent {
         `where: ${where.map(String).join('.') || '[top level]'}`,
       );
     }
-
-    this.props.onAddPropValue(
-      componentId,
-      propName,
-      isSystemProp,
-      where,
-      index,
-      value.source,
-      value.sourceData,
-    );
+  
+    const fullPath = buildFullPath(componentId, isSystemProp, propName, where);
+    onAddPropValue(fullPath, index, value.source, value.sourceData);
   }
 
   /**
@@ -362,15 +397,11 @@ class ComponentPropsEditorComponent extends PureComponent {
    * @private
    */
   _handleDeleteValue(isSystemProp, { propName, where, index }) {
-    const componentId = this.props.selectedComponentIds.first();
+    const { selectedComponentIds, onDeletePropValue } = this.props;
     
-    this.props.onDeletePropValue(
-      componentId,
-      propName,
-      isSystemProp,
-      where,
-      index,
-    );
+    const componentId = selectedComponentIds.first();
+    const fullPath = buildFullPath(componentId, isSystemProp, propName, where);
+    onDeletePropValue(fullPath, index);
   }
 
   /**
@@ -381,8 +412,11 @@ class ComponentPropsEditorComponent extends PureComponent {
    * @private
    */
   _handleLink(isSystemProp, { propName, path }) {
-    const componentId = this.props.selectedComponentIds.first();
-    this.props.onLinkProp(componentId, propName, isSystemProp, path);
+    const { selectedComponentIds, onLinkProp } = this.props;
+    
+    const componentId = selectedComponentIds.first();
+    const fullPath = buildFullPath(componentId, isSystemProp, propName, path);
+    onLinkProp(fullPath);
   }
 
   /**
@@ -393,8 +427,35 @@ class ComponentPropsEditorComponent extends PureComponent {
    * @private
    */
   _handleUnlink(isSystemProp, { propName, path }) {
-    const componentId = this.props.selectedComponentIds.first();
-    this.props.onUnlinkProp(componentId, propName, isSystemProp, path);
+    const {
+      meta,
+      components,
+      selectedComponentIds,
+      language,
+      onPropValueChange,
+    } = this.props;
+    
+    const componentId = selectedComponentIds.first();
+    const component = components.get(componentId);
+    const componentMeta = getComponentMeta(component.name, meta);
+    const propMeta = isSystemProp
+      ? SYSTEM_PROPS[propName]
+      : componentMeta.props[propName];
+    
+    const nestedMeta = getNestedTypedef(
+      propMeta,
+      path,
+      isSystemProp ? null : componentMeta.types,
+    );
+    
+    const { source, sourceData } = buildDefaultValue(
+      nestedMeta,
+      isSystemProp ? null : componentMeta.strings,
+      language,
+    );
+    
+    const fullPath = buildFullPath(componentId, isSystemProp, propName, path);
+    onPropValueChange(fullPath, source, sourceData);
   }
 
   /**
@@ -433,13 +494,13 @@ class ComponentPropsEditorComponent extends PureComponent {
     const typedef = resolveTypedef(propMeta, componentMeta.types);
 
     const name = getString(
-      componentMeta,
+      componentMeta.strings,
       typedef.textKey,
       this.props.language,
     );
 
     const description = getString(
-      componentMeta,
+      componentMeta.strings,
       typedef.descriptionTextKey,
       this.props.language,
     );
@@ -469,7 +530,7 @@ class ComponentPropsEditorComponent extends PureComponent {
         ret.options = typedef.options.map(option => ({
           value: option.value,
           text: getString(
-              componentMeta,
+              componentMeta.strings,
               option.textKey,
               this.props.language,
           ) || option.textKey,
@@ -607,7 +668,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     const propGroups = componentMeta.propGroups.map(groupData => ({
       name: groupData.name,
       title: getString(
-        componentMeta,
+        componentMeta.strings,
         groupData.textKey,
         this.props.language,
       ),

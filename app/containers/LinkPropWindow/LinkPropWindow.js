@@ -45,8 +45,88 @@ import {
 } from '../../reducers/project';
 
 import { SYSTEM_PROPS } from '../../constants/misc';
-import { getComponentMeta, isValidSourceForProp } from '../../utils/meta';
+import { getComponentMeta, isValidSourceForValue } from '../../utils/meta';
 import { getLocalizedTextFromState } from '../../utils';
+
+//noinspection JSUnresolvedVariable
+const propTypes = {
+  components: ImmutablePropTypes.mapOf(
+    PropTypes.instanceOf(ProjectComponentRecord),
+    PropTypes.number,
+  ).isRequired,
+  meta: PropTypes.object.isRequired,
+  schema: PropTypes.object.isRequired,
+  projectFunctions: ImmutablePropTypes.map.isRequired,
+  builtinFunctions: ImmutablePropTypes.map.isRequired,
+  linkingPropOfComponentId: PropTypes.number.isRequired,
+  linkingPropName: PropTypes.string.isRequired,
+  linkingSystemProp: PropTypes.bool.isRequired,
+  linkingPropPath: PropTypes.arrayOf(
+    PropTypes.oneOfType([
+      PropTypes.string,
+      PropTypes.number,
+    ]),
+  ).isRequired,
+  availableDataContexts: PropTypes.arrayOf(PropTypes.shape({
+    dataContext: PropTypes.arrayOf(PropTypes.string),
+    typeName: PropTypes.string,
+  })).isRequired,
+  topNestedConstructor: PropTypes.instanceOf(NestedConstructor),
+  topNestedConstructorComponent: PropTypes.instanceOf(
+    ProjectComponentRecord,
+  ),
+  getCurrentQueryArgs: PropTypes.func.isRequired,
+  language: PropTypes.string.isRequired,
+  getLocalizedText: PropTypes.func.isRequired,
+  onLinkWithOwnerProp: PropTypes.func.isRequired,
+  onLinkWithData: PropTypes.func.isRequired,
+  onLinkWithFunction: PropTypes.func.isRequired,
+  onCreateFunction: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+  topNestedConstructor: null,
+  topNestedConstructorComponent: null,
+};
+
+const mapStateToProps = state => ({
+  components: currentComponentsSelector(state),
+  meta: state.project.meta,
+  schema: state.project.schema,
+  projectFunctions: state.project.data.functions,
+  builtinFunctions: Map(), // TODO: Pass built-in functions here
+  linkingPropOfComponentId: state.project.linkingPropOfComponentId,
+  linkingPropName: state.project.linkingPropName,
+  linkingSystemProp: state.project.linkingSystemProp,
+  linkingPropPath: state.project.linkingPropPath,
+  availableDataContexts: availableDataContextsSelector(state),
+  topNestedConstructor: topNestedConstructorSelector(state),
+  topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
+  getCurrentQueryArgs: makeCurrentQueryArgsGetter(state.project),
+  language: state.project.languageForComponentProps,
+  getLocalizedText: getLocalizedTextFromState(state),
+});
+
+const mapDispatchToProps = dispatch => ({
+  onLinkWithOwnerProp: ({ propName }) =>
+    void dispatch(linkWithOwnerProp(propName)),
+  
+  onLinkWithData: ({ dataContext, path, args }) =>
+    void dispatch(linkWithData(dataContext, path, args)),
+  
+  onLinkWithFunction: ({ source, name, argValues }) =>
+    void dispatch(linkWithFunction(source, name, argValues)),
+  
+  onCreateFunction: ({ name, title, description, args, returnType, code }) =>
+    void dispatch(createFunction(
+      name,
+      title,
+      description,
+      args,
+      returnType,
+      code,
+    )),
+});
 
 class LinkPropWindowComponent extends PureComponent {
   constructor(props) {
@@ -71,6 +151,8 @@ class LinkPropWindowComponent extends PureComponent {
    * @private
    */
   _getLinkTargetData() {
+    // TODO: Rewrite
+    
     const {
       meta,
       components,
@@ -96,7 +178,6 @@ class LinkPropWindowComponent extends PureComponent {
     );
     
     return {
-      linkTargetComponent,
       linkTargetComponentMeta,
       linkTargetPropTypedef,
     };
@@ -120,7 +201,7 @@ class LinkPropWindowComponent extends PureComponent {
       });
     }
     
-    if (isValidSourceForProp(linkTargetPropTypedef, 'data')) {
+    if (isValidSourceForValue(linkTargetPropTypedef, 'data')) {
       items.push({
         id: 'query',
         title: 'Data', // TODO: Get string from i18n
@@ -356,84 +437,9 @@ class LinkPropWindowComponent extends PureComponent {
   }
 }
 
-//noinspection JSUnresolvedVariable
-LinkPropWindowComponent.propTypes = {
-  components: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponentRecord),
-    PropTypes.number,
-  ).isRequired,
-  meta: PropTypes.object.isRequired,
-  schema: PropTypes.object.isRequired,
-  projectFunctions: ImmutablePropTypes.map.isRequired,
-  builtinFunctions: ImmutablePropTypes.map.isRequired,
-  linkingPropOfComponentId: PropTypes.number.isRequired,
-  linkingPropName: PropTypes.string.isRequired,
-  linkingSystemProp: PropTypes.bool.isRequired,
-  linkingPropPath: PropTypes.arrayOf(
-    PropTypes.oneOfType([
-      PropTypes.string,
-      PropTypes.number,
-    ]),
-  ).isRequired,
-  availableDataContexts: PropTypes.arrayOf(PropTypes.shape({
-    dataContext: PropTypes.arrayOf(PropTypes.string),
-    typeName: PropTypes.string,
-  })).isRequired,
-  topNestedConstructor: PropTypes.instanceOf(NestedConstructor),
-  topNestedConstructorComponent: PropTypes.instanceOf(
-    ProjectComponentRecord,
-  ),
-  getCurrentQueryArgs: PropTypes.func.isRequired,
-  language: PropTypes.string.isRequired,
-  getLocalizedText: PropTypes.func.isRequired,
-  onLinkWithOwnerProp: PropTypes.func.isRequired,
-  onLinkWithData: PropTypes.func.isRequired,
-  onLinkWithFunction: PropTypes.func.isRequired,
-  onCreateFunction: PropTypes.func.isRequired,
-};
-
-LinkPropWindowComponent.defaultProps = {
-  topNestedConstructor: null,
-  topNestedConstructorComponent: null,
-};
-
+LinkPropWindowComponent.propTypes = propTypes;
+LinkPropWindowComponent.defaultProps = defaultProps;
 LinkPropWindowComponent.displayName = 'LinkPropDialog';
-
-const mapStateToProps = state => ({
-  components: currentComponentsSelector(state),
-  meta: state.project.meta,
-  schema: state.project.schema,
-  projectFunctions: state.project.data.functions,
-  builtinFunctions: Map(), // TODO: Pass built-in functions here
-  linkingPropOfComponentId: state.project.linkingPropOfComponentId,
-  linkingPropName: state.project.linkingPropName,
-  linkingSystemProp: state.project.linkingSystemProp,
-  linkingPropPath: state.project.linkingPropPath,
-  availableDataContexts: availableDataContextsSelector(state),
-  topNestedConstructor: topNestedConstructorSelector(state),
-  topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
-  getCurrentQueryArgs: makeCurrentQueryArgsGetter(state.project),
-  language: state.project.languageForComponentProps,
-  getLocalizedText: getLocalizedTextFromState(state),
-});
-
-const mapDispatchToProps = dispatch => ({
-  onLinkWithOwnerProp: ({ propName }) =>
-    void dispatch(linkWithOwnerProp(propName)),
-  onLinkWithData: ({ dataContext, path, args }) =>
-    void dispatch(linkWithData(dataContext, path, args)),
-  onLinkWithFunction: ({ source, name, argValues }) =>
-    void dispatch(linkWithFunction(source, name, argValues)),
-  onCreateFunction: ({ name, title, description, args, returnType, code }) =>
-    void dispatch(createFunction(
-      name,
-      title,
-      description,
-      args,
-      returnType,
-      code,
-    )),
-});
 
 export const LinkPropWindow = connect(
   mapStateToProps,
