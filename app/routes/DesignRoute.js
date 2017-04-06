@@ -139,10 +139,15 @@ const nestedConstructorBreadcrumbsSelector = createSelector(
     };
     
     const reducer = (acc, cur) => {
-      const component = acc.components.get(cur.componentId);
+      const componentId = cur.path.steps[0];
+      const isSystemProp = cur.path.steps[1] === 'systemProps';
+      const prop = cur.path.steps[2];
+      const component = acc.components.get(componentId);
       const title = component.title || component.name;
       const componentMeta = getComponentMeta(component.name, meta);
-      const propName = getComponentPropName(componentMeta, cur.prop, language);
+      const propName = isSystemProp
+        ? prop
+        : getComponentPropName(componentMeta, prop, language);
   
       return {
         ret: acc.ret.push(title, propName),

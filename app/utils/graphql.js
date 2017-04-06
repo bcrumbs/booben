@@ -48,6 +48,7 @@ const SCALAR_TYPES = new Set([
   'Int',
   'Float',
   'Enum',
+  'ID',
 ]);
 
 /**

@@ -47,7 +47,7 @@ const ProjectComponentRecord = Record({
 const VALID_PATH_STEPS = new Set(['props', 'systemProps', 'queryArgs']);
 
 ProjectComponentRecord.isValidPathStep = step => VALID_PATH_STEPS.has(step);
-ProjectComponentRecord.expandPathStep = step => step;
+ProjectComponentRecord.expandPathStep = step => [step];
 
 
 /* eslint-disable no-use-before-define */

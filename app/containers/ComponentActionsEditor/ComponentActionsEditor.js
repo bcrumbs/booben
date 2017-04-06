@@ -36,6 +36,7 @@ import {
   currentSelectedComponentIdsSelector,
 } from '../../selectors';
 
+import { PathStartingPoints } from '../../reducers/project';
 import ProjectRoute from '../../models/ProjectRoute';
 import ProjectComponent from '../../models/ProjectComponent';
 import { getLocalizedTextFromState } from '../../utils';
@@ -81,53 +82,15 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onAddAction: ({
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    actionPath,
-    branch,
-    action,
-  }) => void dispatch(addAction(
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    actionPath,
-    branch,
-    action,
-  )),
+  onAddAction: ({ path, action }) => void dispatch(addAction(path, action)),
   
-  onReplaceAction: ({
-    componentId,
-    propName,
-    isSystemProp,
+  onReplaceAction: ({ path, index, newAction }) => void dispatch(replaceAction(
     path,
-    actionPath,
-    newAction,
-  }) => void dispatch(replaceAction(
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    actionPath,
+    index,
     newAction,
   )),
   
-  onDeleteAction: ({
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    actionPath,
-  }) => void dispatch(deleteAction(
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    actionPath,
-  )),
+  onDeleteAction: ({ path, index }) => void dispatch(deleteAction(path, index)),
 });
 
 const Views = {
@@ -191,13 +154,32 @@ class ComponentActionsEditorComponent extends PureComponent {
   
     const componentId = selectedComponentIds.first();
     
-    onDeleteAction({
-      componentId,
-      propName: activeHandler,
-      isSystemProp: false,
-      path: [],
-      actionPath,
-    });
+    // TODO: Get rid of 'actionPaths'
+    const pathToList = actionPath
+      .reduce(
+        (acc, cur) => acc.concat(
+          cur.branch
+            ? [`${cur.branch}Actions`, cur.index]
+            : [cur.index],
+        ),
+        [],
+      )
+      .slice(-1);
+    
+    const fullPath = {
+      startingPoint: PathStartingPoints.CURRENT_COMPONENTS,
+      steps: [
+        componentId,
+        'props',
+        activeHandler,
+        'actions',
+        ...pathToList,
+      ],
+    };
+    
+    const index = actionPath[actionPath.length - 1].index;
+    
+    onDeleteAction({ path: fullPath, index });
   }
   
   _handleActionEditorSave({ action }) {
@@ -213,6 +195,7 @@ class ComponentActionsEditorComponent extends PureComponent {
   
     const componentId = selectedComponentIds.first();
     
+    // TODO: Rewrite dispatches according to action format changes
     if (currentView === Views.NEW_ACTION) {
       onAddAction({
         componentId,

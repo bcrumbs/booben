@@ -4,7 +4,8 @@
 
 'use strict';
 
-import { Record, Map, Set, List, is } from 'immutable';
+import { Record, Map, Set, List } from 'immutable';
+import { resolveTypedef } from '@jssy/types';
 
 import {
   NOT_LOADED,
@@ -73,6 +74,7 @@ import SourceDataStatic from '../models/SourceDataStatic';
 import SourceDataDesigner from '../models/SourceDataDesigner';
 import SourceDataData, { QueryPathStep } from '../models/SourceDataData';
 import SourceDataFunction from '../models/SourceDataFunction';
+import { Action } from '../models/SourceDataActions';
 
 import ProjectFunction, {
   ProjectFunctionArgument,
@@ -102,12 +104,25 @@ import {
 } from '../utils/meta';
 
 import { concatPath } from '../utils';
-import { parseGraphQLSchema } from '../utils/schema';
-import { isInteger } from '../utils/misc';
-import { NO_VALUE } from '../constants/misc';
+
+import {
+  parseGraphQLSchema,
+  getMutationField,
+  getJssyTypeOfField,
+} from '../utils/schema';
+
+import { isInteger, isPrefixList } from '../utils/misc';
+import { getFunctionInfo } from '../utils/functions';
+
+import {
+  NO_VALUE,
+  SYSTEM_PROPS,
+  ROUTE_PARAM_VALUE_DEF,
+} from '../constants/misc';
 
 export const NestedConstructor = Record({
   path: [],
+  valueInfo: null,
   
   components: Map(),
   rootId: -1,
@@ -482,7 +497,7 @@ const isValidPathStep = (step, current) => {
   if (!current) return false;
   
   if (Map.isMap(current)) {
-    return typeof step === 'string';
+    return true;
   } else if (List.isList(current)) {
     return isInteger(step) && step >= 0;
   } else {
@@ -562,7 +577,11 @@ const walkPath = (path, state, visitor) => {
  */
 const expandPath = (path, state) => {
   const ret = [];
-  walkPath(path, state, (_, expandedPath) => void ret.push(...expandedPath));
+  
+  walkPath(path, state, (object, idx, expandedPath) => {
+    ret.push(...expandedPath);
+  });
+  
   return ret;
 };
 
@@ -595,50 +614,173 @@ const getFirstComponentInPath = (path, state) => {
   return ret;
 };
 
-/**
- *
- * @param {Path} path
- * @param {Object} state
- * @return {boolean}
- */
-const isPathToComponentProp = (path, state) => {
-  let step = 0;
-  let ret = false;
-  
-  walkPath(path, state, (object, idx) => {
-    if (step === 0) {
-      if (object instanceof ProjectComponent) step = 1;
-    } else if (step === 1) {
-      if (Map.isMap(object) && path.steps[idx] === 'props') step = 2;
-      else return BREAK;
-    } else if (step === 2) {
-      if (object instanceof JssyValue) {
-        ret = true;
-        step = 3;
-      } else {
-        return BREAK;
-      }
-    } else if (step === 3) {
-      ret = false;
-      return BREAK;
-    }
-    
-    return null;
-  });
-  
-  return ret;
+const ValueTypes = {
+  NOT_A_VALUE: 0,
+  COMPONENT_PROP: 1,
+  COMPONENT_SYSTEM_PROP: 2,
+  FUNCTION_ARG: 3,
+  QUERY_ARG: 4,
+  ACTION_METHOD_ARG: 5,
+  ACTION_MUTATION_ARG: 6,
+  ACTION_PROP_VALUE: 7,
+  ACTION_ROUTE_PARAM: 8,
 };
 
-const isPrefixList = (maybePrefix, list) => {
-  if (maybePrefix.size > list.size) return false;
-  return maybePrefix.every((item, idx) => is(item, list.get(idx)));
+const getValueInfoByPath = (path, state) => {
+  const project = state.data;
+  
+  let currentComponents = null;
+  let componentMeta = null;
+  let userTypedefs = null;
+  let currentValueDef = null;
+  let currentValueType = ValueTypes.NOT_A_VALUE;
+  let currentIsNested = false;
+  let nextValueType = ValueTypes.NOT_A_VALUE;
+  let currentFunction = null;
+  let currentAction = null;
+  
+  if (path.startingPoint === PathStartingPoints.CURRENT_COMPONENTS)
+    currentComponents = state.getIn(getPathToCurrentComponents(state));
+  
+  walkPath(path, state, (object, idx) => {
+    if (idx === -1) return;
+    
+    const step = path.steps[idx];
+    const nextStep = path.steps.length === idx + 1 ? null : path.steps[idx + 1];
+  
+    if (object instanceof JssyValue) {
+      if (object.source === 'function') {
+        currentFunction = getFunctionInfo(
+          object.sourceData.functionSource,
+          object.sourceData.function,
+          project,
+        );
+        
+        if (nextStep === 'args')
+          nextValueType = ValueTypes.FUNCTION_ARG;
+      } else if (object.source === 'designer') {
+        currentComponents = object.sourceData.components;
+      }
+      
+      if (currentValueType === ValueTypes.NOT_A_VALUE) {
+        currentValueType = nextValueType;
+        
+        if (currentValueType === ValueTypes.COMPONENT_PROP) {
+          currentValueDef = componentMeta.props[step];
+          userTypedefs = componentMeta.types;
+        } else if (currentValueType === ValueTypes.COMPONENT_SYSTEM_PROP) {
+          currentValueDef = SYSTEM_PROPS[step];
+          userTypedefs = null;
+        } else if (currentValueType === ValueTypes.QUERY_ARG) {
+          // TODO: Get valueDef
+          currentValueDef = null;
+          userTypedefs = null;
+        } else if (currentValueType === ValueTypes.FUNCTION_ARG) {
+          currentValueDef = currentFunction.args
+            .find(argDef => argDef.name === step);
+  
+          userTypedefs = null;
+        } else if (currentValueType === ValueTypes.ACTION_MUTATION_ARG) {
+          const mutation =
+            getMutationField(state.schema, currentAction.mutation);
+          
+          const arg = mutation.args[step];
+  
+          currentValueDef = getJssyTypeOfField(arg, state.schema);
+          userTypedefs = null;
+        } else if (currentValueType === ValueTypes.ACTION_METHOD_ARG) {
+          const targetComponent =
+            currentComponents.get(currentAction.params.componentId);
+          
+          const targetComponentMeta =
+            getComponentMeta(targetComponent.name, state.meta);
+          
+          currentValueDef =
+            targetComponentMeta.methods[currentAction.params.method].args[step];
+          
+          userTypedefs = targetComponentMeta.types;
+        } else if (currentValueType === ValueTypes.ACTION_PROP_VALUE) {
+          if (currentAction.params.systemPropName) {
+            currentValueDef = SYSTEM_PROPS[currentAction.params.systemPropName];
+            userTypedefs = null;
+          } else {
+            const targetComponent =
+              currentComponents.get(currentAction.params.componentId);
+  
+            const targetComponentMeta =
+              getComponentMeta(targetComponent.name, state.meta);
+  
+            currentValueDef =
+              targetComponentMeta.props[currentAction.params.propName];
+  
+            userTypedefs = targetComponentMeta.types;
+          }
+        } else if (currentValueType === ValueTypes.ACTION_ROUTE_PARAM) {
+          currentValueDef = ROUTE_PARAM_VALUE_DEF;
+          userTypedefs = null;
+        }
+      } else {
+        currentIsNested = true;
+        
+        const resolvedTypedef = resolveTypedef(currentValueDef, userTypedefs);
+      
+        if (resolvedTypedef.type === 'shape')
+          currentValueDef = resolvedTypedef.fields[step];
+        else if (
+          resolvedTypedef.type === 'arrayOf' ||
+          resolvedTypedef.type === 'objectOf'
+        )
+          currentValueDef = resolvedTypedef.ofType;
+      }
+    } else {
+      currentValueType = ValueTypes.NOT_A_VALUE;
+      currentIsNested = false;
+      currentValueDef = null;
+  
+      if (object instanceof ProjectRoute) {
+        if (nextStep === 'components')
+          currentComponents = object.components;
+      } else if (object instanceof ProjectComponent) {
+        componentMeta = getComponentMeta(object.name, state.meta);
+        
+        if (nextStep === 'props')
+          nextValueType = ValueTypes.COMPONENT_PROP;
+        else if (nextStep === 'systemProps')
+          nextValueType = ValueTypes.COMPONENT_SYSTEM_PROP;
+        else if (nextStep === 'queryArgs')
+          nextValueType = ValueTypes.QUERY_ARG;
+      } else if (object instanceof Action) {
+        currentAction = object;
+        
+        if (object.type === 'mutation' && nextStep === 'args')
+          nextValueType = ValueTypes.ACTION_MUTATION_ARG;
+        else if (object.type === 'method' && nextStep === 'args')
+          nextValueType = ValueTypes.ACTION_METHOD_ARG;
+        else if (object.type === 'prop' && nextStep === 'value')
+          nextValueType = ValueTypes.ACTION_PROP_VALUE;
+        else if (object.type === 'navigate' && nextStep === 'routeParams')
+          nextValueType = ValueTypes.ACTION_ROUTE_PARAM;
+      }
+    }
+  });
+  
+  return {
+    type: currentValueType,
+    isNested: currentIsNested,
+    valueDef: currentValueDef,
+    userTypedefs,
+  };
 };
+
+export const makeValueInfoGetter = state =>
+  path => getValueInfoByPath(path, state);
 
 // TODO: Refactor away from using real paths
 const clearOutdatedDataProps = (state, updatedPath) => {
   // Data prop with pushDataContext cannot be nested,
   // so we need to clear outdated data props only when updating top-level prop
-  if (!isPathToComponentProp(updatedPath, state)) return state;
+  const { valueType, isNested } = getValueInfoByPath(updatedPath, state);
+  if (valueType !== ValueTypes.COMPONENT_PROP || isNested) return state;
   
   const oldValue = getObjectByPath(updatedPath, state);
   if (!oldValue.isLinkedWithData()) return state;
@@ -670,7 +812,7 @@ const clearOutdatedDataProps = (state, updatedPath) => {
           componentMeta,
           
           (propValue, _, pathToProp) => {
-            if (propValue.source === 'data') {
+            if (propValue.isLinkedWithData()) {
               const containsOutdatedDataContext = isPrefixList(
                 outdatedDataContext,
                 propValue.sourceData.dataContext,
@@ -697,20 +839,18 @@ const clearOutdatedDataProps = (state, updatedPath) => {
                   ),
                 );
               }
-            } else if (propValue.source === 'designer') {
-              if (propValue.sourceData.rootId > -1) {
-                const pathToNextDesignerValue = [].concat(path, [
-                  'sourceData',
-                  'components',
-                  componentId,
-                  'props',
-                ], expandPropPath(pathToProp));
-                
-                visitDesignerProp(
-                  state.getIn(pathToNextDesignerValue),
-                  pathToNextDesignerValue,
-                );
-              }
+            } else if (propValue.hasDesignedComponent()) {
+              const pathToNextDesignerValue = [].concat(path, [
+                'sourceData',
+                'components',
+                componentId,
+                'props',
+              ], expandPropPath(pathToProp));
+  
+              visitDesignerProp(
+                state.getIn(pathToNextDesignerValue),
+                pathToNextDesignerValue,
+              );
             }
           },
         );
@@ -975,7 +1115,7 @@ const handlers = {
   },
   
   [PROJECT_JSSY_VALUE_DELETE]: (state, action) =>
-    void deleteValue(state, action.path, action.index),
+    deleteValue(state, action.path, action.index),
   
   [PROJECT_JSSY_VALUE_ADD_ACTION]: (state, action) => {
     const path = expandPath(action.path, state);
@@ -1143,18 +1283,17 @@ const handlers = {
   },
   
   [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT]: (state, action) => {
-    const currentValue = state.getIn(expandPath(action.path, state));
-  
+    if (action.path.startingPoint !== PathStartingPoints.CURRENT_COMPONENTS)
+      throw new Error('Cannot open nested constructor with absolute path');
+    
     const nestedConstructorData = {
       path: action.path,
+      valueInfo: getValueInfoByPath(action.path, state),
     };
     
-    const haveComponents =
-      currentValue &&
-      currentValue.source === 'designer' &&
-      currentValue.sourceData.rootId !== -1;
+    const currentValue = getObjectByPath(action.path, state);
   
-    if (haveComponents) {
+    if (currentValue.hasDesignedComponent()) {
       Object.assign(nestedConstructorData, {
         components: currentValue.sourceData.components,
         rootId: currentValue.sourceData.rootId,

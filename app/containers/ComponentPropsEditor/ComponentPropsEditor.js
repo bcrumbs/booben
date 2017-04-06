@@ -49,7 +49,6 @@ import {
   currentComponentsSelector,
   currentSelectedComponentIdsSelector,
   topNestedConstructorSelector,
-  topNestedConstructorComponentSelector,
 } from '../../selectors';
 
 import {
@@ -75,8 +74,8 @@ const propTypes = {
   ).isRequired,
   selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number).isRequired,
   language: PropTypes.string.isRequired,
-  ownerComponentMeta: PropTypes.object,
   ownerProps: PropTypes.object,
+  ownerUserTypedefs: PropTypes.object,
   getLocalizedText: PropTypes.func.isRequired,
 
   onPropValueChange: PropTypes.func.isRequired,
@@ -87,32 +86,30 @@ const propTypes = {
 };
 
 const defaultProps = {
-  ownerComponentMeta: null,
   ownerProps: null,
+  ownerUserTypedefs: null,
 };
-
-const ownerComponentMetaSelector = createSelector(
-  topNestedConstructorComponentSelector,
-  state => state.project.meta,
-  
-  (ownerComponent, meta) => ownerComponent
-    ? getComponentMeta(ownerComponent.name, meta)
-    : null,
-);
 
 const ownerPropsSelector = createSelector(
   topNestedConstructorSelector,
-  ownerComponentMetaSelector,
   
-  (topNestedConstructor, ownerComponentMeta) => {
-    if (!ownerComponentMeta) return null;
+  topNestedConstructor => {
+    if (!topNestedConstructor) return null;
     
-    const ownerComponentProp = topNestedConstructor.prop,
-      ownerComponentPropMeta = ownerComponentMeta.props[ownerComponentProp];
+    const ownerComponentPropMeta = topNestedConstructor.valueInfo.valueDef;
     
     return ownerComponentPropMeta.source.indexOf('designer') > -1
       ? ownerComponentPropMeta.sourceConfigs.designer.props || null
       : null;
+  },
+);
+
+const ownerUserTypedefsSelector = createSelector(
+  topNestedConstructorSelector,
+  
+  topNestedConstructor => {
+    if (!topNestedConstructor) return null;
+    return topNestedConstructor.valueInfo.userTypedefs;
   },
 );
 
@@ -121,8 +118,8 @@ const mapStateToProps = state => ({
   components: currentComponentsSelector(state),
   selectedComponentIds: currentSelectedComponentIdsSelector(state),
   language: state.app.language,
-  ownerComponentMeta: ownerComponentMetaSelector(state),
   ownerProps: ownerPropsSelector(state),
+  ownerUserTypedefs: ownerUserTypedefsSelector(state),
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -477,7 +474,7 @@ class ComponentPropsEditorComponent extends PureComponent {
         propMeta,
         ownerProp,
         componentMeta.types,
-        this.props.ownerComponentMeta.types,
+        this.props.ownerUserTypedefs,
       );
     });
   }

@@ -68,7 +68,7 @@ class JssyValue extends JssyValueRecord {
   
   static expandPathStep(step, current) {
     if (current.source === 'static') return ['sourceData', 'value', step];
-    else return step;
+    else return [step];
   }
   
   getInStatic(path) {
@@ -164,8 +164,114 @@ class JssyValue extends JssyValueRecord {
       this.isLinkedWithState();
   }
   
+  getDataContext() {
+    return this.sourceData.dataContext.toJS();
+  }
+  
   hasDesignedComponent() {
     return this.source === 'designer' && this.sourceData.rootId !== -1;
+  }
+  
+  getActionByPath(actionPath) {
+    if (this.source !== 'actions') {
+      throw new Error(
+        'JssyValue#getActionByPath: called on non-action JssyValue',
+      );
+    }
+    
+    const path = actionPath.reduce(
+      (acc, cur) => acc.concat(
+        cur.branch
+          ? ['params', `${cur.branch}Actions`, cur.index]
+          : [cur.index],
+      ),
+      
+      [],
+    );
+    
+    return this.getIn(['sourceData', 'actions', ...path]);
+  }
+  
+  addAction(actionPath, branch, action) {
+    if (this.source !== 'actions')
+      throw new Error('JssyValue#addAction: called on non-action JssyValue');
+    
+    const pathToList = actionPath.reduce(
+      (acc, cur) => acc.concat(
+        cur.branch
+          ? ['params', `${cur.branch}Actions`, cur.index]
+          : [cur.index],
+      ),
+      [],
+    );
+    
+    if (branch) pathToList.push('params', `${branch}Actions`);
+    
+    return this.updateIn(
+      ['sourceData', 'actions', ...pathToList],
+      actionsList => actionsList.push(action),
+    );
+  }
+  
+  replaceAction(actionPath, newAction, replaceBranches = false) {
+    if (this.source !== 'actions') {
+      throw new Error(
+        'JssyValue#replaceAction: called on non-action JssyValue',
+      );
+    }
+    
+    const actionIdx = actionPath[actionPath.length - 1].index;
+    const pathToList = actionPath
+      .reduce(
+        (acc, cur) => acc.concat(
+          cur.branch
+            ? ['params', `${cur.branch}Actions`, cur.index]
+            : [cur.index],
+        ),
+        
+        [],
+      )
+      .slice(0, -1);
+    
+    return this.updateIn(
+      ['sourceData', 'actions', ...pathToList],
+      
+      actionsList => {
+        const oldAction = actionsList.get(actionIdx);
+        
+        if (oldAction.type === 'mutation' && !replaceBranches) {
+          return actionsList.set(actionIdx, newAction.merge({
+            successActions: oldAction.successActions,
+            errorActions: oldAction.errorActions,
+          }));
+        } else {
+          return actionsList.set(actionIdx, newAction);
+        }
+      },
+    );
+  }
+  
+  deleteAction(actionPath) {
+    if (this.source !== 'actions')
+      throw new Error('JssyValue#deleteAction: called on non-action JssyValue');
+    
+    const actionIdx = actionPath[actionPath.length - 1].index;
+    const pathToList = actionPath
+      .reduce(
+        (acc, cur) => acc.concat(
+          cur.branch
+            ? ['params', `${cur.branch}Actions`, cur.index]
+            : [cur.index],
+        ),
+        
+        [],
+      )
+      .slice(0, -1);
+    
+    return this.updateIn(
+      ['sourceData', 'actions', ...pathToList],
+      actionsList => actionsList.delete(actionIdx),
+    );
   }
 }
 

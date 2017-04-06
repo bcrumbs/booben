@@ -23,12 +23,25 @@ export const FUNCTION_FNS_ARG_NAME = 'fns';
 export const SYSTEM_PROPS = {
   visible: {
     type: 'bool',
-    source: ['static', 'data'],
+    source: ['static', 'data', 'state'],
     sourceConfigs: {
       static: {
         default: true,
       },
       data: {},
+      state: {},
     },
+  },
+};
+
+export const ROUTE_PARAM_VALUE_DEF = {
+  type: 'string',
+  source: ['static', 'data', 'state'],
+  sourceConfigs: {
+    static: {
+      default: '',
+    },
+    data: {},
+    state: {},
   },
 };

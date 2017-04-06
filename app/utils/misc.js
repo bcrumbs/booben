@@ -4,6 +4,8 @@
 
 'use strict';
 
+import { is } from 'immutable';
+
 /**
  * Does nothing
  */
@@ -178,4 +180,15 @@ export const pointIsInCircle = (x, y, cX, cY, r) => {
     yy = y - cY;
 
   return xx * xx + yy * yy <= r * r;
+};
+
+/**
+ *
+ * @param {Immutable.List} maybePrefix
+ * @param {Immutable.List} list
+ * @return {boolean}
+ */
+export const isPrefixList = (maybePrefix, list) => {
+  if (maybePrefix.size > list.size) return false;
+  return maybePrefix.every((item, idx) => is(item, list.get(idx)));
 };
