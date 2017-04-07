@@ -42,25 +42,25 @@
  * @property {string} name - Component name with namespace (e.g. "Namespace.MyComponent")
  * @property {string} title - User-defined title
  * @property {boolean} isWrapper
- * @property {Object<string, ProjectComponentProp>} props
- * @property {Object<string, ProjectComponentProp>} systemProps
+ * @property {Object<string, PlainJssyValue>} props
+ * @property {Object<string, PlainJssyValue>} systemProps
  * @property {ProjectComponent[]} children
  * @property {number[]} regionsEnabled
  * @property {Object<string, Object<string, Object<string, QueryArgumentValue>>>} queryArgs
  */
 
 /**
- * @typedef {Object} ProjectComponentProp
+ * @typedef {Object} PlainJssyValue
  * @property {string} source
  * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner|SourceDataFunction|SourceDataState} sourceData
  */
 
 /**
- * @typedef {Object<string, ProjectComponentProp>} SourceDataStaticObjectValue
+ * @typedef {Object<string, PlainJssyValue>} SourceDataStaticObjectValue
  */
 
 /**
- * @typedef {ProjectComponentProp[]} SourceDataStaticArrayValue
+ * @typedef {PlainJssyValue[]} SourceDataStaticArrayValue
  */
 
 /**
@@ -94,7 +94,7 @@
 /**
  * @typedef {Object} MutationActionParams
  * @property {string} mutation
- * @property {Object<string, ProjectComponentProp>} args
+ * @property {Object<string, PlainJssyValue>} args
  * @property {Action[]} successActions
  * @property {Action[]} errorActions
  */
@@ -102,7 +102,7 @@
 /**
  * @typedef {Object} NavigateActionParams
  * @property {number} routeId
- * @property {Object<string, ProjectComponentProp>} routeParams
+ * @property {Object<string, PlainJssyValue>} routeParams
  */
 
 /**
@@ -115,7 +115,7 @@
  * @typedef {Object} MethodCallActionParams
  * @property {number} componentId
  * @property {string} method
- * @property {ProjectComponentProp[]} args
+ * @property {PlainJssyValue[]} args
  */
 
 /**
@@ -123,7 +123,7 @@
  * @property {number} componentId
  * @property {string} propName
  * @property {string} systemPropName
- * @property {ProjectComponentProp} value
+ * @property {PlainJssyValue} value
  */
 
 /**

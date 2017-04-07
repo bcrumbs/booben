@@ -26,9 +26,9 @@ import {
 import { ActionEditor } from './ActionEditor/ActionEditor';
 
 import {
-  addComponentAction,
-  replaceComponentAction,
-  deleteComponentAction,
+  addAction,
+  replaceAction,
+  deleteAction,
 } from '../../actions/project';
 
 import {
@@ -36,6 +36,7 @@ import {
   currentSelectedComponentIdsSelector,
 } from '../../selectors';
 
+import { PathStartingPoints } from '../../reducers/project';
 import ProjectRoute from '../../models/ProjectRoute';
 import ProjectComponent from '../../models/ProjectComponent';
 import { getLocalizedTextFromState } from '../../utils';
@@ -44,7 +45,7 @@ import { getMutationField } from '../../utils/schema';
 import {
   getComponentMeta,
   getString,
-  isValidSourceForProp,
+  isValidSourceForValue,
 } from '../../utils/meta';
 
 const propTypes = {
@@ -81,53 +82,15 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onAddAction: ({
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    actionPath,
-    branch,
-    action,
-  }) => void dispatch(addComponentAction(
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    actionPath,
-    branch,
-    action,
-  )),
+  onAddAction: ({ path, action }) => void dispatch(addAction(path, action)),
   
-  onReplaceAction: ({
-    componentId,
-    propName,
-    isSystemProp,
+  onReplaceAction: ({ path, index, newAction }) => void dispatch(replaceAction(
     path,
-    actionPath,
-    newAction,
-  }) => void dispatch(replaceComponentAction(
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    actionPath,
+    index,
     newAction,
   )),
   
-  onDeleteAction: ({
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    actionPath,
-  }) => void dispatch(deleteComponentAction(
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    actionPath,
-  )),
+  onDeleteAction: ({ path, index }) => void dispatch(deleteAction(path, index)),
 });
 
 const Views = {
@@ -143,12 +106,11 @@ class ComponentActionsEditorComponent extends PureComponent {
     this.state = {
       currentView: Views.HANDLERS_LIST,
       
-      // Handle list
+      // Handlers list
       activeHandler: '',
       
       // New action
-      newActionPath: [],
-      newActionBranch: '',
+      newActionPathToList: [],
       
       // Edit action
       editActionPath: [],
@@ -170,11 +132,10 @@ class ComponentActionsEditorComponent extends PureComponent {
     });
   }
   
-  _handleOpenNewActionForm({ actionPath, branch }) {
+  _handleOpenNewActionForm({ pathToList }) {
     this.setState({
       currentView: Views.NEW_ACTION,
-      newActionPath: actionPath,
-      newActionBranch: branch,
+      newActionPathToList: pathToList,
     });
   }
   
@@ -190,14 +151,21 @@ class ComponentActionsEditorComponent extends PureComponent {
     const { activeHandler } = this.state;
   
     const componentId = selectedComponentIds.first();
+    const pathToList = actionPath.slice(0, -1);
+    const index = actionPath[actionPath.length - 1];
     
-    onDeleteAction({
-      componentId,
-      propName: activeHandler,
-      isSystemProp: false,
-      path: [],
-      actionPath,
-    });
+    const fullPath = {
+      startingPoint: PathStartingPoints.CURRENT_COMPONENTS,
+      steps: [
+        componentId,
+        'props',
+        activeHandler,
+        'actions',
+        ...pathToList,
+      ],
+    };
+    
+    onDeleteAction({ path: fullPath, index });
   }
   
   _handleActionEditorSave({ action }) {
@@ -206,30 +174,35 @@ class ComponentActionsEditorComponent extends PureComponent {
     const {
       currentView,
       activeHandler,
-      newActionPath,
-      newActionBranch,
+      newActionPathToList,
       editActionPath,
     } = this.state;
   
     const componentId = selectedComponentIds.first();
     
     if (currentView === Views.NEW_ACTION) {
+      const path = {
+        startingPoint: PathStartingPoints.CURRENT_COMPONENTS,
+        steps: [
+          componentId,
+          'props',
+          activeHandler,
+          'actions',
+          ...newActionPathToList,
+        ],
+      };
+      
       onAddAction({
-        componentId,
-        propName: activeHandler,
-        isSystemProp: false,
-        path: [],
-        actionPath: newActionPath,
-        branch: newActionBranch,
+        path,
         action,
       });
     } else if (currentView === Views.EDIT_ACTION) {
+      const path = editActionPath.slice(0, -1);
+      const index = editActionPath[editActionPath.length - 1];
+      
       onReplaceAction({
-        componentId,
-        propName: activeHandler,
-        isSystemProp: false,
-        path: [],
-        actionPath: editActionPath,
+        path,
+        index,
         newAction: action,
       });
     }
@@ -269,8 +242,11 @@ class ComponentActionsEditorComponent extends PureComponent {
           getComponentMeta(targetComponent.name, meta);
         
         const methodMeta = targetComponentMeta.methods[action.params.method];
-        const methodName =
-          getString(targetComponentMeta, methodMeta.textKey, language);
+        const methodName = getString(
+          targetComponentMeta.strings,
+          methodMeta.textKey,
+          language,
+        );
         
         return getLocalizedText('actionsEditor.actionTitle.method', {
           method: methodName,
@@ -330,7 +306,7 @@ class ComponentActionsEditorComponent extends PureComponent {
         const methodMeta = targetComponentMeta.methods[action.params.method];
         
         return getString(
-          targetComponentMeta,
+          targetComponentMeta.strings,
           methodMeta.descriptionTextKey,
           language,
         );
@@ -341,7 +317,7 @@ class ComponentActionsEditorComponent extends PureComponent {
     }
   }
   
-  _renderActionsList(actions, path = null, branch = '') {
+  _renderActionsList(actions, pathToList = []) {
     const { getLocalizedText } = this.props;
     
     const addActionText = getLocalizedText('actionsEditor.addAction');
@@ -350,24 +326,19 @@ class ComponentActionsEditorComponent extends PureComponent {
     const list = [];
   
     actions.forEach((action, idx) => {
-      const actionPath = path
-        ? [...path, { branch, index: idx }]
-        : [{ index: idx }];
-      
+      const actionPath = [...pathToList, idx];
       const title = this._formatActionTitle(action);
       const description = this._getActionDescription(action);
       
       if (action.type === 'mutation') {
         const successActionsList = this._renderActionsList(
           action.params.successActions,
-          actionPath,
-          'success',
+          [...actionPath, 'successActions'],
         );
         
         const errorActionsList = this._renderActionsList(
           action.params.errorActions,
-          actionPath,
-          'error',
+          [...actionPath, 'errorActions'],
         );
         
         list.push(
@@ -404,8 +375,7 @@ class ComponentActionsEditorComponent extends PureComponent {
     
     return (
       <ComponentActions
-        actionPath={path || []}
-        branch={branch}
+        pathToList={pathToList}
         addButtonText={addActionText}
         onAdd={this._handleOpenNewActionForm}
       >
@@ -431,12 +401,17 @@ class ComponentActionsEditorComponent extends PureComponent {
     const handlersList = [];
     
     _forOwn(componentMeta.props, (propMeta, propName) => {
-      if (!isValidSourceForProp(propMeta, 'actions')) return;
+      if (!isValidSourceForValue(propMeta, 'actions')) return;
       
       const value = component.props.get(propName);
-      const title = getString(componentMeta, propMeta.textKey, language);
+      const title = getString(
+        componentMeta.strings,
+        propMeta.textKey,
+        language,
+      );
+      
       const description = getString(
-        componentMeta,
+        componentMeta.strings,
         propMeta.descriptionTextKey,
         language,
       );

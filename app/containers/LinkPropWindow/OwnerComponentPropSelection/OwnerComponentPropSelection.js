@@ -28,8 +28,8 @@ import { noop } from '../../../utils/misc';
 const propTypes = {
   ownerMeta: PropTypes.object.isRequired,
   ownerPropName: PropTypes.string.isRequired,
-  linkTargetComponentMeta: PropTypes.object.isRequired,
-  linkTargetPropTypedef: PropTypes.object.isRequired,
+  userTypedefs: PropTypes.object.isRequired,
+  linkTargetValueDef: PropTypes.object.isRequired,
   language: PropTypes.string.isRequired,
   onSelect: PropTypes.func,
   onReturn: PropTypes.func,
@@ -83,32 +83,31 @@ export class OwnerComponentPropSelection extends PureComponent {
     const {
       ownerMeta,
       ownerPropName,
-      linkTargetPropTypedef,
-      linkTargetComponentMeta,
+      linkTargetValueDef,
+      userTypedefs,
       language,
     } = this.props;
     
-    const ownerPropMeta = ownerMeta.props[ownerPropName],
-      ownerPropsMeta = ownerPropMeta.sourceConfigs.designer.props;
-  
+    const ownerPropMeta = ownerMeta.props[ownerPropName];
+    const ownerPropsMeta = ownerPropMeta.sourceConfigs.designer.props;
     const items = Object.keys(ownerPropsMeta)
       .filter(ownerPropName => isEqualType(
         ownerPropsMeta[ownerPropName],
-        linkTargetPropTypedef,
+        linkTargetValueDef,
         ownerMeta.types,
-        linkTargetComponentMeta.types,
+        userTypedefs,
       ))
       .map(ownerPropName => {
         const ownerPropMeta = ownerPropsMeta[ownerPropName];
       
         const title = getString(
-          ownerMeta,
+          ownerMeta.strings,
           ownerPropMeta.textKey,
           language,
         );
       
         const description = getString(
-          ownerMeta,
+          ownerMeta.strings,
           ownerPropMeta.descriptionTextKey,
           language,
         );
