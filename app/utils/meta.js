@@ -452,11 +452,11 @@ const _buildDefaultValue = (
 /**
  *
  * @param {JssyValueDefinition} valueDef
- * @param {?Object<string, Object<string, string>>} strings
- * @param {string} language
+ * @param {?Object<string, Object<string, string>>} [strings=null]
+ * @param {string} [language='']
  * @return {PlainJssyValue|NO_VALUE}
  */
-export const buildDefaultValue = (valueDef, strings, language) =>
+export const buildDefaultValue = (valueDef, strings = null, language = '') =>
   _buildDefaultValue(valueDef, strings, language);
 
 /**
