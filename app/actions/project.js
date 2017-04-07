@@ -32,8 +32,13 @@ export const PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT =
 export const PROJECT_CREATE_FUNCTION =
   'PROJECT_CREATE_FUNCTION';
 
+export const PROJECT_UPDATE_QUERY_ARGS =
+  'PROJECT_UPDATE_QUERY_ARGS';
+
 export const PROJECT_JSSY_VALUE_UPDATE =
   'PROJECT_JSSY_VALUE_UPDATE';
+export const PROJECT_JSSY_VALUE_REPLACE =
+  'PROJECT_JSSY_VALUE_REPLACE';
 export const PROJECT_JSSY_VALUE_ADD =
   'PROJECT_JSSY_VALUE_ADD';
 export const PROJECT_JSSY_VALUE_DELETE =
@@ -50,15 +55,10 @@ export const PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE =
   'PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE';
 export const PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL =
   'PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL';
-export const PROJECT_JSSY_VALUE_LINK =
-  'PROJECT_JSSY_VALUE_LINK';
-export const PROJECT_JSSY_VALUE_LINK_WITH_OWNER =
-  'PROJECT_JSSY_VALUE_LINK_WITH_OWNER';
-export const PROJECT_JSSY_VALUE_LINK_WITH_DATA =
-  'PROJECT_JSSY_VALUE_LINK_WITH_DATA';
-export const PROJECT_JSSY_VALUE_LINK_WITH_FUNCTION =
-  'PROJECT_JSSY_VALUE_LINK_WITH_FUNCTION';
-export const PROJECT_JSSY_VALUE_LINK_CANCEL =
+
+export const PROJECT_LINK_DIALOG_OPEN =
+  'PROJECT_LINK_DIALOG_OPEN';
+export const PROJECT_LINK_DIALOG_CLOSE =
   'PROJECT_JSSY_VALUE_LINK_CANCEL';
 
 /**
@@ -169,7 +169,19 @@ export const deleteComponent = componentId => ({
 
 /**
  *
- * @param {(string|number)[]} path - Path to JssyValue
+ * @param {string[]} dataContext
+ * @param {Immutable.Map<string, JssyValue>} newArgs
+ * @return {Object}
+ */
+export const updateQueryArgs = (dataContext, newArgs) => ({
+  type: PROJECT_UPDATE_QUERY_ARGS,
+  dataContext,
+  newArgs,
+});
+
+/**
+ *
+ * @param {Path} path - Path to JssyValue
  * @param {string} newSource
  * @param {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner} newSourceData
  * @return {Object}
@@ -183,7 +195,19 @@ export const updateJssyValue = (path, newSource, newSourceData) => ({
 
 /**
  *
- * @param {(string|number)[]} path - Path to arrayOf/objectOf JssyValue
+ * @param {Path} path
+ * @param {JssyValue} newValue
+ * @return {Object}
+ */
+export const replaceJssyValue = (path, newValue) => ({
+  type: PROJECT_JSSY_VALUE_REPLACE,
+  path,
+  newValue,
+});
+
+/**
+ *
+ * @param {Path} path - Path to arrayOf/objectOf JssyValue
  * @param {string|number} index
  * @param {string} source
  * @param {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner} sourceData
@@ -199,7 +223,7 @@ export const addJssyValue = (path, index, source, sourceData) => ({
 
 /**
  *
- * @param {(string|number)[]} path - Path to arrayOf/objectOf JssyValue
+ * @param {Path} path - Path to arrayOf/objectOf JssyValue
  * @param {string|number} index
  * @return {Object}
  */
@@ -211,7 +235,7 @@ export const deleteJssyValue = (path, index) => ({
 
 /**
  *
- * @param {(string|number)[]} path - Path to actions list
+ * @param {Path} path - Path to actions list
  * @param {Object} action
  * @return {Object}
  */
@@ -223,7 +247,7 @@ export const addAction = (path, action) => ({
 
 /**
  *
- * @param {(string|number)[]} path - Path to actions list
+ * @param {Path} path - Path to actions list
  * @param {number} index - Index in actions list
  * @param {Object} newAction
  * @return {Object}
@@ -237,7 +261,7 @@ export const replaceAction = (path, index, newAction) => ({
 
 /**
  *
- * @param {(string|number)[]} path - Path to actions list
+ * @param {Path} path - Path to actions list
  * @param {number} index
  * @return {Object}
  */
@@ -249,7 +273,7 @@ export const deleteAction = (path, index) => ({
 
 /**
  *
- * @param {(string|number)[]} path
+ * @param {Path} path
  * @param {Immutable.Map<number, Object>} components
  * @param {number} rootId
  * @return {Object}
@@ -282,54 +306,17 @@ export const saveComponentForProp = () => ({
  * @param {(string|number)[]} path
  * @return {Object}
  */
-export const linkProp = path => ({
-  type: PROJECT_JSSY_VALUE_LINK,
+export const linkDialogOpen = path => ({
+  type: PROJECT_LINK_DIALOG_OPEN,
   path,
 });
 
 /**
  *
- * @param {string} ownerPropName
  * @return {Object}
  */
-export const linkWithOwnerProp = ownerPropName => ({
-  type: PROJECT_JSSY_VALUE_LINK_WITH_OWNER,
-  ownerPropName,
-});
-
-/**
- *
- * @param {string[]} dataContext
- * @param {string[]} path
- * @param {Immutable.Map<string, Object>} args
- */
-export const linkWithData = (dataContext, path, args) => ({
-  type: PROJECT_JSSY_VALUE_LINK_WITH_DATA,
-  dataContext,
-  path,
-  args,
-});
-
-/**
- *
- * @param {string} functionSource
- * @param {string} functionName
- * @param {Immutable.Map<string, Object>} argValues
- * @return {Object}
- */
-export const linkWithFunction = (functionSource, functionName, argValues) => ({
-  type: PROJECT_JSSY_VALUE_LINK_WITH_FUNCTION,
-  functionSource,
-  functionName,
-  argValues,
-});
-
-/**
- *
- * @return {Object}
- */
-export const linkPropCancel = () => ({
-  type: PROJECT_JSSY_VALUE_LINK_CANCEL,
+export const linkDialogClose = () => ({
+  type: PROJECT_LINK_DIALOG_CLOSE,
 });
 
 /**

@@ -8,7 +8,7 @@
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
-import { Map } from 'immutable';
+import { Map, List } from 'immutable';
 
 import {
   LinkSourceSelection,
@@ -28,24 +28,21 @@ import {
   availableDataContextsSelector,
 } from '../../selectors';
 
-import {
-  linkWithOwnerProp,
-  linkWithData,
-  linkWithFunction,
-  createFunction,
-} from '../../actions/project';
-
+import { createFunction } from '../../actions/project';
 import ProjectComponentRecord from '../../models/ProjectComponent';
+import JssyValue from '../../models/JssyValue';
+import SourceDataFunction from '../../models/SourceDataFunction';
+import SourceDataStatic from '../../models/SourceDataStatic';
+import SourceDataData, { QueryPathStep } from '../../models/SourceDataData';
 
 import {
   NestedConstructor,
   makeCurrentQueryArgsGetter,
-  makeValueInfoGetter,
-  PathStartingPoints,
 } from '../../reducers/project';
 
-import { getComponentMeta, isValidSourceForValue } from '../../utils/meta';
 import { getLocalizedTextFromState } from '../../utils';
+import { getComponentMeta, isValidSourceForValue } from '../../utils/meta';
+import { noop } from '../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 const propTypes = {
@@ -53,18 +50,8 @@ const propTypes = {
   schema: PropTypes.object.isRequired,
   projectFunctions: ImmutablePropTypes.map.isRequired,
   builtinFunctions: ImmutablePropTypes.map.isRequired,
-  linkingPath: PropTypes.shape({
-    startingPoint: PropTypes.oneOf(
-      Object.keys(PathStartingPoints).map(key => PathStartingPoints[key]),
-    ),
-    
-    steps: PropTypes.arrayOf(
-      PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.number,
-      ]),
-    ),
-  }).isRequired,
+  valueDef: PropTypes.object,
+  userTypedefs: PropTypes.object,
   availableDataContexts: PropTypes.arrayOf(PropTypes.shape({
     dataContext: PropTypes.arrayOf(PropTypes.string),
     typeName: PropTypes.string,
@@ -74,18 +61,18 @@ const propTypes = {
     ProjectComponentRecord,
   ),
   getCurrentQueryArgs: PropTypes.func.isRequired,
-  getValueInfo: PropTypes.func.isRequired,
   language: PropTypes.string.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
-  onLinkWithOwnerProp: PropTypes.func.isRequired,
-  onLinkWithData: PropTypes.func.isRequired,
-  onLinkWithFunction: PropTypes.func.isRequired,
+  onLink: PropTypes.func,
   onCreateFunction: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
   topNestedConstructor: null,
   topNestedConstructorComponent: null,
+  valueDef: null,
+  userTypedefs: null,
+  onLink: noop,
 };
 
 const mapStateToProps = state => ({
@@ -93,26 +80,15 @@ const mapStateToProps = state => ({
   schema: state.project.schema,
   projectFunctions: state.project.data.functions,
   builtinFunctions: Map(), // TODO: Pass built-in functions here
-  linkingPath: state.project.linkingPath,
   availableDataContexts: availableDataContextsSelector(state),
   topNestedConstructor: topNestedConstructorSelector(state),
   topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
   getCurrentQueryArgs: makeCurrentQueryArgsGetter(state.project),
-  getValueInfo: makeValueInfoGetter(state.project),
   language: state.project.languageForComponentProps,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
-  onLinkWithOwnerProp: ({ propName }) =>
-    void dispatch(linkWithOwnerProp(propName)),
-  
-  onLinkWithData: ({ dataContext, path, args }) =>
-    void dispatch(linkWithData(dataContext, path, args)),
-  
-  onLinkWithFunction: ({ source, name, argValues }) =>
-    void dispatch(linkWithFunction(source, name, argValues)),
-  
   onCreateFunction: ({ name, title, description, args, returnType, code }) =>
     void dispatch(createFunction(
       name,
@@ -150,11 +126,9 @@ class LinkPropWindowComponent extends PureComponent {
     const {
       topNestedConstructor,
       availableDataContexts,
-      linkingPath,
-      getValueInfo,
+      valueDef,
     } = this.props;
     
-    const { valueDef } = getValueInfo(linkingPath);
     const items = [];
     
     if (topNestedConstructor) {
@@ -221,7 +195,16 @@ class LinkPropWindowComponent extends PureComponent {
    * @private
    */
   _handleLinkWithOwnerProp({ propName }) {
-    this.props.onLinkWithOwnerProp({ propName });
+    const { onLink } = this.props;
+    
+    const newValue = new JssyValue({
+      source: 'static',
+      sourceData: new SourceDataStatic({
+        ownerPropName: propName,
+      }),
+    });
+  
+    onLink({ newValue });
   }
   
   /**
@@ -232,7 +215,19 @@ class LinkPropWindowComponent extends PureComponent {
    * @private
    */
   _handleLinkWithData({ dataContext, path, args }) {
-    this.props.onLinkWithData({ dataContext, path, args });
+    const { onLink } = this.props;
+    
+    const newValue = new JssyValue({
+      source: 'data',
+      sourceData: new SourceDataData({
+        dataContext: List(dataContext),
+        queryPath: List(path.map(field => new QueryPathStep({
+          field,
+        }))),
+      }),
+    });
+    
+    onLink({ newValue, queryArgs: args });
   }
   
   /**
@@ -243,7 +238,18 @@ class LinkPropWindowComponent extends PureComponent {
    * @private
    */
   _handleLinkWithFunction({ source, name, argValues }) {
-    this.props.onLinkWithFunction({ source, name, argValues });
+    const { onLink } = this.props;
+    
+    const newValue = new JssyValue({
+      source: 'function',
+      sourceData: new SourceDataFunction({
+        functionSource: source,
+        function: name,
+        args: argValues,
+      }),
+    });
+    
+    onLink({ newValue });
   }
   
   /**
@@ -292,8 +298,8 @@ class LinkPropWindowComponent extends PureComponent {
   _renderOwnerPropSelection() {
     const {
       meta,
-      linkingPath,
-      getValueInfo,
+      valueDef,
+      userTypedefs,
       topNestedConstructor,
       topNestedConstructorComponent,
       language,
@@ -304,14 +310,13 @@ class LinkPropWindowComponent extends PureComponent {
       meta,
     );
     
-    const ownerPropName = topNestedConstructor.prop;
-    const { valueDef, userTypedefs } = getValueInfo(linkingPath);
+    const ownerPropMeta = topNestedConstructor.valueInfo.valueDef;
     
     //noinspection JSValidateTypes
     return (
       <OwnerComponentPropSelection
-        ownerMeta={ownerMeta}
-        ownerPropName={ownerPropName}
+        ownerComponentMeta={ownerMeta}
+        ownerPropMeta={ownerPropMeta}
         linkTargetValueDef={valueDef}
         userTypedefs={userTypedefs}
         language={language}
@@ -331,13 +336,12 @@ class LinkPropWindowComponent extends PureComponent {
   _renderDataSelection(dataContext, rootTypeName) {
     const {
       schema,
-      linkingPath,
-      getValueInfo,
+      valueDef,
+      userTypedefs,
       getCurrentQueryArgs,
       getLocalizedText,
     } = this.props;
     
-    const { valueDef, userTypedefs } = getValueInfo(linkingPath);
     const argValues = getCurrentQueryArgs(dataContext) || Map();
     
     //noinspection JSValidateTypes
@@ -372,8 +376,10 @@ class LinkPropWindowComponent extends PureComponent {
   }
   
   render() {
-    const { schema } = this.props;
+    const { schema, valueDef } = this.props;
     const { selectedSourceId, selectedSourceData } = this.state;
+    
+    if (!valueDef) return null;
     
     let content = null;
     

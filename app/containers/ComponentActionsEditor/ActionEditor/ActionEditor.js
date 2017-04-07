@@ -19,6 +19,7 @@ import { PropsList } from '../../../components/PropsList/PropsList';
 import { PropInput, PropList } from '../../../components/props';
 import ProjectRoute from '../../../models/ProjectRoute';
 import { Action, createActionParams } from '../../../models/SourceDataActions';
+import { ROUTE_PARAM_VALUE_DEF } from '../../../constants/misc';
 import { getLocalizedTextFromState } from '../../../utils';
 import { getMutationType } from '../../../utils/schema';
 import { noop } from '../../../utils/misc';
@@ -233,7 +234,17 @@ class ActionEditorComponent extends PureComponent {
       />
     );
     
-    // TODO: Add route params
+    if (action.params.routeId !== -1) {
+      const route = routes.get(action.params.routeId);
+      const pathParts = route.path.split('/');
+  
+      pathParts.forEach(pathPart => {
+        const isParam = pathPart.startsWith(':');
+        if (isParam) {
+        
+        }
+      });
+    }
     
     return [
       routeProp,

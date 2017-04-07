@@ -40,7 +40,7 @@ import {
   addJssyValue,
   deleteJssyValue,
   constructComponentForProp,
-  linkProp,
+  linkDialogOpen,
 } from '../../actions/project';
 
 import { PathStartingPoints } from '../../reducers/project';
@@ -145,7 +145,7 @@ const mapDispatchToProps = dispatch => ({
   onConstructComponent: (path, components, rootId) =>
     void dispatch(constructComponentForProp(path, components, rootId)),
   
-  onLinkProp: path => void dispatch(linkProp(path)),
+  onLinkProp: path => void dispatch(linkDialogOpen(path)),
 });
 
 /**

@@ -8,6 +8,7 @@
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
+import { batchActions } from 'redux-batched-actions';
 import { createSelector } from 'reselect';
 import { List } from 'immutable';
 
@@ -65,7 +66,9 @@ import {
   selectLayoutForNewComponent,
   saveComponentForProp,
   cancelConstructComponentForProp,
-  linkPropCancel,
+  linkDialogClose,
+  updateQueryArgs,
+  replaceJssyValue,
 } from '../actions/project';
 
 import {
@@ -74,6 +77,8 @@ import {
   firstSelectedComponentIdSelector,
   currentComponentsSelector,
 } from '../selectors';
+
+import { PathStartingPoints, makeValueInfoGetter } from '../reducers/project';
 
 import {
   getComponentMeta,
@@ -98,6 +103,50 @@ export const DESIGN_TOOL_IDS = List([
   TOOL_ID_COMPONENTS_TREE,
   TOOL_ID_PROPS_EDITOR,
 ]);
+
+const propTypes = {
+  params: PropTypes.shape({
+    projectName: PropTypes.string.isRequired,
+  }).isRequired,
+  components: ImmutablePropTypes.mapOf(
+    PropTypes.instanceOf(ProjectComponentRecord),
+    PropTypes.number,
+  ),
+  meta: PropTypes.object,
+  previewContainerStyle: PropTypes.string,
+  singleComponentSelected: PropTypes.bool,
+  firstSelectedComponentId: PropTypes.number,
+  selectingComponentLayout: PropTypes.bool,
+  draggedComponents: ImmutablePropTypes.mapOf(
+    PropTypes.instanceOf(ProjectComponentRecord),
+    PropTypes.number,
+  ),
+  language: PropTypes.string,
+  haveNestedConstructor: PropTypes.bool,
+  nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(PropTypes.string),
+  linkingProp: PropTypes.bool.isRequired,
+  linkingPath: PropTypes.shape({
+    startingPoint: PropTypes.oneOf(
+      Object.keys(PathStartingPoints).map(key => PathStartingPoints[key]),
+    ),
+    
+    steps: PropTypes.arrayOf(
+      PropTypes.oneOfType([
+        PropTypes.string,
+        PropTypes.number,
+      ]),
+    ),
+  }),
+  getValueInfo: PropTypes.func.isRequired,
+  getLocalizedText: PropTypes.func.isRequired,
+  onRenameComponent: PropTypes.func.isRequired,
+  onDeleteComponent: PropTypes.func.isRequired,
+  onSelectLayout: PropTypes.func.isRequired,
+  onSaveComponentForProp: PropTypes.func.isRequired,
+  onCancelConstructComponentForProp: PropTypes.func.isRequired,
+  onLinkPropCancel: PropTypes.func.isRequired,
+  onLinkValue: PropTypes.func.isRequired,
+};
 
 const LIBRARY_ICON = 'cubes';
 const COMPONENTS_TREE_ICON = 'sitemap';
@@ -159,6 +208,58 @@ const nestedConstructorBreadcrumbsSelector = createSelector(
   },
 );
 
+const mapStateToProps = state => ({
+  components: currentComponentsSelector(state),
+  meta: state.project.meta,
+  previewContainerStyle: containerStyleSelector(state),
+  singleComponentSelected: singleComponentSelectedSelector(state),
+  firstSelectedComponentId: firstSelectedComponentIdSelector(state),
+  selectingComponentLayout: state.project.selectingComponentLayout,
+  draggedComponents: state.project.draggedComponents,
+  language: state.project.languageForComponentProps,
+  haveNestedConstructor: haveNestedConstructorsSelector(state),
+  nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
+  linkingProp: state.project.linkingProp,
+  linkingPath: state.project.linkingPath,
+  getValueInfo: makeValueInfoGetter(state.project),
+  getLocalizedText: getLocalizedTextFromState(state),
+});
+
+const mapDispatchToProps = dispatch => ({
+  onRenameComponent: (componentId, newTitle) =>
+    void dispatch(renameComponent(componentId, newTitle)),
+  
+  onDeleteComponent: componentId =>
+    void dispatch(deleteComponent(componentId)),
+  
+  onSelectLayout: layoutIdx =>
+    void dispatch(selectLayoutForNewComponent(layoutIdx)),
+  
+  onSaveComponentForProp: () =>
+    void dispatch(saveComponentForProp()),
+  
+  onCancelConstructComponentForProp: () =>
+    void dispatch(cancelConstructComponentForProp()),
+  
+  onLinkValue: (path, newValue, queryArgs) => {
+    const actions = [
+      replaceJssyValue(path, newValue),
+    ];
+  
+    if (newValue.isLinkedWithData() && queryArgs) {
+      const dataContext = newValue.getDataContext();
+      actions.push(updateQueryArgs(dataContext, queryArgs));
+    }
+    
+    actions.push(linkDialogClose());
+    
+    dispatch(batchActions(actions));
+  },
+  
+  onLinkPropCancel: () =>
+    void dispatch(linkDialogClose()),
+});
+
 /* eslint-disable react/prop-types */
 const NestedConstructorsBreadcrumbsItem = props => (
   <span className={props.className}>
@@ -175,8 +276,7 @@ class DesignRoute extends PureComponent {
       confirmDeleteComponentDialogIsVisible: false,
     };
 
-    this._handleToolTitleChange =
-      this._handleToolTitleChange.bind(this);
+    this._handleToolTitleChange = this._handleToolTitleChange.bind(this);
     this._handleDeleteComponentButtonPress =
       this._handleDeleteComponentButtonPress.bind(this);
     this._handleDeleteComponentConfirm =
@@ -185,8 +285,8 @@ class DesignRoute extends PureComponent {
       this._handleDeleteComponentCancel.bind(this);
     this._handleConfirmDeleteComponentDialogClose =
       this._handleConfirmDeleteComponentDialogClose.bind(this);
-    this._handleLayoutSelection =
-      this._handleLayoutSelection.bind(this);
+    this._handleLayoutSelection = this._handleLayoutSelection.bind(this);
+    this._handleLinkValue = this._handleLinkValue.bind(this);
   }
   
   _getLibraryTool() {
@@ -376,6 +476,17 @@ class DesignRoute extends PureComponent {
   
   /**
    *
+   * @param {JssyValue} newValue
+   * @param {Immutable.Map<string, JssyValue>} queryArgs
+   * @private
+   */
+  _handleLinkValue({ newValue, queryArgs }) {
+    const { linkingPath, onLinkValue } = this.props;
+    onLinkValue(linkingPath, newValue, queryArgs);
+  }
+  
+  /**
+   *
    * @return {?ReactElement}
    * @private
    */
@@ -505,6 +616,8 @@ class DesignRoute extends PureComponent {
   render() {
     const {
       linkingProp,
+      linkingPath,
+      getValueInfo,
       selectingComponentLayout,
       getLocalizedText,
       onLinkPropCancel,
@@ -525,6 +638,14 @@ class DesignRoute extends PureComponent {
   
     const toolGroups = this._getTools();
     const content = this._renderContent();
+    
+    let linkingValueDef = null;
+    let linkingValueUserTypedefs = null;
+    if (linkingProp) {
+      const linkingValueInfo = getValueInfo(linkingPath);
+      linkingValueDef = linkingValueInfo.valueDef;
+      linkingValueUserTypedefs = linkingValueInfo.userTypedefs;
+    }
 
     return (
       <Desktop
@@ -565,72 +686,19 @@ class DesignRoute extends PureComponent {
           haveCloseButton
           onClose={onLinkPropCancel}
         >
-          <LinkPropWindow />
+          <LinkPropWindow
+            valueDef={linkingValueDef}
+            userTypedefs={linkingValueUserTypedefs}
+            onLink={this._handleLinkValue}
+          />
         </Dialog>
       </Desktop>
     );
   }
 }
 
-DesignRoute.propTypes = {
-  params: PropTypes.shape({
-    projectName: PropTypes.string.isRequired,
-  }).isRequired,
-  components: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponentRecord),
-    PropTypes.number,
-  ),
-  meta: PropTypes.object,
-  previewContainerStyle: PropTypes.string,
-  singleComponentSelected: PropTypes.bool,
-  firstSelectedComponentId: PropTypes.number,
-  selectingComponentLayout: PropTypes.bool,
-  draggedComponents: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponentRecord),
-    PropTypes.number,
-  ),
-  language: PropTypes.string,
-  haveNestedConstructor: PropTypes.bool,
-  nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(PropTypes.string),
-  linkingProp: PropTypes.bool,
-  getLocalizedText: PropTypes.func,
-  onRenameComponent: PropTypes.func,
-  onDeleteComponent: PropTypes.func,
-  onSelectLayout: PropTypes.func,
-  onSaveComponentForProp: PropTypes.func,
-  onCancelConstructComponentForProp: PropTypes.func,
-  onLinkPropCancel: PropTypes.func,
-};
-
-const mapStateToProps = state => ({
-  components: currentComponentsSelector(state),
-  meta: state.project.meta,
-  previewContainerStyle: containerStyleSelector(state),
-  singleComponentSelected: singleComponentSelectedSelector(state),
-  firstSelectedComponentId: firstSelectedComponentIdSelector(state),
-  selectingComponentLayout: state.project.selectingComponentLayout,
-  draggedComponents: state.project.draggedComponents,
-  language: state.project.languageForComponentProps,
-  haveNestedConstructor: haveNestedConstructorsSelector(state),
-  nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
-  linkingProp: state.project.linkingProp,
-  getLocalizedText: getLocalizedTextFromState(state),
-});
-
-const mapDispatchToProps = dispatch => ({
-  onRenameComponent: (componentId, newTitle) =>
-    void dispatch(renameComponent(componentId, newTitle)),
-  onDeleteComponent: componentId =>
-    void dispatch(deleteComponent(componentId)),
-  onSelectLayout: layoutIdx =>
-    void dispatch(selectLayoutForNewComponent(layoutIdx)),
-  onSaveComponentForProp: () =>
-    void dispatch(saveComponentForProp()),
-  onCancelConstructComponentForProp: () =>
-    void dispatch(cancelConstructComponentForProp()),
-  onLinkPropCancel: () =>
-    void dispatch(linkPropCancel()),
-});
+DesignRoute.displayName = 'DesignRoute';
+DesignRoute.propTypes = propTypes;
 
 export default connect(
   mapStateToProps,

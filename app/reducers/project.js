@@ -26,7 +26,9 @@ import {
   PROJECT_COMPONENT_TOGGLE_REGION,
   PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
   PROJECT_CREATE_FUNCTION,
+  PROJECT_UPDATE_QUERY_ARGS,
   PROJECT_JSSY_VALUE_UPDATE,
+  PROJECT_JSSY_VALUE_REPLACE,
   PROJECT_JSSY_VALUE_ADD,
   PROJECT_JSSY_VALUE_DELETE,
   PROJECT_JSSY_VALUE_ADD_ACTION,
@@ -35,11 +37,8 @@ import {
   PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT,
   PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL,
   PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE,
-  PROJECT_JSSY_VALUE_LINK,
-  PROJECT_JSSY_VALUE_LINK_WITH_OWNER,
-  PROJECT_JSSY_VALUE_LINK_WITH_DATA,
-  PROJECT_JSSY_VALUE_LINK_WITH_FUNCTION,
-  PROJECT_JSSY_VALUE_LINK_CANCEL,
+  PROJECT_LINK_DIALOG_OPEN,
+  PROJECT_LINK_DIALOG_CLOSE,
 } from '../actions/project';
 
 import {
@@ -70,10 +69,8 @@ import {
 
 import ProjectRoute from '../models/ProjectRoute';
 import JssyValue from '../models/JssyValue';
-import SourceDataStatic from '../models/SourceDataStatic';
 import SourceDataDesigner from '../models/SourceDataDesigner';
-import SourceDataData, { QueryPathStep } from '../models/SourceDataData';
-import SourceDataFunction from '../models/SourceDataFunction';
+import SourceDataData from '../models/SourceDataData';
 import { Action } from '../models/SourceDataActions';
 
 import ProjectFunction, {
@@ -113,12 +110,7 @@ import {
 
 import { isInteger, isPrefixList } from '../utils/misc';
 import { getFunctionInfo } from '../utils/functions';
-
-import {
-  NO_VALUE,
-  SYSTEM_PROPS,
-  ROUTE_PARAM_VALUE_DEF,
-} from '../constants/misc';
+import { SYSTEM_PROPS, ROUTE_PARAM_VALUE_DEF } from '../constants/misc';
 
 export const NestedConstructor = Record({
   path: [],
@@ -1102,6 +1094,9 @@ const handlers = {
     return updateValue(state, action.path, newValue);
   },
   
+  [PROJECT_JSSY_VALUE_REPLACE]: (state, action) =>
+    updateValue(state, action.path, action.newValue),
+  
   [PROJECT_JSSY_VALUE_ADD]: (state, action) => {
     const newValue = new JssyValue({
       source: action.source,
@@ -1137,6 +1132,62 @@ const handlers = {
       actionsList => actionsList.delete(action.index),
     );
   },
+  
+  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT]: (state, action) => {
+    if (action.path.startingPoint !== PathStartingPoints.CURRENT_COMPONENTS)
+      throw new Error('Cannot open nested constructor with absolute path');
+    
+    const nestedConstructorData = {
+      path: action.path,
+      valueInfo: getValueInfoByPath(action.path, state),
+    };
+    
+    const currentValue = getObjectByPath(action.path, state);
+    
+    if (currentValue.hasDesignedComponent()) {
+      Object.assign(nestedConstructorData, {
+        components: currentValue.sourceData.components,
+        rootId: currentValue.sourceData.rootId,
+        lastComponentId: currentValue.sourceData.components.keySeq().max(),
+      });
+    } else if (action.components) {
+      Object.assign(nestedConstructorData, {
+        components: action.components,
+        rootId: action.rootId,
+        lastComponentId: action.components.size - 1,
+      });
+    }
+    
+    const nestedConstructor = new NestedConstructor(nestedConstructorData);
+    return openNestedConstructor(state, nestedConstructor);
+  },
+  
+  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL]: state =>
+    closeTopNestedConstructor(state),
+  
+  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE]: state => {
+    const topConstructor = getTopNestedConstructor(state);
+    state = closeTopNestedConstructor(state);
+    
+    const newValue = new JssyValue({
+      source: 'designer',
+      sourceData: new SourceDataDesigner({
+        components: topConstructor.components,
+        rootId: topConstructor.rootId,
+      }),
+    });
+    
+    return updateValue(state, topConstructor.path, newValue);
+  },
+  
+  [PROJECT_LINK_DIALOG_OPEN]: (state, action) => state
+    .set('linkingProp', true)
+    .set('linkingPath', action.path), // Prevent conversion to List
+  
+  [PROJECT_LINK_DIALOG_CLOSE]: state => initLinkingPropState(state),
+  
+  [PROJECT_UPDATE_QUERY_ARGS]: (state, action) =>
+    updateQueryArgs(state, action.dataContext, action.newArgs),
   
   [PROJECT_COMPONENT_RENAME]: (state, action) => {
     const pathToCurrentComponents = getPathToCurrentComponents(state);
@@ -1281,102 +1332,6 @@ const handlers = {
     state = state.set('selectingComponentLayout', false);
     return initDNDState(state);
   },
-  
-  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT]: (state, action) => {
-    if (action.path.startingPoint !== PathStartingPoints.CURRENT_COMPONENTS)
-      throw new Error('Cannot open nested constructor with absolute path');
-    
-    const nestedConstructorData = {
-      path: action.path,
-      valueInfo: getValueInfoByPath(action.path, state),
-    };
-    
-    const currentValue = getObjectByPath(action.path, state);
-  
-    if (currentValue.hasDesignedComponent()) {
-      Object.assign(nestedConstructorData, {
-        components: currentValue.sourceData.components,
-        rootId: currentValue.sourceData.rootId,
-        lastComponentId: currentValue.sourceData.components.keySeq().max(),
-      });
-    } else if (action.components) {
-      Object.assign(nestedConstructorData, {
-        components: action.components,
-        rootId: action.rootId,
-        lastComponentId: action.components.size - 1,
-      });
-    }
-  
-    const nestedConstructor = new NestedConstructor(nestedConstructorData);
-    return openNestedConstructor(state, nestedConstructor);
-  },
-  
-  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL]: state =>
-    closeTopNestedConstructor(state),
-  
-  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE]: state => {
-    const topConstructor = getTopNestedConstructor(state);
-    state = closeTopNestedConstructor(state);
-  
-    const newValue = new JssyValue({
-      source: 'designer',
-      sourceData: new SourceDataDesigner({
-        components: topConstructor.components,
-        rootId: topConstructor.rootId,
-      }),
-    });
-    
-    return updateValue(state, topConstructor.path, newValue);
-  },
-  
-  [PROJECT_JSSY_VALUE_LINK]: (state, action) => state
-    .set('linkingProp', true)
-    .set('linkingPath', action.path), // Prevent conversion to List
-  
-  [PROJECT_JSSY_VALUE_LINK_WITH_OWNER]: (state, action) => {
-    const newValue = new JssyValue({
-      source: 'static',
-      sourceData: new SourceDataStatic({
-        value: NO_VALUE,
-        ownerPropName: action.ownerPropName,
-      }),
-    });
-    
-    state = updateValue(state, state.linkingPath, newValue);
-    return initLinkingPropState(state);
-  },
-  
-  [PROJECT_JSSY_VALUE_LINK_WITH_DATA]: (state, action) => {
-    const newValue = new JssyValue({
-      source: 'data',
-      sourceData: new SourceDataData({
-        dataContext: List(action.dataContext),
-        queryPath: List(action.path.map(field => new QueryPathStep({
-          field,
-        }))),
-      }),
-    });
-  
-    state = updateValue(state, state.linkingPath, newValue);
-    state = updateQueryArgs(state, action.dataContext, action.args);
-    return initLinkingPropState(state);
-  },
-  
-  [PROJECT_JSSY_VALUE_LINK_WITH_FUNCTION]: (state, action) => {
-    const newValue = new JssyValue({
-      source: 'function',
-      sourceData: new SourceDataFunction({
-        functionSource: action.functionSource,
-        function: action.functionName,
-        args: action.argValues,
-      }),
-    });
-  
-    state = updateValue(state, state.linkingPath, newValue);
-    return initLinkingPropState(state);
-  },
-  
-  [PROJECT_JSSY_VALUE_LINK_CANCEL]: state => initLinkingPropState(state),
   
   [PROJECT_CREATE_FUNCTION]: (state, action) => {
     let fn = new ProjectFunction({
