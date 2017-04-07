@@ -106,12 +106,11 @@ class ComponentActionsEditorComponent extends PureComponent {
     this.state = {
       currentView: Views.HANDLERS_LIST,
       
-      // Handle list
+      // Handlers list
       activeHandler: '',
       
       // New action
-      newActionPath: [],
-      newActionBranch: '',
+      newActionPathToList: [],
       
       // Edit action
       editActionPath: [],
@@ -133,11 +132,10 @@ class ComponentActionsEditorComponent extends PureComponent {
     });
   }
   
-  _handleOpenNewActionForm({ actionPath, branch }) {
+  _handleOpenNewActionForm({ pathToList }) {
     this.setState({
       currentView: Views.NEW_ACTION,
-      newActionPath: actionPath,
-      newActionBranch: branch,
+      newActionPathToList: pathToList,
     });
   }
   
@@ -153,18 +151,8 @@ class ComponentActionsEditorComponent extends PureComponent {
     const { activeHandler } = this.state;
   
     const componentId = selectedComponentIds.first();
-    
-    // TODO: Get rid of 'actionPaths'
-    const pathToList = actionPath
-      .reduce(
-        (acc, cur) => acc.concat(
-          cur.branch
-            ? [`${cur.branch}Actions`, cur.index]
-            : [cur.index],
-        ),
-        [],
-      )
-      .slice(-1);
+    const pathToList = actionPath.slice(0, -1);
+    const index = actionPath[actionPath.length - 1];
     
     const fullPath = {
       startingPoint: PathStartingPoints.CURRENT_COMPONENTS,
@@ -177,8 +165,6 @@ class ComponentActionsEditorComponent extends PureComponent {
       ],
     };
     
-    const index = actionPath[actionPath.length - 1].index;
-    
     onDeleteAction({ path: fullPath, index });
   }
   
@@ -188,31 +174,35 @@ class ComponentActionsEditorComponent extends PureComponent {
     const {
       currentView,
       activeHandler,
-      newActionPath,
-      newActionBranch,
+      newActionPathToList,
       editActionPath,
     } = this.state;
   
     const componentId = selectedComponentIds.first();
     
-    // TODO: Rewrite dispatches according to action format changes
     if (currentView === Views.NEW_ACTION) {
+      const path = {
+        startingPoint: PathStartingPoints.CURRENT_COMPONENTS,
+        steps: [
+          componentId,
+          'props',
+          activeHandler,
+          'actions',
+          ...newActionPathToList,
+        ],
+      };
+      
       onAddAction({
-        componentId,
-        propName: activeHandler,
-        isSystemProp: false,
-        path: [],
-        actionPath: newActionPath,
-        branch: newActionBranch,
+        path,
         action,
       });
     } else if (currentView === Views.EDIT_ACTION) {
+      const path = editActionPath.slice(0, -1);
+      const index = editActionPath[editActionPath.length - 1];
+      
       onReplaceAction({
-        componentId,
-        propName: activeHandler,
-        isSystemProp: false,
-        path: [],
-        actionPath: editActionPath,
+        path,
+        index,
         newAction: action,
       });
     }
@@ -327,7 +317,7 @@ class ComponentActionsEditorComponent extends PureComponent {
     }
   }
   
-  _renderActionsList(actions, path = null, branch = '') {
+  _renderActionsList(actions, pathToList = []) {
     const { getLocalizedText } = this.props;
     
     const addActionText = getLocalizedText('actionsEditor.addAction');
@@ -336,24 +326,19 @@ class ComponentActionsEditorComponent extends PureComponent {
     const list = [];
   
     actions.forEach((action, idx) => {
-      const actionPath = path
-        ? [...path, { branch, index: idx }]
-        : [{ index: idx }];
-      
+      const actionPath = [...pathToList, idx];
       const title = this._formatActionTitle(action);
       const description = this._getActionDescription(action);
       
       if (action.type === 'mutation') {
         const successActionsList = this._renderActionsList(
           action.params.successActions,
-          actionPath,
-          'success',
+          [...actionPath, 'successActions'],
         );
         
         const errorActionsList = this._renderActionsList(
           action.params.errorActions,
-          actionPath,
-          'error',
+          [...actionPath, 'errorActions'],
         );
         
         list.push(
@@ -390,8 +375,7 @@ class ComponentActionsEditorComponent extends PureComponent {
     
     return (
       <ComponentActions
-        actionPath={path || []}
-        branch={branch}
+        pathToList={pathToList}
         addButtonText={addActionText}
         onAdd={this._handleOpenNewActionForm}
       >
