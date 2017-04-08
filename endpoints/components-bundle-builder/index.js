@@ -88,19 +88,6 @@ const generateBundleCode = libsData => {
     }
 
     ret += `import * as ${data.meta.namespace} from '${data.name}';\n`;
-
-    const componentNames = Object.keys(data.meta.components);
-
-    componentNames.forEach(componentName => {
-      const componentMeta = data.meta.components[componentName];
-
-      ret +=
-        `if (${data.meta.namespace}.${componentName}) {\n` +
-        `  ${data.meta.namespace}.${componentName}.jssyMeta = (function() {\n` +
-        `    return ${printObject(componentMeta, 4, 'json')}\n` +
-        '  })();\n' +
-        '}\n\n';
-    });
   });
 
   ret +=
@@ -118,62 +105,31 @@ const generateBundleCode = libsData => {
  * @return {Object}
  */
 const generateWebpackConfig = (projectDir, libsData) => {
-  const projectNodeModules = path.join(projectDir, 'node_modules');
-  const localNodeModules = path.resolve(__dirname, '..', '..', 'node_modules');
-
-  const rewriteComponentsPathResolverPlugin = {
-    apply(resolver) {
-      resolver.plugin('resolve', (context, request) => {
-        const isComponentsFile =
-          /preview/.test(context) &&
-          request.path === './components';
-
-        if (isComponentsFile)
-          request.path = path.resolve(projectDir, 'components.js');
-      });
-    },
-  };
-
   const ret = {
-    context: path.resolve(__dirname, '..', '..', 'preview'),
-    entry: './index',
+    context: projectDir,
+
+    entry: {
+      bundle: './components',
+    },
+
+    externals: {
+      react: 'React',
+      'react-dom': 'ReactDOM',
+    },
 
     output: {
-      path: path.join(projectDir, constants.PROJECT_PREVIEW_BUILD_DIR),
+      path: projectDir,
     },
 
     resolve: {
-      root: [projectNodeModules],
       modulesDirectories: ['node_modules'],
-      fallback: [localNodeModules],
       extensions: ['', '.js', '.jsx'],
     },
 
     resolveLoader: {
-      root: [
-        projectNodeModules,
-        localNodeModules,
-      ],
       moduleTemplates: ['*-loader'],
       extensions: ['', '.js'],
     },
-
-    plugins: [
-      {
-        apply(compiler) {
-          compiler.resolvers.normal.apply(rewriteComponentsPathResolverPlugin);
-        },
-      },
-
-      new HtmlWebpackPlugin({
-        template: 'index.ejs',
-        inject: 'body',
-        hash: true,
-
-        jssyContainerId: sharedConstants.PREVIEW_DOM_CONTAINER_ID,
-        jssyOverlayId: sharedConstants.PREVIEW_DOM_OVERLAY_ID,
-      }),
-    ],
 
     module: {
       loaders: [{
@@ -181,7 +137,7 @@ const generateWebpackConfig = (projectDir, libsData) => {
           filename.indexOf('node_modules') === -1 &&
           (filename.endsWith('.js') || filename.endsWith('.jsx')),
 
-        loader: 'babel?presets[]=es2015&presets[]=react',
+        loader: 'babel?presets[]=es2015',
       }],
     },
   };
@@ -275,8 +231,10 @@ const installLoaders = (projectDir, libsData, options) => co(function* () {
     if (packageJSON.peerDependencies) {
       const keys = Object.keys(packageJSON.peerDependencies);
       keys.forEach(key => {
-        if (key !== 'webpack')
-          loadersPeerDepsSet.add(`${key}@${packageJSON.peerDependencies[key]}`);
+        if (key !== 'webpack') {
+          const arg = `${key}@"${packageJSON.peerDependencies[key]}"`;
+          loadersPeerDepsSet.add(arg);
+        }
       });
     }
   });
@@ -299,24 +257,6 @@ const compile = webpackConfig => new Promise((resolve, reject) =>
 
 /**
  *
- * @param {Object} webpackConfig
- * @param {Function} handler
- * @returns {Object}
- */
-const watch = (webpackConfig, handler) => {
-  const watching = webpack(webpackConfig).watch({}, handler);
-
-  return {
-    _watching: watching,
-
-    close: () => new Promise(
-      (resolve, reject) => void watching.close(cb(resolve, reject))
-    ),
-  };
-};
-
-/**
- *
  * @param {string} projectDir
  * @returns {Promise}
  */
@@ -336,8 +276,6 @@ const clean = projectDir => co(function* () {
  * @property {boolean} [allowMultipleGlobalStyles=false]
  * @property {boolean} [noInstallLoaders=false]
  * @property {boolean} [clean=true]
- * @property {boolean} [watch=false]
- * @property {Function} [watchHandler]
  * @property {Function} [npmLogger]
  */
 
@@ -349,8 +287,6 @@ const defaultOptions = {
   allowMultipleGlobalStyles: false,
   noInstallLoaders: false,
   clean: true,
-  watch: false,
-  watchHandler: () => {},
   npmLogger: () => {},
 };
 
@@ -360,7 +296,7 @@ const defaultOptions = {
  * @param {BuildPreviewAppOptions} [options]
  * @returns {Promise}
  */
-exports.buildPreviewApp = (project, options) => co(function* () {
+exports.buildComponentsBundle = (project, options) => co(function* () {
   options = Object.assign({}, defaultOptions, options);
 
   const projectDir = path.join(projectsDir, project.name);
@@ -369,8 +305,8 @@ exports.buildPreviewApp = (project, options) => co(function* () {
     logger.debug(`[${project.name}] Installing component libraries`);
     yield npmInstall(projectDir, project.componentLibs, {
       legacyBundling: true,
-      log: options.npmLogger }
-    );
+      log: options.npmLogger,
+    });
   }
 
   const modulesDir = path.join(projectDir, 'node_modules');
@@ -385,8 +321,8 @@ exports.buildPreviewApp = (project, options) => co(function* () {
   );
   
   let libsData = yield asyncUtils.asyncMap(libDirs, dir => co(function* () {
-    const fullPath = path.join(modulesDir, dir),
-      meta = yield gatherMetadata(fullPath);
+    const fullPath = path.join(modulesDir, dir);
+    const meta = yield gatherMetadata(fullPath);
 
     return meta
       ? { name: dir, dir: fullPath, meta }
@@ -428,16 +364,14 @@ exports.buildPreviewApp = (project, options) => co(function* () {
   }
 
   logger.debug(`[${project.name}] Generating code for components bundle`);
-  const code = generateBundleCode(libsData),
-    codeFile = path.join(projectDir, constants.PROJECT_COMPONENTS_SRC_FILE);
+  const code = generateBundleCode(libsData);
+  const codeFile = path.join(projectDir, constants.PROJECT_COMPONENTS_SRC_FILE);
 
   yield fs.writeFile(codeFile, code);
 
   logger.debug(`[${project.name}] Compiling preview app`);
-  const webpackConfig = generateWebpackConfig(projectDir, libsData);
 
-  if (options.watch) return watch(webpackConfig, options.watchHandler);
-  
+  const webpackConfig = generateWebpackConfig(projectDir, libsData);
   const stats = yield compile(webpackConfig);
   
   logger.verbose(stats.toString({ colors: true }));

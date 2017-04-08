@@ -2,18 +2,16 @@
 
 /* eslint-disable import/no-extraneous-dependencies */
 
-const path = require('path'),
-  webpack = require('webpack'),
-  HtmlWebpackPlugin = require('html-webpack-plugin'),
-  ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
-
+const path = require('path');
+const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
-
+const sharedConstants = require('../shared/constants');
 
 const prod = process.argv.includes('-p');
 
-const APP_SRC_DIR = '../app';
-const APP_DIST_DIR = '../public';
+const DIST_DIR = '../public';
 const REACTACKLE_THEME_FILE = '../app/_reactackle_theme.scss';
 
 const rewriteThemePathResolverPlugin = {
@@ -30,14 +28,15 @@ const rewriteThemePathResolverPlugin = {
 };
 
 module.exports = {
-  context: path.resolve(path.join(__dirname, APP_SRC_DIR)),
+  context: path.resolve(path.join(__dirname, '..')),
 
   entry: {
-    index: './index',
+    index: './app/index',
+    preview: './preview/index',
   },
 
   output: {
-    path: path.resolve(path.join(__dirname, APP_DIST_DIR)),
+    path: path.resolve(path.join(__dirname, DIST_DIR)),
     filename: '[name].js',
   },
 
@@ -55,10 +54,25 @@ module.exports = {
 
     new HtmlWebpackPlugin({
       title: 'JSSY',
-      template: 'index.ejs',
+      template: './app/index.ejs',
+      filename: 'index.html',
+      chunks: ['index'],
       inject: 'body',
       favicon: path.resolve(__dirname, '..', 'app', 'favicon.png'),
       hash: true,
+    }),
+
+    new HtmlWebpackPlugin({
+      template: './preview/index.ejs',
+      filename: 'preview.html',
+      chunks: ['preview'],
+      inject: 'body',
+      favicon: path.resolve(__dirname, '..', 'app', 'favicon.png'),
+      hash: true,
+
+      // Our custom variables
+      jssyContainerId: sharedConstants.PREVIEW_DOM_CONTAINER_ID,
+      jssyOverlayId: sharedConstants.PREVIEW_DOM_OVERLAY_ID,
     }),
     
     new ScriptExtHtmlWebpackPlugin({
@@ -72,7 +86,7 @@ module.exports = {
     }),
 
     new CopyWebpackPlugin([
-      { from: 'localization', to: 'localization' },
+      { from: 'app/localization', to: 'localization' },
     ]),
   ],
 

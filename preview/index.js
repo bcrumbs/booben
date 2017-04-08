@@ -7,6 +7,7 @@ import { ApolloProvider } from 'react-apollo';
 import ApolloClient, { createNetworkInterface } from 'apollo-client';
 import Preview from './containers/Preview';
 import Overlay from './containers/Overlay';
+import { loadComponents } from './componentsLibrary';
 
 import {
   PREVIEW_DOM_CONTAINER_ID,
@@ -29,62 +30,65 @@ window.JSSY = {
  * @param {string} params.containerStyle
  */
 window.JSSY.initPreview = params => {
-  if (window.JSSY.initialized) return;
+  if (window.JSSY.initialized) return Promise.resolve();
 
-  const containerNode = document.getElementById(PREVIEW_DOM_CONTAINER_ID);
-  const overlayNode = document.getElementById(PREVIEW_DOM_OVERLAY_ID);
+  return loadComponents()
+    .then(() => {
+      const containerNode = document.getElementById(PREVIEW_DOM_CONTAINER_ID);
+      const overlayNode = document.getElementById(PREVIEW_DOM_OVERLAY_ID);
 
-  containerNode.setAttribute('style', params.containerStyle);
+      containerNode.setAttribute('style', params.containerStyle);
 
-  const state = params.store.getState();
+      const state = params.store.getState();
 
-  if (state.project.loadState !== LOADED)
-    throw new Error('initPreview() failed: project is not loaded');
+      if (state.project.loadState !== LOADED)
+        throw new Error('initPreview() failed: project is not loaded');
 
-  const graphQLEndpointURL = state.project.data.graphQLEndpointURL;
+      const graphQLEndpointURL = state.project.data.graphQLEndpointURL;
 
-  let ProviderComponent;
-  let providerProps;
+      let ProviderComponent;
+      let providerProps;
 
-  if (graphQLEndpointURL) {
-    ProviderComponent = ApolloProvider;
+      if (graphQLEndpointURL) {
+        ProviderComponent = ApolloProvider;
 
-    const client = new ApolloClient({
-      networkInterface: createNetworkInterface({ uri: graphQLEndpointURL }),
+        const client = new ApolloClient({
+          networkInterface: createNetworkInterface({ uri: graphQLEndpointURL }),
+        });
+
+        providerProps = {
+          client,
+          store: params.store,
+        };
+      } else {
+        ProviderComponent = Provider;
+
+        providerProps = {
+          store: params.store,
+        };
+      }
+
+      ReactDOM.render(
+        <ProviderComponent {...providerProps}>
+          <Preview interactive={params.interactive} />
+        </ProviderComponent>,
+
+        containerNode,
+      );
+
+      if (params.interactive) {
+        ReactDOM.render(
+          <ProviderComponent {...providerProps}>
+            <Overlay />
+          </ProviderComponent>,
+
+          overlayNode,
+        );
+      }
+
+      window.JSSY.initialized = true;
+      window.JSSY.params = params;
     });
-
-    providerProps = {
-      client,
-      store: params.store,
-    };
-  } else {
-    ProviderComponent = Provider;
-
-    providerProps = {
-      store: params.store,
-    };
-  }
-
-  ReactDOM.render(
-    <ProviderComponent {...providerProps}>
-      <Preview interactive={params.interactive} />
-    </ProviderComponent>,
-
-    containerNode,
-  );
-
-  if (params.interactive) {
-    ReactDOM.render(
-      <ProviderComponent {...providerProps}>
-        <Overlay />
-      </ProviderComponent>,
-
-      overlayNode,
-    );
-  }
-
-  window.JSSY.initialized = true;
-  window.JSSY.params = params;
 };
 
 /**

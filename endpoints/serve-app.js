@@ -4,15 +4,16 @@
 
 'use strict';
 
-const co = require('co'),
-  path = require('path'),
-  fs = require('mz/fs'),
-  helpers = require('./helpers'),
-  config = require('../config'),
-  constants = require('../common/constants'),
-  sharedConstants = require('../shared/constants');
+const co = require('co');
+const path = require('path');
+const fs = require('mz/fs');
+const helpers = require('./helpers');
+const config = require('../config');
+const constants = require('../common/constants');
+const sharedConstants = require('../shared/constants');
 
 const env = config.get('env');
+const projectsDir = config.get('projectsDir');
 
 module.exports = {
   url: `${sharedConstants.URL_APP_PREFIX}/:name/*`,
@@ -28,7 +29,7 @@ module.exports = {
 
       const rootDir = path.resolve(__dirname, '..', 'public');
 
-      const options = {
+      let options = {
         root: rootDir,
         dotfiles: 'deny',
       };
@@ -38,10 +39,25 @@ module.exports = {
       if (req.params[0]) {
         const parts = req.params[0].split('/');
 
-        file = path.join(...parts);
-        if (!(yield fs.exists(path.join(rootDir, file)))) {
-          file = parts.slice(1).join('/') || parts[0];
-          if (!(yield fs.exists(path.join(rootDir, file)))) file = 'index.html';
+        if (parts.length === 1 && parts[0] === '2.components.js') {
+          file = 'bundle.js';
+
+          options = {
+            root: path.join(projectsDir, req.params.name),
+            dotfiles: 'deny',
+          };
+        } else {
+          file = path.join(...parts);
+          if (!(yield fs.exists(path.join(rootDir, file)))) {
+            file = parts.slice(1).join('/') || parts[0];
+            if (!(yield fs.exists(path.join(rootDir, file))))
+              file = 'index.html';
+          }
+
+          options = {
+            root: rootDir,
+            dotfiles: 'deny',
+          };
         }
       }
 

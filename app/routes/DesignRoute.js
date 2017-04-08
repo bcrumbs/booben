@@ -88,7 +88,7 @@ import {
   componentHasActions,
 } from '../utils/meta';
 
-import { URL_PREVIEW_PREFIX } from '../../shared/constants';
+import { URL_APP_PREFIX } from '../../shared/constants';
 import { getLocalizedTextFromState } from '../utils';
 
 //noinspection JSUnresolvedVariable
@@ -553,7 +553,7 @@ class DesignRoute extends PureComponent {
       onSaveComponentForProp,
     } = this.props;
   
-    const src = `${URL_PREVIEW_PREFIX}/${params.projectName}/index.html`;
+    const src = `${URL_APP_PREFIX}/${params.projectName}/preview.html`;
   
     const previewIFrame = (
       <PreviewIFrame
