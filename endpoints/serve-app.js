@@ -39,7 +39,7 @@ module.exports = {
       if (req.params[0]) {
         const parts = req.params[0].split('/');
         if (parts[parts.length - 1] === '2.components.js')
-          parts[parts.length - 1] = 'bundle.js';
+          parts[parts.length - 1] = '1.bundle.js';
 
         options = {
           root: rootDir,

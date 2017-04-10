@@ -98,6 +98,12 @@ const generateBundleCode = libsData => {
   return ret;
 };
 
+const generateIndexCode = () => `
+  require.ensure(['./components'], require => {
+    const _ = require('./components');
+  }, 'components');
+`;
+
 /**
  *
  * @param {string} projectDir
@@ -109,7 +115,7 @@ const generateWebpackConfig = (projectDir, libsData) => {
     context: projectDir,
 
     entry: {
-      bundle: './components',
+      bundle: './index',
     },
 
     externals: {
@@ -366,8 +372,11 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
   logger.debug(`[${project.name}] Generating code for components bundle`);
   const code = generateBundleCode(libsData);
   const codeFile = path.join(projectDir, constants.PROJECT_COMPONENTS_SRC_FILE);
-
   yield fs.writeFile(codeFile, code);
+
+  const indexCode = generateIndexCode();
+  const indexCodeFile = path.join(projectDir, 'index.js');
+  yield fs.writeFile(indexCodeFile, indexCode);
 
   logger.debug(`[${project.name}] Compiling preview app`);
 
