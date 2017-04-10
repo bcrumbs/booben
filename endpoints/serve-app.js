@@ -38,26 +38,32 @@ module.exports = {
 
       if (req.params[0]) {
         const parts = req.params[0].split('/');
+        if (parts[parts.length - 1] === '2.components.js')
+          parts[parts.length - 1] = 'bundle.js';
 
-        if (parts.length === 1 && parts[0] === '2.components.js') {
-          file = 'bundle.js';
+        options = {
+          root: rootDir,
+          dotfiles: 'deny',
+        };
 
-          options = {
-            root: path.join(projectsDir, req.params.name),
-            dotfiles: 'deny',
-          };
-        } else {
-          file = path.join(...parts);
+        file = path.join(...parts);
+        if (!(yield fs.exists(path.join(rootDir, file)))) {
+          file = parts.slice(1).join('/') || parts[0];
           if (!(yield fs.exists(path.join(rootDir, file)))) {
-            file = parts.slice(1).join('/') || parts[0];
-            if (!(yield fs.exists(path.join(rootDir, file))))
+            file = path.join(...parts);
+
+            const haveFileInProjectDir = yield fs.exists(path.join(
+              projectsDir,
+              req.params.name,
+              'build',
+              file
+            ));
+
+            if (haveFileInProjectDir)
+              options.root = path.join(projectsDir, req.params.name, 'build');
+            else
               file = 'index.html';
           }
-
-          options = {
-            root: rootDir,
-            dotfiles: 'deny',
-          };
         }
       }
 

@@ -118,7 +118,7 @@ const generateWebpackConfig = (projectDir, libsData) => {
     },
 
     output: {
-      path: projectDir,
+      path: path.join(projectDir, 'build'),
     },
 
     resolve: {

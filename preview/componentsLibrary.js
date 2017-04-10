@@ -21,9 +21,9 @@ export const loadComponents = () => Promise.resolve(components)
     if (_components) return _components;
 
     return new Promise(resolve => {
-      require.ensure(['./components'], require => {
+      require.ensure(['./bundle/components'], require => {
         components = _mapValues(
-          require('./components'),
+          require('./bundle/components'),
           ns => _mapValues(ns, patchComponent),
         );
 
