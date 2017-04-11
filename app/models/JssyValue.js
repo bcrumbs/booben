@@ -82,6 +82,13 @@ class JssyValue extends JssyValueRecord {
     
     return this.setIn(expandPath(path), jssyValue);
   }
+
+  unsetInStatic(path) {
+    if (path.length === 0)
+      throw new Error('JssyValue#setInStatic: path must not be empty');
+
+    return this.deleteIn(expandPath(path));
+  }
   
   updateInStatic(path, updateFn) {
     if (path.length === 0)

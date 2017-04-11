@@ -30,8 +30,6 @@ import {
   PropTypeShape,
   isComplexView,
   jssyTypeToView,
-  jssyValueToPropValue,
-  jssyTypedefToPropType,
 } from './common';
 
 import { noop, returnArg } from '../../../utils/misc';
@@ -526,6 +524,4 @@ Prop.displayName = 'Prop';
 export {
   PropViews,
   jssyTypeToView,
-  jssyValueToPropValue,
-  jssyTypedefToPropType,
 };

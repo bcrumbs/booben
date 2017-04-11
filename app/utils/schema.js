@@ -807,9 +807,10 @@ const getJssyTypeOfFieldMemo = new Map();
  *
  * @param {DataFieldTypeDefinition} fieldTypedef
  * @param {DataSchema} schema
+ * @param {boolean} [checkRequired=false]
  * @return {JssyValueDefinition}
  */
-export const getJssyTypeOfField = (fieldTypedef, schema) => {
+const _getJssyTypeOfField = (fieldTypedef, schema, checkRequired) => {
   let memoBySchema = getJssyTypeOfFieldMemo.get(schema);
   if (!memoBySchema) {
     memoBySchema = new Map();
@@ -873,9 +874,11 @@ export const getJssyTypeOfField = (fieldTypedef, schema) => {
   if (deferredSubFields) {
     deferredSubFieldsTarget.fields = _mapValues(
       deferredSubFields,
-      subField => getJssyTypeOfField(subField, schema),
+      subField => _getJssyTypeOfField(subField, schema, true),
     );
   }
+
+  if (checkRequired) ret.required = fieldTypedef.nonNull;
   
   ret.label = fieldTypedef.name;
   ret.description = fieldTypedef.description;
@@ -887,6 +890,15 @@ export const getJssyTypeOfField = (fieldTypedef, schema) => {
   
   return ret;
 };
+
+/**
+ *
+ * @param {DataFieldTypeDefinition} fieldTypedef
+ * @param {DataSchema} schema
+ * @return {JssyValueDefinition}
+ */
+export const getJssyTypeOfField = (fieldTypedef, schema) =>
+  _getJssyTypeOfField(fieldTypedef, schema);
 
 /**
  *
