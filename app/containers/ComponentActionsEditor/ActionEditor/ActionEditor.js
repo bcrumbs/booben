@@ -21,7 +21,7 @@ import { PropsList } from '../../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../../JssyValueEditor/JssyValueEditor';
 import { PropInput, PropList } from '../../../components/props';
 import Project from '../../../models/Project';
-import { sourceDataToImmutable } from '../../../models/ProjectComponent';
+import { jssyValueToImmutable } from '../../../models/ProjectComponent';
 import JssyValue from '../../../models/JssyValue';
 import { Action, createActionParams } from '../../../models/SourceDataActions';
 import { ROUTE_PARAM_VALUE_DEF } from '../../../constants/misc';
@@ -127,12 +127,7 @@ class ActionEditorComponent extends PureComponent {
           mutation: mutationName,
           args: Map(_mapValues(mutationField.args, arg => {
             const valueDef = getMutationArgValueDef(arg, schema);
-            const { source, sourceData } = buildDefaultValue(valueDef);
-            
-            return new JssyValue({
-              source,
-              sourceData: sourceDataToImmutable(source, sourceData),
-            });
+            return jssyValueToImmutable(buildDefaultValue(valueDef));
           })),
         });
       }
