@@ -219,14 +219,12 @@ export class JssyValueEditor extends PureComponent {
   }
   
   _formatLabel() {
-    const { valueDef, strings, language, label } = this.props;
+    const { valueDef, strings, language, label, name } = this.props;
     
     if (valueDef.textKey && strings && language)
       return getString(strings, valueDef.textKey, language);
-    else if (valueDef.label)
-      return valueDef.label;
     else
-      return label;
+      return valueDef.label || label || name || '';
   }
   
   _formatTooltip() {
@@ -234,10 +232,8 @@ export class JssyValueEditor extends PureComponent {
   
     if (valueDef.descriptionTextKey && strings && language)
       return getString(strings, valueDef.descriptionTextKey, language);
-    else if (valueDef.description)
-      return valueDef.description;
     else
-      return description;
+      return valueDef.description || description || '';
   }
   
   /**

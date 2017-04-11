@@ -5,7 +5,6 @@
 'use strict';
 
 import React, { PureComponent, PropTypes } from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import _startCase from 'lodash.startcase';
 import _forOwn from 'lodash.forown';
@@ -18,16 +17,10 @@ import {
 } from '../../../components/BlockContent/BlockContent';
 
 import { LinkPropWindow } from '../../LinkPropWindow/LinkPropWindow';
-
-import {
-  PropsList,
-  Prop,
-  jssyValueToPropValue,
-  jssyTypedefToPropType,
-} from '../../../components/PropsList/PropsList';
-
+import { PropsList } from '../../../components/PropsList/PropsList';
+import { JssyValueEditor } from '../../JssyValueEditor/JssyValueEditor';
 import { PropInput, PropList } from '../../../components/props';
-import ProjectRoute from '../../../models/ProjectRoute';
+import Project from '../../../models/Project';
 import { sourceDataToImmutable } from '../../../models/ProjectComponent';
 import JssyValue from '../../../models/JssyValue';
 import { Action, createActionParams } from '../../../models/SourceDataActions';
@@ -54,10 +47,7 @@ const propTypes = {
   onSave: PropTypes.func,
   onCancel: PropTypes.func,
   schema: PropTypes.object.isRequired,
-  routes: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectRoute),
-    PropTypes.number,
-  ).isRequired,
+  project: PropTypes.instanceOf(Project).isRequired,
   getLocalizedText: PropTypes.func.isRequired,
 };
 
@@ -69,7 +59,7 @@ const defaultProps = {
 
 const mapStateToProps = state => ({
   schema: state.project.schema,
-  routes: state.project.data.routes,
+  project: state.project.data,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -109,6 +99,8 @@ class ActionEditorComponent extends PureComponent {
       this._handleNavigateActionRouteChange.bind(this);
     this._handleNavigateActionRouteParamChange =
       this._handleNavigateActionRouteParamChange.bind(this);
+    this._handleMutationActionArgChange =
+      this._handleMutationActionArgChange.bind(this);
     this._handleSave = this._handleSave.bind(this);
     this._handleLink = this._handleLink.bind(this);
     this._handleLinkApply = this._handleLinkApply.bind(this);
@@ -171,10 +163,10 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _handleNavigateActionRouteChange({ value }) {
-    const { routes } = this.props;
+    const { project } = this.props;
     const { action } = this.state;
     
-    const route = routes.get(value);
+    const route = project.routes.get(value);
     const paramNames = route.path
       .split('/')
       .filter(part => part.startsWith(':'))
@@ -192,8 +184,20 @@ class ActionEditorComponent extends PureComponent {
     });
   }
   
-  _handleNavigateActionRouteParamChange({ propName: paramName, value }) {
+  _handleNavigateActionRouteParamChange({ name, value }) {
+    const { action } = this.state;
+  
+    this.setState({
+      action: action.setIn(['params', 'routeParams', name], value),
+    });
+  }
+  
+  _handleMutationActionArgChange({ name, value }) {
+    const { action } = this.state;
     
+    this.setState({
+      action: action.setIn(['params', 'args', name], value),
+    });
   }
   
   _handleSave() {
@@ -247,7 +251,7 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _getActionTypeOptions() {
-    const { schema, getLocalizedText } = this.props;
+    const { project, schema, getLocalizedText } = this.props;
     
     const ret = [
       {
@@ -268,6 +272,13 @@ class ActionEditorComponent extends PureComponent {
       },
     ];
     
+    if (project.auth && project.auth.type === 'jwt') {
+      ret.push({
+        text: getLocalizedText('actionsEditor.actionType.logout'),
+        value: 'logout',
+      });
+    }
+    
     const mutationType = getMutationType(schema);
     if (mutationType) {
       _forOwn(mutationType.fields, (_, mutationName) => {
@@ -282,33 +293,22 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _renderMutationActionProps() {
-    const { schema } = this.props;
+    const { schema, getLocalizedText } = this.props;
     const { action } = this.state;
     
     const mutationField = getMutationField(schema, action.params.mutation);
     
     return objectToArray(mutationField.args, (arg, argName) => {
-      const jssyTypedef = getJssyTypeOfField(arg, schema);
-      const propType = {
-        ...jssyTypedefToPropType(jssyTypedef),
-        label: argName,
-        tooltip: arg.description,
-        linkable: true,
-      };
-      
-      const value = jssyValueToPropValue(
-        action.params.args.get(argName),
-        jssyTypedef,
-      );
-      
       const key = `mutationArg_${argName}`;
       
       return (
-        <Prop
+        <JssyValueEditor
           key={key}
-          propName={argName}
-          propType={propType}
-          value={value}
+          name={argName}
+          value={action.params.args.get(argName)}
+          valueDef={getJssyTypeOfField(arg, schema)}
+          getLocalizedText={getLocalizedText}
+          onChange={this._handleMutationActionArgChange}
         />
       );
     });
@@ -355,11 +355,11 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _renderNavigateActionProps() {
-    const { routes, getLocalizedText } = this.props;
+    const { project, getLocalizedText } = this.props;
     const { action } = this.state;
     
     const options = [];
-    routes.forEach((route, routeId) =>
+    project.routes.forEach((route, routeId) =>
       void options.push({ text: route.title, value: routeId }));
     
     const value = action.params.routeId === -1 ? null : action.params.routeId;
@@ -377,7 +377,7 @@ class ActionEditorComponent extends PureComponent {
     const props = [routeProp];
     
     if (action.params.routeId !== -1) {
-      const route = routes.get(action.params.routeId);
+      const route = project.routes.get(action.params.routeId);
       const pathParts = route.path.split('/');
   
       pathParts.forEach(pathPart => {
@@ -385,23 +385,13 @@ class ActionEditorComponent extends PureComponent {
         if (isParam) {
           const name = pathPart.slice(1);
           const key = `routeParam_${name}`;
-          const propType = {
-            ...jssyTypedefToPropType(ROUTE_PARAM_VALUE_DEF),
-            label: name,
-            linkable: true,
-          };
-          
-          const value = jssyValueToPropValue(
-            action.params.routeParams.get(name),
-            ROUTE_PARAM_VALUE_DEF,
-          );
           
           props.push(
-            <Prop
+            <JssyValueEditor
               key={key}
-              propName={name}
-              propType={propType}
-              value={value}
+              name={name}
+              value={action.params.routeParams.get(name)}
+              valueDef={ROUTE_PARAM_VALUE_DEF}
               onChange={this._handleNavigateActionRouteParamChange}
             />,
           );

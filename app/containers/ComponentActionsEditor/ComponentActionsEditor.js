@@ -197,11 +197,22 @@ class ComponentActionsEditorComponent extends PureComponent {
         action,
       });
     } else if (currentView === Views.EDIT_ACTION) {
-      const path = editActionPath.slice(0, -1);
+      const pathToList = editActionPath.slice(0, -1);
       const index = editActionPath[editActionPath.length - 1];
+  
+      const fullPath = {
+        startingPoint: PathStartingPoints.CURRENT_COMPONENTS,
+        steps: [
+          componentId,
+          'props',
+          activeHandler,
+          'actions',
+          ...pathToList,
+        ],
+      };
       
       onReplaceAction({
-        path,
+        path: fullPath,
         index,
         newAction: action,
       });
@@ -280,6 +291,10 @@ class ComponentActionsEditorComponent extends PureComponent {
         return getLocalizedText(key, {
           url: action.params.url,
         });
+      }
+      
+      case 'logout': {
+        return getLocalizedText('actionsEditor.actionTitle.logout');
       }
       
       default:

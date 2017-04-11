@@ -73,7 +73,7 @@ Action.isValidPathStep = (step, current) => {
     return false;
 };
 
-Action.expandPathStep = step => [step];
+Action.expandPathStep = step => ['params', step];
 
 export default Record({
   actions: List(),

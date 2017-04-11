@@ -68,6 +68,7 @@
   "actionsEditor.actionType.prop": "Изменить значение атрибута",
   "actionsEditor.actionType.navigate": "Перейти на роут",
   "actionsEditor.actionType.url": "Открыть URL",
+  "actionsEditor.actionType.logout": "Разлогиниться",
   "actionsEditor.actionForm.url": "URL",
   "actionsEditor.actionForm.urlWindow": "Окно",
   "actionsEditor.actionForm.urlWindow.same": "В том же окне",
@@ -79,6 +80,7 @@
   "actionsEditor.actionTitle.navigate": "Перейти на '{routeName}'",
   "actionsEditor.actionTitle.url.sameWindow": "Перейти на {url}",
   "actionsEditor.actionTitle.url.newWindow": "Открыть {url} в новом окне",
+  "actionsEditor.actionTitle.logout": "Разлогиниться",
   "actionsEditor.onSuccess": "Действия при успехе",
   "actionsEditor.onError": "Действия при ошибке",
 
