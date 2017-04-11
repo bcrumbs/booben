@@ -3,7 +3,7 @@
  */
 
 import _mapValues from 'lodash.mapvalues';
-import { TypeNames } from '@jssy/types';
+import { TypeNames, makeDefaultNonNullValue } from '@jssy/types';
 import { arrayToObject, getter } from './misc';
 
 /**
@@ -884,7 +884,9 @@ const _getJssyTypeOfField = (fieldTypedef, schema, checkRequired) => {
   ret.description = fieldTypedef.description;
   ret.source = ['static', 'state'];
   ret.sourceConfigs = {
-    static: {},
+    static: {
+      default: makeDefaultNonNullValue(ret),
+    },
     state: {},
   };
   

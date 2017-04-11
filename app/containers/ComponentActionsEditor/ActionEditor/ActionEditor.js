@@ -63,23 +63,6 @@ const mapStateToProps = state => ({
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
-/**
- *
- * @param {DataFieldArg} arg
- * @param {DataSchema} schema
- * @return {JssyValueDefinition}
- */
-const getMutationArgValueDef = (arg, schema) => ({
-  ...getJssyTypeOfField(arg, schema),
-  source: ['static', 'state'],
-  sourceConfigs: {
-    static: {
-      default: arg.defaultValue,
-    },
-    state: {},
-  },
-});
-
 class ActionEditorComponent extends PureComponent {
   constructor(props) {
     super(props);
@@ -126,7 +109,7 @@ class ActionEditorComponent extends PureComponent {
         params = params.merge({
           mutation: mutationName,
           args: Map(_mapValues(mutationField.args, arg => {
-            const valueDef = getMutationArgValueDef(arg, schema);
+            const valueDef = getJssyTypeOfField(arg, schema);
             return jssyValueToImmutable(buildDefaultValue(valueDef));
           })),
         });
@@ -189,10 +172,16 @@ class ActionEditorComponent extends PureComponent {
   
   _handleMutationActionArgChange({ name, value }) {
     const { action } = this.state;
-    
-    this.setState({
-      action: action.setIn(['params', 'args', name], value),
-    });
+
+    if (value) {
+      this.setState({
+        action: action.setIn(['params', 'args', name], value),
+      });
+    } else {
+      this.setState({
+        action: action.deleteIn(['params', 'args', name]),
+      });
+    }
   }
   
   _handleSave() {
@@ -302,6 +291,7 @@ class ActionEditorComponent extends PureComponent {
           name={argName}
           value={action.params.args.get(argName)}
           valueDef={getJssyTypeOfField(arg, schema)}
+          optional={!arg.nonNull}
           getLocalizedText={getLocalizedText}
           onChange={this._handleMutationActionArgChange}
         />

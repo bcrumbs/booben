@@ -12,7 +12,6 @@ import {
   isEqualType,
   getNestedTypedef,
   resolveTypedef,
-  makeDefaultNonNullValue,
 } from '@jssy/types';
 
 import JssyValue from '../../models/JssyValue';
@@ -105,6 +104,8 @@ const LINK_TEXT_ITEMS_SEPARATOR = ' -> ';
 export class JssyValueEditor extends PureComponent {
   constructor(props) {
     super(props);
+
+    this._propType = null;
     
     this._handleChange = this._handleChange.bind(this);
     this._handleAdd = this._handleAdd.bind(this);
@@ -116,6 +117,16 @@ export class JssyValueEditor extends PureComponent {
     
     this._formatArrayItemLabel = this._formatArrayItemLabel.bind(this);
     this._formatObjectItemLabel = this._formatObjectItemLabel.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (
+      nextProps.valueDef !== this.props.valueDef ||
+      nextProps.userTypedefs !== this.props.userTypedefs ||
+      nextProps.strings !== this.props.strings ||
+      nextProps.language !== this.props.language
+    )
+      this._propType = null;
   }
   
   _handleChange({ value, path }) {
@@ -340,12 +351,20 @@ export class JssyValueEditor extends PureComponent {
   /**
    *
    * @param {JssyValueDefinition} valueDef
+   * @param {boolean} [noCache=false]
    * @param {string} [labelFallback='']
    * @param {string} [descriptionFallback='']
    * @return {PropsItemPropType}
    * @private
    */
-  _getPropType(valueDef, labelFallback = '', descriptionFallback = '') {
+  _getPropType(
+    valueDef,
+    noCache = false,
+    labelFallback = '',
+    descriptionFallback = '',
+  ) {
+    if (this._propType && !noCache) return this._propType;
+
     const { userTypedefs, strings, language } = this.props;
     const resolvedValueDef = resolveTypedef(valueDef, userTypedefs);
 
@@ -378,13 +397,15 @@ export class JssyValueEditor extends PureComponent {
     } else if (resolvedValueDef.type === TypeNames.SHAPE) {
       ret.fields = _mapValues(
         resolvedValueDef.fields,
-        (fieldTypedef, fieldName) => this._getPropType(fieldTypedef, fieldName),
+
+        (fieldTypedef, fieldName) =>
+          this._getPropType(fieldTypedef, true, fieldName),
       );
     } else if (
       resolvedValueDef.type === TypeNames.ARRAY_OF ||
       resolvedValueDef.type === TypeNames.OBJECT_OF
     ) {
-      ret.ofType = this._getPropType(resolvedValueDef.ofType);
+      ret.ofType = this._getPropType(resolvedValueDef.ofType, true);
 
       if (resolvedValueDef.type === TypeNames.ARRAY_OF)
         ret.formatItemLabel = this._formatArrayItemLabel;
@@ -392,68 +413,81 @@ export class JssyValueEditor extends PureComponent {
         ret.formatItemLabel = this._formatObjectItemLabel;
     }
 
+    this._propType = ret;
+
     return ret;
   }
 
   /**
    *
    * @param {Object} jssyValue
-   * @param {JssyValueDefinition} typedef
+   * @param {JssyValueDefinition} valueDef
    * @return {PropsItemValue}
    * @private
    */
-  _getPropValue(jssyValue, typedef) {
+  _getPropValue(jssyValue, valueDef) {
     const { userTypedefs } = this.props;
 
     if (!jssyValue) {
       return {
-        value: makeDefaultNonNullValue(typedef, userTypedefs),
+        value: null,
         linked: false,
         checked: false,
       };
     }
 
-    const resolvedTypedef = resolveTypedef(typedef, userTypedefs);
+    const resolvedValueDef = resolveTypedef(valueDef, userTypedefs);
     const linked = jssyValue.isLinked();
-    let value = null;
     let linkedWith = '';
+    let value = null;
+    let checked = true;
 
     if (!linked) {
       if (jssyValue.source === 'static') {
         if (
-          resolvedTypedef.type === TypeNames.INT ||
-          resolvedTypedef.type === TypeNames.FLOAT
+          resolvedValueDef.type === TypeNames.INT ||
+          resolvedValueDef.type === TypeNames.FLOAT
         ) {
           value = String(jssyValue.sourceData.value);
         } else if (
-          resolvedTypedef.type === TypeNames.STRING ||
-          resolvedTypedef.type === TypeNames.BOOL ||
-          resolvedTypedef.type === TypeNames.ONE_OF
+          resolvedValueDef.type === TypeNames.STRING ||
+          resolvedValueDef.type === TypeNames.BOOL ||
+          resolvedValueDef.type === TypeNames.ONE_OF
         ) {
           value = jssyValue.sourceData.value;
-        } else if (resolvedTypedef.type === TypeNames.SHAPE) {
-          value = _mapValues(resolvedTypedef.fields, (fieldMeta, fieldName) =>
-            this._getPropValue(
-              jssyValue.sourceData.value.get(fieldName),
-              fieldMeta,
-            ),
-          );
-        } else if (resolvedTypedef.type === TypeNames.OBJECT_OF) {
-          jssyValue.sourceData.value.map(nestedValue => this._getPropValue(
-            nestedValue,
-            resolvedTypedef.ofType,
-          )).toJS();
-        } else if (resolvedTypedef.type === TypeNames.ARRAY_OF) {
+        } else if (resolvedValueDef.type === TypeNames.SHAPE) {
+          if (jssyValue.sourceData.value) {
+            value = _mapValues(resolvedValueDef.fields, (fieldDef, fieldName) =>
+              this._getPropValue(
+                jssyValue.sourceData.value.get(fieldName),
+                fieldDef,
+              ),
+            );
+          } else {
+            checked = false;
+          }
+        } else if (resolvedValueDef.type === TypeNames.OBJECT_OF) {
+          if (jssyValue.sourceData.value) {
+            value = jssyValue.sourceData.value.map(
+              nestedValue => this._getPropValue(
+                nestedValue,
+                resolvedValueDef.ofType,
+              ),
+            ).toJS();
+          } else {
+            checked = false;
+          }
+        } else if (resolvedValueDef.type === TypeNames.ARRAY_OF) {
           value = jssyValue.sourceData.value.map(nestedValue =>
             this._getPropValue(
               nestedValue,
-              resolvedTypedef.ofType,
+              resolvedValueDef.ofType,
             ),
           ).toJS();
         }
       } else if (jssyValue.source === 'designer') {
         // true if component exists, false otherwise
-        if (resolvedTypedef.type === TypeNames.COMPONENT)
+        if (resolvedValueDef.type === TypeNames.COMPONENT)
           value = jssyValue.sourceData.rootId !== -1;
       }
     } else if (jssyValue.source === 'data') {
@@ -470,7 +504,7 @@ export class JssyValueEditor extends PureComponent {
       linkedWith = `Component ${jssyValue.sourceData.componentId}`;
     }
 
-    return { value, linked, linkedWith, checked: true };
+    return { value, linked, linkedWith, checked };
   }
   
   render() {
@@ -490,7 +524,7 @@ export class JssyValueEditor extends PureComponent {
     };
     
     const propValue = this._getPropValue(value, valueDef);
-    
+
     return (
       <Prop
         propName={name}
@@ -500,6 +534,7 @@ export class JssyValueEditor extends PureComponent {
         onChange={this._handleChange}
         onAddValue={this._handleAdd}
         onDeleteValue={this._handleDelete}
+        onCheck={this._handleCheck}
         onLink={this._handleLink}
         onUnlink={this._handleUnlink}
         onSetComponent={this._handleConstructComponent}

@@ -396,10 +396,38 @@ export class Prop extends PureComponent {
       return null;
     }
   }
+
+  _renderNestedPropsList() {
+    const { value, propType, getLocalizedText } = this.props;
+    const { currentPath } = this.state;
+
+    if (propType.checkable && !value.checked) return null;
+
+    const currentType = getTypeByPath(propType, currentPath);
+    const hasDynamicValues =
+      currentType.view === PropViews.ARRAY ||
+      currentType.view === PropViews.OBJECT;
+
+    const needNameOnAdd = currentType.view === PropViews.OBJECT;
+    const breadcrumbs = this._renderBreadcrumbs();
+    const nestedProps = this._renderNestedProps();
+
+    return (
+      <NestedPropsList
+        hasAddButton={hasDynamicValues}
+        askNameOnAdd={needNameOnAdd}
+        getLocalizedText={getLocalizedText}
+        onAdd={this._handleAddValue}
+      >
+        {breadcrumbs}
+        {nestedProps}
+      </NestedPropsList>
+    );
+  }
   
   render() {
     const { propType, value, disabled, getLocalizedText } = this.props;
-    const { isOpen, currentPath } = this.state;
+    const { isOpen } = this.state;
     
     const commonProps = {
       label: propType.label || '',
@@ -482,16 +510,7 @@ export class Prop extends PureComponent {
         <PropEmpty {...commonProps} />
       );
     } else if (isComplexView(propType.view)) {
-      const currentType = getTypeByPath(propType, currentPath);
-      
-      const hasDynamicValues =
-        currentType.view === PropViews.ARRAY ||
-        currentType.view === PropViews.OBJECT;
-  
-      const needNameOnAdd = currentType.view === PropViews.OBJECT;
-
-      const breadcrumbs = this._renderBreadcrumbs(),
-        nestedProps = this._renderNestedProps();
+      const nestedList = this._renderNestedPropsList();
       
       return (
         <PropExpandable
@@ -499,15 +518,7 @@ export class Prop extends PureComponent {
           expanded={isOpen}
           onToggle={this._handleOpen}
         >
-          <NestedPropsList
-            hasAddButton={hasDynamicValues}
-            askNameOnAdd={needNameOnAdd}
-            getLocalizedText={getLocalizedText}
-            onAdd={this._handleAddValue}
-          >
-            {breadcrumbs}
-            {nestedProps}
-          </NestedPropsList>
+          {nestedList}
         </PropExpandable>
       );
     } else {
