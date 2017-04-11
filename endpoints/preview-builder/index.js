@@ -275,8 +275,10 @@ const installLoaders = (projectDir, libsData, options) => co(function* () {
     if (packageJSON.peerDependencies) {
       const keys = Object.keys(packageJSON.peerDependencies);
       keys.forEach(key => {
-        if (key !== 'webpack')
-          loadersPeerDepsSet.add(`${key}@${packageJSON.peerDependencies[key]}`);
+        if (key !== 'webpack') {
+          const arg = `${key}@"${packageJSON.peerDependencies[key]}"`;
+          loadersPeerDepsSet.add(arg);
+        }
       });
     }
   });

@@ -15,11 +15,18 @@ import {
 import { projectFunctionToImmutable } from './ProjectFunction';
 import { concatPath } from '../utils';
 
+const AuthRecord = Record({
+  type: '',
+  loginMutation: '',
+  tokenPath: List(),
+});
+
 const ProjectRecord = Record({
   name: '',
   author: '',
   componentLibs: List(),
   graphQLEndpointURL: null,
+  auth: null,
   routes: Map(),
   rootRoutes: List(),
   functions: Map(),
@@ -35,6 +42,10 @@ export const projectToImmutable = input => new ProjectRecord({
   author: input.author,
   componentLibs: List(input.componentLibs),
   graphQLEndpointURL: input.graphQLEndpointURL || '',
+  auth: input.auth
+    ? new AuthRecord(input.auth)
+    : null,
+  
   routes: Map().withMutations(routes => {
     const visitRoute = (route, pathPrefix, parentRouteId) => {
       const fullPath = concatPath(pathPrefix, route.path);

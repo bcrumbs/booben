@@ -753,7 +753,7 @@ const getJssyTypeOfFieldMemo = new Map();
  *
  * @param {DataFieldTypeDefinition} fieldTypedef
  * @param {DataSchema} schema
- * @return {JssyTypeDefinition}
+ * @return {JssyValueDefinition}
  */
 export const getJssyTypeOfField = (fieldTypedef, schema) => {
   let memoBySchema = getJssyTypeOfFieldMemo.get(schema);

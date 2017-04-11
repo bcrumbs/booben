@@ -55,14 +55,12 @@ export class JssyValueEditor extends PureComponent {
   constructor(props) {
     super(props);
     
-    this.linking = false;
-    this.linkingPath = null;
-    
     this._handleChange = this._handleChange.bind(this);
     this._handleAdd = this._handleAdd.bind(this);
     this._handleDelete = this._handleDelete.bind(this);
     this._handleLink = this._handleLink.bind(this);
-    this._handleLinked = this._handleLinked.bind(this);
+    this._handleUnlink = this._handleUnlink.bind(this);
+    this._handleConstructComponent = this._handleConstructComponent.bind(this);
   }
   
   _handleChange({ value, path }) {
@@ -121,28 +119,48 @@ export class JssyValueEditor extends PureComponent {
       onLink,
     } = this.props;
     
-    this.linking = true;
-    this.linkingPath = path;
-    
     onLink({
+      path,
       targetValueDef: valueDef,
       targetUserTypedefs: userTypedefs,
       ownerProps,
       ownerUserTypedefs,
-      onLinked: this._handleLinked,
     });
   }
   
-  _handleLinked({ value: linkedValue }) {
-    const { value: currentValue, onChange } = this.props;
+  _handleUnlink({ path }) {
+    const {
+      value: currentValue,
+      valueDef,
+      userTypedefs,
+      strings,
+      language,
+      onChange,
+    } = this.props;
+  
+    const nestedPropMeta = getNestedTypedef(valueDef, path, userTypedefs);
+    const newValueType = resolveTypedef(nestedPropMeta.ofType, userTypedefs);
+    const value = buildDefaultValue(newValueType, strings, language);
     
-    if (!this.linking) return;
-    const newValue = currentValue.setInStatic(this.linkingPath, linkedValue);
-    
-    this.linking = false;
-    this.linkingPath = null;
+    const newValue = path.length > 0
+      ? currentValue.setInStatic(path, value)
+      : value;
   
     onChange({ value: newValue });
+  }
+  
+  _handleConstructComponent({ path }) {
+    const {
+      valueDef,
+      userTypedefs,
+      onConstructComponent,
+    } = this.props;
+    
+    onConstructComponent({
+      path,
+      targetValueDef: valueDef,
+      targetUserTypedefs: userTypedefs,
+    });
   }
   
   _isLinkableValue() {
@@ -175,6 +193,8 @@ export class JssyValueEditor extends PureComponent {
     
     if (valueDef.textKey && strings && language)
       return getString(strings, valueDef.textKey, language);
+    else if (valueDef.label)
+      return valueDef.label;
     else
       return label;
   }
@@ -184,6 +204,8 @@ export class JssyValueEditor extends PureComponent {
   
     if (valueDef.descriptionTextKey && strings && language)
       return getString(strings, valueDef.descriptionTextKey, language);
+    else if (valueDef.description)
+      return valueDef.description;
     else
       return description;
   }
@@ -199,7 +221,9 @@ export class JssyValueEditor extends PureComponent {
       linkable: this._isLinkableValue(),
     };
     
-    const value = jssyValueToPropValue(jssyValue, valueDef, userTypedefs);
+    const value = jssyValue
+      ? jssyValueToPropValue(jssyValue, valueDef, userTypedefs)
+      : { value: null, linked: false, checked: false };
     
     return (
       <Prop
@@ -209,6 +233,9 @@ export class JssyValueEditor extends PureComponent {
         onChange={this._handleChange}
         onAddValue={this._handleAdd}
         onDeleteValue={this._handleDelete}
+        onLink={this._handleLink}
+        onUnlink={this._handleUnlink}
+        onSetComponent={this._handleConstructComponent}
       />
     );
   }

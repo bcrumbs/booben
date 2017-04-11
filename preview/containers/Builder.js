@@ -8,6 +8,7 @@ import _merge from 'lodash.merge';
 import _mapValues from 'lodash.mapvalues';
 import _forOwn from 'lodash.forown';
 import _get from 'lodash.get';
+import _set from 'lodash.set';
 import { Map as ImmutableMap, List as ImmutableList } from 'immutable';
 import { resolveTypedef } from '@jssy/types';
 import { getComponentById } from '../../app/models/Project';
@@ -258,7 +259,20 @@ class BuilderComponent extends PureComponent {
     
     switch (action.type) {
       case 'mutation': {
-        const mutation = buildMutation(schema, action.params.mutation);
+        let selections = null;
+        if (
+          project.auth &&
+          project.auth.type === 'jwt' &&
+          action.params.mutation === project.auth.loginMutation
+        )
+          selections = _set({}, project.auth.tokenPath, true);
+        
+        const mutation = buildMutation(
+          schema,
+          action.params.mutation,
+          selections,
+        );
+        
         if (!mutation) break;
       
         const mutationField = getMutationField(schema, action.params.mutation);
