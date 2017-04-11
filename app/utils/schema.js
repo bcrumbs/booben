@@ -3,6 +3,7 @@
  */
 
 import _mapValues from 'lodash.mapvalues';
+import { TypeNames } from '@jssy/types';
 import { arrayToObject, getter } from './misc';
 
 /**
@@ -66,8 +67,11 @@ import { arrayToObject, getter } from './misc';
  * @typedef {Object} DataSchema
  * @property {Object<string, DataObjectType>} types
  * @property {Object<string, DataEnumType>} enums
+ * @property {string[]} customScalarTypes
  * @property {?string} queryTypeName
  * @property {?string} mutationTypeName
+ * @property {boolean} relay
+ * @property {boolean} pageInfoHasCursors
  */
 
 /**
@@ -161,11 +165,11 @@ const GQL_SCALAR_TYPES = new Set([
  * @type {Object<string, string>}
  */
 const graphQLScalarTypeToJssyType = {
-  Int: 'int',
-  Float: 'float',
-  Boolean: 'bool',
-  String: 'string',
-  ID: 'string',
+  Int: TypeNames.INT,
+  Float: TypeNames.FLOAT,
+  Boolean: TypeNames.BOOL,
+  String: TypeNames.STRING,
+  ID: TypeNames.STRING,
 };
 
 /**
@@ -173,7 +177,7 @@ const graphQLScalarTypeToJssyType = {
  * @param {string} graphQLTypeName
  * @return {boolean}
  */
-export const isScalarGraphQLType = graphQLTypeName =>
+export const isBuiltinGraphQLType = graphQLTypeName =>
   GQL_SCALAR_TYPES.has(graphQLTypeName);
 
 const RELAY_TYPE_NODE_INTERFACE = 'Node';
@@ -186,7 +190,7 @@ const RELAY_CONNECTION_ARG_BEFORE = 'before';
 const RELAY_CONNECTION_FIELDS_NUM = 2;
 const RELAY_CONNECTION_FIELD_EDGES = 'edges';
 const RELAY_CONNECTION_FIELD_PAGEINFO = 'pageInfo';
-const RELAY_PAGEINFO_FIELDS_NUM = 4;
+const RELAY_PAGEINFO_FIELDS_NUM = 2;
 const RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE = 'hasNextPage';
 const RELAY_PAGEINFO_FIELD_HAS_PREVIOUS_PAGE = 'hasPreviousPage';
 const RELAY_PAGEINFO_FIELD_START_CURSOR = 'startCursor';
@@ -299,6 +303,13 @@ const isEnumType = type => type.kind === GQLTypeKinds.ENUM;
 /**
  *
  * @param {GQLType} type
+ * @return {boolean}
+ */
+const isScalarType = type => type.kind === GQLTypeKinds.SCALAR;
+
+/**
+ *
+ * @param {GQLType} type
  * @param {string} interfaceName
  * @return {boolean}
  */
@@ -354,20 +365,30 @@ const isRelayPageInfoType = type => {
   const hasPreviousPageField =
     findGQLField(type, RELAY_PAGEINFO_FIELD_HAS_PREVIOUS_PAGE);
   
+  //noinspection RedundantIfStatementJS
   if (
     !hasPreviousPageField ||
     hasPreviousPageField.type.kind !== GQLTypeKinds.NON_NULL ||
     hasPreviousPageField.type.ofType.name !== 'Boolean'
   ) return false;
   
+  return true;
+};
+
+/**
+ *
+ * @param {GQLType} pageInfoType
+ * @return {boolean}
+ */
+const pageInfoHasCursors = pageInfoType => {
   const startCursorField =
-    findGQLField(type, RELAY_PAGEINFO_FIELD_START_CURSOR);
+    findGQLField(pageInfoType, RELAY_PAGEINFO_FIELD_START_CURSOR);
   
   if (!startCursorField || startCursorField.type.name !== 'String')
     return false;
   
   const endCursorField =
-    findGQLField(type, RELAY_PAGEINFO_FIELD_END_CURSOR);
+    findGQLField(pageInfoType, RELAY_PAGEINFO_FIELD_END_CURSOR);
   
   //noinspection RedundantIfStatementJS
   if (!endCursorField || endCursorField.type.name !== 'String')
@@ -383,6 +404,17 @@ const isRelayPageInfoType = type => {
  */
 const findRelayPageInfoType = schema =>
   schema.types.find(isRelayPageInfoType) || null;
+
+/**
+ *
+ * @param {GQLField} field
+ * @return {boolean}
+ */
+const isRelayNodeField = field =>
+  field.type.kind === GQLTypeKinds.OBJECT || (
+    field.type.kind === GQLTypeKinds.NON_NULL &&
+    field.type.ofType.kind === GQLTypeKinds.OBJECT
+  );
 
 /**
  *
@@ -403,9 +435,13 @@ const isRelayEdgeType = (type, schema) => {
   ) return false;
   
   const nodeField = findGQLField(type, RELAY_EDGE_FIELD_NODE);
-  if (!nodeField || nodeField.type.kind !== GQLTypeKinds.OBJECT) return false;
+  if (!nodeField || !isRelayNodeField(nodeField)) return false;
   
-  const nodeType = findGQLType(schema, nodeField.type.name);
+  const nodeType = findGQLType(
+    schema,
+    nodeField.type.name || nodeField.type.ofType.name,
+  );
+  
   //noinspection RedundantIfStatementJS
   if (!gqlTypeHasInterface(nodeType, RELAY_TYPE_NODE_INTERFACE)) return false;
   
@@ -525,6 +561,7 @@ export const parseGraphQLSchema = schema => {
   
   const retTypes = {};
   const retEnums = {};
+  const retCustomScalars = [];
   
   /* eslint-disable no-use-before-define */
   
@@ -536,10 +573,11 @@ export const parseGraphQLSchema = schema => {
   const convertArg = arg => {
     const argTypeInfo = collectTypeInfo(arg.type);
     
-    if (!isScalarGraphQLType(argTypeInfo.typeName)) {
+    if (!isBuiltinGraphQLType(argTypeInfo.typeName)) {
       const type = findGQLType(schema, argTypeInfo.typeName);
       if (isObjectType(type)) visitGQLObjectType(type, true);
       else if (isEnumType(type)) visitGQLEnumType(type);
+      else if (isScalarType(type)) visitGQLCustomScalarType(type);
     }
     
     return {
@@ -593,10 +631,11 @@ export const parseGraphQLSchema = schema => {
   const convertRegularField = field => {
     const fieldTypeInfo = collectTypeInfo(field.type);
   
-    if (!isScalarGraphQLType(fieldTypeInfo.typeName)) {
+    if (!isBuiltinGraphQLType(fieldTypeInfo.typeName)) {
       const type = findGQLType(schema, fieldTypeInfo.typeName);
       if (isObjectType(type)) visitGQLObjectType(type);
       else if (isEnumType(type)) visitGQLEnumType(type);
+      else if (isScalarType(type)) visitGQLCustomScalarType(type);
     }
   
     return {
@@ -684,6 +723,14 @@ export const parseGraphQLSchema = schema => {
     };
   };
   
+  /**
+   *
+   * @param {GQLType} type
+   */
+  const visitGQLCustomScalarType = type => {
+    retCustomScalars.push(type.name);
+  };
+  
   /* eslint-enable no-use-before-define */
   
   if (queryTypeName)
@@ -694,8 +741,11 @@ export const parseGraphQLSchema = schema => {
   return {
     types: retTypes,
     enums: retEnums,
+    customScalarTypes: retCustomScalars,
     queryTypeName,
     mutationTypeName,
+    relay: haveRelay,
+    pageInfoHasCursors: haveRelay && pageInfoHasCursors(relayTypes.pageInfo),
   };
 };
 
@@ -773,7 +823,7 @@ export const getJssyTypeOfField = (fieldTypedef, schema) => {
   let deferredSubFieldsTarget = null;
   let ret;
   
-  if (isScalarGraphQLType(fieldTypedef.type)) {
+  if (isBuiltinGraphQLType(fieldTypedef.type)) {
     ret = {
       type: graphQLScalarTypeToJssyType[fieldTypedef.type],
     };
@@ -781,7 +831,7 @@ export const getJssyTypeOfField = (fieldTypedef, schema) => {
     const type = schema.types[fieldTypedef.type];
     
     ret = {
-      type: 'shape',
+      type: TypeNames.SHAPE,
       fields: null,
     };
     
@@ -789,10 +839,15 @@ export const getJssyTypeOfField = (fieldTypedef, schema) => {
     deferredSubFieldsTarget = ret;
   } else if (schema.enums[fieldTypedef.type]) {
     ret = {
-      type: 'oneOf',
+      type: TypeNames.ONE_OF,
       options: schema.enums[fieldTypedef.type].values.map(value => ({
         value: value.name,
       })),
+    };
+  } else if (schema.customScalarTypes.indexOf(fieldTypedef.type) !== -1) {
+    ret = {
+      type: TypeNames.SCALAR,
+      name: fieldTypedef.type,
     };
   } else {
     throw new Error(`Unknown field type in schema: '${fieldTypedef.type}'`);
@@ -802,14 +857,14 @@ export const getJssyTypeOfField = (fieldTypedef, schema) => {
     fieldTypedef.kind === FieldKinds.LIST ||
     fieldTypedef.kind === FieldKinds.CONNECTION
   ) {
-    if (fieldTypedef.nonNullMember && ret.type === 'shape')
+    if (fieldTypedef.nonNullMember && ret.type === TypeNames.SHAPE)
       ret.notNull = true;
     
     ret = {
-      type: 'arrayOf',
+      type: TypeNames.ARRAY_OF,
       ofType: ret,
     };
-  } else if (fieldTypedef.nonNull && ret.type === 'shape') {
+  } else if (fieldTypedef.nonNull && ret.type === TypeNames.SHAPE) {
     ret.notNull = true;
   }
   

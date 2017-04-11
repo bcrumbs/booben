@@ -20,7 +20,7 @@ import {
   getMutationField,
   FieldKinds,
   parseFieldName,
-  isScalarGraphQLType,
+  isBuiltinGraphQLType,
 } from './schema';
 
 import {
@@ -1011,6 +1011,16 @@ const selectionsToAST = requestData => {
 /**
  *
  * @param {DataSchema} schema
+ * @param {string} typeName
+ * @return {boolean}
+ */
+const isScalarType = (schema, typeName) =>
+  isBuiltinGraphQLType(typeName) ||
+  schema.customScalarTypes.indexOf(typeName) !== -1;
+
+/**
+ *
+ * @param {DataSchema} schema
  * @param {string} mutationName
  * @param {?Object} [selections=null]
  * @return {?Object}
@@ -1073,7 +1083,7 @@ export const buildMutation = (schema, mutationName, selections = null) => {
               },
             })),
             directives: [],
-            selectionSet: isScalarGraphQLType(mutationField.type)
+            selectionSet: isScalarType(schema, mutationField.type)
               ? null
               : {
                 kind: 'SelectionSet',
