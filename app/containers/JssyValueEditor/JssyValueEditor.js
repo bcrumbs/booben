@@ -7,11 +7,13 @@
 import React, { PureComponent, PropTypes } from 'react';
 import { isEqualType, getNestedTypedef, resolveTypedef } from '@jssy/types';
 import JssyValue from '../../models/JssyValue';
+import { jssyValueToImmutable } from '../../models/ProjectComponent';
 
 import {
   Prop,
   jssyValueToPropValue,
   jssyTypedefToPropType,
+  PropViews,
 } from '../../components/PropsList/PropsList';
 
 import {
@@ -20,7 +22,7 @@ import {
   buildDefaultValue,
 } from '../../utils/meta';
 
-import { noop, objectSome } from '../../utils/misc';
+import { noop, returnArg, objectSome } from '../../utils/misc';
 
 const propTypes = {
   name: PropTypes.string.isRequired,
@@ -33,6 +35,7 @@ const propTypes = {
   ownerUserTypedefs: PropTypes.object,
   label: PropTypes.string,
   description: PropTypes.string,
+  getLocalizedText: PropTypes.func,
   onChange: PropTypes.func,
   onLink: PropTypes.func,
   onConstructComponent: PropTypes.func,
@@ -46,10 +49,20 @@ const defaultProps = {
   ownerUserTypedefs: null,
   label: '',
   description: '',
+  getLocalizedText: returnArg,
   onChange: noop,
   onLink: noop,
   onConstructComponent: noop,
 };
+
+/**
+ *
+ * @param {JssyValueDefinition} valueDef
+ * @return {boolean}
+ */
+const isEditableValue = valueDef =>
+  isValidSourceForValue(valueDef, 'static') ||
+  isValidSourceForValue(valueDef, 'designer');
 
 export class JssyValueEditor extends PureComponent {
   constructor(props) {
@@ -61,20 +74,24 @@ export class JssyValueEditor extends PureComponent {
     this._handleLink = this._handleLink.bind(this);
     this._handleUnlink = this._handleUnlink.bind(this);
     this._handleConstructComponent = this._handleConstructComponent.bind(this);
+    
+    this._formatArrayItemLabel = this._formatArrayItemLabel.bind(this);
+    this._formatObjectItemLabel = this._formatObjectItemLabel.bind(this);
   }
   
   _handleChange({ value, path }) {
-    const { value: currentValue, onChange } = this.props;
+    const { name, value: currentValue, onChange } = this.props;
     
     const newValue = path.length > 0
       ? currentValue.setInStatic(path, JssyValue.staticFromJS(value))
       : JssyValue.staticFromJS(value);
     
-    onChange({ value: newValue });
+    onChange({ name, value: newValue });
   }
   
   _handleAdd({ where, index }) {
     const {
+      name,
       value: currentValue,
       valueDef,
       userTypedefs,
@@ -85,7 +102,11 @@ export class JssyValueEditor extends PureComponent {
   
     const nestedPropMeta = getNestedTypedef(valueDef, where, userTypedefs);
     const newValueType = resolveTypedef(nestedPropMeta.ofType, userTypedefs);
-    const value = buildDefaultValue(newValueType, strings, language);
+    const value = jssyValueToImmutable(buildDefaultValue(
+      newValueType,
+      strings,
+      language,
+    ));
   
     const newValue = where.length > 0
       ? currentValue.updateInStatic(
@@ -94,11 +115,11 @@ export class JssyValueEditor extends PureComponent {
       )
       : currentValue.addValueInStatic(index, value);
   
-    onChange({ value: newValue });
+    onChange({ name, value: newValue });
   }
   
   _handleDelete({ where, index }) {
-    const { value: currentValue, onChange } = this.props;
+    const { name, value: currentValue, onChange } = this.props;
     
     const newValue = where.length > 0
       ? currentValue.updateInStatic(
@@ -107,11 +128,12 @@ export class JssyValueEditor extends PureComponent {
       )
       : currentValue.deleteValueInStatic(index);
   
-    onChange({ value: newValue });
+    onChange({ name, value: newValue });
   }
   
   _handleLink({ path }) {
     const {
+      name,
       valueDef,
       userTypedefs,
       ownerProps,
@@ -120,6 +142,7 @@ export class JssyValueEditor extends PureComponent {
     } = this.props;
     
     onLink({
+      name,
       path,
       targetValueDef: valueDef,
       targetUserTypedefs: userTypedefs,
@@ -130,6 +153,7 @@ export class JssyValueEditor extends PureComponent {
   
   _handleUnlink({ path }) {
     const {
+      name,
       value: currentValue,
       valueDef,
       userTypedefs,
@@ -139,24 +163,30 @@ export class JssyValueEditor extends PureComponent {
     } = this.props;
   
     const nestedPropMeta = getNestedTypedef(valueDef, path, userTypedefs);
-    const newValueType = resolveTypedef(nestedPropMeta.ofType, userTypedefs);
-    const value = buildDefaultValue(newValueType, strings, language);
+    const newValueType = resolveTypedef(nestedPropMeta, userTypedefs);
+    const value = jssyValueToImmutable(buildDefaultValue(
+      newValueType,
+      strings,
+      language,
+    ));
     
     const newValue = path.length > 0
       ? currentValue.setInStatic(path, value)
       : value;
   
-    onChange({ value: newValue });
+    onChange({ name, value: newValue });
   }
   
   _handleConstructComponent({ path }) {
     const {
+      name,
       valueDef,
       userTypedefs,
       onConstructComponent,
     } = this.props;
     
     onConstructComponent({
+      name,
       path,
       targetValueDef: valueDef,
       targetUserTypedefs: userTypedefs,
@@ -210,16 +240,63 @@ export class JssyValueEditor extends PureComponent {
       return description;
   }
   
+  /**
+   *
+   * @param {number} index
+   * @return {string}
+   * @private
+   */
+  _formatArrayItemLabel(index) {
+    return `Item ${index}`; // TODO: Get string from i18n
+  }
+  
+  /**
+   *
+   * @param {string} key
+   * @return {string}
+   * @private
+   */
+  _formatObjectItemLabel(key) {
+    return key;
+  }
+  
   render() {
-    const { name, value: jssyValue, valueDef, userTypedefs } = this.props;
+    const {
+      name,
+      value: jssyValue,
+      valueDef,
+      userTypedefs,
+      strings,
+      language,
+      getLocalizedText,
+    } = this.props;
     
     const _ = void 0;
     const propType = {
-      ...jssyTypedefToPropType(valueDef, _, _, _, userTypedefs),
+      ...jssyTypedefToPropType(
+        valueDef,
+        _, _, _,
+        userTypedefs,
+        this._formatArrayItemLabel,
+        this._formatObjectItemLabel,
+      ),
       label: this._formatLabel(),
+      secondaryLabel: valueDef.type,
       tooltip: this._formatTooltip(),
       linkable: this._isLinkableValue(),
     };
+    
+    if (!isEditableValue(valueDef))
+      propType.view = PropViews.EMPTY;
+    
+    if (valueDef.type === 'oneOf') {
+      propType.options = valueDef.options.map(option => ({
+        value: option.value,
+        text: option.textKey
+          ? getString(strings, option.textKey, language)
+          : (option.label || String(option.value)),
+      }));
+    }
     
     const value = jssyValue
       ? jssyValueToPropValue(jssyValue, valueDef, userTypedefs)
@@ -230,6 +307,7 @@ export class JssyValueEditor extends PureComponent {
         propName={name}
         propType={propType}
         value={value}
+        getLocalizedText={getLocalizedText}
         onChange={this._handleChange}
         onAddValue={this._handleAdd}
         onDeleteValue={this._handleDelete}

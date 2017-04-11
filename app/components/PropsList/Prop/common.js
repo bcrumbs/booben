@@ -252,28 +252,32 @@ const coerceFloatValue = value => {
 /**
  *
  * @template Extra
- * @param {JssyTypeDefinition} jssyTypedef
+ * @param {JssyValueDefinition} valueDef
  * @param {Extra} [extra=null]
  * @param {?function(jssyTypedef: JssyTypeDefinition, extra: Extra, isField: boolean, fieldName: string): Extra} [getNestedExtra=returnNull]
  * @param {function(propType: PropsItemPropType, extra: Extra, jssyTypedef: JssyTypeDefinition): PropsItemPropType} [applyExtra=returnArg]
  * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
+ * @param {?function(index: number): string} [formatArrayItemLabel=returnArg]
+ * @param {?function(key: string): string} [formatObjectKeyLabel=returnArg]
  * @return {PropsItemPropType}
  */
 export const jssyTypedefToPropType = (
-  jssyTypedef,
+  valueDef,
   extra = null,
   getNestedExtra = returnNull,
   applyExtra = returnArg,
   userTypedefs = null,
+  formatArrayItemLabel = returnArg,
+  formatObjectKeyLabel = returnArg,
 ) => {
-  jssyTypedef = resolveTypedef(jssyTypedef, userTypedefs);
+  valueDef = resolveTypedef(valueDef, userTypedefs);
   if (typeof getNestedExtra !== 'function') getNestedExtra = returnNull;
   if (typeof applyExtra !== 'function') applyExtra = returnArg;
   
   const ret = {
     label: '',
-    secondaryLabel: jssyTypedef.type,
-    view: jssyTypeToView(jssyTypedef.type),
+    secondaryLabel: valueDef.type,
+    view: jssyTypeToView(valueDef.type),
     image: '',
     tooltip: '',
     linkable: false,
@@ -283,19 +287,19 @@ export const jssyTypedefToPropType = (
     formatItemLabel: returnArg,
   };
   
-  if (jssyTypedef.type === 'int') {
+  if (valueDef.type === 'int') {
     ret.transformValue = coerceIntValue;
-  } else if (jssyTypedef.type === 'float') {
+  } else if (valueDef.type === 'float') {
     ret.transformValue = coerceFloatValue;
-  } else if (jssyTypedef.type === 'oneOf') {
-    ret.options = jssyTypedef.options.map(option => ({
+  } else if (valueDef.type === 'oneOf') {
+    ret.options = valueDef.options.map(option => ({
       value: option.value,
       text: String(option.value),
     }));
-  } else if (jssyTypedef.type === 'shape') {
-    ret.fields = _mapValues(jssyTypedef.fields, (fieldTypedef, fieldName) => {
+  } else if (valueDef.type === 'shape') {
+    ret.fields = _mapValues(valueDef.fields, (fieldTypedef, fieldName) => {
       //noinspection JSCheckFunctionSignatures
-      const nestedExtra = getNestedExtra(jssyTypedef, extra, true, fieldName);
+      const nestedExtra = getNestedExtra(valueDef, extra, true, fieldName);
       
       return jssyTypedefToPropType(
         fieldTypedef,
@@ -303,24 +307,31 @@ export const jssyTypedefToPropType = (
         getNestedExtra,
         applyExtra,
         userTypedefs,
+        formatArrayItemLabel,
+        formatObjectKeyLabel,
       );
     });
   } else if (
-    jssyTypedef.type === 'arrayOf' ||
-    jssyTypedef.type === 'objectOf'
+    valueDef.type === 'arrayOf' ||
+    valueDef.type === 'objectOf'
   ) {
     //noinspection JSCheckFunctionSignatures
-    const nestedExtra = getNestedExtra(jssyTypedef, extra, false, '');
+    const nestedExtra = getNestedExtra(valueDef, extra, false, '');
   
     ret.ofType = jssyTypedefToPropType(
-      jssyTypedef.ofType,
+      valueDef.ofType,
       nestedExtra,
       getNestedExtra,
       applyExtra,
       userTypedefs,
+      formatArrayItemLabel,
+      formatObjectKeyLabel,
     );
+    
+    if (valueDef.type === 'arrayOf') ret.formatItemLabel = formatArrayItemLabel;
+    else ret.formatItemLabel = formatObjectKeyLabel;
   }
   
   //noinspection JSCheckFunctionSignatures
-  return applyExtra(ret, extra, jssyTypedef) || ret;
+  return applyExtra(ret, extra, valueDef) || ret;
 };

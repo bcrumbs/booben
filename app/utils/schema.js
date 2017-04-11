@@ -93,6 +93,7 @@ import { arrayToObject, getter } from './misc';
 
 /**
  * @typedef {Object} DataFieldTypeDefinition
+ * @property {string} name
  * @property {string} description
  * @property {string} type
  * @property {number} kind - Can be FieldKinds.SINGLE, FieldKinds.LIST
@@ -543,6 +544,7 @@ export const parseGraphQLSchema = schema => {
     
     return {
       type: argTypeInfo.typeName,
+      name: arg.name,
       description: arg.description || '',
       kind: argTypeInfo.isList ? FieldKinds.LIST : FieldKinds.SINGLE,
       nonNull: argTypeInfo.nonNull,
@@ -569,6 +571,7 @@ export const parseGraphQLSchema = schema => {
   
     return {
       type: nodeType.name,
+      name: field.name,
       description: field.description || '',
       kind: FieldKinds.CONNECTION,
       nonNull: true,
@@ -598,6 +601,7 @@ export const parseGraphQLSchema = schema => {
   
     return {
       type: fieldTypeInfo.typeName,
+      name: field.name,
       description: field.description || '',
       kind: fieldTypeInfo.isList ? FieldKinds.LIST : FieldKinds.SINGLE,
       nonNull: fieldTypeInfo.nonNull,
@@ -817,6 +821,14 @@ export const getJssyTypeOfField = (fieldTypedef, schema) => {
       subField => getJssyTypeOfField(subField, schema),
     );
   }
+  
+  ret.label = fieldTypedef.name;
+  ret.description = fieldTypedef.description;
+  ret.source = ['static', 'state'];
+  ret.sourceConfigs = {
+    static: {},
+    state: {},
+  };
   
   return ret;
 };
