@@ -246,6 +246,7 @@ class BuilderComponent extends PureComponent {
   _performAction(action, componentId, theMap) {
     const {
       client,
+      project,
       meta,
       schema,
       components,
@@ -278,7 +279,20 @@ class BuilderComponent extends PureComponent {
         });
       
         client.mutate({ mutation, variables })
-          .then(() => {
+          .then(({ data }) => {
+            if (project.auth) {
+              if (project.auth.type === 'jwt') {
+                if (action.params.mutation === project.auth.loginMutation) {
+                  const token = _get(
+                    data,
+                    [action.params.mutation, ...project.auth.tokenPath],
+                  );
+                  
+                  if (token) localStorage.setItem('jssy_auth_token', token);
+                }
+              }
+            }
+            
             action.params.successActions.forEach(successAction =>
               void this._performAction(successAction, componentId, theMap));
           })
@@ -378,6 +392,11 @@ class BuilderComponent extends PureComponent {
           ),
         });
       
+        break;
+      }
+      
+      case 'logout': {
+        localStorage.removeItem('jssy_auth_token');
         break;
       }
     

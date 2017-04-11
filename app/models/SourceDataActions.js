@@ -43,6 +43,7 @@ export const createActionParams = type => {
     case 'url': return new URLActionParams();
     case 'method': return new MethodCallActionParams();
     case 'prop': return new PropChangeActionParams();
+    case 'logout': return null;
     default: return null;
   }
 };

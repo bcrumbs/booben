@@ -48,10 +48,24 @@ window.JSSY.initPreview = params => {
 
   if (graphQLEndpointURL) {
     ProviderComponent = ApolloProvider;
-
-    const client = new ApolloClient({
-      networkInterface: createNetworkInterface({ uri: graphQLEndpointURL }),
-    });
+    
+    const networkInterface =
+      createNetworkInterface({ uri: graphQLEndpointURL });
+    
+    if (state.project.data.auth) {
+      if (state.project.data.auth.type === 'jwt') {
+        networkInterface.use([{
+          applyMiddleware(req, next) {
+            if (!req.options.headers) req.options.headers = {};
+            const token = localStorage.getItem('jssy_auth_token');
+            if (token) req.options.headers.Authorization = `Bearer ${token}`;
+            next();
+          },
+        }]);
+      }
+    }
+    
+    const client = new ApolloClient({ networkInterface });
 
     providerProps = {
       client,
