@@ -27,10 +27,7 @@ import {
   PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
   PROJECT_CREATE_FUNCTION,
   PROJECT_UPDATE_QUERY_ARGS,
-  PROJECT_JSSY_VALUE_UPDATE,
   PROJECT_JSSY_VALUE_REPLACE,
-  PROJECT_JSSY_VALUE_ADD,
-  PROJECT_JSSY_VALUE_DELETE,
   PROJECT_JSSY_VALUE_ADD_ACTION,
   PROJECT_JSSY_VALUE_REPLACE_ACTION,
   PROJECT_JSSY_VALUE_DELETE_ACTION,
@@ -870,16 +867,6 @@ const updateValue = (state, path, newValue) => {
   return state.setIn(expandPath(path, state), newValue);
 };
 
-const addValue = (state, path, index, newValue) => state.updateIn(
-  expandPath(path, state),
-  jssyValue => jssyValue.addValueInStatic(index, newValue),
-);
-
-const deleteValue = (state, path, index) => state.updateIn(
-  expandPath(path, state),
-  jssyValue => jssyValue.deleteValueInStatic(index),
-);
-
 const getPathToComponentWithQueryArgs = (state, dataContext) => {
   let currentNestedConstructorIndex =
     state.nestedConstructors.size > 0 ? 0 : -1;
@@ -1082,35 +1069,8 @@ const handlers = {
     return deleteComponent(state, action.componentId);
   },
   
-  [PROJECT_JSSY_VALUE_UPDATE]: (state, action) => {
-    const newValue = new JssyValue({
-      source: action.newSource,
-      sourceData: sourceDataToImmutable(
-        action.newSource,
-        action.newSourceData,
-      ),
-    });
-    
-    return updateValue(state, action.path, newValue);
-  },
-  
   [PROJECT_JSSY_VALUE_REPLACE]: (state, action) =>
     updateValue(state, action.path, action.newValue),
-  
-  [PROJECT_JSSY_VALUE_ADD]: (state, action) => {
-    const newValue = new JssyValue({
-      source: action.source,
-      sourceData: sourceDataToImmutable(
-        action.source,
-        action.sourceData,
-      ),
-    });
-    
-    return addValue(state, action.path, action.index, newValue);
-  },
-  
-  [PROJECT_JSSY_VALUE_DELETE]: (state, action) =>
-    deleteValue(state, action.path, action.index),
   
   [PROJECT_JSSY_VALUE_ADD_ACTION]: (state, action) => {
     const path = expandPath(action.path, state);

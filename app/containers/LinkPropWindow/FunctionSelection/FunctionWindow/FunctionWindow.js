@@ -6,11 +6,11 @@
 
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
-import { Map } from 'immutable';
+import { List, Map } from 'immutable';
 import { makeDefaultValue } from '@jssy/types';
 import { Button } from '@reactackle/reactackle';
 import ProjectFunctionRecord from '../../../../models/ProjectFunction';
-import JssyValue from '../../../../models/JssyValue';
+import { jssyValueToImmutable } from '../../../../models/ProjectComponent';
 
 import {
   BlockContent,
@@ -26,6 +26,7 @@ import {
 import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
 import { PropsList } from '../../../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
+import { buildDefaultValue } from '../../../../utils/meta';
 import { noop, returnArg } from '../../../../utils/misc';
 
 //noinspection JSUnresolvedVariable
@@ -46,22 +47,49 @@ const defaultProps = {
   onReturnToList: noop,
 };
 
-const makeDefaultValueForArg = arg =>
-  JssyValue.staticFromJS(makeDefaultValue(arg.typedef));
-
-const makeDefaultValuesForArgs = functionDef =>
-  functionDef.args.map(arg =>
-    arg.isRequired ? makeDefaultValueForArg(arg) : null);
+/**
+ *
+ * @param {Object} arg - FunctionArgument Record
+ * @return {JssyValueDefinition}
+ */
+const getValueDef = arg => ({
+  ...arg.typedef,
+  label: arg.name,
+  description: arg.description,
+  source: ['static'], // TODO: Compute sources list based on link target?
+  sourceConfigs: {
+    static: {
+      default: makeDefaultValue(arg.typedef),
+    },
+  },
+});
 
 /**
  *
- * @param {Immutable.List<JssyValue>} argValues
- * @param {Object} functionDef
- * @return {Immutable.Map<string, JssyValue>}
+ * @param {Object} functionDef - ProjectFunction Record
+ * @return {JssyValueDefinition[]}
  */
-const argValuesToMap = (argValues, functionDef) =>
+const getValueDefs = functionDef =>
+  Array.from(functionDef.args.map(getValueDef));
+
+/**
+ *
+ * @param {JssyValueDefinition[]} argValueDefs
+ * @return {Immutable.List<Object>} - List of JssyValues
+ */
+const makeDefaultValues = argValueDefs => List(argValueDefs.map(
+  valueDef => jssyValueToImmutable(buildDefaultValue(valueDef)),
+));
+
+/**
+ *
+ * @param {Immutable.List<Object>} values - List of JssyValues
+ * @param {Object} functionDef - ProjectFunction Record
+ * @return {Immutable.Map<string, Object>} - Map of string -> JssyValue
+ */
+const argValuesToMap = (values, functionDef) =>
   Map().withMutations(map => {
-    argValues.forEach((value, idx) => {
+    values.forEach((value, idx) => {
       map.set(functionDef.args.get(idx).name, value);
     });
   });
@@ -69,9 +97,11 @@ const argValuesToMap = (argValues, functionDef) =>
 export class FunctionWindow extends PureComponent {
   constructor(props) {
     super(props);
+  
+    this._argsValueDefs = getValueDefs(props.functionDef);
 
     this.state = {
-      values: makeDefaultValuesForArgs(props.functionDef),
+      values: makeDefaultValues(this._argsValueDefs),
     };
     
     this._handleBreadcrumbsClick = this._handleBreadcrumbsClick.bind(this);
@@ -82,8 +112,10 @@ export class FunctionWindow extends PureComponent {
   
   componentWillReceiveProps(nextProps) {
     if (nextProps.functionDef !== this.props.functionDef) {
+      this._argsValueDefs = getValueDefs(nextProps.functionDef);
+      
       this.setState({
-        values: makeDefaultValuesForArgs(nextProps.functionDef),
+        values: makeDefaultValues(this._argsValueDefs),
       });
     }
   }
@@ -133,20 +165,22 @@ export class FunctionWindow extends PureComponent {
     const { functionDef, getLocalizedText, onLink } = this.props;
     const { values } = this.state;
     
-    const props = functionDef.args.map((arg, idx) => (
-      <JssyValueEditor
-        key={String(idx)}
-        name={String(idx)}
-        value={values.get(idx) || null}
-        valueDef={arg.typedef}
-        optional={!arg.isRequired}
-        label={arg.name}
-        description={arg.description}
-        getLocalizedText={getLocalizedText}
-        onChange={this._handleChange}
-        onLink={onLink}
-      />
-    ));
+    const props = functionDef.args.map((arg, idx) => {
+      const valueDef = this._argsValueDefs[idx];
+      
+      return (
+        <JssyValueEditor
+          key={String(idx)}
+          name={String(idx)}
+          value={values.get(idx)}
+          valueDef={valueDef}
+          optional={!arg.isRequired}
+          getLocalizedText={getLocalizedText}
+          onChange={this._handleChange}
+          onLink={onLink}
+        />
+      );
+    });
     
     return (
       <PropsList>

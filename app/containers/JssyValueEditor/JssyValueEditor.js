@@ -33,8 +33,8 @@ import { noop, returnArg, objectSome } from '../../utils/misc';
 
 const propTypes = {
   name: PropTypes.string.isRequired,
-  value: PropTypes.instanceOf(JssyValue).isRequired,
   valueDef: PropTypes.object.isRequired,
+  value: PropTypes.instanceOf(JssyValue),
   optional: PropTypes.bool,
   userTypedefs: PropTypes.object,
   strings: PropTypes.object,
@@ -50,6 +50,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+  value: null,
   optional: false,
   userTypedefs: null,
   strings: null,
