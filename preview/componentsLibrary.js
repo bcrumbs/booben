@@ -7,16 +7,22 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import _mapValues from 'lodash.mapvalues';
-// The real components.js will be generated during build process
 import patchComponent from './hocs/patchComponent';
 import { parseComponentName } from '../app/utils/meta';
 
+// These modules are external in the components bundle
 window.React = React;
 window.ReactDOM = ReactDOM;
 window.PropTypes = React.PropTypes;
 
+const COMPONENTS_BUNDLE_FILE = 'components.js';
+
 let components = null;
 
+/**
+ *
+ * @return {Promise}
+ */
 const loadComponentsBundle = () => new Promise((resolve, reject) => {
   const document = window.document;
   const head = document.head || document.getElementsByTagName('head')[0];
@@ -30,9 +36,13 @@ const loadComponentsBundle = () => new Promise((resolve, reject) => {
     () => void reject(new Error('Failed to load components bundle'));
 
   head.appendChild(script);
-  script.src = 'components.js';
+  script.src = COMPONENTS_BUNDLE_FILE;
 });
 
+/**
+ *
+ * @return {Promise}
+ */
 export const loadComponents = () => loadComponentsBundle()
   .then(() => {
     if (!window.JssyComponents || !window.JssyComponents.default)

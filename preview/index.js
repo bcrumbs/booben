@@ -23,12 +23,13 @@ window.JSSY = {
 };
 
 /**
- * Mount Preview and Overlay
+ * Load components bundle, then mount Preview and Overlay
  *
  * @param {Object} params
  * @param {Object} params.store
  * @param {boolean} params.interactive
  * @param {string} params.containerStyle
+ * @return {Promise}
  */
 window.JSSY.initPreview = params => {
   if (window.JSSY.initialized) return Promise.resolve();
