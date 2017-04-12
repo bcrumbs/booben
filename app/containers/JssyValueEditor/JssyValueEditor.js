@@ -33,8 +33,8 @@ import { noop, returnArg, objectSome } from '../../utils/misc';
 
 const propTypes = {
   name: PropTypes.string.isRequired,
-  value: PropTypes.instanceOf(JssyValue).isRequired,
   valueDef: PropTypes.object.isRequired,
+  value: PropTypes.instanceOf(JssyValue),
   optional: PropTypes.bool,
   userTypedefs: PropTypes.object,
   strings: PropTypes.object,
@@ -50,6 +50,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+  value: null,
   optional: false,
   userTypedefs: null,
   strings: null,
@@ -129,6 +130,12 @@ export class JssyValueEditor extends PureComponent {
       this._propType = null;
   }
   
+  /**
+   *
+   * @param {*} value
+   * @param {(string|number)[]} path
+   * @private
+   */
   _handleChange({ value, path }) {
     const { name, value: currentValue, onChange } = this.props;
     
@@ -139,6 +146,12 @@ export class JssyValueEditor extends PureComponent {
     onChange({ name, value: newValue });
   }
   
+  /**
+   *
+   * @param {(string|number)[]} where
+   * @param {string|number} index
+   * @private
+   */
   _handleAdd({ where, index }) {
     const {
       name,
@@ -168,6 +181,12 @@ export class JssyValueEditor extends PureComponent {
     onChange({ name, value: newValue });
   }
   
+  /**
+   *
+   * @param {(string|number)[]} where
+   * @param {string|number} index
+   * @private
+   */
   _handleDelete({ where, index }) {
     const { name, value: currentValue, onChange } = this.props;
     
@@ -181,6 +200,11 @@ export class JssyValueEditor extends PureComponent {
     onChange({ name, value: newValue });
   }
   
+  /**
+   *
+   * @param {(string|number)[]} path
+   * @private
+   */
   _handleLink({ path }) {
     const {
       name,
@@ -201,6 +225,11 @@ export class JssyValueEditor extends PureComponent {
     });
   }
   
+  /**
+   *
+   * @param {(string|number)[]} path
+   * @private
+   */
   _handleUnlink({ path }) {
     const {
       name,
@@ -226,7 +255,13 @@ export class JssyValueEditor extends PureComponent {
   
     onChange({ name, value: newValue });
   }
-
+  
+  /**
+   *
+   * @param {(string|number)[]} path
+   * @param {boolean} checked
+   * @private
+   */
   _handleCheck({ path, checked }) {
     const {
       name,
@@ -278,6 +313,11 @@ export class JssyValueEditor extends PureComponent {
     }
   }
   
+  /**
+   *
+   * @param {(string|number)[]} path
+   * @private
+   */
   _handleConstructComponent({ path }) {
     const {
       name,
@@ -294,6 +334,12 @@ export class JssyValueEditor extends PureComponent {
     });
   }
   
+  /**
+   *
+   * @param {JssyValueDefinition} valueDef
+   * @return {boolean}
+   * @private
+   */
   _isLinkableValue(valueDef) {
     const {
       userTypedefs,
@@ -318,7 +364,14 @@ export class JssyValueEditor extends PureComponent {
     });
   }
   
-  _formatLabel(valueDef, fallback) {
+  /**
+   *
+   * @param {JssyValueDefinition|ComponentPropMeta} valueDef
+   * @param {string} [fallback='']
+   * @return {string}
+   * @private
+   */
+  _formatLabel(valueDef, fallback = '') {
     const { strings, language } = this.props;
     
     if (valueDef.textKey && strings && language)
@@ -327,7 +380,14 @@ export class JssyValueEditor extends PureComponent {
       return valueDef.label || fallback || '';
   }
   
-  _formatTooltip(valueDef, fallback) {
+  /**
+   *
+   * @param {JssyValueDefinition|ComponentPropMeta} valueDef
+   * @param {string} [fallback='']
+   * @return {string}
+   * @private
+   */
+  _formatTooltip(valueDef, fallback = '') {
     const { strings, language } = this.props;
   
     if (valueDef.descriptionTextKey && strings && language)
@@ -527,7 +587,7 @@ export class JssyValueEditor extends PureComponent {
     } = this.props;
 
     const propType = {
-      ...this._getPropType(valueDef, label, description),
+      ...this._getPropType(valueDef, false, label, description),
       checkable: optional,
     };
     

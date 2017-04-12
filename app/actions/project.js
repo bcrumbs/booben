@@ -35,14 +35,8 @@ export const PROJECT_CREATE_FUNCTION =
 export const PROJECT_UPDATE_QUERY_ARGS =
   'PROJECT_UPDATE_QUERY_ARGS';
 
-export const PROJECT_JSSY_VALUE_UPDATE =
-  'PROJECT_JSSY_VALUE_UPDATE';
 export const PROJECT_JSSY_VALUE_REPLACE =
   'PROJECT_JSSY_VALUE_REPLACE';
-export const PROJECT_JSSY_VALUE_ADD =
-  'PROJECT_JSSY_VALUE_ADD';
-export const PROJECT_JSSY_VALUE_DELETE =
-  'PROJECT_JSSY_VALUE_DELETE';
 export const PROJECT_JSSY_VALUE_ADD_ACTION =
   'PROJECT_JSSY_VALUE_ADD_ACTION';
 export const PROJECT_JSSY_VALUE_REPLACE_ACTION =
@@ -181,20 +175,6 @@ export const updateQueryArgs = (dataContext, newArgs) => ({
 
 /**
  *
- * @param {Path} path - Path to JssyValue
- * @param {string} newSource
- * @param {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner} newSourceData
- * @return {Object}
- */
-export const updateJssyValue = (path, newSource, newSourceData) => ({
-  type: PROJECT_JSSY_VALUE_UPDATE,
-  path,
-  newSource,
-  newSourceData,
-});
-
-/**
- *
  * @param {Path} path
  * @param {JssyValue} newValue
  * @return {Object}
@@ -203,34 +183,6 @@ export const replaceJssyValue = (path, newValue) => ({
   type: PROJECT_JSSY_VALUE_REPLACE,
   path,
   newValue,
-});
-
-/**
- *
- * @param {Path} path - Path to arrayOf/objectOf JssyValue
- * @param {string|number} index
- * @param {string} source
- * @param {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner} sourceData
- * @return {Object}
- */
-export const addJssyValue = (path, index, source, sourceData) => ({
-  type: PROJECT_JSSY_VALUE_ADD,
-  path,
-  index,
-  source,
-  sourceData,
-});
-
-/**
- *
- * @param {Path} path - Path to arrayOf/objectOf JssyValue
- * @param {string|number} index
- * @return {Object}
- */
-export const deleteJssyValue = (path, index) => ({
-  type: PROJECT_JSSY_VALUE_DELETE,
-  path,
-  index,
 });
 
 /**
