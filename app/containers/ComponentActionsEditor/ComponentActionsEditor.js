@@ -269,8 +269,33 @@ class ComponentActionsEditorComponent extends PureComponent {
         const targetComponent =
           currentComponents.get(action.params.componentId);
         
+        const targetComponentMeta =
+          getComponentMeta(targetComponent.name, meta);
+        
+        const isSystemProp = !!action.params.systemPropName;
+        
+        let nameString;
+        if (isSystemProp) {
+          const nameKey =
+            `propsEditor.systemProps.${action.params.systemPropName}.name`;
+          
+          nameString = getLocalizedText(nameKey);
+          
+          if (!nameString) nameString = action.params.systemPropName;
+        } else {
+          const propMeta = targetComponentMeta.props[action.params.propName];
+          
+          nameString = getString(
+            targetComponentMeta.strings,
+            propMeta.textKey,
+            language,
+          );
+          
+          if (!nameString) nameString = action.params.propName;
+        }
+        
         return getLocalizedText('actionsEditor.actionTitle.prop', {
-          propName: action.params.propName,
+          propName: nameString,
           componentTitle: targetComponent.title || targetComponent.name,
         });
       }

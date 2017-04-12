@@ -12,21 +12,19 @@ import { noop, returnArg } from '../../../utils/misc';
 
 const propTypes = {
   ...PropBase.propTypes,
-  haveComponent: PropTypes.bool,
   disabled: PropTypes.bool,
   getLocalizedText: PropTypes.func,
-  onSetComponent: PropTypes.func,
+  onPickComponent: PropTypes.func,
 };
 
 const defaultProps = {
   ...PropBase.defaultProps,
-  haveComponent: false,
   disabled: false,
   getLocalizedText: returnArg,
-  onSetComponent: noop,
+  onPickComponent: noop,
 };
 
-export class PropComponent extends PropBase {
+export class PropComponentPicker extends PropBase {
   //noinspection JSUnusedGlobalSymbols
   /**
    *
@@ -35,30 +33,20 @@ export class PropComponent extends PropBase {
    * @private
    */
   _renderContent() {
-    const {
-      haveComponent,
-      disabled,
-      getLocalizedText,
-      onSetComponent,
-    } = this.props;
-    
-    //noinspection JSCheckFunctionSignatures
-    const text = haveComponent
-      ? getLocalizedText('props.component.editComponent')
-      : getLocalizedText('props.component.setComponent');
+    const { disabled, getLocalizedText, onPickComponent } = this.props;
     
     //noinspection JSValidateTypes
     return (
       <Button
         kind="link"
-        text={text}
+        text={getLocalizedText('props.componentPicker.pickComponent')}
         disabled={disabled}
-        onPress={onSetComponent}
+        onPress={onPickComponent}
       />
     );
   }
 }
 
-PropComponent.propTypes = propTypes;
-PropComponent.defaultProps = defaultProps;
-PropComponent.displayName = 'PropComponent';
+PropComponentPicker.propTypes = propTypes;
+PropComponentPicker.defaultProps = defaultProps;
+PropComponentPicker.displayName = 'PropComponentPicker';

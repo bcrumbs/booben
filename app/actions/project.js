@@ -55,6 +55,13 @@ export const PROJECT_LINK_DIALOG_OPEN =
 export const PROJECT_LINK_DIALOG_CLOSE =
   'PROJECT_JSSY_VALUE_LINK_CANCEL';
 
+export const PROJECT_PICK_COMPONENT =
+  'PROJECT_PICK_COMPONENT';
+export const PROJECT_PICK_COMPONENT_DONE =
+  'PROJECT_PICK_COMPONENT_DONE';
+export const PROJECT_PICK_COMPONENT_CANCEL =
+  'PROJECT_PICK_COMPONENT_CANCEL';
+
 /**
  *
  * @param {string} projectName
@@ -255,7 +262,7 @@ export const saveComponentForProp = () => ({
 
 /**
  *
- * @param {(string|number)[]} path
+ * @param {Path} path
  * @return {Object}
  */
 export const linkDialogOpen = path => ({
@@ -332,4 +339,32 @@ export const createFunction = (
   args,
   returnType,
   code,
+});
+
+/**
+ *
+ * @param {?Function} [filter=null]
+ * @return {Object}
+ */
+export const pickComponent = (filter = null) => ({
+  type: PROJECT_PICK_COMPONENT,
+  filter,
+});
+
+/**
+ *
+ * @param {number} componentId
+ * @return {Object}
+ */
+export const pickComponentDone = componentId => ({
+  type: PROJECT_PICK_COMPONENT_DONE,
+  componentId,
+});
+
+/**
+ *
+ * @return {Object}
+ */
+export const pickComponentCancel = () => ({
+  type: PROJECT_PICK_COMPONENT_CANCEL,
 });

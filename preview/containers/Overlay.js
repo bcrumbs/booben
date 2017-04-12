@@ -27,7 +27,19 @@ const propTypes = {
   highlightingEnabled: PropTypes.bool.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
   showComponentTitles: PropTypes.bool.isRequired,
+  pickingComponent: PropTypes.bool.isRequired,
 };
+
+const mapStateToProps = state => ({
+  components: currentComponentsSelector(state),
+  selectedComponentIds: currentSelectedComponentIdsSelector(state),
+  highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
+  boundaryComponentId: currentRootComponentIdSelector(state),
+  highlightingEnabled: state.project.highlightingEnabled,
+  draggingComponent: state.project.draggingComponent,
+  showComponentTitles: state.app.showComponentTitles,
+  pickingComponent: state.project.pickingComponent,
+});
 
 const HIGHLIGHT_COLOR = 'rgba(0, 113, 216, 0.3)';
 const SELECT_COLOR = 'rgba(0, 113, 216, 1)';
@@ -85,12 +97,14 @@ class Overlay extends PureComponent {
    * @private
    */
   _renderTitles() {
+    const { components } = this.props;
+    
     // TODO: Handle cases when multiple titles appear in the same place
 
     //noinspection JSValidateTypes
-    return this.props.components.valueSeq().map(component => {
-      const element = getDOMElementByComponentId(component.id),
-        title = component.title || component.name;
+    return components.valueSeq().map(component => {
+      const element = getDOMElementByComponentId(component.id);
+      const title = component.title || component.name;
 
       return (
         <OverlayComponentTitle
@@ -103,25 +117,41 @@ class Overlay extends PureComponent {
   }
 
   render() {
-    const highlightBoxes = this.props.highlightingEnabled
+    const {
+      draggingComponent,
+      pickingComponent,
+      highlightingEnabled,
+      showComponentTitles,
+      highlightedComponentIds,
+      selectedComponentIds,
+      boundaryComponentId,
+    } = this.props;
+    
+    const highlightBoxes = highlightingEnabled
       ? this._renderBoundingBoxes(
-        this.props.highlightedComponentIds,
+        highlightedComponentIds,
         HIGHLIGHT_COLOR,
       )
       : null;
 
-    const selectBoxes =
-      this._renderBoundingBoxes(this.props.selectedComponentIds, SELECT_COLOR);
-
-    let rootComponentBox = null;
-    if (this.props.draggingComponent && this.props.boundaryComponentId > -1) {
-      rootComponentBox = this._renderBoundingBoxes(
-        Set([this.props.boundaryComponentId]),
-        BOUNDARY_COLOR,
+    const selectBoxes = pickingComponent
+      ? null
+      : this._renderBoundingBoxes(selectedComponentIds, SELECT_COLOR);
+    
+    const willRenderBoundaryBox =
+      boundaryComponentId > -1 && (
+        pickingComponent ||
+        draggingComponent
       );
-    }
+  
+    const rootComponentBox = willRenderBoundaryBox
+      ? this._renderBoundingBoxes(
+        Set([boundaryComponentId]),
+        BOUNDARY_COLOR,
+      )
+      : null;
 
-    const titles = this.props.showComponentTitles
+    const titles = showComponentTitles
       ? this._renderTitles()
       : null;
 
@@ -138,15 +168,5 @@ class Overlay extends PureComponent {
 
 Overlay.propTypes = propTypes;
 Overlay.displayName = 'Overlay';
-
-const mapStateToProps = state => ({
-  components: currentComponentsSelector(state),
-  selectedComponentIds: currentSelectedComponentIdsSelector(state),
-  highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
-  boundaryComponentId: currentRootComponentIdSelector(state),
-  highlightingEnabled: state.project.highlightingEnabled,
-  draggingComponent: state.project.draggingComponent,
-  showComponentTitles: state.app.showComponentTitles,
-});
 
 export default connect(mapStateToProps)(Overlay);

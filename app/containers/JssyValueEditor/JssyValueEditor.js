@@ -368,11 +368,14 @@ export class JssyValueEditor extends PureComponent {
    *
    * @param {JssyValueDefinition|ComponentPropMeta} valueDef
    * @param {string} [fallback='']
+   * @param {string} [override='']
    * @return {string}
    * @private
    */
-  _formatLabel(valueDef, fallback = '') {
+  _formatLabel(valueDef, fallback = '', override = '') {
     const { strings, language } = this.props;
+    
+    if (override) return override;
     
     if (valueDef.textKey && strings && language)
       return getString(strings, valueDef.textKey, language);
@@ -384,11 +387,14 @@ export class JssyValueEditor extends PureComponent {
    *
    * @param {JssyValueDefinition|ComponentPropMeta} valueDef
    * @param {string} [fallback='']
+   * @param {string} [override='']
    * @return {string}
    * @private
    */
-  _formatTooltip(valueDef, fallback = '') {
+  _formatTooltip(valueDef, fallback = '', override = '') {
     const { strings, language } = this.props;
+  
+    if (override) return override;
   
     if (valueDef.descriptionTextKey && strings && language)
       return getString(strings, valueDef.descriptionTextKey, language);
@@ -422,14 +428,20 @@ export class JssyValueEditor extends PureComponent {
    * @param {boolean} [noCache=false]
    * @param {string} [labelFallback='']
    * @param {string} [descriptionFallback='']
+   * @param {string} [labelOverride='']
+   * @param {string} [descriptionOverride='']
    * @return {PropsItemPropType}
    * @private
    */
   _getPropType(
     valueDef,
-    noCache = false,
-    labelFallback = '',
-    descriptionFallback = '',
+    {
+      noCache = false,
+      labelFallback = '',
+      descriptionFallback = '',
+      labelOverride = '',
+      descriptionOverride = '',
+    } = {},
   ) {
     if (this._propType && !noCache) return this._propType;
 
@@ -437,13 +449,19 @@ export class JssyValueEditor extends PureComponent {
     const resolvedValueDef = resolveTypedef(valueDef, userTypedefs);
 
     const ret = {
-      label: this._formatLabel(resolvedValueDef, labelFallback),
+      label: this._formatLabel(resolvedValueDef, labelFallback, labelOverride),
       secondaryLabel: resolvedValueDef.type,
       view: isEditableValue(resolvedValueDef)
         ? jssyTypeToView(resolvedValueDef.type)
         : PropViews.EMPTY,
+      
       image: '',
-      tooltip: this._formatTooltip(resolvedValueDef, descriptionFallback),
+      tooltip: this._formatTooltip(
+        resolvedValueDef,
+        descriptionFallback,
+        descriptionOverride,
+      ),
+      
       linkable: this._isLinkableValue(resolvedValueDef),
       checkable: !resolvedValueDef.required,
       required: !!resolvedValueDef.required,
@@ -466,14 +484,18 @@ export class JssyValueEditor extends PureComponent {
       ret.fields = _mapValues(
         resolvedValueDef.fields,
 
-        (fieldTypedef, fieldName) =>
-          this._getPropType(fieldTypedef, true, fieldName),
+        (fieldTypedef, fieldName) => this._getPropType(fieldTypedef, {
+          noCache: true,
+          labelFallback: fieldName,
+        }),
       );
     } else if (
       resolvedValueDef.type === TypeNames.ARRAY_OF ||
       resolvedValueDef.type === TypeNames.OBJECT_OF
     ) {
-      ret.ofType = this._getPropType(resolvedValueDef.ofType, true);
+      ret.ofType = this._getPropType(resolvedValueDef.ofType, {
+        noCache: true,
+      });
 
       if (resolvedValueDef.type === TypeNames.ARRAY_OF)
         ret.formatItemLabel = this._formatArrayItemLabel;
@@ -587,7 +609,11 @@ export class JssyValueEditor extends PureComponent {
     } = this.props;
 
     const propType = {
-      ...this._getPropType(valueDef, false, label, description),
+      ...this._getPropType(valueDef, {
+        labelOverride: label,
+        descriptionOverride: description,
+      }),
+      
       checkable: optional,
     };
     

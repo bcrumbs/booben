@@ -36,6 +36,9 @@ import {
   PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE,
   PROJECT_LINK_DIALOG_OPEN,
   PROJECT_LINK_DIALOG_CLOSE,
+  PROJECT_PICK_COMPONENT,
+  PROJECT_PICK_COMPONENT_DONE,
+  PROJECT_PICK_COMPONENT_CANCEL,
 } from '../actions/project';
 
 import {
@@ -83,7 +86,6 @@ import {
 } from '../models/Project';
 
 import ProjectComponent, {
-  sourceDataToImmutable,
   gatherComponentsTreeIds,
   isRootComponent,
   walkSimpleProps,
@@ -153,6 +155,10 @@ const ProjectState = Record({
   nestedConstructors: List(),
   linkingProp: false,
   linkingPath: null,
+  
+  pickingComponent: false,
+  pickingComponentFilter: null,
+  pickedComponentId: -1,
 });
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
@@ -235,6 +241,11 @@ const highlightComponent = (state, componentId) => state.updateIn(
 const unhighlightComponent = (state, componentId) => state.updateIn(
   getPathToCurrentHighlightedComponentIds(state),
   highlightedComponentIds => highlightedComponentIds.delete(componentId),
+);
+
+const unhighlightAllComponents = state => state.setIn(
+  getPathToCurrentHighlightedComponentIds(state),
+  Set(),
 );
 
 const addComponents = (state, parentComponentId, position, components) => {
@@ -1308,6 +1319,28 @@ const handlers = {
     fn = fn.set('returnType', { type: action.returnType });
     return state.setIn(['data', 'functions', action.name], fn);
   },
+  
+  [PROJECT_PICK_COMPONENT]: (state, action) => {
+    state = unhighlightAllComponents(state);
+    
+    return state.merge({
+      pickingComponent: true,
+      pickingComponentFilter: action.filter,
+      pickedComponentId: -1,
+    });
+  },
+  
+  [PROJECT_PICK_COMPONENT_DONE]: (state, action) => state.merge({
+    pickingComponent: false,
+    pickingComponentFilter: null,
+    pickedComponentId: action.componentId,
+  }),
+  
+  [PROJECT_PICK_COMPONENT_CANCEL]: state => state.merge({
+    pickingComponent: false,
+    pickingComponentFilter: null,
+    pickedComponentId: -1,
+  }),
   
   [PREVIEW_DRAG_OVER_COMPONENT]: (state, action) => state.merge({
     draggingOverComponentId: action.componentId,

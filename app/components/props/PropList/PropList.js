@@ -11,19 +11,23 @@ import { PropBase } from '../PropBase/PropBase';
 import { noop } from '../../../utils/misc';
 
 const propTypes = {
+  ...PropBase.propTypes,
   value: PropTypes.any,
   options: PropTypes.arrayOf(PropTypes.shape({
     value: PropTypes.any,
     text: PropTypes.string,
     disabled: PropTypes.bool,
   })),
+  placeholder: PropTypes.string,
   disabled: PropTypes.bool,
   onChange: PropTypes.func,
 };
 
 const defaultProps = {
+  ...PropBase.defaultProps,
   value: null,
   options: [],
+  placeholder: '',
   disabled: false,
   onChange: noop,
 };
@@ -40,7 +44,8 @@ export class PropList extends PropBase {
    * @private
    */
   _handleChange({ value }) {
-    this.props.onChange({ id: this.props.id, value });
+    const { id, onChange } = this.props;
+    onChange({ id, value });
   }
   
   //noinspection JSUnusedGlobalSymbols
@@ -50,21 +55,31 @@ export class PropList extends PropBase {
    * @private
    */
   _renderContent() {
-    if (this.props.checkable && !this.props.checked) return null;
+    const {
+      checkable,
+      checked,
+      options,
+      value,
+      placeholder,
+      disabled,
+    } = this.props;
+    
+    if (checkable && !checked) return null;
     
     //noinspection JSValidateTypes
     return (
       <SelectBox
         stateless
-        data={this.props.options}
-        value={this.props.value}
-        disabled={this.props.disabled}
+        data={options}
+        value={value}
+        placeholder={placeholder}
+        disabled={disabled}
         onChange={this._handleChange}
       />
     );
   }
 }
 
-PropList.propTypes = { ...PropBase.propTypes, ...propTypes };
-PropList.defaultProps = { ...PropBase.defaultProps, ...defaultProps };
+PropList.propTypes = propTypes;
+PropList.defaultProps = defaultProps;
 PropList.displayName = 'PropList';
