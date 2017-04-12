@@ -13,23 +13,35 @@ import { parseComponentName } from '../app/utils/meta';
 
 window.React = React;
 window.ReactDOM = ReactDOM;
+window.PropTypes = React.PropTypes;
 
 let components = null;
 
-export const loadComponents = () => Promise.resolve(components)
-  .then(_components => {
-    if (_components) return _components;
+const loadComponentsBundle = () => new Promise((resolve, reject) => {
+  const document = window.document;
+  const head = document.head || document.getElementsByTagName('head')[0];
+  const script = document.createElement('script');
 
-    return new Promise(resolve => {
-      require.ensure(['./bundle/components'], require => {
-        components = _mapValues(
-          require('./bundle/components'),
-          ns => _mapValues(ns, patchComponent),
-        );
+  script.type = 'application/javascript';
+  script.onload =
+    () => void resolve();
 
-        resolve(components);
-      }, 'components');
-    });
+  script.onerror =
+    () => void reject(new Error('Failed to load components bundle'));
+
+  head.appendChild(script);
+  script.src = 'components.js';
+});
+
+export const loadComponents = () => loadComponentsBundle()
+  .then(() => {
+    if (!window.JssyComponents)
+      throw new Error('No components in bundle');
+
+    components = _mapValues(
+      window.JssyComponents,
+      ns => _mapValues(ns, patchComponent),
+    );
   });
 
 /**

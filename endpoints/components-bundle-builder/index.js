@@ -4,21 +4,18 @@
 
 'use strict';
 
-const co = require('co'),
-  thenify = require('thenify'),
-  path = require('path'),
-  exec = require('mz/child_process').exec,
-  fs = require('mz/fs'),
-  rmrf = thenify(require('rimraf')),
-  printObject = require('js-object-pretty-print').pretty,
-  webpack = require('webpack'),
-  HtmlWebpackPlugin = require('html-webpack-plugin'),
-  asyncUtils = require('@common/async-utils'),
-  config = require('../../config'),
-  gatherMetadata = require('@jssy/metadata').gatherMetadata,
-  constants = require('../../common/constants'),
-  sharedConstants = require('../../shared/constants'),
-  logger = require('../../common/logger');
+const co = require('co');
+const thenify = require('thenify');
+const path = require('path');
+const exec = require('mz/child_process').exec;
+const fs = require('mz/fs');
+const rmrf = thenify(require('rimraf'));
+const webpack = require('webpack');
+const asyncUtils = require('@common/async-utils');
+const config = require('../../config');
+const gatherMetadata = require('@jssy/metadata').gatherMetadata;
+const constants = require('../../common/constants');
+const logger = require('../../common/logger');
 
 /**
  *
@@ -98,12 +95,6 @@ const generateBundleCode = libsData => {
   return ret;
 };
 
-const generateIndexCode = () => `
-  require.ensure(['./components'], require => {
-    const _ = require('./components');
-  }, 'components');
-`;
-
 /**
  *
  * @param {string} projectDir
@@ -115,16 +106,19 @@ const generateWebpackConfig = (projectDir, libsData) => {
     context: projectDir,
 
     entry: {
-      bundle: './index',
+      components: './components',
     },
 
     externals: {
       react: 'React',
       'react-dom': 'ReactDOM',
+      'prop-types': 'PropTypes',
     },
 
     output: {
       path: path.join(projectDir, 'build'),
+      library: 'JssyComponents',
+      libraryTarget: 'var',
     },
 
     resolve: {
@@ -373,10 +367,6 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
   const code = generateBundleCode(libsData);
   const codeFile = path.join(projectDir, constants.PROJECT_COMPONENTS_SRC_FILE);
   yield fs.writeFile(codeFile, code);
-
-  const indexCode = generateIndexCode();
-  const indexCodeFile = path.join(projectDir, 'index.js');
-  yield fs.writeFile(indexCodeFile, indexCode);
 
   logger.debug(`[${project.name}] Compiling preview app`);
 
