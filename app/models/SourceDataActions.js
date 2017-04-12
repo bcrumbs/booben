@@ -43,6 +43,7 @@ export const createActionParams = type => {
     case 'url': return new URLActionParams();
     case 'method': return new MethodCallActionParams();
     case 'prop': return new PropChangeActionParams();
+    case 'logout': return null;
     default: return null;
   }
 };
@@ -72,7 +73,7 @@ Action.isValidPathStep = (step, current) => {
     return false;
 };
 
-Action.expandPathStep = step => [step];
+Action.expandPathStep = step => ['params', step];
 
 export default Record({
   actions: List(),

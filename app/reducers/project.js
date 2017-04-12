@@ -27,10 +27,7 @@ import {
   PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
   PROJECT_CREATE_FUNCTION,
   PROJECT_UPDATE_QUERY_ARGS,
-  PROJECT_JSSY_VALUE_UPDATE,
   PROJECT_JSSY_VALUE_REPLACE,
-  PROJECT_JSSY_VALUE_ADD,
-  PROJECT_JSSY_VALUE_DELETE,
   PROJECT_JSSY_VALUE_ADD_ACTION,
   PROJECT_JSSY_VALUE_REPLACE_ACTION,
   PROJECT_JSSY_VALUE_DELETE_ACTION,
@@ -39,6 +36,9 @@ import {
   PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE,
   PROJECT_LINK_DIALOG_OPEN,
   PROJECT_LINK_DIALOG_CLOSE,
+  PROJECT_PICK_COMPONENT,
+  PROJECT_PICK_COMPONENT_DONE,
+  PROJECT_PICK_COMPONENT_CANCEL,
 } from '../actions/project';
 
 import {
@@ -86,7 +86,6 @@ import {
 } from '../models/Project';
 
 import ProjectComponent, {
-  sourceDataToImmutable,
   gatherComponentsTreeIds,
   isRootComponent,
   walkSimpleProps,
@@ -156,6 +155,10 @@ const ProjectState = Record({
   nestedConstructors: List(),
   linkingProp: false,
   linkingPath: null,
+  
+  pickingComponent: false,
+  pickingComponentFilter: null,
+  pickedComponentId: -1,
 });
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
@@ -238,6 +241,11 @@ const highlightComponent = (state, componentId) => state.updateIn(
 const unhighlightComponent = (state, componentId) => state.updateIn(
   getPathToCurrentHighlightedComponentIds(state),
   highlightedComponentIds => highlightedComponentIds.delete(componentId),
+);
+
+const unhighlightAllComponents = state => state.setIn(
+  getPathToCurrentHighlightedComponentIds(state),
+  Set(),
 );
 
 const addComponents = (state, parentComponentId, position, components) => {
@@ -870,16 +878,6 @@ const updateValue = (state, path, newValue) => {
   return state.setIn(expandPath(path, state), newValue);
 };
 
-const addValue = (state, path, index, newValue) => state.updateIn(
-  expandPath(path, state),
-  jssyValue => jssyValue.addValueInStatic(index, newValue),
-);
-
-const deleteValue = (state, path, index) => state.updateIn(
-  expandPath(path, state),
-  jssyValue => jssyValue.deleteValueInStatic(index),
-);
-
 const getPathToComponentWithQueryArgs = (state, dataContext) => {
   let currentNestedConstructorIndex =
     state.nestedConstructors.size > 0 ? 0 : -1;
@@ -1082,35 +1080,8 @@ const handlers = {
     return deleteComponent(state, action.componentId);
   },
   
-  [PROJECT_JSSY_VALUE_UPDATE]: (state, action) => {
-    const newValue = new JssyValue({
-      source: action.newSource,
-      sourceData: sourceDataToImmutable(
-        action.newSource,
-        action.newSourceData,
-      ),
-    });
-    
-    return updateValue(state, action.path, newValue);
-  },
-  
   [PROJECT_JSSY_VALUE_REPLACE]: (state, action) =>
     updateValue(state, action.path, action.newValue),
-  
-  [PROJECT_JSSY_VALUE_ADD]: (state, action) => {
-    const newValue = new JssyValue({
-      source: action.source,
-      sourceData: sourceDataToImmutable(
-        action.source,
-        action.sourceData,
-      ),
-    });
-    
-    return addValue(state, action.path, action.index, newValue);
-  },
-  
-  [PROJECT_JSSY_VALUE_DELETE]: (state, action) =>
-    deleteValue(state, action.path, action.index),
   
   [PROJECT_JSSY_VALUE_ADD_ACTION]: (state, action) => {
     const path = expandPath(action.path, state);
@@ -1348,6 +1319,28 @@ const handlers = {
     fn = fn.set('returnType', { type: action.returnType });
     return state.setIn(['data', 'functions', action.name], fn);
   },
+  
+  [PROJECT_PICK_COMPONENT]: (state, action) => {
+    state = unhighlightAllComponents(state);
+    
+    return state.merge({
+      pickingComponent: true,
+      pickingComponentFilter: action.filter,
+      pickedComponentId: -1,
+    });
+  },
+  
+  [PROJECT_PICK_COMPONENT_DONE]: (state, action) => state.merge({
+    pickingComponent: false,
+    pickingComponentFilter: null,
+    pickedComponentId: action.componentId,
+  }),
+  
+  [PROJECT_PICK_COMPONENT_CANCEL]: state => state.merge({
+    pickingComponent: false,
+    pickingComponentFilter: null,
+    pickedComponentId: -1,
+  }),
   
   [PREVIEW_DRAG_OVER_COMPONENT]: (state, action) => state.merge({
     draggingOverComponentId: action.componentId,

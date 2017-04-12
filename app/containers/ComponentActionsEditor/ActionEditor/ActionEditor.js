@@ -10,7 +10,7 @@ import { connect } from 'react-redux';
 import _startCase from 'lodash.startcase';
 import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';
-import { Map } from 'immutable';
+import { List, Map } from 'immutable';
 import { Button, Dialog } from '@reactackle/reactackle';
 
 import {
@@ -18,20 +18,26 @@ import {
 } from '../../../components/BlockContent/BlockContent';
 
 import { LinkPropWindow } from '../../LinkPropWindow/LinkPropWindow';
+import { PropsList } from '../../../components/PropsList/PropsList';
+import { JssyValueEditor } from '../../JssyValueEditor/JssyValueEditor';
 
 import {
-  PropsList,
-  Prop,
-  jssyValueToPropValue,
-  jssyTypedefToPropType,
-} from '../../../components/PropsList/PropsList';
+  PropInput,
+  PropList,
+  PropComponentPicker,
+} from '../../../components/props';
 
-import { PropInput, PropList } from '../../../components/props';
-import ProjectRoute from '../../../models/ProjectRoute';
-import { sourceDataToImmutable } from '../../../models/ProjectComponent';
+import Project from '../../../models/Project';
+
+import ProjectComponent, {
+  jssyValueToImmutable,
+} from '../../../models/ProjectComponent';
+
 import JssyValue from '../../../models/JssyValue';
 import { Action, createActionParams } from '../../../models/SourceDataActions';
-import { ROUTE_PARAM_VALUE_DEF } from '../../../constants/misc';
+import { currentComponentsSelector } from '../../../selectors';
+import { pickComponent } from '../../../actions/project';
+import { ROUTE_PARAM_VALUE_DEF, SYSTEM_PROPS } from '../../../constants/misc';
 import { getLocalizedTextFromState } from '../../../utils';
 
 import {
@@ -40,7 +46,11 @@ import {
   getJssyTypeOfField,
 } from '../../../utils/schema';
 
-import { buildDefaultValue } from '../../../utils/meta';
+import {
+  buildDefaultValue,
+  getComponentMeta,
+  getString,
+} from '../../../utils/meta';
 
 import {
   noop,
@@ -53,12 +63,20 @@ const propTypes = {
   action: PropTypes.instanceOf(Action),
   onSave: PropTypes.func,
   onCancel: PropTypes.func,
+  
+  meta: PropTypes.object.isRequired,
   schema: PropTypes.object.isRequired,
-  routes: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectRoute),
+  project: PropTypes.instanceOf(Project).isRequired,
+  currentComponents: ImmutablePropTypes.mapOf(
+    PropTypes.instanceOf(ProjectComponent),
     PropTypes.number,
   ).isRequired,
+  language: PropTypes.string.isRequired,
+  pickingComponent: PropTypes.bool.isRequired,
+  // eslint-disable-next-line react/no-unused-prop-types
+  pickedComponentId: PropTypes.number.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
+  onPickComponent: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -68,26 +86,18 @@ const defaultProps = {
 };
 
 const mapStateToProps = state => ({
+  meta: state.project.meta,
   schema: state.project.schema,
-  routes: state.project.data.routes,
+  project: state.project.data,
+  currentComponents: currentComponentsSelector(state),
+  language: state.app.language,
+  pickingComponent: state.project.pickingComponent,
+  pickedComponentId: state.project.pickedComponentId,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
-/**
- *
- * @param {DataFieldArg} arg
- * @param {DataSchema} schema
- * @return {JssyValueDefinition}
- */
-const getMutationArgValueDef = (arg, schema) => ({
-  ...getJssyTypeOfField(arg, schema),
-  source: ['static', 'state'],
-  sourceConfigs: {
-    static: {
-      default: arg.defaultValue,
-    },
-    state: {},
-  },
+const mapDispatchToProps = dispatch => ({
+  onPickComponent: filter => void dispatch(pickComponent(filter)),
 });
 
 class ActionEditorComponent extends PureComponent {
@@ -97,22 +107,67 @@ class ActionEditorComponent extends PureComponent {
     this.state = {
       action: props.action || new Action(),
       linkingValue: false,
-      linkingValueDef: null,
-      linkingUserTypedefs: null,
+      linkParams: null,
     };
     
     this._handleActionTypeChange = this._handleActionTypeChange.bind(this);
+    
     this._handleURLActionURLChange = this._handleURLActionURLChange.bind(this);
     this._handleURLActionNewWindowChange =
       this._handleURLActionNewWindowChange.bind(this);
+    
     this._handleNavigateActionRouteChange =
       this._handleNavigateActionRouteChange.bind(this);
     this._handleNavigateActionRouteParamChange =
       this._handleNavigateActionRouteParamChange.bind(this);
-    this._handleSave = this._handleSave.bind(this);
+    
+    this._handleMutationActionArgChange =
+      this._handleMutationActionArgChange.bind(this);
+    
+    this._handleMethodActionPickComponent =
+      this._handleMethodActionPickComponent.bind(this);
+    this._handleMethodActionSetComponent =
+      this._handleMethodActionSetComponent.bind(this);
+    this._handleMethodActionUnpickComponent =
+      this._handleMethodActionUnpickComponent.bind(this);
+    this._handleMethodActionMethodChange =
+      this._handleMethodActionMethodChange.bind(this);
+    this._handleMethodActionArgValueChange =
+      this._handleMethodActionArgValueChange.bind(this);
+    
+    this._handlePropActionPickComponent =
+      this._handlePropActionPickComponent.bind(this);
+    this._handlePropActionUnpickComponent =
+      this._handlePropActionUnpickComponent.bind(this);
+    this._handlePropActionSetComponent =
+      this._handlePropActionSetComponent.bind(this);
+    this._handlePropActionPropChange =
+      this._handlePropActionPropChange.bind(this);
+    this._handlePropActionValueChange =
+      this._handlePropActionValueChange.bind(this);
+    
     this._handleLink = this._handleLink.bind(this);
     this._handleLinkApply = this._handleLinkApply.bind(this);
     this._handleLinkCancel = this._handleLinkCancel.bind(this);
+  
+    this._handleSave = this._handleSave.bind(this);
+  }
+  
+  componentWillReceiveProps(nextProps) {
+    const { pickingComponent } = this.props;
+    const { action } = this.state;
+    
+    if (pickingComponent && !nextProps.pickingComponent) {
+      if (action.type === 'method') {
+        this._handleMethodActionSetComponent({
+          componentId: nextProps.pickedComponentId,
+        });
+      } else if (action.type === 'prop') {
+        this._handlePropActionSetComponent({
+          componentId: nextProps.pickedComponentId,
+        });
+      }
+    }
   }
   
   _handleActionTypeChange({ value }) {
@@ -134,13 +189,8 @@ class ActionEditorComponent extends PureComponent {
         params = params.merge({
           mutation: mutationName,
           args: Map(_mapValues(mutationField.args, arg => {
-            const valueDef = getMutationArgValueDef(arg, schema);
-            const { source, sourceData } = buildDefaultValue(valueDef);
-            
-            return new JssyValue({
-              source,
-              sourceData: sourceDataToImmutable(source, sourceData),
-            });
+            const valueDef = getJssyTypeOfField(arg, schema);
+            return jssyValueToImmutable(buildDefaultValue(valueDef));
           })),
         });
       }
@@ -171,10 +221,10 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _handleNavigateActionRouteChange({ value }) {
-    const { routes } = this.props;
+    const { project } = this.props;
     const { action } = this.state;
     
-    const route = routes.get(value);
+    const route = project.routes.get(value);
     const paramNames = route.path
       .split('/')
       .filter(part => part.startsWith(':'))
@@ -192,8 +242,143 @@ class ActionEditorComponent extends PureComponent {
     });
   }
   
-  _handleNavigateActionRouteParamChange({ propName: paramName, value }) {
+  _handleNavigateActionRouteParamChange({ name, value }) {
+    const { action } = this.state;
+  
+    this.setState({
+      action: action.setIn(['params', 'routeParams', name], value),
+    });
+  }
+  
+  _handleMutationActionArgChange({ name, value }) {
+    const { action } = this.state;
+
+    if (value) {
+      this.setState({
+        action: action.setIn(['params', 'args', name], value),
+      });
+    } else {
+      this.setState({
+        action: action.deleteIn(['params', 'args', name]),
+      });
+    }
+  }
+  
+  _handleMethodActionPickComponent() {
+    const { meta, currentComponents, onPickComponent } = this.props;
     
+    const filter = componentId => {
+      const component = currentComponents.get(componentId);
+      const componentMeta = getComponentMeta(component.name, meta);
+      return !!componentMeta.methods;
+    };
+    
+    onPickComponent(filter);
+  }
+  
+  _handleMethodActionSetComponent({ componentId }) {
+    const { action } = this.state;
+    
+    this.setState({
+      action: action.setIn(['params', 'componentId'], componentId),
+    });
+  }
+  
+  _handleMethodActionUnpickComponent() {
+    const { action } = this.state;
+    
+    this.setState({
+      action: action.set('params', createActionParams('method')),
+    });
+  }
+  
+  _handleMethodActionMethodChange({ value }) {
+    const { meta, currentComponents, language } = this.props;
+    const { action } = this.state;
+    
+    if (action.params.method === value) return;
+    
+    const targetComponent = currentComponents.get(action.params.componentId);
+    const targetComponentMeta = getComponentMeta(targetComponent.name, meta);
+    const method = targetComponentMeta.methods[value];
+    const argValues = List(method.args.map(
+      arg => jssyValueToImmutable(buildDefaultValue(
+        arg,
+        targetComponentMeta.strings,
+        language,
+      )),
+    ));
+    
+    this.setState({
+      action: action.update('params', params => params.merge({
+        method: value,
+        args: argValues,
+      })),
+    });
+  }
+  
+  _handleMethodActionArgValueChange({ name, value }) {
+    const { action } = this.state;
+    
+    const idx = parseInt(name, 10);
+    
+    this.setState({
+      action: action.setIn(['params', 'args', idx], value),
+    });
+  }
+  
+  _handlePropActionPickComponent() {
+    this.props.onPickComponent();
+  }
+  
+  _handlePropActionSetComponent({ componentId }) {
+    const { action } = this.state;
+    
+    this.setState({
+      action: action.setIn(['params', 'componentId'], componentId),
+    });
+  }
+  
+  _handlePropActionUnpickComponent() {
+    const { action } = this.state;
+    
+    this.setState({
+      action: action.set('params', createActionParams('prop')),
+    });
+  }
+  
+  _handlePropActionPropChange({ value }) {
+    const { currentComponents } = this.props;
+    const { action } = this.state;
+    
+    let [prefix, propName] = value.split('/');
+    if (!propName) {
+      propName = prefix;
+      prefix = '';
+    }
+    
+    const isSystemProp = prefix === 'jssy_system';
+    
+    const component = currentComponents.get(action.params.componentId);
+    const propValue = isSystemProp
+      ? component.systemProps.get(propName)
+      : component.props.get(propName);
+    
+    this.setState({
+      action: action.update('params', params => params.merge({
+        propName: isSystemProp ? '' : propName,
+        systemPropName: isSystemProp ? propName : '',
+        value: propValue,
+      })),
+    });
+  }
+  
+  _handlePropActionValueChange({ value }) {
+    const { action } = this.state;
+    
+    this.setState({
+      action: action.setIn(['params', 'value'], value),
+    });
   }
   
   _handleSave() {
@@ -203,8 +388,11 @@ class ActionEditorComponent extends PureComponent {
     onSave({ action });
   }
   
-  _handleLink({ path }) {
-  
+  _handleLink(linkParams) {
+    this.setState({
+      linkingValue: true,
+      linkParams,
+    });
   }
   
   _handleLinkApply({ newValue, queryArgs }) {
@@ -214,8 +402,7 @@ class ActionEditorComponent extends PureComponent {
   _handleLinkCancel() {
     this.setState({
       linkingValue: false,
-      linkingValueDef: null,
-      linkingUserTypedefs: null,
+      linkParams: null,
     });
   }
   
@@ -247,7 +434,7 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _getActionTypeOptions() {
-    const { schema, getLocalizedText } = this.props;
+    const { project, schema, getLocalizedText } = this.props;
     
     const ret = [
       {
@@ -268,6 +455,13 @@ class ActionEditorComponent extends PureComponent {
       },
     ];
     
+    if (project.auth && project.auth.type === 'jwt') {
+      ret.push({
+        text: getLocalizedText('actionsEditor.actionType.logout'),
+        value: 'logout',
+      });
+    }
+    
     const mutationType = getMutationType(schema);
     if (mutationType) {
       _forOwn(mutationType.fields, (_, mutationName) => {
@@ -282,44 +476,243 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _renderMutationActionProps() {
-    const { schema } = this.props;
+    const { schema, getLocalizedText } = this.props;
     const { action } = this.state;
     
     const mutationField = getMutationField(schema, action.params.mutation);
     
     return objectToArray(mutationField.args, (arg, argName) => {
-      const jssyTypedef = getJssyTypeOfField(arg, schema);
-      const propType = {
-        ...jssyTypedefToPropType(jssyTypedef),
-        label: argName,
-        tooltip: arg.description,
-        linkable: true,
-      };
-      
-      const value = jssyValueToPropValue(
-        action.params.args.get(argName),
-        jssyTypedef,
-      );
-      
       const key = `mutationArg_${argName}`;
       
       return (
-        <Prop
+        <JssyValueEditor
           key={key}
-          propName={argName}
-          propType={propType}
-          value={value}
+          name={argName}
+          value={action.params.args.get(argName)}
+          valueDef={getJssyTypeOfField(arg, schema)}
+          optional={!arg.nonNull}
+          getLocalizedText={getLocalizedText}
+          onChange={this._handleMutationActionArgChange}
+          onLink={this._handleLink}
         />
       );
     });
   }
   
   _renderMethodActionProps() {
-    return [];
+    const {
+      meta,
+      currentComponents,
+      language,
+      getLocalizedText,
+    } = this.props;
+    
+    const { action } = this.state;
+    
+    const componentSelected = action.params.componentId !== -1;
+    const component = componentSelected
+      ? currentComponents.get(action.params.componentId)
+      : null;
+    
+    const componentName = component ? component.title || component.name : '';
+    
+    const ret = [
+      <PropComponentPicker
+        key="component"
+        label={getLocalizedText('actionsEditor.actionForm.targetComponent')}
+        linked={componentSelected}
+        linkedWith={componentName}
+        getLocalizedText={getLocalizedText}
+        onPickComponent={this._handleMethodActionPickComponent}
+        onUnlink={this._handleMethodActionUnpickComponent}
+      />,
+    ];
+    
+    if (componentSelected) {
+      const componentMeta = getComponentMeta(component.name, meta);
+      const options = objectToArray(
+        componentMeta.methods || {},
+        
+        (method, methodName) => {
+          const nameString = getString(
+            componentMeta.strings,
+            method.textKey,
+            language,
+          );
+          
+          return {
+            text: nameString || methodName,
+            value: methodName,
+          };
+        },
+      );
+      
+      const disabled = !options.length;
+      
+      const label =
+        getLocalizedText('actionsEditor.actionForm.method');
+      
+      const placeholder =
+        getLocalizedText('actionsEditor.actionForm.method.placeholder');
+      
+      ret.push(
+        <PropList
+          key="method"
+          label={label}
+          placeholder={placeholder}
+          value={action.params.method || null}
+          options={options}
+          disabled={disabled}
+          onChange={this._handleMethodActionMethodChange}
+        />,
+      );
+      
+      if (action.params.method) {
+        const method = componentMeta.methods[action.params.method];
+        
+        method.args.forEach((arg, idx) => {
+          const key = `methodArg_${idx}`;
+          const value = action.params.args.get(idx);
+          
+          ret.push(
+            <JssyValueEditor
+              key={key}
+              name={String(idx)}
+              value={value}
+              valueDef={arg}
+              optional={!arg.required}
+              strings={component.strings}
+              language={language}
+              onChange={this._handleMethodActionArgValueChange}
+              onLink={this._handleLink}
+            />,
+          );
+        });
+      }
+    }
+    
+    return ret;
   }
   
   _renderPropActionProps() {
-    return [];
+    const {
+      meta,
+      currentComponents,
+      language,
+      getLocalizedText,
+    } = this.props;
+  
+    const { action } = this.state;
+  
+    const componentSelected = action.params.componentId !== -1;
+    const component = componentSelected
+      ? currentComponents.get(action.params.componentId)
+      : null;
+  
+    const componentName = component ? component.title || component.name : '';
+  
+    const ret = [
+      <PropComponentPicker
+        key="component"
+        label={getLocalizedText('actionsEditor.actionForm.targetComponent')}
+        linked={componentSelected}
+        linkedWith={componentName}
+        getLocalizedText={getLocalizedText}
+        onPickComponent={this._handlePropActionPickComponent}
+        onUnlink={this._handlePropActionUnpickComponent}
+      />,
+    ];
+    
+    if (componentSelected) {
+      const componentMeta = getComponentMeta(component.name, meta);
+      
+      const propsOptions = objectToArray(
+        componentMeta.props,
+        
+        (propMeta, propName) => {
+          const nameString = getString(
+            componentMeta.strings,
+            propMeta.textKey,
+            language,
+          );
+          
+          return {
+            text: nameString || propName,
+            value: propName,
+          };
+        },
+      );
+      
+      const systemPropsOptions = objectToArray(
+        SYSTEM_PROPS,
+        
+        (propMeta, propName) => {
+          const nameKey = `propsEditor.systemProps.${propName}.name`;
+          const nameString = getLocalizedText(nameKey);
+    
+          return {
+            text: nameString || propName,
+            value: `jssy_system/${propName}`,
+          };
+        },
+      );
+      
+      const options = systemPropsOptions.concat(propsOptions);
+      
+      let value = null;
+      if (action.params.propName)
+        value = action.params.propName;
+      else if (action.params.systemPropName)
+        value = `jssy_system/${action.params.systemPropName}`;
+      
+      const label =
+        getLocalizedText('actionsEditor.actionForm.prop');
+      
+      const placeholder =
+        getLocalizedText('actionsEditor.actionForm.prop.placeholder');
+      
+      ret.push(
+        <PropList
+          key="prop"
+          label={label}
+          placeholder={placeholder}
+          value={value}
+          options={options}
+          onChange={this._handlePropActionPropChange}
+        />,
+      );
+      
+      const propSelected =
+        !!action.params.propName ||
+        !!action.params.systemPropName;
+      
+      if (propSelected) {
+        const systemPropSelected = !!action.params.systemPropName;
+        
+        const propValueDef = systemPropSelected
+          ? SYSTEM_PROPS[action.params.systemPropName]
+          : componentMeta.props[action.params.propName];
+        
+        const label = getLocalizedText('actionsEditor.actionForm.propValue');
+        
+        ret.push(
+          <JssyValueEditor
+            key="propValue"
+            name="propValue"
+            valueDef={propValueDef}
+            value={action.params.value}
+            label={label}
+            userTypedefs={systemPropSelected ? null : componentMeta.types}
+            strings={systemPropSelected ? null : componentMeta.strings}
+            language={language}
+            onChange={this._handlePropActionValueChange}
+            onLink={this._handleLink}
+          />,
+        );
+      }
+    }
+    
+    return ret;
   }
   
   _renderURLActionProps() {
@@ -355,11 +748,11 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _renderNavigateActionProps() {
-    const { routes, getLocalizedText } = this.props;
+    const { project, getLocalizedText } = this.props;
     const { action } = this.state;
     
     const options = [];
-    routes.forEach((route, routeId) =>
+    project.routes.forEach((route, routeId) =>
       void options.push({ text: route.title, value: routeId }));
     
     const value = action.params.routeId === -1 ? null : action.params.routeId;
@@ -377,7 +770,7 @@ class ActionEditorComponent extends PureComponent {
     const props = [routeProp];
     
     if (action.params.routeId !== -1) {
-      const route = routes.get(action.params.routeId);
+      const route = project.routes.get(action.params.routeId);
       const pathParts = route.path.split('/');
   
       pathParts.forEach(pathPart => {
@@ -385,24 +778,15 @@ class ActionEditorComponent extends PureComponent {
         if (isParam) {
           const name = pathPart.slice(1);
           const key = `routeParam_${name}`;
-          const propType = {
-            ...jssyTypedefToPropType(ROUTE_PARAM_VALUE_DEF),
-            label: name,
-            linkable: true,
-          };
-          
-          const value = jssyValueToPropValue(
-            action.params.routeParams.get(name),
-            ROUTE_PARAM_VALUE_DEF,
-          );
           
           props.push(
-            <Prop
+            <JssyValueEditor
               key={key}
-              propName={name}
-              propType={propType}
-              value={value}
+              name={name}
+              value={action.params.routeParams.get(name)}
+              valueDef={ROUTE_PARAM_VALUE_DEF}
               onChange={this._handleNavigateActionRouteParamChange}
+              onLink={this._handleLink}
             />,
           );
         }
@@ -430,8 +814,7 @@ class ActionEditorComponent extends PureComponent {
     const {
       action,
       linkingValue,
-      linkingValueDef,
-      linkingUserTypedefs,
+      linkParams,
     } = this.state;
     
     const actionTypeLabel = getLocalizedText('actionsEditor.actionType');
@@ -483,9 +866,9 @@ class ActionEditorComponent extends PureComponent {
           onClose={this._handleLinkCancel}
         >
           <LinkPropWindow
-            valueDef={linkingValueDef}
-            userTypedefs={linkingUserTypedefs}
-            onLink={this._handleLink}
+            valueDef={linkParams ? linkParams.targetValueDef : null}
+            userTypedefs={linkParams ? linkParams.targetUserTypedefs : null}
+            onLink={this._handleLinkApply}
           />
         </Dialog>
       </BlockContentBoxItem>
@@ -497,4 +880,7 @@ ActionEditorComponent.propTypes = propTypes;
 ActionEditorComponent.defaultProps = defaultProps;
 ActionEditorComponent.displayName = 'ActionEditor';
 
-export const ActionEditor = connect(mapStateToProps)(ActionEditorComponent);
+export const ActionEditor = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ActionEditorComponent);

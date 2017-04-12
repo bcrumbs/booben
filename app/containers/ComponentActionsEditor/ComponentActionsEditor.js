@@ -197,11 +197,22 @@ class ComponentActionsEditorComponent extends PureComponent {
         action,
       });
     } else if (currentView === Views.EDIT_ACTION) {
-      const path = editActionPath.slice(0, -1);
+      const pathToList = editActionPath.slice(0, -1);
       const index = editActionPath[editActionPath.length - 1];
+  
+      const fullPath = {
+        startingPoint: PathStartingPoints.CURRENT_COMPONENTS,
+        steps: [
+          componentId,
+          'props',
+          activeHandler,
+          'actions',
+          ...pathToList,
+        ],
+      };
       
       onReplaceAction({
-        path,
+        path: fullPath,
         index,
         newAction: action,
       });
@@ -258,8 +269,33 @@ class ComponentActionsEditorComponent extends PureComponent {
         const targetComponent =
           currentComponents.get(action.params.componentId);
         
+        const targetComponentMeta =
+          getComponentMeta(targetComponent.name, meta);
+        
+        const isSystemProp = !!action.params.systemPropName;
+        
+        let nameString;
+        if (isSystemProp) {
+          const nameKey =
+            `propsEditor.systemProps.${action.params.systemPropName}.name`;
+          
+          nameString = getLocalizedText(nameKey);
+          
+          if (!nameString) nameString = action.params.systemPropName;
+        } else {
+          const propMeta = targetComponentMeta.props[action.params.propName];
+          
+          nameString = getString(
+            targetComponentMeta.strings,
+            propMeta.textKey,
+            language,
+          );
+          
+          if (!nameString) nameString = action.params.propName;
+        }
+        
         return getLocalizedText('actionsEditor.actionTitle.prop', {
-          propName: action.params.propName,
+          propName: nameString,
           componentTitle: targetComponent.title || targetComponent.name,
         });
       }
@@ -280,6 +316,10 @@ class ComponentActionsEditorComponent extends PureComponent {
         return getLocalizedText(key, {
           url: action.params.url,
         });
+      }
+      
+      case 'logout': {
+        return getLocalizedText('actionsEditor.actionTitle.logout');
       }
       
       default:

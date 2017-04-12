@@ -6,11 +6,11 @@
 
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
-import { Map } from 'immutable';
-import { makeDefaultValue, getNestedTypedef, TypeNames } from '@jssy/types';
+import { List, Map } from 'immutable';
+import { makeDefaultValue } from '@jssy/types';
 import { Button } from '@reactackle/reactackle';
 import ProjectFunctionRecord from '../../../../models/ProjectFunction';
-import JssyValue from '../../../../models/JssyValue';
+import { jssyValueToImmutable } from '../../../../models/ProjectComponent';
 
 import {
   BlockContent,
@@ -24,20 +24,16 @@ import {
 } from '../../../../components/BlockContent/BlockContent';
 
 import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
-
-import {
-  PropsList,
-  Prop,
-  jssyValueToPropValue,
-  jssyTypedefToPropType,
-} from '../../../../components/PropsList/PropsList';
-
+import { PropsList } from '../../../../components/PropsList/PropsList';
+import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
+import { buildDefaultValue } from '../../../../utils/meta';
 import { noop, returnArg } from '../../../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 const propTypes = {
   functionDef: PropTypes.instanceOf(ProjectFunctionRecord).isRequired,
   getLocalizedText: PropTypes.func,
+  onLink: PropTypes.func,
   onApply: PropTypes.func,
   onReturn: PropTypes.func,
   onReturnToList: PropTypes.func,
@@ -45,34 +41,55 @@ const propTypes = {
 
 const defaultProps = {
   getLocalizedText: returnArg,
+  onLink: noop,
   onApply: noop,
   onReturn: noop,
   onReturnToList: noop,
 };
 
-const makeDefaultValueForArg = arg =>
-  JssyValue.staticFromJS(makeDefaultValue(arg.typedef));
-
-const makeDefaultValuesForArgs = functionDef =>
-  functionDef.args.map(arg =>
-    arg.isRequired ? makeDefaultValueForArg(arg) : null);
+/**
+ *
+ * @param {Object} arg - FunctionArgument Record
+ * @return {JssyValueDefinition}
+ */
+const getValueDef = arg => ({
+  ...arg.typedef,
+  label: arg.name,
+  description: arg.description,
+  source: ['static'], // TODO: Compute sources list based on link target?
+  sourceConfigs: {
+    static: {
+      default: makeDefaultValue(arg.typedef),
+    },
+  },
+});
 
 /**
  *
- * @param {number} index
- * @return {string}
+ * @param {Object} functionDef - ProjectFunction Record
+ * @return {JssyValueDefinition[]}
  */
-const formatArrayItemLabel = index => `Item ${index}`; // TODO: Get string from i18n
+const getValueDefs = functionDef =>
+  Array.from(functionDef.args.map(getValueDef));
 
 /**
  *
- * @param {Immutable.List<JssyValue>} argValues
- * @param {Object} functionDef
- * @return {Immutable.Map<string, JssyValue>}
+ * @param {JssyValueDefinition[]} argValueDefs
+ * @return {Immutable.List<Object>} - List of JssyValues
  */
-const argValuesToMap = (argValues, functionDef) =>
+const makeDefaultValues = argValueDefs => List(argValueDefs.map(
+  valueDef => jssyValueToImmutable(buildDefaultValue(valueDef)),
+));
+
+/**
+ *
+ * @param {Immutable.List<Object>} values - List of JssyValues
+ * @param {Object} functionDef - ProjectFunction Record
+ * @return {Immutable.Map<string, Object>} - Map of string -> JssyValue
+ */
+const argValuesToMap = (values, functionDef) =>
   Map().withMutations(map => {
-    argValues.forEach((value, idx) => {
+    values.forEach((value, idx) => {
       map.set(functionDef.args.get(idx).name, value);
     });
   });
@@ -80,74 +97,27 @@ const argValuesToMap = (argValues, functionDef) =>
 export class FunctionWindow extends PureComponent {
   constructor(props) {
     super(props);
+  
+    this._argsValueDefs = getValueDefs(props.functionDef);
 
     this.state = {
-      values: makeDefaultValuesForArgs(props.functionDef),
+      values: makeDefaultValues(this._argsValueDefs),
     };
     
     this._handleBreadcrumbsClick = this._handleBreadcrumbsClick.bind(this);
-    this._handleCheck = this._handleCheck.bind(this);
     this._handleChange = this._handleChange.bind(this);
-    this._handleAddValue = this._handleAddValue.bind(this);
-    this._handleDeleteValue = this._handleDeleteValue.bind(this);
     this._handleBackButtonPress = this._handleBackButtonPress.bind(this);
     this._handleApplyButtonPress = this._handleApplyButtonPress.bind(this);
   }
   
   componentWillReceiveProps(nextProps) {
     if (nextProps.functionDef !== this.props.functionDef) {
+      this._argsValueDefs = getValueDefs(nextProps.functionDef);
+      
       this.setState({
-        values: makeDefaultValuesForArgs(nextProps.functionDef),
+        values: makeDefaultValues(this._argsValueDefs),
       });
     }
-  }
-  
-  _getBreadcrumbsItems() {
-    const { functionDef, getLocalizedText } = this.props;
-    
-    return [{
-      title: getLocalizedText('sources'),
-    }, {
-      title: getLocalizedText('functions'),
-    }, {
-      title: functionDef.title,
-    }];
-  }
-  
-  _getPropTypeForArg(arg) {
-    const getNestedExtra = (_, __, ___, fieldName) =>
-      ({ arg: null, fieldName });
-    
-    const applyExtra = (propType, { arg, fieldName }, jssyTypedef) => {
-      propType.label = arg ? arg.name : fieldName;
-      propType.secondaryLabel = jssyTypedef.type;
-      propType.tooltip = arg.description;
-      propType.checkable = arg ? !arg.isRequired : jssyTypedef.notNull;
-      propType.required = arg ? arg.isRequired : false;
-    
-      if (jssyTypedef.type === TypeNames.ARRAY_OF)
-        propType.formatItemLabel = formatArrayItemLabel;
-    
-      return propType;
-    };
-  
-    return jssyTypedefToPropType(
-      arg.typedef,
-      { arg, fieldName: '' },
-      getNestedExtra,
-      applyExtra,
-    );
-  }
-  
-  _getValueForArg(arg, argIndex) {
-    const { values } = this.state;
-    
-    const jssyValue = values.get(argIndex);
-    if (!jssyValue) return { value: null, checked: false };
-    
-    const ret = jssyValueToPropValue(jssyValue, arg.typedef);
-    ret.checked = true;
-    return ret;
   }
   
   _handleBreadcrumbsClick({ index }) {
@@ -157,74 +127,13 @@ export class FunctionWindow extends PureComponent {
     else if (index === 1) onReturnToList();
   }
   
-  _handleCheck({ propName, path, checked }) {
-    const { functionDef } = this.props;
+  _handleChange({ name, value }) {
     const { values } = this.state;
     
-    const argIndex = parseInt(propName, 10);
-    const arg = functionDef.args.get(argIndex);
-    
-    if (path.length === 0) {
-      this.setState({
-        values: values.set(
-          argIndex,
-          checked ? makeDefaultValueForArg(arg) : null,
-        ),
-      });
-    } else {
-      const newValue = checked
-        ? makeDefaultValue(getNestedTypedef(arg.typedef, path))
-        : null;
-      
-      this.setState({
-        values: values.update(
-          argIndex,
-          argValue => argValue.replaceStaticValueIn(path, newValue),
-        ),
-      });
-    }
-  }
-  
-  _handleChange({ propName, path, value }) {
-    const { values } = this.state;
-    
-    const argIndex = parseInt(propName, 10);
+    const argIndex = parseInt(name, 10);
     
     this.setState({
-      values: values.update(
-        argIndex,
-        argValue => argValue.replaceStaticValueIn(path, value),
-      ),
-    });
-  }
-  
-  _handleAddValue({ propName, where, index }) {
-    const { functionDef } = this.props;
-    const { values } = this.state;
-    
-    const argIndex = parseInt(propName, 10);
-    const arg = functionDef.args.get(argIndex);
-    const newValue =
-      makeDefaultValue(getNestedTypedef(arg.typedef, [...where, index]));
-    
-    this.setState({
-      values: values.update(
-        argIndex,
-        argValue => argValue.addJSValueInStatic(where, index, newValue),
-      ),
-    });
-  }
-  
-  _handleDeleteValue({ propName, where, index }) {
-    const { values } = this.state;
-    
-    const argIndex = parseInt(propName, 10);
-    
-    this.setState({
-      values: values.update(
-        argIndex,
-        argValue => argValue.deleteValueInStatic(where, index),
-      ),
+      values: values.set(argIndex, value),
     });
   }
   
@@ -239,24 +148,36 @@ export class FunctionWindow extends PureComponent {
     const valuesMap = argValuesToMap(values, functionDef);
     this.props.onApply({ argValues: valuesMap });
   }
+
+  _getBreadcrumbsItems() {
+    const { functionDef, getLocalizedText } = this.props;
+
+    return [{
+      title: getLocalizedText('sources'),
+    }, {
+      title: getLocalizedText('functions'),
+    }, {
+      title: functionDef.title,
+    }];
+  }
   
   _renderArgsForm() {
-    const { functionDef } = this.props;
+    const { functionDef, getLocalizedText, onLink } = this.props;
+    const { values } = this.state;
     
     const props = functionDef.args.map((arg, idx) => {
-      const propType = this._getPropTypeForArg(arg);
-      const value = this._getValueForArg(arg, idx);
+      const valueDef = this._argsValueDefs[idx];
       
       return (
-        <Prop
+        <JssyValueEditor
           key={String(idx)}
-          propName={String(idx)}
-          propType={propType}
-          value={value}
-          onCheck={this._handleCheck}
+          name={String(idx)}
+          value={values.get(idx)}
+          valueDef={valueDef}
+          optional={!arg.isRequired}
+          getLocalizedText={getLocalizedText}
           onChange={this._handleChange}
-          onAddValue={this._handleAddValue}
-          onDeleteValue={this._handleDeleteValue}
+          onLink={onLink}
         />
       );
     });

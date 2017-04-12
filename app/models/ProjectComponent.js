@@ -118,7 +118,7 @@ const actionsToImmutable = actions => List(actions.map(action => {
   return Action(data);
 }));
 
-const jssyValueToImmutable = ({ source, sourceData }) => new JssyValue({
+export const jssyValueToImmutable = ({ source, sourceData }) => new JssyValue({
   source,
   sourceData: sourceDataToImmutable(source, sourceData),
 });

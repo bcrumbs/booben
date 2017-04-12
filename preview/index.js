@@ -7,7 +7,6 @@ import { ApolloProvider } from 'react-apollo';
 import ApolloClient, { createNetworkInterface } from 'apollo-client';
 import Preview from './containers/Preview';
 import Overlay from './containers/Overlay';
-import { loadComponents } from './componentsLibrary';
 
 import {
   PREVIEW_DOM_CONTAINER_ID,
@@ -30,65 +29,76 @@ window.JSSY = {
  * @param {string} params.containerStyle
  */
 window.JSSY.initPreview = params => {
-  if (window.JSSY.initialized) return Promise.resolve();
+  if (window.JSSY.initialized) return;
 
-  return loadComponents()
-    .then(() => {
-      const containerNode = document.getElementById(PREVIEW_DOM_CONTAINER_ID);
-      const overlayNode = document.getElementById(PREVIEW_DOM_OVERLAY_ID);
+  const containerNode = document.getElementById(PREVIEW_DOM_CONTAINER_ID);
+  const overlayNode = document.getElementById(PREVIEW_DOM_OVERLAY_ID);
 
-      containerNode.setAttribute('style', params.containerStyle);
+  containerNode.setAttribute('style', params.containerStyle);
 
-      const state = params.store.getState();
+  const state = params.store.getState();
 
-      if (state.project.loadState !== LOADED)
-        throw new Error('initPreview() failed: project is not loaded');
+  if (state.project.loadState !== LOADED)
+    throw new Error('initPreview() failed: project is not loaded');
 
-      const graphQLEndpointURL = state.project.data.graphQLEndpointURL;
+  const graphQLEndpointURL = state.project.data.graphQLEndpointURL;
 
-      let ProviderComponent;
-      let providerProps;
+  let ProviderComponent;
+  let providerProps;
 
-      if (graphQLEndpointURL) {
-        ProviderComponent = ApolloProvider;
-
-        const client = new ApolloClient({
-          networkInterface: createNetworkInterface({ uri: graphQLEndpointURL }),
-        });
-
-        providerProps = {
-          client,
-          store: params.store,
-        };
-      } else {
-        ProviderComponent = Provider;
-
-        providerProps = {
-          store: params.store,
-        };
+  if (graphQLEndpointURL) {
+    ProviderComponent = ApolloProvider;
+    
+    const networkInterface =
+      createNetworkInterface({ uri: graphQLEndpointURL });
+    
+    if (state.project.data.auth) {
+      if (state.project.data.auth.type === 'jwt') {
+        networkInterface.use([{
+          applyMiddleware(req, next) {
+            if (!req.options.headers) req.options.headers = {};
+            const token = localStorage.getItem('jssy_auth_token');
+            if (token) req.options.headers.Authorization = `Bearer ${token}`;
+            next();
+          },
+        }]);
       }
+    }
+    
+    const client = new ApolloClient({ networkInterface });
 
-      ReactDOM.render(
-        <ProviderComponent {...providerProps}>
-          <Preview interactive={params.interactive} />
-        </ProviderComponent>,
+    providerProps = {
+      client,
+      store: params.store,
+    };
+  } else {
+    ProviderComponent = Provider;
 
-        containerNode,
-      );
+    providerProps = {
+      store: params.store,
+    };
+  }
 
-      if (params.interactive) {
-        ReactDOM.render(
-          <ProviderComponent {...providerProps}>
-            <Overlay />
-          </ProviderComponent>,
+  ReactDOM.render(
+    <ProviderComponent {...providerProps}>
+      <Preview interactive={params.interactive} />
+    </ProviderComponent>,
 
-          overlayNode,
-        );
-      }
+    containerNode,
+  );
 
-      window.JSSY.initialized = true;
-      window.JSSY.params = params;
-    });
+  if (params.interactive) {
+    ReactDOM.render(
+      <ProviderComponent {...providerProps}>
+        <Overlay />
+      </ProviderComponent>,
+
+      overlayNode,
+    );
+  }
+
+  window.JSSY.initialized = true;
+  window.JSSY.params = params;
 };
 
 /**

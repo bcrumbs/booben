@@ -55,6 +55,8 @@ import {
   AccordionItemRecord,
 } from '../components/Accordion/Accordion';
 
+import { BackdropBreadcrumbs } from '../components/BackdropBreadcrumbs/BackdropBreadcrumbs';
+
 import {
   ComponentTag,
   ComponentTagWrapper,
@@ -612,7 +614,10 @@ export default class Playground extends React.Component {
                 </PropSourcePicker>
               </Container>
               
-              
+              <Container>
+                <BackdropBreadcrumbs />
+              </Container>
+
               <Container>Тут был старый DataWindow, но его победил Бэтмен.</Container>
               <Container><img src="https://upload.wikimedia.org/wikipedia/en/1/17/Batman-BenAffleck.jpg" alt=""/></Container>
             </PanelContent>

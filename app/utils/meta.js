@@ -5,6 +5,7 @@
 'use strict';
 
 import _forOwn from 'lodash.forown';
+import { TypeNames } from '@jssy/types';
 import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
@@ -286,7 +287,7 @@ const buildDefaultStaticValue = (
     ? _inheritedDefaultValue
     : propMeta.sourceConfigs.static.default;
 
-  if (propMeta.type === 'shape') {
+  if (propMeta.type === TypeNames.SHAPE) {
     if (defaultValue === null) return makeSimpleStaticValue(null);
 
     const value = {};
@@ -307,7 +308,7 @@ const buildDefaultStaticValue = (
     return makeSimpleStaticValue(value);
   }
 
-  if (propMeta.type === 'objectOf') {
+  if (propMeta.type === TypeNames.OBJECT_OF) {
     if (defaultValue === null) return makeSimpleStaticValue(null);
 
     const value = {};
@@ -324,7 +325,7 @@ const buildDefaultStaticValue = (
     return makeSimpleStaticValue(value);
   }
 
-  if (propMeta.type === 'arrayOf') {
+  if (propMeta.type === TypeNames.ARRAY_OF) {
     let value = [];
 
     if (defaultValue) {
@@ -342,13 +343,13 @@ const buildDefaultStaticValue = (
     return makeSimpleStaticValue(value);
   }
 
-  if (propMeta.type === 'object') {
+  if (propMeta.type === TypeNames.OBJECT) {
     if (defaultValue === null) return makeSimpleStaticValue(null);
     // TODO: Handle default value somehow
     return makeSimpleStaticValue({});
   }
 
-  if (propMeta.type === 'array') {
+  if (propMeta.type === TypeNames.ARRAY) {
     // TODO: Handle default value somehow
     return makeSimpleStaticValue([]);
   }

@@ -20,7 +20,7 @@ import {
   getMutationField,
   FieldKinds,
   parseFieldName,
-  isScalarGraphQLType,
+  isBuiltinGraphQLType,
 } from './schema';
 
 import {
@@ -980,11 +980,52 @@ const saveMutationToCache = (schema, mutationName, mutation) => {
 
 /**
  *
+ * @param {?Object} requestData
+ * @return {Object[]}
+ */
+const selectionsToAST = requestData => {
+  if (!requestData) return [];
+  
+  return objectToArray(
+    requestData,
+  
+    (value, key) => ({
+      kind: 'Field',
+      alias: null,
+      name: {
+        kind: 'Name',
+        value: key,
+      },
+      arguments: [],
+      directives: [],
+      selectionSet: typeof value === 'object'
+        ? {
+          kind: 'SelectionSet',
+          selections: selectionsToAST(value),
+        }
+        : null,
+    }),
+  );
+};
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string} typeName
+ * @return {boolean}
+ */
+const isScalarType = (schema, typeName) =>
+  isBuiltinGraphQLType(typeName) ||
+  schema.customScalarTypes.indexOf(typeName) !== -1;
+
+/**
+ *
  * @param {DataSchema} schema
  * @param {string} mutationName
+ * @param {?Object} [selections=null]
  * @return {?Object}
  */
-export const buildMutation = (schema, mutationName) => {
+export const buildMutation = (schema, mutationName, selections = null) => {
   const cached = getMutationFromCache(schema, mutationName);
   if (cached) return cached;
   
@@ -1042,7 +1083,7 @@ export const buildMutation = (schema, mutationName) => {
               },
             })),
             directives: [],
-            selectionSet: isScalarGraphQLType(mutationField.type)
+            selectionSet: isScalarType(schema, mutationField.type)
               ? null
               : {
                 kind: 'SelectionSet',
@@ -1056,7 +1097,7 @@ export const buildMutation = (schema, mutationName) => {
                   arguments: [],
                   directives: [],
                   selectionSet: null,
-                }],
+                }, ...selectionsToAST(selections)],
               },
           }],
         },
