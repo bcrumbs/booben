@@ -9,6 +9,8 @@ import React, { PureComponent, PropTypes } from 'react';
 import { Map } from 'immutable';
 import { PropsList } from '../../../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
+import { jssyValueToImmutable } from '../../../../models/ProjectComponent';
+import { buildDefaultValue } from '../../../../utils/meta';
 import { getJssyTypeOfField } from '../../../../utils/schema';
 import { noop, returnArg, objectToArray } from '../../../../utils/misc';
 
@@ -59,15 +61,18 @@ export class DataSelectionArgsEditor extends PureComponent {
     const { field, schema, fieldArgs, getLocalizedText, onLink } = this.props;
   
     const items = objectToArray(field.args, (arg, argName) => {
-      const jssyValueDef = getJssyTypeOfField(arg, schema);
-      const jssyValue = fieldArgs ? fieldArgs.get(argName) || null : null;
+      const valueDef = getJssyTypeOfField(arg, schema);
+      
+      let value = fieldArgs ? fieldArgs.get(argName) || null : null;
+      if (arg.nonNull && !value)
+        value = jssyValueToImmutable(buildDefaultValue(valueDef));
 
       return (
         <JssyValueEditor
           key={argName}
           name={argName}
-          value={jssyValue}
-          valueDef={jssyValueDef}
+          value={value}
+          valueDef={valueDef}
           optional={!arg.nonNull}
           getLocalizedText={getLocalizedText}
           onChange={this._handleUpdateValue}
