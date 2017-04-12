@@ -9,19 +9,19 @@ const path = require('path');
 const fs = require('mz/fs');
 const helpers = require('./helpers');
 const config = require('../config');
-const constants = require('../common/constants');
-const sharedConstants = require('../shared/constants');
+const { PROJECT_NAME_REGEX } = require('../common/constants');
+const { URL_APP_PREFIX } = require('../shared/constants');
 
 const env = config.get('env');
 const projectsDir = config.get('projectsDir');
 
 module.exports = {
-  url: `${sharedConstants.URL_APP_PREFIX}/:name/*`,
+  url: `${URL_APP_PREFIX}/:name/*`,
   method: 'get',
   handlers: [
     (req, res) => void co(function* () {
       const name = req.params.name;
-      if (!constants.PROJECT_NAME_REGEX.test(name)) {
+      if (!PROJECT_NAME_REGEX.test(name)) {
         // TODO: Serve 404 page
         helpers.sendError(res, 404, 'Project not found');
         return;
