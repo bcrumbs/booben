@@ -240,10 +240,11 @@ export class JssyValueEditor extends PureComponent {
 
     if (path.length > 0) {
       let newValue;
+  
+      const nestedValueDef = getNestedTypedef(valueDef, path, userTypedefs);
+      const resolvedValueDef = resolveTypedef(nestedValueDef, userTypedefs);
 
       if (checked) {
-        const nestedValueDef = getNestedTypedef(valueDef, path, userTypedefs);
-        const resolvedValueDef = resolveTypedef(nestedValueDef, userTypedefs);
         const value = jssyValueToImmutable(buildDefaultValue(
           resolvedValueDef,
           strings,
@@ -251,22 +252,29 @@ export class JssyValueEditor extends PureComponent {
         ));
 
         newValue = currentValue.setInStatic(path, value);
-      } else {
+      } else if (!resolvedValueDef.required) {
         newValue = currentValue.unsetInStatic(path);
+      } else {
+        newValue = currentValue.setInStatic(path, JssyValue.STATIC_NULL);
       }
 
       onChange({ name, value: newValue });
-    } else if (checked) {
-      const resolvedValueDef = resolveTypedef(valueDef, userTypedefs);
-      const value = jssyValueToImmutable(buildDefaultValue(
-        resolvedValueDef,
-        strings,
-        language,
-      ));
-
-      onChange({ name, value });
     } else {
-      onChange({ name, value: null });
+      const resolvedValueDef = resolveTypedef(valueDef, userTypedefs);
+      
+      if (checked) {
+        const value = jssyValueToImmutable(buildDefaultValue(
+          resolvedValueDef,
+          strings,
+          language,
+        ));
+    
+        onChange({ name, value });
+      } else if (!resolvedValueDef.required) {
+        onChange({ name, value: null });
+      } else {
+        onChange({ name, value: JssyValue.STATIC_NULL });
+      }
     }
   }
   
@@ -413,7 +421,7 @@ export class JssyValueEditor extends PureComponent {
         ret.formatItemLabel = this._formatObjectItemLabel;
     }
 
-    this._propType = ret;
+    if (!noCache) this._propType = ret;
 
     return ret;
   }
