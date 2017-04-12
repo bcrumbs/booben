@@ -24,6 +24,11 @@ const ProjectRouteRecord = Record({
   components: Map(),
 });
 
+const VALID_PATH_STEPS = new Set(['components']);
+
+ProjectRouteRecord.isValidPathStep = step => VALID_PATH_STEPS.has(step);
+ProjectRouteRecord.expandPathStep = step => [step];
+
 export const projectRouteToImmutable = (
   input,
   fullPath,

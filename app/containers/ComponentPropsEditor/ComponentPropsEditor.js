@@ -9,22 +9,9 @@ import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { createSelector } from 'reselect';
-import _mapValues from 'lodash.mapvalues';
-
-import {
-  TypeNames,
-  isEqualType,
-  resolveTypedef,
-  getNestedTypedef,
-} from '@jssy/types';
-
-import {
-  PropsList,
-  Prop,
-  PropViews,
-  jssyTypeToView,
-  jssyValueToPropValue,
-} from '../../components/PropsList/PropsList';
+import { getNestedTypedef } from '@jssy/types';
+import { PropsList } from '../../components/PropsList/PropsList';
+import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
 
 import {
   BlockContentBox,
@@ -36,31 +23,30 @@ import {
 import ProjectComponentRecord from '../../models/ProjectComponent';
 
 import {
-  updateComponentPropValue,
-  addComponentPropValue,
-  deleteComponentPropValue,
+  replaceJssyValue,
   constructComponentForProp,
-  linkProp,
-  unlinkProp,
+  linkDialogOpen,
 } from '../../actions/project';
+
+import { PathStartingPoints } from '../../reducers/project';
 
 import {
   currentComponentsSelector,
   currentSelectedComponentIdsSelector,
   topNestedConstructorSelector,
-  topNestedConstructorComponentSelector,
 } from '../../selectors';
 
 import {
   getString,
   getComponentMeta,
-  buildDefaultValue,
-  isValidSourceForProp,
+  isValidSourceForValue,
+  parseComponentName,
+  formatComponentName,
+  constructComponent,
 } from '../../utils/meta';
 
-import { NO_VALUE, SYSTEM_PROPS } from '../../constants/misc';
+import { SYSTEM_PROPS } from '../../constants/misc';
 import { getLocalizedTextFromState } from '../../utils';
-import { objectSome } from '../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 const propTypes = {
@@ -71,45 +57,39 @@ const propTypes = {
   ).isRequired,
   selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number).isRequired,
   language: PropTypes.string.isRequired,
-  ownerComponentMeta: PropTypes.object,
   ownerProps: PropTypes.object,
+  ownerUserTypedefs: PropTypes.object,
   getLocalizedText: PropTypes.func.isRequired,
-
-  onPropValueChange: PropTypes.func.isRequired,
-  onAddPropValue: PropTypes.func.isRequired,
-  onDeletePropValue: PropTypes.func.isRequired,
+  onReplacePropValue: PropTypes.func.isRequired,
   onConstructComponent: PropTypes.func.isRequired,
   onLinkProp: PropTypes.func.isRequired,
-  onUnlinkProp: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
-  ownerComponentMeta: null,
   ownerProps: null,
+  ownerUserTypedefs: null,
 };
-
-const ownerComponentMetaSelector = createSelector(
-  topNestedConstructorComponentSelector,
-  state => state.project.meta,
-  
-  (ownerComponent, meta) => ownerComponent
-    ? getComponentMeta(ownerComponent.name, meta)
-    : null,
-);
 
 const ownerPropsSelector = createSelector(
   topNestedConstructorSelector,
-  ownerComponentMetaSelector,
   
-  (topNestedConstructor, ownerComponentMeta) => {
-    if (!ownerComponentMeta) return null;
+  topNestedConstructor => {
+    if (!topNestedConstructor) return null;
     
-    const ownerComponentProp = topNestedConstructor.prop,
-      ownerComponentPropMeta = ownerComponentMeta.props[ownerComponentProp];
+    const ownerComponentPropMeta = topNestedConstructor.valueInfo.valueDef;
     
     return ownerComponentPropMeta.source.indexOf('designer') > -1
       ? ownerComponentPropMeta.sourceConfigs.designer.props || null
       : null;
+  },
+);
+
+const ownerUserTypedefsSelector = createSelector(
+  topNestedConstructorSelector,
+  
+  topNestedConstructor => {
+    if (!topNestedConstructor) return null;
+    return topNestedConstructor.valueInfo.userTypedefs;
   },
 );
 
@@ -118,91 +98,20 @@ const mapStateToProps = state => ({
   components: currentComponentsSelector(state),
   selectedComponentIds: currentSelectedComponentIdsSelector(state),
   language: state.app.language,
-  ownerComponentMeta: ownerComponentMetaSelector(state),
   ownerProps: ownerPropsSelector(state),
+  ownerUserTypedefs: ownerUserTypedefsSelector(state),
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
-  onPropValueChange: (
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    newSource,
-    newSourceData,
-  ) => void dispatch(updateComponentPropValue(
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    newSource,
-    newSourceData,
-  )),
+  onReplacePropValue: (path, newValue) =>
+    void dispatch(replaceJssyValue(path, newValue)),
   
-  onAddPropValue: (
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    index,
-    source,
-    sourceData,
-  ) => void dispatch(addComponentPropValue(
-    componentId,
-    propName,
-    isSystemProp,
-    path,
-    index,
-    source,
-    sourceData,
-  )),
+  onConstructComponent: (path, components, rootId) =>
+    void dispatch(constructComponentForProp(path, components, rootId)),
   
-  onDeletePropValue: (componentId, propName, isSystemProp, path, index) =>
-    void dispatch(deleteComponentPropValue(
-      componentId,
-      propName,
-      isSystemProp,
-      path,
-      index,
-    )),
-  
-  onConstructComponent: (componentId, propName, isSystemProp, path) =>
-    void dispatch(constructComponentForProp(
-      componentId,
-      propName,
-      isSystemProp,
-      path,
-    )),
-  
-  onLinkProp: (componentId, propName, isSystemProp, path) =>
-    void dispatch(linkProp(componentId, propName, isSystemProp, path)),
-  
-  onUnlinkProp: (componentId, propName, isSystemProp, path) =>
-    void dispatch(unlinkProp(componentId, propName, isSystemProp, path)),
+  onLinkProp: path => void dispatch(linkDialogOpen(path)),
 });
-
-/**
- *
- * @param {string} value
- * @return {number}
- */
-const coerceIntValue = value => {
-  const maybeRet = parseInt(value, 10);
-  if (!isFinite(maybeRet)) return 0;
-  return maybeRet;
-};
-
-/**
- *
- * @param {string} value
- * @return {number}
- */
-const coerceFloatValue = value => {
-  const maybeRet = parseFloat(value);
-  if (!isFinite(maybeRet)) return 0.0;
-  return maybeRet;
-};
 
 /**
  *
@@ -210,321 +119,169 @@ const coerceFloatValue = value => {
  * @return {boolean}
  */
 const isRenderableProp = propMeta =>
-  isValidSourceForProp(propMeta, 'static') ||
-  isValidSourceForProp(propMeta, 'function') ||
-  isValidSourceForProp(propMeta, 'data') || (
+  isValidSourceForValue(propMeta, 'static') ||
+  isValidSourceForValue(propMeta, 'state') ||
+  isValidSourceForValue(propMeta, 'function') ||
+  isValidSourceForValue(propMeta, 'data') || (
     propMeta.type === 'component' &&
-    isValidSourceForProp(propMeta, 'designer')
+    isValidSourceForValue(propMeta, 'designer')
   );
 
 /**
  *
- * @param {PropTypeDefinition} propMeta
- * @return {boolean}
+ * @param {number} componentId
+ * @param {boolean} isSystemProp
+ * @param {string} propName
+ * @param {(string|number)[]} [path=[]]
+ * @return {Path}
  */
-const isEditableProp = propMeta =>
-  isValidSourceForProp(propMeta, 'static') ||
-  isValidSourceForProp(propMeta, 'designer');
+const buildFullPath = (componentId, isSystemProp, propName, path = []) => ({
+  startingPoint: PathStartingPoints.CURRENT_COMPONENTS,
+  steps: [
+    componentId,
+    isSystemProp ? 'systemProps' : 'props',
+    propName,
+    ...path,
+  ],
+});
 
 class ComponentPropsEditorComponent extends PureComponent {
   constructor(props) {
     super(props);
-
-    this._formatArrayItemLabel = this._formatArrayItemLabel.bind(this);
-    this._formatObjectItemLabel = this._formatObjectItemLabel.bind(this);
   
     this._handleSystemPropSetComponent =
       this._handleSetComponent.bind(this, true);
     this._handleSystemPropChange = this._handleChange.bind(this, true);
-    this._handleSystemPropAddValue = this._handleAddValue.bind(this, true);
-    this._handleSystemPropDeleteValue =
-      this._handleDeleteValue.bind(this, true);
     this._handleSystemPropLink = this._handleLink.bind(this, true);
-    this._handleSystemPropUnlink = this._handleUnlink.bind(this, true);
   
     this._handleSetComponent = this._handleSetComponent.bind(this, false);
     this._handleChange = this._handleChange.bind(this, false);
-    this._handleAddValue = this._handleAddValue.bind(this, false);
-    this._handleDeleteValue = this._handleDeleteValue.bind(this, false);
     this._handleLink = this._handleLink.bind(this, false);
-    this._handleUnlink = this._handleUnlink.bind(this, false);
   }
-
-  /**
-   *
-   * @param {number} index
-   * @return {string}
-   * @private
-   */
-  _formatArrayItemLabel(index) {
-    return `Item ${index}`; // TODO: Get string from i18n
-  }
-
-  /**
-   *
-   * @param {string} key
-   * @return {string}
-   * @private
-   */
-  _formatObjectItemLabel(key) {
-    return key;
-  }
-
+  
   /**
    *
    * @param {boolean} isSystemProp
-   * @param {string} propName
-   * @param {(string|number)[]} path
-   * @private
-   */
-  _handleSetComponent(isSystemProp, { propName, path }) {
-    const componentId = this.props.selectedComponentIds.first();
-    this.props.onConstructComponent(componentId, propName, isSystemProp, path);
-  }
-
-  /**
-   *
-   * @param {boolean} isSystemProp
-   * @param {string} propName
+   * @param {string} name
    * @param {*} value
+   * @private
+   */
+  _handleChange(isSystemProp, { name, value }) {
+    const { selectedComponentIds, onReplacePropValue } = this.props;
+    
+    const componentId = selectedComponentIds.first();
+    const fullPath = buildFullPath(componentId, isSystemProp, name);
+    onReplacePropValue(fullPath, value);
+  }
+  
+  /**
+   *
+   * @param {boolean} isSystemProp
+   * @param {string} name
    * @param {(string|number)[]} path
    * @private
    */
-  _handleChange(isSystemProp, { propName, value, path }) {
-    const componentId = this.props.selectedComponentIds.first();
-    this.props.onPropValueChange(
-      componentId,
-      propName,
-      isSystemProp,
+  _handleLink(isSystemProp, { name, path }) {
+    const { selectedComponentIds, onLinkProp } = this.props;
+    
+    const componentId = selectedComponentIds.first();
+    const fullPath = buildFullPath(componentId, isSystemProp, name, path);
+    onLinkProp(fullPath);
+  }
+
+  /**
+   *
+   * @param {boolean} isSystemProp
+   * @param {string} name
+   * @param {(string|number)[]} path
+   * @private
+   */
+  _handleSetComponent(isSystemProp, { name, path }) {
+    const {
+      meta,
+      components,
+      selectedComponentIds,
+      language,
+      onConstructComponent,
+    } = this.props;
+    
+    const componentId = selectedComponentIds.first();
+    const component = components.get(componentId);
+    const currentPropValue = isSystemProp
+      ? component.systemProps.get(name)
+      : component.props.get(name);
+    
+    const currentValue = currentPropValue.getInStatic(path);
+    const componentMeta = getComponentMeta(component.name, meta);
+    const valueMeta = getNestedTypedef(
+      componentMeta.props[name],
       path,
-      'static',
-      { value },
-    );
-  }
-
-  /**
-   *
-   * @param {boolean} isSystemProp
-   * @param {string} propName
-   * @param {(string|number)[]} where
-   * @param {string|number} index
-   * @private
-   */
-  _handleAddValue(isSystemProp, { propName, where, index }) {
-    const componentId = this.props.selectedComponentIds.first();
-    const component = this.props.components.get(componentId);
-    const componentMeta = getComponentMeta(component.name, this.props.meta);
-    const propMeta = componentMeta.props[propName];
-    const nestedPropMeta = getNestedTypedef(
-      propMeta,
-      where,
       componentMeta.types,
     );
+  
+    let initialComponents = null;
+    let initialComponentsRootId = -1;
     
-    const newValueType = resolveTypedef(
-      nestedPropMeta.ofType,
-      componentMeta.types,
-    );
-
-    const value = buildDefaultValue(
-      componentMeta,
-      newValueType,
-      this.props.language,
-    );
-
-    if (value === NO_VALUE) {
-      throw new Error(
-        'Failed to construct a new value for ' +
-        '\'arrayOf\' or \'objectOf\' prop. ' +
-        `Component: '${component.name}', ` +
-        `prop: '${propName}', ` +
-        `where: ${where.map(String).join('.') || '[top level]'}`,
+    const willBuildWrapper =
+      !currentValue.hasDesignedComponent() &&
+      !!valueMeta.sourceConfigs.designer.wrapper;
+    
+    if (willBuildWrapper) {
+      const { namespace } = parseComponentName(component.name);
+  
+      const wrapperFullName = formatComponentName(
+        namespace,
+        valueMeta.sourceConfigs.designer.wrapper,
       );
+  
+      initialComponents = constructComponent(
+        wrapperFullName,
+        valueMeta.sourceConfigs.designer.wrapperLayout || 0,
+        language,
+        meta,
+        { isNew: false, isWrapper: true },
+      );
+  
+      initialComponentsRootId = 0;
     }
-
-    this.props.onAddPropValue(
-      componentId,
-      propName,
-      isSystemProp,
-      where,
-      index,
-      value.source,
-      value.sourceData,
-    );
-  }
-
-  /**
-   *
-   * @param {boolean} isSystemProp
-   * @param {string} propName
-   * @param {(string|number)[]} where
-   * @param {string|number} index
-   * @private
-   */
-  _handleDeleteValue(isSystemProp, { propName, where, index }) {
-    const componentId = this.props.selectedComponentIds.first();
     
-    this.props.onDeletePropValue(
-      componentId,
-      propName,
-      isSystemProp,
-      where,
-      index,
-    );
-  }
-
-  /**
-   *
-   * @param {boolean} isSystemProp
-   * @param {string} propName
-   * @param {(string|number)[]} path
-   * @private
-   */
-  _handleLink(isSystemProp, { propName, path }) {
-    const componentId = this.props.selectedComponentIds.first();
-    this.props.onLinkProp(componentId, propName, isSystemProp, path);
-  }
-
-  /**
-   *
-   * @param {boolean} isSystemProp
-   * @param {string} propName
-   * @param {(string|number)[]} path
-   * @private
-   */
-  _handleUnlink(isSystemProp, { propName, path }) {
-    const componentId = this.props.selectedComponentIds.first();
-    this.props.onUnlinkProp(componentId, propName, isSystemProp, path);
+    const fullPath = buildFullPath(componentId, isSystemProp, name, path);
+    onConstructComponent(fullPath, initialComponents, initialComponentsRootId);
   }
 
   /**
    *
    * @param {ComponentMeta} componentMeta
-   * @param {ComponentPropMeta} propMeta
-   * @return {boolean}
+   * @param {string} propName
+   * @param {Object} propValue
+   * @returns {?ReactElement}
    * @private
    */
-  _isPropLinkable(componentMeta, propMeta) {
-    if (propMeta.source.indexOf('data') > -1) return true;
-    if (propMeta.source.indexOf('function') > -1) return true;
-    if (!this.props.ownerProps) return false;
-
-    return objectSome(this.props.ownerProps, ownerProp => {
-      if (ownerProp.dataContext) return false;
-
-      return isEqualType(
-        propMeta,
-        ownerProp,
-        componentMeta.types,
-        this.props.ownerComponentMeta.types,
-      );
-    });
-  }
-
-  /**
-   *
-   * @param {ComponentMeta} componentMeta
-   * @param {ComponentPropMeta} propMeta
-   * @returns {PropsItemPropType}
-   * @private
-   */
-  _propTypeFromMeta(componentMeta, propMeta) {
-    // TODO: Memoize
-    const typedef = resolveTypedef(propMeta, componentMeta.types);
-
-    const name = getString(
-      componentMeta,
-      typedef.textKey,
-      this.props.language,
-    );
-
-    const description = getString(
-      componentMeta,
-      typedef.descriptionTextKey,
-      this.props.language,
-    );
-
-    const editable = isEditableProp(typedef);
-    const linkable = this._isPropLinkable(componentMeta, typedef);
-
-    const ret = {
-      label: name,
-      secondaryLabel: typedef.type, // TODO: Get string from i18n
-      view: editable ? jssyTypeToView(typedef.type) : PropViews.EMPTY,
-      image: '',
-      tooltip: description,
-      linkable,
-      checkable: false,
-      required: false,
-      transformValue: null,
-      formatItemLabel: null,
-    };
-
-    if (editable) {
-      if (typedef.type === 'int') {
-        ret.transformValue = coerceIntValue;
-      } else if (typedef.type === 'float') {
-        ret.transformValue = coerceFloatValue;
-      } else if (typedef.type === 'oneOf') {
-        ret.options = typedef.options.map(option => ({
-          value: option.value,
-          text: getString(
-              componentMeta,
-              option.textKey,
-              this.props.language,
-          ) || option.textKey,
-        }));
-      } else if (typedef.type === 'shape') {
-        ret.fields = _mapValues(
-          typedef.fields,
-          fieldMeta => this._propTypeFromMeta(componentMeta, fieldMeta),
-        );
-      } else if (typedef.type === 'arrayOf') {
-        ret.ofType = this._propTypeFromMeta(componentMeta, typedef.ofType);
-        ret.formatItemLabel = this._formatArrayItemLabel;
-      } else if (typedef.type === 'objectOf') {
-        ret.ofType = this._propTypeFromMeta(componentMeta, typedef.ofType);
-        ret.formatItemLabel = this._formatObjectItemLabel;
-      }
-    }
-
-    //noinspection JSValidateTypes
-    return ret;
-  }
-
-    /**
-     *
-     * @param {ComponentMeta} componentMeta
-     * @param {string} propName
-     * @param {Object} propValue
-     * @returns {?ReactElement}
-     * @private
-     */
   _renderPropsItem(componentMeta, propName, propValue) {
-    const { getLocalizedText } = this.props;
+    const {
+      ownerProps,
+      ownerUserTypedefs,
+      language,
+      getLocalizedText,
+    } = this.props;
 
     const propMeta = componentMeta.props[propName];
-    const propType = this._propTypeFromMeta(componentMeta, propMeta);
-    const value = jssyValueToPropValue(
-      propValue,
-      propMeta,
-      componentMeta.types,
-    );
-
-    //noinspection JSValidateTypes
+    
     return (
-      <Prop
+      <JssyValueEditor
         key={propName}
-        propName={propName}
-        propType={propType}
-        value={value}
+        name={propName}
+        value={propValue}
+        valueDef={propMeta}
+        userTypedefs={componentMeta.types}
+        strings={componentMeta.strings}
+        language={language}
+        ownerProps={ownerProps}
+        ownerUserTypedefs={ownerUserTypedefs}
         getLocalizedText={getLocalizedText}
         onChange={this._handleChange}
-        onSetComponent={this._handleSetComponent}
-        onAddValue={this._handleAddValue}
-        onDeleteValue={this._handleDeleteValue}
         onLink={this._handleLink}
-        onUnlink={this._handleUnlink}
+        onConstructComponent={this._handleSetComponent}
       />
     );
   }
@@ -536,41 +293,34 @@ class ComponentPropsEditorComponent extends PureComponent {
    * @private
    */
   _renderSystemProps(component) {
-    const { getLocalizedText } = this.props;
+    const {
+      ownerProps,
+      ownerUserTypedefs,
+      getLocalizedText,
+    } = this.props;
     
-    const visiblePropType = {
-      label: getLocalizedText('propsEditor.systemProps.visible.name'),
-      secondaryLabel: TypeNames.BOOL,
-      view: PropViews.TOGGLE,
-      image: '',
-      tooltip: getLocalizedText('propsEditor.systemProps.visible.desc'),
-      linkable: true,
-      checkable: false,
-      required: false,
-      transformValue: null,
-      formatItemLabel: null,
-    };
+    const visibleLabel =
+      getLocalizedText('propsEditor.systemProps.visible.name');
     
-    const visibleValue = jssyValueToPropValue(
-      component.systemProps.get('visible'),
-      SYSTEM_PROPS.visible,
-    );
+    const visibleDesc =
+      getLocalizedText('propsEditor.systemProps.visible.desc');
     
     //noinspection JSValidateTypes
     return (
       <BlockContentBoxItem key="__system_props__">
         <PropsList>
-          <Prop
-            propName="visible"
-            propType={visiblePropType}
-            value={visibleValue}
+          <JssyValueEditor
+            name="visible"
+            value={component.systemProps.get('visible')}
+            valueDef={SYSTEM_PROPS.visible}
+            label={visibleLabel}
+            description={visibleDesc}
+            ownerProps={ownerProps}
+            ownerUserTypedefs={ownerUserTypedefs}
             getLocalizedText={getLocalizedText}
             onChange={this._handleSystemPropChange}
-            onSetComponent={this._handleSystemPropSetComponent}
-            onAddValue={this._handleSystemPropAddValue}
-            onDeleteValue={this._handleSystemPropDeleteValue}
             onLink={this._handleSystemPropLink}
-            onUnlink={this._handleSystemPropUnlink}
+            onConstructComponent={this._handleSystemPropSetComponent}
           />
         </PropsList>
       </BlockContentBoxItem>
@@ -607,7 +357,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     const propGroups = componentMeta.propGroups.map(groupData => ({
       name: groupData.name,
       title: getString(
-        componentMeta,
+        componentMeta.strings,
         groupData.textKey,
         this.props.language,
       ),

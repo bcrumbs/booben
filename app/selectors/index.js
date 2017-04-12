@@ -6,7 +6,6 @@
 
 import { createSelector } from 'reselect';
 import _forOwn from 'lodash.forown';
-import { getNestedTypedef } from '@jssy/types';
 import { getComponentMeta, findPropThatPushedDataContext } from '../utils/meta';
 import { getTypeNameByPath } from '../utils/schema';
 
@@ -34,6 +33,11 @@ export const currentComponentsSelector = createSelector(
   },
 );
 
+// Path in a nested constructor is always relative to components map
+// so it must start with component id
+const getComponentIdFromNestedConstructor = nestedConstructor =>
+  nestedConstructor.path.steps[0];
+
 export const topNestedConstructorComponentSelector = createSelector(
   state => state.project.nestedConstructors,
   currentRouteSelector,
@@ -41,9 +45,10 @@ export const topNestedConstructorComponentSelector = createSelector(
   (nestedConstructors, currentRoute) => {
     if (nestedConstructors.isEmpty()) return null;
 
-    const topNestedConstructor = nestedConstructors.first(),
-      componentId = topNestedConstructor.componentId;
-
+    const topNestedConstructor = nestedConstructors.first();
+    const componentId =
+      getComponentIdFromNestedConstructor(topNestedConstructor);
+    
     const components = nestedConstructors.size === 1
           ? currentRoute.components
           : nestedConstructors.get(1).components;
@@ -100,11 +105,14 @@ export const currentComponentsStackSelector = createSelector(
   
   (nestedConstructors, currentRoute) =>
     nestedConstructors.map((nestedConstructor, idx, list) => {
+      const componentId =
+        getComponentIdFromNestedConstructor(nestedConstructor);
+      
       const componentsMap = (idx < list.size - 1)
         ? list.get(idx + 1).components
         : currentRoute.components;
       
-      return componentsMap.get(nestedConstructor.componentId);
+      return componentsMap.get(componentId);
     }),
 );
 
@@ -126,16 +134,14 @@ export const availableDataContextsSelector = createSelector(
   
     const ownerComponent = topNestedConstructorComponent;
     const ownerComponentMeta = getComponentMeta(ownerComponent.name, meta);
-    const ownerComponentDesignerPropMeta = getNestedTypedef(
-      ownerComponentMeta.props[topNestedConstructor.prop],
-      topNestedConstructor.path,
-      ownerComponentMeta.types,
-    );
+    const ownerComponentDesignerPropMeta =
+      topNestedConstructor.valueInfo.valueDef;
   
     const dataContexts = [];
   
     _forOwn(
       ownerComponentDesignerPropMeta.sourceConfigs.designer.props,
+      
       ownerPropMeta => {
         if (!ownerPropMeta.dataContext) return;
       
@@ -149,13 +155,9 @@ export const availableDataContextsSelector = createSelector(
         const dataContextOriginValue =
           ownerComponent.props.get(dataContextOriginData.propName);
       
-        if (
-          dataContextOriginValue.source !== 'data' ||
-          !dataContextOriginValue.sourceData.queryPath
-        ) return;
+        if (!dataContextOriginValue.isLinkedWithData()) return;
       
-        const dataContext = dataContextOriginValue.sourceData.dataContext
-          .toJS()
+        const dataContext = dataContextOriginValue.getDataContext()
           .concat(ownerPropMeta.dataContext);
       
         dataContexts.push(dataContext);

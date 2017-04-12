@@ -4,6 +4,8 @@
 
 'use strict';
 
+import { is } from 'immutable';
+
 /**
  * Does nothing
  */
@@ -28,6 +30,20 @@ export const returnArg = /* istanbul ignore next */ arg => arg;
  * @return {boolean}
  */
 export const returnTrue = /* istanbul ignore next */ () => true;
+
+/**
+ *
+ * @param {*} value
+ * @return {boolean}
+ */
+export const isNumber = value => typeof value === 'number' && isFinite(value);
+
+/**
+ *
+ * @param {*} value
+ * @return {boolean}
+ */
+export const isInteger = value => isNumber(value) && value % 1 === 0;
 
 /**
  *
@@ -164,4 +180,15 @@ export const pointIsInCircle = (x, y, cX, cY, r) => {
     yy = y - cY;
 
   return xx * xx + yy * yy <= r * r;
+};
+
+/**
+ *
+ * @param {Immutable.List} maybePrefix
+ * @param {Immutable.List} list
+ * @return {boolean}
+ */
+export const isPrefixList = (maybePrefix, list) => {
+  if (maybePrefix.size > list.size) return false;
+  return maybePrefix.every((item, idx) => is(item, list.get(idx)));
 };

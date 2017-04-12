@@ -7,6 +7,7 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import thunkMiddleware from 'redux-thunk';
 import createLogger from 'redux-logger';
+import { enableBatching } from 'redux-batched-actions';
 import rootReducer from './reducers';
 
 const middleware = [thunkMiddleware];
@@ -29,4 +30,4 @@ if (willAddReduxDevTools) {
   fns.push(window.__REDUX_DEVTOOLS_EXTENSION__());
 }
 
-export default createStore(rootReducer, compose(...fns));
+export default createStore(enableBatching(rootReducer), compose(...fns));

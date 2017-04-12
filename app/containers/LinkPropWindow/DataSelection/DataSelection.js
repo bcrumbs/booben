@@ -53,8 +53,8 @@ const propTypes = {
   schema: PropTypes.object.isRequired,
   rootTypeName: PropTypes.string.isRequired,
   argValues: PropTypes.object.isRequired,
-  linkTargetComponentMeta: PropTypes.object.isRequired,
-  linkTargetPropTypedef: PropTypes.object.isRequired,
+  userTypedefs: PropTypes.object.isRequired,
+  linkTargetValueDef: PropTypes.object.isRequired,
   getLocalizedText: PropTypes.func,
   onSelect: PropTypes.func,
   onReturn: PropTypes.func,
@@ -384,8 +384,8 @@ export class DataSelection extends PureComponent {
     const {
       schema,
       getLocalizedText,
-      linkTargetPropTypedef,
-      linkTargetComponentMeta,
+      linkTargetValueDef,
+      userTypedefs,
     } = this.props;
     
     const { currentPath, currentTypeName } = this.state;
@@ -459,8 +459,8 @@ export class DataSelection extends PureComponent {
             <DataSelectionFieldsList
               type={currentType}
               schema={schema}
-              linkTargetTypedef={linkTargetPropTypedef}
-              linkTargetUserTypedefs={linkTargetComponentMeta.types}
+              linkTargetTypedef={linkTargetValueDef}
+              linkTargetUserTypedefs={userTypedefs}
               getLocalizedText={getLocalizedText}
               onJumpIntoField={this._handleJumpIntoField}
               onSetFieldArguments={this._handleSetArgumentsOnDataItem}

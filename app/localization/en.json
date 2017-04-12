@@ -68,6 +68,7 @@
   "actionsEditor.actionType.prop": "Change prop value",
   "actionsEditor.actionType.navigate": "Change route",
   "actionsEditor.actionType.url": "Open URL",
+  "actionsEditor.actionType.logout": "Logout",
   "actionsEditor.actionForm.url": "URL",
   "actionsEditor.actionForm.urlWindow": "Window",
   "actionsEditor.actionForm.urlWindow.same": "Same window",
@@ -79,6 +80,7 @@
   "actionsEditor.actionTitle.navigate": "Navigate to '{routeName}'",
   "actionsEditor.actionTitle.url.sameWindow": "Open {url}",
   "actionsEditor.actionTitle.url.newWindow": "Open {url} in a new window",
+  "actionsEditor.actionTitle.logout": "Logout",
   "actionsEditor.onSuccess": "On success",
   "actionsEditor.onError": "On error",
 

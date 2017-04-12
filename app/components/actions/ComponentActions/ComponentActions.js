@@ -7,18 +7,16 @@ import { noop } from '../../../utils/misc';
 import './ComponentActions.scss';
 
 const propTypes = {
-  actionPath: PropTypes.arrayOf(PropTypes.shape({
-    index: PropTypes.number.isRequired,
-    branch: PropTypes.string,
-  })),
-  branch: PropTypes.string,
+  pathToList: PropTypes.arrayOf(PropTypes.oneOfType([
+    PropTypes.string,
+    PropTypes.number,
+  ])),
   addButtonText: PropTypes.string,
   onAdd: PropTypes.func,
 };
 
 const defaultProps = {
-  actionPath: [],
-  branch: '',
+  pathToList: [],
   addButtonText: '',
   onAdd: noop,
 };
@@ -31,8 +29,8 @@ export class ComponentActions extends PureComponent {
   }
   
   _handleAddButtonPress() {
-    const { actionPath, branch, onAdd } = this.props;
-    onAdd({ actionPath, branch });
+    const { pathToList, onAdd } = this.props;
+    onAdd({ pathToList });
   }
   
   render() {

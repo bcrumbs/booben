@@ -29,7 +29,8 @@ const defaultProps = {
 };
 
 const ProjectSaveComponent = props => {
-  let className = 'project-save has-tooltip';
+  let className = 'project-save has-tooltip',
+    iconCln = 'project-save_icon';
   if (props.status)className += ` save-status-${props.status}`;
   
   let icon = null,
@@ -38,17 +39,15 @@ const ProjectSaveComponent = props => {
   
   if (props.status === 'error') {
     title = 'Save';
-    icon = (
-      <div className="project-save_state_icon state_icon-error">
-        <Icon name="exclamation" />
-      </div>
-    );
+    icon = <Icon name="exclamation" />;
   } else if (props.status === 'success') {
     title = 'Saved!';
+    icon = <Icon name="check" />;
   } else if (props.status === 'progress') {
     title = 'Saving...';
   } else {
     title = 'Save';
+    icon = <Icon name="check" />;
   }
   
   if (props.status === 'error')
@@ -70,13 +69,12 @@ const ProjectSaveComponent = props => {
       onMouseEnter={props.showTooltip}
       onMouseLeave={props.hideTooltip}
     >
-      <div className="project-save_icon">
-        <Icon name="floppy-o" />
+      <div className={iconCln}>
+        {icon}
       </div>
       <div className="project-save_title-wrapper">
         <div className="project-save_title">
           {title}
-          {icon}
         </div>
       </div>
       

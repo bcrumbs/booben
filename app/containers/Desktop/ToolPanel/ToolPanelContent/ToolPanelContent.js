@@ -84,7 +84,9 @@ export class ToolPanelContent extends PureComponent {
     let navArea = null;
   
     if (sectionsNum > 1) {
-      const tabs = sections.map(section => ({ text: section.name }));
+      const tabs = Array.from(
+        sections.map(section => ({ text: section.name })),
+      );
     
       navArea = (
         <BlockContentNavigation>

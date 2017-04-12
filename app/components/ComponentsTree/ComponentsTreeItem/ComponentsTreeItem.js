@@ -5,6 +5,8 @@ import React, { PureComponent, PropTypes } from 'react';
 import { Button } from '@reactackle/reactackle';
 import { noop } from '../../../utils/misc';
 
+import './ComponentsTreeItem.scss';
+
 const propTypes = {
   componentId: PropTypes.number.isRequired,
   title: PropTypes.string,

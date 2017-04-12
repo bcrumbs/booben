@@ -5,33 +5,49 @@
 'use strict';
 
 import React, { PureComponent, PropTypes } from 'react';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import _startCase from 'lodash.startcase';
 import _forOwn from 'lodash.forown';
-import { Button } from '@reactackle/reactackle';
+import _mapValues from 'lodash.mapvalues';
+import { Map } from 'immutable';
+import { Button, Dialog } from '@reactackle/reactackle';
 
 import {
   BlockContentBoxItem,
 } from '../../../components/BlockContent/BlockContent';
 
+import { LinkPropWindow } from '../../LinkPropWindow/LinkPropWindow';
 import { PropsList } from '../../../components/PropsList/PropsList';
+import { JssyValueEditor } from '../../JssyValueEditor/JssyValueEditor';
 import { PropInput, PropList } from '../../../components/props';
-import ProjectRoute from '../../../models/ProjectRoute';
+import Project from '../../../models/Project';
+import { jssyValueToImmutable } from '../../../models/ProjectComponent';
+import JssyValue from '../../../models/JssyValue';
 import { Action, createActionParams } from '../../../models/SourceDataActions';
+import { ROUTE_PARAM_VALUE_DEF } from '../../../constants/misc';
 import { getLocalizedTextFromState } from '../../../utils';
-import { getMutationType } from '../../../utils/schema';
-import { noop } from '../../../utils/misc';
+
+import {
+  getMutationType,
+  getMutationField,
+  getJssyTypeOfField,
+} from '../../../utils/schema';
+
+import { buildDefaultValue } from '../../../utils/meta';
+
+import {
+  noop,
+  returnArg,
+  arrayToObject,
+  objectToArray,
+} from '../../../utils/misc';
 
 const propTypes = {
   action: PropTypes.instanceOf(Action),
   onSave: PropTypes.func,
   onCancel: PropTypes.func,
   schema: PropTypes.object.isRequired,
-  routes: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectRoute),
-    PropTypes.number,
-  ).isRequired,
+  project: PropTypes.instanceOf(Project).isRequired,
   getLocalizedText: PropTypes.func.isRequired,
 };
 
@@ -43,7 +59,7 @@ const defaultProps = {
 
 const mapStateToProps = state => ({
   schema: state.project.schema,
-  routes: state.project.data.routes,
+  project: state.project.data,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -53,6 +69,9 @@ class ActionEditorComponent extends PureComponent {
     
     this.state = {
       action: props.action || new Action(),
+      linkingValue: false,
+      linkingValueDef: null,
+      linkingUserTypedefs: null,
     };
     
     this._handleActionTypeChange = this._handleActionTypeChange.bind(this);
@@ -61,10 +80,18 @@ class ActionEditorComponent extends PureComponent {
       this._handleURLActionNewWindowChange.bind(this);
     this._handleNavigateActionRouteChange =
       this._handleNavigateActionRouteChange.bind(this);
+    this._handleNavigateActionRouteParamChange =
+      this._handleNavigateActionRouteParamChange.bind(this);
+    this._handleMutationActionArgChange =
+      this._handleMutationActionArgChange.bind(this);
     this._handleSave = this._handleSave.bind(this);
+    this._handleLink = this._handleLink.bind(this);
+    this._handleLinkApply = this._handleLinkApply.bind(this);
+    this._handleLinkCancel = this._handleLinkCancel.bind(this);
   }
   
   _handleActionTypeChange({ value }) {
+    const { schema } = this.props;
     const { action } = this.state;
     
     const [actionType, mutationName = null] = value.split('/');
@@ -76,8 +103,17 @@ class ActionEditorComponent extends PureComponent {
     
     if (willUpdateAction) {
       let params = createActionParams(actionType);
-      if (actionType === 'mutation')
-        params = params.set('mutation', mutationName);
+      if (actionType === 'mutation') {
+        const mutationField = getMutationField(schema, mutationName);
+        
+        params = params.merge({
+          mutation: mutationName,
+          args: Map(_mapValues(mutationField.args, arg => {
+            const valueDef = getJssyTypeOfField(arg, schema);
+            return jssyValueToImmutable(buildDefaultValue(valueDef));
+          })),
+        });
+      }
       
       this.setState({
         action: action.merge({
@@ -105,11 +141,47 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _handleNavigateActionRouteChange({ value }) {
+    const { project } = this.props;
     const { action } = this.state;
     
+    const route = project.routes.get(value);
+    const paramNames = route.path
+      .split('/')
+      .filter(part => part.startsWith(':'))
+      .map(part => part.slice(1));
+    
     this.setState({
-      action: action.setIn(['params', 'routeId'], value),
+      action: action.update('params', params => params.merge({
+        routeId: value,
+        routeParams: Map(arrayToObject(
+          paramNames,
+          returnArg,
+          () => JssyValue.staticFromJS(''),
+        )),
+      })),
     });
+  }
+  
+  _handleNavigateActionRouteParamChange({ name, value }) {
+    const { action } = this.state;
+  
+    this.setState({
+      action: action.setIn(['params', 'routeParams', name], value),
+    });
+  }
+  
+  _handleMutationActionArgChange({ name, value }) {
+    const { action } = this.state;
+
+    if (value) {
+      this.setState({
+        action: action.setIn(['params', 'args', name], value),
+      });
+    } else {
+      this.setState({
+        action: action.deleteIn(['params', 'args', name]),
+      });
+    }
   }
   
   _handleSave() {
@@ -117,6 +189,22 @@ class ActionEditorComponent extends PureComponent {
     const { action } = this.state;
     
     onSave({ action });
+  }
+  
+  _handleLink({ path }) {
+  
+  }
+  
+  _handleLinkApply({ newValue, queryArgs }) {
+  
+  }
+  
+  _handleLinkCancel() {
+    this.setState({
+      linkingValue: false,
+      linkingValueDef: null,
+      linkingUserTypedefs: null,
+    });
   }
   
   _isCurrentActionValid() {
@@ -147,7 +235,7 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _getActionTypeOptions() {
-    const { schema, getLocalizedText } = this.props;
+    const { project, schema, getLocalizedText } = this.props;
     
     const ret = [
       {
@@ -168,6 +256,13 @@ class ActionEditorComponent extends PureComponent {
       },
     ];
     
+    if (project.auth && project.auth.type === 'jwt') {
+      ret.push({
+        text: getLocalizedText('actionsEditor.actionType.logout'),
+        value: 'logout',
+      });
+    }
+    
     const mutationType = getMutationType(schema);
     if (mutationType) {
       _forOwn(mutationType.fields, (_, mutationName) => {
@@ -179,6 +274,37 @@ class ActionEditorComponent extends PureComponent {
     }
     
     return ret;
+  }
+  
+  _renderMutationActionProps() {
+    const { schema, getLocalizedText } = this.props;
+    const { action } = this.state;
+    
+    const mutationField = getMutationField(schema, action.params.mutation);
+    
+    return objectToArray(mutationField.args, (arg, argName) => {
+      const key = `mutationArg_${argName}`;
+      
+      return (
+        <JssyValueEditor
+          key={key}
+          name={argName}
+          value={action.params.args.get(argName)}
+          valueDef={getJssyTypeOfField(arg, schema)}
+          optional={!arg.nonNull}
+          getLocalizedText={getLocalizedText}
+          onChange={this._handleMutationActionArgChange}
+        />
+      );
+    });
+  }
+  
+  _renderMethodActionProps() {
+    return [];
+  }
+  
+  _renderPropActionProps() {
+    return [];
   }
   
   _renderURLActionProps() {
@@ -214,11 +340,11 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _renderNavigateActionProps() {
-    const { routes, getLocalizedText } = this.props;
+    const { project, getLocalizedText } = this.props;
     const { action } = this.state;
     
     const options = [];
-    routes.forEach((route, routeId) =>
+    project.routes.forEach((route, routeId) =>
       void options.push({ text: route.title, value: routeId }));
     
     const value = action.params.routeId === -1 ? null : action.params.routeId;
@@ -233,20 +359,41 @@ class ActionEditorComponent extends PureComponent {
       />
     );
     
-    // TODO: Add route params
+    const props = [routeProp];
     
-    return [
-      routeProp,
-    ];
+    if (action.params.routeId !== -1) {
+      const route = project.routes.get(action.params.routeId);
+      const pathParts = route.path.split('/');
+  
+      pathParts.forEach(pathPart => {
+        const isParam = pathPart.startsWith(':');
+        if (isParam) {
+          const name = pathPart.slice(1);
+          const key = `routeParam_${name}`;
+          
+          props.push(
+            <JssyValueEditor
+              key={key}
+              name={name}
+              value={action.params.routeParams.get(name)}
+              valueDef={ROUTE_PARAM_VALUE_DEF}
+              onChange={this._handleNavigateActionRouteParamChange}
+            />,
+          );
+        }
+      });
+    }
+    
+    return props;
   }
   
   _renderAdditionalProps() {
     const { action } = this.state;
     
     switch (action.type) {
-      case 'mutation': return [];
-      case 'method': return [];
-      case 'prop': return [];
+      case 'mutation': return this._renderMutationActionProps();
+      case 'method': return this._renderMethodActionProps();
+      case 'prop': return this._renderPropActionProps();
       case 'navigate': return this._renderNavigateActionProps();
       case 'url': return this._renderURLActionProps();
       default: return [];
@@ -255,7 +402,12 @@ class ActionEditorComponent extends PureComponent {
   
   render() {
     const { onCancel, getLocalizedText } = this.props;
-    const { action } = this.state;
+    const {
+      action,
+      linkingValue,
+      linkingValueDef,
+      linkingUserTypedefs,
+    } = this.state;
     
     const actionTypeLabel = getLocalizedText('actionsEditor.actionType');
     const actionTypeOptions = this._getActionTypeOptions();
@@ -295,6 +447,22 @@ class ActionEditorComponent extends PureComponent {
           text="Cancel"
           onPress={onCancel}
         />
+        
+        <Dialog
+          title="Link attribute value"
+          backdrop
+          minWidth={420}
+          paddingSize="none"
+          visible={linkingValue}
+          haveCloseButton
+          onClose={this._handleLinkCancel}
+        >
+          <LinkPropWindow
+            valueDef={linkingValueDef}
+            userTypedefs={linkingUserTypedefs}
+            onLink={this._handleLink}
+          />
+        </Dialog>
       </BlockContentBoxItem>
     );
   }

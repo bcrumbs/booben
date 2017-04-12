@@ -4,8 +4,8 @@
 
 'use strict';
 
-import { Record, Map, Set, List, is } from 'immutable';
-import { getNestedTypedef } from '@jssy/types';
+import { Record, Map, Set, List } from 'immutable';
+import { resolveTypedef } from '@jssy/types';
 
 import {
   NOT_LOADED,
@@ -22,25 +22,23 @@ import {
   PROJECT_ROUTE_DELETE,
   PROJECT_ROUTE_UPDATE_FIELD,
   PROJECT_COMPONENT_DELETE,
-  PROJECT_COMPONENT_UPDATE_PROP_VALUE,
-  PROJECT_COMPONENT_ADD_PROP_VALUE,
-  PROJECT_COMPONENT_DELETE_PROP_VALUE,
   PROJECT_COMPONENT_RENAME,
   PROJECT_COMPONENT_TOGGLE_REGION,
-  PROJECT_COMPONENT_ADD_ACTION,
-  PROJECT_COMPONENT_REPLACE_ACTION,
-  PROJECT_COMPONENT_DELETE_ACTION,
   PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
-  PROJECT_CONSTRUCT_COMPONENT_FOR_PROP,
-  PROJECT_CANCEL_CONSTRUCT_COMPONENT_FOR_PROP,
-  PROJECT_SAVE_COMPONENT_FOR_PROP,
-  PROJECT_LINK_PROP,
-  PROJECT_LINK_WITH_OWNER_PROP,
-  PROJECT_LINK_WITH_DATA,
-  PROJECT_LINK_WITH_FUNCTION,
-  PROJECT_LINK_PROP_CANCEL,
-  PROJECT_UNLINK_PROP,
   PROJECT_CREATE_FUNCTION,
+  PROJECT_UPDATE_QUERY_ARGS,
+  PROJECT_JSSY_VALUE_UPDATE,
+  PROJECT_JSSY_VALUE_REPLACE,
+  PROJECT_JSSY_VALUE_ADD,
+  PROJECT_JSSY_VALUE_DELETE,
+  PROJECT_JSSY_VALUE_ADD_ACTION,
+  PROJECT_JSSY_VALUE_REPLACE_ACTION,
+  PROJECT_JSSY_VALUE_DELETE_ACTION,
+  PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT,
+  PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL,
+  PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE,
+  PROJECT_LINK_DIALOG_OPEN,
+  PROJECT_LINK_DIALOG_CLOSE,
 } from '../actions/project';
 
 import {
@@ -71,10 +69,9 @@ import {
 
 import ProjectRoute from '../models/ProjectRoute';
 import JssyValue from '../models/JssyValue';
-import SourceDataStatic from '../models/SourceDataStatic';
 import SourceDataDesigner from '../models/SourceDataDesigner';
-import SourceDataData, { QueryPathStep } from '../models/SourceDataData';
-import SourceDataFunction from '../models/SourceDataFunction';
+import SourceDataData from '../models/SourceDataData';
+import { Action } from '../models/SourceDataActions';
 
 import ProjectFunction, {
   ProjectFunctionArgument,
@@ -88,11 +85,10 @@ import {
   gatherRoutesTreeIds,
 } from '../models/Project';
 
-import {
+import ProjectComponent, {
   sourceDataToImmutable,
   gatherComponentsTreeIds,
   isRootComponent,
-  getValueByPath,
   walkSimpleProps,
   walkComponentsTree,
 } from '../models/ProjectComponent';
@@ -101,21 +97,24 @@ import {
   transformMetadata,
   getComponentMeta,
   constructComponent,
-  parseComponentName,
-  formatComponentName,
   propHasDataContext,
-  buildDefaultValue,
 } from '../utils/meta';
 
 import { concatPath } from '../utils';
-import { parseGraphQLSchema } from '../utils/schema';
-import { NO_VALUE, SYSTEM_PROPS } from '../constants/misc';
+
+import {
+  parseGraphQLSchema,
+  getMutationField,
+  getJssyTypeOfField,
+} from '../utils/schema';
+
+import { isInteger, isPrefixList } from '../utils/misc';
+import { getFunctionInfo } from '../utils/functions';
+import { SYSTEM_PROPS, ROUTE_PARAM_VALUE_DEF } from '../constants/misc';
 
 export const NestedConstructor = Record({
-  componentId: -1,
-  prop: '',
-  isSystemProp: false,
   path: [],
+  valueInfo: null,
   
   components: Map(),
   rootId: -1,
@@ -156,10 +155,7 @@ const ProjectState = Record({
 
   nestedConstructors: List(),
   linkingProp: false,
-  linkingPropOfComponentId: -1,
-  linkingPropName: '',
-  linkingSystemProp: false,
-  linkingPropPath: [],
+  linkingPath: null,
 });
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
@@ -218,6 +214,7 @@ const selectComponentExclusive = (state, componentId) =>
 const toggleComponentSelection = (state, componentId) => {
   const pathToCurrentSelectedComponentIds =
       getPathToCurrentSelectedComponentIds(state);
+  
   const currentSelectedComponentIds =
     state.getIn(pathToCurrentSelectedComponentIds);
 
@@ -244,10 +241,10 @@ const unhighlightComponent = (state, componentId) => state.updateIn(
 );
 
 const addComponents = (state, parentComponentId, position, components) => {
-  const pathToCurrentLastComponentId = getPathToCurrentLastComponentId(state),
-    lastComponentId = state.getIn(pathToCurrentLastComponentId),
-    nextComponentId = lastComponentId + 1,
-    pathToCurrentComponents = getPathToCurrentComponents(state);
+  const pathToCurrentLastComponentId = getPathToCurrentLastComponentId(state);
+  const lastComponentId = state.getIn(pathToCurrentLastComponentId);
+  const nextComponentId = lastComponentId + 1;
+  const pathToCurrentComponents = getPathToCurrentComponents(state);
 
   state = state.updateIn(
     pathToCurrentComponents,
@@ -312,14 +309,6 @@ const expandPropPath = propPath => {
 const deleteComponent = (state, componentId) => {
   const pathToCurrentComponents = getPathToCurrentComponents(state);
   const currentComponents = state.getIn(pathToCurrentComponents);
-
-  if (!currentComponents.has(componentId)) {
-    throw new Error(
-      'An attempt was made to delete a component ' +
-      'that is not in current editing area',
-    );
-  }
-
   const component = currentComponents.get(componentId);
   const idsToDelete = gatherComponentsTreeIds(currentComponents, componentId);
 
@@ -396,25 +385,7 @@ const deleteComponent = (state, componentId) => {
 const moveComponent = (state, componentId, targetComponentId, position) => {
   const pathToCurrentComponents = getPathToCurrentComponents(state);
   const currentComponents = state.getIn(pathToCurrentComponents);
-
-  if (!currentComponents.has(componentId)) {
-    throw new Error(
-      'An attempt was made to move a component ' +
-      'that is not in current editing area',
-    );
-  }
-
-  if (!currentComponents.has(targetComponentId)) {
-    throw new Error(
-      'An attempt was made to move a component ' +
-      'outside current editing area',
-    );
-  }
-
   const component = currentComponents.get(componentId);
-
-  if (component.parentId === -1)
-    throw new Error('Cannot move root component');
 
   if (component.parentId === targetComponentId) {
     const childrenPath = [].concat(pathToCurrentComponents, [
@@ -459,150 +430,6 @@ const moveComponent = (state, componentId, targetComponentId, position) => {
   return state.setIn(pathToParentId, targetComponentId);
 };
 
-const isPrefixList = (maybePrefix, list) => {
-  if (maybePrefix.size > list.size) return false;
-  return maybePrefix.every((item, idx) => is(item, list.get(idx)));
-};
-
-// TODO: Refactor away from using real paths
-const clearOutdatedDataProps = (
-  state,
-  pathToComponents,
-  updatedComponentId,
-  updatedPropName,
-  updatedPath,
-) => {
-  // Data prop with pushDataContext cannot be nested,
-  // so we need to clear outdated data props only when updating top-level prop
-  if (updatedPath.length === 0) return state;
-  
-  const currentComponents = state.getIn(pathToComponents);
-  const updatedComponent = currentComponents.get(updatedComponentId);
-  const oldValue = updatedComponent.props.get(updatedPropName);
-  
-  if (oldValue.source !== 'data' || !oldValue.sourceData.queryPath)
-    return state;
-  
-  const componentMeta = getComponentMeta(updatedComponent.name, state.meta);
-  const updatedPropMeta = componentMeta.props[updatedPropName];
-  
-  if (!propHasDataContext(updatedPropMeta)) return state;
-  
-  const outdatedDataContext = oldValue.sourceData.dataContext
-    .push(updatedPropMeta.sourceConfigs.data.pushDataContext);
-  
-  const visitDesignerProp = (designerPropValue, path) => {
-    walkComponentsTree(
-      designerPropValue.sourceData.components,
-      designerPropValue.sourceData.rootId,
-      
-      component => {
-        const componentId = component.id;
-        const componentMeta = getComponentMeta(component.name, state.meta);
-        
-        walkSimpleProps(
-          component,
-          componentMeta,
-          
-          (propValue, _, pathToProp) => {
-            if (propValue.source === 'data') {
-              const containsOutdatedDataContext = isPrefixList(
-                outdatedDataContext,
-                propValue.sourceData.dataContext,
-              );
-              
-              if (containsOutdatedDataContext) {
-                const pathToUpdatedValue = [].concat(path, [
-                  'sourceData',
-                  'components',
-                  componentId,
-                  'props',
-                ], expandPropPath(pathToProp));
-                
-                const newSourceData = new SourceDataData({
-                  queryPath: null,
-                });
-                
-                state = state.updateIn(
-                  pathToUpdatedValue,
-                  
-                  updatedValue => updatedValue.set(
-                    'sourceData',
-                    newSourceData,
-                  ),
-                );
-              }
-            } else if (propValue.source === 'designer') {
-              if (propValue.sourceData.rootId > -1) {
-                const pathToNextDesignerValue = [].concat(path, [
-                  'sourceData',
-                  'components',
-                  componentId,
-                  'props',
-                ], expandPropPath(pathToProp));
-                
-                visitDesignerProp(
-                  state.getIn(pathToNextDesignerValue),
-                  pathToNextDesignerValue,
-                );
-              }
-            }
-          },
-        );
-      },
-    );
-  };
-  
-  const visitProp = (propValue, _, pathToProp) => {
-    if (propValue.source === 'designer' && propValue.sourceData.rootId > -1) {
-      const pathToValue = [].concat(pathToComponents, [
-        updatedComponentId,
-        'props',
-      ], expandPropPath(pathToProp));
-      
-      visitDesignerProp(propValue, pathToValue);
-    }
-  };
-  
-  walkSimpleProps(updatedComponent, componentMeta, visitProp);
-  return state;
-};
-
-const updateComponentPropValue = (
-  state,
-  componentId,
-  propName,
-  isSystemProp,
-  path,
-  newValue,
-) => {
-  const pathToCurrentComponents = getPathToCurrentComponents(state);
-  
-  if (!isSystemProp) {
-    state = clearOutdatedDataProps(
-      state,
-      pathToCurrentComponents,
-      componentId,
-      propName,
-      path,
-    );
-  }
-  
-  const pathToProp = [].concat(
-    pathToCurrentComponents,
-    componentId,
-    isSystemProp ? 'systemProps' : 'props',
-    propName,
-  );
-  
-  return state.updateIn(
-    pathToProp,
-    propValue => path.length === 0
-      ? newValue
-      : propValue.setInStatic(path, newValue),
-  );
-};
-
 const initDNDState = state => state.merge({
   draggingComponent: false,
   draggedComponents: null,
@@ -638,12 +465,420 @@ const selectFirstRoute = state => state.merge({
 });
 
 const initLinkingPropState = state => state
-  .merge({
-    linkingProp: false,
-    linkingPropOfComponentId: -1,
-    linkingPropName: '',
-  })
-  .set('linkingPropPath', []);
+  .set('linkingProp', false)
+  .set('linkingPath', null);
+
+export const PathStartingPoints = {
+  PROJECT: 0,
+  CURRENT_COMPONENTS: 1,
+};
+
+/**
+ * @typedef {Object} Path
+ * @property {number} startingPoint
+ * @property {(string|number)[]} steps
+ */
+
+/**
+ *
+ * @param {string|number} step
+ * @param {*} current
+ * @return {boolean}
+ */
+const isValidPathStep = (step, current) => {
+  if (!current) return false;
+  
+  if (Map.isMap(current)) {
+    return true;
+  } else if (List.isList(current)) {
+    return isInteger(step) && step >= 0;
+  } else {
+    return !!current.constructor &&
+      !!current.constructor.isValidPathStep &&
+      current.constructor.isValidPathStep(step, current);
+  }
+};
+
+/**
+ *
+ * @param {Path} path
+ * @param {Object} state
+ * @return {{ object: *, expandedPath: (string|number)[] }}
+ */
+const getPathStartingPoint = (path, state) => {
+  switch (path.startingPoint) {
+    case PathStartingPoints.PROJECT: {
+      return { object: state.data, expandedPath: [] };
+    }
+    
+    case PathStartingPoints.CURRENT_COMPONENTS: {
+      const pathToCurrentComponents = getPathToCurrentComponents(state);
+      return {
+        object: state.getIn(pathToCurrentComponents),
+        expandedPath: pathToCurrentComponents,
+      };
+    }
+    
+    default: {
+      throw new Error(
+        `getPathStartingPoint(): Invalid starting point: ${path.startingPoint}`,
+      );
+    }
+  }
+};
+
+const BREAK = {};
+
+/**
+ *
+ * @param {Path} path
+ * @param {Object} state
+ * @param {function(currentObject: *, index: number, expandedPath: (string|number)[])} visitor
+ */
+const walkPath = (path, state, visitor) => {
+  const start = getPathStartingPoint(path, state);
+  if (visitor(start.object, -1, start.expandedPath) === BREAK) return;
+  
+  let current = start.object;
+  
+  for (let i = 0, l = path.steps.length; i < l; i++) {
+    const step = path.steps[i];
+  
+    if (!isValidPathStep(step, current)) {
+      throw new Error(
+        `walkPath(): Invalid step at index ${i}: ${step}`,
+      );
+    }
+  
+    if (Map.isMap(current) || List.isList(current)) {
+      current = current.get(step);
+      if (visitor(current, i, [step]) === BREAK) break;
+    } else {
+      const expandedPath = current.constructor.expandPathStep(step, current);
+      current = current.getIn(expandedPath);
+      if (visitor(current, i, expandedPath) === BREAK) break;
+    }
+  }
+};
+
+/**
+ *
+ * @param {Path} path
+ * @param {Object} state
+ * @return {(string|number)[]}
+ */
+const expandPath = (path, state) => {
+  const ret = [];
+  
+  walkPath(path, state, (object, idx, expandedPath) => {
+    ret.push(...expandedPath);
+  });
+  
+  return ret;
+};
+
+/**
+ *
+ * @param {Path} path
+ * @param {Object} state
+ * @return {*}
+ */
+const getObjectByPath = (path, state) => state.getIn(expandPath(path, state));
+
+/**
+ *
+ * @param {Path} path
+ * @param {Object} state
+ * @return {?Object}
+ */
+const getFirstComponentInPath = (path, state) => {
+  let ret = null;
+  
+  walkPath(path, state, object => {
+    if (object instanceof ProjectComponent) {
+      ret = object;
+      return BREAK;
+    } else {
+      return null;
+    }
+  });
+  
+  return ret;
+};
+
+const ValueTypes = {
+  NOT_A_VALUE: 0,
+  COMPONENT_PROP: 1,
+  COMPONENT_SYSTEM_PROP: 2,
+  FUNCTION_ARG: 3,
+  QUERY_ARG: 4,
+  ACTION_METHOD_ARG: 5,
+  ACTION_MUTATION_ARG: 6,
+  ACTION_PROP_VALUE: 7,
+  ACTION_ROUTE_PARAM: 8,
+};
+
+const getValueInfoByPath = (path, state) => {
+  const project = state.data;
+  
+  let currentComponents = null;
+  let componentMeta = null;
+  let userTypedefs = null;
+  let currentValueDef = null;
+  let currentValueType = ValueTypes.NOT_A_VALUE;
+  let currentIsNested = false;
+  let nextValueType = ValueTypes.NOT_A_VALUE;
+  let currentFunction = null;
+  let currentAction = null;
+  
+  if (path.startingPoint === PathStartingPoints.CURRENT_COMPONENTS)
+    currentComponents = state.getIn(getPathToCurrentComponents(state));
+  
+  walkPath(path, state, (object, idx) => {
+    if (idx === -1) return;
+    
+    const step = path.steps[idx];
+    const nextStep = path.steps.length === idx + 1 ? null : path.steps[idx + 1];
+  
+    if (object instanceof JssyValue) {
+      if (object.source === 'function') {
+        currentFunction = getFunctionInfo(
+          object.sourceData.functionSource,
+          object.sourceData.function,
+          project,
+        );
+        
+        if (nextStep === 'args')
+          nextValueType = ValueTypes.FUNCTION_ARG;
+      } else if (object.source === 'designer') {
+        currentComponents = object.sourceData.components;
+      }
+      
+      if (currentValueType === ValueTypes.NOT_A_VALUE) {
+        currentValueType = nextValueType;
+        
+        if (currentValueType === ValueTypes.COMPONENT_PROP) {
+          currentValueDef = componentMeta.props[step];
+          userTypedefs = componentMeta.types;
+        } else if (currentValueType === ValueTypes.COMPONENT_SYSTEM_PROP) {
+          currentValueDef = SYSTEM_PROPS[step];
+          userTypedefs = null;
+        } else if (currentValueType === ValueTypes.QUERY_ARG) {
+          // TODO: Get valueDef
+          currentValueDef = null;
+          userTypedefs = null;
+        } else if (currentValueType === ValueTypes.FUNCTION_ARG) {
+          currentValueDef = currentFunction.args
+            .find(argDef => argDef.name === step);
+  
+          userTypedefs = null;
+        } else if (currentValueType === ValueTypes.ACTION_MUTATION_ARG) {
+          const mutation =
+            getMutationField(state.schema, currentAction.mutation);
+          
+          const arg = mutation.args[step];
+  
+          currentValueDef = getJssyTypeOfField(arg, state.schema);
+          userTypedefs = null;
+        } else if (currentValueType === ValueTypes.ACTION_METHOD_ARG) {
+          const targetComponent =
+            currentComponents.get(currentAction.params.componentId);
+          
+          const targetComponentMeta =
+            getComponentMeta(targetComponent.name, state.meta);
+          
+          currentValueDef =
+            targetComponentMeta.methods[currentAction.params.method].args[step];
+          
+          userTypedefs = targetComponentMeta.types;
+        } else if (currentValueType === ValueTypes.ACTION_PROP_VALUE) {
+          if (currentAction.params.systemPropName) {
+            currentValueDef = SYSTEM_PROPS[currentAction.params.systemPropName];
+            userTypedefs = null;
+          } else {
+            const targetComponent =
+              currentComponents.get(currentAction.params.componentId);
+  
+            const targetComponentMeta =
+              getComponentMeta(targetComponent.name, state.meta);
+  
+            currentValueDef =
+              targetComponentMeta.props[currentAction.params.propName];
+  
+            userTypedefs = targetComponentMeta.types;
+          }
+        } else if (currentValueType === ValueTypes.ACTION_ROUTE_PARAM) {
+          currentValueDef = ROUTE_PARAM_VALUE_DEF;
+          userTypedefs = null;
+        }
+      } else {
+        currentIsNested = true;
+        
+        const resolvedTypedef = resolveTypedef(currentValueDef, userTypedefs);
+      
+        if (resolvedTypedef.type === 'shape')
+          currentValueDef = resolvedTypedef.fields[step];
+        else if (
+          resolvedTypedef.type === 'arrayOf' ||
+          resolvedTypedef.type === 'objectOf'
+        )
+          currentValueDef = resolvedTypedef.ofType;
+      }
+    } else {
+      currentValueType = ValueTypes.NOT_A_VALUE;
+      currentIsNested = false;
+      currentValueDef = null;
+  
+      if (object instanceof ProjectRoute) {
+        if (nextStep === 'components')
+          currentComponents = object.components;
+      } else if (object instanceof ProjectComponent) {
+        componentMeta = getComponentMeta(object.name, state.meta);
+        
+        if (nextStep === 'props')
+          nextValueType = ValueTypes.COMPONENT_PROP;
+        else if (nextStep === 'systemProps')
+          nextValueType = ValueTypes.COMPONENT_SYSTEM_PROP;
+        else if (nextStep === 'queryArgs')
+          nextValueType = ValueTypes.QUERY_ARG;
+      } else if (object instanceof Action) {
+        currentAction = object;
+        
+        if (object.type === 'mutation' && nextStep === 'args')
+          nextValueType = ValueTypes.ACTION_MUTATION_ARG;
+        else if (object.type === 'method' && nextStep === 'args')
+          nextValueType = ValueTypes.ACTION_METHOD_ARG;
+        else if (object.type === 'prop' && nextStep === 'value')
+          nextValueType = ValueTypes.ACTION_PROP_VALUE;
+        else if (object.type === 'navigate' && nextStep === 'routeParams')
+          nextValueType = ValueTypes.ACTION_ROUTE_PARAM;
+      }
+    }
+  });
+  
+  return {
+    type: currentValueType,
+    isNested: currentIsNested,
+    valueDef: currentValueDef,
+    userTypedefs,
+  };
+};
+
+export const makeValueInfoGetter = state =>
+  path => getValueInfoByPath(path, state);
+
+// TODO: Refactor away from using real paths
+const clearOutdatedDataProps = (state, updatedPath) => {
+  // Data prop with pushDataContext cannot be nested,
+  // so we need to clear outdated data props only when updating top-level prop
+  const { valueType, isNested } = getValueInfoByPath(updatedPath, state);
+  if (valueType !== ValueTypes.COMPONENT_PROP || isNested) return state;
+  
+  const oldValue = getObjectByPath(updatedPath, state);
+  if (!oldValue.isLinkedWithData()) return state;
+  
+  const pathToComponents = getPathToCurrentComponents(state);
+  const currentComponents = state.getIn(pathToComponents);
+  const updatedPropName = updatedPath.steps[updatedPath.steps.length - 1];
+  const updatedComponentId = updatedPath.steps[updatedPath.steps.length - 2];
+  const updatedComponent = currentComponents.get(updatedComponentId);
+  const componentMeta = getComponentMeta(updatedComponent.name, state.meta);
+  const updatedPropMeta = componentMeta.props[updatedPropName];
+  
+  if (!propHasDataContext(updatedPropMeta)) return state;
+  
+  const outdatedDataContext = oldValue.sourceData.dataContext
+    .push(updatedPropMeta.sourceConfigs.data.pushDataContext);
+  
+  const visitDesignerProp = (designerPropValue, path) => {
+    walkComponentsTree(
+      designerPropValue.sourceData.components,
+      designerPropValue.sourceData.rootId,
+      
+      component => {
+        const componentId = component.id;
+        const componentMeta = getComponentMeta(component.name, state.meta);
+        
+        walkSimpleProps(
+          component,
+          componentMeta,
+          
+          (propValue, _, pathToProp) => {
+            if (propValue.isLinkedWithData()) {
+              const containsOutdatedDataContext = isPrefixList(
+                outdatedDataContext,
+                propValue.sourceData.dataContext,
+              );
+              
+              if (containsOutdatedDataContext) {
+                const pathToUpdatedValue = [].concat(path, [
+                  'sourceData',
+                  'components',
+                  componentId,
+                  'props',
+                ], expandPropPath(pathToProp));
+                
+                const newSourceData = new SourceDataData({
+                  queryPath: null,
+                });
+                
+                state = state.updateIn(
+                  pathToUpdatedValue,
+                  
+                  updatedValue => updatedValue.set(
+                    'sourceData',
+                    newSourceData,
+                  ),
+                );
+              }
+            } else if (propValue.hasDesignedComponent()) {
+              const pathToNextDesignerValue = [].concat(path, [
+                'sourceData',
+                'components',
+                componentId,
+                'props',
+              ], expandPropPath(pathToProp));
+  
+              visitDesignerProp(
+                state.getIn(pathToNextDesignerValue),
+                pathToNextDesignerValue,
+              );
+            }
+          },
+        );
+      },
+    );
+  };
+  
+  const visitProp = (propValue, _, pathToProp) => {
+    if (propValue.hasDesignedComponent()) {
+      const pathToValue = [].concat(pathToComponents, [
+        updatedComponentId,
+        'props',
+      ], expandPropPath(pathToProp));
+      
+      visitDesignerProp(propValue, pathToValue);
+    }
+  };
+  
+  walkSimpleProps(updatedComponent, componentMeta, visitProp);
+  return state;
+};
+
+const updateValue = (state, path, newValue) => {
+  state = clearOutdatedDataProps(state, path);
+  return state.setIn(expandPath(path, state), newValue);
+};
+
+const addValue = (state, path, index, newValue) => state.updateIn(
+  expandPath(path, state),
+  jssyValue => jssyValue.addValueInStatic(index, newValue),
+);
+
+const deleteValue = (state, path, index) => state.updateIn(
+  expandPath(path, state),
+  jssyValue => jssyValue.deleteValueInStatic(index),
+);
 
 const getPathToComponentWithQueryArgs = (state, dataContext) => {
   let currentNestedConstructorIndex =
@@ -653,7 +888,13 @@ const getPathToComponentWithQueryArgs = (state, dataContext) => {
     ? state.nestedConstructors.get(currentNestedConstructorIndex)
     : null;
   
-  let currentComponentId = state.linkingPropOfComponentId;
+  //noinspection JSCheckFunctionSignatures
+  const component = getFirstComponentInPath(state.linkingPath, state);
+  
+  if (!component)
+    throw new Error('getPathToComponentWithQueryArgs: invalid path');
+  
+  let currentComponentId = component.id;
   let i = 0;
   
   while (i < dataContext.length) {
@@ -665,7 +906,7 @@ const getPathToComponentWithQueryArgs = (state, dataContext) => {
     currentNestedConstructorIndex = i >= state.nestedConstructors.size - 1
       ? -1
       : currentNestedConstructorIndex + 1;
-  
+    
     currentNestedConstructor = currentNestedConstructorIndex !== -1
       ? state.nestedConstructors.get(currentNestedConstructorIndex)
       : null;
@@ -841,7 +1082,7 @@ const handlers = {
     return deleteComponent(state, action.componentId);
   },
   
-  [PROJECT_COMPONENT_UPDATE_PROP_VALUE]: (state, action) => {
+  [PROJECT_JSSY_VALUE_UPDATE]: (state, action) => {
     const newValue = new JssyValue({
       source: action.newSource,
       sourceData: sourceDataToImmutable(
@@ -849,20 +1090,14 @@ const handlers = {
         action.newSourceData,
       ),
     });
-  
-    return updateComponentPropValue(
-      state,
-      action.componentId,
-      action.propName,
-      action.isSystemProp,
-      action.path,
-      newValue,
-    );
+    
+    return updateValue(state, action.path, newValue);
   },
   
-  [PROJECT_COMPONENT_ADD_PROP_VALUE]: (state, action) => {
-    const pathToCurrentComponents = getPathToCurrentComponents(state);
+  [PROJECT_JSSY_VALUE_REPLACE]: (state, action) =>
+    updateValue(state, action.path, action.newValue),
   
+  [PROJECT_JSSY_VALUE_ADD]: (state, action) => {
     const newValue = new JssyValue({
       source: action.source,
       sourceData: sourceDataToImmutable(
@@ -871,38 +1106,88 @@ const handlers = {
       ),
     });
     
-    const pathToProp = [].concat(
-      pathToCurrentComponents,
-      action.componentId,
-      action.isSystemProp ? 'systemProps' : 'props',
-      action.propName,
-    );
-    
+    return addValue(state, action.path, action.index, newValue);
+  },
+  
+  [PROJECT_JSSY_VALUE_DELETE]: (state, action) =>
+    deleteValue(state, action.path, action.index),
+  
+  [PROJECT_JSSY_VALUE_ADD_ACTION]: (state, action) => {
+    const path = expandPath(action.path, state);
+    return state.updateIn(path, actionsList => actionsList.push(action.action));
+  },
+  
+  [PROJECT_JSSY_VALUE_REPLACE_ACTION]: (state, action) => {
+    const path = expandPath(action.path, state);
     return state.updateIn(
-      pathToProp,
-      propValue => propValue.addValueInStatic(
-        action.path,
-        action.index,
-        newValue,
-      ),
+      path,
+      actionsList => actionsList.set(action.index, action.newAction),
     );
   },
   
-  [PROJECT_COMPONENT_DELETE_PROP_VALUE]: (state, action) => {
-    const pathToCurrentComponents = getPathToCurrentComponents(state);
-    
-    const pathToProp = [].concat(
-      pathToCurrentComponents,
-      action.componentId,
-      action.isSystemProp ? 'systemProps' : 'props',
-      action.propName,
-    );
-    
+  [PROJECT_JSSY_VALUE_DELETE_ACTION]: (state, action) => {
+    const path = expandPath(action.path, state);
     return state.updateIn(
-      pathToProp,
-      propValue => propValue.deleteValueInStatic(action.path, action.index),
+      path,
+      actionsList => actionsList.delete(action.index),
     );
   },
+  
+  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT]: (state, action) => {
+    if (action.path.startingPoint !== PathStartingPoints.CURRENT_COMPONENTS)
+      throw new Error('Cannot open nested constructor with absolute path');
+    
+    const nestedConstructorData = {
+      path: action.path,
+      valueInfo: getValueInfoByPath(action.path, state),
+    };
+    
+    const currentValue = getObjectByPath(action.path, state);
+    
+    if (currentValue.hasDesignedComponent()) {
+      Object.assign(nestedConstructorData, {
+        components: currentValue.sourceData.components,
+        rootId: currentValue.sourceData.rootId,
+        lastComponentId: currentValue.sourceData.components.keySeq().max(),
+      });
+    } else if (action.components) {
+      Object.assign(nestedConstructorData, {
+        components: action.components,
+        rootId: action.rootId,
+        lastComponentId: action.components.size - 1,
+      });
+    }
+    
+    const nestedConstructor = new NestedConstructor(nestedConstructorData);
+    return openNestedConstructor(state, nestedConstructor);
+  },
+  
+  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL]: state =>
+    closeTopNestedConstructor(state),
+  
+  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE]: state => {
+    const topConstructor = getTopNestedConstructor(state);
+    state = closeTopNestedConstructor(state);
+    
+    const newValue = new JssyValue({
+      source: 'designer',
+      sourceData: new SourceDataDesigner({
+        components: topConstructor.components,
+        rootId: topConstructor.rootId,
+      }),
+    });
+    
+    return updateValue(state, topConstructor.path, newValue);
+  },
+  
+  [PROJECT_LINK_DIALOG_OPEN]: (state, action) => state
+    .set('linkingProp', true)
+    .set('linkingPath', action.path), // Prevent conversion to List
+  
+  [PROJECT_LINK_DIALOG_CLOSE]: state => initLinkingPropState(state),
+  
+  [PROJECT_UPDATE_QUERY_ARGS]: (state, action) =>
+    updateQueryArgs(state, action.dataContext, action.newArgs),
   
   [PROJECT_COMPONENT_RENAME]: (state, action) => {
     const pathToCurrentComponents = getPathToCurrentComponents(state);
@@ -927,58 +1212,6 @@ const handlers = {
     return state.updateIn(path, regionsEnabled => action.enable
       ? regionsEnabled.add(action.regionIdx)
       : regionsEnabled.delete(action.regionIdx),
-    );
-  },
-  
-  [PROJECT_COMPONENT_ADD_ACTION]: (state, action) => {
-    const pathToCurrentComponents = getPathToCurrentComponents(state);
-    
-    const path = [
-      ...pathToCurrentComponents,
-      action.componentId,
-      action.isSystemProp ? 'systemProps' : 'props',
-      action.propName,
-      ...expandPropPath(action.path),
-    ];
-    
-    return state.updateIn(path, jssyValue => jssyValue.addAction(
-      action.actionPath,
-      action.branch,
-      action.action,
-    ));
-  },
-  
-  [PROJECT_COMPONENT_REPLACE_ACTION]: (state, action) => {
-    const pathToCurrentComponents = getPathToCurrentComponents(state);
-  
-    const path = [
-      ...pathToCurrentComponents,
-      action.componentId,
-      action.isSystemProp ? 'systemProps' : 'props',
-      action.propName,
-      ...expandPropPath(action.path),
-    ];
-  
-    return state.updateIn(path, jssyValue => jssyValue.replaceAction(
-      action.actionPath,
-      action.newAction,
-    ));
-  },
-  
-  [PROJECT_COMPONENT_DELETE_ACTION]: (state, action) => {
-    const pathToCurrentComponents = getPathToCurrentComponents(state);
-    
-    const path = [
-      ...pathToCurrentComponents,
-      action.componentId,
-      action.isSystemProp ? 'systemProps' : 'props',
-      action.propName,
-      ...expandPropPath(action.path),
-    ];
-    
-    return state.updateIn(
-      path,
-      jssyValue => jssyValue.deleteAction(action.actionPath),
     );
   },
   
@@ -1098,201 +1331,6 @@ const handlers = {
     state = insertDraggedComponents(state, components);
     state = state.set('selectingComponentLayout', false);
     return initDNDState(state);
-  },
-  
-  [PROJECT_CONSTRUCT_COMPONENT_FOR_PROP]: (state, action) => {
-    const pathToCurrentComponents = getPathToCurrentComponents(state),
-      components = state.getIn(pathToCurrentComponents),
-      component = components.get(action.componentId),
-      currentValue = getValueByPath(component, action.propName, action.path),
-      componentMeta = getComponentMeta(component.name, state.meta);
-  
-    const propMeta = getNestedTypedef(
-      componentMeta.props[action.propName],
-      action.path,
-      componentMeta.types,
-    );
-  
-    const nestedConstructorData = {
-      componentId: action.componentId,
-      prop: action.propName,
-      isSystemProp: action.isSystemProp,
-      path: action.path,
-    };
-  
-    if (currentValue && currentValue.source === 'designer') {
-      Object.assign(nestedConstructorData, {
-        components: currentValue.sourceData.components,
-        rootId: currentValue.sourceData.rootId,
-        lastComponentId: currentValue.sourceData.components.size > 0
-          ? currentValue.sourceData.components.keySeq().max()
-          : -1,
-      });
-    } else if (propMeta.sourceConfigs.designer.wrapper) {
-      const { namespace } = parseComponentName(component.name);
-    
-      const wrapperFullName = formatComponentName(
-        namespace,
-        propMeta.sourceConfigs.designer.wrapper,
-      );
-    
-      const wrapperComponents = constructComponent(
-        wrapperFullName,
-        propMeta.sourceConfigs.designer.wrapperLayout || 0,
-        state.languageForComponentProps,
-        state.meta,
-        { isNew: false, isWrapper: true },
-      );
-    
-      Object.assign(nestedConstructorData, {
-        components: wrapperComponents,
-        rootId: 0,
-        lastComponentId: wrapperComponents.size - 1,
-      });
-    }
-  
-    const nestedConstructor = new NestedConstructor(nestedConstructorData);
-    return openNestedConstructor(state, nestedConstructor);
-  },
-  
-  [PROJECT_CANCEL_CONSTRUCT_COMPONENT_FOR_PROP]: state =>
-    closeTopNestedConstructor(state),
-  
-  [PROJECT_SAVE_COMPONENT_FOR_PROP]: state => {
-    const topConstructor = getTopNestedConstructor(state);
-    state = closeTopNestedConstructor(state);
-  
-    const newValue = new JssyValue({
-      source: 'designer',
-      sourceData: new SourceDataDesigner({
-        components: topConstructor.components,
-        rootId: topConstructor.rootId,
-      }),
-    });
-    
-    return updateComponentPropValue(
-      state,
-      topConstructor.componentId,
-      topConstructor.prop,
-      topConstructor.isSystemProp,
-      topConstructor.path,
-      newValue,
-    );
-  },
-  
-  [PROJECT_LINK_PROP]: (state, action) => state
-    .merge({
-      linkingProp: true,
-      linkingPropOfComponentId: action.componentId,
-      linkingPropName: action.propName,
-      linkingSystemProp: action.isSystemProp,
-    })
-    .set('linkingPropPath', action.path), // Prevent conversion to List
-  
-  [PROJECT_LINK_WITH_OWNER_PROP]: (state, action) => {
-    const newValue = new JssyValue({
-      source: 'static',
-      sourceData: new SourceDataStatic({
-        value: NO_VALUE,
-        ownerPropName: action.ownerPropName,
-      }),
-    });
-  
-    state = updateComponentPropValue(
-      state,
-      state.linkingPropOfComponentId,
-      state.linkingPropName,
-      state.linkingSystemProp,
-      state.linkingPropPath,
-      newValue,
-    );
-    
-    return initLinkingPropState(state);
-  },
-  
-  [PROJECT_LINK_WITH_DATA]: (state, action) => {
-    const newValue = new JssyValue({
-      source: 'data',
-      sourceData: new SourceDataData({
-        dataContext: List(action.dataContext),
-        queryPath: List(action.path.map(field => new QueryPathStep({
-          field,
-        }))),
-      }),
-    });
-  
-    state = updateComponentPropValue(
-      state,
-      state.linkingPropOfComponentId,
-      state.linkingPropName,
-      state.linkingSystemProp,
-      state.linkingPropPath,
-      newValue,
-    );
-    
-    state = updateQueryArgs(state, action.dataContext, action.args);
-    
-    return initLinkingPropState(state);
-  },
-  
-  [PROJECT_LINK_WITH_FUNCTION]: (state, action) => {
-    const newValue = new JssyValue({
-      source: 'function',
-      sourceData: new SourceDataFunction({
-        functionSource: action.functionSource,
-        function: action.functionName,
-        args: action.argValues,
-      }),
-    });
-    
-    state = updateComponentPropValue(
-      state,
-      state.linkingPropOfComponentId,
-      state.linkingPropName,
-      state.linkingSystemProp,
-      state.linkingPropPath,
-      newValue,
-    );
-  
-    return initLinkingPropState(state);
-  },
-  
-  [PROJECT_LINK_PROP_CANCEL]: state => initLinkingPropState(state),
-  
-  [PROJECT_UNLINK_PROP]: (state, action) => {
-    const pathToCurrentComponents = getPathToCurrentComponents(state);
-    const currentComponents = state.getIn(pathToCurrentComponents);
-    const component = currentComponents.get(action.componentId);
-    const componentMeta = getComponentMeta(component.name, state.meta);
-    const propMeta = action.isSystemProp
-      ? SYSTEM_PROPS[action.propName]
-      : componentMeta.props[action.propName];
-    
-    const nestedMeta = getNestedTypedef(
-      propMeta,
-      action.path,
-      action.isSystemProp ? null : componentMeta.types,
-    );
-    
-    const { source, sourceData } = buildDefaultValue(
-      componentMeta,
-      nestedMeta,
-      state.languageForComponentProps,
-    );
-    
-    const newValue = new JssyValue({
-      source,
-      sourceData: sourceDataToImmutable(source, sourceData),
-    });
-    
-    return updateComponentPropValue(
-      state,
-      action.componentId,
-      action.propName,
-      action.isSystemProp,
-      action.path,
-      newValue,
-    );
   },
   
   [PROJECT_CREATE_FUNCTION]: (state, action) => {

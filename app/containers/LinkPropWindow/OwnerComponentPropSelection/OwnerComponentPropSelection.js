@@ -26,16 +26,17 @@ import { noop } from '../../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 const propTypes = {
-  ownerMeta: PropTypes.object.isRequired,
-  ownerPropName: PropTypes.string.isRequired,
-  linkTargetComponentMeta: PropTypes.object.isRequired,
-  linkTargetPropTypedef: PropTypes.object.isRequired,
+  ownerComponentMeta: PropTypes.object.isRequired,
+  ownerPropMeta: PropTypes.object.isRequired,
+  userTypedefs: PropTypes.object,
+  linkTargetValueDef: PropTypes.object.isRequired,
   language: PropTypes.string.isRequired,
   onSelect: PropTypes.func,
   onReturn: PropTypes.func,
 };
 
 const defaultProps = {
+  userTypedefs: null,
   onSelect: noop,
   onReturn: noop,
 };
@@ -81,34 +82,32 @@ export class OwnerComponentPropSelection extends PureComponent {
   
   render() {
     const {
-      ownerMeta,
-      ownerPropName,
-      linkTargetPropTypedef,
-      linkTargetComponentMeta,
+      ownerComponentMeta,
+      ownerPropMeta,
+      linkTargetValueDef,
+      userTypedefs,
       language,
     } = this.props;
     
-    const ownerPropMeta = ownerMeta.props[ownerPropName],
-      ownerPropsMeta = ownerPropMeta.sourceConfigs.designer.props;
-  
+    const ownerPropsMeta = ownerPropMeta.sourceConfigs.designer.props;
     const items = Object.keys(ownerPropsMeta)
       .filter(ownerPropName => isEqualType(
         ownerPropsMeta[ownerPropName],
-        linkTargetPropTypedef,
-        ownerMeta.types,
-        linkTargetComponentMeta.types,
+        linkTargetValueDef,
+        ownerComponentMeta.types,
+        userTypedefs,
       ))
       .map(ownerPropName => {
         const ownerPropMeta = ownerPropsMeta[ownerPropName];
       
         const title = getString(
-          ownerMeta,
+          ownerComponentMeta.strings,
           ownerPropMeta.textKey,
           language,
         );
       
         const description = getString(
-          ownerMeta,
+          ownerComponentMeta.strings,
           ownerPropMeta.descriptionTextKey,
           language,
         );

@@ -6,9 +6,7 @@
 
 //noinspection JSUnresolvedVariable
 import { PropTypes } from 'react';
-import _mapValues from 'lodash.mapvalues';
-import { resolveTypedef } from '@jssy/types';
-import { returnArg, returnNull } from '../../../utils/misc';
+import { TypeNames } from '@jssy/types';
 
 /**
  * @typedef {Object} PropsItemPropTypeOption
@@ -66,18 +64,19 @@ export const PropViews = {
  * @const
  */
 const JSSY_TYPE_TO_VIEW = {
-  string: PropViews.INPUT,
-  bool: PropViews.TOGGLE,
-  int: PropViews.INPUT,
-  float: PropViews.INPUT,
-  oneOf: PropViews.LIST,
-  component: PropViews.COMPONENT,
-  shape: PropViews.SHAPE,
-  objectOf: PropViews.OBJECT,
-  arrayOf: PropViews.ARRAY,
-  object: PropViews.EMPTY,
-  array: PropViews.EMPTY,
-  func: PropViews.EMPTY,
+  [TypeNames.STRING]: PropViews.INPUT,
+  [TypeNames.BOOL]: PropViews.TOGGLE,
+  [TypeNames.INT]: PropViews.INPUT,
+  [TypeNames.FLOAT]: PropViews.INPUT,
+  [TypeNames.SCALAR]: PropViews.EMPTY,
+  [TypeNames.ONE_OF]: PropViews.LIST,
+  [TypeNames.COMPONENT]: PropViews.COMPONENT,
+  [TypeNames.SHAPE]: PropViews.SHAPE,
+  [TypeNames.OBJECT_OF]: PropViews.OBJECT,
+  [TypeNames.ARRAY_OF]: PropViews.ARRAY,
+  [TypeNames.OBJECT]: PropViews.EMPTY,
+  [TypeNames.ARRAY]: PropViews.EMPTY,
+  [TypeNames.FUNC]: PropViews.EMPTY,
 };
 
 /**
@@ -144,183 +143,3 @@ const complexViews = new Set([
  * @return {boolean}
  */
 export const isComplexView = view => complexViews.has(view);
-
-/**
- *
- * @type {string}
- */
-const LINK_TEXT_ITEMS_SEPARATOR = ' -> ';
-
-/**
- *
- * @param {Object} jssyValue
- * It is an {@link Immutable.Record} actually
- * (see app/models/JssyValue.js)
- * @param {JssyTypeDefinition} typedef
- * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
- * @return {PropsItemValue}
- */
-export const jssyValueToPropValue = (
-  jssyValue,
-  typedef,
-  userTypedefs = null,
-) => {
-  if (!jssyValue) return { value: null, isLinked: false };
-  
-  const resolvedTypedef = resolveTypedef(typedef, userTypedefs);
-  const linked = jssyValue.isLinked();
-  let value = null;
-  let linkedWith = '';
-  
-  if (!linked) {
-    if (jssyValue.source === 'static') {
-      if (resolvedTypedef.type === 'int' || resolvedTypedef.type === 'float') {
-        value = String(jssyValue.sourceData.value);
-      } else if (
-        resolvedTypedef.type === 'string' ||
-        resolvedTypedef.type === 'bool' ||
-        resolvedTypedef.type === 'oneOf'
-      ) {
-        value = jssyValue.sourceData.value;
-      } else if (resolvedTypedef.type === 'shape') {
-        value = _mapValues(resolvedTypedef.fields, (fieldMeta, fieldName) =>
-          jssyValueToPropValue(
-            jssyValue.sourceData.value.get(fieldName),
-            fieldMeta,
-            userTypedefs,
-          ),
-        );
-      } else if (resolvedTypedef.type === 'objectOf') {
-        jssyValue.sourceData.value.map(nestedValue => jssyValueToPropValue(
-          nestedValue,
-          resolvedTypedef.ofType,
-          userTypedefs,
-        )).toJS();
-      } else if (resolvedTypedef.type === 'arrayOf') {
-        value = jssyValue.sourceData.value.map(nestedValue =>
-          jssyValueToPropValue(
-            nestedValue,
-            resolvedTypedef.ofType,
-            userTypedefs,
-          ),
-        ).toJS();
-      }
-    } else if (jssyValue.source === 'designer') {
-      // true if component exists, false otherwise
-      if (resolvedTypedef.type === 'component')
-        value = jssyValue.sourceData.rootId !== -1;
-    }
-  } else if (jssyValue.source === 'data') {
-    if (jssyValue.sourceData.queryPath) {
-      linkedWith = jssyValue.sourceData.queryPath
-        .map(step => step.field)
-        .join(LINK_TEXT_ITEMS_SEPARATOR);
-    }
-  } else if (jssyValue.source === 'function') {
-    linkedWith = jssyValue.sourceData.function;
-  } else if (jssyValue.source === 'static') {
-    linkedWith = jssyValue.sourceData.ownerPropName;
-  } else if (jssyValue.source === 'state') {
-    linkedWith = `Component ${jssyValue.sourceData.componentId}`;
-  }
-  
-  return { value, linked, linkedWith };
-};
-
-/**
- *
- * @param {string} value
- * @return {number}
- */
-const coerceIntValue = value => {
-  const maybeRet = parseInt(value, 10);
-  if (!isFinite(maybeRet)) return 0;
-  return maybeRet;
-};
-
-/**
- *
- * @param {string} value
- * @return {number}
- */
-const coerceFloatValue = value => {
-  const maybeRet = parseFloat(value);
-  if (!isFinite(maybeRet)) return 0.0;
-  return maybeRet;
-};
-
-/**
- *
- * @template Extra
- * @param {JssyTypeDefinition} jssyTypedef
- * @param {Extra} [extra=null]
- * @param {?function(jssyTypedef: JssyTypeDefinition, extra: Extra, isField: boolean, fieldName: string): Extra} [getNestedExtra=returnNull]
- * @param {function(propType: PropsItemPropType, extra: Extra, jssyTypedef: JssyTypeDefinition): PropsItemPropType} [applyExtra=returnArg]
- * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
- * @return {PropsItemPropType}
- */
-export const jssyTypedefToPropType = (
-  jssyTypedef,
-  extra = null,
-  getNestedExtra = returnNull,
-  applyExtra = returnArg,
-  userTypedefs = null,
-) => {
-  jssyTypedef = resolveTypedef(jssyTypedef, userTypedefs);
-  if (typeof getNestedExtra !== 'function') getNestedExtra = returnNull;
-  if (typeof applyExtra !== 'function') applyExtra = returnArg;
-  
-  const ret = {
-    label: '',
-    secondaryLabel: jssyTypedef.type,
-    view: jssyTypeToView(jssyTypedef.type),
-    image: '',
-    tooltip: '',
-    linkable: false,
-    checkable: false,
-    required: false,
-    transformValue: null,
-    formatItemLabel: returnArg,
-  };
-  
-  if (jssyTypedef.type === 'int') {
-    ret.transformValue = coerceIntValue;
-  } else if (jssyTypedef.type === 'float') {
-    ret.transformValue = coerceFloatValue;
-  } else if (jssyTypedef.type === 'oneOf') {
-    ret.options = jssyTypedef.options.map(option => ({
-      value: option.value,
-      text: String(option.value),
-    }));
-  } else if (jssyTypedef.type === 'shape') {
-    ret.fields = _mapValues(jssyTypedef.fields, (fieldTypedef, fieldName) => {
-      //noinspection JSCheckFunctionSignatures
-      const nestedExtra = getNestedExtra(jssyTypedef, extra, true, fieldName);
-      
-      return jssyTypedefToPropType(
-        fieldTypedef,
-        nestedExtra,
-        getNestedExtra,
-        applyExtra,
-        userTypedefs,
-      );
-    });
-  } else if (
-    jssyTypedef.type === 'arrayOf' ||
-    jssyTypedef.type === 'objectOf'
-  ) {
-    //noinspection JSCheckFunctionSignatures
-    const nestedExtra = getNestedExtra(jssyTypedef, extra, false, '');
-  
-    ret.ofType = jssyTypedefToPropType(
-      jssyTypedef.ofType,
-      nestedExtra,
-      getNestedExtra,
-      applyExtra,
-      userTypedefs,
-    );
-  }
-  
-  //noinspection JSCheckFunctionSignatures
-  return applyExtra(ret, extra, jssyTypedef) || ret;
-};

@@ -5,6 +5,7 @@
 'use strict';
 
 import _forOwn from 'lodash.forown';
+import { TypeNames } from '@jssy/types';
 import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
@@ -93,14 +94,14 @@ export const isCompositeComponent = (componentName, meta) =>
 
 /**
  *
- * @param {Object} componentMeta
+ * @param {Object<string, Object<string, string>>} strings
  * @param {string} stringId
  * @param {string} language
  * @return {?string}
  */
-export const getString = (componentMeta, stringId, language) => {
-  if (!componentMeta.strings[stringId]) return null;
-  return componentMeta.strings[stringId][language] || null;
+export const getString = (strings, stringId, language) => {
+  if (!strings[stringId]) return null;
+  return strings[stringId][language] || null;
 };
 
 /**
@@ -112,7 +113,7 @@ export const getString = (componentMeta, stringId, language) => {
  */
 export const getComponentPropName = (componentMeta, prop, language) => {
   const stringId = componentMeta.props[prop].textKey;
-  return getString(componentMeta, stringId, language);
+  return getString(componentMeta.strings, stringId, language);
 };
 
 /**
@@ -143,6 +144,7 @@ export const canInsertComponent = (
       const sameComponentsNum = containerChildrenNames
         .reduce((acc, cur) => acc + (cur === componentName ? 1 : 0), 0);
 
+      //noinspection JSUnresolvedFunction
       const allow = componentMeta.placement.inside.include.some(inclusion => {
         if (inclusion.component) {
           const inclusionComponentName = formatComponentName(
@@ -190,12 +192,12 @@ export const canInsertComponent = (
 
 /**
  *
- * @param {JssyValueDefinition} propMeta
+ * @param {JssyValueDefinition} valueDef
  * @param {string} source
  * @return {boolean}
  */
-export const isValidSourceForProp = (propMeta, source) =>
-  propMeta.source.indexOf(source) > -1;
+export const isValidSourceForValue = (valueDef, source) =>
+  valueDef.source.indexOf(source) > -1;
 
 /**
  *
@@ -205,7 +207,7 @@ export const isValidSourceForProp = (propMeta, source) =>
 export const componentHasActions = componentMeta =>
   objectSome(
     componentMeta.props,
-    propMeta => isValidSourceForProp(propMeta, 'actions'),
+    propMeta => isValidSourceForValue(propMeta, 'actions'),
   );
 
 /**
@@ -214,16 +216,15 @@ export const componentHasActions = componentMeta =>
  * @return {boolean}
  */
 export const propHasDataContext = propMeta =>
-  isValidSourceForProp(propMeta, 'data') &&
+  isValidSourceForValue(propMeta, 'data') &&
   !!propMeta.sourceConfigs.data.pushDataContext;
 
 /**
  *
- * @param {?ComponentMeta} componentMeta
  * @param {JssyValueDefinition} propMeta
- * @return {ProjectComponentProp|Symbol}
+ * @return {PlainJssyValue|Symbol}
  */
-const buildDefaultConstValue = (componentMeta, propMeta) => {
+const buildDefaultConstValue = propMeta => {
   if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
     return {
       source: 'const',
@@ -248,7 +249,7 @@ const buildDefaultConstValue = (componentMeta, propMeta) => {
 /**
  *
  * @param {*} value
- * @return {ProjectComponentProp}
+ * @return {PlainJssyValue}
  */
 const makeSimpleStaticValue = value => ({
   source: 'static',
@@ -257,23 +258,23 @@ const makeSimpleStaticValue = value => ({
 
 /**
  *
- * @param {?ComponentMeta} componentMeta
  * @param {JssyValueDefinition} propMeta
+ * @param {?Object<string, Object<string, string>>} strings
  * @param {string} language
  * @param {*|Symbol} [_inheritedDefaultValue=NO_VALUE]
- * @return {ProjectComponentProp}
+ * @return {PlainJssyValue}
  */
 const buildDefaultStaticValue = (
-  componentMeta,
   propMeta,
+  strings,
   language,
   _inheritedDefaultValue = NO_VALUE,
 ) => {
   /* eslint-disable no-use-before-define */
   if (propMeta.sourceConfigs.static.defaultTextKey) {
-    const string = (componentMeta && language)
+    const string = (strings && language)
       ? getString(
-        componentMeta,
+        strings,
         propMeta.sourceConfigs.static.defaultTextKey,
         language,
       )
@@ -286,7 +287,7 @@ const buildDefaultStaticValue = (
     ? _inheritedDefaultValue
     : propMeta.sourceConfigs.static.default;
 
-  if (propMeta.type === 'shape') {
+  if (propMeta.type === TypeNames.SHAPE) {
     if (defaultValue === null) return makeSimpleStaticValue(null);
 
     const value = {};
@@ -297,8 +298,8 @@ const buildDefaultStaticValue = (
         : NO_VALUE;
 
       value[fieldName] = _buildDefaultValue(
-        componentMeta,
         fieldMeta,
+        strings,
         language,
         inherited,
       );
@@ -307,15 +308,15 @@ const buildDefaultStaticValue = (
     return makeSimpleStaticValue(value);
   }
 
-  if (propMeta.type === 'objectOf') {
+  if (propMeta.type === TypeNames.OBJECT_OF) {
     if (defaultValue === null) return makeSimpleStaticValue(null);
 
     const value = {};
 
     _forOwn(defaultValue, (fieldValue, fieldName) => {
       value[fieldName] = _buildDefaultValue(
-        componentMeta,
         propMeta.ofType,
+        strings,
         language,
         fieldValue,
       );
@@ -324,36 +325,31 @@ const buildDefaultStaticValue = (
     return makeSimpleStaticValue(value);
   }
 
-  if (propMeta.type === 'arrayOf') {
+  if (propMeta.type === TypeNames.ARRAY_OF) {
     let value = [];
 
     if (defaultValue) {
       value = defaultValue.map(fieldValue => _buildDefaultValue(
-        componentMeta,
         propMeta.ofType,
+        strings,
         language,
         fieldValue,
       ));
     } else if (propMeta.sourceConfigs.static.defaultNum) {
-      for (let i = 0; i < propMeta.sourceConfigs.static.defaultNum; i++) {
-        value.push(_buildDefaultValue(
-          componentMeta,
-          propMeta.ofType,
-          language,
-        ));
-      }
+      for (let i = 0; i < propMeta.sourceConfigs.static.defaultNum; i++)
+        value.push(_buildDefaultValue(propMeta.ofType, strings, language));
     }
 
     return makeSimpleStaticValue(value);
   }
 
-  if (propMeta.type === 'object') {
+  if (propMeta.type === TypeNames.OBJECT) {
     if (defaultValue === null) return makeSimpleStaticValue(null);
     // TODO: Handle default value somehow
     return makeSimpleStaticValue({});
   }
 
-  if (propMeta.type === 'array') {
+  if (propMeta.type === TypeNames.ARRAY) {
     // TODO: Handle default value somehow
     return makeSimpleStaticValue([]);
   }
@@ -364,7 +360,7 @@ const buildDefaultStaticValue = (
 
 /**
  *
- * @return {ProjectComponentProp}
+ * @return {PlainJssyValue}
  */
 const buildDefaultDesignerValue = () => ({
   source: 'designer',
@@ -376,7 +372,7 @@ const buildDefaultDesignerValue = () => ({
 
 /**
  *
- * @return {ProjectComponentProp}
+ * @return {PlainJssyValue}
  */
 const buildDefaultDataValue = () => ({
   source: 'data',
@@ -386,6 +382,11 @@ const buildDefaultDataValue = () => ({
   },
 });
 
+
+/**
+ *
+ * @return {PlainJssyValue}
+ */
 const buildDefaultActionsValue = () => ({
   source: 'actions',
   sourceData: {
@@ -395,7 +396,7 @@ const buildDefaultActionsValue = () => ({
 
 /**
  *
- * @type {Object<string, function(componentMeta: ComponentMeta, propMeta: ComponentPropMeta, language: string, _inheritedDefaultValue: *|NO_VALUE): ProjectComponentProp|Symbol>}
+ * @type {Object<string, function(valueDef: JssyValueDefinition, strings: ?Object<string, Object<string, string>>, language: string, _inheritedDefaultValue: *|NO_VALUE): PlainJssyValue|Symbol>}
  * @const
  */
 const defaultValueBuilders = {
@@ -421,23 +422,23 @@ const sourcePriority = [
 
 /**
  *
- * @param {ComponentMeta} componentMeta
- * @param {ComponentPropMeta} propMeta
+ * @param {JssyValueDefinition} valueDef
+ * @param {?Object<string, Object<string, string>>} strings
  * @param {string} language
- * @param {*|NO_VALUE} [inheritedDefaultValue=NO_VALUE]
- * @return {ProjectComponentProp|NO_VALUE}
+ * @param {*|Symbol} [inheritedDefaultValue=Symbol]
+ * @return {PlainJssyValue|Symbol}
  */
 const _buildDefaultValue = (
-  componentMeta,
-  propMeta,
+  valueDef,
+  strings,
   language,
   inheritedDefaultValue = NO_VALUE,
 ) => {
   for (let i = 0, l = sourcePriority.length; i < l; i++) {
-    if (isValidSourceForProp(propMeta, sourcePriority[i])) {
+    if (isValidSourceForValue(valueDef, sourcePriority[i])) {
       const defaultValue = defaultValueBuilders[sourcePriority[i]](
-        componentMeta,
-        propMeta,
+        valueDef,
+        strings,
         language,
         inheritedDefaultValue,
       );
@@ -451,26 +452,26 @@ const _buildDefaultValue = (
 
 /**
  *
- * @param {ComponentMeta} componentMeta
- * @param {ComponentPropMeta} propMeta
- * @param {string} language
- * @return {ProjectComponentProp|NO_VALUE}
+ * @param {JssyValueDefinition} valueDef
+ * @param {?Object<string, Object<string, string>>} [strings=null]
+ * @param {string} [language='']
+ * @return {PlainJssyValue|NO_VALUE}
  */
-export const buildDefaultValue = (componentMeta, propMeta, language) =>
-  _buildDefaultValue(componentMeta, propMeta, language);
+export const buildDefaultValue = (valueDef, strings = null, language = '') =>
+  _buildDefaultValue(valueDef, strings, language);
 
 /**
  *
  * @param {Object<string, ComponentPropMeta>} propsMeta
- * @param {?ComponentMeta} [componentMeta=null]
+ * @param {?Object<string, Object<string, string>>} [strings=null]
  * @param {string} [language='']
- * @return {Object<string, ProjectComponentProp>}
+ * @return {Object<string, PlainJssyValue>}
  */
-const buildDefaultProps = (propsMeta, componentMeta = null, language = '') => {
+const buildDefaultProps = (propsMeta, strings = null, language = '') => {
   const ret = {};
 
   _forOwn(propsMeta, (propMeta, propName) => {
-    const defaultValue = buildDefaultValue(componentMeta, propMeta, language);
+    const defaultValue = buildDefaultValue(propMeta, strings, language);
     if (defaultValue !== NO_VALUE) ret[propName] = defaultValue;
   });
 
@@ -497,7 +498,7 @@ export const constructComponent = (
 ) => {
   const componentMeta = getComponentMeta(componentName, meta);
 
-  // Ids of detached components must start with zero
+  // Ids of detached components start with zero
   let nextId = 0;
 
   const component = {
@@ -507,7 +508,12 @@ export const constructComponent = (
     name: componentName,
     title: '',
     systemProps: buildDefaultProps(SYSTEM_PROPS),
-    props: buildDefaultProps(componentMeta.props, componentMeta, language),
+    props: buildDefaultProps(
+      componentMeta.props,
+      componentMeta.strings,
+      language,
+    ),
+    
     children: [],
   };
 
@@ -518,12 +524,16 @@ export const constructComponent = (
     const layout = componentMeta.layouts[layoutIdx];
 
     layout.regions.forEach((region, idx) => {
-      const regionComponentName = `${namespace}.${region.component}`;
+      const regionComponentName = formatComponentName(
+        namespace,
+        region.component,
+      );
+      
       const regionComponentMeta = getComponentMeta(regionComponentName, meta);
       const props = Object.assign(
         buildDefaultProps(
           regionComponentMeta.props,
-          regionComponentMeta,
+          regionComponentMeta.strings,
           language,
         ),
         
@@ -550,21 +560,21 @@ export const constructComponent = (
 
 /**
  *
- * @param {JssyValueDefinition} typedef
+ * @param {JssyTypeDefinition|JssyValueDefinition} typedef
  * @return {boolean}
  */
-export const isPropTypeDefinition = typedef =>
+export const isJssyValueDefinition = typedef =>
   !!typedef.source &&
   !!typedef.sourceConfigs;
 
 /**
  *
- * @param {JssyValueDefinition} propMeta
+ * @param {JssyValueDefinition} valueDef
  * @return {boolean}
  */
-export const propHasDataContest = propMeta =>
-  !!propMeta.sourceConfigs.data &&
-  !!propMeta.sourceConfigs.data.pushDataContext;
+export const valueHasDataContest = valueDef =>
+  !!valueDef.sourceConfigs.data &&
+  !!valueDef.sourceConfigs.data.pushDataContext;
 
 /**
  *
