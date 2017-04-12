@@ -52,11 +52,17 @@ module.exports = {
       },
     },
 
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'common',
+      filename: '[name].js',
+      minChunks: 2,
+    }),
+
     new HtmlWebpackPlugin({
       title: 'JSSY',
       template: './app/index.ejs',
       filename: 'index.html',
-      chunks: ['index'],
+      chunks: ['common', 'index'],
       inject: 'body',
       favicon: path.resolve(__dirname, '..', 'app', 'favicon.png'),
       hash: true,
@@ -65,7 +71,7 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './preview/index.ejs',
       filename: 'preview.html',
-      chunks: ['preview'],
+      chunks: ['common', 'preview'],
       inject: 'body',
       favicon: path.resolve(__dirname, '..', 'app', 'favicon.png'),
       hash: true,

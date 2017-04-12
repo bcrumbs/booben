@@ -117,6 +117,7 @@ const generateWebpackConfig = (projectDir, libsData) => {
 
     output: {
       path: path.join(projectDir, 'build'),
+      filename: '[name].js',
       library: 'JssyComponents',
       libraryTarget: 'var',
     },

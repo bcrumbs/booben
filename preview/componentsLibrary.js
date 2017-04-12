@@ -35,11 +35,11 @@ const loadComponentsBundle = () => new Promise((resolve, reject) => {
 
 export const loadComponents = () => loadComponentsBundle()
   .then(() => {
-    if (!window.JssyComponents)
+    if (!window.JssyComponents || !window.JssyComponents.default)
       throw new Error('No components in bundle');
 
     components = _mapValues(
-      window.JssyComponents,
+      window.JssyComponents.default,
       ns => _mapValues(ns, patchComponent),
     );
   });
