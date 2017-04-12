@@ -4,11 +4,11 @@
 
 'use strict';
 
-const co = require('co'),
-  http = require('http'),
-  express = require('express'),
-  config = require('./config'),
-  logger = require('./common/logger');
+const co = require('co');
+const http = require('http');
+const express = require('express');
+const config = require('./config');
+const logger = require('./common/logger');
 
 let httpServer;
 
@@ -22,10 +22,8 @@ const cb = (resolve, reject) =>
 const start = () => co(function* () {
   const app = express();
 
-  if (config.get('serveStatic')) {
-    setupEndpoint(app, require('./endpoints/serve-designer-app'));
-    setupEndpoint(app, require('./endpoints/serve-preview-app'));
-  }
+  if (config.get('serveStatic'))
+    setupEndpoint(app, require('./endpoints/serve-app'));
 
   setupEndpoint(app, require('./endpoints/get-project'));
   setupEndpoint(app, require('./endpoints/get-metadata'));

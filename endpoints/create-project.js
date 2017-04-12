@@ -4,21 +4,21 @@
 
 'use strict';
 
-const co = require('co'),
-  fs = require('mz/fs'),
-  path = require('path'),
-  bodyParser = require('body-parser'),
-  rv = require('revalidator'),
-  prettyMs = require('pretty-ms'),
-  config = require('../config'),
-  helpers = require('./helpers'),
-  buildPreviewApp = require('./preview-builder').buildPreviewApp,
-  constants = require('../common/constants'),
-  sharedConstants = require('../shared/constants'),
-  logger = require('../common/logger');
+const co = require('co');
+const fs = require('mz/fs');
+const path = require('path');
+const bodyParser = require('body-parser');
+const rv = require('revalidator');
+const prettyMs = require('pretty-ms');
+const config = require('../config');
+const helpers = require('./helpers');
+const { buildComponentsBundle } = require('./components-bundle-builder');
+const constants = require('../common/constants');
+const sharedConstants = require('../shared/constants');
+const logger = require('../common/logger');
 
-const projectsDir = config.get('projectsDir'),
-  defaultComponentLibs = config.get('defaultComponentLibs');
+const projectsDir = config.get('projectsDir');
+const defaultComponentLibs = config.get('defaultComponentLibs');
 
 const bodySchema = {
   properties: {
@@ -100,8 +100,8 @@ module.exports = {
         return;
       }
 
-      const projectData = createProjectData(req.body),
-        projectDir = path.join(projectsDir, projectData.name);
+      const projectData = createProjectData(req.body);
+      const projectDir = path.join(projectsDir, projectData.name);
 
       try {
         yield fs.mkdir(projectDir);
@@ -114,8 +114,8 @@ module.exports = {
         return;
       }
 
-      const projectFile = path.join(projectDir, constants.PROJECT_FILE),
-        projectDataJSON = JSON.stringify(projectData);
+      const projectFile = path.join(projectDir, constants.PROJECT_FILE);
+      const projectDataJSON = JSON.stringify(projectData);
 
       try {
         yield fs.writeFile(projectFile, projectDataJSON);
@@ -129,10 +129,12 @@ module.exports = {
       helpers.sendJSON(res, 200, projectDataJSON);
 
       const buildStartTime = Date.now();
-      logger.info(`Building preview app for project '${projectData.name}'...`);
+      logger.info(
+        `Building components bundle for project '${projectData.name}'...`
+      );
 
       try {
-        yield buildPreviewApp(projectData);
+        yield buildComponentsBundle(projectData);
       } catch (err) {
         let errorMessage = err.message || err.toString();
         if (err.errors) {
@@ -144,7 +146,7 @@ module.exports = {
         }
 
         logger.error(
-          `Preview app build for project '${projectData.name}' ` +
+          `Components bundle build for project '${projectData.name}' ` +
           `failed: ${errorMessage}`
         );
 
@@ -153,7 +155,7 @@ module.exports = {
 
       const buildTime = Date.now() - buildStartTime;
       logger.info(
-        `Preview app build for project '${projectData.name}' ` +
+        `Components bundle build for project '${projectData.name}' ` +
         `finished in ${prettyMs(buildTime)}`
       );
     }),

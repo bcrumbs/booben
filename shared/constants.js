@@ -20,12 +20,6 @@ exports.URL_APP_PREFIX = '/app';
  *
  * @type {string}
  */
-exports.URL_PREVIEW_PREFIX = '/preview';
-
-/**
- *
- * @type {string}
- */
 exports.PREVIEW_DOM_CONTAINER_ID = '__jssy_container__';
 
 /**

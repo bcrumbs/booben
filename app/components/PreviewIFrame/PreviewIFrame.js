@@ -30,21 +30,13 @@ export class PreviewIFrame extends PureComponent {
   constructor(props) {
     super(props);
 
-    this.state = {
-      loaded: false,
-    };
-
     this._iframe = null;
 
     this._saveIFrameRef = this._saveIFrameRef.bind(this);
   }
 
   componentDidMount() {
-    const {
-      store,
-      interactive,
-      containerStyle,
-    } = this.props;
+    const { store, interactive, containerStyle } = this.props;
   
     const contentWindow = this._iframe.contentWindow;
 
@@ -70,18 +62,7 @@ export class PreviewIFrame extends PureComponent {
     });
 
     contentWindow.addEventListener('DOMContentLoaded', () => {
-      if (contentWindow.JSSY) {
-        //noinspection JSCheckFunctionSignatures
-        contentWindow.JSSY.initPreview({
-          store,
-          interactive,
-          containerStyle,
-        });
-      } else {
-        // TODO: Show warning?
-      }
-
-      this.setState({ loaded: true });
+      contentWindow.JSSY.initPreview({ store, interactive, containerStyle });
     });
   }
 
@@ -94,8 +75,6 @@ export class PreviewIFrame extends PureComponent {
   }
 
   render() {
-    // TODO: Render preloader if this.state.loaded === false
-
     return (
       <section className="preview-iframe-wrapper">
         <iframe

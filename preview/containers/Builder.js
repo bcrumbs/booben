@@ -22,7 +22,7 @@ import jssyConstants from '../../app/constants/jssyConstants';
 import { NO_VALUE, SYSTEM_PROPS } from '../../app/constants/misc';
 import { ContentPlaceholder } from '../components/ContentPlaceholder';
 import { Outlet } from '../components/Outlet';
-import getComponentByName from '../getComponentByName';
+import { getComponentByName } from '../componentsLibrary';
 import isPseudoComponent from '../isPseudoComponent';
 
 import {
