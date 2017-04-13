@@ -244,9 +244,31 @@ class BuilderComponent extends PureComponent {
     );
   }
   
+  _handleMutationResponse(mutationName, response) {
+    const { project } = this.props;
+    
+    if (project.auth) {
+      if (project.auth.type === 'jwt') {
+        if (mutationName === project.auth.loginMutation) {
+          const tokenPath = [mutationName, ...project.auth.tokenPath];
+          const token = _get(response.data, tokenPath);
+          if (token) localStorage.setItem('jssy_auth_token', token);
+        }
+      }
+    }
+  }
+  
+  _performMutation(mutationName, mutation, variables) {
+    const { client } = this.props;
+    
+    return client.mutate({ mutation, variables })
+      .then(response => {
+        this._handleMutationResponse(mutationName, response);
+      });
+  }
+  
   _performAction(action, componentId, theMap) {
     const {
-      client,
       project,
       meta,
       schema,
@@ -291,22 +313,9 @@ class BuilderComponent extends PureComponent {
         
           if (value !== NO_VALUE) variables[argName] = value;
         });
-      
-        client.mutate({ mutation, variables })
-          .then(({ data }) => {
-            if (project.auth) {
-              if (project.auth.type === 'jwt') {
-                if (action.params.mutation === project.auth.loginMutation) {
-                  const token = _get(
-                    data,
-                    [action.params.mutation, ...project.auth.tokenPath],
-                  );
-                  
-                  if (token) localStorage.setItem('jssy_auth_token', token);
-                }
-              }
-            }
-            
+        
+        this._performMutation(action.params.mutation, mutation, variables)
+          .then(() => {
             action.params.successActions.forEach(successAction =>
               void this._performAction(successAction, componentId, theMap));
           })
