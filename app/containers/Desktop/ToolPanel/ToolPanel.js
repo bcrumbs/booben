@@ -18,6 +18,7 @@ import {
 } from '../../../components/PageDrawer/PageDrawer';
 
 import { ToolPanelContent } from './ToolPanelContent/ToolPanelContent';
+import resizeable from '../../../hocs/resizeable';
 import ToolType from '../../../models/Tool';
 import ToolStateType from '../../../models/ToolState';
 import { noop } from '../../../utils/misc';
@@ -54,6 +55,8 @@ const defaultProps = {
   onToolTitleChange: noop,
   onToolActiveSectionChange: noop,
 };
+
+const ResizeablePageDrawer = resizeable(PageDrawer);
 
 export const ToolPanel = props => {
   let activeTool = null;
@@ -157,13 +160,20 @@ export const ToolPanel = props => {
   }
 
   return (
-    <PageDrawer isExpanded={isExpanded} hasActions={pageDrawerHasActions}>
+    <ResizeablePageDrawer
+      resizeEnabled={isExpanded}
+      resizeSides={['left']}
+      resizeMinWidth="original"
+      resizeMaxWidth={Math.round(window.innerWidth / 2)}
+      isExpanded={isExpanded}
+      hasActions={pageDrawerHasActions}
+    >
       <PageDrawerActionsArea>
         {panelSwitcherGroups}
       </PageDrawerActionsArea>
 
       {panelContent}
-    </PageDrawer>
+    </ResizeablePageDrawer>
   );
 };
 

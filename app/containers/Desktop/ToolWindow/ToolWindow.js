@@ -24,6 +24,7 @@ import {
   BlockContentActionsRegion,
 } from '../../../components/BlockContent/BlockContent';
 
+import resizeable from '../../../hocs/resizeable';
 import ButtonType from '../../../models/Button';
 import ToolType from '../../../models/Tool';
 import ToolStateType from '../../../models/ToolState';
@@ -80,6 +81,8 @@ export const STICK_REGION_TOP = 2;
 export const STICK_REGION_BOTTOM = 3;
 
 const START_Z_INDEX = 2000;
+
+const ResizeableDraggableWindow = resizeable(DraggableWindow);
 
 export class ToolWindow extends PureComponent {
   constructor(props) {
@@ -391,7 +394,13 @@ export class ToolWindow extends PureComponent {
     }
 
     return (
-      <DraggableWindow
+      <ResizeableDraggableWindow
+        resizeEnabled
+        resizeSides={['right', 'bottom']}
+        resizeMinWidth="original"
+        resizeMaxWidth={Math.max(Math.round(window.innerWidth / 2) - 100, 100)}
+        resizeMinHeight={300}
+        resizeMaxHeight={Math.round(window.innerHeight * 0.8)}
         isDragged={dragging}
         maxHeight={tool.windowMaxHeight}
         minWidth={tool.windowMinWidth}
@@ -400,7 +409,7 @@ export class ToolWindow extends PureComponent {
       >
         {mainRegion}
         {sideRegion}
-      </DraggableWindow>
+      </ResizeableDraggableWindow>
     );
   }
 }

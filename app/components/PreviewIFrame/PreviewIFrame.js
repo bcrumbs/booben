@@ -55,6 +55,8 @@ export class PreviewIFrame extends PureComponent {
         evt.clientY = event.clientY + boundingClientRect.top;
         evt.pageX = event.pageX + boundingClientRect.left;
         evt.pageY = event.pageY + boundingClientRect.top;
+        evt.screenX = event.screenX;
+        evt.screenY = event.screenY;
         evt._originalTarget = event.target;
 
         this._iframe.dispatchEvent(evt);
