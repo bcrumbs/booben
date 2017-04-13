@@ -4,10 +4,31 @@
 
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import { Component, PropTypes } from 'react';
+import { Component } from 'react';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { dropComponent, DropComponentAreas } from '../../actions/preview';
+
+const propTypes = {
+  draggingComponent: PropTypes.bool.isRequired,
+  draggedComponentId: PropTypes.number.isRequired,
+  draggedComponents: PropTypes.any,
+  onDropComponent: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+  draggedComponents: null,
+};
+
+const mapStateToProps = ({ project }) => ({
+  draggingComponent: project.draggingComponent,
+  draggedComponentId: project.draggedComponentId,
+  draggedComponents: project.draggedComponents,
+});
+
+const mapDispatchToProps = dispatch => ({
+  onDropComponent: dropOnAreaId => dispatch(dropComponent(dropOnAreaId)),
+});
 
 /**
  *
@@ -156,29 +177,9 @@ class ComponentsDragAreaComponent extends Component {
   }
 }
 
-//noinspection JSUnresolvedVariable
-ComponentsDragAreaComponent.propTypes = {
-  draggingComponent: PropTypes.bool.isRequired,
-  draggedComponentId: PropTypes.number.isRequired,
-  draggedComponents: PropTypes.any,
-  onDropComponent: PropTypes.func.isRequired,
-};
-
-ComponentsDragAreaComponent.defaultProps = {
-  draggedComponents: null,
-};
-
+ComponentsDragAreaComponent.propTypes = propTypes;
+ComponentsDragAreaComponent.defaultProps = defaultProps;
 ComponentsDragAreaComponent.displayName = 'ComponentsDragArea';
-
-const mapStateToProps = ({ project }) => ({
-  draggingComponent: project.draggingComponent,
-  draggedComponentId: project.draggedComponentId,
-  draggedComponents: project.draggedComponents,
-});
-
-const mapDispatchToProps = dispatch => ({
-  onDropComponent: dropOnAreaId => dispatch(dropComponent(dropOnAreaId)),
-});
 
 export const ComponentsDragArea = connect(
   mapStateToProps,

@@ -4,12 +4,11 @@
 
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import React, { PureComponent, PropTypes } from 'react';
+import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
 import ProjectRoute from '../../../models/ProjectRoute';
 import { noop } from '../../../utils/misc';
 
-//noinspection JSUnresolvedVariable
 const propTypes = {
   route: PropTypes.instanceOf(ProjectRoute).isRequired,
   focused: PropTypes.bool,

@@ -4,8 +4,8 @@
 
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import React, { PureComponent, PropTypes } from 'react';
+import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { FunctionsList } from './FunctionsList/FunctionsList';
 import { FunctionWindow } from './FunctionWindow/FunctionWindow';

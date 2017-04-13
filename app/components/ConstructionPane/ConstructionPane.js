@@ -1,7 +1,7 @@
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import React, { PropTypes } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import { PaneRuler } from './PaneRuler/PaneRuler';
 import { ArtboardExpander } from './ArtboardExpander/ArtboardExpander';
 import './ConstructionPane.scss';

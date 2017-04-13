@@ -4,8 +4,8 @@
 
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import React, { PureComponent, PropTypes } from 'react';
+import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import { List } from 'immutable';
 import throttle from 'lodash.throttle';

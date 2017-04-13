@@ -1,6 +1,5 @@
 'use strict';
 
-//noinspection JSUnresolvedVariable
 import React from 'react';
 import './ComponentLayoutSelection.scss';
 

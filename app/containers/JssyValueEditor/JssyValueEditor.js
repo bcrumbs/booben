@@ -4,7 +4,8 @@
 
 'use strict';
 
-import React, { PureComponent, PropTypes } from 'react';
+import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
 import _mapValues from 'lodash.mapvalues';
 
 import {

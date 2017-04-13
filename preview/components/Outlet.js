@@ -6,8 +6,6 @@
 
 import React from 'react';
 
-// TODO: Style me
-
 const style = {
   width: 'calc(100% - 48px)',
   margin: '24px',

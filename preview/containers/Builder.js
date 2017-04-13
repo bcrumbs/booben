@@ -1,7 +1,7 @@
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import React, { PureComponent, PropTypes } from 'react';
+import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { graphql, withApollo } from 'react-apollo';
 import _merge from 'lodash.merge';

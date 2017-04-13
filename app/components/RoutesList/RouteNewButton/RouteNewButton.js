@@ -1,12 +1,11 @@
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import React, { PureComponent, PropTypes } from 'react';
+import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
 import { Button } from '@reactackle/reactackle';
 import ProjectRoute from '../../../models/ProjectRoute';
 import { noop } from '../../../utils/misc';
 
-//noinspection JSUnresolvedVariable
 const propTypes = {
   parentRoute: PropTypes.instanceOf(ProjectRoute),
   text: PropTypes.string,

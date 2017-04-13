@@ -1,7 +1,7 @@
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import React, { PureComponent, PropTypes } from 'react';
+import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Set } from 'immutable';
 import { connect } from 'react-redux';
@@ -18,7 +18,6 @@ import { OverlayBoundingBox } from '../components/OverlayBoundingBox';
 import { OverlayComponentTitle } from '../components/OverlayComponentTitle';
 import { PREVIEW_DOM_CONTAINER_ID } from '../../shared/constants';
 
-//noinspection JSUnresolvedVariable
 const propTypes = {
   components: ImmutablePropTypes.map.isRequired,
   selectedComponentIds: ImmutablePropTypes.set.isRequired,

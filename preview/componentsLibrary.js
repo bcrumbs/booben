@@ -6,6 +6,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
 import _mapValues from 'lodash.mapvalues';
 import patchComponent from './hocs/patchComponent';
 import { parseComponentName } from '../app/utils/meta';
@@ -13,7 +14,7 @@ import { parseComponentName } from '../app/utils/meta';
 // These modules are external in the components bundle
 window.React = React;
 window.ReactDOM = ReactDOM;
-window.PropTypes = React.PropTypes;
+window.PropTypes = PropTypes;
 
 const COMPONENTS_BUNDLE_FILE = 'components.js';
 

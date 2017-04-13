@@ -1,7 +1,7 @@
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import React, { PropTypes } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import CodeMirror from 'react-codemirror';
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/mode/javascript/javascript';

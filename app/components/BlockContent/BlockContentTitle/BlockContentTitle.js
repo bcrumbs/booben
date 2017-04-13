@@ -1,7 +1,7 @@
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import React, { PureComponent, PropTypes } from 'react';
+import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { List } from 'immutable';
 import { Icon, Button } from '@reactackle/reactackle';

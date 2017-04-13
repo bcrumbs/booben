@@ -4,8 +4,8 @@
 
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import React, { Component, PropTypes } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { Router, hashHistory } from 'react-router';
 import { connect } from 'react-redux';
 import Builder from './Builder';

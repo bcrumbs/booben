@@ -4,8 +4,8 @@
 
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import React, { PropTypes } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import { ToggleButton } from '@reactackle/reactackle';
 import { PropBase } from '../PropBase/PropBase';
 import { noop } from '../../../utils/misc';

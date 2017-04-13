@@ -4,8 +4,7 @@
 
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import { PropTypes } from 'react';
+import PropTypes from 'prop-types';
 import { TypeNames } from '@jssy/types';
 
 /**

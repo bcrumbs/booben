@@ -1,7 +1,13 @@
 'use strict';
-import React, { Component, PropTypes } from 'react';
-import { combineWithTooltip }
-  from '@reactackle/reactackle/components/Tooltip/combineWithTooltip';
+
+// TODO: Clean up this mess
+
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
+
+import {
+  combineWithTooltip,
+} from '@reactackle/reactackle/components/Tooltip/combineWithTooltip';
 
 const propTypes = {
   tooltipText: PropTypes.string.isRequired,

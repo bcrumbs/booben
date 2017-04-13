@@ -6,8 +6,8 @@
 
 // TODO: Finish it
 
-//noinspection JSUnresolvedVariable
-import React, { PropTypes } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 
 const propTypes = {
   position: PropTypes.oneOf(['horizontal', 'vertical']),

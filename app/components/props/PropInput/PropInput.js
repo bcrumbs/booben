@@ -4,8 +4,8 @@
 
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import React, { PropTypes } from 'react';
+import React from 'react';
+import PropTypes from 'prop-types';
 import { Input } from '@reactackle/reactackle';
 import { PropBase } from '../PropBase/PropBase';
 import { noop, returnArg } from '../../../utils/misc';

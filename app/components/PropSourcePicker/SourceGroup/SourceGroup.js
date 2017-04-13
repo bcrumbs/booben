@@ -1,9 +1,9 @@
 'use strict';
 
-import React, { PropTypes } from 'react';
-import './SourceGroup.scss';
-
+import React from 'react';
+import PropTypes from 'prop-types';
 import { SourceGroupHeading } from './SourceGroupHeading/SourceGroupHeading';
+import './SourceGroup.scss';
 
 const propTypes = {
   title: PropTypes.string,

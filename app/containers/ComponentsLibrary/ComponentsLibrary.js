@@ -4,8 +4,8 @@
 
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import React, { PureComponent, PropTypes } from 'react';
+import React, { PureComponent } from 'react';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { createSelector } from 'reselect';
@@ -61,6 +61,28 @@ const LibraryGroupData = Record({
   isDefault: false,
   components: List(),
 });
+
+const ComponentGroupsType = PropTypes.shape({
+  groups: ImmutablePropTypes.listOf(PropTypes.instanceOf(LibraryGroupData)),
+  filtered: PropTypes.bool,
+});
+
+const propTypes = {
+  componentGroups: ComponentGroupsType.isRequired,
+  expandedGroups: ImmutablePropTypes.setOf(PropTypes.string).isRequired,
+  language: PropTypes.string.isRequired,
+  draggingComponent: PropTypes.bool.isRequired,
+  draggedComponents: ImmutablePropTypes.map,
+  draggedComponentId: PropTypes.number.isRequired,
+  getLocalizedText: PropTypes.func.isRequired,
+  onStartDragNewComponent: PropTypes.func.isRequired,
+  onExpandedGroupsChange: PropTypes.func.isRequired,
+  onShowAllComponents: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+  draggedComponents: null,
+};
 
 const extractGroupsDataFromMeta = meta => {
   let groups = OrderedMap();
@@ -194,6 +216,21 @@ const libraryGroupsFilteredSelector = createSelector(
   },
 );
 
+const mapStateToProps = state => ({
+  componentGroups: libraryGroupsFilteredSelector(state),
+  expandedGroups: state.componentsLibrary.expandedGroups,
+  language: state.app.language,
+  draggingComponent: state.project.draggingComponent,
+  draggedComponents: state.project.draggedComponents,
+  draggedComponentId: state.project.draggedComponentId,
+  getLocalizedText: getLocalizedTextFromState(state),
+});
+
+const mapDispatchToProps = dispatch => ({
+  onExpandedGroupsChange: groups => void dispatch(setExpandedGroups(groups)),
+  onShowAllComponents: () => void dispatch(showAllComponents()),
+});
+
 class ComponentsLibraryComponent extends PureComponent {
   _getFocusedComponentName() {
     const {
@@ -286,45 +323,9 @@ class ComponentsLibraryComponent extends PureComponent {
   }
 }
 
-const ComponentGroupsType = PropTypes.shape({
-  groups: ImmutablePropTypes.listOf(PropTypes.instanceOf(LibraryGroupData)),
-  filtered: PropTypes.bool,
-});
-
-//noinspection JSUnresolvedVariable
-ComponentsLibraryComponent.propTypes = {
-  componentGroups: ComponentGroupsType.isRequired,
-  expandedGroups: ImmutablePropTypes.setOf(PropTypes.string).isRequired,
-  language: PropTypes.string.isRequired,
-  draggingComponent: PropTypes.bool.isRequired,
-  draggedComponents: ImmutablePropTypes.map,
-  draggedComponentId: PropTypes.number.isRequired,
-  getLocalizedText: PropTypes.func.isRequired,
-  onStartDragNewComponent: PropTypes.func.isRequired,
-  onExpandedGroupsChange: PropTypes.func.isRequired,
-  onShowAllComponents: PropTypes.func.isRequired,
-};
-
-ComponentsLibraryComponent.defaultProps = {
-  draggedComponents: null,
-};
-
+ComponentsLibraryComponent.propTypes = propTypes;
+ComponentsLibraryComponent.defaultProps = defaultProps;
 ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
-
-const mapStateToProps = state => ({
-  componentGroups: libraryGroupsFilteredSelector(state),
-  expandedGroups: state.componentsLibrary.expandedGroups,
-  language: state.app.language,
-  draggingComponent: state.project.draggingComponent,
-  draggedComponents: state.project.draggedComponents,
-  draggedComponentId: state.project.draggedComponentId,
-  getLocalizedText: getLocalizedTextFromState(state),
-});
-
-const mapDispatchToProps = dispatch => ({
-  onExpandedGroupsChange: groups => void dispatch(setExpandedGroups(groups)),
-  onShowAllComponents: () => void dispatch(showAllComponents()),
-});
 
 export const ComponentsLibrary = dragHandler(
   connect(
