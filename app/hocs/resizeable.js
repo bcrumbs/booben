@@ -48,7 +48,7 @@ const defaultProps = {
 const makeDisplayName = displayName => `resizeable(${displayName})`;
 
 const setCursor = cursor => {
-  window.document.body.style.setProperty = cursor;
+  window.document.body.style.cursor = cursor;
 };
 
 const resetCursor = () => {
