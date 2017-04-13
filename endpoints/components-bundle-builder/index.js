@@ -184,8 +184,8 @@ const loaderStringParsers = {
 const installLoaders = (projectDir, libsData, options) => co(function* () {
   options = options || {};
 
-  const requiredModulesSet = new Set(),
-    loaderModulesSet = new Set();
+  const requiredModulesSet = new Set();
+  const loaderModulesSet = new Set();
 
   libsData.forEach(libData => {
     const keys = Object.keys(libData.meta.loaders);
@@ -193,9 +193,12 @@ const installLoaders = (projectDir, libsData, options) => co(function* () {
     keys.forEach(key => {
       const loaders = libData.meta.loaders[key];
       loaders.forEach(loaderString => {
-        const qIdx = loaderString.indexOf('?'),
-          loader = (qIdx === -1 ? loaderString : loaderString.slice(0, qIdx)),
-          loaderModule = `${loader}-loader`;
+        const qIdx = loaderString.indexOf('?');
+        const loader = qIdx === -1
+          ? loaderString
+          : loaderString.slice(0, qIdx);
+        
+        const loaderModule = `${loader}-loader`;
 
         requiredModulesSet.add(loaderModule);
         loaderModulesSet.add(loaderModule);
@@ -212,8 +215,8 @@ const installLoaders = (projectDir, libsData, options) => co(function* () {
   const requiredModules = Array.from(requiredModulesSet.values());
   yield npmInstall(projectDir, requiredModules, { log: options.npmLogger });
 
-  const loaderModules = Array.from(loaderModulesSet.values()),
-    loadersPeerDepsSet = new Set();
+  const loaderModules = Array.from(loaderModulesSet.values());
+  const loadersPeerDepsSet = new Set();
 
   loaderModules.forEach(loaderModule => {
     const packageJSONFile = path.join(

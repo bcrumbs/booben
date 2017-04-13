@@ -385,6 +385,19 @@ export class JssyValueEditor extends PureComponent {
   
   /**
    *
+   * @param {JssyValueDefinition} valueDef
+   * @return {string}
+   * @private
+   */
+  _formatSecondaryLabel(valueDef) {
+    if (isValidSourceForValue(valueDef, 'const'))
+      return `const ${valueDef.type}`;
+    else
+      return valueDef.type;
+  }
+  
+  /**
+   *
    * @param {JssyValueDefinition|ComponentPropMeta} valueDef
    * @param {string} [fallback='']
    * @param {string} [override='']
@@ -450,7 +463,7 @@ export class JssyValueEditor extends PureComponent {
 
     const ret = {
       label: this._formatLabel(resolvedValueDef, labelFallback, labelOverride),
-      secondaryLabel: resolvedValueDef.type,
+      secondaryLabel: this._formatSecondaryLabel(resolvedValueDef),
       view: isEditableValue(resolvedValueDef)
         ? jssyTypeToView(resolvedValueDef.type)
         : PropViews.EMPTY,

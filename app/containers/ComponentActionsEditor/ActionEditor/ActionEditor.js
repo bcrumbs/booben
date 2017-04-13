@@ -574,6 +574,8 @@ class ActionEditorComponent extends PureComponent {
           const key = `methodArg_${idx}`;
           const value = action.params.args.get(idx);
           
+          if (value.source === 'const') return;
+          
           ret.push(
             <JssyValueEditor
               key={key}
@@ -581,7 +583,7 @@ class ActionEditorComponent extends PureComponent {
               value={value}
               valueDef={arg}
               optional={!arg.required}
-              strings={component.strings}
+              strings={componentMeta.strings}
               language={language}
               onChange={this._handleMethodActionArgValueChange}
               onLink={this._handleLink}
