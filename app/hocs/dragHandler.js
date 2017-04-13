@@ -5,8 +5,8 @@
 
 'use strict';
 
-//noinspection JSUnresolvedVariable
-import React, { PropTypes, Component } from 'react';
+import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { pointIsInCircle } from '../utils/misc';
 import { constructComponent } from '../utils/meta';
