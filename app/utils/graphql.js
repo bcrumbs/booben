@@ -171,27 +171,27 @@ const toGraphQLScalarValue = (value, type) => {
   if (type === 'Int') return { kind: 'IntValue', value: `${value}` };
   if (type === 'Float') return { kind: 'FloatValue', value: `${value}` };
   if (type === 'Boolean') return { kind: 'BooleanValue', value };
-  if (type === 'ID') return { kind: 'StringValue', value }; // ???
+  if (type === 'ID') return { kind: 'StringValue', value };
 
   throw new Error(`toGraphQLScalarValue(): Unknown type: '${type}'.`);
 };
 
-const buildGraphQLValue = (propValue, schemaTypeDef) => {
+const buildGraphQLValue = (jssyValue, schemaTypeDef) => {
   // eslint-disable-next-line no-unused-vars
   const { type, kind, nonNull } = schemaTypeDef;
 
     // TODO: Deal with more complex values
-  if (propValue.source === 'static') {
-    if (propValue.sourceData.ownerPropName)
+  if (jssyValue.source === 'static') {
+    if (jssyValue.sourceData.ownerPropName)
       return NO_VALUE;
-    else if (propValue.sourceData.value === null)
+    else if (jssyValue.sourceData.value === null)
       return NO_VALUE;
-    else if (List.isList(propValue.sourceData.value))
+    else if (List.isList(jssyValue.sourceData.value))
       return NO_VALUE;
-    else if (Map.isMap(propValue.sourceData.value))
+    else if (Map.isMap(jssyValue.sourceData.value))
       return NO_VALUE;
     else
-      return toGraphQLScalarValue(propValue.sourceData.value, type);
+      return toGraphQLScalarValue(jssyValue.sourceData.value, type);
   } else {
     return NO_VALUE;
   }
@@ -215,49 +215,37 @@ const buildGraphQLArgument = (argName, argValue, fieldDefinition) => {
   };
 };
 
-const getQueryStepArgValues = (
-  component,
-  ownerComponentsChain,
-  propValue,
-  stepIdx,
-) => {
-  const propDataContext = propValue.sourceData.dataContext;
-  const keyForDataContextArgs = propDataContext.join(' ');
-  const keyForQueryArgs = propValue.sourceData.queryPath
-    .slice(0, stepIdx + 1)
-    .map(step => step.field)
-    .join(' ');
-
-  const componentWithQueryArgs = propDataContext.size === 0
-    ? component
-    : ownerComponentsChain[ownerComponentsChain.length - propDataContext.size];
-
-  return componentWithQueryArgs.queryArgs.getIn([
-    keyForDataContextArgs,
-    keyForQueryArgs,
-  ]);
-};
+/**
+ *
+ * @param {string} fieldName
+ * @param {Object} jssyValue
+ * @return {string}
+ */
+const getDataFieldKey = (fieldName, jssyValue) =>
+  `${fieldName}${jssyValue.sourceData.aliasPostfix}`;
 
 /**
  *
- * @param {Object} component
- * Actually it's Immutable.Record; see models/ProjectComponent
- * @param {Object[]} ownerComponentsChain
- * @param {Object} propValue
+ * @param {string} fieldName
+ * @param {Object} jssyValue
+ * @return {Object}
+ */
+const buildAlias = (fieldName, jssyValue) => ({
+  kind: 'Name',
+  value: getDataFieldKey(fieldName, jssyValue),
+});
+
+/**
+ *
+ * @param {Object} jssyValue
  * Actually it's Immutable.Record; see models/ProjectComponentProp
  * @param {DataSchema} schema
  * @param {Object} dataContextTree
  * @return {Object}
  */
-const buildGraphQLFragmentForValue = (
-  component,
-  ownerComponentsChain,
-  propValue,
-  schema,
-  dataContextTree,
-) => {
+const buildGraphQLFragmentForValue = (jssyValue, schema, dataContextTree) => {
   const fragmentName = randomName();
-  const onType = resolveGraphQLType(propValue, dataContextTree);
+  const onType = resolveGraphQLType(jssyValue, dataContextTree);
 
   const ret = {
     kind: 'FragmentDefinition',
@@ -282,7 +270,7 @@ const buildGraphQLFragmentForValue = (
 
   /* eslint-disable consistent-return */
   //noinspection JSCheckFunctionSignatures
-  propValue.sourceData.queryPath.forEach((step, idx) => {
+  jssyValue.sourceData.queryPath.forEach((step, idx) => {
     const [fieldName, connectionFieldName] = step.field.split('/');
     const currentTypeDefinition = schema.types[currentType];
     const currentFieldDefinition = currentTypeDefinition.fields[fieldName];
@@ -300,12 +288,7 @@ const buildGraphQLFragmentForValue = (
       }
 
       const args = [];
-      const argumentValues = getQueryStepArgValues(
-        component,
-        ownerComponentsChain,
-        propValue,
-        idx,
-      );
+      const argumentValues = jssyValue.getQueryStepArgValues(idx);
 
       if (argumentValues) {
         argumentValues.forEach((argValue, argName) => {
@@ -324,7 +307,7 @@ const buildGraphQLFragmentForValue = (
 
       const node = {
         kind: 'Field',
-        alias: null,
+        alias: buildAlias(fieldName, jssyValue),
         name: {
           kind: 'Name',
           value: fieldName,
@@ -335,7 +318,7 @@ const buildGraphQLFragmentForValue = (
           kind: 'SelectionSet',
           selections: [{
             kind: 'Field',
-            alias: null,
+            alias: buildAlias(connectionFieldName, jssyValue),
             name: {
               kind: 'Name',
               value: connectionFieldName,
@@ -358,7 +341,7 @@ const buildGraphQLFragmentForValue = (
 
       const node = {
         kind: 'Field',
-        alias: null,
+        alias: buildAlias(fieldName, jssyValue),
         name: {
           kind: 'Name',
           value: fieldName,
@@ -402,12 +385,7 @@ const buildGraphQLFragmentForValue = (
       currentNode = node.selectionSet.selections[0].selectionSet.selections[0];
     } else {
       const args = [];
-      const argumentValues = getQueryStepArgValues(
-        component,
-        ownerComponentsChain,
-        propValue,
-        idx,
-      );
+      const argumentValues = jssyValue.getQueryStepArgValues(idx);
 
       if (argumentValues) {
         argumentValues.forEach((argValue, argName) => {
@@ -423,7 +401,7 @@ const buildGraphQLFragmentForValue = (
 
       const node = {
         kind: 'Field',
-        alias: null,
+        alias: buildAlias(fieldName, jssyValue),
         name: {
           kind: 'Name',
           value: fieldName,
@@ -505,7 +483,6 @@ const pushDataContext = (
 const buildAndAttachFragmentsForDesignerProp = (
   value,
   typedef,
-  ownerComponentsChain,
   dataValuesByDataContext,
   dataContextTree,
   theMap,
@@ -547,7 +524,6 @@ const buildAndAttachFragmentsForDesignerProp = (
     // eslint-disable-next-line no-use-before-define
     const ret = buildGraphQLFragmentsForOwnComponent(
       component,
-      ownerComponentsChain,
       schema,
       meta,
       project,
@@ -572,7 +548,6 @@ const buildAndAttachFragmentsForDesignerProp = (
  *
  * @param {Object} component
  * Actually it's an Immutable.Record; see models/ProjectComponent.js
- * @param {Object[]} ownerComponentsChain
  * @param {DataSchema} schema
  * @param {Object} meta
  * @param {Object} project
@@ -582,7 +557,6 @@ const buildAndAttachFragmentsForDesignerProp = (
  */
 const buildGraphQLFragmentsForOwnComponent = (
   component,
-  ownerComponentsChain,
   schema,
   meta,
   project,
@@ -600,16 +574,10 @@ const buildGraphQLFragmentsForOwnComponent = (
   };
 
   const visitProp = (value, typedef) => {
-    if (value.source === 'data') {
-      const isGoodProp =
-        value.sourceData.queryPath !== null &&
-        value.sourceData.dataContext.size > 0;
-
-      if (!isGoodProp) return;
+    if (value.isLinkedWithData()) {
+      if (value.sourceData.dataContext.size === 0) return;
 
       const fragment = buildGraphQLFragmentForValue(
-        component,
-        ownerComponentsChain,
         value,
         schema,
         dataContextTree,
@@ -668,7 +636,6 @@ const buildGraphQLFragmentsForOwnComponent = (
       const ret = buildAndAttachFragmentsForDesignerProp(
         value,
         typedef,
-        [...ownerComponentsChain, component],
         dataValuesByDataContext,
         dataContextTree,
         theMap,
@@ -724,16 +691,10 @@ const buildGraphQLFragmentsForComponent = (
   const walkSimplePropsOptions = { project, walkFunctionArgs: true };
 
   const visitValue = (value, typedef) => {
-    if (value.source === 'data') {
-      const isGoodProp =
-        value.sourceData.queryPath !== null &&
-        value.sourceData.dataContext.size === 0;
-
-      if (!isGoodProp) return;
+    if (value.isLinkedWithData()) {
+      if (value.sourceData.dataContext.size !== 0) return;
 
       const fragment = buildGraphQLFragmentForValue(
-        component,
-        [],
         value,
         schema,
         dataContextTree,
@@ -757,10 +718,7 @@ const buildGraphQLFragmentsForComponent = (
           schema,
         );
       }
-    } else if (
-      value.source === 'designer' &&
-      value.sourceData.rootId > -1
-    ) {
+    } else if (value.hasDesignedComponent()) {
       designerPropsWithComponent.push({
         value,
         typedef,
@@ -777,7 +735,6 @@ const buildGraphQLFragmentsForComponent = (
       const ret = buildAndAttachFragmentsForDesignerProp(
         value,
         typedef,
-        [component],
         dataValuesByDataContext,
         dataContextTree,
         theMap,
@@ -839,18 +796,18 @@ export const buildQueryForComponent = (component, schema, meta, project) => {
 
 /**
  *
- * @param {Object} propValue
+ * @param {Object} jssyValue
  * @param {Object} data
  * @param {DataSchema} schema
  * @param {string} [rootType]
  * @return {*|NO_VALUE}
  */
 export const extractPropValueFromData = (
-  propValue,
+  jssyValue,
   data,
   schema,
   rootType = schema.queryTypeName,
-) => propValue.sourceData.queryPath.reduce((acc, queryStep) => {
+) => jssyValue.sourceData.queryPath.reduce((acc, queryStep) => {
   if (acc.data === null || acc.data === NO_VALUE) {
     return {
       data: NO_VALUE,
@@ -861,22 +818,26 @@ export const extractPropValueFromData = (
   const typeDefinition = schema.types[acc.type];
   const { fieldName, connectionFieldName } = parseFieldName(queryStep.field);
   const fieldDefinition = typeDefinition.fields[fieldName];
+  const fieldKey = getDataFieldKey(fieldName, jssyValue);
 
   if (fieldDefinition.kind === FieldKinds.CONNECTION) {
     if (connectionFieldName) {
+      const connectionFieldKey =
+        getDataFieldKey(connectionFieldName, jssyValue);
+      
       return {
-        data: acc.data[fieldName][connectionFieldName],
+        data: acc.data[fieldKey][connectionFieldKey],
         type: fieldDefinition.connectionFields[connectionFieldName].type,
       };
     } else {
       return {
-        data: acc.data[fieldName].edges.map(edge => edge.node),
+        data: acc.data[fieldKey].edges.map(edge => edge.node),
         type: fieldDefinition.type,
       };
     }
   } else {
     return {
-      data: acc.data[fieldName],
+      data: acc.data[fieldKey],
       type: fieldDefinition.type,
     };
   }
@@ -886,9 +847,9 @@ export const mapDataToComponentProps = (component, data, schema, meta) => {
   const componentMeta = getComponentMeta(component.name, meta);
   const ret = {};
 
-  walkSimpleProps(component, componentMeta, (propValue, propMeta, path) => {
-    if (propValue.source === 'data' && propValue.sourceData.queryPath)
-      _set(ret, path, extractPropValueFromData(propValue, data, schema));
+  walkSimpleProps(component, componentMeta, (jssyValue, propMeta, path) => {
+    if (jssyValue.isLinkedWithData())
+      _set(ret, path, extractPropValueFromData(jssyValue, data, schema));
   });
 
   return ret;

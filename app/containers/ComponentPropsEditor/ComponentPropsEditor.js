@@ -8,10 +8,11 @@
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
-import { createSelector } from 'reselect';
 import { getNestedTypedef } from '@jssy/types';
+import { Dialog } from '@reactackle/reactackle';
 import { PropsList } from '../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
+import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
 
 import {
   BlockContentBox,
@@ -25,7 +26,6 @@ import ProjectComponentRecord from '../../models/ProjectComponent';
 import {
   replaceJssyValue,
   constructComponentForProp,
-  linkDialogOpen,
 } from '../../actions/project';
 
 import { PathStartingPoints } from '../../reducers/project';
@@ -33,7 +33,8 @@ import { PathStartingPoints } from '../../reducers/project';
 import {
   currentComponentsSelector,
   currentSelectedComponentIdsSelector,
-  topNestedConstructorSelector,
+  ownerPropsSelector,
+  ownerUserTypedefsSelector,
 } from '../../selectors';
 
 import {
@@ -62,36 +63,12 @@ const propTypes = {
   getLocalizedText: PropTypes.func.isRequired,
   onReplacePropValue: PropTypes.func.isRequired,
   onConstructComponent: PropTypes.func.isRequired,
-  onLinkProp: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
   ownerProps: null,
   ownerUserTypedefs: null,
 };
-
-const ownerPropsSelector = createSelector(
-  topNestedConstructorSelector,
-  
-  topNestedConstructor => {
-    if (!topNestedConstructor) return null;
-    
-    const ownerComponentPropMeta = topNestedConstructor.valueInfo.valueDef;
-    
-    return ownerComponentPropMeta.source.indexOf('designer') > -1
-      ? ownerComponentPropMeta.sourceConfigs.designer.props || null
-      : null;
-  },
-);
-
-const ownerUserTypedefsSelector = createSelector(
-  topNestedConstructorSelector,
-  
-  topNestedConstructor => {
-    if (!topNestedConstructor) return null;
-    return topNestedConstructor.valueInfo.userTypedefs;
-  },
-);
 
 const mapStateToProps = state => ({
   meta: state.project.meta,
@@ -109,8 +86,6 @@ const mapDispatchToProps = dispatch => ({
   
   onConstructComponent: (path, components, rootId) =>
     void dispatch(constructComponentForProp(path, components, rootId)),
-  
-  onLinkProp: path => void dispatch(linkDialogOpen(path)),
 });
 
 /**
@@ -148,6 +123,12 @@ const buildFullPath = (componentId, isSystemProp, propName, path = []) => ({
 class ComponentPropsEditorComponent extends PureComponent {
   constructor(props) {
     super(props);
+    
+    this.state = {
+      linkingProp: false,
+      linkingPath: null,
+      linkingValueDef: null,
+    };
   
     this._handleSystemPropSetComponent =
       this._handleSetComponent.bind(this, true);
@@ -157,6 +138,9 @@ class ComponentPropsEditorComponent extends PureComponent {
     this._handleSetComponent = this._handleSetComponent.bind(this, false);
     this._handleChange = this._handleChange.bind(this, false);
     this._handleLink = this._handleLink.bind(this, false);
+    
+    this._handleLinkApply = this._handleLinkApply.bind(this);
+    this._handleLinkCancel = this._handleLinkCancel.bind(this);
   }
   
   /**
@@ -182,11 +166,47 @@ class ComponentPropsEditorComponent extends PureComponent {
    * @private
    */
   _handleLink(isSystemProp, { name, path }) {
-    const { selectedComponentIds, onLinkProp } = this.props;
-    
+    const { meta, components, selectedComponentIds } = this.props;
+  
     const componentId = selectedComponentIds.first();
-    const fullPath = buildFullPath(componentId, isSystemProp, name, path);
-    onLinkProp(fullPath);
+    
+    let linkingValueDef;
+    if (isSystemProp) {
+      const propMeta = SYSTEM_PROPS[name];
+      linkingValueDef = getNestedTypedef(propMeta, path);
+    } else {
+      const component = components.get(componentId);
+      const componentMeta = getComponentMeta(component.name, meta);
+      const propMeta = componentMeta.props[name];
+      linkingValueDef = getNestedTypedef(propMeta, path, componentMeta.types);
+    }
+    
+    this.setState({
+      linkingProp: true,
+      linkingPath: buildFullPath(componentId, isSystemProp, name, path),
+      linkingValueDef,
+    });
+  }
+  
+  _handleLinkApply({ newValue }) {
+    const { onReplacePropValue } = this.props;
+    const { linkingPath } = this.state;
+    
+    this.setState({
+      linkingProp: false,
+      linkingPath: null,
+      linkingValueDef: null,
+    });
+    
+    onReplacePropValue(linkingPath, newValue);
+  }
+  
+  _handleLinkCancel() {
+    this.setState({
+      linkingProp: false,
+      linkingPath: null,
+      linkingValueDef: null,
+    });
   }
 
   /**
@@ -296,6 +316,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     const {
       ownerProps,
       ownerUserTypedefs,
+      language,
       getLocalizedText,
     } = this.props;
     
@@ -315,6 +336,7 @@ class ComponentPropsEditorComponent extends PureComponent {
             valueDef={SYSTEM_PROPS.visible}
             label={visibleLabel}
             description={visibleDesc}
+            language={language}
             ownerProps={ownerProps}
             ownerUserTypedefs={ownerUserTypedefs}
             getLocalizedText={getLocalizedText}
@@ -329,6 +351,7 @@ class ComponentPropsEditorComponent extends PureComponent {
 
   render() {
     const { selectedComponentIds, getLocalizedText } = this.props;
+    const { linkingProp, linkingValueDef } = this.state;
 
     if (selectedComponentIds.size === 0) {
       //noinspection JSCheckFunctionSignatures
@@ -432,6 +455,22 @@ class ComponentPropsEditorComponent extends PureComponent {
       <BlockContentBox isBordered>
         {systemProps}
         {content}
+  
+        <Dialog
+          title="Link attribute value"
+          backdrop
+          minWidth={420}
+          paddingSize="none"
+          visible={linkingProp}
+          haveCloseButton
+          onClose={this._handleLinkCancel}
+        >
+          <LinkPropWindow
+            valueDef={linkingValueDef}
+            userTypedefs={componentMeta.types}
+            onLink={this._handleLinkApply}
+          />
+        </Dialog>
       </BlockContentBox>
     );
   }

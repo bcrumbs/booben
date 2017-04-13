@@ -487,33 +487,41 @@ export class JssyValueEditor extends PureComponent {
     } else if (resolvedValueDef.type === TypeNames.FLOAT) {
       ret.transformValue = coerceFloatValue;
     } else if (resolvedValueDef.type === TypeNames.ONE_OF) {
-      ret.options = resolvedValueDef.options.map(option => ({
-        value: option.value,
-        text: option.textKey
-          ? getString(strings, option.textKey, language)
-          : (option.label || String(option.value)),
-      }));
+      if (ret.view === PropViews.LIST) {
+        ret.options = resolvedValueDef.options.map(option => ({
+          value: option.value,
+          text: option.textKey
+            ? getString(strings, option.textKey, language)
+            : (option.label || String(option.value)),
+        }));
+      }
     } else if (resolvedValueDef.type === TypeNames.SHAPE) {
-      ret.fields = _mapValues(
-        resolvedValueDef.fields,
-
-        (fieldTypedef, fieldName) => this._getPropType(fieldTypedef, {
+      if (ret.view === PropViews.SHAPE) {
+        ret.fields = _mapValues(
+          resolvedValueDef.fields,
+    
+          (fieldTypedef, fieldName) => this._getPropType(fieldTypedef, {
+            noCache: true,
+            labelFallback: fieldName,
+          }),
+        );
+      }
+    } else if (resolvedValueDef.type === TypeNames.ARRAY_OF) {
+      if (ret.view === PropViews.ARRAY) {
+        ret.ofType = this._getPropType(resolvedValueDef.ofType, {
           noCache: true,
-          labelFallback: fieldName,
-        }),
-      );
-    } else if (
-      resolvedValueDef.type === TypeNames.ARRAY_OF ||
-      resolvedValueDef.type === TypeNames.OBJECT_OF
-    ) {
-      ret.ofType = this._getPropType(resolvedValueDef.ofType, {
-        noCache: true,
-      });
-
-      if (resolvedValueDef.type === TypeNames.ARRAY_OF)
-        ret.formatItemLabel = this._formatArrayItemLabel;
-      else
-        ret.formatItemLabel = this._formatObjectItemLabel;
+        });
+      }
+  
+      ret.formatItemLabel = this._formatArrayItemLabel;
+    } else if (resolvedValueDef.type === TypeNames.OBJECT_OF) {
+      if (ret.view === PropViews.OBJECT) {
+        ret.ofType = this._getPropType(resolvedValueDef.ofType, {
+          noCache: true,
+        });
+      }
+      
+      ret.formatItemLabel = this._formatObjectItemLabel;
     }
 
     if (!noCache) this._propType = ret;

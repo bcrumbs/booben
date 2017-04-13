@@ -8,7 +8,6 @@
 import React, { PureComponent, PropTypes } from 'react';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
-import { batchActions } from 'redux-batched-actions';
 import { createSelector } from 'reselect';
 import { List } from 'immutable';
 
@@ -46,7 +45,6 @@ import {
 } from '../containers/ComponentActionsEditor/ComponentActionsEditor';
 
 import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
-import { LinkPropWindow } from '../containers/LinkPropWindow/LinkPropWindow';
 
 import {
   ComponentLayoutSelection,
@@ -66,9 +64,6 @@ import {
   selectLayoutForNewComponent,
   saveComponentForProp,
   cancelConstructComponentForProp,
-  linkDialogClose,
-  updateQueryArgs,
-  replaceJssyValue,
 } from '../actions/project';
 
 import {
@@ -77,8 +72,6 @@ import {
   firstSelectedComponentIdSelector,
   currentComponentsSelector,
 } from '../selectors';
-
-import { PathStartingPoints, makeValueInfoGetter } from '../reducers/project';
 
 import {
   getComponentMeta,
@@ -124,28 +117,12 @@ const propTypes = {
   language: PropTypes.string,
   haveNestedConstructor: PropTypes.bool,
   nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(PropTypes.string),
-  linkingProp: PropTypes.bool.isRequired,
-  linkingPath: PropTypes.shape({
-    startingPoint: PropTypes.oneOf(
-      Object.keys(PathStartingPoints).map(key => PathStartingPoints[key]),
-    ),
-    
-    steps: PropTypes.arrayOf(
-      PropTypes.oneOfType([
-        PropTypes.string,
-        PropTypes.number,
-      ]),
-    ),
-  }),
-  getValueInfo: PropTypes.func.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   onRenameComponent: PropTypes.func.isRequired,
   onDeleteComponent: PropTypes.func.isRequired,
   onSelectLayout: PropTypes.func.isRequired,
   onSaveComponentForProp: PropTypes.func.isRequired,
   onCancelConstructComponentForProp: PropTypes.func.isRequired,
-  onLinkPropCancel: PropTypes.func.isRequired,
-  onLinkValue: PropTypes.func.isRequired,
 };
 
 const LIBRARY_ICON = 'cubes';
@@ -219,9 +196,6 @@ const mapStateToProps = state => ({
   language: state.project.languageForComponentProps,
   haveNestedConstructor: haveNestedConstructorsSelector(state),
   nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
-  linkingProp: state.project.linkingProp,
-  linkingPath: state.project.linkingPath,
-  getValueInfo: makeValueInfoGetter(state.project),
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -240,24 +214,6 @@ const mapDispatchToProps = dispatch => ({
   
   onCancelConstructComponentForProp: () =>
     void dispatch(cancelConstructComponentForProp()),
-  
-  onLinkValue: (path, newValue, queryArgs) => {
-    const actions = [
-      replaceJssyValue(path, newValue),
-    ];
-  
-    if (newValue.isLinkedWithData() && queryArgs) {
-      const dataContext = newValue.getDataContext();
-      actions.push(updateQueryArgs(dataContext, queryArgs));
-    }
-    
-    actions.push(linkDialogClose());
-    
-    dispatch(batchActions(actions));
-  },
-  
-  onLinkPropCancel: () =>
-    void dispatch(linkDialogClose()),
 });
 
 /* eslint-disable react/prop-types */
@@ -286,7 +242,6 @@ class DesignRoute extends PureComponent {
     this._handleConfirmDeleteComponentDialogClose =
       this._handleConfirmDeleteComponentDialogClose.bind(this);
     this._handleLayoutSelection = this._handleLayoutSelection.bind(this);
-    this._handleLinkValue = this._handleLinkValue.bind(this);
   }
   
   _getLibraryTool() {
@@ -476,17 +431,6 @@ class DesignRoute extends PureComponent {
   
   /**
    *
-   * @param {JssyValue} newValue
-   * @param {Immutable.Map<string, JssyValue>} queryArgs
-   * @private
-   */
-  _handleLinkValue({ newValue, queryArgs }) {
-    const { linkingPath, onLinkValue } = this.props;
-    onLinkValue(linkingPath, newValue, queryArgs);
-  }
-  
-  /**
-   *
    * @return {?ReactElement}
    * @private
    */
@@ -614,15 +558,7 @@ class DesignRoute extends PureComponent {
   }
 
   render() {
-    const {
-      linkingProp,
-      linkingPath,
-      getValueInfo,
-      selectingComponentLayout,
-      getLocalizedText,
-      onLinkPropCancel,
-    } = this.props;
-    
+    const { selectingComponentLayout, getLocalizedText } = this.props;
     const { confirmDeleteComponentDialogIsVisible } = this.state;
 
     const layoutSelectionDialogContent =
@@ -638,14 +574,6 @@ class DesignRoute extends PureComponent {
   
     const toolGroups = this._getTools();
     const content = this._renderContent();
-    
-    let linkingValueDef = null;
-    let linkingValueUserTypedefs = null;
-    if (linkingProp) {
-      const linkingValueInfo = getValueInfo(linkingPath);
-      linkingValueDef = linkingValueInfo.valueDef;
-      linkingValueUserTypedefs = linkingValueInfo.userTypedefs;
-    }
 
     return (
       <Desktop
@@ -675,22 +603,6 @@ class DesignRoute extends PureComponent {
           onEnterKeyPress={this._handleDeleteComponentConfirm}
         >
           {getLocalizedText('deleteThisComponentQuestion')}
-        </Dialog>
-        
-        <Dialog
-          title="Link attribute value"
-          backdrop
-          minWidth={420}
-          paddingSize="none"
-          visible={linkingProp}
-          haveCloseButton
-          onClose={onLinkPropCancel}
-        >
-          <LinkPropWindow
-            valueDef={linkingValueDef}
-            userTypedefs={linkingValueUserTypedefs}
-            onLink={this._handleLinkValue}
-          />
         </Dialog>
       </Desktop>
     );

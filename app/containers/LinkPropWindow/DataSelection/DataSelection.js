@@ -6,6 +6,7 @@
 
 //noinspection JSUnresolvedVariable
 import React, { PureComponent, PropTypes } from 'react';
+import { Map } from 'immutable';
 import { Button } from '@reactackle/reactackle';
 
 import {
@@ -52,7 +53,6 @@ const propTypes = {
   dataContext: PropTypes.arrayOf(PropTypes.string).isRequired,
   schema: PropTypes.object.isRequired,
   rootTypeName: PropTypes.string.isRequired,
-  argValues: PropTypes.object.isRequired,
   userTypedefs: PropTypes.object.isRequired,
   linkTargetValueDef: PropTypes.object.isRequired,
   getLocalizedText: PropTypes.func,
@@ -92,7 +92,7 @@ export class DataSelection extends PureComponent {
       finalFieldName: '',
       
       // For ARGS_FORM and FULL_ARGS_FORM views
-      currentArgValues: props.argValues,
+      currentArgValues: Map(),
       tmpArgValues: null,
     };
     

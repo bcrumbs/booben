@@ -379,6 +379,7 @@ const buildDefaultDataValue = () => ({
   sourceData: {
     dataContext: [],
     queryPath: null,
+    queryArgs: {},
   },
 });
 

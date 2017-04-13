@@ -175,6 +175,18 @@ class JssyValue extends JssyValueRecord {
     return this.sourceData.dataContext.toJS();
   }
   
+  getQueryStepArgValues(stepIdx) {
+    if (!this.isLinkedWithData())
+      throw new Error('JssyValue#getQueryStepArgValues: Not a data value');
+    
+    const keyForQueryArgs = this.sourceData.queryPath
+      .slice(0, stepIdx + 1)
+      .map(step => step.field)
+      .join(' ');
+  
+    return this.sourceData.queryArgs.get(keyForQueryArgs);
+  }
+  
   hasDesignedComponent() {
     return this.source === 'designer' && this.sourceData.rootId !== -1;
   }

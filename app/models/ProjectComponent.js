@@ -41,10 +41,9 @@ const ProjectComponentRecord = Record({
   regionsEnabled: Set(),
   routeId: -1,
   isIndexRoute: false,
-  queryArgs: Map(),
 });
 
-const VALID_PATH_STEPS = new Set(['props', 'systemProps', 'queryArgs']);
+const VALID_PATH_STEPS = new Set(['props', 'systemProps']);
 
 ProjectComponentRecord.isValidPathStep = step => VALID_PATH_STEPS.has(step);
 ProjectComponentRecord.expandPathStep = step => [step];
@@ -151,6 +150,9 @@ const propSourceDataToImmutableFns = {
           field: step.field,
         })))
         : null,
+      
+      queryArgs: Map(_mapValues(input.queryArgs, args =>
+        Map(_mapValues(args, jssyValueToImmutable)))),
 
       dataContext: input.dataContext
         ? List(input.dataContext)
@@ -212,22 +214,6 @@ export const projectComponentToImmutable = (
   regionsEnabled: input.regionsEnabled ? Set(input.regionsEnabled) : Set(),
   routeId,
   isIndexRoute,
-
-  queryArgs: Map(_mapValues(
-    input.queryArgs,
-
-    dataContextArgs => Map(_mapValues(
-      dataContextArgs,
-
-      args => Map(_mapValues(args, argValue => new JssyValue({
-        source: argValue.source,
-        sourceData: sourceDataToImmutable(
-          argValue.source,
-          argValue.sourceData,
-        ),
-      }))),
-    )),
-  )),
 });
 
 export const componentsToImmutable = (
@@ -265,11 +251,6 @@ export const gatherComponentsTreeIds = (components, rootComponentId) =>
     rootComponentId,
     component => void ret.add(component.id),
   ));
-
-export const getValueByPath = (component, propName, path) => path.reduce(
-  (acc, cur) => acc.sourceData.value.get(cur),
-  component.props.get(propName),
-);
 
 export const walkSimpleProps = (
   component,

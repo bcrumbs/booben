@@ -32,9 +32,6 @@ export const PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT =
 export const PROJECT_CREATE_FUNCTION =
   'PROJECT_CREATE_FUNCTION';
 
-export const PROJECT_UPDATE_QUERY_ARGS =
-  'PROJECT_UPDATE_QUERY_ARGS';
-
 export const PROJECT_JSSY_VALUE_REPLACE =
   'PROJECT_JSSY_VALUE_REPLACE';
 export const PROJECT_JSSY_VALUE_ADD_ACTION =
@@ -166,18 +163,6 @@ export const updateRouteField = (routeId, field, newValue) => ({
 export const deleteComponent = componentId => ({
   type: PROJECT_COMPONENT_DELETE,
   componentId,
-});
-
-/**
- *
- * @param {string[]} dataContext
- * @param {Immutable.Map<string, JssyValue>} newArgs
- * @return {Object}
- */
-export const updateQueryArgs = (dataContext, newArgs) => ({
-  type: PROJECT_UPDATE_QUERY_ARGS,
-  dataContext,
-  newArgs,
 });
 
 /**

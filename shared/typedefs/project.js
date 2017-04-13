@@ -31,12 +31,6 @@
  */
 
 /**
- * @typedef {Object} QueryArgumentValue
- * @property {string} source
- * @property {SourceDataStatic} sourceData
- */
-
-/**
  * @typedef {Object} ProjectComponent
  * @property {number} id - Unique component ID
  * @property {string} name - Component name with namespace (e.g. "Namespace.MyComponent")
@@ -46,7 +40,6 @@
  * @property {Object<string, PlainJssyValue>} systemProps
  * @property {ProjectComponent[]} children
  * @property {number[]} regionsEnabled
- * @property {Object<string, Object<string, Object<string, QueryArgumentValue>>>} queryArgs
  */
 
 /**
@@ -89,6 +82,7 @@
  * @typedef {Object} SourceDataData
  * @property {string[]} dataContext
  * @property {QueryPathStep[]} queryPath
+ * @property {Object<string, PlainJssyValue>} queryArgs
  */
 
 /**

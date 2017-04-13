@@ -26,7 +26,6 @@ import {
   PROJECT_COMPONENT_TOGGLE_REGION,
   PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
   PROJECT_CREATE_FUNCTION,
-  PROJECT_UPDATE_QUERY_ARGS,
   PROJECT_JSSY_VALUE_REPLACE,
   PROJECT_JSSY_VALUE_ADD_ACTION,
   PROJECT_JSSY_VALUE_REPLACE_ACTION,
@@ -593,27 +592,6 @@ const expandPath = (path, state) => {
  */
 const getObjectByPath = (path, state) => state.getIn(expandPath(path, state));
 
-/**
- *
- * @param {Path} path
- * @param {Object} state
- * @return {?Object}
- */
-const getFirstComponentInPath = (path, state) => {
-  let ret = null;
-  
-  walkPath(path, state, object => {
-    if (object instanceof ProjectComponent) {
-      ret = object;
-      return BREAK;
-    } else {
-      return null;
-    }
-  });
-  
-  return ret;
-};
-
 const ValueTypes = {
   NOT_A_VALUE: 0,
   COMPONENT_PROP: 1,
@@ -878,76 +856,6 @@ const updateValue = (state, path, newValue) => {
   return state.setIn(expandPath(path, state), newValue);
 };
 
-const getPathToComponentWithQueryArgs = (state, dataContext) => {
-  let currentNestedConstructorIndex =
-    state.nestedConstructors.size > 0 ? 0 : -1;
-  
-  let currentNestedConstructor = currentNestedConstructorIndex !== -1
-    ? state.nestedConstructors.get(currentNestedConstructorIndex)
-    : null;
-  
-  //noinspection JSCheckFunctionSignatures
-  const component = getFirstComponentInPath(state.linkingPath, state);
-  
-  if (!component)
-    throw new Error('getPathToComponentWithQueryArgs: invalid path');
-  
-  let currentComponentId = component.id;
-  let i = 0;
-  
-  while (i < dataContext.length) {
-    if (currentNestedConstructorIndex === -1)
-      throw new Error('getPathToComponentWithQueryArgs: invalid dataContext');
-    
-    currentComponentId = currentNestedConstructor.componentId;
-    
-    currentNestedConstructorIndex = i >= state.nestedConstructors.size - 1
-      ? -1
-      : currentNestedConstructorIndex + 1;
-    
-    currentNestedConstructor = currentNestedConstructorIndex !== -1
-      ? state.nestedConstructors.get(currentNestedConstructorIndex)
-      : null;
-    
-    i++;
-  }
-  
-  return currentNestedConstructorIndex === -1
-    ? [
-      'data',
-      'routes',
-      state.currentRouteId,
-      'components',
-      currentComponentId,
-    ]
-    : [
-      'nestedConstructors',
-      currentNestedConstructorIndex,
-      'components',
-      currentComponentId,
-    ];
-};
-
-const updateQueryArgs = (state, dataContext, newQueryArgs) => {
-  const pathToQueryArgs = [
-    ...getPathToComponentWithQueryArgs(state, dataContext),
-    'queryArgs',
-    dataContext.join(' '),
-  ];
-  
-  return state.setIn(pathToQueryArgs, newQueryArgs);
-};
-
-export const makeCurrentQueryArgsGetter = state => dataContext => {
-  const pathToQueryArgs = [
-    ...getPathToComponentWithQueryArgs(state, dataContext),
-    'queryArgs',
-    dataContext.join(' '),
-  ];
-  
-  return state.getIn(pathToQueryArgs);
-};
-
 
 const handlers = {
   [PROJECT_REQUEST]: (state, action) => state.merge({
@@ -1156,9 +1064,6 @@ const handlers = {
     .set('linkingPath', action.path), // Prevent conversion to List
   
   [PROJECT_LINK_DIALOG_CLOSE]: state => initLinkingPropState(state),
-  
-  [PROJECT_UPDATE_QUERY_ARGS]: (state, action) =>
-    updateQueryArgs(state, action.dataContext, action.newArgs),
   
   [PROJECT_COMPONENT_RENAME]: (state, action) => {
     const pathToCurrentComponents = getPathToCurrentComponents(state);

@@ -35,7 +35,13 @@ import ProjectComponent, {
 
 import JssyValue from '../../../models/JssyValue';
 import { Action, createActionParams } from '../../../models/SourceDataActions';
-import { currentComponentsSelector } from '../../../selectors';
+
+import {
+  currentComponentsSelector,
+  ownerPropsSelector,
+  ownerUserTypedefsSelector,
+} from '../../../selectors';
+
 import { pickComponent } from '../../../actions/project';
 import { ROUTE_PARAM_VALUE_DEF, SYSTEM_PROPS } from '../../../constants/misc';
 import { getLocalizedTextFromState } from '../../../utils';
@@ -71,6 +77,8 @@ const propTypes = {
     PropTypes.instanceOf(ProjectComponent),
     PropTypes.number,
   ).isRequired,
+  ownerProps: PropTypes.object,
+  ownerUserTypedefs: PropTypes.object,
   language: PropTypes.string.isRequired,
   pickingComponent: PropTypes.bool.isRequired,
   // eslint-disable-next-line react/no-unused-prop-types
@@ -83,6 +91,8 @@ const defaultProps = {
   action: null,
   onSave: noop,
   onCancel: noop,
+  ownerProps: null,
+  ownerUserTypedefs: null,
 };
 
 const mapStateToProps = state => ({
@@ -90,6 +100,8 @@ const mapStateToProps = state => ({
   schema: state.project.schema,
   project: state.project.data,
   currentComponents: currentComponentsSelector(state),
+  ownerProps: ownerPropsSelector(state),
+  ownerUserTypedefs: ownerUserTypedefsSelector(state),
   language: state.app.language,
   pickingComponent: state.project.pickingComponent,
   pickedComponentId: state.project.pickedComponentId,
@@ -395,8 +407,36 @@ class ActionEditorComponent extends PureComponent {
     });
   }
   
-  _handleLinkApply({ newValue, queryArgs }) {
-  
+  _handleLinkApply({ newValue }) {
+    const { action, linkParams } = this.state;
+    
+    const stateUpdates = {
+      linkingValue: false,
+      linkParams: null,
+    };
+    
+    let pathToRootValue;
+    if (action.type === 'mutation') {
+      pathToRootValue = ['params', 'args', linkParams.name];
+    } else if (action.type === 'method') {
+      const argIdx = parseInt(linkParams.name, 10);
+      pathToRootValue = ['params', 'args', argIdx];
+    } else if (action.type === 'navigate') {
+      pathToRootValue = ['params', 'routeParams', linkParams.name];
+    } else if (action.type === 'prop') {
+      pathToRootValue = ['params', 'value'];
+    }
+    
+    if (linkParams.path.length > 0) {
+      stateUpdates.action = action.updateIn(
+        pathToRootValue,
+        value => value.setInStatic(linkParams.path, newValue),
+      );
+    } else {
+      stateUpdates.action = action.setIn(pathToRootValue, newValue);
+    }
+    
+    this.setState(stateUpdates);
   }
   
   _handleLinkCancel() {
@@ -476,7 +516,14 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _renderMutationActionProps() {
-    const { schema, getLocalizedText } = this.props;
+    const {
+      schema,
+      ownerProps,
+      ownerUserTypedefs,
+      language,
+      getLocalizedText,
+    } = this.props;
+    
     const { action } = this.state;
     
     const mutationField = getMutationField(schema, action.params.mutation);
@@ -491,6 +538,9 @@ class ActionEditorComponent extends PureComponent {
           value={action.params.args.get(argName)}
           valueDef={getJssyTypeOfField(arg, schema)}
           optional={!arg.nonNull}
+          language={language}
+          ownerProps={ownerProps}
+          ownerUserTypedefs={ownerUserTypedefs}
           getLocalizedText={getLocalizedText}
           onChange={this._handleMutationActionArgChange}
           onLink={this._handleLink}
@@ -503,6 +553,8 @@ class ActionEditorComponent extends PureComponent {
     const {
       meta,
       currentComponents,
+      ownerProps,
+      ownerUserTypedefs,
       language,
       getLocalizedText,
     } = this.props;
@@ -585,6 +637,9 @@ class ActionEditorComponent extends PureComponent {
               optional={!arg.required}
               strings={componentMeta.strings}
               language={language}
+              ownerProps={ownerProps}
+              ownerUserTypedefs={ownerUserTypedefs}
+              getLocalizedText={getLocalizedText}
               onChange={this._handleMethodActionArgValueChange}
               onLink={this._handleLink}
             />,
@@ -600,6 +655,8 @@ class ActionEditorComponent extends PureComponent {
     const {
       meta,
       currentComponents,
+      ownerProps,
+      ownerUserTypedefs,
       language,
       getLocalizedText,
     } = this.props;
@@ -707,6 +764,9 @@ class ActionEditorComponent extends PureComponent {
             userTypedefs={systemPropSelected ? null : componentMeta.types}
             strings={systemPropSelected ? null : componentMeta.strings}
             language={language}
+            ownerProps={ownerProps}
+            ownerUserTypedefs={ownerUserTypedefs}
+            getLocalizedText={getLocalizedText}
             onChange={this._handlePropActionValueChange}
             onLink={this._handleLink}
           />,
@@ -750,7 +810,13 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _renderNavigateActionProps() {
-    const { project, getLocalizedText } = this.props;
+    const {
+      project,
+      ownerProps,
+      ownerUserTypedefs,
+      language,
+      getLocalizedText,
+    } = this.props;
     const { action } = this.state;
     
     const options = [];
@@ -787,6 +853,10 @@ class ActionEditorComponent extends PureComponent {
               name={name}
               value={action.params.routeParams.get(name)}
               valueDef={ROUTE_PARAM_VALUE_DEF}
+              language={language}
+              ownerProps={ownerProps}
+              ownerUserTypedefs={ownerUserTypedefs}
+              getLocalizedText={getLocalizedText}
               onChange={this._handleNavigateActionRouteParamChange}
               onLink={this._handleLink}
             />,

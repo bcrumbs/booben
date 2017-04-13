@@ -34,12 +34,7 @@ import JssyValue from '../../models/JssyValue';
 import SourceDataFunction from '../../models/SourceDataFunction';
 import SourceDataStatic from '../../models/SourceDataStatic';
 import SourceDataData, { QueryPathStep } from '../../models/SourceDataData';
-
-import {
-  NestedConstructor,
-  makeCurrentQueryArgsGetter,
-} from '../../reducers/project';
-
+import { NestedConstructor } from '../../reducers/project';
 import { getLocalizedTextFromState } from '../../utils';
 import { getComponentMeta, isValidSourceForValue } from '../../utils/meta';
 import { noop } from '../../utils/misc';
@@ -60,7 +55,6 @@ const propTypes = {
   topNestedConstructorComponent: PropTypes.instanceOf(
     ProjectComponentRecord,
   ),
-  getCurrentQueryArgs: PropTypes.func.isRequired,
   language: PropTypes.string.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   onLink: PropTypes.func,
@@ -83,7 +77,6 @@ const mapStateToProps = state => ({
   availableDataContexts: availableDataContextsSelector(state),
   topNestedConstructor: topNestedConstructorSelector(state),
   topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
-  getCurrentQueryArgs: makeCurrentQueryArgsGetter(state.project),
   language: state.project.languageForComponentProps,
   getLocalizedText: getLocalizedTextFromState(state),
 });
@@ -147,7 +140,7 @@ class LinkPropWindowComponent extends PureComponent {
       availableDataContexts.forEach(({ dataContext, typeName }, idx) => {
         items.push({
           id: `context-${idx}`,
-          title: `Context - ${typeName}`,
+          title: `Context - ${typeName}`, // TODO: Get string from i18n
           data: {
             dataContext,
             rootTypeName: typeName,
@@ -221,13 +214,12 @@ class LinkPropWindowComponent extends PureComponent {
       source: 'data',
       sourceData: new SourceDataData({
         dataContext: List(dataContext),
-        queryPath: List(path.map(field => new QueryPathStep({
-          field,
-        }))),
+        queryPath: List(path.map(field => new QueryPathStep({ field }))),
+        queryArgs: args,
       }),
     });
     
-    onLink({ newValue, queryArgs: args });
+    onLink({ newValue });
   }
   
   /**
@@ -338,11 +330,8 @@ class LinkPropWindowComponent extends PureComponent {
       schema,
       valueDef,
       userTypedefs,
-      getCurrentQueryArgs,
       getLocalizedText,
     } = this.props;
-    
-    const argValues = getCurrentQueryArgs(dataContext) || Map();
     
     //noinspection JSValidateTypes
     return (
@@ -352,7 +341,6 @@ class LinkPropWindowComponent extends PureComponent {
         rootTypeName={rootTypeName}
         linkTargetValueDef={valueDef}
         userTypedefs={userTypedefs}
-        argValues={argValues}
         getLocalizedText={getLocalizedText}
         onSelect={this._handleLinkWithData}
         onReturn={this._handleReturn}

@@ -186,3 +186,26 @@ export const availableDataContextsSelector = createSelector(
     });
   },
 );
+
+export const ownerPropsSelector = createSelector(
+  topNestedConstructorSelector,
+  
+  topNestedConstructor => {
+    if (!topNestedConstructor) return null;
+    
+    const ownerComponentPropMeta = topNestedConstructor.valueInfo.valueDef;
+    
+    return ownerComponentPropMeta.source.indexOf('designer') > -1
+      ? ownerComponentPropMeta.sourceConfigs.designer.props || null
+      : null;
+  },
+);
+
+export const ownerUserTypedefsSelector = createSelector(
+  topNestedConstructorSelector,
+  
+  topNestedConstructor => {
+    if (!topNestedConstructor) return null;
+    return topNestedConstructor.valueInfo.userTypedefs;
+  },
+);
