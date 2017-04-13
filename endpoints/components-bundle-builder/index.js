@@ -10,6 +10,7 @@ const path = require('path');
 const exec = require('mz/child_process').exec;
 const fs = require('mz/fs');
 const rmrf = thenify(require('rimraf'));
+const prettyMs = require('pretty-ms');
 const webpack = require('webpack');
 const asyncUtils = require('@common/async-utils');
 const config = require('../../config');
@@ -22,11 +23,6 @@ const logger = require('../../common/logger');
  * @type {string}
  */
 const projectsDir = config.get('projectsDir');
-
-/**
- * @type {string}
- */
-const previewSrcDir = path.resolve(path.join(__dirname, '..', '..', 'preview'));
 
 /**
  *
@@ -262,14 +258,13 @@ const compile = webpackConfig => new Promise((resolve, reject) =>
  * @returns {Promise}
  */
 const clean = projectDir => co(function* () {
-  const previewSourceFiles = yield fs.readdir(previewSrcDir);
-
-  const toDelete = [].concat(
+  const toDelete = [
     path.join(projectDir, 'node_modules'),
-    previewSourceFiles.map(file => path.join(projectDir, file))
-  );
+    path.join(projectDir, constants.PROJECT_COMPONENTS_SRC_FILE),
+  ];
 
-  for (let i = 0, l = toDelete.length; i < l; i++) yield rmrf(toDelete[i]);
+  for (let i = 0, l = toDelete.length; i < l; i++)
+    yield rmrf(toDelete[i]);
 });
 
 /**
@@ -277,6 +272,7 @@ const clean = projectDir => co(function* () {
  * @property {boolean} [allowMultipleGlobalStyles=false]
  * @property {boolean} [noInstallLoaders=false]
  * @property {boolean} [clean=true]
+ * @property {boolean} [printWebpackOutput=false]
  * @property {Function} [npmLogger]
  */
 
@@ -288,6 +284,7 @@ const defaultOptions = {
   allowMultipleGlobalStyles: false,
   noInstallLoaders: false,
   clean: true,
+  printWebpackOutput: false,
   npmLogger: () => {},
 };
 
@@ -299,7 +296,8 @@ const defaultOptions = {
  */
 exports.buildComponentsBundle = (project, options) => co(function* () {
   options = Object.assign({}, defaultOptions, options);
-
+  
+  const startTime = Date.now();
   const projectDir = path.join(projectsDir, project.name);
 
   if (project.componentLibs.length > 0) {
@@ -374,7 +372,8 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
   const webpackConfig = generateWebpackConfig(projectDir, libsData);
   const stats = yield compile(webpackConfig);
   
-  logger.verbose(stats.toString({ colors: true }));
+  if (options.printWebpackOutput)
+    logger.debug(stats.toString({ colors: true }));
   
   const webpackLogFile = path.join(
     projectDir,
@@ -393,6 +392,9 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
     logger.debug(`[${project.name}] Cleaning ${projectDir}`);
     yield clean(projectDir);
   }
+  
+  const buildTime = Date.now() - startTime;
+  logger.debug(`[${project.name}] Build finished in ${prettyMs(buildTime)}`);
   
   return null;
 });

@@ -20,6 +20,7 @@ const defaults = {
   'install-loaders': true,
   watch: false,
   'log-npm': false,
+  'log-webpack': false,
 };
 
 co(function* () {
@@ -46,6 +47,7 @@ co(function* () {
   yield buildComponentsBundle(project, {
     clean: argv.clean,
     noInstallLoaders: !argv['install-loaders'],
+    printWebpackOutput: argv['log-webpack'],
     npmLogger,
   });
 
