@@ -37,6 +37,7 @@ const propTypes = {
   onChange: PropTypes.func,
   onSetComponent: PropTypes.func,
   onLink: PropTypes.func,
+  onPick: PropTypes.func,
   onUnlink: PropTypes.func,
   onCheck: PropTypes.func,
   onOpen: PropTypes.func,
@@ -50,6 +51,7 @@ const defaultProps = {
   onChange: noop,
   onSetComponent: noop,
   onLink: noop,
+  onPick: noop,
   onUnlink: noop,
   onCheck: noop,
   onOpen: noop,
@@ -66,6 +68,7 @@ export class NestedProp extends PureComponent {
     this._handleChange = this._handleChange.bind(this);
     this._handleSetComponent = this._handleSetComponent.bind(this);
     this._handleLink = this._handleLink.bind(this);
+    this._handlePick = this._handlePick.bind(this);
     this._handleUnlink = this._handleUnlink.bind(this);
   }
   
@@ -74,7 +77,8 @@ export class NestedProp extends PureComponent {
    * @private
    */
   _handleOpen() {
-    this.props.onOpen({ index: this.props.index });
+    const { index, onOpen } = this.props;
+    onOpen({ index });
   }
   
   /**
@@ -82,7 +86,8 @@ export class NestedProp extends PureComponent {
    * @private
    */
   _handleDelete() {
-    this.props.onDelete({ index: this.props.index });
+    const { index, onDelete } = this.props;
+    onDelete({ index });
   }
   
   /**
@@ -91,7 +96,8 @@ export class NestedProp extends PureComponent {
    * @private
    */
   _handleCheck({ checked }) {
-    this.props.onCheck({ checked, index: this.props.index });
+    const { index, onCheck } = this.props;
+    onCheck({ index, checked });
   }
   
   /**
@@ -100,7 +106,8 @@ export class NestedProp extends PureComponent {
    * @private
    */
   _handleChange({ value }) {
-    this.props.onChange({ value, index: this.props.index });
+    const { index, onChange } = this.props;
+    onChange({ index, value });
   }
   
   /**
@@ -108,7 +115,8 @@ export class NestedProp extends PureComponent {
    * @private
    */
   _handleSetComponent() {
-    this.props.onSetComponent({ index: this.props.index });
+    const { index, onSetComponent } = this.props;
+    onSetComponent({ index });
   }
   
   /**
@@ -116,7 +124,17 @@ export class NestedProp extends PureComponent {
    * @private
    */
   _handleLink() {
-    this.props.onLink({ index: this.props.index });
+    const { index, onLink } = this.props;
+    onLink({ index });
+  }
+
+  /**
+   *
+   * @private
+   */
+  _handlePick() {
+    const { index, onPick } = this.props;
+    onPick({ index });
   }
   
   /**
@@ -124,7 +142,8 @@ export class NestedProp extends PureComponent {
    * @private
    */
   _handleUnlink() {
-    this.props.onUnlink({ index: this.props.index });
+    const { index, onUnlink } = this.props;
+    onUnlink({ index });
   }
   
   render() {
@@ -152,6 +171,7 @@ export class NestedProp extends PureComponent {
       onDelete: this._handleDelete,
       onCheck: this._handleCheck,
       onLink: this._handleLink,
+      onPick: this._handlePick,
       onUnlink: this._handleUnlink,
     };
     

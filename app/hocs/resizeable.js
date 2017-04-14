@@ -55,6 +55,8 @@ const resetCursor = () => {
   window.document.body.style.cursor = '';
 };
 
+const minMax = (value, min, max) => Math.max(Math.min(value, max), min);
+
 const wrap = OriginalComponent => class extends OriginalComponent {
   constructor(props) {
     super(props);
@@ -124,6 +126,7 @@ const wrap = OriginalComponent => class extends OriginalComponent {
     if (this.__resizeableElement) {
       this.__resizeableRemoveHandlers();
       this.__resizeableCancelAnimationFrame();
+      resetCursor();
     }
   }
 
@@ -139,12 +142,18 @@ const wrap = OriginalComponent => class extends OriginalComponent {
       this.__resizeableResizingRight = false;
       this.__resizeableResizingTop = false;
       this.__resizeableResizingBottom = false;
+      this.__resizeableHovered = false;
       this.__resizeableElement = newElement;
 
-      const { width, height } = newElement.getBoundingClientRect();
-      this.__resizeableOriginalWidth = width;
-      this.__resizeableOriginalHeight = height;
-      this.__resizeableSetupHandlers();
+      if (this.__resizeableElement) {
+        const { width, height } =
+          this.__resizeableElement.getBoundingClientRect();
+
+        this.__resizeableOriginalWidth = width;
+        this.__resizeableOriginalHeight = height;
+
+        this.__resizeableSetupHandlers();
+      }
     }
   }
 
@@ -156,8 +165,6 @@ const wrap = OriginalComponent => class extends OriginalComponent {
   }
 
   __resizeableSetupHandlers() {
-    if (!this.__resizeableElement) return;
-
     this.__resizeableElement.addEventListener(
       'mousedown',
       this.__resizeableHandleMouseDown,
@@ -177,8 +184,6 @@ const wrap = OriginalComponent => class extends OriginalComponent {
   }
 
   __resizeableRemoveHandlers() {
-    if (!this.__resizeableElement) return;
-
     this.__resizeableElement.removeEventListener(
       'mousedown',
       this.__resizeableHandleMouseDown,
@@ -378,15 +383,13 @@ const wrap = OriginalComponent => class extends OriginalComponent {
         this.__resizeableStartWidth + (this.__resizeableStartX - screenX);
 
       setWidth = true;
-      newWidth =
-        Math.max(Math.min(maybeNewWidth, actualMaxWidth), actualMinWidth);
+      newWidth = minMax(maybeNewWidth, actualMinWidth, actualMaxWidth);
     } else if (this.__resizeableResizingRight) {
       const maybeNewWidth =
         this.__resizeableStartWidth + (screenX - this.__resizeableStartX);
 
       setWidth = true;
-      newWidth =
-        Math.max(Math.min(maybeNewWidth, actualMaxWidth), actualMinWidth);
+      newWidth = minMax(maybeNewWidth, actualMinWidth, actualMaxWidth);
     }
 
     if (this.__resizeableResizingTop) {
@@ -394,15 +397,13 @@ const wrap = OriginalComponent => class extends OriginalComponent {
         this.__resizeableStartHeight + (this.__resizeableStartY - screenY);
 
       setHeight = true;
-      newHeight =
-        Math.max(Math.min(maybeNewHeight, actualMaxHeight), actualMinHeight);
+      newHeight = minMax(maybeNewHeight, actualMinHeight, actualMaxHeight);
     } else if (this.__resizeableResizingBottom) {
       const maybeNewHeight =
         this.__resizeableStartHeight + (screenY - this.__resizeableStartY);
 
       setHeight = true;
-      newHeight =
-        Math.max(Math.min(maybeNewHeight, actualMaxHeight), actualMinHeight);
+      newHeight = minMax(maybeNewHeight, actualMinHeight, actualMaxHeight);
     }
 
     this.__resizeableWillSetWidth = setWidth;

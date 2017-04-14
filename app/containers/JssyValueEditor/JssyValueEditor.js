@@ -47,6 +47,7 @@ const propTypes = {
   getLocalizedText: PropTypes.func,
   onChange: PropTypes.func,
   onLink: PropTypes.func,
+  onPick: PropTypes.func,
   onConstructComponent: PropTypes.func,
 };
 
@@ -63,6 +64,7 @@ const defaultProps = {
   getLocalizedText: returnArg,
   onChange: noop,
   onLink: noop,
+  onPick: noop,
   onConstructComponent: noop,
 };
 
@@ -113,6 +115,7 @@ export class JssyValueEditor extends PureComponent {
     this._handleAdd = this._handleAdd.bind(this);
     this._handleDelete = this._handleDelete.bind(this);
     this._handleLink = this._handleLink.bind(this);
+    this._handlePick = this._handlePick.bind(this);
     this._handleUnlink = this._handleUnlink.bind(this);
     this._handleCheck = this._handleCheck.bind(this);
     this._handleConstructComponent = this._handleConstructComponent.bind(this);
@@ -223,6 +226,22 @@ export class JssyValueEditor extends PureComponent {
       targetUserTypedefs: userTypedefs,
       ownerProps,
       ownerUserTypedefs,
+    });
+  }
+
+  /**
+   *
+   * @param {(string|number)[]} path
+   * @private
+   */
+  _handlePick({ path }) {
+    const { name, valueDef, userTypedefs, onPick } = this.props;
+
+    onPick({
+      name,
+      path,
+      targetValueDef: valueDef,
+      targetUserTypedefs: userTypedefs,
     });
   }
   
@@ -364,6 +383,16 @@ export class JssyValueEditor extends PureComponent {
       );
     });
   }
+
+  /**
+   *
+   * @param {JssyValueDefinition} valueDef
+   * @return {boolean}
+   * @private
+   */
+  _isPickableValue(valueDef) {
+    return isValidSourceForValue(valueDef, 'state');
+  }
   
   /**
    *
@@ -477,6 +506,7 @@ export class JssyValueEditor extends PureComponent {
       ),
       
       linkable: this._isLinkableValue(resolvedValueDef),
+      pickable: this._isPickableValue(resolvedValueDef),
       checkable: !resolvedValueDef.required,
       required: !!resolvedValueDef.required,
       transformValue: null,

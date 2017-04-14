@@ -20,6 +20,7 @@ const propTypes = {
   tooltip: PropTypes.string,
   message: PropTypes.string,
   linkable: PropTypes.bool,
+  pickable: PropTypes.bool,
   linked: PropTypes.bool,
   linkedWith: PropTypes.string,
   required: PropTypes.bool,
@@ -28,6 +29,7 @@ const propTypes = {
   checked: PropTypes.bool,
   deletable: PropTypes.bool,
   onLink: PropTypes.func,
+  onPick: PropTypes.func,
   onUnlink: PropTypes.func,
   onCheck: PropTypes.func,
   onDelete: PropTypes.func,
@@ -41,6 +43,7 @@ const defaultProps = {
   tooltip: '',
   message: '',
   linkable: false,
+  pickable: false,
   linked: false,
   linkedWith: '',
   required: false,
@@ -49,6 +52,7 @@ const defaultProps = {
   checked: false,
   deletable: false,
   onLink: noop,
+  onPick: noop,
   onUnlink: noop,
   onCheck: noop,
   onDelete: noop,
@@ -60,9 +64,11 @@ export class PropBase extends PureComponent {
     this._handleCheck = this._handleCheck.bind(this);
     this._handleDelete = this._handleDelete.bind(this);
     this._handleLink = this._handleLink.bind(this);
+    this._handlePick = this._handlePick.bind(this);
   }
   
   /**
+   * To be overridden in subclasses
    *
    * @return {string[]}
    * @private
@@ -72,6 +78,7 @@ export class PropBase extends PureComponent {
   }
 
   /**
+   * To be overridden in subclasses
    *
    * @return {string[]}
    * @private
@@ -81,6 +88,7 @@ export class PropBase extends PureComponent {
   }
 
   /**
+   * To be overridden in subclasses
    *
    * @return {ReactElement[]}
    * @private
@@ -90,6 +98,7 @@ export class PropBase extends PureComponent {
   }
 
   /**
+   * Must be overridden in subclasses
    *
    * @return {?(ReactElement|ReactElement[])}
    * @abstract
@@ -105,13 +114,15 @@ export class PropBase extends PureComponent {
    * @private
    */
   _renderLinked() {
+    const { linkedWith, onUnlink } = this.props;
+
     //noinspection JSValidateTypes
     return (
       <Tag
-        text={this.props.linkedWith}
+        text={linkedWith}
         bounded
         removable
-        onRemove={this.props.onUnlink}
+        onRemove={onUnlink}
       />
     );
   }
@@ -122,7 +133,8 @@ export class PropBase extends PureComponent {
    * @private
    */
   _handleCheck({ value }) {
-    this.props.onCheck({ checked: value, id: this.props.id });
+    const { id, onCheck } = this.props;
+    onCheck({ checked: value, id });
   }
   
   /**
@@ -130,7 +142,8 @@ export class PropBase extends PureComponent {
    * @private
    */
   _handleDelete() {
-    this.props.onDelete({ id: this.props.id });
+    const { id, onDelete } = this.props;
+    onDelete({ id });
   }
   
   /**
@@ -138,26 +151,53 @@ export class PropBase extends PureComponent {
    * @private
    */
   _handleLink() {
-    this.props.onLink({ id: this.props.id });
+    const { id, onLink } = this.props;
+    onLink({ id });
+  }
+
+  /**
+   *
+   * @private
+   */
+  _handlePick() {
+    const { id, onPick } = this.props;
+    onPick({ id });
   }
 
   render() {
-    let className = 'prop-item',
-      wrapperClassName = 'prop-item-wrapper';
+    const {
+      label,
+      secondaryLabel,
+      image,
+      tooltip,
+      message,
+      required,
+      requirementFulfilled,
+      deletable,
+      linkable,
+      linked,
+      pickable,
+      checkable,
+      checked,
+      children,
+    } = this.props;
+
+    let className = 'prop-item';
+    let wrapperClassName = 'prop-item-wrapper';
   
     className += ` ${this._getAdditionalClassNames().join(' ')}`;
     wrapperClassName += ` ${this._getAdditionalWrapperClassNames().join(' ')}`;
 
-    let label = null;
-    if (this.props.label) {
+    let labelElement = null;
+    if (label) {
       let requireMark = null;
-      if (this.props.required) {
+      if (required) {
         wrapperClassName += ' is-required';
     
         let markIcon = null;
-        if (this.props.requirementFulfilled) {
+        if (requirementFulfilled) {
           className += ' requirement-is-fulfilled';
-      
+
           markIcon = (
             <Icon name="check" />
           );
@@ -166,7 +206,7 @@ export class PropBase extends PureComponent {
             <Icon name="exclamation" />
           );
         }
-    
+
         requireMark = (
           <div className="prop-item_require-mark">
             <div className="require-mark">
@@ -176,40 +216,40 @@ export class PropBase extends PureComponent {
         );
       }
       
-      label = (
+      labelElement = (
         <div className="prop-item_label-box">
           {requireMark}
         
           <PropLabel
-            label={this.props.label}
-            secondaryLabel={this.props.secondaryLabel}
-            tooltip={this.props.tooltip}
+            label={label}
+            secondaryLabel={secondaryLabel}
+            tooltip={tooltip}
           />
         </div>
       );
     }
   
-    let image = null;
-    if (this.props.image) {
-      image = (
-        <PropImage src={this.props.image} />
+    let imageElement = null;
+    if (image) {
+      imageElement = (
+        <PropImage src={image} />
       );
     
       wrapperClassName += ' has-image';
     }
   
-    let message = null;
-    if (this.props.message) {
-      message = (
+    let messageElement = null;
+    if (message) {
+      messageElement = (
         <div className="prop-item_message-wrapper">
-          {this.props.message}
+          {message}
         </div>
       );
     }
   
-    let actionsLeft = null;
-    if (this.props.deletable) {
-      actionsLeft = (
+    let actionsLeftElement = null;
+    if (deletable) {
+      actionsLeftElement = (
         <div className="prop_actions prop_actions-left">
           <PropAction
             id="collapse"
@@ -222,7 +262,7 @@ export class PropBase extends PureComponent {
   
     const actionItemsRight = this._renderAdditionalActions();
   
-    if (this.props.linkable) {
+    if (linkable) {
       const linkAction = (
         <PropAction
           key="linking"
@@ -234,44 +274,55 @@ export class PropBase extends PureComponent {
     
       actionItemsRight.push(linkAction);
     }
+
+    if (pickable) {
+      const pickAction = (
+        <PropAction
+          key="pick"
+          id="pick"
+          icon="eyedropper"
+          onPress={this._handlePick}
+        />
+      );
+
+      actionItemsRight.push(pickAction);
+    }
   
-    let actionsRight = null;
+    let actionsRightElement = null;
     if (actionItemsRight.length) {
-      actionsRight = (
+      actionsRightElement = (
         <div className="prop_actions prop_actions-right">
           {actionItemsRight}
         </div>
       );
     }
   
-    let checkbox = null;
-    if (this.props.checkable) {
-      checkbox = (
+    let checkboxElement = null;
+    if (checkable) {
+      checkboxElement = (
         <div className="prop_subcomponent prop_subcomponent-left">
           <Checkbox
-            checked={this.props.checked}
+            checked={checked}
             onChange={this._handleCheck}
           />
         </div>
       );
     }
     
-    const content = this.props.linked
-      ? this._renderLinked()
-      : this._renderContent();
+    const content = linked ? this._renderLinked() : this._renderContent();
     
     return (
       <div className={className}>
         <div className={wrapperClassName}>
-          {checkbox}
-          {actionsLeft}
-          {image}
+          {checkboxElement}
+          {actionsLeftElement}
+          {imageElement}
         
           <div className="prop-item-content-box">
-            {label}
+            {labelElement}
             
             <div className="prop-item_value-wrapper">
-              {message}
+              {messageElement}
             </div>
           
             <div className="prop-item_value-wrapper">
@@ -279,10 +330,10 @@ export class PropBase extends PureComponent {
             </div>
           </div>
         
-          {actionsRight}
+          {actionsRightElement}
         </div>
       
-        {this.props.children}
+        {children}
       </div>
     );
   }

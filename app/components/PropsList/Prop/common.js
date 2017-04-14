@@ -22,6 +22,7 @@ import { TypeNames } from '@jssy/types';
  * @property {string} image
  * @property {string} tooltip
  * @property {boolean} linkable
+ * @property {boolean} pickable
  * @property {boolean} checkable
  * @property {boolean} required
  * @property {PropsItemPropTypeOption[]} [options]
@@ -102,6 +103,7 @@ const propTypeShapeFields = {
   image: PropTypes.string,
   tooltip: PropTypes.string,
   linkable: PropTypes.bool,
+  pickable: PropTypes.bool,
   checkable: PropTypes.bool,
   required: PropTypes.bool,
   transformValue: PropTypes.func,

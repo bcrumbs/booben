@@ -58,6 +58,8 @@ export const PROJECT_PICK_COMPONENT_DONE =
   'PROJECT_PICK_COMPONENT_DONE';
 export const PROJECT_PICK_COMPONENT_CANCEL =
   'PROJECT_PICK_COMPONENT_CANCEL';
+export const PROJECT_PICK_COMPONENT_STATE_SLOT =
+  'PROJECT_PICK_COMPONENT_STATE_SLOT';
 
 /**
  *
@@ -333,7 +335,25 @@ export const createFunction = (
  */
 export const pickComponent = (filter = null) => ({
   type: PROJECT_PICK_COMPONENT,
+  stateSlot: false,
   filter,
+  stateSlotsFilter: null,
+});
+
+/**
+ *
+ * @param {?Function} [filter=null]
+ * @param {?Function} [stateSlotsFilter=null]
+ * @return {Object}
+ */
+export const pickComponentStateSlot = (
+  filter = null,
+  stateSlotsFilter = null,
+) => ({
+  type: PROJECT_PICK_COMPONENT,
+  stateSlot: true,
+  filter,
+  stateSlotsFilter,
 });
 
 /**
@@ -352,4 +372,14 @@ export const pickComponentDone = componentId => ({
  */
 export const pickComponentCancel = () => ({
   type: PROJECT_PICK_COMPONENT_CANCEL,
+});
+
+/**
+ *
+ * @param {string} slotName
+ * @return {Object}
+ */
+export const pickComponentStateSlotDone = slotName => ({
+  type: PROJECT_PICK_COMPONENT_STATE_SLOT,
+  slotName,
 });

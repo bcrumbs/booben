@@ -38,6 +38,7 @@ import {
   PROJECT_PICK_COMPONENT,
   PROJECT_PICK_COMPONENT_DONE,
   PROJECT_PICK_COMPONENT_CANCEL,
+  PROJECT_PICK_COMPONENT_STATE_SLOT,
 } from '../actions/project';
 
 import {
@@ -156,8 +157,12 @@ const ProjectState = Record({
   linkingPath: null,
   
   pickingComponent: false,
+  pickingComponentStateSlot: false,
   pickingComponentFilter: null,
+  pickingComponentStateSlotsFilter: null,
   pickedComponentId: -1,
+  pickedComponentStateSlot: '',
+  componentStateSlotsListIsVisible: false,
 });
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
@@ -1226,25 +1231,50 @@ const handlers = {
   },
   
   [PROJECT_PICK_COMPONENT]: (state, action) => {
+    if (state.pickingComponent || state.pickingComponentStateSlot)
+      return state;
+
     state = unhighlightAllComponents(state);
     
     return state.merge({
       pickingComponent: true,
+      pickingComponentStateSlot: !!action.stateSlot,
       pickingComponentFilter: action.filter,
+      pickingComponentStateSlotFilter: action.stateSlotsFilter,
       pickedComponentId: -1,
     });
   },
   
-  [PROJECT_PICK_COMPONENT_DONE]: (state, action) => state.merge({
-    pickingComponent: false,
-    pickingComponentFilter: null,
-    pickedComponentId: action.componentId,
-  }),
+  [PROJECT_PICK_COMPONENT_DONE]: (state, action) => {
+    const updates = {
+      pickingComponent: false,
+      pickingComponentFilter: null,
+      pickedComponentId: action.componentId,
+    };
+
+    if (state.pickingComponentStateSlot)
+      updates.componentStateSlotsListIsVisible = true;
+
+    return state.merge(updates);
+  },
   
   [PROJECT_PICK_COMPONENT_CANCEL]: state => state.merge({
     pickingComponent: false,
+    pickingComponentStateSlot: false,
     pickingComponentFilter: null,
+    pickingComponentStateSlotFilter: null,
     pickedComponentId: -1,
+    pickedComponentStateSlot: '',
+    componentStateSlotsListIsVisible: false,
+  }),
+
+  [PROJECT_PICK_COMPONENT_STATE_SLOT]: (state, action) => state.merge({
+    pickingComponent: false,
+    pickingComponentStateSlot: false,
+    pickingComponentFilter: null,
+    pickingComponentStateSlotFilter: null,
+    pickedComponentStateSlot: action.stateSlot,
+    componentStateSlotsListIsVisible: false,
   }),
   
   [PREVIEW_DRAG_OVER_COMPONENT]: (state, action) => state.merge({

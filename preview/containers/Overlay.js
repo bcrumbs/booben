@@ -13,12 +13,22 @@ import {
   currentComponentsSelector,
 } from '../../app/selectors';
 
+import { pickComponentStateSlotDone } from '../../app/actions/project';
 import { OverlayContainer } from '../components/OverlayContainer';
 import { OverlayBoundingBox } from '../components/OverlayBoundingBox';
 import { OverlayComponentTitle } from '../components/OverlayComponentTitle';
+import { OverlayFloatingBlock } from '../components/OverlayFloatingBlock';
+
+import {
+  ComponentStateSlotSelect,
+} from '../../app/containers/ComponentStateSlotSelect/ComponentStateSlotSelect';
+
 import { PREVIEW_DOM_CONTAINER_ID } from '../../shared/constants';
+import { getComponentMeta } from '../../app/utils/meta';
+import { returnTrue } from '../../app/utils/misc';
 
 const propTypes = {
+  meta: PropTypes.object.isRequired,
   components: ImmutablePropTypes.map.isRequired,
   selectedComponentIds: ImmutablePropTypes.set.isRequired,
   highlightedComponentIds: ImmutablePropTypes.set.isRequired,
@@ -27,9 +37,19 @@ const propTypes = {
   draggingComponent: PropTypes.bool.isRequired,
   showComponentTitles: PropTypes.bool.isRequired,
   pickingComponent: PropTypes.bool.isRequired,
+  pickedComponentId: PropTypes.number.isRequired,
+  componentStateSlotsListIsVisible: PropTypes.bool.isRequired,
+  isCompatibleStateSlot: PropTypes.func.isRequired,
+  language: PropTypes.string.isRequired,
+  onSelectComponentStateSlot: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+  pickingComponentStateSlotsFilter: null,
 };
 
 const mapStateToProps = state => ({
+  meta: state.project.meta,
   components: currentComponentsSelector(state),
   selectedComponentIds: currentSelectedComponentIdsSelector(state),
   highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
@@ -38,6 +58,19 @@ const mapStateToProps = state => ({
   draggingComponent: state.project.draggingComponent,
   showComponentTitles: state.app.showComponentTitles,
   pickingComponent: state.project.pickingComponent,
+  pickedComponentId: state.project.pickedComponentId,
+  componentStateSlotsListIsVisible:
+    state.project.componentStateSlotsListIsVisible,
+
+  isCompatibleStateSlot:
+    state.project.pickingComponentStateSlotsFilter || returnTrue,
+
+  language: state.app.language,
+});
+
+const mapDispatchToProps = dispatch => ({
+  onSelectComponentStateSlot: ({ stateSlot }) =>
+    void dispatch(pickComponentStateSlotDone(stateSlot)),
 });
 
 const HIGHLIGHT_COLOR = 'rgba(0, 113, 216, 0.3)';
@@ -115,6 +148,34 @@ class Overlay extends PureComponent {
     });
   }
 
+  _renderStateSlotSelect() {
+    const {
+      meta,
+      components,
+      pickedComponentId,
+      isCompatibleStateSlot,
+      language,
+      onSelectComponentStateSlot,
+    } = this.props;
+
+    const element = getDOMElementByComponentId(pickedComponentId);
+    if (!element) return null;
+
+    const component = components.get(pickedComponentId);
+    const componentMeta = getComponentMeta(component.name, meta);
+
+    return (
+      <OverlayFloatingBlock element={element}>
+        <ComponentStateSlotSelect
+          componentMeta={componentMeta}
+          isCompatibleStateSlot={isCompatibleStateSlot}
+          language={language}
+          onSelect={onSelectComponentStateSlot}
+        />
+      </OverlayFloatingBlock>
+    );
+  }
+
   render() {
     const {
       draggingComponent,
@@ -124,6 +185,7 @@ class Overlay extends PureComponent {
       highlightedComponentIds,
       selectedComponentIds,
       boundaryComponentId,
+      componentStateSlotsListIsVisible,
     } = this.props;
     
     const highlightBoxes = highlightingEnabled
@@ -154,18 +216,24 @@ class Overlay extends PureComponent {
       ? this._renderTitles()
       : null;
 
+    const componentStateSlotSelect = componentStateSlotsListIsVisible
+      ? this._renderStateSlotSelect()
+      : null;
+
     return (
       <OverlayContainer>
         {highlightBoxes}
         {selectBoxes}
         {rootComponentBox}
         {titles}
+        {componentStateSlotSelect}
       </OverlayContainer>
     );
   }
 }
 
 Overlay.propTypes = propTypes;
+Overlay.defaultProps = defaultProps;
 Overlay.displayName = 'Overlay';
 
-export default connect(mapStateToProps)(Overlay);
+export default connect(mapStateToProps, mapDispatchToProps)(Overlay);
