@@ -74,8 +74,8 @@ export class ComponentStateSlotSelect extends PureComponent {
     const disabledItems = [];
 
     _forOwn(componentMeta.state, (stateSlot, name) => {
-      const isCompatible = isCompatibleStateSlot(stateSlot);
       const resolvedTypedef = resolveTypedef(stateSlot, componentMeta.types);
+      const isCompatible = isCompatibleStateSlot(resolvedTypedef);
 
       const item = {
         id: name,

@@ -47,6 +47,13 @@ export class SourceGroupItem extends Component {
     let className = 'source-item';
     if (disabled) className += ' is-disabled';
 
+    let tooltipElement = null;
+    if (description) {
+      tooltipElement = (
+        <TooltipIcon text={description} />
+      );
+    }
+
     return (
       <li className={className} onClick={this._handleClick}>
         <span className="source-item_title">
@@ -54,10 +61,10 @@ export class SourceGroupItem extends Component {
         </span>
 
         <span className="source-item_type">
-          ({type})
+          {type}
         </span>
 
-        <TooltipIcon text={description} />
+        {tooltipElement}
       </li>
     );
   }

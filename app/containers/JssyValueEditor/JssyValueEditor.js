@@ -643,7 +643,9 @@ export class JssyValueEditor extends PureComponent {
     } else if (jssyValue.source === 'static') {
       linkedWith = jssyValue.sourceData.ownerPropName;
     } else if (jssyValue.source === 'state') {
-      linkedWith = `Component ${jssyValue.sourceData.componentId}`;
+      linkedWith =
+        `Component ${jssyValue.sourceData.componentId} ` +
+        `- ${jssyValue.sourceData.stateSlot}`;
     }
 
     return { value, linked, linkedWith, checked };
@@ -683,6 +685,7 @@ export class JssyValueEditor extends PureComponent {
         onCheck={this._handleCheck}
         onLink={this._handleLink}
         onUnlink={this._handleUnlink}
+        onPick={this._handlePick}
         onSetComponent={this._handleConstructComponent}
       />
     );

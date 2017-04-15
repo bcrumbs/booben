@@ -43,7 +43,7 @@ export const OverlayBoundingBox = props => {
     height: '1px',
     width: '1px',
     position: 'absolute',
-    zIndex: '9999',
+    zIndex: '1000',
     left: `${left}px`,
     top: `${top}px`,
     boxSizing: 'border-box',

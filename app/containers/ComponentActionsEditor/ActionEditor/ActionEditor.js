@@ -12,6 +12,7 @@ import _startCase from 'lodash.startcase';
 import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';
 import { List, Map } from 'immutable';
+import { isCompatibleType } from '@jssy/types';
 import { Button, Dialog } from '@reactackle/reactackle';
 
 import {
@@ -36,6 +37,7 @@ import ProjectComponent, {
 
 import JssyValue from '../../../models/JssyValue';
 import { Action, createActionParams } from '../../../models/SourceDataActions';
+import SourceDataState from '../../../models/SourceDataState';
 
 import {
   currentComponentsSelector,
@@ -43,9 +45,14 @@ import {
   ownerUserTypedefsSelector,
 } from '../../../selectors';
 
-import { pickComponent } from '../../../actions/project';
+import {
+  pickComponent,
+  pickComponentStateSlot,
+} from '../../../actions/project';
+
 import { ROUTE_PARAM_VALUE_DEF, SYSTEM_PROPS } from '../../../constants/misc';
 import { getLocalizedTextFromState } from '../../../utils';
+import { setInPath } from '../../../utils/path';
 
 import {
   getMutationType,
@@ -64,6 +71,7 @@ import {
   returnArg,
   arrayToObject,
   objectToArray,
+  objectSome,
 } from '../../../utils/misc';
 
 const propTypes = {
@@ -82,10 +90,14 @@ const propTypes = {
   ownerUserTypedefs: PropTypes.object,
   language: PropTypes.string.isRequired,
   pickingComponent: PropTypes.bool.isRequired,
+  pickingComponentStateSlot: PropTypes.bool.isRequired,
   // eslint-disable-next-line react/no-unused-prop-types
   pickedComponentId: PropTypes.number.isRequired,
+  // eslint-disable-next-line react/no-unused-prop-types
+  pickedComponentStateSlot: PropTypes.string.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   onPickComponent: PropTypes.func.isRequired,
+  onPickComponentStateSlot: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -105,12 +117,18 @@ const mapStateToProps = state => ({
   ownerUserTypedefs: ownerUserTypedefsSelector(state),
   language: state.app.language,
   pickingComponent: state.project.pickingComponent,
+  pickingComponentStateSlot: state.project.pickingComponent,
   pickedComponentId: state.project.pickedComponentId,
+  pickedComponentStateSlot: state.project.pickedComponentStateSlot,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
-  onPickComponent: filter => void dispatch(pickComponent(filter)),
+  onPickComponent: filter =>
+    void dispatch(pickComponent(filter)),
+
+  onPickComponentStateSlot: (filter, stateSlotFilter) =>
+    void dispatch(pickComponentStateSlot(filter, stateSlotFilter)),
 });
 
 class ActionEditorComponent extends PureComponent {
@@ -121,6 +139,7 @@ class ActionEditorComponent extends PureComponent {
       action: props.action || new Action(),
       linkingValue: false,
       linkParams: null,
+      pickingPath: null,
     };
     
     this._handleActionTypeChange = this._handleActionTypeChange.bind(this);
@@ -162,15 +181,18 @@ class ActionEditorComponent extends PureComponent {
     this._handleLink = this._handleLink.bind(this);
     this._handleLinkApply = this._handleLinkApply.bind(this);
     this._handleLinkCancel = this._handleLinkCancel.bind(this);
+    this._handlePick = this._handlePick.bind(this);
   
     this._handleSave = this._handleSave.bind(this);
   }
   
   componentWillReceiveProps(nextProps) {
-    const { pickingComponent } = this.props;
-    const { action } = this.state;
+    const { pickingComponent, pickingComponentStateSlot } = this.props;
+    const { action, pickingPath } = this.state;
     
     if (pickingComponent && !nextProps.pickingComponent) {
+      if (pickingComponentStateSlot) return;
+
       if (action.type === 'method') {
         this._handleMethodActionSetComponent({
           componentId: nextProps.pickedComponentId,
@@ -180,6 +202,20 @@ class ActionEditorComponent extends PureComponent {
           componentId: nextProps.pickedComponentId,
         });
       }
+    }
+
+    if (pickingComponentStateSlot && !nextProps.pickingComponentStateSlot) {
+      const newValue = new JssyValue({
+        source: 'state',
+        sourceData: new SourceDataState({
+          componentId: nextProps.pickedComponentId,
+          stateSlot: nextProps.pickedComponentStateSlot,
+        }),
+      });
+
+      this.setState({
+        action: setInPath(pickingPath, newValue),
+      });
     }
   }
   
@@ -446,6 +482,59 @@ class ActionEditorComponent extends PureComponent {
       linkParams: null,
     });
   }
+
+  _handlePick({ name, path, targetValueDef, targetUserTypedefs }) {
+    const { meta, currentComponents, onPickComponentStateSlot } = this.props;
+    const { action } = this.state;
+
+    const pickingPath = {
+      start: {
+        object: action,
+        expandedPath: [],
+      },
+      steps: null,
+    };
+
+    if (action.type === 'method') {
+      pickingPath.steps = ['args', name, ...path];
+    } else if (action.type === 'mutation') {
+      pickingPath.steps = ['args', name, ...path];
+    } else if (action.type === 'prop') {
+      pickingPath.steps = ['value', ...path];
+    } else if (action.type === 'navigate') {
+      pickingPath.steps = ['routeParams', name];
+    } else {
+      throw new Error(
+        `ActionEditor#_handlePick: Wrong action type: ${action.type}`,
+      );
+    }
+
+    this.setState({ pickingPath });
+
+    const filter = sourceComponentId => {
+      const sourceComponent = currentComponents.get(sourceComponentId);
+      const sourceComponentMeta = getComponentMeta(sourceComponent.name, meta);
+
+      if (!sourceComponentMeta.state) return false;
+
+      return objectSome(
+        sourceComponentMeta.state,
+        stateSlot => isCompatibleType(
+          targetValueDef,
+          stateSlot,
+          targetUserTypedefs,
+          sourceComponentMeta.types,
+        ),
+      );
+    };
+
+    const stateSlotFilter = stateSlotTypedef => isCompatibleType(
+      targetValueDef,
+      stateSlotTypedef,
+    );
+
+    onPickComponentStateSlot(filter, stateSlotFilter);
+  }
   
   _isCurrentActionValid() {
     const { action } = this.state;
@@ -545,6 +634,7 @@ class ActionEditorComponent extends PureComponent {
           getLocalizedText={getLocalizedText}
           onChange={this._handleMutationActionArgChange}
           onLink={this._handleLink}
+          onPick={this._handlePick}
         />
       );
     });
@@ -643,6 +733,7 @@ class ActionEditorComponent extends PureComponent {
               getLocalizedText={getLocalizedText}
               onChange={this._handleMethodActionArgValueChange}
               onLink={this._handleLink}
+              onPick={this._handlePick}
             />,
           );
         });
@@ -770,6 +861,7 @@ class ActionEditorComponent extends PureComponent {
             getLocalizedText={getLocalizedText}
             onChange={this._handlePropActionValueChange}
             onLink={this._handleLink}
+            onPick={this._handlePick}
           />,
         );
       }
@@ -860,6 +952,7 @@ class ActionEditorComponent extends PureComponent {
               getLocalizedText={getLocalizedText}
               onChange={this._handleNavigateActionRouteParamChange}
               onLink={this._handleLink}
+              onPick={this._handlePick}
             />,
           );
         }

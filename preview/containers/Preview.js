@@ -49,6 +49,7 @@ const propTypes = {
   project: PropTypes.any.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
   pickingComponent: PropTypes.bool.isRequired,
+  pickingComponentStateSlot: PropTypes.bool.isRequired,
   pickingComponentFilter: PropTypes.func,
   highlightingEnabled: PropTypes.bool.isRequired,
   currentRouteId: PropTypes.number.isRequired,
@@ -76,6 +77,7 @@ const mapStateToProps = state => ({
   project: state.project.data,
   draggingComponent: state.project.draggingComponent,
   pickingComponent: state.project.pickingComponent,
+  pickingComponentStateSlot: state.project.pickingComponentStateSlot,
   pickingComponentFilter: state.project.pickingComponentFilter,
   highlightingEnabled: state.project.highlightingEnabled,
   currentRouteId: state.project.currentRouteId,
@@ -628,10 +630,16 @@ class Preview extends Component {
    * @private
    */
   _handleKeyDown(event) {
-    const { pickingComponent, onCancelPickComponent } = this.props;
+    const {
+      pickingComponent,
+      pickingComponentStateSlot,
+      onCancelPickComponent,
+    } = this.props;
     
-    if (pickingComponent && event.keyCode === KeyCodes.ESCAPE)
-      onCancelPickComponent();
+    if (event.keyCode === KeyCodes.ESCAPE) {
+      if ((pickingComponent || pickingComponentStateSlot))
+        onCancelPickComponent();
+    }
   }
   
   /**

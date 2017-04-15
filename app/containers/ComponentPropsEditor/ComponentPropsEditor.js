@@ -8,7 +8,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
-import { getNestedTypedef } from '@jssy/types';
+import { getNestedTypedef, isCompatibleType } from '@jssy/types';
 import { Dialog } from '@reactackle/reactackle';
 import { PropsList } from '../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
@@ -22,10 +22,13 @@ import {
 } from '../../components/BlockContent/BlockContent';
 
 import ProjectComponentRecord from '../../models/ProjectComponent';
+import JssyValue from '../../models/JssyValue';
+import SourceDataState from '../../models/SourceDataState';
 
 import {
   replaceJssyValue,
   constructComponentForProp,
+  pickComponentStateSlot,
 } from '../../actions/project';
 
 import { PathStartingPoints } from '../../reducers/project';
@@ -48,6 +51,7 @@ import {
 
 import { SYSTEM_PROPS } from '../../constants/misc';
 import { getLocalizedTextFromState } from '../../utils';
+import { objectSome } from '../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 const propTypes = {
@@ -60,9 +64,13 @@ const propTypes = {
   language: PropTypes.string.isRequired,
   ownerProps: PropTypes.object,
   ownerUserTypedefs: PropTypes.object,
+  pickingComponentStateSlot: PropTypes.bool.isRequired,
+  pickedComponentId: PropTypes.number.isRequired,
+  pickedComponentStateSlot: PropTypes.string.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   onReplacePropValue: PropTypes.func.isRequired,
   onConstructComponent: PropTypes.func.isRequired,
+  onPickComponentStateSlot: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -77,6 +85,9 @@ const mapStateToProps = state => ({
   language: state.app.language,
   ownerProps: ownerPropsSelector(state),
   ownerUserTypedefs: ownerUserTypedefsSelector(state),
+  pickingComponentStateSlot: state.project.pickingComponentStateSlot,
+  pickedComponentId: state.project.pickedComponentId,
+  pickedComponentStateSlot: state.project.pickedComponentStateSlot,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -86,6 +97,9 @@ const mapDispatchToProps = dispatch => ({
   
   onConstructComponent: (path, components, rootId) =>
     void dispatch(constructComponentForProp(path, components, rootId)),
+
+  onPickComponentStateSlot: (filter, stateSlotsFilter) =>
+    void dispatch(pickComponentStateSlot(filter, stateSlotsFilter)),
 });
 
 /**
@@ -128,19 +142,34 @@ class ComponentPropsEditorComponent extends PureComponent {
       linkingProp: false,
       linkingPath: null,
       linkingValueDef: null,
+      pickingPath: null,
     };
   
     this._handleSystemPropSetComponent =
       this._handleSetComponent.bind(this, true);
     this._handleSystemPropChange = this._handleChange.bind(this, true);
     this._handleSystemPropLink = this._handleLink.bind(this, true);
+    this._handleSystemPropPick = this._handlePick.bind(this, true);
   
     this._handleSetComponent = this._handleSetComponent.bind(this, false);
     this._handleChange = this._handleChange.bind(this, false);
     this._handleLink = this._handleLink.bind(this, false);
+    this._handlePick = this._handlePick.bind(this, false);
     
     this._handleLinkApply = this._handleLinkApply.bind(this);
     this._handleLinkCancel = this._handleLinkCancel.bind(this);
+    this._handlePickApply = this._handlePickApply.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    const { pickingComponentStateSlot } = this.props;
+
+    if (pickingComponentStateSlot && !nextProps.pickingComponentStateSlot) {
+      this._handlePickApply({
+        componentId: nextProps.pickedComponentId,
+        stateSlot: nextProps.pickedComponentStateSlot,
+      });
+    }
   }
   
   /**
@@ -207,6 +236,61 @@ class ComponentPropsEditorComponent extends PureComponent {
       linkingPath: null,
       linkingValueDef: null,
     });
+  }
+
+  _handlePick(isSystemProp, { name, path }) {
+    const {
+      meta,
+      components,
+      selectedComponentIds,
+      onPickComponentStateSlot,
+    } = this.props;
+
+    const componentId = selectedComponentIds.first();
+
+    let linkingValueDef;
+    if (isSystemProp) {
+      const propMeta = SYSTEM_PROPS[name];
+      linkingValueDef = getNestedTypedef(propMeta, path);
+    } else {
+      const component = components.get(componentId);
+      const componentMeta = getComponentMeta(component.name, meta);
+      const propMeta = componentMeta.props[name];
+      linkingValueDef = getNestedTypedef(propMeta, path, componentMeta.types);
+    }
+
+    const filter = sourceComponentId => {
+      const sourceComponent = components.get(sourceComponentId);
+      const sourceComponentMeta = getComponentMeta(sourceComponent.name, meta);
+
+      if (!sourceComponentMeta.state) return false;
+
+      return objectSome(
+        sourceComponentMeta.state,
+        stateSlot => isCompatibleType(linkingValueDef, stateSlot),
+      );
+    };
+
+    const stateSlotFilter = stateSlot =>
+        isCompatibleType(linkingValueDef, stateSlot);
+
+    this.setState({
+      pickingPath: buildFullPath(componentId, isSystemProp, name, path),
+    });
+
+    onPickComponentStateSlot(filter, stateSlotFilter);
+  }
+
+  _handlePickApply({ componentId, stateSlot }) {
+    const { onReplacePropValue } = this.props;
+    const { pickingPath } = this.state;
+
+    const newValue = new JssyValue({
+      source: 'state',
+      sourceData: new SourceDataState({ componentId, stateSlot }),
+    });
+
+    onReplacePropValue(pickingPath, newValue);
   }
 
   /**
@@ -301,6 +385,7 @@ class ComponentPropsEditorComponent extends PureComponent {
         getLocalizedText={getLocalizedText}
         onChange={this._handleChange}
         onLink={this._handleLink}
+        onPick={this._handlePick}
         onConstructComponent={this._handleSetComponent}
       />
     );
@@ -342,6 +427,7 @@ class ComponentPropsEditorComponent extends PureComponent {
             getLocalizedText={getLocalizedText}
             onChange={this._handleSystemPropChange}
             onLink={this._handleSystemPropLink}
+            onPick={this._handleSystemPropPick}
             onConstructComponent={this._handleSystemPropSetComponent}
           />
         </PropsList>

@@ -107,7 +107,8 @@ import {
   getJssyTypeOfField,
 } from '../utils/schema';
 
-import { isInteger, isPrefixList } from '../utils/misc';
+import { walkPath, expandPath, getObjectByPath } from '../utils/path';
+import { isPrefixList } from '../utils/misc';
 import { getFunctionInfo } from '../utils/functions';
 import { SYSTEM_PROPS, ROUTE_PARAM_VALUE_DEF } from '../constants/misc';
 
@@ -480,45 +481,29 @@ const initLinkingPropState = state => state
   .set('linkingProp', false)
   .set('linkingPath', null);
 
-export const PathStartingPoints = {
-  PROJECT: 0,
-  CURRENT_COMPONENTS: 1,
-};
-
 /**
- * @typedef {Object} Path
+ * @typedef {Object} ProjectPath
  * @property {number} startingPoint
  * @property {(string|number)[]} steps
  */
 
 /**
  *
- * @param {string|number} step
- * @param {*} current
- * @return {boolean}
+ * @type {Object<string, number>}
  */
-const isValidPathStep = (step, current) => {
-  if (!current) return false;
-  
-  if (Map.isMap(current)) {
-    return true;
-  } else if (List.isList(current)) {
-    return isInteger(step) && step >= 0;
-  } else {
-    return !!current.constructor &&
-      !!current.constructor.isValidPathStep &&
-      current.constructor.isValidPathStep(step, current);
-  }
+export const PathStartingPoints = {
+  PROJECT: 0,
+  CURRENT_COMPONENTS: 1,
 };
 
 /**
  *
- * @param {Path} path
+ * @param {number} startingPoint
  * @param {Object} state
  * @return {{ object: *, expandedPath: (string|number)[] }}
  */
-const getPathStartingPoint = (path, state) => {
-  switch (path.startingPoint) {
+const getPathStartingPoint = (startingPoint, state) => {
+  switch (startingPoint) {
     case PathStartingPoints.PROJECT: {
       return { object: state.data, expandedPath: [] };
     }
@@ -533,69 +518,23 @@ const getPathStartingPoint = (path, state) => {
     
     default: {
       throw new Error(
-        `getPathStartingPoint(): Invalid starting point: ${path.startingPoint}`,
+        `getPathStartingPoint(): Invalid starting point: ${startingPoint}`,
       );
     }
   }
 };
 
-const BREAK = {};
-
 /**
  *
- * @param {Path} path
+ * @param {ProjectPath} projectPath
  * @param {Object} state
- * @param {function(currentObject: *, index: number, expandedPath: (string|number)[])} visitor
+ * @return {Path}
  */
-const walkPath = (path, state, visitor) => {
-  const start = getPathStartingPoint(path, state);
-  if (visitor(start.object, -1, start.expandedPath) === BREAK) return;
-  
-  let current = start.object;
-  
-  for (let i = 0, l = path.steps.length; i < l; i++) {
-    const step = path.steps[i];
-  
-    if (!isValidPathStep(step, current)) {
-      throw new Error(
-        `walkPath(): Invalid step at index ${i}: ${step}`,
-      );
-    }
-  
-    if (Map.isMap(current) || List.isList(current)) {
-      current = current.get(step);
-      if (visitor(current, i, [step]) === BREAK) break;
-    } else {
-      const expandedPath = current.constructor.expandPathStep(step, current);
-      current = current.getIn(expandedPath);
-      if (visitor(current, i, expandedPath) === BREAK) break;
-    }
-  }
-};
+const materializePath = (projectPath, state) => ({
+  start: getPathStartingPoint(projectPath.startingPoint, state),
+  steps: projectPath.steps,
+});
 
-/**
- *
- * @param {Path} path
- * @param {Object} state
- * @return {(string|number)[]}
- */
-const expandPath = (path, state) => {
-  const ret = [];
-  
-  walkPath(path, state, (object, idx, expandedPath) => {
-    ret.push(...expandedPath);
-  });
-  
-  return ret;
-};
-
-/**
- *
- * @param {Path} path
- * @param {Object} state
- * @return {*}
- */
-const getObjectByPath = (path, state) => state.getIn(expandPath(path, state));
 
 const ValueTypes = {
   NOT_A_VALUE: 0,
@@ -609,6 +548,12 @@ const ValueTypes = {
   ACTION_ROUTE_PARAM: 8,
 };
 
+/**
+ *
+ * @param {ProjectPath} path
+ * @param {Object} state
+ * @return {{type: number, isNested: boolean, valueDef: JssyValueDefinition, userTypedefs: Object<string, JssyTypeDefinition>}}
+ */
 const getValueInfoByPath = (path, state) => {
   const project = state.data;
   
@@ -625,7 +570,7 @@ const getValueInfoByPath = (path, state) => {
   if (path.startingPoint === PathStartingPoints.CURRENT_COMPONENTS)
     currentComponents = state.getIn(getPathToCurrentComponents(state));
   
-  walkPath(path, state, (object, idx) => {
+  walkPath(materializePath(path, state), (object, idx) => {
     if (idx === -1) return;
     
     const step = path.steps[idx];
@@ -765,7 +710,7 @@ const clearOutdatedDataProps = (state, updatedPath) => {
   const { valueType, isNested } = getValueInfoByPath(updatedPath, state);
   if (valueType !== ValueTypes.COMPONENT_PROP || isNested) return state;
   
-  const oldValue = getObjectByPath(updatedPath, state);
+  const oldValue = getObjectByPath(materializePath(updatedPath, state));
   if (!oldValue.isLinkedWithData()) return state;
   
   const pathToComponents = getPathToCurrentComponents(state);
@@ -858,7 +803,7 @@ const clearOutdatedDataProps = (state, updatedPath) => {
 
 const updateValue = (state, path, newValue) => {
   state = clearOutdatedDataProps(state, path);
-  return state.setIn(expandPath(path, state), newValue);
+  return state.setIn(expandPath(materializePath(path, state)), newValue);
 };
 
 
@@ -997,12 +942,12 @@ const handlers = {
     updateValue(state, action.path, action.newValue),
   
   [PROJECT_JSSY_VALUE_ADD_ACTION]: (state, action) => {
-    const path = expandPath(action.path, state);
+    const path = expandPath(materializePath(action.path, state));
     return state.updateIn(path, actionsList => actionsList.push(action.action));
   },
   
   [PROJECT_JSSY_VALUE_REPLACE_ACTION]: (state, action) => {
-    const path = expandPath(action.path, state);
+    const path = expandPath(materializePath(action.path, state));
     return state.updateIn(
       path,
       actionsList => actionsList.set(action.index, action.newAction),
@@ -1010,7 +955,7 @@ const handlers = {
   },
   
   [PROJECT_JSSY_VALUE_DELETE_ACTION]: (state, action) => {
-    const path = expandPath(action.path, state);
+    const path = expandPath(materializePath(action.path, state));
     return state.updateIn(
       path,
       actionsList => actionsList.delete(action.index),
@@ -1026,7 +971,7 @@ const handlers = {
       valueInfo: getValueInfoByPath(action.path, state),
     };
     
-    const currentValue = getObjectByPath(action.path, state);
+    const currentValue = getObjectByPath(materializePath(action.path, state));
     
     if (currentValue.hasDesignedComponent()) {
       Object.assign(nestedConstructorData, {
@@ -1240,7 +1185,7 @@ const handlers = {
       pickingComponent: true,
       pickingComponentStateSlot: !!action.stateSlot,
       pickingComponentFilter: action.filter,
-      pickingComponentStateSlotFilter: action.stateSlotsFilter,
+      pickingComponentStateSlotsFilter: action.stateSlotsFilter,
       pickedComponentId: -1,
     });
   },
@@ -1262,7 +1207,7 @@ const handlers = {
     pickingComponent: false,
     pickingComponentStateSlot: false,
     pickingComponentFilter: null,
-    pickingComponentStateSlotFilter: null,
+    pickingComponentStateSlotsFilter: null,
     pickedComponentId: -1,
     pickedComponentStateSlot: '',
     componentStateSlotsListIsVisible: false,
@@ -1272,8 +1217,8 @@ const handlers = {
     pickingComponent: false,
     pickingComponentStateSlot: false,
     pickingComponentFilter: null,
-    pickingComponentStateSlotFilter: null,
-    pickedComponentStateSlot: action.stateSlot,
+    pickingComponentStateSlotsFilter: null,
+    pickedComponentStateSlot: action.slotName,
     componentStateSlotsListIsVisible: false,
   }),
   
