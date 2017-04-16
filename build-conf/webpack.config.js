@@ -69,6 +69,8 @@ module.exports = {
     extensions: ['.js'],
   },
 
+  devtool: prod ? 'source-map' : 'eval',
+
   module: {
     rules: [
       {
