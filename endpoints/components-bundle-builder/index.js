@@ -119,33 +119,52 @@ const generateWebpackConfig = (projectDir, libsData) => {
     },
 
     resolve: {
-      modulesDirectories: ['node_modules'],
-      extensions: ['', '.js', '.jsx'],
+      modules: ['node_modules'],
+      extensions: ['.js', '.jsx'],
     },
 
     resolveLoader: {
-      moduleTemplates: ['*-loader'],
-      extensions: ['', '.js'],
+      modules: ['node_modules'],
+      extensions: ['.js'],
     },
 
     module: {
-      loaders: [{
+      rules: [{
         test: filename =>
           filename.indexOf('node_modules') === -1 &&
           (filename.endsWith('.js') || filename.endsWith('.jsx')),
 
-        loader: 'babel?presets[]=es2015',
+        loader: 'babel-loader',
+        options: {
+          presets: ['es2015'],
+        },
       }],
     },
   };
 
   libsData.forEach(libData => {
     const keys = Object.keys(libData.meta.loaders);
-    keys.forEach(key => void ret.module.loaders.push({
-      test: new RegExp(key),
-      include: libData.dir,
-      loaders: libData.meta.loaders[key],
-    }));
+    keys.forEach(key => {
+      const rule = {
+        test: new RegExp(key),
+        include: libData.dir,
+      };
+
+      const loaders = libData.meta.loaders[key];
+
+      if (loaders.length === 1) {
+        if (typeof loaders[0] === 'string') {
+          rule.loader = loaders[0];
+        } else {
+          rule.loader = loaders[0].loader;
+          if (loaders[0].options) rule.options = loaders[0].options;
+        }
+      } else {
+        rule.use = loaders;
+      }
+
+      ret.module.rules.push(rule);
+    });
   });
 
   return ret;
@@ -153,20 +172,26 @@ const generateWebpackConfig = (projectDir, libsData) => {
 
 /**
  *
- * @type {Object.<string, function(loaderString: string): string[]>}
+ * @type {Object.<string, function(loaderConfig: string|object): string[]>}
  */
-const loaderStringParsers = {
+const loaderConfigParsers = {
   /* eslint-disable quote-props */
-  'babel': loaderString => {
-    const parts = loaderString.split('?');
-    if (parts.length === 1) return [];
-    const q = parts[1].split('&').map(str => str.split('='));
-
+  'babel-loader': loaderConfig => {
     const ret = [];
-    q.forEach(([key, value]) => {
-      if (key === 'presets[]') ret.push(`babel-preset-${value}`);
-      else if (key === 'plugins[]') ret.push(`babel-plugin-${value}`);
-    });
+
+    if (typeof loaderConfig === 'object' && loaderConfig.options) {
+      if (loaderConfig.options.presets) {
+        loaderConfig.options.presets.forEach(preset => {
+          ret.push(`babel-preset-${preset}`);
+        });
+      }
+
+      if (loaderConfig.options.plugins) {
+        loaderConfig.options.plugins.forEach(plugin => {
+          ret.push(`babel-plugin-${plugin}`);
+        });
+      }
+    }
 
     return ret;
   },
@@ -192,20 +217,17 @@ const installLoaders = (projectDir, libsData, options) => co(function* () {
     
     keys.forEach(key => {
       const loaders = libData.meta.loaders[key];
-      loaders.forEach(loaderString => {
-        const qIdx = loaderString.indexOf('?');
-        const loader = qIdx === -1
-          ? loaderString
-          : loaderString.slice(0, qIdx);
-        
-        const loaderModule = `${loader}-loader`;
+      loaders.forEach(loaderConfig => {
+        const loader = typeof loaderConfig === 'string'
+          ? loaderConfig
+          : loaderConfig.loader;
 
-        requiredModulesSet.add(loaderModule);
-        loaderModulesSet.add(loaderModule);
+        requiredModulesSet.add(loader);
+        loaderModulesSet.add(loader);
 
-        const parseLoaderString = loaderStringParsers[loader];
-        if (typeof parseLoaderString === 'function') {
-          parseLoaderString(loaderString)
+        const parseLoaderConfig = loaderConfigParsers[loader];
+        if (typeof parseLoaderConfig === 'function') {
+          parseLoaderConfig(loaderConfig)
             .forEach(module => void requiredModulesSet.add(module));
         }
       });

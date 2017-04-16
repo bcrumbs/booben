@@ -12,23 +12,36 @@ const sharedConstants = require('../shared/constants');
 const prod = process.argv.includes('-p');
 
 const DIST_DIR = '../public';
-const REACTACKLE_THEME_FILE = '../app/_reactackle_theme.scss';
 
 class RewriteThemePathResolverPlugin {
+  apply(resolver) {
+    resolver.plugin('before-resolve', (request, callback) => {
+      if (!request.request) return callback();
+
+      const isReactackleThemeFile =
+        /@reactackle[/\\]reactackle/.test(request.path) &&
+        request.request === '../_theme.scss';
+
+      if (isReactackleThemeFile) {
+        request.request = path.resolve(
+          __dirname,
+          '..',
+          'app',
+          '_reactackle_theme.scss'
+        );
+
+        return callback();
+      }
+
+      return callback();
+    });
+  }
+}
+
+class RewriteThemePathPlugin {
   apply(compiler) {
     compiler.plugin('after-resolvers', compiler => {
-      compiler.resolvers.normal.plugin('resolve', (result, callback) => {
-        const isReactackleThemeFile =
-          /@reactackle[/\\]reactackle/.test(result.path) &&
-          result.request === '../_theme.scss';
-
-        if (isReactackleThemeFile) {
-          console.log(result);
-          result.request = path.resolve(__dirname, REACTACKLE_THEME_FILE);
-        }
-
-        return callback(null, result);
-      });
+      compiler.resolvers.normal.apply(new RewriteThemePathResolverPlugin());
     });
   }
 }
@@ -119,7 +132,7 @@ module.exports = {
   },
 
   plugins: [
-    new RewriteThemePathResolverPlugin(),
+    new RewriteThemePathPlugin(),
 
     new webpack.optimize.CommonsChunkPlugin({
       name: 'common',
