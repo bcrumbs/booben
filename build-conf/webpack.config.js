@@ -14,18 +14,24 @@ const prod = process.argv.includes('-p');
 const DIST_DIR = '../public';
 const REACTACKLE_THEME_FILE = '../app/_reactackle_theme.scss';
 
-const rewriteThemePathResolverPlugin = {
-  apply(resolver) {
-    resolver.plugin('resolve', (context, request) => {
-      const isReactackleThemeFile =
-        /@reactackle(\/|\\)reactackle/.test(context) &&
-        request.path === '../_theme.scss';
+class RewriteThemePathResolverPlugin {
+  apply(compiler) {
+    compiler.plugin('after-resolvers', compiler => {
+      compiler.resolvers.normal.plugin('resolve', (result, callback) => {
+        const isReactackleThemeFile =
+          /@reactackle[/\\]reactackle/.test(result.path) &&
+          result.request === '../_theme.scss';
 
-      if (isReactackleThemeFile)
-        request.path = path.resolve(__dirname, REACTACKLE_THEME_FILE);
+        if (isReactackleThemeFile) {
+          console.log(result);
+          result.request = path.resolve(__dirname, REACTACKLE_THEME_FILE);
+        }
+
+        return callback(null, result);
+      });
     });
-  },
-};
+  }
+}
 
 module.exports = {
   context: path.resolve(path.join(__dirname, '..')),
@@ -41,16 +47,79 @@ module.exports = {
   },
 
   resolve: {
-    modulesDirectories: ['node_modules'],
-    extensions: ['', '.js', '.jsx'],
+    modules: ['node_modules'],
+    extensions: ['.js', '.jsx'],
+  },
+
+  resolveLoader: {
+    modules: ['node_modules'],
+    extensions: ['.js'],
+  },
+
+  module: {
+    rules: [
+      {
+        test: /\.jsx?$/,
+        exclude: path => {
+          if (/reactackle[/\\]node_modules/.test(path)) return true;
+          if (/reactackle/.test(path)) return false;
+          return /node_modules/.test(path);
+        },
+        loader: 'babel-loader',
+      },
+      {
+        test: /\.scss$/,
+        use: [
+          'style-loader',
+          'css-loader',
+          'sass-loader',
+        ],
+      },
+      {
+        test: /\.css$/,
+        use: [
+          'style-loader',
+          'css-loader',
+        ],
+      },
+      {
+        test: /\.(jpe?g|png|gif)$/i,
+        use: [
+          {
+            loader: 'file-loader',
+            options: {
+              hash: 'sha512',
+              digest: 'hex',
+              name: '[hash].[ext]',
+            },
+          },
+          {
+            loader: 'image-webpack-loader',
+            options: {
+              bypassOnDebug: true,
+              optimizationLevel: '7',
+              interlaced: 'false',
+            },
+          },
+        ],
+      },
+      {
+        test: /\.woff2?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+        loader: 'url-loader',
+        options: {
+          limit: '10000',
+          mimetype: 'application/font-woff',
+        },
+      },
+      {
+        test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
+        loader: 'file-loader',
+      },
+    ],
   },
 
   plugins: [
-    {
-      apply(compiler) {
-        compiler.resolvers.normal.apply(rewriteThemePathResolverPlugin);
-      },
-    },
+    new RewriteThemePathResolverPlugin(),
 
     new webpack.optimize.CommonsChunkPlugin({
       name: 'common',
@@ -80,7 +149,7 @@ module.exports = {
       jssyContainerId: sharedConstants.PREVIEW_DOM_CONTAINER_ID,
       jssyOverlayId: sharedConstants.PREVIEW_DOM_OVERLAY_ID,
     }),
-    
+
     new ScriptExtHtmlWebpackPlugin({
       defaultAttribute: 'defer',
     }),
@@ -95,54 +164,4 @@ module.exports = {
       { from: 'app/localization', to: 'localization' },
     ]),
   ],
-
-  resolveLoader: {
-    modulesDirectories: ['node_modules'],
-    moduleTemplates: ['*-loader'],
-    extensions: ['', '.js'],
-  },
-
-  module: {
-    loaders: [
-      {
-        test: /\.jsx?$/,
-        exclude: path => {
-          if (/reactackle(\/|\\)node_modules/.test(path)) return true;
-          if (/reactackle/.test(path)) return false;
-          return /node_modules/.test(path);
-        },
-        loader: 'babel',
-      },
-      {
-        test: /\.scss$/,
-        loaders: [
-          'style',
-          'css',
-          'sass',
-        ],
-      },
-      {
-        test: /\.css$/,
-        loaders: [
-          'style',
-          'css',
-        ],
-      },
-      {
-        test: /\.(jpe?g|png|gif)$/i,
-        loaders: [
-          'file?hash=sha512&digest=hex&name=[hash].[ext]',
-          'image-webpack?bypassOnDebug&optimizationLevel=7&interlaced=false',
-        ],
-      },
-      {
-        test: /\.woff2?(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'url?limit=10000&mimetype=application/font-woff',
-      },
-      {
-        test: /\.(ttf|eot|svg)(\?v=[0-9]\.[0-9]\.[0-9])?$/,
-        loader: 'file',
-      },
-    ],
-  },
 };
