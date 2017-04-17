@@ -48,7 +48,7 @@
   "design.tool.componentConfiguration": "Конфигурация компонента",
   "design.tool.componentConfiguration.enterTitle": "Введите название",
   "design.deleteComponent": "Удаление компонента",
-  "design.deleteComponentQuestion": "Are you sure you want to delete component {title}?",
+  "design.deleteComponentQuestion": "Вы уверены, что хотите удалить компонент {title}?",
   "design.selectLayout": "Выберите раскладку компонента",
 
   "selectAComponent": "Выбрать компонент",
