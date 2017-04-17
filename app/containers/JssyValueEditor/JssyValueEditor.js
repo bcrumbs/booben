@@ -168,11 +168,11 @@ export class JssyValueEditor extends PureComponent {
     } = this.props;
   
     const nestedPropMeta = getNestedTypedef(valueDef, where, userTypedefs);
-    const newValueType = resolveTypedef(nestedPropMeta.ofType, userTypedefs);
     const value = jssyValueToImmutable(buildDefaultValue(
-      newValueType,
+      nestedPropMeta,
       strings,
       language,
+      userTypedefs,
     ));
   
     const newValue = where.length > 0
@@ -262,11 +262,11 @@ export class JssyValueEditor extends PureComponent {
     } = this.props;
   
     const nestedValueDef = getNestedTypedef(valueDef, path, userTypedefs);
-    const resolvedValueDef = resolveTypedef(nestedValueDef, userTypedefs);
     const value = jssyValueToImmutable(buildDefaultValue(
-      resolvedValueDef,
+      nestedValueDef,
       strings,
       language,
+      userTypedefs,
     ));
     
     const newValue = path.length > 0
@@ -304,6 +304,7 @@ export class JssyValueEditor extends PureComponent {
           resolvedValueDef,
           strings,
           language,
+          userTypedefs,
         ));
 
         newValue = currentValue.setInStatic(path, value);
@@ -322,6 +323,7 @@ export class JssyValueEditor extends PureComponent {
           resolvedValueDef,
           strings,
           language,
+          userTypedefs,
         ));
     
         onChange({ name, value });

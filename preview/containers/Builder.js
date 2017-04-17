@@ -10,7 +10,7 @@ import _forOwn from 'lodash.forown';
 import _get from 'lodash.get';
 import _set from 'lodash.set';
 import { Map as ImmutableMap, List as ImmutableList } from 'immutable';
-import { resolveTypedef } from '@jssy/types';
+import { resolveTypedef, TypeNames } from '@jssy/types';
 import { getComponentById } from '../../app/models/Project';
 
 import {
@@ -47,7 +47,7 @@ import {
 } from '../../app/utils/graphql';
 
 import { getFunctionInfo } from '../../app/utils/functions';
-import { noop, returnNull } from '../../app/utils/misc';
+import { noop, returnNull, isUndef } from '../../app/utils/misc';
 
 /**
  *
@@ -454,21 +454,27 @@ class BuilderComponent extends PureComponent {
     if (jssyValue.source === 'static') {
       if (jssyValue.sourceData.ownerPropName && !ignoreOwnerProps) {
         return propsFromOwner[jssyValue.sourceData.ownerPropName];
-      } else if (resolvedTypedef.type === 'shape') {
+      } else if (resolvedTypedef.type === TypeNames.SHAPE) {
         if (jssyValue.sourceData.value === null) return null;
-
-        return _mapValues(resolvedTypedef.fields, (fieldMeta, fieldName) => {
+        
+        const ret = {};
+        
+        _forOwn(resolvedTypedef.fields, (fieldMeta, fieldName) => {
           const fieldValue = jssyValue.sourceData.value.get(fieldName);
-
-          return this._buildValue(
-            fieldValue,
-            fieldMeta,
-            userTypedefs,
-            theMap,
-            componentId,
-          );
+          
+          if (!isUndef(fieldValue)) {
+            ret[fieldName] = this._buildValue(
+              fieldValue,
+              fieldMeta,
+              userTypedefs,
+              theMap,
+              componentId,
+            );
+          }
         });
-      } else if (resolvedTypedef.type === 'objectOf') {
+        
+        return ret;
+      } else if (resolvedTypedef.type === TypeNames.OBJECT_OF) {
         if (jssyValue.sourceData.value === null) return null;
 
         return jssyValue.sourceData.value.map(nestedValue =>
@@ -480,7 +486,7 @@ class BuilderComponent extends PureComponent {
             componentId,
           ),
         ).toJS();
-      } else if (resolvedTypedef.type === 'arrayOf') {
+      } else if (resolvedTypedef.type === TypeNames.ARRAY_OF) {
         return jssyValue.sourceData.value.map(nestedValue =>
           this._buildValue(
             nestedValue,
@@ -498,7 +504,7 @@ class BuilderComponent extends PureComponent {
         ? jssyConstants[jssyValue.sourceData.jssyConstId]
         : jssyValue.sourceData.value;
     } else if (jssyValue.source === 'designer') {
-      return jssyValue.sourceData.components && jssyValue.sourceData.rootId > -1
+      return jssyValue.hasDesignedComponent()
         ? this._makeBuilderForProp(jssyValue, theMap)
         : returnNull;
     } else if (jssyValue.source === 'data') {

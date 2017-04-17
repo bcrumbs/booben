@@ -5,7 +5,7 @@
 'use strict';
 
 import _forOwn from 'lodash.forown';
-import { TypeNames } from '@jssy/types';
+import { TypeNames, resolveTypedef } from '@jssy/types';
 import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
@@ -132,9 +132,9 @@ export const canInsertComponent = (
   position,
   meta,
 ) => {
-  const componentMeta = getComponentMeta(componentName, meta),
-    { namespace } = parseComponentName(componentName),
-    containerMeta = getComponentMeta(containerName, meta);
+  const componentMeta = getComponentMeta(componentName, meta);
+  const containerMeta = getComponentMeta(containerName, meta);
+  const { namespace } = parseComponentName(componentName);
 
   if (containerMeta.kind !== 'container') return false;
   if (!componentMeta.placement) return true;
@@ -426,6 +426,7 @@ const sourcePriority = [
  * @param {JssyValueDefinition} valueDef
  * @param {?Object<string, Object<string, string>>} strings
  * @param {string} language
+ * @param {?Object<string, JssyTypeDefinition>} userTypedefs
  * @param {*|Symbol} [inheritedDefaultValue=Symbol]
  * @return {PlainJssyValue|Symbol}
  */
@@ -433,12 +434,15 @@ const _buildDefaultValue = (
   valueDef,
   strings,
   language,
+  userTypedefs,
   inheritedDefaultValue = NO_VALUE,
 ) => {
+  const resolvedValueDef = resolveTypedef(valueDef, userTypedefs);
+  
   for (let i = 0, l = sourcePriority.length; i < l; i++) {
-    if (isValidSourceForValue(valueDef, sourcePriority[i])) {
+    if (isValidSourceForValue(resolvedValueDef, sourcePriority[i])) {
       const defaultValue = defaultValueBuilders[sourcePriority[i]](
-        valueDef,
+        resolvedValueDef,
         strings,
         language,
         inheritedDefaultValue,
@@ -456,23 +460,41 @@ const _buildDefaultValue = (
  * @param {JssyValueDefinition} valueDef
  * @param {?Object<string, Object<string, string>>} [strings=null]
  * @param {string} [language='']
+ * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
  * @return {PlainJssyValue|NO_VALUE}
  */
-export const buildDefaultValue = (valueDef, strings = null, language = '') =>
-  _buildDefaultValue(valueDef, strings, language);
+export const buildDefaultValue = (
+  valueDef,
+  strings = null,
+  language = '',
+  userTypedefs = null,
+) =>
+  _buildDefaultValue(valueDef, strings, language, userTypedefs);
 
 /**
  *
  * @param {Object<string, ComponentPropMeta>} propsMeta
  * @param {?Object<string, Object<string, string>>} [strings=null]
  * @param {string} [language='']
+ * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
  * @return {Object<string, PlainJssyValue>}
  */
-const buildDefaultProps = (propsMeta, strings = null, language = '') => {
+const buildDefaultProps = (
+  propsMeta,
+  strings = null,
+  language = '',
+  userTypedefs = null,
+) => {
   const ret = {};
 
   _forOwn(propsMeta, (propMeta, propName) => {
-    const defaultValue = buildDefaultValue(propMeta, strings, language);
+    const defaultValue = buildDefaultValue(
+      propMeta,
+      strings,
+      language,
+      userTypedefs,
+    );
+    
     if (defaultValue !== NO_VALUE) ret[propName] = defaultValue;
   });
 
@@ -513,6 +535,7 @@ export const constructComponent = (
       componentMeta.props,
       componentMeta.strings,
       language,
+      componentMeta.types,
     ),
     
     children: [],
@@ -536,6 +559,7 @@ export const constructComponent = (
           regionComponentMeta.props,
           regionComponentMeta.strings,
           language,
+          regionComponentMeta.types,
         ),
         
         region.props || {},

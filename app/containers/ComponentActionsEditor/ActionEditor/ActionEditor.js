@@ -355,6 +355,7 @@ class ActionEditorComponent extends PureComponent {
         arg,
         targetComponentMeta.strings,
         language,
+        targetComponentMeta.types,
       )),
     ));
     

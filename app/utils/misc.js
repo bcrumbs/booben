@@ -47,11 +47,17 @@ export const isInteger = value => isNumber(value) && value % 1 === 0;
 
 /**
  *
- * @param {*} maybeObject
+ * @param {*} value
  * @return {boolean}
  */
-export const isObject = maybeObject =>
-  typeof maybeObject === 'object' && maybeObject !== null;
+export const isObject = value => typeof value === 'object' && value !== null;
+
+/**
+ *
+ * @param {*} value
+ * @return {boolean}
+ */
+export const isUndef = value => typeof value === 'undefined';
 
 /**
  *
