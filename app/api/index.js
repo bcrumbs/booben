@@ -20,7 +20,6 @@ export const getProject = async projectName => {
   return data;
 };
 
-
 /**
  *
  * @param {string} projectName

@@ -124,15 +124,21 @@ export class DataSelection extends PureComponent {
    * @private
    */
   _getBreadcrumbsItems() {
-    const { dataContext, rootTypeName } = this.props;
+    const { dataContext, rootTypeName, getLocalizedText } = this.props;
+    const { currentPath } = this.state;
+
+    const firstItemTitle = getLocalizedText('linkDialog.sources');
+    const secondItemTitle = dataContext.length > 0
+      ? getLocalizedText('linkDialog.source.dataContext', {
+        context: rootTypeName,
+      })
+      : getLocalizedText('linkDialog.source.data');
     
-    // TODO: Get strings from i18n
-    const firstItemTitle = dataContext.length > 0
-      ? `Context - ${rootTypeName}`
-      : 'Data';
-    
-    return [{ title: 'Sources' }, { title: firstItemTitle }]
-      .concat(this.state.currentPath.map(fieldName => ({ title: fieldName })));
+    return [
+      { title: firstItemTitle },
+      { title: secondItemTitle },
+      ...currentPath.map(fieldName => ({ title: fieldName })),
+    ];
   }
   
   /**
