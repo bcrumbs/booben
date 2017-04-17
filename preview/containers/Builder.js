@@ -5,7 +5,6 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { graphql, withApollo } from 'react-apollo';
 import _merge from 'lodash.merge';
-import _mapValues from 'lodash.mapvalues';
 import _forOwn from 'lodash.forown';
 import _get from 'lodash.get';
 import _set from 'lodash.set';
@@ -552,8 +551,7 @@ class BuilderComponent extends PureComponent {
       // TODO: Pass fns as last argument
       return fnInfo.fn(...argValues, {});
     } else if (jssyValue.source === 'actions') {
-      // No actions in design-time
-      if (interactive || isPlaceholder) return noop;
+      if (isPlaceholder) return noop;
       
       return (...args) => {
         const stateUpdates = resolvedTypedef.sourceConfigs.actions.updateState;
@@ -589,6 +587,9 @@ class BuilderComponent extends PureComponent {
             }
           }
         }
+  
+        // No actions in design-time
+        if (interactive) return;
         
         jssyValue.sourceData.actions.forEach(action =>
           void this._performAction(action, componentId, theMap));
