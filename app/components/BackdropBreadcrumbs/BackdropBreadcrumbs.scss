@@ -8,11 +8,10 @@
     .backdrop_breadcrumbs {
         background-color: color($bg, 700);
         padding: 0 $base-module * 2;
-        position: relative;
-        //width: 100%;
-        //top: 0;
-        //left: 0;
-        //position: fixed;
+        position: fixed;
+        width: 100%;
+        top: 0;
+        left: 0;
         z-index: 9999;
 
         .breadcrumbs-item {

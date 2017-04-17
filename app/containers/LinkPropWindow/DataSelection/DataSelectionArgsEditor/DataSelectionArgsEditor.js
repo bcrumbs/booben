@@ -66,7 +66,9 @@ export class DataSelectionArgsEditor extends PureComponent {
   }
   
   _handleLink({ name, path, targetValueDef, targetUserTypedefs }) {
-    const { onNestedLink } = this.props;
+    const { field, onNestedLink } = this.props;
+
+    const nestedLinkWindowName = `${field.name}(${[name, ...path].join('.')})`;
     
     this.setState({
       linking: true,
@@ -75,6 +77,7 @@ export class DataSelectionArgsEditor extends PureComponent {
     });
     
     onNestedLink({
+      name: nestedLinkWindowName,
       valueDef: targetValueDef,
       userTypedefs: targetUserTypedefs,
       onLink: this._handleLinkDone,

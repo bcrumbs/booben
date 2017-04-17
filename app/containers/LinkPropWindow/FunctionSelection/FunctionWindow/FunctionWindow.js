@@ -31,6 +31,7 @@ import { noop, returnArg } from '../../../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 const propTypes = {
+  targetValueDef: PropTypes.object.isRequired,
   functionDef: PropTypes.instanceOf(ProjectFunctionRecord).isRequired,
   getLocalizedText: PropTypes.func,
   onApply: PropTypes.func,
@@ -50,27 +51,37 @@ const defaultProps = {
 /**
  *
  * @param {Object} arg - FunctionArgument Record
+ * @param {JssyValueDefinition} targetValueDef
  * @return {JssyValueDefinition}
  */
-const getValueDef = arg => ({
-  ...arg.typedef,
-  label: arg.name,
-  description: arg.description,
-  source: ['static'], // TODO: Compute sources list based on link target?
-  sourceConfigs: {
-    static: {
-      default: makeDefaultValue(arg.typedef),
-    },
-  },
-});
+const getValueDef = (arg, targetValueDef) => {
+  const ret = {
+    ...arg.typedef,
+    label: arg.name,
+    description: arg.description,
+    source: [],
+    sourceConfigs: {},
+  };
+
+  targetValueDef.source.forEach(source => {
+    ret.source.push(source);
+    ret.sourceConfigs[source] = {};
+
+    if (source === 'static')
+      ret.sourceConfigs.static.default = makeDefaultValue(arg.typedef);
+  });
+
+  return ret;
+};
 
 /**
  *
  * @param {Object} functionDef - ProjectFunction Record
+ * @param {JssyValueDefinition} targetValueDef
  * @return {JssyValueDefinition[]}
  */
-const getValueDefs = functionDef =>
-  Array.from(functionDef.args.map(getValueDef));
+const getValueDefs = (functionDef, targetValueDef) =>
+  Array.from(functionDef.args.map(arg => getValueDef(arg, targetValueDef)));
 
 /**
  *
@@ -98,7 +109,7 @@ export class FunctionWindow extends PureComponent {
   constructor(props) {
     super(props);
   
-    this._argsValueDefs = getValueDefs(props.functionDef);
+    this._argsValueDefs = getValueDefs(props.functionDef, props.targetValueDef);
 
     this.state = {
       values: makeDefaultValues(this._argsValueDefs),
@@ -116,8 +127,14 @@ export class FunctionWindow extends PureComponent {
   }
   
   componentWillReceiveProps(nextProps) {
-    if (nextProps.functionDef !== this.props.functionDef) {
-      this._argsValueDefs = getValueDefs(nextProps.functionDef);
+    if (
+      nextProps.functionDef !== this.props.functionDef ||
+      nextProps.targetValueDef !== this.props.targetValueDef
+    ) {
+      this._argsValueDefs = getValueDefs(
+        nextProps.functionDef,
+        nextProps.targetValueDef,
+      );
       
       this.setState({
         values: makeDefaultValues(this._argsValueDefs),
@@ -155,7 +172,12 @@ export class FunctionWindow extends PureComponent {
   }
   
   _handleLink({ name, path, targetValueDef, targetUserTypedefs }) {
-    const { onNestedLink } = this.props;
+    const { functionDef, onNestedLink } = this.props;
+
+    const argIndex = parseInt(name, 10);
+    const arg = functionDef.args.get(argIndex);
+    const nestedLinkWindowName =
+      `${functionDef.title}(${[arg.name, ...path].join('.')})`;
     
     this.setState({
       linking: true,
@@ -164,6 +186,7 @@ export class FunctionWindow extends PureComponent {
     });
     
     onNestedLink({
+      name: nestedLinkWindowName,
       valueDef: targetValueDef,
       userTypedefs: targetUserTypedefs,
       onLink: this._handleLinkDone,

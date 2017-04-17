@@ -117,7 +117,7 @@ const mapStateToProps = state => ({
   ownerUserTypedefs: ownerUserTypedefsSelector(state),
   language: state.app.language,
   pickingComponent: state.project.pickingComponent,
-  pickingComponentStateSlot: state.project.pickingComponent,
+  pickingComponentStateSlot: state.project.pickingComponentStateSlot,
   pickedComponentId: state.project.pickedComponentId,
   pickedComponentStateSlot: state.project.pickedComponentStateSlot,
   getLocalizedText: getLocalizedTextFromState(state),
@@ -191,7 +191,7 @@ class ActionEditorComponent extends PureComponent {
     const { action, pickingPath } = this.state;
     
     if (pickingComponent && !nextProps.pickingComponent) {
-      if (pickingComponentStateSlot) return;
+      if (nextProps.pickingComponentStateSlot) return;
 
       if (action.type === 'method') {
         this._handleMethodActionSetComponent({
@@ -1005,7 +1005,19 @@ class ActionEditorComponent extends PureComponent {
     ];
     
     const isSaveButtonDisabled = !this._isCurrentActionValid();
-    
+
+    const linkWindowName = linkParams
+      ? [linkParams.name, ...linkParams.path].join(',')
+      : '';
+
+    const linkTargetValueDef = linkParams
+      ? linkParams.targetValueDef
+      : null;
+
+    const linkTargetUserTypedefs = linkParams
+      ? linkParams.targetUserTypedefs
+      : null;
+
     return (
       <BlockContentBoxItem>
         <PropsList>
@@ -1033,8 +1045,9 @@ class ActionEditorComponent extends PureComponent {
           onClose={this._handleLinkCancel}
         >
           <LinkPropWindow
-            valueDef={linkParams ? linkParams.targetValueDef : null}
-            userTypedefs={linkParams ? linkParams.targetUserTypedefs : null}
+            name={linkWindowName}
+            valueDef={linkTargetValueDef}
+            userTypedefs={linkTargetUserTypedefs}
             onLink={this._handleLinkApply}
           />
         </Dialog>

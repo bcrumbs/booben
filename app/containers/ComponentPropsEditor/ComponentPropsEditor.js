@@ -142,6 +142,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       linkingProp: false,
       linkingPath: null,
       linkingValueDef: null,
+      linkWindowName: '',
       pickingPath: null,
     };
   
@@ -214,6 +215,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       linkingProp: true,
       linkingPath: buildFullPath(componentId, isSystemProp, name, path),
       linkingValueDef,
+      linkWindowName: [name, ...path].join('.'),
     });
   }
   
@@ -225,6 +227,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       linkingProp: false,
       linkingPath: null,
       linkingValueDef: null,
+      linkWindowName: '',
     });
     
     onReplacePropValue(linkingPath, newValue);
@@ -235,6 +238,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       linkingProp: false,
       linkingPath: null,
       linkingValueDef: null,
+      linkWindowName: '',
     });
   }
 
@@ -437,7 +441,7 @@ class ComponentPropsEditorComponent extends PureComponent {
 
   render() {
     const { selectedComponentIds, getLocalizedText } = this.props;
-    const { linkingProp, linkingValueDef } = this.state;
+    const { linkingProp, linkingValueDef, linkWindowName } = this.state;
 
     if (selectedComponentIds.size === 0) {
       //noinspection JSCheckFunctionSignatures
@@ -552,6 +556,7 @@ class ComponentPropsEditorComponent extends PureComponent {
           onClose={this._handleLinkCancel}
         >
           <LinkPropWindow
+            name={linkWindowName}
             valueDef={linkingValueDef}
             userTypedefs={componentMeta.types}
             onLink={this._handleLinkApply}

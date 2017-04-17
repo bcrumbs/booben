@@ -4,7 +4,6 @@
 
 'use strict';
 
-import _set from 'lodash.set';
 import _forOwn from 'lodash.forown';
 import { Record, Map, List } from 'immutable';
 import { NO_VALUE } from '../constants/misc';
@@ -618,10 +617,7 @@ const buildGraphQLFragmentsForOwnComponent = (
           dataContextTreeNode.type,
         );
       }
-    } else if (
-      value.source === 'designer' &&
-      value.sourceData.rootId > -1
-    ) {
+    } else if (value.hasDesignedComponent()) {
       designerPropsWithComponent.push({
         value,
         typedef,
@@ -843,18 +839,6 @@ export const extractPropValueFromData = (
   }
 }, { data, type: rootType }).data;
 
-export const mapDataToComponentProps = (component, data, schema, meta) => {
-  const componentMeta = getComponentMeta(component.name, meta);
-  const ret = {};
-
-  walkSimpleProps(component, componentMeta, (jssyValue, propMeta, path) => {
-    if (jssyValue.isLinkedWithData())
-      _set(ret, path, extractPropValueFromData(jssyValue, data, schema));
-  });
-
-  return ret;
-};
-
 /**
  *
  * @param {DataFieldTypeDefinition} typeDefinition
@@ -941,14 +925,14 @@ const saveMutationToCache = (schema, mutationName, mutation) => {
 
 /**
  *
- * @param {?Object} requestData
+ * @param {?Object} selections
  * @return {Object[]}
  */
-const selectionsToAST = requestData => {
-  if (!requestData) return [];
+const selectionsToAST = selections => {
+  if (!selections) return [];
   
   return objectToArray(
-    requestData,
+    selections,
   
     (value, key) => ({
       kind: 'Field',
@@ -1048,7 +1032,7 @@ export const buildMutation = (schema, mutationName, selections = null) => {
               ? null
               : {
                 kind: 'SelectionSet',
-                selections: [{
+                selections: [...selectionsToAST(selections), {
                   kind: 'Field',
                   alias: null,
                   name: {
@@ -1058,7 +1042,7 @@ export const buildMutation = (schema, mutationName, selections = null) => {
                   arguments: [],
                   directives: [],
                   selectionSet: null,
-                }, ...selectionsToAST(selections)],
+                }],
               },
           }],
         },

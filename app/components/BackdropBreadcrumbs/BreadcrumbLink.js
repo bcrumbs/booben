@@ -11,35 +11,26 @@ import {
 
 const propTypes = {
   tooltipText: PropTypes.string.isRequired,
-  hideTooltipAfter: PropTypes.number,
-
-  toggleTooltip: PropTypes.func,
-  showTooltip: PropTypes.func,
-  hideTooltip: PropTypes.func,
-  isTooltipActive: PropTypes.bool,
-  Tooltip: PropTypes.func,
 };
+
 const defaultProps = {
 };
 
-class BreadcrumbLinkComponent extends Component {
-  render() {
-    return (
-      <div
-        onClick={this.props.toggleTooltip}
-        onFocus={this.props.showTooltip}
-        onBlur={this.props.hideTooltip}
-        onMouseEnter={this.props.showTooltip}
-        onMouseLeave={this.props.hideTooltip}
-        className="breadcrumbs_link-wrapper has-tooltip"
-        tabIndex="1"
-      >
-        { this.props.children }
-        <this.props.Tooltip text={this.props.tooltipText}/>
-      </div>
-    );
-  }
-}
+/* eslint-disable react/jsx-handler-names, react/prop-types */
+const BreadcrumbLinkComponent = props => (
+  <div
+    onClick={props.toggleTooltip}
+    onFocus={props.showTooltip}
+    onBlur={props.hideTooltip}
+    onMouseEnter={props.showTooltip}
+    onMouseLeave={props.hideTooltip}
+    className="breadcrumbs_link-wrapper has-tooltip"
+  >
+    {props.children}
+    <props.Tooltip text={props.tooltipText} />
+  </div>
+);
+/* eslint-enable react/jsx-handler-names, react/prop-types */
 
 BreadcrumbLinkComponent.propTypes = propTypes;
 BreadcrumbLinkComponent.defaultProps = defaultProps;

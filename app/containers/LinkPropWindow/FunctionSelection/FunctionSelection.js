@@ -7,6 +7,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import { isCompatibleType } from '@jssy/types';
 import { FunctionsList } from './FunctionsList/FunctionsList';
 import { FunctionWindow } from './FunctionWindow/FunctionWindow';
 import { NewFunctionWindow } from './NewFunctionWindow/NewFunctionWindow';
@@ -19,6 +20,8 @@ import {
 import { noop, returnArg } from '../../../utils/misc';
 
 const propTypes = {
+  valueDef: PropTypes.object.isRequired,
+  userTypedefs: PropTypes.object,
   projectFunctions: ImmutablePropTypes.map,
   builtinFunctions: ImmutablePropTypes.map,
   getLocalizedText: PropTypes.func,
@@ -29,6 +32,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+  userTypedefs: null,
   projectFunctions: {},
   builtinFunctions: {},
   getLocalizedText: returnArg,
@@ -123,25 +127,35 @@ export class FunctionSelection extends PureComponent {
   }
 
   _renderFunctionsList() {
-    const { builtinFunctions, projectFunctions, getLocalizedText } = this.props;
+    const {
+      valueDef,
+      userTypedefs,
+      builtinFunctions,
+      projectFunctions,
+      getLocalizedText,
+    } = this.props;
 
     const projectFunctionsList = [];
     const builtinFunctionsList = [];
 
     projectFunctions.forEach((fnDef, fnName) => {
-      projectFunctionsList.push({
-        id: fnName,
-        name: fnDef.title,
-        description: fnDef.description,
-      });
+      if (isCompatibleType(valueDef, fnDef.returnType, userTypedefs, null)) {
+        projectFunctionsList.push({
+          id: fnName,
+          name: fnDef.title,
+          description: fnDef.description,
+        });
+      }
     });
   
     builtinFunctions.forEach((fnDef, fnName) => {
-      builtinFunctionsList.push({
-        id: fnName,
-        name: fnDef.title,
-        description: fnDef.description,
-      });
+      if (isCompatibleType(valueDef, fnDef.returnType, userTypedefs, null)) {
+        builtinFunctionsList.push({
+          id: fnName,
+          name: fnDef.title,
+          description: fnDef.description,
+        });
+      }
     });
 
     return (
@@ -158,6 +172,7 @@ export class FunctionSelection extends PureComponent {
 
   _renderFunctionWindow() {
     const {
+      valueDef,
       projectFunctions,
       builtinFunctions,
       getLocalizedText,
@@ -174,6 +189,7 @@ export class FunctionSelection extends PureComponent {
 
     return (
       <FunctionWindow
+        targetValueDef={valueDef}
         functionDef={functionDef}
         getLocalizedText={getLocalizedText}
         onApply={this._handleApply}

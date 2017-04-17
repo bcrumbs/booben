@@ -164,6 +164,7 @@ export class NestedProp extends PureComponent {
       tooltip: propType.tooltip,
       message: value.message,
       linkable: !!propType.linkable,
+      pickable: !!propType.pickable,
       linked: !!value.linked,
       linkedWith: value.linkedWith || '',
       checkable: !!propType.checkable,

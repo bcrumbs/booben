@@ -40,7 +40,6 @@ import { getJssyTypeOfField, getMutationField } from '../../app/utils/schema';
 
 import {
   buildQueryForComponent,
-  mapDataToComponentProps,
   extractPropValueFromData,
   buildMutation,
 } from '../../app/utils/graphql';
@@ -270,7 +269,7 @@ class BuilderComponent extends PureComponent {
       });
   }
   
-  _performAction(action, componentId, theMap) {
+  _performAction(action, componentId, theMap, data) {
     const {
       project,
       meta,
@@ -312,6 +311,7 @@ class BuilderComponent extends PureComponent {
             null,
             theMap,
             componentId,
+            data,
           );
         
           if (value !== NO_VALUE) variables[argName] = value;
@@ -319,12 +319,14 @@ class BuilderComponent extends PureComponent {
         
         this._performMutation(action.params.mutation, mutation, variables)
           .then(() => {
-            action.params.successActions.forEach(successAction =>
-              void this._performAction(successAction, componentId, theMap));
+            action.params.successActions.forEach(successAction => {
+              this._performAction(successAction, componentId, theMap, data);
+            });
           })
           .catch(() => {
-            action.params.errorActions.forEach(errorAction =>
-              void this._performAction(errorAction, componentId, theMap));
+            action.params.errorActions.forEach(errorAction => {
+              this._performAction(errorAction, componentId, theMap, data);
+            });
           });
       
         break;
@@ -340,6 +342,7 @@ class BuilderComponent extends PureComponent {
             null,
             theMap,
             componentId,
+            data,
           );
         
           if (value !== NO_VALUE) routeParams[paramName] = value;
@@ -383,6 +386,7 @@ class BuilderComponent extends PureComponent {
             componentMeta.types,
             theMap,
             componentId,
+            data,
           );
         
           args.push(value !== NO_VALUE ? value : void 0);
@@ -437,9 +441,10 @@ class BuilderComponent extends PureComponent {
    * @param {Object<string, JssyTypeDefinition>} userTypedefs
    * @param {Immutable.Map<Object, Object>} theMap
    * @param {number} componentId
+   * @param {?Object} data
    * @return {*}
    */
-  _buildValue(jssyValue, typedef, userTypedefs, theMap, componentId) {
+  _buildValue(jssyValue, typedef, userTypedefs, theMap, componentId, data) {
     const {
       interactive,
       project,
@@ -472,6 +477,7 @@ class BuilderComponent extends PureComponent {
               userTypedefs,
               theMap,
               componentId,
+              data,
             );
           }
         });
@@ -487,6 +493,7 @@ class BuilderComponent extends PureComponent {
             userTypedefs,
             theMap,
             componentId,
+            data,
           ),
         ).toJS();
       } else if (resolvedTypedef.type === TypeNames.ARRAY_OF) {
@@ -497,6 +504,7 @@ class BuilderComponent extends PureComponent {
             userTypedefs,
             theMap,
             componentId,
+            data,
           ),
         ).toJS();
       } else {
@@ -523,6 +531,10 @@ class BuilderComponent extends PureComponent {
           schema,
           ourDataContextInfo.type,
         );
+      } else if (data) {
+        return extractPropValueFromData(jssyValue, data, schema);
+      } else {
+        return NO_VALUE;
       }
     } else if (jssyValue.source === 'function') {
       const fnInfo = getFunctionInfo(
@@ -545,6 +557,7 @@ class BuilderComponent extends PureComponent {
             userTypedefs,
             theMap,
             componentId,
+            data,
           );
         }
 
@@ -595,8 +608,9 @@ class BuilderComponent extends PureComponent {
         // No actions in design-time
         if (interactive) return;
         
-        jssyValue.sourceData.actions.forEach(action =>
-          void this._performAction(action, componentId, theMap));
+        jssyValue.sourceData.actions.forEach(action => {
+          this._performAction(action, componentId, theMap, data);
+        });
       };
     } else if (jssyValue.source === 'state') {
       const componentState =
@@ -619,9 +633,10 @@ class BuilderComponent extends PureComponent {
    *
    * @param {Object} component
    * @param {Immutable.Map<Object, Object>} theMap
+   * @param {?Object} [data=null]
    * @return {Object<string, *>}
    */
-  _buildProps(component, theMap) {
+  _buildProps(component, theMap, data = null) {
     const { meta } = this.props;
     const { dynamicPropValues } = this.state;
     const componentMeta = getComponentMeta(component.name, meta);
@@ -637,6 +652,7 @@ class BuilderComponent extends PureComponent {
         componentMeta.types,
         theMap,
         component.id,
+        data,
       );
 
       if (value !== NO_VALUE) ret[propName] = value;
@@ -889,7 +905,9 @@ class BuilderComponent extends PureComponent {
     if (!systemProps.visible) return null;
     
     // Build props
-    const props = this._buildProps(component, theMergedMap);
+    const props = graphQLQuery
+      ? {} // We'll build them later
+      : this._buildProps(component, theMergedMap);
 
     // Render children
     props.children = this._renderComponentChildren(component, isPlaceholder);
@@ -951,16 +969,16 @@ class BuilderComponent extends PureComponent {
       Renderable = graphql(graphQLQuery, {
         props: ({ ownProps, data }) => {
           // TODO: Better check
-          if (Object.keys(data).length <= 10) return ownProps;
+          const haveData = Object.keys(data).length > 10;
 
-          const dataProps = mapDataToComponentProps(
-            component,
-            data,
-            this.props.schema,
-            this.props.meta,
-          );
-
-          return _merge({}, ownProps, dataProps);
+          return {
+            ...ownProps,
+            ...this._buildProps(
+              component,
+              theMergedMap,
+              haveData ? data : null,
+            ),
+          };
         },
 
         options: {
