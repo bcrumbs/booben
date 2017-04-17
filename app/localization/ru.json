@@ -43,13 +43,13 @@
 
   "description": "Описание",
 
-  "elementsTree": "Дерево элементов",
-  "componentConfiguration": "Конфигурация компонента",
-  "enterTitle": "Введите название",
-  "componentsLibrary": "Библиотека компонентов",
-  "deleteThisComponentQuestion": "Вы уверены, что хотите удалить текущий компонент?",
-  "selectLayout": "Выбрать слой",
-  "deleteComponent": "Удаление компонента",
+  "design.tool.elementsTree": "Дерево элементов",
+  "design.tool.componentsLibrary": "Библиотека компонентов",
+  "design.tool.componentConfiguration": "Конфигурация компонента",
+  "design.tool.componentConfiguration.enterTitle": "Введите название",
+  "design.deleteComponent": "Удаление компонента",
+  "design.deleteComponentQuestion": "Are you sure you want to delete component {title}?",
+  "design.selectLayout": "Выберите раскладку компонента",
 
   "selectAComponent": "Выбрать компонент",
   "multipleComponentsSelected": "Выбрано несколько компонентов",

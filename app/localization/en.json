@@ -43,13 +43,13 @@
 
   "description": "Description",
 
-  "elementsTree": "Elements tree",
-  "componentConfiguration": "Component configuration",
-  "enterTitle": "Enter title",
-  "componentsLibrary": "Components library",
-  "deleteThisComponentQuestion": "Are you sure you want to delete this component?",
-  "selectLayout": "Select layout",
-  "deleteComponent": "Delete component",
+  "design.tool.elementsTree": "Elements tree",
+  "design.tool.componentsLibrary": "Components library",
+  "design.tool.componentConfiguration": "Component configuration",
+  "design.tool.componentConfiguration.enterTitle": "Enter title",
+  "design.deleteComponent": "Delete component",
+  "design.deleteComponentQuestion": "Are you sure you want to delete component {title}?",
+  "design.selectLayout": "Select component layout",
 
   "selectAComponent": "Select a component",
   "multipleComponentsSelected": "Multiple components selected",

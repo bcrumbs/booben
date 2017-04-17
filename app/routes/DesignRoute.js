@@ -250,8 +250,8 @@ class DesignRoute extends PureComponent {
     return new ToolRecord({
       id: TOOL_ID_LIBRARY,
       icon: LIBRARY_ICON,
-      name: getLocalizedText('componentsLibrary'),
-      title: getLocalizedText('componentsLibrary'),
+      name: getLocalizedText('design.tool.componentsLibrary'),
+      title: getLocalizedText('design.tool.componentsLibrary'),
       sections: List([
         new ToolSectionRecord({
           name: '',
@@ -268,8 +268,8 @@ class DesignRoute extends PureComponent {
     return new ToolRecord({
       id: TOOL_ID_COMPONENTS_TREE,
       icon: COMPONENTS_TREE_ICON,
-      name: getLocalizedText('elementsTree'),
-      title: getLocalizedText('elementsTree'),
+      name: getLocalizedText('design.tool.elementsTree'),
+      title: getLocalizedText('design.tool.elementsTree'),
       sections: List([
         new ToolSectionRecord({
           name: '',
@@ -343,16 +343,20 @@ class DesignRoute extends PureComponent {
         );
       }
     } else {
-      title = getLocalizedText('componentConfiguration');
+      title = getLocalizedText('design.tool.componentConfiguration');
     }
+
+    const name = getLocalizedText('design.tool.componentConfiguration');
+    const titlePlaceholder =
+      getLocalizedText('design.tool.componentConfiguration.enterTitle');
     
     return new ToolRecord({
       id: TOOL_ID_PROPS_EDITOR,
       icon: PROPS_EDITOR_ICON,
-      name: getLocalizedText('componentConfiguration'),
+      name,
       title,
       titleEditable: singleComponentSelected,
-      titlePlaceholder: getLocalizedText('enterTitle'),
+      titlePlaceholder,
       subtitle,
       mainButtons,
       sections,
@@ -397,7 +401,8 @@ class DesignRoute extends PureComponent {
      * @private
      */
   _handleDeleteComponentConfirm(closeDialog) {
-    this.props.onDeleteComponent(this.props.firstSelectedComponentId);
+    const { firstSelectedComponentId, onDeleteComponent } = this.props;
+    onDeleteComponent(firstSelectedComponentId);
     closeDialog();
   }
 
@@ -558,7 +563,13 @@ class DesignRoute extends PureComponent {
   }
 
   render() {
-    const { selectingComponentLayout, getLocalizedText } = this.props;
+    const {
+      components,
+      selectingComponentLayout,
+      firstSelectedComponentId,
+      getLocalizedText,
+    } = this.props;
+
     const { confirmDeleteComponentDialogIsVisible } = this.state;
 
     const layoutSelectionDialogContent =
@@ -575,6 +586,17 @@ class DesignRoute extends PureComponent {
     const toolGroups = this._getTools();
     const content = this._renderContent();
 
+    let deleteComponentDialogText = '';
+    if (confirmDeleteComponentDialogIsVisible) {
+      const selectedComponent = components.get(firstSelectedComponentId);
+      const componentTitle = selectedComponent.title || selectedComponent.name;
+
+      deleteComponentDialogText = getLocalizedText(
+        'design.deleteComponentQuestion',
+        { title: componentTitle },
+      );
+    }
+
     return (
       <Desktop
         toolGroups={toolGroups}
@@ -583,7 +605,7 @@ class DesignRoute extends PureComponent {
         {content}
         
         <Dialog
-          title={getLocalizedText('selectLayout')}
+          title={getLocalizedText('design.selectLayout')}
           backdrop
           minWidth={400}
           visible={selectingComponentLayout}
@@ -592,7 +614,7 @@ class DesignRoute extends PureComponent {
         </Dialog>
 
         <Dialog
-          title={getLocalizedText('deleteComponent')}
+          title={getLocalizedText('design.deleteComponent')}
           backdrop
           minWidth={400}
           buttons={confirmDeleteDialogButtons}
@@ -602,7 +624,7 @@ class DesignRoute extends PureComponent {
           onClose={this._handleConfirmDeleteComponentDialogClose}
           onEnterKeyPress={this._handleDeleteComponentConfirm}
         >
-          {getLocalizedText('deleteThisComponentQuestion')}
+          {deleteComponentDialogText}
         </Dialog>
       </Desktop>
     );
