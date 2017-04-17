@@ -33,18 +33,18 @@ import { noop, returnArg } from '../../../../utils/misc';
 const propTypes = {
   functionDef: PropTypes.instanceOf(ProjectFunctionRecord).isRequired,
   getLocalizedText: PropTypes.func,
-  onLink: PropTypes.func,
   onApply: PropTypes.func,
   onReturn: PropTypes.func,
   onReturnToList: PropTypes.func,
+  onNestedLink: PropTypes.func,
 };
 
 const defaultProps = {
   getLocalizedText: returnArg,
-  onLink: noop,
   onApply: noop,
   onReturn: noop,
   onReturnToList: noop,
+  onNestedLink: noop,
 };
 
 /**
@@ -102,10 +102,15 @@ export class FunctionWindow extends PureComponent {
 
     this.state = {
       values: makeDefaultValues(this._argsValueDefs),
+      linking: false,
+      linkingName: '',
+      linkingPath: null,
     };
     
     this._handleBreadcrumbsClick = this._handleBreadcrumbsClick.bind(this);
     this._handleChange = this._handleChange.bind(this);
+    this._handleLink = this._handleLink.bind(this);
+    this._handleLinkDone = this._handleLinkDone.bind(this);
     this._handleBackButtonPress = this._handleBackButtonPress.bind(this);
     this._handleApplyButtonPress = this._handleApplyButtonPress.bind(this);
   }
@@ -148,21 +153,58 @@ export class FunctionWindow extends PureComponent {
     const valuesMap = argValuesToMap(values, functionDef);
     this.props.onApply({ argValues: valuesMap });
   }
+  
+  _handleLink({ name, path, targetValueDef, targetUserTypedefs }) {
+    const { onNestedLink } = this.props;
+    
+    this.setState({
+      linking: true,
+      linkingName: name,
+      linkingPath: path,
+    });
+    
+    onNestedLink({
+      valueDef: targetValueDef,
+      userTypedefs: targetUserTypedefs,
+      onLink: this._handleLinkDone,
+    });
+  }
+  
+  _handleLinkDone({ newValue }) {
+    const { values, linking, linkingName, linkingPath } = this.state;
+    
+    if (!linking) return;
+  
+    const argIndex = parseInt(linkingName, 10);
+    
+    if (linkingPath.length > 0) {
+      this.setState({
+        values: values.update(
+          argIndex,
+          oldValue => oldValue.setInStatic(linkingPath, newValue),
+        ),
+      });
+    } else {
+      this.setState({
+        values: values.set(argIndex, newValue),
+      });
+    }
+  }
 
   _getBreadcrumbsItems() {
     const { functionDef, getLocalizedText } = this.props;
 
     return [{
-      title: getLocalizedText('sources'),
+      title: getLocalizedText('linkDialog.sources'),
     }, {
-      title: getLocalizedText('functions'),
+      title: getLocalizedText('linkDialog.source.function'),
     }, {
       title: functionDef.title,
     }];
   }
   
   _renderArgsForm() {
-    const { functionDef, getLocalizedText, onLink } = this.props;
+    const { functionDef, getLocalizedText } = this.props;
     const { values } = this.state;
     
     const props = functionDef.args.map((arg, idx) => {
@@ -177,7 +219,7 @@ export class FunctionWindow extends PureComponent {
           optional={!arg.isRequired}
           getLocalizedText={getLocalizedText}
           onChange={this._handleChange}
-          onLink={onLink}
+          onLink={this._handleLink}
         />
       );
     });
@@ -230,7 +272,7 @@ export class FunctionWindow extends PureComponent {
   
           <BlockContentActionsRegion type="secondary">
             <Button
-              text={getLocalizedText('functions.backToList')}
+              text={getLocalizedText('linkDialog.function.backToList')}
               onPress={this._handleBackButtonPress}
             />
           </BlockContentActionsRegion>

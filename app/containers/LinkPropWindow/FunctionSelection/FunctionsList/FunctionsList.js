@@ -22,7 +22,7 @@ import {
 } from '../../../../components/DataList/DataList';
 
 import { FunctionSources } from '../../../../utils/functions';
-import { noop } from '../../../../utils/misc';
+import { noop, returnArg } from '../../../../utils/misc';
 
 const FunctionShape = PropTypes.shape({
   id: PropTypes.string.isRequired,
@@ -33,6 +33,7 @@ const FunctionShape = PropTypes.shape({
 const propTypes = {
   builtinFunctions: PropTypes.arrayOf(FunctionShape),
   projectFunctions: PropTypes.arrayOf(FunctionShape),
+  getLocalizedText: PropTypes.func,
   onSelect: PropTypes.func,
   onAdd: PropTypes.func,
   onReturn: PropTypes.func,
@@ -41,6 +42,7 @@ const propTypes = {
 const defaultProps = {
   builtinFunctions: [],
   projectFunctions: [],
+  getLocalizedText: returnArg,
   onSelect: noop,
   onAdd: noop,
   onReturn: noop,
@@ -65,10 +67,12 @@ export class FunctionsList extends PureComponent {
   }
 
   _getBreadcrumbsItems() {
+    const { getLocalizedText } = this.props;
+    
     return [{
-      title: 'Sources',
+      title: getLocalizedText('linkDialog.sources'),
     }, {
-      title: 'Functions',
+      title: getLocalizedText('linkDialog.source.function'),
     }];
   }
 
@@ -78,7 +82,8 @@ export class FunctionsList extends PureComponent {
    * @private
    */
   _handleBreadcrumbsClick({ index }) {
-    if (index === 0) this.props.onReturn();
+    const { onReturn } = this.props;
+    if (index === 0) onReturn();
   }
 
   /**
@@ -133,7 +138,7 @@ export class FunctionsList extends PureComponent {
   }
 
   render() {
-    const { onAdd } = this.props;
+    const { getLocalizedText, onAdd } = this.props;
     const { activeSection } = this.state;
 
     const breadcrumbsItems = this._getBreadcrumbsItems();
@@ -145,7 +150,7 @@ export class FunctionsList extends PureComponent {
         <BlockContentBoxItem>
           <Button
             icon="plus"
-            text="Add new function"
+            text={getLocalizedText('linkDialog.function.create')}
             iconPosition="left"
             narrow
             onPress={onAdd}
@@ -155,8 +160,8 @@ export class FunctionsList extends PureComponent {
     }
     
     const tabs = [
-      { text: 'Library functions' },
-      { text: 'User functions' },
+      { text: getLocalizedText('linkDialog.function.library') },
+      { text: getLocalizedText('linkDialog.function.user') },
     ];
 
     return (

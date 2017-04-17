@@ -58,12 +58,14 @@ const propTypes = {
   getLocalizedText: PropTypes.func,
   onSelect: PropTypes.func,
   onReturn: PropTypes.func,
+  onNestedLink: PropTypes.func,
 };
 
 const defaultProps = {
   getLocalizedText: returnArg,
   onSelect: noop,
   onReturn: noop,
+  onNestedLink: noop,
 };
 
 const Views = {
@@ -473,7 +475,7 @@ export class DataSelection extends PureComponent {
   }
   
   _renderArgumentsForm() {
-    const { schema, getLocalizedText } = this.props;
+    const { schema, getLocalizedText, onNestedLink } = this.props;
     const {
       argumentsFieldName,
       argumentsField,
@@ -509,6 +511,7 @@ export class DataSelection extends PureComponent {
               fieldArgs={fieldArgs}
               getLocalizedText={getLocalizedText}
               onArgsUpdate={this._handleCurrentArgsUpdate}
+              onNestedLink={onNestedLink}
             />
           </BlockContentBoxItem>
         </BlockContentBox>
@@ -531,7 +534,7 @@ export class DataSelection extends PureComponent {
   }
   
   _renderFullArgumentsForm() {
-    const { schema, rootTypeName, getLocalizedText } = this.props;
+    const { schema, rootTypeName, getLocalizedText, onNestedLink } = this.props;
     const { currentPath, finalFieldName, tmpArgValues } = this.state;
     
     const fullPath = [...currentPath, finalFieldName];
@@ -556,6 +559,7 @@ export class DataSelection extends PureComponent {
               fieldArgs={values}
               getLocalizedText={getLocalizedText}
               onArgsUpdate={onArgsUpdate}
+              onNestedLink={onNestedLink}
             />
           </DataWindowContentGroup>
         );

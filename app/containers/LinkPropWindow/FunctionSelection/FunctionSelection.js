@@ -25,6 +25,7 @@ const propTypes = {
   onSelect: PropTypes.func,
   onCreateFunction: PropTypes.func,
   onReturn: PropTypes.func,
+  onNestedLink: PropTypes.func,
 };
 
 const defaultProps = {
@@ -34,6 +35,7 @@ const defaultProps = {
   onSelect: noop,
   onCreateFunction: noop,
   onReturn: noop,
+  onNestedLink: noop,
 };
 
 const Views = {
@@ -121,7 +123,7 @@ export class FunctionSelection extends PureComponent {
   }
 
   _renderFunctionsList() {
-    const { builtinFunctions, projectFunctions } = this.props;
+    const { builtinFunctions, projectFunctions, getLocalizedText } = this.props;
 
     const projectFunctionsList = [];
     const builtinFunctionsList = [];
@@ -146,6 +148,7 @@ export class FunctionSelection extends PureComponent {
       <FunctionsList
         projectFunctions={projectFunctionsList}
         builtinFunctions={builtinFunctionsList}
+        getLocalizedText={getLocalizedText}
         onSelect={this._handleSelectFunction}
         onAdd={this._handleAddFunction}
         onReturn={this._handleReturn}
@@ -154,7 +157,13 @@ export class FunctionSelection extends PureComponent {
   }
 
   _renderFunctionWindow() {
-    const { projectFunctions, builtinFunctions, getLocalizedText } = this.props;
+    const {
+      projectFunctions,
+      builtinFunctions,
+      getLocalizedText,
+      onNestedLink,
+    } = this.props;
+    
     const { selectedFunctionId, selectedFunctionSource } = this.state;
 
     const functionDefs = selectedFunctionSource === FunctionSources.BUILTIN
@@ -170,6 +179,7 @@ export class FunctionSelection extends PureComponent {
         onApply={this._handleApply}
         onReturn={this._handleReturn}
         onReturnToList={this._handleReturnToList}
+        onNestedLink={onNestedLink}
       />
     );
   }

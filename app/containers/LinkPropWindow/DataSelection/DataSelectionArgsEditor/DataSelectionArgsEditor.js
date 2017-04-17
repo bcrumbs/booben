@@ -21,21 +21,29 @@ const propTypes = {
   fieldArgs: PropTypes.object,
   getLocalizedText: PropTypes.func,
   onArgsUpdate: PropTypes.func,
-  onLink: PropTypes.func,
+  onNestedLink: PropTypes.func,
 };
 
 const defaultProps = {
   fieldArgs: null,
   getLocalizedText: returnArg,
   onArgsUpdate: noop,
-  onLink: noop,
+  onNestedLink: noop,
 };
 
 export class DataSelectionArgsEditor extends PureComponent {
   constructor(props) {
     super(props);
+    
+    this.state = {
+      linking: false,
+      linkingName: '',
+      linkingPath: null,
+    };
 
     this._handleUpdateValue = this._handleUpdateValue.bind(this);
+    this._handleLink = this._handleLink.bind(this);
+    this._handleLinkDone = this._handleLinkDone.bind(this);
   }
   
   /**
@@ -57,8 +65,50 @@ export class DataSelectionArgsEditor extends PureComponent {
     onArgsUpdate({ args: newArgs });
   }
   
+  _handleLink({ name, path, targetValueDef, targetUserTypedefs }) {
+    const { onNestedLink } = this.props;
+    
+    this.setState({
+      linking: true,
+      linkingName: name,
+      linkingPath: path,
+    });
+    
+    onNestedLink({
+      valueDef: targetValueDef,
+      userTypedefs: targetUserTypedefs,
+      onLink: this._handleLinkDone,
+    });
+  }
+  
+  _handleLinkDone({ newValue }) {
+    const { fieldArgs, onArgsUpdate } = this.props;
+    const { linking, linkingName, linkingPath } = this.state;
+    
+    if (!linking) return;
+  
+    let newArgs = fieldArgs || Map();
+  
+    if (linkingPath.length > 0) {
+      newArgs = newArgs.update(
+        linkingName,
+        oldValue => oldValue.setInStatic(linkingPath, newValue),
+      );
+    } else {
+      newArgs = newArgs.set(linkingName, newValue);
+    }
+  
+    this.setState({
+      linking: false,
+      linkingName: '',
+      linkingPath: null,
+    });
+  
+    onArgsUpdate({ args: newArgs });
+  }
+  
   render() {
-    const { field, schema, fieldArgs, getLocalizedText, onLink } = this.props;
+    const { field, schema, fieldArgs, getLocalizedText } = this.props;
   
     const items = objectToArray(field.args, (arg, argName) => {
       const valueDef = getJssyTypeOfField(arg, schema);
@@ -76,7 +126,7 @@ export class DataSelectionArgsEditor extends PureComponent {
           optional={!arg.nonNull}
           getLocalizedText={getLocalizedText}
           onChange={this._handleUpdateValue}
-          onLink={onLink}
+          onLink={this._handleLink}
         />
       );
     });

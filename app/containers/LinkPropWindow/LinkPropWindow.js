@@ -100,6 +100,10 @@ class LinkPropWindowComponent extends PureComponent {
     this.state = {
       selectedSourceId: '',
       selectedSourceData: null,
+      haveNestedWindow: false,
+      nestedWindowOnLink: null,
+      nestedWindowValueDef: null,
+      nestedWindowUserTypedefs: null,
     };
     
     this._handleSelectSource = this._handleSelectSource.bind(this);
@@ -108,6 +112,8 @@ class LinkPropWindowComponent extends PureComponent {
     this._handleLinkWithData = this._handleLinkWithData.bind(this);
     this._handleLinkWithFunction = this._handleLinkWithFunction.bind(this);
     this._handleCreateFunction = this._handleCreateFunction.bind(this);
+    this._handleNestedLink = this._handleNestedLink.bind(this);
+    this._handleNestedLinkDone = this._handleNestedLinkDone.bind(this);
   }
   
   /**
@@ -120,6 +126,7 @@ class LinkPropWindowComponent extends PureComponent {
       topNestedConstructor,
       availableDataContexts,
       valueDef,
+      getLocalizedText,
     } = this.props;
     
     const items = [];
@@ -127,20 +134,22 @@ class LinkPropWindowComponent extends PureComponent {
     if (topNestedConstructor) {
       items.push({
         id: 'owner',
-        title: 'Owner component', // TODO: Get string from i18n
+        title: getLocalizedText('linkDialog.source.owner'),
       });
     }
     
     if (isValidSourceForValue(valueDef, 'data')) {
       items.push({
         id: 'query',
-        title: 'Data', // TODO: Get string from i18n
+        title: getLocalizedText('linkDialog.source.data'),
       });
       
       availableDataContexts.forEach(({ dataContext, typeName }, idx) => {
         items.push({
           id: `context-${idx}`,
-          title: `Context - ${typeName}`, // TODO: Get string from i18n
+          title: getLocalizedText('linkDialog.source.dataContext', {
+            context: typeName,
+          }),
           data: {
             dataContext,
             rootTypeName: typeName,
@@ -152,7 +161,7 @@ class LinkPropWindowComponent extends PureComponent {
     // TODO: Define rules on when to allow to use functions
     items.push({
       id: 'function',
-      title: 'Function', // TODO: Get string from i18n
+      title: getLocalizedText('linkDialog.source.function'),
     });
     
     return items;
@@ -267,6 +276,40 @@ class LinkPropWindowComponent extends PureComponent {
   
   /**
    *
+   * @param {Function} onLink
+   * @param {JssyValueDefinition} valueDef
+   * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+   * @private
+   */
+  _handleNestedLink({ onLink, valueDef, userTypedefs }) {
+    this.setState({
+      haveNestedWindow: true,
+      nestedWindowOnLink: onLink,
+      nestedWindowValueDef: valueDef,
+      nestedWindowUserTypedefs: userTypedefs,
+    });
+  }
+  
+  /**
+   *
+   * @param {Object} value
+   * @private
+   */
+  _handleNestedLinkDone({ value }) {
+    const { nestedWindowOnLink } = this.state;
+    
+    this.setState({
+      haveNestedWindow: false,
+      nestedWindowOnLink: null,
+      nestedWindowValueDef: null,
+      nestedWindowUserTypedefs: null,
+    });
+    
+    nestedWindowOnLink({ value });
+  }
+  
+  /**
+   *
    * @return {ReactElement}
    * @private
    */
@@ -344,6 +387,7 @@ class LinkPropWindowComponent extends PureComponent {
         getLocalizedText={getLocalizedText}
         onSelect={this._handleLinkWithData}
         onReturn={this._handleReturn}
+        onNestedLink={this._handleNestedLink}
       />
     );
   }
@@ -359,18 +403,41 @@ class LinkPropWindowComponent extends PureComponent {
         onSelect={this._handleLinkWithFunction}
         onCreateFunction={this._handleCreateFunction}
         onReturn={this._handleReturn}
+        onNestedLink={this._handleNestedLink}
       />
     );
   }
   
-  render() {
+  _renderNestedWindow() {
+    const {
+      haveNestedWindow,
+      nestedWindowValueDef,
+      nestedWindowUserTypedefs,
+    } = this.state;
+  
+    if (!haveNestedWindow) return null;
+  
+    return (
+      <LinkPropWindow
+        valueDef={nestedWindowValueDef}
+        userTypedefs={nestedWindowUserTypedefs}
+        onLink={this._handleNestedLinkDone}
+      />
+    );
+  }
+  
+  _renderMainWindow() {
     const { schema, valueDef } = this.props;
-    const { selectedSourceId, selectedSourceData } = this.state;
+    const {
+      selectedSourceId,
+      selectedSourceData,
+      haveNestedWindow,
+    } = this.state;
     
     if (!valueDef) return null;
-    
+  
     let content = null;
-    
+  
     if (!selectedSourceId) {
       content = this._renderSourceSelection();
     } else if (selectedSourceId === 'owner') {
@@ -385,11 +452,23 @@ class LinkPropWindowComponent extends PureComponent {
         selectedSourceData.rootTypeName,
       );
     }
-    
+  
     return (
-      <DataWindow>
+      <DataWindow hidden={haveNestedWindow}>
         {content}
       </DataWindow>
+    );
+  }
+  
+  render() {
+    const mainWindow = this._renderMainWindow();
+    const nestedWindow = this._renderNestedWindow();
+    
+    return (
+      <div>
+        {mainWindow}
+        {nestedWindow}
+      </div>
     );
   }
 }

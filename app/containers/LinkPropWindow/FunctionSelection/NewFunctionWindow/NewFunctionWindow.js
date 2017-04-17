@@ -228,25 +228,25 @@ export class NewFunctionWindow extends PureComponent {
         <BlockContentBox>
           <BlockContentBoxItem isBordered>
             <DataWindowTitle
-              title={getLocalizedText('functions.new.windowTitle')}
+              title={getLocalizedText('linkDialog.function.new.windowTitle')}
             />
           </BlockContentBoxItem>
           
           <BlockContentBoxItem>
             <PropInput
-              label={getLocalizedText('functions.new.title')}
+              label={getLocalizedText('linkDialog.function.new.title')}
               value={title}
               onChange={this._handleTitleChange}
             />
             
             <PropTextarea
-              label={getLocalizedText('functions.new.desc')}
+              label={getLocalizedText('linkDialog.function.new.desc')}
               value={description}
               onChange={this._handleDescriptionChange}
             />
             
             <PropList
-              label={getLocalizedText('functions.new.returnType')}
+              label={getLocalizedText('linkDialog.function.new.returnType')}
               value={returnType}
               options={typeSelectOptions}
               onChange={this._handleReturnTypeChange}
@@ -254,7 +254,7 @@ export class NewFunctionWindow extends PureComponent {
           </BlockContentBoxItem>
           
           <BlockContentBoxHeading>
-            {getLocalizedText('functions.new.argsList')}
+            {getLocalizedText('linkDialog.function.new.argsList')}
           </BlockContentBoxHeading>
           
           <BlockContentBoxItem>

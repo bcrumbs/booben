@@ -106,14 +106,14 @@ export class FunctionArgumentNew extends PureComponent {
     return (
       <BlockContentBoxGroup colorScheme="editing">
         <BlockContentBoxHeading>
-          {getLocalizedText('functions.new.newArg.heading')}
+          {getLocalizedText('linkDialog.function.new.newArg.heading')}
         </BlockContentBoxHeading>
 
         <BlockContentBoxItem>
           <div className="function-arguments_new-wrapper" >
             <div className="inputs-row" >
               <Input
-                label={getLocalizedText('functions.new.newArg.title')}
+                label={getLocalizedText('linkDialog.function.new.newArg.title')}
                 value={name}
                 pattern={ARG_NAME_PATTERN}
                 stateless
@@ -121,7 +121,7 @@ export class FunctionArgumentNew extends PureComponent {
               />
 
               <SelectBox
-                label={getLocalizedText('functions.new.newArg.type')}
+                label={getLocalizedText('linkDialog.function.new.newArg.type')}
                 value={type}
                 data={typeOptions}
                 stateless
@@ -131,7 +131,7 @@ export class FunctionArgumentNew extends PureComponent {
 
             <div className="button-row" >
               <Button
-                text={getLocalizedText('functions.new.newArg.add')}
+                text={getLocalizedText('linkDialog.function.new.newArg.add')}
                 narrow
                 disabled={isButtonDisabled}
                 onPress={this._handleAddButtonPress}

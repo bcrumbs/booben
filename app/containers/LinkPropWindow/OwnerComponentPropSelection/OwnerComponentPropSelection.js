@@ -22,7 +22,7 @@ import {
 } from '../../../components/DataList/DataList';
 
 import { getString } from '../../../utils/meta';
-import { noop } from '../../../utils/misc';
+import { noop, returnArg } from '../../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 const propTypes = {
@@ -31,12 +31,14 @@ const propTypes = {
   userTypedefs: PropTypes.object,
   linkTargetValueDef: PropTypes.object.isRequired,
   language: PropTypes.string.isRequired,
+  getLocalizedText: PropTypes.func,
   onSelect: PropTypes.func,
   onReturn: PropTypes.func,
 };
 
 const defaultProps = {
   userTypedefs: null,
+  getLocalizedText: returnArg,
   onSelect: noop,
   onReturn: noop,
 };
@@ -55,7 +57,8 @@ export class OwnerComponentPropSelection extends PureComponent {
    * @private
    */
   _handleBreadcrumbsClick({ index }) {
-    if (index === 0) this.props.onReturn();
+    const { onReturn } = this.props;
+    if (index === 0) onReturn();
   }
   
   /**
@@ -64,7 +67,8 @@ export class OwnerComponentPropSelection extends PureComponent {
    * @private
    */
   _handleSelect({ id: propName }) {
-    this.props.onSelect({ propName });
+    const { onSelect } = this.props;
+    onSelect({ propName });
   }
   
   /**
@@ -73,10 +77,12 @@ export class OwnerComponentPropSelection extends PureComponent {
    * @private
    */
   _getBreadcrumbsItems() {
+    const { getLocalizedText } = this.props;
+    
     return [{
-      title: 'Sources',
+      title: getLocalizedText('linkDialog.sources'),
     }, {
-      title: 'Owner component',
+      title: getLocalizedText('linkDialog.source.owner'),
     }];
   }
   
