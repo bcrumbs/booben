@@ -108,6 +108,8 @@ class BuilderComponent extends PureComponent {
         nextProps.rootId,
       );
       
+      // TODO: Merge current state with initial
+      
       this.setState({
         componentsState: this._getInitialComponentsState(
           nextProps.components,
@@ -244,14 +246,16 @@ class BuilderComponent extends PureComponent {
   }
   
   _handleMutationResponse(mutationName, response) {
-    const { project } = this.props;
+    const { project, interactive } = this.props;
     
     if (project.auth) {
       if (project.auth.type === 'jwt') {
         if (mutationName === project.auth.loginMutation) {
-          const tokenPath = [mutationName, ...project.auth.tokenPath];
-          const token = _get(response.data, tokenPath);
-          if (token) localStorage.setItem('jssy_auth_token', token);
+          if (!interactive) {
+            const tokenPath = [mutationName, ...project.auth.tokenPath];
+            const token = _get(response.data, tokenPath);
+            if (token) localStorage.setItem('jssy_auth_token', token);
+          }
         }
       }
     }

@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { getProject, getMetadata, getFullGraphQLSchema } from '../api';
+import { getProject, getMetadata, getGraphQLSchema } from '../api';
 
 export const PROJECT_REQUEST =
   'PROJECT_REQUEST';
@@ -107,7 +107,7 @@ export const loadProject = projectName => dispatch => {
   Promise.all([getProject(projectName), getMetadata(projectName)])
     .then(([project, metadata]) => {
       if (project.graphQLEndpointURL) {
-        getFullGraphQLSchema(project.graphQLEndpointURL)
+        getGraphQLSchema(project.graphQLEndpointURL)
           .then(schema =>
             void dispatch(projectLoaded(project, metadata, schema)),
           )

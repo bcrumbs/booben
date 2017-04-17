@@ -10,59 +10,59 @@ import { URL_API_PREFIX } from '../../shared/constants';
 /**
  *
  * @param {string} projectName
- * @return {Promise<Project>}
+ * @return {Project}
  */
-export const getProject = projectName =>
-  fetch(`${URL_API_PREFIX}/projects/${projectName}`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.error) throw new Error(data.error);
-      return data;
-    });
+export const getProject = async projectName => {
+  const res = await fetch(`${URL_API_PREFIX}/projects/${projectName}`);
+  const data = await res.json();
+  
+  if (data.error) throw new Error(data.error);
+  return data;
+};
+
 
 /**
  *
  * @param {string} projectName
- * @return {Promise<Object>}
+ * @return {Object<string, Object<string, ComponentMeta>>}
  */
-export const getMetadata = projectName =>
-  fetch(`${URL_API_PREFIX}/projects/${projectName}/metadata`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.error) throw new Error(data.error);
-      return data;
-    });
+export const getMetadata = async projectName => {
+  const res = await fetch(`${URL_API_PREFIX}/projects/${projectName}/metadata`);
+  const data = await res.json();
+  
+  if (data.error) throw new Error(data.error);
+  return data;
+};
 
 /**
  *
  * @param {string} language
- * @return {Promise<Object>}
+ * @return {Object<string, string>}
  */
-export const getLocalization = language =>
-  fetch(`localization/${language}.json`)
-    .then(res => res.json())
-    .then(data => {
-      if (data.error) throw new Error(data.error);
-      return data;
-    });
+export const getLocalization = async language => {
+  const res = await fetch(`localization/${language}.json`);
+  const data = await res.json();
+  
+  if (data.error) throw new Error(data.error);
+  return data;
+};
 
 /**
  *
- * @param {string} url
- * @return {Promise<Object>}
+ * @param {string} graphqlEndpointURL
+ * @return {GQLSchema}
  */
-export const getFullGraphQLSchema = url =>
-  fetch(
-    url, {
-      method: 'POST',
-      body: JSON.stringify({ query: introspectionQuery }),
-      headers: {
-        'content-type': 'application/json',
-      },
+export const getGraphQLSchema = async graphqlEndpointURL => {
+  const res = await fetch(graphqlEndpointURL, {
+    method: 'POST',
+    body: JSON.stringify({ query: introspectionQuery }),
+    headers: {
+      'content-type': 'application/json',
     },
-  )
-    .then(res => res.json())
-    .then(data => {
-      if (data.error) throw new Error(data.error);
-      return data.data.__schema;
-    });
+  });
+  
+  const data = await res.json();
+  
+  if (data.error) throw new Error(data.error);
+  return data.data.__schema;
+};

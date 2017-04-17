@@ -15,10 +15,24 @@ import {
 import { projectFunctionToImmutable } from './ProjectFunction';
 import { concatPath } from '../utils';
 
+const AuthParamRecord = Record({
+  value: '',
+  argument: '',
+  path: [],
+});
+
 const AuthRecord = Record({
   type: '',
   loginMutation: '',
-  tokenPath: List(),
+  tokenPath: [],
+  username: null,
+  password: null,
+});
+
+const authToImmutable = input => new AuthRecord({
+  ...input,
+  username: input.username ? new AuthParamRecord(input.username) : null,
+  password: input.password ? new AuthParamRecord(input.password) : null,
 });
 
 const ProjectRecord = Record({
@@ -42,10 +56,7 @@ export const projectToImmutable = input => new ProjectRecord({
   author: input.author,
   componentLibs: List(input.componentLibs),
   graphQLEndpointURL: input.graphQLEndpointURL || '',
-  auth: input.auth
-    ? new AuthRecord(input.auth)
-    : null,
-  
+  auth: input.auth ? authToImmutable(input.auth) : null,
   routes: Map().withMutations(routes => {
     const visitRoute = (route, pathPrefix, parentRouteId) => {
       const fullPath = concatPath(pathPrefix, route.path);
@@ -63,7 +74,6 @@ export const projectToImmutable = input => new ProjectRecord({
   }),
 
   rootRoutes: List(input.routes.map(route => route.id)),
-
   functions: Map().withMutations(fns => {
     _forOwn(input.functions, (fn, name) => {
       fns.set(name, projectFunctionToImmutable(fn));

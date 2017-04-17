@@ -93,10 +93,26 @@ export const expandPath = path => {
 /**
  *
  * @param {Path} path
+ * @return {(string|number)[]}
+ */
+export const expandPathRelative = path => {
+  const ret = [];
+  
+  walkPath(path, (object, idx, expandedPath) => {
+    if (idx === -1) return;
+    ret.push(...expandedPath);
+  });
+  
+  return ret;
+};
+
+/**
+ *
+ * @param {Path} path
  * @return {*}
  */
 export const getObjectByPath = path =>
-  path.start.object.getIn(expandPath(path));
+  path.start.object.getIn(expandPathRelative(path));
 
 /**
  *

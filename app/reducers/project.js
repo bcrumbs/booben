@@ -346,6 +346,8 @@ const deleteComponent = (state, componentId) => {
     );
   }
   
+  // FIXME: Reset JssyValues linked to the state of this component
+  
   // Delete method call actions that point to deleted components
   state = state.updateIn(
     pathToCurrentComponents,
@@ -699,9 +701,6 @@ const getValueInfoByPath = (path, state) => {
     userTypedefs,
   };
 };
-
-export const makeValueInfoGetter = state =>
-  path => getValueInfoByPath(path, state);
 
 // TODO: Refactor away from using real paths
 const clearOutdatedDataProps = (state, updatedPath) => {
