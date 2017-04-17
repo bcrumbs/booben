@@ -2,7 +2,6 @@
 !common/
 !config/
 !endpoints/
-!preview/
 !public/
 !shared/
 !index.js
