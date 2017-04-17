@@ -142,10 +142,11 @@ export class JssyValueEditor extends PureComponent {
    */
   _handleChange({ value, path }) {
     const { name, value: currentValue, onChange } = this.props;
-    
+
+    const jssyValue = JssyValue.staticFromJS(value);
     const newValue = path.length > 0
-      ? currentValue.setInStatic(path, JssyValue.staticFromJS(value))
-      : JssyValue.staticFromJS(value);
+      ? currentValue.setInStatic(path, jssyValue)
+      : jssyValue;
     
     onChange({ name, value: newValue });
   }

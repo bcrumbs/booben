@@ -221,6 +221,121 @@ export const propHasDataContext = propMeta =>
 
 /**
  *
+ * @param {*} value
+ * @return {PlainJssyValue}
+ */
+const makeSimpleStaticValue = value => ({
+  source: 'static',
+  sourceData: { value },
+});
+
+/**
+ *
+ * @param {JssyValueDefinition} valueDef
+ * @param {?Object<string, Object<string, string>>} strings
+ * @param {string} language
+ * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+ * @param {*|Symbol} [_inheritedDefaultValue=NO_VALUE]
+ * @return {PlainJssyValue}
+ */
+const buildDefaultStaticValue = (
+  valueDef,
+  strings,
+  language,
+  userTypedefs,
+  _inheritedDefaultValue = NO_VALUE,
+) => {
+  /* eslint-disable no-use-before-define */
+  if (valueDef.sourceConfigs.static.defaultTextKey) {
+    const string = (strings && language)
+      ? getString(
+        strings,
+        valueDef.sourceConfigs.static.defaultTextKey,
+        language,
+      )
+      : '';
+    
+    return makeSimpleStaticValue(string);
+  }
+
+  const defaultValue = _inheritedDefaultValue !== NO_VALUE
+    ? _inheritedDefaultValue
+    : valueDef.sourceConfigs.static.default;
+
+  if (valueDef.type === TypeNames.SHAPE) {
+    if (defaultValue === null) return makeSimpleStaticValue(null);
+
+    const value = {};
+
+    _forOwn(valueDef.fields, (fieldMeta, fieldName) => {
+      const inherited = typeof defaultValue[fieldName] !== 'undefined'
+        ? defaultValue[fieldName]
+        : NO_VALUE;
+
+      value[fieldName] = _buildDefaultValue(
+        fieldMeta,
+        strings,
+        language,
+        userTypedefs,
+        inherited,
+      );
+    });
+
+    return makeSimpleStaticValue(value);
+  } else if (valueDef.type === TypeNames.OBJECT_OF) {
+    if (defaultValue === null) return makeSimpleStaticValue(null);
+
+    const value = {};
+
+    _forOwn(defaultValue, (fieldValue, fieldName) => {
+      value[fieldName] = _buildDefaultValue(
+        valueDef.ofType,
+        strings,
+        language,
+        userTypedefs,
+        fieldValue,
+      );
+    });
+
+    return makeSimpleStaticValue(value);
+  } else if (valueDef.type === TypeNames.ARRAY_OF) {
+    let value = [];
+
+    if (defaultValue) {
+      value = defaultValue.map(fieldValue => _buildDefaultValue(
+        valueDef.ofType,
+        strings,
+        language,
+        userTypedefs,
+        fieldValue,
+      ));
+    } else if (valueDef.sourceConfigs.static.defaultNum) {
+      for (let i = 0; i < valueDef.sourceConfigs.static.defaultNum; i++) {
+        value.push(_buildDefaultValue(
+          valueDef.ofType,
+          strings,
+          language,
+          userTypedefs,
+        ));
+      }
+    }
+
+    return makeSimpleStaticValue(value);
+  } else if (valueDef.type === TypeNames.OBJECT) {
+    if (defaultValue === null) return makeSimpleStaticValue(null);
+    // TODO: Handle default value somehow
+    return makeSimpleStaticValue({});
+  } else if (valueDef.type === TypeNames.ARRAY) {
+    // TODO: Handle default value somehow
+    return makeSimpleStaticValue([]);
+  } else {
+    return makeSimpleStaticValue(defaultValue);
+  }
+  /* eslint-enable no-use-before-define */
+};
+
+/**
+ *
  * @param {JssyValueDefinition} propMeta
  * @return {PlainJssyValue|Symbol}
  */
@@ -244,118 +359,6 @@ const buildDefaultConstValue = propMeta => {
   }
 
   return NO_VALUE;
-};
-
-/**
- *
- * @param {*} value
- * @return {PlainJssyValue}
- */
-const makeSimpleStaticValue = value => ({
-  source: 'static',
-  sourceData: { value },
-});
-
-/**
- *
- * @param {JssyValueDefinition} propMeta
- * @param {?Object<string, Object<string, string>>} strings
- * @param {string} language
- * @param {*|Symbol} [_inheritedDefaultValue=NO_VALUE]
- * @return {PlainJssyValue}
- */
-const buildDefaultStaticValue = (
-  propMeta,
-  strings,
-  language,
-  _inheritedDefaultValue = NO_VALUE,
-) => {
-  /* eslint-disable no-use-before-define */
-  if (propMeta.sourceConfigs.static.defaultTextKey) {
-    const string = (strings && language)
-      ? getString(
-        strings,
-        propMeta.sourceConfigs.static.defaultTextKey,
-        language,
-      )
-      : '';
-    
-    return makeSimpleStaticValue(string);
-  }
-
-  const defaultValue = _inheritedDefaultValue !== NO_VALUE
-    ? _inheritedDefaultValue
-    : propMeta.sourceConfigs.static.default;
-
-  if (propMeta.type === TypeNames.SHAPE) {
-    if (defaultValue === null) return makeSimpleStaticValue(null);
-
-    const value = {};
-
-    _forOwn(propMeta.fields, (fieldMeta, fieldName) => {
-      const inherited = typeof defaultValue[fieldName] !== 'undefined'
-        ? defaultValue[fieldName]
-        : NO_VALUE;
-
-      value[fieldName] = _buildDefaultValue(
-        fieldMeta,
-        strings,
-        language,
-        inherited,
-      );
-    });
-
-    return makeSimpleStaticValue(value);
-  }
-
-  if (propMeta.type === TypeNames.OBJECT_OF) {
-    if (defaultValue === null) return makeSimpleStaticValue(null);
-
-    const value = {};
-
-    _forOwn(defaultValue, (fieldValue, fieldName) => {
-      value[fieldName] = _buildDefaultValue(
-        propMeta.ofType,
-        strings,
-        language,
-        fieldValue,
-      );
-    });
-
-    return makeSimpleStaticValue(value);
-  }
-
-  if (propMeta.type === TypeNames.ARRAY_OF) {
-    let value = [];
-
-    if (defaultValue) {
-      value = defaultValue.map(fieldValue => _buildDefaultValue(
-        propMeta.ofType,
-        strings,
-        language,
-        fieldValue,
-      ));
-    } else if (propMeta.sourceConfigs.static.defaultNum) {
-      for (let i = 0; i < propMeta.sourceConfigs.static.defaultNum; i++)
-        value.push(_buildDefaultValue(propMeta.ofType, strings, language));
-    }
-
-    return makeSimpleStaticValue(value);
-  }
-
-  if (propMeta.type === TypeNames.OBJECT) {
-    if (defaultValue === null) return makeSimpleStaticValue(null);
-    // TODO: Handle default value somehow
-    return makeSimpleStaticValue({});
-  }
-
-  if (propMeta.type === TypeNames.ARRAY) {
-    // TODO: Handle default value somehow
-    return makeSimpleStaticValue([]);
-  }
-
-  return makeSimpleStaticValue(defaultValue);
-  /* eslint-enable no-use-before-define */
 };
 
 /**
@@ -445,6 +448,7 @@ const _buildDefaultValue = (
         resolvedValueDef,
         strings,
         language,
+        userTypedefs,
         inheritedDefaultValue,
       );
 
