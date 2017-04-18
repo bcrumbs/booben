@@ -1,31 +1,27 @@
-FROM alpine:3.5
-LABEL maintainer "Dmitriy Bizyaev"
+FROM registry.ordbuy.com/common/nodejs:latest
 
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
+ENV NODE_ENV=development \
+    JSSY_PORT=3000 \
+    JSSY_SERVE_STATIC=true \
+    JSSY_PROJECTS_DIR=/var/lib/jssy/projects
+
 COPY . /usr/src/app
 
-COPY .npmrc /root/.npmrc
+WORKDIR /usr/src/app
 
-RUN apk update \
-    && apk add \
-        nodejs \
-        python \
-        make \
-        g++ \
-    && npm install --production \
+RUN apk --no-cache add --update \
+      nodejs \
+      python \
+      make \
+      g++ \
+    && yarn install --production \
     && npm dedupe \
-    && rm /var/cache/apk/* \
+    && npm rm -g yarn npm \
     && rm -rf /tmp/* \
     && rm -rf /root/..?* /root/.[!.]* /root/*
 
 VOLUME /var/lib/jssy
 
-ENV NODE_ENV development
-ENV JSSY_PORT 3000
-ENV JSSY_SERVE_STATIC true
-ENV JSSY_PROJECTS_DIR /var/lib/jssy/projects
-
 EXPOSE 3000
 
-ENTRYPOINT [ "/bin/sh", "docker-entrypoint.sh" ]
+ENTRYPOINT ["/bin/sh", "docker-entrypoint.sh"]
