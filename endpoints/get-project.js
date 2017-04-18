@@ -4,14 +4,14 @@
 
 'use strict';
 
-const path = require('path'),
-  config = require('../config'),
-  helpers = require('./helpers'),
-  constants = require('../common/constants'),
-  sharedConstants = require('../shared/constants');
+const path = require('path');
+const config = require('../config');
+const helpers = require('./helpers');
+const constants = require('../common/constants');
+const sharedConstants = require('../shared/constants');
 
-const projectsDir = config.get('projectsDir'),
-  env = config.get('env');
+const projectsDir = config.get('projectsDir');
+const env = config.get('env');
 
 module.exports = {
   url: `${sharedConstants.URL_API_PREFIX}/projects/:name`,
