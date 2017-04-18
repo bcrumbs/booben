@@ -688,7 +688,7 @@ class Preview extends Component {
    * @return {?ReactElement}
    * @private
    */
-  _createBuilderForCurrentRoute() {
+  _renderCurrentRoute() {
     const { project, currentRouteId, currentRouteIsIndexRoute } = this.props;
     
     let routeId = currentRouteId;
@@ -725,32 +725,44 @@ class Preview extends Component {
 
     return ret;
   }
+  
+  _renderTopNestedConstructor() {
+    const { topNestedConstructor } = this.props;
+    
+    return (
+      <Builder
+        interactive
+        components={topNestedConstructor.components}
+        rootId={topNestedConstructor.rootId}
+        ignoreOwnerProps
+      />
+    );
+  }
+  
+  _renderInteractivePreview() {
+    const { topNestedConstructor } = this.props;
+  
+    return topNestedConstructor
+      ? this._renderTopNestedConstructor()
+      : this._renderCurrentRoute();
+  }
+  
+  _renderNonInteractivePreview() {
+    return (
+      <Router
+        key={this.routerKey}
+        history={hashHistory}
+        routes={this.routes}
+      />
+    );
+  }
 
   render() {
-    const { interactive, topNestedConstructor } = this.props;
-    
-    if (interactive) {
-      if (topNestedConstructor) {
-        return (
-          <Builder
-            interactive
-            components={topNestedConstructor.components}
-            rootId={topNestedConstructor.rootId}
-            ignoreOwnerProps
-          />
-        );
-      } else {
-        return this._createBuilderForCurrentRoute();
-      }
-    } else {
-      return (
-        <Router
-          key={this.routerKey}
-          history={hashHistory}
-          routes={this.routes}
-        />
-      );
-    }
+    const { interactive } = this.props;
+  
+    return interactive
+      ? this._renderInteractivePreview()
+      : this._renderNonInteractivePreview();
   }
 }
 

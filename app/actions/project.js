@@ -124,13 +124,15 @@ export const loadProject = projectName => dispatch => {
  * @param {number} parentRouteId - id of parent route (or -1 for root route)
  * @param {string} path
  * @param {string} title
+ * @param {Object<string, string>} paramValues
  * @return {Object}
  */
-export const createRoute = (parentRouteId, path, title) => ({
+export const createRoute = (parentRouteId, path, title, paramValues) => ({
   type: PROJECT_ROUTE_CREATE,
   parentRouteId,
   path,
   title,
+  paramValues,
 });
 
 /**

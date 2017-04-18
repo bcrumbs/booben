@@ -19,6 +19,7 @@ const ProjectRouteRecord = Record({
   indexComponent: -1,
   haveRedirect: false,
   redirectTo: '',
+  paramValues: Map(),
   component: -1,
   children: List(),
   components: Map(),
@@ -44,6 +45,7 @@ export const projectRouteToImmutable = (
   indexComponent: input.indexComponent !== null ? input.indexComponent.id : -1,
   haveRedirect: input.haveRedirect,
   redirectTo: input.redirectTo,
+  paramValues: Map(input.paramValues),
   component: input.component !== null ? input.component.id : -1,
   children: List(input.children.map(childRoute => childRoute.id)),
   components: Map().withMutations(components => {

@@ -4,7 +4,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { graphql, withApollo } from 'react-apollo';
-import _merge from 'lodash.merge';
 import _forOwn from 'lodash.forown';
 import _get from 'lodash.get';
 import _set from 'lodash.set';
@@ -222,6 +221,7 @@ class BuilderComponent extends PureComponent {
     // TODO: Memoize
     
     const {
+      params,
       interactive,
       onNavigate,
       onOpenURL,
@@ -229,6 +229,7 @@ class BuilderComponent extends PureComponent {
     
     return props => (
       <Builder
+        params={params}
         interactive={interactive}
         components={propValue.sourceData.components}
         rootId={propValue.sourceData.rootId}
@@ -446,6 +447,7 @@ class BuilderComponent extends PureComponent {
    */
   _buildValue(jssyValue, typedef, userTypedefs, theMap, componentId, data) {
     const {
+      params,
       interactive,
       project,
       schema,
@@ -616,13 +618,18 @@ class BuilderComponent extends PureComponent {
       const componentState =
         this.state.componentsState.get(jssyValue.sourceData.componentId);
       
-      if (
-        !componentState ||
-        !componentState.has(jssyValue.sourceData.stateSlot)
-      )
-        return NO_VALUE;
+      const haveValue =
+        !!componentState &&
+        componentState.has(jssyValue.sourceData.stateSlot);
       
-      return componentState.get(jssyValue.sourceData.stateSlot);
+      if (haveValue) return componentState.get(jssyValue.sourceData.stateSlot);
+    } else if (jssyValue.source === 'routeParams') {
+      if (interactive) {
+        const route = project.routes.get(jssyValue.sourceData.routeId);
+        if (route) return route.paramValues.get(jssyValue.sourceData.paramName);
+      } else {
+        return params[jssyValue.sourceData.paramName];
+      }
     }
 
     return NO_VALUE;
@@ -1015,7 +1022,8 @@ class BuilderComponent extends PureComponent {
 
 //noinspection JSUnresolvedVariable
 BuilderComponent.propTypes = {
-  client: PropTypes.object.isRequired, // Comes from react-apollo
+  params: PropTypes.object, // Comes from react-router in non-interactive mode
+  client: PropTypes.object, // Comes from react-apollo
   interactive: PropTypes.bool,
   components: PropTypes.object, // Immutable.Map<number, Component>
   rootId: PropTypes.number,
@@ -1043,6 +1051,8 @@ BuilderComponent.propTypes = {
 };
 
 BuilderComponent.defaultProps = {
+  params: null,
+  client: null,
   interactive: false,
   components: null,
   rootId: -1,

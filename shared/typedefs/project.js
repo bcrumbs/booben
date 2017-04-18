@@ -45,7 +45,7 @@
 /**
  * @typedef {Object} PlainJssyValue
  * @property {string} source
- * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner|SourceDataFunction|SourceDataState} sourceData
+ * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner|SourceDataFunction|SourceDataState|SourceDataRouteParams} sourceData
  */
 
 /**
@@ -138,10 +138,16 @@
  */
 
 /**
+ * @typedef {Object} SourceDataRouteParams
+ * @property {number} routeId
+ * @property {string} paramName
+ */
+
+/**
  * @typedef {Object} SourceDataFunction
  * @property {string} functionSource - Can be 'project' or 'builtin'.
  * @property {string} function - Function name
- * @property {Object<string, SourceDataStatic|SourceDataData|SourceDataConst|SourceDataFunction|SourceDataState>} args
+ * @property {Object<string, SourceDataStatic|SourceDataData|SourceDataConst|SourceDataFunction|SourceDataState|SourceDataRouteParams>} args
  */
 
 /**

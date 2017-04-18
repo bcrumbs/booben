@@ -649,6 +649,8 @@ export class JssyValueEditor extends PureComponent {
       linkedWith =
         `Component ${jssyValue.sourceData.componentId} ` +
         `- ${jssyValue.sourceData.stateSlot}`;
+    } else if (jssyValue.source === 'routeParams') {
+      linkedWith = jssyValue.sourceData.paramName;
     }
 
     return { value, linked, linkedWith, checked };

@@ -870,6 +870,7 @@ const handlers = {
       path: action.path,
       fullPath,
       title: action.title,
+      paramValues: Map(action.paramValues),
     });
   
     state = state.setIn(['data', 'routes', newRouteId], newRoute);

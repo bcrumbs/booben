@@ -17,7 +17,7 @@ import { DataList, DataItem } from '../../../components/DataList/DataList';
 import { noop } from '../../../utils/misc';
 
 /**
- * @typedef {Object} LinkSourceComponentItem
+ * @typedef {Object} LinkSourceItem
  * @property {string} id
  * @property {string} title
  * @property {*} [data]

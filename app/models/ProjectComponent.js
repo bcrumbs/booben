@@ -24,6 +24,7 @@ import SourceDataActions, {
 
 import SourceDataDesigner from './SourceDataDesigner';
 import SourceDataState from './SourceDataState';
+import SourceDataRouteParams from './SourceDataRouteParams';
 import { getFunctionInfo } from '../utils/functions';
 import { SYSTEM_PROPS } from '../constants/misc';
 
@@ -187,6 +188,7 @@ const propSourceDataToImmutableFns = {
   ),
   
   state: input => new SourceDataState(input),
+  routeParams: input => new SourceDataRouteParams(input),
 };
 /* eslint-enable no-use-before-define */
 

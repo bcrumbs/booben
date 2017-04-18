@@ -882,12 +882,13 @@ const _getJssyTypeOfField = (fieldTypedef, schema, checkRequired) => {
   
   ret.label = fieldTypedef.name;
   ret.description = fieldTypedef.description;
-  ret.source = ['static', 'state'];
+  ret.source = ['static', 'state', 'routeParams'];
   ret.sourceConfigs = {
     static: {
       default: makeDefaultNonNullValue(ret),
     },
     state: {},
+    routeParams: {},
   };
   
   return ret;

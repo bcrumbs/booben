@@ -68,6 +68,7 @@
   "linkDialog.source.data": "Данные",
   "linkDialog.source.dataContext": "Контекст - {context}",
   "linkDialog.source.function": "Функция",
+  "linkDialog.source.routeParams": "Параметры роута",
   "linkDialog.function.library": "Встроенные",
   "linkDialog.function.user": "Пользовательские",
   "linkDialog.function.create": "Создать фуункцию",

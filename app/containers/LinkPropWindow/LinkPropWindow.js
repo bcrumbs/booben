@@ -25,6 +25,7 @@ import {
 
 import { DataSelection } from './DataSelection/DataSelection';
 import { FunctionSelection } from './FunctionSelection/FunctionSelection';
+import { RouteParamSelection } from './RouteParamSelection/RouteParamSelection';
 import { DataWindow } from '../../components/DataWindow/DataWindow';
 
 import {
@@ -35,9 +36,11 @@ import {
 
 import { createFunction } from '../../actions/project';
 import ProjectComponentRecord from '../../models/ProjectComponent';
+import ProjectRecord from '../../models/Project';
 import JssyValue from '../../models/JssyValue';
 import SourceDataFunction from '../../models/SourceDataFunction';
 import SourceDataStatic from '../../models/SourceDataStatic';
+import SourceDataRouteParams from '../../models/SourceDataRouteParams';
 import SourceDataData, { QueryPathStep } from '../../models/SourceDataData';
 import { NestedConstructor } from '../../reducers/project';
 import { getLocalizedTextFromState } from '../../utils';
@@ -48,6 +51,7 @@ import { noop } from '../../utils/misc';
 const propTypes = {
   meta: PropTypes.object.isRequired,
   schema: PropTypes.object.isRequired,
+  project: PropTypes.instanceOf(ProjectRecord).isRequired,
   projectFunctions: ImmutablePropTypes.map.isRequired,
   builtinFunctions: ImmutablePropTypes.map.isRequired,
   valueDef: PropTypes.object,
@@ -62,6 +66,7 @@ const propTypes = {
   topNestedConstructorComponent: PropTypes.instanceOf(
     ProjectComponentRecord,
   ),
+  currentRouteId: PropTypes.number.isRequired,
   language: PropTypes.string.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   onLink: PropTypes.func,
@@ -81,11 +86,13 @@ const defaultProps = {
 const mapStateToProps = state => ({
   meta: state.project.meta,
   schema: state.project.schema,
+  project: state.project.data,
   projectFunctions: state.project.data.functions,
   builtinFunctions: Map(), // TODO: Pass built-in functions here
   availableDataContexts: availableDataContextsSelector(state),
   topNestedConstructor: topNestedConstructorSelector(state),
   topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
+  currentRouteId: state.project.currentRouteId,
   language: state.project.languageForComponentProps,
   getLocalizedText: getLocalizedTextFromState(state),
 });
@@ -122,17 +129,20 @@ class LinkPropWindowComponent extends PureComponent {
     this._handleLinkWithData = this._handleLinkWithData.bind(this);
     this._handleLinkWithFunction = this._handleLinkWithFunction.bind(this);
     this._handleCreateFunction = this._handleCreateFunction.bind(this);
+    this._handleLinkWithRouteParam = this._handleLinkWithRouteParam.bind(this);
     this._handleNestedLink = this._handleNestedLink.bind(this);
     this._handleNestedLinkDone = this._handleNestedLinkDone.bind(this);
   }
   
   /**
    *
-   * @return {LinkSourceComponentItem[]}
+   * @return {LinkSourceItem[]}
    * @private
    */
   _getAvailableSources() {
     const {
+      project,
+      currentRouteId,
       topNestedConstructor,
       availableDataContexts,
       valueDef,
@@ -167,7 +177,29 @@ class LinkPropWindowComponent extends PureComponent {
         });
       });
     }
-
+    
+    if (isValidSourceForValue(valueDef, 'routeParams')) {
+      let routeId = currentRouteId;
+      let haveRouteParams = false;
+      
+      while (routeId !== -1) {
+        const route = project.routes.get(routeId);
+        if (route.paramValues.size) {
+          haveRouteParams = true;
+          break;
+        }
+        
+        routeId = route.parentId;
+      }
+      
+      if (haveRouteParams) {
+        items.push({
+          id: 'routeParams',
+          title: getLocalizedText('linkDialog.source.routeParams'),
+        });
+      }
+    }
+  
     items.push({
       id: 'function',
       title: getLocalizedText('linkDialog.source.function'),
@@ -281,6 +313,23 @@ class LinkPropWindowComponent extends PureComponent {
       returnType,
       code,
     });
+  }
+  
+  /**
+   *
+   * @param {number} routeId
+   * @param {string} paramName
+   * @private
+   */
+  _handleLinkWithRouteParam({ routeId, paramName }) {
+    const { onLink } = this.props;
+  
+    const newValue = new JssyValue({
+      source: 'function',
+      sourceData: new SourceDataRouteParams({ routeId, paramName }),
+    });
+  
+    onLink({ newValue });
   }
   
   /**
@@ -444,6 +493,20 @@ class LinkPropWindowComponent extends PureComponent {
     );
   }
   
+  _renderRouteParamsSelection() {
+    const { project, currentRouteId, getLocalizedText } = this.props;
+    
+    return (
+      <RouteParamSelection
+        routes={project.routes}
+        currentRouteId={currentRouteId}
+        getLocalizedText={getLocalizedText}
+        onSelect={this._handleLinkWithRouteParam}
+        onReturn={this._handleReturn}
+      />
+    );
+  }
+  
   _renderNestedWindow() {
     const { name, breadcrumbs } = this.props;
     const {
@@ -488,6 +551,8 @@ class LinkPropWindowComponent extends PureComponent {
       content = this._renderDataSelection([], schema.queryTypeName);
     } else if (selectedSourceId === 'function') {
       content = this._renderFunctionSelection();
+    } else if (selectedSourceId === 'routeParams') {
+      content = this._renderRouteParamsSelection();
     } else if (selectedSourceId.startsWith('context')) {
       content = this._renderDataSelection(
         selectedSourceData.dataContext,

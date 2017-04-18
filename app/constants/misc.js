@@ -36,12 +36,13 @@ export const SYSTEM_PROPS = {
 
 export const ROUTE_PARAM_VALUE_DEF = {
   type: 'string',
-  source: ['static', 'data', 'state'],
+  source: ['static', 'data', 'state', 'routeParams'],
   sourceConfigs: {
     static: {
       default: '',
     },
     data: {},
     state: {},
+    routeParams: {},
   },
 };
