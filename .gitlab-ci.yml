@@ -1,5 +1,6 @@
 variables:
   URL: "https://rancher.ordbuy.com"
+  TAG: "0.0.3"
 
 stages:
   - publish
@@ -17,10 +18,14 @@ push_image:
   script:
     - yarn install
     - yarn run build
-    - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json) .
+#    - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json) .
+#    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+#    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)
+#    - docker rmi -f $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)
+    - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$TAG .
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
-    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)
-    - docker rmi -f $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)
+    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$TAG
+    - docker rmi -f $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$TAG
   only:
     - master
   tags:
@@ -29,7 +34,7 @@ push_image:
 deploy_to_dev:
   stage: deploydev
   script:
-    - sed -i "s|{{TAG}}|$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)|g" docker-compose-dev.yml
+    - sed -i "s|{{TAG}}|$(echo $TAG)|g" docker-compose-dev.yml
     - rancher-compose --url $URL --access-key $ACCESS_KEY_DEV --secret-key $SECRET_KEY_DEV -p $CI_PROJECT_NAMESPACE -f docker-compose-dev.yml up $CI_PROJECT_NAME -p --force-upgrade -c -d
   environment:
     name: Jssy
