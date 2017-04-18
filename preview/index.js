@@ -71,8 +71,14 @@ window.JSSY.initPreview = async params => {
   if (graphQLEndpointURL) {
     ProviderComponent = ApolloProvider;
     
-    const networkInterface =
-      createNetworkInterface({ uri: graphQLEndpointURL });
+    const networkInterface = createNetworkInterface({
+      uri: graphQLEndpointURL,
+      opts: {
+        credentials: process.env.NODE_ENV === 'development'
+          ? 'include'
+          : 'same-origin',
+      },
+    });
     
     const auth = state.project.data.auth;
     
