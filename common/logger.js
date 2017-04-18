@@ -4,8 +4,8 @@
 
 'use strict';
 
-const intel = require('intel'),
-  config = require('../config');
+const intel = require('intel');
+const config = require('../config');
 
 /**
  * @typedef {Object} LoggerConfig
@@ -14,18 +14,10 @@ const intel = require('intel'),
 
 /**
  *
- * @type {?Logger}
- */
-let logger = null;
-
-/**
- *
  * @param {LoggerConfig} [config]
  * @returns {Logger}
  */
 const getLogger = config => {
-  if (logger) return logger;
-
   config = config || {};
 
   if (!config.logLevel) throw new Error('logLevel is required');
@@ -42,8 +34,7 @@ const getLogger = config => {
   //noinspection JSUnresolvedFunction
   intel.addHandler(new intel.handlers.Console(consoleHandlerOptions));
 
-  logger = intel.getLogger('main');
-  return logger;
+  return intel.getLogger('main');
 };
 
 module.exports = getLogger({

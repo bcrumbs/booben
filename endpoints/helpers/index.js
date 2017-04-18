@@ -25,7 +25,8 @@ exports.sendJSON = (res, code, data) => {
  * @param {string} [text]
  * @param {Object} [extraFields]
  */
-exports.sendError = (res, code, text, extraFields) =>
-  void exports.sendJSON(res, code || 500, Object.assign({
+exports.sendError = (res, code, text, extraFields) => {
+  exports.sendJSON(res, code || 500, Object.assign({
     error: text || 'An evil error has occurred. Sorry about that.',
   }, extraFields || {}));
+};

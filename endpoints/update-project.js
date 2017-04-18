@@ -4,15 +4,15 @@
 
 'use strict';
 
-const co = require('co'),
-  fs = require('mz/fs'),
-  path = require('path'),
-  bodyParser = require('body-parser'),
-  rv = require('revalidator'),
-  config = require('../config'),
-  helpers = require('./helpers'),
-  constants = require('../common/constants'),
-  sharedConstants = require('../shared/constants');
+const co = require('co');
+const fs = require('mz/fs');
+const path = require('path');
+const bodyParser = require('body-parser');
+const rv = require('revalidator');
+const config = require('../config');
+const helpers = require('./helpers');
+const constants = require('../common/constants');
+const sharedConstants = require('../shared/constants');
 
 const projectsDir = config.get('projectsDir');
 
