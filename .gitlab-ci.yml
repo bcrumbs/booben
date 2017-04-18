@@ -1,5 +1,6 @@
 variables:
   URL: "https://rancher.ordbuy.com"
+  TAG: "0.0.3"
 
 stages:
   - publish
@@ -29,7 +30,7 @@ push_image:
 deploy_to_dev:
   stage: deploydev
   script:
-    - sed -i "s|{{TAG}}|$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)|g" docker-compose-dev.yml
+    - sed -i "s|{{TAG}}|$(echo $TAG)|g" docker-compose-dev.yml
     - rancher-compose --url $URL --access-key $ACCESS_KEY_DEV --secret-key $SECRET_KEY_DEV -p $CI_PROJECT_NAMESPACE -f docker-compose-dev.yml up $CI_PROJECT_NAME -p --force-upgrade -c -d
   environment:
     name: Jssy

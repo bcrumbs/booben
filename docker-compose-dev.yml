@@ -1,8 +1,6 @@
 jssy:
   ports:
   - 8030:3000/tcp
-  external_links:
-  - baas/schema-configurator:baas
   log_driver: json-file
   labels:
     io.rancher.container.pull_image: always
