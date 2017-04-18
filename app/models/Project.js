@@ -39,7 +39,8 @@ const ProjectRecord = Record({
   name: '',
   author: '',
   componentLibs: List(),
-  graphQLEndpointURL: null,
+  graphQLEndpointURL: '',
+  proxyGraphQLEndpoint: false,
   auth: null,
   routes: Map(),
   rootRoutes: List(),
@@ -56,6 +57,7 @@ export const projectToImmutable = input => new ProjectRecord({
   author: input.author,
   componentLibs: List(input.componentLibs),
   graphQLEndpointURL: input.graphQLEndpointURL || '',
+  proxyGraphQLEndpoint: !!input.proxyGraphQLEndpoint,
   auth: input.auth ? authToImmutable(input.auth) : null,
   routes: Map().withMutations(routes => {
     const visitRoute = (route, pathPrefix, parentRouteId) => {

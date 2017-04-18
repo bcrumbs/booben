@@ -29,6 +29,7 @@ const start = () => co(function* () {
   setupEndpoint(app, require('./endpoints/get-metadata'));
   setupEndpoint(app, require('./endpoints/create-project'));
   setupEndpoint(app, require('./endpoints/update-project'));
+  setupEndpoint(app, require('./endpoints/graphql-proxy'));
 
   httpServer = http.createServer(app);
 

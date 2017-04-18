@@ -11,6 +11,7 @@
  * @property {?string} author
  * @property {string[]} componentLibs
  * @property {?string} graphQLEndpointURL
+ * @property {boolean} proxyGraphQLEndpoint
  * @property {ProjectRoute[]} routes
  * @property {Object<string, ProjectFunction>} functions
  */

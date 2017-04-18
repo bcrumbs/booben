@@ -5,6 +5,7 @@
 'use strict';
 
 import { getProject, getMetadata, getGraphQLSchema } from '../api';
+import { URL_GRAPHQL_PREFIX } from '../../shared/constants';
 
 export const PROJECT_REQUEST =
   'PROJECT_REQUEST';
@@ -100,23 +101,29 @@ const projectLoadFailed = error => ({
  * @param {string} projectName
  * @return {function(dispatch: function(action: Object))}
  */
-export const loadProject = projectName => dispatch => {
+export const loadProject = projectName => async dispatch => {
   dispatch(requestProject(projectName));
-  
-  //noinspection JSCheckFunctionSignatures
-  Promise.all([getProject(projectName), getMetadata(projectName)])
-    .then(([project, metadata]) => {
-      if (project.graphQLEndpointURL) {
-        getGraphQLSchema(project.graphQLEndpointURL)
-          .then(schema =>
-            void dispatch(projectLoaded(project, metadata, schema)),
-          )
-          .catch(error => void dispatch(projectLoadFailed(error)));
-      } else {
-        dispatch(projectLoaded(project, metadata));
-      }
-    })
-    .catch(err => void dispatch(projectLoadFailed(err)));
+
+  try {
+    const [project, metadata] = await Promise.all([
+      getProject(projectName),
+      getMetadata(projectName),
+    ]);
+
+    if (project.graphQLEndpointURL) {
+      const graphQLEndpointURL = project.proxyGraphQLEndpoint
+        ? `${URL_GRAPHQL_PREFIX}/${project.name}`
+        : project.graphQLEndpointURL;
+
+      const schema = await getGraphQLSchema(graphQLEndpointURL);
+
+      dispatch(projectLoaded(project, metadata, schema));
+    } else {
+      dispatch(projectLoaded(project, metadata));
+    }
+  } catch (error) {
+    dispatch(projectLoadFailed(error));
+  }
 };
 
 /**

@@ -14,6 +14,7 @@ import Overlay from './containers/Overlay';
 import {
   PREVIEW_DOM_CONTAINER_ID,
   PREVIEW_DOM_OVERLAY_ID,
+  URL_GRAPHQL_PREFIX,
 } from '../shared/constants';
 
 import { LOADED } from '../app/constants/loadStates';
@@ -63,7 +64,9 @@ window.JSSY.initPreview = async params => {
   if (state.project.loadState !== LOADED)
     throw new Error('initPreview() failed: project is not loaded');
   
-  const graphQLEndpointURL = state.project.data.graphQLEndpointURL;
+  const graphQLEndpointURL = state.project.data.proxyGraphQLEndpoint
+    ? `${URL_GRAPHQL_PREFIX}/${state.project.data.name}`
+    : state.project.data.graphQLEndpointURL;
   
   let ProviderComponent;
   let providerProps;

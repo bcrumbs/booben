@@ -10,6 +10,7 @@ const fs = require('mz/fs');
 const url = require('url');
 const http = require('http');
 const https = require('https');
+const _omit = require('lodash.omit');
 const config = require('../config');
 const helpers = require('./helpers');
 const projectsCache = require('./projects-cache');
@@ -43,19 +44,41 @@ module.exports = {
         projectsCache.putProjectToCache(name, project);
       }
       
-      const graphqlEndpointURL = project.graphQLEndpointURL;
-      
-      if (!graphqlEndpointURL) {
-        helpers.sendError(
-          res,
-          400,
-          `Project ${name} doesn't have GraphQL endpoint`
-        );
-        
+      if (!project.graphQLEndpointURL) {
+        const message = `Project ${name} doesn't have a GraphQL endpoint`;
+        helpers.sendError(res, 404, message);
         return;
       }
-      
-      // TODO: Proxy client's request to graphqlEndpointURL
+
+      if (!project.proxyGraphQLEndpoint) {
+        const message =
+          `GraphQL endpoint proxying is not enabled in project ${name}`;
+
+        helpers.sendError(res, 403, message);
+        return;
+      }
+
+      const parsedURL = url.parse(project.graphQLEndpointURL);
+      const iface = parsedURL.protocol === 'https:' ? https : http;
+      const requestOptions = {
+        protocol: parsedURL.protocol,
+        hostname: parsedURL.hostname,
+        port: parsedURL.port,
+        path: parsedURL.path,
+        method: req.method,
+        headers: _omit(req.headers, [
+          'host',
+          'connection',
+          'origin',
+          'referer',
+        ]),
+      };
+
+      const proxyReq = iface.request(requestOptions, proxyRes => {
+        proxyRes.pipe(res, { end: true });
+      });
+
+      req.pipe(proxyReq, { end: true });
     }),
   ],
 };
