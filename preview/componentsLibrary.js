@@ -30,11 +30,10 @@ const loadComponentsBundle = () => new Promise((resolve, reject) => {
   const script = document.createElement('script');
 
   script.type = 'application/javascript';
-  script.onload =
-    () => void resolve();
-
-  script.onerror =
-    () => void reject(new Error('Failed to load components bundle'));
+  script.onload = () => void resolve();
+  script.onerror = () => void reject(
+    new Error('Failed to load components bundle'),
+  );
 
   head.appendChild(script);
   script.src = COMPONENTS_BUNDLE_FILE;
@@ -44,16 +43,17 @@ const loadComponentsBundle = () => new Promise((resolve, reject) => {
  *
  * @return {Promise}
  */
-export const loadComponents = () => loadComponentsBundle()
-  .then(() => {
-    if (!window.JssyComponents || !window.JssyComponents.default)
-      throw new Error('No components in bundle');
+export const loadComponents = async () => {
+  await loadComponentsBundle();
 
-    components = _mapValues(
-      window.JssyComponents.default,
-      ns => _mapValues(ns, patchComponent),
-    );
-  });
+  if (!window.JssyComponents || !window.JssyComponents.default)
+    throw new Error('No components in bundle');
+
+  components = _mapValues(
+    window.JssyComponents.default,
+    ns => _mapValues(ns, patchComponent),
+  );
+};
 
 /**
  * Get component from library
