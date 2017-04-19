@@ -89,7 +89,7 @@ window.JSSY.initPreview = async params => {
       if (auth.type === 'jwt') {
         applyJWTMiddleware(
           networkInterface,
-          !params.interactive
+          params.interactive
             ? getToken
             : () => localStorage.getItem('jssy_auth_token'),
         );

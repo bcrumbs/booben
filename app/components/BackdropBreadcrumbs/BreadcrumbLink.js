@@ -2,7 +2,7 @@
 
 // TODO: Clean up this mess
 
-import React, { Component } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 
 import {
@@ -10,10 +10,11 @@ import {
 } from '@reactackle/reactackle/components/Tooltip/combineWithTooltip';
 
 const propTypes = {
-  tooltipText: PropTypes.string.isRequired,
+  tooltipText: PropTypes.string,
 };
 
 const defaultProps = {
+  tooltipText: '',
 };
 
 /* eslint-disable react/jsx-handler-names, react/prop-types */
