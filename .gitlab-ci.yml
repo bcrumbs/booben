@@ -1,6 +1,6 @@
 variables:
   URL: "https://rancher.ordbuy.com"
-  TAG: "preview4"
+  TAG: "preview5"
 
 stages:
   - publish
