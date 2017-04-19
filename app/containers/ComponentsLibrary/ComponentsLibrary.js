@@ -37,10 +37,12 @@ import {
 import {
   currentSelectedComponentIdsSelector,
   currentComponentsSelector,
+  haveNestedConstructorsSelector,
 } from '../../selectors';
 
 import { getLocalizedTextFromState } from '../../utils';
 import { canInsertComponent } from '../../utils/meta';
+import { combineFiltersAll } from '../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 import defaultComponentIcon from '../../img/component_default.svg';
@@ -222,10 +224,20 @@ const libraryGroupsSortedByLanguageSelector = createSelector(
     ),
 );
 
+const filterGroupsAndComponents = (groups, includeComponent) => groups
+  .map(
+    group => group.update(
+      'components',
+      components => components.filter(includeComponent),
+    ),
+  )
+  .filter(group => !group.components.isEmpty());
+
 const libraryGroupsFilteredSelector = createSelector(
   libraryGroupsSortedByLanguageSelector,
   currentSelectedComponentIdsSelector,
   currentComponentsSelector,
+  haveNestedConstructorsSelector,
   state => state.project.showAllComponentsOnPalette,
   state => state.project.meta,
 
@@ -233,34 +245,36 @@ const libraryGroupsFilteredSelector = createSelector(
     groups,
     selectedComponentIds,
     components,
+    haveNestedConstructors,
     showAllComponentsOnPalette,
     meta,
   ) => {
-    const willFilterBySelectedComponent =
-      selectedComponentIds.size === 1 &&
-      !showAllComponentsOnPalette;
+    const filterFns = [
+      component => !haveNestedConstructors || component.fullName !== 'Outlet',
+    ];
 
-    if (!willFilterBySelectedComponent) return { groups, filtered: false };
+    if (selectedComponentIds.size === 1 && !showAllComponentsOnPalette) {
+      const selectedComponentId = selectedComponentIds.first();
+      const selectedComponent = components.get(selectedComponentId);
+      const childComponentNames = selectedComponent.children
+        .map(childId => components.get(childId).name);
 
-    const selectedComponentId = selectedComponentIds.first(),
-      selectedComponent = components.get(selectedComponentId);
+      filterFns.push(
+        component => canInsertComponent(
+          component.fullName,
+          selectedComponent.name,
+          childComponentNames,
+          -1,
+          meta,
+        ),
+      );
+    }
 
-    const childComponentNames = selectedComponent.children
-      .map(childId => components.get(childId).name);
+    const filteredGroups =
+      filterGroupsAndComponents(groups, combineFiltersAll(filterFns));
 
     return {
-      groups: groups.map(group =>
-        group.update('components', components =>
-          components.filter(c => canInsertComponent(
-            c.fullName,
-            selectedComponent.name,
-            childComponentNames,
-            -1,
-            meta,
-          )),
-        ),
-      ).filter(group => !group.components.isEmpty()),
-
+      groups: filteredGroups,
       filtered: true,
     };
   },

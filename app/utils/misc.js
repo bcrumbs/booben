@@ -50,36 +50,7 @@ export const isInteger = value => isNumber(value) && value % 1 === 0;
  * @param {*} value
  * @return {boolean}
  */
-export const isObject = value => typeof value === 'object' && value !== null;
-
-/**
- *
- * @param {*} value
- * @return {boolean}
- */
 export const isUndef = value => typeof value === 'undefined';
-
-/**
- *
- * @param {Object} object
- * @param {function(value: *, key: string, object: Object)} fn
- */
-export const objectForEach = (object, fn) =>
-  void Object.keys(object).forEach(key => void fn(object[key], key, object));
-
-/**
- *
- * @param {Object} object
- * @param {function(value: *, key: string, object: Object)} fn
- * @return {Object}
- */
-export const objectMap = (object, fn) => {
-  const ret = {};
-  objectForEach(object, (value, key, object) => {
-    ret[key] = fn(value, key, object);
-  });
-  return ret;
-};
 
 /**
  *
@@ -89,30 +60,6 @@ export const objectMap = (object, fn) => {
  */
 export const objectSome = (object, predicate) =>
   Object.keys(object).some(key => predicate(object[key], key, object));
-
-/**
- *
- * @param {Object} object
- * @param {function(value: *, key: string, object: Object): boolean} predicate
- * @return {Object}
- */
-export const objectFilter = (object, predicate) => {
-  const ret = {};
-  objectForEach(object, (value, key, object) => {
-    if (predicate(value, key, object)) ret[key] = object[key];
-  });
-  return ret;
-};
-/**
- *
- * @param {*} value
- * @return {*}
- */
-export const clone = value => {
-  if (Array.isArray(value)) return value.map(clone);
-  else if (isObject(value)) return objectMap(value, clone);
-  else return value;
-};
 
 //noinspection JSCheckFunctionSignatures
 /**
@@ -174,6 +121,14 @@ export const getter = key => object => object[key];
 
 /**
  *
+ * @param {(function(arg: *): boolean)[]} filterFns
+ * @return {function(arg: *): boolean}
+ */
+export const combineFiltersAll =
+  filterFns => arg => filterFns.every(fn => fn(arg));
+
+/**
+ *
  * @param {number} x
  * @param {number} y
  * @param {number} cX
@@ -181,12 +136,8 @@ export const getter = key => object => object[key];
  * @param {number} r
  * @return {boolean}
  */
-export const pointIsInCircle = (x, y, cX, cY, r) => {
-  const xx = x - cX,
-    yy = y - cY;
-
-  return xx * xx + yy * yy <= r * r;
-};
+export const pointIsInCircle =
+  (x, y, cX, cY, r) => (x - cX) ** 2 + (y - cY) ** 2 <= r ** 2;
 
 /**
  *
