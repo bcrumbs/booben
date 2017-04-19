@@ -51,6 +51,17 @@
   "design.deleteComponentQuestion": "Are you sure you want to delete component {title}?",
   "design.selectLayout": "Select component layout",
 
+  "componentGroups.builtin": "Built-in components",
+  "componentGroups.builtin.desc": "",
+  "componentGroups.html": "HTML tags",
+  "componentGroups.html.desc": "",
+  "components.builtin.Outlet": "Outlet",
+  "components.builtin.Outlet.desc": "Place it where you want to mount the content of child routes",
+  "components.builtin.List": "List",
+  "components.builtin.List.desc": "",
+  "components.builtin.Text": "Text",
+  "components.builtin.Text.desc": "",
+
   "selectAComponent": "Select a component",
   "multipleComponentsSelected": "Multiple components selected",
   "thisComponentDoesntHaveEditableAttributes": "This component doesn't have editable attributes",

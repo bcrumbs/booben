@@ -16,18 +16,20 @@ export default {
       textKey: 'name',
       descriptionTextKey: 'description',
       kind: 'atomic',
+      hidden: true,
       props: {
         text: {
           textKey: 'props_text',
           descriptionTextKey: 'props_text_desc',
           type: 'string',
-          source: ['static', 'function', 'data'],
+          source: ['static', 'data', 'state', 'routeParams'],
           sourceConfigs: {
             static: {
               defaultTextKey: 'default',
             },
-            function: {},
             data: {},
+            state: {},
+            routeParams: {},
           },
         },
       },
@@ -75,6 +77,7 @@ export default {
       textKey: 'name',
       descriptionTextKey: 'description',
       kind: 'atomic',
+      hidden: true,
       props: {
         data: {
           textKey: 'props_data',

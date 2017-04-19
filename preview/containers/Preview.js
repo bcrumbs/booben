@@ -694,37 +694,47 @@ class Preview extends Component {
   _renderCurrentRoute() {
     const { project, currentRouteId, currentRouteIsIndexRoute } = this.props;
     
-    let routeId = currentRouteId;
-    if (routeId === -1) return null;
-  
-    let ret = null;
-    let route = project.routes.get(routeId);
-    let rootComponentId = currentRouteIsIndexRoute
-      ? route.indexComponent
-      : route.component;
-
-    do {
+    if (currentRouteId === -1) return null;
+    
+    let route = project.routes.get(currentRouteId);
+    let ret;
+    
+    if (currentRouteIsIndexRoute) {
       ret = (
         <Builder
           interactive
           components={route.components}
-          rootId={rootComponentId}
+          rootId={route.component}
+        >
+          <Builder
+            interactive
+            components={route.components}
+            rootId={route.indexComponent}
+          />
+        </Builder>
+      );
+    } else {
+      ret = (
+        <Builder
+          interactive
+          components={route.components}
+          rootId={route.component}
+        />
+      );
+    }
+    
+    while (route.parentId !== -1) {
+      route = project.routes.get(route.parentId);
+      ret = (
+        <Builder
+          interactive
+          components={route.components}
+          rootId={route.component}
         >
           {ret}
         </Builder>
       );
-
-      routeId = route.parentId;
-
-      if (routeId > -1) {
-        route = project.routes.get(routeId);
-        rootComponentId = route.component;
-      } else {
-        route = null;
-        rootComponentId = -1;
-      }
     }
-    while (route);
 
     return ret;
   }

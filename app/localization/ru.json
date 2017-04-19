@@ -51,6 +51,17 @@
   "design.deleteComponentQuestion": "Вы уверены, что хотите удалить компонент {title}?",
   "design.selectLayout": "Выберите раскладку компонента",
 
+  "componentGroups.builtin": "Встроенные компоненты",
+  "componentGroups.builtin.desc": "",
+  "componentGroups.html": "Тэги HTML",
+  "componentGroups.html.desc": "",
+  "components.builtin.Outlet": "Outlet",
+  "components.builtin.Outlet.desc": "",
+  "components.builtin.List": "Список",
+  "components.builtin.List.desc": "",
+  "components.builtin.Text": "Текст",
+  "components.builtin.Text.desc": "",
+
   "selectAComponent": "Выбрать компонент",
   "multipleComponentsSelected": "Выбрано несколько компонентов",
   "thisComponentDoesntHaveEditableAttributes": "Этот компонент не имеет изменяемых атрибутов",

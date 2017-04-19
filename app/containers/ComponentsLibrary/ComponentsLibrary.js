@@ -48,16 +48,20 @@ import defaultComponentIcon from '../../img/component_default.svg';
 const LibraryComponentData = Record({
   name: '',
   fullName: '',
-  text: Map(),
-  descriptionText: Map(),
+  text: null,
+  descriptionText: null,
+  textIntlKey: '',
+  descriptionIntlKey: '',
   iconURL: '',
 });
 
 const LibraryGroupData = Record({
   name: '',
   namespace: '',
-  text: Map(),
-  descriptionText: Map(),
+  text: null,
+  descriptionText: null,
+  textIntlKey: '',
+  descriptionIntlKey: '',
   isDefault: false,
   components: List(),
 });
@@ -84,13 +88,28 @@ const defaultProps = {
   draggedComponents: null,
 };
 
+const GROUP_BUILTIN = new LibraryGroupData({
+  name: '__builtin__',
+  namespace: '',
+  textIntlKey: 'componentGroups.builtin',
+  descriptionIntlKey: 'componentGroups.builtin.desc',
+  components: List([
+    new LibraryComponentData({
+      name: 'Outlet',
+      fullName: 'Outlet',
+      iconURL: defaultComponentIcon,
+      textIntlKey: 'components.builtin.Outlet',
+      descriptionIntlKey: 'components.builtin.Outlet.desc',
+    }),
+  ]),
+});
+
 const extractGroupsDataFromMeta = meta => {
   let groups = OrderedMap();
 
   _forOwn(meta, libMeta => {
     _forOwn(libMeta.componentGroups, (groupData, groupName) => {
       const fullName = `${libMeta.namespace}.${groupName}`;
-
       const libraryGroup = new LibraryGroupData({
         name: fullName,
         namespace: libMeta.namespace,
@@ -125,8 +144,9 @@ const extractGroupsDataFromMeta = meta => {
         groups = groups.set(groupName, group);
       }
 
-      const text = componentMeta.strings[componentMeta.textKey],
-        description = componentMeta.strings[componentMeta.descriptionTextKey];
+      const text = componentMeta.strings[componentMeta.textKey];
+      const description =
+        componentMeta.strings[componentMeta.descriptionTextKey];
 
       const libraryComponent = new LibraryComponentData({
         name: componentMeta.displayName,
@@ -142,6 +162,8 @@ const extractGroupsDataFromMeta = meta => {
       );
     });
   });
+  
+  groups = groups.set('__builtin__', GROUP_BUILTIN);
 
   return groups.toList().filter(group => !group.components.isEmpty());
 };
@@ -151,9 +173,36 @@ const libraryGroupsSelector = createSelector(
   extractGroupsDataFromMeta,
 );
 
-const compareComponents = language => (a, b) => {
-  const aText = a.text.get(language) || '',
-    bText = b.text.get(language) || '';
+const getComponentNameString = (componentData, language, getLocalizedText) => {
+  if (componentData.text)
+    return componentData.text.get(language);
+  
+  if (componentData.textIntlKey)
+    return getLocalizedText(componentData.textIntlKey);
+  
+  return componentData.name;
+};
+
+const getGroupNameString = (groupData, language, getLocalizedText) => {
+  let name;
+  
+  if (groupData.isDefault)
+    name = getLocalizedText('uncategorizedComponents');
+  else if (groupData.text)
+    name = groupData.text.get(language);
+  else if (groupData.textIntlKey)
+    name = getLocalizedText(groupData.textIntlKey);
+  else
+    name = groupData.name;
+  
+  return groupData.namespace
+    ? `${groupData.namespace} - ${name}`
+    : name;
+};
+
+const compareComponents = (language, getLocalizedText) => (a, b) => {
+  const aText = getComponentNameString(a, language, getLocalizedText);
+  const bText = getComponentNameString(b, language, getLocalizedText);
   
   if (aText < bText) return -1;
   if (aText > bText) return 1;
@@ -162,12 +211,13 @@ const compareComponents = language => (a, b) => {
 
 const libraryGroupsSortedByLanguageSelector = createSelector(
   libraryGroupsSelector,
+  getLocalizedTextFromState,
   state => state.app.language,
 
-  (groups, language) =>
+  (groups, getLocalizedText, language) =>
     groups.map(group =>
       group.update('components', components =>
-        components.sort(compareComponents(language)),
+        components.sort(compareComponents(language, getLocalizedText)),
       ),
     ),
 );
@@ -249,19 +299,22 @@ class ComponentsLibraryComponent extends PureComponent {
   
   render() {
     const {
-      getLocalizedText,
+      componentGroups,
+      expandedGroups,
+      onShowAllComponents,
       language,
+      getLocalizedText,
+      onStartDragNewComponent,
+      onExpandedGroupsChange,
     } = this.props;
 
     const focusedComponentName = this._getFocusedComponentName();
-
-    const { groups, filtered } = this.props.componentGroups;
+    const { groups, filtered } = componentGroups;
 
     if (groups.isEmpty()) {
       if (filtered) {
-        const noComponentsText = getLocalizedText(
-          'noComponentsCanBeInsertedInsideSelectedComponent',
-        );
+        const noComponentsText =
+          getLocalizedText('noComponentsCanBeInsertedInsideSelectedComponent');
         
         const showAllComponentsText = getLocalizedText('showAllComponents');
         
@@ -269,7 +322,7 @@ class ComponentsLibraryComponent extends PureComponent {
           <BlockContentPlaceholder text={noComponentsText}>
             <Button
               text={showAllComponentsText}
-              onPress={this.props.onShowAllComponents}
+              onPress={onShowAllComponents}
             />
           </BlockContentPlaceholder>
         );
@@ -286,22 +339,16 @@ class ComponentsLibraryComponent extends PureComponent {
       const items = group.components.map(component => (
         <ComponentTag
           key={component.fullName}
-          title={component.text.get(language)}
+          title={getComponentNameString(component, language, getLocalizedText)}
           image={component.iconURL}
           focused={focusedComponentName === component.fullName}
-          onStartDrag={
-            event => this.props.onStartDragNewComponent(event, component)
-          }
+          onStartDrag={event => onStartDragNewComponent(event, component)}
         />
       ));
 
-      const title = group.isDefault
-        ? `${group.namespace} - ${getLocalizedText('uncategorizedComponents')}`
-        : `${group.namespace} - ${group.text.get(language)}`;
-
       return new AccordionItemRecord({
         id: group.name,
-        title,
+        title: getGroupNameString(group, language, getLocalizedText),
         content: (
           <ComponentTagWrapper>
             {items}
@@ -315,8 +362,8 @@ class ComponentsLibraryComponent extends PureComponent {
         <Accordion
           single
           items={accordionItems}
-          expandedItemIds={this.props.expandedGroups}
-          onExpandedItemsChange={this.props.onExpandedGroupsChange}
+          expandedItemIds={expandedGroups}
+          onExpandedItemsChange={onExpandedGroupsChange}
         />
       </BlockContentBox>
     );

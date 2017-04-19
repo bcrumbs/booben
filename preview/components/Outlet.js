@@ -5,6 +5,7 @@
 'use strict';
 
 import React from 'react';
+import patchComponent from '../hocs/patchComponent';
 
 const style = {
   width: 'calc(100% - 48px)',
@@ -30,7 +31,7 @@ const outletContentStyle = {
   margin: 'auto',
 };
 
-export const Outlet = () => (
+const _Outlet = () => (
   <div style={style}>
     <div style={outletContentStyle}>
       Outlet
@@ -38,4 +39,6 @@ export const Outlet = () => (
   </div>
 );
 
-Outlet.displayName = 'Outlet';
+_Outlet.displayName = 'Outlet';
+
+export const Outlet = patchComponent(_Outlet);

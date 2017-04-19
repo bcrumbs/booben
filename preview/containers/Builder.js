@@ -846,24 +846,49 @@ class BuilderComponent extends PureComponent {
     
     return ret;
   }
+  
+  /**
+   *
+   * @param {Object} component
+   * @param {boolean} [isPlaceholderRoot=false]
+   * @return {ReactElement}
+   * @private
+   */
+  _renderOutletComponent(component, isPlaceholderRoot = false) {
+    const { isPlaceholder } = this.props;
+    
+    const props = {};
+    if (isPlaceholder) {
+      if (isPlaceholderRoot) this._patchPlaceholderRootProps(props, false);
+    } else {
+      this._patchComponentProps(props, false, component.id);
+    }
+    
+    return (
+      <Outlet {...props} />
+    );
+  }
 
   /**
    *
    * @param {Object} component
+   * @param {boolean} [isPlaceholderRoot=false]
    * @return {*}
    * @private
    */
-  _renderPseudoComponent(component) {
-    const systemProps = this._buildSystemProps(component, null);
+  _renderPseudoComponent(component, isPlaceholderRoot = false) {
+    const { interactive, isPlaceholder } = this.props;
     
+    const systemProps = this._buildSystemProps(component, null);
     if (!systemProps.visible) return null;
     
     const props = this._buildProps(component, null);
     
     if (component.name === 'Outlet') {
-      return this.props.interactive
-        ? (this.props.children || <Outlet />)
-        : this.props.children;
+      if (isPlaceholder || (interactive && !this.props.children))
+        return this._renderOutletComponent(component, isPlaceholderRoot);
+      else
+        return this.props.children;
     } else if (component.name === 'Text') {
       return props.text || '';
     } else if (component.name === 'List') {
@@ -1045,7 +1070,7 @@ class BuilderComponent extends PureComponent {
 
     // Handle special components like Text, Outlet etc.
     if (isPseudoComponent(component))
-      return this._renderPseudoComponent(component);
+      return this._renderPseudoComponent(component, isPlaceholderRoot);
 
     // Get component class
     const Component = getComponentByName(component.name);
