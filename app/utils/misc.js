@@ -54,6 +54,13 @@ export const isUndef = value => typeof value === 'undefined';
 
 /**
  *
+ * @param {*} value
+ * @return {boolean}
+ */
+export const isFunction = value => typeof value === 'function';
+
+/**
+ *
  * @param {Object} object
  * @param {function(value: *, key: string, object: Object): boolean} predicate
  * @return {boolean}

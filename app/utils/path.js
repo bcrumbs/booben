@@ -5,7 +5,7 @@
 'use strict';
 
 import { Map, List } from 'immutable';
-import { isInteger } from './misc';
+import { isInteger, isFunction } from './misc';
 
 /**
  * @typedef {Object} PathStartDesc
@@ -23,7 +23,7 @@ import { isInteger } from './misc';
  *
  * @type {Object}
  */
-export const BREAK = {};
+export const BREAK = Object.freeze(Object.create(null));
 
 /**
  *
@@ -40,7 +40,7 @@ const isValidPathStep = (step, current) => {
     return isInteger(step) && step >= 0;
   } else {
     return !!current.constructor &&
-      !!current.constructor.isValidPathStep &&
+      isFunction(current.constructor.isValidPathStep) &&
       current.constructor.isValidPathStep(step, current);
   }
 };
@@ -121,4 +121,4 @@ export const getObjectByPath = path =>
  * @return {*}
  */
 export const setInPath = (path, value) =>
-  path.start.object.setIn(expandPath(path), value);
+  path.start.object.setIn(expandPathRelative(path), value);
