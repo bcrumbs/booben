@@ -44,6 +44,7 @@ import {
   currentRootComponentIdSelector,
   currentSelectedComponentIdsSelector,
   currentHighlightedComponentIdsSelector,
+  getLocalizedTextFromState,
 } from '../../selectors';
 
 import ProjectComponentRecord from '../../models/ProjectComponent';
@@ -53,8 +54,6 @@ import {
   isAtomicComponent,
   canInsertComponent,
 } from '../../utils/meta';
-
-import { getLocalizedTextFromState } from '../../utils';
 
 /**
  *

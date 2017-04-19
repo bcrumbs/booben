@@ -50,8 +50,8 @@ import {
 } from '../actions/project';
 
 import { selectRoute } from '../actions/structure';
+import { getLocalizedTextFromState } from '../selectors';
 import history from '../history';
-import { getLocalizedTextFromState } from '../utils';
 
 import {
   arrayToObject,

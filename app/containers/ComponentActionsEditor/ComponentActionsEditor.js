@@ -35,12 +35,12 @@ import {
 import {
   currentComponentsSelector,
   currentSelectedComponentIdsSelector,
+  getLocalizedTextFromState
 } from '../../selectors';
 
 import { PathStartingPoints } from '../../reducers/project';
 import ProjectRoute from '../../models/ProjectRoute';
 import ProjectComponent from '../../models/ProjectComponent';
-import { getLocalizedTextFromState } from '../../utils';
 import { getMutationField } from '../../utils/schema';
 
 import {

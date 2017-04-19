@@ -71,6 +71,7 @@ import {
   singleComponentSelectedSelector,
   firstSelectedComponentIdSelector,
   currentComponentsSelector,
+  getLocalizedTextFromState,
 } from '../selectors';
 
 import {
@@ -82,7 +83,6 @@ import {
 } from '../utils/meta';
 
 import { URL_APP_PREFIX } from '../../shared/constants';
-import { getLocalizedTextFromState } from '../utils';
 
 //noinspection JSUnresolvedVariable
 import defaultComponentLayoutIcon from '../img/layout_default.svg';

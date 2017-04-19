@@ -24,9 +24,9 @@ import {
   PropToggle,
 } from '../../components/props';
 
+import { getLocalizedTextFromState } from '../../selectors';
 import ProjectRouteRecord from '../../models/ProjectRoute';
 import { updateRouteField } from '../../actions/project';
-import { getLocalizedTextFromState } from '../../utils';
 
 class RouteEditorComponent extends PureComponent {
   constructor(props) {

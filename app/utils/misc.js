@@ -149,3 +149,15 @@ export const isPrefixList = (maybePrefix, list) => {
   if (maybePrefix.size > list.size) return false;
   return maybePrefix.every((item, idx) => is(item, list.get(idx)));
 };
+
+/**
+ *
+ * @param {string} prefix
+ * @param {string} path
+ * @return {string}
+ */
+export const concatPath = (prefix, path) => {
+  if (prefix === '') return path;
+  if (prefix === '/') return `/${path}`;
+  return `${prefix}/${path}`;
+};

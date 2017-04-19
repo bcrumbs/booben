@@ -5,6 +5,7 @@
 'use strict';
 
 import { createSelector } from 'reselect';
+import IntlMessageFormat from 'intl-messageformat';
 import _forOwn from 'lodash.forown';
 import { getComponentMeta, findPropThatPushedDataContext } from '../utils/meta';
 import { getTypeNameByPath } from '../utils/schema';
@@ -208,4 +209,28 @@ export const ownerUserTypedefsSelector = createSelector(
     if (!topNestedConstructor) return null;
     return topNestedConstructor.valueInfo.userTypedefs;
   },
+);
+
+/**
+ *
+ * @param {Object} localization
+ * @param {string} language
+ * @param {string} id
+ * @param {Object} values
+ * @return {string}
+ */
+const getLocalizedText = (localization, language, id, values) =>
+  new IntlMessageFormat(localization[id], language).format(values);
+
+/**
+ *
+ * @param {Object} state
+ * @return {function(id: string, [values]: Object): string}
+ */
+export const getLocalizedTextFromState = createSelector(
+  state => state.app.localization,
+  state => state.app.language,
+
+  (localization, language) =>
+    (id, values = {}) => getLocalizedText(localization, language, id, values),
 );

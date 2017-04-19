@@ -38,9 +38,9 @@ import {
   currentSelectedComponentIdsSelector,
   currentComponentsSelector,
   haveNestedConstructorsSelector,
+  getLocalizedTextFromState,
 } from '../../selectors';
 
-import { getLocalizedTextFromState } from '../../utils';
 import { canInsertComponent } from '../../utils/meta';
 import { combineFiltersAll } from '../../utils/misc';
 

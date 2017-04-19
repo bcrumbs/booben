@@ -42,7 +42,7 @@ import {
   toggleComponentTitles,
 } from '../actions/app';
 
-import { getLocalizedTextFromState } from '../utils';
+import { getLocalizedTextFromState } from '../selectors';
 
 const TopMenuLink = ({ href, className, children }) => (
   <Link to={href} className={className}>

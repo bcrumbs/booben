@@ -43,6 +43,7 @@ import {
   currentComponentsSelector,
   ownerPropsSelector,
   ownerUserTypedefsSelector,
+  getLocalizedTextFromState,
 } from '../../../selectors';
 
 import {
@@ -51,7 +52,6 @@ import {
 } from '../../../actions/project';
 
 import { ROUTE_PARAM_VALUE_DEF, SYSTEM_PROPS } from '../../../constants/misc';
-import { getLocalizedTextFromState } from '../../../utils';
 import { setInPath } from '../../../utils/path';
 
 import {

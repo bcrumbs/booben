@@ -38,6 +38,7 @@ import {
   currentSelectedComponentIdsSelector,
   ownerPropsSelector,
   ownerUserTypedefsSelector,
+  getLocalizedTextFromState,
 } from '../../selectors';
 
 import {
@@ -50,7 +51,6 @@ import {
 } from '../../utils/meta';
 
 import { SYSTEM_PROPS } from '../../constants/misc';
-import { getLocalizedTextFromState } from '../../utils';
 import { objectSome } from '../../utils/misc';
 
 //noinspection JSUnresolvedVariable

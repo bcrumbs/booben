@@ -32,6 +32,7 @@ import {
   topNestedConstructorSelector,
   topNestedConstructorComponentSelector,
   availableDataContextsSelector,
+  getLocalizedTextFromState,
 } from '../../selectors';
 
 import { createFunction } from '../../actions/project';
@@ -43,7 +44,6 @@ import SourceDataStatic from '../../models/SourceDataStatic';
 import SourceDataRouteParams from '../../models/SourceDataRouteParams';
 import SourceDataData, { QueryPathStep } from '../../models/SourceDataData';
 import { NestedConstructor } from '../../reducers/project';
-import { getLocalizedTextFromState } from '../../utils';
 import { getComponentMeta, isValidSourceForValue } from '../../utils/meta';
 import { noop } from '../../utils/misc';
 

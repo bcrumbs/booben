@@ -13,7 +13,7 @@ import {
 } from './ProjectRoute';
 
 import { projectFunctionToImmutable } from './ProjectFunction';
-import { concatPath } from '../utils';
+import { concatPath } from '../utils/misc';
 
 const AuthParamRecord = Record({
   value: '',

@@ -99,8 +99,6 @@ import {
   propHasDataContext,
 } from '../utils/meta';
 
-import { concatPath } from '../utils';
-
 import {
   parseGraphQLSchema,
   getMutationField,
@@ -108,7 +106,7 @@ import {
 } from '../utils/schema';
 
 import { walkPath, expandPath, getObjectByPath } from '../utils/path';
-import { isPrefixList } from '../utils/misc';
+import { isPrefixList, concatPath } from '../utils/misc';
 import { getFunctionInfo } from '../utils/functions';
 import { SYSTEM_PROPS, ROUTE_PARAM_VALUE_DEF } from '../constants/misc';
 
