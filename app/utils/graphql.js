@@ -9,7 +9,7 @@ import { Record, Map, List } from 'immutable';
 import { NO_VALUE } from '../constants/misc';
 
 import {
-  walkSimpleProps,
+  walkSimpleValues,
   walkComponentsTree,
 } from '../models/ProjectComponent';
 
@@ -165,52 +165,84 @@ const resolveGraphQLType = (propValue, dataContextTree) => {
   return context.type;
 };
 
-const toGraphQLScalarValue = (value, type) => {
-  if (type === 'String') return { kind: 'StringValue', value };
-  if (type === 'Int') return { kind: 'IntValue', value: `${value}` };
-  if (type === 'Float') return { kind: 'FloatValue', value: `${value}` };
-  if (type === 'Boolean') return { kind: 'BooleanValue', value };
-  if (type === 'ID') return { kind: 'StringValue', value };
-
-  throw new Error(`toGraphQLScalarValue(): Unknown type: '${type}'.`);
-};
-
-const buildGraphQLValue = (jssyValue, schemaTypeDef) => {
-  // eslint-disable-next-line no-unused-vars
-  const { type, kind, nonNull } = schemaTypeDef;
-
-    // TODO: Deal with more complex values
-  if (jssyValue.source === 'static') {
-    if (jssyValue.sourceData.ownerPropName)
-      return NO_VALUE;
-    else if (jssyValue.sourceData.value === null)
-      return NO_VALUE;
-    else if (List.isList(jssyValue.sourceData.value))
-      return NO_VALUE;
-    else if (Map.isMap(jssyValue.sourceData.value))
-      return NO_VALUE;
-    else
-      return toGraphQLScalarValue(jssyValue.sourceData.value, type);
-  } else {
-    return NO_VALUE;
+/**
+ *
+ * @param {DataFieldTypeDefinition} typeDefinition
+ * @return {Object}
+ */
+const typeDefinitionToGQLTypeAST = typeDefinition => {
+  let ret = {
+    kind: 'NamedType',
+    name: {
+      kind: 'Name',
+      value: typeDefinition.type,
+    },
+  };
+  
+  const kindError =
+    typeDefinition.kind !== FieldKinds.SINGLE &&
+    typeDefinition.kind !== FieldKinds.LIST;
+  
+  if (kindError) {
+    throw new Error(
+      'typeDefinitionToGQLTypeAST(): ' +
+      'Only types of kinds SINGLE and LIST are supported',
+    );
   }
+  
+  if (typeDefinition.kind === FieldKinds.LIST) {
+    if (typeDefinition.nonNullMember) {
+      ret = {
+        kind: 'NonNullType',
+        type: ret,
+      };
+    }
+    
+    ret = {
+      kind: 'ListType',
+      type: ret,
+    };
+  }
+  
+  if (typeDefinition.nonNull) {
+    ret = {
+      kind: 'NonNullType',
+      type: ret,
+    };
+  }
+  
+  return ret;
 };
 
 /**
  *
+ * @param {Object} fieldDefinition
  * @param {string} argName
  * @param {Object} argValue
- * @param {Object} fieldDefinition
+ * @param {Object} variablesAccumulator
  * @return {Object}
  */
-const buildGraphQLArgument = (argName, argValue, fieldDefinition) => {
+const buildGraphQLArgument = (
+  fieldDefinition,
+  argName,
+  argValue,
+  variablesAccumulator,
+) => {
   const argDefinition = fieldDefinition.args[argName];
-  const value = buildGraphQLValue(argValue, argDefinition);
+  const variableName = randomName();
+  
+  variablesAccumulator[variableName] = { argDefinition, argValue };
 
-  return value === NO_VALUE ? NO_VALUE : {
+  return {
     kind: 'Argument',
     name: { kind: 'Name', value: argName },
-    value,
+    value: {
+      kind: 'Variable',
+      name: {
+        kind: 'Name',
+        value: variableName,
+      },
+    },
   };
 };
 
@@ -240,9 +272,15 @@ const buildAlias = (fieldName, jssyValue) => ({
  * Actually it's Immutable.Record; see models/ProjectComponentProp
  * @param {DataSchema} schema
  * @param {Object} dataContextTree
+ * @param {Object} variablesAccumulator
  * @return {Object}
  */
-const buildGraphQLFragmentForValue = (jssyValue, schema, dataContextTree) => {
+const buildGraphQLFragmentForValue = (
+  jssyValue,
+  schema,
+  dataContextTree,
+  variablesAccumulator,
+) => {
   const fragmentName = randomName();
   const onType = resolveGraphQLType(jssyValue, dataContextTree);
 
@@ -291,13 +329,15 @@ const buildGraphQLFragmentForValue = (jssyValue, schema, dataContextTree) => {
 
       if (argumentValues) {
         argumentValues.forEach((argValue, argName) => {
+          const fieldDefinition = currentTypeDefinition
+            .fields[fieldName]
+            .connectionFields[connectionFieldName];
+          
           const arg = buildGraphQLArgument(
+            fieldDefinition,
             argName,
             argValue,
-
-            currentTypeDefinition
-              .fields[fieldName]
-              .connectionFields[connectionFieldName],
+            variablesAccumulator,
           );
 
           if (arg !== NO_VALUE) args.push(arg);
@@ -389,9 +429,10 @@ const buildGraphQLFragmentForValue = (jssyValue, schema, dataContextTree) => {
       if (argumentValues) {
         argumentValues.forEach((argValue, argName) => {
           const arg = buildGraphQLArgument(
+            currentTypeDefinition.fields[fieldName],
             argName,
             argValue,
-            currentTypeDefinition.fields[fieldName],
+            variablesAccumulator,
           );
 
           if (arg !== NO_VALUE) args.push(arg);
@@ -488,6 +529,7 @@ const buildAndAttachFragmentsForDesignerProp = (
   meta,
   schema,
   project,
+  variablesAccumulator,
 ) => {
   if (!typedef.sourceConfigs.designer.props) return { fragments: [], theMap };
 
@@ -528,6 +570,7 @@ const buildAndAttachFragmentsForDesignerProp = (
       project,
       dataContextTree,
       theMap,
+      variablesAccumulator,
     );
 
     ret.fragments.forEach(fragment => void fragments.push(fragment));
@@ -552,6 +595,7 @@ const buildAndAttachFragmentsForDesignerProp = (
  * @param {Object} project
  * @param {Object} dataContextTree
  * @param {Object} theMap
+ * @param {Object} variablesAccumulator
  * @return {Object}
  */
 const buildGraphQLFragmentsForOwnComponent = (
@@ -561,6 +605,7 @@ const buildGraphQLFragmentsForOwnComponent = (
   project,
   dataContextTree,
   theMap,
+  variablesAccumulator,
 ) => {
   const componentMeta = getComponentMeta(component.name, meta);
   const fragments = [];
@@ -569,10 +614,12 @@ const buildGraphQLFragmentsForOwnComponent = (
 
   const walkSimplePropsOptions = {
     project,
+    schema,
     walkFunctionArgs: true,
+    walkActions: true,
   };
 
-  const visitProp = (value, typedef) => {
+  const visitValue = (value, typedef) => {
     if (value.isLinkedWithData()) {
       if (value.sourceData.dataContext.size === 0) return;
 
@@ -580,6 +627,7 @@ const buildGraphQLFragmentsForOwnComponent = (
         value,
         schema,
         dataContextTree,
+        variablesAccumulator,
       );
 
       fragments.push(fragment);
@@ -625,7 +673,12 @@ const buildGraphQLFragmentsForOwnComponent = (
     }
   };
 
-  walkSimpleProps(component, componentMeta, visitProp, walkSimplePropsOptions);
+  walkSimpleValues(
+    component,
+    componentMeta,
+    visitValue,
+    walkSimplePropsOptions,
+  );
 
   if (designerPropsWithComponent.length > 0) {
     designerPropsWithComponent.forEach(({ value, typedef }) => {
@@ -638,6 +691,7 @@ const buildGraphQLFragmentsForOwnComponent = (
         meta,
         schema,
         project,
+        variablesAccumulator,
       );
 
       theMap = ret.theMap;
@@ -666,6 +720,7 @@ const fixUnfinishedFragments = fragments => {
  * @param {DataSchema} schema
  * @param {Object} meta
  * @param {Object} project
+ * @param {Object} variablesAccumulator
  * @return {Object}
  */
 const buildGraphQLFragmentsForComponent = (
@@ -673,6 +728,7 @@ const buildGraphQLFragmentsForComponent = (
   schema,
   meta,
   project,
+  variablesAccumulator,
 ) => {
   const componentMeta = getComponentMeta(component.name, meta);
   const fragments = [];
@@ -684,7 +740,12 @@ const buildGraphQLFragmentsForComponent = (
   });
 
   const dataValuesByDataContext = {};
-  const walkSimplePropsOptions = { project, walkFunctionArgs: true };
+  const walkSimplePropsOptions = {
+    project,
+    schema,
+    walkFunctionArgs: true,
+    walkActions: true,
+  };
 
   const visitValue = (value, typedef) => {
     if (value.isLinkedWithData()) {
@@ -694,6 +755,7 @@ const buildGraphQLFragmentsForComponent = (
         value,
         schema,
         dataContextTree,
+        variablesAccumulator,
       );
 
       fragments.push(fragment);
@@ -722,7 +784,12 @@ const buildGraphQLFragmentsForComponent = (
     }
   };
 
-  walkSimpleProps(component, componentMeta, visitValue, walkSimplePropsOptions);
+  walkSimpleValues(
+    component,
+    componentMeta,
+    visitValue,
+    walkSimplePropsOptions,
+  );
 
   let theMap = Map();
 
@@ -737,6 +804,7 @@ const buildGraphQLFragmentsForComponent = (
         meta,
         schema,
         project,
+        variablesAccumulator,
       );
 
       theMap = ret.theMap;
@@ -748,8 +816,15 @@ const buildGraphQLFragmentsForComponent = (
 };
 
 export const buildQueryForComponent = (component, schema, meta, project) => {
-  const { fragments, theMap } =
-    buildGraphQLFragmentsForComponent(component, schema, meta, project);
+  const variablesAccumulator = {};
+  
+  const { fragments, theMap } = buildGraphQLFragmentsForComponent(
+    component,
+    schema,
+    meta,
+    project,
+    variablesAccumulator,
+  );
   
   const isRootFragment = fragment =>
     fragment.typeCondition.name.value === schema.queryTypeName;
@@ -768,7 +843,22 @@ export const buildQueryForComponent = (component, schema, meta, project) => {
           kind: 'Name',
           value: randomName(),
         },
-        variableDefinitions: [],
+        variableDefinitions: objectToArray(
+          variablesAccumulator,
+    
+          ({ argDefinition }, varName) => ({
+            kind: 'VariableDefinition',
+            variable: {
+              kind: 'Variable',
+              name: {
+                kind: 'Name',
+                value: varName,
+              },
+            },
+            type: typeDefinitionToGQLTypeAST(argDefinition),
+            defaultValue: null,
+          }),
+        ),
         directives: [],
         selectionSet: {
           kind: 'SelectionSet',
@@ -787,7 +877,7 @@ export const buildQueryForComponent = (component, schema, meta, project) => {
     ],
   };
 
-  return { query, theMap };
+  return { query, theMap, variables: variablesAccumulator };
 };
 
 /**
@@ -838,55 +928,6 @@ export const extractPropValueFromData = (
     };
   }
 }, { data, type: rootType }).data;
-
-/**
- *
- * @param {DataFieldTypeDefinition} typeDefinition
- * @return {Object}
- */
-const typeDefinitionToGQLTypeAST = typeDefinition => {
-  let ret = {
-    kind: 'NamedType',
-    name: {
-      kind: 'Name',
-      value: typeDefinition.type,
-    },
-  };
-  
-  const kindError =
-    typeDefinition.kind !== FieldKinds.SINGLE &&
-    typeDefinition.kind !== FieldKinds.LIST;
-  
-  if (kindError) {
-    throw new Error(
-      'typeDefinitionToGQLTypeAST(): ' +
-      'Only types of kinds SINGLE and LIST are supported',
-    );
-  }
-  
-  if (typeDefinition.kind === FieldKinds.LIST) {
-    if (typeDefinition.nonNullMember) {
-      ret = {
-        kind: 'NonNullType',
-        type: ret,
-      };
-    }
-    
-    ret = {
-      kind: 'ListType',
-      type: ret,
-    };
-  }
-  
-  if (typeDefinition.nonNull) {
-    ret = {
-      kind: 'NonNullType',
-      type: ret,
-    };
-  }
-  
-  return ret;
-};
 
 /**
  *

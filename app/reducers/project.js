@@ -88,7 +88,7 @@ import {
 import ProjectComponent, {
   gatherComponentsTreeIds,
   isRootComponent,
-  walkSimpleProps,
+  walkSimpleValues,
   walkComponentsTree,
 } from '../models/ProjectComponent';
 
@@ -356,7 +356,7 @@ const deleteComponent = (state, componentId) => {
       const componentMeta = getComponentMeta(component.name, state.meta);
       let actionsToDelete = Map();
       
-      walkSimpleProps(component, componentMeta, (propValue, _, path) => {
+      walkSimpleValues(component, componentMeta, (propValue, _, path) => {
         if (propValue.source === 'actions') {
           propValue.sourceData.actions.forEach((action, idx) => {
             if (
@@ -734,7 +734,7 @@ const clearOutdatedDataProps = (state, updatedPath) => {
         const componentId = component.id;
         const componentMeta = getComponentMeta(component.name, state.meta);
         
-        walkSimpleProps(
+        walkSimpleValues(
           component,
           componentMeta,
           
@@ -796,7 +796,7 @@ const clearOutdatedDataProps = (state, updatedPath) => {
     }
   };
   
-  walkSimpleProps(updatedComponent, componentMeta, visitProp);
+  walkSimpleValues(updatedComponent, componentMeta, visitProp);
   return state;
 };
 

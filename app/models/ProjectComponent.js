@@ -26,7 +26,8 @@ import SourceDataDesigner from './SourceDataDesigner';
 import SourceDataState from './SourceDataState';
 import SourceDataRouteParams from './SourceDataRouteParams';
 import { getFunctionInfo } from '../utils/functions';
-import { SYSTEM_PROPS } from '../constants/misc';
+import { getMutationField, getJssyTypeOfField } from '../utils/schema';
+import { SYSTEM_PROPS, ROUTE_PARAM_VALUE_DEF } from '../constants/misc';
 
 const ProjectComponentRecord = Record({
   id: -1,
@@ -254,72 +255,158 @@ export const gatherComponentsTreeIds = (components, rootComponentId) =>
     component => void ret.add(component.id),
   ));
 
-export const walkSimpleProps = (
+export const walkSimpleValues = (
   component,
   componentMeta,
   visitor,
-  { walkFunctionArgs = false, project = null, walkSystemProps = false } = {},
+  {
+    walkSystemProps = false,
+    walkFunctionArgs = false,
+    project = null,
+    walkActions = false,
+    schema = null,
+    visitIntermediateNodes = false,
+  } = {},
 ) => {
   if (walkFunctionArgs && !project) {
     throw new Error(
       'walkSimpleProps(): walkFunctionArgs is true, but there\'s no project',
     );
   }
+  
+  if (walkActions && !schema) {
+    throw new Error(
+      'walkSimpleProps(): walkActions is true, but there\'s no schema',
+    );
+  }
+  
+  /* eslint-disable no-use-before-define */
+  const visitAction = (action, path, isSystemProp) => {
+    if (action.type === 'mutation') {
+      const mutationField =
+        getMutationField(schema, action.params.mutation);
+      
+      action.params.args.forEach((argValue, argName) => {
+        const argValueDef = getJssyTypeOfField(
+          mutationField.args[argName],
+          schema,
+        );
+        
+        visitValue(
+          argValue,
+          argValueDef,
+          [...path, 'args', argName],
+          isSystemProp,
+        );
+      });
+      
+      action.params.successActions.forEach((action, actionIdx) => {
+        visitAction(
+          action,
+          [...path, 'successActions', actionIdx],
+          isSystemProp,
+        );
+      });
+  
+      action.params.errorActions.forEach((action, actionIdx) => {
+        visitAction(
+          action,
+          [...path, 'errorActions', actionIdx],
+          isSystemProp,
+        );
+      });
+    } else if (action.type === 'method') {
+      const methodMeta = componentMeta.methods[action.para.method];
+      
+      action.params.args.forEach((argValue, argIdx) => {
+        const argValueDef = methodMeta.args[argIdx];
+        
+        visitValue(
+          argValue,
+          argValueDef,
+          [...path, 'args', argIdx],
+          isSystemProp,
+        );
+      });
+    } else if (action.type === 'navigate') {
+      action.params.routeParams.forEach((paramValue, paramName) => {
+        visitValue(
+          paramValue,
+          ROUTE_PARAM_VALUE_DEF,
+          [...path, 'routeParams', paramName],
+          isSystemProp,
+        );
+      });
+    } else if (action.type === 'prop') {
+      // TODO: Visit value
+    }
+  };
 
-  const visitValue = (propValue, typedef, path, isSystemProp) => {
-    if (propValue.source === 'static' && !propValue.sourceData.ownerPropName) {
-      if (typedef.type === 'shape' && propValue.sourceData.value !== null) {
-        _forOwn(typedef.fields, (fieldTypedef, fieldName) =>
+  const visitValue = (jssyValue, valueDef, path, isSystemProp) => {
+    if (jssyValue.source === 'static' && !jssyValue.sourceData.ownerPropName) {
+      if (valueDef.type === 'shape' && jssyValue.sourceData.value !== null) {
+        _forOwn(valueDef.fields, (fieldTypedef, fieldName) =>
           void visitValue(
-            propValue.sourceData.value.get(fieldName),
+            jssyValue.sourceData.value.get(fieldName),
             fieldTypedef,
             [...path, fieldName],
             isSystemProp,
           ));
       } else if (
-        typedef.type === 'objectOf' &&
-        propValue.sourceData.value !== null
+        valueDef.type === 'objectOf' &&
+        jssyValue.sourceData.value !== null
       ) {
-        propValue.sourceData.value.forEach((fieldValue, key) => void visitValue(
+        jssyValue.sourceData.value.forEach((fieldValue, key) => void visitValue(
           fieldValue,
-          typedef.ofType,
+          valueDef.ofType,
           [...path, key],
           isSystemProp,
         ));
-      } else if (typedef.type === 'arrayOf') {
-        propValue.sourceData.value.forEach((itemValue, idx) => void visitValue(
+      } else if (valueDef.type === 'arrayOf') {
+        jssyValue.sourceData.value.forEach((itemValue, idx) => void visitValue(
           itemValue,
-          typedef.ofType,
+          valueDef.ofType,
           [...path, idx],
           isSystemProp,
         ));
       } else {
-        visitor(propValue, typedef, path, isSystemProp);
+        visitor(jssyValue, valueDef, path, isSystemProp);
       }
-    } else if (walkFunctionArgs && propValue.source === 'function') {
+    } else if (walkFunctionArgs && jssyValue.source === 'function') {
+      if (visitIntermediateNodes)
+        visitor(jssyValue, valueDef, path, isSystemProp);
+      
       const fnInfo = getFunctionInfo(
-        propValue.sourceData.functionSource,
-        propValue.sourceData.function,
+        jssyValue.sourceData.functionSource,
+        jssyValue.sourceData.function,
         project,
       );
 
       fnInfo.args.forEach(argInfo => {
         const argName = argInfo.name;
-        const argValue = propValue.sourceData.args.get(argInfo.name);
+        const argValue = jssyValue.sourceData.args.get(argInfo.name);
 
         if (argValue) {
           visitValue(
             argValue,
             argInfo.typedef,
-            [...path, argName],
+            [...path, 'args', argName],
             isSystemProp,
           );
         }
       });
+    } else if (walkActions && jssyValue.source === 'actions') {
+      if (visitIntermediateNodes)
+        visitor(jssyValue, valueDef, path, isSystemProp);
+      
+      jssyValue.sourceData.actions.forEach((action, actionIdx) => {
+        visitAction(action, [...path, 'actions', actionIdx], isSystemProp);
+      });
     } else {
-      visitor(propValue, typedef, path, isSystemProp);
+      visitor(jssyValue, valueDef, path, isSystemProp);
     }
   };
+  /* eslint-enable no-use-before-define */
 
   component.props.forEach(
     (propValue, propName) => visitValue(

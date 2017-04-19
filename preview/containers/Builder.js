@@ -1,3 +1,7 @@
+/**
+ * @author Dmitriy Bizyaev
+ */
+
 'use strict';
 
 import React, { PureComponent } from 'react';
@@ -5,19 +9,19 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { graphql, withApollo } from 'react-apollo';
 import _forOwn from 'lodash.forown';
+import _mapValues from 'lodash.mapvalues';
 import _get from 'lodash.get';
 import _set from 'lodash.set';
-import { Map as ImmutableMap, List as ImmutableList } from 'immutable';
+import { Map as ImmutableMap } from 'immutable';
 import { resolveTypedef, TypeNames } from '@jssy/types';
 import { getComponentById } from '../../app/models/Project';
 
 import {
   walkComponentsTree,
-  walkSimpleProps,
+  walkSimpleValues,
 } from '../../app/models/ProjectComponent';
 
 import jssyConstants from '../../app/constants/jssyConstants';
-import { NO_VALUE, SYSTEM_PROPS } from '../../app/constants/misc';
 import { ContentPlaceholder } from '../components/ContentPlaceholder';
 import { Outlet } from '../components/Outlet';
 import { getComponentByName } from '../componentsLibrary';
@@ -27,6 +31,12 @@ import {
   currentSelectedComponentIdsSelector,
   currentHighlightedComponentIdsSelector,
 } from '../../app/selectors';
+
+import {
+  NO_VALUE,
+  SYSTEM_PROPS,
+  ROUTE_PARAM_VALUE_DEF,
+} from '../../app/constants/misc';
 
 import {
   isContainerComponent,
@@ -46,29 +56,67 @@ import {
 import { getFunctionInfo } from '../../app/utils/functions';
 import { noop, returnNull, isUndef } from '../../app/utils/misc';
 
-/**
- *
- * @param {Object} jssyValue
- * @return {*}
- */
-const buildSimplePropValue = jssyValue => {
-  if (jssyValue.source === 'static' && !jssyValue.sourceData.ownerPropName) {
-    if (
-      ImmutableList.isList(jssyValue.sourceData.value) ||
-      ImmutableMap.isMap(jssyValue.sourceData.value)
-    )
-      return jssyValue.sourceData.value.map(buildSimplePropValue).toJS();
-    else
-      return jssyValue.sourceData.value;
-  } else if (
-    jssyValue.source === 'const' &&
-    !jssyValue.sourceData.jssyConstId
-  ) {
-    return jssyValue.value;
-  }
-  
-  throw new Error('buildSimplePropValue(): value is not buildable');
+const propTypes = {
+  params: PropTypes.object, // Comes from react-router in non-interactive mode
+  client: PropTypes.object, // Comes from react-apollo
+  interactive: PropTypes.bool,
+  components: PropTypes.object, // Immutable.Map<number, Component>
+  rootId: PropTypes.number,
+  dontPatch: PropTypes.bool,
+  enclosingComponentId: PropTypes.number,
+  isPlaceholder: PropTypes.bool,
+  afterIdx: PropTypes.number,
+  containerId: PropTypes.number,
+  propsFromOwner: PropTypes.object,
+  theMap: PropTypes.object,
+  dataContextInfo: PropTypes.object,
+  ignoreOwnerProps: PropTypes.bool,
+  project: PropTypes.any.isRequired,
+  meta: PropTypes.object.isRequired,
+  schema: PropTypes.object.isRequired,
+  draggingComponent: PropTypes.bool.isRequired,
+  draggedComponentId: PropTypes.number.isRequired,
+  draggedComponents: PropTypes.any,
+  draggingOverComponentId: PropTypes.number.isRequired,
+  showContentPlaceholders: PropTypes.bool.isRequired,
+  selectedComponentIds: PropTypes.object.isRequired, // Immutable.Set<number>
+  highlightedComponentIds: PropTypes.object.isRequired, // Immutable.Set<number>
+  onNavigate: PropTypes.func,
+  onOpenURL: PropTypes.func,
 };
+
+const defaultProps = {
+  params: null,
+  client: null,
+  interactive: false,
+  components: null,
+  rootId: -1,
+  dontPatch: false,
+  enclosingComponentId: -1,
+  isPlaceholder: false,
+  afterIdx: -1,
+  containerId: -1,
+  propsFromOwner: {},
+  theMap: null,
+  dataContextInfo: null,
+  ignoreOwnerProps: false,
+  draggedComponents: null,
+  onNavigate: noop,
+  onOpenURL: noop,
+};
+
+const mapStateToProps = state => ({
+  project: state.project.data,
+  meta: state.project.meta,
+  schema: state.project.schema,
+  draggingComponent: state.project.draggingComponent,
+  draggedComponentId: state.project.draggedComponentId,
+  draggedComponents: state.project.draggedComponents,
+  draggingOverComponentId: state.project.draggingOverComponentId,
+  showContentPlaceholders: state.app.showContentPlaceholders,
+  selectedComponentIds: currentSelectedComponentIdsSelector(state),
+  highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
+});
 
 /**
  *
@@ -118,7 +166,7 @@ class BuilderComponent extends PureComponent {
   }
   
   _getRenderHints(components, rootId) {
-    const { meta, project } = this.props;
+    const { meta, project, schema } = this.props;
     
     const ret = {
       needRefs: new Set(),
@@ -135,28 +183,44 @@ class BuilderComponent extends PureComponent {
         action.params.errorActions.forEach(visitAction);
       }
     };
+    
+    const visitValue = jssyValue => {
+      if (jssyValue.source === 'actions') {
+        jssyValue.sourceData.actions.forEach(visitAction);
+      } else if (jssyValue.source === 'state') {
+        let activeStateSlotsForComponent =
+          ret.activeStateSlots.get(jssyValue.sourceData.componentId);
+    
+        if (!activeStateSlotsForComponent) {
+          activeStateSlotsForComponent = new Set();
+          ret.activeStateSlots.set(
+            jssyValue.sourceData.componentId,
+            activeStateSlotsForComponent,
+          );
+        }
+    
+        activeStateSlotsForComponent.add(jssyValue.sourceData.stateSlot);
+      }
+    };
+    
+    const walkSimpleValuesOptions = {
+      project,
+      schema,
+      walkSystemProps: true,
+      walkFunctionArgs: true,
+      walkActions: true,
+      visitIntermediateNodes: true,
+    };
   
     walkComponentsTree(components, rootId, component => {
       const componentMeta = getComponentMeta(component.name, meta);
       
-      walkSimpleProps(component, componentMeta, propValue => {
-        if (propValue.source === 'actions') {
-          propValue.sourceData.actions.forEach(visitAction);
-        } else if (propValue.source === 'state') {
-          let activeStateSlotsForComponent =
-            ret.activeStateSlots.get(propValue.sourceData.componentId);
-          
-          if (!activeStateSlotsForComponent) {
-            activeStateSlotsForComponent = new Set();
-            ret.activeStateSlots.set(
-              propValue.sourceData.componentId,
-              activeStateSlotsForComponent,
-            );
-          }
-  
-          activeStateSlotsForComponent.add(propValue.sourceData.stateSlot);
-        }
-      }, { walkSystemProps: true, walkFunctionArgs: true, project });
+      walkSimpleValues(
+        component,
+        componentMeta,
+        visitValue,
+        walkSimpleValuesOptions,
+      );
     });
     
     return ret;
@@ -164,6 +228,7 @@ class BuilderComponent extends PureComponent {
   
   _buildInitialComponentState(component, activeStateSlots) {
     const { meta } = this.props;
+    
     const componentMeta = getComponentMeta(component.name, meta);
     const ret = {};
     
@@ -177,7 +242,15 @@ class BuilderComponent extends PureComponent {
         ret[stateSlotName] = initialValue.sourceData.value;
       } else if (initialValue.source === 'prop') {
         const propValue = component.props.get(initialValue.sourceData.propName);
-        ret[stateSlotName] = buildSimplePropValue(propValue);
+        const propMeta = componentMeta.props[initialValue.sourceData.propName];
+        const value = this._buildValue(
+          propValue,
+          propMeta,
+          componentMeta.types,
+        );
+        
+        if (value !== NO_VALUE)
+          ret[stateSlotName] = value;
       }
     });
     
@@ -209,40 +282,6 @@ class BuilderComponent extends PureComponent {
   
   _saveComponentRef(componentId, ref) {
     this._refs.set(componentId, ref);
-  }
-  
-  /**
-   *
-   * @param {Object} propValue
-   * @param {Immutable.Map<Object, Object>} theMap
-   * @return {Function}
-   */
-  _makeBuilderForProp(propValue, theMap) {
-    // TODO: Memoize
-    
-    const {
-      params,
-      interactive,
-      onNavigate,
-      onOpenURL,
-    } = this.props;
-    
-    return props => (
-      <Builder
-        params={params}
-        interactive={interactive}
-        components={propValue.sourceData.components}
-        rootId={propValue.sourceData.rootId}
-        dontPatch
-        propsFromOwner={props}
-        theMap={theMap}
-        dataContextInfo={theMap.get(propValue)}
-        onNavigate={onNavigate}
-        onOpenURL={onOpenURL}
-      >
-        {props.children}
-      </Builder>
-    );
   }
   
   _handleMutationResponse(mutationName, response) {
@@ -339,7 +378,7 @@ class BuilderComponent extends PureComponent {
         action.params.routeParams.forEach((paramValue, paramName) => {
           const value = this._buildValue(
             paramValue,
-            { type: 'string' },
+            ROUTE_PARAM_VALUE_DEF,
             null,
             theMap,
             componentId,
@@ -434,99 +473,110 @@ class BuilderComponent extends PureComponent {
       default:
     }
   }
-
-  /**
-   *
-   * @param {Object} jssyValue
-   * @param {JssyTypeDefinition} typedef
-   * @param {Object<string, JssyTypeDefinition>} userTypedefs
-   * @param {Immutable.Map<Object, Object>} theMap
-   * @param {number} componentId
-   * @param {?Object} data
-   * @return {*}
-   */
-  _buildValue(jssyValue, typedef, userTypedefs, theMap, componentId, data) {
-    const {
-      params,
-      interactive,
-      project,
-      schema,
-      isPlaceholder,
-      propsFromOwner,
-      ignoreOwnerProps,
-      dataContextInfo,
-    } = this.props;
-    
-    const { componentsState } = this.state;
+  
+  _buildStaticValue(
+    jssyValue,
+    typedef,
+    userTypedefs,
+    theMap,
+    componentId,
+    data,
+  ) {
+    const { propsFromOwner, ignoreOwnerProps } = this.props;
     
     const resolvedTypedef = resolveTypedef(typedef, userTypedefs);
     
-    if (jssyValue.source === 'static') {
-      if (jssyValue.sourceData.ownerPropName && !ignoreOwnerProps) {
-        return propsFromOwner[jssyValue.sourceData.ownerPropName];
-      } else if (resolvedTypedef.type === TypeNames.SHAPE) {
-        if (jssyValue.sourceData.value === null) return null;
-        
-        const ret = {};
-        
-        _forOwn(resolvedTypedef.fields, (fieldMeta, fieldName) => {
-          const fieldValue = jssyValue.sourceData.value.get(fieldName);
-          
-          if (!isUndef(fieldValue)) {
-            ret[fieldName] = this._buildValue(
-              fieldValue,
-              fieldMeta,
-              userTypedefs,
-              theMap,
-              componentId,
-              data,
-            );
-          }
-        });
-        
-        return ret;
-      } else if (resolvedTypedef.type === TypeNames.OBJECT_OF) {
-        if (jssyValue.sourceData.value === null) return null;
-
-        return jssyValue.sourceData.value.map(nestedValue =>
-          this._buildValue(
-            nestedValue,
-            resolvedTypedef.ofType,
+    if (jssyValue.sourceData.ownerPropName && !ignoreOwnerProps) {
+      return propsFromOwner[jssyValue.sourceData.ownerPropName];
+    } else if (resolvedTypedef.type === TypeNames.SHAPE) {
+      if (jssyValue.sourceData.value === null) return null;
+    
+      const ret = {};
+    
+      _forOwn(resolvedTypedef.fields, (fieldMeta, fieldName) => {
+        const fieldValue = jssyValue.sourceData.value.get(fieldName);
+      
+        if (!isUndef(fieldValue)) {
+          ret[fieldName] = this._buildValue(
+            fieldValue,
+            fieldMeta,
             userTypedefs,
             theMap,
             componentId,
             data,
-          ),
-        ).toJS();
-      } else if (resolvedTypedef.type === TypeNames.ARRAY_OF) {
-        return jssyValue.sourceData.value.map(nestedValue =>
-          this._buildValue(
-            nestedValue,
-            resolvedTypedef.ofType,
-            userTypedefs,
-            theMap,
-            componentId,
-            data,
-          ),
-        ).toJS();
-      } else {
-        return jssyValue.sourceData.value;
-      }
-    } else if (jssyValue.source === 'const') {
-      return jssyValue.sourceData.jssyConstId
-        ? jssyConstants[jssyValue.sourceData.jssyConstId]
-        : jssyValue.sourceData.value;
-    } else if (jssyValue.source === 'designer') {
-      return jssyValue.hasDesignedComponent()
-        ? this._makeBuilderForProp(jssyValue, theMap)
-        : returnNull;
-    } else if (jssyValue.source === 'data') {
+          );
+        }
+      });
+    
+      return ret;
+    } else if (resolvedTypedef.type === TypeNames.OBJECT_OF) {
+      if (jssyValue.sourceData.value === null) return null;
+    
+      return jssyValue.sourceData.value.map(nestedValue =>
+        this._buildValue(
+          nestedValue,
+          resolvedTypedef.ofType,
+          userTypedefs,
+          theMap,
+          componentId,
+          data,
+        ),
+      ).toJS();
+    } else if (resolvedTypedef.type === TypeNames.ARRAY_OF) {
+      return jssyValue.sourceData.value.map(nestedValue =>
+        this._buildValue(
+          nestedValue,
+          resolvedTypedef.ofType,
+          userTypedefs,
+          theMap,
+          componentId,
+          data,
+        ),
+      ).toJS();
+    } else {
+      return jssyValue.sourceData.value;
+    }
+  }
+  
+  _buildConstValue(jssyValue) {
+    return jssyValue.sourceData.jssyConstId
+      ? jssyConstants[jssyValue.sourceData.jssyConstId]
+      : jssyValue.sourceData.value;
+  }
+  
+  _buildDesignerValue(jssyValue, theMap) {
+    const { params, interactive, onNavigate, onOpenURL } = this.props;
+    
+    if (!jssyValue.hasDesignedComponent()) return returnNull;
+  
+    return props => (
+      <Builder
+        params={params}
+        interactive={interactive}
+        components={jssyValue.sourceData.components}
+        rootId={jssyValue.sourceData.rootId}
+        dontPatch
+        propsFromOwner={props}
+        theMap={theMap}
+        dataContextInfo={theMap.get(jssyValue)}
+        onNavigate={onNavigate}
+        onOpenURL={onOpenURL}
+      >
+        {props.children}
+      </Builder>
+    );
+  }
+  
+  _buildDataValue(jssyValue, data) {
+    const { schema, propsFromOwner, dataContextInfo } = this.props;
+    
+    if (jssyValue.sourceData.queryPath !== null) {
       if (jssyValue.sourceData.dataContext.size > 0 && dataContextInfo) {
         const ourDataContextInfo =
           dataContextInfo[jssyValue.sourceData.dataContext.last()];
-
+      
         const data = propsFromOwner[ourDataContextInfo.ownerPropName];
-
+      
         return extractPropValueFromData(
           jssyValue,
           data,
@@ -535,104 +585,211 @@ class BuilderComponent extends PureComponent {
         );
       } else if (data) {
         return extractPropValueFromData(jssyValue, data, schema);
-      } else {
-        return NO_VALUE;
-      }
-    } else if (jssyValue.source === 'function') {
-      const fnInfo = getFunctionInfo(
-        jssyValue.sourceData.functionSource,
-        jssyValue.sourceData.function,
-        project,
-      );
-
-      if (!fnInfo) return NO_VALUE;
-
-      const argValues = fnInfo.args.map(argInfo => {
-        const argValue = jssyValue.sourceData.args.get(argInfo.name);
-
-        let ret = NO_VALUE;
-
-        if (argValue) {
-          ret = this._buildValue(
-            argValue,
-            argInfo.typedef,
-            userTypedefs,
-            theMap,
-            componentId,
-            data,
-          );
-        }
-
-        if (ret === NO_VALUE) ret = argInfo.defaultValue;
-        return ret;
-      });
-
-      // TODO: Pass fns as last argument
-      return fnInfo.fn(...argValues, {});
-    } else if (jssyValue.source === 'actions') {
-      if (isPlaceholder) return noop;
-      
-      return (...args) => {
-        const stateUpdates = resolvedTypedef.sourceConfigs.actions.updateState;
-        
-        if (stateUpdates) {
-          const currentState = componentsState.get(componentId);
-          
-          if (currentState) {
-            let nextState = currentState;
-  
-            _forOwn(stateUpdates, (value, slotName) => {
-              if (!currentState.has(slotName)) return;
-    
-              let newValue = NO_VALUE;
-              if (value.source === 'const') {
-                newValue = value.sourceData.value;
-              } else if (value.source === 'arg') {
-                newValue = _get(
-                  args[value.sourceData.arg],
-                  value.sourceData.path,
-                  NO_VALUE,
-                );
-              }
-    
-              if (newValue !== NO_VALUE)
-                nextState = nextState.set(slotName, newValue);
-            });
-  
-            if (nextState !== currentState) {
-              this.setState({
-                componentsState: componentsState.set(componentId, nextState),
-              });
-            }
-          }
-        }
-  
-        // No actions in design-time
-        if (interactive) return;
-        
-        jssyValue.sourceData.actions.forEach(action => {
-          this._performAction(action, componentId, theMap, data);
-        });
-      };
-    } else if (jssyValue.source === 'state') {
-      const componentState =
-        this.state.componentsState.get(jssyValue.sourceData.componentId);
-      
-      const haveValue =
-        !!componentState &&
-        componentState.has(jssyValue.sourceData.stateSlot);
-      
-      if (haveValue) return componentState.get(jssyValue.sourceData.stateSlot);
-    } else if (jssyValue.source === 'routeParams') {
-      if (interactive) {
-        const route = project.routes.get(jssyValue.sourceData.routeId);
-        if (route) return route.paramValues.get(jssyValue.sourceData.paramName);
-      } else {
-        return params[jssyValue.sourceData.paramName];
       }
     }
-
+    
     return NO_VALUE;
+  }
+  
+  _buildFunctionValue(jssyValue, userTypedefs, theMap, componentId, data) {
+    const { project } = this.props;
+    
+    const fnInfo = getFunctionInfo(
+      jssyValue.sourceData.functionSource,
+      jssyValue.sourceData.function,
+      project,
+    );
+  
+    if (!fnInfo) return NO_VALUE;
+  
+    const argValues = fnInfo.args.map(argInfo => {
+      const argValue = jssyValue.sourceData.args.get(argInfo.name);
+    
+      let ret = NO_VALUE;
+    
+      if (argValue) {
+        ret = this._buildValue(
+          argValue,
+          argInfo.typedef,
+          userTypedefs,
+          theMap,
+          componentId,
+          data,
+        );
+      }
+    
+      if (ret === NO_VALUE) ret = argInfo.defaultValue;
+      return ret;
+    });
+  
+    // TODO: Pass fns as last argument
+    return fnInfo.fn(...argValues, {});
+  }
+  
+  _buildActionsValue(
+    jssyValue,
+    typedef,
+    userTypedefs,
+    theMap,
+    componentId,
+    data,
+  ) {
+    const { interactive, isPlaceholder } = this.props;
+    const { componentsState } = this.state;
+  
+    if (isPlaceholder) return noop;
+  
+    const resolvedTypedef = resolveTypedef(typedef, userTypedefs);
+  
+    return (...args) => {
+      const stateUpdates = resolvedTypedef.sourceConfigs.actions.updateState;
+    
+      if (stateUpdates) {
+        const currentState = componentsState.get(componentId);
+      
+        if (currentState) {
+          let nextState = currentState;
+        
+          _forOwn(stateUpdates, (value, slotName) => {
+            if (!currentState.has(slotName)) return;
+          
+            let newValue = NO_VALUE;
+            if (value.source === 'const') {
+              newValue = value.sourceData.value;
+            } else if (value.source === 'arg') {
+              newValue = _get(
+                args[value.sourceData.arg],
+                value.sourceData.path,
+                NO_VALUE,
+              );
+            }
+          
+            if (newValue !== NO_VALUE)
+              nextState = nextState.set(slotName, newValue);
+          });
+        
+          if (nextState !== currentState) {
+            this.setState({
+              componentsState: componentsState.set(componentId, nextState),
+            });
+          }
+        }
+      }
+    
+      // No actions in design-time
+      if (interactive) return;
+    
+      jssyValue.sourceData.actions.forEach(action => {
+        this._performAction(action, componentId, theMap, data);
+      });
+    };
+  }
+  
+  _buildStateValue(jssyValue) {
+    const { componentsState } = this.state;
+    
+    const componentState =
+      componentsState.get(jssyValue.sourceData.componentId);
+  
+    const haveValue =
+      !!componentState &&
+      componentState.has(jssyValue.sourceData.stateSlot);
+  
+    return haveValue
+      ? componentState.get(jssyValue.sourceData.stateSlot)
+      : NO_VALUE;
+  }
+  
+  _buildRouteParamsValue(jssyValue) {
+    const {
+      params,
+      interactive,
+      project,
+    } = this.props;
+    
+    if (interactive) {
+      const route = project.routes.get(jssyValue.sourceData.routeId);
+      return route
+        ? route.paramValues.get(jssyValue.sourceData.paramName)
+        : NO_VALUE;
+    } else {
+      return params[jssyValue.sourceData.paramName];
+    }
+  }
+
+  /**
+   *
+   * @param {Object} jssyValue
+   * @param {JssyTypeDefinition} typedef
+   * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
+   * @param {?Immutable.Map<Object, Object>} [theMap=null]
+   * @param {?number} [componentId=null]
+   * @param {?Object} [data=null]
+   * @return {*}
+   */
+  _buildValue(
+    jssyValue,
+    typedef,
+    userTypedefs = null, // Required if the typedef references custom types
+    theMap = null, // Required to build values with 'designer' source
+    componentId = null, // Required to build values with 'actions' source
+    data = null, // Required to build values with 'data' source and no dataContext
+  ) {
+    if (jssyValue.source === 'static') {
+      return this._buildStaticValue(
+        jssyValue,
+        typedef,
+        userTypedefs,
+        theMap,
+        componentId,
+        data,
+      );
+    } else if (jssyValue.source === 'const') {
+      return this._buildConstValue(jssyValue);
+    } else if (jssyValue.source === 'designer') {
+      if (theMap === null) {
+        throw new Error(
+          'Builder#_buildDesignerValue(): ' +
+          'Got value with "designer" source, but theMap is null',
+        );
+      }
+      
+      return this._buildDesignerValue(jssyValue, theMap);
+    } else if (jssyValue.source === 'data') {
+      return this._buildDataValue(jssyValue, data);
+    } else if (jssyValue.source === 'function') {
+      return this._buildFunctionValue(
+        jssyValue,
+        userTypedefs,
+        theMap,
+        componentId,
+        data,
+      );
+    } else if (jssyValue.source === 'actions') {
+      if (componentId === null) {
+        throw new Error(
+          'Builder#_buildValue(): ' +
+          'Got value with "actions" source, but componentId is null',
+        );
+      }
+      
+      return this._buildActionsValue(
+        jssyValue,
+        typedef,
+        userTypedefs,
+        theMap,
+        componentId,
+        data,
+      );
+    } else if (jssyValue.source === 'state') {
+      return this._buildStateValue(jssyValue);
+    } else if (jssyValue.source === 'routeParams') {
+      return this._buildRouteParamsValue(jssyValue);
+    }
+
+    throw new Error(
+      `Builder#_buildValue: Unknown value source: "${jssyValue.source}"`,
+    );
   }
 
   /**
@@ -895,7 +1052,11 @@ class BuilderComponent extends PureComponent {
     const isHTMLComponent = typeof Component === 'string';
 
     // Build GraphQL query
-    const { query: graphQLQuery, theMap } = buildQueryForComponent(
+    const {
+      query: graphQLQuery,
+      variables: graphQLVariables,
+      theMap,
+    } = buildQueryForComponent(
       component,
       this.props.schema,
       this.props.meta,
@@ -973,6 +1134,15 @@ class BuilderComponent extends PureComponent {
     let Renderable = Component;
 
     if (graphQLQuery) {
+      const variables = _mapValues(
+        graphQLVariables,
+        
+        ({ argDefinition, argValue }) => this._buildValue(
+          argValue,
+          getJssyTypeOfField(argDefinition, this.props.schema),
+        ),
+      );
+      
       Renderable = graphql(graphQLQuery, {
         props: ({ ownProps, data }) => {
           // TODO: Better check
@@ -989,6 +1159,7 @@ class BuilderComponent extends PureComponent {
         },
 
         options: {
+          variables,
           forceFetch: true,
           notifyOnNetworkStatusChange: true,
         },
@@ -1020,70 +1191,9 @@ class BuilderComponent extends PureComponent {
   }
 }
 
-//noinspection JSUnresolvedVariable
-BuilderComponent.propTypes = {
-  params: PropTypes.object, // Comes from react-router in non-interactive mode
-  client: PropTypes.object, // Comes from react-apollo
-  interactive: PropTypes.bool,
-  components: PropTypes.object, // Immutable.Map<number, Component>
-  rootId: PropTypes.number,
-  dontPatch: PropTypes.bool,
-  enclosingComponentId: PropTypes.number,
-  isPlaceholder: PropTypes.bool,
-  afterIdx: PropTypes.number,
-  containerId: PropTypes.number,
-  propsFromOwner: PropTypes.object,
-  theMap: PropTypes.object,
-  dataContextInfo: PropTypes.object,
-  ignoreOwnerProps: PropTypes.bool,
-  project: PropTypes.any.isRequired,
-  meta: PropTypes.object.isRequired,
-  schema: PropTypes.object.isRequired,
-  draggingComponent: PropTypes.bool.isRequired,
-  draggedComponentId: PropTypes.number.isRequired,
-  draggedComponents: PropTypes.any,
-  draggingOverComponentId: PropTypes.number.isRequired,
-  showContentPlaceholders: PropTypes.bool.isRequired,
-  selectedComponentIds: PropTypes.object.isRequired, // Immutable.Set<number>
-  highlightedComponentIds: PropTypes.object.isRequired, // Immutable.Set<number>
-  onNavigate: PropTypes.func,
-  onOpenURL: PropTypes.func,
-};
-
-BuilderComponent.defaultProps = {
-  params: null,
-  client: null,
-  interactive: false,
-  components: null,
-  rootId: -1,
-  dontPatch: false,
-  enclosingComponentId: -1,
-  isPlaceholder: false,
-  afterIdx: -1,
-  containerId: -1,
-  propsFromOwner: {},
-  theMap: null,
-  dataContextInfo: null,
-  ignoreOwnerProps: false,
-  draggedComponents: null,
-  onNavigate: noop,
-  onOpenURL: noop,
-};
-
+BuilderComponent.propTypes = propTypes;
+BuilderComponent.defaultProps = defaultProps;
 BuilderComponent.displayName = 'Builder';
-
-const mapStateToProps = state => ({
-  project: state.project.data,
-  meta: state.project.meta,
-  schema: state.project.schema,
-  draggingComponent: state.project.draggingComponent,
-  draggedComponentId: state.project.draggedComponentId,
-  draggedComponents: state.project.draggedComponents,
-  draggingOverComponentId: state.project.draggingOverComponentId,
-  showContentPlaceholders: state.app.showContentPlaceholders,
-  selectedComponentIds: currentSelectedComponentIdsSelector(state),
-  highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
-});
 
 const Builder = connect(mapStateToProps)(withApollo(BuilderComponent));
 export default Builder;

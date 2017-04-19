@@ -134,6 +134,7 @@ class RouteEditorComponent extends PureComponent {
             <PropInput
               label={getLocalizedText('structure.path')}
               value={route.path}
+              disabled
               onChange={this._handlePathChange}
             />
   

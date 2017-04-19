@@ -325,7 +325,7 @@ class LinkPropWindowComponent extends PureComponent {
     const { onLink } = this.props;
   
     const newValue = new JssyValue({
-      source: 'function',
+      source: 'routeParams',
       sourceData: new SourceDataRouteParams({ routeId, paramName }),
     });
   

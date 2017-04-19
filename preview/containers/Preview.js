@@ -323,15 +323,18 @@ class Preview extends Component {
 
   /**
    *
-   * @param {Immutable.Map<number, ProjectComponent>} components
-   * @param {number} rootId
+   * @param {Object} route - ProjectRoute record
+   * @param {boolean} isIndex
    * @param {number} enclosingComponentId
    * @return {Function}
    */
-  _makeBuilder(components, rootId, enclosingComponentId) {
-    const ret = ({ children }) => (
+  _makeNonInteractiveBuilderForRoute(route, isIndex, enclosingComponentId) {
+    const rootId = isIndex ? route.indexComponent : route.component;
+    
+    const ret = ({ params, children }) => (
       <Builder
-        components={components}
+        params={params}
+        components={route.components}
         rootId={rootId}
         enclosingComponentId={enclosingComponentId}
         onNavigate={this._handleNavigate}
@@ -358,9 +361,9 @@ class Preview extends Component {
 
     const ret = {
       path: route.path,
-      component: this._makeBuilder(
-        route.components,
-        route.component,
+      component: this._makeNonInteractiveBuilderForRoute(
+        route,
+        false,
         enclosingComponentId,
       ),
     };
@@ -385,9 +388,9 @@ class Preview extends Component {
       ret.onEnter = (_, replace) => replace(route.redirectTo);
     } else if (route.haveIndex) {
       ret.indexRoute = {
-        component: this._makeBuilder(
-          route.components,
-          route.indexComponent,
+        component: this._makeNonInteractiveBuilderForRoute(
+          route,
+          true,
           enclosingComponentIdForChildRoute,
         ),
       };

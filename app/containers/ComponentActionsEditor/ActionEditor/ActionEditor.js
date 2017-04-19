@@ -945,6 +945,7 @@ class ActionEditorComponent extends PureComponent {
             <JssyValueEditor
               key={key}
               name={name}
+              label={name}
               value={action.params.routeParams.get(name)}
               valueDef={ROUTE_PARAM_VALUE_DEF}
               language={language}

@@ -12,9 +12,18 @@ export const QueryPathStep = Record({
 
 let nextAliasPostfix = 0;
 
-export default Record({
+const _SourceDataData = Record({
   dataContext: List(),
   queryPath: null,
   queryArgs: List(),
-  aliasPostfix: String(nextAliasPostfix++),
+  aliasPostfix: '',
 });
+
+export default class SourceDataData extends _SourceDataData {
+  constructor(data) {
+    super({
+      ...data,
+      aliasPostfix: String(nextAliasPostfix++),
+    });
+  }
+}
