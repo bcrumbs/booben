@@ -25,6 +25,8 @@ import {
   PREVIEW_START_DRAG_NEW_COMPONENT,
   PREVIEW_START_DRAG_EXISTING_COMPONENT,
   PREVIEW_DROP_COMPONENT,
+  PREVIEW_SELECT_COMPONENT,
+  PREVIEW_DESELECT_COMPONENT,
   DropComponentAreas,
 } from '../actions/preview';
 
@@ -40,7 +42,8 @@ const DesktopState = Record({
 });
 
 const selectTool = (state, toolId) => {
-  if (toolId === state.activeToolId && state.toolsPanelIsExpanded) return state;
+  if (toolId === state.activeToolId && state.toolsPanelIsExpanded)
+    return state;
 
   if (state.activeToolId !== null) {
     state = state.setIn(
@@ -65,6 +68,9 @@ const changeToolStateProp = (state, toolId, prop, value) =>
   state.toolStates.has(toolId)
     ? state.setIn(['toolStates', toolId, prop], value)
     : state;
+
+const setActiveSection = (state, toolId, newActiveSection) =>
+  changeToolStateProp(state, toolId, 'activeSection', newActiveSection);
 
 const setNecessaryToolActiveAfterDragStart = state => {
   state = state.set('previousActiveToolId', state.activeToolId);
@@ -205,14 +211,8 @@ const handlers = {
     }
   },
   
-  [DESKTOP_TOOL_SET_ACTIVE_SECTION]: (state, action) => {
-    if (!state.toolStates.has(action.toolId)) return state;
-  
-    return state.setIn(
-      ['toolStates', action.toolId, 'activeSection'],
-      action.newActiveSection,
-    );
-  },
+  [DESKTOP_TOOL_SET_ACTIVE_SECTION]: (state, action) =>
+    setActiveSection(state, action.toolId, action.newActiveSection),
   
   [PREVIEW_START_DRAG_NEW_COMPONENT]: state =>
     setNecessaryToolActiveAfterDragStart(state),
@@ -222,6 +222,12 @@ const handlers = {
   
   [PREVIEW_DROP_COMPONENT]: (state, action) =>
     setNecessaryToolActiveAfterDrop(state, action.dropOnAreaId),
+
+  [PREVIEW_SELECT_COMPONENT]: state =>
+    setActiveSection(state, state.activeToolId, 0),
+
+  [PREVIEW_DESELECT_COMPONENT]: state =>
+    setActiveSection(state, state.activeToolId, 0),
 };
 
 export default (state = new DesktopState(), action) =>
