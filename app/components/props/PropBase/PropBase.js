@@ -59,8 +59,8 @@ const defaultProps = {
 };
 
 export class PropBase extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     this._handleCheck = this._handleCheck.bind(this);
     this._handleDelete = this._handleDelete.bind(this);
     this._handleLink = this._handleLink.bind(this);

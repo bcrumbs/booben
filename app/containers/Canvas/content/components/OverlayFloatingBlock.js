@@ -8,7 +8,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const propTypes = {
-  element: PropTypes.object.isRequired,
+  element: PropTypes.element.isRequired,
 };
 
 const defaultProps = {

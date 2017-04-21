@@ -308,8 +308,8 @@ const mapDispatchToProps = dispatch => ({
 const DraggableComponentTag = connectDraggable(draggable(ComponentTag));
 
 class ComponentsLibraryComponent extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
     this._handleDragStart = this._handleDragStart.bind(this);
   }

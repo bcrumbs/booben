@@ -106,8 +106,8 @@ const argValuesToMap = (values, functionDef) =>
   });
 
 export class FunctionWindow extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
   
     this._argsValueDefs = getValueDefs(props.functionDef, props.targetValueDef);
 

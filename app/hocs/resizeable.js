@@ -60,8 +60,8 @@ const resetCursor = () => {
 const minMax = (value, min, max) => Math.max(Math.min(value, max), min);
 
 const wrap = OriginalComponent => class extends OriginalComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
     this.__resizeableElement = null;
     this.__resizeableResizingLeft = false;

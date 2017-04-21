@@ -24,8 +24,8 @@ const defaultProps = {
 };
 
 export class RouteCard extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     this._element = null;
     this._handleDoubleClick = this._handleDoubleClick.bind(this);
     this._handleCardClick = this._handleCardClick.bind(this);

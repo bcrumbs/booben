@@ -31,8 +31,8 @@ const LinkComponent = ({ className, onClick, children }) => (
 /* eslint-enable react/prop-types */
 
 export class ComplexPropBreadcrumbs extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     this._handleItemSelect = this._handleItemSelect.bind(this);
   }
   

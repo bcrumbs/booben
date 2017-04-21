@@ -106,8 +106,8 @@ const isEditableValue = valueDef =>
 const LINK_TEXT_ITEMS_SEPARATOR = ' -> ';
 
 export class JssyValueEditor extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
     this._propType = null;
     

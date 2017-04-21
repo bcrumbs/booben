@@ -38,8 +38,8 @@ const sine = (from, to, x) => from + (to - from) * Math.sin(x * Math.PI / 2);
 let dragArea = null;
 
 export class ComponentsDragArea extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
     this._placeholderElement = null;
     this._dragging = false;

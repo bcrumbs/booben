@@ -44,8 +44,8 @@ const defaultProps = {
 };
 
 export class ToolPanelContent extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     this._handleTabChange = this._handleTabChange.bind(this);
   }
   

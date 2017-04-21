@@ -27,8 +27,8 @@ const ScrollStates = {
 
 export const autoScrollUpDown = WrappedComponent => {
   const ret = class extends Component {
-    constructor(props) {
-      super(props);
+    constructor(props, context) {
+      super(props, context);
       this._handleMouseMove = this._handleMouseMove.bind(this);
       this._createElementRef = this._createElementRef.bind(this);
       this._scroll = this._scroll.bind(this);

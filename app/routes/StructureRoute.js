@@ -116,8 +116,8 @@ export const STRUCTURE_TOOL_IDS = List([TOOL_ID_ROUTE_EDITOR]);
 const ROUTE_PATH_PATTERN = /^[a-zA-Z0-9\-_/:]+$/;
 
 class StructureRoute extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
     this.state = {
       confirmDeleteDialogIsVisible: false,

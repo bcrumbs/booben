@@ -132,8 +132,8 @@ const mapDispatchToProps = dispatch => ({
 });
 
 class ActionEditorComponent extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     
     this.state = {
       action: props.action || new Action(),

@@ -29,8 +29,8 @@ const defaultProps = {
 };
 
 export class NestedPropsList extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     
     this.state = {
       isTitleDialogVisible: false,

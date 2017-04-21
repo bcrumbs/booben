@@ -21,8 +21,8 @@ const defaultProps = {
 };
 
 export class ComponentLayoutSelectionItem extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     
     this._handleClick = this._handleClick.bind(this);
   }

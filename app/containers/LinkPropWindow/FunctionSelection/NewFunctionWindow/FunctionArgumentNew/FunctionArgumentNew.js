@@ -30,8 +30,8 @@ const defaultProps = {
 const ARG_NAME_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
 export class FunctionArgumentNew extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
     this.state = {
       name: '',

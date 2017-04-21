@@ -6,7 +6,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { noop } from '../../app/utils/misc';
+import { noop } from '../../../../utils/misc';
 
 /* eslint-disable react/no-find-dom-node */
 const patchDOMElement = componentInstance => {

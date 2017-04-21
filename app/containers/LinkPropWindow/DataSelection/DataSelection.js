@@ -75,8 +75,8 @@ const Views = {
 };
 
 export class DataSelection extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     
     this.state = {
       currentView: Views.FIELDS_LIST,

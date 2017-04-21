@@ -24,8 +24,8 @@ const defaultProps = {
 };
 
 export class ComponentHandler extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     
     this._handleExpandButtonPress = this._handleExpandButtonPress.bind(this);
   }

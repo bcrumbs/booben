@@ -19,8 +19,8 @@ import {
 import { removeSplashScreen } from '../utils/dom';
 
 class RootRoute extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
     this._spashScreenRemoved = false;
   }

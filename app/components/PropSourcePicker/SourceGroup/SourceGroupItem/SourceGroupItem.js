@@ -24,8 +24,8 @@ const defaultProps = {
 };
 
 export class SourceGroupItem extends Component {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
     this._handleClick = this._handleClick.bind(this);
   }

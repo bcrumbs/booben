@@ -92,8 +92,8 @@ const calcCursorPosition = (mouseEvent, element, borderPixels) => {
 };
 
 class ComponentsTreeViewComponent extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
     this.isMouseOver = false;
     this.closestItemComponentId = -1;

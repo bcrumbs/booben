@@ -51,7 +51,6 @@ module.exports = {
 
   entry: {
     index: './app/index',
-    preview: './preview/index',
   },
 
   output: {
@@ -81,6 +80,10 @@ module.exports = {
           return /node_modules/.test(path);
         },
         loader: 'babel-loader',
+      },
+      {
+        test: /\.ejs$/,
+        loader: 'ejs-compiled-loader',
       },
       {
         test: /\.scss$/,
@@ -136,33 +139,13 @@ module.exports = {
   plugins: [
     new RewriteThemePathPlugin(),
 
-    new webpack.optimize.CommonsChunkPlugin({
-      name: 'common',
-      filename: '[name].js',
-      minChunks: 2,
-    }),
-
     new HtmlWebpackPlugin({
       title: 'JSSY',
       template: './app/index.ejs',
       filename: 'index.html',
-      chunks: ['common', 'index'],
       inject: 'body',
       favicon: path.resolve(__dirname, '..', 'app', 'favicon.png'),
       hash: true,
-    }),
-
-    new HtmlWebpackPlugin({
-      template: './preview/index.ejs',
-      filename: 'preview.html',
-      chunks: ['common', 'preview'],
-      inject: 'body',
-      favicon: path.resolve(__dirname, '..', 'app', 'favicon.png'),
-      hash: true,
-
-      // Our custom variables
-      jssyContainerId: sharedConstants.PREVIEW_DOM_CONTAINER_ID,
-      jssyOverlayId: sharedConstants.PREVIEW_DOM_OVERLAY_ID,
     }),
 
     new ScriptExtHtmlWebpackPlugin({

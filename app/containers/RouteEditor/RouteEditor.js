@@ -29,8 +29,8 @@ import ProjectRouteRecord from '../../models/ProjectRoute';
 import { updateRouteField } from '../../actions/project';
 
 class RouteEditorComponent extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
     this._handlePathChange =
       this._handlePathChange.bind(this);

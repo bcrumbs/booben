@@ -51,8 +51,8 @@ const mapDispatchToProps = dispatch => ({
  */
 export const dragHandler = WrappedComponent => {
   const ret = class extends Component {
-    constructor(props) {
-      super(props);
+    constructor(props, context) {
+      super(props, context);
     
       this.willTryStartDrag = false;
       this.dragStartX = 0;

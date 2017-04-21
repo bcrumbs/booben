@@ -22,8 +22,8 @@ const defaultProps = {
 };
 
 export class ComponentAction extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     
     this._handleClick = this._handleClick.bind(this);
     this._handleDeleteButtonClick = this._handleDeleteButtonClick.bind(this);

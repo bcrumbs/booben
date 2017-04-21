@@ -61,6 +61,24 @@ export const isFunction = value => typeof value === 'function';
 
 /**
  *
+ * @param {number} msecs
+ * @return {Promise}
+ */
+export const wait = msecs =>
+  new Promise(resolve => void setTimeout(resolve, msecs));
+
+/**
+ *
+ * @param {function(): boolean} condition
+ * @param {number} [pause=0]
+ * @return {Promise}
+ */
+export const waitFor = async (condition, pause = 0) => {
+  while (!condition()) await wait(pause);
+};
+
+/**
+ *
  * @param {Object} object
  * @param {function(value: *, key: string, object: Object): boolean} predicate
  * @return {boolean}

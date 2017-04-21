@@ -4,53 +4,60 @@
 
 'use strict';
 
-import React from 'react';
-import ReactDOM from 'react-dom';
-import PropTypes from 'prop-types';
 import _mapValues from 'lodash.mapvalues';
 import patchComponent from './hocs/patchComponent';
-import { parseComponentName } from '../app/utils/meta';
-
-// These modules are external in the components bundle
-window.React = React;
-window.ReactDOM = ReactDOM;
-window.PropTypes = PropTypes;
+import { parseComponentName } from '../../../utils/meta';
+import { URL_APP_PREFIX } from '../../../../shared/constants';
 
 const COMPONENTS_BUNDLE_FILE = 'components.js';
 
 let components = null;
 
+const scriptsCache = {};
+
+const loadScript = async url => {
+  const cached = scriptsCache[url];
+  if (cached) return cached;
+  
+  const res = await fetch(url);
+  const script = await res.text();
+  
+  scriptsCache[url] = script;
+  return script;
+};
+
 /**
  *
+ * @param {Window} windowInstance
+ * @param {string} url
  * @return {Promise}
  */
-const loadComponentsBundle = () => new Promise((resolve, reject) => {
-  const document = window.document;
-  const head = document.head || document.getElementsByTagName('head')[0];
+const loadComponentsBundle = async (windowInstance, url) => {
+  const document = windowInstance.document;
   const script = document.createElement('script');
-
+  
   script.type = 'application/javascript';
-  script.onload = () => void resolve();
-  script.onerror = () => void reject(
-    new Error('Failed to load components bundle'),
+  document.body.appendChild(script);
+  script.text = await loadScript(url);
+};
+
+/**
+ *
+ * @param {Window} windowInstance
+ * @param {string} projectName
+ * @return {Promise}
+ */
+export const loadComponents = async (windowInstance, projectName) => {
+  await loadComponentsBundle(
+    windowInstance,
+    `${URL_APP_PREFIX}/${projectName}/${COMPONENTS_BUNDLE_FILE}`,
   );
 
-  head.appendChild(script);
-  script.src = COMPONENTS_BUNDLE_FILE;
-});
-
-/**
- *
- * @return {Promise}
- */
-export const loadComponents = async () => {
-  await loadComponentsBundle();
-
-  if (!window.JssyComponents || !window.JssyComponents.default)
+  if (!windowInstance.JssyComponents || !windowInstance.JssyComponents.default)
     throw new Error('No components in bundle');
 
   components = _mapValues(
-    window.JssyComponents.default,
+    windowInstance.JssyComponents.default,
     ns => _mapValues(ns, patchComponent),
   );
 };

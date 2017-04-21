@@ -38,8 +38,8 @@ const defaultProps = {
 };
 
 export class RouteParamSelection extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     
     this._handleSelect = this._handleSelect.bind(this);
     this._handleBreadcrumbsClick = this._handleBreadcrumbsClick.bind(this);

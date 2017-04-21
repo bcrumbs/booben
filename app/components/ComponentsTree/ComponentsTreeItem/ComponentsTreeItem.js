@@ -35,8 +35,8 @@ const defaultProps = {
 const isEllipsisActive = el => el.offsetWidth < el.scrollWidth;
 
 export class ComponentsTreeItem extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
     this.state = {
       haveTooltip: false,

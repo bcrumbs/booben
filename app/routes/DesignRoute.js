@@ -44,7 +44,7 @@ import {
   ComponentActionsEditor,
 } from '../containers/ComponentActionsEditor/ComponentActionsEditor';
 
-import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
+import { Canvas } from '../containers/Canvas/Canvas';
 
 import {
   ComponentLayoutSelection,
@@ -72,6 +72,7 @@ import {
   firstSelectedComponentIdSelector,
   currentComponentsSelector,
   getLocalizedTextFromState,
+  containerStyleSelector,
 } from '../selectors';
 
 import {
@@ -81,8 +82,6 @@ import {
   getComponentPropName,
   componentHasActions,
 } from '../utils/meta';
-
-import { URL_APP_PREFIX } from '../../shared/constants';
 
 //noinspection JSUnresolvedVariable
 import defaultComponentLayoutIcon from '../img/layout_default.svg';
@@ -128,21 +127,6 @@ const propTypes = {
 const LIBRARY_ICON = 'cubes';
 const COMPONENTS_TREE_ICON = 'sitemap';
 const PROPS_EDITOR_ICON = 'sliders';
-
-const containerStyleSelector = createSelector(
-  state => state.project.meta,
-
-  meta => {
-    const combinedStyle = Object.keys(meta).reduce(
-      (acc, cur) => Object.assign(acc, meta[cur].containerStyle || {}),
-      {},
-    );
-
-    return Object.keys(combinedStyle)
-      .map(prop => `${prop}:${combinedStyle[prop]}`)
-      .join(';');
-  },
-);
 
 const nestedConstructorBreadcrumbsSelector = createSelector(
   state => state.project.data,
@@ -225,8 +209,8 @@ const NestedConstructorsBreadcrumbsItem = props => (
 /* eslint-enable react/prop-types */
 
 class DesignRoute extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
     this.state = {
       confirmDeleteComponentDialogIsVisible: false,
@@ -502,13 +486,11 @@ class DesignRoute extends PureComponent {
       onSaveComponentForProp,
     } = this.props;
   
-    const src = `${URL_APP_PREFIX}/${params.projectName}/preview.html`;
-  
-    const previewIFrame = (
-      <PreviewIFrame
+    const canvas = (
+      <Canvas
         interactive
+        projectName={params.projectName}
         store={store}
-        url={src}
         containerStyle={previewContainerStyle}
       />
     );
@@ -546,16 +528,16 @@ class DesignRoute extends PureComponent {
             </HeaderRegion>
           </Header>
         
-          <PanelContent key="preview-panel-content" flex>
-            {previewIFrame}
+          <PanelContent key="canvas-panel-content" flex>
+            {canvas}
           </PanelContent>
         </Panel>
       );
     } else {
       return (
         <Panel spread height="auto" maxHeight="none">
-          <PanelContent key="preview-panel-content" flex>
-            {previewIFrame}
+          <PanelContent key="canvas-panel-content" flex>
+            {canvas}
           </PanelContent>
         </Panel>
       );

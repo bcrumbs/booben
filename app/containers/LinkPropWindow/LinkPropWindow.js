@@ -110,8 +110,8 @@ const mapDispatchToProps = dispatch => ({
 });
 
 class LinkPropWindowComponent extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     
     this.state = {
       selectedSourceId: '',

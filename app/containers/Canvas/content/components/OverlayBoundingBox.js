@@ -8,8 +8,12 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const propTypes = {
-  element: PropTypes.any, // DOM element actually
+  element: PropTypes.element,
   color: PropTypes.string,
+};
+
+const contextTypes = {
+  window: PropTypes.object.isRequired,
 };
 
 const defaultProps = {
@@ -17,16 +21,13 @@ const defaultProps = {
   color: 'grey',
 };
 
-export const OverlayBoundingBox = props => {
-  if (!props.element) return null;
-
-  let {
-    left,
-    top,
-    width,
-    height,
-  } = props.element.getBoundingClientRect();
+export const OverlayBoundingBox = (props, context) => {
+  const { element, color } = props;
+  const { window } = context;
   
+  if (!element) return null;
+
+  let { left, top, width, height } = element.getBoundingClientRect();
   if (!width || !height) return null;
 
   const syntheticPadding = -2;
@@ -37,7 +38,7 @@ export const OverlayBoundingBox = props => {
   left = Math.round(left - syntheticPadding / 2 - 1);
   top = Math.round(top - syntheticPadding / 2 + scrollTop - 1);
 
-  const border = `1px solid ${props.color}`;
+  const border = `1px solid ${color}`;
 
   const style = {
     height: '1px',
@@ -100,5 +101,6 @@ export const OverlayBoundingBox = props => {
 };
 
 OverlayBoundingBox.propTypes = propTypes;
+OverlayBoundingBox.contextTypes = contextTypes;
 OverlayBoundingBox.defaultProps = defaultProps;
 OverlayBoundingBox.displayName = 'OverlayBoundingBox';

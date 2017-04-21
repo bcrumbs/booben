@@ -234,3 +234,23 @@ export const getLocalizedTextFromState = createSelector(
   (localization, language) =>
     (id, values = {}) => getLocalizedText(localization, language, id, values),
 );
+
+/**
+ *
+ * @param {Object} state
+ * @return {string}
+ */
+export const containerStyleSelector = createSelector(
+  state => state.project.meta,
+  
+  meta => {
+    const combinedStyle = Object.keys(meta).reduce(
+      (acc, cur) => Object.assign(acc, meta[cur].containerStyle || {}),
+      {},
+    );
+    
+    return Object.keys(combinedStyle)
+      .map(prop => `${prop}:${combinedStyle[prop]}`)
+      .join(';');
+  },
+);

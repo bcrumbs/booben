@@ -54,8 +54,8 @@ const Sections = {
 };
 
 export class FunctionsList extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     
     this.state = {
       activeSection: Sections.BUILTIN,

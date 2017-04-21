@@ -20,33 +20,28 @@ import {
   dragOverPlaceholder,
   dropComponent,
   DropComponentAreas,
-} from '../../app/actions/preview';
+} from '../../../../actions/preview';
 
 import {
   pickComponentDone,
   pickComponentCancel,
-} from '../../app/actions/project';
+} from '../../../../actions/project';
 
-import { topNestedConstructorSelector } from '../../app/selectors';
-import { getComponentById } from '../../app/models/Project';
+import { topNestedConstructorSelector } from '../../../../selectors';
+import Project, { getComponentById } from '../../../../models/Project';
 
 import {
   getOutletComponentId,
   getParentComponentId,
-} from '../../app/models/ProjectRoute';
+} from '../../../../models/ProjectRoute';
 
-import KeyCodes from '../../app/utils/keycodes';
-import { pointIsInCircle } from '../../app/utils/misc';
-import { PREVIEW_DOM_CONTAINER_ID } from '../../shared/constants';
+import KeyCodes from '../../../../utils/keycodes';
+import { pointIsInCircle } from '../../../../utils/misc';
+import { CANVAS_CONTAINER_ID } from '../constants';
 
 const propTypes = {
   interactive: PropTypes.bool,
-  
-  // Can't use ImmutablePropTypes.record or
-  // PropTypes.instanceOf(ProjectRecord) here
-  // 'cause this value comes from another frame
-  // with another instance of immutable.js
-  project: PropTypes.any.isRequired,
+  project: PropTypes.instanceOf(Project).isRequired,
   draggingComponent: PropTypes.bool.isRequired,
   pickingComponent: PropTypes.bool.isRequired,
   pickingComponentStateSlot: PropTypes.bool.isRequired,
@@ -65,6 +60,11 @@ const propTypes = {
   onDropComponent: PropTypes.func.isRequired,
   onPickComponent: PropTypes.func.isRequired,
   onCancelPickComponent: PropTypes.func.isRequired,
+};
+
+const contextTypes = {
+  window: PropTypes.object.isRequired,
+  document: PropTypes.object.isRequired,
 };
 
 const defaultProps = {
@@ -121,50 +121,10 @@ const clearImmediate = window.clearImmediate || window.clearTimeout;
 
 /**
  *
- * @type {?HTMLElement}
- */
-let _container = null;
-
-/**
- *
- * @return {HTMLElement}
- */
-const getContainer = () =>
-  _container ||
-  (_container = document.getElementById(PREVIEW_DOM_CONTAINER_ID));
-
-/**
- *
  * @type {number}
  * @const
  */
 const START_DRAG_THRESHOLD = 10;
-
-/**
- *
- * @param {HTMLElement} el
- * @return {?number}
- */
-const getClosestComponentId = el => {
-  const containerNode = getContainer();
-  let current = el;
-
-  while (current) {
-    if (el === containerNode) break;
-
-    if (current.nodeType !== Node.ELEMENT_NODE) {
-      current = current.parentNode;
-      continue;
-    }
-
-    const dataJssyId = current.getAttribute('data-jssy-id');
-    if (dataJssyId) return parseInt(dataJssyId, 10);
-    if (current.hasAttribute('data-reactroot')) break;
-    current = current.parentNode;
-  }
-
-  return -1;
-};
 
 /**
  * @typedef {Object} OverWhat
@@ -176,11 +136,11 @@ const getClosestComponentId = el => {
 
 /**
  *
- * @param {HTMLElement} el
+ * @param {HTMLElement} element
  * @return {?OverWhat}
  */
-const getClosestComponentOrPlaceholder = el => {
-  let current = el;
+const getClosestComponentOrPlaceholder = element => {
+  let current = element;
 
   while (current) {
     if (current.nodeType !== Node.ELEMENT_NODE) {
@@ -224,8 +184,10 @@ const getClosestComponentOrPlaceholder = el => {
 };
 
 class Preview extends Component {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
+    
+    this._container = null;
 
     this.willTryStartDrag = false;
     this.componentIdToDrag = -1;
@@ -252,9 +214,10 @@ class Preview extends Component {
 
   componentDidMount() {
     const { interactive } = this.props;
+    const { window } = this.context;
     
     if (interactive) {
-      const containerNode = getContainer();
+      const containerNode = this._getContainer();
       containerNode.addEventListener('mouseover', this._handleMouseOver, false);
       containerNode.addEventListener('mouseout', this._handleMouseOut, false);
       containerNode.addEventListener('mousedown', this._handleMouseDown, false);
@@ -291,9 +254,10 @@ class Preview extends Component {
 
   componentWillUnmount() {
     const { interactive } = this.props;
+    const { window } = this.context;
     
     if (interactive) {
-      const containerNode = getContainer();
+      const containerNode = this._getContainer();
       
       containerNode.removeEventListener(
         'mouseover',
@@ -319,6 +283,45 @@ class Preview extends Component {
       
       if (this.unhighilightTimer > -1) clearImmediate(this.unhighilightTimer);
     }
+  }
+  
+  /**
+   *
+   * @return {HTMLElement}
+   * @private
+   */
+  _getContainer() {
+    const { document } = this.context;
+    
+    if (this._container) return this._container;
+    this._container = document.getElementById(CANVAS_CONTAINER_ID);
+    return this._container;
+  }
+  
+  /**
+   *
+   * @param {HTMLElement} element
+   * @return {?number}
+   */
+  _getClosestComponentId(element) {
+    const containerNode = this._getContainer();
+    let current = element;
+  
+    while (current) {
+      if (element === containerNode) break;
+    
+      if (current.nodeType !== Node.ELEMENT_NODE) {
+        current = current.parentNode;
+        continue;
+      }
+    
+      const dataJssyId = current.getAttribute('data-jssy-id');
+      if (dataJssyId) return parseInt(dataJssyId, 10);
+      if (current.hasAttribute('data-reactroot')) break;
+      current = current.parentNode;
+    }
+  
+    return -1;
   }
 
   /**
@@ -457,10 +460,11 @@ class Preview extends Component {
     event.preventDefault();
 
     //noinspection JSCheckFunctionSignatures
-    const componentId = getClosestComponentId(event.target);
+    const componentId = this._getClosestComponentId(event.target);
 
     if (componentId > -1 && this._canInteractWithComponent(componentId)) {
-      getContainer().addEventListener('mousemove', this._handleMouseMove);
+      const container = this._getContainer();
+      container.addEventListener('mousemove', this._handleMouseMove);
       this.componentIdToDrag = componentId;
       this.dragStartX = event.pageX;
       this.dragStartY = event.pageY;
@@ -486,7 +490,8 @@ class Preview extends Component {
       );
 
       if (willStartDrag) {
-        getContainer().removeEventListener('mousemove', this._handleMouseMove);
+        const container = this._getContainer();
+        container.removeEventListener('mousemove', this._handleMouseMove);
         this.willTryStartDrag = false;
         onComponentStartDrag(this.componentIdToDrag);
       }
@@ -526,8 +531,7 @@ class Preview extends Component {
     } = this.props;
     
     if (highlightingEnabled) {
-      //noinspection JSCheckFunctionSignatures
-      const componentId = getClosestComponentId(event.target);
+      const componentId = this._getClosestComponentId(event.target);
 
       if (componentId > -1 && this._canInteractWithComponent(componentId)) {
         if (this.unhighilightTimer > -1) {
@@ -552,7 +556,6 @@ class Preview extends Component {
     }
 
     if (draggingComponent) {
-      //noinspection JSCheckFunctionSignatures
       const overWhat = getClosestComponentOrPlaceholder(event.target);
       if (overWhat !== null) {
         if (overWhat.isPlaceholder) {
@@ -576,8 +579,7 @@ class Preview extends Component {
     const { highlightingEnabled, onUnhighlightComponent } = this.props;
     
     if (highlightingEnabled) {
-      //noinspection JSCheckFunctionSignatures
-      const componentId = getClosestComponentId(event.target);
+      const componentId = this._getClosestComponentId(event.target);
 
       if (componentId > -1 && this._canInteractWithComponent(componentId)) {
         if (this.unhighilightTimer > -1) {
@@ -611,8 +613,7 @@ class Preview extends Component {
     } = this.props;
     
     if (event.button === 0) { // Left button
-      //noinspection JSCheckFunctionSignatures
-      const componentId = getClosestComponentId(event.target);
+      const componentId = this._getClosestComponentId(event.target);
       
       if (componentId > -1 && this._canInteractWithComponent(componentId)) {
         if (pickingComponent) {
@@ -676,6 +677,8 @@ class Preview extends Component {
    * @private
    */
   _handleOpenURL({ url, newWindow }) {
+    const { window } = this.context;
+    
     const doc = window.top.document;
     const a = doc.createElement('a');
     
@@ -780,6 +783,7 @@ class Preview extends Component {
 }
 
 Preview.propTypes = propTypes;
+Preview.contextTypes = contextTypes;
 Preview.defaultProps = defaultProps;
 Preview.displayName = 'Preview';
 

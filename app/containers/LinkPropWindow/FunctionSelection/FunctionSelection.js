@@ -49,8 +49,8 @@ const Views = {
 };
 
 export class FunctionSelection extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
     this.state = {
       currentView: Views.LIST,

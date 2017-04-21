@@ -59,8 +59,8 @@ const defaultProps = {
 };
 
 export class NestedProp extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     
     this._handleOpen = this._handleOpen.bind(this);
     this._handleDelete = this._handleDelete.bind(this);

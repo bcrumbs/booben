@@ -36,8 +36,8 @@ const IS_DRAGGABLE = Symbol('Is draggable component');
 const makeDisplayName = displayName => `draggable(${displayName})`;
 
 const wrap = OriginalComponent => class extends OriginalComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
     this.__draggableElement = null;
     this.__draggableTryingStartDrag = false;

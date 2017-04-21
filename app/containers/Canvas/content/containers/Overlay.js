@@ -11,21 +11,20 @@ import {
   currentHighlightedComponentIdsSelector,
   currentRootComponentIdSelector,
   currentComponentsSelector,
-} from '../../app/selectors';
+} from '../../../../selectors';
 
-import { pickComponentStateSlotDone } from '../../app/actions/project';
+import { pickComponentStateSlotDone } from '../../../../actions/project';
 import { OverlayContainer } from '../components/OverlayContainer';
 import { OverlayBoundingBox } from '../components/OverlayBoundingBox';
 import { OverlayComponentTitle } from '../components/OverlayComponentTitle';
 import { OverlayFloatingBlock } from '../components/OverlayFloatingBlock';
 
-import {
-  ComponentStateSlotSelect,
-} from '../../app/containers/ComponentStateSlotSelect/ComponentStateSlotSelect';
+import { ComponentStateSlotSelect }
+from '../../../../containers/ComponentStateSlotSelect/ComponentStateSlotSelect';
 
-import { PREVIEW_DOM_CONTAINER_ID } from '../../shared/constants';
-import { getComponentMeta } from '../../app/utils/meta';
-import { returnTrue } from '../../app/utils/misc';
+import { CANVAS_CONTAINER_ID } from '../constants';
+import { getComponentMeta } from '../../../../utils/meta';
+import { returnTrue } from '../../../../utils/misc';
 
 const propTypes = {
   meta: PropTypes.object.isRequired,
@@ -42,6 +41,10 @@ const propTypes = {
   isCompatibleStateSlot: PropTypes.func.isRequired,
   language: PropTypes.string.isRequired,
   onSelectComponentStateSlot: PropTypes.func.isRequired,
+};
+
+const contextTypes = {
+  document: PropTypes.object.isRequired,
 };
 
 const defaultProps = {
@@ -77,29 +80,37 @@ const HIGHLIGHT_COLOR = 'rgba(0, 113, 216, 0.3)';
 const SELECT_COLOR = 'rgba(0, 113, 216, 1)';
 const BOUNDARY_COLOR = 'red';
 
-/**
- *
- * @type {?HTMLElement}
- */
-let container = null;
-
-/**
- *
- * @return {HTMLElement}
- */
-const getContainer = () =>
-  container || (container = document.getElementById(PREVIEW_DOM_CONTAINER_ID));
-
-/**
- *
- * @param {number} id
- * @return {HTMLElement}
- * @private
- */
-const getDOMElementByComponentId = id =>
-  getContainer().querySelector(`[data-jssy-id="${id}"]`) || null;
-
 class Overlay extends PureComponent {
+  constructor(props, context) {
+    super(props, context);
+    
+    this._container = null;
+  }
+  
+  /**
+   *
+   * @return {HTMLElement}
+   * @private
+   */
+  _getContainer() {
+    const { document } = this.context;
+    
+    if (this._container) return this._container;
+    this._container = document.getElementById(CANVAS_CONTAINER_ID);
+    return this._container;
+  }
+  
+  /**
+   *
+   * @param {number} id
+   * @return {?HTMLElement}
+   * @private
+   */
+  _getDOMElementByComponentId(id) {
+    const container = this._getContainer();
+    return container.querySelector(`[data-jssy-id="${id}"]`) || null;
+  }
+  
   /**
    *
    * @param {Immutable.List<number>} componentIds
@@ -110,7 +121,7 @@ class Overlay extends PureComponent {
   _renderBoundingBoxes(componentIds, color) {
     //noinspection JSValidateTypes
     return componentIds.map(id => {
-      const element = getDOMElementByComponentId(id);
+      const element = this._getDOMElementByComponentId(id);
       const key = `${id}-${color}`;
 
       return (
@@ -135,7 +146,7 @@ class Overlay extends PureComponent {
 
     //noinspection JSValidateTypes
     return components.valueSeq().map(component => {
-      const element = getDOMElementByComponentId(component.id);
+      const element = this._getDOMElementByComponentId(component.id);
       const title = component.title || component.name;
 
       return (
@@ -158,7 +169,7 @@ class Overlay extends PureComponent {
       onSelectComponentStateSlot,
     } = this.props;
 
-    const element = getDOMElementByComponentId(pickedComponentId);
+    const element = this._getDOMElementByComponentId(pickedComponentId);
     if (!element) return null;
 
     const component = components.get(pickedComponentId);
@@ -233,6 +244,7 @@ class Overlay extends PureComponent {
 }
 
 Overlay.propTypes = propTypes;
+Overlay.contextTypes = contextTypes;
 Overlay.defaultProps = defaultProps;
 Overlay.displayName = 'Overlay';
 

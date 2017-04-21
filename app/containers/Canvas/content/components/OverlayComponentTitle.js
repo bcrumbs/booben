@@ -8,7 +8,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const propTypes = {
-  element: PropTypes.any, // DOM element actually
+  element: PropTypes.element,
   title: PropTypes.string,
 };
 
@@ -18,15 +18,11 @@ const defaultProps = {
 };
 
 export const OverlayComponentTitle = props => {
-  if (!props.element) return null;
+  const { element, title } = props;
+  
+  if (!element) return null;
 
-  const {
-    left,
-    top,
-    width,
-    height,
-  } = props.element.getBoundingClientRect();
-
+  const { left, top, width, height } = element.getBoundingClientRect();
   if (width === 0 || height === 0) return null;
 
   const style = {
@@ -38,7 +34,7 @@ export const OverlayComponentTitle = props => {
 
   return (
     <div style={style}>
-      {props.title}
+      {title}
     </div>
   );
 };

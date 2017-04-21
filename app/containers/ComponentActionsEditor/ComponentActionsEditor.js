@@ -101,8 +101,8 @@ const Views = {
 };
 
 class ComponentActionsEditorComponent extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     
     this.state = {
       currentView: Views.HANDLERS_LIST,

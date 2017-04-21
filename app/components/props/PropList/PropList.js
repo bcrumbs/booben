@@ -33,8 +33,8 @@ const defaultProps = {
 };
 
 export class PropList extends PropBase {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     this._handleChange = this._handleChange.bind(this);
   }
   

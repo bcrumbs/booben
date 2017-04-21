@@ -6,28 +6,36 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { PreviewIFrame } from '../components/PreviewIFrame/PreviewIFrame';
+import { connect } from 'react-redux';
+import { Canvas } from '../containers/Canvas/Canvas';
 import store from '../store';
-import { URL_APP_PREFIX } from '../../shared/constants';
+import { containerStyleSelector } from '../selectors';
 
 const propTypes = {
   params: PropTypes.shape({
     projectName: PropTypes.string.isRequired,
   }).isRequired,
-};
-
-const PreviewRoute = ({ params }) => {
-  const src = `${URL_APP_PREFIX}/${params.projectName}/preview.html`;
   
-  return (
-    <PreviewIFrame
-      store={store}
-      url={src}
-    />
-  );
+  containerStyle: PropTypes.string.isRequired,
 };
 
-PreviewRoute.propTypes = propTypes;
-PreviewRoute.displayName = 'PreviewRoute';
+const defaultProps = {
+};
 
-export default PreviewRoute;
+const mapStateToProps = state => ({
+  containerStyle: containerStyleSelector(state),
+});
+
+const PreviewRouteComponent = props => (
+  <Canvas
+    projectName={props.params.projectName}
+    store={store}
+    containerStyle={props.containerStyle}
+  />
+);
+
+PreviewRouteComponent.propTypes = propTypes;
+PreviewRouteComponent.defaultProps = defaultProps;
+PreviewRouteComponent.displayName = 'PreviewRoute';
+
+export default connect(mapStateToProps)(PreviewRouteComponent);

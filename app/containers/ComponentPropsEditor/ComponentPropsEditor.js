@@ -135,8 +135,8 @@ const buildFullPath = (componentId, isSystemProp, propName, path = []) => ({
 });
 
 class ComponentPropsEditorComponent extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     
     this.state = {
       linkingProp: false,

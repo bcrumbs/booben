@@ -85,8 +85,8 @@ const START_Z_INDEX = 2000;
 const ResizeableDraggableWindow = resizeable(DraggableWindow);
 
 export class ToolWindow extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
     this.state = {
       dragging: false,

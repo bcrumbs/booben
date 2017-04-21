@@ -104,8 +104,8 @@ const getNestedValue = (value, index) => value.value[index];
 const getValueByPath = (value, path) => path.reduce(getNestedValue, value);
 
 export class Prop extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     
     this.state = {
       isOpen: false,

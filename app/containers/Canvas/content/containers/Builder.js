@@ -14,14 +14,14 @@ import _get from 'lodash.get';
 import _set from 'lodash.set';
 import { Map as ImmutableMap } from 'immutable';
 import { resolveTypedef, TypeNames } from '@jssy/types';
-import { getComponentById } from '../../app/models/Project';
+import { getComponentById } from '../../../../models/Project';
 
 import {
   walkComponentsTree,
   walkSimpleValues,
-} from '../../app/models/ProjectComponent';
+} from '../../../../models/ProjectComponent';
 
-import jssyConstants from '../../app/constants/jssyConstants';
+import jssyConstants from '../../../../constants/jssyConstants';
 import { ContentPlaceholder } from '../components/ContentPlaceholder';
 import { Outlet } from '../components/Outlet';
 import { getComponentByName } from '../componentsLibrary';
@@ -30,31 +30,30 @@ import isPseudoComponent from '../isPseudoComponent';
 import {
   currentSelectedComponentIdsSelector,
   currentHighlightedComponentIdsSelector,
-} from '../../app/selectors';
+} from '../../../../selectors';
 
 import {
   NO_VALUE,
   SYSTEM_PROPS,
   ROUTE_PARAM_VALUE_DEF,
-} from '../../app/constants/misc';
+} from '../../../../constants/misc';
 
 import {
   isContainerComponent,
   isCompositeComponent,
   canInsertComponent,
   getComponentMeta,
-} from '../../app/utils/meta';
-
-import { getJssyTypeOfField, getMutationField } from '../../app/utils/schema';
+} from '../../../../utils/meta';
 
 import {
   buildQueryForComponent,
   extractPropValueFromData,
   buildMutation,
-} from '../../app/utils/graphql';
+} from '../../../../utils/graphql';
 
-import { getFunctionInfo } from '../../app/utils/functions';
-import { noop, returnNull, isUndef } from '../../app/utils/misc';
+import { getJssyTypeOfField, getMutationField } from '../../../../utils/schema';
+import { getFunctionInfo } from '../../../../utils/functions';
+import { noop, returnNull, isUndef } from '../../../../utils/misc';
 
 const propTypes = {
   params: PropTypes.object, // Comes from react-router in non-interactive mode
@@ -129,8 +128,8 @@ const serializePropAddress = (componentId, propName, isSystemProp) =>
   `${isSystemProp ? '_' : ''}.${componentId}.${propName}`;
 
 class BuilderComponent extends PureComponent {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
     
     this._renderHints = this._getRenderHints(props.components, props.rootId);
     this._refs = new Map();
