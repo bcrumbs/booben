@@ -12,7 +12,8 @@ import { createSelector } from 'reselect';
 import { List, Record, Map, OrderedMap } from 'immutable';
 import _forOwn from 'lodash.forown';
 import { Button } from '@reactackle/reactackle';
-import { dragHandler } from '../../hocs/dragHandler';
+import draggable from '../../hocs/draggable';
+import { connectDraggable } from '../ComponentsDragArea/ComponentsDragArea';
 
 import {
   Accordion,
@@ -41,7 +42,8 @@ import {
   getLocalizedTextFromState,
 } from '../../selectors';
 
-import { canInsertComponent } from '../../utils/meta';
+import { startDragNewComponent } from '../../actions/preview';
+import { canInsertComponent, constructComponent } from '../../utils/meta';
 import { combineFiltersAll } from '../../utils/misc';
 
 //noinspection JSUnresolvedVariable
@@ -74,6 +76,7 @@ const ComponentGroupsType = PropTypes.shape({
 });
 
 const propTypes = {
+  meta: PropTypes.object.isRequired,
   componentGroups: ComponentGroupsType.isRequired,
   expandedGroups: ImmutablePropTypes.setOf(PropTypes.string).isRequired,
   language: PropTypes.string.isRequired,
@@ -81,9 +84,9 @@ const propTypes = {
   draggedComponents: ImmutablePropTypes.map,
   draggedComponentId: PropTypes.number.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
-  onStartDragNewComponent: PropTypes.func.isRequired,
   onExpandedGroupsChange: PropTypes.func.isRequired,
   onShowAllComponents: PropTypes.func.isRequired,
+  onStartDragComponent: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -281,6 +284,7 @@ const libraryGroupsFilteredSelector = createSelector(
 );
 
 const mapStateToProps = state => ({
+  meta: state.project.meta,
   componentGroups: libraryGroupsFilteredSelector(state),
   expandedGroups: state.componentsLibrary.expandedGroups,
   language: state.app.language,
@@ -291,11 +295,25 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onExpandedGroupsChange: groups => void dispatch(setExpandedGroups(groups)),
-  onShowAllComponents: () => void dispatch(showAllComponents()),
+  onExpandedGroupsChange: groups =>
+    void dispatch(setExpandedGroups(groups)),
+
+  onShowAllComponents: () =>
+    void dispatch(showAllComponents()),
+
+  onStartDragComponent: components =>
+    void dispatch(startDragNewComponent(components)),
 });
 
+const DraggableComponentTag = connectDraggable(draggable(ComponentTag));
+
 class ComponentsLibraryComponent extends PureComponent {
+  constructor(props) {
+    super(props);
+
+    this._handleDragStart = this._handleDragStart.bind(this);
+  }
+
   _getFocusedComponentName() {
     const {
       draggingComponent,
@@ -310,6 +328,13 @@ class ComponentsLibraryComponent extends PureComponent {
     
     return '';
   }
+
+  _handleDragStart({ data }) {
+    const { meta, language, onStartDragComponent } = this.props;
+
+    const components = constructComponent(data.name, 0, language, meta);
+    onStartDragComponent(components);
+  }
   
   render() {
     const {
@@ -318,7 +343,6 @@ class ComponentsLibraryComponent extends PureComponent {
       onShowAllComponents,
       language,
       getLocalizedText,
-      onStartDragNewComponent,
       onExpandedGroupsChange,
     } = this.props;
 
@@ -351,12 +375,15 @@ class ComponentsLibraryComponent extends PureComponent {
 
     const accordionItems = groups.map(group => {
       const items = group.components.map(component => (
-        <ComponentTag
+        <DraggableComponentTag
           key={component.fullName}
           title={getComponentNameString(component, language, getLocalizedText)}
           image={component.iconURL}
           focused={focusedComponentName === component.fullName}
-          onStartDrag={event => onStartDragNewComponent(event, component)}
+          dragTitle={component.fullName}
+          dragData={{ name: component.fullName }}
+          dragStartRadius={100}
+          onDragStart={this._handleDragStart}
         />
       ));
 
@@ -388,9 +415,7 @@ ComponentsLibraryComponent.propTypes = propTypes;
 ComponentsLibraryComponent.defaultProps = defaultProps;
 ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
 
-export const ComponentsLibrary = dragHandler(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps,
-  )(ComponentsLibraryComponent),
-);
+export const ComponentsLibrary = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+)(ComponentsLibraryComponent);

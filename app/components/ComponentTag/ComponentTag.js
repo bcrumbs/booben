@@ -2,21 +2,18 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { noop } from '../../utils/misc';
 import './ComponentTag.scss';
 
 const propTypes = {
   image: PropTypes.string,
   title: PropTypes.string,
   focused: PropTypes.bool,
-  onStartDrag: PropTypes.func,
 };
 
 const defaultProps = {
   image: '',
   title: '',
   focused: false,
-  onStartDrag: noop,
 };
 
 export const ComponentTag = props => {
@@ -24,10 +21,7 @@ export const ComponentTag = props => {
   if (props.focused) className += ' is-focused';
 
   return (
-    <div
-      className={className}
-      onMouseDown={props.onStartDrag}
-    >
+    <div className={className}>
       <div className="component-tag">
         <picture className="component-tag-image">
           <img src={props.image} alt="" role="presentation" />

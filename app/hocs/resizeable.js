@@ -45,6 +45,8 @@ const defaultProps = {
   resizeMaxHeight: 500,
 };
 
+const IS_RESIZEABLE = Symbol('Is resizeable component');
+
 const makeDisplayName = displayName => `resizeable(${displayName})`;
 
 const setCursor = cursor => {
@@ -132,28 +134,28 @@ const wrap = OriginalComponent => class extends OriginalComponent {
 
   __resizeableUpdateElement() {
     const newElement = findDOMNode(this);
-    if (newElement !== this.__resizeableElement) {
-      if (this.__resizeableElement) {
-        this.__resizeableRemoveHandlers();
-        this.__resizeableCancelAnimationFrame();
-      }
+    if (newElement === this.__resizeableElement) return;
 
-      this.__resizeableResizingLeft = false;
-      this.__resizeableResizingRight = false;
-      this.__resizeableResizingTop = false;
-      this.__resizeableResizingBottom = false;
-      this.__resizeableHovered = false;
-      this.__resizeableElement = newElement;
+    if (this.__resizeableElement) {
+      this.__resizeableRemoveHandlers();
+      this.__resizeableCancelAnimationFrame();
+    }
 
-      if (this.__resizeableElement) {
-        const { width, height } =
-          this.__resizeableElement.getBoundingClientRect();
+    this.__resizeableResizingLeft = false;
+    this.__resizeableResizingRight = false;
+    this.__resizeableResizingTop = false;
+    this.__resizeableResizingBottom = false;
+    this.__resizeableHovered = false;
+    this.__resizeableElement = newElement;
 
-        this.__resizeableOriginalWidth = width;
-        this.__resizeableOriginalHeight = height;
+    if (this.__resizeableElement) {
+      const { width, height } =
+        this.__resizeableElement.getBoundingClientRect();
 
-        this.__resizeableSetupHandlers();
-      }
+      this.__resizeableOriginalWidth = width;
+      this.__resizeableOriginalHeight = height;
+
+      this.__resizeableSetupHandlers();
     }
   }
 
@@ -431,5 +433,9 @@ export default component => {
   ret.propTypes = { ...component.propTypes, ...propTypes };
   ret.defaultProps = { ...component.defaultProps, ...defaultProps };
   ret.displayName = makeDisplayName(component.displayName);
+  ret[IS_RESIZEABLE] = true;
   return ret;
 };
+
+export const isResizeableComponent = component =>
+  !!component && !!component[IS_RESIZEABLE];

@@ -28,9 +28,9 @@ export const PREVIEW_DROP_COMPONENT =
   'PREVIEW_DROP_COMPONENT';
 
 export const DropComponentAreas = {
-  TREE: 0,
-  PREVIEW: 1,
-  OUT: 2,
+  TREE: 'TREE',
+  PREVIEW: 'PREVIEW',
+  OUT: 'OUT',
 };
 
 /**

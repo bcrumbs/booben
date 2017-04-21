@@ -131,8 +131,8 @@ export const getter = key => object => object[key];
  * @param {(function(arg: *): boolean)[]} filterFns
  * @return {function(arg: *): boolean}
  */
-export const combineFiltersAll =
-  filterFns => arg => filterFns.every(fn => fn(arg));
+export const combineFiltersAll = filterFns =>
+  arg => filterFns.every(fn => fn(arg));
 
 /**
  *
@@ -143,8 +143,20 @@ export const combineFiltersAll =
  * @param {number} r
  * @return {boolean}
  */
-export const pointIsInCircle =
-  (x, y, cX, cY, r) => (x - cX) ** 2 + (y - cY) ** 2 <= r ** 2;
+export const pointIsInCircle = (x, y, cX, cY, r) =>
+  (x - cX) ** 2 + (y - cY) ** 2 <= r ** 2;
+
+/**
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} cX
+ * @param {number} cY
+ * @param {number} r
+ * @return {number}
+ */
+export const pointPositionRelativeToCircle = (x, y, cX, cY, r) =>
+  ((x - cX) ** 2 + (y - cY) ** 2) / (r ** 2);
 
 /**
  *

@@ -8,6 +8,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
+import Portal from 'react-portal';
 
 import {
   App,
@@ -246,7 +247,9 @@ const AppRoute = props => {
         </Footer>
       </BottomRegion>
 
-      <ComponentsDragArea />
+      <Portal isOpened>
+        <ComponentsDragArea />
+      </Portal>
     </App>
   );
 };
