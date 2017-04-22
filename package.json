@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack -d --config ./build-conf/webpack.config.js",
-    "build:prod": "webpack -p --config ./build-conf/webpack.config.js",
-    "build:watch": "webpack -d --config ./build-conf/webpack.config.js --watch",
+    "build": "webpack -d --config ./app/build-conf/webpack.config.js",
+    "build:prod": "webpack -p --config ./app/build-conf/webpack.config.js",
+    "build:watch": "webpack -d --config ./app/build-conf/webpack.config.js --watch",
     "lint": "eslint .",
     "start": "node index.js"
   },
