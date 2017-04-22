@@ -5,9 +5,15 @@
 'use strict';
 
 import { Component } from 'react';
+import { isFunction } from './misc';
 
 export const isClassComponent = component =>
-  component.prototype && component.prototype.isReactComponent;
+  !!component.prototype &&
+  component.prototype.isReactComponent;
+
+export const isReactComponent = component =>
+  isClassComponent(component) ||
+  isFunction(component);
 
 const functionToClass = component => {
   const ret = class extends Component {

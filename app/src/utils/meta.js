@@ -10,7 +10,7 @@ import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
 import { NO_VALUE, SYSTEM_PROPS } from '../constants/misc';
-import { objectSome } from './misc';
+import { isDef, objectSome } from './misc';
 
 /**
  *
@@ -268,7 +268,7 @@ const buildDefaultStaticValue = (
     const value = {};
 
     _forOwn(valueDef.fields, (fieldMeta, fieldName) => {
-      const inherited = typeof defaultValue[fieldName] !== 'undefined'
+      const inherited = isDef(defaultValue[fieldName])
         ? defaultValue[fieldName]
         : NO_VALUE;
 
@@ -340,7 +340,7 @@ const buildDefaultStaticValue = (
  * @return {PlainJssyValue|Symbol}
  */
 const buildDefaultConstValue = propMeta => {
-  if (typeof propMeta.sourceConfigs.const.value !== 'undefined') {
+  if (isDef(propMeta.sourceConfigs.const.value)) {
     return {
       source: 'const',
       sourceData: {
@@ -349,7 +349,7 @@ const buildDefaultConstValue = propMeta => {
     };
   }
 
-  if (typeof propMeta.sourceConfigs.const.jssyConstId !== 'undefined') {
+  if (isDef(propMeta.sourceConfigs.const.jssyConstId)) {
     return {
       source: 'const',
       sourceData: {

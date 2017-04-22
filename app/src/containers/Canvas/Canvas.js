@@ -221,10 +221,13 @@ export class Canvas extends Component {
     if (this._initialized) return;
   
     const contentWindow = this._iframe.contentWindow;
+    const documentIsReady = () =>
+      contentWindow.document &&
+      contentWindow.document.readyState === 'complete';
+    
+    await waitFor(documentIsReady);
+
     const document = contentWindow.document;
-    
-    await waitFor(() => document && document.readyState === 'complete');
-    
     const initialContent = contentTemplate({
       jssyContainerId: CANVAS_CONTAINER_ID,
       jssyOverlayId: CANVAS_OVERLAY_ID,

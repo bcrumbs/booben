@@ -4,15 +4,15 @@
 
 'use strict';
 
-import React from 'react';
 import ReactDOM from 'react-dom';
-import { noop } from '../../../../utils/misc';
+import { isReactComponent, toClassComponent } from '../../../../utils/react';
+import { noop, isNullOrUndef, isNumber } from '../../../../utils/misc';
 
 /* eslint-disable react/no-find-dom-node */
 const patchDOMElement = componentInstance => {
   const componentId = componentInstance.props.__jssy_component_id__;
 
-  if (typeof componentId === 'number') {
+  if (isNumber(componentId)) {
     const el = ReactDOM.findDOMNode(componentInstance);
     if (el) el.setAttribute('data-jssy-id', String(componentId));
   } else {
@@ -53,53 +53,16 @@ const patchClassComponent = component => {
   return component;
 };
 
-const patchFunctionComponent = component => {
-  const ret = class extends React.Component {
-    componentDidMount() {
-      patchDOMElement(this);
-    }
-
-    componentDidUpdate() {
-      patchDOMElement(this);
-    }
-
-    render() {
-      return component(this.props);
-    }
-  };
-
-  if (typeof component.propTypes !== 'undefined')
-    ret.propTypes = component.propTypes;
-
-  if (typeof component.defaultProps !== 'undefined')
-    ret.defaultProps = component.defaultProps;
-
-  if (typeof component.displayName !== 'undefined')
-    ret.displayName = component.displayName;
-
-  return ret;
-};
-
-/**
- *
- * @param {*} val
- * @return {boolean}
- */
-const isNullOrUndefined = val => typeof val === 'undefined' || val === null;
-
 /**
  *
  * @param {*} component
  * @return {*}
  */
 export default component => {
-  if (isNullOrUndefined(component)) return component;
+  if (isNullOrUndef(component)) return component;
 
-  if (component.prototype && component.prototype.isReactComponent)
-    return patchClassComponent(component);
-
-  if (typeof component === 'function')
-    return patchFunctionComponent(component);
+  if (isReactComponent(component))
+    return patchClassComponent(toClassComponent(component));
 
   return component;
 };

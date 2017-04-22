@@ -28,7 +28,7 @@ import {
   valueHasDataContest,
 } from './meta';
 
-import { objectToArray } from './misc';
+import { isObjectOrNull, objectToArray } from './misc';
 
 const UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const LOWERCASE_LETTERS = 'abcdefghijklmnopqrstuvwxyz';
@@ -984,7 +984,7 @@ const selectionsToAST = selections => {
       },
       arguments: [],
       directives: [],
-      selectionSet: typeof value === 'object'
+      selectionSet: isObjectOrNull(value)
         ? {
           kind: 'SelectionSet',
           selections: selectionsToAST(value),

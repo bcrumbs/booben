@@ -53,7 +53,7 @@ import {
 
 import { getJssyTypeOfField, getMutationField } from '../../../../utils/schema';
 import { getFunctionInfo } from '../../../../utils/functions';
-import { noop, returnNull, isUndef } from '../../../../utils/misc';
+import { noop, returnNull, isString, isUndef } from '../../../../utils/misc';
 
 const propTypes = {
   params: PropTypes.object, // Comes from react-router in non-interactive mode
@@ -1073,7 +1073,7 @@ class BuilderComponent extends PureComponent {
 
     // Get component class
     const Component = getComponentByName(component.name);
-    const isHTMLComponent = typeof Component === 'string';
+    const isHTMLComponent = isString(Component);
 
     // Build GraphQL query
     const {

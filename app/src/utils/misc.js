@@ -13,12 +13,14 @@ export const noop = /* istanbul ignore next */ () => {};
 
 /**
  * Returns null :)
+ *
  * @return {null}
  */
 export const returnNull = /* istanbul ignore next */ () => null;
 
 /**
  * Returns its first argument
+ *
  * @template T
  * @param {T} arg
  * @return {T}
@@ -30,6 +32,13 @@ export const returnArg = /* istanbul ignore next */ arg => arg;
  * @return {boolean}
  */
 export const returnTrue = /* istanbul ignore next */ () => true;
+
+/**
+ *
+ * @param {*} value
+ * @return {boolean}
+ */
+export const isString = value => typeof value === 'string';
 
 /**
  *
@@ -50,6 +59,20 @@ export const isInteger = value => isNumber(value) && value % 1 === 0;
  * @param {*} value
  * @return {boolean}
  */
+export const isNaturalNumber = value => isInteger(value) && value >= 0;
+
+/**
+ *
+ * @param {*} value
+ * @return {boolean}
+ */
+export const isDef = value => typeof value !== 'undefined';
+
+/**
+ *
+ * @param {*} value
+ * @return {boolean}
+ */
 export const isUndef = value => typeof value === 'undefined';
 
 /**
@@ -57,7 +80,28 @@ export const isUndef = value => typeof value === 'undefined';
  * @param {*} value
  * @return {boolean}
  */
+export const isNullOrUndef = value => value === null || isUndef(value);
+
+/**
+ *
+ * @param {*} value
+ * @return {boolean}
+ */
 export const isFunction = value => typeof value === 'function';
+
+/**
+ *
+ * @param {*} value
+ * @return {boolean}
+ */
+export const isObject = value => typeof value === 'object' && value !== null;
+
+/**
+ *
+ * @param {*} value
+ * @return {boolean}
+ */
+export const isObjectOrNull = value => typeof value === 'object';
 
 /**
  *

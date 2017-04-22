@@ -27,6 +27,7 @@ import SourceDataState from './SourceDataState';
 import SourceDataRouteParams from './SourceDataRouteParams';
 import { getFunctionInfo } from '../utils/functions';
 import { getMutationField, getJssyTypeOfField } from '../utils/schema';
+import { isUndef, isObject, isNumber } from '../utils/misc';
 import { SYSTEM_PROPS, ROUTE_PARAM_VALUE_DEF } from '../constants/misc';
 
 const ProjectComponentRecord = Record({
@@ -128,18 +129,18 @@ const propSourceDataToImmutableFns = {
   static: input => {
     const data = {};
 
-    if (typeof input.value !== 'undefined') {
+    if (!isUndef(input.value)) {
       if (Array.isArray(input.value)) {
         data.value = List(input.value.map(jssyValueToImmutable),
         );
-      } else if (typeof input.value === 'object' && input.value !== null) {
+      } else if (isObject(input.value)) {
         data.value = Map(_mapValues(input.value, jssyValueToImmutable));
       } else {
         data.value = input.value;
       }
     }
 
-    if (typeof input.ownerPropName !== 'undefined')
+    if (!isUndef(input.ownerPropName))
       data.ownerPropName = input.ownerPropName;
 
     return new SourceDataStatic(data);
@@ -213,7 +214,7 @@ export const projectComponentToImmutable = (
   props: propsToImmutable(input.props),
   systemProps: propsToImmutable(input.systemProps),
   children: List(input.children.map(childComponent => childComponent.id)),
-  layout: typeof input.layout === 'number' ? input.layout : 0,
+  layout: isNumber(input.layout) ? input.layout : 0,
   regionsEnabled: input.regionsEnabled ? Set(input.regionsEnabled) : Set(),
   routeId,
   isIndexRoute,

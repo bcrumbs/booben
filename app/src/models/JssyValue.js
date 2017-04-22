@@ -7,7 +7,14 @@
 import { Record, Map, List } from 'immutable';
 import _mapValues from 'lodash.mapvalues';
 import SourceDataStatic from './SourceDataStatic';
-import { isInteger } from '../utils/misc';
+
+import {
+  isString,
+  isNumber,
+  isInteger,
+  isNaturalNumber,
+  isObject,
+} from '../utils/misc';
 
 const JssyValueRecord = Record({
   source: '',
@@ -28,12 +35,9 @@ const JSObjectToStaticMap = object =>
 /* eslint-enable no-use-before-define */
 
 const JSValueToStaticValue = value => {
-  if (Array.isArray(value))
-    return JSArrayToStaticList(value);
-  else if (typeof value === 'object' && value !== null)
-    return JSObjectToStaticMap(value);
-  else
-    return value;
+  if (Array.isArray(value)) return JSArrayToStaticList(value);
+  if (isObject(value)) return JSObjectToStaticMap(value);
+  return value;
 };
 
 const VALID_PATH_STEPS_FUNCTION = new Set(['args']);
@@ -51,24 +55,31 @@ class JssyValue extends JssyValueRecord {
   }
   
   static isValidPathStep(step, current) {
-    if (current.source === 'static') {
+    if (current.sourceIs('static')) {
       const value = current.sourceData.value;
-      return (Map.isMap(value) && typeof step === 'string') ||
-        (List.isList(value) && isInteger(step) && step >= 0);
-    } else if (current.source === 'function') {
-      return VALID_PATH_STEPS_FUNCTION.has(step);
-    } else if (current.source === 'designer') {
-      return VALID_PATH_STEPS_DESIGNER.has(step);
-    } else if (current.source === 'actions') {
-      return VALID_PATH_STEPS_ACTIONS.has(step);
-    } else {
-      return false;
+      return (Map.isMap(value) && isString(step)) ||
+        (List.isList(value) && isNaturalNumber(step));
     }
+
+    if (current.sourceIs('function'))
+      return VALID_PATH_STEPS_FUNCTION.has(step);
+
+    if (current.sourceIs('designer'))
+      return VALID_PATH_STEPS_DESIGNER.has(step);
+
+    if (current.sourceIs('actions'))
+      return VALID_PATH_STEPS_ACTIONS.has(step);
+
+    return false;
   }
   
   static expandPathStep(step, current) {
-    if (current.source === 'static') return ['sourceData', 'value', step];
+    if (current.sourceIs('static')) return ['sourceData', 'value', step];
     else return ['sourceData', step];
+  }
+
+  sourceIs(source) {
+    return this.source === source;
   }
   
   getInStatic(path) {
@@ -98,7 +109,7 @@ class JssyValue extends JssyValueRecord {
   }
   
   replaceStaticValue(jsValue) {
-    if (this.source !== 'static') {
+    if (!this.sourceIs('static')) {
       throw new Error(
         'JssyValue#replaceStaticValue: current source is not \'static\'',
       );
@@ -119,23 +130,25 @@ class JssyValue extends JssyValueRecord {
   }
   
   addValueInStatic(index, jssyValue) {
-    if (this.source !== 'static')
+    if (!this.sourceIs('static'))
       throw new Error('JssyValue#addValueInStatic: not a static value');
     
     const path = ['sourceData', 'value'];
     
-    if (typeof index === 'string')
+    if (isString(index)) {
       return this.updateIn(path, map => map.set(index, jssyValue));
-    else if (index === -1)
-      return this.updateIn(path, list => list.push(jssyValue));
-    else if (index >= 0)
-      return this.updateIn(path, list => list.insert(index, jssyValue));
-    else
-      throw new Error(`JssyValue#addValueInStatic: ${index} is invalid index`);
+    } else if (isInteger(index)) {
+      if (index === -1)
+        return this.updateIn(path, list => list.push(jssyValue));
+      else if (index >= 0)
+        return this.updateIn(path, list => list.insert(index, jssyValue));
+    }
+
+    throw new Error(`JssyValue#addValueInStatic: ${index} is invalid index`);
   }
   
   deleteValueInStatic(index) {
-    if (this.source !== 'static')
+    if (!this.sourceIs('static'))
       throw new Error('JssyValue#addValueInStatic: not a static value');
     
     return this.updateIn(
@@ -145,23 +158,23 @@ class JssyValue extends JssyValueRecord {
   }
   
   isLinkedWithData() {
-    return this.source === 'data' && this.sourceData.queryPath !== null;
+    return this.sourceIs('data') && this.sourceData.queryPath !== null;
   }
   
   isLinkedWithOwnerProp() {
-    return this.source === 'static' && !!this.sourceData.ownerPropName;
+    return this.sourceIs('static') && !!this.sourceData.ownerPropName;
   }
   
   isLinkedWithFunction() {
-    return this.source === 'function';
+    return this.sourceIs('function');
   }
   
   isLinkedWithState() {
-    return this.source === 'state';
+    return this.sourceIs('state');
   }
   
   isLinkedWithRouteParam() {
-    return this.source === 'routeParams';
+    return this.sourceIs('routeParams');
   }
   
   isLinked() {
@@ -189,11 +202,11 @@ class JssyValue extends JssyValueRecord {
   }
   
   hasDesignedComponent() {
-    return this.source === 'designer' && this.sourceData.rootId !== -1;
+    return this.sourceIs('designer') && this.sourceData.rootId !== -1;
   }
   
   getActionByPath(actionPath) {
-    if (this.source !== 'actions') {
+    if (!this.sourceIs('actions')) {
       throw new Error(
         'JssyValue#getActionByPath: called on non-action JssyValue',
       );
@@ -201,7 +214,7 @@ class JssyValue extends JssyValueRecord {
     
     const path = actionPath.reduce(
       (acc, cur) => acc.concat(
-        typeof cur === 'number'
+        isNumber(cur)
           ? [cur] // Index in actions list
           : ['params', cur]), // Branch (successActions, errorActions)
       
@@ -212,11 +225,6 @@ class JssyValue extends JssyValueRecord {
   }
 }
 
-JssyValue.STATIC_NULL = new JssyValue({
-  source: 'static',
-  sourceData: new SourceDataStatic({
-    value: null,
-  }),
-});
+JssyValue.STATIC_NULL = JssyValue.staticFromJS(null);
 
 export default JssyValue;

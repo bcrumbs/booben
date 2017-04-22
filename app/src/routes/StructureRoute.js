@@ -58,6 +58,7 @@ import {
   objectToArray,
   objectSome,
   returnArg,
+  isUndef,
 } from '../utils/misc';
 
 const propTypes = {
@@ -271,7 +272,7 @@ class StructureRoute extends PureComponent {
         routeId => project.routes.get(routeId).path === '/',
       );
       
-      if (typeof slashRouteId === 'undefined') return false;
+      if (isUndef(slashRouteId)) return false;
       
       return project.routes.get(slashRouteId).children.some(
         routeId => project.routes.get(routeId).path === newRoutePath,
