@@ -8,6 +8,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
+import Portal from 'react-portal';
 import { createSelector } from 'reselect';
 import { List } from 'immutable';
 
@@ -51,6 +52,10 @@ import {
   ComponentLayoutSelectionItem,
 } from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
+import {
+  ComponentsDragArea,
+} from '../containers/ComponentsDragArea/ComponentsDragArea';
+
 import store from '../store';
 
 import ProjectComponentRecord from '../models/ProjectComponent';
@@ -65,6 +70,8 @@ import {
   saveComponentForProp,
   cancelConstructComponentForProp,
 } from '../actions/project';
+
+import { dropComponent, DropComponentAreas } from '../actions/preview';
 
 import {
   haveNestedConstructorsSelector,
@@ -83,7 +90,6 @@ import {
   componentHasActions,
 } from '../utils/meta';
 
-//noinspection JSUnresolvedVariable
 import defaultComponentLayoutIcon from '../../assets/layout_default.svg';
 
 export const TOOL_ID_LIBRARY = 'componentsLibrary';
@@ -122,6 +128,7 @@ const propTypes = {
   onSelectLayout: PropTypes.func.isRequired,
   onSaveComponentForProp: PropTypes.func.isRequired,
   onCancelConstructComponentForProp: PropTypes.func.isRequired,
+  onDropComponentOnCanvas: PropTypes.func.isRequired,
 };
 
 const LIBRARY_ICON = 'cubes';
@@ -198,6 +205,9 @@ const mapDispatchToProps = dispatch => ({
   
   onCancelConstructComponentForProp: () =>
     void dispatch(cancelConstructComponentForProp()),
+  
+  onDropComponentOnCanvas: () =>
+    void dispatch(dropComponent(DropComponentAreas.PREVIEW)),
 });
 
 /* eslint-disable react/prop-types */
@@ -216,7 +226,8 @@ class DesignRoute extends PureComponent {
       confirmDeleteComponentDialogIsVisible: false,
     };
 
-    this._handleToolTitleChange = this._handleToolTitleChange.bind(this);
+    this._handleToolTitleChange =
+      this._handleToolTitleChange.bind(this);
     this._handleDeleteComponentButtonPress =
       this._handleDeleteComponentButtonPress.bind(this);
     this._handleDeleteComponentConfirm =
@@ -225,7 +236,10 @@ class DesignRoute extends PureComponent {
       this._handleDeleteComponentCancel.bind(this);
     this._handleConfirmDeleteComponentDialogClose =
       this._handleConfirmDeleteComponentDialogClose.bind(this);
-    this._handleLayoutSelection = this._handleLayoutSelection.bind(this);
+    this._handleLayoutSelection =
+      this._handleLayoutSelection.bind(this);
+    this._handleDropComponentOnCanvas =
+      this._handleDropComponentOnCanvas.bind(this);
   }
   
   _getLibraryTool() {
@@ -417,6 +431,15 @@ class DesignRoute extends PureComponent {
   _handleLayoutSelection({ layoutIdx }) {
     this.props.onSelectLayout(layoutIdx);
   }
+
+  /**
+   *
+   * @private
+   */
+  _handleDropComponentOnCanvas() {
+    const { onDropComponentOnCanvas } = this.props;
+    onDropComponentOnCanvas();
+  }
   
   /**
    *
@@ -492,6 +515,7 @@ class DesignRoute extends PureComponent {
         projectName={params.projectName}
         store={store}
         containerStyle={previewContainerStyle}
+        dropZoneId="canvas"
       />
     );
     
@@ -608,6 +632,12 @@ class DesignRoute extends PureComponent {
         >
           {deleteComponentDialogText}
         </Dialog>
+
+        <Portal isOpened>
+          <ComponentsDragArea
+            onDrop={this._handleDropComponentOnCanvas}
+          />
+        </Portal>
       </Desktop>
     );
   }

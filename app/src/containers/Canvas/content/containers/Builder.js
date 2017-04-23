@@ -24,6 +24,7 @@ import {
 import jssyConstants from '../../../../constants/jssyConstants';
 import { ContentPlaceholder } from '../components/ContentPlaceholder';
 import { Outlet } from '../components/Outlet';
+import { SnapPoint } from '../components/SnapPoint';
 import { getComponentByName } from '../componentsLibrary';
 import isPseudoComponent from '../isPseudoComponent';
 
@@ -76,7 +77,9 @@ const propTypes = {
   draggingComponent: PropTypes.bool.isRequired,
   draggedComponentId: PropTypes.number.isRequired,
   draggedComponents: PropTypes.any,
-  draggingOverComponentId: PropTypes.number.isRequired,
+  draggingOverPlaceholder: PropTypes.bool.isRequired,
+  placeholderContainerId: PropTypes.number.isRequired,
+  placeholderAfter: PropTypes.number.isRequired,
   showContentPlaceholders: PropTypes.bool.isRequired,
   selectedComponentIds: PropTypes.object.isRequired, // Immutable.Set<number>
   highlightedComponentIds: PropTypes.object.isRequired, // Immutable.Set<number>
@@ -111,7 +114,9 @@ const mapStateToProps = state => ({
   draggingComponent: state.project.draggingComponent,
   draggedComponentId: state.project.draggedComponentId,
   draggedComponents: state.project.draggedComponents,
-  draggingOverComponentId: state.project.draggingOverComponentId,
+  draggingOverPlaceholder: state.project.draggingOverPlaceholder,
+  placeholderContainerId: state.project.placeholderContainerId,
+  placeholderAfter: state.project.placeholderAfter,
   showContentPlaceholders: state.app.showContentPlaceholders,
   selectedComponentIds: currentSelectedComponentIdsSelector(state),
   highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
@@ -967,6 +972,46 @@ class BuilderComponent extends PureComponent {
     );
   }
 
+  _getRootDraggedComponent() {
+    const {
+      draggingComponent,
+      draggedComponents,
+      draggedComponentId,
+    } = this.props;
+
+    if (!draggingComponent) return null;
+
+    const rootDraggedComponentId = draggedComponentId > -1
+      ? draggedComponentId
+      : 0;
+
+    return draggedComponents.get(rootDraggedComponentId);
+  }
+
+  _renderSnapPointOrPlaceholder(containerId, afterIdx) {
+    const {
+      draggingOverPlaceholder,
+      placeholderContainerId,
+      placeholderAfter,
+    } = this.props;
+
+    const willRenderPlaceholder =
+      draggingOverPlaceholder &&
+      containerId === placeholderContainerId &&
+      afterIdx === placeholderAfter;
+
+    if (willRenderPlaceholder) {
+      return this._renderPlaceholderForDraggedComponent(containerId, afterIdx);
+    } else {
+      return (
+        <SnapPoint
+          containerId={containerId}
+          afterIdx={afterIdx}
+        />
+      );
+    }
+  }
+
   /**
    *
    * @param {ProjectComponent} component
@@ -975,39 +1020,58 @@ class BuilderComponent extends PureComponent {
    * @private
    */
   _renderComponentChildren(component, isPlaceholder = false) {
-    if (component.children.size === 0) return null;
+    const { meta, components, draggingComponent } = this.props;
 
     const ret = [];
-    const isComposite = isCompositeComponent(component.name, this.props.meta);
+    const isComposite = isCompositeComponent(component.name, meta);
+    const rootDraggedComponent = this._getRootDraggedComponent();
+    const childNames =
+      component.children.map(childId => components.get(childId).name);
+
+    const willRenderSnapPoints =
+      draggingComponent &&
+      !isPlaceholder &&
+      !isComposite;
 
     component.children.forEach((childComponentId, idx) => {
-      const childComponent = this.props.components.get(childComponentId);
+      const childComponent = components.get(childComponentId);
 
       // Do not render disabled regions in composite components
       if (!isPlaceholder && isComposite && !component.regionsEnabled.has(idx))
         return;
 
-      const needPlaceholders =
-        !isPlaceholder &&
-        this.props.draggingComponent &&
-        childComponent.id === this.props.draggingOverComponentId;
-
-      if (needPlaceholders) {
-        // Render placeholders for the component being dragged
-        // before and after the component user is dragging over
-        ret.push(this._renderPlaceholderForDraggedComponent(
-          component.id,
-          idx - 1,
-        ));
-        ret.push(this._renderComponent(childComponent, isPlaceholder));
-        ret.push(this._renderPlaceholderForDraggedComponent(
-          component.id,
+      if (willRenderSnapPoints) {
+        const canInsertHere = canInsertComponent(
+          rootDraggedComponent.name,
+          component.name,
+          childNames,
           idx,
-        ));
-      } else {
-        ret.push(this._renderComponent(childComponent, isPlaceholder));
+          meta,
+        );
+
+        if (canInsertHere)
+          ret.push(this._renderSnapPointOrPlaceholder(component.id, idx - 1));
       }
+
+      ret.push(this._renderComponent(childComponent, isPlaceholder));
     });
+
+    if (willRenderSnapPoints) {
+      const canInsertHere = canInsertComponent(
+        rootDraggedComponent.name,
+        component.name,
+        childNames,
+        component.children.length,
+        meta,
+      );
+
+      if (canInsertHere) {
+        ret.push(this._renderSnapPointOrPlaceholder(
+          component.id,
+          component.children.length - 1,
+        ));
+      }
+    }
 
     return ret;
   }
@@ -1045,9 +1109,11 @@ class BuilderComponent extends PureComponent {
   _willRenderContentPlaceholder(component) {
     if (!this.props.interactive) return false;
     
-    return this.props.showContentPlaceholders ||
+    return isContainerComponent(component.name, this.props.meta) && (
+      this.props.showContentPlaceholders ||
       this.props.highlightedComponentIds.has(component.id) ||
-      this.props.selectedComponentIds.has(component.id);
+      this.props.selectedComponentIds.has(component.id)
+    );
   }
 
   /**
@@ -1063,7 +1129,7 @@ class BuilderComponent extends PureComponent {
     isPlaceholder = false,
     isPlaceholderRoot = false,
   ) {
-    // Do not render component that's being dragged right now
+    // Do not render the component that's being dragged
     if (component.id === this.props.draggedComponentId && !isPlaceholder)
       return null;
 
@@ -1113,30 +1179,10 @@ class BuilderComponent extends PureComponent {
       if (this.props.interactive && !this.props.dontPatch)
         this._patchComponentProps(props, isHTMLComponent, component.id);
 
-      if (this.props.draggingComponent) {
-        // User is dragging something
-        const willRenderPlaceholderInside =
-          isContainerComponent(component.name, this.props.meta) && (
-            !props.children || (
-              component.children.size === 1 &&
-              component.children.first() === this.props.draggedComponentId
-            )
-          );
-
-        // Render placeholders inside empty containers
-        if (willRenderPlaceholderInside) {
-          props.children = this._renderPlaceholderForDraggedComponent(
-            component.id,
-            -1,
-          );
-        }
-      } else if (this._willRenderContentPlaceholder(component)) {
-        const willRenderContentPlaceholder =
-          !props.children &&
-          isContainerComponent(component.name, this.props.meta);
-
-        if (willRenderContentPlaceholder)
-          props.children = <ContentPlaceholder />;
+      if (!props.children && this._willRenderContentPlaceholder(component)) {
+        props.children = (
+          <ContentPlaceholder />
+        );
       }
     } else {
       // TODO: Get rid of random keys
@@ -1151,8 +1197,11 @@ class BuilderComponent extends PureComponent {
         isContainerComponent(component.name, this.props.meta);
 
       // Render fake content inside placeholders for container components
-      if (willRenderContentPlaceholder)
-        props.children = <ContentPlaceholder />;
+      if (willRenderContentPlaceholder) {
+        props.children = (
+          <ContentPlaceholder />
+        );
+      }
     }
     
     let Renderable = Component;
@@ -1208,7 +1257,7 @@ class BuilderComponent extends PureComponent {
       const rootComponent = components.get(rootId);
       return this._renderComponent(rootComponent, isPlaceholder, isPlaceholder);
     } else if (draggingComponent && !isPlaceholder) {
-      return this._renderPlaceholderForDraggedComponent(-1, -1);
+      return this._renderSnapPointOrPlaceholder(-1, -1);
     } else {
       return null;
     }

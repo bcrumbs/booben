@@ -24,6 +24,8 @@ export const PREVIEW_DRAG_OVER_COMPONENT =
   'PREVIEW_DRAG_OVER_COMPONENT';
 export const PREVIEW_DRAG_OVER_PLACEHOLDER =
   'PREVIEW_DRAG_OVER_PLACEHOLDER';
+export const PREVIEW_DRAG_OVER_NOTHING =
+  'PREVIEW_DRAG_OVER_NOTHING';
 export const PREVIEW_DROP_COMPONENT =
   'PREVIEW_DROP_COMPONENT';
 
@@ -131,6 +133,10 @@ export const dragOverPlaceholder = (containerId, afterIdx) => ({
   type: PREVIEW_DRAG_OVER_PLACEHOLDER,
   containerId,
   afterIdx,
+});
+
+export const dragOverNothing = () => ({
+  type: PREVIEW_DRAG_OVER_NOTHING,
 });
 
 /**

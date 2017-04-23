@@ -51,6 +51,7 @@ import {
   PREVIEW_DROP_COMPONENT,
   PREVIEW_DRAG_OVER_COMPONENT,
   PREVIEW_DRAG_OVER_PLACEHOLDER,
+  PREVIEW_DRAG_OVER_NOTHING,
 } from '../actions/preview';
 
 import {
@@ -1212,6 +1213,13 @@ const handlers = {
     draggingOverPlaceholder: true,
     placeholderContainerId: action.containerId,
     placeholderAfter: action.afterIdx,
+  }),
+
+  [PREVIEW_DRAG_OVER_NOTHING]: state => state.merge({
+    draggingOverComponentId: -1,
+    draggingOverPlaceholder: false,
+    placeholderContainerId: -1,
+    placeholderAfter: -1,
   }),
   
   [STRUCTURE_SELECT_ROUTE]: (state, action) => state.merge({

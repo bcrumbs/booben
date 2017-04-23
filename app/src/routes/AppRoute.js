@@ -8,7 +8,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Link } from 'react-router';
-import Portal from 'react-portal';
 
 import {
   App,
@@ -31,11 +30,6 @@ import {
 } from '@reactackle/reactackle';
 
 import { ProjectSave } from '../components/ProjectSave/ProjectSave';
-
-import {
-  ComponentsDragArea,
-} from '../containers/ComponentsDragArea/ComponentsDragArea';
-
 import ProjectRecord from '../models/Project';
 
 import {
@@ -248,10 +242,6 @@ const AppRoute = props => {
           </FooterRegion>
         </Footer>
       </BottomRegion>
-
-      <Portal isOpened>
-        <ComponentsDragArea />
-      </Portal>
     </App>
   );
 };

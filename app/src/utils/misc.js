@@ -222,6 +222,33 @@ export const pointPositionRelativeToCircle = (x, y, cX, cY, r) =>
 
 /**
  *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} rx
+ * @param {number} ry
+ * @param {number} rw
+ * @param {number} rh
+ * @return {boolean}
+ */
+export const pointIsInRect = (x, y, rx, ry, rw, rh) =>
+  x >= rx &&
+  x <= rx + rw &&
+  y >= ry &&
+  y <= ry + rh;
+
+/**
+ *
+ * @param {number} x1
+ * @param {number} y1
+ * @param {number} x2
+ * @param {number} y2
+ * @return {number}
+ */
+export const distance = (x1, y1, x2, y2) =>
+  Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
+
+/**
+ *
  * @param {Immutable.List} maybePrefix
  * @param {Immutable.List} list
  * @return {boolean}

@@ -15,11 +15,8 @@ import {
   selectPreviewComponent,
   highlightPreviewComponent,
   unhighlightPreviewComponent,
-  startDragExistingComponent,
-  dragOverComponent,
   dragOverPlaceholder,
-  dropComponent,
-  DropComponentAreas,
+  dragOverNothing,
 } from '../../../../actions/preview';
 
 import {
@@ -36,13 +33,16 @@ import {
 } from '../../../../models/ProjectRoute';
 
 import KeyCodes from '../../../../utils/keycodes';
-import { pointIsInCircle } from '../../../../utils/misc';
+import { noop, distance } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
 
 const propTypes = {
   interactive: PropTypes.bool,
   project: PropTypes.instanceOf(Project).isRequired,
   draggingComponent: PropTypes.bool.isRequired,
+  draggingOverPlaceholder: PropTypes.bool.isRequired,
+  placeholderContainerId: PropTypes.number.isRequired,
+  placeholderAfter: PropTypes.number.isRequired,
   pickingComponent: PropTypes.bool.isRequired,
   pickingComponentStateSlot: PropTypes.bool.isRequired,
   pickingComponentFilter: PropTypes.func,
@@ -54,12 +54,12 @@ const propTypes = {
   onSelectSingleComponent: PropTypes.func.isRequired,
   onHighlightComponent: PropTypes.func.isRequired,
   onUnhighlightComponent: PropTypes.func.isRequired,
-  onComponentStartDrag: PropTypes.func.isRequired,
-  onDragOverComponent: PropTypes.func.isRequired,
-  onDragOverPlaceholder: PropTypes.func.isRequired,
-  onDropComponent: PropTypes.func.isRequired,
   onPickComponent: PropTypes.func.isRequired,
   onCancelPickComponent: PropTypes.func.isRequired,
+  onDragOverPlaceholder: PropTypes.func.isRequired,
+  onDragOverNothing: PropTypes.func.isRequired,
+  onDropZoneSnap: PropTypes.func,
+  onDropZoneUnsnap: PropTypes.func,
 };
 
 const contextTypes = {
@@ -71,11 +71,16 @@ const defaultProps = {
   interactive: false,
   topNestedConstructor: null,
   pickingComponentFilter: null,
+  onDropZoneSnap: noop,
+  onDropZoneUnsnap: noop,
 };
 
 const mapStateToProps = state => ({
   project: state.project.data,
   draggingComponent: state.project.draggingComponent,
+  draggingOverPlaceholder: state.project.draggingOverPlaceholder,
+  placeholderContainerId: state.project.placeholderContainerId,
+  placeholderAfter: state.project.placeholderAfter,
   pickingComponent: state.project.pickingComponent,
   pickingComponentStateSlot: state.project.pickingComponentStateSlot,
   pickingComponentFilter: state.project.pickingComponentFilter,
@@ -98,26 +103,22 @@ const mapDispatchToProps = dispatch => ({
   onUnhighlightComponent: componentId =>
     void dispatch(unhighlightPreviewComponent(componentId)),
   
-  onComponentStartDrag: componentId =>
-    void dispatch(startDragExistingComponent(componentId)),
-  
-  onDragOverComponent: componentId =>
-    void dispatch(dragOverComponent(componentId)),
-  
-  onDragOverPlaceholder: (containerId, afterIdx) =>
-    void dispatch(dragOverPlaceholder(containerId, afterIdx)),
-  
-  onDropComponent: area =>
-    void dispatch(dropComponent(area)),
-  
   onPickComponent: componentId =>
     void dispatch(pickComponentDone(componentId)),
   
   onCancelPickComponent: () => void dispatch(pickComponentCancel()),
+
+  onDragOverPlaceholder: (containerId, afterIdx) =>
+    void dispatch(dragOverPlaceholder(containerId, afterIdx)),
+
+  onDragOverNothing: () =>
+    void dispatch(dragOverNothing()),
 });
 
 const setImmediate = window.setImmediate || (fn => setTimeout(fn, 0));
 const clearImmediate = window.clearImmediate || window.clearTimeout;
+
+const SNAP_DISTANCE = 200;
 
 /**
  *
@@ -199,9 +200,6 @@ class Preview extends Component {
     this.unhighilightTimer = -1;
     this.unhighlightedComponentId = -1;
 
-    this._handleMouseDown = this._handleMouseDown.bind(this);
-    this._handleMouseMove = this._handleMouseMove.bind(this);
-    this._handleMouseUp = this._handleMouseUp.bind(this);
     this._handleMouseOver = this._handleMouseOver.bind(this);
     this._handleMouseOut = this._handleMouseOut.bind(this);
     this._handleClick = this._handleClick.bind(this);
@@ -244,12 +242,36 @@ class Preview extends Component {
       topNestedConstructor,
       currentRouteId,
       currentRouteIsIndexRoute,
+      draggingOverPlaceholder,
     } = this.props;
     
     return nextProps.project !== project ||
       nextProps.topNestedConstructor !== topNestedConstructor ||
       nextProps.currentRouteId !== currentRouteId ||
-      nextProps.currentRouteIsIndexRoute !== currentRouteIsIndexRoute;
+      nextProps.currentRouteIsIndexRoute !== currentRouteIsIndexRoute ||
+      nextProps.draggingOverPlaceholder !== draggingOverPlaceholder;
+  }
+
+  componentDidUpdate() {
+    const {
+      draggingOverPlaceholder,
+      onDropZoneSnap,
+      onDropZoneUnsnap,
+    } = this.props;
+
+    const { document } = this.context;
+
+    if (draggingOverPlaceholder) {
+      const placeholderElement =
+        document.querySelector('[data-jssy-placeholder]');
+
+      if (placeholderElement)
+        onDropZoneSnap({ element: placeholderElement });
+      else
+        onDropZoneUnsnap();
+    } else {
+      onDropZoneUnsnap();
+    }
   }
 
   componentWillUnmount() {
@@ -451,65 +473,76 @@ class Preview extends Component {
 
   /**
    *
-   * @param {MouseEvent} event
+   * @param {number} x
+   * @param {number} y
    * @private
    */
-  _handleMouseDown(event) {
-    if (event.button !== 0 || !event.ctrlKey) return;
+  drag({ x, y }) {
+    const {
+      draggingComponent,
+      draggingOverPlaceholder,
+      placeholderContainerId,
+      placeholderAfter,
+      onDragOverPlaceholder,
+      onDragOverNothing,
+    } = this.props;
 
-    event.preventDefault();
+    const { document } = this.context;
 
-    //noinspection JSCheckFunctionSignatures
-    const componentId = this._getClosestComponentId(event.target);
-
-    if (componentId > -1 && this._canInteractWithComponent(componentId)) {
-      const container = this._getContainer();
-      container.addEventListener('mousemove', this._handleMouseMove);
-      this.componentIdToDrag = componentId;
-      this.dragStartX = event.pageX;
-      this.dragStartY = event.pageY;
-      this.willTryStartDrag = true;
-    }
-  }
-
-  /**
-   *
-   * @param {MouseEvent} event
-   * @private
-   */
-  _handleMouseMove(event) {
-    const { onComponentStartDrag } = this.props;
-    
-    if (this.willTryStartDrag) {
-      const willStartDrag = !pointIsInCircle(
-        event.pageX,
-        event.pageY,
-        this.dragStartX,
-        this.dragStartY,
-        START_DRAG_THRESHOLD,
-      );
-
-      if (willStartDrag) {
-        const container = this._getContainer();
-        container.removeEventListener('mousemove', this._handleMouseMove);
-        this.willTryStartDrag = false;
-        onComponentStartDrag(this.componentIdToDrag);
-      }
-    }
-  }
-
-  /**
-   *
-   * @param {MouseEvent} event
-   * @private
-   */
-  _handleMouseUp(event) {
-    const { draggingComponent, onDropComponent } = this.props;
-    
     if (draggingComponent) {
-      event.stopPropagation();
-      this.willTryStartDrag = false;
-      onDropComponent(DropComponentAreas.PREVIEW);
+      const snapPoints = document.querySelectorAll('[data-jssy-snap-point]');
+      const placeholder = document.querySelector('[data-jssy-placeholder]');
+
+      let willSnap = false;
+      let snapContainerId = -1;
+      let snapAfterIdx = -1;
+      let minDistance = Infinity;
+
+      const checkSnap = element => {
+        const left = element.clientLeft;
+        const top = element.clientTop;
+
+        if (Math.abs(left - x) > SNAP_DISTANCE) return;
+        if (Math.abs(top - y) > SNAP_DISTANCE) return;
+
+        const snapPointDistance = distance(left, top, x, y);
+        if (snapPointDistance > SNAP_DISTANCE) return;
+
+        if (snapPointDistance < minDistance) {
+          willSnap = true;
+          minDistance = snapPointDistance;
+
+          snapContainerId = parseInt(
+            element.getAttribute('data-jssy-snap-point-container-id') ||
+            element.getAttribute('data-jssy-container-id'),
+
+            10,
+          );
+
+          snapAfterIdx = parseInt(
+            element.getAttribute('data-jssy-snap-point-after') ||
+            element.getAttribute('data-jssy-after'),
+
+            10,
+          );
+        }
+      };
+
+      snapPoints.forEach(checkSnap);
+      if (placeholder) checkSnap(placeholder);
+
+      if (willSnap) {
+        const willUpdatePlaceholder =
+          !draggingOverPlaceholder || (
+            placeholderContainerId !== snapContainerId &&
+            placeholderAfter !== snapAfterIdx
+          );
+
+        if (willUpdatePlaceholder)
+          onDragOverPlaceholder(snapContainerId, snapAfterIdx);
+      } else if (draggingOverPlaceholder) {
+        onDragOverNothing();
+      }
     }
   }
 
@@ -523,9 +556,6 @@ class Preview extends Component {
       highlightingEnabled,
       pickingComponent,
       pickingComponentFilter,
-      draggingComponent,
-      onDragOverComponent,
-      onDragOverPlaceholder,
       onHighlightComponent,
       onUnhighlightComponent,
     } = this.props;
@@ -552,20 +582,6 @@ class Preview extends Component {
         }
 
         this.unhighlightedComponentId = -1;
-      }
-    }
-
-    if (draggingComponent) {
-      const overWhat = getClosestComponentOrPlaceholder(event.target);
-      if (overWhat !== null) {
-        if (overWhat.isPlaceholder) {
-          onDragOverPlaceholder(
-            overWhat.containerId,
-            overWhat.placeholderAfter,
-          );
-        } else if (this._canInteractWithComponent(overWhat.componentId)) {
-          onDragOverComponent(overWhat.componentId);
-        }
       }
     }
   }
@@ -790,4 +806,6 @@ Preview.displayName = 'Preview';
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
+  null,
+  { withRef: true },
 )(Preview);

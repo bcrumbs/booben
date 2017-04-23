@@ -13,6 +13,8 @@ import { DocumentContext } from './DocumentContext/DocumentContext';
 import { loadComponents } from './content/componentsLibrary';
 import Preview from './content/containers/Preview';
 import Overlay from './content/containers/Overlay';
+import dropZone from '../../hocs/dropZone';
+import { connectDropZone } from '../ComponentsDragArea/ComponentsDragArea';
 import { URL_GRAPHQL_PREFIX } from '../../../../shared/constants';
 import { LOADED } from '../../constants/loadStates';
 import { CANVAS_CONTAINER_ID, CANVAS_OVERLAY_ID } from './content/constants';
@@ -26,6 +28,10 @@ const propTypes = {
   store: PropTypes.any,
   interactive: PropTypes.bool,
   containerStyle: PropTypes.string,
+  dropZoneId: PropTypes.string.isRequired,
+  onDropZoneReady: PropTypes.func.isRequired,
+  onDropZoneSnap: PropTypes.func.isRequired,
+  onDropZoneUnsnap: PropTypes.func.isRequired,
 };
 /* eslint-enable react/no-unused-prop-types */
 
@@ -59,21 +65,28 @@ let token = null;
 const getToken = () => token;
 const getTokenFromLS = () => localStorage.getItem('jssy_auth_token');
 
-export class Canvas extends Component {
+class CanvasComponent extends Component {
   constructor(props, context) {
     super(props, context);
     
     this._iframe = null;
+    this._preview = null;
     this._initialized = false;
     
     this.state = {
       error: null,
     };
-    
+
+    this._handleDrag = this._handleDrag.bind(this);
+    this._handleSnap = this._handleSnap.bind(this);
+    this._handleUnsnap = this._handleUnsnap.bind(this);
     this._saveIFrameRef = this._saveIFrameRef.bind(this);
+    this._savePreviewRef = this._savePreviewRef.bind(this);
   }
   
   componentDidMount() {
+    const { dropZoneId, onDropZoneReady } = this.props;
+
     const contentWindow = this._iframe.contentWindow;
     
     // These modules are external in the components bundle
@@ -84,6 +97,12 @@ export class Canvas extends Component {
     this._canvasInit()
       .then(() => {
         this._attachEventListeners();
+
+        onDropZoneReady({
+          id: dropZoneId,
+          element: this._iframe,
+          onDrag: this._handleDrag,
+        });
       })
       .catch(error => {
         this.setState({ error });
@@ -100,6 +119,10 @@ export class Canvas extends Component {
   
   _saveIFrameRef(ref) {
     this._iframe = ref;
+  }
+
+  _savePreviewRef(ref) {
+    this._preview = ref.getWrappedInstance();
   }
   
   _attachEventListeners() {
@@ -245,28 +268,39 @@ export class Canvas extends Component {
     containerNode.setAttribute('style', containerStyle);
     
     const { ProviderComponent, providerProps } = await this._getProvider();
-    
-    ReactDOM.render(
-      <ProviderComponent {...providerProps}>
-        <DocumentContext window={contentWindow} document={document}>
-          <Preview interactive={interactive} />
-        </DocumentContext>
-      </ProviderComponent>,
-      
-      containerNode,
-    );
-    
-    if (interactive) {
+
+    const renderPreviewPromise = new Promise(resolve => {
+      ReactDOM.render(
+        <ProviderComponent {...providerProps}>
+          <DocumentContext window={contentWindow} document={document}>
+            <Preview
+              ref={this._savePreviewRef}
+              interactive={interactive}
+              onDropZoneSnap={this._handleSnap}
+              onDropZoneUnsnap={this._handleUnsnap}
+            />
+          </DocumentContext>
+        </ProviderComponent>,
+
+        containerNode,
+        () => void resolve(),
+      );
+    });
+
+    const renderOverlayPromise = new Promise(resolve => {
       ReactDOM.render(
         <ProviderComponent {...providerProps}>
           <DocumentContext window={contentWindow} document={document}>
             <Overlay />
           </DocumentContext>
         </ProviderComponent>,
-        
+
         overlayNode,
+        () => void resolve(),
       );
-    }
+    });
+
+    await Promise.all([renderPreviewPromise, renderOverlayPromise]);
   
     this._initialized = true;
   }
@@ -285,6 +319,25 @@ export class Canvas extends Component {
     ReactDOM.unmountComponentAtNode(containerNode);
   
     this._initialized = false;
+  }
+
+  _handleDrag({ x, y }) {
+    this._preview.drag({ x, y });
+  }
+
+  _handleSnap({ element }) {
+    const { dropZoneId, onDropZoneSnap } = this.props;
+
+    // The element comes from an iframe,
+    // so left and top are already relative to the dropZone position
+    const { left: x, top: y, width, height } = element.getBoundingClientRect();
+
+    onDropZoneSnap({ dropZoneId, element, x, y, width, height });
+  }
+
+  _handleUnsnap() {
+    const { dropZoneId, onDropZoneUnsnap } = this.props;
+    onDropZoneUnsnap({ dropZoneId });
   }
   
   render() {
@@ -305,6 +358,8 @@ export class Canvas extends Component {
   }
 }
 
-Canvas.propTypes = propTypes;
-Canvas.defaultProps = defaultProps;
-Canvas.displayName = 'Canvas';
+CanvasComponent.propTypes = propTypes;
+CanvasComponent.defaultProps = defaultProps;
+CanvasComponent.displayName = 'Canvas';
+
+export const Canvas = connectDropZone(dropZone(CanvasComponent));
