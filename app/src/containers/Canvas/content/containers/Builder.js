@@ -24,7 +24,6 @@ import {
 import jssyConstants from '../../../../constants/jssyConstants';
 import { ContentPlaceholder } from '../components/ContentPlaceholder';
 import { Outlet } from '../components/Outlet';
-import { SnapPoint } from '../components/SnapPoint';
 import { getComponentByName } from '../componentsLibrary';
 import isPseudoComponent from '../isPseudoComponent';
 
@@ -932,38 +931,40 @@ class BuilderComponent extends PureComponent {
    * @private
    */
   _renderPlaceholderForDraggedComponent(containerId, afterIdx) {
-    const rootDraggedComponentId = this.props.draggedComponentId > -1
-      ? this.props.draggedComponentId
-      : 0;
+    const {
+      draggedComponents,
+      draggedComponentId,
+      draggingOverPlaceholder,
+      placeholderContainerId,
+      placeholderAfter,
+    } = this.props;
 
-    const rootDraggedComponent =
-      this.props.draggedComponents.get(rootDraggedComponentId);
+    const collapsed =
+      !draggingOverPlaceholder ||
+      placeholderContainerId !== containerId ||
+      placeholderAfter !== afterIdx;
 
-    const containerComponent = this._getContainerComponent(containerId);
-
-    let canDropHere = true;
-    if (containerComponent) {
-      const containerChildrenNames = containerComponent.children
-        .map(id => this.props.components.get(id).name);
-
-      canDropHere = canInsertComponent(
-        rootDraggedComponent.name,
-        containerComponent.name,
-        containerChildrenNames,
-        afterIdx + 1,
-        this.props.meta,
+    if (collapsed) {
+      return (
+        <div
+          style={{ width: '0', height: '0', margin: '0' }}
+          data-jssy-placeholder=""
+          data-jssy-container-id={String(containerId)}
+          data-jssy-after={String(afterIdx)}
+        />
       );
     }
 
-    if (!canDropHere) return null;
+    const rootDraggedComponentId = draggedComponentId > -1
+      ? draggedComponentId
+      : 0;
 
     const key = `placeholder-${containerId}:${afterIdx}`;
 
-    //noinspection JSValidateTypes
     return (
       <Builder
         key={key}
-        components={this.props.draggedComponents}
+        components={draggedComponents}
         rootId={rootDraggedComponentId}
         isPlaceholder
         afterIdx={afterIdx}
@@ -988,30 +989,6 @@ class BuilderComponent extends PureComponent {
     return draggedComponents.get(rootDraggedComponentId);
   }
 
-  _renderSnapPointOrPlaceholder(containerId, afterIdx) {
-    const {
-      draggingOverPlaceholder,
-      placeholderContainerId,
-      placeholderAfter,
-    } = this.props;
-
-    const willRenderPlaceholder =
-      draggingOverPlaceholder &&
-      containerId === placeholderContainerId &&
-      afterIdx === placeholderAfter;
-
-    if (willRenderPlaceholder) {
-      return this._renderPlaceholderForDraggedComponent(containerId, afterIdx);
-    } else {
-      return (
-        <SnapPoint
-          containerId={containerId}
-          afterIdx={afterIdx}
-        />
-      );
-    }
-  }
-
   /**
    *
    * @param {ProjectComponent} component
@@ -1028,10 +1005,13 @@ class BuilderComponent extends PureComponent {
     const childNames =
       component.children.map(childId => components.get(childId).name);
 
-    const willRenderSnapPoints =
+    const willRenderPlaceholders =
       draggingComponent &&
       !isPlaceholder &&
       !isComposite;
+
+    if (component.children.size === 0 && !willRenderPlaceholders)
+      return null;
 
     component.children.forEach((childComponentId, idx) => {
       const childComponent = components.get(childComponentId);
@@ -1040,7 +1020,7 @@ class BuilderComponent extends PureComponent {
       if (!isPlaceholder && isComposite && !component.regionsEnabled.has(idx))
         return;
 
-      if (willRenderSnapPoints) {
+      if (willRenderPlaceholders) {
         const canInsertHere = canInsertComponent(
           rootDraggedComponent.name,
           component.name,
@@ -1049,14 +1029,18 @@ class BuilderComponent extends PureComponent {
           meta,
         );
 
-        if (canInsertHere)
-          ret.push(this._renderSnapPointOrPlaceholder(component.id, idx - 1));
+        if (canInsertHere) {
+          ret.push(this._renderPlaceholderForDraggedComponent(
+            component.id,
+            idx - 1,
+          ));
+        }
       }
 
       ret.push(this._renderComponent(childComponent, isPlaceholder));
     });
 
-    if (willRenderSnapPoints) {
+    if (willRenderPlaceholders) {
       const canInsertHere = canInsertComponent(
         rootDraggedComponent.name,
         component.name,
@@ -1066,9 +1050,9 @@ class BuilderComponent extends PureComponent {
       );
 
       if (canInsertHere) {
-        ret.push(this._renderSnapPointOrPlaceholder(
+        ret.push(this._renderPlaceholderForDraggedComponent(
           component.id,
-          component.children.length - 1,
+          component.children.size - 1,
         ));
       }
     }
@@ -1257,7 +1241,7 @@ class BuilderComponent extends PureComponent {
       const rootComponent = components.get(rootId);
       return this._renderComponent(rootComponent, isPlaceholder, isPlaceholder);
     } else if (draggingComponent && !isPlaceholder) {
-      return this._renderSnapPointOrPlaceholder(-1, -1);
+      return this._renderPlaceholderForDraggedComponent(-1, -1);
     } else {
       return null;
     }

@@ -8,6 +8,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Router, hashHistory } from 'react-router';
 import { connect } from 'react-redux';
+import throttle from 'lodash.throttle';
 import Builder from './Builder';
 
 import {
@@ -121,13 +122,6 @@ const clearImmediate = window.clearImmediate || window.clearTimeout;
 const SNAP_DISTANCE = 200;
 
 /**
- *
- * @type {number}
- * @const
- */
-const START_DRAG_THRESHOLD = 10;
-
-/**
  * @typedef {Object} OverWhat
  * @property {boolean} isPlaceholder
  * @property {?number} componentId
@@ -207,6 +201,8 @@ class Preview extends Component {
     this._handleNavigate = this._handleNavigate.bind(this);
     this._handleOpenURL = this._handleOpenURL.bind(this);
 
+    this.drag = throttle(this.drag.bind(this), 100);
+
     this._updateRoutes(props.project.routes, props.project.rootRoutes);
   }
 
@@ -243,18 +239,24 @@ class Preview extends Component {
       currentRouteId,
       currentRouteIsIndexRoute,
       draggingOverPlaceholder,
+      placeholderContainerId,
+      placeholderAfter,
     } = this.props;
     
     return nextProps.project !== project ||
       nextProps.topNestedConstructor !== topNestedConstructor ||
       nextProps.currentRouteId !== currentRouteId ||
       nextProps.currentRouteIsIndexRoute !== currentRouteIsIndexRoute ||
-      nextProps.draggingOverPlaceholder !== draggingOverPlaceholder;
+      nextProps.draggingOverPlaceholder !== draggingOverPlaceholder ||
+      nextProps.placeholderContainerId !== placeholderContainerId ||
+      nextProps.placeholderAfter !== placeholderAfter;
   }
 
   componentDidUpdate() {
     const {
       draggingOverPlaceholder,
+      placeholderContainerId,
+      placeholderAfter,
       onDropZoneSnap,
       onDropZoneUnsnap,
     } = this.props;
@@ -262,8 +264,12 @@ class Preview extends Component {
     const { document } = this.context;
 
     if (draggingOverPlaceholder) {
-      const placeholderElement =
-        document.querySelector('[data-jssy-placeholder]');
+      const selector =
+        '[data-jssy-placeholder]' +
+        `[data-jssy-container-id="${placeholderContainerId}"]` +
+        `[data-jssy-after="${placeholderAfter}"]`;
+
+      const placeholderElement = document.querySelector(selector);
 
       if (placeholderElement)
         onDropZoneSnap({ element: placeholderElement });
@@ -304,6 +310,71 @@ class Preview extends Component {
       window.removeEventListener('keydown', this._handleKeyDown);
       
       if (this.unhighilightTimer > -1) clearImmediate(this.unhighilightTimer);
+    }
+  }
+
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   * @private
+   */
+  drag({ x, y }) {
+    const {
+      draggingComponent,
+      draggingOverPlaceholder,
+      placeholderContainerId,
+      placeholderAfter,
+      onDragOverPlaceholder,
+      onDragOverNothing,
+    } = this.props;
+
+    const { document } = this.context;
+
+    if (draggingComponent) {
+      const placeholders = document.querySelectorAll('[data-jssy-placeholder]');
+
+      let willSnap = false;
+      let snapContainerId = -1;
+      let snapAfterIdx = -1;
+      let minDistance = Infinity;
+
+      placeholders.forEach(element => {
+        const { left, top } = element.getBoundingClientRect();
+
+        if (Math.abs(left - x) > SNAP_DISTANCE) return;
+        if (Math.abs(top - y) > SNAP_DISTANCE) return;
+
+        const snapPointDistance = distance(left, top, x, y);
+        if (snapPointDistance > SNAP_DISTANCE) return;
+
+        if (snapPointDistance < minDistance) {
+          willSnap = true;
+          minDistance = snapPointDistance;
+
+          snapContainerId = parseInt(
+            element.getAttribute('data-jssy-container-id'),
+            10,
+          );
+
+          snapAfterIdx = parseInt(
+            element.getAttribute('data-jssy-after'),
+            10,
+          );
+        }
+      });
+
+      if (willSnap) {
+        const willUpdatePlaceholder =
+          !draggingOverPlaceholder ||
+          placeholderContainerId !== snapContainerId ||
+          placeholderAfter !== snapAfterIdx;
+
+        if (willUpdatePlaceholder)
+          onDragOverPlaceholder(snapContainerId, snapAfterIdx);
+      } else if (draggingOverPlaceholder) {
+        onDragOverNothing();
+      }
     }
   }
   
@@ -469,81 +540,6 @@ class Preview extends Component {
     // If we're not in nested constructor,
     // check if component is in current route
     return this._componentIsInCurrentRoute(componentId);
-  }
-
-  /**
-   *
-   * @param {number} x
-   * @param {number} y
-   * @private
-   */
-  drag({ x, y }) {
-    const {
-      draggingComponent,
-      draggingOverPlaceholder,
-      placeholderContainerId,
-      placeholderAfter,
-      onDragOverPlaceholder,
-      onDragOverNothing,
-    } = this.props;
-
-    const { document } = this.context;
-
-    if (draggingComponent) {
-      const snapPoints = document.querySelectorAll('[data-jssy-snap-point]');
-      const placeholder = document.querySelector('[data-jssy-placeholder]');
-
-      let willSnap = false;
-      let snapContainerId = -1;
-      let snapAfterIdx = -1;
-      let minDistance = Infinity;
-
-      const checkSnap = element => {
-        const left = element.clientLeft;
-        const top = element.clientTop;
-
-        if (Math.abs(left - x) > SNAP_DISTANCE) return;
-        if (Math.abs(top - y) > SNAP_DISTANCE) return;
-
-        const snapPointDistance = distance(left, top, x, y);
-        if (snapPointDistance > SNAP_DISTANCE) return;
-
-        if (snapPointDistance < minDistance) {
-          willSnap = true;
-          minDistance = snapPointDistance;
-
-          snapContainerId = parseInt(
-            element.getAttribute('data-jssy-snap-point-container-id') ||
-            element.getAttribute('data-jssy-container-id'),
-
-            10,
-          );
-
-          snapAfterIdx = parseInt(
-            element.getAttribute('data-jssy-snap-point-after') ||
-            element.getAttribute('data-jssy-after'),
-
-            10,
-          );
-        }
-      };
-
-      snapPoints.forEach(checkSnap);
-      if (placeholder) checkSnap(placeholder);
-
-      if (willSnap) {
-        const willUpdatePlaceholder =
-          !draggingOverPlaceholder || (
-            placeholderContainerId !== snapContainerId &&
-            placeholderAfter !== snapAfterIdx
-          );
-
-        if (willUpdatePlaceholder)
-          onDragOverPlaceholder(snapContainerId, snapAfterIdx);
-      } else if (draggingOverPlaceholder) {
-        onDragOverNothing();
-      }
-    }
   }
 
   /**

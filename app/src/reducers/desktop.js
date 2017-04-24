@@ -18,7 +18,6 @@ import {
   DESKTOP_TOOL_OPEN,
   DESKTOP_SET_STICKY_TOOL,
   DESKTOP_TOOL_SET_ACTIVE_SECTION,
-  TOOL_ID_COMPONENTS_TREE,
 } from '../actions/desktop';
 
 import {
@@ -29,6 +28,11 @@ import {
   PREVIEW_DESELECT_COMPONENT,
   DropComponentAreas,
 } from '../actions/preview';
+
+import {
+  TOOL_ID_COMPONENTS_TREE,
+  TOOL_ID_PROPS_EDITOR,
+} from '../constants/toolIds';
 
 import ToolStateRecord from '../models/ToolState';
 
@@ -223,8 +227,14 @@ const handlers = {
   [PREVIEW_DROP_COMPONENT]: (state, action) =>
     setNecessaryToolActiveAfterDrop(state, action.dropOnAreaId),
 
-  [PREVIEW_SELECT_COMPONENT]: state =>
-    setActiveSection(state, state.activeToolId, 0),
+  [PREVIEW_SELECT_COMPONENT]: state => {
+    const componentConfigToolState = state.toolStates.get(TOOL_ID_PROPS_EDITOR);
+
+    if (componentConfigToolState && componentConfigToolState.docked)
+      state = selectTool(state, TOOL_ID_PROPS_EDITOR);
+
+    return setActiveSection(state, state.activeToolId, 0);
+  },
 
   [PREVIEW_DESELECT_COMPONENT]: state =>
     setActiveSection(state, state.activeToolId, 0),

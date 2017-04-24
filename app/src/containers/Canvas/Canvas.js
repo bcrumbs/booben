@@ -118,11 +118,11 @@ class CanvasComponent extends Component {
   }
   
   _saveIFrameRef(ref) {
-    this._iframe = ref;
+    this._iframe = ref || null;
   }
 
   _savePreviewRef(ref) {
-    this._preview = ref.getWrappedInstance();
+    this._preview = ref ? ref.getWrappedInstance() : null;
   }
   
   _attachEventListeners() {
@@ -145,7 +145,7 @@ class CanvasComponent extends Component {
         evt.screenY = event.screenY;
         evt._originalTarget = event.target;
       
-        this._iframe.dispatchEvent(evt);
+        window.dispatchEvent(evt);
       });
     });
   }

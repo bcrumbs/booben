@@ -90,11 +90,13 @@ import {
   componentHasActions,
 } from '../utils/meta';
 
-import defaultComponentLayoutIcon from '../../assets/layout_default.svg';
+import {
+  TOOL_ID_LIBRARY,
+  TOOL_ID_COMPONENTS_TREE,
+  TOOL_ID_PROPS_EDITOR,
+} from '../constants/toolIds';
 
-export const TOOL_ID_LIBRARY = 'componentsLibrary';
-export const TOOL_ID_COMPONENTS_TREE = 'componentsTree';
-export const TOOL_ID_PROPS_EDITOR = 'componentPropsEditor';
+import defaultComponentLayoutIcon from '../../assets/layout_default.svg';
 
 export const DESIGN_TOOL_IDS = List([
   TOOL_ID_LIBRARY,

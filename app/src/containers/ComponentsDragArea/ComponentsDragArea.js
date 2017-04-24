@@ -211,12 +211,30 @@ export class ComponentsDragArea extends PureComponent {
       this._scheduleAnimationFrame();
     }
 
+    let sentDrag = false;
+
     this._dropZones.forEach(({ element, onDrag }) => {
       const { left, top, width, height } = element.getBoundingClientRect();
+      const willSendDrag = pointIsInRect(
+        event.clientX,
+        event.clientY,
+        left,
+        top,
+        width,
+        height,
+      );
 
-      if (pointIsInRect(event.clientX, event.clientY, left, top, width, height))
-        onDrag({ x: event.clientX - left, y: event.clientY - top });
+      if (willSendDrag) {
+        onDrag({
+          x: event.clientX - left,
+          y: event.clientY - top,
+        });
+
+        sentDrag = true;
+      }
     });
+
+    if (!sentDrag) this._handleUnsnap();
   }
   
   /**

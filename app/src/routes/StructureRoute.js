@@ -61,6 +61,8 @@ import {
   isUndef,
 } from '../utils/misc';
 
+import { TOOL_ID_ROUTE_EDITOR } from '../constants/toolIds';
+
 const propTypes = {
   project: PropTypes.instanceOf(ProjectRecord).isRequired,
   projectName: PropTypes.string.isRequired,
@@ -97,12 +99,6 @@ const mapDispatchToProps = dispatch => ({
   onRenameRoute: (routeId, newTitle) =>
     void dispatch(updateRouteField(routeId, 'title', newTitle)),
 });
-
-/**
- *
- * @type {string}
- */
-const TOOL_ID_ROUTE_EDITOR = 'routeEditor';
 
 /**
  *

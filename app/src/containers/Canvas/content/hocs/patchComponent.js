@@ -4,38 +4,35 @@
 
 'use strict';
 
-import ReactDOM from 'react-dom';
+import { findDOMNode } from 'react-dom';
 import { isReactComponent, toClassComponent } from '../../../../utils/react';
 import { noop, isNullOrUndef, isNumber } from '../../../../utils/misc';
 
-/* eslint-disable react/no-find-dom-node */
 const patchDOMElement = componentInstance => {
-  const componentId = componentInstance.props.__jssy_component_id__;
+  const {
+    __jssy_component_id__: componentId,
+    __jssy_placeholder__: isPlaceholder,
+    __jssy_container_id__: containerId,
+    __jssy_after__: after,
+  } = componentInstance.props;
 
   if (isNumber(componentId)) {
-    const el = ReactDOM.findDOMNode(componentInstance);
+    const el = findDOMNode(componentInstance);
     if (el) el.setAttribute('data-jssy-id', String(componentId));
-  } else {
-    const isPlaceholder = componentInstance.props.__jssy_placeholder__;
+  } else if (isPlaceholder) {
+    const el = findDOMNode(componentInstance);
 
-    if (isPlaceholder) {
-      const el = ReactDOM.findDOMNode(componentInstance);
-      if (el) {
-        const after = componentInstance.props.__jssy_after__;
-        const containerId = componentInstance.props.__jssy_container_id__;
-
-        el.setAttribute('data-jssy-placeholder', '');
-        el.setAttribute('data-jssy-after', String(after));
-        el.setAttribute('data-jssy-container-id', String(containerId));
-      }
+    if (el) {
+      el.setAttribute('data-jssy-placeholder', '');
+      el.setAttribute('data-jssy-after', String(after));
+      el.setAttribute('data-jssy-container-id', String(containerId));
     }
   }
 };
-/* eslint-enable react/no-find-dom-node */
 
 const wrapLifecycleHook = fn => function (...args) {
+  fn.apply(this, args);
   patchDOMElement(this);
-  return fn.apply(this, args);
 };
 
 const patchClassComponent = component => {
