@@ -23,8 +23,12 @@ export const ComponentPlaceholder = props => {
 
   let content = false;
   if (props.title) {
+    const titleClassName =
+      'component-placeholder-title ' +
+      'js-component-placeholder-title';
+
     content = (
-      <div className="component-placeholder-title">
+      <div className={titleClassName}>
         {props.title}
       </div>
     );

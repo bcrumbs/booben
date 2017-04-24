@@ -313,6 +313,14 @@ class Preview extends Component {
     }
   }
 
+  enter() {
+  }
+
+  leave() {
+    const { draggingOverPlaceholder, onDragOverNothing } = this.props;
+    if (draggingOverPlaceholder) onDragOverNothing();
+  }
+
   /**
    *
    * @param {number} x

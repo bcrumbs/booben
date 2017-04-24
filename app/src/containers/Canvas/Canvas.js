@@ -78,6 +78,8 @@ class CanvasComponent extends Component {
     };
 
     this._handleDrag = this._handleDrag.bind(this);
+    this._handleEnter = this._handleEnter.bind(this);
+    this._handleLeave = this._handleLeave.bind(this);
     this._handleSnap = this._handleSnap.bind(this);
     this._handleUnsnap = this._handleUnsnap.bind(this);
     this._saveIFrameRef = this._saveIFrameRef.bind(this);
@@ -102,6 +104,8 @@ class CanvasComponent extends Component {
           id: dropZoneId,
           element: this._iframe,
           onDrag: this._handleDrag,
+          onEnter: this._handleEnter,
+          onLeave: this._handleLeave,
         });
       })
       .catch(error => {
@@ -323,6 +327,14 @@ class CanvasComponent extends Component {
 
   _handleDrag({ x, y }) {
     this._preview.drag({ x, y });
+  }
+
+  _handleEnter() {
+    this._preview.enter();
+  }
+
+  _handleLeave() {
+    this._preview.leave();
   }
 
   _handleSnap({ element }) {

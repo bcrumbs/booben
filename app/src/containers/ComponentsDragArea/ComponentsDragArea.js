@@ -47,6 +47,7 @@ export class ComponentsDragArea extends PureComponent {
     super(props, context);
 
     this._dropZones = new Map();
+    this._lastDraggedDropZoneId = '';
     this._placeholderElement = null;
     this._dragging = false;
     this._unsnapping = false;
@@ -112,6 +113,11 @@ export class ComponentsDragArea extends PureComponent {
 
   _handleAnimationFrame() {
     const style = this._placeholderElement.style;
+    const titleElement = this._placeholderElement
+      .getElementsByClassName('js-component-placeholder-title')[0];
+
+    if (titleElement)
+      titleElement.style.opacity = this._snapElement ? '0' : '';
 
     if (this._transitionEnabled) {
       style['transition-property'] = 'transform width height';
@@ -211,30 +217,45 @@ export class ComponentsDragArea extends PureComponent {
       this._scheduleAnimationFrame();
     }
 
-    let sentDrag = false;
+    let foundDropZone = false;
 
-    this._dropZones.forEach(({ element, onDrag }) => {
+    // eslint-disable-next-line no-restricted-syntax
+    for (const { id, element, onDrag, onEnter } of this._dropZones.values()) {
       const { left, top, width, height } = element.getBoundingClientRect();
-      const willSendDrag = pointIsInRect(
-        event.clientX,
-        event.clientY,
+      const mouseIsInDropZone = pointIsInRect(
+        event.pageX,
+        event.pageY,
         left,
         top,
         width,
         height,
       );
 
-      if (willSendDrag) {
+      if (mouseIsInDropZone) {
+        if (this._lastDraggedDropZoneId !== id) {
+          if (this._lastDraggedDropZoneId)
+            this._dropZones.get(this._lastDraggedDropZoneId).onLeave();
+
+          onEnter();
+        }
+
         onDrag({
-          x: event.clientX - left,
-          y: event.clientY - top,
+          x: event.pageX - left,
+          y: event.pageY - top,
         });
 
-        sentDrag = true;
+        this._lastDraggedDropZoneId = id;
+        foundDropZone = true;
+        break;
       }
-    });
+    }
 
-    if (!sentDrag) this._handleUnsnap();
+    if (!foundDropZone) {
+      if (this._lastDraggedDropZoneId)
+        this._dropZones.get(this._lastDraggedDropZoneId).onLeave();
+
+      this._lastDraggedDropZoneId = '';
+    }
   }
   
   /**
@@ -248,6 +269,8 @@ export class ComponentsDragArea extends PureComponent {
     this._dragging = false;
     this._unsnapping = false;
     this._transitionEnabled = false;
+    this._lastDraggedDropZoneId = '';
+    this._snapElement = null;
     this._cancelAnimationFrame();
     this._hidePlaceholderElement();
 
@@ -316,8 +339,8 @@ export class ComponentsDragArea extends PureComponent {
     this._hidePlaceholderElement();
   }
 
-  _handleDropZoneReady({ id, element, onDrag }) {
-    this._dropZones.set(id, { id, element, onDrag });
+  _handleDropZoneReady({ id, element, onDrag, onEnter, onLeave }) {
+    this._dropZones.set(id, { id, element, onDrag, onEnter, onLeave });
   }
 
   _handleDropZoneRemove({ id }) {
