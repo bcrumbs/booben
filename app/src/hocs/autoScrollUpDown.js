@@ -1,7 +1,9 @@
 'use strict';
 
 import React, { Component } from 'react';
+import { findDOMNode } from 'react-dom';
 import PropTypes from 'prop-types';
+import _omit from 'lodash.omit';
 
 const propTypes = {
   fixedScrollingStep: PropTypes.number,
@@ -9,7 +11,6 @@ const propTypes = {
   autoScrollUpDown: PropTypes.bool,
   additionalPixels: PropTypes.number,
   stepDiffDivider: PropTypes.number,
-  createElementRef: PropTypes.func,
 };
 
 const defaultProps = {
@@ -18,6 +19,8 @@ const defaultProps = {
   additionalPixels: 40,
   stepDiffDivider: 4,
 };
+
+const wrapperProps = Object.keys(propTypes);
 
 const ScrollStates = {
   NONE: 0,
@@ -30,9 +33,9 @@ export const autoScrollUpDown = WrappedComponent => {
     constructor(props, context) {
       super(props, context);
       this._handleMouseMove = this._handleMouseMove.bind(this);
-      this._createElementRef = this._createElementRef.bind(this);
       this._scroll = this._scroll.bind(this);
-    
+
+      this.element = null;
       this.scrollInterval = null;
       this.scrollState = ScrollStates.NONE;
       this.scrollStep = 0;
@@ -42,6 +45,7 @@ export const autoScrollUpDown = WrappedComponent => {
   
     componentDidMount() {
       document.addEventListener('mousemove', this._handleMouseMove);
+      this.element = findDOMNode(this);
     }
   
     componentWillUnmount() {
@@ -116,17 +120,11 @@ export const autoScrollUpDown = WrappedComponent => {
         this._startSteppingScroll();
     }
   
-    _createElementRef(ref) {
-      this.element = ref;
-      if (this.props.createElementRef) this.props.createElementRef(ref);
-    }
-  
     render() {
+      const wrappedComponentProps = _omit(this.props, wrapperProps);
+
       return (
-        <WrappedComponent
-          {...this.props}
-          createElementRef={this._createElementRef}
-        />
+        <WrappedComponent {...wrappedComponentProps} />
       );
     }
   };

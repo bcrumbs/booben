@@ -28,9 +28,20 @@ const IS_DROPZONE = Symbol('Is drop zone');
 const makeDisplayName = displayName => `dropZone(${displayName})`;
 
 const wrap = OriginalComponent => class extends OriginalComponent {
+  componentWillReceiveProps(...args) {
+    if (super.componentWillReceiveProps)
+      super.componentWillReceiveProps(...args);
+
+    const { dropZoneId } = this.props;
+    const nextProps = args[0];
+
+    if (nextProps.dropZoneId !== dropZoneId)
+      throw new Error('It is not allowed to change the dropZoneId');
+  }
+
   componentWillUnmount(...args) {
-    const { dropZoneId, onDropZoneRemove } = this.props;
     if (super.componentWillUnmount) super.componentWillUnmount(...args);
+    const { dropZoneId, onDropZoneRemove } = this.props;
     onDropZoneRemove({ id: dropZoneId });
   }
 };

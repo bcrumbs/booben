@@ -37,7 +37,6 @@ export const ComponentPlaceholder = props => {
   return (
     <div
       className={className}
-      style={{ display: 'none' }}
       ref={props.elementRef}
     >
       {content}

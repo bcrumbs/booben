@@ -86,6 +86,7 @@ export class ComponentsDragArea extends PureComponent {
 
   componentDidMount() {
     dragArea = this;
+    this._hidePlaceholderElement();
   }
 
   componentWillUnmount() {
@@ -233,8 +234,12 @@ export class ComponentsDragArea extends PureComponent {
 
       if (mouseIsInDropZone) {
         if (this._lastDraggedDropZoneId !== id) {
-          if (this._lastDraggedDropZoneId)
-            this._dropZones.get(this._lastDraggedDropZoneId).onLeave();
+          if (this._lastDraggedDropZoneId) {
+            const lastDropZone =
+              this._dropZones.get(this._lastDraggedDropZoneId);
+
+            if (lastDropZone) lastDropZone.onLeave();
+          }
 
           onEnter();
         }
@@ -242,6 +247,8 @@ export class ComponentsDragArea extends PureComponent {
         onDrag({
           x: event.pageX - left,
           y: event.pageY - top,
+          pageX: event.pageX,
+          pageY: event.pageY,
         });
 
         this._lastDraggedDropZoneId = id;
@@ -251,8 +258,12 @@ export class ComponentsDragArea extends PureComponent {
     }
 
     if (!foundDropZone) {
-      if (this._lastDraggedDropZoneId)
-        this._dropZones.get(this._lastDraggedDropZoneId).onLeave();
+      if (this._lastDraggedDropZoneId) {
+        const lastDropZone =
+          this._dropZones.get(this._lastDraggedDropZoneId);
+
+        if (lastDropZone) lastDropZone.onLeave();
+      }
 
       this._lastDraggedDropZoneId = '';
     }

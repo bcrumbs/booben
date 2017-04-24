@@ -8,15 +8,13 @@ import { noop } from '../../../utils/misc';
 const propTypes = {
   isBordered: PropTypes.bool,
   flex: PropTypes.bool,
-  onMouseUp: PropTypes.func,
-  createElementRef: PropTypes.func,
+  elementRef: PropTypes.func,
 };
 
 const defaultProps = {
   isBordered: false,
   flex: false,
-  onMouseUp: noop,
-  createElementRef: noop,
+  elementRef: noop,
 };
 
 const BlockContentBoxComponent = props => {
@@ -27,8 +25,7 @@ const BlockContentBoxComponent = props => {
   return (
     <div
       className={className}
-      ref={props.createElementRef}
-      onMouseUp={props.onMouseUp}
+      ref={props.elementRef}
     >
       {props.children}
     </div>

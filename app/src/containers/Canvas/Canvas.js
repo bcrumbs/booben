@@ -3,6 +3,7 @@
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
+import { compose } from 'redux';
 import { Provider } from 'react-redux';
 import { ApolloProvider } from 'react-apollo';
 import ApolloClient, { createNetworkInterface } from 'apollo-client';
@@ -374,4 +375,6 @@ CanvasComponent.propTypes = propTypes;
 CanvasComponent.defaultProps = defaultProps;
 CanvasComponent.displayName = 'Canvas';
 
-export const Canvas = connectDropZone(dropZone(CanvasComponent));
+const wrap = compose(connectDropZone, dropZone);
+
+export const Canvas = wrap(CanvasComponent);

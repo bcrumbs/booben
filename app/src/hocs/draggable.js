@@ -104,7 +104,6 @@ const wrap = OriginalComponent => class extends OriginalComponent {
 
     if (!dragEnable) return;
 
-    event.preventDefault();
     this.__draggableTryingStartDrag = true;
     window.addEventListener('mousemove', this.__draggableHandleMouseMove);
     window.addEventListener('mouseup', this.__draggableHandleMouseUp);

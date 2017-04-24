@@ -16,8 +16,7 @@ const propTypes = {
   onExpand: PropTypes.func,
   onSelect: PropTypes.func,
   onHover: PropTypes.func,
-  onMouseDown: PropTypes.func,
-  createItemRef: PropTypes.func,
+  titleRef: PropTypes.func,
 };
 
 const defaultProps = {
@@ -28,8 +27,7 @@ const defaultProps = {
   onExpand: noop,
   onSelect: noop,
   onHover: noop,
-  onMouseDown: noop,
-  createItemRef: noop,
+  titleRef: noop,
 };
 
 const isEllipsisActive = el => el.offsetWidth < el.scrollWidth;
@@ -68,11 +66,6 @@ export class ComponentsTreeItem extends PureComponent {
       event,
     );
     
-    this._handleMouseDown = event => this.props.onMouseDown(
-      this.props.componentId,
-      event,
-    );
-    
     this._createTitleRef = this._createTitleRef.bind(this);
   }
 
@@ -93,32 +86,33 @@ export class ComponentsTreeItem extends PureComponent {
 
   _createTitleRef(ref) {
     this._titleRef = ref;
-    this.props.createItemRef(this.props.componentId, ref);
+    this.props.titleRef(this.props.componentId, ref);
   }
 
   render() {
+    const { title, expanded, active, hovered, children } = this.props;
+
     let className = 'components-tree-item';
-    
-    className += this.props.expanded
-      ? ' sublevel-is-visible'
-      : ' sublevel-is-hidden';
+    className += expanded ? ' sublevel-is-visible' : ' sublevel-is-hidden';
 
     let buttonClassName = 'components-tree-item-title-wrapper';
     
-    if (this.props.active) {
+    if (active) {
       buttonClassName += ' is-active';
       className += ' item-is-active';
     }
 
-    let children = null,
-      icon = null;
+    let content = null;
+    let icon = null;
 
-    if (this.props.children) {
-      children = (
-        <div className="components-tree-item-sublevel">
-          {this.props.children}
-        </div>
-      );
+    if (children) {
+      if (expanded) {
+        content = (
+          <div className="components-tree-item-sublevel">
+            {children}
+          </div>
+        );
+      }
 
       icon = (
         <div className="components-tree-item-icon">
@@ -133,7 +127,7 @@ export class ComponentsTreeItem extends PureComponent {
     }
 
     let titleClassName = 'components-tree-item-title';
-    if (this.props.hovered) titleClassName += ' is-hovered';
+    if (hovered) titleClassName += ' is-hovered';
 
     return (
       <li
@@ -147,7 +141,6 @@ export class ComponentsTreeItem extends PureComponent {
             onFocus={this._handleHoverIn}
             onBlur={this._handleHoverOut}
             onClick={this._handleSelect}
-            onMouseDown={this._handleMouseDown}
           >
             <div
               ref={this._createTitleRef}
@@ -155,12 +148,12 @@ export class ComponentsTreeItem extends PureComponent {
               onMouseOver={this._handleHoverIn}
               onMouseOut={this._handleHoverOut}
             >
-              {this.props.title}
+              {title}
             </div>
           </button>
         </div>
 
-        {this.props.expanded ? children : null}
+        {content}
       </li>
     );
   }
