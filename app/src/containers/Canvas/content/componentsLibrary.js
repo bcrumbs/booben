@@ -15,6 +15,11 @@ let components = null;
 
 const scriptsCache = {};
 
+/**
+ *
+ * @param {string} url
+ * @return {Promise<string>}
+ */
 const loadScript = async url => {
   const cached = scriptsCache[url];
   if (cached) return cached;

@@ -33,6 +33,7 @@ import {
 } from '../../../../selectors';
 
 import {
+  INVALID_ID,
   NO_VALUE,
   SYSTEM_PROPS,
   ROUTE_PARAM_VALUE_DEF,
@@ -91,12 +92,12 @@ const defaultProps = {
   client: null,
   interactive: false,
   components: null,
-  rootId: -1,
+  rootId: INVALID_ID,
   dontPatch: false,
-  enclosingComponentId: -1,
+  enclosingComponentId: INVALID_ID,
   isPlaceholder: false,
   afterIdx: -1,
-  containerId: -1,
+  containerId: INVALID_ID,
   propsFromOwner: {},
   theMap: null,
   dataContextInfo: null,
@@ -176,7 +177,7 @@ class BuilderComponent extends PureComponent {
       activeStateSlots: new Map(),
     };
     
-    if (rootId === -1) return ret;
+    if (rootId === INVALID_ID) return ret;
     
     const visitAction = action => {
       if (action.type === 'method') {
@@ -911,9 +912,9 @@ class BuilderComponent extends PureComponent {
    * @private
    */
   _getContainerComponent(containerId) {
-    if (containerId > -1) {
+    if (containerId !== INVALID_ID) {
       return this.props.components.get(containerId);
-    } else if (this.props.enclosingComponentId > -1) {
+    } else if (this.props.enclosingComponentId !== INVALID_ID) {
       return getComponentById(
         this.props.project,
         this.props.enclosingComponentId,
@@ -955,7 +956,7 @@ class BuilderComponent extends PureComponent {
       );
     }
 
-    const rootDraggedComponentId = draggedComponentId > -1
+    const rootDraggedComponentId = draggedComponentId !== INVALID_ID
       ? draggedComponentId
       : 0;
 
@@ -982,7 +983,7 @@ class BuilderComponent extends PureComponent {
 
     if (!draggingComponent) return null;
 
-    const rootDraggedComponentId = draggedComponentId > -1
+    const rootDraggedComponentId = draggedComponentId !== INVALID_ID
       ? draggedComponentId
       : 0;
 
@@ -1237,11 +1238,11 @@ class BuilderComponent extends PureComponent {
       draggingComponent,
     } = this.props;
     
-    if (rootId > -1) {
+    if (rootId !== INVALID_ID) {
       const rootComponent = components.get(rootId);
       return this._renderComponent(rootComponent, isPlaceholder, isPlaceholder);
     } else if (draggingComponent && !isPlaceholder) {
-      return this._renderPlaceholderForDraggedComponent(-1, -1);
+      return this._renderPlaceholderForDraggedComponent(INVALID_ID, -1);
     } else {
       return null;
     }

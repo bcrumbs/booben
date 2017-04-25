@@ -22,9 +22,10 @@ import { OverlayFloatingBlock } from '../components/OverlayFloatingBlock';
 import { ComponentStateSlotSelect }
 from '../../../../containers/ComponentStateSlotSelect/ComponentStateSlotSelect';
 
-import { CANVAS_CONTAINER_ID } from '../constants';
 import { getComponentMeta } from '../../../../utils/meta';
 import { returnTrue } from '../../../../utils/misc';
+import { CANVAS_CONTAINER_ID } from '../constants';
+import { INVALID_ID } from '../../../../constants/misc'
 
 const propTypes = {
   meta: PropTypes.object.isRequired,
@@ -211,7 +212,7 @@ class Overlay extends PureComponent {
       : this._renderBoundingBoxes(selectedComponentIds, SELECT_COLOR);
     
     const willRenderBoundaryBox =
-      boundaryComponentId > -1 && (
+      boundaryComponentId !== INVALID_ID && (
         pickingComponent ||
         draggingComponent
       );

@@ -467,6 +467,8 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     const { isDraggingOnTree } = this.state;
 
+    // Like in Preview, _handleDrag is throttled,
+    // so we check if we're still dragging over the tree
     if (!isDraggingOnTree) return;
     
     const componentId = this._getClosestItemComponentId(pageY);

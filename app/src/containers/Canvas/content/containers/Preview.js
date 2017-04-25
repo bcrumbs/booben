@@ -36,6 +36,7 @@ import {
 import KeyCodes from '../../../../utils/keycodes';
 import { noop, distance } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
+import { INVALID_ID } from '../../../../constants/misc';
 
 const propTypes = {
   interactive: PropTypes.bool,
@@ -133,16 +134,11 @@ class Preview extends Component {
     super(props, context);
     
     this._container = null;
-
-    this.willTryStartDrag = false;
-    this.componentIdToDrag = -1;
-    this.dragStartX = 0;
-    this.dragStartY = 0;
-    this.routes = null;
-    this.routerKey = 0;
-
-    this.unhighilightTimer = -1;
-    this.unhighlightedComponentId = -1;
+    this._routes = null;
+    this._routerKey = 0;
+    this._unhighilightTimer = -1;
+    this._unhighlightedComponentId = INVALID_ID;
+    this._draggingOverCanvas = false;
 
     this._handleMouseOver = this._handleMouseOver.bind(this);
     this._handleMouseOut = this._handleMouseOut.bind(this);
@@ -259,19 +255,28 @@ class Preview extends Component {
       containerNode.removeEventListener('mouseup', this._handleMouseUp);
       window.removeEventListener('keydown', this._handleKeyDown);
       
-      if (this.unhighilightTimer > -1) clearImmediate(this.unhighilightTimer);
+      if (this._unhighilightTimer > -1) clearImmediate(this._unhighilightTimer);
     }
   }
 
+  /**
+   * Called by Canvas component
+   */
   enter() {
+    this._draggingOverCanvas = true;
   }
 
+  /**
+   * Called by Canvas component
+   */
   leave() {
     const { draggingOverPlaceholder, onDragOverNothing } = this.props;
+    this._draggingOverCanvas = false;
     if (draggingOverPlaceholder) onDragOverNothing();
   }
 
   /**
+   * Called by Canvas component
    *
    * @param {number} x
    * @param {number} y
@@ -289,11 +294,16 @@ class Preview extends Component {
 
     const { document } = this.context;
 
+    // Although ComponentsDragArea doesn't call onDrag after onLeave,
+    // this method can be called later because it's throttled,
+    // so we need to check if we're still here
+    if (!this._draggingOverCanvas) return;
+
     if (draggingComponent) {
       const placeholders = document.querySelectorAll('[data-jssy-placeholder]');
 
       let willSnap = false;
-      let snapContainerId = -1;
+      let snapContainerId = INVALID_ID;
       let snapAfterIdx = -1;
       let minDistance = Infinity;
 
@@ -370,7 +380,7 @@ class Preview extends Component {
       current = current.parentNode;
     }
   
-    return -1;
+    return INVALID_ID;
   }
 
   /**
@@ -396,7 +406,7 @@ class Preview extends Component {
       </Builder>
     );
 
-    ret.displayName = `Builder(${rootId === -1 ? 'null' : rootId})`;
+    ret.displayName = `Builder(${rootId === INVALID_ID ? 'null' : rootId})`;
     return ret;
   }
 
@@ -404,11 +414,11 @@ class Preview extends Component {
    *
    * @param {Immutable.Map<number, Object>} routes
    * @param {number} routeId
-   * @param {number} [enclosingComponentId=-1]
+   * @param {number} [enclosingComponentId=INVALID_ID]
    * @return {Object}
    * @private
    */
-  _createRoute(routes, routeId, enclosingComponentId = -1) {
+  _createRoute(routes, routeId, enclosingComponentId = INVALID_ID) {
     const route = routes.get(routeId);
 
     const ret = {
@@ -422,9 +432,9 @@ class Preview extends Component {
 
     const outletId = getOutletComponentId(route);
 
-    const enclosingComponentIdForChildRoute = outletId > -1
+    const enclosingComponentIdForChildRoute = outletId !== INVALID_ID
       ? getParentComponentId(route, outletId)
-      : -1;
+      : INVALID_ID;
 
     if (route.children.size > 0) {
       ret.childRoutes = route.children
@@ -459,11 +469,11 @@ class Preview extends Component {
    * @private
    */
   _updateRoutes(routes, rootRouteIds) {
-    this.routes = rootRouteIds
+    this._routes = rootRouteIds
       .map(routeId => this._createRoute(routes, routeId))
       .toArray();
 
-    this.routerKey++;
+    this._routerKey++;
   }
 
   /**
@@ -493,8 +503,8 @@ class Preview extends Component {
     // We can interact with any component in nested constructors
     if (topNestedConstructor) return true;
 
-    // If we're not in nested constructor,
-    // check if component is in current route
+    // If we're not in a nested constructor,
+    // check if the component is in the current route
     return this._componentIsInCurrentRoute(componentId);
   }
 
@@ -515,15 +525,18 @@ class Preview extends Component {
     if (highlightingEnabled) {
       const componentId = this._getClosestComponentId(event.target);
 
-      if (componentId > -1 && this._canInteractWithComponent(componentId)) {
-        if (this.unhighilightTimer > -1) {
-          clearImmediate(this.unhighilightTimer);
-          this.unhighilightTimer = -1;
+      if (
+        componentId !== INVALID_ID &&
+        this._canInteractWithComponent(componentId)
+      ) {
+        if (this._unhighilightTimer > -1) {
+          clearImmediate(this._unhighilightTimer);
+          this._unhighilightTimer = -1;
         }
 
-        if (this.unhighlightedComponentId !== componentId) {
-          if (this.unhighlightedComponentId > -1)
-            onUnhighlightComponent(this.unhighlightedComponentId);
+        if (this._unhighlightedComponentId !== componentId) {
+          if (this._unhighlightedComponentId !== INVALID_ID)
+            onUnhighlightComponent(this._unhighlightedComponentId);
 
           if (pickingComponent) {
             if (!pickingComponentFilter || pickingComponentFilter(componentId))
@@ -533,7 +546,7 @@ class Preview extends Component {
           }
         }
 
-        this.unhighlightedComponentId = -1;
+        this._unhighlightedComponentId = INVALID_ID;
       }
     }
   }
@@ -549,19 +562,22 @@ class Preview extends Component {
     if (highlightingEnabled) {
       const componentId = this._getClosestComponentId(event.target);
 
-      if (componentId > -1 && this._canInteractWithComponent(componentId)) {
-        if (this.unhighilightTimer > -1) {
-          clearImmediate(this.unhighilightTimer);
-          onUnhighlightComponent(this.unhighlightedComponentId);
+      if (
+        componentId !== INVALID_ID &&
+        this._canInteractWithComponent(componentId)
+      ) {
+        if (this._unhighilightTimer > -1) {
+          clearImmediate(this._unhighilightTimer);
+          onUnhighlightComponent(this._unhighlightedComponentId);
         }
 
-        this.unhighilightTimer = setImmediate(() => {
-          this.unhighilightTimer = -1;
-          this.unhighlightedComponentId = -1;
+        this._unhighilightTimer = setImmediate(() => {
+          this._unhighilightTimer = -1;
+          this._unhighlightedComponentId = INVALID_ID;
           onUnhighlightComponent(componentId);
         });
 
-        this.unhighlightedComponentId = componentId;
+        this._unhighlightedComponentId = componentId;
       }
     }
   }
@@ -583,7 +599,10 @@ class Preview extends Component {
     if (event.button === 0) { // Left button
       const componentId = this._getClosestComponentId(event.target);
       
-      if (componentId > -1 && this._canInteractWithComponent(componentId)) {
+      if (
+        componentId !== INVALID_ID &&
+        this._canInteractWithComponent(componentId)
+      ) {
         if (pickingComponent) {
           if (!pickingComponentFilter || pickingComponentFilter(componentId))
             onPickComponent(componentId);
@@ -665,7 +684,7 @@ class Preview extends Component {
   _renderCurrentRoute() {
     const { project, currentRouteId, currentRouteIsIndexRoute } = this.props;
     
-    if (currentRouteId === -1) return null;
+    if (currentRouteId === INVALID_ID) return null;
     
     let route = project.routes.get(currentRouteId);
     let ret;
@@ -694,7 +713,7 @@ class Preview extends Component {
       );
     }
     
-    while (route.parentId !== -1) {
+    while (route.parentId !== INVALID_ID) {
       route = project.routes.get(route.parentId);
       ret = (
         <Builder
@@ -734,9 +753,9 @@ class Preview extends Component {
   _renderNonInteractivePreview() {
     return (
       <Router
-        key={this.routerKey}
+        key={this._routerKey}
         history={hashHistory}
-        routes={this.routes}
+        routes={this._routes}
       />
     );
   }
