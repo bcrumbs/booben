@@ -14,6 +14,7 @@ import {
 
 import { projectFunctionToImmutable } from './ProjectFunction';
 import { concatPath } from '../utils/misc';
+import { INVALID_ID } from '../constants/misc';
 
 const AuthParamRecord = Record({
   value: '',
@@ -60,7 +61,7 @@ export const projectToImmutable = input => new ProjectRecord({
   proxyGraphQLEndpoint: !!input.proxyGraphQLEndpoint,
   auth: input.auth ? authToImmutable(input.auth) : null,
   routes: Map().withMutations(routes => {
-    const visitRoute = (route, pathPrefix, parentRouteId) => {
+    const visitRoute = (route, pathPrefix, parentRouteId = INVALID_ID) => {
       const fullPath = concatPath(pathPrefix, route.path);
       
       routes.set(
@@ -72,7 +73,7 @@ export const projectToImmutable = input => new ProjectRecord({
         visitRoute(childRoute, fullPath, route.id));
     };
 
-    input.routes.forEach(route => visitRoute(route, '', -1));
+    input.routes.forEach(route => visitRoute(route, ''));
   }),
 
   rootRoutes: List(input.routes.map(route => route.id)),
@@ -86,7 +87,7 @@ export const projectToImmutable = input => new ProjectRecord({
 export const getMaxRouteId = project => project.routes.keySeq().max();
 
 export const getMaxComponentId = project =>
-  Math.max(-1, ...project.routes.toList().map(_getMaxComponentId));
+  Math.max(INVALID_ID, ...project.routes.toList().map(_getMaxComponentId));
 
 export const gatherRoutesTreeIds = (project, rootRouteId) =>
   Set().withMutations(ret => {

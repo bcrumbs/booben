@@ -45,8 +45,7 @@ import {
 import { startDragNewComponent } from '../../actions/preview';
 import { canInsertComponent, constructComponent } from '../../utils/meta';
 import { combineFiltersAll } from '../../utils/misc';
-
-//noinspection JSUnresolvedVariable
+import { INVALID_ID } from '../../constants/misc';
 import defaultComponentIcon from '../../../assets/component_default.svg';
 
 const LibraryComponentData = Record({
@@ -322,7 +321,7 @@ class ComponentsLibraryComponent extends PureComponent {
     } = this.props;
     
     if (draggingComponent) {
-      const id = draggedComponentId > -1 ? draggedComponentId : 0;
+      const id = draggedComponentId !== INVALID_ID ? draggedComponentId : 0;
       return draggedComponents.get(id).name;
     }
     

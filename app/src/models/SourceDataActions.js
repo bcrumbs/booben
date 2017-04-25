@@ -5,6 +5,7 @@
 'use strict';
 
 import { Record, List, Map } from 'immutable';
+import { INVALID_ID } from '../constants/misc';
 
 export const MutationActionParams = Record({
   mutation: '',
@@ -14,7 +15,7 @@ export const MutationActionParams = Record({
 });
 
 export const NavigateActionParams = Record({
-  routeId: -1,
+  routeId: INVALID_ID,
   routeParams: Map(),
 });
 
@@ -24,13 +25,13 @@ export const URLActionParams = Record({
 });
 
 export const MethodCallActionParams = Record({
-  componentId: -1,
+  componentId: INVALID_ID,
   method: '',
   args: List(),
 });
 
 export const PropChangeActionParams = Record({
-  componentId: -1,
+  componentId: INVALID_ID,
   propName: '',
   systemPropName: '',
   value: null,

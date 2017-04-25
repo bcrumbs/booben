@@ -96,7 +96,7 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(toggleComponentSelection(componentId)),
   
   onSelectSingleComponent: componentId =>
-    void dispatch(selectPreviewComponent(componentId, true)),
+    void dispatch(selectPreviewComponent(componentId, true, true)),
   
   onHighlightComponent: componentId =>
     void dispatch(highlightPreviewComponent(componentId)),
@@ -107,7 +107,8 @@ const mapDispatchToProps = dispatch => ({
   onPickComponent: componentId =>
     void dispatch(pickComponentDone(componentId)),
   
-  onCancelPickComponent: () => void dispatch(pickComponentCancel()),
+  onCancelPickComponent: () =>
+    void dispatch(pickComponentCancel()),
 
   onDragOverPlaceholder: (containerId, afterIdx) =>
     void dispatch(dragOverPlaceholder(containerId, afterIdx)),

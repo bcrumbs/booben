@@ -51,7 +51,6 @@ import {
   pickComponentStateSlot,
 } from '../../../actions/project';
 
-import { ROUTE_PARAM_VALUE_DEF, SYSTEM_PROPS } from '../../../constants/misc';
 import { setInPath } from '../../../utils/path';
 
 import {
@@ -73,6 +72,12 @@ import {
   objectToArray,
   objectSome,
 } from '../../../utils/misc';
+
+import {
+  INVALID_ID,
+  ROUTE_PARAM_VALUE_DEF,
+  SYSTEM_PROPS,
+} from '../../../constants/misc';
 
 const propTypes = {
   action: PropTypes.instanceOf(Action),
@@ -545,18 +550,18 @@ class ActionEditorComponent extends PureComponent {
     if (action.type === 'mutation') {
       if (!action.params.mutation) return false;
     } else if (action.type === 'method') {
-      if (action.params.componentId === -1 || !action.params.method)
+      if (action.params.componentId === INVALID_ID || !action.params.method)
         return false;
     } else if (action.type === 'prop') {
       const paramsAreInvalid =
-        action.params.componentId === -1 || (
+        action.params.componentId === INVALID_ID || (
           !action.params.propName &&
           !action.params.systemPropName
         );
       
       if (paramsAreInvalid) return false;
     } else if (action.type === 'navigate') {
-      if (action.params.routeId === -1) return false;
+      if (action.params.routeId === INVALID_ID) return false;
     } else if (action.type === 'url') {
       if (!action.params.url) return false;
     }
@@ -653,7 +658,7 @@ class ActionEditorComponent extends PureComponent {
     
     const { action } = this.state;
     
-    const componentSelected = action.params.componentId !== -1;
+    const componentSelected = action.params.componentId !== INVALID_ID;
     const component = componentSelected
       ? currentComponents.get(action.params.componentId)
       : null;
@@ -756,7 +761,7 @@ class ActionEditorComponent extends PureComponent {
   
     const { action } = this.state;
   
-    const componentSelected = action.params.componentId !== -1;
+    const componentSelected = action.params.componentId !== INVALID_ID;
     const component = componentSelected
       ? currentComponents.get(action.params.componentId)
       : null;
@@ -917,7 +922,9 @@ class ActionEditorComponent extends PureComponent {
     project.routes.forEach((route, routeId) =>
       void options.push({ text: route.title, value: routeId }));
     
-    const value = action.params.routeId === -1 ? null : action.params.routeId;
+    const value = action.params.routeId === INVALID_ID
+      ? null
+      : action.params.routeId;
     
     const routeProp = (
       <PropList
@@ -931,7 +938,7 @@ class ActionEditorComponent extends PureComponent {
     
     const props = [routeProp];
     
-    if (action.params.routeId !== -1) {
+    if (action.params.routeId !== INVALID_ID) {
       const route = project.routes.get(action.params.routeId);
       const pathParts = route.path.split('/');
   

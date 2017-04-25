@@ -103,13 +103,13 @@ const wrap = OriginalComponent => class extends OriginalComponent {
     const { dragEnable, dragTitle, dragData, onDragTryStart } = this.props;
 
     if (!dragEnable) return;
-
+  
     this.__draggableTryingStartDrag = true;
     window.addEventListener('mousemove', this.__draggableHandleMouseMove);
     window.addEventListener('mouseup', this.__draggableHandleMouseUp);
     this.__draggableStartDragX = event.pageX;
     this.__draggableStartDragY = event.pageY;
-
+  
     onDragTryStart({
       title: dragTitle,
       data: dragData,
@@ -149,6 +149,7 @@ const wrap = OriginalComponent => class extends OriginalComponent {
         onDragStart({
           title: dragTitle,
           data: dragData,
+          element: this.__draggableElement,
           pageX: event.pageX,
           pageY: event.pageY,
           screenX: event.screenX,
@@ -158,6 +159,7 @@ const wrap = OriginalComponent => class extends OriginalComponent {
         onDragStartProgress({
           title: dragTitle,
           data: dragData,
+          element: this.__draggableElement,
           progress: pointPosition,
           pageX: event.pageX,
           pageY: event.pageY,

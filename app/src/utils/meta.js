@@ -9,7 +9,7 @@ import { TypeNames, resolveTypedef } from '@jssy/types';
 import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
-import { NO_VALUE, SYSTEM_PROPS } from '../constants/misc';
+import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../constants/misc';
 import { isDef, objectSome } from './misc';
 
 /**
@@ -186,6 +186,8 @@ export const canInsertComponent = (
       if (deny) return false;
     }
   }
+  
+  // TODO: Check before and after constraints
 
   return true;
 };
@@ -368,7 +370,7 @@ const buildDefaultConstValue = propMeta => {
 const buildDefaultDesignerValue = () => ({
   source: 'designer',
   sourceData: {
-    rootId: -1,
+    rootId: INVALID_ID,
     component: null,
   },
 });
@@ -584,7 +586,7 @@ export const constructComponent = (
     });
   }
 
-  return componentsToImmutable(component, -1, false, -1);
+  return componentsToImmutable(component, INVALID_ID, false, INVALID_ID);
 };
 
 /**

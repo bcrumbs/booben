@@ -27,6 +27,7 @@ import {
 import { getLocalizedTextFromState } from '../../selectors';
 import ProjectRouteRecord from '../../models/ProjectRoute';
 import { updateRouteField } from '../../actions/project';
+import { INVALID_ID } from '../../constants/misc';
 
 class RouteEditorComponent extends PureComponent {
   constructor(props, context) {
@@ -73,7 +74,7 @@ class RouteEditorComponent extends PureComponent {
   render() {
     const { getLocalizedText } = this.props;
 
-    if (this.props.selectedRouteId === -1) {
+    if (this.props.selectedRouteId === INVALID_ID) {
       const text = getLocalizedText('structure.noRouteSelected');
       return (
         <BlockContentPlaceholder text={text} />

@@ -17,10 +17,12 @@ import { isDropZoneComponent } from '../../hocs/dropZone';
 import { noop, pointIsInRect } from '../../utils/misc';
 
 const propTypes = {
+  showDebugData: PropTypes.bool,
   onDrop: PropTypes.func,
 };
 
 const defaultProps = {
+  showDebugData: false,
   onDrop: noop,
 };
 
@@ -45,11 +47,14 @@ let dragArea = null;
 export class ComponentsDragArea extends PureComponent {
   constructor(props, context) {
     super(props, context);
-
+  
+    this._placeholderElement = null;
+    this._debugDataContainerElement = null;
     this._dropZones = new Map();
     this._lastDraggedDropZoneId = '';
-    this._placeholderElement = null;
     this._dragging = false;
+    this._snapElement = null;
+    this._snapHideTitle = false;
     this._unsnapping = false;
     this._unsnapStartTime = 0;
     this._unsnapStartX = 0;
@@ -62,7 +67,6 @@ export class ComponentsDragArea extends PureComponent {
     this._height = 0;
     this._opacity = 0;
     this._transitionEnabled = false;
-    this._snapElement = null;
     this._needRAF = true;
     this._animationFrame = null;
     this._tryingStartDrag = false;
@@ -77,6 +81,8 @@ export class ComponentsDragArea extends PureComponent {
     this._handleMouseUp = this._handleMouseUp.bind(this);
     this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
     this._saveRef = this._saveRef.bind(this);
+    this._saveDebugDataContainerRef =
+      this._saveDebugDataContainerRef.bind(this);
   }
 
   componentWillMount() {
@@ -103,13 +109,56 @@ export class ComponentsDragArea extends PureComponent {
   _saveRef(ref) {
     this._placeholderElement = ref;
   }
+  
+  _saveDebugDataContainerRef(ref) {
+    this._debugDataContainerElement = ref;
+  }
 
   _showPlaceholderElement() {
     this._placeholderElement.style.display = '';
+    
+    if (this._debugDataContainerElement)
+      this._debugDataContainerElement.style.display = 'block';
   }
 
   _hidePlaceholderElement() {
     this._placeholderElement.style.display = 'none';
+    
+    if (this._debugDataContainerElement)
+      this._debugDataContainerElement.style.display = 'none';
+  }
+  
+  _updateDebugData() {
+    const el = this._debugDataContainerElement;
+    if (!el) return;
+    
+    const elX =
+      el.getElementsByClassName('js-drag-area-debug-x')[0];
+    const elY =
+      el.getElementsByClassName('js-drag-area-debug-y')[0];
+    const elWidth =
+      el.getElementsByClassName('js-drag-area-debug-w')[0];
+    const elHeight =
+      el.getElementsByClassName('js-drag-area-debug-h')[0];
+    const elDZId =
+      el.getElementsByClassName('js-drag-area-debug-drop-zone-id')[0];
+    const elDZs =
+      el.getElementsByClassName('js-drag-area-debug-drop-zones')[0];
+    const elSnap =
+      el.getElementsByClassName('js-drag-area-debug-snapped')[0];
+    
+    elX.innerText = `X = ${this._positionX}`;
+    elY.innerText = `Y = ${this._positionY}`;
+    elWidth.innerText = `W = ${this._width}`;
+    elHeight.innerText = `H = ${this._width}`;
+    elDZId.innerText = `Drop zone id: ${this._lastDraggedDropZoneId || '-'}`;
+    
+    const dzsList = Array.from(this._dropZones.values())
+      .map(dz => dz.id)
+      .join(', ');
+    
+    elDZs.innerText = `Drop zones: ${dzsList}`;
+    elSnap.innerText = `Snap: ${this._snapElement ? 'Yes' : 'No'}`;
   }
 
   _handleAnimationFrame() {
@@ -117,8 +166,10 @@ export class ComponentsDragArea extends PureComponent {
     const titleElement = this._placeholderElement
       .getElementsByClassName('js-component-placeholder-title')[0];
 
-    if (titleElement)
-      titleElement.style.opacity = this._snapElement ? '0' : '';
+    if (titleElement) {
+      const willHideTitle = !!this._snapElement && this._snapHideTitle;
+      titleElement.style.opacity = willHideTitle ? '0' : '';
+    }
 
     if (this._transitionEnabled) {
       style['transition-property'] = 'transform width height';
@@ -190,7 +241,9 @@ export class ComponentsDragArea extends PureComponent {
     }
   }
 
-  _scheduleAnimationFrame() {
+  _scheduleUpdate() {
+    this._updateDebugData();
+    
     if (this._needRAF) {
       this._needRAF = false;
 
@@ -215,7 +268,7 @@ export class ComponentsDragArea extends PureComponent {
     if (!this._snapElement) {
       this._positionX = event.pageX + PLACEHOLDER_OFFSET_X;
       this._positionY = event.pageY + PLACEHOLDER_OFFSET_Y;
-      this._scheduleAnimationFrame();
+      this._scheduleUpdate();
     }
 
     let foundDropZone = false;
@@ -267,6 +320,8 @@ export class ComponentsDragArea extends PureComponent {
 
       this._lastDraggedDropZoneId = '';
     }
+    
+    this._updateDebugData();
   }
   
   /**
@@ -275,7 +330,9 @@ export class ComponentsDragArea extends PureComponent {
    */
   _handleMouseUp() {
     const { onDrop } = this.props;
-    const { title, data } = this.state;
+    const { data } = this.state;
+    
+    const dropZoneId = this._lastDraggedDropZoneId;
 
     this._dragging = false;
     this._unsnapping = false;
@@ -288,7 +345,8 @@ export class ComponentsDragArea extends PureComponent {
     window.removeEventListener('mousemove', this._handleMouseMove);
     window.removeEventListener('mouseup', this._handleMouseUp);
 
-    onDrop({ title, data });
+    if (dropZoneId)
+      onDrop({ dropZoneId, data });
   }
 
   _handleDragTryStart({ title, data, element }) {
@@ -302,7 +360,7 @@ export class ComponentsDragArea extends PureComponent {
     this._height = height;
     this._opacity = 0;
     this._showPlaceholderElement();
-    this._scheduleAnimationFrame();
+    this._scheduleUpdate();
 
     this.setState({ title, data });
   }
@@ -319,7 +377,7 @@ export class ComponentsDragArea extends PureComponent {
     this._width = interpolate(width, PLACEHOLDER_WIDTH, progress, easeInOut);
     this._height = interpolate(height, PLACEHOLDER_HEIGHT, progress, easeInOut);
     this._opacity = interpolate(0, PLACEHOLDER_OPACITY, progress, easeInOut);
-    this._scheduleAnimationFrame();
+    this._scheduleUpdate();
   }
 
   _handleDragStart({ pageX, pageY }) {
@@ -334,7 +392,7 @@ export class ComponentsDragArea extends PureComponent {
     this._width = PLACEHOLDER_WIDTH;
     this._height = PLACEHOLDER_HEIGHT;
     this._opacity = PLACEHOLDER_OPACITY;
-    this._scheduleAnimationFrame();
+    this._scheduleUpdate();
 
     window.addEventListener('mousemove', this._handleMouseMove);
     window.addEventListener('mouseup', this._handleMouseUp);
@@ -358,7 +416,7 @@ export class ComponentsDragArea extends PureComponent {
     this._dropZones.delete(id);
   }
 
-  _handleSnap({ dropZoneId, element, x, y, width, height }) {
+  _handleSnap({ dropZoneId, element, x, y, width, height, hideTitle }) {
     if (!this._dragging || element === this._snapElement) return;
 
     const dropZoneData = this._dropZones.get(dropZoneId);
@@ -368,13 +426,14 @@ export class ComponentsDragArea extends PureComponent {
       dropZoneData.element.getBoundingClientRect();
 
     this._snapElement = element;
+    this._snapHideTitle = hideTitle;
     this._unsnapping = false;
     this._positionX = dropZoneElementBoundingRect.left + x;
     this._positionY = dropZoneElementBoundingRect.top + y;
     this._width = width;
     this._height = height;
     this._transitionEnabled = true;
-    this._scheduleAnimationFrame();
+    this._scheduleUpdate();
   }
 
   _handleUnsnap() {
@@ -390,10 +449,11 @@ export class ComponentsDragArea extends PureComponent {
     this._width = PLACEHOLDER_WIDTH;
     this._height = PLACEHOLDER_HEIGHT;
     this._transitionEnabled = false;
-    this._scheduleAnimationFrame();
+    this._scheduleUpdate();
   }
 
   render() {
+    const { showDebugData } = this.props;
     const { title } = this.state;
 
     const containerStyle = {
@@ -404,6 +464,31 @@ export class ComponentsDragArea extends PureComponent {
       height: '100vh',
       overflow: 'hidden',
     };
+    
+    let debugDataContainer = null;
+    if (showDebugData) {
+      const debugContainerStyle = {
+        position: 'absolute',
+        zIndex: '1000',
+        bottom: 0,
+        left: 0,
+        width: '400px',
+        height: '225px',
+        display: 'none',
+      };
+  
+      debugDataContainer = (
+        <div style={debugContainerStyle} ref={this._saveDebugDataContainerRef}>
+          <div className="js-drag-area-debug-x" />
+          <div className="js-drag-area-debug-y" />
+          <div className="js-drag-area-debug-w" />
+          <div className="js-drag-area-debug-h" />
+          <div className="js-drag-area-debug-drop-zone-id" />
+          <div className="js-drag-area-debug-drop-zones" />
+          <div className="js-drag-area-debug-snapped" />
+        </div>
+      );
+    }
 
     return (
       <div style={containerStyle}>
@@ -411,6 +496,8 @@ export class ComponentsDragArea extends PureComponent {
           title={title}
           elementRef={this._saveRef}
         />
+        
+        {debugDataContainer}
       </div>
     );
   }

@@ -28,11 +28,16 @@ import SourceDataRouteParams from './SourceDataRouteParams';
 import { getFunctionInfo } from '../utils/functions';
 import { getMutationField, getJssyTypeOfField } from '../utils/schema';
 import { isUndef, isObject, isNumber } from '../utils/misc';
-import { SYSTEM_PROPS, ROUTE_PARAM_VALUE_DEF } from '../constants/misc';
+
+import {
+  INVALID_ID,
+  SYSTEM_PROPS,
+  ROUTE_PARAM_VALUE_DEF,
+} from '../constants/misc';
 
 const ProjectComponentRecord = Record({
-  id: -1,
-  parentId: -1,
+  id: INVALID_ID,
+  parentId: INVALID_ID,
   isNew: false,
   isWrapper: false,
   name: '',
@@ -42,7 +47,7 @@ const ProjectComponentRecord = Record({
   children: List(),
   layout: 0,
   regionsEnabled: Set(),
-  routeId: -1,
+  routeId: INVALID_ID,
   isIndexRoute: false,
 });
 
@@ -181,11 +186,16 @@ const propSourceDataToImmutableFns = {
     input.component
       ? {
         rootId: input.component.id,
-        components: componentsToImmutable(input.component, -1, false, -1),
+        components: componentsToImmutable(
+          input.component,
+          INVALID_ID,
+          false,
+          INVALID_ID,
+        ),
       }
 
       : {
-        rootId: -1,
+        rootId: INVALID_ID,
       },
   ),
   
@@ -239,7 +249,7 @@ export const componentsToImmutable = (
   visitComponent(input, parentId);
 });
 
-export const isRootComponent = component => component.parentId === -1;
+export const isRootComponent = component => component.parentId === INVALID_ID;
 
 export const walkComponentsTree = (components, rootComponentId, visitor) => {
   const component = components.get(rootComponentId);

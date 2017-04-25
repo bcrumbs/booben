@@ -16,6 +16,8 @@ import {
   isObject,
 } from '../utils/misc';
 
+import { INVALID_ID } from '../constants/misc';
+
 const JssyValueRecord = Record({
   source: '',
   sourceData: null,
@@ -202,7 +204,7 @@ class JssyValue extends JssyValueRecord {
   }
   
   hasDesignedComponent() {
-    return this.sourceIs('designer') && this.sourceData.rootId !== -1;
+    return this.sourceIs('designer') && this.sourceData.rootId !== INVALID_ID;
   }
   
   getActionByPath(actionPath) {

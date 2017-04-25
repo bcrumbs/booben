@@ -7,8 +7,15 @@
 import { createSelector } from 'reselect';
 import IntlMessageFormat from 'intl-messageformat';
 import _forOwn from 'lodash.forown';
-import { getComponentMeta, findPropThatPushedDataContext } from '../utils/meta';
+
+import {
+  getComponentMeta,
+  findPropThatPushedDataContext,
+  isValidSourceForValue,
+} from '../utils/meta';
+
 import { getTypeNameByPath } from '../utils/schema';
+import { INVALID_ID } from '../constants/misc';
 
 export const haveNestedConstructorsSelector = state =>
   !state.project.nestedConstructors.isEmpty();
@@ -19,7 +26,7 @@ export const topNestedConstructorSelector = state =>
     : null;
 
 export const currentRouteSelector = state =>
-  state.project.currentRouteId > -1
+  state.project.currentRouteId !== INVALID_ID
     ? state.project.data.routes.get(state.project.currentRouteId)
     : null;
 
@@ -70,9 +77,9 @@ export const currentRootComponentIdSelector = createSelector(
       return currentRouteIsIndexRoute
         ? currentRoute.indexComponent
         : currentRoute.component;
+    } else {
+      return INVALID_ID;
     }
-    
-    return -1;
   },
 );
 
@@ -196,7 +203,7 @@ export const ownerPropsSelector = createSelector(
     
     const ownerComponentPropMeta = topNestedConstructor.valueInfo.valueDef;
     
-    return ownerComponentPropMeta.source.indexOf('designer') > -1
+    return isValidSourceForValue(ownerComponentPropMeta, 'designer')
       ? ownerComponentPropMeta.sourceConfigs.designer.props || null
       : null;
   },

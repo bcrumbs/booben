@@ -57,7 +57,6 @@ import {
 } from '../containers/ComponentsDragArea/ComponentsDragArea';
 
 import store from '../store';
-
 import ProjectComponentRecord from '../models/ProjectComponent';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
@@ -71,7 +70,7 @@ import {
   cancelConstructComponentForProp,
 } from '../actions/project';
 
-import { dropComponent, DropComponentAreas } from '../actions/preview';
+import { dropComponent, ComponentDropAreas } from '../actions/preview';
 
 import {
   haveNestedConstructorsSelector,
@@ -130,7 +129,7 @@ const propTypes = {
   onSelectLayout: PropTypes.func.isRequired,
   onSaveComponentForProp: PropTypes.func.isRequired,
   onCancelConstructComponentForProp: PropTypes.func.isRequired,
-  onDropComponentOnCanvas: PropTypes.func.isRequired,
+  onDropComponent: PropTypes.func.isRequired,
 };
 
 const LIBRARY_ICON = 'cubes';
@@ -208,8 +207,8 @@ const mapDispatchToProps = dispatch => ({
   onCancelConstructComponentForProp: () =>
     void dispatch(cancelConstructComponentForProp()),
   
-  onDropComponentOnCanvas: () =>
-    void dispatch(dropComponent(DropComponentAreas.PREVIEW)),
+  onDropComponent: area =>
+    void dispatch(dropComponent(area)),
 });
 
 /* eslint-disable react/prop-types */
@@ -240,8 +239,8 @@ class DesignRoute extends PureComponent {
       this._handleConfirmDeleteComponentDialogClose.bind(this);
     this._handleLayoutSelection =
       this._handleLayoutSelection.bind(this);
-    this._handleDropComponentOnCanvas =
-      this._handleDropComponentOnCanvas.bind(this);
+    this._handleDropComponent =
+      this._handleDropComponent.bind(this);
   }
   
   _getLibraryTool() {
@@ -438,9 +437,9 @@ class DesignRoute extends PureComponent {
    *
    * @private
    */
-  _handleDropComponentOnCanvas() {
-    const { onDropComponentOnCanvas } = this.props;
-    onDropComponentOnCanvas();
+  _handleDropComponent({ dropZoneId }) {
+    const { onDropComponent } = this.props;
+    onDropComponent(dropZoneId);
   }
   
   /**
@@ -517,7 +516,7 @@ class DesignRoute extends PureComponent {
         projectName={params.projectName}
         store={store}
         containerStyle={previewContainerStyle}
-        dropZoneId="canvas"
+        dropZoneId={ComponentDropAreas.CANVAS}
       />
     );
     
@@ -637,7 +636,7 @@ class DesignRoute extends PureComponent {
 
         <Portal isOpened>
           <ComponentsDragArea
-            onDrop={this._handleDropComponentOnCanvas}
+            onDrop={this._handleDropComponent}
           />
         </Portal>
       </Desktop>

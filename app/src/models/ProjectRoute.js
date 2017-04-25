@@ -6,21 +6,22 @@
 
 import { Record, List, Map } from 'immutable';
 import { projectComponentToImmutable } from './ProjectComponent';
+import { INVALID_ID } from '../constants/misc';
 
 const ProjectRouteRecord = Record({
-  id: 0,
-  parentId: -1,
+  id: INVALID_ID,
+  parentId: INVALID_ID,
   path: '',
   fullPath: '',
   title: '',
   description: '',
+  component: INVALID_ID,
   haveIndex: false,
   indexRouteDescription: '',
-  indexComponent: -1,
+  indexComponent: INVALID_ID,
   haveRedirect: false,
   redirectTo: '',
   paramValues: Map(),
-  component: -1,
   children: List(),
   components: Map(),
 });
@@ -42,14 +43,20 @@ export const projectRouteToImmutable = (
   title: input.title,
   description: input.description,
   haveIndex: input.haveIndex,
-  indexComponent: input.indexComponent !== null ? input.indexComponent.id : -1,
+  indexComponent: input.indexComponent !== null
+    ? input.indexComponent.id
+    : INVALID_ID,
+  
   haveRedirect: input.haveRedirect,
   redirectTo: input.redirectTo,
   paramValues: Map(input.paramValues),
-  component: input.component !== null ? input.component.id : -1,
+  component: input.component !== null
+    ? input.component.id
+    : INVALID_ID,
+  
   children: List(input.children.map(childRoute => childRoute.id)),
   components: Map().withMutations(components => {
-    const visitComponent = (component, isIndexRoute, parentId) => {
+    const visitComponent = (component, isIndexRoute, parentId = INVALID_ID) => {
       components.set(
         component.id,
         projectComponentToImmutable(
@@ -65,18 +72,21 @@ export const projectRouteToImmutable = (
     };
 
     if (input.component !== null)
-      visitComponent(input.component, false, -1);
+      visitComponent(input.component, false);
     
     if (input.indexComponent !== null)
-      visitComponent(input.indexComponent, true, -1);
+      visitComponent(input.indexComponent, true);
   }),
 });
 
 export const getMaxComponentId = route =>
-  route.components.size > 0 ? route.components.keySeq().max() : -1;
+  route.components.size > 0
+    ? route.components.keySeq().max()
+    : INVALID_ID;
 
 export const getOutletComponentId = route =>
-  route.components.findKey(component => component.name === 'Outlet') || -1;
+  route.components.findKey(component => component.name === 'Outlet') ||
+  INVALID_ID;
 
 export const getParentComponentId = (route, componentId) =>
   route.components.get(componentId).parentId;

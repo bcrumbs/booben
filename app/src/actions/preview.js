@@ -20,8 +20,6 @@ export const PREVIEW_START_DRAG_NEW_COMPONENT =
   'PREVIEW_START_DRAG_NEW_COMPONENT';
 export const PREVIEW_START_DRAG_EXISTING_COMPONENT =
   'PREVIEW_START_DRAG_EXISTING_COMPONENT';
-export const PREVIEW_DRAG_OVER_COMPONENT =
-  'PREVIEW_DRAG_OVER_COMPONENT';
 export const PREVIEW_DRAG_OVER_PLACEHOLDER =
   'PREVIEW_DRAG_OVER_PLACEHOLDER';
 export const PREVIEW_DRAG_OVER_NOTHING =
@@ -29,21 +27,26 @@ export const PREVIEW_DRAG_OVER_NOTHING =
 export const PREVIEW_DROP_COMPONENT =
   'PREVIEW_DROP_COMPONENT';
 
-export const DropComponentAreas = {
+export const ComponentDropAreas = {
   TREE: 'TREE',
-  PREVIEW: 'PREVIEW',
-  OUT: 'OUT',
+  CANVAS: 'CANVAS',
 };
 
 /**
  * @param {Object} componentId
  * @param {boolean} [exclusive=false]
+ * @param {boolean} [openConfigurationTool=false]
  * @return {Object}
  */
-export const selectPreviewComponent = (componentId, exclusive = false) => ({
+export const selectPreviewComponent = (
+  componentId,
+  exclusive = false,
+  openConfigurationTool = false,
+) => ({
   type: PREVIEW_SELECT_COMPONENT,
   componentId,
   exclusive,
+  openConfigurationTool,
 });
 
 /**
@@ -110,16 +113,6 @@ export const startDragNewComponent = components => ({
  */
 export const startDragExistingComponent = componentId => ({
   type: PREVIEW_START_DRAG_EXISTING_COMPONENT,
-  componentId,
-});
-
-/**
- *
- * @param {number} componentId
- * @return {Object}
- */
-export const dragOverComponent = componentId => ({
-  type: PREVIEW_DRAG_OVER_COMPONENT,
   componentId,
 });
 

@@ -8,12 +8,14 @@ import './ComponentPlaceholder.scss';
 const propTypes = {
   title: PropTypes.string,
   isPlaced: PropTypes.bool,
+  isInvisible: PropTypes.bool,
   elementRef: PropTypes.func,
 };
 
 const defaultProps = {
   title: '',
   isPlaced: false,
+  isInvisible: false,
   elementRef: noop,
 };
 
@@ -33,10 +35,14 @@ export const ComponentPlaceholder = props => {
       </div>
     );
   }
+  
+  const style = {};
+  if (props.isInvisible) style.opacity = '0';
 
   return (
     <div
       className={className}
+      style={style}
       ref={props.elementRef}
     >
       {content}

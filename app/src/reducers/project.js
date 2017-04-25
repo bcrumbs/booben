@@ -8,13 +8,6 @@ import { Record, Map, Set, List } from 'immutable';
 import { resolveTypedef } from '@jssy/types';
 
 import {
-  NOT_LOADED,
-  LOADING,
-  LOADED,
-  LOAD_ERROR,
-} from '../constants/loadStates';
-
-import {
   PROJECT_REQUEST,
   PROJECT_LOADED,
   PROJECT_LOAD_FAILED,
@@ -49,7 +42,6 @@ import {
   PREVIEW_START_DRAG_NEW_COMPONENT,
   PREVIEW_START_DRAG_EXISTING_COMPONENT,
   PREVIEW_DROP_COMPONENT,
-  PREVIEW_DRAG_OVER_COMPONENT,
   PREVIEW_DRAG_OVER_PLACEHOLDER,
   PREVIEW_DRAG_OVER_NOTHING,
 } from '../actions/preview';
@@ -107,15 +99,27 @@ import {
 import { walkPath, expandPath, getObjectByPath } from '../utils/path';
 import { isPrefixList, concatPath } from '../utils/misc';
 import { getFunctionInfo } from '../utils/functions';
-import { SYSTEM_PROPS, ROUTE_PARAM_VALUE_DEF } from '../constants/misc';
+
+import {
+  NOT_LOADED,
+  LOADING,
+  LOADED,
+  LOAD_ERROR,
+} from '../constants/loadStates';
+
+import {
+  INVALID_ID,
+  SYSTEM_PROPS,
+  ROUTE_PARAM_VALUE_DEF,
+} from '../constants/misc';
 
 export const NestedConstructor = Record({
   path: [],
   valueInfo: null,
   
   components: Map(),
-  rootId: -1,
-  lastComponentId: -1,
+  rootId: INVALID_ID,
+  lastComponentId: INVALID_ID,
   selectedComponentIds: Set(),
   highlightedComponentIds: Set(),
 });
@@ -127,22 +131,21 @@ const ProjectState = Record({
   schema: null,
   meta: null,
   error: null,
-  lastRouteId: -1,
-  lastComponentId: -1,
+  lastRouteId: INVALID_ID,
+  lastComponentId: INVALID_ID,
   selectedItems: Set(),
   highlightedItems: Set(),
   highlightingEnabled: true,
   showAllComponentsOnPalette: false,
-  currentRouteId: -1,
+  currentRouteId: INVALID_ID,
   currentRouteIsIndexRoute: false,
   draggingComponent: false,
-  draggedComponentId: -1,
+  draggedComponentId: INVALID_ID,
   draggedComponents: null,
-  draggingOverComponentId: -1,
   draggingOverPlaceholder: false,
-  placeholderContainerId: -1,
+  placeholderContainerId: INVALID_ID,
   placeholderAfter: -1,
-  selectedRouteId: -1,
+  selectedRouteId: INVALID_ID,
   indexRouteSelected: false,
   languageForComponentProps: 'en',
   selectingComponentLayout: false,
@@ -151,7 +154,7 @@ const ProjectState = Record({
   pickingComponentStateSlot: false,
   pickingComponentFilter: null,
   pickingComponentStateSlotsFilter: null,
-  pickedComponentId: -1,
+  pickedComponentId: INVALID_ID,
   pickedComponentStateSlot: '',
   componentStateSlotsListIsVisible: false,
 });
@@ -261,7 +264,7 @@ const addComponents = (state, parentComponentId, position, components) => {
             .merge({
               id: newComponent.id + nextComponentId,
               isNew: false,
-              parentId: newComponent.parentId === -1
+              parentId: newComponent.parentId === INVALID_ID
                 ? parentComponentId
                 : newComponent.parentId + nextComponentId,
 
@@ -277,7 +280,7 @@ const addComponents = (state, parentComponentId, position, components) => {
     ),
   );
 
-  if (parentComponentId !== -1) {
+  if (parentComponentId !== INVALID_ID) {
     const pathToChildrenIdsList = [].concat(pathToCurrentComponents, [
       parentComponentId,
       'children',
@@ -323,7 +326,7 @@ const deleteComponent = (state, componentId) => {
   );
 
   if (isRootComponent(component)) {
-    state = state.setIn(getPathToCurrentRootComponentId(state), -1);
+    state = state.setIn(getPathToCurrentRootComponentId(state), INVALID_ID);
   } else {
     const pathToChildrenIdsList = [].concat(pathToCurrentComponents, [
       component.parentId,
@@ -438,18 +441,17 @@ const moveComponent = (state, componentId, targetComponentId, position) => {
 const initDNDState = state => state.merge({
   draggingComponent: false,
   draggedComponents: null,
-  draggedComponentId: -1,
-  draggingOverComponentId: -1,
+  draggedComponentId: INVALID_ID,
   draggingOverPlaceholder: false,
-  placeholderContainerId: -1,
+  placeholderContainerId: INVALID_ID,
   placeholderAfter: -1,
   highlightingEnabled: true,
 });
 
 const insertDraggedComponents = (state, components) => {
-  if (state.placeholderContainerId === -1) {
+  if (state.placeholderContainerId === INVALID_ID) {
     // Creating root component
-    return addComponents(state, -1, 0, components);
+    return addComponents(state, INVALID_ID, 0, components);
   } else {
     // Creating nested component
     return addComponents(
@@ -464,7 +466,7 @@ const insertDraggedComponents = (state, components) => {
 const selectFirstRoute = state => state.merge({
   selectedRouteId: state.data.routes.size > 0
     ? state.data.routes.get(0).id
-    : -1,
+    : INVALID_ID,
 
   indexRouteSelected: false,
 });
@@ -802,7 +804,7 @@ const handlers = {
     const project = projectToImmutable(action.project);
     
     const isInvalidRoute =
-      state.currentRouteId !== -1 &&
+      state.currentRouteId !== INVALID_ID &&
       !project.routes.has(state.currentRouteId);
     
     if (isInvalidRoute) {
@@ -827,7 +829,8 @@ const handlers = {
         lastComponentId,
         selectedRouteId: project.rootRoutes.size > 0
           ? project.rootRoutes.get(0)
-          : -1,
+          : INVALID_ID,
+        
         indexRouteSelected: false,
       })
       .set('meta', meta)
@@ -842,7 +845,7 @@ const handlers = {
   [PROJECT_ROUTE_CREATE]: (state, action) => {
     const newRouteId = state.lastRouteId + 1;
   
-    const parentRoute = action.parentRouteId > -1
+    const parentRoute = action.parentRouteId !== INVALID_ID
       ? state.data.routes.get(action.parentRouteId)
       : null;
   
@@ -861,7 +864,7 @@ const handlers = {
   
     state = state.setIn(['data', 'routes', newRouteId], newRoute);
   
-    const pathToIdsList = action.parentRouteId === -1
+    const pathToIdsList = action.parentRouteId === INVALID_ID
       ? ['data', 'rootRoutes']
       : ['data', 'routes', action.parentRouteId, 'children'];
   
@@ -891,7 +894,7 @@ const handlers = {
     );
   
     // Update rootRoutes or parent's children list
-    const pathToIdsList = deletedRoute.parentId === -1
+    const pathToIdsList = deletedRoute.parentId === INVALID_ID
       ? ['data', 'rootRoutes']
       : ['data', 'routes', deletedRoute.parentId, 'children'];
   
@@ -902,7 +905,7 @@ const handlers = {
   
     // Update selected route
     const deletedRouteIsSelected =
-      state.selectedRouteId > -1 &&
+      state.selectedRouteId !== INVALID_ID &&
       deletedRouteIds.has(state.selectedRouteId);
   
     if (deletedRouteIsSelected) state = selectFirstRoute(state);
@@ -1061,7 +1064,7 @@ const handlers = {
   
     return state.merge({
       draggingComponent: true,
-      draggedComponentId: -1,
+      draggedComponentId: INVALID_ID,
       draggedComponents: action.components,
       highlightingEnabled: false,
       highlightedItems: Set(),
@@ -1087,7 +1090,7 @@ const handlers = {
     if (!state.draggingComponent) return state;
     if (!state.draggingOverPlaceholder) return initDNDState(state);
   
-    if (state.draggedComponentId > -1) {
+    if (state.draggedComponentId !== INVALID_ID) {
       // We're dragging an existing component
       state = moveComponent(
         state,
@@ -1166,7 +1169,7 @@ const handlers = {
       pickingComponentStateSlot: !!action.stateSlot,
       pickingComponentFilter: action.filter,
       pickingComponentStateSlotsFilter: action.stateSlotsFilter,
-      pickedComponentId: -1,
+      pickedComponentId: INVALID_ID,
     });
   },
   
@@ -1188,7 +1191,7 @@ const handlers = {
     pickingComponentStateSlot: false,
     pickingComponentFilter: null,
     pickingComponentStateSlotsFilter: null,
-    pickedComponentId: -1,
+    pickedComponentId: INVALID_ID,
     pickedComponentStateSlot: '',
     componentStateSlotsListIsVisible: false,
   }),
@@ -1202,13 +1205,6 @@ const handlers = {
     componentStateSlotsListIsVisible: false,
   }),
   
-  [PREVIEW_DRAG_OVER_COMPONENT]: (state, action) => state.merge({
-    draggingOverComponentId: action.componentId,
-    draggingOverPlaceholder: false,
-    placeholderContainerId: -1,
-    placeholderAfter: -1,
-  }),
-  
   [PREVIEW_DRAG_OVER_PLACEHOLDER]: (state, action) => state.merge({
     draggingOverPlaceholder: true,
     placeholderContainerId: action.containerId,
@@ -1216,9 +1212,8 @@ const handlers = {
   }),
 
   [PREVIEW_DRAG_OVER_NOTHING]: state => state.merge({
-    draggingOverComponentId: -1,
     draggingOverPlaceholder: false,
-    placeholderContainerId: -1,
+    placeholderContainerId: INVALID_ID,
     placeholderAfter: -1,
   }),
   

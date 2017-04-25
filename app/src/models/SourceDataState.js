@@ -5,8 +5,9 @@
 'use strict';
 
 import { Record } from 'immutable';
+import { INVALID_ID } from '../constants/misc';
 
 export default Record({
-  componentId: -1,
+  componentId: INVALID_ID,
   stateSlot: '',
 });

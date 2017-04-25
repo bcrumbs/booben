@@ -50,7 +50,7 @@ import {
   constructComponent,
 } from '../../utils/meta';
 
-import { SYSTEM_PROPS } from '../../constants/misc';
+import { INVALID_ID, SYSTEM_PROPS } from '../../constants/misc';
 import { objectSome } from '../../utils/misc';
 
 //noinspection JSUnresolvedVariable
@@ -328,7 +328,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     );
   
     let initialComponents = null;
-    let initialComponentsRootId = -1;
+    let initialComponentsRootId = INVALID_ID;
     
     const willBuildWrapper =
       !currentValue.hasDesignedComponent() &&

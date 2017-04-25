@@ -19,6 +19,7 @@ import {
 
 import { DataList, DataItem } from '../../../components/DataList/DataList';
 import { noop, returnArg } from '../../../utils/misc';
+import { INVALID_ID } from '../../../constants/misc';
 
 const propTypes = {
   routes: ImmutablePropTypes.mapOf(
@@ -106,7 +107,7 @@ export class RouteParamSelection extends PureComponent {
       );
     };
     
-    while (routeId !== -1) {
+    while (routeId !== INVALID_ID) {
       const route = routes.get(routeId);
       route.paramValues.forEach(handleParam);
       routeId = route.parentId;

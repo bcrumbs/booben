@@ -46,6 +46,7 @@ import SourceDataData, { QueryPathStep } from '../../models/SourceDataData';
 import { NestedConstructor } from '../../reducers/project';
 import { getComponentMeta, isValidSourceForValue } from '../../utils/meta';
 import { noop } from '../../utils/misc';
+import { INVALID_ID } from '../../constants/misc';
 
 //noinspection JSUnresolvedVariable
 const propTypes = {
@@ -182,7 +183,7 @@ class LinkPropWindowComponent extends PureComponent {
       let routeId = currentRouteId;
       let haveRouteParams = false;
       
-      while (routeId !== -1) {
+      while (routeId !== INVALID_ID) {
         const route = project.routes.get(routeId);
         if (route.paramValues.size) {
           haveRouteParams = true;

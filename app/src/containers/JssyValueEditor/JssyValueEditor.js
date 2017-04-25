@@ -31,6 +31,7 @@ import {
 } from '../../utils/meta';
 
 import { noop, returnArg, objectSome } from '../../utils/misc';
+import { INVALID_ID } from '../../constants/misc';
 
 const propTypes = {
   name: PropTypes.string.isRequired,
@@ -633,7 +634,7 @@ export class JssyValueEditor extends PureComponent {
       } else if (jssyValue.source === 'designer') {
         // true if component exists, false otherwise
         if (resolvedValueDef.type === TypeNames.COMPONENT)
-          value = jssyValue.sourceData.rootId !== -1;
+          value = jssyValue.sourceData.rootId !== INVALID_ID;
       }
     } else if (jssyValue.source === 'data') {
       if (jssyValue.sourceData.queryPath) {

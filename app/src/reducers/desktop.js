@@ -26,7 +26,7 @@ import {
   PREVIEW_DROP_COMPONENT,
   PREVIEW_SELECT_COMPONENT,
   PREVIEW_DESELECT_COMPONENT,
-  DropComponentAreas,
+  ComponentDropAreas,
 } from '../actions/preview';
 
 import {
@@ -92,7 +92,7 @@ const setNecessaryToolActiveAfterDrop = (state, dropOnAreaId) => {
   const willSelectPreviousTool =
     state.previousActiveToolId !== TOOL_ID_COMPONENTS_TREE &&
     state.toolStates.get(TOOL_ID_COMPONENTS_TREE).docked &&
-    dropOnAreaId !== DropComponentAreas.TREE;
+    dropOnAreaId !== ComponentDropAreas.TREE;
   
   if (willSelectPreviousTool)
     state = selectTool(state, state.previousActiveToolId);
@@ -227,11 +227,14 @@ const handlers = {
   [PREVIEW_DROP_COMPONENT]: (state, action) =>
     setNecessaryToolActiveAfterDrop(state, action.dropOnAreaId),
 
-  [PREVIEW_SELECT_COMPONENT]: state => {
-    const componentConfigToolState = state.toolStates.get(TOOL_ID_PROPS_EDITOR);
-
-    if (componentConfigToolState && componentConfigToolState.docked)
-      state = selectTool(state, TOOL_ID_PROPS_EDITOR);
+  [PREVIEW_SELECT_COMPONENT]: (state, action) => {
+    if (action.openConfigurationTool) {
+      const componentConfigToolState =
+        state.toolStates.get(TOOL_ID_PROPS_EDITOR);
+  
+      if (componentConfigToolState && componentConfigToolState.docked)
+        state = selectTool(state, TOOL_ID_PROPS_EDITOR);
+    }
 
     return setActiveSection(state, state.activeToolId, 0);
   },

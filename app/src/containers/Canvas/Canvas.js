@@ -345,7 +345,15 @@ class CanvasComponent extends Component {
     // so left and top are already relative to the dropZone position
     const { left: x, top: y, width, height } = element.getBoundingClientRect();
 
-    onDropZoneSnap({ dropZoneId, element, x, y, width, height });
+    onDropZoneSnap({
+      dropZoneId,
+      element,
+      x,
+      y,
+      width,
+      height,
+      hideTitle: true,
+    });
   }
 
   _handleUnsnap() {
