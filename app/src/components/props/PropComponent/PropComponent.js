@@ -44,8 +44,8 @@ export class PropComponent extends PropBase {
     
     //noinspection JSCheckFunctionSignatures
     const text = haveComponent
-      ? getLocalizedText('props.component.editComponent')
-      : getLocalizedText('props.component.setComponent');
+      ? getLocalizedText('valueEditor.component.editComponent')
+      : getLocalizedText('valueEditor.component.setComponent');
     
     //noinspection JSValidateTypes
     return (

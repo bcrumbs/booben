@@ -150,13 +150,19 @@ export class DataSelectionFieldsList extends PureComponent {
    * @private
    */
   _formatFieldType(field) {
-    // TODO: Get strings from i18n
+    const { getLocalizedText } = this.props;
     
-    if (field.kind === FieldKinds.LIST)
-      return `List of ${field.type}`;
+    if (field.kind === FieldKinds.LIST) {
+      return getLocalizedText('linkDialog.data.fields.listOf', {
+        type: field.type,
+      });
+    }
     
-    if (field.kind === FieldKinds.CONNECTION)
-      return `Connection to ${field.type}`;
+    if (field.kind === FieldKinds.CONNECTION) {
+      return getLocalizedText('linkDialog.data.fields.connectionTo', {
+        type: field.type,
+      });
+    }
     
     return field.type;
   }

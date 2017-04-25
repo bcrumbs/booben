@@ -116,7 +116,7 @@ const AppRoute = props => {
     }
   });
 
-  const title = getLocalizedText('projectTitle', {
+  const title = getLocalizedText('appHeader.projectTitle', {
     projectName: props.projectName,
   });
   
@@ -126,7 +126,7 @@ const AppRoute = props => {
   if (props.showFooterToggles) {
     showComponentsTitleItem = (
       <FooterMenuItem
-        text={getLocalizedText('showComponentsTitle')}
+        text={getLocalizedText('appFooter.showComponentsTitle')}
         subcomponentRight={
           <ToggleButton
             checked={props.showComponentTitles}
@@ -138,7 +138,7 @@ const AppRoute = props => {
     
     showPlaceholdersItem = (
       <FooterMenuItem
-        text={getLocalizedText('showPlaceholders')}
+        text={getLocalizedText('appFooter.showPlaceholders')}
         subcomponentRight={
           <ToggleButton
             checked={props.showContentPlaceholders}
@@ -167,12 +167,14 @@ const AppRoute = props => {
               <HeaderMenuGroup>
                 <HeaderMenuList>
                   <HeaderMenuItem
-                    text={getLocalizedText('structure')}
+                    text={getLocalizedText('appHeader.menu.structure')}
                     linkHref={`/${props.projectName}/structure`}
                     linkComponent={TopMenuLink}
                   />
 
-                  <HeaderMenuItem text={getLocalizedText('design')}>
+                  <HeaderMenuItem
+                    text={getLocalizedText('appHeader.menu.design')}
+                  >
                     <HeaderMenuGroup mode="dark">
                       <HeaderMenuList>
                         {routeMenuItems}
@@ -180,8 +182,13 @@ const AppRoute = props => {
                     </HeaderMenuGroup>
                   </HeaderMenuItem>
 
-                  <HeaderMenuItem text={getLocalizedText('data')} />
-                  <HeaderMenuItem text={getLocalizedText('settings')} />
+                  <HeaderMenuItem
+                    text={getLocalizedText('appHeader.menu.data')}
+                  />
+
+                  <HeaderMenuItem
+                    text={getLocalizedText('appHeader.menu.settings')}
+                  />
                 </HeaderMenuList>
               </HeaderMenuGroup>
             </HeaderMenu>
@@ -192,11 +199,14 @@ const AppRoute = props => {
               <HeaderMenuGroup>
                 <HeaderMenuList>
                   <HeaderMenuItem
-                    text={getLocalizedText('preview')}
+                    text={getLocalizedText('appHeader.menu.preview')}
                     linkHref={`/${props.projectName}/preview`}
                     linkComponent={TopMenuLink}
                   />
-                  <HeaderMenuItem text={getLocalizedText('publish')} />
+
+                  <HeaderMenuItem
+                    text={getLocalizedText('appHeader.menu.publish')}
+                  />
                 </HeaderMenuList>
               </HeaderMenuGroup>
             </HeaderMenu>
@@ -219,7 +229,7 @@ const AppRoute = props => {
             <FooterMenu inline dense mode="light">
               <FooterMenuGroup>
                 <FooterMenuList>
-                  <FooterMenuItem text={getLocalizedText('faq')} />
+                  <FooterMenuItem text={getLocalizedText('appFooter.faq')} />
                 </FooterMenuList>
               </FooterMenuGroup>
             </FooterMenu>
@@ -233,7 +243,7 @@ const AppRoute = props => {
                   {showPlaceholdersItem}
                   
                   <FooterMenuItem
-                    text={getLocalizedText('toggleFullScreen')}
+                    text={getLocalizedText('appFooter.toggleFullScreen')}
                     onClick={toggleFullscreen}
                   />
                 </FooterMenuList>

@@ -105,7 +105,7 @@ export class DataItem extends PureComponent {
       argsButtonElement = (
         <Button
           onPress={this._handleSetArgumentsClick}
-          text={getLocalizedText('setArguments')}
+          text={getLocalizedText('linkDialog.data.setArguments')}
           narrow
         />
       );

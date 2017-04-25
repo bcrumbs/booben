@@ -39,7 +39,7 @@ export class PropComponentPicker extends PropBase {
     return (
       <Button
         kind="link"
-        text={getLocalizedText('props.componentPicker.pickComponent')}
+        text={getLocalizedText('valueEditor.componentPicker.pickComponent')}
         disabled={disabled}
         onPress={onPickComponent}
       />

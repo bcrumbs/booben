@@ -409,8 +409,8 @@ export class DataSelection extends PureComponent {
       const currentFieldName = currentPath[currentPath.length - 1];
       const currentField = this._getCurrentField();
       const currentFieldHasArgs = fieldHasArguments(currentField);
-      const setArgumentsText = getLocalizedText('setArguments');
-      const fieldsText = getLocalizedText('fields');
+      const setArgumentsText = getLocalizedText('linkDialog.data.setArguments');
+      const fieldsText = getLocalizedText('linkDialog.data.fields');
       let buttons = null;
       
       if (currentFieldHasArgs) {
@@ -489,11 +489,13 @@ export class DataSelection extends PureComponent {
       tmpArgValues,
     } = this.state;
     
-    const titleText = getLocalizedText('argumentsForField', {
+    const titleText = getLocalizedText('linkDialog.data.argumentsForField', {
       name: argumentsFieldName,
     });
     
-    const subtitleText = getLocalizedText('pleaseFillAllRequiredArguments');
+    const subtitleText =
+      getLocalizedText('linkDialog.data.pleaseFillAllRequiredArguments');
+
     const backText = getLocalizedText('common.back');
     const applyText = getLocalizedText('common.apply');
     const fieldArgs = tmpArgValues.get(argumentsPathToField.join(' ')) || null;
@@ -571,8 +573,10 @@ export class DataSelection extends PureComponent {
         );
       });
   
-    const titleText = getLocalizedText('allArguments');
-    const subtitleText = getLocalizedText('pleaseFillAllRequiredArguments');
+    const titleText = getLocalizedText('linkDialog.data.allArguments');
+    const subtitleText =
+      getLocalizedText('linkDialog.data.pleaseFillAllRequiredArguments');
+
     const applyText = getLocalizedText('common.apply');
     const backText = getLocalizedText('common.back');
     

@@ -191,7 +191,7 @@ const getGroupNameString = (groupData, language, getLocalizedText) => {
   let name;
   
   if (groupData.isDefault)
-    name = getLocalizedText('uncategorizedComponents');
+    name = getLocalizedText('library.uncategorizedComponents');
   else if (groupData.text)
     name = groupData.text.get(language);
   else if (groupData.textIntlKey)
@@ -351,9 +351,10 @@ class ComponentsLibraryComponent extends PureComponent {
     if (groups.isEmpty()) {
       if (filtered) {
         const noComponentsText =
-          getLocalizedText('noComponentsCanBeInsertedInsideSelectedComponent');
+          getLocalizedText('library.noComponentsAvailable');
         
-        const showAllComponentsText = getLocalizedText('showAllComponents');
+        const showAllComponentsText =
+          getLocalizedText('library.showAllComponents');
         
         return (
           <BlockContentPlaceholder text={noComponentsText}>
@@ -364,7 +365,8 @@ class ComponentsLibraryComponent extends PureComponent {
           </BlockContentPlaceholder>
         );
       } else {
-        const noComponentsText = getLocalizedText('noComponentsInLibrary');
+        const noComponentsText =
+          getLocalizedText('library.noComponentsInLibrary');
         
         return (
           <BlockContentPlaceholder text={noComponentsText} />

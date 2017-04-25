@@ -50,14 +50,14 @@ export class AddNestedValueDialog extends PureComponent {
     return (
       <div className="prop-tree_field-new">
         <div className="prop-tree_field-new_row field-new_title">
-          {getLocalizedText('addValueDialogTitle')}
+          {getLocalizedText('valueEditor.addValueDialogTitle')}
         </div>
     
         <div className="prop-tree_field-new_row">
           <Input
             stateless
             dense
-            label={getLocalizedText('addValueNameInputLabel')}
+            label={getLocalizedText('valueEditor.addValueNameInputLabel')}
             value={name}
             onChange={this._handleNameChange}
           />
@@ -66,14 +66,14 @@ export class AddNestedValueDialog extends PureComponent {
         <div className="prop-tree_field-new_row field-new_buttons">
           <Button
             narrow
-            text={getLocalizedText('save')}
+            text={getLocalizedText('common.save')}
             disabled={saveButtonIsDisabled}
             onPress={this._handleSave}
           />
       
           <Button
             narrow
-            text={getLocalizedText('cancel')}
+            text={getLocalizedText('common.cancel')}
             onPress={onCancel}
           />
         </div>

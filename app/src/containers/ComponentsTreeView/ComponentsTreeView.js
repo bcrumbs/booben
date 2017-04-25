@@ -885,7 +885,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     if (!this._treeIsVisible()) {
       return (
         <BlockContentPlaceholder
-          text={getLocalizedText('thereAreNoComponentsInThisRoute')}
+          text={getLocalizedText('tree.noComponents')}
         />
       );
     }

@@ -93,7 +93,7 @@ class RouteEditorComponent extends PureComponent {
           <BlockContentBoxItem>
             <PropsList>
               <PropTextarea
-                label={getLocalizedText('description')}
+                label={getLocalizedText('structure.routeDescription')}
                 value={route.indexRouteDescription}
                 onChange={this._handleIndexRouteDescriptionChange}
               />
@@ -140,7 +140,7 @@ class RouteEditorComponent extends PureComponent {
             />
   
             <PropTextarea
-              label={getLocalizedText('description')}
+              label={getLocalizedText('structure.routeDescription')}
               value={route.description}
               onChange={this._handleDescriptionChange}
             />

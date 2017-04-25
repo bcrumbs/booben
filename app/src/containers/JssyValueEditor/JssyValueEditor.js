@@ -456,7 +456,8 @@ export class JssyValueEditor extends PureComponent {
    * @private
    */
   _formatArrayItemLabel(index) {
-    return `Item ${index}`; // TODO: Get string from i18n
+    const { getLocalizedText } = this.props;
+    return getLocalizedText('valueEditor.arrayItemTitle', { index });
   }
   
   /**
@@ -466,7 +467,8 @@ export class JssyValueEditor extends PureComponent {
    * @private
    */
   _formatObjectItemLabel(key) {
-    return key;
+    const { getLocalizedText } = this.props;
+    return getLocalizedText('valueEditor.objectItemTitle', { key });
   }
 
   /**
@@ -589,7 +591,7 @@ export class JssyValueEditor extends PureComponent {
     let checked = true;
 
     if (!linked) {
-      if (jssyValue.source === 'static') {
+      if (jssyValue.sourceIs('static')) {
         if (
           resolvedValueDef.type === TypeNames.INT ||
           resolvedValueDef.type === TypeNames.FLOAT
@@ -631,26 +633,26 @@ export class JssyValueEditor extends PureComponent {
             ),
           ).toJS();
         }
-      } else if (jssyValue.source === 'designer') {
+      } else if (jssyValue.sourceIs('designer')) {
         // true if component exists, false otherwise
         if (resolvedValueDef.type === TypeNames.COMPONENT)
           value = jssyValue.sourceData.rootId !== INVALID_ID;
       }
-    } else if (jssyValue.source === 'data') {
+    } else if (jssyValue.sourceIs('data')) {
       if (jssyValue.sourceData.queryPath) {
         linkedWith = jssyValue.sourceData.queryPath
           .map(step => step.field)
           .join(LINK_TEXT_ITEMS_SEPARATOR);
       }
-    } else if (jssyValue.source === 'function') {
+    } else if (jssyValue.sourceIs('function')) {
       linkedWith = jssyValue.sourceData.function;
-    } else if (jssyValue.source === 'static') {
+    } else if (jssyValue.sourceIs('static')) {
       linkedWith = jssyValue.sourceData.ownerPropName;
-    } else if (jssyValue.source === 'state') {
+    } else if (jssyValue.sourceIs('state')) {
       linkedWith =
         `Component ${jssyValue.sourceData.componentId} ` +
         `- ${jssyValue.sourceData.stateSlot}`;
-    } else if (jssyValue.source === 'routeParams') {
+    } else if (jssyValue.sourceIs('routeParams')) {
       linkedWith = jssyValue.sourceData.paramName;
     }
 

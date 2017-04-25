@@ -795,7 +795,7 @@ class StructureRoute extends PureComponent {
         <Header>
           <HeaderRegion spread alignY="center">
             <HeaderTitle>
-              {getLocalizedText('structure')}
+              {getLocalizedText('appHeader.menu.structure')}
             </HeaderTitle>
           </HeaderRegion>
         </Header>

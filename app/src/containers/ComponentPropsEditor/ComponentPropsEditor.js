@@ -447,7 +447,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       //noinspection JSCheckFunctionSignatures
       return (
         <BlockContentPlaceholder
-          text={getLocalizedText('selectAComponent')}
+          text={getLocalizedText('propsEditor.noComponentsSelectedText')}
         />
       );
     }
@@ -456,7 +456,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       //noinspection JSCheckFunctionSignatures
       return (
         <BlockContentPlaceholder
-          text={getLocalizedText('multipleComponentsSelected')}
+          text={getLocalizedText('propsEditor.multipleComponentsSelectedText')}
         />
       );
     }
@@ -488,7 +488,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       //noinspection JSCheckFunctionSignatures
       return (
         <BlockContentPlaceholder
-          text={getLocalizedText('thisComponentDoesntHaveEditableAttributes')}
+          text={getLocalizedText('propsEditor.noEditableAttributes')}
         />
       );
     }
