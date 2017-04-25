@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { is } from 'immutable';
+import { List, is } from 'immutable';
 
 /**
  * Does nothing
@@ -102,6 +102,14 @@ export const isObject = value => typeof value === 'object' && value !== null;
  * @return {boolean}
  */
 export const isObjectOrNull = value => typeof value === 'object';
+
+/**
+ *
+ * @param {*} value
+ * @return {boolean}
+ */
+export const isArrayOrList = value =>
+  Array.isArray(value) || List.isList(value);
 
 /**
  *

@@ -58,6 +58,11 @@ import {
   LIBRARY_SHOW_ALL_COMPONENTS,
 } from '../actions/components-library';
 
+import {
+  DESIGN_TREE_EXPAND_ITEM,
+  DESIGN_TREE_COLLAPSE_ITEM,
+} from '../actions/design';
+
 import ProjectRoute from '../models/ProjectRoute';
 import JssyValue from '../models/JssyValue';
 import SourceDataDesigner from '../models/SourceDataDesigner';
@@ -88,6 +93,7 @@ import {
   getComponentMeta,
   constructComponent,
   propHasDataContext,
+  isCompositeComponent,
 } from '../utils/meta';
 
 import {
@@ -97,7 +103,7 @@ import {
 } from '../utils/schema';
 
 import { walkPath, expandPath, getObjectByPath } from '../utils/path';
-import { isPrefixList, concatPath } from '../utils/misc';
+import { isArrayOrList, isPrefixList, concatPath } from '../utils/misc';
 import { getFunctionInfo } from '../utils/functions';
 
 import {
@@ -157,6 +163,7 @@ const ProjectState = Record({
   pickedComponentId: INVALID_ID,
   pickedComponentStateSlot: '',
   componentStateSlotsListIsVisible: false,
+  treeExpandedItemIds: Set(),
 });
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
@@ -249,38 +256,42 @@ const unhighlightAllComponents = state => state.setIn(
 const addComponents = (state, parentComponentId, position, components) => {
   const pathToCurrentLastComponentId = getPathToCurrentLastComponentId(state);
   const lastComponentId = state.getIn(pathToCurrentLastComponentId);
-  const nextComponentId = lastComponentId + 1;
+  const rootComponentId = lastComponentId === INVALID_ID
+    ? 0
+    : lastComponentId + 1;
+
   const pathToCurrentComponents = getPathToCurrentComponents(state);
+  const rootComponent = components.get(0);
 
   state = state.updateIn(
     pathToCurrentComponents,
 
-    updatedComponents => updatedComponents.withMutations(updatedComponentsMut =>
-      void components.forEach(newComponent =>
-        void updatedComponentsMut.set(
-          newComponent.id + nextComponentId,
+    updatedComponents => updatedComponents.withMutations(mut => {
+      components.forEach(newComponent => {
+        const id = newComponent.id + rootComponentId;
+        const insertedComponent = newComponent
+          .merge({
+            id,
+            isNew: false,
+            parentId: newComponent.parentId === INVALID_ID
+              ? parentComponentId
+              : newComponent.parentId + rootComponentId,
 
-          newComponent
-            .merge({
-              id: newComponent.id + nextComponentId,
-              isNew: false,
-              parentId: newComponent.parentId === INVALID_ID
-                ? parentComponentId
-                : newComponent.parentId + nextComponentId,
+            routeId: state.currentRouteId,
+            isIndexRoute: state.currentRouteIsIndexRoute,
+          })
+          .update(
+            'children',
+            childIds => childIds.map(id => id + rootComponentId),
+          );
 
-              routeId: state.currentRouteId,
-              isIndexRoute: state.currentRouteIsIndexRoute,
-            })
-            .update(
-              'children',
-              childIds => childIds.map(id => id + nextComponentId),
-            ),
-        ),
-      ),
-    ),
+        mut.set(id, insertedComponent);
+      });
+    }),
   );
 
   if (parentComponentId !== INVALID_ID) {
+    // Inserting non-root component
     const pathToChildrenIdsList = [].concat(pathToCurrentComponents, [
       parentComponentId,
       'children',
@@ -288,12 +299,21 @@ const addComponents = (state, parentComponentId, position, components) => {
 
     state = state.updateIn(
       pathToChildrenIdsList,
-      childComponentIds => childComponentIds.insert(position, nextComponentId),
+      childComponentIds => childComponentIds.insert(position, rootComponentId),
     );
   } else {
+    // Inserting root component
     state = state.setIn(
       getPathToCurrentRootComponentId(state),
-      nextComponentId,
+      rootComponentId,
+    );
+  }
+
+  if (isCompositeComponent(rootComponent.name, state.meta)) {
+    // If the new component is composite, expand it in the tree view
+    state = state.update(
+      'treeExpandedItemIds',
+      treeExpandedItemIds => treeExpandedItemIds.add(rootComponentId),
     );
   }
 
@@ -1102,8 +1122,8 @@ const handlers = {
       return initDNDState(state);
     } else {
       // We're dragging a new component from palette
-      const rootComponent = state.draggedComponents.get(0),
-        componentMeta = getComponentMeta(rootComponent.name, state.meta);
+      const rootComponent = state.draggedComponents.get(0);
+      const componentMeta = getComponentMeta(rootComponent.name, state.meta);
     
       const isCompositeComponentWithMultipleLayouts =
         componentMeta.kind === 'composite' &&
@@ -1227,6 +1247,34 @@ const handlers = {
   
   [LIBRARY_SHOW_ALL_COMPONENTS]: state =>
     state.set('showAllComponentsOnPalette', true),
+
+  [DESIGN_TREE_EXPAND_ITEM]: (state, action) => {
+    if (isArrayOrList(action.componentId)) {
+      return state.update(
+        'treeExpandedItemIds',
+        ids => ids.union(action.componentId),
+      );
+    } else {
+      return state.update(
+        'treeExpandedItemIds',
+        ids => ids.add(action.componentId),
+      );
+    }
+  },
+
+  [DESIGN_TREE_COLLAPSE_ITEM]: (state, action) => {
+    if (isArrayOrList(action.componentId)) {
+      return state.update(
+        'treeExpandedItemIds',
+        ids => ids.subtract(action.componentId),
+      );
+    } else {
+      return state.update(
+        'treeExpandedItemIds',
+        ids => ids.delete(action.componentId),
+      );
+    }
+  },
 };
 
 export default (state = new ProjectState(), action) =>

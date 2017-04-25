@@ -112,7 +112,7 @@ const mapStateToProps = state => ({
   rootComponentId: currentRootComponentIdSelector(state),
   selectedComponentIds: currentSelectedComponentIdsSelector(state),
   highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
-  expandedItemIds: state.design.treeExpandedItemIds,
+  expandedItemIds: state.project.treeExpandedItemIds,
   draggingComponent: state.project.draggingComponent,
   draggedComponentId: state.project.draggedComponentId,
   draggedComponents: state.project.draggedComponents,
