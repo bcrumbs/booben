@@ -121,62 +121,11 @@ const clearImmediate = window.clearImmediate || window.clearTimeout;
 
 const SNAP_DISTANCE = 200;
 
-/**
- * @typedef {Object} OverWhat
- * @property {boolean} isPlaceholder
- * @property {?number} componentId
- * @property {?number} placeholderAfter
- * @property {?number} containerId
- */
+const readContainerId = element =>
+  parseInt(element.getAttribute('data-jssy-container-id'), 10);
 
-/**
- *
- * @param {HTMLElement} element
- * @return {?OverWhat}
- */
-const getClosestComponentOrPlaceholder = element => {
-  let current = element;
-
-  while (current) {
-    if (current.nodeType !== Node.ELEMENT_NODE) {
-      if (!current.parentNode) break;
-      current = current.parentNode;
-      continue;
-    }
-
-    const dataJssyId = current.getAttribute('data-jssy-id');
-
-    if (dataJssyId) {
-      return {
-        isPlaceholder: false,
-        componentId: parseInt(dataJssyId, 10),
-        placeholderAfter: null,
-        containerId: null,
-      };
-    } else {
-      const isPlaceholder = current.hasAttribute('data-jssy-placeholder');
-
-      if (isPlaceholder) {
-        const after =
-          parseInt(current.getAttribute('data-jssy-after'), 10);
-        const containerId =
-          parseInt(current.getAttribute('data-jssy-container-id'), 10);
-
-        return {
-          isPlaceholder: true,
-          componentId: null,
-          placeholderAfter: after,
-          containerId,
-        };
-      }
-    }
-
-    if (current.hasAttribute('data-reactroot')) break;
-    current = current.parentNode;
-  }
-
-  return null;
-};
+const readAfterIdx = element =>
+  parseInt(element.getAttribute('data-jssy-after'), 10);
 
 class Preview extends Component {
   constructor(props, context) {
@@ -347,30 +296,28 @@ class Preview extends Component {
       let snapAfterIdx = -1;
       let minDistance = Infinity;
 
-      placeholders.forEach(element => {
-        const { left, top } = element.getBoundingClientRect();
-
-        if (Math.abs(left - x) > SNAP_DISTANCE) return;
-        if (Math.abs(top - y) > SNAP_DISTANCE) return;
-
-        const snapPointDistance = distance(left, top, x, y);
-        if (snapPointDistance > SNAP_DISTANCE) return;
-
-        if (snapPointDistance < minDistance) {
-          willSnap = true;
-          minDistance = snapPointDistance;
-
-          snapContainerId = parseInt(
-            element.getAttribute('data-jssy-container-id'),
-            10,
-          );
-
-          snapAfterIdx = parseInt(
-            element.getAttribute('data-jssy-after'),
-            10,
-          );
-        }
-      });
+      if (placeholders.length === 1) {
+        const element = placeholders[0];
+        willSnap = true;
+        snapContainerId = readContainerId(element);
+        snapAfterIdx = readAfterIdx(element);
+      } else if (placeholders.length > 1) {
+        placeholders.forEach(element => {
+          const { left, top } = element.getBoundingClientRect();
+          if (Math.abs(left - x) > SNAP_DISTANCE) return;
+          if (Math.abs(top - y) > SNAP_DISTANCE) return;
+    
+          const snapPointDistance = distance(left, top, x, y);
+          if (snapPointDistance > SNAP_DISTANCE) return;
+    
+          if (snapPointDistance < minDistance) {
+            willSnap = true;
+            minDistance = snapPointDistance;
+            snapContainerId = readContainerId(element);
+            snapAfterIdx = readAfterIdx(element);
+          }
+        });
+      }
 
       if (willSnap) {
         const willUpdatePlaceholder =
