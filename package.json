@@ -5,9 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack -d --config ./build-conf/webpack.config.js",
-    "build:prod": "webpack -p --config ./build-conf/webpack.config.js",
-    "build:watch": "webpack -d --config ./build-conf/webpack.config.js --watch",
+    "build": "webpack -d --config ./app/build-conf/webpack.config.js",
+    "build:prod": "webpack -p --config ./app/build-conf/webpack.config.js",
+    "build:watch": "webpack -d --config ./app/build-conf/webpack.config.js --watch",
     "lint": "eslint .",
     "start": "node index.js"
   },
@@ -29,6 +29,7 @@
     "babel-preset-es2015": "^6.14.0",
     "babel-preset-es2016": "^6.24.1",
     "babel-preset-react": "^6.11.1",
+    "bezier-easing": "^2.0.3",
     "body-parser": "^1.15.2",
     "co": "^4.6.0",
     "codemirror": "^5.23.0",
@@ -80,6 +81,7 @@
     "babel-plugin-transform-object-rest-spread": "^6.20.2",
     "copy-webpack-plugin": "^4.0.0",
     "css-loader": "^0.28.0",
+    "ejs-compiled-loader": "^1.1.0",
     "file-loader": "^0.11.1",
     "image-webpack-loader": "^3.3.0",
     "intl-messageformat": "^1.3.0",
