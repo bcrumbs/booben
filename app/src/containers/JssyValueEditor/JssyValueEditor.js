@@ -13,6 +13,7 @@ import {
   isEqualType,
   getNestedTypedef,
   resolveTypedef,
+  isNullableType,
 } from '@jssy/types';
 
 import JssyValue from '../../models/JssyValue';
@@ -290,6 +291,7 @@ export class JssyValueEditor extends PureComponent {
       value: currentValue,
       valueDef,
       userTypedefs,
+      optional,
       strings,
       language,
       onChange,
@@ -297,9 +299,11 @@ export class JssyValueEditor extends PureComponent {
 
     if (path.length > 0) {
       let newValue;
-  
-      const nestedValueDef = getNestedTypedef(valueDef, path, userTypedefs);
-      const resolvedValueDef = resolveTypedef(nestedValueDef, userTypedefs);
+      
+      const resolvedValueDef = resolveTypedef(
+        getNestedTypedef(valueDef, path, userTypedefs),
+        userTypedefs,
+      );
 
       if (checked) {
         const value = jssyValueToImmutable(buildDefaultValue(
@@ -310,10 +314,20 @@ export class JssyValueEditor extends PureComponent {
         ));
 
         newValue = currentValue.setInStatic(path, value);
-      } else if (!resolvedValueDef.required) {
-        newValue = currentValue.unsetInStatic(path);
       } else {
-        newValue = currentValue.setInStatic(path, JssyValue.STATIC_NULL);
+        const parentTypeDef = resolveTypedef(
+          getNestedTypedef(valueDef, path.slice(0, -1), userTypedefs),
+          userTypedefs,
+        );
+        
+        const isIterable =
+          parentTypeDef.type === TypeNames.ARRAY_OF ||
+          parentTypeDef.type === TypeNames.OBJECT_OF;
+        
+        if (!isIterable && !resolvedValueDef.required)
+          newValue = currentValue.unsetInStatic(path);
+        else
+          newValue = currentValue.setInStatic(path, JssyValue.STATIC_NULL);
       }
 
       onChange({ name, value: newValue });
@@ -329,7 +343,7 @@ export class JssyValueEditor extends PureComponent {
         ));
     
         onChange({ name, value });
-      } else if (!resolvedValueDef.required) {
+      } else if (optional) {
         onChange({ name, value: null });
       } else {
         onChange({ name, value: JssyValue.STATIC_NULL });
@@ -479,6 +493,7 @@ export class JssyValueEditor extends PureComponent {
    * @param {string} [descriptionFallback='']
    * @param {string} [labelOverride='']
    * @param {string} [descriptionOverride='']
+   * @param {boolean} [isIterableItem=false]
    * @return {PropsItemPropType}
    * @private
    */
@@ -490,12 +505,17 @@ export class JssyValueEditor extends PureComponent {
       descriptionFallback = '',
       labelOverride = '',
       descriptionOverride = '',
+      isIterableItem = false,
     } = {},
   ) {
     if (this._propType && !noCache) return this._propType;
 
     const { userTypedefs, strings, language } = this.props;
     const resolvedValueDef = resolveTypedef(valueDef, userTypedefs);
+    
+    const checkable = (resolvedValueDef.required || isIterableItem)
+      ? (isNullableType(resolvedValueDef.type) && !resolvedValueDef.notNull)
+      : true;
 
     const ret = {
       label: this._formatLabel(resolvedValueDef, labelFallback, labelOverride),
@@ -513,7 +533,7 @@ export class JssyValueEditor extends PureComponent {
       
       linkable: this._isLinkableValue(resolvedValueDef),
       pickable: this._isPickableValue(resolvedValueDef),
-      checkable: !resolvedValueDef.required,
+      checkable,
       required: !!resolvedValueDef.required,
       transformValue: null,
       formatItemLabel: returnArg,
@@ -547,6 +567,7 @@ export class JssyValueEditor extends PureComponent {
       if (ret.view === PropViews.ARRAY) {
         ret.ofType = this._getPropType(resolvedValueDef.ofType, {
           noCache: true,
+          isIterableItem: true,
         });
       }
   
@@ -555,6 +576,7 @@ export class JssyValueEditor extends PureComponent {
       if (ret.view === PropViews.OBJECT) {
         ret.ofType = this._getPropType(resolvedValueDef.ofType, {
           noCache: true,
+          isIterableItem: true,
         });
       }
       
@@ -669,6 +691,12 @@ export class JssyValueEditor extends PureComponent {
       description,
       getLocalizedText,
     } = this.props;
+    
+    const checkable =
+      optional || (
+        isNullableType(valueDef.type) &&
+        !valueDef.notNull
+      );
 
     const propType = {
       ...this._getPropType(valueDef, {
@@ -676,7 +704,7 @@ export class JssyValueEditor extends PureComponent {
         descriptionOverride: description,
       }),
       
-      checkable: optional,
+      checkable,
     };
     
     const propValue = this._getPropValue(value, valueDef);

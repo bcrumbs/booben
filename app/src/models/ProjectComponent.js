@@ -361,13 +361,18 @@ export const walkSimpleValues = (
   const visitValue = (jssyValue, valueDef, path, isSystemProp) => {
     if (jssyValue.source === 'static' && !jssyValue.sourceData.ownerPropName) {
       if (valueDef.type === 'shape' && jssyValue.sourceData.value !== null) {
-        _forOwn(valueDef.fields, (fieldTypedef, fieldName) =>
-          void visitValue(
-            jssyValue.sourceData.value.get(fieldName),
-            fieldTypedef,
-            [...path, fieldName],
-            isSystemProp,
-          ));
+        _forOwn(valueDef.fields, (fieldTypedef, fieldName) => {
+          const childValue = jssyValue.sourceData.value.get(fieldName);
+          
+          if (childValue) {
+            visitValue(
+              childValue,
+              fieldTypedef,
+              [...path, fieldName],
+              isSystemProp,
+            );
+          }
+        });
       } else if (
         valueDef.type === 'objectOf' &&
         jssyValue.sourceData.value !== null

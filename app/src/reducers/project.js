@@ -737,7 +737,7 @@ const clearOutdatedDataProps = (state, updatedPath) => {
   const outdatedDataContext = oldValue.sourceData.dataContext
     .push(updatedPropMeta.sourceConfigs.data.pushDataContext);
   
-  const visitDesignerProp = (designerPropValue, path) => {
+  const visitDesignerValue = (designerPropValue, path) => {
     walkComponentsTree(
       designerPropValue.sourceData.components,
       designerPropValue.sourceData.rootId,
@@ -786,7 +786,7 @@ const clearOutdatedDataProps = (state, updatedPath) => {
                 'props',
               ], expandPropPath(pathToProp));
   
-              visitDesignerProp(
+              visitDesignerValue(
                 state.getIn(pathToNextDesignerValue),
                 pathToNextDesignerValue,
               );
@@ -797,18 +797,18 @@ const clearOutdatedDataProps = (state, updatedPath) => {
     );
   };
   
-  const visitProp = (propValue, _, pathToProp) => {
+  const visitValue = (propValue, _, pathToProp) => {
     if (propValue.hasDesignedComponent()) {
       const pathToValue = [].concat(pathToComponents, [
         updatedComponentId,
         'props',
       ], expandPropPath(pathToProp));
       
-      visitDesignerProp(propValue, pathToValue);
+      visitDesignerValue(propValue, pathToValue);
     }
   };
   
-  walkSimpleValues(updatedComponent, componentMeta, visitProp);
+  walkSimpleValues(updatedComponent, componentMeta, visitValue);
   return state;
 };
 
