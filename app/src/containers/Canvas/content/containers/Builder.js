@@ -13,7 +13,7 @@ import _mapValues from 'lodash.mapvalues';
 import _get from 'lodash.get';
 import _set from 'lodash.set';
 import { Map as ImmutableMap } from 'immutable';
-import { resolveTypedef, TypeNames } from '@jssy/types';
+import { resolveTypedef, coerceValue, TypeNames } from '@jssy/types';
 import { getComponentById } from '../../../../models/Project';
 
 import {
@@ -55,7 +55,9 @@ import {
 import {
   getJssyValueDefOfQueryArgument,
   getJssyValueDefOfMutationArgument,
+  getJssyValueDefOfField,
   getMutationField,
+  getFieldByPath,
 } from '../../../../utils/schema';
 
 import { getFunctionInfo } from '../../../../utils/functions';
@@ -580,31 +582,64 @@ class BuilderComponent extends PureComponent {
     );
   }
   
-  _buildDataValue(jssyValue, data) {
+  _buildDataValue(jssyValue, valueDef, userTypedefs, data) {
     const { schema, propsFromOwner, dataContextInfo } = this.props;
     
     if (jssyValue.sourceData.queryPath !== null) {
-      if (jssyValue.sourceData.dataContext.size > 0 && dataContextInfo) {
-        const ourDataContextInfo =
-          dataContextInfo[jssyValue.sourceData.dataContext.last()];
+      const path = jssyValue.sourceData.queryPath
+        .map(step => step.field)
+        .toJS();
       
-        const data = propsFromOwner[ourDataContextInfo.ownerPropName];
-      
-        return extractPropValueFromData(
-          jssyValue,
-          data,
-          schema,
-          ourDataContextInfo.type,
-        );
+      if (jssyValue.sourceData.dataContext.size > 0) {
+        if (dataContextInfo) {
+          const ourDataContextInfo =
+            dataContextInfo[jssyValue.sourceData.dataContext.last()];
+  
+          const data = propsFromOwner[ourDataContextInfo.ownerPropName];
+          const rawValue = extractPropValueFromData(
+            jssyValue,
+            data,
+            schema,
+            ourDataContextInfo.type,
+          );
+  
+          const field = getFieldByPath(schema, path, ourDataContextInfo.type);
+          const fieldValueDef = getJssyValueDefOfField(field, schema);
+  
+          return coerceValue(
+            rawValue,
+            fieldValueDef,
+            valueDef,
+            null,
+            userTypedefs,
+          );
+        }
       } else if (data) {
-        return extractPropValueFromData(jssyValue, data, schema);
+        const rawValue = extractPropValueFromData(jssyValue, data, schema);
+        const field = getFieldByPath(schema, path);
+        const fieldValueDef = getJssyValueDefOfField(field, schema);
+        
+        return coerceValue(
+          rawValue,
+          fieldValueDef,
+          valueDef,
+          null,
+          userTypedefs,
+        );
       }
     }
     
     return NO_VALUE;
   }
   
-  _buildFunctionValue(jssyValue, userTypedefs, theMap, componentId, data) {
+  _buildFunctionValue(
+    jssyValue,
+    valueDef,
+    userTypedefs,
+    theMap,
+    componentId,
+    data,
+  ) {
     const { project } = this.props;
     
     const fnInfo = getFunctionInfo(
@@ -636,12 +671,20 @@ class BuilderComponent extends PureComponent {
     });
   
     // TODO: Pass fns as last argument
-    return fnInfo.fn(...argValues, {});
+    const rawValue = fnInfo.fn(...argValues, {});
+    
+    return coerceValue(
+      rawValue,
+      fnInfo.returnType,
+      valueDef,
+      null,
+      userTypedefs,
+    );
   }
   
   _buildActionsValue(
     jssyValue,
-    typedef,
+    valueDef,
     userTypedefs,
     theMap,
     componentId,
@@ -652,7 +695,7 @@ class BuilderComponent extends PureComponent {
   
     if (isPlaceholder) return noop;
   
-    const resolvedTypedef = resolveTypedef(typedef, userTypedefs);
+    const resolvedTypedef = resolveTypedef(valueDef, userTypedefs);
   
     return (...args) => {
       const stateUpdates = resolvedTypedef.sourceConfigs.actions.updateState;
@@ -698,7 +741,8 @@ class BuilderComponent extends PureComponent {
     };
   }
   
-  _buildStateValue(jssyValue) {
+  _buildStateValue(jssyValue, valueDef, userTypedefs) {
+    const { meta, components } = this.props;
     const { componentsState } = this.state;
     
     const componentState =
@@ -707,33 +751,55 @@ class BuilderComponent extends PureComponent {
     const haveValue =
       !!componentState &&
       componentState.has(jssyValue.sourceData.stateSlot);
+    
+    if (!haveValue) return NO_VALUE;
   
-    return haveValue
-      ? componentState.get(jssyValue.sourceData.stateSlot)
-      : NO_VALUE;
+    const rawValue = componentState.get(jssyValue.sourceData.stateSlot);
+    const sourceComponent = components.get(jssyValue.sourceData.componentId);
+    const sourceComponentMeta = getComponentMeta(sourceComponent.name, meta);
+    const stateSlotMeta =
+      sourceComponentMeta.state[jssyValue.sourceData.stateSlot];
+    
+    return coerceValue(
+      rawValue,
+      stateSlotMeta,
+      valueDef,
+      sourceComponentMeta.types,
+      userTypedefs,
+    );
   }
   
-  _buildRouteParamsValue(jssyValue) {
+  _buildRouteParamsValue(jssyValue, valueDef, userTypedefs) {
     const {
       params,
       interactive,
       project,
     } = this.props;
     
+    let rawValue = NO_VALUE;
     if (interactive) {
       const route = project.routes.get(jssyValue.sourceData.routeId);
-      return route
-        ? route.paramValues.get(jssyValue.sourceData.paramName)
-        : NO_VALUE;
+      if (route)
+        rawValue = route.paramValues.get(jssyValue.sourceData.paramName);
     } else {
-      return params[jssyValue.sourceData.paramName];
+      rawValue = params[jssyValue.sourceData.paramName];
     }
+    
+    if (rawValue === NO_VALUE) return NO_VALUE;
+    
+    return coerceValue(
+      rawValue,
+      ROUTE_PARAM_VALUE_DEF,
+      valueDef,
+      null,
+      userTypedefs,
+    );
   }
 
   /**
    *
    * @param {Object} jssyValue
-   * @param {JssyTypeDefinition} typedef
+   * @param {JssyTypeDefinition} valueDef
    * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
    * @param {?Immutable.Map<Object, Object>} [theMap=null]
    * @param {?number} [componentId=null]
@@ -742,8 +808,8 @@ class BuilderComponent extends PureComponent {
    */
   _buildValue(
     jssyValue,
-    typedef,
-    userTypedefs = null, // Required if the typedef references custom types
+    valueDef,
+    userTypedefs = null, // Required if the valueDef references custom types
     theMap = null, // Required to build values with 'designer' source
     componentId = null, // Required to build values with 'actions' source
     data = null, // Required to build values with 'data' source and no dataContext
@@ -751,7 +817,7 @@ class BuilderComponent extends PureComponent {
     if (jssyValue.source === 'static') {
       return this._buildStaticValue(
         jssyValue,
-        typedef,
+        valueDef,
         userTypedefs,
         theMap,
         componentId,
@@ -769,10 +835,11 @@ class BuilderComponent extends PureComponent {
       
       return this._buildDesignerValue(jssyValue, theMap);
     } else if (jssyValue.source === 'data') {
-      return this._buildDataValue(jssyValue, data);
+      return this._buildDataValue(jssyValue, valueDef, userTypedefs, data);
     } else if (jssyValue.source === 'function') {
       return this._buildFunctionValue(
         jssyValue,
+        valueDef,
         userTypedefs,
         theMap,
         componentId,
@@ -788,16 +855,16 @@ class BuilderComponent extends PureComponent {
       
       return this._buildActionsValue(
         jssyValue,
-        typedef,
+        valueDef,
         userTypedefs,
         theMap,
         componentId,
         data,
       );
     } else if (jssyValue.source === 'state') {
-      return this._buildStateValue(jssyValue);
+      return this._buildStateValue(jssyValue, valueDef, userTypedefs);
     } else if (jssyValue.source === 'routeParams') {
-      return this._buildRouteParamsValue(jssyValue);
+      return this._buildRouteParamsValue(jssyValue, valueDef, userTypedefs);
     }
 
     throw new Error(

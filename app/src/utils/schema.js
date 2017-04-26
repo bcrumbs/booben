@@ -905,12 +905,12 @@ const getJssyTypeOfField = (
 
 /**
  *
- * @param {DataField} fieldTypedef
+ * @param {DataField} field
  * @param {DataSchema} schema
  * @return {JssyValueDefinition}
  */
-export const getJssyValueDefOfField = (fieldTypedef, schema) =>
-  getJssyTypeOfField(fieldTypedef, schema, [], () => ({}));
+export const getJssyValueDefOfField = (field, schema) =>
+  getJssyTypeOfField(field, schema, [], () => ({}));
 
 /**
  *
@@ -966,7 +966,7 @@ export const fieldHasArguments = field => Object.keys(field.args).length > 0;
  *
  * @param {DataSchema} schema
  * @param {string[]} path
- * @param {string} rootTypeName
+ * @param {string} [rootTypeName]
  * @return {DataField[]}
  */
 export const getFieldsByPath = (
@@ -991,6 +991,25 @@ export const getFieldsByPath = (
   }
   
   return ret;
+};
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string[]} path
+ * @param {string} [rootTypeName]
+ * @return {?DataField}
+ */
+export const getFieldByPath = (
+  schema,
+  path,
+  rootTypeName = schema.queryTypeName,
+) => {
+  if (path.length === 0) return null;
+  
+  const typeName = getTypeNameByPath(schema, path.slice(0, -1), rootTypeName);
+  const type = schema.types[typeName];
+  return type.fields[path[path.length - 1]] || null;
 };
 
 /**
