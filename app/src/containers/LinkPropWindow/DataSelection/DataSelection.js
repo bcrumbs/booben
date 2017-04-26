@@ -53,7 +53,7 @@ const propTypes = {
   dataContext: PropTypes.arrayOf(PropTypes.string).isRequired,
   schema: PropTypes.object.isRequired,
   rootTypeName: PropTypes.string.isRequired,
-  userTypedefs: PropTypes.object.isRequired,
+  userTypedefs: PropTypes.object,
   linkTargetValueDef: PropTypes.object.isRequired,
   getLocalizedText: PropTypes.func,
   onSelect: PropTypes.func,
@@ -62,6 +62,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+  userTypedefs: null,
   getLocalizedText: returnArg,
   onSelect: noop,
   onReturn: noop,

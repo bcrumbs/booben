@@ -224,7 +224,7 @@ export class JssyValueEditor extends PureComponent {
     onLink({
       name,
       path,
-      targetValueDef: valueDef,
+      targetValueDef: getNestedTypedef(valueDef, path, userTypedefs),
       targetUserTypedefs: userTypedefs,
       ownerProps,
       ownerUserTypedefs,

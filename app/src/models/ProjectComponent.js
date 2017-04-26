@@ -26,7 +26,12 @@ import SourceDataDesigner from './SourceDataDesigner';
 import SourceDataState from './SourceDataState';
 import SourceDataRouteParams from './SourceDataRouteParams';
 import { getFunctionInfo } from '../utils/functions';
-import { getMutationField, getJssyTypeOfField } from '../utils/schema';
+
+import {
+  getMutationField,
+  getJssyValueDefOfMutationArgument,
+} from '../utils/schema';
+
 import { isUndef, isObject, isNumber } from '../utils/misc';
 
 import {
@@ -298,7 +303,7 @@ export const walkSimpleValues = (
         getMutationField(schema, action.params.mutation);
       
       action.params.args.forEach((argValue, argName) => {
-        const argValueDef = getJssyTypeOfField(
+        const argValueDef = getJssyValueDefOfMutationArgument(
           mutationField.args[argName],
           schema,
         );

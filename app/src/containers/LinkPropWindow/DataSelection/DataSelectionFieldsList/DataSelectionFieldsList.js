@@ -11,7 +11,7 @@ import { isCompatibleType } from '@jssy/types';
 import { DataList, DataItem } from '../../../../components/DataList/DataList';
 
 import {
-  getJssyTypeOfField,
+  getJssyValueDefOfField,
   fieldHasArguments,
   FieldKinds,
   formatFieldName,
@@ -24,7 +24,7 @@ const propTypes = {
   type: PropTypes.object.isRequired,
   schema: PropTypes.object.isRequired,
   linkTargetTypedef: PropTypes.object.isRequired,
-  linkTargetUserTypedefs: PropTypes.object.isRequired,
+  linkTargetUserTypedefs: PropTypes.object,
   getLocalizedText: PropTypes.func,
   onJumpIntoField: PropTypes.func,
   onSetFieldArguments: PropTypes.func,
@@ -32,6 +32,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+  linkTargetUserTypedefs: null,
   getLocalizedText: returnArg,
   onJumpIntoField: noop,
   onSetFieldArguments: noop,
@@ -217,7 +218,7 @@ export class DataSelectionFieldsList extends PureComponent {
     const items = [];
   
     _forOwn(type.fields, (field, fieldName) => {
-      const jssyType = getJssyTypeOfField(field, schema);
+      const jssyType = getJssyValueDefOfField(field, schema);
     
       const { isCompatible, hasCompatibleSubFields } = getFieldCompatibility(
         jssyType,
@@ -238,7 +239,7 @@ export class DataSelectionFieldsList extends PureComponent {
     
       _forOwn(field.connectionFields, (connField, connFieldName) => {
         const fullName = formatFieldName(fieldName, connFieldName);
-        const connFieldJssyType = getJssyTypeOfField(connField, schema);
+        const connFieldJssyType = getJssyValueDefOfField(connField, schema);
       
         const {
           isCompatible,

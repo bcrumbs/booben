@@ -56,7 +56,7 @@ import { setInPath } from '../../../utils/path';
 import {
   getMutationType,
   getMutationField,
-  getJssyTypeOfField,
+  getJssyValueDefOfMutationArgument,
 } from '../../../utils/schema';
 
 import {
@@ -243,7 +243,7 @@ class ActionEditorComponent extends PureComponent {
         params = params.merge({
           mutation: mutationName,
           args: Map(_mapValues(mutationField.args, arg => {
-            const valueDef = getJssyTypeOfField(arg, schema);
+            const valueDef = getJssyValueDefOfMutationArgument(arg, schema);
             return jssyValueToImmutable(buildDefaultValue(valueDef));
           })),
         });
@@ -632,7 +632,7 @@ class ActionEditorComponent extends PureComponent {
           key={key}
           name={argName}
           value={action.params.args.get(argName)}
-          valueDef={getJssyTypeOfField(arg, schema)}
+          valueDef={getJssyValueDefOfMutationArgument(arg, schema)}
           optional={!arg.nonNull}
           language={language}
           ownerProps={ownerProps}

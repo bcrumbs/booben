@@ -52,7 +52,12 @@ import {
   buildMutation,
 } from '../../../../utils/graphql';
 
-import { getJssyTypeOfField, getMutationField } from '../../../../utils/schema';
+import {
+  getJssyValueDefOfQueryArgument,
+  getJssyValueDefOfMutationArgument,
+  getMutationField,
+} from '../../../../utils/schema';
+
 import { getFunctionInfo } from '../../../../utils/functions';
 import { noop, returnNull, isString, isUndef } from '../../../../utils/misc';
 
@@ -348,7 +353,11 @@ class BuilderComponent extends PureComponent {
       
         action.params.args.forEach((argValue, argName) => {
           const mutationArg = mutationField.args[argName];
-          const argJssyType = getJssyTypeOfField(mutationArg, schema);
+          const argJssyType = getJssyValueDefOfMutationArgument(
+            mutationArg,
+            schema,
+          );
+          
           const value = this._buildValue(
             argValue,
             argJssyType,
@@ -1197,7 +1206,7 @@ class BuilderComponent extends PureComponent {
         
         ({ argDefinition, argValue }) => this._buildValue(
           argValue,
-          getJssyTypeOfField(argDefinition, this.props.schema),
+          getJssyValueDefOfQueryArgument(argDefinition, this.props.schema),
         ),
       );
       

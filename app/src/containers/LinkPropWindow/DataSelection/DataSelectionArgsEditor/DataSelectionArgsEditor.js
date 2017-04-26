@@ -11,7 +11,7 @@ import { PropsList } from '../../../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
 import { jssyValueToImmutable } from '../../../../models/ProjectComponent';
 import { buildDefaultValue } from '../../../../utils/meta';
-import { getJssyTypeOfField } from '../../../../utils/schema';
+import { getJssyValueDefOfQueryArgument } from '../../../../utils/schema';
 import { noop, returnArg, objectToArray } from '../../../../utils/misc';
 
 //noinspection JSUnresolvedVariable
@@ -114,7 +114,7 @@ export class DataSelectionArgsEditor extends PureComponent {
     const { field, schema, fieldArgs, getLocalizedText } = this.props;
   
     const items = objectToArray(field.args, (arg, argName) => {
-      const valueDef = getJssyTypeOfField(arg, schema);
+      const valueDef = getJssyValueDefOfQueryArgument(arg, schema);
       
       let value = fieldArgs ? fieldArgs.get(argName) || null : null;
       if (arg.nonNull && !value)

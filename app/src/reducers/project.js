@@ -99,7 +99,7 @@ import {
 import {
   parseGraphQLSchema,
   getMutationField,
-  getJssyTypeOfField,
+  getJssyValueDefOfMutationArgument,
 } from '../utils/schema';
 
 import { walkPath, expandPath, getObjectByPath } from '../utils/path';
@@ -624,7 +624,11 @@ const getValueInfoByPath = (path, state) => {
           
           const arg = mutation.args[step];
   
-          currentValueDef = getJssyTypeOfField(arg, state.schema);
+          currentValueDef = getJssyValueDefOfMutationArgument(
+            arg,
+            state.schema,
+          );
+          
           userTypedefs = null;
         } else if (currentValueType === ValueTypes.ACTION_METHOD_ARG) {
           const targetComponent =

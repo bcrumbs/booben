@@ -807,10 +807,18 @@ const getJssyTypeOfFieldMemo = new Map();
  *
  * @param {DataFieldTypeDefinition} fieldTypedef
  * @param {DataSchema} schema
+ * @param {string[]} source
+ * @param {function(typedef: JssyTypeDefinition): Object<string, Object>} sourceConfigsFromTypedef
  * @param {boolean} [checkRequired=false]
- * @return {JssyValueDefinition}
+ * @return {JssyTypeDefinition}
  */
-const _getJssyTypeOfField = (fieldTypedef, schema, checkRequired) => {
+const getJssyTypeOfField = (
+  fieldTypedef,
+  schema,
+  source,
+  sourceConfigsFromTypedef,
+  checkRequired = false,
+) => {
   let memoBySchema = getJssyTypeOfFieldMemo.get(schema);
   if (!memoBySchema) {
     memoBySchema = new Map();
@@ -874,7 +882,14 @@ const _getJssyTypeOfField = (fieldTypedef, schema, checkRequired) => {
   if (deferredSubFields) {
     deferredSubFieldsTarget.fields = _mapValues(
       deferredSubFields,
-      subField => _getJssyTypeOfField(subField, schema, true),
+      
+      subField => getJssyTypeOfField(
+        subField,
+        schema,
+        source,
+        sourceConfigsFromTypedef,
+        true,
+      ),
     );
   }
 
@@ -882,26 +897,63 @@ const _getJssyTypeOfField = (fieldTypedef, schema, checkRequired) => {
   
   ret.label = fieldTypedef.name;
   ret.description = fieldTypedef.description;
-  ret.source = ['static', 'state', 'routeParams'];
-  ret.sourceConfigs = {
-    static: {
-      default: makeDefaultNonNullValue(ret),
-    },
-    state: {},
-    routeParams: {},
-  };
+  ret.source = source;
+  ret.sourceConfigs = sourceConfigsFromTypedef(ret);
   
   return ret;
 };
 
 /**
  *
- * @param {DataFieldTypeDefinition} fieldTypedef
+ * @param {DataField} fieldTypedef
  * @param {DataSchema} schema
  * @return {JssyValueDefinition}
  */
-export const getJssyTypeOfField = (fieldTypedef, schema) =>
-  _getJssyTypeOfField(fieldTypedef, schema);
+export const getJssyValueDefOfField = (fieldTypedef, schema) =>
+  getJssyTypeOfField(fieldTypedef, schema, [], () => ({}));
+
+/**
+ *
+ * @param {DataFieldArg} arg
+ * @param {DataSchema} schema
+ * @return {JssyValueDefinition}
+ */
+export const getJssyValueDefOfMutationArgument = (arg, schema) =>
+  getJssyTypeOfField(
+    arg,
+    schema,
+    ['static', 'data', 'state', 'routeParams'],
+    
+    typedef => ({
+      static: {
+        default: makeDefaultNonNullValue(typedef),
+      },
+      data: {},
+      state: {},
+      routeParams: {},
+    }),
+  );
+
+/**
+ *
+ * @param {DataFieldArg} arg
+ * @param {DataSchema} schema
+ * @return {JssyValueDefinition}
+ */
+export const getJssyValueDefOfQueryArgument = (arg, schema) =>
+  getJssyTypeOfField(
+    arg,
+    schema,
+    ['static', 'state', 'routeParams'],
+    
+    typedef => ({
+      static: {
+        default: makeDefaultNonNullValue(typedef),
+      },
+      state: {},
+      routeParams: {},
+    }),
+  );
 
 /**
  *
