@@ -45,7 +45,11 @@ import {
   ComponentActionsEditor,
 } from '../containers/ComponentActionsEditor/ComponentActionsEditor';
 
-import { Canvas } from '../containers/Canvas/Canvas';
+import {
+  ComponentStateSlotSelect,
+} from '../containers/ComponentStateSlotSelect/ComponentStateSlotSelect';
+
+import { Canvas, getComponentCoords } from '../containers/Canvas/Canvas';
 
 import {
   ComponentLayoutSelection,
@@ -68,6 +72,7 @@ import {
   selectLayoutForNewComponent,
   saveComponentForProp,
   cancelConstructComponentForProp,
+  pickComponentStateSlotDone,
 } from '../actions/project';
 
 import { dropComponent, ComponentDropAreas } from '../actions/preview';
@@ -88,6 +93,8 @@ import {
   getComponentPropName,
   componentHasActions,
 } from '../utils/meta';
+
+import { returnTrue } from '../utils/misc';
 
 import {
   TOOL_ID_LIBRARY,
@@ -123,6 +130,9 @@ const propTypes = {
   language: PropTypes.string,
   haveNestedConstructor: PropTypes.bool,
   nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(PropTypes.string),
+  pickedComponentId: PropTypes.number.isRequired,
+  componentStateSlotsListIsVisible: PropTypes.bool.isRequired,
+  isCompatibleStateSlot: PropTypes.func.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   onRenameComponent: PropTypes.func.isRequired,
   onDeleteComponent: PropTypes.func.isRequired,
@@ -130,6 +140,7 @@ const propTypes = {
   onSaveComponentForProp: PropTypes.func.isRequired,
   onCancelConstructComponentForProp: PropTypes.func.isRequired,
   onDropComponent: PropTypes.func.isRequired,
+  onSelectComponentStateSlot: PropTypes.func.isRequired,
 };
 
 const LIBRARY_ICON = 'cubes';
@@ -188,6 +199,14 @@ const mapStateToProps = state => ({
   language: state.project.languageForComponentProps,
   haveNestedConstructor: haveNestedConstructorsSelector(state),
   nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
+  pickedComponentId: state.project.pickedComponentId,
+  componentStateSlotsListIsVisible:
+    state.project.componentStateSlotsListIsVisible,
+  
+  isCompatibleStateSlot:
+    state.project.pickingComponentStateSlotsFilter ||
+    returnTrue,
+  
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -209,6 +228,9 @@ const mapDispatchToProps = dispatch => ({
   
   onDropComponent: area =>
     void dispatch(dropComponent(area)),
+  
+  onSelectComponentStateSlot: ({ stateSlot }) =>
+    void dispatch(pickComponentStateSlotDone(stateSlot)),
 });
 
 /* eslint-disable react/prop-types */
@@ -222,6 +244,8 @@ const NestedConstructorsBreadcrumbsItem = props => (
 class DesignRoute extends PureComponent {
   constructor(props, context) {
     super(props, context);
+    
+    this._canvas = null;
 
     this.state = {
       confirmDeleteComponentDialogIsVisible: false,
@@ -568,12 +592,50 @@ class DesignRoute extends PureComponent {
       );
     }
   }
+  
+  _renderStateSlotSelect() {
+    const {
+      meta,
+      components,
+      pickedComponentId,
+      isCompatibleStateSlot,
+      language,
+      onSelectComponentStateSlot,
+    } = this.props;
+    
+    const component = components.get(pickedComponentId);
+    const componentMeta = getComponentMeta(component.name, meta);
+    const componentElementCoords = getComponentCoords(pickedComponentId);
+    
+    if (!componentElementCoords) return null;
+    
+    const wrapperStyle = {
+      position: 'absolute',
+      zIndex: '1000',
+      left: `${componentElementCoords.x}px`,
+      top: `${componentElementCoords.y}px`,
+    };
+    
+    return (
+      <Portal isOpened>
+        <div style={wrapperStyle}>
+          <ComponentStateSlotSelect
+            componentMeta={componentMeta}
+            isCompatibleStateSlot={isCompatibleStateSlot}
+            language={language}
+            onSelect={onSelectComponentStateSlot}
+          />
+        </div>
+      </Portal>
+    );
+  }
 
   render() {
     const {
       components,
       selectingComponentLayout,
       firstSelectedComponentId,
+      componentStateSlotsListIsVisible,
       getLocalizedText,
     } = this.props;
 
@@ -603,6 +665,10 @@ class DesignRoute extends PureComponent {
         { title: componentTitle },
       );
     }
+    
+    let componentStateSlotSelect = null;
+    if (componentStateSlotsListIsVisible)
+      componentStateSlotSelect = this._renderStateSlotSelect();
 
     return (
       <Desktop
@@ -639,6 +705,8 @@ class DesignRoute extends PureComponent {
             onDrop={this._handleDropComponent}
           />
         </Portal>
+        
+        {componentStateSlotSelect}
       </Desktop>
     );
   }

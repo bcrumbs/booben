@@ -243,7 +243,7 @@ export class JssyValueEditor extends PureComponent {
     onPick({
       name,
       path,
-      targetValueDef: valueDef,
+      targetValueDef: getNestedTypedef(valueDef, path, userTypedefs),
       targetUserTypedefs: userTypedefs,
     });
   }

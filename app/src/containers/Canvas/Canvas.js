@@ -66,6 +66,13 @@ let token = null;
 const getToken = () => token;
 const getTokenFromLS = () => localStorage.getItem('jssy_auth_token');
 
+let canvas = null;
+
+export const getComponentCoords = componentId => {
+  if (!canvas) return null;
+  return canvas._getComponentCoords(componentId);
+};
+
 class CanvasComponent extends Component {
   constructor(props, context) {
     super(props, context);
@@ -108,6 +115,8 @@ class CanvasComponent extends Component {
           onEnter: this._handleEnter,
           onLeave: this._handleLeave,
         });
+  
+        canvas = this;
       })
       .catch(error => {
         this.setState({ error });
@@ -120,6 +129,25 @@ class CanvasComponent extends Component {
   
   componentWillUnmount() {
     this._canvasCleanup();
+    canvas = null;
+  }
+  
+  _getComponentCoords(componentId) {
+    if (!this._iframe) return null;
+  
+    const document = this._iframe.contentWindow.document;
+    const selector = `[data-jssy-id="${componentId}"]`;
+    const element = document.querySelector(selector);
+    
+    if (!element) return null;
+    
+    const elementRect = element.getBoundingClientRect();
+    const iframeRect = this._iframe.getBoundingClientRect();
+    
+    return {
+      x: iframeRect.left + elementRect.left,
+      y: iframeRect.top + elementRect.top,
+    };
   }
   
   _saveIFrameRef(ref) {

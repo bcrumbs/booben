@@ -196,7 +196,11 @@ class ActionEditorComponent extends PureComponent {
     const { action, pickingPath } = this.state;
     
     if (pickingComponent && !nextProps.pickingComponent) {
-      if (nextProps.pickingComponentStateSlot) return;
+      if (
+        nextProps.pickedComponentId === INVALID_ID ||
+        nextProps.pickingComponentStateSlot
+      )
+        return;
 
       if (action.type === 'method') {
         this._handleMethodActionSetComponent({
@@ -210,6 +214,8 @@ class ActionEditorComponent extends PureComponent {
     }
 
     if (pickingComponentStateSlot && !nextProps.pickingComponentStateSlot) {
+      if (nextProps.pickedComponentId === INVALID_ID) return;
+      
       const newValue = new JssyValue({
         source: 'state',
         sourceData: new SourceDataState({

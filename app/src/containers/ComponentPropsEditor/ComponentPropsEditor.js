@@ -276,7 +276,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     };
 
     const stateSlotFilter = stateSlot =>
-        isCompatibleType(linkingValueDef, stateSlot);
+      isCompatibleType(linkingValueDef, stateSlot);
 
     this.setState({
       pickingPath: buildFullPath(componentId, isSystemProp, name, path),
@@ -288,6 +288,8 @@ class ComponentPropsEditorComponent extends PureComponent {
   _handlePickApply({ componentId, stateSlot }) {
     const { onReplacePropValue } = this.props;
     const { pickingPath } = this.state;
+    
+    if (componentId === INVALID_ID) return;
 
     const newValue = new JssyValue({
       source: 'state',
