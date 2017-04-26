@@ -1015,6 +1015,8 @@ class BuilderComponent extends PureComponent {
       placeholderContainerId,
       placeholderAfter,
     } = this.props;
+  
+    const key = `placeholder-${containerId}:${afterIdx}`;
 
     const collapsed =
       !draggingOverPlaceholder ||
@@ -1024,6 +1026,7 @@ class BuilderComponent extends PureComponent {
     if (collapsed) {
       return (
         <div
+          key={key}
           style={{ width: '0', height: '0', margin: '0' }}
           data-jssy-placeholder=""
           data-jssy-container-id={String(containerId)}
@@ -1035,8 +1038,6 @@ class BuilderComponent extends PureComponent {
     const rootDraggedComponentId = draggedComponentId !== INVALID_ID
       ? draggedComponentId
       : 0;
-
-    const key = `placeholder-${containerId}:${afterIdx}`;
 
     return (
       <Builder
@@ -1232,7 +1233,7 @@ class BuilderComponent extends PureComponent {
     props.children = this._renderComponentChildren(component, isPlaceholder);
 
     if (!isPlaceholder) {
-      props.key = component.id;
+      props.key = String(component.id);
       
       if (this._renderHints.needRefs.has(component.id))
         props.ref = this._saveComponentRef.bind(this, component.id);
