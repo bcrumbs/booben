@@ -51,6 +51,7 @@ export class ComponentsDragArea extends PureComponent {
     this._placeholderElement = null;
     this._debugDataContainerElement = null;
     this._dropZones = new Map();
+    this._dropZoneDimensionsCache = new Map();
     this._lastDraggedDropZoneId = '';
     this._dragging = false;
     this._snapElement = null;
@@ -259,6 +260,17 @@ export class ComponentsDragArea extends PureComponent {
     }
   }
 
+  _getDropZoneDimensions(dropZoneId) {
+    const cached = this._dropZoneDimensionsCache.get(dropZoneId);
+    if (cached) return cached;
+
+    const dropZone = this._dropZones.get(dropZoneId);
+    const dimensions = dropZone.element.getBoundingClientRect();
+
+    this._dropZoneDimensionsCache.set(dropZoneId, dimensions);
+    return dimensions;
+  }
+
   /**
    *
    * @param {MouseEvent} event
@@ -274,8 +286,8 @@ export class ComponentsDragArea extends PureComponent {
     let foundDropZone = false;
 
     // eslint-disable-next-line no-restricted-syntax
-    for (const { id, element, onDrag, onEnter } of this._dropZones.values()) {
-      const { left, top, width, height } = element.getBoundingClientRect();
+    for (const { id, onDrag, onEnter } of this._dropZones.values()) {
+      const { left, top, width, height } = this._getDropZoneDimensions(id);
       const mouseIsInDropZone = pointIsInRect(
         event.pageX,
         event.pageY,
@@ -347,6 +359,8 @@ export class ComponentsDragArea extends PureComponent {
 
     if (dropZoneId)
       onDrop({ dropZoneId, data });
+
+    this._dropZoneDimensionsCache.clear();
   }
 
   _handleDragTryStart({ title, data, element }) {
