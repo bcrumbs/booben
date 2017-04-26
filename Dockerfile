@@ -14,6 +14,7 @@ RUN apk --no-cache add --update \
       python \
       make \
       g++ \
+      git \
     && yarn install --production \
     && npm dedupe \
     && npm rm -g yarn npm \
