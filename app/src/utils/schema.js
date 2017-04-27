@@ -280,7 +280,7 @@ const getGQLFieldType = (field, schema) => {
  * @param {string} argName
  * @return {?GQLInputValue}
  */
-const findFieldArg = (field, argName) => {
+const findGQLFieldArg = (field, argName) => {
   if (!field.args) return null;
   return field.args.find(arg => arg.name === argName) || null;
 };
@@ -326,8 +326,8 @@ const gqlTypeHasInterface = (type, interfaceName) =>
  * @return {boolean}
  */
 const isRelayNodeInterface = type =>
-  type.name === RELAY_TYPE_NODE_INTERFACE &&
   type.kind === GQLTypeKinds.INTERFACE &&
+  type.name === RELAY_TYPE_NODE_INTERFACE &&
   type.fields.length === 1 &&
   type.fields[0].type.kind === GQLTypeKinds.NON_NULL &&
   type.fields[0].type.ofType &&
@@ -350,7 +350,7 @@ const isRelayPageInfoType = type => {
   if (type.kind !== GQLTypeKinds.OBJECT || type.name !== RELAY_TYPE_PAGEINFO)
     return false;
   
-  if (!type.fields || type.fields.length !== RELAY_PAGEINFO_FIELDS_NUM)
+  if (!type.fields || type.fields.length < RELAY_PAGEINFO_FIELDS_NUM)
     return false;
   
   const hasNextPageField =
@@ -461,16 +461,16 @@ const isRelayConnectionField = (field, schema, relayTypes) => {
   if (!field.args) return false;
   if (field.args.length < RELAY_CONNECTION_ARGS_NUM) return false;
 
-  const firstArg = findFieldArg(field, RELAY_CONNECTION_ARG_FIRST);
+  const firstArg = findGQLFieldArg(field, RELAY_CONNECTION_ARG_FIRST);
   if (!firstArg || firstArg.type.name !== 'Int') return false;
 
-  const lastArg = findFieldArg(field, RELAY_CONNECTION_ARG_LAST);
+  const lastArg = findGQLFieldArg(field, RELAY_CONNECTION_ARG_LAST);
   if (!lastArg || lastArg.type.name !== 'Int') return false;
 
-  const afterArg = findFieldArg(field, RELAY_CONNECTION_ARG_AFTER);
+  const afterArg = findGQLFieldArg(field, RELAY_CONNECTION_ARG_AFTER);
   if (!afterArg || afterArg.type.name !== 'String') return false;
 
-  const beforeArg = findFieldArg(field, RELAY_CONNECTION_ARG_BEFORE);
+  const beforeArg = findGQLFieldArg(field, RELAY_CONNECTION_ARG_BEFORE);
   if (!beforeArg || beforeArg.type.name !== 'String') return false;
 
   const connectionType = getGQLFieldType(field, schema);
