@@ -19,6 +19,7 @@ import { connectDropZone } from '../ComponentsDragArea/ComponentsDragArea';
 import { URL_GRAPHQL_PREFIX } from '../../../../shared/constants';
 import { LOADED } from '../../constants/loadStates';
 import { CANVAS_CONTAINER_ID, CANVAS_OVERLAY_ID } from './content/constants';
+import { ComponentDropAreas } from '../../actions/preview';
 import { buildMutation } from '../../utils/graphql';
 import { waitFor } from '../../utils/misc';
 import contentTemplate from './content/content.ejs';
@@ -29,7 +30,7 @@ const propTypes = {
   store: PropTypes.any,
   interactive: PropTypes.bool,
   containerStyle: PropTypes.string,
-  dropZoneId: PropTypes.string.isRequired,
+  dropZoneId: PropTypes.string,
   onDropZoneReady: PropTypes.func.isRequired,
   onDropZoneSnap: PropTypes.func.isRequired,
   onDropZoneUnsnap: PropTypes.func.isRequired,
@@ -40,6 +41,7 @@ const defaultProps = {
   store: {},
   interactive: false,
   containerStyle: '',
+  dropZoneId: ComponentDropAreas.CANVAS,
 };
 
 const EVENTS_FOR_PARENT_FRAME = [

@@ -57,6 +57,7 @@ import {
   currentSelectedComponentIdsSelector,
   currentHighlightedComponentIdsSelector,
   getLocalizedTextFromState,
+  rootDraggedComponentSelector,
 } from '../../selectors';
 
 import ProjectComponentRecord from '../../models/ProjectComponent';
@@ -77,17 +78,13 @@ const propTypes = {
   ).isRequired,
   expandedItemIds: ImmutablePropTypes.setOf(PropTypes.number).isRequired,
   draggingComponent: PropTypes.bool.isRequired,
-  draggedComponentId: PropTypes.number.isRequired,
-  draggedComponents: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponentRecord),
-    PropTypes.number,
-  ),
+  rootDraggedComponent: PropTypes.instanceOf(ProjectComponentRecord),
   draggingOverPlaceholder: PropTypes.bool.isRequired,
   placeholderContainerId: PropTypes.number.isRequired,
   placeholderAfter: PropTypes.number.isRequired,
   meta: PropTypes.object.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
-  dropZoneId: PropTypes.string.isRequired,
+  dropZoneId: PropTypes.string,
   onExpandItem: PropTypes.func.isRequired,
   onCollapseItem: PropTypes.func.isRequired,
   onSelectItem: PropTypes.func.isRequired,
@@ -104,7 +101,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-  draggedComponents: null,
+  rootDraggedComponent: null,
+  dropZoneId: ComponentDropAreas.TREE,
 };
 
 const mapStateToProps = state => ({
@@ -114,14 +112,12 @@ const mapStateToProps = state => ({
   highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
   expandedItemIds: state.project.treeExpandedItemIds,
   draggingComponent: state.project.draggingComponent,
-  draggedComponentId: state.project.draggedComponentId,
-  draggedComponents: state.project.draggedComponents,
+  rootDraggedComponent: rootDraggedComponentSelector(state),
   draggingOverPlaceholder: state.project.draggingOverPlaceholder,
   placeholderContainerId: state.project.placeholderContainerId,
   placeholderAfter: state.project.placeholderAfter,
   meta: state.project.meta,
   getLocalizedText: getLocalizedTextFromState(state),
-  dropZoneId: ComponentDropAreas.TREE,
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -388,18 +384,7 @@ class ComponentsTreeViewComponent extends PureComponent {
    * @private
    */
   _canInsertDraggedComponent(containerId, position) {
-    const {
-      meta,
-      components,
-      draggedComponents,
-      draggedComponentId,
-    } = this.props;
-    
-    const rootDraggedComponentId =
-      draggedComponentId === INVALID_ID ? 0 : draggedComponentId;
-    
-    const rootDraggedComponent =
-      draggedComponents.get(rootDraggedComponentId);
+    const { meta, components, rootDraggedComponent } = this.props;
     
     const container = components.get(containerId);
     const containerChildNames =
@@ -458,8 +443,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     const {
       meta,
       components,
-      draggedComponents,
-      draggedComponentId,
+      rootDraggedComponent,
       draggingOverPlaceholder,
       expandedItemIds,
       onDragOverNothing,
@@ -477,12 +461,6 @@ class ComponentsTreeViewComponent extends PureComponent {
       if (draggingOverPlaceholder) onDragOverNothing();
       return;
     }
-  
-    const rootDraggedComponentId =
-      draggedComponentId === INVALID_ID ? 0 : draggedComponentId;
-  
-    const rootDraggedComponent =
-      draggedComponents.get(rootDraggedComponentId);
 
     const component = components.get(componentId);
     const parentId = component.parentId;
@@ -786,8 +764,7 @@ class ComponentsTreeViewComponent extends PureComponent {
    */
   _renderSnapBlockOrPlaceholder(containerId, afterIdx) {
     const {
-      draggedComponents,
-      draggedComponentId,
+      rootDraggedComponent,
       draggingOverPlaceholder,
       placeholderContainerId,
       placeholderAfter,
@@ -801,14 +778,7 @@ class ComponentsTreeViewComponent extends PureComponent {
       placeholderAfter === afterIdx;
 
     if (willRenderPlaceholder) {
-      const rootDraggedComponentId =
-        draggedComponentId !== INVALID_ID ? draggedComponentId : 0;
-  
-      const rootDraggedComponent =
-        draggedComponents.get(rootDraggedComponentId);
-  
       const title = rootDraggedComponent.title || rootDraggedComponent.name;
-  
       return this._renderLine(title, isDraggingOnTree);
     }
 
@@ -826,7 +796,7 @@ class ComponentsTreeViewComponent extends PureComponent {
       components,
       rootComponentId,
       draggingComponent,
-      draggedComponentId,
+      rootDraggedComponent,
     } = this.props;
 
     const componentIds = parentComponentId !== INVALID_ID
@@ -838,7 +808,10 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     componentIds.forEach((componentId, idx) => {
       if (draggingComponent) {
-        if (componentId === draggedComponentId) {
+        if (
+          !rootDraggedComponent.isNew &&
+          componentId === rootDraggedComponent.id
+        ) {
           gotDraggedComponent = true;
           return;
         }

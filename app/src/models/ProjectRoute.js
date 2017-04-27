@@ -84,11 +84,4 @@ export const getMaxComponentId = route =>
     ? route.components.keySeq().max()
     : INVALID_ID;
 
-export const getOutletComponentId = route =>
-  route.components.findKey(component => component.name === 'Outlet') ||
-  INVALID_ID;
-
-export const getParentComponentId = (route, componentId) =>
-  route.components.get(componentId).parentId;
-
 export default ProjectRouteRecord;

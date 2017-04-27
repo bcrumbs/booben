@@ -6,6 +6,7 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { graphql, withApollo } from 'react-apollo';
 import _forOwn from 'lodash.forown';
@@ -14,30 +15,21 @@ import _get from 'lodash.get';
 import _set from 'lodash.set';
 import { Map as ImmutableMap } from 'immutable';
 import { resolveTypedef, coerceValue, TypeNames } from '@jssy/types';
-import { getComponentById } from '../../../../models/Project';
-
-import {
-  walkComponentsTree,
-  walkSimpleValues,
-} from '../../../../models/ProjectComponent';
-
-import jssyConstants from '../../../../constants/jssyConstants';
 import { ContentPlaceholder } from '../components/ContentPlaceholder';
 import { Outlet } from '../components/Outlet';
 import { getComponentByName } from '../componentsLibrary';
 import isPseudoComponent from '../isPseudoComponent';
 
+import ProjectComponent, {
+  walkComponentsTree,
+  walkSimpleValues,
+} from '../../../../models/ProjectComponent';
+
 import {
   currentSelectedComponentIdsSelector,
   currentHighlightedComponentIdsSelector,
+  rootDraggedComponentSelector,
 } from '../../../../selectors';
-
-import {
-  INVALID_ID,
-  NO_VALUE,
-  SYSTEM_PROPS,
-  ROUTE_PARAM_VALUE_DEF,
-} from '../../../../constants/misc';
 
 import {
   isContainerComponent,
@@ -62,15 +54,25 @@ import {
 
 import { getFunctionInfo } from '../../../../utils/functions';
 import { noop, returnNull, isString, isUndef } from '../../../../utils/misc';
+import jssyConstants from '../../../../constants/jssyConstants';
+
+import {
+  INVALID_ID,
+  NO_VALUE,
+  SYSTEM_PROPS,
+  ROUTE_PARAM_VALUE_DEF,
+} from '../../../../constants/misc';
 
 const propTypes = {
   params: PropTypes.object, // Comes from react-router in non-interactive mode
   client: PropTypes.object, // Comes from react-apollo
   interactive: PropTypes.bool,
-  components: PropTypes.object, // Immutable.Map<number, Component>
+  components: ImmutablePropTypes.mapOf(
+    PropTypes.instanceOf(ProjectComponent),
+    PropTypes.number,
+  ).isRequired,
   rootId: PropTypes.number,
   dontPatch: PropTypes.bool,
-  enclosingComponentId: PropTypes.number,
   isPlaceholder: PropTypes.bool,
   afterIdx: PropTypes.number,
   containerId: PropTypes.number,
@@ -82,14 +84,18 @@ const propTypes = {
   meta: PropTypes.object.isRequired,
   schema: PropTypes.object.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
-  draggedComponentId: PropTypes.number.isRequired,
+  rootDraggedComponent: PropTypes.instanceOf(ProjectComponent),
   draggedComponents: PropTypes.any,
   draggingOverPlaceholder: PropTypes.bool.isRequired,
   placeholderContainerId: PropTypes.number.isRequired,
   placeholderAfter: PropTypes.number.isRequired,
   showContentPlaceholders: PropTypes.bool.isRequired,
-  selectedComponentIds: PropTypes.object.isRequired, // Immutable.Set<number>
-  highlightedComponentIds: PropTypes.object.isRequired, // Immutable.Set<number>
+  selectedComponentIds: ImmutablePropTypes.setOf(
+    PropTypes.number,
+  ).isRequired,
+  highlightedComponentIds: ImmutablePropTypes.setOf(
+    PropTypes.number,
+  ).isRequired,
   onNavigate: PropTypes.func,
   onOpenURL: PropTypes.func,
 };
@@ -101,7 +107,6 @@ const defaultProps = {
   components: null,
   rootId: INVALID_ID,
   dontPatch: false,
-  enclosingComponentId: INVALID_ID,
   isPlaceholder: false,
   afterIdx: -1,
   containerId: INVALID_ID,
@@ -110,6 +115,7 @@ const defaultProps = {
   dataContextInfo: null,
   ignoreOwnerProps: false,
   draggedComponents: null,
+  rootDraggedComponent: null,
   onNavigate: noop,
   onOpenURL: noop,
 };
@@ -119,7 +125,7 @@ const mapStateToProps = state => ({
   meta: state.project.meta,
   schema: state.project.schema,
   draggingComponent: state.project.draggingComponent,
-  draggedComponentId: state.project.draggedComponentId,
+  rootDraggedComponent: rootDraggedComponentSelector(state),
   draggedComponents: state.project.draggedComponents,
   draggingOverPlaceholder: state.project.draggingOverPlaceholder,
   placeholderContainerId: state.project.placeholderContainerId,
@@ -156,22 +162,33 @@ class BuilderComponent extends PureComponent {
   }
   
   componentWillReceiveProps(nextProps) {
-    if (
-      nextProps.components !== this.props.components ||
-      nextProps.rootId !== this.props.rootId
-    ) {
+    const { components, rootId } = this.props;
+    const { componentsState } = this.state;
+    
+    const componentsUpdated =
+      nextProps.components !== components ||
+      nextProps.rootId !== rootId;
+    
+    if (componentsUpdated) {
       this._renderHints = this._getRenderHints(
         nextProps.components,
         nextProps.rootId,
       );
       
-      // TODO: Merge current state with initial
+      const initialComponentsState = this._getInitialComponentsState(
+        nextProps.components,
+        this._renderHints,
+      );
+      
+      const nextComponentsState = initialComponentsState.map(
+        (componentState, componentId) => componentState.map(
+          (value, slotName) =>
+            componentsState.getIn([componentId, slotName]) || value,
+        ),
+      );
       
       this.setState({
-        componentsState: this._getInitialComponentsState(
-          nextProps.components,
-          this._renderHints,
-        ),
+        componentsState: nextComponentsState,
       });
     }
   }
@@ -957,7 +974,7 @@ class BuilderComponent extends PureComponent {
    * @private
    */
   _renderPseudoComponent(component, isPlaceholderRoot = false) {
-    const { interactive, isPlaceholder } = this.props;
+    const { interactive, isPlaceholder, children } = this.props;
     
     const systemProps = this._buildSystemProps(component, null);
     if (!systemProps.visible) return null;
@@ -965,10 +982,10 @@ class BuilderComponent extends PureComponent {
     const props = this._buildProps(component, null);
     
     if (component.name === 'Outlet') {
-      if (isPlaceholder || (interactive && !this.props.children))
+      if (isPlaceholder || (interactive && !children))
         return this._renderOutletComponent(component, isPlaceholderRoot);
       else
-        return this.props.children;
+        return children;
     } else if (component.name === 'Text') {
       return props.text || '';
     } else if (component.name === 'List') {
@@ -976,25 +993,6 @@ class BuilderComponent extends PureComponent {
       return props.data.map((item, idx) => (
         <ItemComponent key={String(idx)} item={item} />
       ));
-    } else {
-      return null;
-    }
-  }
-  
-  /**
-   *
-   * @param {number} containerId
-   * @return {Object}
-   * @private
-   */
-  _getContainerComponent(containerId) {
-    if (containerId !== INVALID_ID) {
-      return this.props.components.get(containerId);
-    } else if (this.props.enclosingComponentId !== INVALID_ID) {
-      return getComponentById(
-        this.props.project,
-        this.props.enclosingComponentId,
-      );
     } else {
       return null;
     }
@@ -1009,8 +1007,8 @@ class BuilderComponent extends PureComponent {
    */
   _renderPlaceholderForDraggedComponent(containerId, afterIdx) {
     const {
+      rootDraggedComponent,
       draggedComponents,
-      draggedComponentId,
       draggingOverPlaceholder,
       placeholderContainerId,
       placeholderAfter,
@@ -1033,38 +1031,18 @@ class BuilderComponent extends PureComponent {
           data-jssy-after={String(afterIdx)}
         />
       );
+    } else {
+      return (
+        <Builder
+          key={key}
+          components={draggedComponents}
+          rootId={rootDraggedComponent.id}
+          isPlaceholder
+          afterIdx={afterIdx}
+          containerId={containerId}
+        />
+      );
     }
-
-    const rootDraggedComponentId = draggedComponentId !== INVALID_ID
-      ? draggedComponentId
-      : 0;
-
-    return (
-      <Builder
-        key={key}
-        components={draggedComponents}
-        rootId={rootDraggedComponentId}
-        isPlaceholder
-        afterIdx={afterIdx}
-        containerId={containerId}
-      />
-    );
-  }
-
-  _getRootDraggedComponent() {
-    const {
-      draggingComponent,
-      draggedComponents,
-      draggedComponentId,
-    } = this.props;
-
-    if (!draggingComponent) return null;
-
-    const rootDraggedComponentId = draggedComponentId !== INVALID_ID
-      ? draggedComponentId
-      : 0;
-
-    return draggedComponents.get(rootDraggedComponentId);
   }
 
   /**
@@ -1075,11 +1053,15 @@ class BuilderComponent extends PureComponent {
    * @private
    */
   _renderComponentChildren(component, isPlaceholder = false) {
-    const { meta, components, draggingComponent } = this.props;
+    const {
+      meta,
+      components,
+      draggingComponent,
+      rootDraggedComponent,
+    } = this.props;
 
     const ret = [];
     const isComposite = isCompositeComponent(component.name, meta);
-    const rootDraggedComponent = this._getRootDraggedComponent();
     const childNames =
       component.children.map(childId => components.get(childId).name);
 
@@ -1157,24 +1139,34 @@ class BuilderComponent extends PureComponent {
    * @private
    */
   _patchPlaceholderRootProps(props, isHTMLComponent) {
+    const { containerId, afterIdx } = this.props;
+    
     if (isHTMLComponent) {
       props['data-jssy-placeholder'] = '';
-      props['data-jssy-after'] = this.props.afterIdx;
-      props['data-jssy-container-id'] = this.props.containerId;
+      props['data-jssy-after'] = afterIdx;
+      props['data-jssy-container-id'] = containerId;
     } else {
       props.__jssy_placeholder__ = true;
-      props.__jssy_after__ = this.props.afterIdx;
-      props.__jssy_container_id__ = this.props.containerId;
+      props.__jssy_after__ = afterIdx;
+      props.__jssy_container_id__ = containerId;
     }
   }
 
   _willRenderContentPlaceholder(component) {
-    if (!this.props.interactive) return false;
+    const {
+      meta,
+      interactive,
+      showContentPlaceholders,
+      highlightedComponentIds,
+      selectedComponentIds,
+    } = this.props;
     
-    return isContainerComponent(component.name, this.props.meta) && (
-      this.props.showContentPlaceholders ||
-      this.props.highlightedComponentIds.has(component.id) ||
-      this.props.selectedComponentIds.has(component.id)
+    if (!interactive) return false;
+    
+    return isContainerComponent(component.name, meta) && (
+      showContentPlaceholders ||
+      highlightedComponentIds.has(component.id) ||
+      selectedComponentIds.has(component.id)
     );
   }
 
@@ -1191,11 +1183,27 @@ class BuilderComponent extends PureComponent {
     isPlaceholder = false,
     isPlaceholderRoot = false,
   ) {
+    const {
+      meta,
+      schema,
+      project,
+      draggingComponent,
+      rootDraggedComponent,
+      interactive,
+      dontPatch,
+      theMap: thePreviousMap,
+    } = this.props;
+    
     // Do not render the component that's being dragged
-    if (component.id === this.props.draggedComponentId && !isPlaceholder)
+    if (
+      draggingComponent &&
+      !rootDraggedComponent.isNew &&
+      component.id === rootDraggedComponent.id &&
+      !isPlaceholder
+    )
       return null;
 
-    // Handle special components like Text, Outlet etc.
+    // Handle special components like Text, Outlet etc
     if (isPseudoComponent(component))
       return this._renderPseudoComponent(component, isPlaceholderRoot);
 
@@ -1204,24 +1212,17 @@ class BuilderComponent extends PureComponent {
     const isHTMLComponent = isString(Component);
 
     // Build GraphQL query
-    const {
-      query: graphQLQuery,
-      variables: graphQLVariables,
-      theMap,
-    } = buildQueryForComponent(
-      component,
-      this.props.schema,
-      this.props.meta,
-      this.props.project,
-    );
+    const { query: graphQLQuery, variables: graphQLVariables, theMap } =
+      buildQueryForComponent(component, schema, meta, project);
     
-    const theMergedMap = this.props.theMap
-      ? this.props.theMap.merge(theMap)
+    const theMergedMap = thePreviousMap
+      ? thePreviousMap.merge(theMap)
       : theMap;
   
     // Build system props
     const systemProps = this._buildSystemProps(component, theMergedMap);
     
+    // Don't render anything if the component is invisible
     if (!systemProps.visible) return null;
     
     // Build props
@@ -1238,7 +1239,7 @@ class BuilderComponent extends PureComponent {
       if (this._renderHints.needRefs.has(component.id))
         props.ref = this._saveComponentRef.bind(this, component.id);
 
-      if (this.props.interactive && !this.props.dontPatch)
+      if (interactive && !dontPatch)
         this._patchComponentProps(props, isHTMLComponent, component.id);
 
       if (!props.children && this._willRenderContentPlaceholder(component)) {
@@ -1251,12 +1252,12 @@ class BuilderComponent extends PureComponent {
       props.key =
         `placeholder-${String(Math.floor(Math.random() * 1000000000))}`;
 
-      if (isPlaceholderRoot && !this.props.dontPatch)
+      if (isPlaceholderRoot && !dontPatch)
         this._patchPlaceholderRootProps(props, isHTMLComponent);
 
       const willRenderContentPlaceholder =
         !props.children &&
-        isContainerComponent(component.name, this.props.meta);
+        isContainerComponent(component.name, meta);
 
       // Render fake content inside placeholders for container components
       if (willRenderContentPlaceholder) {
@@ -1274,7 +1275,7 @@ class BuilderComponent extends PureComponent {
         
         ({ argDefinition, argValue }) => this._buildValue(
           argValue,
-          getJssyValueDefOfQueryArgument(argDefinition, this.props.schema),
+          getJssyValueDefOfQueryArgument(argDefinition, schema),
         ),
       );
       

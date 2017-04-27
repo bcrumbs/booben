@@ -75,7 +75,7 @@ import {
   pickComponentStateSlotDone,
 } from '../actions/project';
 
-import { dropComponent, ComponentDropAreas } from '../actions/preview';
+import { dropComponent } from '../actions/preview';
 
 import {
   haveNestedConstructorsSelector,
@@ -540,7 +540,6 @@ class DesignRoute extends PureComponent {
         projectName={params.projectName}
         store={store}
         containerStyle={previewContainerStyle}
-        dropZoneId={ComponentDropAreas.CANVAS}
       />
     );
     

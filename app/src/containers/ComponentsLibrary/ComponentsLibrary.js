@@ -40,12 +40,13 @@ import {
   currentComponentsSelector,
   haveNestedConstructorsSelector,
   getLocalizedTextFromState,
+  rootDraggedComponentSelector,
 } from '../../selectors';
 
+import ProjectComponent from '../../models/ProjectComponent';
 import { startDragNewComponent } from '../../actions/preview';
 import { canInsertComponent, constructComponent } from '../../utils/meta';
 import { combineFiltersAll } from '../../utils/misc';
-import { INVALID_ID } from '../../constants/misc';
 import defaultComponentIcon from '../../../assets/component_default.svg';
 
 const LibraryComponentData = Record({
@@ -80,8 +81,7 @@ const propTypes = {
   expandedGroups: ImmutablePropTypes.setOf(PropTypes.string).isRequired,
   language: PropTypes.string.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
-  draggedComponents: ImmutablePropTypes.map,
-  draggedComponentId: PropTypes.number.isRequired,
+  rootDraggedComponent: PropTypes.instanceOf(ProjectComponent),
   getLocalizedText: PropTypes.func.isRequired,
   onExpandedGroupsChange: PropTypes.func.isRequired,
   onShowAllComponents: PropTypes.func.isRequired,
@@ -89,7 +89,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-  draggedComponents: null,
+  rootDraggedComponent: null,
 };
 
 const GROUP_BUILTIN = new LibraryGroupData({
@@ -288,8 +288,7 @@ const mapStateToProps = state => ({
   expandedGroups: state.componentsLibrary.expandedGroups,
   language: state.app.language,
   draggingComponent: state.project.draggingComponent,
-  draggedComponents: state.project.draggedComponents,
-  draggedComponentId: state.project.draggedComponentId,
+  rootDraggedComponent: rootDraggedComponentSelector(state),
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -314,18 +313,8 @@ class ComponentsLibraryComponent extends PureComponent {
   }
 
   _getFocusedComponentName() {
-    const {
-      draggingComponent,
-      draggedComponents,
-      draggedComponentId,
-    } = this.props;
-    
-    if (draggingComponent) {
-      const id = draggedComponentId !== INVALID_ID ? draggedComponentId : 0;
-      return draggedComponents.get(id).name;
-    }
-    
-    return '';
+    const { draggingComponent, rootDraggedComponent } = this.props;
+    return draggingComponent ? rootDraggedComponent.name : '';
   }
 
   _handleDragStart({ data }) {

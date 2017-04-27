@@ -261,3 +261,20 @@ export const containerStyleSelector = createSelector(
       .join(';');
   },
 );
+
+/**
+ *
+ * @param {Object}
+ * @return {Object}
+ */
+export const rootDraggedComponentSelector = createSelector(
+  state => state.project.draggingComponent,
+  state => state.project.draggedComponents,
+  state => state.project.draggedComponentId,
+  
+  (draggingComponent, draggedComponents, draggedComponentId) => {
+    if (!draggingComponent) return null;
+    if (draggedComponentId === INVALID_ID) return draggedComponents.get(0);
+    return draggedComponents.get(draggedComponentId);
+  },
+);

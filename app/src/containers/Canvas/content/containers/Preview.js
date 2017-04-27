@@ -27,12 +27,6 @@ import {
 
 import { topNestedConstructorSelector } from '../../../../selectors';
 import Project, { getComponentById } from '../../../../models/Project';
-
-import {
-  getOutletComponentId,
-  getParentComponentId,
-} from '../../../../models/ProjectRoute';
-
 import KeyCodes from '../../../../utils/keycodes';
 import { noop, distance } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
@@ -387,10 +381,9 @@ class Preview extends Component {
    *
    * @param {Object} route - ProjectRoute record
    * @param {boolean} isIndex
-   * @param {number} enclosingComponentId
    * @return {Function}
    */
-  _makeNonInteractiveBuilderForRoute(route, isIndex, enclosingComponentId) {
+  _makeNonInteractiveBuilderForRoute(route, isIndex) {
     const rootId = isIndex ? route.indexComponent : route.component;
     
     const ret = ({ params, children }) => (
@@ -398,7 +391,6 @@ class Preview extends Component {
         params={params}
         components={route.components}
         rootId={rootId}
-        enclosingComponentId={enclosingComponentId}
         onNavigate={this._handleNavigate}
         onOpenURL={this._handleOpenURL}
       >
@@ -414,35 +406,20 @@ class Preview extends Component {
    *
    * @param {Immutable.Map<number, Object>} routes
    * @param {number} routeId
-   * @param {number} [enclosingComponentId=INVALID_ID]
    * @return {Object}
    * @private
    */
-  _createRoute(routes, routeId, enclosingComponentId = INVALID_ID) {
+  _createRoute(routes, routeId) {
     const route = routes.get(routeId);
 
     const ret = {
       path: route.path,
-      component: this._makeNonInteractiveBuilderForRoute(
-        route,
-        false,
-        enclosingComponentId,
-      ),
+      component: this._makeNonInteractiveBuilderForRoute(route, false),
     };
-
-    const outletId = getOutletComponentId(route);
-
-    const enclosingComponentIdForChildRoute = outletId !== INVALID_ID
-      ? getParentComponentId(route, outletId)
-      : INVALID_ID;
 
     if (route.children.size > 0) {
       ret.childRoutes = route.children
-        .map(childRouteId => this._createRoute(
-            routes,
-            childRouteId,
-            enclosingComponentIdForChildRoute),
-        )
+        .map(childRouteId => this._createRoute(routes, childRouteId))
         .toArray();
     }
 
@@ -450,11 +427,7 @@ class Preview extends Component {
       ret.onEnter = (_, replace) => replace(route.redirectTo);
     } else if (route.haveIndex) {
       ret.indexRoute = {
-        component: this._makeNonInteractiveBuilderForRoute(
-          route,
-          true,
-          enclosingComponentIdForChildRoute,
-        ),
+        component: this._makeNonInteractiveBuilderForRoute(route, true),
       };
     }
 
