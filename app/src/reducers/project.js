@@ -86,6 +86,7 @@ import ProjectComponent, {
   isRootComponent,
   walkSimpleValues,
   walkComponentsTree,
+  jssyValueToImmutable,
 } from '../models/ProjectComponent';
 
 import {
@@ -94,6 +95,7 @@ import {
   constructComponent,
   propHasDataContext,
   isCompositeComponent,
+  buildDefaultValue,
 } from '../utils/meta';
 
 import {
@@ -334,32 +336,43 @@ const expandPropPath = propPath => {
 
 const deleteComponent = (state, componentId) => {
   const pathToCurrentComponents = getPathToCurrentComponents(state);
+  const pathToCurrentRootComponentId = getPathToCurrentRootComponentId(state);
   const currentComponents = state.getIn(pathToCurrentComponents);
+  const rootComponentId = state.getIn(pathToCurrentRootComponentId);
   const component = currentComponents.get(componentId);
+  
+  // If the root component is being deleted, just reset everything to defaults
+  if (isRootComponent(component)) {
+    return state
+      .setIn(pathToCurrentComponents, Map())
+      .setIn(pathToCurrentRootComponentId, INVALID_ID);
+  }
+  
   const idsToDelete = gatherComponentsTreeIds(currentComponents, componentId);
+  const haveState = idsToDelete.some(id => {
+    const component = currentComponents.get(id);
+    const componentMeta = getComponentMeta(component.name, state.meta);
+    return !!componentMeta.state && Object.keys(componentMeta.state).length > 0;
+  });
 
+  // Delete components from map
   state = state.updateIn(
     pathToCurrentComponents,
 
     components => components.withMutations(componentsMut =>
       void idsToDelete.forEach(id => void componentsMut.delete(id))),
   );
-
-  if (isRootComponent(component)) {
-    state = state.setIn(getPathToCurrentRootComponentId(state), INVALID_ID);
-  } else {
-    const pathToChildrenIdsList = [].concat(pathToCurrentComponents, [
-      component.parentId,
-      'children',
-    ]);
-
-    state = state.updateIn(
-      pathToChildrenIdsList,
-      children => children.filter(id => id !== componentId),
-    );
-  }
   
-  // FIXME: Reset JssyValues linked to the state of this component
+  // Update children of remaining components
+  const pathToChildrenIdsList = [].concat(pathToCurrentComponents, [
+    component.parentId,
+    'children',
+  ]);
+  
+  state = state.updateIn(
+    pathToChildrenIdsList,
+    children => children.filter(id => id !== componentId),
+  );
   
   // Delete method call actions that point to deleted components
   state = state.updateIn(
@@ -388,7 +401,7 @@ const deleteComponent = (state, componentId) => {
           });
         }
       });
-  
+      
       actionsToDelete.forEach((indexes, path) => {
         const pathToActionsList = [
           'props',
@@ -406,6 +419,51 @@ const deleteComponent = (state, componentId) => {
       return component;
     }),
   );
+  
+  // Reset JssyValues linked to states of deleted components
+  if (haveState) {
+    const walkSimpleValueOptions = {
+      walkSystemProps: true,
+      walkFunctionArgs: true,
+      project: state.data,
+      walkActions: true,
+      schema: state.schema,
+      visitIntermediateNodes: false,
+    };
+    
+    walkComponentsTree(currentComponents, rootComponentId, component => {
+      const componentMeta = getComponentMeta(component.name, state.meta);
+    
+      const visitValue = (jssyValue, valueDef, path, isSystemProp) => {
+        if (jssyValue.isLinkedWithState()) {
+          const realPath = expandPath({
+            start: {
+              object: component,
+              expandedPath: [...pathToCurrentComponents, component.id],
+            },
+            steps: [isSystemProp ? 'systemProps' : 'props', ...path],
+          });
+          
+          state = state.setIn(
+            realPath,
+            jssyValueToImmutable(buildDefaultValue(
+              valueDef,
+              component.strings,
+              state.languageForComponentProps,
+              component.types,
+            )),
+          );
+        }
+      };
+    
+      walkSimpleValues(
+        component,
+        componentMeta,
+        visitValue,
+        walkSimpleValueOptions,
+      );
+    });
+  }
 
   return state;
 };

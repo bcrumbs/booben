@@ -172,7 +172,7 @@ class JssyValue extends JssyValueRecord {
   }
   
   isLinkedWithState() {
-    return this.sourceIs('state');
+    return this.sourceIs('state') && this.sourceData.componentId !== INVALID_ID;
   }
   
   isLinkedWithRouteParam() {
