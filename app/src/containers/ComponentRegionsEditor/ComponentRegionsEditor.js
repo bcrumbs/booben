@@ -25,8 +25,6 @@ import {
 } from '../../selectors';
 
 import { getComponentMeta, getString } from '../../utils/meta';
-
-//noinspection JSUnresolvedVariable
 import defaultRegionIcon from '../../../assets/layout_default.svg';
 
 const propTypes = {
@@ -40,7 +38,8 @@ const propTypes = {
   onToggleRegion: PropTypes.func.isRequired,
 };
 
-const defaultProps = {};
+const defaultProps = {
+};
 
 const mapStateToProps = state => ({
   meta: state.project.meta,

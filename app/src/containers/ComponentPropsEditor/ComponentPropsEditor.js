@@ -53,7 +53,6 @@ import {
 import { INVALID_ID, SYSTEM_PROPS } from '../../constants/misc';
 import { objectSome } from '../../utils/misc';
 
-//noinspection JSUnresolvedVariable
 const propTypes = {
   meta: PropTypes.object.isRequired,
   components: ImmutablePropTypes.mapOf(

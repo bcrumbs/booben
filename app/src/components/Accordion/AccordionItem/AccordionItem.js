@@ -29,17 +29,20 @@ export class AccordionItem extends PureComponent {
   }
 
   _handleToggleExpand() {
-    this.props.onToggleExpanded(this.props.itemId);
+    const { itemId, onToggleExpanded } = this.props;
+    onToggleExpanded(itemId);
   }
 
   render() {
+    const { expanded, contentBlank, title, children } = this.props;
+
     let className = 'accordion-item';
 
-    className += this.props.expanded
+    className += expanded
       ? ' accordion-item-is-expanded'
       : ' accordion-item-is-collapsed';
 
-    if (this.props.contentBlank) className += ' accordion-content-blank';
+    if (contentBlank) className += ' accordion-content-blank';
 
     return (
       <div className={className}>
@@ -48,7 +51,7 @@ export class AccordionItem extends PureComponent {
           onClick={this._handleToggleExpand}
         >
           <div className="accordion-title">
-            <span>{this.props.title}</span>
+            <span>{title}</span>
           </div>
 
           <div className="accordion-title-icon accordion-icon-collapse">
@@ -57,7 +60,7 @@ export class AccordionItem extends PureComponent {
         </div>
 
         <div className="accordion-item-content-box">
-          {this.props.children}
+          {children}
         </div>
       </div>
     );

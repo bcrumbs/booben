@@ -104,12 +104,6 @@ import {
 
 import defaultComponentLayoutIcon from '../../assets/layout_default.svg';
 
-export const DESIGN_TOOL_IDS = List([
-  TOOL_ID_LIBRARY,
-  TOOL_ID_COMPONENTS_TREE,
-  TOOL_ID_PROPS_EDITOR,
-]);
-
 const propTypes = {
   params: PropTypes.shape({
     projectName: PropTypes.string.isRequired,
@@ -117,19 +111,21 @@ const propTypes = {
   components: ImmutablePropTypes.mapOf(
     PropTypes.instanceOf(ProjectComponentRecord),
     PropTypes.number,
-  ),
-  meta: PropTypes.object,
-  previewContainerStyle: PropTypes.string,
-  singleComponentSelected: PropTypes.bool,
-  firstSelectedComponentId: PropTypes.number,
-  selectingComponentLayout: PropTypes.bool,
+  ).isRequired,
+  meta: PropTypes.object.isRequired,
+  previewContainerStyle: PropTypes.string.isRequired,
+  singleComponentSelected: PropTypes.bool.isRequired,
+  firstSelectedComponentId: PropTypes.number.isRequired,
+  selectingComponentLayout: PropTypes.bool.isRequired,
   draggedComponents: ImmutablePropTypes.mapOf(
     PropTypes.instanceOf(ProjectComponentRecord),
     PropTypes.number,
   ),
-  language: PropTypes.string,
-  haveNestedConstructor: PropTypes.bool,
-  nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(PropTypes.string),
+  language: PropTypes.string.isRequired,
+  haveNestedConstructor: PropTypes.bool.isRequired,
+  nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(
+    PropTypes.string,
+  ).isRequired,
   pickedComponentId: PropTypes.number.isRequired,
   componentStateSlotsListIsVisible: PropTypes.bool.isRequired,
   isCompatibleStateSlot: PropTypes.func.isRequired,
@@ -143,9 +139,9 @@ const propTypes = {
   onSelectComponentStateSlot: PropTypes.func.isRequired,
 };
 
-const LIBRARY_ICON = 'cubes';
-const COMPONENTS_TREE_ICON = 'sitemap';
-const PROPS_EDITOR_ICON = 'sliders';
+const defaultProps = {
+  draggedComponents: null,
+};
 
 const nestedConstructorBreadcrumbsSelector = createSelector(
   state => state.project.data,
@@ -233,19 +229,35 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(pickComponentStateSlotDone(stateSlot)),
 });
 
-/* eslint-disable react/prop-types */
+export const DESIGN_TOOL_IDS = List([
+  TOOL_ID_LIBRARY,
+  TOOL_ID_COMPONENTS_TREE,
+  TOOL_ID_PROPS_EDITOR,
+]);
+
+const LIBRARY_ICON = 'cubes';
+const COMPONENTS_TREE_ICON = 'sitemap';
+const PROPS_EDITOR_ICON = 'sliders';
+
 const NestedConstructorsBreadcrumbsItem = props => (
   <span className={props.className}>
     {props.children}
   </span>
 );
-/* eslint-enable react/prop-types */
+
+NestedConstructorsBreadcrumbsItem.propTypes = {
+  className: PropTypes.string,
+};
+NestedConstructorsBreadcrumbsItem.defaultProps = {
+  className: '',
+};
+
+NestedConstructorsBreadcrumbsItem.displayName =
+  'NestedConstructorsBreadcrumbsItem';
 
 class DesignRoute extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
-    this._canvas = null;
 
     this.state = {
       confirmDeleteComponentDialogIsVisible: false,
@@ -538,7 +550,6 @@ class DesignRoute extends PureComponent {
       <Canvas
         interactive
         projectName={params.projectName}
-        store={store}
         containerStyle={previewContainerStyle}
       />
     );
@@ -711,8 +722,9 @@ class DesignRoute extends PureComponent {
   }
 }
 
-DesignRoute.displayName = 'DesignRoute';
 DesignRoute.propTypes = propTypes;
+DesignRoute.defaultProps = defaultProps;
+DesignRoute.displayName = 'DesignRoute';
 
 export default connect(
   mapStateToProps,

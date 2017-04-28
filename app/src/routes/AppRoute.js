@@ -39,6 +39,38 @@ import {
 
 import { getLocalizedTextFromState } from '../selectors';
 
+const propTypes = {
+  location: PropTypes.object.isRequired,
+  projectName: PropTypes.string.isRequired,
+  project: PropTypes.instanceOf(ProjectRecord).isRequired,
+  showFooterToggles: PropTypes.bool.isRequired,
+  showContentPlaceholders: PropTypes.bool.isRequired,
+  showComponentTitles: PropTypes.bool.isRequired,
+  getLocalizedText: PropTypes.func.isRequired,
+  onToggleContentPlaceholders: PropTypes.func.isRequired,
+  onToggleComponentTitles: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+};
+
+const mapStateToProps = state => ({
+  projectName: state.project.projectName,
+  project: state.project.data,
+  showFooterToggles: state.app.showFooterToggles,
+  showContentPlaceholders: state.app.showContentPlaceholders,
+  showComponentTitles: state.app.showComponentTitles,
+  getLocalizedText: getLocalizedTextFromState(state),
+});
+
+const mapDispatchToProps = dispatch => ({
+  onToggleContentPlaceholders: ({ value }) =>
+    void dispatch(toggleContentPlaceholders(value)),
+
+  onToggleComponentTitles: ({ value }) =>
+    void dispatch(toggleComponentTitles(value)),
+});
+
 const TopMenuLink = ({ href, className, children }) => (
   <Link to={href} className={className}>
     {children}
@@ -84,16 +116,28 @@ const toggleFullscreen = () => {
 };
 
 const AppRoute = props => {
-  const { getLocalizedText } = props,
-    routeMenuItems = [],
-    currentPath = props.location.pathname;
+  const {
+    projectName,
+    project,
+    location,
+    showFooterToggles,
+    showComponentTitles,
+    showContentPlaceholders,
+    getLocalizedText,
+    onToggleComponentTitles,
+    onToggleContentPlaceholders,
+    children,
+  } = props;
 
-  props.project.routes.forEach(route => {
-    const href = `/${props.projectName}/design/${route.id}`;
+  const routeMenuItems = [];
+  const currentPath = location.pathname;
+
+  project.routes.forEach(route => {
+    const href = `/${projectName}/design/${route.id}`;
 
     routeMenuItems.push(
       <HeaderMenuItem
-        key={route.id}
+        key={String(route.id)}
         text={route.fullPath}
         linkHref={href}
         linkComponent={TopMenuLink}
@@ -102,7 +146,7 @@ const AppRoute = props => {
     );
 
     if (route.haveIndex) {
-      const indexHref = `/${props.projectName}/design/${route.id}/index`;
+      const indexHref = `/${projectName}/design/${route.id}/index`;
 
       routeMenuItems.push(
         <HeaderMenuItem
@@ -117,34 +161,38 @@ const AppRoute = props => {
   });
 
   const title = getLocalizedText('appHeader.projectTitle', {
-    projectName: props.projectName,
+    projectName,
   });
   
   let showComponentsTitleItem = null,
     showPlaceholdersItem = null;
   
-  if (props.showFooterToggles) {
+  if (showFooterToggles) {
+    const titlesToggle = (
+      <ToggleButton
+        checked={showComponentTitles}
+        onChange={onToggleComponentTitles}
+      />
+    );
+
     showComponentsTitleItem = (
       <FooterMenuItem
         text={getLocalizedText('appFooter.showComponentsTitle')}
-        subcomponentRight={
-          <ToggleButton
-            checked={props.showComponentTitles}
-            onChange={props.onToggleComponentTitles}
-          />
-        }
+        subcomponentRight={titlesToggle}
+      />
+    );
+
+    const placeholdersToggle = (
+      <ToggleButton
+        checked={showContentPlaceholders}
+        onChange={onToggleContentPlaceholders}
       />
     );
     
     showPlaceholdersItem = (
       <FooterMenuItem
         text={getLocalizedText('appFooter.showPlaceholders')}
-        subcomponentRight={
-          <ToggleButton
-            checked={props.showContentPlaceholders}
-            onChange={props.onToggleContentPlaceholders}
-          />
-        }
+        subcomponentRight={placeholdersToggle}
       />
     );
   }
@@ -168,7 +216,7 @@ const AppRoute = props => {
                 <HeaderMenuList>
                   <HeaderMenuItem
                     text={getLocalizedText('appHeader.menu.structure')}
-                    linkHref={`/${props.projectName}/structure`}
+                    linkHref={`/${projectName}/structure`}
                     linkComponent={TopMenuLink}
                   />
 
@@ -200,7 +248,7 @@ const AppRoute = props => {
                 <HeaderMenuList>
                   <HeaderMenuItem
                     text={getLocalizedText('appHeader.menu.preview')}
-                    linkHref={`/${props.projectName}/preview`}
+                    linkHref={`/${projectName}/preview`}
                     linkComponent={TopMenuLink}
                   />
 
@@ -218,7 +266,7 @@ const AppRoute = props => {
         </Header>
       </TopRegion>
 
-      {props.children}
+      {children}
 
       <BottomRegion>
         <Footer>
@@ -256,36 +304,9 @@ const AppRoute = props => {
   );
 };
 
-//noinspection JSUnresolvedVariable
-AppRoute.propTypes = {
-  location: PropTypes.object.isRequired,
-  projectName: PropTypes.string.isRequired,
-  project: PropTypes.instanceOf(ProjectRecord).isRequired,
-  showFooterToggles: PropTypes.bool.isRequired,
-  showContentPlaceholders: PropTypes.bool.isRequired,
-  showComponentTitles: PropTypes.bool.isRequired,
-  getLocalizedText: PropTypes.func.isRequired,
-  onToggleContentPlaceholders: PropTypes.func.isRequired,
-  onToggleComponentTitles: PropTypes.func.isRequired,
-};
-
+AppRoute.propTypes = propTypes;
+AppRoute.defaultProps = defaultProps;
 AppRoute.displayName = 'AppRoute';
-
-const mapStateToProps = ({ project, app }) => ({
-  projectName: project.projectName,
-  project: project.data,
-  showFooterToggles: app.showFooterToggles,
-  showContentPlaceholders: app.showContentPlaceholders,
-  showComponentTitles: app.showComponentTitles,
-  getLocalizedText: getLocalizedTextFromState({ app }),
-});
-
-const mapDispatchToProps = dispatch => ({
-  onToggleContentPlaceholders: ({ value }) =>
-    void dispatch(toggleContentPlaceholders(value)),
-  onToggleComponentTitles: ({ value }) =>
-    void dispatch(toggleComponentTitles(value)),
-});
 
 export default connect(
   mapStateToProps,

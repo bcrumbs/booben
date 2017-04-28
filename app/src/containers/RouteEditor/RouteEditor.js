@@ -29,6 +29,54 @@ import ProjectRouteRecord from '../../models/ProjectRoute';
 import { updateRouteField } from '../../actions/project';
 import { INVALID_ID } from '../../constants/misc';
 
+const propTypes = {
+  routes: ImmutablePropTypes.mapOf(
+    PropTypes.instanceOf(ProjectRouteRecord),
+    PropTypes.number,
+  ).isRequired,
+
+  selectedRouteId: PropTypes.number.isRequired,
+  indexRouteSelected: PropTypes.bool.isRequired,
+  getLocalizedText: PropTypes.func.isRequired,
+  onPathChange: PropTypes.func.isRequired,
+  onDescriptionChange: PropTypes.func.isRequired,
+  onHaveIndexChange: PropTypes.func.isRequired,
+  onHaveRedirectChange: PropTypes.func.isRequired,
+  onRedirectToChange: PropTypes.func.isRequired,
+  onIndexRouteDescriptionChange: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+};
+
+const mapStateToProps = ({ project, app }) => ({
+  routes: project.data.routes,
+  selectedRouteId: project.selectedRouteId,
+  indexRouteSelected: project.indexRouteSelected,
+  language: app.language,
+  getLocalizedText: getLocalizedTextFromState({ app }),
+});
+
+const mapDispatchToProps = dispatch => ({
+  onPathChange: (routeId, newValue) =>
+    void dispatch(updateRouteField(routeId, 'path', newValue)),
+
+  onDescriptionChange: (routeId, newValue) =>
+    void dispatch(updateRouteField(routeId, 'description', newValue)),
+
+  onHaveIndexChange: (routeId, newValue) =>
+    void dispatch(updateRouteField(routeId, 'haveIndex', newValue)),
+
+  onHaveRedirectChange: (routeId, newValue) =>
+    void dispatch(updateRouteField(routeId, 'haveRedirect', newValue)),
+
+  onRedirectToChange: (routeId, newValue) =>
+    void dispatch(updateRouteField(routeId, 'redirectTo', newValue)),
+
+  onIndexRouteDescriptionChange: (routeId, newValue) =>
+    void dispatch(updateRouteField(routeId, 'indexRouteDescription', newValue)),
+});
+
 class RouteEditorComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -160,53 +208,9 @@ class RouteEditorComponent extends PureComponent {
   }
 }
 
-//noinspection JSUnresolvedVariable
-RouteEditorComponent.propTypes = {
-  routes: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectRouteRecord),
-    PropTypes.number,
-  ).isRequired,
-
-  selectedRouteId: PropTypes.number.isRequired,
-  indexRouteSelected: PropTypes.bool.isRequired,
-  getLocalizedText: PropTypes.func.isRequired,
-  onPathChange: PropTypes.func.isRequired,
-  onDescriptionChange: PropTypes.func.isRequired,
-  onHaveIndexChange: PropTypes.func.isRequired,
-  onHaveRedirectChange: PropTypes.func.isRequired,
-  onRedirectToChange: PropTypes.func.isRequired,
-  onIndexRouteDescriptionChange: PropTypes.func.isRequired,
-};
-
+RouteEditorComponent.propTypes = propTypes;
+RouteEditorComponent.defaultProps = defaultProps;
 RouteEditorComponent.displayName = 'RouteEditor';
-
-const mapStateToProps = ({ project, app }) => ({
-  routes: project.data.routes,
-  selectedRouteId: project.selectedRouteId,
-  indexRouteSelected: project.indexRouteSelected,
-  language: app.language,
-  getLocalizedText: getLocalizedTextFromState({ app }),
-});
-
-const mapDispatchToProps = dispatch => ({
-  onPathChange: (routeId, newValue) =>
-    void dispatch(updateRouteField(routeId, 'path', newValue)),
-
-  onDescriptionChange: (routeId, newValue) =>
-    void dispatch(updateRouteField(routeId, 'description', newValue)),
-
-  onHaveIndexChange: (routeId, newValue) =>
-    void dispatch(updateRouteField(routeId, 'haveIndex', newValue)),
-
-  onHaveRedirectChange: (routeId, newValue) =>
-    void dispatch(updateRouteField(routeId, 'haveRedirect', newValue)),
-
-  onRedirectToChange: (routeId, newValue) =>
-    void dispatch(updateRouteField(routeId, 'redirectTo', newValue)),
-
-  onIndexRouteDescriptionChange: (routeId, newValue) =>
-    void dispatch(updateRouteField(routeId, 'indexRouteDescription', newValue)),
-});
 
 export const RouteEditor = connect(
   mapStateToProps,

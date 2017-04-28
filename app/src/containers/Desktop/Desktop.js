@@ -29,6 +29,73 @@ import {
 
 import { noop } from '../../utils/misc';
 
+const propTypes = {
+  toolGroups: ImmutablePropTypes.listOf(
+    ImmutablePropTypes.listOf(PropTypes.instanceOf(ToolType)),
+  ),
+  toolStates: ImmutablePropTypes.mapOf(
+    PropTypes.instanceOf(ToolStateType),
+    PropTypes.string,
+  ).isRequired,
+  toolsPanelIsExpanded: PropTypes.bool.isRequired,
+  onToolsPanelExpand: PropTypes.func.isRequired,
+  onToolsPanelCollapse: PropTypes.func.isRequired,
+  onActiveToolChange: PropTypes.func.isRequired,
+  onToolTitleChange: PropTypes.func,
+  onToolDock: PropTypes.func.isRequired,
+  onToolUndock: PropTypes.func.isRequired,
+  onToolClose: PropTypes.func.isRequired,
+  onToolFocus: PropTypes.func.isRequired,
+  onToolStickRegionEnter: PropTypes.func.isRequired,
+  onToolStickRegionLeave: PropTypes.func.isRequired,
+  onToolActiveSectionChange: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+  toolGroups: List(),
+  onToolTitleChange: noop,
+};
+
+const mapStateToProps = ({ desktop }) => ({
+  toolStates: desktop.toolStates,
+  toolsPanelIsExpanded: desktop.toolsPanelIsExpanded,
+});
+
+const mapDispatchToProps = dispatch => ({
+  onToolsPanelExpand: () =>
+    void dispatch(expandToolsPanel()),
+
+  onToolsPanelCollapse: () =>
+    void dispatch(collapseToolsPanel()),
+
+  onActiveToolChange: tool =>
+    void dispatch(selectTool(tool.id)),
+
+  onToolDock: tool =>
+    void dispatch(dockTool(tool.id)),
+
+  onToolUndock: (tool, nextActiveTool) =>
+    void dispatch(undockTool(
+      tool.id,
+      nextActiveTool !== null ? nextActiveTool.id : null),
+    ),
+
+  onToolClose: tool =>
+    void dispatch(closeTool(tool.id)),
+
+  onToolFocus: tool =>
+    void dispatch(focusTool(tool.id)),
+
+  onToolStickRegionEnter: tool =>
+    void dispatch(setStickyTool(tool.id)),
+
+  onToolStickRegionLeave: () =>
+    void dispatch(setStickyTool(null)),
+
+  onToolActiveSectionChange: (tool, newActiveSection) =>
+    void dispatch(setToolActiveSection(tool.id, newActiveSection)),
+});
+
 const TOOL_WINDOWS_MARGIN = 8;
 const EMPTY_TOOL_PANEL_WIDTH = 40;
 const STICK_REGION_SIZE = 100;
@@ -149,58 +216,9 @@ class DesktopComponent extends PureComponent {
   }
 }
 
-//noinspection JSUnresolvedVariable
-DesktopComponent.propTypes = {
-  toolGroups: ImmutablePropTypes.listOf(
-    ImmutablePropTypes.listOf(PropTypes.instanceOf(ToolType)),
-  ),
-  toolStates: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ToolStateType),
-    PropTypes.string,
-  ).isRequired,
-  toolsPanelIsExpanded: PropTypes.bool.isRequired,
-  onToolsPanelExpand: PropTypes.func.isRequired,
-  onToolsPanelCollapse: PropTypes.func.isRequired,
-  onActiveToolChange: PropTypes.func.isRequired,
-  onToolTitleChange: PropTypes.func,
-  onToolDock: PropTypes.func.isRequired,
-  onToolUndock: PropTypes.func.isRequired,
-  onToolClose: PropTypes.func.isRequired,
-  onToolFocus: PropTypes.func.isRequired,
-  onToolStickRegionEnter: PropTypes.func.isRequired,
-  onToolStickRegionLeave: PropTypes.func.isRequired,
-  onToolActiveSectionChange: PropTypes.func.isRequired,
-};
-
-DesktopComponent.defaultProps = {
-  toolGroups: List(),
-  onToolTitleChange: noop,
-};
-
+DesktopComponent.propTypes = propTypes;
+DesktopComponent.defaultProps = defaultProps;
 DesktopComponent.displayName = 'Desktop';
-
-const mapStateToProps = ({ desktop }) => ({
-  toolStates: desktop.toolStates,
-  toolsPanelIsExpanded: desktop.toolsPanelIsExpanded,
-});
-
-const mapDispatchToProps = dispatch => ({
-  onToolsPanelExpand: () => void dispatch(expandToolsPanel()),
-  onToolsPanelCollapse: () => void dispatch(collapseToolsPanel()),
-  onActiveToolChange: tool => void dispatch(selectTool(tool.id)),
-  onToolDock: tool => void dispatch(dockTool(tool.id)),
-  onToolUndock: (tool, nextActiveTool) => void dispatch(undockTool(
-    tool.id,
-    nextActiveTool !== null ? nextActiveTool.id : null),
-  ),
-
-  onToolClose: tool => void dispatch(closeTool(tool.id)),
-  onToolFocus: tool => void dispatch(focusTool(tool.id)),
-  onToolStickRegionEnter: tool => void dispatch(setStickyTool(tool.id)),
-  onToolStickRegionLeave: () => void dispatch(setStickyTool(null)),
-  onToolActiveSectionChange: (tool, newActiveSection) =>
-    void dispatch(setToolActiveSection(tool.id, newActiveSection)),
-});
 
 export const Desktop = connect(
   mapStateToProps,

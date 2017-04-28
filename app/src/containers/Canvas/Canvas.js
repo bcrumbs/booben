@@ -9,6 +9,7 @@ import { ApolloProvider } from 'react-apollo';
 import ApolloClient, { createNetworkInterface } from 'apollo-client';
 import _set from 'lodash.set';
 import _get from 'lodash.get';
+import store from '../../store';
 import { CanvasFrame } from '../../components/CanvasFrame/CanvasFrame';
 import { DocumentContext } from './DocumentContext/DocumentContext';
 import { loadComponents } from './content/componentsLibrary';
@@ -27,7 +28,6 @@ import contentTemplate from './content/content.ejs';
 /* eslint-disable react/no-unused-prop-types */
 const propTypes = {
   projectName: PropTypes.string.isRequired,
-  store: PropTypes.any,
   interactive: PropTypes.bool,
   containerStyle: PropTypes.string,
   dropZoneId: PropTypes.string,
@@ -38,7 +38,6 @@ const propTypes = {
 /* eslint-enable react/no-unused-prop-types */
 
 const defaultProps = {
-  store: {},
   interactive: false,
   containerStyle: '',
   dropZoneId: ComponentDropAreas.CANVAS,
@@ -186,7 +185,7 @@ class CanvasComponent extends Component {
   }
   
   async _getProvider() {
-    const { store, interactive } = this.props;
+    const { interactive } = this.props;
     
     const state = store.getState();
   

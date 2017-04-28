@@ -48,7 +48,6 @@ import { getComponentMeta, isValidSourceForValue } from '../../utils/meta';
 import { noop } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
 
-//noinspection JSUnresolvedVariable
 const propTypes = {
   meta: PropTypes.object.isRequired,
   schema: PropTypes.object.isRequired,

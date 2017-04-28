@@ -18,6 +18,32 @@ import {
 
 import { removeSplashScreen } from '../utils/dom';
 
+const propTypes = {
+  params: PropTypes.shape({
+    projectName: PropTypes.string.isRequired,
+  }).isRequired,
+  projectName: PropTypes.string,
+  projectLoadState: PropTypes.number,
+  projectLoadError: PropTypes.object,
+  onProjectRequest: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+  projectName: '',
+  projectLoadState: NOT_LOADED,
+  projectLoadError: null,
+};
+
+const mapStateToProps = ({ project }) => ({
+  projectName: project.projectName,
+  projectLoadState: project.loadState,
+  projectLoadError: project.error,
+});
+
+const mapDispatchToProps = dispatch => ({
+  onProjectRequest: name => void dispatch(loadProject(name)),
+});
+
 class RootRoute extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -67,33 +93,9 @@ class RootRoute extends PureComponent {
   }
 }
 
-RootRoute.propTypes = {
-  params: PropTypes.shape({
-    projectName: PropTypes.string.isRequired,
-  }).isRequired,
-  projectName: PropTypes.string,
-  projectLoadState: PropTypes.number,
-  projectLoadError: PropTypes.object,
-  onProjectRequest: PropTypes.func.isRequired,
-};
-
-RootRoute.defaultProps = {
-  projectName: '',
-  projectLoadState: NOT_LOADED,
-  projectLoadError: null,
-};
-
+RootRoute.propTypes = propTypes;
+RootRoute.defaultProps = defaultProps;
 RootRoute.displayName = 'RootRoute';
-
-const mapStateToProps = ({ project }) => ({
-  projectName: project.projectName,
-  projectLoadState: project.loadState,
-  projectLoadError: project.error,
-});
-
-const mapDispatchToProps = dispatch => ({
-  onProjectRequest: name => void dispatch(loadProject(name)),
-});
 
 export default connect(
   mapStateToProps,
