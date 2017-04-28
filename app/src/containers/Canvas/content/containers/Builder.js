@@ -7,6 +7,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { graphql, withApollo } from 'react-apollo';
 import _forOwn from 'lodash.forown';
@@ -134,6 +135,11 @@ const mapStateToProps = state => ({
   selectedComponentIds: currentSelectedComponentIdsSelector(state),
   highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
 });
+
+const wrap = compose(
+  connect(mapStateToProps),
+  withApollo,
+);
 
 /**
  *
@@ -991,7 +997,8 @@ class BuilderComponent extends PureComponent {
     } else if (component.name === 'List') {
       const ItemComponent = props.component;
       return props.data.map((item, idx) => (
-        <ItemComponent key={String(idx)} item={item} />
+        // eslint-disable-next-line react/no-array-index-key
+        <ItemComponent key={`${component.id}-${idx}`} item={item} />
       ));
     } else {
       return null;
@@ -1097,7 +1104,9 @@ class BuilderComponent extends PureComponent {
         }
       }
 
-      ret.push(this._renderComponent(childComponent, isPlaceholder));
+      const rendered = this._renderComponent(childComponent, isPlaceholder);
+      if (Array.isArray(rendered)) ret.push(...rendered);
+      else ret.push(rendered);
     });
 
     if (willRenderPlaceholders) {
@@ -1331,5 +1340,5 @@ BuilderComponent.propTypes = propTypes;
 BuilderComponent.defaultProps = defaultProps;
 BuilderComponent.displayName = 'Builder';
 
-const Builder = connect(mapStateToProps)(withApollo(BuilderComponent));
+const Builder = wrap(BuilderComponent);
 export default Builder;

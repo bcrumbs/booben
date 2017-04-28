@@ -43,6 +43,11 @@ const defaultProps = {
   dropZoneId: ComponentDropAreas.CANVAS,
 };
 
+const wrap = compose(
+  connectDropZone,
+  dropZone,
+);
+
 const EVENTS_FOR_PARENT_FRAME = [
   'mousemove',
   'mouseup',
@@ -411,7 +416,5 @@ class CanvasComponent extends Component {
 CanvasComponent.propTypes = propTypes;
 CanvasComponent.defaultProps = defaultProps;
 CanvasComponent.displayName = 'Canvas';
-
-const wrap = compose(connectDropZone, dropZone);
 
 export const Canvas = wrap(CanvasComponent);
