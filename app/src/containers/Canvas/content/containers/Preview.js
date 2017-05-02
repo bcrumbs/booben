@@ -123,6 +123,36 @@ const readContainerId = element =>
 const readAfterIdx = element =>
   parseInt(element.getAttribute('data-jssy-after'), 10);
 
+const getOutletPosition = components => {
+  const outlet = components.find(component => component.name === 'Outlet');
+  if (!outlet) return null;
+  
+  const parent = outlet.parentId !== INVALID_ID
+    ? components.get(outlet.parentId)
+    : null;
+  
+  if (!parent) {
+    return {
+      enclosingComponent: null,
+      enclosingComponentChildrenNames: [],
+      enclosingComponentPosition: 0,
+    };
+  }
+  
+  const outletPosition = parent.children.keyOf(outlet.id);
+  const childrenNames = parent.children
+    .map(childId => components.get(childId).name)
+    .toJS();
+  
+  childrenNames.splice(outletPosition, 1);
+  
+  return {
+    enclosingComponent: parent,
+    enclosingComponentChildrenNames: childrenNames,
+    enclosingComponentPosition: outletPosition,
+  };
+};
+
 class Preview extends Component {
   constructor(props, context) {
     super(props, context);
@@ -663,6 +693,20 @@ class Preview extends Component {
     let ret;
     
     if (currentRouteIsIndexRoute) {
+      const outletPosition = getOutletPosition(route.components);
+  
+      let enclosingComponent = null;
+      let enclosingComponentChildrenNames = [];
+      let enclosingComponentPosition = 0;
+  
+      if (outletPosition) {
+        enclosingComponent = outletPosition.enclosingComponent;
+        enclosingComponentChildrenNames =
+          outletPosition.enclosingComponentChildrenNames;
+    
+        enclosingComponentPosition = outletPosition.enclosingComponentPosition;
+      }
+      
       ret = (
         <Builder
           interactive
@@ -671,23 +715,52 @@ class Preview extends Component {
         >
           <Builder
             interactive
+            editable
             components={route.components}
             rootId={route.indexComponent}
+            enclosingComponent={enclosingComponent}
+            enclosingComponentChildrenNames={enclosingComponentChildrenNames}
+            enclosingComponentPosition={enclosingComponentPosition}
           />
         </Builder>
       );
     } else {
+      const parentRoute = route.parentId === INVALID_ID
+        ? null
+        : project.routes.get(route.parentId);
+  
+      const outletPosition = parentRoute
+        ? getOutletPosition(parentRoute.components)
+        : null;
+  
+      let enclosingComponent = null;
+      let enclosingComponentChildrenNames = [];
+      let enclosingComponentPosition = 0;
+  
+      if (outletPosition) {
+        enclosingComponent = outletPosition.enclosingComponent;
+        enclosingComponentChildrenNames =
+          outletPosition.enclosingComponentChildrenNames;
+    
+        enclosingComponentPosition = outletPosition.enclosingComponentPosition;
+      }
+      
       ret = (
         <Builder
           interactive
+          editable
           components={route.components}
           rootId={route.component}
+          enclosingComponent={enclosingComponent}
+          enclosingComponentChildrenNames={enclosingComponentChildrenNames}
+          enclosingComponentPosition={enclosingComponentPosition}
         />
       );
     }
     
     while (route.parentId !== INVALID_ID) {
       route = project.routes.get(route.parentId);
+
       ret = (
         <Builder
           interactive

@@ -68,11 +68,15 @@ const propTypes = {
   params: PropTypes.object, // Comes from react-router in non-interactive mode
   client: PropTypes.object, // Comes from react-apollo
   interactive: PropTypes.bool,
+  editable: PropTypes.bool,
   components: ImmutablePropTypes.mapOf(
     PropTypes.instanceOf(ProjectComponent),
     PropTypes.number,
   ).isRequired,
   rootId: PropTypes.number,
+  enclosingComponent: PropTypes.instanceOf(ProjectComponent),
+  enclosingComponentChildrenNames: PropTypes.arrayOf(PropTypes.string),
+  enclosingComponentPosition: PropTypes.number,
   dontPatch: PropTypes.bool,
   isPlaceholder: PropTypes.bool,
   afterIdx: PropTypes.number,
@@ -105,8 +109,12 @@ const defaultProps = {
   params: null,
   client: null,
   interactive: false,
+  editable: false,
   components: null,
   rootId: INVALID_ID,
+  enclosingComponent: null,
+  enclosingComponentChildrenNames: [],
+  enclosingComponentPosition: 0,
   dontPatch: false,
   isPlaceholder: false,
   afterIdx: -1,
@@ -1063,6 +1071,7 @@ class BuilderComponent extends PureComponent {
     const {
       meta,
       components,
+      editable,
       draggingComponent,
       rootDraggedComponent,
     } = this.props;
@@ -1073,6 +1082,7 @@ class BuilderComponent extends PureComponent {
       component.children.map(childId => components.get(childId).name);
 
     const willRenderPlaceholders =
+      editable &&
       draggingComponent &&
       !isPlaceholder &&
       !isComposite;
@@ -1319,17 +1329,33 @@ class BuilderComponent extends PureComponent {
 
   render() {
     const {
+      meta,
+      editable,
       components,
       rootId,
+      enclosingComponent,
+      enclosingComponentChildrenNames,
+      enclosingComponentPosition,
       isPlaceholder,
       draggingComponent,
+      rootDraggedComponent,
     } = this.props;
     
     if (rootId !== INVALID_ID) {
       const rootComponent = components.get(rootId);
       return this._renderComponent(rootComponent, isPlaceholder, isPlaceholder);
-    } else if (draggingComponent && !isPlaceholder) {
-      return this._renderPlaceholderForDraggedComponent(INVALID_ID, -1);
+    } else if (editable && draggingComponent && !isPlaceholder) {
+      const canInsertRootComponent = canInsertComponent(
+        rootDraggedComponent.name,
+        enclosingComponent ? enclosingComponent.name : null,
+        enclosingComponentChildrenNames,
+        enclosingComponentPosition - 1, // canInsertComponent receives afterIdx instead of position
+        meta,
+      );
+  
+      return canInsertRootComponent
+        ? this._renderPlaceholderForDraggedComponent(INVALID_ID, -1)
+        : null;
     } else {
       return null;
     }

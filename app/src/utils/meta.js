@@ -119,7 +119,7 @@ export const getComponentPropName = (componentMeta, prop, language) => {
 /**
  *
  * @param {string} componentName
- * @param {string} containerName
+ * @param {?string} containerName
  * @param {string[]|Immutable.List<string>} containerChildrenNames
  * @param {number} position - -1 = ignore position constraints
  * @param {Object} meta
@@ -133,11 +133,24 @@ export const canInsertComponent = (
   meta,
 ) => {
   const componentMeta = getComponentMeta(componentName, meta);
+  
+  if (containerName) {
+    const mustBeRoot =
+      !!componentMeta.placement &&
+      componentMeta.placement.root === 'only';
+  
+    if (mustBeRoot) return false;
+  } else {
+    return !componentMeta.placement ||
+      componentMeta.placement.root !== 'deny';
+  }
+  
   const containerMeta = getComponentMeta(containerName, meta);
-  const { namespace } = parseComponentName(componentName);
-
   if (containerMeta.kind !== 'container') return false;
+  
   if (!componentMeta.placement) return true;
+  
+  const { namespace } = parseComponentName(componentName);
 
   if (componentMeta.placement.inside) {
     if (componentMeta.placement.inside.include) {
