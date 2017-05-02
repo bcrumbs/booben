@@ -7,8 +7,11 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { Route, Switch } from 'react-router-dom';
 import { loadProject } from '../actions/project';
 import { ErrorScreen } from '../components/StateScreen/StateScreen';
+import AppRoute from './AppRoute';
+import PreviewRoute from './PreviewRoute';
 
 import {
   NOT_LOADED,
@@ -19,17 +22,13 @@ import {
 import { removeSplashScreen } from '../utils/dom';
 
 const propTypes = {
-  params: PropTypes.shape({
-    projectName: PropTypes.string.isRequired,
-  }).isRequired,
-  projectName: PropTypes.string,
-  projectLoadState: PropTypes.number,
-  projectLoadError: PropTypes.object,
-  onProjectRequest: PropTypes.func.isRequired,
+  match: PropTypes.object.isRequired, // router
+  projectLoadState: PropTypes.number, // state
+  projectLoadError: PropTypes.object, // state
+  onProjectRequest: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
-  projectName: '',
   projectLoadState: NOT_LOADED,
   projectLoadError: null,
 };
@@ -44,6 +43,8 @@ const mapDispatchToProps = dispatch => ({
   onProjectRequest: name => void dispatch(loadProject(name)),
 });
 
+const wrap = connect(mapStateToProps, mapDispatchToProps);
+
 class RootRoute extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -52,8 +53,8 @@ class RootRoute extends PureComponent {
   }
 
   componentDidMount() {
-    const projectName = this.props.params.projectName;
-    this.props.onProjectRequest(projectName);
+    const { match, onProjectRequest } = this.props;
+    onProjectRequest(match.params.projectName);
   }
 
   componentDidUpdate() {
@@ -71,11 +72,7 @@ class RootRoute extends PureComponent {
   }
 
   render() {
-    const {
-      projectLoadState,
-      projectLoadError,
-      children,
-    } = this.props;
+    const { projectLoadState, projectLoadError } = this.props;
 
     if (projectLoadState === LOADING || projectLoadState === NOT_LOADED)
       return null;
@@ -89,7 +86,16 @@ class RootRoute extends PureComponent {
       );
     }
 
-    return children;
+    return (
+      <Switch>
+        <Route
+          path="/:projectName/preview"
+          component={PreviewRoute}
+        />
+        
+        <Route component={AppRoute} />
+      </Switch>
+    );
   }
 }
 
@@ -97,7 +103,4 @@ RootRoute.propTypes = propTypes;
 RootRoute.defaultProps = defaultProps;
 RootRoute.displayName = 'RootRoute';
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(RootRoute);
+export default wrap(RootRoute);

@@ -9,7 +9,6 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import Portal from 'react-portal';
-import { createSelector } from 'reselect';
 import { List } from 'immutable';
 
 import {
@@ -60,7 +59,6 @@ import {
   ComponentsDragArea,
 } from '../containers/ComponentsDragArea/ComponentsDragArea';
 
-import store from '../store';
 import ProjectComponentRecord from '../models/ProjectComponent';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
@@ -75,7 +73,8 @@ import {
   pickComponentStateSlotDone,
 } from '../actions/project';
 
-import { dropComponent } from '../actions/preview';
+import { dropComponent, setCurrentRoute } from '../actions/preview';
+import { setTools } from '../actions/desktop';
 
 import {
   haveNestedConstructorsSelector,
@@ -84,13 +83,13 @@ import {
   currentComponentsSelector,
   getLocalizedTextFromState,
   containerStyleSelector,
+  nestedConstructorBreadcrumbsSelector,
 } from '../selectors';
 
 import {
   getComponentMeta,
   isCompositeComponent,
   getString,
-  getComponentPropName,
   componentHasActions,
 } from '../utils/meta';
 
@@ -105,84 +104,43 @@ import {
 import defaultComponentLayoutIcon from '../../assets/layout_default.svg';
 
 const propTypes = {
-  params: PropTypes.shape({
-    projectName: PropTypes.string.isRequired,
-  }).isRequired,
+  match: PropTypes.object.isRequired, // router
   components: ImmutablePropTypes.mapOf(
     PropTypes.instanceOf(ProjectComponentRecord),
     PropTypes.number,
-  ).isRequired,
-  meta: PropTypes.object.isRequired,
-  previewContainerStyle: PropTypes.string.isRequired,
-  singleComponentSelected: PropTypes.bool.isRequired,
-  firstSelectedComponentId: PropTypes.number.isRequired,
-  selectingComponentLayout: PropTypes.bool.isRequired,
+  ).isRequired, // state
+  meta: PropTypes.object.isRequired, // state
+  previewContainerStyle: PropTypes.string.isRequired, // state
+  singleComponentSelected: PropTypes.bool.isRequired, // state
+  firstSelectedComponentId: PropTypes.number.isRequired, // state
+  selectingComponentLayout: PropTypes.bool.isRequired, // state
   draggedComponents: ImmutablePropTypes.mapOf(
     PropTypes.instanceOf(ProjectComponentRecord),
     PropTypes.number,
-  ),
-  language: PropTypes.string.isRequired,
-  haveNestedConstructor: PropTypes.bool.isRequired,
+  ), // state
+  language: PropTypes.string.isRequired, // state
+  haveNestedConstructor: PropTypes.bool.isRequired, // state
   nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(
     PropTypes.string,
-  ).isRequired,
-  pickedComponentId: PropTypes.number.isRequired,
-  componentStateSlotsListIsVisible: PropTypes.bool.isRequired,
-  isCompatibleStateSlot: PropTypes.func.isRequired,
-  getLocalizedText: PropTypes.func.isRequired,
-  onRenameComponent: PropTypes.func.isRequired,
-  onDeleteComponent: PropTypes.func.isRequired,
-  onSelectLayout: PropTypes.func.isRequired,
-  onSaveComponentForProp: PropTypes.func.isRequired,
-  onCancelConstructComponentForProp: PropTypes.func.isRequired,
-  onDropComponent: PropTypes.func.isRequired,
-  onSelectComponentStateSlot: PropTypes.func.isRequired,
+  ).isRequired, // state
+  pickedComponentId: PropTypes.number.isRequired, // state
+  componentStateSlotsListIsVisible: PropTypes.bool.isRequired, // state
+  isCompatibleStateSlot: PropTypes.func.isRequired, // state
+  getLocalizedText: PropTypes.func.isRequired, // state
+  onRenameComponent: PropTypes.func.isRequired, // dispatch
+  onDeleteComponent: PropTypes.func.isRequired, // dispatch
+  onSelectLayout: PropTypes.func.isRequired, // dispatch
+  onSaveComponentForProp: PropTypes.func.isRequired, // dispatch
+  onCancelConstructComponentForProp: PropTypes.func.isRequired, // dispatch
+  onDropComponent: PropTypes.func.isRequired, // dispatch
+  onSelectComponentStateSlot: PropTypes.func.isRequired, // dispatch
+  onSetCurrentRoute: PropTypes.func.isRequired,
+  onSetTools: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
   draggedComponents: null,
 };
-
-const nestedConstructorBreadcrumbsSelector = createSelector(
-  state => state.project.data,
-  state => state.project.currentRouteId,
-  state => state.project.nestedConstructors,
-  state => state.project.meta,
-  state => state.project.languageForComponentProps,
-
-  (project, currentRouteId, nestedConstructors, meta, language) => {
-    const returnEmpty =
-      !project ||
-      currentRouteId === -1 ||
-      nestedConstructors.isEmpty();
-
-    if (returnEmpty) return List();
-    
-    const initialAccumulator = {
-      ret: List(),
-      components: project.routes.get(currentRouteId).components,
-    };
-    
-    const reducer = (acc, cur) => {
-      const componentId = cur.path.steps[0];
-      const isSystemProp = cur.path.steps[1] === 'systemProps';
-      const prop = cur.path.steps[2];
-      const component = acc.components.get(componentId);
-      const title = component.title || component.name;
-      const componentMeta = getComponentMeta(component.name, meta);
-      const propName = isSystemProp
-        ? prop
-        : getComponentPropName(componentMeta, prop, language);
-  
-      return {
-        ret: acc.ret.push(title, propName),
-        components: cur.components,
-      };
-    };
-    
-    return nestedConstructors.reduceRight(reducer, initialAccumulator).ret;
-  },
-);
 
 const mapStateToProps = state => ({
   components: currentComponentsSelector(state),
@@ -227,9 +185,17 @@ const mapDispatchToProps = dispatch => ({
   
   onSelectComponentStateSlot: ({ stateSlot }) =>
     void dispatch(pickComponentStateSlotDone(stateSlot)),
+  
+  onSetCurrentRoute: ({ routeId, isIndexRoute }) =>
+    void dispatch(setCurrentRoute(routeId, isIndexRoute)),
+  
+  onSetTools: ({ toolIds }) =>
+    void dispatch(setTools(toolIds)),
 });
 
-export const DESIGN_TOOL_IDS = List([
+const wrap = connect(mapStateToProps, mapDispatchToProps);
+
+const DESIGN_TOOL_IDS = List([
   TOOL_ID_LIBRARY,
   TOOL_ID_COMPONENTS_TREE,
   TOOL_ID_PROPS_EDITOR,
@@ -277,6 +243,16 @@ class DesignRoute extends PureComponent {
       this._handleLayoutSelection.bind(this);
     this._handleDropComponent =
       this._handleDropComponent.bind(this);
+  }
+  
+  componentWillMount() {
+    const { match, onSetCurrentRoute, onSetTools } = this.props;
+    
+    const routeId = Number(match.params.routeId);
+    const isIndexRoute = match.params.index === 'index';
+  
+    onSetCurrentRoute({ routeId, isIndexRoute });
+    onSetTools({ toolIds: DESIGN_TOOL_IDS });
   }
   
   _getLibraryTool() {
@@ -537,7 +513,7 @@ class DesignRoute extends PureComponent {
    */
   _renderContent() {
     const {
-      params,
+      match,
       previewContainerStyle,
       nestedConstructorBreadcrumbs,
       haveNestedConstructor,
@@ -549,7 +525,7 @@ class DesignRoute extends PureComponent {
     const canvas = (
       <Canvas
         interactive
-        projectName={params.projectName}
+        projectName={match.params.projectName}
         containerStyle={previewContainerStyle}
       />
     );
@@ -726,7 +702,4 @@ DesignRoute.propTypes = propTypes;
 DesignRoute.defaultProps = defaultProps;
 DesignRoute.displayName = 'DesignRoute';
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(DesignRoute);
+export default wrap(DesignRoute);

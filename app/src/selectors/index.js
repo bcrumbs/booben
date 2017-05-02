@@ -7,11 +7,13 @@
 import { createSelector } from 'reselect';
 import IntlMessageFormat from 'intl-messageformat';
 import _forOwn from 'lodash.forown';
+import { List } from 'immutable';
 
 import {
   getComponentMeta,
   findPropThatPushedDataContext,
   isValidSourceForValue,
+  getComponentPropName,
 } from '../utils/meta';
 
 import { getTypeNameByPath } from '../utils/schema';
@@ -276,5 +278,46 @@ export const rootDraggedComponentSelector = createSelector(
     if (!draggingComponent) return null;
     if (draggedComponentId === INVALID_ID) return draggedComponents.get(0);
     return draggedComponents.get(draggedComponentId);
+  },
+);
+
+export const nestedConstructorBreadcrumbsSelector = createSelector(
+  state => state.project.data,
+  state => state.project.currentRouteId,
+  state => state.project.nestedConstructors,
+  state => state.project.meta,
+  state => state.project.languageForComponentProps,
+  
+  (project, currentRouteId, nestedConstructors, meta, language) => {
+    const returnEmpty =
+      !project ||
+      currentRouteId === -1 ||
+      nestedConstructors.isEmpty();
+    
+    if (returnEmpty) return List();
+    
+    const initialAccumulator = {
+      ret: List(),
+      components: project.routes.get(currentRouteId).components,
+    };
+    
+    const reducer = (acc, cur) => {
+      const componentId = cur.path.steps[0];
+      const isSystemProp = cur.path.steps[1] === 'systemProps';
+      const prop = cur.path.steps[2];
+      const component = acc.components.get(componentId);
+      const title = component.title || component.name;
+      const componentMeta = getComponentMeta(component.name, meta);
+      const propName = isSystemProp
+        ? prop
+        : getComponentPropName(componentMeta, prop, language);
+      
+      return {
+        ret: acc.ret.push(title, propName),
+        components: cur.components,
+      };
+    };
+    
+    return nestedConstructors.reduceRight(reducer, initialAccumulator).ret;
   },
 );

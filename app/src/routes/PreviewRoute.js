@@ -11,12 +11,8 @@ import { Canvas } from '../containers/Canvas/Canvas';
 import { containerStyleSelector } from '../selectors';
 
 const propTypes = {
-  // Comes from react-router
-  params: PropTypes.shape({
-    projectName: PropTypes.string.isRequired,
-  }).isRequired,
-  
-  containerStyle: PropTypes.string.isRequired,
+  match: PropTypes.object.isRequired, // router
+  containerStyle: PropTypes.string.isRequired, // state
 };
 
 const defaultProps = {
@@ -26,9 +22,11 @@ const mapStateToProps = state => ({
   containerStyle: containerStyleSelector(state),
 });
 
+const wrap = connect(mapStateToProps);
+
 const PreviewRouteComponent = props => (
   <Canvas
-    projectName={props.params.projectName}
+    projectName={props.match.params.projectName}
     containerStyle={props.containerStyle}
   />
 );
@@ -37,4 +35,4 @@ PreviewRouteComponent.propTypes = propTypes;
 PreviewRouteComponent.defaultProps = defaultProps;
 PreviewRouteComponent.displayName = 'PreviewRoute';
 
-export default connect(mapStateToProps)(PreviewRouteComponent);
+export default wrap(PreviewRouteComponent);

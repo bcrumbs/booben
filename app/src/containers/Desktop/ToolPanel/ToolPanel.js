@@ -58,6 +58,8 @@ const defaultProps = {
 
 const ResizeablePageDrawer = resizeable(PageDrawer);
 
+const PANEL_MIN_WIDTH = 360;
+
 export const ToolPanel = props => {
   let activeTool = null;
 
@@ -163,7 +165,7 @@ export const ToolPanel = props => {
     <ResizeablePageDrawer
       resizeEnabled={isExpanded}
       resizeSides={['left']}
-      resizeMinWidth="original"
+      resizeMinWidth={PANEL_MIN_WIDTH}
       resizeMaxWidth={Math.round(window.innerWidth / 2)}
       isExpanded={isExpanded}
       hasActions={pageDrawerHasActions}
