@@ -6,9 +6,10 @@
 
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Router } from 'react-router';
+import { Router, Switch, Route, Redirect } from 'react-router';
 import { connect } from 'react-redux';
 import throttle from 'lodash.throttle';
+import createHistory from 'history/createBrowserHistory';
 import Builder from './Builder';
 
 import {
@@ -416,20 +417,75 @@ class Preview extends Component {
   _makeNonInteractiveBuilderForRoute(route, isIndex) {
     const rootId = isIndex ? route.indexComponent : route.component;
     
-    const ret = ({ params, children }) => (
+    const childSwitch = (!isIndex && route.children.size > 0)
+      ? this._renderSwitch(route.children)
+      : null;
+    
+    const ret = ({ match }) => (
       <Builder
-        params={params}
+        params={match.params}
         components={route.components}
         rootId={rootId}
         onNavigate={this._handleNavigate}
         onOpenURL={this._handleOpenURL}
       >
-        {children}
+        {childSwitch}
       </Builder>
     );
 
-    ret.displayName = `Builder(${rootId === INVALID_ID ? 'null' : rootId})`;
+    ret.displayName = `Builder(route-${route.id}${isIndex ? '-index' : ''})`;
     return ret;
+  }
+  
+  _renderSwitch(routeIds) {
+    const { project } = this.props;
+    const routes = [];
+  
+    routeIds.forEach(routeId => {
+      const route = project.routes.get(routeId);
+    
+      if (route.haveIndex) {
+        const IndexRouteBuilder =
+          this._makeNonInteractiveBuilderForRoute(route, true);
+      
+        routes.push(
+          <Route
+            key={`${routeId}-index`}
+            path={route.fullPath}
+            exact
+            component={IndexRouteBuilder}
+          />,
+        );
+      } else if (route.haveRedirect) {
+        routes.push(
+          <Route
+            key={`${routeId}-index-redirect`}
+            path={route.fullPath}
+            exact
+            render={() => (
+              <Redirect to={route.redirectTo} />
+            )}
+          />,
+        );
+      }
+    
+      const RouteBuilder =
+        this._makeNonInteractiveBuilderForRoute(route, false);
+    
+      routes.push(
+        <Route
+          key={routeId}
+          path={route.fullPath}
+          component={RouteBuilder}
+        />,
+      );
+    });
+    
+    return (
+      <Switch>
+        {routes}
+      </Switch>
+    );
   }
 
   /**
@@ -797,11 +853,18 @@ class Preview extends Component {
   }
   
   _renderNonInteractivePreview() {
+    const { project } = this.props;
+    
+    const history = createHistory();
+    const rootSwitch = this._renderSwitch(project.rootRoutes);
+    
     return (
       <Router
         key={this._routerKey}
-        routes={this._routes}
-      />
+        history={history}
+      >
+        {rootSwitch}
+      </Router>
     );
   }
 
