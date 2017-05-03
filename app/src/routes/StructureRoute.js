@@ -7,8 +7,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { withRouter } from 'react-router-dom';
-import { compose } from 'redux';
+import { push } from 'react-router-redux';
 import { List } from 'immutable';
 
 import {
@@ -51,7 +50,6 @@ import {
   updateRouteField,
 } from '../actions/project';
 
-import { setTools } from '../actions/desktop';
 import { selectRoute } from '../actions/structure';
 import { getLocalizedTextFromState } from '../selectors';
 
@@ -65,8 +63,12 @@ import {
 
 import { TOOL_ID_ROUTE_EDITOR } from '../constants/toolIds';
 
+import {
+  buildDesignRoutePath,
+  buildDesignRouteIndexPath,
+} from '../constants/paths';
+
 const propTypes = {
-  history: PropTypes.object.isRequired, // router
   project: PropTypes.instanceOf(ProjectRecord).isRequired, // store
   projectName: PropTypes.string.isRequired, // store
   selectedRouteId: PropTypes.number.isRequired, // store
@@ -76,7 +78,7 @@ const propTypes = {
   onCreateRoute: PropTypes.func.isRequired, // dispatch
   onDeleteRoute: PropTypes.func.isRequired, // dispatch
   onRenameRoute: PropTypes.func.isRequired, // dispatch
-  onSetTools: PropTypes.func.isRequired, // dispatch
+  onOpenDesigner: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
@@ -103,20 +105,16 @@ const mapDispatchToProps = dispatch => ({
   onRenameRoute: (routeId, newTitle) =>
     void dispatch(updateRouteField(routeId, 'title', newTitle)),
   
-  onSetTools: ({ toolIds }) =>
-    void dispatch(setTools(toolIds)),
+  onOpenDesigner: ({ projectName, routeId, isIndexRoute }) => {
+    const path = isIndexRoute
+      ? buildDesignRouteIndexPath({ projectName, routeId })
+      : buildDesignRoutePath({ projectName, routeId });
+    
+    dispatch(push(path));
+  },
 });
 
-const wrap = compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  withRouter,
-);
-
-/**
- *
- * @type {Immutable.List<string>}
- */
-const STRUCTURE_TOOL_IDS = List([TOOL_ID_ROUTE_EDITOR]);
+const wrap = connect(mapStateToProps, mapDispatchToProps);
 
 /**
  *
@@ -182,11 +180,6 @@ class StructureRoute extends PureComponent {
       props.indexRouteSelected,
       props.getLocalizedText,
     );
-  }
-  
-  componentDidMount() {
-    const { onSetTools } = this.props;
-    onSetTools({ toolIds: STRUCTURE_TOOL_IDS });
   }
   
   componentWillReceiveProps(nextProps) {
@@ -330,12 +323,8 @@ class StructureRoute extends PureComponent {
    * @private
    */
   _handleRouteGo({ routeId, isIndexRoute }) {
-    const { history, projectName } = this.props;
-    
-    const path =
-      `/${projectName}/design/${routeId}${isIndexRoute ? '/index' : ''}`;
-    
-    history.push(path);
+    const { projectName, onOpenDesigner } = this.props;
+    onOpenDesigner({ projectName, routeId, isIndexRoute });
   }
 
   /**

@@ -73,8 +73,7 @@ import {
   pickComponentStateSlotDone,
 } from '../actions/project';
 
-import { dropComponent, setCurrentRoute } from '../actions/preview';
-import { setTools } from '../actions/desktop';
+import { dropComponent } from '../actions/preview';
 
 import {
   haveNestedConstructorsSelector,
@@ -104,7 +103,7 @@ import {
 import defaultComponentLayoutIcon from '../../assets/layout_default.svg';
 
 const propTypes = {
-  match: PropTypes.object.isRequired, // router
+  projectName: PropTypes.string.isRequired, // state
   components: ImmutablePropTypes.mapOf(
     PropTypes.instanceOf(ProjectComponentRecord),
     PropTypes.number,
@@ -134,8 +133,6 @@ const propTypes = {
   onCancelConstructComponentForProp: PropTypes.func.isRequired, // dispatch
   onDropComponent: PropTypes.func.isRequired, // dispatch
   onSelectComponentStateSlot: PropTypes.func.isRequired, // dispatch
-  onSetCurrentRoute: PropTypes.func.isRequired,
-  onSetTools: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -143,6 +140,7 @@ const defaultProps = {
 };
 
 const mapStateToProps = state => ({
+  projectName: state.project.projectName,
   components: currentComponentsSelector(state),
   meta: state.project.meta,
   previewContainerStyle: containerStyleSelector(state),
@@ -185,21 +183,9 @@ const mapDispatchToProps = dispatch => ({
   
   onSelectComponentStateSlot: ({ stateSlot }) =>
     void dispatch(pickComponentStateSlotDone(stateSlot)),
-  
-  onSetCurrentRoute: ({ routeId, isIndexRoute }) =>
-    void dispatch(setCurrentRoute(routeId, isIndexRoute)),
-  
-  onSetTools: ({ toolIds }) =>
-    void dispatch(setTools(toolIds)),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
-
-const DESIGN_TOOL_IDS = List([
-  TOOL_ID_LIBRARY,
-  TOOL_ID_COMPONENTS_TREE,
-  TOOL_ID_PROPS_EDITOR,
-]);
 
 const LIBRARY_ICON = 'cubes';
 const COMPONENTS_TREE_ICON = 'sitemap';
@@ -243,16 +229,6 @@ class DesignRoute extends PureComponent {
       this._handleLayoutSelection.bind(this);
     this._handleDropComponent =
       this._handleDropComponent.bind(this);
-  }
-  
-  componentWillMount() {
-    const { match, onSetCurrentRoute, onSetTools } = this.props;
-    
-    const routeId = Number(match.params.routeId);
-    const isIndexRoute = match.params.index === 'index';
-  
-    onSetCurrentRoute({ routeId, isIndexRoute });
-    onSetTools({ toolIds: DESIGN_TOOL_IDS });
   }
   
   _getLibraryTool() {
@@ -513,7 +489,7 @@ class DesignRoute extends PureComponent {
    */
   _renderContent() {
     const {
-      match,
+      projectName,
       previewContainerStyle,
       nestedConstructorBreadcrumbs,
       haveNestedConstructor,
@@ -525,7 +501,7 @@ class DesignRoute extends PureComponent {
     const canvas = (
       <Canvas
         interactive
-        projectName={match.params.projectName}
+        projectName={projectName}
         containerStyle={previewContainerStyle}
       />
     );

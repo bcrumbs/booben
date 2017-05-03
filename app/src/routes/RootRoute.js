@@ -7,7 +7,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Route, Switch } from 'react-router-dom';
+import { Route, Switch } from 'react-router';
 import { loadProject } from '../actions/project';
 import { ErrorScreen } from '../components/StateScreen/StateScreen';
 import AppRoute from './AppRoute';
@@ -16,10 +16,12 @@ import PreviewRoute from './PreviewRoute';
 import {
   NOT_LOADED,
   LOADING,
+  LOADED,
   LOAD_ERROR,
 } from '../constants/loadStates';
 
 import { removeSplashScreen } from '../utils/dom';
+import { PATH_PREVIEW } from '../constants/paths';
 
 const propTypes = {
   match: PropTypes.object.isRequired, // router
@@ -54,7 +56,9 @@ class RootRoute extends PureComponent {
 
   componentDidMount() {
     const { match, onProjectRequest } = this.props;
-    onProjectRequest(match.params.projectName);
+    
+    const projectName = match.params.projectName;
+    if (projectName) onProjectRequest(projectName);
   }
 
   componentDidUpdate() {
@@ -65,37 +69,56 @@ class RootRoute extends PureComponent {
       projectLoadState !== LOADING &&
       projectLoadState !== NOT_LOADED;
 
-    if (willRemoveSplashScreen) {
-      removeSplashScreen();
-      this._spashScreenRemoved = true;
-    }
+    if (willRemoveSplashScreen) this._removeSplashScreen();
+  }
+  
+  _removeSplashScreen() {
+    removeSplashScreen();
+    this._spashScreenRemoved = true;
+  }
+  
+  _renderError(message) {
+    return (
+      <ErrorScreen
+        title="Failed to load project"
+        message={message}
+      />
+    );
   }
 
   render() {
-    const { projectLoadState, projectLoadError } = this.props;
-
-    if (projectLoadState === LOADING || projectLoadState === NOT_LOADED)
-      return null;
-
-    if (projectLoadState === LOAD_ERROR) {
-      return (
-        <ErrorScreen
-          title="Failed to load project"
-          message={projectLoadError.message}
-        />
-      );
+    const { match, projectLoadState, projectLoadError } = this.props;
+  
+    const projectName = match.params.projectName;
+    
+    if (!projectName) {
+      this._removeSplashScreen();
+      return this._renderError('Project name is not specified');
     }
-
-    return (
-      <Switch>
-        <Route
-          path="/:projectName/preview"
-          component={PreviewRoute}
-        />
-        
-        <Route component={AppRoute} />
-      </Switch>
-    );
+    
+    switch (projectLoadState) {
+      case LOAD_ERROR: {
+        return this._renderError(projectLoadError.message);
+      }
+      
+      case LOADED: {
+        return (
+          <Switch>
+            <Route
+              exact
+              path={PATH_PREVIEW}
+              component={PreviewRoute}
+            />
+      
+            <Route component={AppRoute} />
+          </Switch>
+        );
+      }
+      
+      default: {
+        return null;
+      }
+    }
   }
 }
 

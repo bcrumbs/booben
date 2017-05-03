@@ -6,7 +6,7 @@
 
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { HashRouter } from 'react-router-dom';
+import { Router } from 'react-router';
 import { connect } from 'react-redux';
 import throttle from 'lodash.throttle';
 import Builder from './Builder';
@@ -798,7 +798,7 @@ class Preview extends Component {
   
   _renderNonInteractivePreview() {
     return (
-      <HashRouter
+      <Router
         key={this._routerKey}
         routes={this._routes}
       />

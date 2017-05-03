@@ -25,7 +25,7 @@ export const APP_SHOW_FOOTER_TOGGLES =
  * @param {Object} localization
  * @return {Object}
  */
-export const localizationLoadSuccess = (language, localization) => ({
+const stringsLoadSuccess = (language, localization) => ({
   type: APP_LOAD_STRINGS_SUCCESS,
   language,
   localization,
@@ -36,7 +36,7 @@ export const localizationLoadSuccess = (language, localization) => ({
  * @param {string} error
  * @return {Object}
  */
-export const localizationLoadFailure = error => ({
+const stringsLoadFailure = error => ({
   type: APP_LOAD_STRINGS_FAILURE,
   error,
 });
@@ -44,7 +44,7 @@ export const localizationLoadFailure = error => ({
 /**
  * @return {Object}
  */
-export const localizationLoading = () => ({
+export const stringsLoading = () => ({
   type: APP_LOAD_STRINGS,
 });
 
@@ -52,14 +52,14 @@ export const localizationLoading = () => ({
  * @param {string} language
  * @return {function(dispatch: function(dispatch: function(action: Object)))}
  */
-export const loadLocalization = language => dispatch => {
-  dispatch(localizationLoading());
+export const loadStrings = language => dispatch => {
+  dispatch(stringsLoading());
   getStrings(language)
-    .then(localization => dispatch(localizationLoadSuccess(
+    .then(strings => dispatch(stringsLoadSuccess(
       language,
-      localization,
+      strings,
     )))
-    .catch(localizationLoadFailure);
+    .catch(stringsLoadFailure);
 };
 
 /**

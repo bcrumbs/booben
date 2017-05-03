@@ -17,6 +17,7 @@ import {
 } from '../utils/meta';
 
 import { getTypeNameByPath } from '../utils/schema';
+import { isDef } from '../utils/misc';
 import { INVALID_ID } from '../constants/misc';
 
 export const haveNestedConstructorsSelector = state =>
@@ -97,8 +98,10 @@ export const currentSelectedComponentIdsSelector = createSelector(
 export const singleComponentSelectedSelector = state =>
   currentSelectedComponentIdsSelector(state).size === 1;
 
-export const firstSelectedComponentIdSelector = state =>
-  currentSelectedComponentIdsSelector(state).first();
+export const firstSelectedComponentIdSelector = state => {
+  const ret = currentSelectedComponentIdsSelector(state).first();
+  return isDef(ret) ? ret : INVALID_ID;
+};
 
 export const currentHighlightedComponentIdsSelector = createSelector(
   topNestedConstructorSelector,

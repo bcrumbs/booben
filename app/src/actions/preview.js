@@ -14,8 +14,6 @@ export const PREVIEW_HIGHLIGHT_COMPONENT =
   'PREVIEW_HIGHLIGHT_COMPONENT';
 export const PREVIEW_UNHIGHLIGHT_COMPONENT =
   'PREVIEW_UNHIGHLIGHT_COMPONENT';
-export const PREVIEW_SET_CURRENT_ROUTE =
-  'PREVIEW_SET_CURRENT_ROUTE';
 export const PREVIEW_START_DRAG_NEW_COMPONENT =
   'PREVIEW_START_DRAG_NEW_COMPONENT';
 export const PREVIEW_START_DRAG_EXISTING_COMPONENT =
@@ -83,17 +81,6 @@ export const highlightPreviewComponent = componentId => ({
 export const unhighlightPreviewComponent = componentId => ({
   type: PREVIEW_UNHIGHLIGHT_COMPONENT,
   componentId,
-});
-
-/**
- * @param {number} routeId
- * @param {boolean} isIndexRoute
- * @return {Object}
- */
-export const setCurrentRoute = (routeId, isIndexRoute) => ({
-  type: PREVIEW_SET_CURRENT_ROUTE,
-  routeId,
-  isIndexRoute,
 });
 
 /**

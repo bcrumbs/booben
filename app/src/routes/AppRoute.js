@@ -7,7 +7,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Route, Switch, Link } from 'react-router-dom';
+import { Route, Switch, Redirect } from 'react-router';
+import { Link } from 'react-router-dom';
 
 import {
   App,
@@ -40,6 +41,16 @@ import {
 } from '../actions/app';
 
 import { getLocalizedTextFromState } from '../selectors';
+
+import {
+  PATH_STRUCTURE,
+  PATH_DESIGN,
+  PATH_DESIGN_ROUTE,
+  PATH_DESIGN_ROUTE_INDEX,
+  buildStructurePath,
+  buildDesignRoutePath,
+  buildDesignRouteIndexPath,
+} from '../constants/paths';
 
 const propTypes = {
   location: PropTypes.object.isRequired, // router
@@ -133,7 +144,10 @@ const AppRoute = props => {
   const currentPath = location.pathname;
 
   project.routes.forEach(route => {
-    const href = `/${projectName}/design/${route.id}`;
+    const href = buildDesignRoutePath({
+      projectName,
+      routeId: route.id,
+    });
 
     routeMenuItems.push(
       <HeaderMenuItem
@@ -146,7 +160,10 @@ const AppRoute = props => {
     );
 
     if (route.haveIndex) {
-      const indexHref = `/${projectName}/design/${route.id}/index`;
+      const indexHref = buildDesignRouteIndexPath({
+        projectName,
+        routeId: route.id,
+      });
 
       routeMenuItems.push(
         <HeaderMenuItem
@@ -236,14 +253,26 @@ const AppRoute = props => {
       <Switch>
         <Route
           exact
-          path="/:projectName/structure"
+          path={PATH_STRUCTURE}
           component={StructureRoute}
         />
   
         <Route
           exact
-          path="/:projectName/design/:routeId/:index?"
+          path={PATH_DESIGN_ROUTE}
           component={DesignRoute}
+        />
+  
+        <Route
+          exact
+          path={PATH_DESIGN_ROUTE_INDEX}
+          component={DesignRoute}
+        />
+        
+        <Route
+          render={({ match }) => (
+            <Redirect to={buildStructurePath(match.params)} />
+          )}
         />
       </Switch>
 
@@ -267,22 +296,22 @@ const AppRoute = props => {
               <FooterMenuGroup>
                 <FooterMenuList>
                   <Route
-                    path="/:projectName/design"
+                    path={PATH_DESIGN}
                     render={() => (
                       <FooterMenuItem
                         text={getLocalizedText('appFooter.showComponentsTitle')}
-                        subcomponentRight={(
+                        subcomponentRight={
                           <ToggleButton
                             checked={showComponentTitles}
                             onChange={onToggleComponentTitles}
                           />
-                        )}
+                        }
                       />
                     )}
                   />
                   
                   <Route
-                    path="/:projectName/design"
+                    path={PATH_DESIGN}
                     render={() => (
                       <FooterMenuItem
                         text={getLocalizedText('appFooter.showPlaceholders')}

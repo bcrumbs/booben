@@ -6,6 +6,9 @@
 
 import { Record, Map, Set, List } from 'immutable';
 import { resolveTypedef } from '@jssy/types';
+import { LOCATION_CHANGE } from 'react-router-redux';
+import { matchPath } from 'react-router';
+import { PATH_DESIGN_ROUTE, PATH_DESIGN_ROUTE_INDEX } from '../constants/paths';
 
 import {
   PROJECT_REQUEST,
@@ -38,7 +41,6 @@ import {
   PREVIEW_TOGGLE_COMPONENT_SELECTION,
   PREVIEW_HIGHLIGHT_COMPONENT,
   PREVIEW_UNHIGHLIGHT_COMPONENT,
-  PREVIEW_SET_CURRENT_ROUTE,
   PREVIEW_START_DRAG_NEW_COMPONENT,
   PREVIEW_START_DRAG_EXISTING_COMPONENT,
   PREVIEW_DROP_COMPONENT,
@@ -875,8 +877,47 @@ const updateValue = (state, path, newValue) => {
   return state.setIn(expandPath(materializePath(path, state)), newValue);
 };
 
+const setCurrentRoute = (state, routeId, isIndexRoute) => {
+  state = closeAllNestedConstructors(state);
+  
+  return state.merge({
+    currentRouteId: routeId,
+    currentRouteIsIndexRoute: isIndexRoute,
+    selectedItems: Set(),
+    highlightedItems: Set(),
+  });
+};
+
 
 const handlers = {
+  [LOCATION_CHANGE]: (state, action) => {
+    const pathname = action.payload.pathname;
+    
+    const designRouteMatch = matchPath(pathname, {
+      path: PATH_DESIGN_ROUTE,
+      exact: true,
+      strict: false,
+    });
+    
+    if (designRouteMatch) {
+      const routeId = parseInt(designRouteMatch.params.routeId, 10);
+      return setCurrentRoute(state, routeId, false);
+    }
+    
+    const designRouteIndexMatch = matchPath(pathname, {
+      path: PATH_DESIGN_ROUTE_INDEX,
+      exact: true,
+      strict: false,
+    });
+    
+    if (designRouteIndexMatch) {
+      const routeId = parseInt(designRouteIndexMatch.params.routeId, 10);
+      return setCurrentRoute(state, routeId, true);
+    }
+    
+    return state;
+  },
+  
   [PROJECT_REQUEST]: (state, action) => state.merge({
     projectName: action.projectName,
     loadState: LOADING,
@@ -1128,17 +1169,6 @@ const handlers = {
   [PREVIEW_TOGGLE_COMPONENT_SELECTION]: (state, action) => {
     state = state.set('showAllComponentsOnPalette', false);
     return toggleComponentSelection(state, action.componentId);
-  },
-  
-  [PREVIEW_SET_CURRENT_ROUTE]: (state, action) => {
-    state = closeAllNestedConstructors(state);
-  
-    return state.merge({
-      currentRouteId: action.routeId,
-      currentRouteIsIndexRoute: action.isIndexRoute,
-      selectedItems: Set(),
-      highlightedItems: Set(),
-    });
   },
   
   [PREVIEW_START_DRAG_NEW_COMPONENT]: (state, action) => {

@@ -5,45 +5,42 @@
 'use strict';
 
 import '@reactackle/reactackle/reactackle.scss';
-
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
+import { Route, Switch, Redirect } from 'react-router';
+import { ConnectedRouter } from 'react-router-redux';
 import { Provider } from 'react-redux';
 import RootRoute from './routes/RootRoute';
-import PlaygroundRoute, { PLAYGROUND_TOOL_IDS } from './routes/PlaygroundRoute';
+import PlaygroundRoute from './routes/PlaygroundRoute';
 import store from './store';
-import { setTools } from './actions/desktop';
-import { loadLocalization } from './actions/app';
+import history from './history';
+import { loadStrings } from './actions/app';
+import { PATH_ROOT, buildStructurePath } from './constants/paths';
 
-const onPlaygroundRouteEnter = () => {
-  store.dispatch(setTools(PLAYGROUND_TOOL_IDS));
-};
-
-store.dispatch(loadLocalization('en'));
+store.dispatch(loadStrings('en'));
 
 window.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(
     <Provider store={store}>
-      <BrowserRouter basename="/app">
+      <ConnectedRouter history={history}>
         <Switch>
           <Route
+            exact
             path="/playground"
             component={PlaygroundRoute}
-            onEnter={onPlaygroundRouteEnter}
           />
           
           <Route
             exact
-            path="/:projectName"
+            path={PATH_ROOT}
             render={({ match }) => (
-              <Redirect to={`/${match.params.projectName}/structure`} />
+              <Redirect to={buildStructurePath(match.params)} />
             )}
           />
   
-          <Route path="/:projectName" component={RootRoute} />
+          <Route path={PATH_ROOT} component={RootRoute} />
         </Switch>
-      </BrowserRouter>
+      </ConnectedRouter>
     </Provider>,
 
     window.document.getElementById('container'),
