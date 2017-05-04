@@ -7,7 +7,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Link } from 'react-router';
+import { Route, Switch, Redirect } from 'react-router';
+import { Link } from 'react-router-dom';
 
 import {
   App,
@@ -29,6 +30,8 @@ import {
   ToggleButton,
 } from '@reactackle/reactackle';
 
+import StructureRoute from './StructureRoute';
+import DesignRoute from './DesignRoute';
 import { ProjectSave } from '../components/ProjectSave/ProjectSave';
 import ProjectRecord from '../models/Project';
 
@@ -39,16 +42,25 @@ import {
 
 import { getLocalizedTextFromState } from '../selectors';
 
+import {
+  PATH_STRUCTURE,
+  PATH_DESIGN,
+  PATH_DESIGN_ROUTE,
+  PATH_DESIGN_ROUTE_INDEX,
+  buildStructurePath,
+  buildDesignRoutePath,
+  buildDesignRouteIndexPath,
+} from '../constants/paths';
+
 const propTypes = {
-  location: PropTypes.object.isRequired,
-  projectName: PropTypes.string.isRequired,
-  project: PropTypes.instanceOf(ProjectRecord).isRequired,
-  showFooterToggles: PropTypes.bool.isRequired,
-  showContentPlaceholders: PropTypes.bool.isRequired,
-  showComponentTitles: PropTypes.bool.isRequired,
-  getLocalizedText: PropTypes.func.isRequired,
-  onToggleContentPlaceholders: PropTypes.func.isRequired,
-  onToggleComponentTitles: PropTypes.func.isRequired,
+  location: PropTypes.object.isRequired, // router
+  projectName: PropTypes.string.isRequired, // state
+  project: PropTypes.instanceOf(ProjectRecord).isRequired, // state
+  showContentPlaceholders: PropTypes.bool.isRequired, // state
+  showComponentTitles: PropTypes.bool.isRequired, // state
+  getLocalizedText: PropTypes.func.isRequired, // state
+  onToggleContentPlaceholders: PropTypes.func.isRequired, // dispatch
+  onToggleComponentTitles: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
@@ -57,7 +69,6 @@ const defaultProps = {
 const mapStateToProps = state => ({
   projectName: state.project.projectName,
   project: state.project.data,
-  showFooterToggles: state.app.showFooterToggles,
   showContentPlaceholders: state.app.showContentPlaceholders,
   showComponentTitles: state.app.showComponentTitles,
   getLocalizedText: getLocalizedTextFromState(state),
@@ -70,6 +81,8 @@ const mapDispatchToProps = dispatch => ({
   onToggleComponentTitles: ({ value }) =>
     void dispatch(toggleComponentTitles(value)),
 });
+
+const wrap = connect(mapStateToProps, mapDispatchToProps);
 
 const TopMenuLink = ({ href, className, children }) => (
   <Link to={href} className={className}>
@@ -120,20 +133,21 @@ const AppRoute = props => {
     projectName,
     project,
     location,
-    showFooterToggles,
     showComponentTitles,
     showContentPlaceholders,
     getLocalizedText,
     onToggleComponentTitles,
     onToggleContentPlaceholders,
-    children,
   } = props;
 
   const routeMenuItems = [];
   const currentPath = location.pathname;
 
   project.routes.forEach(route => {
-    const href = `/${projectName}/design/${route.id}`;
+    const href = buildDesignRoutePath({
+      projectName,
+      routeId: route.id,
+    });
 
     routeMenuItems.push(
       <HeaderMenuItem
@@ -146,7 +160,10 @@ const AppRoute = props => {
     );
 
     if (route.haveIndex) {
-      const indexHref = `/${projectName}/design/${route.id}/index`;
+      const indexHref = buildDesignRouteIndexPath({
+        projectName,
+        routeId: route.id,
+      });
 
       routeMenuItems.push(
         <HeaderMenuItem
@@ -163,39 +180,6 @@ const AppRoute = props => {
   const title = getLocalizedText('appHeader.projectTitle', {
     projectName,
   });
-  
-  let showComponentsTitleItem = null,
-    showPlaceholdersItem = null;
-  
-  if (showFooterToggles) {
-    const titlesToggle = (
-      <ToggleButton
-        checked={showComponentTitles}
-        onChange={onToggleComponentTitles}
-      />
-    );
-
-    showComponentsTitleItem = (
-      <FooterMenuItem
-        text={getLocalizedText('appFooter.showComponentsTitle')}
-        subcomponentRight={titlesToggle}
-      />
-    );
-
-    const placeholdersToggle = (
-      <ToggleButton
-        checked={showContentPlaceholders}
-        onChange={onToggleContentPlaceholders}
-      />
-    );
-    
-    showPlaceholdersItem = (
-      <FooterMenuItem
-        text={getLocalizedText('appFooter.showPlaceholders')}
-        subcomponentRight={placeholdersToggle}
-      />
-    );
-  }
 
   return (
     <App fixed>
@@ -266,7 +250,31 @@ const AppRoute = props => {
         </Header>
       </TopRegion>
 
-      {children}
+      <Switch>
+        <Route
+          exact
+          path={PATH_STRUCTURE}
+          component={StructureRoute}
+        />
+  
+        <Route
+          exact
+          path={PATH_DESIGN_ROUTE}
+          component={DesignRoute}
+        />
+  
+        <Route
+          exact
+          path={PATH_DESIGN_ROUTE_INDEX}
+          component={DesignRoute}
+        />
+        
+        <Route
+          render={({ match }) => (
+            <Redirect to={buildStructurePath(match.params)} />
+          )}
+        />
+      </Switch>
 
       <BottomRegion>
         <Footer>
@@ -287,8 +295,35 @@ const AppRoute = props => {
             <FooterMenu inline dense mode="light">
               <FooterMenuGroup>
                 <FooterMenuList>
-                  {showComponentsTitleItem}
-                  {showPlaceholdersItem}
+                  <Route
+                    path={PATH_DESIGN}
+                    render={() => (
+                      <FooterMenuItem
+                        text={getLocalizedText('appFooter.showComponentsTitle')}
+                        subcomponentRight={
+                          <ToggleButton
+                            checked={showComponentTitles}
+                            onChange={onToggleComponentTitles}
+                          />
+                        }
+                      />
+                    )}
+                  />
+                  
+                  <Route
+                    path={PATH_DESIGN}
+                    render={() => (
+                      <FooterMenuItem
+                        text={getLocalizedText('appFooter.showPlaceholders')}
+                        subcomponentRight={
+                          <ToggleButton
+                            checked={showContentPlaceholders}
+                            onChange={onToggleContentPlaceholders}
+                          />
+                        }
+                      />
+                    )}
+                  />
                   
                   <FooterMenuItem
                     text={getLocalizedText('appFooter.toggleFullScreen')}
@@ -308,7 +343,4 @@ AppRoute.propTypes = propTypes;
 AppRoute.defaultProps = defaultProps;
 AppRoute.displayName = 'AppRoute';
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(AppRoute);
+export default wrap(AppRoute);

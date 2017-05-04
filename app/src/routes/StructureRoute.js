@@ -7,6 +7,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { push } from 'react-router-redux';
 import { List } from 'immutable';
 
 import {
@@ -51,7 +52,6 @@ import {
 
 import { selectRoute } from '../actions/structure';
 import { getLocalizedTextFromState } from '../selectors';
-import history from '../history';
 
 import {
   arrayToObject,
@@ -63,16 +63,22 @@ import {
 
 import { TOOL_ID_ROUTE_EDITOR } from '../constants/toolIds';
 
+import {
+  buildDesignRoutePath,
+  buildDesignRouteIndexPath,
+} from '../constants/paths';
+
 const propTypes = {
-  project: PropTypes.instanceOf(ProjectRecord).isRequired,
-  projectName: PropTypes.string.isRequired,
-  selectedRouteId: PropTypes.number.isRequired,
-  indexRouteSelected: PropTypes.bool.isRequired,
-  getLocalizedText: PropTypes.func.isRequired,
-  onSelectRoute: PropTypes.func.isRequired,
-  onCreateRoute: PropTypes.func.isRequired,
-  onDeleteRoute: PropTypes.func.isRequired,
-  onRenameRoute: PropTypes.func.isRequired,
+  project: PropTypes.instanceOf(ProjectRecord).isRequired, // store
+  projectName: PropTypes.string.isRequired, // store
+  selectedRouteId: PropTypes.number.isRequired, // store
+  indexRouteSelected: PropTypes.bool.isRequired, // store
+  getLocalizedText: PropTypes.func.isRequired, // store
+  onSelectRoute: PropTypes.func.isRequired, // dispatch
+  onCreateRoute: PropTypes.func.isRequired, // dispatch
+  onDeleteRoute: PropTypes.func.isRequired, // dispatch
+  onRenameRoute: PropTypes.func.isRequired, // dispatch
+  onOpenDesigner: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
@@ -98,13 +104,17 @@ const mapDispatchToProps = dispatch => ({
   
   onRenameRoute: (routeId, newTitle) =>
     void dispatch(updateRouteField(routeId, 'title', newTitle)),
+  
+  onOpenDesigner: ({ projectName, routeId, isIndexRoute }) => {
+    const path = isIndexRoute
+      ? buildDesignRouteIndexPath({ projectName, routeId })
+      : buildDesignRoutePath({ projectName, routeId });
+    
+    dispatch(push(path));
+  },
 });
 
-/**
- *
- * @type {Immutable.List<string>}
- */
-export const STRUCTURE_TOOL_IDS = List([TOOL_ID_ROUTE_EDITOR]);
+const wrap = connect(mapStateToProps, mapDispatchToProps);
 
 /**
  *
@@ -313,12 +323,8 @@ class StructureRoute extends PureComponent {
    * @private
    */
   _handleRouteGo({ routeId, isIndexRoute }) {
-    const { projectName } = this.props;
-    
-    const path =
-      `/${projectName}/design/${routeId}${isIndexRoute ? '/index' : ''}`;
-    
-    history.push(path);
+    const { projectName, onOpenDesigner } = this.props;
+    onOpenDesigner({ projectName, routeId, isIndexRoute });
   }
 
   /**
@@ -835,7 +841,4 @@ StructureRoute.propTypes = propTypes;
 StructureRoute.defaultProps = defaultProps;
 StructureRoute.displayName = 'StructureRoute';
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(StructureRoute);
+export default wrap(StructureRoute);

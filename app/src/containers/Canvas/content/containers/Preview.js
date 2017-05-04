@@ -6,9 +6,10 @@
 
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Router, hashHistory } from 'react-router';
+import { Router, Switch, Route, Redirect } from 'react-router';
 import { connect } from 'react-redux';
 import throttle from 'lodash.throttle';
+import createHistory from 'history/es/createMemoryHistory';
 import Builder from './Builder';
 
 import {
@@ -158,7 +159,7 @@ class Preview extends Component {
     super(props, context);
     
     this._container = null;
-    this._routes = null;
+    this._history = props.interactive ? null : createHistory();
     this._routerKey = 0;
     this._unhighilightTimer = -1;
     this._unhighlightedComponentId = INVALID_ID;
@@ -172,8 +173,6 @@ class Preview extends Component {
     this._handleOpenURL = this._handleOpenURL.bind(this);
 
     this.drag = throttle(this.drag.bind(this), 100);
-
-    this._updateRoutes(props.project.routes, props.project.rootRoutes);
   }
 
   componentDidMount() {
@@ -195,10 +194,8 @@ class Preview extends Component {
     const { project, interactive } = this.props;
     
     if (interactive && nextProps.project !== project) {
-      this._updateRoutes(
-        nextProps.project.routes,
-        nextProps.project.rootRoutes,
-      );
+      this._routerKey++;
+      this._history = createHistory();
     }
   }
 
@@ -411,72 +408,93 @@ class Preview extends Component {
    *
    * @param {Object} route - ProjectRoute record
    * @param {boolean} isIndex
+   * @param {?ReactElement} [indexRoute = null]
    * @return {Function}
    */
-  _makeNonInteractiveBuilderForRoute(route, isIndex) {
+  _makeNonInteractiveBuilderForRoute(route, isIndex, indexRoute = null) {
     const rootId = isIndex ? route.indexComponent : route.component;
     
-    const ret = ({ params, children }) => (
+    const childSwitch = !isIndex
+      ? this._renderSwitch(route.children, indexRoute ? [indexRoute] : [])
+      : null;
+    
+    const ret = ({ match }) => (
       <Builder
-        params={params}
+        params={match.params}
         components={route.components}
         rootId={rootId}
         onNavigate={this._handleNavigate}
         onOpenURL={this._handleOpenURL}
       >
-        {children}
+        {childSwitch}
       </Builder>
     );
 
-    ret.displayName = `Builder(${rootId === INVALID_ID ? 'null' : rootId})`;
+    ret.displayName = `Builder(route-${route.id}${isIndex ? '-index' : ''})`;
     return ret;
   }
 
   /**
    *
-   * @param {Immutable.Map<number, Object>} routes
-   * @param {number} routeId
-   * @return {Object}
+   * @param {Immutable.List<number>} routeIds
+   * @param {?(ReactElement[])} [additionalRoutes=null]
+   * @return {?ReactElement}
    * @private
    */
-  _createRoute(routes, routeId) {
-    const route = routes.get(routeId);
+  _renderSwitch(routeIds, additionalRoutes = null) {
+    const { project } = this.props;
+    const routes = additionalRoutes || [];
+  
+    routeIds.forEach(routeId => {
+      const route = project.routes.get(routeId);
+      let indexRoute = null;
+    
+      if (route.haveIndex) {
+        const IndexRouteBuilder =
+          this._makeNonInteractiveBuilderForRoute(route, true);
 
-    const ret = {
-      path: route.path,
-      component: this._makeNonInteractiveBuilderForRoute(route, false),
-    };
+        indexRoute = (
+          <Route
+            key={`${routeId}-index`}
+            path={route.fullPath}
+            exact
+            component={IndexRouteBuilder}
+          />
+        );
+      } else if (route.haveRedirect) {
+        routes.push(
+          <Route
+            key={`${routeId}-index-redirect`}
+            path={route.fullPath}
+            exact
+            render={() => (
+              <Redirect to={route.redirectTo} />
+            )}
+          />,
+        );
+      }
+    
+      const RouteBuilder =
+        this._makeNonInteractiveBuilderForRoute(route, false, indexRoute);
+    
+      routes.push(
+        <Route
+          key={String(routeId)}
+          path={route.fullPath}
+          component={RouteBuilder}
+        />,
+      );
+    });
 
-    if (route.children.size > 0) {
-      ret.childRoutes = route.children
-        .map(childRouteId => this._createRoute(routes, childRouteId))
-        .toArray();
+    if (routes.length > 0) {
+      return (
+        <Switch>
+          {routes}
+        </Switch>
+      );
+    } else {
+      return null;
     }
-
-    if (route.haveRedirect) {
-      ret.onEnter = (_, replace) => replace(route.redirectTo);
-    } else if (route.haveIndex) {
-      ret.indexRoute = {
-        component: this._makeNonInteractiveBuilderForRoute(route, true),
-      };
-    }
-
-    return ret;
-  }
-
-  /**
-   * Build routes config for react-router
-   *
-   * @param {Immutable.Map} routes
-   * @param {Immutable.List<number>} rootRouteIds
-   * @private
-   */
-  _updateRoutes(routes, rootRouteIds) {
-    this._routes = rootRouteIds
-      .map(routeId => this._createRoute(routes, routeId))
-      .toArray();
-
-    this._routerKey++;
   }
 
   /**
@@ -656,8 +674,8 @@ class Preview extends Component {
           : part,
       )
       .join('/');
-    
-    hashHistory.push(path);
+
+    this._history.push(path);
   }
   
   /**
@@ -797,12 +815,17 @@ class Preview extends Component {
   }
   
   _renderNonInteractivePreview() {
+    const { project } = this.props;
+
+    const rootSwitch = this._renderSwitch(project.rootRoutes);
+    
     return (
       <Router
         key={this._routerKey}
-        history={hashHistory}
-        routes={this._routes}
-      />
+        history={this._history}
+      >
+        {rootSwitch}
+      </Router>
     );
   }
 

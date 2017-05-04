@@ -5,85 +5,44 @@
 'use strict';
 
 import '@reactackle/reactackle/reactackle.scss';
-
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Router, Route, IndexRedirect } from 'react-router';
+import { Route, Switch, Redirect } from 'react-router';
+import { ConnectedRouter } from 'react-router-redux';
 import { Provider } from 'react-redux';
-
 import RootRoute from './routes/RootRoute';
-import AppRoute from './routes/AppRoute';
-import StructureRoute, { STRUCTURE_TOOL_IDS } from './routes/StructureRoute';
-import DesignRoute, { DESIGN_TOOL_IDS } from './routes/DesignRoute';
-import PreviewRoute from './routes/PreviewRoute';
-
-import PlaygroundRoute, { PLAYGROUND_TOOL_IDS } from './routes/PlaygroundRoute';
-
+import PlaygroundRoute from './routes/PlaygroundRoute';
 import store from './store';
 import history from './history';
+import { loadStrings } from './actions/app';
+import { PATH_ROOT, buildStructurePath } from './constants/paths';
 
-import { setTools } from './actions/desktop';
-import { setCurrentRoute } from './actions/preview';
-import { loadLocalization, showFooterToggles } from './actions/app';
-
-const setToolsOnEnter = toolIds => () => void store.dispatch(setTools(toolIds));
-
-const onDesignRouteEnter = ({ location, params }) => {
-  const routeId = Number(params.routeId);
-  const isIndexRoute = location.pathname.endsWith('/index');
-
-  store.dispatch(setCurrentRoute(routeId, isIndexRoute));
-  store.dispatch(setTools(DESIGN_TOOL_IDS));
-  store.dispatch(showFooterToggles(true));
-};
-
-const onDesignRouteLeave = () => {
-  store.dispatch(showFooterToggles(false));
-};
-
-/*
- * Testing
- */
-window.abc = lang => store.dispatch(loadLocalization(lang));
-
-store.dispatch(loadLocalization('en'));
+store.dispatch(loadStrings('en'));
 
 window.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(
     <Provider store={store}>
-      <Router history={history}>
-        <Route
-          path="/playground"
-          component={PlaygroundRoute}
-          onEnter={setToolsOnEnter(PLAYGROUND_TOOL_IDS)}
-        />
-
-        <Route path="/:projectName" component={RootRoute}>
-          <Route component={AppRoute}>
-            <IndexRedirect to="/:projectName/structure" />
-
-            <Route
-              path="structure"
-              component={StructureRoute}
-              onEnter={setToolsOnEnter(STRUCTURE_TOOL_IDS)}
-            />
-
-            <Route
-              path="design/:routeId(/index)"
-              component={DesignRoute}
-              onEnter={onDesignRouteEnter}
-              onLeave={onDesignRouteLeave}
-            />
-          </Route>
-
+      <ConnectedRouter history={history}>
+        <Switch>
           <Route
-            path="preview"
-            component={PreviewRoute}
+            exact
+            path="/playground"
+            component={PlaygroundRoute}
           />
-        </Route>
-      </Router>
+          
+          <Route
+            exact
+            path={PATH_ROOT}
+            render={({ match }) => (
+              <Redirect to={buildStructurePath(match.params)} />
+            )}
+          />
+  
+          <Route path={PATH_ROOT} component={RootRoute} />
+        </Switch>
+      </ConnectedRouter>
     </Provider>,
 
-    document.getElementById('container'),
+    window.document.getElementById('container'),
   );
 });

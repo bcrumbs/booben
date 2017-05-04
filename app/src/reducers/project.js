@@ -6,6 +6,9 @@
 
 import { Record, Map, Set, List } from 'immutable';
 import { resolveTypedef } from '@jssy/types';
+import { LOCATION_CHANGE } from 'react-router-redux';
+import { matchPath } from 'react-router';
+import { PATH_DESIGN_ROUTE, PATH_DESIGN_ROUTE_INDEX } from '../constants/paths';
 
 import {
   PROJECT_REQUEST,
@@ -38,7 +41,6 @@ import {
   PREVIEW_TOGGLE_COMPONENT_SELECTION,
   PREVIEW_HIGHLIGHT_COMPONENT,
   PREVIEW_UNHIGHLIGHT_COMPONENT,
-  PREVIEW_SET_CURRENT_ROUTE,
   PREVIEW_START_DRAG_NEW_COMPONENT,
   PREVIEW_START_DRAG_EXISTING_COMPONENT,
   PREVIEW_DROP_COMPONENT,
@@ -340,14 +342,6 @@ const deleteComponent = (state, componentId) => {
   const currentComponents = state.getIn(pathToCurrentComponents);
   const rootComponentId = state.getIn(pathToCurrentRootComponentId);
   const component = currentComponents.get(componentId);
-  
-  // If the root component is being deleted, just reset everything to defaults
-  if (isRootComponent(component)) {
-    return state
-      .setIn(pathToCurrentComponents, Map())
-      .setIn(pathToCurrentRootComponentId, INVALID_ID);
-  }
-  
   const idsToDelete = gatherComponentsTreeIds(currentComponents, componentId);
   const haveState = idsToDelete.some(id => {
     const component = currentComponents.get(id);
@@ -362,17 +356,22 @@ const deleteComponent = (state, componentId) => {
     components => components.withMutations(componentsMut =>
       void idsToDelete.forEach(id => void componentsMut.delete(id))),
   );
-  
-  // Update children of remaining components
-  const pathToChildrenIdsList = [].concat(pathToCurrentComponents, [
-    component.parentId,
-    'children',
-  ]);
-  
-  state = state.updateIn(
-    pathToChildrenIdsList,
-    children => children.filter(id => id !== componentId),
-  );
+
+  if (isRootComponent(component)) {
+    // If the root component is being deleted, reset the root component id field
+    state = state.setIn(pathToCurrentRootComponentId, INVALID_ID);
+  } else {
+    // Otherwise update children of remaining components
+    const pathToChildrenIdsList = [].concat(pathToCurrentComponents, [
+      component.parentId,
+      'children',
+    ]);
+
+    state = state.updateIn(
+      pathToChildrenIdsList,
+      children => children.filter(id => id !== componentId),
+    );
+  }
   
   // Delete method call actions that point to deleted components
   state = state.updateIn(
@@ -420,7 +419,7 @@ const deleteComponent = (state, componentId) => {
     }),
   );
   
-  // Reset JssyValues linked to states of deleted components
+  // Reset JssyValues linked to state slots of deleted components
   if (haveState) {
     const walkSimpleValueOptions = {
       walkSystemProps: true,
@@ -875,8 +874,47 @@ const updateValue = (state, path, newValue) => {
   return state.setIn(expandPath(materializePath(path, state)), newValue);
 };
 
+const setCurrentRoute = (state, routeId, isIndexRoute) => {
+  state = closeAllNestedConstructors(state);
+  
+  return state.merge({
+    currentRouteId: routeId,
+    currentRouteIsIndexRoute: isIndexRoute,
+    selectedItems: Set(),
+    highlightedItems: Set(),
+  });
+};
+
 
 const handlers = {
+  [LOCATION_CHANGE]: (state, action) => {
+    const pathname = action.payload.pathname;
+    
+    const designRouteMatch = matchPath(pathname, {
+      path: PATH_DESIGN_ROUTE,
+      exact: true,
+      strict: false,
+    });
+    
+    if (designRouteMatch) {
+      const routeId = parseInt(designRouteMatch.params.routeId, 10);
+      return setCurrentRoute(state, routeId, false);
+    }
+    
+    const designRouteIndexMatch = matchPath(pathname, {
+      path: PATH_DESIGN_ROUTE_INDEX,
+      exact: true,
+      strict: false,
+    });
+    
+    if (designRouteIndexMatch) {
+      const routeId = parseInt(designRouteIndexMatch.params.routeId, 10);
+      return setCurrentRoute(state, routeId, true);
+    }
+    
+    return state;
+  },
+  
   [PROJECT_REQUEST]: (state, action) => state.merge({
     projectName: action.projectName,
     loadState: LOADING,
@@ -1128,17 +1166,6 @@ const handlers = {
   [PREVIEW_TOGGLE_COMPONENT_SELECTION]: (state, action) => {
     state = state.set('showAllComponentsOnPalette', false);
     return toggleComponentSelection(state, action.componentId);
-  },
-  
-  [PREVIEW_SET_CURRENT_ROUTE]: (state, action) => {
-    state = closeAllNestedConstructors(state);
-  
-    return state.merge({
-      currentRouteId: action.routeId,
-      currentRouteIsIndexRoute: action.isIndexRoute,
-      selectedItems: Set(),
-      highlightedItems: Set(),
-    });
   },
   
   [PREVIEW_START_DRAG_NEW_COMPONENT]: (state, action) => {

@@ -4,7 +4,9 @@
 
 'use strict';
 
-import { Map, Record } from 'immutable';
+import { Map, Record, List } from 'immutable';
+import { LOCATION_CHANGE } from 'react-router-redux';
+import { matchPath } from 'react-router';
 
 import {
   DESKTOP_SET_TOOLS,
@@ -32,9 +34,12 @@ import {
 import {
   TOOL_ID_COMPONENTS_TREE,
   TOOL_ID_PROPS_EDITOR,
+  TOOL_IDS_STRUCTURE,
+  TOOL_IDS_DESIGN,
 } from '../constants/toolIds';
 
 import ToolStateRecord from '../models/ToolState';
+import { PATH_STRUCTURE, PATH_DESIGN } from '../constants/paths';
 
 const DesktopState = Record({
   toolStates: Map(),
@@ -100,29 +105,54 @@ const setNecessaryToolActiveAfterDrop = (state, dropOnAreaId) => {
   return state.set('previousActiveToolId', null);
 };
 
+const setActiveTools = (state, toolIds) => {
+  const newToolStates = {};
+  
+  toolIds.forEach(toolId => {
+    if (!state.toolStates.has(toolId))
+      newToolStates[toolId] = new ToolStateRecord();
+  });
+  
+  const newToolStatesMap = Map(newToolStates);
+  
+  state = newToolStatesMap.size > 0
+    ? state.set('toolStates', state.toolStates.merge(newToolStatesMap))
+    : state;
+  
+  const needToChangeActiveTool =
+    state.activeToolId === null ||
+    !toolIds.includes(state.activeToolId);
+  
+  return needToChangeActiveTool
+    ? selectTool(state, toolIds.get(0) || null)
+    : state;
+};
+
 const handlers = {
-  [DESKTOP_SET_TOOLS]: (state, action) => {
-    const newToolStates = {};
-  
-    action.toolIds.forEach(toolId => {
-      if (!state.toolStates.has(toolId))
-        newToolStates[toolId] = new ToolStateRecord();
+  [LOCATION_CHANGE]: (state, action) => {
+    const pathname = action.payload.pathname;
+    
+    const structureMatch = matchPath(pathname, {
+      path: PATH_STRUCTURE,
+      exact: true,
+      strict: false,
     });
-  
-    const newToolStatesMap = Map(newToolStates);
-  
-    state = newToolStatesMap.size > 0
-      ? state.set('toolStates', state.toolStates.merge(newToolStatesMap))
-      : state;
-  
-    const needToChangeActiveTool =
-      state.activeToolId === null ||
-      !action.toolIds.includes(state.activeToolId);
-  
-    return needToChangeActiveTool
-      ? selectTool(state, action.toolIds.get(0) || null)
-      : state;
+    
+    if (structureMatch) return setActiveTools(state, TOOL_IDS_STRUCTURE);
+    
+    const designMatch = matchPath(pathname, {
+      path: PATH_DESIGN,
+      exact: false,
+      strict: false,
+    });
+    
+    if (designMatch) return setActiveTools(state, TOOL_IDS_DESIGN);
+    
+    return setActiveTools(state, List());
   },
+  
+  [DESKTOP_SET_TOOLS]: (state, action) =>
+    setActiveTools(state, action.toolIds),
   
   [DESKTOP_COLLAPSE_TOOLS_PANEL]: state =>
     state.set('toolsPanelIsExpanded', false),

@@ -7,29 +7,30 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import { Route, Switch } from 'react-router';
 import { loadProject } from '../actions/project';
 import { ErrorScreen } from '../components/StateScreen/StateScreen';
+import AppRoute from './AppRoute';
+import PreviewRoute from './PreviewRoute';
 
 import {
   NOT_LOADED,
   LOADING,
+  LOADED,
   LOAD_ERROR,
 } from '../constants/loadStates';
 
 import { removeSplashScreen } from '../utils/dom';
+import { PATH_PREVIEW } from '../constants/paths';
 
 const propTypes = {
-  params: PropTypes.shape({
-    projectName: PropTypes.string.isRequired,
-  }).isRequired,
-  projectName: PropTypes.string,
-  projectLoadState: PropTypes.number,
-  projectLoadError: PropTypes.object,
-  onProjectRequest: PropTypes.func.isRequired,
+  match: PropTypes.object.isRequired, // router
+  projectLoadState: PropTypes.number, // state
+  projectLoadError: PropTypes.object, // state
+  onProjectRequest: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
-  projectName: '',
   projectLoadState: NOT_LOADED,
   projectLoadError: null,
 };
@@ -44,6 +45,8 @@ const mapDispatchToProps = dispatch => ({
   onProjectRequest: name => void dispatch(loadProject(name)),
 });
 
+const wrap = connect(mapStateToProps, mapDispatchToProps);
+
 class RootRoute extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -52,8 +55,10 @@ class RootRoute extends PureComponent {
   }
 
   componentDidMount() {
-    const projectName = this.props.params.projectName;
-    this.props.onProjectRequest(projectName);
+    const { match, onProjectRequest } = this.props;
+    
+    const projectName = match.params.projectName;
+    if (projectName) onProjectRequest(projectName);
   }
 
   componentDidUpdate() {
@@ -64,32 +69,56 @@ class RootRoute extends PureComponent {
       projectLoadState !== LOADING &&
       projectLoadState !== NOT_LOADED;
 
-    if (willRemoveSplashScreen) {
-      removeSplashScreen();
-      this._spashScreenRemoved = true;
-    }
+    if (willRemoveSplashScreen) this._removeSplashScreen();
+  }
+  
+  _removeSplashScreen() {
+    removeSplashScreen();
+    this._spashScreenRemoved = true;
+  }
+  
+  _renderError(message) {
+    return (
+      <ErrorScreen
+        title="Failed to load project"
+        message={message}
+      />
+    );
   }
 
   render() {
-    const {
-      projectLoadState,
-      projectLoadError,
-      children,
-    } = this.props;
-
-    if (projectLoadState === LOADING || projectLoadState === NOT_LOADED)
-      return null;
-
-    if (projectLoadState === LOAD_ERROR) {
-      return (
-        <ErrorScreen
-          title="Failed to load project"
-          message={projectLoadError.message}
-        />
-      );
+    const { match, projectLoadState, projectLoadError } = this.props;
+  
+    const projectName = match.params.projectName;
+    
+    if (!projectName) {
+      this._removeSplashScreen();
+      return this._renderError('Project name is not specified');
     }
-
-    return children;
+    
+    switch (projectLoadState) {
+      case LOAD_ERROR: {
+        return this._renderError(projectLoadError.message);
+      }
+      
+      case LOADED: {
+        return (
+          <Switch>
+            <Route
+              exact
+              path={PATH_PREVIEW}
+              component={PreviewRoute}
+            />
+      
+            <Route component={AppRoute} />
+          </Switch>
+        );
+      }
+      
+      default: {
+        return null;
+      }
+    }
   }
 }
 
@@ -97,7 +126,4 @@ RootRoute.propTypes = propTypes;
 RootRoute.defaultProps = defaultProps;
 RootRoute.displayName = 'RootRoute';
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(RootRoute);
+export default wrap(RootRoute);
