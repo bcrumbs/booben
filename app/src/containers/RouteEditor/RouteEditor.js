@@ -6,7 +6,6 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 
 import {
@@ -16,45 +15,44 @@ import {
   BlockContentPlaceholder,
 } from '../../components/BlockContent/BlockContent';
 
-import { PropsList } from '../../components/PropsList/PropsList';
-
 import {
   PropInput,
   PropTextarea,
   PropToggle,
 } from '../../components/props';
 
+import { PropsList } from '../../components/PropsList/PropsList';
+import Project from '../../models/Project';
 import { getLocalizedTextFromState } from '../../selectors';
-import ProjectRouteRecord from '../../models/ProjectRoute';
 import { updateRouteField } from '../../actions/project';
 import { INVALID_ID } from '../../constants/misc';
 
 const propTypes = {
-  routes: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectRouteRecord),
-    PropTypes.number,
-  ).isRequired,
-
+  project: PropTypes.instanceOf(Project).isRequired,
   selectedRouteId: PropTypes.number.isRequired,
   indexRouteSelected: PropTypes.bool.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   onPathChange: PropTypes.func.isRequired,
   onDescriptionChange: PropTypes.func.isRequired,
   onHaveIndexChange: PropTypes.func.isRequired,
-  onHaveRedirectChange: PropTypes.func.isRequired,
+  onRedirectChange: PropTypes.func.isRequired,
   onRedirectToChange: PropTypes.func.isRequired,
+  onRedirectAuthenticatedChange: PropTypes.func.isRequired,
+  onRedirectAnonymousChange: PropTypes.func.isRequired,
+  onRedirectAuthenticatedToChange: PropTypes.func.isRequired,
+  onRedirectAnonymousToChange: PropTypes.func.isRequired,
   onIndexRouteDescriptionChange: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
 };
 
-const mapStateToProps = ({ project, app }) => ({
-  routes: project.data.routes,
-  selectedRouteId: project.selectedRouteId,
-  indexRouteSelected: project.indexRouteSelected,
-  language: app.language,
-  getLocalizedText: getLocalizedTextFromState({ app }),
+const mapStateToProps = state => ({
+  project: state.project.data,
+  selectedRouteId: state.project.selectedRouteId,
+  indexRouteSelected: state.project.indexRouteSelected,
+  language: state.app.language,
+  getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -67,15 +65,33 @@ const mapDispatchToProps = dispatch => ({
   onHaveIndexChange: (routeId, newValue) =>
     void dispatch(updateRouteField(routeId, 'haveIndex', newValue)),
 
-  onHaveRedirectChange: (routeId, newValue) =>
-    void dispatch(updateRouteField(routeId, 'haveRedirect', newValue)),
+  onRedirectChange: (routeId, newValue) =>
+    void dispatch(updateRouteField(routeId, 'redirect', newValue)),
 
   onRedirectToChange: (routeId, newValue) =>
     void dispatch(updateRouteField(routeId, 'redirectTo', newValue)),
 
+  onRedirectAuthenticatedChange: (routeId, newValue) =>
+    void dispatch(updateRouteField(routeId, 'redirectAuthenticated', newValue)),
+
+  onRedirectAnonymousChange: (routeId, newValue) =>
+    void dispatch(updateRouteField(routeId, 'redirectAnonymous', newValue)),
+
+  onRedirectAuthenticatedToChange: (routeId, newValue) =>
+    void dispatch(updateRouteField(
+      routeId,
+      'redirectAuthenticatedTo',
+      newValue,
+    )),
+
+  onRedirectAnonymousToChange: (routeId, newValue) =>
+    void dispatch(updateRouteField(routeId, 'redirectAnonymousTo', newValue)),
+
   onIndexRouteDescriptionChange: (routeId, newValue) =>
     void dispatch(updateRouteField(routeId, 'indexRouteDescription', newValue)),
 });
+
+const wrap = connect(mapStateToProps, mapDispatchToProps);
 
 class RouteEditorComponent extends PureComponent {
   constructor(props, context) {
@@ -87,51 +103,90 @@ class RouteEditorComponent extends PureComponent {
       this._handleDescriptionChange.bind(this);
     this._handleHaveIndexChange =
       this._handleHaveIndexChange.bind(this);
-    this._handleHaveRedirectChange =
-      this._handleHaveRedirectChange.bind(this);
+    this._handleRedirectChange =
+      this._handleRedirectChange.bind(this);
     this._handleRedirectToChange =
       this._handleRedirectToChange.bind(this);
     this._handleIndexRouteDescriptionChange =
       this._handleIndexRouteDescriptionChange.bind(this);
+    this._handleRedirectAuthenticatedChange =
+      this._handleRedirectAuthenticatedChange.bind(this);
+    this._handleRedirectAnonymousChange =
+      this._handleRedirectAnonymousChange.bind(this);
+    this._handleRedirectAuthenticatedToChange =
+      this._handleRedirectAuthenticatedToChange.bind(this);
+    this._handleRedirectAnonymousToChange =
+      this._handleRedirectAnonymousToChange.bind(this);
   }
 
   _handlePathChange({ value }) {
-    this.props.onPathChange(this.props.selectedRouteId, value);
+    const { selectedRouteId, onPathChange } = this.props;
+    onPathChange(selectedRouteId, value);
   }
 
   _handleDescriptionChange({ value }) {
-    this.props.onDescriptionChange(this.props.selectedRouteId, value);
+    const { selectedRouteId, onDescriptionChange } = this.props;
+    onDescriptionChange(selectedRouteId, value);
   }
 
   _handleHaveIndexChange({ value }) {
-    this.props.onHaveIndexChange(this.props.selectedRouteId, value);
+    const { selectedRouteId, onHaveIndexChange } = this.props;
+    onHaveIndexChange(selectedRouteId, value);
   }
 
-  _handleHaveRedirectChange({ value }) {
-    this.props.onHaveRedirectChange(this.props.selectedRouteId, value);
+  _handleRedirectChange({ value }) {
+    const { selectedRouteId, onRedirectChange } = this.props;
+    onRedirectChange(selectedRouteId, value);
   }
 
   _handleRedirectToChange({ value }) {
-    this.props.onRedirectToChange(this.props.selectedRouteId, value);
+    const { selectedRouteId, onRedirectToChange } = this.props;
+    onRedirectToChange(selectedRouteId, value);
+  }
+
+  _handleRedirectAuthenticatedChange({ value }) {
+    const { selectedRouteId, onRedirectAuthenticatedChange } = this.props;
+    onRedirectAuthenticatedChange(selectedRouteId, value);
+  }
+
+  _handleRedirectAnonymousChange({ value }) {
+    const { selectedRouteId, onRedirectAnonymousChange } = this.props;
+    onRedirectAnonymousChange(selectedRouteId, value);
+  }
+
+  _handleRedirectAuthenticatedToChange({ value }) {
+    const { selectedRouteId, onRedirectAuthenticatedToChange } = this.props;
+    onRedirectAuthenticatedToChange(selectedRouteId, value);
+  }
+
+  _handleRedirectAnonymousToChange({ value }) {
+    const { selectedRouteId, onRedirectAnonymousToChange } = this.props;
+    onRedirectAnonymousToChange(selectedRouteId, value);
   }
 
   _handleIndexRouteDescriptionChange({ value }) {
-    this.props.onIndexRouteDescriptionChange(this.props.selectedRouteId, value);
+    const { selectedRouteId, onIndexRouteDescriptionChange } = this.props;
+    onIndexRouteDescriptionChange(selectedRouteId, value);
   }
 
   render() {
-    const { getLocalizedText } = this.props;
+    const {
+      project,
+      selectedRouteId,
+      indexRouteSelected,
+      getLocalizedText,
+    } = this.props;
 
-    if (this.props.selectedRouteId === INVALID_ID) {
+    if (selectedRouteId === INVALID_ID) {
       const text = getLocalizedText('structure.noRouteSelected');
       return (
         <BlockContentPlaceholder text={text} />
       );
     }
 
-    const route = this.props.routes.get(this.props.selectedRouteId);
+    const route = project.routes.get(selectedRouteId);
 
-    if (this.props.indexRouteSelected) {
+    if (indexRouteSelected) {
       return (
         <BlockContentBox>
           <BlockContentBoxHeading>
@@ -151,11 +206,11 @@ class RouteEditorComponent extends PureComponent {
       );
     }
 
-    let redirectUrlInput = null,
-      haveIndexToggle = null;
+    let redirectPathInput = null;
+    let haveIndexToggle = null;
 
-    if (route.haveRedirect) {
-      redirectUrlInput = (
+    if (route.redirect) {
+      redirectPathInput = (
         <PropInput
           label={getLocalizedText('structure.redirectTo')}
           value={route.redirectTo}
@@ -170,6 +225,47 @@ class RouteEditorComponent extends PureComponent {
           onChange={this._handleHaveIndexChange}
         />
       );
+    }
+    
+    let redirectAuthenticatedToggle = null;
+    let redirectAuthenticatedPathInput = null;
+    let redirectAnonymousToggle = null;
+    let redirectAnonymousPathInput = null;
+    
+    if (project.auth) {
+      redirectAuthenticatedToggle = (
+        <PropToggle
+          label={getLocalizedText('structure.redirectAuthenticated')}
+          value={route.redirectAuthenticated}
+          onChange={this._handleRedirectAuthenticatedChange}
+        />
+      );
+
+      redirectAnonymousToggle = (
+        <PropToggle
+          label={getLocalizedText('structure.redirectAnonymous')}
+          value={route.redirectAnonymous}
+          onChange={this._handleRedirectAnonymousChange}
+        />
+      );
+      
+      if (route.redirectAuthenticated) {
+        redirectAuthenticatedPathInput = (
+          <PropInput
+            value={route.redirectAuthenticatedTo}
+            onChange={this._handleRedirectAuthenticatedToChange}
+          />
+        );
+      }
+      
+      if (route.redirectAnonymous) {
+        redirectAnonymousPathInput = (
+          <PropInput
+            value={route.redirectAnonymousTo}
+            onChange={this._handleRedirectAnonymousToChange}
+          />
+        );
+      }
     }
 
     return (
@@ -195,12 +291,16 @@ class RouteEditorComponent extends PureComponent {
   
             <PropToggle
               label={getLocalizedText('structure.indexRedirect')}
-              value={route.haveRedirect}
-              onChange={this._handleHaveRedirectChange}
+              value={route.redirect}
+              onChange={this._handleRedirectChange}
             />
 
             {haveIndexToggle}
-            {redirectUrlInput}
+            {redirectPathInput}
+            {redirectAuthenticatedToggle}
+            {redirectAuthenticatedPathInput}
+            {redirectAnonymousToggle}
+            {redirectAnonymousPathInput}
           </PropsList>
         </BlockContentBoxItem>
       </BlockContentBox>
@@ -212,7 +312,4 @@ RouteEditorComponent.propTypes = propTypes;
 RouteEditorComponent.defaultProps = defaultProps;
 RouteEditorComponent.displayName = 'RouteEditor';
 
-export const RouteEditor = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(RouteEditorComponent);
+export const RouteEditor = wrap(RouteEditorComponent);

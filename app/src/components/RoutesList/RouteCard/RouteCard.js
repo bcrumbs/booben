@@ -72,11 +72,11 @@ export class RouteCard extends PureComponent {
     const { route, focused, children } = this.props;
     
     let className = 'route-card-wrapper';
-    if (route.haveRedirect) className += ' has-redirect';
+    if (route.redirect) className += ' has-redirect';
     if (focused) className += ' is-focused';
 
     let icon = null;
-    if (route.haveRedirect) {
+    if (route.redirect) {
       icon = (
         <div className="route-icon">
           <Icon name="random" />

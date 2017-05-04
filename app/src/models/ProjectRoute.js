@@ -19,8 +19,12 @@ const ProjectRouteRecord = Record({
   haveIndex: false,
   indexRouteDescription: '',
   indexComponent: INVALID_ID,
-  haveRedirect: false,
+  redirect: false,
   redirectTo: '',
+  redirectAuthenticated: false,
+  redirectAuthenticatedTo: '',
+  redirectAnonymous: false,
+  redirectAnonymousTo: '',
   paramValues: Map(),
   children: List(),
   components: Map(),
@@ -47,8 +51,12 @@ export const projectRouteToImmutable = (
     ? input.indexComponent.id
     : INVALID_ID,
   
-  haveRedirect: input.haveRedirect,
+  redirect: input.redirect,
   redirectTo: input.redirectTo,
+  redirectAuthenticated: input.redirectAuthenticated,
+  redirectAuthenticatedTo: input.redirectAuthenticatedTo,
+  redirectAnonymous: input.redirectAnonymous,
+  redirectAnonymousTo: input.redirectAnonymousTo,
   paramValues: Map(input.paramValues),
   component: input.component !== null
     ? input.component.id

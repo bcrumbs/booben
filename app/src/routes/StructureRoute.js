@@ -547,7 +547,7 @@ class StructureRoute extends PureComponent {
       ? routesIds.map(routeId => this._renderRouteCard(routes, routeId))
       : null;
 
-    if (parentRoute && parentRoute.haveIndex && !parentRoute.haveRedirect) {
+    if (parentRoute && parentRoute.haveIndex && !parentRoute.redirect) {
       const isSelected =
         selectedRouteId === parentRoute.id &&
         indexRouteSelected;

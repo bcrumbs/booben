@@ -40,6 +40,8 @@
   "structure.redirectTo": "Redirect to",
   "structure.indexRoute": "Index route",
   "structure.indexRedirect": "Index redirect",
+  "structure.redirectAuthenticated": "Redirect authenticated users",
+  "structure.redirectAnonymous": "Redirect anonymous users",
   "structure.routeProperties": "Route properties",
   "structure.indexRouteProperties": "Index route properties",
 

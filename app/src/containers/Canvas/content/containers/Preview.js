@@ -113,6 +113,13 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(dragOverNothing()),
 });
 
+const wrap = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+  null,
+  { withRef: true },
+);
+
 const setImmediate = window.setImmediate || (fn => setTimeout(fn, 0));
 const clearImmediate = window.clearImmediate || window.clearTimeout;
 
@@ -406,10 +413,32 @@ class Preview extends Component {
 
   /**
    *
+   * @return {boolean}
+   * @private
+   */
+  _isUserAuthenticated() {
+    const { project } = this.props;
+
+    if (!project.auth) return true;
+
+    switch (project.auth.type) {
+      case 'jwt': {
+        return !!window.localStorage.getItem('jssy_auth_token');
+      }
+
+      default: {
+        return false;
+      }
+    }
+  }
+
+  /**
+   *
    * @param {Object} route - ProjectRoute record
    * @param {boolean} isIndex
    * @param {?ReactElement} [indexRoute = null]
    * @return {Function}
+   * @private
    */
   _makeNonInteractiveBuilderForRoute(route, isIndex, indexRoute = null) {
     const rootId = isIndex ? route.indexComponent : route.component;
@@ -461,7 +490,9 @@ class Preview extends Component {
             component={IndexRouteBuilder}
           />
         );
-      } else if (route.haveRedirect) {
+      }
+
+      if (route.redirect) {
         routes.push(
           <Route
             key={`${routeId}-index-redirect`}
@@ -476,14 +507,49 @@ class Preview extends Component {
     
       const RouteBuilder =
         this._makeNonInteractiveBuilderForRoute(route, false, indexRoute);
-    
-      routes.push(
-        <Route
-          key={String(routeId)}
-          path={route.fullPath}
-          component={RouteBuilder}
-        />,
-      );
+
+      if (!route.redirectAuthenticated && !route.redirectAnonymous) {
+        routes.push(
+          <Route
+            key={String(routeId)}
+            path={route.fullPath}
+            component={RouteBuilder}
+          />,
+        );
+      } else {
+        const render = props => {
+          let willRedirect = false;
+          let redirectTo = '';
+
+          if (this._isUserAuthenticated()) {
+            if (route.redirectAuthenticated) {
+              willRedirect = true;
+              redirectTo = route.redirectAuthenticatedTo;
+            }
+          } else if (route.redirectAnonymous) {
+            willRedirect = true;
+            redirectTo = route.redirectAnonymousTo;
+          }
+
+          if (willRedirect) {
+            return (
+              <Redirect to={redirectTo} />
+            );
+          } else {
+            return (
+              <RouteBuilder {...props} />
+            );
+          }
+        };
+
+        routes.push(
+          <Route
+            key={String(routeId)}
+            path={route.fullPath}
+            render={render}
+          />,
+        );
+      }
     });
 
     if (routes.length > 0) {
@@ -799,6 +865,7 @@ class Preview extends Component {
     return (
       <Builder
         interactive
+        editable
         components={topNestedConstructor.components}
         rootId={topNestedConstructor.rootId}
         ignoreOwnerProps
@@ -843,9 +910,4 @@ Preview.contextTypes = contextTypes;
 Preview.defaultProps = defaultProps;
 Preview.displayName = 'Preview';
 
-export default connect(
-  mapStateToProps,
-  mapDispatchToProps,
-  null,
-  { withRef: true },
-)(Preview);
+export default wrap(Preview);
