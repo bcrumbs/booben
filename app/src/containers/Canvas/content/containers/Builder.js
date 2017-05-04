@@ -165,6 +165,7 @@ class BuilderComponent extends PureComponent {
     
     this._renderHints = this._getRenderHints(props.components, props.rootId);
     this._refs = new Map();
+    this._queriesCache = new Map();
   
     this.state = {
       dynamicPropValues: ImmutableMap(),
@@ -205,6 +206,20 @@ class BuilderComponent extends PureComponent {
         componentsState: nextComponentsState,
       });
     }
+  }
+
+  _getQueryForComponent(component) {
+    const { schema, meta, project } = this.props;
+
+    const cached = this._queriesCache.get(component.id);
+
+    if (cached && cached.component === component)
+      return cached.queryData;
+
+    const queryData = buildQueryForComponent(component, schema, meta, project);
+    this._queriesCache.set(component.id, { component, queryData });
+
+    return queryData;
   }
   
   _getRenderHints(components, rootId) {
@@ -1232,7 +1247,7 @@ class BuilderComponent extends PureComponent {
 
     // Build GraphQL query
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
-      buildQueryForComponent(component, schema, meta, project);
+      this._getQueryForComponent(component);
     
     const theMergedMap = thePreviousMap
       ? thePreviousMap.merge(theMap)
@@ -1315,8 +1330,7 @@ class BuilderComponent extends PureComponent {
 
         options: {
           variables,
-          forceFetch: true,
-          notifyOnNetworkStatusChange: true,
+          fetchPolicy: 'cache-first',
         },
       })(Renderable);
     }
