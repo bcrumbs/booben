@@ -342,14 +342,6 @@ const deleteComponent = (state, componentId) => {
   const currentComponents = state.getIn(pathToCurrentComponents);
   const rootComponentId = state.getIn(pathToCurrentRootComponentId);
   const component = currentComponents.get(componentId);
-  
-  // If the root component is being deleted, just reset everything to defaults
-  if (isRootComponent(component)) {
-    return state
-      .setIn(pathToCurrentComponents, Map())
-      .setIn(pathToCurrentRootComponentId, INVALID_ID);
-  }
-  
   const idsToDelete = gatherComponentsTreeIds(currentComponents, componentId);
   const haveState = idsToDelete.some(id => {
     const component = currentComponents.get(id);
@@ -364,17 +356,22 @@ const deleteComponent = (state, componentId) => {
     components => components.withMutations(componentsMut =>
       void idsToDelete.forEach(id => void componentsMut.delete(id))),
   );
-  
-  // Update children of remaining components
-  const pathToChildrenIdsList = [].concat(pathToCurrentComponents, [
-    component.parentId,
-    'children',
-  ]);
-  
-  state = state.updateIn(
-    pathToChildrenIdsList,
-    children => children.filter(id => id !== componentId),
-  );
+
+  if (isRootComponent(component)) {
+    // If the root component is being deleted, reset the root component id field
+    state = state.setIn(pathToCurrentRootComponentId, INVALID_ID);
+  } else {
+    // Otherwise update children of remaining components
+    const pathToChildrenIdsList = [].concat(pathToCurrentComponents, [
+      component.parentId,
+      'children',
+    ]);
+
+    state = state.updateIn(
+      pathToChildrenIdsList,
+      children => children.filter(id => id !== componentId),
+    );
+  }
   
   // Delete method call actions that point to deleted components
   state = state.updateIn(
@@ -422,7 +419,7 @@ const deleteComponent = (state, componentId) => {
     }),
   );
   
-  // Reset JssyValues linked to states of deleted components
+  // Reset JssyValues linked to state slots of deleted components
   if (haveState) {
     const walkSimpleValueOptions = {
       walkSystemProps: true,
