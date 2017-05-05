@@ -21,18 +21,38 @@ const enhancers = [
   applyMiddleware(...middleware),
 ];
 
-//noinspection JSUnresolvedVariable
 const willAddReduxDevTools =
     process.env.NODE_ENV === 'development' &&
     window &&
     window.__REDUX_DEVTOOLS_EXTENSION__;
 
-if (willAddReduxDevTools) {
-  //noinspection JSUnresolvedFunction
+if (willAddReduxDevTools)
   enhancers.push(window.__REDUX_DEVTOOLS_EXTENSION__());
-}
 
 const reducer = enableBatching(rootReducer);
 const enhancer = compose(...enhancers);
+const store = createStore(reducer, enhancer);
+const originalDispatch = store.dispatch;
+let dispatch = originalDispatch;
+let isApolloInjected = false;
 
-export default createStore(reducer, enhancer);
+export const removeApolloMiddleware = () => {
+  store.dispatch = originalDispatch;
+  dispatch = originalDispatch;
+  isApolloInjected = false;
+};
+
+export const injectApolloMiddleware = middleware => {
+  if (isApolloInjected) removeApolloMiddleware();
+  
+  // https://github.com/reactjs/redux/blob/master/src/applyMiddleware.js
+  const middlewareAPI = {
+    getState: store.getState,
+    dispatch: action => dispatch(action),
+  };
+  
+  store.dispatch = dispatch = middleware(middlewareAPI)(originalDispatch);
+  isApolloInjected = true;
+};
+
+export default store;
