@@ -485,15 +485,6 @@ class ComponentPropsEditorComponent extends PureComponent {
     const renderablePropNames = Object.keys(componentMeta.props)
       .filter(propName => isRenderableProp(componentMeta.props[propName]));
 
-    if (renderablePropNames.length === 0) {
-      //noinspection JSCheckFunctionSignatures
-      return (
-        <BlockContentPlaceholder
-          text={getLocalizedText('propsEditor.noEditableAttributes')}
-        />
-      );
-    }
-
     renderablePropNames.forEach(propName => {
       const propMeta = componentMeta.props[propName];
       if (propMeta.group) propsByGroup.get(propMeta.group).push(propName);
