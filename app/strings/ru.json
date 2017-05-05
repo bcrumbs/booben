@@ -22,6 +22,9 @@
   "appFooter.showPlaceholders": "Показывать псевдоэлементы",
   "appFooter.toggleFullScreen": "Во весь экран",
 
+  "alert.queryError": "Во время выполнения GraphQL-запроса произошла ошибка: {message}",
+  "alert.componentError": "В {hookName} компонента {componentName} произошла ошибка: {message}",
+
   "structure.routeEditorTitle": "Конфигурация маршрута",
   "structure.noRouteSelected": "Выберите маршрут",
   "structure.route": "Маршрут",

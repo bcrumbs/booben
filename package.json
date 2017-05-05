@@ -74,7 +74,8 @@
     "rimraf": "latest",
     "serve-static": "^1.11.1",
     "thenify": "^3.2.0",
-    "webpack": "^2.4.1"
+    "webpack": "^2.4.1",
+    "lodash.debounce": "latest"
   },
   "devDependencies": {
     "@eslint/eslint-config-client": "^0.2.1",

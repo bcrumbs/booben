@@ -22,6 +22,9 @@
   "appFooter.showPlaceholders": "Show placeholders",
   "appFooter.toggleFullScreen": "Toggle Full Screen",
 
+  "alert.queryError": "An error has occurred while performing GraphQL query: {message}",
+  "alert.componentError": "An error has occurred in {hookName} of {componentName}: {message}",
+
   "structure.routeEditorTitle": "Route configuration",
   "structure.noRouteSelected": "Select a route",
   "structure.route": "Route",

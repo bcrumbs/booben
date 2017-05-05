@@ -5,6 +5,7 @@
 'use strict';
 
 import { findDOMNode } from 'react-dom';
+import PropTypes from 'prop-types';
 import { isReactComponent, toClassComponent } from '../../../../utils/react';
 import { noop, isNullOrUndef, isNumber } from '../../../../utils/misc';
 
@@ -17,15 +18,15 @@ const patchDOMElement = componentInstance => {
   } = componentInstance.props;
 
   if (isNumber(componentId)) {
-    const el = findDOMNode(componentInstance);
-    if (el) el.setAttribute('data-jssy-id', String(componentId));
+    const element = findDOMNode(componentInstance);
+    if (element) element.setAttribute('data-jssy-id', String(componentId));
   } else if (isPlaceholder) {
-    const el = findDOMNode(componentInstance);
+    const element = findDOMNode(componentInstance);
 
-    if (el) {
-      el.setAttribute('data-jssy-placeholder', '');
-      el.setAttribute('data-jssy-after', String(after));
-      el.setAttribute('data-jssy-container-id', String(containerId));
+    if (element) {
+      element.setAttribute('data-jssy-placeholder', '');
+      element.setAttribute('data-jssy-after', String(after));
+      element.setAttribute('data-jssy-container-id', String(containerId));
     }
   }
 };
@@ -35,7 +36,43 @@ const wrapLifecycleHook = fn => function (...args) {
   patchDOMElement(this);
 };
 
+const defaultReturnValues = {
+  render: null,
+  shouldComponentUpdate: false,
+};
+
+const catchErrors = (fn, hookName) => function (...args) {
+  try {
+    return fn.apply(this, args);
+  } catch (error) {
+    this.props.__jssy_error_handler__(error, hookName);
+    return defaultReturnValues[hookName];
+  }
+};
+
+const catchErrorsInLifecycleHook = (component, hookName) => {
+  const originalHook = component.prototype[hookName];
+  
+  if (originalHook)
+    component.prototype[hookName] = catchErrors(originalHook, hookName);
+};
+
+const reactLifecycleHooks = [
+  'componentWillMount',
+  'componentDidMount',
+  'componentWillReceiveProps',
+  'shouldComponentUpdate',
+  'componentWillUpdate',
+  'componentDidUpdate',
+  'componentWillUnmount',
+  'render',
+];
+
 const patchClassComponent = component => {
+  reactLifecycleHooks.forEach(hookName => {
+    catchErrorsInLifecycleHook(component, hookName);
+  });
+  
   const originalComponentDidMount =
     component.prototype.componentDidMount || noop;
   const originalComponentDidUpdate =
@@ -46,6 +83,9 @@ const patchClassComponent = component => {
 
   component.prototype.componentDidUpdate =
     wrapLifecycleHook(originalComponentDidUpdate);
+  
+  if (component.propTypes)
+    component.propTypes.__jssy_error_handler__ = PropTypes.func.isRequired;
 
   return component;
 };

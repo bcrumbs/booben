@@ -14,8 +14,10 @@ import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';
 import _get from 'lodash.get';
 import _set from 'lodash.set';
+import _debounce from 'lodash.debounce';
 import { Map as ImmutableMap } from 'immutable';
 import { resolveTypedef, coerceValue, TypeNames } from '@jssy/types';
+import { alertsCreator } from '../../../../hocs/alerts';
 import { ContentPlaceholder } from '../components/ContentPlaceholder';
 import { Outlet } from '../components/Outlet';
 import { getComponentByName } from '../componentsLibrary';
@@ -30,6 +32,7 @@ import {
   currentSelectedComponentIdsSelector,
   currentHighlightedComponentIdsSelector,
   rootDraggedComponentSelector,
+  getLocalizedTextFromState,
 } from '../../../../selectors';
 
 import {
@@ -101,8 +104,10 @@ const propTypes = {
   highlightedComponentIds: ImmutablePropTypes.setOf(
     PropTypes.number,
   ).isRequired, // state
+  getLocalizedText: PropTypes.func.isRequired, // state
   onNavigate: PropTypes.func,
   onOpenURL: PropTypes.func,
+  onAlert: PropTypes.func.isRequired, // alertsCreator
 };
 
 const defaultProps = {
@@ -142,11 +147,13 @@ const mapStateToProps = state => ({
   showContentPlaceholders: state.app.showContentPlaceholders,
   selectedComponentIds: currentSelectedComponentIdsSelector(state),
   highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
+  getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const wrap = compose(
   connect(mapStateToProps),
   withApollo,
+  alertsCreator,
 );
 
 /**
@@ -207,6 +214,27 @@ class BuilderComponent extends PureComponent {
         componentsState: nextComponentsState,
       });
     }
+  }
+  
+  _handleErrorInComponentLifecycleHook(component, error, hookName) {
+    const { interactive, getLocalizedText, onAlert } = this.props;
+    
+    if (!interactive) return;
+    
+    const message = getLocalizedText('alert.componentError', {
+      componentName: component.title
+        ? `${component.title} (${component.name})`
+        : component.name,
+      
+      hookName,
+      message: error.message,
+    });
+    
+    const alert = {
+      content: message,
+    };
+    
+    onAlert(alert);
   }
 
   _getQueryForComponent(component) {
@@ -382,8 +410,8 @@ class BuilderComponent extends PureComponent {
         this._handleMutationResponse(mutationName, response);
   
         // We cannot know (yet) what queries need to be updated
-        // based on the mutation result,
-        // so we just drop the cache and refetch everything.
+        // based on the mutation result, so the only option we have
+        // is to drop the cache and refetch everything.
         client.resetStore();
       });
   }
@@ -1247,6 +1275,8 @@ class BuilderComponent extends PureComponent {
       interactive,
       dontPatch,
       theMap: thePreviousMap,
+      getLocalizedText,
+      onAlert,
     } = this.props;
     
     // Do not render the component that's being dragged
@@ -1287,6 +1317,12 @@ class BuilderComponent extends PureComponent {
 
     // Render children
     props.children = this._renderComponentChildren(component, isPlaceholder);
+    
+    // Attach error handler
+    props.__jssy_error_handler__ = _debounce(
+      this._handleErrorInComponentLifecycleHook.bind(this, component),
+      250,
+    );
 
     if (!isPlaceholder) {
       props.key = String(component.id);
@@ -1339,6 +1375,18 @@ class BuilderComponent extends PureComponent {
       if (!Renderable) {
         Renderable = graphql(graphQLQuery, {
           props: ({ ownProps, data }) => {
+            if (data.error) {
+              const message = getLocalizedText('alert.queryError', {
+                message: data.error.message,
+              });
+              
+              const alert = {
+                content: message,
+              };
+              
+              onAlert(alert);
+            }
+            
             // TODO: Better check
             const haveData = Object.keys(data).length > 10;
       

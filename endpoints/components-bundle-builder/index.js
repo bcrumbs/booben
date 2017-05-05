@@ -392,7 +392,7 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
   const codeFile = path.join(projectDir, constants.PROJECT_COMPONENTS_SRC_FILE);
   yield fs.writeFile(codeFile, code);
 
-  logger.debug(`[${project.name}] Compiling preview app`);
+  logger.debug(`[${project.name}] Building bundle`);
 
   const webpackConfig = generateWebpackConfig(projectDir, libsData);
   const stats = yield compile(webpackConfig);
