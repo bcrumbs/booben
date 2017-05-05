@@ -166,6 +166,7 @@ class BuilderComponent extends PureComponent {
     this._renderHints = this._getRenderHints(props.components, props.rootId);
     this._refs = new Map();
     this._queriesCache = new Map();
+    this._apolloWrappedComponentsCache = new Map();
   
     this.state = {
       dynamicPropValues: ImmutableMap(),
@@ -220,6 +221,22 @@ class BuilderComponent extends PureComponent {
     this._queriesCache.set(component.id, { component, queryData });
 
     return queryData;
+  }
+  
+  _getApolloWrappedComponentFromCache(component) {
+    const cached = this._apolloWrappedComponentsCache.get(component.id);
+    
+    if (cached && cached.component === component)
+      return cached.wrapper;
+    else
+      return null;
+  }
+  
+  _putApolloWrappedComponentToCache(component, wrapper) {
+    this._apolloWrappedComponentsCache.set(component.id, {
+      component,
+      wrapper,
+    });
   }
   
   _getRenderHints(components, rootId) {
@@ -1220,7 +1237,6 @@ class BuilderComponent extends PureComponent {
     const {
       meta,
       schema,
-      project,
       draggingComponent,
       rootDraggedComponent,
       interactive,
@@ -1312,27 +1328,33 @@ class BuilderComponent extends PureComponent {
           getJssyValueDefOfQueryArgument(argDefinition, schema),
         ),
       );
+  
+      Renderable = this._getApolloWrappedComponentFromCache(component);
       
-      Renderable = graphql(graphQLQuery, {
-        props: ({ ownProps, data }) => {
-          // TODO: Better check
-          const haveData = Object.keys(data).length > 10;
-
-          return {
-            ...ownProps,
-            ...this._buildProps(
-              component,
-              theMergedMap,
-              haveData ? data : null,
-            ),
-          };
-        },
-
-        options: {
-          variables,
-          fetchPolicy: 'cache-first',
-        },
-      })(Renderable);
+      if (!Renderable) {
+        Renderable = graphql(graphQLQuery, {
+          props: ({ ownProps, data }) => {
+            // TODO: Better check
+            const haveData = Object.keys(data).length > 10;
+      
+            return {
+              ...ownProps,
+              ...this._buildProps(
+                component,
+                theMergedMap,
+                haveData ? data : null,
+              ),
+            };
+          },
+    
+          options: {
+            variables,
+            fetchPolicy: 'cache-and-network',
+          },
+        })(Component);
+        
+        this._putApolloWrappedComponentToCache(component, Renderable);
+      }
     }
   
     //noinspection JSValidateTypes

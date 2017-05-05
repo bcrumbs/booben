@@ -9,7 +9,12 @@ import { ApolloProvider } from 'react-apollo';
 import ApolloClient, { createNetworkInterface } from 'apollo-client';
 import _set from 'lodash.set';
 import _get from 'lodash.get';
-import store from '../../store';
+
+import store, {
+  injectApolloMiddleware,
+  removeApolloMiddleware,
+} from '../../store';
+
 import { CanvasFrame } from '../../components/CanvasFrame/CanvasFrame';
 import { DocumentContext } from './DocumentContext/DocumentContext';
 import { loadComponents } from './content/componentsLibrary';
@@ -21,6 +26,7 @@ import { URL_GRAPHQL_PREFIX } from '../../../../shared/constants';
 import { LOADED } from '../../constants/loadStates';
 import { CANVAS_CONTAINER_ID, CANVAS_OVERLAY_ID } from './content/constants';
 import { ComponentDropAreas } from '../../actions/preview';
+import { createReducer } from '../../reducers';
 import { buildMutation } from '../../utils/graphql';
 import { waitFor } from '../../utils/misc';
 import contentTemplate from './content/content.ejs';
@@ -47,6 +53,8 @@ const wrap = compose(
   connectDropZone,
   dropZone,
 );
+
+const APOLLO_STATE_KEY = 'apollo';
 
 const EVENTS_FOR_PARENT_FRAME = [
   'mousemove',
@@ -226,7 +234,19 @@ class CanvasComponent extends Component {
       }
     }
   
-    const client = new ApolloClient({ networkInterface });
+    const client = new ApolloClient({
+      networkInterface,
+      reduxRootSelector: state => state[APOLLO_STATE_KEY],
+    });
+    
+    const apolloReducer = client.reducer();
+    const apolloMiddleware = client.middleware();
+    
+    store.replaceReducer(createReducer({
+      [APOLLO_STATE_KEY]: apolloReducer,
+    }));
+  
+    injectApolloMiddleware(apolloMiddleware);
   
     if (interactive) {
       if (auth) {
@@ -348,6 +368,14 @@ class CanvasComponent extends Component {
     const { interactive } = this.props;
     
     if (!this._initialized) return;
+
+    const state = store.getState();
+    if (state.project.data.graphQLEndpointURL) {
+      removeApolloMiddleware();
+      store.replaceReducer(createReducer({}));
+      const state = store.getState();
+      delete state[APOLLO_STATE_KEY]; // Dirtiest hack ever (;
+    }
   
     const contentWindow = this._iframe.contentWindow;
     const document = contentWindow.document;

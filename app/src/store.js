@@ -17,19 +17,42 @@ const middleware = [routerMiddleware(history), thunkMiddleware];
 if (process.env.NODE_ENV === 'development')
   middleware.push(createLogger());
 
-const fns = [
+const enhancers = [
   applyMiddleware(...middleware),
 ];
 
-//noinspection JSUnresolvedVariable
 const willAddReduxDevTools =
     process.env.NODE_ENV === 'development' &&
     window &&
     window.__REDUX_DEVTOOLS_EXTENSION__;
 
-if (willAddReduxDevTools) {
-  //noinspection JSUnresolvedFunction
-  fns.push(window.__REDUX_DEVTOOLS_EXTENSION__());
-}
+if (willAddReduxDevTools)
+  enhancers.push(window.__REDUX_DEVTOOLS_EXTENSION__());
 
-export default createStore(enableBatching(rootReducer), compose(...fns));
+const reducer = enableBatching(rootReducer);
+const enhancer = compose(...enhancers);
+const store = createStore(reducer, enhancer);
+const originalDispatch = store.dispatch;
+let dispatch = originalDispatch;
+let isApolloInjected = false;
+
+export const removeApolloMiddleware = () => {
+  store.dispatch = originalDispatch;
+  dispatch = originalDispatch;
+  isApolloInjected = false;
+};
+
+export const injectApolloMiddleware = middleware => {
+  if (isApolloInjected) removeApolloMiddleware();
+  
+  // https://github.com/reactjs/redux/blob/master/src/applyMiddleware.js
+  const middlewareAPI = {
+    getState: store.getState,
+    dispatch: action => dispatch(action),
+  };
+  
+  store.dispatch = dispatch = middleware(middlewareAPI)(originalDispatch);
+  isApolloInjected = true;
+};
+
+export default store;
