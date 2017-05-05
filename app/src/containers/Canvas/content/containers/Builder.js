@@ -65,8 +65,7 @@ import {
 } from '../../../../constants/misc';
 
 const propTypes = {
-  params: PropTypes.object, // Comes from react-router in non-interactive mode
-  client: PropTypes.object, // Comes from react-apollo
+  params: PropTypes.object,
   interactive: PropTypes.bool,
   editable: PropTypes.bool,
   components: ImmutablePropTypes.mapOf(
@@ -85,22 +84,23 @@ const propTypes = {
   theMap: PropTypes.object,
   dataContextInfo: PropTypes.object,
   ignoreOwnerProps: PropTypes.bool,
-  project: PropTypes.any.isRequired,
-  meta: PropTypes.object.isRequired,
-  schema: PropTypes.object.isRequired,
-  draggingComponent: PropTypes.bool.isRequired,
-  rootDraggedComponent: PropTypes.instanceOf(ProjectComponent),
-  draggedComponents: PropTypes.any,
-  draggingOverPlaceholder: PropTypes.bool.isRequired,
-  placeholderContainerId: PropTypes.number.isRequired,
-  placeholderAfter: PropTypes.number.isRequired,
-  showContentPlaceholders: PropTypes.bool.isRequired,
+  client: PropTypes.object, // react-apollo
+  project: PropTypes.any.isRequired, // state
+  meta: PropTypes.object.isRequired, // state
+  schema: PropTypes.object.isRequired, // state
+  draggingComponent: PropTypes.bool.isRequired, // state
+  rootDraggedComponent: PropTypes.instanceOf(ProjectComponent), // state
+  draggedComponents: PropTypes.any, // state
+  draggingOverPlaceholder: PropTypes.bool.isRequired, // state
+  placeholderContainerId: PropTypes.number.isRequired, // state
+  placeholderAfter: PropTypes.number.isRequired, // state
+  showContentPlaceholders: PropTypes.bool.isRequired, // state
   selectedComponentIds: ImmutablePropTypes.setOf(
     PropTypes.number,
-  ).isRequired,
+  ).isRequired, // state
   highlightedComponentIds: ImmutablePropTypes.setOf(
     PropTypes.number,
-  ).isRequired,
+  ).isRequired, // state
   onNavigate: PropTypes.func,
   onOpenURL: PropTypes.func,
 };
@@ -380,6 +380,11 @@ class BuilderComponent extends PureComponent {
     return client.mutate({ mutation, variables })
       .then(response => {
         this._handleMutationResponse(mutationName, response);
+  
+        // We cannot know (yet) what queries need to be updated
+        // based on the mutation result,
+        // so we just drop the cache and refetch everything.
+        client.resetStore();
       });
   }
   
