@@ -11,10 +11,17 @@ import project from './project';
 import desktop from './desktop';
 import componentsLibrary from './components-library';
 
-export default combineReducers({
+const reducers = {
   app,
   project,
   desktop,
   componentsLibrary,
   router: routerReducer,
+};
+
+export default combineReducers({ ...reducers });
+
+export const createReducer = additionalReducers => combineReducers({
+  ...reducers,
+  ...additionalReducers,
 });

@@ -17,7 +17,7 @@ const middleware = [routerMiddleware(history), thunkMiddleware];
 if (process.env.NODE_ENV === 'development')
   middleware.push(createLogger());
 
-const fns = [
+const enhancers = [
   applyMiddleware(...middleware),
 ];
 
@@ -29,7 +29,10 @@ const willAddReduxDevTools =
 
 if (willAddReduxDevTools) {
   //noinspection JSUnresolvedFunction
-  fns.push(window.__REDUX_DEVTOOLS_EXTENSION__());
+  enhancers.push(window.__REDUX_DEVTOOLS_EXTENSION__());
 }
 
-export default createStore(enableBatching(rootReducer), compose(...fns));
+const reducer = enableBatching(rootReducer);
+const enhancer = compose(...enhancers);
+
+export default createStore(reducer, enhancer);

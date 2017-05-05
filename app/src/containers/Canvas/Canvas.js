@@ -21,6 +21,7 @@ import { URL_GRAPHQL_PREFIX } from '../../../../shared/constants';
 import { LOADED } from '../../constants/loadStates';
 import { CANVAS_CONTAINER_ID, CANVAS_OVERLAY_ID } from './content/constants';
 import { ComponentDropAreas } from '../../actions/preview';
+import { createReducer } from '../../reducers';
 import { buildMutation } from '../../utils/graphql';
 import { waitFor } from '../../utils/misc';
 import contentTemplate from './content/content.ejs';
@@ -227,6 +228,12 @@ class CanvasComponent extends Component {
     }
   
     const client = new ApolloClient({ networkInterface });
+    const apolloReducer = client.reducer();
+    const apolloMiddleware = client.middleware();
+
+    store.replaceReducer(createReducer({
+      apollo: apolloReducer,
+    }));
   
     if (interactive) {
       if (auth) {
@@ -348,6 +355,12 @@ class CanvasComponent extends Component {
     const { interactive } = this.props;
     
     if (!this._initialized) return;
+
+    const state = store.getState();
+    if (state.project.data.graphQLEndpointURL) {
+      store.replaceReducer(createReducer({}));
+      // TODO: Remove apollo middleware somehow
+    }
   
     const contentWindow = this._iframe.contentWindow;
     const document = contentWindow.document;
