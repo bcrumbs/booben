@@ -44,8 +44,8 @@ export const formatComponentName = (namespace, name) =>
  */
 export const getComponentMeta = (componentName, meta) => {
   const { namespace, name } = parseComponentName(componentName);
-
   let components;
+  
   if (namespace === '') components = miscMeta.components;
   else if (namespace === 'HTML') components = HTMLMeta.components;
   else components = meta[namespace] ? meta[namespace].components : null;
@@ -133,7 +133,7 @@ export const canInsertComponent = (
   meta,
 ) => {
   const componentMeta = getComponentMeta(componentName, meta);
-  
+
   if (containerName) {
     const mustBeRoot =
       !!componentMeta.placement &&
@@ -151,8 +151,10 @@ export const canInsertComponent = (
   if (!componentMeta.placement) return true;
   
   const { namespace } = parseComponentName(componentName);
+  const { namespace: containerNamespace } = parseComponentName(containerName);
+  const sameNamespace = containerNamespace === namespace;
 
-  if (componentMeta.placement.inside) {
+  if (sameNamespace && componentMeta.placement.inside) {
     if (componentMeta.placement.inside.include) {
       const sameComponentsNum = containerChildrenNames
         .reduce((acc, cur) => acc + (cur === componentName ? 1 : 0), 0);

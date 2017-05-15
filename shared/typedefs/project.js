@@ -10,6 +10,7 @@
  * @property {string} name
  * @property {?string} author
  * @property {string[]} componentLibs
+ * @property {boolean} enableHTML
  * @property {?string} graphQLEndpointURL
  * @property {boolean} proxyGraphQLEndpoint
  * @property {ProjectRoute[]} routes

@@ -45,6 +45,7 @@ import {
 
 import ProjectComponent from '../../models/ProjectComponent';
 import { startDragNewComponent } from '../../actions/preview';
+import HTMLMeta from '../../meta/html';
 import { canInsertComponent, constructComponent } from '../../utils/meta';
 import { combineFiltersAll } from '../../utils/misc';
 import defaultComponentIcon from '../../../assets/component_default.svg';
@@ -108,7 +109,9 @@ const GROUP_BUILTIN = new LibraryGroupData({
   ]),
 });
 
-const extractGroupsDataFromMeta = meta => {
+const extractGroupsDataFromMeta = (libsMeta, enableHTML) => {
+  const meta = enableHTML ? { ...libsMeta, HTML: HTMLMeta } : libsMeta;
+  
   let groups = OrderedMap();
 
   _forOwn(meta, libMeta => {
@@ -174,6 +177,7 @@ const extractGroupsDataFromMeta = meta => {
 
 const libraryGroupsSelector = createSelector(
   state => state.project.meta,
+  state => state.project.data.enableHTML,
   extractGroupsDataFromMeta,
 );
 

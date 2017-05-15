@@ -1319,10 +1319,12 @@ class BuilderComponent extends PureComponent {
     props.children = this._renderComponentChildren(component, isPlaceholder);
     
     // Attach error handler
-    props.__jssy_error_handler__ = _debounce(
-      this._handleErrorInComponentLifecycleHook.bind(this, component),
-      250,
-    );
+    if (!isHTMLComponent) {
+      props.__jssy_error_handler__ = _debounce(
+        this._handleErrorInComponentLifecycleHook.bind(this, component),
+        250,
+      );
+    }
 
     if (!isPlaceholder) {
       props.key = String(component.id);
