@@ -435,23 +435,23 @@ const deleteComponent = (state, componentId) => {
     
       const visitValue = (jssyValue, valueDef, path, isSystemProp) => {
         if (jssyValue.isLinkedWithState()) {
-          const realPath = expandPath({
+          const logicPath = {
             start: {
               object: component,
               expandedPath: [...pathToCurrentComponents, component.id],
             },
             steps: [isSystemProp ? 'systemProps' : 'props', ...path],
-          });
+          };
           
-          state = state.setIn(
-            realPath,
-            jssyValueToImmutable(buildDefaultValue(
-              valueDef,
-              component.strings,
-              state.languageForComponentProps,
-              component.types,
-            )),
-          );
+          const realPath = expandPath(logicPath);
+          const newValue = jssyValueToImmutable(buildDefaultValue(
+            valueDef,
+            component.strings,
+            state.languageForComponentProps,
+            component.types,
+          ));
+          
+          state = state.setIn(realPath, newValue);
         }
       };
     
