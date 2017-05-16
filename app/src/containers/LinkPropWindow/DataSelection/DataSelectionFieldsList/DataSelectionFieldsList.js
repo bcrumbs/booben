@@ -7,7 +7,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import _forOwn from 'lodash.forown';
-import { isCompatibleType } from '@jssy/types';
+import { isCompatibleType, TypeNames } from '@jssy/types';
 import { DataList, DataItem } from '../../../../components/DataList/DataList';
 
 import {
@@ -45,7 +45,7 @@ const fieldHasCompatibleSubFields = (
   linkTargetUserTypedefs,
   failedTypedefs = new Set(),
 ) => {
-  if (fieldJssyTypedef.type !== 'shape') return false;
+  if (fieldJssyTypedef.type !== TypeNames.SHAPE) return false;
   
   return objectSome(fieldJssyTypedef.fields, fieldTypedef => {
     const isCompatible = isCompatibleType(
