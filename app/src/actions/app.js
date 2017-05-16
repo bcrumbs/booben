@@ -33,6 +33,7 @@ const stringsLoadSuccess = (language, localization) => ({
 
 
 /**
+ *
  * @param {string} error
  * @return {Object}
  */
@@ -42,6 +43,7 @@ const stringsLoadFailure = error => ({
 });
 
 /**
+ *
  * @return {Object}
  */
 export const stringsLoading = () => ({
@@ -49,8 +51,9 @@ export const stringsLoading = () => ({
 });
 
 /**
+ *
  * @param {string} language
- * @return {function(dispatch: function(dispatch: function(action: Object)))}
+ * @return {function(dispatch: function(action: Object))}
  */
 export const loadStrings = language => dispatch => {
   dispatch(stringsLoading());
