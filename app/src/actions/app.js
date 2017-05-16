@@ -54,12 +54,14 @@ export const stringsLoading = () => ({
  */
 export const loadStrings = language => dispatch => {
   dispatch(stringsLoading());
+  
   getStrings(language)
-    .then(strings => dispatch(stringsLoadSuccess(
-      language,
-      strings,
-    )))
-    .catch(stringsLoadFailure);
+    .then(strings => {
+      dispatch(stringsLoadSuccess(language, strings));
+    })
+    .catch(err => {
+      dispatch(stringsLoadFailure(err));
+    });
 };
 
 /**
