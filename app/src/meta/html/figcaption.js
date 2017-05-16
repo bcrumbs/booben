@@ -21,4 +21,11 @@ export default {
     },
   },
   tags: new Set(),
+  placement: {
+    inside: {
+      include: [
+        { component: 'figure' },
+      ],
+    },
+  },
 };
