@@ -868,6 +868,9 @@ const getJssyTypeOfField = (
   ) {
     if (fieldTypedef.nonNullMember && ret.type === TypeNames.SHAPE)
       ret.notNull = true;
+  
+    ret.source = source;
+    ret.sourceConfigs = sourceConfigsFromTypedef(ret);
     
     ret = {
       type: TypeNames.ARRAY_OF,

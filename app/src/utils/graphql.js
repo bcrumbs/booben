@@ -306,7 +306,6 @@ const buildGraphQLFragmentForValue = (
   let badPath = false;
 
   /* eslint-disable consistent-return */
-  //noinspection JSCheckFunctionSignatures
   jssyValue.sourceData.queryPath.forEach((step, idx) => {
     const [fieldName, connectionFieldName] = step.field.split('/');
     const currentTypeDefinition = schema.types[currentType];
@@ -376,7 +375,21 @@ const buildGraphQLFragmentForValue = (
 
       currentNode = node.selectionSet.selections[0];
     } else if (currentFieldDefinition.kind === FieldKinds.CONNECTION) {
-      // TODO: Handle connection arguments
+      const args = [];
+      const argumentValues = jssyValue.getQueryStepArgValues(idx);
+  
+      if (argumentValues) {
+        argumentValues.forEach((argValue, argName) => {
+          const arg = buildGraphQLArgument(
+            currentTypeDefinition.fields[fieldName],
+            argName,
+            argValue,
+            variablesAccumulator,
+          );
+      
+          if (arg !== NO_VALUE) args.push(arg);
+        });
+      }
 
       const node = {
         kind: 'Field',
@@ -385,7 +398,7 @@ const buildGraphQLFragmentForValue = (
           kind: 'Name',
           value: fieldName,
         },
-        arguments: [],
+        arguments: args,
         directives: [],
         selectionSet: {
           kind: 'SelectionSet',

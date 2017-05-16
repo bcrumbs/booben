@@ -124,6 +124,7 @@ const setImmediate = window.setImmediate || (fn => setTimeout(fn, 0));
 const clearImmediate = window.clearImmediate || window.clearTimeout;
 
 const SNAP_DISTANCE = 200;
+const DRAG_THROTTLE = 100;
 
 const readContainerId = element =>
   parseInt(element.getAttribute('data-jssy-container-id'), 10);
@@ -179,7 +180,7 @@ class Preview extends Component {
     this._handleNavigate = this._handleNavigate.bind(this);
     this._handleOpenURL = this._handleOpenURL.bind(this);
 
-    this.drag = throttle(this.drag.bind(this), 100);
+    this.drag = throttle(this.drag.bind(this), DRAG_THROTTLE);
   }
 
   componentDidMount() {
