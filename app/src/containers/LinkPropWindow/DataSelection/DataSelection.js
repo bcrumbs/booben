@@ -40,6 +40,7 @@ import {
   getTypeNameByPath,
   fieldHasArguments,
   getFieldsByPath,
+  getFieldOnType,
 } from '../../../utils/schema';
 
 import {
@@ -160,8 +161,8 @@ export class DataSelection extends PureComponent {
     );
     
     const currentFieldName = currentPath[currentPath.length - 1];
-  
-    return schema.types[prevTypeName].fields[currentFieldName];
+    
+    return getFieldOnType(schema, prevTypeName, currentFieldName);
   }
   
   /**

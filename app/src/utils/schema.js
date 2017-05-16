@@ -968,6 +968,22 @@ export const fieldHasArguments = field => Object.keys(field.args).length > 0;
 /**
  *
  * @param {DataSchema} schema
+ * @param {string} typeName
+ * @param {string} fullFieldName
+ * @return {DataField}
+ */
+export const getFieldOnType = (schema, typeName, fullFieldName) => {
+  const type = schema.types[typeName];
+  const { fieldName, connectionFieldName } = parseFieldName(fullFieldName);
+  
+  return connectionFieldName
+    ? type.fields[fieldName].connectionFields[connectionFieldName]
+    : type.fields[fieldName];
+};
+
+/**
+ *
+ * @param {DataSchema} schema
  * @param {string[]} path
  * @param {string} [rootTypeName]
  * @return {DataField[]}
@@ -978,19 +994,12 @@ export const getFieldsByPath = (
   rootTypeName = schema.queryTypeName,
 ) => {
   const ret = [];
-  let currentType = schema.types[rootTypeName];
-  let i = 0;
+  let currentTypeName = rootTypeName;
   
-  while (i < path.length) {
-    const { fieldName, connectionFieldName } = parseFieldName(path[i]);
-    let field = currentType.fields[fieldName];
-    
-    if (connectionFieldName)
-      field = field.connectionFields[connectionFieldName];
-    
+  for (let i = 0; i < path.length; i++) {
+    const field = getFieldOnType(schema, currentTypeName, path[i]);
     ret.push(field);
-    currentType = schema.types[field.type];
-    i++;
+    currentTypeName = field.type;
   }
   
   return ret;

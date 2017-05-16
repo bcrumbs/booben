@@ -52,7 +52,7 @@ const fieldHasCompatibleSubFields = (
       linkTargetTypedef,
       fieldTypedef,
       linkTargetUserTypedefs,
-      {},
+      null,
     );
     
     if (isCompatible) return true;
@@ -80,7 +80,7 @@ const getFieldCompatibility = (
     linkTargetTypedef,
     jssyType,
     linkTargetUserTypedefs,
-    {},
+    null,
   );
   
   const hasCompatibleSubFields = fieldHasCompatibleSubFields(
@@ -219,45 +219,40 @@ export class DataSelectionFieldsList extends PureComponent {
   
     _forOwn(type.fields, (field, fieldName) => {
       const jssyType = getJssyValueDefOfField(field, schema);
-    
       const { isCompatible, hasCompatibleSubFields } = getFieldCompatibility(
         jssyType,
         linkTargetTypedef,
         linkTargetUserTypedefs,
       );
     
-      if (!isCompatible && !hasCompatibleSubFields) return;
-    
-      items.push(this._renderField(
-        fieldName,
-        field,
-        isCompatible,
-        hasCompatibleSubFields,
-      ));
+      if (isCompatible || hasCompatibleSubFields) {
+        items.push(this._renderField(
+          fieldName,
+          field,
+          isCompatible,
+          hasCompatibleSubFields,
+        ));
+      }
     
       if (!field.connectionFields) return;
     
       _forOwn(field.connectionFields, (connField, connFieldName) => {
         const fullName = formatFieldName(fieldName, connFieldName);
         const connFieldJssyType = getJssyValueDefOfField(connField, schema);
-      
-        const {
-          isCompatible,
-          hasCompatibleSubFields,
-        } = getFieldCompatibility(
+        const { isCompatible, hasCompatibleSubFields } = getFieldCompatibility(
           connFieldJssyType,
           linkTargetTypedef,
           linkTargetUserTypedefs,
         );
       
-        if (!isCompatible && !hasCompatibleSubFields) return;
-      
-        items.push(this._renderField(
-          fullName,
-          connField,
-          isCompatible,
-          hasCompatibleSubFields,
-        ));
+        if (isCompatible || hasCompatibleSubFields) {
+          items.push(this._renderField(
+            fullName,
+            connField,
+            isCompatible,
+            hasCompatibleSubFields,
+          ));
+        }
       });
     });
   
