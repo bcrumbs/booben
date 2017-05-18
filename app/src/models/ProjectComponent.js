@@ -7,6 +7,7 @@
 import { Record, List, Map, Set } from 'immutable';
 import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';
+import { TypeNames } from '@jssy/types';
 import JssyValue from './JssyValue';
 import SourceDataStatic from './SourceDataStatic';
 import SourceDataData, { QueryPathStep } from './SourceDataData';
@@ -360,13 +361,16 @@ export const walkSimpleValues = (
 
   const visitValue = (jssyValue, valueDef, path, isSystemProp) => {
     if (jssyValue.source === 'static' && !jssyValue.sourceData.ownerPropName) {
-      if (valueDef.type === 'shape' && jssyValue.sourceData.value !== null) {
+      if (
+        valueDef.type === TypeNames.SHAPE &&
+        jssyValue.sourceData.value !== null
+      ) {
         _forOwn(valueDef.fields, (fieldTypedef, fieldName) => {
-          const childValue = jssyValue.sourceData.value.get(fieldName);
+          const fieldValue = jssyValue.sourceData.value.get(fieldName);
           
-          if (childValue) {
+          if (fieldValue) {
             visitValue(
-              childValue,
+              fieldValue,
               fieldTypedef,
               [...path, fieldName],
               isSystemProp,
@@ -374,7 +378,7 @@ export const walkSimpleValues = (
           }
         });
       } else if (
-        valueDef.type === 'objectOf' &&
+        valueDef.type === TypeNames.OBJECT_OF &&
         jssyValue.sourceData.value !== null
       ) {
         jssyValue.sourceData.value.forEach((fieldValue, key) => void visitValue(
@@ -383,7 +387,7 @@ export const walkSimpleValues = (
           [...path, key],
           isSystemProp,
         ));
-      } else if (valueDef.type === 'arrayOf') {
+      } else if (valueDef.type === TypeNames.ARRAY_OF) {
         jssyValue.sourceData.value.forEach((itemValue, idx) => void visitValue(
           itemValue,
           valueDef.ofType,
