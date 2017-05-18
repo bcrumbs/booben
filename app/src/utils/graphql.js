@@ -630,6 +630,7 @@ const buildGraphQLFragmentsForOwnComponent = (
     schema,
     walkFunctionArgs: true,
     walkActions: true,
+    walkSystemProps: true,
   };
 
   const visitValue = (value, typedef) => {
@@ -758,6 +759,7 @@ const buildGraphQLFragmentsForComponent = (
     schema,
     walkFunctionArgs: true,
     walkActions: true,
+    walkSystemProps: true,
   };
 
   const visitValue = (value, typedef) => {
