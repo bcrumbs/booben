@@ -170,9 +170,9 @@ export class JssyValueEditor extends PureComponent {
       onChange,
     } = this.props;
   
-    const nestedPropMeta = getNestedTypedef(valueDef, where, userTypedefs);
+    const nestedTypedef = getNestedTypedef(valueDef, where, userTypedefs);
     const value = jssyValueToImmutable(buildDefaultValue(
-      nestedPropMeta,
+      nestedTypedef.ofType,
       strings,
       language,
       userTypedefs,
@@ -471,7 +471,9 @@ export class JssyValueEditor extends PureComponent {
    */
   _formatArrayItemLabel(index) {
     const { getLocalizedText } = this.props;
-    return getLocalizedText('valueEditor.arrayItemTitle', { index });
+    return getLocalizedText('valueEditor.arrayItemTitle', {
+      index: String(index),
+    });
   }
   
   /**

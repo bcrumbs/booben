@@ -262,7 +262,7 @@ export class PropBase extends PureComponent {
   
     const actionItemsRight = this._renderAdditionalActions();
   
-    if (linkable) {
+    if (linkable && (!checkable || checked)) {
       const linkAction = (
         <PropAction
           key="linking"
@@ -275,7 +275,7 @@ export class PropBase extends PureComponent {
       actionItemsRight.push(linkAction);
     }
 
-    if (pickable) {
+    if (pickable && (!checkable || checked)) {
       const pickAction = (
         <PropAction
           key="pick"
