@@ -10,13 +10,32 @@ export default {
   descriptionTextKey: 'description',
   kind: 'container',
   group: 'media',
-  props: {},
+  props: {
+    name: {
+      textKey: 'props_name',
+      descriptionTextKey: 'props_name_desc',
+      required: true,
+      type: 'string',
+      source: ['static'],
+      sourceConfigs: {
+        static: {
+          default: '',
+        },
+      },
+    },
+  },
   propGroups: [],
   strings: {
     name: {
       en: '<map> tag',
     },
     description: {
+      en: '',
+    },
+    props_name: {
+      en: 'name',
+    },
+    props_name_desc: {
       en: '',
     },
   },
