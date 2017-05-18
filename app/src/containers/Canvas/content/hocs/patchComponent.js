@@ -7,7 +7,13 @@
 import { findDOMNode } from 'react-dom';
 import PropTypes from 'prop-types';
 import { isReactComponent, toClassComponent } from '../../../../utils/react';
-import { noop, isNullOrUndef, isNumber } from '../../../../utils/misc';
+
+import {
+  noop,
+  isNullOrUndef,
+  isNumber,
+  isFunction,
+} from '../../../../utils/misc';
 
 const patchDOMElement = componentInstance => {
   const {
@@ -45,7 +51,9 @@ const catchErrors = (fn, hookName) => function (...args) {
   try {
     return fn.apply(this, args);
   } catch (error) {
-    this.props.__jssy_error_handler__(error, hookName);
+    if (isFunction(this.props.__jssy_error_handler__))
+      this.props.__jssy_error_handler__(error, hookName);
+    
     return defaultReturnValues[hookName];
   }
 };
@@ -85,7 +93,10 @@ const patchClassComponent = component => {
     wrapLifecycleHook(originalComponentDidUpdate);
   
   if (component.propTypes)
-    component.propTypes.__jssy_error_handler__ = PropTypes.func.isRequired;
+    component.propTypes.__jssy_error_handler__ = PropTypes.func;
+  
+  if (component.defaultProps)
+    component.defaultProps.__jssy_error_handler__ = noop;
 
   return component;
 };
