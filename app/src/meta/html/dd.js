@@ -9,7 +9,7 @@ export default {
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'text',
+  group: 'lists',
   props: {},
   propGroups: [],
   strings: {
@@ -21,4 +21,12 @@ export default {
     },
   },
   tags: new Set(),
+  placement: {
+    root: 'deny',
+    inside: {
+      include: [
+        { component: 'dl' },
+      ],
+    },
+  },
 };

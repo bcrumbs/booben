@@ -5,7 +5,7 @@
 'use strict';
 
 export default {
-  displayName: 'rp',
+  displayName: 'u',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
@@ -14,19 +14,11 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<rp> tag',
+      en: '<u> tag',
     },
     description: {
       en: '',
     },
   },
   tags: new Set(),
-  placement: {
-    root: 'deny',
-    inside: {
-      include: [
-        { component: 'rt' },
-      ],
-    },
-  },
 };

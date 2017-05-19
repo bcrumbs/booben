@@ -21,4 +21,15 @@ export default {
     },
   },
   tags: new Set(),
+  placement: {
+    root: 'deny',
+    inside: {
+      include: [
+        { component: 'table' },
+        { component: 'tbody' },
+        { component: 'tfoot' },
+        { component: 'thead' },
+      ],
+    },
+  },
 };

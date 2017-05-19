@@ -61,6 +61,7 @@ export default {
   },
   tags: new Set(),
   placement: {
+    root: 'deny',
     inside: {
       include: [
         { component: 'select' },

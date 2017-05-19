@@ -70,6 +70,7 @@ import option from './html/option';
 import output from './html/output';
 import p from './html/p';
 import param from './html/param';
+import picture from './html/picture';
 import pre from './html/pre';
 import progress from './html/progress';
 import q from './html/q';
@@ -97,6 +98,7 @@ import thead from './html/thead';
 import time from './html/time';
 import tr from './html/tr';
 import track from './html/track';
+import u from './html/u';
 import ul from './html/ul';
 import var_ from './html/var';
 import video from './html/video';
@@ -254,6 +256,7 @@ export default {
     output,
     p,
     param,
+    picture,
     pre,
     progress,
     q,
@@ -281,6 +284,7 @@ export default {
     time,
     tr,
     track,
+    u,
     ul,
     var: var_,
     video,
