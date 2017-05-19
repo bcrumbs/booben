@@ -21,7 +21,7 @@ const reducers = {
 
 export default combineReducers({ ...reducers });
 
-export const createReducer = additionalReducers => combineReducers({
+export const createReducer = (additionalReducers = {}) => combineReducers({
   ...reducers,
   ...additionalReducers,
 });

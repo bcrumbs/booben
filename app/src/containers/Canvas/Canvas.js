@@ -28,7 +28,7 @@ import { CANVAS_CONTAINER_ID, CANVAS_OVERLAY_ID } from './content/constants';
 import { ComponentDropAreas } from '../../actions/preview';
 import { createReducer } from '../../reducers';
 import { buildMutation } from '../../utils/graphql';
-import { waitFor } from '../../utils/misc';
+import { waitFor, returnNull } from '../../utils/misc';
 import contentTemplate from './content/content.ejs';
 
 /* eslint-disable react/no-unused-prop-types */
@@ -372,9 +372,9 @@ class CanvasComponent extends Component {
     const state = store.getState();
     if (state.project.data.graphQLEndpointURL) {
       removeApolloMiddleware();
-      store.replaceReducer(createReducer({}));
-      const state = store.getState();
-      delete state[APOLLO_STATE_KEY]; // Dirtiest hack ever (;
+      store.replaceReducer(createReducer({
+        [APOLLO_STATE_KEY]: returnNull,
+      }));
     }
   
     const contentWindow = this._iframe.contentWindow;
