@@ -176,6 +176,7 @@ class Preview extends Component {
     this._handleMouseOver = this._handleMouseOver.bind(this);
     this._handleMouseOut = this._handleMouseOut.bind(this);
     this._handleClick = this._handleClick.bind(this);
+    this._handleBodyClick = this._handleBodyClick.bind(this);
     this._handleKeyDown = this._handleKeyDown.bind(this);
     this._handleNavigate = this._handleNavigate.bind(this);
     this._handleOpenURL = this._handleOpenURL.bind(this);
@@ -199,11 +200,31 @@ class Preview extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    const { project, interactive } = this.props;
+    const {
+      project,
+      interactive,
+      pickingComponent,
+      pickingComponentStateSlot,
+    } = this.props;
     
     if (interactive && nextProps.project !== project) {
       this._routerKey++;
       this._history = createHistory();
+    }
+    
+    const nowPickingComponent =
+      nextProps.pickingComponent ||
+      nextProps.pickingComponentStateSlot;
+    
+    const wasPickingComponent =
+      pickingComponent ||
+      pickingComponentStateSlot;
+    
+    if (nowPickingComponent) {
+      if (!wasPickingComponent)
+        window.document.body.addEventListener('click', this._handleBodyClick);
+    } else if (wasPickingComponent) {
+      window.document.body.removeEventListener('click', this._handleBodyClick);
     }
   }
 
@@ -256,7 +277,12 @@ class Preview extends Component {
   }
 
   componentWillUnmount() {
-    const { interactive } = this.props;
+    const {
+      interactive,
+      pickingComponent,
+      pickingComponentStateSlot,
+    } = this.props;
+    
     const { window } = this.context;
     
     if (interactive) {
@@ -286,6 +312,9 @@ class Preview extends Component {
       
       if (this._unhighilightTimer > -1) clearImmediate(this._unhighilightTimer);
     }
+    
+    if (pickingComponent || pickingComponentStateSlot)
+      window.document.body.removeEventListener('click', this._handleBodyClick);
   }
 
   /**
@@ -705,6 +734,21 @@ class Preview extends Component {
   
   /**
    *
+   * @private
+   */
+  _handleBodyClick() {
+    const {
+      pickingComponent,
+      pickingComponentStateSlot,
+      onCancelPickComponent,
+    } = this.props;
+    
+    if (pickingComponent || pickingComponentStateSlot)
+      onCancelPickComponent();
+  }
+  
+  /**
+   *
    * @param {KeyboardEvent} event
    * @private
    */
@@ -716,7 +760,7 @@ class Preview extends Component {
     } = this.props;
     
     if (event.keyCode === KeyCodes.ESCAPE) {
-      if ((pickingComponent || pickingComponentStateSlot))
+      if (pickingComponent || pickingComponentStateSlot)
         onCancelPickComponent();
     }
   }

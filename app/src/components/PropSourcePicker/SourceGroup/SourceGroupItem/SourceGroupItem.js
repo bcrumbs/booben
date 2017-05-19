@@ -26,8 +26,24 @@ const defaultProps = {
 export class SourceGroupItem extends Component {
   constructor(props, context) {
     super(props, context);
-
+    
+    this._element = null;
+  
+    this._saveRef = this._saveRef.bind(this);
     this._handleClick = this._handleClick.bind(this);
+  }
+  
+  componentDidMount() {
+    this._element.addEventListener('click', this._handleClick);
+  }
+  
+  /**
+   *
+   * @param {HTMLElement} ref
+   * @private
+   */
+  _saveRef(ref) {
+    this._element = ref;
   }
 
   /**
@@ -37,6 +53,8 @@ export class SourceGroupItem extends Component {
    */
   _handleClick(event) {
     const { id, disabled, onSelect } = this.props;
+    
+    event.stopPropagation();
     if (disabled || event.button !== 0) return;
     onSelect({ id });
   }
@@ -55,7 +73,7 @@ export class SourceGroupItem extends Component {
     }
 
     return (
-      <li className={className} onClick={this._handleClick}>
+      <li className={className} ref={this._saveRef}>
         <span className="source-item_title">
           {title}
         </span>
