@@ -166,7 +166,7 @@ export default {
       en: '',
     },
     group_text: {
-      en: 'Text',
+      en: 'Text formatting',
     },
     group_text_desc: {
       en: '',

@@ -5,7 +5,7 @@
 'use strict';
 
 export default {
-  displayName: 'tr',
+  displayName: 'hr',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
@@ -14,7 +14,7 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<tr> tag',
+      en: '<hr> tag',
     },
     description: {
       en: '',

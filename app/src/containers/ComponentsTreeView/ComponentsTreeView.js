@@ -244,19 +244,7 @@ class ComponentsTreeViewComponent extends PureComponent {
   }
   
   componentDidMount() {
-    const { dropZoneId, onDropZoneReady } = this.props;
-
-    if (this._treeIsVisible()) {
-      onDropZoneReady({
-        id: dropZoneId,
-        element: this._contentBoxElement,
-        onEnter: this._handleDragEnter,
-        onLeave: this._handleDragLeave,
-        onDrag: this._handleDrag,
-      });
-      
-      this._dropZoneIsReady = true;
-    }
+    if (this._treeIsVisible()) this._dropZoneReady();
   }
 
   componentWillReceiveProps(nextProps) {
@@ -268,52 +256,69 @@ class ComponentsTreeViewComponent extends PureComponent {
   }
 
   componentDidUpdate() {
-    const {
-      draggingOverPlaceholder,
-      dropZoneId,
-      onDropZoneReady,
-      onDropZoneRemove,
-      onDropZoneSnap,
-      onDropZoneUnsnap,
-    } = this.props;
-    
+    const { draggingOverPlaceholder, onDropZoneUnsnap } = this.props;
     const { isDraggingOnTree } = this.state;
 
     if (this._treeIsVisible()) {
-      if (!this._dropZoneIsReady) {
-        onDropZoneReady({
-          id: dropZoneId,
-          element: this._contentBoxElement,
-          onEnter: this._handleDragEnter,
-          onLeave: this._handleDragLeave,
-          onDrag: this._handleDrag,
-        });
-
-        this._dropZoneIsReady = true;
-      }
+      if (!this._dropZoneIsReady) this._dropZoneReady();
     } else if (this._dropZoneIsReady) {
-      onDropZoneRemove({ id: dropZoneId });
-      this._dropZoneIsReady = false;
+      this._dropZoneRemoved();
     }
     
     if (isDraggingOnTree) {
-      if (draggingOverPlaceholder) {
-        const lineRect = this._lineElement.getBoundingClientRect();
-        const boxRect = this._contentBoxElement.getBoundingClientRect();
-        
-        onDropZoneSnap({
-          dropZoneId,
-          element: this._lineElement,
-          x: lineRect.left - boxRect.left,
-          y: lineRect.top - boxRect.top,
-          width: lineRect.width,
-          height: lineRect.height,
-          hideTitle: false,
-        });
-      } else {
-        onDropZoneUnsnap();
-      }
+      if (draggingOverPlaceholder) this._snapToLineElement();
+      else onDropZoneUnsnap();
     }
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _dropZoneReady() {
+    const { dropZoneId, onDropZoneReady } = this.props;
+    
+    onDropZoneReady({
+      id: dropZoneId,
+      element: this._contentBoxElement,
+      onEnter: this._handleDragEnter,
+      onLeave: this._handleDragLeave,
+      onDrag: this._handleDrag,
+    });
+  
+    this._dropZoneIsReady = true;
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _dropZoneRemoved() {
+    const { dropZoneId, onDropZoneRemove } = this.props;
+    
+    onDropZoneRemove({ id: dropZoneId });
+    this._dropZoneIsReady = false;
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _snapToLineElement() {
+    const { dropZoneId, onDropZoneSnap } = this.props;
+    
+    const lineRect = this._lineElement.getBoundingClientRect();
+    const boxRect = this._contentBoxElement.getBoundingClientRect();
+  
+    onDropZoneSnap({
+      dropZoneId,
+      element: this._lineElement,
+      x: lineRect.left - boxRect.left,
+      y: lineRect.top - boxRect.top,
+      width: lineRect.width,
+      height: lineRect.height,
+      hideTitle: false,
+    });
   }
 
   /**
