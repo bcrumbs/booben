@@ -1201,7 +1201,7 @@ class BuilderComponent extends PureComponent {
       }
     }
 
-    return ret;
+    return ret.length > 0 ? ret : null;
   }
 
   /**
