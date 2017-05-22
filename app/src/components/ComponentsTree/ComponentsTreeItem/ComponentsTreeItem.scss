@@ -62,6 +62,16 @@
             background-color: $ctree-item-focus-bg-color;
             cursor: $cursor-default
         }
+
+        &.is-disabled {
+            &,
+            &.is-hovered,
+            &:hover,
+            &:focus {
+                color: $grey-400;
+                cursor: default;
+            }
+        }
     }
 
     // Icon

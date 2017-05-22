@@ -12,6 +12,7 @@ const propTypes = {
   componentId: PropTypes.number.isRequired,
   active: PropTypes.bool,
   hovered: PropTypes.bool,
+  disabled: PropTypes.bool,
   title: PropTypes.string,
   elementRef: PropTypes.func,
   onSelect: PropTypes.func,
@@ -21,6 +22,7 @@ const propTypes = {
 const defaultProps = {
   active: false,
   hovered: false,
+  disabled: false,
   title: '',
   elementRef: noop,
   onSelect: noop,
@@ -86,13 +88,14 @@ export class ComponentsTreeItemTitle extends Component {
   }
   
   render() {
-    const { active, hovered, title } = this.props;
+    const { active, disabled, hovered, title } = this.props;
     
     let buttonClassName = 'components-tree-item-title-wrapper';
     if (active) buttonClassName += ' is-active';
   
     let titleClassName = 'components-tree-item-title';
     if (hovered) titleClassName += ' is-hovered';
+    if (disabled) titleClassName += ' is-disabled';
   
     return (
       <button
