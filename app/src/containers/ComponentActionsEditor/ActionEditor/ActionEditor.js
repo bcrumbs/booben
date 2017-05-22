@@ -8,6 +8,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
+import { compose } from 'redux';
 import _startCase from 'lodash.startcase';
 import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';
@@ -29,6 +30,7 @@ import {
   PropComponentPicker,
 } from '../../../components/props';
 
+import withPermanentState from '../../../hocs/withPermanentState';
 import Project from '../../../models/Project';
 
 import ProjectComponent, {
@@ -136,6 +138,11 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(pickComponentStateSlot(filter, stateSlotFilter)),
 });
 
+const wrap = compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  withPermanentState,
+);
+
 class ActionEditorComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -189,6 +196,7 @@ class ActionEditorComponent extends PureComponent {
     this._handlePick = this._handlePick.bind(this);
   
     this._handleSave = this._handleSave.bind(this);
+    this._handleCancel = this._handleCancel.bind(this);
   }
   
   componentWillReceiveProps(nextProps) {
@@ -446,7 +454,15 @@ class ActionEditorComponent extends PureComponent {
     const { onSave } = this.props;
     const { action } = this.state;
     
+    this.clearState = true;
     onSave({ action });
+  }
+  
+  _handleCancel() {
+    const { onCancel } = this.props;
+  
+    this.clearState = true;
+    onCancel();
   }
   
   _handleLink(linkParams) {
@@ -1046,7 +1062,7 @@ class ActionEditorComponent extends PureComponent {
         
         <Button
           text="Cancel"
-          onPress={onCancel}
+          onPress={this._handleCancel}
         />
         
         <Dialog
@@ -1074,7 +1090,4 @@ ActionEditorComponent.propTypes = propTypes;
 ActionEditorComponent.defaultProps = defaultProps;
 ActionEditorComponent.displayName = 'ActionEditor';
 
-export const ActionEditor = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ActionEditorComponent);
+export const ActionEditor = wrap(ActionEditorComponent);

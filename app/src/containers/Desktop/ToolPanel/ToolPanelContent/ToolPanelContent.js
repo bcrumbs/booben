@@ -105,7 +105,14 @@ export class ToolPanelContent extends PureComponent {
       ? activeSection.component
       : null;
   
-    const content = ContentComponent ? <ContentComponent /> : null;
+    const content = ContentComponent
+      ? (
+        <ContentComponent
+          key="desktop-tool-panel-content"
+          stateKey="desktop-tool-panel-content"
+        />
+      )
+      : null;
   
     let actionsArea = null;
     const mainButtons = tool.mainButtons;

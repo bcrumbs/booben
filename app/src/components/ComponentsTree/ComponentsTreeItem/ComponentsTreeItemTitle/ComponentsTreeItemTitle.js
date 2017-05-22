@@ -36,6 +36,7 @@ export class ComponentsTreeItemTitle extends Component {
     super(props, context);
     
     this._titleElement = null;
+    this._buttonElement = null;
     
     this.state = {
       haveTooltip: false,
@@ -45,9 +46,11 @@ export class ComponentsTreeItemTitle extends Component {
     this._handleHoverOut = this._handleHoverOut.bind(this);
     this._handleClick = this._handleClick.bind(this);
     this._saveTitleRef = this._saveTitleRef.bind(this);
+    this._saveButtonRef = this._saveButtonRef.bind(this);
   }
   
   componentDidMount() {
+    this._buttonElement.addEventListener('click', this._handleClick);
     this._updateHaveTooltip();
   }
   
@@ -61,19 +64,26 @@ export class ComponentsTreeItemTitle extends Component {
     elementRef({ componentId, ref });
   }
   
+  _saveButtonRef(ref) {
+    this._buttonElement = ref;
+  }
+  
   _handleHoverIn() {
-    const { componentId, onHover } = this.props;
-    onHover({ componentId, hovered: true });
+    const { componentId, disabled, onHover } = this.props;
+    if (!disabled) onHover({ componentId, hovered: true });
   }
   
   _handleHoverOut() {
-    const { componentId, onHover } = this.props;
-    onHover({ componentId, hovered: false });
+    const { componentId, disabled, onHover } = this.props;
+    if (!disabled) onHover({ componentId, hovered: false });
   }
   
-  _handleClick() {
-    const { componentId, active, onSelect } = this.props;
-    onSelect({ componentId, selected: !active });
+  _handleClick(event) {
+    const { componentId, active, disabled, onSelect } = this.props;
+    if (!disabled) {
+      event.stopPropagation();
+      onSelect({ componentId, selected: !active });
+    }
   }
   
   _updateHaveTooltip() {
@@ -99,10 +109,10 @@ export class ComponentsTreeItemTitle extends Component {
   
     return (
       <button
+        ref={this._saveButtonRef}
         className={buttonClassName}
         onFocus={this._handleHoverIn}
         onBlur={this._handleHoverOut}
-        onClick={this._handleClick}
       >
         <div
           ref={this._saveTitleRef}

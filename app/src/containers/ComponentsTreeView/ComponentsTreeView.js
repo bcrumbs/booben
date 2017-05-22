@@ -51,6 +51,8 @@ import {
   ComponentDropAreas,
 } from '../../actions/preview';
 
+import { pickComponentDone } from '../../actions/project';
+
 import {
   currentComponentsSelector,
   currentRootComponentIdSelector,
@@ -62,6 +64,7 @@ import {
 
 import ProjectComponentRecord from '../../models/ProjectComponent';
 import { canInsertComponent, isCompositeComponent } from '../../utils/meta';
+import { isFunction } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
 
 const propTypes = {
@@ -82,6 +85,9 @@ const propTypes = {
   draggingOverPlaceholder: PropTypes.bool.isRequired,
   placeholderContainerId: PropTypes.number.isRequired,
   placeholderAfter: PropTypes.number.isRequired,
+  pickingComponent: PropTypes.bool.isRequired,
+  pickingComponentStateSlot: PropTypes.bool.isRequired,
+  pickingComponentFilter: PropTypes.func,
   meta: PropTypes.object.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   dropZoneId: PropTypes.string,
@@ -98,10 +104,12 @@ const propTypes = {
   onDropZoneSnap: PropTypes.func.isRequired,
   onDropZoneUnsnap: PropTypes.func.isRequired,
   onStartDragComponent: PropTypes.func.isRequired,
+  onPickComponent: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
   rootDraggedComponent: null,
+  pickingComponentFilter: null,
   dropZoneId: ComponentDropAreas.TREE,
 };
 
@@ -116,6 +124,9 @@ const mapStateToProps = state => ({
   draggingOverPlaceholder: state.project.draggingOverPlaceholder,
   placeholderContainerId: state.project.placeholderContainerId,
   placeholderAfter: state.project.placeholderAfter,
+  pickingComponent: state.project.pickingComponent,
+  pickingComponentStateSlot: state.project.pickingComponentStateSlot,
+  pickingComponentFilter: state.project.pickingComponentFilter,
   meta: state.project.meta,
   getLocalizedText: getLocalizedTextFromState(state),
 });
@@ -147,6 +158,9 @@ const mapDispatchToProps = dispatch => ({
   
   onStartDragComponent: componentId =>
     void dispatch(startDragExistingComponent(componentId)),
+  
+  onPickComponent: componentId =>
+    void dispatch(pickComponentDone(componentId)),
 });
 
 /**
@@ -221,6 +235,7 @@ const calcCursorPosition = (pageY, element, borderPixels) => {
   return ret;
 };
 
+
 const DraggableComponentTitle =
   connectDraggable(draggable(ComponentsTreeItemTitle));
 
@@ -229,6 +244,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     super(props, context);
 
     this._contentBoxElement = null;
+    this._clickListenerIsSet = false;
     this._lineElement = null;
     this._itemElements = new Map();
     this._dropZoneIsReady = false;
@@ -240,6 +256,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     };
 
     this._renderItem = this._renderItem.bind(this);
+    this._handleNativeClick = this._handleNativeClick.bind(this);
     this._handleExpand = this._handleExpand.bind(this);
     this._handleSelect = this._handleSelect.bind(this);
     this._handleHover = this._handleHover.bind(this);
@@ -257,6 +274,15 @@ class ComponentsTreeViewComponent extends PureComponent {
   
   componentDidMount() {
     if (this._treeIsVisible()) this._dropZoneReady();
+    
+    if (this._contentBoxElement) {
+      this._contentBoxElement.addEventListener(
+        'click',
+        this._handleNativeClick,
+      );
+      
+      this._clickListenerIsSet = true;
+    }
   }
 
   componentWillReceiveProps(nextProps) {
@@ -280,6 +306,19 @@ class ComponentsTreeViewComponent extends PureComponent {
     if (isDraggingOnTree) {
       if (draggingOverPlaceholder) this._snapToLineElement();
       else onDropZoneUnsnap();
+    }
+  
+    if (this._contentBoxElement) {
+      if (!this._clickListenerIsSet) {
+        this._contentBoxElement.addEventListener(
+          'click',
+          this._handleNativeClick,
+        );
+  
+        this._clickListenerIsSet = true;
+      }
+    } else {
+      this._clickListenerIsSet = false;
     }
   }
   
@@ -429,6 +468,16 @@ class ComponentsTreeViewComponent extends PureComponent {
     if (canInsert) this._updatePlaceholderPosition(containerId, afterIdx);
     else this._removePlaceholder();
   }
+  
+  /**
+   *
+   * @param {MouseEvent} event
+   * @private
+   */
+  _handleNativeClick(event) {
+    const { pickingComponent } = this.props;
+    if (pickingComponent) event.stopPropagation();
+  }
 
   /**
    *
@@ -555,10 +604,20 @@ class ComponentsTreeViewComponent extends PureComponent {
    * @private
    */
   _handleSelect({ componentId, selected }) {
-    const { onSelectItem, onDeselectItem } = this.props;
+    const {
+      pickingComponent,
+      pickingComponentStateSlot,
+      onSelectItem,
+      onDeselectItem,
+      onPickComponent,
+    } = this.props;
 
-    if (selected) onSelectItem(componentId);
-    else onDeselectItem(componentId);
+    if (pickingComponent) {
+      onPickComponent(componentId);
+    } else if (!pickingComponentStateSlot) {
+      if (selected) onSelectItem(componentId);
+      else onDeselectItem(componentId);
+    }
   }
 
   /**
@@ -705,6 +764,9 @@ class ComponentsTreeViewComponent extends PureComponent {
       expandedItemIds,
       draggingOverPlaceholder,
       placeholderContainerId,
+      pickingComponent,
+      pickingComponentStateSlot,
+      pickingComponentFilter,
     } = this.props;
     
     const component = components.get(componentId);
@@ -729,7 +791,11 @@ class ComponentsTreeViewComponent extends PureComponent {
     }
 
     const hovered = highlightedComponentIds.has(componentId);
-    const active = selectedComponentIds.has(componentId);
+    const active =
+      !pickingComponent &&
+      !pickingComponentStateSlot &&
+      selectedComponentIds.has(componentId);
+    
     const dragData = { componentId };
     const subLevel = this._renderList(componentId);
     const isRootComponent = component.parentId === INVALID_ID;
@@ -743,11 +809,17 @@ class ComponentsTreeViewComponent extends PureComponent {
       !isRootComponent &&
       !isCompositeComponent(parentComponent.name, meta);
     
+    const disabled =
+      (pickingComponent || pickingComponentStateSlot) &&
+      isFunction(pickingComponentFilter) &&
+      !pickingComponentFilter(componentId);
+    
     const titleElement = (
       <DraggableComponentTitle
         componentId={componentId}
         title={title}
         subtitle={subtitle}
+        disabled={disabled}
         active={active}
         hovered={hovered}
         dragEnable={isDraggable}
