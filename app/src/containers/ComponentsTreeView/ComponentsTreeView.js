@@ -154,7 +154,7 @@ const mapDispatchToProps = dispatch => ({
  * @type {Object<string, number>}
  */
 const CursorPositions = {
-  OUT: -1,
+  NA: -1,
   TOP: 0,
   MIDDLE: 1,
   BOTTOM: 2,
@@ -189,24 +189,36 @@ const canInsertComponentIntoTree = (component, components, rootId, meta) => {
 
 /**
  *
- * @param {number} pageX
  * @param {number} pageY
  * @param {HTMLElement} element
  * @param {number} borderPixels
  * @return {number}
  */
-const calcCursorPosition = (pageX, pageY, element, borderPixels) => {
-  const { top, bottom, left, right } = element.getBoundingClientRect();
+const calcCursorPosition = (pageY, element, borderPixels) => {
+  const { top, bottom } = element.getBoundingClientRect();
   
-  if (pageX < left || pageX > right) return CursorPositions.OUT;
+  const ret = {
+    position: CursorPositions.NA,
+    middlePosition: CursorPositions.NA,
+  };
   
   if (pageY < bottom && pageY > top) {
-    if (pageY - top <= borderPixels) return CursorPositions.TOP;
-    if (bottom - pageY <= borderPixels) return CursorPositions.BOTTOM;
-    return CursorPositions.MIDDLE;
+    const fromTop = pageY - top;
+    const fromBottom = bottom - pageY;
+    
+    if (fromTop <= borderPixels) ret.position = CursorPositions.TOP;
+    else if (fromBottom <= borderPixels) ret.position = CursorPositions.BOTTOM;
+    else ret.position = CursorPositions.MIDDLE;
+    
+    if (fromTop > fromBottom) ret.middlePosition = CursorPositions.BOTTOM;
+    else ret.middlePosition = CursorPositions.TOP;
+  } else {
+    ret.position = pageY - top < 0
+      ? CursorPositions.TOP
+      : CursorPositions.BOTTOM;
   }
   
-  return pageY - top < 0 ? CursorPositions.TOP : CursorPositions.BOTTOM;
+  return ret;
 };
 
 const DraggableComponentTitle =
@@ -440,11 +452,10 @@ class ComponentsTreeViewComponent extends PureComponent {
 
   /**
    *
-   * @param {number} pageX
    * @param {number} pageY
    * @private
    */
-  _handleDrag({ pageX, pageY }) {
+  _handleDrag({ pageY }) {
     const {
       meta,
       components,
@@ -471,21 +482,20 @@ class ComponentsTreeViewComponent extends PureComponent {
     const parentId = component.parentId;
     const isRootComponent = parentId === INVALID_ID;
     const parentComponent = isRootComponent ? null : components.get(parentId);
+    const element = this._itemElements.get(componentId);
+    const {
+      position,
+      middlePosition,
+    } = calcCursorPosition(pageY, element, BORDER_PIXELS);
+    
     const componentPosition = isRootComponent
       ? 0
       : parentComponent.children.indexOf(componentId);
-
-    const cursorPosition = calcCursorPosition(
-      pageX,
-      pageY,
-      this._itemElements.get(componentId),
-      BORDER_PIXELS,
-    );
     
-    if (cursorPosition === CursorPositions.TOP) {
+    if (position === CursorPositions.TOP) {
       if (isRootComponent) this._removePlaceholder();
       else this._tryUpdatePlaceholder(parentId, componentPosition - 1);
-    } else if (cursorPosition === CursorPositions.MIDDLE) {
+    } else if (position === CursorPositions.MIDDLE) {
       const alreadyExpanded = expandedItemIds.has(componentId);
       
       if (alreadyExpanded) {
@@ -496,28 +506,32 @@ class ComponentsTreeViewComponent extends PureComponent {
           componentId === this._componentIdToExpand;
   
         if (!expandAlreadyScheduled) {
-          const willExpand = canInsertComponentIntoTree(
+          const canInsertIntoSubtree = canInsertComponentIntoTree(
             rootDraggedComponent,
             components,
             componentId,
             meta,
           );
     
-          if (willExpand) {
+          if (canInsertIntoSubtree) {
             if (this._expandTimeout) this._clearExpandTimeout();
       
             this._expandComponentAfterTime(
               componentId,
               EXPAND_ON_DRAG_OVER_DELAY,
             );
+          } else if (middlePosition === CursorPositions.TOP) {
+            if (isRootComponent) this._removePlaceholder();
+            else this._tryUpdatePlaceholder(parentId, componentPosition - 1);
+          } else if (position === CursorPositions.BOTTOM) {
+            if (isRootComponent) this._removePlaceholder();
+            else this._tryUpdatePlaceholder(parentId, componentPosition);
           }
         }
       }
-    } else if (cursorPosition === CursorPositions.BOTTOM) {
+    } else if (position === CursorPositions.BOTTOM) {
       if (isRootComponent) this._removePlaceholder();
       else this._tryUpdatePlaceholder(parentId, componentPosition);
-    } else if (cursorPosition === CursorPositions.OUT) {
-      this._removePlaceholder();
     }
   }
 
