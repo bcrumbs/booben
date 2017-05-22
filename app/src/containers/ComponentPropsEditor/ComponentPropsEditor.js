@@ -375,6 +375,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     } = this.props;
 
     const propMeta = componentMeta.props[propName];
+    const isOptional = propMeta.required === false;
     
     return (
       <JssyValueEditor
@@ -382,6 +383,7 @@ class ComponentPropsEditorComponent extends PureComponent {
         name={propName}
         value={propValue}
         valueDef={propMeta}
+        optional={isOptional}
         userTypedefs={componentMeta.types}
         strings={componentMeta.strings}
         language={language}

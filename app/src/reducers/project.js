@@ -353,8 +353,11 @@ const deleteComponent = (state, componentId) => {
   state = state.updateIn(
     pathToCurrentComponents,
 
-    components => components.withMutations(componentsMut =>
-      void idsToDelete.forEach(id => void componentsMut.delete(id))),
+    components => components.withMutations(componentsMut => {
+      idsToDelete.forEach(id => {
+        componentsMut.delete(id);
+      });
+    }),
   );
 
   if (isRootComponent(component)) {
@@ -388,13 +391,13 @@ const deleteComponent = (state, componentId) => {
               action.type === 'method' &&
               idsToDelete.has(action.params.componentId)
             ) {
-              if (!actionsToDelete.has(path)) {
-                actionsToDelete = actionsToDelete.set(path, Set([idx]));
-              } else {
+              if (actionsToDelete.has(path)) {
                 actionsToDelete = actionsToDelete.update(
                   path,
                   indexes => indexes.add(idx),
                 );
+              } else {
+                actionsToDelete = actionsToDelete.set(path, Set([idx]));
               }
             }
           });
@@ -871,7 +874,12 @@ const clearOutdatedDataProps = (state, updatedPath) => {
 
 const updateValue = (state, path, newValue) => {
   state = clearOutdatedDataProps(state, path);
-  return state.setIn(expandPath(materializePath(path, state)), newValue);
+  
+  const realPath = expandPath(materializePath(path, state));
+  
+  return newValue
+    ? state.setIn(realPath, newValue)
+    : state.deleteIn(realPath);
 };
 
 const setCurrentRoute = (state, routeId, isIndexRoute) => {
@@ -998,8 +1006,8 @@ const handlers = {
   },
   
   [PROJECT_ROUTE_DELETE]: (state, action) => {
-    const deletedRoute = state.data.routes.get(action.routeId),
-      deletedRouteIds = gatherRoutesTreeIds(state.data, action.routeId);
+    const deletedRoute = state.data.routes.get(action.routeId);
+    const deletedRouteIds = gatherRoutesTreeIds(state.data, action.routeId);
   
     // De-select and de-highlight all components
     state = state.merge({
@@ -1120,7 +1128,6 @@ const handlers = {
   
   [PROJECT_COMPONENT_RENAME]: (state, action) => {
     const pathToCurrentComponents = getPathToCurrentComponents(state);
-  
     const path = [].concat(pathToCurrentComponents, [
       action.componentId,
       'title',
@@ -1131,7 +1138,6 @@ const handlers = {
   
   [PROJECT_COMPONENT_TOGGLE_REGION]: (state, action) => {
     const pathToCurrentComponents = getPathToCurrentComponents(state);
-    
     const path = [
       ...pathToCurrentComponents,
       action.componentId,
@@ -1183,8 +1189,8 @@ const handlers = {
   [PREVIEW_START_DRAG_EXISTING_COMPONENT]: (state, action) => {
     if (state.selectingComponentLayout) return state;
   
-    const pathToCurrentComponents = getPathToCurrentComponents(state),
-      currentComponents = state.getIn(pathToCurrentComponents);
+    const pathToCurrentComponents = getPathToCurrentComponents(state);
+    const currentComponents = state.getIn(pathToCurrentComponents);
   
     return state.merge({
       draggingComponent: true,
@@ -1213,7 +1219,6 @@ const handlers = {
       // We're dragging a new component from palette
       const rootComponent = state.draggedComponents.get(0);
       const componentMeta = getComponentMeta(rootComponent.name, state.meta);
-    
       const isCompositeComponentWithMultipleLayouts =
         componentMeta.kind === 'composite' &&
         componentMeta.layouts.length > 1;
