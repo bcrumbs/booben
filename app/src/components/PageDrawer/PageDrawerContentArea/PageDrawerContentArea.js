@@ -1,11 +1,27 @@
 'use strict';
 
 import React from 'react';
+import PropTypes from 'prop-types';
 
-export const PageDrawerContentArea = props => (
-  <div className="page-drawer-content">
-    {props.children}
-  </div>
-);
+const propTypes = {
+  hidden: PropTypes.bool,
+};
 
+const defaultProps = {
+  hidden: false,
+};
+
+export const PageDrawerContentArea = props => {
+  const style = {};
+  if (props.hidden) style.display = 'none';
+
+  return (
+    <div className="page-drawer-content" style={style}>
+      {props.children}
+    </div>
+  );
+};
+
+PageDrawerContentArea.propTypes = propTypes;
+PageDrawerContentArea.defaultProps = defaultProps;
 PageDrawerContentArea.displayName = 'PageDrawerContentArea';

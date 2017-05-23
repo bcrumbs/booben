@@ -13,5 +13,6 @@ export default Record({
   sideRegionIsVisible: false,
   isInDockRegion: false,
   isActiveInToolsPanel: false,
+  isShadowedInToolsPanel: false,
   activeSection: 0,
 });

@@ -344,12 +344,24 @@ export const pickComponentStateSlot = (
 
 /**
  *
+ * @type {Object<string, number>}
+ */
+export const ComponentPickAreas = {
+  UNKNOWN: -1,
+  CANVAS: 0,
+  TREE: 1,
+};
+
+/**
+ *
  * @param {number} componentId
+ * @param {number} pickArea
  * @return {Object}
  */
-export const pickComponentDone = componentId => ({
+export const pickComponentDone = (componentId, pickArea) => ({
   type: PROJECT_PICK_COMPONENT_DONE,
   componentId,
+  pickArea,
 });
 
 /**

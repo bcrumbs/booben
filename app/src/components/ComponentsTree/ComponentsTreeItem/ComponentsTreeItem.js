@@ -24,8 +24,22 @@ const defaultProps = {
 export class ComponentsTreeItem extends PureComponent {
   constructor(props, context) {
     super(props, context);
-
-    this._handleExpand = this._handleExpand.bind(this);
+    
+    this._expandButtonElement = null;
+  
+    this._saveExpandButtonRef = this._saveExpandButtonRef.bind(this);
+  }
+  
+  componentDidMount() {
+    if (this._expandButtonElement) {
+      this._expandButtonElement.addEventListener('click', event => {
+        if (event.button === 0) this._handleExpand();
+      });
+    }
+  }
+  
+  _saveExpandButtonRef(ref) {
+    this._expandButtonElement = ref;
   }
   
   _handleExpand() {
@@ -53,11 +67,11 @@ export class ComponentsTreeItem extends PureComponent {
       }
 
       icon = (
-        <div className="components-tree-item-icon">
-          <Button
-            icon="chevron-down"
-            onPress={this._handleExpand}
-          />
+        <div
+          className="components-tree-item-icon"
+          ref={this._saveExpandButtonRef}
+        >
+          <Button icon="chevron-down" />
         </div>
       );
 

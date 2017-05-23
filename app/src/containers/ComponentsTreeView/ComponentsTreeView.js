@@ -9,7 +9,12 @@ import PropTypes from 'prop-types';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import Portal from 'react-portal-minimal';
 import throttle from 'lodash.throttle';
+
+import {
+  ComponentStateSlotSelect,
+} from '../ComponentStateSlotSelect/ComponentStateSlotSelect';
 
 import {
   ComponentsTree,
@@ -52,6 +57,12 @@ import {
 } from '../../actions/preview';
 
 import {
+  pickComponentDone,
+  pickComponentStateSlotDone,
+  ComponentPickAreas,
+} from '../../actions/project';
+
+import {
   currentComponentsSelector,
   currentRootComponentIdSelector,
   currentSelectedComponentIdsSelector,
@@ -61,7 +72,14 @@ import {
 } from '../../selectors';
 
 import ProjectComponentRecord from '../../models/ProjectComponent';
-import { canInsertComponent, isCompositeComponent } from '../../utils/meta';
+
+import {
+  canInsertComponent,
+  isCompositeComponent,
+  getComponentMeta,
+} from '../../utils/meta';
+
+import { isFunction, returnTrue } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
 
 const propTypes = {
@@ -82,6 +100,14 @@ const propTypes = {
   draggingOverPlaceholder: PropTypes.bool.isRequired,
   placeholderContainerId: PropTypes.number.isRequired,
   placeholderAfter: PropTypes.number.isRequired,
+  pickingComponent: PropTypes.bool.isRequired,
+  pickingComponentStateSlot: PropTypes.bool.isRequired,
+  pickingComponentFilter: PropTypes.func,
+  pickedComponentId: PropTypes.number.isRequired,
+  pickedComponentArea: PropTypes.number.isRequired,
+  componentStateSlotsListIsVisible: PropTypes.bool.isRequired, // state
+  isCompatibleStateSlot: PropTypes.func.isRequired, // state
+  language: PropTypes.string.isRequired, // state
   meta: PropTypes.object.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   dropZoneId: PropTypes.string,
@@ -98,10 +124,13 @@ const propTypes = {
   onDropZoneSnap: PropTypes.func.isRequired,
   onDropZoneUnsnap: PropTypes.func.isRequired,
   onStartDragComponent: PropTypes.func.isRequired,
+  onPickComponent: PropTypes.func.isRequired,
+  onSelectComponentStateSlot: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
   rootDraggedComponent: null,
+  pickingComponentFilter: null,
   dropZoneId: ComponentDropAreas.TREE,
 };
 
@@ -116,6 +145,19 @@ const mapStateToProps = state => ({
   draggingOverPlaceholder: state.project.draggingOverPlaceholder,
   placeholderContainerId: state.project.placeholderContainerId,
   placeholderAfter: state.project.placeholderAfter,
+  pickingComponent: state.project.pickingComponent,
+  pickingComponentStateSlot: state.project.pickingComponentStateSlot,
+  pickingComponentFilter: state.project.pickingComponentFilter,
+  pickedComponentId: state.project.pickedComponentId,
+  pickedComponentArea: state.project.pickedComponentArea,
+  componentStateSlotsListIsVisible:
+    state.project.componentStateSlotsListIsVisible,
+
+  isCompatibleStateSlot:
+    state.project.pickingComponentStateSlotsFilter ||
+    returnTrue,
+
+  language: state.project.languageForComponentProps,
   meta: state.project.meta,
   getLocalizedText: getLocalizedTextFromState(state),
 });
@@ -147,7 +189,19 @@ const mapDispatchToProps = dispatch => ({
   
   onStartDragComponent: componentId =>
     void dispatch(startDragExistingComponent(componentId)),
+  
+  onPickComponent: componentId =>
+    void dispatch(pickComponentDone(componentId, ComponentPickAreas.TREE)),
+
+  onSelectComponentStateSlot: ({ stateSlot }) =>
+    void dispatch(pickComponentStateSlotDone(stateSlot)),
 });
+
+const wrap = compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  connectDropZone,
+  dropZone,
+);
 
 /**
  *
@@ -192,7 +246,7 @@ const canInsertComponentIntoTree = (component, components, rootId, meta) => {
  * @param {number} pageY
  * @param {HTMLElement} element
  * @param {number} borderPixels
- * @return {number}
+ * @return {{ position: number, middlePosition: number }}
  */
 const calcCursorPosition = (pageY, element, borderPixels) => {
   const { top, bottom } = element.getBoundingClientRect();
@@ -221,6 +275,7 @@ const calcCursorPosition = (pageY, element, borderPixels) => {
   return ret;
 };
 
+
 const DraggableComponentTitle =
   connectDraggable(draggable(ComponentsTreeItemTitle));
 
@@ -229,6 +284,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     super(props, context);
 
     this._contentBoxElement = null;
+    this._clickListenerIsSet = false;
     this._lineElement = null;
     this._itemElements = new Map();
     this._dropZoneIsReady = false;
@@ -240,6 +296,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     };
 
     this._renderItem = this._renderItem.bind(this);
+    this._handleNativeClick = this._handleNativeClick.bind(this);
     this._handleExpand = this._handleExpand.bind(this);
     this._handleSelect = this._handleSelect.bind(this);
     this._handleHover = this._handleHover.bind(this);
@@ -257,6 +314,15 @@ class ComponentsTreeViewComponent extends PureComponent {
   
   componentDidMount() {
     if (this._treeIsVisible()) this._dropZoneReady();
+    
+    if (this._contentBoxElement) {
+      this._contentBoxElement.addEventListener(
+        'click',
+        this._handleNativeClick,
+      );
+      
+      this._clickListenerIsSet = true;
+    }
   }
 
   componentWillReceiveProps(nextProps) {
@@ -280,6 +346,19 @@ class ComponentsTreeViewComponent extends PureComponent {
     if (isDraggingOnTree) {
       if (draggingOverPlaceholder) this._snapToLineElement();
       else onDropZoneUnsnap();
+    }
+  
+    if (this._contentBoxElement) {
+      if (!this._clickListenerIsSet) {
+        this._contentBoxElement.addEventListener(
+          'click',
+          this._handleNativeClick,
+        );
+  
+        this._clickListenerIsSet = true;
+      }
+    } else {
+      this._clickListenerIsSet = false;
     }
   }
   
@@ -429,6 +508,16 @@ class ComponentsTreeViewComponent extends PureComponent {
     if (canInsert) this._updatePlaceholderPosition(containerId, afterIdx);
     else this._removePlaceholder();
   }
+  
+  /**
+   *
+   * @param {MouseEvent} event
+   * @private
+   */
+  _handleNativeClick(event) {
+    const { pickingComponent } = this.props;
+    if (pickingComponent) event.stopPropagation();
+  }
 
   /**
    *
@@ -555,10 +644,20 @@ class ComponentsTreeViewComponent extends PureComponent {
    * @private
    */
   _handleSelect({ componentId, selected }) {
-    const { onSelectItem, onDeselectItem } = this.props;
+    const {
+      pickingComponent,
+      pickingComponentStateSlot,
+      onSelectItem,
+      onDeselectItem,
+      onPickComponent,
+    } = this.props;
 
-    if (selected) onSelectItem(componentId);
-    else onDeselectItem(componentId);
+    if (pickingComponent) {
+      onPickComponent(componentId);
+    } else if (!pickingComponentStateSlot) {
+      if (selected) onSelectItem(componentId);
+      else onDeselectItem(componentId);
+    }
   }
 
   /**
@@ -705,6 +804,9 @@ class ComponentsTreeViewComponent extends PureComponent {
       expandedItemIds,
       draggingOverPlaceholder,
       placeholderContainerId,
+      pickingComponent,
+      pickingComponentStateSlot,
+      pickingComponentFilter,
     } = this.props;
     
     const component = components.get(componentId);
@@ -729,7 +831,11 @@ class ComponentsTreeViewComponent extends PureComponent {
     }
 
     const hovered = highlightedComponentIds.has(componentId);
-    const active = selectedComponentIds.has(componentId);
+    const active =
+      !pickingComponent &&
+      !pickingComponentStateSlot &&
+      selectedComponentIds.has(componentId);
+    
     const dragData = { componentId };
     const subLevel = this._renderList(componentId);
     const isRootComponent = component.parentId === INVALID_ID;
@@ -743,11 +849,17 @@ class ComponentsTreeViewComponent extends PureComponent {
       !isRootComponent &&
       !isCompositeComponent(parentComponent.name, meta);
     
+    const disabled =
+      (pickingComponent || pickingComponentStateSlot) &&
+      isFunction(pickingComponentFilter) &&
+      !pickingComponentFilter(componentId);
+    
     const titleElement = (
       <DraggableComponentTitle
         componentId={componentId}
         title={title}
         subtitle={subtitle}
+        disabled={disabled}
         active={active}
         hovered={hovered}
         dragEnable={isDraggable}
@@ -871,8 +983,52 @@ class ComponentsTreeViewComponent extends PureComponent {
     );
   }
 
+  _renderStateSlotSelect() {
+    const {
+      meta,
+      components,
+      pickedComponentId,
+      isCompatibleStateSlot,
+      language,
+      onSelectComponentStateSlot,
+    } = this.props;
+
+    const component = components.get(pickedComponentId);
+    const componentMeta = getComponentMeta(component.name, meta);
+    const itemElement = this._itemElements.get(pickedComponentId);
+
+    if (!itemElement) return null;
+
+    const { left, top } = itemElement.getBoundingClientRect();
+
+    const wrapperStyle = {
+      position: 'absolute',
+      zIndex: '1000',
+      left: `${left}px`,
+      top: `${top}px`,
+    };
+
+    return (
+      <Portal>
+        <div style={wrapperStyle}>
+          <ComponentStateSlotSelect
+            componentMeta={componentMeta}
+            isCompatibleStateSlot={isCompatibleStateSlot}
+            language={language}
+            onSelect={onSelectComponentStateSlot}
+          />
+        </div>
+      </Portal>
+    );
+  }
+
   render() {
-    const { draggingComponent, getLocalizedText } = this.props;
+    const {
+      draggingComponent,
+      componentStateSlotsListIsVisible,
+      pickedComponentArea,
+      getLocalizedText,
+    } = this.props;
 
     if (!this._treeIsVisible()) {
       return (
@@ -884,6 +1040,14 @@ class ComponentsTreeViewComponent extends PureComponent {
     
     const list = this._renderList(INVALID_ID);
 
+    const willRenderStateSlotSelect =
+      componentStateSlotsListIsVisible &&
+      pickedComponentArea === ComponentPickAreas.TREE;
+
+    const componentStateSlotSelect = willRenderStateSlotSelect
+      ? this._renderStateSlotSelect()
+      : null;
+
     return (
       <BlockContentBox
         isBordered
@@ -894,6 +1058,8 @@ class ComponentsTreeViewComponent extends PureComponent {
         <ComponentsTree>
           {list}
         </ComponentsTree>
+
+        {componentStateSlotSelect}
       </BlockContentBox>
     );
   }
@@ -902,11 +1068,5 @@ class ComponentsTreeViewComponent extends PureComponent {
 ComponentsTreeViewComponent.propTypes = propTypes;
 ComponentsTreeViewComponent.defaultProps = defaultProps;
 ComponentsTreeViewComponent.displayName = 'ComponentsTreeView';
-
-const wrap = compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  connectDropZone,
-  dropZone,
-);
 
 export const ComponentsTreeView = wrap(ComponentsTreeViewComponent);

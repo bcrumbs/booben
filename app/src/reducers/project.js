@@ -33,6 +33,7 @@ import {
   PROJECT_PICK_COMPONENT_DONE,
   PROJECT_PICK_COMPONENT_CANCEL,
   PROJECT_PICK_COMPONENT_STATE_SLOT,
+  ComponentPickAreas,
 } from '../actions/project';
 
 import {
@@ -165,6 +166,7 @@ const ProjectState = Record({
   pickingComponentFilter: null,
   pickingComponentStateSlotsFilter: null,
   pickedComponentId: INVALID_ID,
+  pickedComponentArea: ComponentPickAreas.UNKNOWN,
   pickedComponentStateSlot: '',
   componentStateSlotsListIsVisible: false,
   treeExpandedItemIds: Set(),
@@ -1292,6 +1294,7 @@ const handlers = {
       pickingComponent: false,
       pickingComponentFilter: null,
       pickedComponentId: action.componentId,
+      pickedComponentArea: action.pickArea,
     };
 
     if (state.pickingComponentStateSlot)
@@ -1306,6 +1309,7 @@ const handlers = {
     pickingComponentFilter: null,
     pickingComponentStateSlotsFilter: null,
     pickedComponentId: INVALID_ID,
+    pickedComponentArea: ComponentPickAreas.UNKNOWN,
     pickedComponentStateSlot: '',
     componentStateSlotsListIsVisible: false,
   }),

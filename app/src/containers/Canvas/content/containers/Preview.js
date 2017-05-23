@@ -24,6 +24,7 @@ import {
 import {
   pickComponentDone,
   pickComponentCancel,
+  ComponentPickAreas,
 } from '../../../../actions/project';
 
 import { topNestedConstructorSelector } from '../../../../selectors';
@@ -101,7 +102,7 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(unhighlightPreviewComponent(componentId)),
   
   onPickComponent: componentId =>
-    void dispatch(pickComponentDone(componentId)),
+    void dispatch(pickComponentDone(componentId, ComponentPickAreas.CANVAS)),
   
   onCancelPickComponent: () =>
     void dispatch(pickComponentCancel()),

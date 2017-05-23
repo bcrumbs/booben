@@ -32,6 +32,13 @@ import {
 } from '../actions/preview';
 
 import {
+  PROJECT_PICK_COMPONENT,
+  PROJECT_PICK_COMPONENT_DONE,
+  PROJECT_PICK_COMPONENT_STATE_SLOT,
+  PROJECT_PICK_COMPONENT_CANCEL,
+} from '../actions/project';
+
+import {
   TOOL_ID_COMPONENTS_TREE,
   TOOL_ID_PROPS_EDITOR,
   TOOL_IDS_STRUCTURE,
@@ -45,9 +52,10 @@ const DesktopState = Record({
   toolStates: Map(),
   toolsPanelIsExpanded: true,
   activeToolId: null,
+  shadowedToolId: null,
   topToolZIndex: 0,
   stickyToolId: null,
-  previousActiveToolId: null,
+  pickingStateSlot: false,
 });
 
 const selectTool = (state, toolId) => {
@@ -81,28 +89,35 @@ const changeToolStateProp = (state, toolId, prop, value) =>
 const setActiveSection = (state, toolId, newActiveSection) =>
   changeToolStateProp(state, toolId, 'activeSection', newActiveSection);
 
-const setNecessaryToolActiveAfterDragStart = state => {
-  state = state.set('previousActiveToolId', state.activeToolId);
+const temporarilySelectTool = (state, toolId) => {
+  const willSelect =
+    state.activeToolId !== toolId &&
+    state.toolStates.get(toolId).docked;
   
-  const willSelectComponentsTree =
-    state.activeToolId !== TOOL_ID_COMPONENTS_TREE &&
-    state.toolStates.get(TOOL_ID_COMPONENTS_TREE).docked;
+  if (!willSelect) return state;
   
-  return willSelectComponentsTree
-    ? selectTool(state, TOOL_ID_COMPONENTS_TREE)
-    : state;
+  state = state.set('shadowedToolId', state.activeToolId);
+  
+  state = state.setIn(
+    ['toolStates', state.activeToolId, 'isShadowedInToolsPanel'],
+    true,
+  );
+  
+  return selectTool(state, toolId);
 };
 
-const setNecessaryToolActiveAfterDrop = (state, dropOnAreaId) => {
-  const willSelectPreviousTool =
-    state.previousActiveToolId !== TOOL_ID_COMPONENTS_TREE &&
-    state.toolStates.get(TOOL_ID_COMPONENTS_TREE).docked &&
-    dropOnAreaId !== ComponentDropAreas.TREE;
+const selectPreviousTool = state => {
+  if (!state.shadowedToolId) return state;
+
+  state = state.setIn(
+    ['toolStates', state.shadowedToolId, 'isShadowedInToolsPanel'],
+    false,
+  );
   
-  if (willSelectPreviousTool)
-    state = selectTool(state, state.previousActiveToolId);
+  if (state.toolStates.get(state.shadowedToolId).docked)
+    state = selectTool(state, state.shadowedToolId);
   
-  return state.set('previousActiveToolId', null);
+  return state.set('shadowedToolId', null);
 };
 
 const setActiveTools = (state, toolIds) => {
@@ -249,13 +264,28 @@ const handlers = {
     setActiveSection(state, action.toolId, action.newActiveSection),
   
   [PREVIEW_START_DRAG_NEW_COMPONENT]: state =>
-    setNecessaryToolActiveAfterDragStart(state),
+    temporarilySelectTool(state, TOOL_ID_COMPONENTS_TREE),
   
   [PREVIEW_START_DRAG_EXISTING_COMPONENT]: state =>
-    setNecessaryToolActiveAfterDragStart(state),
+    temporarilySelectTool(state, TOOL_ID_COMPONENTS_TREE),
   
   [PREVIEW_DROP_COMPONENT]: (state, action) =>
-    setNecessaryToolActiveAfterDrop(state, action.dropOnAreaId),
+    action.dropOnAreaId === ComponentDropAreas.TREE
+      ? state
+      : selectPreviousTool(state),
+  
+  [PROJECT_PICK_COMPONENT]: (state, action) => {
+    state = state.set('pickingStateSlot', action.stateSlot);
+    return temporarilySelectTool(state, TOOL_ID_COMPONENTS_TREE);
+  },
+  
+  [PROJECT_PICK_COMPONENT_DONE]: state => state.pickingStateSlot
+    ? state
+    : selectPreviousTool(state),
+  
+  [PROJECT_PICK_COMPONENT_STATE_SLOT]: state => selectPreviousTool(state),
+  
+  [PROJECT_PICK_COMPONENT_CANCEL]: state => selectPreviousTool(state),
 
   [PREVIEW_SELECT_COMPONENT]: (state, action) => {
     if (action.openConfigurationTool) {

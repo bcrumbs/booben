@@ -94,6 +94,8 @@ const mapDispatchToProps = dispatch => ({
   onDeleteAction: ({ path, index }) => void dispatch(deleteAction(path, index)),
 });
 
+const wrap = connect(mapStateToProps, mapDispatchToProps);
+
 const Views = {
   HANDLERS_LIST: 0,
   NEW_ACTION: 1,
@@ -538,7 +540,4 @@ ComponentActionsEditorComponent.propTypes = propTypes;
 ComponentActionsEditorComponent.defaultProps = defaultProps;
 ComponentActionsEditorComponent.displayName = 'ComponentActionsEditor';
 
-export const ComponentActionsEditor = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ComponentActionsEditorComponent);
+export const ComponentActionsEditor = wrap(ComponentActionsEditorComponent);

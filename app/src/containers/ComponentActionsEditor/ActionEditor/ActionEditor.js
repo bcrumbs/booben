@@ -136,6 +136,8 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(pickComponentStateSlot(filter, stateSlotFilter)),
 });
 
+const wrap = connect(mapStateToProps, mapDispatchToProps);
+
 class ActionEditorComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -189,6 +191,7 @@ class ActionEditorComponent extends PureComponent {
     this._handlePick = this._handlePick.bind(this);
   
     this._handleSave = this._handleSave.bind(this);
+    this._handleCancel = this._handleCancel.bind(this);
   }
   
   componentWillReceiveProps(nextProps) {
@@ -445,8 +448,12 @@ class ActionEditorComponent extends PureComponent {
   _handleSave() {
     const { onSave } = this.props;
     const { action } = this.state;
-    
     onSave({ action });
+  }
+  
+  _handleCancel() {
+    const { onCancel } = this.props;
+    onCancel();
   }
   
   _handleLink(linkParams) {
@@ -1046,7 +1053,7 @@ class ActionEditorComponent extends PureComponent {
         
         <Button
           text="Cancel"
-          onPress={onCancel}
+          onPress={this._handleCancel}
         />
         
         <Dialog
@@ -1074,7 +1081,4 @@ ActionEditorComponent.propTypes = propTypes;
 ActionEditorComponent.defaultProps = defaultProps;
 ActionEditorComponent.displayName = 'ActionEditor';
 
-export const ActionEditor = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ActionEditorComponent);
+export const ActionEditor = wrap(ActionEditorComponent);
