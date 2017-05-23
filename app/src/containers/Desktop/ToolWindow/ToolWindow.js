@@ -353,7 +353,9 @@ export class ToolWindow extends PureComponent {
       ? activeSection.component
       : null;
 
-    const content = ContentComponent ? <ContentComponent /> : null;
+    const content = ContentComponent
+      ? <ContentComponent {...activeSection.componentProps} />
+      : null;
 
     const mainRegion = (
       <DraggableWindowRegion>

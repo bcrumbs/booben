@@ -1,7 +1,7 @@
 'use strict';
 
 import styled from 'styled-components';
-import { halfBaseModule } from '../../../styles/styleHelpers';
+import { halfBaseModule } from '../../../styles/themeSelectors';
 
 export const RouteParametersListStyled = styled.ul`
   margin: 0;

@@ -6,19 +6,19 @@ import { RouteParameterStyled } from './styles/RouteParameterStyled';
 import { ParameterTitleStyled } from './styles/ParameterTitleStyled';
 
 const propTypes = {
-  title: PropTypes.string,
-  description: PropTypes.string,
+  name: PropTypes.string,
+  value: PropTypes.string,
 };
 
 const defaultProps = {
-  title: '',
-  description: '',
+  name: '',
+  value: '',
 };
 
 export const RouteParameter = props => (
   <RouteParameterStyled>
-    <ParameterTitleStyled>{props.title}</ParameterTitleStyled>
-    <span>{props.description}</span>
+    <ParameterTitleStyled>{props.name}</ParameterTitleStyled>
+    <span>{props.value}</span>
   </RouteParameterStyled>
 );
 

@@ -47,6 +47,8 @@
   "structure.redirectAnonymous": "Перенаправлять анонимных пользователей",
   "structure.routeProperties": "Свойства маршрута",
   "structure.indexRouteProperties": "Свойства маршрута по умолчанию",
+  "structure.editRoutePathDialogTitle": "Редактирование пути",
+  "structure.routeParamValuesHeading": "Введите примеры значений для параметров роута",
 
   "design.tool.elementsTree": "Дерево элементов",
   "design.tool.componentsLibrary": "Библиотека компонентов",

@@ -1,11 +1,12 @@
 'use strict';
 
 import styled from 'styled-components';
+
 import {
-  quaterBaseModule,
+  quarterBaseModule,
   fontSizeSmall,
-  fontColorMedium,
-} from '../../../../styles/styleHelpers';
+  textColorMedium,
+} from '../../../../styles/themeSelectors';
 
 export const RouteParameterStyled = styled.li`
   margin: 0;
@@ -13,10 +14,10 @@ export const RouteParameterStyled = styled.li`
   list-style-type: none;
   font-size: ${fontSizeSmall}px;
   line-height: 1.5;
-  color: ${fontColorMedium};
+  color: ${textColorMedium};
   
   & + & {
-    margin-top: ${quaterBaseModule}px;
+    margin-top: ${quarterBaseModule}px;
   }
 `;
 

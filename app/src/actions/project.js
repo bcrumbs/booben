@@ -20,6 +20,8 @@ export const PROJECT_ROUTE_DELETE =
   'PROJECT_ROUTE_DELETE';
 export const PROJECT_ROUTE_UPDATE_FIELD =
   'PROJECT_ROUTE_UPDATE_FIELD';
+export const PROJECT_ROUTE_UPDATE_PATH =
+  'PROJECT_ROUTE_UPDATE_PATH';
 
 export const PROJECT_COMPONENT_DELETE =
   'PROJECT_COMPONENT_DELETE';
@@ -159,6 +161,19 @@ export const updateRouteField = (routeId, field, newValue) => ({
   routeId,
   field,
   newValue,
+});
+
+/**
+ *
+ * @param {number} routeId
+ * @param {string} newPath
+ * @param {Object<string, string>} newParamValues
+ */
+export const updateRoutePath = (routeId, newPath, newParamValues) => ({
+  type: PROJECT_ROUTE_UPDATE_PATH,
+  routeId,
+  newPath,
+  newParamValues,
 });
 
 /**

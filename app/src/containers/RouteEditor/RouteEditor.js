@@ -21,10 +21,16 @@ import {
   PropToggle,
 } from '../../components/props';
 
+import {
+  RouteParametersList,
+  RouteParameter,
+} from '../../components/RouteParametersList/RouteParametersList';
+
 import { PropsList } from '../../components/PropsList/PropsList';
 import Project from '../../models/Project';
 import { getLocalizedTextFromState } from '../../selectors';
 import { updateRouteField } from '../../actions/project';
+import { noop } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
 
 const propTypes = {
@@ -32,7 +38,6 @@ const propTypes = {
   selectedRouteId: PropTypes.number.isRequired,
   indexRouteSelected: PropTypes.bool.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
-  onPathChange: PropTypes.func.isRequired,
   onDescriptionChange: PropTypes.func.isRequired,
   onHaveIndexChange: PropTypes.func.isRequired,
   onRedirectChange: PropTypes.func.isRequired,
@@ -42,9 +47,11 @@ const propTypes = {
   onRedirectAuthenticatedToChange: PropTypes.func.isRequired,
   onRedirectAnonymousToChange: PropTypes.func.isRequired,
   onIndexRouteDescriptionChange: PropTypes.func.isRequired,
+  onEditPath: PropTypes.func,
 };
 
 const defaultProps = {
+  onEditPath: noop,
 };
 
 const mapStateToProps = state => ({
@@ -56,9 +63,6 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onPathChange: (routeId, newValue) =>
-    void dispatch(updateRouteField(routeId, 'path', newValue)),
-
   onDescriptionChange: (routeId, newValue) =>
     void dispatch(updateRouteField(routeId, 'description', newValue)),
 
@@ -97,8 +101,8 @@ class RouteEditorComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
 
-    this._handlePathChange =
-      this._handlePathChange.bind(this);
+    this._handleEditPath =
+      this._handleEditPath.bind(this);
     this._handleDescriptionChange =
       this._handleDescriptionChange.bind(this);
     this._handleHaveIndexChange =
@@ -119,9 +123,9 @@ class RouteEditorComponent extends PureComponent {
       this._handleRedirectAnonymousToChange.bind(this);
   }
 
-  _handlePathChange({ value }) {
-    const { selectedRouteId, onPathChange } = this.props;
-    onPathChange(selectedRouteId, value);
+  _handleEditPath() {
+    const { onEditPath } = this.props;
+    onEditPath();
   }
 
   _handleDescriptionChange({ value }) {
@@ -268,6 +272,26 @@ class RouteEditorComponent extends PureComponent {
       }
     }
 
+    let paramsList = null;
+    if (route.paramValues.size > 0) {
+      const params = [];
+
+      route.paramValues.forEach((value, name) => {
+        params.push(
+          <RouteParameter
+            name={`:${name}`}
+            value={value}
+          />,
+        );
+      });
+
+      paramsList = (
+        <RouteParametersList>
+          {params}
+        </RouteParametersList>
+      );
+    }
+
     return (
       <BlockContentBox isBordered>
         <BlockContentBoxHeading>
@@ -280,8 +304,14 @@ class RouteEditorComponent extends PureComponent {
               label={getLocalizedText('structure.path')}
               value={route.path}
               disabled
-              onChange={this._handlePathChange}
+              additionalActions={[{
+                id: 'edit',
+                icon: 'pencil',
+                handler: this._handleEditPath,
+              }]}
             />
+
+            {paramsList}
   
             <PropTextarea
               label={getLocalizedText('structure.routeDescription')}

@@ -12,6 +12,12 @@ import { PropImage } from './PropImage/PropImage';
 import { PropAction } from './PropAction/PropAction';
 import { noop } from '../../../utils/misc';
 
+const ActionPropType = PropTypes.shape({
+  id: PropTypes.string.isRequired,
+  icon: PropTypes.string.isRequired,
+  handler: PropTypes.func.isRequired,
+});
+
 const propTypes = {
   id: PropTypes.string,
   label: PropTypes.string,
@@ -28,6 +34,7 @@ const propTypes = {
   checkable: PropTypes.bool,
   checked: PropTypes.bool,
   deletable: PropTypes.bool,
+  additionalActions: PropTypes.arrayOf(ActionPropType),
   onLink: PropTypes.func,
   onPick: PropTypes.func,
   onUnlink: PropTypes.func,
@@ -51,6 +58,7 @@ const defaultProps = {
   checkable: false,
   checked: false,
   deletable: false,
+  additionalActions: [],
   onLink: noop,
   onPick: noop,
   onUnlink: noop,
@@ -179,6 +187,7 @@ export class PropBase extends PureComponent {
       pickable,
       checkable,
       checked,
+      additionalActions,
       children,
     } = this.props;
 
@@ -287,6 +296,19 @@ export class PropBase extends PureComponent {
 
       actionItemsRight.push(pickAction);
     }
+
+    additionalActions.forEach(action => {
+      /* eslint-disable react/jsx-handler-names */
+      actionItemsRight.push(
+        <PropAction
+          key={action.id}
+          id={action.id}
+          icon={action.icon}
+          onPress={action.handler}
+        />,
+      );
+      /* eslint-disable react/jsx-handler-names */
+    });
   
     let actionsRightElement = null;
     if (actionItemsRight.length) {

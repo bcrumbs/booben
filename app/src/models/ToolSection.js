@@ -10,5 +10,7 @@ import { returnNull } from '../utils/misc';
 export default Record({
   name: '',
   component: returnNull,
+  componentProps: {},
   sideRegionComponent: returnNull,
+  sideRegionComponentProps: {},
 });

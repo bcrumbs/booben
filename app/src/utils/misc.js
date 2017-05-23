@@ -87,6 +87,20 @@ export const isNullOrUndef = value => value === null || isUndef(value);
  * @param {*} value
  * @return {boolean}
  */
+export const isTruthy = value => !!value;
+
+/**
+ *
+ * @param {*} value
+ * @return {boolean}
+ */
+export const isFalsy = value => !value;
+
+/**
+ *
+ * @param {*} value
+ * @return {boolean}
+ */
 export const isFunction = value => typeof value === 'function';
 
 /**
@@ -137,6 +151,15 @@ export const waitFor = async (condition, pause = 0) => {
  */
 export const objectSome = (object, predicate) =>
   Object.keys(object).some(key => predicate(object[key], key, object));
+
+/**
+ *
+ * @param {Object} object
+ * @param {function(value: *, key: string, object: Object): boolean} predicate
+ * @return {boolean}
+ */
+export const objectEvery = (object, predicate) =>
+  Object.keys(object).every(key => predicate(object[key], key, object));
 
 //noinspection JSCheckFunctionSignatures
 /**

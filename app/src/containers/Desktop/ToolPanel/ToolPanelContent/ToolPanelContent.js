@@ -109,7 +109,7 @@ export class ToolPanelContent extends PureComponent {
       : null;
   
     const content = ContentComponent
-      ? <ContentComponent />
+      ? <ContentComponent {...activeSection.componentProps} />
       : null;
   
     let actionsArea = null;

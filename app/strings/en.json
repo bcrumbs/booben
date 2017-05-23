@@ -47,6 +47,8 @@
   "structure.redirectAnonymous": "Redirect anonymous users",
   "structure.routeProperties": "Route properties",
   "structure.indexRouteProperties": "Index route properties",
+  "structure.editRoutePathDialogTitle": "Edit route path",
+  "structure.routeParamValuesHeading": "Provide example values for route parameters",
 
   "design.tool.elementsTree": "Elements tree",
   "design.tool.componentsLibrary": "Components library",

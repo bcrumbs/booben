@@ -1,6 +1,8 @@
-export const jssyTheme = {
+'use strict';
+
+export default {
   baseModule: 8,
-  
+
   fontSize: {
     '-2': 10,
     '-1': 12,
@@ -13,14 +15,14 @@ export const jssyTheme = {
     6: 56,
     7: 112,
   },
-  
+
   fontWeight: {
     light: '400',
     normal: '400',
     semibold: '600',
     bold: '700',
   },
-  
+
   paletteBlueGrey: {
     50: '#F9F9FA',
     75: '#EDEEF1',

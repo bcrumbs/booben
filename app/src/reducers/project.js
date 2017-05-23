@@ -17,6 +17,7 @@ import {
   PROJECT_ROUTE_CREATE,
   PROJECT_ROUTE_DELETE,
   PROJECT_ROUTE_UPDATE_FIELD,
+  PROJECT_ROUTE_UPDATE_PATH,
   PROJECT_COMPONENT_DELETE,
   PROJECT_COMPONENT_RENAME,
   PROJECT_COMPONENT_TOGGLE_REGION,
@@ -1045,6 +1046,14 @@ const handlers = {
   [PROJECT_ROUTE_UPDATE_FIELD]: (state, action) => state.setIn(
     ['data', 'routes', action.routeId, action.field],
     action.newValue,
+  ),
+
+  [PROJECT_ROUTE_UPDATE_PATH]: (state, action) => state.mergeIn(
+    ['data', 'routes', action.routeId],
+    {
+      path: action.newPath,
+      paramValues: Map(action.newParamValues),
+    },
   ),
   
   [PROJECT_COMPONENT_DELETE]: (state, action) => {
