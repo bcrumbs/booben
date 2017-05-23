@@ -62,6 +62,7 @@ const PANEL_MIN_WIDTH = 360;
 
 export const ToolPanel = props => {
   let activeTool = null;
+  let shadowedTool = null;
 
   const panelSwitcherGroups = [];
 
@@ -78,6 +79,7 @@ export const ToolPanel = props => {
         );
       } else if (toolState.docked) {
         if (toolState.isActiveInToolsPanel) activeTool = tool;
+        else if (toolState.isShadowedInToolsPanel) shadowedTool = tool;
 
         icons.push(
           <PageDrawerActionItem
@@ -101,6 +103,7 @@ export const ToolPanel = props => {
   });
 
   let panelContent = null;
+  let shadowedPanelContent = null;
   let isExpanded = false;
 
   if (activeTool !== null) {
@@ -135,6 +138,7 @@ export const ToolPanel = props => {
 
     panelContent = (
       <ToolPanelContent
+        key={`tool-panel-content-${activeTool.id}`}
         tool={activeTool}
         toolState={activeToolState}
         onTitleChange={onTitleChange}
@@ -145,6 +149,21 @@ export const ToolPanel = props => {
     );
 
     isExpanded = props.isExpanded;
+  }
+
+  if (shadowedTool !== null) {
+    const shadowedToolState =
+      props.toolStates.get(shadowedTool.id) ||
+      new ToolStateType();
+
+    shadowedPanelContent = (
+      <ToolPanelContent
+        key={`tool-panel-content-${shadowedTool.id}`}
+        tool={shadowedTool}
+        toolState={shadowedToolState}
+        shadowed
+      />
+    );
   }
   
   const pageDrawerHasActions = panelSwitcherGroups.length > 0;
@@ -174,6 +193,7 @@ export const ToolPanel = props => {
         {panelSwitcherGroups}
       </PageDrawerActionsArea>
 
+      {shadowedPanelContent}
       {panelContent}
     </ResizeablePageDrawer>
   );

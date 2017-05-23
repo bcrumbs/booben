@@ -8,7 +8,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
-import Portal from 'react-portal';
+import Portal from 'react-portal-minimal';
 import { List } from 'immutable';
 
 import {
@@ -71,6 +71,7 @@ import {
   saveComponentForProp,
   cancelConstructComponentForProp,
   pickComponentStateSlotDone,
+  ComponentPickAreas,
 } from '../actions/project';
 
 import { dropComponent } from '../actions/preview';
@@ -123,6 +124,7 @@ const propTypes = {
     PropTypes.string,
   ).isRequired, // state
   pickedComponentId: PropTypes.number.isRequired, // state
+  pickedComponentArea: PropTypes.number.isRequired, // state
   componentStateSlotsListIsVisible: PropTypes.bool.isRequired, // state
   isCompatibleStateSlot: PropTypes.func.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
@@ -152,6 +154,7 @@ const mapStateToProps = state => ({
   haveNestedConstructor: haveNestedConstructorsSelector(state),
   nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
   pickedComponentId: state.project.pickedComponentId,
+  pickedComponentArea: state.project.pickedComponentArea,
   componentStateSlotsListIsVisible:
     state.project.componentStateSlotsListIsVisible,
   
@@ -579,7 +582,7 @@ class DesignRoute extends PureComponent {
     };
     
     return (
-      <Portal isOpened>
+      <Portal>
         <div style={wrapperStyle}>
           <ComponentStateSlotSelect
             componentMeta={componentMeta}
@@ -598,6 +601,7 @@ class DesignRoute extends PureComponent {
       selectingComponentLayout,
       firstSelectedComponentId,
       componentStateSlotsListIsVisible,
+      pickedComponentArea,
       getLocalizedText,
     } = this.props;
 
@@ -627,10 +631,14 @@ class DesignRoute extends PureComponent {
         { title: componentTitle },
       );
     }
+
+    const willRenderStateSlotSelect =
+      componentStateSlotsListIsVisible &&
+      pickedComponentArea === ComponentPickAreas.CANVAS;
     
-    let componentStateSlotSelect = null;
-    if (componentStateSlotsListIsVisible)
-      componentStateSlotSelect = this._renderStateSlotSelect();
+    const componentStateSlotSelect = willRenderStateSlotSelect
+      ? this._renderStateSlotSelect()
+      : null;
 
     return (
       <Desktop
@@ -662,10 +670,8 @@ class DesignRoute extends PureComponent {
           {deleteComponentDialogText}
         </Dialog>
 
-        <Portal isOpened>
-          <ComponentsDragArea
-            onDrop={this._handleDropComponent}
-          />
+        <Portal>
+          <ComponentsDragArea onDrop={this._handleDropComponent} />
         </Portal>
         
         {componentStateSlotSelect}

@@ -8,7 +8,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
-import { compose } from 'redux';
 import _startCase from 'lodash.startcase';
 import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';
@@ -30,7 +29,6 @@ import {
   PropComponentPicker,
 } from '../../../components/props';
 
-import withPermanentState from '../../../hocs/withPermanentState';
 import Project from '../../../models/Project';
 
 import ProjectComponent, {
@@ -138,10 +136,7 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(pickComponentStateSlot(filter, stateSlotFilter)),
 });
 
-const wrap = compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  withPermanentState,
-);
+const wrap = connect(mapStateToProps, mapDispatchToProps);
 
 class ActionEditorComponent extends PureComponent {
   constructor(props, context) {
@@ -453,15 +448,11 @@ class ActionEditorComponent extends PureComponent {
   _handleSave() {
     const { onSave } = this.props;
     const { action } = this.state;
-    
-    this.clearState = true;
     onSave({ action });
   }
   
   _handleCancel() {
     const { onCancel } = this.props;
-  
-    this.clearState = true;
     onCancel();
   }
   

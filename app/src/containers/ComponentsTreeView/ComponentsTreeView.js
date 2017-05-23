@@ -9,7 +9,12 @@ import PropTypes from 'prop-types';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import Portal from 'react-portal-minimal';
 import throttle from 'lodash.throttle';
+
+import {
+  ComponentStateSlotSelect,
+} from '../ComponentStateSlotSelect/ComponentStateSlotSelect';
 
 import {
   ComponentsTree,
@@ -51,7 +56,11 @@ import {
   ComponentDropAreas,
 } from '../../actions/preview';
 
-import { pickComponentDone } from '../../actions/project';
+import {
+  pickComponentDone,
+  pickComponentStateSlotDone,
+  ComponentPickAreas,
+} from '../../actions/project';
 
 import {
   currentComponentsSelector,
@@ -63,8 +72,14 @@ import {
 } from '../../selectors';
 
 import ProjectComponentRecord from '../../models/ProjectComponent';
-import { canInsertComponent, isCompositeComponent } from '../../utils/meta';
-import { isFunction } from '../../utils/misc';
+
+import {
+  canInsertComponent,
+  isCompositeComponent,
+  getComponentMeta,
+} from '../../utils/meta';
+
+import { isFunction, returnTrue } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
 
 const propTypes = {
@@ -88,6 +103,11 @@ const propTypes = {
   pickingComponent: PropTypes.bool.isRequired,
   pickingComponentStateSlot: PropTypes.bool.isRequired,
   pickingComponentFilter: PropTypes.func,
+  pickedComponentId: PropTypes.number.isRequired,
+  pickedComponentArea: PropTypes.number.isRequired,
+  componentStateSlotsListIsVisible: PropTypes.bool.isRequired, // state
+  isCompatibleStateSlot: PropTypes.func.isRequired, // state
+  language: PropTypes.string.isRequired, // state
   meta: PropTypes.object.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   dropZoneId: PropTypes.string,
@@ -105,6 +125,7 @@ const propTypes = {
   onDropZoneUnsnap: PropTypes.func.isRequired,
   onStartDragComponent: PropTypes.func.isRequired,
   onPickComponent: PropTypes.func.isRequired,
+  onSelectComponentStateSlot: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -127,6 +148,16 @@ const mapStateToProps = state => ({
   pickingComponent: state.project.pickingComponent,
   pickingComponentStateSlot: state.project.pickingComponentStateSlot,
   pickingComponentFilter: state.project.pickingComponentFilter,
+  pickedComponentId: state.project.pickedComponentId,
+  pickedComponentArea: state.project.pickedComponentArea,
+  componentStateSlotsListIsVisible:
+    state.project.componentStateSlotsListIsVisible,
+
+  isCompatibleStateSlot:
+    state.project.pickingComponentStateSlotsFilter ||
+    returnTrue,
+
+  language: state.project.languageForComponentProps,
   meta: state.project.meta,
   getLocalizedText: getLocalizedTextFromState(state),
 });
@@ -160,8 +191,17 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(startDragExistingComponent(componentId)),
   
   onPickComponent: componentId =>
-    void dispatch(pickComponentDone(componentId)),
+    void dispatch(pickComponentDone(componentId, ComponentPickAreas.TREE)),
+
+  onSelectComponentStateSlot: ({ stateSlot }) =>
+    void dispatch(pickComponentStateSlotDone(stateSlot)),
 });
+
+const wrap = compose(
+  connect(mapStateToProps, mapDispatchToProps),
+  connectDropZone,
+  dropZone,
+);
 
 /**
  *
@@ -206,7 +246,7 @@ const canInsertComponentIntoTree = (component, components, rootId, meta) => {
  * @param {number} pageY
  * @param {HTMLElement} element
  * @param {number} borderPixels
- * @return {number}
+ * @return {{ position: number, middlePosition: number }}
  */
 const calcCursorPosition = (pageY, element, borderPixels) => {
   const { top, bottom } = element.getBoundingClientRect();
@@ -943,8 +983,52 @@ class ComponentsTreeViewComponent extends PureComponent {
     );
   }
 
+  _renderStateSlotSelect() {
+    const {
+      meta,
+      components,
+      pickedComponentId,
+      isCompatibleStateSlot,
+      language,
+      onSelectComponentStateSlot,
+    } = this.props;
+
+    const component = components.get(pickedComponentId);
+    const componentMeta = getComponentMeta(component.name, meta);
+    const itemElement = this._itemElements.get(pickedComponentId);
+
+    if (!itemElement) return null;
+
+    const { left, top } = itemElement.getBoundingClientRect();
+
+    const wrapperStyle = {
+      position: 'absolute',
+      zIndex: '1000',
+      left: `${left}px`,
+      top: `${top}px`,
+    };
+
+    return (
+      <Portal>
+        <div style={wrapperStyle}>
+          <ComponentStateSlotSelect
+            componentMeta={componentMeta}
+            isCompatibleStateSlot={isCompatibleStateSlot}
+            language={language}
+            onSelect={onSelectComponentStateSlot}
+          />
+        </div>
+      </Portal>
+    );
+  }
+
   render() {
-    const { draggingComponent, getLocalizedText } = this.props;
+    const {
+      draggingComponent,
+      componentStateSlotsListIsVisible,
+      pickedComponentArea,
+      getLocalizedText,
+    } = this.props;
 
     if (!this._treeIsVisible()) {
       return (
@@ -956,6 +1040,14 @@ class ComponentsTreeViewComponent extends PureComponent {
     
     const list = this._renderList(INVALID_ID);
 
+    const willRenderStateSlotSelect =
+      componentStateSlotsListIsVisible &&
+      pickedComponentArea === ComponentPickAreas.TREE;
+
+    const componentStateSlotSelect = willRenderStateSlotSelect
+      ? this._renderStateSlotSelect()
+      : null;
+
     return (
       <BlockContentBox
         isBordered
@@ -966,6 +1058,8 @@ class ComponentsTreeViewComponent extends PureComponent {
         <ComponentsTree>
           {list}
         </ComponentsTree>
+
+        {componentStateSlotSelect}
       </BlockContentBox>
     );
   }
@@ -974,11 +1068,5 @@ class ComponentsTreeViewComponent extends PureComponent {
 ComponentsTreeViewComponent.propTypes = propTypes;
 ComponentsTreeViewComponent.defaultProps = defaultProps;
 ComponentsTreeViewComponent.displayName = 'ComponentsTreeView';
-
-const wrap = compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  connectDropZone,
-  dropZone,
-);
 
 export const ComponentsTreeView = wrap(ComponentsTreeViewComponent);

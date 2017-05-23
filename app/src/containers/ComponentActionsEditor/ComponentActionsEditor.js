@@ -8,7 +8,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
-import { compose } from 'redux';
 import _forOwn from 'lodash.forown';
 import _startCase from 'lodash.startcase';
 
@@ -16,8 +15,6 @@ import {
   BlockContentBox,
   BlockContentBoxItem,
 } from '../../components/BlockContent/BlockContent';
-
-import withPermanentState from '../../hocs/withPermanentState';
 
 import {
   ComponentHandlers,
@@ -97,10 +94,7 @@ const mapDispatchToProps = dispatch => ({
   onDeleteAction: ({ path, index }) => void dispatch(deleteAction(path, index)),
 });
 
-const wrap = compose(
-  connect(mapStateToProps, mapDispatchToProps),
-  withPermanentState,
-);
+const wrap = connect(mapStateToProps, mapDispatchToProps);
 
 const Views = {
   HANDLERS_LIST: 0,
@@ -494,18 +488,8 @@ class ComponentActionsEditorComponent extends PureComponent {
   }
   
   _renderNewActionView() {
-    const { selectedComponentIds } = this.props;
-    const { activeHandler, editActionPath } = this.state;
-  
-    const componentId = selectedComponentIds.first();
-    const stateKey =
-      `new-action-editor-${componentId}-${activeHandler}` +
-      `${editActionPath.length ? `-${editActionPath.join('/')}` : ''}`;
-    
     return (
       <ActionEditor
-        key={stateKey}
-        stateKey={stateKey}
         onSave={this._handleActionEditorSave}
         onCancel={this._handleActionEditorCancel}
       />
@@ -520,14 +504,9 @@ class ComponentActionsEditorComponent extends PureComponent {
     const component = currentComponents.get(componentId);
     const propValue = component.props.get(activeHandler);
     const action = propValue.getActionByPath(editActionPath);
-    const stateKey =
-      `action-editor-${componentId}-${activeHandler}` +
-      `${editActionPath.length ? `-${editActionPath.join('/')}` : ''}`;
     
     return (
       <ActionEditor
-        key={stateKey}
-        stateKey={stateKey}
         action={action}
         onSave={this._handleActionEditorSave}
         onCancel={this._handleActionEditorCancel}

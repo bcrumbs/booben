@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { Map, List } from 'immutable';
-import Portal from 'react-portal';
+import Portal from 'react-portal-minimal';
 
 import {
   BackdropBreadcrumbs,
@@ -379,7 +379,7 @@ class LinkPropWindowComponent extends PureComponent {
     if (!items.length) return null;
 
     return (
-      <Portal isOpened>
+      <Portal>
         <BackdropBreadcrumbs items={items} />
       </Portal>
     );

@@ -30,6 +30,7 @@ import { noop } from '../../../../utils/misc';
 const propTypes = {
   tool: PropTypes.instanceOf(ToolType).isRequired,
   toolState: PropTypes.instanceOf(ToolStateType).isRequired,
+  shadowed: PropTypes.bool,
   onTitleChange: PropTypes.func,
   onUndock: PropTypes.func,
   onCollapse: PropTypes.func,
@@ -37,6 +38,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+  shadowed: false,
   onTitleChange: noop,
   onUndock: noop,
   onCollapse: noop,
@@ -58,6 +60,7 @@ export class ToolPanelContent extends PureComponent {
     const {
       tool,
       toolState,
+      shadowed,
       onCollapse,
       onUndock,
       onTitleChange,
@@ -106,12 +109,7 @@ export class ToolPanelContent extends PureComponent {
       : null;
   
     const content = ContentComponent
-      ? (
-        <ContentComponent
-          key="desktop-tool-panel-content"
-          stateKey="desktop-tool-panel-content"
-        />
-      )
+      ? <ContentComponent />
       : null;
   
     let actionsArea = null;
@@ -166,7 +164,7 @@ export class ToolPanelContent extends PureComponent {
     }
   
     return (
-      <PageDrawerContentArea>
+      <PageDrawerContentArea hidden={shadowed}>
         <BlockContent>
           <BlockContentTitle
             title={tool.title}

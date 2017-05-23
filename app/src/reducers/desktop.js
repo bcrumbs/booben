@@ -52,9 +52,9 @@ const DesktopState = Record({
   toolStates: Map(),
   toolsPanelIsExpanded: true,
   activeToolId: null,
+  shadowedToolId: null,
   topToolZIndex: 0,
   stickyToolId: null,
-  previousActiveToolId: null,
   pickingStateSlot: false,
 });
 
@@ -90,26 +90,34 @@ const setActiveSection = (state, toolId, newActiveSection) =>
   changeToolStateProp(state, toolId, 'activeSection', newActiveSection);
 
 const temporarilySelectTool = (state, toolId) => {
-  state = state.set('previousActiveToolId', state.activeToolId);
-  
-  const willSelectComponentsTree =
+  const willSelect =
     state.activeToolId !== toolId &&
     state.toolStates.get(toolId).docked;
   
-  return willSelectComponentsTree
-    ? selectTool(state, toolId)
-    : state;
+  if (!willSelect) return state;
+  
+  state = state.set('shadowedToolId', state.activeToolId);
+  
+  state = state.setIn(
+    ['toolStates', state.activeToolId, 'isShadowedInToolsPanel'],
+    true,
+  );
+  
+  return selectTool(state, toolId);
 };
 
 const selectPreviousTool = state => {
-  const willSelectPreviousTool =
-    !!state.previousActiveToolId &&
-    state.toolStates.get(state.previousActiveToolId).docked;
+  if (!state.shadowedToolId) return state;
+
+  state = state.setIn(
+    ['toolStates', state.shadowedToolId, 'isShadowedInToolsPanel'],
+    false,
+  );
   
-  if (willSelectPreviousTool)
-    state = selectTool(state, state.previousActiveToolId);
+  if (state.toolStates.get(state.shadowedToolId).docked)
+    state = selectTool(state, state.shadowedToolId);
   
-  return state.set('previousActiveToolId', null);
+  return state.set('shadowedToolId', null);
 };
 
 const setActiveTools = (state, toolIds) => {
