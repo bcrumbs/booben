@@ -1,7 +1,16 @@
 'use strict';
 
+import {
+  basicColors,
+  themeColors,
+} from './constants/constants';
+import { colorsFgCalculated } from './constants/constantsCalculated';
+
 export default {
   baseModule: 8,
+  
+  radiusDefault: 2,
+  radiusRounded: '50%',
 
   fontSize: {
     '-2': 10,
@@ -21,6 +30,28 @@ export default {
     normal: '400',
     semibold: '600',
     bold: '700',
+  },
+  
+  color: {
+    white: basicColors.white,
+    black: basicColors.black,
+    transparent: basicColors.transparent,
+    
+    main: themeColors.main,
+    mainFgTextColor: colorsFgCalculated.main,
+    secondary: themeColors.secondary,
+    secondaryFgTextColor: colorsFgCalculated.secondary,
+    
+    alert: themeColors.alert,
+    alertFgTextColor: colorsFgCalculated.alert,
+    warning: themeColors.warning,
+    warningFgTextColor: colorsFgCalculated.warning,
+    error: themeColors.alert,
+    errorFgTextColor: colorsFgCalculated.alert,
+    success: themeColors.success,
+    successFgTextColor: colorsFgCalculated.success,
+    info: themeColors.info,
+    infoFgTextColor: colorsFgCalculated.info,
   },
 
   paletteBlueGrey: {

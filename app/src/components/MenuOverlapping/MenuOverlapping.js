@@ -1,9 +1,9 @@
 'use strict';
 
 import React, { Component } from 'react';
-import './PropSourcePicker.scss';
+import { MenuOverlappingStyled } from './styles/MenuOverlappingStyled';
 
-export class PropSourcePicker extends Component {
+export class MenuOverlapping extends Component {
   constructor(props, context) {
     super(props, context);
     
@@ -29,14 +29,14 @@ export class PropSourcePicker extends Component {
     const { children } = this.props;
     
     return (
-      <div className="source-picker" ref={this._saveRef}>
+      <MenuOverlappingStyled innerRef={this._saveRef}>
         {children}
-      </div>
+      </MenuOverlappingStyled>
     );
   }
 }
 
-PropSourcePicker.displayName = 'PropSourcePicker';
+MenuOverlapping.displayName = 'MenuOverlapping';
 
-export * from './SourceDivider/SourceDivider';
-export * from './SourceGroup/SourceGroup';
+export * from './MenuOverlappingDivider/MenuOverlappingDivider';
+export * from './MenuOverlappingGroup/MenuOverlappingGroup';
