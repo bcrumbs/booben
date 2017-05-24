@@ -107,7 +107,7 @@ import ToolRecord from '../models/Tool';
 
 import { List, Set } from 'immutable';
 
-import { removeSplashScreen } from '../utils/dom';
+import { removeSplashScreen } from '../lib/dom';
 
 // DATA
 const toolIsolationSections = List([

@@ -10,8 +10,8 @@ import { Map } from 'immutable';
 import { PropsList } from '../../../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
 import { jssyValueToImmutable } from '../../../../models/ProjectComponent';
-import { buildDefaultValue } from '../../../../utils/meta';
-import { getJssyValueDefOfQueryArgument } from '../../../../utils/schema';
+import { buildDefaultValue } from '../../../../lib/meta';
+import { getJssyValueDefOfQueryArgument } from '../../../../lib/schema';
 import { noop, returnArg, objectToArray } from '../../../../utils/misc';
 
 //noinspection JSUnresolvedVariable

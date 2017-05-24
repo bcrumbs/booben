@@ -14,9 +14,9 @@ import {
   findPropThatPushedDataContext,
   isValidSourceForValue,
   getComponentPropName,
-} from '../utils/meta';
+} from '../lib/meta';
 
-import { getTypeNameByPath } from '../utils/schema';
+import { getTypeNameByPath } from '../lib/schema';
 import { isDef } from '../utils/misc';
 import { INVALID_ID } from '../constants/misc';
 

@@ -28,7 +28,7 @@ import {
   valueHasDataContest,
 } from './meta';
 
-import { isObjectOrNull, objectToArray } from './misc';
+import { isObjectOrNull, objectToArray } from '../utils/misc';
 
 const UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const LOWERCASE_LETTERS = 'abcdefghijklmnopqrstuvwxyz';

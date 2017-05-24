@@ -5,7 +5,7 @@
 'use strict';
 
 import { Map, List } from 'immutable';
-import { isInteger, isFunction } from './misc';
+import { isInteger, isFunction } from '../utils/misc';
 
 /**
  * @typedef {Object} PathStartDesc

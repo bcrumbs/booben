@@ -100,17 +100,17 @@ import {
   propHasDataContext,
   isCompositeComponent,
   buildDefaultValue,
-} from '../utils/meta';
+} from '../lib/meta';
 
 import {
   parseGraphQLSchema,
   getMutationField,
   getJssyValueDefOfMutationArgument,
-} from '../utils/schema';
+} from '../lib/schema';
 
-import { walkPath, expandPath, getObjectByPath } from '../utils/path';
+import { walkPath, expandPath, getObjectByPath } from '../lib/path';
 import { isArrayOrList, isPrefixList, concatPath } from '../utils/misc';
-import { getFunctionInfo } from '../utils/functions';
+import { getFunctionInfo } from '../lib/functions';
 
 import {
   NOT_LOADED,
@@ -777,11 +777,17 @@ const getValueInfoByPath = (path, state) => {
   };
 };
 
-// TODO: Refactor away from using real paths
+/**
+ *
+ * @param {Object} state
+ * @param {ProjectPath} updatedPath
+ * @return {Object}
+ */
 const clearOutdatedDataProps = (state, updatedPath) => {
-  // Data prop with pushDataContext cannot be nested,
-  // so we need to clear outdated data props only when updating top-level prop
   const { valueType, isNested } = getValueInfoByPath(updatedPath, state);
+
+  // Data props with pushDataContext cannot be nested,
+  // so we need to clear outdated data props only when updating top-level prop
   if (valueType !== ValueTypes.COMPONENT_PROP || isNested) return state;
   
   const oldValue = getObjectByPath(materializePath(updatedPath, state));
@@ -792,6 +798,7 @@ const clearOutdatedDataProps = (state, updatedPath) => {
   const updatedPropName = updatedPath.steps[updatedPath.steps.length - 1];
   const updatedComponentId = updatedPath.steps[updatedPath.steps.length - 2];
   const updatedComponent = currentComponents.get(updatedComponentId);
+  const pathToUpdatedComponent = [...pathToComponents, updatedComponentId];
   const componentMeta = getComponentMeta(updatedComponent.name, state.meta);
   const updatedPropMeta = componentMeta.props[updatedPropName];
   
@@ -800,78 +807,66 @@ const clearOutdatedDataProps = (state, updatedPath) => {
   const outdatedDataContext = oldValue.sourceData.dataContext
     .push(updatedPropMeta.sourceConfigs.data.pushDataContext);
   
-  const visitDesignerValue = (designerPropValue, path) => {
+  const visitDesignerValue = (designerValue, physicalPath) => {
+    const pathStart = {
+      object: designerValue,
+      expandedPath: physicalPath,
+    };
+
+    const visitComponent = component => {
+      const componentId = component.id;
+      const componentMeta = getComponentMeta(component.name, state.meta);
+
+      const visitValue = (propValue, _, steps) => {
+        if (propValue.isLinkedWithData()) {
+          const containsOutdatedDataContext = isPrefixList(
+            outdatedDataContext,
+            propValue.sourceData.dataContext,
+          );
+
+          if (containsOutdatedDataContext) {
+            state = state.updateIn(
+              expandPath({
+                start: pathStart,
+                steps: ['components', componentId, ...steps],
+              }),
+
+              updatedValue => updatedValue.resetDataLink(),
+            );
+          }
+        } else if (propValue.hasDesignedComponent()) {
+          const pathToNextDesignerValue = expandPath({
+            start: pathStart,
+            steps: ['components', componentId, ...steps],
+          });
+
+          visitDesignerValue(
+            state.getIn(pathToNextDesignerValue),
+            pathToNextDesignerValue,
+          );
+        }
+      };
+
+      walkSimpleValues(component, componentMeta, visitValue);
+    };
+
     walkComponentsTree(
-      designerPropValue.sourceData.components,
-      designerPropValue.sourceData.rootId,
-      
-      component => {
-        const componentId = component.id;
-        const componentMeta = getComponentMeta(component.name, state.meta);
-        
-        walkSimpleValues(
-          component,
-          componentMeta,
-          
-          (propValue, _, pathToProp) => {
-            if (propValue.isLinkedWithData()) {
-              const containsOutdatedDataContext = isPrefixList(
-                outdatedDataContext,
-                propValue.sourceData.dataContext,
-              );
-              
-              if (containsOutdatedDataContext) {
-                const pathToUpdatedValue = [].concat(path, [
-                  'sourceData',
-                  'components',
-                  componentId,
-                  'props',
-                ], expandPropPath(pathToProp));
-                
-                const newSourceData = new SourceDataData({
-                  queryPath: null,
-                });
-                
-                state = state.updateIn(
-                  pathToUpdatedValue,
-                  
-                  updatedValue => updatedValue.set(
-                    'sourceData',
-                    newSourceData,
-                  ),
-                );
-              }
-            } else if (propValue.hasDesignedComponent()) {
-              const pathToNextDesignerValue = [].concat(path, [
-                'sourceData',
-                'components',
-                componentId,
-                'props',
-              ], expandPropPath(pathToProp));
-  
-              visitDesignerValue(
-                state.getIn(pathToNextDesignerValue),
-                pathToNextDesignerValue,
-              );
-            }
-          },
-        );
-      },
+      designerValue.sourceData.components,
+      designerValue.sourceData.rootId,
+      visitComponent,
     );
   };
-  
-  const visitValue = (propValue, _, pathToProp) => {
-    if (propValue.hasDesignedComponent()) {
-      const pathToValue = [].concat(pathToComponents, [
-        updatedComponentId,
-        'props',
-      ], expandPropPath(pathToProp));
-      
-      visitDesignerValue(propValue, pathToValue);
-    }
+
+  const start = {
+    object: updatedComponent,
+    expandedPath: pathToUpdatedComponent,
   };
   
-  walkSimpleValues(updatedComponent, componentMeta, visitValue);
+  walkSimpleValues(updatedComponent, componentMeta, (propValue, _, steps) => {
+    if (propValue.hasDesignedComponent())
+      visitDesignerValue(propValue, expandPath({ start, steps }));
+  });
+
   return state;
 };
 

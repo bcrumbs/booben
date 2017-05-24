@@ -41,13 +41,13 @@ import {
 import { PathStartingPoints } from '../../reducers/project';
 import ProjectRoute from '../../models/ProjectRoute';
 import ProjectComponent from '../../models/ProjectComponent';
-import { getMutationField } from '../../utils/schema';
+import { getMutationField } from '../../lib/schema';
 
 import {
   getComponentMeta,
   getString,
   isValidSourceForValue,
-} from '../../utils/meta';
+} from '../../lib/meta';
 
 const propTypes = {
   meta: PropTypes.object.isRequired,

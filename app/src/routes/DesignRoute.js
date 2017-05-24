@@ -91,7 +91,7 @@ import {
   isCompositeComponent,
   getString,
   componentHasActions,
-} from '../utils/meta';
+} from '../lib/meta';
 
 import { returnTrue } from '../utils/misc';
 

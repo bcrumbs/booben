@@ -24,7 +24,7 @@ import {
   currentSelectedComponentIdsSelector,
 } from '../../selectors';
 
-import { getComponentMeta, getString } from '../../utils/meta';
+import { getComponentMeta, getString } from '../../lib/meta';
 import defaultRegionIcon from '../../../assets/layout_default.svg';
 
 const propTypes = {

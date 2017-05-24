@@ -16,7 +16,7 @@ import {
   SourceDivider,
 } from '../../components/PropSourcePicker/PropSourcePicker';
 
-import { getString } from '../../utils/meta';
+import { getString } from '../../lib/meta';
 import { noop, returnTrue } from '../../utils/misc';
 
 const propTypes = {

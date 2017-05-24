@@ -21,7 +21,7 @@ import {
   DataItem,
 } from '../../../components/DataList/DataList';
 
-import { getString } from '../../../utils/meta';
+import { getString } from '../../../lib/meta';
 import { noop, returnArg } from '../../../utils/misc';
 
 //noinspection JSUnresolvedVariable

@@ -6,7 +6,7 @@
 
 import _mapValues from 'lodash.mapvalues';
 import patchComponent from './hocs/patchComponent';
-import { parseComponentName } from '../../../utils/meta';
+import { parseComponentName } from '../../../lib/meta';
 import { URL_APP_PREFIX } from '../../../../../shared/constants';
 
 const COMPONENTS_BUNDLE_FILE = 'components.js';

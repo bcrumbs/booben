@@ -26,7 +26,7 @@ import {
 import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
 import { PropsList } from '../../../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
-import { buildDefaultValue } from '../../../../utils/meta';
+import { buildDefaultValue } from '../../../../lib/meta';
 import { noop, returnArg } from '../../../../utils/misc';
 
 //noinspection JSUnresolvedVariable
