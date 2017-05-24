@@ -15,6 +15,7 @@ export const ItemCaptionStyled = styled.div`
   line-height: 1.15;
   margin-right: 0.3em;
   margin-bottom: ${quarterBaseModule}px;
+  word-break: break-all;
   
   ${disabled}
 `;
