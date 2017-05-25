@@ -10,7 +10,7 @@ import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
 import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../constants/misc';
-import { isDef, objectSome } from './misc';
+import { isDef, objectSome } from '../utils/misc';
 
 /**
  *

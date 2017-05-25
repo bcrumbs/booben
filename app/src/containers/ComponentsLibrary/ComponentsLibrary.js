@@ -46,7 +46,7 @@ import {
 import ProjectComponent from '../../models/ProjectComponent';
 import { startDragNewComponent } from '../../actions/preview';
 import HTMLMeta from '../../meta/html';
-import { canInsertComponent, constructComponent } from '../../utils/meta';
+import { canInsertComponent, constructComponent } from '../../lib/meta';
 import { combineFiltersAll } from '../../utils/misc';
 import defaultComponentIcon from '../../../assets/component_default.svg';
 

@@ -48,7 +48,7 @@ import {
   parseComponentName,
   formatComponentName,
   constructComponent,
-} from '../../utils/meta';
+} from '../../lib/meta';
 
 import { INVALID_ID, SYSTEM_PROPS } from '../../constants/misc';
 import { objectSome } from '../../utils/misc';

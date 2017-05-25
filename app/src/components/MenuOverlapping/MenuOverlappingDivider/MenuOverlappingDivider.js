@@ -2,8 +2,10 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { MenuOverlappingDividerStyled }
-  from './styles/MenuOverlappingDividerStyled';
+
+import {
+  MenuOverlappingDividerStyled,
+} from './styles/MenuOverlappingDividerStyled';
 
 const propTypes = {
   title: PropTypes.string,

@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { getStrings } from '../api';
+import { getStrings } from '../lib/api';
 
 export const APP_LOAD_STRINGS =
   'APP_LOAD_STRINGS';

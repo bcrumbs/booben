@@ -41,7 +41,7 @@ import {
   FunctionEditor,
 } from '../../../../components/FunctionEditor/FunctionEditor';
 
-import { functionNameFromTitle } from '../../../../utils/functions';
+import { functionNameFromTitle } from '../../../../lib/functions';
 import { noop, returnArg } from '../../../../utils/misc';
 import './NewFunctionWindow.scss';
 

@@ -15,7 +15,7 @@ import { NewFunctionWindow } from './NewFunctionWindow/NewFunctionWindow';
 import {
   FunctionSources,
   functionNameFromTitle,
-} from '../../../utils/functions';
+} from '../../../lib/functions';
 
 import { noop, returnArg } from '../../../utils/misc';
 

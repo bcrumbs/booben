@@ -41,7 +41,7 @@ import {
   fieldHasArguments,
   getFieldsByPath,
   getFieldOnType,
-} from '../../../utils/schema';
+} from '../../../lib/schema';
 
 import {
   returnArg,

@@ -66,6 +66,13 @@ export const isNaturalNumber = value => isInteger(value) && value >= 0;
  * @param {*} value
  * @return {boolean}
  */
+export const isPositiveInteger = value => isInteger(value) && value > 0;
+
+/**
+ *
+ * @param {*} value
+ * @return {boolean}
+ */
 export const isDef = value => typeof value !== 'undefined';
 
 /**

@@ -1,10 +1,16 @@
 'use strict';
 
-import {
-  basicColors,
-  themeColors,
-} from './constants/constants';
-import { colorsFgCalculated } from './constants/constantsCalculated';
+import { basicColors, themeColors } from './constants';
+import { foreground } from './helpers';
+
+const foregroundColors = {
+  main: foreground(basicColors.main),
+  secondary: foreground(basicColors.secondary),
+  alert: foreground(basicColors.red),
+  success: foreground(basicColors.green),
+  warning: foreground(basicColors.yellow),
+  info: foreground(basicColors.lightblue),
+};
 
 export default {
   baseModule: 8,
@@ -38,20 +44,20 @@ export default {
     transparent: basicColors.transparent,
     
     main: themeColors.main,
-    mainFgTextColor: colorsFgCalculated.main,
+    mainFgTextColor: foregroundColors.main,
     secondary: themeColors.secondary,
-    secondaryFgTextColor: colorsFgCalculated.secondary,
+    secondaryFgTextColor: foregroundColors.secondary,
     
     alert: themeColors.alert,
-    alertFgTextColor: colorsFgCalculated.alert,
+    alertFgTextColor: foregroundColors.alert,
     warning: themeColors.warning,
-    warningFgTextColor: colorsFgCalculated.warning,
+    warningFgTextColor: foregroundColors.warning,
     error: themeColors.alert,
-    errorFgTextColor: colorsFgCalculated.alert,
+    errorFgTextColor: foregroundColors.alert,
     success: themeColors.success,
-    successFgTextColor: colorsFgCalculated.success,
+    successFgTextColor: foregroundColors.success,
     info: themeColors.info,
-    infoFgTextColor: colorsFgCalculated.info,
+    infoFgTextColor: foregroundColors.info,
   },
 
   paletteBlueGrey: {

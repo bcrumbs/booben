@@ -7,6 +7,7 @@
 import { Record, Map, List } from 'immutable';
 import _mapValues from 'lodash.mapvalues';
 import SourceDataStatic from './SourceDataStatic';
+import SourceDataData from './SourceDataData';
 
 import {
   isString,
@@ -189,6 +190,13 @@ class JssyValue extends JssyValueRecord {
   
   getDataContext() {
     return this.sourceData.dataContext.toJS();
+  }
+
+  resetDataLink() {
+    if (!this.sourceIs('data'))
+      throw new Error('JssyValue#resetDataLink called on non-data value');
+
+    return this.set('sourceData', new SourceDataData({ queryPath: null }));
   }
   
   getQueryStepArgValues(stepIdx) {

@@ -26,13 +26,14 @@ import SourceDataActions, {
 import SourceDataDesigner from './SourceDataDesigner';
 import SourceDataState from './SourceDataState';
 import SourceDataRouteParams from './SourceDataRouteParams';
-import { getFunctionInfo } from '../utils/functions';
+import { getFunctionInfo } from '../lib/functions';
 
 import {
   getMutationField,
   getJssyValueDefOfMutationArgument,
-} from '../utils/schema';
+} from '../lib/schema';
 
+import { getComponentMeta } from '../lib/meta';
 import { isUndef, isObject, isNumber } from '../utils/misc';
 
 import {
@@ -261,8 +262,9 @@ export const walkComponentsTree = (components, rootComponentId, visitor) => {
   const component = components.get(rootComponentId);
   visitor(component);
 
-  component.children.forEach(childId =>
-    void walkComponentsTree(components, childId, visitor));
+  component.children.forEach(childId => {
+    walkComponentsTree(components, childId, visitor);
+  });
 };
 
 export const gatherComponentsTreeIds = (components, rootComponentId) =>
@@ -278,12 +280,15 @@ export const walkSimpleValues = (
   visitor,
   {
     walkSystemProps = false,
+    walkDesignerValues = false,
+    meta = null,
     walkFunctionArgs = false,
     project = null,
     walkActions = false,
     schema = null,
     visitIntermediateNodes = false,
   } = {},
+  _pathPrefix = [],
 ) => {
   if (walkFunctionArgs && !project) {
     throw new Error(
@@ -296,6 +301,23 @@ export const walkSimpleValues = (
       'walkSimpleProps(): walkActions is true, but there\'s no schema',
     );
   }
+
+  if (walkDesignerValues && !meta) {
+    throw new Error(
+      'walkSimpleProps(): walkDesignerValues is true, but there\'s no meta',
+    );
+  }
+
+  const options = {
+    walkSystemProps,
+    walkDesignerValues,
+    meta,
+    walkFunctionArgs,
+    project,
+    walkActions,
+    schema,
+    visitIntermediateNodes,
+  };
   
   /* eslint-disable no-use-before-define */
   const visitAction = (action, path, isSystemProp) => {
@@ -423,10 +445,31 @@ export const walkSimpleValues = (
     } else if (walkActions && jssyValue.source === 'actions') {
       if (visitIntermediateNodes)
         visitor(jssyValue, valueDef, path, isSystemProp);
-      
+
       jssyValue.sourceData.actions.forEach((action, actionIdx) => {
         visitAction(action, [...path, 'actions', actionIdx], isSystemProp);
       });
+    } else if (walkDesignerValues && jssyValue.sourceIs('designer')) {
+      if (visitIntermediateNodes)
+        visitor(jssyValue, valueDef, path, isSystemProp);
+
+      const components = jssyValue.sourceData.components;
+      const rootId = jssyValue.sourceData.rootId;
+
+      if (rootId !== INVALID_ID) {
+        walkComponentsTree(components, rootId, component => {
+          const componentMeta = getComponentMeta(component.name, meta);
+          const pathPrefix = [...path, 'components', component.id];
+
+          walkSimpleValues(
+            component,
+            componentMeta,
+            visitor,
+            options,
+            pathPrefix,
+          );
+        });
+      }
     } else {
       visitor(jssyValue, valueDef, path, isSystemProp);
     }
@@ -437,8 +480,7 @@ export const walkSimpleValues = (
     (propValue, propName) => visitValue(
       propValue,
       componentMeta.props[propName],
-      [propName],
-      false,
+      [..._pathPrefix, 'props', propName],
     ),
   );
   
@@ -447,8 +489,7 @@ export const walkSimpleValues = (
       (propValue, propName) => visitValue(
         propValue,
         SYSTEM_PROPS[propName],
-        [propName],
-        true,
+        [..._pathPrefix, 'systemProps', propName],
       ),
     );
   }

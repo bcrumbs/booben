@@ -20,7 +20,7 @@ import {
   LOAD_ERROR,
 } from '../constants/loadStates';
 
-import { removeSplashScreen } from '../utils/dom';
+import { removeSplashScreen } from '../lib/dom';
 import { PATH_PREVIEW } from '../constants/paths';
 
 const propTypes = {

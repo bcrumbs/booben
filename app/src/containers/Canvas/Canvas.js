@@ -27,7 +27,7 @@ import { LOADED } from '../../constants/loadStates';
 import { CANVAS_CONTAINER_ID, CANVAS_OVERLAY_ID } from './content/constants';
 import { ComponentDropAreas } from '../../actions/preview';
 import { createReducer } from '../../reducers';
-import { buildMutation } from '../../utils/graphql';
+import { buildMutation } from '../../lib/graphql';
 import { waitFor, returnNull } from '../../utils/misc';
 import contentTemplate from './content/content.ejs';
 

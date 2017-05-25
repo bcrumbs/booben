@@ -2,12 +2,18 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { MenuOverlappingGroupStyled }
-  from './styles/MenuOverlappingGroupStyled';
-import { MenuOverlappingItemsListStyled }
-  from './styles/MenuOverlappingItemsListStyled';
-import { MenuOverlappingGroupHeading }
-  from './MenuOverlappingGroupHeading/MenuOverlappingGroupHeading';
+
+import {
+  MenuOverlappingGroupStyled,
+} from './styles/MenuOverlappingGroupStyled';
+
+import {
+  MenuOverlappingItemsListStyled,
+} from './styles/MenuOverlappingItemsListStyled';
+
+import {
+  MenuOverlappingGroupHeading,
+} from './MenuOverlappingGroupHeading/MenuOverlappingGroupHeading';
 
 const propTypes = {
   title: PropTypes.string,
