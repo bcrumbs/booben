@@ -33,6 +33,7 @@
     "body-parser": "^1.15.2",
     "co": "^4.6.0",
     "codemirror": "^5.23.0",
+    "color": "^1.0.3",
     "convict": "^1.4.0",
     "express": "^4.14.0",
     "graphql": "^0.9.6",

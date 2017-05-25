@@ -4,8 +4,11 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { TooltipIcon } from '@reactackle/reactackle';
 import { noop } from '../../../../utils/misc';
-import { MenuOverlappingGroupItemStyled }
-  from './styles/MenuOverlappingGroupItemStyled';
+
+import {
+  MenuOverlappingGroupItemStyled,
+} from './styles/MenuOverlappingGroupItemStyled';
+
 import { ItemTitleStyled } from './styles/ItemTitleStyled';
 import { ItemTypeStyled } from './styles/ItemTypeStyled';
 import { ItemCaptionStyled } from './styles/ItemCaptionStyled';

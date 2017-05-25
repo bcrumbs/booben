@@ -8,5 +8,4 @@ export const MenuOverlappingItemsListStyled = styled.menu`
   padding: 0;
 `;
 
-MenuOverlappingItemsListStyled.displayName =
-  'MenuOverlappingItemsListStyled';
+MenuOverlappingItemsListStyled.displayName = 'MenuOverlappingItemsListStyled';

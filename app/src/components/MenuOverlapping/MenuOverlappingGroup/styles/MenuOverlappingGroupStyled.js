@@ -1,6 +1,7 @@
 'use strict';
 
 import styled from 'styled-components';
+
 import {
   baseModule,
   paletteBlueGrey100,

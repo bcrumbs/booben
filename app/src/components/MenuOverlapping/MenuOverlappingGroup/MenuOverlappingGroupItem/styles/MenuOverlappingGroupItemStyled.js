@@ -1,10 +1,11 @@
 'use strict';
 
 import styled, { css } from 'styled-components';
-import { transition } from '../../../../../styles/mixins';
+import { transition } from '../../../../../styles/mixins/index';
+
 import {
   baseModule,
-  oneAndHalfBaseModule,
+  threeHalvesBaseModule,
   textColorMedium,
   textColorBody,
 } from '../../../../../styles/themeSelectors';
@@ -26,19 +27,16 @@ const base = ({ disabled }) => {
   
   return `
     cursor: ${cursor};
-    
     ${backgroundStyles}
   `;
 };
 
 export const MenuOverlappingGroupItemStyled = styled.li`
-  padding: ${baseModule}px ${oneAndHalfBaseModule}px;
+  padding: ${baseModule}px ${threeHalvesBaseModule}px;
   line-height: 1.25;
   vertical-align: baseline;
   user-select: none;
-  
   ${base}
-  
   ${transition('background-color')}
 `;
 

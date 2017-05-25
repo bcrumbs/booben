@@ -4,7 +4,7 @@
 export const baseModule = ({ theme }) => theme.baseModule;
 export const halfBaseModule = ({ theme }) => theme.baseModule / 2;
 export const quarterBaseModule = ({ theme }) => theme.baseModule / 4;
-export const oneAndHalfBaseModule = ({ theme }) => theme.baseModule * 1.5;
+export const threeHalvesBaseModule = ({ theme }) => theme.baseModule * 1.5;
 export const doubleBaseModule = ({ theme }) => theme.baseModule * 2;
 
 export const radiusDefault = ({ theme }) => theme.radiusDefault;
