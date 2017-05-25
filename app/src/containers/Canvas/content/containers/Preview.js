@@ -6,6 +6,7 @@
 
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Router, Switch, Route, Redirect } from 'react-router';
 import { connect } from 'react-redux';
 import throttle from 'lodash.throttle';
@@ -27,8 +28,13 @@ import {
   ComponentPickAreas,
 } from '../../../../actions/project';
 
-import { topNestedConstructorSelector } from '../../../../selectors';
+import {
+  topNestedConstructorSelector,
+  currentComponentsSelector,
+} from '../../../../selectors';
+
 import Project, { getComponentById } from '../../../../models/Project';
+import ProjectComponent from '../../../../models/ProjectComponent';
 import KeyCodes from '../../../../utils/keycodes';
 import { noop, distance } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
@@ -37,6 +43,10 @@ import { INVALID_ID } from '../../../../constants/misc';
 const propTypes = {
   interactive: PropTypes.bool,
   project: PropTypes.instanceOf(Project).isRequired,
+  currentComponents: ImmutablePropTypes.mapOf(
+    PropTypes.instanceOf(ProjectComponent),
+    PropTypes.number,
+  ).isRequired,
   draggingComponent: PropTypes.bool.isRequired,
   draggingOverPlaceholder: PropTypes.bool.isRequired,
   placeholderContainerId: PropTypes.number.isRequired,
@@ -58,6 +68,8 @@ const propTypes = {
   onDragOverNothing: PropTypes.func.isRequired,
   onDropZoneSnap: PropTypes.func,
   onDropZoneUnsnap: PropTypes.func,
+  onDropZoneShowDropMenu: PropTypes.func,
+  onDropZoneHideDropMenu: PropTypes.func,
 };
 
 const contextTypes = {
@@ -71,10 +83,13 @@ const defaultProps = {
   pickingComponentFilter: null,
   onDropZoneSnap: noop,
   onDropZoneUnsnap: noop,
+  onDropZoneShowDropMenu: noop,
+  onDropZoneHideDropMenu: noop,
 };
 
 const mapStateToProps = state => ({
   project: state.project.data,
+  currentComponents: currentComponentsSelector(state),
   draggingComponent: state.project.draggingComponent,
   draggingOverPlaceholder: state.project.draggingOverPlaceholder,
   placeholderContainerId: state.project.placeholderContainerId,
@@ -125,6 +140,7 @@ const setImmediate = window.setImmediate || (fn => setTimeout(fn, 0));
 const clearImmediate = window.clearImmediate || window.clearTimeout;
 
 const SNAP_DISTANCE = 200;
+const CLOSE_SNAP_POINTS_THRESHOLD = 4;
 const DRAG_THROTTLE = 100;
 
 const readContainerId = element =>
@@ -173,6 +189,7 @@ class Preview extends Component {
     this._unhighilightTimer = -1;
     this._unhighlightedComponentId = INVALID_ID;
     this._draggingOverCanvas = false;
+    this._dropMenuIsOpen = false;
 
     this._handleMouseOver = this._handleMouseOver.bind(this);
     this._handleMouseOut = this._handleMouseOut.bind(this);
@@ -346,64 +363,127 @@ class Preview extends Component {
    */
   drag({ x, y }) {
     const {
+      currentComponents,
       draggingComponent,
       draggingOverPlaceholder,
       placeholderContainerId,
       placeholderAfter,
       onDragOverPlaceholder,
       onDragOverNothing,
+      onDropZoneShowDropMenu,
+      onDropZoneHideDropMenu,
     } = this.props;
 
     const { document } = this.context;
+    
+    if (!draggingComponent) return;
 
     // Although ComponentsDragArea doesn't call onDrag after onLeave,
     // this method can be called later because it's throttled,
     // so we need to check if we're still here
     if (!this._draggingOverCanvas) return;
-
-    if (draggingComponent) {
-      const placeholders = document.querySelectorAll('[data-jssy-placeholder]');
-
-      let willSnap = false;
-      let snapContainerId = INVALID_ID;
-      let snapAfterIdx = -1;
-      let minDistance = Infinity;
-
-      if (placeholders.length === 1) {
-        const element = placeholders[0];
-        willSnap = true;
-        snapContainerId = readContainerId(element);
-        snapAfterIdx = readAfterIdx(element);
-      } else if (placeholders.length > 1) {
-        placeholders.forEach(element => {
-          const { left, top } = element.getBoundingClientRect();
-          if (Math.abs(left - x) > SNAP_DISTANCE) return;
-          if (Math.abs(top - y) > SNAP_DISTANCE) return;
     
-          const snapPointDistance = distance(left, top, x, y);
-          if (snapPointDistance > SNAP_DISTANCE) return;
-    
-          if (snapPointDistance < minDistance) {
-            willSnap = true;
-            minDistance = snapPointDistance;
-            snapContainerId = readContainerId(element);
-            snapAfterIdx = readAfterIdx(element);
-          }
-        });
-      }
-
-      if (willSnap) {
+    if (this._dropMenuIsOpen) {
+      onDropZoneHideDropMenu();
+      this._dropMenuIsOpen = false;
+    }
+  
+    const placeholders = document.querySelectorAll('[data-jssy-placeholder]');
+  
+    let willSnap = false;
+    let snapPositions = [];
+    let minDistance = Infinity;
+  
+    if (placeholders.length === 1) {
+      const element = placeholders[0];
+      willSnap = true;
+      snapPositions = [{
+        snapContainerId: readContainerId(element),
+        snapAfterIdx: readAfterIdx(element),
+      }];
+    } else if (placeholders.length > 1) {
+      placeholders.forEach(element => {
+        const { left, top } = element.getBoundingClientRect();
+        if (Math.abs(left - x) > SNAP_DISTANCE) return;
+        if (Math.abs(top - y) > SNAP_DISTANCE) return;
+      
+        const distanceToPoint = distance(left, top, x, y);
+        if (distanceToPoint > SNAP_DISTANCE) return;
+      
+        const isClosePoint =
+          isFinite(minDistance) &&
+          Math.abs(distanceToPoint - minDistance) < CLOSE_SNAP_POINTS_THRESHOLD;
+        
+        if (isClosePoint) {
+          snapPositions.push({
+            snapContainerId: readContainerId(element),
+            snapAfterIdx: readAfterIdx(element),
+          });
+        } else if (distanceToPoint < minDistance) {
+          willSnap = true;
+          minDistance = distanceToPoint;
+          snapPositions = [{
+            snapContainerId: readContainerId(element),
+            snapAfterIdx: readAfterIdx(element),
+          }];
+        }
+      });
+    }
+  
+    if (willSnap) {
+      if (snapPositions.length === 1) {
+        const { snapContainerId, snapAfterIdx } = snapPositions[0];
         const willUpdatePlaceholder =
           !draggingOverPlaceholder ||
           placeholderContainerId !== snapContainerId ||
           placeholderAfter !== snapAfterIdx;
-
+  
         if (willUpdatePlaceholder) {
           onDragOverPlaceholder(snapContainerId, snapAfterIdx);
         }
-      } else if (draggingOverPlaceholder) {
-        onDragOverNothing();
+      } else {
+        const dropPointsData = snapPositions.map(
+          ({ snapContainerId, snapAfterIdx }) => {
+            const container = currentComponents.get(snapContainerId);
+            
+            return {
+              title: container.title || container.name,
+              data: {
+                containerId: snapContainerId,
+                afterIdx: snapAfterIdx,
+              },
+            };
+          },
+        );
+        
+        onDropZoneShowDropMenu({ coords: { x, y }, dropPointsData });
+        this._dropMenuIsOpen = true;
       }
+    } else if (draggingOverPlaceholder) {
+      onDragOverNothing();
+    }
+  }
+  
+  /**
+   *
+   * @param {number} containerId
+   * @param {number} afterIdx
+   */
+  dropMenuItemSelected({ containerId, afterIdx }) {
+    const {
+      draggingOverPlaceholder,
+      placeholderContainerId,
+      placeholderAfter,
+      onDragOverPlaceholder,
+    } = this.props;
+    
+    const willUpdatePlaceholder =
+      !draggingOverPlaceholder ||
+      placeholderContainerId !== containerId ||
+      placeholderAfter !== afterIdx;
+  
+    if (willUpdatePlaceholder) {
+      onDragOverPlaceholder(containerId, afterIdx);
     }
   }
   

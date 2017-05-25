@@ -11,10 +11,12 @@ export class MenuOverlapping extends Component {
     
     this._saveRef = this._saveRef.bind(this);
     this._handleClick = this._handleClick.bind(this);
+    this._handleMouseMove = this._handleMouseMove.bind(this);
   }
   
   componentDidMount() {
     this._element.addEventListener('click', this._handleClick);
+    this._element.addEventListener('mousemove', this._handleMouseMove);
   }
   
   _saveRef(ref) {
@@ -22,6 +24,10 @@ export class MenuOverlapping extends Component {
   }
   
   _handleClick(event) {
+    event.stopPropagation();
+  }
+  
+  _handleMouseMove(event) {
     event.stopPropagation();
   }
   

@@ -14,22 +14,25 @@ import { ItemTypeStyled } from './styles/ItemTypeStyled';
 import { ItemCaptionStyled } from './styles/ItemCaptionStyled';
 
 const propTypes = {
-  id: PropTypes.string.isRequired,
+  id: PropTypes.string,
   caption: PropTypes.string,
   title: PropTypes.string,
   type: PropTypes.string,
   description: PropTypes.string,
   disabled: PropTypes.bool,
   onSelect: PropTypes.func,
+  onHover: PropTypes.func,
 };
 
 const defaultProps = {
+  id: '',
   caption: '',
   title: '',
   type: '',
   description: '',
   disabled: false,
   onSelect: noop,
+  onHover: noop,
 };
 
 export class MenuOverlappingGroupItem extends Component {
@@ -40,10 +43,12 @@ export class MenuOverlappingGroupItem extends Component {
   
     this._saveRef = this._saveRef.bind(this);
     this._handleClick = this._handleClick.bind(this);
+    this._handleMouseEnter = this._handleMouseEnter.bind(this);
   }
   
   componentDidMount() {
     this._element.addEventListener('click', this._handleClick);
+    this._element.addEventListener('mouseenter', this._handleMouseEnter);
   }
   
   /**
@@ -66,6 +71,19 @@ export class MenuOverlappingGroupItem extends Component {
     event.stopPropagation();
     if (disabled || event.button !== 0) return;
     onSelect({ id });
+  }
+  
+  /**
+   *
+   * @param {MouseEvent} event
+   * @private
+   */
+  _handleMouseEnter(event) {
+    const { id, disabled, onHover } = this.props;
+  
+    event.stopPropagation();
+    if (disabled) return;
+    onHover({ id });
   }
 
   render() {
