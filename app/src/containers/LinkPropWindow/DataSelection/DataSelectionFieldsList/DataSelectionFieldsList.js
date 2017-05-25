@@ -15,7 +15,7 @@ import {
   fieldHasArguments,
   FieldKinds,
   formatFieldName,
-} from '../../../../utils/schema';
+} from '../../../../lib/schema';
 
 import { noop, returnArg, objectSome } from '../../../../utils/misc';
 

@@ -40,6 +40,8 @@ import {
 } from '../components/MenuOverlapping/MenuOverlapping';
 
 import { DrawerTop } from '../components/DrawerTop/DrawerTop';
+import { DataSourcePickerDrawerContent }
+  from '../components/DataSourcePickerDrawerContent/DataSourcePickerDrawerContent';
 
 import {
   BlockContentBox,
@@ -109,7 +111,7 @@ import ToolRecord from '../models/Tool';
 
 import { List, Set } from 'immutable';
 
-import { removeSplashScreen } from '../utils/dom';
+import { removeSplashScreen } from '../lib/dom';
 
 // DATA
 const toolIsolationSections = List([
@@ -582,7 +584,9 @@ export default class Playground extends React.Component {
             </HeaderRegion>
           </Header>
           
-          <DrawerTop>drawer</DrawerTop>
+          <DrawerTop>
+            <DataSourcePickerDrawerContent />
+          </DrawerTop>
         </TopRegion>
 
         <Desktop toolGroups={toolGroups}>

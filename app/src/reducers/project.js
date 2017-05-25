@@ -70,7 +70,7 @@ import {
 import ProjectRoute from '../models/ProjectRoute';
 import JssyValue from '../models/JssyValue';
 import SourceDataDesigner from '../models/SourceDataDesigner';
-import SourceDataData from '../models/SourceDataData';
+import SourceDataRouteParams from '../models/SourceDataRouteParams';
 import { Action } from '../models/SourceDataActions';
 
 import ProjectFunction, {
@@ -100,17 +100,17 @@ import {
   propHasDataContext,
   isCompositeComponent,
   buildDefaultValue,
-} from '../utils/meta';
+} from '../lib/meta';
 
 import {
   parseGraphQLSchema,
   getMutationField,
   getJssyValueDefOfMutationArgument,
-} from '../utils/schema';
+} from '../lib/schema';
 
-import { walkPath, expandPath, getObjectByPath } from '../utils/path';
+import { walkPath, expandPath, getObjectByPath } from '../lib/path';
 import { isArrayOrList, isPrefixList, concatPath } from '../utils/misc';
-import { getFunctionInfo } from '../utils/functions';
+import { getFunctionInfo } from '../lib/functions';
 
 import {
   NOT_LOADED,
@@ -330,23 +330,23 @@ const addComponents = (state, parentComponentId, position, components) => {
   );
 };
 
-const expandPropPath = propPath => {
-  if (!propPath.length) return [];
-  
-  return propPath
-    .slice(0, -1)
-    .reduce((acc, cur) => acc.concat([cur, 'sourceData', 'value']), [])
-    .concat(propPath[propPath.length - 1]);
-};
-
+/**
+ *
+ * @param {Object} state
+ * @param {number} componentId
+ * @return {Object}
+ */
 const deleteComponent = (state, componentId) => {
   const pathToCurrentComponents = getPathToCurrentComponents(state);
   const pathToCurrentRootComponentId = getPathToCurrentRootComponentId(state);
   const currentComponents = state.getIn(pathToCurrentComponents);
-  const rootComponentId = state.getIn(pathToCurrentRootComponentId);
   const component = currentComponents.get(componentId);
-  const idsToDelete = gatherComponentsTreeIds(currentComponents, componentId);
-  const haveState = idsToDelete.some(id => {
+  const deletedComponentIds = gatherComponentsTreeIds(
+    currentComponents,
+    componentId,
+  );
+  
+  const haveState = deletedComponentIds.some(id => {
     const component = currentComponents.get(id);
     const componentMeta = getComponentMeta(component.name, state.meta);
     return !!componentMeta.state && Object.keys(componentMeta.state).length > 0;
@@ -357,7 +357,7 @@ const deleteComponent = (state, componentId) => {
     pathToCurrentComponents,
 
     components => components.withMutations(componentsMut => {
-      idsToDelete.forEach(id => {
+      deletedComponentIds.forEach(id => {
         componentsMut.delete(id);
       });
     }),
@@ -367,7 +367,7 @@ const deleteComponent = (state, componentId) => {
     // If the root component is being deleted, reset the root component id field
     state = state.setIn(pathToCurrentRootComponentId, INVALID_ID);
   } else {
-    // Otherwise update children of remaining components
+    // Otherwise update children of the parent component
     const pathToChildrenIdsList = [].concat(pathToCurrentComponents, [
       component.parentId,
       'children',
@@ -379,96 +379,96 @@ const deleteComponent = (state, componentId) => {
     );
   }
   
-  // Delete method call actions that point to deleted components
+  // Update remaining components
   state = state.updateIn(
     pathToCurrentComponents,
     
     components => components.map(component => {
+      const start = {
+        object: component,
+        expandedPath: [],
+      };
+      
       const componentMeta = getComponentMeta(component.name, state.meta);
+  
+      // Delete method call and prop change actions
+      // that point to deleted components
       let actionsToDelete = Map();
       
-      walkSimpleValues(component, componentMeta, (propValue, _, path) => {
+      walkSimpleValues(component, componentMeta, (propValue, _, steps) => {
         if (propValue.source === 'actions') {
+          const stepsToActionsList = [...steps, 'actions'];
+          
           propValue.sourceData.actions.forEach((action, idx) => {
-            if (
-              action.type === 'method' &&
-              idsToDelete.has(action.params.componentId)
-            ) {
-              if (actionsToDelete.has(path)) {
+            const willDeleteAction =
+              (action.type === 'method' || action.type === 'prop') &&
+              deletedComponentIds.has(action.params.componentId);
+            
+            if (willDeleteAction) {
+              if (actionsToDelete.has(stepsToActionsList)) {
                 actionsToDelete = actionsToDelete.update(
-                  path,
+                  stepsToActionsList,
                   indexes => indexes.add(idx),
                 );
               } else {
-                actionsToDelete = actionsToDelete.set(path, Set([idx]));
+                actionsToDelete = actionsToDelete.set(
+                  stepsToActionsList,
+                  Set([idx]),
+                );
               }
             }
           });
         }
       });
       
-      actionsToDelete.forEach((indexes, path) => {
-        const pathToActionsList = [
-          'props',
-          ...expandPropPath(path),
-          'sourceData',
-          'actions',
-        ];
-        
+      actionsToDelete.forEach((indexes, steps) => {
         component = component.updateIn(
-          pathToActionsList,
+          expandPath({ start, steps }),
           actions => actions.filter((_, idx) => !indexes.has(idx)),
         );
       });
+  
+      // Reset JssyValues linked to state slots of deleted components
+      if (haveState) {
+        const walkSimpleValueOptions = {
+          walkSystemProps: true,
+          walkActions: true,
+          walkFunctionArgs: true,
+          walkDesignerValues: false,
+          project: state.data,
+          schema: state.schema,
+          meta: state.meta,
+        };
+  
+        const visitValue = (jssyValue, valueDef, steps) => {
+          const willResetValue =
+            jssyValue.isLinkedWithState() &&
+            deletedComponentIds.has(jssyValue.sourceData.componentId);
+          
+          if (willResetValue) {
+            const physicalPath = expandPath({ start, steps });
+            const newValue = jssyValueToImmutable(buildDefaultValue(
+              valueDef,
+              component.strings,
+              state.languageForComponentProps,
+              component.types,
+            ));
+      
+            component = component.setIn(physicalPath, newValue);
+          }
+        };
+  
+        walkSimpleValues(
+          component,
+          componentMeta,
+          visitValue,
+          walkSimpleValueOptions,
+        );
+      }
       
       return component;
     }),
   );
-  
-  // Reset JssyValues linked to state slots of deleted components
-  if (haveState) {
-    const walkSimpleValueOptions = {
-      walkSystemProps: true,
-      walkFunctionArgs: true,
-      project: state.data,
-      walkActions: true,
-      schema: state.schema,
-      visitIntermediateNodes: false,
-    };
-    
-    walkComponentsTree(currentComponents, rootComponentId, component => {
-      const componentMeta = getComponentMeta(component.name, state.meta);
-    
-      const visitValue = (jssyValue, valueDef, path, isSystemProp) => {
-        if (jssyValue.isLinkedWithState()) {
-          const logicPath = {
-            start: {
-              object: component,
-              expandedPath: [...pathToCurrentComponents, component.id],
-            },
-            steps: [isSystemProp ? 'systemProps' : 'props', ...path],
-          };
-          
-          const realPath = expandPath(logicPath);
-          const newValue = jssyValueToImmutable(buildDefaultValue(
-            valueDef,
-            component.strings,
-            state.languageForComponentProps,
-            component.types,
-          ));
-          
-          state = state.setIn(realPath, newValue);
-        }
-      };
-    
-      walkSimpleValues(
-        component,
-        componentMeta,
-        visitValue,
-        walkSimpleValueOptions,
-      );
-    });
-  }
 
   return state;
 };
@@ -479,46 +479,37 @@ const moveComponent = (state, componentId, targetComponentId, position) => {
   const component = currentComponents.get(componentId);
 
   if (component.parentId === targetComponentId) {
-    const childrenPath = [].concat(pathToCurrentComponents, [
-      component.parentId,
-      'children',
-    ]);
-
-    return state.updateIn(childrenPath, ids => {
-      const idx = ids.indexOf(componentId);
-
-      return idx === position
-        ? ids
-        : ids.delete(idx).insert(position - (idx < position), componentId);
-    });
-  }
-
-  const sourceChildrenListPath = [].concat(pathToCurrentComponents, [
-    component.parentId,
-    'children',
-  ]);
-
-  state = state.updateIn(
-    sourceChildrenListPath,
-    ids => ids.filter(id => id !== componentId),
-  );
-
-  const targetChildrenListPath = [].concat(pathToCurrentComponents, [
-    targetComponentId,
-    'children',
-  ]);
-
-  state = state.updateIn(
-    targetChildrenListPath,
-    ids => ids.insert(position, componentId),
-  );
-
-  const pathToParentId = [].concat(
-    pathToCurrentComponents,
-    [componentId, 'parentId'],
-  );
+    // Same parent, just change the position
+    return state.updateIn(
+      [...pathToCurrentComponents, component.parentId, 'children'],
+      
+      ids => {
+        const idx = ids.indexOf(componentId);
+        
+        if (idx === position) return ids;
   
-  return state.setIn(pathToParentId, targetComponentId);
+        return ids
+          .delete(idx)
+          .insert(position - (idx < position), componentId);
+      },
+    );
+  } else {
+    // New parent
+    state = state.updateIn(
+      [...pathToCurrentComponents, component.parentId, 'children'],
+      ids => ids.filter(id => id !== componentId),
+    );
+  
+    state = state.updateIn(
+      [...pathToCurrentComponents, targetComponentId, 'children'],
+      ids => ids.insert(position, componentId),
+    );
+  
+    return state.setIn(
+      [...pathToCurrentComponents, componentId, 'parentId'],
+      targetComponentId,
+    );
+  }
 };
 
 const initDNDState = state => state.merge({
@@ -777,11 +768,17 @@ const getValueInfoByPath = (path, state) => {
   };
 };
 
-// TODO: Refactor away from using real paths
+/**
+ *
+ * @param {Object} state
+ * @param {ProjectPath} updatedPath
+ * @return {Object}
+ */
 const clearOutdatedDataProps = (state, updatedPath) => {
-  // Data prop with pushDataContext cannot be nested,
-  // so we need to clear outdated data props only when updating top-level prop
   const { valueType, isNested } = getValueInfoByPath(updatedPath, state);
+
+  // Data props with pushDataContext cannot be nested,
+  // so we need to clear outdated data props only when updating top-level prop
   if (valueType !== ValueTypes.COMPONENT_PROP || isNested) return state;
   
   const oldValue = getObjectByPath(materializePath(updatedPath, state));
@@ -792,6 +789,7 @@ const clearOutdatedDataProps = (state, updatedPath) => {
   const updatedPropName = updatedPath.steps[updatedPath.steps.length - 1];
   const updatedComponentId = updatedPath.steps[updatedPath.steps.length - 2];
   const updatedComponent = currentComponents.get(updatedComponentId);
+  const pathToUpdatedComponent = [...pathToComponents, updatedComponentId];
   const componentMeta = getComponentMeta(updatedComponent.name, state.meta);
   const updatedPropMeta = componentMeta.props[updatedPropName];
   
@@ -800,78 +798,81 @@ const clearOutdatedDataProps = (state, updatedPath) => {
   const outdatedDataContext = oldValue.sourceData.dataContext
     .push(updatedPropMeta.sourceConfigs.data.pushDataContext);
   
-  const visitDesignerValue = (designerPropValue, path) => {
-    walkComponentsTree(
-      designerPropValue.sourceData.components,
-      designerPropValue.sourceData.rootId,
+  const visitDesignerValue = (designerValue, physicalPath) => {
+    const pathStart = {
+      object: designerValue,
+      expandedPath: physicalPath,
+    };
+
+    const visitComponent = component => {
+      const componentId = component.id;
+      const componentMeta = getComponentMeta(component.name, state.meta);
+
+      const visitValue = (propValue, _, steps) => {
+        if (propValue.isLinkedWithData()) {
+          const containsOutdatedDataContext = isPrefixList(
+            outdatedDataContext,
+            propValue.sourceData.dataContext,
+          );
+
+          if (containsOutdatedDataContext) {
+            state = state.updateIn(
+              expandPath({
+                start: pathStart,
+                steps: ['components', componentId, ...steps],
+              }),
+
+              updatedValue => updatedValue.resetDataLink(),
+            );
+          }
+        } else if (propValue.hasDesignedComponent()) {
+          const pathToNextDesignerValue = expandPath({
+            start: pathStart,
+            steps: ['components', componentId, ...steps],
+          });
+
+          visitDesignerValue(
+            state.getIn(pathToNextDesignerValue),
+            pathToNextDesignerValue,
+          );
+        }
+      };
       
-      component => {
-        const componentId = component.id;
-        const componentMeta = getComponentMeta(component.name, state.meta);
-        
-        walkSimpleValues(
-          component,
-          componentMeta,
-          
-          (propValue, _, pathToProp) => {
-            if (propValue.isLinkedWithData()) {
-              const containsOutdatedDataContext = isPrefixList(
-                outdatedDataContext,
-                propValue.sourceData.dataContext,
-              );
-              
-              if (containsOutdatedDataContext) {
-                const pathToUpdatedValue = [].concat(path, [
-                  'sourceData',
-                  'components',
-                  componentId,
-                  'props',
-                ], expandPropPath(pathToProp));
-                
-                const newSourceData = new SourceDataData({
-                  queryPath: null,
-                });
-                
-                state = state.updateIn(
-                  pathToUpdatedValue,
-                  
-                  updatedValue => updatedValue.set(
-                    'sourceData',
-                    newSourceData,
-                  ),
-                );
-              }
-            } else if (propValue.hasDesignedComponent()) {
-              const pathToNextDesignerValue = [].concat(path, [
-                'sourceData',
-                'components',
-                componentId,
-                'props',
-              ], expandPropPath(pathToProp));
-  
-              visitDesignerValue(
-                state.getIn(pathToNextDesignerValue),
-                pathToNextDesignerValue,
-              );
-            }
-          },
-        );
-      },
+      const walkSimpleValuesOptions = {
+        walkActions: true,
+        walkFunctionArgs: true,
+        walkSystemProps: true,
+        walkDesignerValues: false,
+        project: state.data,
+        schema: state.schema,
+        meta: state.meta,
+      };
+
+      walkSimpleValues(
+        component,
+        componentMeta,
+        visitValue,
+        walkSimpleValuesOptions,
+      );
+    };
+
+    walkComponentsTree(
+      designerValue.sourceData.components,
+      designerValue.sourceData.rootId,
+      visitComponent,
     );
   };
-  
-  const visitValue = (propValue, _, pathToProp) => {
-    if (propValue.hasDesignedComponent()) {
-      const pathToValue = [].concat(pathToComponents, [
-        updatedComponentId,
-        'props',
-      ], expandPropPath(pathToProp));
-      
-      visitDesignerValue(propValue, pathToValue);
-    }
+
+  const start = {
+    object: updatedComponent,
+    expandedPath: pathToUpdatedComponent,
   };
   
-  walkSimpleValues(updatedComponent, componentMeta, visitValue);
+  walkSimpleValues(updatedComponent, componentMeta, (propValue, _, steps) => {
+    if (propValue.hasDesignedComponent())
+      visitDesignerValue(propValue, expandPath({ start, steps }));
+  });
+
   return state;
 };
 
@@ -1048,13 +1049,83 @@ const handlers = {
     action.newValue,
   ),
 
-  [PROJECT_ROUTE_UPDATE_PATH]: (state, action) => state.mergeIn(
-    ['data', 'routes', action.routeId],
-    {
-      path: action.newPath,
-      paramValues: Map(action.newParamValues),
-    },
-  ),
+  [PROJECT_ROUTE_UPDATE_PATH]: (state, action) => {
+    const walkSimpleValuesOptions = {
+      walkSystemProps: true,
+      walkActions: true,
+      walkFunctionArgs: true,
+      walkDesignerValues: true,
+      project: state.data,
+      schema: state.schema,
+      meta: state.meta,
+    };
+    
+    state = state.updateIn(
+      ['data', 'routes', action.routeId, 'components'],
+      
+      components => components.map(component => {
+        const componentMeta = getComponentMeta(component.name, state.meta);
+        const start = {
+          object: component,
+          expandedPath: [],
+        };
+        
+        const visitValue = (jssyValue, valueDef, steps) => {
+          const isCandidateValue =
+            jssyValue.isLinkedWithRouteParam() &&
+            jssyValue.sourceData.routeId === action.routeId;
+          
+          if (isCandidateValue) {
+            const paramName = jssyValue.sourceData.paramName;
+            
+            if (action.renamedParams[paramName]) {
+              const newValue = new JssyValue({
+                source: 'routeParams',
+                sourceData: new SourceDataRouteParams({
+                  routeId: action.routeId,
+                  paramName: action.renamedParams[paramName],
+                }),
+              });
+              
+              component = component.setIn(
+                expandPath({ start, steps }),
+                newValue,
+              );
+            } else if (!action.newParamValues[paramName]) {
+              const newValue = jssyValueToImmutable(buildDefaultValue(
+                valueDef,
+                component.strings,
+                state.languageForComponentProps,
+                component.types,
+              ));
+  
+              component = component.setIn(
+                expandPath({ start, steps }),
+                newValue,
+              );
+            }
+          }
+        };
+        
+        walkSimpleValues(
+          component,
+          componentMeta,
+          visitValue,
+          walkSimpleValuesOptions,
+        );
+        
+        return component;
+      }),
+    );
+    
+    return state.mergeIn(
+      ['data', 'routes', action.routeId],
+      {
+        path: action.newPath,
+        paramValues: Map(action.newParamValues),
+      },
+    );
+  },
   
   [PROJECT_COMPONENT_DELETE]: (state, action) => {
     state = deselectComponent(state, action.componentId);

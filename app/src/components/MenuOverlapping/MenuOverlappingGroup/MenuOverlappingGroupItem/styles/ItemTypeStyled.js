@@ -1,6 +1,7 @@
 'use strict';
 
 import styled from 'styled-components';
+
 import {
   fontSizeXSmall,
   textColorMedium,
@@ -13,7 +14,6 @@ export const ItemTypeStyled = styled.span`
   color: ${textColorMedium};
   line-height: 1.5;
   margin-right: 0.3em;
-  
   ${disabled}
 `;
 

@@ -1,6 +1,7 @@
 'use strict';
 
 import styled from 'styled-components';
+
 import {
   quarterBaseModule,
   fontSizeXSmall,
@@ -16,7 +17,6 @@ export const ItemCaptionStyled = styled.div`
   margin-right: 0.3em;
   margin-bottom: ${quarterBaseModule}px;
   word-break: break-all;
-  
   ${disabled}
 `;
 

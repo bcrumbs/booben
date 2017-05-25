@@ -77,7 +77,7 @@ import {
   canInsertComponent,
   isCompositeComponent,
   getComponentMeta,
-} from '../../utils/meta';
+} from '../../lib/meta';
 
 import { isFunction, returnTrue } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';

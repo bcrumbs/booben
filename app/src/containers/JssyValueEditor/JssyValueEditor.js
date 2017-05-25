@@ -29,7 +29,7 @@ import {
   isValidSourceForValue,
   getString,
   buildDefaultValue,
-} from '../../utils/meta';
+} from '../../lib/meta';
 
 import { noop, returnArg, objectSome } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';

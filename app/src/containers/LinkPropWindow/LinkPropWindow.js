@@ -44,7 +44,7 @@ import SourceDataStatic from '../../models/SourceDataStatic';
 import SourceDataRouteParams from '../../models/SourceDataRouteParams';
 import SourceDataData, { QueryPathStep } from '../../models/SourceDataData';
 import { NestedConstructor } from '../../reducers/project';
-import { getComponentMeta, isValidSourceForValue } from '../../utils/meta';
+import { getComponentMeta, isValidSourceForValue } from '../../lib/meta';
 import { noop } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
 

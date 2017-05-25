@@ -40,13 +40,13 @@ import {
   isCompositeComponent,
   canInsertComponent,
   getComponentMeta,
-} from '../../../../utils/meta';
+} from '../../../../lib/meta';
 
 import {
   buildQueryForComponent,
   extractPropValueFromData,
   buildMutation,
-} from '../../../../utils/graphql';
+} from '../../../../lib/graphql';
 
 import {
   getJssyValueDefOfQueryArgument,
@@ -54,9 +54,9 @@ import {
   getJssyValueDefOfField,
   getMutationField,
   getFieldByPath,
-} from '../../../../utils/schema';
+} from '../../../../lib/schema';
 
-import { getFunctionInfo } from '../../../../utils/functions';
+import { getFunctionInfo } from '../../../../lib/functions';
 import { noop, returnNull, isString, isUndef } from '../../../../utils/misc';
 import jssyConstants from '../../../../constants/jssyConstants';
 

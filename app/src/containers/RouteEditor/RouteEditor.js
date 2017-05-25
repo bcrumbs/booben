@@ -279,6 +279,7 @@ class RouteEditorComponent extends PureComponent {
       route.paramValues.forEach((value, name) => {
         params.push(
           <RouteParameter
+            key={name}
             name={`:${name}`}
             value={value}
           />,

@@ -21,7 +21,7 @@ import {
   DataItem,
 } from '../../../../components/DataList/DataList';
 
-import { FunctionSources } from '../../../../utils/functions';
+import { FunctionSources } from '../../../../lib/functions';
 import { noop, returnArg } from '../../../../utils/misc';
 
 const FunctionShape = PropTypes.shape({

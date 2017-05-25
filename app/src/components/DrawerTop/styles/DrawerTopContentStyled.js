@@ -1,13 +1,10 @@
 'use strict';
 
 import styled from 'styled-components';
-import {
-  halfBaseModule,
-  baseModule,
-} from '../../../styles/themeSelectors';
+import { doubleBaseModule } from '../../../styles/themeSelectors';
 
 export const DrawerTopContentStyled = styled.div`
-  padding: ${halfBaseModule}px ${baseModule}px;
+  padding: 0 ${doubleBaseModule}px;
 `;
 
 DrawerTopContentStyled.displayName = 'DrawerTopContentStyled';

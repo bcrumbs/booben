@@ -51,19 +51,19 @@ import {
   pickComponentStateSlot,
 } from '../../../actions/project';
 
-import { setInPath } from '../../../utils/path';
+import { setInPath } from '../../../lib/path';
 
 import {
   getMutationType,
   getMutationField,
   getJssyValueDefOfMutationArgument,
-} from '../../../utils/schema';
+} from '../../../lib/schema';
 
 import {
   buildDefaultValue,
   getComponentMeta,
   getString,
-} from '../../../utils/meta';
+} from '../../../lib/meta';
 
 import {
   noop,

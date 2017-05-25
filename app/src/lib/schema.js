@@ -4,7 +4,7 @@
 
 import _mapValues from 'lodash.mapvalues';
 import { TypeNames, makeDefaultNonNullValue } from '@jssy/types';
-import { arrayToObject, getter } from './misc';
+import { arrayToObject, getter } from '../utils/misc';
 
 /**
  * @typedef {Object} GQLSchema
