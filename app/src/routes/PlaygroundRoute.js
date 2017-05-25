@@ -33,11 +33,11 @@ import {
 } from '@reactackle/reactackle';
 
 import {
-  PropSourcePicker,
-  SourceDivider,
-  SourceGroup,
-  SourceGroupItem
-} from '../components/PropSourcePicker/PropSourcePicker';
+  MenuOverlapping,
+  MenuOverlappingDivider,
+  MenuOverlappingGroup,
+  MenuOverlappingGroupItem
+} from '../components/MenuOverlapping/MenuOverlapping';
 
 import {
   BlockContentBox,
@@ -585,30 +585,32 @@ export default class Playground extends React.Component {
           <Panel headerFixed maxHeight="initial" spread>
             <PanelContent>
               <Container>
-                <PropSourcePicker>
-                  <SourceDivider title="What dou you want to use as a source?" />
-                  <SourceGroup>
-                    <SourceGroupItem
+                <MenuOverlapping>
+                  <MenuOverlappingDivider title="What dou you want to use as a source?" />
+                  <MenuOverlappingGroup title="Group title">
+                    <MenuOverlappingGroupItem
+                      caption=".../ extremelyLongextremelyLong / pathTopathTo / componentcomponent"
                       title="Value"
                       type="string"
                       description="Some description"
                     />
-                    <SourceGroupItem
+                    <MenuOverlappingGroupItem
+                      caption="path"
                       title="Some other"
                       type="string"
                       description="Some description"
                     />
-                  </SourceGroup>
-                  <SourceDivider title="Options that don't suit by type" />
-                  <SourceGroup>
-                    <SourceGroupItem
+                  </MenuOverlappingGroup>
+                  <MenuOverlappingDivider title="Options that don't suit by type" />
+                  <MenuOverlappingGroup>
+                    <MenuOverlappingGroupItem
                       title="Some option"
                       type="bool"
                       description="Some description"
                       disabled
                     />
-                  </SourceGroup>
-                </PropSourcePicker>
+                  </MenuOverlappingGroup>
+                </MenuOverlapping>
               </Container>
               
               <Container>

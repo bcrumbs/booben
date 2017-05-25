@@ -4,9 +4,33 @@
 export const baseModule = ({ theme }) => theme.baseModule;
 export const halfBaseModule = ({ theme }) => theme.baseModule / 2;
 export const quarterBaseModule = ({ theme }) => theme.baseModule / 4;
+export const oneAndHalfBaseModule = ({ theme }) => theme.baseModule * 1.5;
 export const doubleBaseModule = ({ theme }) => theme.baseModule * 2;
 
+export const radiusDefault = ({ theme }) => theme.radiusDefault;
+export const radiusRounded = ({ theme }) => theme.radiusRounded;
+
 /* Color */
+export const colorWhite = ({ theme }) => theme.white;
+export const colorBlack = ({ theme }) => theme.black;
+export const colorTransparent = ({ theme }) => theme.transparent;
+
+export const colorMain = ({ theme }) => theme.main;
+export const colorMainForeground = ({ theme }) => theme.mainFgTextColor;
+export const colorSecondary = ({ theme }) => theme.secondary;
+export const colorSecondaryForeground = ({ theme }) =>
+  theme.secondaryFgTextColor;
+export const colorAlert = ({ theme }) => theme.alert;
+export const colorAlertForeground = ({ theme }) => theme.alertFgTextColor;
+export const colorWarning = ({ theme }) => theme.warning;
+export const colorWarningForeground = ({ theme }) => theme.warningFgTextColor;
+export const colorError = ({ theme }) => theme.alert;
+export const colorErrorForeground = ({ theme }) => theme.alertFgTextColor;
+export const colorSuccess = ({ theme }) => theme.success;
+export const colorSuccessForeground = ({ theme }) => theme.successFgTextColor;
+export const colorInfo = ({ theme }) => theme.info;
+export const colorInfoForeground = ({ theme }) => theme.infoFgTextColor;
+
 export const paletteBlueGrey50 = ({ theme }) => theme.paletteBlueGrey[50];
 export const paletteBlueGrey75 = ({ theme }) => theme.paletteBlueGrey[75];
 export const paletteBlueGrey100 = ({ theme }) => theme.paletteBlueGrey[100];
@@ -39,3 +63,4 @@ export const fontWeightBold = ({ theme }) => theme.fontWeight.bold;
 
 /* Text color */
 export const textColorMedium = paletteBlueGrey400;
+export const textColorBody = paletteBlueGrey900;

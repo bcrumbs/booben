@@ -4,10 +4,15 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { TooltipIcon } from '@reactackle/reactackle';
 import { noop } from '../../../../utils/misc';
-import './SourceGroupItem.scss';
+import { MenuOverlappingGroupItemStyled }
+  from './styles/MenuOverlappingGroupItemStyled';
+import { ItemTitleStyled } from './styles/ItemTitleStyled';
+import { ItemTypeStyled } from './styles/ItemTypeStyled';
+import { ItemCaptionStyled } from './styles/ItemCaptionStyled';
 
 const propTypes = {
   id: PropTypes.string.isRequired,
+  caption: PropTypes.string,
   title: PropTypes.string,
   type: PropTypes.string,
   description: PropTypes.string,
@@ -16,6 +21,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+  caption: '',
   title: '',
   type: '',
   description: '',
@@ -23,7 +29,7 @@ const defaultProps = {
   onSelect: noop,
 };
 
-export class SourceGroupItem extends Component {
+export class MenuOverlappingGroupItem extends Component {
   constructor(props, context) {
     super(props, context);
     
@@ -60,10 +66,7 @@ export class SourceGroupItem extends Component {
   }
 
   render() {
-    const { title, type, description, disabled } = this.props;
-
-    let className = 'source-item';
-    if (disabled) className += ' is-disabled';
+    const { caption, title, type, description, disabled } = this.props;
 
     let tooltipElement = null;
     if (description) {
@@ -71,23 +74,35 @@ export class SourceGroupItem extends Component {
         <TooltipIcon text={description} />
       );
     }
+    
+    const captionElement = caption
+      ? <ItemCaptionStyled disabled={disabled}>{caption}</ItemCaptionStyled>
+      : null;
+  
+    const typeElement = type
+      ? <ItemTypeStyled disabled={disabled}>{type}</ItemTypeStyled>
+      : null;
 
     return (
-      <li className={className} ref={this._saveRef}>
-        <span className="source-item_title">
-          {title}
-        </span>
-
-        <span className="source-item_type">
-          {type}
-        </span>
-
-        {tooltipElement}
-      </li>
+      <MenuOverlappingGroupItemStyled
+        innerRef={this._saveRef}
+        disabled={disabled}
+      >
+        {captionElement}
+        <div>
+          <ItemTitleStyled disabled={disabled}>
+            {title}
+          </ItemTitleStyled>
+  
+          {typeElement}
+  
+          {tooltipElement}
+        </div>
+      </MenuOverlappingGroupItemStyled>
     );
   }
 }
 
-SourceGroupItem.displayName = 'SourceGroupItem';
-SourceGroupItem.propTypes = propTypes;
-SourceGroupItem.defaultProps = defaultProps;
+MenuOverlappingGroupItem.displayName = 'MenuOverlappingGroupItem';
+MenuOverlappingGroupItem.propTypes = propTypes;
+MenuOverlappingGroupItem.defaultProps = defaultProps;

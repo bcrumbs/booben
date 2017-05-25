@@ -10,11 +10,11 @@ import _forOwn from 'lodash.forown';
 import { resolveTypedef } from '@jssy/types';
 
 import {
-  PropSourcePicker,
-  SourceGroup,
-  SourceGroupItem,
-  SourceDivider,
-} from '../../components/PropSourcePicker/PropSourcePicker';
+  MenuOverlapping,
+  MenuOverlappingGroup,
+  MenuOverlappingGroupItem,
+  MenuOverlappingDivider,
+} from '../../components/MenuOverlapping/MenuOverlapping';
 
 import { getString } from '../../lib/meta';
 import { noop, returnTrue } from '../../utils/misc';
@@ -49,7 +49,7 @@ export class ComponentStateSlotSelect extends PureComponent {
     if (!items.length) return null;
 
     const itemElements = items.map(item => (
-      <SourceGroupItem
+      <MenuOverlappingGroupItem
         {...item}
         key={item.id}
         onSelect={this._handleSelect}
@@ -57,9 +57,9 @@ export class ComponentStateSlotSelect extends PureComponent {
     ));
 
     return (
-      <SourceGroup>
+      <MenuOverlappingGroup>
         {itemElements}
-      </SourceGroup>
+      </MenuOverlappingGroup>
     );
   }
 
@@ -101,23 +101,23 @@ export class ComponentStateSlotSelect extends PureComponent {
 
     if (availableGroup) {
       availableHeader = (
-        <SourceDivider title="What dou you want to use as a source?" />
+        <MenuOverlappingDivider title="What dou you want to use as a source?" />
       );
     }
 
     if (disabledGroup) {
       disabledHeader = (
-        <SourceDivider title="Options that don't suit by type" />
+        <MenuOverlappingDivider title="Options that don't suit by type" />
       );
     }
 
     return (
-      <PropSourcePicker>
+      <MenuOverlapping>
         {availableHeader}
         {availableGroup}
         {disabledHeader}
         {disabledGroup}
-      </PropSourcePicker>
+      </MenuOverlapping>
     );
   }
 }
