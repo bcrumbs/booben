@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { getProject, getMetadata, getGraphQLSchema } from '../api';
+import { getProject, getMetadata, getGraphQLSchema } from '../lib/api';
 import { URL_GRAPHQL_PREFIX } from '../../../shared/constants';
 
 export const PROJECT_REQUEST =
@@ -168,13 +168,13 @@ export const updateRouteField = (routeId, field, newValue) => ({
  * @param {number} routeId
  * @param {string} newPath
  * @param {Object<string, string>} newParamValues
- * @param {Object<string, string>} renamedParams
+ * @param {Object<string, string>} [renamedParams={}]
  */
 export const updateRoutePath = (
   routeId,
   newPath,
   newParamValues,
-  renamedParams,
+  renamedParams = {},
 ) => ({
   type: PROJECT_ROUTE_UPDATE_PATH,
   routeId,

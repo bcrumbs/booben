@@ -112,8 +112,13 @@ const mapDispatchToProps = dispatch => ({
   onRenameRoute: (routeId, newTitle) =>
     void dispatch(updateRouteField(routeId, 'title', newTitle)),
 
-  onUpdateRoutePath: (routeId, newPath, newParamValues) =>
-    void dispatch(updateRoutePath(routeId, newPath, newParamValues)),
+  onUpdateRoutePath: (routeId, newPath, newParamValues, renamedParams) =>
+    void dispatch(updateRoutePath(
+      routeId,
+      newPath,
+      newParamValues,
+      renamedParams,
+    )),
   
   onOpenDesigner: ({ projectName, routeId, isIndexRoute }) => {
     const path = isIndexRoute
@@ -154,6 +159,35 @@ const isRouteParam = pathPart =>
  * @return {string}
  */
 const routeParamName = pathPart => pathPart.slice(1);
+
+/**
+ *
+ * @param {string} oldPath
+ * @param {string} newPath
+ * @param {boolean} [reverse=false]
+ * @return {Object<string, string>}
+ */
+const getRenamedRouteParams = (oldPath, newPath, reverse = false) => {
+  const oldParts = splitPath(oldPath);
+  const parts = splitPath(newPath);
+  const renamedParams = {};
+  
+  for (let i = 0, l = Math.min(oldParts.length, parts.length); i < l; i++) {
+    const oldPart = oldParts[i];
+    const newPart = parts[i];
+    const isOldParam = isRouteParam(oldPart);
+    const isNewParam = isRouteParam(newPart);
+    
+    if (isOldParam && isNewParam && oldPart !== newPart) {
+      if (reverse)
+        renamedParams[routeParamName(newPart)] = routeParamName(oldPart);
+      else
+        renamedParams[routeParamName(oldPart)] = routeParamName(newPart);
+    }
+  }
+  
+  return renamedParams;
+};
 
 /**
  *
@@ -519,25 +553,13 @@ class StructureRoute extends PureComponent {
 
   /**
    *
-   * @param {string} value
+   * @param {string} newPath
    * @private
    */
-  _handleNewRoutePathChange({ value }) {
-    const { newRoutePath, newRouteParamValues } = this.state;
-
-    const oldParts = splitPath(newRoutePath);
-    const parts = splitPath(value);
-    const renamedParams = {};
-
-    for (let i = 0, l = Math.min(oldParts.length, parts.length); i < l; i++) {
-      const oldPart = oldParts[i];
-      const newPart = parts[i];
-      const isOldParam = isRouteParam(oldPart);
-      const isNewParam = isRouteParam(newPart);
-
-      if (isOldParam && isNewParam && oldPart !== newPart)
-        renamedParams[routeParamName(newPart)] = routeParamName(oldPart);
-    }
+  _handleNewRoutePathChange({ value: newPath }) {
+    const { newRoutePath: oldPath, newRouteParamValues } = this.state;
+    
+    const renamedParams = getRenamedRouteParams(oldPath, newPath, true);
 
     const getNewParamValue = paramName =>
       newRouteParamValues[paramName] || (
@@ -546,7 +568,7 @@ class StructureRoute extends PureComponent {
           : ''
       );
     
-    const params = parts
+    const params = splitPath(newPath)
       .filter(isRouteParam)
       .map(routeParamName);
 
@@ -557,7 +579,7 @@ class StructureRoute extends PureComponent {
     );
     
     this.setState({
-      newRoutePath: value,
+      newRoutePath: newPath,
       pathPatternError: false,
       newRouteParamValues: updatedParamValues,
     });
@@ -716,8 +738,15 @@ class StructureRoute extends PureComponent {
     const isRootRoute = route.parentId === INVALID_ID;
     const rawPath = newRoutePath.trim();
     const path = normalizePath(rawPath, isRootRoute);
+    const renamedParams = getRenamedRouteParams(route.path, path);
 
-    onUpdateRoutePath(editingPathOfRouteId, path, newRouteParamValues);
+    onUpdateRoutePath(
+      editingPathOfRouteId,
+      path,
+      newRouteParamValues,
+      renamedParams,
+    );
+    
     closeDialog();
   }
 
