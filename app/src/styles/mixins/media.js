@@ -17,15 +17,18 @@ import {
  * @return {string|undefined}
  */
 const generateMediaQueryArg = (name, value, baseDivider) => {
-  if (!isPositiveInteger(baseDivider))
+  if (!isPositiveInteger(baseDivider)) {
     throw new Error(`Invalid 'baseDivider' value: ${baseDivider}`);
+  }
+  
   if (isDef(value)) {
-    if (typeof value === 'string')
+    if (typeof value === 'string') {
       return `(${name}: ${value})`;
-    else if (isNaturalNumber(value))
+    } else if (isNaturalNumber(value)) {
       return `(${name}: ${value / baseDivider}em)`;
-    else
+    } else {
       throw new Error(`Invalid media query '${name}' value: ${value}`);
+    }
   } else {
     return void 0;
   }

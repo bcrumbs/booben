@@ -49,12 +49,13 @@ const ProjectSaveComponent = props => {
     icon = <Icon name="check" />;
   }
   
-  if (props.status === 'error')
+  if (props.status === 'error') {
     tooltipText = 'Fix your internet connection and retry';
-  else if (props.status === 'success')
+  } else if (props.status === 'success') {
     tooltipText = 'Last saved a second ago';
-  else
+  } else {
     tooltipText = 'Last saved at 12:56 12/11/2016';
+  }
   
   const TooltipComponent = props.Tooltip;
   

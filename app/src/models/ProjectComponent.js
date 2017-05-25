@@ -152,8 +152,9 @@ const propSourceDataToImmutableFns = {
       }
     }
 
-    if (!isUndef(input.ownerPropName))
+    if (!isUndef(input.ownerPropName)) {
       data.ownerPropName = input.ownerPropName;
+    }
 
     return new SourceDataStatic(data);
   },
@@ -420,8 +421,9 @@ export const walkSimpleValues = (
         visitor(jssyValue, valueDef, path, isSystemProp);
       }
     } else if (walkFunctionArgs && jssyValue.source === 'function') {
-      if (visitIntermediateNodes)
+      if (visitIntermediateNodes) {
         visitor(jssyValue, valueDef, path, isSystemProp);
+      }
       
       const fnInfo = getFunctionInfo(
         jssyValue.sourceData.functionSource,
@@ -443,15 +445,17 @@ export const walkSimpleValues = (
         }
       });
     } else if (walkActions && jssyValue.source === 'actions') {
-      if (visitIntermediateNodes)
+      if (visitIntermediateNodes) {
         visitor(jssyValue, valueDef, path, isSystemProp);
+      }
 
       jssyValue.sourceData.actions.forEach((action, actionIdx) => {
         visitAction(action, [...path, 'actions', actionIdx], isSystemProp);
       });
     } else if (walkDesignerValues && jssyValue.sourceIs('designer')) {
-      if (visitIntermediateNodes)
+      if (visitIntermediateNodes) {
         visitor(jssyValue, valueDef, path, isSystemProp);
+      }
 
       const components = jssyValue.sourceData.components;
       const rootId = jssyValue.sourceData.rootId;

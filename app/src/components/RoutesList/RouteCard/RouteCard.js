@@ -37,13 +37,19 @@ export class RouteCard extends PureComponent {
   }
   
   componentWillUpdate(nextProps) {
-    if (nextProps.onGo !== this.props.onGo)
+    const { onGo } = this.props;
+    
+    if (nextProps.onGo !== onGo) {
       this._element.removeEventListener('dblclick', this._handleDoubleClick);
+    }
   }
   
   componentDidUpdate(prevProps) {
-    if (prevProps.onGo !== this.props.onGo)
+    const { onGo } = this.props;
+    
+    if (prevProps.onGo !== onGo) {
       this._element.addEventListener('dblclick', this._handleDoubleClick);
+    }
   }
   
   componentWillUnmount() {
@@ -51,17 +57,13 @@ export class RouteCard extends PureComponent {
   }
   
   _handleDoubleClick() {
-    this.props.onGo({
-      routeId: this.props.route.id,
-      isIndexRoute: false,
-    });
+    const { route, onGo } = this.props;
+    onGo({ routeId: route.id, isIndexRoute: false });
   }
   
   _handleCardClick() {
-    this.props.onFocus({
-      routeId: this.props.route.id,
-      isIndexRoute: false,
-    });
+    const { route, onFocus } = this.props;
+    onFocus({ routeId: route.id, isIndexRoute: false });
   }
 
   _saveRef(el) {

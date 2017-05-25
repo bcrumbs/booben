@@ -65,8 +65,9 @@ const wrap = OriginalComponent => class extends OriginalComponent {
   componentWillUnmount(...args) {
     if (super.componentWillUnmount) super.componentWillUnmount(...args);
 
-    if (this.__draggableTryingStartDrag)
+    if (this.__draggableTryingStartDrag) {
       this.__draggableStopTryDrag();
+    }
   }
 
   __draggableStopTryDrag() {
@@ -80,8 +81,9 @@ const wrap = OriginalComponent => class extends OriginalComponent {
     if (newElement === this.__draggableElement) return;
 
     if (this.__draggableElement) {
-      if (this.__draggableTryingStartDrag)
+      if (this.__draggableTryingStartDrag) {
         this.__draggableStopTryDrag();
+      }
 
       this.__draggableElement.removeEventListener(
         'mousedown',

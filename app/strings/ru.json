@@ -33,6 +33,7 @@
   "structure.createNewRootRoute": "Создать новый корневой маршрут",
   "structure.newRoute": "Новый маршрут",
   "structure.newRootRoute": "Новый корневой маршрут",
+  "structure.indexRouteTitle": "Индекс",
   "structure.deleteRouteQuestion": "Удалить маршрут?",
   "structure.title": "Название",
   "structure.routeDescription": "Описание",

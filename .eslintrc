@@ -1,3 +1,6 @@
 {
-  "extends": "@eslint/eslint-config-server"
+  "extends": "@eslint/eslint-config-server",
+  "rules": {
+    "curly": [2, "multi-line", "consistent"]
+  }
 }

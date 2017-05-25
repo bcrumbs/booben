@@ -79,11 +79,13 @@ export const projectRouteToImmutable = (
         visitComponent(childComponent, isIndexRoute, component.id));
     };
 
-    if (input.component !== null)
+    if (input.component !== null) {
       visitComponent(input.component, false);
+    }
     
-    if (input.indexComponent !== null)
+    if (input.indexComponent !== null) {
       visitComponent(input.indexComponent, true);
+    }
   }),
 });
 

@@ -202,8 +202,9 @@ class CanvasComponent extends Component {
     
     const state = store.getState();
   
-    if (state.project.loadState !== LOADED)
+    if (state.project.loadState !== LOADED) {
       throw new Error('Canvas#_getProvider() failed: Project is not loaded');
+    }
     
     if (!state.project.data.graphQLEndpointURL) {
       return {

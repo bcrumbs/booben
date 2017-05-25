@@ -179,10 +179,11 @@ const getRenamedRouteParams = (oldPath, newPath, reverse = false) => {
     const isNewParam = isRouteParam(newPart);
     
     if (isOldParam && isNewParam && oldPart !== newPart) {
-      if (reverse)
+      if (reverse) {
         renamedParams[routeParamName(newPart)] = routeParamName(oldPart);
-      else
+      } else {
         renamedParams[routeParamName(oldPart)] = routeParamName(newPart);
+      }
     }
   }
   
@@ -696,8 +697,9 @@ class StructureRoute extends PureComponent {
    * @private
    */
   _handleToolTitleChange(tool, newTitle) {
-    if (tool.id === TOOL_ID_ROUTE_EDITOR)
+    if (tool.id === TOOL_ID_ROUTE_EDITOR) {
       this.props.onRenameRoute(this.props.selectedRouteId, newTitle);
+    }
   }
 
   /**
@@ -803,7 +805,8 @@ class StructureRoute extends PureComponent {
         routeCards = routeCards.unshift(
           <IndexRouteCard
             key={`${String(parentRoute.id)}-index`}
-            route={parentRoute}
+            routeId={parentRoute.id}
+            title={getLocalizedText('structure.indexRouteTitle')}
             focused={isSelected}
             onFocus={this._handleRouteSelect}
             onGo={this._handleRouteGo}
@@ -857,10 +860,11 @@ class StructureRoute extends PureComponent {
     const willRenderChildren = route.children.size > 0 || route.haveIndex;
     
     let children = null;
-    if (willRenderChildren)
+    if (willRenderChildren) {
       children = this._renderRouteList(routes, route, route.children);
-    else
+    } else {
       children = isSelected ? this._renderRouteList(routes, route, null) : null;
+    }
 
     //noinspection JSValidateTypes
     return (

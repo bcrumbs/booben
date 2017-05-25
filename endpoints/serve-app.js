@@ -57,10 +57,11 @@ module.exports = {
               file
             ));
 
-            if (haveFileInProjectDir)
+            if (haveFileInProjectDir) {
               options.root = path.join(projectsDir, req.params.name, 'build');
-            else
+            } else {
               file = 'index.html';
+            }
           }
         }
       }

@@ -459,8 +459,9 @@ class ComponentsTreeViewComponent extends PureComponent {
       containerId !== placeholderContainerId ||
       afterIdx !== placeholderAfter;
   
-    if (positionChanged)
+    if (positionChanged) {
       onDragOverPlaceholder(containerId, afterIdx);
+    }
   }
   
   /**
@@ -952,8 +953,9 @@ class ComponentsTreeViewComponent extends PureComponent {
         const snapPointOrPlaceholder =
           this._renderSnapBlockOrPlaceholder(parentComponentId, afterIdx);
 
-        if (snapPointOrPlaceholder)
+        if (snapPointOrPlaceholder) {
           children.push(snapPointOrPlaceholder);
+        }
       }
 
       children.push(this._renderItem(componentId));
@@ -969,8 +971,9 @@ class ComponentsTreeViewComponent extends PureComponent {
         afterIdx,
       );
 
-      if (snapPointOrPlaceholder)
+      if (snapPointOrPlaceholder) {
         children.push(snapPointOrPlaceholder);
+      }
     }
 
     if (!children.length) return null;

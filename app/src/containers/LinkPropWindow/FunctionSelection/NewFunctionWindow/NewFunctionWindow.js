@@ -61,8 +61,9 @@ const defaultProps = {
 const without = (array, idx) => {
   const ret = [];
   
-  for (let i = 0; i < array.length; i++)
+  for (let i = 0; i < array.length; i++) {
     if (i !== idx) ret.push(array[i]);
+  }
   
   return ret;
 };

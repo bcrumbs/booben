@@ -20,12 +20,8 @@ export const AccordionItemRecord = Record({
 });
 
 const propTypes = {
-  items: ImmutablePropTypes.listOf(
-    PropTypes.instanceOf(AccordionItemRecord),
-  ),
-  expandedItemIds: ImmutablePropTypes.setOf(
-    PropTypes.string,
-  ),
+  items: ImmutablePropTypes.listOf(PropTypes.instanceOf(AccordionItemRecord)),
+  expandedItemIds: ImmutablePropTypes.setOf(PropTypes.string),
   single: PropTypes.bool,
   onExpandedItemsChange: PropTypes.func,
 };
@@ -45,41 +41,46 @@ export class Accordion extends PureComponent {
   }
 
   componentWillReceiveProps(nextProps) {
+    const { items, expandedItemIds, onExpandedItemsChange } = this.props;
+    
     const willUpdateExpandedItems =
-      nextProps.items !== this.props.items &&
-      nextProps.expandedItemIds === this.props.expandedItemIds;
+      nextProps.items !== items &&
+      nextProps.expandedItemIds === expandedItemIds;
 
     if (willUpdateExpandedItems) {
-      const newExpandedItemIds = this.props.expandedItemIds.intersect(
+      const newExpandedItemIds = expandedItemIds.intersect(
         nextProps.items.map(item => item.id),
       );
 
-      if (newExpandedItemIds !== this.props.expandedItemIds)
-        this.props.onExpandedItemsChange(newExpandedItemIds);
+      if (newExpandedItemIds !== expandedItemIds) {
+        onExpandedItemsChange(newExpandedItemIds);
+      }
     }
   }
 
   _handleToggleExpanded(itemId) {
+    const { expandedItemIds, single, onExpandedItemsChange } = this.props;
+    
     let newExpandedIds;
 
-    if (this.props.expandedItemIds && this.props.expandedItemIds.has(itemId)) {
-      newExpandedIds = this.props.expandedItemIds.delete(itemId);
-    } else if (this.props.single) {
+    if (expandedItemIds && expandedItemIds.has(itemId)) {
+      newExpandedIds = expandedItemIds.delete(itemId);
+    } else if (single) {
       newExpandedIds = Set([itemId]);
     } else {
-      newExpandedIds = this.props.expandedItemIds
-        ? this.props.expandedItemIds.add(itemId)
+      newExpandedIds = expandedItemIds
+        ? expandedItemIds.add(itemId)
         : new Set([itemId]);
     }
 
-    this.props.onExpandedItemsChange(newExpandedIds);
+    onExpandedItemsChange(newExpandedIds);
   }
 
   render() {
-    const items = this.props.items.map(item => {
-      const expanded =
-        !!this.props.expandedItemIds &&
-        this.props.expandedItemIds.has(item.id);
+    const { items, expandedItemIds } = this.props;
+    
+    const itemElements = items.map(item => {
+      const expanded = !!expandedItemIds && expandedItemIds.has(item.id);
 
       return (
         <AccordionItem
@@ -97,7 +98,7 @@ export class Accordion extends PureComponent {
     return (
       <div className="accordion">
         <div className="accordion-list">
-          {items}
+          {itemElements}
         </div>
       </div>
     );

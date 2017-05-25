@@ -62,16 +62,17 @@ const VALID_PATH_STEPS_NAVIGATE = new Set(['routeParams']);
 const VALID_PATH_STEPS_PROP = new Set(['value']);
 
 Action.isValidPathStep = (step, current) => {
-  if (current.type === 'mutation')
+  if (current.type === 'mutation') {
     return VALID_PATH_STEPS_MUTATION.has(step);
-  else if (current.type === 'method')
+  } else if (current.type === 'method') {
     return VALID_PATH_STEPS_METHOD.has(step);
-  else if (current.type === 'navigate')
+  } else if (current.type === 'navigate') {
     return VALID_PATH_STEPS_NAVIGATE.has(step);
-  else if (current.type === 'prop')
+  } else if (current.type === 'prop') {
     return VALID_PATH_STEPS_PROP.has(step);
-  else
+  } else {
     return false;
+  }
 };
 
 Action.expandPathStep = step => ['params', step];

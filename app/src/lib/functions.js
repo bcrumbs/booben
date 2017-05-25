@@ -23,8 +23,9 @@ export const FunctionSources = {
  * @return {?Object}
  */
 export const getFunctionInfo = (functionSource, functionName, project) => {
-  if (functionSource === FunctionSources.PROJECT)
+  if (functionSource === FunctionSources.PROJECT) {
     return project.functions.get(functionName);
+  }
 
   // TODO: Handle 'builtin' source
   return null;
@@ -41,8 +42,9 @@ export const functionNameFromTitle = (title, existingNames) => {
   let maybeName = baseName;
   let number = 1;
   
-  while (existingNames.indexOf(maybeName) !== -1)
+  while (existingNames.indexOf(maybeName) !== -1) {
     maybeName = baseName + String(number++);
+  }
   
   return maybeName;
 };

@@ -202,8 +202,9 @@ class ActionEditorComponent extends PureComponent {
       if (
         nextProps.pickedComponentId === INVALID_ID ||
         nextProps.pickingComponentStateSlot
-      )
+      ) {
         return;
+      }
 
       if (action.type === 'method') {
         this._handleMethodActionSetComponent({
@@ -563,8 +564,9 @@ class ActionEditorComponent extends PureComponent {
     if (action.type === 'mutation') {
       if (!action.params.mutation) return false;
     } else if (action.type === 'method') {
-      if (action.params.componentId === INVALID_ID || !action.params.method)
+      if (action.params.componentId === INVALID_ID || !action.params.method) {
         return false;
+      }
     } else if (action.type === 'prop') {
       const paramsAreInvalid =
         action.params.componentId === INVALID_ID || (
@@ -830,10 +832,11 @@ class ActionEditorComponent extends PureComponent {
       const options = systemPropsOptions.concat(propsOptions);
       
       let value = null;
-      if (action.params.propName)
+      if (action.params.propName) {
         value = action.params.propName;
-      else if (action.params.systemPropName)
+      } else if (action.params.systemPropName) {
         value = `jssy_system/${action.params.systemPropName}`;
+      }
       
       const label =
         getLocalizedText('actionsEditor.actionForm.prop');
@@ -998,7 +1001,7 @@ class ActionEditorComponent extends PureComponent {
   }
   
   render() {
-    const { onCancel, getLocalizedText } = this.props;
+    const { getLocalizedText } = this.props;
     const {
       action,
       linkingValue,

@@ -279,7 +279,7 @@ class RouteEditorComponent extends PureComponent {
       route.paramValues.forEach((value, name) => {
         params.push(
           <RouteParameter
-            key={name}
+            key={name} // eslint-disable-line react/no-array-index-key
             name={`:${name}`}
             value={value}
           />,

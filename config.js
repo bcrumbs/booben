@@ -11,8 +11,9 @@ convict.addFormat({
   name: 'strings-array',
 
   validate: val => {
-    if (!Array.isArray(val) || val.some(v => typeof v !== 'string'))
+    if (!Array.isArray(val) || val.some(v => typeof v !== 'string')) {
       throw new Error('must be an array of strings');
+    }
   },
 
   coerce: val => val.split(',').map(v => v.trim()).filter(v => v !== ''),

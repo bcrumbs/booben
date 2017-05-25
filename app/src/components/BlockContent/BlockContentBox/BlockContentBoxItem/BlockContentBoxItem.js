@@ -23,8 +23,10 @@ export const BlockContentBoxItem = props => {
   if (props.isBordered) className += ' is-bordered';
   if (props.blank) className += ' is-blank';
   if (props.flexMain) className += ' flex-main';
-  if (props.colorScheme !== 'default')
+  
+  if (props.colorScheme !== 'default') {
     className += ` color-scheme-${props.colorScheme}`;
+  }
 
   return (
     <div className={className}>

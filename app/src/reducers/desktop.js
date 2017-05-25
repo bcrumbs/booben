@@ -59,8 +59,9 @@ const DesktopState = Record({
 });
 
 const selectTool = (state, toolId) => {
-  if (toolId === state.activeToolId && state.toolsPanelIsExpanded)
+  if (toolId === state.activeToolId && state.toolsPanelIsExpanded) {
     return state;
+  }
 
   if (state.activeToolId !== null) {
     state = state.setIn(
@@ -114,8 +115,9 @@ const selectPreviousTool = state => {
     false,
   );
   
-  if (state.toolStates.get(state.shadowedToolId).docked)
+  if (state.toolStates.get(state.shadowedToolId).docked) {
     state = selectTool(state, state.shadowedToolId);
+  }
   
   return state.set('shadowedToolId', null);
 };
@@ -124,8 +126,9 @@ const setActiveTools = (state, toolIds) => {
   const newToolStates = {};
   
   toolIds.forEach(toolId => {
-    if (!state.toolStates.has(toolId))
+    if (!state.toolStates.has(toolId)) {
       newToolStates[toolId] = new ToolStateRecord();
+    }
   });
   
   const newToolStatesMap = Map(newToolStates);
@@ -292,8 +295,9 @@ const handlers = {
       const componentConfigToolState =
         state.toolStates.get(TOOL_ID_PROPS_EDITOR);
   
-      if (componentConfigToolState && componentConfigToolState.docked)
+      if (componentConfigToolState && componentConfigToolState.docked) {
         state = selectTool(state, TOOL_ID_PROPS_EDITOR);
+      }
     }
 
     return setActiveSection(state, state.activeToolId, 0);
