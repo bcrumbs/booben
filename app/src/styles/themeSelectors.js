@@ -11,25 +11,27 @@ export const radiusDefault = ({ theme }) => theme.radiusDefault;
 export const radiusRounded = ({ theme }) => theme.radiusRounded;
 
 /* Color */
-export const colorWhite = ({ theme }) => theme.white;
-export const colorBlack = ({ theme }) => theme.black;
-export const colorTransparent = ({ theme }) => theme.transparent;
-
-export const colorMain = ({ theme }) => theme.main;
-export const colorMainForeground = ({ theme }) => theme.mainFgTextColor;
-export const colorSecondary = ({ theme }) => theme.secondary;
+export const colorWhite = ({ theme }) => theme.color.white;
+export const colorBlack = ({ theme }) => theme.color.black;
+export const colorTransparent = ({ theme }) => theme.color.transparent;
+export const colorMain = ({ theme }) => theme.color.main;
+export const colorMainForeground = ({ theme }) => theme.color.mainFgTextColor;
+export const colorSecondary = ({ theme }) => theme.color.secondary;
 export const colorSecondaryForeground = ({ theme }) =>
-  theme.secondaryFgTextColor;
-export const colorAlert = ({ theme }) => theme.alert;
-export const colorAlertForeground = ({ theme }) => theme.alertFgTextColor;
-export const colorWarning = ({ theme }) => theme.warning;
-export const colorWarningForeground = ({ theme }) => theme.warningFgTextColor;
-export const colorError = ({ theme }) => theme.alert;
-export const colorErrorForeground = ({ theme }) => theme.alertFgTextColor;
-export const colorSuccess = ({ theme }) => theme.success;
-export const colorSuccessForeground = ({ theme }) => theme.successFgTextColor;
-export const colorInfo = ({ theme }) => theme.info;
-export const colorInfoForeground = ({ theme }) => theme.infoFgTextColor;
+  theme.color.secondaryFgTextColor;
+export const colorAlert = ({ theme }) => theme.color.alert;
+export const colorAlertForeground = ({ theme }) =>
+  theme.color.alertFgTextColor;
+export const colorWarning = ({ theme }) => theme.color.warning;
+export const colorWarningForeground = ({ theme }) =>
+  theme.color.warningFgTextColor;
+export const colorError = ({ theme }) => theme.color.alert;
+export const colorErrorForeground = ({ theme }) => theme.color.alertFgTextColor;
+export const colorSuccess = ({ theme }) => theme.color.success;
+export const colorSuccessForeground = ({ theme }) =>
+  theme.color.successFgTextColor;
+export const colorInfo = ({ theme }) => theme.color.info;
+export const colorInfoForeground = ({ theme }) => theme.color.infoFgTextColor;
 
 export const paletteBlueGrey50 = ({ theme }) => theme.paletteBlueGrey[50];
 export const paletteBlueGrey75 = ({ theme }) => theme.paletteBlueGrey[75];
