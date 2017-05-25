@@ -36,7 +36,7 @@ import {
 import Project, { getComponentById } from '../../../../models/Project';
 import ProjectComponent from '../../../../models/ProjectComponent';
 import KeyCodes from '../../../../utils/keycodes';
-import { noop, distance } from '../../../../utils/misc';
+import { noop, distance, pointIsInCircle } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
 
@@ -68,8 +68,7 @@ const propTypes = {
   onDragOverNothing: PropTypes.func.isRequired,
   onDropZoneSnap: PropTypes.func,
   onDropZoneUnsnap: PropTypes.func,
-  onDropZoneShowDropMenu: PropTypes.func,
-  onDropZoneHideDropMenu: PropTypes.func,
+  onDropZoneOpenDropMenu: PropTypes.func,
 };
 
 const contextTypes = {
@@ -83,8 +82,7 @@ const defaultProps = {
   pickingComponentFilter: null,
   onDropZoneSnap: noop,
   onDropZoneUnsnap: noop,
-  onDropZoneShowDropMenu: noop,
-  onDropZoneHideDropMenu: noop,
+  onDropZoneOpenDropMenu: noop,
 };
 
 const mapStateToProps = state => ({
@@ -189,7 +187,6 @@ class Preview extends Component {
     this._unhighilightTimer = -1;
     this._unhighlightedComponentId = INVALID_ID;
     this._draggingOverCanvas = false;
-    this._dropMenuIsOpen = false;
 
     this._handleMouseOver = this._handleMouseOver.bind(this);
     this._handleMouseOut = this._handleMouseOut.bind(this);
@@ -370,8 +367,7 @@ class Preview extends Component {
       placeholderAfter,
       onDragOverPlaceholder,
       onDragOverNothing,
-      onDropZoneShowDropMenu,
-      onDropZoneHideDropMenu,
+      onDropZoneOpenDropMenu,
     } = this.props;
 
     const { document } = this.context;
@@ -382,10 +378,19 @@ class Preview extends Component {
     // this method can be called later because it's throttled,
     // so we need to check if we're still here
     if (!this._draggingOverCanvas) return;
-    
-    if (this._dropMenuIsOpen) {
-      onDropZoneHideDropMenu();
-      this._dropMenuIsOpen = false;
+
+    if (this._lastDropMenuCoords) {
+      const willForgetLastDropMenu = !pointIsInCircle(
+        x,
+        y,
+        this._lastDropMenuCoords.x,
+        this._lastDropMenuCoords.y,
+        100,
+      );
+
+      if (willForgetLastDropMenu) {
+        this._lastDropMenuCoords = null;
+      }
     }
   
     const placeholders = document.querySelectorAll('[data-jssy-placeholder]');
@@ -393,7 +398,7 @@ class Preview extends Component {
     let willSnap = false;
     let snapPositions = [];
     let minDistance = Infinity;
-  
+
     if (placeholders.length === 1) {
       const element = placeholders[0];
       willSnap = true;
@@ -404,25 +409,35 @@ class Preview extends Component {
     } else if (placeholders.length > 1) {
       placeholders.forEach(element => {
         const { left, top } = element.getBoundingClientRect();
+
+        if (willSnap) {
+          const isClosePoint = snapPositions.some(({ x, y }) =>
+            distance(x, y, left, top) < CLOSE_SNAP_POINTS_THRESHOLD);
+
+          if (isClosePoint) {
+            snapPositions.push({
+              x: left,
+              y: top,
+              snapContainerId: readContainerId(element),
+              snapAfterIdx: readAfterIdx(element),
+            });
+
+            return;
+          }
+        }
+
         if (Math.abs(left - x) > SNAP_DISTANCE) return;
         if (Math.abs(top - y) > SNAP_DISTANCE) return;
       
         const distanceToPoint = distance(left, top, x, y);
         if (distanceToPoint > SNAP_DISTANCE) return;
-      
-        const isClosePoint =
-          isFinite(minDistance) &&
-          Math.abs(distanceToPoint - minDistance) < CLOSE_SNAP_POINTS_THRESHOLD;
-        
-        if (isClosePoint) {
-          snapPositions.push({
-            snapContainerId: readContainerId(element),
-            snapAfterIdx: readAfterIdx(element),
-          });
-        } else if (distanceToPoint < minDistance) {
+
+        if (distanceToPoint < minDistance) {
           willSnap = true;
           minDistance = distanceToPoint;
           snapPositions = [{
+            x: left,
+            y: top,
             snapContainerId: readContainerId(element),
             snapAfterIdx: readAfterIdx(element),
           }];
@@ -442,22 +457,34 @@ class Preview extends Component {
           onDragOverPlaceholder(snapContainerId, snapAfterIdx);
         }
       } else {
-        const dropPointsData = snapPositions.map(
-          ({ snapContainerId, snapAfterIdx }) => {
-            const container = currentComponents.get(snapContainerId);
-            
-            return {
-              title: container.title || container.name,
-              data: {
-                containerId: snapContainerId,
-                afterIdx: snapAfterIdx,
-              },
-            };
-          },
-        );
-        
-        onDropZoneShowDropMenu({ coords: { x, y }, dropPointsData });
-        this._dropMenuIsOpen = true;
+        const willOpenDropMenu = !this._lastDropMenuCoords;
+
+        if (willOpenDropMenu) {
+          const dropPointsData = snapPositions.map(
+            ({ snapContainerId, snapAfterIdx }) => {
+              const container = currentComponents.get(snapContainerId);
+
+              return {
+                title: container.title || container.name,
+                data: {
+                  containerId: snapContainerId,
+                  afterIdx: snapAfterIdx,
+                },
+              };
+            },
+          );
+
+          onDropZoneOpenDropMenu({
+            coords: { x, y },
+            snapCoords: {
+              x: snapPositions[0].x,
+              y: snapPositions[0].y,
+            },
+            dropPointsData,
+          });
+
+          this._lastDropMenuCoords = { x, y };
+        }
       }
     } else if (draggingOverPlaceholder) {
       onDragOverNothing();

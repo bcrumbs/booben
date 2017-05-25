@@ -40,7 +40,7 @@ const propTypes = {
   onDropZoneReady: PropTypes.func.isRequired,
   onDropZoneSnap: PropTypes.func.isRequired,
   onDropZoneUnsnap: PropTypes.func.isRequired,
-  onDropZoneShowDropMenu: PropTypes.func.isRequired,
+  onDropZoneOpenDropMenu: PropTypes.func.isRequired,
   onDropZoneHideDropMenu: PropTypes.func.isRequired,
 };
 /* eslint-enable react/no-unused-prop-types */
@@ -108,8 +108,7 @@ class CanvasComponent extends Component {
       this._handleDropMenuItemSelected.bind(this);
     this._handleSnap = this._handleSnap.bind(this);
     this._handleUnsnap = this._handleUnsnap.bind(this);
-    this._handleShowDropMenu = this._handleShowDropMenu.bind(this);
-    this._handleHideDropMenu = this._handleHideDropMenu.bind(this);
+    this._handleOpenDropMenu = this._handleOpenDropMenu.bind(this);
     this._saveIFrameRef = this._saveIFrameRef.bind(this);
     this._savePreviewRef = this._savePreviewRef.bind(this);
   }
@@ -345,8 +344,7 @@ class CanvasComponent extends Component {
               interactive={interactive}
               onDropZoneSnap={this._handleSnap}
               onDropZoneUnsnap={this._handleUnsnap}
-              onDropZoneShowDropMenu={this._handleShowDropMenu}
-              onDropZoneHideDropMenu={this._handleHideDropMenu}
+              onDropZoneOpenDropMenu={this._handleOpenDropMenu}
             />
           </DocumentContext>
         </ProviderComponent>,
@@ -437,14 +435,9 @@ class CanvasComponent extends Component {
     onDropZoneUnsnap({ dropZoneId });
   }
   
-  _handleShowDropMenu({ coords, dropPointsData }) {
-    const { dropZoneId, onDropZoneShowDropMenu } = this.props;
-    onDropZoneShowDropMenu({ dropZoneId, coords, dropPointsData });
-  }
-  
-  _handleHideDropMenu() {
-    const { dropZoneId, onDropZoneHideDropMenu } = this.props;
-    onDropZoneHideDropMenu({ dropZoneId });
+  _handleOpenDropMenu({ coords, snapCoords, dropPointsData }) {
+    const { dropZoneId, onDropZoneOpenDropMenu } = this.props;
+    onDropZoneOpenDropMenu({ dropZoneId, coords, snapCoords, dropPointsData });
   }
   
   render() {

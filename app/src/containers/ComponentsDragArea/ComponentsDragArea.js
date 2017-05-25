@@ -7,6 +7,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import bezierEasing from 'bezier-easing';
+import pointInPolygon from 'point-in-polygon';
 
 import {
   ComponentPlaceholder,
@@ -15,12 +16,19 @@ import {
 import {
   MenuOverlapping,
   MenuOverlappingGroup,
+  MenuOverlappingDivider,
   MenuOverlappingGroupItem,
 } from '../../components/MenuOverlapping/MenuOverlapping';
 
 import { isDraggableComponent } from '../../hocs/draggable';
 import { isDropZoneComponent } from '../../hocs/dropZone';
-import { noop, pointIsInRect } from '../../utils/misc';
+
+import {
+  noop,
+  pointIsInRect,
+  pointPositionRelativeToRect,
+  PointPositions,
+} from '../../utils/misc';
 
 const propTypes = {
   showDebugData: PropTypes.bool,
@@ -44,11 +52,81 @@ const PLACEHOLDER_OPACITY = 1;
 const SNAP_TIME = 200;
 const DROP_MENU_OFFSET_X = 5;
 const DROP_MENU_OFFSET_Y = 5;
+const DROP_MENU_BORDER = 20;
 
 const easeOut = bezierEasing(0, 0, 0.58, 1);
 const easeInOut = bezierEasing(0.42, 0, 0.58, 1);
 
 const interpolate = (from, to, x, easing) => from + (to - from) * easing(x);
+
+const buildDropMenuPolygon = (
+  menuX,
+  menuY,
+  menuWidth,
+  menuHeight,
+  menuBorder,
+  snapX,
+  snapY,
+) => {
+  const actualX = menuX - menuBorder;
+  const actualY = menuY - menuBorder;
+  const actualWidth = menuWidth + menuBorder * 2;
+  const actualHeight = menuHeight + menuBorder * 2;
+
+  const nwPoint = [actualX, actualY];
+  const nePoint = [actualX + actualWidth, actualY];
+  const sePoint = [actualX + actualWidth, actualY + actualHeight];
+  const swPoint = [actualX, actualY + actualHeight];
+
+  const snapPoint = [snapX, snapY];
+
+  const snapPointPosition = pointPositionRelativeToRect(
+    snapX,
+    snapY,
+    actualX,
+    actualY,
+    actualWidth,
+    actualHeight,
+  );
+
+  switch (snapPointPosition) {
+    case PointPositions.NORTH_WEST: {
+      return [snapPoint, nePoint, sePoint, swPoint];
+    }
+
+    case PointPositions.NORTH: {
+      return [snapPoint, nePoint, sePoint, swPoint, nwPoint];
+    }
+
+    case PointPositions.NORTH_EAST: {
+      return [snapPoint, sePoint, swPoint, nwPoint];
+    }
+
+    case PointPositions.EAST: {
+      return [snapPoint, sePoint, swPoint, nwPoint, nePoint];
+    }
+
+    case PointPositions.SOUTH_EAST: {
+      return [snapPoint, swPoint, nwPoint, nePoint];
+    }
+
+    case PointPositions.SOUTH: {
+      return [snapPoint, swPoint, nwPoint, nePoint, sePoint];
+    }
+
+    case PointPositions.SOUTH_WEST: {
+      return [snapPoint, nwPoint, nePoint, sePoint];
+    }
+
+    case PointPositions.WEST: {
+      return [snapPoint, nwPoint, nePoint, sePoint, swPoint];
+    }
+
+    default: {
+      return [nwPoint, nePoint, sePoint, swPoint];
+    }
+  }
+};
 
 let dragArea = null;
 
@@ -58,6 +136,8 @@ export class ComponentsDragArea extends PureComponent {
   
     this._placeholderElement = null;
     this._dropMenuElement = null;
+    this._dropMenuDimensions = null;
+    this._dropMenuPolygon = null;
     this._debugDataContainerElement = null;
     this._dropZones = new Map();
     this._dropZoneDimensionsCache = new Map();
@@ -88,6 +168,7 @@ export class ComponentsDragArea extends PureComponent {
       dropMenuDropZoneId: '',
       dropMenuIsVisible: false,
       dropMenuCoords: { x: 0, y: 0 },
+      dropMenuSnapCoords: { x: 0, y: 0 },
       dropPointsData: [],
     };
 
@@ -129,6 +210,12 @@ export class ComponentsDragArea extends PureComponent {
   
   _saveDropMenuRef(ref) {
     this._dropMenuElement = ref;
+
+    if (this._dropMenuElement) {
+      this._dropMenuDimensions = this._dropMenuElement.getBoundingClientRect();
+    } else {
+      this._dropMenuDimensions = null;
+    }
   }
   
   _saveDebugDataContainerRef(ref) {
@@ -299,6 +386,8 @@ export class ComponentsDragArea extends PureComponent {
    * @private
    */
   _handleMouseMove(event) {
+    const { dropMenuIsVisible, dropMenuSnapCoords } = this.state;
+
     if (!this._snapElement) {
       this._positionX = event.pageX + PLACEHOLDER_OFFSET_X;
       this._positionY = event.pageY + PLACEHOLDER_OFFSET_Y;
@@ -320,7 +409,11 @@ export class ComponentsDragArea extends PureComponent {
       );
 
       if (mouseIsInDropZone) {
+        let dropZoneChanged = false;
+
         if (this._lastDraggedDropZoneId !== id) {
+          dropZoneChanged = true;
+
           if (this._lastDraggedDropZoneId) {
             const lastDropZone =
               this._dropZones.get(this._lastDraggedDropZoneId);
@@ -331,12 +424,45 @@ export class ComponentsDragArea extends PureComponent {
           onEnter();
         }
 
-        onDrag({
-          x: event.pageX - left,
-          y: event.pageY - top,
-          pageX: event.pageX,
-          pageY: event.pageY,
-        });
+        let willTriggerDrag = true;
+
+        if (dropMenuIsVisible) {
+          if (dropZoneChanged) {
+            this._hideDropMenu();
+          } else {
+            if (!this._dropMenuPolygon) {
+              this._dropMenuPolygon = buildDropMenuPolygon(
+                this._dropMenuDimensions.left,
+                this._dropMenuDimensions.top,
+                this._dropMenuDimensions.width,
+                this._dropMenuDimensions.height,
+                DROP_MENU_BORDER,
+                dropMenuSnapCoords.x,
+                dropMenuSnapCoords.y,
+              );
+            }
+
+            const isOverDropMenu = pointInPolygon(
+              [event.pageX, event.pageY],
+              this._dropMenuPolygon,
+            );
+
+            if (isOverDropMenu) {
+              willTriggerDrag = false;
+            } else {
+              this._hideDropMenu();
+            }
+          }
+        }
+
+        if (willTriggerDrag) {
+          onDrag({
+            x: event.pageX - left,
+            y: event.pageY - top,
+            pageX: event.pageX,
+            pageY: event.pageY,
+          });
+        }
 
         this._lastDraggedDropZoneId = id;
         foundDropZone = true;
@@ -379,7 +505,7 @@ export class ComponentsDragArea extends PureComponent {
     window.removeEventListener('mousemove', this._handleMouseMove);
     window.removeEventListener('mouseup', this._handleMouseUp);
     
-    if (dropMenuIsVisible) this._handleHideDropMenu();
+    if (dropMenuIsVisible) this._hideDropMenu();
     if (dropZoneId) onDrop({ dropZoneId, data });
     this._dropZoneDimensionsCache.clear();
   }
@@ -501,7 +627,7 @@ export class ComponentsDragArea extends PureComponent {
     this._scheduleUpdate();
   }
   
-  _handleShowDropMenu({ dropZoneId, coords, dropPointsData }) {
+  _showDropMenu({ dropZoneId, coords, snapCoords, dropPointsData }) {
     if (!this._dropZones.has(dropZoneId) || dropPointsData.length === 0) {
       return;
     }
@@ -510,17 +636,19 @@ export class ComponentsDragArea extends PureComponent {
       dropMenuDropZoneId: dropZoneId,
       dropMenuIsVisible: true,
       dropMenuCoords: coords,
+      dropMenuSnapCoords: snapCoords,
       dropPointsData,
     });
   
     this._selectDropPoint(0);
   }
   
-  _handleHideDropMenu() {
+  _hideDropMenu() {
     this.setState({
       dropMenuDropZoneId: '',
       dropMenuIsVisible: false,
       dropMenuCoords: { x: 0, y: 0 },
+      dropMenuSnapCoords: { x: 0, y: 0 },
       dropPointsData: [],
     });
   }
@@ -540,6 +668,7 @@ export class ComponentsDragArea extends PureComponent {
   
   _renderDropMenu() {
     const {
+      dropMenuDropZoneId,
       dropMenuCoords: { x, y },
       dropPointsData,
     } = this.state;
@@ -552,17 +681,21 @@ export class ComponentsDragArea extends PureComponent {
         onHover={this._handleDropMenuItemHover}
       />
     ));
+
+    const dzDims = this._getDropZoneDimensions(dropMenuDropZoneId);
     
     const style = {
       position: 'absolute',
-      zIndex: '1001',
-      left: `${x - DROP_MENU_OFFSET_X}px`,
-      top: `${y - DROP_MENU_OFFSET_Y}px`,
+      zIndex: '10000',
+      left: `${x + dzDims.left - DROP_MENU_OFFSET_X}px`,
+      top: `${y + dzDims.top - DROP_MENU_OFFSET_Y}px`,
     };
     
     return (
       <div style={style} ref={this._saveDropMenuRef}>
         <MenuOverlapping>
+          <MenuOverlappingDivider title="Insert component into:" />
+
           <MenuOverlappingGroup>
             {items}
           </MenuOverlappingGroup>
@@ -662,12 +795,8 @@ const handleUnsnap = data => {
   if (dragArea !== null) dragArea._handleUnsnap(data);
 };
 
-const handleShowDropMenu = data => {
-  if (dragArea !== null) dragArea._handleShowDropMenu(data);
-};
-
-const handleHideDropMenu = data => {
-  if (dragArea !== null) dragArea._handleHideDropMenu(data);
+const handleOpenDropMenu = data => {
+  if (dragArea !== null) dragArea._showDropMenu(data);
 };
 
 const wrapCallback = (cb, nextCb) => {
@@ -725,11 +854,8 @@ export const connectDropZone = WrappedComponent => {
     const onDropZoneRemove =
       wrapCallback(props.onDropZoneRemove, handleDropZoneRemove);
     
-    const onDropZoneShowDropMenu =
-      wrapCallback(props.onDropZoneShowDropMenu, handleShowDropMenu);
-    
-    const onDropZoneHideDropMenu =
-      wrapCallback(props.onDropZoneHideDropMenu, handleHideDropMenu);
+    const onDropZoneOpenDropMenu =
+      wrapCallback(props.onDropZoneOpenDropMenu, handleOpenDropMenu);
 
     return (
       <WrappedComponent
@@ -738,8 +864,7 @@ export const connectDropZone = WrappedComponent => {
         onDropZoneRemove={onDropZoneRemove}
         onDropZoneSnap={onDropZoneSnap}
         onDropZoneUnsnap={onDropZoneUnsnap}
-        onDropZoneShowDropMenu={onDropZoneShowDropMenu}
-        onDropZoneHideDropMenu={onDropZoneHideDropMenu}
+        onDropZoneOpenDropMenu={onDropZoneOpenDropMenu}
       />
     );
   };
