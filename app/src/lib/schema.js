@@ -347,11 +347,13 @@ const findRelayNodeInterface = schema =>
  * @return {boolean}
  */
 const isRelayPageInfoType = type => {
-  if (type.kind !== GQLTypeKinds.OBJECT || type.name !== RELAY_TYPE_PAGEINFO)
+  if (type.kind !== GQLTypeKinds.OBJECT || type.name !== RELAY_TYPE_PAGEINFO) {
     return false;
+  }
   
-  if (!type.fields || type.fields.length < RELAY_PAGEINFO_FIELDS_NUM)
+  if (!type.fields || type.fields.length < RELAY_PAGEINFO_FIELDS_NUM) {
     return false;
+  }
   
   const hasNextPageField =
     findGQLField(type, RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE);
@@ -384,15 +386,17 @@ const pageInfoHasCursors = pageInfoType => {
   const startCursorField =
     findGQLField(pageInfoType, RELAY_PAGEINFO_FIELD_START_CURSOR);
   
-  if (!startCursorField || startCursorField.type.name !== 'String')
+  if (!startCursorField || startCursorField.type.name !== 'String') {
     return false;
+  }
   
   const endCursorField =
     findGQLField(pageInfoType, RELAY_PAGEINFO_FIELD_END_CURSOR);
   
   //noinspection RedundantIfStatementJS
-  if (!endCursorField || endCursorField.type.name !== 'String')
+  if (!endCursorField || endCursorField.type.name !== 'String') {
     return false;
+  }
   
   return true;
 };
@@ -733,10 +737,13 @@ export const parseGraphQLSchema = schema => {
   
   /* eslint-enable no-use-before-define */
   
-  if (queryTypeName)
+  if (queryTypeName) {
     visitGQLObjectType(findGQLType(schema, queryTypeName));
-  if (mutationTypeName)
+  }
+  
+  if (mutationTypeName) {
     visitGQLObjectType(findGQLType(schema, mutationTypeName));
+  }
   
   return {
     types: retTypes,
@@ -783,8 +790,9 @@ export const getTypeNameByField = (schema, fullFieldName, onType) => {
   const { fieldName, connectionFieldName } = parseFieldName(fullFieldName);
   let field = schema.types[onType].fields[fieldName];
 
-  if (connectionFieldName)
+  if (connectionFieldName) {
     field = field.connectionFields[connectionFieldName];
+  }
 
   return field.type;
 };
@@ -866,8 +874,9 @@ const getJssyTypeOfField = (
     fieldTypedef.kind === FieldKinds.LIST ||
     fieldTypedef.kind === FieldKinds.CONNECTION
   ) {
-    if (fieldTypedef.nonNullMember && ret.type === TypeNames.SHAPE)
+    if (fieldTypedef.nonNullMember && ret.type === TypeNames.SHAPE) {
       ret.notNull = true;
+    }
   
     ret.source = source;
     ret.sourceConfigs = sourceConfigsFromTypedef(ret);

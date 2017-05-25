@@ -15,9 +15,8 @@ const DIMENSION_DEFAULT = '300px';
 */
 export const ConstructionPane = props => {
   let className = 'construction-pane';
-
-  let rulerX = null,
-    rulerY = null;
+  let rulerX = null;
+  let rulerY = null;
   
   if (props.rulers) {
     className += ' has-rulers';
@@ -45,24 +44,26 @@ export const ConstructionPane = props => {
     height,
     minHeight: props.maxHeight,
     maxHeight: props.minHeight,
-
     width,
     minWidth: props.minWidth,
     maxWidth: props.maxWidth,
   };
 
-  let expanderX = null,
-    expanderY = null,
-    expanderEntire = null;
+  let expanderX = null;
+  let expanderY = null;
+  let expanderEntire = null;
 
-  if (!props.height)
+  if (!props.height) {
     expanderY = <ArtboardExpander position="vertical" />;
+  }
 
-  if (!props.width)
+  if (!props.width) {
     expanderX = <ArtboardExpander position="horizontal" />;
+  }
 
-  if (!props.width && !props.height)
+  if (!props.width && !props.height) {
     expanderEntire = <ArtboardExpander position="entire" />;
+  }
     
   // TODO: Strip units for artboardData and place there current artboard's size  (ex. 300 x 300)
   const artboardData = (

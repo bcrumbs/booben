@@ -1,21 +1,35 @@
 'use strict';
 
 import React from 'react';
-import { Button } from '@reactackle/reactackle';
-import { DataSourcePickerDrawerContentStyled }
-  from './styles/DataSourcePickerDrawerContentStyled';
+import PropTypes from 'prop-types';
+
+import {
+  DataSourcePickerDrawerContentStyled,
+} from './styles/DataSourcePickerDrawerContentStyled';
+
 import { TitleStyled } from './styles/TitleStyled';
 import { ButtonWrapperStyled } from './styles/ButtonWrapperStyled';
 
-export const DataSourcePickerDrawerContent = () => (
+const propTypes = {
+  title: PropTypes.string,
+};
+
+const defaultProps = {
+  title: '',
+};
+
+export const DataSourcePickerDrawerContent = props => (
   <DataSourcePickerDrawerContentStyled>
     <TitleStyled>
-      Выберите источник данных
+      {props.title}
     </TitleStyled>
+    
     <ButtonWrapperStyled>
-      <Button text="Cancel" kind="flat" light size="small" />
+      {props.children}
     </ButtonWrapperStyled>
   </DataSourcePickerDrawerContentStyled>
 );
 
+DataSourcePickerDrawerContent.propTypes = propTypes;
+DataSourcePickerDrawerContent.defaultProps = defaultProps;
 DataSourcePickerDrawerContent.displayName = 'DataSourcePickerDrawerContent';

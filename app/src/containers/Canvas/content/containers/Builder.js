@@ -242,8 +242,9 @@ class BuilderComponent extends PureComponent {
 
     const cached = this._queriesCache.get(component.id);
 
-    if (cached && cached.component === component)
+    if (cached && cached.component === component) {
       return cached.queryData;
+    }
 
     const queryData = buildQueryForComponent(component, schema, meta, project);
     this._queriesCache.set(component.id, { component, queryData });
@@ -253,11 +254,10 @@ class BuilderComponent extends PureComponent {
   
   _getApolloWrappedComponentFromCache(component) {
     const cached = this._apolloWrappedComponentsCache.get(component.id);
-    
-    if (cached && cached.component === component)
-      return cached.wrapper;
-    else
-      return null;
+  
+    return cached && cached.component === component
+      ? cached.wrapper
+      : null;
   }
   
   _putApolloWrappedComponentToCache(component, wrapper) {
@@ -351,8 +351,9 @@ class BuilderComponent extends PureComponent {
           componentMeta.types,
         );
         
-        if (value !== NO_VALUE)
+        if (value !== NO_VALUE) {
           ret[stateSlotName] = value;
+        }
       }
     });
     
@@ -435,8 +436,9 @@ class BuilderComponent extends PureComponent {
           project.auth &&
           project.auth.type === 'jwt' &&
           action.params.mutation === project.auth.loginMutation
-        )
+        ) {
           selections = _set({}, project.auth.tokenPath, true);
+        }
         
         const mutation = buildMutation(
           schema,
@@ -816,8 +818,9 @@ class BuilderComponent extends PureComponent {
               );
             }
           
-            if (newValue !== NO_VALUE)
+            if (newValue !== NO_VALUE) {
               nextState = nextState.set(slotName, newValue);
+            }
           });
         
           if (nextState !== currentState) {
@@ -875,8 +878,9 @@ class BuilderComponent extends PureComponent {
     let rawValue = NO_VALUE;
     if (interactive) {
       const route = project.routes.get(jssyValue.sourceData.routeId);
-      if (route)
+      if (route) {
         rawValue = route.paramValues.get(jssyValue.sourceData.paramName);
+      }
     } else {
       rawValue = params[jssyValue.sourceData.paramName];
     }
@@ -1061,10 +1065,11 @@ class BuilderComponent extends PureComponent {
     const props = this._buildProps(component, null);
     
     if (component.name === 'Outlet') {
-      if (isPlaceholder || (interactive && !children))
+      if (isPlaceholder || (interactive && !children)) {
         return this._renderOutletComponent(component, isPlaceholderRoot);
-      else
+      } else {
         return children;
+      }
     } else if (component.name === 'Text') {
       return props.text || '';
     } else if (component.name === 'List') {
@@ -1152,15 +1157,17 @@ class BuilderComponent extends PureComponent {
       !isPlaceholder &&
       !isComposite;
 
-    if (component.children.size === 0 && !willRenderPlaceholders)
+    if (component.children.size === 0 && !willRenderPlaceholders) {
       return null;
+    }
 
     component.children.forEach((childComponentId, idx) => {
       const childComponent = components.get(childComponentId);
 
       // Do not render disabled regions in composite components
-      if (!isPlaceholder && isComposite && !component.regionsEnabled.has(idx))
+      if (!isPlaceholder && isComposite && !component.regionsEnabled.has(idx)) {
         return;
+      }
 
       if (willRenderPlaceholders) {
         const canInsertHere = canInsertComponent(
@@ -1285,12 +1292,14 @@ class BuilderComponent extends PureComponent {
       !rootDraggedComponent.isNew &&
       component.id === rootDraggedComponent.id &&
       !isPlaceholder
-    )
+    ) {
       return null;
+    }
 
     // Handle special components like Text, Outlet etc
-    if (isPseudoComponent(component))
+    if (isPseudoComponent(component)) {
       return this._renderPseudoComponent(component, isPlaceholderRoot);
+    }
 
     // Get component class
     const Component = getComponentByName(component.name);
@@ -1329,11 +1338,13 @@ class BuilderComponent extends PureComponent {
     if (!isPlaceholder) {
       props.key = String(component.id);
       
-      if (this._renderHints.needRefs.has(component.id))
+      if (this._renderHints.needRefs.has(component.id)) {
         props.ref = this._saveComponentRef.bind(this, component.id);
+      }
 
-      if (interactive && !dontPatch)
+      if (interactive && !dontPatch) {
         this._patchComponentProps(props, isHTMLComponent, component.id);
+      }
 
       if (!props.children && this._willRenderContentPlaceholder(component)) {
         props.children = (
@@ -1345,8 +1356,9 @@ class BuilderComponent extends PureComponent {
       props.key =
         `placeholder-${String(Math.floor(Math.random() * 1000000000))}`;
 
-      if (isPlaceholderRoot && !dontPatch)
+      if (isPlaceholderRoot && !dontPatch) {
         this._patchPlaceholderRootProps(props, isHTMLComponent);
+      }
 
       const willRenderContentPlaceholder =
         !props.children &&

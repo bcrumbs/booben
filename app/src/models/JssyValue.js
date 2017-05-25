@@ -64,14 +64,17 @@ class JssyValue extends JssyValueRecord {
         (List.isList(value) && isNaturalNumber(step));
     }
 
-    if (current.sourceIs('function'))
+    if (current.sourceIs('function')) {
       return VALID_PATH_STEPS_FUNCTION.has(step);
+    }
 
-    if (current.sourceIs('designer'))
+    if (current.sourceIs('designer')) {
       return VALID_PATH_STEPS_DESIGNER.has(step);
+    }
 
-    if (current.sourceIs('actions'))
+    if (current.sourceIs('actions')) {
       return VALID_PATH_STEPS_ACTIONS.has(step);
+    }
 
     return false;
   }
@@ -91,22 +94,25 @@ class JssyValue extends JssyValueRecord {
   }
   
   setInStatic(path, jssyValue) {
-    if (path.length === 0)
+    if (path.length === 0) {
       throw new Error('JssyValue#setInStatic: path must not be empty');
+    }
     
     return this.setIn(expandPath(path), jssyValue);
   }
 
   unsetInStatic(path) {
-    if (path.length === 0)
+    if (path.length === 0) {
       throw new Error('JssyValue#setInStatic: path must not be empty');
+    }
 
     return this.deleteIn(expandPath(path));
   }
   
   updateInStatic(path, updateFn) {
-    if (path.length === 0)
+    if (path.length === 0) {
       throw new Error('JssyValue#updateInStatic: path must not be empty');
+    }
     
     return this.updateIn(expandPath(path), updateFn);
   }
@@ -133,26 +139,29 @@ class JssyValue extends JssyValueRecord {
   }
   
   addValueInStatic(index, jssyValue) {
-    if (!this.sourceIs('static'))
+    if (!this.sourceIs('static')) {
       throw new Error('JssyValue#addValueInStatic: not a static value');
+    }
     
     const path = ['sourceData', 'value'];
     
     if (isString(index)) {
       return this.updateIn(path, map => map.set(index, jssyValue));
     } else if (isInteger(index)) {
-      if (index === -1)
+      if (index === -1) {
         return this.updateIn(path, list => list.push(jssyValue));
-      else if (index >= 0)
+      } else if (index >= 0) {
         return this.updateIn(path, list => list.insert(index, jssyValue));
+      }
     }
 
     throw new Error(`JssyValue#addValueInStatic: ${index} is invalid index`);
   }
   
   deleteValueInStatic(index) {
-    if (!this.sourceIs('static'))
+    if (!this.sourceIs('static')) {
       throw new Error('JssyValue#addValueInStatic: not a static value');
+    }
     
     return this.updateIn(
       ['sourceData', 'value'],
@@ -193,15 +202,17 @@ class JssyValue extends JssyValueRecord {
   }
 
   resetDataLink() {
-    if (!this.sourceIs('data'))
+    if (!this.sourceIs('data')) {
       throw new Error('JssyValue#resetDataLink called on non-data value');
+    }
 
     return this.set('sourceData', new SourceDataData({ queryPath: null }));
   }
   
   getQueryStepArgValues(stepIdx) {
-    if (!this.isLinkedWithData())
+    if (!this.isLinkedWithData()) {
       throw new Error('JssyValue#getQueryStepArgValues: Not a data value');
+    }
     
     const keyForQueryArgs = this.sourceData.queryPath
       .slice(0, stepIdx + 1)

@@ -132,8 +132,9 @@ export class JssyValueEditor extends PureComponent {
       nextProps.userTypedefs !== this.props.userTypedefs ||
       nextProps.strings !== this.props.strings ||
       nextProps.language !== this.props.language
-    )
+    ) {
       this._propType = null;
+    }
   }
   
   /**
@@ -324,10 +325,11 @@ export class JssyValueEditor extends PureComponent {
           parentTypeDef.type === TypeNames.ARRAY_OF ||
           parentTypeDef.type === TypeNames.OBJECT_OF;
         
-        if (!isIterable && !resolvedValueDef.required)
+        if (!isIterable && !resolvedValueDef.required) {
           newValue = currentValue.unsetInStatic(path);
-        else
+        } else {
           newValue = currentValue.setInStatic(path, JssyValue.STATIC_NULL);
+        }
       }
 
       onChange({ name, value: newValue });
@@ -425,10 +427,11 @@ export class JssyValueEditor extends PureComponent {
     
     if (override) return override;
     
-    if (valueDef.textKey && strings && language)
+    if (valueDef.textKey && strings && language) {
       return getString(strings, valueDef.textKey, language);
-    else
+    } else {
       return valueDef.label || fallback || '';
+    }
   }
   
   /**
@@ -438,10 +441,11 @@ export class JssyValueEditor extends PureComponent {
    * @private
    */
   _formatSecondaryLabel(valueDef) {
-    if (isValidSourceForValue(valueDef, 'const'))
+    if (isValidSourceForValue(valueDef, 'const')) {
       return `const ${valueDef.type}`;
-    else
+    } else {
       return valueDef.type;
+    }
   }
   
   /**
@@ -457,10 +461,11 @@ export class JssyValueEditor extends PureComponent {
   
     if (override) return override;
   
-    if (valueDef.descriptionTextKey && strings && language)
+    if (valueDef.descriptionTextKey && strings && language) {
       return getString(strings, valueDef.descriptionTextKey, language);
-    else
+    } else {
       return valueDef.description || fallback || '';
+    }
   }
   
   /**
@@ -659,8 +664,9 @@ export class JssyValueEditor extends PureComponent {
         }
       } else if (jssyValue.sourceIs('designer')) {
         // true if component exists, false otherwise
-        if (resolvedValueDef.type === TypeNames.COMPONENT)
+        if (resolvedValueDef.type === TypeNames.COMPONENT) {
           value = jssyValue.sourceData.rootId !== INVALID_ID;
+        }
       }
     } else if (jssyValue.sourceIs('data')) {
       if (jssyValue.sourceData.queryPath) {

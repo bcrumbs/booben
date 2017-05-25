@@ -25,8 +25,9 @@ class RewriteThemePathResolverPlugin {
         /@reactackle[/\\]reactackle/.test(request.path) &&
         request.request === '../_theme.scss';
 
-      if (isReactackleThemeFile)
+      if (isReactackleThemeFile) {
         request.request = this._themePath;
+      }
 
       return callback();
     });

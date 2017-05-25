@@ -56,11 +56,10 @@ export class DataSelectionArgsEditor extends PureComponent {
     const { fieldArgs, onArgsUpdate } = this.props;
     
     let newArgs = fieldArgs || Map();
-
-    if (value)
-      newArgs = newArgs.set(name, value);
-    else
-      newArgs = newArgs.delete(name);
+  
+    newArgs = value
+      ? newArgs.set(name, value)
+      : newArgs.delete(name);
 
     onArgsUpdate({ args: newArgs });
   }
@@ -117,8 +116,9 @@ export class DataSelectionArgsEditor extends PureComponent {
       const valueDef = getJssyValueDefOfQueryArgument(arg, schema);
       
       let value = fieldArgs ? fieldArgs.get(argName) || null : null;
-      if (arg.nonNull && !value)
+      if (arg.nonNull && !value) {
         value = jssyValueToImmutable(buildDefaultValue(valueDef));
+      }
 
       return (
         <JssyValueEditor

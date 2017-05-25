@@ -67,8 +67,9 @@ const getValueDef = (arg, targetValueDef) => {
     ret.source.push(source);
     ret.sourceConfigs[source] = {};
 
-    if (source === 'static')
+    if (source === 'static') {
       ret.sourceConfigs.static.default = makeDefaultValue(arg.typedef);
+    }
   });
 
   return ret;

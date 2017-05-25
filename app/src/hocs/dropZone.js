@@ -29,14 +29,16 @@ const makeDisplayName = displayName => `dropZone(${displayName})`;
 
 const wrap = OriginalComponent => class extends OriginalComponent {
   componentWillReceiveProps(...args) {
-    if (super.componentWillReceiveProps)
+    if (super.componentWillReceiveProps) {
       super.componentWillReceiveProps(...args);
+    }
 
     const { dropZoneId } = this.props;
     const nextProps = args[0];
 
-    if (nextProps.dropZoneId !== dropZoneId)
+    if (nextProps.dropZoneId !== dropZoneId) {
       throw new Error('It is not allowed to change the dropZoneId');
+    }
   }
 
   componentWillUnmount(...args) {

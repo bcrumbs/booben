@@ -68,8 +68,9 @@ export const autoScrollUpDown = WrappedComponent => {
   
     _startSteppingScroll() {
       this.scrollInterval = setInterval(() => {
-        if (this.frameIsRequested)
+        if (this.frameIsRequested) {
           cancelAnimationFrame(this.requestedFrameId);
+        }
         
         this.frameIsRequested = true;
         this.requestedFrameId = requestAnimationFrame(this._scroll);
@@ -108,16 +109,18 @@ export const autoScrollUpDown = WrappedComponent => {
         (scrollState === ScrollStates.DOWN ? 1 : -1) *
         (additionalPixels - diff) / this.props.stepDiffDivider | 0;
 
-      if (this.scrollState === scrollState && this.scrollStep === scrollStep)
+      if (this.scrollState === scrollState && this.scrollStep === scrollStep) {
         return;
+      }
 
       this.scrollState = scrollState;
       this.scrollStep = scrollStep;
       
-      if (this.scrollState === ScrollStates.NONE)
+      if (this.scrollState === ScrollStates.NONE) {
         this._stopSteppingScroll();
-      else if (this.scrollInterval === null)
+      } else if (this.scrollInterval === null) {
         this._startSteppingScroll();
+      }
     }
   
     render() {

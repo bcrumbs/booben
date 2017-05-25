@@ -60,8 +60,9 @@ export const randomName = (len = 12) => {
 
   ret += LETTERS[Math.floor(Math.random() * LETTERS_LEN)];
 
-  for (let i = len - 2; i >= 0; i--)
+  for (let i = len - 2; i >= 0; i--) {
     ret += ALL_CHARS[Math.floor(Math.random() * ALL_CHARS_LEN)];
+  }
 
   return ret;
 };

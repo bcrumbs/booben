@@ -93,8 +93,9 @@ export class ComponentsTreeItemTitle extends Component {
       !!this._titleElement &&
       isEllipsisActive(this._titleElement);
     
-    if (needTooltip !== haveTooltip)
+    if (needTooltip !== haveTooltip) {
       this.setState({ haveTooltip: needTooltip });
+    }
   }
   
   render() {

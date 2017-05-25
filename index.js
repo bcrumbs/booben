@@ -22,8 +22,9 @@ const cb = (resolve, reject) =>
 const start = () => co(function* () {
   const app = express();
 
-  if (config.get('serveStatic'))
+  if (config.get('serveStatic')) {
     setupEndpoint(app, require('./endpoints/serve-app'));
+  }
 
   setupEndpoint(app, require('./endpoints/get-project'));
   setupEndpoint(app, require('./endpoints/get-metadata'));

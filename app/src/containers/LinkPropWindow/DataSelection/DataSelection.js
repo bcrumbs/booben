@@ -384,10 +384,11 @@ export class DataSelection extends PureComponent {
     const { currentPath, currentArgValues } = this.state;
     const fullPath = [...currentPath, fieldName];
     
-    if (this._haveUndefinedRequiredArgs(fullPath, currentArgValues))
+    if (this._haveUndefinedRequiredArgs(fullPath, currentArgValues)) {
       this._switchToFullArgumentsForm(fieldName);
-    else
+    } else {
       this._apply(fieldName, currentArgValues);
+    }
   }
   
   _renderFieldSelection() {

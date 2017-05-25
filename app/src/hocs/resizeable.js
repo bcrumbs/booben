@@ -97,8 +97,9 @@ const wrap = OriginalComponent => class extends OriginalComponent {
   }
 
   componentWillReceiveProps(...args) {
-    if (super.componentWillReceiveProps)
+    if (super.componentWillReceiveProps) {
       super.componentWillReceiveProps(...args);
+    }
 
     const nextProps = args[0];
 
@@ -203,8 +204,9 @@ const wrap = OriginalComponent => class extends OriginalComponent {
 
     window.removeEventListener('mousemove', this.__resizeableHandleMouseMove);
 
-    if (this.__resizeableIsResizing())
+    if (this.__resizeableIsResizing()) {
       window.removeEventListener('mouseup', this.__resizeableHandleMouseUp);
+    }
   }
 
   __resizeableHandleMouseEnter() {
@@ -417,11 +419,13 @@ const wrap = OriginalComponent => class extends OriginalComponent {
   }
 
   __resizeableHandleAnimationFrame() {
-    if (this.__resizeableWillSetWidth)
+    if (this.__resizeableWillSetWidth) {
       this.__resizeableElement.style.width = `${this.__resizeableNewWidth}px`;
+    }
 
-    if (this.__resizeableWillSetHeight)
+    if (this.__resizeableWillSetHeight) {
       this.__resizeableElement.style.height = `${this.__resizeableNewHeight}px`;
+    }
 
     this.__resizeableAnimationFrame = null;
     this.__resizeableNeedRAF = true;

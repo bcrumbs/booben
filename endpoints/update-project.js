@@ -71,10 +71,11 @@ module.exports = {
       try {
         projectDataJSON = yield fs.readFile(projectFile, { encoding: 'utf8' });
       } catch (err) {
-        if (err.code === 'ENOENT')
+        if (err.code === 'ENOENT') {
           helpers.sendError(res, 404, 'Project not found');
-        else
+        } else {
           helpers.sendError(res);
+        }
 
         return;
       }

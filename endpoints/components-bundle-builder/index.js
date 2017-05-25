@@ -262,8 +262,9 @@ const installLoaders = (projectDir, libsData, options) => co(function* () {
   });
 
   const loadersPeerDeps = Array.from(loadersPeerDepsSet.values());
-  if (loadersPeerDeps.length > 0)
+  if (loadersPeerDeps.length > 0) {
     yield npmInstall(projectDir, loadersPeerDeps, { log: options.npmLogger });
+  }
 });
 
 const cb = (resolve, reject) =>
@@ -288,8 +289,9 @@ const clean = projectDir => co(function* () {
     path.join(projectDir, constants.PROJECT_COMPONENTS_SRC_FILE),
   ];
 
-  for (let i = 0, l = toDelete.length; i < l; i++)
+  for (let i = 0, l = toDelete.length; i < l; i++) {
     yield rmrf(toDelete[i]);
+  }
 });
 
 /**
@@ -397,8 +399,9 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
   const webpackConfig = generateWebpackConfig(projectDir, libsData);
   const stats = yield compile(webpackConfig);
   
-  if (options.printWebpackOutput)
+  if (options.printWebpackOutput) {
     logger.debug(stats.toString({ colors: true }));
+  }
   
   const webpackLogFile = path.join(
     projectDir,

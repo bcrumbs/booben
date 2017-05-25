@@ -106,10 +106,11 @@ module.exports = {
       try {
         yield fs.mkdir(projectDir);
       } catch (err) {
-        if (err.code === 'EEXIST')
+        if (err.code === 'EEXIST') {
           helpers.sendError(res, 400, 'Project already exists');
-        else
+        } else {
           helpers.sendError(res);
+        }
 
         return;
       }

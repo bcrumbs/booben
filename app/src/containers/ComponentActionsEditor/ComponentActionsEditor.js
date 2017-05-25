@@ -521,12 +521,13 @@ class ComponentActionsEditorComponent extends PureComponent {
     if (selectedComponentIds.size !== 1) return null;
     
     let content = null;
-    if (currentView === Views.HANDLERS_LIST)
+    if (currentView === Views.HANDLERS_LIST) {
       content = this._renderHandlersList();
-    else if (currentView === Views.NEW_ACTION)
+    } else if (currentView === Views.NEW_ACTION) {
       content = this._renderNewActionView();
-    else if (currentView === Views.EDIT_ACTION)
+    } else if (currentView === Views.EDIT_ACTION) {
       content = this._renderEditActionView();
+    }
     
     return (
       <BlockContentBox isBordered flex>

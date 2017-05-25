@@ -1,6 +1,7 @@
 {
   "extends": "@eslint/eslint-config-client",
   "rules": {
+    "curly": [2, "multi-line", "consistent"],
     "import/no-extraneous-dependencies": [0]
   }
 }

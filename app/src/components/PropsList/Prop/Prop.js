@@ -70,11 +70,13 @@ const defaultProps = {
  * @returns {?PropsItemPropType}
  */
 const getNestedType = (baseType, index) => {
-  if (baseType.view === PropViews.SHAPE)
+  if (baseType.view === PropViews.SHAPE) {
     return baseType.fields[index];
+  }
 
-  if (baseType.view === PropViews.ARRAY || baseType.view === PropViews.OBJECT)
+  if (baseType.view === PropViews.ARRAY || baseType.view === PropViews.OBJECT) {
     return baseType.ofType;
+  }
 
   return null;
 };
@@ -477,8 +479,9 @@ export class Prop extends PureComponent {
     if (propType.view === PropViews.INPUT) {
       const optionalProps = {};
 
-      if (propType.transformValue)
+      if (propType.transformValue) {
         optionalProps.transformValue = propType.transformValue;
+      }
 
       return (
         <PropInput
@@ -492,8 +495,9 @@ export class Prop extends PureComponent {
     } else if (propType.view === PropViews.TEXTAREA) {
       const optionalProps = {};
 
-      if (propType.transformValue)
+      if (propType.transformValue) {
         optionalProps.transformValue = propType.transformValue;
+      }
 
       return (
         <PropTextarea

@@ -57,9 +57,12 @@ export const loadComponents = async (windowInstance, projectName) => {
     windowInstance,
     `${URL_APP_PREFIX}/${projectName}/${COMPONENTS_BUNDLE_FILE}`,
   );
+  
+  const noComponents =
+    !windowInstance.JssyComponents ||
+    !windowInstance.JssyComponents.default;
 
-  if (!windowInstance.JssyComponents || !windowInstance.JssyComponents.default)
-    throw new Error('No components in bundle');
+  if (noComponents) throw new Error('No components in bundle');
 
   components = _mapValues(
     windowInstance.JssyComponents.default,
@@ -77,17 +80,20 @@ export const getComponentByName = (componentName = '') => {
   if (!components) throw new Error('Components not loaded');
 
   const { namespace, name } = parseComponentName(componentName);
-  if (!namespace || !name)
+  if (!namespace || !name) {
     throw new Error(`Invalid component name: '${componentName}'`);
+  }
 
   if (namespace === 'HTML') return name;
 
-  if (!components[namespace])
+  if (!components[namespace]) {
     throw new Error(`Namespace not found: '${namespace}'`);
+  }
 
   const component = components[namespace][name];
-  if (!component)
+  if (!component) {
     throw new Error(`Component not found: '${componentName}'`);
+  }
 
   return component;
 };

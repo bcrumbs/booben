@@ -182,11 +182,13 @@ const libraryGroupsSelector = createSelector(
 );
 
 const getComponentNameString = (componentData, language, getLocalizedText) => {
-  if (componentData.text)
+  if (componentData.text) {
     return componentData.text.get(language);
+  }
   
-  if (componentData.textIntlKey)
+  if (componentData.textIntlKey) {
     return getLocalizedText(componentData.textIntlKey);
+  }
   
   return componentData.name;
 };
@@ -194,14 +196,15 @@ const getComponentNameString = (componentData, language, getLocalizedText) => {
 const getGroupNameString = (groupData, language, getLocalizedText) => {
   let name;
   
-  if (groupData.isDefault)
+  if (groupData.isDefault) {
     name = getLocalizedText('library.uncategorizedComponents');
-  else if (groupData.text)
+  } else if (groupData.text) {
     name = groupData.text.get(language);
-  else if (groupData.textIntlKey)
+  } else if (groupData.textIntlKey) {
     name = getLocalizedText(groupData.textIntlKey);
-  else
+  } else {
     name = groupData.name;
+  }
   
   return groupData.namespace
     ? `${groupData.namespace} - ${name}`

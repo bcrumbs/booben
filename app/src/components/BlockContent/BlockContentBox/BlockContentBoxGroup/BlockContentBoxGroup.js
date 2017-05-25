@@ -18,8 +18,9 @@ const defaultProps = {
 export const BlockContentBoxGroup = props => {
   let className = 'block-content_item-group';
   
-  if (props.colorScheme !== 'default')
+  if (props.colorScheme !== 'default') {
     className += ` color-scheme-${props.colorScheme}`;
+  }
   
   return (
     <div className={className}>

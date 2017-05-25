@@ -631,8 +631,9 @@ const getValueInfoByPath = (path, state) => {
   let currentFunction = null;
   let currentAction = null;
   
-  if (path.startingPoint === PathStartingPoints.CURRENT_COMPONENTS)
+  if (path.startingPoint === PathStartingPoints.CURRENT_COMPONENTS) {
     currentComponents = state.getIn(getPathToCurrentComponents(state));
+  }
   
   walkPath(materializePath(path, state), (object, idx) => {
     if (idx === -1) return;
@@ -648,8 +649,9 @@ const getValueInfoByPath = (path, state) => {
           project,
         );
         
-        if (nextStep === 'args')
+        if (nextStep === 'args') {
           nextValueType = ValueTypes.FUNCTION_ARG;
+        }
       } else if (object.source === 'designer') {
         currentComponents = object.sourceData.components;
       }
@@ -720,13 +722,14 @@ const getValueInfoByPath = (path, state) => {
         
         const resolvedTypedef = resolveTypedef(currentValueDef, userTypedefs);
       
-        if (resolvedTypedef.type === 'shape')
+        if (resolvedTypedef.type === 'shape') {
           currentValueDef = resolvedTypedef.fields[step];
-        else if (
+        } else if (
           resolvedTypedef.type === 'arrayOf' ||
           resolvedTypedef.type === 'objectOf'
-        )
+        ) {
           currentValueDef = resolvedTypedef.ofType;
+        }
       }
     } else {
       currentValueType = ValueTypes.NOT_A_VALUE;
@@ -734,28 +737,31 @@ const getValueInfoByPath = (path, state) => {
       currentValueDef = null;
   
       if (object instanceof ProjectRoute) {
-        if (nextStep === 'components')
+        if (nextStep === 'components') {
           currentComponents = object.components;
+        }
       } else if (object instanceof ProjectComponent) {
         componentMeta = getComponentMeta(object.name, state.meta);
         
-        if (nextStep === 'props')
+        if (nextStep === 'props') {
           nextValueType = ValueTypes.COMPONENT_PROP;
-        else if (nextStep === 'systemProps')
+        } else if (nextStep === 'systemProps') {
           nextValueType = ValueTypes.COMPONENT_SYSTEM_PROP;
-        else if (nextStep === 'queryArgs')
+        } else if (nextStep === 'queryArgs') {
           nextValueType = ValueTypes.QUERY_ARG;
+        }
       } else if (object instanceof Action) {
         currentAction = object;
         
-        if (object.type === 'mutation' && nextStep === 'args')
+        if (object.type === 'mutation' && nextStep === 'args') {
           nextValueType = ValueTypes.ACTION_MUTATION_ARG;
-        else if (object.type === 'method' && nextStep === 'args')
+        } else if (object.type === 'method' && nextStep === 'args') {
           nextValueType = ValueTypes.ACTION_METHOD_ARG;
-        else if (object.type === 'prop' && nextStep === 'value')
+        } else if (object.type === 'prop' && nextStep === 'value') {
           nextValueType = ValueTypes.ACTION_PROP_VALUE;
-        else if (object.type === 'navigate' && nextStep === 'routeParams')
+        } else if (object.type === 'navigate' && nextStep === 'routeParams') {
           nextValueType = ValueTypes.ACTION_ROUTE_PARAM;
+        }
       }
     }
   });
@@ -869,8 +875,9 @@ const clearOutdatedDataProps = (state, updatedPath) => {
   };
   
   walkSimpleValues(updatedComponent, componentMeta, (propValue, _, steps) => {
-    if (propValue.hasDesignedComponent())
+    if (propValue.hasDesignedComponent()) {
       visitDesignerValue(propValue, expandPath({ start, steps }));
+    }
   });
 
   return state;
@@ -1131,8 +1138,9 @@ const handlers = {
     state = deselectComponent(state, action.componentId);
     state = unhighlightComponent(state, action.componentId);
   
-    if (state.draggedComponentId === action.componentId)
+    if (state.draggedComponentId === action.componentId) {
       state = initDNDState(state);
+    }
   
     return deleteComponent(state, action.componentId);
   },
@@ -1162,8 +1170,9 @@ const handlers = {
   },
   
   [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT]: (state, action) => {
-    if (action.path.startingPoint !== PathStartingPoints.CURRENT_COMPONENTS)
+    if (action.path.startingPoint !== PathStartingPoints.CURRENT_COMPONENTS) {
       throw new Error('Cannot open nested constructor with absolute path');
+    }
     
     const nestedConstructorData = {
       path: action.path,
@@ -1355,8 +1364,9 @@ const handlers = {
   },
   
   [PROJECT_PICK_COMPONENT]: (state, action) => {
-    if (state.pickingComponent || state.pickingComponentStateSlot)
+    if (state.pickingComponent || state.pickingComponentStateSlot) {
       return state;
+    }
 
     state = unhighlightAllComponents(state);
     
@@ -1377,8 +1387,9 @@ const handlers = {
       pickedComponentArea: action.pickArea,
     };
 
-    if (state.pickingComponentStateSlot)
+    if (state.pickingComponentStateSlot) {
       updates.componentStateSlotsListIsVisible = true;
+    }
 
     return state.merge(updates);
   },

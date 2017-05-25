@@ -14,8 +14,9 @@ import history from './history';
 
 const middleware = [routerMiddleware(history), thunkMiddleware];
 
-if (process.env.NODE_ENV === 'development')
+if (process.env.NODE_ENV === 'development') {
   middleware.push(createLogger());
+}
 
 const enhancers = [
   applyMiddleware(...middleware),
@@ -26,8 +27,9 @@ const willAddReduxDevTools =
   window &&
   window.__REDUX_DEVTOOLS_EXTENSION__;
 
-if (willAddReduxDevTools)
+if (willAddReduxDevTools) {
   enhancers.push(window.__REDUX_DEVTOOLS_EXTENSION__());
+}
 
 const reducer = enableBatching(rootReducer);
 const enhancer = compose(...enhancers);

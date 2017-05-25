@@ -222,8 +222,9 @@ class Preview extends Component {
       pickingComponentStateSlot;
     
     if (nowPickingComponent) {
-      if (!wasPickingComponent)
+      if (!wasPickingComponent) {
         window.document.body.addEventListener('click', this._handleBodyClick);
+      }
     } else if (wasPickingComponent) {
       window.document.body.removeEventListener('click', this._handleBodyClick);
     }
@@ -268,10 +269,11 @@ class Preview extends Component {
 
       const placeholderElement = document.querySelector(selector);
 
-      if (placeholderElement)
+      if (placeholderElement) {
         onDropZoneSnap({ element: placeholderElement });
-      else
+      } else {
         onDropZoneUnsnap();
+      }
     } else {
       onDropZoneUnsnap();
     }
@@ -314,8 +316,9 @@ class Preview extends Component {
       if (this._unhighilightTimer > -1) clearImmediate(this._unhighilightTimer);
     }
     
-    if (pickingComponent || pickingComponentStateSlot)
+    if (pickingComponent || pickingComponentStateSlot) {
       window.document.body.removeEventListener('click', this._handleBodyClick);
+    }
   }
 
   /**
@@ -395,8 +398,9 @@ class Preview extends Component {
           placeholderContainerId !== snapContainerId ||
           placeholderAfter !== snapAfterIdx;
 
-        if (willUpdatePlaceholder)
+        if (willUpdatePlaceholder) {
           onDragOverPlaceholder(snapContainerId, snapAfterIdx);
+        }
       } else if (draggingOverPlaceholder) {
         onDragOverNothing();
       }
@@ -653,12 +657,17 @@ class Preview extends Component {
         }
 
         if (this._unhighlightedComponentId !== componentId) {
-          if (this._unhighlightedComponentId !== INVALID_ID)
+          if (this._unhighlightedComponentId !== INVALID_ID) {
             onUnhighlightComponent(this._unhighlightedComponentId);
+          }
 
           if (pickingComponent) {
-            if (!pickingComponentFilter || pickingComponentFilter(componentId))
+            if (
+              !pickingComponentFilter ||
+              pickingComponentFilter(componentId)
+            ) {
               onHighlightComponent(componentId);
+            }
           } else {
             onHighlightComponent(componentId);
           }
@@ -722,8 +731,9 @@ class Preview extends Component {
         this._canInteractWithComponent(componentId)
       ) {
         if (pickingComponent) {
-          if (!pickingComponentFilter || pickingComponentFilter(componentId))
+          if (!pickingComponentFilter || pickingComponentFilter(componentId)) {
             onPickComponent(componentId);
+          }
         } else if (event.ctrlKey) {
           onToggleComponentSelection(componentId);
         } else {
@@ -744,8 +754,9 @@ class Preview extends Component {
       onCancelPickComponent,
     } = this.props;
     
-    if (pickingComponent || pickingComponentStateSlot)
+    if (pickingComponent || pickingComponentStateSlot) {
       onCancelPickComponent();
+    }
   }
   
   /**
@@ -761,8 +772,9 @@ class Preview extends Component {
     } = this.props;
     
     if (event.keyCode === KeyCodes.ESCAPE) {
-      if (pickingComponent || pickingComponentStateSlot)
+      if (pickingComponent || pickingComponentStateSlot) {
         onCancelPickComponent();
+      }
     }
   }
   

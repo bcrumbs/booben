@@ -87,8 +87,9 @@ export class ComponentsDragArea extends PureComponent {
   }
 
   componentWillMount() {
-    if (dragArea)
+    if (dragArea) {
       throw new Error('There should be only one ComponentsDragArea');
+    }
   }
 
   componentDidMount() {
@@ -118,15 +119,17 @@ export class ComponentsDragArea extends PureComponent {
   _showPlaceholderElement() {
     this._placeholderElement.style.display = '';
     
-    if (this._debugDataContainerElement)
+    if (this._debugDataContainerElement) {
       this._debugDataContainerElement.style.display = 'block';
+    }
   }
 
   _hidePlaceholderElement() {
     this._placeholderElement.style.display = 'none';
     
-    if (this._debugDataContainerElement)
+    if (this._debugDataContainerElement) {
       this._debugDataContainerElement.style.display = 'none';
+    }
   }
   
   _updateDebugData() {
@@ -357,8 +360,7 @@ export class ComponentsDragArea extends PureComponent {
     window.removeEventListener('mousemove', this._handleMouseMove);
     window.removeEventListener('mouseup', this._handleMouseUp);
 
-    if (dropZoneId)
-      onDrop({ dropZoneId, data });
+    if (dropZoneId) onDrop({ dropZoneId, data });
 
     this._dropZoneDimensionsCache.clear();
   }

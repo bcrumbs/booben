@@ -33,6 +33,7 @@
   "structure.createNewRootRoute": "Create new root route",
   "structure.newRoute": "New route",
   "structure.newRootRoute": "New root route",
+  "structure.indexRouteTitle": "Index",
   "structure.deleteRouteQuestion": "Delete route?",
   "structure.title": "Title",
   "structure.routeDescription": "Description",

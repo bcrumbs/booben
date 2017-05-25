@@ -51,8 +51,9 @@ const catchErrors = (fn, hookName) => function (...args) {
   try {
     return fn.apply(this, args);
   } catch (error) {
-    if (isFunction(this.props.__jssy_error_handler__))
+    if (isFunction(this.props.__jssy_error_handler__)) {
       this.props.__jssy_error_handler__(error, hookName);
+    }
     
     return defaultReturnValues[hookName];
   }
@@ -61,8 +62,9 @@ const catchErrors = (fn, hookName) => function (...args) {
 const catchErrorsInLifecycleHook = (component, hookName) => {
   const originalHook = component.prototype[hookName];
   
-  if (originalHook)
+  if (originalHook) {
     component.prototype[hookName] = catchErrors(originalHook, hookName);
+  }
 };
 
 const reactLifecycleHooks = [
@@ -92,11 +94,13 @@ const patchClassComponent = component => {
   component.prototype.componentDidUpdate =
     wrapLifecycleHook(originalComponentDidUpdate);
   
-  if (component.propTypes)
+  if (component.propTypes) {
     component.propTypes.__jssy_error_handler__ = PropTypes.func;
+  }
   
-  if (component.defaultProps)
+  if (component.defaultProps) {
     component.defaultProps.__jssy_error_handler__ = noop;
+  }
 
   return component;
 };
@@ -109,8 +113,9 @@ const patchClassComponent = component => {
 export default component => {
   if (isNullOrUndef(component)) return component;
 
-  if (isReactComponent(component))
+  if (isReactComponent(component)) {
     return patchClassComponent(toClassComponent(component));
+  }
 
   return component;
 };

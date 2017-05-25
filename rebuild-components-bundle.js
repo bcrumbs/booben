@@ -37,8 +37,9 @@ co(function* () {
   if (!argv['install-loaders']) skip.push('node_modules');
 
   for (let i = 0, l = contents.length; i < l; i++) {
-    if (skip.indexOf(contents[i]) === -1)
+    if (skip.indexOf(contents[i]) === -1) {
       yield rimraf(path.join(projectDir, contents[i]));
+    }
   }
 
   const project = require(path.join(projectDir, constants.PROJECT_FILE));

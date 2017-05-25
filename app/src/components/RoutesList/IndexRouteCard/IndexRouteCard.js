@@ -6,17 +6,18 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import ProjectRoute from '../../../models/ProjectRoute';
 import { noop } from '../../../utils/misc';
 
 const propTypes = {
-  route: PropTypes.instanceOf(ProjectRoute).isRequired,
+  routeId: PropTypes.number.isRequired,
+  title: PropTypes.string,
   focused: PropTypes.bool,
   onFocus: PropTypes.func,
   onGo: PropTypes.func,
 };
 
 const defaultProps = {
+  title: '',
   focused: false,
   onFocus: noop,
   onGo: noop,
@@ -25,7 +26,9 @@ const defaultProps = {
 export class IndexRouteCard extends PureComponent {
   constructor(props, context) {
     super(props, context);
+    
     this._element = null;
+    
     this._handleDoubleClick = this._handleDoubleClick.bind(this);
     this._handleCardClick = this._handleCardClick.bind(this);
     this._saveRef = this._saveRef.bind(this);
@@ -36,13 +39,19 @@ export class IndexRouteCard extends PureComponent {
   }
   
   componentWillUpdate(nextProps) {
-    if (nextProps.onGo !== this.props.onGo)
+    const { onGo } = this.props;
+    
+    if (nextProps.onGo !== onGo) {
       this._element.removeEventListener('dblclick', this._handleDoubleClick);
+    }
   }
   
   componentDidUpdate(prevProps) {
-    if (prevProps.onGo !== this.props.onGo)
+    const { onGo } = this.props;
+    
+    if (prevProps.onGo !== onGo) {
       this._element.addEventListener('dblclick', this._handleDoubleClick);
+    }
   }
   
   componentWillUnmount() {
@@ -50,17 +59,13 @@ export class IndexRouteCard extends PureComponent {
   }
   
   _handleDoubleClick() {
-    this.props.onGo({
-      routeId: this.props.route.id,
-      isIndexRoute: true,
-    });
+    const { routeId, onGo } = this.props;
+    onGo({ routeId, isIndexRoute: true });
   }
   
   _handleCardClick() {
-    this.props.onFocus({
-      routeId: this.props.route.id,
-      isIndexRoute: true,
-    });
+    const { routeId, onFocus } = this.props;
+    onFocus({ routeId, isIndexRoute: true });
   }
   
   _saveRef(el) {
@@ -68,8 +73,10 @@ export class IndexRouteCard extends PureComponent {
   }
   
   render() {
+    const { title, focused } = this.props;
+    
     let className = 'route-card-wrapper is-index';
-    if (this.props.focused) className += ' is-focused';
+    if (focused) className += ' is-focused';
     
     return (
       <li className="route-card-item">
@@ -82,7 +89,7 @@ export class IndexRouteCard extends PureComponent {
           >
             <div className="route-card-content">
               <div className="route-title-box">
-                <span className="route-title">Index</span>
+                <span className="route-title">{title}</span>
               </div>
             </div>
           </div>

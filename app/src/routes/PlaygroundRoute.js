@@ -585,7 +585,9 @@ export default class Playground extends React.Component {
           </Header>
           
           <DrawerTop>
-            <DataSourcePickerDrawerContent />
+            <DataSourcePickerDrawerContent>
+              <Button text="Cancel" kind="flat" light size="small" />
+            </DataSourcePickerDrawerContent>
           </DrawerTop>
         </TopRegion>
 
