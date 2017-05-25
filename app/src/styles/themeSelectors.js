@@ -14,14 +14,14 @@ export const radiusRounded = ({ theme }) => theme.radiusRounded;
 export const colorWhite = ({ theme }) => theme.color.white;
 export const colorBlack = ({ theme }) => theme.color.black;
 export const colorTransparent = ({ theme }) => theme.color.transparent;
+
 export const colorMain = ({ theme }) => theme.color.main;
 export const colorMainForeground = ({ theme }) => theme.color.mainFgTextColor;
 export const colorSecondary = ({ theme }) => theme.color.secondary;
 export const colorSecondaryForeground = ({ theme }) =>
   theme.color.secondaryFgTextColor;
 export const colorAlert = ({ theme }) => theme.color.alert;
-export const colorAlertForeground = ({ theme }) =>
-  theme.color.alertFgTextColor;
+export const colorAlertForeground = ({ theme }) => theme.color.alertFgTextColor;
 export const colorWarning = ({ theme }) => theme.color.warning;
 export const colorWarningForeground = ({ theme }) =>
   theme.color.warningFgTextColor;
