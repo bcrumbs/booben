@@ -13,7 +13,7 @@ export const DataSourcePickerDrawerContent = () => (
       Выберите источник данных
     </TitleStyled>
     <ButtonWrapperStyled>
-      <Button text="Cancel" kind="flat" light size="small"/>
+      <Button text="Cancel" kind="flat" light size="small" />
     </ButtonWrapperStyled>
   </DataSourcePickerDrawerContentStyled>
 );
