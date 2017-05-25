@@ -39,6 +39,8 @@ import {
   MenuOverlappingGroupItem
 } from '../components/MenuOverlapping/MenuOverlapping';
 
+import { DrawerTop } from '../components/DrawerTop/DrawerTop';
+
 import {
   BlockContentBox,
   BlockContentHeading,
@@ -579,6 +581,8 @@ export default class Playground extends React.Component {
               </HeaderMenu>
             </HeaderRegion>
           </Header>
+          
+          <DrawerTop>drawer</DrawerTop>
         </TopRegion>
 
         <Desktop toolGroups={toolGroups}>

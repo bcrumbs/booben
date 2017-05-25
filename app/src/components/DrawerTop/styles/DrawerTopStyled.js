@@ -1,22 +1,23 @@
 'use strict';
 
 import styled from 'styled-components';
-import { boxShadow } from '../../../styles/mixins';
+import { animations } from '../../../styles/mixins';
 import {
-  colorWhite,
-  radiusDefault,
+  colorMain,
+  colorMainForeground,
 } from '../../../styles/themeSelectors';
 
-export const MenuOverlappingStyled = styled.div`
+export const DrawerTopStyled = styled.div`
   width: 100%;
-  max-width: 16em;
-  padding: 0;
-  overflow-y: auto;
-  max-height: 400px;
-  background-color: ${colorWhite};
-  border-radius: ${radiusDefault}px;
-  
-  ${boxShadow(3)}
+  min-height: 36px;
+  position: fixed;
+  z-index: 9999;
+  top: 0;
+  left: 0;
+  background-color: #2196F3;
+  background-color: ${colorMain};
+  color: ${colorMainForeground};
+  animation: ${animations.fadeInDown} 300ms ease-in;
 `;
 
-MenuOverlappingStyled.displayName = 'MenuOverlappingStyled';
+DrawerTopStyled.displayName = 'DrawerTopStyled';

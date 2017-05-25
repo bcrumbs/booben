@@ -1,11 +1,14 @@
 'use strict';
 
-import React, { Component } from 'react';
+import React from 'react';
 import { DrawerTopStyled } from './styles/DrawerTopStyled';
+import { DrawerTopContentStyled } from './styles/DrawerTopContentStyled';
 
 export const DrawerTop = props => (
   <DrawerTopStyled>
-    {props.children}
+    <DrawerTopContentStyled>
+      {props.children}
+    </DrawerTopContentStyled>
   </DrawerTopStyled>
 );
 
