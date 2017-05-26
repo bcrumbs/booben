@@ -40,6 +40,7 @@ const propTypes = {
   onDropZoneReady: PropTypes.func.isRequired,
   onDropZoneSnap: PropTypes.func.isRequired,
   onDropZoneUnsnap: PropTypes.func.isRequired,
+  onDropZoneOpenDropMenu: PropTypes.func.isRequired,
 };
 /* eslint-enable react/no-unused-prop-types */
 
@@ -102,8 +103,12 @@ class CanvasComponent extends Component {
     this._handleDrag = this._handleDrag.bind(this);
     this._handleEnter = this._handleEnter.bind(this);
     this._handleLeave = this._handleLeave.bind(this);
+    this._handleDropMenuItemSelected =
+      this._handleDropMenuItemSelected.bind(this);
+    this._handleDropMenuClosed = this._handleDropMenuClosed.bind(this);
     this._handleSnap = this._handleSnap.bind(this);
     this._handleUnsnap = this._handleUnsnap.bind(this);
+    this._handleOpenDropMenu = this._handleOpenDropMenu.bind(this);
     this._saveIFrameRef = this._saveIFrameRef.bind(this);
     this._savePreviewRef = this._savePreviewRef.bind(this);
   }
@@ -128,6 +133,8 @@ class CanvasComponent extends Component {
           onDrag: this._handleDrag,
           onEnter: this._handleEnter,
           onLeave: this._handleLeave,
+          onDropMenuItemSelected: this._handleDropMenuItemSelected,
+          onDropMenuClosed: this._handleDropMenuClosed,
         });
   
         canvas = this;
@@ -338,6 +345,7 @@ class CanvasComponent extends Component {
               interactive={interactive}
               onDropZoneSnap={this._handleSnap}
               onDropZoneUnsnap={this._handleUnsnap}
+              onDropZoneOpenDropMenu={this._handleOpenDropMenu}
             />
           </DocumentContext>
         </ProviderComponent>,
@@ -389,8 +397,8 @@ class CanvasComponent extends Component {
     this._initialized = false;
   }
 
-  _handleDrag({ x, y }) {
-    this._preview.drag({ x, y });
+  _handleDrag(data) {
+    this._preview.drag(data);
   }
 
   _handleEnter() {
@@ -399,6 +407,14 @@ class CanvasComponent extends Component {
 
   _handleLeave() {
     this._preview.leave();
+  }
+  
+  _handleDropMenuItemSelected(data) {
+    this._preview.dropMenuItemSelected(data);
+  }
+  
+  _handleDropMenuClosed() {
+    this._preview.dropMenuClosed();
   }
 
   _handleSnap({ element }) {
@@ -422,6 +438,11 @@ class CanvasComponent extends Component {
   _handleUnsnap() {
     const { dropZoneId, onDropZoneUnsnap } = this.props;
     onDropZoneUnsnap({ dropZoneId });
+  }
+  
+  _handleOpenDropMenu({ coords, snapCoords, dropPointsData }) {
+    const { dropZoneId, onDropZoneOpenDropMenu } = this.props;
+    onDropZoneOpenDropMenu({ dropZoneId, coords, snapCoords, dropPointsData });
   }
   
   render() {

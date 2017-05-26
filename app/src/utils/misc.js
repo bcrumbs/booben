@@ -287,6 +287,45 @@ export const distance = (x1, y1, x2, y2) =>
 
 /**
  *
+ * @type {Object<string, number>}
+ */
+export const PointPositions = {
+  INSIDE: 0x00,
+  NORTH: 0x01,
+  NORTH_EAST: 0x11,
+  EAST: 0x10,
+  SOUTH_EAST: 0x12,
+  SOUTH: 0x02,
+  SOUTH_WEST: 0x22,
+  WEST: 0x20,
+  NORTH_WEST: 0x21,
+};
+
+/**
+ *
+ * @param {number} x
+ * @param {number} y
+ * @param {number} rx
+ * @param {number} ry
+ * @param {number} rw
+ * @param {number} rh
+ * @return {number}
+ */
+export const pointPositionRelativeToRect = (x, y, rx, ry, rw, rh) => {
+  let horizontal = PointPositions.INSIDE;
+  let vertical = PointPositions.INSIDE;
+
+  if (x < rx) horizontal = PointPositions.WEST;
+  else if (x > rx + rw) horizontal = PointPositions.EAST;
+
+  if (y < ry) vertical = PointPositions.NORTH;
+  else if (y > ry + rh) vertical = PointPositions.SOUTH;
+
+  return horizontal | vertical;
+};
+
+/**
+ *
  * @param {Immutable.List} maybePrefix
  * @param {Immutable.List} list
  * @return {boolean}
