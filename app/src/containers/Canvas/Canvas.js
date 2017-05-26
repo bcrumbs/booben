@@ -41,7 +41,6 @@ const propTypes = {
   onDropZoneSnap: PropTypes.func.isRequired,
   onDropZoneUnsnap: PropTypes.func.isRequired,
   onDropZoneOpenDropMenu: PropTypes.func.isRequired,
-  onDropZoneHideDropMenu: PropTypes.func.isRequired,
 };
 /* eslint-enable react/no-unused-prop-types */
 
@@ -106,6 +105,7 @@ class CanvasComponent extends Component {
     this._handleLeave = this._handleLeave.bind(this);
     this._handleDropMenuItemSelected =
       this._handleDropMenuItemSelected.bind(this);
+    this._handleDropMenuClosed = this._handleDropMenuClosed.bind(this);
     this._handleSnap = this._handleSnap.bind(this);
     this._handleUnsnap = this._handleUnsnap.bind(this);
     this._handleOpenDropMenu = this._handleOpenDropMenu.bind(this);
@@ -134,6 +134,7 @@ class CanvasComponent extends Component {
           onEnter: this._handleEnter,
           onLeave: this._handleLeave,
           onDropMenuItemSelected: this._handleDropMenuItemSelected,
+          onDropMenuClosed: this._handleDropMenuClosed,
         });
   
         canvas = this;
@@ -410,6 +411,10 @@ class CanvasComponent extends Component {
   
   _handleDropMenuItemSelected(data) {
     this._preview.dropMenuItemSelected(data);
+  }
+  
+  _handleDropMenuClosed() {
+    this._preview.dropMenuClosed();
   }
 
   _handleSnap({ element }) {

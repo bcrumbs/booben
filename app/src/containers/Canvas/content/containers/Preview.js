@@ -36,7 +36,7 @@ import {
 import Project, { getComponentById } from '../../../../models/Project';
 import ProjectComponent from '../../../../models/ProjectComponent';
 import KeyCodes from '../../../../utils/keycodes';
-import { noop, distance, pointIsInCircle } from '../../../../utils/misc';
+import { noop, distance } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
 
@@ -378,20 +378,6 @@ class Preview extends Component {
     // this method can be called later because it's throttled,
     // so we need to check if we're still here
     if (!this._draggingOverCanvas) return;
-
-    if (this._lastDropMenuCoords) {
-      const willForgetLastDropMenu = !pointIsInCircle(
-        x,
-        y,
-        this._lastDropMenuCoords.x,
-        this._lastDropMenuCoords.y,
-        100,
-      );
-
-      if (willForgetLastDropMenu) {
-        this._lastDropMenuCoords = null;
-      }
-    }
   
     const placeholders = document.querySelectorAll('[data-jssy-placeholder]');
   
@@ -457,15 +443,32 @@ class Preview extends Component {
           onDragOverPlaceholder(snapContainerId, snapAfterIdx);
         }
       } else {
-        const willOpenDropMenu = !this._lastDropMenuCoords;
+        const willOpenDropMenu = true;
 
         if (willOpenDropMenu) {
           const dropPointsData = snapPositions.map(
             ({ snapContainerId, snapAfterIdx }) => {
               const container = currentComponents.get(snapContainerId);
+              const parentNames = [];
+              
+              let componentId = container.parentId;
+              let i = 0;
+              
+              while (componentId !== INVALID_ID && i < 2) {
+                const component = currentComponents.get(componentId);
+                parentNames.unshift(component.title || component.name);
+                componentId = component.parentId;
+                i++;
+              }
+              
+              const ellipsis = componentId !== INVALID_ID;
+              const title = container.title || container.name;
+              const caption =
+                `${ellipsis ? '... ' : ''}${parentNames.join(' > ')} >`;
 
               return {
-                title: container.title || container.name,
+                title,
+                caption,
                 data: {
                   containerId: snapContainerId,
                   afterIdx: snapAfterIdx,
@@ -482,8 +485,6 @@ class Preview extends Component {
             },
             dropPointsData,
           });
-
-          this._lastDropMenuCoords = { x, y };
         }
       }
     } else if (draggingOverPlaceholder) {
@@ -512,6 +513,11 @@ class Preview extends Component {
     if (willUpdatePlaceholder) {
       onDragOverPlaceholder(containerId, afterIdx);
     }
+  }
+  
+  dropMenuClosed() {
+    const { draggingOverPlaceholder, onDragOverNothing } = this.props;
+    if (draggingOverPlaceholder) onDragOverNothing();
   }
   
   /**

@@ -14,6 +14,7 @@ const propTypes = {
   onDropZoneRemove: PropTypes.func,
   onDropZoneSnap: PropTypes.func,
   onDropZoneUnsnap: PropTypes.func,
+  onDropZoneOpenDropMenu: PropTypes.func,
 };
 
 const defaultProps = {
@@ -21,6 +22,7 @@ const defaultProps = {
   onDropZoneRemove: noop,
   onDropZoneSnap: noop,
   onDropZoneUnsnap: noop,
+  onDropZoneOpenDropMenu: noop,
 };
 
 const IS_DROPZONE = Symbol('Is drop zone');
