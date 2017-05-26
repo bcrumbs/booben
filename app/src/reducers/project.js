@@ -34,6 +34,7 @@ import {
   PROJECT_PICK_COMPONENT_DONE,
   PROJECT_PICK_COMPONENT_CANCEL,
   PROJECT_PICK_COMPONENT_STATE_SLOT,
+  PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL,
   ComponentPickAreas,
 } from '../actions/project';
 
@@ -1382,7 +1383,6 @@ const handlers = {
   [PROJECT_PICK_COMPONENT_DONE]: (state, action) => {
     const updates = {
       pickingComponent: false,
-      pickingComponentFilter: null,
       pickedComponentId: action.componentId,
       pickedComponentArea: action.pickArea,
     };
@@ -1411,6 +1411,13 @@ const handlers = {
     pickingComponentFilter: null,
     pickingComponentStateSlotsFilter: null,
     pickedComponentStateSlot: action.slotName,
+    componentStateSlotsListIsVisible: false,
+  }),
+  
+  [PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL]: state => state.merge({
+    pickingComponent: true,
+    pickedComponentId: INVALID_ID,
+    pickedComponentArea: ComponentPickAreas.UNKNOWN,
     componentStateSlotsListIsVisible: false,
   }),
   

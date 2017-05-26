@@ -40,8 +40,9 @@ import {
 } from '../components/MenuOverlapping/MenuOverlapping';
 
 import { DrawerTop } from '../components/DrawerTop/DrawerTop';
-import { DataSourcePickerDrawerContent }
-  from '../components/DataSourcePickerDrawerContent/DataSourcePickerDrawerContent';
+import {
+  DrawerTopPickingContent,
+} from '../components/DrawerTopPickingContent/DrawerTopPickingContent';
 
 import {
   BlockContentBox,
@@ -585,9 +586,9 @@ export default class Playground extends React.Component {
           </Header>
           
           <DrawerTop>
-            <DataSourcePickerDrawerContent>
+            <DrawerTopPickingContent>
               <Button text="Cancel" kind="flat" light size="small" />
-            </DataSourcePickerDrawerContent>
+            </DrawerTopPickingContent>
           </DrawerTop>
         </TopRegion>
 

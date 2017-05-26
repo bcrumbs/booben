@@ -58,6 +58,9 @@
   "design.deleteComponent": "Delete component",
   "design.deleteComponentQuestion": "Are you sure you want to delete component {title}?",
   "design.selectLayout": "Select component layout",
+  "design.pickComponent": "Pick a component",
+  "design.stateSlotSelection.availableOptionsHeading": "What dou you want to use as a source?",
+  "design.stateSlotSelection.unavailableOptionsHeading": "Options that don't suit by type",
 
   "library.uncategorizedComponents": "Uncategorized",
   "library.noComponentsAvailable": "No components can be inserted inside selected component",

@@ -58,6 +58,9 @@
   "design.deleteComponent": "Удаление компонента",
   "design.deleteComponentQuestion": "Вы уверены, что хотите удалить компонент {title}?",
   "design.selectLayout": "Выберите раскладку компонента",
+  "design.pickComponent": "Выберите компонент",
+  "design.stateSlotSelection.availableOptionsHeading": "Что вы хотите взять в качестве значения?",
+  "design.stateSlotSelection.unavailableOptionsHeading": "Варианты, не подходящие по типу",
 
   "library.uncategorizedComponents": "Без категории",
   "library.noComponentsAvailable": "Нет компонентов, которые могут быть вставлены в выделенный компонент",

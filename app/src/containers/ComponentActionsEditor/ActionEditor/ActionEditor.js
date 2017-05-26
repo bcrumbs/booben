@@ -13,7 +13,8 @@ import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';
 import { List, Map } from 'immutable';
 import { isCompatibleType } from '@jssy/types';
-import { Button, Dialog } from '@reactackle/reactackle';
+import { Button } from '@reactackle/reactackle';
+import { DesignDialog } from '../../DesignDialog/DesignDialog';
 
 import {
   BlockContentBoxItem,
@@ -1059,7 +1060,7 @@ class ActionEditorComponent extends PureComponent {
           onPress={this._handleCancel}
         />
         
-        <Dialog
+        <DesignDialog
           title="Link attribute value"
           backdrop
           minWidth={420}
@@ -1074,7 +1075,7 @@ class ActionEditorComponent extends PureComponent {
             userTypedefs={linkTargetUserTypedefs}
             onLink={this._handleLinkApply}
           />
-        </Dialog>
+        </DesignDialog>
       </BlockContentBoxItem>
     );
   }

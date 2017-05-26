@@ -175,7 +175,6 @@ export class FunctionSelection extends PureComponent {
       valueDef,
       projectFunctions,
       builtinFunctions,
-      getLocalizedText,
       onNestedLink,
     } = this.props;
     
@@ -191,7 +190,6 @@ export class FunctionSelection extends PureComponent {
       <FunctionWindow
         targetValueDef={valueDef}
         functionDef={functionDef}
-        getLocalizedText={getLocalizedText}
         onApply={this._handleApply}
         onReturn={this._handleReturn}
         onReturnToList={this._handleReturnToList}

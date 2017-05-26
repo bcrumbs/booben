@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { getNestedTypedef, isCompatibleType } from '@jssy/types';
-import { Dialog } from '@reactackle/reactackle';
+import { DesignDialog } from '../DesignDialog/DesignDialog';
 import { PropsList } from '../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
@@ -540,7 +540,7 @@ class ComponentPropsEditorComponent extends PureComponent {
         {systemProps}
         {content}
   
-        <Dialog
+        <DesignDialog
           title="Link attribute value"
           backdrop
           minWidth={420}
@@ -555,7 +555,7 @@ class ComponentPropsEditorComponent extends PureComponent {
             userTypedefs={componentMeta.types}
             onLink={this._handleLinkApply}
           />
-        </Dialog>
+        </DesignDialog>
       </BlockContentBox>
     );
   }

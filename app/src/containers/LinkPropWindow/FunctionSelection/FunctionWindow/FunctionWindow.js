@@ -6,11 +6,25 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+import ImmutablePropTypes from 'react-immutable-proptypes';
+import { connect } from 'react-redux';
 import { List, Map } from 'immutable';
-import { makeDefaultValue } from '@jssy/types';
+import { makeDefaultValue, isCompatibleType } from '@jssy/types';
 import { Button } from '@reactackle/reactackle';
 import ProjectFunctionRecord from '../../../../models/ProjectFunction';
-import { jssyValueToImmutable } from '../../../../models/ProjectComponent';
+import JssyValue from '../../../../models/JssyValue';
+import SourceDataState from '../../../../models/SourceDataState';
+
+import ProjectComponent, {
+  jssyValueToImmutable,
+} from '../../../../models/ProjectComponent';
+
+import {
+  getLocalizedTextFromState,
+  currentComponentsSelector,
+} from '../../../../selectors';
+
+import { pickComponentStateSlot } from '../../../../actions/project';
 
 import {
   BlockContent,
@@ -26,11 +40,19 @@ import {
 import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
 import { PropsList } from '../../../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
-import { buildDefaultValue } from '../../../../lib/meta';
-import { noop, returnArg } from '../../../../utils/misc';
+import { getComponentMeta, buildDefaultValue } from '../../../../lib/meta';
+import { noop, returnArg, objectSome } from '../../../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 const propTypes = {
+  meta: PropTypes.object.isRequired,
+  currentComponents: ImmutablePropTypes.mapOf(
+    PropTypes.instanceOf(ProjectComponent),
+    PropTypes.number,
+  ).isRequired,
+  pickingComponentStateSlot: PropTypes.bool.isRequired,
+  pickedComponentId: PropTypes.number.isRequired, // eslint-disable-line react/no-unused-prop-types
+  pickedComponentStateSlot: PropTypes.string.isRequired, // eslint-disable-line react/no-unused-prop-types
   targetValueDef: PropTypes.object.isRequired,
   functionDef: PropTypes.instanceOf(ProjectFunctionRecord).isRequired,
   getLocalizedText: PropTypes.func,
@@ -38,6 +60,7 @@ const propTypes = {
   onReturn: PropTypes.func,
   onReturnToList: PropTypes.func,
   onNestedLink: PropTypes.func,
+  onPickComponentStateSlot: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -47,6 +70,22 @@ const defaultProps = {
   onReturnToList: noop,
   onNestedLink: noop,
 };
+
+const mapStateToProps = state => ({
+  meta: state.project.meta,
+  currentComponents: currentComponentsSelector(state),
+  pickingComponentStateSlot: state.project.pickingComponentStateSlot,
+  pickedComponentId: state.project.pickedComponentId,
+  pickedComponentStateSlot: state.project.pickedComponentStateSlot,
+  getLocalizedText: getLocalizedTextFromState(state),
+});
+
+const mapDispatchToProps = dispatch => ({
+  onPickComponentStateSlot: ({ filter, stateSlotFilter }) =>
+    void dispatch(pickComponentStateSlot(filter, stateSlotFilter)),
+});
+
+const wrap = connect(mapStateToProps, mapDispatchToProps);
 
 /**
  *
@@ -106,7 +145,7 @@ const argValuesToMap = (values, functionDef) =>
     });
   });
 
-export class FunctionWindow extends PureComponent {
+class FunctionWindowComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
   
@@ -117,12 +156,16 @@ export class FunctionWindow extends PureComponent {
       linking: false,
       linkingName: '',
       linkingPath: null,
+      picking: false,
+      pickingName: '',
+      pickingPath: null,
     };
     
     this._handleBreadcrumbsClick = this._handleBreadcrumbsClick.bind(this);
     this._handleChange = this._handleChange.bind(this);
     this._handleLink = this._handleLink.bind(this);
     this._handleLinkDone = this._handleLinkDone.bind(this);
+    this._handlePick = this._handlePick.bind(this);
     this._handleBackButtonPress = this._handleBackButtonPress.bind(this);
     this._handleApplyButtonPress = this._handleApplyButtonPress.bind(this);
   }
@@ -139,6 +182,16 @@ export class FunctionWindow extends PureComponent {
       
       this.setState({
         values: makeDefaultValues(this._argsValueDefs),
+      });
+    }
+    
+    if (
+      this.props.pickingComponentStateSlot &&
+      !nextProps.pickingComponentStateSlot
+    ) {
+      this._handlePickDone({
+        componentId: nextProps.pickedComponentId,
+        stateSlot: nextProps.pickedComponentStateSlot,
       });
     }
   }
@@ -214,6 +267,67 @@ export class FunctionWindow extends PureComponent {
       });
     }
   }
+  
+  _handlePick({ name, path, targetValueDef, targetUserTypedefs }) {
+    const { meta, currentComponents, onPickComponentStateSlot } = this.props;
+    
+    const filter = sourceComponentId => {
+      const sourceComponent = currentComponents.get(sourceComponentId);
+      const sourceComponentMeta = getComponentMeta(sourceComponent.name, meta);
+    
+      if (!sourceComponentMeta.state) return false;
+    
+      return objectSome(
+        sourceComponentMeta.state,
+        
+        stateSlot => isCompatibleType(
+          targetValueDef,
+          stateSlot,
+          targetUserTypedefs,
+        ),
+      );
+    };
+  
+    const stateSlotFilter = stateSlot =>
+      isCompatibleType(targetValueDef, stateSlot, targetUserTypedefs);
+    
+    this.setState({
+      picking: true,
+      pickingName: name,
+      pickingPath: path,
+    });
+  
+    onPickComponentStateSlot({ filter, stateSlotFilter });
+  }
+  
+  _handlePickDone({ componentId, stateSlot }) {
+    const { values, picking, pickingName, pickingPath } = this.state;
+  
+    if (!picking) return;
+  
+    const argIndex = parseInt(pickingName, 10);
+    
+    const newValue = new JssyValue({
+      source: 'state',
+      sourceData: new SourceDataState({
+        componentId,
+        stateSlot,
+      }),
+    });
+  
+    if (pickingPath.length > 0) {
+      this.setState({
+        values: values.update(
+          argIndex,
+          oldValue => oldValue.setInStatic(pickingPath, newValue),
+        ),
+      });
+    } else {
+      this.setState({
+        values: values.set(argIndex, newValue),
+      });
+    }
+  }
 
   _getBreadcrumbsItems() {
     const { functionDef, getLocalizedText } = this.props;
@@ -244,6 +358,7 @@ export class FunctionWindow extends PureComponent {
           getLocalizedText={getLocalizedText}
           onChange={this._handleChange}
           onLink={this._handleLink}
+          onPick={this._handlePick}
         />
       );
     });
@@ -306,6 +421,8 @@ export class FunctionWindow extends PureComponent {
   }
 }
 
-FunctionWindow.propTypes = propTypes;
-FunctionWindow.defaultProps = defaultProps;
-FunctionWindow.displayName = 'FunctionWindow';
+FunctionWindowComponent.propTypes = propTypes;
+FunctionWindowComponent.defaultProps = defaultProps;
+FunctionWindowComponent.displayName = 'FunctionWindow';
+
+export const FunctionWindow = wrap(FunctionWindowComponent);

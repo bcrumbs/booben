@@ -58,6 +58,8 @@ export const PROJECT_PICK_COMPONENT_CANCEL =
   'PROJECT_PICK_COMPONENT_CANCEL';
 export const PROJECT_PICK_COMPONENT_STATE_SLOT =
   'PROJECT_PICK_COMPONENT_STATE_SLOT';
+export const PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL =
+  'PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL';
 
 /**
  *
@@ -402,4 +404,12 @@ export const pickComponentCancel = () => ({
 export const pickComponentStateSlotDone = slotName => ({
   type: PROJECT_PICK_COMPONENT_STATE_SLOT,
   slotName,
+});
+
+/**
+ *
+ * @return {Object}
+ */
+export const pickComponentStateSlotCancel = () => ({
+  type: PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL,
 });

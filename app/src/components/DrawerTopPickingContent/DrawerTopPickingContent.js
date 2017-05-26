@@ -4,8 +4,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {
-  DataSourcePickerDrawerContentStyled,
-} from './styles/DataSourcePickerDrawerContentStyled';
+  DrawerTopPickingContentStyled,
+} from './styles/DrawerTopPickingContentStyled';
 
 import { TitleStyled } from './styles/TitleStyled';
 import { ButtonWrapperStyled } from './styles/ButtonWrapperStyled';
@@ -18,8 +18,8 @@ const defaultProps = {
   title: '',
 };
 
-export const DataSourcePickerDrawerContent = props => (
-  <DataSourcePickerDrawerContentStyled>
+export const DrawerTopPickingContent = props => (
+  <DrawerTopPickingContentStyled>
     <TitleStyled>
       {props.title}
     </TitleStyled>
@@ -27,9 +27,9 @@ export const DataSourcePickerDrawerContent = props => (
     <ButtonWrapperStyled>
       {props.children}
     </ButtonWrapperStyled>
-  </DataSourcePickerDrawerContentStyled>
+  </DrawerTopPickingContentStyled>
 );
 
-DataSourcePickerDrawerContent.propTypes = propTypes;
-DataSourcePickerDrawerContent.defaultProps = defaultProps;
-DataSourcePickerDrawerContent.displayName = 'DataSourcePickerDrawerContent';
+DrawerTopPickingContent.propTypes = propTypes;
+DrawerTopPickingContent.defaultProps = defaultProps;
+DrawerTopPickingContent.displayName = 'DrawerTopPickingContent';

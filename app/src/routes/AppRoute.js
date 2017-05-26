@@ -34,6 +34,7 @@ import {
 
 import StructureRoute from './StructureRoute';
 import DesignRoute from './DesignRoute';
+import { DrawerTopDesign } from '../containers/DrawerTopDesign/DrawerTopDesign';
 import { ProjectSave } from '../components/ProjectSave/ProjectSave';
 import { alertAreaProvider } from '../hocs/alerts';
 import ProjectRecord from '../models/Project';
@@ -198,7 +199,7 @@ class AppRoute extends Component {
   
     return (
       <App fixed>
-        <TopRegion fixed={false}>
+        <TopRegion>
           <Header size="blank">
             <HeaderRegion
               size="blank"
@@ -263,6 +264,13 @@ class AppRoute extends Component {
               <ProjectSave />
             </HeaderRegion>
           </Header>
+  
+          <Route
+            path={PATH_DESIGN_ROUTE}
+            render={() => (
+              <DrawerTopDesign />
+            )}
+          />
         </TopRegion>
       
         <Switch>

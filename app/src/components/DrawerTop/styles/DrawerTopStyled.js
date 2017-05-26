@@ -16,7 +16,7 @@ export const DrawerTopStyled = styled.div`
   left: 0;
   background-color: ${colorMain};
   color: ${colorMainForeground};
-  animation: ${animations.slideInDown} 300ms ease-in;
+  animation: ${animations.slideInDown} 200ms ease-out;
 `;
 
 DrawerTopStyled.displayName = 'DrawerTopStyled';

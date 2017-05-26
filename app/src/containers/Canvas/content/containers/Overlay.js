@@ -28,6 +28,7 @@ const propTypes = {
   draggingComponent: PropTypes.bool.isRequired,
   showComponentTitles: PropTypes.bool.isRequired,
   pickingComponent: PropTypes.bool.isRequired,
+  pickingComponentStateSlot: PropTypes.bool.isRequired,
 };
 
 const contextTypes = {
@@ -46,6 +47,7 @@ const mapStateToProps = state => ({
   draggingComponent: state.project.draggingComponent,
   showComponentTitles: state.app.showComponentTitles,
   pickingComponent: state.project.pickingComponent,
+  pickingComponentStateSlot: state.project.pickingComponentStateSlot,
 });
 
 const HIGHLIGHT_COLOR = 'rgba(0, 113, 216, 0.3)';
@@ -135,6 +137,7 @@ class Overlay extends PureComponent {
     const {
       draggingComponent,
       pickingComponent,
+      pickingComponentStateSlot,
       highlightingEnabled,
       showComponentTitles,
       highlightedComponentIds,
@@ -149,13 +152,14 @@ class Overlay extends PureComponent {
       )
       : null;
 
-    const selectBoxes = pickingComponent
+    const selectBoxes = pickingComponent || pickingComponentStateSlot
       ? null
       : this._renderBoundingBoxes(selectedComponentIds, SELECT_COLOR);
     
     const willRenderBoundaryBox =
       boundaryComponentId !== INVALID_ID && (
         pickingComponent ||
+        pickingComponentStateSlot ||
         draggingComponent
       );
   

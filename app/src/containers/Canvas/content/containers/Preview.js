@@ -24,7 +24,7 @@ import {
 
 import {
   pickComponentDone,
-  pickComponentCancel,
+  pickComponentStateSlotCancel,
   ComponentPickAreas,
 } from '../../../../actions/project';
 
@@ -35,7 +35,6 @@ import {
 
 import Project, { getComponentById } from '../../../../models/Project';
 import ProjectComponent from '../../../../models/ProjectComponent';
-import KeyCodes from '../../../../utils/keycodes';
 import { noop, distance } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
@@ -54,6 +53,7 @@ const propTypes = {
   pickingComponent: PropTypes.bool.isRequired,
   pickingComponentStateSlot: PropTypes.bool.isRequired,
   pickingComponentFilter: PropTypes.func,
+  componentStateSlotsListIsVisible: PropTypes.bool.isRequired,
   highlightingEnabled: PropTypes.bool.isRequired,
   currentRouteId: PropTypes.number.isRequired,
   currentRouteIsIndexRoute: PropTypes.bool.isRequired,
@@ -63,7 +63,7 @@ const propTypes = {
   onHighlightComponent: PropTypes.func.isRequired,
   onUnhighlightComponent: PropTypes.func.isRequired,
   onPickComponent: PropTypes.func.isRequired,
-  onCancelPickComponent: PropTypes.func.isRequired,
+  onCancelPickComponentStateSlot: PropTypes.func.isRequired,
   onDragOverPlaceholder: PropTypes.func.isRequired,
   onDragOverNothing: PropTypes.func.isRequired,
   onDropZoneSnap: PropTypes.func,
@@ -95,6 +95,8 @@ const mapStateToProps = state => ({
   pickingComponent: state.project.pickingComponent,
   pickingComponentStateSlot: state.project.pickingComponentStateSlot,
   pickingComponentFilter: state.project.pickingComponentFilter,
+  componentStateSlotsListIsVisible:
+    state.project.componentStateSlotsListIsVisible,
   highlightingEnabled: state.project.highlightingEnabled,
   currentRouteId: state.project.currentRouteId,
   currentRouteIsIndexRoute: state.project.currentRouteIsIndexRoute,
@@ -117,8 +119,8 @@ const mapDispatchToProps = dispatch => ({
   onPickComponent: componentId =>
     void dispatch(pickComponentDone(componentId, ComponentPickAreas.CANVAS)),
   
-  onCancelPickComponent: () =>
-    void dispatch(pickComponentCancel()),
+  onCancelPickComponentStateSlot: () =>
+    void dispatch(pickComponentStateSlotCancel()),
 
   onDragOverPlaceholder: (containerId, afterIdx) =>
     void dispatch(dragOverPlaceholder(containerId, afterIdx)),
@@ -192,7 +194,6 @@ class Preview extends Component {
     this._handleMouseOut = this._handleMouseOut.bind(this);
     this._handleClick = this._handleClick.bind(this);
     this._handleBodyClick = this._handleBodyClick.bind(this);
-    this._handleKeyDown = this._handleKeyDown.bind(this);
     this._handleNavigate = this._handleNavigate.bind(this);
     this._handleOpenURL = this._handleOpenURL.bind(this);
 
@@ -201,7 +202,6 @@ class Preview extends Component {
 
   componentDidMount() {
     const { interactive } = this.props;
-    const { window } = this.context;
     
     if (interactive) {
       const containerNode = this._getContainer();
@@ -210,7 +210,6 @@ class Preview extends Component {
       containerNode.addEventListener('mousedown', this._handleMouseDown, false);
       containerNode.addEventListener('click', this._handleClick, false);
       containerNode.addEventListener('mouseup', this._handleMouseUp);
-      window.addEventListener('keydown', this._handleKeyDown);
     }
   }
 
@@ -325,7 +324,6 @@ class Preview extends Component {
       
       containerNode.removeEventListener('click', this._handleClick, false);
       containerNode.removeEventListener('mouseup', this._handleMouseUp);
-      window.removeEventListener('keydown', this._handleKeyDown);
       
       if (this._unhighilightTimer > -1) clearImmediate(this._unhighilightTimer);
     }
@@ -831,12 +829,19 @@ class Preview extends Component {
     const {
       pickingComponent,
       pickingComponentFilter,
+      componentStateSlotsListIsVisible,
       onToggleComponentSelection,
       onSelectSingleComponent,
       onPickComponent,
+      onCancelPickComponentStateSlot,
     } = this.props;
     
     if (event.button === 0) { // Left button
+      if (componentStateSlotsListIsVisible) {
+        onCancelPickComponentStateSlot();
+        return;
+      }
+      
       const componentId = this._getClosestComponentId(event.target);
       
       if (
@@ -862,32 +867,12 @@ class Preview extends Component {
    */
   _handleBodyClick() {
     const {
-      pickingComponent,
-      pickingComponentStateSlot,
-      onCancelPickComponent,
+      componentStateSlotsListIsVisible,
+      onCancelPickComponentStateSlot,
     } = this.props;
     
-    if (pickingComponent || pickingComponentStateSlot) {
-      onCancelPickComponent();
-    }
-  }
-  
-  /**
-   *
-   * @param {KeyboardEvent} event
-   * @private
-   */
-  _handleKeyDown(event) {
-    const {
-      pickingComponent,
-      pickingComponentStateSlot,
-      onCancelPickComponent,
-    } = this.props;
-    
-    if (event.keyCode === KeyCodes.ESCAPE) {
-      if (pickingComponent || pickingComponentStateSlot) {
-        onCancelPickComponent();
-      }
+    if (componentStateSlotsListIsVisible) {
+      onCancelPickComponentStateSlot();
     }
   }
   

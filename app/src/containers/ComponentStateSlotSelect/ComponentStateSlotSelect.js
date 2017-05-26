@@ -6,6 +6,7 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 import _forOwn from 'lodash.forown';
 import { resolveTypedef } from '@jssy/types';
 
@@ -16,13 +17,15 @@ import {
   MenuOverlappingDivider,
 } from '../../components/MenuOverlapping/MenuOverlapping';
 
+import { getLocalizedTextFromState } from '../../selectors';
 import { getString } from '../../lib/meta';
-import { noop, returnTrue } from '../../utils/misc';
+import { noop, returnTrue, returnArg } from '../../utils/misc';
 
 const propTypes = {
   componentMeta: PropTypes.object.isRequired,
   language: PropTypes.string,
   isCompatibleStateSlot: PropTypes.func,
+  getLocalizedText: PropTypes.func,
   onSelect: PropTypes.func,
 };
 
@@ -30,10 +33,17 @@ const defaultProps = {
   targetUserTypedefs: null,
   language: '',
   isCompatibleStateSlot: returnTrue,
+  getLocalizedText: returnArg,
   onSelect: noop,
 };
 
-export class ComponentStateSlotSelect extends PureComponent {
+const mapStateToProps = state => ({
+  getLocalizedText: getLocalizedTextFromState(state),
+});
+
+const wrap = connect(mapStateToProps);
+
+class ComponentStateSlotSelectComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
 
@@ -68,6 +78,7 @@ export class ComponentStateSlotSelect extends PureComponent {
       componentMeta,
       isCompatibleStateSlot,
       language,
+      getLocalizedText,
     } = this.props;
 
     const availableItems = [];
@@ -100,14 +111,18 @@ export class ComponentStateSlotSelect extends PureComponent {
     let disabledHeader = null;
 
     if (availableGroup) {
+      const textKey = 'design.stateSlotSelection.availableOptionsHeading';
+      
       availableHeader = (
-        <MenuOverlappingDivider title="What dou you want to use as a source?" />
+        <MenuOverlappingDivider title={getLocalizedText(textKey)} />
       );
     }
 
     if (disabledGroup) {
+      const textKey = 'design.stateSlotSelection.unavailableOptionsHeading';
+      
       disabledHeader = (
-        <MenuOverlappingDivider title="Options that don't suit by type" />
+        <MenuOverlappingDivider title={getLocalizedText(textKey)} />
       );
     }
 
@@ -122,6 +137,8 @@ export class ComponentStateSlotSelect extends PureComponent {
   }
 }
 
-ComponentStateSlotSelect.propTypes = propTypes;
-ComponentStateSlotSelect.defaultProps = defaultProps;
-ComponentStateSlotSelect.displayName = 'ComponentStateSlotSelect';
+ComponentStateSlotSelectComponent.propTypes = propTypes;
+ComponentStateSlotSelectComponent.defaultProps = defaultProps;
+ComponentStateSlotSelectComponent.displayName = 'ComponentStateSlotSelect';
+
+export const ComponentStateSlotSelect = wrap(ComponentStateSlotSelectComponent);
