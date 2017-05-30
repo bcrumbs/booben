@@ -99,9 +99,10 @@ export class FunctionSelection extends PureComponent {
   }
   
   _handleApply({ argValues }) {
+    const { onSelect } = this.props;
     const { selectedFunctionId, selectedFunctionSource } = this.state;
     
-    this.props.onSelect({
+    onSelect({
       source: selectedFunctionSource,
       name: selectedFunctionId,
       argValues,
@@ -109,12 +110,12 @@ export class FunctionSelection extends PureComponent {
   }
   
   _handleCreate({ title, description, args, returnType, code }) {
-    const { projectFunctions } = this.props;
+    const { projectFunctions, onCreateFunction } = this.props;
     
     const existingNames = Array.from(projectFunctions.keys());
     const name = functionNameFromTitle(title, existingNames);
     
-    this.props.onCreateFunction({
+    onCreateFunction({
       name,
       title,
       description,
@@ -123,7 +124,11 @@ export class FunctionSelection extends PureComponent {
       code,
     });
     
-    this.setState({ currentView: Views.LIST });
+    this.setState({
+      currentView: Views.FUNCTION,
+      selectedFunctionSource: FunctionSources.PROJECT,
+      selectedFunctionId: name,
+    });
   }
 
   _renderFunctionsList() {
