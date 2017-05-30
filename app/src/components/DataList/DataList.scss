@@ -83,7 +83,7 @@
             position: relative;
         }
 
-        .button {
+        & > * {
             margin: $data-item-margin-y $data-item-margin-x;
         }
     }

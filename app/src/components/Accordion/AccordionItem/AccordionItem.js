@@ -55,7 +55,11 @@ export class AccordionItem extends PureComponent {
           </div>
 
           <div className="accordion-title-icon accordion-icon-collapse">
-            <Icon name="chevron-down" />
+            <Icon
+              name="chevron-down"
+              size="inherit"
+              color="inherit"
+            />
           </div>
         </div>
 

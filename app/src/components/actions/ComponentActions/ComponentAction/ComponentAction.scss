@@ -24,6 +24,7 @@
     // ICON
     .component-action_icon {
         margin-right: $action-heading-icon-spacing;
+        display: flex;
 
         @include icon-size(
                         $action-heading-icon-box-size,
@@ -49,11 +50,6 @@
     .component-action_buttons {
         height: $action-button-box-size;
         display: flex;
-
-        .button {
-            border: 0;
-            min-height: 0;
-        }
     }
 
     // BODY

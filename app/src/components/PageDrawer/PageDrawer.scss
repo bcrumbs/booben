@@ -63,38 +63,32 @@
         display: flex;
         flex-shrink: 0;
         background-color: transparent;
-        @include single-transition(background-color);
+        opacity: $pdrawer-actions-item-opacity-default;
 
-        .button {
-            border-radius: 0;
-            border-width: 0;
-            opacity: $pdrawer-actions-item-opacity-default;
-            @include single-transition();
-        }
-
-        .button-icon {
-            @include icon-size($pdrawer-actions-icon-item-size, $pdrawer-actions-icon-img-size);
-        }
+        @include transition-property(background-color, opacity);
+        @include icon-size($pdrawer-actions-icon-item-size, $pdrawer-actions-icon-img-size);
 
         &:hover,
         &:focus {
-            .button { opacity: $pdrawer-actions-item-opacity-hover}
+            opacity: $pdrawer-actions-item-opacity-hover
         }
 
         &.is-active {
             background-color: $pdrawer-actions-item-active-bg-color;
-
-            .button {
-                opacity: 1;
-            }
+            opacity: 1;
 
             &:hover,
             &:focus {
-                .button {
-                    cursor: $cursor-default;
+                * {
                     background-color: transparent;
                 }
             }
+        }
+
+        & > * {
+            width: 100%;
+            display: flex;
+            justify-content: center;
         }
     }
 
@@ -160,7 +154,7 @@
         display: flex;
         margin-left: $pdrawer-title-actions-margin-left - $pdrawer-title-actions-spacing/2;
 
-        .button {
+        & > * {
             margin: 0 $pdrawer-title-actions-spacing/2;
         }
     }
@@ -197,9 +191,8 @@
         text-align: right;
         justify-content: flex-end;
 
-        .button {
+        & > * {
             margin: $pdrawer-content-actions-spacing-y/2 $pdrawer-content-actions-spacing-x/2;
-            padding: 0;
         }
 
         &.region-main { flex-grow: 1; }

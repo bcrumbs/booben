@@ -19,7 +19,7 @@ $ctree-item-line-height:        1.3 !default;
 
 $ctree-item-content-height:     $ctree-item-font-size*$ctree-item-line-height + $ctree-item-pad-y*2 !default;
 
-$ctree-item-icon-box-size:      $ctree-item-font-size*$ctree-item-line-height + $ctree-item-pad-y*2 !default;
+$ctree-item-icon-box-size:      rem-calc(28) !default;
 $ctree-item-icon-img-size:      $base-module*1.25 !default;
 $ctree-item-icon-color:         $icon-dark-inactive-color !default;
 $ctree-item-focus-icon-color:   $icon-dark-default-color !default;

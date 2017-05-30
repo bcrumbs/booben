@@ -33,7 +33,7 @@
                 $icon-size: rem-calc($icon-size),
                 $outer-width: rem-calc($icon-outer-size));
 
-        .icon {
+        & > * {
             position: absolute;
             top: -$border-width;
             left: -$border-width;

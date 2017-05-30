@@ -117,6 +117,7 @@
     // Icons
     .block-content-icon {
         margin: $bcontent-title-icon-pad-y 0;
+        display: flex;
 
         @include icon-size(
                 $outer-size: $bcontent-title-icon-box-size,
@@ -136,7 +137,7 @@
         padding-right: $bcontent-title-elements-space-x/2;
         display: flex;
 
-        .button {
+        & > * {
             margin: $bcontent-title-actions-spacing/2;
         }
     }
@@ -351,9 +352,8 @@
         align-items: flex-start;
         flex-wrap: wrap;
 
-        .button {
+        & > * {
             margin: $bcontent-actions-spacing-y/2 $bcontent-actions-spacing-x/2;
-            padding: 0;
         }
 
         &.region-main { flex-grow: 1; }
