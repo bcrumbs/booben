@@ -47,8 +47,24 @@ export class MenuOverlappingGroupItem extends Component {
   }
   
   componentDidMount() {
-    this._element.addEventListener('click', this._handleClick);
-    this._element.addEventListener('mouseenter', this._handleMouseEnter);
+    if (this._element) {
+      this._element.addEventListener('click', this._handleClick);
+      this._element.addEventListener('mouseenter', this._handleMouseEnter);
+    }
+  }
+  
+  componentWillUpdate() {
+    if (this._element) {
+      this._element.removeEventListener('click', this._handleClick);
+      this._element.removeEventListener('mouseenter', this._handleMouseEnter);
+    }
+  }
+  
+  componentDidUpdate() {
+    if (this._element) {
+      this._element.addEventListener('click', this._handleClick);
+      this._element.addEventListener('mouseenter', this._handleMouseEnter);
+    }
   }
   
   /**
@@ -97,11 +113,19 @@ export class MenuOverlappingGroupItem extends Component {
     }
     
     const captionElement = caption
-      ? <ItemCaptionStyled disabled={disabled}>{caption}</ItemCaptionStyled>
+      ? (
+        <ItemCaptionStyled disabled={disabled}>
+          {caption}
+        </ItemCaptionStyled>
+      )
       : null;
   
     const typeElement = type
-      ? <ItemTypeStyled disabled={disabled}>{type}</ItemTypeStyled>
+      ? (
+        <ItemTypeStyled disabled={disabled}>
+          {type}
+        </ItemTypeStyled>
+      )
       : null;
 
     return (
@@ -110,13 +134,13 @@ export class MenuOverlappingGroupItem extends Component {
         disabled={disabled}
       >
         {captionElement}
+        
         <div>
           <ItemTitleStyled disabled={disabled}>
             {title}
           </ItemTitleStyled>
   
           {typeElement}
-  
           {tooltipElement}
         </div>
       </MenuOverlappingGroupItemStyled>
