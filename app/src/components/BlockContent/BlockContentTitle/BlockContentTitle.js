@@ -74,7 +74,7 @@ export class BlockContentTitle extends PureComponent {
           className={`${prefix}-icon ${prefix}-icon-left`}
           onMouseDown={this.props.onLeftIconMouseDown}
         >
-          <Icon name={this.props.iconLeft} />
+          <Icon name={this.props.iconLeft} size="inherit" />
         </div>
       );
     }

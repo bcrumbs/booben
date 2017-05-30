@@ -77,32 +77,24 @@
     // Icon
     .components-tree-item-icon {
         margin-right: $ctree-item-icon-spacing;
+        display: flex;
+
+        @include single-transition(transform);
     }
 
-    .components-tree-item-icon,
-    .components-tree-item-icon .button-icon {
+    .components-tree-item-icon {
         @include icon-size(
-                $ctree-item-icon-box-size,
-                $ctree-item-icon-img-size
+                        $ctree-item-icon-box-size,
+                        $ctree-item-icon-img-size
         );
 
         .components-tree-item.item-is-active &,
         .components-tree-item.sublevel-is-visible & {
             transform: rotate(180deg);
-            @include icon-style(
-                    $ctree-item-focus-icon-color
-            ) ;
         }
+
         .components-tree-item.sublevel-is-hidden & {
             transform: rotate(0deg);
-            @include icon-style(
-                    $ctree-item-icon-color
-            ) ;
         }
-    }
-
-    .components-tree-item-icon .button {
-        min-height: 0;
-        border-width: 0;
     }
 }

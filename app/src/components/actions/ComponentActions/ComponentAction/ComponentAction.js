@@ -66,7 +66,7 @@ export class ComponentAction extends PureComponent {
             onClick={this._handleClick}
           >
             <div className="component-action_icon">
-              <Icon name="long-arrow-right" />
+              <Icon name="long-arrow-right" size="inherit" />
             </div>
             
             <div className="component-action_title">

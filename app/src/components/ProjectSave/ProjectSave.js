@@ -38,15 +38,15 @@ const ProjectSaveComponent = props => {
   
   if (props.status === 'error') {
     title = 'Save';
-    icon = <Icon name="exclamation" />;
+    icon = <Icon name="exclamation" size="inherit" color="inherit" />;
   } else if (props.status === 'success') {
     title = 'Saved!';
-    icon = <Icon name="check" />;
+    icon = <Icon name="check" size="inherit" color="inherit" />;
   } else if (props.status === 'progress') {
     title = 'Saving...';
   } else {
     title = 'Save';
-    icon = <Icon name="check" />;
+    icon = <Icon name="check" size="inherit" color="inherit" />;
   }
   
   if (props.status === 'error') {

@@ -36,29 +36,8 @@
         margin-left: -$coactions-handler-button-spacing-x;
         display: flex;
 
-        .button {
-            min-height: 0;
+        & > * {
             margin: 0 $coactions-handler-button-spacing-x;
-            border-width: 0;
-
-            &,
-            .button-icon {
-                @include icon-size(
-                                $coactions-handler-button-box-size,
-                                $coactions-handler-button-img-size
-                );
-            }
-
-            @include icon-style(
-                            $coactions-handler-button-color
-            );
-
-            &:hover,
-            &:focus {
-                @include icon-style(
-                                $coactions-handler-button-focus-color
-                );
-            }
         }
     }
 

@@ -77,7 +77,7 @@
     "revalidator": "^0.3.1",
     "rimraf": "latest",
     "serve-static": "^1.11.1",
-    "styled-components": "^1.4.6",
+    "styled-components": "^2.0.0",
     "thenify": "^3.2.0",
     "webpack": "^2.4.1"
   },

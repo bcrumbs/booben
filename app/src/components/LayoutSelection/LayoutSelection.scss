@@ -5,21 +5,6 @@
     // =================================================================================================================
     // BASE
     // =================================================================================================================
-    .layout-selection-modal-wrapper {
-        .dialog-title {
-            padding-top: $layout-modal-title-padding-top;
-            padding-bottom: $layout-modal-title-padding-bottom;
-
-            .dialog-title-text {
-                width: 100%;
-                text-align: $layout-modal-title-text-align;
-                font-size: $layout-modal-title-font-size;
-                line-height: $layout-modal-title-line-height;
-                font-weight: $layout-modal-title-font-weight;
-            }
-        }
-    }
-
     .layout-selection-wrapper {
         display: flex;
         flex-wrap: wrap;
