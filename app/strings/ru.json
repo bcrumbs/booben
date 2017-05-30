@@ -61,6 +61,10 @@
   "design.pickComponent": "Выберите компонент",
   "design.stateSlotSelection.availableOptionsHeading": "Что вы хотите взять в качестве значения?",
   "design.stateSlotSelection.unavailableOptionsHeading": "Варианты, не подходящие по типу",
+  "design.draggingComponentText": "Вставьте {componentTitle}",
+  "design.willDropComponentText": "{componentTitle} будет вставлен в {where}",
+  "design.willDropRootComponentText": "{componentTitle} будет корневым компонентом",
+  "design.willDropComponentAfterText": "{componentTitle} будет вставлен в {where} после {after}",
 
   "library.uncategorizedComponents": "Без категории",
   "library.noComponentsAvailable": "Нет компонентов, которые могут быть вставлены в выделенный компонент",

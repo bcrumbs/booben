@@ -4,8 +4,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 import {
-  DrawerTopPickingContentStyled,
-} from './styles/DrawerTopPickingContentStyled';
+  DrawerTopContentStyled,
+} from './styles/DrawerTopContentStyled';
 
 import { TitleStyled } from './styles/TitleStyled';
 import { ButtonWrapperStyled } from './styles/ButtonWrapperStyled';
@@ -18,8 +18,8 @@ const defaultProps = {
   title: '',
 };
 
-export const DrawerTopPickingContent = props => (
-  <DrawerTopPickingContentStyled>
+export const DrawerTopContent = props => (
+  <DrawerTopContentStyled>
     <TitleStyled>
       {props.title}
     </TitleStyled>
@@ -27,9 +27,9 @@ export const DrawerTopPickingContent = props => (
     <ButtonWrapperStyled>
       {props.children}
     </ButtonWrapperStyled>
-  </DrawerTopPickingContentStyled>
+  </DrawerTopContentStyled>
 );
 
-DrawerTopPickingContent.propTypes = propTypes;
-DrawerTopPickingContent.defaultProps = defaultProps;
-DrawerTopPickingContent.displayName = 'DrawerTopPickingContent';
+DrawerTopContent.propTypes = propTypes;
+DrawerTopContent.defaultProps = defaultProps;
+DrawerTopContent.displayName = 'DrawerTopContent';

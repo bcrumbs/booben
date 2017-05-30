@@ -10,17 +10,7 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import Portal from 'react-portal-minimal';
 import { List } from 'immutable';
-
-import {
-  Dialog,
-  Header,
-  HeaderRegion,
-  HeaderTitle,
-  Panel,
-  PanelContent,
-  Button,
-  Breadcrumbs,
-} from '@reactackle/reactackle';
+import { Dialog, Panel, PanelContent } from '@reactackle/reactackle';
 
 import { Desktop } from '../containers/Desktop/Desktop';
 
@@ -68,8 +58,6 @@ import {
   renameComponent,
   deleteComponent,
   selectLayoutForNewComponent,
-  saveComponentForProp,
-  cancelConstructComponentForProp,
   pickComponentStateSlotDone,
   ComponentPickAreas,
 } from '../actions/project';
@@ -77,13 +65,11 @@ import {
 import { dropComponent } from '../actions/preview';
 
 import {
-  haveNestedConstructorsSelector,
   singleComponentSelectedSelector,
   firstSelectedComponentIdSelector,
   currentComponentsSelector,
   getLocalizedTextFromState,
   containerStyleSelector,
-  nestedConstructorBreadcrumbsSelector,
 } from '../selectors';
 
 import {
@@ -119,10 +105,6 @@ const propTypes = {
     PropTypes.number,
   ), // state
   language: PropTypes.string.isRequired, // state
-  haveNestedConstructor: PropTypes.bool.isRequired, // state
-  nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(
-    PropTypes.string,
-  ).isRequired, // state
   pickedComponentId: PropTypes.number.isRequired, // state
   pickedComponentArea: PropTypes.number.isRequired, // state
   componentStateSlotsListIsVisible: PropTypes.bool.isRequired, // state
@@ -131,8 +113,6 @@ const propTypes = {
   onRenameComponent: PropTypes.func.isRequired, // dispatch
   onDeleteComponent: PropTypes.func.isRequired, // dispatch
   onSelectLayout: PropTypes.func.isRequired, // dispatch
-  onSaveComponentForProp: PropTypes.func.isRequired, // dispatch
-  onCancelConstructComponentForProp: PropTypes.func.isRequired, // dispatch
   onDropComponent: PropTypes.func.isRequired, // dispatch
   onSelectComponentStateSlot: PropTypes.func.isRequired, // dispatch
 };
@@ -151,8 +131,6 @@ const mapStateToProps = state => ({
   selectingComponentLayout: state.project.selectingComponentLayout,
   draggedComponents: state.project.draggedComponents,
   language: state.project.languageForComponentProps,
-  haveNestedConstructor: haveNestedConstructorsSelector(state),
-  nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
   pickedComponentId: state.project.pickedComponentId,
   pickedComponentArea: state.project.pickedComponentArea,
   componentStateSlotsListIsVisible:
@@ -174,12 +152,6 @@ const mapDispatchToProps = dispatch => ({
   
   onSelectLayout: layoutIdx =>
     void dispatch(selectLayoutForNewComponent(layoutIdx)),
-  
-  onSaveComponentForProp: () =>
-    void dispatch(saveComponentForProp()),
-  
-  onCancelConstructComponentForProp: () =>
-    void dispatch(cancelConstructComponentForProp()),
   
   onDropComponent: area =>
     void dispatch(dropComponent(area)),
@@ -476,86 +448,12 @@ class DesignRoute extends PureComponent {
         />
       );
     });
-  
-    //noinspection JSValidateTypes
+    
     return (
       <ComponentLayoutSelection>
         {items}
       </ComponentLayoutSelection>
     );
-  }
-  
-  /**
-   *
-   * @return {ReactElement}
-   * @private
-   */
-  _renderContent() {
-    const {
-      projectName,
-      previewContainerStyle,
-      nestedConstructorBreadcrumbs,
-      haveNestedConstructor,
-      getLocalizedText,
-      onCancelConstructComponentForProp,
-      onSaveComponentForProp,
-    } = this.props;
-  
-    const canvas = (
-      <Canvas
-        interactive
-        projectName={projectName}
-        containerStyle={previewContainerStyle}
-      />
-    );
-    
-    if (haveNestedConstructor) {
-      const breadcrumbsItems = nestedConstructorBreadcrumbs
-        .toArray()
-        .map(item => ({ title: item }));
-    
-      //noinspection JSValidateTypes
-      return (
-        <Panel headerFixed spread height="auto" maxHeight="none">
-          <Header>
-            <HeaderRegion spread alignY="center">
-              <HeaderTitle>
-                <Breadcrumbs
-                  items={breadcrumbsItems}
-                  mode="light"
-                  linkComponent={NestedConstructorsBreadcrumbsItem}
-                />
-              </HeaderTitle>
-            </HeaderRegion>
-            <HeaderRegion>
-              <Button
-                text={getLocalizedText('common.cancel')}
-                light
-                onPress={onCancelConstructComponentForProp}
-              />
-            
-              <Button
-                text={getLocalizedText('common.ok')}
-                light
-                onPress={onSaveComponentForProp}
-              />
-            </HeaderRegion>
-          </Header>
-        
-          <PanelContent key="canvas-panel-content" flex>
-            {canvas}
-          </PanelContent>
-        </Panel>
-      );
-    } else {
-      return (
-        <Panel spread height="auto" maxHeight="none">
-          <PanelContent key="canvas-panel-content" flex>
-            {canvas}
-          </PanelContent>
-        </Panel>
-      );
-    }
   }
   
   _renderStateSlotSelect() {
@@ -597,6 +495,8 @@ class DesignRoute extends PureComponent {
 
   render() {
     const {
+      projectName,
+      previewContainerStyle,
       components,
       selectingComponentLayout,
       firstSelectedComponentId,
@@ -619,7 +519,6 @@ class DesignRoute extends PureComponent {
     }];
   
     const toolGroups = this._getTools();
-    const content = this._renderContent();
 
     let deleteComponentDialogText = '';
     if (confirmDeleteComponentDialogIsVisible) {
@@ -645,7 +544,15 @@ class DesignRoute extends PureComponent {
         toolGroups={toolGroups}
         onToolTitleChange={this._handleToolTitleChange}
       >
-        {content}
+        <Panel spread height="auto" maxHeight="none">
+          <PanelContent flex>
+            <Canvas
+              interactive
+              projectName={projectName}
+              containerStyle={previewContainerStyle}
+            />
+          </PanelContent>
+        </Panel>
         
         <Dialog
           title={getLocalizedText('design.selectLayout')}

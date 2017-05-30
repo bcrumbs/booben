@@ -41,8 +41,8 @@ import {
 
 import { DrawerTop } from '../components/DrawerTop/DrawerTop';
 import {
-  DrawerTopPickingContent,
-} from '../components/DrawerTopPickingContent/DrawerTopPickingContent';
+  DrawerTopContent,
+} from '../components/DrawerTopContent/DrawerTopContent';
 
 import {
   BlockContentBox,
@@ -586,9 +586,9 @@ export default class Playground extends React.Component {
           </Header>
           
           <DrawerTop>
-            <DrawerTopPickingContent>
+            <DrawerTopContent>
               <Button text="Cancel" kind="flat" light size="small" />
-            </DrawerTopPickingContent>
+            </DrawerTopContent>
           </DrawerTop>
         </TopRegion>
 

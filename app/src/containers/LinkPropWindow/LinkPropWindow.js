@@ -415,6 +415,7 @@ class LinkPropWindowComponent extends PureComponent {
       topNestedConstructor,
       topNestedConstructorComponent,
       language,
+      getLocalizedText,
     } = this.props;
     
     const ownerMeta = getComponentMeta(
@@ -432,6 +433,7 @@ class LinkPropWindowComponent extends PureComponent {
         linkTargetValueDef={valueDef}
         userTypedefs={userTypedefs}
         language={language}
+        getLocalizedText={getLocalizedText}
         onSelect={this._handleLinkWithOwnerProp}
         onReturn={this._handleReturn}
       />

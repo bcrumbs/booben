@@ -61,6 +61,10 @@
   "design.pickComponent": "Pick a component",
   "design.stateSlotSelection.availableOptionsHeading": "What dou you want to use as a source?",
   "design.stateSlotSelection.unavailableOptionsHeading": "Options that don't suit by type",
+  "design.draggingComponentText": "Insert {componentTitle}",
+  "design.willDropComponentText": "Will insert {componentTitle} into {where}",
+  "design.willDropRootComponentText": "Will insert {componentTitle} as root component",
+  "design.willDropComponentAfterText": "Will insert {componentTitle} into {where} after {after}",
 
   "library.uncategorizedComponents": "Uncategorized",
   "library.noComponentsAvailable": "No components can be inserted inside selected component",
