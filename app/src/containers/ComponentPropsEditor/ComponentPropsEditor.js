@@ -8,10 +8,13 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
+import { Button } from '@reactackle/reactackle';
 import { getNestedTypedef, isCompatibleType } from '@jssy/types';
 import { DesignDialog } from '../DesignDialog/DesignDialog';
 import { PropsList } from '../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
+import { ActionEditor } from '../ActionEditor/ActionEditor';
+import { ActionsList } from '../ActionsList/ActionsList';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
 
 import {
@@ -29,6 +32,9 @@ import {
   replaceJssyValue,
   constructComponentForProp,
   pickComponentStateSlot,
+  addAction,
+  replaceAction,
+  deleteAction,
 } from '../../actions/project';
 
 import { PathStartingPoints } from '../../reducers/project';
@@ -70,6 +76,9 @@ const propTypes = {
   onReplacePropValue: PropTypes.func.isRequired,
   onConstructComponent: PropTypes.func.isRequired,
   onPickComponentStateSlot: PropTypes.func.isRequired,
+  onAddAction: PropTypes.func.isRequired,
+  onReplaceAction: PropTypes.func.isRequired,
+  onDeleteAction: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -99,6 +108,15 @@ const mapDispatchToProps = dispatch => ({
 
   onPickComponentStateSlot: (filter, stateSlotsFilter) =>
     void dispatch(pickComponentStateSlot(filter, stateSlotsFilter)),
+  
+  onAddAction: ({ path, action }) =>
+    void dispatch(addAction(path, action)),
+  
+  onReplaceAction: ({ path, index, newAction }) =>
+    void dispatch(replaceAction(path, index, newAction)),
+  
+  onDeleteAction: ({ path, index }) =>
+    void dispatch(deleteAction(path, index)),
 });
 
 /**
@@ -133,6 +151,39 @@ const buildFullPath = (componentId, isSystemProp, propName, path = []) => ({
   ],
 });
 
+/**
+ *
+ * @param {number} componentId
+ * @param {boolean} isSystemProp
+ * @param {string} propName
+ * @param {(string|number)[]} [path=[]]
+ * @param {(string|number)[]} [pathToActionsList=[]]
+ * @return {Path}
+ */
+const buildFullPathToActionsList = (
+  componentId,
+  isSystemProp,
+  propName,
+  path = [],
+  pathToActionsList = [],
+) => ({
+  startingPoint: PathStartingPoints.CURRENT_COMPONENTS,
+  steps: [
+    componentId,
+    isSystemProp ? 'systemProps' : 'props',
+    propName,
+    ...path,
+    'actions',
+    ...pathToActionsList,
+  ],
+});
+
+const ActionEditorViews = {
+  LIST: 0,
+  NEW: 1,
+  EDIT: 2,
+};
+
 class ComponentPropsEditorComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -143,15 +194,25 @@ class ComponentPropsEditorComponent extends PureComponent {
       linkingValueDef: null,
       linkWindowName: '',
       pickingPath: null,
+      editingActions: false,
+      editingActionsForProp: '',
+      editingActionsForPath: null,
+      editingActionsForSystemProp: false,
+      actionEditorView: ActionEditorViews.LIST,
+      pathToActionsList: null, // For new action
+      actionPath: null, // For editing action
     };
   
     this._handleSystemPropSetComponent =
       this._handleSetComponent.bind(this, true);
+    this._handleSystemPropEditActions =
+      this._handleEditActions.bind(this, true);
     this._handleSystemPropChange = this._handleChange.bind(this, true);
     this._handleSystemPropLink = this._handleLink.bind(this, true);
     this._handleSystemPropPick = this._handlePick.bind(this, true);
   
     this._handleSetComponent = this._handleSetComponent.bind(this, false);
+    this._handleEditActions = this._handleEditActions.bind(this, false);
     this._handleChange = this._handleChange.bind(this, false);
     this._handleLink = this._handleLink.bind(this, false);
     this._handlePick = this._handlePick.bind(this, false);
@@ -159,6 +220,12 @@ class ComponentPropsEditorComponent extends PureComponent {
     this._handleLinkApply = this._handleLinkApply.bind(this);
     this._handleLinkCancel = this._handleLinkCancel.bind(this);
     this._handlePickApply = this._handlePickApply.bind(this);
+    this._handleCreateAction = this._handleCreateAction.bind(this);
+    this._handleEditAction = this._handleEditAction.bind(this);
+    this._handleDeleteAction = this._handleDeleteAction.bind(this);
+    this._handleActionEditorSave = this._handleActionEditorSave.bind(this);
+    this._handleActionEditorCancel = this._handleActionEditorCancel.bind(this);
+    this._handleCloseActionsEditor = this._handleCloseActionsEditor.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -357,6 +424,155 @@ class ComponentPropsEditorComponent extends PureComponent {
     const fullPath = buildFullPath(componentId, isSystemProp, name, path);
     onConstructComponent(fullPath, initialComponents, initialComponentsRootId);
   }
+  
+  /**
+   *
+   * @param {boolean} isSystemProp
+   * @param {string} name
+   * @param {(string|number)[]} path
+   * @private
+   */
+  _handleEditActions(isSystemProp, { name, path }) {
+    this.setState({
+      editingActions: true,
+      editingActionsForProp: name,
+      editingActionsForSystemProp: isSystemProp,
+      editingActionsForPath: path,
+      actionEditorView: ActionEditorViews.LIST,
+      pathToActionsList: null,
+      actionPath: null,
+    });
+  }
+  
+  /**
+   *
+   * @param {(string|number)[]} pathToList
+   * @private
+   */
+  _handleCreateAction({ pathToList }) {
+    this.setState({
+      actionEditorView: ActionEditorViews.NEW,
+      pathToActionsList: pathToList,
+    });
+  }
+  
+  /**
+   *
+   * @param {(string|number)[]} actionPath
+   * @private
+   */
+  _handleEditAction({ actionPath }) {
+    this.setState({
+      actionEditorView: ActionEditorViews.EDIT,
+      actionPath,
+    });
+  }
+  
+  /**
+   *
+   * @param {(string|number)[]} actionPath
+   * @private
+   */
+  _handleDeleteAction({ actionPath }) {
+    const { selectedComponentIds, onDeleteAction } = this.props;
+    
+    const {
+      editingActionsForProp,
+      editingActionsForSystemProp,
+      editingActionsForPath,
+    } = this.state;
+  
+    const componentId = selectedComponentIds.first();
+    const pathToList = actionPath.slice(0, -1);
+    const index = actionPath[actionPath.length - 1];
+    const path = buildFullPathToActionsList(
+      componentId,
+      editingActionsForSystemProp,
+      editingActionsForProp,
+      editingActionsForPath,
+      pathToList,
+    );
+  
+    onDeleteAction({ path, index });
+  }
+  
+  /**
+   *
+   * @param {Object} action
+   * @private
+   */
+  _handleActionEditorSave({ action }) {
+    const { selectedComponentIds, onAddAction, onReplaceAction } = this.props;
+    
+    const {
+      actionEditorView,
+      editingActionsForProp,
+      editingActionsForSystemProp,
+      editingActionsForPath,
+      actionPath,
+      pathToActionsList,
+    } = this.state;
+    
+    const componentId = selectedComponentIds.first();
+    
+    if (actionEditorView === ActionEditorViews.NEW) {
+      const path = buildFullPathToActionsList(
+        componentId,
+        editingActionsForSystemProp,
+        editingActionsForProp,
+        editingActionsForPath,
+        pathToActionsList,
+      );
+      
+      onAddAction({ path, action });
+    } else if (actionEditorView === ActionEditorViews.EDIT) {
+      const pathToList = actionPath.slice(0, -1);
+      const index = actionPath[actionPath.length - 1];
+      const path = buildFullPathToActionsList(
+        componentId,
+        editingActionsForSystemProp,
+        editingActionsForProp,
+        editingActionsForPath,
+        pathToList,
+      );
+      
+      onReplaceAction({ path, index, newAction: action });
+    }
+    
+    this.setState({
+      actionEditorView: ActionEditorViews.LIST,
+      actionPath: null,
+      pathToActionsList: null,
+    });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleActionEditorCancel() {
+    this.setState({
+      actionEditorView: ActionEditorViews.LIST,
+      actionPath: null,
+      pathToActionsList: null,
+    });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleCloseActionsEditor() {
+    this.setState({
+      editingActions: false,
+      actionEditorView: ActionEditorViews.LIST,
+      editingActionsForProp: '',
+      editingActionsForSystemProp: false,
+      editingActionsForPath: null,
+      actionPath: null,
+      pathToActionsList: null,
+    });
+  }
 
   /**
    *
@@ -394,6 +610,7 @@ class ComponentPropsEditorComponent extends PureComponent {
         onLink={this._handleLink}
         onPick={this._handlePick}
         onConstructComponent={this._handleSetComponent}
+        onEditActions={this._handleEditActions}
       />
     );
   }
@@ -412,15 +629,19 @@ class ComponentPropsEditorComponent extends PureComponent {
       getLocalizedText,
     } = this.props;
     
+    const { editingActions } = this.state;
+    
     const visibleLabel =
       getLocalizedText('propsEditor.systemProps.visible.name');
     
     const visibleDesc =
       getLocalizedText('propsEditor.systemProps.visible.desc');
     
-    //noinspection JSValidateTypes
     return (
-      <BlockContentBoxItem key="__system_props__">
+      <BlockContentBoxItem
+        key="__system_props__"
+        hidden={editingActions}
+      >
         <PropsList>
           <JssyValueEditor
             name="visible"
@@ -436,15 +657,95 @@ class ComponentPropsEditorComponent extends PureComponent {
             onLink={this._handleSystemPropLink}
             onPick={this._handleSystemPropPick}
             onConstructComponent={this._handleSystemPropSetComponent}
+            onEditActions={this._handleSystemPropEditActions}
           />
         </PropsList>
       </BlockContentBoxItem>
     );
   }
+  
+  /**
+   *
+   * @return {?ReactElement}
+   * @private
+   */
+  _renderActionsEditor() {
+    const { selectedComponentIds, getLocalizedText } = this.props;
+    
+    const {
+      editingActions,
+      editingActionsForProp,
+      editingActionsForSystemProp,
+      editingActionsForPath,
+      actionEditorView,
+      actionPath,
+    } = this.state;
+    
+    if (!editingActions) return null;
+  
+    const component = selectedComponentIds.first();
+    const propValue = editingActionsForSystemProp
+      ? component.systemProps.get(editingActionsForProp)
+      : component.props.get(editingActionsForProp);
+  
+    const value = propValue.getInStatic(editingActionsForPath);
+    
+    switch (actionEditorView) {
+      case ActionEditorViews.LIST: {
+        // TODO: Find a better place for the Back button
+        return (
+          <BlockContentBoxItem isBordered flexMain>
+            <ActionsList
+              actions={value.actions}
+              onCreateAction={this._handleCreateAction}
+              onEditAction={this._handleEditAction}
+              onDeleteAction={this._handleDeleteAction}
+            />
+            
+            <Button
+              text={getLocalizedText('common.back')}
+              onPress={this._handleCloseActionsEditor}
+            />
+          </BlockContentBoxItem>
+        );
+      }
+      
+      case ActionEditorViews.NEW: {
+        return (
+          <ActionEditor
+            onSave={this._handleActionEditorSave}
+            onCancel={this._handleActionEditorCancel}
+          />
+        );
+      }
+  
+      case ActionEditorViews.EDIT: {
+        const action = value.getActionByPath(actionPath);
+        
+        return (
+          <ActionEditor
+            action={action}
+            onSave={this._handleActionEditorSave}
+            onCancel={this._handleActionEditorCancel}
+          />
+        );
+      }
+      
+      default: {
+        return null;
+      }
+    }
+  }
 
   render() {
     const { selectedComponentIds, getLocalizedText } = this.props;
-    const { linkingProp, linkingValueDef, linkWindowName } = this.state;
+    
+    const {
+      linkingProp,
+      linkingValueDef,
+      linkWindowName,
+      editingActions,
+    } = this.state;
 
     if (selectedComponentIds.size === 0) {
       //noinspection JSCheckFunctionSignatures
@@ -497,7 +798,10 @@ class ComponentPropsEditorComponent extends PureComponent {
 
     propGroups.forEach(group => {
       content.push(
-        <BlockContentBoxHeading key={`${group.name}__heading__`}>
+        <BlockContentBoxHeading
+          key={`${group.name}__heading__`}
+          hidden={editingActions}
+        >
           {group.title}
         </BlockContentBoxHeading>,
       );
@@ -509,7 +813,10 @@ class ComponentPropsEditorComponent extends PureComponent {
       ));
 
       content.push(
-        <BlockContentBoxItem key={group.name}>
+        <BlockContentBoxItem
+          key={group.name}
+          hidden={editingActions}
+        >
           <PropsList>
             {controls}
           </PropsList>
@@ -525,7 +832,10 @@ class ComponentPropsEditorComponent extends PureComponent {
       ));
 
       content.push(
-        <BlockContentBoxItem key="__no_group__">
+        <BlockContentBoxItem
+          key="__no_group__"
+          hidden={editingActions}
+        >
           <PropsList>
             {controls}
           </PropsList>
@@ -534,11 +844,13 @@ class ComponentPropsEditorComponent extends PureComponent {
     }
     
     const systemProps = this._renderSystemProps(component);
+    const actionsEditor = this._renderActionsEditor();
 
     return (
       <BlockContentBox isBordered>
         {systemProps}
         {content}
+        {actionsEditor}
   
         <DesignDialog
           title="Link attribute value"

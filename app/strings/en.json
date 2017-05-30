@@ -93,6 +93,7 @@
   "valueEditor.component.setComponent": "Set component",
   "valueEditor.component.editComponent": "Edit component",
   "valueEditor.componentPicker.pickComponent": "Pick component",
+  "valueEditor.action.editActions": "Edit actions",
   "valueEditor.addValue": "Add item",
   "valueEditor.addValueDialogTitle": "Add item",
   "valueEditor.addValueNameInputLabel": "Name",

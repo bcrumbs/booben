@@ -9,6 +9,7 @@ const propTypes = {
   // If true, flex-grow will be st to '1' for this block
   flexMain: PropTypes.bool,
   colorScheme: PropTypes.oneOf(['default', 'editing', 'dim']),
+  hidden: PropTypes.bool,
 };
 
 const defaultProps = {
@@ -16,6 +17,7 @@ const defaultProps = {
   blank: false,
   flexMain: false,
   colorScheme: 'default',
+  hidden: false,
 };
 
 export const BlockContentBoxItem = props => {
@@ -27,9 +29,12 @@ export const BlockContentBoxItem = props => {
   if (props.colorScheme !== 'default') {
     className += ` color-scheme-${props.colorScheme}`;
   }
+  
+  const style = {};
+  if (props.hidden) style.display = 'none';
 
   return (
-    <div className={className}>
+    <div className={className} style={style} >
       {props.children}
     </div>
   );

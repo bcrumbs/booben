@@ -93,6 +93,7 @@
   "valueEditor.component.setComponent": "Создать компонент",
   "valueEditor.component.editComponent": "Изменить компонент",
   "valueEditor.componentPicker.pickComponent": "Выбрать компонент",
+  "valueEditor.action.editActions": "Редактировать действия",
   "valueEditor.addValue": "Добавить",
   "valueEditor.addValueDialogTitle": "Добавить",
   "valueEditor.addValueNameInputLabel": "Имя",

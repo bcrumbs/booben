@@ -8,12 +8,14 @@ import { noop } from '../../../utils/misc';
 const propTypes = {
   isBordered: PropTypes.bool,
   flex: PropTypes.bool,
+  hidden: PropTypes.bool,
   elementRef: PropTypes.func,
 };
 
 const defaultProps = {
   isBordered: false,
   flex: false,
+  hidden: false,
   elementRef: noop,
 };
 
@@ -21,10 +23,14 @@ const BlockContentBoxComponent = props => {
   let className = 'block-content-box-area';
   if (props.isBordered) className += ' is-bordered';
   if (props.flex) className += ' display-flex';
+  
+  const style = {};
+  if (props.hidden) style.display = 'none';
 
   return (
     <div
       className={className}
+      style={style}
       ref={props.elementRef}
     >
       {props.children}

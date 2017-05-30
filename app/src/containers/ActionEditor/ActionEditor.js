@@ -14,57 +14,57 @@ import _mapValues from 'lodash.mapvalues';
 import { List, Map } from 'immutable';
 import { isCompatibleType } from '@jssy/types';
 import { Button } from '@reactackle/reactackle';
-import { DesignDialog } from '../../DesignDialog/DesignDialog';
+import { DesignDialog } from '../DesignDialog/DesignDialog';
 
 import {
   BlockContentBoxItem,
-} from '../../../components/BlockContent/BlockContent';
+} from '../../components/BlockContent/BlockContent';
 
-import { LinkPropWindow } from '../../LinkPropWindow/LinkPropWindow';
-import { PropsList } from '../../../components/PropsList/PropsList';
-import { JssyValueEditor } from '../../JssyValueEditor/JssyValueEditor';
+import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
+import { PropsList } from '../../components/PropsList/PropsList';
+import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
 
 import {
   PropInput,
   PropList,
   PropComponentPicker,
-} from '../../../components/props';
+} from '../../components/props/index';
 
-import Project from '../../../models/Project';
+import Project from '../../models/Project';
 
 import ProjectComponent, {
   jssyValueToImmutable,
-} from '../../../models/ProjectComponent';
+} from '../../models/ProjectComponent';
 
-import JssyValue from '../../../models/JssyValue';
-import { Action, createActionParams } from '../../../models/SourceDataActions';
-import SourceDataState from '../../../models/SourceDataState';
+import JssyValue from '../../models/JssyValue';
+import { Action, createActionParams } from '../../models/SourceDataActions';
+import SourceDataState from '../../models/SourceDataState';
 
 import {
   currentComponentsSelector,
   ownerPropsSelector,
   ownerUserTypedefsSelector,
   getLocalizedTextFromState,
-} from '../../../selectors';
+} from '../../selectors/index';
 
 import {
   pickComponent,
   pickComponentStateSlot,
-} from '../../../actions/project';
+} from '../../actions/project';
 
-import { setInPath } from '../../../lib/path';
+import { setInPath } from '../../lib/path';
 
 import {
   getMutationType,
   getMutationField,
   getJssyValueDefOfMutationArgument,
-} from '../../../lib/schema';
+} from '../../lib/schema';
 
 import {
   buildDefaultValue,
   getComponentMeta,
   getString,
-} from '../../../lib/meta';
+} from '../../lib/meta';
 
 import {
   noop,
@@ -72,13 +72,13 @@ import {
   arrayToObject,
   objectToArray,
   objectSome,
-} from '../../../utils/misc';
+} from '../../utils/misc';
 
 import {
   INVALID_ID,
   ROUTE_PARAM_VALUE_DEF,
   SYSTEM_PROPS,
-} from '../../../constants/misc';
+} from '../../constants/misc';
 
 const propTypes = {
   action: PropTypes.instanceOf(Action),

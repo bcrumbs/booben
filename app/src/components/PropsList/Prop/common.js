@@ -56,6 +56,7 @@ export const PropViews = {
   SHAPE: 6,
   OBJECT: 7,
   ARRAY: 8,
+  ACTION: 9,
 };
 
 /**
@@ -76,7 +77,7 @@ const JSSY_TYPE_TO_VIEW = {
   [TypeNames.ARRAY_OF]: PropViews.ARRAY,
   [TypeNames.OBJECT]: PropViews.EMPTY,
   [TypeNames.ARRAY]: PropViews.EMPTY,
-  [TypeNames.FUNC]: PropViews.EMPTY,
+  [TypeNames.FUNC]: PropViews.ACTION,
 };
 
 /**
