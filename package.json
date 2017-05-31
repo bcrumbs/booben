@@ -91,7 +91,7 @@
     "ejs-compiled-loader": "^1.1.0",
     "file-loader": "^0.11.1",
     "image-webpack-loader": "^3.3.0",
-    "node-sass": "^4.5.2",
+    "node-sass": "^4.5.3",
     "sass-loader": "^6.0.3",
     "script-ext-html-webpack-plugin": "^1.5.0",
     "style-loader": "^0.16.1",
