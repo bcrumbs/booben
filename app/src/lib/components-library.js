@@ -4,10 +4,13 @@
 
 'use strict';
 
+import React from 'react';
+import ReactDOM from 'react-dom';
+import PropTypes from 'prop-types';
 import _mapValues from 'lodash.mapvalues';
-import patchComponent from './hocs/patchComponent';
-import { parseComponentName } from '../../../lib/meta';
-import { URL_APP_PREFIX } from '../../../../../shared/constants';
+import patchComponent from '../hocs/patchComponent';
+import { parseComponentName } from './meta';
+import { URL_BUNDLE_PREFIX } from '../../../shared/constants';
 
 const COMPONENTS_BUNDLE_FILE = 'components.js';
 
@@ -53,9 +56,14 @@ const loadComponentsBundle = async (windowInstance, url) => {
  * @return {Promise}
  */
 export const loadComponents = async (windowInstance, projectName) => {
+  // These modules are external in the components bundle
+  windowInstance.React = React;
+  windowInstance.ReactDOM = ReactDOM;
+  windowInstance.PropTypes = PropTypes;
+
   await loadComponentsBundle(
     windowInstance,
-    `${URL_APP_PREFIX}/${projectName}/${COMPONENTS_BUNDLE_FILE}`,
+    `${URL_BUNDLE_PREFIX}/${projectName}/${COMPONENTS_BUNDLE_FILE}`,
   );
   
   const noComponents =

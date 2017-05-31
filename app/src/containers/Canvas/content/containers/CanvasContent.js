@@ -7,11 +7,9 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import { Router, Switch, Route, Redirect } from 'react-router';
 import { connect } from 'react-redux';
 import throttle from 'lodash.throttle';
-import createHistory from 'history/es/createMemoryHistory';
-import Builder from './Builder';
+import { Builder } from '../../../Builder/Builder';
 
 import {
   toggleComponentSelection,
@@ -40,7 +38,6 @@ import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
 
 const propTypes = {
-  interactive: PropTypes.bool,
   project: PropTypes.instanceOf(Project).isRequired,
   currentComponents: ImmutablePropTypes.mapOf(
     PropTypes.instanceOf(ProjectComponent),
@@ -77,7 +74,6 @@ const contextTypes = {
 };
 
 const defaultProps = {
-  interactive: false,
   topNestedConstructor: null,
   pickingComponentFilter: null,
   onDropZoneSnap: noop,
@@ -179,13 +175,11 @@ const getOutletPosition = components => {
   };
 };
 
-class Preview extends Component {
+class CanvasContent extends Component {
   constructor(props, context) {
     super(props, context);
     
     this._container = null;
-    this._history = props.interactive ? null : createHistory();
-    this._routerKey = 0;
     this._unhighilightTimer = -1;
     this._unhighlightedComponentId = INVALID_ID;
     this._draggingOverCanvas = false;
@@ -201,30 +195,16 @@ class Preview extends Component {
   }
 
   componentDidMount() {
-    const { interactive } = this.props;
-    
-    if (interactive) {
-      const containerNode = this._getContainer();
-      containerNode.addEventListener('mouseover', this._handleMouseOver, false);
-      containerNode.addEventListener('mouseout', this._handleMouseOut, false);
-      containerNode.addEventListener('mousedown', this._handleMouseDown, false);
-      containerNode.addEventListener('click', this._handleClick, false);
-      containerNode.addEventListener('mouseup', this._handleMouseUp);
-    }
+    const containerNode = this._getContainer();
+    containerNode.addEventListener('mouseover', this._handleMouseOver, false);
+    containerNode.addEventListener('mouseout', this._handleMouseOut, false);
+    containerNode.addEventListener('mousedown', this._handleMouseDown, false);
+    containerNode.addEventListener('click', this._handleClick, false);
+    containerNode.addEventListener('mouseup', this._handleMouseUp);
   }
 
   componentWillReceiveProps(nextProps) {
-    const {
-      project,
-      interactive,
-      pickingComponent,
-      pickingComponentStateSlot,
-    } = this.props;
-    
-    if (interactive && nextProps.project !== project) {
-      this._routerKey++;
-      this._history = createHistory();
-    }
+    const { pickingComponent, pickingComponentStateSlot } = this.props;
     
     const nowPickingComponent =
       nextProps.pickingComponent ||
@@ -293,40 +273,29 @@ class Preview extends Component {
   }
 
   componentWillUnmount() {
-    const {
-      interactive,
-      pickingComponent,
-      pickingComponentStateSlot,
-    } = this.props;
-    
+    const { pickingComponent, pickingComponentStateSlot } = this.props;
     const { window } = this.context;
-    
-    if (interactive) {
-      const containerNode = this._getContainer();
-      
-      containerNode.removeEventListener(
-        'mouseover',
-        this._handleMouseOver,
-        false,
-      );
-      
-      containerNode.removeEventListener(
-        'mouseout',
-        this._handleMouseOut,
-        false,
-      );
-      
-      containerNode.removeEventListener(
-        'mousedown',
-        this._handleMouseDown,
-        false,
-      );
-      
-      containerNode.removeEventListener('click', this._handleClick, false);
-      containerNode.removeEventListener('mouseup', this._handleMouseUp);
-      
-      if (this._unhighilightTimer > -1) clearImmediate(this._unhighilightTimer);
-    }
+
+    const containerNode = this._getContainer();
+
+    containerNode.removeEventListener(
+      'mouseover',
+      this._handleMouseOver,
+      false,
+    );
+
+    containerNode.removeEventListener('mouseout', this._handleMouseOut, false);
+
+    containerNode.removeEventListener(
+      'mousedown',
+      this._handleMouseDown,
+      false,
+    );
+
+    containerNode.removeEventListener('click', this._handleClick, false);
+    containerNode.removeEventListener('mouseup', this._handleMouseUp);
+
+    if (this._unhighilightTimer > -1) clearImmediate(this._unhighilightTimer);
     
     if (pickingComponent || pickingComponentStateSlot) {
       window.document.body.removeEventListener('click', this._handleBodyClick);
@@ -575,137 +544,6 @@ class Preview extends Component {
       default: {
         return false;
       }
-    }
-  }
-
-  /**
-   *
-   * @param {Object} route - ProjectRoute record
-   * @param {boolean} isIndex
-   * @param {?ReactElement} [indexRoute = null]
-   * @return {Function}
-   * @private
-   */
-  _makeNonInteractiveBuilderForRoute(route, isIndex, indexRoute = null) {
-    const rootId = isIndex ? route.indexComponent : route.component;
-    
-    const childSwitch = !isIndex
-      ? this._renderSwitch(route.children, indexRoute ? [indexRoute] : [])
-      : null;
-    
-    const ret = ({ match }) => (
-      <Builder
-        params={match.params}
-        components={route.components}
-        rootId={rootId}
-        onNavigate={this._handleNavigate}
-        onOpenURL={this._handleOpenURL}
-      >
-        {childSwitch}
-      </Builder>
-    );
-
-    ret.displayName = `Builder(route-${route.id}${isIndex ? '-index' : ''})`;
-    return ret;
-  }
-
-  /**
-   *
-   * @param {Immutable.List<number>} routeIds
-   * @param {?(ReactElement[])} [additionalRoutes=null]
-   * @return {?ReactElement}
-   * @private
-   */
-  _renderSwitch(routeIds, additionalRoutes = null) {
-    const { project } = this.props;
-    const routes = additionalRoutes || [];
-  
-    routeIds.forEach(routeId => {
-      const route = project.routes.get(routeId);
-      let indexRoute = null;
-    
-      if (route.haveIndex) {
-        const IndexRouteBuilder =
-          this._makeNonInteractiveBuilderForRoute(route, true);
-
-        indexRoute = (
-          <Route
-            key={`${routeId}-index`}
-            path={route.fullPath}
-            exact
-            component={IndexRouteBuilder}
-          />
-        );
-      }
-
-      if (route.redirect) {
-        routes.push(
-          <Route
-            key={`${routeId}-index-redirect`}
-            path={route.fullPath}
-            exact
-            render={() => (
-              <Redirect to={route.redirectTo} />
-            )}
-          />,
-        );
-      }
-    
-      const RouteBuilder =
-        this._makeNonInteractiveBuilderForRoute(route, false, indexRoute);
-
-      if (!route.redirectAuthenticated && !route.redirectAnonymous) {
-        routes.push(
-          <Route
-            key={String(routeId)}
-            path={route.fullPath}
-            component={RouteBuilder}
-          />,
-        );
-      } else {
-        const render = props => {
-          let willRedirect = false;
-          let redirectTo = '';
-
-          if (this._isUserAuthenticated()) {
-            if (route.redirectAuthenticated) {
-              willRedirect = true;
-              redirectTo = route.redirectAuthenticatedTo;
-            }
-          } else if (route.redirectAnonymous) {
-            willRedirect = true;
-            redirectTo = route.redirectAnonymousTo;
-          }
-
-          if (willRedirect) {
-            return (
-              <Redirect to={redirectTo} />
-            );
-          } else {
-            return (
-              <RouteBuilder {...props} />
-            );
-          }
-        };
-
-        routes.push(
-          <Route
-            key={String(routeId)}
-            path={route.fullPath}
-            render={render}
-          />,
-        );
-      }
-    });
-
-    if (routes.length > 0) {
-      return (
-        <Switch>
-          {routes}
-        </Switch>
-      );
-    } else {
-      return null;
     }
   }
 
@@ -1028,42 +866,19 @@ class Preview extends Component {
       />
     );
   }
-  
-  _renderInteractivePreview() {
+
+  render() {
     const { topNestedConstructor } = this.props;
-  
+
     return topNestedConstructor
       ? this._renderTopNestedConstructor()
       : this._renderCurrentRoute();
   }
-  
-  _renderNonInteractivePreview() {
-    const { project } = this.props;
-
-    const rootSwitch = this._renderSwitch(project.rootRoutes);
-    
-    return (
-      <Router
-        key={this._routerKey}
-        history={this._history}
-      >
-        {rootSwitch}
-      </Router>
-    );
-  }
-
-  render() {
-    const { interactive } = this.props;
-  
-    return interactive
-      ? this._renderInteractivePreview()
-      : this._renderNonInteractivePreview();
-  }
 }
 
-Preview.propTypes = propTypes;
-Preview.contextTypes = contextTypes;
-Preview.defaultProps = defaultProps;
-Preview.displayName = 'Preview';
+CanvasContent.propTypes = propTypes;
+CanvasContent.contextTypes = contextTypes;
+CanvasContent.defaultProps = defaultProps;
+CanvasContent.displayName = 'CanvasContent';
 
-export default wrap(Preview);
+export default wrap(CanvasContent);

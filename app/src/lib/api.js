@@ -39,7 +39,7 @@ export const getMetadata = async projectName => {
  * @return {Object<string, string>}
  */
 export const getStrings = async language => {
-  const res = await fetch(`strings/${language}.json`);
+  const res = await fetch(`/strings/${language}.json`);
   const data = await res.json();
   
   if (data.error) throw new Error(data.error);

@@ -6,7 +6,6 @@
 
 export const PATH_ROOT = '/:projectName';
 export const PATH_STRUCTURE = `${PATH_ROOT}/structure`;
-export const PATH_PREVIEW = `${PATH_ROOT}/preview`;
 export const PATH_DESIGN = `${PATH_ROOT}/design`;
 export const PATH_DESIGN_ROUTE = `${PATH_DESIGN}/:routeId`;
 export const PATH_DESIGN_ROUTE_INDEX = `${PATH_DESIGN}/:routeId/index`;
@@ -16,9 +15,6 @@ export const buildRootPath = params =>
 
 export const buildStructurePath = params =>
   `/${params.projectName}/structure`;
-
-export const buildPreviewPath = params =>
-  `/${params.projectName}/preview`;
 
 export const buildDesignPath = params =>
   `/${params.projectName}/design`;

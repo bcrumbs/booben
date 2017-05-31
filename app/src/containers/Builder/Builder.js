@@ -17,36 +17,35 @@ import _set from 'lodash.set';
 import _debounce from 'lodash.debounce';
 import { Map as ImmutableMap } from 'immutable';
 import { resolveTypedef, coerceValue, TypeNames } from '@jssy/types';
-import { alertsCreator } from '../../../../hocs/alerts';
-import { ContentPlaceholder } from '../components/ContentPlaceholder';
-import { Outlet } from '../components/Outlet';
-import { getComponentByName } from '../componentsLibrary';
-import isPseudoComponent from '../isPseudoComponent';
+import { alertsCreator } from '../../hocs/alerts';
+import { ContentPlaceholder } from './ContentPlaceholder/ContentPlaceholder';
+import { Outlet } from './Outlet/Outlet';
+import { getComponentByName } from '../../lib/components-library';
 
 import ProjectComponent, {
   walkComponentsTree,
   walkSimpleValues,
-} from '../../../../models/ProjectComponent';
+} from '../../models/ProjectComponent';
 
 import {
   currentSelectedComponentIdsSelector,
   currentHighlightedComponentIdsSelector,
   rootDraggedComponentSelector,
   getLocalizedTextFromState,
-} from '../../../../selectors';
+} from '../../selectors/index';
 
 import {
   isContainerComponent,
   isCompositeComponent,
   canInsertComponent,
   getComponentMeta,
-} from '../../../../lib/meta';
+} from '../../lib/meta';
 
 import {
   buildQueryForComponent,
   extractPropValueFromData,
   buildMutation,
-} from '../../../../lib/graphql';
+} from '../../lib/graphql';
 
 import {
   getJssyValueDefOfQueryArgument,
@@ -54,18 +53,18 @@ import {
   getJssyValueDefOfField,
   getMutationField,
   getFieldByPath,
-} from '../../../../lib/schema';
+} from '../../lib/schema';
 
-import { getFunctionInfo } from '../../../../lib/functions';
-import { noop, returnNull, isString, isUndef } from '../../../../utils/misc';
-import jssyConstants from '../../../../constants/jssyConstants';
+import { getFunctionInfo } from '../../lib/functions';
+import { noop, returnNull, isString, isUndef } from '../../utils/misc';
+import jssyConstants from '../../constants/jssyConstants';
 
 import {
   INVALID_ID,
   NO_VALUE,
   SYSTEM_PROPS,
   ROUTE_PARAM_VALUE_DEF,
-} from '../../../../constants/misc';
+} from '../../constants/misc';
 
 const propTypes = {
   params: PropTypes.object,
@@ -155,6 +154,24 @@ const wrap = compose(
   withApollo,
   alertsCreator,
 );
+
+/**
+ *
+ * @type {Set<string>}
+ * @const
+ */
+const pseudoComponents = new Set([
+  'Text',
+  'Outlet',
+  'List',
+]);
+
+/**
+ *
+ * @param {ProjectComponent} component
+ * @return {boolean}
+ */
+const isPseudoComponent = component => pseudoComponents.has(component.name);
 
 /**
  *
@@ -1469,5 +1486,4 @@ BuilderComponent.propTypes = propTypes;
 BuilderComponent.defaultProps = defaultProps;
 BuilderComponent.displayName = 'Builder';
 
-const Builder = wrap(BuilderComponent);
-export default Builder;
+export const Builder = wrap(BuilderComponent);

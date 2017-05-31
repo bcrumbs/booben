@@ -56,6 +56,8 @@ import {
   buildDesignRouteIndexPath,
 } from '../constants/paths';
 
+import { URL_PREVIEW_PREFIX } from '../../../shared/constants';
+
 const propTypes = {
   location: PropTypes.object.isRequired, // router
   projectName: PropTypes.string.isRequired, // state
@@ -110,6 +112,29 @@ TopMenuLink.defaultProps = {
 };
 
 TopMenuLink.displayName = 'TopMenuLink';
+
+const TopMenuExternalLink = ({ href, className, children }) => (
+  <a
+    href={href}
+    className={className}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    {children}
+  </a>
+);
+
+TopMenuExternalLink.propTypes = {
+  href: PropTypes.string,
+  className: PropTypes.string,
+};
+
+TopMenuExternalLink.defaultProps = {
+  href: '',
+  className: '',
+};
+
+TopMenuExternalLink.displayName = 'TopMenuExternalLink';
 
 const toggleFullscreen = () => {
   const document = window.document;
@@ -248,8 +273,8 @@ class AppRoute extends Component {
                   <HeaderMenuList>
                     <HeaderMenuItem
                       text={getLocalizedText('appHeader.menu.preview')}
-                      linkHref={`/${projectName}/preview`}
-                      linkComponent={TopMenuLink}
+                      linkHref={`${URL_PREVIEW_PREFIX}/${projectName}`}
+                      linkComponent={TopMenuExternalLink}
                     />
                   
                     <HeaderMenuItem

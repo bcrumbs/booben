@@ -547,7 +547,6 @@ class DesignRoute extends PureComponent {
         <Panel spread height="auto" maxHeight="none">
           <PanelContent flex>
             <Canvas
-              interactive
               projectName={projectName}
               containerStyle={previewContainerStyle}
             />

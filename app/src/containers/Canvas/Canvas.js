@@ -6,7 +6,7 @@ import PropTypes from 'prop-types';
 import { compose } from 'redux';
 import { Provider } from 'react-redux';
 import { ApolloProvider } from 'react-apollo';
-import ApolloClient, { createNetworkInterface } from 'apollo-client';
+import ApolloClient from 'apollo-client';
 import _set from 'lodash.set';
 import _get from 'lodash.get';
 
@@ -17,24 +17,29 @@ import store, {
 
 import { CanvasFrame } from '../../components/CanvasFrame/CanvasFrame';
 import { DocumentContext } from './DocumentContext/DocumentContext';
-import { loadComponents } from './content/componentsLibrary';
-import Preview from './content/containers/Preview';
+import { loadComponents } from '../../lib/components-library';
+import CanvasContent from './content/containers/CanvasContent';
 import Overlay from './content/containers/Overlay';
 import dropZone from '../../hocs/dropZone';
 import { connectDropZone } from '../ComponentsDragArea/ComponentsDragArea';
-import { URL_GRAPHQL_PREFIX } from '../../../../shared/constants';
 import { LOADED } from '../../constants/loadStates';
 import { CANVAS_CONTAINER_ID, CANVAS_OVERLAY_ID } from './content/constants';
 import { ComponentDropAreas } from '../../actions/preview';
 import { createReducer } from '../../reducers';
 import { buildMutation } from '../../lib/graphql';
+
+import {
+  applyJWTMiddleware,
+  createNetworkInterfaceForProject,
+} from '../../lib/apollo';
+
 import { waitFor, returnNull } from '../../utils/misc';
 import contentTemplate from './content/content.ejs';
+import { APOLLO_STATE_KEY } from '../../constants/misc';
 
 /* eslint-disable react/no-unused-prop-types */
 const propTypes = {
   projectName: PropTypes.string.isRequired,
-  interactive: PropTypes.bool,
   containerStyle: PropTypes.string,
   dropZoneId: PropTypes.string,
   onDropZoneReady: PropTypes.func.isRequired,
@@ -45,7 +50,6 @@ const propTypes = {
 /* eslint-enable react/no-unused-prop-types */
 
 const defaultProps = {
-  interactive: false,
   containerStyle: '',
   dropZoneId: ComponentDropAreas.CANVAS,
 };
@@ -54,8 +58,6 @@ const wrap = compose(
   connectDropZone,
   dropZone,
 );
-
-const APOLLO_STATE_KEY = 'apollo';
 
 const EVENTS_FOR_PARENT_FRAME = [
   'mousemove',
@@ -66,20 +68,8 @@ const EVENTS_FOR_PARENT_FRAME = [
   'click',
 ];
 
-const applyJWTMiddleware = (networkInterface, getToken) => {
-  networkInterface.use([{
-    applyMiddleware(req, next) {
-      if (!req.options.headers) req.options.headers = {};
-      const token = getToken();
-      if (token) req.options.headers.Authorization = `Bearer ${token}`;
-      next();
-    },
-  }]);
-};
-
 let token = null;
 const getToken = () => token;
-const getTokenFromLS = () => localStorage.getItem('jssy_auth_token');
 
 let canvas = null;
 
@@ -115,13 +105,6 @@ class CanvasComponent extends Component {
   
   componentDidMount() {
     const { dropZoneId, onDropZoneReady } = this.props;
-
-    const contentWindow = this._iframe.contentWindow;
-    
-    // These modules are external in the components bundle
-    contentWindow.React = React;
-    contentWindow.ReactDOM = ReactDOM;
-    contentWindow.PropTypes = PropTypes;
   
     this._canvasInit()
       .then(() => {
@@ -205,8 +188,6 @@ class CanvasComponent extends Component {
   }
   
   async _getProvider() {
-    const { interactive } = this.props;
-    
     const state = store.getState();
   
     if (state.project.loadState !== LOADED) {
@@ -219,26 +200,15 @@ class CanvasComponent extends Component {
         providerProps: { store },
       };
     }
-  
-    const graphQLEndpointURL = state.project.data.proxyGraphQLEndpoint
-      ? `${URL_GRAPHQL_PREFIX}/${state.project.data.name}`
-      : state.project.data.graphQLEndpointURL;
-  
-    const networkInterface = createNetworkInterface({
-      uri: graphQLEndpointURL,
-      opts: {
-        credentials: process.env.NODE_ENV === 'development'
-          ? 'include'
-          : 'same-origin',
-      },
-    });
+
+    const networkInterface =
+      createNetworkInterfaceForProject(state.project.data);
   
     const auth = state.project.data.auth;
   
     if (auth) {
       if (auth.type === 'jwt') {
-        const getTokenFn = interactive ? getToken : getTokenFromLS;
-        applyJWTMiddleware(networkInterface, getTokenFn);
+        applyJWTMiddleware(networkInterface, getToken);
       }
     }
   
@@ -255,45 +225,43 @@ class CanvasComponent extends Component {
     }));
   
     injectApolloMiddleware(apolloMiddleware);
-  
-    if (interactive) {
-      if (auth) {
-        if (auth.type === 'jwt') {
-          const schema = state.project.schema;
-          const haveCredentials = !!auth.username && !!auth.password;
-        
-          if (!token && schema && haveCredentials) {
-            const selections = _set({}, auth.tokenPath, true);
-            const mutation = buildMutation(
-              schema,
-              auth.loginMutation,
-              selections,
+
+    if (auth) {
+      if (auth.type === 'jwt') {
+        const schema = state.project.schema;
+        const haveCredentials = !!auth.username && !!auth.password;
+
+        if (!token && schema && haveCredentials) {
+          const selections = _set({}, auth.tokenPath, true);
+          const mutation = buildMutation(
+            schema,
+            auth.loginMutation,
+            selections,
+          );
+
+          const variables = {};
+
+          _set(
+            variables,
+            [auth.username.argument, ...auth.username.path],
+            auth.username.value,
+          );
+
+          _set(
+            variables,
+            [auth.password.argument, ...auth.password.path],
+            auth.password.value,
+          );
+
+          try {
+            const response = await client.mutate({ mutation, variables });
+
+            token = _get(
+              response.data,
+              [auth.loginMutation, ...auth.tokenPath],
             );
-          
-            const variables = {};
-          
-            _set(
-              variables,
-              [auth.username.argument, ...auth.username.path],
-              auth.username.value,
-            );
-          
-            _set(
-              variables,
-              [auth.password.argument, ...auth.password.path],
-              auth.password.value,
-            );
-          
-            try {
-              const response = await client.mutate({ mutation, variables });
-            
-              token = _get(
-                response.data,
-                [auth.loginMutation, ...auth.tokenPath],
-              );
-            } catch (err) {
-              token = null;
-            }
+          } catch (err) {
+            token = null;
           }
         }
       }
@@ -306,7 +274,7 @@ class CanvasComponent extends Component {
   }
   
   async _canvasInit() {
-    const { projectName, interactive, containerStyle } = this.props;
+    const { projectName, containerStyle } = this.props;
   
     if (this._initialized) return;
   
@@ -340,9 +308,8 @@ class CanvasComponent extends Component {
       ReactDOM.render(
         <ProviderComponent {...providerProps}>
           <DocumentContext window={contentWindow} document={document}>
-            <Preview
+            <CanvasContent
               ref={this._savePreviewRef}
-              interactive={interactive}
               onDropZoneSnap={this._handleSnap}
               onDropZoneUnsnap={this._handleUnsnap}
               onDropZoneOpenDropMenu={this._handleOpenDropMenu}
@@ -374,8 +341,6 @@ class CanvasComponent extends Component {
   }
   
   _canvasCleanup() {
-    const { interactive } = this.props;
-    
     if (!this._initialized) return;
 
     const state = store.getState();
@@ -391,7 +356,7 @@ class CanvasComponent extends Component {
     const containerNode = document.getElementById(CANVAS_CONTAINER_ID);
     const overlayNode = document.getElementById(CANVAS_OVERLAY_ID);
   
-    if (interactive) ReactDOM.unmountComponentAtNode(overlayNode);
+    ReactDOM.unmountComponentAtNode(overlayNode);
     ReactDOM.unmountComponentAtNode(containerNode);
   
     this._initialized = false;

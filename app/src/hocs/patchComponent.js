@@ -6,14 +6,14 @@
 
 import { findDOMNode } from 'react-dom';
 import PropTypes from 'prop-types';
-import { isReactComponent, toClassComponent } from '../../../../utils/react';
+import { isReactComponent, toClassComponent } from '../utils/react';
 
 import {
   noop,
   isNullOrUndef,
   isNumber,
   isFunction,
-} from '../../../../utils/misc';
+} from '../utils/misc';
 
 const patchDOMElement = componentInstance => {
   const {

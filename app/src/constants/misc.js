@@ -52,3 +52,5 @@ export const ROUTE_PARAM_VALUE_DEF = {
     routeParams: {},
   },
 };
+
+export const APOLLO_STATE_KEY = 'apollo';

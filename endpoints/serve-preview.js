@@ -7,16 +7,16 @@
 const path = require('path');
 const helpers = require('./helpers');
 const config = require('../config');
-const { URL_APP_PREFIX } = require('../shared/constants');
+const { URL_PREVIEW_PREFIX } = require('../shared/constants');
 
 const env = config.get('env');
 
 module.exports = {
-  url: `${URL_APP_PREFIX}/*`,
+  url: `${URL_PREVIEW_PREFIX}/:projectName`,
   method: 'get',
   handlers: [
     (req, res) => {
-      const file = 'index.html';
+      const file = 'preview.html';
       const options = {
         root: path.resolve(__dirname, '..', 'public'),
         dotfiles: 'deny',

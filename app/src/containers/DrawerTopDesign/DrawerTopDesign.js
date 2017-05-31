@@ -57,6 +57,7 @@ const propTypes = {
 
 const defaultProps = {
   draggedComponents: null,
+  rootDraggedComponent: null,
   getLocalizedText: returnArg,
 };
 
