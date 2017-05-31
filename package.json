@@ -65,7 +65,7 @@
     "react-dom": "^15.5.0",
     "react-immutable-proptypes": "^2.1.0",
     "react-portal-minimal": "^4.0.2",
-    "react-redux": "^4.4.5",
+    "react-redux": "^5.0.5",
     "react-router": "^4.1.1",
     "react-router-dom": "^4.1.1",
     "react-router-redux": "^5.0.0-alpha.6",
