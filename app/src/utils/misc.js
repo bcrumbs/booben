@@ -28,6 +28,15 @@ export const returnNull = /* istanbul ignore next */ () => null;
 export const returnArg = /* istanbul ignore next */ arg => arg;
 
 /**
+ *
+ * @template T
+ * @param {*} _
+ * @param {T} arg
+ * @return {T}
+ */
+export const returnSecondArg = /* istanbul ignore next */ (_, arg) => arg;
+
+/**
  * Returns true
  * @return {boolean}
  */
@@ -333,6 +342,40 @@ export const pointPositionRelativeToRect = (x, y, rx, ry, rw, rh) => {
 export const isPrefixList = (maybePrefix, list) => {
   if (maybePrefix.size > list.size) return false;
   return maybePrefix.every((item, idx) => is(item, list.get(idx)));
+};
+
+/**
+ *
+ * @template T
+ * @template N
+ * @param {Immutable.List<T>} list
+ * @param {function(item: T, idx: number, list: Immutable.List): N} [mapFn]
+ * @return {N[]}
+ */
+export const mapListToArray = (list, mapFn = returnArg) => {
+  const ret = [];
+  list.forEach((item, idx) => {
+    ret.push(mapFn(item, idx, list));
+  });
+  return ret;
+};
+
+/**
+ *
+ * @template K
+ * @template V
+ * @template N
+ * @param {Immutable.Map<T>} map
+ * @param {function(value: V, key: K, map: Immutable.Map): string} keyFn
+ * @param {function(value: V, key: K, map: Immutable.Map): N} [valueFn]
+ * @return {Object<string, N>}
+ */
+export const mapMapToObject = (map, keyFn, valueFn = returnArg) => {
+  const ret = {};
+  map.forEach((value, key) => {
+    ret[keyFn(value, key, map)] = valueFn(value, key, map);
+  });
+  return ret;
 };
 
 /**

@@ -324,3 +324,6 @@ export const nestedConstructorBreadcrumbsSelector = createSelector(
     return nestedConstructors.reduceRight(reducer, initialAccumulator).ret;
   },
 );
+
+export const isProjectDirty = state =>
+  state.project.localRevision > state.project.lastSavedRevision;

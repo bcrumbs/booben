@@ -4,6 +4,7 @@
 
 'use strict';
 
+import triggersProjectSave from './project-save/wrapper';
 import { getProject, getMetadata, getGraphQLSchema } from '../lib/api';
 import { URL_GRAPHQL_PREFIX } from '../../../shared/constants';
 
@@ -133,23 +134,25 @@ export const loadProject = projectName => async dispatch => {
  * @param {Object<string, string>} paramValues
  * @return {Object}
  */
-export const createRoute = (parentRouteId, path, title, paramValues) => ({
-  type: PROJECT_ROUTE_CREATE,
-  parentRouteId,
-  path,
-  title,
-  paramValues,
-});
+export const createRoute = triggersProjectSave(
+  (parentRouteId, path, title, paramValues) => ({
+    type: PROJECT_ROUTE_CREATE,
+    parentRouteId,
+    path,
+    title,
+    paramValues,
+  }),
+);
 
 /**
  *
  * @param {number} routeId
  * @return {Object}
  */
-export const deleteRoute = routeId => ({
+export const deleteRoute = triggersProjectSave(routeId => ({
   type: PROJECT_ROUTE_DELETE,
   routeId,
-});
+}));
 
 /**
  *
@@ -158,12 +161,14 @@ export const deleteRoute = routeId => ({
  * @param {*} newValue
  * @return {Object}
  */
-export const updateRouteField = (routeId, field, newValue) => ({
-  type: PROJECT_ROUTE_UPDATE_FIELD,
-  routeId,
-  field,
-  newValue,
-});
+export const updateRouteField = triggersProjectSave(
+  (routeId, field, newValue) => ({
+    type: PROJECT_ROUTE_UPDATE_FIELD,
+    routeId,
+    field,
+    newValue,
+  }),
+);
 
 /**
  *
@@ -172,7 +177,7 @@ export const updateRouteField = (routeId, field, newValue) => ({
  * @param {Object<string, string>} newParamValues
  * @param {Object<string, string>} [renamedParams={}]
  */
-export const updateRoutePath = (
+export const updateRoutePath = triggersProjectSave((
   routeId,
   newPath,
   newParamValues,
@@ -183,17 +188,17 @@ export const updateRoutePath = (
   newPath,
   newParamValues,
   renamedParams,
-});
+}));
 
 /**
  *
  * @param {string} componentId - Component ID
  * @return {Object}
  */
-export const deleteComponent = componentId => ({
+export const deleteComponent = triggersProjectSave(componentId => ({
   type: PROJECT_COMPONENT_DELETE,
   componentId,
-});
+}));
 
 /**
  *
@@ -201,11 +206,11 @@ export const deleteComponent = componentId => ({
  * @param {JssyValue} newValue
  * @return {Object}
  */
-export const replaceJssyValue = (path, newValue) => ({
+export const replaceJssyValue = triggersProjectSave((path, newValue) => ({
   type: PROJECT_JSSY_VALUE_REPLACE,
   path,
   newValue,
-});
+}));
 
 /**
  *
@@ -213,11 +218,11 @@ export const replaceJssyValue = (path, newValue) => ({
  * @param {Object} action
  * @return {Object}
  */
-export const addAction = (path, action) => ({
+export const addAction = triggersProjectSave((path, action) => ({
   type: PROJECT_JSSY_VALUE_ADD_ACTION,
   path,
   action,
-});
+}));
 
 /**
  *
@@ -226,12 +231,12 @@ export const addAction = (path, action) => ({
  * @param {Object} newAction
  * @return {Object}
  */
-export const replaceAction = (path, index, newAction) => ({
+export const replaceAction = triggersProjectSave((path, index, newAction) => ({
   type: PROJECT_JSSY_VALUE_REPLACE_ACTION,
   path,
   index,
   newAction,
-});
+}));
 
 /**
  *
@@ -239,11 +244,11 @@ export const replaceAction = (path, index, newAction) => ({
  * @param {number} index
  * @return {Object}
  */
-export const deleteAction = (path, index) => ({
+export const deleteAction = triggersProjectSave((path, index) => ({
   type: PROJECT_JSSY_VALUE_DELETE_ACTION,
   path,
   index,
-});
+}));
 
 /**
  *
@@ -271,9 +276,9 @@ export const cancelConstructComponentForProp = () => ({
  *
  * @return {Object}
  */
-export const saveComponentForProp = () => ({
+export const saveComponentForProp = triggersProjectSave(() => ({
   type: PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE,
-});
+}));
 
 /**
  *
@@ -281,11 +286,11 @@ export const saveComponentForProp = () => ({
  * @param {string} newTitle
  * @return {Object}
  */
-export const renameComponent = (componentId, newTitle) => ({
+export const renameComponent = triggersProjectSave((componentId, newTitle) => ({
   type: PROJECT_COMPONENT_RENAME,
   componentId,
   newTitle,
-});
+}));
 
 /**
  *
@@ -294,22 +299,24 @@ export const renameComponent = (componentId, newTitle) => ({
  * @param {boolean} enable
  * @return {Object}
  */
-export const toggleComponentRegion = (componentId, regionIdx, enable) => ({
-  type: PROJECT_COMPONENT_TOGGLE_REGION,
-  componentId,
-  regionIdx,
-  enable,
-});
+export const toggleComponentRegion = triggersProjectSave(
+  (componentId, regionIdx, enable) => ({
+    type: PROJECT_COMPONENT_TOGGLE_REGION,
+    componentId,
+    regionIdx,
+    enable,
+  }),
+);
 
 /**
  *
  * @param {number} layoutIdx
  * @return {Object}
  */
-export const selectLayoutForNewComponent = layoutIdx => ({
+export const selectLayoutForNewComponent = triggersProjectSave(layoutIdx => ({
   type: PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
   layoutIdx,
-});
+}));
 
 /**
  *
@@ -321,7 +328,7 @@ export const selectLayoutForNewComponent = layoutIdx => ({
  * @param {string} code
  * @return {Object}
  */
-export const createFunction = (
+export const createFunction = triggersProjectSave((
   name,
   title,
   description,
@@ -336,7 +343,7 @@ export const createFunction = (
   args,
   returnType,
   code,
-});
+}));
 
 /**
  *

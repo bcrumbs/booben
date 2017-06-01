@@ -34,7 +34,17 @@ import {
 } from '../lib/schema';
 
 import { getComponentMeta } from '../lib/meta';
-import { isUndef, isObject, isNumber } from '../utils/misc';
+
+import {
+  isUndef,
+  isObject,
+  isNumber,
+  mapListToArray,
+  mapMapToObject,
+  returnArg,
+  returnSecondArg,
+  returnNull,
+} from '../utils/misc';
 
 import {
   INVALID_ID,
@@ -138,6 +148,7 @@ export const jssyValueToImmutable = ({ source, sourceData }) => new JssyValue({
 });
 
 const propSourceDataToImmutableFns = {
+  const: input => new SourceDataConst(input),
   static: input => {
     const data = {};
 
@@ -183,8 +194,6 @@ const propSourceDataToImmutableFns = {
     function: input.function,
     args: Map(_mapValues(input.args, jssyValueToImmutable)),
   }),
-
-  const: input => new SourceDataConst(input),
   
   actions: input => new SourceDataActions({
     actions: actionsToImmutable(input.actions),
@@ -497,6 +506,167 @@ export const walkSimpleValues = (
       ),
     );
   }
+};
+
+/* eslint-disable no-use-before-define */
+const actionParamsToJSv1Converters = {
+  mutation: params => ({
+    mutation: params.mutation,
+    args: mapMapToObject(params.args, returnSecondArg, jssyValueToJSv1),
+    successActions: mapListToArray(params.successActions, actionToJSv1),
+    errorActions: mapListToArray(params.errorActions, actionToJSv1),
+  }),
+  
+  method: params => ({
+    componentId: params.componentId,
+    method: params.method,
+    args: mapListToArray(params.args, jssyValueToJSv1),
+  }),
+  
+  prop: params => {
+    const ret = {
+      componentId: params.componentId,
+      value: jssyValueToJSv1(params.value),
+    };
+    
+    if (params.systemPropName) {
+      ret.systemPropName = params.systemPropName;
+    } else {
+      ret.propName = params.propName;
+    }
+    
+    return ret;
+  },
+  
+  navigate: params => ({
+    routeId: params.routeId,
+    routeParams: mapMapToObject(
+      params.routeParams,
+      returnSecondArg,
+      jssyValueToJSv1,
+    ),
+  }),
+  
+  url: params => params.toJS(),
+  logout: returnNull,
+};
+
+const actionToJSv1 = action => ({
+  type: action.type,
+  params: actionParamsToJSv1Converters[action.type](action.params),
+});
+
+const sourceDataToJSv1Converters = {
+  const: sourceData => {
+    if (sourceData.jssyConstId) {
+      return {
+        jssyConstId: sourceData.jssyConstId,
+      };
+    } else {
+      return {
+        value: sourceData.value,
+      };
+    }
+  },
+  
+  static: sourceData => {
+    if (sourceData.ownerPropName) {
+      return {
+        ownerPropName: sourceData.ownerPropName,
+      };
+    } else if (sourceData.value instanceof List) {
+      return {
+        value: mapListToArray(sourceData.value, jssyValueToJSv1),
+      };
+    } else if (sourceData.value instanceof Map) {
+      return {
+        value: mapMapToObject(
+          sourceData.value,
+          returnSecondArg,
+          jssyValueToJSv1,
+        ),
+      };
+    } else {
+      return {
+        value: sourceData.value,
+      };
+    }
+  },
+  
+  data: sourceData => ({
+    dataContext: mapListToArray(sourceData, returnArg),
+    queryPath: mapListToArray(sourceData.queryPath, step => step.toJS()),
+    queryArgs: mapMapToObject(
+      sourceData.queryArgs,
+      returnSecondArg,
+      args => mapMapToObject(args, returnSecondArg, jssyValueToJSv1),
+    ),
+  }),
+  
+  function: sourceData => ({
+    functionSource: sourceData.functionSource,
+    function: sourceData.function,
+    args: mapMapToObject(sourceData.args, returnSecondArg, jssyValueToJSv1),
+  }),
+  
+  actions: sourceData => ({
+    actions: mapListToArray(sourceData.actions, actionToJSv1),
+  }),
+  
+  designer: sourceData => {
+    if (sourceData.rootId === INVALID_ID) {
+      return {
+        component: null,
+      };
+    } else {
+      return {
+        component: projectComponentToJSv1(
+          sourceData.components,
+          sourceData.rootId,
+        ),
+      };
+    }
+  },
+  
+  state: sourceData => sourceData.toJS(),
+  
+  routeParams: sourceData => sourceData.toJS(),
+};
+/* eslint-enable no-use-before-define */
+
+const sourceDataToJSv1 = (source, sourceData) =>
+  sourceDataToJSv1Converters[source](sourceData);
+
+const jssyValueToJSv1 = jssyValue => ({
+  source: jssyValue.source,
+  sourceData: sourceDataToJSv1(jssyValue.source, jssyValue.sourceData),
+});
+
+export const projectComponentToJSv1 = (components, componentId) => {
+  const component = components.get(componentId);
+  
+  return {
+    id: component.id,
+    name: component.name,
+    title: component.title,
+    isWrapper: component.isWrapper,
+    props: mapMapToObject(
+      component.props,
+      returnSecondArg,
+      jssyValueToJSv1,
+    ),
+    systemProps: mapMapToObject(
+      component.systemProps,
+      returnSecondArg,
+      jssyValueToJSv1,
+    ),
+    layout: component.layout,
+    regionsEnabled: component.regionsEnabled,
+    children: mapListToArray(
+      component.children,
+      childId => projectComponentToJSv1(components, childId),
+    ),
+  };
 };
 
 export default ProjectComponentRecord;

@@ -149,7 +149,7 @@
  * @typedef {Object} SourceDataFunction
  * @property {string} functionSource - Can be 'project' or 'builtin'.
  * @property {string} function - Function name
- * @property {Object<string, SourceDataStatic|SourceDataData|SourceDataConst|SourceDataFunction|SourceDataState|SourceDataRouteParams>} args
+ * @property {Object<string, PlainJssyValue>} args
  */
 
 /**

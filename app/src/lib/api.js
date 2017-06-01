@@ -23,6 +23,27 @@ export const getProject = async projectName => {
 /**
  *
  * @param {string} projectName
+ * @param {Project} project
+ * @return {Object}
+ */
+export const putProject = async (projectName, project) => {
+  const res = await fetch(`${URL_API_PREFIX}/projects/${projectName}`, {
+    method: 'PUT',
+    body: JSON.stringify(project),
+    headers: {
+      'content-type': 'application/json',
+    },
+  });
+  
+  const data = await res.json();
+  
+  if (data.error) throw new Error(data.error);
+  return data;
+};
+
+/**
+ *
+ * @param {string} projectName
  * @return {Object<string, Object<string, ComponentMeta>>}
  */
 export const getMetadata = async projectName => {

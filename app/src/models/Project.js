@@ -9,11 +9,22 @@ import _forOwn from 'lodash.forown';
 
 import {
   projectRouteToImmutable,
+  projectRouteToJSv1,
   getMaxComponentId as _getMaxComponentId,
 } from './ProjectRoute';
 
-import { projectFunctionToImmutable } from './ProjectFunction';
-import { concatPath } from '../utils/misc';
+import {
+  projectFunctionToImmutable,
+  projectFunctionToJSv1,
+} from './ProjectFunction';
+
+import {
+  concatPath,
+  mapMapToObject,
+  mapListToArray,
+  returnSecondArg,
+} from '../utils/misc';
+
 import { INVALID_ID } from '../constants/misc';
 
 const AuthParamRecord = Record({
@@ -108,5 +119,24 @@ export const getRouteByComponentId = (project, componentId) =>
 
 export const getComponentById = (project, componentId) =>
   getRouteByComponentId(project, componentId).components.get(componentId);
+
+export const projectToJSv1 = project => ({
+  version: 1,
+  name: project.name,
+  author: project.author,
+  componentLibs: project.componentLibs.toJS(),
+  enableHTML: project.enableHTML,
+  graphQLEndpointURL: project.graphQLEndpointURL,
+  proxyGraphQLEndpoint: project.proxyGraphQLEndpoint,
+  routes: mapListToArray(
+    project.rootRoutes,
+    routeId => projectRouteToJSv1(project.routes, routeId),
+  ),
+  functions: mapMapToObject(
+    project.functions,
+    returnSecondArg,
+    projectFunctionToJSv1,
+  ),
+});
 
 export default ProjectRecord;

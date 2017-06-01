@@ -35,7 +35,11 @@ import {
 import StructureRoute from './StructureRoute';
 import DesignRoute from './DesignRoute';
 import { DrawerTopDesign } from '../containers/DrawerTopDesign/DrawerTopDesign';
-import { ProjectSave } from '../components/ProjectSave/ProjectSave';
+
+import {
+  ProjectSaveIndicator,
+} from '../containers/ProjectSaveIndicator/ProjectSaveIndicator';
+
 import { alertAreaProvider } from '../hocs/alerts';
 import ProjectRecord from '../models/Project';
 
@@ -286,7 +290,7 @@ class AppRoute extends Component {
             </HeaderRegion>
           
             <HeaderRegion size="blank">
-              <ProjectSave />
+              <ProjectSaveIndicator />
             </HeaderRegion>
           </Header>
   

@@ -5,6 +5,7 @@
 'use strict';
 
 import { Record, List } from 'immutable';
+import { mapListToArray } from '../utils/misc';
 import { FUNCTION_FNS_ARG_NAME } from '../constants/misc';
 
 export const ProjectFunctionArgument = Record({
@@ -53,6 +54,14 @@ export const projectFunctionToImmutable = input => new ProjectFunction({
   body: input.body,
   returnType: input.returnType,
   fn: createJSFunction(input.args.map(arg => arg.name), input.body),
+});
+
+export const projectFunctionToJSv1 = fn => ({
+  title: fn.title,
+  description: fn.description,
+  args: mapListToArray(fn.args, arg => arg.toJS()),
+  body: fn.body,
+  returnType: fn.returnType,
 });
 
 /* eslint-enable no-new-func */
