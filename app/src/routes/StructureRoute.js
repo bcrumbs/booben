@@ -198,7 +198,7 @@ const getRenamedRouteParams = (oldPath, newPath, reverse = false) => {
  */
 const normalizePath = (rawPath, isRootRoute) => {
   if (isRootRoute) return !rawPath.startsWith('/') ? `/${rawPath}` : rawPath;
-  else return !rawPath.startsWith('/') ? rawPath.slice(1) : rawPath;
+  else return rawPath.startsWith('/') ? rawPath.slice(1) : rawPath;
 };
 
 class StructureRoute extends PureComponent {
