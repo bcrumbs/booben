@@ -399,9 +399,10 @@ export class JssyValueEditor extends PureComponent {
     const { userTypedefs, ownerProps, ownerUserTypedefs } = this.props;
     
     if (isValidSourceForValue(valueDef, 'data')) return true;
-    if (isValidSourceForValue(valueDef, 'state')) return true;
+    if (isValidSourceForValue(valueDef, 'routeParams')) return true;
+    if (isValidSourceForValue(valueDef, 'actionArg')) return true;
     
-    if (!ownerProps || !isValidSourceForValue(valueDef, 'static')) return false;
+    if (!isValidSourceForValue(valueDef, 'static') || !ownerProps) return false;
     
     return objectSome(ownerProps, ownerProp => {
       if (ownerProp.dataContext) return false;
@@ -696,6 +697,8 @@ export class JssyValueEditor extends PureComponent {
         `- ${jssyValue.sourceData.stateSlot}`;
     } else if (jssyValue.sourceIs('routeParams')) {
       linkedWith = jssyValue.sourceData.paramName;
+    } else if (jssyValue.sourceIs('actionArg')) {
+      linkedWith = `Action argument ${jssyValue.sourceData.arg}`;
     }
 
     return { value, linked, linkedWith, checked };

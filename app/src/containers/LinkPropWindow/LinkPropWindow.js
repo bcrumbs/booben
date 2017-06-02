@@ -26,6 +26,7 @@ import {
 import { DataSelection } from './DataSelection/DataSelection';
 import { FunctionSelection } from './FunctionSelection/FunctionSelection';
 import { RouteParamSelection } from './RouteParamSelection/RouteParamSelection';
+import { ActionArgSelection } from './ActionArgSelection/ActionArgSelection';
 import { DataWindow } from '../../components/DataWindow/DataWindow';
 
 import {
@@ -43,6 +44,7 @@ import SourceDataFunction from '../../models/SourceDataFunction';
 import SourceDataStatic from '../../models/SourceDataStatic';
 import SourceDataRouteParams from '../../models/SourceDataRouteParams';
 import SourceDataData, { QueryPathStep } from '../../models/SourceDataData';
+import SourceDataActionArg from '../../models/SourceDataActionArg';
 import { NestedConstructor } from '../../reducers/project';
 import { getComponentMeta, isValidSourceForValue } from '../../lib/meta';
 import { noop } from '../../utils/misc';
@@ -56,6 +58,8 @@ const propTypes = {
   builtinFunctions: ImmutablePropTypes.map.isRequired,
   valueDef: PropTypes.object,
   userTypedefs: PropTypes.object,
+  actionArgsMeta: PropTypes.arrayOf(PropTypes.object),
+  actionComponentMeta: PropTypes.object,
   name: PropTypes.string,
   breadcrumbs: PropTypes.arrayOf(PropTypes.string),
   availableDataContexts: PropTypes.arrayOf(PropTypes.shape({
@@ -78,6 +82,8 @@ const defaultProps = {
   topNestedConstructorComponent: null,
   valueDef: null,
   userTypedefs: null,
+  actionArgsMeta: null,
+  actionComponentMeta: null,
   name: '',
   breadcrumbs: [],
   onLink: noop,
@@ -130,6 +136,7 @@ class LinkPropWindowComponent extends PureComponent {
     this._handleLinkWithFunction = this._handleLinkWithFunction.bind(this);
     this._handleCreateFunction = this._handleCreateFunction.bind(this);
     this._handleLinkWithRouteParam = this._handleLinkWithRouteParam.bind(this);
+    this._handleLinkWithActionArg = this._handleLinkWithActionArg.bind(this);
     this._handleNestedLink = this._handleNestedLink.bind(this);
     this._handleNestedLinkDone = this._handleNestedLinkDone.bind(this);
   }
@@ -151,7 +158,7 @@ class LinkPropWindowComponent extends PureComponent {
     
     const items = [];
     
-    if (topNestedConstructor) {
+    if (isValidSourceForValue(valueDef, 'static') && topNestedConstructor) {
       items.push({
         id: 'owner',
         title: getLocalizedText('linkDialog.source.owner'),
@@ -198,6 +205,13 @@ class LinkPropWindowComponent extends PureComponent {
           title: getLocalizedText('linkDialog.source.routeParams'),
         });
       }
+    }
+    
+    if (isValidSourceForValue(valueDef, 'actionArg')) {
+      items.push({
+        id: 'actionArg',
+        title: getLocalizedText('linkDialog.source.actionArgs'),
+      });
     }
   
     items.push({
@@ -327,6 +341,24 @@ class LinkPropWindowComponent extends PureComponent {
     const newValue = new JssyValue({
       source: 'routeParams',
       sourceData: new SourceDataRouteParams({ routeId, paramName }),
+    });
+  
+    onLink({ newValue });
+  }
+  
+  /**
+   *
+   * @param {number} argIdx
+   * @private
+   */
+  _handleLinkWithActionArg({ argIdx }) {
+    const { onLink } = this.props;
+    
+    const newValue = new JssyValue({
+      source: 'actionArg',
+      sourceData: new SourceDataActionArg({
+        arg: argIdx,
+      }),
     });
   
     onLink({ newValue });
@@ -509,6 +541,30 @@ class LinkPropWindowComponent extends PureComponent {
     );
   }
   
+  _renderActionArgSelection() {
+    const {
+      valueDef,
+      userTypedefs,
+      language,
+      actionArgsMeta,
+      actionComponentMeta,
+      getLocalizedText,
+    } = this.props;
+    
+    return (
+      <ActionArgSelection
+        linkTargetValueDef={valueDef}
+        userTypedefs={userTypedefs}
+        language={language}
+        actionArgsMeta={actionArgsMeta}
+        actionComponentMeta={actionComponentMeta}
+        getLocalizedText={getLocalizedText}
+        onSelect={this._handleLinkWithActionArg}
+        onReturn={this._handleReturn}
+      />
+    );
+  }
+  
   _renderNestedWindow() {
     const { name, breadcrumbs } = this.props;
     const {
@@ -555,6 +611,8 @@ class LinkPropWindowComponent extends PureComponent {
       content = this._renderFunctionSelection();
     } else if (selectedSourceId === 'routeParams') {
       content = this._renderRouteParamsSelection();
+    } else if (selectedSourceId === 'actionArg') {
+      content = this._renderActionArgSelection();
     } else if (selectedSourceId.startsWith('context')) {
       content = this._renderDataSelection(
         selectedSourceData.dataContext,

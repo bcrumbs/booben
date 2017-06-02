@@ -80,7 +80,18 @@ import {
   SYSTEM_PROPS,
 } from '../../constants/misc';
 
+const addActionArgSourceToValueDef = valueDef => ({
+  ...valueDef,
+  source: [...valueDef.source, 'actionArg'],
+  sourceConfigs: {
+    ...valueDef.sourceConfigs,
+    actionArg: {},
+  },
+});
+
 const propTypes = {
+  actionArgsMeta: PropTypes.arrayOf(PropTypes.object).isRequired,
+  actionComponentMeta: PropTypes.object.isRequired,
   action: PropTypes.instanceOf(Action),
   onSave: PropTypes.func,
   onCancel: PropTypes.func,
@@ -1002,12 +1013,13 @@ class ActionEditorComponent extends PureComponent {
   }
   
   render() {
-    const { getLocalizedText } = this.props;
     const {
-      action,
-      linkingValue,
-      linkParams,
-    } = this.state;
+      actionArgsMeta,
+      actionComponentMeta,
+      getLocalizedText,
+    } = this.props;
+    
+    const { action, linkingValue, linkParams } = this.state;
     
     const actionTypeLabel = getLocalizedText('actionsEditor.actionType');
     const actionTypeOptions = this._getActionTypeOptions();
@@ -1036,7 +1048,7 @@ class ActionEditorComponent extends PureComponent {
       : '';
 
     const linkTargetValueDef = linkParams
-      ? linkParams.targetValueDef
+      ? addActionArgSourceToValueDef(linkParams.targetValueDef)
       : null;
 
     const linkTargetUserTypedefs = linkParams
@@ -1073,6 +1085,8 @@ class ActionEditorComponent extends PureComponent {
             name={linkWindowName}
             valueDef={linkTargetValueDef}
             userTypedefs={linkTargetUserTypedefs}
+            actionArgsMeta={actionArgsMeta}
+            actionComponentMeta={actionComponentMeta}
             onLink={this._handleLinkApply}
           />
         </DesignDialog>

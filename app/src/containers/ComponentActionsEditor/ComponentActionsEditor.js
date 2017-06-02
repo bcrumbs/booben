@@ -278,8 +278,19 @@ class ComponentActionsEditorComponent extends PureComponent {
   }
   
   _renderNewActionView() {
+    const { meta, currentComponents, selectedComponentIds } = this.props;
+    const { activeHandler } = this.state;
+    
+    const componentId = selectedComponentIds.first();
+    const component = currentComponents.get(componentId);
+    const componentMeta = getComponentMeta(component.name, meta);
+    const propMeta = componentMeta.props[activeHandler];
+    const actionArgsMeta = propMeta.sourceConfigs.actions.args;
+    
     return (
       <ActionEditor
+        actionArgsMeta={actionArgsMeta}
+        actionComponentMeta={componentMeta}
         onSave={this._handleActionEditorSave}
         onCancel={this._handleActionEditorCancel}
       />
@@ -287,17 +298,22 @@ class ComponentActionsEditorComponent extends PureComponent {
   }
   
   _renderEditActionView() {
-    const { currentComponents, selectedComponentIds } = this.props;
+    const { meta, currentComponents, selectedComponentIds } = this.props;
     const { activeHandler, editActionPath } = this.state;
   
     const componentId = selectedComponentIds.first();
     const component = currentComponents.get(componentId);
+    const componentMeta = getComponentMeta(component.name, meta);
+    const propMeta = componentMeta.props[activeHandler];
+    const actionArgsMeta = propMeta.sourceConfigs.actions.args;
     const propValue = component.props.get(activeHandler);
     const action = propValue.getActionByPath(editActionPath);
     
     return (
       <ActionEditor
         action={action}
+        actionArgsMeta={actionArgsMeta}
+        actionComponentMeta={componentMeta}
         onSave={this._handleActionEditorSave}
         onCancel={this._handleActionEditorCancel}
       />

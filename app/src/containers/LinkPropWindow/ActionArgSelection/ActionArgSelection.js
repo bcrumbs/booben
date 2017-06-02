@@ -6,7 +6,7 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { isEqualType } from '@jssy/types';
+import { isCompatibleType } from '@jssy/types';
 
 import {
   BlockContent,
@@ -26,8 +26,8 @@ import { noop, returnArg } from '../../../utils/misc';
 
 //noinspection JSUnresolvedVariable
 const propTypes = {
-  ownerComponentMeta: PropTypes.object.isRequired,
-  ownerPropMeta: PropTypes.object.isRequired,
+  actionArgsMeta: PropTypes.arrayOf(PropTypes.object).isRequired,
+  actionComponentMeta: PropTypes.object.isRequired,
   userTypedefs: PropTypes.object,
   linkTargetValueDef: PropTypes.object.isRequired,
   language: PropTypes.string.isRequired,
@@ -43,7 +43,7 @@ const defaultProps = {
   onReturn: noop,
 };
 
-export class OwnerComponentPropSelection extends PureComponent {
+export class ActionArgSelection extends PureComponent {
   constructor(props, context) {
     super(props, context);
     
@@ -63,12 +63,14 @@ export class OwnerComponentPropSelection extends PureComponent {
   
   /**
    *
-   * @param {string} propName
+   * @param {string} id
    * @private
    */
-  _handleSelect({ id: propName }) {
+  _handleSelect({ id }) {
     const { onSelect } = this.props;
-    onSelect({ propName });
+    
+    const argIdx = parseInt(id, 10);
+    onSelect({ argIdx });
   }
   
   /**
@@ -82,49 +84,46 @@ export class OwnerComponentPropSelection extends PureComponent {
     return [{
       title: getLocalizedText('linkDialog.sources'),
     }, {
-      title: getLocalizedText('linkDialog.source.owner'),
+      title: getLocalizedText('linkDialog.source.actionArgs'),
     }];
   }
   
   render() {
     const {
-      ownerComponentMeta,
-      ownerPropMeta,
+      actionArgsMeta,
+      actionComponentMeta,
       linkTargetValueDef,
       userTypedefs,
       language,
     } = this.props;
     
-    const ownerPropsMeta = ownerPropMeta.sourceConfigs.designer.props;
-    const items = Object.keys(ownerPropsMeta)
-      .filter(ownerPropName => isEqualType(
-        ownerPropsMeta[ownerPropName],
+    const items = actionArgsMeta
+      .filter(argMeta => isCompatibleType(
         linkTargetValueDef,
-        ownerComponentMeta.types,
+        argMeta,
         userTypedefs,
+        actionComponentMeta.types || null,
       ))
-      .map(ownerPropName => {
-        const ownerPropMeta = ownerPropsMeta[ownerPropName];
-      
+      .map((argMeta, idx) => {
         const title = getString(
-          ownerComponentMeta.strings,
-          ownerPropMeta.textKey,
+          actionComponentMeta.strings,
+          argMeta.textKey,
           language,
         );
-      
+        
         const description = getString(
-          ownerComponentMeta.strings,
-          ownerPropMeta.descriptionTextKey,
+          actionComponentMeta.strings,
+          argMeta.descriptionTextKey,
           language,
         );
-      
+        
         return (
           <DataItem
-            key={ownerPropName}
-            id={ownerPropName}
-            title={title || ownerPropName}
+            key={String(idx)}
+            id={String(idx)}
+            title={title}
             description={description}
-            type={ownerPropMeta.type}
+            type={argMeta.type}
             clickable
             onSelect={this._handleSelect}
           />
@@ -132,7 +131,7 @@ export class OwnerComponentPropSelection extends PureComponent {
       });
     
     const breadcrumbsItems = this._getBreadcrumbsItems();
-  
+    
     return (
       <BlockContent>
         <BlockContentNavigation>
@@ -143,7 +142,7 @@ export class OwnerComponentPropSelection extends PureComponent {
             onItemClick={this._handleBreadcrumbsClick}
           />
         </BlockContentNavigation>
-      
+        
         <BlockContentBox isBordered flex>
           <BlockContentBoxItem>
             <DataList>
@@ -156,6 +155,6 @@ export class OwnerComponentPropSelection extends PureComponent {
   }
 }
 
-OwnerComponentPropSelection.propTypes = propTypes;
-OwnerComponentPropSelection.defaultProps = defaultProps;
-OwnerComponentPropSelection.displayName = 'OwnerComponentPropSelection';
+ActionArgSelection.propTypes = propTypes;
+ActionArgSelection.defaultProps = defaultProps;
+ActionArgSelection.displayName = 'ActionArgSelection';

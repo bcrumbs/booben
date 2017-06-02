@@ -20,7 +20,7 @@ import { resolveTypedef, coerceValue, TypeNames } from '@jssy/types';
 import { alertsCreator } from '../../hocs/alerts';
 import { ContentPlaceholder } from './ContentPlaceholder/ContentPlaceholder';
 import { Outlet } from './Outlet/Outlet';
-import { getComponentByName } from '../../lib/components-library';
+import JssyValue from '../../models/JssyValue';
 
 import ProjectComponent, {
   walkComponentsTree,
@@ -55,6 +55,7 @@ import {
   getFieldByPath,
 } from '../../lib/schema';
 
+import { getComponentByName } from '../../lib/components-library';
 import { getFunctionInfo } from '../../lib/functions';
 import { noop, returnNull, isString, isUndef } from '../../utils/misc';
 import jssyConstants from '../../constants/jssyConstants';
@@ -434,7 +435,15 @@ class BuilderComponent extends PureComponent {
       });
   }
   
-  _performAction(action, componentId, theMap, data) {
+  _performAction(
+    action,
+    componentId,
+    theMap,
+    data,
+    actionArgValues,
+    actionValueDef,
+    actionUserTypedefs,
+  ) {
     const {
       project,
       meta,
@@ -482,6 +491,9 @@ class BuilderComponent extends PureComponent {
             theMap,
             componentId,
             data,
+            actionArgValues,
+            actionValueDef,
+            actionUserTypedefs,
           );
         
           if (value !== NO_VALUE) variables[argName] = value;
@@ -490,12 +502,28 @@ class BuilderComponent extends PureComponent {
         this._performMutation(action.params.mutation, mutation, variables)
           .then(() => {
             action.params.successActions.forEach(successAction => {
-              this._performAction(successAction, componentId, theMap, data);
+              this._performAction(
+                successAction,
+                componentId,
+                theMap,
+                data,
+                actionArgValues,
+                actionValueDef,
+                actionUserTypedefs,
+              );
             });
           })
           .catch(() => {
             action.params.errorActions.forEach(errorAction => {
-              this._performAction(errorAction, componentId, theMap, data);
+              this._performAction(
+                errorAction,
+                componentId,
+                theMap,
+                data,
+                actionArgValues,
+                actionValueDef,
+                actionUserTypedefs,
+              );
             });
           });
       
@@ -513,6 +541,9 @@ class BuilderComponent extends PureComponent {
             theMap,
             componentId,
             data,
+            actionArgValues,
+            actionValueDef,
+            actionUserTypedefs,
           );
         
           if (value !== NO_VALUE) routeParams[paramName] = value;
@@ -557,6 +588,9 @@ class BuilderComponent extends PureComponent {
             theMap,
             componentId,
             data,
+            actionArgValues,
+            actionValueDef,
+            actionUserTypedefs,
           );
         
           args.push(value !== NO_VALUE ? value : void 0);
@@ -584,12 +618,36 @@ class BuilderComponent extends PureComponent {
           propName,
           isSystemProp,
         );
+        
+        let newValue;
+        if (action.params.value.sourceIs('actionArg')) {
+          const targetComponent = components.get(action.params.componentId);
+          const targetComponentMeta = getComponentMeta(
+            targetComponent.name,
+            meta,
+          );
+          
+          const targetPropMeta = isSystemProp
+            ? SYSTEM_PROPS[propName]
+            : targetComponentMeta.props[propName];
+          
+          newValue = JssyValue.staticFromJS(this._buildValue(
+            action.params.value,
+            targetPropMeta,
+            targetComponent.types,
+            theMap,
+            componentId,
+            data,
+            actionArgValues,
+            actionValueDef,
+            actionUserTypedefs,
+          ));
+        } else {
+          newValue = action.params.value;
+        }
       
         this.setState({
-          dynamicPropValues: dynamicPropValues.set(
-            propAddress,
-            action.params.value,
-          ),
+          dynamicPropValues: dynamicPropValues.set(propAddress, newValue),
         });
       
         break;
@@ -852,7 +910,15 @@ class BuilderComponent extends PureComponent {
       if (interactive) return;
     
       jssyValue.sourceData.actions.forEach(action => {
-        this._performAction(action, componentId, theMap, data);
+        this._performAction(
+          action,
+          componentId,
+          theMap,
+          data,
+          args,
+          valueDef,
+          userTypedefs,
+        );
       });
     };
   }
@@ -912,6 +978,25 @@ class BuilderComponent extends PureComponent {
       userTypedefs,
     );
   }
+  
+  _buildActionArgValue(
+    jssyValue,
+    valueDef,
+    userTypedefs,
+    actionArgValues,
+    actionValueDef,
+    actionUserTypedefs,
+  ) {
+    const argIdx = jssyValue.sourceData.arg;
+    
+    return coerceValue(
+      actionArgValues[argIdx],
+      actionValueDef.sourceConfigs.actions.args[argIdx],
+      valueDef,
+      actionUserTypedefs,
+      userTypedefs,
+    );
+  }
 
   /**
    *
@@ -921,6 +1006,9 @@ class BuilderComponent extends PureComponent {
    * @param {?Immutable.Map<Object, Object>} [theMap=null]
    * @param {?number} [componentId=null]
    * @param {?Object} [data=null]
+   * @param {?(*[])} [actionArgValues=null]
+   * @param {?JssyValueDefinition} [actionValueDef=null]
+   * @param {?Object<string, JssyTypeDefinition>} [actionUserTypedefs=null]
    * @return {*}
    */
   _buildValue(
@@ -930,6 +1018,9 @@ class BuilderComponent extends PureComponent {
     theMap = null, // Required to build values with 'designer' source
     componentId = null, // Required to build values with 'actions' source
     data = null, // Required to build values with 'data' source and no dataContext
+    actionArgValues = null, // Required to build values with 'actionArg' source and no dataContext
+    actionValueDef = null, // Required to build values with 'actionArg' source and no dataContext
+    actionUserTypedefs = null, // Required to build values with 'actionArg' source and no dataContext
   ) {
     if (jssyValue.source === 'static') {
       return this._buildStaticValue(
@@ -982,6 +1073,15 @@ class BuilderComponent extends PureComponent {
       return this._buildStateValue(jssyValue, valueDef, userTypedefs);
     } else if (jssyValue.source === 'routeParams') {
       return this._buildRouteParamsValue(jssyValue, valueDef, userTypedefs);
+    } else if (jssyValue.source === 'actionArg') {
+      return this._buildActionArgValue(
+        jssyValue,
+        valueDef,
+        userTypedefs,
+        actionArgValues,
+        actionValueDef,
+        actionUserTypedefs,
+      );
     }
 
     throw new Error(

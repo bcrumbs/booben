@@ -114,6 +114,7 @@
   "linkDialog.source.dataContext": "Context - {context}",
   "linkDialog.source.function": "Function",
   "linkDialog.source.routeParams": "Route parameters",
+  "linkDialog.source.actionArgs": "Action arguments",
   "linkDialog.function.library": "Library functions",
   "linkDialog.function.user": "User functions",
   "linkDialog.function.create": "Create a new function",

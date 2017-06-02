@@ -26,6 +26,7 @@ import SourceDataActions, {
 import SourceDataDesigner from './SourceDataDesigner';
 import SourceDataState from './SourceDataState';
 import SourceDataRouteParams from './SourceDataRouteParams';
+import SourceDataActionArg from './SourceDataActionArg';
 import { getFunctionInfo } from '../lib/functions';
 
 import {
@@ -218,6 +219,7 @@ const propSourceDataToImmutableFns = {
   
   state: input => new SourceDataState(input),
   routeParams: input => new SourceDataRouteParams(input),
+  actionArg: input => new SourceDataActionArg(input),
 };
 /* eslint-enable no-use-before-define */
 
@@ -629,8 +631,8 @@ const sourceDataToJSv1Converters = {
   },
   
   state: sourceData => sourceData.toJS(),
-  
   routeParams: sourceData => sourceData.toJS(),
+  actionArg: sourceData => sourceData.toJS(),
 };
 /* eslint-enable no-use-before-define */
 

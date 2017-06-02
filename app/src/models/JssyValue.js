@@ -189,12 +189,17 @@ class JssyValue extends JssyValueRecord {
     return this.sourceIs('routeParams');
   }
   
+  isLinkedWithActionArg() {
+    return this.sourceIs('actionArg');
+  }
+  
   isLinked() {
     return this.isLinkedWithData() ||
       this.isLinkedWithFunction() ||
       this.isLinkedWithOwnerProp() ||
       this.isLinkedWithState() ||
-      this.isLinkedWithRouteParam();
+      this.isLinkedWithRouteParam() ||
+      this.isLinkedWithActionArg();
   }
   
   getDataContext() {

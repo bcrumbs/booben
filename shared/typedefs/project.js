@@ -28,6 +28,11 @@
  * @property {?ProjectComponent} indexComponent
  * @property {boolean} haveRedirect
  * @property {string} redirectTo
+ * @property {boolean} redirectAuthenticated
+ * @property {string} redirectAuthenticatedTo
+ * @property {boolean} redirectAnonymous
+ * @property {string} redirectAnonymousTo
+ * @property {Object<string, string>} paramValues
  * @property {ProjectRoute[]} children
  * @property {?ProjectComponent} component
  */
@@ -47,7 +52,7 @@
 /**
  * @typedef {Object} PlainJssyValue
  * @property {string} source
- * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner|SourceDataFunction|SourceDataState|SourceDataRouteParams} sourceData
+ * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner|SourceDataFunction|SourceDataState|SourceDataRouteParams|SourceDataActionArg} sourceData
  */
 
 /**
@@ -150,6 +155,11 @@
  * @property {string} functionSource - Can be 'project' or 'builtin'.
  * @property {string} function - Function name
  * @property {Object<string, PlainJssyValue>} args
+ */
+
+/**
+ * @typedef {Object} SourceDataActionArg
+ * @property {number} arg
  */
 
 /**
