@@ -16,7 +16,7 @@
   "appHeader.menu.settings": "Настройки",
   "appHeader.menu.preview": "Превью",
   "appHeader.menu.publish": "Опубликовать",
-  "appHeader.saveIndicator.title.idle": "",
+  "appHeader.saveIndicator.title.idle": "Сохранено",
   "appHeader.saveIndicator.title.saving": "Сохранение...",
   "appHeader.saveIndicator.title.error": "Ошибка",
   "appHeader.saveIndicator.title.saved": "Сохранено",

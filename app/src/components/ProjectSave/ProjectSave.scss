@@ -9,12 +9,14 @@
         display: flex;
         align-items: center;
         color: $white;
-        cursor: $cursor-pointer;
         padding: 0 $menu-item-padding-x*2 0 $menu-item-padding-x*1.5;
         background-color: $prsave-bg-color;
+        user-select: none;
 
-        &:hover {
-            background-color: scale_color($prsave-bg-color, $lightness: -15%);
+        @include single-transition(background-color);
+
+        &.save-status-error {
+            background-color: $color-alert;
         }
     }
 
@@ -24,24 +26,27 @@
         $icon-size: 12px;
 
         border-radius: 50%;
-        border: $border-width solid $icon-light-inactive-color;
+        border: $border-width solid #fff;
         margin-right: $base-module;
         position:relative;
+        opacity: 0.5;
+
+        @include single-transition(opacity);
 
         @include icon-size(
                 $outer-size: rem-calc($icon-outer-size),
                 $icon-size: rem-calc($icon-size),
                 $outer-width: rem-calc($icon-outer-size));
 
+        @include icon-style(
+                $icon-color: #fff,
+                $bg-color: null);
+
         & > * {
             position: absolute;
             top: -$border-width;
             left: -$border-width;
         }
-
-        @include icon-style(
-                $icon-color: $icon-light-inactive-color,
-                $bg-color: null);
 
         .save-status-progress & {
             border-right-color: transparent;
@@ -50,6 +55,12 @@
             animation-duration: 1s;
             animation-name: spinnerRotate;
             animation-timing-function: linear;
+        }
+
+        .save-status-error &,
+        .save-status-progress &,
+        .save-status-success & {
+            opacity: 1;
         }
     }
 

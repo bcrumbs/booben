@@ -102,7 +102,7 @@
     .accordion-item-content-box {
         pointer-events: none;
         opacity: 0;
-        position: absolute;
+        position: fixed;
         z-index: -1;
         transform: translateY($accordion-offset-animated);
 
