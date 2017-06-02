@@ -171,7 +171,7 @@ class CanvasComponent extends Component {
         const boundingClientRect = this._iframe.getBoundingClientRect();
         const evt = new CustomEvent(eventName, {
           bubbles: true,
-          cancelable: false,
+          cancelable: true,
         });
       
         evt.clientX = event.clientX + boundingClientRect.left;

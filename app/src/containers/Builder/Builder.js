@@ -18,6 +18,8 @@ import _debounce from 'lodash.debounce';
 import { Map as ImmutableMap } from 'immutable';
 import { resolveTypedef, coerceValue, TypeNames } from '@jssy/types';
 import { alertsCreator } from '../../hocs/alerts';
+import { wrapComponent as draggable } from '../../hocs/draggable';
+import { connectDraggable } from '../ComponentsDragArea/ComponentsDragArea';
 import { ContentPlaceholder } from './ContentPlaceholder/ContentPlaceholder';
 import { Outlet } from './Outlet/Outlet';
 import JssyValue from '../../models/JssyValue';
@@ -26,6 +28,8 @@ import ProjectComponent, {
   walkComponentsTree,
   walkSimpleValues,
 } from '../../models/ProjectComponent';
+
+import { startDragExistingComponent } from '../../actions/preview';
 
 import {
   currentSelectedComponentIdsSelector,
@@ -108,6 +112,7 @@ const propTypes = {
   onNavigate: PropTypes.func,
   onOpenURL: PropTypes.func,
   onAlert: PropTypes.func.isRequired, // alertsCreator
+  onStartDragComponent: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -150,8 +155,13 @@ const mapStateToProps = state => ({
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
+const mapDispatchToProps = dispatch => ({
+  onStartDragComponent: componentId =>
+    void dispatch(startDragExistingComponent(componentId)),
+});
+
 const wrap = compose(
-  connect(mapStateToProps),
+  connect(mapStateToProps, mapDispatchToProps),
   withApollo,
   alertsCreator,
 );
@@ -200,6 +210,8 @@ class BuilderComponent extends PureComponent {
         this._renderHints,
       ),
     };
+    
+    this._handleComponentDragStart = this._handleComponentDragStart.bind(this);
   }
   
   componentWillReceiveProps(nextProps) {
@@ -253,6 +265,17 @@ class BuilderComponent extends PureComponent {
     };
     
     onAlert(alert);
+  }
+  
+  /**
+   *
+   * @param {Object} data
+   * @param {number} data.componentId
+   * @private
+   */
+  _handleComponentDragStart({ data }) {
+    const { onStartDragComponent } = this.props;
+    onStartDragComponent(data.componentId);
   }
 
   _getQueryForComponent(component) {
@@ -1397,6 +1420,7 @@ class BuilderComponent extends PureComponent {
       draggingComponent,
       rootDraggedComponent,
       interactive,
+      editable,
       dontPatch,
       theMap: thePreviousMap,
       getLocalizedText,
@@ -1489,7 +1513,7 @@ class BuilderComponent extends PureComponent {
       }
     }
     
-    let Renderable = Component;
+    let Renderable = connectDraggable(draggable(Component));
 
     if (graphQLQuery) {
       const variables = _mapValues(
@@ -1543,7 +1567,14 @@ class BuilderComponent extends PureComponent {
   
     //noinspection JSValidateTypes
     return (
-      <Renderable {...props} />
+      <Renderable
+        key={props.key}
+        innerProps={props}
+        dragEnable={editable}
+        dragTitle={component.title || component.name}
+        dragData={{ componentId: component.id }}
+        onDragStart={this._handleComponentDragStart}
+      />
     );
   }
 

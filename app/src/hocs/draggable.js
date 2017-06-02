@@ -4,6 +4,7 @@
 
 'use strict';
 
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { findDOMNode } from 'react-dom';
 import { toClassComponent } from '../utils/react';
@@ -35,7 +36,10 @@ const IS_DRAGGABLE = Symbol('Is draggable component');
 
 const makeDisplayName = displayName => `draggable(${displayName})`;
 
-const wrap = OriginalComponent => class extends OriginalComponent {
+const makeWrappedDisplayName = displayName =>
+  `wrappedDraggable(${displayName})`;
+
+const extend = OriginalComponent => class extends OriginalComponent {
   constructor(props, context) {
     super(props, context);
 
@@ -105,6 +109,8 @@ const wrap = OriginalComponent => class extends OriginalComponent {
     const { dragEnable, dragTitle, dragData, onDragTryStart } = this.props;
 
     if (!dragEnable) return;
+    
+    event.stopPropagation();
   
     this.__draggableTryingStartDrag = true;
     window.addEventListener('mousemove', this.__draggableHandleMouseMove);
@@ -191,7 +197,7 @@ const wrap = OriginalComponent => class extends OriginalComponent {
 };
 
 export default component => {
-  const ret = wrap(toClassComponent(component));
+  const ret = extend(toClassComponent(component));
   ret.propTypes = { ...component.propTypes, ...propTypes };
   ret.defaultProps = { ...component.defaultProps, ...defaultProps };
   ret.displayName = makeDisplayName(component.displayName);
@@ -201,3 +207,21 @@ export default component => {
 
 export const isDraggableComponent = component =>
   !!component && !!component[IS_DRAGGABLE];
+
+export const wrapComponent = WrappedComponent => {
+  const ret = extend(Component);
+  
+  // eslint-disable-next-line react/display-name
+  ret.prototype.render = function () {
+    return (
+      <WrappedComponent {...this.props.innerProps} />
+    );
+  };
+  
+  ret.propTypes = { ...propTypes, innerProps: PropTypes.object };
+  ret.defaultProps = { ...defaultProps, innerProps: {} };
+  ret.displayName = makeWrappedDisplayName(WrappedComponent.displayName);
+  ret[IS_DRAGGABLE] = true;
+  
+  return ret;
+};
