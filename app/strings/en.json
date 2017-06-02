@@ -16,7 +16,7 @@
   "appHeader.menu.settings": "Settings",
   "appHeader.menu.preview": "Preview",
   "appHeader.menu.publish": "Publish",
-  "appHeader.saveIndicator.title.idle": "",
+  "appHeader.saveIndicator.title.idle": "Saved",
   "appHeader.saveIndicator.title.saving": "Saving...",
   "appHeader.saveIndicator.title.error": "Error",
   "appHeader.saveIndicator.title.saved": "Saved",
