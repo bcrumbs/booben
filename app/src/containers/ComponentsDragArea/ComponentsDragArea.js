@@ -30,11 +30,12 @@ import {
 } from '../../utils/mouse-speed';
 
 import {
-  noop,
   pointIsInRect,
   pointPositionRelativeToRect,
   PointPositions,
-} from '../../utils/misc';
+} from '../../utils/geometry';
+
+import { noop } from '../../utils/misc';
 
 const propTypes = {
   showDebugData: PropTypes.bool,
@@ -59,6 +60,7 @@ const SNAP_TIME = 200;
 const DROP_MENU_BORDER = 20;
 const DROP_MENU_SHIFT_COEFFICIENT = 85;
 
+const linear = x => x;
 const easeOut = bezierEasing(0, 0, 0.58, 1);
 const easeInOut = bezierEasing(0.42, 0, 0.58, 1);
 
@@ -540,8 +542,8 @@ export class ComponentsDragArea extends PureComponent {
     const targetX = pageX + PLACEHOLDER_OFFSET_X;
     const targetY = pageY + PLACEHOLDER_OFFSET_Y;
 
-    this._positionX = interpolate(left, targetX, progress, easeInOut);
-    this._positionY = interpolate(top, targetY, progress, easeInOut);
+    this._positionX = interpolate(left, targetX, progress, linear);
+    this._positionY = interpolate(top, targetY, progress, linear);
     this._width = interpolate(width, PLACEHOLDER_WIDTH, progress, easeInOut);
     this._height = interpolate(height, PLACEHOLDER_HEIGHT, progress, easeInOut);
     this._opacity = interpolate(0, PLACEHOLDER_OPACITY, progress, easeInOut);

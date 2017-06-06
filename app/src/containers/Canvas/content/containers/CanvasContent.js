@@ -9,6 +9,8 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import throttle from 'lodash.throttle';
+import kdbush from 'kdbush';
+import _minBy from 'lodash.minby';
 import { Builder } from '../../../Builder/Builder';
 
 import {
@@ -33,7 +35,8 @@ import {
 
 import Project, { getComponentById } from '../../../../models/Project';
 import ProjectComponent from '../../../../models/ProjectComponent';
-import { noop, distance } from '../../../../utils/misc';
+import { distance } from '../../../../utils/geometry';
+import { noop } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
 
@@ -136,7 +139,8 @@ const setImmediate = window.setImmediate || (fn => setTimeout(fn, 0));
 const clearImmediate = window.clearImmediate || window.clearTimeout;
 
 const SNAP_DISTANCE = 200;
-const CLOSE_SNAP_POINTS_THRESHOLD = 4;
+const SUPPRESS_DROP_MENU_RADIUS = Math.round(SNAP_DISTANCE * 1.5);
+const CLOSE_SNAP_POINTS_THRESHOLD = 10;
 const DRAG_THROTTLE = 100;
 
 const readContainerId = element =>
@@ -183,6 +187,8 @@ class CanvasContent extends Component {
     this._unhighilightTimer = -1;
     this._unhighlightedComponentId = INVALID_ID;
     this._draggingOverCanvas = false;
+    this._lastDropMenuSnapPoint = { x: 0, y: 0 };
+    this._suppressDropMenu = false;
 
     this._handleMouseOver = this._handleMouseOver.bind(this);
     this._handleMouseOut = this._handleMouseOut.bind(this);
@@ -313,9 +319,64 @@ class CanvasContent extends Component {
    * Called by Canvas component
    */
   leave() {
-    const { draggingOverPlaceholder, onDragOverNothing } = this.props;
     this._draggingOverCanvas = false;
-    if (draggingOverPlaceholder) onDragOverNothing();
+    this._snap(null);
+  }
+  
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   * @return {Object[]}
+   * @private
+   */
+  _getPossibleSnapPoints(x, y) {
+    const { document } = this.context;
+    
+    const placeholders = document.querySelectorAll('[data-jssy-placeholder]');
+  
+    if (placeholders.length === 1) {
+      const element = placeholders[0];
+      
+      return [{
+        containerId: readContainerId(element),
+        afterIdx: readAfterIdx(element),
+      }];
+    }
+    
+    if (placeholders.length > 1) {
+      const snapPoints = [];
+      placeholders.forEach(element => {
+        const { left, top } = element.getBoundingClientRect();
+      
+        snapPoints.push({
+          x: Math.round(left),
+          y: Math.round(top),
+          containerId: readContainerId(element),
+          afterIdx: readAfterIdx(element),
+        });
+      });
+    
+      const index = kdbush(snapPoints, p => p.x, p => p.y, 64, Int32Array);
+      const pointsWithinSnapDistance = index
+        .within(x, y, SNAP_DISTANCE)
+        .map(id => snapPoints[id]);
+      
+      if (pointsWithinSnapDistance.length === 0) {
+        return [];
+      }
+  
+      const closestPoint = _minBy(
+        pointsWithinSnapDistance,
+        point => distance(x, y, point.x, point.y),
+      );
+  
+      return index
+        .within(closestPoint.x, closestPoint.y, CLOSE_SNAP_POINTS_THRESHOLD)
+        .map(id => snapPoints[id]);
+    }
+    
+    return [];
   }
 
   /**
@@ -329,15 +390,8 @@ class CanvasContent extends Component {
     const {
       currentComponents,
       draggingComponent,
-      draggingOverPlaceholder,
-      placeholderContainerId,
-      placeholderAfter,
-      onDragOverPlaceholder,
-      onDragOverNothing,
       onDropZoneOpenDropMenu,
     } = this.props;
-
-    const { document } = this.context;
     
     if (!draggingComponent) return;
 
@@ -346,145 +400,107 @@ class CanvasContent extends Component {
     // so we need to check if we're still here
     if (!this._draggingOverCanvas) return;
   
-    const placeholders = document.querySelectorAll('[data-jssy-placeholder]');
-  
-    let willSnap = false;
-    let snapPositions = [];
-    let minDistance = Infinity;
-
-    if (placeholders.length === 1) {
-      const element = placeholders[0];
-      willSnap = true;
-      snapPositions = [{
-        snapContainerId: readContainerId(element),
-        snapAfterIdx: readAfterIdx(element),
-      }];
-    } else if (placeholders.length > 1) {
-      placeholders.forEach(element => {
-        const { left, top } = element.getBoundingClientRect();
-
-        if (willSnap) {
-          const isClosePoint = snapPositions.some(({ x, y }) =>
-            distance(x, y, left, top) < CLOSE_SNAP_POINTS_THRESHOLD);
-
-          if (isClosePoint) {
-            snapPositions.push({
-              x: left,
-              y: top,
-              snapContainerId: readContainerId(element),
-              snapAfterIdx: readAfterIdx(element),
-            });
-
-            return;
-          }
-        }
-
-        if (Math.abs(left - x) > SNAP_DISTANCE) return;
-        if (Math.abs(top - y) > SNAP_DISTANCE) return;
+    if (this._suppressDropMenu) {
+      const distanceToLastSnapPoint = distance(
+        x,
+        y,
+        this._lastDropMenuSnapPoint.x,
+        this._lastDropMenuSnapPoint.y,
+      );
       
-        const distanceToPoint = distance(left, top, x, y);
-        if (distanceToPoint > SNAP_DISTANCE) return;
-
-        if (distanceToPoint < minDistance) {
-          willSnap = true;
-          minDistance = distanceToPoint;
-          snapPositions = [{
-            x: left,
-            y: top,
-            snapContainerId: readContainerId(element),
-            snapAfterIdx: readAfterIdx(element),
-          }];
-        }
-      });
-    }
-  
-    if (willSnap) {
-      if (snapPositions.length === 1) {
-        const { snapContainerId, snapAfterIdx } = snapPositions[0];
-        const willUpdatePlaceholder =
-          !draggingOverPlaceholder ||
-          placeholderContainerId !== snapContainerId ||
-          placeholderAfter !== snapAfterIdx;
-  
-        if (willUpdatePlaceholder) {
-          onDragOverPlaceholder(snapContainerId, snapAfterIdx);
-        }
-      } else {
-        const willOpenDropMenu = true;
-
-        if (willOpenDropMenu) {
-          const dropPointsData = snapPositions.map(
-            ({ snapContainerId, snapAfterIdx }) => {
-              const container = currentComponents.get(snapContainerId);
-              const parentNames = [];
-              
-              let componentId = container.parentId;
-              let i = 0;
-              
-              while (componentId !== INVALID_ID && i < 2) {
-                const component = currentComponents.get(componentId);
-                parentNames.unshift(component.title || component.name);
-                componentId = component.parentId;
-                i++;
-              }
-              
-              const ellipsis = componentId !== INVALID_ID;
-              const title = container.title || container.name;
-              const caption =
-                `${ellipsis ? '... ' : ''}${parentNames.join(' > ')} >`;
-
-              return {
-                title,
-                caption,
-                data: {
-                  containerId: snapContainerId,
-                  afterIdx: snapAfterIdx,
-                },
-              };
-            },
-          );
-
-          onDropZoneOpenDropMenu({
-            coords: { x, y },
-            snapCoords: {
-              x: snapPositions[0].x,
-              y: snapPositions[0].y,
-            },
-            dropPointsData,
-          });
-        }
+      if (distanceToLastSnapPoint >= SUPPRESS_DROP_MENU_RADIUS) {
+        this._suppressDropMenu = false;
       }
-    } else if (draggingOverPlaceholder) {
-      onDragOverNothing();
     }
+    
+    const possibleSnapPoints = this._getPossibleSnapPoints(x, y);
+    
+    if (possibleSnapPoints.length === 0) {
+      this._snap(null);
+      return;
+    }
+    
+    if (possibleSnapPoints.length === 1) {
+      this._snap(possibleSnapPoints[0]);
+      return;
+    }
+  
+    const dropPointsData = possibleSnapPoints.map(snapPoint => {
+      const container = currentComponents.get(snapPoint.containerId);
+      const parentNames = [];
+    
+      let componentId = container.parentId;
+      let i = 0;
+    
+      while (componentId !== INVALID_ID && i < 2) {
+        const component = currentComponents.get(componentId);
+        parentNames.unshift(component.title || component.name);
+        componentId = component.parentId;
+        i++;
+      }
+    
+      const ellipsis = componentId !== INVALID_ID;
+      const title = container.title || container.name;
+      const caption =
+        `${ellipsis ? '... ' : ''}${parentNames.join(' > ')} >`;
+    
+      return {
+        title,
+        caption,
+        data: snapPoint,
+      };
+    });
+  
+    onDropZoneOpenDropMenu({
+      coords: { x, y },
+      snapCoords: {
+        x: possibleSnapPoints[0].x,
+        y: possibleSnapPoints[0].y,
+      },
+      dropPointsData,
+    });
+  
+    this._lastDropMenuSnapPoint = {
+      x: possibleSnapPoints[0].x,
+      y: possibleSnapPoints[0].y,
+    };
+  
+    this._suppressDropMenu = true;
   }
   
   /**
    *
-   * @param {number} containerId
-   * @param {number} afterIdx
+   * @param {Object} snapPoint
    */
-  dropMenuItemSelected({ containerId, afterIdx }) {
+  dropMenuItemSelected(snapPoint) {
+    this._snap(snapPoint);
+  }
+  
+  dropMenuClosed() {
+    this._snap(null);
+  }
+  
+  _snap(snapPoint) {
     const {
       draggingOverPlaceholder,
       placeholderContainerId,
       placeholderAfter,
       onDragOverPlaceholder,
+      onDragOverNothing,
     } = this.props;
     
-    const willUpdatePlaceholder =
-      !draggingOverPlaceholder ||
-      placeholderContainerId !== containerId ||
-      placeholderAfter !== afterIdx;
+    if (snapPoint === null) {
+      if (draggingOverPlaceholder) onDragOverNothing();
+    } else {
+      const willUpdatePlaceholder =
+        !draggingOverPlaceholder ||
+        placeholderContainerId !== snapPoint.containerId ||
+        placeholderAfter !== snapPoint.afterIdx;
   
-    if (willUpdatePlaceholder) {
-      onDragOverPlaceholder(containerId, afterIdx);
+      if (willUpdatePlaceholder) {
+        onDragOverPlaceholder(snapPoint.containerId, snapPoint.afterIdx);
+      }
     }
-  }
-  
-  dropMenuClosed() {
-    const { draggingOverPlaceholder, onDragOverNothing } = this.props;
-    if (draggingOverPlaceholder) onDragOverNothing();
   }
   
   /**
@@ -524,27 +540,6 @@ class CanvasContent extends Component {
     }
   
     return INVALID_ID;
-  }
-
-  /**
-   *
-   * @return {boolean}
-   * @private
-   */
-  _isUserAuthenticated() {
-    const { project } = this.props;
-
-    if (!project.auth) return true;
-
-    switch (project.auth.type) {
-      case 'jwt': {
-        return !!window.localStorage.getItem('jssy_auth_token');
-      }
-
-      default: {
-        return false;
-      }
-    }
   }
 
   /**

@@ -8,7 +8,8 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { findDOMNode } from 'react-dom';
 import { toClassComponent } from '../utils/react';
-import { noop, pointPositionRelativeToCircle } from '../utils/misc';
+import { pointPositionRelativeToCircle } from '../utils/geometry';
+import { noop } from '../utils/misc';
 
 const propTypes = {
   dragEnable: PropTypes.bool,
@@ -115,8 +116,8 @@ const extend = OriginalComponent => class extends OriginalComponent {
     this.__draggableTryingStartDrag = true;
     window.addEventListener('mousemove', this.__draggableHandleMouseMove);
     window.addEventListener('mouseup', this.__draggableHandleMouseUp);
-    this.__draggableStartDragX = event.pageX;
-    this.__draggableStartDragY = event.pageY;
+    this.__draggableStartDragX = event.screenX;
+    this.__draggableStartDragY = event.screenY;
   
     onDragTryStart({
       title: dragTitle,
@@ -141,7 +142,7 @@ const extend = OriginalComponent => class extends OriginalComponent {
     if (this.__draggableTryingStartDrag) {
       const pointPosition = dragStartRadius > 0
         ? pointPositionRelativeToCircle(
-          event.pageX,
+          event.screenX,
           event.pageY,
           this.__draggableStartDragX,
           this.__draggableStartDragY,

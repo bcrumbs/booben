@@ -38,6 +38,8 @@ import {
   getLocalizedTextFromState,
 } from '../../selectors/index';
 
+import collapsingToPoint from '../../hocs/collapsingToPoint';
+
 import {
   isContainerComponent,
   isCompositeComponent,
@@ -61,7 +63,7 @@ import {
 
 import { getComponentByName } from '../../lib/components-library';
 import { getFunctionInfo } from '../../lib/functions';
-import { noop, returnNull, isString, isUndef } from '../../utils/misc';
+import { noop, returnNull, isUndef } from '../../utils/misc';
 import jssyConstants from '../../constants/jssyConstants';
 
 import {
@@ -139,6 +141,10 @@ const defaultProps = {
   onOpenURL: noop,
 };
 
+const contextTypes = {
+  window: PropTypes.object,
+};
+
 const mapStateToProps = state => ({
   project: state.project.data,
   meta: state.project.meta,
@@ -164,7 +170,18 @@ const wrap = compose(
   connect(mapStateToProps, mapDispatchToProps),
   withApollo,
   alertsCreator,
+  collapsingToPoint({
+    pointAttributesFromProps: props => ({
+      'data-jssy-placeholder': '',
+      'data-jssy-container-id': String(props.containerId),
+      'data-jssy-after': String(props.afterIdx),
+    }),
+    
+    getWindowInstance: (props, context) => context.window,
+  }),
 );
+
+const COMPONENT_DRAG_START_RADIUS = 100;
 
 /**
  *
@@ -193,6 +210,25 @@ const isPseudoComponent = component => pseudoComponents.has(component.name);
  */
 const serializePropAddress = (componentId, propName, isSystemProp) =>
   `${isSystemProp ? '_' : ''}.${componentId}.${propName}`;
+
+/**
+ *
+ * @type {Map}
+ */
+const connectedComponentsCache = new Map();
+
+/**
+ *
+ * @param {string} componentName
+ * @return {Function}
+ */
+const getConnectedComponent = componentName => {
+  const cached = connectedComponentsCache.get(componentName);
+  if (cached) return cached;
+  const ret = connectDraggable(draggable(getComponentByName(componentName)));
+  connectedComponentsCache.set(componentName, ret);
+  return ret;
+};
 
 class BuilderComponent extends PureComponent {
   constructor(props, context) {
@@ -1245,29 +1281,18 @@ class BuilderComponent extends PureComponent {
       !draggingOverPlaceholder ||
       placeholderContainerId !== containerId ||
       placeholderAfter !== afterIdx;
-
-    if (collapsed) {
-      return (
-        <div
-          key={key}
-          style={{ width: '0', height: '0', margin: '0' }}
-          data-jssy-placeholder=""
-          data-jssy-container-id={String(containerId)}
-          data-jssy-after={String(afterIdx)}
-        />
-      );
-    } else {
-      return (
-        <Builder
-          key={key}
-          components={draggedComponents}
-          rootId={rootDraggedComponent.id}
-          isPlaceholder
-          afterIdx={afterIdx}
-          containerId={containerId}
-        />
-      );
-    }
+  
+    return (
+      <Builder
+        key={key}
+        components={draggedComponents}
+        rootId={rootDraggedComponent.id}
+        isPlaceholder
+        collapsedToPoint={collapsed}
+        containerId={containerId}
+        afterIdx={afterIdx}
+      />
+    );
   }
 
   /**
@@ -1303,6 +1328,15 @@ class BuilderComponent extends PureComponent {
 
     component.children.forEach((childComponentId, idx) => {
       const childComponent = components.get(childComponentId);
+  
+      // Do not render the component that's being dragged
+      if (
+        draggingComponent &&
+        !rootDraggedComponent.isNew &&
+        childComponent.id === rootDraggedComponent.id
+      ) {
+        return;
+      }
 
       // Do not render disabled regions in composite components
       if (!isPlaceholder && isComposite && !component.regionsEnabled.has(idx)) {
@@ -1326,7 +1360,11 @@ class BuilderComponent extends PureComponent {
         }
       }
 
-      const rendered = this._renderComponent(childComponent, isPlaceholder);
+      const rendered = this._renderComponent(
+        childComponent,
+        component,
+        isPlaceholder,
+      );
       if (Array.isArray(rendered)) ret.push(...rendered);
       else ret.push(rendered);
     });
@@ -1354,33 +1392,24 @@ class BuilderComponent extends PureComponent {
   /**
    *
    * @param {Object} props
-   * @param {boolean} isHTMLComponent
    * @param {number} componentId
    * @private
    */
-  _patchComponentProps(props, isHTMLComponent, componentId) {
-    if (isHTMLComponent) props['data-jssy-id'] = componentId;
-    else props.__jssy_component_id__ = componentId;
+  _patchComponentProps(props, componentId) {
+    props.__jssy_component_id__ = componentId;
   }
 
   /**
    *
    * @param {Object} props
-   * @param {boolean} isHTMLComponent
    * @private
    */
-  _patchPlaceholderRootProps(props, isHTMLComponent) {
+  _patchPlaceholderRootProps(props) {
     const { containerId, afterIdx } = this.props;
-    
-    if (isHTMLComponent) {
-      props['data-jssy-placeholder'] = '';
-      props['data-jssy-after'] = afterIdx;
-      props['data-jssy-container-id'] = containerId;
-    } else {
-      props.__jssy_placeholder__ = true;
-      props.__jssy_after__ = afterIdx;
-      props.__jssy_container_id__ = containerId;
-    }
+  
+    props.__jssy_placeholder__ = true;
+    props.__jssy_after__ = afterIdx;
+    props.__jssy_container_id__ = containerId;
   }
 
   _willRenderContentPlaceholder(component) {
@@ -1404,6 +1433,7 @@ class BuilderComponent extends PureComponent {
   /**
    *
    * @param {Object} component
+   * @param {Object} [parentComponent=null]
    * @param {boolean} [isPlaceholder=false]
    * @param {boolean} [isPlaceholderRoot=false]
    * @return {ReactElement}
@@ -1411,14 +1441,13 @@ class BuilderComponent extends PureComponent {
    */
   _renderComponent(
     component,
+    parentComponent = null,
     isPlaceholder = false,
     isPlaceholderRoot = false,
   ) {
     const {
       meta,
       schema,
-      draggingComponent,
-      rootDraggedComponent,
       interactive,
       editable,
       dontPatch,
@@ -1426,16 +1455,6 @@ class BuilderComponent extends PureComponent {
       getLocalizedText,
       onAlert,
     } = this.props;
-    
-    // Do not render the component that's being dragged
-    if (
-      draggingComponent &&
-      !rootDraggedComponent.isNew &&
-      component.id === rootDraggedComponent.id &&
-      !isPlaceholder
-    ) {
-      return null;
-    }
 
     // Handle special components like Text, Outlet etc
     if (isPseudoComponent(component)) {
@@ -1443,8 +1462,7 @@ class BuilderComponent extends PureComponent {
     }
 
     // Get component class
-    const Component = getComponentByName(component.name);
-    const isHTMLComponent = isString(Component);
+    const Component = getConnectedComponent(component.name);
 
     // Build GraphQL query
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
@@ -1469,51 +1487,49 @@ class BuilderComponent extends PureComponent {
     props.children = this._renderComponentChildren(component, isPlaceholder);
     
     // Attach error handler
-    if (!isHTMLComponent) {
-      props.__jssy_error_handler__ = _debounce(
-        this._handleErrorInComponentLifecycleHook.bind(this, component),
-        250,
-      );
-    }
-
-    if (!isPlaceholder) {
-      props.key = String(component.id);
-      
-      if (this._renderHints.needRefs.has(component.id)) {
-        props.ref = this._saveComponentRef.bind(this, component.id);
-      }
-
-      if (interactive && !dontPatch) {
-        this._patchComponentProps(props, isHTMLComponent, component.id);
-      }
-
-      if (!props.children && this._willRenderContentPlaceholder(component)) {
-        props.children = (
-          <ContentPlaceholder />
-        );
-      }
-    } else {
+    props.__jssy_error_handler__ = _debounce(
+      this._handleErrorInComponentLifecycleHook.bind(this, component),
+      250,
+    );
+  
+    if (isPlaceholder) {
       // TODO: Get rid of random keys
       props.key =
         `placeholder-${String(Math.floor(Math.random() * 1000000000))}`;
-
+  
       if (isPlaceholderRoot && !dontPatch) {
-        this._patchPlaceholderRootProps(props, isHTMLComponent);
+        this._patchPlaceholderRootProps(props);
       }
-
+  
       const willRenderContentPlaceholder =
         !props.children &&
         isContainerComponent(component.name, meta);
-
+  
       // Render fake content inside placeholders for container components
       if (willRenderContentPlaceholder) {
         props.children = (
           <ContentPlaceholder />
         );
       }
+    } else {
+      props.key = String(component.id);
+  
+      if (this._renderHints.needRefs.has(component.id)) {
+        props.ref = this._saveComponentRef.bind(this, component.id);
+      }
+  
+      if (interactive && !dontPatch) {
+        this._patchComponentProps(props, component.id);
+      }
+  
+      if (!props.children && this._willRenderContentPlaceholder(component)) {
+        props.children = (
+          <ContentPlaceholder />
+        );
+      }
     }
     
-    let Renderable = connectDraggable(draggable(Component));
+    let Renderable = Component;
 
     if (graphQLQuery) {
       const variables = _mapValues(
@@ -1559,20 +1575,25 @@ class BuilderComponent extends PureComponent {
             variables,
             fetchPolicy: 'cache-and-network',
           },
-        })(Component);
+        })(Renderable);
         
         this._putApolloWrappedComponentToCache(component, Renderable);
       }
     }
   
-    //noinspection JSValidateTypes
+    const isDraggable =
+      editable &&
+      parentComponent !== null &&
+      !isCompositeComponent(parentComponent.name, meta);
+    
     return (
       <Renderable
         key={props.key}
         innerProps={props}
-        dragEnable={editable}
+        dragEnable={isDraggable}
         dragTitle={component.title || component.name}
         dragData={{ componentId: component.id }}
+        dragStartRadius={COMPONENT_DRAG_START_RADIUS}
         onDragStart={this._handleComponentDragStart}
       />
     );
@@ -1594,7 +1615,12 @@ class BuilderComponent extends PureComponent {
     
     if (rootId !== INVALID_ID) {
       const rootComponent = components.get(rootId);
-      return this._renderComponent(rootComponent, isPlaceholder, isPlaceholder);
+      return this._renderComponent(
+        rootComponent,
+        null,
+        isPlaceholder,
+        isPlaceholder,
+      );
     } else if (editable && draggingComponent && !isPlaceholder) {
       const canInsertRootComponent = canInsertComponent(
         rootDraggedComponent.name,
@@ -1615,6 +1641,7 @@ class BuilderComponent extends PureComponent {
 
 BuilderComponent.propTypes = propTypes;
 BuilderComponent.defaultProps = defaultProps;
+BuilderComponent.contextTypes = contextTypes;
 BuilderComponent.displayName = 'Builder';
 
 export const Builder = wrap(BuilderComponent);

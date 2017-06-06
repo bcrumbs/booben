@@ -54,18 +54,12 @@ const defaultProps = {
   dropZoneId: ComponentDropAreas.CANVAS,
 };
 
-const wrap = compose(
-  connectDropZone,
-  dropZone,
-);
+const wrap = compose(connectDropZone, dropZone);
 
 const EVENTS_FOR_PARENT_FRAME = [
   'mousemove',
-  'mouseup',
   'mousedown',
-  'mouseover',
-  'mouseout',
-  'click',
+  'mouseup',
 ];
 
 let token = null;
@@ -127,7 +121,7 @@ class CanvasComponent extends Component {
       });
   }
   
-  shouldComponentUpdate(_, nextState) {
+  shouldComponentUpdate(nextProps, nextState) {
     return nextState.error !== this.state.error;
   }
   
@@ -167,7 +161,7 @@ class CanvasComponent extends Component {
     
     // Re-dispatch events from the iframe to the parent frame
     EVENTS_FOR_PARENT_FRAME.forEach(eventName => {
-      contentWindow.addEventListener(eventName, event => {
+      contentWindow.document.addEventListener(eventName, event => {
         const boundingClientRect = this._iframe.getBoundingClientRect();
         const evt = new CustomEvent(eventName, {
           bubbles: true,
@@ -182,7 +176,7 @@ class CanvasComponent extends Component {
         evt.screenY = event.screenY;
         evt._originalTarget = event.target;
       
-        window.dispatchEvent(evt);
+        this._iframe.dispatchEvent(evt);
       });
     });
   }
