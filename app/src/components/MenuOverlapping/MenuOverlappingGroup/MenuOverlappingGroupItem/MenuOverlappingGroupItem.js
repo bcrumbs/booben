@@ -20,8 +20,8 @@ const propTypes = {
   type: PropTypes.string,
   description: PropTypes.string,
   disabled: PropTypes.bool,
+  elementRef: PropTypes.func,
   onSelect: PropTypes.func,
-  onHover: PropTypes.func,
 };
 
 const defaultProps = {
@@ -31,8 +31,8 @@ const defaultProps = {
   type: '',
   description: '',
   disabled: false,
+  elementRef: noop,
   onSelect: noop,
-  onHover: noop,
 };
 
 export class MenuOverlappingGroupItem extends Component {
@@ -43,27 +43,23 @@ export class MenuOverlappingGroupItem extends Component {
   
     this._saveRef = this._saveRef.bind(this);
     this._handleClick = this._handleClick.bind(this);
-    this._handleMouseEnter = this._handleMouseEnter.bind(this);
   }
   
   componentDidMount() {
     if (this._element) {
       this._element.addEventListener('click', this._handleClick);
-      this._element.addEventListener('mouseenter', this._handleMouseEnter);
     }
   }
   
   componentWillUpdate() {
     if (this._element) {
       this._element.removeEventListener('click', this._handleClick);
-      this._element.removeEventListener('mouseenter', this._handleMouseEnter);
     }
   }
   
   componentDidUpdate() {
     if (this._element) {
       this._element.addEventListener('click', this._handleClick);
-      this._element.addEventListener('mouseenter', this._handleMouseEnter);
     }
   }
   
@@ -73,7 +69,10 @@ export class MenuOverlappingGroupItem extends Component {
    * @private
    */
   _saveRef(ref) {
+    const { elementRef } = this.props;
+    
     this._element = ref;
+    elementRef(ref);
   }
 
   /**
@@ -83,23 +82,12 @@ export class MenuOverlappingGroupItem extends Component {
    */
   _handleClick(event) {
     const { id, disabled, onSelect } = this.props;
+  
+    event.stopPropagation();
     
-    event.stopPropagation();
-    if (disabled || event.button !== 0) return;
-    onSelect({ id });
-  }
-  
-  /**
-   *
-   * @param {MouseEvent} event
-   * @private
-   */
-  _handleMouseEnter(event) {
-    const { id, disabled, onHover } = this.props;
-  
-    event.stopPropagation();
-    if (disabled) return;
-    onHover({ id });
+    if (!disabled && event.button === 0) {
+      onSelect({ id });
+    }
   }
 
   render() {

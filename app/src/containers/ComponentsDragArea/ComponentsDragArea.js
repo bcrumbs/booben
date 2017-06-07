@@ -30,40 +30,48 @@ import {
 } from '../../utils/mouse-speed';
 
 import {
-  noop,
   pointIsInRect,
   pointPositionRelativeToRect,
   PointPositions,
-} from '../../utils/misc';
+} from '../../utils/geometry';
+
+import { noop, isDef } from '../../utils/misc';
 
 const propTypes = {
-  showDebugData: PropTypes.bool,
   onDrop: PropTypes.func,
 };
 
 const defaultProps = {
-  showDebugData: false,
   onDrop: noop,
 };
 
-/**
- *
- * @type {number}
- */
-const PLACEHOLDER_OFFSET_X = -50;
-const PLACEHOLDER_OFFSET_Y = -50;
-const PLACEHOLDER_WIDTH = 100;
-const PLACEHOLDER_HEIGHT = 100;
-const PLACEHOLDER_OPACITY = 1;
-const SNAP_TIME = 200;
+const RECTANGLE_OFFSET_X = -50;
+const RECTANGLE_OFFSET_Y = -50;
+const RECTANGLE_WIDTH = 100;
+const RECTANGLE_HEIGHT = 100;
+const RECTANGLE_OPACITY = 1;
+const RECTANGLE_SNAP_TIME = 200;
+
 const DROP_MENU_BORDER = 20;
 const DROP_MENU_SHIFT_COEFFICIENT = 85;
 
+const linear = x => x;
 const easeOut = bezierEasing(0, 0, 0.58, 1);
 const easeInOut = bezierEasing(0.42, 0, 0.58, 1);
 
 const interpolate = (from, to, x, easing) => from + (to - from) * easing(x);
 
+/**
+ *
+ * @param {number} menuX
+ * @param {number} menuY
+ * @param {number} menuWidth
+ * @param {number} menuHeight
+ * @param {number} menuBorder
+ * @param {number} snapX
+ * @param {number} snapY
+ * @return {number[][]}
+ */
 const buildDropMenuPolygon = (
   menuX,
   menuY,
@@ -133,19 +141,38 @@ const buildDropMenuPolygon = (
   }
 };
 
+/**
+ *
+ * @type {WeakMap<HTMLElement, ClientRect>}
+ */
+const elementDimensionsCache = new WeakMap();
+
+/**
+ *
+ * @param {HTMLElement} element
+ * @return {ClientRect}
+ */
+const getBoundingClientRectCached = element => {
+  const cached = elementDimensionsCache.get(element);
+  if (isDef(cached)) return cached;
+  const rect = element.getBoundingClientRect();
+  elementDimensionsCache.set(element, rect);
+  return rect;
+};
+
 let dragArea = null;
 
 export class ComponentsDragArea extends PureComponent {
   constructor(props, context) {
     super(props, context);
-  
-    this._placeholderElement = null;
+    
+    this._rectangleElement = null;
     this._dropMenuElement = null;
-    this._dropMenuDimensions = null;
+    this._dropMenuItemElements = [];
+    
+    this._lastActiveDropMenuItem = -1;
     this._dropMenuPolygon = null;
-    this._debugDataContainerElement = null;
     this._dropZones = new Map();
-    this._dropZoneDimensionsCache = new Map();
     this._lastDraggedDropZoneId = '';
     this._dragging = false;
     this._snapElement = null;
@@ -162,8 +189,8 @@ export class ComponentsDragArea extends PureComponent {
     this._height = 0;
     this._opacity = 0;
     this._transitionEnabled = false;
-    this._needRAF = true;
-    this._animationFrame = null;
+    this._transitionStyleSet = false;
+    this._animationFrame = 0;
     this._tryingStartDrag = false;
     this._draggableElementBoundingRect = null;
 
@@ -181,10 +208,8 @@ export class ComponentsDragArea extends PureComponent {
     this._handleMouseUp = this._handleMouseUp.bind(this);
     this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
     this._handleDropMenuItemHover = this._handleDropMenuItemHover.bind(this);
-    this._saveRef = this._saveRef.bind(this);
+    this._saveRectangleRef = this._saveRectangleRef.bind(this);
     this._saveDropMenuRef = this._saveDropMenuRef.bind(this);
-    this._saveDebugDataContainerRef =
-      this._saveDebugDataContainerRef.bind(this);
   }
 
   componentWillMount() {
@@ -195,7 +220,7 @@ export class ComponentsDragArea extends PureComponent {
 
   componentDidMount() {
     dragArea = this;
-    this._hidePlaceholderElement();
+    this._hideRectangle();
   }
 
   componentWillUnmount() {
@@ -209,77 +234,31 @@ export class ComponentsDragArea extends PureComponent {
     dragArea = null;
   }
 
-  _saveRef(ref) {
-    this._placeholderElement = ref;
+  _saveRectangleRef(ref) {
+    this._rectangleElement = ref;
   }
   
   _saveDropMenuRef(ref) {
     this._dropMenuElement = ref;
-
-    if (this._dropMenuElement) {
-      this._dropMenuDimensions = this._dropMenuElement.getBoundingClientRect();
-    } else {
-      this._dropMenuDimensions = null;
-    }
   }
   
-  _saveDebugDataContainerRef(ref) {
-    this._debugDataContainerElement = ref;
+  _saveDromMenuItemRef(idx, ref) {
+    this._dropMenuItemElements[idx] = ref;
   }
 
-  _showPlaceholderElement() {
-    this._placeholderElement.style.display = '';
-    
-    if (this._debugDataContainerElement) {
-      this._debugDataContainerElement.style.display = 'block';
-    }
+  _showRectangle() {
+    this._rectangleElement.style.display = '';
   }
 
-  _hidePlaceholderElement() {
-    this._placeholderElement.style.display = 'none';
-    
-    if (this._debugDataContainerElement) {
-      this._debugDataContainerElement.style.display = 'none';
-    }
-  }
-  
-  _updateDebugData() {
-    const el = this._debugDataContainerElement;
-    
-    if (el) {
-      const elX =
-        el.getElementsByClassName('js-drag-area-debug-x')[0];
-      const elY =
-        el.getElementsByClassName('js-drag-area-debug-y')[0];
-      const elWidth =
-        el.getElementsByClassName('js-drag-area-debug-w')[0];
-      const elHeight =
-        el.getElementsByClassName('js-drag-area-debug-h')[0];
-      const elDZId =
-        el.getElementsByClassName('js-drag-area-debug-drop-zone-id')[0];
-      const elDZs =
-        el.getElementsByClassName('js-drag-area-debug-drop-zones')[0];
-      const elSnap =
-        el.getElementsByClassName('js-drag-area-debug-snapped')[0];
-  
-      elX.innerText = `X = ${this._positionX}`;
-      elY.innerText = `Y = ${this._positionY}`;
-      elWidth.innerText = `W = ${this._width}`;
-      elHeight.innerText = `H = ${this._width}`;
-      elDZId.innerText = `Drop zone id: ${this._lastDraggedDropZoneId || '-'}`;
-  
-      const dzsList = Array.from(this._dropZones.values())
-        .map(dz => dz.id)
-        .join(', ');
-  
-      elDZs.innerText = `Drop zones: ${dzsList}`;
-      elSnap.innerText = `Snap: ${this._snapElement ? 'Yes' : 'No'}`;
-    }
+  _hideRectangle() {
+    this._rectangleElement.style.display = 'none';
   }
 
   _handleAnimationFrame() {
-    const style = this._placeholderElement.style;
-    const titleElement = this._placeholderElement
+    this._animationFrame = 0;
+    
+    const style = this._rectangleElement.style;
+    const titleElement = this._rectangleElement
       .getElementsByClassName('js-component-placeholder-title')[0];
 
     if (titleElement) {
@@ -288,19 +267,24 @@ export class ComponentsDragArea extends PureComponent {
     }
 
     if (this._transitionEnabled) {
-      style['transition-property'] = 'transform width height';
-      style['transition-duration'] = `${SNAP_TIME}ms`;
-      style['transition-timing-function'] = 'ease-out';
-    } else {
+      if (!this._transitionStyleSet) {
+        style['transition-property'] = 'transform width height';
+        style['transition-duration'] = `${RECTANGLE_SNAP_TIME}ms`;
+        style['transition-timing-function'] = 'ease-out';
+        this._transitionStyleSet = true;
+      }
+    } else if (this._transitionStyleSet) {
       style['transition-property'] = '';
       style['transition-duration'] = '';
       style['transition-timing-function'] = '';
+      this._transitionStyleSet = false;
     }
 
     style.opacity = this._opacity.toFixed(3);
 
     if (this._unsnapping) {
-      const progress = (Date.now() - this._unsnapStartTime) / SNAP_TIME;
+      const progress =
+        (Date.now() - this._unsnapStartTime) / RECTANGLE_SNAP_TIME;
 
       if (progress < 1) {
         const x = interpolate(
@@ -319,14 +303,14 @@ export class ComponentsDragArea extends PureComponent {
 
         const w = interpolate(
           this._unsnapStartWidth,
-          PLACEHOLDER_WIDTH,
+          RECTANGLE_WIDTH,
           progress,
           easeOut,
         );
 
         const h = interpolate(
           this._unsnapStartHeight,
-          PLACEHOLDER_HEIGHT,
+          RECTANGLE_HEIGHT,
           progress,
           easeOut,
         );
@@ -334,9 +318,8 @@ export class ComponentsDragArea extends PureComponent {
         style.transform = `translate(${x}px, ${y}px)`;
         style.width = `${w}px`;
         style.height = `${h}px`;
-
-        this._animationFrame =
-          window.requestAnimationFrame(this._handleAnimationFrame);
+        
+        this._scheduleUpdate();
       } else {
         this._unsnapping = false;
 
@@ -345,45 +328,37 @@ export class ComponentsDragArea extends PureComponent {
 
         style.width = this._width > 0 ? `${this._width}px` : '';
         style.height = this._height > 0 ? `${this._height}px` : '';
-        this._animationFrame = null;
-        this._needRAF = true;
       }
     } else {
       style.transform = `translate(${this._positionX}px, ${this._positionY}px)`;
       style.width = this._width > 0 ? `${this._width}px` : '';
       style.height = this._height > 0 ? `${this._height}px` : '';
-      this._animationFrame = null;
-      this._needRAF = true;
     }
   }
 
   _scheduleUpdate() {
-    this._updateDebugData();
-    
-    if (this._needRAF) {
-      this._needRAF = false;
-
+    if (this._animationFrame === 0) {
       this._animationFrame =
         window.requestAnimationFrame(this._handleAnimationFrame);
     }
   }
   
   _cancelAnimationFrame() {
-    if (this._animationFrame) {
+    if (this._animationFrame !== 0) {
       window.cancelAnimationFrame(this._animationFrame);
-      this._animationFrame = null;
+      this._animationFrame = 0;
     }
   }
-
+  
+  /**
+   *
+   * @param {string} dropZoneId
+   * @return {ClientRect}
+   * @private
+   */
   _getDropZoneDimensions(dropZoneId) {
-    const cached = this._dropZoneDimensionsCache.get(dropZoneId);
-    if (cached) return cached;
-
     const dropZone = this._dropZones.get(dropZoneId);
-    const dimensions = dropZone.element.getBoundingClientRect();
-
-    this._dropZoneDimensionsCache.set(dropZoneId, dimensions);
-    return dimensions;
+    return getBoundingClientRectCached(dropZone.element);
   }
 
   /**
@@ -395,8 +370,8 @@ export class ComponentsDragArea extends PureComponent {
     const { dropMenuIsVisible, dropMenuSnapCoords } = this.state;
 
     if (!this._snapElement) {
-      this._positionX = event.pageX + PLACEHOLDER_OFFSET_X;
-      this._positionY = event.pageY + PLACEHOLDER_OFFSET_Y;
+      this._positionX = event.pageX + RECTANGLE_OFFSET_X;
+      this._positionY = event.pageY + RECTANGLE_OFFSET_Y;
       this._scheduleUpdate();
     }
 
@@ -437,11 +412,14 @@ export class ComponentsDragArea extends PureComponent {
             this._hideDropMenu();
           } else {
             if (!this._dropMenuPolygon) {
+              const dropMenuRect =
+                getBoundingClientRectCached(this._dropMenuElement);
+              
               this._dropMenuPolygon = buildDropMenuPolygon(
-                this._dropMenuDimensions.left,
-                this._dropMenuDimensions.top,
-                this._dropMenuDimensions.width,
-                this._dropMenuDimensions.height,
+                dropMenuRect.left,
+                dropMenuRect.top,
+                dropMenuRect.width,
+                dropMenuRect.height,
                 DROP_MENU_BORDER,
                 dropMenuSnapCoords.x,
                 dropMenuSnapCoords.y,
@@ -455,6 +433,33 @@ export class ComponentsDragArea extends PureComponent {
 
             if (isOverDropMenu) {
               willTriggerDrag = false;
+              
+              let activeDropMenuItem = -1;
+              for (let i = 0; i < this._dropMenuItemElements.length; i++) {
+                const element = this._dropMenuItemElements[i];
+                const rect = getBoundingClientRectCached(element);
+                const isOverItem = pointIsInRect(
+                  event.clientX,
+                  event.clientY,
+                  rect.left,
+                  rect.top,
+                  rect.width,
+                  rect.height,
+                );
+  
+                if (isOverItem) {
+                  activeDropMenuItem = i;
+                  break;
+                }
+              }
+              
+              if (this._lastActiveDropMenuItem !== activeDropMenuItem) {
+                if (activeDropMenuItem !== -1) {
+                  this._selectDropPoint(activeDropMenuItem);
+                }
+                
+                this._lastActiveDropMenuItem = activeDropMenuItem;
+              }
             } else {
               this._hideDropMenu();
             }
@@ -486,8 +491,6 @@ export class ComponentsDragArea extends PureComponent {
 
       this._lastDraggedDropZoneId = '';
     }
-    
-    this._updateDebugData();
   }
   
   /**
@@ -506,7 +509,7 @@ export class ComponentsDragArea extends PureComponent {
     this._lastDraggedDropZoneId = '';
     this._snapElement = null;
     this._cancelAnimationFrame();
-    this._hidePlaceholderElement();
+    this._hideRectangle();
 
     window.removeEventListener('mousemove', this._handleMouseMove);
     window.removeEventListener('mouseup', this._handleMouseUp);
@@ -514,7 +517,6 @@ export class ComponentsDragArea extends PureComponent {
     
     if (dropZoneId) onDrop({ dropZoneId, data });
     if (dropMenuIsVisible) this._hideDropMenu();
-    this._dropZoneDimensionsCache.clear();
   }
 
   _handleDragTryStart({ title, data, element }) {
@@ -527,7 +529,7 @@ export class ComponentsDragArea extends PureComponent {
     this._width = width;
     this._height = height;
     this._opacity = 0;
-    this._showPlaceholderElement();
+    this._showRectangle();
     this._scheduleUpdate();
 
     this.setState({ title, data });
@@ -537,14 +539,14 @@ export class ComponentsDragArea extends PureComponent {
     if (!this._tryingStartDrag) return;
 
     const { left, top, width, height } = this._draggableElementBoundingRect;
-    const targetX = pageX + PLACEHOLDER_OFFSET_X;
-    const targetY = pageY + PLACEHOLDER_OFFSET_Y;
+    const targetX = pageX + RECTANGLE_OFFSET_X;
+    const targetY = pageY + RECTANGLE_OFFSET_Y;
 
-    this._positionX = interpolate(left, targetX, progress, easeInOut);
-    this._positionY = interpolate(top, targetY, progress, easeInOut);
-    this._width = interpolate(width, PLACEHOLDER_WIDTH, progress, easeInOut);
-    this._height = interpolate(height, PLACEHOLDER_HEIGHT, progress, easeInOut);
-    this._opacity = interpolate(0, PLACEHOLDER_OPACITY, progress, easeInOut);
+    this._positionX = interpolate(left, targetX, progress, linear);
+    this._positionY = interpolate(top, targetY, progress, linear);
+    this._width = interpolate(width, RECTANGLE_WIDTH, progress, easeInOut);
+    this._height = interpolate(height, RECTANGLE_HEIGHT, progress, easeInOut);
+    this._opacity = interpolate(0, RECTANGLE_OPACITY, progress, easeInOut);
     this._scheduleUpdate();
   }
 
@@ -555,11 +557,11 @@ export class ComponentsDragArea extends PureComponent {
     this._draggableElementBoundingRect = null;
     this._dragging = true;
 
-    this._positionX = pageX + PLACEHOLDER_OFFSET_X;
-    this._positionY = pageY + PLACEHOLDER_OFFSET_Y;
-    this._width = PLACEHOLDER_WIDTH;
-    this._height = PLACEHOLDER_HEIGHT;
-    this._opacity = PLACEHOLDER_OPACITY;
+    this._positionX = pageX + RECTANGLE_OFFSET_X;
+    this._positionY = pageY + RECTANGLE_OFFSET_Y;
+    this._width = RECTANGLE_WIDTH;
+    this._height = RECTANGLE_HEIGHT;
+    this._opacity = RECTANGLE_OPACITY;
     this._scheduleUpdate();
 
     window.addEventListener('mousemove', this._handleMouseMove);
@@ -574,7 +576,7 @@ export class ComponentsDragArea extends PureComponent {
     this._draggableElementBoundingRect = null;
 
     this._cancelAnimationFrame();
-    this._hidePlaceholderElement();
+    this._hideRectangle();
   }
 
   _handleDropZoneReady({
@@ -631,8 +633,8 @@ export class ComponentsDragArea extends PureComponent {
     this._unsnapStartY = this._positionY;
     this._unsnapStartWidth = this._width;
     this._unsnapStartHeight = this._height;
-    this._width = PLACEHOLDER_WIDTH;
-    this._height = PLACEHOLDER_HEIGHT;
+    this._width = RECTANGLE_WIDTH;
+    this._height = RECTANGLE_HEIGHT;
     this._transitionEnabled = false;
     this._scheduleUpdate();
   }
@@ -649,17 +651,22 @@ export class ComponentsDragArea extends PureComponent {
     const { left, top } = this._getDropZoneDimensions(dropZoneId);
     const mouseSpeed = getMouseSpeed();
     
+    const menuX =
+      Math.max(coords.x + left + mouseSpeed.x * DROP_MENU_SHIFT_COEFFICIENT, 0);
+    
+    const menuY =
+      Math.max(coords.y + top + mouseSpeed.y * DROP_MENU_SHIFT_COEFFICIENT, 0);
+    
+    const snapX = snapCoords.x + left;
+    const snapY = snapCoords.y + top;
+  
+    this._dropMenuItemElements = [];
+    
     this.setState({
       dropMenuIsVisible: true,
       dropMenuDropZoneId: dropZoneId,
-      dropMenuCoords: {
-        x: Math.max(coords.x + mouseSpeed.x * DROP_MENU_SHIFT_COEFFICIENT, 0),
-        y: Math.max(coords.y + mouseSpeed.y * DROP_MENU_SHIFT_COEFFICIENT, 0),
-      },
-      dropMenuSnapCoords: {
-        x: snapCoords.x + left,
-        y: snapCoords.y + top,
-      },
+      dropMenuCoords: { x: menuX, y: menuY },
+      dropMenuSnapCoords: { x: snapX, y: snapY },
       dropPointsData,
     });
   
@@ -697,11 +704,14 @@ export class ComponentsDragArea extends PureComponent {
   }
   
   _renderDropMenu() {
-    const {
-      dropMenuDropZoneId,
-      dropMenuCoords: { x, y },
-      dropPointsData,
-    } = this.state;
+    const { dropMenuCoords: { x, y }, dropPointsData } = this.state;
+  
+    const style = {
+      position: 'absolute',
+      zIndex: '10000',
+      left: `${x}px`,
+      top: `${y}px`,
+    };
     
     const items = dropPointsData.map(({ title, caption }, idx) => (
       <MenuOverlappingGroupItem
@@ -709,18 +719,9 @@ export class ComponentsDragArea extends PureComponent {
         id={String(idx)}
         title={title}
         caption={caption}
-        onHover={this._handleDropMenuItemHover}
+        elementRef={this._saveDromMenuItemRef.bind(this, idx)} // eslint-disable-line react/jsx-no-bind
       />
     ));
-
-    const dzDims = this._getDropZoneDimensions(dropMenuDropZoneId);
-    
-    const style = {
-      position: 'absolute',
-      zIndex: '10000',
-      left: `${x + dzDims.left}px`,
-      top: `${y + dzDims.top}px`,
-    };
     
     return (
       <div style={style} ref={this._saveDropMenuRef}>
@@ -736,7 +737,6 @@ export class ComponentsDragArea extends PureComponent {
   }
 
   render() {
-    const { showDebugData } = this.props;
     const { title, dropMenuIsVisible } = this.state;
 
     const containerStyle = {
@@ -748,43 +748,16 @@ export class ComponentsDragArea extends PureComponent {
       overflow: 'hidden',
     };
     
-    let debugDataContainer = null;
-    
-    if (showDebugData) {
-      const debugContainerStyle = {
-        position: 'absolute',
-        zIndex: '1000',
-        bottom: 0,
-        left: 0,
-        width: '400px',
-        height: '225px',
-        display: 'none',
-      };
-  
-      debugDataContainer = (
-        <div style={debugContainerStyle} ref={this._saveDebugDataContainerRef}>
-          <div className="js-drag-area-debug-x" />
-          <div className="js-drag-area-debug-y" />
-          <div className="js-drag-area-debug-w" />
-          <div className="js-drag-area-debug-h" />
-          <div className="js-drag-area-debug-drop-zone-id" />
-          <div className="js-drag-area-debug-drop-zones" />
-          <div className="js-drag-area-debug-snapped" />
-        </div>
-      );
-    }
-    
     const dropMenu = dropMenuIsVisible ? this._renderDropMenu() : null;
 
     return (
       <div style={containerStyle}>
         <ComponentPlaceholder
           title={title}
-          elementRef={this._saveRef}
+          elementRef={this._saveRectangleRef}
         />
         
         {dropMenu}
-        {debugDataContainer}
       </div>
     );
   }
