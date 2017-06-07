@@ -56,9 +56,8 @@ const defaultProps = {
 
 const wrap = compose(connectDropZone, dropZone);
 
-const EVENTS_FOR_PARENT_FRAME = [
+const MOUSE_EVENTS_FOR_PARENT_FRAME = [
   'mousemove',
-  'mousedown',
   'mouseup',
 ];
 
@@ -160,22 +159,21 @@ class CanvasComponent extends Component {
     const contentWindow = this._iframe.contentWindow;
     
     // Re-dispatch events from the iframe to the parent frame
-    EVENTS_FOR_PARENT_FRAME.forEach(eventName => {
+    MOUSE_EVENTS_FOR_PARENT_FRAME.forEach(eventName => {
       contentWindow.document.addEventListener(eventName, event => {
         const boundingClientRect = this._iframe.getBoundingClientRect();
-        const evt = new CustomEvent(eventName, {
+        const evt = new MouseEvent(eventName, {
           bubbles: true,
           cancelable: true,
+          button: event.button,
+          clientX: event.clientX + boundingClientRect.left,
+          clientY: event.clientY + boundingClientRect.top,
+          pageX: event.pageX + boundingClientRect.left,
+          pageY: event.pageY + boundingClientRect.top,
+          screenX: event.screenX,
+          screenY: event.screenY,
         });
-      
-        evt.clientX = event.clientX + boundingClientRect.left;
-        evt.clientY = event.clientY + boundingClientRect.top;
-        evt.pageX = event.pageX + boundingClientRect.left;
-        evt.pageY = event.pageY + boundingClientRect.top;
-        evt.screenX = event.screenX;
-        evt.screenY = event.screenY;
-        evt._originalTarget = event.target;
-      
+        
         this._iframe.dispatchEvent(evt);
       });
     });

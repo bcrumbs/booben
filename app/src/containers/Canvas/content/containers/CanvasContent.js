@@ -260,21 +260,23 @@ class CanvasContent extends Component {
 
     const { document } = this.context;
 
-    if (draggingOverPlaceholder) {
-      const selector =
-        '[data-jssy-placeholder]' +
-        `[data-jssy-container-id="${placeholderContainerId}"]` +
-        `[data-jssy-after="${placeholderAfter}"]`;
-
-      const placeholderElement = document.querySelector(selector);
-
-      if (placeholderElement) {
-        onDropZoneSnap({ element: placeholderElement });
+    if (this._draggingOverCanvas) {
+      if (draggingOverPlaceholder) {
+        const selector =
+          '[data-jssy-placeholder]' +
+          `[data-jssy-container-id="${placeholderContainerId}"]` +
+          `[data-jssy-after="${placeholderAfter}"]`;
+    
+        const placeholderElement = document.querySelector(selector);
+    
+        if (placeholderElement) {
+          onDropZoneSnap({ element: placeholderElement });
+        } else {
+          onDropZoneUnsnap();
+        }
       } else {
         onDropZoneUnsnap();
       }
-    } else {
-      onDropZoneUnsnap();
     }
   }
 

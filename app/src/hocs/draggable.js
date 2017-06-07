@@ -143,7 +143,7 @@ const extend = OriginalComponent => class extends OriginalComponent {
       const pointPosition = dragStartRadius > 0
         ? pointPositionRelativeToCircle(
           event.screenX,
-          event.pageY,
+          event.screenY,
           this.__draggableStartDragX,
           this.__draggableStartDragY,
           dragStartRadius,
