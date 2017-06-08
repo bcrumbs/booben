@@ -15,7 +15,11 @@ const defaultProps = {
 
 export const CanvasFrame = props => (
   <section className="preview-iframe-wrapper">
-    <iframe className="preview-iframe" ref={props.iframeRef} />
+    <iframe
+      className="preview-iframe"
+      sandbox="allow-same-origin allow-scripts allow-pointer-lock"
+      ref={props.iframeRef}
+    />
   </section>
 );
 
