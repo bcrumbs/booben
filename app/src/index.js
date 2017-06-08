@@ -11,6 +11,7 @@ import { Route, Switch, Redirect } from 'react-router';
 import { ConnectedRouter } from 'react-router-redux';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from 'styled-components';
+import { Theme } from '@reactackle/reactackle';
 import theme from './styles/theme';
 import RootRoute from './routes/RootRoute';
 import PlaygroundRoute from './routes/PlaygroundRoute';
@@ -23,29 +24,31 @@ store.dispatch(loadStrings('en'));
 
 window.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(
-    <ThemeProvider theme={theme}>
-      <Provider store={store}>
-        <ConnectedRouter history={history}>
-          <Switch>
-            <Route
-              exact
-              path="/playground"
-              component={PlaygroundRoute}
-            />
-
-            <Route
-              exact
-              path={PATH_ROOT}
-              render={({ match }) => (
-                <Redirect to={buildStructurePath(match.params)} />
-              )}
-            />
-
-            <Route path={PATH_ROOT} component={RootRoute} />
-          </Switch>
-        </ConnectedRouter>
-      </Provider>
-    </ThemeProvider>,
+    <Theme>
+      <ThemeProvider theme={theme}>
+        <Provider store={store}>
+          <ConnectedRouter history={history}>
+            <Switch>
+              <Route
+                exact
+                path="/playground"
+                component={PlaygroundRoute}
+              />
+  
+              <Route
+                exact
+                path={PATH_ROOT}
+                render={({ match }) => (
+                  <Redirect to={buildStructurePath(match.params)} />
+                )}
+              />
+  
+              <Route path={PATH_ROOT} component={RootRoute} />
+            </Switch>
+          </ConnectedRouter>
+        </Provider>
+      </ThemeProvider>
+    </Theme>,
 
     window.document.getElementById('container'),
   );
