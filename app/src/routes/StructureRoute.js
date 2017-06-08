@@ -17,6 +17,8 @@ import {
   Row,
   Column,
   Dialog,
+  Form,
+  FormItem,
   Input,
 } from '@reactackle/reactackle';
 
@@ -949,12 +951,14 @@ class StructureRoute extends PureComponent {
       newRouteParamValues,
       
       (paramValue, paramName) => (
-        <Input
-          key={paramName}
-          label={paramName}
-          value={paramValue}
-          onChange={this._handleNewRouteParamChange.bind(this, paramName)}
-        />
+        <FormItem>
+          <Input
+            key={paramName}
+            label={paramName}
+            value={paramValue}
+            onChange={this._handleNewRouteParamChange.bind(this, paramName)}
+          />
+        </FormItem>
       ),
     );
     /* eslint-enable react/jsx-no-bind */
@@ -968,7 +972,9 @@ class StructureRoute extends PureComponent {
   
       routeParamsBoxItem = (
         <BlockContentBoxItem blank>
-          {routeParamInputs}
+          <Form>
+            {routeParamInputs}
+          </Form>
         </BlockContentBoxItem>
       );
     }
@@ -988,24 +994,30 @@ class StructureRoute extends PureComponent {
         <BlockContent>
           <BlockContentBox>
             <BlockContentBoxItem blank>
-              <Input
-                ref={this._saveNewRouteTitleInputRef}
-                label={getLocalizedText('structure.title')}
-                value={newRouteTitle}
-                onChange={this._handleNewRouteTitleChange}
-              />
-          
-              <Input
-                label={getLocalizedText('structure.path')}
-                value={newRoutePath}
-                pattern={ROUTE_PATH_PATTERN}
-                prefix={pathInputPrefix}
-                colorScheme={pathInputStyle}
-                message={pathInputMessage}
-                onChange={this._handleNewRoutePathChange}
-                onPatternError={this._handlePathInputPatternError}
-                onBlur={this._handlePathInputBlur}
-              />
+              <Form>
+                <FormItem>
+                  <Input
+                    ref={this._saveNewRouteTitleInputRef}
+                    label={getLocalizedText('structure.title')}
+                    value={newRouteTitle}
+                    onChange={this._handleNewRouteTitleChange}
+                  />
+                </FormItem>
+
+                <FormItem>
+                  <Input
+                    label={getLocalizedText('structure.path')}
+                    value={newRoutePath}
+                    pattern={ROUTE_PATH_PATTERN}
+                    prefix={pathInputPrefix}
+                    colorScheme={pathInputStyle}
+                    message={pathInputMessage}
+                    onChange={this._handleNewRoutePathChange}
+                    onPatternError={this._handlePathInputPatternError}
+                    onBlur={this._handlePathInputBlur}
+                  />
+                </FormItem>
+              </Form>
             </BlockContentBoxItem>
           </BlockContentBox>
           
@@ -1085,12 +1097,14 @@ class StructureRoute extends PureComponent {
       newRouteParamValues,
 
       (paramValue, paramName) => (
-        <Input
-          key={paramName}
-          label={paramName}
-          value={paramValue}
-          onChange={this._handleNewRouteParamChange.bind(this, paramName)}
-        />
+        <FormItem>
+          <Input
+            key={paramName}
+            label={paramName}
+            value={paramValue}
+            onChange={this._handleNewRouteParamChange.bind(this, paramName)}
+          />
+        </FormItem>
       ),
     );
     /* eslint-enable react/jsx-no-bind */
@@ -1104,7 +1118,9 @@ class StructureRoute extends PureComponent {
 
       routeParamsBoxItem = (
         <BlockContentBoxItem blank>
-          {routeParamInputs}
+          <Form>
+            {routeParamInputs}
+          </Form>
         </BlockContentBoxItem>
       );
     }
@@ -1124,18 +1140,22 @@ class StructureRoute extends PureComponent {
         <BlockContent>
           <BlockContentBox>
             <BlockContentBoxItem blank>
-              <Input
-                ref={this._saveRoutePathInputRef}
-                label={getLocalizedText('structure.path')}
-                value={newRoutePath}
-                pattern={ROUTE_PATH_PATTERN}
-                prefix={pathInputPrefix}
-                colorScheme={pathInputStyle}
-                message={pathInputMessage}
-                onChange={this._handleNewRoutePathChange}
-                onPatternError={this._handlePathInputPatternError}
-                onBlur={this._handlePathInputBlur}
-              />
+              <Form>
+                <FormItem>
+                  <Input
+                    ref={this._saveRoutePathInputRef}
+                    label={getLocalizedText('structure.path')}
+                    value={newRoutePath}
+                    pattern={ROUTE_PATH_PATTERN}
+                    prefix={pathInputPrefix}
+                    colorScheme={pathInputStyle}
+                    message={pathInputMessage}
+                    onChange={this._handleNewRoutePathChange}
+                    onPatternError={this._handlePathInputPatternError}
+                    onBlur={this._handlePathInputBlur}
+                  />
+                </FormItem>
+              </Form>
             </BlockContentBoxItem>
           </BlockContentBox>
 
