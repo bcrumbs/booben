@@ -3,7 +3,14 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TypeNames } from '@jssy/types';
-import { Input, SelectBox, Button } from '@reactackle/reactackle';
+
+import {
+  Form,
+  FormItem,
+  Input,
+  SelectBox,
+  Button,
+} from '@reactackle/reactackle';
 
 import {
   BlockContentBoxGroup,
@@ -102,6 +109,9 @@ export class FunctionArgumentNew extends PureComponent {
     const typeOptions = this._getTypeOptions();
     const isButtonDisabled =
       !name || !type || existingArgNames.indexOf(name) !== -1;
+    
+    const nameLabel = getLocalizedText('linkDialog.function.new.newArg.name');
+    const typeLabel = getLocalizedText('linkDialog.function.new.newArg.type');
 
     return (
       <BlockContentBoxGroup colorScheme="editing">
@@ -112,19 +122,25 @@ export class FunctionArgumentNew extends PureComponent {
         <BlockContentBoxItem>
           <div className="function-arguments_new-wrapper" >
             <div className="inputs-row" >
-              <Input
-                label={getLocalizedText('linkDialog.function.new.newArg.title')}
-                value={name}
-                pattern={ARG_NAME_PATTERN}
-                onChange={this._handleNameChange}
-              />
+              <Form>
+                <FormItem>
+                  <Input
+                    label={nameLabel}
+                    value={name}
+                    pattern={ARG_NAME_PATTERN}
+                    onChange={this._handleNameChange}
+                  />
+                </FormItem>
 
-              <SelectBox
-                label={getLocalizedText('linkDialog.function.new.newArg.type')}
-                value={type}
-                options={typeOptions}
-                onChange={this._handleTypeChange}
-              />
+                <FormItem>
+                  <SelectBox
+                    label={typeLabel}
+                    value={type}
+                    options={typeOptions}
+                    onChange={this._handleTypeChange}
+                  />
+                </FormItem>
+              </Form>
             </div>
 
             <div className="button-row" >
