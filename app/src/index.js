@@ -13,6 +13,7 @@ import { Provider } from 'react-redux';
 import { ThemeProvider } from 'styled-components';
 import { Theme } from '@reactackle/reactackle';
 import theme from './styles/theme';
+import reactackleThemeMixin from './styles/reactackle/mixin';
 import RootRoute from './routes/RootRoute';
 import PlaygroundRoute from './routes/PlaygroundRoute';
 import store from './store';
@@ -24,7 +25,7 @@ store.dispatch(loadStrings('en'));
 
 window.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(
-    <Theme>
+    <Theme mixin={reactackleThemeMixin}>
       <ThemeProvider theme={theme}>
         <Provider store={store}>
           <ConnectedRouter history={history}>
