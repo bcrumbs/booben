@@ -11,14 +11,18 @@ import { PropBase } from '../PropBase/PropBase';
 import { noop, returnArg } from '../../../utils/misc';
 
 const propTypes = {
+  ...PropBase.propTypes,
   value: PropTypes.string,
+  placeholder: PropTypes.string,
   disabled: PropTypes.bool,
   transformValue: PropTypes.func,
   onChange: PropTypes.func,
 };
 
 const defaultProps = {
+  ...PropBase.defaultProps,
   value: '',
+  placeholder: '',
   disabled: false,
   transformValue: returnArg,
   onChange: noop,
@@ -36,13 +40,10 @@ export class PropInput extends PropBase {
    * @private
    */
   _handleChange({ value }) {
-    this.props.onChange({
-      id: this.props.id,
-      value: this.props.transformValue(value),
-    });
+    const { id, transformValue, onChange } = this.props;
+    onChange({ id, value: transformValue(value) });
   }
   
-  //noinspection JSUnusedGlobalSymbols
   /**
    *
    * @return {?ReactElement}
@@ -50,20 +51,21 @@ export class PropInput extends PropBase {
    * @private
    */
   _renderContent() {
-    if (this.props.checkable && !this.props.checked) return null;
+    const { checkable, checked, value, placeholder, disabled } = this.props;
     
-    //noinspection JSValidateTypes
+    if (checkable && !checked) return null;
+    
     return (
       <Input
-        stateless
-        value={this.props.value}
-        disabled={this.props.disabled}
+        value={value}
+        placeholder={placeholder}
+        disabled={disabled}
         onChange={this._handleChange}
       />
     );
   }
 }
 
-PropInput.propTypes = { ...PropBase.propTypes, ...propTypes };
-PropInput.defaultProps = { ...PropBase.defaultProps, ...defaultProps };
+PropInput.propTypes = propTypes;
+PropInput.defaultProps = defaultProps;
 PropInput.displayName = 'PropInput';

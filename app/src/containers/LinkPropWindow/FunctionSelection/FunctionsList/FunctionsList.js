@@ -149,9 +149,8 @@ export class FunctionsList extends PureComponent {
       addButton = (
         <BlockContentBoxItem>
           <Button
-            icon="plus"
+            icon={{ name: 'plus' }}
             text={getLocalizedText('linkDialog.function.create')}
-            iconPosition="left"
             narrow
             onPress={onAdd}
           />
@@ -178,7 +177,7 @@ export class FunctionsList extends PureComponent {
           <Tabs
             tabs={tabs}
             selected={activeSection}
-            colorMode="dark"
+            colorScheme="dark"
             onChange={this._handleTabSelect}
           />
         </BlockContentNavigation>

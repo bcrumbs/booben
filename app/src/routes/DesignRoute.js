@@ -557,7 +557,7 @@ class DesignRoute extends PureComponent {
           title={getLocalizedText('design.selectLayout')}
           backdrop
           minWidth={400}
-          visible={selectingComponentLayout}
+          open={selectingComponentLayout}
         >
           {layoutSelectionDialogContent}
         </Dialog>
@@ -567,7 +567,7 @@ class DesignRoute extends PureComponent {
           backdrop
           minWidth={400}
           buttons={confirmDeleteDialogButtons}
-          visible={confirmDeleteComponentDialogIsVisible}
+          open={confirmDeleteComponentDialogIsVisible}
           closeOnEscape
           closeOnBackdropClick
           onClose={this._handleConfirmDeleteComponentDialogClose}

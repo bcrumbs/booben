@@ -116,15 +116,13 @@ export class FunctionArgumentNew extends PureComponent {
                 label={getLocalizedText('linkDialog.function.new.newArg.title')}
                 value={name}
                 pattern={ARG_NAME_PATTERN}
-                stateless
                 onChange={this._handleNameChange}
               />
 
               <SelectBox
                 label={getLocalizedText('linkDialog.function.new.newArg.type')}
                 value={type}
-                data={typeOptions}
-                stateless
+                options={typeOptions}
                 onChange={this._handleTypeChange}
               />
             </div>

@@ -35,11 +35,11 @@ const PageDrawerActionItemComponent = props => {
   if (props.icon) {
     if (props.title) className += ' has-tooltip';
     button = (
-      <Button icon={props.icon} onPress={props.onPress} />
+      <Button icon={{ name: props.icon }} onPress={props.onPress} />
     );
   } else {
     button = (
-      <Button text={props.title} onPress={props.onPress} />
+      <Button text={{ name: props.title }} onPress={props.onPress} />
     );
   }
   

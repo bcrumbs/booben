@@ -253,7 +253,7 @@ export class ToolWindow extends PureComponent {
     return buttons.map(({ icon, text, onPress }, idx) => (
       <Button
         key={String(idx)}
-        icon={icon}
+        icon={{ name: icon }}
         text={text}
         onPress={onPress}
       />
@@ -283,7 +283,7 @@ export class ToolWindow extends PureComponent {
         <BlockContentNavigation>
           <Tabs
             tabs={tabs}
-            colorMode="dark"
+            colorScheme="dark"
             selected={toolState.activeSection}
             onChange={this._handleNavigation}
           />

@@ -85,7 +85,7 @@ export class BlockContentTitle extends PureComponent {
       const buttons = this.props.buttons.map((button, idx) => (
         <Button
           key={String(idx)}
-          icon={button.icon}
+          icon={{ name: button.icon }}
           disabled={button.disabled}
           onPress={button.onPress}
         />

@@ -306,7 +306,7 @@ export class NewFunctionWindow extends PureComponent {
           <BlockContentActionsRegion type="secondary">
             <Button
               text={getLocalizedText('common.back')}
-              icon="chevron-left"
+              icon={{ name: 'chevron-left' }}
               onPress={this._handleBack}
             />
           </BlockContentActionsRegion>

@@ -104,9 +104,9 @@ export class DataItem extends PureComponent {
     if (argsButton) {
       argsButtonElement = (
         <Button
-          onPress={this._handleSetArgumentsClick}
-          text={getLocalizedText('linkDialog.data.setArguments')}
           narrow
+          text={getLocalizedText('linkDialog.data.setArguments')}
+          onPress={this._handleSetArgumentsClick}
         />
       );
     }
@@ -117,7 +117,7 @@ export class DataItem extends PureComponent {
         <div className="data-item_actions data-item_actions-right">
           <div className="data-item_actions data-item_actions-right">
             <Button
-              icon="chevron-right"
+              icon={{ name: 'chevron-right' }}
               onPress={this._handleJumpInto}
             />
           </div>
@@ -140,9 +140,9 @@ export class DataItem extends PureComponent {
       if (canBeApplied) {
         applyButton = (
           <Button
+            narrow
             text={getLocalizedText('common.apply')}
             onPress={this._handleApplyClick}
-            narrow
           />
         );
       }

@@ -23,8 +23,8 @@ const defaultProps = {
 };
 
 /* eslint-disable react/prop-types */
-const LinkComponent = ({ className, onClick, children }) => (
-  <span className={className} style={{ cursor: 'pointer' }} onClick={onClick}>
+const LinkComponent = ({ onClick, children }) => (
+  <span style={{ cursor: 'pointer' }} onClick={onClick}>
     {children}
   </span>
 );

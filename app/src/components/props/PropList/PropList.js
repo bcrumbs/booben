@@ -48,7 +48,6 @@ export class PropList extends PropBase {
     onChange({ id, value });
   }
   
-  //noinspection JSUnusedGlobalSymbols
   /**
    * @return {?ReactElement}
    * @override
@@ -66,11 +65,9 @@ export class PropList extends PropBase {
     
     if (checkable && !checked) return null;
     
-    //noinspection JSValidateTypes
     return (
       <SelectBox
-        stateless
-        data={options}
+        options={options}
         value={value}
         placeholder={placeholder}
         disabled={disabled}

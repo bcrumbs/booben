@@ -50,7 +50,7 @@ export class PropComponent extends PropBase {
     //noinspection JSValidateTypes
     return (
       <Button
-        kind="link"
+        colorScheme="link"
         text={text}
         disabled={disabled}
         onPress={onSetComponent}

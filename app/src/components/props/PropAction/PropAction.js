@@ -36,7 +36,7 @@ export class PropAction extends PropBase {
     
     return (
       <Button
-        kind="link"
+        colorScheme="link"
         text={getLocalizedText('valueEditor.action.editActions')}
         disabled={disabled}
         onPress={onEditActions}

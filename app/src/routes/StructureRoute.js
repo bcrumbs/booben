@@ -13,9 +13,6 @@ import { List } from 'immutable';
 import {
   Panel,
   PanelContent,
-  Header,
-  HeaderRegion,
-  HeaderTitle,
   Container,
   Row,
   Column,
@@ -982,7 +979,7 @@ class StructureRoute extends PureComponent {
         buttons={dialogButtons}
         backdrop
         minWidth={400}
-        visible={createRouteDialogIsVisible}
+        open={createRouteDialogIsVisible}
         closeOnEscape
         closeOnBackdropClick
         onEnterKeyPress={this._handleCreateRouteDialogEnterKey}
@@ -1003,7 +1000,7 @@ class StructureRoute extends PureComponent {
                 value={newRoutePath}
                 pattern={ROUTE_PATH_PATTERN}
                 prefix={pathInputPrefix}
-                styleMode={pathInputStyle}
+                colorScheme={pathInputStyle}
                 message={pathInputMessage}
                 onChange={this._handleNewRoutePathChange}
                 onPatternError={this._handlePathInputPatternError}
@@ -1118,7 +1115,7 @@ class StructureRoute extends PureComponent {
         buttons={dialogButtons}
         backdrop
         minWidth={400}
-        visible
+        open
         closeOnEscape
         closeOnBackdropClick
         onEnterKeyPress={this._handleEditPathDialogEnterKey}
@@ -1133,7 +1130,7 @@ class StructureRoute extends PureComponent {
                 value={newRoutePath}
                 pattern={ROUTE_PATH_PATTERN}
                 prefix={pathInputPrefix}
-                styleMode={pathInputStyle}
+                colorScheme={pathInputStyle}
                 message={pathInputMessage}
                 onChange={this._handleNewRoutePathChange}
                 onPatternError={this._handlePathInputPatternError}
@@ -1169,7 +1166,7 @@ class StructureRoute extends PureComponent {
         buttons={deleteRouteDialogButtons}
         backdrop
         minWidth={400}
-        visible={confirmDeleteDialogIsVisible}
+        open={confirmDeleteDialogIsVisible}
         closeOnEscape
         closeOnBackdropClick
         onEnterKeyPress={this._handleDeleteRouteConfirm}
@@ -1181,21 +1178,13 @@ class StructureRoute extends PureComponent {
   }
   
   _renderContent() {
-    const { project, getLocalizedText } = this.props;
+    const { project } = this.props;
   
     const routesList =
       this._renderRouteList(project.routes, null, project.rootRoutes);
     
     return (
       <Panel headerFixed maxHeight="initial" spread>
-        <Header>
-          <HeaderRegion spread alignY="center">
-            <HeaderTitle>
-              {getLocalizedText('appHeader.menu.structure')}
-            </HeaderTitle>
-          </HeaderRegion>
-        </Header>
-    
         <PanelContent>
           <Container>
             <Row>

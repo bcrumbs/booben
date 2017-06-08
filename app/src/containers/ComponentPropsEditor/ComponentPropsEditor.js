@@ -857,7 +857,7 @@ class ComponentPropsEditorComponent extends PureComponent {
           backdrop
           minWidth={420}
           paddingSize="none"
-          visible={linkingProp}
+          open={linkingProp}
           haveCloseButton
           onClose={this._handleLinkCancel}
         >

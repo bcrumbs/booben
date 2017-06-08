@@ -43,7 +43,7 @@ export class ComponentActions extends PureComponent {
         <div className="component-actions_button">
           <Button
             text={addButtonText}
-            icon="plus"
+            icon={{ name: 'plus' }}
             narrow
             onPress={this._handleAddButtonPress}
           />
