@@ -1,10 +1,11 @@
 @charset "UTF-8";
 @import '~@reactackle/reactackle/utils/global';
-@import '~@reactackle/reactackle/components/Menu/variables';
 
 // Base Variables
 // ============================================================================
 $prsave-bg-color: $color-secondary;
+$menu-item-padding-y:            $base-module !default;
+$menu-item-padding-x:            $base-module*2 !default;
 
 // Animation
 // ============================================================================

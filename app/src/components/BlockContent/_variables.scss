@@ -1,10 +1,13 @@
 @charset "UTF-8";
 @import '~@reactackle/reactackle/utils/global';
-@import '~@reactackle/reactackle/components/Dialog/variables';
 
 // =====================================================================================================================
 // BASE VARIABLES
 // =====================================================================================================================
+$dialog-padding:                $base-module*3 !default;
+$dialog-window-title-padding-y: $base-module !default;
+$dialog-window-title-padding-x: $dialog-padding !default;
+
 $bcontent-base-pad-y:           $base-module*2 !default;
 $bcontent-base-pad-x:           $base-module*2.5 !default;
 $bcontent-base-pad-y-lrg:       $bcontent-base-pad-x !default;
