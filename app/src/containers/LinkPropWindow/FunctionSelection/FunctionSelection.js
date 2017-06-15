@@ -7,6 +7,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
+import { Map } from 'immutable';
 import { isCompatibleType } from '@jssy/types';
 import { FunctionsList } from './FunctionsList/FunctionsList';
 import { FunctionWindow } from './FunctionWindow/FunctionWindow';
@@ -33,8 +34,8 @@ const propTypes = {
 
 const defaultProps = {
   userTypedefs: null,
-  projectFunctions: {},
-  builtinFunctions: {},
+  projectFunctions: Map(),
+  builtinFunctions: Map(),
   getLocalizedText: returnArg,
   onSelect: noop,
   onCreateFunction: noop,
@@ -63,6 +64,8 @@ export class FunctionSelection extends PureComponent {
       newFunctionReturnType: '',
       newFunctionArgs: [],
     };
+    
+    this._newFunctionId = '';
 
     this._handleReturn = this._handleReturn.bind(this);
     this._handleReturnToList = this._handleReturnToList.bind(this);
@@ -70,6 +73,33 @@ export class FunctionSelection extends PureComponent {
     this._handleSelectFunction = this._handleSelectFunction.bind(this);
     this._handleApply = this._handleApply.bind(this);
     this._handleCreate = this._handleCreate.bind(this);
+  }
+  
+  componentWillReceiveProps(nextProps) {
+    if (this._newFunctionId !== '') {
+      const willSelectNewFunction =
+        nextProps.projectFunctions.has(this._newFunctionId) &&
+        isCompatibleType(
+          nextProps.valueDef,
+          nextProps.projectFunctions.get(this._newFunctionId).returnType,
+          nextProps.userTypedefs,
+          null,
+        );
+      
+      if (willSelectNewFunction) {
+        this.setState({
+          currentView: Views.FUNCTION,
+          selectedFunctionSource: FunctionSources.PROJECT,
+          selectedFunctionId: this._newFunctionId,
+        });
+      } else {
+        this.setState({
+          currentView: Views.LIST,
+        });
+      }
+  
+      this._newFunctionId = '';
+    }
   }
 
   _handleReturn() {
@@ -114,7 +144,9 @@ export class FunctionSelection extends PureComponent {
     
     const existingNames = Array.from(projectFunctions.keys());
     const name = functionNameFromTitle(title, existingNames);
-    
+  
+    this._newFunctionId = name;
+  
     onCreateFunction({
       name,
       title,
@@ -122,12 +154,6 @@ export class FunctionSelection extends PureComponent {
       args,
       returnType,
       code,
-    });
-    
-    this.setState({
-      currentView: Views.FUNCTION,
-      selectedFunctionSource: FunctionSources.PROJECT,
-      selectedFunctionId: name,
     });
   }
 

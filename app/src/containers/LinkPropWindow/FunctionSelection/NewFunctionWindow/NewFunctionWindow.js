@@ -144,6 +144,7 @@ export class NewFunctionWindow extends PureComponent {
   
   _handleDeleteArg({ id }) {
     const { args } = this.state;
+    
     const idx = parseInt(id, 10);
     this.setState({ args: without(args, idx) });
   }
@@ -161,8 +162,10 @@ export class NewFunctionWindow extends PureComponent {
   }
   
   _handleCreate() {
+    const { onCreate } = this.props;
     const { title, description, args, returnType, code } = this.state;
-    this.props.onCreate({ title, description, args, returnType, code });
+    
+    onCreate({ title, description, args, returnType, code });
   }
   
   _handleCodeChange(code) {
