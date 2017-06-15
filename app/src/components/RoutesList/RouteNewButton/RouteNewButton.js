@@ -37,7 +37,7 @@ export class RouteNewButton extends PureComponent {
         <Button
           text={text}
           colorScheme="primary"
-          outline
+          outlined
           onPress={this._handlePress}
         />
       </li>
