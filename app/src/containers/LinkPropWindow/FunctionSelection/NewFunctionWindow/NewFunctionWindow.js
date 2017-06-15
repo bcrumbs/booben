@@ -24,7 +24,7 @@ import {
   BlockContentBoxItem,
   BlockContentActions,
   BlockContentActionsRegion,
-} from '../../../../components/BlockContent/BlockContent';
+} from '@jssy/common-ui';
 
 import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
 import { PropEmpty } from '../../../../components/props';

@@ -33,6 +33,16 @@ import {
 } from '@reactackle/reactackle';
 
 import {
+  BlockContentBox,
+  BlockContentHeading,
+  BlockBreadcrumbs,
+  BlockContentBoxGroup,
+  BlockContentBoxItem,
+  BlockContentBoxHeading,
+  BlockContentPlaceholder,
+} from '@jssy/common-ui';
+
+import {
   MenuOverlapping,
   MenuOverlappingDivider,
   MenuOverlappingGroup,
@@ -43,16 +53,6 @@ import { DrawerTop } from '../components/DrawerTop/DrawerTop';
 import {
   DrawerTopContent,
 } from '../components/DrawerTopContent/DrawerTopContent';
-
-import {
-  BlockContentBox,
-  BlockContentHeading,
-  BlockBreadcrumbs,
-  BlockContentBoxGroup,
-  BlockContentBoxItem,
-  BlockContentBoxHeading,
-  BlockContentPlaceholder,
-} from '../components/BlockContent/BlockContent';
 
 import {
   Accordion,

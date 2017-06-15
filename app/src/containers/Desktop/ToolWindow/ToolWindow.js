@@ -7,14 +7,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
-import { List } from 'immutable';
 import throttle from 'lodash.throttle';
 import { Button, Tabs } from '@reactackle/reactackle';
-
-import {
-  DraggableWindow,
-  DraggableWindowRegion,
-} from '../../../components/DraggableWindow/DraggableWindow';
 
 import {
   BlockContent,
@@ -22,15 +16,18 @@ import {
   BlockContentNavigation,
   BlockContentActions,
   BlockContentActionsRegion,
-} from '../../../components/BlockContent/BlockContent';
+} from '@jssy/common-ui';
+
+import {
+  DraggableWindow,
+  DraggableWindowRegion,
+} from '../../../components/DraggableWindow/DraggableWindow';
 
 import resizeable from '../../../hocs/resizeable';
-import ButtonType from '../../../models/Button';
 import ToolType from '../../../models/Tool';
 import ToolStateType from '../../../models/ToolState';
 import { noop } from '../../../utils/misc';
 
-//noinspection JSUnresolvedVariable
 const propTypes = {
   tool: PropTypes.instanceOf(ToolType).isRequired,
   toolState: PropTypes.instanceOf(ToolStateType).isRequired,
@@ -328,24 +325,20 @@ export class ToolWindow extends PureComponent {
       );
     }
 
-    let titleButtons = List();
+    const titleButtons = [];
 
     if (tool.undockable) {
-      const dockButton = new ButtonType({
+      titleButtons.push({
         icon: 'compress',
         onPress: onDock,
       });
-      
-      titleButtons = titleButtons.push(dockButton);
     }
 
     if (tool.closable) {
-      const closeButton = new ButtonType({
+      titleButtons.push({
         icon: 'times',
         onPress: onClose,
       });
-      
-      titleButtons = titleButtons.push(closeButton);
     }
 
     const activeSection = sections.get(toolState.activeSection) || null;

@@ -11,6 +11,18 @@ import { connect } from 'react-redux';
 import { List, Map } from 'immutable';
 import { makeDefaultValue, isCompatibleType } from '@jssy/types';
 import { Button } from '@reactackle/reactackle';
+
+import {
+  BlockContent,
+  BlockContentNavigation,
+  BlockBreadcrumbs,
+  BlockContentBox,
+  BlockContentBoxGroup,
+  BlockContentBoxItem,
+  BlockContentActions,
+  BlockContentActionsRegion,
+} from '@jssy/common-ui';
+
 import ProjectFunctionRecord from '../../../../models/ProjectFunction';
 import JssyValue from '../../../../models/JssyValue';
 import SourceDataState from '../../../../models/SourceDataState';
@@ -25,18 +37,6 @@ import {
 } from '../../../../selectors';
 
 import { pickComponentStateSlot } from '../../../../actions/project';
-
-import {
-  BlockContent,
-  BlockContentNavigation,
-  BlockBreadcrumbs,
-  BlockContentBox,
-  BlockContentBoxGroup,
-  BlockContentBoxItem,
-  BlockContentActions,
-  BlockContentActionsRegion,
-} from '../../../../components/BlockContent/BlockContent';
-
 import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
 import { PropsList } from '../../../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';

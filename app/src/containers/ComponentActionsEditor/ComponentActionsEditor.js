@@ -13,7 +13,7 @@ import _forOwn from 'lodash.forown';
 import {
   BlockContentBox,
   BlockContentBoxItem,
-} from '../../components/BlockContent/BlockContent';
+} from '@jssy/common-ui';
 
 import { ComponentHandlers, ComponentHandler } from '../../components/actions';
 import { ActionsList } from '../ActionsList/ActionsList';

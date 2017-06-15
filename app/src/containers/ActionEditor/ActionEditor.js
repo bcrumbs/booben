@@ -14,12 +14,8 @@ import _mapValues from 'lodash.mapvalues';
 import { List, Map } from 'immutable';
 import { isCompatibleType } from '@jssy/types';
 import { Button } from '@reactackle/reactackle';
+import { BlockContentBoxItem } from '@jssy/common-ui';
 import { DesignDialog } from '../DesignDialog/DesignDialog';
-
-import {
-  BlockContentBoxItem,
-} from '../../components/BlockContent/BlockContent';
-
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
 import { PropsList } from '../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';

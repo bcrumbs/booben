@@ -12,7 +12,7 @@ import { connect } from 'react-redux';
 import {
   BlockContentBox,
   BlockContentBoxItem,
-} from '../../components/BlockContent/BlockContent';
+} from '@jssy/common-ui';
 
 import { PropsList } from '../../components/PropsList/PropsList';
 import { PropToggle } from '../../components/props';

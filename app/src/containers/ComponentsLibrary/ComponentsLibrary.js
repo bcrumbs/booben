@@ -13,6 +13,13 @@ import { List, Record, Map, OrderedMap } from 'immutable';
 import _forOwn from 'lodash.forown';
 import _debounce from 'lodash.debounce';
 import { Button } from '@reactackle/reactackle';
+
+import {
+  BlockContentBox,
+  BlockContentBoxItem,
+  BlockContentPlaceholder,
+} from '@jssy/common-ui';
+
 import draggable from '../../hocs/draggable';
 import { connectDraggable } from '../ComponentsDragArea/ComponentsDragArea';
 
@@ -20,12 +27,6 @@ import {
   Accordion,
   AccordionItemRecord,
 } from '../../components/Accordion/Accordion';
-
-import {
-  BlockContentBox,
-  BlockContentBoxItem,
-  BlockContentPlaceholder,
-} from '../../components/BlockContent/BlockContent';
 
 import {
   ComponentTag,

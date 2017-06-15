@@ -7,7 +7,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
-import ProjectRoute from '../../../models/ProjectRoute';
 
 import {
   BlockContent,
@@ -15,8 +14,9 @@ import {
   BlockContentBoxItem,
   BlockContentNavigation,
   BlockBreadcrumbs,
-} from '../../../components/BlockContent/BlockContent';
+} from '@jssy/common-ui';
 
+import ProjectRoute from '../../../models/ProjectRoute';
 import { DataList, DataItem } from '../../../components/DataList/DataList';
 import { noop, returnArg } from '../../../utils/misc';
 import { INVALID_ID } from '../../../constants/misc';

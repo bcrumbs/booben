@@ -15,7 +15,7 @@ import {
   PageDrawerActionsGroup,
   PageDrawerActionItem,
   PageDrawerActionPlaceholder,
-} from '../../../components/PageDrawer/PageDrawer';
+} from '@jssy/common-ui';
 
 import { ToolPanelContent } from './ToolPanelContent/ToolPanelContent';
 import resizeable from '../../../hocs/resizeable';

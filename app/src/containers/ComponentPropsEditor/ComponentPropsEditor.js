@@ -9,6 +9,14 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { Button } from '@reactackle/reactackle';
+
+import {
+  BlockContentBox,
+  BlockContentBoxHeading,
+  BlockContentBoxItem,
+  BlockContentPlaceholder,
+} from '@jssy/common-ui';
+
 import { getNestedTypedef, isCompatibleType } from '@jssy/types';
 import { DesignDialog } from '../DesignDialog/DesignDialog';
 import { PropsList } from '../../components/PropsList/PropsList';
@@ -16,14 +24,6 @@ import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
 import { ActionEditor } from '../ActionEditor/ActionEditor';
 import { ActionsList } from '../ActionsList/ActionsList';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
-
-import {
-  BlockContentBox,
-  BlockContentBoxHeading,
-  BlockContentBoxItem,
-  BlockContentPlaceholder,
-} from '../../components/BlockContent/BlockContent';
-
 import ProjectComponentRecord from '../../models/ProjectComponent';
 import JssyValue from '../../models/JssyValue';
 import SourceDataState from '../../models/SourceDataState';

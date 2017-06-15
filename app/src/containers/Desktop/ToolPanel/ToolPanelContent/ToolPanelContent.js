@@ -6,12 +6,7 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { List } from 'immutable';
 import { Button, Tabs } from '@reactackle/reactackle';
-
-import {
-  PageDrawerContentArea,
-} from '../../../../components/PageDrawer/PageDrawer';
 
 import {
   BlockContent,
@@ -19,9 +14,9 @@ import {
   BlockContentActions,
   BlockContentActionsRegion,
   BlockContentNavigation,
-} from '../../../../components/BlockContent/BlockContent';
+  PageDrawerContentArea,
+} from '@jssy/common-ui';
 
-import ButtonType from '../../../../models/Button';
 import ToolType from '../../../../models/Tool';
 import ToolStateType from '../../../../models/ToolState';
 import { noop } from '../../../../utils/misc';
@@ -65,21 +60,17 @@ export class ToolPanelContent extends PureComponent {
       onUndock,
       onTitleChange,
     } = this.props;
-    
-    const collapseButton = new ButtonType({
+  
+    const titleButtons = [{
       icon: 'chevron-right',
       onPress: onCollapse,
-    });
-  
-    let titleButtons = List([collapseButton]);
+    }];
   
     if (tool.undockable) {
-      const undockButton = new ButtonType({
+      titleButtons.unshift({
         icon: 'arrows-alt',
         onPress: onUndock,
       });
-    
-      titleButtons = titleButtons.unshift(undockButton);
     }
   
     const sections = tool.sections;

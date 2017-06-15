@@ -79,7 +79,9 @@ module.exports = {
         test: /\.jsx?$/,
         exclude: path => {
           if (/reactackle[/\\]node_modules/.test(path)) return true;
+          if (/common-ui[/\\]node_modules/.test(path)) return true;
           if (/reactackle/.test(path)) return false;
+          if (/common-ui/.test(path)) return false;
           return /node_modules/.test(path);
         },
         loader: 'babel-loader',

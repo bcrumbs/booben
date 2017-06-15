@@ -16,7 +16,7 @@ import {
   BlockContentBoxGroup,
   BlockContentBoxItem,
   BlockContentBoxHeading,
-} from '../../../../../components/BlockContent/BlockContent';
+} from '@jssy/common-ui';
 
 import { returnArg, noop } from '../../../../../utils/misc';
 

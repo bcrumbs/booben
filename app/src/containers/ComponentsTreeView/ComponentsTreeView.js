@@ -13,6 +13,11 @@ import Portal from 'react-portal-minimal';
 import throttle from 'lodash.throttle';
 
 import {
+  BlockContentBox,
+  BlockContentPlaceholder,
+} from '@jssy/common-ui';
+
+import {
   ComponentStateSlotSelect,
 } from '../ComponentStateSlotSelect/ComponentStateSlotSelect';
 
@@ -26,11 +31,6 @@ import {
 import {
   ComponentPlaceholder,
 } from '../../components/ComponentPlaceholder/ComponentPlaceholder';
-
-import {
-  BlockContentBox,
-  BlockContentPlaceholder,
-} from '../../components/BlockContent/BlockContent';
 
 import draggable from '../../hocs/draggable';
 import dropZone from '../../hocs/dropZone';
