@@ -78,6 +78,7 @@ const JSSY_TYPE_TO_VIEW = {
   [TypeNames.OBJECT]: PropViews.EMPTY,
   [TypeNames.ARRAY]: PropViews.EMPTY,
   [TypeNames.FUNC]: PropViews.ACTION,
+  [TypeNames.ANY]: PropViews.EMPTY,
 };
 
 /**
