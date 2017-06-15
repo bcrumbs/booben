@@ -8,7 +8,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 
 const propTypes = {
-  type: PropTypes.oneOf(['success', 'error']),
+  type: PropTypes.oneOf(['success', 'error', 'neutral']),
   title: PropTypes.string,
 };
 

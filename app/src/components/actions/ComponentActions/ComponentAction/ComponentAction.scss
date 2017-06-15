@@ -89,6 +89,10 @@
         .case-type-error & {
             background-color: $color-alert;
         }
+
+        .case-type-neutral & {
+            background-color: $color-info;
+        }
     }
 
     .component-case_title {
