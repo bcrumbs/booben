@@ -2,12 +2,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@reactackle/reactackle';
-
-import {
-  combineWithTooltip,
-} from '@reactackle/reactackle/components/Tooltip/combineWithTooltip';
-
+import { Button, withTooltip } from '@reactackle/reactackle';
 import { noop } from '../../../../utils/misc';
 
 const propTypes = {
@@ -72,4 +67,4 @@ PageDrawerActionItemComponent.defaultProps = defaultProps;
 PageDrawerActionItemComponent.displayName = 'PageDrawerActionItem';
 
 export const PageDrawerActionItem =
-  combineWithTooltip(PageDrawerActionItemComponent, true);
+  withTooltip(PageDrawerActionItemComponent, true);
