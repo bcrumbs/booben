@@ -78,6 +78,7 @@
   "library.noComponentsAvailable": "Нет компонентов, которые могут быть вставлены в выделенный компонент",
   "library.showAllComponents": "Показать все компоненты",
   "library.noComponentsInLibrary": "В библиотеке нет компонентов",
+  "library.search.placeholder": "Поиск компонентов",
 
   "componentGroups.builtin": "Встроенные компоненты",
   "componentGroups.builtin.desc": "",

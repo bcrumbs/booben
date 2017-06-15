@@ -11,6 +11,7 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { createSelector } from 'reselect';
 import { List, Record, Map, OrderedMap } from 'immutable';
 import _forOwn from 'lodash.forown';
+import _debounce from 'lodash.debounce';
 import { Button } from '@reactackle/reactackle';
 import draggable from '../../hocs/draggable';
 import { connectDraggable } from '../ComponentsDragArea/ComponentsDragArea';
@@ -22,6 +23,7 @@ import {
 
 import {
   BlockContentBox,
+  BlockContentBoxItem,
   BlockContentPlaceholder,
 } from '../../components/BlockContent/BlockContent';
 
@@ -30,9 +32,12 @@ import {
   ComponentTagWrapper,
 } from '../../components/ComponentTag/ComponentTag';
 
+import { SearchInput } from '../../components/SearchInput/SearchInput';
+
 import {
   setExpandedGroups,
   showAllComponents,
+  searchComponents,
 } from '../../actions/components-library';
 
 import {
@@ -80,11 +85,13 @@ const propTypes = {
   meta: PropTypes.object.isRequired,
   componentGroups: ComponentGroupsType.isRequired,
   expandedGroups: ImmutablePropTypes.setOf(PropTypes.string).isRequired,
+  searchString: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
   rootDraggedComponent: PropTypes.instanceOf(ProjectComponent),
   getLocalizedText: PropTypes.func.isRequired,
   onExpandedGroupsChange: PropTypes.func.isRequired,
+  onSearchComponents: PropTypes.func.isRequired,
   onShowAllComponents: PropTypes.func.isRequired,
   onStartDragComponent: PropTypes.func.isRequired,
 };
@@ -249,6 +256,9 @@ const libraryGroupsFilteredSelector = createSelector(
   haveNestedConstructorsSelector,
   state => state.project.showAllComponentsOnPalette,
   state => state.project.meta,
+  state => state.componentsLibrary.searchString,
+  state => state.app.language,
+  getLocalizedTextFromState,
 
   (
     groups,
@@ -257,6 +267,9 @@ const libraryGroupsFilteredSelector = createSelector(
     haveNestedConstructors,
     showAllComponentsOnPalette,
     meta,
+    searchString,
+    language,
+    getLocalizedText,
   ) => {
     const filterFns = [
       component => !haveNestedConstructors || component.fullName !== 'Outlet',
@@ -278,6 +291,15 @@ const libraryGroupsFilteredSelector = createSelector(
         ),
       );
     }
+    
+    if (searchString !== '') {
+      filterFns.push(
+        component =>
+        getComponentNameString(component, language, getLocalizedText)
+          .toLowerCase()
+          .indexOf(searchString.toLowerCase()) !== -1,
+      );
+    }
 
     const filteredGroups =
       filterGroupsAndComponents(groups, combineFiltersAll(filterFns));
@@ -293,6 +315,7 @@ const mapStateToProps = state => ({
   meta: state.project.meta,
   componentGroups: libraryGroupsFilteredSelector(state),
   expandedGroups: state.componentsLibrary.expandedGroups,
+  searchString: state.componentsLibrary.searchString,
   language: state.app.language,
   draggingComponent: state.project.draggingComponent,
   rootDraggedComponent: rootDraggedComponentSelector(state),
@@ -302,6 +325,9 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   onExpandedGroupsChange: groups =>
     void dispatch(setExpandedGroups(groups)),
+  
+  onSearchComponents: searchString =>
+    void dispatch(searchComponents(searchString)),
 
   onShowAllComponents: () =>
     void dispatch(showAllComponents()),
@@ -312,11 +338,24 @@ const mapDispatchToProps = dispatch => ({
 
 const DraggableComponentTag = connectDraggable(draggable(ComponentTag));
 
+const SEARCH_INPUT_DEBOUNCE = 150;
+
 class ComponentsLibraryComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
+    
+    this.state = {
+      localSearchString: props.searchString,
+    };
 
     this._handleDragStart = this._handleDragStart.bind(this);
+    this._handleSearchInputChange = this._handleSearchInputChange.bind(this);
+    this._handleSearchButtonPress = this._handleSearchButtonPress.bind(this);
+    
+    this._doSearchDebounced = _debounce(
+      this._doSearch.bind(this),
+      SEARCH_INPUT_DEBOUNCE,
+    );
   }
 
   _getFocusedComponentName() {
@@ -331,27 +370,56 @@ class ComponentsLibraryComponent extends PureComponent {
     onStartDragComponent(components);
   }
   
+  _doSearch() {
+    const { onSearchComponents } = this.props;
+    const { localSearchString } = this.state;
+  
+    onSearchComponents(localSearchString);
+  }
+  
+  _handleSearchInputChange({ value }) {
+    this.setState({
+      localSearchString: value,
+    }, this._doSearchDebounced);
+  }
+  
+  _handleSearchButtonPress() {
+    this._doSearch();
+  }
+  
   render() {
     const {
       componentGroups,
       expandedGroups,
-      onShowAllComponents,
+      searchString,
       language,
       getLocalizedText,
       onExpandedGroupsChange,
+      onShowAllComponents,
     } = this.props;
+    
+    const { localSearchString } = this.state;
 
     const focusedComponentName = this._getFocusedComponentName();
     const { groups, filtered } = componentGroups;
 
     if (groups.isEmpty()) {
-      if (filtered) {
+      if (!filtered) {
+        const noComponentsText =
+          getLocalizedText('library.noComponentsInLibrary');
+  
+        return (
+          <BlockContentPlaceholder text={noComponentsText} />
+        );
+      }
+      
+      if (searchString === '') {
         const noComponentsText =
           getLocalizedText('library.noComponentsAvailable');
-        
+  
         const showAllComponentsText =
           getLocalizedText('library.showAllComponents');
-        
+  
         return (
           <BlockContentPlaceholder text={noComponentsText}>
             <Button
@@ -359,13 +427,6 @@ class ComponentsLibraryComponent extends PureComponent {
               onPress={onShowAllComponents}
             />
           </BlockContentPlaceholder>
-        );
-      } else {
-        const noComponentsText =
-          getLocalizedText('library.noComponentsInLibrary');
-        
-        return (
-          <BlockContentPlaceholder text={noComponentsText} />
         );
       }
     }
@@ -394,15 +455,29 @@ class ComponentsLibraryComponent extends PureComponent {
         ),
       });
     });
+    
+    const expandAll = searchString !== '';
 
     return (
       <BlockContentBox isBordered>
-        <Accordion
-          single
-          items={accordionItems}
-          expandedItemIds={expandedGroups}
-          onExpandedItemsChange={onExpandedGroupsChange}
-        />
+        <BlockContentBoxItem blank>
+          <SearchInput
+            placeholder={getLocalizedText('library.search.placeholder')}
+            value={localSearchString}
+            onChange={this._handleSearchInputChange}
+            onButtonPress={this._handleSearchButtonPress}
+          />
+        </BlockContentBoxItem>
+        
+        <BlockContentBoxItem blank isBordered>
+          <Accordion
+            single
+            items={accordionItems}
+            expandedItemIds={expandedGroups}
+            expandAll={expandAll}
+            onExpandedItemsChange={onExpandedGroupsChange}
+          />
+        </BlockContentBoxItem>
       </BlockContentBox>
     );
   }

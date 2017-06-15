@@ -78,6 +78,7 @@
   "library.noComponentsAvailable": "No components can be inserted inside selected component",
   "library.showAllComponents": "Show all components",
   "library.noComponentsInLibrary": "No components in library",
+  "library.search.placeholder": "Search components",
 
   "componentGroups.builtin": "Built-in components",
   "componentGroups.builtin.desc": "",
