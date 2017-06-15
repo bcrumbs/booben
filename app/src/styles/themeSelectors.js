@@ -1,48 +1,56 @@
 'use strict';
 
 /* Size */
-export const baseModule = ({ theme }) => theme.jssy.baseModule;
-export const halfBaseModule = ({ theme }) => theme.jssy.baseModule / 2;
-export const quarterBaseModule = ({ theme }) => theme.jssy.baseModule / 4;
-export const threeHalvesBaseModule = ({ theme }) => theme.jssy.baseModule * 1.5;
-export const doubleBaseModule = ({ theme }) => theme.jssy.baseModule * 2;
+export const baseModule = ({ theme }) =>
+  theme.reactackle.baseModule;
+export const halfBaseModule = ({ theme }) =>
+theme.reactackle.baseModule / 2;
+export const quarterBaseModule = ({ theme }) =>
+theme.reactackle.baseModule / 4;
+export const threeHalvesBaseModule = ({ theme }) =>
+theme.reactackle.baseModule * 1.5;
+export const doubleBaseModule = ({ theme }) =>
+theme.reactackle.baseModule * 2;
 
-export const radiusDefault = ({ theme }) => theme.jssy.radiusDefault;
-export const radiusRounded = ({ theme }) => theme.jssy.radiusRounded;
+export const radiusDefault = ({ theme }) => theme.reactackle.radiusDefault;
+export const radiusRounded = ({ theme }) => theme.reactackle.radiusRounded;
 
 /* Color */
-export const colorWhite = ({ theme }) => theme.jssy.color.white;
-export const colorBlack = ({ theme }) => theme.jssy.color.black;
-export const colorTransparent = ({ theme }) => theme.jssy.color.transparent;
+export const colorWhite = ({ theme }) =>
+  theme.reactackle.color.white;
+export const colorBlack = ({ theme }) =>
+  theme.reactackle.color.black;
+export const colorTransparent = ({ theme }) =>
+  theme.reactackle.color.transparent;
 
 export const colorMain = ({ theme }) =>
-  theme.jssy.color.main;
+  theme.reactackle.color.main;
 export const colorMainForeground = ({ theme }) =>
-  theme.jssy.color.mainFgTextColor;
+  theme.reactackle.color.mainFgTextColor;
 export const colorSecondary = ({ theme }) =>
-  theme.jssy.color.secondary;
+  theme.reactackle.color.secondary;
 export const colorSecondaryForeground = ({ theme }) =>
-  theme.jssy.color.secondaryFgTextColor;
+  theme.reactackle.color.secondaryFgTextColor;
 export const colorAlert = ({ theme }) =>
-  theme.jssy.color.alert;
+  theme.reactackle.color.alert;
 export const colorAlertForeground = ({ theme }) =>
-  theme.jssy.color.alertFgTextColor;
+  theme.reactackle.color.alertFgTextColor;
 export const colorWarning = ({ theme }) =>
-  theme.jssy.color.warning;
+  theme.reactackle.color.warning;
 export const colorWarningForeground = ({ theme }) =>
-  theme.jssy.color.warningFgTextColor;
+  theme.reactackle.color.warningFgTextColor;
 export const colorError = ({ theme }) =>
-  theme.jssy.color.alert;
+  theme.reactackle.color.alert;
 export const colorErrorForeground = ({ theme }) =>
-  theme.jssy.color.alertFgTextColor;
+  theme.reactackle.color.alertFgTextColor;
 export const colorSuccess = ({ theme }) =>
-  theme.jssy.color.success;
+  theme.reactackle.color.success;
 export const colorSuccessForeground = ({ theme }) =>
-  theme.jssy.color.successFgTextColor;
+  theme.reactackle.color.successFgTextColor;
 export const colorInfo = ({ theme }) =>
-  theme.jssy.color.info;
+  theme.reactackle.color.info;
 export const colorInfoForeground = ({ theme }) =>
-  theme.jssy.color.infoFgTextColor;
+  theme.reactackle.color.infoFgTextColor;
 
 export const paletteBlueGrey50 = ({ theme }) =>
   theme.jssy.paletteBlueGrey[50];
@@ -68,22 +76,36 @@ export const paletteBlueGrey900 = ({ theme }) =>
   theme.jssy.paletteBlueGrey[900];
 
 /* Font size */
-export const fontSizeXSmall = ({ theme }) => theme.jssy.fontSize[-2];
-export const fontSizeSmall = ({ theme }) => theme.jssy.fontSize[-1];
-export const fontSizeBody = ({ theme }) => theme.jssy.fontSize[0];
-export const fontSizeBody2 = ({ theme }) => theme.jssy.fontSize[1];
-export const fontSizeTitle = ({ theme }) => theme.jssy.fontSize[2];
-export const fontSizeHeadline = ({ theme }) => theme.jssy.fontSize[3];
-export const fontSizeDisplay1 = ({ theme }) => theme.jssy.fontSize[4];
-export const fontSizeDisplay2 = ({ theme }) => theme.jssy.fontSize[5];
-export const fontSizeDisplay3 = ({ theme }) => theme.jssy.fontSize[6];
-export const fontSizeDisplay4 = ({ theme }) => theme.jssy.fontSize[7];
+export const fontSizeXSmall = ({ theme }) =>
+  theme.reactackle.fontSize[-2];
+export const fontSizeSmall = ({ theme }) =>
+  theme.reactackle.fontSize[-1];
+export const fontSizeBody = ({ theme }) =>
+  theme.reactackle.fontSize[0];
+export const fontSizeBody2 = ({ theme }) =>
+  theme.reactackle.fontSize[1];
+export const fontSizeTitle = ({ theme }) =>
+  theme.reactackle.fontSize[2];
+export const fontSizeHeadline = ({ theme }) =>
+  theme.reactackle.fontSize[3];
+export const fontSizeDisplay1 = ({ theme }) =>
+  theme.reactackle.fontSize[4];
+export const fontSizeDisplay2 = ({ theme }) =>
+  theme.reactackle.fontSize[5];
+export const fontSizeDisplay3 = ({ theme }) =>
+  theme.reactackle.fontSize[6];
+export const fontSizeDisplay4 = ({ theme }) =>
+  theme.reactackle.fontSize[7];
 
 /* Font weight */
-export const fontWeightLight = ({ theme }) => theme.jssy.fontWeight.light;
-export const fontWeightNormal = ({ theme }) => theme.jssy.fontWeight.normal;
-export const fontWeightSemibold = ({ theme }) => theme.jssy.fontWeight.semibold;
-export const fontWeightBold = ({ theme }) => theme.jssy.fontWeight.bold;
+export const fontWeightLight = ({ theme }) =>
+  theme.reactackle.fontWeight.light;
+export const fontWeightNormal = ({ theme }) =>
+  theme.reactackle.fontWeight.normal;
+export const fontWeightSemibold = ({ theme }) =>
+  theme.reactackle.fontWeight.semibold;
+export const fontWeightBold = ({ theme }) =>
+  theme.reactackle.fontWeight.bold;
 
 /* Text color */
 export const textColorMedium = paletteBlueGrey400;

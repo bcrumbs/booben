@@ -11,8 +11,8 @@ import { Route, Switch, Redirect } from 'react-router';
 import { ConnectedRouter } from 'react-router-redux';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from 'styled-components';
-import { Theme } from '@reactackle/reactackle';
-import theme from './styles/theme';
+import { Theme, injectGlobalStyle } from '@reactackle/reactackle';
+import jssyTheme from './styles/jssyTheme';
 import reactackleThemeMixin from './styles/reactackle/mixin';
 import RootRoute from './routes/RootRoute';
 import PlaygroundRoute from './routes/PlaygroundRoute';
@@ -21,12 +21,14 @@ import history from './history';
 import { loadStrings } from './actions/app';
 import { PATH_ROOT, buildStructurePath } from './constants/paths';
 
+injectGlobalStyle();
+
 store.dispatch(loadStrings('en'));
 
 window.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(
     <Theme mixin={reactackleThemeMixin}>
-      <ThemeProvider theme={theme}>
+      <ThemeProvider theme={jssyTheme}>
         <Provider store={store}>
           <ConnectedRouter history={history}>
             <Switch>
