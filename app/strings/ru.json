@@ -126,7 +126,7 @@
   "linkDialog.function.new.argsList": "Аргументы",
   "linkDialog.function.new.newArg.button": "Добавить аргумент",
   "linkDialog.function.new.newArg.heading": "Новый аргумент",
-  "linkDialog.function.new.newArg.title": "Имя",
+  "linkDialog.function.new.newArg.name": "Имя",
   "linkDialog.function.new.newArg.type": "Тип",
   "linkDialog.function.new.newArg.add": "Добавить",
   "linkDialog.data.setArguments": "Аргументы",

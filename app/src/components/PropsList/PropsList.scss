@@ -243,16 +243,9 @@ $prop-toggle: 'prop-type-toggle';
     // =================================================================================================================
     // PROPS TYPES
     // =================================================================================================================
-    // TODO remove after reactackle upgrade
-    .prop-item {
-        .input,
-        .textarea,
-        .select-box {
-            margin-top: 0;
-            margin-bottom: 0;
-        }
+    .prop_action-toggle {
+
     }
-    // End
 
     .prop-item_label-box {
         display: flex;

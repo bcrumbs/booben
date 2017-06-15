@@ -1,10 +1,7 @@
 'use strict';
 
 import styled from 'styled-components';
-
-import {
-  fontSizeBody,
-} from '../../../../../styles/themeSelectors';
+import { fontSizeBody } from '../../../../../styles/themeSelectors';
 
 export const ItemTitleStyled = styled.span`
   font-size: ${fontSizeBody}px;  

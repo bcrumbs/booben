@@ -38,7 +38,7 @@ export class PropComponentPicker extends PropBase {
     //noinspection JSValidateTypes
     return (
       <Button
-        kind="link"
+        colorScheme="link"
         text={getLocalizedText('valueEditor.componentPicker.pickComponent')}
         disabled={disabled}
         onPress={onPickComponent}

@@ -13,13 +13,12 @@ import { List } from 'immutable';
 import {
   Panel,
   PanelContent,
-  Header,
-  HeaderRegion,
-  HeaderTitle,
   Container,
   Row,
   Column,
   Dialog,
+  Form,
+  FormItem,
   Input,
 } from '@reactackle/reactackle';
 
@@ -952,12 +951,14 @@ class StructureRoute extends PureComponent {
       newRouteParamValues,
       
       (paramValue, paramName) => (
-        <Input
-          key={paramName}
-          label={paramName}
-          value={paramValue}
-          onChange={this._handleNewRouteParamChange.bind(this, paramName)}
-        />
+        <FormItem>
+          <Input
+            key={paramName}
+            label={paramName}
+            value={paramValue}
+            onChange={this._handleNewRouteParamChange.bind(this, paramName)}
+          />
+        </FormItem>
       ),
     );
     /* eslint-enable react/jsx-no-bind */
@@ -971,7 +972,9 @@ class StructureRoute extends PureComponent {
   
       routeParamsBoxItem = (
         <BlockContentBoxItem blank>
-          {routeParamInputs}
+          <Form>
+            {routeParamInputs}
+          </Form>
         </BlockContentBoxItem>
       );
     }
@@ -982,7 +985,7 @@ class StructureRoute extends PureComponent {
         buttons={dialogButtons}
         backdrop
         minWidth={400}
-        visible={createRouteDialogIsVisible}
+        open={createRouteDialogIsVisible}
         closeOnEscape
         closeOnBackdropClick
         onEnterKeyPress={this._handleCreateRouteDialogEnterKey}
@@ -991,24 +994,30 @@ class StructureRoute extends PureComponent {
         <BlockContent>
           <BlockContentBox>
             <BlockContentBoxItem blank>
-              <Input
-                ref={this._saveNewRouteTitleInputRef}
-                label={getLocalizedText('structure.title')}
-                value={newRouteTitle}
-                onChange={this._handleNewRouteTitleChange}
-              />
-          
-              <Input
-                label={getLocalizedText('structure.path')}
-                value={newRoutePath}
-                pattern={ROUTE_PATH_PATTERN}
-                prefix={pathInputPrefix}
-                styleMode={pathInputStyle}
-                message={pathInputMessage}
-                onChange={this._handleNewRoutePathChange}
-                onPatternError={this._handlePathInputPatternError}
-                onBlur={this._handlePathInputBlur}
-              />
+              <Form>
+                <FormItem>
+                  <Input
+                    ref={this._saveNewRouteTitleInputRef}
+                    label={getLocalizedText('structure.title')}
+                    value={newRouteTitle}
+                    onChange={this._handleNewRouteTitleChange}
+                  />
+                </FormItem>
+
+                <FormItem>
+                  <Input
+                    label={getLocalizedText('structure.path')}
+                    value={newRoutePath}
+                    pattern={ROUTE_PATH_PATTERN}
+                    prefix={pathInputPrefix}
+                    colorScheme={pathInputStyle}
+                    message={pathInputMessage}
+                    onChange={this._handleNewRoutePathChange}
+                    onPatternError={this._handlePathInputPatternError}
+                    onBlur={this._handlePathInputBlur}
+                  />
+                </FormItem>
+              </Form>
             </BlockContentBoxItem>
           </BlockContentBox>
           
@@ -1088,12 +1097,14 @@ class StructureRoute extends PureComponent {
       newRouteParamValues,
 
       (paramValue, paramName) => (
-        <Input
-          key={paramName}
-          label={paramName}
-          value={paramValue}
-          onChange={this._handleNewRouteParamChange.bind(this, paramName)}
-        />
+        <FormItem>
+          <Input
+            key={paramName}
+            label={paramName}
+            value={paramValue}
+            onChange={this._handleNewRouteParamChange.bind(this, paramName)}
+          />
+        </FormItem>
       ),
     );
     /* eslint-enable react/jsx-no-bind */
@@ -1107,7 +1118,9 @@ class StructureRoute extends PureComponent {
 
       routeParamsBoxItem = (
         <BlockContentBoxItem blank>
-          {routeParamInputs}
+          <Form>
+            {routeParamInputs}
+          </Form>
         </BlockContentBoxItem>
       );
     }
@@ -1118,7 +1131,7 @@ class StructureRoute extends PureComponent {
         buttons={dialogButtons}
         backdrop
         minWidth={400}
-        visible
+        open
         closeOnEscape
         closeOnBackdropClick
         onEnterKeyPress={this._handleEditPathDialogEnterKey}
@@ -1127,18 +1140,22 @@ class StructureRoute extends PureComponent {
         <BlockContent>
           <BlockContentBox>
             <BlockContentBoxItem blank>
-              <Input
-                ref={this._saveRoutePathInputRef}
-                label={getLocalizedText('structure.path')}
-                value={newRoutePath}
-                pattern={ROUTE_PATH_PATTERN}
-                prefix={pathInputPrefix}
-                styleMode={pathInputStyle}
-                message={pathInputMessage}
-                onChange={this._handleNewRoutePathChange}
-                onPatternError={this._handlePathInputPatternError}
-                onBlur={this._handlePathInputBlur}
-              />
+              <Form>
+                <FormItem>
+                  <Input
+                    ref={this._saveRoutePathInputRef}
+                    label={getLocalizedText('structure.path')}
+                    value={newRoutePath}
+                    pattern={ROUTE_PATH_PATTERN}
+                    prefix={pathInputPrefix}
+                    colorScheme={pathInputStyle}
+                    message={pathInputMessage}
+                    onChange={this._handleNewRoutePathChange}
+                    onPatternError={this._handlePathInputPatternError}
+                    onBlur={this._handlePathInputBlur}
+                  />
+                </FormItem>
+              </Form>
             </BlockContentBoxItem>
           </BlockContentBox>
 
@@ -1169,7 +1186,7 @@ class StructureRoute extends PureComponent {
         buttons={deleteRouteDialogButtons}
         backdrop
         minWidth={400}
-        visible={confirmDeleteDialogIsVisible}
+        open={confirmDeleteDialogIsVisible}
         closeOnEscape
         closeOnBackdropClick
         onEnterKeyPress={this._handleDeleteRouteConfirm}
@@ -1181,21 +1198,13 @@ class StructureRoute extends PureComponent {
   }
   
   _renderContent() {
-    const { project, getLocalizedText } = this.props;
+    const { project } = this.props;
   
     const routesList =
       this._renderRouteList(project.routes, null, project.rootRoutes);
     
     return (
       <Panel headerFixed maxHeight="initial" spread>
-        <Header>
-          <HeaderRegion spread alignY="center">
-            <HeaderTitle>
-              {getLocalizedText('appHeader.menu.structure')}
-            </HeaderTitle>
-          </HeaderRegion>
-        </Header>
-    
         <PanelContent>
           <Container>
             <Row>

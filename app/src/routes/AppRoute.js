@@ -230,16 +230,11 @@ class AppRoute extends Component {
       <App fixed>
         <TopRegion>
           <Header size="blank">
-            <HeaderRegion
-              size="blank"
-            >
+            <HeaderRegion size="blank">
               <HeaderLogoBox title={title} />
             </HeaderRegion>
           
-            <HeaderRegion
-              spread
-              size="blank"
-            >
+            <HeaderRegion spread size="blank">
               <HeaderMenu inline dense mode="light">
                 <HeaderMenuGroup>
                   <HeaderMenuList>
@@ -330,10 +325,7 @@ class AppRoute extends Component {
       
         <BottomRegion>
           <Footer>
-            <FooterRegion
-              spread
-              size="blank"
-            >
+            <FooterRegion spread size="blank">
               <FooterMenu inline dense mode="light">
                 <FooterMenuGroup>
                   <FooterMenuList>

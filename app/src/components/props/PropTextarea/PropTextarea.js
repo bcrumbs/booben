@@ -11,14 +11,18 @@ import { PropBase } from '../PropBase/PropBase';
 import { noop, returnArg } from '../../../utils/misc';
 
 const propTypes = {
+  ...PropBase.propTypes,
   value: PropTypes.string,
+  placeholder: PropTypes.string,
   disabled: PropTypes.bool,
   transformValue: PropTypes.func,
   onChange: PropTypes.func,
 };
 
 const defaultProps = {
+  ...PropBase.defaultProps,
   value: '',
+  placeholder: '',
   disabled: false,
   transformValue: returnArg,
   onChange: noop,
@@ -36,13 +40,10 @@ export class PropTextarea extends PropBase {
    * @private
    */
   _handleChange({ value }) {
-    this.props.onChange({
-      id: this.props.id,
-      value: this.props.transformValue(value),
-    });
+    const { id, transformValue, onChange } = this.props;
+    onChange({ id, value: transformValue(value) });
   }
   
-  //noinspection JSUnusedGlobalSymbols
   /**
    *
    * @return {?ReactElement}
@@ -50,20 +51,21 @@ export class PropTextarea extends PropBase {
    * @private
    */
   _renderContent() {
-    if (this.props.checkable && !this.props.checked) return null;
+    const { checkable, checked, placeholder, value, disabled } = this.props;
     
-    //noinspection JSValidateTypes
+    if (checkable && !checked) return null;
+    
     return (
       <Textarea
-        stateless
-        value={this.props.value}
-        disabled={this.props.disabled}
+        value={value}
+        placeholder={placeholder}
+        disabled={disabled}
         onChange={this._handleChange}
       />
     );
   }
 }
 
-PropTextarea.propTypes = { ...PropBase.propTypes, ...propTypes };
-PropTextarea.defaultProps = { ...PropBase.defaultProps, ...defaultProps };
+PropTextarea.propTypes = propTypes;
+PropTextarea.defaultProps = defaultProps;
 PropTextarea.displayName = 'PropTextarea';

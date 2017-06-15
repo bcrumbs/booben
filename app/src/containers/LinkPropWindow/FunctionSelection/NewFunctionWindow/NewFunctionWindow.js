@@ -7,7 +7,15 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TypeNames } from '@jssy/types';
-import { Button } from '@reactackle/reactackle';
+
+import {
+  Form,
+  FormItem,
+  Input,
+  Textarea,
+  SelectBox,
+  Button,
+} from '@reactackle/reactackle';
 
 import {
   BlockContent,
@@ -19,14 +27,7 @@ import {
 } from '../../../../components/BlockContent/BlockContent';
 
 import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
-
-import {
-  PropEmpty,
-  PropInput,
-  PropTextarea,
-  PropList,
-} from '../../../../components/props';
-
+import { PropEmpty } from '../../../../components/props';
 import { PropsList } from '../../../../components/PropsList/PropsList';
 
 import {
@@ -234,24 +235,32 @@ export class NewFunctionWindow extends PureComponent {
           </BlockContentBoxItem>
           
           <BlockContentBoxItem>
-            <PropInput
-              label={getLocalizedText('linkDialog.function.new.title')}
-              value={title}
-              onChange={this._handleTitleChange}
-            />
-            
-            <PropTextarea
-              label={getLocalizedText('linkDialog.function.new.desc')}
-              value={description}
-              onChange={this._handleDescriptionChange}
-            />
-            
-            <PropList
-              label={getLocalizedText('linkDialog.function.new.returnType')}
-              value={returnType}
-              options={typeSelectOptions}
-              onChange={this._handleReturnTypeChange}
-            />
+            <Form>
+              <FormItem>
+                <Input
+                  label={getLocalizedText('linkDialog.function.new.title')}
+                  value={title}
+                  onChange={this._handleTitleChange}
+                />
+              </FormItem>
+  
+              <FormItem>
+                <Textarea
+                  label={getLocalizedText('linkDialog.function.new.desc')}
+                  value={description}
+                  onChange={this._handleDescriptionChange}
+                />
+              </FormItem>
+  
+              <FormItem>
+                <SelectBox
+                  label={getLocalizedText('linkDialog.function.new.returnType')}
+                  value={returnType}
+                  options={typeSelectOptions}
+                  onChange={this._handleReturnTypeChange}
+                />
+              </FormItem>
+            </Form>
           </BlockContentBoxItem>
           
           <BlockContentBoxHeading>
@@ -272,6 +281,7 @@ export class NewFunctionWindow extends PureComponent {
               text={getLocalizedText('common.cancel')}
               onPress={this._handleCancel}
             />
+            
             <Button
               text={getLocalizedText('common.next')}
               disabled={isNextButtonDisabled}
@@ -306,7 +316,7 @@ export class NewFunctionWindow extends PureComponent {
           <BlockContentActionsRegion type="secondary">
             <Button
               text={getLocalizedText('common.back')}
-              icon="chevron-left"
+              icon={{ name: 'chevron-left' }}
               onPress={this._handleBack}
             />
           </BlockContentActionsRegion>

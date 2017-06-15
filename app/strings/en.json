@@ -126,7 +126,7 @@
   "linkDialog.function.new.argsList": "Arguments list",
   "linkDialog.function.new.newArg.button": "New Argument",
   "linkDialog.function.new.newArg.heading": "New Argument",
-  "linkDialog.function.new.newArg.title": "Name",
+  "linkDialog.function.new.newArg.name": "Name",
   "linkDialog.function.new.newArg.type": "Type",
   "linkDialog.function.new.newArg.add": "Add argument",
   "linkDialog.data.setArguments": "Set arguments",

@@ -2,12 +2,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Icon } from '@reactackle/reactackle';
-
-import {
-  combineWithTooltip,
-} from '@reactackle/reactackle/components/Tooltip/combineWithTooltip';
-
+import { Icon, withTooltip } from '@reactackle/reactackle';
 import './ProjectSave.scss';
 
 const propTypes = {
@@ -74,4 +69,4 @@ ProjectSaveComponent.propTypes = propTypes;
 ProjectSaveComponent.defaultProps = defaultProps;
 ProjectSaveComponent.displayName = 'ProjectSave';
 
-export const ProjectSave = combineWithTooltip(ProjectSaveComponent, true);
+export const ProjectSave = withTooltip(ProjectSaveComponent, true);

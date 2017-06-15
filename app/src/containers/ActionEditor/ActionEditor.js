@@ -1062,13 +1062,13 @@ class ActionEditorComponent extends PureComponent {
         </PropsList>
         
         <Button
-          text="Save"
+          text={getLocalizedText('common.save')}
           disabled={isSaveButtonDisabled}
           onPress={this._handleSave}
         />
         
         <Button
-          text="Cancel"
+          text={getLocalizedText('common.cancel')}
           onPress={this._handleCancel}
         />
         
@@ -1077,7 +1077,7 @@ class ActionEditorComponent extends PureComponent {
           backdrop
           minWidth={420}
           paddingSize="none"
-          visible={linkingValue}
+          open={linkingValue}
           haveCloseButton
           onClose={this._handleLinkCancel}
         >

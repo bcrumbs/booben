@@ -1,13 +1,8 @@
 'use strict';
 
-// TODO: Clean up this mess
-
 import React from 'react';
 import PropTypes from 'prop-types';
-
-import {
-  combineWithTooltip,
-} from '@reactackle/reactackle/components/Tooltip/combineWithTooltip';
+import { withTooltip } from '@reactackle/reactackle';
 
 const propTypes = {
   tooltipText: PropTypes.string,
@@ -37,4 +32,4 @@ BreadcrumbLinkComponent.propTypes = propTypes;
 BreadcrumbLinkComponent.defaultProps = defaultProps;
 BreadcrumbLinkComponent.displayName = 'BreadcrumbLink';
 
-export const BreadcrumbLink = combineWithTooltip(BreadcrumbLinkComponent, true);
+export const BreadcrumbLink = withTooltip(BreadcrumbLinkComponent, true);

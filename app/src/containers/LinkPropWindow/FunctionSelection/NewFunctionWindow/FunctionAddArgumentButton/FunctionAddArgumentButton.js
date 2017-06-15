@@ -22,7 +22,7 @@ const defaultProps = {
 export const FunctionAddArgumentButton = ({ getLocalizedText, onPress }) => (
   <div className="function-arguments_list-button">
     <Button
-      icon="plus"
+      icon={{ name: 'plus' }}
       text={getLocalizedText('linkDialog.function.new.newArg.button')}
       narrow
       onPress={onPress}

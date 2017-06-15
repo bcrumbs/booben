@@ -1,7 +1,7 @@
 'use strict';
 
 import styled, { css } from 'styled-components';
-import { transition } from '../../../../../styles/mixins/index';
+import { transition } from '../../../../../styles/mixins';
 
 import {
   baseModule,
@@ -31,14 +31,15 @@ const base = ({ disabled }) => {
   `;
 };
 
+const bgTransition = transition('background-color');
+
 export const MenuOverlappingGroupItemStyled = styled.li`
   padding: ${baseModule}px ${threeHalvesBaseModule}px;
   line-height: 1.25;
   vertical-align: baseline;
   user-select: none;
   ${base}
-  ${transition('background-color')}
+  ${bgTransition}
 `;
 
-MenuOverlappingGroupItemStyled.displayName =
-  'MenuOverlappingGroupItemStyled';
+MenuOverlappingGroupItemStyled.displayName = 'MenuOverlappingGroupItemStyled';

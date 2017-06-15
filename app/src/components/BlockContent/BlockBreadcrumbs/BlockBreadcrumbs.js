@@ -5,8 +5,8 @@ import { Breadcrumbs } from '@reactackle/reactackle';
 import './BlockBreadcrumbs.scss';
 
 /* eslint-disable react/prop-types */
-const LinkComponent = ({ className, onClick, children }) => (
-  <a className={className} style={{ cursor: 'pointer' }} onClick={onClick}>
+const LinkComponent = ({ onClick, children }) => (
+  <a style={{ cursor: 'pointer' }} onClick={onClick}>
     {children}
   </a>
 );

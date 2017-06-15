@@ -95,7 +95,7 @@ export class ToolPanelContent extends PureComponent {
         <BlockContentNavigation>
           <Tabs
             tabs={tabs}
-            colorMode="dark"
+            colorScheme="dark"
             selected={toolState.activeSection}
             onChange={this._handleTabChange}
           />
@@ -124,7 +124,7 @@ export class ToolPanelContent extends PureComponent {
         const buttons = mainButtons.map(({ icon, text, onPress }, idx) => (
           <Button
             key={String(idx)}
-            icon={icon}
+            icon={{ name: icon }}
             text={text}
             onPress={onPress}
           />
@@ -142,7 +142,7 @@ export class ToolPanelContent extends PureComponent {
         const buttons = secondaryButtons.map(({ icon, text, onPress }, idx) => (
           <Button
             key={String(idx)}
-            icon={icon}
+            icon={{ name: icon }}
             text={text}
             onPress={onPress}
           />

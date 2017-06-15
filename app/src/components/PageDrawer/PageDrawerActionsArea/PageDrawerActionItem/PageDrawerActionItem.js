@@ -2,12 +2,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@reactackle/reactackle';
-
-import {
-  combineWithTooltip,
-} from '@reactackle/reactackle/components/Tooltip/combineWithTooltip';
-
+import { Button, withTooltip } from '@reactackle/reactackle';
 import { noop } from '../../../../utils/misc';
 
 const propTypes = {
@@ -35,11 +30,11 @@ const PageDrawerActionItemComponent = props => {
   if (props.icon) {
     if (props.title) className += ' has-tooltip';
     button = (
-      <Button icon={props.icon} onPress={props.onPress} />
+      <Button icon={{ name: props.icon }} onPress={props.onPress} />
     );
   } else {
     button = (
-      <Button text={props.title} onPress={props.onPress} />
+      <Button text={{ name: props.title }} onPress={props.onPress} />
     );
   }
   
@@ -72,4 +67,4 @@ PageDrawerActionItemComponent.defaultProps = defaultProps;
 PageDrawerActionItemComponent.displayName = 'PageDrawerActionItem';
 
 export const PageDrawerActionItem =
-  combineWithTooltip(PageDrawerActionItemComponent, true);
+  withTooltip(PageDrawerActionItemComponent, true);

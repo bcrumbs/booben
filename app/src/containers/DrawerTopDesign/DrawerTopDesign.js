@@ -113,8 +113,7 @@ const DrawerTopDesignComponent = props => {
         >
           <Button
             text={getLocalizedText('common.cancel')}
-            kind="flat"
-            light
+            colorScheme="flatLight"
             size="small"
             onPress={onCancelPickComponent}
           />
@@ -185,16 +184,14 @@ const DrawerTopDesignComponent = props => {
         <DrawerTopContent title={title}>
           <Button
             text={getLocalizedText('common.cancel')}
-            kind="flat"
-            light
+            colorScheme="flatLight"
             size="small"
             onPress={onCancelConstructComponentForProp}
           />
   
           <Button
             text={getLocalizedText('common.ok')}
-            kind="flat"
-            light
+            colorScheme="flatLight"
             size="small"
             onPress={onSaveComponentForProp}
           />

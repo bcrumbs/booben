@@ -80,8 +80,8 @@ export class ComponentAction extends PureComponent {
           
           <div className="component-action_buttons">
             <Button
-              icon="times"
-              rounded
+              icon={{ name: 'times' }}
+              radius="rounded"
               onPress={this._handleDeleteButtonClick}
             />
           </div>

@@ -71,7 +71,7 @@ module.exports = {
     extensions: ['.js'],
   },
 
-  devtool: prod ? 'source-map' : 'eval',
+  devtool: prod ? 'source-map' : 'cheap-module-eval-source-map',
 
   module: {
     rules: [

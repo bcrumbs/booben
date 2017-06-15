@@ -6,8 +6,8 @@ import './ConstructionTool.scss';
 
 export const ConstructionTool = () => (
   <div className="construction-tool">
-    <Row layoutDirection="horizontal" behavior="nest">
-      <Column layoutDirection="vertical" size={{ xsmall: '6' }}>
+    <Row layoutDirection="horizontal">
+      <Column layoutDirection="vertical" size={{ xsmall: 6 }}>
         <Input label="Width" value="300px" />
         
         <div className="construction-tool_data-row">
@@ -21,7 +21,7 @@ export const ConstructionTool = () => (
         </div>
       </Column>
       
-      <Column layoutDirection="vertical" size={{ xsmall: '6' }}>
+      <Column layoutDirection="vertical" size={{ xsmall: 6 }}>
         <Input label="Height" value="300px" />
         
         <div className="construction-tool_data-row">

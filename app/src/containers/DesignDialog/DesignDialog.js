@@ -7,13 +7,15 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import _omit from 'lodash.omit';
 import { Dialog } from '@reactackle/reactackle';
 
 const propTypes = {
+  ...Dialog.propTypes,
   pickingComponent: PropTypes.bool.isRequired,
   pickingComponentStateSlot: PropTypes.bool.isRequired,
 };
+
+const defaultProps = Dialog.defaultProps;
 
 const mapStateToProps = state => ({
   pickingComponent: state.project.pickingComponent,
@@ -22,31 +24,18 @@ const mapStateToProps = state => ({
 
 const wrap = connect(mapStateToProps);
 
-const omittedProps = [...Object.keys(propTypes), 'visible', 'children'];
-
 const DesignDialogComponent = props => {
-  const {
-    pickingComponent,
-    pickingComponentStateSlot,
-    visible,
-    children,
-  } = props;
+  const { pickingComponent, pickingComponentStateSlot } = props;
   
-  const propsForDialog = _omit(props, omittedProps);
-  const reallyVisible =
-    !pickingComponent &&
-    !pickingComponentStateSlot &&
-    visible;
+  const visible = !pickingComponent && !pickingComponentStateSlot;
   
   return (
-    <Dialog {...propsForDialog} visible={reallyVisible}>
-      {children}
-    </Dialog>
+    <Dialog {...props} visible={visible} />
   );
 };
 
-DesignDialogComponent.propTypes = { ...Dialog.propTypes, ...propTypes };
-DesignDialogComponent.defaultProps = Dialog.defaultProps;
+DesignDialogComponent.propTypes = propTypes;
+DesignDialogComponent.defaultProps = defaultProps;
 DesignDialogComponent.displayName = 'DesignDialog';
 
 export const DesignDialog = wrap(DesignDialogComponent);

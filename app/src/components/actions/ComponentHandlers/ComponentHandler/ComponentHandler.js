@@ -71,9 +71,9 @@ export class ComponentHandler extends PureComponent {
         
           <div className="component-handler_buttons">
             <Button
-              icon="chevron-down"
+              icon={{ name: 'chevron-down' }}
               size="small"
-              rounded
+              radius="rounded"
               onPress={this._handleExpandButtonPress}
             />
           </div>

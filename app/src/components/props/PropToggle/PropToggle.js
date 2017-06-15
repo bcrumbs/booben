@@ -11,12 +11,14 @@ import { PropBase } from '../PropBase/PropBase';
 import { noop } from '../../../utils/misc';
 
 const propTypes = {
+  ...PropBase.propTypes,
   value: PropTypes.bool,
   disabled: PropTypes.bool,
   onChange: PropTypes.func,
 };
 
 const defaultProps = {
+  ...PropBase.defaultProps,
   value: false,
   disabled: false,
   onChange: noop,
@@ -34,10 +36,10 @@ export class PropToggle extends PropBase {
    * @private
    */
   _handleChange({ value }) {
-    this.props.onChange({ value });
+    const { onChange } = this.props;
+    onChange({ value });
   }
   
-  //noinspection JSUnusedGlobalSymbols
   /**
    *
    * @return {ReactElement[]}
@@ -45,27 +47,21 @@ export class PropToggle extends PropBase {
    * @private
    */
   _renderAdditionalActions() {
-    const willHideToggle =
-      this.props.linked || (
-        this.props.checkable &&
-        !this.props.checked
-      );
+    const { linked, checkable, checked, value, disabled } = this.props;
     
-    if (willHideToggle) return [];
+    if (linked || (checkable && !checked)) return [];
     
-    //noinspection JSValidateTypes
     return [
       <div key="toggle" className="prop_action prop_action-toggle">
         <ToggleButton
-          checked={this.props.value}
-          disabled={this.props.disabled}
+          checked={value}
+          disabled={disabled}
           onChange={this._handleChange}
         />
       </div>,
     ];
   }
   
-  //noinspection JSUnusedGlobalSymbols
   /**
    *
    * @return {?ReactElement}
@@ -77,6 +73,6 @@ export class PropToggle extends PropBase {
   }
 }
 
-PropToggle.propTypes = { ...PropBase.propTypes, ...propTypes };
-PropToggle.defaultProps = { ...PropBase.defaultProps, ...defaultProps };
+PropToggle.propTypes = propTypes;
+PropToggle.defaultProps = defaultProps;
 PropToggle.displayName = 'PropToggle';

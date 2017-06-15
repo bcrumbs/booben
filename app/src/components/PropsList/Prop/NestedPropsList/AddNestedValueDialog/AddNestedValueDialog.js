@@ -55,7 +55,6 @@ export class AddNestedValueDialog extends PureComponent {
     
         <div className="prop-tree_field-new_row">
           <Input
-            stateless
             dense
             label={getLocalizedText('valueEditor.addValueNameInputLabel')}
             value={name}
