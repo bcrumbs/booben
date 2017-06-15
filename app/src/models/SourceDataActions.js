@@ -9,14 +9,14 @@ import { INVALID_ID } from '../constants/misc';
 
 export const MutationActionParams = Record({
   mutation: '',
-  args: Map(),
-  successActions: List(),
-  errorActions: List(),
+  args: Map(), // Map of JssyValues
+  successActions: List(), // List of Actions
+  errorActions: List(), // List of Actions
 });
 
 export const NavigateActionParams = Record({
   routeId: INVALID_ID,
-  routeParams: Map(),
+  routeParams: Map(), // Map of JssyValues
 });
 
 export const URLActionParams = Record({
@@ -27,14 +27,23 @@ export const URLActionParams = Record({
 export const MethodCallActionParams = Record({
   componentId: INVALID_ID,
   method: '',
-  args: List(),
+  args: List(), // List of JssyValues
 });
 
 export const PropChangeActionParams = Record({
   componentId: INVALID_ID,
   propName: '',
   systemPropName: '',
-  value: null,
+  value: null, // JssyValue
+});
+
+export const AJAXActionParams = Record({
+  url: '',
+  method: 'GET',
+  body: null, // JssyValue
+  headers: Map(),
+  json: false,
+  nextActions: List(), // List of Actions
 });
 
 export const createActionParams = type => {
@@ -45,6 +54,7 @@ export const createActionParams = type => {
     case 'method': return new MethodCallActionParams();
     case 'prop': return new PropChangeActionParams();
     case 'logout': return null;
+    case 'ajax': return new AJAXActionParams();
     default: return null;
   }
 };
@@ -60,6 +70,7 @@ const VALID_PATH_STEPS_MUTATION =
 const VALID_PATH_STEPS_METHOD = new Set(['args']);
 const VALID_PATH_STEPS_NAVIGATE = new Set(['routeParams']);
 const VALID_PATH_STEPS_PROP = new Set(['value']);
+const VALID_PATH_STEPS_AJAX = new Set(['body']);
 
 Action.isValidPathStep = (step, current) => {
   if (current.type === 'mutation') {
@@ -70,6 +81,8 @@ Action.isValidPathStep = (step, current) => {
     return VALID_PATH_STEPS_NAVIGATE.has(step);
   } else if (current.type === 'prop') {
     return VALID_PATH_STEPS_PROP.has(step);
+  } else if (current.type === 'ajax') {
+    return VALID_PATH_STEPS_AJAX.has(step);
   } else {
     return false;
   }
