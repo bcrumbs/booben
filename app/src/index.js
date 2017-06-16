@@ -18,6 +18,12 @@ import RootRoute from './routes/RootRoute';
 import PlaygroundRoute from './routes/PlaygroundRoute';
 import store from './store';
 import history from './history';
+
+import {
+  ShortcutsProvider,
+} from './containers/ShortcutsProvider/ShortcutsProvider';
+
+import keymap from './keymap';
 import { loadStrings } from './actions/app';
 import { PATH_ROOT, buildStructurePath } from './constants/paths';
 
@@ -30,25 +36,27 @@ window.addEventListener('DOMContentLoaded', () => {
     <Theme mixin={reactackleThemeMixin}>
       <ThemeProvider theme={jssyTheme}>
         <Provider store={store}>
-          <ConnectedRouter history={history}>
-            <Switch>
-              <Route
-                exact
-                path="/playground"
-                component={PlaygroundRoute}
-              />
-  
-              <Route
-                exact
-                path={PATH_ROOT}
-                render={({ match }) => (
-                  <Redirect to={buildStructurePath(match.params)} />
-                )}
-              />
-  
-              <Route path={PATH_ROOT} component={RootRoute} />
-            </Switch>
-          </ConnectedRouter>
+          <ShortcutsProvider keymap={keymap}>
+            <ConnectedRouter history={history}>
+              <Switch>
+                <Route
+                  exact
+                  path="/playground"
+                  component={PlaygroundRoute}
+                />
+    
+                <Route
+                  exact
+                  path={PATH_ROOT}
+                  render={({ match }) => (
+                    <Redirect to={buildStructurePath(match.params)} />
+                  )}
+                />
+    
+                <Route path={PATH_ROOT} component={RootRoute} />
+              </Switch>
+            </ConnectedRouter>
+          </ShortcutsProvider>
         </Provider>
       </ThemeProvider>
     </Theme>,
