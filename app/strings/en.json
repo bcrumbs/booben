@@ -145,6 +145,7 @@
   "actionsEditor.actionType.navigate": "Change route",
   "actionsEditor.actionType.url": "Open URL",
   "actionsEditor.actionType.logout": "Logout",
+  "actionsEditor.actionType.ajax": "AJAX request",
   "actionsEditor.actionForm.url": "URL",
   "actionsEditor.actionForm.urlWindow": "Window",
   "actionsEditor.actionForm.urlWindow.same": "Same window",
@@ -156,6 +157,12 @@
   "actionsEditor.actionForm.prop": "Property",
   "actionsEditor.actionForm.prop.placeholder": "Select property",
   "actionsEditor.actionForm.propValue": "New value",
+  "actionsEditor.actionForm.ajax.url": "URL",
+  "actionsEditor.actionForm.ajax.method": "Method",
+  "actionsEditor.actionForm.ajax.mode": "Request mode",
+  "actionsEditor.actionForm.ajax.body": "Request body",
+  "actionsEditor.actionForm.ajax.decodeResponse": "Decode response as",
+  "actionsEditor.actionForm.ajax.decodeResponse.text": "Text",
   "actionsEditor.actionTitle.mutation": "{mutationTitle}",
   "actionsEditor.actionTitle.method": "Call '{method}' of '{componentTitle}'",
   "actionsEditor.actionTitle.prop": "Change value of '{propName}' of '{componentTitle}'",
@@ -163,6 +170,8 @@
   "actionsEditor.actionTitle.url.sameWindow": "Open {url}",
   "actionsEditor.actionTitle.url.newWindow": "Open {url} in a new window",
   "actionsEditor.actionTitle.logout": "Logout",
+  "actionsEditor.actionTitle.ajax.withURL": "{method} request to {url}",
+  "actionsEditor.actionTitle.ajax.noURL": "{method} request",
   "actionsEditor.onSuccess": "On success",
   "actionsEditor.onError": "On error",
 
@@ -177,5 +186,6 @@
   "types.array": "Array",
   "types.arrayOf": "Array of",
   "types.func": "Function",
-  "types.component": "Component"
+  "types.component": "Component",
+  "types.any": "Any value"
 }

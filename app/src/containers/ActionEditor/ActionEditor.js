@@ -73,6 +73,8 @@ import {
 import {
   INVALID_ID,
   ROUTE_PARAM_VALUE_DEF,
+  AJAX_URL_VALUE_DEF,
+  AJAX_BODY_VALUE_DEF,
   SYSTEM_PROPS,
 } from '../../constants/misc';
 
@@ -192,6 +194,17 @@ class ActionEditorComponent extends PureComponent {
       this._handlePropActionPropChange.bind(this);
     this._handlePropActionValueChange =
       this._handlePropActionValueChange.bind(this);
+    
+    this._handleAJAXActionURLChange =
+      this._handleAJAXActionURLChange.bind(this);
+    this._handleAJAXActionMethodChange =
+      this._handleAJAXActionMethodChange.bind(this);
+    this._handleAJAXActionModeChange =
+      this._handleAJAXActionModeChange.bind(this);
+    this._handleAJAXActionBodyChange =
+      this._handleAJAXActionBodyChange.bind(this);
+    this._handleAJAXActionDecodeResponseChange =
+      this._handleAJAXActionDecodeResponseChange.bind(this);
     
     this._handleLink = this._handleLink.bind(this);
     this._handleLinkApply = this._handleLinkApply.bind(this);
@@ -454,6 +467,53 @@ class ActionEditorComponent extends PureComponent {
     });
   }
   
+  _handleAJAXActionURLChange({ value }) {
+    const { action } = this.state;
+    
+    this.setState({
+      action: action.setIn(['params', 'url'], value),
+    });
+  }
+  
+  _handleAJAXActionMethodChange({ value }) {
+    const { action } = this.state;
+    
+    this.setState({
+      action: action.setIn(['params', 'method'], value),
+    });
+  }
+  
+  _handleAJAXActionModeChange({ value }) {
+    let { action } = this.state;
+    
+    action = action.setIn(['params', 'mode'], value);
+    
+    if (
+      value === 'no-cors' &&
+      !['GET', 'HEAD', 'POST'].includes(action.params.method)
+    ) {
+      action = action.setIn(['params', 'method'], 'GET');
+    }
+  
+    this.setState({ action });
+  }
+  
+  _handleAJAXActionBodyChange({ value }) {
+    const { action } = this.state;
+  
+    this.setState({
+      action: action.setIn(['params', 'body'], value),
+    });
+  }
+  
+  _handleAJAXActionDecodeResponseChange({ value }) {
+    const { action } = this.state;
+  
+    this.setState({
+      action: action.setIn(['params', 'decodeResponse'], value),
+    });
+  }
+  
   _handleSave() {
     const { onSave } = this.props;
     const { action } = this.state;
@@ -490,6 +550,8 @@ class ActionEditorComponent extends PureComponent {
       pathToRootValue = ['params', 'routeParams', linkParams.name];
     } else if (action.type === 'prop') {
       pathToRootValue = ['params', 'value'];
+    } else if (action.type === 'ajax') {
+      pathToRootValue = ['params', linkParams.name];
     }
     
     if (linkParams.path.length > 0) {
@@ -587,6 +649,14 @@ class ActionEditorComponent extends PureComponent {
       if (action.params.routeId === INVALID_ID) return false;
     } else if (action.type === 'url') {
       if (!action.params.url) return false;
+    } else if (action.type === 'ajax') {
+      if (
+        action.params.url.sourceIs('static') &&
+        !action.params.url.isLinked() &&
+        action.params.url.sourceData.value === ''
+      ) {
+        return false;
+      }
     }
   
     return true;
@@ -611,6 +681,10 @@ class ActionEditorComponent extends PureComponent {
       {
         text: getLocalizedText('actionsEditor.actionType.url'),
         value: 'url',
+      },
+      {
+        text: getLocalizedText('actionsEditor.actionType.ajax'),
+        value: 'ajax',
       },
     ];
     
@@ -940,6 +1014,7 @@ class ActionEditorComponent extends PureComponent {
       language,
       getLocalizedText,
     } = this.props;
+    
     const { action } = this.state;
     
     const options = [];
@@ -995,6 +1070,123 @@ class ActionEditorComponent extends PureComponent {
     return props;
   }
   
+  _renderAJAXActionProps() {
+    const {
+      ownerProps,
+      ownerUserTypedefs,
+      language,
+      getLocalizedText,
+    } = this.props;
+    
+    const { action } = this.state;
+    
+    const props = [];
+    
+    props.push(
+      <JssyValueEditor
+        key="ajax_url"
+        name="url"
+        label={getLocalizedText('actionsEditor.actionForm.ajax.url')}
+        value={action.params.url}
+        valueDef={AJAX_URL_VALUE_DEF}
+        language={language}
+        ownerProps={ownerProps}
+        ownerUserTypedefs={ownerUserTypedefs}
+        getLocalizedText={getLocalizedText}
+        onChange={this._handleAJAXActionURLChange}
+        onLink={this._handleLink}
+        onPick={this._handlePick}
+      />,
+    );
+    
+    let methodOptions;
+    
+    if (action.params.mode === 'no-cors') {
+      methodOptions = [
+        { value: 'GET', text: 'GET' },
+        { value: 'POST', text: 'POST' },
+        { value: 'HEAD', text: 'HEAD' },
+      ];
+    } else {
+      methodOptions = [
+        { value: 'GET', text: 'GET' },
+        { value: 'POST', text: 'POST' },
+        { value: 'PUT', text: 'PUT' },
+        { value: 'PATCH', text: 'PATCH' },
+        { value: 'DELETE', text: 'DELETE' },
+        { value: 'HEAD', text: 'HEAD' },
+      ];
+    }
+  
+    props.push(
+      <PropList
+        key="ajax_method"
+        label={getLocalizedText('actionsEditor.actionForm.ajax.method')}
+        options={methodOptions}
+        value={action.params.method}
+        onChange={this._handleAJAXActionMethodChange}
+      />,
+    );
+    
+    const modeOptions = [
+      { value: 'cors', text: 'cors' },
+      { value: 'no-cors', text: 'no-cors' },
+      { value: 'same-origin', text: 'same-origin' },
+    ];
+    
+    props.push(
+      <PropList
+        key="ajax_mode"
+        label={getLocalizedText('actionsEditor.actionForm.ajax.mode')}
+        options={modeOptions}
+        value={action.params.mode}
+        onChange={this._handleAJAXActionModeChange}
+      />,
+    );
+    
+    if (action.params.method !== 'GET' && action.params.method !== 'HEAD') {
+      props.push(
+        <JssyValueEditor
+          key="ajax_body"
+          name="body"
+          label={getLocalizedText('actionsEditor.actionForm.ajax.body')}
+          value={action.params.body}
+          valueDef={AJAX_BODY_VALUE_DEF}
+          optional
+          language={language}
+          ownerProps={ownerProps}
+          ownerUserTypedefs={ownerUserTypedefs}
+          getLocalizedText={getLocalizedText}
+          onChange={this._handleAJAXActionBodyChange}
+          onLink={this._handleLink}
+          onPick={this._handlePick}
+        />,
+      );
+    }
+    
+    const textOptionLabel =
+      getLocalizedText('actionsEditor.actionForm.ajax.decodeResponse.text');
+    
+    const decodeResponseOptions = [
+      { value: 'text', text: textOptionLabel },
+      { value: 'json', text: 'JSON' },
+      { value: 'blob', text: 'BLOB' },
+      { value: 'arrayBuffer', text: 'ArrayBuffer' },
+    ];
+    
+    props.push(
+      <PropList
+        key="ajax_decodeResponse"
+        label={getLocalizedText('actionsEditor.actionForm.ajax.decodeResponse')}
+        options={decodeResponseOptions}
+        value={action.params.decodeResponse}
+        onChange={this._handleAJAXActionDecodeResponseChange}
+      />,
+    );
+    
+    return props;
+  }
+  
   _renderAdditionalProps() {
     const { action } = this.state;
     
@@ -1004,6 +1196,7 @@ class ActionEditorComponent extends PureComponent {
       case 'prop': return this._renderPropActionProps();
       case 'navigate': return this._renderNavigateActionProps();
       case 'url': return this._renderURLActionProps();
+      case 'ajax': return this._renderAJAXActionProps();
       default: return [];
     }
   }

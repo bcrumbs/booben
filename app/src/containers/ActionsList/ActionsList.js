@@ -183,6 +183,23 @@ class ActionsListComponent extends Component {
         return getLocalizedText('actionsEditor.actionTitle.logout');
       }
       
+      case 'ajax': {
+        const haveURLString =
+          action.params.url.sourceIs('static') &&
+          !action.params.url.isLinked();
+        
+        if (haveURLString) {
+          return getLocalizedText('actionsEditor.actionTitle.ajax.withURL', {
+            method: action.params.method,
+            url: action.params.url.sourceData.value,
+          });
+        } else {
+          return getLocalizedText('actionsEditor.actionTitle.ajax.noURL', {
+            method: action.params.method,
+          });
+        }
+      }
+      
       default:
         return '';
     }
@@ -231,7 +248,7 @@ class ActionsListComponent extends Component {
       const title = this._formatActionTitle(action);
       const description = this._getActionDescription(action);
     
-      if (action.type === 'mutation') {
+      if (action.type === 'mutation' || action.type === 'ajax') {
         const successActionsList = this._renderList(
           action.params.successActions,
           [...actionPath, 'successActions'],

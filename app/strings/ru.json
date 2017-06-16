@@ -145,6 +145,7 @@
   "actionsEditor.actionType.navigate": "Перейти на роут",
   "actionsEditor.actionType.url": "Открыть URL",
   "actionsEditor.actionType.logout": "Разлогиниться",
+  "actionsEditor.actionType.ajax": "AJAX-запрос",
   "actionsEditor.actionForm.url": "URL",
   "actionsEditor.actionForm.urlWindow": "Окно",
   "actionsEditor.actionForm.urlWindow.same": "В том же окне",
@@ -156,6 +157,12 @@
   "actionsEditor.actionForm.prop": "Свойство",
   "actionsEditor.actionForm.prop.placeholder": "Выберите свойство",
   "actionsEditor.actionForm.propValue": "Новое значение",
+  "actionsEditor.actionForm.ajax.url": "URL",
+  "actionsEditor.actionForm.ajax.method": "Метод",
+  "actionsEditor.actionForm.ajax.mode": "Режим запроса",
+  "actionsEditor.actionForm.ajax.body": "Тело запроса",
+  "actionsEditor.actionForm.ajax.decodeResponse": "Декодировать ответ как",
+  "actionsEditor.actionForm.ajax.decodeResponse.text": "Текст",
   "actionsEditor.actionTitle.mutation": "{mutationTitle}",
   "actionsEditor.actionTitle.method": "Вызвать '{method}' у '{componentTitle}'",
   "actionsEditor.actionTitle.prop": "Изменить значение '{propName}' у '{componentTitle}'",
@@ -163,6 +170,8 @@
   "actionsEditor.actionTitle.url.sameWindow": "Перейти на {url}",
   "actionsEditor.actionTitle.url.newWindow": "Открыть {url} в новом окне",
   "actionsEditor.actionTitle.logout": "Разлогиниться",
+  "actionsEditor.actionTitle.ajax.withURL": "{method}-запрос к {url}",
+  "actionsEditor.actionTitle.ajax.noURL": "{method}-запрос",
   "actionsEditor.onSuccess": "Действия при успехе",
   "actionsEditor.onError": "Действия при ошибке",
 
@@ -177,5 +186,6 @@
   "types.array": "Массив",
   "types.arrayOf": "Массив из",
   "types.func": "Функция",
-  "types.component": "Компонент"
+  "types.component": "Компонент",
+  "types.any": "Любое значение"
 }

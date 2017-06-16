@@ -21,6 +21,7 @@ import SourceDataActions, {
   URLActionParams,
   MethodCallActionParams,
   PropChangeActionParams,
+  AJAXActionParams,
 } from './SourceDataActions';
 
 import SourceDataDesigner from './SourceDataDesigner';
@@ -130,6 +131,23 @@ const actionsToImmutable = actions => List(actions.map(action => {
         propName: action.params.propName || '',
         systemPropName: action.params.systemPropName || '',
         value: jssyValueToImmutable(action.params.value),
+      });
+      
+      break;
+    }
+    
+    case 'ajax': {
+      data.params = new AJAXActionParams({
+        url: jssyValueToImmutable(action.params.url),
+        method: action.params.method,
+        headers: Map(action.params.headers),
+        body: action.params.body === null
+          ? null
+          : jssyValueToImmutable(action.params.body),
+        mode: action.params.mode,
+        decodeResponse: action.params.decodeResponse,
+        successActions: actionsToImmutable(action.params.successActions),
+        errorActions: actionsToImmutable(action.params.errorActions),
       });
       
       break;
@@ -550,7 +568,19 @@ const actionParamsToJSv1Converters = {
   }),
   
   url: params => params.toJS(),
+  
   logout: returnNull,
+  
+  ajax: params => ({
+    url: jssyValueToJSv1(params.url),
+    method: params.method,
+    headers: params.headers.toJS(),
+    body: params.body === null ? null : jssyValueToJSv1(params.body),
+    mode: params.mode,
+    decodeResponse: params.decodeResponse,
+    successActions: mapListToArray(params.successActions, actionToJSv1),
+    errorActions: mapListToArray(params.errorActions, actionToJSv1),
+  }),
 };
 
 const actionToJSv1 = action => ({

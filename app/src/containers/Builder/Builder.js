@@ -71,6 +71,8 @@ import {
   NO_VALUE,
   SYSTEM_PROPS,
   ROUTE_PARAM_VALUE_DEF,
+  AJAX_BODY_VALUE_DEF,
+  AJAX_URL_VALUE_DEF,
 } from '../../constants/misc';
 
 const propTypes = {
@@ -480,18 +482,367 @@ class BuilderComponent extends PureComponent {
     }
   }
   
-  _performMutation(mutationName, mutation, variables) {
-    const { client } = this.props;
+  async _performMutationAction(
+    action,
+    componentId,
+    theMap,
+    data,
+    actionArgValues,
+    actionValueDef,
+    actionUserTypedefs,
+    ajaxRequestResult,
+  ) {
+    const { project, schema, client } = this.props;
     
-    return client.mutate({ mutation, variables })
-      .then(response => {
-        this._handleMutationResponse(mutationName, response);
+    let selections = null;
+    if (
+      project.auth &&
+      project.auth.type === 'jwt' &&
+      action.params.mutation === project.auth.loginMutation
+    ) {
+      selections = _set({}, project.auth.tokenPath, true);
+    }
   
-        // We cannot know (yet) what queries need to be updated
-        // based on the mutation result, so the only option we have
-        // is to drop the cache and refetch everything.
-        client.resetStore();
+    const mutation = buildMutation(
+      schema,
+      action.params.mutation,
+      selections,
+    );
+  
+    if (!mutation) return;
+  
+    const mutationField = getMutationField(schema, action.params.mutation);
+    const variables = {};
+  
+    action.params.args.forEach((argValue, argName) => {
+      const mutationArg = mutationField.args[argName];
+      const argJssyType = getJssyValueDefOfMutationArgument(
+        mutationArg,
+        schema,
+      );
+    
+      const value = this._buildValue(
+        argValue,
+        argJssyType,
+        null,
+        theMap,
+        componentId,
+        data,
+        actionArgValues,
+        actionValueDef,
+        actionUserTypedefs,
+        ajaxRequestResult,
+      );
+    
+      if (value !== NO_VALUE) variables[argName] = value;
+    });
+    
+    try {
+      const response = await client.mutate({ mutation, variables });
+      this._handleMutationResponse(action.params.mutation, response);
+  
+      // We cannot know (yet) what queries need to be updated
+      // based on the mutation result, so the only option we have
+      // is to drop the cache and refetch everything.
+      client.resetStore();
+  
+      action.params.successActions.forEach(successAction => {
+        this._performAction(
+          successAction,
+          componentId,
+          theMap,
+          data,
+          actionArgValues,
+          actionValueDef,
+          actionUserTypedefs,
+          ajaxRequestResult,
+        );
       });
+    } catch (error) {
+      action.params.errorActions.forEach(errorAction => {
+        this._performAction(
+          errorAction,
+          componentId,
+          theMap,
+          data,
+          actionArgValues,
+          actionValueDef,
+          actionUserTypedefs,
+          ajaxRequestResult,
+        );
+      });
+    }
+  }
+  
+  _performNavigateAction(
+    action,
+    componentId,
+    theMap,
+    data,
+    actionArgValues,
+    actionValueDef,
+    actionUserTypedefs,
+    ajaxRequestResult,
+  ) {
+    const { onNavigate } = this.props;
+    
+    const routeParams = {};
+  
+    action.params.routeParams.forEach((paramValue, paramName) => {
+      const value = this._buildValue(
+        paramValue,
+        ROUTE_PARAM_VALUE_DEF,
+        null,
+        theMap,
+        componentId,
+        data,
+        actionArgValues,
+        actionValueDef,
+        actionUserTypedefs,
+        ajaxRequestResult,
+      );
+    
+      if (value !== NO_VALUE) routeParams[paramName] = value;
+    });
+  
+    onNavigate({ routeId: action.params.routeId, routeParams });
+  }
+  
+  _performURLAction(action) {
+    const { onOpenURL } = this.props;
+    
+    onOpenURL({
+      url: action.params.url,
+      newWindow: action.params.newWindow,
+    });
+  }
+  
+  _performMethodAction(
+    action,
+    componentId,
+    theMap,
+    data,
+    actionArgValues,
+    actionValueDef,
+    actionUserTypedefs,
+    ajaxRequestResult,
+  ) {
+    const { meta, components } = this.props;
+    
+    const component = components.get(action.params.componentId);
+    const componentInstance = this._refs.get(action.params.componentId);
+    if (!component || !componentInstance) return;
+  
+    const componentMeta = getComponentMeta(component.name, meta);
+    const isInvalidMethod =
+      !componentMeta.methods ||
+      !componentMeta.methods[action.params.method];
+  
+    if (isInvalidMethod) return;
+  
+    const args = [];
+  
+    action.params.args.forEach((argValue, idx) => {
+      const argTypedef = resolveTypedef(
+        componentMeta.methods[action.params.method].args[idx],
+        componentMeta.types,
+      );
+    
+      const value = this._buildValue(
+        argValue,
+        argTypedef,
+        componentMeta.types,
+        theMap,
+        componentId,
+        data,
+        actionArgValues,
+        actionValueDef,
+        actionUserTypedefs,
+        ajaxRequestResult,
+      );
+    
+      args.push(value !== NO_VALUE ? value : void 0);
+    });
+  
+    componentInstance[action.params.method](...args);
+  }
+  
+  _performPropAction(
+    action,
+    componentId,
+    theMap,
+    data,
+    actionArgValues,
+    actionValueDef,
+    actionUserTypedefs,
+    ajaxRequestResult,
+  ) {
+    const { meta, components } = this.props;
+    const { dynamicPropValues } = this.state;
+    
+    let propName;
+    let isSystemProp;
+  
+    if (action.params.propName) {
+      propName = action.params.propName;
+      isSystemProp = false;
+    } else {
+      propName = action.params.systemPropName;
+      isSystemProp = true;
+    }
+  
+    const propAddress = serializePropAddress(
+      action.params.componentId,
+      propName,
+      isSystemProp,
+    );
+  
+    let newValue;
+    if (action.params.value.sourceIs('actionArg')) {
+      const targetComponent = components.get(action.params.componentId);
+      const targetComponentMeta = getComponentMeta(
+        targetComponent.name,
+        meta,
+      );
+    
+      const targetPropMeta = isSystemProp
+        ? SYSTEM_PROPS[propName]
+        : targetComponentMeta.props[propName];
+    
+      newValue = JssyValue.staticFromJS(this._buildValue(
+        action.params.value,
+        targetPropMeta,
+        targetComponent.types,
+        theMap,
+        componentId,
+        data,
+        actionArgValues,
+        actionValueDef,
+        actionUserTypedefs,
+        ajaxRequestResult,
+      ));
+    } else {
+      newValue = action.params.value;
+    }
+  
+    this.setState({
+      dynamicPropValues: dynamicPropValues.set(propAddress, newValue),
+    });
+  }
+  
+  _performLogoutAction() {
+    localStorage.removeItem('jssy_auth_token');
+  }
+  
+  async _performAJAXAction(
+    action,
+    componentId,
+    theMap,
+    data,
+    actionArgValues,
+    actionValueDef,
+    actionUserTypedefs,
+    ajaxRequestResult,
+  ) {
+    const url = this._buildValue(
+      action.params.url,
+      AJAX_URL_VALUE_DEF,
+      null,
+      theMap,
+      componentId,
+      data,
+      actionArgValues,
+      actionValueDef,
+      actionUserTypedefs,
+      ajaxRequestResult,
+    );
+    
+    if (url === NO_VALUE) return;
+    
+    const requestInit = {
+      method: action.params.method,
+      headers: action.params.headers.toJS(),
+      mode: action.params.mode,
+    };
+    
+    const willAddBody =
+      action.params.body !== null &&
+      action.params.method !== 'GET' &&
+      action.params.method !== 'HEAD';
+    
+    if (willAddBody) {
+      const bodyValue = this._buildValue(
+        action.params.body,
+        AJAX_BODY_VALUE_DEF,
+        null,
+        theMap,
+        componentId,
+        data,
+        actionArgValues,
+        actionValueDef,
+        actionUserTypedefs,
+        ajaxRequestResult,
+      );
+      
+      if (bodyValue !== NO_VALUE) {
+        requestInit.body = JSON.stringify(bodyValue);
+      }
+    }
+    
+    try {
+      const response = await fetch(url, requestInit);
+  
+      let body = null;
+      if (action.params.decodeResponse === 'text') {
+        body = await response.text();
+      } else if (action.params.decodeResponse === 'blob') {
+        body = await response.blob();
+      } else if (action.params.decodeResponse === 'json') {
+        body = await response.json();
+      } else if (action.params.decodeResponse === 'arrayBuffer') {
+        body = await response.arrayBuffer();
+      }
+      
+      const result = {
+        error: null,
+        status: response.status,
+        headers: response.headers,
+        body,
+      };
+  
+      action.params.successActions.forEach(successAction => {
+        this._performAction(
+          successAction,
+          componentId,
+          theMap,
+          data,
+          actionArgValues,
+          actionValueDef,
+          actionUserTypedefs,
+          result,
+        );
+      });
+    } catch (error) {
+      const result = {
+        error,
+        status: null,
+        headers: null,
+        body: null,
+      };
+      
+      action.params.errorActions.forEach(errorAction => {
+        this._performAction(
+          errorAction,
+          componentId,
+          theMap,
+          data,
+          actionArgValues,
+          actionValueDef,
+          actionUserTypedefs,
+          result,
+        );
+      });
+    }
   }
   
   _performAction(
@@ -502,218 +853,91 @@ class BuilderComponent extends PureComponent {
     actionArgValues,
     actionValueDef,
     actionUserTypedefs,
+    ajaxRequestResult,
   ) {
-    const {
-      project,
-      meta,
-      schema,
-      components,
-      onNavigate,
-      onOpenURL,
-    } = this.props;
-    
-    const { dynamicPropValues } = this.state;
-    
     switch (action.type) {
       case 'mutation': {
-        let selections = null;
-        if (
-          project.auth &&
-          project.auth.type === 'jwt' &&
-          action.params.mutation === project.auth.loginMutation
-        ) {
-          selections = _set({}, project.auth.tokenPath, true);
-        }
-        
-        const mutation = buildMutation(
-          schema,
-          action.params.mutation,
-          selections,
+        this._performMutationAction(
+          action,
+          componentId,
+          theMap,
+          data,
+          actionArgValues,
+          actionValueDef,
+          actionUserTypedefs,
+          ajaxRequestResult,
         );
         
-        if (!mutation) break;
-      
-        const mutationField = getMutationField(schema, action.params.mutation);
-        const variables = {};
-      
-        action.params.args.forEach((argValue, argName) => {
-          const mutationArg = mutationField.args[argName];
-          const argJssyType = getJssyValueDefOfMutationArgument(
-            mutationArg,
-            schema,
-          );
-          
-          const value = this._buildValue(
-            argValue,
-            argJssyType,
-            null,
-            theMap,
-            componentId,
-            data,
-            actionArgValues,
-            actionValueDef,
-            actionUserTypedefs,
-          );
-        
-          if (value !== NO_VALUE) variables[argName] = value;
-        });
-        
-        this._performMutation(action.params.mutation, mutation, variables)
-          .then(() => {
-            action.params.successActions.forEach(successAction => {
-              this._performAction(
-                successAction,
-                componentId,
-                theMap,
-                data,
-                actionArgValues,
-                actionValueDef,
-                actionUserTypedefs,
-              );
-            });
-          })
-          .catch(() => {
-            action.params.errorActions.forEach(errorAction => {
-              this._performAction(
-                errorAction,
-                componentId,
-                theMap,
-                data,
-                actionArgValues,
-                actionValueDef,
-                actionUserTypedefs,
-              );
-            });
-          });
-      
         break;
       }
     
       case 'navigate': {
-        const routeParams = {};
-      
-        action.params.routeParams.forEach((paramValue, paramName) => {
-          const value = this._buildValue(
-            paramValue,
-            ROUTE_PARAM_VALUE_DEF,
-            null,
-            theMap,
-            componentId,
-            data,
-            actionArgValues,
-            actionValueDef,
-            actionUserTypedefs,
-          );
+        this._performNavigateAction(
+          action,
+          componentId,
+          theMap,
+          data,
+          actionArgValues,
+          actionValueDef,
+          actionUserTypedefs,
+          ajaxRequestResult,
+        );
         
-          if (value !== NO_VALUE) routeParams[paramName] = value;
-        });
-      
-        onNavigate({ routeId: action.params.routeId, routeParams });
         break;
       }
     
       case 'url': {
-        onOpenURL({
-          url: action.params.url,
-          newWindow: action.params.newWindow,
-        });
+        this._performURLAction(action);
         break;
       }
     
       case 'method': {
-        const component = components.get(action.params.componentId);
-        const componentInstance = this._refs.get(action.params.componentId);
-        if (!component || !componentInstance) break;
+        this._performMethodAction(
+          action,
+          componentId,
+          theMap,
+          data,
+          actionArgValues,
+          actionValueDef,
+          actionUserTypedefs,
+          ajaxRequestResult,
+        );
         
-        const componentMeta = getComponentMeta(component.name, meta);
-        const isInvalidMethod =
-          !componentMeta.methods ||
-          !componentMeta.methods[action.params.method];
-        
-        if (isInvalidMethod) break;
-        
-        const args = [];
-      
-        action.params.args.forEach((argValue, idx) => {
-          const argTypedef = resolveTypedef(
-            componentMeta.methods[action.params.method].args[idx],
-            componentMeta.types,
-          );
-        
-          const value = this._buildValue(
-            argValue,
-            argTypedef,
-            componentMeta.types,
-            theMap,
-            componentId,
-            data,
-            actionArgValues,
-            actionValueDef,
-            actionUserTypedefs,
-          );
-        
-          args.push(value !== NO_VALUE ? value : void 0);
-        });
-      
-        componentInstance[action.params.method](...args);
-      
         break;
       }
     
       case 'prop': {
-        let propName;
-        let isSystemProp;
-      
-        if (action.params.propName) {
-          propName = action.params.propName;
-          isSystemProp = false;
-        } else {
-          propName = action.params.systemPropName;
-          isSystemProp = true;
-        }
-      
-        const propAddress = serializePropAddress(
-          action.params.componentId,
-          propName,
-          isSystemProp,
+        this._performPropAction(
+          action,
+          componentId,
+          theMap,
+          data,
+          actionArgValues,
+          actionValueDef,
+          actionUserTypedefs,
+          ajaxRequestResult,
         );
-        
-        let newValue;
-        if (action.params.value.sourceIs('actionArg')) {
-          const targetComponent = components.get(action.params.componentId);
-          const targetComponentMeta = getComponentMeta(
-            targetComponent.name,
-            meta,
-          );
-          
-          const targetPropMeta = isSystemProp
-            ? SYSTEM_PROPS[propName]
-            : targetComponentMeta.props[propName];
-          
-          newValue = JssyValue.staticFromJS(this._buildValue(
-            action.params.value,
-            targetPropMeta,
-            targetComponent.types,
-            theMap,
-            componentId,
-            data,
-            actionArgValues,
-            actionValueDef,
-            actionUserTypedefs,
-          ));
-        } else {
-          newValue = action.params.value;
-        }
-      
-        this.setState({
-          dynamicPropValues: dynamicPropValues.set(propAddress, newValue),
-        });
       
         break;
       }
       
       case 'logout': {
-        localStorage.removeItem('jssy_auth_token');
+        this._performLogoutAction();
+        break;
+      }
+      
+      case 'ajax': {
+        this._performAJAXAction(
+          action,
+          componentId,
+          theMap,
+          data,
+          actionArgValues,
+          actionValueDef,
+          actionUserTypedefs,
+          ajaxRequestResult,
+        );
+        
         break;
       }
     
@@ -921,6 +1145,7 @@ class BuilderComponent extends PureComponent {
     theMap,
     componentId,
     data,
+    ajaxRequestResult,
   ) {
     const { interactive, isPlaceholder } = this.props;
     const { componentsState } = this.state;
@@ -977,6 +1202,7 @@ class BuilderComponent extends PureComponent {
           args,
           valueDef,
           userTypedefs,
+          ajaxRequestResult,
         );
       });
     };
@@ -1056,6 +1282,14 @@ class BuilderComponent extends PureComponent {
       userTypedefs,
     );
   }
+  
+  /**
+   * @typedef {Object} AJAXRequestResult
+   * @property {?Error} error
+   * @property {number} status
+   * @property {Object<string, string>} headers
+   * @property {*} body
+   */
 
   /**
    *
@@ -1068,6 +1302,7 @@ class BuilderComponent extends PureComponent {
    * @param {?(*[])} [actionArgValues=null]
    * @param {?JssyValueDefinition} [actionValueDef=null]
    * @param {?Object<string, JssyTypeDefinition>} [actionUserTypedefs=null]
+   * @param {?AJAXRequestResult} [ajaxRequestResult=null]
    * @return {*}
    */
   _buildValue(
@@ -1080,6 +1315,7 @@ class BuilderComponent extends PureComponent {
     actionArgValues = null, // Required to build values with 'actionArg' source and no dataContext
     actionValueDef = null, // Required to build values with 'actionArg' source and no dataContext
     actionUserTypedefs = null, // Required to build values with 'actionArg' source and no dataContext
+    ajaxRequestResult = null,
   ) {
     if (jssyValue.source === 'static') {
       return this._buildStaticValue(
@@ -1127,6 +1363,7 @@ class BuilderComponent extends PureComponent {
         theMap,
         componentId,
         data,
+        ajaxRequestResult,
       );
     } else if (jssyValue.source === 'state') {
       return this._buildStateValue(jssyValue, valueDef, userTypedefs);

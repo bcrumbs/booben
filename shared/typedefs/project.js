@@ -128,9 +128,21 @@
  */
 
 /**
+ * @typedef {Object} AJAXActionParams
+ * @property {PlainJssyValue} url
+ * @property {string} method
+ * @property {Object<string, string>} headers
+ * @property {string} mode
+ * @property {?PlainJssyValue} body
+ * @property {string} decodeResponse
+ * @property {Action[]} successActions
+ * @property {Action[]} errorActions
+ */
+
+/**
  * @typedef {Object} Action
  * @property {string} type
- * @property {MutationActionParams|NavigateActionParams|URLActionParams|MethodCallActionParams|PropChangeActionParams} params
+ * @property {MutationActionParams|NavigateActionParams|URLActionParams|MethodCallActionParams|PropChangeActionParams|AJAXActionParams} params
  */
 
 /**
