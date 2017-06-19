@@ -12,8 +12,7 @@ import { ConnectedRouter } from 'react-router-redux';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from 'styled-components';
 import { Theme, injectGlobalStyle } from '@reactackle/reactackle';
-import jssyTheme from './styles/jssyTheme';
-import reactackleThemeMixin from './styles/reactackle/mixin';
+import { jssyTheme, reactackleMixin } from '@jssy/common-theme';
 import RootRoute from './routes/RootRoute';
 import PlaygroundRoute from './routes/PlaygroundRoute';
 import store from './store';
@@ -33,7 +32,7 @@ store.dispatch(loadStrings('en'));
 
 window.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(
-    <Theme mixin={reactackleThemeMixin}>
+    <Theme mixin={reactackleMixin}>
       <ThemeProvider theme={jssyTheme}>
         <Provider store={store}>
           <ShortcutsProvider keymap={keymap}>
