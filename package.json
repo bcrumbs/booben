@@ -20,10 +20,10 @@
   "dependencies": {
     "@common/async-utils": "^0.2.1",
     "@common/tree": "^0.1.1",
-    "@jssy/common-ui": "^0.1.2",
+    "@jssy/common-ui": "^0.1.6",
     "@jssy/metadata": "^0.6.1",
     "@jssy/types": "^0.5.0",
-    "@reactackle/reactackle": "0.1.0-dev.583",
+    "@reactackle/reactackle": "0.1.0-dev.589",
     "apollo-client": "^1.2.0",
     "babel-core": "^6.14.0",
     "babel-loader": "^6.4.1",

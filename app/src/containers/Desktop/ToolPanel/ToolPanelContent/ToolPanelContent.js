@@ -62,13 +62,17 @@ export class ToolPanelContent extends PureComponent {
     } = this.props;
   
     const titleButtons = [{
-      icon: 'chevron-right',
+      icon: {
+        name: 'chevron-right',
+      },
       onPress: onCollapse,
     }];
   
     if (tool.undockable) {
       titleButtons.unshift({
-        icon: 'arrows-alt',
+        icon: {
+          name: 'arrows-alt',
+        },
         onPress: onUndock,
       });
     }
