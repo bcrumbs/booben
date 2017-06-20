@@ -61,6 +61,10 @@ const MOUSE_EVENTS_FOR_PARENT_FRAME = [
   'mouseup',
 ];
 
+const KEYBOARD_EVENTS_FOR_PARENT_FRAME = [
+  'keypress',
+];
+
 let token = null;
 const getToken = () => token;
 
@@ -174,6 +178,30 @@ class CanvasComponent extends Component {
           screenY: event.screenY,
         });
         
+        this._iframe.dispatchEvent(evt);
+      });
+    });
+  
+    // TODO: Figure out why react-shortcuts doesn't catch these events
+    KEYBOARD_EVENTS_FOR_PARENT_FRAME.forEach(eventName => {
+      contentWindow.document.addEventListener(eventName, event => {
+        const evt = new KeyboardEvent(eventName, {
+          bubbles: true,
+          cancelable: true,
+          key: event.key,
+          code: event.code,
+          location: event.location,
+          ctrlKey: event.ctrlKey,
+          shiftKey: event.shiftKey,
+          altKey: event.altKey,
+          metaKey: event.metaKey,
+          repeat: event.repeat,
+          isComposing: event.isComposing,
+          charCode: event.charCode,
+          keyCode: event.keyCode,
+          which: event.which,
+        });
+  
         this._iframe.dispatchEvent(evt);
       });
     });

@@ -16,6 +16,11 @@ export default {
       windows: 'ctrl+shift+z',
       linux: 'ctrl+shift+z',
     },
+    DELETE_ROUTE: {
+      osx: 'command+backspace',
+      windows: 'del',
+      linux: 'del',
+    },
   },
   
   DESIGN_SCREEN: {
@@ -28,6 +33,11 @@ export default {
       osx: 'command+shift+z',
       windows: 'ctrl+shift+z',
       linux: 'ctrl+shift+z',
+    },
+    DELETE_COMPONENT: {
+      osx: 'command+backspace',
+      windows: 'del',
+      linux: 'del',
     },
   },
 };

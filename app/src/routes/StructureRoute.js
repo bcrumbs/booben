@@ -445,6 +445,7 @@ class StructureRoute extends PureComponent {
     switch (action) {
       case 'UNDO': onUndo(); break;
       case 'REDO': onRedo(); break;
+      case 'DELETE_ROUTE': this._handleDeleteRoutePress(); break;
       default:
     }
   }

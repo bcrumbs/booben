@@ -353,6 +353,33 @@ class DesignRoute extends PureComponent {
     switch (action) {
       case 'UNDO': onUndo(); break;
       case 'REDO': onRedo(); break;
+      
+      case 'DELETE_COMPONENT': {
+        const {
+          meta,
+          components,
+          singleComponentSelected,
+          firstSelectedComponentId,
+        } = this.props;
+        
+        if (singleComponentSelected) {
+          const selectedComponent = components.get(firstSelectedComponentId);
+          const parentComponent = selectedComponent.parentId > -1
+            ? components.get(selectedComponent.parentId)
+            : null;
+  
+          const isRegion = parentComponent
+            ? isCompositeComponent(parentComponent.name, meta)
+            : false;
+          
+          if (!isRegion && !selectedComponent.isWrapper) {
+            this._handleDeleteComponentButtonPress();
+          }
+        }
+        
+        break;
+      }
+      
       default:
     }
   }
