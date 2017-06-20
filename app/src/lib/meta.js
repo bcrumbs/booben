@@ -5,7 +5,13 @@
 'use strict';
 
 import _forOwn from 'lodash.forown';
-import { TypeNames, resolveTypedef } from '@jssy/types';
+
+import {
+  TypeNames,
+  resolveTypedef,
+  makeDefaultNonNullValue,
+} from '@jssy/types';
+
 import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
@@ -478,7 +484,65 @@ const _buildDefaultValue = (
 
 /**
  *
- * @param {JssyValueDefinition} valueDef
+ * @param {JssyTypeDefinition|JssyValueDefinition} typedefOrValueDef
+ * @return {boolean}
+ */
+export const isJssyValueDefinition = typedefOrValueDef =>
+  !!typedefOrValueDef.source &&
+  !!typedefOrValueDef.sourceConfigs;
+
+/**
+ *
+ * @param {JssyValueDefinition|JssyTypeDefinition} typedefOrValueDef
+ * @param {Object<string, JssyTypeDefinition>} userTypedefs
+ * @return {JssyValueDefinition}
+ */
+const ensureValueDef = (typedefOrValueDef, userTypedefs) => {
+  if (isJssyValueDefinition(typedefOrValueDef)) return typedefOrValueDef;
+  
+  const ret = {
+    ...typedefOrValueDef,
+    source: ['static'],
+    sourceConfigs: {
+      static: {
+        default: makeDefaultNonNullValue(typedefOrValueDef, userTypedefs),
+      },
+    },
+  };
+  
+  if (typedefOrValueDef.type === TypeNames.SHAPE) {
+    _forOwn(ret.fields, (fieldTypedef, fieldName) => {
+      ret.fields[fieldName] = {
+        ...fieldTypedef,
+        source: ['static'],
+        sourceConfigs: {
+          static: {
+            default: makeDefaultNonNullValue(fieldTypedef, userTypedefs),
+          },
+        },
+      };
+    });
+  } else if (
+    typedefOrValueDef.type === TypeNames.ARRAY_OF ||
+    typedefOrValueDef.type === TypeNames.OBJECT_OF
+  ) {
+    ret.ofType = {
+      ...ret.ofType,
+      source: ['static'],
+      sourceConfigs: {
+        static: {
+          default: makeDefaultNonNullValue(ret.ofType, userTypedefs),
+        },
+      },
+    };
+  }
+  
+  return ret;
+};
+
+/**
+ *
+ * @param {JssyValueDefinition|JssyTypeDefinition} valueDef
  * @param {?Object<string, Object<string, string>>} [strings=null]
  * @param {string} [language='']
  * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
@@ -489,8 +553,12 @@ export const buildDefaultValue = (
   strings = null,
   language = '',
   userTypedefs = null,
-) =>
-  _buildDefaultValue(valueDef, strings, language, userTypedefs);
+) => _buildDefaultValue(
+  ensureValueDef(valueDef, userTypedefs),
+  strings,
+  language,
+  userTypedefs,
+);
 
 /**
  *
@@ -603,15 +671,6 @@ export const constructComponent = (
 
   return componentsToImmutable(component, INVALID_ID, false, INVALID_ID);
 };
-
-/**
- *
- * @param {JssyTypeDefinition|JssyValueDefinition} typedef
- * @return {boolean}
- */
-export const isJssyValueDefinition = typedef =>
-  !!typedef.source &&
-  !!typedef.sourceConfigs;
 
 /**
  *

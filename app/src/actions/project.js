@@ -8,21 +8,14 @@ import triggersProjectSave from './project-save/wrapper';
 import { getProject, getMetadata, getGraphQLSchema } from '../lib/api';
 import { URL_GRAPHQL_PREFIX } from '../../../shared/constants';
 
-export const PROJECT_REQUEST =
-  'PROJECT_REQUEST';
-export const PROJECT_LOADED =
-  'PROJECT_LOADED';
-export const PROJECT_LOAD_FAILED =
-  'PROJECT_LOAD_FAILED';
+export const PROJECT_REQUEST = 'PROJECT_REQUEST';
+export const PROJECT_LOADED = 'PROJECT_LOADED';
+export const PROJECT_LOAD_FAILED = 'PROJECT_LOAD_FAILED';
 
-export const PROJECT_ROUTE_CREATE =
-  'PROJECT_ROUTE_CREATE';
-export const PROJECT_ROUTE_DELETE =
-  'PROJECT_ROUTE_DELETE';
-export const PROJECT_ROUTE_UPDATE_FIELD =
-  'PROJECT_ROUTE_UPDATE_FIELD';
-export const PROJECT_ROUTE_UPDATE_PATH =
-  'PROJECT_ROUTE_UPDATE_PATH';
+export const PROJECT_ROUTE_CREATE = 'PROJECT_ROUTE_CREATE';
+export const PROJECT_ROUTE_DELETE = 'PROJECT_ROUTE_DELETE';
+export const PROJECT_ROUTE_UPDATE_FIELD = 'PROJECT_ROUTE_UPDATE_FIELD';
+export const PROJECT_ROUTE_UPDATE_PATH = 'PROJECT_ROUTE_UPDATE_PATH';
 
 export const PROJECT_COMPONENT_DELETE =
   'PROJECT_COMPONENT_DELETE';
@@ -33,8 +26,7 @@ export const PROJECT_COMPONENT_TOGGLE_REGION =
 export const PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT =
   'PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT';
 
-export const PROJECT_CREATE_FUNCTION =
-  'PROJECT_CREATE_FUNCTION';
+export const PROJECT_CREATE_FUNCTION = 'PROJECT_CREATE_FUNCTION';
 
 export const PROJECT_JSSY_VALUE_REPLACE =
   'PROJECT_JSSY_VALUE_REPLACE';
@@ -61,6 +53,9 @@ export const PROJECT_PICK_COMPONENT_STATE_SLOT =
   'PROJECT_PICK_COMPONENT_STATE_SLOT';
 export const PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL =
   'PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL';
+
+export const PROJECT_UNDO = 'PROJECT_UNDO';
+export const PROJECT_REDO = 'PROJECT_REDO';
 
 /**
  *
@@ -420,3 +415,19 @@ export const pickComponentStateSlotDone = slotName => ({
 export const pickComponentStateSlotCancel = () => ({
   type: PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL,
 });
+
+/**
+ *
+ * @return {Object}
+ */
+export const undo = triggersProjectSave(() => ({
+  type: PROJECT_UNDO,
+}));
+
+/**
+ *
+ * @return {Object}
+ */
+export const redo = triggersProjectSave(() => ({
+  type: PROJECT_REDO,
+}));

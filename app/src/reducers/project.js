@@ -41,6 +41,8 @@ import {
   PROJECT_PICK_COMPONENT_CANCEL,
   PROJECT_PICK_COMPONENT_STATE_SLOT,
   PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL,
+  PROJECT_UNDO,
+  PROJECT_REDO,
   ComponentPickAreas,
 } from '../actions/project';
 
@@ -116,7 +118,15 @@ import {
 } from '../lib/schema';
 
 import { walkPath, expandPath, getObjectByPath } from '../lib/path';
-import { isArrayOrList, isPrefixList, concatPath } from '../utils/misc';
+
+import {
+  isArrayOrList,
+  isPrefixList,
+  concatPath,
+  arrayToObject,
+  returnArg,
+} from '../utils/misc';
+
 import { getFunctionInfo } from '../lib/functions';
 
 import {
@@ -132,12 +142,23 @@ import {
   ROUTE_PARAM_VALUE_DEF,
 } from '../constants/misc';
 
+const NestedConstructorData = Record({
+  components: Map(),
+  rootId: INVALID_ID,
+});
+
 export const NestedConstructor = Record({
   path: [],
   valueInfo: null,
-  
-  components: Map(),
-  rootId: INVALID_ID,
+  data: null,
+  history: List(),
+  historyTop: null,
+  historyPointer: 0,
+  historyProps: [
+    'data',
+    'lastComponentId',
+    'selectedComponentIds',
+  ],
   lastComponentId: INVALID_ID,
   selectedComponentIds: Set(),
   highlightedComponentIds: Set(),
@@ -153,6 +174,17 @@ const ProjectState = Record({
   lastSaveTimestamp: 0,
   lastSaveError: null,
   data: null,
+  history: List(),
+  historyTop: null,
+  historyPointer: 0,
+  historyProps: [
+    'data',
+    'lastRouteId',
+    'lastComponentId',
+    'selectedItems',
+    'selectedRouteId',
+    'indexRouteSelected',
+  ],
   schema: null,
   meta: null,
   error: null,
@@ -186,6 +218,27 @@ const ProjectState = Record({
   treeExpandedItemIds: Set(),
 });
 
+const initDNDState = state => state.merge({
+  draggingComponent: false,
+  draggedComponents: null,
+  draggedComponentId: INVALID_ID,
+  draggingOverPlaceholder: false,
+  placeholderContainerId: INVALID_ID,
+  placeholderAfter: -1,
+  highlightingEnabled: true,
+});
+
+const initComponentPickingState = state => state.merge({
+  pickingComponent: false,
+  pickingComponentStateSlot: false,
+  pickingComponentFilter: null,
+  pickingComponentStateSlotsFilter: null,
+  pickedComponentId: INVALID_ID,
+  pickedComponentArea: ComponentPickAreas.UNKNOWN,
+  pickedComponentStateSlot: '',
+  componentStateSlotsListIsVisible: false,
+});
+
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
 
 const getTopNestedConstructor = state =>
@@ -199,13 +252,19 @@ const openNestedConstructor = (state, nestedConstructor) => state.update(
 const closeAllNestedConstructors = state =>
   state.set('nestedConstructors', List());
 
+const resetHistory = state => state.merge({
+  history: List(),
+  historyPointer: 0,
+  historyTop: null,
+});
+
 const closeTopNestedConstructor = state => state.update(
   'nestedConstructors',
   nestedConstructors => nestedConstructors.shift(),
 );
 
 const getPathToCurrentComponents = state => haveNestedConstructors(state)
-  ? ['nestedConstructors', 0, 'components']
+  ? ['nestedConstructors', 0, 'data', 'components']
   : ['data', 'routes', state.currentRouteId, 'components'];
 
 const getPathToCurrentLastComponentId = state => haveNestedConstructors(state)
@@ -213,7 +272,7 @@ const getPathToCurrentLastComponentId = state => haveNestedConstructors(state)
   : ['lastComponentId'];
 
 const getPathToCurrentRootComponentId = state => haveNestedConstructors(state)
-  ? ['nestedConstructors', 0, 'rootId']
+  ? ['nestedConstructors', 0, 'data', 'rootId']
   : [
     'data',
     'routes',
@@ -408,28 +467,44 @@ const deleteComponent = (state, componentId) => {
       // that point to deleted components
       let actionsToDelete = Map();
       
+      const visitAction = (action, stepsToActionsList, actionIdx) => {
+        if (action.type === 'method' || action.type === 'prop') {
+          if (deletedComponentIds.has(action.params.componentId)) {
+            if (actionsToDelete.has(stepsToActionsList)) {
+              actionsToDelete = actionsToDelete.update(
+                stepsToActionsList,
+                indexes => indexes.add(actionIdx),
+              );
+            } else {
+              actionsToDelete = actionsToDelete.set(
+                stepsToActionsList,
+                Set([actionIdx]),
+              );
+            }
+          }
+        } else if (action.type === 'mutation' || action.type === 'ajax') {
+          const stepsToSuccessActionsList =
+            [...stepsToActionsList, actionIdx, 'successActions'];
+          
+          const stepsToErrorActionsList =
+            [...stepsToActionsList, actionIdx, 'errorActions'];
+          
+          action.params.successActions.forEach((successAction, idx) => {
+            visitAction(successAction, stepsToSuccessActionsList, idx);
+          });
+  
+          action.params.errorActions.forEach((errorAction, idx) => {
+            visitAction(errorAction, stepsToErrorActionsList, idx);
+          });
+        }
+      };
+      
       walkSimpleValues(component, componentMeta, (propValue, _, steps) => {
         if (propValue.source === 'actions') {
           const stepsToActionsList = [...steps, 'actions'];
           
           propValue.sourceData.actions.forEach((action, idx) => {
-            const willDeleteAction =
-              (action.type === 'method' || action.type === 'prop') &&
-              deletedComponentIds.has(action.params.componentId);
-            
-            if (willDeleteAction) {
-              if (actionsToDelete.has(stepsToActionsList)) {
-                actionsToDelete = actionsToDelete.update(
-                  stepsToActionsList,
-                  indexes => indexes.add(idx),
-                );
-              } else {
-                actionsToDelete = actionsToDelete.set(
-                  stepsToActionsList,
-                  Set([idx]),
-                );
-              }
-            }
+            visitAction(action, stepsToActionsList, idx);
           });
         }
       });
@@ -524,16 +599,6 @@ const moveComponent = (state, componentId, targetComponentId, position) => {
     );
   }
 };
-
-const initDNDState = state => state.merge({
-  draggingComponent: false,
-  draggedComponents: null,
-  draggedComponentId: INVALID_ID,
-  draggingOverPlaceholder: false,
-  placeholderContainerId: INVALID_ID,
-  placeholderAfter: -1,
-  highlightingEnabled: true,
-});
 
 const insertDraggedComponents = (state, components) => {
   if (state.placeholderContainerId === INVALID_ID) {
@@ -925,9 +990,92 @@ const incrementRevision = state => state.update(
 const incrementsRevision = fn => (state, action) =>
   incrementRevision(fn(state, action));
 
+const extractHistoryEntry = nodeWithHistory => arrayToObject(
+  nodeWithHistory.historyProps,
+  returnArg,
+  key => nodeWithHistory.get(key),
+);
+
+const applyHistoryEntry = (nodeWithHistory, historyEntry) =>
+  nodeWithHistory.merge(historyEntry);
+
+const pushHistoryEntry = nodeWithHistory => nodeWithHistory.merge({
+  history: nodeWithHistory.history
+    .setSize(nodeWithHistory.history.size - nodeWithHistory.historyPointer)
+    .push(extractHistoryEntry(nodeWithHistory)),
+  
+  historyTop: null,
+  historyPointer: 0,
+});
+
+const moveBack = nodeWithHistory => {
+  if (nodeWithHistory.history.size - nodeWithHistory.historyPointer <= 0) {
+    return nodeWithHistory;
+  }
+  
+  if (nodeWithHistory.historyPointer === 0) {
+    nodeWithHistory = nodeWithHistory.set(
+      'historyTop',
+      extractHistoryEntry(nodeWithHistory),
+    );
+  }
+  
+  const historyEntry = nodeWithHistory.history
+    .get(nodeWithHistory.history.size - nodeWithHistory.historyPointer - 1);
+  
+  return applyHistoryEntry(nodeWithHistory, historyEntry)
+    .set('historyPointer', nodeWithHistory.historyPointer + 1);
+};
+
+const moveForward = nodeWithHistory => {
+  if (nodeWithHistory.historyPointer === 0) {
+    return nodeWithHistory;
+  }
+  
+  if (nodeWithHistory.historyPointer === 1) {
+    const topHistoryEntry = nodeWithHistory.historyTop;
+    
+    return applyHistoryEntry(nodeWithHistory, topHistoryEntry).merge({
+      historyPointer: 0,
+      historyTop: null,
+    });
+  }
+  
+  const historyEntry = nodeWithHistory.history
+    .get(nodeWithHistory.history.size - nodeWithHistory.historyPointer + 1);
+  
+  return applyHistoryEntry(nodeWithHistory, historyEntry)
+    .set('historyPointer', nodeWithHistory.historyPointer - 1);
+};
+
+const updateHistory = (state, getPathToNodeWithHistory) => state.updateIn(
+  getPathToNodeWithHistory(state),
+  pushHistoryEntry,
+);
+
+const _undoable = getPathToNodeWithHistory => fn => (state, action) => fn(
+  updateHistory(state, getPathToNodeWithHistory),
+  action,
+);
+
+const getPathToCurrentNodeWithHistory = state =>
+  haveNestedConstructors(state)
+    ? ['nestedConstructors', 0]
+    : [];
+
+const getPathToPreviousNodeWithHistory = state =>
+  state.nestedConstructors.size > 1
+    ? ['nestedConstructors', 1]
+    : [];
+
+const undoable = _undoable(getPathToCurrentNodeWithHistory);
+const undoableInPreviousNode = _undoable(getPathToPreviousNodeWithHistory);
+
 
 const handlers = {
   [LOCATION_CHANGE]: (state, action) => {
+    state = resetHistory(closeAllNestedConstructors(state));
+    
     const pathname = action.payload.pathname;
     
     const designRouteMatch = matchPath(pathname, {
@@ -1022,7 +1170,7 @@ const handlers = {
     lastSaveError: action.error,
   }),
   
-  [PROJECT_ROUTE_CREATE]: incrementsRevision((state, action) => {
+  [PROJECT_ROUTE_CREATE]: undoable(incrementsRevision((state, action) => {
     const newRouteId = state.lastRouteId === INVALID_ID
       ? 0
       : state.lastRouteId + 1;
@@ -1057,9 +1205,9 @@ const handlers = {
         selectedRouteId: newRouteId,
         indexRouteSelected: false,
       });
-  }),
+  })),
   
-  [PROJECT_ROUTE_DELETE]: incrementsRevision((state, action) => {
+  [PROJECT_ROUTE_DELETE]: undoable(incrementsRevision((state, action) => {
     const deletedRoute = state.data.routes.get(action.routeId);
     const deletedRouteIds = gatherRoutesTreeIds(state.data, action.routeId);
   
@@ -1092,16 +1240,16 @@ const handlers = {
   
     if (deletedRouteIsSelected) state = selectFirstRoute(state);
     return state;
-  }),
+  })),
   
-  [PROJECT_ROUTE_UPDATE_FIELD]: incrementsRevision(
+  [PROJECT_ROUTE_UPDATE_FIELD]: undoable(incrementsRevision(
     (state, action) => state.setIn(
       ['data', 'routes', action.routeId, action.field],
       action.newValue,
     ),
-  ),
+  )),
 
-  [PROJECT_ROUTE_UPDATE_PATH]: incrementsRevision((state, action) => {
+  [PROJECT_ROUTE_UPDATE_PATH]: undoable(incrementsRevision((state, action) => {
     const walkSimpleValuesOptions = {
       walkSystemProps: true,
       walkActions: true,
@@ -1177,9 +1325,9 @@ const handlers = {
         paramValues: Map(action.newParamValues),
       },
     );
-  }),
+  })),
   
-  [PROJECT_COMPONENT_DELETE]: incrementsRevision((state, action) => {
+  [PROJECT_COMPONENT_DELETE]: undoable(incrementsRevision((state, action) => {
     state = deselectComponent(state, action.componentId);
     state = unhighlightComponent(state, action.componentId);
   
@@ -1188,82 +1336,94 @@ const handlers = {
     }
   
     return deleteComponent(state, action.componentId);
-  }),
+  })),
   
-  [PROJECT_JSSY_VALUE_REPLACE]: incrementsRevision(
+  [PROJECT_JSSY_VALUE_REPLACE]: undoable(incrementsRevision(
     (state, action) => updateValue(state, action.path, action.newValue),
-  ),
+  )),
   
-  [PROJECT_JSSY_VALUE_ADD_ACTION]: incrementsRevision((state, action) => {
-    const path = expandPath(materializePath(action.path, state));
-    return state.updateIn(path, actionsList => actionsList.push(action.action));
-  }),
+  [PROJECT_JSSY_VALUE_ADD_ACTION]: undoable(incrementsRevision(
+    (state, action) => state.updateIn(
+      expandPath(materializePath(action.path, state)),
+      actionsList => actionsList.push(action.action),
+    ),
+  )),
   
-  [PROJECT_JSSY_VALUE_REPLACE_ACTION]: incrementsRevision((state, action) => {
-    const path = expandPath(materializePath(action.path, state));
-    return state.updateIn(
-      path,
+  [PROJECT_JSSY_VALUE_REPLACE_ACTION]: undoable(incrementsRevision(
+    (state, action) => state.updateIn(
+      expandPath(materializePath(action.path, state)),
       actionsList => actionsList.set(action.index, action.newAction),
-    );
-  }),
+    ),
+  )),
   
-  [PROJECT_JSSY_VALUE_DELETE_ACTION]: incrementsRevision((state, action) => {
-    const path = expandPath(materializePath(action.path, state));
-    return state.updateIn(
-      path,
+  [PROJECT_JSSY_VALUE_DELETE_ACTION]: undoable(incrementsRevision(
+    (state, action) => state.updateIn(
+      expandPath(materializePath(action.path, state)),
       actionsList => actionsList.delete(action.index),
-    );
-  }),
+    ),
+  )),
   
   [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT]: (state, action) => {
     if (action.path.startingPoint !== PathStartingPoints.CURRENT_COMPONENTS) {
       throw new Error('Cannot open nested constructor with absolute path');
     }
     
-    const nestedConstructorData = {
+    const nestedConstructorInit = {
       path: action.path,
       valueInfo: getValueInfoByPath(action.path, state),
     };
     
+    const nestedConstructorDataInit = {};
+    
     const currentValue = getObjectByPath(materializePath(action.path, state));
     
     if (currentValue.hasDesignedComponent()) {
-      Object.assign(nestedConstructorData, {
+      Object.assign(nestedConstructorDataInit, {
         components: currentValue.sourceData.components,
         rootId: currentValue.sourceData.rootId,
+      });
+  
+      Object.assign(nestedConstructorInit, {
         lastComponentId: currentValue.sourceData.components.keySeq().max(),
       });
     } else if (action.components) {
-      Object.assign(nestedConstructorData, {
+      Object.assign(nestedConstructorDataInit, {
         components: action.components,
         rootId: action.rootId,
+      });
+      
+      Object.assign(nestedConstructorInit, {
         lastComponentId: action.components.size - 1,
       });
     }
+  
+    nestedConstructorInit.data =
+      new NestedConstructorData(nestedConstructorDataInit);
     
-    const nestedConstructor = new NestedConstructor(nestedConstructorData);
+    const nestedConstructor = new NestedConstructor(nestedConstructorInit);
     return openNestedConstructor(state, nestedConstructor);
   },
   
   [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL]: state =>
     closeTopNestedConstructor(state),
   
-  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE]: incrementsRevision(state => {
-    const topConstructor = getTopNestedConstructor(state);
-    state = closeTopNestedConstructor(state);
+  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE]:
+    undoableInPreviousNode(incrementsRevision(state => {
+      const topConstructor = getTopNestedConstructor(state);
+      state = closeTopNestedConstructor(state);
     
-    const newValue = new JssyValue({
-      source: 'designer',
-      sourceData: new SourceDataDesigner({
-        components: topConstructor.components,
-        rootId: topConstructor.rootId,
-      }),
-    });
+      const newValue = new JssyValue({
+        source: 'designer',
+        sourceData: new SourceDataDesigner({
+          components: topConstructor.data.components,
+          rootId: topConstructor.data.rootId,
+        }),
+      });
     
-    return updateValue(state, topConstructor.path, newValue);
-  }),
+      return updateValue(state, topConstructor.path, newValue);
+    })),
   
-  [PROJECT_COMPONENT_RENAME]: incrementsRevision((state, action) => {
+  [PROJECT_COMPONENT_RENAME]: undoable(incrementsRevision((state, action) => {
     const pathToCurrentComponents = getPathToCurrentComponents(state);
     const path = [].concat(pathToCurrentComponents, [
       action.componentId,
@@ -1271,21 +1431,23 @@ const handlers = {
     ]);
   
     return state.setIn(path, action.newTitle);
-  }),
+  })),
   
-  [PROJECT_COMPONENT_TOGGLE_REGION]: incrementsRevision((state, action) => {
-    const pathToCurrentComponents = getPathToCurrentComponents(state);
-    const path = [
-      ...pathToCurrentComponents,
-      action.componentId,
-      'regionsEnabled',
-    ];
-  
-    return state.updateIn(path, regionsEnabled => action.enable
-      ? regionsEnabled.add(action.regionIdx)
-      : regionsEnabled.delete(action.regionIdx),
-    );
-  }),
+  [PROJECT_COMPONENT_TOGGLE_REGION]: undoable(incrementsRevision(
+    (state, action) => {
+      const pathToCurrentComponents = getPathToCurrentComponents(state);
+      const path = [
+        ...pathToCurrentComponents,
+        action.componentId,
+        'regionsEnabled',
+      ];
+    
+      return state.updateIn(path, regionsEnabled => action.enable
+        ? regionsEnabled.add(action.regionIdx)
+        : regionsEnabled.delete(action.regionIdx),
+      );
+    },
+  )),
   
   [PREVIEW_HIGHLIGHT_COMPONENT]: (state, action) =>
     highlightComponent(state, action.componentId),
@@ -1344,6 +1506,8 @@ const handlers = {
   
     if (state.draggedComponentId !== INVALID_ID) {
       // We're dragging an existing component
+      state = updateHistory(state, getPathToCurrentNodeWithHistory);
+      
       state = moveComponent(
         state,
         state.draggedComponentId,
@@ -1371,6 +1535,7 @@ const handlers = {
         });
       } else {
         // No layout options, inserting what we already have
+        state = updateHistory(state, getPathToCurrentNodeWithHistory);
         state = insertDraggedComponents(state, state.draggedComponents);
         state = incrementRevision(state);
         return initDNDState(state);
@@ -1378,7 +1543,7 @@ const handlers = {
     }
   },
   
-  [PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT]: incrementsRevision(
+  [PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT]: undoable(incrementsRevision(
     (state, action) => {
       if (!state.selectingComponentLayout) return state;
     
@@ -1396,23 +1561,26 @@ const handlers = {
       state = state.set('selectingComponentLayout', false);
       return initDNDState(state);
     },
-  ),
+  )),
   
-  [PROJECT_CREATE_FUNCTION]: incrementsRevision((state, action) => {
-    let fn = new ProjectFunction({
+  [PROJECT_CREATE_FUNCTION]: undoable(incrementsRevision((state, action) => {
+    const newFunction = new ProjectFunction({
       title: action.title,
       description: action.description,
-      args: List(action.args.map(({ name, type }) => {
-        const arg = new ProjectFunctionArgument({ name });
-        return arg.set('typedef', { type });
-      })),
+      args: List(action.args.map(
+        ({ name, type }) => new ProjectFunctionArgument({
+          name,
+          typedef: { type },
+        }),
+      )),
+      
+      returnType: { type: action.returnType },
       body: action.code,
       fn: createJSFunction(action.args.map(arg => arg.name), action.code),
     });
     
-    fn = fn.set('returnType', { type: action.returnType });
-    return state.setIn(['data', 'functions', action.name], fn);
-  }),
+    return state.setIn(['data', 'functions', action.name], newFunction);
+  })),
   
   [PROJECT_PICK_COMPONENT]: (state, action) => {
     if (state.pickingComponent || state.pickingComponentStateSlot) {
@@ -1482,6 +1650,18 @@ const handlers = {
     placeholderContainerId: INVALID_ID,
     placeholderAfter: -1,
   }),
+  
+  [PROJECT_UNDO]: incrementsRevision(
+    state => initComponentPickingState(initDNDState(
+      state.updateIn(getPathToCurrentNodeWithHistory(state), moveBack),
+    )),
+  ),
+  
+  [PROJECT_REDO]: incrementsRevision(
+    state => initComponentPickingState(initDNDState(
+      state.updateIn(getPathToCurrentNodeWithHistory(state), moveForward),
+    )),
+  ),
   
   [STRUCTURE_SELECT_ROUTE]: (state, action) => state.merge({
     selectedRouteId: action.routeId,

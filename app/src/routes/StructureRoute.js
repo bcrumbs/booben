@@ -8,6 +8,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { push } from 'react-router-redux';
+import { Shortcuts } from 'react-shortcuts';
 import { List } from 'immutable';
 
 import {
@@ -48,6 +49,8 @@ import {
   deleteRoute,
   updateRouteField,
   updateRoutePath,
+  undo,
+  redo,
 } from '../actions/project';
 
 import { selectRoute } from '../actions/structure';
@@ -85,6 +88,8 @@ const propTypes = {
   onRenameRoute: PropTypes.func.isRequired, // dispatch
   onUpdateRoutePath: PropTypes.func.isRequired, // dispatch
   onOpenDesigner: PropTypes.func.isRequired, // dispatch
+  onUndo: PropTypes.func.isRequired, // dispatch
+  onRedo: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
@@ -126,6 +131,9 @@ const mapDispatchToProps = dispatch => ({
     
     dispatch(push(path));
   },
+  
+  onUndo: () => void dispatch(undo()),
+  onRedo: () => void dispatch(redo()),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
@@ -221,6 +229,8 @@ class StructureRoute extends PureComponent {
     this._saveRoutePathInputRef =
       this._saveRoutePathInputRef.bind(this);
 
+    this._handleShortcuts =
+      this._handleShortcuts.bind(this);
     this._handleRouteSelect =
       this._handleRouteSelect.bind(this);
     this._handleRouteGo =
@@ -422,6 +432,22 @@ class StructureRoute extends PureComponent {
    */
   _saveRoutePathInputRef(ref) {
     this._routePathInput = ref;
+  }
+  
+  /**
+   *
+   * @param {string} action
+   * @private
+   */
+  _handleShortcuts(action) {
+    console.log(action + ' from structure');
+    const { onUndo, onRedo } = this.props;
+    
+    switch (action) {
+      case 'UNDO': onUndo(); break;
+      case 'REDO': onRedo(); break;
+      default:
+    }
   }
 
   /**
@@ -1225,15 +1251,21 @@ class StructureRoute extends PureComponent {
     const deleteRouteDialog = this._renderDeleteRouteDialog();
 
     return (
-      <Desktop
-        toolGroups={this._toolGroups}
-        onToolTitleChange={this._handleToolTitleChange}
+      <Shortcuts
+        name="STRUCTURE_SCREEN"
+        handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
+        targetNodeSelector="body"
       >
-        {content}
-        {newRouteDialog}
-        {editRoutePathDialog}
-        {deleteRouteDialog}
-      </Desktop>
+        <Desktop
+          toolGroups={this._toolGroups}
+          onToolTitleChange={this._handleToolTitleChange}
+        >
+          {content}
+          {newRouteDialog}
+          {editRoutePathDialog}
+          {deleteRouteDialog}
+        </Desktop>
+      </Shortcuts>
     );
   }
 }

@@ -33,24 +33,18 @@ const ProjectFunction = Record({
  * @param {string} body
  * @return {Function}
  */
-export const createJSFunction = (argNames, body) =>
-  new Function(
-    ...argNames,
-    FUNCTION_FNS_ARG_NAME,
-    body,
-  );
+export const createJSFunction = (argNames, body) => new Function(
+  ...argNames,
+  FUNCTION_FNS_ARG_NAME,
+  body,
+);
+
+/* eslint-enable no-new-func */
 
 export const projectFunctionToImmutable = input => new ProjectFunction({
   title: input.title,
   description: input.description,
-  args: List(input.args.map(arg => {
-    const argRecord = new ProjectFunctionArgument(arg);
-    
-    // We need typedef and defaultValue to be plain JS objects
-    return argRecord
-      .set('typedef', arg.typedef)
-      .set('defaultValue', arg.defaultValue);
-  })),
+  args: List(input.args.map(arg => new ProjectFunctionArgument(arg))),
   body: input.body,
   returnType: input.returnType,
   fn: createJSFunction(input.args.map(arg => arg.name), input.body),
@@ -63,7 +57,5 @@ export const projectFunctionToJSv1 = fn => ({
   body: fn.body,
   returnType: fn.returnType,
 });
-
-/* eslint-enable no-new-func */
 
 export default ProjectFunction;

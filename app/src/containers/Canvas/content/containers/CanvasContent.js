@@ -857,8 +857,8 @@ class CanvasContent extends Component {
       <Builder
         interactive
         editable
-        components={topNestedConstructor.components}
-        rootId={topNestedConstructor.rootId}
+        components={topNestedConstructor.data.components}
+        rootId={topNestedConstructor.data.rootId}
         ignoreOwnerProps
       />
     );

@@ -8,6 +8,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
+import { Shortcuts } from 'react-shortcuts';
 import Portal from 'react-portal-minimal';
 import { List } from 'immutable';
 import { Dialog, Panel, PanelContent } from '@reactackle/reactackle';
@@ -59,6 +60,8 @@ import {
   deleteComponent,
   selectLayoutForNewComponent,
   pickComponentStateSlotDone,
+  undo,
+  redo,
   ComponentPickAreas,
 } from '../actions/project';
 
@@ -115,6 +118,8 @@ const propTypes = {
   onSelectLayout: PropTypes.func.isRequired, // dispatch
   onDropComponent: PropTypes.func.isRequired, // dispatch
   onSelectComponentStateSlot: PropTypes.func.isRequired, // dispatch
+  onUndo: PropTypes.func.isRequired, // dispatch
+  onRedo: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
@@ -158,6 +163,9 @@ const mapDispatchToProps = dispatch => ({
   
   onSelectComponentStateSlot: ({ stateSlot }) =>
     void dispatch(pickComponentStateSlotDone(stateSlot)),
+  
+  onUndo: () => void dispatch(undo()),
+  onRedo: () => void dispatch(redo()),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
@@ -190,6 +198,8 @@ class DesignRoute extends PureComponent {
       confirmDeleteComponentDialogIsVisible: false,
     };
 
+    this._handleShortcuts =
+      this._handleShortcuts.bind(this);
     this._handleToolTitleChange =
       this._handleToolTitleChange.bind(this);
     this._handleDeleteComponentButtonPress =
@@ -330,6 +340,22 @@ class DesignRoute extends PureComponent {
     const treeTool = this._getTreeTool();
     const propsEditorTool = this._getPropsEditorTool();
     return List([List([libraryTool, treeTool, propsEditorTool])]);
+  }
+  
+  /**
+   *
+   * @param {string} action
+   * @private
+   */
+  _handleShortcuts(action) {
+    console.log(action + ' from design');
+    const { onUndo, onRedo } = this.props;
+  
+    switch (action) {
+      case 'UNDO': onUndo(); break;
+      case 'REDO': onRedo(); break;
+      default:
+    }
   }
 
   /**
@@ -540,48 +566,54 @@ class DesignRoute extends PureComponent {
       : null;
 
     return (
-      <Desktop
-        toolGroups={toolGroups}
-        onToolTitleChange={this._handleToolTitleChange}
+      <Shortcuts
+        name="DESIGN_SCREEN"
+        handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
+        targetNodeSelector="body"
       >
-        <Panel spread height="auto" maxHeight="none">
-          <PanelContent flex>
-            <Canvas
-              projectName={projectName}
-              containerStyle={previewContainerStyle}
-            />
-          </PanelContent>
-        </Panel>
-        
-        <Dialog
-          title={getLocalizedText('design.selectLayout')}
-          backdrop
-          minWidth={400}
-          open={selectingComponentLayout}
+        <Desktop
+          toolGroups={toolGroups}
+          onToolTitleChange={this._handleToolTitleChange}
         >
-          {layoutSelectionDialogContent}
-        </Dialog>
-
-        <Dialog
-          title={getLocalizedText('design.deleteComponent')}
-          backdrop
-          minWidth={400}
-          buttons={confirmDeleteDialogButtons}
-          open={confirmDeleteComponentDialogIsVisible}
-          closeOnEscape
-          closeOnBackdropClick
-          onClose={this._handleConfirmDeleteComponentDialogClose}
-          onEnterKeyPress={this._handleDeleteComponentConfirm}
-        >
-          {deleteComponentDialogText}
-        </Dialog>
-
-        <Portal>
-          <ComponentsDragArea onDrop={this._handleDropComponent} />
-        </Portal>
-        
-        {componentStateSlotSelect}
-      </Desktop>
+          <Panel spread height="auto" maxHeight="none">
+            <PanelContent flex>
+              <Canvas
+                projectName={projectName}
+                containerStyle={previewContainerStyle}
+              />
+            </PanelContent>
+          </Panel>
+          
+          <Dialog
+            title={getLocalizedText('design.selectLayout')}
+            backdrop
+            minWidth={400}
+            open={selectingComponentLayout}
+          >
+            {layoutSelectionDialogContent}
+          </Dialog>
+  
+          <Dialog
+            title={getLocalizedText('design.deleteComponent')}
+            backdrop
+            minWidth={400}
+            buttons={confirmDeleteDialogButtons}
+            open={confirmDeleteComponentDialogIsVisible}
+            closeOnEscape
+            closeOnBackdropClick
+            onClose={this._handleConfirmDeleteComponentDialogClose}
+            onEnterKeyPress={this._handleDeleteComponentConfirm}
+          >
+            {deleteComponentDialogText}
+          </Dialog>
+  
+          <Portal>
+            <ComponentsDragArea onDrop={this._handleDropComponent} />
+          </Portal>
+          
+          {componentStateSlotSelect}
+        </Desktop>
+      </Shortcuts>
     );
   }
 }

@@ -38,7 +38,7 @@ export const currentComponentsSelector = createSelector(
   currentRouteSelector,
 
   (topNestedConstructor, currentRoute) => {
-    if (topNestedConstructor) return topNestedConstructor.components;
+    if (topNestedConstructor) return topNestedConstructor.data.components;
     if (currentRoute) return currentRoute.components;
     return null;
   },
@@ -62,7 +62,7 @@ export const topNestedConstructorComponentSelector = createSelector(
     
     const components = nestedConstructors.size === 1
           ? currentRoute.components
-          : nestedConstructors.get(1).components;
+          : nestedConstructors.get(1).data.components;
 
     return components.get(componentId) || null;
   },
@@ -74,7 +74,7 @@ export const currentRootComponentIdSelector = createSelector(
   state => state.project.currentRouteIsIndexRoute,
 
   (topNestedConstructor, currentRoute, currentRouteIsIndexRoute) => {
-    if (topNestedConstructor) return topNestedConstructor.rootId;
+    if (topNestedConstructor) return topNestedConstructor.data.rootId;
     
     if (currentRoute) {
       return currentRouteIsIndexRoute
@@ -317,7 +317,7 @@ export const nestedConstructorBreadcrumbsSelector = createSelector(
       
       return {
         ret: acc.ret.push(title, propName),
-        components: cur.components,
+        components: cur.data.components,
       };
     };
     
