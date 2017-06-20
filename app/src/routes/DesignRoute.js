@@ -348,7 +348,6 @@ class DesignRoute extends PureComponent {
    * @private
    */
   _handleShortcuts(action) {
-    console.log(action + ' from design');
     const { onUndo, onRedo } = this.props;
   
     switch (action) {
@@ -570,6 +569,7 @@ class DesignRoute extends PureComponent {
         name="DESIGN_SCREEN"
         handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
         targetNodeSelector="body"
+        className="jssy-app"
       >
         <Desktop
           toolGroups={toolGroups}

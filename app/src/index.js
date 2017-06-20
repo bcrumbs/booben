@@ -26,6 +26,7 @@ import {
 import keymap from './keymap';
 import { loadStrings } from './actions/app';
 import { PATH_ROOT, buildStructurePath } from './constants/paths';
+import './styles/classUtils.css';
 
 injectGlobalStyle();
 

@@ -440,7 +440,6 @@ class StructureRoute extends PureComponent {
    * @private
    */
   _handleShortcuts(action) {
-    console.log(action + ' from structure');
     const { onUndo, onRedo } = this.props;
     
     switch (action) {
@@ -1255,6 +1254,7 @@ class StructureRoute extends PureComponent {
         name="STRUCTURE_SCREEN"
         handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
         targetNodeSelector="body"
+        className="jssy-app"
       >
         <Desktop
           toolGroups={this._toolGroups}
