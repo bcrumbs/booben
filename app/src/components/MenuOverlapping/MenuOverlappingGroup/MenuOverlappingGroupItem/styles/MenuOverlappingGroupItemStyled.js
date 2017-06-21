@@ -5,7 +5,6 @@ import { transition } from '../../../../../styles/mixins';
 
 import {
   baseModule,
-  threeHalvesBaseModule,
   textColorMedium,
   textColorBody,
 } from '../../../../../styles/themeSelectors';
@@ -34,7 +33,7 @@ const base = ({ disabled }) => {
 const bgTransition = transition('background-color');
 
 export const MenuOverlappingGroupItemStyled = styled.li`
-  padding: ${baseModule}px ${threeHalvesBaseModule}px;
+  padding: ${baseModule(1)}px ${baseModule(1.5)}px;
   line-height: 1.25;
   vertical-align: baseline;
   user-select: none;

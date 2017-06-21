@@ -9,7 +9,7 @@ import {
 
 export const ParameterTitleStyled = styled.span`
   font-weight: ${fontWeightSemibold};
-  margin-right: ${baseModule}px;
+  margin-right: ${baseModule(1)}px;
 `;
 
 ParameterTitleStyled.displayName = 'ParameterTitleStyled';

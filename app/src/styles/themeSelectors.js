@@ -1,16 +1,17 @@
 'use strict';
 
-/* Size */
-export const baseModule = ({ theme }) =>
-  theme.reactackle.baseModule;
-export const halfBaseModule = ({ theme }) =>
-theme.reactackle.baseModule / 2;
-export const quarterBaseModule = ({ theme }) =>
-theme.reactackle.baseModule / 4;
-export const threeHalvesBaseModule = ({ theme }) =>
-theme.reactackle.baseModule * 1.5;
-export const doubleBaseModule = ({ theme }) =>
-theme.reactackle.baseModule * 2;
+import Color from 'color';
+
+const multiplierFunctions = Object.create(null);
+
+export const baseModule = multiplier => {
+  if (!multiplierFunctions[multiplier]) {
+    multiplierFunctions[multiplier] =
+      ({ theme }) => theme.reactackle.baseModule * multiplier;
+  }
+  
+  return multiplierFunctions[multiplier];
+};
 
 export const radiusDefault = ({ theme }) => theme.reactackle.radiusDefault;
 export const radiusRounded = ({ theme }) => theme.reactackle.radiusRounded;
@@ -74,6 +75,10 @@ export const paletteBlueGrey800 = ({ theme }) =>
   theme.jssy.paletteBlueGrey[800];
 export const paletteBlueGrey900 = ({ theme }) =>
   theme.jssy.paletteBlueGrey[900];
+
+export const colorBorder = ({ theme }) => theme.reactackle.colorBorder;
+export const colorActiveBg = ({ theme }) =>
+  Color(theme.jssy.color.lightBlue).fade(0.9).string();
 
 /* Font size */
 export const fontSizeXSmall = ({ theme }) =>
