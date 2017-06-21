@@ -142,6 +142,8 @@ import {
   ROUTE_PARAM_VALUE_DEF,
 } from '../constants/misc';
 
+const UNDO_HISTORY_LENGTH = 100;
+
 const NestedConstructorData = Record({
   components: Map(),
   rootId: INVALID_ID,
@@ -999,14 +1001,21 @@ const extractHistoryEntry = nodeWithHistory => arrayToObject(
 const applyHistoryEntry = (nodeWithHistory, historyEntry) =>
   nodeWithHistory.merge(historyEntry);
 
-const pushHistoryEntry = nodeWithHistory => nodeWithHistory.merge({
-  history: nodeWithHistory.history
+const pushHistoryEntry = nodeWithHistory => {
+  let nextHistory = nodeWithHistory.history
     .setSize(nodeWithHistory.history.size - nodeWithHistory.historyPointer)
-    .push(extractHistoryEntry(nodeWithHistory)),
+    .push(extractHistoryEntry(nodeWithHistory));
   
-  historyTop: null,
-  historyPointer: 0,
-});
+  if (nextHistory.size > UNDO_HISTORY_LENGTH) {
+    nextHistory = nextHistory.shift();
+  }
+  
+  return nodeWithHistory.merge({
+    history: nextHistory,
+    historyTop: null,
+    historyPointer: 0,
+  });
+};
 
 const moveBack = nodeWithHistory => {
   if (nodeWithHistory.history.size - nodeWithHistory.historyPointer <= 0) {
