@@ -2,9 +2,14 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Button, TooltipIcon } from '@reactackle/reactackle';
+import { Icon, TooltipIcon } from '@reactackle/reactackle';
 import { noop } from '../../../../utils/misc';
-import './ComponentHandler.scss';
+import { HandlerStyled } from './styles/HandlerStyled';
+import { HandlerHeadingStyled } from './styles/HandlerHeadingStyled';
+import { HandlerTitleStyled } from './styles/HandlerTitleStyled';
+import { HandlerTitleTextStyled } from './styles/HandlerTitleTextStyled';
+import { HandlerIconStyled } from './styles/HandlerIconStyled';
+import { HandlerBodyStyled } from './styles/HandlerBodyStyled';
    
 const propTypes = {
   id: PropTypes.string.isRequired,
@@ -37,17 +42,13 @@ export class ComponentHandler extends PureComponent {
   
   render() {
     const { title, description, hasActions, expanded, children } = this.props;
-    
-    let className = 'component-handler';
-    if (hasActions) className += ' is-active';
-    if (expanded) className += ' is-expanded';
   
     let content = null;
     if (expanded && children) {
       content = (
-        <div className="component-handler_body">
+        <HandlerBodyStyled>
           {children}
-        </div>
+        </HandlerBodyStyled>
       );
     }
   
@@ -59,28 +60,23 @@ export class ComponentHandler extends PureComponent {
     }
   
     return (
-      <div className={className}>
-        <div className="component-handler_heading">
-          <div className="component-handler_title">
-            <span className="component-handler_title-text">
+      <HandlerStyled onPress={this._handleExpandButtonPress}>
+        <HandlerHeadingStyled>
+          <HandlerTitleStyled active={hasActions}>
+            <HandlerTitleTextStyled>
               {title}
-            </span>
+            </HandlerTitleTextStyled>
           
             {tooltip}
-          </div>
+          </HandlerTitleStyled>
         
-          <div className="component-handler_buttons">
-            <Button
-              icon={{ name: 'chevron-down' }}
-              size="small"
-              radius="rounded"
-              onPress={this._handleExpandButtonPress}
-            />
-          </div>
-        </div>
+          <HandlerIconStyled expanded={expanded}>
+            <Icon name="chevron-down" size="small" />
+          </HandlerIconStyled>
+        </HandlerHeadingStyled>
       
         {content}
-      </div>
+      </HandlerStyled>
     );
   }
 }

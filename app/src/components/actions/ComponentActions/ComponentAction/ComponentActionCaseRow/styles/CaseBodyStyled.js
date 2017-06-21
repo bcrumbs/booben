@@ -2,10 +2,8 @@
 
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import {
-  colorBorder,
-} from '../../../../../../styles/themeSelectors';
 import { caseConstants } from './constants';
+import { colorBorder } from '../../../../../../styles/themeSelectors';
 
 const propTypes = {
   theme: PropTypes.object,
