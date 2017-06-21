@@ -63,6 +63,8 @@ const MOUSE_EVENTS_FOR_PARENT_FRAME = [
 
 const KEYBOARD_EVENTS_FOR_PARENT_FRAME = [
   'keypress',
+  'keydown',
+  'keyup',
 ];
 
 let token = null;
@@ -181,28 +183,32 @@ class CanvasComponent extends Component {
         this._iframe.dispatchEvent(evt);
       });
     });
-  
-    // TODO: Figure out why react-shortcuts doesn't catch these events
+    
     KEYBOARD_EVENTS_FOR_PARENT_FRAME.forEach(eventName => {
       contentWindow.document.addEventListener(eventName, event => {
-        const evt = new KeyboardEvent(eventName, {
+        // Browsers ignore charCode, keyCode and which properties
+        // in KeyboardEvent constructor, so we have to use CustomEvent
+        // to simulate keyboard events with all its props.
+        // https://bugs.webkit.org/show_bug.cgi?id=16735
+        const evt = new CustomEvent(eventName, {
           bubbles: true,
           cancelable: true,
-          key: event.key,
-          code: event.code,
-          location: event.location,
-          ctrlKey: event.ctrlKey,
-          shiftKey: event.shiftKey,
-          altKey: event.altKey,
-          metaKey: event.metaKey,
-          repeat: event.repeat,
-          isComposing: event.isComposing,
-          charCode: event.charCode,
-          keyCode: event.keyCode,
-          which: event.which,
         });
   
-        this._iframe.dispatchEvent(evt);
+        evt.key = event.key;
+        evt.code = event.code;
+        evt.location = event.location;
+        evt.ctrlKey = event.ctrlKey;
+        evt.shiftKey = event.shiftKey;
+        evt.altKey = event.altKey;
+        evt.metaKey = event.metaKey;
+        evt.repeat = event.repeat;
+        evt.isComposing = event.isComposing;
+        evt.charCode = event.charCode;
+        evt.keyCode = event.keyCode;
+        evt.which = event.which;
+  
+        window.document.body.dispatchEvent(evt);
       });
     });
   }
