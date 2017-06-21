@@ -297,6 +297,48 @@ export const walkComponentsTree = (components, rootComponentId, visitor) => {
   });
 };
 
+const makeDetachedCopyOfComponent = (
+  component,
+  transformId,
+  isRoot,
+) => component.merge({
+  id: transformId(component.id),
+  parentId: isRoot ? INVALID_ID : transformId(component.parentId),
+  isNew: true,
+  routeId: INVALID_ID,
+  isIndexRoute: false,
+  children: component.children.map(transformId),
+});
+
+export const makeDetachedCopy = (
+  components,
+  rootId,
+) => Map().withMutations(ret => {
+  let idsMap = Map();
+  let nextId = 0;
+  
+  const transformId = id => {
+    if (idsMap.has(id)) {
+      return idsMap.get(id);
+    } else {
+      const newId = nextId++;
+      idsMap = idsMap.set(id, newId);
+      return newId;
+    }
+  };
+  
+  walkComponentsTree(components, rootId, component => {
+    const isRoot = component.id === rootId;
+    const detachedCopy = makeDetachedCopyOfComponent(
+      component,
+      transformId,
+      isRoot,
+    );
+    
+    ret.set(detachedCopy.id, detachedCopy);
+  });
+});
+
 export const gatherComponentsTreeIds = (components, rootComponentId) =>
   Set().withMutations(ret => void walkComponentsTree(
     components,

@@ -445,7 +445,45 @@ class StructureRoute extends PureComponent {
     switch (action) {
       case 'UNDO': onUndo(); break;
       case 'REDO': onRedo(); break;
-      case 'DELETE_ROUTE': this._handleDeleteRoutePress(); break;
+      
+      case 'DELETE_ROUTE': {
+        const { indexRouteSelected } = this.props;
+        
+        if (!indexRouteSelected) {
+          this._handleDeleteRoutePress();
+        }
+        
+        break;
+      }
+      
+      case 'CREATE_CHILD_ROUTE': {
+        const { project, selectedRouteId } = this.props;
+        const { createRouteDialogIsVisible } = this.state;
+        
+        if (!createRouteDialogIsVisible) {
+          const parentRoute = project.routes.get(selectedRouteId);
+          this._handleNewRoutePress({ parentRoute });
+        }
+        
+        break;
+      }
+      
+      case 'CREATE_ROOT_ROUTE': {
+        const { createRouteDialogIsVisible } = this.state;
+  
+        if (!createRouteDialogIsVisible) {
+          this._handleNewRoutePress({ parentRoute: null });
+        }
+        
+        break;
+      }
+      
+      case 'SELECT_NEXT_ROUTE': this._handleSelectNextRoute(); break;
+      case 'SELECT_PREVIOUS_ROUTE': this._handleSelectPreviousRoute(); break;
+      case 'SELECT_CHILD_ROUTE': this._handleSelectChildRoute(); break;
+      case 'SELECT_PARENT_ROUTE': this._handleSelectParentRoute(); break;
+      case 'GO_TO_DESIGN': this._handleSelectedRouteGo(); break;
+      
       default:
     }
   }
@@ -462,7 +500,107 @@ class StructureRoute extends PureComponent {
     if (
       routeId !== selectedRouteId ||
       isIndexRoute !== indexRouteSelected
-    ) onSelectRoute(routeId, isIndexRoute);
+    ) {
+      onSelectRoute(routeId, isIndexRoute);
+    }
+  }
+  
+  _handleSelectNextRoute() {
+    const {
+      project,
+      selectedRouteId,
+      indexRouteSelected,
+      onSelectRoute,
+    } = this.props;
+    
+    const currentRoute = project.routes.get(selectedRouteId);
+    
+    if (indexRouteSelected) {
+      if (currentRoute.children.size > 0) {
+        const nextRouteId = currentRoute.children.first();
+        onSelectRoute(nextRouteId, false);
+      }
+    } else {
+      const isRootRoute = currentRoute.parentId === INVALID_ID;
+      const currentRoutesList = isRootRoute
+        ? project.rootRoutes
+        : project.routes.get(currentRoute.parentId).children;
+  
+      const currentRoutePosition = currentRoutesList.indexOf(selectedRouteId);
+      
+      if (currentRoutePosition < currentRoutesList.size - 1) {
+        const nextRouteId = currentRoutesList.get(currentRoutePosition + 1);
+        onSelectRoute(nextRouteId, false);
+      }
+    }
+  }
+  
+  _handleSelectPreviousRoute() {
+    const {
+      project,
+      selectedRouteId,
+      indexRouteSelected,
+      onSelectRoute,
+    } = this.props;
+  
+    const currentRoute = project.routes.get(selectedRouteId);
+    
+    if (!indexRouteSelected) {
+      const isRootRoute = currentRoute.parentId === INVALID_ID;
+      const parentRoute = isRootRoute
+        ? null
+        : project.routes.get(currentRoute.parentId);
+      
+      const currentRoutesList = isRootRoute
+        ? project.rootRoutes
+        : parentRoute.children;
+  
+      const currentRoutePosition = currentRoutesList.indexOf(selectedRouteId);
+      
+      if (currentRoutePosition > 0) {
+        const nextRouteId = currentRoutesList.get(currentRoutePosition - 1);
+        onSelectRoute(nextRouteId, false);
+      } else if (!isRootRoute && parentRoute.haveIndex) {
+        onSelectRoute(parentRoute.id, true);
+      }
+    }
+  }
+  
+  _handleSelectParentRoute() {
+    const {
+      project,
+      selectedRouteId,
+      indexRouteSelected,
+      onSelectRoute,
+    } = this.props;
+    
+    const currentRoute = project.routes.get(selectedRouteId);
+    const isRootRoute = currentRoute.parentId === INVALID_ID;
+    
+    if (indexRouteSelected) {
+      onSelectRoute(selectedRouteId, false);
+    } else if (!isRootRoute) {
+      onSelectRoute(currentRoute.parentId, false);
+    }
+  }
+  
+  _handleSelectChildRoute() {
+    const {
+      project,
+      selectedRouteId,
+      indexRouteSelected,
+      onSelectRoute,
+    } = this.props;
+  
+    if (!indexRouteSelected) {
+      const currentRoute = project.routes.get(selectedRouteId);
+  
+      if (currentRoute.haveIndex) {
+        onSelectRoute(selectedRouteId, true);
+      } else if (currentRoute.children.size > 0) {
+        onSelectRoute(currentRoute.children.first(), false);
+      }
+    }
   }
 
   /**
@@ -1261,7 +1399,14 @@ class StructureRoute extends PureComponent {
           toolGroups={this._toolGroups}
           onToolTitleChange={this._handleToolTitleChange}
         >
-          {content}
+          <Shortcuts
+            name="ROUTES_LIST"
+            handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
+            className="jssy-app"
+          >
+            {content}
+          </Shortcuts>
+          
           {newRouteDialog}
           {editRoutePathDialog}
           {deleteRouteDialog}

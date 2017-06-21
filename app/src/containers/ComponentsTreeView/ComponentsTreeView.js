@@ -10,6 +10,7 @@ import { compose } from 'redux';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import Portal from 'react-portal-minimal';
+import { Shortcuts } from 'react-shortcuts';
 import throttle from 'lodash.throttle';
 
 import {
@@ -71,7 +72,9 @@ import {
   rootDraggedComponentSelector,
 } from '../../selectors';
 
-import ProjectComponentRecord from '../../models/ProjectComponent';
+import ProjectComponentRecord, {
+  isRootComponent,
+} from '../../models/ProjectComponent';
 
 import {
   canInsertComponent,
@@ -296,6 +299,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     };
 
     this._renderItem = this._renderItem.bind(this);
+    this._handleShortcuts = this._handleShortcuts.bind(this);
     this._handleNativeClick = this._handleNativeClick.bind(this);
     this._handleExpand = this._handleExpand.bind(this);
     this._handleSelect = this._handleSelect.bind(this);
@@ -508,6 +512,111 @@ class ComponentsTreeViewComponent extends PureComponent {
     
     if (canInsert) this._updatePlaceholderPosition(containerId, afterIdx);
     else this._removePlaceholder();
+  }
+  
+  /**
+   *
+   * @param {string} action
+   * @private
+   */
+  _handleShortcuts(action) {
+    switch (action) {
+      case 'SELECT_NEXT_COMPONENT': {
+        this._handleMoveSelectionVertically('down');
+        break;
+      }
+      
+      case 'SELECT_PREVIOUS_COMPONENT': {
+        this._handleMoveSelectionVertically('up');
+        break;
+      }
+      
+      case 'SELECT_CHILD_COMPONENT': {
+        this._handleSelectChildComponent();
+        break;
+      }
+      
+      case 'SELECT_PARENT_COMPONENT': {
+        this._handleSelectParentComponent();
+        break;
+      }
+      
+      default:
+    }
+  }
+  
+  /**
+   *
+   * @param {string} direction - 'up' or 'down'
+   * @private
+   */
+  _handleMoveSelectionVertically(direction) {
+    const { components, selectedComponentIds, onSelectItem } = this.props;
+    
+    if (selectedComponentIds.size !== 1) return;
+    
+    const selectedComponentId = selectedComponentIds.first();
+    const selectedComponent = components.get(selectedComponentId);
+    
+    if (isRootComponent(selectedComponent)) return;
+    
+    const parentComponent = components.get(selectedComponent.parentId);
+    const position = parentComponent.children.indexOf(selectedComponentId);
+    const nextPosition = direction === 'down' ? position + 1 : position - 1;
+    
+    if (
+      nextPosition < 0 ||
+      nextPosition > parentComponent.children.size - 1
+    ) {
+      return;
+    }
+  
+    const nextComponentId = parentComponent.children.get(nextPosition);
+    onSelectItem(nextComponentId);
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleSelectChildComponent() {
+    const {
+      components,
+      selectedComponentIds,
+      expandedItemIds,
+      onSelectItem,
+      onExpandItem,
+    } = this.props;
+  
+    if (selectedComponentIds.size !== 1) return;
+  
+    const selectedComponentId = selectedComponentIds.first();
+    const selectedComponent = components.get(selectedComponentId);
+    
+    if (selectedComponent.children.size === 0) return;
+  
+    if (!expandedItemIds.has(selectedComponentId)) {
+      onExpandItem(selectedComponentId);
+    }
+    
+    onSelectItem(selectedComponent.children.first());
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleSelectParentComponent() {
+    const { components, selectedComponentIds, onSelectItem } = this.props;
+  
+    if (selectedComponentIds.size !== 1) return;
+  
+    const selectedComponentId = selectedComponentIds.first();
+    const selectedComponent = components.get(selectedComponentId);
+  
+    if (isRootComponent(selectedComponent)) return;
+  
+    onSelectItem(selectedComponent.parentId);
   }
   
   /**
@@ -1058,9 +1167,15 @@ class ComponentsTreeViewComponent extends PureComponent {
         elementRef={this._saveContentBoxRef}
         autoScrollUpDown={draggingComponent}
       >
-        <ComponentsTree>
-          {list}
-        </ComponentsTree>
+        <Shortcuts
+          name="COMPONENTS_TREE"
+          handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
+          targetNodeSelector="body"
+        >
+          <ComponentsTree>
+            {list}
+          </ComponentsTree>
+        </Shortcuts>
 
         {componentStateSlotSelect}
       </BlockContentBox>

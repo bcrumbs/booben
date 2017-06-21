@@ -10,6 +10,7 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { Shortcuts } from 'react-shortcuts';
 import Portal from 'react-portal-minimal';
+import { push } from 'react-router-redux';
 import { List } from 'immutable';
 import { Dialog, Panel, PanelContent } from '@reactackle/reactackle';
 
@@ -50,7 +51,10 @@ import {
   ComponentsDragArea,
 } from '../containers/ComponentsDragArea/ComponentsDragArea';
 
-import ProjectComponentRecord from '../models/ProjectComponent';
+import ProjectComponentRecord, {
+  isRootComponent,
+} from '../models/ProjectComponent';
+
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
 import ButtonRecord from '../models/Button';
@@ -58,6 +62,7 @@ import ButtonRecord from '../models/Button';
 import {
   renameComponent,
   deleteComponent,
+  copyComponent,
   selectLayoutForNewComponent,
   pickComponentStateSlotDone,
   undo,
@@ -80,9 +85,10 @@ import {
   isCompositeComponent,
   getString,
   componentHasActions,
+  canInsertComponent,
 } from '../lib/meta';
 
-import { returnTrue } from '../utils/misc';
+import { returnTrue, mapListToArray } from '../utils/misc';
 
 import {
   TOOL_ID_LIBRARY,
@@ -90,6 +96,7 @@ import {
   TOOL_ID_PROPS_EDITOR,
 } from '../constants/toolIds';
 
+import { buildStructurePath } from '../constants/paths';
 import defaultComponentLayoutIcon from '../../assets/layout_default.svg';
 
 const propTypes = {
@@ -115,11 +122,13 @@ const propTypes = {
   getLocalizedText: PropTypes.func.isRequired, // state
   onRenameComponent: PropTypes.func.isRequired, // dispatch
   onDeleteComponent: PropTypes.func.isRequired, // dispatch
+  onCopyComponent: PropTypes.func.isRequired, // dispatch
   onSelectLayout: PropTypes.func.isRequired, // dispatch
   onDropComponent: PropTypes.func.isRequired, // dispatch
   onSelectComponentStateSlot: PropTypes.func.isRequired, // dispatch
   onUndo: PropTypes.func.isRequired, // dispatch
   onRedo: PropTypes.func.isRequired, // dispatch
+  onGoToStructure: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
@@ -155,6 +164,9 @@ const mapDispatchToProps = dispatch => ({
   onDeleteComponent: componentId =>
     void dispatch(deleteComponent(componentId)),
   
+  onCopyComponent: (componentId, containerId, afterIdx) =>
+    void dispatch(copyComponent(componentId, containerId, afterIdx)),
+  
   onSelectLayout: layoutIdx =>
     void dispatch(selectLayoutForNewComponent(layoutIdx)),
   
@@ -166,6 +178,11 @@ const mapDispatchToProps = dispatch => ({
   
   onUndo: () => void dispatch(undo()),
   onRedo: () => void dispatch(redo()),
+  
+  onGoToStructure: projectName => {
+    const path = buildStructurePath({ projectName });
+    dispatch(push(path));
+  },
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
@@ -380,7 +397,62 @@ class DesignRoute extends PureComponent {
         break;
       }
       
+      case 'DUPLICATE_COMPONENT': {
+        this._handleDuplicateSelectedComponent();
+        break;
+      }
+      
+      case 'GO_TO_STRUCTURE': {
+        const { projectName, onGoToStructure } = this.props;
+  
+        onGoToStructure(projectName);
+        break;
+      }
+      
       default:
+    }
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleDuplicateSelectedComponent() {
+    const {
+      meta,
+      components,
+      singleComponentSelected,
+      firstSelectedComponentId,
+      onCopyComponent,
+    } = this.props;
+    
+    if (!singleComponentSelected) return;
+  
+    const selectedComponent = components.get(firstSelectedComponentId);
+    
+    if (isRootComponent(selectedComponent)) return;
+    
+    const parentComponent = components.get(selectedComponent.parentId);
+    const position = parentComponent.children.indexOf(selectedComponent.id) + 1;
+    const containerChildNames = mapListToArray(
+      parentComponent.children,
+      childId => components.get(childId).name,
+    );
+    
+    const canDuplicate = canInsertComponent(
+      selectedComponent.name,
+      parentComponent.name,
+      containerChildNames,
+      position,
+      meta,
+    );
+    
+    if (canDuplicate) {
+      onCopyComponent(
+        selectedComponent.id,
+        selectedComponent.parentId,
+        position - 1, // copyComponent receives afterIdx instead of position
+      );
     }
   }
 
@@ -391,11 +463,10 @@ class DesignRoute extends PureComponent {
    * @private
    */
   _handleToolTitleChange(tool, newTitle) {
+    const { firstSelectedComponentId, onRenameComponent } = this.props;
+    
     if (tool.id === TOOL_ID_PROPS_EDITOR) {
-      this.props.onRenameComponent(
-        this.props.firstSelectedComponentId,
-        newTitle,
-      );
+      onRenameComponent(firstSelectedComponentId, newTitle);
     }
   }
 

@@ -23,6 +23,8 @@ export const PROJECT_COMPONENT_RENAME =
   'PROJECT_COMPONENT_RENAME';
 export const PROJECT_COMPONENT_TOGGLE_REGION =
   'PROJECT_COMPONENT_TOGGLE_REGION';
+export const PROJECT_COMPONENT_COPY =
+  'PROJECT_COMPONENT_COPY';
 export const PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT =
   'PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT';
 
@@ -194,6 +196,22 @@ export const deleteComponent = triggersProjectSave(componentId => ({
   type: PROJECT_COMPONENT_DELETE,
   componentId,
 }));
+
+/**
+ *
+ * @param {number} componentId
+ * @param {number} containerId
+ * @param {number} afterIdx
+ * @return {Object}
+ */
+export const copyComponent = triggersProjectSave(
+  (componentId, containerId, afterIdx) => ({
+    type: PROJECT_COMPONENT_COPY,
+    componentId,
+    containerId,
+    afterIdx,
+  }),
+);
 
 /**
  *

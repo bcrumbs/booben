@@ -27,6 +27,7 @@ import {
   PROJECT_COMPONENT_DELETE,
   PROJECT_COMPONENT_RENAME,
   PROJECT_COMPONENT_TOGGLE_REGION,
+  PROJECT_COMPONENT_COPY,
   PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
   PROJECT_CREATE_FUNCTION,
   PROJECT_JSSY_VALUE_REPLACE,
@@ -100,6 +101,7 @@ import ProjectComponent, {
   walkSimpleValues,
   walkComponentsTree,
   jssyValueToImmutable,
+  makeDetachedCopy,
 } from '../models/ProjectComponent';
 
 import {
@@ -334,7 +336,7 @@ const unhighlightAllComponents = state => state.setIn(
   Set(),
 );
 
-const addComponents = (state, parentComponentId, position, components) => {
+const addNewComponents = (state, parentComponentId, position, components) => {
   const pathToCurrentLastComponentId = getPathToCurrentLastComponentId(state);
   const lastComponentId = state.getIn(pathToCurrentLastComponentId);
   const rootComponentId = lastComponentId === INVALID_ID
@@ -343,13 +345,16 @@ const addComponents = (state, parentComponentId, position, components) => {
 
   const pathToCurrentComponents = getPathToCurrentComponents(state);
   const rootComponent = components.get(0);
-
+  let maxId = 0;
+  
   state = state.updateIn(
     pathToCurrentComponents,
 
     updatedComponents => updatedComponents.withMutations(mut => {
       components.forEach(newComponent => {
         const id = newComponent.id + rootComponentId;
+        if (id > maxId) maxId = id;
+        
         const insertedComponent = newComponent
           .merge({
             id,
@@ -398,10 +403,7 @@ const addComponents = (state, parentComponentId, position, components) => {
     );
   }
 
-  return state.updateIn(
-    pathToCurrentLastComponentId,
-    lastComponentId => lastComponentId + components.size,
-  );
+  return state.setIn(pathToCurrentLastComponentId, maxId);
 };
 
 /**
@@ -602,13 +604,21 @@ const moveComponent = (state, componentId, targetComponentId, position) => {
   }
 };
 
+const copyComponents = (state, rootId, containerId, afterIdx) => {
+  const pathToCurrentComponents = getPathToCurrentComponents(state);
+  const currentComponents = state.getIn(pathToCurrentComponents);
+  const componentsCopy = makeDetachedCopy(currentComponents, rootId);
+  
+  return addNewComponents(state, containerId, afterIdx + 1, componentsCopy);
+};
+
 const insertDraggedComponents = (state, components) => {
   if (state.placeholderContainerId === INVALID_ID) {
     // Creating root component
-    return addComponents(state, INVALID_ID, 0, components);
+    return addNewComponents(state, INVALID_ID, 0, components);
   } else {
     // Creating nested component
-    return addComponents(
+    return addNewComponents(
       state,
       state.placeholderContainerId,
       state.placeholderAfter + 1,
@@ -1327,13 +1337,10 @@ const handlers = {
       }),
     );
     
-    return state.mergeIn(
-      ['data', 'routes', action.routeId],
-      {
-        path: action.newPath,
-        paramValues: Map(action.newParamValues),
-      },
-    );
+    return state.mergeIn(['data', 'routes', action.routeId], {
+      path: action.newPath,
+      paramValues: Map(action.newParamValues),
+    });
   })),
   
   [PROJECT_COMPONENT_DELETE]: undoable(incrementsRevision((state, action) => {
@@ -1346,6 +1353,15 @@ const handlers = {
   
     return deleteComponent(state, action.componentId);
   })),
+  
+  [PROJECT_COMPONENT_COPY]: undoable(incrementsRevision(
+    (state, action) => copyComponents(
+      state,
+      action.componentId,
+      action.containerId,
+      action.afterIdx,
+    ),
+  )),
   
   [PROJECT_JSSY_VALUE_REPLACE]: undoable(incrementsRevision(
     (state, action) => updateValue(state, action.path, action.newValue),
