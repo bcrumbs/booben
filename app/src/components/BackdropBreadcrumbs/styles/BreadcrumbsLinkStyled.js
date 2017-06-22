@@ -3,9 +3,6 @@
 import styled from 'styled-components';
 import { textColorMedium } from '../../../styles/themeSelectors';
 
-const propTypes = {};
-const defaultProps = {};
-
 export const BreadcrumbsLinkStyled = styled.div`  
   color: ${textColorMedium};
 
@@ -15,6 +12,4 @@ export const BreadcrumbsLinkStyled = styled.div`
   }
 `;
 
-BreadcrumbsLinkStyled.propTypes = propTypes;
-BreadcrumbsLinkStyled.defaultProps = defaultProps;
 BreadcrumbsLinkStyled.displayName = 'BreadcrumbsLinkStyled';

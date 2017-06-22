@@ -1,13 +1,11 @@
 'use strict';
 
 import styled from 'styled-components';
+
 import {
   baseModule,
   paletteBlueGrey700,
 } from '../../../styles/themeSelectors';
-
-const propTypes = {};
-const defaultProps = {};
 
 export const BackdropBreadcrumbsStyled = styled.div`  
   background-color: ${paletteBlueGrey700};
@@ -19,6 +17,4 @@ export const BackdropBreadcrumbsStyled = styled.div`
   z-index: 9999;
 `;
 
-BackdropBreadcrumbsStyled.propTypes = propTypes;
-BackdropBreadcrumbsStyled.defaultProps = defaultProps;
 BackdropBreadcrumbsStyled.displayName = 'BackdropBreadcrumbsStyled';
