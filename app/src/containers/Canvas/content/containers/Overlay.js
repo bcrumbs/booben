@@ -2,7 +2,6 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Set } from 'immutable';
 import { connect } from 'react-redux';
 
@@ -18,11 +17,12 @@ import { OverlayBoundingBox } from '../components/OverlayBoundingBox';
 import { OverlayComponentTitle } from '../components/OverlayComponentTitle';
 import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
+import * as JssyPropTypes from '../../../../constants/common-prop-types';
 
 const propTypes = {
-  components: ImmutablePropTypes.map.isRequired,
-  selectedComponentIds: ImmutablePropTypes.set.isRequired,
-  highlightedComponentIds: ImmutablePropTypes.set.isRequired,
+  components: JssyPropTypes.components.isRequired,
+  selectedComponentIds: JssyPropTypes.setOfIds.isRequired,
+  highlightedComponentIds: JssyPropTypes.setOfIds.isRequired,
   boundaryComponentId: PropTypes.number.isRequired,
   highlightingEnabled: PropTypes.bool.isRequired,
   draggingComponent: PropTypes.bool.isRequired,

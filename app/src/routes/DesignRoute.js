@@ -96,29 +96,24 @@ import {
 } from '../constants/toolIds';
 
 import { buildStructurePath } from '../constants/paths';
-
-import {
-  Components,
-  ComponentsTreePosition,
-} from '../constants/common-prop-types';
-
+import * as JssyPropTypes from '../constants/common-prop-types';
 import defaultComponentLayoutIcon from '../../assets/layout_default.svg';
 
 const propTypes = {
   projectName: PropTypes.string.isRequired, // state
-  components: Components.isRequired, // state
+  components: JssyPropTypes.components.isRequired, // state
   meta: PropTypes.object.isRequired, // state
   previewContainerStyle: PropTypes.string.isRequired, // state
   singleComponentSelected: PropTypes.bool.isRequired, // state
   firstSelectedComponentId: PropTypes.number.isRequired, // state
   selectingComponentLayout: PropTypes.bool.isRequired, // state
-  draggedComponents: Components, // state
+  draggedComponents: JssyPropTypes.components, // state
   language: PropTypes.string.isRequired, // state
   pickedComponentId: PropTypes.number.isRequired, // state
   pickedComponentArea: PropTypes.number.isRequired, // state
   componentStateSlotsListIsVisible: PropTypes.bool.isRequired, // state
   isCompatibleStateSlot: PropTypes.func.isRequired, // state
-  cursorPosition: ComponentsTreePosition.isRequired, // state
+  cursorPosition: JssyPropTypes.componentsTreePosition.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onRenameComponent: PropTypes.func.isRequired, // dispatch
   onDeleteComponent: PropTypes.func.isRequired, // dispatch

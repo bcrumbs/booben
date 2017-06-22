@@ -6,7 +6,6 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { Button } from '@reactackle/reactackle';
 
@@ -24,7 +23,6 @@ import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
 import { ActionEditor } from '../ActionEditor/ActionEditor';
 import { ActionsList } from '../ActionsList/ActionsList';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
-import ProjectComponentRecord from '../../models/ProjectComponent';
 import JssyValue from '../../models/JssyValue';
 import SourceDataState from '../../models/SourceDataState';
 
@@ -57,15 +55,13 @@ import {
 } from '../../lib/meta';
 
 import { INVALID_ID, SYSTEM_PROPS } from '../../constants/misc';
+import * as JssyPropTypes from '../../constants/common-prop-types';
 import { objectSome } from '../../utils/misc';
 
 const propTypes = {
   meta: PropTypes.object.isRequired,
-  components: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponentRecord),
-    PropTypes.number,
-  ).isRequired,
-  selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number).isRequired,
+  components: JssyPropTypes.components.isRequired,
+  selectedComponentIds: JssyPropTypes.setOfIds.isRequired,
   language: PropTypes.string.isRequired,
   ownerProps: PropTypes.object,
   ownerUserTypedefs: PropTypes.object,

@@ -75,9 +75,6 @@ const propTypes = {
   onAlertAreaRemoved: PropTypes.func.isRequired, // alertAreaProvider
 };
 
-const defaultProps = {
-};
-
 const mapStateToProps = state => ({
   projectName: state.project.projectName,
   project: state.project.data,
@@ -389,7 +386,6 @@ class AppRoute extends Component {
 }
 
 AppRoute.propTypes = propTypes;
-AppRoute.defaultProps = defaultProps;
 AppRoute.displayName = 'AppRoute';
 
 export default wrap(AppRoute);

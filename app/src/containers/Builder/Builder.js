@@ -63,7 +63,7 @@ import {
 import { getComponentByName } from '../../lib/components-library';
 import { getFunctionInfo } from '../../lib/functions';
 import { noop, returnNull, isUndef } from '../../utils/misc';
-import { Components, SetOfIds } from '../../constants/common-prop-types';
+import * as JssyPropTypes from '../../constants/common-prop-types';
 
 import {
   INVALID_ID,
@@ -78,7 +78,7 @@ const propTypes = {
   params: PropTypes.object,
   interactive: PropTypes.bool,
   editable: PropTypes.bool,
-  components: Components.isRequired,
+  components: JssyPropTypes.components.isRequired,
   rootId: PropTypes.number,
   enclosingComponent: PropTypes.instanceOf(ProjectComponent),
   enclosingComponentChildrenNames: PropTypes.arrayOf(PropTypes.string),
@@ -97,13 +97,13 @@ const propTypes = {
   schema: PropTypes.object.isRequired, // state
   draggingComponent: PropTypes.bool.isRequired, // state
   rootDraggedComponent: PropTypes.instanceOf(ProjectComponent), // state
-  draggedComponents: Components, // state
+  draggedComponents: JssyPropTypes.components, // state
   draggingOverPlaceholder: PropTypes.bool.isRequired, // state
   placeholderContainerId: PropTypes.number.isRequired, // state
   placeholderAfter: PropTypes.number.isRequired, // state
   showContentPlaceholders: PropTypes.bool.isRequired, // state
-  selectedComponentIds: SetOfIds.isRequired, // state
-  highlightedComponentIds: SetOfIds.isRequired, // state
+  selectedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
+  highlightedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onNavigate: PropTypes.func,
   onOpenURL: PropTypes.func,

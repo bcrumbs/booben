@@ -70,6 +70,8 @@ import {
   objectSome,
 } from '../../utils/misc';
 
+import * as JssyPropTypes from '../../constants/common-prop-types';
+
 import {
   INVALID_ID,
   ROUTE_PARAM_VALUE_DEF,
@@ -97,10 +99,7 @@ const propTypes = {
   meta: PropTypes.object.isRequired,
   schema: PropTypes.object.isRequired,
   project: PropTypes.instanceOf(Project).isRequired,
-  currentComponents: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponent),
-    PropTypes.number,
-  ).isRequired,
+  currentComponents: JssyPropTypes.components.isRequired,
   ownerProps: PropTypes.object,
   ownerUserTypedefs: PropTypes.object,
   language: PropTypes.string.isRequired,

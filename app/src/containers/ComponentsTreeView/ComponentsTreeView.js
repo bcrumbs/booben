@@ -8,7 +8,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import Portal from 'react-portal-minimal';
 import { Shortcuts } from 'react-shortcuts';
 import throttle from 'lodash.throttle';
@@ -87,22 +86,16 @@ import {
 } from '../../lib/meta';
 
 import { isFunction, returnTrue } from '../../utils/misc';
-
-import {
-  SetOfIds,
-  Components,
-  ComponentsTreePosition,
-} from '../../constants/common-prop-types';
-
+import * as JssyPropTypes from '../../constants/common-prop-types';
 import { INVALID_ID } from '../../constants/misc';
 
 const propTypes = {
   dropZoneId: PropTypes.string,
-  components: Components.isRequired, // state
+  components: JssyPropTypes.components.isRequired, // state
   rootComponentId: PropTypes.number.isRequired, // state
-  selectedComponentIds: SetOfIds.isRequired, // state
-  highlightedComponentIds: SetOfIds.isRequired, // state
-  expandedItemIds: ImmutablePropTypes.setOf(PropTypes.number).isRequired, // state
+  selectedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
+  highlightedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
+  expandedItemIds: JssyPropTypes.setOfIds.isRequired, // state
   draggingComponent: PropTypes.bool.isRequired, // state
   rootDraggedComponent: PropTypes.instanceOf(ProjectComponentRecord), // state
   draggingOverPlaceholder: PropTypes.bool.isRequired, // state
@@ -117,7 +110,7 @@ const propTypes = {
   isCompatibleStateSlot: PropTypes.func.isRequired, // state
   language: PropTypes.string.isRequired, // state
   meta: PropTypes.object.isRequired, // state
-  cursorPosition: ComponentsTreePosition.isRequired, // state
+  cursorPosition: JssyPropTypes.componentsTreePosition.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onExpandItem: PropTypes.func.isRequired, // dispatch
   onCollapseItem: PropTypes.func.isRequired, // dispatch

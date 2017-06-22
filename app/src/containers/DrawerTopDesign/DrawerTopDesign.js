@@ -31,6 +31,7 @@ import {
 
 import ProjectComponent from '../../models/ProjectComponent';
 import { returnArg } from '../../utils/misc';
+import * as JssyPropTypes from '../../constants/common-prop-types';
 import { INVALID_ID } from '../../constants/misc';
 
 const propTypes = {
@@ -40,10 +41,7 @@ const propTypes = {
   nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(
     PropTypes.string,
   ).isRequired,
-  currentComponents: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponent),
-    PropTypes.number,
-  ).isRequired,
+  currentComponents: JssyPropTypes.components.isRequired,
   rootDraggedComponent: PropTypes.instanceOf(ProjectComponent),
   draggingComponent: PropTypes.bool.isRequired,
   draggingOverPlaceholder: PropTypes.bool.isRequired,

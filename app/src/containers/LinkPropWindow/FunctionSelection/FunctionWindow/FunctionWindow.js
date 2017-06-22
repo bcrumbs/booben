@@ -6,7 +6,6 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { List, Map } from 'immutable';
 import { makeDefaultValue, isCompatibleType } from '@jssy/types';
@@ -26,10 +25,7 @@ import {
 import ProjectFunctionRecord from '../../../../models/ProjectFunction';
 import JssyValue from '../../../../models/JssyValue';
 import SourceDataState from '../../../../models/SourceDataState';
-
-import ProjectComponent, {
-  jssyValueToImmutable,
-} from '../../../../models/ProjectComponent';
+import { jssyValueToImmutable } from '../../../../models/ProjectComponent';
 
 import {
   getLocalizedTextFromState,
@@ -42,14 +38,12 @@ import { PropsList } from '../../../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
 import { getComponentMeta, buildDefaultValue } from '../../../../lib/meta';
 import { noop, returnArg, objectSome } from '../../../../utils/misc';
+import * as JssyPropTypes from '../../../../constants/common-prop-types';
 
 //noinspection JSUnresolvedVariable
 const propTypes = {
   meta: PropTypes.object.isRequired,
-  currentComponents: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponent),
-    PropTypes.number,
-  ).isRequired,
+  currentComponents: JssyPropTypes.components.isRequired,
   pickingComponentStateSlot: PropTypes.bool.isRequired,
   pickedComponentId: PropTypes.number.isRequired, // eslint-disable-line react/no-unused-prop-types
   pickedComponentStateSlot: PropTypes.string.isRequired, // eslint-disable-line react/no-unused-prop-types

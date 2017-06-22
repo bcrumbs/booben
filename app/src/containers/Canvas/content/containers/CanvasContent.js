@@ -6,7 +6,6 @@
 
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import throttle from 'lodash.throttle';
 import kdbush from 'kdbush';
@@ -34,18 +33,15 @@ import {
 } from '../../../../selectors';
 
 import Project, { getComponentById } from '../../../../models/Project';
-import ProjectComponent from '../../../../models/ProjectComponent';
 import { distance } from '../../../../utils/geometry';
 import { noop } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
+import * as JssyPropTypes from '../../../../constants/common-prop-types';
 
 const propTypes = {
   project: PropTypes.instanceOf(Project).isRequired,
-  currentComponents: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponent),
-    PropTypes.number,
-  ).isRequired,
+  currentComponents: JssyPropTypes.components.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
   draggingOverPlaceholder: PropTypes.bool.isRequired,
   placeholderContainerId: PropTypes.number.isRequired,
