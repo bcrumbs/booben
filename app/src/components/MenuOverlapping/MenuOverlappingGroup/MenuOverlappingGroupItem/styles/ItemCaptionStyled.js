@@ -3,7 +3,7 @@
 import styled from 'styled-components';
 
 import {
-  quarterBaseModule,
+  baseModule,
   fontSizeXSmall,
   textColorMedium,
 } from '../../../../../styles/themeSelectors';
@@ -15,7 +15,7 @@ export const ItemCaptionStyled = styled.div`
   color: ${textColorMedium};
   line-height: 1.15;
   margin-right: 0.3em;
-  margin-bottom: ${quarterBaseModule}px;
+  margin-bottom: ${baseModule(0.25)}px;
   word-break: break-all;
   ${disabled}
 `;

@@ -329,14 +329,18 @@ export class ToolWindow extends PureComponent {
 
     if (tool.undockable) {
       titleButtons.push({
-        icon: 'compress',
+        icon: {
+          name: 'compress',
+        },
         onPress: onDock,
       });
     }
 
     if (tool.closable) {
       titleButtons.push({
-        icon: 'times',
+        icon: {
+          name: 'times',
+        },
         onPress: onClose,
       });
     }

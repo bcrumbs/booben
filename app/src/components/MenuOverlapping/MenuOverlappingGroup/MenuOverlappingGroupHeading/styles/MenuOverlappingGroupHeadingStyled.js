@@ -3,7 +3,6 @@
 import styled from 'styled-components';
 
 import {
-  halfBaseModule,
   baseModule,
   fontSizeSmall,
   fontWeightSemibold,
@@ -14,7 +13,7 @@ export const MenuOverlappingGroupHeadingStyled = styled.div`
   color: ${textColorMedium};
   font-size: ${fontSizeSmall}px;
   line-height: 1.5;
-  padding: ${halfBaseModule}px ${baseModule}px;
+  padding: ${baseModule(0.5)}px ${baseModule(1)}px;
   font-weight: ${fontWeightSemibold};
 `;
 

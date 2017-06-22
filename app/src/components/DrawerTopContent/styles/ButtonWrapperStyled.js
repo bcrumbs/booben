@@ -1,10 +1,10 @@
 'use strict';
 
 import styled from 'styled-components';
-import { halfBaseModule } from '../../../styles/themeSelectors';
+import { baseModule } from '../../../styles/themeSelectors';
 
 export const ButtonWrapperStyled = styled.div`
-  padding: ${halfBaseModule}px 0;
+  padding: ${baseModule(0.5)}px 0;
 `;
 
 ButtonWrapperStyled.displayName = 'ButtonWrapperStyled';

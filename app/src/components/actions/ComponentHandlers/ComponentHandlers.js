@@ -1,12 +1,12 @@
 'use strict';
 
 import React from 'react';
-import './ComponentHandlers.scss';
+import { HandlersStyled } from './styles/HandlersStyled';
 
 export const ComponentHandlers = props => (
-  <div className="component-handlers">
+  <HandlersStyled>
     {props.children}
-  </div>
+  </HandlersStyled>
 );
 
 ComponentHandlers.displayName = 'ComponentHandlers';

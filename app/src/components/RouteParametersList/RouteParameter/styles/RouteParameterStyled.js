@@ -3,7 +3,7 @@
 import styled from 'styled-components';
 
 import {
-  quarterBaseModule,
+  baseModule,
   fontSizeSmall,
   textColorMedium,
 } from '../../../../styles/themeSelectors';
@@ -17,7 +17,7 @@ export const RouteParameterStyled = styled.li`
   color: ${textColorMedium};
   
   & + & {
-    margin-top: ${quarterBaseModule}px;
+    margin-top: ${baseModule(0.25)}px;
   }
 `;
 
