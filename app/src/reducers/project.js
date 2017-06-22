@@ -24,10 +24,13 @@ import {
   PROJECT_ROUTE_DELETE,
   PROJECT_ROUTE_UPDATE_FIELD,
   PROJECT_ROUTE_UPDATE_PATH,
+  PROJECT_MOVE_CURSOR,
   PROJECT_COMPONENT_DELETE,
   PROJECT_COMPONENT_RENAME,
   PROJECT_COMPONENT_TOGGLE_REGION,
   PROJECT_COMPONENT_COPY,
+  PROJECT_COMPONENT_MOVE_TO_CLIPBOARD,
+  PROJECT_PASTE_COMPONENT_FROM_CLIPBOARD,
   PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
   PROJECT_CREATE_FUNCTION,
   PROJECT_JSSY_VALUE_REPLACE,
@@ -166,6 +169,10 @@ export const NestedConstructor = Record({
   lastComponentId: INVALID_ID,
   selectedComponentIds: Set(),
   highlightedComponentIds: Set(),
+  cursorContainerId: INVALID_ID,
+  cursorAfter: -1,
+  clipboardComponentId: INVALID_ID,
+  clipboardCopy: false,
 });
 
 const ProjectState = Record({
@@ -220,6 +227,10 @@ const ProjectState = Record({
   pickedComponentStateSlot: '',
   componentStateSlotsListIsVisible: false,
   treeExpandedItemIds: Set(),
+  cursorContainerId: INVALID_ID,
+  cursorAfter: -1,
+  clipboardComponentId: INVALID_ID,
+  clipboardCopy: false,
 });
 
 const initDNDState = state => state.merge({
@@ -294,6 +305,14 @@ const getPathToCurrentHighlightedComponentIds = state =>
     ? ['nestedConstructors', 0, 'highlightedComponentIds']
     : ['highlightedItems'];
 
+const getPathToCurrentClipboardNode = state => haveNestedConstructors(state)
+  ? ['nestedConstructors', 0]
+  : [];
+
+const getPathToCurrentCursorNode = state => haveNestedConstructors(state)
+  ? ['nestedConstructors', 0]
+  : [];
+
 const selectComponent = (state, componentId) => state.updateIn(
   getPathToCurrentSelectedComponentIds(state),
   selectedComponentIds => selectedComponentIds.add(componentId),
@@ -336,7 +355,7 @@ const unhighlightAllComponents = state => state.setIn(
   Set(),
 );
 
-const addNewComponents = (state, parentComponentId, position, components) => {
+const addNewComponents = (state, containerId, afterIdx, components) => {
   const pathToCurrentLastComponentId = getPathToCurrentLastComponentId(state);
   const lastComponentId = state.getIn(pathToCurrentLastComponentId);
   const rootComponentId = lastComponentId === INVALID_ID
@@ -345,6 +364,7 @@ const addNewComponents = (state, parentComponentId, position, components) => {
 
   const pathToCurrentComponents = getPathToCurrentComponents(state);
   const rootComponent = components.get(0);
+  const position = afterIdx + 1;
   let maxId = 0;
   
   state = state.updateIn(
@@ -360,7 +380,7 @@ const addNewComponents = (state, parentComponentId, position, components) => {
             id,
             isNew: false,
             parentId: newComponent.parentId === INVALID_ID
-              ? parentComponentId
+              ? containerId
               : newComponent.parentId + rootComponentId,
 
             routeId: state.currentRouteId,
@@ -376,10 +396,10 @@ const addNewComponents = (state, parentComponentId, position, components) => {
     }),
   );
 
-  if (parentComponentId !== INVALID_ID) {
+  if (containerId !== INVALID_ID) {
     // Inserting non-root component
     const pathToChildrenIdsList = [].concat(pathToCurrentComponents, [
-      parentComponentId,
+      containerId,
       'children',
     ]);
 
@@ -565,12 +585,21 @@ const deleteComponent = (state, componentId) => {
   return state;
 };
 
-const moveComponent = (state, componentId, targetComponentId, position) => {
+const moveComponent = (state, componentId, containerId, afterIdx) => {
   const pathToCurrentComponents = getPathToCurrentComponents(state);
   const currentComponents = state.getIn(pathToCurrentComponents);
-  const component = currentComponents.get(componentId);
 
-  if (component.parentId === targetComponentId) {
+  if (
+    !currentComponents.has(componentId) ||
+    !currentComponents.has(containerId)
+  ) {
+    return state;
+  }
+
+  const component = currentComponents.get(componentId);
+  const position = afterIdx + 1;
+
+  if (component.parentId === containerId) {
     // Same parent, just change the position
     return state.updateIn(
       [...pathToCurrentComponents, component.parentId, 'children'],
@@ -593,37 +622,57 @@ const moveComponent = (state, componentId, targetComponentId, position) => {
     );
   
     state = state.updateIn(
-      [...pathToCurrentComponents, targetComponentId, 'children'],
+      [...pathToCurrentComponents, containerId, 'children'],
       ids => ids.insert(position, componentId),
     );
   
     return state.setIn(
       [...pathToCurrentComponents, componentId, 'parentId'],
-      targetComponentId,
+      containerId,
     );
   }
 };
 
-const copyComponents = (state, rootId, containerId, afterIdx) => {
+const copyComponent = (state, componentId, containerId, afterIdx) => {
   const pathToCurrentComponents = getPathToCurrentComponents(state);
   const currentComponents = state.getIn(pathToCurrentComponents);
-  const componentsCopy = makeDetachedCopy(currentComponents, rootId);
+
+  if (
+    !currentComponents.has(componentId) ||
+    !currentComponents.has(containerId)
+  ) {
+    return state;
+  }
+
+  const componentsCopy = makeDetachedCopy(currentComponents, componentId);
   
-  return addNewComponents(state, containerId, afterIdx + 1, componentsCopy);
+  return addNewComponents(state, containerId, afterIdx, componentsCopy);
 };
 
 const insertDraggedComponents = (state, components) => {
   if (state.placeholderContainerId === INVALID_ID) {
     // Creating root component
-    return addNewComponents(state, INVALID_ID, 0, components);
+    state = addNewComponents(state, INVALID_ID, -1, components);
+
+    // Set cursor position inside newly created root component
+    return state.mergeIn(getPathToCurrentCursorNode(state), {
+      cursorContainerId: state.getIn(getPathToCurrentRootComponentId(state)),
+      cursorAfter: -1,
+    });
   } else {
     // Creating nested component
-    return addNewComponents(
+    state = addNewComponents(
       state,
       state.placeholderContainerId,
-      state.placeholderAfter + 1,
+      state.placeholderAfter,
       components,
     );
+
+    // Set cursor position after newly created component
+    return state.mergeIn(getPathToCurrentCursorNode(state), {
+      cursorContainerId: state.placeholderContainerId,
+      cursorAfter: state.placeholderAfter + 1,
+    });
   }
 };
 
@@ -983,15 +1032,35 @@ const updateValue = (state, path, newValue) => {
     : state.deleteIn(realPath);
 };
 
+const initCursor = state => {
+  const nextRoute = state.data.routes.get(state.currentRouteId);
+  const nextCursorContainerId = state.currentRouteIsIndexRoute
+    ? nextRoute.indexComponent
+    : nextRoute.component;
+
+  const nextCursorAfter = -1;
+
+  return state.merge({
+    cursorContainerId: nextCursorContainerId,
+    cursorAfter: nextCursorAfter,
+  });
+};
+
 const setCurrentRoute = (state, routeId, isIndexRoute) => {
   state = closeAllNestedConstructors(state);
   
-  return state.merge({
+  state = state.merge({
     currentRouteId: routeId,
     currentRouteIsIndexRoute: isIndexRoute,
     selectedItems: Set(),
     highlightedItems: Set(),
   });
+
+  if (state.loadState === LOADED) {
+    state = initCursor(state);
+  }
+
+  return state;
 };
 
 const incrementRevision = state => state.update(
@@ -1149,7 +1218,7 @@ const handlers = {
     const meta = transformMetadata(action.metadata);
     const schema = action.schema ? parseGraphQLSchema(action.schema) : null;
   
-    return state
+    state = state
       .merge({
         projectName: action.project.name,
         loadState: LOADED,
@@ -1165,6 +1234,8 @@ const handlers = {
       })
       .set('meta', meta)
       .set('schema', schema);
+
+    return initCursor(state);
   },
 
   [PROJECT_LOAD_FAILED]: (state, action) => state.merge({
@@ -1355,12 +1426,53 @@ const handlers = {
   })),
   
   [PROJECT_COMPONENT_COPY]: undoable(incrementsRevision(
-    (state, action) => copyComponents(
+    (state, action) => copyComponent(
       state,
       action.componentId,
       action.containerId,
       action.afterIdx,
     ),
+  )),
+
+  [PROJECT_COMPONENT_MOVE_TO_CLIPBOARD]: (state, action) => {
+    const pathToCurrentClipboardNode = getPathToCurrentClipboardNode(state);
+
+    return state.mergeIn(pathToCurrentClipboardNode, {
+      clipboardComponentId: action.componentId,
+      clipboardCopy: action.copy,
+    });
+  },
+
+  [PROJECT_PASTE_COMPONENT_FROM_CLIPBOARD]: undoable(incrementsRevision(
+    (state, action) => {
+      const pathToCurrentClipboardNode = getPathToCurrentClipboardNode(state);
+      const nodeWithClipboard = state.getIn(pathToCurrentClipboardNode);
+
+      if (nodeWithClipboard.clipboardComponentId === INVALID_ID) {
+        return state;
+      }
+
+      if (nodeWithClipboard.clipboardCopy) {
+        return copyComponent(
+          state,
+          nodeWithClipboard.clipboardComponentId,
+          action.containerId,
+          action.afterIdx,
+        );
+      } else {
+        state = moveComponent(
+          state,
+          nodeWithClipboard.clipboardComponentId,
+          action.containerId,
+          action.afterIdx,
+        );
+
+        return state.mergeIn(pathToCurrentClipboardNode, {
+          clipboardComponentId: INVALID_ID,
+          clipboardCopy: false,
+        });
+      }
+    },
   )),
   
   [PROJECT_JSSY_VALUE_REPLACE]: undoable(incrementsRevision(
@@ -1410,6 +1522,8 @@ const handlers = {
   
       Object.assign(nestedConstructorInit, {
         lastComponentId: currentValue.sourceData.components.keySeq().max(),
+        cursorContainerId: currentValue.sourceData.rootId,
+        cursorAfter: -1,
       });
     } else if (action.components) {
       Object.assign(nestedConstructorDataInit, {
@@ -1419,6 +1533,8 @@ const handlers = {
       
       Object.assign(nestedConstructorInit, {
         lastComponentId: action.components.size - 1,
+        cursorContainerId: action.rootId,
+        cursorAfter: -1,
       });
     }
   
@@ -1537,7 +1653,7 @@ const handlers = {
         state,
         state.draggedComponentId,
         state.placeholderContainerId,
-        state.placeholderAfter + 1,
+        state.placeholderAfter,
       );
       
       state = incrementRevision(state);
@@ -1687,6 +1803,15 @@ const handlers = {
       state.updateIn(getPathToCurrentNodeWithHistory(state), moveForward),
     )),
   ),
+
+  [PROJECT_MOVE_CURSOR]: (state, action) => {
+    const pathToCursorNode = getPathToCurrentCursorNode(state);
+
+    return state.mergeIn(pathToCursorNode, {
+      cursorContainerId: action.containerId,
+      cursorAfter: action.afterIdx,
+    });
+  },
   
   [STRUCTURE_SELECT_ROUTE]: (state, action) => state.merge({
     selectedRouteId: action.routeId,

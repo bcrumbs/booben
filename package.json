@@ -22,7 +22,7 @@
     "@common/tree": "^0.1.1",
     "@jssy/common-theme": "^0.1.1",
     "@jssy/common-ui": "^0.1.7",
-    "@jssy/metadata": "^0.6.1",
+    "@jssy/metadata": "^0.7.0",
     "@jssy/types": "^0.5.0",
     "@reactackle/reactackle": "0.1.0-dev.589",
     "apollo-client": "^1.2.0",

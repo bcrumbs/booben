@@ -7,14 +7,14 @@
 export default {
   STRUCTURE_SCREEN: {
     UNDO: {
-      osx: 'command+z',
-      windows: 'ctrl+z',
-      linux: 'ctrl+z',
+      osx: 'command+alt+z',
+      windows: 'ctrl+alt+z',
+      linux: 'ctrl+alt+z',
     },
     REDO: {
-      osx: 'command+shift+z',
-      windows: 'ctrl+shift+z',
-      linux: 'ctrl+shift+z',
+      osx: 'command+shift+alt+z',
+      windows: 'ctrl+shift+alt+z',
+      linux: 'ctrl+shift+alt+z',
     },
   },
   
@@ -25,9 +25,9 @@ export default {
       linux: 'del',
     },
     CREATE_CHILD_ROUTE: {
-      osx: 'command+shift+r',
-      windows: 'ctrl+shift+r',
-      linux: 'ctrl+shift+r',
+      osx: 'command+alt+r',
+      windows: 'ctrl+alt+r',
+      linux: 'ctrl+alt+r',
     },
     CREATE_ROOT_ROUTE: {
       osx: 'command+shift+alt+r',
@@ -43,14 +43,14 @@ export default {
   
   DESIGN_SCREEN: {
     UNDO: {
-      osx: 'command+z',
-      windows: 'ctrl+z',
-      linux: 'ctrl+z',
+      osx: 'command+alt+z',
+      windows: 'ctrl+alt+z',
+      linux: 'ctrl+alt+z',
     },
     REDO: {
-      osx: 'command+shift+z',
-      windows: 'ctrl+shift+z',
-      linux: 'ctrl+shift+z',
+      osx: 'command+shift+alt+z',
+      windows: 'ctrl+shift+alt+z',
+      linux: 'ctrl+shift+alt+z',
     },
     DELETE_COMPONENT: {
       osx: 'command+backspace',
@@ -61,6 +61,21 @@ export default {
       osx: 'command+alt+d',
       windows: 'ctrl+alt+d',
       linux: 'ctrl+alt+d',
+    },
+    COPY_COMPONENT: {
+      osx: 'command+alt+c',
+      windows: 'ctrl+alt+c',
+      linux: 'ctrl+alt+c',
+    },
+    CUT_COMPONENT: {
+      osx: 'command+alt+x',
+      windows: 'ctrl+alt+x',
+      linux: 'ctrl+alt+x',
+    },
+    PASTE_COMPONENT: {
+      osx: 'command+alt+v',
+      windows: 'ctrl+alt+v',
+      linux: 'ctrl+alt+v',
     },
     GO_TO_STRUCTURE: {
       osx: 'command+alt+q',
@@ -74,5 +89,9 @@ export default {
     SELECT_PREVIOUS_COMPONENT: 'up',
     SELECT_CHILD_COMPONENT: 'right',
     SELECT_PARENT_COMPONENT: 'left',
+    MOVE_CURSOR_DOWN: 'ctrl+alt+down',
+    MOVE_CURSOR_UP: 'ctrl+alt+up',
+    MOVE_CURSOR_OUTSIDE: 'ctrl+alt+left',
+    MOVE_CURSOR_INTO: 'ctrl+alt+right',
   },
 };

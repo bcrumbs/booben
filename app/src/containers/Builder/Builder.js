@@ -6,7 +6,6 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { graphql, withApollo } from 'react-apollo';
@@ -64,7 +63,7 @@ import {
 import { getComponentByName } from '../../lib/components-library';
 import { getFunctionInfo } from '../../lib/functions';
 import { noop, returnNull, isUndef } from '../../utils/misc';
-import jssyConstants from '../../constants/jssyConstants';
+import { Components, SetOfIds } from '../../constants/common-prop-types';
 
 import {
   INVALID_ID,
@@ -79,10 +78,7 @@ const propTypes = {
   params: PropTypes.object,
   interactive: PropTypes.bool,
   editable: PropTypes.bool,
-  components: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponent),
-    PropTypes.number,
-  ).isRequired,
+  components: Components.isRequired,
   rootId: PropTypes.number,
   enclosingComponent: PropTypes.instanceOf(ProjectComponent),
   enclosingComponentChildrenNames: PropTypes.arrayOf(PropTypes.string),
@@ -101,22 +97,18 @@ const propTypes = {
   schema: PropTypes.object.isRequired, // state
   draggingComponent: PropTypes.bool.isRequired, // state
   rootDraggedComponent: PropTypes.instanceOf(ProjectComponent), // state
-  draggedComponents: PropTypes.any, // state
+  draggedComponents: Components, // state
   draggingOverPlaceholder: PropTypes.bool.isRequired, // state
   placeholderContainerId: PropTypes.number.isRequired, // state
   placeholderAfter: PropTypes.number.isRequired, // state
   showContentPlaceholders: PropTypes.bool.isRequired, // state
-  selectedComponentIds: ImmutablePropTypes.setOf(
-    PropTypes.number,
-  ).isRequired, // state
-  highlightedComponentIds: ImmutablePropTypes.setOf(
-    PropTypes.number,
-  ).isRequired, // state
+  selectedComponentIds: SetOfIds.isRequired, // state
+  highlightedComponentIds: SetOfIds.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onNavigate: PropTypes.func,
   onOpenURL: PropTypes.func,
   onAlert: PropTypes.func.isRequired, // alertsCreator
-  onStartDragComponent: PropTypes.func.isRequired,
+  onStartDragComponent: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
@@ -1010,9 +1002,7 @@ class BuilderComponent extends PureComponent {
   }
   
   _buildConstValue(jssyValue) {
-    return jssyValue.sourceData.jssyConstId
-      ? jssyConstants[jssyValue.sourceData.jssyConstId]
-      : jssyValue.sourceData.value;
+    return jssyValue.sourceData.value;
   }
   
   _buildDesignerValue(jssyValue, theMap) {

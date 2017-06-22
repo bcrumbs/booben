@@ -17,6 +17,8 @@ export const PROJECT_ROUTE_DELETE = 'PROJECT_ROUTE_DELETE';
 export const PROJECT_ROUTE_UPDATE_FIELD = 'PROJECT_ROUTE_UPDATE_FIELD';
 export const PROJECT_ROUTE_UPDATE_PATH = 'PROJECT_ROUTE_UPDATE_PATH';
 
+export const PROJECT_MOVE_CURSOR = 'PROJECT_MOVE_CURSOR';
+
 export const PROJECT_COMPONENT_DELETE =
   'PROJECT_COMPONENT_DELETE';
 export const PROJECT_COMPONENT_RENAME =
@@ -25,6 +27,10 @@ export const PROJECT_COMPONENT_TOGGLE_REGION =
   'PROJECT_COMPONENT_TOGGLE_REGION';
 export const PROJECT_COMPONENT_COPY =
   'PROJECT_COMPONENT_COPY';
+export const PROJECT_COMPONENT_MOVE_TO_CLIPBOARD =
+  'PROJECT_COMPONENT_MOVE_TO_CLIPBOARD';
+export const PROJECT_PASTE_COMPONENT_FROM_CLIPBOARD =
+  'PROJECT_PASTE_COMPONENT_FROM_CLIPBOARD';
 export const PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT =
   'PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT';
 
@@ -212,6 +218,30 @@ export const copyComponent = triggersProjectSave(
     afterIdx,
   }),
 );
+
+/**
+ *
+ * @param {number} componentId
+ * @param {boolean} copy
+ * @return {Object}
+ */
+export const moveComponentToClipboard = (componentId, copy) => ({
+  type: PROJECT_COMPONENT_MOVE_TO_CLIPBOARD,
+  componentId,
+  copy,
+});
+
+/**
+ *
+ * @param {number} containerId
+ * @param {number} afterIdx
+ * @return {Object}
+ */
+export const pasteComponentFromClipboard = (containerId, afterIdx) => ({
+  type: PROJECT_PASTE_COMPONENT_FROM_CLIPBOARD,
+  containerId,
+  afterIdx,
+});
 
 /**
  *
@@ -449,3 +479,15 @@ export const undo = triggersProjectSave(() => ({
 export const redo = triggersProjectSave(() => ({
   type: PROJECT_REDO,
 }));
+
+/**
+ *
+ * @param {number} containerId
+ * @param {number} afterIdx
+ * @return {Object}
+ */
+export const moveCursor = (containerId, afterIdx) => ({
+  type: PROJECT_MOVE_CURSOR,
+  containerId,
+  afterIdx,
+});

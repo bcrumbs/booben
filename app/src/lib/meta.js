@@ -362,27 +362,12 @@ const buildDefaultStaticValue = (
  * @param {JssyValueDefinition} propMeta
  * @return {PlainJssyValue|Symbol}
  */
-const buildDefaultConstValue = propMeta => {
-  if (isDef(propMeta.sourceConfigs.const.value)) {
-    return {
-      source: 'const',
-      sourceData: {
-        value: propMeta.sourceConfigs.const.value,
-      },
-    };
-  }
-
-  if (isDef(propMeta.sourceConfigs.const.jssyConstId)) {
-    return {
-      source: 'const',
-      sourceData: {
-        jssyConstId: propMeta.sourceConfigs.const.jssyConstId,
-      },
-    };
-  }
-
-  return NO_VALUE;
-};
+const buildDefaultConstValue = propMeta => ({
+  source: 'const',
+  sourceData: {
+    value: propMeta.sourceConfigs.const.value,
+  },
+});
 
 /**
  *

@@ -27,6 +27,7 @@ import {
   ComponentsTreeItem,
   ComponentsTreeItemTitle,
   ComponentsTreeList,
+  ComponentsTreeCursor,
 } from '../../components/ComponentsTree/ComponentsTree';
 
 import {
@@ -60,6 +61,7 @@ import {
 import {
   pickComponentDone,
   pickComponentStateSlotDone,
+  moveCursor,
   ComponentPickAreas,
 } from '../../actions/project';
 
@@ -70,6 +72,7 @@ import {
   currentHighlightedComponentIdsSelector,
   getLocalizedTextFromState,
   rootDraggedComponentSelector,
+  cursorPositionSelector,
 } from '../../selectors';
 
 import ProjectComponentRecord, {
@@ -80,61 +83,64 @@ import {
   canInsertComponent,
   isCompositeComponent,
   getComponentMeta,
+  isAtomicComponent,
 } from '../../lib/meta';
 
 import { isFunction, returnTrue } from '../../utils/misc';
+
+import {
+  SetOfIds,
+  Components,
+  ComponentsTreePosition,
+} from '../../constants/common-prop-types';
+
 import { INVALID_ID } from '../../constants/misc';
 
 const propTypes = {
-  components: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponentRecord),
-    PropTypes.number,
-  ).isRequired,
-  rootComponentId: PropTypes.number.isRequired,
-  selectedComponentIds: ImmutablePropTypes.setOf(
-    PropTypes.number,
-  ).isRequired,
-  highlightedComponentIds: ImmutablePropTypes.setOf(
-    PropTypes.number,
-  ).isRequired,
-  expandedItemIds: ImmutablePropTypes.setOf(PropTypes.number).isRequired,
-  draggingComponent: PropTypes.bool.isRequired,
-  rootDraggedComponent: PropTypes.instanceOf(ProjectComponentRecord),
-  draggingOverPlaceholder: PropTypes.bool.isRequired,
-  placeholderContainerId: PropTypes.number.isRequired,
-  placeholderAfter: PropTypes.number.isRequired,
-  pickingComponent: PropTypes.bool.isRequired,
-  pickingComponentStateSlot: PropTypes.bool.isRequired,
-  pickingComponentFilter: PropTypes.func,
-  pickedComponentId: PropTypes.number.isRequired,
-  pickedComponentArea: PropTypes.number.isRequired,
+  dropZoneId: PropTypes.string,
+  components: Components.isRequired, // state
+  rootComponentId: PropTypes.number.isRequired, // state
+  selectedComponentIds: SetOfIds.isRequired, // state
+  highlightedComponentIds: SetOfIds.isRequired, // state
+  expandedItemIds: ImmutablePropTypes.setOf(PropTypes.number).isRequired, // state
+  draggingComponent: PropTypes.bool.isRequired, // state
+  rootDraggedComponent: PropTypes.instanceOf(ProjectComponentRecord), // state
+  draggingOverPlaceholder: PropTypes.bool.isRequired, // state
+  placeholderContainerId: PropTypes.number.isRequired, // state
+  placeholderAfter: PropTypes.number.isRequired, // state
+  pickingComponent: PropTypes.bool.isRequired, // state
+  pickingComponentStateSlot: PropTypes.bool.isRequired, // state
+  pickingComponentFilter: PropTypes.func, // state
+  pickedComponentId: PropTypes.number.isRequired, // state
+  pickedComponentArea: PropTypes.number.isRequired, // state
   componentStateSlotsListIsVisible: PropTypes.bool.isRequired, // state
   isCompatibleStateSlot: PropTypes.func.isRequired, // state
   language: PropTypes.string.isRequired, // state
-  meta: PropTypes.object.isRequired,
-  getLocalizedText: PropTypes.func.isRequired,
-  dropZoneId: PropTypes.string,
-  onExpandItem: PropTypes.func.isRequired,
-  onCollapseItem: PropTypes.func.isRequired,
-  onSelectItem: PropTypes.func.isRequired,
-  onDeselectItem: PropTypes.func.isRequired,
-  onHighlightItem: PropTypes.func.isRequired,
-  onUnhighlightItem: PropTypes.func.isRequired,
-  onDragOverPlaceholder: PropTypes.func.isRequired,
-  onDragOverNothing: PropTypes.func.isRequired,
-  onDropZoneReady: PropTypes.func.isRequired,
-  onDropZoneRemove: PropTypes.func.isRequired,
-  onDropZoneSnap: PropTypes.func.isRequired,
-  onDropZoneUnsnap: PropTypes.func.isRequired,
-  onStartDragComponent: PropTypes.func.isRequired,
-  onPickComponent: PropTypes.func.isRequired,
-  onSelectComponentStateSlot: PropTypes.func.isRequired,
+  meta: PropTypes.object.isRequired, // state
+  cursorPosition: ComponentsTreePosition.isRequired, // state
+  getLocalizedText: PropTypes.func.isRequired, // state
+  onExpandItem: PropTypes.func.isRequired, // dispatch
+  onCollapseItem: PropTypes.func.isRequired, // dispatch
+  onSelectItem: PropTypes.func.isRequired, // dispatch
+  onDeselectItem: PropTypes.func.isRequired, // dispatch
+  onHighlightItem: PropTypes.func.isRequired, // dispatch
+  onUnhighlightItem: PropTypes.func.isRequired, // dispatch
+  onDragOverPlaceholder: PropTypes.func.isRequired, // dispatch
+  onDragOverNothing: PropTypes.func.isRequired, // dispatch
+  onDropZoneReady: PropTypes.func.isRequired, // dispatch
+  onDropZoneRemove: PropTypes.func.isRequired, // dispatch
+  onDropZoneSnap: PropTypes.func.isRequired, // dispatch
+  onDropZoneUnsnap: PropTypes.func.isRequired, // dispatch
+  onStartDragComponent: PropTypes.func.isRequired, // dispatch
+  onPickComponent: PropTypes.func.isRequired, // dispatch
+  onSelectComponentStateSlot: PropTypes.func.isRequired, // dispatch
+  onMoveCursor: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
+  dropZoneId: ComponentDropAreas.TREE,
   rootDraggedComponent: null,
   pickingComponentFilter: null,
-  dropZoneId: ComponentDropAreas.TREE,
 };
 
 const mapStateToProps = state => ({
@@ -162,6 +168,7 @@ const mapStateToProps = state => ({
 
   language: state.project.languageForComponentProps,
   meta: state.project.meta,
+  cursorPosition: cursorPositionSelector(state),
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -198,6 +205,9 @@ const mapDispatchToProps = dispatch => ({
 
   onSelectComponentStateSlot: ({ stateSlot }) =>
     void dispatch(pickComponentStateSlotDone(stateSlot)),
+
+  onMoveCursor: (containerId, afterIdx) =>
+    void dispatch(moveCursor(containerId, afterIdx)),
 });
 
 const wrap = compose(
@@ -540,6 +550,26 @@ class ComponentsTreeViewComponent extends PureComponent {
         this._handleSelectParentComponent();
         break;
       }
+
+      case 'MOVE_CURSOR_DOWN': {
+        this._handleMoveCursorDown();
+        break;
+      }
+
+      case 'MOVE_CURSOR_UP': {
+        this._handleMoveCursorUp();
+        break;
+      }
+
+      case 'MOVE_CURSOR_OUTSIDE': {
+        this._handleMoveCursorOutside();
+        break;
+      }
+
+      case 'MOVE_CURSOR_INTO': {
+        this._handleMoveCursorInto();
+        break;
+      }
       
       default:
     }
@@ -617,6 +647,83 @@ class ComponentsTreeViewComponent extends PureComponent {
     if (isRootComponent(selectedComponent)) return;
   
     onSelectItem(selectedComponent.parentId);
+  }
+
+  /**
+   *
+   * @private
+   */
+  _handleMoveCursorDown() {
+    const { components, cursorPosition, onMoveCursor } = this.props;
+
+    if (cursorPosition.containerId === INVALID_ID) return;
+
+    const containerComponent = components.get(cursorPosition.containerId);
+    const nextCursorAfter = cursorPosition.afterIdx + 1;
+
+    if (nextCursorAfter < containerComponent.children.size) {
+      onMoveCursor(cursorPosition.containerId, nextCursorAfter);
+    }
+  }
+
+  /**
+   *
+   * @private
+   */
+  _handleMoveCursorUp() {
+    const { cursorPosition, onMoveCursor } = this.props;
+
+    if (cursorPosition.containerId === INVALID_ID) return;
+
+    const nextCursorAfter = cursorPosition.afterIdx - 1;
+
+    if (nextCursorAfter >= -1) {
+      onMoveCursor(cursorPosition.containerId, nextCursorAfter);
+    }
+  }
+
+  /**
+   *
+   * @private
+   */
+  _handleMoveCursorOutside() {
+    const { components, cursorPosition, onMoveCursor } = this.props;
+
+    if (cursorPosition.containerId === INVALID_ID) return;
+
+    const containerComponent = components.get(cursorPosition.containerId);
+    if (isRootComponent(containerComponent)) return;
+
+    const parentComponent = components.get(containerComponent.parentId);
+    const containerPosition =
+      parentComponent.children.indexOf(parentComponent.id);
+
+    onMoveCursor(parentComponent.id, containerPosition);
+  }
+
+  /**
+   *
+   * @private
+   */
+  _handleMoveCursorInto() {
+    const { meta, components, cursorPosition, onMoveCursor } = this.props;
+
+    if (cursorPosition.containerId === INVALID_ID) return;
+
+    const containerComponent = components.get(cursorPosition.containerId);
+
+    if (cursorPosition.afterIdx > containerComponent.children.size - 1) {
+      return;
+    }
+
+    const targetComponentId =
+      containerComponent.children.get(cursorPosition.afterIdx + 1);
+
+    const targetComponent = components.get(targetComponentId);
+
+    if (!isAtomicComponent(targetComponent.name, meta)) {
+      onMoveCursor(targetComponentId, -1);
+    }
   }
   
   /**
@@ -1038,6 +1145,7 @@ class ComponentsTreeViewComponent extends PureComponent {
       rootComponentId,
       draggingComponent,
       rootDraggedComponent,
+      cursorPosition,
     } = this.props;
 
     const componentIds = parentComponentId !== INVALID_ID
@@ -1046,6 +1154,15 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     const children = [];
     let gotDraggedComponent = false;
+
+    if (
+      cursorPosition.containerId === parentComponentId &&
+      cursorPosition.afterIdx === -1
+    ) {
+      children.push(
+        <ComponentsTreeCursor />,
+      );
+    }
 
     componentIds.forEach((componentId, idx) => {
       if (draggingComponent) {
@@ -1068,6 +1185,15 @@ class ComponentsTreeViewComponent extends PureComponent {
       }
 
       children.push(this._renderItem(componentId));
+
+      if (
+        cursorPosition.containerId === parentComponentId &&
+        cursorPosition.afterIdx === idx
+      ) {
+        children.push(
+          <ComponentsTreeCursor />,
+        );
+      }
     });
 
     if (draggingComponent) {

@@ -6,7 +6,6 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { Shortcuts } from 'react-shortcuts';
 import Portal from 'react-portal-minimal';
@@ -51,10 +50,7 @@ import {
   ComponentsDragArea,
 } from '../containers/ComponentsDragArea/ComponentsDragArea';
 
-import ProjectComponentRecord, {
-  isRootComponent,
-} from '../models/ProjectComponent';
-
+import { isRootComponent } from '../models/ProjectComponent';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
 import ButtonRecord from '../models/Button';
@@ -67,6 +63,8 @@ import {
   pickComponentStateSlotDone,
   undo,
   redo,
+  moveComponentToClipboard,
+  pasteComponentFromClipboard,
   ComponentPickAreas,
 } from '../actions/project';
 
@@ -78,6 +76,7 @@ import {
   currentComponentsSelector,
   getLocalizedTextFromState,
   containerStyleSelector,
+  cursorPositionSelector,
 } from '../selectors';
 
 import {
@@ -97,32 +96,35 @@ import {
 } from '../constants/toolIds';
 
 import { buildStructurePath } from '../constants/paths';
+
+import {
+  Components,
+  ComponentsTreePosition,
+} from '../constants/common-prop-types';
+
 import defaultComponentLayoutIcon from '../../assets/layout_default.svg';
 
 const propTypes = {
   projectName: PropTypes.string.isRequired, // state
-  components: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponentRecord),
-    PropTypes.number,
-  ).isRequired, // state
+  components: Components.isRequired, // state
   meta: PropTypes.object.isRequired, // state
   previewContainerStyle: PropTypes.string.isRequired, // state
   singleComponentSelected: PropTypes.bool.isRequired, // state
   firstSelectedComponentId: PropTypes.number.isRequired, // state
   selectingComponentLayout: PropTypes.bool.isRequired, // state
-  draggedComponents: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponentRecord),
-    PropTypes.number,
-  ), // state
+  draggedComponents: Components, // state
   language: PropTypes.string.isRequired, // state
   pickedComponentId: PropTypes.number.isRequired, // state
   pickedComponentArea: PropTypes.number.isRequired, // state
   componentStateSlotsListIsVisible: PropTypes.bool.isRequired, // state
   isCompatibleStateSlot: PropTypes.func.isRequired, // state
+  cursorPosition: ComponentsTreePosition.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onRenameComponent: PropTypes.func.isRequired, // dispatch
   onDeleteComponent: PropTypes.func.isRequired, // dispatch
   onCopyComponent: PropTypes.func.isRequired, // dispatch
+  onMoveComponentToClipboard: PropTypes.func.isRequired, // dispatch
+  onPasteComponent: PropTypes.func.isRequired, // dispatch
   onSelectLayout: PropTypes.func.isRequired, // dispatch
   onDropComponent: PropTypes.func.isRequired, // dispatch
   onSelectComponentStateSlot: PropTypes.func.isRequired, // dispatch
@@ -153,7 +155,8 @@ const mapStateToProps = state => ({
   isCompatibleStateSlot:
     state.project.pickingComponentStateSlotsFilter ||
     returnTrue,
-  
+
+  cursorPosition: cursorPositionSelector(state),
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -166,6 +169,12 @@ const mapDispatchToProps = dispatch => ({
   
   onCopyComponent: (componentId, containerId, afterIdx) =>
     void dispatch(copyComponent(componentId, containerId, afterIdx)),
+
+  onMoveComponentToClipboard: (componentId, copy) =>
+    void dispatch(moveComponentToClipboard(componentId, copy)),
+
+  onPasteComponent: (containerId, afterIdx) =>
+    void dispatch(pasteComponentFromClipboard(containerId, afterIdx)),
   
   onSelectLayout: layoutIdx =>
     void dispatch(selectLayoutForNewComponent(layoutIdx)),
@@ -401,6 +410,21 @@ class DesignRoute extends PureComponent {
         this._handleDuplicateSelectedComponent();
         break;
       }
+
+      case 'COPY_COMPONENT': {
+        this._handleMoveSelectedComponentToClipboard(true);
+        break;
+      }
+
+      case 'CUT_COMPONENT': {
+        this._handleMoveSelectedComponentToClipboard(false);
+        break;
+      }
+
+      case 'PASTE_COMPONENT': {
+        this._handlePasteComponent();
+        break;
+      }
       
       case 'GO_TO_STRUCTURE': {
         const { projectName, onGoToStructure } = this.props;
@@ -454,6 +478,38 @@ class DesignRoute extends PureComponent {
         position - 1, // copyComponent receives afterIdx instead of position
       );
     }
+  }
+
+  /**
+   *
+   * @param {boolean} copy
+   * @private
+   */
+  _handleMoveSelectedComponentToClipboard(copy) {
+    const {
+      components,
+      singleComponentSelected,
+      firstSelectedComponentId,
+      onMoveComponentToClipboard,
+    } = this.props;
+
+    if (!singleComponentSelected) return;
+
+    const selectedComponent = components.get(firstSelectedComponentId);
+
+    if (isRootComponent(selectedComponent)) return;
+
+    onMoveComponentToClipboard(selectedComponent.id, copy);
+  }
+
+  /**
+   *
+   * @private
+   */
+  _handlePasteComponent() {
+    const { cursorPosition, onPasteComponent } = this.props;
+    // TODO: canInsertComponent check
+    onPasteComponent(cursorPosition.containerId, cursorPosition.afterIdx);
   }
 
   /**
