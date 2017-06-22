@@ -1,6 +1,6 @@
 'use strict';
 
-export const caseConstants = {
+export default {
   markerSize: 10,
   borderThickness: 2,
   markerTitleSpacing: 8,

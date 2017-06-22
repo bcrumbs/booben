@@ -1,7 +1,7 @@
 'use strict';
 
-import styled from 'styled-components';
-import { PropTypes } from 'prop-types';
+import styled, { css } from 'styled-components';
+
 import {
   fontSizeBody,
   textColorMedium,
@@ -9,16 +9,8 @@ import {
   fontWeightSemibold,
 } from '../../../../../styles/themeSelectors';
 
-const propTypes = {
-  theme: PropTypes.object,
-};
-
-const defaultProps = {
-  theme: {},
-};
-
 const active = ({ active }) => active
-  ? `
+  ? css`
     color: ${textColorBody};
     font-weight: ${fontWeightSemibold};  
   `
@@ -30,10 +22,7 @@ export const HandlerTitleStyled = styled.div`
   line-height: 1.5;
   color: ${textColorMedium};
   padding: 6px 0;
-  
   ${active}
 `;
 
-HandlerTitleStyled.propTypes = propTypes;
-HandlerTitleStyled.defaultProps = defaultProps;
 HandlerTitleStyled.displayName = 'HandlerTitleStyled';

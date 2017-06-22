@@ -1,20 +1,12 @@
 'use strict';
 
 import styled from 'styled-components';
-import { PropTypes } from 'prop-types';
+
 import {
   baseModule,
   fontSizeBody,
   textColorBody,
 } from '../../../../../styles/themeSelectors';
-
-const propTypes = {
-  theme: PropTypes.object,
-};
-
-const defaultProps = {
-  theme: {},
-};
 
 export const ActionTitleStyled = styled.span`
   flex-grow: 1;
@@ -25,6 +17,4 @@ export const ActionTitleStyled = styled.span`
   display: inline-block;
 `;
 
-ActionTitleStyled.propTypes = propTypes;
-ActionTitleStyled.defaultProps = defaultProps;
 ActionTitleStyled.displayName = 'ActionTitleStyled';

@@ -1,6 +1,6 @@
 'use strict';
 
-export const actionConstants = {
+export default {
   headingIconSize: 32,
   iconTextSpacing: 8,
 };

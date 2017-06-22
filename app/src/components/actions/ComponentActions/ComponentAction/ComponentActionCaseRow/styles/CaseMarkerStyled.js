@@ -2,7 +2,7 @@
 
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import { caseConstants } from './constants';
+import constants from './constants';
 
 import {
   colorSuccess,
@@ -20,23 +20,22 @@ const defaultProps = {
   title: '',
 };
 
-const type = ({ type }) => {
-  const colors = {
-    success: colorSuccess,
-    error: colorError,
-    neutral: colorInfo,
-  };
-  
-  return css`background-color: ${colors[type]};`;
+const colors = {
+  success: colorSuccess,
+  error: colorError,
+  neutral: colorInfo,
 };
 
+const type = ({ type }) => css`
+  background-color: ${colors[type]};
+`;
+
 export const CaseMarkerStyled = styled.div`
-  width: ${caseConstants.markerSize}px;
-  height: ${caseConstants.markerSize}px;
+  width: ${constants.markerSize}px;
+  height: ${constants.markerSize}px;
   border-radius: 50%;
   display: block;
-  margin-right: ${caseConstants.markerTitleSpacing}px;
-
+  margin-right: ${constants.markerTitleSpacing}px;
   ${type}
 `;
 

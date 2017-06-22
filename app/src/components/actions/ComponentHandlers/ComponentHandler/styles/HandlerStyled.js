@@ -1,15 +1,6 @@
 'use strict';
 
 import styled from 'styled-components';
-import { PropTypes } from 'prop-types';
-
-const propTypes = {
-  theme: PropTypes.object,
-};
-
-const defaultProps = {
-  theme: {},
-};
 
 export const HandlerStyled = styled.button`
   &,
@@ -27,6 +18,4 @@ export const HandlerStyled = styled.button`
   }
 `;
 
-HandlerStyled.propTypes = propTypes;
-HandlerStyled.defaultProps = defaultProps;
 HandlerStyled.displayName = 'HandlerStyled';

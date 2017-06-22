@@ -9,10 +9,14 @@ import { ActionLinkWrapperStyled } from './styles/ActionLinkWrapperStyled';
 import { ActionTitleStyled } from './styles/ActionTitleStyled';
 import { ActionTitleTextStyled } from './styles/ActionTitleTextStyled';
 import { ActionIconStyled } from './styles/ActionIconStyled';
-import { ActionButtonsWrapperStyled } from
-  './styles/ActionButtonsWrapperStyled';
-import { ActionContentWrapperStyled } from
-  './styles/ActionContentWrapperStyled';
+
+import {
+  ActionButtonsWrapperStyled,
+} from './styles/ActionButtonsWrapperStyled';
+
+import {
+  ActionContentWrapperStyled,
+} from './styles/ActionContentWrapperStyled';
    
 const propTypes = {
   id: PropTypes.any.isRequired,
@@ -34,15 +38,18 @@ export class ComponentAction extends PureComponent {
     super(props, context);
     
     this._handleClick = this._handleClick.bind(this);
-    this._handleDeleteButtonClick = this._handleDeleteButtonClick.bind(this);
+    this._handleDeleteButtonPress = this._handleDeleteButtonPress.bind(this);
   }
   
-  _handleClick() {
+  _handleClick(event) {
     const { id, onEdit } = this.props;
-    onEdit({ actionId: id });
+
+    if (event.button === 0) {
+      onEdit({ actionId: id });
+    }
   }
   
-  _handleDeleteButtonClick() {
+  _handleDeleteButtonPress() {
     const { id, onDelete } = this.props;
     onDelete({ actionId: id });
   }
@@ -87,7 +94,7 @@ export class ComponentAction extends PureComponent {
             <Button
               icon={{ name: 'times' }}
               radius="rounded"
-              onPress={this._handleDeleteButtonClick}
+              onPress={this._handleDeleteButtonPress}
             />
           </ActionButtonsWrapperStyled>
         </ActionHeadingStyled>

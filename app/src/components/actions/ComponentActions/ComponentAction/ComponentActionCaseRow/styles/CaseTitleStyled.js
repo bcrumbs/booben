@@ -1,21 +1,12 @@
 'use strict';
 
 import styled from 'styled-components';
-import PropTypes from 'prop-types';
 
 import {
   fontSizeXSmall,
   textColorMedium,
   fontWeightSemibold,
 } from '../../../../../../styles/themeSelectors';
-
-const propTypes = {
-  theme: PropTypes.object,
-};
-
-const defaultProps = {
-  theme: {},
-};
 
 export const CaseTitleStyled = styled.div`
   flex-grow: 1;
@@ -25,6 +16,4 @@ export const CaseTitleStyled = styled.div`
   font-weight: ${fontWeightSemibold};
 `;
 
-CaseTitleStyled.propTypes = propTypes;
-CaseTitleStyled.defaultProps = defaultProps;
 CaseTitleStyled.displayName = 'CaseTitleStyled';

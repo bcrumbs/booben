@@ -12,7 +12,7 @@ import { HandlerIconStyled } from './styles/HandlerIconStyled';
 import { HandlerBodyStyled } from './styles/HandlerBodyStyled';
    
 const propTypes = {
-  id: PropTypes.string.isRequired,
+  id: PropTypes.any.isRequired,
   title: PropTypes.string,
   description: PropTypes.string,
   hasActions: PropTypes.bool,
@@ -32,12 +32,15 @@ export class ComponentHandler extends PureComponent {
   constructor(props, context) {
     super(props, context);
     
-    this._handleExpandButtonPress = this._handleExpandButtonPress.bind(this);
+    this._handleExpandButtonClick = this._handleExpandButtonClick.bind(this);
   }
   
-  _handleExpandButtonPress() {
+  _handleExpandButtonClick(event) {
     const { id, onExpand } = this.props;
-    onExpand({ handlerId: id });
+
+    if (event.button === 0) {
+      onExpand({ handlerId: id });
+    }
   }
   
   render() {
@@ -60,7 +63,7 @@ export class ComponentHandler extends PureComponent {
     }
   
     return (
-      <HandlerStyled onPress={this._handleExpandButtonPress}>
+      <HandlerStyled onClick={this._handleExpandButtonClick}>
         <HandlerHeadingStyled>
           <HandlerTitleStyled active={hasActions}>
             <HandlerTitleTextStyled>
