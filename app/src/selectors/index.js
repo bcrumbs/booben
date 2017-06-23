@@ -17,7 +17,7 @@ import {
 } from '../lib/meta';
 
 import { getTypeNameByPath } from '../lib/schema';
-import { isDef } from '../utils/misc';
+import { isDef, mapListToArray } from '../utils/misc';
 import { INVALID_ID } from '../constants/misc';
 
 export const haveNestedConstructorsSelector = state =>
@@ -112,6 +112,36 @@ export const currentHighlightedComponentIdsSelector = createSelector(
     : highlightedItems,
 );
 
+export const cursorPositionSelector = createSelector(
+  topNestedConstructorSelector,
+  state => state.project,
+
+  (topNestedConstructor, projectState) => topNestedConstructor
+    ? {
+      containerId: topNestedConstructor.cursorContainerId,
+      afterIdx: topNestedConstructor.cursorAfter,
+    }
+    : {
+      containerId: projectState.cursorContainerId,
+      afterIdx: projectState.cursorAfter,
+    },
+);
+
+export const componentClipboardSelector = createSelector(
+  topNestedConstructorSelector,
+  state => state.project,
+  
+  (topNestedConstructor, projectState) => topNestedConstructor
+    ? {
+      componentId: topNestedConstructor.clipboardComponentId,
+      copy: topNestedConstructor.clipboardCopy,
+    }
+    : {
+      componentId: projectState.clipboardComponentId,
+      copy: projectState.clipboardCopy,
+    },
+);
+
 export const currentComponentsStackSelector = createSelector(
   state => state.project.nestedConstructors,
   currentRouteSelector,
@@ -188,9 +218,10 @@ export const availableDataContextsSelector = createSelector(
       
         // Data props with data context cannot be nested
         const dataPropValue = component.props.get(dataPropName);
-        const path = dataPropValue.sourceData.queryPath
-          .map(step => step.field)
-          .toJS();
+        const path = mapListToArray(
+          dataPropValue.sourceData.queryPath,
+          step => step.field,
+        );
       
         return getTypeNameByPath(schema, path, acc);
       }, schema.queryTypeName);

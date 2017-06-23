@@ -6,7 +6,6 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 
 import {
   BlockContent,
@@ -16,16 +15,13 @@ import {
   BlockBreadcrumbs,
 } from '@jssy/common-ui';
 
-import ProjectRoute from '../../../models/ProjectRoute';
 import { DataList, DataItem } from '../../../components/DataList/DataList';
 import { noop, returnArg } from '../../../utils/misc';
+import * as JssyPropTypes from '../../../constants/common-prop-types';
 import { INVALID_ID } from '../../../constants/misc';
 
 const propTypes = {
-  routes: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectRoute),
-    PropTypes.number,
-  ).isRequired,
+  routes: JssyPropTypes.routes.isRequired,
   currentRouteId: PropTypes.number.isRequired,
   getLocalizedText: PropTypes.func,
   onSelect: PropTypes.func,

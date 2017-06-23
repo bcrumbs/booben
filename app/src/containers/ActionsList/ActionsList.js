@@ -10,8 +10,6 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import _startCase from 'lodash.startcase';
 import { Action } from '../../models/SourceDataActions';
-import ProjectRoute from '../../models/ProjectRoute';
-import ProjectComponent from '../../models/ProjectComponent';
 
 import {
   ComponentActions,
@@ -27,19 +25,14 @@ import {
 import { getMutationField } from '../../lib/schema';
 import { getComponentMeta, getString } from '../../lib/meta';
 import { noop, returnArg } from '../../utils/misc';
+import * as JssyPropTypes from '../../constants/common-prop-types';
 
 const propTypes = {
   actions: ImmutablePropTypes.listOf(PropTypes.instanceOf(Action)).isRequired,
   meta: PropTypes.object.isRequired,
   schema: PropTypes.object,
-  routes: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectRoute),
-    PropTypes.number,
-  ).isRequired,
-  currentComponents: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponent),
-    PropTypes.number,
-  ).isRequired,
+  routes: JssyPropTypes.routes.isRequired,
+  currentComponents: JssyPropTypes.components.isRequired,
   language: PropTypes.string.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   onCreateAction: PropTypes.func,

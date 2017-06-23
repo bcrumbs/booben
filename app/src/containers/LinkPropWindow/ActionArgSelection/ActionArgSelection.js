@@ -24,7 +24,6 @@ import {
 import { getString } from '../../../lib/meta';
 import { noop, returnArg } from '../../../utils/misc';
 
-//noinspection JSUnresolvedVariable
 const propTypes = {
   actionArgsMeta: PropTypes.arrayOf(PropTypes.object).isRequired,
   actionComponentMeta: PropTypes.object.isRequired,

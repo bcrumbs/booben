@@ -92,9 +92,6 @@ const propTypes = {
   onRedo: PropTypes.func.isRequired, // dispatch
 };
 
-const defaultProps = {
-};
-
 const mapStateToProps = ({ project, app }) => ({
   project: project.data,
   projectName: project.projectName,
@@ -1417,7 +1414,6 @@ class StructureRoute extends PureComponent {
 }
 
 StructureRoute.propTypes = propTypes;
-StructureRoute.defaultProps = defaultProps;
 StructureRoute.displayName = 'StructureRoute';
 
 export default wrap(StructureRoute);

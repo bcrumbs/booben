@@ -71,8 +71,7 @@
 
 /**
  * @typedef {Object} SourceDataConst
- * @property {*} [value]
- * @property {string} [jssyConstId]
+ * @property {*} value
  */
 
 /**

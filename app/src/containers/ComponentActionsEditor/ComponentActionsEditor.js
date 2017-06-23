@@ -6,7 +6,6 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import _forOwn from 'lodash.forown';
 
@@ -31,7 +30,6 @@ import {
 } from '../../selectors';
 
 import { PathStartingPoints } from '../../reducers/project';
-import ProjectComponent from '../../models/ProjectComponent';
 
 import {
   getComponentMeta,
@@ -39,13 +37,12 @@ import {
   isValidSourceForValue,
 } from '../../lib/meta';
 
+import * as JssyPropTypes from '../../constants/common-prop-types';
+
 const propTypes = {
   meta: PropTypes.object.isRequired,
-  currentComponents: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponent),
-    PropTypes.number,
-  ).isRequired,
-  selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number).isRequired,
+  currentComponents: JssyPropTypes.components.isRequired,
+  selectedComponentIds: JssyPropTypes.setOfIds.isRequired,
   language: PropTypes.string.isRequired,
   onAddAction: PropTypes.func.isRequired,
   onReplaceAction: PropTypes.func.isRequired,

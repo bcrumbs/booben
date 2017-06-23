@@ -6,7 +6,6 @@
 
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import throttle from 'lodash.throttle';
 import kdbush from 'kdbush';
@@ -34,18 +33,15 @@ import {
 } from '../../../../selectors';
 
 import Project, { getComponentById } from '../../../../models/Project';
-import ProjectComponent from '../../../../models/ProjectComponent';
 import { distance } from '../../../../utils/geometry';
 import { noop } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
+import * as JssyPropTypes from '../../../../constants/common-prop-types';
 
 const propTypes = {
   project: PropTypes.instanceOf(Project).isRequired,
-  currentComponents: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponent),
-    PropTypes.number,
-  ).isRequired,
+  currentComponents: JssyPropTypes.components.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
   draggingOverPlaceholder: PropTypes.bool.isRequired,
   placeholderContainerId: PropTypes.number.isRequired,
@@ -151,31 +147,20 @@ const readAfterIdx = element =>
 
 const getOutletPosition = components => {
   const outlet = components.find(component => component.name === 'Outlet');
-  if (!outlet) return null;
   
-  const parent = outlet.parentId !== INVALID_ID
-    ? components.get(outlet.parentId)
-    : null;
-  
-  if (!parent) {
+  if (!outlet || outlet.parentId === INVALID_ID) {
     return {
-      enclosingComponent: null,
-      enclosingComponentChildrenNames: [],
-      enclosingComponentPosition: 0,
+      containerId: INVALID_ID,
+      afterIdx: -1,
     };
   }
   
+  const parent = components.get(outlet.parentId);
   const outletPosition = parent.children.keyOf(outlet.id);
-  const childrenNames = parent.children
-    .map(childId => components.get(childId).name)
-    .toJS();
-  
-  childrenNames.splice(outletPosition, 1);
   
   return {
-    enclosingComponent: parent,
-    enclosingComponentChildrenNames: childrenNames,
-    enclosingComponentPosition: outletPosition,
+    containerId: parent.id,
+    afterIdx: outletPosition - 1,
   };
 };
 
@@ -769,18 +754,6 @@ class CanvasContent extends Component {
     
     if (currentRouteIsIndexRoute) {
       const outletPosition = getOutletPosition(route.components);
-  
-      let enclosingComponent = null;
-      let enclosingComponentChildrenNames = [];
-      let enclosingComponentPosition = 0;
-  
-      if (outletPosition) {
-        enclosingComponent = outletPosition.enclosingComponent;
-        enclosingComponentChildrenNames =
-          outletPosition.enclosingComponentChildrenNames;
-    
-        enclosingComponentPosition = outletPosition.enclosingComponentPosition;
-      }
       
       ret = (
         <Builder
@@ -793,42 +766,35 @@ class CanvasContent extends Component {
             editable
             components={route.components}
             rootId={route.indexComponent}
-            enclosingComponent={enclosingComponent}
-            enclosingComponentChildrenNames={enclosingComponentChildrenNames}
-            enclosingComponentPosition={enclosingComponentPosition}
+            enclosingComponents={route.components}
+            enclosingContainerId={outletPosition.containerId}
+            enclosingAfterIdx={outletPosition.afterIdx}
           />
         </Builder>
       );
     } else {
-      const parentRoute = route.parentId === INVALID_ID
-        ? null
-        : project.routes.get(route.parentId);
-  
-      const outletPosition = parentRoute
-        ? getOutletPosition(parentRoute.components)
-        : null;
-  
-      let enclosingComponent = null;
-      let enclosingComponentChildrenNames = [];
-      let enclosingComponentPosition = 0;
-  
-      if (outletPosition) {
-        enclosingComponent = outletPosition.enclosingComponent;
-        enclosingComponentChildrenNames =
-          outletPosition.enclosingComponentChildrenNames;
-    
-        enclosingComponentPosition = outletPosition.enclosingComponentPosition;
-      }
+      let enclosingComponents = null;
+      let enclosingContainerId = INVALID_ID;
+      let enclosingAfterIdx = -1;
       
+      if (route.parentId !== INVALID_ID) {
+        const parentRoute = project.routes.get(route.parentId);
+        const outletPosition = getOutletPosition(parentRoute.components);
+        
+        enclosingComponents = parentRoute.components;
+        enclosingContainerId = outletPosition.containerId;
+        enclosingAfterIdx = outletPosition.afterIdx;
+      }
+  
       ret = (
         <Builder
           interactive
           editable
           components={route.components}
           rootId={route.component}
-          enclosingComponent={enclosingComponent}
-          enclosingComponentChildrenNames={enclosingComponentChildrenNames}
-          enclosingComponentPosition={enclosingComponentPosition}
+          enclosingComponents={enclosingComponents}
+          enclosingContainerId={enclosingContainerId}
+          enclosingAfterIdx={enclosingAfterIdx}
         />
       );
     }

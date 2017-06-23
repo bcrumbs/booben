@@ -631,17 +631,9 @@ const actionToJSv1 = action => ({
 });
 
 const sourceDataToJSv1Converters = {
-  const: sourceData => {
-    if (sourceData.jssyConstId) {
-      return {
-        jssyConstId: sourceData.jssyConstId,
-      };
-    } else {
-      return {
-        value: sourceData.value,
-      };
-    }
-  },
+  const: sourceData => ({
+    value: sourceData.value,
+  }),
   
   static: sourceData => {
     if (sourceData.ownerPropName) {
