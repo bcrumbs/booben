@@ -59,12 +59,12 @@ import {
   renameComponent,
   deleteComponent,
   copyComponent,
+  moveComponent,
   selectLayoutForNewComponent,
   pickComponentStateSlotDone,
   undo,
   redo,
   moveComponentToClipboard,
-  pasteComponentFromClipboard,
   ComponentPickAreas,
 } from '../actions/project';
 
@@ -77,6 +77,7 @@ import {
   getLocalizedTextFromState,
   containerStyleSelector,
   cursorPositionSelector,
+  componentClipboardSelector,
 } from '../selectors';
 
 import {
@@ -84,10 +85,10 @@ import {
   isCompositeComponent,
   getString,
   componentHasActions,
-  canInsertComponent,
 } from '../lib/meta';
 
-import { returnTrue, mapListToArray } from '../utils/misc';
+import { canInsertComponent, canMoveComponent } from '../lib/components';
+import { returnTrue } from '../utils/misc';
 
 import {
   TOOL_ID_LIBRARY,
@@ -114,12 +115,13 @@ const propTypes = {
   componentStateSlotsListIsVisible: PropTypes.bool.isRequired, // state
   isCompatibleStateSlot: PropTypes.func.isRequired, // state
   cursorPosition: JssyPropTypes.componentsTreePosition.isRequired, // state
+  componentClipboard: JssyPropTypes.componentClipboard.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onRenameComponent: PropTypes.func.isRequired, // dispatch
   onDeleteComponent: PropTypes.func.isRequired, // dispatch
   onCopyComponent: PropTypes.func.isRequired, // dispatch
+  onMoveComponent: PropTypes.func.isRequired, // dispatch
   onMoveComponentToClipboard: PropTypes.func.isRequired, // dispatch
-  onPasteComponent: PropTypes.func.isRequired, // dispatch
   onSelectLayout: PropTypes.func.isRequired, // dispatch
   onDropComponent: PropTypes.func.isRequired, // dispatch
   onSelectComponentStateSlot: PropTypes.func.isRequired, // dispatch
@@ -152,6 +154,7 @@ const mapStateToProps = state => ({
     returnTrue,
 
   cursorPosition: cursorPositionSelector(state),
+  componentClipboard: componentClipboardSelector(state),
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -164,12 +167,12 @@ const mapDispatchToProps = dispatch => ({
   
   onCopyComponent: (componentId, containerId, afterIdx) =>
     void dispatch(copyComponent(componentId, containerId, afterIdx)),
+  
+  onMoveComponent: (componentId, containerId, afterIdx) =>
+    void dispatch(moveComponent(componentId, containerId, afterIdx, true)),
 
   onMoveComponentToClipboard: (componentId, copy) =>
     void dispatch(moveComponentToClipboard(componentId, copy)),
-
-  onPasteComponent: (containerId, afterIdx) =>
-    void dispatch(pasteComponentFromClipboard(containerId, afterIdx)),
   
   onSelectLayout: layoutIdx =>
     void dispatch(selectLayoutForNewComponent(layoutIdx)),
@@ -452,17 +455,12 @@ class DesignRoute extends PureComponent {
     if (isRootComponent(selectedComponent)) return;
     
     const parentComponent = components.get(selectedComponent.parentId);
-    const position = parentComponent.children.indexOf(selectedComponent.id) + 1;
-    const containerChildNames = mapListToArray(
-      parentComponent.children,
-      childId => components.get(childId).name,
-    );
-    
+    const afterIdx = parentComponent.children.indexOf(selectedComponent.id) + 1;
     const canDuplicate = canInsertComponent(
       selectedComponent.name,
-      parentComponent.name,
-      containerChildNames,
-      position,
+      components,
+      parentComponent.id,
+      afterIdx,
       meta,
     );
     
@@ -470,7 +468,7 @@ class DesignRoute extends PureComponent {
       onCopyComponent(
         selectedComponent.id,
         selectedComponent.parentId,
-        position - 1, // copyComponent receives afterIdx instead of position
+        afterIdx - 1, // copyComponent receives afterIdx instead of position
       );
     }
   }
@@ -502,9 +500,50 @@ class DesignRoute extends PureComponent {
    * @private
    */
   _handlePasteComponent() {
-    const { cursorPosition, onPasteComponent } = this.props;
-    // TODO: canInsertComponent check
-    onPasteComponent(cursorPosition.containerId, cursorPosition.afterIdx);
+    const {
+      meta,
+      components,
+      componentClipboard,
+      cursorPosition,
+      onCopyComponent,
+      onMoveComponent,
+    } = this.props;
+    
+    const clipboardComponent = components.get(componentClipboard.componentId);
+    
+    if (componentClipboard.copy) {
+      const canCopy = canInsertComponent(
+        clipboardComponent.name,
+        components,
+        cursorPosition.containerId,
+        cursorPosition.afterIdx,
+        meta,
+      );
+      
+      if (canCopy) {
+        onCopyComponent(
+          componentClipboard.componentId,
+          cursorPosition.containerId,
+          cursorPosition.afterIdx,
+        );
+      }
+    } else {
+      const canMove = canMoveComponent(
+        components,
+        componentClipboard.componentId,
+        cursorPosition.containerId,
+        cursorPosition.afterIdx,
+        meta,
+      );
+      
+      if (canMove) {
+        onMoveComponent(
+          componentClipboard.componentId,
+          cursorPosition.containerId,
+          cursorPosition.afterIdx,
+        );
+      }
+    }
   }
 
   /**

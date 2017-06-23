@@ -52,7 +52,8 @@ import {
 import ProjectComponent from '../../models/ProjectComponent';
 import { startDragNewComponent } from '../../actions/preview';
 import HTMLMeta from '../../meta/html';
-import { canInsertComponent, constructComponent } from '../../lib/meta';
+import { constructComponent } from '../../lib/meta';
+import { canInsertComponent, ANYWHERE } from '../../lib/components';
 import { combineFiltersAll } from '../../utils/misc';
 import defaultComponentIcon from '../../../assets/component_default.svg';
 
@@ -278,16 +279,13 @@ const libraryGroupsFilteredSelector = createSelector(
 
     if (selectedComponentIds.size === 1 && !showAllComponentsOnPalette) {
       const selectedComponentId = selectedComponentIds.first();
-      const selectedComponent = components.get(selectedComponentId);
-      const childComponentNames = selectedComponent.children
-        .map(childId => components.get(childId).name);
 
       filterFns.push(
         component => canInsertComponent(
           component.fullName,
-          selectedComponent.name,
-          childComponentNames,
-          -1,
+          components,
+          selectedComponentId,
+          ANYWHERE,
           meta,
         ),
       );

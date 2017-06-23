@@ -79,11 +79,15 @@ import ProjectComponentRecord, {
 } from '../../models/ProjectComponent';
 
 import {
-  canInsertComponent,
   isCompositeComponent,
   getComponentMeta,
   isAtomicComponent,
 } from '../../lib/meta';
+
+import {
+  canInsertComponent,
+  canInsertComponentIntoTree,
+} from '../../lib/components';
 
 import { isFunction, returnTrue } from '../../utils/misc';
 import * as JssyPropTypes from '../../constants/common-prop-types';
@@ -223,29 +227,6 @@ const CursorPositions = {
 const BORDER_PIXELS = 4;
 const EXPAND_ON_DRAG_OVER_DELAY = 500;
 const MAX_HEIGHT_DIFF = 100;
-
-const canInsertComponentIntoTree = (component, components, rootId, meta) => {
-  const rootComponent = components.get(rootId);
-  const childNames = rootComponent.children
-    .map(childId => components.get(childId).name);
-  
-  const canInsert = canInsertComponent(
-    component.name,
-    rootComponent.name,
-    childNames,
-    -1,
-    meta,
-  );
-  
-  if (canInsert) return true;
-  
-  return rootComponent.children.some(childId => canInsertComponentIntoTree(
-    component,
-    components,
-    childId,
-    meta,
-  ));
-};
 
 /**
  *
@@ -483,35 +464,19 @@ class ComponentsTreeViewComponent extends PureComponent {
   /**
    *
    * @param {number} containerId
-   * @param {number} position
-   * @return {boolean}
-   * @private
-   */
-  _canInsertDraggedComponent(containerId, position) {
-    const { meta, components, rootDraggedComponent } = this.props;
-    
-    const container = components.get(containerId);
-    const containerChildNames =
-      container.children.map(childId => components.get(childId).name);
-    
-    return canInsertComponent(
-      rootDraggedComponent.name,
-      container.name,
-      containerChildNames,
-      position,
-      meta,
-    );
-  }
-  
-  /**
-   *
-   * @param {number} containerId
    * @param {number} afterIdx
    * @private
    */
   _tryUpdatePlaceholder(containerId, afterIdx) {
-    const canInsert =
-      this._canInsertDraggedComponent(containerId, afterIdx + 1);
+    const { meta, components, rootDraggedComponent } = this.props;
+    
+    const canInsert = canInsertComponent(
+      rootDraggedComponent.name,
+      components,
+      containerId,
+      afterIdx,
+      meta,
+    );
     
     if (canInsert) this._updatePlaceholderPosition(containerId, afterIdx);
     else this._removePlaceholder();
@@ -699,7 +664,14 @@ class ComponentsTreeViewComponent extends PureComponent {
    * @private
    */
   _handleMoveCursorInto() {
-    const { meta, components, cursorPosition, onMoveCursor } = this.props;
+    const {
+      meta,
+      components,
+      cursorPosition,
+      expandedItemIds,
+      onMoveCursor,
+      onExpandItem,
+    } = this.props;
 
     if (cursorPosition.containerId === INVALID_ID) return;
 
@@ -715,6 +687,10 @@ class ComponentsTreeViewComponent extends PureComponent {
     const targetComponent = components.get(targetComponentId);
 
     if (!isAtomicComponent(targetComponent.name, meta)) {
+      if (!expandedItemIds.has(targetComponentId)) {
+        onExpandItem(targetComponentId);
+      }
+      
       onMoveCursor(targetComponentId, -1);
     }
   }
@@ -806,7 +782,7 @@ class ComponentsTreeViewComponent extends PureComponent {
   
         if (!expandAlreadyScheduled) {
           const canInsertIntoSubtree = canInsertComponentIntoTree(
-            rootDraggedComponent,
+            rootDraggedComponent.name,
             components,
             componentId,
             meta,

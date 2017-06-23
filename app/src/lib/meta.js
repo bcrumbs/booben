@@ -19,6 +19,10 @@ import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../constants/misc';
 import { isDef, objectSome } from '../utils/misc';
 
 /**
+ * @typedef {Object<string, Object<string, ComponentMeta>>} ComponentsMeta
+ */
+
+/**
  *
  * @param {string} componentName
  * @return {{namespace: string, name: string}}
@@ -45,7 +49,7 @@ export const formatComponentName = (namespace, name) =>
 /**
  *
  * @param {string} componentName
- * @param {Object} meta
+ * @param {ComponentsMeta} meta
  * @return {?Object}
  */
 export const getComponentMeta = (componentName, meta) => {
@@ -62,7 +66,7 @@ export const getComponentMeta = (componentName, meta) => {
 /**
  *
  * @param {string} componentName
- * @param {Object} meta
+ * @param {ComponentsMeta} meta
  * @return {string}
  */
 export const getComponentKind = (componentName, meta) => {
@@ -74,7 +78,7 @@ export const getComponentKind = (componentName, meta) => {
 /**
  *
  * @param {string} componentName
- * @param {Object} meta
+ * @param {ComponentsMeta} meta
  * @return {boolean}
  */
 export const isAtomicComponent = (componentName, meta) =>
@@ -83,7 +87,7 @@ export const isAtomicComponent = (componentName, meta) =>
 /**
  *
  * @param {string} componentName
- * @param {Object} meta
+ * @param {ComponentsMeta} meta
  * @return {boolean}
  */
 export const isContainerComponent = (componentName, meta) =>
@@ -92,7 +96,7 @@ export const isContainerComponent = (componentName, meta) =>
 /**
  *
  * @param {string} componentName
- * @param {Object} meta
+ * @param {ComponentsMeta} meta
  * @return {boolean}
  */
 export const isCompositeComponent = (componentName, meta) =>
@@ -120,97 +124,6 @@ export const getString = (strings, stringId, language) => {
 export const getComponentPropName = (componentMeta, prop, language) => {
   const stringId = componentMeta.props[prop].textKey;
   return getString(componentMeta.strings, stringId, language);
-};
-
-/**
- *
- * @param {string} componentName
- * @param {?string} containerName
- * @param {string[]|Immutable.List<string>} containerChildrenNames
- * @param {number} position - -1 = ignore position constraints
- * @param {Object} meta
- * @return {boolean}
- */
-export const canInsertComponent = (
-  componentName,
-  containerName,
-  containerChildrenNames,
-  position,
-  meta,
-) => {
-  const componentMeta = getComponentMeta(componentName, meta);
-
-  if (containerName) {
-    const mustBeRoot =
-      !!componentMeta.placement &&
-      componentMeta.placement.root === 'only';
-  
-    if (mustBeRoot) return false;
-  } else {
-    return !componentMeta.placement ||
-      componentMeta.placement.root !== 'deny';
-  }
-  
-  const containerMeta = getComponentMeta(containerName, meta);
-  if (containerMeta.kind !== 'container') return false;
-  
-  if (!componentMeta.placement) return true;
-  
-  const { namespace } = parseComponentName(componentName);
-  const { namespace: containerNamespace } = parseComponentName(containerName);
-  const sameNamespace = containerNamespace === namespace;
-
-  if (sameNamespace && componentMeta.placement.inside) {
-    if (componentMeta.placement.inside.include) {
-      const sameComponentsNum = containerChildrenNames
-        .reduce((acc, cur) => acc + (cur === componentName ? 1 : 0), 0);
-
-      //noinspection JSUnresolvedFunction
-      const allow = componentMeta.placement.inside.include.some(inclusion => {
-        if (inclusion.component) {
-          const inclusionComponentName = formatComponentName(
-            namespace,
-            inclusion.component,
-          );
-
-          if (containerName !== inclusionComponentName) return false;
-        } else if (inclusion.group) {
-          if (containerMeta.group !== inclusion.group) return false;
-        } else if (inclusion.tag) {
-          if (!containerMeta.tags.has(inclusion.tag)) return false;
-        }
-
-        return !inclusion.maxNum || sameComponentsNum < inclusion.maxNum;
-      });
-
-      if (!allow) return false;
-    }
-
-    if (componentMeta.placement.inside.exclude) {
-      const deny = componentMeta.placement.inside.exclude.some(exclusion => {
-        if (exclusion.component) {
-          const exclusionComponentName = formatComponentName(
-            namespace,
-            exclusion.component,
-          );
-
-          return containerName === exclusionComponentName;
-        } else if (exclusion.group) {
-          return containerMeta.group === exclusion.group;
-        } else if (exclusion.tag) {
-          return containerMeta.tags.has(exclusion.tag);
-        } else {
-          return false;
-        }
-      });
-
-      if (deny) return false;
-    }
-  }
-  
-  // TODO: Check before and after constraints
-
-  return true;
 };
 
 /**

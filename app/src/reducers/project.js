@@ -29,8 +29,8 @@ import {
   PROJECT_COMPONENT_RENAME,
   PROJECT_COMPONENT_TOGGLE_REGION,
   PROJECT_COMPONENT_COPY,
+  PROJECT_COMPONENT_MOVE,
   PROJECT_COMPONENT_MOVE_TO_CLIPBOARD,
-  PROJECT_PASTE_COMPONENT_FROM_CLIPBOARD,
   PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
   PROJECT_CREATE_FUNCTION,
   PROJECT_JSSY_VALUE_REPLACE,
@@ -106,6 +106,8 @@ import ProjectComponent, {
   jssyValueToImmutable,
   makeDetachedCopy,
 } from '../models/ProjectComponent';
+
+import { isDeepChild } from '../lib/components';
 
 import {
   transformMetadata,
@@ -254,29 +256,17 @@ const initComponentPickingState = state => state.merge({
   componentStateSlotsListIsVisible: false,
 });
 
-const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
-
-const getTopNestedConstructor = state =>
-  state.nestedConstructors.first() || null;
-
-const openNestedConstructor = (state, nestedConstructor) => state.update(
-  'nestedConstructors',
-  nestedConstructors => nestedConstructors.unshift(nestedConstructor),
-);
-
-const closeAllNestedConstructors = state =>
-  state.set('nestedConstructors', List());
-
 const resetHistory = state => state.merge({
   history: List(),
   historyPointer: 0,
   historyTop: null,
 });
 
-const closeTopNestedConstructor = state => state.update(
-  'nestedConstructors',
-  nestedConstructors => nestedConstructors.shift(),
-);
+
+const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
+
+const getTopNestedConstructor = state =>
+  state.nestedConstructors.first() || null;
 
 const getPathToCurrentComponents = state => haveNestedConstructors(state)
   ? ['nestedConstructors', 0, 'data', 'components']
@@ -312,6 +302,20 @@ const getPathToCurrentClipboardNode = state => haveNestedConstructors(state)
 const getPathToCurrentCursorNode = state => haveNestedConstructors(state)
   ? ['nestedConstructors', 0]
   : [];
+
+
+const openNestedConstructor = (state, nestedConstructor) => state.update(
+  'nestedConstructors',
+  nestedConstructors => nestedConstructors.unshift(nestedConstructor),
+);
+
+const closeAllNestedConstructors = state =>
+  state.set('nestedConstructors', List());
+
+const closeTopNestedConstructor = state => state.update(
+  'nestedConstructors',
+  nestedConstructors => nestedConstructors.shift(),
+);
 
 const selectComponent = (state, componentId) => state.updateIn(
   getPathToCurrentSelectedComponentIds(state),
@@ -447,6 +451,32 @@ const deleteComponent = (state, componentId) => {
     const componentMeta = getComponentMeta(component.name, state.meta);
     return !!componentMeta.state && Object.keys(componentMeta.state).length > 0;
   });
+  
+  const pathToCurrentCursorNode = getPathToCurrentCursorNode(state);
+  
+  // Update cursor position
+  if (isRootComponent(component)) {
+    state = state.mergeIn(pathToCurrentCursorNode, {
+      cursorContainerId: INVALID_ID,
+      cursorAfter: -1,
+    });
+  } else {
+    const cursorNode = state.getIn(pathToCurrentCursorNode);
+    const cursorIsInsideDeletedSubtree =
+      cursorNode.cursorContainerId === componentId ||
+      isDeepChild(currentComponents, cursorNode.cursorContainerId, componentId);
+    
+    if (cursorIsInsideDeletedSubtree) {
+      const parentComponent = currentComponents.get(component.parentId);
+      const deletedComponentPosition =
+        parentComponent.children.indexOf(componentId);
+      
+      state = state.mergeIn(pathToCurrentCursorNode, {
+        cursorContainerId: component.parentId,
+        cursorAfter: deletedComponentPosition - 1,
+      });
+    }
+  }
 
   // Delete components from map
   state = state.updateIn(
@@ -587,17 +617,28 @@ const deleteComponent = (state, componentId) => {
 
 const moveComponent = (state, componentId, containerId, afterIdx) => {
   const pathToCurrentComponents = getPathToCurrentComponents(state);
-  const currentComponents = state.getIn(pathToCurrentComponents);
+  const components = state.getIn(pathToCurrentComponents);
 
-  if (
-    !currentComponents.has(componentId) ||
-    !currentComponents.has(containerId)
-  ) {
+  if (!components.has(componentId) || !components.has(containerId)) {
     return state;
   }
 
-  const component = currentComponents.get(componentId);
-  const position = afterIdx + 1;
+  const component = components.get(componentId);
+  const targetPosition = afterIdx + 1;
+  
+  // Update cursor position
+  const pathToCurrentCursorNode = getPathToCurrentCursorNode(state);
+  const cursorNode = state.getIn(pathToCurrentCursorNode);
+  if (cursorNode.containerId === component.parentId) {
+    const parentComponent = components.get(component.parentId);
+    const position = parentComponent.children.indexOf(componentId);
+    if (cursorNode.cursorAfter >= position) {
+      state = state.setIn(
+        [...pathToCurrentCursorNode, 'cursorAfter'],
+        cursorNode.cursorAfter - 1,
+      );
+    }
+  }
 
   if (component.parentId === containerId) {
     // Same parent, just change the position
@@ -607,11 +648,11 @@ const moveComponent = (state, componentId, containerId, afterIdx) => {
       ids => {
         const idx = ids.indexOf(componentId);
         
-        if (idx === position) return ids;
+        if (idx === targetPosition) return ids;
   
         return ids
           .delete(idx)
-          .insert(position - (idx < position), componentId);
+          .insert(targetPosition - (idx < targetPosition), componentId);
       },
     );
   } else {
@@ -623,7 +664,7 @@ const moveComponent = (state, componentId, containerId, afterIdx) => {
   
     state = state.updateIn(
       [...pathToCurrentComponents, containerId, 'children'],
-      ids => ids.insert(position, componentId),
+      ids => ids.insert(targetPosition, componentId),
     );
   
     return state.setIn(
@@ -1025,11 +1066,11 @@ const clearOutdatedDataProps = (state, updatedPath) => {
 const updateValue = (state, path, newValue) => {
   state = clearOutdatedDataProps(state, path);
   
-  const realPath = expandPath(materializePath(path, state));
+  const physicalPath = expandPath(materializePath(path, state));
   
   return newValue
-    ? state.setIn(realPath, newValue)
-    : state.deleteIn(realPath);
+    ? state.setIn(physicalPath, newValue)
+    : state.deleteIn(physicalPath);
 };
 
 const initCursor = state => {
@@ -1158,6 +1199,17 @@ const getPathToPreviousNodeWithHistory = state =>
 
 const undoable = _undoable(getPathToCurrentNodeWithHistory);
 const undoableInPreviousNode = _undoable(getPathToPreviousNodeWithHistory);
+
+const updateClipboard = (state, componentId, copy) => {
+  const pathToCurrentClipboardNode = getPathToCurrentClipboardNode(state);
+  
+  return state.mergeIn(pathToCurrentClipboardNode, {
+    clipboardComponentId: componentId,
+    clipboardCopy: copy,
+  });
+};
+
+const clearClipboard = state => updateClipboard(state, INVALID_ID, false);
 
 
 const handlers = {
@@ -1433,47 +1485,18 @@ const handlers = {
       action.afterIdx,
     ),
   )),
-
-  [PROJECT_COMPONENT_MOVE_TO_CLIPBOARD]: (state, action) => {
-    const pathToCurrentClipboardNode = getPathToCurrentClipboardNode(state);
-
-    return state.mergeIn(pathToCurrentClipboardNode, {
-      clipboardComponentId: action.componentId,
-      clipboardCopy: action.copy,
-    });
-  },
-
-  [PROJECT_PASTE_COMPONENT_FROM_CLIPBOARD]: undoable(incrementsRevision(
-    (state, action) => {
-      const pathToCurrentClipboardNode = getPathToCurrentClipboardNode(state);
-      const nodeWithClipboard = state.getIn(pathToCurrentClipboardNode);
-
-      if (nodeWithClipboard.clipboardComponentId === INVALID_ID) {
-        return state;
-      }
-
-      if (nodeWithClipboard.clipboardCopy) {
-        return copyComponent(
-          state,
-          nodeWithClipboard.clipboardComponentId,
-          action.containerId,
-          action.afterIdx,
-        );
-      } else {
-        state = moveComponent(
-          state,
-          nodeWithClipboard.clipboardComponentId,
-          action.containerId,
-          action.afterIdx,
-        );
-
-        return state.mergeIn(pathToCurrentClipboardNode, {
-          clipboardComponentId: INVALID_ID,
-          clipboardCopy: false,
-        });
-      }
-    },
+  
+  [PROJECT_COMPONENT_MOVE]: undoable(incrementsRevision(
+    (state, action) => moveComponent(
+      action.clearClipboard ? clearClipboard(state) : state,
+      action.componentId,
+      action.containerId,
+      action.afterIdx,
+    ),
   )),
+
+  [PROJECT_COMPONENT_MOVE_TO_CLIPBOARD]: (state, action) =>
+    updateClipboard(state, action.componentId, action.copy),
   
   [PROJECT_JSSY_VALUE_REPLACE]: undoable(incrementsRevision(
     (state, action) => updateValue(state, action.path, action.newValue),
@@ -1551,8 +1574,6 @@ const handlers = {
   [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE]:
     undoableInPreviousNode(incrementsRevision(state => {
       const topConstructor = getTopNestedConstructor(state);
-      state = closeTopNestedConstructor(state);
-    
       const newValue = new JssyValue({
         source: 'designer',
         sourceData: new SourceDataDesigner({
@@ -1561,7 +1582,11 @@ const handlers = {
         }),
       });
     
-      return updateValue(state, topConstructor.path, newValue);
+      return updateValue(
+        closeTopNestedConstructor(state),
+        topConstructor.path,
+        newValue,
+      );
     })),
   
   [PROJECT_COMPONENT_RENAME]: undoable(incrementsRevision((state, action) => {
@@ -1615,7 +1640,7 @@ const handlers = {
   },
   
   [PREVIEW_START_DRAG_NEW_COMPONENT]: (state, action) => {
-    if (state.selectingComponentLayout) return state;
+    if (state.selectingComponentLayout || state.pickingComponent) return state;
   
     return state.merge({
       draggingComponent: true,
@@ -1627,7 +1652,7 @@ const handlers = {
   },
   
   [PREVIEW_START_DRAG_EXISTING_COMPONENT]: (state, action) => {
-    if (state.selectingComponentLayout) return state;
+    if (state.selectingComponentLayout || state.pickingComponent) return state;
   
     const pathToCurrentComponents = getPathToCurrentComponents(state);
     const currentComponents = state.getIn(pathToCurrentComponents);

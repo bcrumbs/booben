@@ -127,6 +127,21 @@ export const cursorPositionSelector = createSelector(
     },
 );
 
+export const componentClipboardSelector = createSelector(
+  topNestedConstructorSelector,
+  state => state.project,
+  
+  (topNestedConstructor, projectState) => topNestedConstructor
+    ? {
+      componentId: topNestedConstructor.clipboardComponentId,
+      copy: topNestedConstructor.clipboardCopy,
+    }
+    : {
+      componentId: projectState.clipboardComponentId,
+      copy: projectState.clipboardCopy,
+    },
+);
+
 export const currentComponentsStackSelector = createSelector(
   state => state.project.nestedConstructors,
   currentRouteSelector,

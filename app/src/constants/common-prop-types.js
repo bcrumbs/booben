@@ -27,3 +27,8 @@ export const componentsTreePosition = PropTypes.shape({
   containerId: PropTypes.number.isRequired,
   afterIdx: PropTypes.number.isRequired,
 });
+
+export const componentClipboard = PropTypes.shape({
+  componentId: PropTypes.number.isRequired,
+  copy: PropTypes.bool.isRequired,
+});

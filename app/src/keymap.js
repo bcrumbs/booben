@@ -89,9 +89,9 @@ export default {
     SELECT_PREVIOUS_COMPONENT: 'up',
     SELECT_CHILD_COMPONENT: 'right',
     SELECT_PARENT_COMPONENT: 'left',
-    MOVE_CURSOR_DOWN: 'ctrl+alt+down',
-    MOVE_CURSOR_UP: 'ctrl+alt+up',
-    MOVE_CURSOR_OUTSIDE: 'ctrl+alt+left',
-    MOVE_CURSOR_INTO: 'ctrl+alt+right',
+    MOVE_CURSOR_DOWN: 'shift+down',
+    MOVE_CURSOR_UP: 'shift+up',
+    MOVE_CURSOR_OUTSIDE: 'shift+left',
+    MOVE_CURSOR_INTO: 'shift+right',
   },
 };

@@ -27,10 +27,10 @@ export const PROJECT_COMPONENT_TOGGLE_REGION =
   'PROJECT_COMPONENT_TOGGLE_REGION';
 export const PROJECT_COMPONENT_COPY =
   'PROJECT_COMPONENT_COPY';
+export const PROJECT_COMPONENT_MOVE =
+  'PROJECT_COMPONENT_MOVE';
 export const PROJECT_COMPONENT_MOVE_TO_CLIPBOARD =
   'PROJECT_COMPONENT_MOVE_TO_CLIPBOARD';
-export const PROJECT_PASTE_COMPONENT_FROM_CLIPBOARD =
-  'PROJECT_PASTE_COMPONENT_FROM_CLIPBOARD';
 export const PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT =
   'PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT';
 
@@ -222,6 +222,24 @@ export const copyComponent = triggersProjectSave(
 /**
  *
  * @param {number} componentId
+ * @param {number} containerId
+ * @param {number} afterIdx
+ * @param {boolean} [clearClipboard=false]
+ * @return {Object}
+ */
+export const moveComponent = triggersProjectSave(
+  (componentId, containerId, afterIdx, clearClipboard) => ({
+    type: PROJECT_COMPONENT_MOVE,
+    componentId,
+    containerId,
+    afterIdx,
+    clearClipboard,
+  }),
+);
+
+/**
+ *
+ * @param {number} componentId
  * @param {boolean} copy
  * @return {Object}
  */
@@ -229,18 +247,6 @@ export const moveComponentToClipboard = (componentId, copy) => ({
   type: PROJECT_COMPONENT_MOVE_TO_CLIPBOARD,
   componentId,
   copy,
-});
-
-/**
- *
- * @param {number} containerId
- * @param {number} afterIdx
- * @return {Object}
- */
-export const pasteComponentFromClipboard = (containerId, afterIdx) => ({
-  type: PROJECT_PASTE_COMPONENT_FROM_CLIPBOARD,
-  containerId,
-  afterIdx,
 });
 
 /**

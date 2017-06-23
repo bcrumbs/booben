@@ -42,9 +42,13 @@ import collapsingToPoint from '../../hocs/collapsingToPoint';
 import {
   isContainerComponent,
   isCompositeComponent,
-  canInsertComponent,
   getComponentMeta,
 } from '../../lib/meta';
+
+import {
+  canInsertComponent,
+  canInsertRootComponent,
+} from '../../lib/components';
 
 import {
   buildQueryForComponent,
@@ -80,9 +84,9 @@ const propTypes = {
   editable: PropTypes.bool,
   components: JssyPropTypes.components.isRequired,
   rootId: PropTypes.number,
-  enclosingComponent: PropTypes.instanceOf(ProjectComponent),
-  enclosingComponentChildrenNames: PropTypes.arrayOf(PropTypes.string),
-  enclosingComponentPosition: PropTypes.number,
+  enclosingComponents: JssyPropTypes.components,
+  enclosingContainerId: PropTypes.number,
+  enclosingAfterIdx: PropTypes.number,
   dontPatch: PropTypes.bool,
   isPlaceholder: PropTypes.bool,
   afterIdx: PropTypes.number,
@@ -118,9 +122,9 @@ const defaultProps = {
   editable: false,
   components: null,
   rootId: INVALID_ID,
-  enclosingComponent: null,
-  enclosingComponentChildrenNames: [],
-  enclosingComponentPosition: 0,
+  enclosingComponents: null,
+  enclosingContainerId: INVALID_ID,
+  enclosingAfterIdx: -1,
   dontPatch: false,
   isPlaceholder: false,
   afterIdx: -1,
@@ -1540,8 +1544,6 @@ class BuilderComponent extends PureComponent {
 
     const ret = [];
     const isComposite = isCompositeComponent(component.name, meta);
-    const childNames =
-      component.children.map(childId => components.get(childId).name);
 
     const willRenderPlaceholders =
       editable &&
@@ -1573,9 +1575,9 @@ class BuilderComponent extends PureComponent {
       if (willRenderPlaceholders) {
         const canInsertHere = canInsertComponent(
           rootDraggedComponent.name,
-          component.name,
-          childNames,
-          idx,
+          components,
+          component.id,
+          idx - 1,
           meta,
         );
 
@@ -1599,9 +1601,9 @@ class BuilderComponent extends PureComponent {
     if (willRenderPlaceholders) {
       const canInsertHere = canInsertComponent(
         rootDraggedComponent.name,
-        component.name,
-        childNames,
-        component.children.length,
+        components,
+        component.id,
+        component.children.size - 1,
         meta,
       );
 
@@ -1832,9 +1834,9 @@ class BuilderComponent extends PureComponent {
       editable,
       components,
       rootId,
-      enclosingComponent,
-      enclosingComponentChildrenNames,
-      enclosingComponentPosition,
+      enclosingComponents,
+      enclosingContainerId,
+      enclosingAfterIdx,
       isPlaceholder,
       draggingComponent,
       rootDraggedComponent,
@@ -1849,15 +1851,21 @@ class BuilderComponent extends PureComponent {
         isPlaceholder,
       );
     } else if (editable && draggingComponent && !isPlaceholder) {
-      const canInsertRootComponent = canInsertComponent(
-        rootDraggedComponent.name,
-        enclosingComponent ? enclosingComponent.name : null,
-        enclosingComponentChildrenNames,
-        enclosingComponentPosition - 1, // canInsertComponent receives afterIdx instead of position
-        meta,
-      );
+      const canInsertDraggedComponentAsRoot =
+        enclosingComponents !== null && enclosingContainerId !== INVALID_ID
+          ? canInsertComponent(
+            rootDraggedComponent.name,
+            enclosingComponents,
+            enclosingContainerId,
+            enclosingAfterIdx,
+            meta,
+          )
+          : canInsertRootComponent(
+            rootDraggedComponent.name,
+            meta,
+          );
   
-      return canInsertRootComponent
+      return canInsertDraggedComponentAsRoot
         ? this._renderPlaceholderForDraggedComponent(INVALID_ID, -1)
         : null;
     } else {
