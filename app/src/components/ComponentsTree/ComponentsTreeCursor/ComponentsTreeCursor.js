@@ -17,12 +17,13 @@ const propTypes = {
 };
 
 const defaultProps = {
-  tooltipText: 'Move cursor - CRTL + ↓ / ↑. Check out help page for more info.',
+  tooltipText: '',
 };
 
 export const _ComponentsTreeCursor = props => {
   const TooltipComponent = props.Tooltip;
-  
+
+  /* eslint-disable react/jsx-handler-names */
   return (
     <CursorStyled
       onMouseEnter={props.showTooltip}
@@ -31,6 +32,7 @@ export const _ComponentsTreeCursor = props => {
       <TooltipComponent text={props.tooltipText} />
     </CursorStyled>
   );
+  /* eslint-disable react/jsx-handler-names */
 };
 
 _ComponentsTreeCursor.propTypes = propTypes;

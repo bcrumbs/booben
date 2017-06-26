@@ -1115,6 +1115,7 @@ class ComponentsTreeViewComponent extends PureComponent {
       draggingComponent,
       rootDraggedComponent,
       cursorPosition,
+      getLocalizedText,
     } = this.props;
 
     const componentIds = parentComponentId !== INVALID_ID
@@ -1129,7 +1130,9 @@ class ComponentsTreeViewComponent extends PureComponent {
       cursorPosition.afterIdx === -1
     ) {
       children.push(
-        <ComponentsTreeCursor />,
+        <ComponentsTreeCursor
+          tooltipText={getLocalizedText('tree.cursorTooltip')}
+        />,
       );
     }
 
