@@ -677,7 +677,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     const containerComponent = components.get(cursorPosition.containerId);
 
-    if (cursorPosition.afterIdx > containerComponent.children.size - 1) {
+    if (cursorPosition.afterIdx >= containerComponent.children.size - 1) {
       return;
     }
 

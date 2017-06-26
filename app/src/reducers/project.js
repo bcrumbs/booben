@@ -1074,6 +1074,8 @@ const updateValue = (state, path, newValue) => {
 };
 
 const initCursor = state => {
+  if (!state.data || state.currentRouteId === INVALID_ID) return state;
+
   const nextRoute = state.data.routes.get(state.currentRouteId);
   const nextCursorContainerId = state.currentRouteIsIndexRoute
     ? nextRoute.indexComponent
