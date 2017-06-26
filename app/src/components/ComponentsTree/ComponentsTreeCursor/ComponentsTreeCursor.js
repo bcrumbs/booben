@@ -32,7 +32,7 @@ export const _ComponentsTreeCursor = props => {
       <TooltipComponent text={props.tooltipText} />
     </CursorStyled>
   );
-  /* eslint-disable react/jsx-handler-names */
+  /* eslint-enable react/jsx-handler-names */
 };
 
 _ComponentsTreeCursor.propTypes = propTypes;
