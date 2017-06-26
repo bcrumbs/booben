@@ -92,6 +92,7 @@
   "components.builtin.Text.desc": "",
 
   "tree.noComponents": "There are no components here",
+  "tree.cursorTooltip": "Move cursor - SHIFT + ↓ / ↑ / ← / →. Check out help page for more info.",
 
   "propsEditor.noComponentsSelectedText": "Select a component",
   "propsEditor.multipleComponentsSelectedText": "Multiple components selected",
