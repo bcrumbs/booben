@@ -16,12 +16,14 @@ import { noop } from '../../utils/misc';
 
 const propTypes = {
   placeholder: PropTypes.string,
+  value: PropTypes.string,
   inputRef: PropTypes.func,
   onChange: PropTypes.func,
 };
 
 const defaultProps = {
   placeholder: '',
+  value: '',
   inputRef: noop,
   onChange: noop,
 };
@@ -35,6 +37,7 @@ export const InputSpotlight = props => (
             ref={props.inputRef}
             fullWidth
             placeholder={props.placeholder}
+            value={props.value}
             onChange={props.onChange}
           />
         </InputWrapperStyled>
@@ -54,3 +57,8 @@ export const InputSpotlight = props => (
 InputSpotlight.propTypes = propTypes;
 InputSpotlight.defaultProps = defaultProps;
 InputSpotlight.displayName = 'InputSpotlight';
+
+export * from './OptionsGroup/OptionsGroup';
+export * from './OptionsGroupTitle/OptionsGroupTitle';
+export * from './OptionsList/OptionsList';
+export * from './Option/Option';

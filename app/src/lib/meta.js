@@ -497,7 +497,7 @@ const buildDefaultProps = (
  * @param {Object} meta
  * @param {boolean} [isNew=true]
  * @param {boolean} [isWrapper=false]
- * @return {Immutable.Map}
+ * @return {Immutable.Map<number, Object>}
  */
 export const constructComponent = (
   componentName,

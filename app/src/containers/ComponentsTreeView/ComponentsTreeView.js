@@ -1131,6 +1131,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     ) {
       children.push(
         <ComponentsTreeCursor
+          key="cursor"
           tooltipText={getLocalizedText('tree.cursorTooltip')}
         />,
       );
@@ -1163,7 +1164,10 @@ class ComponentsTreeViewComponent extends PureComponent {
         cursorPosition.afterIdx === idx
       ) {
         children.push(
-          <ComponentsTreeCursor />,
+          <ComponentsTreeCursor
+            key="cursor"
+            tooltipText={getLocalizedText('tree.cursorTooltip')}
+          />,
         );
       }
     });

@@ -17,7 +17,7 @@ export default {
             fullWidth: {
               paddingY: twoBaseModules,
               paddingX: threeBaseModules,
-              lineHeight: 32,
+              lineHeight: '32px',
               fontSize: fontSizeTwo,
             },
           },
@@ -28,7 +28,7 @@ export default {
             fullWidth: {
               paddingY: twoBaseModules,
               paddingX: threeBaseModules,
-              lineHeight: 32,
+              lineHeight: '32px',
               fontSize: fontSizeTwo,
             },
           },

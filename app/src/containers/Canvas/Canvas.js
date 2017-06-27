@@ -17,7 +17,7 @@ import store, {
 
 import { CanvasFrame } from '../../components/CanvasFrame/CanvasFrame';
 import { DocumentContext } from './DocumentContext/DocumentContext';
-import { loadComponents } from '../../lib/components-library';
+import { loadComponents } from '../../lib/react-components';
 import CanvasContent from './content/containers/CanvasContent';
 import Overlay from './content/containers/Overlay';
 import dropZone from '../../hocs/dropZone';

@@ -14,7 +14,7 @@ import { ErrorScreen } from './components/StateScreen/StateScreen';
 import store, { injectApolloMiddleware } from './store';
 import { createReducer } from './reducers';
 import { containerStyleSelector } from './selectors';
-import { loadComponents } from './lib/components-library';
+import { loadComponents } from './lib/react-components';
 import { loadProject } from './actions/project';
 import { removeSplashScreen } from './lib/dom';
 

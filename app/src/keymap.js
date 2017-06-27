@@ -82,6 +82,11 @@ export default {
       windows: 'ctrl+alt+q',
       linux: 'ctrl+alt+q',
     },
+    OPEN_CREATE_COMPONENT_MENU: {
+      osx: 'command+alt+n',
+      windows: 'ctrl+alt+n',
+      linux: 'ctrl+alt+n',
+    },
   },
   
   COMPONENTS_TREE: {
@@ -93,5 +98,12 @@ export default {
     MOVE_CURSOR_UP: 'shift+up',
     MOVE_CURSOR_OUTSIDE: 'shift+left',
     MOVE_CURSOR_INTO: 'shift+right',
+  },
+
+  CREATE_COMPONENT_MENU: {
+    CREATE: 'enter',
+    CLOSE: 'esc',
+    SELECT_NEXT: 'down',
+    SELECT_PREVIOUS: 'up',
   },
 };

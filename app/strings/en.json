@@ -73,6 +73,7 @@
   "design.willDropComponentText": "Will insert {componentTitle} into {where}",
   "design.willDropRootComponentText": "Will insert {componentTitle} as root component",
   "design.willDropComponentAfterText": "Will insert {componentTitle} into {where} after {after}",
+  "design.createComponentMenu.inputPlaceholder": "Start typing component name",
 
   "library.uncategorizedComponents": "Uncategorized",
   "library.noComponentsAvailable": "No components can be inserted inside selected component",
