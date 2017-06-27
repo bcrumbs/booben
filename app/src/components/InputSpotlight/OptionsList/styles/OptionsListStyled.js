@@ -7,7 +7,7 @@
 import styled from 'styled-components';
 import { baseModule } from '../../../../styles/themeSelectors';
 
-export const OptionsListStyled = styled.menu`
+export const OptionsListStyled = styled.ul`
   list-style-type: none;
   margin: 0;
   padding: 0;

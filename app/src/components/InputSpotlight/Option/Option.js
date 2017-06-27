@@ -16,8 +16,10 @@ const defaultProps = {
   active: false,
 };
 
-export const Option = ({ children }) => (
-  <OptionStyled tabIndex={0}>{children}</OptionStyled>
+export const Option = ({ active, children }) => (
+  <OptionStyled active={active} tabIndex={0}>
+    {children}
+  </OptionStyled>
 );
 
 Option.propTypes = propTypes;

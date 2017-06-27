@@ -1,5 +1,5 @@
 /**
- * @author Dmitriy Bizyaev, Ekaterina Marova
+ * @author Ekaterina Marova
  */
 
 'use strict';

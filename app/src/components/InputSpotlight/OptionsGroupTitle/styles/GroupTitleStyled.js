@@ -14,11 +14,9 @@ import {
   fontSizeXSmall,
 } from '../../../../styles/themeSelectors';
 
-import { inputSpotlightTheme } from '../../styles/theme';
-
 export const GroupTitleStyled = styled.div`
   margin: 0;
-  padding: ${baseModule(0.5)}px ${inputSpotlightTheme.options.paddingX}px;
+  padding: ${baseModule(0.5)}px ${baseModule(1.5)}px;
   width: 100%;
   background-color: ${paletteBlueGrey50};
   text-transform: uppercase;

@@ -1,31 +1,56 @@
 /**
- * @author Dmitriy Bizyaev, Ekaterina Marova
+ * @author Ekaterina Marova
  */
 
 'use strict';
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import { Input, Theme } from '@reactackle/reactackle';
 import { InputSpotlightStyled } from './styles/InputSpotlightStyled';
 import { ContentStyled } from './styles/ContentStyled';
 import { InputWrapperStyled } from './styles/InputWrapperStyled';
 import { OptionsWrapperStyled } from './styles/OptionsWrapperStyled';
-import { inputMixin } from './styles/theme';
+import reactackleThemeMixin from './styles/reactackle-theme-mixin';
+import { noop } from '../../utils/misc';
 
-// TODO mixin не срабатывает
-// TODO <Input /> надо обернуть в Theme
-// TODO <Input /> должен автоматически получать фокус при открытии
-export const InputSpotlight = ({ children }) => (
-  <InputSpotlightStyled>
-    <ContentStyled>
-      <InputWrapperStyled>
-        <Input fullWidth placeholder="Enter component's title" />
-      </InputWrapperStyled>
-      
-      {children && <OptionsWrapperStyled>{children}</OptionsWrapperStyled>}
-      
-    </ContentStyled>
-  </InputSpotlightStyled>
+const propTypes = {
+  placeholder: PropTypes.string,
+  inputRef: PropTypes.func,
+  onChange: PropTypes.func,
+};
+
+const defaultProps = {
+  placeholder: '',
+  inputRef: noop,
+  onChange: noop,
+};
+
+export const InputSpotlight = props => (
+  <Theme mixin={reactackleThemeMixin}>
+    <InputSpotlightStyled>
+      <ContentStyled>
+        <InputWrapperStyled>
+          <Input
+            ref={props.inputRef}
+            fullWidth
+            placeholder={props.placeholder}
+            onChange={props.onChange}
+          />
+        </InputWrapperStyled>
+
+        {
+          props.children && (
+            <OptionsWrapperStyled>
+              {props.children}
+            </OptionsWrapperStyled>
+          )
+        }
+      </ContentStyled>
+    </InputSpotlightStyled>
+  </Theme>
 );
 
+InputSpotlight.propTypes = propTypes;
+InputSpotlight.defaultProps = defaultProps;
 InputSpotlight.displayName = 'InputSpotlight';
