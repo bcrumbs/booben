@@ -242,7 +242,7 @@ export class ComponentsDragArea extends PureComponent {
     this._dropMenuElement = ref;
   }
   
-  _saveDromMenuItemRef(idx, ref) {
+  _saveDropMenuItemRef(idx, ref) {
     this._dropMenuItemElements[idx] = ref;
   }
 
@@ -719,7 +719,7 @@ export class ComponentsDragArea extends PureComponent {
         id={String(idx)}
         title={title}
         caption={caption}
-        elementRef={this._saveDromMenuItemRef.bind(this, idx)} // eslint-disable-line react/jsx-no-bind
+        elementRef={this._saveDropMenuItemRef.bind(this, idx)} // eslint-disable-line react/jsx-no-bind
       />
     ));
     
