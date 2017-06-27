@@ -19,6 +19,8 @@ export const PROJECT_ROUTE_UPDATE_PATH = 'PROJECT_ROUTE_UPDATE_PATH';
 
 export const PROJECT_MOVE_CURSOR = 'PROJECT_MOVE_CURSOR';
 
+export const PROJECT_COMPONENT_CREATE =
+  'PROJECT_COMPONENT_CREATE';
 export const PROJECT_COMPONENT_DELETE =
   'PROJECT_COMPONENT_DELETE';
 export const PROJECT_COMPONENT_RENAME =
@@ -192,6 +194,21 @@ export const updateRoutePath = triggersProjectSave((
   newParamValues,
   renamedParams,
 }));
+
+/**
+ *
+ * @param {Immutable.Map<number, Object>}
+ * @param {number} containerId
+ * @param {number} afterIdx
+ */
+export const createComponent = triggersProjectSave(
+  (components, containerId, afterIdx) => ({
+    type: PROJECT_COMPONENT_CREATE,
+    components,
+    containerId,
+    afterIdx,
+  }),
+);
 
 /**
  *

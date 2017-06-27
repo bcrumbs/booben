@@ -64,7 +64,7 @@ import {
   getFieldByPath,
 } from '../../lib/schema';
 
-import { getComponentByName } from '../../lib/components-library';
+import { getComponentByName } from '../../lib/react-components';
 import { getFunctionInfo } from '../../lib/functions';
 import { noop, returnNull, isUndef } from '../../utils/misc';
 import * as JssyPropTypes from '../../constants/common-prop-types';

@@ -88,11 +88,11 @@ export const currentRootComponentIdSelector = createSelector(
 
 export const currentSelectedComponentIdsSelector = createSelector(
   topNestedConstructorSelector,
-  state => state.project.selectedItems,
+  state => state.project.selectedComponentIds,
 
-  (topNestedConstructor, selectedItems) => topNestedConstructor
+  (topNestedConstructor, selectedComponentIds) => topNestedConstructor
     ? topNestedConstructor.selectedComponentIds
-    : selectedItems,
+    : selectedComponentIds,
 );
 
 export const singleComponentSelectedSelector = state =>
@@ -105,11 +105,11 @@ export const firstSelectedComponentIdSelector = state => {
 
 export const currentHighlightedComponentIdsSelector = createSelector(
   topNestedConstructorSelector,
-  state => state.project.highlightedItems,
+  state => state.project.highlightedComponentIds,
 
-  (topNestedConstructor, highlightedItems) => topNestedConstructor
+  (topNestedConstructor, highlightedComponentIds) => topNestedConstructor
     ? topNestedConstructor.highlightedComponentIds
-    : highlightedItems,
+    : highlightedComponentIds,
 );
 
 export const cursorPositionSelector = createSelector(

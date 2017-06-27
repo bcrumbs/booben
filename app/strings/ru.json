@@ -73,6 +73,7 @@
   "design.willDropComponentText": "{componentTitle} будет вставлен в {where}",
   "design.willDropRootComponentText": "{componentTitle} будет корневым компонентом",
   "design.willDropComponentAfterText": "{componentTitle} будет вставлен в {where} после {after}",
+  "design.createComponentMenu.inputPlaceholder": "Начните вводить имя компонента",
 
   "library.uncategorizedComponents": "Без категории",
   "library.noComponentsAvailable": "Нет компонентов, которые могут быть вставлены в выделенный компонент",

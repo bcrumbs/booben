@@ -16,6 +16,10 @@ import { Dialog, Panel, PanelContent } from '@reactackle/reactackle';
 import { Desktop } from '../containers/Desktop/Desktop';
 
 import {
+  CreateComponentMenu,
+} from '../containers/CreateComponentMenu/CreateComponentMenu';
+
+import {
   ComponentsLibrary,
 } from '../containers/ComponentsLibrary/ComponentsLibrary';
 
@@ -56,6 +60,7 @@ import ToolSectionRecord from '../models/ToolSection';
 import ButtonRecord from '../models/Button';
 
 import {
+  createComponent,
   renameComponent,
   deleteComponent,
   copyComponent,
@@ -85,6 +90,7 @@ import {
   isCompositeComponent,
   getString,
   componentHasActions,
+  constructComponent,
 } from '../lib/meta';
 
 import { canInsertComponent, canMoveComponent } from '../lib/components';
@@ -117,6 +123,7 @@ const propTypes = {
   cursorPosition: JssyPropTypes.componentsTreePosition.isRequired, // state
   componentClipboard: JssyPropTypes.componentClipboard.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
+  onCreateComponent: PropTypes.func.isRequired, // dispatch
   onRenameComponent: PropTypes.func.isRequired, // dispatch
   onDeleteComponent: PropTypes.func.isRequired, // dispatch
   onCopyComponent: PropTypes.func.isRequired, // dispatch
@@ -159,6 +166,9 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+  onCreateComponent: (components, containerId, afterIdx) =>
+    void dispatch(createComponent(components, containerId, afterIdx)),
+
   onRenameComponent: (componentId, newTitle) =>
     void dispatch(renameComponent(componentId, newTitle)),
   
@@ -219,6 +229,7 @@ class DesignRoute extends PureComponent {
     super(props, context);
 
     this.state = {
+      createComponentMenuIsVisible: false,
       confirmDeleteComponentDialogIsVisible: false,
     };
 
@@ -238,6 +249,10 @@ class DesignRoute extends PureComponent {
       this._handleLayoutSelection.bind(this);
     this._handleDropComponent =
       this._handleDropComponent.bind(this);
+    this._handleCreateComponent =
+      this._handleCreateComponent.bind(this);
+    this._handleCreateComponentMenuClose =
+      this._handleCreateComponentMenuClose.bind(this);
   }
   
   _getLibraryTool() {
@@ -372,35 +387,12 @@ class DesignRoute extends PureComponent {
    * @private
    */
   _handleShortcuts(action) {
-    const { onUndo, onRedo } = this.props;
-  
     switch (action) {
-      case 'UNDO': onUndo(); break;
-      case 'REDO': onRedo(); break;
+      case 'UNDO': this.props.onUndo(); break;
+      case 'REDO': this.props.onRedo(); break;
       
       case 'DELETE_COMPONENT': {
-        const {
-          meta,
-          components,
-          singleComponentSelected,
-          firstSelectedComponentId,
-        } = this.props;
-        
-        if (singleComponentSelected) {
-          const selectedComponent = components.get(firstSelectedComponentId);
-          const parentComponent = selectedComponent.parentId > -1
-            ? components.get(selectedComponent.parentId)
-            : null;
-  
-          const isRegion = parentComponent
-            ? isCompositeComponent(parentComponent.name, meta)
-            : false;
-          
-          if (!isRegion && !selectedComponent.isWrapper) {
-            this._handleDeleteComponentButtonPress();
-          }
-        }
-        
+        this._handleDeleteSelectedComponent();
         break;
       }
       
@@ -426,12 +418,48 @@ class DesignRoute extends PureComponent {
       
       case 'GO_TO_STRUCTURE': {
         const { projectName, onGoToStructure } = this.props;
-  
+
         onGoToStructure(projectName);
+        break;
+      }
+
+      case 'OPEN_CREATE_COMPONENT_MENU': {
+        this.setState({
+          createComponentMenuIsVisible: true,
+        });
+
         break;
       }
       
       default:
+    }
+  }
+
+  /**
+   *
+   * @private
+   */
+  _handleDeleteSelectedComponent() {
+    const {
+      meta,
+      components,
+      singleComponentSelected,
+      firstSelectedComponentId,
+    } = this.props;
+
+    if (singleComponentSelected) {
+      const selectedComponent = components.get(firstSelectedComponentId);
+      const parentComponent = selectedComponent.parentId > -1
+        ? components.get(selectedComponent.parentId)
+        : null;
+
+      const isRegion = parentComponent
+        ? isCompositeComponent(parentComponent.name, meta)
+        : false;
+
+      if (!isRegion && !selectedComponent.isWrapper) {
+        this._handleDeleteComponentButtonPress();
+      }
     }
   }
   
@@ -617,6 +645,37 @@ class DesignRoute extends PureComponent {
     const { onDropComponent } = this.props;
     onDropComponent(dropZoneId);
   }
+
+  /**
+   *
+   * @param {string} componentName
+   * @private
+   */
+  _handleCreateComponent({ componentName }) {
+    const { meta, language, cursorPosition, onCreateComponent } = this.props;
+
+    this.setState({
+      createComponentMenuIsVisible: false,
+    });
+
+    const components = constructComponent(componentName, 0, language, meta);
+
+    onCreateComponent(
+      components,
+      cursorPosition.containerId,
+      cursorPosition.afterIdx,
+    );
+  }
+
+  /**
+   *
+   * @private
+   */
+  _handleCreateComponentMenuClose() {
+    this.setState({
+      createComponentMenuIsVisible: false,
+    });
+  }
   
   /**
    *
@@ -706,6 +765,17 @@ class DesignRoute extends PureComponent {
     );
   }
 
+  _renderCreateComponentMenu() {
+    return (
+      <Portal>
+        <CreateComponentMenu
+          onCreateComponent={this._handleCreateComponent}
+          onClose={this._handleCreateComponentMenuClose}
+        />
+      </Portal>
+    );
+  }
+
   render() {
     const {
       projectName,
@@ -718,7 +788,10 @@ class DesignRoute extends PureComponent {
       getLocalizedText,
     } = this.props;
 
-    const { confirmDeleteComponentDialogIsVisible } = this.state;
+    const {
+      createComponentMenuIsVisible,
+      confirmDeleteComponentDialogIsVisible,
+    } = this.state;
 
     const layoutSelectionDialogContent =
       this._renderLayoutSelectionDialogContent();
@@ -750,6 +823,10 @@ class DesignRoute extends PureComponent {
     
     const componentStateSlotSelect = willRenderStateSlotSelect
       ? this._renderStateSlotSelect()
+      : null;
+
+    const createComponentMenu = createComponentMenuIsVisible
+      ? this._renderCreateComponentMenu()
       : null;
 
     return (
@@ -800,6 +877,7 @@ class DesignRoute extends PureComponent {
           </Portal>
           
           {componentStateSlotSelect}
+          {createComponentMenu}
         </Desktop>
       </Shortcuts>
     );
