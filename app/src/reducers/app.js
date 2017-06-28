@@ -29,7 +29,6 @@ const AppState = Record({
   localization: {},
   showFooterToggles: false,
   showContentPlaceholders: false,
-  showComponentTitles: false,
 });
 
 const handlers = {
@@ -50,9 +49,6 @@ const handlers = {
   
   [APP_TOGGLE_CONTENT_PLACEHOLDERS]: (state, action) =>
     state.set('showContentPlaceholders', action.enable),
-  
-  [APP_TOGGLE_COMPONENT_TITLES]: (state, action) =>
-    state.set('showComponentTitles', action.enable),
   
   [APP_SHOW_FOOTER_TOGGLES]: (state, action) =>
     state.set('showFooterToggles', action.show),

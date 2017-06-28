@@ -42,12 +42,7 @@ import {
 
 import { alertAreaProvider } from '../hocs/alerts';
 import ProjectRecord from '../models/Project';
-
-import {
-  toggleContentPlaceholders,
-  toggleComponentTitles,
-} from '../actions/app';
-
+import { toggleContentPlaceholders } from '../actions/app';
 import { getLocalizedTextFromState } from '../selectors';
 
 import {
@@ -67,10 +62,8 @@ const propTypes = {
   projectName: PropTypes.string.isRequired, // state
   project: PropTypes.instanceOf(ProjectRecord).isRequired, // state
   showContentPlaceholders: PropTypes.bool.isRequired, // state
-  showComponentTitles: PropTypes.bool.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onToggleContentPlaceholders: PropTypes.func.isRequired, // dispatch
-  onToggleComponentTitles: PropTypes.func.isRequired, // dispatch
   onAlertAreaReady: PropTypes.func.isRequired, // alertAreaProvider
   onAlertAreaRemoved: PropTypes.func.isRequired, // alertAreaProvider
 };
@@ -79,16 +72,12 @@ const mapStateToProps = state => ({
   projectName: state.project.projectName,
   project: state.project.data,
   showContentPlaceholders: state.app.showContentPlaceholders,
-  showComponentTitles: state.app.showComponentTitles,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
   onToggleContentPlaceholders: ({ value }) =>
     void dispatch(toggleContentPlaceholders(value)),
-
-  onToggleComponentTitles: ({ value }) =>
-    void dispatch(toggleComponentTitles(value)),
 });
 
 const wrap = compose(
@@ -174,10 +163,8 @@ class AppRoute extends Component {
       projectName,
       project,
       location,
-      showComponentTitles,
       showContentPlaceholders,
       getLocalizedText,
-      onToggleComponentTitles,
       onToggleContentPlaceholders,
       onAlertAreaReady,
     } = this.props;
@@ -336,23 +323,6 @@ class AppRoute extends Component {
               <FooterMenu inline dense mode="light">
                 <FooterMenuGroup>
                   <FooterMenuList>
-                    <Route
-                      path={PATH_DESIGN}
-                      render={() => (
-                        <FooterMenuItem
-                          text={getLocalizedText(
-                            'appFooter.showComponentsTitle',
-                          )}
-                          subcomponentRight={
-                            <ToggleButton
-                              checked={showComponentTitles}
-                              onChange={onToggleComponentTitles}
-                            />
-                          }
-                        />
-                      )}
-                    />
-                  
                     <Route
                       path={PATH_DESIGN}
                       render={() => (

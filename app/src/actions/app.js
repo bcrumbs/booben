@@ -14,8 +14,6 @@ export const APP_LOAD_STRINGS_FAILURE =
   'APP_LOAD_STRINGS_FAILURE';
 export const APP_TOGGLE_CONTENT_PLACEHOLDERS =
   'APP_TOGGLE_CONTENT_PLACEHOLDERS';
-export const APP_TOGGLE_COMPONENT_TITLES =
-  'APP_TOGGLE_COMPONENT_TITLES';
 export const APP_SHOW_FOOTER_TOGGLES =
   'APP_SHOW_FOOTER_TOGGLES';
 
@@ -74,16 +72,6 @@ export const loadStrings = language => dispatch => {
  */
 export const toggleContentPlaceholders = enable => ({
   type: APP_TOGGLE_CONTENT_PLACEHOLDERS,
-  enable,
-});
-
-/**
- *
- * @param {boolean} enable
- * @return {Object}
- */
-export const toggleComponentTitles = enable => ({
-  type: APP_TOGGLE_COMPONENT_TITLES,
   enable,
 });
 

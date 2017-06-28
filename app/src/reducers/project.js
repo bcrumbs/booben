@@ -396,11 +396,6 @@ const collapseTreeItems = (state, componentId) => state.updateIn(
   ids => ids.subtract(componentId),
 );
 
-const replaceExpandedItemIds = (state, componentIds) => state.setIn(
-  [...getPathToCurrentDesignerNode(state), 'expandedTreeItemIds'],
-  componentIds,
-);
-
 const addNewComponents = (
   state,
   containerId,
@@ -1121,6 +1116,8 @@ const updateValue = (state, path, newValue) => {
 };
 
 const initTree = state => {
+  if (state.currentRouteId === INVALID_ID) return state;
+  
   const route = state.data.routes.get(state.currentRouteId);
   const cursorContainerId = state.currentRouteIsIndexRoute
     ? route.indexComponent
