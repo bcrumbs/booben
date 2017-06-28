@@ -197,7 +197,13 @@ class CreateComponentMenuComponent extends PureComponent {
       filteredComponentGroups,
     } = this.state;
 
-    if (searchString === '') return;
+    if (
+      searchString === '' ||
+      filteredComponentGroups === null ||
+      filteredComponentGroups.size === 0
+    ) {
+      return;
+    }
 
     let nextActiveComponentName = '';
 
@@ -224,7 +230,7 @@ class CreateComponentMenuComponent extends PureComponent {
 
     if (nextActiveComponentName === '') {
       nextActiveComponentName =
-        filteredComponentGroups.get(0).components.first().fullName;
+        filteredComponentGroups.first().components.first().fullName;
     }
 
     this.setState({
@@ -238,8 +244,14 @@ class CreateComponentMenuComponent extends PureComponent {
       activeComponentName,
       filteredComponentGroups,
     } = this.state;
-
-    if (searchString === '') return;
+  
+    if (
+      searchString === '' ||
+      filteredComponentGroups === null ||
+      filteredComponentGroups.size === 0
+    ) {
+      return;
+    }
 
     let nextActiveComponentName = '';
 
@@ -266,7 +278,7 @@ class CreateComponentMenuComponent extends PureComponent {
 
     if (nextActiveComponentName === '') {
       nextActiveComponentName =
-        filteredComponentGroups.get(0).components.get(0).fullName;
+        filteredComponentGroups.first().components.first().fullName;
     }
 
     this.setState({
