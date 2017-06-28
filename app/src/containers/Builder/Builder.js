@@ -31,8 +31,8 @@ import ProjectComponent, {
 import { startDragExistingComponent } from '../../actions/preview';
 
 import {
-  currentSelectedComponentIdsSelector,
-  currentHighlightedComponentIdsSelector,
+  selectedComponentIdsSelector,
+  highlightedComponentIdsSelector,
   rootDraggedComponentSelector,
   getLocalizedTextFromState,
 } from '../../selectors/index';
@@ -154,8 +154,8 @@ const mapStateToProps = state => ({
   placeholderContainerId: state.project.placeholderContainerId,
   placeholderAfter: state.project.placeholderAfter,
   showContentPlaceholders: state.app.showContentPlaceholders,
-  selectedComponentIds: currentSelectedComponentIdsSelector(state),
-  highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
+  selectedComponentIds: selectedComponentIdsSelector(state),
+  highlightedComponentIds: highlightedComponentIdsSelector(state),
   getLocalizedText: getLocalizedTextFromState(state),
 });
 

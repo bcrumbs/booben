@@ -14,7 +14,7 @@ import { toggleComponentRegion } from '../../actions/project';
 
 import {
   currentComponentsSelector,
-  currentSelectedComponentIdsSelector,
+  selectedComponentIdsSelector,
 } from '../../selectors';
 
 import { getComponentMeta, getString } from '../../lib/meta';
@@ -35,7 +35,7 @@ const defaultProps = {
 const mapStateToProps = state => ({
   meta: state.project.meta,
   currentComponents: currentComponentsSelector(state),
-  selectedComponentIds: currentSelectedComponentIdsSelector(state),
+  selectedComponentIds: selectedComponentIdsSelector(state),
   language: state.app.language,
 });
 

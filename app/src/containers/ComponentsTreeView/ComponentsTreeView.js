@@ -67,11 +67,12 @@ import {
 import {
   currentComponentsSelector,
   currentRootComponentIdSelector,
-  currentSelectedComponentIdsSelector,
-  currentHighlightedComponentIdsSelector,
+  selectedComponentIdsSelector,
+  highlightedComponentIdsSelector,
   getLocalizedTextFromState,
   rootDraggedComponentSelector,
   cursorPositionSelector,
+  expandedTreeItemIdsSelector,
 } from '../../selectors';
 
 import ProjectComponentRecord, {
@@ -143,9 +144,9 @@ const defaultProps = {
 const mapStateToProps = state => ({
   components: currentComponentsSelector(state),
   rootComponentId: currentRootComponentIdSelector(state),
-  selectedComponentIds: currentSelectedComponentIdsSelector(state),
-  highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
-  expandedItemIds: state.project.treeExpandedItemIds,
+  selectedComponentIds: selectedComponentIdsSelector(state),
+  highlightedComponentIds: highlightedComponentIdsSelector(state),
+  expandedItemIds: expandedTreeItemIdsSelector(state),
   draggingComponent: state.project.draggingComponent,
   rootDraggedComponent: rootDraggedComponentSelector(state),
   draggingOverPlaceholder: state.project.draggingOverPlaceholder,
@@ -266,6 +267,8 @@ const calcCursorPosition = (pageY, element, borderPixels) => {
 const DraggableComponentTitle =
   connectDraggable(draggable(ComponentsTreeItemTitle));
 
+const DRAG_THROTTLE = 100;
+
 class ComponentsTreeViewComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -290,7 +293,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     this._handleHover = this._handleHover.bind(this);
     this._handleDragEnter = this._handleDragEnter.bind(this);
     this._handleDragLeave = this._handleDragLeave.bind(this);
-    this._handleDrag = throttle(this._handleDrag.bind(this), 100);
+    this._handleDrag = throttle(this._handleDrag.bind(this), DRAG_THROTTLE);
     this._handleComponentDragStart = this._handleComponentDragStart.bind(this);
     this._saveContentBoxRef = this._saveContentBoxRef.bind(this);
     this._saveItemRef = this._saveItemRef.bind(this);

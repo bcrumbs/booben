@@ -40,7 +40,7 @@ import {
 } from '../../actions/components-library';
 
 import {
-  currentSelectedComponentIdsSelector,
+  selectedComponentIdsSelector,
   currentComponentsSelector,
   haveNestedConstructorsSelector,
   getLocalizedTextFromState,
@@ -88,7 +88,7 @@ const defaultProps = {
 
 const libraryGroupsFilteredSelector = createSelector(
   libraryGroupsSortedByLanguageSelector,
-  currentSelectedComponentIdsSelector,
+  selectedComponentIdsSelector,
   currentComponentsSelector,
   haveNestedConstructorsSelector,
   state => state.project.showAllComponentsOnPalette,

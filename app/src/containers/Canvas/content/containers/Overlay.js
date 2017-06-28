@@ -6,8 +6,8 @@ import { Set } from 'immutable';
 import { connect } from 'react-redux';
 
 import {
-  currentSelectedComponentIdsSelector,
-  currentHighlightedComponentIdsSelector,
+  selectedComponentIdsSelector,
+  highlightedComponentIdsSelector,
   currentRootComponentIdSelector,
   currentComponentsSelector,
 } from '../../../../selectors';
@@ -40,8 +40,8 @@ const defaultProps = {
 
 const mapStateToProps = state => ({
   components: currentComponentsSelector(state),
-  selectedComponentIds: currentSelectedComponentIdsSelector(state),
-  highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
+  selectedComponentIds: selectedComponentIdsSelector(state),
+  highlightedComponentIds: highlightedComponentIdsSelector(state),
   boundaryComponentId: currentRootComponentIdSelector(state),
   highlightingEnabled: state.project.highlightingEnabled,
   draggingComponent: state.project.draggingComponent,

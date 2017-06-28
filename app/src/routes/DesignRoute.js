@@ -104,6 +104,7 @@ import {
 
 import { buildStructurePath } from '../constants/paths';
 import * as JssyPropTypes from '../constants/common-prop-types';
+import { INVALID_ID } from '../constants/misc';
 import defaultComponentLayoutIcon from '../../assets/layout_default.svg';
 
 const propTypes = {
@@ -424,9 +425,17 @@ class DesignRoute extends PureComponent {
       }
 
       case 'OPEN_CREATE_COMPONENT_MENU': {
-        this.setState({
-          createComponentMenuIsVisible: true,
-        });
+        const { components, cursorPosition } = this.props;
+        
+        const willOpenMenu =
+          cursorPosition.containerId !== INVALID_ID ||
+          components.size === 0;
+        
+        if (willOpenMenu) {
+          this.setState({
+            createComponentMenuIsVisible: true,
+          });
+        }
 
         break;
       }

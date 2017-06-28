@@ -28,6 +28,13 @@ export const topNestedConstructorSelector = state =>
     ? state.project.nestedConstructors.first()
     : null;
 
+export const currentDesignerNodeSelector = createSelector(
+  topNestedConstructorSelector,
+  state => state.project,
+  
+  (topNestedConstructor, projectState) => topNestedConstructor || projectState,
+);
+
 export const currentRouteSelector = state =>
   state.project.currentRouteId !== INVALID_ID
     ? state.project.data.routes.get(state.project.currentRouteId)
@@ -86,60 +93,43 @@ export const currentRootComponentIdSelector = createSelector(
   },
 );
 
-export const currentSelectedComponentIdsSelector = createSelector(
-  topNestedConstructorSelector,
-  state => state.project.selectedComponentIds,
-
-  (topNestedConstructor, selectedComponentIds) => topNestedConstructor
-    ? topNestedConstructor.selectedComponentIds
-    : selectedComponentIds,
+export const selectedComponentIdsSelector = createSelector(
+  currentDesignerNodeSelector,
+  currentDesignerNode => currentDesignerNode.selectedComponentIds,
 );
 
 export const singleComponentSelectedSelector = state =>
-  currentSelectedComponentIdsSelector(state).size === 1;
+  selectedComponentIdsSelector(state).size === 1;
 
 export const firstSelectedComponentIdSelector = state => {
-  const ret = currentSelectedComponentIdsSelector(state).first();
+  const ret = selectedComponentIdsSelector(state).first();
   return isDef(ret) ? ret : INVALID_ID;
 };
 
-export const currentHighlightedComponentIdsSelector = createSelector(
-  topNestedConstructorSelector,
-  state => state.project.highlightedComponentIds,
-
-  (topNestedConstructor, highlightedComponentIds) => topNestedConstructor
-    ? topNestedConstructor.highlightedComponentIds
-    : highlightedComponentIds,
+export const highlightedComponentIdsSelector = createSelector(
+  currentDesignerNodeSelector,
+  currentDesignerNode => currentDesignerNode.highlightedComponentIds,
 );
 
 export const cursorPositionSelector = createSelector(
-  topNestedConstructorSelector,
-  state => state.project,
-
-  (topNestedConstructor, projectState) => topNestedConstructor
-    ? {
-      containerId: topNestedConstructor.cursorContainerId,
-      afterIdx: topNestedConstructor.cursorAfter,
-    }
-    : {
-      containerId: projectState.cursorContainerId,
-      afterIdx: projectState.cursorAfter,
-    },
+  currentDesignerNodeSelector,
+  currentDesignerNode => ({
+    containerId: currentDesignerNode.cursorContainerId,
+    afterIdx: currentDesignerNode.cursorAfter,
+  }),
 );
 
 export const componentClipboardSelector = createSelector(
-  topNestedConstructorSelector,
-  state => state.project,
-  
-  (topNestedConstructor, projectState) => topNestedConstructor
-    ? {
-      componentId: topNestedConstructor.clipboardComponentId,
-      copy: topNestedConstructor.clipboardCopy,
-    }
-    : {
-      componentId: projectState.clipboardComponentId,
-      copy: projectState.clipboardCopy,
-    },
+  currentDesignerNodeSelector,
+  currentDesignerNode => ({
+    componentId: currentDesignerNode.clipboardComponentId,
+    copy: currentDesignerNode.clipboardCopy,
+  }),
+);
+
+export const expandedTreeItemIdsSelector = createSelector(
+  currentDesignerNodeSelector,
+  currentDesignerNode => currentDesignerNode.expandedTreeItemIds,
 );
 
 export const currentComponentsStackSelector = createSelector(
@@ -256,17 +246,6 @@ export const ownerUserTypedefsSelector = createSelector(
 
 /**
  *
- * @param {Object} localization
- * @param {string} language
- * @param {string} id
- * @param {Object} values
- * @return {string}
- */
-const getLocalizedText = (localization, language, id, values) =>
-  new IntlMessageFormat(localization[id], language).format(values);
-
-/**
- *
  * @param {Object} state
  * @return {function(id: string, [values]: Object): string}
  */
@@ -274,8 +253,8 @@ export const getLocalizedTextFromState = createSelector(
   state => state.app.localization,
   state => state.app.language,
 
-  (localization, language) =>
-    (id, values = {}) => getLocalizedText(localization, language, id, values),
+  (localization, language) => (id, values = {}) =>
+    new IntlMessageFormat(localization[id], language).format(values),
 );
 
 /**

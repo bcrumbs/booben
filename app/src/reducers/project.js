@@ -116,6 +116,7 @@ import {
   constructComponent,
   propHasDataContext,
   isCompositeComponent,
+  isAtomicComponent,
   buildDefaultValue,
 } from '../lib/meta';
 
@@ -180,6 +181,7 @@ export const NestedConstructor = Record({
   cursorAfter: -1,
   clipboardComponentId: INVALID_ID,
   clipboardCopy: false,
+  expandedTreeItemIds: Set(),
 });
 
 const ProjectState = Record({
@@ -218,6 +220,7 @@ const ProjectState = Record({
   cursorAfter: -1,
   clipboardComponentId: INVALID_ID,
   clipboardCopy: false,
+  expandedTreeItemIds: Set(),
 
   highlightingEnabled: true,
   showAllComponentsOnPalette: false,
@@ -242,7 +245,6 @@ const ProjectState = Record({
   pickedComponentArea: ComponentPickAreas.UNKNOWN,
   pickedComponentStateSlot: '',
   componentStateSlotsListIsVisible: false,
-  treeExpandedItemIds: Set(),
 });
 
 const initDNDState = state => state.merge({
@@ -374,6 +376,31 @@ const setCursorPosition = (state, containerId, afterIdx) =>
     cursorAfter: afterIdx,
   });
 
+const expandTreeItem = (state, componentId) => state.updateIn(
+  [...getPathToCurrentDesignerNode(state), 'expandedTreeItemIds'],
+  ids => ids.add(componentId),
+);
+
+const expandTreeItems = (state, componentIds) => state.updateIn(
+  [...getPathToCurrentDesignerNode(state), 'expandedTreeItemIds'],
+  ids => ids.union(componentIds),
+);
+
+const collapseTreeItem = (state, componentId) => state.updateIn(
+  [...getPathToCurrentDesignerNode(state), 'expandedTreeItemIds'],
+  ids => ids.delete(componentId),
+);
+
+const collapseTreeItems = (state, componentId) => state.updateIn(
+  [...getPathToCurrentDesignerNode(state), 'expandedTreeItemIds'],
+  ids => ids.subtract(componentId),
+);
+
+const replaceExpandedItemIds = (state, componentIds) => state.setIn(
+  [...getPathToCurrentDesignerNode(state), 'expandedTreeItemIds'],
+  componentIds,
+);
+
 const addNewComponents = (
   state,
   containerId,
@@ -442,22 +469,21 @@ const addNewComponents = (
 
   if (isCompositeComponent(rootComponent.name, state.meta)) {
     // If the new component is composite, expand it in the tree view
-    state = state.update(
-      'treeExpandedItemIds',
-      treeExpandedItemIds => treeExpandedItemIds.add(rootComponentId),
-    );
+    state = expandTreeItem(state, rootComponentId);
   }
 
   state = state.setIn(pathToCurrentLastComponentId, maxId);
   
   if (updateCursorPosition) {
     if (containerId === INVALID_ID) {
-      // Set cursor position inside newly created root component
-      state = setCursorPosition(
-        state,
-        state.getIn(getPathToCurrentRootComponentId(state)),
-        -1,
-      );
+      if (!isAtomicComponent(rootComponent.name, state.meta)) {
+        // Set cursor position inside newly created root component
+        state = setCursorPosition(
+          state,
+          state.getIn(getPathToCurrentRootComponentId(state)),
+          -1,
+        );
+      }
     } else {
       // Set cursor position after newly created component
       state = setCursorPosition(state, containerId, position);
@@ -1094,19 +1120,25 @@ const updateValue = (state, path, newValue) => {
     : state.deleteIn(physicalPath);
 };
 
-const initCursor = state => {
-  if (!state.data || state.currentRouteId === INVALID_ID) return state;
-
-  const nextRoute = state.data.routes.get(state.currentRouteId);
-  const nextCursorContainerId = state.currentRouteIsIndexRoute
-    ? nextRoute.indexComponent
-    : nextRoute.component;
-
-  const nextCursorAfter = -1;
+const initTree = state => {
+  const route = state.data.routes.get(state.currentRouteId);
+  const cursorContainerId = state.currentRouteIsIndexRoute
+    ? route.indexComponent
+    : route.component;
+  
+  const cursorAfter = -1;
+  const rootComponentId = state.currentRouteIsIndexRoute
+    ? route.indexComponent
+    : route.component;
+  
+  const expandedTreeItemIds = rootComponentId === INVALID_ID
+    ? Set()
+    : Set([rootComponentId]);
 
   return state.merge({
-    cursorContainerId: nextCursorContainerId,
-    cursorAfter: nextCursorAfter,
+    cursorContainerId,
+    cursorAfter,
+    expandedTreeItemIds,
   });
 };
 
@@ -1121,7 +1153,7 @@ const setCurrentRoute = (state, routeId, isIndexRoute) => {
   });
 
   if (state.loadState === LOADED) {
-    state = initCursor(state);
+    state = initTree(state);
   }
 
   return state;
@@ -1300,7 +1332,7 @@ const handlers = {
       .set('meta', meta)
       .set('schema', schema);
 
-    return initCursor(state);
+    return initTree(state);
   },
 
   [PROJECT_LOAD_FAILED]: (state, action) => state.merge({
@@ -1570,6 +1602,7 @@ const handlers = {
         lastComponentId: currentValue.sourceData.components.keySeq().max(),
         cursorContainerId: currentValue.sourceData.rootId,
         cursorAfter: -1,
+        expandedTreeItemIds: Set([currentValue.sourceData.rootId]),
       });
     } else if (action.components) {
       Object.assign(nestedConstructorDataInit, {
@@ -1578,9 +1611,10 @@ const handlers = {
       });
       
       Object.assign(nestedConstructorInit, {
-        lastComponentId: action.components.size - 1,
+        lastComponentId: action.components.keySeq().max(),
         cursorContainerId: action.rootId,
         cursorAfter: -1,
+        expandedTreeItemIds: Set([action.rootId]),
       });
     }
   
@@ -1869,33 +1903,15 @@ const handlers = {
   [LIBRARY_SHOW_ALL_COMPONENTS]: state =>
     state.set('showAllComponentsOnPalette', true),
 
-  [DESIGN_TREE_EXPAND_ITEM]: (state, action) => {
-    if (isArrayOrList(action.componentId)) {
-      return state.update(
-        'treeExpandedItemIds',
-        ids => ids.union(action.componentId),
-      );
-    } else {
-      return state.update(
-        'treeExpandedItemIds',
-        ids => ids.add(action.componentId),
-      );
-    }
-  },
+  [DESIGN_TREE_EXPAND_ITEM]: (state, action) =>
+    isArrayOrList(action.componentId)
+      ? expandTreeItems(state, action.componentId)
+      : expandTreeItem(state, action.componentId),
 
-  [DESIGN_TREE_COLLAPSE_ITEM]: (state, action) => {
-    if (isArrayOrList(action.componentId)) {
-      return state.update(
-        'treeExpandedItemIds',
-        ids => ids.subtract(action.componentId),
-      );
-    } else {
-      return state.update(
-        'treeExpandedItemIds',
-        ids => ids.delete(action.componentId),
-      );
-    }
-  },
+  [DESIGN_TREE_COLLAPSE_ITEM]: (state, action) =>
+    isArrayOrList(action.componentId)
+      ? collapseTreeItems(state, action.componentId)
+      : collapseTreeItem(state, action.componentId),
 };
 
 export default (state = new ProjectState(), action) =>

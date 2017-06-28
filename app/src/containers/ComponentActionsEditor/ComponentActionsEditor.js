@@ -26,7 +26,7 @@ import {
 
 import {
   currentComponentsSelector,
-  currentSelectedComponentIdsSelector,
+  selectedComponentIdsSelector,
 } from '../../selectors';
 
 import { PathStartingPoints } from '../../reducers/project';
@@ -56,7 +56,7 @@ const defaultProps = {
 const mapStateToProps = state => ({
   meta: state.project.meta,
   currentComponents: currentComponentsSelector(state),
-  selectedComponentIds: currentSelectedComponentIdsSelector(state),
+  selectedComponentIds: selectedComponentIdsSelector(state),
   language: state.app.language,
 });
 

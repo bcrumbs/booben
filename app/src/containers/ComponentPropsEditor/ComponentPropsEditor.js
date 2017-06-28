@@ -39,7 +39,7 @@ import { PathStartingPoints } from '../../reducers/project';
 
 import {
   currentComponentsSelector,
-  currentSelectedComponentIdsSelector,
+  selectedComponentIdsSelector,
   ownerPropsSelector,
   ownerUserTypedefsSelector,
   getLocalizedTextFromState,
@@ -85,7 +85,7 @@ const defaultProps = {
 const mapStateToProps = state => ({
   meta: state.project.meta,
   components: currentComponentsSelector(state),
-  selectedComponentIds: currentSelectedComponentIdsSelector(state),
+  selectedComponentIds: selectedComponentIdsSelector(state),
   language: state.app.language,
   ownerProps: ownerPropsSelector(state),
   ownerUserTypedefs: ownerUserTypedefsSelector(state),
