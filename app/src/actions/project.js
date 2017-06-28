@@ -202,11 +202,12 @@ export const updateRoutePath = triggersProjectSave((
  * @param {number} afterIdx
  */
 export const createComponent = triggersProjectSave(
-  (components, containerId, afterIdx) => ({
+  (components, containerId, afterIdx, updateCursorPosition = true) => ({
     type: PROJECT_COMPONENT_CREATE,
     components,
     containerId,
     afterIdx,
+    updateCursorPosition,
   }),
 );
 

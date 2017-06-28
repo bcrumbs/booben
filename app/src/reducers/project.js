@@ -368,7 +368,19 @@ const unhighlightAllComponents = state => state.setIn(
   Set(),
 );
 
-const addNewComponents = (state, containerId, afterIdx, components) => {
+const setCursorPosition = (state, containerId, afterIdx) =>
+  state.mergeIn(getPathToCurrentDesignerNode(state), {
+    cursorContainerId: containerId,
+    cursorAfter: afterIdx,
+  });
+
+const addNewComponents = (
+  state,
+  containerId,
+  afterIdx,
+  components,
+  updateCursorPosition = false,
+) => {
   const pathToCurrentLastComponentId = getPathToCurrentLastComponentId(state);
   const lastComponentId = state.getIn(pathToCurrentLastComponentId);
   const rootComponentId = lastComponentId === INVALID_ID
@@ -436,7 +448,23 @@ const addNewComponents = (state, containerId, afterIdx, components) => {
     );
   }
 
-  return state.setIn(pathToCurrentLastComponentId, maxId);
+  state = state.setIn(pathToCurrentLastComponentId, maxId);
+  
+  if (updateCursorPosition) {
+    if (containerId === INVALID_ID) {
+      // Set cursor position inside newly created root component
+      state = setCursorPosition(
+        state,
+        state.getIn(getPathToCurrentRootComponentId(state)),
+        -1,
+      );
+    } else {
+      // Set cursor position after newly created component
+      state = setCursorPosition(state, containerId, position);
+    }
+  }
+  
+  return state;
 };
 
 /**
@@ -465,10 +493,7 @@ const deleteComponent = (state, componentId) => {
   
   // Update cursor position
   if (isRootComponent(component)) {
-    state = state.mergeIn(pathToCurrentDesignerNode, {
-      cursorContainerId: INVALID_ID,
-      cursorAfter: -1,
-    });
+    state = setCursorPosition(state, INVALID_ID, -1);
   } else {
     const designerNode = state.getIn(pathToCurrentDesignerNode);
     const cursorIsInsideDeletedSubtree =
@@ -484,10 +509,11 @@ const deleteComponent = (state, componentId) => {
       const deletedComponentPosition =
         parentComponent.children.indexOf(componentId);
       
-      state = state.mergeIn(pathToCurrentDesignerNode, {
-        cursorContainerId: component.parentId,
-        cursorAfter: deletedComponentPosition - 1,
-      });
+      state = setCursorPosition(
+        state,
+        component.parentId,
+        deletedComponentPosition - 1,
+      );
     }
   }
 
@@ -642,12 +668,13 @@ const moveComponent = (state, componentId, containerId, afterIdx) => {
   // Update cursor position
   const pathToCurrentDesignerNode = getPathToCurrentDesignerNode(state);
   const designerNode = state.getIn(pathToCurrentDesignerNode);
-  if (designerNode.containerId === component.parentId) {
+  if (designerNode.cursorContainerId === component.parentId) {
     const parentComponent = components.get(component.parentId);
     const position = parentComponent.children.indexOf(componentId);
     if (designerNode.cursorAfter >= position) {
-      state = state.setIn(
-        [...pathToCurrentDesignerNode, 'cursorAfter'],
+      state = setCursorPosition(
+        state,
+        designerNode.cursorContainerId,
         designerNode.cursorAfter - 1,
       );
     }
@@ -703,32 +730,13 @@ const copyComponent = (state, componentId, containerId, afterIdx) => {
   return addNewComponents(state, containerId, afterIdx, componentsCopy);
 };
 
-const insertDraggedComponents = (state, components) => {
-  if (state.placeholderContainerId === INVALID_ID) {
-    // Creating root component
-    state = addNewComponents(state, INVALID_ID, -1, components);
-
-    // Set cursor position inside newly created root component
-    return state.mergeIn(getPathToCurrentDesignerNode(state), {
-      cursorContainerId: state.getIn(getPathToCurrentRootComponentId(state)),
-      cursorAfter: -1,
-    });
-  } else {
-    // Creating nested component
-    state = addNewComponents(
-      state,
-      state.placeholderContainerId,
-      state.placeholderAfter,
-      components,
-    );
-
-    // Set cursor position after newly created component
-    return state.mergeIn(getPathToCurrentDesignerNode(state), {
-      cursorContainerId: state.placeholderContainerId,
-      cursorAfter: state.placeholderAfter + 1,
-    });
-  }
-};
+const insertDraggedComponents = (state, components) => addNewComponents(
+  state,
+  state.placeholderContainerId,
+  state.placeholderAfter,
+  components,
+  true,
+);
 
 const selectFirstRoute = state => state.merge({
   selectedRouteId: state.data.routes.size > 0
@@ -1477,6 +1485,7 @@ const handlers = {
       action.containerId,
       action.afterIdx,
       action.components,
+      action.updateCursorPosition,
     ),
   )),
   
@@ -1843,14 +1852,11 @@ const handlers = {
     )),
   ),
 
-  [PROJECT_MOVE_CURSOR]: (state, action) => {
-    const pathToDesignerNode = getPathToCurrentDesignerNode(state);
-
-    return state.mergeIn(pathToDesignerNode, {
-      cursorContainerId: action.containerId,
-      cursorAfter: action.afterIdx,
-    });
-  },
+  [PROJECT_MOVE_CURSOR]: (state, action) => setCursorPosition(
+    state,
+    action.containerId,
+    action.afterIdx,
+  ),
   
   [STRUCTURE_SELECT_ROUTE]: (state, action) => state.merge({
     selectedRouteId: action.routeId,
