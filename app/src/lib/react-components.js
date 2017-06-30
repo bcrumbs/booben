@@ -10,9 +10,8 @@ import PropTypes from 'prop-types';
 import _mapValues from 'lodash.mapvalues';
 import patchComponent from '../hocs/patchComponent';
 import { parseComponentName } from './meta';
+import { COMPONENTS_BUNDLE_FILE } from '../config';
 import { URL_BUNDLE_PREFIX } from '../../../shared/constants';
-
-const COMPONENTS_BUNDLE_FILE = 'components.js';
 
 let components = null;
 

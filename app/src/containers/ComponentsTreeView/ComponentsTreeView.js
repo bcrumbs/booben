@@ -93,6 +93,7 @@ import {
 import { isFunction, returnTrue } from '../../utils/misc';
 import * as JssyPropTypes from '../../constants/common-prop-types';
 import { INVALID_ID } from '../../constants/misc';
+import { DND_DRAG_START_RADIUS_TREE } from '../../config';
 
 const propTypes = {
   dropZoneId: PropTypes.string,
@@ -1052,6 +1053,7 @@ class ComponentsTreeViewComponent extends PureComponent {
         active={active}
         hovered={hovered}
         dragEnable={isDraggable}
+        dragStartRadius={DND_DRAG_START_RADIUS_TREE}
         dragTitle={title}
         dragData={dragData}
         elementRef={this._saveItemRef}

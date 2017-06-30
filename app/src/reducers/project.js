@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { Record, Map, Set, List } from 'immutable';
+import { Map, Set, List } from 'immutable';
 import { resolveTypedef } from '@jssy/types';
 import { LOCATION_CHANGE } from 'react-router-redux';
 import { matchPath } from 'react-router';
@@ -81,6 +81,8 @@ import {
   DESIGN_TREE_COLLAPSE_ITEM,
 } from '../actions/design';
 
+import RecordWithHistory from '../models/helpers/RecordWithHistory';
+import Designer from '../models/Designer';
 import ProjectRoute from '../models/ProjectRoute';
 import JssyValue from '../models/JssyValue';
 import SourceDataDesigner from '../models/SourceDataDesigner';
@@ -132,8 +134,6 @@ import {
   isArrayOrList,
   isPrefixList,
   concatPath,
-  arrayToObject,
-  returnArg,
 } from '../utils/misc';
 
 import { getFunctionInfo } from '../lib/functions';
@@ -151,40 +151,25 @@ import {
   ROUTE_PARAM_VALUE_DEF,
 } from '../constants/misc';
 
-const UNDO_HISTORY_LENGTH = 100;
+import { UNDO_HISTORY_LENGTH } from '../config';
 
-const NestedConstructorData = Record({
-  components: Map(),
-  rootId: INVALID_ID,
-});
-
-export const NestedConstructor = Record({
+export const NestedConstructor = RecordWithHistory({
   path: [],
   valueInfo: null,
-  data: null,
-
-  // History properties
-  history: List(),
-  historyTop: null,
-  historyPointer: 0,
-  historyProps: [
-    'data',
-    'lastComponentId',
-    'selectedComponentIds',
-  ],
-  
-  // Designer properties
+  components: Map(),
+  rootId: INVALID_ID,
   lastComponentId: INVALID_ID,
-  selectedComponentIds: Set(),
-  highlightedComponentIds: Set(),
-  cursorContainerId: INVALID_ID,
-  cursorAfter: -1,
-  clipboardComponentId: INVALID_ID,
-  clipboardCopy: false,
-  expandedTreeItemIds: Set(),
+  designer: new Designer(),
+}, [
+  'components',
+  'rootId',
+  'lastComponentId',
+  'designer.selectedComponentIds',
+], {
+  historyLength: UNDO_HISTORY_LENGTH,
 });
 
-const ProjectState = Record({
+const ProjectState = RecordWithHistory({
   projectName: '',
   loadState: NOT_LOADED,
   error: null,
@@ -198,30 +183,8 @@ const ProjectState = Record({
   schema: null,
   meta: null,
   lastRouteId: INVALID_ID,
-
-  // History properties
-  history: List(),
-  historyTop: null,
-  historyPointer: 0,
-  historyProps: [
-    'data',
-    'lastRouteId',
-    'lastComponentId',
-    'selectedComponentIds',
-    'selectedRouteId',
-    'indexRouteSelected',
-  ],
-
-  // Designer properties
   lastComponentId: INVALID_ID,
-  selectedComponentIds: Set(),
-  highlightedComponentIds: Set(),
-  cursorContainerId: INVALID_ID,
-  cursorAfter: -1,
-  clipboardComponentId: INVALID_ID,
-  clipboardCopy: false,
-  expandedTreeItemIds: Set(),
-
+  designer: new Designer(),
   highlightingEnabled: true,
   showAllComponentsOnPalette: false,
   currentRouteId: INVALID_ID,
@@ -245,6 +208,15 @@ const ProjectState = Record({
   pickedComponentArea: ComponentPickAreas.UNKNOWN,
   pickedComponentStateSlot: '',
   componentStateSlotsListIsVisible: false,
+}, [
+  'data',
+  'lastRouteId',
+  'lastComponentId',
+  'selectedRouteId',
+  'indexRouteSelected',
+  'designer.selectedComponentIds',
+], {
+  historyLength: UNDO_HISTORY_LENGTH,
 });
 
 const initDNDState = state => state.merge({
@@ -268,13 +240,6 @@ const initComponentPickingState = state => state.merge({
   componentStateSlotsListIsVisible: false,
 });
 
-const resetHistory = state => state.merge({
-  history: List(),
-  historyPointer: 0,
-  historyTop: null,
-});
-
-
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
 
 const getTopNestedConstructor = state =>
@@ -293,18 +258,9 @@ const getPathToCurrentRootComponentId = state => haveNestedConstructors(state)
     state.currentRouteIsIndexRoute ? 'indexComponent' : 'component',
   ];
 
-const getPathToCurrentDesignerNode = state => haveNestedConstructors(state)
-  ? ['nestedConstructors', 0]
-  : [];
-
-const getPathToCurrentSelectedComponentIds = state =>
-  [...getPathToCurrentDesignerNode(state), 'selectedComponentIds'];
-
-const getPathToCurrentHighlightedComponentIds = state =>
-  [...getPathToCurrentDesignerNode(state), 'highlightedComponentIds'];
-
-const getPathToCurrentLastComponentId = state =>
-  [...getPathToCurrentDesignerNode(state), 'lastComponentId'];
+const getPathToCurrentDesigner = state => haveNestedConstructors(state)
+  ? ['nestedConstructors', 0, 'designer']
+  : ['designer'];
 
 const getPathToCurrentHistoryNode = state => haveNestedConstructors(state)
   ? ['nestedConstructors', 0]
@@ -314,87 +270,14 @@ const getPathToPreviousHistoryNode = state => state.nestedConstructors.size > 1
   ? ['nestedConstructors', 1]
   : [];
 
+const getDesigner = state => state.getIn(getPathToCurrentDesigner(state));
 
-const openNestedConstructor = (state, nestedConstructor) => state.update(
-  'nestedConstructors',
-  nestedConstructors => nestedConstructors.unshift(nestedConstructor),
-);
+const updateDesigner = (state, updater) =>
+  state.updateIn(getPathToCurrentDesigner(state), updater);
 
-const closeAllNestedConstructors = state =>
-  state.set('nestedConstructors', List());
-
-const closeTopNestedConstructor = state => state.update(
-  'nestedConstructors',
-  nestedConstructors => nestedConstructors.shift(),
-);
-
-const selectComponent = (state, componentId) => state.updateIn(
-  getPathToCurrentSelectedComponentIds(state),
-  selectedComponentIds => selectedComponentIds.add(componentId),
-);
-
-const selectComponentExclusive = (state, componentId) =>
-  state.setIn(getPathToCurrentSelectedComponentIds(state), Set([componentId]));
-
-const toggleComponentSelection = (state, componentId) => {
-  const pathToCurrentSelectedComponentIds =
-      getPathToCurrentSelectedComponentIds(state);
-  
-  const currentSelectedComponentIds =
-    state.getIn(pathToCurrentSelectedComponentIds);
-
-  const updater = currentSelectedComponentIds.has(componentId)
-    ? selectedComponentIds => selectedComponentIds.delete(componentId)
-    : selectedComponentIds => selectedComponentIds.add(componentId);
-
-  return state.updateIn(pathToCurrentSelectedComponentIds, updater);
-};
-
-const deselectComponent = (state, componentId) => state.updateIn(
-  getPathToCurrentSelectedComponentIds(state),
-  selectedComponentIds => selectedComponentIds.delete(componentId),
-);
-
-const highlightComponent = (state, componentId) => state.updateIn(
-  getPathToCurrentHighlightedComponentIds(state),
-  highlightedComponentIds => highlightedComponentIds.add(componentId),
-);
-
-const unhighlightComponent = (state, componentId) => state.updateIn(
-  getPathToCurrentHighlightedComponentIds(state),
-  highlightedComponentIds => highlightedComponentIds.delete(componentId),
-);
-
-const unhighlightAllComponents = state => state.setIn(
-  getPathToCurrentHighlightedComponentIds(state),
-  Set(),
-);
-
-const setCursorPosition = (state, containerId, afterIdx) =>
-  state.mergeIn(getPathToCurrentDesignerNode(state), {
-    cursorContainerId: containerId,
-    cursorAfter: afterIdx,
-  });
-
-const expandTreeItem = (state, componentId) => state.updateIn(
-  [...getPathToCurrentDesignerNode(state), 'expandedTreeItemIds'],
-  ids => ids.add(componentId),
-);
-
-const expandTreeItems = (state, componentIds) => state.updateIn(
-  [...getPathToCurrentDesignerNode(state), 'expandedTreeItemIds'],
-  ids => ids.union(componentIds),
-);
-
-const collapseTreeItem = (state, componentId) => state.updateIn(
-  [...getPathToCurrentDesignerNode(state), 'expandedTreeItemIds'],
-  ids => ids.delete(componentId),
-);
-
-const collapseTreeItems = (state, componentId) => state.updateIn(
-  [...getPathToCurrentDesignerNode(state), 'expandedTreeItemIds'],
-  ids => ids.subtract(componentId),
-);
+const getPathToLastComponentId = state => haveNestedConstructors(state)
+  ? ['nestedConstructors', 0, 'lastComponentId']
+  : ['lastComponentId'];
 
 const addNewComponents = (
   state,
@@ -403,8 +286,8 @@ const addNewComponents = (
   components,
   updateCursorPosition = false,
 ) => {
-  const pathToCurrentLastComponentId = getPathToCurrentLastComponentId(state);
-  const lastComponentId = state.getIn(pathToCurrentLastComponentId);
+  const pathToLastComponentId = getPathToLastComponentId(state);
+  const lastComponentId = state.getIn(pathToLastComponentId);
   const rootComponentId = lastComponentId === INVALID_ID
     ? 0
     : lastComponentId + 1;
@@ -464,24 +347,27 @@ const addNewComponents = (
 
   if (isCompositeComponent(rootComponent.name, state.meta)) {
     // If the new component is composite, expand it in the tree view
-    state = expandTreeItem(state, rootComponentId);
+    state = updateDesigner(state, designer =>
+      designer.expandTreeItem(rootComponentId));
   }
-
-  state = state.setIn(pathToCurrentLastComponentId, maxId);
+  
+  state = state.setIn(pathToLastComponentId, maxId);
   
   if (updateCursorPosition) {
     if (containerId === INVALID_ID) {
       if (!isAtomicComponent(rootComponent.name, state.meta)) {
         // Set cursor position inside newly created root component
-        state = setCursorPosition(
-          state,
+        state = updateDesigner(state, designer => designer.setCursorPosition(
           state.getIn(getPathToCurrentRootComponentId(state)),
           -1,
-        );
+        ));
       }
     } else {
       // Set cursor position after newly created component
-      state = setCursorPosition(state, containerId, position);
+      state = updateDesigner(state, designer => designer.setCursorPosition(
+        containerId,
+        position,
+      ));
     }
   }
   
@@ -510,18 +396,19 @@ const deleteComponent = (state, componentId) => {
     return !!componentMeta.state && Object.keys(componentMeta.state).length > 0;
   });
   
-  const pathToCurrentDesignerNode = getPathToCurrentDesignerNode(state);
-  
   // Update cursor position
   if (isRootComponent(component)) {
-    state = setCursorPosition(state, INVALID_ID, -1);
+    state = updateDesigner(state, designer => designer.setCursorPosition(
+      INVALID_ID,
+      -1,
+    ));
   } else {
-    const designerNode = state.getIn(pathToCurrentDesignerNode);
+    const designer = getDesigner(state);
     const cursorIsInsideDeletedSubtree =
-      designerNode.cursorContainerId === componentId ||
+      designer.cursorContainerId === componentId ||
       isDeepChild(
         currentComponents,
-        designerNode.cursorContainerId,
+        designer.cursorContainerId,
         componentId,
       );
     
@@ -529,12 +416,11 @@ const deleteComponent = (state, componentId) => {
       const parentComponent = currentComponents.get(component.parentId);
       const deletedComponentPosition =
         parentComponent.children.indexOf(componentId);
-      
-      state = setCursorPosition(
-        state,
+  
+      state = updateDesigner(state, designer => designer.setCursorPosition(
         component.parentId,
         deletedComponentPosition - 1,
-      );
+      ));
     }
   }
 
@@ -687,17 +573,15 @@ const moveComponent = (state, componentId, containerId, afterIdx) => {
   const targetPosition = afterIdx + 1;
   
   // Update cursor position
-  const pathToCurrentDesignerNode = getPathToCurrentDesignerNode(state);
-  const designerNode = state.getIn(pathToCurrentDesignerNode);
-  if (designerNode.cursorContainerId === component.parentId) {
+  const designer = getDesigner(state);
+  if (designer.cursorContainerId === component.parentId) {
     const parentComponent = components.get(component.parentId);
     const position = parentComponent.children.indexOf(componentId);
-    if (designerNode.cursorAfter >= position) {
-      state = setCursorPosition(
-        state,
-        designerNode.cursorContainerId,
-        designerNode.cursorAfter - 1,
-      );
+    if (designer.cursorAfter >= position) {
+      state = updateDesigner(state, designer => designer.setCursorPosition(
+        designer.cursorContainerId,
+        designer.cursorAfter - 1,
+      ));
     }
   }
 
@@ -760,8 +644,8 @@ const insertDraggedComponents = (state, components) => addNewComponents(
 );
 
 const selectFirstRoute = state => state.merge({
-  selectedRouteId: state.data.routes.size > 0
-    ? state.data.routes.get(0).id
+  selectedRouteId: state.data.rootRoutes.size > 0
+    ? state.data.rootRoutes.get(0)
     : INVALID_ID,
 
   indexRouteSelected: false,
@@ -1115,42 +999,87 @@ const updateValue = (state, path, newValue) => {
     : state.deleteIn(physicalPath);
 };
 
-const initTree = state => {
+const openNestedConstructor = (state, path, components, rootId) => {
+  const nestedConstructorInit = {
+    path,
+    valueInfo: getValueInfoByPath(path, state),
+  };
+  
+  const designerInit = {};
+  
+  if (rootId !== INVALID_ID) {
+    const rootComponent = components.get(rootId);
+    const cursorContainerId = isAtomicComponent(rootComponent.name, state.meta)
+      ? INVALID_ID
+      : rootComponent.id;
+    
+    Object.assign(designerInit, {
+      cursorContainerId,
+      cursorAfter: -1,
+      expandedTreeItemIds: Set([rootId]),
+    });
+    
+    Object.assign(nestedConstructorInit, {
+      components,
+      rootId,
+      lastComponentId: components.keySeq().max(),
+    });
+  }
+  
+  nestedConstructorInit.designer = new Designer(designerInit);
+  
+  return state.update('nestedConstructors', nestedConstructors =>
+    nestedConstructors.unshift(new NestedConstructor(nestedConstructorInit)));
+};
+
+const closeTopNestedConstructor = state => state.update(
+  'nestedConstructors',
+  nestedConstructors => nestedConstructors.shift(),
+);
+
+const closeAllNestedConstructors = state =>
+  state.set('nestedConstructors', List());
+
+const initMainDesigner = state => {
   if (state.currentRouteId === INVALID_ID) return state;
   
   const route = state.data.routes.get(state.currentRouteId);
-  const cursorContainerId = state.currentRouteIsIndexRoute
-    ? route.indexComponent
-    : route.component;
-  
-  const cursorAfter = -1;
   const rootComponentId = state.currentRouteIsIndexRoute
     ? route.indexComponent
     : route.component;
   
+  const rootComponent = rootComponentId === INVALID_ID
+    ? null
+    : route.components.get(rootComponentId);
+  
+  const willUpdateCursor =
+    rootComponent !== null &&
+    !isAtomicComponent(rootComponent.name, state.meta);
+  
   const expandedTreeItemIds = rootComponentId === INVALID_ID
     ? Set()
     : Set([rootComponentId]);
-
-  return state.merge({
-    cursorContainerId,
-    cursorAfter,
-    expandedTreeItemIds,
+  
+  return state.update('designer', designer => {
+    if (willUpdateCursor) {
+      designer = designer.setCursorPosition(rootComponentId, -1);
+    }
+    
+    return designer.set('expandedTreeItemIds', expandedTreeItemIds);
   });
 };
 
 const setCurrentRoute = (state, routeId, isIndexRoute) => {
   state = closeAllNestedConstructors(state);
+  state = state.update('designer', designer => designer.reset());
   
   state = state.merge({
     currentRouteId: routeId,
     currentRouteIsIndexRoute: isIndexRoute,
-    selectedComponentIds: Set(),
-    highlightedComponentIds: Set(),
   });
 
   if (state.loadState === LOADED) {
-    state = initTree(state);
+    state = initMainDesigner(state);
   }
 
   return state;
@@ -1164,74 +1093,9 @@ const incrementRevision = state => state.update(
 const incrementsRevision = fn => (state, action) =>
   incrementRevision(fn(state, action));
 
-const extractHistoryEntry = nodeWithHistory => arrayToObject(
-  nodeWithHistory.historyProps,
-  returnArg,
-  key => nodeWithHistory.get(key),
-);
-
-const applyHistoryEntry = (nodeWithHistory, historyEntry) =>
-  nodeWithHistory.merge(historyEntry);
-
-const pushHistoryEntry = nodeWithHistory => {
-  let nextHistory = nodeWithHistory.history
-    .setSize(nodeWithHistory.history.size - nodeWithHistory.historyPointer)
-    .push(extractHistoryEntry(nodeWithHistory));
-  
-  if (nextHistory.size > UNDO_HISTORY_LENGTH) {
-    nextHistory = nextHistory.shift();
-  }
-  
-  return nodeWithHistory.merge({
-    history: nextHistory,
-    historyTop: null,
-    historyPointer: 0,
-  });
-};
-
-const moveBack = nodeWithHistory => {
-  if (nodeWithHistory.history.size - nodeWithHistory.historyPointer <= 0) {
-    return nodeWithHistory;
-  }
-  
-  if (nodeWithHistory.historyPointer === 0) {
-    nodeWithHistory = nodeWithHistory.set(
-      'historyTop',
-      extractHistoryEntry(nodeWithHistory),
-    );
-  }
-  
-  const historyEntry = nodeWithHistory.history
-    .get(nodeWithHistory.history.size - nodeWithHistory.historyPointer - 1);
-  
-  return applyHistoryEntry(nodeWithHistory, historyEntry)
-    .set('historyPointer', nodeWithHistory.historyPointer + 1);
-};
-
-const moveForward = nodeWithHistory => {
-  if (nodeWithHistory.historyPointer === 0) {
-    return nodeWithHistory;
-  }
-  
-  if (nodeWithHistory.historyPointer === 1) {
-    const topHistoryEntry = nodeWithHistory.historyTop;
-    
-    return applyHistoryEntry(nodeWithHistory, topHistoryEntry).merge({
-      historyPointer: 0,
-      historyTop: null,
-    });
-  }
-  
-  const historyEntry = nodeWithHistory.history
-    .get(nodeWithHistory.history.size - nodeWithHistory.historyPointer + 1);
-  
-  return applyHistoryEntry(nodeWithHistory, historyEntry)
-    .set('historyPointer', nodeWithHistory.historyPointer - 1);
-};
-
 const updateHistory = (state, getPathToNodeWithHistory) => state.updateIn(
   getPathToNodeWithHistory(state),
-  pushHistoryEntry,
+  record => record.pushHistoryEntry(),
 );
 
 const _undoable = getPathToNodeWithHistory => fn => (state, action) => fn(
@@ -1242,21 +1106,10 @@ const _undoable = getPathToNodeWithHistory => fn => (state, action) => fn(
 const undoable = _undoable(getPathToCurrentHistoryNode);
 const undoableInPreviousNode = _undoable(getPathToPreviousHistoryNode);
 
-const updateClipboard = (state, componentId, copy) => {
-  const pathToCurrentDesignerNode = getPathToCurrentDesignerNode(state);
-  
-  return state.mergeIn(pathToCurrentDesignerNode, {
-    clipboardComponentId: componentId,
-    clipboardCopy: copy,
-  });
-};
-
-const clearClipboard = state => updateClipboard(state, INVALID_ID, false);
-
 
 const handlers = {
   [LOCATION_CHANGE]: (state, action) => {
-    state = resetHistory(closeAllNestedConstructors(state));
+    state = state.resetHistory();
     
     const pathname = action.payload.pathname;
     
@@ -1304,32 +1157,19 @@ const handlers = {
       });
     }
   
-    const lastRouteId = project.routes.size > 0
-      ? getMaxRouteId(project)
-      : INVALID_ID;
-    
-    const lastComponentId = getMaxComponentId(project);
-    const meta = transformMetadata(action.metadata);
-    const schema = action.schema ? parseGraphQLSchema(action.schema) : null;
-  
     state = state
+      .set('meta', transformMetadata(action.metadata))
+      .set('schema', action.schema ? parseGraphQLSchema(action.schema) : null)
       .merge({
         projectName: action.project.name,
         loadState: LOADED,
         data: project,
         error: null,
-        lastRouteId,
-        lastComponentId,
-        selectedRouteId: project.rootRoutes.size > 0
-          ? project.rootRoutes.get(0)
-          : INVALID_ID,
-        
-        indexRouteSelected: false,
-      })
-      .set('meta', meta)
-      .set('schema', schema);
+        lastRouteId: getMaxRouteId(project),
+        lastComponentId: getMaxComponentId(project),
+      });
 
-    return initTree(state);
+    return initMainDesigner(selectFirstRoute(state));
   },
 
   [PROJECT_LOAD_FAILED]: (state, action) => state.merge({
@@ -1394,12 +1234,6 @@ const handlers = {
   [PROJECT_ROUTE_DELETE]: undoable(incrementsRevision((state, action) => {
     const deletedRoute = state.data.routes.get(action.routeId);
     const deletedRouteIds = gatherRoutesTreeIds(state.data, action.routeId);
-  
-    // De-select and de-highlight all components
-    state = state.merge({
-      selectedComponentIds: Set(),
-      highlightedComponentIds: Set(),
-    });
   
     // Delete routes
     state = state.updateIn(
@@ -1519,8 +1353,8 @@ const handlers = {
   )),
   
   [PROJECT_COMPONENT_DELETE]: undoable(incrementsRevision((state, action) => {
-    state = deselectComponent(state, action.componentId);
-    state = unhighlightComponent(state, action.componentId);
+    state = updateDesigner(state, designer =>
+      designer.forgetComponent(action.componentId));
   
     if (state.draggedComponentId === action.componentId) {
       state = initDNDState(state);
@@ -1540,7 +1374,10 @@ const handlers = {
   
   [PROJECT_COMPONENT_MOVE]: undoable(incrementsRevision(
     (state, action) => moveComponent(
-      action.clearClipboard ? clearClipboard(state) : state,
+      action.clearClipboard
+        ? updateDesigner(state, designer => designer.clearClipboard())
+        : state,
+      
       action.componentId,
       action.containerId,
       action.afterIdx,
@@ -1548,7 +1385,8 @@ const handlers = {
   )),
 
   [PROJECT_COMPONENT_MOVE_TO_CLIPBOARD]: (state, action) =>
-    updateClipboard(state, action.componentId, action.copy),
+    updateDesigner(state, designer =>
+      designer.updateClipboard(action.componentId, action.copy)),
   
   [PROJECT_JSSY_VALUE_REPLACE]: undoable(incrementsRevision(
     (state, action) => updateValue(state, action.path, action.newValue),
@@ -1580,46 +1418,30 @@ const handlers = {
       throw new Error('Cannot open nested constructor with absolute path');
     }
     
-    const nestedConstructorInit = {
-      path: action.path,
-      valueInfo: getValueInfoByPath(action.path, state),
-    };
-    
-    const nestedConstructorDataInit = {};
-    
     const currentValue = getObjectByPath(materializePath(action.path, state));
     
     if (currentValue.hasDesignedComponent()) {
-      Object.assign(nestedConstructorDataInit, {
-        components: currentValue.sourceData.components,
-        rootId: currentValue.sourceData.rootId,
-      });
-  
-      Object.assign(nestedConstructorInit, {
-        lastComponentId: currentValue.sourceData.components.keySeq().max(),
-        cursorContainerId: currentValue.sourceData.rootId,
-        cursorAfter: -1,
-        expandedTreeItemIds: Set([currentValue.sourceData.rootId]),
-      });
+      return openNestedConstructor(
+        state,
+        action.path,
+        currentValue.sourceData.components,
+        currentValue.sourceData.rootId,
+      );
     } else if (action.components) {
-      Object.assign(nestedConstructorDataInit, {
-        components: action.components,
-        rootId: action.rootId,
-      });
-      
-      Object.assign(nestedConstructorInit, {
-        lastComponentId: action.components.keySeq().max(),
-        cursorContainerId: action.rootId,
-        cursorAfter: -1,
-        expandedTreeItemIds: Set([action.rootId]),
-      });
+      return openNestedConstructor(
+        state,
+        action.path,
+        action.components,
+        action.rootId,
+      );
+    } else {
+      return openNestedConstructor(
+        state,
+        action.path,
+        null,
+        INVALID_ID,
+      );
     }
-  
-    nestedConstructorInit.data =
-      new NestedConstructorData(nestedConstructorDataInit);
-    
-    const nestedConstructor = new NestedConstructor(nestedConstructorInit);
-    return openNestedConstructor(state, nestedConstructor);
   },
   
   [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL]: state =>
@@ -1670,38 +1492,47 @@ const handlers = {
   )),
   
   [PREVIEW_HIGHLIGHT_COMPONENT]: (state, action) =>
-    highlightComponent(state, action.componentId),
+    updateDesigner(state, designer =>
+      designer.highlightComponent(action.componentId)),
   
   [PREVIEW_UNHIGHLIGHT_COMPONENT]: (state, action) =>
-    unhighlightComponent(state, action.componentId),
+    updateDesigner(state, designer =>
+      designer.unhighlightComponent(action.componentId)),
   
   [PREVIEW_SELECT_COMPONENT]: (state, action) => {
     state = state.set('showAllComponentsOnPalette', false);
-  
-    return action.exclusive
-      ? selectComponentExclusive(state, action.componentId)
-      : selectComponent(state, action.componentId);
+    
+    return updateDesigner(state, action.exclusive
+      ? designer => designer.selectComponentExclusive(action.componentId)
+      : designer => designer.selectComponent(action.componentId),
+    );
   },
   
   [PREVIEW_DESELECT_COMPONENT]: (state, action) => {
     state = state.set('showAllComponentsOnPalette', false);
-    return deselectComponent(state, action.componentId);
+    
+    return updateDesigner(state, designer =>
+      designer.deselectComponent(action.componentId));
   },
   
   [PREVIEW_TOGGLE_COMPONENT_SELECTION]: (state, action) => {
     state = state.set('showAllComponentsOnPalette', false);
-    return toggleComponentSelection(state, action.componentId);
+  
+    return updateDesigner(state, designer =>
+      designer.toggleComponentSelection(action.componentId));
   },
   
   [PREVIEW_START_DRAG_NEW_COMPONENT]: (state, action) => {
     if (state.selectingComponentLayout || state.pickingComponent) return state;
+    
+    state = updateDesigner(state, designer =>
+      designer.unhighlightAllComponents());
   
     return state.merge({
       draggingComponent: true,
       draggedComponentId: INVALID_ID,
       draggedComponents: action.components,
       highlightingEnabled: false,
-      highlightedComponentIds: Set(),
     });
   },
   
@@ -1710,13 +1541,15 @@ const handlers = {
   
     const pathToCurrentComponents = getPathToCurrentComponents(state);
     const currentComponents = state.getIn(pathToCurrentComponents);
+    
+    state = updateDesigner(state, designer =>
+      designer.unhighlightAllComponents());
   
     return state.merge({
       draggingComponent: true,
       draggedComponentId: action.componentId,
       draggedComponents: currentComponents,
       highlightingEnabled: false,
-      highlightedComponentIds: Set(),
     });
   },
   
@@ -1807,7 +1640,8 @@ const handlers = {
       return state;
     }
 
-    state = unhighlightAllComponents(state);
+    state = updateDesigner(state, designer =>
+      designer.unhighlightAllComponents());
     
     return state.merge({
       pickingComponent: true,
@@ -1872,22 +1706,24 @@ const handlers = {
   }),
   
   [PROJECT_UNDO]: incrementsRevision(
-    state => initComponentPickingState(initDNDState(
-      state.updateIn(getPathToCurrentHistoryNode(state), moveBack),
-    )),
+    state => initComponentPickingState(initDNDState(state.updateIn(
+      getPathToCurrentHistoryNode(state),
+      record => record.moveBack(),
+    ))),
   ),
   
   [PROJECT_REDO]: incrementsRevision(
-    state => initComponentPickingState(initDNDState(
-      state.updateIn(getPathToCurrentHistoryNode(state), moveForward),
-    )),
+    state => initComponentPickingState(initDNDState(state.updateIn(
+      getPathToCurrentHistoryNode(state),
+      record => record.moveForward(),
+    ))),
   ),
 
-  [PROJECT_MOVE_CURSOR]: (state, action) => setCursorPosition(
-    state,
-    action.containerId,
-    action.afterIdx,
-  ),
+  [PROJECT_MOVE_CURSOR]: (state, action) =>
+    updateDesigner(state, designer => designer.setCursorPosition(
+      action.containerId,
+      action.afterIdx,
+    )),
   
   [STRUCTURE_SELECT_ROUTE]: (state, action) => state.merge({
     selectedRouteId: action.routeId,
@@ -1901,14 +1737,16 @@ const handlers = {
     state.set('showAllComponentsOnPalette', true),
 
   [DESIGN_TREE_EXPAND_ITEM]: (state, action) =>
-    isArrayOrList(action.componentId)
-      ? expandTreeItems(state, action.componentId)
-      : expandTreeItem(state, action.componentId),
+    updateDesigner(state, designer => isArrayOrList(action.componentId)
+      ? designer.expandTreeItems(action.componentId)
+      : designer.expandTreeItem(action.componentId),
+    ),
 
   [DESIGN_TREE_COLLAPSE_ITEM]: (state, action) =>
-    isArrayOrList(action.componentId)
-      ? collapseTreeItems(state, action.componentId)
-      : collapseTreeItem(state, action.componentId),
+    updateDesigner(state, designer => isArrayOrList(action.componentId)
+      ? designer.collapseTreeItems(action.componentId)
+      : designer.collapseTreeItem(action.componentId),
+    ),
 };
 
 export default (state = new ProjectState(), action) =>

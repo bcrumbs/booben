@@ -78,6 +78,8 @@ import {
   AJAX_URL_VALUE_DEF,
 } from '../../constants/misc';
 
+import { DND_DRAG_START_RADIUS_CANVAS } from '../../config';
+
 const propTypes = {
   params: PropTypes.object,
   interactive: PropTypes.bool,
@@ -178,8 +180,6 @@ const wrap = compose(
     getWindowInstance: (props, context) => context.window,
   }),
 );
-
-const COMPONENT_DRAG_START_RADIUS = 100;
 
 /**
  *
@@ -1822,7 +1822,7 @@ class BuilderComponent extends PureComponent {
         dragEnable={isDraggable}
         dragTitle={component.title || component.name}
         dragData={{ componentId: component.id }}
-        dragStartRadius={COMPONENT_DRAG_START_RADIUS}
+        dragStartRadius={DND_DRAG_START_RADIUS_CANVAS}
         onDragStart={this._handleComponentDragStart}
       />
     );

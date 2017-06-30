@@ -97,7 +97,9 @@ export const projectToImmutable = input => new ProjectRecord({
   }),
 });
 
-export const getMaxRouteId = project => project.routes.keySeq().max();
+export const getMaxRouteId = project => project.routes.size > 0
+  ? project.routes.keySeq().max()
+  : INVALID_ID;
 
 export const getMaxComponentId = project =>
   Math.max(INVALID_ID, ...project.routes.toList().map(_getMaxComponentId));

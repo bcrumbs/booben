@@ -14,7 +14,6 @@ import { returnArg } from '../../utils/misc';
 const propTypes = {
   saving: PropTypes.bool.isRequired,
   lastSaveError: PropTypes.object,
-  lastSaveTimestamp: PropTypes.number.isRequired,
   lastSavedRevision: PropTypes.number.isRequired,
   getLocalizedText: PropTypes.func,
 };
@@ -27,7 +26,6 @@ const defaultProps = {
 const mapStateToProps = state => ({
   saving: state.project.saving,
   lastSaveError: state.project.lastSaveError,
-  lastSaveTimestamp: state.project.lastSaveTimestamp,
   lastSavedRevision: state.project.lastSavedRevision,
   getLocalizedText: getLocalizedTextFromState(state),
 });

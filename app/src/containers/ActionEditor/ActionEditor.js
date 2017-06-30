@@ -6,7 +6,6 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import _startCase from 'lodash.startcase';
 import _forOwn from 'lodash.forown';
@@ -27,11 +26,7 @@ import {
 } from '../../components/props/index';
 
 import Project from '../../models/Project';
-
-import ProjectComponent, {
-  jssyValueToImmutable,
-} from '../../models/ProjectComponent';
-
+import { jssyValueToImmutable } from '../../models/ProjectComponent';
 import JssyValue from '../../models/JssyValue';
 import { Action, createActionParams } from '../../models/SourceDataActions';
 import SourceDataState from '../../models/SourceDataState';

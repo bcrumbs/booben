@@ -28,11 +28,13 @@ export const topNestedConstructorSelector = state =>
     ? state.project.nestedConstructors.first()
     : null;
 
-export const currentDesignerNodeSelector = createSelector(
+export const currentDesignerSelector = createSelector(
   topNestedConstructorSelector,
   state => state.project,
   
-  (topNestedConstructor, projectState) => topNestedConstructor || projectState,
+  (topNestedConstructor, projectState) => topNestedConstructor === null
+    ? projectState.designer
+    : topNestedConstructor.designer,
 );
 
 export const currentRouteSelector = state =>
@@ -45,7 +47,7 @@ export const currentComponentsSelector = createSelector(
   currentRouteSelector,
 
   (topNestedConstructor, currentRoute) => {
-    if (topNestedConstructor) return topNestedConstructor.data.components;
+    if (topNestedConstructor) return topNestedConstructor.components;
     if (currentRoute) return currentRoute.components;
     return null;
   },
@@ -68,8 +70,8 @@ export const topNestedConstructorComponentSelector = createSelector(
       getComponentIdFromNestedConstructor(topNestedConstructor);
     
     const components = nestedConstructors.size === 1
-          ? currentRoute.components
-          : nestedConstructors.get(1).data.components;
+      ? currentRoute.components
+      : nestedConstructors.get(1).components;
 
     return components.get(componentId) || null;
   },
@@ -81,7 +83,7 @@ export const currentRootComponentIdSelector = createSelector(
   state => state.project.currentRouteIsIndexRoute,
 
   (topNestedConstructor, currentRoute, currentRouteIsIndexRoute) => {
-    if (topNestedConstructor) return topNestedConstructor.data.rootId;
+    if (topNestedConstructor) return topNestedConstructor.rootId;
     
     if (currentRoute) {
       return currentRouteIsIndexRoute
@@ -94,8 +96,8 @@ export const currentRootComponentIdSelector = createSelector(
 );
 
 export const selectedComponentIdsSelector = createSelector(
-  currentDesignerNodeSelector,
-  currentDesignerNode => currentDesignerNode.selectedComponentIds,
+  currentDesignerSelector,
+  designer => designer.selectedComponentIds,
 );
 
 export const singleComponentSelectedSelector = state =>
@@ -107,29 +109,29 @@ export const firstSelectedComponentIdSelector = state => {
 };
 
 export const highlightedComponentIdsSelector = createSelector(
-  currentDesignerNodeSelector,
-  currentDesignerNode => currentDesignerNode.highlightedComponentIds,
+  currentDesignerSelector,
+  designer => designer.highlightedComponentIds,
 );
 
 export const cursorPositionSelector = createSelector(
-  currentDesignerNodeSelector,
-  currentDesignerNode => ({
-    containerId: currentDesignerNode.cursorContainerId,
-    afterIdx: currentDesignerNode.cursorAfter,
+  currentDesignerSelector,
+  designer => ({
+    containerId: designer.cursorContainerId,
+    afterIdx: designer.cursorAfter,
   }),
 );
 
 export const componentClipboardSelector = createSelector(
-  currentDesignerNodeSelector,
-  currentDesignerNode => ({
-    componentId: currentDesignerNode.clipboardComponentId,
-    copy: currentDesignerNode.clipboardCopy,
+  currentDesignerSelector,
+  designer => ({
+    componentId: designer.clipboardComponentId,
+    copy: designer.clipboardCopy,
   }),
 );
 
 export const expandedTreeItemIdsSelector = createSelector(
-  currentDesignerNodeSelector,
-  currentDesignerNode => currentDesignerNode.expandedTreeItemIds,
+  currentDesignerSelector,
+  designer => designer.expandedTreeItemIds,
 );
 
 export const currentComponentsStackSelector = createSelector(
@@ -327,7 +329,7 @@ export const nestedConstructorBreadcrumbsSelector = createSelector(
       
       return {
         ret: acc.ret.push(title, propName),
-        components: cur.data.components,
+        components: cur.components,
       };
     };
     

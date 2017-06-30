@@ -62,6 +62,11 @@ import {
 import { canInsertComponent, ANYWHERE } from '../../lib/components';
 import { combineFiltersAll } from '../../utils/misc';
 
+import {
+  LIBRARY_SEARCH_INPUT_DEBOUNCE,
+  DND_DRAG_START_RADIUS_LIBRARY,
+} from '../../config';
+
 const ComponentGroupsType = PropTypes.shape({
   groups: ImmutablePropTypes.listOf(PropTypes.instanceOf(LibraryGroupData)),
   filtered: PropTypes.bool,
@@ -174,8 +179,6 @@ const wrap = connect(mapStateToProps, mapDispatchToProps);
 
 const DraggableComponentTag = connectDraggable(draggable(ComponentTag));
 
-const SEARCH_INPUT_DEBOUNCE = 150;
-
 class ComponentsLibraryComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -190,7 +193,7 @@ class ComponentsLibraryComponent extends PureComponent {
     
     this._doSearchDebounced = _debounce(
       this._doSearch.bind(this),
-      SEARCH_INPUT_DEBOUNCE,
+      LIBRARY_SEARCH_INPUT_DEBOUNCE,
     );
   }
 
@@ -276,7 +279,7 @@ class ComponentsLibraryComponent extends PureComponent {
           focused={focusedComponentName === component.fullName}
           dragTitle={component.fullName}
           dragData={{ name: component.fullName }}
-          dragStartRadius={100}
+          dragStartRadius={DND_DRAG_START_RADIUS_LIBRARY}
           onDragStart={this._handleDragStart}
         />
       ));

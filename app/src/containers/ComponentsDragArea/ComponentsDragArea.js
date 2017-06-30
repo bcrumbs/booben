@@ -37,6 +37,12 @@ import {
 
 import { noop, isDef } from '../../utils/misc';
 
+import {
+  DND_DROP_MENU_BORDER,
+  DND_DROP_MENU_SHIFT_COEFFICIENT,
+  DND_SNAP_TIME,
+} from '../../config';
+
 const propTypes = {
   onDrop: PropTypes.func,
 };
@@ -45,15 +51,11 @@ const defaultProps = {
   onDrop: noop,
 };
 
-const RECTANGLE_OFFSET_X = -50;
-const RECTANGLE_OFFSET_Y = -50;
 const RECTANGLE_WIDTH = 100;
 const RECTANGLE_HEIGHT = 100;
+const RECTANGLE_OFFSET_X = -Math.round(RECTANGLE_WIDTH / 2);
+const RECTANGLE_OFFSET_Y = -Math.round(RECTANGLE_HEIGHT / 2);
 const RECTANGLE_OPACITY = 1;
-const RECTANGLE_SNAP_TIME = 200;
-
-const DROP_MENU_BORDER = 20;
-const DROP_MENU_SHIFT_COEFFICIENT = 85;
 
 const linear = x => x;
 const easeOut = bezierEasing(0, 0, 0.58, 1);
@@ -269,7 +271,7 @@ export class ComponentsDragArea extends PureComponent {
     if (this._transitionEnabled) {
       if (!this._transitionStyleSet) {
         style['transition-property'] = 'transform width height';
-        style['transition-duration'] = `${RECTANGLE_SNAP_TIME}ms`;
+        style['transition-duration'] = `${DND_SNAP_TIME}ms`;
         style['transition-timing-function'] = 'ease-out';
         this._transitionStyleSet = true;
       }
@@ -283,8 +285,7 @@ export class ComponentsDragArea extends PureComponent {
     style.opacity = this._opacity.toFixed(3);
 
     if (this._unsnapping) {
-      const progress =
-        (Date.now() - this._unsnapStartTime) / RECTANGLE_SNAP_TIME;
+      const progress = (Date.now() - this._unsnapStartTime) / DND_SNAP_TIME;
 
       if (progress < 1) {
         const x = interpolate(
@@ -420,7 +421,7 @@ export class ComponentsDragArea extends PureComponent {
                 dropMenuRect.top,
                 dropMenuRect.width,
                 dropMenuRect.height,
-                DROP_MENU_BORDER,
+                DND_DROP_MENU_BORDER,
                 dropMenuSnapCoords.x,
                 dropMenuSnapCoords.y,
               );
@@ -651,11 +652,15 @@ export class ComponentsDragArea extends PureComponent {
     const { left, top } = this._getDropZoneDimensions(dropZoneId);
     const mouseSpeed = getMouseSpeed();
     
-    const menuX =
-      Math.max(coords.x + left + mouseSpeed.x * DROP_MENU_SHIFT_COEFFICIENT, 0);
+    const menuX = Math.max(
+      coords.x + left + mouseSpeed.x * DND_DROP_MENU_SHIFT_COEFFICIENT,
+      0,
+    );
     
-    const menuY =
-      Math.max(coords.y + top + mouseSpeed.y * DROP_MENU_SHIFT_COEFFICIENT, 0);
+    const menuY = Math.max(
+      coords.y + top + mouseSpeed.y * DND_DROP_MENU_SHIFT_COEFFICIENT,
+      0,
+    );
     
     const snapX = snapCoords.x + left;
     const snapY = snapCoords.y + top;

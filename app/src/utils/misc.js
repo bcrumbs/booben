@@ -298,3 +298,71 @@ export const concatPath = (prefix, path) => {
   if (prefix === '/') return `/${path}`;
   return `${prefix}/${path}`;
 };
+
+/* eslint-disable no-restricted-syntax, guard-for-in, prefer-template */
+export const flatten = data => {
+  const result = {};
+  
+  const recurse = (cur, prop) => {
+    if (Object(cur) !== cur) {
+      result[prop] = cur;
+    } else if (Array.isArray(cur)) {
+      const l = cur.length;
+      
+      for (let i = 0; i < l; i++) {
+        recurse(cur[i], prop ? prop + '.' + i : '' + i);
+      }
+      
+      if (l === 0) {
+        result[prop] = [];
+      }
+    } else {
+      let isEmpty = true;
+      
+      for (const p in cur) {
+        isEmpty = false;
+        recurse(cur[p], prop ? prop + '.' + p : p);
+      }
+      
+      if (isEmpty) {
+        result[prop] = {};
+      }
+    }
+  };
+  
+  recurse(data, '');
+  
+  return result;
+};
+
+export const unflatten = data => {
+  if (Object(data) !== data || Array.isArray(data)) {
+    return data;
+  }
+  
+  const result = {};
+  let cur;
+  let prop;
+  let idx;
+  let last;
+  let temp;
+  
+  for (const p in data) {
+    cur = result;
+    prop = '';
+    last = 0;
+    
+    do {
+      idx = p.indexOf('.', last);
+      temp = p.substring(last, idx !== -1 ? idx : undefined);
+      cur = cur[prop] || (cur[prop] = (!isNaN(parseInt(temp, 10)) ? [] : {}));
+      prop = temp;
+      last = idx + 1;
+    } while (idx >= 0);
+    
+    cur[prop] = data[p];
+  }
+  
+  return result[''];
+};
+/* eslint-enable no-restricted-syntax, guard-for-in, prefer-template */

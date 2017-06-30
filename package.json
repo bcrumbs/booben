@@ -1,6 +1,6 @@
 {
   "name": "jssy",
-  "version": "0.1.0-dev.9",
+  "version": "0.1.0-dev.10",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -21,7 +21,7 @@
     "@common/async-utils": "^0.2.1",
     "@common/tree": "^0.1.1",
     "@jssy/common-theme": "^0.1.1",
-    "@jssy/common-ui": "^0.1.7",
+    "@jssy/common-ui": "^0.1.8",
     "@jssy/metadata": "^0.7.0",
     "@jssy/types": "^0.5.0",
     "@reactackle/reactackle": "0.1.0-dev.589",
@@ -88,12 +88,12 @@
   "devDependencies": {
     "@eslint/eslint-config-client": "^0.2.1",
     "@eslint/eslint-config-server": "^0.2.2",
-    "babel-eslint": "^7.1.0",
     "babel-plugin-styled-components": "^1.1.4",
     "babel-plugin-transform-object-rest-spread": "^6.20.2",
     "copy-webpack-plugin": "^4.0.0",
     "css-loader": "^0.28.0",
     "ejs-compiled-loader": "^1.1.0",
+    "eslint": "^3.19.0",
     "file-loader": "^0.11.1",
     "image-webpack-loader": "^3.3.0",
     "node-sass": "^4.5.3",

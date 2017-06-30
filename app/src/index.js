@@ -25,11 +25,12 @@ import {
 import keymap from './keymap';
 import { loadStrings } from './actions/app';
 import { PATH_ROOT, buildStructurePath } from './constants/paths';
+import { DEFAULT_LANGUAGE } from './config';
 import './styles/classUtils.css';
 
 injectGlobalStyle();
 
-store.dispatch(loadStrings('en'));
+store.dispatch(loadStrings(DEFAULT_LANGUAGE));
 
 window.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(
