@@ -6,10 +6,8 @@
 
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import _startCase from 'lodash.startcase';
-import { Action } from '../../models/SourceDataActions';
 
 import {
   ComponentActions,
@@ -24,17 +22,17 @@ import {
 
 import { getMutationField } from '../../lib/schema';
 import { getComponentMeta, getString } from '../../lib/meta';
-import { noop, returnArg } from '../../utils/misc';
+import { noop } from '../../utils/misc';
 import * as JssyPropTypes from '../../constants/common-prop-types';
 
 const propTypes = {
-  actions: ImmutablePropTypes.listOf(PropTypes.instanceOf(Action)).isRequired,
-  meta: PropTypes.object.isRequired,
-  schema: PropTypes.object,
-  routes: JssyPropTypes.routes.isRequired,
-  currentComponents: JssyPropTypes.components.isRequired,
-  language: PropTypes.string.isRequired,
-  getLocalizedText: PropTypes.func.isRequired,
+  actions: JssyPropTypes.actions.isRequired,
+  meta: PropTypes.object.isRequired, // state
+  schema: PropTypes.object, // state
+  routes: JssyPropTypes.routes.isRequired, // state
+  currentComponents: JssyPropTypes.components.isRequired, // state
+  language: PropTypes.string.isRequired, // state
+  getLocalizedText: PropTypes.func.isRequired, // state
   onCreateAction: PropTypes.func,
   onEditAction: PropTypes.func,
   onDeleteAction: PropTypes.func,
@@ -42,7 +40,6 @@ const propTypes = {
 
 const defaultProps = {
   schema: null,
-  getLocalizedText: returnArg,
   onCreateAction: noop,
   onEditAction: noop,
   onDeleteAction: noop,

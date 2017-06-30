@@ -88,25 +88,24 @@ const propTypes = {
   actionArgsMeta: PropTypes.arrayOf(PropTypes.object).isRequired,
   actionComponentMeta: PropTypes.object.isRequired,
   action: PropTypes.instanceOf(Action),
+  meta: PropTypes.object.isRequired, // state
+  schema: PropTypes.object.isRequired, // state
+  project: PropTypes.instanceOf(Project).isRequired, // state
+  currentComponents: JssyPropTypes.components.isRequired, // state
+  ownerProps: PropTypes.object, // state
+  ownerUserTypedefs: PropTypes.object, // state
+  language: PropTypes.string.isRequired, // state
+  pickingComponent: PropTypes.bool.isRequired, // state
+  pickingComponentStateSlot: PropTypes.bool.isRequired, // state
+  // eslint-disable-next-line react/no-unused-prop-types
+  pickedComponentId: PropTypes.number.isRequired, // state
+  // eslint-disable-next-line react/no-unused-prop-types
+  pickedComponentStateSlot: PropTypes.string.isRequired, // state
+  getLocalizedText: PropTypes.func.isRequired, // state
   onSave: PropTypes.func,
   onCancel: PropTypes.func,
-  
-  meta: PropTypes.object.isRequired,
-  schema: PropTypes.object.isRequired,
-  project: PropTypes.instanceOf(Project).isRequired,
-  currentComponents: JssyPropTypes.components.isRequired,
-  ownerProps: PropTypes.object,
-  ownerUserTypedefs: PropTypes.object,
-  language: PropTypes.string.isRequired,
-  pickingComponent: PropTypes.bool.isRequired,
-  pickingComponentStateSlot: PropTypes.bool.isRequired,
-  // eslint-disable-next-line react/no-unused-prop-types
-  pickedComponentId: PropTypes.number.isRequired,
-  // eslint-disable-next-line react/no-unused-prop-types
-  pickedComponentStateSlot: PropTypes.string.isRequired,
-  getLocalizedText: PropTypes.func.isRequired,
-  onPickComponent: PropTypes.func.isRequired,
-  onPickComponentStateSlot: PropTypes.func.isRequired,
+  onPickComponent: PropTypes.func.isRequired, // dispatch
+  onPickComponentStateSlot: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {

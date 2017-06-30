@@ -8,6 +8,7 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ProjectComponent from '../models/ProjectComponent';
 import ProjectRoute from '../models/ProjectRoute';
+import { Action } from '../models/SourceDataActions';
 
 export const setOfIds = ImmutablePropTypes.setOf(
   PropTypes.number,
@@ -21,6 +22,10 @@ export const components = ImmutablePropTypes.mapOf(
 export const routes = ImmutablePropTypes.mapOf(
   PropTypes.instanceOf(ProjectRoute),
   PropTypes.number,
+);
+
+export const actions = ImmutablePropTypes.listOf(
+  PropTypes.instanceOf(Action),
 );
 
 export const componentsTreePosition = PropTypes.shape({
