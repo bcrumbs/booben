@@ -115,6 +115,8 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(deleteAction(path, index)),
 });
 
+const wrap = connect(mapStateToProps, mapDispatchToProps);
+
 /**
  *
  * @param {Object} propMeta
@@ -744,7 +746,6 @@ class ComponentPropsEditorComponent extends PureComponent {
     } = this.state;
 
     if (selectedComponentIds.size === 0) {
-      //noinspection JSCheckFunctionSignatures
       return (
         <BlockContentPlaceholder
           text={getLocalizedText('propsEditor.noComponentsSelectedText')}
@@ -753,7 +754,6 @@ class ComponentPropsEditorComponent extends PureComponent {
     }
 
     if (selectedComponentIds.size > 1) {
-      //noinspection JSCheckFunctionSignatures
       return (
         <BlockContentPlaceholder
           text={getLocalizedText('propsEditor.multipleComponentsSelectedText')}
@@ -873,7 +873,4 @@ ComponentPropsEditorComponent.propTypes = propTypes;
 ComponentPropsEditorComponent.defaultProps = defaultProps;
 ComponentPropsEditorComponent.dispalyName = 'ComponentPropsEditor';
 
-export const ComponentPropsEditor = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ComponentPropsEditorComponent);
+export const ComponentPropsEditor = wrap(ComponentPropsEditorComponent);

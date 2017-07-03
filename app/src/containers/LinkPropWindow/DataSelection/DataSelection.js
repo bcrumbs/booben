@@ -49,7 +49,6 @@ import {
   objectSome,
 } from '../../../utils/misc';
 
-//noinspection JSUnresolvedVariable
 const propTypes = {
   dataContext: PropTypes.arrayOf(PropTypes.string).isRequired,
   schema: PropTypes.object.isRequired,
@@ -319,7 +318,7 @@ export class DataSelection extends PureComponent {
     this._switchToArgumentsForm(
       fieldName,
       field,
-      [].concat(currentPath, fieldName),
+      [...currentPath, fieldName],
     );
   }
   

@@ -100,7 +100,7 @@ import {
   TOOL_ID_LIBRARY,
   TOOL_ID_COMPONENTS_TREE,
   TOOL_ID_PROPS_EDITOR,
-} from '../constants/toolIds';
+} from '../constants/tool-ids';
 
 import { buildStructurePath } from '../constants/paths';
 import * as JssyPropTypes from '../constants/common-prop-types';

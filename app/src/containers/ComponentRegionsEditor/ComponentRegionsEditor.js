@@ -29,9 +29,6 @@ const propTypes = {
   onToggleRegion: PropTypes.func.isRequired,
 };
 
-const defaultProps = {
-};
-
 const mapStateToProps = state => ({
   meta: state.project.meta,
   currentComponents: currentComponentsSelector(state),
@@ -97,7 +94,6 @@ class ComponentRegionsEditorComponent extends PureComponent {
 }
 
 ComponentRegionsEditorComponent.propTypes = propTypes;
-ComponentRegionsEditorComponent.defaultProps = defaultProps;
 ComponentRegionsEditorComponent.displayName = 'ComponentRegionsEditor';
 
 export const ComponentRegionsEditor = wrap(ComponentRegionsEditorComponent);

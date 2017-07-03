@@ -19,7 +19,7 @@ import {
   LOADING,
   LOADED,
   LOAD_ERROR,
-} from '../constants/loadStates';
+} from '../constants/load-states';
 
 const AppState = Record({
   language: 'en',

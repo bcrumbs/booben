@@ -6,14 +6,12 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { List } from 'immutable';
 import { MainRegion, Content } from '@reactackle/reactackle';
 import { ToolWindow, STICK_REGION_RIGHT } from './ToolWindow/ToolWindow';
 import { ToolPanel } from './ToolPanel/ToolPanel';
-import ToolType from '../../models/Tool';
-import ToolStateType from '../../models/ToolState';
+import ToolState from '../../models/ToolState';
 
 import {
   expandToolsPanel,
@@ -28,15 +26,17 @@ import {
 } from '../../actions/desktop';
 
 import { noop } from '../../utils/misc';
+import * as JssyPropTypes from '../../constants/common-prop-types';
+
+import {
+  DESKTOP_TOOL_WINDOWS_MARGIN,
+  DESKTOP_EMPTY_TOOL_PANEL_WIDTH,
+  DESKTOP_STICK_REGION_SIZE,
+} from '../../config';
 
 const propTypes = {
-  toolGroups: ImmutablePropTypes.listOf(
-    ImmutablePropTypes.listOf(PropTypes.instanceOf(ToolType)),
-  ),
-  toolStates: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ToolStateType),
-    PropTypes.string,
-  ).isRequired,
+  toolGroups: JssyPropTypes.toolGroups,
+  toolStates: JssyPropTypes.toolStates.isRequired,
   toolsPanelIsExpanded: PropTypes.bool.isRequired,
   onToolsPanelExpand: PropTypes.func.isRequired,
   onToolsPanelCollapse: PropTypes.func.isRequired,
@@ -96,9 +96,7 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(setToolActiveSection(tool.id, newActiveSection)),
 });
 
-const TOOL_WINDOWS_MARGIN = 8;
-const EMPTY_TOOL_PANEL_WIDTH = 40;
-const STICK_REGION_SIZE = 100;
+const wrap = connect(mapStateToProps, mapDispatchToProps);
 
 class DesktopComponent extends PureComponent {
   _renderWindows() {
@@ -120,14 +118,14 @@ class DesktopComponent extends PureComponent {
     }));
   
     const marginRight = hasDockedTools
-      ? TOOL_WINDOWS_MARGIN
-      : TOOL_WINDOWS_MARGIN + EMPTY_TOOL_PANEL_WIDTH;
+      ? DESKTOP_TOOL_WINDOWS_MARGIN
+      : DESKTOP_TOOL_WINDOWS_MARGIN + DESKTOP_EMPTY_TOOL_PANEL_WIDTH;
     
     const windows = [];
   
     toolGroups.forEach(tools => {
       tools.forEach(tool => {
-        const toolState = toolStates.get(tool.id) || new ToolStateType();
+        const toolState = toolStates.get(tool.id) || new ToolState();
         
         if (toolState.docked || toolState.closed) return;
       
@@ -159,8 +157,8 @@ class DesktopComponent extends PureComponent {
             toolState={toolState}
             constrainPosition
             marginRight={marginRight}
-            marginBottom={TOOL_WINDOWS_MARGIN}
-            stickRegionRight={STICK_REGION_SIZE}
+            marginBottom={DESKTOP_TOOL_WINDOWS_MARGIN}
+            stickRegionRight={DESKTOP_STICK_REGION_SIZE}
             onDock={onDock}
             onClose={onClose}
             onFocus={onFocus}
@@ -220,7 +218,4 @@ DesktopComponent.propTypes = propTypes;
 DesktopComponent.defaultProps = defaultProps;
 DesktopComponent.displayName = 'Desktop';
 
-export const Desktop = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(DesktopComponent);
+export const Desktop = wrap(DesktopComponent);

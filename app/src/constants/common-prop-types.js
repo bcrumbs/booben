@@ -9,6 +9,8 @@ import ImmutablePropTypes from 'react-immutable-proptypes';
 import ProjectComponent from '../models/ProjectComponent';
 import ProjectRoute from '../models/ProjectRoute';
 import { Action } from '../models/SourceDataActions';
+import Tool from '../models/Tool';
+import ToolState from '../models/ToolState';
 
 export const setOfIds = ImmutablePropTypes.setOf(
   PropTypes.number,
@@ -37,3 +39,12 @@ export const componentClipboard = PropTypes.shape({
   componentId: PropTypes.number.isRequired,
   copy: PropTypes.bool.isRequired,
 });
+
+export const toolGroups = ImmutablePropTypes.listOf(
+  ImmutablePropTypes.listOf(PropTypes.instanceOf(Tool)),
+);
+
+export const toolStates = ImmutablePropTypes.mapOf(
+  PropTypes.instanceOf(ToolState),
+  PropTypes.string,
+);

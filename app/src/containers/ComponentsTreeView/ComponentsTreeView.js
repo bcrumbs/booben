@@ -1194,7 +1194,6 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     if (!children.length) return null;
 
-    //noinspection JSValidateTypes
     return (
       <ComponentsTreeList>
         {children}

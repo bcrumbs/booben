@@ -23,7 +23,7 @@ import {
   createNetworkInterfaceForProject,
 } from './lib/apollo';
 
-import { LOADED, LOAD_ERROR } from './constants/loadStates';
+import { LOADED, LOAD_ERROR } from './constants/load-states';
 import { APOLLO_STATE_KEY } from './constants/misc';
 
 const getProjectName = () => {

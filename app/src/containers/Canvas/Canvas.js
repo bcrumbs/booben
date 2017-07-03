@@ -22,7 +22,7 @@ import CanvasContent from './content/containers/CanvasContent';
 import Overlay from './content/containers/Overlay';
 import dropZone from '../../hocs/dropZone';
 import { connectDropZone } from '../ComponentsDragArea/ComponentsDragArea';
-import { LOADED } from '../../constants/loadStates';
+import { LOADED } from '../../constants/load-states';
 import { CANVAS_CONTAINER_ID, CANVAS_OVERLAY_ID } from './content/constants';
 import { ComponentDropAreas } from '../../actions/preview';
 import { createReducer } from '../../reducers';

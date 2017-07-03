@@ -40,7 +40,6 @@ import { getComponentMeta, buildDefaultValue } from '../../../../lib/meta';
 import { noop, returnArg, objectSome } from '../../../../utils/misc';
 import * as JssyPropTypes from '../../../../constants/common-prop-types';
 
-//noinspection JSUnresolvedVariable
 const propTypes = {
   meta: PropTypes.object.isRequired,
   currentComponents: JssyPropTypes.components.isRequired,

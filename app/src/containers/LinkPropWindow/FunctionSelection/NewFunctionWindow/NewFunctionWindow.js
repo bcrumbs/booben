@@ -187,16 +187,8 @@ export class NewFunctionWindow extends PureComponent {
     const isNextButtonDisabled = this._isNextButtonDisabled();
     
     let newArgumentButton = null;
-    if (!creatingNewArgument) {
-      newArgumentButton = (
-        <FunctionAddArgumentButton
-          getLocalizedText={getLocalizedText}
-          onPress={this._handleAddButtonPress}
-        />
-      );
-    }
-    
     let newArgumentForm = null;
+
     if (creatingNewArgument) {
       newArgumentForm = (
         <FunctionArgumentNew
@@ -206,8 +198,15 @@ export class NewFunctionWindow extends PureComponent {
           onCancel={this._handleCancelAddArgument}
         />
       );
+    } else {
+      newArgumentButton = (
+        <FunctionAddArgumentButton
+          getLocalizedText={getLocalizedText}
+          onPress={this._handleAddButtonPress}
+        />
+      );
     }
-  
+
     let argsList = null;
     if (args.length > 0) {
       const list = args.map(({ name, type }, idx) => (

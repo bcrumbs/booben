@@ -75,15 +75,6 @@ import {
   SYSTEM_PROPS,
 } from '../../constants/misc';
 
-const addActionArgSourceToValueDef = valueDef => ({
-  ...valueDef,
-  source: [...valueDef.source, 'actionArg'],
-  sourceConfigs: {
-    ...valueDef.sourceConfigs,
-    actionArg: {},
-  },
-});
-
 const propTypes = {
   actionArgsMeta: PropTypes.arrayOf(PropTypes.object).isRequired,
   actionComponentMeta: PropTypes.object.isRequired,
@@ -140,6 +131,15 @@ const mapDispatchToProps = dispatch => ({
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
+
+const addActionArgSourceToValueDef = valueDef => ({
+  ...valueDef,
+  source: [...valueDef.source, 'actionArg'],
+  sourceConfigs: {
+    ...valueDef.sourceConfigs,
+    actionArg: {},
+  },
+});
 
 class ActionEditorComponent extends PureComponent {
   constructor(props, context) {

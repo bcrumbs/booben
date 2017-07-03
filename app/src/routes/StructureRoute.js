@@ -67,7 +67,7 @@ import {
   isFalsy,
 } from '../utils/misc';
 
-import { TOOL_ID_ROUTE_EDITOR } from '../constants/toolIds';
+import { TOOL_ID_ROUTE_EDITOR } from '../constants/tool-ids';
 
 import {
   buildDesignRoutePath,

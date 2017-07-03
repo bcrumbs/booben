@@ -17,7 +17,7 @@ import {
   LOADING,
   LOADED,
   LOAD_ERROR,
-} from '../constants/loadStates';
+} from '../constants/load-states';
 
 import { removeSplashScreen } from '../lib/dom';
 

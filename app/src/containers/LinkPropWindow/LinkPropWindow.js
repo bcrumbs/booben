@@ -115,6 +115,8 @@ const mapDispatchToProps = dispatch => ({
     )),
 });
 
+const wrap = connect(mapStateToProps, mapDispatchToProps);
+
 class LinkPropWindowComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -646,7 +648,4 @@ LinkPropWindowComponent.propTypes = propTypes;
 LinkPropWindowComponent.defaultProps = defaultProps;
 LinkPropWindowComponent.displayName = 'LinkPropDialog';
 
-export const LinkPropWindow = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(LinkPropWindowComponent);
+export const LinkPropWindow = wrap(LinkPropWindowComponent);

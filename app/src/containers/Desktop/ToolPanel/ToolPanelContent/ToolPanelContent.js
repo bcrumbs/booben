@@ -21,7 +21,6 @@ import ToolType from '../../../../models/Tool';
 import ToolStateType from '../../../../models/ToolState';
 import { noop } from '../../../../utils/misc';
 
-//noinspection JSUnresolvedVariable
 const propTypes = {
   tool: PropTypes.instanceOf(ToolType).isRequired,
   toolState: PropTypes.instanceOf(ToolStateType).isRequired,
