@@ -366,3 +366,12 @@ export const unflatten = data => {
   return result[''];
 };
 /* eslint-enable no-restricted-syntax, guard-for-in, prefer-template */
+
+/**
+ *
+ * @param {Object} object
+ * @param {string} property
+ * @return {boolean}
+ */
+export const hasOwnProperty = (object, property) =>
+  Object.prototype.hasOwnProperty.call(object, property);

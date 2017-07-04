@@ -470,7 +470,7 @@ export const walkSimpleValues = (
       const fnInfo = getFunctionInfo(
         jssyValue.sourceData.functionSource,
         jssyValue.sourceData.function,
-        project,
+        project.functions,
       );
 
       fnInfo.args.forEach(argInfo => {

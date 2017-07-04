@@ -352,7 +352,7 @@ class BuilderComponent extends PureComponent {
     const visitAction = action => {
       if (action.type === 'method') {
         ret.needRefs.add(action.params.componentId);
-      } else if (action.type === 'mutation') {
+      } else if (action.type === 'mutation' || action.type === 'ajax') {
         action.params.successActions.forEach(visitAction);
         action.params.errorActions.forEach(visitAction);
       }
@@ -1092,7 +1092,7 @@ class BuilderComponent extends PureComponent {
     const fnInfo = getFunctionInfo(
       jssyValue.sourceData.functionSource,
       jssyValue.sourceData.function,
-      project,
+      project.functions,
     );
   
     if (!fnInfo) return NO_VALUE;

@@ -19,17 +19,30 @@ export const FunctionSources = {
  *
  * @param {string} functionSource
  * @param {string} functionName
- * @param {Object} project
+ * @param {Immutable.Map<string, Object>} projectFunctions
  * @return {?Object}
  */
-export const getFunctionInfo = (functionSource, functionName, project) => {
+export const getFunctionInfo = (
+  functionSource,
+  functionName,
+  projectFunctions,
+) => {
   if (functionSource === FunctionSources.PROJECT) {
-    return project.functions.get(functionName);
+    return projectFunctions.get(functionName) || null;
   }
 
   // TODO: Handle 'builtin' source
   return null;
 };
+
+/**
+ *
+ * @param {string} functionSource
+ * @param {string} functionName
+ * @return {string}
+ */
+export const formatFunctionId = (functionSource, functionName) =>
+  `${functionSource}/${functionName}`;
 
 /**
  *

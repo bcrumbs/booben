@@ -780,7 +780,7 @@ const getValueInfoByPath = (path, state) => {
         currentFunction = getFunctionInfo(
           object.sourceData.functionSource,
           object.sourceData.function,
-          project,
+          project.functions,
         );
         
         if (nextStep === 'args') {

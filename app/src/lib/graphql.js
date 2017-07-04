@@ -26,6 +26,16 @@ import {
 import { walkComponentsTree, walkSimpleValues } from './components';
 import { isObjectOrNull, objectToArray } from '../utils/misc';
 
+/**
+ * @typedef {Object} DataContextInfo
+ * @property {string} ownerPropName
+ * @property {string} type
+ */
+
+/**
+ * @typedef {Object<string, DataContextInfo>} DataContextsInfo
+ */
+
 const UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const LOWERCASE_LETTERS = 'abcdefghijklmnopqrstuvwxyz';
 const NUMBERS = '1234567890';
