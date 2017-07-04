@@ -75,9 +75,7 @@ import {
   expandedTreeItemIdsSelector,
 } from '../../selectors';
 
-import ProjectComponentRecord, {
-  isRootComponent,
-} from '../../models/ProjectComponent';
+import ProjectComponentRecord from '../../models/ProjectComponent';
 
 import {
   isCompositeComponent,
@@ -86,6 +84,7 @@ import {
 } from '../../lib/meta';
 
 import {
+  isRootComponent,
   canInsertComponent,
   canInsertComponentIntoTree,
 } from '../../lib/components';

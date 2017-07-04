@@ -22,12 +22,7 @@ import { connectDraggable } from '../ComponentsDragArea/ComponentsDragArea';
 import { ContentPlaceholder } from './ContentPlaceholder/ContentPlaceholder';
 import { Outlet } from './Outlet/Outlet';
 import JssyValue from '../../models/JssyValue';
-
-import ProjectComponent, {
-  walkComponentsTree,
-  walkSimpleValues,
-} from '../../models/ProjectComponent';
-
+import ProjectComponent from '../../models/ProjectComponent';
 import { startDragExistingComponent } from '../../actions/preview';
 
 import {
@@ -48,6 +43,8 @@ import {
 import {
   canInsertComponent,
   canInsertRootComponent,
+  walkComponentsTree,
+  walkSimpleValues,
 } from '../../lib/components';
 
 import {

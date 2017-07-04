@@ -54,7 +54,6 @@ import {
   ComponentsDragArea,
 } from '../containers/ComponentsDragArea/ComponentsDragArea';
 
-import { isRootComponent } from '../models/ProjectComponent';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
 import ButtonRecord from '../models/Button';
@@ -93,7 +92,12 @@ import {
   constructComponent,
 } from '../lib/meta';
 
-import { canInsertComponent, canMoveComponent } from '../lib/components';
+import {
+  isRootComponent,
+  canInsertComponent,
+  canMoveComponent,
+} from '../lib/components';
+
 import { returnTrue } from '../utils/misc';
 
 import {

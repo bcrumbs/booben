@@ -9,11 +9,6 @@ import { Record, Map, List } from 'immutable';
 import { NO_VALUE } from '../constants/misc';
 
 import {
-  walkSimpleValues,
-  walkComponentsTree,
-} from '../models/ProjectComponent';
-
-import {
   getTypeNameByField,
   getTypeNameByPath,
   getMutationField,
@@ -28,6 +23,7 @@ import {
   valueHasDataContest,
 } from './meta';
 
+import { walkComponentsTree, walkSimpleValues } from './components';
 import { isObjectOrNull, objectToArray } from '../utils/misc';
 
 const UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';

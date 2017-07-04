@@ -102,15 +102,17 @@ import {
 } from '../models/Project';
 
 import ProjectComponent, {
-  gatherComponentsTreeIds,
-  isRootComponent,
-  walkSimpleValues,
-  walkComponentsTree,
   jssyValueToImmutable,
-  makeDetachedCopy,
 } from '../models/ProjectComponent';
 
-import { isDeepChild } from '../lib/components';
+import {
+  isRootComponent,
+  isDeepChild,
+  walkComponentsTree,
+  gatherComponentsTreeIds,
+  makeDetachedCopy,
+  walkSimpleValues,
+} from '../lib/components';
 
 import {
   transformMetadata,
@@ -374,6 +376,113 @@ const addNewComponents = (
   return state;
 };
 
+const deleteOutdatedActions = (state, component, deletedComponentIds) => {
+  const start = {
+    object: component,
+    expandedPath: [],
+  };
+
+  const componentMeta = getComponentMeta(component.name, state.meta);
+  let actionsToDelete = Map();
+
+  const visitAction = (action, stepsToActionsList, actionIdx) => {
+    if (action.type === 'method' || action.type === 'prop') {
+      if (deletedComponentIds.has(action.params.componentId)) {
+        if (actionsToDelete.has(stepsToActionsList)) {
+          actionsToDelete = actionsToDelete.update(
+            stepsToActionsList,
+            indexes => indexes.add(actionIdx),
+          );
+        } else {
+          actionsToDelete = actionsToDelete.set(
+            stepsToActionsList,
+            Set([actionIdx]),
+          );
+        }
+      }
+    } else if (action.type === 'mutation' || action.type === 'ajax') {
+      const stepsToSuccessActionsList =
+        [...stepsToActionsList, actionIdx, 'successActions'];
+
+      const stepsToErrorActionsList =
+        [...stepsToActionsList, actionIdx, 'errorActions'];
+
+      action.params.successActions.forEach((successAction, idx) => {
+        visitAction(successAction, stepsToSuccessActionsList, idx);
+      });
+
+      action.params.errorActions.forEach((errorAction, idx) => {
+        visitAction(errorAction, stepsToErrorActionsList, idx);
+      });
+    }
+  };
+
+  walkSimpleValues(component, componentMeta, (propValue, _, steps) => {
+    if (propValue.source === 'actions') {
+      const stepsToActionsList = [...steps, 'actions'];
+
+      propValue.sourceData.actions.forEach((action, idx) => {
+        visitAction(action, stepsToActionsList, idx);
+      });
+    }
+  });
+
+  actionsToDelete.forEach((indexes, steps) => {
+    component = component.updateIn(
+      expandPath({ start, steps }),
+      actions => actions.filter((_, idx) => !indexes.has(idx)),
+    );
+  });
+
+  return component;
+};
+
+const resetOutdatedStateValues = (state, component, deletedComponentIds) => {
+  const start = {
+    object: component,
+    expandedPath: [],
+  };
+
+  const componentMeta = getComponentMeta(component.name, state.meta);
+
+  const walkSimpleValueOptions = {
+    walkSystemProps: true,
+    walkActions: true,
+    walkFunctionArgs: true,
+    walkDesignerValues: false,
+    project: state.data,
+    schema: state.schema,
+    meta: state.meta,
+  };
+
+  const visitValue = (jssyValue, valueDef, steps) => {
+    const willResetValue =
+      jssyValue.isLinkedWithState() &&
+      deletedComponentIds.has(jssyValue.sourceData.componentId);
+
+    if (willResetValue) {
+      const physicalPath = expandPath({ start, steps });
+      const newValue = jssyValueToImmutable(buildDefaultValue(
+        valueDef,
+        component.strings,
+        state.languageForComponentProps,
+        component.types,
+      ));
+
+      component = component.setIn(physicalPath, newValue);
+    }
+  };
+
+  walkSimpleValues(
+    component,
+    componentMeta,
+    visitValue,
+    walkSimpleValueOptions,
+  );
+
+  return component;
+};
+
 /**
  *
  * @param {Object} state
@@ -456,101 +565,13 @@ const deleteComponent = (state, componentId) => {
     pathToCurrentComponents,
     
     components => components.map(component => {
-      const start = {
-        object: component,
-        expandedPath: [],
-      };
-      
-      const componentMeta = getComponentMeta(component.name, state.meta);
-  
-      // Delete method call and prop change actions
-      // that point to deleted components
-      let actionsToDelete = Map();
-      
-      const visitAction = (action, stepsToActionsList, actionIdx) => {
-        if (action.type === 'method' || action.type === 'prop') {
-          if (deletedComponentIds.has(action.params.componentId)) {
-            if (actionsToDelete.has(stepsToActionsList)) {
-              actionsToDelete = actionsToDelete.update(
-                stepsToActionsList,
-                indexes => indexes.add(actionIdx),
-              );
-            } else {
-              actionsToDelete = actionsToDelete.set(
-                stepsToActionsList,
-                Set([actionIdx]),
-              );
-            }
-          }
-        } else if (action.type === 'mutation' || action.type === 'ajax') {
-          const stepsToSuccessActionsList =
-            [...stepsToActionsList, actionIdx, 'successActions'];
-          
-          const stepsToErrorActionsList =
-            [...stepsToActionsList, actionIdx, 'errorActions'];
-          
-          action.params.successActions.forEach((successAction, idx) => {
-            visitAction(successAction, stepsToSuccessActionsList, idx);
-          });
-  
-          action.params.errorActions.forEach((errorAction, idx) => {
-            visitAction(errorAction, stepsToErrorActionsList, idx);
-          });
-        }
-      };
-      
-      walkSimpleValues(component, componentMeta, (propValue, _, steps) => {
-        if (propValue.source === 'actions') {
-          const stepsToActionsList = [...steps, 'actions'];
-          
-          propValue.sourceData.actions.forEach((action, idx) => {
-            visitAction(action, stepsToActionsList, idx);
-          });
-        }
-      });
-      
-      actionsToDelete.forEach((indexes, steps) => {
-        component = component.updateIn(
-          expandPath({ start, steps }),
-          actions => actions.filter((_, idx) => !indexes.has(idx)),
-        );
-      });
-  
-      // Reset JssyValues linked to state slots of deleted components
+      component = deleteOutdatedActions(state, component, deletedComponentIds);
+
       if (haveState) {
-        const walkSimpleValueOptions = {
-          walkSystemProps: true,
-          walkActions: true,
-          walkFunctionArgs: true,
-          walkDesignerValues: false,
-          project: state.data,
-          schema: state.schema,
-          meta: state.meta,
-        };
-  
-        const visitValue = (jssyValue, valueDef, steps) => {
-          const willResetValue =
-            jssyValue.isLinkedWithState() &&
-            deletedComponentIds.has(jssyValue.sourceData.componentId);
-          
-          if (willResetValue) {
-            const physicalPath = expandPath({ start, steps });
-            const newValue = jssyValueToImmutable(buildDefaultValue(
-              valueDef,
-              component.strings,
-              state.languageForComponentProps,
-              component.types,
-            ));
-      
-            component = component.setIn(physicalPath, newValue);
-          }
-        };
-  
-        walkSimpleValues(
+        component = resetOutdatedStateValues(
+          state,
           component,
-          componentMeta,
-          visitValue,
-          walkSimpleValueOptions,
+          deletedComponentIds,
         );
       }
       
@@ -705,7 +726,6 @@ const materializePath = (projectPath, state) => ({
   steps: projectPath.steps,
 });
 
-
 const ValueTypes = {
   NOT_A_VALUE: 0,
   COMPONENT_PROP: 1,
@@ -719,10 +739,18 @@ const ValueTypes = {
 };
 
 /**
+ * @typedef {Object} ValueInfo
+ * @property {number} type
+ * @property {boolean} isNested
+ * @property {JssyValueDefinition} valueDef
+ * @property {Object<string, JssyTypeDefinition>} userTypedefs
+ */
+
+/**
  *
  * @param {ProjectPath} path
  * @param {Object} state
- * @return {{type: number, isNested: boolean, valueDef: JssyValueDefinition, userTypedefs: Object<string, JssyTypeDefinition>}}
+ * @return {ValueInfo}
  */
 const getValueInfoByPath = (path, state) => {
   const project = state.data;
@@ -928,12 +956,13 @@ const clearOutdatedDataProps = (state, updatedPath) => {
           );
 
           if (containsOutdatedDataContext) {
-            state = state.updateIn(
-              expandPath({
-                start: pathStart,
-                steps: ['components', componentId, ...steps],
-              }),
+            const physicalPath = expandPath({
+              start: pathStart,
+              steps: ['components', componentId, ...steps],
+            });
 
+            state = state.updateIn(
+              physicalPath,
               updatedValue => updatedValue.resetDataLink(),
             );
           }
@@ -1292,36 +1321,30 @@ const handlers = {
           const isCandidateValue =
             jssyValue.isLinkedWithRouteParam() &&
             jssyValue.sourceData.routeId === action.routeId;
-          
-          if (isCandidateValue) {
-            const paramName = jssyValue.sourceData.paramName;
-            
-            if (action.renamedParams[paramName]) {
-              const newValue = new JssyValue({
-                source: 'routeParams',
-                sourceData: new SourceDataRouteParams({
-                  routeId: action.routeId,
-                  paramName: action.renamedParams[paramName],
-                }),
-              });
-              
-              component = component.setIn(
-                expandPath({ start, steps }),
-                newValue,
-              );
-            } else if (!action.newParamValues[paramName]) {
-              const newValue = jssyValueToImmutable(buildDefaultValue(
-                valueDef,
-                component.strings,
-                state.languageForComponentProps,
-                component.types,
-              ));
-  
-              component = component.setIn(
-                expandPath({ start, steps }),
-                newValue,
-              );
-            }
+
+          if (!isCandidateValue) return;
+
+          const paramName = jssyValue.sourceData.paramName;
+
+          if (action.renamedParams[paramName]) {
+            const newValue = new JssyValue({
+              source: 'routeParams',
+              sourceData: new SourceDataRouteParams({
+                routeId: action.routeId,
+                paramName: action.renamedParams[paramName],
+              }),
+            });
+
+            component = component.setIn(expandPath({ start, steps }), newValue);
+          } else if (!action.newParamValues[paramName]) {
+            const newValue = jssyValueToImmutable(buildDefaultValue(
+              valueDef,
+              component.strings,
+              state.languageForComponentProps,
+              component.types,
+            ));
+
+            component = component.setIn(expandPath({ start, steps }), newValue);
           }
         };
         
