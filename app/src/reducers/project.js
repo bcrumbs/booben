@@ -1472,18 +1472,18 @@ const handlers = {
   
   [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE]:
     undoableInPreviousNode(incrementsRevision(state => {
-      const topConstructor = getTopNestedConstructor(state);
+      const topNestedConstructor = getTopNestedConstructor(state);
       const newValue = new JssyValue({
         source: 'designer',
         sourceData: new SourceDataDesigner({
-          components: topConstructor.data.components,
-          rootId: topConstructor.data.rootId,
+          components: topNestedConstructor.components,
+          rootId: topNestedConstructor.rootId,
         }),
       });
     
       return updateValue(
         closeTopNestedConstructor(state),
-        topConstructor.path,
+        topNestedConstructor.path,
         newValue,
       );
     })),

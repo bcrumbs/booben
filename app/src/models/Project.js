@@ -130,6 +130,7 @@ export const projectToJSv1 = project => ({
   enableHTML: project.enableHTML,
   graphQLEndpointURL: project.graphQLEndpointURL,
   proxyGraphQLEndpoint: project.proxyGraphQLEndpoint,
+  auth: project.auth === null ? null : project.auth.toJS(),
   routes: mapListToArray(
     project.rootRoutes,
     routeId => projectRouteToJSv1(project.routes, routeId),

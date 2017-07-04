@@ -1786,10 +1786,10 @@ class BuilderComponent extends PureComponent {
             
             // TODO: Better check
             const haveData = Object.keys(data).length > 10;
-      
+
             return {
               ...ownProps,
-              ...this._buildProps(
+              innerProps: this._buildProps(
                 component,
                 theMergedMap,
                 haveData ? data : null,
