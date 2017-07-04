@@ -248,11 +248,11 @@ const getTopNestedConstructor = state =>
   state.nestedConstructors.first() || null;
 
 const getPathToCurrentComponents = state => haveNestedConstructors(state)
-  ? ['nestedConstructors', 0, 'data', 'components']
+  ? ['nestedConstructors', 0, 'components']
   : ['data', 'routes', state.currentRouteId, 'components'];
 
 const getPathToCurrentRootComponentId = state => haveNestedConstructors(state)
-  ? ['nestedConstructors', 0, 'data', 'rootId']
+  ? ['nestedConstructors', 0, 'rootId']
   : [
     'data',
     'routes',

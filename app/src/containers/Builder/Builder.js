@@ -1780,8 +1780,8 @@ class BuilderComponent extends PureComponent {
               const alert = {
                 content: message,
               };
-              
-              onAlert(alert);
+
+              setTimeout(() => void onAlert(alert), 0);
             }
             
             // TODO: Better check
@@ -1801,7 +1801,7 @@ class BuilderComponent extends PureComponent {
             variables,
             fetchPolicy: 'cache-and-network',
           },
-        })(Renderable);
+        })(Component);
         
         this._putApolloWrappedComponentToCache(component, Renderable);
       }

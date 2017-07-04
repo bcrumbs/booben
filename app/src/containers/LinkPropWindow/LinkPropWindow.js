@@ -646,6 +646,6 @@ class LinkPropWindowComponent extends PureComponent {
 
 LinkPropWindowComponent.propTypes = propTypes;
 LinkPropWindowComponent.defaultProps = defaultProps;
-LinkPropWindowComponent.displayName = 'LinkPropDialog';
+LinkPropWindowComponent.displayName = 'LinkPropWindow';
 
 export const LinkPropWindow = wrap(LinkPropWindowComponent);

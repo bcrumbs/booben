@@ -362,8 +362,11 @@ const sourceDataToJSv1Converters = {
   },
   
   data: sourceData => ({
-    dataContext: mapListToArray(sourceData, returnArg),
-    queryPath: mapListToArray(sourceData.queryPath, step => step.toJS()),
+    dataContext: mapListToArray(sourceData.dataContext, returnArg),
+    queryPath: sourceData.queryPath === null
+      ? null
+      : mapListToArray(sourceData.queryPath, step => step.toJS()),
+
     queryArgs: mapMapToObject(
       sourceData.queryArgs,
       returnSecondArg,
