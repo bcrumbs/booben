@@ -56,7 +56,12 @@ import {
 } from '../../lib/schema';
 
 import { buildValue } from '../../lib/values';
-import { getComponentByName } from '../../lib/react-components';
+
+import {
+  getComponentByName,
+  isHTMLComponent,
+} from '../../lib/react-components';
+
 import { noop } from '../../utils/misc';
 import * as JssyPropTypes from '../../constants/common-prop-types';
 
@@ -1333,10 +1338,12 @@ class BuilderComponent extends PureComponent {
     props.children = this._renderComponentChildren(component, isPlaceholder);
     
     // Attach error handler
-    props.__jssy_error_handler__ = _debounce(
-      this._handleErrorInComponentLifecycleHook.bind(this, component),
-      250,
-    );
+    if (!isHTMLComponent(component.name)) {
+      props.__jssy_error_handler__ = _debounce(
+        this._handleErrorInComponentLifecycleHook.bind(this, component),
+        250,
+      );
+    }
   
     if (isPlaceholder) {
       // TODO: Get rid of random keys

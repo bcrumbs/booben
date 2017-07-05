@@ -104,3 +104,23 @@ export const getComponentByName = (componentName = '') => {
 
   return component;
 };
+
+/**
+ *
+ * @param {string} componentName
+ * @return {boolean}
+ */
+export const isHTMLComponent = componentName => {
+  const { namespace } = parseComponentName(componentName);
+  return namespace === 'HTML';
+};
+
+/**
+ *
+ * @param {string} componentName
+ * @return {boolean}
+ */
+export const isBuiltinComponent = componentName => {
+  const { namespace } = parseComponentName(componentName);
+  return namespace === '';
+};
