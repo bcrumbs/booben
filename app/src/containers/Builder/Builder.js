@@ -175,18 +175,14 @@ const wrap = compose(
  * @type {Set<string>}
  * @const
  */
-const pseudoComponents = new Set([
-  'Text',
-  'Outlet',
-  'List',
-]);
+const PSEUDO_COMPONENTS = new Set(['Text', 'Outlet', 'List']);
 
 /**
  *
  * @param {ProjectComponent} component
  * @return {boolean}
  */
-const isPseudoComponent = component => pseudoComponents.has(component.name);
+const isPseudoComponent = component => PSEUDO_COMPONENTS.has(component.name);
 
 /**
  *
@@ -269,6 +265,13 @@ class BuilderComponent extends PureComponent {
     }
   }
   
+  /**
+   *
+   * @param {Object} component
+   * @param {Error} error
+   * @param {string} hookName
+   * @private
+   */
   _handleErrorInComponentLifecycleHook(component, error, hookName) {
     const { interactive, getLocalizedText, onAlert } = this.props;
     
@@ -300,7 +303,13 @@ class BuilderComponent extends PureComponent {
     const { onStartDragComponent } = this.props;
     onStartDragComponent(data.componentId);
   }
-
+  
+  /**
+   *
+   * @param {Object} component
+   * @return {ComponentQueryData}
+   * @private
+   */
   _getQueryForComponent(component) {
     const { schema, meta, project } = this.props;
 
@@ -316,6 +325,12 @@ class BuilderComponent extends PureComponent {
     return queryData;
   }
   
+  /**
+   *
+   * @param {Object} component
+   * @return {ReactComponent}
+   * @private
+   */
   _getApolloWrappedComponentFromCache(component) {
     const cached = this._apolloWrappedComponentsCache.get(component.id);
   
@@ -324,6 +339,12 @@ class BuilderComponent extends PureComponent {
       : null;
   }
   
+  /**
+   *
+   * @param {Object} component
+   * @param {ReactComponent} wrapper
+   * @private
+   */
   _putApolloWrappedComponentToCache(component, wrapper) {
     this._apolloWrappedComponentsCache.set(component.id, {
       component,
@@ -331,6 +352,19 @@ class BuilderComponent extends PureComponent {
     });
   }
   
+  /**
+   * @typedef {Object} RenderHints
+   * @property {Set<number>} needRefs
+   * @property {Map<number, Set<string>>} activeStateSlots
+   */
+  
+  /**
+   *
+   * @param {Immutable.Map<number, Object>} components
+   * @param {number} rootId
+   * @return {RenderHints}
+   * @private
+   */
   _getRenderHints(components, rootId) {
     const { meta, project, schema } = this.props;
     
@@ -392,6 +426,13 @@ class BuilderComponent extends PureComponent {
     return ret;
   }
   
+  /**
+   *
+   * @param {Object} component
+   * @param {Array<string>} activeStateSlots
+   * @return {Object<string, *>}
+   * @private
+   */
   _buildInitialComponentState(component, activeStateSlots) {
     const { meta } = this.props;
     
@@ -426,6 +467,13 @@ class BuilderComponent extends PureComponent {
     return ret;
   }
   
+  /**
+   *
+   * @param {Immutable.Map<number, Object>} components
+   * @param {RenderHints} renderHints
+   * @return {Immutable.Map<number, Immutable.Map<string, *>>}
+   * @private
+   */
   _getInitialComponentsState(components, renderHints) {
     let componentsState = ImmutableMap();
     
@@ -449,10 +497,22 @@ class BuilderComponent extends PureComponent {
     return componentsState;
   }
   
+  /**
+   *
+   * @param {number} componentId
+   * @param {*} ref
+   * @private
+   */
   _saveComponentRef(componentId, ref) {
     this._refs.set(componentId, ref);
   }
   
+  /**
+   *
+   * @param {string} mutationName
+   * @param {Object} response
+   * @private
+   */
   _handleMutationResponse(mutationName, response) {
     const { project, interactive } = this.props;
     
@@ -469,6 +529,13 @@ class BuilderComponent extends PureComponent {
     }
   }
   
+  /**
+   *
+   * @param {Object} action
+   * @param {ValueContext} valueContext
+   * @return {Promise<void>}
+   * @private
+   */
   async _performMutationAction(action, valueContext) {
     const { project, schema, client } = this.props;
     
@@ -523,6 +590,12 @@ class BuilderComponent extends PureComponent {
     }
   }
   
+  /**
+   *
+   * @param {Object} action
+   * @param {ValueContext} valueContext
+   * @private
+   */
   _performNavigateAction(action, valueContext) {
     const { onNavigate } = this.props;
     
@@ -542,6 +615,11 @@ class BuilderComponent extends PureComponent {
     onNavigate({ routeId: action.params.routeId, routeParams });
   }
   
+  /**
+   *
+   * @param {Object} action
+   * @private
+   */
   _performURLAction(action) {
     const { onOpenURL } = this.props;
     
@@ -551,6 +629,12 @@ class BuilderComponent extends PureComponent {
     });
   }
   
+  /**
+   *
+   * @param {Object} action
+   * @param {ValueContext} valueContext
+   * @private
+   */
   _performMethodAction(action, valueContext) {
     const { meta, components } = this.props;
     
@@ -586,6 +670,12 @@ class BuilderComponent extends PureComponent {
     componentInstance[action.params.method](...args);
   }
   
+  /**
+   *
+   * @param {Object} action
+   * @param {ValueContext} valueContext
+   * @private
+   */
   _performPropAction(action, valueContext) {
     const { meta, components } = this.props;
     const { dynamicPropValues } = this.state;
@@ -634,10 +724,21 @@ class BuilderComponent extends PureComponent {
     });
   }
   
+  /**
+   *
+   * @private
+   */
   _performLogoutAction() {
     localStorage.removeItem('jssy_auth_token');
   }
   
+  /**
+   *
+   * @param {Object} action
+   * @param {ValueContext} valueContext
+   * @return {Promise<void>}
+   * @private
+   */
   async _performAJAXAction(action, valueContext) {
     const url = buildValue(
       action.params.url,
@@ -714,6 +815,12 @@ class BuilderComponent extends PureComponent {
     }
   }
   
+  /**
+   *
+   * @param {Object} action
+   * @param {ValueContext} valueContext
+   * @private
+   */
   _performAction(action, valueContext) {
     switch (action.type) {
       case 'mutation': {
@@ -879,7 +986,7 @@ class BuilderComponent extends PureComponent {
    * Constructs props object
    *
    * @param {Object} component
-   * @param {Immutable.Map<Object, Object>} theMap
+   * @param {Immutable.Map<Object, DataContextsInfo>} theMap
    * @param {?Object} [data=null]
    * @return {Object<string, *>}
    */
@@ -908,6 +1015,13 @@ class BuilderComponent extends PureComponent {
     return ret;
   }
   
+  /**
+   * Constructs system props object
+   *
+   * @param {Object} component
+   * @param {Immutable.Map<Object, DataContextsInfo>} theMap
+   * @return {Object<string, *>}
+   */
   _buildSystemProps(component, theMap) {
     const { dynamicPropValues } = this.state;
   
@@ -1137,7 +1251,13 @@ class BuilderComponent extends PureComponent {
     props.__jssy_after__ = afterIdx;
     props.__jssy_container_id__ = containerId;
   }
-
+  
+  /**
+   *
+   * @param {Object} component
+   * @return {boolean}
+   * @private
+   */
   _willRenderContentPlaceholder(component) {
     const {
       meta,

@@ -837,6 +837,21 @@ const buildGraphQLFragmentsForComponent = (
   return { fragments: fixUnfinishedFragments(fragments), theMap };
 };
 
+/**
+ * @typedef {Object} ComponentQueryData
+ * @property {Object} query - GraphQL query AST
+ * @property {Immutable.Map<Object, DataContextsInfo>} theMap
+ * @property {Object<string, *>} variables
+ */
+
+/**
+ *
+ * @param {Object} component
+ * @param {DataSchema} schema
+ * @param {Object<string, Object<string, ComponentMeta>>} meta
+ * @param {Object} project
+ * @return {ComponentQueryData}
+ */
 export const buildQueryForComponent = (component, schema, meta, project) => {
   const variablesAccumulator = {};
   
@@ -853,7 +868,7 @@ export const buildQueryForComponent = (component, schema, meta, project) => {
 
   const rootFragments = fragments.filter(isRootFragment);
 
-  if (!rootFragments.length) return { query: null, theMap };
+  if (!rootFragments.length) return { query: null, theMap, variables: {} };
 
   const query = {
     kind: 'Document',
