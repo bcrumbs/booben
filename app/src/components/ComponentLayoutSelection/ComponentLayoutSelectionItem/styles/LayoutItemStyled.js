@@ -8,7 +8,7 @@ const itemsPerRow = 2,
   itemWidth = 100 / itemsPerRow;
 
 export const LayoutItemStyled = styled.div`
-  padding: ${baseModule(1)};
+  padding: ${baseModule(1)}px;
   cursor: pointer;
   width: ${itemWidth}%;
   max-width: ${itemWidth}%;
