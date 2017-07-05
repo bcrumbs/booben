@@ -1,14 +1,17 @@
 'use strict';
 
 import React from 'react';
-import './ComponentLayoutSelection.scss';
+import { SelectionListStyled } from './styles/SelectionListStyled';
+import {
+  ComponentLayoutSelectionStyled,
+} from './styles/ComponentLayoutSelectionStyled';
 
 export const ComponentLayoutSelection = ({ children }) => (
-  <div className="component-layout-selection-wrapper">
-    <div className="component-layout-selection-list">
+  <ComponentLayoutSelectionStyled>
+    <SelectionListStyled>
       {children}
-    </div>
-  </div>
+    </SelectionListStyled>
+  </ComponentLayoutSelectionStyled>
 );
 
 ComponentLayoutSelection.displayName = 'ComponentLayoutSelection';

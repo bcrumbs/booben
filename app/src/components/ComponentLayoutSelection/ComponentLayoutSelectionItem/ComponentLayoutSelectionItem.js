@@ -3,6 +3,11 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { noop } from '../../../utils/misc';
+import { LayoutItemStyled } from './styles/LayoutItemStyled';
+import { ImageBoxStyled } from './styles/ImageBoxStyled';
+import { TitleBoxStyled } from './styles/TitleBoxStyled';
+import { TitleStyled } from './styles/TitleStyled';
+import { SubtitleStyled } from './styles/SubtitleStyled';
 
 const propTypes = {
   layoutIdx: PropTypes.number,
@@ -35,9 +40,9 @@ export class ComponentLayoutSelectionItem extends PureComponent {
     if (!this.props.subtitle) return null;
     
     return (
-      <div className="component-layout-item-subtitle">
+      <SubtitleStyled>
         {this.props.subtitle}
-      </div>
+      </SubtitleStyled>
     );
   }
   
@@ -45,19 +50,19 @@ export class ComponentLayoutSelectionItem extends PureComponent {
     const subtitle = this._renderSubtitle();
   
     return (
-      <div className="component-layout-item" onClick={this._handleClick}>
-        <div className="component-layout-item-image-box">
+      <LayoutItemStyled onClick={this._handleClick}>
+        <ImageBoxStyled>
           <img src={this.props.image} alt="" role="presentation" />
-        </div>
+        </ImageBoxStyled>
       
-        <div className="component-layout-item-title-box">
-          <div className="component-layout-item-title">
+        <TitleBoxStyled>
+          <TitleStyled>
             {this.props.title}
-          </div>
+          </TitleStyled>
         
           {subtitle}
-        </div>
-      </div>
+        </TitleBoxStyled>
+      </LayoutItemStyled>
     );
   }
 }
