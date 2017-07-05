@@ -3,7 +3,11 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { noop } from '../../utils/misc';
-import './ComponentPlaceholder.scss';
+import { TitleStyled } from './styles/TitleStyled';
+
+import {
+  ComponentPlaceholderStyled,
+} from './styles/ComponentPlaceholderStyled';
 
 const propTypes = {
   title: PropTypes.string,
@@ -20,33 +24,23 @@ const defaultProps = {
 };
 
 export const ComponentPlaceholder = props => {
-  let className = 'component-placeholder';
-  className += props.isPlaced ? ' is-placed' : ' is-free';
-
   let content = false;
   if (props.title) {
-    const titleClassName =
-      'component-placeholder-title ' +
-      'js-component-placeholder-title';
-
     content = (
-      <div className={titleClassName}>
+      <TitleStyled className='js-component-placeholder-title'>
         {props.title}
-      </div>
+      </TitleStyled>
     );
   }
-  
-  const style = {};
-  if (props.isInvisible) style.opacity = '0';
 
   return (
-    <div
-      className={className}
-      style={style}
+    <ComponentPlaceholderStyled
+      placed={props.isPlaced}
+      visible={!props.isInvisible}
       ref={props.elementRef}
     >
       {content}
-    </div>
+    </ComponentPlaceholderStyled>
   );
 };
 
