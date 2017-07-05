@@ -15,7 +15,7 @@ import _get from 'lodash.get';
 import _set from 'lodash.set';
 import _debounce from 'lodash.debounce';
 import { Map as ImmutableMap } from 'immutable';
-import { resolveTypedef, coerceValue, TypeNames } from '@jssy/types';
+import { resolveTypedef } from '@jssy/types';
 import { alertsCreator } from '../../hocs/alerts';
 import { wrapComponent as draggable } from '../../hocs/draggable';
 import { connectDraggable } from '../ComponentsDragArea/ComponentsDragArea';
@@ -47,23 +47,17 @@ import {
   walkSimpleValues,
 } from '../../lib/components';
 
-import {
-  buildQueryForComponent,
-  extractPropValueFromData,
-  buildMutation,
-} from '../../lib/graphql';
+import { buildQueryForComponent, buildMutation } from '../../lib/graphql';
 
 import {
   getJssyValueDefOfQueryArgument,
   getJssyValueDefOfMutationArgument,
-  getJssyValueDefOfField,
   getMutationField,
-  getFieldByPath,
 } from '../../lib/schema';
 
+import { buildValue } from '../../lib/values';
 import { getComponentByName } from '../../lib/react-components';
-import { getFunctionInfo } from '../../lib/functions';
-import { noop, returnNull, isUndef } from '../../utils/misc';
+import { noop } from '../../utils/misc';
 import * as JssyPropTypes from '../../constants/common-prop-types';
 
 import {
@@ -78,11 +72,11 @@ import {
 import { DND_DRAG_START_RADIUS_CANVAS } from '../../config';
 
 const propTypes = {
-  params: PropTypes.object,
   interactive: PropTypes.bool,
   editable: PropTypes.bool,
   components: JssyPropTypes.components.isRequired,
   rootId: PropTypes.number,
+  routeParams: PropTypes.object,
   enclosingComponents: JssyPropTypes.components,
   enclosingContainerId: PropTypes.number,
   enclosingAfterIdx: PropTypes.number,
@@ -93,7 +87,6 @@ const propTypes = {
   propsFromOwner: PropTypes.object,
   theMap: PropTypes.object,
   dataContextInfo: PropTypes.object,
-  ignoreOwnerProps: PropTypes.bool,
   client: PropTypes.object, // react-apollo
   project: PropTypes.any.isRequired, // state
   meta: PropTypes.object.isRequired, // state
@@ -115,12 +108,12 @@ const propTypes = {
 };
 
 const defaultProps = {
-  params: null,
   client: null,
   interactive: false,
   editable: false,
   components: null,
   rootId: INVALID_ID,
+  routeParams: {},
   enclosingComponents: null,
   enclosingContainerId: INVALID_ID,
   enclosingAfterIdx: -1,
@@ -131,7 +124,6 @@ const defaultProps = {
   propsFromOwner: {},
   theMap: null,
   dataContextInfo: null,
-  ignoreOwnerProps: false,
   draggedComponents: null,
   rootDraggedComponent: null,
   onNavigate: noop,
@@ -417,10 +409,12 @@ class BuilderComponent extends PureComponent {
       } else if (initialValue.source === 'prop') {
         const propValue = component.props.get(initialValue.sourceData.propName);
         const propMeta = componentMeta.props[initialValue.sourceData.propName];
-        const value = this._buildValue(
+        const valueContext = this._getValueContext(component.id);
+        const value = buildValue(
           propValue,
           propMeta,
           componentMeta.types,
+          valueContext,
         );
         
         if (value !== NO_VALUE) {
@@ -475,16 +469,7 @@ class BuilderComponent extends PureComponent {
     }
   }
   
-  async _performMutationAction(
-    action,
-    componentId,
-    theMap,
-    data,
-    actionArgValues,
-    actionValueDef,
-    actionUserTypedefs,
-    ajaxRequestResult,
-  ) {
+  async _performMutationAction(action, valueContext) {
     const { project, schema, client } = this.props;
     
     let selections = null;
@@ -514,18 +499,7 @@ class BuilderComponent extends PureComponent {
         schema,
       );
     
-      const value = this._buildValue(
-        argValue,
-        argJssyType,
-        null,
-        theMap,
-        componentId,
-        data,
-        actionArgValues,
-        actionValueDef,
-        actionUserTypedefs,
-        ajaxRequestResult,
-      );
+      const value = buildValue(argValue, argJssyType, null, valueContext);
     
       if (value !== NO_VALUE) variables[argName] = value;
     });
@@ -540,59 +514,26 @@ class BuilderComponent extends PureComponent {
       client.resetStore();
   
       action.params.successActions.forEach(successAction => {
-        this._performAction(
-          successAction,
-          componentId,
-          theMap,
-          data,
-          actionArgValues,
-          actionValueDef,
-          actionUserTypedefs,
-          ajaxRequestResult,
-        );
+        this._performAction(successAction, valueContext);
       });
     } catch (error) {
       action.params.errorActions.forEach(errorAction => {
-        this._performAction(
-          errorAction,
-          componentId,
-          theMap,
-          data,
-          actionArgValues,
-          actionValueDef,
-          actionUserTypedefs,
-          ajaxRequestResult,
-        );
+        this._performAction(errorAction, valueContext);
       });
     }
   }
   
-  _performNavigateAction(
-    action,
-    componentId,
-    theMap,
-    data,
-    actionArgValues,
-    actionValueDef,
-    actionUserTypedefs,
-    ajaxRequestResult,
-  ) {
+  _performNavigateAction(action, valueContext) {
     const { onNavigate } = this.props;
     
     const routeParams = {};
   
     action.params.routeParams.forEach((paramValue, paramName) => {
-      const value = this._buildValue(
+      const value = buildValue(
         paramValue,
         ROUTE_PARAM_VALUE_DEF,
         null,
-        theMap,
-        componentId,
-        data,
-        actionArgValues,
-        actionValueDef,
-        actionUserTypedefs,
-        ajaxRequestResult,
+        valueContext,
       );
     
       if (value !== NO_VALUE) routeParams[paramName] = value;
@@ -610,16 +551,7 @@ class BuilderComponent extends PureComponent {
     });
   }
   
-  _performMethodAction(
-    action,
-    componentId,
-    theMap,
-    data,
-    actionArgValues,
-    actionValueDef,
-    actionUserTypedefs,
-    ajaxRequestResult,
-  ) {
+  _performMethodAction(action, valueContext) {
     const { meta, components } = this.props;
     
     const component = components.get(action.params.componentId);
@@ -641,17 +573,11 @@ class BuilderComponent extends PureComponent {
         componentMeta.types,
       );
     
-      const value = this._buildValue(
+      const value = buildValue(
         argValue,
         argTypedef,
         componentMeta.types,
-        theMap,
-        componentId,
-        data,
-        actionArgValues,
-        actionValueDef,
-        actionUserTypedefs,
-        ajaxRequestResult,
+        valueContext,
       );
     
       args.push(value !== NO_VALUE ? value : void 0);
@@ -660,16 +586,7 @@ class BuilderComponent extends PureComponent {
     componentInstance[action.params.method](...args);
   }
   
-  _performPropAction(
-    action,
-    componentId,
-    theMap,
-    data,
-    actionArgValues,
-    actionValueDef,
-    actionUserTypedefs,
-    ajaxRequestResult,
-  ) {
+  _performPropAction(action, valueContext) {
     const { meta, components } = this.props;
     const { dynamicPropValues } = this.state;
     
@@ -702,17 +619,11 @@ class BuilderComponent extends PureComponent {
         ? SYSTEM_PROPS[propName]
         : targetComponentMeta.props[propName];
     
-      newValue = JssyValue.staticFromJS(this._buildValue(
+      newValue = JssyValue.staticFromJS(buildValue(
         action.params.value,
         targetPropMeta,
         targetComponent.types,
-        theMap,
-        componentId,
-        data,
-        actionArgValues,
-        actionValueDef,
-        actionUserTypedefs,
-        ajaxRequestResult,
+        valueContext,
       ));
     } else {
       newValue = action.params.value;
@@ -727,27 +638,12 @@ class BuilderComponent extends PureComponent {
     localStorage.removeItem('jssy_auth_token');
   }
   
-  async _performAJAXAction(
-    action,
-    componentId,
-    theMap,
-    data,
-    actionArgValues,
-    actionValueDef,
-    actionUserTypedefs,
-    ajaxRequestResult,
-  ) {
-    const url = this._buildValue(
+  async _performAJAXAction(action, valueContext) {
+    const url = buildValue(
       action.params.url,
       AJAX_URL_VALUE_DEF,
       null,
-      theMap,
-      componentId,
-      data,
-      actionArgValues,
-      actionValueDef,
-      actionUserTypedefs,
-      ajaxRequestResult,
+      valueContext,
     );
     
     if (url === NO_VALUE) return;
@@ -764,17 +660,11 @@ class BuilderComponent extends PureComponent {
       action.params.method !== 'HEAD';
     
     if (willAddBody) {
-      const bodyValue = this._buildValue(
+      const bodyValue = buildValue(
         action.params.body,
         AJAX_BODY_VALUE_DEF,
         null,
-        theMap,
-        componentId,
-        data,
-        actionArgValues,
-        actionValueDef,
-        actionUserTypedefs,
-        ajaxRequestResult,
+        valueContext,
       );
       
       if (bodyValue !== NO_VALUE) {
@@ -796,86 +686,43 @@ class BuilderComponent extends PureComponent {
         body = await response.arrayBuffer();
       }
       
-      const result = {
+      const ajaxRequestResult = {
         error: null,
         status: response.status,
         headers: response.headers,
         body,
       };
+      
+      const nextValueContext = { ...valueContext, ajaxRequestResult };
   
       action.params.successActions.forEach(successAction => {
-        this._performAction(
-          successAction,
-          componentId,
-          theMap,
-          data,
-          actionArgValues,
-          actionValueDef,
-          actionUserTypedefs,
-          result,
-        );
+        this._performAction(successAction, nextValueContext);
       });
     } catch (error) {
-      const result = {
+      const ajaxRequestResult = {
         error,
         status: null,
         headers: null,
         body: null,
       };
+  
+      const nextValueContext = { ...valueContext, ajaxRequestResult };
       
       action.params.errorActions.forEach(errorAction => {
-        this._performAction(
-          errorAction,
-          componentId,
-          theMap,
-          data,
-          actionArgValues,
-          actionValueDef,
-          actionUserTypedefs,
-          result,
-        );
+        this._performAction(errorAction, nextValueContext);
       });
     }
   }
   
-  _performAction(
-    action,
-    componentId,
-    theMap,
-    data,
-    actionArgValues,
-    actionValueDef,
-    actionUserTypedefs,
-    ajaxRequestResult,
-  ) {
+  _performAction(action, valueContext) {
     switch (action.type) {
       case 'mutation': {
-        this._performMutationAction(
-          action,
-          componentId,
-          theMap,
-          data,
-          actionArgValues,
-          actionValueDef,
-          actionUserTypedefs,
-          ajaxRequestResult,
-        );
-        
+        this._performMutationAction(action, valueContext);
         break;
       }
     
       case 'navigate': {
-        this._performNavigateAction(
-          action,
-          componentId,
-          theMap,
-          data,
-          actionArgValues,
-          actionValueDef,
-          actionUserTypedefs,
-          ajaxRequestResult,
-        );
-        
+        this._performNavigateAction(action, valueContext);
         break;
       }
     
@@ -885,32 +732,12 @@ class BuilderComponent extends PureComponent {
       }
     
       case 'method': {
-        this._performMethodAction(
-          action,
-          componentId,
-          theMap,
-          data,
-          actionArgValues,
-          actionValueDef,
-          actionUserTypedefs,
-          ajaxRequestResult,
-        );
-        
+        this._performMethodAction(action, valueContext);
         break;
       }
     
       case 'prop': {
-        this._performPropAction(
-          action,
-          componentId,
-          theMap,
-          data,
-          actionArgValues,
-          actionValueDef,
-          actionUserTypedefs,
-          ajaxRequestResult,
-        );
-      
+        this._performPropAction(action, valueContext);
         break;
       }
       
@@ -920,17 +747,7 @@ class BuilderComponent extends PureComponent {
       }
       
       case 'ajax': {
-        this._performAJAXAction(
-          action,
-          componentId,
-          theMap,
-          data,
-          actionArgValues,
-          actionValueDef,
-          actionUserTypedefs,
-          ajaxRequestResult,
-        );
-        
+        this._performAJAXAction(action, valueContext);
         break;
       }
     
@@ -938,442 +755,124 @@ class BuilderComponent extends PureComponent {
     }
   }
   
-  _buildStaticValue(
-    jssyValue,
-    typedef,
-    userTypedefs,
-    theMap,
-    componentId,
-    data,
-  ) {
-    const { propsFromOwner, ignoreOwnerProps } = this.props;
-    
-    const resolvedTypedef = resolveTypedef(typedef, userTypedefs);
-    
-    if (jssyValue.sourceData.ownerPropName && !ignoreOwnerProps) {
-      return propsFromOwner[jssyValue.sourceData.ownerPropName];
-    } else if (resolvedTypedef.type === TypeNames.SHAPE) {
-      if (jssyValue.sourceData.value === null) return null;
-    
-      const ret = {};
-    
-      _forOwn(resolvedTypedef.fields, (fieldMeta, fieldName) => {
-        const fieldValue = jssyValue.sourceData.value.get(fieldName);
-      
-        if (!isUndef(fieldValue)) {
-          ret[fieldName] = this._buildValue(
-            fieldValue,
-            fieldMeta,
-            userTypedefs,
-            theMap,
-            componentId,
-            data,
-          );
-        }
-      });
-    
-      return ret;
-    } else if (resolvedTypedef.type === TypeNames.OBJECT_OF) {
-      if (jssyValue.sourceData.value === null) return null;
-    
-      return jssyValue.sourceData.value.map(nestedValue =>
-        this._buildValue(
-          nestedValue,
-          resolvedTypedef.ofType,
-          userTypedefs,
-          theMap,
-          componentId,
-          data,
-        ),
-      ).toJS();
-    } else if (resolvedTypedef.type === TypeNames.ARRAY_OF) {
-      return jssyValue.sourceData.value.map(nestedValue =>
-        this._buildValue(
-          nestedValue,
-          resolvedTypedef.ofType,
-          userTypedefs,
-          theMap,
-          componentId,
-          data,
-        ),
-      ).toJS();
-    } else {
-      return jssyValue.sourceData.value;
-    }
-  }
-  
-  _buildConstValue(jssyValue) {
-    return jssyValue.sourceData.value;
-  }
-  
-  _buildDesignerValue(jssyValue, theMap) {
-    const { params, interactive, onNavigate, onOpenURL } = this.props;
-    
-    if (!jssyValue.hasDesignedComponent()) return returnNull;
-  
-    return props => (
-      <Builder
-        params={params}
-        interactive={interactive}
-        components={jssyValue.sourceData.components}
-        rootId={jssyValue.sourceData.rootId}
-        dontPatch
-        propsFromOwner={props}
-        theMap={theMap}
-        dataContextInfo={theMap.get(jssyValue)}
-        onNavigate={onNavigate}
-        onOpenURL={onOpenURL}
-      >
-        {props.children}
-      </Builder>
-    );
-  }
-  
-  _buildDataValue(jssyValue, valueDef, userTypedefs, data) {
-    const { schema, propsFromOwner, dataContextInfo } = this.props;
-    
-    if (jssyValue.sourceData.queryPath !== null) {
-      const path = jssyValue.sourceData.queryPath
-        .map(step => step.field)
-        .toJS();
-      
-      if (jssyValue.sourceData.dataContext.size > 0) {
-        if (dataContextInfo) {
-          const ourDataContextInfo =
-            dataContextInfo[jssyValue.sourceData.dataContext.last()];
-  
-          const data = propsFromOwner[ourDataContextInfo.ownerPropName];
-          const rawValue = extractPropValueFromData(
-            jssyValue,
-            data,
-            schema,
-            ourDataContextInfo.type,
-          );
-  
-          const field = getFieldByPath(schema, path, ourDataContextInfo.type);
-          const fieldValueDef = getJssyValueDefOfField(field, schema);
-  
-          return coerceValue(
-            rawValue,
-            fieldValueDef,
-            valueDef,
-            null,
-            userTypedefs,
-          );
-        }
-      } else if (data) {
-        const rawValue = extractPropValueFromData(jssyValue, data, schema);
-        const field = getFieldByPath(schema, path);
-        const fieldValueDef = getJssyValueDefOfField(field, schema);
-        
-        return coerceValue(
-          rawValue,
-          fieldValueDef,
-          valueDef,
-          null,
-          userTypedefs,
-        );
-      }
-    }
-    
-    return NO_VALUE;
-  }
-  
-  _buildFunctionValue(
-    jssyValue,
-    valueDef,
-    userTypedefs,
-    theMap,
-    componentId,
-    data,
-  ) {
-    const { project } = this.props;
-    
-    const fnInfo = getFunctionInfo(
-      jssyValue.sourceData.functionSource,
-      jssyValue.sourceData.function,
-      project.functions,
-    );
-  
-    if (!fnInfo) return NO_VALUE;
-  
-    const argValues = fnInfo.args.map(argInfo => {
-      const argValue = jssyValue.sourceData.args.get(argInfo.name);
-    
-      let ret = NO_VALUE;
-    
-      if (argValue) {
-        ret = this._buildValue(
-          argValue,
-          argInfo.typedef,
-          userTypedefs,
-          theMap,
-          componentId,
-          data,
-        );
-      }
-    
-      if (ret === NO_VALUE) ret = argInfo.defaultValue;
-      return ret;
-    });
-  
-    // TODO: Pass fns as last argument
-    const rawValue = fnInfo.fn(...argValues, {});
-    
-    return coerceValue(
-      rawValue,
-      fnInfo.returnType,
-      valueDef,
-      null,
-      userTypedefs,
-    );
-  }
-  
-  _buildActionsValue(
-    jssyValue,
-    valueDef,
-    userTypedefs,
-    theMap,
-    componentId,
-    data,
-    ajaxRequestResult,
-  ) {
+  /**
+   *
+   * @param {number} componentId
+   * @param {Object} jssyValue
+   * @param {JssyValueDefinition} valueDef
+   * @param {Object<string, JssyTypeDefinition>} userTypedefs
+   * @param {ValueContext} valueContext
+   * @private
+   */
+  _handleActions(componentId, jssyValue, valueDef, userTypedefs, valueContext) {
     const { interactive, isPlaceholder } = this.props;
     const { componentsState } = this.state;
   
-    if (isPlaceholder) return noop;
+    if (isPlaceholder) return;
   
     const resolvedTypedef = resolveTypedef(valueDef, userTypedefs);
+    const stateUpdates = resolvedTypedef.sourceConfigs.actions.updateState;
   
-    return (...args) => {
-      const stateUpdates = resolvedTypedef.sourceConfigs.actions.updateState;
+    if (stateUpdates) {
+      const currentState = componentsState.get(componentId);
     
-      if (stateUpdates) {
-        const currentState = componentsState.get(componentId);
+      if (currentState) {
+        let nextState = currentState;
       
-        if (currentState) {
-          let nextState = currentState;
+        _forOwn(stateUpdates, (value, slotName) => {
+          if (!currentState.has(slotName)) return;
         
-          _forOwn(stateUpdates, (value, slotName) => {
-            if (!currentState.has(slotName)) return;
-          
-            let newValue = NO_VALUE;
-            if (value.source === 'const') {
-              newValue = value.sourceData.value;
-            } else if (value.source === 'arg') {
-              newValue = _get(
-                args[value.sourceData.arg],
-                value.sourceData.path,
-                NO_VALUE,
-              );
-            }
-          
-            if (newValue !== NO_VALUE) {
-              nextState = nextState.set(slotName, newValue);
-            }
-          });
-        
-          if (nextState !== currentState) {
-            this.setState({
-              componentsState: componentsState.set(componentId, nextState),
-            });
+          let newValue = NO_VALUE;
+          if (value.source === 'const') {
+            newValue = value.sourceData.value;
+          } else if (value.source === 'arg') {
+            newValue = _get(
+              valueContext.actionArgValues[value.sourceData.arg],
+              value.sourceData.path,
+              NO_VALUE,
+            );
           }
+        
+          if (newValue !== NO_VALUE) {
+            nextState = nextState.set(slotName, newValue);
+          }
+        });
+      
+        if (nextState !== currentState) {
+          this.setState({
+            componentsState: componentsState.set(componentId, nextState),
+          });
         }
       }
-    
-      // No actions in design-time
-      if (interactive) return;
-    
-      jssyValue.sourceData.actions.forEach(action => {
-        this._performAction(
-          action,
-          componentId,
-          theMap,
-          data,
-          args,
-          valueDef,
-          userTypedefs,
-          ajaxRequestResult,
-        );
-      });
-    };
-  }
-  
-  _buildStateValue(jssyValue, valueDef, userTypedefs) {
-    const { meta, components } = this.props;
-    const { componentsState } = this.state;
-    
-    const componentState =
-      componentsState.get(jssyValue.sourceData.componentId);
-  
-    const haveValue =
-      !!componentState &&
-      componentState.has(jssyValue.sourceData.stateSlot);
-    
-    if (!haveValue) return NO_VALUE;
-  
-    const rawValue = componentState.get(jssyValue.sourceData.stateSlot);
-    const sourceComponent = components.get(jssyValue.sourceData.componentId);
-    const sourceComponentMeta = getComponentMeta(sourceComponent.name, meta);
-    const stateSlotMeta =
-      sourceComponentMeta.state[jssyValue.sourceData.stateSlot];
-    
-    return coerceValue(
-      rawValue,
-      stateSlotMeta,
-      valueDef,
-      sourceComponentMeta.types,
-      userTypedefs,
-    );
-  }
-  
-  _buildRouteParamsValue(jssyValue, valueDef, userTypedefs) {
-    const {
-      params,
-      interactive,
-      project,
-    } = this.props;
-    
-    let rawValue = NO_VALUE;
-    if (interactive) {
-      const route = project.routes.get(jssyValue.sourceData.routeId);
-      if (route) {
-        rawValue = route.paramValues.get(jssyValue.sourceData.paramName);
-      }
-    } else {
-      rawValue = params[jssyValue.sourceData.paramName];
     }
-    
-    if (rawValue === NO_VALUE) return NO_VALUE;
-    
-    return coerceValue(
-      rawValue,
-      ROUTE_PARAM_VALUE_DEF,
-      valueDef,
-      null,
-      userTypedefs,
-    );
+  
+    // No actions in design-time
+    if (interactive) return;
+  
+    jssyValue.sourceData.actions.forEach(action => {
+      this._performAction(action, valueContext);
+    });
   }
   
-  _buildActionArgValue(
-    jssyValue,
-    valueDef,
-    userTypedefs,
-    actionArgValues,
-    actionValueDef,
-    actionUserTypedefs,
-  ) {
-    const argIdx = jssyValue.sourceData.arg;
-    
-    return coerceValue(
-      actionArgValues[argIdx],
-      actionValueDef.sourceConfigs.actions.args[argIdx],
-      valueDef,
-      actionUserTypedefs,
-      userTypedefs,
-    );
-  }
-  
-  /**
-   * @typedef {Object} AJAXRequestResult
-   * @property {?Error} error
-   * @property {number} status
-   * @property {Object<string, string>} headers
-   * @property {*} body
-   */
-
   /**
    *
-   * @param {Object} jssyValue
-   * @param {JssyTypeDefinition} valueDef
-   * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
-   * @param {?Immutable.Map<Object, Object>} [theMap=null]
-   * @param {?number} [componentId=null]
+   * @param {number} componentId
+   * @param {Immutable.Map<Object, DataContextsInfo>} [theMap=null]
    * @param {?Object} [data=null]
-   * @param {?(*[])} [actionArgValues=null]
-   * @param {?JssyValueDefinition} [actionValueDef=null]
-   * @param {?Object<string, JssyTypeDefinition>} [actionUserTypedefs=null]
-   * @param {?AJAXRequestResult} [ajaxRequestResult=null]
-   * @return {*}
+   * @return {ValueContext}
+   * @private
    */
-  _buildValue(
-    jssyValue,
-    valueDef,
-    userTypedefs = null, // Required if the valueDef references custom types
-    theMap = null, // Required to build values with 'designer' source
-    componentId = null, // Required to build values with 'actions' source
-    data = null, // Required to build values with 'data' source and no dataContext
-    actionArgValues = null, // Required to build values with 'actionArg' source and no dataContext
-    actionValueDef = null, // Required to build values with 'actionArg' source and no dataContext
-    actionUserTypedefs = null, // Required to build values with 'actionArg' source and no dataContext
-    ajaxRequestResult = null,
-  ) {
-    if (jssyValue.source === 'static') {
-      return this._buildStaticValue(
-        jssyValue,
-        valueDef,
-        userTypedefs,
-        theMap,
-        componentId,
-        data,
-      );
-    } else if (jssyValue.source === 'const') {
-      return this._buildConstValue(jssyValue);
-    } else if (jssyValue.source === 'designer') {
-      if (theMap === null) {
-        throw new Error(
-          'Builder#_buildDesignerValue(): ' +
-          'Got value with "designer" source, but theMap is null',
+  _getValueContext(componentId, theMap = null, data = null) {
+    const {
+      meta,
+      schema,
+      project,
+      components,
+      propsFromOwner,
+      dataContextInfo,
+      routeParams,
+      interactive,
+      onNavigate,
+      onOpenURL,
+    } = this.props;
+  
+    const { componentsState } = this.state;
+    
+    return {
+      meta,
+      schema,
+      components,
+      componentsState,
+      propsFromOwner,
+      dataContextInfo,
+      projectFunctions: project.functions,
+      theMap,
+      data,
+      routeParams,
+      BuilderComponent: Builder, // eslint-disable-line no-use-before-define
+      getBuilderProps: (ownProps, jssyValue, valueContext) => ({
+        routeParams,
+        interactive,
+        components: jssyValue.sourceData.components,
+        rootId: jssyValue.sourceData.rootId,
+        dontPatch: true,
+        propsFromOwner: ownProps,
+        theMap: valueContext.theMap,
+        dataContextInfo: valueContext.theMap.get(jssyValue),
+        onNavigate,
+        onOpenURL,
+      }),
+  
+      handleActions: (jssyValue, valueDef, userTypedefs, valueContext) => {
+        this._handleActions(
+          componentId,
+          jssyValue,
+          valueDef,
+          userTypedefs,
+          valueContext,
         );
-      }
-      
-      return this._buildDesignerValue(jssyValue, theMap);
-    } else if (jssyValue.source === 'data') {
-      return this._buildDataValue(jssyValue, valueDef, userTypedefs, data);
-    } else if (jssyValue.source === 'function') {
-      return this._buildFunctionValue(
-        jssyValue,
-        valueDef,
-        userTypedefs,
-        theMap,
-        componentId,
-        data,
-      );
-    } else if (jssyValue.source === 'actions') {
-      if (componentId === null) {
-        throw new Error(
-          'Builder#_buildValue(): ' +
-          'Got value with "actions" source, but componentId is null',
-        );
-      }
-      
-      return this._buildActionsValue(
-        jssyValue,
-        valueDef,
-        userTypedefs,
-        theMap,
-        componentId,
-        data,
-        ajaxRequestResult,
-      );
-    } else if (jssyValue.source === 'state') {
-      return this._buildStateValue(jssyValue, valueDef, userTypedefs);
-    } else if (jssyValue.source === 'routeParams') {
-      return this._buildRouteParamsValue(jssyValue, valueDef, userTypedefs);
-    } else if (jssyValue.source === 'actionArg') {
-      return this._buildActionArgValue(
-        jssyValue,
-        valueDef,
-        userTypedefs,
-        actionArgValues,
-        actionValueDef,
-        actionUserTypedefs,
-      );
-    }
-
-    throw new Error(
-      `Builder#_buildValue: Unknown value source: "${jssyValue.source}"`,
-    );
+      },
+    };
   }
 
   /**
@@ -1387,20 +886,20 @@ class BuilderComponent extends PureComponent {
   _buildProps(component, theMap, data = null) {
     const { meta } = this.props;
     const { dynamicPropValues } = this.state;
+    
     const componentMeta = getComponentMeta(component.name, meta);
+    const valueContext = this._getValueContext(component.id, theMap, data);
     const ret = {};
 
     component.props.forEach((propValue, propName) => {
       const propMeta = componentMeta.props[propName];
       const propAddress = serializePropAddress(component.id, propName, false);
       const dynamicPropValue = dynamicPropValues.get(propAddress);
-      const value = this._buildValue(
+      const value = buildValue(
         dynamicPropValue || propValue,
         propMeta,
         componentMeta.types,
-        theMap,
-        component.id,
-        data,
+        valueContext,
       );
 
       if (value !== NO_VALUE) ret[propName] = value;
@@ -1411,18 +910,19 @@ class BuilderComponent extends PureComponent {
   
   _buildSystemProps(component, theMap) {
     const { dynamicPropValues } = this.state;
+  
+    const valueContext = this._getValueContext(component.id, theMap);
     const ret = {};
     
     component.systemProps.forEach((propValue, propName) => {
       const propMeta = SYSTEM_PROPS[propName];
       const propAddress = serializePropAddress(component.id, propName, true);
       const dynamicPropValue = dynamicPropValues.get(propAddress);
-      const value = this._buildValue(
+      const value = buildValue(
         dynamicPropValue || propValue,
         propMeta,
         null,
-        theMap,
-        component.id,
+        valueContext,
       );
   
       if (value !== NO_VALUE) ret[propName] = value;
@@ -1758,14 +1258,15 @@ class BuilderComponent extends PureComponent {
     let Renderable = Component;
 
     if (graphQLQuery) {
-      const variables = _mapValues(
-        graphQLVariables,
-        
-        ({ argDefinition, argValue }) => this._buildValue(
-          argValue,
-          getJssyValueDefOfQueryArgument(argDefinition, schema),
-        ),
+      const valueContext = this._getValueContext(component.id);
+      const buildArgValue = ({ argDefinition, argValue }) => buildValue(
+        argValue,
+        getJssyValueDefOfQueryArgument(argDefinition, schema),
+        null,
+        valueContext,
       );
+      
+      const variables = _mapValues(graphQLVariables, buildArgValue);
   
       Renderable = this._getApolloWrappedComponentFromCache(component);
       

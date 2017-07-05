@@ -33,6 +33,7 @@ import {
 } from '../../../../selectors';
 
 import Project, { getComponentById } from '../../../../models/Project';
+import { getRouteParams } from '../../../../models/ProjectRoute';
 import { distance } from '../../../../utils/geometry';
 import { noop } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
@@ -751,6 +752,8 @@ class CanvasContent extends Component {
     
     let route = project.routes.get(currentRouteId);
     let ret;
+  
+    const routeParams = getRouteParams(route, project.routes);
     
     if (currentRouteIsIndexRoute) {
       const outletPosition = getOutletPosition(route.components);
@@ -760,12 +763,14 @@ class CanvasContent extends Component {
           interactive
           components={route.components}
           rootId={route.component}
+          routeParams={routeParams}
         >
           <Builder
             interactive
             editable
             components={route.components}
             rootId={route.indexComponent}
+            routeParams={routeParams}
             enclosingComponents={route.components}
             enclosingContainerId={outletPosition.containerId}
             enclosingAfterIdx={outletPosition.afterIdx}
@@ -792,6 +797,7 @@ class CanvasContent extends Component {
           editable
           components={route.components}
           rootId={route.component}
+          routeParams={routeParams}
           enclosingComponents={enclosingComponents}
           enclosingContainerId={enclosingContainerId}
           enclosingAfterIdx={enclosingAfterIdx}
@@ -801,12 +807,15 @@ class CanvasContent extends Component {
     
     while (route.parentId !== INVALID_ID) {
       route = project.routes.get(route.parentId);
+  
+      const routeParams = getRouteParams(route, project.routes);
 
       ret = (
         <Builder
           interactive
           components={route.components}
           rootId={route.component}
+          routeParams={routeParams}
         >
           {ret}
         </Builder>
@@ -817,7 +826,10 @@ class CanvasContent extends Component {
   }
   
   _renderTopNestedConstructor() {
-    const { topNestedConstructor } = this.props;
+    const { project, topNestedConstructor, currentRouteId } = this.props;
+  
+    const currentRoute = project.routes.get(currentRouteId);
+    const routeParams = getRouteParams(currentRoute, project.routes);
     
     return (
       <Builder
@@ -825,7 +837,7 @@ class CanvasContent extends Component {
         editable
         components={topNestedConstructor.components}
         rootId={topNestedConstructor.rootId}
-        ignoreOwnerProps
+        routeParams={routeParams}
       />
     );
   }

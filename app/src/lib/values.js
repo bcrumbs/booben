@@ -83,9 +83,7 @@ const buildOwnerPropValue = (jssyValue, context) => {
   const propName = jssyValue.sourceData.ownerPropName;
 
   if (propsFromOwner === null || !hasOwnProperty(propsFromOwner, propName)) {
-    throw new Error(
-      `buildOwnerPropValue(): no '${propName}' property in owner props`,
-    );
+    return NO_VALUE;
   }
 
   return propsFromOwner[propName];
@@ -185,10 +183,7 @@ const buildDataValue = (jssyValue, valueDef, userTypedefs, context) => {
       dataContextInfo === null ||
       !hasOwnProperty(dataContextInfo, dataContextName)
     ) {
-      throw new Error(
-        'buildDataValue(): got a value with data context, ' +
-        'but no dataContextInfo',
-      );
+      return NO_VALUE;
     }
 
     const ourDataContextInfo = dataContextInfo[dataContextName];
@@ -197,10 +192,7 @@ const buildDataValue = (jssyValue, valueDef, userTypedefs, context) => {
       propsFromOwner === null ||
       !hasOwnProperty(propsFromOwner, ourDataContextInfo.ownerPropName)
     ) {
-      throw new Error(
-        'buildDataValue(): got a value with data context, ' +
-        'but there\'s no such property in propsFromOwner',
-      );
+      return NO_VALUE;
     }
 
     field = getFieldByPath(schema, path, ourDataContextInfo.type);
@@ -212,10 +204,7 @@ const buildDataValue = (jssyValue, valueDef, userTypedefs, context) => {
     );
   } else {
     if (data === null) {
-      throw new Error(
-        'buildDataValue(): got a value without data context, ' +
-        'but there\'s no data',
-      );
+      return NO_VALUE;
     }
 
     field = getFieldByPath(schema, path);
@@ -239,12 +228,7 @@ const buildDataValue = (jssyValue, valueDef, userTypedefs, context) => {
  * @param {?ValueContext} context
  * @return {*}
  */
-const buildFunctionValue = (
-  jssyValue,
-  valueDef,
-  userTypedefs,
-  context,
-) => {
+const buildFunctionValue = (jssyValue, valueDef, userTypedefs, context) => {
   const { projectFunctions } = context;
 
   const fnInfo = getFunctionInfo(

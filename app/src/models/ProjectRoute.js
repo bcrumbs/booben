@@ -101,6 +101,24 @@ export const getMaxComponentId = route =>
     ? route.components.keySeq().max()
     : INVALID_ID;
 
+const getParentRoute = (route, routes) => route.parentId === INVALID_ID
+  ? null
+  : routes.get(route.parentId);
+
+export const getRouteParams = (route, routes) => {
+  const ret = {};
+  
+  while (route !== null) {
+    route.paramValues.forEach((value, name) => {
+      ret[name] = value;
+    });
+    
+    route = getParentRoute(route, routes);
+  }
+  
+  return ret;
+};
+
 export const projectRouteToJSv1 = (routes, routeId) => {
   const route = routes.get(routeId);
   

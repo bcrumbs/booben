@@ -74,9 +74,9 @@ class PreviewComponent extends Component {
 
     const ret = ({ match }) => (
       <Builder
-        params={match.params}
         components={route.components}
         rootId={rootId}
+        routeParams={match.params}
         onNavigate={this._handleNavigate}
         onOpenURL={this._handleOpenURL}
       >
