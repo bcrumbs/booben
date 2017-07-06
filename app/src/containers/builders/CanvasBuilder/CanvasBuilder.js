@@ -10,16 +10,22 @@ import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { graphql } from 'react-apollo';
 import _forOwn from 'lodash.forown';
-import _mapValues from 'lodash.mapvalues';
 import _get from 'lodash.get';
 import _debounce from 'lodash.debounce';
-import { Map as ImmutableMap } from 'immutable';
 import { resolveTypedef } from '@jssy/types';
+
+import {
+  getRenderHints,
+  getInitialComponentsState,
+  mergeComponentsState,
+} from '../helpers';
+
 import { alertsCreator } from '../../../hocs/alerts';
 import { wrapComponent as draggable } from '../../../hocs/draggable';
+import { PlaceholderBuilder } from '../PlaceholderBuilder/PlaceholderBuilder';
 import { connectDraggable } from '../../ComponentsDragArea/ComponentsDragArea';
-import { ContentPlaceholder } from './ContentPlaceholder/ContentPlaceholder';
-import { Outlet } from './Outlet/Outlet';
+import { ContentPlaceholder } from '../ContentPlaceholder/ContentPlaceholder';
+import { Outlet } from '../Outlet/Outlet';
 import ProjectComponent from '../../../models/ProjectComponent';
 import { startDragExistingComponent } from '../../../actions/preview';
 
@@ -30,8 +36,6 @@ import {
   getLocalizedTextFromState,
 } from '../../../selectors/index';
 
-import collapsingToPoint from '../../../hocs/collapsingToPoint';
-
 import {
   isContainerComponent,
   isCompositeComponent,
@@ -41,13 +45,11 @@ import {
 import {
   canInsertComponent,
   canInsertRootComponent,
-  walkComponentsTree,
-  walkSimpleValues,
 } from '../../../lib/components';
 
 import { buildQueryForComponent } from '../../../lib/graphql';
-import { getJssyValueDefOfQueryArgument } from '../../../lib/schema';
-import { buildValue, buildInitialComponentState } from '../../../lib/values';
+import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
+import { queryResultHasData } from '../../../lib/apollo';
 
 import {
   getComponentByName,
@@ -67,9 +69,6 @@ const propTypes = {
   enclosingContainerId: PropTypes.number,
   enclosingAfterIdx: PropTypes.number,
   dontPatch: PropTypes.bool,
-  isPlaceholder: PropTypes.bool,
-  afterIdx: PropTypes.number,
-  containerId: PropTypes.number,
   propsFromOwner: PropTypes.object,
   theMap: PropTypes.object,
   dataContextInfo: PropTypes.object,
@@ -99,18 +98,11 @@ const defaultProps = {
   enclosingContainerId: INVALID_ID,
   enclosingAfterIdx: -1,
   dontPatch: false,
-  isPlaceholder: false,
-  afterIdx: -1,
-  containerId: INVALID_ID,
   propsFromOwner: {},
   theMap: null,
   dataContextInfo: null,
   draggedComponents: null,
   rootDraggedComponent: null,
-};
-
-const contextTypes = {
-  window: PropTypes.object,
 };
 
 const mapStateToProps = state => ({
@@ -137,15 +129,6 @@ const mapDispatchToProps = dispatch => ({
 const wrap = compose(
   connect(mapStateToProps, mapDispatchToProps),
   alertsCreator,
-  collapsingToPoint({
-    pointAttributesFromProps: props => ({
-      'data-jssy-placeholder': '',
-      'data-jssy-container-id': String(props.containerId),
-      'data-jssy-after': String(props.afterIdx),
-    }),
-    
-    getWindowInstance: (props, context) => context.window,
-  }),
 );
 
 /**
@@ -185,13 +168,19 @@ class CanvasBuilderComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
     
-    this._renderHints = this._getRenderHints(props.components, props.rootId);
-    this._apolloWrappedComponentsCache = new Map();
+    this._renderHints = getRenderHints(
+      props.components,
+      props.rootId,
+      props.meta,
+      props.schema,
+      props.project,
+    );
   
     this.state = {
-      componentsState: this._getInitialComponentsState(
+      componentsState: getInitialComponentsState(
         props.components,
         this._renderHints,
+        props.meta,
       ),
     };
     
@@ -207,25 +196,23 @@ class CanvasBuilderComponent extends PureComponent {
       nextProps.rootId !== rootId;
     
     if (componentsUpdated) {
-      this._renderHints = this._getRenderHints(
+      this._renderHints = getRenderHints(
         nextProps.components,
         nextProps.rootId,
-      );
-      
-      const initialComponentsState = this._getInitialComponentsState(
-        nextProps.components,
-        this._renderHints,
-      );
-      
-      const nextComponentsState = initialComponentsState.map(
-        (componentState, componentId) => componentState.map(
-          (value, slotName) =>
-            componentsState.getIn([componentId, slotName]) || value,
-        ),
+        nextProps.meta,
+        nextProps.schema,
+        nextProps.project,
       );
       
       this.setState({
-        componentsState: nextComponentsState,
+        componentsState: mergeComponentsState(
+          componentsState,
+          getInitialComponentsState(
+            nextProps.components,
+            this._renderHints,
+            nextProps.meta,
+          ),
+        ),
       });
     }
   }
@@ -269,126 +256,6 @@ class CanvasBuilderComponent extends PureComponent {
   
   /**
    *
-   * @param {Object} component
-   * @return {ReactComponent}
-   * @private
-   */
-  _getApolloWrappedComponentFromCache(component) {
-    const cached = this._apolloWrappedComponentsCache.get(component.id);
-  
-    return cached && cached.component === component
-      ? cached.wrapper
-      : null;
-  }
-  
-  /**
-   *
-   * @param {Object} component
-   * @param {ReactComponent} wrapper
-   * @private
-   */
-  _putApolloWrappedComponentToCache(component, wrapper) {
-    this._apolloWrappedComponentsCache.set(component.id, {
-      component,
-      wrapper,
-    });
-  }
-  
-  /**
-   * @typedef {Object} RenderHints
-   * @property {Map<number, Set<string>>} activeStateSlots
-   */
-  
-  /**
-   *
-   * @param {Immutable.Map<number, Object>} components
-   * @param {number} rootId
-   * @return {RenderHints}
-   * @private
-   */
-  _getRenderHints(components, rootId) {
-    const { meta, project, schema } = this.props;
-    
-    const ret = {
-      activeStateSlots: new Map(),
-    };
-    
-    if (rootId === INVALID_ID) return ret;
-    
-    const visitValue = jssyValue => {
-      if (jssyValue.source === 'state') {
-        let activeStateSlotsForComponent =
-          ret.activeStateSlots.get(jssyValue.sourceData.componentId);
-    
-        if (!activeStateSlotsForComponent) {
-          activeStateSlotsForComponent = new Set();
-          ret.activeStateSlots.set(
-            jssyValue.sourceData.componentId,
-            activeStateSlotsForComponent,
-          );
-        }
-    
-        activeStateSlotsForComponent.add(jssyValue.sourceData.stateSlot);
-      }
-    };
-    
-    const walkSimpleValuesOptions = {
-      project,
-      schema,
-      walkSystemProps: true,
-      walkFunctionArgs: true,
-      walkActions: true,
-      visitIntermediateNodes: true,
-    };
-  
-    walkComponentsTree(components, rootId, component => {
-      const componentMeta = getComponentMeta(component.name, meta);
-      
-      walkSimpleValues(
-        component,
-        componentMeta,
-        visitValue,
-        walkSimpleValuesOptions,
-      );
-    });
-    
-    return ret;
-  }
-  
-  /**
-   *
-   * @param {Immutable.Map<number, Object>} components
-   * @param {RenderHints} renderHints
-   * @return {Immutable.Map<number, Immutable.Map<string, *>>}
-   * @private
-   */
-  _getInitialComponentsState(components, renderHints) {
-    const { meta } = this.props;
-
-    let componentsState = ImmutableMap();
-    
-    renderHints.activeStateSlots.forEach((slotNames, componentId) => {
-      const component = components.get(componentId);
-      const valueContext = this._getValueContext(component.id);
-      const values = buildInitialComponentState(
-        component,
-        meta,
-        valueContext,
-        Array.from(slotNames),
-      );
-      
-      const componentState = ImmutableMap().withMutations(map => {
-        _forOwn(values, (value, slotName) => void map.set(slotName, value));
-      });
-      
-      componentsState = componentsState.set(componentId, componentState);
-    });
-    
-    return componentsState;
-  }
-  
-  /**
-   *
    * @param {number} componentId
    * @param {JssyValueDefinition} valueDef
    * @param {Object<string, JssyTypeDefinition>} userTypedefs
@@ -396,10 +263,7 @@ class CanvasBuilderComponent extends PureComponent {
    * @private
    */
   _handleActions(componentId, valueDef, userTypedefs, valueContext) {
-    const { isPlaceholder } = this.props;
     const { componentsState } = this.state;
-  
-    if (isPlaceholder) return;
   
     const resolvedTypedef = resolveTypedef(valueDef, userTypedefs);
     const stateUpdates = resolvedTypedef.sourceConfigs.actions.updateState;
@@ -542,19 +406,12 @@ class CanvasBuilderComponent extends PureComponent {
   /**
    *
    * @param {Object} component
-   * @param {boolean} [isPlaceholderRoot=false]
    * @return {ReactElement}
    * @private
    */
-  _renderOutletComponent(component, isPlaceholderRoot = false) {
-    const { isPlaceholder } = this.props;
-    
+  _renderOutletComponent(component) {
     const props = {};
-    if (isPlaceholder) {
-      if (isPlaceholderRoot) this._patchPlaceholderRootProps(props, false);
-    } else {
-      this._patchComponentProps(props, false, component.id);
-    }
+    this._patchComponentProps(props, component.id);
     
     return (
       <Outlet {...props} />
@@ -564,12 +421,11 @@ class CanvasBuilderComponent extends PureComponent {
   /**
    *
    * @param {Object} component
-   * @param {boolean} [isPlaceholderRoot=false]
    * @return {*}
    * @private
    */
-  _renderPseudoComponent(component, isPlaceholderRoot = false) {
-    const { isPlaceholder, children } = this.props;
+  _renderPseudoComponent(component) {
+    const { children } = this.props;
     
     const systemProps = this._buildSystemProps(component, null);
     if (!systemProps.visible) return null;
@@ -577,11 +433,7 @@ class CanvasBuilderComponent extends PureComponent {
     const props = this._buildProps(component, null);
     
     if (component.name === 'Outlet') {
-      if (isPlaceholder || !children) {
-        return this._renderOutletComponent(component, isPlaceholderRoot);
-      } else {
-        return children;
-      }
+      return children || this._renderOutletComponent(component);
     } else if (component.name === 'Text') {
       return props.text || '';
     } else if (component.name === 'List') {
@@ -619,11 +471,10 @@ class CanvasBuilderComponent extends PureComponent {
       placeholderAfter !== afterIdx;
   
     return (
-      <CanvasBuilder
+      <PlaceholderBuilder
         key={key}
         components={draggedComponents}
         rootId={rootDraggedComponent.id}
-        isPlaceholder
         collapsedToPoint={collapsed}
         containerId={containerId}
         afterIdx={afterIdx}
@@ -634,11 +485,10 @@ class CanvasBuilderComponent extends PureComponent {
   /**
    *
    * @param {ProjectComponent} component
-   * @param {boolean} [isPlaceholder=false]
    * @return {?ReactElement[]}
    * @private
    */
-  _renderComponentChildren(component, isPlaceholder = false) {
+  _renderComponentChildren(component) {
     const {
       meta,
       components,
@@ -653,7 +503,6 @@ class CanvasBuilderComponent extends PureComponent {
     const willRenderPlaceholders =
       editable &&
       draggingComponent &&
-      !isPlaceholder &&
       !isComposite;
 
     if (component.children.size === 0 && !willRenderPlaceholders) {
@@ -673,7 +522,7 @@ class CanvasBuilderComponent extends PureComponent {
       }
 
       // Do not render disabled regions in composite components
-      if (!isPlaceholder && isComposite && !component.regionsEnabled.has(idx)) {
+      if (isComposite && !component.regionsEnabled.has(idx)) {
         return;
       }
 
@@ -694,11 +543,7 @@ class CanvasBuilderComponent extends PureComponent {
         }
       }
 
-      const rendered = this._renderComponent(
-        childComponent,
-        component,
-        isPlaceholder,
-      );
+      const rendered = this._renderComponent(childComponent, component);
       if (Array.isArray(rendered)) ret.push(...rendered);
       else ret.push(rendered);
     });
@@ -732,19 +577,6 @@ class CanvasBuilderComponent extends PureComponent {
   _patchComponentProps(props, componentId) {
     props.__jssy_component_id__ = componentId;
   }
-
-  /**
-   *
-   * @param {Object} props
-   * @private
-   */
-  _patchPlaceholderRootProps(props) {
-    const { containerId, afterIdx } = this.props;
-  
-    props.__jssy_placeholder__ = true;
-    props.__jssy_after__ = afterIdx;
-    props.__jssy_container_id__ = containerId;
-  }
   
   /**
    *
@@ -771,17 +603,10 @@ class CanvasBuilderComponent extends PureComponent {
    *
    * @param {Object} component
    * @param {Object} [parentComponent=null]
-   * @param {boolean} [isPlaceholder=false]
-   * @param {boolean} [isPlaceholderRoot=false]
    * @return {ReactElement}
    * @private
    */
-  _renderComponent(
-    component,
-    parentComponent = null,
-    isPlaceholder = false,
-    isPlaceholderRoot = false,
-  ) {
+  _renderComponent(component, parentComponent = null) {
     const {
       meta,
       schema,
@@ -793,128 +618,80 @@ class CanvasBuilderComponent extends PureComponent {
       onAlert,
     } = this.props;
 
-    // Handle special components like Text, Outlet etc
     if (isPseudoComponent(component)) {
-      return this._renderPseudoComponent(component, isPlaceholderRoot);
+      return this._renderPseudoComponent(component);
     }
 
-    // Get component class
     const Component = getConnectedComponent(component.name);
-
-    // Build GraphQL query
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
     
     const theMergedMap = thePreviousMap
       ? thePreviousMap.merge(theMap)
       : theMap;
-  
-    // Build system props
-    const systemProps = this._buildSystemProps(component, theMergedMap);
-    
-    // Don't render anything if the component is invisible
-    if (!systemProps.visible) return null;
-    
-    // Build props
-    const props = graphQLQuery
-      ? {} // We'll build them later
-      : this._buildProps(component, theMergedMap);
 
-    // Render children
-    props.children = this._renderComponentChildren(component, isPlaceholder);
-    
-    // Attach error handler
+    const systemProps = this._buildSystemProps(component, theMergedMap);
+
+    if (!systemProps.visible) return null;
+
+    const props = graphQLQuery ? {} : this._buildProps(component, theMergedMap);
+
+    props.children = this._renderComponentChildren(component);
+
     if (!isHTMLComponent(component.name)) {
       props.__jssy_error_handler__ = _debounce(
         this._handleErrorInComponentLifecycleHook.bind(this, component),
         250,
       );
     }
-  
-    if (isPlaceholder) {
-      // TODO: Get rid of random keys
-      props.key =
-        `placeholder-${String(Math.floor(Math.random() * 1000000000))}`;
-  
-      if (isPlaceholderRoot && !dontPatch) {
-        this._patchPlaceholderRootProps(props);
-      }
-  
-      const willRenderContentPlaceholder =
-        !props.children &&
-        isContainerComponent(component.name, meta);
-  
-      // Render fake content inside placeholders for container components
-      if (willRenderContentPlaceholder) {
-        props.children = (
-          <ContentPlaceholder />
-        );
-      }
-    } else {
-      props.key = String(component.id);
-  
-      if (!dontPatch) {
-        this._patchComponentProps(props, component.id);
-      }
-  
-      if (!props.children && this._willRenderContentPlaceholder(component)) {
-        props.children = (
-          <ContentPlaceholder />
-        );
-      }
+
+    props.key = String(component.id);
+
+    if (!dontPatch) {
+      this._patchComponentProps(props, component.id);
+    }
+
+    if (!props.children && this._willRenderContentPlaceholder(component)) {
+      props.children = (
+        <ContentPlaceholder />
+      );
     }
     
     let Renderable = Component;
 
     if (graphQLQuery) {
-      const valueContext = this._getValueContext(component.id);
-      const buildArgValue = ({ argDefinition, argValue }) => buildValue(
-        argValue,
-        getJssyValueDefOfQueryArgument(argDefinition, schema),
-        null,
-        valueContext,
-      );
-      
-      const variables = _mapValues(graphQLVariables, buildArgValue);
-  
-      Renderable = this._getApolloWrappedComponentFromCache(component);
-      
-      if (!Renderable) {
-        Renderable = graphql(graphQLQuery, {
-          props: ({ ownProps, data }) => {
-            if (data.error) {
-              const message = getLocalizedText('alert.queryError', {
-                message: data.error.message,
-              });
-              
-              const alert = {
-                content: message,
-              };
+      const gqlHoc = graphql(graphQLQuery, {
+        props: ({ ownProps, data }) => {
+          if (data.error) {
+            const message = getLocalizedText('alert.queryError', {
+              message: data.error.message,
+            });
 
-              setTimeout(() => void onAlert(alert), 0);
-            }
-            
-            // TODO: Better check
-            const haveData = Object.keys(data).length > 10;
+            setTimeout(() => void onAlert({ content: message }), 0);
+          }
 
-            return {
-              ...ownProps,
-              innerProps: this._buildProps(
-                component,
-                theMergedMap,
-                haveData ? data : null,
-              ),
-            };
-          },
-    
-          options: {
-            variables,
-            fetchPolicy: 'cache-and-network',
-          },
-        })(Component);
-        
-        this._putApolloWrappedComponentToCache(component, Renderable);
-      }
+          return {
+            ...ownProps,
+            innerProps: this._buildProps(
+              component,
+              theMergedMap,
+              queryResultHasData(data) ? data : null,
+            ),
+          };
+        },
+
+        options: {
+          variables: buildGraphQLQueryVariables(
+            graphQLVariables,
+            this._getValueContext(component.id),
+            schema,
+          ),
+
+          fetchPolicy: 'cache-and-network',
+        },
+      });
+
+      Renderable = gqlHoc(Component);
     }
   
     const isDraggable =
@@ -944,20 +721,14 @@ class CanvasBuilderComponent extends PureComponent {
       enclosingComponents,
       enclosingContainerId,
       enclosingAfterIdx,
-      isPlaceholder,
       draggingComponent,
       rootDraggedComponent,
     } = this.props;
     
     if (rootId !== INVALID_ID) {
       const rootComponent = components.get(rootId);
-      return this._renderComponent(
-        rootComponent,
-        null,
-        isPlaceholder,
-        isPlaceholder,
-      );
-    } else if (editable && draggingComponent && !isPlaceholder) {
+      return this._renderComponent(rootComponent, null);
+    } else if (editable && draggingComponent) {
       const canInsertDraggedComponentAsRoot =
         enclosingComponents !== null && enclosingContainerId !== INVALID_ID
           ? canInsertComponent(
@@ -983,7 +754,6 @@ class CanvasBuilderComponent extends PureComponent {
 
 CanvasBuilderComponent.propTypes = propTypes;
 CanvasBuilderComponent.defaultProps = defaultProps;
-CanvasBuilderComponent.contextTypes = contextTypes;
 CanvasBuilderComponent.displayName = 'CanvasBuilder';
 
 export const CanvasBuilder = wrap(CanvasBuilderComponent);

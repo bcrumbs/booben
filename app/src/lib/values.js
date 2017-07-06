@@ -6,8 +6,15 @@
 
 import React from 'react';
 import _forOwn from 'lodash.forown';
+import _mapValues from 'lodash.mapvalues';
 import { TypeNames, resolveTypedef, coerceValue } from '@jssy/types';
-import { getFieldByPath, getJssyValueDefOfField } from './schema';
+
+import {
+  getFieldByPath,
+  getJssyValueDefOfField,
+  getJssyValueDefOfQueryArgument,
+} from './schema';
+
 import { extractPropValueFromData } from './graphql';
 import { getFunctionInfo, formatFunctionId } from './functions';
 import { getComponentMeta } from './meta';
@@ -553,3 +560,21 @@ export const buildInitialComponentState = (
 
   return ret;
 };
+
+/**
+ *
+ * @param {Object<string, { argDefinition: DataFieldArg, argValue: Object }>} graphQLVariables
+ * @param {ValueContext} valueContext
+ * @param {DataSchema} schema
+ * @return {Object<string, *>}
+ */
+export const buildGraphQLQueryVariables = (
+  graphQLVariables,
+  valueContext,
+  schema,
+) => _mapValues(graphQLVariables, ({ argDefinition, argValue }) => buildValue(
+  argValue,
+  getJssyValueDefOfQueryArgument(argDefinition, schema),
+  null,
+  valueContext,
+));

@@ -10,23 +10,28 @@ import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { graphql, withApollo } from 'react-apollo';
 import _forOwn from 'lodash.forown';
-import _mapValues from 'lodash.mapvalues';
 import _get from 'lodash.get';
 import _set from 'lodash.set';
 import { Map as ImmutableMap } from 'immutable';
 import { resolveTypedef } from '@jssy/types';
-import JssyValue from '../../../models/JssyValue';
-import { isCompositeComponent, getComponentMeta } from '../../../lib/meta';
-import { walkComponentsTree, walkSimpleValues } from '../../../lib/components';
-import { buildQueryForComponent, buildMutation } from '../../../lib/graphql';
 
 import {
-  getJssyValueDefOfQueryArgument,
+  getRenderHints,
+  getInitialComponentsState,
+  mergeComponentsState,
+} from '../helpers';
+
+import JssyValue from '../../../models/JssyValue';
+import { isCompositeComponent, getComponentMeta } from '../../../lib/meta';
+import { buildQueryForComponent, buildMutation } from '../../../lib/graphql';
+import { queryResultHasData } from '../../../lib/apollo';
+
+import {
   getJssyValueDefOfMutationArgument,
   getMutationField,
 } from '../../../lib/schema';
 
-import { buildValue, buildInitialComponentState } from '../../../lib/values';
+import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
 import { getComponentByName } from '../../../lib/react-components';
 import { noop } from '../../../utils/misc';
 import * as JssyPropTypes from '../../../constants/common-prop-types';
@@ -107,15 +112,22 @@ class PreviewBuilderComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
     
-    this._renderHints = this._getRenderHints(props.components, props.rootId);
+    this._renderHints = getRenderHints(
+      props.components,
+      props.rootId,
+      props.meta,
+      props.schema,
+      props.project,
+    );
+
     this._refs = new Map();
-    this._apolloWrappedComponentsCache = new Map();
     
     this.state = {
       dynamicPropValues: ImmutableMap(),
-      componentsState: this._getInitialComponentsState(
+      componentsState: getInitialComponentsState(
         props.components,
         this._renderHints,
+        props.meta,
       ),
     };
   }
@@ -129,160 +141,25 @@ class PreviewBuilderComponent extends PureComponent {
       nextProps.rootId !== rootId;
     
     if (componentsUpdated) {
-      this._renderHints = this._getRenderHints(
+      this._renderHints = getRenderHints(
         nextProps.components,
         nextProps.rootId,
+        nextProps.meta,
+        nextProps.schema,
+        nextProps.project,
       );
-      
-      const initialComponentsState = this._getInitialComponentsState(
-        nextProps.components,
-        this._renderHints,
-      );
-      
-      const nextComponentsState = initialComponentsState.map(
-        (componentState, componentId) => componentState.map(
-          (value, slotName) =>
-            componentsState.getIn([componentId, slotName]) || value,
-        ),
-      );
-      
+
       this.setState({
-        componentsState: nextComponentsState,
+        componentsState: mergeComponentsState(
+          componentsState,
+          getInitialComponentsState(
+            nextProps.components,
+            this._renderHints,
+            nextProps.meta,
+          ),
+        ),
       });
     }
-  }
-  
-  /**
-   *
-   * @param {Object} component
-   * @return {ReactComponent}
-   * @private
-   */
-  _getApolloWrappedComponentFromCache(component) {
-    const cached = this._apolloWrappedComponentsCache.get(component.id);
-    
-    return cached && cached.component === component
-      ? cached.wrapper
-      : null;
-  }
-  
-  /**
-   *
-   * @param {Object} component
-   * @param {ReactComponent} wrapper
-   * @private
-   */
-  _putApolloWrappedComponentToCache(component, wrapper) {
-    this._apolloWrappedComponentsCache.set(component.id, {
-      component,
-      wrapper,
-    });
-  }
-  
-  /**
-   * @typedef {Object} RenderHints
-   * @property {Set<number>} needRefs
-   * @property {Map<number, Set<string>>} activeStateSlots
-   */
-  
-  /**
-   *
-   * @param {Immutable.Map<number, Object>} components
-   * @param {number} rootId
-   * @return {RenderHints}
-   * @private
-   */
-  _getRenderHints(components, rootId) {
-    const { meta, project, schema } = this.props;
-    
-    const ret = {
-      needRefs: new Set(),
-      activeStateSlots: new Map(),
-    };
-    
-    if (rootId === INVALID_ID) return ret;
-    
-    const visitAction = action => {
-      if (action.type === 'method') {
-        ret.needRefs.add(action.params.componentId);
-      } else if (action.type === 'mutation' || action.type === 'ajax') {
-        action.params.successActions.forEach(visitAction);
-        action.params.errorActions.forEach(visitAction);
-      }
-    };
-    
-    const visitValue = jssyValue => {
-      if (jssyValue.source === 'actions') {
-        jssyValue.sourceData.actions.forEach(visitAction);
-      } else if (jssyValue.source === 'state') {
-        let activeStateSlotsForComponent =
-          ret.activeStateSlots.get(jssyValue.sourceData.componentId);
-        
-        if (!activeStateSlotsForComponent) {
-          activeStateSlotsForComponent = new Set();
-          ret.activeStateSlots.set(
-            jssyValue.sourceData.componentId,
-            activeStateSlotsForComponent,
-          );
-        }
-        
-        activeStateSlotsForComponent.add(jssyValue.sourceData.stateSlot);
-      }
-    };
-    
-    const walkSimpleValuesOptions = {
-      project,
-      schema,
-      walkSystemProps: true,
-      walkFunctionArgs: true,
-      walkActions: true,
-      visitIntermediateNodes: true,
-    };
-    
-    walkComponentsTree(components, rootId, component => {
-      const componentMeta = getComponentMeta(component.name, meta);
-      
-      walkSimpleValues(
-        component,
-        componentMeta,
-        visitValue,
-        walkSimpleValuesOptions,
-      );
-    });
-    
-    return ret;
-  }
-  
-  /**
-   *
-   * @param {Immutable.Map<number, Object>} components
-   * @param {RenderHints} renderHints
-   * @return {Immutable.Map<number, Immutable.Map<string, *>>}
-   * @private
-   */
-  _getInitialComponentsState(components, renderHints) {
-    const { meta } = this.props;
-
-    let componentsState = ImmutableMap();
-    
-    renderHints.activeStateSlots.forEach((slotNames, componentId) => {
-      const component = components.get(componentId);
-      const valueContext = this._getValueContext(component.id);
-      const values = buildInitialComponentState(
-        component,
-        meta,
-        valueContext,
-        Array.from(slotNames),
-      );
-      
-      const componentState = ImmutableMap().withMutations(map => {
-        _forOwn(values, (value, slotName) => void map.set(slotName, value));
-      });
-      
-      componentsState = componentsState.set(componentId, componentState);
-    });
-    
-    return componentsState;
   }
   
   /**
@@ -868,81 +745,57 @@ class PreviewBuilderComponent extends PureComponent {
    */
   _renderComponent(component) {
     const { meta, schema, project, theMap: thePreviousMap } = this.props;
-    
-    // Handle special components like Text, Outlet etc
+
     if (isPseudoComponent(component)) {
       return this._renderPseudoComponent(component);
     }
-    
-    // Get component class
+
     const Component = getComponentByName(component.name);
-    
-    // Build GraphQL query
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
     
     const theMergedMap = thePreviousMap
       ? thePreviousMap.merge(theMap)
       : theMap;
-    
-    // Build system props
+
     const systemProps = this._buildSystemProps(component, theMergedMap);
-    
-    // Don't render anything if the component is invisible
+
     if (!systemProps.visible) return null;
-    
-    // Build props
-    const props = graphQLQuery
-      ? {} // We'll build them later
-      : this._buildProps(component, theMergedMap);
-    
-    // Render children
+
+    const props = graphQLQuery ? {} : this._buildProps(component, theMergedMap);
+
     props.children = this._renderComponentChildren(component);
     props.key = String(component.id);
   
-    if (this._renderHints.needRefs.has(component.id)) {
+    if (this._renderHints.methodCallTargets.has(component.id)) {
       props.ref = this._saveComponentRef.bind(this, component.id);
     }
     
     let Renderable = Component;
     
     if (graphQLQuery) {
-      const valueContext = this._getValueContext(component.id);
-      const buildArgValue = ({ argDefinition, argValue }) => buildValue(
-        argValue,
-        getJssyValueDefOfQueryArgument(argDefinition, schema),
-        null,
-        valueContext,
-      );
-      
-      const variables = _mapValues(graphQLVariables, buildArgValue);
-      
-      Renderable = this._getApolloWrappedComponentFromCache(component);
-      
-      if (!Renderable) {
-        Renderable = graphql(graphQLQuery, {
-          props: ({ ownProps, data }) => {
-            // TODO: Better check
-            const haveData = Object.keys(data).length > 10;
-            
-            return {
-              ...ownProps,
-              innerProps: this._buildProps(
-                component,
-                theMergedMap,
-                haveData ? data : null,
-              ),
-            };
-          },
-          
-          options: {
-            variables,
-            fetchPolicy: 'cache-and-network',
-          },
-        })(Component);
-        
-        this._putApolloWrappedComponentToCache(component, Renderable);
-      }
+      const gqlHoc = graphql(graphQLQuery, {
+        props: ({ ownProps, data }) => ({
+          ...ownProps,
+          ...this._buildProps(
+            component,
+            theMergedMap,
+            queryResultHasData(data) ? data : null,
+          ),
+        }),
+
+        options: {
+          variables: buildGraphQLQueryVariables(
+            graphQLVariables,
+            this._getValueContext(component.id),
+            schema,
+          ),
+
+          fetchPolicy: 'cache-and-network',
+        },
+      });
+
+      Renderable = gqlHoc(Component);
     }
     
     return (

@@ -5,7 +5,7 @@
 'use strict';
 
 import React from 'react';
-import patchComponent from '../../../../hocs/patchComponent';
+import patchComponent from '../../../hocs/patchComponent';
 
 const style = {
   width: 'calc(100% - 48px)',

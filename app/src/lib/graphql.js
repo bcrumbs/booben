@@ -841,7 +841,7 @@ const buildGraphQLFragmentsForComponent = (
  * @typedef {Object} ComponentQueryData
  * @property {Object} query - GraphQL query AST
  * @property {Immutable.Map<Object, DataContextsInfo>} theMap
- * @property {Object<string, *>} variables
+ * @property {Object<string, { argDefinition: DataFieldArg, argValue: Object }>} variables
  */
 
 /**
