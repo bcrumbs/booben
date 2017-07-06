@@ -1,12 +1,12 @@
 'use strict';
 
 import React from 'react';
-import './RoutesList.scss';
+import { RoutesListStyled } from './styles/RoutesListStyled';
 
 export const RoutesList = props => (
-  <ul className="routes-list-wrapper">
+  <RoutesListStyled>
     {props.children}
-  </ul>
+  </RoutesListStyled>
 );
 
 RoutesList.displayName = 'RoutesList';
