@@ -2,6 +2,11 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { LayoutItemStyled } from './styles/LayoutItemStyled';
+import { ImageBoxStyled } from './styles/ImageBoxStyled';
+import { TitleBoxStyled } from './styles/TitleBoxStyled';
+import { TitleStyled } from './styles/TitleStyled';
+import { SubtitleStyled } from './styles/SubtitleStyled';
 
 const propTypes = {
   image: PropTypes.string,
@@ -19,22 +24,23 @@ export const LayoutSelectionItem = props => {
   let subtitle = null;
   if (props.subtitle) {
     subtitle = (
-      <div className="layout-item-subtitle">
+      <SubtitleStyled>
         {props.subtitle}
-      </div>
+      </SubtitleStyled>
     );
   }
 
   return (
-    <div className="layout-item">
-      <div className="layout-item-image-box">
+    <LayoutItemStyled>
+      <ImageBoxStyled>
         <img src={props.image} alt="" role="presentation" />
-      </div>
-      <div className="layout-item-title-box">
-        <div className="layout-item-title">{props.title}</div>
+      </ImageBoxStyled>
+      
+      <TitleBoxStyled>
+        <TitleStyled>{props.title}</TitleStyled>
         {subtitle}
-      </div>
-    </div>
+      </TitleBoxStyled>
+    </LayoutItemStyled>
   );
 };
 
