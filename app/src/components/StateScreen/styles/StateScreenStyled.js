@@ -67,6 +67,7 @@ export const StateScreenStyled = styled.div`
   justify-content: center;
   animation: ${animations.fadeIn} 300ms ease-in;
   position: relative;
+  min-height: 100vh;
 `;
 
 StateScreenStyled.displayName = 'StateScreenStyled';
