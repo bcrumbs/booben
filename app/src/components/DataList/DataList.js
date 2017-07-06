@@ -1,12 +1,12 @@
 'use strict';
 
 import React from 'react';
-import './DataList.scss';
+import { DataListStyled } from './styles/DataListStyled';
 
 export const DataList = ({ children }) => (
-  <div className="data-list">
+  <DataListStyled>
     {children}
-  </div>
+  </DataListStyled>
 );
 
 DataList.displayName = 'DataList';

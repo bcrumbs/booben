@@ -4,6 +4,14 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Button, TooltipIcon } from '@reactackle/reactackle';
 import { noop, returnArg } from '../../../utils/misc';
+import { DataListItemStyled } from './styles/DataListItemStyled';
+import { ContentBoxStyled } from './styles/ContentBoxStyled';
+import { TitleStyled } from './styles/TitleStyled';
+import { DescriptionStyled } from './styles/DescriptionStyled';
+import { TypeStyled } from './styles/TypeStyled';
+import { ContentStyled } from './styles/ContentStyled';
+import { ActionsStyled } from './styles/ActionsStyled';
+import { ButtonsStyled } from './styles/ButtonsStyled';
 
 const propTypes = {
   id: PropTypes.string.isRequired,
@@ -79,20 +87,13 @@ export class DataItem extends PureComponent {
       description,
       tooltip,
       selected,
-      state,
-      actionType,
       argsButton,
       connection,
       canBeApplied,
       type,
       getLocalizedText,
     } = this.props;
-    
-    let className = 'data-list-item';
-    if (selected) className += ' is-chosen';
-    if (state) className += ` state-${state}`;
-    if (actionType) className += ` action-type-${actionType}`;
-  
+      
     let tooltipElement = null;
     if (tooltip) {
       tooltipElement = (
@@ -114,23 +115,21 @@ export class DataItem extends PureComponent {
     let actionsRight = null;
     if (connection) {
       actionsRight = (
-        <div className="data-item_actions data-item_actions-right">
-          <div className="data-item_actions data-item_actions-right">
-            <Button
-              icon={{ name: 'chevron-right' }}
-              onPress={this._handleJumpInto}
-            />
-          </div>
-        </div>
+        <ActionsStyled>
+          <Button
+            icon={{ name: 'chevron-right' }}
+            onPress={this._handleJumpInto}
+          />
+        </ActionsStyled>
       );
     }
   
     let descriptionElement = null;
     if (description) {
       descriptionElement = (
-        <div className="data-item_description">
+        <DescriptionStyled>
           {description}
-        </div>
+        </DescriptionStyled>
       );
     }
   
@@ -148,37 +147,35 @@ export class DataItem extends PureComponent {
       }
     
       content = (
-        <div className="data-item_content">
+        <ContentStyled>
           {descriptionElement}
-          <div className="data-item_buttons">
+          <ButtonsStyled selected={selected}>
             {argsButtonElement}
             {applyButton}
-          </div>
-        </div>
+          </ButtonsStyled>
+        </ContentStyled>
       );
     }
   
     let typeElement = null;
     if (type) {
       typeElement = (
-        <span className="data-item_type">{type}</span>
+        <TypeStyled>{type}</TypeStyled>
       );
     }
   
     return (
-      <div className={className} onClick={this._handleSelect}>
-        <div className="data-item_content-box">
-          <div className="data-item_title-box">
-            <div className="data-item_title">
-              <span className="data-item_title-text">{title}</span>
-              {typeElement}
-              {tooltipElement}
-            </div>
+      <DataListItemStyled onClick={this._handleSelect}>
+        <ContentBoxStyled selected={selected}>
+          <div>
+            <TitleStyled>{title}</TitleStyled>
+            {typeElement}
+            {tooltipElement}
           </div>
           {content}
-        </div>
+        </ContentBoxStyled>
         {actionsRight}
-      </div>
+      </DataListItemStyled>
     );
   }
 }
