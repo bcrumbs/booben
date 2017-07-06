@@ -3,7 +3,6 @@
 import React from 'react';
 import { LayoutSelectionStyled } from './styles/LayoutSelectionStyled';
 import { SelectionListStyled } from './styles/SelectionListStyled';
-import './LayoutSelection.scss';
 
 export const LayoutSelection = props => (
   <LayoutSelectionStyled>
