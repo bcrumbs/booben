@@ -2,10 +2,7 @@
 
 import styled from 'styled-components';
 import { transition } from '@reactackle/reactackle';
-
-import {
-  baseModule,
-} from '../../../../styles/themeSelectors';
+import { baseModule } from '../../../../styles/themeSelectors';
 
 const my = 2,
   mx = 2;
