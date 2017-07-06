@@ -6,8 +6,15 @@
 
 import React from 'react';
 import _forOwn from 'lodash.forown';
+import _mapValues from 'lodash.mapvalues';
 import { TypeNames, resolveTypedef, coerceValue } from '@jssy/types';
-import { getFieldByPath, getJssyValueDefOfField } from './schema';
+
+import {
+  getFieldByPath,
+  getJssyValueDefOfField,
+  getJssyValueDefOfQueryArgument,
+} from './schema';
+
 import { extractPropValueFromData } from './graphql';
 import { getFunctionInfo, formatFunctionId } from './functions';
 import { getComponentMeta } from './meta';
@@ -501,3 +508,73 @@ export const buildValue = (
 };
 
 /* eslint-enable no-use-before-define */
+
+/**
+ *
+ * @param {Object} component
+ * @param {Object<string, Object<string, ComponentMeta>>} meta
+ * @param {ValueContext} valueContext
+ * @param {?Array<string>} [stateSlots=null]
+ * @return {Object<string, *>}
+ * @private
+ */
+export const buildInitialComponentState = (
+  component,
+  meta,
+  valueContext,
+  stateSlots = null,
+) => {
+  const componentMeta = getComponentMeta(component.name, meta);
+
+  if (!componentMeta.state) return {};
+
+  const ret = {};
+
+  const activeStateSlots = stateSlots === null
+    ? Object.keys(componentMeta.state)
+    : stateSlots;
+
+  activeStateSlots.forEach(stateSlotName => {
+    const stateSlot = componentMeta.state[stateSlotName];
+    if (!stateSlot) return;
+
+    const initialValue = stateSlot.initialValue;
+
+    if (initialValue.source === 'const') {
+      ret[stateSlotName] = initialValue.sourceData.value;
+    } else if (initialValue.source === 'prop') {
+      const propValue = component.props.get(initialValue.sourceData.propName);
+      const propMeta = componentMeta.props[initialValue.sourceData.propName];
+      const value = buildValue(
+        propValue,
+        propMeta,
+        componentMeta.types,
+        valueContext,
+      );
+
+      if (value !== NO_VALUE) {
+        ret[stateSlotName] = value;
+      }
+    }
+  });
+
+  return ret;
+};
+
+/**
+ *
+ * @param {Object<string, { argDefinition: DataFieldArg, argValue: Object }>} graphQLVariables
+ * @param {ValueContext} valueContext
+ * @param {DataSchema} schema
+ * @return {Object<string, *>}
+ */
+export const buildGraphQLQueryVariables = (
+  graphQLVariables,
+  valueContext,
+  schema,
+) => _mapValues(graphQLVariables, ({ argDefinition, argValue }) => buildValue(
+  argValue,
+  getJssyValueDefOfQueryArgument(argDefinition, schema),
+  null,
+  valueContext,
+));
