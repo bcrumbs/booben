@@ -26,7 +26,7 @@ import {
   getMutationField,
 } from '../../../lib/schema';
 
-import { buildValue } from '../../../lib/values';
+import { buildValue, buildInitialComponentState } from '../../../lib/values';
 import { getComponentByName } from '../../../lib/react-components';
 import { noop } from '../../../utils/misc';
 import * as JssyPropTypes from '../../../constants/common-prop-types';
@@ -109,7 +109,6 @@ class PreviewBuilderComponent extends PureComponent {
     
     this._renderHints = this._getRenderHints(props.components, props.rootId);
     this._refs = new Map();
-    this._queriesCache = new Map();
     this._apolloWrappedComponentsCache = new Map();
     
     this.state = {
@@ -143,7 +142,7 @@ class PreviewBuilderComponent extends PureComponent {
       const nextComponentsState = initialComponentsState.map(
         (componentState, componentId) => componentState.map(
           (value, slotName) =>
-          componentsState.getIn([componentId, slotName]) || value,
+            componentsState.getIn([componentId, slotName]) || value,
         ),
       );
       
@@ -151,27 +150,6 @@ class PreviewBuilderComponent extends PureComponent {
         componentsState: nextComponentsState,
       });
     }
-  }
-  
-  /**
-   *
-   * @param {Object} component
-   * @return {ComponentQueryData}
-   * @private
-   */
-  _getQueryForComponent(component) {
-    const { schema, meta, project } = this.props;
-    
-    const cached = this._queriesCache.get(component.id);
-    
-    if (cached && cached.component === component) {
-      return cached.queryData;
-    }
-    
-    const queryData = buildQueryForComponent(component, schema, meta, project);
-    this._queriesCache.set(component.id, { component, queryData });
-    
-    return queryData;
   }
   
   /**
@@ -277,59 +255,23 @@ class PreviewBuilderComponent extends PureComponent {
   
   /**
    *
-   * @param {Object} component
-   * @param {Array<string>} activeStateSlots
-   * @return {Object<string, *>}
-   * @private
-   */
-  _buildInitialComponentState(component, activeStateSlots) {
-    const { meta } = this.props;
-    
-    const componentMeta = getComponentMeta(component.name, meta);
-    const ret = {};
-    
-    activeStateSlots.forEach(stateSlotName => {
-      const stateSlot = componentMeta.state[stateSlotName];
-      if (!stateSlot) return;
-      
-      const initialValue = stateSlot.initialValue;
-      
-      if (initialValue.source === 'const') {
-        ret[stateSlotName] = initialValue.sourceData.value;
-      } else if (initialValue.source === 'prop') {
-        const propValue = component.props.get(initialValue.sourceData.propName);
-        const propMeta = componentMeta.props[initialValue.sourceData.propName];
-        const valueContext = this._getValueContext(component.id);
-        const value = buildValue(
-          propValue,
-          propMeta,
-          componentMeta.types,
-          valueContext,
-        );
-        
-        if (value !== NO_VALUE) {
-          ret[stateSlotName] = value;
-        }
-      }
-    });
-    
-    return ret;
-  }
-  
-  /**
-   *
    * @param {Immutable.Map<number, Object>} components
    * @param {RenderHints} renderHints
    * @return {Immutable.Map<number, Immutable.Map<string, *>>}
    * @private
    */
   _getInitialComponentsState(components, renderHints) {
+    const { meta } = this.props;
+
     let componentsState = ImmutableMap();
     
     renderHints.activeStateSlots.forEach((slotNames, componentId) => {
       const component = components.get(componentId);
-      const values = this._buildInitialComponentState(
+      const valueContext = this._getValueContext(component.id);
+      const values = buildInitialComponentState(
         component,
+        meta,
+        valueContext,
         Array.from(slotNames),
       );
       
@@ -337,10 +279,7 @@ class PreviewBuilderComponent extends PureComponent {
         _forOwn(values, (value, slotName) => void map.set(slotName, value));
       });
       
-      componentsState = componentsState.set(
-        componentId,
-        componentState,
-      );
+      componentsState = componentsState.set(componentId, componentState);
     });
     
     return componentsState;
@@ -671,41 +610,13 @@ class PreviewBuilderComponent extends PureComponent {
    */
   _performAction(action, valueContext) {
     switch (action.type) {
-      case 'mutation': {
-        this._performMutationAction(action, valueContext);
-        break;
-      }
-      
-      case 'navigate': {
-        this._performNavigateAction(action, valueContext);
-        break;
-      }
-      
-      case 'url': {
-        this._performURLAction(action);
-        break;
-      }
-      
-      case 'method': {
-        this._performMethodAction(action, valueContext);
-        break;
-      }
-      
-      case 'prop': {
-        this._performPropAction(action, valueContext);
-        break;
-      }
-      
-      case 'logout': {
-        this._performLogoutAction();
-        break;
-      }
-      
-      case 'ajax': {
-        this._performAJAXAction(action, valueContext);
-        break;
-      }
-      
+      case 'mutation': this._performMutationAction(action, valueContext); break;
+      case 'navigate': this._performNavigateAction(action, valueContext); break;
+      case 'url': this._performURLAction(action); break;
+      case 'method': this._performMethodAction(action, valueContext); break;
+      case 'prop': this._performPropAction(action, valueContext); break;
+      case 'logout': this._performLogoutAction(); break;
+      case 'ajax': this._performAJAXAction(action, valueContext); break;
       default:
     }
   }
@@ -956,7 +867,7 @@ class PreviewBuilderComponent extends PureComponent {
    * @private
    */
   _renderComponent(component) {
-    const { schema, theMap: thePreviousMap } = this.props;
+    const { meta, schema, project, theMap: thePreviousMap } = this.props;
     
     // Handle special components like Text, Outlet etc
     if (isPseudoComponent(component)) {
@@ -968,7 +879,7 @@ class PreviewBuilderComponent extends PureComponent {
     
     // Build GraphQL query
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
-      this._getQueryForComponent(component);
+      buildQueryForComponent(component, schema, meta, project);
     
     const theMergedMap = thePreviousMap
       ? thePreviousMap.merge(theMap)
