@@ -5,8 +5,9 @@ import PropTypes from 'prop-types';
 import CodeMirror from 'react-codemirror';
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/mode/javascript/javascript';
-import './FunctionEditor.scss';
 import { noop } from '../../utils/misc';
+import { FunctionEditorStyled } from './styles/FunctionEditorStyled';
+import { HeadingStyled } from './styles/HeadingStyled';
 
 const propTypes = {
   name: PropTypes.string,
@@ -35,27 +36,27 @@ export const FunctionEditor = ({ name, args, code, onChange }) => {
   };
 
   return (
-    <div className="function-editor">
-      <div className="function-editor_heading">
+    <div>
+      <HeadingStyled>
         <pre>
           {header}
         </pre>
-      </div>
+      </HeadingStyled>
 
-      <div className="function-editor_wrapper">
+      <FunctionEditorStyled>
         <CodeMirror
           value={code}
           options={codeMirrorOptions}
           preserveScrollPosition
           onChange={onChange}
         />
-      </div>
+      </FunctionEditorStyled>
 
-      <div className="function-editor_heading">
+      <HeadingStyled>
         <pre>
           {footer}
         </pre>
-      </div>
+      </HeadingStyled>
     </div>
   );
 };

@@ -7,14 +7,18 @@ import { colorWhite, radiusDefault } from '../../../styles/themeSelectors';
 const boxShadow3 = boxShadow(3);
 
 export const MenuOverlappingStyled = styled.div`
-  width: 100%;
-  max-width: 16em;
-  padding: 0;
-  overflow-y: auto;
-  max-height: 400px;
-  background-color: ${colorWhite};
-  border-radius: ${radiusDefault}px;
-  ${boxShadow3}
+  background-color: $grey-200;
+  color: $color-text-medium;
+  padding: $base-module rem-calc(30); // 30 - CodeMirror ruler width + border
+  //border-top: 1px solid $color-border;
+  //border-bottom: 1px solid $color-border;
+
+  @include user-select;
+
+  pre {
+      padding: 0;
+      margin: 0;
+  }
 `;
 
 MenuOverlappingStyled.displayName = 'MenuOverlappingStyled';
