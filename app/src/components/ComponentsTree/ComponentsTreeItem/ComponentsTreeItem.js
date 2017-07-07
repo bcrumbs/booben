@@ -7,7 +7,6 @@ import { noop } from '../../../utils/misc';
 import { TreeItemStyled } from './styles/TreeItemStyled';
 import { ItemContentStyled } from './styles/ItemContentStyled';
 import { IconStyled } from './styles/IconStyled';
-import { SublevelStyled } from './styles/SublevelStyled';
 
 const propTypes = {
   componentId: PropTypes.number.isRequired,
@@ -51,11 +50,7 @@ export class ComponentsTreeItem extends PureComponent {
   }
 
   render() {
-    const { expanded, active, itemElement, children } = this.props;
-
-    let className = 'components-tree-item';
-    className += expanded ? ' sublevel-is-visible' : ' sublevel-is-hidden';
-    if (active) className += ' item-is-active';
+    const { expanded, itemElement, children } = this.props;
 
     let content = null;
     let icon = null;
