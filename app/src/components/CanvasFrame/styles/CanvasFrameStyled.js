@@ -9,14 +9,6 @@ export const CanvasFrameStyled = styled.section`
   height: 100%;
   display: flex;
   align-items: stretch;
-  min-height: 100vh;
-
-  .panel-content & {
-    height: auto;
-    min-height: 0;
-  }
-  
-  .display-flex { display: flex; }
 `;
 
 CanvasFrameStyled.displayName = 'CanvasFrameStyled';

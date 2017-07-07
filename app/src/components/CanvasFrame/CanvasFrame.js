@@ -18,7 +18,7 @@ export const CanvasFrame = props => (
   <CanvasFrameStyled>
     <FrameStyled
       sandbox="allow-same-origin allow-scripts allow-pointer-lock"
-      ref={props.iframeRef}
+      innerRef={props.iframeRef}
     />
   </CanvasFrameStyled>
 );
