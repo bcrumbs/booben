@@ -17,8 +17,8 @@ export const HeadingStyled = styled.div`
   user-select: none;
 
   pre {
-      padding: 0;
-      margin: 0;
+    padding: 0;
+    margin: 0;
   }
 `;
 
