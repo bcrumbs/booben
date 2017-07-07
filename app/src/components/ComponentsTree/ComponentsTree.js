@@ -3,7 +3,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { noop } from '../../utils/misc';
-import './ComponentsTree.scss';
+import { ComponentsTreeStyled } from './styles/ComponentsTreeStyled';
 
 const propTypes = {
   createElementRef: PropTypes.func,
@@ -14,9 +14,9 @@ const defaultProps = {
 };
 
 export const ComponentsTree = props => (
-  <div className="components-tree" ref={props.createElementRef}>
+  <ComponentsTreeStyled innerRef={props.createElementRef}>
     {props.children}
-  </div>
+  </ComponentsTreeStyled>
 );
 
 ComponentsTree.propTypes = propTypes;

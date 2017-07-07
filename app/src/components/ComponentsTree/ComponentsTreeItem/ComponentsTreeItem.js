@@ -4,7 +4,10 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from '@reactackle/reactackle';
 import { noop } from '../../../utils/misc';
-import './ComponentsTreeItem.scss';
+import { TreeItemStyled } from './styles/TreeItemStyled';
+import { ItemContentStyled } from './styles/ItemContentStyled';
+import { IconStyled } from './styles/IconStyled';
+import { SublevelStyled } from './styles/SublevelStyled';
 
 const propTypes = {
   componentId: PropTypes.number.isRequired,
@@ -58,37 +61,31 @@ export class ComponentsTreeItem extends PureComponent {
     let icon = null;
 
     if (children) {
-      if (expanded) {
-        content = (
-          <div className="components-tree-item-sublevel">
-            {children}
-          </div>
-        );
-      }
-
+      if (expanded) content = children;
+      
       icon = (
-        <div
-          className="components-tree-item-icon"
-          ref={this._saveExpandButtonRef}
+        <IconStyled
+          expanded={expanded}
+          innerRef={this._saveExpandButtonRef}
         >
-          <Button icon={{ name: 'chevron-down' }} size="small" />
-        </div>
+          <Button
+            icon={{ name: 'chevron-down' }}
+            size="small"
+            radius="rounded"
+          />
+        </IconStyled>
       );
-
-      className += ' has-sublevel';
     }
 
     return (
-      <li
-        className={className}
-      >
-        <div className="components-tree-item-content">
+      <TreeItemStyled>
+        <ItemContentStyled>
           {icon}
           {itemElement}
-        </div>
+        </ItemContentStyled>
 
         {content}
-      </li>
+      </TreeItemStyled>
     );
   }
 }
