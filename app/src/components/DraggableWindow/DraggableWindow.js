@@ -3,7 +3,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { noop } from '../../utils/misc';
-import './DraggableWindow.scss';
+import { DraggableWindowStyled } from './styles/DraggableWindowStyled';
 
 const propTypes = {
   isDragged: PropTypes.bool,
@@ -23,30 +23,16 @@ const defaultProps = {
 
 const DEFAULT_MAX_HEIGHT = '80%';
 
-export const DraggableWindow = props => {
-  let className = 'draggable-window';
-  if (props.isDragged) className += ' is-dragged';
-
-  const style = {
-    position: 'absolute',
-    zIndex: props.zIndex,
-  };
-
-  if (props.maxHeight > 0) style.maxHeight = `${props.maxHeight}px`;
-  else style.maxHeight = DEFAULT_MAX_HEIGHT;
-  
-  if (props.minWidth > 0) style.minWidth = `${props.minWidth}px`;
-
-  return (
-    <div
-      className={className}
-      style={style}
-      onMouseDown={props.onFocus}
-    >
-      {props.children}
-    </div>
-  );
-};
+export const DraggableWindow = props => (
+  <DraggableWindowStyled
+    maxHeight={props.maxHeight > 0 ? props.maxHeight : DEFAULT_MAX_HEIGHT}
+    minWidth={props.minWidth > 0 ? props.minWidth : null}
+    dragged={props.isDragged}
+    onMouseDown={props.onFocus}
+  >
+    {props.children}
+  </DraggableWindowStyled>
+);
 
 DraggableWindow.propTypes = propTypes;
 DraggableWindow.defaultProps = defaultProps;
