@@ -70,7 +70,6 @@ const position = ({ position }) => {
     styles = `
       height: ${iconWidth}px;
       width: ${iconLength}px;
-
       background-image: linear-gradient(
           to bottom,
           ${iconColor} ${lineThickness}px,
@@ -84,7 +83,6 @@ const position = ({ position }) => {
     styles = `
       width: ${iconWidth}px;
       height: ${iconLength}px;
-
       background-image: linear-gradient(
           to right,
           ${iconColor} ${lineThickness}px,
