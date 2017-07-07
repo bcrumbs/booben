@@ -513,7 +513,7 @@ export const buildValue = (
  *
  * @param {Object} component
  * @param {Object<string, Object<string, ComponentMeta>>} meta
- * @param {ValueContext} valueContext
+ * @param {?ValueContext} [valueContext=null]
  * @param {?Array<string>} [stateSlots=null]
  * @return {Object<string, *>}
  * @private
@@ -521,7 +521,7 @@ export const buildValue = (
 export const buildInitialComponentState = (
   component,
   meta,
-  valueContext,
+  valueContext = null,
   stateSlots = null,
 ) => {
   const componentMeta = getComponentMeta(component.name, meta);

@@ -127,8 +127,8 @@ class PlaceholderBuilderComponent extends PureComponent {
     this.state = {
       componentsState: getInitialComponentsState(
         props.components,
-        this._renderHints,
         props.meta,
+        this._renderHints,
       ),
     };
   }
@@ -155,8 +155,8 @@ class PlaceholderBuilderComponent extends PureComponent {
           componentsState,
           getInitialComponentsState(
             nextProps.components,
-            this._renderHints,
             nextProps.meta,
+            this._renderHints,
           ),
         ),
       });

@@ -179,8 +179,8 @@ class CanvasBuilderComponent extends PureComponent {
     this.state = {
       componentsState: getInitialComponentsState(
         props.components,
-        this._renderHints,
         props.meta,
+        this._renderHints,
       ),
     };
     
@@ -209,8 +209,8 @@ class CanvasBuilderComponent extends PureComponent {
           componentsState,
           getInitialComponentsState(
             nextProps.components,
-            this._renderHints,
             nextProps.meta,
+            this._renderHints,
           ),
         ),
       });
@@ -268,7 +268,7 @@ class CanvasBuilderComponent extends PureComponent {
     const resolvedTypedef = resolveTypedef(valueDef, userTypedefs);
     const stateUpdates = resolvedTypedef.sourceConfigs.actions.updateState;
   
-    if (stateUpdates) {
+    if (stateUpdates && componentId !== INVALID_ID) {
       const currentState = componentsState.get(componentId);
     
       if (currentState) {
@@ -304,13 +304,13 @@ class CanvasBuilderComponent extends PureComponent {
   
   /**
    *
-   * @param {number} componentId
+   * @param {number} [componentId=INVALID_ID]
    * @param {Immutable.Map<Object, DataContextsInfo>} [theMap=null]
    * @param {?Object} [data=null]
    * @return {ValueContext}
    * @private
    */
-  _getValueContext(componentId, theMap = null, data = null) {
+  _getValueContext(componentId = INVALID_ID, theMap = null, data = null) {
     const {
       meta,
       schema,
