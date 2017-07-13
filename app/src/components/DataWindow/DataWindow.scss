@@ -6,7 +6,7 @@
     // BASE
     // =================================================================================================================
     // TODO Remove width after adding common style props to reactackle Dialog
-    	.data-window_content {
+    .data-window_content {
         width: rem-calc(420);
     }
 
@@ -15,6 +15,7 @@
         margin-bottom: -$base-module;
         text-align: right
     }
+
 
     // =================================================================================================================
     // WINDOW CONTENT

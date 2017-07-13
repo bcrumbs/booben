@@ -6,9 +6,14 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { CaseRowStyled } from './styles/CaseRowStyled';
+import { CaseHeaderStyled } from './styles/CaseHeaderStyled';
+import { CaseTitleStyled } from './styles/CaseTitleStyled';
+import { CaseBodyStyled } from './styles/CaseBodyStyled';
+import { CaseMarkerStyled } from './styles/CaseMarkerStyled';
 
 const propTypes = {
-  type: PropTypes.oneOf(['success', 'error']),
+  type: PropTypes.oneOf(['success', 'error', 'neutral']),
   title: PropTypes.string,
 };
 
@@ -18,19 +23,19 @@ const defaultProps = {
 };
 
 export const ComponentActionCaseRow = ({ type, title, children }) => (
-  <div className={`component-case case-type-${type}`}>
-    <div className="component-case_header">
-      <div className="component-case_marker" />
+  <CaseRowStyled>
+    <CaseHeaderStyled>
+      <CaseMarkerStyled type={type} />
       
-      <div className="component-case_title">
+      <CaseTitleStyled>
         {title}
-      </div>
-    </div>
+      </CaseTitleStyled>
+    </CaseHeaderStyled>
     
-    <div className="component-case_body">
+    <CaseBodyStyled>
       {children}
-    </div>
-  </div>
+    </CaseBodyStyled>
+  </CaseRowStyled>
 );
 
 ComponentActionCaseRow.propTypes = propTypes;

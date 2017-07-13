@@ -191,6 +191,7 @@ $prop-toggle: 'prop-type-toggle';
     }
 
     // Icon
+    // TODO does it still in use?
     .prop-item-icon {
         cursor: $cursor-pointer;
         border-radius: $prop-icon-border-radius;
@@ -214,10 +215,6 @@ $prop-toggle: 'prop-type-toggle';
             .button {
                 background-color: $prop-icon-hover-bg-color;
             }
-        }
-
-        .button {
-            min-height: 0;
         }
     }
 
@@ -246,13 +243,8 @@ $prop-toggle: 'prop-type-toggle';
     // =================================================================================================================
     // PROPS TYPES
     // =================================================================================================================
-    .prop-item {
-        .input,
-        .textarea,
-        .select-box {
-            margin-top: 0;
-            margin-bottom: 0;
-        }
+    .prop_action-toggle {
+
     }
 
     .prop-item_label-box {
@@ -341,23 +333,10 @@ $prop-toggle: 'prop-type-toggle';
         margin-right: $base-module/2;
     }
 
-    .prop_action-toggle {
-        .toggle-label {
-            display: flex;
-            align-items: center;
-        }
-
-        .toggle-label-text {
-            color: $color-text-medium;
-            font-size: fs(-1);
-            padding-top: 1px; // 1px is for visual balance
-        }
-    }
-
     // PROP: input
     // =================================================================================================================
     .prop-type-input {
-        .input {
+        & > * {
             width: 100%;
             max-width: 100%;
         }
@@ -366,7 +345,7 @@ $prop-toggle: 'prop-type-toggle';
     // PROP: textarea
     // =================================================================================================================
     .prop-type-textarea {
-        .textarea {
+        & > * {
             width: 100%;
             max-width: 100%;
         }

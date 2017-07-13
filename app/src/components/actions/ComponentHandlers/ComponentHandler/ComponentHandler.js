@@ -2,12 +2,17 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Button, TooltipIcon } from '@reactackle/reactackle';
+import { Icon, TooltipIcon } from '@reactackle/reactackle';
 import { noop } from '../../../../utils/misc';
-import './ComponentHandler.scss';
+import { HandlerStyled } from './styles/HandlerStyled';
+import { HandlerHeadingStyled } from './styles/HandlerHeadingStyled';
+import { HandlerTitleStyled } from './styles/HandlerTitleStyled';
+import { HandlerTitleTextStyled } from './styles/HandlerTitleTextStyled';
+import { HandlerIconStyled } from './styles/HandlerIconStyled';
+import { HandlerBodyStyled } from './styles/HandlerBodyStyled';
    
 const propTypes = {
-  id: PropTypes.string.isRequired,
+  id: PropTypes.any.isRequired,
   title: PropTypes.string,
   description: PropTypes.string,
   hasActions: PropTypes.bool,
@@ -27,27 +32,26 @@ export class ComponentHandler extends PureComponent {
   constructor(props, context) {
     super(props, context);
     
-    this._handleExpandButtonPress = this._handleExpandButtonPress.bind(this);
+    this._handleExpandButtonClick = this._handleExpandButtonClick.bind(this);
   }
   
-  _handleExpandButtonPress() {
+  _handleExpandButtonClick(event) {
     const { id, onExpand } = this.props;
-    onExpand({ handlerId: id });
+
+    if (event.button === 0) {
+      onExpand({ handlerId: id });
+    }
   }
   
   render() {
     const { title, description, hasActions, expanded, children } = this.props;
-    
-    let className = 'component-handler';
-    if (hasActions) className += ' is-active';
-    if (expanded) className += ' is-expanded';
   
     let content = null;
     if (expanded && children) {
       content = (
-        <div className="component-handler_body">
+        <HandlerBodyStyled>
           {children}
-        </div>
+        </HandlerBodyStyled>
       );
     }
   
@@ -59,27 +63,23 @@ export class ComponentHandler extends PureComponent {
     }
   
     return (
-      <div className={className}>
-        <div className="component-handler_heading">
-          <div className="component-handler_title">
-            <span className="component-handler_title-text">
+      <HandlerStyled>
+        <HandlerHeadingStyled onClick={this._handleExpandButtonClick}>
+          <HandlerTitleStyled active={hasActions}>
+            <HandlerTitleTextStyled>
               {title}
-            </span>
+            </HandlerTitleTextStyled>
           
             {tooltip}
-          </div>
+          </HandlerTitleStyled>
         
-          <div className="component-handler_buttons">
-            <Button
-              icon="chevron-down"
-              rounded
-              onPress={this._handleExpandButtonPress}
-            />
-          </div>
-        </div>
+          <HandlerIconStyled expanded={expanded}>
+            <Icon name="chevron-down" size="small" />
+          </HandlerIconStyled>
+        </HandlerHeadingStyled>
       
         {content}
-      </div>
+      </HandlerStyled>
     );
   }
 }

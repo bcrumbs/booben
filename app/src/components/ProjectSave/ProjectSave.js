@@ -1,23 +1,16 @@
 'use strict';
 
-// TODO Get all strings from i18n
-
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Icon } from '@reactackle/reactackle';
-
-import {
-  combineWithTooltip,
-} from '@reactackle/reactackle/components/Tooltip/combineWithTooltip';
-
-import './ProjectSave.scss';
-
-/*
- * Combined with tooltip
- */
+import { Icon, withTooltip } from '@reactackle/reactackle';
+import { ProjectSaveStyled } from './styles/ProjectSaveStyled';
+import { IconStyled } from './styles/IconStyled';
+import { TitleStyled } from './styles/TitleStyled';
 
 const propTypes = {
   status: PropTypes.oneOf(['error', 'success', 'progress', 'default']),
+  title: PropTypes.string,
+  tooltipText: PropTypes.string,
   toggleTooltip: PropTypes.func.isRequired,
   showTooltip: PropTypes.func.isRequired,
   hideTooltip: PropTypes.func.isRequired,
@@ -26,61 +19,48 @@ const propTypes = {
 
 const defaultProps = {
   status: 'default',
+  title: '',
+  tooltipText: '',
 };
 
 const ProjectSaveComponent = props => {
-  let className = 'project-save has-tooltip';
-  if (props.status)className += ` save-status-${props.status}`;
-  
   let icon = null;
-  let title = null;
-  let tooltipText = null;
   
   if (props.status === 'error') {
-    title = 'Save';
-    icon = <Icon name="exclamation" />;
+    icon = <Icon name="exclamation" size="inherit" color="inherit" />;
   } else if (props.status === 'success') {
-    title = 'Saved!';
-    icon = <Icon name="check" />;
+    icon = <Icon name="check" size="inherit" color="inherit" />;
   } else if (props.status === 'progress') {
-    title = 'Saving...';
+    icon = null;
   } else {
-    title = 'Save';
-    icon = <Icon name="check" />;
-  }
-  
-  if (props.status === 'error') {
-    tooltipText = 'Fix your internet connection and retry';
-  } else if (props.status === 'success') {
-    tooltipText = 'Last saved a second ago';
-  } else {
-    tooltipText = 'Last saved at 12:56 12/11/2016';
+    icon = <Icon name="check" size="inherit" color="inherit" />;
   }
   
   const TooltipComponent = props.Tooltip;
   
   /* eslint-disable react/jsx-handler-names */
   return (
-    <div
-      className={className}
+    <ProjectSaveStyled
+      colorScheme={props.status}
       onClick={props.toggleTooltip}
       onFocus={props.showTooltip}
       onBlur={props.hideTooltip}
       onMouseEnter={props.showTooltip}
       onMouseLeave={props.hideTooltip}
     >
-      <div className="project-save_icon">
+      <IconStyled
+        typeProgress={props.status === 'progress'}
+        active={props.status !== 'default'}
+      >
         {icon}
-      </div>
-
-      <div className="project-save_title-wrapper">
-        <div className="project-save_title">
-          {title}
-        </div>
-      </div>
+      </IconStyled>
       
-      <TooltipComponent text={tooltipText} />
-    </div>
+      <TitleStyled>
+        {props.title}
+      </TitleStyled>
+      
+      <TooltipComponent text={props.tooltipText} />
+    </ProjectSaveStyled>
   );
   /* eslint-enable react/jsx-handler-names */
 };
@@ -89,5 +69,4 @@ ProjectSaveComponent.propTypes = propTypes;
 ProjectSaveComponent.defaultProps = defaultProps;
 ProjectSaveComponent.displayName = 'ProjectSave';
 
-//noinspection JSCheckFunctionSignatures
-export const ProjectSave = combineWithTooltip(ProjectSaveComponent, true);
+export const ProjectSave = withTooltip(ProjectSaveComponent, true);

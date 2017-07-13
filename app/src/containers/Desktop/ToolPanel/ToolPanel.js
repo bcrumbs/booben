@@ -6,7 +6,6 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { List, Map } from 'immutable';
 
 import {
@@ -15,25 +14,19 @@ import {
   PageDrawerActionsGroup,
   PageDrawerActionItem,
   PageDrawerActionPlaceholder,
-} from '../../../components/PageDrawer/PageDrawer';
+} from '@jssy/common-ui';
 
 import { ToolPanelContent } from './ToolPanelContent/ToolPanelContent';
 import resizeable from '../../../hocs/resizeable';
-import ToolType from '../../../models/Tool';
-import ToolStateType from '../../../models/ToolState';
+import ToolState from '../../../models/ToolState';
 import { noop } from '../../../utils/misc';
+import * as JssyPropTypes from '../../../constants/common-prop-types';
+import { DESKTOP_PANEL_MIN_WIDTH } from '../../../config';
 
 /* eslint-disable react/no-unused-prop-types */
 const propTypes = {
-  toolGroups: ImmutablePropTypes.listOf(
-    ImmutablePropTypes.listOf(
-      PropTypes.instanceOf(ToolType),
-    ),
-  ),
-  toolStates: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ToolStateType),
-    PropTypes.string,
-  ),
+  toolGroups: JssyPropTypes.toolGroups,
+  toolStates: JssyPropTypes.toolStates,
   isExpanded: PropTypes.bool,
   onCollapse: PropTypes.func,
   onExpand: PropTypes.func,
@@ -58,8 +51,6 @@ const defaultProps = {
 
 const ResizeablePageDrawer = resizeable(PageDrawer);
 
-const PANEL_MIN_WIDTH = 360;
-
 export const ToolPanel = props => {
   let activeTool = null;
   let shadowedTool = null;
@@ -70,7 +61,7 @@ export const ToolPanel = props => {
     const icons = [];
 
     tools.forEach(tool => {
-      const toolState = props.toolStates.get(tool.id) || new ToolStateType();
+      const toolState = props.toolStates.get(tool.id) || new ToolState();
       if (toolState.closed) return;
 
       if (toolState.isInDockRegion) {
@@ -109,7 +100,7 @@ export const ToolPanel = props => {
   if (activeTool !== null) {
     const activeToolState =
       props.toolStates.get(activeTool.id) ||
-      new ToolStateType();
+      new ToolState();
 
     const onTitleChange = newTitle =>
       props.onToolTitleChange(activeTool, newTitle);
@@ -154,7 +145,7 @@ export const ToolPanel = props => {
   if (shadowedTool !== null) {
     const shadowedToolState =
       props.toolStates.get(shadowedTool.id) ||
-      new ToolStateType();
+      new ToolState();
 
     shadowedPanelContent = (
       <ToolPanelContent
@@ -184,7 +175,7 @@ export const ToolPanel = props => {
     <ResizeablePageDrawer
       resizeEnabled={isExpanded}
       resizeSides={['left']}
-      resizeMinWidth={PANEL_MIN_WIDTH}
+      resizeMinWidth={DESKTOP_PANEL_MIN_WIDTH}
       resizeMaxWidth={Math.round(window.innerWidth / 2)}
       isExpanded={isExpanded}
       hasActions={pageDrawerHasActions}

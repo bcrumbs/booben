@@ -9,9 +9,15 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { createSelector } from 'reselect';
-import { List, Record, Map, OrderedMap } from 'immutable';
-import _forOwn from 'lodash.forown';
+import _debounce from 'lodash.debounce';
 import { Button } from '@reactackle/reactackle';
+
+import {
+  BlockContentBox,
+  BlockContentBoxItem,
+  BlockContentPlaceholder,
+} from '@jssy/common-ui';
+
 import draggable from '../../hocs/draggable';
 import { connectDraggable } from '../ComponentsDragArea/ComponentsDragArea';
 
@@ -21,55 +27,45 @@ import {
 } from '../../components/Accordion/Accordion';
 
 import {
-  BlockContentBox,
-  BlockContentPlaceholder,
-} from '../../components/BlockContent/BlockContent';
-
-import {
   ComponentTag,
   ComponentTagWrapper,
 } from '../../components/ComponentTag/ComponentTag';
 
+import { SearchInput } from '../../components/SearchInput/SearchInput';
+
 import {
   setExpandedGroups,
   showAllComponents,
+  searchComponents,
 } from '../../actions/components-library';
 
 import {
-  currentSelectedComponentIdsSelector,
+  selectedComponentIdsSelector,
   currentComponentsSelector,
   haveNestedConstructorsSelector,
   getLocalizedTextFromState,
   rootDraggedComponentSelector,
 } from '../../selectors';
 
+import { libraryGroupsSortedByLanguageSelector } from '../../selectors/library';
+import LibraryGroupData from '../../models/LibraryGroupData';
 import ProjectComponent from '../../models/ProjectComponent';
 import { startDragNewComponent } from '../../actions/preview';
-import HTMLMeta from '../../meta/html';
-import { canInsertComponent, constructComponent } from '../../lib/meta';
+import { constructComponent } from '../../lib/meta';
+
+import {
+  getComponentNameString,
+  getGroupNameString,
+  filterGroupsAndComponents,
+} from '../../lib/library';
+
+import { canInsertComponent, ANYWHERE } from '../../lib/components';
 import { combineFiltersAll } from '../../utils/misc';
-import defaultComponentIcon from '../../../assets/component_default.svg';
 
-const LibraryComponentData = Record({
-  name: '',
-  fullName: '',
-  text: null,
-  descriptionText: null,
-  textIntlKey: '',
-  descriptionIntlKey: '',
-  iconURL: '',
-});
-
-const LibraryGroupData = Record({
-  name: '',
-  namespace: '',
-  text: null,
-  descriptionText: null,
-  textIntlKey: '',
-  descriptionIntlKey: '',
-  isDefault: false,
-  components: List(),
-});
+import {
+  LIBRARY_SEARCH_INPUT_DEBOUNCE,
+  DND_DRAG_START_RADIUS_LIBRARY,
+} from '../../config';
 
 const ComponentGroupsType = PropTypes.shape({
   groups: ImmutablePropTypes.listOf(PropTypes.instanceOf(LibraryGroupData)),
@@ -80,11 +76,13 @@ const propTypes = {
   meta: PropTypes.object.isRequired,
   componentGroups: ComponentGroupsType.isRequired,
   expandedGroups: ImmutablePropTypes.setOf(PropTypes.string).isRequired,
+  searchString: PropTypes.string.isRequired,
   language: PropTypes.string.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
   rootDraggedComponent: PropTypes.instanceOf(ProjectComponent),
   getLocalizedText: PropTypes.func.isRequired,
   onExpandedGroupsChange: PropTypes.func.isRequired,
+  onSearchComponents: PropTypes.func.isRequired,
   onShowAllComponents: PropTypes.func.isRequired,
   onStartDragComponent: PropTypes.func.isRequired,
 };
@@ -93,162 +91,16 @@ const defaultProps = {
   rootDraggedComponent: null,
 };
 
-const GROUP_BUILTIN = new LibraryGroupData({
-  name: '__builtin__',
-  namespace: '',
-  textIntlKey: 'componentGroups.builtin',
-  descriptionIntlKey: 'componentGroups.builtin.desc',
-  components: List([
-    new LibraryComponentData({
-      name: 'Outlet',
-      fullName: 'Outlet',
-      iconURL: defaultComponentIcon,
-      textIntlKey: 'components.builtin.Outlet',
-      descriptionIntlKey: 'components.builtin.Outlet.desc',
-    }),
-  ]),
-});
-
-const extractGroupsDataFromMeta = (libsMeta, enableHTML) => {
-  const meta = enableHTML ? { ...libsMeta, HTML: HTMLMeta } : libsMeta;
-  
-  let groups = OrderedMap();
-
-  _forOwn(meta, libMeta => {
-    _forOwn(libMeta.componentGroups, (groupData, groupName) => {
-      const fullName = `${libMeta.namespace}.${groupName}`;
-      const libraryGroup = new LibraryGroupData({
-        name: fullName,
-        namespace: libMeta.namespace,
-        text: Map(libMeta.strings[groupData.textKey]),
-        descriptionText: Map(libMeta.strings[groupData.descriptionTextKey]),
-        isDefault: false,
-      });
-
-      groups = groups.set(fullName, libraryGroup);
-    });
-
-    _forOwn(libMeta.components, componentMeta => {
-      if (componentMeta.hidden) return;
-
-      let defaultGroup = false,
-        groupName;
-
-      if (!componentMeta.group) {
-        defaultGroup = true;
-        groupName = `${libMeta.namespace}.__default__`;
-      } else {
-        groupName = `${libMeta.namespace}.${componentMeta.group}`;
-      }
-
-      if (defaultGroup && !groups.has(groupName)) {
-        const group = new LibraryGroupData({
-          name: groupName,
-          namespace: libMeta.namespace,
-          isDefault: true,
-        });
-
-        groups = groups.set(groupName, group);
-      }
-
-      const text = componentMeta.strings[componentMeta.textKey];
-      const description =
-        componentMeta.strings[componentMeta.descriptionTextKey];
-
-      const libraryComponent = new LibraryComponentData({
-        name: componentMeta.displayName,
-        fullName: `${libMeta.namespace}.${componentMeta.displayName}`,
-        text: Map(text),
-        descriptionText: Map(description),
-        iconURL: componentMeta.icon || defaultComponentIcon,
-      });
-
-      groups = groups.updateIn(
-        [groupName, 'components'],
-        components => components.push(libraryComponent),
-      );
-    });
-  });
-  
-  groups = groups.set('__builtin__', GROUP_BUILTIN);
-
-  return groups.toList().filter(group => !group.components.isEmpty());
-};
-
-const libraryGroupsSelector = createSelector(
-  state => state.project.meta,
-  state => state.project.data.enableHTML,
-  extractGroupsDataFromMeta,
-);
-
-const getComponentNameString = (componentData, language, getLocalizedText) => {
-  if (componentData.text) {
-    return componentData.text.get(language);
-  }
-  
-  if (componentData.textIntlKey) {
-    return getLocalizedText(componentData.textIntlKey);
-  }
-  
-  return componentData.name;
-};
-
-const getGroupNameString = (groupData, language, getLocalizedText) => {
-  let name;
-  
-  if (groupData.isDefault) {
-    name = getLocalizedText('library.uncategorizedComponents');
-  } else if (groupData.text) {
-    name = groupData.text.get(language);
-  } else if (groupData.textIntlKey) {
-    name = getLocalizedText(groupData.textIntlKey);
-  } else {
-    name = groupData.name;
-  }
-  
-  return groupData.namespace
-    ? `${groupData.namespace} - ${name}`
-    : name;
-};
-
-const compareComponents = (language, getLocalizedText) => (a, b) => {
-  const aText = getComponentNameString(a, language, getLocalizedText);
-  const bText = getComponentNameString(b, language, getLocalizedText);
-  
-  if (aText < bText) return -1;
-  if (aText > bText) return 1;
-  return 0;
-};
-
-const libraryGroupsSortedByLanguageSelector = createSelector(
-  libraryGroupsSelector,
-  getLocalizedTextFromState,
-  state => state.app.language,
-
-  (groups, getLocalizedText, language) =>
-    groups.map(group =>
-      group.update('components', components =>
-        components.sort(compareComponents(language, getLocalizedText)),
-      ),
-    ),
-);
-
-const filterGroupsAndComponents = (groups, includeComponent) => groups
-  .map(
-    group => group.update(
-      'components',
-      components => components.filter(includeComponent),
-    ),
-  )
-  .filter(group => !group.components.isEmpty());
-
 const libraryGroupsFilteredSelector = createSelector(
   libraryGroupsSortedByLanguageSelector,
-  currentSelectedComponentIdsSelector,
+  selectedComponentIdsSelector,
   currentComponentsSelector,
   haveNestedConstructorsSelector,
   state => state.project.showAllComponentsOnPalette,
   state => state.project.meta,
+  state => state.componentsLibrary.searchString,
+  state => state.app.language,
+  getLocalizedTextFromState,
 
   (
     groups,
@@ -257,6 +109,9 @@ const libraryGroupsFilteredSelector = createSelector(
     haveNestedConstructors,
     showAllComponentsOnPalette,
     meta,
+    searchString,
+    language,
+    getLocalizedText,
   ) => {
     const filterFns = [
       component => !haveNestedConstructors || component.fullName !== 'Outlet',
@@ -264,18 +119,24 @@ const libraryGroupsFilteredSelector = createSelector(
 
     if (selectedComponentIds.size === 1 && !showAllComponentsOnPalette) {
       const selectedComponentId = selectedComponentIds.first();
-      const selectedComponent = components.get(selectedComponentId);
-      const childComponentNames = selectedComponent.children
-        .map(childId => components.get(childId).name);
 
       filterFns.push(
         component => canInsertComponent(
           component.fullName,
-          selectedComponent.name,
-          childComponentNames,
-          -1,
+          components,
+          selectedComponentId,
+          ANYWHERE,
           meta,
         ),
+      );
+    }
+    
+    if (searchString !== '') {
+      filterFns.push(
+        component =>
+        getComponentNameString(component, language, getLocalizedText)
+          .toLowerCase()
+          .indexOf(searchString.toLowerCase()) !== -1,
       );
     }
 
@@ -293,6 +154,7 @@ const mapStateToProps = state => ({
   meta: state.project.meta,
   componentGroups: libraryGroupsFilteredSelector(state),
   expandedGroups: state.componentsLibrary.expandedGroups,
+  searchString: state.componentsLibrary.searchString,
   language: state.app.language,
   draggingComponent: state.project.draggingComponent,
   rootDraggedComponent: rootDraggedComponentSelector(state),
@@ -302,6 +164,9 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   onExpandedGroupsChange: groups =>
     void dispatch(setExpandedGroups(groups)),
+  
+  onSearchComponents: searchString =>
+    void dispatch(searchComponents(searchString)),
 
   onShowAllComponents: () =>
     void dispatch(showAllComponents()),
@@ -310,13 +175,26 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(startDragNewComponent(components)),
 });
 
+const wrap = connect(mapStateToProps, mapDispatchToProps);
+
 const DraggableComponentTag = connectDraggable(draggable(ComponentTag));
 
 class ComponentsLibraryComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
+    
+    this.state = {
+      localSearchString: props.searchString,
+    };
 
     this._handleDragStart = this._handleDragStart.bind(this);
+    this._handleSearchInputChange = this._handleSearchInputChange.bind(this);
+    this._handleSearchButtonPress = this._handleSearchButtonPress.bind(this);
+    
+    this._doSearchDebounced = _debounce(
+      this._doSearch.bind(this),
+      LIBRARY_SEARCH_INPUT_DEBOUNCE,
+    );
   }
 
   _getFocusedComponentName() {
@@ -331,27 +209,56 @@ class ComponentsLibraryComponent extends PureComponent {
     onStartDragComponent(components);
   }
   
+  _doSearch() {
+    const { onSearchComponents } = this.props;
+    const { localSearchString } = this.state;
+  
+    onSearchComponents(localSearchString);
+  }
+  
+  _handleSearchInputChange({ value }) {
+    this.setState({
+      localSearchString: value,
+    }, this._doSearchDebounced);
+  }
+  
+  _handleSearchButtonPress() {
+    this._doSearch();
+  }
+  
   render() {
     const {
       componentGroups,
       expandedGroups,
-      onShowAllComponents,
+      searchString,
       language,
       getLocalizedText,
       onExpandedGroupsChange,
+      onShowAllComponents,
     } = this.props;
+    
+    const { localSearchString } = this.state;
 
     const focusedComponentName = this._getFocusedComponentName();
     const { groups, filtered } = componentGroups;
 
     if (groups.isEmpty()) {
-      if (filtered) {
+      if (!filtered) {
+        const noComponentsText =
+          getLocalizedText('library.noComponentsInLibrary');
+  
+        return (
+          <BlockContentPlaceholder text={noComponentsText} />
+        );
+      }
+      
+      if (searchString === '') {
         const noComponentsText =
           getLocalizedText('library.noComponentsAvailable');
-        
+  
         const showAllComponentsText =
           getLocalizedText('library.showAllComponents');
-        
+  
         return (
           <BlockContentPlaceholder text={noComponentsText}>
             <Button
@@ -359,13 +266,6 @@ class ComponentsLibraryComponent extends PureComponent {
               onPress={onShowAllComponents}
             />
           </BlockContentPlaceholder>
-        );
-      } else {
-        const noComponentsText =
-          getLocalizedText('library.noComponentsInLibrary');
-        
-        return (
-          <BlockContentPlaceholder text={noComponentsText} />
         );
       }
     }
@@ -379,7 +279,7 @@ class ComponentsLibraryComponent extends PureComponent {
           focused={focusedComponentName === component.fullName}
           dragTitle={component.fullName}
           dragData={{ name: component.fullName }}
-          dragStartRadius={100}
+          dragStartRadius={DND_DRAG_START_RADIUS_LIBRARY}
           onDragStart={this._handleDragStart}
         />
       ));
@@ -394,15 +294,29 @@ class ComponentsLibraryComponent extends PureComponent {
         ),
       });
     });
+    
+    const expandAll = searchString !== '';
 
     return (
       <BlockContentBox isBordered>
-        <Accordion
-          single
-          items={accordionItems}
-          expandedItemIds={expandedGroups}
-          onExpandedItemsChange={onExpandedGroupsChange}
-        />
+        <BlockContentBoxItem blank>
+          <SearchInput
+            placeholder={getLocalizedText('library.search.placeholder')}
+            value={localSearchString}
+            onChange={this._handleSearchInputChange}
+            onButtonPress={this._handleSearchButtonPress}
+          />
+        </BlockContentBoxItem>
+        
+        <BlockContentBoxItem blank isBordered>
+          <Accordion
+            single
+            items={accordionItems}
+            expandedItemIds={expandedGroups}
+            expandAll={expandAll}
+            onExpandedItemsChange={onExpandedGroupsChange}
+          />
+        </BlockContentBoxItem>
       </BlockContentBox>
     );
   }
@@ -412,7 +326,4 @@ ComponentsLibraryComponent.propTypes = propTypes;
 ComponentsLibraryComponent.defaultProps = defaultProps;
 ComponentsLibraryComponent.displayName = 'ComponentsLibrary';
 
-export const ComponentsLibrary = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ComponentsLibraryComponent);
+export const ComponentsLibrary = wrap(ComponentsLibraryComponent);

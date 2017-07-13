@@ -33,6 +33,16 @@ import {
 } from '@reactackle/reactackle';
 
 import {
+  BlockContentBox,
+  BlockContentHeading,
+  BlockBreadcrumbs,
+  BlockContentBoxGroup,
+  BlockContentBoxItem,
+  BlockContentBoxHeading,
+  BlockContentPlaceholder,
+} from '@jssy/common-ui';
+
+import {
   MenuOverlapping,
   MenuOverlappingDivider,
   MenuOverlappingGroup,
@@ -41,18 +51,8 @@ import {
 
 import { DrawerTop } from '../components/DrawerTop/DrawerTop';
 import {
-  DrawerTopPickingContent,
-} from '../components/DrawerTopPickingContent/DrawerTopPickingContent';
-
-import {
-  BlockContentBox,
-  BlockContentHeading,
-  BlockBreadcrumbs,
-  BlockContentBoxGroup,
-  BlockContentBoxItem,
-  BlockContentBoxHeading,
-  BlockContentPlaceholder,
-} from '../components/BlockContent/BlockContent';
+  DrawerTopContent,
+} from '../components/DrawerTopContent/DrawerTopContent';
 
 import {
   Accordion,
@@ -568,7 +568,7 @@ export default class Playground extends React.Component {
             </HeaderRegion>
 
             <HeaderRegion size="blank">
-              <ProjectSave status="error" />
+              <ProjectSave status="success" title="status" />
             </HeaderRegion>
 
             <HeaderRegion size="blank">
@@ -584,12 +584,6 @@ export default class Playground extends React.Component {
               </HeaderMenu>
             </HeaderRegion>
           </Header>
-          
-          <DrawerTop>
-            <DrawerTopPickingContent>
-              <Button text="Cancel" kind="flat" light size="small" />
-            </DrawerTopPickingContent>
-          </DrawerTop>
         </TopRegion>
 
         <Desktop toolGroups={toolGroups}>

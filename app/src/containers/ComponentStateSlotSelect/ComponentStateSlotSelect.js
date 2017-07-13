@@ -19,13 +19,13 @@ import {
 
 import { getLocalizedTextFromState } from '../../selectors';
 import { getString } from '../../lib/meta';
-import { noop, returnTrue, returnArg } from '../../utils/misc';
+import { noop, returnTrue } from '../../utils/misc';
 
 const propTypes = {
   componentMeta: PropTypes.object.isRequired,
   language: PropTypes.string,
   isCompatibleStateSlot: PropTypes.func,
-  getLocalizedText: PropTypes.func,
+  getLocalizedText: PropTypes.func.isRequired, // state
   onSelect: PropTypes.func,
 };
 
@@ -33,7 +33,6 @@ const defaultProps = {
   targetUserTypedefs: null,
   language: '',
   isCompatibleStateSlot: returnTrue,
-  getLocalizedText: returnArg,
   onSelect: noop,
 };
 

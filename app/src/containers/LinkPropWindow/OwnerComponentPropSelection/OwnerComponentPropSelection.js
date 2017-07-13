@@ -14,17 +14,16 @@ import {
   BlockContentBoxItem,
   BlockContentNavigation,
   BlockBreadcrumbs,
-} from '../../../components/BlockContent/BlockContent';
+} from '@jssy/common-ui';
 
 import {
   DataList,
   DataItem,
 } from '../../../components/DataList/DataList';
 
-import { getString } from '../../../lib/meta';
+import { getString, getSourceConfig } from '../../../lib/meta';
 import { noop, returnArg } from '../../../utils/misc';
 
-//noinspection JSUnresolvedVariable
 const propTypes = {
   ownerComponentMeta: PropTypes.object.isRequired,
   ownerPropMeta: PropTypes.object.isRequired,
@@ -95,16 +94,18 @@ export class OwnerComponentPropSelection extends PureComponent {
       language,
     } = this.props;
     
-    const ownerPropsMeta = ownerPropMeta.sourceConfigs.designer.props;
-    const items = Object.keys(ownerPropsMeta)
+    const designerSourceConfig =
+      getSourceConfig(ownerPropMeta, 'designer', ownerComponentMeta.types);
+
+    const items = Object.keys(designerSourceConfig.props)
       .filter(ownerPropName => isEqualType(
-        ownerPropsMeta[ownerPropName],
+        designerSourceConfig.props[ownerPropName],
         linkTargetValueDef,
         ownerComponentMeta.types,
         userTypedefs,
       ))
       .map(ownerPropName => {
-        const ownerPropMeta = ownerPropsMeta[ownerPropName];
+        const ownerPropMeta = designerSourceConfig.props[ownerPropName];
       
         const title = getString(
           ownerComponentMeta.strings,
@@ -126,7 +127,6 @@ export class OwnerComponentPropSelection extends PureComponent {
             description={description}
             type={ownerPropMeta.type}
             clickable
-            arg={ownerPropName}
             onSelect={this._handleSelect}
           />
         );

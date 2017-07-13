@@ -4,36 +4,39 @@
 
 'use strict';
 
+import triggersProjectSave from './project-save/wrapper';
 import { getProject, getMetadata, getGraphQLSchema } from '../lib/api';
 import { URL_GRAPHQL_PREFIX } from '../../../shared/constants';
 
-export const PROJECT_REQUEST =
-  'PROJECT_REQUEST';
-export const PROJECT_LOADED =
-  'PROJECT_LOADED';
-export const PROJECT_LOAD_FAILED =
-  'PROJECT_LOAD_FAILED';
+export const PROJECT_REQUEST = 'PROJECT_REQUEST';
+export const PROJECT_LOADED = 'PROJECT_LOADED';
+export const PROJECT_LOAD_FAILED = 'PROJECT_LOAD_FAILED';
 
-export const PROJECT_ROUTE_CREATE =
-  'PROJECT_ROUTE_CREATE';
-export const PROJECT_ROUTE_DELETE =
-  'PROJECT_ROUTE_DELETE';
-export const PROJECT_ROUTE_UPDATE_FIELD =
-  'PROJECT_ROUTE_UPDATE_FIELD';
-export const PROJECT_ROUTE_UPDATE_PATH =
-  'PROJECT_ROUTE_UPDATE_PATH';
+export const PROJECT_ROUTE_CREATE = 'PROJECT_ROUTE_CREATE';
+export const PROJECT_ROUTE_DELETE = 'PROJECT_ROUTE_DELETE';
+export const PROJECT_ROUTE_UPDATE_FIELD = 'PROJECT_ROUTE_UPDATE_FIELD';
+export const PROJECT_ROUTE_UPDATE_PATH = 'PROJECT_ROUTE_UPDATE_PATH';
 
+export const PROJECT_MOVE_CURSOR = 'PROJECT_MOVE_CURSOR';
+
+export const PROJECT_COMPONENT_CREATE =
+  'PROJECT_COMPONENT_CREATE';
 export const PROJECT_COMPONENT_DELETE =
   'PROJECT_COMPONENT_DELETE';
 export const PROJECT_COMPONENT_RENAME =
   'PROJECT_COMPONENT_RENAME';
 export const PROJECT_COMPONENT_TOGGLE_REGION =
   'PROJECT_COMPONENT_TOGGLE_REGION';
+export const PROJECT_COMPONENT_COPY =
+  'PROJECT_COMPONENT_COPY';
+export const PROJECT_COMPONENT_MOVE =
+  'PROJECT_COMPONENT_MOVE';
+export const PROJECT_COMPONENT_MOVE_TO_CLIPBOARD =
+  'PROJECT_COMPONENT_MOVE_TO_CLIPBOARD';
 export const PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT =
   'PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT';
 
-export const PROJECT_CREATE_FUNCTION =
-  'PROJECT_CREATE_FUNCTION';
+export const PROJECT_CREATE_FUNCTION = 'PROJECT_CREATE_FUNCTION';
 
 export const PROJECT_JSSY_VALUE_REPLACE =
   'PROJECT_JSSY_VALUE_REPLACE';
@@ -60,6 +63,9 @@ export const PROJECT_PICK_COMPONENT_STATE_SLOT =
   'PROJECT_PICK_COMPONENT_STATE_SLOT';
 export const PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL =
   'PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL';
+
+export const PROJECT_UNDO = 'PROJECT_UNDO';
+export const PROJECT_REDO = 'PROJECT_REDO';
 
 /**
  *
@@ -133,23 +139,25 @@ export const loadProject = projectName => async dispatch => {
  * @param {Object<string, string>} paramValues
  * @return {Object}
  */
-export const createRoute = (parentRouteId, path, title, paramValues) => ({
-  type: PROJECT_ROUTE_CREATE,
-  parentRouteId,
-  path,
-  title,
-  paramValues,
-});
+export const createRoute = triggersProjectSave(
+  (parentRouteId, path, title, paramValues) => ({
+    type: PROJECT_ROUTE_CREATE,
+    parentRouteId,
+    path,
+    title,
+    paramValues,
+  }),
+);
 
 /**
  *
  * @param {number} routeId
  * @return {Object}
  */
-export const deleteRoute = routeId => ({
+export const deleteRoute = triggersProjectSave(routeId => ({
   type: PROJECT_ROUTE_DELETE,
   routeId,
-});
+}));
 
 /**
  *
@@ -158,12 +166,14 @@ export const deleteRoute = routeId => ({
  * @param {*} newValue
  * @return {Object}
  */
-export const updateRouteField = (routeId, field, newValue) => ({
-  type: PROJECT_ROUTE_UPDATE_FIELD,
-  routeId,
-  field,
-  newValue,
-});
+export const updateRouteField = triggersProjectSave(
+  (routeId, field, newValue) => ({
+    type: PROJECT_ROUTE_UPDATE_FIELD,
+    routeId,
+    field,
+    newValue,
+  }),
+);
 
 /**
  *
@@ -172,7 +182,7 @@ export const updateRouteField = (routeId, field, newValue) => ({
  * @param {Object<string, string>} newParamValues
  * @param {Object<string, string>} [renamedParams={}]
  */
-export const updateRoutePath = (
+export const updateRoutePath = triggersProjectSave((
   routeId,
   newPath,
   newParamValues,
@@ -183,16 +193,78 @@ export const updateRoutePath = (
   newPath,
   newParamValues,
   renamedParams,
-});
+}));
+
+/**
+ *
+ * @param {Immutable.Map<number, Object>}
+ * @param {number} containerId
+ * @param {number} afterIdx
+ */
+export const createComponent = triggersProjectSave(
+  (components, containerId, afterIdx, updateCursorPosition = true) => ({
+    type: PROJECT_COMPONENT_CREATE,
+    components,
+    containerId,
+    afterIdx,
+    updateCursorPosition,
+  }),
+);
 
 /**
  *
  * @param {string} componentId - Component ID
  * @return {Object}
  */
-export const deleteComponent = componentId => ({
+export const deleteComponent = triggersProjectSave(componentId => ({
   type: PROJECT_COMPONENT_DELETE,
   componentId,
+}));
+
+/**
+ *
+ * @param {number} componentId
+ * @param {number} containerId
+ * @param {number} afterIdx
+ * @return {Object}
+ */
+export const copyComponent = triggersProjectSave(
+  (componentId, containerId, afterIdx) => ({
+    type: PROJECT_COMPONENT_COPY,
+    componentId,
+    containerId,
+    afterIdx,
+  }),
+);
+
+/**
+ *
+ * @param {number} componentId
+ * @param {number} containerId
+ * @param {number} afterIdx
+ * @param {boolean} [clearClipboard=false]
+ * @return {Object}
+ */
+export const moveComponent = triggersProjectSave(
+  (componentId, containerId, afterIdx, clearClipboard) => ({
+    type: PROJECT_COMPONENT_MOVE,
+    componentId,
+    containerId,
+    afterIdx,
+    clearClipboard,
+  }),
+);
+
+/**
+ *
+ * @param {number} componentId
+ * @param {boolean} copy
+ * @return {Object}
+ */
+export const moveComponentToClipboard = (componentId, copy) => ({
+  type: PROJECT_COMPONENT_MOVE_TO_CLIPBOARD,
+  componentId,
+  copy,
 });
 
 /**
@@ -201,11 +273,11 @@ export const deleteComponent = componentId => ({
  * @param {JssyValue} newValue
  * @return {Object}
  */
-export const replaceJssyValue = (path, newValue) => ({
+export const replaceJssyValue = triggersProjectSave((path, newValue) => ({
   type: PROJECT_JSSY_VALUE_REPLACE,
   path,
   newValue,
-});
+}));
 
 /**
  *
@@ -213,11 +285,11 @@ export const replaceJssyValue = (path, newValue) => ({
  * @param {Object} action
  * @return {Object}
  */
-export const addAction = (path, action) => ({
+export const addAction = triggersProjectSave((path, action) => ({
   type: PROJECT_JSSY_VALUE_ADD_ACTION,
   path,
   action,
-});
+}));
 
 /**
  *
@@ -226,12 +298,12 @@ export const addAction = (path, action) => ({
  * @param {Object} newAction
  * @return {Object}
  */
-export const replaceAction = (path, index, newAction) => ({
+export const replaceAction = triggersProjectSave((path, index, newAction) => ({
   type: PROJECT_JSSY_VALUE_REPLACE_ACTION,
   path,
   index,
   newAction,
-});
+}));
 
 /**
  *
@@ -239,11 +311,11 @@ export const replaceAction = (path, index, newAction) => ({
  * @param {number} index
  * @return {Object}
  */
-export const deleteAction = (path, index) => ({
+export const deleteAction = triggersProjectSave((path, index) => ({
   type: PROJECT_JSSY_VALUE_DELETE_ACTION,
   path,
   index,
-});
+}));
 
 /**
  *
@@ -271,9 +343,9 @@ export const cancelConstructComponentForProp = () => ({
  *
  * @return {Object}
  */
-export const saveComponentForProp = () => ({
+export const saveComponentForProp = triggersProjectSave(() => ({
   type: PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE,
-});
+}));
 
 /**
  *
@@ -281,11 +353,11 @@ export const saveComponentForProp = () => ({
  * @param {string} newTitle
  * @return {Object}
  */
-export const renameComponent = (componentId, newTitle) => ({
+export const renameComponent = triggersProjectSave((componentId, newTitle) => ({
   type: PROJECT_COMPONENT_RENAME,
   componentId,
   newTitle,
-});
+}));
 
 /**
  *
@@ -294,22 +366,24 @@ export const renameComponent = (componentId, newTitle) => ({
  * @param {boolean} enable
  * @return {Object}
  */
-export const toggleComponentRegion = (componentId, regionIdx, enable) => ({
-  type: PROJECT_COMPONENT_TOGGLE_REGION,
-  componentId,
-  regionIdx,
-  enable,
-});
+export const toggleComponentRegion = triggersProjectSave(
+  (componentId, regionIdx, enable) => ({
+    type: PROJECT_COMPONENT_TOGGLE_REGION,
+    componentId,
+    regionIdx,
+    enable,
+  }),
+);
 
 /**
  *
  * @param {number} layoutIdx
  * @return {Object}
  */
-export const selectLayoutForNewComponent = layoutIdx => ({
+export const selectLayoutForNewComponent = triggersProjectSave(layoutIdx => ({
   type: PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
   layoutIdx,
-});
+}));
 
 /**
  *
@@ -321,7 +395,7 @@ export const selectLayoutForNewComponent = layoutIdx => ({
  * @param {string} code
  * @return {Object}
  */
-export const createFunction = (
+export const createFunction = triggersProjectSave((
   name,
   title,
   description,
@@ -336,7 +410,7 @@ export const createFunction = (
   args,
   returnType,
   code,
-});
+}));
 
 /**
  *
@@ -412,4 +486,32 @@ export const pickComponentStateSlotDone = slotName => ({
  */
 export const pickComponentStateSlotCancel = () => ({
   type: PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL,
+});
+
+/**
+ *
+ * @return {Object}
+ */
+export const undo = triggersProjectSave(() => ({
+  type: PROJECT_UNDO,
+}));
+
+/**
+ *
+ * @return {Object}
+ */
+export const redo = triggersProjectSave(() => ({
+  type: PROJECT_REDO,
+}));
+
+/**
+ *
+ * @param {number} containerId
+ * @param {number} afterIdx
+ * @return {Object}
+ */
+export const moveCursor = (containerId, afterIdx) => ({
+  type: PROJECT_MOVE_CURSOR,
+  containerId,
+  afterIdx,
 });

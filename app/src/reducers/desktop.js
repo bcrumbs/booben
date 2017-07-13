@@ -43,7 +43,7 @@ import {
   TOOL_ID_PROPS_EDITOR,
   TOOL_IDS_STRUCTURE,
   TOOL_IDS_DESIGN,
-} from '../constants/toolIds';
+} from '../constants/tool-ids';
 
 import ToolStateRecord from '../models/ToolState';
 import { PATH_STRUCTURE, PATH_DESIGN } from '../constants/paths';

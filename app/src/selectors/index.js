@@ -13,11 +13,12 @@ import {
   getComponentMeta,
   findPropThatPushedDataContext,
   isValidSourceForValue,
+  getSourceConfig,
   getComponentPropName,
 } from '../lib/meta';
 
 import { getTypeNameByPath } from '../lib/schema';
-import { isDef } from '../utils/misc';
+import { isDef, mapListToArray } from '../utils/misc';
 import { INVALID_ID } from '../constants/misc';
 
 export const haveNestedConstructorsSelector = state =>
@@ -27,6 +28,15 @@ export const topNestedConstructorSelector = state =>
   haveNestedConstructorsSelector(state)
     ? state.project.nestedConstructors.first()
     : null;
+
+export const currentDesignerSelector = createSelector(
+  topNestedConstructorSelector,
+  state => state.project,
+  
+  (topNestedConstructor, projectState) => topNestedConstructor === null
+    ? projectState.designer
+    : topNestedConstructor.designer,
+);
 
 export const currentRouteSelector = state =>
   state.project.currentRouteId !== INVALID_ID
@@ -61,8 +71,8 @@ export const topNestedConstructorComponentSelector = createSelector(
       getComponentIdFromNestedConstructor(topNestedConstructor);
     
     const components = nestedConstructors.size === 1
-          ? currentRoute.components
-          : nestedConstructors.get(1).components;
+      ? currentRoute.components
+      : nestedConstructors.get(1).components;
 
     return components.get(componentId) || null;
   },
@@ -86,30 +96,43 @@ export const currentRootComponentIdSelector = createSelector(
   },
 );
 
-export const currentSelectedComponentIdsSelector = createSelector(
-  topNestedConstructorSelector,
-  state => state.project.selectedItems,
-
-  (topNestedConstructor, selectedItems) => topNestedConstructor
-    ? topNestedConstructor.selectedComponentIds
-    : selectedItems,
+export const selectedComponentIdsSelector = createSelector(
+  currentDesignerSelector,
+  designer => designer.selectedComponentIds,
 );
 
 export const singleComponentSelectedSelector = state =>
-  currentSelectedComponentIdsSelector(state).size === 1;
+  selectedComponentIdsSelector(state).size === 1;
 
 export const firstSelectedComponentIdSelector = state => {
-  const ret = currentSelectedComponentIdsSelector(state).first();
+  const ret = selectedComponentIdsSelector(state).first();
   return isDef(ret) ? ret : INVALID_ID;
 };
 
-export const currentHighlightedComponentIdsSelector = createSelector(
-  topNestedConstructorSelector,
-  state => state.project.highlightedItems,
+export const highlightedComponentIdsSelector = createSelector(
+  currentDesignerSelector,
+  designer => designer.highlightedComponentIds,
+);
 
-  (topNestedConstructor, highlightedItems) => topNestedConstructor
-    ? topNestedConstructor.highlightedComponentIds
-    : highlightedItems,
+export const cursorPositionSelector = createSelector(
+  currentDesignerSelector,
+  designer => ({
+    containerId: designer.cursorContainerId,
+    afterIdx: designer.cursorAfter,
+  }),
+);
+
+export const componentClipboardSelector = createSelector(
+  currentDesignerSelector,
+  designer => ({
+    componentId: designer.clipboardComponentId,
+    copy: designer.clipboardCopy,
+  }),
+);
+
+export const expandedTreeItemIdsSelector = createSelector(
+  currentDesignerSelector,
+  designer => designer.expandedTreeItemIds,
 );
 
 export const currentComponentsStackSelector = createSelector(
@@ -149,11 +172,17 @@ export const availableDataContextsSelector = createSelector(
     const ownerComponentMeta = getComponentMeta(ownerComponent.name, meta);
     const ownerComponentDesignerPropMeta =
       topNestedConstructor.valueInfo.valueDef;
+    
+    const designerSourceConfig = getSourceConfig(
+      ownerComponentDesignerPropMeta,
+      'designer',
+      ownerComponentMeta.types,
+    );
   
     const dataContexts = [];
   
     _forOwn(
-      ownerComponentDesignerPropMeta.sourceConfigs.designer.props,
+      designerSourceConfig.props,
       
       ownerPropMeta => {
         if (!ownerPropMeta.dataContext) return;
@@ -188,9 +217,10 @@ export const availableDataContextsSelector = createSelector(
       
         // Data props with data context cannot be nested
         const dataPropValue = component.props.get(dataPropName);
-        const path = dataPropValue.sourceData.queryPath
-          .map(step => step.field)
-          .toJS();
+        const path = mapListToArray(
+          dataPropValue.sourceData.queryPath,
+          step => step.field,
+        );
       
         return getTypeNameByPath(schema, path, acc);
       }, schema.queryTypeName);
@@ -209,7 +239,7 @@ export const ownerPropsSelector = createSelector(
     const ownerComponentPropMeta = topNestedConstructor.valueInfo.valueDef;
     
     return isValidSourceForValue(ownerComponentPropMeta, 'designer')
-      ? ownerComponentPropMeta.sourceConfigs.designer.props || null
+      ? getSourceConfig(ownerComponentPropMeta, 'designer').props || null
       : null;
   },
 );
@@ -225,17 +255,6 @@ export const ownerUserTypedefsSelector = createSelector(
 
 /**
  *
- * @param {Object} localization
- * @param {string} language
- * @param {string} id
- * @param {Object} values
- * @return {string}
- */
-const getLocalizedText = (localization, language, id, values) =>
-  new IntlMessageFormat(localization[id], language).format(values);
-
-/**
- *
  * @param {Object} state
  * @return {function(id: string, [values]: Object): string}
  */
@@ -243,8 +262,8 @@ export const getLocalizedTextFromState = createSelector(
   state => state.app.localization,
   state => state.app.language,
 
-  (localization, language) =>
-    (id, values = {}) => getLocalizedText(localization, language, id, values),
+  (localization, language) => (id, values = {}) =>
+    new IntlMessageFormat(localization[id], language).format(values),
 );
 
 /**
@@ -324,3 +343,6 @@ export const nestedConstructorBreadcrumbsSelector = createSelector(
     return nestedConstructors.reduceRight(reducer, initialAccumulator).ret;
   },
 );
+
+export const isProjectDirty = state =>
+  state.project.localRevision > state.project.lastSavedRevision;

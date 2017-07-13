@@ -52,11 +52,13 @@ module.exports = {
 
   entry: {
     index: './src/index',
+    preview: './src/preview',
   },
 
   output: {
     path: path.resolve(path.join(__dirname, DIST_DIR)),
     filename: '[name].js',
+    publicPath: '/',
   },
 
   resolve: {
@@ -69,7 +71,7 @@ module.exports = {
     extensions: ['.js'],
   },
 
-  devtool: prod ? 'source-map' : 'eval',
+  devtool: prod ? 'source-map' : 'cheap-module-eval-source-map',
 
   module: {
     rules: [
@@ -77,7 +79,9 @@ module.exports = {
         test: /\.jsx?$/,
         exclude: path => {
           if (/reactackle[/\\]node_modules/.test(path)) return true;
+          if (/common-ui[/\\]node_modules/.test(path)) return true;
           if (/reactackle/.test(path)) return false;
+          if (/common-ui/.test(path)) return false;
           return /node_modules/.test(path);
         },
         loader: 'babel-loader',
@@ -142,10 +146,26 @@ module.exports = {
       themePath: path.resolve(__dirname, '..', 'src', '_reactackle_theme.scss'),
     }),
 
+    new webpack.optimize.CommonsChunkPlugin({
+      name: 'common',
+      filename: '[name].js',
+    }),
+
     new HtmlWebpackPlugin({
       title: 'JSSY',
       template: './src/index.ejs',
       filename: 'index.html',
+      chunks: ['common', 'index'],
+      inject: 'body',
+      favicon: './assets/favicon.png',
+      hash: true,
+    }),
+
+    new HtmlWebpackPlugin({
+      title: 'JSSY',
+      template: './src/preview.ejs',
+      filename: 'preview.html',
+      chunks: ['common', 'preview'],
       inject: 'body',
       favicon: './assets/favicon.png',
       hash: true,

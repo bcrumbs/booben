@@ -4,6 +4,8 @@ import styled from 'styled-components';
 import { boxShadow } from '../../../styles/mixins';
 import { colorWhite, radiusDefault } from '../../../styles/themeSelectors';
 
+const boxShadow3 = boxShadow(3);
+
 export const MenuOverlappingStyled = styled.div`
   width: 100%;
   max-width: 16em;
@@ -12,7 +14,7 @@ export const MenuOverlappingStyled = styled.div`
   max-height: 400px;
   background-color: ${colorWhite};
   border-radius: ${radiusDefault}px;
-  ${boxShadow(3)}
+  ${boxShadow3}
 `;
 
 MenuOverlappingStyled.displayName = 'MenuOverlappingStyled';

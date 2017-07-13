@@ -6,25 +6,17 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import _forOwn from 'lodash.forown';
-import _startCase from 'lodash.startcase';
 
 import {
   BlockContentBox,
   BlockContentBoxItem,
-} from '../../components/BlockContent/BlockContent';
+} from '@jssy/common-ui';
 
-import {
-  ComponentHandlers,
-  ComponentHandler,
-  ComponentActions,
-  ComponentAction,
-  ComponentActionCaseRow,
-} from '../../components/actions';
-
-import { ActionEditor } from './ActionEditor/ActionEditor';
+import { ComponentHandlers, ComponentHandler } from '../../components/actions';
+import { ActionsList } from '../ActionsList/ActionsList';
+import { ActionEditor } from '../ActionEditor/ActionEditor';
 
 import {
   addAction,
@@ -34,35 +26,25 @@ import {
 
 import {
   currentComponentsSelector,
-  currentSelectedComponentIdsSelector,
-  getLocalizedTextFromState,
+  selectedComponentIdsSelector,
 } from '../../selectors';
 
 import { PathStartingPoints } from '../../reducers/project';
-import ProjectRoute from '../../models/ProjectRoute';
-import ProjectComponent from '../../models/ProjectComponent';
-import { getMutationField } from '../../lib/schema';
 
 import {
   getComponentMeta,
   getString,
   isValidSourceForValue,
+  getSourceConfig,
 } from '../../lib/meta';
+
+import * as JssyPropTypes from '../../constants/common-prop-types';
 
 const propTypes = {
   meta: PropTypes.object.isRequired,
-  schema: PropTypes.object,
-  routes: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectRoute),
-    PropTypes.number,
-  ).isRequired,
-  currentComponents: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponent),
-    PropTypes.number,
-  ).isRequired,
-  selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number).isRequired,
+  currentComponents: JssyPropTypes.components.isRequired,
+  selectedComponentIds: JssyPropTypes.setOfIds.isRequired,
   language: PropTypes.string.isRequired,
-  getLocalizedText: PropTypes.func.isRequired,
   onAddAction: PropTypes.func.isRequired,
   onReplaceAction: PropTypes.func.isRequired,
   onDeleteAction: PropTypes.func.isRequired,
@@ -74,12 +56,9 @@ const defaultProps = {
 
 const mapStateToProps = state => ({
   meta: state.project.meta,
-  schema: state.project.schema,
-  routes: state.project.data.routes,
   currentComponents: currentComponentsSelector(state),
-  selectedComponentIds: currentSelectedComponentIdsSelector(state),
+  selectedComponentIds: selectedComponentIdsSelector(state),
   language: state.app.language,
-  getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -142,14 +121,14 @@ class ComponentActionsEditorComponent extends PureComponent {
     });
   }
   
-  _handleEditAction({ actionId: actionPath }) {
+  _handleEditAction({ actionPath }) {
     this.setState({
       currentView: Views.EDIT_ACTION,
       editActionPath: actionPath,
     });
   }
   
-  _handleDeleteAction({ actionId: actionPath }) {
+  _handleDeleteAction({ actionPath }) {
     const { selectedComponentIds, onDeleteAction } = this.props;
     const { activeHandler } = this.state;
   
@@ -232,201 +211,6 @@ class ComponentActionsEditorComponent extends PureComponent {
     });
   }
   
-  _formatActionTitle(action) {
-    const {
-      meta,
-      routes,
-      currentComponents,
-      language,
-      getLocalizedText,
-    } = this.props;
-    
-    switch (action.type) {
-      case 'mutation': {
-        return getLocalizedText('actionsEditor.actionTitle.mutation', {
-          mutationTitle: _startCase(action.params.mutation),
-        });
-      }
-      
-      case 'method': {
-        const targetComponent =
-          currentComponents.get(action.params.componentId);
-        
-        const targetComponentMeta =
-          getComponentMeta(targetComponent.name, meta);
-        
-        const methodMeta = targetComponentMeta.methods[action.params.method];
-        const methodName = getString(
-          targetComponentMeta.strings,
-          methodMeta.textKey,
-          language,
-        );
-        
-        return getLocalizedText('actionsEditor.actionTitle.method', {
-          method: methodName,
-          componentTitle: targetComponent.title || targetComponent.name,
-        });
-      }
-      
-      case 'prop': {
-        const targetComponent =
-          currentComponents.get(action.params.componentId);
-        
-        const targetComponentMeta =
-          getComponentMeta(targetComponent.name, meta);
-        
-        const isSystemProp = !!action.params.systemPropName;
-        
-        let nameString;
-        if (isSystemProp) {
-          const nameKey =
-            `propsEditor.systemProps.${action.params.systemPropName}.name`;
-          
-          nameString = getLocalizedText(nameKey);
-          
-          if (!nameString) nameString = action.params.systemPropName;
-        } else {
-          const propMeta = targetComponentMeta.props[action.params.propName];
-          
-          nameString = getString(
-            targetComponentMeta.strings,
-            propMeta.textKey,
-            language,
-          );
-          
-          if (!nameString) nameString = action.params.propName;
-        }
-        
-        return getLocalizedText('actionsEditor.actionTitle.prop', {
-          propName: nameString,
-          componentTitle: targetComponent.title || targetComponent.name,
-        });
-      }
-      
-      case 'navigate': {
-        const targetRoute = routes.get(action.params.routeId);
-        
-        return getLocalizedText('actionsEditor.actionTitle.navigate', {
-          routeName: targetRoute.title,
-        });
-      }
-      
-      case 'url': {
-        const key = action.params.newWindow
-          ? 'actionsEditor.actionTitle.url.newWindow'
-          : 'actionsEditor.actionTitle.url.sameWindow';
-        
-        return getLocalizedText(key, {
-          url: action.params.url,
-        });
-      }
-      
-      case 'logout': {
-        return getLocalizedText('actionsEditor.actionTitle.logout');
-      }
-      
-      default:
-        return '';
-    }
-  }
-  
-  _getActionDescription(action) {
-    const { meta, schema, currentComponents, language } = this.props;
-    
-    switch (action.type) {
-      case 'mutation': {
-        const mutationField = getMutationField(schema, action.params.mutation);
-        return mutationField.description;
-      }
-      
-      case 'method': {
-        const targetComponent =
-          currentComponents.get(action.params.componentId);
-  
-        const targetComponentMeta =
-          getComponentMeta(targetComponent.name, meta);
-  
-        const methodMeta = targetComponentMeta.methods[action.params.method];
-        
-        return getString(
-          targetComponentMeta.strings,
-          methodMeta.descriptionTextKey,
-          language,
-        );
-      }
-      
-      default:
-        return '';
-    }
-  }
-  
-  _renderActionsList(actions, pathToList = []) {
-    const { getLocalizedText } = this.props;
-    
-    const addActionText = getLocalizedText('actionsEditor.addAction');
-    const onSuccessText = getLocalizedText('actionsEditor.onSuccess');
-    const onErrorText = getLocalizedText('actionsEditor.onError');
-    const list = [];
-  
-    actions.forEach((action, idx) => {
-      const actionPath = [...pathToList, idx];
-      const title = this._formatActionTitle(action);
-      const description = this._getActionDescription(action);
-      
-      if (action.type === 'mutation') {
-        const successActionsList = this._renderActionsList(
-          action.params.successActions,
-          [...actionPath, 'successActions'],
-        );
-        
-        const errorActionsList = this._renderActionsList(
-          action.params.errorActions,
-          [...actionPath, 'errorActions'],
-        );
-        
-        list.push(
-          <ComponentAction
-            key={String(idx)}
-            id={actionPath}
-            title={title}
-            description={description}
-            onEdit={this._handleEditAction}
-            onDelete={this._handleDeleteAction}
-          >
-            <ComponentActionCaseRow type="success" title={onSuccessText}>
-              {successActionsList}
-            </ComponentActionCaseRow>
-            
-            <ComponentActionCaseRow type="error" title={onErrorText}>
-              {errorActionsList}
-            </ComponentActionCaseRow>
-          </ComponentAction>,
-        );
-      } else {
-        list.push(
-          <ComponentAction
-            key={String(idx)}
-            id={actionPath}
-            title={title}
-            description={description}
-            onEdit={this._handleEditAction}
-            onDelete={this._handleDeleteAction}
-          />,
-        );
-      }
-    });
-    
-    return (
-      <ComponentActions
-        pathToList={pathToList}
-        addButtonText={addActionText}
-        onAdd={this._handleOpenNewActionForm}
-      >
-        {list}
-      </ComponentActions>
-    );
-  }
-  
   _renderHandlersList() {
     const {
       meta,
@@ -461,7 +245,6 @@ class ComponentActionsEditorComponent extends PureComponent {
       
       const hasActions = value.sourceData.actions.size > 0;
       const expanded = propName === activeHandler;
-      const actions = this._renderActionsList(value.sourceData.actions);
       
       handlersList.push(
         <ComponentHandler
@@ -473,7 +256,12 @@ class ComponentActionsEditorComponent extends PureComponent {
           expanded={expanded}
           onExpand={this._handleExpandHandler}
         >
-          {actions}
+          <ActionsList
+            actions={value.sourceData.actions}
+            onCreateAction={this._handleOpenNewActionForm}
+            onEditAction={this._handleEditAction}
+            onDeleteAction={this._handleDeleteAction}
+          />
         </ComponentHandler>,
       );
     });
@@ -488,8 +276,20 @@ class ComponentActionsEditorComponent extends PureComponent {
   }
   
   _renderNewActionView() {
+    const { meta, currentComponents, selectedComponentIds } = this.props;
+    const { activeHandler } = this.state;
+    
+    const componentId = selectedComponentIds.first();
+    const component = currentComponents.get(componentId);
+    const componentMeta = getComponentMeta(component.name, meta);
+    const propMeta = componentMeta.props[activeHandler];
+    const actionArgsMeta =
+      getSourceConfig(propMeta, 'actions', componentMeta.types).args;
+    
     return (
       <ActionEditor
+        actionArgsMeta={actionArgsMeta}
+        actionComponentMeta={componentMeta}
         onSave={this._handleActionEditorSave}
         onCancel={this._handleActionEditorCancel}
       />
@@ -497,17 +297,24 @@ class ComponentActionsEditorComponent extends PureComponent {
   }
   
   _renderEditActionView() {
-    const { currentComponents, selectedComponentIds } = this.props;
+    const { meta, currentComponents, selectedComponentIds } = this.props;
     const { activeHandler, editActionPath } = this.state;
   
     const componentId = selectedComponentIds.first();
     const component = currentComponents.get(componentId);
+    const componentMeta = getComponentMeta(component.name, meta);
+    const propMeta = componentMeta.props[activeHandler];
+    const actionArgsMeta =
+      getSourceConfig(propMeta, 'actions', componentMeta.types).args;
+    
     const propValue = component.props.get(activeHandler);
     const action = propValue.getActionByPath(editActionPath);
     
     return (
       <ActionEditor
         action={action}
+        actionArgsMeta={actionArgsMeta}
+        actionComponentMeta={componentMeta}
         onSave={this._handleActionEditorSave}
         onCancel={this._handleActionEditorCancel}
       />

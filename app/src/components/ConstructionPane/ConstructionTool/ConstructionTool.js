@@ -1,14 +1,14 @@
 'use strict';
 
 import React from 'react';
-import { Column, Input, Row } from '@reactackle/reactackle';
+import { Column, TextField, Row } from '@reactackle/reactackle';
 import './ConstructionTool.scss';
 
 export const ConstructionTool = () => (
   <div className="construction-tool">
-    <Row layoutDirection="horizontal" behavior="nest">
-      <Column layoutDirection="vertical" size={{ xsmall: '6' }}>
-        <Input label="Width" value="300px" />
+    <Row layoutDirection="horizontal">
+      <Column layoutDirection="vertical" size={{ xsmall: 6 }}>
+        <TextField label="Width" value="300px" />
         
         <div className="construction-tool_data-row">
           <div className="construction-tool_data-item-additional">
@@ -21,8 +21,8 @@ export const ConstructionTool = () => (
         </div>
       </Column>
       
-      <Column layoutDirection="vertical" size={{ xsmall: '6' }}>
-        <Input label="Height" value="300px" />
+      <Column layoutDirection="vertical" size={{ xsmall: 6 }}>
+        <TextField label="Height" value="300px" />
         
         <div className="construction-tool_data-row">
           <div className="construction-tool_data-item-additional">

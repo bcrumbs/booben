@@ -23,6 +23,7 @@ const propTypes = {
   items: ImmutablePropTypes.listOf(PropTypes.instanceOf(AccordionItemRecord)),
   expandedItemIds: ImmutablePropTypes.setOf(PropTypes.string),
   single: PropTypes.bool,
+  expandAll: PropTypes.bool,
   onExpandedItemsChange: PropTypes.func,
 };
 
@@ -30,6 +31,7 @@ const defaultProps = {
   items: [],
   expandedItemIds: null,
   single: false,
+  expandAll: false,
   onExpandedItemsChange: noop,
 };
 
@@ -77,10 +79,11 @@ export class Accordion extends PureComponent {
   }
 
   render() {
-    const { items, expandedItemIds } = this.props;
+    const { items, expandedItemIds, expandAll } = this.props;
     
     const itemElements = items.map(item => {
-      const expanded = !!expandedItemIds && expandedItemIds.has(item.id);
+      const expanded =
+        expandAll || (!!expandedItemIds && expandedItemIds.has(item.id));
 
       return (
         <AccordionItem

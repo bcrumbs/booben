@@ -5,18 +5,20 @@
 'use strict';
 
 import { Record, List, Map } from 'immutable';
+import JssyValue from './JssyValue';
+import { isDef } from '../utils/misc';
 import { INVALID_ID } from '../constants/misc';
 
 export const MutationActionParams = Record({
   mutation: '',
-  args: Map(),
-  successActions: List(),
-  errorActions: List(),
+  args: Map(), // Map of JssyValues
+  successActions: List(), // List of Actions
+  errorActions: List(), // List of Actions
 });
 
 export const NavigateActionParams = Record({
   routeId: INVALID_ID,
-  routeParams: Map(),
+  routeParams: Map(), // Map of JssyValues
 });
 
 export const URLActionParams = Record({
@@ -27,14 +29,25 @@ export const URLActionParams = Record({
 export const MethodCallActionParams = Record({
   componentId: INVALID_ID,
   method: '',
-  args: List(),
+  args: List(), // List of JssyValues
 });
 
 export const PropChangeActionParams = Record({
   componentId: INVALID_ID,
   propName: '',
   systemPropName: '',
-  value: null,
+  value: null, // JssyValue
+});
+
+export const AJAXActionParams = Record({
+  url: JssyValue.staticFromJS(''), // JssyValue
+  method: 'GET', // HTTP method
+  headers: Map(), // Map of string -> string
+  body: null, // JssyValue
+  mode: 'cors', // cors, no-cors or same-origin
+  decodeResponse: 'text', // text, blob, json or arrayBuffer
+  successActions: List(), // List of Actions
+  errorActions: List(), // List of Actions
 });
 
 export const createActionParams = type => {
@@ -45,6 +58,7 @@ export const createActionParams = type => {
     case 'method': return new MethodCallActionParams();
     case 'prop': return new PropChangeActionParams();
     case 'logout': return null;
+    case 'ajax': return new AJAXActionParams();
     default: return null;
   }
 };
@@ -54,25 +68,17 @@ export const Action = Record({
   params: null,
 });
 
-const VALID_PATH_STEPS_MUTATION =
-  new Set(['args', 'successActions', 'errorActions']);
-
-const VALID_PATH_STEPS_METHOD = new Set(['args']);
-const VALID_PATH_STEPS_NAVIGATE = new Set(['routeParams']);
-const VALID_PATH_STEPS_PROP = new Set(['value']);
+const VALID_PATH_STEPS_BY_ACTION_TYPE = {
+  mutation: new Set(['args', 'successActions', 'errorActions']),
+  method: new Set(['args']),
+  navigate: new Set(['routeParams']),
+  prop: new Set(['value']),
+  ajax: new Set(['url', 'body', 'successActions', 'errorActions']),
+};
 
 Action.isValidPathStep = (step, current) => {
-  if (current.type === 'mutation') {
-    return VALID_PATH_STEPS_MUTATION.has(step);
-  } else if (current.type === 'method') {
-    return VALID_PATH_STEPS_METHOD.has(step);
-  } else if (current.type === 'navigate') {
-    return VALID_PATH_STEPS_NAVIGATE.has(step);
-  } else if (current.type === 'prop') {
-    return VALID_PATH_STEPS_PROP.has(step);
-  } else {
-    return false;
-  }
+  const validSteps = VALID_PATH_STEPS_BY_ACTION_TYPE[current.type];
+  return isDef(validSteps) ? validSteps.has(step) : false;
 };
 
 Action.expandPathStep = step => ['params', step];

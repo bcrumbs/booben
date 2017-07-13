@@ -11,32 +11,28 @@ import { Route, Switch } from 'react-router';
 import { loadProject } from '../actions/project';
 import { ErrorScreen } from '../components/StateScreen/StateScreen';
 import AppRoute from './AppRoute';
-import PreviewRoute from './PreviewRoute';
 
 import {
   NOT_LOADED,
   LOADING,
   LOADED,
   LOAD_ERROR,
-} from '../constants/loadStates';
+} from '../constants/load-states';
 
 import { removeSplashScreen } from '../lib/dom';
-import { PATH_PREVIEW } from '../constants/paths';
 
 const propTypes = {
   match: PropTypes.object.isRequired, // router
-  projectLoadState: PropTypes.number, // state
+  projectLoadState: PropTypes.number.isRequired, // state
   projectLoadError: PropTypes.object, // state
   onProjectRequest: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
-  projectLoadState: NOT_LOADED,
   projectLoadError: null,
 };
 
 const mapStateToProps = ({ project }) => ({
-  projectName: project.projectName,
   projectLoadState: project.loadState,
   projectLoadError: project.error,
 });
@@ -93,7 +89,7 @@ class RootRoute extends PureComponent {
     
     if (!projectName) {
       this._removeSplashScreen();
-      return this._renderError('Project name is not specified');
+      return this._renderError('Project name not specified');
     }
     
     switch (projectLoadState) {
@@ -104,12 +100,6 @@ class RootRoute extends PureComponent {
       case LOADED: {
         return (
           <Switch>
-            <Route
-              exact
-              path={PATH_PREVIEW}
-              component={PreviewRoute}
-            />
-      
             <Route component={AppRoute} />
           </Switch>
         );

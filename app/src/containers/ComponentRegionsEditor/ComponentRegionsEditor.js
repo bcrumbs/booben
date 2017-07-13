@@ -6,45 +6,33 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
-
-import {
-  BlockContentBox,
-  BlockContentBoxItem,
-} from '../../components/BlockContent/BlockContent';
-
+import { BlockContentBox, BlockContentBoxItem } from '@jssy/common-ui';
 import { PropsList } from '../../components/PropsList/PropsList';
 import { PropToggle } from '../../components/props';
-import ProjectComponent from '../../models/ProjectComponent';
 import { toggleComponentRegion } from '../../actions/project';
 
 import {
   currentComponentsSelector,
-  currentSelectedComponentIdsSelector,
+  selectedComponentIdsSelector,
 } from '../../selectors';
 
 import { getComponentMeta, getString } from '../../lib/meta';
+import * as JssyPropTypes from '../../constants/common-prop-types';
 import defaultRegionIcon from '../../../assets/layout_default.svg';
 
 const propTypes = {
   meta: PropTypes.object.isRequired,
-  currentComponents: ImmutablePropTypes.mapOf(
-    PropTypes.instanceOf(ProjectComponent),
-    PropTypes.number,
-  ).isRequired,
-  selectedComponentIds: ImmutablePropTypes.setOf(PropTypes.number).isRequired,
+  currentComponents: JssyPropTypes.components.isRequired,
+  selectedComponentIds: JssyPropTypes.setOfIds.isRequired,
   language: PropTypes.string.isRequired,
   onToggleRegion: PropTypes.func.isRequired,
-};
-
-const defaultProps = {
 };
 
 const mapStateToProps = state => ({
   meta: state.project.meta,
   currentComponents: currentComponentsSelector(state),
-  selectedComponentIds: currentSelectedComponentIdsSelector(state),
+  selectedComponentIds: selectedComponentIdsSelector(state),
   language: state.app.language,
 });
 
@@ -52,6 +40,8 @@ const mapDispatchToProps = dispatch => ({
   onToggleRegion: (componentId, regionIdx, enable) =>
     void dispatch(toggleComponentRegion(componentId, regionIdx, enable)),
 });
+
+const wrap = connect(mapStateToProps, mapDispatchToProps);
 
 class ComponentRegionsEditorComponent extends PureComponent {
   _handleRegionToggle(regionIdx, { value }) {
@@ -103,12 +93,7 @@ class ComponentRegionsEditorComponent extends PureComponent {
   }
 }
 
-//noinspection JSUnresolvedVariable
 ComponentRegionsEditorComponent.propTypes = propTypes;
-ComponentRegionsEditorComponent.defaultProps = defaultProps;
 ComponentRegionsEditorComponent.displayName = 'ComponentRegionsEditor';
 
-export const ComponentRegionsEditor = connect(
-  mapStateToProps,
-  mapDispatchToProps,
-)(ComponentRegionsEditorComponent);
+export const ComponentRegionsEditor = wrap(ComponentRegionsEditorComponent);

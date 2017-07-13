@@ -5,12 +5,23 @@
 'use strict';
 
 import _forOwn from 'lodash.forown';
-import { TypeNames, resolveTypedef } from '@jssy/types';
+
+import {
+  TypeNames,
+  resolveTypedef,
+  makeDefaultNonNullValue,
+  makeDefaultValue,
+} from '@jssy/types';
+
 import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
 import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../constants/misc';
-import { isDef, objectSome } from '../utils/misc';
+import { isDef, returnEmptyObject, objectSome } from '../utils/misc';
+
+/**
+ * @typedef {Object<string, Object<string, ComponentMeta>>} ComponentsMeta
+ */
 
 /**
  *
@@ -39,7 +50,7 @@ export const formatComponentName = (namespace, name) =>
 /**
  *
  * @param {string} componentName
- * @param {Object} meta
+ * @param {ComponentsMeta} meta
  * @return {?Object}
  */
 export const getComponentMeta = (componentName, meta) => {
@@ -56,7 +67,7 @@ export const getComponentMeta = (componentName, meta) => {
 /**
  *
  * @param {string} componentName
- * @param {Object} meta
+ * @param {ComponentsMeta} meta
  * @return {string}
  */
 export const getComponentKind = (componentName, meta) => {
@@ -68,7 +79,7 @@ export const getComponentKind = (componentName, meta) => {
 /**
  *
  * @param {string} componentName
- * @param {Object} meta
+ * @param {ComponentsMeta} meta
  * @return {boolean}
  */
 export const isAtomicComponent = (componentName, meta) =>
@@ -77,7 +88,7 @@ export const isAtomicComponent = (componentName, meta) =>
 /**
  *
  * @param {string} componentName
- * @param {Object} meta
+ * @param {ComponentsMeta} meta
  * @return {boolean}
  */
 export const isContainerComponent = (componentName, meta) =>
@@ -86,7 +97,7 @@ export const isContainerComponent = (componentName, meta) =>
 /**
  *
  * @param {string} componentName
- * @param {Object} meta
+ * @param {ComponentsMeta} meta
  * @return {boolean}
  */
 export const isCompositeComponent = (componentName, meta) =>
@@ -118,103 +129,48 @@ export const getComponentPropName = (componentMeta, prop, language) => {
 
 /**
  *
- * @param {string} componentName
- * @param {?string} containerName
- * @param {string[]|Immutable.List<string>} containerChildrenNames
- * @param {number} position - -1 = ignore position constraints
- * @param {Object} meta
- * @return {boolean}
- */
-export const canInsertComponent = (
-  componentName,
-  containerName,
-  containerChildrenNames,
-  position,
-  meta,
-) => {
-  const componentMeta = getComponentMeta(componentName, meta);
-
-  if (containerName) {
-    const mustBeRoot =
-      !!componentMeta.placement &&
-      componentMeta.placement.root === 'only';
-  
-    if (mustBeRoot) return false;
-  } else {
-    return !componentMeta.placement ||
-      componentMeta.placement.root !== 'deny';
-  }
-  
-  const containerMeta = getComponentMeta(containerName, meta);
-  if (containerMeta.kind !== 'container') return false;
-  
-  if (!componentMeta.placement) return true;
-  
-  const { namespace } = parseComponentName(componentName);
-  const { namespace: containerNamespace } = parseComponentName(containerName);
-  const sameNamespace = containerNamespace === namespace;
-
-  if (sameNamespace && componentMeta.placement.inside) {
-    if (componentMeta.placement.inside.include) {
-      const sameComponentsNum = containerChildrenNames
-        .reduce((acc, cur) => acc + (cur === componentName ? 1 : 0), 0);
-
-      //noinspection JSUnresolvedFunction
-      const allow = componentMeta.placement.inside.include.some(inclusion => {
-        if (inclusion.component) {
-          const inclusionComponentName = formatComponentName(
-            namespace,
-            inclusion.component,
-          );
-
-          if (containerName !== inclusionComponentName) return false;
-        } else if (inclusion.group) {
-          if (containerMeta.group !== inclusion.group) return false;
-        } else if (inclusion.tag) {
-          if (!containerMeta.tags.has(inclusion.tag)) return false;
-        }
-
-        return !inclusion.maxNum || sameComponentsNum < inclusion.maxNum;
-      });
-
-      if (!allow) return false;
-    }
-
-    if (componentMeta.placement.inside.exclude) {
-      const deny = componentMeta.placement.inside.exclude.some(exclusion => {
-        if (exclusion.component) {
-          const exclusionComponentName = formatComponentName(
-            namespace,
-            exclusion.component,
-          );
-
-          return containerName === exclusionComponentName;
-        } else if (exclusion.group) {
-          return containerMeta.group === exclusion.group;
-        } else if (exclusion.tag) {
-          return containerMeta.tags.has(exclusion.tag);
-        } else {
-          return false;
-        }
-      });
-
-      if (deny) return false;
-    }
-  }
-  
-  // TODO: Check before and after constraints
-
-  return true;
-};
-
-/**
- *
  * @param {JssyValueDefinition} valueDef
  * @param {string} source
  * @return {boolean}
  */
 export const isValidSourceForValue = (valueDef, source) =>
   valueDef.source.indexOf(source) > -1;
+
+const defaultSourceConfigBuilders = {
+  static: (valueDef, userTypedefs) => ({
+    default: makeDefaultValue(valueDef, userTypedefs),
+  }),
+  
+  const: (valueDef, userTypedefs) => ({
+    value: makeDefaultValue(valueDef, userTypedefs),
+  }),
+  
+  data: returnEmptyObject,
+  designer: () => ({
+    props: {},
+  }),
+  
+  state: returnEmptyObject,
+  routeParams: returnEmptyObject,
+  actions: () => ({
+    args: [],
+  }),
+};
+
+/**
+ *
+ * @param {JssyValueDefinition} valueDef
+ * @param {string} source
+ * @param {Object<string, JssyTypeDefinition>} [userTypedefs=null]
+ * @return {Object}
+ */
+export const getSourceConfig = (valueDef, source, userTypedefs = null) => {
+  if (valueDef.sourceConfigs[source]) {
+    return valueDef.sourceConfigs[source];
+  }
+  
+  return defaultSourceConfigBuilders[source](valueDef, userTypedefs);
+};
 
 /**
  *
@@ -234,7 +190,7 @@ export const componentHasActions = componentMeta =>
  */
 export const propHasDataContext = propMeta =>
   isValidSourceForValue(propMeta, 'data') &&
-  !!propMeta.sourceConfigs.data.pushDataContext;
+  !!getSourceConfig(propMeta, 'data').pushDataContext;
 
 /**
  *
@@ -262,12 +218,14 @@ const buildDefaultStaticValue = (
   userTypedefs,
   _inheritedDefaultValue = NO_VALUE,
 ) => {
+  const sourceConfig = getSourceConfig(valueDef, 'static', userTypedefs);
+  
   /* eslint-disable no-use-before-define */
-  if (valueDef.sourceConfigs.static.defaultTextKey) {
+  if (sourceConfig.defaultTextKey) {
     const string = (strings && language)
       ? getString(
         strings,
-        valueDef.sourceConfigs.static.defaultTextKey,
+        sourceConfig.defaultTextKey,
         language,
       )
       : '';
@@ -277,7 +235,7 @@ const buildDefaultStaticValue = (
 
   const defaultValue = _inheritedDefaultValue !== NO_VALUE
     ? _inheritedDefaultValue
-    : valueDef.sourceConfigs.static.default;
+    : sourceConfig.default;
 
   if (valueDef.type === TypeNames.SHAPE) {
     if (defaultValue === null) return makeSimpleStaticValue(null);
@@ -326,8 +284,8 @@ const buildDefaultStaticValue = (
         userTypedefs,
         fieldValue,
       ));
-    } else if (valueDef.sourceConfigs.static.defaultNum) {
-      for (let i = 0; i < valueDef.sourceConfigs.static.defaultNum; i++) {
+    } else if (sourceConfig.defaultNum) {
+      for (let i = 0; i < sourceConfig.defaultNum; i++) {
         value.push(_buildDefaultValue(
           valueDef.ofType,
           strings,
@@ -353,30 +311,18 @@ const buildDefaultStaticValue = (
 
 /**
  *
- * @param {JssyValueDefinition} propMeta
- * @return {PlainJssyValue|Symbol}
+ * @param {JssyValueDefinition} valueDef
+ * @param {?Object<string, Object<string, string>>} _
+ * @param {string} __
+ * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+ * @return {PlainJssyValue}
  */
-const buildDefaultConstValue = propMeta => {
-  if (isDef(propMeta.sourceConfigs.const.value)) {
-    return {
-      source: 'const',
-      sourceData: {
-        value: propMeta.sourceConfigs.const.value,
-      },
-    };
-  }
-
-  if (isDef(propMeta.sourceConfigs.const.jssyConstId)) {
-    return {
-      source: 'const',
-      sourceData: {
-        jssyConstId: propMeta.sourceConfigs.const.jssyConstId,
-      },
-    };
-  }
-
-  return NO_VALUE;
-};
+const buildDefaultConstValue = (valueDef, _, __, userTypedefs) => ({
+  source: 'const',
+  sourceData: {
+    value: getSourceConfig(valueDef, 'const', userTypedefs).value,
+  },
+});
 
 /**
  *
@@ -478,7 +424,64 @@ const _buildDefaultValue = (
 
 /**
  *
- * @param {JssyValueDefinition} valueDef
+ * @param {JssyTypeDefinition|JssyValueDefinition} typedefOrValueDef
+ * @return {boolean}
+ */
+export const isJssyValueDefinition = typedefOrValueDef =>
+  !!typedefOrValueDef.source;
+
+/**
+ *
+ * @param {JssyValueDefinition|JssyTypeDefinition} typedefOrValueDef
+ * @param {Object<string, JssyTypeDefinition>} userTypedefs
+ * @return {JssyValueDefinition}
+ */
+const ensureValueDef = (typedefOrValueDef, userTypedefs) => {
+  if (isJssyValueDefinition(typedefOrValueDef)) return typedefOrValueDef;
+  
+  const ret = {
+    ...typedefOrValueDef,
+    source: ['static'],
+    sourceConfigs: {
+      static: {
+        default: makeDefaultNonNullValue(typedefOrValueDef, userTypedefs),
+      },
+    },
+  };
+  
+  if (typedefOrValueDef.type === TypeNames.SHAPE) {
+    _forOwn(ret.fields, (fieldTypedef, fieldName) => {
+      ret.fields[fieldName] = {
+        ...fieldTypedef,
+        source: ['static'],
+        sourceConfigs: {
+          static: {
+            default: makeDefaultNonNullValue(fieldTypedef, userTypedefs),
+          },
+        },
+      };
+    });
+  } else if (
+    typedefOrValueDef.type === TypeNames.ARRAY_OF ||
+    typedefOrValueDef.type === TypeNames.OBJECT_OF
+  ) {
+    ret.ofType = {
+      ...ret.ofType,
+      source: ['static'],
+      sourceConfigs: {
+        static: {
+          default: makeDefaultNonNullValue(ret.ofType, userTypedefs),
+        },
+      },
+    };
+  }
+  
+  return ret;
+};
+
+/**
+ *
+ * @param {JssyValueDefinition|JssyTypeDefinition} valueDef
  * @param {?Object<string, Object<string, string>>} [strings=null]
  * @param {string} [language='']
  * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
@@ -489,8 +492,12 @@ export const buildDefaultValue = (
   strings = null,
   language = '',
   userTypedefs = null,
-) =>
-  _buildDefaultValue(valueDef, strings, language, userTypedefs);
+) => _buildDefaultValue(
+  ensureValueDef(valueDef, userTypedefs),
+  strings,
+  language,
+  userTypedefs,
+);
 
 /**
  *
@@ -531,7 +538,7 @@ const buildDefaultProps = (
  * @param {Object} meta
  * @param {boolean} [isNew=true]
  * @param {boolean} [isWrapper=false]
- * @return {Immutable.Map}
+ * @return {Immutable.Map<number, Object>}
  */
 export const constructComponent = (
   componentName,
@@ -606,21 +613,12 @@ export const constructComponent = (
 
 /**
  *
- * @param {JssyTypeDefinition|JssyValueDefinition} typedef
- * @return {boolean}
- */
-export const isJssyValueDefinition = typedef =>
-  !!typedef.source &&
-  !!typedef.sourceConfigs;
-
-/**
- *
  * @param {JssyValueDefinition} valueDef
  * @return {boolean}
  */
 export const valueHasDataContest = valueDef =>
-  !!valueDef.sourceConfigs.data &&
-  !!valueDef.sourceConfigs.data.pushDataContext;
+  isValidSourceForValue(valueDef, 'data') &&
+  !!getSourceConfig(valueDef, 'data').pushDataContext;
 
 /**
  *
@@ -633,10 +631,16 @@ export const findPropThatPushedDataContext = (componentMeta, dataContext) => {
   
   for (let i = 0; i < propNames.length; i++) {
     const propMeta = componentMeta.props[propNames[i]];
+    
     if (
-      propMeta.sourceConfigs.data &&
-      propMeta.sourceConfigs.data.pushDataContext === dataContext
-    ) return { propName: propNames[i], propMeta };
+      isValidSourceForValue(propMeta, 'data') &&
+      getSourceConfig(propMeta, 'data').pushDataContext === dataContext
+    ) {
+      return {
+        propName: propNames[i],
+        propMeta,
+      };
+    }
   }
   
   return null;

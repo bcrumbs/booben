@@ -4,7 +4,7 @@
 
 'use strict';
 
-import { Record, List } from 'immutable';
+import { Record, List, Map } from 'immutable';
 
 export const QueryPathStep = Record({
   field: '',
@@ -15,7 +15,7 @@ let nextAliasPostfix = 0;
 const _SourceDataData = Record({
   dataContext: List(),
   queryPath: null,
-  queryArgs: List(),
+  queryArgs: Map(),
   aliasPostfix: '',
 });
 

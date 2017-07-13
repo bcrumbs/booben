@@ -15,6 +15,7 @@ import {
   PropToggle,
   PropComponent,
   PropExpandable,
+  PropAction,
 } from '../../../props';
 
 import {
@@ -36,6 +37,7 @@ const propTypes = {
   getLocalizedText: PropTypes.func,
   onChange: PropTypes.func,
   onSetComponent: PropTypes.func,
+  onEditActions: PropTypes.func,
   onLink: PropTypes.func,
   onPick: PropTypes.func,
   onUnlink: PropTypes.func,
@@ -50,6 +52,7 @@ const defaultProps = {
   getLocalizedText: returnArg,
   onChange: noop,
   onSetComponent: noop,
+  onEditActions: noop,
   onLink: noop,
   onPick: noop,
   onUnlink: noop,
@@ -67,6 +70,7 @@ export class NestedProp extends PureComponent {
     this._handleCheck = this._handleCheck.bind(this);
     this._handleChange = this._handleChange.bind(this);
     this._handleSetComponent = this._handleSetComponent.bind(this);
+    this._handleEditActions = this._handleEditActions.bind(this);
     this._handleLink = this._handleLink.bind(this);
     this._handlePick = this._handlePick.bind(this);
     this._handleUnlink = this._handleUnlink.bind(this);
@@ -117,6 +121,15 @@ export class NestedProp extends PureComponent {
   _handleSetComponent() {
     const { index, onSetComponent } = this.props;
     onSetComponent({ index });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleEditActions() {
+    const { index, onEditActions } = this.props;
+    onEditActions({ index });
   }
   
   /**
@@ -235,6 +248,15 @@ export class NestedProp extends PureComponent {
           disabled={disabled}
           getLocalizedText={getLocalizedText}
           onSetComponent={this._handleSetComponent}
+        />
+      );
+    } else if (propType.view === PropViews.ACTION) {
+      return (
+        <PropAction
+          {...commonProps}
+          disabled={disabled}
+          getLocalizedText={getLocalizedText}
+          onEditActions={this._handleEditActions}
         />
       );
     } else if (propType.view === PropViews.EMPTY) {

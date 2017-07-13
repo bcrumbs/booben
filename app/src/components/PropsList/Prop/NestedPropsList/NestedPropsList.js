@@ -77,7 +77,7 @@ export class NestedPropsList extends PureComponent {
         <div className="prop-tree-item-action-row">
           <Button
             text={getLocalizedText('valueEditor.addValue')}
-            icon="plus"
+            icon={{ name: 'plus' }}
             size="small"
             narrow
             onPress={this._handleAddButtonPress}

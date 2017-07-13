@@ -51,6 +51,7 @@ const propTypes = {
   onLink: PropTypes.func,
   onPick: PropTypes.func,
   onConstructComponent: PropTypes.func,
+  onEditActions: PropTypes.func,
 };
 
 const defaultProps = {
@@ -68,6 +69,7 @@ const defaultProps = {
   onLink: noop,
   onPick: noop,
   onConstructComponent: noop,
+  onEditActions: noop,
 };
 
 /**
@@ -99,7 +101,8 @@ const coerceFloatValue = value => {
  */
 const isEditableValue = valueDef =>
   isValidSourceForValue(valueDef, 'static') ||
-  isValidSourceForValue(valueDef, 'designer');
+  isValidSourceForValue(valueDef, 'designer') ||
+  isValidSourceForValue(valueDef, 'actions');
 
 /**
  *
@@ -121,6 +124,7 @@ export class JssyValueEditor extends PureComponent {
     this._handleUnlink = this._handleUnlink.bind(this);
     this._handleCheck = this._handleCheck.bind(this);
     this._handleConstructComponent = this._handleConstructComponent.bind(this);
+    this._handleEditActions = this._handleEditActions.bind(this);
     
     this._formatArrayItemLabel = this._formatArrayItemLabel.bind(this);
     this._formatObjectItemLabel = this._formatObjectItemLabel.bind(this);
@@ -359,14 +363,25 @@ export class JssyValueEditor extends PureComponent {
    * @private
    */
   _handleConstructComponent({ path }) {
-    const {
-      name,
-      valueDef,
-      userTypedefs,
-      onConstructComponent,
-    } = this.props;
+    const { name, valueDef, userTypedefs, onConstructComponent } = this.props;
     
     onConstructComponent({
+      name,
+      path,
+      targetValueDef: valueDef,
+      targetUserTypedefs: userTypedefs,
+    });
+  }
+  
+  /**
+   *
+   * @param {(string|number)[]} path
+   * @private
+   */
+  _handleEditActions({ path }) {
+    const { name, valueDef, userTypedefs, onEditActions } = this.props;
+  
+    onEditActions({
       name,
       path,
       targetValueDef: valueDef,
@@ -381,16 +396,13 @@ export class JssyValueEditor extends PureComponent {
    * @private
    */
   _isLinkableValue(valueDef) {
-    const {
-      userTypedefs,
-      ownerProps,
-      ownerUserTypedefs,
-    } = this.props;
+    const { userTypedefs, ownerProps, ownerUserTypedefs } = this.props;
     
     if (isValidSourceForValue(valueDef, 'data')) return true;
-    if (isValidSourceForValue(valueDef, 'state')) return true;
+    if (isValidSourceForValue(valueDef, 'routeParams')) return true;
+    if (isValidSourceForValue(valueDef, 'actionArg')) return true;
     
-    if (!ownerProps || !isValidSourceForValue(valueDef, 'static')) return false;
+    if (!isValidSourceForValue(valueDef, 'static') || !ownerProps) return false;
     
     return objectSome(ownerProps, ownerProp => {
       if (ownerProp.dataContext) return false;
@@ -476,6 +488,7 @@ export class JssyValueEditor extends PureComponent {
    */
   _formatArrayItemLabel(index) {
     const { getLocalizedText } = this.props;
+    
     return getLocalizedText('valueEditor.arrayItemTitle', {
       index: String(index),
     });
@@ -684,6 +697,8 @@ export class JssyValueEditor extends PureComponent {
         `- ${jssyValue.sourceData.stateSlot}`;
     } else if (jssyValue.sourceIs('routeParams')) {
       linkedWith = jssyValue.sourceData.paramName;
+    } else if (jssyValue.sourceIs('actionArg')) {
+      linkedWith = `Action argument ${jssyValue.sourceData.arg}`;
     }
 
     return { value, linked, linkedWith, checked };
@@ -731,6 +746,7 @@ export class JssyValueEditor extends PureComponent {
         onUnlink={this._handleUnlink}
         onPick={this._handlePick}
         onSetComponent={this._handleConstructComponent}
+        onEditActions={this._handleEditActions}
       />
     );
   }

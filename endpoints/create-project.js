@@ -42,12 +42,22 @@ const bodySchema = {
         type: 'string',
       },
     },
+  
+    enableHTML: {
+      type: 'boolean',
+      required: false,
+    },
 
     graphQLEndpointURL: {
       type: ['string', 'null'],
       required: false,
       allowEmpty: false,
       format: 'url',
+    },
+  
+    proxyGraphQLEndpoint: {
+      type: 'boolean',
+      required: false,
     },
   },
 };
@@ -57,7 +67,9 @@ const bodySchema = {
  * @property {string} name
  * @property {?string} [author]
  * @property {string[]} [componentLibs]
+ * @property {boolean} [enableHTML]
  * @property {?string} [graphQLEndpointURL]
+ * @property {boolean} [proxyGraphQLEndpoint]
  */
 
 /**
@@ -70,8 +82,11 @@ const createProjectData = input => ({
   name: input.name,
   author: input.author || null,
   componentLibs: input.componentLibs || defaultComponentLibs,
+  enableHTML: input.enableHTML || false,
   graphQLEndpointURL: input.graphQLEndpointURL || null,
+  proxyGraphQLEndpoint: input.proxyGraphQLEndpoint || false,
   routes: [],
+  functions: {},
 });
 
 const validationOptions = {

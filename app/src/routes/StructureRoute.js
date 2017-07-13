@@ -8,19 +8,19 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { push } from 'react-router-redux';
+import { Shortcuts } from 'react-shortcuts';
 import { List } from 'immutable';
 
 import {
   Panel,
   PanelContent,
-  Header,
-  HeaderRegion,
-  HeaderTitle,
   Container,
   Row,
   Column,
   Dialog,
-  Input,
+  Form,
+  FormItem,
+  TextField,
 } from '@reactackle/reactackle';
 
 import {
@@ -28,7 +28,7 @@ import {
   BlockContentBox,
   BlockContentBoxItem,
   BlockContentBoxHeading,
-} from '../components/BlockContent/BlockContent';
+} from '@jssy/common-ui';
 
 import {
   RoutesList,
@@ -49,6 +49,8 @@ import {
   deleteRoute,
   updateRouteField,
   updateRoutePath,
+  undo,
+  redo,
 } from '../actions/project';
 
 import { selectRoute } from '../actions/structure';
@@ -65,7 +67,7 @@ import {
   isFalsy,
 } from '../utils/misc';
 
-import { TOOL_ID_ROUTE_EDITOR } from '../constants/toolIds';
+import { TOOL_ID_ROUTE_EDITOR } from '../constants/tool-ids';
 
 import {
   buildDesignRoutePath,
@@ -86,9 +88,8 @@ const propTypes = {
   onRenameRoute: PropTypes.func.isRequired, // dispatch
   onUpdateRoutePath: PropTypes.func.isRequired, // dispatch
   onOpenDesigner: PropTypes.func.isRequired, // dispatch
-};
-
-const defaultProps = {
+  onUndo: PropTypes.func.isRequired, // dispatch
+  onRedo: PropTypes.func.isRequired, // dispatch
 };
 
 const mapStateToProps = ({ project, app }) => ({
@@ -127,6 +128,9 @@ const mapDispatchToProps = dispatch => ({
     
     dispatch(push(path));
   },
+  
+  onUndo: () => void dispatch(undo()),
+  onRedo: () => void dispatch(redo()),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
@@ -198,7 +202,7 @@ const getRenamedRouteParams = (oldPath, newPath, reverse = false) => {
  */
 const normalizePath = (rawPath, isRootRoute) => {
   if (isRootRoute) return !rawPath.startsWith('/') ? `/${rawPath}` : rawPath;
-  else return !rawPath.startsWith('/') ? rawPath.slice(1) : rawPath;
+  else return rawPath.startsWith('/') ? rawPath.slice(1) : rawPath;
 };
 
 class StructureRoute extends PureComponent {
@@ -222,6 +226,8 @@ class StructureRoute extends PureComponent {
     this._saveRoutePathInputRef =
       this._saveRoutePathInputRef.bind(this);
 
+    this._handleShortcuts =
+      this._handleShortcuts.bind(this);
     this._handleRouteSelect =
       this._handleRouteSelect.bind(this);
     this._handleRouteGo =
@@ -424,6 +430,60 @@ class StructureRoute extends PureComponent {
   _saveRoutePathInputRef(ref) {
     this._routePathInput = ref;
   }
+  
+  /**
+   *
+   * @param {string} action
+   * @private
+   */
+  _handleShortcuts(action) {
+    const { onUndo, onRedo } = this.props;
+    
+    switch (action) {
+      case 'UNDO': onUndo(); break;
+      case 'REDO': onRedo(); break;
+      
+      case 'DELETE_ROUTE': {
+        const { indexRouteSelected } = this.props;
+        
+        if (!indexRouteSelected) {
+          this._handleDeleteRoutePress();
+        }
+        
+        break;
+      }
+      
+      case 'CREATE_CHILD_ROUTE': {
+        const { project, selectedRouteId } = this.props;
+        const { createRouteDialogIsVisible } = this.state;
+        
+        if (!createRouteDialogIsVisible) {
+          const parentRoute = project.routes.get(selectedRouteId);
+          this._handleNewRoutePress({ parentRoute });
+        }
+        
+        break;
+      }
+      
+      case 'CREATE_ROOT_ROUTE': {
+        const { createRouteDialogIsVisible } = this.state;
+  
+        if (!createRouteDialogIsVisible) {
+          this._handleNewRoutePress({ parentRoute: null });
+        }
+        
+        break;
+      }
+      
+      case 'SELECT_NEXT_ROUTE': this._handleSelectNextRoute(); break;
+      case 'SELECT_PREVIOUS_ROUTE': this._handleSelectPreviousRoute(); break;
+      case 'SELECT_CHILD_ROUTE': this._handleSelectChildRoute(); break;
+      case 'SELECT_PARENT_ROUTE': this._handleSelectParentRoute(); break;
+      case 'GO_TO_DESIGN': this._handleSelectedRouteGo(); break;
+      
+      default:
+    }
+  }
 
   /**
    *
@@ -437,7 +497,107 @@ class StructureRoute extends PureComponent {
     if (
       routeId !== selectedRouteId ||
       isIndexRoute !== indexRouteSelected
-    ) onSelectRoute(routeId, isIndexRoute);
+    ) {
+      onSelectRoute(routeId, isIndexRoute);
+    }
+  }
+  
+  _handleSelectNextRoute() {
+    const {
+      project,
+      selectedRouteId,
+      indexRouteSelected,
+      onSelectRoute,
+    } = this.props;
+    
+    const currentRoute = project.routes.get(selectedRouteId);
+    
+    if (indexRouteSelected) {
+      if (currentRoute.children.size > 0) {
+        const nextRouteId = currentRoute.children.first();
+        onSelectRoute(nextRouteId, false);
+      }
+    } else {
+      const isRootRoute = currentRoute.parentId === INVALID_ID;
+      const currentRoutesList = isRootRoute
+        ? project.rootRoutes
+        : project.routes.get(currentRoute.parentId).children;
+  
+      const currentRoutePosition = currentRoutesList.indexOf(selectedRouteId);
+      
+      if (currentRoutePosition < currentRoutesList.size - 1) {
+        const nextRouteId = currentRoutesList.get(currentRoutePosition + 1);
+        onSelectRoute(nextRouteId, false);
+      }
+    }
+  }
+  
+  _handleSelectPreviousRoute() {
+    const {
+      project,
+      selectedRouteId,
+      indexRouteSelected,
+      onSelectRoute,
+    } = this.props;
+  
+    const currentRoute = project.routes.get(selectedRouteId);
+    
+    if (!indexRouteSelected) {
+      const isRootRoute = currentRoute.parentId === INVALID_ID;
+      const parentRoute = isRootRoute
+        ? null
+        : project.routes.get(currentRoute.parentId);
+      
+      const currentRoutesList = isRootRoute
+        ? project.rootRoutes
+        : parentRoute.children;
+  
+      const currentRoutePosition = currentRoutesList.indexOf(selectedRouteId);
+      
+      if (currentRoutePosition > 0) {
+        const nextRouteId = currentRoutesList.get(currentRoutePosition - 1);
+        onSelectRoute(nextRouteId, false);
+      } else if (!isRootRoute && parentRoute.haveIndex) {
+        onSelectRoute(parentRoute.id, true);
+      }
+    }
+  }
+  
+  _handleSelectParentRoute() {
+    const {
+      project,
+      selectedRouteId,
+      indexRouteSelected,
+      onSelectRoute,
+    } = this.props;
+    
+    const currentRoute = project.routes.get(selectedRouteId);
+    const isRootRoute = currentRoute.parentId === INVALID_ID;
+    
+    if (indexRouteSelected) {
+      onSelectRoute(selectedRouteId, false);
+    } else if (!isRootRoute) {
+      onSelectRoute(currentRoute.parentId, false);
+    }
+  }
+  
+  _handleSelectChildRoute() {
+    const {
+      project,
+      selectedRouteId,
+      indexRouteSelected,
+      onSelectRoute,
+    } = this.props;
+  
+    if (!indexRouteSelected) {
+      const currentRoute = project.routes.get(selectedRouteId);
+  
+      if (currentRoute.haveIndex) {
+        onSelectRoute(selectedRouteId, true);
+      } else if (currentRoute.children.size > 0) {
+        onSelectRoute(currentRoute.children.first(), false);
+      }
+    }
   }
 
   /**
@@ -952,12 +1112,14 @@ class StructureRoute extends PureComponent {
       newRouteParamValues,
       
       (paramValue, paramName) => (
-        <Input
-          key={paramName}
-          label={paramName}
-          value={paramValue}
-          onChange={this._handleNewRouteParamChange.bind(this, paramName)}
-        />
+        <FormItem>
+          <TextField
+            key={paramName}
+            label={paramName}
+            value={paramValue}
+            onChange={this._handleNewRouteParamChange.bind(this, paramName)}
+          />
+        </FormItem>
       ),
     );
     /* eslint-enable react/jsx-no-bind */
@@ -971,7 +1133,9 @@ class StructureRoute extends PureComponent {
   
       routeParamsBoxItem = (
         <BlockContentBoxItem blank>
-          {routeParamInputs}
+          <Form>
+            {routeParamInputs}
+          </Form>
         </BlockContentBoxItem>
       );
     }
@@ -982,7 +1146,7 @@ class StructureRoute extends PureComponent {
         buttons={dialogButtons}
         backdrop
         minWidth={400}
-        visible={createRouteDialogIsVisible}
+        open={createRouteDialogIsVisible}
         closeOnEscape
         closeOnBackdropClick
         onEnterKeyPress={this._handleCreateRouteDialogEnterKey}
@@ -991,24 +1155,30 @@ class StructureRoute extends PureComponent {
         <BlockContent>
           <BlockContentBox>
             <BlockContentBoxItem blank>
-              <Input
-                ref={this._saveNewRouteTitleInputRef}
-                label={getLocalizedText('structure.title')}
-                value={newRouteTitle}
-                onChange={this._handleNewRouteTitleChange}
-              />
-          
-              <Input
-                label={getLocalizedText('structure.path')}
-                value={newRoutePath}
-                pattern={ROUTE_PATH_PATTERN}
-                prefix={pathInputPrefix}
-                styleMode={pathInputStyle}
-                message={pathInputMessage}
-                onChange={this._handleNewRoutePathChange}
-                onPatternError={this._handlePathInputPatternError}
-                onBlur={this._handlePathInputBlur}
-              />
+              <Form>
+                <FormItem>
+                  <TextField
+                    ref={this._saveNewRouteTitleInputRef}
+                    label={getLocalizedText('structure.title')}
+                    value={newRouteTitle}
+                    onChange={this._handleNewRouteTitleChange}
+                  />
+                </FormItem>
+
+                <FormItem>
+                  <TextField
+                    label={getLocalizedText('structure.path')}
+                    value={newRoutePath}
+                    pattern={ROUTE_PATH_PATTERN}
+                    prefix={pathInputPrefix}
+                    colorScheme={pathInputStyle}
+                    message={pathInputMessage}
+                    onChange={this._handleNewRoutePathChange}
+                    onPatternError={this._handlePathInputPatternError}
+                    onBlur={this._handlePathInputBlur}
+                  />
+                </FormItem>
+              </Form>
             </BlockContentBoxItem>
           </BlockContentBox>
           
@@ -1088,12 +1258,14 @@ class StructureRoute extends PureComponent {
       newRouteParamValues,
 
       (paramValue, paramName) => (
-        <Input
-          key={paramName}
-          label={paramName}
-          value={paramValue}
-          onChange={this._handleNewRouteParamChange.bind(this, paramName)}
-        />
+        <FormItem>
+          <TextField
+            key={paramName}
+            label={paramName}
+            value={paramValue}
+            onChange={this._handleNewRouteParamChange.bind(this, paramName)}
+          />
+        </FormItem>
       ),
     );
     /* eslint-enable react/jsx-no-bind */
@@ -1107,7 +1279,9 @@ class StructureRoute extends PureComponent {
 
       routeParamsBoxItem = (
         <BlockContentBoxItem blank>
-          {routeParamInputs}
+          <Form>
+            {routeParamInputs}
+          </Form>
         </BlockContentBoxItem>
       );
     }
@@ -1118,7 +1292,7 @@ class StructureRoute extends PureComponent {
         buttons={dialogButtons}
         backdrop
         minWidth={400}
-        visible
+        open
         closeOnEscape
         closeOnBackdropClick
         onEnterKeyPress={this._handleEditPathDialogEnterKey}
@@ -1127,18 +1301,22 @@ class StructureRoute extends PureComponent {
         <BlockContent>
           <BlockContentBox>
             <BlockContentBoxItem blank>
-              <Input
-                ref={this._saveRoutePathInputRef}
-                label={getLocalizedText('structure.path')}
-                value={newRoutePath}
-                pattern={ROUTE_PATH_PATTERN}
-                prefix={pathInputPrefix}
-                styleMode={pathInputStyle}
-                message={pathInputMessage}
-                onChange={this._handleNewRoutePathChange}
-                onPatternError={this._handlePathInputPatternError}
-                onBlur={this._handlePathInputBlur}
-              />
+              <Form>
+                <FormItem>
+                  <TextField
+                    ref={this._saveRoutePathInputRef}
+                    label={getLocalizedText('structure.path')}
+                    value={newRoutePath}
+                    pattern={ROUTE_PATH_PATTERN}
+                    prefix={pathInputPrefix}
+                    colorScheme={pathInputStyle}
+                    message={pathInputMessage}
+                    onChange={this._handleNewRoutePathChange}
+                    onPatternError={this._handlePathInputPatternError}
+                    onBlur={this._handlePathInputBlur}
+                  />
+                </FormItem>
+              </Form>
             </BlockContentBoxItem>
           </BlockContentBox>
 
@@ -1169,7 +1347,7 @@ class StructureRoute extends PureComponent {
         buttons={deleteRouteDialogButtons}
         backdrop
         minWidth={400}
-        visible={confirmDeleteDialogIsVisible}
+        open={confirmDeleteDialogIsVisible}
         closeOnEscape
         closeOnBackdropClick
         onEnterKeyPress={this._handleDeleteRouteConfirm}
@@ -1181,21 +1359,13 @@ class StructureRoute extends PureComponent {
   }
   
   _renderContent() {
-    const { project, getLocalizedText } = this.props;
+    const { project } = this.props;
   
     const routesList =
       this._renderRouteList(project.routes, null, project.rootRoutes);
     
     return (
       <Panel headerFixed maxHeight="initial" spread>
-        <Header>
-          <HeaderRegion spread alignY="center">
-            <HeaderTitle>
-              {getLocalizedText('appHeader.menu.structure')}
-            </HeaderTitle>
-          </HeaderRegion>
-        </Header>
-    
         <PanelContent>
           <Container>
             <Row>
@@ -1216,21 +1386,34 @@ class StructureRoute extends PureComponent {
     const deleteRouteDialog = this._renderDeleteRouteDialog();
 
     return (
-      <Desktop
-        toolGroups={this._toolGroups}
-        onToolTitleChange={this._handleToolTitleChange}
+      <Shortcuts
+        name="STRUCTURE_SCREEN"
+        handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
+        targetNodeSelector="body"
+        className="jssy-app"
       >
-        {content}
-        {newRouteDialog}
-        {editRoutePathDialog}
-        {deleteRouteDialog}
-      </Desktop>
+        <Desktop
+          toolGroups={this._toolGroups}
+          onToolTitleChange={this._handleToolTitleChange}
+        >
+          <Shortcuts
+            name="ROUTES_LIST"
+            handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
+            className="jssy-app"
+          >
+            {content}
+          </Shortcuts>
+          
+          {newRouteDialog}
+          {editRoutePathDialog}
+          {deleteRouteDialog}
+        </Desktop>
+      </Shortcuts>
     );
   }
 }
 
 StructureRoute.propTypes = propTypes;
-StructureRoute.defaultProps = defaultProps;
 StructureRoute.displayName = 'StructureRoute';
 
 export default wrap(StructureRoute);

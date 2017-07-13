@@ -11,7 +11,6 @@ import {
   APP_LOAD_STRINGS_SUCCESS,
   APP_LOAD_STRINGS_FAILURE,
   APP_TOGGLE_CONTENT_PLACEHOLDERS,
-  APP_TOGGLE_COMPONENT_TITLES,
   APP_SHOW_FOOTER_TOGGLES,
 } from '../actions/app';
 
@@ -20,7 +19,7 @@ import {
   LOADING,
   LOADED,
   LOAD_ERROR,
-} from '../constants/loadStates';
+} from '../constants/load-states';
 
 const AppState = Record({
   language: 'en',
@@ -29,7 +28,6 @@ const AppState = Record({
   localization: {},
   showFooterToggles: false,
   showContentPlaceholders: false,
-  showComponentTitles: false,
 });
 
 const handlers = {
@@ -50,9 +48,6 @@ const handlers = {
   
   [APP_TOGGLE_CONTENT_PLACEHOLDERS]: (state, action) =>
     state.set('showContentPlaceholders', action.enable),
-  
-  [APP_TOGGLE_COMPONENT_TITLES]: (state, action) =>
-    state.set('showComponentTitles', action.enable),
   
   [APP_SHOW_FOOTER_TOGGLES]: (state, action) =>
     state.set('showFooterToggles', action.show),

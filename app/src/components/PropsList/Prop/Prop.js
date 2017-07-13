@@ -15,6 +15,7 @@ import {
   PropToggle,
   PropComponent,
   PropExpandable,
+  PropAction,
 } from '../../props';
 
 import { NestedPropsList } from './NestedPropsList/NestedPropsList';
@@ -42,6 +43,7 @@ const propTypes = {
   getLocalizedText: PropTypes.func,
   onChange: PropTypes.func,
   onSetComponent: PropTypes.func,
+  onEditActions: PropTypes.func,
   onAddValue: PropTypes.func,
   onDeleteValue: PropTypes.func,
   onLink: PropTypes.func,
@@ -55,6 +57,7 @@ const defaultProps = {
   getLocalizedText: returnArg,
   onChange: noop,
   onSetComponent: noop,
+  onEditActions: noop,
   onAddValue: noop,
   onDeleteValue: noop,
   onLink: noop,
@@ -131,6 +134,8 @@ export class Prop extends PureComponent {
     this._handleChangeNested = this._handleChangeNested.bind(this);
     this._handleSetComponent = this._handleSetComponent.bind(this);
     this._handleSetComponentNested = this._handleSetComponentNested.bind(this);
+    this._handleEditActions = this._handleEditActions.bind(this);
+    this._handleEditActionsNested = this._handleEditActionsNested.bind(this);
   }
   
   /**
@@ -288,6 +293,7 @@ export class Prop extends PureComponent {
   _handleChangeNested({ index, value }) {
     const { propName, onChange } = this.props;
     const { currentPath } = this.state;
+    
     onChange({ propName, value, path: [...currentPath, index] });
   }
   
@@ -308,7 +314,29 @@ export class Prop extends PureComponent {
   _handleSetComponentNested({ index }) {
     const { propName, onSetComponent } = this.props;
     const { currentPath } = this.state;
+    
     onSetComponent({ propName, path: [...currentPath, index] });
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleEditActions() {
+    const { propName, onEditActions } = this.props;
+    onEditActions({ propName, path: [] });
+  }
+  
+  /**
+   *
+   * @param {string|number} index
+   * @private
+   */
+  _handleEditActionsNested({ index }) {
+    const { propName, onEditActions } = this.props;
+    const { currentPath } = this.state;
+    
+    onEditActions({ propName, path: [...currentPath, index] });
   }
   
   _renderBreadcrumbs() {
@@ -370,6 +398,7 @@ export class Prop extends PureComponent {
           getLocalizedText={getLocalizedText}
           onChange={this._handleChangeNested}
           onSetComponent={this._handleSetComponentNested}
+          onEditActions={this._handleEditActionsNested}
           onLink={this._handleLinkNested}
           onPick={this._handlePickNested}
           onUnlink={this._handleUnlinkNested}
@@ -391,6 +420,7 @@ export class Prop extends PureComponent {
           getLocalizedText={getLocalizedText}
           onChange={this._handleChangeNested}
           onSetComponent={this._handleSetComponentNested}
+          onEditActions={this._handleEditActionsNested}
           onLink={this._handleLinkNested}
           onPick={this._handlePickNested}
           onUnlink={this._handleUnlinkNested}
@@ -413,6 +443,7 @@ export class Prop extends PureComponent {
           getLocalizedText={getLocalizedText}
           onChange={this._handleChangeNested}
           onSetComponent={this._handleSetComponentNested}
+          onEditActions={this._handleEditActionsNested}
           onLink={this._handleLinkNested}
           onPick={this._handlePickNested}
           onUnlink={this._handleUnlinkNested}
@@ -536,6 +567,15 @@ export class Prop extends PureComponent {
           disabled={disabled}
           getLocalizedText={getLocalizedText}
           onSetComponent={this._handleSetComponent}
+        />
+      );
+    } else if (propType.view === PropViews.ACTION) {
+      return (
+        <PropAction
+          {...commonProps}
+          disabled={disabled}
+          getLocalizedText={getLocalizedText}
+          onEditActions={this._handleEditActions}
         />
       );
     } else if (propType.view === PropViews.EMPTY) {

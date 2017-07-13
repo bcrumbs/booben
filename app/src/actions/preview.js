@@ -4,6 +4,8 @@
 
 'use strict';
 
+import triggersProjectSave from './project-save/wrapper';
+
 export const PREVIEW_SELECT_COMPONENT =
   'PREVIEW_SELECT_COMPONENT';
 export const PREVIEW_DESELECT_COMPONENT =
@@ -123,7 +125,7 @@ export const dragOverNothing = () => ({
  *
  * @return {Object}
  */
-export const dropComponent = dropArea => ({
+export const dropComponent = triggersProjectSave(dropArea => ({
   type: PREVIEW_DROP_COMPONENT,
   dropArea,
-});
+}));

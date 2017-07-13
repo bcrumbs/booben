@@ -29,6 +29,7 @@ export const FUNCTION_FNS_ARG_NAME = 'fns';
 export const SYSTEM_PROPS = {
   visible: {
     type: 'bool',
+    required: true,
     source: ['static', 'data', 'state'],
     sourceConfigs: {
       static: {
@@ -40,8 +41,13 @@ export const SYSTEM_PROPS = {
   },
 };
 
+/**
+ *
+ * @type {JssyValueDefinition}
+ */
 export const ROUTE_PARAM_VALUE_DEF = {
   type: 'string',
+  required: true,
   source: ['static', 'data', 'state', 'routeParams'],
   sourceConfigs: {
     static: {
@@ -52,3 +58,42 @@ export const ROUTE_PARAM_VALUE_DEF = {
     routeParams: {},
   },
 };
+
+/**
+ *
+ * @type {JssyValueDefinition}
+ */
+export const AJAX_URL_VALUE_DEF = {
+  type: 'string',
+  required: true,
+  source: ['static', 'data', 'state', 'actionArg'],
+  sourceConfigs: {
+    static: {
+      default: '',
+    },
+    data: {},
+    state: {},
+    actionArg: {},
+  },
+};
+
+/**
+ *
+ * @type {JssyValueDefinition}
+ */
+export const AJAX_BODY_VALUE_DEF = {
+  type: 'any',
+  required: false,
+  source: ['static', 'data', 'state', 'routeParams', 'actionArg'],
+  sourceConfigs: {
+    static: {
+      default: '',
+    },
+    data: {},
+    state: {},
+    routeParams: {},
+    actionArg: {},
+  },
+};
+
+export const APOLLO_STATE_KEY = 'apollo';

@@ -4,7 +4,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Breadcrumbs } from '@reactackle/reactackle';
 import { BreadcrumbLink } from './BreadcrumbLink';
-import './BackdropBreadcrumbs.scss';
+import { BackdropBreadcrumbsStyled } from './styles/BackdropBreadcrumbsStyled';
 
 const propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
@@ -17,13 +17,13 @@ const defaultProps = {
 };
 
 export const BackdropBreadcrumbs = props => (
-  <div className="backdrop_breadcrumbs">
+  <BackdropBreadcrumbsStyled>
     <Breadcrumbs
       mode="light"
       items={props.items}
       linkComponent={BreadcrumbLink}
     />
-  </div>
+  </BackdropBreadcrumbsStyled>
 );
 
 BackdropBreadcrumbs.propTypes = propTypes;

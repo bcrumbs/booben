@@ -17,6 +17,7 @@ const config = require('../../config');
 const gatherMetadata = require('@jssy/metadata').gatherMetadata;
 const constants = require('../../common/constants');
 const logger = require('../../common/logger');
+const { URL_BUNDLE_PREFIX } = require('../../shared/constants');
 
 /**
  *
@@ -93,11 +94,12 @@ const generateBundleCode = libsData => {
 
 /**
  *
+ * @param {string} projectName
  * @param {string} projectDir
  * @param {LibData[]} libsData
  * @return {Object}
  */
-const generateWebpackConfig = (projectDir, libsData) => {
+const generateWebpackConfig = (projectName, projectDir, libsData) => {
   const ret = {
     context: projectDir,
 
@@ -116,6 +118,7 @@ const generateWebpackConfig = (projectDir, libsData) => {
       filename: '[name].js',
       library: 'JssyComponents',
       libraryTarget: 'var',
+      publicPath: `${URL_BUNDLE_PREFIX}/${projectName}/`,
     },
 
     resolve: {
@@ -396,7 +399,12 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
 
   logger.debug(`[${project.name}] Building bundle`);
 
-  const webpackConfig = generateWebpackConfig(projectDir, libsData);
+  const webpackConfig = generateWebpackConfig(
+    project.name,
+    projectDir,
+    libsData
+  );
+
   const stats = yield compile(webpackConfig);
   
   if (options.printWebpackOutput) {

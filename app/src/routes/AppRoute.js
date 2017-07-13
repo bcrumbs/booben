@@ -35,15 +35,14 @@ import {
 import StructureRoute from './StructureRoute';
 import DesignRoute from './DesignRoute';
 import { DrawerTopDesign } from '../containers/DrawerTopDesign/DrawerTopDesign';
-import { ProjectSave } from '../components/ProjectSave/ProjectSave';
-import { alertAreaProvider } from '../hocs/alerts';
-import ProjectRecord from '../models/Project';
 
 import {
-  toggleContentPlaceholders,
-  toggleComponentTitles,
-} from '../actions/app';
+  ProjectSaveIndicator,
+} from '../containers/ProjectSaveIndicator/ProjectSaveIndicator';
 
+import { alertAreaProvider } from '../hocs/alerts';
+import ProjectRecord from '../models/Project';
+import { toggleContentPlaceholders } from '../actions/app';
 import { getLocalizedTextFromState } from '../selectors';
 
 import {
@@ -56,36 +55,29 @@ import {
   buildDesignRouteIndexPath,
 } from '../constants/paths';
 
+import { URL_PREVIEW_PREFIX } from '../../../shared/constants';
+
 const propTypes = {
   location: PropTypes.object.isRequired, // router
   projectName: PropTypes.string.isRequired, // state
   project: PropTypes.instanceOf(ProjectRecord).isRequired, // state
   showContentPlaceholders: PropTypes.bool.isRequired, // state
-  showComponentTitles: PropTypes.bool.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onToggleContentPlaceholders: PropTypes.func.isRequired, // dispatch
-  onToggleComponentTitles: PropTypes.func.isRequired, // dispatch
   onAlertAreaReady: PropTypes.func.isRequired, // alertAreaProvider
   onAlertAreaRemoved: PropTypes.func.isRequired, // alertAreaProvider
-};
-
-const defaultProps = {
 };
 
 const mapStateToProps = state => ({
   projectName: state.project.projectName,
   project: state.project.data,
   showContentPlaceholders: state.app.showContentPlaceholders,
-  showComponentTitles: state.app.showComponentTitles,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
   onToggleContentPlaceholders: ({ value }) =>
     void dispatch(toggleContentPlaceholders(value)),
-
-  onToggleComponentTitles: ({ value }) =>
-    void dispatch(toggleComponentTitles(value)),
 });
 
 const wrap = compose(
@@ -110,6 +102,29 @@ TopMenuLink.defaultProps = {
 };
 
 TopMenuLink.displayName = 'TopMenuLink';
+
+const TopMenuExternalLink = ({ href, className, children }) => (
+  <a
+    href={href}
+    className={className}
+    target="_blank"
+    rel="noopener noreferrer"
+  >
+    {children}
+  </a>
+);
+
+TopMenuExternalLink.propTypes = {
+  href: PropTypes.string,
+  className: PropTypes.string,
+};
+
+TopMenuExternalLink.defaultProps = {
+  href: '',
+  className: '',
+};
+
+TopMenuExternalLink.displayName = 'TopMenuExternalLink';
 
 const toggleFullscreen = () => {
   const document = window.document;
@@ -148,10 +163,8 @@ class AppRoute extends Component {
       projectName,
       project,
       location,
-      showComponentTitles,
       showContentPlaceholders,
       getLocalizedText,
-      onToggleComponentTitles,
       onToggleContentPlaceholders,
       onAlertAreaReady,
     } = this.props;
@@ -201,16 +214,11 @@ class AppRoute extends Component {
       <App fixed>
         <TopRegion>
           <Header size="blank">
-            <HeaderRegion
-              size="blank"
-            >
+            <HeaderRegion size="blank">
               <HeaderLogoBox title={title} />
             </HeaderRegion>
           
-            <HeaderRegion
-              spread
-              size="blank"
-            >
+            <HeaderRegion spread size="blank">
               <HeaderMenu inline dense mode="light">
                 <HeaderMenuGroup>
                   <HeaderMenuList>
@@ -248,8 +256,8 @@ class AppRoute extends Component {
                   <HeaderMenuList>
                     <HeaderMenuItem
                       text={getLocalizedText('appHeader.menu.preview')}
-                      linkHref={`/${projectName}/preview`}
-                      linkComponent={TopMenuLink}
+                      linkHref={`${URL_PREVIEW_PREFIX}/${projectName}`}
+                      linkComponent={TopMenuExternalLink}
                     />
                   
                     <HeaderMenuItem
@@ -261,7 +269,7 @@ class AppRoute extends Component {
             </HeaderRegion>
           
             <HeaderRegion size="blank">
-              <ProjectSave />
+              <ProjectSaveIndicator />
             </HeaderRegion>
           </Header>
   
@@ -301,10 +309,7 @@ class AppRoute extends Component {
       
         <BottomRegion>
           <Footer>
-            <FooterRegion
-              spread
-              size="blank"
-            >
+            <FooterRegion spread size="blank">
               <FooterMenu inline dense mode="light">
                 <FooterMenuGroup>
                   <FooterMenuList>
@@ -318,23 +323,6 @@ class AppRoute extends Component {
               <FooterMenu inline dense mode="light">
                 <FooterMenuGroup>
                   <FooterMenuList>
-                    <Route
-                      path={PATH_DESIGN}
-                      render={() => (
-                        <FooterMenuItem
-                          text={getLocalizedText(
-                            'appFooter.showComponentsTitle',
-                          )}
-                          subcomponentRight={
-                            <ToggleButton
-                              checked={showComponentTitles}
-                              onChange={onToggleComponentTitles}
-                            />
-                          }
-                        />
-                      )}
-                    />
-                  
                     <Route
                       path={PATH_DESIGN}
                       render={() => (
@@ -368,7 +356,6 @@ class AppRoute extends Component {
 }
 
 AppRoute.propTypes = propTypes;
-AppRoute.defaultProps = defaultProps;
 AppRoute.displayName = 'AppRoute';
 
 export default wrap(AppRoute);

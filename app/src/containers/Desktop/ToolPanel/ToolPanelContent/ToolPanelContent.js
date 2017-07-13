@@ -6,12 +6,7 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { List } from 'immutable';
 import { Button, Tabs } from '@reactackle/reactackle';
-
-import {
-  PageDrawerContentArea,
-} from '../../../../components/PageDrawer/PageDrawer';
 
 import {
   BlockContent,
@@ -19,14 +14,13 @@ import {
   BlockContentActions,
   BlockContentActionsRegion,
   BlockContentNavigation,
-} from '../../../../components/BlockContent/BlockContent';
+  PageDrawerContentArea,
+} from '@jssy/common-ui';
 
-import ButtonType from '../../../../models/Button';
 import ToolType from '../../../../models/Tool';
 import ToolStateType from '../../../../models/ToolState';
 import { noop } from '../../../../utils/misc';
 
-//noinspection JSUnresolvedVariable
 const propTypes = {
   tool: PropTypes.instanceOf(ToolType).isRequired,
   toolState: PropTypes.instanceOf(ToolStateType).isRequired,
@@ -65,21 +59,21 @@ export class ToolPanelContent extends PureComponent {
       onUndock,
       onTitleChange,
     } = this.props;
-    
-    const collapseButton = new ButtonType({
-      icon: 'chevron-right',
-      onPress: onCollapse,
-    });
   
-    let titleButtons = List([collapseButton]);
+    const titleButtons = [{
+      icon: {
+        name: 'chevron-right',
+      },
+      onPress: onCollapse,
+    }];
   
     if (tool.undockable) {
-      const undockButton = new ButtonType({
-        icon: 'arrows-alt',
+      titleButtons.unshift({
+        icon: {
+          name: 'arrows-alt',
+        },
         onPress: onUndock,
       });
-    
-      titleButtons = titleButtons.unshift(undockButton);
     }
   
     const sections = tool.sections;
@@ -95,7 +89,7 @@ export class ToolPanelContent extends PureComponent {
         <BlockContentNavigation>
           <Tabs
             tabs={tabs}
-            colorMode="dark"
+            colorScheme="dark"
             selected={toolState.activeSection}
             onChange={this._handleTabChange}
           />
@@ -124,7 +118,7 @@ export class ToolPanelContent extends PureComponent {
         const buttons = mainButtons.map(({ icon, text, onPress }, idx) => (
           <Button
             key={String(idx)}
-            icon={icon}
+            icon={{ name: icon }}
             text={text}
             onPress={onPress}
           />
@@ -142,7 +136,7 @@ export class ToolPanelContent extends PureComponent {
         const buttons = secondaryButtons.map(({ icon, text, onPress }, idx) => (
           <Button
             key={String(idx)}
-            icon={icon}
+            icon={{ name: icon }}
             text={text}
             onPress={onPress}
           />

@@ -1,10 +1,15 @@
 @charset "UTF-8";
 @import '~@reactackle/reactackle/utils/global';
-@import "../BlockContent/variables";
 
 // =====================================================================================================================
 // BASE VARIABLES
 // =====================================================================================================================
+$bcontent-base-pad-y:               $base-module*2;
+$bcontent-box-header-top:           $bcontent-base-pad-y*1.5;
+$bcontent-box-header-bottom:        $bcontent-base-pad-y;
+
+
+
 
 // =================================================================================================================
 // WINDOW CONTENT

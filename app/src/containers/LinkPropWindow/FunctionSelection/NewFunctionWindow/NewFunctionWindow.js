@@ -7,7 +7,14 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TypeNames } from '@jssy/types';
-import { Button } from '@reactackle/reactackle';
+
+import {
+  Form,
+  FormItem,
+  TextField,
+  SelectBox,
+  Button,
+} from '@reactackle/reactackle';
 
 import {
   BlockContent,
@@ -16,17 +23,10 @@ import {
   BlockContentBoxItem,
   BlockContentActions,
   BlockContentActionsRegion,
-} from '../../../../components/BlockContent/BlockContent';
+} from '@jssy/common-ui';
 
 import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
-
-import {
-  PropEmpty,
-  PropInput,
-  PropTextarea,
-  PropList,
-} from '../../../../components/props';
-
+import { PropEmpty } from '../../../../components/props';
 import { PropsList } from '../../../../components/PropsList/PropsList';
 
 import {
@@ -143,6 +143,7 @@ export class NewFunctionWindow extends PureComponent {
   
   _handleDeleteArg({ id }) {
     const { args } = this.state;
+    
     const idx = parseInt(id, 10);
     this.setState({ args: without(args, idx) });
   }
@@ -160,8 +161,10 @@ export class NewFunctionWindow extends PureComponent {
   }
   
   _handleCreate() {
+    const { onCreate } = this.props;
     const { title, description, args, returnType, code } = this.state;
-    this.props.onCreate({ title, description, args, returnType, code });
+    
+    onCreate({ title, description, args, returnType, code });
   }
   
   _handleCodeChange(code) {
@@ -183,16 +186,8 @@ export class NewFunctionWindow extends PureComponent {
     const isNextButtonDisabled = this._isNextButtonDisabled();
     
     let newArgumentButton = null;
-    if (!creatingNewArgument) {
-      newArgumentButton = (
-        <FunctionAddArgumentButton
-          getLocalizedText={getLocalizedText}
-          onPress={this._handleAddButtonPress}
-        />
-      );
-    }
-    
     let newArgumentForm = null;
+
     if (creatingNewArgument) {
       newArgumentForm = (
         <FunctionArgumentNew
@@ -202,8 +197,15 @@ export class NewFunctionWindow extends PureComponent {
           onCancel={this._handleCancelAddArgument}
         />
       );
+    } else {
+      newArgumentButton = (
+        <FunctionAddArgumentButton
+          getLocalizedText={getLocalizedText}
+          onPress={this._handleAddButtonPress}
+        />
+      );
     }
-  
+
     let argsList = null;
     if (args.length > 0) {
       const list = args.map(({ name, type }, idx) => (
@@ -234,24 +236,33 @@ export class NewFunctionWindow extends PureComponent {
           </BlockContentBoxItem>
           
           <BlockContentBoxItem>
-            <PropInput
-              label={getLocalizedText('linkDialog.function.new.title')}
-              value={title}
-              onChange={this._handleTitleChange}
-            />
-            
-            <PropTextarea
-              label={getLocalizedText('linkDialog.function.new.desc')}
-              value={description}
-              onChange={this._handleDescriptionChange}
-            />
-            
-            <PropList
-              label={getLocalizedText('linkDialog.function.new.returnType')}
-              value={returnType}
-              options={typeSelectOptions}
-              onChange={this._handleReturnTypeChange}
-            />
+            <Form>
+              <FormItem>
+                <TextField
+                  label={getLocalizedText('linkDialog.function.new.title')}
+                  value={title}
+                  onChange={this._handleTitleChange}
+                />
+              </FormItem>
+  
+              <FormItem>
+                <TextField
+                  minRows={1}
+                  label={getLocalizedText('linkDialog.function.new.desc')}
+                  value={description}
+                  onChange={this._handleDescriptionChange}
+                />
+              </FormItem>
+  
+              <FormItem>
+                <SelectBox
+                  label={getLocalizedText('linkDialog.function.new.returnType')}
+                  value={returnType}
+                  options={typeSelectOptions}
+                  onChange={this._handleReturnTypeChange}
+                />
+              </FormItem>
+            </Form>
           </BlockContentBoxItem>
           
           <BlockContentBoxHeading>
@@ -272,6 +283,7 @@ export class NewFunctionWindow extends PureComponent {
               text={getLocalizedText('common.cancel')}
               onPress={this._handleCancel}
             />
+            
             <Button
               text={getLocalizedText('common.next')}
               disabled={isNextButtonDisabled}
@@ -306,7 +318,7 @@ export class NewFunctionWindow extends PureComponent {
           <BlockContentActionsRegion type="secondary">
             <Button
               text={getLocalizedText('common.back')}
-              icon="chevron-left"
+              icon={{ name: 'chevron-left' }}
               onPress={this._handleBack}
             />
           </BlockContentActionsRegion>

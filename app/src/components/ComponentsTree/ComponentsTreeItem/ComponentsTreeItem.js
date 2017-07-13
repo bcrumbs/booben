@@ -71,7 +71,7 @@ export class ComponentsTreeItem extends PureComponent {
           className="components-tree-item-icon"
           ref={this._saveExpandButtonRef}
         >
-          <Button icon="chevron-down" />
+          <Button icon={{ name: 'chevron-down' }} size="small" />
         </div>
       );
 

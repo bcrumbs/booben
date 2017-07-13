@@ -13,7 +13,7 @@ import {
   BlockContentBoxItem,
   BlockContentBoxHeading,
   BlockContentPlaceholder,
-} from '../../components/BlockContent/BlockContent';
+} from '@jssy/common-ui';
 
 import {
   PropInput,

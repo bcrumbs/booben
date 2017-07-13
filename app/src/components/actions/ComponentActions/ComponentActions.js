@@ -4,7 +4,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from '@reactackle/reactackle';
 import { noop } from '../../../utils/misc';
-import './ComponentActions.scss';
 
 const propTypes = {
   pathToList: PropTypes.arrayOf(PropTypes.oneOfType([
@@ -37,13 +36,13 @@ export class ComponentActions extends PureComponent {
     const { addButtonText, children } = this.props;
     
     return (
-      <div className="component-actions">
+      <div>
         {children}
     
-        <div className="component-actions_button">
+        <div>
           <Button
             text={addButtonText}
-            icon="plus"
+            icon={{ name: 'plus' }}
             narrow
             onPress={this._handleAddButtonPress}
           />

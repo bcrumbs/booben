@@ -22,15 +22,18 @@ const cb = (resolve, reject) =>
 const start = () => co(function* () {
   const app = express();
 
-  if (config.get('serveStatic')) {
-    setupEndpoint(app, require('./endpoints/serve-app'));
-  }
-
   setupEndpoint(app, require('./endpoints/get-project'));
   setupEndpoint(app, require('./endpoints/get-metadata'));
   setupEndpoint(app, require('./endpoints/create-project'));
-  setupEndpoint(app, require('./endpoints/update-project'));
+  setupEndpoint(app, require('./endpoints/put-project'));
   setupEndpoint(app, require('./endpoints/graphql-proxy'));
+
+  if (config.get('serveStatic')) {
+    setupEndpoint(app, require('./endpoints/serve-app'));
+    setupEndpoint(app, require('./endpoints/serve-preview'));
+    setupEndpoint(app, require('./endpoints/serve-bundle'));
+    setupEndpoint(app, require('./endpoints/serve-assets'));
+  }
 
   httpServer = http.createServer(app);
 

@@ -9,11 +9,6 @@ import { Record, Map, List } from 'immutable';
 import { NO_VALUE } from '../constants/misc';
 
 import {
-  walkSimpleValues,
-  walkComponentsTree,
-} from '../models/ProjectComponent';
-
-import {
   getTypeNameByField,
   getTypeNameByPath,
   getMutationField,
@@ -24,11 +19,23 @@ import {
 
 import {
   getComponentMeta,
+  getSourceConfig,
   isJssyValueDefinition,
   valueHasDataContest,
 } from './meta';
 
+import { walkComponentsTree, walkSimpleValues } from './components';
 import { isObjectOrNull, objectToArray } from '../utils/misc';
+
+/**
+ * @typedef {Object} DataContextInfo
+ * @property {string} ownerPropName
+ * @property {string} type
+ */
+
+/**
+ * @typedef {Object<string, DataContextInfo>} DataContextsInfo
+ */
 
 const UPPERCASE_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 const LOWERCASE_LETTERS = 'abcdefghijklmnopqrstuvwxyz';
@@ -536,7 +543,7 @@ const pushDataContext = (
 
 const buildAndAttachFragmentsForDesignerProp = (
   value,
-  typedef,
+  valueDef,
   dataValuesByDataContext,
   dataContextTree,
   theMap,
@@ -545,11 +552,15 @@ const buildAndAttachFragmentsForDesignerProp = (
   project,
   variablesAccumulator,
 ) => {
-  if (!typedef.sourceConfigs.designer.props) return { fragments: [], theMap };
+  const designerSourceConfig = getSourceConfig(valueDef, 'designer');
+  
+  if (!designerSourceConfig.props) {
+    return { fragments: [], theMap };
+  }
 
   let usesDataContexts = false;
 
-  _forOwn(typedef.sourceConfigs.designer.props, (
+  _forOwn(designerSourceConfig.props, (
     ownerPropMeta,
     ownerPropName,
   ) => {
@@ -831,6 +842,21 @@ const buildGraphQLFragmentsForComponent = (
   return { fragments: fixUnfinishedFragments(fragments), theMap };
 };
 
+/**
+ * @typedef {Object} ComponentQueryData
+ * @property {Object} query - GraphQL query AST
+ * @property {Immutable.Map<Object, DataContextsInfo>} theMap
+ * @property {Object<string, { argDefinition: DataFieldArg, argValue: Object }>} variables
+ */
+
+/**
+ *
+ * @param {Object} component
+ * @param {DataSchema} schema
+ * @param {Object<string, Object<string, ComponentMeta>>} meta
+ * @param {Object} project
+ * @return {ComponentQueryData}
+ */
 export const buildQueryForComponent = (component, schema, meta, project) => {
   const variablesAccumulator = {};
   
@@ -847,7 +873,7 @@ export const buildQueryForComponent = (component, schema, meta, project) => {
 
   const rootFragments = fragments.filter(isRootFragment);
 
-  if (!rootFragments.length) return { query: null, theMap };
+  if (!rootFragments.length) return { query: null, theMap, variables: {} };
 
   const query = {
     kind: 'Document',

@@ -9,14 +9,14 @@ import { List, is } from 'immutable';
 /**
  * Does nothing
  */
-export const noop = /* istanbul ignore next */ () => {};
+export const noop = () => {};
 
 /**
  * Returns null :)
  *
  * @return {null}
  */
-export const returnNull = /* istanbul ignore next */ () => null;
+export const returnNull = () => null;
 
 /**
  * Returns its first argument
@@ -25,13 +25,28 @@ export const returnNull = /* istanbul ignore next */ () => null;
  * @param {T} arg
  * @return {T}
  */
-export const returnArg = /* istanbul ignore next */ arg => arg;
+export const returnArg = arg => arg;
+
+/**
+ *
+ * @template T
+ * @param {*} _
+ * @param {T} arg
+ * @return {T}
+ */
+export const returnSecondArg = (_, arg) => arg;
 
 /**
  * Returns true
  * @return {boolean}
  */
-export const returnTrue = /* istanbul ignore next */ () => true;
+export const returnTrue = () => true;
+
+/**
+ * Returns empty object
+ * @return {Object}
+ */
+export const returnEmptyObject = () => ({});
 
 /**
  *
@@ -168,7 +183,6 @@ export const objectSome = (object, predicate) =>
 export const objectEvery = (object, predicate) =>
   Object.keys(object).every(key => predicate(object[key], key, object));
 
-//noinspection JSCheckFunctionSignatures
 /**
  *
  * @template T
@@ -236,96 +250,6 @@ export const combineFiltersAll = filterFns =>
 
 /**
  *
- * @param {number} x
- * @param {number} y
- * @param {number} cX
- * @param {number} cY
- * @param {number} r
- * @return {boolean}
- */
-export const pointIsInCircle = (x, y, cX, cY, r) =>
-  (x - cX) ** 2 + (y - cY) ** 2 <= r ** 2;
-
-/**
- *
- * @param {number} x
- * @param {number} y
- * @param {number} cX
- * @param {number} cY
- * @param {number} r
- * @return {number}
- */
-export const pointPositionRelativeToCircle = (x, y, cX, cY, r) =>
-  ((x - cX) ** 2 + (y - cY) ** 2) / (r ** 2);
-
-/**
- *
- * @param {number} x
- * @param {number} y
- * @param {number} rx
- * @param {number} ry
- * @param {number} rw
- * @param {number} rh
- * @return {boolean}
- */
-export const pointIsInRect = (x, y, rx, ry, rw, rh) =>
-  x >= rx &&
-  x <= rx + rw &&
-  y >= ry &&
-  y <= ry + rh;
-
-/**
- *
- * @param {number} x1
- * @param {number} y1
- * @param {number} x2
- * @param {number} y2
- * @return {number}
- */
-export const distance = (x1, y1, x2, y2) =>
-  Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
-
-/**
- *
- * @type {Object<string, number>}
- */
-export const PointPositions = {
-  INSIDE: 0x00,
-  NORTH: 0x01,
-  NORTH_EAST: 0x11,
-  EAST: 0x10,
-  SOUTH_EAST: 0x12,
-  SOUTH: 0x02,
-  SOUTH_WEST: 0x22,
-  WEST: 0x20,
-  NORTH_WEST: 0x21,
-};
-
-/**
- *
- * @param {number} x
- * @param {number} y
- * @param {number} rx
- * @param {number} ry
- * @param {number} rw
- * @param {number} rh
- * @return {number}
- */
-export const pointPositionRelativeToRect = (x, y, rx, ry, rw, rh) => {
-  let horizontal = PointPositions.INSIDE;
-  let vertical = PointPositions.INSIDE;
-
-  if (x < rx) horizontal = PointPositions.WEST;
-  else if (x > rx + rw) horizontal = PointPositions.EAST;
-
-  if (y < ry) vertical = PointPositions.NORTH;
-  else if (y > ry + rh) vertical = PointPositions.SOUTH;
-
-  return horizontal | vertical;
-};
-
-/**
- *
  * @param {Immutable.List} maybePrefix
  * @param {Immutable.List} list
  * @return {boolean}
@@ -333,6 +257,40 @@ export const pointPositionRelativeToRect = (x, y, rx, ry, rw, rh) => {
 export const isPrefixList = (maybePrefix, list) => {
   if (maybePrefix.size > list.size) return false;
   return maybePrefix.every((item, idx) => is(item, list.get(idx)));
+};
+
+/**
+ *
+ * @template T
+ * @template N
+ * @param {Immutable.List<T>} list
+ * @param {function(item: T, idx: number, list: Immutable.List): N} [mapFn]
+ * @return {N[]}
+ */
+export const mapListToArray = (list, mapFn = returnArg) => {
+  const ret = [];
+  list.forEach((item, idx) => {
+    ret.push(mapFn(item, idx, list));
+  });
+  return ret;
+};
+
+/**
+ *
+ * @template K
+ * @template V
+ * @template N
+ * @param {Immutable.Map<T>} map
+ * @param {function(value: V, key: K, map: Immutable.Map): string} keyFn
+ * @param {function(value: V, key: K, map: Immutable.Map): N} [valueFn]
+ * @return {Object<string, N>}
+ */
+export const mapMapToObject = (map, keyFn, valueFn = returnArg) => {
+  const ret = {};
+  map.forEach((value, key) => {
+    ret[keyFn(value, key, map)] = valueFn(value, key, map);
+  });
+  return ret;
 };
 
 /**
@@ -346,3 +304,80 @@ export const concatPath = (prefix, path) => {
   if (prefix === '/') return `/${path}`;
   return `${prefix}/${path}`;
 };
+
+/* eslint-disable no-restricted-syntax, guard-for-in, prefer-template */
+export const flatten = data => {
+  const result = {};
+  
+  const recurse = (cur, prop) => {
+    if (Object(cur) !== cur) {
+      result[prop] = cur;
+    } else if (Array.isArray(cur)) {
+      const l = cur.length;
+      
+      for (let i = 0; i < l; i++) {
+        recurse(cur[i], prop ? prop + '.' + i : '' + i);
+      }
+      
+      if (l === 0) {
+        result[prop] = [];
+      }
+    } else {
+      let isEmpty = true;
+      
+      for (const p in cur) {
+        isEmpty = false;
+        recurse(cur[p], prop ? prop + '.' + p : p);
+      }
+      
+      if (isEmpty) {
+        result[prop] = {};
+      }
+    }
+  };
+  
+  recurse(data, '');
+  
+  return result;
+};
+
+export const unflatten = data => {
+  if (Object(data) !== data || Array.isArray(data)) {
+    return data;
+  }
+  
+  const result = {};
+  let cur;
+  let prop;
+  let idx;
+  let last;
+  let temp;
+  
+  for (const p in data) {
+    cur = result;
+    prop = '';
+    last = 0;
+    
+    do {
+      idx = p.indexOf('.', last);
+      temp = p.substring(last, idx !== -1 ? idx : undefined);
+      cur = cur[prop] || (cur[prop] = (!isNaN(parseInt(temp, 10)) ? [] : {}));
+      prop = temp;
+      last = idx + 1;
+    } while (idx >= 0);
+    
+    cur[prop] = data[p];
+  }
+  
+  return result[''];
+};
+/* eslint-enable no-restricted-syntax, guard-for-in, prefer-template */
+
+/**
+ *
+ * @param {Object} object
+ * @param {string} property
+ * @return {boolean}
+ */
+export const hasOwnProperty = (object, property) =>
+  Object.prototype.hasOwnProperty.call(object, property);

@@ -19,7 +19,6 @@ import {
 
 import { noop, returnArg, objectSome } from '../../../../utils/misc';
 
-//noinspection JSUnresolvedVariable
 const propTypes = {
   type: PropTypes.object.isRequired,
   schema: PropTypes.object.isRequired,
@@ -185,8 +184,7 @@ export class DataSelectionFieldsList extends PureComponent {
     const selected = fieldName === selectedFieldName;
     const hasApplyButton = selected && isCompatible;
     const hasArgsButton = selected && fieldHasArguments(field);
-    
-    //noinspection JSValidateTypes
+
     return (
       <DataItem
         key={fieldName}
@@ -255,8 +253,7 @@ export class DataSelectionFieldsList extends PureComponent {
         }
       });
     });
-  
-    //noinspection JSValidateTypes
+
     return (
       <DataList>
         {items}

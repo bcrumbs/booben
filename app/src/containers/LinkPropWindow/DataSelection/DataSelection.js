@@ -19,7 +19,7 @@ import {
   BlockBreadcrumbs,
   BlockContentActions,
   BlockContentActionsRegion,
-} from '../../../components/BlockContent/BlockContent';
+} from '@jssy/common-ui';
 
 import {
   DataWindowTitle,
@@ -49,7 +49,6 @@ import {
   objectSome,
 } from '../../../utils/misc';
 
-//noinspection JSUnresolvedVariable
 const propTypes = {
   dataContext: PropTypes.arrayOf(PropTypes.string).isRequired,
   schema: PropTypes.object.isRequired,
@@ -319,7 +318,7 @@ export class DataSelection extends PureComponent {
     this._switchToArgumentsForm(
       fieldName,
       field,
-      [].concat(currentPath, fieldName),
+      [...currentPath, fieldName],
     );
   }
   
@@ -531,7 +530,7 @@ export class DataSelection extends PureComponent {
           <BlockContentActionsRegion type="main">
             <Button
               text={backText}
-              icon="chevron-left"
+              icon={{ name: 'chevron-left' }}
               onPress={this._handleCancelSetArguments}
             />
             <Button
@@ -604,7 +603,7 @@ export class DataSelection extends PureComponent {
           <BlockContentActionsRegion type="main">
             <Button
               text={backText}
-              icon="chevron-left"
+              icon={{ name: 'chevron-left' }}
               onPress={this._handleCancelSetArguments}
             />
             <Button

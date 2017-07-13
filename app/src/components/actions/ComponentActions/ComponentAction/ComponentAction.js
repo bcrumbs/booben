@@ -4,7 +4,19 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Button, Icon, TooltipIcon } from '@reactackle/reactackle';
 import { noop } from '../../../../utils/misc';
-import './ComponentAction.scss';
+import { ActionHeadingStyled } from './styles/ActionHeadingStyled';
+import { ActionLinkWrapperStyled } from './styles/ActionLinkWrapperStyled';
+import { ActionTitleStyled } from './styles/ActionTitleStyled';
+import { ActionTitleTextStyled } from './styles/ActionTitleTextStyled';
+import { ActionIconStyled } from './styles/ActionIconStyled';
+
+import {
+  ActionButtonsWrapperStyled,
+} from './styles/ActionButtonsWrapperStyled';
+
+import {
+  ActionContentWrapperStyled,
+} from './styles/ActionContentWrapperStyled';
    
 const propTypes = {
   id: PropTypes.any.isRequired,
@@ -26,15 +38,18 @@ export class ComponentAction extends PureComponent {
     super(props, context);
     
     this._handleClick = this._handleClick.bind(this);
-    this._handleDeleteButtonClick = this._handleDeleteButtonClick.bind(this);
+    this._handleDeleteButtonPress = this._handleDeleteButtonPress.bind(this);
   }
   
-  _handleClick() {
+  _handleClick(event) {
     const { id, onEdit } = this.props;
-    onEdit({ actionId: id });
+
+    if (event.button === 0) {
+      onEdit({ actionId: id });
+    }
   }
   
-  _handleDeleteButtonClick() {
+  _handleDeleteButtonPress() {
     const { id, onDelete } = this.props;
     onDelete({ actionId: id });
   }
@@ -52,40 +67,37 @@ export class ComponentAction extends PureComponent {
     let content = null;
     if (children) {
       content = (
-        <div className="component-action_body">
+        <ActionContentWrapperStyled>
           {children}
-        </div>
+        </ActionContentWrapperStyled>
       );
     }
   
     return (
-      <div className="component-action">
-        <div className="component-action_heading">
-          <a
-            className="component-action_link-wrapper"
-            onClick={this._handleClick}
-          >
-            <div className="component-action_icon">
-              <Icon name="long-arrow-right" />
-            </div>
+      <div>
+        <ActionHeadingStyled>
+          <ActionLinkWrapperStyled onClick={this._handleClick}>
+            <ActionIconStyled>
+              <Icon name="long-arrow-right" size="inherit" />
+            </ActionIconStyled>
             
-            <div className="component-action_title">
-              <span className="component-action_title-text">
+            <ActionTitleStyled>
+              <ActionTitleTextStyled>
                 {title}
-              </span>
+              </ActionTitleTextStyled>
               
               {tooltip}
-            </div>
-          </a>
+            </ActionTitleStyled>
+          </ActionLinkWrapperStyled>
           
-          <div className="component-action_buttons">
+          <ActionButtonsWrapperStyled>
             <Button
-              icon="times"
-              rounded
-              onPress={this._handleDeleteButtonClick}
+              icon={{ name: 'times' }}
+              radius="rounded"
+              onPress={this._handleDeleteButtonPress}
             />
-          </div>
-        </div>
+          </ActionButtonsWrapperStyled>
+        </ActionHeadingStyled>
         
         {content}
       </div>

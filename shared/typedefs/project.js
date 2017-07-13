@@ -28,6 +28,11 @@
  * @property {?ProjectComponent} indexComponent
  * @property {boolean} haveRedirect
  * @property {string} redirectTo
+ * @property {boolean} redirectAuthenticated
+ * @property {string} redirectAuthenticatedTo
+ * @property {boolean} redirectAnonymous
+ * @property {string} redirectAnonymousTo
+ * @property {Object<string, string>} paramValues
  * @property {ProjectRoute[]} children
  * @property {?ProjectComponent} component
  */
@@ -47,7 +52,7 @@
 /**
  * @typedef {Object} PlainJssyValue
  * @property {string} source
- * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner|SourceDataFunction|SourceDataState|SourceDataRouteParams} sourceData
+ * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner|SourceDataFunction|SourceDataState|SourceDataRouteParams|SourceDataActionArg} sourceData
  */
 
 /**
@@ -66,8 +71,7 @@
 
 /**
  * @typedef {Object} SourceDataConst
- * @property {*} [value]
- * @property {string} [jssyConstId]
+ * @property {*} value
  */
 
 /**
@@ -123,9 +127,21 @@
  */
 
 /**
+ * @typedef {Object} AJAXActionParams
+ * @property {PlainJssyValue} url
+ * @property {string} method
+ * @property {Object<string, string>} headers
+ * @property {string} mode
+ * @property {?PlainJssyValue} body
+ * @property {string} decodeResponse
+ * @property {Action[]} successActions
+ * @property {Action[]} errorActions
+ */
+
+/**
  * @typedef {Object} Action
  * @property {string} type
- * @property {MutationActionParams|NavigateActionParams|URLActionParams|MethodCallActionParams|PropChangeActionParams} params
+ * @property {MutationActionParams|NavigateActionParams|URLActionParams|MethodCallActionParams|PropChangeActionParams|AJAXActionParams} params
  */
 
 /**
@@ -149,7 +165,12 @@
  * @typedef {Object} SourceDataFunction
  * @property {string} functionSource - Can be 'project' or 'builtin'.
  * @property {string} function - Function name
- * @property {Object<string, SourceDataStatic|SourceDataData|SourceDataConst|SourceDataFunction|SourceDataState|SourceDataRouteParams>} args
+ * @property {Object<string, PlainJssyValue>} args
+ */
+
+/**
+ * @typedef {Object} SourceDataActionArg
+ * @property {number} arg
  */
 
 /**

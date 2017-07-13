@@ -16,7 +16,6 @@ export class MenuOverlapping extends Component {
   
   componentDidMount() {
     this._element.addEventListener('click', this._handleClick);
-    this._element.addEventListener('mousemove', this._handleMouseMove);
   }
   
   _saveRef(ref) {
@@ -28,7 +27,7 @@ export class MenuOverlapping extends Component {
   }
   
   _handleMouseMove(event) {
-    event.stopPropagation();
+    event.preventDefault();
   }
   
   render() {

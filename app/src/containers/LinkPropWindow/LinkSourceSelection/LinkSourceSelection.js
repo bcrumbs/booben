@@ -11,7 +11,7 @@ import {
   BlockContent,
   BlockContentBox,
   BlockContentBoxItem,
-} from '../../../components/BlockContent/BlockContent';
+} from '@jssy/common-ui';
 
 import { DataList, DataItem } from '../../../components/DataList/DataList';
 import { noop } from '../../../utils/misc';

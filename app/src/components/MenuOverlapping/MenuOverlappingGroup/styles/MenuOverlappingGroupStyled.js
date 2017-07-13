@@ -8,7 +8,7 @@ import {
 } from '../../../../styles/themeSelectors';
 
 export const MenuOverlappingGroupStyled = styled.div`
-  padding: ${baseModule}px 0;
+  padding: ${baseModule(1)}px 0;
 
   & + & {
       border-top: 1px solid ${paletteBlueGrey100};

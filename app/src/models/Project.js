@@ -9,11 +9,22 @@ import _forOwn from 'lodash.forown';
 
 import {
   projectRouteToImmutable,
+  projectRouteToJSv1,
   getMaxComponentId as _getMaxComponentId,
 } from './ProjectRoute';
 
-import { projectFunctionToImmutable } from './ProjectFunction';
-import { concatPath } from '../utils/misc';
+import {
+  projectFunctionToImmutable,
+  projectFunctionToJSv1,
+} from './ProjectFunction';
+
+import {
+  concatPath,
+  mapMapToObject,
+  mapListToArray,
+  returnSecondArg,
+} from '../utils/misc';
+
 import { INVALID_ID } from '../constants/misc';
 
 const AuthParamRecord = Record({
@@ -86,7 +97,9 @@ export const projectToImmutable = input => new ProjectRecord({
   }),
 });
 
-export const getMaxRouteId = project => project.routes.keySeq().max();
+export const getMaxRouteId = project => project.routes.size > 0
+  ? project.routes.keySeq().max()
+  : INVALID_ID;
 
 export const getMaxComponentId = project =>
   Math.max(INVALID_ID, ...project.routes.toList().map(_getMaxComponentId));
@@ -108,5 +121,25 @@ export const getRouteByComponentId = (project, componentId) =>
 
 export const getComponentById = (project, componentId) =>
   getRouteByComponentId(project, componentId).components.get(componentId);
+
+export const projectToJSv1 = project => ({
+  version: 1,
+  name: project.name,
+  author: project.author,
+  componentLibs: project.componentLibs.toJS(),
+  enableHTML: project.enableHTML,
+  graphQLEndpointURL: project.graphQLEndpointURL,
+  proxyGraphQLEndpoint: project.proxyGraphQLEndpoint,
+  auth: project.auth === null ? null : project.auth.toJS(),
+  routes: mapListToArray(
+    project.rootRoutes,
+    routeId => projectRouteToJSv1(project.routes, routeId),
+  ),
+  functions: mapMapToObject(
+    project.functions,
+    returnSecondArg,
+    projectFunctionToJSv1,
+  ),
+});
 
 export default ProjectRecord;

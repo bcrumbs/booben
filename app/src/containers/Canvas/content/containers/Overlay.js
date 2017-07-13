@@ -2,31 +2,27 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Set } from 'immutable';
 import { connect } from 'react-redux';
 
 import {
-  currentSelectedComponentIdsSelector,
-  currentHighlightedComponentIdsSelector,
+  selectedComponentIdsSelector,
+  highlightedComponentIdsSelector,
   currentRootComponentIdSelector,
-  currentComponentsSelector,
 } from '../../../../selectors';
 
 import { OverlayContainer } from '../components/OverlayContainer';
 import { OverlayBoundingBox } from '../components/OverlayBoundingBox';
-import { OverlayComponentTitle } from '../components/OverlayComponentTitle';
 import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
+import * as JssyPropTypes from '../../../../constants/common-prop-types';
 
 const propTypes = {
-  components: ImmutablePropTypes.map.isRequired,
-  selectedComponentIds: ImmutablePropTypes.set.isRequired,
-  highlightedComponentIds: ImmutablePropTypes.set.isRequired,
+  selectedComponentIds: JssyPropTypes.setOfIds.isRequired,
+  highlightedComponentIds: JssyPropTypes.setOfIds.isRequired,
   boundaryComponentId: PropTypes.number.isRequired,
   highlightingEnabled: PropTypes.bool.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
-  showComponentTitles: PropTypes.bool.isRequired,
   pickingComponent: PropTypes.bool.isRequired,
   pickingComponentStateSlot: PropTypes.bool.isRequired,
 };
@@ -35,17 +31,12 @@ const contextTypes = {
   document: PropTypes.object.isRequired,
 };
 
-const defaultProps = {
-};
-
 const mapStateToProps = state => ({
-  components: currentComponentsSelector(state),
-  selectedComponentIds: currentSelectedComponentIdsSelector(state),
-  highlightedComponentIds: currentHighlightedComponentIdsSelector(state),
+  selectedComponentIds: selectedComponentIdsSelector(state),
+  highlightedComponentIds: highlightedComponentIdsSelector(state),
   boundaryComponentId: currentRootComponentIdSelector(state),
   highlightingEnabled: state.project.highlightingEnabled,
   draggingComponent: state.project.draggingComponent,
-  showComponentTitles: state.app.showComponentTitles,
   pickingComponent: state.project.pickingComponent,
   pickingComponentStateSlot: state.project.pickingComponentStateSlot,
 });
@@ -108,38 +99,12 @@ class Overlay extends PureComponent {
     });
   }
 
-  /**
-   *
-   * @return {Immutable.Seq<ReactElement>}
-   * @private
-   */
-  _renderTitles() {
-    const { components } = this.props;
-    
-    // TODO: Handle cases when multiple titles appear in the same place
-
-    //noinspection JSValidateTypes
-    return components.valueSeq().map(component => {
-      const element = this._getDOMElementByComponentId(component.id);
-      const title = component.title || component.name;
-
-      return (
-        <OverlayComponentTitle
-          key={component.id}
-          element={element}
-          title={title}
-        />
-      );
-    });
-  }
-
   render() {
     const {
       draggingComponent,
       pickingComponent,
       pickingComponentStateSlot,
       highlightingEnabled,
-      showComponentTitles,
       highlightedComponentIds,
       selectedComponentIds,
       boundaryComponentId,
@@ -170,16 +135,11 @@ class Overlay extends PureComponent {
       )
       : null;
 
-    const titles = showComponentTitles
-      ? this._renderTitles()
-      : null;
-
     return (
       <OverlayContainer>
         {highlightBoxes}
         {selectBoxes}
         {rootComponentBox}
-        {titles}
       </OverlayContainer>
     );
   }
@@ -187,7 +147,6 @@ class Overlay extends PureComponent {
 
 Overlay.propTypes = propTypes;
 Overlay.contextTypes = contextTypes;
-Overlay.defaultProps = defaultProps;
 Overlay.displayName = 'Overlay';
 
 export default connect(mapStateToProps)(Overlay);

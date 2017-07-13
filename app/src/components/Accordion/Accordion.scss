@@ -60,13 +60,6 @@
         .accordion-item-is-expanded & {
             color: $accordion-expanded-title-font-color;
             font-weight: $accordion-expanded-title-font-weight;
-
-            //span {
-            //    padding: $base-module*0.75 $base-module*1.25;
-            //    margin-left: -$base-module*1.25;
-            //    background-color: color($beige, 100);
-            //    border-radius: $global-radius;
-            //}
         }
 
         .accordion-item-is-collapsed & {
@@ -80,8 +73,11 @@
         margin-top: $accordion-title-pad-y + ($accordion-title-font-size*$accordion-title-line-height - $accordion-icon-box-size);
         margin-bottom: $accordion-title-pad-y + ($accordion-title-font-size*$accordion-title-line-height - $accordion-icon-box-size);
         margin-right: $accordion-item-pad-x;
+        display: flex;
 
         @include single-transition();
+        @include transition-property(color, opacity, transform);
+
         @include icon-size(
                 $outer-size: $accordion-icon-box-size,
                 $icon-size: $accordion-icon-img-size
@@ -106,7 +102,7 @@
     .accordion-item-content-box {
         pointer-events: none;
         opacity: 0;
-        position: absolute;
+        position: fixed;
         z-index: -1;
         transform: translateY($accordion-offset-animated);
 

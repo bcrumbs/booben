@@ -14,7 +14,6 @@ import { buildDefaultValue } from '../../../../lib/meta';
 import { getJssyValueDefOfQueryArgument } from '../../../../lib/schema';
 import { noop, returnArg, objectToArray } from '../../../../utils/misc';
 
-//noinspection JSUnresolvedVariable
 const propTypes = {
   field: PropTypes.object.isRequired,
   schema: PropTypes.object.isRequired,

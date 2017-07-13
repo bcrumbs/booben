@@ -21,7 +21,7 @@ const defaultProps = {
 
 export const PropAction = ({ id, icon, onPress }) => (
   <div className={`prop_action prop_action-${id}`}>
-    <Button icon={icon} onPress={onPress} />
+    <Button icon={{ name: icon }} onPress={onPress} />
   </div>
 );
 

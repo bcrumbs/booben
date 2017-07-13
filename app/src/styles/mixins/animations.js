@@ -1,6 +1,6 @@
 import { keyframes } from 'styled-components';
 
-const SlideInDown = keyframes`
+const slideInDown = keyframes`
   from {
     transform: translate3d(0, -100%, 0);
     visibility: visible;
@@ -12,5 +12,5 @@ const SlideInDown = keyframes`
 `;
 
 export const animations = {
-  slideInDown: SlideInDown,
+  slideInDown,
 };

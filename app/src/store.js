@@ -7,7 +7,6 @@
 import { createStore, applyMiddleware, compose } from 'redux';
 import thunkMiddleware from 'redux-thunk';
 import createLogger from 'redux-logger';
-import { enableBatching } from 'redux-batched-actions';
 import { routerMiddleware } from 'react-router-redux';
 import rootReducer from './reducers';
 import history from './history';
@@ -31,9 +30,8 @@ if (willAddReduxDevTools) {
   enhancers.push(window.__REDUX_DEVTOOLS_EXTENSION__());
 }
 
-const reducer = enableBatching(rootReducer);
 const enhancer = compose(...enhancers);
-const store = createStore(reducer, enhancer);
+const store = createStore(rootReducer, enhancer);
 const originalDispatch = store.dispatch;
 let dispatch = originalDispatch;
 let isApolloInjected = false;
