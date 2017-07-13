@@ -11,8 +11,7 @@ import { TypeNames } from '@jssy/types';
 import {
   Form,
   FormItem,
-  Input,
-  Textarea,
+  TextField,
   SelectBox,
   Button,
 } from '@reactackle/reactackle';
@@ -239,7 +238,7 @@ export class NewFunctionWindow extends PureComponent {
           <BlockContentBoxItem>
             <Form>
               <FormItem>
-                <Input
+                <TextField
                   label={getLocalizedText('linkDialog.function.new.title')}
                   value={title}
                   onChange={this._handleTitleChange}
@@ -247,7 +246,8 @@ export class NewFunctionWindow extends PureComponent {
               </FormItem>
   
               <FormItem>
-                <Textarea
+                <TextField
+                  minRows={1}
                   label={getLocalizedText('linkDialog.function.new.desc')}
                   value={description}
                   onChange={this._handleDescriptionChange}

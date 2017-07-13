@@ -10,13 +10,14 @@ import {
   TypeNames,
   resolveTypedef,
   makeDefaultNonNullValue,
+  makeDefaultValue,
 } from '@jssy/types';
 
 import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
 import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../constants/misc';
-import { isDef, objectSome } from '../utils/misc';
+import { isDef, returnEmptyObject, objectSome } from '../utils/misc';
 
 /**
  * @typedef {Object<string, Object<string, ComponentMeta>>} ComponentsMeta
@@ -135,6 +136,42 @@ export const getComponentPropName = (componentMeta, prop, language) => {
 export const isValidSourceForValue = (valueDef, source) =>
   valueDef.source.indexOf(source) > -1;
 
+const defaultSourceConfigBuilders = {
+  static: (valueDef, userTypedefs) => ({
+    default: makeDefaultValue(valueDef, userTypedefs),
+  }),
+  
+  const: (valueDef, userTypedefs) => ({
+    value: makeDefaultValue(valueDef, userTypedefs),
+  }),
+  
+  data: returnEmptyObject,
+  designer: () => ({
+    props: {},
+  }),
+  
+  state: returnEmptyObject,
+  routeParams: returnEmptyObject,
+  actions: () => ({
+    args: [],
+  }),
+};
+
+/**
+ *
+ * @param {JssyValueDefinition} valueDef
+ * @param {string} source
+ * @param {Object<string, JssyTypeDefinition>} [userTypedefs=null]
+ * @return {Object}
+ */
+export const getSourceConfig = (valueDef, source, userTypedefs = null) => {
+  if (valueDef.sourceConfigs[source]) {
+    return valueDef.sourceConfigs[source];
+  }
+  
+  return defaultSourceConfigBuilders[source](valueDef, userTypedefs);
+};
+
 /**
  *
  * @param {ComponentMeta} componentMeta
@@ -153,7 +190,7 @@ export const componentHasActions = componentMeta =>
  */
 export const propHasDataContext = propMeta =>
   isValidSourceForValue(propMeta, 'data') &&
-  !!propMeta.sourceConfigs.data.pushDataContext;
+  !!getSourceConfig(propMeta, 'data').pushDataContext;
 
 /**
  *
@@ -181,12 +218,14 @@ const buildDefaultStaticValue = (
   userTypedefs,
   _inheritedDefaultValue = NO_VALUE,
 ) => {
+  const sourceConfig = getSourceConfig(valueDef, 'static', userTypedefs);
+  
   /* eslint-disable no-use-before-define */
-  if (valueDef.sourceConfigs.static.defaultTextKey) {
+  if (sourceConfig.defaultTextKey) {
     const string = (strings && language)
       ? getString(
         strings,
-        valueDef.sourceConfigs.static.defaultTextKey,
+        sourceConfig.defaultTextKey,
         language,
       )
       : '';
@@ -196,7 +235,7 @@ const buildDefaultStaticValue = (
 
   const defaultValue = _inheritedDefaultValue !== NO_VALUE
     ? _inheritedDefaultValue
-    : valueDef.sourceConfigs.static.default;
+    : sourceConfig.default;
 
   if (valueDef.type === TypeNames.SHAPE) {
     if (defaultValue === null) return makeSimpleStaticValue(null);
@@ -245,8 +284,8 @@ const buildDefaultStaticValue = (
         userTypedefs,
         fieldValue,
       ));
-    } else if (valueDef.sourceConfigs.static.defaultNum) {
-      for (let i = 0; i < valueDef.sourceConfigs.static.defaultNum; i++) {
+    } else if (sourceConfig.defaultNum) {
+      for (let i = 0; i < sourceConfig.defaultNum; i++) {
         value.push(_buildDefaultValue(
           valueDef.ofType,
           strings,
@@ -272,13 +311,16 @@ const buildDefaultStaticValue = (
 
 /**
  *
- * @param {JssyValueDefinition} propMeta
- * @return {PlainJssyValue|Symbol}
+ * @param {JssyValueDefinition} valueDef
+ * @param {?Object<string, Object<string, string>>} _
+ * @param {string} __
+ * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+ * @return {PlainJssyValue}
  */
-const buildDefaultConstValue = propMeta => ({
+const buildDefaultConstValue = (valueDef, _, __, userTypedefs) => ({
   source: 'const',
   sourceData: {
-    value: propMeta.sourceConfigs.const.value,
+    value: getSourceConfig(valueDef, 'const', userTypedefs).value,
   },
 });
 
@@ -386,8 +428,7 @@ const _buildDefaultValue = (
  * @return {boolean}
  */
 export const isJssyValueDefinition = typedefOrValueDef =>
-  !!typedefOrValueDef.source &&
-  !!typedefOrValueDef.sourceConfigs;
+  !!typedefOrValueDef.source;
 
 /**
  *
@@ -576,8 +617,8 @@ export const constructComponent = (
  * @return {boolean}
  */
 export const valueHasDataContest = valueDef =>
-  !!valueDef.sourceConfigs.data &&
-  !!valueDef.sourceConfigs.data.pushDataContext;
+  isValidSourceForValue(valueDef, 'data') &&
+  !!getSourceConfig(valueDef, 'data').pushDataContext;
 
 /**
  *
@@ -590,10 +631,16 @@ export const findPropThatPushedDataContext = (componentMeta, dataContext) => {
   
   for (let i = 0; i < propNames.length; i++) {
     const propMeta = componentMeta.props[propNames[i]];
+    
     if (
-      propMeta.sourceConfigs.data &&
-      propMeta.sourceConfigs.data.pushDataContext === dataContext
-    ) return { propName: propNames[i], propMeta };
+      isValidSourceForValue(propMeta, 'data') &&
+      getSourceConfig(propMeta, 'data').pushDataContext === dataContext
+    ) {
+      return {
+        propName: propNames[i],
+        propMeta,
+      };
+    }
   }
   
   return null;
