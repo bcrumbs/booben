@@ -57,10 +57,11 @@ export class PropTextarea extends PropBase {
     
     return (
       <TextField
+        multiline
+        multilineRows={{ min: 1 }}
         value={value}
         placeholder={placeholder}
         disabled={disabled}
-        minRows={1}
         onChange={this._handleChange}
       />
     );

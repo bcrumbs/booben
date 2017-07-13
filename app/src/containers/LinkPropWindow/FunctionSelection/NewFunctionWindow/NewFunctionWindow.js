@@ -247,7 +247,8 @@ export class NewFunctionWindow extends PureComponent {
   
               <FormItem>
                 <TextField
-                  minRows={1}
+                  multiline
+                  multilineRows={{ min: 1 }}
                   label={getLocalizedText('linkDialog.function.new.desc')}
                   value={description}
                   onChange={this._handleDescriptionChange}
