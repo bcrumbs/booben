@@ -7,6 +7,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from '@reactackle/reactackle';
+import { ActionsRowStyled } from './styles/ActionsRowStyled';
+import { PropsListStyled } from '../../styles/PropsListStyled';
 
 import {
   AddNestedValueDialog,
@@ -74,7 +76,7 @@ export class NestedPropsList extends PureComponent {
     let addButton = null;
     if (hasAddButton && !isTitleDialogVisible) {
       addButton = (
-        <div className="prop-tree-item-action-row">
+        <ActionsRowStyled>
           <Button
             text={getLocalizedText('valueEditor.addValue')}
             icon={{ name: 'plus' }}
@@ -82,7 +84,7 @@ export class NestedPropsList extends PureComponent {
             narrow
             onPress={this._handleAddButtonPress}
           />
-        </div>
+        </ActionsRowStyled>
       );
     }
     
@@ -98,11 +100,11 @@ export class NestedPropsList extends PureComponent {
     }
     
     return (
-      <div className="prop-tree_list">
+      <PropsListStyled nested>
         {children}
         {addButton}
         {titleDialog}
-      </div>
+      </PropsListStyled>
     );
   }
 }

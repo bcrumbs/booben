@@ -8,6 +8,10 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TextField, Button } from '@reactackle/reactackle';
 import { noop, returnArg } from '../../../../../utils/misc';
+import { FieldNewStyled } from './styles/FieldNewStyled';
+import { TitleRowStyled } from './styles/TitleRowStyled';
+import { ContentStyled } from './styles/ContentStyled';
+import { ButtonsRowStyled } from './styles/ButtonsRowStyled';
 
 const propTypes = {
   getLocalizedText: PropTypes.func,
@@ -48,21 +52,21 @@ export class AddNestedValueDialog extends PureComponent {
     const saveButtonIsDisabled = !name;
     
     return (
-      <div className="prop-tree_field-new">
-        <div className="prop-tree_field-new_row field-new_title">
+      <FieldNewStyled>
+        <TitleRowStyled>
           {getLocalizedText('valueEditor.addValueDialogTitle')}
-        </div>
+        </TitleRowStyled>
     
-        <div className="prop-tree_field-new_row">
+        <ContentStyled>
           <TextField
             dense
             label={getLocalizedText('valueEditor.addValueNameInputLabel')}
             value={name}
             onChange={this._handleNameChange}
           />
-        </div>
+        </ContentStyled>
     
-        <div className="prop-tree_field-new_row field-new_buttons">
+        <ButtonsRowStyled>
           <Button
             narrow
             text={getLocalizedText('common.save')}
@@ -75,8 +79,8 @@ export class AddNestedValueDialog extends PureComponent {
             text={getLocalizedText('common.cancel')}
             onPress={onCancel}
           />
-        </div>
-      </div>
+        </ButtonsRowStyled>
+      </FieldNewStyled>
     );
   }
 }

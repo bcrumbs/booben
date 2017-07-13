@@ -15,22 +15,6 @@ $prop-toggle: 'prop-type-toggle';
     // =================================================================================================================
     .props-list,
     .prop-tree_list {
-        background-color: $prop-list-bg-color;
-        border-left: $prop-list-border-left-thickness solid $prop-list-border-left-color;
-
-        .prop-item & {
-            // margin-left: $props-level-offset;
-
-            margin-left: -$prop-item-padding-x;
-            margin-right: -$prop-item-padding-x;
-            padding-left: $props-level-offset + $prop-item-padding-x !important;
-
-            opacity: 0;
-            pointer-events: none;
-            position: fixed;
-            margin-bottom: $props-list-margin-bottom;
-            border-bottom: $prop-list-border-bottom-thickness solid $prop-list-border-bottom-color;
-        }
 
         .prop-item-wrapper.has-image + & {
             // margin-left: $props-image-level-offset - $prop-item-padding-x + $props-level-offset;
@@ -374,43 +358,8 @@ $prop-toggle: 'prop-type-toggle';
         }
     }
 
-    .prop-tree-item-action-row {
-        text-align: right;
-        margin-right: -$base-module;
-        .prop-item + & { margin-top: $props-list-margin-bottom }
-    }
-
-    .prop-tree_field-new {
-        margin: $props-list-margin-bottom 0 0;
-
-        padding: $prop-new-field-pad-y $prop-new-field-pad-x;
-        background-color: $prop-new-field-bg-color;
-    }
-
     .prop-tree_field-new_row {
         & + & { margin-top: $prop-new-field-element-spacing }
-
-        &.field-new_buttons {
-            margin-right: -$base-module;
-            margin-bottom: -$base-module;
-            text-align: right;
-        }
-
-        &.field-new_title {
-            font-size: fs(1);
-            font-weight: $font-weight-semibold;
-        }
-    }
-
-    // BREADCRUMBS
-    .prop-tree-breadcrumbs {
-        border-bottom: rem-calc(1) solid $color-border;
-        margin-bottom: $base-module;
-    }
-
-    .prop-tree-breadcrumbs .breadcrumbs {
-        margin-top: 0;
-        margin-left: 0;
     }
 
     // LIST
