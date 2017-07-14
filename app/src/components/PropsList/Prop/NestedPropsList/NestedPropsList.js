@@ -100,7 +100,7 @@ export class NestedPropsList extends PureComponent {
     }
     
     return (
-      <PropsListStyled nested>
+      <PropsListStyled>
         {children}
         {addButton}
         {titleDialog}
