@@ -6,8 +6,9 @@ import { transition } from '@reactackle/reactackle';
 
 import {
   baseModule,
-  paletteBlueGrey100,
+  paletteBlueGrey25,
   paletteBlueGrey200,
+  colorActiveBg,
 } from '../../../styles/themeSelectors';
 
 const propTypes = {
@@ -23,7 +24,7 @@ const tagsPerRow = 3,
 
 const focused = ({ focused }) => focused
   ? `
-    background-color: ${paletteBlueGrey100};
+    background-color: ${colorActiveBg};
     border-color: ${paletteBlueGrey200};
   `
   : '';
@@ -45,7 +46,7 @@ export const ComponentTagStyled = styled.div`
   ${transition('border, background')};
 
   &:hover {
-    background-color: ${paletteBlueGrey100};
+    background-color: ${paletteBlueGrey25};
   }
 `;
 
