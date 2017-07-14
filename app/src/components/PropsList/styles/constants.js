@@ -8,8 +8,4 @@ export default {
     paddingY: baseModule(2),
     paddingX: baseModule(2),
   },
-  
-  item: {
-    paddingX: baseModule(2),
-  },
 };

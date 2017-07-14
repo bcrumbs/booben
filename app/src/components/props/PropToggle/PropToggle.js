@@ -52,7 +52,7 @@ export class PropToggle extends PropBase {
     if (linked || (checkable && !checked)) return [];
     
     return [
-      <div key="toggle" className="prop_action prop_action-toggle">
+      <div key="toggle">
         <ToggleButton
           checked={value}
           disabled={disabled}

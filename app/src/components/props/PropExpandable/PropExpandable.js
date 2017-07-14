@@ -52,6 +52,8 @@ export class PropExpandable extends PropBase {
         id="collapse"
         icon="chevron-right"
         onPress={this._handleExpandAction}
+        rounded
+        expanded={this.props.expanded}
       />,
     ];
   }
@@ -65,8 +67,8 @@ export class PropExpandable extends PropBase {
    */
   _getAdditionalClassNames() {
     return this.props.expanded
-      ? ['has-sublevels', 'sublevel-is-visible']
-      : ['has-sublevels'];
+      ? ['sublevel-is-visible']
+      : [''];
   }
   
   //noinspection JSUnusedGlobalSymbols

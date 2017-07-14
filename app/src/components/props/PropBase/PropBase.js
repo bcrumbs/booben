@@ -11,6 +11,15 @@ import { PropLabel } from './PropLabel/PropLabel';
 import { PropImage } from './PropImage/PropImage';
 import { PropAction } from './PropAction/PropAction';
 import { noop } from '../../../utils/misc';
+import { MarkWrapperStyled } from './styles/MarkWrapperStyled';
+import { MarkStyled } from './styles/MarkStyled';
+import { LabelBoxStyled } from './styles/LabelBoxStyled';
+import { MessageBoxStyled } from './styles/MessageBoxStyled';
+import { ActionsBoxStyled } from './styles/ActionsBoxStyled';
+import { SubcomponentBoxStyled } from './styles/SubcomponentBoxStyled';
+import { ContentBoxStyled } from './styles/ContentBoxStyled';
+import { WrapperStyled } from './styles/WrapperStyled';
+import { PropItemStyled } from './styles/PropItemStyled';
 
 const ActionPropType = PropTypes.shape({
   id: PropTypes.string.isRequired,
@@ -34,6 +43,7 @@ const propTypes = {
   checkable: PropTypes.bool,
   checked: PropTypes.bool,
   deletable: PropTypes.bool,
+  expanded: PropTypes.bool,
   additionalActions: PropTypes.arrayOf(ActionPropType),
   onLink: PropTypes.func,
   onPick: PropTypes.func,
@@ -58,6 +68,7 @@ const defaultProps = {
   checkable: false,
   checked: false,
   deletable: false,
+  expanded: false,
   additionalActions: [],
   onLink: noop,
   onPick: noop,
@@ -191,42 +202,42 @@ export class PropBase extends PureComponent {
       children,
     } = this.props;
 
-    let className = 'prop-item';
-    let wrapperClassName = 'prop-item-wrapper';
-  
+    let className = '';
+    let wrapperClassName = '';
     className += ` ${this._getAdditionalClassNames().join(' ')}`;
     wrapperClassName += ` ${this._getAdditionalWrapperClassNames().join(' ')}`;
 
-    let labelElement = null;
+    let labelElement = null,
+      markColorScheme = null;
     if (label) {
       let requireMark = null;
       if (required) {
-        wrapperClassName += ' is-required';
-    
         let markIcon = null;
         if (requirementFulfilled) {
-          className += ' requirement-is-fulfilled';
+          markColorScheme += 'success';
 
           markIcon = (
-            <Icon name="check" />
+            <Icon name="check" size="inherit" color="inherit" />
           );
         } else {
+          markColorScheme += 'error';
+          
           markIcon = (
-            <Icon name="exclamation" />
+            <Icon name="exclamation" size="inherit" color="inherit" />
           );
         }
 
         requireMark = (
-          <div className="prop-item_require-mark">
-            <div className="require-mark">
+          <MarkWrapperStyled>
+            <MarkStyled colorScheme={markColorScheme}>
               {markIcon}
-            </div>
-          </div>
+            </MarkStyled>
+          </MarkWrapperStyled>
         );
       }
       
       labelElement = (
-        <div className="prop-item_label-box">
+        <LabelBoxStyled>
           {requireMark}
         
           <PropLabel
@@ -234,7 +245,7 @@ export class PropBase extends PureComponent {
             secondaryLabel={secondaryLabel}
             tooltip={tooltip}
           />
-        </div>
+        </LabelBoxStyled>
       );
     }
   
@@ -243,29 +254,27 @@ export class PropBase extends PureComponent {
       imageElement = (
         <PropImage src={image} />
       );
-    
-      wrapperClassName += ' has-image';
     }
   
     let messageElement = null;
     if (message) {
       messageElement = (
-        <div className="prop-item_message-wrapper">
+        <MessageBoxStyled>
           {message}
-        </div>
+        </MessageBoxStyled>
       );
     }
   
     let actionsLeftElement = null;
     if (deletable) {
       actionsLeftElement = (
-        <div className="prop_actions prop_actions-left">
+        <ActionsBoxStyled>
           <PropAction
             id="collapse"
             icon="times"
             onPress={this._handleDelete}
           />
-        </div>
+        </ActionsBoxStyled>
       );
     }
   
@@ -313,50 +322,47 @@ export class PropBase extends PureComponent {
     let actionsRightElement = null;
     if (actionItemsRight.length) {
       actionsRightElement = (
-        <div className="prop_actions prop_actions-right">
+        <ActionsBoxStyled>
           {actionItemsRight}
-        </div>
+        </ActionsBoxStyled>
       );
     }
   
     let checkboxElement = null;
     if (checkable) {
       checkboxElement = (
-        <div className="prop_subcomponent prop_subcomponent-left">
+        <SubcomponentBoxStyled>
           <Checkbox
             checked={checked}
             onChange={this._handleCheck}
           />
-        </div>
+        </SubcomponentBoxStyled>
       );
     }
     
     const content = linked ? this._renderLinked() : this._renderContent();
     
     return (
-      <div className={className}>
-        <div className={wrapperClassName}>
+      <PropItemStyled
+        sublevelVisible={this.props.expanded}
+        className={className}
+      >
+        <WrapperStyled className={wrapperClassName}>
           {checkboxElement}
           {actionsLeftElement}
           {imageElement}
         
-          <div className="prop-item-content-box">
+          <ContentBoxStyled>
             {labelElement}
-            
-            <div className="prop-item_value-wrapper">
-              {messageElement}
-            </div>
-          
-            <div className="prop-item_value-wrapper">
-              {content}
-            </div>
-          </div>
+            {messageElement}
+            {content}
+          </ContentBoxStyled>
         
           {actionsRightElement}
-        </div>
+        </WrapperStyled>
       
         {children}
-      </div>
+      </PropItemStyled>
     );
   }
 }
