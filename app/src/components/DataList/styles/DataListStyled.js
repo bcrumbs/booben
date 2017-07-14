@@ -8,8 +8,7 @@ const itemPadX = componentConstants.item.paddingX;
 
 export const DataListStyled = styled.div`
   margin: -${baseModule(1)}px -${itemPadX}px;
-  margin-right: -${itemPadX}px;
-  width: calc(100% + ${baseModule(4)}px);
+  width: calc(100% + ${itemPadX}px * 2);
 `;
 
 DataListStyled.displayName = 'DataListStyled';

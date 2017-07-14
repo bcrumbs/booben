@@ -19,8 +19,8 @@ export const ButtonsStyled = styled.div`
   opacity: 0;
   pointer-events: none;
   position: fixed;
-  margin: -${my}px -calc(${mx}px - ${baseModule(1)}px);
-  width: calc(100% + ${mx * 2}px + ${baseModule(2)}px);
+  margin: -${my}px -${baseModule(1)}px;
+  width: calc(100% + ${baseModule(2)}px);
   text-align: right;
   ${selected}
   ${transition('opacity')};

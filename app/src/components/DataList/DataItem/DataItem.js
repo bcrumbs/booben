@@ -119,6 +119,8 @@ export class DataItem extends PureComponent {
           <Button
             icon={{ name: 'chevron-right' }}
             onPress={this._handleJumpInto}
+            radius="rounded"
+            size="small"
           />
         </ActionsStyled>
       );
@@ -165,7 +167,7 @@ export class DataItem extends PureComponent {
     }
   
     return (
-      <DataListItemStyled onClick={this._handleSelect}>
+      <DataListItemStyled selected={selected} onClick={this._handleSelect}>
         <ContentBoxStyled selected={selected}>
           <div>
             <TitleStyled>{title}</TitleStyled>

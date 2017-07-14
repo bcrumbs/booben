@@ -13,6 +13,7 @@ export const TypeStyled = styled.span`
   line-height: 1.5;
   color: ${textColorMedium};
   margin-top: ${baseModule(0.5)}px;
+  margin-right: ${baseModule(0.5)}px;
 `;
 
 TypeStyled.displayName = 'TypeStyled';
