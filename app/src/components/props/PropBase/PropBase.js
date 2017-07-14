@@ -198,6 +198,7 @@ export class PropBase extends PureComponent {
       pickable,
       checkable,
       checked,
+      expanded,
       additionalActions,
       children,
     } = this.props;
@@ -207,21 +208,22 @@ export class PropBase extends PureComponent {
     className += ` ${this._getAdditionalClassNames().join(' ')}`;
     wrapperClassName += ` ${this._getAdditionalWrapperClassNames().join(' ')}`;
 
-    let labelElement = null,
-      markColorScheme = null;
+    let labelElement = null;
+    let markColorScheme = null;
+
     if (label) {
       let requireMark = null;
+
       if (required) {
         let markIcon = null;
+
         if (requirementFulfilled) {
           markColorScheme = 'success';
-
           markIcon = (
             <Icon name="check" size="inherit" color="inherit" />
           );
         } else {
           markColorScheme = 'error';
-          
           markIcon = (
             <Icon name="exclamation" size="inherit" color="inherit" />
           );
@@ -344,7 +346,7 @@ export class PropBase extends PureComponent {
     
     return (
       <PropItemStyled
-        sublevelVisible={this.props.expanded}
+        sublevelVisible={expanded}
         className={className}
       >
         <WrapperStyled className={wrapperClassName}>
