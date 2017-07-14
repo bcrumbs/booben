@@ -2,7 +2,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Input, Button } from '@reactackle/reactackle';
+import { TextField, Button } from '@reactackle/reactackle';
 import { SearchInputStyled } from './styles/SearchInputStyled';
 import { InputWrapperStyled } from './styles/InputWrapperStyled';
 import { noop } from '../../utils/misc';
@@ -24,7 +24,7 @@ const defaultProps = {
 export const SearchInput = props => (
   <SearchInputStyled>
     <InputWrapperStyled>
-      <Input
+      <TextField
         fullWidth
         placeholder={props.placeholder}
         value={props.value}

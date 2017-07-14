@@ -17,7 +17,7 @@ import {
 
 import { extractPropValueFromData } from './graphql';
 import { getFunctionInfo, formatFunctionId } from './functions';
-import { getComponentMeta } from './meta';
+import { getComponentMeta, getSourceConfig } from './meta';
 
 import {
   mapListToArray,
@@ -391,7 +391,7 @@ const buildActionArgValue = (jssyValue, valueDef, userTypedefs, context) => {
 
   return coerceValue(
     actionArgValues[argIdx],
-    actionValueDef.sourceConfigs.actions.args[argIdx],
+    getSourceConfig(actionValueDef, 'actions').args[argIdx],
     valueDef,
     actionUserTypedefs,
     userTypedefs,

@@ -21,7 +21,7 @@ import {
   DataItem,
 } from '../../../components/DataList/DataList';
 
-import { getString } from '../../../lib/meta';
+import { getString, getSourceConfig } from '../../../lib/meta';
 import { noop, returnArg } from '../../../utils/misc';
 
 const propTypes = {
@@ -94,16 +94,18 @@ export class OwnerComponentPropSelection extends PureComponent {
       language,
     } = this.props;
     
-    const ownerPropsMeta = ownerPropMeta.sourceConfigs.designer.props;
-    const items = Object.keys(ownerPropsMeta)
+    const designerSourceConfig =
+      getSourceConfig(ownerPropMeta, 'designer', ownerComponentMeta.types);
+
+    const items = Object.keys(designerSourceConfig.props)
       .filter(ownerPropName => isEqualType(
-        ownerPropsMeta[ownerPropName],
+        designerSourceConfig.props[ownerPropName],
         linkTargetValueDef,
         ownerComponentMeta.types,
         userTypedefs,
       ))
       .map(ownerPropName => {
-        const ownerPropMeta = ownerPropsMeta[ownerPropName];
+        const ownerPropMeta = designerSourceConfig.props[ownerPropName];
       
         const title = getString(
           ownerComponentMeta.strings,

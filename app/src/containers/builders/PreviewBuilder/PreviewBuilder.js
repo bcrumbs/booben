@@ -22,7 +22,13 @@ import {
 } from '../helpers';
 
 import JssyValue from '../../../models/JssyValue';
-import { isCompositeComponent, getComponentMeta } from '../../../lib/meta';
+
+import {
+  isCompositeComponent,
+  getComponentMeta,
+  getSourceConfig,
+} from '../../../lib/meta';
+
 import { buildQueryForComponent, buildMutation } from '../../../lib/graphql';
 import { queryResultHasData } from '../../../lib/apollo';
 
@@ -511,7 +517,8 @@ class PreviewBuilderComponent extends PureComponent {
     const { componentsState } = this.state;
     
     const resolvedTypedef = resolveTypedef(valueDef, userTypedefs);
-    const stateUpdates = resolvedTypedef.sourceConfigs.actions.updateState;
+    const stateUpdates =
+      getSourceConfig(resolvedTypedef, 'actions', userTypedefs).updateState;
     
     if (stateUpdates && componentId !== INVALID_ID) {
       const currentState = componentsState.get(componentId);

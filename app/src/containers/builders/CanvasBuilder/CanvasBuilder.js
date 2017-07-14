@@ -40,6 +40,7 @@ import {
   isContainerComponent,
   isCompositeComponent,
   getComponentMeta,
+  getSourceConfig,
 } from '../../../lib/meta';
 
 import {
@@ -266,7 +267,8 @@ class CanvasBuilderComponent extends PureComponent {
     const { componentsState } = this.state;
   
     const resolvedTypedef = resolveTypedef(valueDef, userTypedefs);
-    const stateUpdates = resolvedTypedef.sourceConfigs.actions.updateState;
+    const stateUpdates =
+      getSourceConfig(resolvedTypedef, 'actions', userTypedefs).updateState;
   
     if (stateUpdates && componentId !== INVALID_ID) {
       const currentState = componentsState.get(componentId);
