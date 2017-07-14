@@ -63,8 +63,8 @@ export class ComponentHandler extends PureComponent {
     }
   
     return (
-      <HandlerStyled onClick={this._handleExpandButtonClick}>
-        <HandlerHeadingStyled>
+      <HandlerStyled>
+        <HandlerHeadingStyled onClick={this._handleExpandButtonClick}>
           <HandlerTitleStyled active={hasActions}>
             <HandlerTitleTextStyled>
               {title}
