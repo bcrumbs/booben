@@ -9,14 +9,14 @@ import { List, is } from 'immutable';
 /**
  * Does nothing
  */
-export const noop = /* istanbul ignore next */ () => {};
+export const noop = () => {};
 
 /**
  * Returns null :)
  *
  * @return {null}
  */
-export const returnNull = /* istanbul ignore next */ () => null;
+export const returnNull = () => null;
 
 /**
  * Returns its first argument
@@ -25,7 +25,7 @@ export const returnNull = /* istanbul ignore next */ () => null;
  * @param {T} arg
  * @return {T}
  */
-export const returnArg = /* istanbul ignore next */ arg => arg;
+export const returnArg = arg => arg;
 
 /**
  *
@@ -34,13 +34,19 @@ export const returnArg = /* istanbul ignore next */ arg => arg;
  * @param {T} arg
  * @return {T}
  */
-export const returnSecondArg = /* istanbul ignore next */ (_, arg) => arg;
+export const returnSecondArg = (_, arg) => arg;
 
 /**
  * Returns true
  * @return {boolean}
  */
-export const returnTrue = /* istanbul ignore next */ () => true;
+export const returnTrue = () => true;
+
+/**
+ * Returns empty object
+ * @return {Object}
+ */
+export const returnEmptyObject = () => ({});
 
 /**
  *

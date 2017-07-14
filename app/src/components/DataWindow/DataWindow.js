@@ -6,7 +6,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import './DataWindow.scss';
+import { DataWindowStyled } from './styles/DataWindowStyled';
 
 const propTypes = {
   hidden: PropTypes.bool,
@@ -22,9 +22,9 @@ export const DataWindow = props => {
   if (props.hidden) style.display = 'none';
   
   return (
-    <div className="data-window_content" style={style}>
+    <DataWindowStyled style={style}>
       {props.children}
-    </div>
+    </DataWindowStyled>
   );
 };
 

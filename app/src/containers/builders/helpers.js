@@ -89,17 +89,22 @@ export const getRenderHints = (components, rootId, meta, schema, project) => {
 /**
  *
  * @param {Immutable.Map<number, Object>} components
- * @param {RenderHints} renderHints
  * @param {Object<string, Object<string, ComponentMeta>>} meta
+ * @param {RenderHints} renderHints
+ * @param {?ValueContext} [valueContext=null]
  * @return {Immutable.Map<number, Immutable.Map<string, *>>}
  * @private
  */
-export const getInitialComponentsState = (components, renderHints, meta) => {
+export const getInitialComponentsState = (
+  components,
+  meta,
+  renderHints,
+  valueContext = null,
+) => {
   let componentsState = Immutable.Map();
 
   renderHints.activeStateSlots.forEach((slotNames, componentId) => {
     const component = components.get(componentId);
-    const valueContext = this._getValueContext(component.id);
     const values = buildInitialComponentState(
       component,
       meta,
