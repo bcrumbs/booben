@@ -3,7 +3,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { noop } from '../../utils/misc';
-import './CanvasFrame.scss';
+import { CanvasFrameStyled } from './styles/CanvasFrameStyled';
+import { FrameStyled } from './styles/FrameStyled';
 
 const propTypes = {
   iframeRef: PropTypes.func,
@@ -14,13 +15,12 @@ const defaultProps = {
 };
 
 export const CanvasFrame = props => (
-  <section className="preview-iframe-wrapper">
-    <iframe
-      className="preview-iframe"
+  <CanvasFrameStyled>
+    <FrameStyled
       sandbox="allow-same-origin allow-scripts allow-pointer-lock"
-      ref={props.iframeRef}
+      innerRef={props.iframeRef}
     />
-  </section>
+  </CanvasFrameStyled>
 );
 
 CanvasFrame.propTypes = propTypes;

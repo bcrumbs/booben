@@ -20,7 +20,7 @@ import {
   Dialog,
   Form,
   FormItem,
-  Input,
+  TextField,
 } from '@reactackle/reactackle';
 
 import {
@@ -1113,7 +1113,7 @@ class StructureRoute extends PureComponent {
       
       (paramValue, paramName) => (
         <FormItem>
-          <Input
+          <TextField
             key={paramName}
             label={paramName}
             value={paramValue}
@@ -1157,7 +1157,7 @@ class StructureRoute extends PureComponent {
             <BlockContentBoxItem blank>
               <Form>
                 <FormItem>
-                  <Input
+                  <TextField
                     ref={this._saveNewRouteTitleInputRef}
                     label={getLocalizedText('structure.title')}
                     value={newRouteTitle}
@@ -1166,7 +1166,7 @@ class StructureRoute extends PureComponent {
                 </FormItem>
 
                 <FormItem>
-                  <Input
+                  <TextField
                     label={getLocalizedText('structure.path')}
                     value={newRoutePath}
                     pattern={ROUTE_PATH_PATTERN}
@@ -1259,7 +1259,7 @@ class StructureRoute extends PureComponent {
 
       (paramValue, paramName) => (
         <FormItem>
-          <Input
+          <TextField
             key={paramName}
             label={paramName}
             value={paramValue}
@@ -1303,7 +1303,7 @@ class StructureRoute extends PureComponent {
             <BlockContentBoxItem blank>
               <Form>
                 <FormItem>
-                  <Input
+                  <TextField
                     ref={this._saveRoutePathInputRef}
                     label={getLocalizedText('structure.path')}
                     value={newRoutePath}

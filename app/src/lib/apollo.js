@@ -32,3 +32,11 @@ export const createNetworkInterfaceForProject = project => {
     },
   });
 };
+
+/**
+ *
+ * @param {Object} queryResult
+ * @return {boolean}
+ */
+export const queryResultHasData = queryResult =>
+  Object.keys(queryResult).length > 10; // TODO: Better check

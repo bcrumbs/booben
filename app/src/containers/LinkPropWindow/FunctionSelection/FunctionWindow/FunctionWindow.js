@@ -86,26 +86,12 @@ const wrap = connect(mapStateToProps, mapDispatchToProps);
  * @param {JssyValueDefinition} targetValueDef
  * @return {JssyValueDefinition}
  */
-const getValueDef = (arg, targetValueDef) => {
-  const ret = {
-    ...arg.typedef,
-    label: arg.name,
-    description: arg.description,
-    source: [],
-    sourceConfigs: {},
-  };
-
-  targetValueDef.source.forEach(source => {
-    ret.source.push(source);
-    ret.sourceConfigs[source] = {};
-
-    if (source === 'static') {
-      ret.sourceConfigs.static.default = makeDefaultValue(arg.typedef);
-    }
-  });
-
-  return ret;
-};
+const getValueDef = (arg, targetValueDef) => ({
+  ...arg.typedef,
+  label: arg.name,
+  description: arg.description,
+  source: [...targetValueDef.source],
+});
 
 /**
  *

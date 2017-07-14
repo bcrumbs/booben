@@ -35,6 +35,7 @@ import {
   getComponentMeta,
   getString,
   isValidSourceForValue,
+  getSourceConfig,
 } from '../../lib/meta';
 
 import * as JssyPropTypes from '../../constants/common-prop-types';
@@ -282,7 +283,8 @@ class ComponentActionsEditorComponent extends PureComponent {
     const component = currentComponents.get(componentId);
     const componentMeta = getComponentMeta(component.name, meta);
     const propMeta = componentMeta.props[activeHandler];
-    const actionArgsMeta = propMeta.sourceConfigs.actions.args;
+    const actionArgsMeta =
+      getSourceConfig(propMeta, 'actions', componentMeta.types).args;
     
     return (
       <ActionEditor
@@ -302,7 +304,9 @@ class ComponentActionsEditorComponent extends PureComponent {
     const component = currentComponents.get(componentId);
     const componentMeta = getComponentMeta(component.name, meta);
     const propMeta = componentMeta.props[activeHandler];
-    const actionArgsMeta = propMeta.sourceConfigs.actions.args;
+    const actionArgsMeta =
+      getSourceConfig(propMeta, 'actions', componentMeta.types).args;
+    
     const propValue = component.props.get(activeHandler);
     const action = propValue.getActionByPath(editActionPath);
     

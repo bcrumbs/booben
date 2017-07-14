@@ -38,7 +38,11 @@ export default {
     SELECT_PREVIOUS_ROUTE: 'up',
     SELECT_CHILD_ROUTE: 'right',
     SELECT_PARENT_ROUTE: 'left',
-    GO_TO_DESIGN: 'enter',
+    GO_TO_DESIGN: {
+      osx: 'command+enter',
+      windows: 'ctrl+enter',
+      linux: 'ctrl+enter',
+    },
   },
   
   DESIGN_SCREEN: {
