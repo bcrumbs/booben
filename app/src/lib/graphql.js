@@ -19,6 +19,7 @@ import {
 
 import {
   getComponentMeta,
+  getSourceConfig,
   isJssyValueDefinition,
   valueHasDataContest,
 } from './meta';
@@ -542,7 +543,7 @@ const pushDataContext = (
 
 const buildAndAttachFragmentsForDesignerProp = (
   value,
-  typedef,
+  valueDef,
   dataValuesByDataContext,
   dataContextTree,
   theMap,
@@ -551,11 +552,15 @@ const buildAndAttachFragmentsForDesignerProp = (
   project,
   variablesAccumulator,
 ) => {
-  if (!typedef.sourceConfigs.designer.props) return { fragments: [], theMap };
+  const designerSourceConfig = getSourceConfig(valueDef, 'designer');
+  
+  if (!designerSourceConfig.props) {
+    return { fragments: [], theMap };
+  }
 
   let usesDataContexts = false;
 
-  _forOwn(typedef.sourceConfigs.designer.props, (
+  _forOwn(designerSourceConfig.props, (
     ownerPropMeta,
     ownerPropName,
   ) => {
