@@ -19,7 +19,7 @@ const defaultProps = {
 
 export const ArtboardExpander = props => (
   <ArtboardExpanderStyled position={props.position}>
-    <IconStyled />
+    <IconStyled position={props.position} />
   </ArtboardExpanderStyled>
 );
 

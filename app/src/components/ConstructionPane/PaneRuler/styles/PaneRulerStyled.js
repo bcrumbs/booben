@@ -15,15 +15,15 @@ const defaultProps = {
 
 const position = ({ position }) => position === 'horizontal'
   ? `
-    width: calc(100% - ${componentConstants}px);
-    height: ${componentConstants}px;
+    width: calc(100% - ${componentConstants.rulerWidth}px);
+    height: ${componentConstants.rulerWidth}px;
     top: 0;
-    left: ${componentConstants}px;
+    left: ${componentConstants.rulerWidth}px;
   `
   : `
-    width: ${componentConstants}px;
-    height: calc(100% - ${componentConstants}px);
-    top: ${componentConstants}px;
+    width: ${componentConstants.rulerWidth}px;
+    height: calc(100% - ${componentConstants.rulerWidth}px);
+    top: ${componentConstants.rulerWidth}px;
     left: 0;
   `;
 

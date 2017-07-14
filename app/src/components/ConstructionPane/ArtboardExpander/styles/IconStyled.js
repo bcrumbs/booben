@@ -20,48 +20,11 @@ const lineComboWidth = 6,
   iconLength = componentConstants.rulerWidth * 1.6,
   iconColor = paletteBlueGrey600;
 
-/*
- * TODO add gradient for corner icon
- * ex scss code
- * @include diagonal-linear(
-     $color-1: transparent,
-     $color-2: $cpane-expander-icon-color,
-     $lines: 2,
-     $line-thickness: rem-calc(2)
-   );
- *
- * @mixin diagonal-linear($color-2, $lines: 2, $line-thickness: rem-calc(2),
-  * $color-1: transparent, $angle: 135deg) {
-     $generator: ();
-     @for $i from 1 through $lines {
-       $generator: append(
-         $generator,
-         (
-           $color-1 $line-thickness*($i*2 - 2),
-           $color-1 $line-thickness*($i*2 - 1),
-           $color-2 $line-thickness*($i*2 - 1),
-           $color-2 $line-thickness*($i*2)
-         ),
-         comma
-       )
-     };
-     
-     $generator: append(
-       $generator,
-       (
-         $color-1 $line-thickness*(($lines+1) + 1),
-         $color-1 $line-thickness*(($lines+1) + 1)
-       ),
-       comma
-     );
-     
-     background-image:
-       linear-gradient(
-         $angle,
-         #{$generator}
-       );
-   }
-*/
+const colorLine = i =>
+  `${iconColor} ${lineThickness * (i * 2 - 2)}px,
+  ${iconColor} ${lineThickness * (i * 2 - 1)}px,
+  transparent ${lineThickness * (i * 2 - 1)}px,
+  transparent ${lineThickness * (i * 2)}px`;
 
 const position = ({ position }) => {
   let styles = null;
@@ -97,6 +60,8 @@ const position = ({ position }) => {
       height: ${iconWidth}px;
       width: ${iconWidth}px;
       transform:  translate3d(-50%, -50%, 0) rotate(180deg);
+      background-image:
+        linear-gradient(135deg, ${colorLine(1)}, ${colorLine(2)});
     `;
   }
   

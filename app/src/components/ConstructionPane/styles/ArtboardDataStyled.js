@@ -29,7 +29,7 @@ export const ArtboardDataStyled = styled.div`
   left: 0;
   transform: translateY(-100%);
   pointer-events: none;
-  padding: ${baseModule}px 0;
+  padding: ${baseModule(1)}px 0;
   user-select: none;
 `;
 
