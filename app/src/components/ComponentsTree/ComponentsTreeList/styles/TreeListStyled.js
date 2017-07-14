@@ -11,7 +11,7 @@ export const TreeListStyled = styled.ul`
   
   ${TreeItemStyled} & {
     margin-top: ${baseModule(1)}px;
-    margin-left: ${baseModule(1)}px;
+    margin-left: ${baseModule(2)}px;
     padding-right: 0;
   }
 `;

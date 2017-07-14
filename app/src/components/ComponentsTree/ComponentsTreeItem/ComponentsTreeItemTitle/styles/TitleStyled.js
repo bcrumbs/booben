@@ -9,8 +9,9 @@ import {
   radiusDefault,
   textColorBody,
   fontSizeBody,
-  paletteBlueGrey100,
+  paletteBlueGrey50,
   paletteBlueGrey400,
+  colorActiveBg,
 } from '../../../../../styles/themeSelectors';
 
 const disabledStyles = css`
@@ -22,12 +23,28 @@ const disabledStyles = css`
   }
 `;
 
-const hovered = ({ hovered, disabled }) => {
+const hovered = ({ hovered, active, disabled }) => {
   const disabledCase = disabled ? disabledStyles : '';
   
-  return hovered
-    ? `
-      background-color: ${paletteBlueGrey100};
+  return hovered && !active
+    ? css`
+      &,
+      &:hover {
+        background-color: ${paletteBlueGrey50};
+      }
+      
+      ${disabledCase}
+    `
+    : '';
+};
+
+const active = ({ active, disabled }) => {
+  const disabledCase = disabled ? disabledStyles : '';
+  
+  return active
+    ? css`
+      background-color: ${colorActiveBg};
+      cursor: default;
       ${disabledCase}
     `
     : '';
@@ -52,6 +69,7 @@ export const TitleStyled = styled.div`
   text-align: left;
   ${transition('background-color')}
   ${hovered}
+  ${active}
   ${disabled}
 `;
 

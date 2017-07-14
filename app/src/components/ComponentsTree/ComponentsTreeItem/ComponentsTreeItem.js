@@ -74,7 +74,9 @@ export class ComponentsTreeItem extends PureComponent {
 
     return (
       <TreeItemStyled>
-        <ItemContentStyled>
+        <ItemContentStyled
+          noSublevel={!children}
+        >
           {icon}
           {itemElement}
         </ItemContentStyled>

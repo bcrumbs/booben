@@ -1,11 +1,15 @@
 'use strict';
 
 import styled from 'styled-components';
+import { TreeItemStyled } from './TreeItemStyled';
 
 const noSublevel = ({ noSublevel, theme }) => noSublevel
   ? `
-    padding-left:
-      ${theme.reactackle.components.button.size.normal.minHeight}px;
+    ${TreeItemStyled} ${TreeItemStyled} & {    
+      padding-left:
+        ${theme.reactackle.components.button.size.small.minHeight}px;
+      }
+    }
   `
   : '';
 

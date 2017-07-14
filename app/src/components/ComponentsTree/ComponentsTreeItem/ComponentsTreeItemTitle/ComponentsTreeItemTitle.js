@@ -116,6 +116,7 @@ export class ComponentsTreeItemTitle extends Component {
         <TitleStyled
           innerRef={this._saveTitleRef}
           hovered={hovered}
+          active={active}
           disabled={disabled}
           onMouseOver={this._handleHoverIn}
           onMouseOut={this._handleHoverOut}
