@@ -214,13 +214,13 @@ export class PropBase extends PureComponent {
       if (required) {
         let markIcon = null;
         if (requirementFulfilled) {
-          markColorScheme += 'success';
+          markColorScheme = 'success';
 
           markIcon = (
             <Icon name="check" size="inherit" color="inherit" />
           );
         } else {
-          markColorScheme += 'error';
+          markColorScheme = 'error';
           
           markIcon = (
             <Icon name="exclamation" size="inherit" color="inherit" />
