@@ -2,6 +2,8 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { TitleStyled } from './styles/TitleStyled';
+import { SubtitleStyled } from './styles/SubtitleStyled';
 
 const propTypes = {
   title: PropTypes.string,
@@ -14,16 +16,14 @@ const defaultProps = {
 };
 
 export const DataWindowContentGroup = props => (
-  <div className="data-window_content-group">
-    <div className="data-window_content-group_title">
+  <div>
+    <TitleStyled>
       {props.title}
-    </div>
-    <div className="data-window_content-group_subtitle">
+    </TitleStyled>
+    <SubtitleStyled>
       {props.subtitle}
-    </div>
-    <div className="data-window_content-group_content">
-      {props.children}
-    </div>
+    </SubtitleStyled>
+    {props.children}
   </div>
 );
 
