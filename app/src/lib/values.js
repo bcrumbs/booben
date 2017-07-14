@@ -17,7 +17,7 @@ import {
 
 import { extractPropValueFromData } from './graphql';
 import { getFunctionInfo, formatFunctionId } from './functions';
-import { getComponentMeta } from './meta';
+import { getComponentMeta, getSourceConfig } from './meta';
 
 import {
   mapListToArray,
@@ -391,7 +391,7 @@ const buildActionArgValue = (jssyValue, valueDef, userTypedefs, context) => {
 
   return coerceValue(
     actionArgValues[argIdx],
-    actionValueDef.sourceConfigs.actions.args[argIdx],
+    getSourceConfig(actionValueDef, 'actions').args[argIdx],
     valueDef,
     actionUserTypedefs,
     userTypedefs,
@@ -513,7 +513,7 @@ export const buildValue = (
  *
  * @param {Object} component
  * @param {Object<string, Object<string, ComponentMeta>>} meta
- * @param {ValueContext} valueContext
+ * @param {?ValueContext} [valueContext=null]
  * @param {?Array<string>} [stateSlots=null]
  * @return {Object<string, *>}
  * @private
@@ -521,7 +521,7 @@ export const buildValue = (
 export const buildInitialComponentState = (
   component,
   meta,
-  valueContext,
+  valueContext = null,
   stateSlots = null,
 ) => {
   const componentMeta = getComponentMeta(component.name, meta);
