@@ -1,6 +1,6 @@
 'use strict';
 
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import { animations } from '@reactackle/reactackle';
 import PropTypes from 'prop-types';
 
@@ -68,6 +68,7 @@ export const StateScreenStyled = styled.div`
   animation: ${animations.fadeIn} 300ms ease-in;
   position: relative;
   min-height: 100vh;
+  ${background}
 `;
 
 StateScreenStyled.displayName = 'StateScreenStyled';

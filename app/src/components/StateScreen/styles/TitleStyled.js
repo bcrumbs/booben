@@ -1,7 +1,14 @@
 'use strict';
 
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
+
+import {
+  fontSizeDisplay1,
+  fontWeightSemibold,
+  colorWhite,
+  textColorBody,
+} from '../../../styles/themeSelectors';
 
 const propTypes = {
   light: PropTypes.bool,
@@ -11,14 +18,9 @@ const defaultProps = {
   light: false,
 };
 
-import {
-  fontSizeDisplay1,
-  fontWeightSemibold,
-} from '../../../styles/themeSelectors';
-
 const colorScheme = ({
   light,
-}) => `color: ${light ? colorWhite : textColorBody }`;
+}) => css`color: ${light ? colorWhite : textColorBody}`;
 
 export const TitleStyled = styled.div`
   font-size: ${fontSizeDisplay1}px;

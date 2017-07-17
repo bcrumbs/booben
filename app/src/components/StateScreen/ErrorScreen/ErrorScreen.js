@@ -19,14 +19,14 @@ const defaultProps = {
 
 export const ErrorScreen = props => (
   <StateScreenStyled
-    image='https://media.giphy.com/media/54thzV477Bgk/giphy.gif'
-    overlayColor='rgba(51, 58, 69, 0.95)'
+    image="https://media.giphy.com/media/54thzV477Bgk/giphy.gif"
+    overlayColor="rgba(51, 58, 69, 0.95)"
   >
     <ContentStyled>
       <TitleStyled light>
         {props.title}
       </TitleStyled>
-      <MessageStyled>
+      <MessageStyled light>
         {props.message}
       </MessageStyled>
     </ContentStyled>

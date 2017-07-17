@@ -1,11 +1,13 @@
 'use strict';
 
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 
 import {
   fontSizeBody2,
   fontWeightNormal,
+  colorWhite,
+  textColorBody,
 } from '../../../styles/themeSelectors';
 
 const propTypes = {
@@ -18,7 +20,7 @@ const defaultProps = {
 
 const colorScheme = ({
   light,
-}) => `color: ${light ? colorWhite : textColorBody }`;
+}) => css`color: ${light ? colorWhite : textColorBody }`;
 
 export const MessageStyled = styled.div`
   font-size: ${fontSizeBody2}px;
