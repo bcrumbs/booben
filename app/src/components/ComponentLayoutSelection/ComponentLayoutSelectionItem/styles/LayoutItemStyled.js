@@ -17,7 +17,7 @@ export const LayoutItemStyled = styled.div`
   ${transition('background-color')};
 
   &:hover {
-    background-color: rgba(0, 0, 0, 0.95);
+    background-color: rgba(0, 0, 0, 0.05);
   }
 `;
 

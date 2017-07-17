@@ -59,7 +59,10 @@ import {
   AccordionItemRecord,
 } from '../components/Accordion/Accordion';
 
-import { BackdropBreadcrumbs } from '../components/BackdropBreadcrumbs/BackdropBreadcrumbs';
+import {
+  ComponentLayoutSelection,
+  ComponentLayoutSelectionItem,
+} from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
 import {
   ComponentTag,
@@ -71,11 +74,6 @@ import {
   ComponentsTreeList,
   ComponentsTreeItem,
 } from '../components/ComponentsTree/ComponentsTree';
-
-import {
-  ComponentLayoutSelection,
-  ComponentLayoutSelectionItem,
-} from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
 import {
   ComponentHandlers,
@@ -619,7 +617,11 @@ export default class Playground extends React.Component {
               </Container>
               
               <Container>
-                <BackdropBreadcrumbs />
+                <ComponentLayoutSelection>
+                  <ComponentLayoutSelectionItem title="title" subtitle="subtitle" />
+                  <ComponentLayoutSelectionItem title="title" subtitle="subtitle" />
+                  <ComponentLayoutSelectionItem title="title" subtitle="subtitle" />
+                </ComponentLayoutSelection>
               </Container>
 
               <Container>Тут был старый DataWindow, но его победил Бэтмен.</Container>
