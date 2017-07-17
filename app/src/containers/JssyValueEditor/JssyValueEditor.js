@@ -181,6 +181,7 @@ export class JssyValueEditor extends PureComponent {
       strings,
       language,
       userTypedefs,
+      { forceEnable: true },
     ));
   
     const newValue = where.length > 0
@@ -275,6 +276,7 @@ export class JssyValueEditor extends PureComponent {
       strings,
       language,
       userTypedefs,
+      { forceEnable: true },
     ));
     
     const newValue = path.length > 0
@@ -316,6 +318,7 @@ export class JssyValueEditor extends PureComponent {
           strings,
           language,
           userTypedefs,
+          { forceEnable: true },
         ));
 
         newValue = currentValue.setInStatic(path, value);
@@ -346,6 +349,7 @@ export class JssyValueEditor extends PureComponent {
           strings,
           language,
           userTypedefs,
+          { forceEnable: true },
         ));
     
         onChange({ name, value });

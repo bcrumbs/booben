@@ -6,6 +6,10 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { TypeStyled } from './styles/TypeStyled';
+import { TitleBoxStyled } from './styles/TitleBoxStyled';
+import { TitleStyled } from './styles/TitleStyled';
+import { SubtitleStyled } from './styles/SubtitleStyled';
 
 const propTypes = {
   title: PropTypes.string.isRequired,
@@ -22,31 +26,29 @@ export const DataWindowTitle = props => {
   let type = null;
   if (props.type) {
     type = (
-      <div className="data-window_type">
+      <TypeStyled>
         {props.type}
-      </div>
+      </TypeStyled>
     );
   }
   
   let subtitle = null;
   if (props.subtitle) {
     subtitle = (
-      <div className="data-window_subtitle">
+      <SubtitleStyled>
         {props.subtitle}
-      </div>
+      </SubtitleStyled>
     );
   }
   
   return (
-    <div className="data-window_title-box">
-      <div className="data-window_title-content">
-        <div className="data-window_title">
-          {props.title}
-        </div>
-        {type}
-        {subtitle}
-      </div>
-    </div>
+    <TitleBoxStyled>
+      <TitleStyled>
+        {props.title}
+      </TitleStyled>
+      {type}
+      {subtitle}
+    </TitleBoxStyled>
   );
 };
 

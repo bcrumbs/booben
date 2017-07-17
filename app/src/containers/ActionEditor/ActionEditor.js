@@ -136,7 +136,7 @@ const addActionArgSourceToValueDef = valueDef => ({
   ...valueDef,
   source: [...valueDef.source, 'actionArg'],
   sourceConfigs: {
-    ...valueDef.sourceConfigs,
+    ...(valueDef.sourceConfigs || {}),
     actionArg: {},
   },
 });
