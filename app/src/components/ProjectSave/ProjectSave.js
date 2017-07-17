@@ -3,7 +3,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Icon, withTooltip } from '@reactackle/reactackle';
-import './ProjectSave.scss';
+import { ProjectSaveStyled } from './styles/ProjectSaveStyled';
+import { IconStyled } from './styles/IconStyled';
+import { TitleStyled } from './styles/TitleStyled';
 
 const propTypes = {
   status: PropTypes.oneOf(['error', 'success', 'progress', 'default']),
@@ -22,9 +24,6 @@ const defaultProps = {
 };
 
 const ProjectSaveComponent = props => {
-  let className = 'project-save has-tooltip';
-  if (props.status) className += ` save-status-${props.status}`;
-  
   let icon = null;
   
   if (props.status === 'error') {
@@ -41,26 +40,27 @@ const ProjectSaveComponent = props => {
   
   /* eslint-disable react/jsx-handler-names */
   return (
-    <div
-      className={className}
+    <ProjectSaveStyled
+      colorScheme={props.status}
       onClick={props.toggleTooltip}
       onFocus={props.showTooltip}
       onBlur={props.hideTooltip}
       onMouseEnter={props.showTooltip}
       onMouseLeave={props.hideTooltip}
     >
-      <div className="project-save_icon">
+      <IconStyled
+        typeProgress={props.status === 'progress'}
+        active={props.status !== 'default'}
+      >
         {icon}
-      </div>
-
-      <div className="project-save_title-wrapper">
-        <div className="project-save_title">
-          {props.title}
-        </div>
-      </div>
+      </IconStyled>
+      
+      <TitleStyled>
+        {props.title}
+      </TitleStyled>
       
       <TooltipComponent text={props.tooltipText} />
-    </div>
+    </ProjectSaveStyled>
   );
   /* eslint-enable react/jsx-handler-names */
 };

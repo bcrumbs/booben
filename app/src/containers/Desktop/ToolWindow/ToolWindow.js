@@ -362,7 +362,7 @@ export class ToolWindow extends PureComponent {
             subtitle={tool.subtitle}
             isEditable={tool.titleEditable}
             titlePlaceHolder={tool.titlePlaceholder}
-            iconLeft="ellipsis-v"
+            iconLeft={{ name: "ellipsis-v" }}
             buttons={titleButtons}
             onLeftIconMouseDown={this._handleStartDrag}
             onTitleChange={onTitleChange}

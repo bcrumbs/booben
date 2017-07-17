@@ -6,7 +6,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Input, Theme } from '@reactackle/reactackle';
+import { TextField, Theme } from '@reactackle/reactackle';
 import { InputSpotlightStyled } from './styles/InputSpotlightStyled';
 import { ContentStyled } from './styles/ContentStyled';
 import { InputWrapperStyled } from './styles/InputWrapperStyled';
@@ -33,7 +33,7 @@ export const InputSpotlight = props => (
     <InputSpotlightStyled>
       <ContentStyled>
         <InputWrapperStyled>
-          <Input
+          <TextField
             ref={props.inputRef}
             fullWidth
             placeholder={props.placeholder}

@@ -11,8 +11,7 @@ import { Shortcuts } from 'react-shortcuts';
 import Portal from 'react-portal-minimal';
 import { push } from 'react-router-redux';
 import { List } from 'immutable';
-import { Dialog, Panel, PanelContent } from '@reactackle/reactackle';
-
+import { Dialog } from '@reactackle/reactackle';
 import { Desktop } from '../containers/Desktop/Desktop';
 
 import {
@@ -853,14 +852,10 @@ class DesignRoute extends PureComponent {
           toolGroups={toolGroups}
           onToolTitleChange={this._handleToolTitleChange}
         >
-          <Panel spread height="auto" maxHeight="none">
-            <PanelContent flex>
-              <Canvas
-                projectName={projectName}
-                containerStyle={previewContainerStyle}
-              />
-            </PanelContent>
-          </Panel>
+          <Canvas
+            projectName={projectName}
+            containerStyle={previewContainerStyle}
+          />
           
           <Dialog
             title={getLocalizedText('design.selectLayout')}

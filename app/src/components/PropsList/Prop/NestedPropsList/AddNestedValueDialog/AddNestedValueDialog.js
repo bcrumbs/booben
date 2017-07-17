@@ -6,7 +6,7 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Input, Button } from '@reactackle/reactackle';
+import { TextField, Button } from '@reactackle/reactackle';
 import { noop, returnArg } from '../../../../../utils/misc';
 
 const propTypes = {
@@ -54,7 +54,7 @@ export class AddNestedValueDialog extends PureComponent {
         </div>
     
         <div className="prop-tree_field-new_row">
-          <Input
+          <TextField
             dense
             label={getLocalizedText('valueEditor.addValueNameInputLabel')}
             value={name}

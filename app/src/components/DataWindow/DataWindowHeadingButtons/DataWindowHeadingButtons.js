@@ -5,11 +5,12 @@
 'use strict';
 
 import React from 'react';
+import { HeadingButtonsStyled } from './styles/HeadingButtonsStyled';
 
 export const DataWindowHeadingButtons = props => (
-  <div className="data-window_heading-buttons">
+  <HeadingButtonsStyled>
     {props.children}
-  </div>
+  </HeadingButtonsStyled>
 );
 
 DataWindowHeadingButtons.displayName = 'DataWindowHeadingButtons';
