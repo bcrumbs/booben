@@ -7,7 +7,7 @@ import { TypeNames } from '@jssy/types';
 import {
   Form,
   FormItem,
-  Input,
+  TextField,
   SelectBox,
   Button,
 } from '@reactackle/reactackle';
@@ -124,7 +124,7 @@ export class FunctionArgumentNew extends PureComponent {
             <div className="inputs-row" >
               <Form>
                 <FormItem>
-                  <Input
+                  <TextField
                     label={nameLabel}
                     value={name}
                     pattern={ARG_NAME_PATTERN}

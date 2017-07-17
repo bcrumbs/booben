@@ -10,7 +10,7 @@ import { connect } from 'react-redux';
 import throttle from 'lodash.throttle';
 import kdbush from 'kdbush';
 import _minBy from 'lodash.minby';
-import { Builder } from '../../../Builder/Builder';
+import { CanvasBuilder } from '../../../builders/CanvasBuilder/CanvasBuilder';
 
 import {
   toggleComponentSelection,
@@ -759,14 +759,12 @@ class CanvasContent extends Component {
       const outletPosition = getOutletPosition(route.components);
       
       ret = (
-        <Builder
-          interactive
+        <CanvasBuilder
           components={route.components}
           rootId={route.component}
           routeParams={routeParams}
         >
-          <Builder
-            interactive
+          <CanvasBuilder
             editable
             components={route.components}
             rootId={route.indexComponent}
@@ -775,7 +773,7 @@ class CanvasContent extends Component {
             enclosingContainerId={outletPosition.containerId}
             enclosingAfterIdx={outletPosition.afterIdx}
           />
-        </Builder>
+        </CanvasBuilder>
       );
     } else {
       let enclosingComponents = null;
@@ -792,8 +790,7 @@ class CanvasContent extends Component {
       }
   
       ret = (
-        <Builder
-          interactive
+        <CanvasBuilder
           editable
           components={route.components}
           rootId={route.component}
@@ -811,14 +808,13 @@ class CanvasContent extends Component {
       const routeParams = getRouteParams(route, project.routes);
 
       ret = (
-        <Builder
-          interactive
+        <CanvasBuilder
           components={route.components}
           rootId={route.component}
           routeParams={routeParams}
         >
           {ret}
-        </Builder>
+        </CanvasBuilder>
       );
     }
 
@@ -832,8 +828,7 @@ class CanvasContent extends Component {
     const routeParams = getRouteParams(currentRoute, project.routes);
     
     return (
-      <Builder
-        interactive
+      <CanvasBuilder
         editable
         components={topNestedConstructor.components}
         rootId={topNestedConstructor.rootId}

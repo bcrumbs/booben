@@ -6,7 +6,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Textarea } from '@reactackle/reactackle';
+import { TextField } from '@reactackle/reactackle';
 import { PropBase } from '../PropBase/PropBase';
 import { noop, returnArg } from '../../../utils/misc';
 
@@ -56,7 +56,9 @@ export class PropTextarea extends PropBase {
     if (checkable && !checked) return null;
     
     return (
-      <Textarea
+      <TextField
+        multiline
+        multilineRows={{ min: 1 }}
         value={value}
         placeholder={placeholder}
         disabled={disabled}

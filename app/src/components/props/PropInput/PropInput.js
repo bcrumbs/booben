@@ -6,7 +6,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Input } from '@reactackle/reactackle';
+import { TextField } from '@reactackle/reactackle';
 import { PropBase } from '../PropBase/PropBase';
 import { noop, returnArg } from '../../../utils/misc';
 
@@ -56,7 +56,7 @@ export class PropInput extends PropBase {
     if (checkable && !checked) return null;
     
     return (
-      <Input
+      <TextField
         value={value}
         placeholder={placeholder}
         disabled={disabled}

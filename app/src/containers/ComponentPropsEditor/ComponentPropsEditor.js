@@ -49,6 +49,7 @@ import {
   getString,
   getComponentMeta,
   isValidSourceForValue,
+  getSourceConfig,
   parseComponentName,
   formatComponentName,
   constructComponent,
@@ -392,25 +393,28 @@ class ComponentPropsEditorComponent extends PureComponent {
       path,
       componentMeta.types,
     );
+    
+    const designerSourceConfig =
+      getSourceConfig(valueMeta, 'designer', componentMeta.types);
   
     let initialComponents = null;
     let initialComponentsRootId = INVALID_ID;
     
     const willBuildWrapper =
       !currentValue.hasDesignedComponent() &&
-      !!valueMeta.sourceConfigs.designer.wrapper;
+      !!designerSourceConfig.wrapper;
     
     if (willBuildWrapper) {
       const { namespace } = parseComponentName(component.name);
   
       const wrapperFullName = formatComponentName(
         namespace,
-        valueMeta.sourceConfigs.designer.wrapper,
+        designerSourceConfig.wrapper,
       );
   
       initialComponents = constructComponent(
         wrapperFullName,
-        valueMeta.sourceConfigs.designer.wrapperLayout || 0,
+        designerSourceConfig.wrapperLayout || 0,
         language,
         meta,
         { isNew: false, isWrapper: true },

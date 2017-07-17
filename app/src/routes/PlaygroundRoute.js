@@ -568,7 +568,7 @@ export default class Playground extends React.Component {
             </HeaderRegion>
 
             <HeaderRegion size="blank">
-              <ProjectSave status="error" />
+              <ProjectSave status="success" title="status" />
             </HeaderRegion>
 
             <HeaderRegion size="blank">
@@ -584,12 +584,6 @@ export default class Playground extends React.Component {
               </HeaderMenu>
             </HeaderRegion>
           </Header>
-          
-          <DrawerTop>
-            <DrawerTopContent>
-              <Button text="Cancel" kind="flat" light size="small" />
-            </DrawerTopContent>
-          </DrawerTop>
         </TopRegion>
 
         <Desktop toolGroups={toolGroups}>
