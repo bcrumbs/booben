@@ -467,6 +467,7 @@ const resetOutdatedStateValues = (state, component, deletedComponentIds) => {
         component.strings,
         state.languageForComponentProps,
         component.types,
+        { forceEnable: true },
       ));
 
       component = component.setIn(physicalPath, newValue);
@@ -1342,6 +1343,7 @@ const handlers = {
               component.strings,
               state.languageForComponentProps,
               component.types,
+              { forceEnable: true },
             ));
 
             component = component.setIn(expandPath({ start, steps }), newValue);

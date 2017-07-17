@@ -2,7 +2,7 @@
 
 import styled from 'styled-components';
 
-export const HandlerStyled = styled.button`
+export const HandlerStyled = styled.div`
   &,
   &:hover,
   &:focus {

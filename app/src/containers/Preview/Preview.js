@@ -9,7 +9,7 @@ import PropTypes from 'prop-types';
 import { Router, Switch, Route, Redirect } from 'react-router';
 import { connect } from 'react-redux';
 import createHistory from 'history/es/createHashHistory';
-import { Builder } from '../Builder/Builder';
+import { PreviewBuilder } from '../builders/PreviewBuilder/PreviewBuilder';
 import Project from '../../models/Project';
 
 const propTypes = {
@@ -73,7 +73,7 @@ class PreviewComponent extends Component {
       : null;
 
     const ret = ({ match }) => (
-      <Builder
+      <PreviewBuilder
         components={route.components}
         rootId={rootId}
         routeParams={match.params}
@@ -81,7 +81,7 @@ class PreviewComponent extends Component {
         onOpenURL={this._handleOpenURL}
       >
         {childSwitch}
-      </Builder>
+      </PreviewBuilder>
     );
 
     ret.displayName = `Builder(route-${route.id}${isIndex ? '-index' : ''})`;
