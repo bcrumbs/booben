@@ -13,6 +13,7 @@ import {
   getComponentMeta,
   findPropThatPushedDataContext,
   isValidSourceForValue,
+  getSourceConfig,
   getComponentPropName,
 } from '../lib/meta';
 
@@ -171,11 +172,17 @@ export const availableDataContextsSelector = createSelector(
     const ownerComponentMeta = getComponentMeta(ownerComponent.name, meta);
     const ownerComponentDesignerPropMeta =
       topNestedConstructor.valueInfo.valueDef;
+    
+    const designerSourceConfig = getSourceConfig(
+      ownerComponentDesignerPropMeta,
+      'designer',
+      ownerComponentMeta.types,
+    );
   
     const dataContexts = [];
   
     _forOwn(
-      ownerComponentDesignerPropMeta.sourceConfigs.designer.props,
+      designerSourceConfig.props,
       
       ownerPropMeta => {
         if (!ownerPropMeta.dataContext) return;
@@ -232,7 +239,7 @@ export const ownerPropsSelector = createSelector(
     const ownerComponentPropMeta = topNestedConstructor.valueInfo.valueDef;
     
     return isValidSourceForValue(ownerComponentPropMeta, 'designer')
-      ? ownerComponentPropMeta.sourceConfigs.designer.props || null
+      ? getSourceConfig(ownerComponentPropMeta, 'designer').props || null
       : null;
   },
 );
