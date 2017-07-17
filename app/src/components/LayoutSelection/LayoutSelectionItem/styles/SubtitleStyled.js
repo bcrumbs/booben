@@ -16,7 +16,7 @@ export const SubtitleStyled = styled.div`
   font-size: ${fontSizeSmall}px;
   line-height: 1.5;
   color: ${textColorMedium};
-  margin-top: ${baseModule(0.5)}px;
+  margin-top: ${baseModule(0.25)}px;
 `;
 
 SubtitleStyled.displayName = 'SubtitleStyled';

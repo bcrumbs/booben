@@ -14,7 +14,6 @@ import {
 export const TitleStyled = styled.div`
   font-size: ${fontSizeBody}px;
   line-height: 1.3;
-  color: ${textColorMedium};
 `;
 
 TitleStyled.displayName = 'TitleStyled';
