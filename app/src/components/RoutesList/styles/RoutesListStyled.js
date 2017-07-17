@@ -2,7 +2,7 @@
 
 import styled from 'styled-components';
 import { RouteCardStyled } from '../RouteCard/styles/RouteCardStyled';
-import { baseModule } from '../../../styles/themeSelectors';
+import { baseModule, colorBorder } from '../../../styles/themeSelectors';
 
 export const RoutesListStyled = styled.ul`
   width: 100%;
@@ -14,6 +14,17 @@ export const RoutesListStyled = styled.ul`
   ${RouteCardStyled} & {    
     margin-left: ${baseModule(2)}px;
     margin-top: ${baseModule(1)}px;
+    
+    &::before {
+      content: '';
+      display: block;
+      position: absolute;
+      top: 0;
+      left: -${baseModule(1)}px;
+      width: 1px;
+      height: 100%;
+      background-color: ${colorBorder};
+    }
   }
   
   ${RouteCardStyled} & ${RouteCardStyled} {

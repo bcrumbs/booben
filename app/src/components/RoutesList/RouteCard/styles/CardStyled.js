@@ -10,7 +10,6 @@ import {
   colorWhite,
   colorSecondary,
   paletteBlueGrey50,
-  paletteBlueGrey100,
 } from '../../../../styles/themeSelectors';
 
 const propTypes = {
@@ -26,9 +25,9 @@ const defaultProps = {
 const boxShadowValue = boxShadow(1);
 
 const focused = ({ focused }) => focused
-  ? `
+  ? css`
     background-color: ${colorWhite};
-    border-left: ${baseModule}px solid ${colorSecondary};
+    border-left: ${baseModule(1)}px solid ${colorSecondary};
     cursor: default;
   `
   : '';
@@ -42,7 +41,7 @@ const index = ({ index, focused }) => index
 
     &:hover,
     &:focus {
-        background-color: ${paletteBlueGrey100};
+        background-color: ${paletteBlueGrey50};
         outline: none;
         ${boxShadowValue}
     }
@@ -54,7 +53,7 @@ export const CardStyled = styled.div`
   border-radius: ${radiusDefault}px;
   width: 100%;
   max-width: 20em;
-  min-height: 80px;
+  min-height: 60px;
   padding: ${baseModule(1)}px ${baseModule(2)}px;
   display: flex;
   align-items: center;
@@ -69,7 +68,7 @@ export const CardStyled = styled.div`
   &:hover,
   &:focus {
     outline: none;
-    background-color: ${paletteBlueGrey100};
+    background-color: ${paletteBlueGrey50};
   }
 `;
 
