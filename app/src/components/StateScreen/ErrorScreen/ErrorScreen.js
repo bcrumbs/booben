@@ -2,6 +2,11 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { StateScreenStyled } from '../styles/StateScreenStyled';
+import { ContentStyled } from '../styles/ContentStyled';
+import { TitleStyled } from '../styles/TitleStyled';
+import { MessageStyled } from '../styles/MessageStyled';
+import backgroundImage from '../../../../assets/error.gif';
 
 const propTypes = {
   title: PropTypes.string,
@@ -14,16 +19,19 @@ const defaultProps = {
 };
 
 export const ErrorScreen = props => (
-  <div className="state-screen state-screen_error">
-    <div className="state-screen_content">
-      <div className="state-screen_title">
+  <StateScreenStyled
+    image={backgroundImage}
+    overlayColor="rgba(51, 58, 69, 0.95)"
+  >
+    <ContentStyled>
+      <TitleStyled light>
         {props.title}
-      </div>
-      <div className="state-screen_message">
+      </TitleStyled>
+      <MessageStyled light>
         {props.message}
-      </div>
-    </div>
-  </div>
+      </MessageStyled>
+    </ContentStyled>
+  </StateScreenStyled>
 );
 
 ErrorScreen.propTypes = propTypes;
