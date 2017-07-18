@@ -3,6 +3,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 
+import {
+  DraggableWindowRegionStyled,
+} from './styles/DraggableWindowRegionStyled';
+
 const propTypes = {
   type: PropTypes.oneOf(['main', 'aside']),
 };
@@ -11,16 +15,11 @@ const defaultProps = {
   type: 'main',
 };
 
-export const DraggableWindowRegion = props => {
-  let className = 'draggable-window-region';
-  if (props.type) className += ` draggable-window-region-${props.type}`;
-
-  return (
-    <div className={className}>
-      {props.children}
-    </div>
-  );
-};
+export const DraggableWindowRegion = props => (
+  <DraggableWindowRegionStyled type={props.type}>
+    {props.children}
+  </DraggableWindowRegionStyled>
+);
 
 DraggableWindowRegion.propTypes = propTypes;
 DraggableWindowRegion.defaultProps = defaultProps;

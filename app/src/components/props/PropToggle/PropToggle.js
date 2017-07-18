@@ -4,8 +4,9 @@
 
 'use strict';
 
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import _pick from 'lodash.pick';
 import { ToggleButton } from '@reactackle/reactackle';
 import { PropBase } from '../PropBase/PropBase';
 import { noop } from '../../../utils/misc';
@@ -24,7 +25,9 @@ const defaultProps = {
   onChange: noop,
 };
 
-export class PropToggle extends PropBase {
+const baseProps = Object.keys(PropBase.propTypes);
+
+export class PropToggle extends Component {
   constructor(props, context) {
     super(props, context);
     this._handleChange = this._handleChange.bind(this);
@@ -39,37 +42,39 @@ export class PropToggle extends PropBase {
     const { onChange } = this.props;
     onChange({ value });
   }
-  
-  /**
-   *
-   * @return {ReactElement[]}
-   * @override
-   * @private
-   */
-  _renderAdditionalActions() {
-    const { linked, checkable, checked, value, disabled } = this.props;
-    
-    if (linked || (checkable && !checked)) return [];
-    
-    return [
-      <div key="toggle" className="prop_action prop_action-toggle">
+
+  render() {
+    const {
+      linked,
+      checkable,
+      checked,
+      value,
+      disabled,
+      additionalActions,
+    } = this.props;
+
+    const propsForBase = _pick(this.props, baseProps);
+
+    let actualAdditionalActions = additionalActions;
+    if (!linked && (!checkable || checked)) {
+      actualAdditionalActions = [
         <ToggleButton
+          key="toggle"
           checked={value}
           disabled={disabled}
           onChange={this._handleChange}
-        />
-      </div>,
-    ];
-  }
-  
-  /**
-   *
-   * @return {?ReactElement}
-   * @override
-   * @private
-   */
-  _renderContent() {
-    return null;
+        />,
+        ...additionalActions,
+      ];
+    }
+
+    return (
+      <PropBase
+        {...propsForBase}
+        additionalActions={actualAdditionalActions}
+        content={null}
+      />
+    );
   }
 }
 

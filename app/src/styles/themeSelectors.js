@@ -23,6 +23,8 @@ export const colorBlack = ({ theme }) =>
   theme.reactackle.color.black;
 export const colorTransparent = ({ theme }) =>
   theme.reactackle.color.transparent;
+export const colorLightBlue = ({ theme }) =>
+  theme.jssy.color.lightBlue;
 
 export const colorMain = ({ theme }) =>
   theme.reactackle.color.main;
@@ -53,6 +55,8 @@ export const colorInfo = ({ theme }) =>
 export const colorInfoForeground = ({ theme }) =>
   theme.reactackle.color.infoFgTextColor;
 
+export const paletteBlueGrey25 = ({ theme }) =>
+  theme.jssy.paletteBlueGrey[25];
 export const paletteBlueGrey50 = ({ theme }) =>
   theme.jssy.paletteBlueGrey[50];
 export const paletteBlueGrey75 = ({ theme }) =>

@@ -49,17 +49,21 @@ import {
   MenuOverlappingGroupItem
 } from '../components/MenuOverlapping/MenuOverlapping';
 
-import { DrawerTop } from '../components/DrawerTop/DrawerTop';
 import {
-  DrawerTopContent,
-} from '../components/DrawerTopContent/DrawerTopContent';
+  RoutesList,
+  RouteCard,
+  IndexRouteCard,
+} from '../components/RoutesList/RoutesList';
 
 import {
   Accordion,
   AccordionItemRecord,
 } from '../components/Accordion/Accordion';
 
-import { BackdropBreadcrumbs } from '../components/BackdropBreadcrumbs/BackdropBreadcrumbs';
+import {
+  ComponentLayoutSelection,
+  ComponentLayoutSelectionItem,
+} from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
 import {
   ComponentTag,
@@ -71,11 +75,6 @@ import {
   ComponentsTreeList,
   ComponentsTreeItem,
 } from '../components/ComponentsTree/ComponentsTree';
-
-import {
-  ComponentLayoutSelection,
-  ComponentLayoutSelectionItem,
-} from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
 import {
   ComponentHandlers,
@@ -590,36 +589,21 @@ export default class Playground extends React.Component {
           <Panel headerFixed maxHeight="initial" spread>
             <PanelContent>
               <Container>
-                <MenuOverlapping>
-                  <MenuOverlappingDivider title="What dou you want to use as a source?" />
-                  <MenuOverlappingGroup title="Group title">
-                    <MenuOverlappingGroupItem
-                      caption=".../ extremelyLongextremelyLong / pathTopathTo / componentcomponent"
-                      title="Value"
-                      type="string"
-                      description="Some description"
-                    />
-                    <MenuOverlappingGroupItem
-                      caption="path"
-                      title="Some other"
-                      type="string"
-                      description="Some description"
-                    />
-                  </MenuOverlappingGroup>
-                  <MenuOverlappingDivider title="Options that don't suit by type" />
-                  <MenuOverlappingGroup>
-                    <MenuOverlappingGroupItem
-                      title="Some option"
-                      type="bool"
-                      description="Some description"
-                      disabled
-                    />
-                  </MenuOverlappingGroup>
-                </MenuOverlapping>
+                <RoutesList>
+                  <RouteCard route="route" title="route">
+                    <IndexRouteCard title="index route card" routeId={14} />
+                    <IndexRouteCard title="index route card" focused routeId={14} />
+                  </RouteCard>
+                  <RouteCard route="route" title="route" focused />
+                </RoutesList>
               </Container>
               
               <Container>
-                <BackdropBreadcrumbs />
+                <ComponentLayoutSelection>
+                  <ComponentLayoutSelectionItem title="title" subtitle="subtitle" />
+                  <ComponentLayoutSelectionItem title="title" subtitle="subtitle" />
+                  <ComponentLayoutSelectionItem title="title" subtitle="subtitle" />
+                </ComponentLayoutSelection>
               </Container>
 
               <Container>Тут был старый DataWindow, но его победил Бэтмен.</Container>

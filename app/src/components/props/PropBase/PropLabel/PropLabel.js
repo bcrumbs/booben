@@ -3,6 +3,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { TooltipIcon } from '@reactackle/reactackle';
+import { TypeStyled } from './styles/TypeStyled';
+import { LabelStyled } from './styles/LabelStyled';
+import { LabelTextStyled } from './styles/LabelTextStyled';
 
 const propTypes = {
   label: PropTypes.string.isRequired,
@@ -26,23 +29,23 @@ export const PropLabel = props => {
   let secondaryLabel = null;
   if (props.secondaryLabel) {
     secondaryLabel = (
-      <span className="prop-item_type">
+      <TypeStyled>
         {props.secondaryLabel}
-      </span>
+      </TypeStyled>
     );
   }
 
   return (
-    <label className="prop-item-label">
-      <div className="prop-item_label-wrapper">
-        <span className="prop-item_label-text">
+    <LabelStyled>
+      <div>
+        <LabelTextStyled>
           {props.label}
-        </span>
+        </LabelTextStyled>
 
         {secondaryLabel}
         {tooltip}
       </div>
-    </label>
+    </LabelStyled>
   );
 };
 
