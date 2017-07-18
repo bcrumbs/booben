@@ -4,10 +4,10 @@
 
 'use strict';
 
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import _pick from 'lodash.pick';
 import { PropBase } from '../PropBase/PropBase';
-import { PropAction } from '../PropBase/PropAction/PropAction';
 import { noop } from '../../../utils/misc';
 
 const propTypes = {
@@ -20,75 +20,58 @@ const defaultProps = {
   onToggle: noop,
 };
 
-export class PropExpandable extends PropBase {
+const baseProps = Object.keys(PropBase.propTypes);
+
+export class PropExpandable extends Component {
   constructor(...args) {
     super(...args);
-  
+
     this._handleExpandAction = this._handleExpandAction.bind(this);
   }
-  
+
   /**
    *
    * @private
    */
   _handleExpandAction() {
-    this.props.onToggle({ expanded: !this.props.expanded });
+    const { expanded, onToggle } = this.props;
+    onToggle({ expanded: !expanded });
   }
-  
-  //noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @return {ReactElement[]}
-   * @override
-   * @private
-   */
-  _renderAdditionalActions() {
-    if (this.props.checkable && !this.props.checked) return [];
-    
-    //noinspection JSValidateTypes
-    return [
-      <PropAction
-        key="collapse"
-        id="collapse"
-        icon="chevron-right"
-        onPress={this._handleExpandAction}
-      />,
-    ];
-  }
-  
-  //noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @return {string[]}
-   * @override
-   * @private
-   */
-  _getAdditionalClassNames() {
-    return this.props.expanded
-      ? ['has-sublevels', 'sublevel-is-visible']
-      : ['has-sublevels'];
-  }
-  
-  //noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @return {string[]}
-   * @override
-   * @private
-   */
-  _getAdditionalWrapperClassNames() {
-    return this.props.expanded ? ['sublevel-is-visible'] : [];
-  }
-  
-  //noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @return {?ReactElement}
-   * @override
-   * @private
-   */
-  _renderContent() {
-    return null;
+
+  render() {
+    const {
+      checkable,
+      checked,
+      linked,
+      expanded,
+      additionalActions,
+      children,
+    } = this.props;
+
+    const propsForBase = _pick(this.props, baseProps);
+    let actualAdditionalActions = additionalActions;
+
+    if (!linked && (!checkable || checked)) {
+      actualAdditionalActions = [...actualAdditionalActions, {
+        id: 'expand',
+        icon: 'chevron-right',
+        rounded: true,
+        expanded,
+        handler: this._handleExpandAction,
+      }];
+    }
+
+    const actualChildren = expanded ? children : null;
+
+    return (
+      <PropBase
+        {...propsForBase}
+        additionalActions={actualAdditionalActions}
+        content={null}
+      >
+        {actualChildren}
+      </PropBase>
+    );
   }
 }
 
