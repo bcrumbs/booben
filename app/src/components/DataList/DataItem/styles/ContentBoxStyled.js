@@ -9,8 +9,8 @@ import {
   colorActiveBg,
 } from '../../../../styles/themeSelectors';
 
-const py = componentConstants.item.paddingY,
-  px = componentConstants.item.paddingX;
+const py = componentConstants.item.paddingY;
+const px = componentConstants.item.paddingX;
 
 const selected = ({ selected }) => selected
   ? css`

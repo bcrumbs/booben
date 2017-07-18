@@ -4,8 +4,8 @@ import styled from 'styled-components';
 import { transition } from '@reactackle/reactackle';
 import { baseModule } from '../../../../styles/themeSelectors';
 
-const my = 2,
-  mx = 2;
+const my = 2;
+const mx = 2;
 
 const selected = ({ selected }) => selected
   ? `
