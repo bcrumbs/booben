@@ -23,6 +23,8 @@ export const colorBlack = ({ theme }) =>
   theme.reactackle.color.black;
 export const colorTransparent = ({ theme }) =>
   theme.reactackle.color.transparent;
+export const colorLightBlue = ({ theme }) =>
+  theme.jssy.color.lightBlue;
 
 export const colorMain = ({ theme }) =>
   theme.reactackle.color.main;

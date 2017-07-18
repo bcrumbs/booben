@@ -169,6 +169,7 @@ export class ComponentsDragArea extends PureComponent {
     super(props, context);
     
     this._rectangleElement = null;
+    this._rectangleTitleElement = null;
     this._dropMenuElement = null;
     this._dropMenuItemElements = [];
     
@@ -211,6 +212,7 @@ export class ComponentsDragArea extends PureComponent {
     this._handleAnimationFrame = this._handleAnimationFrame.bind(this);
     this._handleDropMenuItemHover = this._handleDropMenuItemHover.bind(this);
     this._saveRectangleRef = this._saveRectangleRef.bind(this);
+    this._saveRectangleTitleRef = this._saveRectangleTitleRef.bind(this);
     this._saveDropMenuRef = this._saveDropMenuRef.bind(this);
   }
 
@@ -239,6 +241,10 @@ export class ComponentsDragArea extends PureComponent {
   _saveRectangleRef(ref) {
     this._rectangleElement = ref;
   }
+
+  _saveRectangleTitleRef(ref) {
+    this._rectangleTitleElement = ref;
+  }
   
   _saveDropMenuRef(ref) {
     this._dropMenuElement = ref;
@@ -258,15 +264,13 @@ export class ComponentsDragArea extends PureComponent {
 
   _handleAnimationFrame() {
     this._animationFrame = 0;
+
+    if (this._rectangleTitleElement) {
+      const willHideTitle = !!this._snapElement && this._snapHideTitle;
+      this._rectangleTitleElement.style.opacity = willHideTitle ? '0' : '';
+    }
     
     const style = this._rectangleElement.style;
-    const titleElement = this._rectangleElement
-      .getElementsByClassName('js-component-placeholder-title')[0];
-
-    if (titleElement) {
-      const willHideTitle = !!this._snapElement && this._snapHideTitle;
-      titleElement.style.opacity = willHideTitle ? '0' : '';
-    }
 
     if (this._transitionEnabled) {
       if (!this._transitionStyleSet) {
@@ -760,6 +764,7 @@ export class ComponentsDragArea extends PureComponent {
         <ComponentPlaceholder
           title={title}
           elementRef={this._saveRectangleRef}
+          titleElementRef={this._saveRectangleTitleRef}
         />
         
         {dropMenu}
