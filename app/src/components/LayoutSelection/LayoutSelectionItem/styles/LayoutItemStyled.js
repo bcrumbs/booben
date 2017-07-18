@@ -7,11 +7,7 @@
 import styled from 'styled-components';
 import { transition } from '@reactackle/reactackle';
 import componentConstants from '../../styles/constants';
-
-import {
-  baseModule,
-  colorBorder,
-} from '../../../../styles/themeSelectors';
+import { colorBorder } from '../../../../styles/themeSelectors';
 
 export const LayoutItemStyled = styled.div`
   margin: ${componentConstants.itemsSpacing}px;

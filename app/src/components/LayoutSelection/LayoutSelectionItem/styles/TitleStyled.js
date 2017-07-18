@@ -5,11 +5,7 @@
 'use strict';
 
 import styled from 'styled-components';
-
-import {
-  fontSizeBody,
-  textColorMedium,
-} from '../../../../styles/themeSelectors';
+import { fontSizeBody } from '../../../../styles/themeSelectors';
 
 export const TitleStyled = styled.div`
   font-size: ${fontSizeBody}px;
