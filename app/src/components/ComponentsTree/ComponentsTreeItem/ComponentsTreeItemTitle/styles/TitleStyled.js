@@ -2,7 +2,6 @@
 
 import styled, { css } from 'styled-components';
 import { transition } from '@reactackle/reactackle';
-import componentDefaults from '../../../styles/constants';
 
 import {
   baseModule,
@@ -64,7 +63,7 @@ export const TitleStyled = styled.div`
   white-space: nowrap;
   text-overflow: ellipsis;
   flex-grow: 1;
-  min-width: ${componentDefaults.item.minWIdth}px;
+  min-width: 100px;
   overflow: hidden;
   text-align: left;
   ${transition('background-color')}

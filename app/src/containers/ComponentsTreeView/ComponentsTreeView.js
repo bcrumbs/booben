@@ -1062,7 +1062,6 @@ class ComponentsTreeViewComponent extends PureComponent {
       />
     );
 
-    //noinspection JSValidateTypes
     return (
       <ComponentsTreeItem
         key={String(componentId)}

@@ -102,14 +102,10 @@ export class ComponentsTreeItemTitle extends Component {
   
   render() {
     const { active, disabled, hovered, title } = this.props;
-    
-    let buttonClassName = 'components-tree-item-title-wrapper';
-    if (active) buttonClassName += ' is-active';
   
     return (
       <TitleWrapperStyled
         innerRef={this._saveButtonRef}
-        className={buttonClassName}
         onFocus={this._handleHoverIn}
         onBlur={this._handleHoverOut}
       >

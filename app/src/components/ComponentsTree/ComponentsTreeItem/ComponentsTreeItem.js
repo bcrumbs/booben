@@ -11,14 +11,12 @@ import { IconStyled } from './styles/IconStyled';
 const propTypes = {
   componentId: PropTypes.number.isRequired,
   itemElement: PropTypes.element,
-  active: PropTypes.bool,
   expanded: PropTypes.bool,
   onExpand: PropTypes.func,
 };
 
 const defaultProps = {
   itemElement: null,
-  active: false,
   expanded: false,
   onExpand: noop,
 };
@@ -74,9 +72,7 @@ export class ComponentsTreeItem extends PureComponent {
 
     return (
       <TreeItemStyled>
-        <ItemContentStyled
-          noSublevel={!children}
-        >
+        <ItemContentStyled noSublevel={!children}>
           {icon}
           {itemElement}
         </ItemContentStyled>
