@@ -26,8 +26,8 @@ export class RouteNewButton extends PureComponent {
   }
   
   _handlePress() {
-    const { parentRoute } = this.props;
-    this.props.onPress({ parentRoute });
+    const { parentRoute, onPress } = this.props;
+    onPress({ parentRoute });
   }
   
   render() {
