@@ -85,26 +85,6 @@ export class PropBase extends PureComponent {
     this._handleLink = this._handleLink.bind(this);
     this._handlePick = this._handlePick.bind(this);
   }
-  
-  /**
-   * To be overridden in subclasses
-   *
-   * @return {string[]}
-   * @private
-   */
-  _getAdditionalClassNames() {
-    return [];
-  }
-
-  /**
-   * To be overridden in subclasses
-   *
-   * @return {string[]}
-   * @private
-   */
-  _getAdditionalWrapperClassNames() {
-    return [];
-  }
 
   /**
    * To be overridden in subclasses
@@ -135,7 +115,6 @@ export class PropBase extends PureComponent {
   _renderLinked() {
     const { linkedWith, onUnlink } = this.props;
 
-    //noinspection JSValidateTypes
     return (
       <Tag
         text={linkedWith}
@@ -202,11 +181,6 @@ export class PropBase extends PureComponent {
       additionalActions,
       children,
     } = this.props;
-
-    let className = '';
-    let wrapperClassName = '';
-    className += ` ${this._getAdditionalClassNames().join(' ')}`;
-    wrapperClassName += ` ${this._getAdditionalWrapperClassNames().join(' ')}`;
 
     let labelElement = null;
     let markColorScheme = null;
@@ -345,11 +319,8 @@ export class PropBase extends PureComponent {
     const content = linked ? this._renderLinked() : this._renderContent();
     
     return (
-      <PropItemStyled
-        sublevelVisible={expanded}
-        className={className}
-      >
-        <WrapperStyled className={wrapperClassName}>
+      <PropItemStyled sublevelVisible={expanded}>
+        <WrapperStyled>
           {checkboxElement}
           {actionsLeftElement}
           {imageElement}

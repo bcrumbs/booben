@@ -32,10 +32,10 @@ export class PropExpandable extends PropBase {
    * @private
    */
   _handleExpandAction() {
-    this.props.onToggle({ expanded: !this.props.expanded });
+    const { expanded, onToggle } = this.props;
+    onToggle({ expanded: !expanded });
   }
-  
-  //noinspection JSUnusedGlobalSymbols
+
   /**
    *
    * @return {ReactElement[]}
@@ -43,9 +43,10 @@ export class PropExpandable extends PropBase {
    * @private
    */
   _renderAdditionalActions() {
-    if (this.props.checkable && !this.props.checked) return [];
-    
-    //noinspection JSValidateTypes
+    const { checkable, checked, expanded } = this.props;
+
+    if (checkable && !checked) return [];
+
     return [
       <PropAction
         key="collapse"
@@ -53,36 +54,11 @@ export class PropExpandable extends PropBase {
         icon="chevron-right"
         onPress={this._handleExpandAction}
         rounded
-        expanded={this.props.expanded}
+        expanded={expanded}
       />,
     ];
   }
-  
-  //noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @return {string[]}
-   * @override
-   * @private
-   */
-  _getAdditionalClassNames() {
-    return this.props.expanded
-      ? ['sublevel-is-visible']
-      : [''];
-  }
-  
-  //noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @return {string[]}
-   * @override
-   * @private
-   */
-  _getAdditionalWrapperClassNames() {
-    return this.props.expanded ? ['sublevel-is-visible'] : [];
-  }
-  
-  //noinspection JSUnusedGlobalSymbols
+
   /**
    *
    * @return {?ReactElement}

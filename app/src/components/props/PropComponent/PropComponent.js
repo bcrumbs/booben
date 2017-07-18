@@ -27,7 +27,6 @@ const defaultProps = {
 };
 
 export class PropComponent extends PropBase {
-  //noinspection JSUnusedGlobalSymbols
   /**
    *
    * @return {?ReactElement}
@@ -41,13 +40,11 @@ export class PropComponent extends PropBase {
       getLocalizedText,
       onSetComponent,
     } = this.props;
-    
-    //noinspection JSCheckFunctionSignatures
+
     const text = haveComponent
       ? getLocalizedText('valueEditor.component.editComponent')
       : getLocalizedText('valueEditor.component.setComponent');
-    
-    //noinspection JSValidateTypes
+
     return (
       <Button
         colorScheme="link"

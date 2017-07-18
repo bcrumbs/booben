@@ -25,7 +25,6 @@ const defaultProps = {
 };
 
 export class PropComponentPicker extends PropBase {
-  //noinspection JSUnusedGlobalSymbols
   /**
    *
    * @return {?ReactElement}
@@ -34,8 +33,7 @@ export class PropComponentPicker extends PropBase {
    */
   _renderContent() {
     const { disabled, getLocalizedText, onPickComponent } = this.props;
-    
-    //noinspection JSValidateTypes
+
     return (
       <Button
         colorScheme="link"
