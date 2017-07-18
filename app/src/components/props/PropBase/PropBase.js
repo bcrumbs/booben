@@ -11,12 +11,15 @@ import { PropLabel } from './PropLabel/PropLabel';
 import { PropImage } from './PropImage/PropImage';
 import { PropAction } from './PropAction/PropAction';
 import { noop } from '../../../utils/misc';
-
-const ActionPropType = PropTypes.shape({
-  id: PropTypes.string.isRequired,
-  icon: PropTypes.string.isRequired,
-  handler: PropTypes.func.isRequired,
-});
+import { MarkWrapperStyled } from './styles/MarkWrapperStyled';
+import { MarkStyled } from './styles/MarkStyled';
+import { LabelBoxStyled } from './styles/LabelBoxStyled';
+import { MessageBoxStyled } from './styles/MessageBoxStyled';
+import { ActionsBoxStyled } from './styles/ActionsBoxStyled';
+import { SubcomponentBoxStyled } from './styles/SubcomponentBoxStyled';
+import { ContentBoxStyled } from './styles/ContentBoxStyled';
+import { WrapperStyled } from './styles/WrapperStyled';
+import { PropItemStyled } from './styles/PropItemStyled';
 
 const propTypes = {
   id: PropTypes.string,
@@ -34,7 +37,18 @@ const propTypes = {
   checkable: PropTypes.bool,
   checked: PropTypes.bool,
   deletable: PropTypes.bool,
-  additionalActions: PropTypes.arrayOf(ActionPropType),
+  expanded: PropTypes.bool,
+  additionalActions: PropTypes.arrayOf(PropTypes.oneOfType([
+    PropTypes.element,
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      icon: PropTypes.string.isRequired,
+      rounded: PropTypes.bool,
+      expanded: PropTypes.bool,
+      handler: PropTypes.func.isRequired,
+    }),
+  ])),
+  content: PropTypes.element,
   onLink: PropTypes.func,
   onPick: PropTypes.func,
   onUnlink: PropTypes.func,
@@ -58,7 +72,9 @@ const defaultProps = {
   checkable: false,
   checked: false,
   deletable: false,
+  expanded: false,
   additionalActions: [],
+  content: null,
   onLink: noop,
   onPick: noop,
   onUnlink: noop,
@@ -76,47 +92,6 @@ export class PropBase extends PureComponent {
   }
   
   /**
-   * To be overridden in subclasses
-   *
-   * @return {string[]}
-   * @private
-   */
-  _getAdditionalClassNames() {
-    return [];
-  }
-
-  /**
-   * To be overridden in subclasses
-   *
-   * @return {string[]}
-   * @private
-   */
-  _getAdditionalWrapperClassNames() {
-    return [];
-  }
-
-  /**
-   * To be overridden in subclasses
-   *
-   * @return {ReactElement[]}
-   * @private
-   */
-  _renderAdditionalActions() {
-    return [];
-  }
-
-  /**
-   * Must be overridden in subclasses
-   *
-   * @return {?(ReactElement|ReactElement[])}
-   * @abstract
-   * @private
-   */
-  _renderContent() {
-    throw new Error('Do not use PropBase class directly.');
-  }
-  
-  /**
    *
    * @return {ReactElement}
    * @private
@@ -124,7 +99,6 @@ export class PropBase extends PureComponent {
   _renderLinked() {
     const { linkedWith, onUnlink } = this.props;
 
-    //noinspection JSValidateTypes
     return (
       <Tag
         text={linkedWith}
@@ -187,46 +161,44 @@ export class PropBase extends PureComponent {
       pickable,
       checkable,
       checked,
+      expanded,
       additionalActions,
+      content,
       children,
     } = this.props;
 
-    let className = 'prop-item';
-    let wrapperClassName = 'prop-item-wrapper';
-  
-    className += ` ${this._getAdditionalClassNames().join(' ')}`;
-    wrapperClassName += ` ${this._getAdditionalWrapperClassNames().join(' ')}`;
-
     let labelElement = null;
+    let markColorScheme = null;
+
     if (label) {
       let requireMark = null;
-      if (required) {
-        wrapperClassName += ' is-required';
-    
-        let markIcon = null;
-        if (requirementFulfilled) {
-          className += ' requirement-is-fulfilled';
 
+      if (required) {
+        let markIcon = null;
+
+        if (requirementFulfilled) {
+          markColorScheme = 'success';
           markIcon = (
-            <Icon name="check" />
+            <Icon name="check" size="inherit" color="inherit" />
           );
         } else {
+          markColorScheme = 'error';
           markIcon = (
-            <Icon name="exclamation" />
+            <Icon name="exclamation" size="inherit" color="inherit" />
           );
         }
 
         requireMark = (
-          <div className="prop-item_require-mark">
-            <div className="require-mark">
+          <MarkWrapperStyled>
+            <MarkStyled colorScheme={markColorScheme}>
               {markIcon}
-            </div>
-          </div>
+            </MarkStyled>
+          </MarkWrapperStyled>
         );
       }
       
       labelElement = (
-        <div className="prop-item_label-box">
+        <LabelBoxStyled>
           {requireMark}
         
           <PropLabel
@@ -234,7 +206,7 @@ export class PropBase extends PureComponent {
             secondaryLabel={secondaryLabel}
             tooltip={tooltip}
           />
-        </div>
+        </LabelBoxStyled>
       );
     }
   
@@ -243,39 +215,51 @@ export class PropBase extends PureComponent {
       imageElement = (
         <PropImage src={image} />
       );
-    
-      wrapperClassName += ' has-image';
     }
   
     let messageElement = null;
     if (message) {
       messageElement = (
-        <div className="prop-item_message-wrapper">
+        <MessageBoxStyled>
           {message}
-        </div>
+        </MessageBoxStyled>
       );
     }
   
     let actionsLeftElement = null;
     if (deletable) {
       actionsLeftElement = (
-        <div className="prop_actions prop_actions-left">
+        <ActionsBoxStyled>
           <PropAction
-            id="collapse"
             icon="times"
             onPress={this._handleDelete}
           />
-        </div>
+        </ActionsBoxStyled>
       );
     }
   
-    const actionItemsRight = this._renderAdditionalActions();
+    const actionItemsRight = [];
+
+    additionalActions.forEach(action => {
+      if (React.isValidElement(action)) {
+        actionItemsRight.push(action);
+      } else {
+        actionItemsRight.push(
+          <PropAction
+            key={`extra-${action.id}`}
+            icon={action.icon}
+            rounded={action.rounded}
+            expanded={action.expanded}
+            onPress={action.handler} // eslint-disable-line react/jsx-handler-names
+          />,
+        );
+      }
+    });
   
     if (linkable && (!checkable || checked)) {
       const linkAction = (
         <PropAction
           key="linking"
-          id="linking"
           icon="link"
           onPress={this._handleLink}
         />
@@ -288,7 +272,6 @@ export class PropBase extends PureComponent {
       const pickAction = (
         <PropAction
           key="pick"
-          id="pick"
           icon="eyedropper"
           onPress={this._handlePick}
         />
@@ -296,67 +279,48 @@ export class PropBase extends PureComponent {
 
       actionItemsRight.push(pickAction);
     }
-
-    additionalActions.forEach(action => {
-      /* eslint-disable react/jsx-handler-names */
-      actionItemsRight.push(
-        <PropAction
-          key={action.id}
-          id={action.id}
-          icon={action.icon}
-          onPress={action.handler}
-        />,
-      );
-      /* eslint-disable react/jsx-handler-names */
-    });
   
     let actionsRightElement = null;
     if (actionItemsRight.length) {
       actionsRightElement = (
-        <div className="prop_actions prop_actions-right">
+        <ActionsBoxStyled>
           {actionItemsRight}
-        </div>
+        </ActionsBoxStyled>
       );
     }
   
     let checkboxElement = null;
     if (checkable) {
       checkboxElement = (
-        <div className="prop_subcomponent prop_subcomponent-left">
+        <SubcomponentBoxStyled>
           <Checkbox
             checked={checked}
             onChange={this._handleCheck}
           />
-        </div>
+        </SubcomponentBoxStyled>
       );
     }
     
-    const content = linked ? this._renderLinked() : this._renderContent();
+    const contentElement = linked ? this._renderLinked() : content;
     
     return (
-      <div className={className}>
-        <div className={wrapperClassName}>
+      <PropItemStyled sublevelVisible={expanded}>
+        <WrapperStyled>
           {checkboxElement}
           {actionsLeftElement}
           {imageElement}
         
-          <div className="prop-item-content-box">
+          <ContentBoxStyled>
             {labelElement}
-            
-            <div className="prop-item_value-wrapper">
-              {messageElement}
-            </div>
-          
-            <div className="prop-item_value-wrapper">
-              {content}
-            </div>
-          </div>
+            {messageElement}
+            {contentElement}
+          </ContentBoxStyled>
         
           {actionsRightElement}
-        </div>
+        </WrapperStyled>
       
         {children}
-      </div>
+      </PropItemStyled>
     );
   }
 }
