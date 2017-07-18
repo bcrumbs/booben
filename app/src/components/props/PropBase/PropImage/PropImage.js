@@ -6,6 +6,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { ImageBoxStyled } from './styles/ImageBoxStyled';
 
 const propTypes = {
   src: PropTypes.string,
@@ -18,9 +19,9 @@ const defaultProps = {
 };
 
 export const PropImage = ({ src, alt }) => (
-  <div className="prop-item-image-box">
+  <ImageBoxStyled>
     <img src={src} alt={alt} />
-  </div>
+  </ImageBoxStyled>
 );
 
 PropImage.propTypes = propTypes;

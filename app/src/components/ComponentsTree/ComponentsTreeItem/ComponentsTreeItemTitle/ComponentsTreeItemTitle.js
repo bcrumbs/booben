@@ -7,6 +7,8 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { noop } from '../../../../utils/misc';
+import { TitleWrapperStyled } from './styles/TitleWrapperStyled';
+import { TitleStyled } from './styles/TitleStyled';
 
 const propTypes = {
   componentId: PropTypes.number.isRequired,
@@ -100,30 +102,24 @@ export class ComponentsTreeItemTitle extends Component {
   
   render() {
     const { active, disabled, hovered, title } = this.props;
-    
-    let buttonClassName = 'components-tree-item-title-wrapper';
-    if (active) buttonClassName += ' is-active';
-  
-    let titleClassName = 'components-tree-item-title';
-    if (hovered) titleClassName += ' is-hovered';
-    if (disabled) titleClassName += ' is-disabled';
   
     return (
-      <button
-        ref={this._saveButtonRef}
-        className={buttonClassName}
+      <TitleWrapperStyled
+        innerRef={this._saveButtonRef}
         onFocus={this._handleHoverIn}
         onBlur={this._handleHoverOut}
       >
-        <div
-          ref={this._saveTitleRef}
-          className={titleClassName}
+        <TitleStyled
+          innerRef={this._saveTitleRef}
+          hovered={hovered}
+          active={active}
+          disabled={disabled}
           onMouseOver={this._handleHoverIn}
           onMouseOut={this._handleHoverOut}
         >
           {title}
-        </div>
-      </button>
+        </TitleStyled>
+      </TitleWrapperStyled>
     );
   }
 }

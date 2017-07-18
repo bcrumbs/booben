@@ -6,6 +6,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import _pick from 'lodash.pick';
 import { Button } from '@reactackle/reactackle';
 import { PropBase } from '../PropBase/PropBase';
 import { noop, returnArg } from '../../../utils/misc';
@@ -24,26 +25,27 @@ const defaultProps = {
   onEditActions: noop,
 };
 
-export class PropAction extends PropBase {
-  /**
-   *
-   * @return {?ReactElement}
-   * @override
-   * @private
-   */
-  _renderContent() {
-    const { disabled, getLocalizedText, onEditActions } = this.props;
-    
-    return (
-      <Button
-        colorScheme="link"
-        text={getLocalizedText('valueEditor.action.editActions')}
-        disabled={disabled}
-        onPress={onEditActions}
-      />
-    );
-  }
-}
+const baseProps = Object.keys(PropBase.propTypes);
+
+export const PropAction = props => {
+  const { disabled, getLocalizedText, onEditActions } = props;
+
+  const propsForBase = _pick(props, baseProps);
+
+  return (
+    <PropBase
+      {...propsForBase}
+      content={
+        <Button
+          colorScheme="link"
+          text={getLocalizedText('valueEditor.action.editActions')}
+          disabled={disabled}
+          onPress={onEditActions}
+        />
+      }
+    />
+  );
+};
 
 PropAction.propTypes = propTypes;
 PropAction.defaultProps = defaultProps;

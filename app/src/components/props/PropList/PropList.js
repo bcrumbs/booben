@@ -4,8 +4,9 @@
 
 'use strict';
 
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import _pick from 'lodash.pick';
 import { SelectBox } from '@reactackle/reactackle';
 import { PropBase } from '../PropBase/PropBase';
 import { noop } from '../../../utils/misc';
@@ -32,7 +33,9 @@ const defaultProps = {
   onChange: noop,
 };
 
-export class PropList extends PropBase {
+const baseProps = Object.keys(PropBase.propTypes);
+
+export class PropList extends Component {
   constructor(props, context) {
     super(props, context);
     this._handleChange = this._handleChange.bind(this);
@@ -47,13 +50,8 @@ export class PropList extends PropBase {
     const { id, onChange } = this.props;
     onChange({ id, value });
   }
-  
-  /**
-   * @return {?ReactElement}
-   * @override
-   * @private
-   */
-  _renderContent() {
+
+  render() {
     const {
       checkable,
       checked,
@@ -62,16 +60,26 @@ export class PropList extends PropBase {
       placeholder,
       disabled,
     } = this.props;
-    
-    if (checkable && !checked) return null;
-    
+
+    const propsForBase = _pick(this.props, baseProps);
+
+    let content = null;
+    if (!checkable || checked) {
+      content = (
+        <SelectBox
+          options={options}
+          value={value}
+          placeholder={placeholder}
+          disabled={disabled}
+          onChange={this._handleChange}
+        />
+      );
+    }
+
     return (
-      <SelectBox
-        options={options}
-        value={value}
-        placeholder={placeholder}
-        disabled={disabled}
-        onChange={this._handleChange}
+      <PropBase
+        {...propsForBase}
+        content={content}
       />
     );
   }
