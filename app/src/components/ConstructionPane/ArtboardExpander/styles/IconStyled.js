@@ -14,11 +14,11 @@ const defaultProps = {
   position: 'horizontal',
 };
 
-const lineComboWidth = 6,
-  lineThickness = 2,
-  iconWidth = componentConstants.rulerWidth - 4, // 4 - icon paddings
-  iconLength = componentConstants.rulerWidth * 1.6,
-  iconColor = paletteBlueGrey600;
+const lineComboWidth = 6;
+const lineThickness = 2;
+const iconWidth = componentConstants.rulerWidth - 4; // 4 - icon paddings
+const iconLength = componentConstants.rulerWidth * 1.6;
+const iconColor = paletteBlueGrey600;
 
 const colorLine = i =>
   `${iconColor} ${lineThickness * (i * 2 - 2)}px,
