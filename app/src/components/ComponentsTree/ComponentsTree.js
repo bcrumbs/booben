@@ -1,26 +1,14 @@
 'use strict';
 
 import React from 'react';
-import PropTypes from 'prop-types';
-import { noop } from '../../utils/misc';
-import './ComponentsTree.scss';
-
-const propTypes = {
-  createElementRef: PropTypes.func,
-};
-
-const defaultProps = {
-  createElementRef: noop,
-};
+import { ComponentsTreeStyled } from './styles/ComponentsTreeStyled';
 
 export const ComponentsTree = props => (
-  <div className="components-tree" ref={props.createElementRef}>
+  <ComponentsTreeStyled>
     {props.children}
-  </div>
+  </ComponentsTreeStyled>
 );
 
-ComponentsTree.propTypes = propTypes;
-ComponentsTree.defaultProps = defaultProps;
 ComponentsTree.displayName = 'ComponentsTree';
 
 export * from './ComponentsTreeList/ComponentsTreeList';
