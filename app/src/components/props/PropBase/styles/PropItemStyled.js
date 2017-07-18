@@ -6,7 +6,6 @@ import { baseModule } from '../../../../styles/themeSelectors';
 
 const sublevelVisible = ({ sublevelVisible }) => sublevelVisible
   ? css`
-    padding-top: ${baseModule(1)}px;
     padding-bottom: ${baseModule(1)}px;
   `
   : '';

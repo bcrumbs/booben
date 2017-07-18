@@ -4,19 +4,12 @@
 
 'use strict';
 
+import React from 'react';
 import { PropBase } from '../PropBase/PropBase';
 
-export class PropEmpty extends PropBase {
-  /**
-   *
-   * @return {?ReactElement}
-   * @override
-   * @private
-   */
-  _renderContent() {
-    return null;
-  }
-}
+export const PropEmpty = props => (
+  <PropBase {...props} content={null} />
+);
 
 PropEmpty.propTypes = PropBase.propTypes;
 PropEmpty.defaultProps = PropBase.defaultProps;

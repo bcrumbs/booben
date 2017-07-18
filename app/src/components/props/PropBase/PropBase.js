@@ -21,12 +21,6 @@ import { ContentBoxStyled } from './styles/ContentBoxStyled';
 import { WrapperStyled } from './styles/WrapperStyled';
 import { PropItemStyled } from './styles/PropItemStyled';
 
-const ActionPropType = PropTypes.shape({
-  id: PropTypes.string.isRequired,
-  icon: PropTypes.string.isRequired,
-  handler: PropTypes.func.isRequired,
-});
-
 const propTypes = {
   id: PropTypes.string,
   label: PropTypes.string,
@@ -44,7 +38,17 @@ const propTypes = {
   checked: PropTypes.bool,
   deletable: PropTypes.bool,
   expanded: PropTypes.bool,
-  additionalActions: PropTypes.arrayOf(ActionPropType),
+  additionalActions: PropTypes.arrayOf(PropTypes.oneOfType([
+    PropTypes.element,
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      icon: PropTypes.string.isRequired,
+      rounded: PropTypes.bool,
+      expanded: PropTypes.bool,
+      handler: PropTypes.func.isRequired,
+    }),
+  ])),
+  content: PropTypes.element,
   onLink: PropTypes.func,
   onPick: PropTypes.func,
   onUnlink: PropTypes.func,
@@ -70,6 +74,7 @@ const defaultProps = {
   deletable: false,
   expanded: false,
   additionalActions: [],
+  content: null,
   onLink: noop,
   onPick: noop,
   onUnlink: noop,
@@ -84,27 +89,6 @@ export class PropBase extends PureComponent {
     this._handleDelete = this._handleDelete.bind(this);
     this._handleLink = this._handleLink.bind(this);
     this._handlePick = this._handlePick.bind(this);
-  }
-
-  /**
-   * To be overridden in subclasses
-   *
-   * @return {ReactElement[]}
-   * @private
-   */
-  _renderAdditionalActions() {
-    return [];
-  }
-
-  /**
-   * Must be overridden in subclasses
-   *
-   * @return {?(ReactElement|ReactElement[])}
-   * @abstract
-   * @private
-   */
-  _renderContent() {
-    throw new Error('Do not use PropBase class directly.');
   }
   
   /**
@@ -179,6 +163,7 @@ export class PropBase extends PureComponent {
       checked,
       expanded,
       additionalActions,
+      content,
       children,
     } = this.props;
 
@@ -246,7 +231,6 @@ export class PropBase extends PureComponent {
       actionsLeftElement = (
         <ActionsBoxStyled>
           <PropAction
-            id="collapse"
             icon="times"
             onPress={this._handleDelete}
           />
@@ -254,13 +238,28 @@ export class PropBase extends PureComponent {
       );
     }
   
-    const actionItemsRight = this._renderAdditionalActions();
+    const actionItemsRight = [];
+
+    additionalActions.forEach(action => {
+      if (React.isValidElement(action)) {
+        actionItemsRight.push(action);
+      } else {
+        actionItemsRight.push(
+          <PropAction
+            key={`extra-${action.id}`}
+            icon={action.icon}
+            rounded={action.rounded}
+            expanded={action.expanded}
+            onPress={action.handler} // eslint-disable-line react/jsx-handler-names
+          />,
+        );
+      }
+    });
   
     if (linkable && (!checkable || checked)) {
       const linkAction = (
         <PropAction
           key="linking"
-          id="linking"
           icon="link"
           onPress={this._handleLink}
         />
@@ -273,7 +272,6 @@ export class PropBase extends PureComponent {
       const pickAction = (
         <PropAction
           key="pick"
-          id="pick"
           icon="eyedropper"
           onPress={this._handlePick}
         />
@@ -281,19 +279,6 @@ export class PropBase extends PureComponent {
 
       actionItemsRight.push(pickAction);
     }
-
-    additionalActions.forEach(action => {
-      /* eslint-disable react/jsx-handler-names */
-      actionItemsRight.push(
-        <PropAction
-          key={action.id}
-          id={action.id}
-          icon={action.icon}
-          onPress={action.handler}
-        />,
-      );
-      /* eslint-disable react/jsx-handler-names */
-    });
   
     let actionsRightElement = null;
     if (actionItemsRight.length) {
@@ -316,7 +301,7 @@ export class PropBase extends PureComponent {
       );
     }
     
-    const content = linked ? this._renderLinked() : this._renderContent();
+    const contentElement = linked ? this._renderLinked() : content;
     
     return (
       <PropItemStyled sublevelVisible={expanded}>
@@ -328,7 +313,7 @@ export class PropBase extends PureComponent {
           <ContentBoxStyled>
             {labelElement}
             {messageElement}
-            {content}
+            {contentElement}
           </ContentBoxStyled>
         
           {actionsRightElement}

@@ -6,6 +6,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import _pick from 'lodash.pick';
 import { Button } from '@reactackle/reactackle';
 import { PropBase } from '../PropBase/PropBase';
 import { noop, returnArg } from '../../../utils/misc';
@@ -24,26 +25,27 @@ const defaultProps = {
   onPickComponent: noop,
 };
 
-export class PropComponentPicker extends PropBase {
-  /**
-   *
-   * @return {?ReactElement}
-   * @override
-   * @private
-   */
-  _renderContent() {
-    const { disabled, getLocalizedText, onPickComponent } = this.props;
+const baseProps = Object.keys(PropBase.propTypes);
 
-    return (
-      <Button
-        colorScheme="link"
-        text={getLocalizedText('valueEditor.componentPicker.pickComponent')}
-        disabled={disabled}
-        onPress={onPickComponent}
-      />
-    );
-  }
-}
+export const PropComponentPicker = props => {
+  const { disabled, getLocalizedText, onPickComponent } = this.props;
+
+  const propsForBase = _pick(props, baseProps);
+
+  return (
+    <PropBase
+      {...propsForBase}
+      content={
+        <Button
+          colorScheme="link"
+          text={getLocalizedText('valueEditor.componentPicker.pickComponent')}
+          disabled={disabled}
+          onPress={onPickComponent}
+        />
+      }
+    />
+  );
+};
 
 PropComponentPicker.propTypes = propTypes;
 PropComponentPicker.defaultProps = defaultProps;

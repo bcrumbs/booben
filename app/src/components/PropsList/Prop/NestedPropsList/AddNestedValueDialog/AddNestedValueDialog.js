@@ -42,14 +42,17 @@ export class AddNestedValueDialog extends PureComponent {
   }
   
   _handleSave() {
-    this.props.onSave({ name: this.state.name });
+    const { onSave } = this.props;
+    const { name } = this.state;
+
+    onSave({ name });
   }
   
   render() {
     const { getLocalizedText, onCancel } = this.props;
     const { name } = this.state;
     
-    const saveButtonIsDisabled = !name;
+    const saveButtonIsDisabled = name === '';
     
     return (
       <FieldNewStyled>

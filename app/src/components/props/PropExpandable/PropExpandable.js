@@ -4,10 +4,10 @@
 
 'use strict';
 
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import _pick from 'lodash.pick';
 import { PropBase } from '../PropBase/PropBase';
-import { PropAction } from '../PropBase/PropAction/PropAction';
 import { noop } from '../../../utils/misc';
 
 const propTypes = {
@@ -20,13 +20,15 @@ const defaultProps = {
   onToggle: noop,
 };
 
-export class PropExpandable extends PropBase {
+const baseProps = Object.keys(PropBase.propTypes);
+
+export class PropExpandable extends Component {
   constructor(...args) {
     super(...args);
-  
+
     this._handleExpandAction = this._handleExpandAction.bind(this);
   }
-  
+
   /**
    *
    * @private
@@ -36,37 +38,40 @@ export class PropExpandable extends PropBase {
     onToggle({ expanded: !expanded });
   }
 
-  /**
-   *
-   * @return {ReactElement[]}
-   * @override
-   * @private
-   */
-  _renderAdditionalActions() {
-    const { checkable, checked, expanded } = this.props;
+  render() {
+    const {
+      checkable,
+      checked,
+      linked,
+      expanded,
+      additionalActions,
+      children,
+    } = this.props;
 
-    if (checkable && !checked) return [];
+    const propsForBase = _pick(this.props, baseProps);
+    let actualAdditionalActions = additionalActions;
 
-    return [
-      <PropAction
-        key="collapse"
-        id="collapse"
-        icon="chevron-right"
-        onPress={this._handleExpandAction}
-        rounded
-        expanded={expanded}
-      />,
-    ];
-  }
+    if (!linked && (!checkable || checked)) {
+      actualAdditionalActions = [...actualAdditionalActions, {
+        id: 'expand',
+        icon: 'chevron-right',
+        rounded: true,
+        expanded,
+        handler: this._handleExpandAction,
+      }];
+    }
 
-  /**
-   *
-   * @return {?ReactElement}
-   * @override
-   * @private
-   */
-  _renderContent() {
-    return null;
+    const actualChildren = expanded ? children : null;
+
+    return (
+      <PropBase
+        {...propsForBase}
+        additionalActions={actualAdditionalActions}
+        content={null}
+      >
+        {actualChildren}
+      </PropBase>
+    );
   }
 }
 

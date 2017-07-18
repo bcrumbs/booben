@@ -45,22 +45,26 @@ export class NestedPropsList extends PureComponent {
   }
   
   _handleAddButtonPress() {
-    if (this.props.askNameOnAdd) {
+    const { askNameOnAdd, onAdd } = this.props;
+
+    if (askNameOnAdd) {
       this.setState({
         isTitleDialogVisible: true,
         name: '',
       });
     } else {
-      this.props.onAdd({});
+      onAdd({});
     }
   }
   
   _handleAdd({ name }) {
+    const { onAdd } = this.props;
+
     this.setState({
       isTitleDialogVisible: false,
     });
     
-    this.props.onAdd({ name });
+    onAdd({ name });
   }
   
   _handleCancelAdd() {

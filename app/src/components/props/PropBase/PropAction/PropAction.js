@@ -11,7 +11,6 @@ import { noop } from '../../../../utils/misc';
 import { PropActionStyled } from './styles/PropActionStyled';
 
 const propTypes = {
-  id: PropTypes.string.isRequired,
   icon: PropTypes.string.isRequired,
   expanded: PropTypes.bool,
   rounded: PropTypes.bool,
@@ -24,12 +23,12 @@ const defaultProps = {
   onPress: noop,
 };
 
-export const PropAction = ({ id, icon, onPress, expanded, rounded }) => (
-  <PropActionStyled expanded={expanded} className={`prop_action-${id}`}>
+export const PropAction = ({ icon, onPress, expanded, rounded }) => (
+  <PropActionStyled expanded={expanded}>
     <Button
       icon={{ name: icon }}
-      onPress={onPress}
       radius={rounded ? 'rounded' : 'default'}
+      onPress={onPress}
     />
   </PropActionStyled>
 );
