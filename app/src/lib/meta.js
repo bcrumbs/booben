@@ -203,22 +203,37 @@ const makeSimpleStaticValue = value => ({
 });
 
 /**
+ * @typedef {Object} BuildDefaultValueOptions
+ * @property {boolean} [forceEnable=false]
+ */
+
+/**
  *
  * @param {JssyValueDefinition} valueDef
  * @param {?Object<string, Object<string, string>>} strings
  * @param {string} language
  * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+ * @param {BuildDefaultValueOptions} options
  * @param {*|Symbol} [_inheritedDefaultValue=NO_VALUE]
- * @return {PlainJssyValue}
+ * @return {PlainJssyValue|Symbol}
  */
 const buildDefaultStaticValue = (
   valueDef,
   strings,
   language,
   userTypedefs,
+  options,
   _inheritedDefaultValue = NO_VALUE,
 ) => {
   const sourceConfig = getSourceConfig(valueDef, 'static', userTypedefs);
+
+  if (
+    valueDef.required === false &&
+    sourceConfig.defaultEnabled === false &&
+    !options.forceEnable
+  ) {
+    return NO_VALUE;
+  }
   
   /* eslint-disable no-use-before-define */
   if (sourceConfig.defaultTextKey) {
@@ -247,13 +262,18 @@ const buildDefaultStaticValue = (
         ? defaultValue[fieldName]
         : NO_VALUE;
 
-      value[fieldName] = _buildDefaultValue(
+      const fieldValue = _buildDefaultValue(
         fieldMeta,
         strings,
         language,
         userTypedefs,
+        options,
         inherited,
       );
+
+      if (fieldValue !== NO_VALUE) {
+        value[fieldName] = fieldValue;
+      }
     });
 
     return makeSimpleStaticValue(value);
@@ -268,6 +288,7 @@ const buildDefaultStaticValue = (
         strings,
         language,
         userTypedefs,
+        options,
         fieldValue,
       );
     });
@@ -282,6 +303,7 @@ const buildDefaultStaticValue = (
         strings,
         language,
         userTypedefs,
+        options,
         fieldValue,
       ));
     } else if (sourceConfig.defaultNum) {
@@ -291,6 +313,7 @@ const buildDefaultStaticValue = (
           strings,
           language,
           userTypedefs,
+          options,
         ));
       }
     }
@@ -393,6 +416,7 @@ const sourcePriority = [
  * @param {?Object<string, Object<string, string>>} strings
  * @param {string} language
  * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+ * @param {BuildDefaultValueOptions} options
  * @param {*|Symbol} [inheritedDefaultValue=Symbol]
  * @return {PlainJssyValue|Symbol}
  */
@@ -401,6 +425,7 @@ const _buildDefaultValue = (
   strings,
   language,
   userTypedefs,
+  options,
   inheritedDefaultValue = NO_VALUE,
 ) => {
   const resolvedValueDef = resolveTypedef(valueDef, userTypedefs);
@@ -412,6 +437,7 @@ const _buildDefaultValue = (
         strings,
         language,
         userTypedefs,
+        options,
         inheritedDefaultValue,
       );
 
@@ -480,11 +506,19 @@ const ensureValueDef = (typedefOrValueDef, userTypedefs) => {
 };
 
 /**
+ * @type {BuildDefaultValueOptions}
+ */
+const defaultBuildDefaultValueOptions = {
+  forceEnable: false,
+};
+
+/**
  *
  * @param {JssyValueDefinition|JssyTypeDefinition} valueDef
  * @param {?Object<string, Object<string, string>>} [strings=null]
  * @param {string} [language='']
  * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
+ * @param {?BuildDefaultValueOptions} [options=null]
  * @return {PlainJssyValue|NO_VALUE}
  */
 export const buildDefaultValue = (
@@ -492,11 +526,13 @@ export const buildDefaultValue = (
   strings = null,
   language = '',
   userTypedefs = null,
+  options = null,
 ) => _buildDefaultValue(
   ensureValueDef(valueDef, userTypedefs),
   strings,
   language,
   userTypedefs,
+  { ...defaultBuildDefaultValueOptions, ...(options || {}) },
 );
 
 /**
