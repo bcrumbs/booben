@@ -44,7 +44,6 @@ export const LinkSourceSelection = props => {
       id={item.id}
       title={item.title}
       data={item.data}
-      actionType="jump"
       connection
       onSelect={props.onSelect}
     />

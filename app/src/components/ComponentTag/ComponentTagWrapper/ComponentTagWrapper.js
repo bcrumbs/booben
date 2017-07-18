@@ -1,11 +1,12 @@
 'use strict';
 
 import React from 'react';
+import { TagWrapperStyled } from './styles/TagWrapperStyled';
 
 export const ComponentTagWrapper = props => (
-  <div className="component-tags-wrapper">
+  <TagWrapperStyled>
     {props.children}
-  </div>
+  </TagWrapperStyled>
 );
 
 ComponentTagWrapper.displayName = 'ComponentTagWrapper';

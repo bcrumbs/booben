@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import { Button } from '@reactackle/reactackle';
 import ProjectRoute from '../../../models/ProjectRoute';
 import { noop } from '../../../utils/misc';
+import { RouteNewButtonStyled } from './styles/RouteNewButtonStyled';
 
 const propTypes = {
   parentRoute: PropTypes.instanceOf(ProjectRoute),
@@ -25,22 +26,22 @@ export class RouteNewButton extends PureComponent {
   }
   
   _handlePress() {
-    const { parentRoute } = this.props;
-    this.props.onPress({ parentRoute });
+    const { parentRoute, onPress } = this.props;
+    onPress({ parentRoute });
   }
   
   render() {
     const { text } = this.props;
     
     return (
-      <li className="route-new-button route-new-root-button">
+      <RouteNewButtonStyled>
         <Button
           text={text}
           colorScheme="primary"
           outlined
           onPress={this._handlePress}
         />
-      </li>
+      </RouteNewButtonStyled>
     );
   }
 }

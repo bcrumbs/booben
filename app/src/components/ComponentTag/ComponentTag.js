@@ -2,7 +2,10 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import './ComponentTag.scss';
+import { ComponentTagStyled } from './styles/ComponentTagStyled';
+import { TagStyled } from './styles/TagStyled';
+import { ImageStyled } from './styles/ImageStyled';
+import { TitleStyled } from './styles/TitleStyled';
 
 const propTypes = {
   image: PropTypes.string,
@@ -16,26 +19,19 @@ const defaultProps = {
   focused: false,
 };
 
-export const ComponentTag = props => {
-  let className = 'component-tag-box';
-  if (props.focused) className += ' is-focused';
+export const ComponentTag = props => (
+  <ComponentTagStyled focused={props.focused}>
+    <TagStyled>
+      <ImageStyled>
+        <img src={props.image} alt="" role="presentation" />
+      </ImageStyled>
 
-  return (
-    <div className={className}>
-      <div className="component-tag">
-        <picture className="component-tag-image">
-          <img src={props.image} alt="" role="presentation" />
-        </picture>
-
-        <div className="component-tag-title-box">
-          <div className="component-tag-title">
-            {props.title}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+      <TitleStyled focused={props.focused}>
+        {props.title}
+      </TitleStyled>
+    </TagStyled>
+  </ComponentTagStyled>
+);
 
 ComponentTag.propTypes = propTypes;
 ComponentTag.defaultProps = defaultProps;

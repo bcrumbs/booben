@@ -8,6 +8,8 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Breadcrumbs } from '@reactackle/reactackle';
 import { noop } from '../../../../utils/misc';
+import { BreadcrumbsStyled } from './styles/BreadcrumbsStyled';
+import { LinkStyled } from './styles/LinkStyled';
 
 const propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
@@ -24,9 +26,9 @@ const defaultProps = {
 
 /* eslint-disable react/prop-types */
 const LinkComponent = ({ onClick, children }) => (
-  <span style={{ cursor: 'pointer' }} onClick={onClick}>
+  <LinkStyled onClick={onClick}>
     {children}
-  </span>
+  </LinkStyled>
 );
 /* eslint-enable react/prop-types */
 
@@ -42,21 +44,22 @@ export class ComplexPropBreadcrumbs extends PureComponent {
    * @private
    */
   _handleItemSelect({ index }) {
-    this.props.onItemSelect({ index });
+    const { onItemSelect } = this.props;
+    onItemSelect({ index });
   }
   
   render() {
     const { items } = this.props;
     
     return (
-      <div className="prop-tree-breadcrumbs">
+      <BreadcrumbsStyled>
         <Breadcrumbs
           items={items}
           linkComponent={LinkComponent}
           mode="dark"
           onItemClick={this._handleItemSelect}
         />
-      </div>
+      </BreadcrumbsStyled>
     );
   }
 }
