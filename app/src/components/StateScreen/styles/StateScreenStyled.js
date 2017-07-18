@@ -33,20 +33,20 @@ const background = ({ image, color, overlayColor }) => {
 
   const imageStyle = image
     ? css`
-        &::before {
-          background-image: url('${image}');
-          ${pseudoChildBase}
-        }
-      `
+      &::before {
+        background-image: url('${image}');
+        ${pseudoChildBase}
+      }
+    `
     : '';
 
   const overlayStyle = overlayColor
     ? css`
-        &::after {
-          background-color: ${overlayColor};
-          ${pseudoChildBase}
-        }
-      `
+      &::after {
+        background-color: ${overlayColor};
+        ${pseudoChildBase}
+      }
+    `
     : '';
 
   const bgColor = color

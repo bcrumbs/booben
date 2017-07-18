@@ -18,9 +18,9 @@ const defaultProps = {
   light: false,
 };
 
-const colorScheme = ({
-  light,
-}) => css`color: ${light ? colorWhite : textColorBody }`;
+const colorScheme = ({ light }) => css`
+  color: ${light ? colorWhite : textColorBody}
+`;
 
 export const MessageStyled = styled.div`
   font-size: ${fontSizeBody2}px;

@@ -6,6 +6,7 @@ import { StateScreenStyled } from '../styles/StateScreenStyled';
 import { ContentStyled } from '../styles/ContentStyled';
 import { TitleStyled } from '../styles/TitleStyled';
 import { MessageStyled } from '../styles/MessageStyled';
+import backgroundImage from '../../../../assets/error.gif';
 
 const propTypes = {
   title: PropTypes.string,
@@ -19,7 +20,7 @@ const defaultProps = {
 
 export const ErrorScreen = props => (
   <StateScreenStyled
-    image="https://media.giphy.com/media/54thzV477Bgk/giphy.gif"
+    image={backgroundImage}
     overlayColor="rgba(51, 58, 69, 0.95)"
   >
     <ContentStyled>

@@ -120,8 +120,12 @@ module.exports = {
             loader: 'image-webpack-loader',
             options: {
               bypassOnDebug: true,
-              optimizationLevel: '7',
-              interlaced: 'false',
+              gifsicle: {
+                interlaced: false,
+              },
+              optipng: {
+                optimizationLevel: 7,
+              },
             },
           },
         ],
