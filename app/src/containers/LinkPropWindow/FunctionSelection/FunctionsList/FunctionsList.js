@@ -131,7 +131,6 @@ export class FunctionsList extends PureComponent {
         title={fn.name}
         description={fn.description}
         connection
-        actionType="jump"
         onSelect={this._handleFunctionSelect}
       />
     ));

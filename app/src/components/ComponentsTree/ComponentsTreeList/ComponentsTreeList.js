@@ -1,11 +1,12 @@
 'use strict';
 
 import React from 'react';
+import { TreeListStyled } from './styles/TreeListStyled';
 
 export const ComponentsTreeList = ({ children }) => (
-  <ul className="components-tree-list">
+  <TreeListStyled>
     {children}
-  </ul>
+  </TreeListStyled>
 );
 
 ComponentsTreeList.displayName = 'ComponentsTreeList';

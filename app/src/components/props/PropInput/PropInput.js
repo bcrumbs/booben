@@ -4,8 +4,9 @@
 
 'use strict';
 
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import _pick from 'lodash.pick';
 import { TextField } from '@reactackle/reactackle';
 import { PropBase } from '../PropBase/PropBase';
 import { noop, returnArg } from '../../../utils/misc';
@@ -28,7 +29,9 @@ const defaultProps = {
   onChange: noop,
 };
 
-export class PropInput extends PropBase {
+const baseProps = Object.keys(PropBase.propTypes);
+
+export class PropInput extends Component {
   constructor(props, context) {
     super(props, context);
     this._handleChange = this._handleChange.bind(this);
@@ -50,17 +53,27 @@ export class PropInput extends PropBase {
    * @override
    * @private
    */
-  _renderContent() {
+  render() {
     const { checkable, checked, value, placeholder, disabled } = this.props;
-    
-    if (checkable && !checked) return null;
-    
+
+    const propsForBase = _pick(this.props, baseProps);
+
+    let content = null;
+    if (!checkable || checked) {
+      content = (
+        <TextField
+          value={value}
+          placeholder={placeholder}
+          disabled={disabled}
+          onChange={this._handleChange}
+        />
+      );
+    }
+
     return (
-      <TextField
-        value={value}
-        placeholder={placeholder}
-        disabled={disabled}
-        onChange={this._handleChange}
+      <PropBase
+        {...propsForBase}
+        content={content}
       />
     );
   }

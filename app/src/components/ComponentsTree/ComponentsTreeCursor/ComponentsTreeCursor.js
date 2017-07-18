@@ -38,4 +38,5 @@ export const _ComponentsTreeCursor = props => {
 _ComponentsTreeCursor.propTypes = propTypes;
 _ComponentsTreeCursor.defaultProps = defaultProps;
 _ComponentsTreeCursor.displayName = 'ComponentsTreeCursor';
+
 export const ComponentsTreeCursor = withTooltip(_ComponentsTreeCursor, true);
