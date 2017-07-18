@@ -19,8 +19,8 @@ const defaultProps = {
   focused: false,
 };
 
-const tagsPerRow = 3,
-  tagBaseWidth = 100 / tagsPerRow;
+const TAGS_PER_ROW = 3;
+const TAG_BASE_WIDTH = 100 / TAGS_PER_ROW;
 
 const focused = ({ focused }) => focused
   ? `
@@ -36,8 +36,8 @@ export const ComponentTagStyled = styled.div`
   margin: ${baseModule(0.25)}px 0;
   cursor: move;
   flex-shrink: 0;
-  flex-basis: ${tagBaseWidth}%;
-  max-width: ${tagBaseWidth}%;
+  flex-basis: ${TAG_BASE_WIDTH}%;
+  max-width: ${TAG_BASE_WIDTH}%;
   flex-grow: 1;
   display: flex;
   align-items: stretch;

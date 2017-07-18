@@ -19,9 +19,8 @@ const defaultProps = {
   focused: false,
 };
 
-const focused = ({
-  focused,
-}) => `color: ${focused ? colorMain : textColorBody};`;
+const focused = ({ focused }) =>
+  `color: ${focused ? colorMain : textColorBody};`;
 
 export const TitleStyled = styled.div`
   font-size: ${fontSizeSmall}px;
