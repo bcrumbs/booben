@@ -6,6 +6,8 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { ArtboardExpanderStyled } from './styles/ArtboardExpanderStyled';
+import { IconStyled } from './styles/IconStyled';
 
 const propTypes = {
   position: PropTypes.oneOf(['horizontal', 'vertical', 'entire']),
@@ -15,17 +17,11 @@ const defaultProps = {
   position: 'horizontal',
 };
 
-export const ArtboardExpander = props => {
-  const className =
-    'construction-pane_artboard-expander ' +
-    `artboard-expander_position-${props.position}`;
-  
-  return (
-    <div className={className}>
-      <div className="construction-pane_artboard-expander_icon" />
-    </div>
-  );
-};
+export const ArtboardExpander = props => (
+  <ArtboardExpanderStyled position={props.position}>
+    <IconStyled position={props.position} />
+  </ArtboardExpanderStyled>
+);
 
 ArtboardExpander.propTypes = propTypes;
 ArtboardExpander.defaultProps = defaultProps;
