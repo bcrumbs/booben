@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { SelectionListStyled } from './styles/SelectionListStyled';
+
 import {
   ComponentLayoutSelectionStyled,
 } from './styles/ComponentLayoutSelectionStyled';
