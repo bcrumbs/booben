@@ -8,6 +8,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { PaneRulerStyled } from './styles/PaneRulerStyled';
 
 const propTypes = {
   position: PropTypes.oneOf(['horizontal', 'vertical']),
@@ -21,9 +22,9 @@ export const PaneRuler = props => {
   const rulerPoints = null;
   
   return (
-    <div className={`construction-pane_ruler ruler_position-${props.position}`}>
+    <PaneRulerStyled position={props.position}>
       {rulerPoints}
-    </div>
+    </PaneRulerStyled>
   );
 };
 

@@ -966,7 +966,6 @@ class ComponentsTreeViewComponent extends PureComponent {
    * @private
    */
   _renderLine(title = '', invisible = false) {
-    //noinspection JSValidateTypes
     return (
       <ComponentPlaceholder
         key="divider-line"
@@ -1062,7 +1061,6 @@ class ComponentsTreeViewComponent extends PureComponent {
       />
     );
 
-    //noinspection JSValidateTypes
     return (
       <ComponentsTreeItem
         key={String(componentId)}

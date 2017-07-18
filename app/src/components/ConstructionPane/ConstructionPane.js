@@ -4,7 +4,48 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { PaneRuler } from './PaneRuler/PaneRuler';
 import { ArtboardExpander } from './ArtboardExpander/ArtboardExpander';
-import './ConstructionPane.scss';
+import { ConstructionPaneStyled } from './styles/ConstructionPaneStyled';
+import { CanvasStyled } from './styles/CanvasStyled';
+import { ArtboardDataStyled } from './styles/ArtboardDataStyled';
+import { ArtboardDataContentStyled } from './styles/ArtboardDataContentStyled';
+import { ArtboardDataTitleStyled } from './styles/ArtboardDataTitleStyled';
+import { ArtboardDataSizeStyled } from './styles/ArtboardDataSizeStyled';
+import { ArtboardBoxStyled } from './styles/ArtboardBoxStyled';
+import { ArtboardStyled } from './styles/ArtboardStyled';
+
+const propTypes = {
+  isolated: PropTypes.bool,
+  rulers: PropTypes.bool,
+  // adaptive: PropTypes.bool,
+
+  /*
+   width/height - current component's (and artboard's) size
+   if set in css, artboard's expanding is forbidden
+   if it's not set in css, place here current <ParentComponent> dimensions. artboard's expanding is allowed within min/max boundaries
+   */
+  width: PropTypes.string,
+  height: PropTypes.string,
+
+  /*
+   scan css for min/max dimensions
+   */
+  minWidth: PropTypes.string,
+  maxWidth: PropTypes.string,
+  minHeight: PropTypes.string,
+  maxHeight: PropTypes.string,
+};
+
+const defaultProps = {
+  isolated: false,
+  rulers: false,
+  // adaptive: true,
+  width: '',
+  height: '',
+  minWidth: '',
+  maxWidth: '',
+  minHeight: '',
+  maxHeight: '',
+};
 
 const ARTBOARD_PADDING = '150px';
 const DIMENSION_DEFAULT = '300px';
@@ -14,12 +55,10 @@ const DIMENSION_DEFAULT = '300px';
     CONSTRUCTION PANE
 */
 export const ConstructionPane = props => {
-  let className = 'construction-pane';
   let rulerX = null;
   let rulerY = null;
   
   if (props.rulers) {
-    className += ' has-rulers';
     rulerX = <PaneRuler position="horizontal" />;
     rulerY = <PaneRuler position="vertical" />;
   }
@@ -40,7 +79,7 @@ export const ConstructionPane = props => {
     3. Nothing is set: use <dimension>=DIMENSION_DEFAULT
     - changing of corresponding artboard's dimension is allowed within min/max boundaries
    */
-  const ARTBOARD_STYLE = {
+  const artboardStyle = {
     height,
     minHeight: props.maxHeight,
     maxHeight: props.minHeight,
@@ -67,89 +106,49 @@ export const ConstructionPane = props => {
     
   // TODO: Strip units for artboardData and place there current artboard's size  (ex. 300 x 300)
   const artboardData = (
-    <div className="artboard-data">
-      <div className="artboard-data-content">
-        <div className="artboard-data_title">
+    <ArtboardDataStyled>
+      <ArtboardDataContentStyled>
+        <ArtboardDataTitleStyled>
           ParentComponent
-        </div>
-        <div className="artboard-data_size">
+        </ArtboardDataTitleStyled>
+        <ArtboardDataSizeStyled>
           {width} x {height}
-        </div>
-      </div>
-    </div>
+        </ArtboardDataSizeStyled>
+      </ArtboardDataContentStyled>
+    </ArtboardDataStyled>
   );
 
   let isolation = false;
   if (props.isolated) {
     isolation = (
-      <div className="construction-pane_canvas">
-        <div
-          className="construction-pane_artboard-box"
-          style={artboardBoxStyle}
-        >
-          <div className="construction-pane_artboard" style={ARTBOARD_STYLE}>
+      <CanvasStyled rulers={props.rulers}>
+        <ArtboardBoxStyled style={artboardBoxStyle}>
+          <ArtboardStyled style={artboardStyle}>
             {artboardData}
 
-            <div className="construction-pane_artboard-content">
-              {props.children}
-            </div>
+            <div>{props.children}</div>
 
             {expanderEntire}
             {expanderX}
             {expanderY}
-          </div>
-        </div>
-      </div>
+          </ArtboardStyled>
+        </ArtboardBoxStyled>
+      </CanvasStyled>
     );
-
-    className += 'is-isolated';
   }
 
   return (
-    <div className={className}>
+    <ConstructionPaneStyled>
       {rulerX}
       {rulerY}
       {props.children}
       {isolation}
-    </div>
+    </ConstructionPaneStyled>
   );
 };
 
-ConstructionPane.propTypes = {
-  isolated: PropTypes.bool,
-  rulers: PropTypes.bool,
-  // adaptive: PropTypes.bool,
-
-  /*
-    width/height - current component's (and artboard's) size
-    if set in css, artboard's expanding is forbidden
-    if it's not set in css, place here current <ParentComponent> dimensions. artboard's expanding is allowed within min/max boundaries
-   */
-  width: PropTypes.string,
-  height: PropTypes.string,
-
-  /*
-    scan css for min/max dimensions
-   */
-  minWidth: PropTypes.string,
-  maxWidth: PropTypes.string,
-  minHeight: PropTypes.string,
-  maxHeight: PropTypes.string,
-};
-
-ConstructionPane.defaultProps = {
-  isolated: false,
-  rulers: false,
-  // adaptive: true,
-  width: '',
-  height: '',
-  minWidth: '',
-  maxWidth: '',
-  minHeight: '',
-  maxHeight: '',
-};
-
+ConstructionPane.propTypes = propTypes;
+ConstructionPane.defaultProps = defaultProps;
 ConstructionPane.displayName = 'ConstructionPane';
 
 export * from './ConstructionTool/ConstructionTool';
-

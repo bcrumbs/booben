@@ -2,37 +2,36 @@
 
 import React from 'react';
 import { Column, TextField, Row } from '@reactackle/reactackle';
-import './ConstructionTool.scss';
+import { DataRowStyled } from './styles/DataRowStyled';
+import { DataAdditionalStyled } from './styles/DataAdditionalStyled';
 
 export const ConstructionTool = () => (
-  <div className="construction-tool">
+  <div>
     <Row layoutDirection="horizontal">
       <Column layoutDirection="vertical" size={{ xsmall: 6 }}>
         <TextField label="Width" value="300px" />
         
-        <div className="construction-tool_data-row">
-          <div className="construction-tool_data-item-additional">
+        <DataRowStyled>
+          <DataAdditionalStyled>
             min-width: 0
-          </div>
-          
-          <div className="construction-tool_data-item-additional">
+          </DataAdditionalStyled>
+          <DataAdditionalStyled>
             max-width: 100%
-          </div>
-        </div>
+          </DataAdditionalStyled>
+        </DataRowStyled>
       </Column>
       
       <Column layoutDirection="vertical" size={{ xsmall: 6 }}>
         <TextField label="Height" value="300px" />
         
-        <div className="construction-tool_data-row">
-          <div className="construction-tool_data-item-additional">
+        <DataRowStyled>
+          <DataAdditionalStyled>
             min-width: 0
-          </div>
-          
-          <div className="construction-tool_data-item-additional">
+          </DataAdditionalStyled>
+          <DataAdditionalStyled>
             max-width: 100%
-          </div>
-        </div>
+          </DataAdditionalStyled>
+        </DataRowStyled>
       </Column>
     </Row>
   </div>

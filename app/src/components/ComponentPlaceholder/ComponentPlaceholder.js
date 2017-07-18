@@ -3,13 +3,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { noop } from '../../utils/misc';
-import './ComponentPlaceholder.scss';
+import { TitleStyled } from './styles/TitleStyled';
+
+import {
+  ComponentPlaceholderStyled,
+} from './styles/ComponentPlaceholderStyled';
 
 const propTypes = {
   title: PropTypes.string,
   isPlaced: PropTypes.bool,
   isInvisible: PropTypes.bool,
   elementRef: PropTypes.func,
+  titleElementRef: PropTypes.func,
 };
 
 const defaultProps = {
@@ -17,36 +22,27 @@ const defaultProps = {
   isPlaced: false,
   isInvisible: false,
   elementRef: noop,
+  titleElementRef: noop,
 };
 
 export const ComponentPlaceholder = props => {
-  let className = 'component-placeholder';
-  className += props.isPlaced ? ' is-placed' : ' is-free';
-
-  let content = false;
+  let content = null;
   if (props.title) {
-    const titleClassName =
-      'component-placeholder-title ' +
-      'js-component-placeholder-title';
-
     content = (
-      <div className={titleClassName}>
+      <TitleStyled innerRef={props.titleElementRef}>
         {props.title}
-      </div>
+      </TitleStyled>
     );
   }
-  
-  const style = {};
-  if (props.isInvisible) style.opacity = '0';
 
   return (
-    <div
-      className={className}
-      style={style}
-      ref={props.elementRef}
+    <ComponentPlaceholderStyled
+      placed={props.isPlaced}
+      visible={!props.isInvisible}
+      innerRef={props.elementRef}
     >
       {content}
-    </div>
+    </ComponentPlaceholderStyled>
   );
 };
 
