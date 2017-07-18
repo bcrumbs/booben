@@ -1,7 +1,6 @@
 'use strict';
 
 import styled, { css } from 'styled-components';
-import { transition } from '@reactackle/reactackle';
 
 import {
   radiusDefault,
@@ -34,7 +33,6 @@ export const ComponentPlaceholderStyled = styled.div`
   user-select: none;
   ${placed}
   ${visible}
-  ${transition('opacity')}
 `;
 
 ComponentPlaceholderStyled.displayName = 'ComponentPlaceholderStyled';

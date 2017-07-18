@@ -14,6 +14,7 @@ const propTypes = {
   isPlaced: PropTypes.bool,
   isInvisible: PropTypes.bool,
   elementRef: PropTypes.func,
+  titleElementRef: PropTypes.func,
 };
 
 const defaultProps = {
@@ -21,13 +22,14 @@ const defaultProps = {
   isPlaced: false,
   isInvisible: false,
   elementRef: noop,
+  titleElementRef: noop,
 };
 
 export const ComponentPlaceholder = props => {
-  let content = false;
+  let content = null;
   if (props.title) {
     content = (
-      <TitleStyled className='js-component-placeholder-title'>
+      <TitleStyled innerRef={props.titleElementRef}>
         {props.title}
       </TitleStyled>
     );
@@ -37,7 +39,7 @@ export const ComponentPlaceholder = props => {
     <ComponentPlaceholderStyled
       placed={props.isPlaced}
       visible={!props.isInvisible}
-      ref={props.elementRef}
+      innerRef={props.elementRef}
     >
       {content}
     </ComponentPlaceholderStyled>
