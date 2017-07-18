@@ -28,36 +28,40 @@ const defaultProps = {
 export class ComponentLayoutSelectionItem extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
     this._handleClick = this._handleClick.bind(this);
   }
   
   _handleClick() {
-    this.props.onSelect({ layoutIdx: this.props.layoutIdx });
+    const { layoutIdx, onSelect } = this.props;
+    onSelect({ layoutIdx });
   }
   
   _renderSubtitle() {
-    if (!this.props.subtitle) return null;
+    const { subtitle } = this.props;
+
+    if (!subtitle) return null;
     
     return (
       <SubtitleStyled>
-        {this.props.subtitle}
+        {subtitle}
       </SubtitleStyled>
     );
   }
   
   render() {
+    const { image, title } = this.props;
+
     const subtitle = this._renderSubtitle();
   
     return (
       <LayoutItemStyled onClick={this._handleClick}>
         <ImageBoxStyled>
-          <img src={this.props.image} alt="" role="presentation" />
+          <img src={image} alt="" role="presentation" />
         </ImageBoxStyled>
       
         <TitleBoxStyled>
           <TitleStyled>
-            {this.props.title}
+            {title}
           </TitleStyled>
         
           {subtitle}

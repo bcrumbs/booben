@@ -4,8 +4,8 @@ import styled from 'styled-components';
 import { transition } from '@reactackle/reactackle';
 import { baseModule } from '../../../../styles/themeSelectors';
 
-const itemsPerRow = 2,
-  itemWidth = 100 / itemsPerRow;
+const itemsPerRow = 2;
+const itemWidth = 100 / itemsPerRow;
 
 export const LayoutItemStyled = styled.div`
   padding: ${baseModule(1)}px;
