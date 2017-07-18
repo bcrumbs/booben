@@ -5,12 +5,12 @@
 'use strict';
 
 import React from 'react';
-import './PropsList.scss';
+import { PropsListStyled } from './styles/PropsListStyled';
 
 export const PropsList = props => (
-  <div className="props-list">
+  <PropsListStyled>
     {props.children}
-  </div>
+  </PropsListStyled>
 );
 
 PropsList.displayName = 'PropsList';
