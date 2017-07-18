@@ -26,14 +26,14 @@ const defaultProps = {
   onChange: noop,
 };
 
+const codeMirrorOptions = {
+  mode: 'javascript',
+  lineNumbers: true,
+};
+
 export const FunctionEditor = ({ name, args, code, onChange }) => {
   const header = `function ${name}(${args.map(arg => arg.name).join(', ')}) {`;
   const footer = '}';
-  
-  const codeMirrorOptions = {
-    mode: 'javascript',
-    lineNumbers: true,
-  };
 
   return (
     <div>
