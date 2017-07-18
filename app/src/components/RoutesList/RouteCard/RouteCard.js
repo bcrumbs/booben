@@ -9,6 +9,14 @@ import PropTypes from 'prop-types';
 import { Icon } from '@reactackle/reactackle';
 import ProjectRoute from '../../../models/ProjectRoute';
 import { noop } from '../../../utils/misc';
+import { RouteCardStyled } from './styles/RouteCardStyled';
+import { CardWrapperStyled } from './styles/CardWrapperStyled';
+import { CardStyled } from './styles/CardStyled';
+import { CardContentStyled } from './styles/CardContentStyled';
+import { TitleBoxStyled } from './styles/TitleBoxStyled';
+import { TitleStyled } from './styles/TitleStyled';
+import { SubtitleStyled } from './styles/SubtitleStyled';
+import { RouteIconStyled } from './styles/RouteIconStyled';
 
 const propTypes = {
   route: PropTypes.instanceOf(ProjectRoute).isRequired,
@@ -80,38 +88,38 @@ export class RouteCard extends PureComponent {
     let icon = null;
     if (route.redirect) {
       icon = (
-        <div className="route-icon">
-          <Icon name="random" />
-        </div>
+        <RouteIconStyled>
+          <Icon name="random" size="inherit" color="inherit" />
+        </RouteIconStyled>
       );
     }
     
     const title = route.title || route.path;
 
     return (
-      <li className="route-card-item">
-        <div className={className}>
-          <div
-            className="route-card"
+      <RouteCardStyled>
+        <CardWrapperStyled focused={focused} className={className}>
+          <CardStyled
+            focused={focused}
             tabIndex="0"
             onClick={this._handleCardClick}
-            ref={this._saveRef}
+            innerRef={this._saveRef}
           >
-            <div className="route-card-content">
-              <div className="route-title-box">
-                <span className="route-title">{title}</span>
+            <CardContentStyled>
+              <TitleBoxStyled>
+                <TitleStyled>{title}</TitleStyled>
                 {icon}
-              </div>
+              </TitleBoxStyled>
   
-              <div className="route-subtitle">
+              <SubtitleStyled>
                 {route.path}
-              </div>
-            </div>
-          </div>
-        </div>
+              </SubtitleStyled>
+            </CardContentStyled>
+          </CardStyled>
+        </CardWrapperStyled>
 
         {children}
-      </li>
+      </RouteCardStyled>
     );
   }
 }

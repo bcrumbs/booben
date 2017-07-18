@@ -7,6 +7,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { noop } from '../../../utils/misc';
+import { RouteCardStyled } from '../RouteCard/styles/RouteCardStyled';
+import { CardWrapperStyled } from '../RouteCard/styles/CardWrapperStyled';
+import { CardStyled } from '../RouteCard/styles/CardStyled';
+import { CardContentStyled } from '../RouteCard/styles/CardContentStyled';
+import { TitleBoxStyled } from '../RouteCard/styles/TitleBoxStyled';
+import { TitleStyled } from '../RouteCard/styles/TitleStyled';
 
 const propTypes = {
   routeId: PropTypes.number.isRequired,
@@ -75,26 +81,24 @@ export class IndexRouteCard extends PureComponent {
   render() {
     const { title, focused } = this.props;
     
-    let className = 'route-card-wrapper is-index';
-    if (focused) className += ' is-focused';
-    
     return (
-      <li className="route-card-item">
-        <div className={className}>
-          <div
-            className="route-card"
+      <RouteCardStyled>
+        <CardWrapperStyled index>
+          <CardStyled
+            index
+            focused={focused}
             tabIndex="0"
             onClick={this._handleCardClick}
-            ref={this._saveRef}
+            innerRef={this._saveRef}
           >
-            <div className="route-card-content">
-              <div className="route-title-box">
-                <span className="route-title">{title}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </li>
+            <CardContentStyled>
+              <TitleBoxStyled>
+                <TitleStyled index>{title}</TitleStyled>
+              </TitleBoxStyled>
+            </CardContentStyled>
+          </CardStyled>
+        </CardWrapperStyled>
+      </RouteCardStyled>
     );
   }
 }
