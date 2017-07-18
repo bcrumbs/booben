@@ -1,14 +1,15 @@
 'use strict';
 
 import React from 'react';
-import './LayoutSelection.scss';
+import { LayoutSelectionStyled } from './styles/LayoutSelectionStyled';
+import { SelectionListStyled } from './styles/SelectionListStyled';
 
 export const LayoutSelection = props => (
-  <div className="layout-selection-wrapper">
-    <div className="layout-selection-list">
+  <LayoutSelectionStyled>
+    <SelectionListStyled>
       {props.children}
-    </div>
-  </div>
+    </SelectionListStyled>
+  </LayoutSelectionStyled>
 );
 
 LayoutSelection.displayName = 'LayoutSelection';
