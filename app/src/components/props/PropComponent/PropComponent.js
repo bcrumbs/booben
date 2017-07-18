@@ -6,6 +6,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import _pick from 'lodash.pick';
 import { Button } from '@reactackle/reactackle';
 import { PropBase } from '../PropBase/PropBase';
 import { noop, returnArg } from '../../../utils/misc';
@@ -26,38 +27,36 @@ const defaultProps = {
   onSetComponent: noop,
 };
 
-export class PropComponent extends PropBase {
-  //noinspection JSUnusedGlobalSymbols
-  /**
-   *
-   * @return {?ReactElement}
-   * @override
-   * @private
-   */
-  _renderContent() {
-    const {
-      haveComponent,
-      disabled,
-      getLocalizedText,
-      onSetComponent,
-    } = this.props;
-    
-    //noinspection JSCheckFunctionSignatures
-    const text = haveComponent
-      ? getLocalizedText('valueEditor.component.editComponent')
-      : getLocalizedText('valueEditor.component.setComponent');
-    
-    //noinspection JSValidateTypes
-    return (
-      <Button
-        colorScheme="link"
-        text={text}
-        disabled={disabled}
-        onPress={onSetComponent}
-      />
-    );
-  }
-}
+const baseProps = Object.keys(PropBase.propTypes);
+
+export const PropComponent = props => {
+  const {
+    haveComponent,
+    disabled,
+    getLocalizedText,
+    onSetComponent,
+  } = props;
+
+  const propsForBase = _pick(props, baseProps);
+
+  const text = haveComponent
+    ? getLocalizedText('valueEditor.component.editComponent')
+    : getLocalizedText('valueEditor.component.setComponent');
+
+  return (
+    <PropBase
+      {...propsForBase}
+      content={
+        <Button
+          colorScheme="link"
+          text={text}
+          disabled={disabled}
+          onPress={onSetComponent}
+        />
+      }
+    />
+  );
+};
 
 PropComponent.propTypes = propTypes;
 PropComponent.defaultProps = defaultProps;
