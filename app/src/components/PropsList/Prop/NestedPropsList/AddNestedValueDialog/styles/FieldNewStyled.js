@@ -1,6 +1,5 @@
 'use strict';
 
-import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import { colorActiveBg } from '../../../../../../styles/themeSelectors';
 import constants from '../../../../styles/constants';
@@ -12,5 +11,3 @@ export const FieldNewStyled = styled.div`
 `;
 
 FieldNewStyled.displayName = 'FieldNewStyled';
-FieldNewStyled.propTypes = propTypes;
-FieldNewStyled.defaultProps = defaultProps;
