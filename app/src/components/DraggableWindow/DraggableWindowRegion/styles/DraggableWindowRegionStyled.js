@@ -1,12 +1,7 @@
 'use strict';
 
 import styled from 'styled-components';
-import { boxShadow } from '../../../../styles/mixins';
-
-import {
-  paletteBlueGrey200,
-  baseModule,
-} from '../../../../styles/themeSelectors';
+import { paletteBlueGrey200 } from '../../../../styles/themeSelectors';
 
 const shadowWidth = 2;
 

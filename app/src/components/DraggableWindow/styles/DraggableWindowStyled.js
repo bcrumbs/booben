@@ -9,10 +9,10 @@ import {
   baseModule,
 } from '../../../styles/themeSelectors';
 
-const boxShadowDefault = boxShadow(1),
-  boxShadowDragged = boxShadow(2),
-  sectionMargin = baseModule(0.5),
-  doubleMargin = baseModule(1);
+const boxShadowDefault = boxShadow(1);
+const boxShadowDragged = boxShadow(2);
+const sectionMargin = baseModule(0.5);
+const doubleMargin = baseModule(1);
 
 const dragged = ({ dragged }) => dragged
   ? `

@@ -27,6 +27,7 @@ export const DraggableWindow = props => (
   <DraggableWindowStyled
     maxHeight={props.maxHeight > 0 ? props.maxHeight : DEFAULT_MAX_HEIGHT}
     minWidth={props.minWidth > 0 ? props.minWidth : null}
+    zIndex={props.zIndex}
     dragged={props.isDragged}
     onMouseDown={props.onFocus}
   >
