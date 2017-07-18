@@ -617,6 +617,7 @@ class DesignRoute extends PureComponent {
      */
   _handleDeleteComponentConfirm(closeDialog) {
     const { firstSelectedComponentId, onDeleteComponent } = this.props;
+
     onDeleteComponent(firstSelectedComponentId);
     closeDialog();
   }
@@ -646,7 +647,8 @@ class DesignRoute extends PureComponent {
    * @private
    */
   _handleLayoutSelection({ layoutIdx }) {
-    this.props.onSelectLayout(layoutIdx);
+    const { onSelectLayout } = this.props;
+    onSelectLayout(layoutIdx);
   }
 
   /**

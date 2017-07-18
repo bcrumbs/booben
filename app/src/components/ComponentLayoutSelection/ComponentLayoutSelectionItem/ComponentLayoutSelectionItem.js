@@ -3,6 +3,11 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { noop } from '../../../utils/misc';
+import { LayoutItemStyled } from './styles/LayoutItemStyled';
+import { ImageBoxStyled } from './styles/ImageBoxStyled';
+import { TitleBoxStyled } from './styles/TitleBoxStyled';
+import { TitleStyled } from './styles/TitleStyled';
+import { SubtitleStyled } from './styles/SubtitleStyled';
 
 const propTypes = {
   layoutIdx: PropTypes.number,
@@ -23,41 +28,45 @@ const defaultProps = {
 export class ComponentLayoutSelectionItem extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
     this._handleClick = this._handleClick.bind(this);
   }
   
   _handleClick() {
-    this.props.onSelect({ layoutIdx: this.props.layoutIdx });
+    const { layoutIdx, onSelect } = this.props;
+    onSelect({ layoutIdx });
   }
   
   _renderSubtitle() {
-    if (!this.props.subtitle) return null;
+    const { subtitle } = this.props;
+
+    if (!subtitle) return null;
     
     return (
-      <div className="component-layout-item-subtitle">
-        {this.props.subtitle}
-      </div>
+      <SubtitleStyled>
+        {subtitle}
+      </SubtitleStyled>
     );
   }
   
   render() {
+    const { image, title } = this.props;
+
     const subtitle = this._renderSubtitle();
   
     return (
-      <div className="component-layout-item" onClick={this._handleClick}>
-        <div className="component-layout-item-image-box">
-          <img src={this.props.image} alt="" role="presentation" />
-        </div>
+      <LayoutItemStyled onClick={this._handleClick}>
+        <ImageBoxStyled>
+          <img src={image} alt="" role="presentation" />
+        </ImageBoxStyled>
       
-        <div className="component-layout-item-title-box">
-          <div className="component-layout-item-title">
-            {this.props.title}
-          </div>
+        <TitleBoxStyled>
+          <TitleStyled>
+            {title}
+          </TitleStyled>
         
           {subtitle}
-        </div>
-      </div>
+        </TitleBoxStyled>
+      </LayoutItemStyled>
     );
   }
 }
