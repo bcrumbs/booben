@@ -19,6 +19,7 @@ import {
 } from '@jssy/common-ui';
 
 import { returnArg, noop } from '../../../../../utils/misc';
+import { ButtonRowStyled } from './styles/ButtonRowStyled';
 
 const propTypes = {
   existingArgNames: PropTypes.arrayOf(PropTypes.string),
@@ -90,8 +91,10 @@ export class FunctionArgumentNew extends PureComponent {
    * @private
    */
   _handleAddButtonPress() {
+    const { onAdd } = this.props;
     const { name, type } = this.state;
-    this.props.onAdd({ name, type });
+
+    onAdd({ name, type });
   }
   
   /**
@@ -120,44 +123,40 @@ export class FunctionArgumentNew extends PureComponent {
         </BlockContentBoxHeading>
 
         <BlockContentBoxItem>
-          <div className="function-arguments_new-wrapper" >
-            <div className="inputs-row" >
-              <Form>
-                <FormItem>
-                  <TextField
-                    label={nameLabel}
-                    value={name}
-                    pattern={ARG_NAME_PATTERN}
-                    onChange={this._handleNameChange}
-                  />
-                </FormItem>
-
-                <FormItem>
-                  <SelectBox
-                    label={typeLabel}
-                    value={type}
-                    options={typeOptions}
-                    onChange={this._handleTypeChange}
-                  />
-                </FormItem>
-              </Form>
-            </div>
-
-            <div className="button-row" >
-              <Button
-                text={getLocalizedText('linkDialog.function.new.newArg.add')}
-                narrow
-                disabled={isButtonDisabled}
-                onPress={this._handleAddButtonPress}
+          <Form>
+            <FormItem>
+              <TextField
+                label={nameLabel}
+                value={name}
+                pattern={ARG_NAME_PATTERN}
+                onChange={this._handleNameChange}
               />
+            </FormItem>
 
-              <Button
-                text={getLocalizedText('common.cancel')}
-                narrow
-                onPress={this._handleCancelButtonPress}
+            <FormItem>
+              <SelectBox
+                label={typeLabel}
+                value={type}
+                options={typeOptions}
+                onChange={this._handleTypeChange}
               />
-            </div>
-          </div>
+            </FormItem>
+          </Form>
+
+          <ButtonRowStyled>
+            <Button
+              text={getLocalizedText('linkDialog.function.new.newArg.add')}
+              narrow
+              disabled={isButtonDisabled}
+              onPress={this._handleAddButtonPress}
+            />
+
+            <Button
+              text={getLocalizedText('common.cancel')}
+              narrow
+              onPress={this._handleCancelButtonPress}
+            />
+          </ButtonRowStyled>
         </BlockContentBoxItem>
       </BlockContentBoxGroup>
     );
