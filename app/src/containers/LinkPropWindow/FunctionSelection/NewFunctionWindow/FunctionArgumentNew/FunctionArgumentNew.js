@@ -91,8 +91,10 @@ export class FunctionArgumentNew extends PureComponent {
    * @private
    */
   _handleAddButtonPress() {
+    const { onAdd } = this.props;
     const { name, type } = this.state;
-    this.props.onAdd({ name, type });
+
+    onAdd({ name, type });
   }
   
   /**
