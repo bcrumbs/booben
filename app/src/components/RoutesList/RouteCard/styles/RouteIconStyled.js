@@ -9,7 +9,7 @@ import {
 } from '../../../../styles/themeSelectors';
 
 export const RouteIconStyled = styled.div`
-  margin-left: ${baseModule}px;
+  margin-left: ${baseModule(1)}px;
   color: ${paletteBlueGrey600};
   ${iconSize('1em', '1em', '0.6em', 'font')}
 `;

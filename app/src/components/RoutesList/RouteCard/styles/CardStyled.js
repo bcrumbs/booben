@@ -54,9 +54,6 @@ export const CardStyled = styled.div`
   width: 100%;
   max-width: 20em;
   min-height: 60px;
-  padding: ${baseModule(1)}px ${baseModule(2)}px;
-  display: flex;
-  align-items: center;
   cursor: pointer;
   position: relative;
   user-select: none;

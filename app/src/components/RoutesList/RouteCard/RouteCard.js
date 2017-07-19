@@ -17,16 +17,25 @@ import { TitleBoxStyled } from './styles/TitleBoxStyled';
 import { TitleStyled } from './styles/TitleStyled';
 import { SubtitleStyled } from './styles/SubtitleStyled';
 import { RouteIconStyled } from './styles/RouteIconStyled';
+import { AlertMarkStyled } from './styles/AlertMarkStyled';
+import { TextBoxStyled } from './styles/TextBoxStyled';
+import { MessageStyled } from './styles/MessageStyled';
 
 const propTypes = {
   route: PropTypes.instanceOf(ProjectRoute).isRequired,
   focused: PropTypes.bool,
+  alertMark: PropTypes.bool,
+  messageComponent: PropTypes.object,
+  messageColorScheme: PropTypes.oneOf(['neutral', 'error']),
   onFocus: PropTypes.func,
   onGo: PropTypes.func,
 };
 
 const defaultProps = {
   focused: false,
+  alertMark: false,
+  messageComponent: <span>Before editing this route you should set the placing point in the ‘Root route’ first (more about <a href="242">constructing routes</a>)</span>,
+  messageColorScheme: 'error',
   onFocus: noop,
   onGo: noop,
 };
@@ -79,12 +88,15 @@ export class RouteCard extends PureComponent {
   }
 
   render() {
-    const { route, focused, children } = this.props;
+    const {
+      route,
+      focused,
+      children,
+      alertMark,
+      messageComponent,
+      messageColorScheme,
+    } = this.props;
     
-    let className = 'route-card-wrapper';
-    if (route.redirect) className += ' has-redirect';
-    if (focused) className += ' is-focused';
-
     let icon = null;
     if (route.redirect) {
       icon = (
@@ -94,11 +106,29 @@ export class RouteCard extends PureComponent {
       );
     }
     
+    let mark = null;
+    if (alertMark) {
+      mark = (
+        <AlertMarkStyled>
+          <Icon name="exclamation" size="inherit" color="inherit" />
+        </AlertMarkStyled>
+      );
+    }
+    
+    let message = null;
+    if (messageComponent) {
+      message = (
+        <MessageStyled colorScheme={messageColorScheme}>
+          {messageComponent}
+        </MessageStyled>
+      );
+    }
+    
     const title = route.title || route.path;
 
     return (
       <RouteCardStyled>
-        <CardWrapperStyled focused={focused} className={className}>
+        <CardWrapperStyled focused={focused}>
           <CardStyled
             focused={focused}
             tabIndex="0"
@@ -106,15 +136,22 @@ export class RouteCard extends PureComponent {
             innerRef={this._saveRef}
           >
             <CardContentStyled>
-              <TitleBoxStyled>
-                <TitleStyled>{title}</TitleStyled>
-                {icon}
-              </TitleBoxStyled>
+              <TextBoxStyled>
+                <TitleBoxStyled>
+                  <TitleStyled>{title}</TitleStyled>
+                  {icon}
+                </TitleBoxStyled>
+    
+                <SubtitleStyled>
+                  {route.path}
+                </SubtitleStyled>
+              </TextBoxStyled>
   
-              <SubtitleStyled>
-                {route.path}
-              </SubtitleStyled>
+              {mark}
             </CardContentStyled>
+            
+            {message}
+            
           </CardStyled>
         </CardWrapperStyled>
 
