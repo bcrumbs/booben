@@ -6,6 +6,7 @@ import {
   radiusDefault,
   colorActiveBg,
   colorLightBlue,
+  bodyFontFamily,
 } from '../../../styles/themeSelectors';
 
 const placed = ({ placed }) => placed
@@ -33,6 +34,11 @@ export const ComponentPlaceholderStyled = styled.div`
   user-select: none;
   ${placed}
   ${visible}
+  
+  &,
+  & * {
+    font-family: ${bodyFontFamily};
+  }
 `;
 
 ComponentPlaceholderStyled.displayName = 'ComponentPlaceholderStyled';
