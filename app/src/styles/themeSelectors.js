@@ -119,3 +119,7 @@ export const fontWeightBold = ({ theme }) =>
 /* Text color */
 export const textColorMedium = paletteBlueGrey400;
 export const textColorBody = paletteBlueGrey900;
+
+/* Body settings */
+export const bodyFontFamily = ({ theme }) =>
+  theme.reactackle.fontFamily.sansSerif;

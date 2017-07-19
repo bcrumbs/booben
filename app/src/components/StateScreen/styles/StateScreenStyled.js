@@ -4,6 +4,8 @@ import styled, { css } from 'styled-components';
 import { animations } from '@reactackle/reactackle';
 import PropTypes from 'prop-types';
 
+import { bodyFontFamily } from '../../../styles/themeSelectors';
+
 const propTypes = {
   image: PropTypes.string,
   overlayColor: PropTypes.string,
@@ -69,6 +71,11 @@ export const StateScreenStyled = styled.div`
   position: relative;
   min-height: 100vh;
   ${background}
+  
+  &,
+  & * {
+    font-family: ${bodyFontFamily};
+  }
 `;
 
 StateScreenStyled.displayName = 'StateScreenStyled';
