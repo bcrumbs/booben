@@ -285,14 +285,21 @@ class PlaceholderBuilderComponent extends PureComponent {
   /**
    *
    * @param {Object} props
+   * @param {boolean} isHTMLComponent
    * @private
    */
-  _patchPlaceholderRootProps(props) {
+  _patchPlaceholderRootProps(props, isHTMLComponent) {
     const { containerId, afterIdx } = this.props;
 
-    props.__jssy_placeholder__ = true;
-    props.__jssy_after__ = afterIdx;
-    props.__jssy_container_id__ = containerId;
+    if (isHTMLComponent) {
+      props['data-jssy-placeholder'] = '';
+      props['data-jssy-after'] = String(afterIdx);
+      props['data-jssy-container-id'] = String(containerId);
+    } else {
+      props.__jssy_placeholder__ = true;
+      props.__jssy_after__ = afterIdx;
+      props.__jssy_container_id__ = containerId;
+    }
   }
 
   /**
@@ -303,7 +310,7 @@ class PlaceholderBuilderComponent extends PureComponent {
    */
   _renderOutletComponent(isRoot = false) {
     const props = {};
-    if (isRoot) this._patchPlaceholderRootProps(props);
+    if (isRoot) this._patchPlaceholderRootProps(props, false);
 
     return (
       <Outlet {...props} />
@@ -395,6 +402,7 @@ class PlaceholderBuilderComponent extends PureComponent {
     }
 
     const Component = getComponentByName(component.name);
+    const isHTML = isHTMLComponent(component.name);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
 
@@ -407,7 +415,7 @@ class PlaceholderBuilderComponent extends PureComponent {
 
     props.children = this._renderComponentChildren(component);
 
-    if (!isHTMLComponent(component.name)) {
+    if (!isHTML) {
       props.__jssy_error_handler__ = _debounce(
         this._handleErrorInComponentLifecycleHook.bind(this, component),
         250,
@@ -417,7 +425,7 @@ class PlaceholderBuilderComponent extends PureComponent {
     props.key = `placeholder-${containerId}:${afterIdx}-${component.id}`;
 
     if (isRoot && !dontPatch) {
-      this._patchPlaceholderRootProps(props);
+      this._patchPlaceholderRootProps(props, isHTML);
     }
 
     if (isContainerComponent(component.name, meta) && !props.children) {
