@@ -247,8 +247,6 @@ class DesignRoute extends PureComponent {
       this._handleDeleteComponentConfirm.bind(this);
     this._handleDeleteComponentCancel =
       this._handleDeleteComponentCancel.bind(this);
-    this._handleConfirmDeleteComponentDialogClose =
-      this._handleConfirmDeleteComponentDialogClose.bind(this);
     this._handleLayoutSelection =
       this._handleLayoutSelection.bind(this);
     this._handleDropComponent =
@@ -600,42 +598,35 @@ class DesignRoute extends PureComponent {
     }
   }
 
-    /**
-     *
-     * @private
-     */
+  /**
+   *
+   * @private
+   */
   _handleDeleteComponentButtonPress() {
     this.setState({
       confirmDeleteComponentDialogIsVisible: true,
     });
   }
 
-    /**
-     *
-     * @param {Function} closeDialog
-     * @private
-     */
-  _handleDeleteComponentConfirm(closeDialog) {
+  /**
+   *
+   * @private
+   */
+  _handleDeleteComponentConfirm() {
     const { firstSelectedComponentId, onDeleteComponent } = this.props;
-
-    onDeleteComponent(firstSelectedComponentId);
-    closeDialog();
+  
+    this.setState({
+      confirmDeleteComponentDialogIsVisible: false,
+    }, () => {
+      onDeleteComponent(firstSelectedComponentId);
+    });
   }
 
-    /**
-     *
-     * @param {Function} closeDialog
-     * @private
-     */
-  _handleDeleteComponentCancel(closeDialog) {
-    closeDialog();
-  }
-
-    /**
-     *
-     * @private
-     */
-  _handleConfirmDeleteComponentDialogClose() {
+  /**
+   *
+   * @private
+   */
+  _handleDeleteComponentCancel() {
     this.setState({
       confirmDeleteComponentDialogIsVisible: false,
     });
@@ -876,7 +867,7 @@ class DesignRoute extends PureComponent {
             open={confirmDeleteComponentDialogIsVisible}
             closeOnEscape
             closeOnBackdropClick
-            onClose={this._handleConfirmDeleteComponentDialogClose}
+            onClose={this._handleDeleteComponentCancel}
             onEnterKeyPress={this._handleDeleteComponentConfirm}
           >
             {deleteComponentDialogText}
