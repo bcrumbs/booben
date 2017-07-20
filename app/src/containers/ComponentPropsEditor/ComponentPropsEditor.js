@@ -801,6 +801,7 @@ class ComponentPropsEditorComponent extends PureComponent {
         <BlockContentBoxHeading
           key={`${group.name}__heading__`}
           hidden={editingActions}
+          isBordered
         >
           {group.title}
         </BlockContentBoxHeading>,

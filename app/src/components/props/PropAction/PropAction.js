@@ -37,6 +37,7 @@ export const PropAction = props => {
       {...propsForBase}
       content={
         <Button
+          size="small"
           colorScheme="link"
           text={getLocalizedText('valueEditor.action.editActions')}
           disabled={disabled}

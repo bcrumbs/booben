@@ -37,6 +37,7 @@ export const PropComponentPicker = props => {
       {...propsForBase}
       content={
         <Button
+          size="small"
           colorScheme="link"
           text={getLocalizedText('valueEditor.componentPicker.pickComponent')}
           disabled={disabled}

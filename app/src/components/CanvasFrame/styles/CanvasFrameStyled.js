@@ -2,6 +2,11 @@
 
 import styled from 'styled-components';
 
+import {
+  baseModule,
+  paletteBlueGrey600,
+} from '../../../styles/themeSelectors';
+
 export const CanvasFrameStyled = styled.section`
   flex-grow: 1;
   flex-shrink: 0;
@@ -9,6 +14,9 @@ export const CanvasFrameStyled = styled.section`
   height: 100%;
   display: flex;
   align-items: stretch;
+  background-color: ${paletteBlueGrey600};
+  padding: ${baseModule(1.5)}px;
+  box-sizing: border-box;
 `;
 
 CanvasFrameStyled.displayName = 'CanvasFrameStyled';
