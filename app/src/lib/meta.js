@@ -165,7 +165,7 @@ const defaultSourceConfigBuilders = {
  * @return {Object}
  */
 export const getSourceConfig = (valueDef, source, userTypedefs = null) => {
-  if (valueDef.sourceConfigs[source]) {
+  if (valueDef.sourceConfigs && valueDef.sourceConfigs[source]) {
     return valueDef.sourceConfigs[source];
   }
   

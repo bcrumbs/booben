@@ -697,7 +697,9 @@ class StructureRoute extends PureComponent {
       newRouteTitle: '',
       newRouteParamValues: {},
     }, () => {
-      if (this._newRouteTitleInput) this._newRouteTitleInput.focus();
+      if (this._newRouteTitleInput) {
+        this._newRouteTitleInput.focus();
+      }
     });
   }
 
