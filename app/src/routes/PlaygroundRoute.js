@@ -87,6 +87,12 @@ import {
   ConstructionTool,
 } from '../components/ConstructionPane/ConstructionPane';
 
+import {
+  ToolBar,
+  ToolBarGroup,
+  ToolBarAction,
+} from '../components/ToolBar/ToolBar';
+
 import { Desktop } from '../containers/Desktop/Desktop';
 
 import ToolSectionRecord from '../models/ToolSection';
@@ -538,26 +544,22 @@ export default class Playground extends React.Component {
         <Desktop toolGroups={toolGroups}>
           <Panel headerFixed maxHeight="initial" spread>
             <PanelContent>
-              <Container>
-                <RoutesList>
-                  <RouteCard route="route" title="route">
-                    <IndexRouteCard title="index route card" routeId={14} />
-                    <IndexRouteCard title="index route card" focused routeId={14} />
-                  </RouteCard>
-                  <RouteCard route="route" title="route" focused />
-                </RoutesList>
-              </Container>
-              
-              <Container>
-                <ComponentLayoutSelection>
-                  <ComponentLayoutSelectionItem title="title" subtitle="subtitle" />
-                  <ComponentLayoutSelectionItem title="title" subtitle="subtitle" />
-                  <ComponentLayoutSelectionItem title="title" subtitle="subtitle" />
-                </ComponentLayoutSelection>
-              </Container>
-
-              <Container>Тут был старый DataWindow, но его победил Бэтмен.</Container>
-              <Container><img src="https://upload.wikimedia.org/wikipedia/en/1/17/Batman-BenAffleck.jpg" alt=""/></Container>
+              <ToolBar>
+                <ToolBarGroup>
+                  <ToolBarAction icon={{ name: 'files-o' }} />
+                  <ToolBarAction icon={{ name: 'clone' }} disabled />
+                  <ToolBarAction icon={{ name: 'scissors' }} />
+                  <ToolBarAction icon={{ name: 'clipboard' }} />
+                </ToolBarGroup>
+                <ToolBarGroup>
+                  <ToolBarAction icon={{ name: 'undo' }} />
+                  <ToolBarAction icon={{ name: 'repeat' }} />
+                </ToolBarGroup>
+                <ToolBarGroup>
+                  <ToolBarAction text='Show empty' />
+                  <ToolBarAction text='Show hidden' />
+                </ToolBarGroup>
+              </ToolBar>
             </PanelContent>
           </Panel>
         </Desktop>
