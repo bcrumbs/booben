@@ -15,7 +15,7 @@ export default {
       textKey: 'props_colSpan',
       descriptionTextKey: 'props_colSpan_desc',
       required: false,
-      type: 'number',
+      type: 'int',
       source: ['static'],
       sourceConfigs: {
         static: {
