@@ -139,7 +139,7 @@ const wrap = connect(mapStateToProps, mapDispatchToProps);
  *
  * @type {RegExp}
  */
-const ROUTE_PATH_PATTERN = /^[a-zA-Z0-9\-_/:]+$/;
+const ROUTE_PATH_PATTERN = /^\/?(:?[a-zA-Z0-9_]+\/)*:?[a-zA-Z0-9_]+\/?$/;
 
 /**
  *
@@ -1027,8 +1027,7 @@ class StructureRoute extends PureComponent {
     } else {
       children = isSelected ? this._renderRouteList(routes, route, null) : null;
     }
-
-    //noinspection JSValidateTypes
+    
     return (
       <RouteCard
         key={String(route.id)}
@@ -1114,9 +1113,8 @@ class StructureRoute extends PureComponent {
       newRouteParamValues,
       
       (paramValue, paramName) => (
-        <FormItem>
+        <FormItem key={paramName}>
           <TextField
-            key={paramName}
             label={paramName}
             value={paramValue}
             onChange={this._handleNewRouteParamChange.bind(this, paramName)}

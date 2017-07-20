@@ -45,7 +45,7 @@
   "structure.title": "Title",
   "structure.routeDescription": "Description",
   "structure.path": "Path",
-  "structure.pathErrorMessage": "Path can only contain letters, numbers, dashes and underscores",
+  "structure.pathErrorMessage": "Path can only contain letters, numbers, and underscores",
   "structure.routeAlreadyExistsMessage": "Route {path} already exists",
   "structure.deleteRouteConfirmationMessage": "All child routes will be deleted too.",
   "structure.redirectTo": "Redirect to",
