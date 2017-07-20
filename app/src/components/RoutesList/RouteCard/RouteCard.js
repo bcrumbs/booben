@@ -34,8 +34,13 @@ const propTypes = {
 const defaultProps = {
   focused: false,
   alertMark: false,
-  messageComponent: <span>Before editing this route you should set the placing point in the ‘Root route’ first (more about <a href="242">constructing routes</a>)</span>,
-  messageColorScheme: 'error',
+  /*
+   * Message example:
+   * <span>Before editing this route you should set the outlet in the 'Root
+    * route’ first (more about <a href="%docs%">constructing routes</a>)</span>
+   */
+  messageComponent: null,
+  messageColorScheme: 'neutral',
   onFocus: noop,
   onGo: noop,
 };
@@ -135,7 +140,7 @@ export class RouteCard extends PureComponent {
             onClick={this._handleCardClick}
             innerRef={this._saveRef}
           >
-            <CardContentStyled>
+            <CardContentStyled focused={focused}>
               <TextBoxStyled>
                 <TitleBoxStyled>
                   <TitleStyled>{title}</TitleStyled>

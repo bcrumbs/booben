@@ -2,6 +2,7 @@
 
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
+import constants from './constants';
 
 import {
   baseModule,
@@ -42,7 +43,7 @@ const colorScheme = ({ colorScheme }) => css`
 `;
 
 export const MessageStyled = styled.div`
-  padding: ${baseModule(2)}px;
+  padding: ${baseModule(2)}px ${constants.cardPaddingX}px;
   font-size: ${fontSizeSmall}px;
   line-height: 1.25;
   ${colorScheme}
