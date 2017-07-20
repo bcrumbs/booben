@@ -12,11 +12,7 @@ import { Shortcuts } from 'react-shortcuts';
 import { List } from 'immutable';
 
 import {
-  Panel,
-  PanelContent,
   Container,
-  Row,
-  Column,
   Dialog,
   Form,
   FormItem,
@@ -1332,17 +1328,9 @@ class StructureRoute extends PureComponent {
       this._renderRouteList(project.routes, null, project.rootRoutes);
     
     return (
-      <Panel headerFixed maxHeight="initial" spread>
-        <PanelContent>
-          <Container>
-            <Row>
-              <Column>
-                {routesList}
-              </Column>
-            </Row>
-          </Container>
-        </PanelContent>
-      </Panel>
+      <Container spread>
+        {routesList}
+      </Container>
     );
   }
 
