@@ -24,8 +24,9 @@ import { MessageStyled } from './styles/MessageStyled';
 const propTypes = {
   route: PropTypes.instanceOf(ProjectRoute).isRequired,
   focused: PropTypes.bool,
+  disabled: PropTypes.bool,
   alertMark: PropTypes.bool,
-  messageComponent: PropTypes.object,
+  message: PropTypes.node,
   messageColorScheme: PropTypes.oneOf(['neutral', 'error']),
   onFocus: PropTypes.func,
   onGo: PropTypes.func,
@@ -33,13 +34,9 @@ const propTypes = {
 
 const defaultProps = {
   focused: false,
+  disabled: false,
   alertMark: false,
-  /*
-   * Message example:
-   * <span>Before editing this route you should set the outlet in the 'Root
-    * route’ first (more about <a href="%docs%">constructing routes</a>)</span>
-   */
-  messageComponent: null,
+  message: null,
   messageColorScheme: 'neutral',
   onFocus: noop,
   onGo: noop,
@@ -79,8 +76,11 @@ export class RouteCard extends PureComponent {
   }
   
   _handleDoubleClick() {
-    const { route, onGo } = this.props;
-    onGo({ routeId: route.id, isIndexRoute: false });
+    const { route, disabled, onGo } = this.props;
+
+    if (!disabled) {
+      onGo({ routeId: route.id, isIndexRoute: false });
+    }
   }
   
   _handleCardClick() {
@@ -98,7 +98,7 @@ export class RouteCard extends PureComponent {
       focused,
       children,
       alertMark,
-      messageComponent,
+      message,
       messageColorScheme,
     } = this.props;
     
@@ -120,11 +120,11 @@ export class RouteCard extends PureComponent {
       );
     }
     
-    let message = null;
-    if (messageComponent) {
-      message = (
+    let messageElement = null;
+    if (message) {
+      messageElement = (
         <MessageStyled colorScheme={messageColorScheme}>
-          {messageComponent}
+          {message}
         </MessageStyled>
       );
     }
@@ -155,8 +155,7 @@ export class RouteCard extends PureComponent {
               {mark}
             </CardContentStyled>
             
-            {message}
-            
+            {messageElement}
           </CardStyled>
         </CardWrapperStyled>
 
