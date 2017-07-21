@@ -6,7 +6,7 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Icon } from '@reactackle/reactackle';
+import { Icon, withTooltip } from '@reactackle/reactackle';
 import ProjectRoute from '../../../models/ProjectRoute';
 import { noop } from '../../../utils/misc';
 import { RouteCardStyled } from './styles/RouteCardStyled';
@@ -26,8 +26,12 @@ const propTypes = {
   focused: PropTypes.bool,
   disabled: PropTypes.bool,
   alertMark: PropTypes.bool,
+  alertTooltip: PropTypes.string,
   message: PropTypes.node,
   messageColorScheme: PropTypes.oneOf(['neutral', 'error']),
+  Tooltip: PropTypes.func.isRequired,
+  showTooltip: PropTypes.func.isRequired,
+  hideTooltip: PropTypes.func.isRequired,
   onFocus: PropTypes.func,
   onGo: PropTypes.func,
 };
@@ -36,13 +40,14 @@ const defaultProps = {
   focused: false,
   disabled: false,
   alertMark: false,
+  alertTooltip: '',
   message: null,
   messageColorScheme: 'neutral',
   onFocus: noop,
   onGo: noop,
 };
 
-export class RouteCard extends PureComponent {
+class _RouteCard extends PureComponent {
   constructor(props, context) {
     super(props, context);
     this._element = null;
@@ -98,8 +103,13 @@ export class RouteCard extends PureComponent {
       focused,
       children,
       alertMark,
+      alertTooltip,
       message,
       messageColorScheme,
+      Tooltip,
+      showTooltip,
+      hideTooltip,
+
     } = this.props;
     
     let icon = null;
@@ -114,8 +124,9 @@ export class RouteCard extends PureComponent {
     let mark = null;
     if (alertMark) {
       mark = (
-        <AlertMarkStyled>
+        <AlertMarkStyled onMouseEnter={showTooltip} onMouseOut={hideTooltip}>
           <Icon name="exclamation" size="inherit" color="inherit" />
+          <Tooltip text={alertTooltip} />
         </AlertMarkStyled>
       );
     }
@@ -165,6 +176,8 @@ export class RouteCard extends PureComponent {
   }
 }
 
-RouteCard.propTypes = propTypes;
-RouteCard.defaultProps = defaultProps;
-RouteCard.displayName = 'RouteCard';
+_RouteCard.propTypes = propTypes;
+_RouteCard.defaultProps = defaultProps;
+_RouteCard.displayName = 'RouteCard';
+
+export const RouteCard = withTooltip(_RouteCard);

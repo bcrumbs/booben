@@ -1058,6 +1058,8 @@ class StructureRoute extends PureComponent {
     const willRenderChildren = route.children.size > 0 || route.haveIndex;
 
     let outletWarning = false;
+    let outletWarningTooltip = '';
+
     if (!parentWithoutOutlet && route.children.size > 0) {
       const outlet = findComponent(
         route.components,
@@ -1065,7 +1067,11 @@ class StructureRoute extends PureComponent {
         component => component.name === 'Outlet',
       );
 
-      outletWarning = outlet === null;
+      if (outlet === null) {
+        outletWarning = true;
+        outletWarningTooltip =
+          getLocalizedText('structure.noOutletMarkTooltip');
+      }
     }
 
     let children = null;
@@ -1112,6 +1118,7 @@ class StructureRoute extends PureComponent {
         focused={isSelected}
         disabled={disabled}
         alertMark={outletWarning}
+        alertTooltip={outletWarningTooltip}
         message={parentOutletWarningMessage}
         onFocus={this._handleRouteSelect}
         onGo={this._handleRouteGo}
