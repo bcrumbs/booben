@@ -237,6 +237,31 @@ export const walkComponentsTree = (components, rootComponentId, visitor) => {
  *
  * @param {Immutable.Map<number, Object>} components
  * @param {number} rootComponentId
+ * @param {function(component: Object): boolean} predicate
+ */
+export const findComponent = (components, rootComponentId, predicate) => {
+  if (rootComponentId === INVALID_ID) return null;
+
+  const component = components.get(rootComponentId);
+
+  if (predicate(component)) {
+    return component;
+  } else {
+    let found = null;
+
+    component.children.forEach(id => {
+      found = findComponent(components, id, predicate);
+      return found === null;
+    });
+
+    return found;
+  }
+};
+
+/**
+ *
+ * @param {Immutable.Map<number, Object>} components
+ * @param {number} rootComponentId
  * @return {Immutable.Set<number>}
  */
 export const gatherComponentsTreeIds = (

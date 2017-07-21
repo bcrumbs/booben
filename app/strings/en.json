@@ -45,7 +45,7 @@
   "structure.title": "Title",
   "structure.routeDescription": "Description",
   "structure.path": "Path",
-  "structure.pathErrorMessage": "Path can only contain letters, numbers, dashes and underscores",
+  "structure.pathErrorMessage": "Path can only contain letters, numbers, and underscores",
   "structure.routeAlreadyExistsMessage": "Route {path} already exists",
   "structure.deleteRouteConfirmationMessage": "All child routes will be deleted too.",
   "structure.redirectTo": "Redirect to",
@@ -57,6 +57,8 @@
   "structure.indexRouteProperties": "Index route properties",
   "structure.editRoutePathDialogTitle": "Edit route path",
   "structure.routeParamValuesHeading": "Provide example values for route parameters",
+  "structure.noOutletWarning": "Before editing this route you should place the outlet in '{routeTitle}’ first",
+  "structure.noOutletMarkTooltip": "No outlet in this route",
 
   "design.tool.elementsTree": "Elements tree",
   "design.tool.componentsLibrary": "Components library",

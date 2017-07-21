@@ -6,61 +6,36 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Provider } from 'react-redux';
 import { ApolloClient } from 'apollo-client';
 import { ApolloProvider } from 'react-apollo';
+import { ThemeProvider } from 'styled-components';
+import { Theme, injectGlobalStyle } from '@reactackle/reactackle';
+import { jssyTheme, reactackleMixin } from '@jssy/common-theme';
 import { Preview } from './containers/Preview/Preview';
 import { ErrorScreen } from './components/StateScreen/StateScreen';
-import store, { injectApolloMiddleware } from './store';
-import { createReducer } from './reducers';
-import { containerStyleSelector } from './selectors';
+import { projectToImmutable } from './models/Project';
 import { loadComponents } from './lib/react-components';
-import { loadProject } from './actions/project';
 import { removeSplashScreen } from './lib/dom';
+import { getProject, getMetadata, getGraphQLSchema } from './lib/api';
+import { transformMetadata, getContainerStyle } from './lib/meta';
+import { parseGraphQLSchema } from './lib/schema';
 
 import {
   applyJWTMiddleware,
   createNetworkInterfaceForProject,
 } from './lib/apollo';
 
-import { LOADED, LOAD_ERROR } from './constants/load-states';
-import { APOLLO_STATE_KEY } from './constants/misc';
+import { trimArray } from './utils/misc';
 
 const getProjectName = () => {
-  const pathSplit = window.location.pathname.split('/');
-  return pathSplit.length > 0 ? pathSplit[pathSplit.length - 1] : '';
+  const pathSplit = trimArray(window.location.pathname.split('/'));
+  
+  return pathSplit.length === 2 // /preview/:project_name
+    ? pathSplit[1]
+    : '';
 };
 
-const waitForProject = projectName => new Promise((resolve, reject) => {
-  if (!projectName) {
-    reject(new Error('Project name not specified'));
-    return;
-  }
-
-  const unsubscribe = store.subscribe(() => {
-    const state = store.getState();
-    const loadState = state.project.loadState;
-
-    if (loadState === LOADED) {
-      unsubscribe();
-      resolve(state.project.data);
-    } else if (loadState === LOAD_ERROR) {
-      unsubscribe();
-      reject(state.project.error);
-    }
-  });
-
-  store.dispatch(loadProject(projectName));
-});
-
-const getProvider = project => {
-  if (!project.graphQLEndpointURL) {
-    return {
-      ProviderComponent: Provider,
-      providerProps: { store },
-    };
-  }
-
+const createApolloClient = project => {
   const networkInterface = createNetworkInterfaceForProject(project);
 
   if (project.auth) {
@@ -72,57 +47,72 @@ const getProvider = project => {
     }
   }
 
-  const client = new ApolloClient({
-    networkInterface,
-    reduxRootSelector: state => state[APOLLO_STATE_KEY],
-  });
-
-  const apolloReducer = client.reducer();
-  const apolloMiddleware = client.middleware();
-
-  store.replaceReducer(createReducer({
-    [APOLLO_STATE_KEY]: apolloReducer,
-  }));
-
-  injectApolloMiddleware(apolloMiddleware);
-
-  return {
-    ProviderComponent: ApolloProvider,
-    providerProps: { client, store },
-  };
+  return new ApolloClient({ networkInterface });
 };
 
 window.addEventListener('DOMContentLoaded', async () => {
-  const projectName = getProjectName();
   const containerElement =
     window.document.getElementById('__jssy_preview_container__');
 
   try {
-    const [project] = await Promise.all([
-      waitForProject(projectName),
+    const projectName = getProjectName();
+  
+    if (projectName === '') {
+      throw new Error('Invalid URL');
+    }
+    
+    const [rawProject, rawMeta] = await Promise.all([
+      getProject(projectName),
+      getMetadata(projectName),
       loadComponents(window, projectName),
     ]);
+    
+    const project = projectToImmutable(rawProject);
+    const meta = transformMetadata(rawMeta);
+    const containerStyle = getContainerStyle(meta);
+    
+    let content;
+    
+    if (project.graphQLEndpointURL) {
+      const apolloClient = createApolloClient(project);
+      const schema = parseGraphQLSchema(
+        await getGraphQLSchema(project.graphQLEndpointURL),
+      );
+      
+      content = (
+        <ApolloProvider client={apolloClient}>
+          <Preview
+            project={project}
+            meta={meta}
+            schema={schema}
+          />
+        </ApolloProvider>
+      );
+    } else {
+      content = (
+        <Preview
+          project={project}
+          meta={meta}
+        />
+      );
+    }
 
-    const { ProviderComponent, providerProps } = getProvider(project);
-
-    const state = store.getState();
-    const containerStyle = containerStyleSelector(state);
-    containerElement.setAttribute('style', containerStyle);
-
-    ReactDOM.render(
-      <ProviderComponent {...providerProps}>
-        <Preview />
-      </ProviderComponent>,
-
-      containerElement,
-      removeSplashScreen,
-    );
+    ReactDOM.render(content, containerElement, () => {
+      containerElement.setAttribute('style', containerStyle);
+      removeSplashScreen();
+    });
   } catch (err) {
+    injectGlobalStyle();
+    
     ReactDOM.render(
-      <ErrorScreen
-        title="Failed to load project"
-        message={err.message}
-      />,
+      <Theme mixin={reactackleMixin}>
+        <ThemeProvider theme={jssyTheme}>
+          <ErrorScreen
+            title="Failed to load project"
+            message={err.message}
+          />
+        </ThemeProvider>
+      </Theme>,
 
       containerElement,
       removeSplashScreen,

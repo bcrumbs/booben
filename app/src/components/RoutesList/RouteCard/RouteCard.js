@@ -6,7 +6,7 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Icon } from '@reactackle/reactackle';
+import { Icon, withTooltip } from '@reactackle/reactackle';
 import ProjectRoute from '../../../models/ProjectRoute';
 import { noop } from '../../../utils/misc';
 import { RouteCardStyled } from './styles/RouteCardStyled';
@@ -17,21 +17,37 @@ import { TitleBoxStyled } from './styles/TitleBoxStyled';
 import { TitleStyled } from './styles/TitleStyled';
 import { SubtitleStyled } from './styles/SubtitleStyled';
 import { RouteIconStyled } from './styles/RouteIconStyled';
+import { AlertMarkStyled } from './styles/AlertMarkStyled';
+import { TextBoxStyled } from './styles/TextBoxStyled';
+import { MessageStyled } from './styles/MessageStyled';
 
 const propTypes = {
   route: PropTypes.instanceOf(ProjectRoute).isRequired,
   focused: PropTypes.bool,
+  disabled: PropTypes.bool,
+  alertMark: PropTypes.bool,
+  alertTooltip: PropTypes.string,
+  message: PropTypes.node,
+  messageColorScheme: PropTypes.oneOf(['neutral', 'error']),
+  Tooltip: PropTypes.func.isRequired,
+  showTooltip: PropTypes.func.isRequired,
+  hideTooltip: PropTypes.func.isRequired,
   onFocus: PropTypes.func,
   onGo: PropTypes.func,
 };
 
 const defaultProps = {
   focused: false,
+  disabled: false,
+  alertMark: false,
+  alertTooltip: '',
+  message: null,
+  messageColorScheme: 'neutral',
   onFocus: noop,
   onGo: noop,
 };
 
-export class RouteCard extends PureComponent {
+class _RouteCard extends PureComponent {
   constructor(props, context) {
     super(props, context);
     this._element = null;
@@ -65,8 +81,11 @@ export class RouteCard extends PureComponent {
   }
   
   _handleDoubleClick() {
-    const { route, onGo } = this.props;
-    onGo({ routeId: route.id, isIndexRoute: false });
+    const { route, disabled, onGo } = this.props;
+
+    if (!disabled) {
+      onGo({ routeId: route.id, isIndexRoute: false });
+    }
   }
   
   _handleCardClick() {
@@ -79,12 +98,20 @@ export class RouteCard extends PureComponent {
   }
 
   render() {
-    const { route, focused, children } = this.props;
-    
-    let className = 'route-card-wrapper';
-    if (route.redirect) className += ' has-redirect';
-    if (focused) className += ' is-focused';
+    const {
+      route,
+      focused,
+      children,
+      alertMark,
+      alertTooltip,
+      message,
+      messageColorScheme,
+      Tooltip,
+      showTooltip,
+      hideTooltip,
 
+    } = this.props;
+    
     let icon = null;
     if (route.redirect) {
       icon = (
@@ -94,27 +121,52 @@ export class RouteCard extends PureComponent {
       );
     }
     
+    let mark = null;
+    if (alertMark) {
+      mark = (
+        <AlertMarkStyled onMouseEnter={showTooltip} onMouseOut={hideTooltip}>
+          <Icon name="exclamation" size="inherit" color="inherit" />
+          <Tooltip text={alertTooltip} />
+        </AlertMarkStyled>
+      );
+    }
+    
+    let messageElement = null;
+    if (message) {
+      messageElement = (
+        <MessageStyled colorScheme={messageColorScheme}>
+          {message}
+        </MessageStyled>
+      );
+    }
+    
     const title = route.title || route.path;
 
     return (
       <RouteCardStyled>
-        <CardWrapperStyled focused={focused} className={className}>
+        <CardWrapperStyled focused={focused}>
           <CardStyled
             focused={focused}
             tabIndex="0"
             onClick={this._handleCardClick}
             innerRef={this._saveRef}
           >
-            <CardContentStyled>
-              <TitleBoxStyled>
-                <TitleStyled>{title}</TitleStyled>
-                {icon}
-              </TitleBoxStyled>
+            <CardContentStyled focused={focused}>
+              <TextBoxStyled>
+                <TitleBoxStyled>
+                  <TitleStyled>{title}</TitleStyled>
+                  {icon}
+                </TitleBoxStyled>
+    
+                <SubtitleStyled>
+                  {route.path}
+                </SubtitleStyled>
+              </TextBoxStyled>
   
-              <SubtitleStyled>
-                {route.path}
-              </SubtitleStyled>
+              {mark}
             </CardContentStyled>
+            
+            {messageElement}
           </CardStyled>
         </CardWrapperStyled>
 
@@ -124,6 +176,8 @@ export class RouteCard extends PureComponent {
   }
 }
 
-RouteCard.propTypes = propTypes;
-RouteCard.defaultProps = defaultProps;
-RouteCard.displayName = 'RouteCard';
+_RouteCard.propTypes = propTypes;
+_RouteCard.defaultProps = defaultProps;
+_RouteCard.displayName = 'RouteCard';
+
+export const RouteCard = withTooltip(_RouteCard);

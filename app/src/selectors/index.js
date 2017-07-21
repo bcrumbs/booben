@@ -15,6 +15,7 @@ import {
   isValidSourceForValue,
   getSourceConfig,
   getComponentPropName,
+  getContainerStyle,
 } from '../lib/meta';
 
 import { getTypeNameByPath } from '../lib/schema';
@@ -273,17 +274,7 @@ export const getLocalizedTextFromState = createSelector(
  */
 export const containerStyleSelector = createSelector(
   state => state.project.meta,
-  
-  meta => {
-    const combinedStyle = Object.keys(meta).reduce(
-      (acc, cur) => Object.assign(acc, meta[cur].containerStyle || {}),
-      {},
-    );
-    
-    return Object.keys(combinedStyle)
-      .map(prop => `${prop}:${combinedStyle[prop]}`)
-      .join(';');
-  },
+  getContainerStyle,
 );
 
 /**

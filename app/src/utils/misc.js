@@ -381,3 +381,23 @@ export const unflatten = data => {
  */
 export const hasOwnProperty = (object, property) =>
   Object.prototype.hasOwnProperty.call(object, property);
+
+/**
+ *
+ * @param {Array} array
+ * @param {function(item: *): boolean } [predicate]
+ * @return {Array}
+ */
+export const trimArray = (array, predicate = isFalsy) => {
+  const len = array.length;
+  let start = 0;
+  
+  while (start < len && predicate(array[start])) start++;
+  if (start === len) return [];
+  
+  let end = len - 1;
+  while (end >= start && predicate(array[end])) end--;
+  if (end < start) return [];
+  
+  return array.slice(start, end + 1);
+};
