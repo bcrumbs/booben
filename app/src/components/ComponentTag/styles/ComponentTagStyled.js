@@ -3,6 +3,7 @@
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { transition } from '@reactackle/reactackle';
+import constants from './constants';
 
 import {
   baseModule,
@@ -21,6 +22,8 @@ const defaultProps = {
 
 const TAGS_PER_ROW = 3;
 const TAG_BASE_WIDTH = 100 / TAGS_PER_ROW;
+const BORDER_COLOR = constants.borderColor;
+const BORDER_WIDTH = constants.borderWidth;
 
 const focused = ({ focused }) => focused
   ? `
@@ -31,9 +34,10 @@ const focused = ({ focused }) => focused
 
 export const ComponentTagStyled = styled.div`
   box-sizing: border-box;
-  padding: 0;
-  border: 1px solid transparent;
-  margin: ${baseModule(0.25)}px 0;
+  padding: ${baseModule(0.25)}px;
+  border: ${BORDER_WIDTH}px solid ${BORDER_COLOR};
+  border-left-width: 0;
+  margin-top: -${BORDER_WIDTH}px;
   cursor: move;
   flex-shrink: 0;
   flex-basis: ${TAG_BASE_WIDTH}%;
@@ -47,6 +51,10 @@ export const ComponentTagStyled = styled.div`
 
   &:hover {
     background-color: ${paletteBlueGrey25};
+  }
+  
+  &:nth-child(${TAGS_PER_ROW}n) {
+    border-right-width: 0;
   }
 `;
 

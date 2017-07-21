@@ -15,7 +15,7 @@ export const CanvasFrameStyled = styled.section`
   display: flex;
   align-items: stretch;
   background-color: ${paletteBlueGrey600};
-  padding: ${baseModule(1.5)}px;
+  padding: ${baseModule(1)}px;
   box-sizing: border-box;
 `;
 

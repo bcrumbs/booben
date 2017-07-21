@@ -2,7 +2,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { TextField, Button } from '@reactackle/reactackle';
+import { TextField } from '@reactackle/reactackle';
 import { SearchInputStyled } from './styles/SearchInputStyled';
 import { InputWrapperStyled } from './styles/InputWrapperStyled';
 import { noop } from '../../utils/misc';
@@ -11,14 +11,12 @@ const propTypes = {
   placeholder: PropTypes.string,
   value: PropTypes.string,
   onChange: PropTypes.func,
-  onButtonPress: PropTypes.func,
 };
 
 const defaultProps = {
   placeholder: '',
   value: '',
   onChange: noop,
-  onButtonPress: noop,
 };
 
 export const SearchInput = props => (
@@ -29,13 +27,11 @@ export const SearchInput = props => (
         placeholder={props.placeholder}
         value={props.value}
         onChange={props.onChange}
+        iconInner={{ name: 'search' }}
+        clearingIcon
+        dense
       />
     </InputWrapperStyled>
-    
-    <Button
-      icon={{ name: 'search' }}
-      onPress={props.onButtonPress}
-    />
   </SearchInputStyled>
 );
 
