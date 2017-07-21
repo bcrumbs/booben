@@ -249,6 +249,10 @@ class AppRoute extends Component {
                 </HeaderMenuGroup>
               </HeaderMenu>
             </HeaderRegion>
+  
+            <HeaderRegion size="blank">
+              <ProjectSaveIndicator />
+            </HeaderRegion>
           
             <HeaderRegion size="blank">
               <HeaderMenu inline dense mode="light">
@@ -258,18 +262,16 @@ class AppRoute extends Component {
                       text={getLocalizedText('appHeader.menu.preview')}
                       linkHref={`${URL_PREVIEW_PREFIX}/${projectName}`}
                       linkComponent={TopMenuExternalLink}
+                      iconLeft="play-circle"
                     />
                   
                     <HeaderMenuItem
                       text={getLocalizedText('appHeader.menu.publish')}
+                      iconLeft="arrow-circle-o-up"
                     />
                   </HeaderMenuList>
                 </HeaderMenuGroup>
               </HeaderMenu>
-            </HeaderRegion>
-          
-            <HeaderRegion size="blank">
-              <ProjectSaveIndicator />
             </HeaderRegion>
           </Header>
   

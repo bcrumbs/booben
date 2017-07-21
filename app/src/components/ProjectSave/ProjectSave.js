@@ -6,6 +6,7 @@ import { Icon, withTooltip } from '@reactackle/reactackle';
 import { ProjectSaveStyled } from './styles/ProjectSaveStyled';
 import { IconStyled } from './styles/IconStyled';
 import { TitleStyled } from './styles/TitleStyled';
+import { ContentStyled } from './styles/ContentStyled';
 
 const propTypes = {
   status: PropTypes.oneOf(['error', 'success', 'progress', 'default']),
@@ -41,23 +42,24 @@ const ProjectSaveComponent = props => {
   /* eslint-disable react/jsx-handler-names */
   return (
     <ProjectSaveStyled
-      colorScheme={props.status}
       onClick={props.toggleTooltip}
       onFocus={props.showTooltip}
       onBlur={props.hideTooltip}
       onMouseEnter={props.showTooltip}
       onMouseLeave={props.hideTooltip}
     >
-      <IconStyled
-        typeProgress={props.status === 'progress'}
-        active={props.status !== 'default'}
-      >
-        {icon}
-      </IconStyled>
-      
-      <TitleStyled>
-        {props.title}
-      </TitleStyled>
+      <ContentStyled colorScheme={props.status}>
+        <IconStyled
+          typeProgress={props.status === 'progress'}
+          active={props.status !== 'default'}
+        >
+          {icon}
+        </IconStyled>
+        
+        <TitleStyled>
+          {props.title}
+        </TitleStyled>
+      </ContentStyled>
       
       <TooltipComponent text={props.tooltipText} />
     </ProjectSaveStyled>

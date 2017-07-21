@@ -517,9 +517,9 @@ export default class Playground extends React.Component {
             </HeaderRegion>
 
             <HeaderRegion size="blank">
-              <ProjectSave status="success" title="status" />
+              <ProjectSave title="status" />
             </HeaderRegion>
-
+            
             <HeaderRegion size="blank">
               <HeaderMenu inline dense>
                 <HeaderMenu inline dense mode={'light'}>

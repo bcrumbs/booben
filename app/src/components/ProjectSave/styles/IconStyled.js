@@ -3,7 +3,7 @@
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { transition, animations } from '@reactackle/reactackle';
-import { baseModule, colorWhite } from '../../../styles/themeSelectors';
+import { baseModule, paletteBlueGrey100 } from '../../../styles/themeSelectors';
 import { iconSize } from '../../../styles/mixins';
 
 const propTypes = {
@@ -16,11 +16,11 @@ const defaultProps = {
   typeProgress: false,
 };
 
-const outerSize = '24px',
-  imgSize = '12px',
+const outerSize = '16px',
+  imgSize = '9px',
   borderWidth = '1px';
 
-const active = ({ active }) => `opacity: ${active ? 1 : 0.5};`;
+const active = ({ active }) => `opacity: ${active ? 0.8 : 0.5};`;
 
 const typeProgress = ({ typeProgress }) => typeProgress
   ? `
@@ -29,15 +29,16 @@ const typeProgress = ({ typeProgress }) => typeProgress
     animation-duration: 1s;
     animation-name: ${animations.spin};
     animation-timing-function: linear;
+    border-width: 2px;
   `
   : '';
 
 export const IconStyled = styled.div`
   border-radius: 50%;
-  border: 1px solid ${colorWhite};
+  border: 1px solid var(--text-color);
   margin-right: ${baseModule(1)}px;
   position:relative;
-  color: ${colorWhite};
+  color: inherit;
   ${active}
   ${typeProgress}
   ${transition('opacity')};
