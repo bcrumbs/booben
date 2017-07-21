@@ -10,7 +10,7 @@ import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { createSelector } from 'reselect';
 import _debounce from 'lodash.debounce';
-import { Button } from '@reactackle/reactackle';
+import { Accordion, Button } from '@reactackle/reactackle';
 
 import {
   BlockContentBox,
@@ -20,11 +20,6 @@ import {
 
 import draggable from '../../hocs/draggable';
 import { connectDraggable } from '../ComponentsDragArea/ComponentsDragArea';
-
-import {
-  Accordion,
-  AccordionItemRecord,
-} from '../../components/Accordion/Accordion';
 
 import {
   ComponentTag,
@@ -60,7 +55,7 @@ import {
 } from '../../lib/library';
 
 import { canInsertComponent, ANYWHERE } from '../../lib/components';
-import { combineFiltersAll } from '../../utils/misc';
+import { combineFiltersAll, mapListToArray } from '../../utils/misc';
 
 import {
   LIBRARY_SEARCH_INPUT_DEBOUNCE,
@@ -190,6 +185,8 @@ class ComponentsLibraryComponent extends PureComponent {
     this._handleDragStart = this._handleDragStart.bind(this);
     this._handleSearchInputChange = this._handleSearchInputChange.bind(this);
     this._handleSearchButtonPress = this._handleSearchButtonPress.bind(this);
+    this._handleExpandedItemsChange =
+      this._handleExpandedItemsChange.bind(this);
     
     this._doSearchDebounced = _debounce(
       this._doSearch.bind(this),
@@ -226,6 +223,11 @@ class ComponentsLibraryComponent extends PureComponent {
     this._doSearch();
   }
   
+  _handleExpandedItemsChange({ expandedItemIds }) {
+    const { onExpandedGroupsChange } = this.props;
+    onExpandedGroupsChange(expandedItemIds);
+  }
+  
   render() {
     const {
       componentGroups,
@@ -233,7 +235,6 @@ class ComponentsLibraryComponent extends PureComponent {
       searchString,
       language,
       getLocalizedText,
-      onExpandedGroupsChange,
       onShowAllComponents,
     } = this.props;
     
@@ -270,8 +271,8 @@ class ComponentsLibraryComponent extends PureComponent {
       }
     }
 
-    const accordionItems = groups.map(group => {
-      const items = group.components.map(component => (
+    const accordionItems = mapListToArray(groups, group => {
+      const items = mapListToArray(group.components, component => (
         <DraggableComponentTag
           key={component.fullName}
           title={getComponentNameString(component, language, getLocalizedText)}
@@ -284,7 +285,7 @@ class ComponentsLibraryComponent extends PureComponent {
         />
       ));
 
-      return new AccordionItemRecord({
+      return {
         id: group.name,
         title: getGroupNameString(group, language, getLocalizedText),
         content: (
@@ -292,10 +293,13 @@ class ComponentsLibraryComponent extends PureComponent {
             {items}
           </ComponentTagWrapper>
         ),
-      });
+      };
     });
     
     const expandAll = searchString !== '';
+    const expandedItemIds = expandAll
+      ? accordionItems.map(item => item.id)
+      : expandedGroups.toArray();
 
     return (
       <BlockContentBox isBordered>
@@ -312,9 +316,8 @@ class ComponentsLibraryComponent extends PureComponent {
           <Accordion
             single
             items={accordionItems}
-            expandedItemIds={expandedGroups}
-            expandAll={expandAll}
-            onExpandedItemsChange={onExpandedGroupsChange}
+            expandedItemIds={expandedItemIds}
+            onChange={this._handleExpandedItemsChange}
           />
         </BlockContentBoxItem>
       </BlockContentBox>

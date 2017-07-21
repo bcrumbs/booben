@@ -27,7 +27,7 @@ export default {
       textKey: 'props_high',
       descriptionTextKey: 'props_high_desc',
       required: false,
-      type: 'number',
+      type: 'float',
       source: ['static', 'data'],
       sourceConfigs: {
         static: {
@@ -40,7 +40,7 @@ export default {
       textKey: 'props_low',
       descriptionTextKey: 'props_low_desc',
       required: false,
-      type: 'number',
+      type: 'float',
       source: ['static', 'data'],
       sourceConfigs: {
         static: {
@@ -53,7 +53,7 @@ export default {
       textKey: 'props_max',
       descriptionTextKey: 'props_max_desc',
       required: false,
-      type: 'number',
+      type: 'float',
       source: ['static', 'data'],
       sourceConfigs: {
         static: {
@@ -66,7 +66,7 @@ export default {
       textKey: 'props_min',
       descriptionTextKey: 'props_min_desc',
       required: false,
-      type: 'number',
+      type: 'float',
       source: ['static', 'data'],
       sourceConfigs: {
         static: {
@@ -79,7 +79,7 @@ export default {
       textKey: 'props_optimum',
       descriptionTextKey: 'props_optimum_desc',
       required: false,
-      type: 'number',
+      type: 'float',
       source: ['static', 'data'],
       sourceConfigs: {
         static: {
@@ -92,7 +92,7 @@ export default {
       textKey: 'props_value',
       descriptionTextKey: 'props_value_desc',
       required: true,
-      type: 'number',
+      type: 'float',
       source: ['static', 'data'],
       sourceConfigs: {
         static: {

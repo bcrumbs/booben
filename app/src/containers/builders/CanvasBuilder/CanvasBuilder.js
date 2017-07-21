@@ -574,10 +574,15 @@ class CanvasBuilderComponent extends PureComponent {
    *
    * @param {Object} props
    * @param {number} componentId
+   * @param {boolean} isHTMLComponent
    * @private
    */
-  _patchComponentProps(props, componentId) {
-    props.__jssy_component_id__ = componentId;
+  _patchComponentProps(props, componentId, isHTMLComponent) {
+    if (isHTMLComponent) {
+      props['data-jssy-id'] = String(componentId);
+    } else {
+      props.__jssy_component_id__ = componentId;
+    }
   }
   
   /**
@@ -625,6 +630,7 @@ class CanvasBuilderComponent extends PureComponent {
     }
 
     const Component = getConnectedComponent(component.name);
+    const isHTML = isHTMLComponent(component.name);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
     
@@ -640,7 +646,7 @@ class CanvasBuilderComponent extends PureComponent {
 
     props.children = this._renderComponentChildren(component);
 
-    if (!isHTMLComponent(component.name)) {
+    if (!isHTML) {
       props.__jssy_error_handler__ = _debounce(
         this._handleErrorInComponentLifecycleHook.bind(this, component),
         250,
@@ -650,7 +656,7 @@ class CanvasBuilderComponent extends PureComponent {
     props.key = String(component.id);
 
     if (!dontPatch) {
-      this._patchComponentProps(props, component.id);
+      this._patchComponentProps(props, component.id, isHTML);
     }
 
     if (!props.children && this._willRenderContentPlaceholder(component)) {

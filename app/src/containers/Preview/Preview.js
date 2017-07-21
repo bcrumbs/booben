@@ -7,22 +7,21 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Router, Switch, Route, Redirect } from 'react-router';
-import { connect } from 'react-redux';
 import createHistory from 'history/es/createHashHistory';
 import { PreviewBuilder } from '../builders/PreviewBuilder/PreviewBuilder';
 import Project from '../../models/Project';
 
 const propTypes = {
   project: PropTypes.instanceOf(Project).isRequired,
+  meta: PropTypes.object.isRequired,
+  schema: PropTypes.object,
 };
 
-const mapStateToProps = state => ({
-  project: state.project.data,
-});
+const defaultProps = {
+  schema: null,
+};
 
-const wrap = connect(mapStateToProps);
-
-class PreviewComponent extends Component {
+export class Preview extends Component {
   constructor(props, context) {
     super(props, context);
 
@@ -66,6 +65,8 @@ class PreviewComponent extends Component {
    * @private
    */
   _makeBuilderForRoute(route, isIndex, indexRoute = null) {
+    const { project, meta, schema } = this.props;
+    
     const rootId = isIndex ? route.indexComponent : route.component;
 
     const childSwitch = !isIndex
@@ -74,6 +75,9 @@ class PreviewComponent extends Component {
 
     const ret = ({ match }) => (
       <PreviewBuilder
+        project={project}
+        meta={meta}
+        schema={schema}
         components={route.components}
         rootId={rootId}
         routeParams={match.params}
@@ -241,7 +245,6 @@ class PreviewComponent extends Component {
   }
 }
 
-PreviewComponent.propTypes = propTypes;
-PreviewComponent.displayName = 'Preview';
-
-export const Preview = wrap(PreviewComponent);
+Preview.propTypes = propTypes;
+Preview.defaultProps = defaultProps;
+Preview.displayName = 'Preview';

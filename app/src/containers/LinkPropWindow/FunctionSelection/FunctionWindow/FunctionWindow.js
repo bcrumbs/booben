@@ -8,7 +8,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { List, Map } from 'immutable';
-import { makeDefaultValue, isCompatibleType } from '@jssy/types';
+import { isCompatibleType } from '@jssy/types';
 import { Button } from '@reactackle/reactackle';
 
 import {
@@ -37,7 +37,14 @@ import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
 import { PropsList } from '../../../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
 import { getComponentMeta, buildDefaultValue } from '../../../../lib/meta';
-import { noop, returnArg, objectSome } from '../../../../utils/misc';
+
+import {
+  noop,
+  returnArg,
+  objectSome,
+  mapListToArray,
+} from '../../../../utils/misc';
+
 import * as JssyPropTypes from '../../../../constants/common-prop-types';
 
 const propTypes = {
@@ -100,7 +107,7 @@ const getValueDef = (arg, targetValueDef) => ({
  * @return {JssyValueDefinition[]}
  */
 const getValueDefs = (functionDef, targetValueDef) =>
-  Array.from(functionDef.args.map(arg => getValueDef(arg, targetValueDef)));
+  mapListToArray(functionDef.args, arg => getValueDef(arg, targetValueDef));
 
 /**
  *

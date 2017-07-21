@@ -15,7 +15,7 @@ export default {
       textKey: 'props_max',
       descriptionTextKey: 'props_max_desc',
       required: false,
-      type: 'number',
+      type: 'float',
       source: ['static', 'data'],
       sourceConfigs: {
         static: {
@@ -28,7 +28,7 @@ export default {
       textKey: 'props_value',
       descriptionTextKey: 'props_value_desc',
       required: true,
-      type: 'number',
+      type: 'float',
       source: ['static', 'data'],
       sourceConfigs: {
         static: {

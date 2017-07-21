@@ -165,7 +165,7 @@ const defaultSourceConfigBuilders = {
  * @return {Object}
  */
 export const getSourceConfig = (valueDef, source, userTypedefs = null) => {
-  if (valueDef.sourceConfigs[source]) {
+  if (valueDef.sourceConfigs && valueDef.sourceConfigs[source]) {
     return valueDef.sourceConfigs[source];
   }
   
@@ -684,15 +684,31 @@ export const findPropThatPushedDataContext = (componentMeta, dataContext) => {
 
 /**
  *
- * @param {Object} metadata
+ * @param {Object} meta
  * @return {Object}
  */
-export const transformMetadata = metadata => {
-  _forOwn(metadata, libMeta => {
+export const transformMetadata = meta => {
+  _forOwn(meta, libMeta => {
     _forOwn(libMeta.components, componentMeta => {
       componentMeta.tags = new Set(componentMeta.tags);
     });
   });
   
-  return metadata;
+  return meta;
+};
+
+/**
+ *
+ * @param {Object} meta
+ * @return {string}
+ */
+export const getContainerStyle = meta => {
+  const combinedStyle = Object.keys(meta).reduce(
+    (acc, cur) => Object.assign(acc, meta[cur].containerStyle || {}),
+    {},
+  );
+  
+  return Object.keys(combinedStyle)
+    .map(prop => `${prop}:${combinedStyle[prop]}`)
+    .join(';');
 };

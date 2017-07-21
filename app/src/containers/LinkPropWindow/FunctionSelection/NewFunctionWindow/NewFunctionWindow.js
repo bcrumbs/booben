@@ -43,7 +43,6 @@ import {
 
 import { functionNameFromTitle } from '../../../../lib/functions';
 import { noop, returnArg } from '../../../../utils/misc';
-import './NewFunctionWindow.scss';
 
 const propTypes = {
   existingFunctionNames: PropTypes.arrayOf(PropTypes.string).isRequired,

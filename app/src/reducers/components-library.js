@@ -18,7 +18,7 @@ const LibraryState = Record({
 
 const handlers = {
   [LIBRARY_EXPANDED_GROUPS]: (state, action) =>
-    state.set('expandedGroups', action.groups),
+    state.set('expandedGroups', Set(action.groups)),
   
   [LIBRARY_SEARCH]: (state, action) =>
     state.set('searchString', action.searchString),
