@@ -75,6 +75,12 @@
   "design.willDropRootComponentText": "{componentTitle} будет корневым компонентом",
   "design.willDropComponentAfterText": "{componentTitle} будет вставлен в {where} после {after}",
   "design.createComponentMenu.inputPlaceholder": "Начните вводить имя компонента",
+  "design.toolbar.duplicate": "Клонировать выделенный компонент",
+  "design.toolbar.copy": "Копировать выделенный компонент",
+  "design.toolbar.cut": "Вырезать выделенный компонент",
+  "design.toolbar.paste": "Вставить",
+  "design.toolbar.undo": "Отменить",
+  "design.toolbar.redo": "Повторить",
 
   "library.uncategorizedComponents": "Без категории",
   "library.noComponentsAvailable": "Нет компонентов, которые могут быть вставлены в выделенный компонент",

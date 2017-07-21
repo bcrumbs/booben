@@ -45,13 +45,21 @@ import {
 import { Canvas, getComponentCoords } from '../containers/Canvas/Canvas';
 
 import {
+  ComponentsDragArea,
+} from '../containers/ComponentsDragArea/ComponentsDragArea';
+
+import {
   ComponentLayoutSelection,
   ComponentLayoutSelectionItem,
 } from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
+import { AppWrapper } from '../components/AppWrapper/AppWrapper';
+
 import {
-  ComponentsDragArea,
-} from '../containers/ComponentsDragArea/ComponentsDragArea';
+  ToolBar,
+  ToolBarGroup,
+  ToolBarAction,
+} from '../components/ToolBar/ToolBar';
 
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
@@ -546,6 +554,8 @@ class DesignRoute extends PureComponent {
       onCopyComponent,
       onMoveComponent,
     } = this.props;
+
+    if (componentClipboard.componentId === INVALID_ID) return;
     
     const clipboardComponent = components.get(componentClipboard.componentId);
     
@@ -788,8 +798,10 @@ class DesignRoute extends PureComponent {
       components,
       selectingComponentLayout,
       firstSelectedComponentId,
+      singleComponentSelected,
       componentStateSlotsListIsVisible,
       pickedComponentArea,
+      componentClipboard,
       getLocalizedText,
     } = this.props;
 
@@ -845,10 +857,57 @@ class DesignRoute extends PureComponent {
           toolGroups={toolGroups}
           onToolTitleChange={this._handleToolTitleChange}
         >
-          <Canvas
-            projectName={projectName}
-            containerStyle={previewContainerStyle}
-          />
+          <ToolBar>
+            <ToolBarGroup>
+              <ToolBarAction
+                icon={{ name: 'files-o' }}
+                subtitle={getLocalizedText('design.toolbar.duplicate')}
+                disabled={!singleComponentSelected}
+              />
+
+              <ToolBarAction
+                icon={{ name: 'clone' }}
+                subtitle={getLocalizedText('design.toolbar.copy')}
+                disabled={!singleComponentSelected}
+              />
+
+              <ToolBarAction
+                icon={{ name: 'scissors' }}
+                subtitle={getLocalizedText('design.toolbar.cut')}
+                disabled={!singleComponentSelected}
+              />
+
+              <ToolBarAction
+                icon={{ name: 'clipboard' }}
+                subtitle={getLocalizedText('design.toolbar.paste')}
+                disabled={componentClipboard.componentId === INVALID_ID}
+              />
+            </ToolBarGroup>
+
+            <ToolBarGroup>
+              <ToolBarAction
+                icon={{ name: 'undo' }}
+                subtitle={getLocalizedText('design.toolbar.undo')}
+              />
+
+              <ToolBarAction
+                icon={{ name: 'repeat' }}
+                subtitle={getLocalizedText('design.toolbar.redo')}
+              />
+            </ToolBarGroup>
+
+            <ToolBarGroup>
+              <ToolBarAction text="Show empty" />
+              <ToolBarAction text="Show hidden" />
+            </ToolBarGroup>
+          </ToolBar>
+
+          <AppWrapper>
+            <Canvas
+              projectName={projectName}
+              containerStyle={previewContainerStyle}
+            />
+          </AppWrapper>
           
           <Dialog
             title={getLocalizedText('design.selectLayout')}

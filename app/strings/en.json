@@ -75,6 +75,12 @@
   "design.willDropRootComponentText": "Will insert {componentTitle} as root component",
   "design.willDropComponentAfterText": "Will insert {componentTitle} into {where} after {after}",
   "design.createComponentMenu.inputPlaceholder": "Start typing component name",
+  "design.toolbar.duplicate": "Duplicate selected component",
+  "design.toolbar.copy": "Copy selected component",
+  "design.toolbar.cut": "Cut selected component",
+  "design.toolbar.paste": "Paste",
+  "design.toolbar.undo": "Undo",
+  "design.toolbar.redo": "Redo",
 
   "library.uncategorizedComponents": "Uncategorized",
   "library.noComponentsAvailable": "No components can be inserted inside selected component",

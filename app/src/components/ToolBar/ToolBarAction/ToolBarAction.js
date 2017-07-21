@@ -1,26 +1,57 @@
 'use strict';
 
 import React from 'react';
-import { Button, Theme } from '@reactackle/reactackle';
+import PropTypes from 'prop-types';
+import _pick from 'lodash.pick';
+import { Button, Theme, withTooltip } from '@reactackle/reactackle';
 import { ToolBarActionStyled } from './styles/ToolBarActionStyled';
 import reactackleThemeMixin from './styles/reactackle-theme-mixin';
+import { noop } from '../../../utils/misc';
 
 const propTypes = {
   ...Button.propTypes,
+  tooltipText: PropTypes.string,
+  Tooltip: PropTypes.func.isRequired,
+  showTooltip: PropTypes.func.isRequired,
+  hideTooltip: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
   ...Button.defaultProps,
+  tooltipText: '',
 };
 
-export const ToolBarAction = props => (
-  <ToolBarActionStyled>
-    <Theme mixin={reactackleThemeMixin}>
-      <Button {...props} radius="none" colorScheme="flatLight" />
-    </Theme>
-  </ToolBarActionStyled>
-);
+const buttonProps = Object.keys(Button.propTypes);
 
-ToolBarAction.propTypes = propTypes;
-ToolBarAction.defaultProps = defaultProps;
-ToolBarAction.displayName = 'ToolBarAction';
+const _ToolBarAction = props => {
+  const { tooltipText, Tooltip, showTooltip, hideTooltip } = props;
+
+  const onMouseEnter = tooltipText !== '' ? showTooltip : noop;
+  const onMouseLeave = tooltipText !== '' ? hideTooltip : noop;
+  const tooltipElement = tooltipText !== ''
+    ? <Tooltip text={tooltipText} />
+    : null;
+
+  return (
+    <ToolBarActionStyled
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
+      <Theme mixin={reactackleThemeMixin}>
+        <Button
+          {..._pick(props, buttonProps)}
+          radius="none"
+          colorScheme="flatLight"
+        />
+      </Theme>
+
+      {tooltipElement}
+    </ToolBarActionStyled>
+  );
+};
+
+_ToolBarAction.propTypes = propTypes;
+_ToolBarAction.defaultProps = defaultProps;
+_ToolBarAction.displayName = 'ToolBarAction';
+
+export const ToolBarAction = withTooltip(_ToolBarAction);
