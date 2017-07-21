@@ -51,6 +51,7 @@ import {
 
 import { selectRoute } from '../actions/structure';
 import { getLocalizedTextFromState } from '../selectors';
+import { findComponent } from '../lib/components';
 
 import {
   arrayToObject,
@@ -200,6 +201,39 @@ const getRenamedRouteParams = (oldPath, newPath, reverse = false) => {
 const normalizePath = (rawPath, isRootRoute) =>
   isRootRoute ? `/${rawPath}` : rawPath;
 
+/**
+ *
+ * @param {Immutable.Map<number, Object>} routes
+ * @param {number} routeId
+ * @param {boolean} isIndexRoute
+ * @return {boolean}
+ */
+const isRouteEditable = (routes, routeId, isIndexRoute) => {
+  const parentIds = [];
+
+  if (isIndexRoute) {
+    parentIds.push(routeId);
+  }
+
+  let currentRoute = routes.get(routeId);
+
+  while (currentRoute.parentId !== INVALID_ID) {
+    parentIds.push(currentRoute.parentId);
+    currentRoute = routes.get(currentRoute.parentId);
+  }
+
+  return parentIds.every(id => {
+    const route = routes.get(id);
+    const outlet = findComponent(
+      route.components,
+      route.component,
+      component => component.name === 'Outlet',
+    );
+
+    return outlet !== null;
+  });
+};
+
 class StructureRoute extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -300,6 +334,12 @@ class StructureRoute extends PureComponent {
       ? List([
         new ButtonRecord({
           text: getLocalizedText('common.edit'),
+          disabled: !isRouteEditable(
+            project.routes,
+            selectedRouteId,
+            indexRouteSelected,
+          ),
+
           onPress: this._handleSelectedRouteGo,
         }),
       ])
@@ -470,7 +510,21 @@ class StructureRoute extends PureComponent {
       case 'SELECT_PREVIOUS_ROUTE': this._handleSelectPreviousRoute(); break;
       case 'SELECT_CHILD_ROUTE': this._handleSelectChildRoute(); break;
       case 'SELECT_PARENT_ROUTE': this._handleSelectParentRoute(); break;
-      case 'GO_TO_DESIGN': this._handleSelectedRouteGo(); break;
+      case 'GO_TO_DESIGN': {
+        const { project, selectedRouteId, indexRouteSelected } = this.props;
+
+        const isEditable = isRouteEditable(
+          project.routes,
+          selectedRouteId,
+          indexRouteSelected,
+        );
+
+        if (isEditable) {
+          this._handleSelectedRouteGo();
+        }
+
+        break;
+      }
       
       default:
     }
@@ -917,10 +971,11 @@ class StructureRoute extends PureComponent {
    * @param {Immutable.List<Object>} routes
    * @param {Object} parentRoute
    * @param {Immutable.List<number>} routesIds
+   * @param {?Object} [parentWithoutOutlet=null]
    * @return {ReactElement}
    * @private
    */
-  _renderRouteList(routes, parentRoute, routesIds) {
+  _renderRouteList(routes, parentRoute, routesIds, parentWithoutOutlet = null) {
     const {
       selectedRouteId,
       indexRouteSelected,
@@ -928,7 +983,11 @@ class StructureRoute extends PureComponent {
     } = this.props;
 
     let routeCards = routesIds
-      ? routesIds.map(routeId => this._renderRouteCard(routes, routeId))
+      ? routesIds.map(routeId => this._renderRouteCard(
+        routes,
+        routeId,
+        parentWithoutOutlet,
+      ))
       : null;
 
     if (parentRoute && parentRoute.haveIndex && !parentRoute.redirect) {
@@ -971,7 +1030,6 @@ class StructureRoute extends PureComponent {
       );
     }
 
-    //noinspection JSValidateTypes
     return (
       <RoutesList>
         {routeCards}
@@ -984,21 +1042,67 @@ class StructureRoute extends PureComponent {
    *
    * @param {Immutable.List<Object>} routes
    * @param {number} routeId
+   * @param {?Object} [parentWithoutOutlet=null]
    * @return {ReactElement}
    * @private
    */
-  _renderRouteCard(routes, routeId) {
-    const { selectedRouteId, indexRouteSelected } = this.props;
+  _renderRouteCard(routes, routeId, parentWithoutOutlet = null) {
+    const {
+      selectedRouteId,
+      indexRouteSelected,
+      getLocalizedText,
+    } = this.props;
     
     const route = routes.get(routeId);
     const isSelected = selectedRouteId === route.id && !indexRouteSelected;
     const willRenderChildren = route.children.size > 0 || route.haveIndex;
-    
+
+    let outletWarning = false;
+    if (!parentWithoutOutlet && route.children.size > 0) {
+      const outlet = findComponent(
+        route.components,
+        route.component,
+        component => component.name === 'Outlet',
+      );
+
+      outletWarning = outlet === null;
+    }
+
     let children = null;
     if (willRenderChildren) {
-      children = this._renderRouteList(routes, route, route.children);
+      children = this._renderRouteList(
+        routes,
+        route,
+        route.children,
+        parentWithoutOutlet || (outletWarning ? route : null),
+      );
     } else {
-      children = isSelected ? this._renderRouteList(routes, route, null) : null;
+      children = isSelected
+        ? this._renderRouteList(
+          routes,
+          route,
+          null,
+          parentWithoutOutlet || (outletWarning ? route : null),
+        )
+        : null;
+    }
+
+    let parentOutletWarningMessage = null;
+    let disabled = false;
+
+    if (parentWithoutOutlet !== null) {
+      disabled = true;
+
+      if (isSelected) {
+        const messageText = getLocalizedText(
+          'structure.noOutletWarning',
+          { routeTitle: parentWithoutOutlet.title },
+        );
+
+        parentOutletWarningMessage = (
+          <span>{messageText}</span>
+        );
+      }
     }
     
     return (
@@ -1006,6 +1110,9 @@ class StructureRoute extends PureComponent {
         key={String(route.id)}
         route={route}
         focused={isSelected}
+        disabled={disabled}
+        alertMark={outletWarning}
+        message={parentOutletWarningMessage}
         onFocus={this._handleRouteSelect}
         onGo={this._handleRouteGo}
       >

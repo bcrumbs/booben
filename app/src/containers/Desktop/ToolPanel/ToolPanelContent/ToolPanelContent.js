@@ -115,12 +115,13 @@ export class ToolPanelContent extends PureComponent {
     if (mainButtonsNum > 0 || secondaryButtonsNum > 0) {
       let mainActionsRegion = null;
       if (mainButtonsNum > 0) {
-        const buttons = mainButtons.map(({ icon, text, onPress }, idx) => (
+        const buttons = mainButtons.map((button, idx) => (
           <Button
             key={String(idx)}
-            icon={{ name: icon }}
-            text={text}
-            onPress={onPress}
+            icon={{ name: button.icon }}
+            text={button.text}
+            disabled={button.disabled}
+            onPress={button.onPress} // eslint-disable-line react/jsx-handler-names
           />
         ));
       
@@ -133,12 +134,13 @@ export class ToolPanelContent extends PureComponent {
     
       let secondaryButtonsRegion = null;
       if (secondaryButtonsNum > 0) {
-        const buttons = secondaryButtons.map(({ icon, text, onPress }, idx) => (
+        const buttons = secondaryButtons.map((button, idx) => (
           <Button
             key={String(idx)}
-            icon={{ name: icon }}
-            text={text}
-            onPress={onPress}
+            icon={{ name: button.icon }}
+            text={button.text}
+            disabled={button.disabled}
+            onPress={button.onPress} // eslint-disable-line react/jsx-handler-names
           />
         ));
       

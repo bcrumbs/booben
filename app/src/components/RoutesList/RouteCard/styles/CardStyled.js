@@ -24,14 +24,6 @@ const defaultProps = {
 
 const boxShadowValue = boxShadow(1);
 
-const focused = ({ focused }) => focused
-  ? css`
-    background-color: ${colorWhite};
-    border-left: ${baseModule(1)}px solid ${colorSecondary};
-    cursor: default;
-  `
-  : '';
-
 const index = ({ index, focused }) => index
   ? css`
     background-color: ${paletteBlueGrey50};
@@ -41,9 +33,9 @@ const index = ({ index, focused }) => index
 
     &:hover,
     &:focus {
-        background-color: ${paletteBlueGrey50};
-        outline: none;
-        ${boxShadowValue}
+      background-color: ${paletteBlueGrey50};
+      outline: none;
+      ${boxShadowValue}
     }
   `
   : '';
@@ -54,14 +46,14 @@ export const CardStyled = styled.div`
   width: 100%;
   max-width: 20em;
   min-height: 60px;
-  padding: ${baseModule(1)}px ${baseModule(2)}px;
-  display: flex;
-  align-items: center;
   cursor: pointer;
   position: relative;
   user-select: none;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
   ${boxShadowValue}
-  ${focused}
   ${index}
   ${transition('background-color, box-shadow, border')}
 
