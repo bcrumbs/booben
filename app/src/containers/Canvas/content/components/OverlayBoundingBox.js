@@ -21,81 +21,78 @@ const defaultProps = {
   color: 'grey',
 };
 
+const BORDER_WIDTH = 2;
+
 export const OverlayBoundingBox = (props, context) => {
   const { element, color } = props;
   const { window } = context;
   
   if (!element) return null;
 
-  let { left, top, width, height } = element.getBoundingClientRect();
+  const { left, top, width, height } = element.getBoundingClientRect();
   if (!width || !height) return null;
-
-  const syntheticPadding = -2;
+  
   const scrollTop = window.pageYOffset;
-
-  width = width + syntheticPadding + 0.5;
-  height = height + syntheticPadding + 0.5;
-  left = Math.round(left - syntheticPadding / 2 - 1);
-  top = Math.round(top - syntheticPadding / 2 + scrollTop - 1);
-
-  const border = `1px solid ${color}`;
+  const topValue = Math.round(top + scrollTop);
 
   const style = {
-    height: '1px',
-    width: '1px',
+    height: 0,
+    width: 0,
     position: 'absolute',
     zIndex: '1000',
     left: `${left}px`,
-    top: `${top}px`,
+    top: `${topValue}px`,
     boxSizing: 'border-box',
+  };
+  
+  const commonBorderStyles = {
+    position: 'absolute',
+    boxSizing: 'border-box',
+    backgroundColor: color,
   };
 
   const topBorderStyle = {
-    height: '0',
-    width: `${width}px`,
+    ...commonBorderStyles,
+  
+    width,
+    height: `${BORDER_WIDTH}px`,
     left: '0',
     top: '0',
-    borderBottom: border,
-    position: 'absolute',
-    boxSizing: 'border-box',
   };
 
-  const bottomLeftStyle = {
-    height: `${height}px`,
-    width: '0',
-    left: '0',
-    top: '0',
-    borderRight: border,
-    position: 'absolute',
-    boxSizing: 'border-box',
-  };
-
-  const bottomBottomStyle = {
-    height: '0',
-    width: `${width}px`,
-    left: '0',
-    bottom: `${-height}px`,
-    borderTop: border,
-    position: 'absolute',
-    boxSizing: 'border-box',
-  };
-
-  const bottomRightStyle = {
+  const leftBorderStyle = {
+    ...commonBorderStyles,
+    
     height,
-    width: '0',
-    right: `${-width}px`,
+    width: `${BORDER_WIDTH}px`,
+    left: '0',
     top: '0',
-    borderLeft: border,
-    position: 'absolute',
-    boxSizing: 'border-box',
+  };
+
+  const bottomBorderStyle = {
+    ...commonBorderStyles,
+  
+    width,
+    height: `${BORDER_WIDTH}px`,
+    left: '0',
+    bottom: `-${Math.round(height)}px`,
+  };
+
+  const rightBorderStyle = {
+    ...commonBorderStyles,
+    
+    height,
+    width: `${BORDER_WIDTH}px`,
+    right: `-${width}px`,
+    top: '0',
   };
 
   return (
     <div style={style}>
       <div style={topBorderStyle} />
-      <div style={bottomLeftStyle} />
-      <div style={bottomBottomStyle} />
-      <div style={bottomRightStyle} />
+      <div style={leftBorderStyle} />
+      <div style={bottomBorderStyle} />
+      <div style={rightBorderStyle} />
     </div>
   );
 };
