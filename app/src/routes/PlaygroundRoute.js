@@ -87,6 +87,10 @@ import {
   ConstructionTool,
 } from '../components/ConstructionPane/ConstructionPane';
 
+import {
+  CanvasPlaceholder,
+} from '../components/CanvasPlaceholder/CanvasPlaceholder';
+
 import { Desktop } from '../containers/Desktop/Desktop';
 
 import ToolSectionRecord from '../models/ToolSection';
@@ -537,28 +541,7 @@ export default class Playground extends React.Component {
 
         <Desktop toolGroups={toolGroups}>
           <Panel headerFixed maxHeight="initial" spread>
-            <PanelContent>
-              <Container>
-                <RoutesList>
-                  <RouteCard route="route" title="route">
-                    <IndexRouteCard title="index route card" routeId={14} />
-                    <IndexRouteCard title="index route card" focused routeId={14} />
-                  </RouteCard>
-                  <RouteCard route="route" title="route" focused />
-                </RoutesList>
-              </Container>
-              
-              <Container>
-                <ComponentLayoutSelection>
-                  <ComponentLayoutSelectionItem title="title" subtitle="subtitle" />
-                  <ComponentLayoutSelectionItem title="title" subtitle="subtitle" />
-                  <ComponentLayoutSelectionItem title="title" subtitle="subtitle" />
-                </ComponentLayoutSelection>
-              </Container>
-
-              <Container>Тут был старый DataWindow, но его победил Бэтмен.</Container>
-              <Container><img src="https://upload.wikimedia.org/wikipedia/en/1/17/Batman-BenAffleck.jpg" alt=""/></Container>
-            </PanelContent>
+            <CanvasPlaceholder />
           </Panel>
         </Desktop>
 
