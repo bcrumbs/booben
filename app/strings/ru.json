@@ -26,7 +26,6 @@
   "appHeader.saveIndicator.tooltip.saved": "",
 
   "appFooter.faq": "Помощь",
-  "appFooter.showPlaceholders": "Показывать псевдоэлементы",
   "appFooter.toggleFullScreen": "Во весь экран",
 
   "alert.queryError": "Во время выполнения GraphQL-запроса произошла ошибка: {message}",
@@ -81,6 +80,10 @@
   "design.toolbar.paste": "Вставить",
   "design.toolbar.undo": "Отменить",
   "design.toolbar.redo": "Повторить",
+  "design.toolbar.showEmpty": "Показать пустые",
+  "design.toolbar.hideEmpty": "Скрыть пустые",
+  "design.toolbar.showHidden": "Показать невидимые",
+  "design.toolbar.hideHidden": "Скрыть невидимые",
 
   "library.uncategorizedComponents": "Без категории",
   "library.noComponentsAvailable": "Нет компонентов, которые могут быть вставлены в выделенный компонент",

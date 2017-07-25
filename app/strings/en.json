@@ -26,7 +26,6 @@
   "appHeader.saveIndicator.tooltip.saved": "",
 
   "appFooter.faq": "FAQ",
-  "appFooter.showPlaceholders": "Show placeholders",
   "appFooter.toggleFullScreen": "Toggle Full Screen",
 
   "alert.queryError": "An error has occurred while performing GraphQL query: {message}",
@@ -81,6 +80,10 @@
   "design.toolbar.paste": "Paste",
   "design.toolbar.undo": "Undo",
   "design.toolbar.redo": "Redo",
+  "design.toolbar.showEmpty": "Show empty",
+  "design.toolbar.hideEmpty": "Hide empty",
+  "design.toolbar.showHidden": "Show invisible",
+  "design.toolbar.hideHidden": "Hide invisible",
 
   "library.uncategorizedComponents": "Uncategorized",
   "library.noComponentsAvailable": "No components can be inserted inside selected component",

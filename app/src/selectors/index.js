@@ -39,6 +39,25 @@ export const currentDesignerSelector = createSelector(
     : topNestedConstructor.designer,
 );
 
+export const currentHistoryNodeSelector = createSelector(
+  topNestedConstructorSelector,
+  state => state.project,
+
+  (topNestedConstructor, projectState) => topNestedConstructor === null
+    ? projectState
+    : topNestedConstructor,
+);
+
+export const canUndoSelector = createSelector(
+  currentHistoryNodeSelector,
+  historyNode => historyNode.canMoveBack(),
+);
+
+export const canRedoSelector = createSelector(
+  currentHistoryNodeSelector,
+  historyNode => historyNode.canMoveForward(),
+);
+
 export const currentRouteSelector = state =>
   state.project.currentRouteId !== INVALID_ID
     ? state.project.data.routes.get(state.project.currentRouteId)

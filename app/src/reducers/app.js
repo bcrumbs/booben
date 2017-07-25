@@ -11,6 +11,7 @@ import {
   APP_LOAD_STRINGS_SUCCESS,
   APP_LOAD_STRINGS_FAILURE,
   APP_TOGGLE_CONTENT_PLACEHOLDERS,
+  APP_TOGGLE_INVISIBLE_COMPONENTS,
   APP_SHOW_FOOTER_TOGGLES,
 } from '../actions/app';
 
@@ -28,6 +29,7 @@ const AppState = Record({
   localization: {},
   showFooterToggles: false,
   showContentPlaceholders: false,
+  showInvisibleComponents: false,
 });
 
 const handlers = {
@@ -48,6 +50,9 @@ const handlers = {
   
   [APP_TOGGLE_CONTENT_PLACEHOLDERS]: (state, action) =>
     state.set('showContentPlaceholders', action.enable),
+
+  [APP_TOGGLE_INVISIBLE_COMPONENTS]: (state, action) =>
+    state.set('showInvisibleComponents', action.enable),
   
   [APP_SHOW_FOOTER_TOGGLES]: (state, action) =>
     state.set('showFooterToggles', action.show),
