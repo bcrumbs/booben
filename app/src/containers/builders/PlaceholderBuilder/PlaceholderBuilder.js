@@ -304,12 +304,31 @@ class PlaceholderBuilderComponent extends PureComponent {
 
   /**
    *
+   * @param {Object<string, *>} props
+   * @param {boolean} isHTMLComponent
+   * @param {boolean} isInvisible
+   * @private
+   */
+  _patchComponentProps(props, isHTMLComponent, isInvisible) {
+    if (isInvisible) {
+      if (isHTMLComponent) {
+        props['data-jssy-invisible'] = '';
+      } else {
+        props.__jssy_invisible__ = true;
+      }
+    }
+  }
+
+  /**
+   *
    * @param {boolean} [isRoot=false]
+   * @param {boolean} [isInvisible=false]
    * @return {ReactElement}
    * @private
    */
-  _renderOutletComponent(isRoot = false) {
+  _renderOutletComponent(isRoot = false, isInvisible = false) {
     const props = {};
+    this._patchComponentProps(props, false, isInvisible);
     if (isRoot) this._patchPlaceholderRootProps(props, false);
 
     return (
@@ -326,12 +345,12 @@ class PlaceholderBuilderComponent extends PureComponent {
    */
   _renderPseudoComponent(component, isRoot = false) {
     const systemProps = this._buildSystemProps(component, null);
-    if (!systemProps.visible) return null;
+    const isInvisible = !systemProps.visible;
 
     const props = this._buildProps(component, null);
 
     if (component.name === 'Outlet') {
-      return this._renderOutletComponent(isRoot);
+      return this._renderOutletComponent(isRoot, isInvisible);
     } else if (component.name === 'Text') {
       return props.text || '';
     } else if (component.name === 'List') {
@@ -408,8 +427,7 @@ class PlaceholderBuilderComponent extends PureComponent {
 
     const theMergedMap = thePreviousMap ? thePreviousMap.merge(theMap) : theMap;
     const systemProps = this._buildSystemProps(component, theMergedMap);
-
-    if (!systemProps.visible) return null;
+    const isInvisible = !systemProps.visible;
 
     const props = graphQLQuery ? {} : this._buildProps(component, theMergedMap);
 
@@ -423,6 +441,8 @@ class PlaceholderBuilderComponent extends PureComponent {
     }
 
     props.key = `placeholder-${containerId}:${afterIdx}-${component.id}`;
+
+    this._patchComponentProps(props, isHTML, isInvisible);
 
     if (isRoot && !dontPatch) {
       this._patchPlaceholderRootProps(props, isHTML);
