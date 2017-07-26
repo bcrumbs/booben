@@ -110,6 +110,7 @@ import {
   isRootComponent,
   canInsertComponent,
   canMoveComponent,
+  formatComponentTitle,
 } from '../lib/components';
 
 import { returnTrue } from '../utils/misc';
@@ -884,7 +885,7 @@ class DesignRoute extends PureComponent {
     let deleteComponentDialogText = '';
     if (confirmDeleteComponentDialogIsVisible) {
       const selectedComponent = components.get(firstSelectedComponentId);
-      const componentTitle = selectedComponent.title || selectedComponent.name;
+      const componentTitle = formatComponentTitle(selectedComponent);
 
       deleteComponentDialogText = getLocalizedText(
         'design.deleteComponentQuestion',

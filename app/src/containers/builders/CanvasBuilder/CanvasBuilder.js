@@ -46,6 +46,7 @@ import {
 import {
   canInsertComponent,
   canInsertRootComponent,
+  formatComponentTitle,
 } from '../../../lib/components';
 
 import { buildQueryForComponent } from '../../../lib/graphql';
@@ -727,7 +728,7 @@ class CanvasBuilderComponent extends PureComponent {
         key={props.key}
         innerProps={props}
         dragEnable={isDraggable}
-        dragTitle={component.title || component.name}
+        dragTitle={formatComponentTitle(component)}
         dragData={{ componentId: component.id }}
         dragStartRadius={DND_DRAG_START_RADIUS_CANVAS}
         onDragStart={this._handleComponentDragStart}

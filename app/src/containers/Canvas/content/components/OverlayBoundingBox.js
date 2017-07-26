@@ -6,11 +6,13 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { jssyTheme } from '@jssy/common-theme';
+import { OverlayComponentTitle } from './OverlayComponentTitle';
 
 const propTypes = {
   element: PropTypes.object,
   color: PropTypes.string,
+  title: PropTypes.string,
+  showTitle: PropTypes.bool,
 };
 
 const contextTypes = {
@@ -20,10 +22,12 @@ const contextTypes = {
 const defaultProps = {
   element: null,
   color: '#c8e5f6',
+  title: '',
+  showTitle: false,
 };
 
 export const OverlayBoundingBox = (props, context) => {
-  const { element, color } = props;
+  const { element, color, title, showTitle } = props;
   const { window } = context;
   
   if (!element) return null;
@@ -91,46 +95,19 @@ export const OverlayBoundingBox = (props, context) => {
     boxSizing: 'border-box',
   };
   
-  let titlePosition = 'top',
-    flipX = false,
-    positionVerticalStyles = {};
-  
-  const translateX = flipX ? 'translateX(-100%)' : '';
-  
-  if (titlePosition === 'bottom') {
-    positionVerticalStyles = {
-      top: `${height}px`,
-      transform: `translateY(-100%) ${translateX}`,
-    };
-  } else if (titlePosition === 'window') {
-    positionVerticalStyles = {
-      top: 0,
-      position: 'fixed',
-      transform: translateX,
-    };
-  } else {
-    positionVerticalStyles = {
-      top: 0,
-      transform: `translateY(-100%) ${translateX}`,
-    };
+  let titleElement = null;
+  if (showTitle) {
+    titleElement = (
+      <OverlayComponentTitle
+        element={element}
+        title={title}
+      />
+    );
   }
-    
-  const titleStyle = {
-    ...positionVerticalStyles,
-    position: 'absolute',
-    backgroundColor: '#c8e5f6',
-    color: '#667388',
-    padding: '2px 8px',
-    fontSize: '12px',
-    lineHeight: '1.25',
-    display: 'block',
-    whiteSpace: 'nowrap',
-    boxSizing: 'border-box',
-  };
   
   return (
     <div style={style}>
-      <div style={titleStyle}>Component title</div>
+      {titleElement}
       <div style={topBorderStyle} />
       <div style={bottomLeftStyle} />
       <div style={bottomBottomStyle} />
