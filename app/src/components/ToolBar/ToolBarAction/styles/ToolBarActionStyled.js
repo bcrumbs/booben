@@ -6,11 +6,7 @@ import constants from '../../styles/constants';
 export const ToolBarActionStyled = styled.div`
   display: flex;
   align-items: stretch;
-  opacity: 0.8;
-  
-  &:hover {
-    opacity: 1;
-  }
+  opacity: 1;
   
   & > * {
     min-width: ${constants.height}px;

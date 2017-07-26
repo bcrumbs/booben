@@ -7,6 +7,7 @@ export const AppWrapperStyled = styled.div`
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  flex-grow: 1;
 `;
 
 AppWrapperStyled.displayName = 'AppWrapperStyled';

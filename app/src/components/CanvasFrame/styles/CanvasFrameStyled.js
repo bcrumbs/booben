@@ -9,6 +9,7 @@ export const CanvasFrameStyled = styled.section`
   height: 100%;
   display: flex;
   align-items: stretch;
+  flex-direction: column;
 `;
 
 CanvasFrameStyled.displayName = 'CanvasFrameStyled';
