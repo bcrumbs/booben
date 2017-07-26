@@ -45,13 +45,21 @@ import {
 import { Canvas, getComponentCoords } from '../containers/Canvas/Canvas';
 
 import {
+  ComponentsDragArea,
+} from '../containers/ComponentsDragArea/ComponentsDragArea';
+
+import {
   ComponentLayoutSelection,
   ComponentLayoutSelectionItem,
 } from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
+import { AppWrapper } from '../components/AppWrapper/AppWrapper';
+
 import {
-  ComponentsDragArea,
-} from '../containers/ComponentsDragArea/ComponentsDragArea';
+  ToolBar,
+  ToolBarGroup,
+  ToolBarAction,
+} from '../components/ToolBar/ToolBar';
 
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
@@ -74,6 +82,11 @@ import {
 import { dropComponent } from '../actions/preview';
 
 import {
+  toggleInvisibleComponents,
+  toggleContentPlaceholders,
+} from '../actions/app';
+
+import {
   singleComponentSelectedSelector,
   firstSelectedComponentIdSelector,
   currentComponentsSelector,
@@ -81,6 +94,8 @@ import {
   containerStyleSelector,
   cursorPositionSelector,
   componentClipboardSelector,
+  canUndoSelector,
+  canRedoSelector,
 } from '../selectors';
 
 import {
@@ -126,6 +141,10 @@ const propTypes = {
   isCompatibleStateSlot: PropTypes.func.isRequired, // state
   cursorPosition: JssyPropTypes.componentsTreePosition.isRequired, // state
   componentClipboard: JssyPropTypes.componentClipboard.isRequired, // state
+  showInvisibleComponents: PropTypes.bool.isRequired, // state
+  showContentPlaceholders: PropTypes.bool.isRequired, // state
+  canUndo: PropTypes.bool.isRequired, // state
+  canRedo: PropTypes.bool.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onCreateComponent: PropTypes.func.isRequired, // dispatch
   onRenameComponent: PropTypes.func.isRequired, // dispatch
@@ -139,6 +158,8 @@ const propTypes = {
   onUndo: PropTypes.func.isRequired, // dispatch
   onRedo: PropTypes.func.isRequired, // dispatch
   onGoToStructure: PropTypes.func.isRequired, // dispatch
+  onToggleInvisibleComponents: PropTypes.func.isRequired, // dispatch
+  onToggleContentPlaceholders: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
@@ -166,6 +187,10 @@ const mapStateToProps = state => ({
 
   cursorPosition: cursorPositionSelector(state),
   componentClipboard: componentClipboardSelector(state),
+  showInvisibleComponents: state.app.showInvisibleComponents,
+  showContentPlaceholders: state.app.showContentPlaceholders,
+  canUndo: canUndoSelector(state),
+  canRedo: canRedoSelector(state),
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -204,6 +229,12 @@ const mapDispatchToProps = dispatch => ({
     const path = buildStructurePath({ projectName });
     dispatch(push(path));
   },
+
+  onToggleInvisibleComponents: enable =>
+    void dispatch(toggleInvisibleComponents(enable)),
+
+  onToggleContentPlaceholders: enable =>
+    void dispatch(toggleContentPlaceholders(enable)),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
@@ -255,6 +286,18 @@ class DesignRoute extends PureComponent {
       this._handleCreateComponent.bind(this);
     this._handleCreateComponentMenuClose =
       this._handleCreateComponentMenuClose.bind(this);
+    this._handleToggleInvisibleComponents =
+      this._handleToggleInvisibleComponents.bind(this);
+    this._handleToggleContentPlaceholders =
+      this._handleToggleContentPlaceholders.bind(this);
+    this._handleDuplicateSelectedComponent =
+      this._handleDuplicateSelectedComponent.bind(this);
+    this._handleCopySelectedComponent =
+      this._handleMoveSelectedComponentToClipboard.bind(this, true);
+    this._handleCutSelectedComponent =
+      this._handleMoveSelectedComponentToClipboard.bind(this, false);
+    this._handlePasteComponent =
+      this._handlePasteComponent.bind(this);
   }
   
   _getLibraryTool() {
@@ -546,6 +589,8 @@ class DesignRoute extends PureComponent {
       onCopyComponent,
       onMoveComponent,
     } = this.props;
+
+    if (componentClipboard.componentId === INVALID_ID) return;
     
     const clipboardComponent = components.get(componentClipboard.componentId);
     
@@ -681,6 +726,23 @@ class DesignRoute extends PureComponent {
       createComponentMenuIsVisible: false,
     });
   }
+
+  /**
+   *
+   * @private
+   */
+  _handleToggleInvisibleComponents() {
+    const { showInvisibleComponents, onToggleInvisibleComponents } = this.props;
+    onToggleInvisibleComponents(!showInvisibleComponents);
+  }
+  /**
+   *
+   * @private
+   */
+  _handleToggleContentPlaceholders() {
+    const { showContentPlaceholders, onToggleContentPlaceholders } = this.props;
+    onToggleContentPlaceholders(!showContentPlaceholders);
+  }
   
   /**
    *
@@ -788,9 +850,17 @@ class DesignRoute extends PureComponent {
       components,
       selectingComponentLayout,
       firstSelectedComponentId,
+      singleComponentSelected,
       componentStateSlotsListIsVisible,
       pickedComponentArea,
+      componentClipboard,
+      showInvisibleComponents,
+      showContentPlaceholders,
+      canUndo,
+      canRedo,
       getLocalizedText,
+      onUndo,
+      onRedo,
     } = this.props;
 
     const {
@@ -845,10 +915,78 @@ class DesignRoute extends PureComponent {
           toolGroups={toolGroups}
           onToolTitleChange={this._handleToolTitleChange}
         >
-          <Canvas
-            projectName={projectName}
-            containerStyle={previewContainerStyle}
-          />
+          <ToolBar>
+            <ToolBarGroup>
+              <ToolBarAction
+                icon={{ name: 'files-o' }}
+                tooltipText={getLocalizedText('design.toolbar.duplicate')}
+                disabled={!singleComponentSelected}
+                onPress={this._handleDuplicateSelectedComponent}
+              />
+
+              <ToolBarAction
+                icon={{ name: 'clone' }}
+                tooltipText={getLocalizedText('design.toolbar.copy')}
+                disabled={!singleComponentSelected}
+                onPress={this._handleCopySelectedComponent}
+              />
+
+              <ToolBarAction
+                icon={{ name: 'scissors' }}
+                tooltipText={getLocalizedText('design.toolbar.cut')}
+                disabled={!singleComponentSelected}
+                onPress={this._handleCutSelectedComponent}
+              />
+
+              <ToolBarAction
+                icon={{ name: 'clipboard' }}
+                tooltipText={getLocalizedText('design.toolbar.paste')}
+                disabled={componentClipboard.componentId === INVALID_ID}
+                onPress={this._handlePasteComponent}
+              />
+            </ToolBarGroup>
+
+            <ToolBarGroup>
+              <ToolBarAction
+                icon={{ name: 'undo' }}
+                tooltipText={getLocalizedText('design.toolbar.undo')}
+                disabled={!canUndo}
+                onPress={onUndo}
+              />
+
+              <ToolBarAction
+                icon={{ name: 'repeat' }}
+                tooltipText={getLocalizedText('design.toolbar.redo')}
+                disabled={!canRedo}
+                onPress={onRedo}
+              />
+            </ToolBarGroup>
+
+            <ToolBarGroup>
+              <ToolBarAction
+                text={getLocalizedText(showContentPlaceholders
+                  ? 'design.toolbar.hideEmpty'
+                  : 'design.toolbar.showEmpty')}
+
+                onPress={this._handleToggleContentPlaceholders}
+              />
+
+              <ToolBarAction
+                text={getLocalizedText(showInvisibleComponents
+                  ? 'design.toolbar.hideHidden'
+                  : 'design.toolbar.showHidden')}
+
+                onPress={this._handleToggleInvisibleComponents}
+              />
+            </ToolBarGroup>
+          </ToolBar>
+
+          <AppWrapper>
+            <Canvas
+              projectName={projectName}
+              containerStyle={previewContainerStyle}
+            />
+          </AppWrapper>
           
           <Dialog
             title={getLocalizedText('design.selectLayout')}

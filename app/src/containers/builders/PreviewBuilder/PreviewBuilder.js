@@ -6,8 +6,6 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { compose } from 'redux';
-import { connect } from 'react-redux';
 import { graphql, withApollo } from 'react-apollo';
 import _forOwn from 'lodash.forown';
 import _get from 'lodash.get';
@@ -52,6 +50,9 @@ import {
 } from '../../../constants/misc';
 
 const propTypes = {
+  project: PropTypes.any.isRequired,
+  meta: PropTypes.object.isRequired,
+  schema: PropTypes.object,
   components: JssyPropTypes.components.isRequired,
   rootId: PropTypes.number,
   routeParams: PropTypes.object,
@@ -59,15 +60,11 @@ const propTypes = {
   theMap: PropTypes.object,
   dataContextInfo: PropTypes.object,
   client: PropTypes.object, // react-apollo
-  project: PropTypes.any.isRequired, // state
-  meta: PropTypes.object.isRequired, // state
-  schema: PropTypes.object, // state
   onNavigate: PropTypes.func,
   onOpenURL: PropTypes.func,
 };
 
 const defaultProps = {
-  client: null,
   schema: null,
   components: null,
   rootId: INVALID_ID,
@@ -75,20 +72,12 @@ const defaultProps = {
   propsFromOwner: {},
   theMap: null,
   dataContextInfo: null,
+  client: null,
   onNavigate: noop,
   onOpenURL: noop,
 };
 
-const mapStateToProps = state => ({
-  project: state.project.data,
-  meta: state.project.meta,
-  schema: state.project.schema,
-});
-
-const wrap = compose(
-  connect(mapStateToProps),
-  withApollo,
-);
+const wrap = withApollo;
 
 /**
  *

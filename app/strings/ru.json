@@ -26,7 +26,6 @@
   "appHeader.saveIndicator.tooltip.saved": "",
 
   "appFooter.faq": "Помощь",
-  "appFooter.showPlaceholders": "Показывать псевдоэлементы",
   "appFooter.toggleFullScreen": "Во весь экран",
 
   "alert.queryError": "Во время выполнения GraphQL-запроса произошла ошибка: {message}",
@@ -57,6 +56,8 @@
   "structure.indexRouteProperties": "Свойства маршрута по умолчанию",
   "structure.editRoutePathDialogTitle": "Редактирование пути",
   "structure.routeParamValuesHeading": "Введите примеры значений для параметров роута",
+  "structure.noOutletWarning": "Прежде чем редактировать этот роут, необходимо добавить Outlet в роуте '{routeTitle}'",
+  "structure.noOutletMarkTooltip": "В роуте нет Outlet",
 
   "design.tool.elementsTree": "Дерево элементов",
   "design.tool.componentsLibrary": "Библиотека компонентов",
@@ -73,6 +74,16 @@
   "design.willDropRootComponentText": "{componentTitle} будет корневым компонентом",
   "design.willDropComponentAfterText": "{componentTitle} будет вставлен в {where} после {after}",
   "design.createComponentMenu.inputPlaceholder": "Начните вводить имя компонента",
+  "design.toolbar.duplicate": "Клонировать выделенный компонент",
+  "design.toolbar.copy": "Копировать выделенный компонент",
+  "design.toolbar.cut": "Вырезать выделенный компонент",
+  "design.toolbar.paste": "Вставить",
+  "design.toolbar.undo": "Отменить",
+  "design.toolbar.redo": "Повторить",
+  "design.toolbar.showEmpty": "Показать пустые",
+  "design.toolbar.hideEmpty": "Скрыть пустые",
+  "design.toolbar.showHidden": "Показать невидимые",
+  "design.toolbar.hideHidden": "Скрыть невидимые",
 
   "library.uncategorizedComponents": "Без категории",
   "library.noComponentsAvailable": "Нет компонентов, которые могут быть вставлены в выделенный компонент",
