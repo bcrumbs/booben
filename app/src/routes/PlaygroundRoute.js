@@ -95,7 +95,7 @@ import {
 
 import {
   CanvasPlaceholder,
-} from '../components/CanvasPlaceholder/CanvasPlaceholder';
+} from '../containers/Canvas/content/components/CanvasPlaceholder';
 
 import { Desktop } from '../containers/Desktop/Desktop';
 

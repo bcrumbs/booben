@@ -84,6 +84,7 @@
   "design.toolbar.hideEmpty": "Hide empty",
   "design.toolbar.showHidden": "Show invisible",
   "design.toolbar.hideHidden": "Hide invisible",
+  "design.canvas.placeholder": "Drop a component here",
 
   "library.uncategorizedComponents": "Uncategorized",
   "library.noComponentsAvailable": "No components can be inserted inside selected component",
