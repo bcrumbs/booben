@@ -33,7 +33,7 @@ import {
   createNetworkInterfaceForProject,
 } from '../../lib/apollo';
 
-import { waitFor, returnNull } from '../../utils/misc';
+import { waitFor, returnEmptyObject } from '../../utils/misc';
 import contentTemplate from './content/content.ejs';
 import { APOLLO_STATE_KEY } from '../../constants/misc';
 
@@ -373,7 +373,7 @@ class CanvasComponent extends Component {
     if (state.project.data.graphQLEndpointURL) {
       removeApolloMiddleware();
       store.replaceReducer(createReducer({
-        [APOLLO_STATE_KEY]: returnNull,
+        [APOLLO_STATE_KEY]: returnEmptyObject,
       }));
     }
   
