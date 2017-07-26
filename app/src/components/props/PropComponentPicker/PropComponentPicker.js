@@ -28,7 +28,7 @@ const defaultProps = {
 const baseProps = Object.keys(PropBase.propTypes);
 
 export const PropComponentPicker = props => {
-  const { disabled, getLocalizedText, onPickComponent } = this.props;
+  const { disabled, getLocalizedText, onPickComponent } = props;
 
   const propsForBase = _pick(props, baseProps);
 

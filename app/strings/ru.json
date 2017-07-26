@@ -84,6 +84,7 @@
   "design.toolbar.hideEmpty": "Скрыть пустые",
   "design.toolbar.showHidden": "Показать невидимые",
   "design.toolbar.hideHidden": "Скрыть невидимые",
+  "design.canvas.placeholder": "Перетащите сюда компонент",
 
   "library.uncategorizedComponents": "Без категории",
   "library.noComponentsAvailable": "Нет компонентов, которые могут быть вставлены в выделенный компонент",

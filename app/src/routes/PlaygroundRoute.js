@@ -93,6 +93,10 @@ import {
   ToolBarAction,
 } from '../components/ToolBar/ToolBar';
 
+import {
+  CanvasPlaceholder,
+} from '../containers/Canvas/content/components/CanvasPlaceholder';
+
 import { Desktop } from '../containers/Desktop/Desktop';
 
 import ToolSectionRecord from '../models/ToolSection';
@@ -543,24 +547,7 @@ export default class Playground extends React.Component {
 
         <Desktop toolGroups={toolGroups}>
           <Panel headerFixed maxHeight="initial" spread>
-            <PanelContent>
-              <ToolBar>
-                <ToolBarGroup>
-                  <ToolBarAction icon={{ name: 'files-o' }} />
-                  <ToolBarAction icon={{ name: 'clone' }} disabled />
-                  <ToolBarAction icon={{ name: 'scissors' }} />
-                  <ToolBarAction icon={{ name: 'clipboard' }} />
-                </ToolBarGroup>
-                <ToolBarGroup>
-                  <ToolBarAction icon={{ name: 'undo' }} />
-                  <ToolBarAction icon={{ name: 'repeat' }} />
-                </ToolBarGroup>
-                <ToolBarGroup>
-                  <ToolBarAction text='Show empty' />
-                  <ToolBarAction text='Show hidden' />
-                </ToolBarGroup>
-              </ToolBar>
-            </PanelContent>
+            <CanvasPlaceholder />
           </Panel>
         </Desktop>
 
