@@ -22,6 +22,7 @@ import {
 
 import { getMutationField } from '../../lib/schema';
 import { getComponentMeta, getString } from '../../lib/meta';
+import { formatComponentTitle } from '../../lib/components';
 import { noop } from '../../utils/misc';
 import * as JssyPropTypes from '../../constants/common-prop-types';
 
@@ -112,7 +113,7 @@ class ActionsListComponent extends Component {
         
         return getLocalizedText('actionsEditor.actionTitle.method', {
           method: methodName,
-          componentTitle: targetComponent.title || targetComponent.name,
+          componentTitle: formatComponentTitle(targetComponent),
         });
       }
       
@@ -147,7 +148,7 @@ class ActionsListComponent extends Component {
         
         return getLocalizedText('actionsEditor.actionTitle.prop', {
           propName: nameString,
-          componentTitle: targetComponent.title || targetComponent.name,
+          componentTitle: formatComponentTitle(targetComponent),
         });
       }
       

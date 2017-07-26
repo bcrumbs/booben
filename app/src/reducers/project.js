@@ -1139,6 +1139,7 @@ const undoableInPreviousNode = _undoable(getPathToPreviousHistoryNode);
 
 const handlers = {
   [LOCATION_CHANGE]: (state, action) => {
+    state = closeAllNestedConstructors(state);
     state = state.resetHistory();
     
     const pathname = action.payload.pathname;

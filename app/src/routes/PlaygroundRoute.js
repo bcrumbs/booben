@@ -88,6 +88,12 @@ import {
 } from '../components/ConstructionPane/ConstructionPane';
 
 import {
+  ToolBar,
+  ToolBarGroup,
+  ToolBarAction,
+} from '../components/ToolBar/ToolBar';
+
+import {
   CanvasPlaceholder,
 } from '../components/CanvasPlaceholder/CanvasPlaceholder';
 

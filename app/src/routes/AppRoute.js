@@ -28,7 +28,6 @@ import {
   FooterMenuGroup,
   FooterMenuList,
   FooterMenuItem,
-  ToggleButton,
   AlertArea,
 } from '@reactackle/reactackle';
 
@@ -42,12 +41,10 @@ import {
 
 import { alertAreaProvider } from '../hocs/alerts';
 import ProjectRecord from '../models/Project';
-import { toggleContentPlaceholders } from '../actions/app';
 import { getLocalizedTextFromState } from '../selectors';
 
 import {
   PATH_STRUCTURE,
-  PATH_DESIGN,
   PATH_DESIGN_ROUTE,
   PATH_DESIGN_ROUTE_INDEX,
   buildStructurePath,
@@ -61,9 +58,7 @@ const propTypes = {
   location: PropTypes.object.isRequired, // router
   projectName: PropTypes.string.isRequired, // state
   project: PropTypes.instanceOf(ProjectRecord).isRequired, // state
-  showContentPlaceholders: PropTypes.bool.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
-  onToggleContentPlaceholders: PropTypes.func.isRequired, // dispatch
   onAlertAreaReady: PropTypes.func.isRequired, // alertAreaProvider
   onAlertAreaRemoved: PropTypes.func.isRequired, // alertAreaProvider
 };
@@ -71,17 +66,11 @@ const propTypes = {
 const mapStateToProps = state => ({
   projectName: state.project.projectName,
   project: state.project.data,
-  showContentPlaceholders: state.app.showContentPlaceholders,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
-const mapDispatchToProps = dispatch => ({
-  onToggleContentPlaceholders: ({ value }) =>
-    void dispatch(toggleContentPlaceholders(value)),
-});
-
 const wrap = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(mapStateToProps),
   alertAreaProvider,
 );
 
@@ -163,9 +152,7 @@ class AppRoute extends Component {
       projectName,
       project,
       location,
-      showContentPlaceholders,
       getLocalizedText,
-      onToggleContentPlaceholders,
       onAlertAreaReady,
     } = this.props;
   
@@ -323,21 +310,6 @@ class AppRoute extends Component {
               <FooterMenu inline dense mode="light">
                 <FooterMenuGroup>
                   <FooterMenuList>
-                    <Route
-                      path={PATH_DESIGN}
-                      render={() => (
-                        <FooterMenuItem
-                          text={getLocalizedText('appFooter.showPlaceholders')}
-                          subcomponentRight={
-                            <ToggleButton
-                              checked={showContentPlaceholders}
-                              onChange={onToggleContentPlaceholders}
-                            />
-                          }
-                        />
-                      )}
-                    />
-                  
                     <FooterMenuItem
                       text={getLocalizedText('appFooter.toggleFullScreen')}
                       onClick={toggleFullscreen}
