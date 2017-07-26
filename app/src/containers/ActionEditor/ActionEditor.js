@@ -44,6 +44,7 @@ import {
 } from '../../actions/project';
 
 import { setInPath } from '../../lib/path';
+import { formatComponentTitle } from '../../lib/components';
 
 import {
   getMutationType,
@@ -753,7 +754,7 @@ class ActionEditorComponent extends PureComponent {
       ? currentComponents.get(action.params.componentId)
       : null;
     
-    const componentName = component ? component.title || component.name : '';
+    const componentName = component ? formatComponentTitle(component) : '';
     
     const ret = [
       <PropComponentPicker
@@ -856,7 +857,7 @@ class ActionEditorComponent extends PureComponent {
       ? currentComponents.get(action.params.componentId)
       : null;
   
-    const componentName = component ? component.title || component.name : '';
+    const componentName = component ? formatComponentTitle(component) : '';
   
     const ret = [
       <PropComponentPicker

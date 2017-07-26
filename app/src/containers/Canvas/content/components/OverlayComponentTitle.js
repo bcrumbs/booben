@@ -12,28 +12,78 @@ const propTypes = {
   title: PropTypes.string,
 };
 
+const contextTypes = {
+  window: PropTypes.object.isRequired,
+};
+
 const defaultProps = {
   element: null,
   title: '',
 };
 
-export const OverlayComponentTitle = props => {
+const HEIGHT = 16;
+
+export const OverlayComponentTitle = (props, context) => {
   const { element, title } = props;
+  const { window } = context;
   
-  if (!element) return null;
-
-  const { left, top, width, height } = element.getBoundingClientRect();
-  if (width === 0 || height === 0) return null;
-
-  const style = {
+  let verticalPositionStyle;
+  let horizontalPositionStyle;
+  
+  const { left, top, bottom, width, height } = element.getBoundingClientRect();
+  const { innerWidth, innerHeight } = window;
+  
+  let titlePosition = 'top';
+  const flipX = innerWidth - left < 16 + title.length * 6;
+  
+  if (top < HEIGHT) {
+    if (innerHeight - bottom < HEIGHT) {
+      titlePosition = 'window';
+    } else {
+      titlePosition = 'bottom';
+    }
+  }
+  
+  if (flipX) {
+    horizontalPositionStyle = {
+      right: `-${width}px`,
+    };
+  } else {
+    horizontalPositionStyle = {};
+  }
+  
+  if (titlePosition === 'bottom') {
+    verticalPositionStyle = {
+      top: `${height}px`,
+    };
+  } else if (titlePosition === 'window') {
+    verticalPositionStyle = {
+      top: 0,
+      position: 'fixed',
+    };
+  } else {
+    verticalPositionStyle = {
+      top: 0,
+      transform: 'translateY(-100%)',
+    };
+  }
+  
+  const titleStyle = {
+    ...horizontalPositionStyle,
+    ...verticalPositionStyle,
     position: 'absolute',
-    left: `${left}px`,
-    top: `${top}px`,
-    zIndex: '1001',
+    backgroundColor: '#c8e5f6',
+    color: '#667388',
+    padding: '2px 8px',
+    fontSize: '12px',
+    lineHeight: '1.25',
+    display: 'block',
+    whiteSpace: 'nowrap',
+    boxSizing: 'border-box',
   };
-
+  
   return (
-    <div style={style}>
+    <div style={titleStyle}>
       {title}
     </div>
   );
@@ -41,4 +91,5 @@ export const OverlayComponentTitle = props => {
 
 OverlayComponentTitle.propTypes = propTypes;
 OverlayComponentTitle.defaultProps = defaultProps;
+OverlayComponentTitle.contextTypes = contextTypes;
 OverlayComponentTitle.displayName = 'OverlayComponentTitle';

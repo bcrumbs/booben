@@ -9,15 +9,19 @@ import {
   selectedComponentIdsSelector,
   highlightedComponentIdsSelector,
   currentRootComponentIdSelector,
+  currentComponentsSelector,
 } from '../../../../selectors';
 
 import { OverlayContainer } from '../components/OverlayContainer';
 import { OverlayBoundingBox } from '../components/OverlayBoundingBox';
+import { formatComponentTitle } from '../../../../lib/components';
+import { mapListToArray } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
 import * as JssyPropTypes from '../../../../constants/common-prop-types';
 
 const propTypes = {
+  components: JssyPropTypes.components.isRequired,
   selectedComponentIds: JssyPropTypes.setOfIds.isRequired,
   highlightedComponentIds: JssyPropTypes.setOfIds.isRequired,
   boundaryComponentId: PropTypes.number.isRequired,
@@ -32,6 +36,7 @@ const contextTypes = {
 };
 
 const mapStateToProps = state => ({
+  components: currentComponentsSelector(state),
   selectedComponentIds: selectedComponentIdsSelector(state),
   highlightedComponentIds: highlightedComponentIdsSelector(state),
   boundaryComponentId: currentRootComponentIdSelector(state),
@@ -80,20 +85,32 @@ class Overlay extends PureComponent {
    *
    * @param {Immutable.List<number>} componentIds
    * @param {string} color
-   * @return {Immutable.List<ReactElement>}
+   * @param {boolean} [showTitle=false]
+   * @return {Array<ReactElement>}
    * @private
    */
-  _renderBoundingBoxes(componentIds, color) {
-    //noinspection JSValidateTypes
-    return componentIds.map(id => {
+  _renderBoundingBoxes(componentIds, color, showTitle = false) {
+    const { components } = this.props;
+    
+    return mapListToArray(componentIds, id => {
       const element = this._getDOMElementByComponentId(id);
       const key = `${id}-${color}`;
+      let title = '';
+      
+      if (showTitle) {
+        const component = components.get(id);
+        if (component) {
+          title = formatComponentTitle(component);
+        }
+      }
 
       return (
         <OverlayBoundingBox
           key={key}
           element={element}
           color={color}
+          title={title}
+          showTitle={showTitle}
         />
       );
     });
@@ -114,6 +131,7 @@ class Overlay extends PureComponent {
       ? this._renderBoundingBoxes(
         highlightedComponentIds,
         HIGHLIGHT_COLOR,
+        true,
       )
       : null;
 

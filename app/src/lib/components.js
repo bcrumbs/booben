@@ -26,6 +26,14 @@ import {
 
 /**
  *
+ * @param {Object} component
+ * @return {string}
+ */
+export const formatComponentTitle = component =>
+  component.title || component.name;
+
+/**
+ *
  * @param {string} componentName
  * @param {ComponentsMeta} meta
  * @return {boolean}
