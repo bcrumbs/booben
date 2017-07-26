@@ -21,19 +21,25 @@ const patchDOMElement = componentInstance => {
     __jssy_placeholder__: isPlaceholder,
     __jssy_container_id__: containerId,
     __jssy_after__: after,
+    __jssy_invisible__: invisible,
   } = componentInstance.props;
 
-  if (isNumber(componentId)) {
-    const element = findDOMNode(componentInstance);
-    if (element) element.setAttribute('data-jssy-id', String(componentId));
-  } else if (isPlaceholder) {
-    const element = findDOMNode(componentInstance);
+  const element = findDOMNode(componentInstance);
 
-    if (element) {
-      element.setAttribute('data-jssy-placeholder', '');
-      element.setAttribute('data-jssy-after', String(after));
-      element.setAttribute('data-jssy-container-id', String(containerId));
-    }
+  if (!element) return;
+
+  if (isNumber(componentId)) {
+    element.setAttribute('data-jssy-id', String(componentId));
+  } else if (isPlaceholder) {
+    element.setAttribute('data-jssy-placeholder', '');
+    element.setAttribute('data-jssy-after', String(after));
+    element.setAttribute('data-jssy-container-id', String(containerId));
+  }
+
+  if (invisible) {
+    element.setAttribute('data-jssy-invisible', '');
+  } else {
+    element.removeAttribute('data-jssy-invisible');
   }
 };
 

@@ -34,6 +34,7 @@ import {
 
 import Project, { getComponentById } from '../../../../models/Project';
 import { getRouteParams } from '../../../../models/ProjectRoute';
+import { formatComponentTitle } from '../../../../lib/components';
 import { distance } from '../../../../utils/geometry';
 import { noop } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
@@ -422,13 +423,13 @@ class CanvasContent extends Component {
     
       while (componentId !== INVALID_ID && i < 2) {
         const component = currentComponents.get(componentId);
-        parentNames.unshift(component.title || component.name);
+        parentNames.unshift(formatComponentTitle(component));
         componentId = component.parentId;
         i++;
       }
     
       const ellipsis = componentId !== INVALID_ID;
-      const title = container.title || container.name;
+      const title = formatComponentTitle(container);
       const caption =
         `${ellipsis ? '... ' : ''}${parentNames.join(' > ')} >`;
     

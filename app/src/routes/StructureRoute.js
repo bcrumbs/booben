@@ -12,11 +12,7 @@ import { Shortcuts } from 'react-shortcuts';
 import { List } from 'immutable';
 
 import {
-  Panel,
-  PanelContent,
   Container,
-  Row,
-  Column,
   Dialog,
   Form,
   FormItem,
@@ -29,6 +25,14 @@ import {
   BlockContentBoxItem,
   BlockContentBoxHeading,
 } from '@jssy/common-ui';
+
+import {
+  ToolBar,
+  ToolBarGroup,
+  ToolBarAction,
+} from '../components/ToolBar/ToolBar';
+
+import { AppWrapper } from '../components/AppWrapper/AppWrapper';
 
 import {
   RoutesList,
@@ -54,7 +58,14 @@ import {
 } from '../actions/project';
 
 import { selectRoute } from '../actions/structure';
-import { getLocalizedTextFromState } from '../selectors';
+
+import {
+  getLocalizedTextFromState,
+  canUndoSelector,
+  canRedoSelector,
+} from '../selectors';
+
+import { findComponent } from '../lib/components';
 
 import {
   arrayToObject,
@@ -81,6 +92,8 @@ const propTypes = {
   projectName: PropTypes.string.isRequired, // store
   selectedRouteId: PropTypes.number.isRequired, // store
   indexRouteSelected: PropTypes.bool.isRequired, // store
+  canUndo: PropTypes.bool.isRequired, // store
+  canRedo: PropTypes.bool.isRequired, // store
   getLocalizedText: PropTypes.func.isRequired, // store
   onSelectRoute: PropTypes.func.isRequired, // dispatch
   onCreateRoute: PropTypes.func.isRequired, // dispatch
@@ -92,12 +105,14 @@ const propTypes = {
   onRedo: PropTypes.func.isRequired, // dispatch
 };
 
-const mapStateToProps = ({ project, app }) => ({
-  project: project.data,
-  projectName: project.projectName,
-  selectedRouteId: project.selectedRouteId,
-  indexRouteSelected: project.indexRouteSelected,
-  getLocalizedText: getLocalizedTextFromState({ app }),
+const mapStateToProps = state => ({
+  project: state.project.data,
+  projectName: state.project.projectName,
+  selectedRouteId: state.project.selectedRouteId,
+  indexRouteSelected: state.project.indexRouteSelected,
+  canUndo: canUndoSelector(state),
+  canRedo: canRedoSelector(state),
+  getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -204,6 +219,39 @@ const getRenamedRouteParams = (oldPath, newPath, reverse = false) => {
 const normalizePath = (rawPath, isRootRoute) =>
   isRootRoute ? `/${rawPath}` : rawPath;
 
+/**
+ *
+ * @param {Immutable.Map<number, Object>} routes
+ * @param {number} routeId
+ * @param {boolean} isIndexRoute
+ * @return {boolean}
+ */
+const isRouteEditable = (routes, routeId, isIndexRoute) => {
+  const parentIds = [];
+
+  if (isIndexRoute) {
+    parentIds.push(routeId);
+  }
+
+  let currentRoute = routes.get(routeId);
+
+  while (currentRoute.parentId !== INVALID_ID) {
+    parentIds.push(currentRoute.parentId);
+    currentRoute = routes.get(currentRoute.parentId);
+  }
+
+  return parentIds.every(id => {
+    const route = routes.get(id);
+    const outlet = findComponent(
+      route.components,
+      route.component,
+      component => component.name === 'Outlet',
+    );
+
+    return outlet !== null;
+  });
+};
+
 class StructureRoute extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -304,6 +352,12 @@ class StructureRoute extends PureComponent {
       ? List([
         new ButtonRecord({
           text: getLocalizedText('common.edit'),
+          disabled: !isRouteEditable(
+            project.routes,
+            selectedRouteId,
+            indexRouteSelected,
+          ),
+
           onPress: this._handleSelectedRouteGo,
         }),
       ])
@@ -474,7 +528,21 @@ class StructureRoute extends PureComponent {
       case 'SELECT_PREVIOUS_ROUTE': this._handleSelectPreviousRoute(); break;
       case 'SELECT_CHILD_ROUTE': this._handleSelectChildRoute(); break;
       case 'SELECT_PARENT_ROUTE': this._handleSelectParentRoute(); break;
-      case 'GO_TO_DESIGN': this._handleSelectedRouteGo(); break;
+      case 'GO_TO_DESIGN': {
+        const { project, selectedRouteId, indexRouteSelected } = this.props;
+
+        const isEditable = isRouteEditable(
+          project.routes,
+          selectedRouteId,
+          indexRouteSelected,
+        );
+
+        if (isEditable) {
+          this._handleSelectedRouteGo();
+        }
+
+        break;
+      }
       
       default:
     }
@@ -921,10 +989,11 @@ class StructureRoute extends PureComponent {
    * @param {Immutable.List<Object>} routes
    * @param {Object} parentRoute
    * @param {Immutable.List<number>} routesIds
+   * @param {?Object} [parentWithoutOutlet=null]
    * @return {ReactElement}
    * @private
    */
-  _renderRouteList(routes, parentRoute, routesIds) {
+  _renderRouteList(routes, parentRoute, routesIds, parentWithoutOutlet = null) {
     const {
       selectedRouteId,
       indexRouteSelected,
@@ -932,7 +1001,11 @@ class StructureRoute extends PureComponent {
     } = this.props;
 
     let routeCards = routesIds
-      ? routesIds.map(routeId => this._renderRouteCard(routes, routeId))
+      ? routesIds.map(routeId => this._renderRouteCard(
+        routes,
+        routeId,
+        parentWithoutOutlet,
+      ))
       : null;
 
     if (parentRoute && parentRoute.haveIndex && !parentRoute.redirect) {
@@ -975,7 +1048,6 @@ class StructureRoute extends PureComponent {
       );
     }
 
-    //noinspection JSValidateTypes
     return (
       <RoutesList>
         {routeCards}
@@ -988,21 +1060,73 @@ class StructureRoute extends PureComponent {
    *
    * @param {Immutable.List<Object>} routes
    * @param {number} routeId
+   * @param {?Object} [parentWithoutOutlet=null]
    * @return {ReactElement}
    * @private
    */
-  _renderRouteCard(routes, routeId) {
-    const { selectedRouteId, indexRouteSelected } = this.props;
+  _renderRouteCard(routes, routeId, parentWithoutOutlet = null) {
+    const {
+      selectedRouteId,
+      indexRouteSelected,
+      getLocalizedText,
+    } = this.props;
     
     const route = routes.get(routeId);
     const isSelected = selectedRouteId === route.id && !indexRouteSelected;
     const willRenderChildren = route.children.size > 0 || route.haveIndex;
-    
+
+    let outletWarning = false;
+    let outletWarningTooltip = '';
+
+    if (!parentWithoutOutlet && route.children.size > 0) {
+      const outlet = findComponent(
+        route.components,
+        route.component,
+        component => component.name === 'Outlet',
+      );
+
+      if (outlet === null) {
+        outletWarning = true;
+        outletWarningTooltip =
+          getLocalizedText('structure.noOutletMarkTooltip');
+      }
+    }
+
     let children = null;
     if (willRenderChildren) {
-      children = this._renderRouteList(routes, route, route.children);
+      children = this._renderRouteList(
+        routes,
+        route,
+        route.children,
+        parentWithoutOutlet || (outletWarning ? route : null),
+      );
     } else {
-      children = isSelected ? this._renderRouteList(routes, route, null) : null;
+      children = isSelected
+        ? this._renderRouteList(
+          routes,
+          route,
+          null,
+          parentWithoutOutlet || (outletWarning ? route : null),
+        )
+        : null;
+    }
+
+    let parentOutletWarningMessage = null;
+    let disabled = false;
+
+    if (parentWithoutOutlet !== null) {
+      disabled = true;
+
+      if (isSelected) {
+        const messageText = getLocalizedText(
+          'structure.noOutletWarning',
+          { routeTitle: parentWithoutOutlet.title },
+        );
+
+        parentOutletWarningMessage = (
+          <span>{messageText}</span>
+        );
+      }
     }
     
     return (
@@ -1010,6 +1134,10 @@ class StructureRoute extends PureComponent {
         key={String(route.id)}
         route={route}
         focused={isSelected}
+        disabled={disabled}
+        alertMark={outletWarning}
+        alertTooltip={outletWarningTooltip}
+        message={parentOutletWarningMessage}
         onFocus={this._handleRouteSelect}
         onGo={this._handleRouteGo}
       >
@@ -1332,21 +1460,15 @@ class StructureRoute extends PureComponent {
       this._renderRouteList(project.routes, null, project.rootRoutes);
     
     return (
-      <Panel headerFixed maxHeight="initial" spread>
-        <PanelContent>
-          <Container>
-            <Row>
-              <Column>
-                {routesList}
-              </Column>
-            </Row>
-          </Container>
-        </PanelContent>
-      </Panel>
+      <Container spread>
+        {routesList}
+      </Container>
     );
   }
 
   render() {
+    const { canUndo, canRedo, getLocalizedText, onUndo, onRedo } = this.props;
+
     const content = this._renderContent();
     const newRouteDialog = this._renderNewRouteDialog();
     const editRoutePathDialog = this._renderEditRoutePathDialog();
@@ -1363,13 +1485,33 @@ class StructureRoute extends PureComponent {
           toolGroups={this._toolGroups}
           onToolTitleChange={this._handleToolTitleChange}
         >
-          <Shortcuts
-            name="ROUTES_LIST"
-            handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
-            className="jssy-app"
-          >
-            {content}
-          </Shortcuts>
+          <ToolBar>
+            <ToolBarGroup>
+              <ToolBarAction
+                icon={{ name: 'undo' }}
+                tooltipText={getLocalizedText('design.toolbar.undo')}
+                disabled={!canUndo}
+                onPress={onUndo}
+              />
+
+              <ToolBarAction
+                icon={{ name: 'repeat' }}
+                tooltipText={getLocalizedText('design.toolbar.redo')}
+                disabled={!canRedo}
+                onPress={onRedo}
+              />
+            </ToolBarGroup>
+          </ToolBar>
+
+          <AppWrapper>
+            <Shortcuts
+              name="ROUTES_LIST"
+              handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
+              className="jssy-app"
+            >
+              {content}
+            </Shortcuts>
+          </AppWrapper>
           
           {newRouteDialog}
           {editRoutePathDialog}

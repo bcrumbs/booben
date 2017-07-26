@@ -87,6 +87,7 @@ import {
   isRootComponent,
   canInsertComponent,
   canInsertComponentIntoTree,
+  formatComponentTitle,
 } from '../../lib/components';
 
 import { isFunction, returnTrue } from '../../utils/misc';
@@ -1097,7 +1098,7 @@ class ComponentsTreeViewComponent extends PureComponent {
       placeholderAfter === afterIdx;
 
     if (willRenderPlaceholder) {
-      const title = rootDraggedComponent.title || rootDraggedComponent.name;
+      const title = formatComponentTitle(rootDraggedComponent);
       return this._renderLine(title, isDraggingOnTree);
     }
 
