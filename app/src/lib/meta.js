@@ -174,14 +174,19 @@ export const getSourceConfig = (valueDef, source, userTypedefs = null) => {
 
 /**
  *
- * @param {ComponentMeta} componentMeta
+ * @param {string} componentName
+ * @param {ComponentsMeta} meta
  * @return {boolean}
  */
-export const componentHasActions = componentMeta =>
-  objectSome(
+export const componentHasActions = (componentName, meta) => {
+  const componentMeta = getComponentMeta(componentName, meta);
+
+  return objectSome(
     componentMeta.props,
     propMeta => isValidSourceForValue(propMeta, 'actions'),
   );
+};
+
 
 /**
  *

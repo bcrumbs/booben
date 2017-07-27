@@ -273,6 +273,8 @@ class DesignRoute extends PureComponent {
       this._handleShortcuts.bind(this);
     this._handleToolTitleChange =
       this._handleToolTitleChange.bind(this);
+    this._handleDeleteSelectedComponent =
+      this._handleDeleteSelectedComponent.bind(this);
     this._handleDeleteComponentButtonPress =
       this._handleDeleteComponentButtonPress.bind(this);
     this._handleDeleteComponentConfirm =
@@ -352,46 +354,24 @@ class DesignRoute extends PureComponent {
   
     let title = '';
     let subtitle = '';
-    let mainButtons = List();
     let sections = List([propsEditorSection]);
   
     if (singleComponentSelected) {
       const selectedComponent = components.get(firstSelectedComponentId);
-      const parentComponent = selectedComponent.parentId > -1
-        ? components.get(selectedComponent.parentId)
-        : null;
-    
-      const isRegion = parentComponent
-        ? isCompositeComponent(parentComponent.name, meta)
-        : false;
     
       title = selectedComponent.title;
       subtitle = selectedComponent.name;
-    
-      if (!isRegion) {
-        if (!selectedComponent.isWrapper) {
-          mainButtons = mainButtons.push(
-            new ButtonRecord({
-              text: getLocalizedText('common.delete'),
-              onPress: this._handleDeleteComponentButtonPress,
-            }),
-          );
-        }
-      
-        if (isCompositeComponent(selectedComponent.name, meta)) {
-          sections = sections.push(
-            new ToolSectionRecord({
-              name: 'Regions',
-              component: ComponentRegionsEditor,
-            }),
-          );
-        }
+
+      if (isCompositeComponent(selectedComponent.name, meta)) {
+        sections = sections.push(
+          new ToolSectionRecord({
+            name: 'Regions',
+            component: ComponentRegionsEditor,
+          }),
+        );
       }
-  
-      const selectedComponentMeta =
-        getComponentMeta(selectedComponent.name, meta);
       
-      if (componentHasActions(selectedComponentMeta)) {
+      if (componentHasActions(selectedComponent.name, meta)) {
         sections = sections.push(
           new ToolSectionRecord({
             name: 'Actions',
@@ -415,7 +395,6 @@ class DesignRoute extends PureComponent {
       titleEditable: singleComponentSelected,
       titlePlaceholder,
       subtitle,
-      mainButtons,
       sections,
     });
   }
@@ -425,6 +404,37 @@ class DesignRoute extends PureComponent {
     const treeTool = this._getTreeTool();
     const propsEditorTool = this._getPropsEditorTool();
     return List([List([libraryTool, treeTool, propsEditorTool])]);
+  }
+
+  /**
+   *
+   * @return {boolean}
+   * @private
+   */
+  _isDeletable() {
+    const {
+      meta,
+      components,
+      singleComponentSelected,
+      firstSelectedComponentId,
+    } = this.props;
+
+    if (!singleComponentSelected) return false;
+
+    const selectedComponent = components.get(firstSelectedComponentId);
+    if (selectedComponent.isWrapper) return false;
+
+    const parentComponent = selectedComponent.parentId > -1
+      ? components.get(selectedComponent.parentId)
+      : null;
+
+    const isRegion = parentComponent
+      ? isCompositeComponent(parentComponent.name, meta)
+      : false;
+
+    if (isRegion) return false;
+
+    return true;
   }
   
   /**
@@ -494,26 +504,8 @@ class DesignRoute extends PureComponent {
    * @private
    */
   _handleDeleteSelectedComponent() {
-    const {
-      meta,
-      components,
-      singleComponentSelected,
-      firstSelectedComponentId,
-    } = this.props;
-
-    if (singleComponentSelected) {
-      const selectedComponent = components.get(firstSelectedComponentId);
-      const parentComponent = selectedComponent.parentId > -1
-        ? components.get(selectedComponent.parentId)
-        : null;
-
-      const isRegion = parentComponent
-        ? isCompositeComponent(parentComponent.name, meta)
-        : false;
-
-      if (!isRegion && !selectedComponent.isWrapper) {
-        this._handleDeleteComponentButtonPress();
-      }
+    if (this._isDeletable()) {
+      this._handleDeleteComponentButtonPress();
     }
   }
   
@@ -920,44 +912,51 @@ class DesignRoute extends PureComponent {
             <ToolBarGroup>
               <ToolBarAction
                 icon={{ name: 'files-o' }}
-                tooltipText={getLocalizedText('design.toolbar.duplicate')}
+                tooltipText={getLocalizedText('toolbar.design.duplicate')}
                 disabled={!singleComponentSelected}
                 onPress={this._handleDuplicateSelectedComponent}
               />
 
               <ToolBarAction
                 icon={{ name: 'clone' }}
-                tooltipText={getLocalizedText('design.toolbar.copy')}
+                tooltipText={getLocalizedText('toolbar.design.copy')}
                 disabled={!singleComponentSelected}
                 onPress={this._handleCopySelectedComponent}
               />
 
               <ToolBarAction
                 icon={{ name: 'scissors' }}
-                tooltipText={getLocalizedText('design.toolbar.cut')}
+                tooltipText={getLocalizedText('toolbar.design.cut')}
                 disabled={!singleComponentSelected}
                 onPress={this._handleCutSelectedComponent}
               />
 
               <ToolBarAction
                 icon={{ name: 'clipboard' }}
-                tooltipText={getLocalizedText('design.toolbar.paste')}
+                tooltipText={getLocalizedText('toolbar.design.paste')}
                 disabled={componentClipboard.componentId === INVALID_ID}
                 onPress={this._handlePasteComponent}
+              />
+
+              <ToolBarAction
+                icon={{ name: 'trash' }}
+                tooltipText={getLocalizedText('toolbar.design.delete')}
+                disabled={!this._isDeletable()}
+                onPress={this._handleDeleteSelectedComponent}
               />
             </ToolBarGroup>
 
             <ToolBarGroup>
               <ToolBarAction
                 icon={{ name: 'undo' }}
-                tooltipText={getLocalizedText('design.toolbar.undo')}
+                tooltipText={getLocalizedText('toolbar.common.undo')}
                 disabled={!canUndo}
                 onPress={onUndo}
               />
 
               <ToolBarAction
                 icon={{ name: 'repeat' }}
-                tooltipText={getLocalizedText('design.toolbar.redo')}
+                tooltipText={getLocalizedText('toolbar.common.redo')}
                 disabled={!canRedo}
                 onPress={onRedo}
               />
@@ -966,16 +965,16 @@ class DesignRoute extends PureComponent {
             <ToolBarGroup>
               <ToolBarAction
                 text={getLocalizedText(showContentPlaceholders
-                  ? 'design.toolbar.hideEmpty'
-                  : 'design.toolbar.showEmpty')}
+                  ? 'toolbar.design.hideEmpty'
+                  : 'toolbar.design.showEmpty')}
 
                 onPress={this._handleToggleContentPlaceholders}
               />
 
               <ToolBarAction
                 text={getLocalizedText(showInvisibleComponents
-                  ? 'design.toolbar.hideHidden'
-                  : 'design.toolbar.showHidden')}
+                  ? 'toolbar.design.hideHidden'
+                  : 'toolbar.design.showHidden')}
 
                 onPress={this._handleToggleInvisibleComponents}
               />

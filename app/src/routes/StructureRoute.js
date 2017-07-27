@@ -363,15 +363,6 @@ class StructureRoute extends PureComponent {
       ])
       : List();
     
-    const routeEditorToolSecondaryButtons = selectedRoute
-      ? List([
-        new ButtonRecord({
-          icon: 'trash-o',
-          onPress: this._handleDeleteRoutePress,
-        }),
-      ])
-      : List();
-    
     const routeEditorToolSections = List([
       new ToolSectionRecord({
         component: RouteEditor,
@@ -404,7 +395,6 @@ class StructureRoute extends PureComponent {
           subtitle: selectedRoute ? selectedRoute.path : '',
           sections: routeEditorToolSections,
           mainButtons: routeEditorToolMainButtons,
-          secondaryButtons: routeEditorToolSecondaryButtons,
           windowMinWidth: 360,
         }),
       ]),
@@ -1467,8 +1457,17 @@ class StructureRoute extends PureComponent {
   }
 
   render() {
-    const { canUndo, canRedo, getLocalizedText, onUndo, onRedo } = this.props;
+    const {
+      canUndo,
+      canRedo,
+      selectedRouteId,
+      indexRouteSelected,
+      getLocalizedText,
+      onUndo,
+      onRedo,
+    } = this.props;
 
+    const isDeletable = selectedRouteId !== INVALID_ID && !indexRouteSelected;
     const content = this._renderContent();
     const newRouteDialog = this._renderNewRouteDialog();
     const editRoutePathDialog = this._renderEditRoutePathDialog();
@@ -1488,15 +1487,24 @@ class StructureRoute extends PureComponent {
           <ToolBar>
             <ToolBarGroup>
               <ToolBarAction
+                icon={{ name: 'trash' }}
+                tooltipText={getLocalizedText('toolbar.structure.delete')}
+                disabled={!isDeletable}
+                onPress={this._handleDeleteRoutePress}
+              />
+            </ToolBarGroup>
+
+            <ToolBarGroup>
+              <ToolBarAction
                 icon={{ name: 'undo' }}
-                tooltipText={getLocalizedText('design.toolbar.undo')}
+                tooltipText={getLocalizedText('toolbar.common.undo')}
                 disabled={!canUndo}
                 onPress={onUndo}
               />
 
               <ToolBarAction
                 icon={{ name: 'repeat' }}
-                tooltipText={getLocalizedText('design.toolbar.redo')}
+                tooltipText={getLocalizedText('toolbar.common.redo')}
                 disabled={!canRedo}
                 onPress={onRedo}
               />
