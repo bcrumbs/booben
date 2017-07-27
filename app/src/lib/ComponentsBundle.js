@@ -7,10 +7,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
+import createReactClass from 'create-react-class';
 import _mapValues from 'lodash.mapvalues';
 import patchComponent from '../hocs/patchComponent';
 import { parseComponentName } from './meta';
-import { COMPONENTS_BUNDLE_FILE } from '../config';
+
+import {
+  COMPONENTS_BUNDLE_FILE,
+  REACT_COMPATIBILITY_MODE,
+  REACT_COMPATIBILITY_MODE_WARNINGS,
+} from '../config';
+
 import { URL_BUNDLE_PREFIX } from '../../../shared/constants';
 
 const scriptsCache = {};
@@ -78,6 +85,34 @@ export default class ComponentsBundle {
     this._windowInstance.React = React;
     this._windowInstance.ReactDOM = ReactDOM;
     this._windowInstance.PropTypes = PropTypes;
+
+    if (REACT_COMPATIBILITY_MODE) {
+      /* eslint-disable no-console */
+      Object.defineProperty(this._windowInstance.React, 'PropTypes', {
+        get: () => {
+          if (REACT_COMPATIBILITY_MODE_WARNINGS) {
+            console.warn(
+              'React compatibility mode: React.PropTypes was referenced',
+            );
+          }
+
+          return PropTypes;
+        },
+      });
+
+      Object.defineProperty(this._windowInstance.React, 'createClass', {
+        get: () => {
+          if (REACT_COMPATIBILITY_MODE_WARNINGS) {
+            console.warn(
+              'React compatibility mode: React.createClass was called',
+            );
+          }
+
+          return createReactClass;
+        },
+      });
+      /* eslint-enable no-console */
+    }
 
     await loadComponentsBundleIntoWindow(
       this._windowInstance,
