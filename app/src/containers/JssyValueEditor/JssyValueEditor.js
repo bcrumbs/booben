@@ -46,6 +46,7 @@ const propTypes = {
   ownerUserTypedefs: PropTypes.object,
   label: PropTypes.string,
   description: PropTypes.string,
+  showType: PropTypes.bool,
   getLocalizedText: PropTypes.func,
   onChange: PropTypes.func,
   onLink: PropTypes.func,
@@ -64,6 +65,7 @@ const defaultProps = {
   ownerUserTypedefs: null,
   label: '',
   description: '',
+  showType: false,
   getLocalizedText: returnArg,
   onChange: noop,
   onLink: noop,
@@ -532,18 +534,17 @@ export class JssyValueEditor extends PureComponent {
       isIterableItem = false,
     } = {},
   ) {
+    const { userTypedefs, strings, language, showType } = this.props;
+
     if (this._propType && !noCache) return this._propType;
 
-    const { userTypedefs, strings, language } = this.props;
     const resolvedValueDef = resolveTypedef(valueDef, userTypedefs);
-    
     const checkable = (resolvedValueDef.required || isIterableItem)
       ? (isNullableType(resolvedValueDef.type) && !resolvedValueDef.notNull)
       : true;
 
     const ret = {
       label: this._formatLabel(resolvedValueDef, labelFallback, labelOverride),
-      secondaryLabel: this._formatSecondaryLabel(resolvedValueDef),
       view: isEditableValue(resolvedValueDef)
         ? jssyTypeToView(resolvedValueDef.type)
         : PropViews.EMPTY,
@@ -562,6 +563,10 @@ export class JssyValueEditor extends PureComponent {
       transformValue: null,
       formatItemLabel: returnArg,
     };
+
+    if (showType) {
+      ret.secondaryLabel = this._formatSecondaryLabel(resolvedValueDef);
+    }
 
     if (resolvedValueDef.type === TypeNames.INT) {
       ret.transformValue = coerceIntValue;
