@@ -36,7 +36,7 @@ import {
 } from '../../../lib/schema';
 
 import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
-import { getComponentByName } from '../../../lib/react-components';
+import ComponentsBundle from '../../../lib/ComponentsBundle';
 import { noop } from '../../../utils/misc';
 import * as JssyPropTypes from '../../../constants/common-prop-types';
 
@@ -50,6 +50,7 @@ import {
 } from '../../../constants/misc';
 
 const propTypes = {
+  componentsBundle: PropTypes.instanceOf(ComponentsBundle).isRequired,
   project: PropTypes.any.isRequired,
   meta: PropTypes.object.isRequired,
   schema: PropTypes.object,
@@ -740,13 +741,19 @@ class PreviewBuilderComponent extends PureComponent {
    * @private
    */
   _renderComponent(component) {
-    const { meta, schema, project, theMap: thePreviousMap } = this.props;
+    const {
+      componentsBundle,
+      meta,
+      schema,
+      project,
+      theMap: thePreviousMap,
+    } = this.props;
 
     if (isPseudoComponent(component)) {
       return this._renderPseudoComponent(component);
     }
 
-    const Component = getComponentByName(component.name);
+    const Component = componentsBundle.getComponentByName(component.name);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
     

@@ -105,6 +105,16 @@ export const isCompositeComponent = (componentName, meta) =>
 
 /**
  *
+ * @param {string} componentName
+ * @return {boolean}
+ */
+export const isHTMLComponent = componentName => {
+  const { namespace } = parseComponentName(componentName);
+  return namespace === 'HTML';
+};
+
+/**
+ *
  * @param {Object<string, Object<string, string>>} strings
  * @param {string} stringId
  * @param {string} language

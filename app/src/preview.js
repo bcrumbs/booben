@@ -14,7 +14,7 @@ import { jssyTheme, reactackleMixin } from '@jssy/common-theme';
 import { Preview } from './containers/Preview/Preview';
 import { ErrorScreen } from './components/StateScreen/StateScreen';
 import { projectToImmutable } from './models/Project';
-import { loadComponents } from './lib/react-components';
+import ComponentsBundle from './lib/ComponentsBundle';
 import { removeSplashScreen } from './lib/dom';
 import { getProject, getMetadata, getGraphQLSchema } from './lib/api';
 import { transformMetadata, getContainerStyle } from './lib/meta';
@@ -60,11 +60,12 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (projectName === '') {
       throw new Error('Invalid URL');
     }
-    
+
+    const componentsBundle = new ComponentsBundle(projectName, window);
     const [rawProject, rawMeta] = await Promise.all([
       getProject(projectName),
       getMetadata(projectName),
-      loadComponents(window, projectName),
+      componentsBundle.loadComponents(window, projectName),
     ]);
     
     const project = projectToImmutable(rawProject);
@@ -82,6 +83,7 @@ window.addEventListener('DOMContentLoaded', async () => {
       content = (
         <ApolloProvider client={apolloClient}>
           <Preview
+            componentsBundle={componentsBundle}
             project={project}
             meta={meta}
             schema={schema}
@@ -91,6 +93,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     } else {
       content = (
         <Preview
+          componentsBundle={componentsBundle}
           project={project}
           meta={meta}
         />

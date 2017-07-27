@@ -17,7 +17,6 @@ import store, {
 
 import { CanvasFrame } from '../../components/CanvasFrame/CanvasFrame';
 import { DocumentContext } from './DocumentContext/DocumentContext';
-import { loadComponents } from '../../lib/react-components';
 import CanvasContent from './content/containers/CanvasContent';
 import Overlay from './content/containers/Overlay';
 import dropZone from '../../hocs/dropZone';
@@ -27,6 +26,7 @@ import { CANVAS_CONTAINER_ID, CANVAS_OVERLAY_ID } from './content/constants';
 import { ComponentDropAreas } from '../../actions/preview';
 import { createReducer } from '../../reducers';
 import { buildMutation } from '../../lib/graphql';
+import ComponentsBundle from '../../lib/ComponentsBundle';
 
 import {
   applyJWTMiddleware,
@@ -320,8 +320,9 @@ class CanvasComponent extends Component {
     document.open('text/html', 'replace');
     document.write(initialContent);
     document.close();
-  
-    await loadComponents(contentWindow, projectName);
+
+    const componentsBundle = new ComponentsBundle(projectName, contentWindow);
+    await componentsBundle.loadComponents();
     
     const containerNode = document.getElementById(CANVAS_CONTAINER_ID);
     const overlayNode = document.getElementById(CANVAS_OVERLAY_ID);
@@ -336,6 +337,7 @@ class CanvasComponent extends Component {
           <DocumentContext window={contentWindow} document={document}>
             <CanvasContent
               ref={this._savePreviewRef}
+              componentsBundle={componentsBundle}
               onDropZoneSnap={this._handleSnap}
               onDropZoneUnsnap={this._handleUnsnap}
               onDropZoneOpenDropMenu={this._handleOpenDropMenu}

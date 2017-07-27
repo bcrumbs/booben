@@ -37,6 +37,7 @@ import {
 } from '../../../selectors/index';
 
 import {
+  isHTMLComponent,
   isContainerComponent,
   isCompositeComponent,
   getComponentMeta,
@@ -52,18 +53,14 @@ import {
 import { buildQueryForComponent } from '../../../lib/graphql';
 import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
 import { queryResultHasData } from '../../../lib/apollo';
-
-import {
-  getComponentByName,
-  isHTMLComponent,
-} from '../../../lib/react-components';
-
+import ComponentsBundle from '../../../lib/ComponentsBundle';
 import * as JssyPropTypes from '../../../constants/common-prop-types';
 import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../../../constants/misc';
 import { DND_DRAG_START_RADIUS_CANVAS } from '../../../config';
 
 const propTypes = {
   editable: PropTypes.bool,
+  componentsBundle: PropTypes.instanceOf(ComponentsBundle).isRequired,
   components: JssyPropTypes.components.isRequired,
   rootId: PropTypes.number,
   routeParams: PropTypes.object,
@@ -149,28 +146,11 @@ const PSEUDO_COMPONENTS = new Set(['Text', 'Outlet', 'List']);
  */
 const isPseudoComponent = component => PSEUDO_COMPONENTS.has(component.name);
 
-/**
- *
- * @type {Map}
- */
-const connectedComponentsCache = new Map();
-
-/**
- *
- * @param {string} componentName
- * @return {Function}
- */
-const getConnectedComponent = componentName => {
-  const cached = connectedComponentsCache.get(componentName);
-  if (cached) return cached;
-  const ret = connectDraggable(draggable(getComponentByName(componentName)));
-  connectedComponentsCache.set(componentName, ret);
-  return ret;
-};
-
 class CanvasBuilderComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
+
+    this._connectedComponentsCache = new Map();
     
     this._renderHints = getRenderHints(
       props.components,
@@ -219,6 +199,19 @@ class CanvasBuilderComponent extends PureComponent {
         ),
       });
     }
+  }
+
+  _getConnectedComponent(componentName) {
+    const { componentsBundle } = this.props;
+
+    const cached = this._connectedComponentsCache.get(componentName);
+    if (cached) return cached;
+
+    const Component = componentsBundle.getComponentByName(componentName);
+    const ret = connectDraggable(draggable(Component));
+
+    this._connectedComponentsCache.set(componentName, ret);
+    return ret;
   }
   
   /**
@@ -465,6 +458,7 @@ class CanvasBuilderComponent extends PureComponent {
    */
   _renderPlaceholderForDraggedComponent(containerId, afterIdx) {
     const {
+      componentsBundle,
       rootDraggedComponent,
       draggedComponents,
       draggingOverPlaceholder,
@@ -482,6 +476,7 @@ class CanvasBuilderComponent extends PureComponent {
     return (
       <PlaceholderBuilder
         key={key}
+        componentsBundle={componentsBundle}
         components={draggedComponents}
         rootId={rootDraggedComponent.id}
         collapsedToPoint={collapsed}
@@ -640,7 +635,7 @@ class CanvasBuilderComponent extends PureComponent {
       return this._renderPseudoComponent(component);
     }
 
-    const Component = getConnectedComponent(component.name);
+    const Component = this._getConnectedComponent(component.name);
     const isHTML = isHTMLComponent(component.name);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);

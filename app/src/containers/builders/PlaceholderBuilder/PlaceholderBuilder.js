@@ -24,6 +24,7 @@ import {
 import collapsingToPoint from '../../../hocs/collapsingToPoint';
 
 import {
+  isHTMLComponent,
   isContainerComponent,
   isCompositeComponent,
   getComponentMeta,
@@ -32,17 +33,13 @@ import {
 import { buildQueryForComponent } from '../../../lib/graphql';
 import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
 import { queryResultHasData } from '../../../lib/apollo';
-
-import {
-  getComponentByName,
-  isHTMLComponent,
-} from '../../../lib/react-components';
-
+import ComponentsBundle from '../../../lib/ComponentsBundle';
 import { noop } from '../../../utils/misc';
 import * as JssyPropTypes from '../../../constants/common-prop-types';
 import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../../../constants/misc';
 
 const propTypes = {
+  componentsBundle: PropTypes.instanceOf(ComponentsBundle).isRequired,
   components: JssyPropTypes.components.isRequired,
   rootId: PropTypes.number,
   routeParams: PropTypes.object,
@@ -405,6 +402,7 @@ class PlaceholderBuilderComponent extends PureComponent {
    */
   _renderComponent(component, isRoot = false) {
     const {
+      componentsBundle,
       meta,
       schema,
       project,
@@ -420,7 +418,7 @@ class PlaceholderBuilderComponent extends PureComponent {
       return this._renderPseudoComponent(component, isRoot);
     }
 
-    const Component = getComponentByName(component.name);
+    const Component = componentsBundle.getComponentByName(component.name);
     const isHTML = isHTMLComponent(component.name);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
