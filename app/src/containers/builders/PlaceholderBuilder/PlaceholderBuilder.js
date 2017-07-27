@@ -16,6 +16,8 @@ import { Outlet } from '../Outlet/Outlet';
 import { getLocalizedTextFromState } from '../../../selectors/index';
 
 import {
+  isPseudoComponent,
+  getComponentByName,
   getRenderHints,
   getInitialComponentsState,
   mergeComponentsState,
@@ -94,20 +96,6 @@ const wrap = compose(
     getWindowInstance: (props, context) => context.window,
   }),
 );
-
-/**
- *
- * @type {Set<string>}
- * @const
- */
-const PSEUDO_COMPONENTS = new Set(['Text', 'Outlet', 'List']);
-
-/**
- *
- * @param {ProjectComponent} component
- * @return {boolean}
- */
-const isPseudoComponent = component => PSEUDO_COMPONENTS.has(component.name);
 
 class PlaceholderBuilderComponent extends PureComponent {
   constructor(props, context) {
@@ -195,6 +183,7 @@ class PlaceholderBuilderComponent extends PureComponent {
    */
   _getValueContext(theMap = null, data = null) {
     const {
+      componentsBundle,
       meta,
       schema,
       project,
@@ -219,6 +208,7 @@ class PlaceholderBuilderComponent extends PureComponent {
       routeParams,
       BuilderComponent: PlaceholderBuilder, // eslint-disable-line no-use-before-define
       getBuilderProps: (ownProps, jssyValue, valueContext) => ({
+        componentsBundle,
         routeParams,
         components: jssyValue.sourceData.components,
         rootId: jssyValue.sourceData.rootId,
@@ -344,18 +334,8 @@ class PlaceholderBuilderComponent extends PureComponent {
     const systemProps = this._buildSystemProps(component, null);
     const isInvisible = !systemProps.visible;
 
-    const props = this._buildProps(component, null);
-
     if (component.name === 'Outlet') {
       return this._renderOutletComponent(isRoot, isInvisible);
-    } else if (component.name === 'Text') {
-      return props.text || '';
-    } else if (component.name === 'List') {
-      const ItemComponent = props.component;
-      return props.data.map((item, idx) => (
-        // eslint-disable-next-line react/no-array-index-key
-        <ItemComponent key={`${component.id}-${idx}`} item={item} />
-      ));
     } else {
       return null;
     }
@@ -418,7 +398,7 @@ class PlaceholderBuilderComponent extends PureComponent {
       return this._renderPseudoComponent(component, isRoot);
     }
 
-    const Component = componentsBundle.getComponentByName(component.name);
+    const Component = getComponentByName(component.name, componentsBundle);
     const isHTML = isHTMLComponent(component.name);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);

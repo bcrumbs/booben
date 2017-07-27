@@ -18,11 +18,8 @@ export default {
       textKey: 'props_data',
       descriptionTextKey: 'props_data_desc',
       type: 'array',
-      source: ['static', 'data'],
+      source: ['data'],
       sourceConfigs: {
-        static: {
-          default: [],
-        },
         data: {
           pushDataContext: 'item',
         },

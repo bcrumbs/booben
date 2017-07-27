@@ -15,6 +15,8 @@ import _debounce from 'lodash.debounce';
 import { resolveTypedef } from '@jssy/types';
 
 import {
+  isPseudoComponent,
+  getComponentByName,
   getRenderHints,
   getInitialComponentsState,
   mergeComponentsState,
@@ -132,20 +134,6 @@ const wrap = compose(
   alertsCreator,
 );
 
-/**
- *
- * @type {Set<string>}
- * @const
- */
-const PSEUDO_COMPONENTS = new Set(['Text', 'Outlet', 'List']);
-
-/**
- *
- * @param {ProjectComponent} component
- * @return {boolean}
- */
-const isPseudoComponent = component => PSEUDO_COMPONENTS.has(component.name);
-
 class CanvasBuilderComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -207,7 +195,7 @@ class CanvasBuilderComponent extends PureComponent {
     const cached = this._connectedComponentsCache.get(componentName);
     if (cached) return cached;
 
-    const Component = componentsBundle.getComponentByName(componentName);
+    const Component = getComponentByName(componentName, componentsBundle);
     const ret = connectDraggable(draggable(Component));
 
     this._connectedComponentsCache.set(componentName, ret);
@@ -310,6 +298,7 @@ class CanvasBuilderComponent extends PureComponent {
    */
   _getValueContext(componentId = INVALID_ID, theMap = null, data = null) {
     const {
+      componentsBundle,
       meta,
       schema,
       project,
@@ -334,6 +323,7 @@ class CanvasBuilderComponent extends PureComponent {
       routeParams,
       BuilderComponent: CanvasBuilder, // eslint-disable-line no-use-before-define
       getBuilderProps: (ownProps, jssyValue, valueContext) => ({
+        componentsBundle,
         routeParams,
         components: jssyValue.sourceData.components,
         rootId: jssyValue.sourceData.rootId,
@@ -429,21 +419,11 @@ class CanvasBuilderComponent extends PureComponent {
     const systemProps = this._buildSystemProps(component, null);
     if (!showInvisibleComponents && !systemProps.visible) return null;
     
-    const props = this._buildProps(component, null);
-    
     if (component.name === 'Outlet') {
       return children || this._renderOutletComponent(
         component,
         !systemProps.visible,
       );
-    } else if (component.name === 'Text') {
-      return props.text || '';
-    } else if (component.name === 'List') {
-      const ItemComponent = props.component;
-      return props.data.map((item, idx) => (
-        // eslint-disable-next-line react/no-array-index-key
-        <ItemComponent key={`${component.id}-${idx}`} item={item} />
-      ));
     } else {
       return null;
     }

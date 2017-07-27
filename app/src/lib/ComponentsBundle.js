@@ -159,8 +159,6 @@ export default class ComponentsBundle {
         );
     }
 
-    if (namespace === 'HTML') return name;
-
     if (!this._components[namespace]) {
       throw new Error(
         'ComponentsBundle#getComponentByName: ' +

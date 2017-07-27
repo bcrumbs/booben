@@ -14,6 +14,8 @@ import { Map as ImmutableMap } from 'immutable';
 import { resolveTypedef } from '@jssy/types';
 
 import {
+  isPseudoComponent,
+  getComponentByName,
   getRenderHints,
   getInitialComponentsState,
   mergeComponentsState,
@@ -79,20 +81,6 @@ const defaultProps = {
 };
 
 const wrap = withApollo;
-
-/**
- *
- * @type {Set<string>}
- * @const
- */
-const PSEUDO_COMPONENTS = new Set(['Text', 'Outlet', 'List']);
-
-/**
- *
- * @param {ProjectComponent} component
- * @return {boolean}
- */
-const isPseudoComponent = component => PSEUDO_COMPONENTS.has(component.name);
 
 /**
  *
@@ -558,6 +546,7 @@ class PreviewBuilderComponent extends PureComponent {
    */
   _getValueContext(componentId = INVALID_ID, theMap = null, data = null) {
     const {
+      componentsBundle,
       meta,
       schema,
       project,
@@ -584,6 +573,7 @@ class PreviewBuilderComponent extends PureComponent {
       routeParams,
       BuilderComponent: PreviewBuilder, // eslint-disable-line no-use-before-define
       getBuilderProps: (ownProps, jssyValue, valueContext) => ({
+        componentsBundle,
         routeParams,
         components: jssyValue.sourceData.components,
         rootId: jssyValue.sourceData.rootId,
@@ -681,18 +671,8 @@ class PreviewBuilderComponent extends PureComponent {
     const systemProps = this._buildSystemProps(component, null);
     if (!systemProps.visible) return null;
     
-    const props = this._buildProps(component, null);
-    
     if (component.name === 'Outlet') {
       return children;
-    } else if (component.name === 'Text') {
-      return props.text || '';
-    } else if (component.name === 'List') {
-      const ItemComponent = props.component;
-      return props.data.map((item, idx) => (
-        // eslint-disable-next-line react/no-array-index-key
-        <ItemComponent key={`${component.id}-${idx}`} item={item} />
-      ));
     } else {
       return null;
     }
@@ -753,7 +733,7 @@ class PreviewBuilderComponent extends PureComponent {
       return this._renderPseudoComponent(component);
     }
 
-    const Component = componentsBundle.getComponentByName(component.name);
+    const Component = getComponentByName(component.name, componentsBundle);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
     

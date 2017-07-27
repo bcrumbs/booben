@@ -24,22 +24,24 @@ const patchDOMElement = componentInstance => {
     __jssy_invisible__: invisible,
   } = componentInstance.props;
 
-  const element = findDOMNode(componentInstance);
+  const node = findDOMNode(componentInstance);
 
-  if (!element) return;
+  if (!node) return;
 
-  if (isNumber(componentId)) {
-    element.setAttribute('data-jssy-id', String(componentId));
-  } else if (isPlaceholder) {
-    element.setAttribute('data-jssy-placeholder', '');
-    element.setAttribute('data-jssy-after', String(after));
-    element.setAttribute('data-jssy-container-id', String(containerId));
-  }
+  if (node.nodeType === Node.ELEMENT_NODE) {
+    if (isNumber(componentId)) {
+      node.setAttribute('data-jssy-id', String(componentId));
+    } else if (isPlaceholder) {
+      node.setAttribute('data-jssy-placeholder', '');
+      node.setAttribute('data-jssy-after', String(after));
+      node.setAttribute('data-jssy-container-id', String(containerId));
+    }
 
-  if (invisible) {
-    element.setAttribute('data-jssy-invisible', '');
-  } else {
-    element.removeAttribute('data-jssy-invisible');
+    if (invisible) {
+      node.setAttribute('data-jssy-invisible', '');
+    } else {
+      node.removeAttribute('data-jssy-invisible');
+    }
   }
 };
 

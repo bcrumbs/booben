@@ -6,11 +6,28 @@
 
 import Immutable from 'immutable';
 import _forOwn from 'lodash.forown';
-import { getComponentMeta } from '../../lib/meta';
+import { List } from './List/List';
+import { Text } from './Text/Text';
+import { parseComponentName, getComponentMeta } from '../../lib/meta';
 import { walkComponentsTree, walkSimpleValues } from '../../lib/components';
 import { buildInitialComponentState } from '../../lib/values';
 import { isDef } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
+
+/**
+ *
+ * @type {Set<string>}
+ * @const
+ */
+const PSEUDO_COMPONENTS = new Set(['Outlet']);
+
+/**
+ *
+ * @param {ProjectComponent} component
+ * @return {boolean}
+ */
+export const isPseudoComponent = component =>
+  PSEUDO_COMPONENTS.has(component.name);
 
 /**
  * @typedef {Object} RenderHints
@@ -136,3 +153,23 @@ export const mergeComponentsState = (oldState, newState) => newState.map(
     },
   ),
 );
+
+/**
+ *
+ * @param {string} componentName
+ * @param {ComponentsBundle} componentsBundle
+ * @return {string|Function}
+ */
+export const getComponentByName = (componentName, componentsBundle) => {
+  const { name, namespace } = parseComponentName(componentName);
+
+  if (namespace === 'HTML') {
+    return name;
+  } else if (namespace === '') {
+    if (name === 'List') return List;
+    if (name === 'Text') return Text;
+    return null;
+  } else {
+    return componentsBundle.getComponentByName(componentName);
+  }
+};

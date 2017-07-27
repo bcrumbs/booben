@@ -23,9 +23,6 @@ export default {
         static: {
           defaultTextKey: 'default',
         },
-        data: {},
-        state: {},
-        routeParams: {},
       },
     },
   },

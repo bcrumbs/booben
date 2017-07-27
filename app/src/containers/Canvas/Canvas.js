@@ -82,7 +82,7 @@ class CanvasComponent extends Component {
     super(props, context);
     
     this._iframe = null;
-    this._preview = null;
+    this._canvasContent = null;
     this._initialized = false;
     
     this.state = {
@@ -99,7 +99,7 @@ class CanvasComponent extends Component {
     this._handleUnsnap = this._handleUnsnap.bind(this);
     this._handleOpenDropMenu = this._handleOpenDropMenu.bind(this);
     this._saveIFrameRef = this._saveIFrameRef.bind(this);
-    this._savePreviewRef = this._savePreviewRef.bind(this);
+    this._saveCanvasContentRef = this._saveCanvasContentRef.bind(this);
   }
   
   componentDidMount() {
@@ -154,11 +154,11 @@ class CanvasComponent extends Component {
   }
   
   _saveIFrameRef(ref) {
-    this._iframe = ref || null;
+    this._iframe = ref;
   }
 
-  _savePreviewRef(ref) {
-    this._preview = ref ? ref.getWrappedInstance() : null;
+  _saveCanvasContentRef(ref) {
+    this._canvasContent = ref ? ref.wrappedInstance : null;
   }
   
   _attachEventListeners() {
@@ -336,7 +336,7 @@ class CanvasComponent extends Component {
         <ProviderComponent {...providerProps}>
           <DocumentContext window={contentWindow} document={document}>
             <CanvasContent
-              ref={this._savePreviewRef}
+              ref={this._saveCanvasContentRef}
               componentsBundle={componentsBundle}
               onDropZoneSnap={this._handleSnap}
               onDropZoneUnsnap={this._handleUnsnap}
@@ -391,23 +391,23 @@ class CanvasComponent extends Component {
   }
 
   _handleDrag(data) {
-    this._preview.drag(data);
+    this._canvasContent.drag(data);
   }
 
   _handleEnter() {
-    this._preview.enter();
+    this._canvasContent.enter();
   }
 
   _handleLeave() {
-    this._preview.leave();
+    this._canvasContent.leave();
   }
   
   _handleDropMenuItemSelected(data) {
-    this._preview.dropMenuItemSelected(data);
+    this._canvasContent.dropMenuItemSelected(data);
   }
   
   _handleDropMenuClosed() {
-    this._preview.dropMenuClosed();
+    this._canvasContent.dropMenuClosed();
   }
 
   _handleSnap({ element }) {
