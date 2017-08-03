@@ -26,9 +26,7 @@ export const createNetworkInterfaceForProject = project => {
   return createNetworkInterface({
     uri: graphQLEndpointURL,
     opts: {
-      credentials: process.env.NODE_ENV === 'development'
-        ? 'include'
-        : 'same-origin',
+      credentials: 'same-origin',
     },
   });
 };

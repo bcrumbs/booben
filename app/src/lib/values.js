@@ -56,6 +56,7 @@ import { ROUTE_PARAM_VALUE_DEF, NO_VALUE } from '../constants/misc';
  * @property {?ReactComponent} [BuilderComponent=null]
  * @property {?function(ownProps: Object<string, *>, jssyValue: Object, context: ValueContext): Object<string, *>} [getBuilderProps=null]
  * @property {?Function} [handleActions=null]
+ * @property {?Immutable.Map<Object, Immutable.Map<number, Object>>} [pageInfos=null]
  */
 
 const defaultContext = {
@@ -76,6 +77,7 @@ const defaultContext = {
   BuilderComponent: null,
   getBuilderProps: null,
   handleActions: null,
+  pageInfos: null,
 };
 
 /* eslint-disable no-use-before-define */
@@ -456,6 +458,29 @@ const buildActionsValue = (jssyValue, valueDef, userTypedefs, context) => {
 /**
  *
  * @param {Object} jssyValue
+ * @param {?ValueContext} context
+ * @return {*}
+ */
+const buildConnectionPaginationStateValue = (jssyValue, context) => {
+  const param = jssyValue.sourceData.param;
+
+  if (param === 'endCursor') {
+    if (context.pageInfos === null) {
+      return '';
+    }
+
+    const pageInfo = context.pageInfos.get(jssyValue);
+    return pageInfo ? pageInfo.endCursor : '';
+  } else {
+    throw new Error(
+      `buildConnectionPaginationStateValue(): unknown param: '${param}'`,
+    );
+  }
+};
+
+/**
+ *
+ * @param {Object} jssyValue
  * @param {JssyValueDefinition} valueDef
  * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
  * @param {?ValueContext} [context=null]
@@ -502,6 +527,8 @@ export const buildValue = (
     return buildDesignerValue(jssyValue, actualContext);
   } else if (jssyValue.sourceIs('actions')) {
     return buildActionsValue(jssyValue, valueDef, userTypedefs, actualContext);
+  } else if (jssyValue.sourceIs('connectionPaginationState')) {
+    return buildConnectionPaginationStateValue(jssyValue, actualContext);
   } else {
     throw new Error(`buildValue(): unknown value source: ${jssyValue.source}`);
   }

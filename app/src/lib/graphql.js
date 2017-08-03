@@ -6,7 +6,10 @@
 
 import _forOwn from 'lodash.forown';
 import { Record, Map, List } from 'immutable';
-import { NO_VALUE } from '../constants/misc';
+
+import JssyValue, {
+  SourceDataConnectionPaginationState,
+} from '../models/JssyValue';
 
 import {
   getTypeNameByField,
@@ -15,6 +18,10 @@ import {
   FieldKinds,
   parseFieldName,
   isBuiltinGraphQLType,
+  AFTER_ARG_DEFINITION,
+  BEFORE_ARG_DEFINITION,
+  RELAY_CONNECTION_ARG_AFTER,
+  RELAY_CONNECTION_ARG_BEFORE,
 } from './schema';
 
 import {
@@ -26,6 +33,7 @@ import {
 
 import { walkComponentsTree, walkSimpleValues } from './components';
 import { isObjectOrNull, objectToArray } from '../utils/misc';
+import { NO_VALUE } from '../constants/misc';
 
 /**
  * @typedef {Object} DataContextInfo
@@ -224,10 +232,25 @@ const typeDefinitionToGQLTypeAST = typeDefinition => {
 
 /**
  *
- * @param {Object} fieldDefinition
+ * @param {DataField} fieldDefinition
+ * @param {string} argName
+ * @return {?DataFieldArg}
+ */
+const getFieldArgDefinition = (fieldDefinition, argName) => {
+  if (fieldDefinition.kind === FieldKinds.CONNECTION) {
+    if (argName === RELAY_CONNECTION_ARG_AFTER) return AFTER_ARG_DEFINITION;
+    if (argName === RELAY_CONNECTION_ARG_BEFORE) return BEFORE_ARG_DEFINITION;
+  }
+
+  return fieldDefinition.args[argName] || null;
+};
+
+/**
+ *
+ * @param {DataField} fieldDefinition
  * @param {string} argName
  * @param {Object} argValue
- * @param {Object} variablesAccumulator
+ * @param {Object<string, { argDefinition: ?DataFieldArg, argValue: Object }>} variablesAccumulator
  * @return {Object}
  */
 const buildGraphQLArgument = (
@@ -236,7 +259,7 @@ const buildGraphQLArgument = (
   argValue,
   variablesAccumulator,
 ) => {
-  const argDefinition = fieldDefinition.args[argName];
+  const argDefinition = getFieldArgDefinition(fieldDefinition, argName);
   const variableName = randomName();
   
   variablesAccumulator[variableName] = { argDefinition, argValue };
@@ -260,7 +283,7 @@ const buildGraphQLArgument = (
  * @param {Object} jssyValue
  * @return {string}
  */
-const getDataFieldKey = (fieldName, jssyValue) =>
+export const getDataFieldKey = (fieldName, jssyValue) =>
   `${fieldName}${jssyValue.sourceData.aliasPostfix}`;
 
 /**
@@ -387,17 +410,38 @@ const buildGraphQLFragmentForValue = (
       const argumentValues = jssyValue.getQueryStepArgValues(idx);
   
       if (argumentValues) {
-        argumentValues.forEach((argValue, argName) => {
-          const arg = buildGraphQLArgument(
-            currentTypeDefinition.fields[fieldName],
-            argName,
-            argValue,
-            variablesAccumulator,
-          );
-      
-          if (arg !== NO_VALUE) args.push(arg);
-        });
+        argumentValues.forEach((argValue, argName) => buildGraphQLArgument(
+          currentTypeDefinition.fields[fieldName],
+          argName,
+          argValue,
+          variablesAccumulator,
+        ));
       }
+
+      args.push({
+        kind: 'Argument',
+        name: { kind: 'Name', value: 'first' },
+        value: {
+          kind: 'IntValue',
+          value: String(step.connectionPageSize),
+        },
+      });
+
+      const afterValue = new JssyValue({
+        source: 'connectionPaginationState',
+        sourceData: new SourceDataConnectionPaginationState({
+          param: 'endCursor',
+          dataValue: jssyValue,
+          queryStep: idx,
+        }),
+      });
+
+      args.push(buildGraphQLArgument(
+        currentTypeDefinition.fields[fieldName],
+        'after',
+        afterValue,
+        variablesAccumulator,
+      ));
 
       const node = {
         kind: 'Field',
@@ -427,6 +471,39 @@ const buildGraphQLFragmentForValue = (
                 name: {
                   kind: 'Name',
                   value: 'node',
+                },
+                arguments: [],
+                directives: [],
+                selectionSet: null,
+              }],
+            },
+          }, {
+            kind: 'Field',
+            alias: null,
+            name: {
+              kind: 'Name',
+              value: 'pageInfo',
+            },
+            arguments: [],
+            directives: [],
+            selectionSet: {
+              kind: 'SelectionSet',
+              selections: [{
+                kind: 'Field',
+                alias: null,
+                name: {
+                  kind: 'Name',
+                  value: 'hasNextPage',
+                },
+                arguments: [],
+                directives: [],
+                selectionSet: null,
+              }, {
+                kind: 'Field',
+                alias: null,
+                name: {
+                  kind: 'Name',
+                  value: 'endCursor',
                 },
                 arguments: [],
                 directives: [],

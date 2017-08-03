@@ -23,8 +23,7 @@ import {
 } from '@jssy/common-ui';
 
 import ProjectFunctionRecord from '../../../../models/ProjectFunction';
-import JssyValue from '../../../../models/JssyValue';
-import SourceDataState from '../../../../models/SourceDataState';
+import JssyValue, { SourceDataState } from '../../../../models/JssyValue';
 import { jssyValueToImmutable } from '../../../../models/ProjectComponent';
 
 import {

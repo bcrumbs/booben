@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ProjectComponent from '../models/ProjectComponent';
 import ProjectRoute from '../models/ProjectRoute';
-import { Action } from '../models/SourceDataActions';
+import { Action } from '../models/JssyValue';
 import Tool from '../models/Tool';
 import ToolState from '../models/ToolState';
 

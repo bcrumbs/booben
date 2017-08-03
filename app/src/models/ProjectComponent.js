@@ -6,13 +6,14 @@
 
 import { Record, List, Map, Set } from 'immutable';
 import _mapValues from 'lodash.mapvalues';
-import JssyValue from './JssyValue';
-import SourceDataStatic from './SourceDataStatic';
-import SourceDataData, { QueryPathStep } from './SourceDataData';
-import SourceDataConst from './SourceDataConst';
-import SourceDataFunction from './SourceDataFunction';
 
-import SourceDataActions, {
+import JssyValue, {
+  SourceDataStatic,
+  SourceDataData,
+  QueryPathStep,
+  SourceDataConst,
+  SourceDataFunction,
+  SourceDataActions,
   Action,
   MutationActionParams,
   NavigateActionParams,
@@ -20,12 +21,11 @@ import SourceDataActions, {
   MethodCallActionParams,
   PropChangeActionParams,
   AJAXActionParams,
-} from './SourceDataActions';
-
-import SourceDataDesigner from './SourceDataDesigner';
-import SourceDataState from './SourceDataState';
-import SourceDataRouteParams from './SourceDataRouteParams';
-import SourceDataActionArg from './SourceDataActionArg';
+  SourceDataDesigner,
+  SourceDataState,
+  SourceDataRouteParams,
+  SourceDataActionArg,
+} from './JssyValue';
 
 import {
   isUndef,

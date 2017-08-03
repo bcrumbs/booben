@@ -84,10 +84,12 @@ import {
 import RecordWithHistory from '../models/helpers/RecordWithHistory';
 import Designer from '../models/Designer';
 import ProjectRoute from '../models/ProjectRoute';
-import JssyValue from '../models/JssyValue';
-import SourceDataDesigner from '../models/SourceDataDesigner';
-import SourceDataRouteParams from '../models/SourceDataRouteParams';
-import { Action } from '../models/SourceDataActions';
+
+import JssyValue, {
+  SourceDataDesigner,
+  SourceDataRouteParams,
+  Action,
+} from '../models/JssyValue';
 
 import ProjectFunction, {
   ProjectFunctionArgument,
@@ -131,13 +133,7 @@ import {
 } from '../lib/schema';
 
 import { walkPath, expandPath, getObjectByPath } from '../lib/path';
-
-import {
-  isArrayOrList,
-  isPrefixList,
-  concatPath,
-} from '../utils/misc';
-
+import { isArrayOrList, isPrefixList, concatPath } from '../utils/misc';
 import { getFunctionInfo } from '../lib/functions';
 
 import {

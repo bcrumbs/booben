@@ -5,9 +5,8 @@
 'use strict';
 
 import { Record, List, Map } from 'immutable';
-import JssyValue from './JssyValue';
-import { isDef } from '../utils/misc';
-import { INVALID_ID } from '../constants/misc';
+import { isDef } from '../../utils/misc';
+import { INVALID_ID } from '../../constants/misc';
 
 export const MutationActionParams = Record({
   mutation: '',
@@ -40,7 +39,7 @@ export const PropChangeActionParams = Record({
 });
 
 export const AJAXActionParams = Record({
-  url: JssyValue.staticFromJS(''), // JssyValue
+  url: null, // JssyValue
   method: 'GET', // HTTP method
   headers: Map(), // Map of string -> string
   body: null, // JssyValue
@@ -49,19 +48,6 @@ export const AJAXActionParams = Record({
   successActions: List(), // List of Actions
   errorActions: List(), // List of Actions
 });
-
-export const createActionParams = type => {
-  switch (type) {
-    case 'mutation': return new MutationActionParams();
-    case 'navigate': return new NavigateActionParams();
-    case 'url': return new URLActionParams();
-    case 'method': return new MethodCallActionParams();
-    case 'prop': return new PropChangeActionParams();
-    case 'logout': return null;
-    case 'ajax': return new AJAXActionParams();
-    default: return null;
-  }
-};
 
 export const Action = Record({
   type: '',

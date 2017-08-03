@@ -8,6 +8,7 @@ import { Record, List, Map } from 'immutable';
 
 export const QueryPathStep = Record({
   field: '',
+  connectionPageSize: 10,
 });
 
 let nextAliasPostfix = 0;

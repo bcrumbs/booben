@@ -5,9 +5,9 @@
 'use strict';
 
 import { Record } from 'immutable';
-import { INVALID_ID } from '../constants/misc';
 
 export default Record({
-  routeId: INVALID_ID,
-  paramName: '',
+  param: '', // Can only be "endCursor" for now
+  dataValue: null,
+  queryStep: 0,
 });

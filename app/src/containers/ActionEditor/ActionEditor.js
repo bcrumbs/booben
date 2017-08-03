@@ -27,9 +27,17 @@ import {
 
 import Project from '../../models/Project';
 import { jssyValueToImmutable } from '../../models/ProjectComponent';
-import JssyValue from '../../models/JssyValue';
-import { Action, createActionParams } from '../../models/SourceDataActions';
-import SourceDataState from '../../models/SourceDataState';
+
+import JssyValue, {
+  SourceDataState,
+  Action,
+  MutationActionParams,
+  NavigateActionParams,
+  URLActionParams,
+  MethodCallActionParams,
+  PropChangeActionParams,
+  AJAXActionParams,
+} from '../../models/JssyValue';
 
 import {
   currentComponentsSelector,
@@ -141,6 +149,22 @@ const addActionArgSourceToValueDef = valueDef => ({
     actionArg: {},
   },
 });
+
+const createActionParams = type => {
+  switch (type) {
+    case 'mutation': return new MutationActionParams();
+    case 'navigate': return new NavigateActionParams();
+    case 'url': return new URLActionParams();
+    case 'method': return new MethodCallActionParams();
+    case 'prop': return new PropChangeActionParams();
+    case 'logout': return null;
+    case 'ajax': return new AJAXActionParams({
+      url: JssyValue.staticFromJS(''),
+    });
+
+    default: return null;
+  }
+};
 
 class ActionEditorComponent extends PureComponent {
   constructor(props, context) {

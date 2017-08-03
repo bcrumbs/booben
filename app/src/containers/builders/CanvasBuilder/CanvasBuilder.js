@@ -2,6 +2,7 @@
  * @author Dmitriy Bizyaev
  */
 
+
 'use strict';
 
 import React, { PureComponent } from 'react';
@@ -12,6 +13,7 @@ import { graphql } from 'react-apollo';
 import _forOwn from 'lodash.forown';
 import _get from 'lodash.get';
 import _debounce from 'lodash.debounce';
+import Immutable from 'immutable';
 import { resolveTypedef } from '@jssy/types';
 
 import {
@@ -49,10 +51,11 @@ import {
 import {
   canInsertComponent,
   canInsertRootComponent,
-  formatComponentTitle,
+  formatComponentTitle, walkSimpleValues,
 } from '../../../lib/components';
 
-import { buildQueryForComponent } from '../../../lib/graphql';
+import { buildQueryForComponent, getDataFieldKey } from '../../../lib/graphql';
+import { FieldKinds, getFieldOnType } from '../../../lib/schema';
 import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
 import { queryResultHasData } from '../../../lib/apollo';
 import ComponentsBundle from '../../../lib/ComponentsBundle';
@@ -147,6 +150,8 @@ class CanvasBuilderComponent extends PureComponent {
       props.schema,
       props.project,
     );
+
+    this._pageInfos = Immutable.Map();
   
     this.state = {
       componentsState: getInitialComponentsState(
@@ -341,6 +346,8 @@ class CanvasBuilderComponent extends PureComponent {
           valueContext,
         );
       },
+
+      pageInfos: this._pageInfos.get(componentId) || null,
     };
   }
 
@@ -348,15 +355,13 @@ class CanvasBuilderComponent extends PureComponent {
    * Constructs props object
    *
    * @param {Object} component
-   * @param {Immutable.Map<Object, DataContextsInfo>} theMap
-   * @param {?Object} [data=null]
+   * @param {?ValueContext} [valueContext=null]
    * @return {Object<string, *>}
    */
-  _buildProps(component, theMap, data = null) {
+  _buildProps(component, valueContext = null) {
     const { meta } = this.props;
     
     const componentMeta = getComponentMeta(component.name, meta);
-    const valueContext = this._getValueContext(component.id, theMap, data);
     const ret = {};
 
     component.props.forEach((propValue, propName) => {
@@ -374,11 +379,10 @@ class CanvasBuilderComponent extends PureComponent {
    * Constructs system props object
    *
    * @param {Object} component
-   * @param {Immutable.Map<Object, DataContextsInfo>} theMap
+   * @param {?ValueContext} [valueContext=null]
    * @return {Object<string, *>}
    */
-  _buildSystemProps(component, theMap) {
-    const valueContext = this._getValueContext(component.id, theMap);
+  _buildSystemProps(component, valueContext = null) {
     const ret = {};
     
     component.systemProps.forEach((propValue, propName) => {
@@ -591,6 +595,92 @@ class CanvasBuilderComponent extends PureComponent {
     );
   }
 
+  _extractPageInfos(component, queryResultRoot) {
+    const { meta, schema, dataContextInfo } = this.props;
+
+    const componentMeta = getComponentMeta(component.name, meta);
+    let ret = Immutable.Map();
+
+    const visitValue = jssyValue => {
+      if (!jssyValue.isLinkedWithData()) return;
+      if (jssyValue.sourceData.dataContext.size > 0) return;
+
+      let currentNode = queryResultRoot;
+      let currentTypeName;
+
+      if (jssyValue.sourceData.dataContext.size > 0) {
+        const dataContextName = jssyValue.sourceData.dataContext.last();
+        const ourDataContextInfo = dataContextInfo[dataContextName];
+        currentTypeName = ourDataContextInfo.type;
+      } else {
+        currentTypeName = schema.queryTypeName;
+      }
+
+      jssyValue.sourceData.queryPath.forEach((step, idx) => {
+        const field = getFieldOnType(schema, currentTypeName, step.field);
+
+        if (field.kind === FieldKinds.CONNECTION) {
+          const dataFieldKey = getDataFieldKey(step.field, jssyValue);
+          const pageInfo = currentNode[dataFieldKey].pageInfo;
+
+          ret = ret.setIn([jssyValue, idx], pageInfo);
+        }
+
+        currentNode = currentNode[step.field];
+        currentTypeName = field.type;
+      });
+    };
+
+    walkSimpleValues(component, componentMeta, visitValue);
+
+    return ret;
+  }
+
+  _createApolloHOC(component, graphQLQuery, graphQLVariables, theMap) {
+    const { schema, getLocalizedText, onAlert } = this.props;
+
+    return graphql(graphQLQuery, {
+      props: ({ ownProps, data }) => {
+        if (data.error) {
+          const message = getLocalizedText('alert.queryError', {
+            message: data.error.message,
+          });
+
+          setTimeout(() => void onAlert({ content: message }), 0);
+        }
+
+        const haveData = queryResultHasData(data);
+        const valueContext = this._getValueContext(
+          component.id,
+          theMap,
+          haveData ? data : null,
+        );
+
+        if (haveData) {
+          this._pageInfos = this._pageInfos.set(
+            component.id,
+            this._extractPageInfos(component, data),
+          );
+        }
+
+        return {
+          ...ownProps,
+          innerProps: this._buildProps(component, valueContext),
+        };
+      },
+
+      options: {
+        variables: buildGraphQLQueryVariables(
+          graphQLVariables,
+          this._getValueContext(component.id),
+          schema,
+        ),
+
+        fetchPolicy: 'cache-and-network',
+      },
+    });
+  }
+
   /**
    *
    * @param {Object} component
@@ -607,8 +697,6 @@ class CanvasBuilderComponent extends PureComponent {
       dontPatch,
       theMap: thePreviousMap,
       showInvisibleComponents,
-      getLocalizedText,
-      onAlert,
     } = this.props;
 
     if (isPseudoComponent(component)) {
@@ -624,11 +712,12 @@ class CanvasBuilderComponent extends PureComponent {
       ? thePreviousMap.merge(theMap)
       : theMap;
 
-    const systemProps = this._buildSystemProps(component, theMergedMap);
+    const valueContext = this._getValueContext(component.id, theMergedMap);
+    const systemProps = this._buildSystemProps(component, valueContext);
 
     if (!showInvisibleComponents && !systemProps.visible) return null;
 
-    const props = graphQLQuery ? {} : this._buildProps(component, theMergedMap);
+    const props = graphQLQuery ? {} : this._buildProps(component, valueContext);
 
     props.children = this._renderComponentChildren(component);
 
@@ -659,36 +748,12 @@ class CanvasBuilderComponent extends PureComponent {
     let Renderable = Component;
 
     if (graphQLQuery) {
-      const gqlHoc = graphql(graphQLQuery, {
-        props: ({ ownProps, data }) => {
-          if (data.error) {
-            const message = getLocalizedText('alert.queryError', {
-              message: data.error.message,
-            });
-
-            setTimeout(() => void onAlert({ content: message }), 0);
-          }
-
-          return {
-            ...ownProps,
-            innerProps: this._buildProps(
-              component,
-              theMergedMap,
-              queryResultHasData(data) ? data : null,
-            ),
-          };
-        },
-
-        options: {
-          variables: buildGraphQLQueryVariables(
-            graphQLVariables,
-            this._getValueContext(component.id),
-            schema,
-          ),
-
-          fetchPolicy: 'cache-and-network',
-        },
-      });
+      const gqlHoc = this._createApolloHOC(
+        component,
+        graphQLQuery,
+        graphQLVariables,
+        theMergedMap,
+      );
 
       Renderable = gqlHoc(Component);
     }

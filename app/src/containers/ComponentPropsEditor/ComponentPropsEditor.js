@@ -23,8 +23,7 @@ import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
 import { ActionEditor } from '../ActionEditor/ActionEditor';
 import { ActionsList } from '../ActionsList/ActionsList';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
-import JssyValue from '../../models/JssyValue';
-import SourceDataState from '../../models/SourceDataState';
+import JssyValue, { SourceDataState } from '../../models/JssyValue';
 
 import {
   replaceJssyValue,
