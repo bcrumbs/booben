@@ -16,6 +16,8 @@ import { Outlet } from '../Outlet/Outlet';
 import { getLocalizedTextFromState } from '../../../selectors/index';
 
 import {
+  isPseudoComponent,
+  getComponentByName,
   getRenderHints,
   getInitialComponentsState,
   mergeComponentsState,
@@ -24,6 +26,7 @@ import {
 import collapsingToPoint from '../../../hocs/collapsingToPoint';
 
 import {
+  isHTMLComponent,
   isContainerComponent,
   isCompositeComponent,
   getComponentMeta,
@@ -32,17 +35,13 @@ import {
 import { buildQueryForComponent } from '../../../lib/graphql';
 import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
 import { queryResultHasData } from '../../../lib/apollo';
-
-import {
-  getComponentByName,
-  isHTMLComponent,
-} from '../../../lib/react-components';
-
+import ComponentsBundle from '../../../lib/ComponentsBundle';
 import { noop } from '../../../utils/misc';
 import * as JssyPropTypes from '../../../constants/common-prop-types';
 import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../../../constants/misc';
 
 const propTypes = {
+  componentsBundle: PropTypes.instanceOf(ComponentsBundle).isRequired,
   components: JssyPropTypes.components.isRequired,
   rootId: PropTypes.number,
   routeParams: PropTypes.object,
@@ -97,20 +96,6 @@ const wrap = compose(
     getWindowInstance: (props, context) => context.window,
   }),
 );
-
-/**
- *
- * @type {Set<string>}
- * @const
- */
-const PSEUDO_COMPONENTS = new Set(['Text', 'Outlet', 'List']);
-
-/**
- *
- * @param {ProjectComponent} component
- * @return {boolean}
- */
-const isPseudoComponent = component => PSEUDO_COMPONENTS.has(component.name);
 
 class PlaceholderBuilderComponent extends PureComponent {
   constructor(props, context) {
@@ -198,6 +183,7 @@ class PlaceholderBuilderComponent extends PureComponent {
    */
   _getValueContext(theMap = null, data = null) {
     const {
+      componentsBundle,
       meta,
       schema,
       project,
@@ -222,6 +208,7 @@ class PlaceholderBuilderComponent extends PureComponent {
       routeParams,
       BuilderComponent: PlaceholderBuilder, // eslint-disable-line no-use-before-define
       getBuilderProps: (ownProps, jssyValue, valueContext) => ({
+        componentsBundle,
         routeParams,
         components: jssyValue.sourceData.components,
         rootId: jssyValue.sourceData.rootId,
@@ -304,12 +291,31 @@ class PlaceholderBuilderComponent extends PureComponent {
 
   /**
    *
+   * @param {Object<string, *>} props
+   * @param {boolean} isHTMLComponent
+   * @param {boolean} isInvisible
+   * @private
+   */
+  _patchComponentProps(props, isHTMLComponent, isInvisible) {
+    if (isInvisible) {
+      if (isHTMLComponent) {
+        props['data-jssy-invisible'] = '';
+      } else {
+        props.__jssy_invisible__ = true;
+      }
+    }
+  }
+
+  /**
+   *
    * @param {boolean} [isRoot=false]
+   * @param {boolean} [isInvisible=false]
    * @return {ReactElement}
    * @private
    */
-  _renderOutletComponent(isRoot = false) {
+  _renderOutletComponent(isRoot = false, isInvisible = false) {
     const props = {};
+    this._patchComponentProps(props, false, isInvisible);
     if (isRoot) this._patchPlaceholderRootProps(props, false);
 
     return (
@@ -326,20 +332,10 @@ class PlaceholderBuilderComponent extends PureComponent {
    */
   _renderPseudoComponent(component, isRoot = false) {
     const systemProps = this._buildSystemProps(component, null);
-    if (!systemProps.visible) return null;
-
-    const props = this._buildProps(component, null);
+    const isInvisible = !systemProps.visible;
 
     if (component.name === 'Outlet') {
-      return this._renderOutletComponent(isRoot);
-    } else if (component.name === 'Text') {
-      return props.text || '';
-    } else if (component.name === 'List') {
-      const ItemComponent = props.component;
-      return props.data.map((item, idx) => (
-        // eslint-disable-next-line react/no-array-index-key
-        <ItemComponent key={`${component.id}-${idx}`} item={item} />
-      ));
+      return this._renderOutletComponent(isRoot, isInvisible);
     } else {
       return null;
     }
@@ -386,6 +382,7 @@ class PlaceholderBuilderComponent extends PureComponent {
    */
   _renderComponent(component, isRoot = false) {
     const {
+      componentsBundle,
       meta,
       schema,
       project,
@@ -401,15 +398,14 @@ class PlaceholderBuilderComponent extends PureComponent {
       return this._renderPseudoComponent(component, isRoot);
     }
 
-    const Component = getComponentByName(component.name);
+    const Component = getComponentByName(component.name, componentsBundle);
     const isHTML = isHTMLComponent(component.name);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
 
     const theMergedMap = thePreviousMap ? thePreviousMap.merge(theMap) : theMap;
     const systemProps = this._buildSystemProps(component, theMergedMap);
-
-    if (!systemProps.visible) return null;
+    const isInvisible = !systemProps.visible;
 
     const props = graphQLQuery ? {} : this._buildProps(component, theMergedMap);
 
@@ -423,6 +419,8 @@ class PlaceholderBuilderComponent extends PureComponent {
     }
 
     props.key = `placeholder-${containerId}:${afterIdx}-${component.id}`;
+
+    this._patchComponentProps(props, isHTML, isInvisible);
 
     if (isRoot && !dontPatch) {
       this._patchPlaceholderRootProps(props, isHTML);

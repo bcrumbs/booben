@@ -24,6 +24,22 @@ const GROUP_BUILTIN = new LibraryGroupData({
       textIntlKey: 'components.builtin.Outlet',
       descriptionIntlKey: 'components.builtin.Outlet.desc',
     }),
+
+    new LibraryComponentData({
+      name: 'List',
+      fullName: 'List',
+      iconURL: defaultComponentIcon,
+      textIntlKey: 'components.builtin.List',
+      descriptionIntlKey: 'components.builtin.List.desc',
+    }),
+
+    new LibraryComponentData({
+      name: 'Text',
+      fullName: 'Text',
+      iconURL: defaultComponentIcon,
+      textIntlKey: 'components.builtin.Text',
+      descriptionIntlKey: 'components.builtin.Text.desc',
+    }),
   ]),
 });
 

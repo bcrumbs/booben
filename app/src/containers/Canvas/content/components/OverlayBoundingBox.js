@@ -6,10 +6,13 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
+import { OverlayComponentTitle } from './OverlayComponentTitle';
 
 const propTypes = {
   element: PropTypes.object,
   color: PropTypes.string,
+  title: PropTypes.string,
+  showTitle: PropTypes.bool,
 };
 
 const contextTypes = {
@@ -18,13 +21,15 @@ const contextTypes = {
 
 const defaultProps = {
   element: null,
-  color: 'grey',
+  color: '#c8e5f6',
+  title: '',
+  showTitle: false,
 };
 
 const BORDER_WIDTH = 2;
 
 export const OverlayBoundingBox = (props, context) => {
-  const { element, color } = props;
+  const { element, color, title, showTitle } = props;
   const { window } = context;
   
   if (!element) return null;
@@ -86,9 +91,20 @@ export const OverlayBoundingBox = (props, context) => {
     right: `-${width}px`,
     top: '0',
   };
-
+  
+  let titleElement = null;
+  if (showTitle) {
+    titleElement = (
+      <OverlayComponentTitle
+        element={element}
+        title={title}
+      />
+    );
+  }
+  
   return (
     <div style={style}>
+      {titleElement}
       <div style={topBorderStyle} />
       <div style={leftBorderStyle} />
       <div style={bottomBorderStyle} />

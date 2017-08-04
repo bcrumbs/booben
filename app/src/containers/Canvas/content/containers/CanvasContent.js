@@ -34,6 +34,8 @@ import {
 
 import Project, { getComponentById } from '../../../../models/Project';
 import { getRouteParams } from '../../../../models/ProjectRoute';
+import { formatComponentTitle } from '../../../../lib/components';
+import ComponentsBundle from '../../../../lib/ComponentsBundle';
 import { distance } from '../../../../utils/geometry';
 import { noop } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
@@ -41,6 +43,7 @@ import { INVALID_ID } from '../../../../constants/misc';
 import * as JssyPropTypes from '../../../../constants/common-prop-types';
 
 const propTypes = {
+  componentsBundle: PropTypes.instanceOf(ComponentsBundle).isRequired,
   project: PropTypes.instanceOf(Project).isRequired,
   currentComponents: JssyPropTypes.components.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
@@ -422,13 +425,13 @@ class CanvasContent extends Component {
     
       while (componentId !== INVALID_ID && i < 2) {
         const component = currentComponents.get(componentId);
-        parentNames.unshift(component.title || component.name);
+        parentNames.unshift(formatComponentTitle(component));
         componentId = component.parentId;
         i++;
       }
     
       const ellipsis = componentId !== INVALID_ID;
-      const title = container.title || container.name;
+      const title = formatComponentTitle(container);
       const caption =
         `${ellipsis ? '... ' : ''}${parentNames.join(' > ')} >`;
     
@@ -746,7 +749,12 @@ class CanvasContent extends Component {
    * @private
    */
   _renderCurrentRoute() {
-    const { project, currentRouteId, currentRouteIsIndexRoute } = this.props;
+    const {
+      project,
+      currentRouteId,
+      currentRouteIsIndexRoute,
+      componentsBundle,
+    } = this.props;
     
     if (currentRouteId === INVALID_ID) return null;
     
@@ -760,12 +768,14 @@ class CanvasContent extends Component {
       
       ret = (
         <CanvasBuilder
+          componentsBundle={componentsBundle}
           components={route.components}
           rootId={route.component}
           routeParams={routeParams}
         >
           <CanvasBuilder
             editable
+            componentsBundle={componentsBundle}
             components={route.components}
             rootId={route.indexComponent}
             routeParams={routeParams}
@@ -792,6 +802,7 @@ class CanvasContent extends Component {
       ret = (
         <CanvasBuilder
           editable
+          componentsBundle={componentsBundle}
           components={route.components}
           rootId={route.component}
           routeParams={routeParams}
@@ -809,6 +820,7 @@ class CanvasContent extends Component {
 
       ret = (
         <CanvasBuilder
+          componentsBundle={componentsBundle}
           components={route.components}
           rootId={route.component}
           routeParams={routeParams}
@@ -822,7 +834,12 @@ class CanvasContent extends Component {
   }
   
   _renderTopNestedConstructor() {
-    const { project, topNestedConstructor, currentRouteId } = this.props;
+    const {
+      project,
+      topNestedConstructor,
+      currentRouteId,
+      componentsBundle,
+    } = this.props;
   
     const currentRoute = project.routes.get(currentRouteId);
     const routeParams = getRouteParams(currentRoute, project.routes);
@@ -830,6 +847,7 @@ class CanvasContent extends Component {
     return (
       <CanvasBuilder
         editable
+        componentsBundle={componentsBundle}
         components={topNestedConstructor.components}
         rootId={topNestedConstructor.rootId}
         routeParams={routeParams}

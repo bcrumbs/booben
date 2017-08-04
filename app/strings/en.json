@@ -26,7 +26,6 @@
   "appHeader.saveIndicator.tooltip.saved": "",
 
   "appFooter.faq": "FAQ",
-  "appFooter.showPlaceholders": "Show placeholders",
   "appFooter.toggleFullScreen": "Toggle Full Screen",
 
   "alert.queryError": "An error has occurred while performing GraphQL query: {message}",
@@ -75,6 +74,20 @@
   "design.willDropRootComponentText": "Will insert {componentTitle} as root component",
   "design.willDropComponentAfterText": "Will insert {componentTitle} into {where} after {after}",
   "design.createComponentMenu.inputPlaceholder": "Start typing component name",
+  "design.canvas.placeholder": "Drop a component here",
+
+  "toolbar.common.undo": "Undo",
+  "toolbar.common.redo": "Redo",
+  "toolbar.structure.delete": "Delete selected route",
+  "toolbar.design.duplicate": "Duplicate selected component",
+  "toolbar.design.copy": "Copy selected component",
+  "toolbar.design.cut": "Cut selected component",
+  "toolbar.design.paste": "Paste",
+  "toolbar.design.delete": "Delete selected component",
+  "toolbar.design.showEmpty": "Show empty",
+  "toolbar.design.hideEmpty": "Hide empty",
+  "toolbar.design.showHidden": "Show invisible",
+  "toolbar.design.hideHidden": "Hide invisible",
 
   "library.uncategorizedComponents": "Uncategorized",
   "library.noComponentsAvailable": "No components can be inserted inside selected component",

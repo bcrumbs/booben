@@ -9,15 +9,21 @@ import {
   selectedComponentIdsSelector,
   highlightedComponentIdsSelector,
   currentRootComponentIdSelector,
+  currentComponentsSelector,
+  getLocalizedTextFromState,
 } from '../../../../selectors';
 
 import { OverlayContainer } from '../components/OverlayContainer';
 import { OverlayBoundingBox } from '../components/OverlayBoundingBox';
+import { CanvasPlaceholder } from '../components/CanvasPlaceholder';
+import { formatComponentTitle } from '../../../../lib/components';
+import { mapListToArray } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
 import * as JssyPropTypes from '../../../../constants/common-prop-types';
 
 const propTypes = {
+  components: JssyPropTypes.components.isRequired,
   selectedComponentIds: JssyPropTypes.setOfIds.isRequired,
   highlightedComponentIds: JssyPropTypes.setOfIds.isRequired,
   boundaryComponentId: PropTypes.number.isRequired,
@@ -25,6 +31,7 @@ const propTypes = {
   draggingComponent: PropTypes.bool.isRequired,
   pickingComponent: PropTypes.bool.isRequired,
   pickingComponentStateSlot: PropTypes.bool.isRequired,
+  getLocalizedText: PropTypes.func.isRequired,
 };
 
 const contextTypes = {
@@ -32,6 +39,7 @@ const contextTypes = {
 };
 
 const mapStateToProps = state => ({
+  components: currentComponentsSelector(state),
   selectedComponentIds: selectedComponentIdsSelector(state),
   highlightedComponentIds: highlightedComponentIdsSelector(state),
   boundaryComponentId: currentRootComponentIdSelector(state),
@@ -39,7 +47,10 @@ const mapStateToProps = state => ({
   draggingComponent: state.project.draggingComponent,
   pickingComponent: state.project.pickingComponent,
   pickingComponentStateSlot: state.project.pickingComponentStateSlot,
+  getLocalizedText: getLocalizedTextFromState(state),
 });
+
+const wrap = connect(mapStateToProps);
 
 const HIGHLIGHT_COLOR = 'rgba(0, 113, 216, 0.3)';
 const SELECT_COLOR = 'rgba(0, 113, 216, 1)';
@@ -80,20 +91,32 @@ class Overlay extends PureComponent {
    *
    * @param {Immutable.List<number>} componentIds
    * @param {string} color
-   * @return {Immutable.List<ReactElement>}
+   * @param {boolean} [showTitle=false]
+   * @return {Array<ReactElement>}
    * @private
    */
-  _renderBoundingBoxes(componentIds, color) {
-    //noinspection JSValidateTypes
-    return componentIds.map(id => {
+  _renderBoundingBoxes(componentIds, color, showTitle = false) {
+    const { components } = this.props;
+    
+    return mapListToArray(componentIds, id => {
       const element = this._getDOMElementByComponentId(id);
       const key = `${id}-${color}`;
+      let title = '';
+      
+      if (showTitle) {
+        const component = components.get(id);
+        if (component) {
+          title = formatComponentTitle(component);
+        }
+      }
 
       return (
         <OverlayBoundingBox
           key={key}
           element={element}
           color={color}
+          title={title}
+          showTitle={showTitle}
         />
       );
     });
@@ -101,6 +124,7 @@ class Overlay extends PureComponent {
 
   render() {
     const {
+      components,
       draggingComponent,
       pickingComponent,
       pickingComponentStateSlot,
@@ -108,12 +132,14 @@ class Overlay extends PureComponent {
       highlightedComponentIds,
       selectedComponentIds,
       boundaryComponentId,
+      getLocalizedText,
     } = this.props;
     
     const highlightBoxes = highlightingEnabled
       ? this._renderBoundingBoxes(
         highlightedComponentIds,
         HIGHLIGHT_COLOR,
+        true,
       )
       : null;
 
@@ -134,12 +160,23 @@ class Overlay extends PureComponent {
         BOUNDARY_COLOR,
       )
       : null;
+    
+    let canvasPlaceholder = null;
+    if (components.size === 0 && !draggingComponent) {
+      canvasPlaceholder = (
+        <CanvasPlaceholder
+          key="canvas_placeholder"
+          text={getLocalizedText('design.canvas.placeholder')}
+        />
+      );
+    }
 
     return (
       <OverlayContainer>
         {highlightBoxes}
         {selectBoxes}
         {rootComponentBox}
+        {canvasPlaceholder}
       </OverlayContainer>
     );
   }
@@ -149,4 +186,4 @@ Overlay.propTypes = propTypes;
 Overlay.contextTypes = contextTypes;
 Overlay.displayName = 'Overlay';
 
-export default connect(mapStateToProps)(Overlay);
+export default wrap(Overlay);

@@ -6,6 +6,11 @@ import CodeMirror from 'react-codemirror';
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/mode/javascript/javascript';
 import { noop } from '../../utils/misc';
+
+import {
+  FunctionEditorWrapperStyled,
+} from './styles/FunctionEditorWrapperStyled';
+
 import { FunctionEditorStyled } from './styles/FunctionEditorStyled';
 import { HeadingStyled } from './styles/HeadingStyled';
 
@@ -36,7 +41,7 @@ export const FunctionEditor = ({ name, args, code, onChange }) => {
   const footer = '}';
 
   return (
-    <div>
+    <FunctionEditorWrapperStyled>
       <HeadingStyled>
         <pre>
           {header}
@@ -57,7 +62,7 @@ export const FunctionEditor = ({ name, args, code, onChange }) => {
           {footer}
         </pre>
       </HeadingStyled>
-    </div>
+    </FunctionEditorWrapperStyled>
   );
 };
 

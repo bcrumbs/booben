@@ -10,8 +10,10 @@ import { Router, Switch, Route, Redirect } from 'react-router';
 import createHistory from 'history/es/createHashHistory';
 import { PreviewBuilder } from '../builders/PreviewBuilder/PreviewBuilder';
 import Project from '../../models/Project';
+import ComponentsBundle from '../../lib/ComponentsBundle';
 
 const propTypes = {
+  componentsBundle: PropTypes.instanceOf(ComponentsBundle).isRequired,
   project: PropTypes.instanceOf(Project).isRequired,
   meta: PropTypes.object.isRequired,
   schema: PropTypes.object,
@@ -65,7 +67,7 @@ export class Preview extends Component {
    * @private
    */
   _makeBuilderForRoute(route, isIndex, indexRoute = null) {
-    const { project, meta, schema } = this.props;
+    const { componentsBundle, project, meta, schema } = this.props;
     
     const rootId = isIndex ? route.indexComponent : route.component;
 
@@ -75,6 +77,7 @@ export class Preview extends Component {
 
     const ret = ({ match }) => (
       <PreviewBuilder
+        componentsBundle={componentsBundle}
         project={project}
         meta={meta}
         schema={schema}
@@ -88,7 +91,9 @@ export class Preview extends Component {
       </PreviewBuilder>
     );
 
-    ret.displayName = `Builder(route-${route.id}${isIndex ? '-index' : ''})`;
+    ret.displayName =
+      `PreviewBuilder(route-${route.id}${isIndex ? '-index' : ''})`;
+
     return ret;
   }
 

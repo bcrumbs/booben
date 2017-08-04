@@ -18,6 +18,7 @@ import {
   getContainerStyle,
 } from '../lib/meta';
 
+import { formatComponentTitle } from '../lib/components';
 import { getTypeNameByPath } from '../lib/schema';
 import { isDef, mapListToArray } from '../utils/misc';
 import { INVALID_ID } from '../constants/misc';
@@ -37,6 +38,25 @@ export const currentDesignerSelector = createSelector(
   (topNestedConstructor, projectState) => topNestedConstructor === null
     ? projectState.designer
     : topNestedConstructor.designer,
+);
+
+export const currentHistoryNodeSelector = createSelector(
+  topNestedConstructorSelector,
+  state => state.project,
+
+  (topNestedConstructor, projectState) => topNestedConstructor === null
+    ? projectState
+    : topNestedConstructor,
+);
+
+export const canUndoSelector = createSelector(
+  currentHistoryNodeSelector,
+  historyNode => historyNode.canMoveBack(),
+);
+
+export const canRedoSelector = createSelector(
+  currentHistoryNodeSelector,
+  historyNode => historyNode.canMoveForward(),
 );
 
 export const currentRouteSelector = state =>
@@ -319,7 +339,7 @@ export const nestedConstructorBreadcrumbsSelector = createSelector(
       const isSystemProp = cur.path.steps[1] === 'systemProps';
       const prop = cur.path.steps[2];
       const component = acc.components.get(componentId);
-      const title = component.title || component.name;
+      const title = formatComponentTitle(component);
       const componentMeta = getComponentMeta(component.name, meta);
       const propName = isSystemProp
         ? prop

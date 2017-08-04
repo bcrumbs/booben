@@ -17,7 +17,6 @@ import store, {
 
 import { CanvasFrame } from '../../components/CanvasFrame/CanvasFrame';
 import { DocumentContext } from './DocumentContext/DocumentContext';
-import { loadComponents } from '../../lib/react-components';
 import CanvasContent from './content/containers/CanvasContent';
 import Overlay from './content/containers/Overlay';
 import dropZone from '../../hocs/dropZone';
@@ -27,13 +26,14 @@ import { CANVAS_CONTAINER_ID, CANVAS_OVERLAY_ID } from './content/constants';
 import { ComponentDropAreas } from '../../actions/preview';
 import { createReducer } from '../../reducers';
 import { buildMutation } from '../../lib/graphql';
+import ComponentsBundle from '../../lib/ComponentsBundle';
 
 import {
   applyJWTMiddleware,
   createNetworkInterfaceForProject,
 } from '../../lib/apollo';
 
-import { waitFor, returnNull } from '../../utils/misc';
+import { waitFor, returnEmptyObject } from '../../utils/misc';
 import contentTemplate from './content/content.ejs';
 import { APOLLO_STATE_KEY } from '../../constants/misc';
 
@@ -82,7 +82,7 @@ class CanvasComponent extends Component {
     super(props, context);
     
     this._iframe = null;
-    this._preview = null;
+    this._canvasContent = null;
     this._initialized = false;
     
     this.state = {
@@ -99,7 +99,7 @@ class CanvasComponent extends Component {
     this._handleUnsnap = this._handleUnsnap.bind(this);
     this._handleOpenDropMenu = this._handleOpenDropMenu.bind(this);
     this._saveIFrameRef = this._saveIFrameRef.bind(this);
-    this._savePreviewRef = this._savePreviewRef.bind(this);
+    this._saveCanvasContentRef = this._saveCanvasContentRef.bind(this);
   }
   
   componentDidMount() {
@@ -154,11 +154,11 @@ class CanvasComponent extends Component {
   }
   
   _saveIFrameRef(ref) {
-    this._iframe = ref || null;
+    this._iframe = ref;
   }
 
-  _savePreviewRef(ref) {
-    this._preview = ref ? ref.getWrappedInstance() : null;
+  _saveCanvasContentRef(ref) {
+    this._canvasContent = ref ? ref.wrappedInstance : null;
   }
   
   _attachEventListeners() {
@@ -320,8 +320,9 @@ class CanvasComponent extends Component {
     document.open('text/html', 'replace');
     document.write(initialContent);
     document.close();
-  
-    await loadComponents(contentWindow, projectName);
+
+    const componentsBundle = new ComponentsBundle(projectName, contentWindow);
+    await componentsBundle.loadComponents();
     
     const containerNode = document.getElementById(CANVAS_CONTAINER_ID);
     const overlayNode = document.getElementById(CANVAS_OVERLAY_ID);
@@ -335,7 +336,8 @@ class CanvasComponent extends Component {
         <ProviderComponent {...providerProps}>
           <DocumentContext window={contentWindow} document={document}>
             <CanvasContent
-              ref={this._savePreviewRef}
+              ref={this._saveCanvasContentRef}
+              componentsBundle={componentsBundle}
               onDropZoneSnap={this._handleSnap}
               onDropZoneUnsnap={this._handleUnsnap}
               onDropZoneOpenDropMenu={this._handleOpenDropMenu}
@@ -373,7 +375,7 @@ class CanvasComponent extends Component {
     if (state.project.data.graphQLEndpointURL) {
       removeApolloMiddleware();
       store.replaceReducer(createReducer({
-        [APOLLO_STATE_KEY]: returnNull,
+        [APOLLO_STATE_KEY]: returnEmptyObject,
       }));
     }
   
@@ -389,23 +391,23 @@ class CanvasComponent extends Component {
   }
 
   _handleDrag(data) {
-    this._preview.drag(data);
+    this._canvasContent.drag(data);
   }
 
   _handleEnter() {
-    this._preview.enter();
+    this._canvasContent.enter();
   }
 
   _handleLeave() {
-    this._preview.leave();
+    this._canvasContent.leave();
   }
   
   _handleDropMenuItemSelected(data) {
-    this._preview.dropMenuItemSelected(data);
+    this._canvasContent.dropMenuItemSelected(data);
   }
   
   _handleDropMenuClosed() {
-    this._preview.dropMenuClosed();
+    this._canvasContent.dropMenuClosed();
   }
 
   _handleSnap({ element }) {

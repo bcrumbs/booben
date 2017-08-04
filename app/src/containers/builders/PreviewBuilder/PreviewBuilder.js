@@ -14,6 +14,8 @@ import { Map as ImmutableMap } from 'immutable';
 import { resolveTypedef } from '@jssy/types';
 
 import {
+  isPseudoComponent,
+  getComponentByName,
   getRenderHints,
   getInitialComponentsState,
   mergeComponentsState,
@@ -36,7 +38,7 @@ import {
 } from '../../../lib/schema';
 
 import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
-import { getComponentByName } from '../../../lib/react-components';
+import ComponentsBundle from '../../../lib/ComponentsBundle';
 import { noop } from '../../../utils/misc';
 import * as JssyPropTypes from '../../../constants/common-prop-types';
 
@@ -50,6 +52,7 @@ import {
 } from '../../../constants/misc';
 
 const propTypes = {
+  componentsBundle: PropTypes.instanceOf(ComponentsBundle).isRequired,
   project: PropTypes.any.isRequired,
   meta: PropTypes.object.isRequired,
   schema: PropTypes.object,
@@ -78,20 +81,6 @@ const defaultProps = {
 };
 
 const wrap = withApollo;
-
-/**
- *
- * @type {Set<string>}
- * @const
- */
-const PSEUDO_COMPONENTS = new Set(['Text', 'Outlet', 'List']);
-
-/**
- *
- * @param {ProjectComponent} component
- * @return {boolean}
- */
-const isPseudoComponent = component => PSEUDO_COMPONENTS.has(component.name);
 
 /**
  *
@@ -557,6 +546,7 @@ class PreviewBuilderComponent extends PureComponent {
    */
   _getValueContext(componentId = INVALID_ID, theMap = null, data = null) {
     const {
+      componentsBundle,
       meta,
       schema,
       project,
@@ -583,6 +573,7 @@ class PreviewBuilderComponent extends PureComponent {
       routeParams,
       BuilderComponent: PreviewBuilder, // eslint-disable-line no-use-before-define
       getBuilderProps: (ownProps, jssyValue, valueContext) => ({
+        componentsBundle,
         routeParams,
         components: jssyValue.sourceData.components,
         rootId: jssyValue.sourceData.rootId,
@@ -680,18 +671,8 @@ class PreviewBuilderComponent extends PureComponent {
     const systemProps = this._buildSystemProps(component, null);
     if (!systemProps.visible) return null;
     
-    const props = this._buildProps(component, null);
-    
     if (component.name === 'Outlet') {
       return children;
-    } else if (component.name === 'Text') {
-      return props.text || '';
-    } else if (component.name === 'List') {
-      const ItemComponent = props.component;
-      return props.data.map((item, idx) => (
-        // eslint-disable-next-line react/no-array-index-key
-        <ItemComponent key={`${component.id}-${idx}`} item={item} />
-      ));
     } else {
       return null;
     }
@@ -740,13 +721,19 @@ class PreviewBuilderComponent extends PureComponent {
    * @private
    */
   _renderComponent(component) {
-    const { meta, schema, project, theMap: thePreviousMap } = this.props;
+    const {
+      componentsBundle,
+      meta,
+      schema,
+      project,
+      theMap: thePreviousMap,
+    } = this.props;
 
     if (isPseudoComponent(component)) {
       return this._renderPseudoComponent(component);
     }
 
-    const Component = getComponentByName(component.name);
+    const Component = getComponentByName(component.name, componentsBundle);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
     

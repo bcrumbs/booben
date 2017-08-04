@@ -105,6 +105,16 @@ export const isCompositeComponent = (componentName, meta) =>
 
 /**
  *
+ * @param {string} componentName
+ * @return {boolean}
+ */
+export const isHTMLComponent = componentName => {
+  const { namespace } = parseComponentName(componentName);
+  return namespace === 'HTML';
+};
+
+/**
+ *
  * @param {Object<string, Object<string, string>>} strings
  * @param {string} stringId
  * @param {string} language
@@ -174,14 +184,19 @@ export const getSourceConfig = (valueDef, source, userTypedefs = null) => {
 
 /**
  *
- * @param {ComponentMeta} componentMeta
+ * @param {string} componentName
+ * @param {ComponentsMeta} meta
  * @return {boolean}
  */
-export const componentHasActions = componentMeta =>
-  objectSome(
+export const componentHasActions = (componentName, meta) => {
+  const componentMeta = getComponentMeta(componentName, meta);
+
+  return objectSome(
     componentMeta.props,
     propMeta => isValidSourceForValue(propMeta, 'actions'),
   );
+};
+
 
 /**
  *

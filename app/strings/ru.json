@@ -26,7 +26,6 @@
   "appHeader.saveIndicator.tooltip.saved": "",
 
   "appFooter.faq": "Помощь",
-  "appFooter.showPlaceholders": "Показывать псевдоэлементы",
   "appFooter.toggleFullScreen": "Во весь экран",
 
   "alert.queryError": "Во время выполнения GraphQL-запроса произошла ошибка: {message}",
@@ -75,6 +74,20 @@
   "design.willDropRootComponentText": "{componentTitle} будет корневым компонентом",
   "design.willDropComponentAfterText": "{componentTitle} будет вставлен в {where} после {after}",
   "design.createComponentMenu.inputPlaceholder": "Начните вводить имя компонента",
+  "design.canvas.placeholder": "Перетащите сюда компонент",
+
+  "toolbar.common.undo": "Отменить",
+  "toolbar.common.redo": "Повторить",
+  "toolbar.structure.delete": "Удалить выделенный роут",
+  "toolbar.design.duplicate": "Клонировать выделенный компонент",
+  "toolbar.design.copy": "Копировать выделенный компонент",
+  "toolbar.design.cut": "Вырезать выделенный компонент",
+  "toolbar.design.paste": "Вставить",
+  "toolbar.design.delete": "Удалить выделенный компонент",
+  "toolbar.design.showEmpty": "Показать пустые",
+  "toolbar.design.hideEmpty": "Скрыть пустые",
+  "toolbar.design.showHidden": "Показать невидимые",
+  "toolbar.design.hideHidden": "Скрыть невидимые",
 
   "library.uncategorizedComponents": "Без категории",
   "library.noComponentsAvailable": "Нет компонентов, которые могут быть вставлены в выделенный компонент",

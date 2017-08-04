@@ -27,6 +27,14 @@ import {
 } from '@jssy/common-ui';
 
 import {
+  ToolBar,
+  ToolBarGroup,
+  ToolBarAction,
+} from '../components/ToolBar/ToolBar';
+
+import { AppWrapper } from '../components/AppWrapper/AppWrapper';
+
+import {
   RoutesList,
   RouteCard,
   IndexRouteCard,
@@ -50,7 +58,13 @@ import {
 } from '../actions/project';
 
 import { selectRoute } from '../actions/structure';
-import { getLocalizedTextFromState } from '../selectors';
+
+import {
+  getLocalizedTextFromState,
+  canUndoSelector,
+  canRedoSelector,
+} from '../selectors';
+
 import { findComponent } from '../lib/components';
 
 import {
@@ -78,6 +92,8 @@ const propTypes = {
   projectName: PropTypes.string.isRequired, // store
   selectedRouteId: PropTypes.number.isRequired, // store
   indexRouteSelected: PropTypes.bool.isRequired, // store
+  canUndo: PropTypes.bool.isRequired, // store
+  canRedo: PropTypes.bool.isRequired, // store
   getLocalizedText: PropTypes.func.isRequired, // store
   onSelectRoute: PropTypes.func.isRequired, // dispatch
   onCreateRoute: PropTypes.func.isRequired, // dispatch
@@ -89,12 +105,14 @@ const propTypes = {
   onRedo: PropTypes.func.isRequired, // dispatch
 };
 
-const mapStateToProps = ({ project, app }) => ({
-  project: project.data,
-  projectName: project.projectName,
-  selectedRouteId: project.selectedRouteId,
-  indexRouteSelected: project.indexRouteSelected,
-  getLocalizedText: getLocalizedTextFromState({ app }),
+const mapStateToProps = state => ({
+  project: state.project.data,
+  projectName: state.project.projectName,
+  selectedRouteId: state.project.selectedRouteId,
+  indexRouteSelected: state.project.indexRouteSelected,
+  canUndo: canUndoSelector(state),
+  canRedo: canRedoSelector(state),
+  getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -345,15 +363,6 @@ class StructureRoute extends PureComponent {
       ])
       : List();
     
-    const routeEditorToolSecondaryButtons = selectedRoute
-      ? List([
-        new ButtonRecord({
-          icon: 'trash-o',
-          onPress: this._handleDeleteRoutePress,
-        }),
-      ])
-      : List();
-    
     const routeEditorToolSections = List([
       new ToolSectionRecord({
         component: RouteEditor,
@@ -386,7 +395,6 @@ class StructureRoute extends PureComponent {
           subtitle: selectedRoute ? selectedRoute.path : '',
           sections: routeEditorToolSections,
           mainButtons: routeEditorToolMainButtons,
-          secondaryButtons: routeEditorToolSecondaryButtons,
           windowMinWidth: 360,
         }),
       ]),
@@ -1449,6 +1457,17 @@ class StructureRoute extends PureComponent {
   }
 
   render() {
+    const {
+      canUndo,
+      canRedo,
+      selectedRouteId,
+      indexRouteSelected,
+      getLocalizedText,
+      onUndo,
+      onRedo,
+    } = this.props;
+
+    const isDeletable = selectedRouteId !== INVALID_ID && !indexRouteSelected;
     const content = this._renderContent();
     const newRouteDialog = this._renderNewRouteDialog();
     const editRoutePathDialog = this._renderEditRoutePathDialog();
@@ -1465,13 +1484,42 @@ class StructureRoute extends PureComponent {
           toolGroups={this._toolGroups}
           onToolTitleChange={this._handleToolTitleChange}
         >
-          <Shortcuts
-            name="ROUTES_LIST"
-            handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
-            className="jssy-app"
-          >
-            {content}
-          </Shortcuts>
+          <ToolBar>
+            <ToolBarGroup>
+              <ToolBarAction
+                icon={{ name: 'trash' }}
+                tooltipText={getLocalizedText('toolbar.structure.delete')}
+                disabled={!isDeletable}
+                onPress={this._handleDeleteRoutePress}
+              />
+            </ToolBarGroup>
+
+            <ToolBarGroup>
+              <ToolBarAction
+                icon={{ name: 'undo' }}
+                tooltipText={getLocalizedText('toolbar.common.undo')}
+                disabled={!canUndo}
+                onPress={onUndo}
+              />
+
+              <ToolBarAction
+                icon={{ name: 'repeat' }}
+                tooltipText={getLocalizedText('toolbar.common.redo')}
+                disabled={!canRedo}
+                onPress={onRedo}
+              />
+            </ToolBarGroup>
+          </ToolBar>
+
+          <AppWrapper>
+            <Shortcuts
+              name="ROUTES_LIST"
+              handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
+              className="jssy-app"
+            >
+              {content}
+            </Shortcuts>
+          </AppWrapper>
           
           {newRouteDialog}
           {editRoutePathDialog}

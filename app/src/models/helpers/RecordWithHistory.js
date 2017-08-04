@@ -12,9 +12,7 @@ const DEFAULT_HISTORY_LENGTH = 100;
 export default (
   recordInit,
   historyProps,
-  {
-    historyLength = DEFAULT_HISTORY_LENGTH,
-  } = {},
+  { historyLength = DEFAULT_HISTORY_LENGTH } = {},
 ) => {
   const RecordClass = Record({
     ...recordInit,
@@ -51,11 +49,19 @@ export default (
         _historyPointer: 0,
       });
     }
+
+    canMoveBack() {
+      return this._history.size - this._historyPointer > 0;
+    }
+
+    canMoveForward() {
+      return this._historyPointer > 0;
+    }
   
     moveBack() {
       let record = this;
       
-      if (record._history.size - record._historyPointer <= 0) {
+      if (!this.canMoveBack()) {
         return record;
       }
     
@@ -72,7 +78,7 @@ export default (
     }
   
     moveForward() {
-      if (this._historyPointer === 0) {
+      if (!this.canMoveForward()) {
         return this;
       }
     

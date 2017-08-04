@@ -9,7 +9,8 @@ import {
   textColorMedium,
 } from '../../../styles/themeSelectors';
 
-const codeMirrorOffset = 30; // CodeMirror ruler width + border
+// CodeMirror ruler width + border - one level of indentation (2 spaces)
+const codeMirrorOffset = 20;
 
 export const HeadingStyled = styled.div`
   background-color: ${paletteBlueGrey50};
