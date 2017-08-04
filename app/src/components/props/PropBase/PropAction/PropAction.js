@@ -29,6 +29,7 @@ export const PropAction = ({ icon, onPress, expanded, rounded }) => (
       icon={{ name: icon }}
       radius={rounded ? 'rounded' : 'default'}
       onPress={onPress}
+      size="small"
     />
   </PropActionStyled>
 );

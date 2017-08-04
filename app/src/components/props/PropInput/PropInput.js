@@ -66,6 +66,7 @@ export class PropInput extends Component {
           placeholder={placeholder}
           disabled={disabled}
           onChange={this._handleChange}
+          dense
         />
       );
     }
