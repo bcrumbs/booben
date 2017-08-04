@@ -17,6 +17,7 @@ export const CanvasFrameStyled = styled.section`
   background-color: ${paletteBlueGrey600};
   padding: ${baseModule(1)}px;
   box-sizing: border-box;
+  flex-direction: column;
 `;
 
 CanvasFrameStyled.displayName = 'CanvasFrameStyled';
