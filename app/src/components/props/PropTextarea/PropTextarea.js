@@ -62,6 +62,7 @@ export class PropTextarea extends Component {
           placeholder={placeholder}
           disabled={disabled}
           onChange={this._handleChange}
+          dense
         />
       );
     }

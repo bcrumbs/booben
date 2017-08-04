@@ -48,6 +48,7 @@ export const PropComponent = props => {
       {...propsForBase}
       content={
         <Button
+          size="small"
           colorScheme="link"
           text={text}
           disabled={disabled}

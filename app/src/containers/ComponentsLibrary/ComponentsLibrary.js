@@ -282,6 +282,7 @@ class ComponentsLibraryComponent extends PureComponent {
           dragData={{ name: component.fullName }}
           dragStartRadius={DND_DRAG_START_RADIUS_LIBRARY}
           onDragStart={this._handleDragStart}
+          contentBlank
         />
       ));
 

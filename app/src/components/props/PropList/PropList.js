@@ -72,6 +72,7 @@ export class PropList extends Component {
           placeholder={placeholder}
           disabled={disabled}
           onChange={this._handleChange}
+          dense
         />
       );
     }
