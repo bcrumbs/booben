@@ -31,11 +31,8 @@ const contentBoxStyle = {
   justifyContent: 'center',
 };
 
-const FONT = 'Open Sans, Helvetica Neue, Helvetica, Roboto, Arial, sans-serif';
-
 const textStyle = {
   color: '#929caf',
-  fontFamily: FONT,
   fontSize: '24px',
   maxWidth: '24em',
   userSelect: 'none',
