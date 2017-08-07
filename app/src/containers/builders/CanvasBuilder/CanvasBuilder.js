@@ -12,6 +12,7 @@ import { connect } from 'react-redux';
 import { graphql } from 'react-apollo';
 import _forOwn from 'lodash.forown';
 import _get from 'lodash.get';
+import _pick from 'lodash.pick';
 import _debounce from 'lodash.debounce';
 import Immutable from 'immutable';
 import { resolveTypedef } from '@jssy/types';
@@ -55,7 +56,14 @@ import {
 } from '../../../lib/components';
 
 import { buildQueryForComponent, getDataFieldKey } from '../../../lib/graphql';
-import { FieldKinds, getFieldOnType } from '../../../lib/schema';
+import {
+  FieldKinds,
+  getFieldOnType,
+  RELAY_PAGEINFO_FIELD_END_CURSOR,
+  RELAY_PAGEINFO_FIELD_START_CURSOR,
+  RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
+  RELAY_PAGEINFO_FIELD_HAS_PREVIOUS_PAGE,
+} from '../../../lib/schema';
 import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
 import { queryResultHasData } from '../../../lib/apollo';
 import ComponentsBundle from '../../../lib/ComponentsBundle';
@@ -136,6 +144,13 @@ const wrap = compose(
   connect(mapStateToProps, mapDispatchToProps),
   alertsCreator,
 );
+
+const PAGEINFO_FIELDS = [
+  RELAY_PAGEINFO_FIELD_END_CURSOR,
+  RELAY_PAGEINFO_FIELD_START_CURSOR,
+  RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
+  RELAY_PAGEINFO_FIELD_HAS_PREVIOUS_PAGE,
+];
 
 class CanvasBuilderComponent extends PureComponent {
   constructor(props, context) {
@@ -621,7 +636,10 @@ class CanvasBuilderComponent extends PureComponent {
 
         if (field.kind === FieldKinds.CONNECTION) {
           const dataFieldKey = getDataFieldKey(step.field, jssyValue);
-          const pageInfo = currentNode[dataFieldKey].pageInfo;
+          const pageInfo = _pick(
+            currentNode[dataFieldKey].pageInfo,
+            PAGEINFO_FIELDS,
+          );
 
           ret = ret.setIn([jssyValue, idx], pageInfo);
         }
@@ -661,6 +679,8 @@ class CanvasBuilderComponent extends PureComponent {
             component.id,
             this._extractPageInfos(component, data),
           );
+          
+          console.log(this._pageInfos);
         }
 
         return {

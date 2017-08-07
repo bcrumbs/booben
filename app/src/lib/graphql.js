@@ -22,6 +22,11 @@ import {
   BEFORE_ARG_DEFINITION,
   RELAY_CONNECTION_ARG_AFTER,
   RELAY_CONNECTION_ARG_BEFORE,
+  RELAY_CONNECTION_FIELD_PAGEINFO,
+  RELAY_PAGEINFO_FIELD_END_CURSOR,
+  RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
+  RELAY_CONNECTION_FIELD_EDGES,
+  RELAY_EDGE_FIELD_NODE,
 } from './schema';
 
 import {
@@ -459,7 +464,7 @@ const buildGraphQLFragmentForValue = (
             alias: null,
             name: {
               kind: 'Name',
-              value: 'edges',
+              value: RELAY_CONNECTION_FIELD_EDGES,
             },
             arguments: [],
             directives: [],
@@ -470,7 +475,7 @@ const buildGraphQLFragmentForValue = (
                 alias: null,
                 name: {
                   kind: 'Name',
-                  value: 'node',
+                  value: RELAY_EDGE_FIELD_NODE,
                 },
                 arguments: [],
                 directives: [],
@@ -482,7 +487,7 @@ const buildGraphQLFragmentForValue = (
             alias: null,
             name: {
               kind: 'Name',
-              value: 'pageInfo',
+              value: RELAY_CONNECTION_FIELD_PAGEINFO,
             },
             arguments: [],
             directives: [],
@@ -493,7 +498,7 @@ const buildGraphQLFragmentForValue = (
                 alias: null,
                 name: {
                   kind: 'Name',
-                  value: 'hasNextPage',
+                  value: RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
                 },
                 arguments: [],
                 directives: [],
@@ -503,7 +508,7 @@ const buildGraphQLFragmentForValue = (
                 alias: null,
                 name: {
                   kind: 'Name',
-                  value: 'endCursor',
+                  value: RELAY_PAGEINFO_FIELD_END_CURSOR,
                 },
                 arguments: [],
                 directives: [],
