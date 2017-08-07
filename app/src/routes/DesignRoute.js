@@ -63,7 +63,6 @@ import {
 
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
-import ButtonRecord from '../models/Button';
 
 import {
   createComponent,
@@ -76,6 +75,7 @@ import {
   undo,
   redo,
   moveComponentToClipboard,
+  convertComponentToList,
   ComponentPickAreas,
 } from '../actions/project';
 
@@ -153,6 +153,7 @@ const propTypes = {
   onCopyComponent: PropTypes.func.isRequired, // dispatch
   onMoveComponent: PropTypes.func.isRequired, // dispatch
   onMoveComponentToClipboard: PropTypes.func.isRequired, // dispatch
+  onConvertComponentToList: PropTypes.func.isRequired, // dispatch
   onSelectLayout: PropTypes.func.isRequired, // dispatch
   onDropComponent: PropTypes.func.isRequired, // dispatch
   onSelectComponentStateSlot: PropTypes.func.isRequired, // dispatch
@@ -213,6 +214,9 @@ const mapDispatchToProps = dispatch => ({
 
   onMoveComponentToClipboard: (componentId, copy) =>
     void dispatch(moveComponentToClipboard(componentId, copy)),
+  
+  onConvertComponentToList: componentId =>
+    void dispatch(convertComponentToList(componentId)),
   
   onSelectLayout: layoutIdx =>
     void dispatch(selectLayoutForNewComponent(layoutIdx)),
@@ -301,6 +305,8 @@ class DesignRoute extends PureComponent {
       this._handleMoveSelectedComponentToClipboard.bind(this, false);
     this._handlePasteComponent =
       this._handlePasteComponent.bind(this);
+    this._handleConvertComponentToList =
+      this._handleConvertComponentToList.bind(this);
   }
   
   _getLibraryTool() {
@@ -728,6 +734,7 @@ class DesignRoute extends PureComponent {
     const { showInvisibleComponents, onToggleInvisibleComponents } = this.props;
     onToggleInvisibleComponents(!showInvisibleComponents);
   }
+  
   /**
    *
    * @private
@@ -735,6 +742,22 @@ class DesignRoute extends PureComponent {
   _handleToggleContentPlaceholders() {
     const { showContentPlaceholders, onToggleContentPlaceholders } = this.props;
     onToggleContentPlaceholders(!showContentPlaceholders);
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleConvertComponentToList() {
+    const {
+      singleComponentSelected,
+      firstSelectedComponentId,
+      onConvertComponentToList,
+    } = this.props;
+    
+    if (singleComponentSelected) {
+      onConvertComponentToList(firstSelectedComponentId);
+    }
   }
   
   /**
@@ -959,6 +982,15 @@ class DesignRoute extends PureComponent {
                 tooltipText={getLocalizedText('toolbar.common.redo')}
                 disabled={!canRedo}
                 onPress={onRedo}
+              />
+            </ToolBarGroup>
+  
+            <ToolBarGroup>
+              <ToolBarAction
+                icon={{ name: 'list' }}
+                tooltipText={getLocalizedText('toolbar.design.convertToList')}
+                disabled={!singleComponentSelected}
+                onPress={this._handleConvertComponentToList}
               />
             </ToolBarGroup>
 

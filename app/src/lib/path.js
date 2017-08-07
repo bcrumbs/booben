@@ -9,7 +9,7 @@ import { isInteger, isFunction } from '../utils/misc';
 
 /**
  * @typedef {Object} PathStartDesc
- * @property {Immutable.Iterable} object
+ * @property {Object} object
  * @property {(string|number)[]} expandedPath
  */
 

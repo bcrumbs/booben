@@ -84,6 +84,7 @@
   "toolbar.design.cut": "Вырезать выделенный компонент",
   "toolbar.design.paste": "Вставить",
   "toolbar.design.delete": "Удалить выделенный компонент",
+  "toolbar.design.convertToList": "Преобразовать выделенный компонент в Список",
   "toolbar.design.showEmpty": "Показать пустые",
   "toolbar.design.hideEmpty": "Скрыть пустые",
   "toolbar.design.showHidden": "Показать невидимые",

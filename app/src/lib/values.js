@@ -27,7 +27,7 @@ import {
   returnNull,
 } from '../utils/misc';
 
-import { ROUTE_PARAM_VALUE_DEF, NO_VALUE } from '../constants/misc';
+import { ROUTE_PARAM_VALUE_DEF, NO_VALUE, INVALID_ID } from '../constants/misc';
 
 /**
  * @typedef {Object} AJAXRequestResult
@@ -314,6 +314,11 @@ const buildStateValue = (jssyValue, valueDef, userTypedefs, context) => {
   }
 
   const componentId = jssyValue.sourceData.componentId;
+  
+  if (componentId === INVALID_ID) {
+    return NO_VALUE;
+  }
+  
   const stateSlot = jssyValue.sourceData.stateSlot;
   const componentState = componentsState.get(componentId);
 

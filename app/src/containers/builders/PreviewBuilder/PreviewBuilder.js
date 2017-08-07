@@ -286,6 +286,8 @@ class PreviewBuilderComponent extends PureComponent {
   _performMethodAction(action, valueContext) {
     const { meta, components } = this.props;
     
+    if (action.params.componentId === INVALID_ID) return;
+    
     const component = components.get(action.params.componentId);
     const componentInstance = this._refs.get(action.params.componentId);
     if (!component || !componentInstance) return;
@@ -327,6 +329,8 @@ class PreviewBuilderComponent extends PureComponent {
   _performPropAction(action, valueContext) {
     const { meta, components } = this.props;
     const { dynamicPropValues } = this.state;
+  
+    if (action.params.componentId === INVALID_ID) return;
     
     let propName;
     let isSystemProp;

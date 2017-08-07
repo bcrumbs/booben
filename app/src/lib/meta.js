@@ -18,6 +18,7 @@ import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
 import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../constants/misc';
 import { isDef, returnEmptyObject, objectSome } from '../utils/misc';
+import { DEFAULT_LANGUAGE } from '../config';
 
 /**
  * @typedef {Object<string, Object<string, ComponentMeta>>} ComponentsMeta
@@ -584,21 +585,27 @@ const buildDefaultProps = (
  * Constructs new immutable ProjectComponent record
  *
  * @param {string} componentName
- * @param {number} layoutIdx
- * @param {string} language
- * @param {Object} meta
+ * @param {number} [layoutIdx=0]
+ * @param {string} [language]
+ * @param {?ComponentsMeta} [meta=null]
  * @param {boolean} [isNew=true]
  * @param {boolean} [isWrapper=false]
  * @return {Immutable.Map<number, Object>}
  */
 export const constructComponent = (
   componentName,
-  layoutIdx,
-  language,
-  meta,
+  layoutIdx = 0,
+  language = DEFAULT_LANGUAGE,
+  meta = null,
   { isWrapper = false, isNew = true } = {},
 ) => {
   const componentMeta = getComponentMeta(componentName, meta);
+  
+  if (componentMeta === null) {
+    throw new Error(
+      `constructComponent(): failed to get metadata for '${componentName}'`,
+    );
+  }
 
   // Ids of detached components start with zero
   let nextId = 0;

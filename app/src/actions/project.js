@@ -35,6 +35,8 @@ export const PROJECT_COMPONENT_MOVE_TO_CLIPBOARD =
   'PROJECT_COMPONENT_MOVE_TO_CLIPBOARD';
 export const PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT =
   'PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT';
+export const PROJECT_COMPONENT_CONVERT_TO_LIST =
+  'PROJECT_COMPONENT_CONVERT_TO_LIST';
 
 export const PROJECT_CREATE_FUNCTION = 'PROJECT_CREATE_FUNCTION';
 
@@ -384,6 +386,18 @@ export const selectLayoutForNewComponent = triggersProjectSave(layoutIdx => ({
   type: PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
   layoutIdx,
 }));
+
+/**
+ *
+ * @param {number} componentId
+ * @return {Object}
+ */
+export const convertComponentToList = triggersProjectSave(
+  componentId => ({
+    type: PROJECT_COMPONENT_CONVERT_TO_LIST,
+    componentId,
+  }),
+);
 
 /**
  *

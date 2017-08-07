@@ -33,6 +33,7 @@ import {
   PROJECT_COMPONENT_MOVE,
   PROJECT_COMPONENT_MOVE_TO_CLIPBOARD,
   PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
+  PROJECT_COMPONENT_CONVERT_TO_LIST,
   PROJECT_CREATE_FUNCTION,
   PROJECT_JSSY_VALUE_REPLACE,
   PROJECT_JSSY_VALUE_ADD_ACTION,
@@ -114,6 +115,8 @@ import {
   gatherComponentsTreeIds,
   makeDetachedCopy,
   walkSimpleValues,
+  convertComponentToList,
+  getComponentPosition,
 } from '../lib/components';
 
 import {
@@ -648,7 +651,13 @@ const copyComponent = (state, componentId, containerId, afterIdx) => {
     return state;
   }
 
-  const componentsCopy = makeDetachedCopy(currentComponents, componentId);
+  const componentsCopy = makeDetachedCopy(
+    currentComponents,
+    componentId,
+    state.meta,
+    state.data,
+    state.schema,
+  );
   
   return addNewComponents(state, containerId, afterIdx, componentsCopy);
 };
@@ -1409,6 +1418,43 @@ const handlers = {
   [PROJECT_COMPONENT_MOVE_TO_CLIPBOARD]: (state, action) =>
     updateDesigner(state, designer =>
       designer.updateClipboard(action.componentId, action.copy)),
+  
+  [PROJECT_COMPONENT_CONVERT_TO_LIST]: undoable(incrementsRevision(
+    (state, action) => {
+      state = updateDesigner(state, designer =>
+        designer.forgetComponent(action.componentId));
+  
+      if (state.draggedComponentId === action.componentId) {
+        state = initDNDState(state);
+      }
+      
+      const pathToCurrentComponents = getPathToCurrentComponents(state);
+      const components = state.getIn(pathToCurrentComponents);
+      const { containerId, afterIdx } = getComponentPosition(
+        components,
+        action.componentId,
+      );
+    
+      const list = convertComponentToList(
+        components,
+        action.componentId,
+        state.meta,
+        state.data,
+        state.schema,
+      );
+    
+      state = deleteComponent(state, action.componentId);
+      
+      const pathToLastComponentId = getPathToLastComponentId(state);
+      const lastComponentId = state.getIn(pathToLastComponentId);
+      const newComponentId = lastComponentId + 1;
+      
+      state = addNewComponents(state, containerId, afterIdx, list);
+      
+      return updateDesigner(state, designer =>
+        designer.selectComponentExclusive(newComponentId));
+    },
+  )),
   
   [PROJECT_JSSY_VALUE_REPLACE]: undoable(incrementsRevision(
     (state, action) => updateValue(state, action.path, action.newValue),

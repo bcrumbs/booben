@@ -84,6 +84,7 @@
   "toolbar.design.cut": "Cut selected component",
   "toolbar.design.paste": "Paste",
   "toolbar.design.delete": "Delete selected component",
+  "toolbar.design.convertToList": "Convert selected component to List",
   "toolbar.design.showEmpty": "Show empty",
   "toolbar.design.hideEmpty": "Hide empty",
   "toolbar.design.showHidden": "Show invisible",
