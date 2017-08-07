@@ -22,6 +22,7 @@ const defaultProps = {
 };
 
 const HEIGHT = 16;
+const FONT = 'Open Sans, Helvetica Neue, Helvetica, Roboto, Arial, sans-serif';
 
 export const OverlayComponentTitle = (props, context) => {
   const { element, title } = props;
@@ -75,6 +76,7 @@ export const OverlayComponentTitle = (props, context) => {
     backgroundColor: '#c8e5f6',
     color: '#667388',
     padding: '2px 8px',
+    fontFamily: FONT,
     fontSize: '12px',
     lineHeight: '1.25',
     display: 'block',
