@@ -159,10 +159,23 @@ const actionsToImmutable = actions => List(actions.map(action => {
   return Action(data);
 }));
 
-export const jssyValueToImmutable = ({ source, sourceData }) => new JssyValue({
-  source,
-  sourceData: sourceDataToImmutable(source, sourceData),
-});
+/**
+ *
+ * @param {?PlainJssyValue} plainValue
+ * @return {?Object}
+ */
+export const jssyValueToImmutable = plainValue => {
+  if (plainValue === null) {
+    return null;
+  }
+  
+  const { source, sourceData } = plainValue;
+  
+  return new JssyValue({
+    source,
+    sourceData: sourceDataToImmutable(source, sourceData),
+  });
+};
 
 const propSourceDataToImmutableFns = {
   const: input => new SourceDataConst(input),
@@ -266,11 +279,19 @@ export const projectComponentToImmutable = (
   isIndexRoute,
 });
 
+/**
+ *
+ * @param {ProjectComponent} input
+ * @param {number} [routeId=INVALID_ID]
+ * @param {boolean} [isIndexRoute=false]
+ * @param {number} [parentId=INVALID_ID]
+ * @return {Immutable.Map<number, Object>}
+ */
 export const componentsToImmutable = (
   input,
-  routeId,
-  isIndexRoute,
-  parentId,
+  routeId = INVALID_ID,
+  isIndexRoute = false,
+  parentId = INVALID_ID,
 ) => Map().withMutations(mut => {
   const visitComponent = (component, parentId) => {
     mut.set(

@@ -248,7 +248,7 @@ const buildDefaultStaticValue = (
     sourceConfig.defaultEnabled === false &&
     !options.forceEnable
   ) {
-    return NO_VALUE;
+    return null;
   }
   
   /* eslint-disable no-use-before-define */
@@ -287,7 +287,7 @@ const buildDefaultStaticValue = (
         inherited,
       );
 
-      if (fieldValue !== NO_VALUE) {
+      if (fieldValue !== null) {
         value[fieldName] = fieldValue;
       }
     });
@@ -433,8 +433,8 @@ const sourcePriority = [
  * @param {string} language
  * @param {?Object<string, JssyTypeDefinition>} userTypedefs
  * @param {BuildDefaultValueOptions} options
- * @param {*|Symbol} [inheritedDefaultValue=Symbol]
- * @return {PlainJssyValue|Symbol}
+ * @param {*} [inheritedDefaultValue=NO_VALUE]
+ * @return {?PlainJssyValue}
  */
 const _buildDefaultValue = (
   valueDef,
@@ -448,7 +448,7 @@ const _buildDefaultValue = (
   
   for (let i = 0, l = sourcePriority.length; i < l; i++) {
     if (isValidSourceForValue(resolvedValueDef, sourcePriority[i])) {
-      const defaultValue = defaultValueBuilders[sourcePriority[i]](
+      return defaultValueBuilders[sourcePriority[i]](
         resolvedValueDef,
         strings,
         language,
@@ -456,12 +456,10 @@ const _buildDefaultValue = (
         options,
         inheritedDefaultValue,
       );
-
-      if (defaultValue !== NO_VALUE) return defaultValue;
     }
   }
 
-  return NO_VALUE;
+  return null;
 };
 
 /**
@@ -535,7 +533,7 @@ const defaultBuildDefaultValueOptions = {
  * @param {string} [language='']
  * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
  * @param {?BuildDefaultValueOptions} [options=null]
- * @return {PlainJssyValue|NO_VALUE}
+ * @return {?PlainJssyValue}
  */
 export const buildDefaultValue = (
   valueDef,
@@ -575,7 +573,7 @@ const buildDefaultProps = (
       userTypedefs,
     );
     
-    if (defaultValue !== NO_VALUE) ret[propName] = defaultValue;
+    if (defaultValue !== null) ret[propName] = defaultValue;
   });
 
   return ret;
@@ -666,7 +664,7 @@ export const constructComponent = (
     });
   }
 
-  return componentsToImmutable(component, INVALID_ID, false, INVALID_ID);
+  return componentsToImmutable(component);
 };
 
 /**
