@@ -49,6 +49,7 @@
     "kdbush": "^1.0.1",
     "lodash.camelcase": "^4.3.0",
     "lodash.debounce": "latest",
+    "lodash.defaultsdeep": "^4.6.0",
     "lodash.forown": "^4.4.0",
     "lodash.get": "^4.4.2",
     "lodash.mapvalues": "^4.6.0",

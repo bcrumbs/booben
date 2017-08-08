@@ -199,6 +199,13 @@ export const RELAY_EDGE_FIELDS_NUM = 2;
 export const RELAY_EDGE_FIELD_NODE = 'node';
 export const RELAY_EDGE_FIELD_CURSOR = 'cursor';
 
+export const RELAY_PAGEINFO_FIELDS = [
+  RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
+  RELAY_PAGEINFO_FIELD_HAS_PREVIOUS_PAGE,
+  RELAY_PAGEINFO_FIELD_START_CURSOR,
+  RELAY_PAGEINFO_FIELD_END_CURSOR,
+];
+
 /**
  *
  * @type {DataFieldArg}
@@ -1079,4 +1086,33 @@ export const getMutationField = (schema, mutationName) => {
 export const getMutationType = schema => {
   if (!schema.mutationTypeName) return null;
   return schema.types[schema.mutationTypeName];
+};
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string[]} path
+ * @param {string} [rootTypeName]
+ * @return {number}
+ */
+export const findFirstConnectionInPath = (
+  schema,
+  path,
+  rootTypeName = schema.queryTypeName,
+) => {
+  let currentType = schema.types[rootTypeName];
+  let ret = -1;
+  
+  for (let i = 0, l = path.length; i < l; i++) {
+    const field = currentType.fields[path[i]];
+    
+    if (field.kind === FieldKinds.CONNECTION) {
+      ret = i;
+      break;
+    }
+    
+    currentType = schema.types[field.type];
+  }
+  
+  return ret;
 };

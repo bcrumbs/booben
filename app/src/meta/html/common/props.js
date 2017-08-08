@@ -14,6 +14,7 @@ export default {
     sourceConfigs: {
       static: {
         default: '',
+        defaultEnabled: false,
       },
     },
   },
@@ -26,6 +27,7 @@ export default {
     sourceConfigs: {
       static: {
         default: '',
+        defaultEnabled: false,
       },
     },
   },
@@ -43,6 +45,7 @@ export default {
     sourceConfigs: {
       static: {
         default: 'ltr',
+        defaultEnabled: false,
       },
     },
   },
@@ -55,6 +58,7 @@ export default {
     sourceConfigs: {
       static: {
         default: false,
+        defaultEnabled: false,
       },
     },
   },
@@ -67,6 +71,7 @@ export default {
     sourceConfigs: {
       static: {
         default: '',
+        defaultEnabled: false,
       },
       data: {},
     },
@@ -80,6 +85,7 @@ export default {
     sourceConfigs: {
       static: {
         default: '',
+        defaultEnabled: false,
       },
       data: {},
     },
@@ -97,6 +103,7 @@ export default {
     sourceConfigs: {
       static: {
         default: 'true',
+        defaultEnabled: false,
       },
     },
   },
@@ -109,6 +116,7 @@ export default {
     sourceConfigs: {
       static: {
         default: -1,
+        defaultEnabled: false,
       },
     },
   },
@@ -121,8 +129,20 @@ export default {
     sourceConfigs: {
       static: {
         default: '',
+        defaultEnabled: false,
       },
       data: {},
+    },
+  },
+  onClick: {
+    textKey: 'props_onClick',
+    descriptionTextKey: 'props_onClick_desc',
+    type: 'func',
+    source: ['actions'],
+    sourceConfigs: {
+      actions: {
+        args: [],
+      },
     },
   },
 };

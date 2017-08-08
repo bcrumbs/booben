@@ -10,11 +10,9 @@ import PropTypes from 'prop-types';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { graphql } from 'react-apollo';
-import _forOwn from 'lodash.forown';
-import _get from 'lodash.get';
-import _pick from 'lodash.pick';
-import _debounce from 'lodash.debounce';
-import Immutable from 'immutable';
+import forOwn from 'lodash.forown';
+import get from 'lodash.get';
+import debounce from 'lodash.debounce';
 import { resolveTypedef } from '@jssy/types';
 
 import {
@@ -52,18 +50,10 @@ import {
 import {
   canInsertComponent,
   canInsertRootComponent,
-  formatComponentTitle, walkSimpleValues,
+  formatComponentTitle,
 } from '../../../lib/components';
 
-import { buildQueryForComponent, getDataFieldKey } from '../../../lib/graphql';
-import {
-  FieldKinds,
-  getFieldOnType,
-  RELAY_PAGEINFO_FIELD_END_CURSOR,
-  RELAY_PAGEINFO_FIELD_START_CURSOR,
-  RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
-  RELAY_PAGEINFO_FIELD_HAS_PREVIOUS_PAGE,
-} from '../../../lib/schema';
+import { buildQueryForComponent } from '../../../lib/graphql';
 import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
 import { queryResultHasData } from '../../../lib/apollo';
 import ComponentsBundle from '../../../lib/ComponentsBundle';
@@ -145,13 +135,6 @@ const wrap = compose(
   alertsCreator,
 );
 
-const PAGEINFO_FIELDS = [
-  RELAY_PAGEINFO_FIELD_END_CURSOR,
-  RELAY_PAGEINFO_FIELD_START_CURSOR,
-  RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
-  RELAY_PAGEINFO_FIELD_HAS_PREVIOUS_PAGE,
-];
-
 class CanvasBuilderComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -165,8 +148,6 @@ class CanvasBuilderComponent extends PureComponent {
       props.schema,
       props.project,
     );
-
-    this._pageInfos = Immutable.Map();
   
     this.state = {
       componentsState: getInitialComponentsState(
@@ -280,14 +261,14 @@ class CanvasBuilderComponent extends PureComponent {
       if (currentState) {
         let nextState = currentState;
       
-        _forOwn(stateUpdates, (value, slotName) => {
+        forOwn(stateUpdates, (value, slotName) => {
           if (!currentState.has(slotName)) return;
         
           let newValue = NO_VALUE;
           if (value.source === 'const') {
             newValue = value.sourceData.value;
           } else if (value.source === 'arg') {
-            newValue = _get(
+            newValue = get(
               valueContext.actionArgValues[value.sourceData.arg],
               value.sourceData.path,
               NO_VALUE,
@@ -361,8 +342,6 @@ class CanvasBuilderComponent extends PureComponent {
           valueContext,
         );
       },
-
-      pageInfos: this._pageInfos.get(componentId) || null,
     };
   }
 
@@ -610,50 +589,6 @@ class CanvasBuilderComponent extends PureComponent {
     );
   }
 
-  _extractPageInfos(component, queryResultRoot) {
-    const { meta, schema, dataContextInfo } = this.props;
-
-    const componentMeta = getComponentMeta(component.name, meta);
-    let ret = Immutable.Map();
-
-    const visitValue = jssyValue => {
-      if (!jssyValue.isLinkedWithData()) return;
-      if (jssyValue.sourceData.dataContext.size > 0) return;
-
-      let currentNode = queryResultRoot;
-      let currentTypeName;
-
-      if (jssyValue.sourceData.dataContext.size > 0) {
-        const dataContextName = jssyValue.sourceData.dataContext.last();
-        const ourDataContextInfo = dataContextInfo[dataContextName];
-        currentTypeName = ourDataContextInfo.type;
-      } else {
-        currentTypeName = schema.queryTypeName;
-      }
-
-      jssyValue.sourceData.queryPath.forEach((step, idx) => {
-        const field = getFieldOnType(schema, currentTypeName, step.field);
-
-        if (field.kind === FieldKinds.CONNECTION) {
-          const dataFieldKey = getDataFieldKey(step.field, jssyValue);
-          const pageInfo = _pick(
-            currentNode[dataFieldKey].pageInfo,
-            PAGEINFO_FIELDS,
-          );
-
-          ret = ret.setIn([jssyValue, idx], pageInfo);
-        }
-
-        currentNode = currentNode[step.field];
-        currentTypeName = field.type;
-      });
-    };
-
-    walkSimpleValues(component, componentMeta, visitValue);
-
-    return ret;
-  }
-
   _createApolloHOC(component, graphQLQuery, graphQLVariables, theMap) {
     const { schema, getLocalizedText, onAlert } = this.props;
 
@@ -673,15 +608,6 @@ class CanvasBuilderComponent extends PureComponent {
           theMap,
           haveData ? data : null,
         );
-
-        if (haveData) {
-          this._pageInfos = this._pageInfos.set(
-            component.id,
-            this._extractPageInfos(component, data),
-          );
-          
-          console.log(this._pageInfos);
-        }
 
         return {
           ...ownProps,
@@ -742,7 +668,7 @@ class CanvasBuilderComponent extends PureComponent {
     props.children = this._renderComponentChildren(component);
 
     if (!isHTML) {
-      props.__jssy_error_handler__ = _debounce(
+      props.__jssy_error_handler__ = debounce(
         this._handleErrorInComponentLifecycleHook.bind(this, component),
         250,
       );

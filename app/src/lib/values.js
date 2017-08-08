@@ -13,6 +13,7 @@ import {
   getFieldByPath,
   getJssyValueDefOfField,
   getJssyValueDefOfQueryArgument,
+  RELAY_PAGEINFO_FIELD_END_CURSOR,
 } from './schema';
 
 import { extractPropValueFromData } from './graphql';
@@ -468,14 +469,21 @@ const buildActionsValue = (jssyValue, valueDef, userTypedefs, context) => {
  */
 const buildConnectionPaginationStateValue = (jssyValue, context) => {
   const param = jssyValue.sourceData.param;
+  const dataValue = jssyValue.sourceData.dataValue;
+  const queryStep = jssyValue.sourceData.queryStep;
 
   if (param === 'endCursor') {
-    if (context.pageInfos === null) {
+    if (context.pageInfos === null || !context.pageInfos.has(dataValue)) {
       return '';
     }
-
-    const pageInfo = context.pageInfos.get(jssyValue);
-    return pageInfo ? pageInfo.endCursor : '';
+    
+    const pageInfosForValue = context.pageInfos.get(dataValue);
+    if (!pageInfosForValue.has(queryStep)) {
+      return '';
+    }
+    
+    const pageInfo = pageInfosForValue.get(queryStep);
+    return pageInfo[RELAY_PAGEINFO_FIELD_END_CURSOR] || '';
   } else {
     throw new Error(
       `buildConnectionPaginationStateValue(): unknown param: '${param}'`,

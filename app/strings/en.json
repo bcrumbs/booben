@@ -163,6 +163,7 @@
   "actionsEditor.actionType.url": "Open URL",
   "actionsEditor.actionType.logout": "Logout",
   "actionsEditor.actionType.ajax": "AJAX request",
+  "actionsEditor.actionType.loadMoreData": "Load more data",
   "actionsEditor.actionForm.url": "URL",
   "actionsEditor.actionForm.urlWindow": "Window",
   "actionsEditor.actionForm.urlWindow.same": "Same window",
@@ -189,6 +190,7 @@
   "actionsEditor.actionTitle.logout": "Logout",
   "actionsEditor.actionTitle.ajax.withURL": "{method} request to {url}",
   "actionsEditor.actionTitle.ajax.noURL": "{method} request",
+  "actionsEditor.actionTitle.loadMoreData": "Load more data into {componentTitle}",
   "actionsEditor.onSuccess": "On success",
   "actionsEditor.onError": "On error",
 

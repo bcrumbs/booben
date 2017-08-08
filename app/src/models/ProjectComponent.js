@@ -21,6 +21,7 @@ import JssyValue, {
   MethodCallActionParams,
   PropChangeActionParams,
   AJAXActionParams,
+  LoadMoreDataActionParams,
   SourceDataDesigner,
   SourceDataState,
   SourceDataRouteParams,
@@ -139,6 +140,17 @@ const actionsToImmutable = actions => List(actions.map(action => {
       break;
     }
     
+    case 'loadMoreData': {
+      data.params = new LoadMoreDataActionParams({
+        componentId: action.params.componentId,
+        pathToDataValue: List(action.params.pathToDataValue),
+        successActions: actionsToImmutable(action.params.successActions),
+        errorActions: actionsToImmutable(action.params.errorActions),
+      });
+      
+      break;
+    }
+    
     default: {
       data.params = null;
     }
@@ -180,6 +192,7 @@ const propSourceDataToImmutableFns = {
       queryPath: input.queryPath
         ? List(input.queryPath.map(step => new QueryPathStep({
           field: step.field,
+          connectionPageSize: step.connectionPageSize,
         })))
         : null,
       
@@ -322,6 +335,13 @@ const actionParamsToJSv1Converters = {
     body: params.body === null ? null : jssyValueToJSv1(params.body),
     mode: params.mode,
     decodeResponse: params.decodeResponse,
+    successActions: mapListToArray(params.successActions, actionToJSv1),
+    errorActions: mapListToArray(params.errorActions, actionToJSv1),
+  }),
+  
+  loadMoreData: params => ({
+    componentId: params.componentId,
+    pathToDataValue: params.pathToDataValue.toJS(),
     successActions: mapListToArray(params.successActions, actionToJSv1),
     errorActions: mapListToArray(params.errorActions, actionToJSv1),
   }),

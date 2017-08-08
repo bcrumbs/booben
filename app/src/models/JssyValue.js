@@ -16,6 +16,8 @@ import SourceDataActions, {
   MethodCallActionParams,
   PropChangeActionParams,
   AJAXActionParams,
+  LoadMoreDataActionParams,
+  isAsyncAction,
 } from './JssyValueSourceData/SourceDataActions';
 
 import SourceDataConnectionPaginationState
@@ -289,6 +291,8 @@ export {
   MethodCallActionParams,
   PropChangeActionParams,
   AJAXActionParams,
+  LoadMoreDataActionParams,
+  isAsyncAction,
   SourceDataConnectionPaginationState,
   SourceDataConst,
   SourceDataData,

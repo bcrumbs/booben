@@ -49,6 +49,21 @@ export const AJAXActionParams = Record({
   errorActions: List(), // List of Actions
 });
 
+export const LoadMoreDataActionParams = Record({
+  componentId: INVALID_ID,
+  pathToDataValue: List(), // For example List(['props', 'propName', 'fieldName'])
+  successActions: List(), // List of Actions
+  errorActions: List(), // List of Actions
+});
+
+const ASYNC_ACTIONS = new Set([
+  'mutation',
+  'ajax',
+  'loadMoreData',
+]);
+
+export const isAsyncAction = actionType => ASYNC_ACTIONS.has(actionType);
+
 export const Action = Record({
   type: '',
   params: null,

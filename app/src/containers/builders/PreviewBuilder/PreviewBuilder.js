@@ -7,10 +7,12 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { graphql, withApollo } from 'react-apollo';
-import _forOwn from 'lodash.forown';
-import _get from 'lodash.get';
-import _set from 'lodash.set';
-import { Map as ImmutableMap } from 'immutable';
+import Immutable from 'immutable';
+import forOwn from 'lodash.forown';
+import get from 'lodash.get';
+import set from 'lodash.set';
+import pick from 'lodash.pick';
+import defaultsDeep from 'lodash.defaultsdeep';
 import { resolveTypedef } from '@jssy/types';
 
 import {
@@ -29,17 +31,29 @@ import {
   getSourceConfig,
 } from '../../../lib/meta';
 
-import { buildQueryForComponent, buildMutation } from '../../../lib/graphql';
+import {
+  buildQueryForComponent,
+  buildMutation,
+  getDataFieldKey,
+} from '../../../lib/graphql';
+
 import { queryResultHasData } from '../../../lib/apollo';
 
 import {
+  FieldKinds,
   getJssyValueDefOfMutationArgument,
   getMutationField,
+  getFieldOnType,
+  findFirstConnectionInPath,
+  RELAY_PAGEINFO_FIELDS,
+  RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
 } from '../../../lib/schema';
 
+import { walkSimpleValues } from '../../../lib/components';
 import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
 import ComponentsBundle from '../../../lib/ComponentsBundle';
-import { noop } from '../../../utils/misc';
+import { createPath, getObjectByPath } from '../../../lib/path';
+import { noop, mapListToArray } from '../../../utils/misc';
 import * as JssyPropTypes from '../../../constants/common-prop-types';
 
 import {
@@ -105,9 +119,11 @@ class PreviewBuilderComponent extends PureComponent {
     );
 
     this._refs = new Map();
+    this._pageInfos = Immutable.Map();
+    this._graphQLVariables = new Map();
     
     this.state = {
-      dynamicPropValues: ImmutableMap(),
+      dynamicPropValues: Immutable.Map(),
       componentsState: getInitialComponentsState(
         props.components,
         props.meta,
@@ -125,6 +141,10 @@ class PreviewBuilderComponent extends PureComponent {
       nextProps.rootId !== rootId;
     
     if (componentsUpdated) {
+      this._refs = new Map();
+      this._pageInfos = Immutable.Map();
+      this._graphQLVariables = new Map();
+      
       this._renderHints = getRenderHints(
         nextProps.components,
         nextProps.rootId,
@@ -169,7 +189,7 @@ class PreviewBuilderComponent extends PureComponent {
       if (project.auth.type === 'jwt') {
         if (mutationName === project.auth.loginMutation) {
           const tokenPath = [mutationName, ...project.auth.tokenPath];
-          const token = _get(response.data, tokenPath);
+          const token = get(response.data, tokenPath);
           if (token) localStorage.setItem('jssy_auth_token', token);
         }
       }
@@ -193,7 +213,7 @@ class PreviewBuilderComponent extends PureComponent {
       project.auth.type === 'jwt' &&
       action.params.mutation === project.auth.loginMutation
     ) {
-      selections = _set({}, project.auth.tokenPath, true);
+      selections = set({}, project.auth.tokenPath, true);
     }
     
     const mutation = buildMutation(
@@ -471,6 +491,90 @@ class PreviewBuilderComponent extends PureComponent {
    *
    * @param {Object} action
    * @param {ValueContext} valueContext
+   * @return {Promise<void>}
+   * @private
+   */
+  async _performLoadMoreDataAction(action, valueContext) {
+    const { schema, components } = this.props;
+  
+    if (action.params.componentId === INVALID_ID) return;
+  
+    const component = components.get(action.params.componentId);
+    const componentInstance = this._refs.get(action.params.componentId);
+    if (!component || !componentInstance) return;
+    
+    const observableQuery = componentInstance.queryObservable;
+    if (!observableQuery) return;
+  
+    const pathToDataValue = createPath(
+      component,
+      action.params.pathToDataValue.toJS(),
+    );
+  
+    const dataValue = getObjectByPath(pathToDataValue);
+    
+    // TODO: Handle values with data context
+    if (dataValue.sourceData.dataContext.size > 0) return;
+    
+    const queryPath = mapListToArray(
+      dataValue.sourceData.queryPath,
+      step => step.field,
+    );
+    
+    const connectionIdx = findFirstConnectionInPath(schema, queryPath);
+    if (connectionIdx === -1) return;
+    
+    const edgesPath = [
+      ...queryPath
+        .slice(0, connectionIdx + 1)
+        .map(field => getDataFieldKey(field, dataValue)),
+      
+      'edges',
+    ];
+    
+    const pageInfo = this._pageInfos.getIn([
+      component.id,
+      dataValue,
+      connectionIdx,
+    ]);
+    
+    if (!pageInfo) return;
+    if (!pageInfo[RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE]) return;
+    
+    const graphQLVariables = this._graphQLVariables.get(component.id);
+    
+    try {
+      await observableQuery.fetchMore({
+        variables: buildGraphQLQueryVariables(
+          graphQLVariables,
+          this._getValueContext(component.id),
+          schema,
+        ),
+        
+        updateQuery: (previousResult, { fetchMoreResult }) => {
+          const oldEdges = get(previousResult, edgesPath);
+          const newEdges = get(fetchMoreResult, edgesPath);
+          const combinedEdges = [...oldEdges, ...newEdges];
+          const update = set({}, edgesPath, combinedEdges);
+          
+          return defaultsDeep(update, fetchMoreResult);
+        },
+      });
+      
+      action.params.successActions.forEach(successAction => {
+        this._performAction(successAction, valueContext);
+      });
+    } catch (err) {
+      action.params.errorActions.forEach(errorAction => {
+        this._performAction(errorAction, valueContext);
+      });
+    }
+  }
+  
+  /**
+   *
+   * @param {Object} action
+   * @param {ValueContext} valueContext
    * @private
    */
   _performAction(action, valueContext) {
@@ -482,6 +586,7 @@ class PreviewBuilderComponent extends PureComponent {
       case 'prop': this._performPropAction(action, valueContext); break;
       case 'logout': this._performLogoutAction(); break;
       case 'ajax': this._performAJAXAction(action, valueContext); break;
+      case 'loadMoreData': this._performLoadMoreDataAction(action); break;
       default:
     }
   }
@@ -508,14 +613,14 @@ class PreviewBuilderComponent extends PureComponent {
       if (currentState) {
         let nextState = currentState;
         
-        _forOwn(stateUpdates, (value, slotName) => {
+        forOwn(stateUpdates, (value, slotName) => {
           if (!currentState.has(slotName)) return;
           
           let newValue = NO_VALUE;
           if (value.source === 'const') {
             newValue = value.sourceData.value;
           } else if (value.source === 'arg') {
-            newValue = _get(
+            newValue = get(
               valueContext.actionArgValues[value.sourceData.arg],
               value.sourceData.path,
               NO_VALUE,
@@ -578,6 +683,9 @@ class PreviewBuilderComponent extends PureComponent {
       BuilderComponent: PreviewBuilder, // eslint-disable-line no-use-before-define
       getBuilderProps: (ownProps, jssyValue, valueContext) => ({
         componentsBundle,
+        project,
+        meta,
+        schema,
         routeParams,
         components: jssyValue.sourceData.components,
         rootId: jssyValue.sourceData.rootId,
@@ -597,6 +705,8 @@ class PreviewBuilderComponent extends PureComponent {
           valueContext,
         );
       },
+  
+      pageInfos: this._pageInfos.get(componentId) || null,
     };
   }
   
@@ -604,16 +714,14 @@ class PreviewBuilderComponent extends PureComponent {
    * Constructs props object
    *
    * @param {Object} component
-   * @param {Immutable.Map<Object, DataContextsInfo>} theMap
-   * @param {?Object} [data=null]
+   * @param {?ValueContext} [valueContext=null]
    * @return {Object<string, *>}
    */
-  _buildProps(component, theMap, data = null) {
+  _buildProps(component, valueContext = null) {
     const { meta } = this.props;
     const { dynamicPropValues } = this.state;
     
     const componentMeta = getComponentMeta(component.name, meta);
-    const valueContext = this._getValueContext(component.id, theMap, data);
     const ret = {};
     
     component.props.forEach((propValue, propName) => {
@@ -637,13 +745,12 @@ class PreviewBuilderComponent extends PureComponent {
    * Constructs system props object
    *
    * @param {Object} component
-   * @param {Immutable.Map<Object, DataContextsInfo>} theMap
+   * @param {?ValueContext} [valueContext=null]
    * @return {Object<string, *>}
    */
-  _buildSystemProps(component, theMap) {
+  _buildSystemProps(component, valueContext) {
     const { dynamicPropValues } = this.state;
     
-    const valueContext = this._getValueContext(component.id, theMap);
     const ret = {};
     
     component.systemProps.forEach((propValue, propName) => {
@@ -672,7 +779,8 @@ class PreviewBuilderComponent extends PureComponent {
   _renderPseudoComponent(component) {
     const { children } = this.props;
     
-    const systemProps = this._buildSystemProps(component, null);
+    const valueContext = this._getValueContext(component.id);
+    const systemProps = this._buildSystemProps(component, valueContext);
     if (!systemProps.visible) return null;
     
     if (component.name === 'Outlet') {
@@ -718,6 +826,87 @@ class PreviewBuilderComponent extends PureComponent {
     return ret.length > 0 ? ret : null;
   }
   
+  _extractPageInfos(component, queryResultRoot) {
+    const { meta, schema, dataContextInfo } = this.props;
+    
+    const componentMeta = getComponentMeta(component.name, meta);
+    let ret = Immutable.Map();
+    
+    const visitValue = jssyValue => {
+      if (!jssyValue.isLinkedWithData()) return;
+      if (jssyValue.sourceData.dataContext.size > 0) return;
+      
+      let currentNode = queryResultRoot;
+      let currentTypeName;
+      
+      if (jssyValue.sourceData.dataContext.size > 0) {
+        const dataContextName = jssyValue.sourceData.dataContext.last();
+        const ourDataContextInfo = dataContextInfo[dataContextName];
+        currentTypeName = ourDataContextInfo.type;
+      } else {
+        currentTypeName = schema.queryTypeName;
+      }
+      
+      jssyValue.sourceData.queryPath.forEach((step, idx) => {
+        const field = getFieldOnType(schema, currentTypeName, step.field);
+        
+        if (field.kind === FieldKinds.CONNECTION) {
+          const dataFieldKey = getDataFieldKey(step.field, jssyValue);
+          const pageInfo = pick(
+            currentNode[dataFieldKey].pageInfo,
+            RELAY_PAGEINFO_FIELDS,
+          );
+          
+          ret = ret.setIn([jssyValue, idx], pageInfo);
+        }
+        
+        currentNode = currentNode[step.field];
+        currentTypeName = field.type;
+      });
+    };
+    
+    walkSimpleValues(component, componentMeta, visitValue);
+    
+    return ret;
+  }
+  
+  _createApolloHOC(component, graphQLQuery, graphQLVariables, theMap) {
+    const { schema } = this.props;
+    
+    return graphql(graphQLQuery, {
+      props: ({ ownProps, data }) => {
+        const haveData = queryResultHasData(data);
+        const valueContext = this._getValueContext(
+          component.id,
+          theMap,
+          haveData ? data : null,
+        );
+  
+        if (haveData) {
+          this._pageInfos = this._pageInfos.set(
+            component.id,
+            this._extractPageInfos(component, data),
+          );
+        }
+        
+        return {
+          ...ownProps,
+          ...this._buildProps(component, valueContext),
+        };
+      },
+  
+      options: {
+        variables: buildGraphQLQueryVariables(
+          graphQLVariables,
+          this._getValueContext(component.id),
+          schema,
+        ),
+        
+        fetchPolicy: 'cache-and-network',
+      },
+    });
+  }
+  
   /**
    *
    * @param {Object} component
@@ -741,46 +930,35 @@ class PreviewBuilderComponent extends PureComponent {
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
     
+    this._graphQLVariables.set(component.id, graphQLVariables);
+    
     const theMergedMap = thePreviousMap
       ? thePreviousMap.merge(theMap)
       : theMap;
 
-    const systemProps = this._buildSystemProps(component, theMergedMap);
+    const valueContext = this._getValueContext(component.id, theMergedMap);
+    const systemProps = this._buildSystemProps(component, valueContext);
 
     if (!systemProps.visible) return null;
 
-    const props = graphQLQuery ? {} : this._buildProps(component, theMergedMap);
+    const props = graphQLQuery ? {} : this._buildProps(component, valueContext);
 
     props.children = this._renderComponentChildren(component);
     props.key = String(component.id);
   
-    if (this._renderHints.methodCallTargets.has(component.id)) {
+    if (this._renderHints.needRefs.has(component.id)) {
       props.ref = this._saveComponentRef.bind(this, component.id);
     }
     
     let Renderable = Component;
     
     if (graphQLQuery) {
-      const gqlHoc = graphql(graphQLQuery, {
-        props: ({ ownProps, data }) => ({
-          ...ownProps,
-          ...this._buildProps(
-            component,
-            theMergedMap,
-            queryResultHasData(data) ? data : null,
-          ),
-        }),
-
-        options: {
-          variables: buildGraphQLQueryVariables(
-            graphQLVariables,
-            this._getValueContext(component.id),
-            schema,
-          ),
-
-          fetchPolicy: 'cache-and-network',
-        },
-      });
+      const gqlHoc = this._createApolloHOC(
+        component,
+        graphQLQuery,
+        graphQLVariables,
+        theMergedMap,
+      );
 
       Renderable = gqlHoc(Component);
     }

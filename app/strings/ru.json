@@ -163,6 +163,7 @@
   "actionsEditor.actionType.url": "Открыть URL",
   "actionsEditor.actionType.logout": "Разлогиниться",
   "actionsEditor.actionType.ajax": "AJAX-запрос",
+  "actionsEditor.actionType.loadMoreData": "Загрузить больше данных",
   "actionsEditor.actionForm.url": "URL",
   "actionsEditor.actionForm.urlWindow": "Окно",
   "actionsEditor.actionForm.urlWindow.same": "В том же окне",
@@ -189,6 +190,7 @@
   "actionsEditor.actionTitle.logout": "Разлогиниться",
   "actionsEditor.actionTitle.ajax.withURL": "{method}-запрос к {url}",
   "actionsEditor.actionTitle.ajax.noURL": "{method}-запрос",
+  "actionsEditor.actionTitle.loadMoreData": "Загрузить больше данных в {componentTitle}",
   "actionsEditor.onSuccess": "Действия при успехе",
   "actionsEditor.onError": "Действия при ошибке",
 

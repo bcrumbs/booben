@@ -5,9 +5,10 @@
 'use strict';
 
 import Immutable from 'immutable';
-import _forOwn from 'lodash.forown';
+import forOwn from 'lodash.forown';
 import { List } from './List/List';
 import { Text } from './Text/Text';
+import { isAsyncAction } from '../../models/JssyValue';
 import { parseComponentName, getComponentMeta } from '../../lib/meta';
 import { walkComponentsTree, walkSimpleValues } from '../../lib/components';
 import { buildInitialComponentState } from '../../lib/values';
@@ -31,7 +32,7 @@ export const isPseudoComponent = component =>
 
 /**
  * @typedef {Object} RenderHints
- * @property {Set<number>} methodCallTargets
+ * @property {Set<number>} needRefs
  * @property {Map<number, Set<string>>} activeStateSlots
  */
 
@@ -46,16 +47,18 @@ export const isPseudoComponent = component =>
  */
 export const getRenderHints = (components, rootId, meta, schema, project) => {
   const ret = {
-    methodCallTargets: new Set(),
+    needRefs: new Set(),
     activeStateSlots: new Map(),
   };
 
   if (rootId === INVALID_ID) return ret;
 
   const visitAction = action => {
-    if (action.type === 'method') {
-      ret.methodCallTargets.add(action.params.componentId);
-    } else if (action.type === 'mutation' || action.type === 'ajax') {
+    if (action.type === 'method' || action.type === 'loadMoreData') {
+      ret.needRefs.add(action.params.componentId);
+    }
+  
+    if (isAsyncAction(action.type)) {
       action.params.successActions.forEach(visitAction);
       action.params.errorActions.forEach(visitAction);
     }
@@ -130,7 +133,7 @@ export const getInitialComponentsState = (
     );
 
     const componentState = Immutable.Map().withMutations(map => {
-      _forOwn(values, (value, slotName) => void map.set(slotName, value));
+      forOwn(values, (value, slotName) => void map.set(slotName, value));
     });
 
     componentsState = componentsState.set(componentId, componentState);

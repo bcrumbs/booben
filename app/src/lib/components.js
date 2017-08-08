@@ -7,7 +7,12 @@
 import { Set, Map } from 'immutable';
 import _forOwn from 'lodash.forown';
 import { TypeNames } from '@jssy/types';
-import JssyValue, { SourceDataDesigner, Action } from '../models/JssyValue';
+
+import JssyValue, {
+  SourceDataDesigner,
+  Action,
+  isAsyncAction,
+} from '../models/JssyValue';
 
 import {
   getComponentMeta,
@@ -369,22 +374,6 @@ export const walkSimpleValues = (
           isSystemProp,
         );
       });
-
-      action.params.successActions.forEach((action, actionIdx) => {
-        visitAction(
-          action,
-          [...path, 'successActions', actionIdx],
-          isSystemProp,
-        );
-      });
-
-      action.params.errorActions.forEach((action, actionIdx) => {
-        visitAction(
-          action,
-          [...path, 'errorActions', actionIdx],
-          isSystemProp,
-        );
-      });
     } else if (action.type === 'method') {
       const methodMeta = componentMeta.methods[action.para.method];
 
@@ -409,6 +398,24 @@ export const walkSimpleValues = (
       });
     } else if (action.type === 'prop') {
       // TODO: Visit value
+    }
+    
+    if (isAsyncAction(action.type)) {
+      action.params.successActions.forEach((action, actionIdx) => {
+        visitAction(
+          action,
+          [...path, 'successActions', actionIdx],
+          isSystemProp,
+        );
+      });
+  
+      action.params.errorActions.forEach((action, actionIdx) => {
+        visitAction(
+          action,
+          [...path, 'errorActions', actionIdx],
+          isSystemProp,
+        );
+      });
     }
   };
 

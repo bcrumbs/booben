@@ -8,6 +8,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import _forOwn from 'lodash.forown';
+import { List } from 'immutable';
 
 import {
   BlockContentBox,
@@ -162,6 +163,8 @@ class ComponentActionsEditorComponent extends PureComponent {
   
     const componentId = selectedComponentIds.first();
     
+    // TODO: Create jssyValue if it doesn't exist
+    
     if (currentView === Views.NEW_ACTION) {
       const path = {
         startingPoint: PathStartingPoints.CURRENT_COMPONENTS,
@@ -174,10 +177,7 @@ class ComponentActionsEditorComponent extends PureComponent {
         ],
       };
       
-      onAddAction({
-        path,
-        action,
-      });
+      onAddAction({ path, action });
     } else if (currentView === Views.EDIT_ACTION) {
       const pathToList = editActionPath.slice(0, -1);
       const index = editActionPath[editActionPath.length - 1];
@@ -230,7 +230,6 @@ class ComponentActionsEditorComponent extends PureComponent {
     _forOwn(componentMeta.props, (propMeta, propName) => {
       if (!isValidSourceForValue(propMeta, 'actions')) return;
       
-      const value = component.props.get(propName);
       const title = getString(
         componentMeta.strings,
         propMeta.textKey,
@@ -242,8 +241,13 @@ class ComponentActionsEditorComponent extends PureComponent {
         propMeta.descriptionTextKey,
         language,
       );
+  
+      const hasValue = component.props.has(propName);
+      const actions = hasValue
+        ? component.props.get(propName).sourceData.actions
+        : List();
       
-      const hasActions = value.sourceData.actions.size > 0;
+      const hasActions = actions.size > 0;
       const expanded = propName === activeHandler;
       
       handlersList.push(
@@ -257,7 +261,7 @@ class ComponentActionsEditorComponent extends PureComponent {
           onExpand={this._handleExpandHandler}
         >
           <ActionsList
-            actions={value.sourceData.actions}
+            actions={actions}
             onCreateAction={this._handleOpenNewActionForm}
             onEditAction={this._handleEditAction}
             onDeleteAction={this._handleDeleteAction}
