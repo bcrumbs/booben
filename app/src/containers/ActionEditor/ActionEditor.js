@@ -224,6 +224,9 @@ class ActionEditorComponent extends PureComponent {
     this._handleAJAXActionDecodeResponseChange =
       this._handleAJAXActionDecodeResponseChange.bind(this);
     
+    this._handleLoadMoreDataActionPickComponent =
+      this._handleLoadMoreDataActionPickComponent.bind(this);
+    
     this._handleLink = this._handleLink.bind(this);
     this._handleLinkApply = this._handleLinkApply.bind(this);
     this._handleLinkCancel = this._handleLinkCancel.bind(this);
@@ -251,6 +254,10 @@ class ActionEditorComponent extends PureComponent {
         });
       } else if (action.type === 'prop') {
         this._handlePropActionSetComponent({
+          componentId: nextProps.pickedComponentId,
+        });
+      } else if (action.type === 'loadMoreData') {
+        this._handleLoadMoreDataActionSetComponent({
           componentId: nextProps.pickedComponentId,
         });
       }
@@ -532,6 +539,18 @@ class ActionEditorComponent extends PureComponent {
     });
   }
   
+  _handleLoadMoreDataActionPickComponent() {
+    this.props.onPickComponent();
+  }
+  
+  _handleLoadMoreDataActionSetComponent({ componentId }) {
+    const { action } = this.state;
+  
+    this.setState({
+      action: action.setIn(['params', 'componentId'], componentId),
+    });
+  }
+  
   _handleSave() {
     const { onSave } = this.props;
     const { action } = this.state;
@@ -675,6 +694,10 @@ class ActionEditorComponent extends PureComponent {
       ) {
         return false;
       }
+    } else if (action.type === 'loadMoreData') {
+      if (action.params.componentId === INVALID_ID) {
+        return false;
+      }
     }
   
     return true;
@@ -703,6 +726,10 @@ class ActionEditorComponent extends PureComponent {
       {
         text: getLocalizedText('actionsEditor.actionType.ajax'),
         value: 'ajax',
+      },
+      {
+        text: getLocalizedText('actionsEditor.actionType.loadMoreData'),
+        value: 'loadMoreData',
       },
     ];
     
@@ -1205,6 +1232,27 @@ class ActionEditorComponent extends PureComponent {
     return props;
   }
   
+  _renderLoadMoreDataActionProps() {
+    const { getLocalizedText } = this.props;
+    const { action } = this.state;
+    
+    const label = getLocalizedText(
+      'actionsEditor.actionForm.loadMoreData.componentWithData',
+    );
+    
+    const props = [
+      <PropComponentPicker
+        key="loadMoreData_component"
+        label={label}
+        linked={action.params.componentId !== INVALID_ID}
+        getLocalizedText={getLocalizedText}
+        onPickComponent={noop}
+      />,
+    ];
+    
+    return props;
+  }
+  
   _renderAdditionalProps() {
     const { action } = this.state;
     
@@ -1215,6 +1263,7 @@ class ActionEditorComponent extends PureComponent {
       case 'navigate': return this._renderNavigateActionProps();
       case 'url': return this._renderURLActionProps();
       case 'ajax': return this._renderAJAXActionProps();
+      case 'loadMoreData': return this._renderLoadMoreDataActionProps();
       default: return [];
     }
   }

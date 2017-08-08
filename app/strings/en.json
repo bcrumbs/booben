@@ -181,6 +181,7 @@
   "actionsEditor.actionForm.ajax.body": "Request body",
   "actionsEditor.actionForm.ajax.decodeResponse": "Decode response as",
   "actionsEditor.actionForm.ajax.decodeResponse.text": "Text",
+  "actionsEditor.actionForm.loadMoreData.componentWithData": "Component with data",
   "actionsEditor.actionTitle.mutation": "{mutationTitle}",
   "actionsEditor.actionTitle.method": "Call '{method}' of '{componentTitle}'",
   "actionsEditor.actionTitle.prop": "Change value of '{propName}' of '{componentTitle}'",

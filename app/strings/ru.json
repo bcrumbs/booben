@@ -182,6 +182,7 @@
   "actionsEditor.actionForm.ajax.decodeResponse": "Декодировать ответ как",
   "actionsEditor.actionForm.ajax.decodeResponse.text": "Текст",
   "actionsEditor.actionTitle.mutation": "{mutationTitle}",
+  "actionsEditor.actionForm.loadMoreData.componentWithData": "Компонент с данными",
   "actionsEditor.actionTitle.method": "Вызвать '{method}' у '{componentTitle}'",
   "actionsEditor.actionTitle.prop": "Изменить значение '{propName}' у '{componentTitle}'",
   "actionsEditor.actionTitle.navigate": "Перейти на '{routeName}'",
