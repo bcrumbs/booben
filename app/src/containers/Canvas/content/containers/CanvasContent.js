@@ -23,7 +23,7 @@ import {
 
 import {
   pickComponentDone,
-  pickComponentStateSlotCancel,
+  pickComponentDataCancel,
   ComponentPickAreas,
 } from '../../../../actions/project';
 
@@ -51,9 +51,9 @@ const propTypes = {
   placeholderContainerId: PropTypes.number.isRequired,
   placeholderAfter: PropTypes.number.isRequired,
   pickingComponent: PropTypes.bool.isRequired,
-  pickingComponentStateSlot: PropTypes.bool.isRequired,
+  pickingComponentData: PropTypes.bool.isRequired,
   pickingComponentFilter: PropTypes.func,
-  componentStateSlotsListIsVisible: PropTypes.bool.isRequired,
+  componentDataListIsVisible: PropTypes.bool.isRequired,
   highlightingEnabled: PropTypes.bool.isRequired,
   currentRouteId: PropTypes.number.isRequired,
   currentRouteIsIndexRoute: PropTypes.bool.isRequired,
@@ -63,7 +63,7 @@ const propTypes = {
   onHighlightComponent: PropTypes.func.isRequired,
   onUnhighlightComponent: PropTypes.func.isRequired,
   onPickComponent: PropTypes.func.isRequired,
-  onCancelPickComponentStateSlot: PropTypes.func.isRequired,
+  onCancelPickComponentData: PropTypes.func.isRequired,
   onDragOverPlaceholder: PropTypes.func.isRequired,
   onDragOverNothing: PropTypes.func.isRequired,
   onDropZoneSnap: PropTypes.func,
@@ -92,10 +92,9 @@ const mapStateToProps = state => ({
   placeholderContainerId: state.project.placeholderContainerId,
   placeholderAfter: state.project.placeholderAfter,
   pickingComponent: state.project.pickingComponent,
-  pickingComponentStateSlot: state.project.pickingComponentStateSlot,
+  pickingComponentData: state.project.pickingComponentData,
   pickingComponentFilter: state.project.pickingComponentFilter,
-  componentStateSlotsListIsVisible:
-    state.project.componentStateSlotsListIsVisible,
+  componentDataListIsVisible: state.project.componentDataListIsVisible,
   highlightingEnabled: state.project.highlightingEnabled,
   currentRouteId: state.project.currentRouteId,
   currentRouteIsIndexRoute: state.project.currentRouteIsIndexRoute,
@@ -118,8 +117,8 @@ const mapDispatchToProps = dispatch => ({
   onPickComponent: componentId =>
     void dispatch(pickComponentDone(componentId, ComponentPickAreas.CANVAS)),
   
-  onCancelPickComponentStateSlot: () =>
-    void dispatch(pickComponentStateSlotCancel()),
+  onCancelPickComponentData: () =>
+    void dispatch(pickComponentDataCancel()),
 
   onDragOverPlaceholder: (containerId, afterIdx) =>
     void dispatch(dragOverPlaceholder(containerId, afterIdx)),
@@ -199,15 +198,15 @@ class CanvasContent extends Component {
   }
 
   componentWillReceiveProps(nextProps) {
-    const { pickingComponent, pickingComponentStateSlot } = this.props;
+    const { pickingComponent, pickingComponentData } = this.props;
     
     const nowPickingComponent =
       nextProps.pickingComponent ||
-      nextProps.pickingComponentStateSlot;
+      nextProps.pickingComponentData;
     
     const wasPickingComponent =
       pickingComponent ||
-      pickingComponentStateSlot;
+      pickingComponentData;
     
     if (nowPickingComponent) {
       if (!wasPickingComponent) {
@@ -270,7 +269,7 @@ class CanvasContent extends Component {
   }
 
   componentWillUnmount() {
-    const { pickingComponent, pickingComponentStateSlot } = this.props;
+    const { pickingComponent, pickingComponentData } = this.props;
     const { window } = this.context;
 
     const containerNode = this._getContainer();
@@ -294,7 +293,7 @@ class CanvasContent extends Component {
 
     if (this._unhighilightTimer > -1) clearImmediate(this._unhighilightTimer);
     
-    if (pickingComponent || pickingComponentStateSlot) {
+    if (pickingComponent || pickingComponentData) {
       window.document.body.removeEventListener('click', this._handleBodyClick);
     }
   }
@@ -653,16 +652,16 @@ class CanvasContent extends Component {
     const {
       pickingComponent,
       pickingComponentFilter,
-      componentStateSlotsListIsVisible,
+      componentDataListIsVisible,
       onToggleComponentSelection,
       onSelectSingleComponent,
       onPickComponent,
-      onCancelPickComponentStateSlot,
+      onCancelPickComponentData,
     } = this.props;
     
     if (event.button === 0) { // Left button
-      if (componentStateSlotsListIsVisible) {
-        onCancelPickComponentStateSlot();
+      if (componentDataListIsVisible) {
+        onCancelPickComponentData();
         return;
       }
       
@@ -691,12 +690,12 @@ class CanvasContent extends Component {
    */
   _handleBodyClick() {
     const {
-      componentStateSlotsListIsVisible,
-      onCancelPickComponentStateSlot,
+      componentDataListIsVisible,
+      onCancelPickComponentData,
     } = this.props;
     
-    if (componentStateSlotsListIsVisible) {
-      onCancelPickComponentStateSlot();
+    if (componentDataListIsVisible) {
+      onCancelPickComponentData();
     }
   }
   

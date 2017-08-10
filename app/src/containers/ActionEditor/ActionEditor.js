@@ -11,7 +11,6 @@ import _startCase from 'lodash.startcase';
 import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';
 import { List, Map } from 'immutable';
-import { isCompatibleType } from '@jssy/types';
 import { Button } from '@reactackle/reactackle';
 import { BlockContentBoxItem } from '@jssy/common-ui';
 import { DesignDialog } from '../DesignDialog/DesignDialog';
@@ -27,9 +26,18 @@ import {
 
 import Project from '../../models/Project';
 import { jssyValueToImmutable } from '../../models/ProjectComponent';
-import JssyValue from '../../models/JssyValue';
-import { Action, createActionParams } from '../../models/SourceDataActions';
-import SourceDataState from '../../models/SourceDataState';
+
+import JssyValue, {
+  SourceDataState,
+  Action,
+  MutationActionParams,
+  NavigateActionParams,
+  URLActionParams,
+  MethodCallActionParams,
+  PropChangeActionParams,
+  AJAXActionParams,
+  LoadMoreDataActionParams,
+} from '../../models/JssyValue';
 
 import {
   currentComponentsSelector,
@@ -40,8 +48,13 @@ import {
 
 import {
   pickComponent,
-  pickComponentStateSlot,
+  pickComponentData,
 } from '../../actions/project';
+
+import {
+  getStateSlotPickerFns,
+  getConnectionDataValuePickerFns,
+} from '../../actions/helpers/component-picker';
 
 import { setInPath } from '../../lib/path';
 import { formatComponentTitle } from '../../lib/components';
@@ -63,7 +76,6 @@ import {
   returnArg,
   arrayToObject,
   objectToArray,
-  objectSome,
 } from '../../utils/misc';
 
 import * as JssyPropTypes from '../../constants/common-prop-types';
@@ -88,16 +100,16 @@ const propTypes = {
   ownerUserTypedefs: PropTypes.object, // state
   language: PropTypes.string.isRequired, // state
   pickingComponent: PropTypes.bool.isRequired, // state
-  pickingComponentStateSlot: PropTypes.bool.isRequired, // state
+  pickingComponentData: PropTypes.bool.isRequired, // state
   // eslint-disable-next-line react/no-unused-prop-types
   pickedComponentId: PropTypes.number.isRequired, // state
   // eslint-disable-next-line react/no-unused-prop-types
-  pickedComponentStateSlot: PropTypes.string.isRequired, // state
+  pickedComponentData: PropTypes.string.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onSave: PropTypes.func,
   onCancel: PropTypes.func,
   onPickComponent: PropTypes.func.isRequired, // dispatch
-  onPickComponentStateSlot: PropTypes.func.isRequired, // dispatch
+  onPickComponentData: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
@@ -117,9 +129,9 @@ const mapStateToProps = state => ({
   ownerUserTypedefs: ownerUserTypedefsSelector(state),
   language: state.app.language,
   pickingComponent: state.project.pickingComponent,
-  pickingComponentStateSlot: state.project.pickingComponentStateSlot,
+  pickingComponentData: state.project.pickingComponentData,
   pickedComponentId: state.project.pickedComponentId,
-  pickedComponentStateSlot: state.project.pickedComponentStateSlot,
+  pickedComponentData: state.project.pickedComponentData,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -127,8 +139,8 @@ const mapDispatchToProps = dispatch => ({
   onPickComponent: filter =>
     void dispatch(pickComponent(filter)),
 
-  onPickComponentStateSlot: (filter, stateSlotFilter) =>
-    void dispatch(pickComponentStateSlot(filter, stateSlotFilter)),
+  onPickComponentData: (filter, dataGetter) =>
+    void dispatch(pickComponentData(filter, dataGetter)),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
@@ -141,6 +153,23 @@ const addActionArgSourceToValueDef = valueDef => ({
     actionArg: {},
   },
 });
+
+const createActionParams = type => {
+  switch (type) {
+    case 'mutation': return new MutationActionParams();
+    case 'navigate': return new NavigateActionParams();
+    case 'url': return new URLActionParams();
+    case 'method': return new MethodCallActionParams();
+    case 'prop': return new PropChangeActionParams();
+    case 'logout': return null;
+    case 'ajax': return new AJAXActionParams({
+      url: JssyValue.staticFromJS(''),
+    });
+
+    case 'loadMoreData': return new LoadMoreDataActionParams();
+    default: return null;
+  }
+};
 
 class ActionEditorComponent extends PureComponent {
   constructor(props, context) {
@@ -200,6 +229,11 @@ class ActionEditorComponent extends PureComponent {
     this._handleAJAXActionDecodeResponseChange =
       this._handleAJAXActionDecodeResponseChange.bind(this);
     
+    this._handleLoadMoreDataActionPickComponent =
+      this._handleLoadMoreDataActionPickComponent.bind(this);
+    this._handleLoadMoreDataUnlink =
+      this._handleLoadMoreDataUnlink.bind(this);
+    
     this._handleLink = this._handleLink.bind(this);
     this._handleLinkApply = this._handleLinkApply.bind(this);
     this._handleLinkCancel = this._handleLinkCancel.bind(this);
@@ -210,37 +244,47 @@ class ActionEditorComponent extends PureComponent {
   }
   
   componentWillReceiveProps(nextProps) {
-    const { pickingComponent, pickingComponentStateSlot } = this.props;
-    const { action, pickingPath } = this.state;
+    const { pickingComponent, pickingComponentData } = this.props;
+
+    if (nextProps.pickedComponentId === INVALID_ID) return;
     
     if (pickingComponent && !nextProps.pickingComponent) {
-      if (
-        nextProps.pickedComponentId === INVALID_ID ||
-        nextProps.pickingComponentStateSlot
-      ) {
-        return;
-      }
-
-      if (action.type === 'method') {
-        this._handleMethodActionSetComponent({
-          componentId: nextProps.pickedComponentId,
-        });
-      } else if (action.type === 'prop') {
-        this._handlePropActionSetComponent({
-          componentId: nextProps.pickedComponentId,
-        });
-      }
+      if (nextProps.pickingComponentData) return;
+      this._handlePickedComponent(nextProps.pickedComponentId);
     }
 
-    if (pickingComponentStateSlot && !nextProps.pickingComponentStateSlot) {
-      if (nextProps.pickedComponentId === INVALID_ID) return;
-      
+    if (pickingComponentData && !nextProps.pickingComponentData) {
+      this._handlePickedComponentData(
+        nextProps.pickedComponentId,
+        nextProps.pickedComponentData,
+      );
+    }
+  }
+
+  _handlePickedComponent(componentId) {
+    const { action } = this.state;
+
+    if (action.type === 'method') {
+      this._handleMethodActionSetComponent({ componentId });
+    } else if (action.type === 'prop') {
+      this._handlePropActionSetComponent({ componentId });
+    }
+  }
+
+  _handlePickedComponentData(componentId, data) {
+    const { action, pickingPath } = this.state;
+
+    if (action.type === 'loadMoreData') {
+      this.setState({
+        action: action.mergeIn(['params'], {
+          componentId,
+          pathToDataValue: data,
+        }),
+      });
+    } else {
       const newValue = new JssyValue({
         source: 'state',
-        sourceData: new SourceDataState({
-          componentId: nextProps.pickedComponentId,
-          stateSlot: nextProps.pickedComponentStateSlot,
-        }),
+        sourceData: new SourceDataState({ componentId, stateSlot: data }),
       });
 
       this.setState({
@@ -508,6 +552,35 @@ class ActionEditorComponent extends PureComponent {
     });
   }
   
+  _handleLoadMoreDataActionPickComponent() {
+    const {
+      meta,
+      schema,
+      project,
+      language,
+      currentComponents,
+      onPickComponentData,
+    } = this.props;
+
+    const { filter, dataGetter } = getConnectionDataValuePickerFns(
+      currentComponents,
+      meta,
+      schema,
+      project,
+      language,
+    );
+
+    onPickComponentData(filter, dataGetter);
+  }
+
+  _handleLoadMoreDataUnlink() {
+    const { action } = this.state;
+
+    this.setState({
+      action: action.setIn(['params', 'componentId'], INVALID_ID),
+    });
+  }
+  
   _handleSave() {
     const { onSave } = this.props;
     const { action } = this.state;
@@ -568,7 +641,13 @@ class ActionEditorComponent extends PureComponent {
   }
 
   _handlePick({ name, path, targetValueDef, targetUserTypedefs }) {
-    const { meta, currentComponents, onPickComponentStateSlot } = this.props;
+    const {
+      meta,
+      currentComponents,
+      language,
+      onPickComponentData,
+    } = this.props;
+
     const { action } = this.state;
 
     const pickingPath = {
@@ -595,29 +674,15 @@ class ActionEditorComponent extends PureComponent {
 
     this.setState({ pickingPath });
 
-    const filter = sourceComponentId => {
-      const sourceComponent = currentComponents.get(sourceComponentId);
-      const sourceComponentMeta = getComponentMeta(sourceComponent.name, meta);
-
-      if (!sourceComponentMeta.state) return false;
-
-      return objectSome(
-        sourceComponentMeta.state,
-        stateSlot => isCompatibleType(
-          targetValueDef,
-          stateSlot,
-          targetUserTypedefs,
-          sourceComponentMeta.types,
-        ),
-      );
-    };
-
-    const stateSlotFilter = stateSlotTypedef => isCompatibleType(
+    const { filter, dataGetter } = getStateSlotPickerFns(
       targetValueDef,
-      stateSlotTypedef,
+      targetUserTypedefs,
+      currentComponents,
+      meta,
+      language,
     );
 
-    onPickComponentStateSlot(filter, stateSlotFilter);
+    onPickComponentData(filter, dataGetter);
   }
   
   _isCurrentActionValid() {
@@ -651,6 +716,10 @@ class ActionEditorComponent extends PureComponent {
       ) {
         return false;
       }
+    } else if (action.type === 'loadMoreData') {
+      if (action.params.componentId === INVALID_ID) {
+        return false;
+      }
     }
   
     return true;
@@ -679,6 +748,10 @@ class ActionEditorComponent extends PureComponent {
       {
         text: getLocalizedText('actionsEditor.actionType.ajax'),
         value: 'ajax',
+      },
+      {
+        text: getLocalizedText('actionsEditor.actionType.loadMoreData'),
+        value: 'loadMoreData',
       },
     ];
     
@@ -1181,6 +1254,35 @@ class ActionEditorComponent extends PureComponent {
     return props;
   }
   
+  _renderLoadMoreDataActionProps() {
+    const { currentComponents, getLocalizedText } = this.props;
+    const { action } = this.state;
+    
+    const label = getLocalizedText(
+      'actionsEditor.actionForm.loadMoreData.componentWithData',
+    );
+
+    const isLinked = action.params.componentId !== INVALID_ID;
+    let linkedWith = '';
+
+    if (isLinked) {
+      const targetComponent = currentComponents.get(action.params.componentId);
+      linkedWith = formatComponentTitle(targetComponent);
+    }
+    
+    return [
+      <PropComponentPicker
+        key="loadMoreData_component"
+        label={label}
+        linked={isLinked}
+        linkedWith={linkedWith}
+        getLocalizedText={getLocalizedText}
+        onPickComponent={this._handleLoadMoreDataActionPickComponent}
+        onUnlink={this._handleLoadMoreDataUnlink}
+      />,
+    ];
+  }
+  
   _renderAdditionalProps() {
     const { action } = this.state;
     
@@ -1191,6 +1293,7 @@ class ActionEditorComponent extends PureComponent {
       case 'navigate': return this._renderNavigateActionProps();
       case 'url': return this._renderURLActionProps();
       case 'ajax': return this._renderAJAXActionProps();
+      case 'loadMoreData': return this._renderLoadMoreDataActionProps();
       default: return [];
     }
   }

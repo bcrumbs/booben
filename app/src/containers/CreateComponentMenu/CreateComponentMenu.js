@@ -99,7 +99,8 @@ class CreateComponentMenuComponent extends PureComponent {
 
   componentDidMount() {
     if (this._input !== null) {
-      this._input.focus();
+      // TODO: Remove extra check after upgrading reactackle
+      if (this._input.focus) this._input.focus();
     }
   }
 

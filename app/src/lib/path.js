@@ -9,7 +9,7 @@ import { isInteger, isFunction } from '../utils/misc';
 
 /**
  * @typedef {Object} PathStartDesc
- * @property {Immutable.Iterable} object
+ * @property {Object} object
  * @property {(string|number)[]} expandedPath
  */
 
@@ -122,3 +122,22 @@ export const getObjectByPath = path =>
  */
 export const setInPath = (path, value) =>
   path.start.object.setIn(expandPathRelative(path), value);
+
+/**
+ *
+ * @param {Object} startObject
+ * @param {Array<string|number>} steps
+ * @param {Array(string|number)} [expandedPathToStartObject=[]]
+ * @return {Path}
+ */
+export const createPath = (
+  startObject,
+  steps,
+  expandedPathToStartObject = [],
+) => ({
+  start: {
+    object: startObject,
+    expandedPath: expandedPathToStartObject,
+  },
+  steps,
+});

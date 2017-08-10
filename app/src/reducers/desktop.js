@@ -34,7 +34,7 @@ import {
 import {
   PROJECT_PICK_COMPONENT,
   PROJECT_PICK_COMPONENT_DONE,
-  PROJECT_PICK_COMPONENT_STATE_SLOT,
+  PROJECT_PICK_COMPONENT_DATA,
   PROJECT_PICK_COMPONENT_CANCEL,
 } from '../actions/project';
 
@@ -55,7 +55,7 @@ const DesktopState = Record({
   shadowedToolId: null,
   topToolZIndex: 0,
   stickyToolId: null,
-  pickingStateSlot: false,
+  pickingComponentData: false,
 });
 
 const selectTool = (state, toolId) => {
@@ -278,15 +278,15 @@ const handlers = {
       : selectPreviousTool(state),
   
   [PROJECT_PICK_COMPONENT]: (state, action) => {
-    state = state.set('pickingStateSlot', action.stateSlot);
+    state = state.set('pickingComponentData', action.pickData);
     return temporarilySelectTool(state, TOOL_ID_COMPONENTS_TREE);
   },
   
-  [PROJECT_PICK_COMPONENT_DONE]: state => state.pickingStateSlot
+  [PROJECT_PICK_COMPONENT_DONE]: state => state.pickingComponentData
     ? state
     : selectPreviousTool(state),
   
-  [PROJECT_PICK_COMPONENT_STATE_SLOT]: state => selectPreviousTool(state),
+  [PROJECT_PICK_COMPONENT_DATA]: state => selectPreviousTool(state),
   
   [PROJECT_PICK_COMPONENT_CANCEL]: state => selectPreviousTool(state),
 

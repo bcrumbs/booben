@@ -180,24 +180,57 @@ const graphQLScalarTypeToJssyType = {
 export const isBuiltinGraphQLType = graphQLTypeName =>
   GQL_SCALAR_TYPES.has(graphQLTypeName);
 
-const RELAY_TYPE_NODE_INTERFACE = 'Node';
-const RELAY_TYPE_PAGEINFO = 'PageInfo';
-const RELAY_CONNECTION_ARGS_NUM = 4;
-const RELAY_CONNECTION_ARG_FIRST = 'first';
-const RELAY_CONNECTION_ARG_LAST = 'last';
-const RELAY_CONNECTION_ARG_AFTER = 'after';
-const RELAY_CONNECTION_ARG_BEFORE = 'before';
-const RELAY_CONNECTION_FIELDS_NUM = 2;
-const RELAY_CONNECTION_FIELD_EDGES = 'edges';
-const RELAY_CONNECTION_FIELD_PAGEINFO = 'pageInfo';
-const RELAY_PAGEINFO_FIELDS_NUM = 2;
-const RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE = 'hasNextPage';
-const RELAY_PAGEINFO_FIELD_HAS_PREVIOUS_PAGE = 'hasPreviousPage';
-const RELAY_PAGEINFO_FIELD_START_CURSOR = 'startCursor';
-const RELAY_PAGEINFO_FIELD_END_CURSOR = 'endCursor';
-const RELAY_EDGE_FIELDS_NUM = 2;
-const RELAY_EDGE_FIELD_NODE = 'node';
-const RELAY_EDGE_FIELD_CURSOR = 'cursor';
+export const RELAY_TYPE_NODE_INTERFACE = 'Node';
+export const RELAY_TYPE_PAGEINFO = 'PageInfo';
+export const RELAY_CONNECTION_ARGS_NUM = 4;
+export const RELAY_CONNECTION_ARG_FIRST = 'first';
+export const RELAY_CONNECTION_ARG_LAST = 'last';
+export const RELAY_CONNECTION_ARG_AFTER = 'after';
+export const RELAY_CONNECTION_ARG_BEFORE = 'before';
+export const RELAY_CONNECTION_FIELDS_NUM = 2;
+export const RELAY_CONNECTION_FIELD_EDGES = 'edges';
+export const RELAY_CONNECTION_FIELD_PAGEINFO = 'pageInfo';
+export const RELAY_PAGEINFO_FIELDS_NUM = 2;
+export const RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE = 'hasNextPage';
+export const RELAY_PAGEINFO_FIELD_HAS_PREVIOUS_PAGE = 'hasPreviousPage';
+export const RELAY_PAGEINFO_FIELD_START_CURSOR = 'startCursor';
+export const RELAY_PAGEINFO_FIELD_END_CURSOR = 'endCursor';
+export const RELAY_EDGE_FIELDS_NUM = 2;
+export const RELAY_EDGE_FIELD_NODE = 'node';
+export const RELAY_EDGE_FIELD_CURSOR = 'cursor';
+
+export const RELAY_PAGEINFO_FIELDS = [
+  RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
+  RELAY_PAGEINFO_FIELD_HAS_PREVIOUS_PAGE,
+  RELAY_PAGEINFO_FIELD_START_CURSOR,
+  RELAY_PAGEINFO_FIELD_END_CURSOR,
+];
+
+/**
+ *
+ * @type {DataFieldArg}
+ */
+export const AFTER_ARG_DEFINITION = {
+  name: RELAY_CONNECTION_ARG_AFTER,
+  description: '',
+  type: 'String',
+  kind: FieldKinds.SINGLE,
+  nonNull: true,
+  defaultValue: '',
+};
+
+/**
+ *
+ * @type {DataFieldArg}
+ */
+export const BEFORE_ARG_DEFINITION = {
+  name: RELAY_CONNECTION_ARG_BEFORE,
+  description: '',
+  type: 'String',
+  kind: FieldKinds.SINGLE,
+  nonNull: true,
+  defaultValue: '',
+};
 
 /**
  *
@@ -1053,4 +1086,33 @@ export const getMutationField = (schema, mutationName) => {
 export const getMutationType = schema => {
   if (!schema.mutationTypeName) return null;
   return schema.types[schema.mutationTypeName];
+};
+
+/**
+ *
+ * @param {DataSchema} schema
+ * @param {string[]} path
+ * @param {string} [rootTypeName]
+ * @return {number}
+ */
+export const findFirstConnectionInPath = (
+  schema,
+  path,
+  rootTypeName = schema.queryTypeName,
+) => {
+  let currentType = schema.types[rootTypeName];
+  let ret = -1;
+  
+  for (let i = 0, l = path.length; i < l; i++) {
+    const field = currentType.fields[path[i]];
+    
+    if (field.kind === FieldKinds.CONNECTION) {
+      ret = i;
+      break;
+    }
+    
+    currentType = schema.types[field.type];
+  }
+  
+  return ret;
 };

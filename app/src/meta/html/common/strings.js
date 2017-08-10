@@ -76,4 +76,10 @@ export default {
   props_title_desc: {
     en: 'Contains a text representing advisory information related to the element it belongs to. Such information can typically, but not necessarily, be presented to the user as a tooltip.',
   },
+  props_onClick: {
+    en: 'Click',
+  },
+  props_onClick_desc: {
+    en: '',
+  },
 };

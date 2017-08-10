@@ -6,8 +6,34 @@
 
 import { Record, Map, List } from 'immutable';
 import _mapValues from 'lodash.mapvalues';
-import SourceDataStatic from './SourceDataStatic';
-import SourceDataData from './SourceDataData';
+import SourceDataActionArg from './JssyValueSourceData/SourceDataActionArg';
+
+import SourceDataActions, {
+  Action,
+  MutationActionParams,
+  NavigateActionParams,
+  URLActionParams,
+  MethodCallActionParams,
+  PropChangeActionParams,
+  AJAXActionParams,
+  LoadMoreDataActionParams,
+  isAsyncAction,
+} from './JssyValueSourceData/SourceDataActions';
+
+import SourceDataConnectionPaginationState
+  from './JssyValueSourceData/SourceDataConnectionPaginationState';
+
+import SourceDataConst from './JssyValueSourceData/SourceDataConst';
+
+import SourceDataData, {
+  QueryPathStep,
+} from './JssyValueSourceData/SourceDataData';
+
+import SourceDataDesigner from './JssyValueSourceData/SourceDataDesigner';
+import SourceDataFunction from './JssyValueSourceData/SourceDataFunction';
+import SourceDataRouteParams from './JssyValueSourceData/SourceDataRouteParams';
+import SourceDataState from './JssyValueSourceData/SourceDataState';
+import SourceDataStatic from './JssyValueSourceData/SourceDataStatic';
 
 import {
   isString,
@@ -254,3 +280,26 @@ class JssyValue extends JssyValueRecord {
 JssyValue.STATIC_NULL = JssyValue.staticFromJS(null);
 
 export default JssyValue;
+
+export {
+  SourceDataActionArg,
+  SourceDataActions,
+  Action,
+  MutationActionParams,
+  NavigateActionParams,
+  URLActionParams,
+  MethodCallActionParams,
+  PropChangeActionParams,
+  AJAXActionParams,
+  LoadMoreDataActionParams,
+  isAsyncAction,
+  SourceDataConnectionPaginationState,
+  SourceDataConst,
+  SourceDataData,
+  QueryPathStep,
+  SourceDataDesigner,
+  SourceDataFunction,
+  SourceDataRouteParams,
+  SourceDataState,
+  SourceDataStatic,
+};

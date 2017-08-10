@@ -22,8 +22,10 @@ import {
   LOAD_ERROR,
 } from '../constants/load-states';
 
+import { DEFAULT_LANGUAGE } from '../config';
+
 const AppState = Record({
-  language: 'en',
+  language: DEFAULT_LANGUAGE,
   localizationLoadState: NOT_LOADED,
   localizationLoadError: null,
   localization: {},

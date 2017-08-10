@@ -6,13 +6,14 @@
 
 import { Record, List, Map, Set } from 'immutable';
 import _mapValues from 'lodash.mapvalues';
-import JssyValue from './JssyValue';
-import SourceDataStatic from './SourceDataStatic';
-import SourceDataData, { QueryPathStep } from './SourceDataData';
-import SourceDataConst from './SourceDataConst';
-import SourceDataFunction from './SourceDataFunction';
 
-import SourceDataActions, {
+import JssyValue, {
+  SourceDataStatic,
+  SourceDataData,
+  QueryPathStep,
+  SourceDataConst,
+  SourceDataFunction,
+  SourceDataActions,
   Action,
   MutationActionParams,
   NavigateActionParams,
@@ -20,12 +21,12 @@ import SourceDataActions, {
   MethodCallActionParams,
   PropChangeActionParams,
   AJAXActionParams,
-} from './SourceDataActions';
-
-import SourceDataDesigner from './SourceDataDesigner';
-import SourceDataState from './SourceDataState';
-import SourceDataRouteParams from './SourceDataRouteParams';
-import SourceDataActionArg from './SourceDataActionArg';
+  LoadMoreDataActionParams,
+  SourceDataDesigner,
+  SourceDataState,
+  SourceDataRouteParams,
+  SourceDataActionArg,
+} from './JssyValue';
 
 import {
   isUndef,
@@ -139,6 +140,17 @@ const actionsToImmutable = actions => List(actions.map(action => {
       break;
     }
     
+    case 'loadMoreData': {
+      data.params = new LoadMoreDataActionParams({
+        componentId: action.params.componentId,
+        pathToDataValue: List(action.params.pathToDataValue),
+        successActions: actionsToImmutable(action.params.successActions),
+        errorActions: actionsToImmutable(action.params.errorActions),
+      });
+      
+      break;
+    }
+    
     default: {
       data.params = null;
     }
@@ -147,10 +159,23 @@ const actionsToImmutable = actions => List(actions.map(action => {
   return Action(data);
 }));
 
-export const jssyValueToImmutable = ({ source, sourceData }) => new JssyValue({
-  source,
-  sourceData: sourceDataToImmutable(source, sourceData),
-});
+/**
+ *
+ * @param {?PlainJssyValue} plainValue
+ * @return {?Object}
+ */
+export const jssyValueToImmutable = plainValue => {
+  if (plainValue === null) {
+    return null;
+  }
+  
+  const { source, sourceData } = plainValue;
+  
+  return new JssyValue({
+    source,
+    sourceData: sourceDataToImmutable(source, sourceData),
+  });
+};
 
 const propSourceDataToImmutableFns = {
   const: input => new SourceDataConst(input),
@@ -180,6 +205,7 @@ const propSourceDataToImmutableFns = {
       queryPath: input.queryPath
         ? List(input.queryPath.map(step => new QueryPathStep({
           field: step.field,
+          connectionPageSize: step.connectionPageSize,
         })))
         : null,
       
@@ -253,11 +279,19 @@ export const projectComponentToImmutable = (
   isIndexRoute,
 });
 
+/**
+ *
+ * @param {ProjectComponent} input
+ * @param {number} [routeId=INVALID_ID]
+ * @param {boolean} [isIndexRoute=false]
+ * @param {number} [parentId=INVALID_ID]
+ * @return {Immutable.Map<number, Object>}
+ */
 export const componentsToImmutable = (
   input,
-  routeId,
-  isIndexRoute,
-  parentId,
+  routeId = INVALID_ID,
+  isIndexRoute = false,
+  parentId = INVALID_ID,
 ) => Map().withMutations(mut => {
   const visitComponent = (component, parentId) => {
     mut.set(
@@ -322,6 +356,13 @@ const actionParamsToJSv1Converters = {
     body: params.body === null ? null : jssyValueToJSv1(params.body),
     mode: params.mode,
     decodeResponse: params.decodeResponse,
+    successActions: mapListToArray(params.successActions, actionToJSv1),
+    errorActions: mapListToArray(params.errorActions, actionToJSv1),
+  }),
+  
+  loadMoreData: params => ({
+    componentId: params.componentId,
+    pathToDataValue: params.pathToDataValue.toJS(),
     successActions: mapListToArray(params.successActions, actionToJSv1),
     errorActions: mapListToArray(params.errorActions, actionToJSv1),
   }),

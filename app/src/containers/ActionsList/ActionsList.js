@@ -20,6 +20,7 @@ import {
   getLocalizedTextFromState,
 } from '../../selectors';
 
+import { isAsyncAction } from '../../models/JssyValue';
 import { getMutationField } from '../../lib/schema';
 import { getComponentMeta, getString } from '../../lib/meta';
 import { formatComponentTitle } from '../../lib/components';
@@ -57,7 +58,7 @@ const mapStateToProps = state => ({
 
 const wrap = connect(mapStateToProps);
 
-class ActionsListComponent extends Component {
+class _ActionsList extends Component {
   constructor(props, context) {
     super(props, context);
     
@@ -191,6 +192,17 @@ class ActionsListComponent extends Component {
         }
       }
       
+      case 'loadMoreData': {
+        const targetComponent =
+          currentComponents.get(action.params.componentId);
+        
+        const targetComponentTitle = formatComponentTitle(targetComponent);
+        
+        return getLocalizedText('actionsEditor.actionTitle.loadMoreData', {
+          componentTitle: targetComponentTitle,
+        });
+      }
+      
       default:
         return '';
     }
@@ -239,7 +251,7 @@ class ActionsListComponent extends Component {
       const title = this._formatActionTitle(action);
       const description = this._getActionDescription(action);
     
-      if (action.type === 'mutation' || action.type === 'ajax') {
+      if (isAsyncAction(action.type)) {
         const successActionsList = this._renderList(
           action.params.successActions,
           [...actionPath, 'successActions'],
@@ -299,8 +311,8 @@ class ActionsListComponent extends Component {
   }
 }
 
-ActionsListComponent.propTypes = propTypes;
-ActionsListComponent.defaultProps = defaultProps;
-ActionsListComponent.displayName = 'ActionsList';
+_ActionsList.propTypes = propTypes;
+_ActionsList.defaultProps = defaultProps;
+_ActionsList.displayName = 'ActionsList';
 
-export const ActionsList = wrap(ActionsListComponent);
+export const ActionsList = wrap(_ActionsList);

@@ -16,25 +16,25 @@ import {
   BlockContentPlaceholder,
 } from '@jssy/common-ui';
 
-import { getNestedTypedef, isCompatibleType } from '@jssy/types';
+import { getNestedTypedef } from '@jssy/types';
 import { DesignDialog } from '../DesignDialog/DesignDialog';
 import { PropsList } from '../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
 import { ActionEditor } from '../ActionEditor/ActionEditor';
 import { ActionsList } from '../ActionsList/ActionsList';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
-import JssyValue from '../../models/JssyValue';
-import SourceDataState from '../../models/SourceDataState';
+import JssyValue, { SourceDataState } from '../../models/JssyValue';
 
 import {
   replaceJssyValue,
   constructComponentForProp,
-  pickComponentStateSlot,
+  pickComponentData,
   addAction,
   replaceAction,
   deleteAction,
 } from '../../actions/project';
 
+import { getStateSlotPickerFns } from '../../actions/helpers/component-picker';
 import { PathStartingPoints } from '../../reducers/project';
 
 import {
@@ -57,7 +57,6 @@ import {
 
 import { INVALID_ID, SYSTEM_PROPS } from '../../constants/misc';
 import * as JssyPropTypes from '../../constants/common-prop-types';
-import { objectSome } from '../../utils/misc';
 
 const propTypes = {
   meta: PropTypes.object.isRequired,
@@ -66,13 +65,13 @@ const propTypes = {
   language: PropTypes.string.isRequired,
   ownerProps: PropTypes.object,
   ownerUserTypedefs: PropTypes.object,
-  pickingComponentStateSlot: PropTypes.bool.isRequired,
+  pickingComponentData: PropTypes.bool.isRequired,
   pickedComponentId: PropTypes.number.isRequired, // eslint-disable-line react/no-unused-prop-types
-  pickedComponentStateSlot: PropTypes.string.isRequired, // eslint-disable-line react/no-unused-prop-types
+  pickedComponentData: PropTypes.string.isRequired, // eslint-disable-line react/no-unused-prop-types
   getLocalizedText: PropTypes.func.isRequired,
   onReplacePropValue: PropTypes.func.isRequired,
   onConstructComponent: PropTypes.func.isRequired,
-  onPickComponentStateSlot: PropTypes.func.isRequired,
+  onPickComponentData: PropTypes.func.isRequired,
   onAddAction: PropTypes.func.isRequired,
   onReplaceAction: PropTypes.func.isRequired,
   onDeleteAction: PropTypes.func.isRequired,
@@ -90,9 +89,9 @@ const mapStateToProps = state => ({
   language: state.app.language,
   ownerProps: ownerPropsSelector(state),
   ownerUserTypedefs: ownerUserTypedefsSelector(state),
-  pickingComponentStateSlot: state.project.pickingComponentStateSlot,
+  pickingComponentData: state.project.pickingComponentData,
   pickedComponentId: state.project.pickedComponentId,
-  pickedComponentStateSlot: state.project.pickedComponentStateSlot,
+  pickedComponentData: state.project.pickedComponentData,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -103,8 +102,8 @@ const mapDispatchToProps = dispatch => ({
   onConstructComponent: (path, components, rootId) =>
     void dispatch(constructComponentForProp(path, components, rootId)),
 
-  onPickComponentStateSlot: (filter, stateSlotsFilter) =>
-    void dispatch(pickComponentStateSlot(filter, stateSlotsFilter)),
+  onPickComponentData: (filter, dataGetter) =>
+    void dispatch(pickComponentData(filter, dataGetter)),
   
   onAddAction: ({ path, action }) =>
     void dispatch(addAction(path, action)),
@@ -228,12 +227,12 @@ class ComponentPropsEditorComponent extends PureComponent {
   }
 
   componentWillReceiveProps(nextProps) {
-    const { pickingComponentStateSlot } = this.props;
+    const { pickingComponentData } = this.props;
 
-    if (pickingComponentStateSlot && !nextProps.pickingComponentStateSlot) {
+    if (pickingComponentData && !nextProps.pickingComponentData) {
       this._handlePickApply({
         componentId: nextProps.pickedComponentId,
-        stateSlot: nextProps.pickedComponentStateSlot,
+        stateSlot: nextProps.pickedComponentData,
       });
     }
   }
@@ -312,42 +311,30 @@ class ComponentPropsEditorComponent extends PureComponent {
       meta,
       components,
       selectedComponentIds,
-      onPickComponentStateSlot,
+      language,
+      onPickComponentData,
     } = this.props;
 
     const componentId = selectedComponentIds.first();
+    const component = components.get(componentId);
+    const componentMeta = getComponentMeta(component.name, meta);
+    const linkingValueDef = isSystemProp
+      ? getNestedTypedef(SYSTEM_PROPS[name], path)
+      : getNestedTypedef(componentMeta.props[name], path, componentMeta.types);
 
-    let linkingValueDef;
-    if (isSystemProp) {
-      const propMeta = SYSTEM_PROPS[name];
-      linkingValueDef = getNestedTypedef(propMeta, path);
-    } else {
-      const component = components.get(componentId);
-      const componentMeta = getComponentMeta(component.name, meta);
-      const propMeta = componentMeta.props[name];
-      linkingValueDef = getNestedTypedef(propMeta, path, componentMeta.types);
-    }
-
-    const filter = sourceComponentId => {
-      const sourceComponent = components.get(sourceComponentId);
-      const sourceComponentMeta = getComponentMeta(sourceComponent.name, meta);
-
-      if (!sourceComponentMeta.state) return false;
-
-      return objectSome(
-        sourceComponentMeta.state,
-        stateSlot => isCompatibleType(linkingValueDef, stateSlot),
-      );
-    };
-
-    const stateSlotFilter = stateSlot =>
-      isCompatibleType(linkingValueDef, stateSlot);
+    const { filter, dataGetter } = getStateSlotPickerFns(
+      linkingValueDef,
+      componentMeta.types,
+      components,
+      meta,
+      language,
+    );
 
     this.setState({
       pickingPath: buildFullPath(componentId, isSystemProp, name, path),
     });
 
-    onPickComponentStateSlot(filter, stateSlotFilter);
+    onPickComponentData(filter, dataGetter);
   }
 
   _handlePickApply({ componentId, stateSlot }) {

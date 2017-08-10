@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ProjectComponent from '../models/ProjectComponent';
 import ProjectRoute from '../models/ProjectRoute';
-import { Action } from '../models/SourceDataActions';
+import { Action } from '../models/JssyValue';
 import Tool from '../models/Tool';
 import ToolState from '../models/ToolState';
 
@@ -48,3 +48,10 @@ export const toolStates = ImmutablePropTypes.mapOf(
   PropTypes.instanceOf(ToolState),
   PropTypes.string,
 );
+
+export const componentDataItem = PropTypes.arrayOf(PropTypes.shape({
+  name: PropTypes.string.isRequired,
+  description: PropTypes.string,
+  unavailable: PropTypes.bool,
+  data: PropTypes.any.isRequired,
+}));

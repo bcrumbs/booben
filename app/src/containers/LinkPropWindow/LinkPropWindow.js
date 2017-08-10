@@ -39,12 +39,16 @@ import {
 import { createFunction } from '../../actions/project';
 import ProjectComponentRecord from '../../models/ProjectComponent';
 import ProjectRecord from '../../models/Project';
-import JssyValue from '../../models/JssyValue';
-import SourceDataFunction from '../../models/SourceDataFunction';
-import SourceDataStatic from '../../models/SourceDataStatic';
-import SourceDataRouteParams from '../../models/SourceDataRouteParams';
-import SourceDataData, { QueryPathStep } from '../../models/SourceDataData';
-import SourceDataActionArg from '../../models/SourceDataActionArg';
+
+import JssyValue, {
+  SourceDataFunction,
+  SourceDataStatic,
+  SourceDataRouteParams,
+  SourceDataData,
+  QueryPathStep,
+  SourceDataActionArg,
+} from '../../models/JssyValue';
+
 import { NestedConstructor } from '../../reducers/project';
 import { getComponentMeta, isValidSourceForValue } from '../../lib/meta';
 import { noop } from '../../utils/misc';

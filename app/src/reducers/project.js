@@ -33,6 +33,7 @@ import {
   PROJECT_COMPONENT_MOVE,
   PROJECT_COMPONENT_MOVE_TO_CLIPBOARD,
   PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
+  PROJECT_COMPONENT_CONVERT_TO_LIST,
   PROJECT_CREATE_FUNCTION,
   PROJECT_JSSY_VALUE_REPLACE,
   PROJECT_JSSY_VALUE_ADD_ACTION,
@@ -44,8 +45,8 @@ import {
   PROJECT_PICK_COMPONENT,
   PROJECT_PICK_COMPONENT_DONE,
   PROJECT_PICK_COMPONENT_CANCEL,
-  PROJECT_PICK_COMPONENT_STATE_SLOT,
-  PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL,
+  PROJECT_PICK_COMPONENT_DATA,
+  PROJECT_PICK_COMPONENT_DATA_CANCEL,
   PROJECT_UNDO,
   PROJECT_REDO,
   ComponentPickAreas,
@@ -84,10 +85,12 @@ import {
 import RecordWithHistory from '../models/helpers/RecordWithHistory';
 import Designer from '../models/Designer';
 import ProjectRoute from '../models/ProjectRoute';
-import JssyValue from '../models/JssyValue';
-import SourceDataDesigner from '../models/SourceDataDesigner';
-import SourceDataRouteParams from '../models/SourceDataRouteParams';
-import { Action } from '../models/SourceDataActions';
+
+import JssyValue, {
+  SourceDataDesigner,
+  SourceDataRouteParams,
+  Action,
+} from '../models/JssyValue';
 
 import ProjectFunction, {
   ProjectFunctionArgument,
@@ -112,6 +115,8 @@ import {
   gatherComponentsTreeIds,
   makeDetachedCopy,
   walkSimpleValues,
+  convertComponentToList,
+  getComponentPosition,
 } from '../lib/components';
 
 import {
@@ -131,13 +136,7 @@ import {
 } from '../lib/schema';
 
 import { walkPath, expandPath, getObjectByPath } from '../lib/path';
-
-import {
-  isArrayOrList,
-  isPrefixList,
-  concatPath,
-} from '../utils/misc';
-
+import { isArrayOrList, isPrefixList, concatPath } from '../utils/misc';
 import { getFunctionInfo } from '../lib/functions';
 
 import {
@@ -203,13 +202,14 @@ const ProjectState = RecordWithHistory({
   selectingComponentLayout: false,
   nestedConstructors: List(),
   pickingComponent: false,
-  pickingComponentStateSlot: false,
+  pickingComponentData: false,
   pickingComponentFilter: null,
-  pickingComponentStateSlotsFilter: null,
+  pickingComponentDataGetter: null,
   pickedComponentId: INVALID_ID,
   pickedComponentArea: ComponentPickAreas.UNKNOWN,
-  pickedComponentStateSlot: '',
-  componentStateSlotsListIsVisible: false,
+  pickedComponentData: null,
+  componentDataListIsVisible: false,
+  componentDataListItems: [],
 }, [
   'data',
   'lastRouteId',
@@ -233,13 +233,14 @@ const initDNDState = state => state.merge({
 
 const initComponentPickingState = state => state.merge({
   pickingComponent: false,
-  pickingComponentStateSlot: false,
+  pickingComponentData: false,
   pickingComponentFilter: null,
-  pickingComponentStateSlotsFilter: null,
+  pickingComponentDataGetter: null,
   pickedComponentId: INVALID_ID,
   pickedComponentArea: ComponentPickAreas.UNKNOWN,
-  pickedComponentStateSlot: '',
-  componentStateSlotsListIsVisible: false,
+  pickedComponentData: null,
+  componentDataListIsVisible: false,
+  componentDataListItems: [],
 });
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
@@ -652,7 +653,13 @@ const copyComponent = (state, componentId, containerId, afterIdx) => {
     return state;
   }
 
-  const componentsCopy = makeDetachedCopy(currentComponents, componentId);
+  const componentsCopy = makeDetachedCopy(
+    currentComponents,
+    componentId,
+    state.meta,
+    state.data,
+    state.schema,
+  );
   
   return addNewComponents(state, containerId, afterIdx, componentsCopy);
 };
@@ -1414,6 +1421,43 @@ const handlers = {
     updateDesigner(state, designer =>
       designer.updateClipboard(action.componentId, action.copy)),
   
+  [PROJECT_COMPONENT_CONVERT_TO_LIST]: undoable(incrementsRevision(
+    (state, action) => {
+      state = updateDesigner(state, designer =>
+        designer.forgetComponent(action.componentId));
+  
+      if (state.draggedComponentId === action.componentId) {
+        state = initDNDState(state);
+      }
+      
+      const pathToCurrentComponents = getPathToCurrentComponents(state);
+      const components = state.getIn(pathToCurrentComponents);
+      const { containerId, afterIdx } = getComponentPosition(
+        components,
+        action.componentId,
+      );
+    
+      const list = convertComponentToList(
+        components,
+        action.componentId,
+        state.meta,
+        state.data,
+        state.schema,
+      );
+    
+      state = deleteComponent(state, action.componentId);
+      
+      const pathToLastComponentId = getPathToLastComponentId(state);
+      const lastComponentId = state.getIn(pathToLastComponentId);
+      const newComponentId = lastComponentId + 1;
+      
+      state = addNewComponents(state, containerId, afterIdx, list);
+      
+      return updateDesigner(state, designer =>
+        designer.selectComponentExclusive(newComponentId));
+    },
+  )),
+  
   [PROJECT_JSSY_VALUE_REPLACE]: undoable(incrementsRevision(
     (state, action) => updateValue(state, action.path, action.newValue),
   )),
@@ -1662,7 +1706,7 @@ const handlers = {
   })),
   
   [PROJECT_PICK_COMPONENT]: (state, action) => {
-    if (state.pickingComponent || state.pickingComponentStateSlot) {
+    if (state.pickingComponent || state.pickingComponentData) {
       return state;
     }
 
@@ -1671,52 +1715,59 @@ const handlers = {
     
     return state.merge({
       pickingComponent: true,
-      pickingComponentStateSlot: !!action.stateSlot,
+      pickingComponentData: !!action.pickData,
       pickingComponentFilter: action.filter,
-      pickingComponentStateSlotsFilter: action.stateSlotsFilter,
+      pickingComponentDataGetter: action.dataGetter,
       pickedComponentId: INVALID_ID,
     });
   },
   
   [PROJECT_PICK_COMPONENT_DONE]: (state, action) => {
-    const updates = {
+    state = state.merge({
       pickingComponent: false,
       pickedComponentId: action.componentId,
       pickedComponentArea: action.pickArea,
-    };
+    });
 
-    if (state.pickingComponentStateSlot) {
-      updates.componentStateSlotsListIsVisible = true;
+    if (state.pickingComponentData) {
+      const dataItems = state.pickingComponentDataGetter(action.componentId);
+
+      state = state
+        .set('componentDataListIsVisible', true)
+        .set('componentDataListItems', dataItems);
     }
 
-    return state.merge(updates);
+    return state;
   },
   
   [PROJECT_PICK_COMPONENT_CANCEL]: state => state.merge({
     pickingComponent: false,
-    pickingComponentStateSlot: false,
+    pickingComponentData: false,
     pickingComponentFilter: null,
-    pickingComponentStateSlotsFilter: null,
+    pickingComponentDataGetter: null,
     pickedComponentId: INVALID_ID,
     pickedComponentArea: ComponentPickAreas.UNKNOWN,
-    pickedComponentStateSlot: '',
-    componentStateSlotsListIsVisible: false,
+    pickedComponentData: null,
+    componentDataListIsVisible: false,
+    componentDataListItems: [],
   }),
 
-  [PROJECT_PICK_COMPONENT_STATE_SLOT]: (state, action) => state.merge({
+  [PROJECT_PICK_COMPONENT_DATA]: (state, action) => state.merge({
     pickingComponent: false,
-    pickingComponentStateSlot: false,
+    pickingComponentData: false,
     pickingComponentFilter: null,
-    pickingComponentStateSlotsFilter: null,
-    pickedComponentStateSlot: action.slotName,
-    componentStateSlotsListIsVisible: false,
+    pickingComponentDataGetter: null,
+    pickedComponentData: action.data,
+    componentDataListIsVisible: false,
+    componentDataListItems: [],
   }),
   
-  [PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL]: state => state.merge({
+  [PROJECT_PICK_COMPONENT_DATA_CANCEL]: state => state.merge({
     pickingComponent: true,
     pickedComponentId: INVALID_ID,
     pickedComponentArea: ComponentPickAreas.UNKNOWN,
-    componentStateSlotsListIsVisible: false,
+    componentDataListIsVisible: false,
+    componentDataListItems: [],
   }),
   
   [PREVIEW_DRAG_OVER_PLACEHOLDER]: (state, action) => state.merge({

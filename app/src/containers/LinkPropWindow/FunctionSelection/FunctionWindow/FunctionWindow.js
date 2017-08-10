@@ -8,7 +8,6 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { List, Map } from 'immutable';
-import { isCompatibleType } from '@jssy/types';
 import { Button } from '@reactackle/reactackle';
 
 import {
@@ -23,8 +22,7 @@ import {
 } from '@jssy/common-ui';
 
 import ProjectFunctionRecord from '../../../../models/ProjectFunction';
-import JssyValue from '../../../../models/JssyValue';
-import SourceDataState from '../../../../models/SourceDataState';
+import JssyValue, { SourceDataState } from '../../../../models/JssyValue';
 import { jssyValueToImmutable } from '../../../../models/ProjectComponent';
 
 import {
@@ -32,35 +30,36 @@ import {
   currentComponentsSelector,
 } from '../../../../selectors';
 
-import { pickComponentStateSlot } from '../../../../actions/project';
+import { pickComponentData } from '../../../../actions/project';
+
+import {
+  getStateSlotPickerFns,
+} from '../../../../actions/helpers/component-picker';
+
 import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
 import { PropsList } from '../../../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
-import { getComponentMeta, buildDefaultValue } from '../../../../lib/meta';
-
-import {
-  noop,
-  returnArg,
-  objectSome,
-  mapListToArray,
-} from '../../../../utils/misc';
-
+import { buildDefaultValue } from '../../../../lib/meta';
+import { noop, returnArg, mapListToArray } from '../../../../utils/misc';
 import * as JssyPropTypes from '../../../../constants/common-prop-types';
 
 const propTypes = {
   meta: PropTypes.object.isRequired,
   currentComponents: JssyPropTypes.components.isRequired,
-  pickingComponentStateSlot: PropTypes.bool.isRequired,
-  pickedComponentId: PropTypes.number.isRequired, // eslint-disable-line react/no-unused-prop-types
-  pickedComponentStateSlot: PropTypes.string.isRequired, // eslint-disable-line react/no-unused-prop-types
+  pickingComponentData: PropTypes.bool.isRequired,
+  // eslint-disable-next-line react/no-unused-prop-types
+  pickedComponentId: PropTypes.number.isRequired,
+  // eslint-disable-next-line react/no-unused-prop-types
+  pickedComponentData: PropTypes.string.isRequired,
   targetValueDef: PropTypes.object.isRequired,
   functionDef: PropTypes.instanceOf(ProjectFunctionRecord).isRequired,
+  language: PropTypes.string.isRequired,
   getLocalizedText: PropTypes.func,
   onApply: PropTypes.func,
   onReturn: PropTypes.func,
   onReturnToList: PropTypes.func,
   onNestedLink: PropTypes.func,
-  onPickComponentStateSlot: PropTypes.func.isRequired,
+  onPickComponentData: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -74,15 +73,16 @@ const defaultProps = {
 const mapStateToProps = state => ({
   meta: state.project.meta,
   currentComponents: currentComponentsSelector(state),
-  pickingComponentStateSlot: state.project.pickingComponentStateSlot,
+  pickingComponentData: state.project.pickingComponentData,
   pickedComponentId: state.project.pickedComponentId,
-  pickedComponentStateSlot: state.project.pickedComponentStateSlot,
+  pickedComponentData: state.project.pickedComponentData,
+  language: state.app.language,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
-  onPickComponentStateSlot: ({ filter, stateSlotFilter }) =>
-    void dispatch(pickComponentStateSlot(filter, stateSlotFilter)),
+  onPickComponentData: (filter, dataGetter) =>
+    void dispatch(pickComponentData(filter, dataGetter)),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
@@ -172,12 +172,12 @@ class FunctionWindowComponent extends PureComponent {
     }
     
     if (
-      this.props.pickingComponentStateSlot &&
-      !nextProps.pickingComponentStateSlot
+      this.props.pickingComponentData &&
+      !nextProps.pickingComponentData
     ) {
       this._handlePickDone({
         componentId: nextProps.pickedComponentId,
-        stateSlot: nextProps.pickedComponentStateSlot,
+        stateSlot: nextProps.pickedComponentData,
       });
     }
   }
@@ -240,42 +240,34 @@ class FunctionWindowComponent extends PureComponent {
   
     const argIndex = parseInt(linkingName, 10);
     
-    if (linkingPath.length > 0) {
-      this.setState({
-        values: values.update(
+    this.setState({
+      linking: false,
+      linkingName: '',
+      linkingPath: [],
+      values: linkingPath.length > 0
+        ? values.update(
           argIndex,
           oldValue => oldValue.setInStatic(linkingPath, newValue),
-        ),
-      });
-    } else {
-      this.setState({
-        values: values.set(argIndex, newValue),
-      });
-    }
+        )
+        : values.set(argIndex, newValue),
+    });
   }
   
   _handlePick({ name, path, targetValueDef, targetUserTypedefs }) {
-    const { meta, currentComponents, onPickComponentStateSlot } = this.props;
-    
-    const filter = sourceComponentId => {
-      const sourceComponent = currentComponents.get(sourceComponentId);
-      const sourceComponentMeta = getComponentMeta(sourceComponent.name, meta);
-    
-      if (!sourceComponentMeta.state) return false;
-    
-      return objectSome(
-        sourceComponentMeta.state,
-        
-        stateSlot => isCompatibleType(
-          targetValueDef,
-          stateSlot,
-          targetUserTypedefs,
-        ),
-      );
-    };
-  
-    const stateSlotFilter = stateSlot =>
-      isCompatibleType(targetValueDef, stateSlot, targetUserTypedefs);
+    const {
+      meta,
+      currentComponents,
+      language,
+      onPickComponentData,
+    } = this.props;
+
+    const { filter, dataGetter } = getStateSlotPickerFns(
+      targetValueDef,
+      targetUserTypedefs,
+      currentComponents,
+      meta,
+      language,
+    );
     
     this.setState({
       picking: true,
@@ -283,7 +275,7 @@ class FunctionWindowComponent extends PureComponent {
       pickingPath: path,
     });
   
-    onPickComponentStateSlot({ filter, stateSlotFilter });
+    onPickComponentData(filter, dataGetter);
   }
   
   _handlePickDone({ componentId, stateSlot }) {
@@ -292,7 +284,6 @@ class FunctionWindowComponent extends PureComponent {
     if (!picking) return;
   
     const argIndex = parseInt(pickingName, 10);
-    
     const newValue = new JssyValue({
       source: 'state',
       sourceData: new SourceDataState({
@@ -300,19 +291,18 @@ class FunctionWindowComponent extends PureComponent {
         stateSlot,
       }),
     });
-  
-    if (pickingPath.length > 0) {
-      this.setState({
-        values: values.update(
+    
+    this.setState({
+      picking: false,
+      pickingName: '',
+      pickingPath: [],
+      values: pickingPath.length > 0
+        ? values.update(
           argIndex,
           oldValue => oldValue.setInStatic(pickingPath, newValue),
-        ),
-      });
-    } else {
-      this.setState({
-        values: values.set(argIndex, newValue),
-      });
-    }
+        )
+        : values.set(argIndex, newValue),
+    });
   }
 
   _getBreadcrumbsItems() {

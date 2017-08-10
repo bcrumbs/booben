@@ -7,8 +7,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import _forOwn from 'lodash.forown';
-import { resolveTypedef } from '@jssy/types';
 
 import {
   MenuOverlapping,
@@ -18,21 +16,16 @@ import {
 } from '../../components/MenuOverlapping/MenuOverlapping';
 
 import { getLocalizedTextFromState } from '../../selectors';
-import { getString } from '../../lib/meta';
-import { noop, returnTrue } from '../../utils/misc';
+import { noop } from '../../utils/misc';
+import * as JssyPropTypes from '../../constants/common-prop-types';
 
 const propTypes = {
-  componentMeta: PropTypes.object.isRequired,
-  language: PropTypes.string,
-  isCompatibleStateSlot: PropTypes.func,
+  componentDataItems: JssyPropTypes.componentDataItem.isRequired,
   getLocalizedText: PropTypes.func.isRequired, // state
   onSelect: PropTypes.func,
 };
 
 const defaultProps = {
-  targetUserTypedefs: null,
-  language: '',
-  isCompatibleStateSlot: returnTrue,
   onSelect: noop,
 };
 
@@ -42,25 +35,28 @@ const mapStateToProps = state => ({
 
 const wrap = connect(mapStateToProps);
 
-class ComponentStateSlotSelectComponent extends PureComponent {
+class _ComponentDataSelect extends PureComponent {
   constructor(props, context) {
     super(props, context);
 
     this._handleSelect = this._handleSelect.bind(this);
   }
 
-  _handleSelect({ id }) {
+  _handleSelect({ id: data }) {
     const { onSelect } = this.props;
-    onSelect({ stateSlot: id });
+    onSelect({ data });
   }
 
   _renderItemsGroup(items) {
     if (!items.length) return null;
 
-    const itemElements = items.map(item => (
+    const itemElements = items.map((item, idx) => (
       <MenuOverlappingGroupItem
-        {...item}
-        key={item.id}
+        key={String(idx)}
+        id={item.data}
+        title={item.name}
+        description={item.description}
+        disabled={item.unavailable}
         onSelect={this._handleSelect}
       />
     ));
@@ -73,34 +69,17 @@ class ComponentStateSlotSelectComponent extends PureComponent {
   }
 
   render() {
-    const {
-      componentMeta,
-      isCompatibleStateSlot,
-      language,
-      getLocalizedText,
-    } = this.props;
+    const { componentDataItems, getLocalizedText } = this.props;
 
     const availableItems = [];
     const disabledItems = [];
 
-    _forOwn(componentMeta.state, (stateSlot, name) => {
-      const resolvedTypedef = resolveTypedef(stateSlot, componentMeta.types);
-      const isCompatible = isCompatibleStateSlot(resolvedTypedef);
-
-      const item = {
-        id: name,
-        title: getString(componentMeta.strings, stateSlot.textKey, language),
-        type: resolvedTypedef.type,
-        description: getString(
-          componentMeta.strings,
-          stateSlot.descriptionTextKey,
-          language,
-        ),
-
-        disabled: !isCompatible,
-      };
-
-      (isCompatible ? availableItems : disabledItems).push(item);
+    componentDataItems.forEach(item => {
+      if (item.unavailable) {
+        disabledItems.push(item);
+      } else {
+        availableItems.push(item);
+      }
     });
 
     const availableGroup = this._renderItemsGroup(availableItems);
@@ -136,8 +115,8 @@ class ComponentStateSlotSelectComponent extends PureComponent {
   }
 }
 
-ComponentStateSlotSelectComponent.propTypes = propTypes;
-ComponentStateSlotSelectComponent.defaultProps = defaultProps;
-ComponentStateSlotSelectComponent.displayName = 'ComponentStateSlotSelect';
+_ComponentDataSelect.propTypes = propTypes;
+_ComponentDataSelect.defaultProps = defaultProps;
+_ComponentDataSelect.displayName = 'ComponentDataSelect';
 
-export const ComponentStateSlotSelect = wrap(ComponentStateSlotSelectComponent);
+export const ComponentDataSelect = wrap(_ComponentDataSelect);

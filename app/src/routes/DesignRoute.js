@@ -39,8 +39,8 @@ import {
 } from '../containers/ComponentActionsEditor/ComponentActionsEditor';
 
 import {
-  ComponentStateSlotSelect,
-} from '../containers/ComponentStateSlotSelect/ComponentStateSlotSelect';
+  ComponentDataSelect,
+} from '../containers/ComponentDataSelect/ComponentDataSelect';
 
 import { Canvas, getComponentCoords } from '../containers/Canvas/Canvas';
 
@@ -63,7 +63,6 @@ import {
 
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
-import ButtonRecord from '../models/Button';
 
 import {
   createComponent,
@@ -72,10 +71,11 @@ import {
   copyComponent,
   moveComponent,
   selectLayoutForNewComponent,
-  pickComponentStateSlotDone,
+  pickComponentDataDone,
   undo,
   redo,
   moveComponentToClipboard,
+  convertComponentToList,
   ComponentPickAreas,
 } from '../actions/project';
 
@@ -113,8 +113,6 @@ import {
   formatComponentTitle,
 } from '../lib/components';
 
-import { returnTrue } from '../utils/misc';
-
 import {
   TOOL_ID_LIBRARY,
   TOOL_ID_COMPONENTS_TREE,
@@ -138,8 +136,10 @@ const propTypes = {
   language: PropTypes.string.isRequired, // state
   pickedComponentId: PropTypes.number.isRequired, // state
   pickedComponentArea: PropTypes.number.isRequired, // state
-  componentStateSlotsListIsVisible: PropTypes.bool.isRequired, // state
-  isCompatibleStateSlot: PropTypes.func.isRequired, // state
+  componentDataListIsVisible: PropTypes.bool.isRequired, // state
+  componentDataListItems: PropTypes.arrayOf(
+    JssyPropTypes.componentDataItem,
+  ).isRequired, // state
   cursorPosition: JssyPropTypes.componentsTreePosition.isRequired, // state
   componentClipboard: JssyPropTypes.componentClipboard.isRequired, // state
   showInvisibleComponents: PropTypes.bool.isRequired, // state
@@ -153,9 +153,10 @@ const propTypes = {
   onCopyComponent: PropTypes.func.isRequired, // dispatch
   onMoveComponent: PropTypes.func.isRequired, // dispatch
   onMoveComponentToClipboard: PropTypes.func.isRequired, // dispatch
+  onConvertComponentToList: PropTypes.func.isRequired, // dispatch
   onSelectLayout: PropTypes.func.isRequired, // dispatch
   onDropComponent: PropTypes.func.isRequired, // dispatch
-  onSelectComponentStateSlot: PropTypes.func.isRequired, // dispatch
+  onSelectComponentData: PropTypes.func.isRequired, // dispatch
   onUndo: PropTypes.func.isRequired, // dispatch
   onRedo: PropTypes.func.isRequired, // dispatch
   onGoToStructure: PropTypes.func.isRequired, // dispatch
@@ -179,13 +180,8 @@ const mapStateToProps = state => ({
   language: state.project.languageForComponentProps,
   pickedComponentId: state.project.pickedComponentId,
   pickedComponentArea: state.project.pickedComponentArea,
-  componentStateSlotsListIsVisible:
-    state.project.componentStateSlotsListIsVisible,
-  
-  isCompatibleStateSlot:
-    state.project.pickingComponentStateSlotsFilter ||
-    returnTrue,
-
+  componentDataListIsVisible: state.project.componentDataListIsVisible,
+  componentDataListItems: state.project.componentDataListItems,
   cursorPosition: cursorPositionSelector(state),
   componentClipboard: componentClipboardSelector(state),
   showInvisibleComponents: state.app.showInvisibleComponents,
@@ -214,14 +210,17 @@ const mapDispatchToProps = dispatch => ({
   onMoveComponentToClipboard: (componentId, copy) =>
     void dispatch(moveComponentToClipboard(componentId, copy)),
   
+  onConvertComponentToList: componentId =>
+    void dispatch(convertComponentToList(componentId)),
+  
   onSelectLayout: layoutIdx =>
     void dispatch(selectLayoutForNewComponent(layoutIdx)),
   
   onDropComponent: area =>
     void dispatch(dropComponent(area)),
   
-  onSelectComponentStateSlot: ({ stateSlot }) =>
-    void dispatch(pickComponentStateSlotDone(stateSlot)),
+  onSelectComponentData: ({ data }) =>
+    void dispatch(pickComponentDataDone(data)),
   
   onUndo: () => void dispatch(undo()),
   onRedo: () => void dispatch(redo()),
@@ -301,6 +300,8 @@ class DesignRoute extends PureComponent {
       this._handleMoveSelectedComponentToClipboard.bind(this, false);
     this._handlePasteComponent =
       this._handlePasteComponent.bind(this);
+    this._handleConvertComponentToList =
+      this._handleConvertComponentToList.bind(this);
   }
   
   _getLibraryTool() {
@@ -728,6 +729,7 @@ class DesignRoute extends PureComponent {
     const { showInvisibleComponents, onToggleInvisibleComponents } = this.props;
     onToggleInvisibleComponents(!showInvisibleComponents);
   }
+  
   /**
    *
    * @private
@@ -735,6 +737,22 @@ class DesignRoute extends PureComponent {
   _handleToggleContentPlaceholders() {
     const { showContentPlaceholders, onToggleContentPlaceholders } = this.props;
     onToggleContentPlaceholders(!showContentPlaceholders);
+  }
+  
+  /**
+   *
+   * @private
+   */
+  _handleConvertComponentToList() {
+    const {
+      singleComponentSelected,
+      firstSelectedComponentId,
+      onConvertComponentToList,
+    } = this.props;
+    
+    if (singleComponentSelected) {
+      onConvertComponentToList(firstSelectedComponentId);
+    }
   }
   
   /**
@@ -788,20 +806,15 @@ class DesignRoute extends PureComponent {
     );
   }
   
-  _renderStateSlotSelect() {
+  _renderComponentDataSelect() {
     const {
-      meta,
-      components,
       pickedComponentId,
-      isCompatibleStateSlot,
-      language,
-      onSelectComponentStateSlot,
+      componentDataListItems,
+      getLocalizedText,
+      onSelectComponentData,
     } = this.props;
     
-    const component = components.get(pickedComponentId);
-    const componentMeta = getComponentMeta(component.name, meta);
     const componentElementCoords = getComponentCoords(pickedComponentId);
-    
     if (!componentElementCoords) return null;
     
     const wrapperStyle = {
@@ -814,11 +827,10 @@ class DesignRoute extends PureComponent {
     return (
       <Portal>
         <div style={wrapperStyle}>
-          <ComponentStateSlotSelect
-            componentMeta={componentMeta}
-            isCompatibleStateSlot={isCompatibleStateSlot}
-            language={language}
-            onSelect={onSelectComponentStateSlot}
+          <ComponentDataSelect
+            componentDataItems={componentDataListItems}
+            getLocalizedText={getLocalizedText}
+            onSelect={onSelectComponentData}
           />
         </div>
       </Portal>
@@ -844,7 +856,7 @@ class DesignRoute extends PureComponent {
       selectingComponentLayout,
       firstSelectedComponentId,
       singleComponentSelected,
-      componentStateSlotsListIsVisible,
+      componentDataListIsVisible,
       pickedComponentArea,
       componentClipboard,
       showInvisibleComponents,
@@ -885,12 +897,12 @@ class DesignRoute extends PureComponent {
       );
     }
 
-    const willRenderStateSlotSelect =
-      componentStateSlotsListIsVisible &&
+    const willRenderComponentDataSelect =
+      componentDataListIsVisible &&
       pickedComponentArea === ComponentPickAreas.CANVAS;
     
-    const componentStateSlotSelect = willRenderStateSlotSelect
-      ? this._renderStateSlotSelect()
+    const componentDataSelect = willRenderComponentDataSelect
+      ? this._renderComponentDataSelect()
       : null;
 
     const createComponentMenu = createComponentMenuIsVisible
@@ -961,6 +973,15 @@ class DesignRoute extends PureComponent {
                 onPress={onRedo}
               />
             </ToolBarGroup>
+  
+            <ToolBarGroup>
+              <ToolBarAction
+                icon={{ name: 'list' }}
+                tooltipText={getLocalizedText('toolbar.design.convertToList')}
+                disabled={!singleComponentSelected}
+                onPress={this._handleConvertComponentToList}
+              />
+            </ToolBarGroup>
 
             <ToolBarGroup>
               <ToolBarAction
@@ -1015,7 +1036,7 @@ class DesignRoute extends PureComponent {
             <ComponentsDragArea onDrop={this._handleDropComponent} />
           </Portal>
           
-          {componentStateSlotSelect}
+          {componentDataSelect}
           {createComponentMenu}
         </Desktop>
       </Shortcuts>

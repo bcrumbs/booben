@@ -12,22 +12,22 @@ import { Dialog } from '@reactackle/reactackle';
 const propTypes = {
   ...Dialog.propTypes,
   pickingComponent: PropTypes.bool.isRequired,
-  pickingComponentStateSlot: PropTypes.bool.isRequired,
+  pickingComponentData: PropTypes.bool.isRequired,
 };
 
 const defaultProps = Dialog.defaultProps;
 
 const mapStateToProps = state => ({
   pickingComponent: state.project.pickingComponent,
-  pickingComponentStateSlot: state.project.pickingComponentStateSlot,
+  pickingComponentData: state.project.pickingComponentData,
 });
 
 const wrap = connect(mapStateToProps);
 
 const DesignDialogComponent = props => {
-  const { pickingComponent, pickingComponentStateSlot } = props;
+  const { pickingComponent, pickingComponentData } = props;
   
-  const visible = !pickingComponent && !pickingComponentStateSlot;
+  const visible = !pickingComponent && !pickingComponentData;
   
   return (
     <Dialog {...props} visible={visible} />

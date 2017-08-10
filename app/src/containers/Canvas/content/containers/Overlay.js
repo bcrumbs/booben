@@ -30,7 +30,7 @@ const propTypes = {
   highlightingEnabled: PropTypes.bool.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
   pickingComponent: PropTypes.bool.isRequired,
-  pickingComponentStateSlot: PropTypes.bool.isRequired,
+  pickingComponentData: PropTypes.bool.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
 };
 
@@ -46,7 +46,7 @@ const mapStateToProps = state => ({
   highlightingEnabled: state.project.highlightingEnabled,
   draggingComponent: state.project.draggingComponent,
   pickingComponent: state.project.pickingComponent,
-  pickingComponentStateSlot: state.project.pickingComponentStateSlot,
+  pickingComponentData: state.project.pickingComponentData,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -127,7 +127,7 @@ class Overlay extends PureComponent {
       components,
       draggingComponent,
       pickingComponent,
-      pickingComponentStateSlot,
+      pickingComponentData,
       highlightingEnabled,
       highlightedComponentIds,
       selectedComponentIds,
@@ -143,14 +143,14 @@ class Overlay extends PureComponent {
       )
       : null;
 
-    const selectBoxes = pickingComponent || pickingComponentStateSlot
+    const selectBoxes = pickingComponent || pickingComponentData
       ? null
       : this._renderBoundingBoxes(selectedComponentIds, SELECT_COLOR);
     
     const willRenderBoundaryBox =
       boundaryComponentId !== INVALID_ID && (
         pickingComponent ||
-        pickingComponentStateSlot ||
+        pickingComponentData ||
         draggingComponent
       );
   

@@ -14,7 +14,7 @@ import { ItemTypeStyled } from './styles/ItemTypeStyled';
 import { ItemCaptionStyled } from './styles/ItemCaptionStyled';
 
 const propTypes = {
-  id: PropTypes.string,
+  id: PropTypes.any.isRequired,
   caption: PropTypes.string,
   title: PropTypes.string,
   type: PropTypes.string,
@@ -25,7 +25,6 @@ const propTypes = {
 };
 
 const defaultProps = {
-  id: '',
   caption: '',
   title: '',
   type: '',

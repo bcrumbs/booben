@@ -8,14 +8,22 @@ import { Set, Map } from 'immutable';
 import _forOwn from 'lodash.forown';
 import { TypeNames } from '@jssy/types';
 
+import JssyValue, {
+  SourceDataDesigner,
+  Action,
+  isAsyncAction,
+} from '../models/JssyValue';
+
 import {
   getComponentMeta,
   parseComponentName,
   formatComponentName,
+  constructComponent,
 } from './meta';
 
 import { getMutationField, getJssyValueDefOfMutationArgument } from './schema';
 import { getFunctionInfo } from './functions';
+import { expandPath } from './path';
 import { mapListToArray } from '../utils/misc';
 
 import {
@@ -233,13 +241,32 @@ export const canMoveComponent = (
  * @param {function(component: Object)} visitor
  */
 export const walkComponentsTree = (components, rootComponentId, visitor) => {
-  const component = components.get(rootComponentId);
-  visitor(component);
+  const BREAK = walkComponentsTree.BREAK;
+  let didBreak = false;
 
-  component.children.forEach(childId => {
-    walkComponentsTree(components, childId, visitor);
-  });
+  const visitComponent = component => {
+    const visitorRet = visitor(component);
+
+    if (visitorRet === BREAK) {
+      didBreak = true;
+      return;
+    }
+
+    // eslint-disable-next-line consistent-return
+    component.children.forEach(childId => {
+      visitComponent(components.get(childId));
+
+      if (didBreak) {
+        return false;
+      }
+    });
+  };
+
+  visitComponent(components.get(rootComponentId));
+  return { didBreak };
 };
+
+walkComponentsTree.BREAK = Object.freeze(Object.create(null));
 
 /**
  *
@@ -284,62 +311,8 @@ export const gatherComponentsTreeIds = (
 /**
  *
  * @param {Object} component
- * @param {function(id: number): number} transformId
- * @param {boolean} isRoot
- */
-const makeDetachedCopyOfComponent = (
-  component,
-  transformId,
-  isRoot,
-) => component.merge({
-  id: transformId(component.id),
-  parentId: isRoot ? INVALID_ID : transformId(component.parentId),
-  isNew: true,
-  routeId: INVALID_ID,
-  isIndexRoute: false,
-  children: component.children.map(transformId),
-});
-
-/**
- *
- * @param {Immutable.Map<number, Object>} components
- * @param {number} rootId
- * @return {Immutable.Map<number, Object>}
- */
-export const makeDetachedCopy = (
-  components,
-  rootId,
-) => Map().withMutations(ret => {
-  let idsMap = Map();
-  let nextId = 0;
-
-  const transformId = id => {
-    if (idsMap.has(id)) {
-      return idsMap.get(id);
-    } else {
-      const newId = nextId++;
-      idsMap = idsMap.set(id, newId);
-      return newId;
-    }
-  };
-
-  walkComponentsTree(components, rootId, component => {
-    const isRoot = component.id === rootId;
-    const detachedCopy = makeDetachedCopyOfComponent(
-      component,
-      transformId,
-      isRoot,
-    );
-
-    ret.set(detachedCopy.id, detachedCopy);
-  });
-});
-
-/**
- *
- * @param {Object} component
  * @param {ComponentMeta} componentMeta
- * @param {function(jssyValue: Object, valueDef: JssyValueDefinition, steps: (string|number)[], isSystemProp: boolean )} visitor
+ * @param {function(node: Object, valueDef: ?JssyValueDefinition, steps: (string|number)[], isSystemProp: boolean )} visitor
  * @param {boolean} [walkSystemProps=false]
  * @param {boolean} [walkDesignerValues=false]
  * @param {?Object<string, Object<string, ComponentMeta>>} [meta=null]
@@ -394,12 +367,25 @@ export const walkSimpleValues = (
     schema,
     visitIntermediateNodes,
   };
+  
+  const SKIP = walkSimpleValues.SKIP;
+  const BREAK = walkSimpleValues.BREAK;
 
-  /* eslint-disable no-use-before-define */
+  let didBreak = false;
+
+  /* eslint-disable no-use-before-define, consistent-return */
   const visitAction = (action, path, isSystemProp) => {
+    if (visitIntermediateNodes) {
+      const visitorRet = visitor(action, null, path, isSystemProp);
+      if (visitorRet === SKIP) return;
+      if (visitorRet === BREAK) {
+        didBreak = true;
+        return;
+      }
+    }
+    
     if (action.type === 'mutation') {
-      const mutationField =
-        getMutationField(schema, action.params.mutation);
+      const mutationField = getMutationField(schema, action.params.mutation);
 
       action.params.args.forEach((argValue, argName) => {
         const argValueDef = getJssyValueDefOfMutationArgument(
@@ -413,22 +399,10 @@ export const walkSimpleValues = (
           [...path, 'args', argName],
           isSystemProp,
         );
-      });
 
-      action.params.successActions.forEach((action, actionIdx) => {
-        visitAction(
-          action,
-          [...path, 'successActions', actionIdx],
-          isSystemProp,
-        );
-      });
-
-      action.params.errorActions.forEach((action, actionIdx) => {
-        visitAction(
-          action,
-          [...path, 'errorActions', actionIdx],
-          isSystemProp,
-        );
+        if (didBreak) {
+          return false;
+        }
       });
     } else if (action.type === 'method') {
       const methodMeta = componentMeta.methods[action.para.method];
@@ -442,6 +416,10 @@ export const walkSimpleValues = (
           [...path, 'args', argIdx],
           isSystemProp,
         );
+
+        if (didBreak) {
+          return false;
+        }
       });
     } else if (action.type === 'navigate') {
       action.params.routeParams.forEach((paramValue, paramName) => {
@@ -451,9 +429,39 @@ export const walkSimpleValues = (
           [...path, 'routeParams', paramName],
           isSystemProp,
         );
+
+        if (didBreak) {
+          return false;
+        }
       });
     } else if (action.type === 'prop') {
-      // TODO: Visit value
+      // TODO: Visit value?
+    }
+    
+    if (isAsyncAction(action.type)) {
+      action.params.successActions.forEach((action, actionIdx) => {
+        visitAction(
+          action,
+          [...path, 'successActions', actionIdx],
+          isSystemProp,
+        );
+
+        if (didBreak) {
+          return false;
+        }
+      });
+  
+      action.params.errorActions.forEach((action, actionIdx) => {
+        visitAction(
+          action,
+          [...path, 'errorActions', actionIdx],
+          isSystemProp,
+        );
+
+        if (didBreak) {
+          return false;
+        }
+      });
     }
   };
 
@@ -463,6 +471,15 @@ export const walkSimpleValues = (
         valueDef.type === TypeNames.SHAPE &&
         jssyValue.sourceData.value !== null
       ) {
+        if (visitIntermediateNodes) {
+          const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+          if (visitorRet === SKIP) return;
+          if (visitorRet === BREAK) {
+            didBreak = true;
+            return;
+          }
+        }
+        
         _forOwn(valueDef.fields, (fieldTypedef, fieldName) => {
           const fieldValue = jssyValue.sourceData.value.get(fieldName);
 
@@ -473,31 +490,73 @@ export const walkSimpleValues = (
               [...path, fieldName],
               isSystemProp,
             );
+
+            if (didBreak) {
+              return false;
+            }
           }
         });
       } else if (
         valueDef.type === TypeNames.OBJECT_OF &&
         jssyValue.sourceData.value !== null
       ) {
-        jssyValue.sourceData.value.forEach((fieldValue, key) => void visitValue(
-          fieldValue,
-          valueDef.ofType,
-          [...path, key],
-          isSystemProp,
-        ));
+        if (visitIntermediateNodes) {
+          const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+          if (visitorRet === SKIP) return;
+          if (visitorRet === BREAK) {
+            didBreak = true;
+            return;
+          }
+        }
+        
+        jssyValue.sourceData.value.forEach((fieldValue, key) => {
+          visitValue(
+            fieldValue,
+            valueDef.ofType,
+            [...path, key],
+            isSystemProp,
+          );
+
+          if (didBreak) {
+            return false;
+          }
+        });
       } else if (valueDef.type === TypeNames.ARRAY_OF) {
-        jssyValue.sourceData.value.forEach((itemValue, idx) => void visitValue(
-          itemValue,
-          valueDef.ofType,
-          [...path, idx],
-          isSystemProp,
-        ));
+        if (visitIntermediateNodes) {
+          const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+          if (visitorRet === SKIP) return;
+          if (visitorRet === BREAK) {
+            didBreak = true;
+            return;
+          }
+        }
+        
+        jssyValue.sourceData.value.forEach((itemValue, idx) => {
+          visitValue(
+            itemValue,
+            valueDef.ofType,
+            [...path, idx],
+            isSystemProp,
+          );
+
+          if (didBreak) {
+            return false;
+          }
+        });
       } else {
-        visitor(jssyValue, valueDef, path, isSystemProp);
+        const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+        if (visitorRet === BREAK) {
+          didBreak = true;
+        }
       }
     } else if (walkFunctionArgs && jssyValue.source === 'function') {
       if (visitIntermediateNodes) {
-        visitor(jssyValue, valueDef, path, isSystemProp);
+        const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+        if (visitorRet === SKIP) return;
+        if (visitorRet === BREAK) {
+          didBreak = true;
+          return;
+        }
       }
 
       const fnInfo = getFunctionInfo(
@@ -518,18 +577,31 @@ export const walkSimpleValues = (
             isSystemProp,
           );
         }
+
+        if (didBreak) return false;
       });
     } else if (walkActions && jssyValue.source === 'actions') {
       if (visitIntermediateNodes) {
-        visitor(jssyValue, valueDef, path, isSystemProp);
+        const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+        if (visitorRet === SKIP) return;
+        if (visitorRet === BREAK) {
+          didBreak = true;
+          return;
+        }
       }
 
       jssyValue.sourceData.actions.forEach((action, actionIdx) => {
         visitAction(action, [...path, 'actions', actionIdx], isSystemProp);
+        if (didBreak) return false;
       });
     } else if (walkDesignerValues && jssyValue.sourceIs('designer')) {
       if (visitIntermediateNodes) {
-        visitor(jssyValue, valueDef, path, isSystemProp);
+        const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+        if (visitorRet === SKIP) return;
+        if (visitorRet === BREAK) {
+          didBreak = true;
+          return;
+        }
       }
 
       const components = jssyValue.sourceData.components;
@@ -540,36 +612,257 @@ export const walkSimpleValues = (
           const componentMeta = getComponentMeta(component.name, meta);
           const pathPrefix = [...path, 'components', component.id];
 
-          walkSimpleValues(
+          const walkRet = walkSimpleValues(
             component,
             componentMeta,
             visitor,
             options,
             pathPrefix,
           );
+
+          if (walkRet.didBreak) {
+            didBreak = true;
+            return walkComponentsTree.BREAK;
+          }
         });
       }
     } else {
-      visitor(jssyValue, valueDef, path, isSystemProp);
+      const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+      if (visitorRet === BREAK) {
+        didBreak = true;
+      }
     }
   };
   /* eslint-enable no-use-before-define */
 
-  component.props.forEach(
-    (propValue, propName) => visitValue(
+  component.props.forEach((propValue, propName) => {
+    visitValue(
       propValue,
       componentMeta.props[propName],
       [..._pathPrefix, 'props', propName],
-    ),
-  );
+    );
+
+    if (didBreak) {
+      return false;
+    }
+  });
 
   if (walkSystemProps) {
-    component.systemProps.forEach(
-      (propValue, propName) => visitValue(
+    component.systemProps.forEach((propValue, propName) => {
+      visitValue(
         propValue,
         SYSTEM_PROPS[propName],
         [..._pathPrefix, 'systemProps', propName],
-      ),
-    );
+      );
+
+      if (didBreak) {
+        return false;
+      }
+    });
   }
+
+  return { didBreak };
+};
+
+walkSimpleValues.SKIP = Object.freeze(Object.create(null));
+walkSimpleValues.BREAK = Object.freeze(Object.create(null));
+
+/**
+ *
+ * @param {Immutable.Map<number, Object>} components
+ * @param {number} rootId
+ * @param {ComponentsMeta} meta
+ * @param {Object} project
+ * @param {DataSchema} schema
+ * @param {boolean} [setIsNewFlag=true]
+ * @param {boolean} [clearExternalRefs=false]
+ * @return {Immutable.Map<number, Object>}
+ */
+export const makeDetachedCopy = (
+  components,
+  rootId,
+  meta,
+  project,
+  schema,
+  {
+    setIsNewFlag = true,
+    clearExternalRefs = false,
+  } = {},
+) => Map().withMutations(ret => {
+  const subtreeIds = gatherComponentsTreeIds(components, rootId);
+  
+  let idsMap = Map();
+  let nextId = 0;
+  
+  const transformId = id => {
+    if (idsMap.has(id)) {
+      return idsMap.get(id);
+    } else {
+      const newId = nextId++;
+      idsMap = idsMap.set(id, newId);
+      return newId;
+    }
+  };
+  
+  walkComponentsTree(components, rootId, component => {
+    const isRoot = component.id === rootId;
+    const componentMeta = getComponentMeta(component.name, meta);
+    const actionsToClear = [];
+    const actionsToTransform = [];
+    const jssyValuesToClear = [];
+    const jssyValuesToTransform = [];
+  
+    const visitor = (node, valueDef, steps, isSystemProp) => {
+      if (node instanceof Action) {
+        if (node.type === 'method' || node.type === 'prop') {
+          const targetId = node.params.componentId;
+          
+          if (targetId !== INVALID_ID) {
+            const arr = subtreeIds.has(targetId)
+              ? actionsToTransform
+              : actionsToClear;
+  
+            arr.push([isSystemProp ? 'systemProps' : 'props', ...steps]);
+          }
+        }
+      } else if (node instanceof JssyValue) {
+        if (node.source === 'state') {
+          const targetId = node.sourceData.componentId;
+          
+          if (targetId !== INVALID_ID) {
+            const arr = subtreeIds.has(targetId)
+              ? jssyValuesToTransform
+              : jssyValuesToClear;
+  
+            arr.push([isSystemProp ? 'systemProps' : 'props', ...steps]);
+          }
+        }
+      }
+    };
+  
+    const options = {
+      meta,
+      schema,
+      project,
+      walkSystemProps: true,
+      walkDesignerValues: false,
+      walkFunctionArgs: true,
+      walkActions: true,
+      visitIntermediateNodes: true,
+    };
+  
+    walkSimpleValues(component, componentMeta, visitor, options);
+  
+    const start = {
+      object: component,
+      expandedPath: [],
+    };
+  
+    if (clearExternalRefs) {
+      actionsToClear.forEach(steps => {
+        component = component.updateIn(
+          expandPath({ start, steps }),
+          action => action.setIn(['params', 'componentId'], INVALID_ID),
+        );
+      });
+  
+      jssyValuesToClear.forEach(steps => {
+        component = component.updateIn(
+          expandPath({ start, steps }),
+          jssyValue => jssyValue.setIn(
+            ['sourceData', 'componentId'],
+            INVALID_ID,
+          ),
+        );
+      });
+    }
+  
+    actionsToTransform.forEach(steps => {
+      component = component.updateIn(
+        expandPath({ start, steps }),
+        action => action.updateIn(['params', 'componentId'], transformId),
+      );
+    });
+  
+    jssyValuesToTransform.forEach(steps => {
+      component = component.updateIn(
+        expandPath({ start, steps }),
+        jssyValue => jssyValue.updateIn(
+          ['sourceData', 'componentId'],
+          transformId,
+        ),
+      );
+    });
+  
+    component = component.merge({
+      id: transformId(component.id),
+      parentId: isRoot ? INVALID_ID : transformId(component.parentId),
+      isNew: setIsNewFlag,
+      routeId: INVALID_ID,
+      isIndexRoute: false,
+      children: component.children.map(transformId),
+    });
+    
+    ret.set(component.id, component);
+  });
+});
+
+/**
+ *
+ * @param {Immutable.Map<number, Object>} components
+ * @param {number} rootId
+ * @param {ComponentsMeta} meta
+ * @param {Object} project
+ * @param {DataSchema} schema
+ * @return {Immutable.Map<number, Object>}
+ */
+export const convertComponentToList = (
+  components,
+  rootId,
+  meta,
+  project,
+  schema,
+) => {
+  const list = constructComponent('List');
+  const designerValue = new JssyValue({
+    source: 'designer',
+    sourceData: new SourceDataDesigner({
+      components: makeDetachedCopy(
+        components,
+        rootId,
+        meta,
+        project,
+        schema,
+        { setIsNewFlag: false, clearExternalRefs: true },
+      ),
+      rootId: 0,
+    }),
+  });
+  
+  return list.setIn([0, 'props', 'component'], designerValue);
+};
+
+/**
+ *
+ * @param {Immutable.Map<number, Object>} components
+ * @param {number} componentId
+ * @return {{ containerId: number, afterIdx: number }}
+ */
+export const getComponentPosition = (components, componentId) => {
+  const component = components.get(componentId);
+  
+  if (component.parentId === INVALID_ID) {
+    return {
+      containerId: INVALID_ID,
+      afterIdx: -1,
+    };
+  }
+  
+  const container = components.get(component.parentId);
+  const position = container.children.indexOf(componentId);
+  
+  return {
+    containerId: container.id,
+    afterIdx: position - 1,
+  };
 };

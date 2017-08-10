@@ -372,6 +372,40 @@ class PlaceholderBuilderComponent extends PureComponent {
 
     return ret.length > 0 ? ret : null;
   }
+  
+  _createApolloHOC(component, graphQLQuery, graphQLVariables, theMap) {
+    const { schema, getLocalizedText, onAlert } = this.props;
+    
+    return graphql(graphQLQuery, {
+      props: ({ ownProps, data }) => {
+        if (data.error) {
+          const message = getLocalizedText('alert.queryError', {
+            message: data.error.message,
+          });
+      
+          setTimeout(() => void onAlert({ content: message }), 0);
+        }
+    
+        const props = this._buildProps(
+          component,
+          theMap,
+          queryResultHasData(data) ? data : null,
+        );
+    
+        return { ...ownProps, ...props };
+      },
+  
+      options: {
+        variables: buildGraphQLQueryVariables(
+          graphQLVariables,
+          this._getValueContext(),
+          schema,
+        ),
+    
+        fetchPolicy: 'cache-and-network',
+      },
+    });
+  }
 
   /**
    *
@@ -390,8 +424,6 @@ class PlaceholderBuilderComponent extends PureComponent {
       theMap: thePreviousMap,
       containerId,
       afterIdx,
-      getLocalizedText,
-      onAlert,
     } = this.props;
 
     if (isPseudoComponent(component)) {
@@ -433,35 +465,12 @@ class PlaceholderBuilderComponent extends PureComponent {
     let Renderable = Component;
 
     if (graphQLQuery) {
-      const gqlHoc = graphql(graphQLQuery, {
-        props: ({ ownProps, data }) => {
-          if (data.error) {
-            const message = getLocalizedText('alert.queryError', {
-              message: data.error.message,
-            });
-
-            setTimeout(() => void onAlert({ content: message }), 0);
-          }
-
-          const props = this._buildProps(
-            component,
-            theMergedMap,
-            queryResultHasData(data) ? data : null,
-          );
-
-          return { ...ownProps, ...props };
-        },
-
-        options: {
-          variables: buildGraphQLQueryVariables(
-            graphQLVariables,
-            this._getValueContext(),
-            schema,
-          ),
-
-          fetchPolicy: 'cache-and-network',
-        },
-      });
+      const gqlHoc = this._createApolloHOC(
+        component,
+        graphQLQuery,
+        graphQLVariables,
+        theMergedMap,
+      );
 
       Renderable = gqlHoc(Component);
     }

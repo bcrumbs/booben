@@ -18,8 +18,8 @@ import {
 } from '@jssy/common-ui';
 
 import {
-  ComponentStateSlotSelect,
-} from '../ComponentStateSlotSelect/ComponentStateSlotSelect';
+  ComponentDataSelect,
+} from '../ComponentDataSelect/ComponentDataSelect';
 
 import {
   ComponentsTree,
@@ -59,7 +59,7 @@ import {
 
 import {
   pickComponentDone,
-  pickComponentStateSlotDone,
+  pickComponentDataDone,
   moveCursor,
   ComponentPickAreas,
 } from '../../actions/project';
@@ -76,12 +76,7 @@ import {
 } from '../../selectors';
 
 import ProjectComponentRecord from '../../models/ProjectComponent';
-
-import {
-  isCompositeComponent,
-  getComponentMeta,
-  isAtomicComponent,
-} from '../../lib/meta';
+import { isCompositeComponent, isAtomicComponent } from '../../lib/meta';
 
 import {
   isRootComponent,
@@ -90,7 +85,7 @@ import {
   formatComponentTitle,
 } from '../../lib/components';
 
-import { isFunction, returnTrue } from '../../utils/misc';
+import { isFunction } from '../../utils/misc';
 import * as JssyPropTypes from '../../constants/common-prop-types';
 import { INVALID_ID } from '../../constants/misc';
 import { DND_DRAG_START_RADIUS_TREE } from '../../config';
@@ -108,13 +103,14 @@ const propTypes = {
   placeholderContainerId: PropTypes.number.isRequired, // state
   placeholderAfter: PropTypes.number.isRequired, // state
   pickingComponent: PropTypes.bool.isRequired, // state
-  pickingComponentStateSlot: PropTypes.bool.isRequired, // state
+  pickingComponentData: PropTypes.bool.isRequired, // state
   pickingComponentFilter: PropTypes.func, // state
   pickedComponentId: PropTypes.number.isRequired, // state
   pickedComponentArea: PropTypes.number.isRequired, // state
-  componentStateSlotsListIsVisible: PropTypes.bool.isRequired, // state
-  isCompatibleStateSlot: PropTypes.func.isRequired, // state
-  language: PropTypes.string.isRequired, // state
+  componentDataListIsVisible: PropTypes.bool.isRequired, // state
+  componentDataListItems: PropTypes.arrayOf(
+    JssyPropTypes.componentDataItem,
+  ).isRequired, // state
   meta: PropTypes.object.isRequired, // state
   cursorPosition: JssyPropTypes.componentsTreePosition.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
@@ -132,7 +128,7 @@ const propTypes = {
   onDropZoneUnsnap: PropTypes.func.isRequired, // dispatch
   onStartDragComponent: PropTypes.func.isRequired, // dispatch
   onPickComponent: PropTypes.func.isRequired, // dispatch
-  onSelectComponentStateSlot: PropTypes.func.isRequired, // dispatch
+  onSelectComponentData: PropTypes.func.isRequired, // dispatch
   onMoveCursor: PropTypes.func.isRequired, // dispatch
 };
 
@@ -154,17 +150,12 @@ const mapStateToProps = state => ({
   placeholderContainerId: state.project.placeholderContainerId,
   placeholderAfter: state.project.placeholderAfter,
   pickingComponent: state.project.pickingComponent,
-  pickingComponentStateSlot: state.project.pickingComponentStateSlot,
+  pickingComponentData: state.project.pickingComponentData,
   pickingComponentFilter: state.project.pickingComponentFilter,
   pickedComponentId: state.project.pickedComponentId,
   pickedComponentArea: state.project.pickedComponentArea,
-  componentStateSlotsListIsVisible:
-    state.project.componentStateSlotsListIsVisible,
-
-  isCompatibleStateSlot:
-    state.project.pickingComponentStateSlotsFilter ||
-    returnTrue,
-
+  componentDataListIsVisible: state.project.componentDataListIsVisible,
+  componentDataListItems: state.project.componentDataListItems,
   language: state.project.languageForComponentProps,
   meta: state.project.meta,
   cursorPosition: cursorPositionSelector(state),
@@ -202,8 +193,8 @@ const mapDispatchToProps = dispatch => ({
   onPickComponent: componentId =>
     void dispatch(pickComponentDone(componentId, ComponentPickAreas.TREE)),
 
-  onSelectComponentStateSlot: ({ stateSlot }) =>
-    void dispatch(pickComponentStateSlotDone(stateSlot)),
+  onSelectComponentData: ({ data }) =>
+    void dispatch(pickComponentDataDone(data)),
 
   onMoveCursor: (containerId, afterIdx) =>
     void dispatch(moveCursor(containerId, afterIdx)),
@@ -836,7 +827,7 @@ class ComponentsTreeViewComponent extends PureComponent {
   _handleSelect({ componentId, selected }) {
     const {
       pickingComponent,
-      pickingComponentStateSlot,
+      pickingComponentData,
       onSelectItem,
       onDeselectItem,
       onPickComponent,
@@ -844,7 +835,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     if (pickingComponent) {
       onPickComponent(componentId);
-    } else if (!pickingComponentStateSlot) {
+    } else if (!pickingComponentData) {
       if (selected) onSelectItem(componentId);
       else onDeselectItem(componentId);
     }
@@ -994,7 +985,7 @@ class ComponentsTreeViewComponent extends PureComponent {
       draggingOverPlaceholder,
       placeholderContainerId,
       pickingComponent,
-      pickingComponentStateSlot,
+      pickingComponentData,
       pickingComponentFilter,
     } = this.props;
     
@@ -1022,7 +1013,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     const hovered = highlightedComponentIds.has(componentId);
     const active =
       !pickingComponent &&
-      !pickingComponentStateSlot &&
+      !pickingComponentData &&
       selectedComponentIds.has(componentId);
     
     const dragData = { componentId };
@@ -1039,7 +1030,7 @@ class ComponentsTreeViewComponent extends PureComponent {
       !isCompositeComponent(parentComponent.name, meta);
     
     const disabled =
-      (pickingComponent || pickingComponentStateSlot) &&
+      (pickingComponent || pickingComponentData) &&
       isFunction(pickingComponentFilter) &&
       !pickingComponentFilter(componentId);
     
@@ -1199,20 +1190,15 @@ class ComponentsTreeViewComponent extends PureComponent {
     );
   }
 
-  _renderStateSlotSelect() {
+  _renderComponentDataSelect() {
     const {
-      meta,
-      components,
       pickedComponentId,
-      isCompatibleStateSlot,
-      language,
-      onSelectComponentStateSlot,
+      componentDataListItems,
+      getLocalizedText,
+      onSelectComponentData,
     } = this.props;
 
-    const component = components.get(pickedComponentId);
-    const componentMeta = getComponentMeta(component.name, meta);
     const itemElement = this._itemElements.get(pickedComponentId);
-
     if (!itemElement) return null;
 
     const { left, top } = itemElement.getBoundingClientRect();
@@ -1227,11 +1213,10 @@ class ComponentsTreeViewComponent extends PureComponent {
     return (
       <Portal>
         <div style={wrapperStyle}>
-          <ComponentStateSlotSelect
-            componentMeta={componentMeta}
-            isCompatibleStateSlot={isCompatibleStateSlot}
-            language={language}
-            onSelect={onSelectComponentStateSlot}
+          <ComponentDataSelect
+            componentDataItems={componentDataListItems}
+            getLocalizedText={getLocalizedText}
+            onSelect={onSelectComponentData}
           />
         </div>
       </Portal>
@@ -1241,7 +1226,7 @@ class ComponentsTreeViewComponent extends PureComponent {
   render() {
     const {
       draggingComponent,
-      componentStateSlotsListIsVisible,
+      componentDataListIsVisible,
       pickedComponentArea,
       getLocalizedText,
     } = this.props;
@@ -1256,12 +1241,12 @@ class ComponentsTreeViewComponent extends PureComponent {
     
     const list = this._renderList(INVALID_ID);
 
-    const willRenderStateSlotSelect =
-      componentStateSlotsListIsVisible &&
+    const willRenderComponentDataSelect =
+      componentDataListIsVisible &&
       pickedComponentArea === ComponentPickAreas.TREE;
 
-    const componentStateSlotSelect = willRenderStateSlotSelect
-      ? this._renderStateSlotSelect()
+    const componentDataSelect = willRenderComponentDataSelect
+      ? this._renderComponentDataSelect()
       : null;
 
     return (
@@ -1281,7 +1266,7 @@ class ComponentsTreeViewComponent extends PureComponent {
           </ComponentsTree>
         </Shortcuts>
 
-        {componentStateSlotSelect}
+        {componentDataSelect}
       </BlockContentBox>
     );
   }

@@ -13,6 +13,7 @@ import {
   getFieldByPath,
   getJssyValueDefOfField,
   getJssyValueDefOfQueryArgument,
+  RELAY_PAGEINFO_FIELD_END_CURSOR,
 } from './schema';
 
 import { extractPropValueFromData } from './graphql';
@@ -27,7 +28,7 @@ import {
   returnNull,
 } from '../utils/misc';
 
-import { ROUTE_PARAM_VALUE_DEF, NO_VALUE } from '../constants/misc';
+import { ROUTE_PARAM_VALUE_DEF, NO_VALUE, INVALID_ID } from '../constants/misc';
 
 /**
  * @typedef {Object} AJAXRequestResult
@@ -56,6 +57,7 @@ import { ROUTE_PARAM_VALUE_DEF, NO_VALUE } from '../constants/misc';
  * @property {?ReactComponent} [BuilderComponent=null]
  * @property {?function(ownProps: Object<string, *>, jssyValue: Object, context: ValueContext): Object<string, *>} [getBuilderProps=null]
  * @property {?Function} [handleActions=null]
+ * @property {?Immutable.Map<Object, Immutable.Map<number, Object>>} [pageInfos=null]
  */
 
 const defaultContext = {
@@ -76,6 +78,7 @@ const defaultContext = {
   BuilderComponent: null,
   getBuilderProps: null,
   handleActions: null,
+  pageInfos: null,
 };
 
 /* eslint-disable no-use-before-define */
@@ -312,6 +315,11 @@ const buildStateValue = (jssyValue, valueDef, userTypedefs, context) => {
   }
 
   const componentId = jssyValue.sourceData.componentId;
+  
+  if (componentId === INVALID_ID) {
+    return NO_VALUE;
+  }
+  
   const stateSlot = jssyValue.sourceData.stateSlot;
   const componentState = componentsState.get(componentId);
 
@@ -456,6 +464,36 @@ const buildActionsValue = (jssyValue, valueDef, userTypedefs, context) => {
 /**
  *
  * @param {Object} jssyValue
+ * @param {?ValueContext} context
+ * @return {*}
+ */
+const buildConnectionPaginationStateValue = (jssyValue, context) => {
+  const param = jssyValue.sourceData.param;
+  const dataValue = jssyValue.sourceData.dataValue;
+  const queryStep = jssyValue.sourceData.queryStep;
+
+  if (param === 'after') {
+    if (context.pageInfos === null || !context.pageInfos.has(dataValue)) {
+      return '';
+    }
+    
+    const pageInfosForValue = context.pageInfos.get(dataValue);
+    if (!pageInfosForValue.has(queryStep)) {
+      return '';
+    }
+    
+    const pageInfo = pageInfosForValue.get(queryStep);
+    return pageInfo[RELAY_PAGEINFO_FIELD_END_CURSOR] || '';
+  } else {
+    throw new Error(
+      `buildConnectionPaginationStateValue(): unknown param: '${param}'`,
+    );
+  }
+};
+
+/**
+ *
+ * @param {Object} jssyValue
  * @param {JssyValueDefinition} valueDef
  * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
  * @param {?ValueContext} [context=null]
@@ -502,6 +540,8 @@ export const buildValue = (
     return buildDesignerValue(jssyValue, actualContext);
   } else if (jssyValue.sourceIs('actions')) {
     return buildActionsValue(jssyValue, valueDef, userTypedefs, actualContext);
+  } else if (jssyValue.sourceIs('connectionPaginationState')) {
+    return buildConnectionPaginationStateValue(jssyValue, actualContext);
   } else {
     throw new Error(`buildValue(): unknown value source: ${jssyValue.source}`);
   }
