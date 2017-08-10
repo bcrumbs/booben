@@ -137,7 +137,9 @@ const propTypes = {
   pickedComponentId: PropTypes.number.isRequired, // state
   pickedComponentArea: PropTypes.number.isRequired, // state
   componentDataListIsVisible: PropTypes.bool.isRequired, // state
-  pickingComponentDataGetter: PropTypes.func, // state
+  componentDataListItems: PropTypes.arrayOf(
+    JssyPropTypes.componentDataItem,
+  ).isRequired, // state
   cursorPosition: JssyPropTypes.componentsTreePosition.isRequired, // state
   componentClipboard: JssyPropTypes.componentClipboard.isRequired, // state
   showInvisibleComponents: PropTypes.bool.isRequired, // state
@@ -164,7 +166,6 @@ const propTypes = {
 
 const defaultProps = {
   draggedComponents: null,
-  pickingComponentDataGetter: null,
 };
 
 const mapStateToProps = state => ({
@@ -179,8 +180,8 @@ const mapStateToProps = state => ({
   language: state.project.languageForComponentProps,
   pickedComponentId: state.project.pickedComponentId,
   pickedComponentArea: state.project.pickedComponentArea,
-  pickingComponentDataGetter: state.project.pickingComponentDataGetter,
   componentDataListIsVisible: state.project.componentDataListIsVisible,
+  componentDataListItems: state.project.componentDataListItems,
   cursorPosition: cursorPositionSelector(state),
   componentClipboard: componentClipboardSelector(state),
   showInvisibleComponents: state.app.showInvisibleComponents,
@@ -808,7 +809,7 @@ class DesignRoute extends PureComponent {
   _renderComponentDataSelect() {
     const {
       pickedComponentId,
-      pickingComponentDataGetter,
+      componentDataListItems,
       getLocalizedText,
       onSelectComponentData,
     } = this.props;
@@ -822,15 +823,12 @@ class DesignRoute extends PureComponent {
       left: `${componentElementCoords.x}px`,
       top: `${componentElementCoords.y}px`,
     };
-
-    const pickedComponentDataItems =
-      pickingComponentDataGetter(pickedComponentId);
     
     return (
       <Portal>
         <div style={wrapperStyle}>
           <ComponentDataSelect
-            componentDataItems={pickedComponentDataItems}
+            componentDataItems={componentDataListItems}
             getLocalizedText={getLocalizedText}
             onSelect={onSelectComponentData}
           />

@@ -131,7 +131,7 @@ export const getConnectionDataValuePickerFns = (
     const ret = [];
 
     // eslint-disable-next-line consistent-return
-    const visitor = (jssyValue, valueDef, pathSteps, isSystemProp) => {
+    const visitor = (jssyValue, valueDef, pathSteps) => {
       if (
         jssyValue.isLinkedWithData() &&
         jssyValue.sourceData.dataContext.size === 0
@@ -144,15 +144,11 @@ export const getConnectionDataValuePickerFns = (
         const connectionIdx = findFirstConnectionInPath(schema, queryPath);
 
         if (connectionIdx !== -1) {
-          const fullPath = isSystemProp
-            ? ['systemProps', ...pathSteps]
-            : ['props', ...pathSteps];
-
           ret.push({
-            name: fullPath.join(' > '),
+            name: pathSteps.join(' > '),
             description: '',
             unavailable: false,
-            data: fullPath,
+            data: pathSteps,
           });
         }
       }

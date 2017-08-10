@@ -65,7 +65,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const [rawProject, rawMeta] = await Promise.all([
       getProject(projectName),
       getMetadata(projectName),
-      componentsBundle.loadComponents(window, projectName),
+      componentsBundle.loadComponents(),
     ]);
     
     const project = projectToImmutable(rawProject);
@@ -76,9 +76,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     
     if (project.graphQLEndpointURL) {
       const apolloClient = createApolloClient(project);
-      const schema = parseGraphQLSchema(
-        await getGraphQLSchema(project.graphQLEndpointURL),
-      );
+      const rawSchema = await getGraphQLSchema(project.graphQLEndpointURL);
+      const schema = parseGraphQLSchema(rawSchema);
       
       content = (
         <ApolloProvider client={apolloClient}>

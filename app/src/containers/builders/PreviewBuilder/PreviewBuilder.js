@@ -544,10 +544,15 @@ class PreviewBuilderComponent extends PureComponent {
     const graphQLVariables = this._graphQLVariables.get(component.id);
     
     try {
+      const valueContextForVariables = {
+        ...this._getValueContext(component.id),
+        pageInfos: this._pageInfos.get(component.id) || null,
+      };
+
       await observableQuery.fetchMore({
         variables: buildGraphQLQueryVariables(
           graphQLVariables,
-          this._getValueContext(component.id),
+          valueContextForVariables,
           schema,
         ),
         
@@ -705,8 +710,6 @@ class PreviewBuilderComponent extends PureComponent {
           valueContext,
         );
       },
-  
-      pageInfos: this._pageInfos.get(componentId) || null,
     };
   }
   
@@ -827,7 +830,7 @@ class PreviewBuilderComponent extends PureComponent {
   }
   
   _extractPageInfos(component, queryResultRoot) {
-    const { meta, schema, dataContextInfo } = this.props;
+    const { meta, schema } = this.props;
     
     const componentMeta = getComponentMeta(component.name, meta);
     let ret = Immutable.Map();
@@ -837,15 +840,7 @@ class PreviewBuilderComponent extends PureComponent {
       if (jssyValue.sourceData.dataContext.size > 0) return;
       
       let currentNode = queryResultRoot;
-      let currentTypeName;
-      
-      if (jssyValue.sourceData.dataContext.size > 0) {
-        const dataContextName = jssyValue.sourceData.dataContext.last();
-        const ourDataContextInfo = dataContextInfo[dataContextName];
-        currentTypeName = ourDataContextInfo.type;
-      } else {
-        currentTypeName = schema.queryTypeName;
-      }
+      let currentTypeName = schema.queryTypeName;
       
       jssyValue.sourceData.queryPath.forEach((step, idx) => {
         const field = getFieldOnType(schema, currentTypeName, step.field);

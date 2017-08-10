@@ -472,7 +472,7 @@ const buildConnectionPaginationStateValue = (jssyValue, context) => {
   const dataValue = jssyValue.sourceData.dataValue;
   const queryStep = jssyValue.sourceData.queryStep;
 
-  if (param === 'endCursor') {
+  if (param === 'after') {
     if (context.pageInfos === null || !context.pageInfos.has(dataValue)) {
       return '';
     }

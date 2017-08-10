@@ -435,7 +435,7 @@ const buildGraphQLFragmentForValue = (
       const afterValue = new JssyValue({
         source: 'connectionPaginationState',
         sourceData: new SourceDataConnectionPaginationState({
-          param: 'endCursor',
+          param: 'after',
           dataValue: jssyValue,
           queryStep: idx,
         }),

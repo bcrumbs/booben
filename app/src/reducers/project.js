@@ -209,6 +209,7 @@ const ProjectState = RecordWithHistory({
   pickedComponentArea: ComponentPickAreas.UNKNOWN,
   pickedComponentData: null,
   componentDataListIsVisible: false,
+  componentDataListItems: [],
 }, [
   'data',
   'lastRouteId',
@@ -239,6 +240,7 @@ const initComponentPickingState = state => state.merge({
   pickedComponentArea: ComponentPickAreas.UNKNOWN,
   pickedComponentData: null,
   componentDataListIsVisible: false,
+  componentDataListItems: [],
 });
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
@@ -1729,6 +1731,8 @@ const handlers = {
 
     if (state.pickingComponentData) {
       updates.componentDataListIsVisible = true;
+      updates.componentDataListItems =
+        state.pickingComponentDataGetter(action.componentId);
     }
 
     return state.merge(updates);
@@ -1743,6 +1747,7 @@ const handlers = {
     pickedComponentArea: ComponentPickAreas.UNKNOWN,
     pickedComponentData: null,
     componentDataListIsVisible: false,
+    componentDataListItems: [],
   }),
 
   [PROJECT_PICK_COMPONENT_DATA]: (state, action) => state.merge({
@@ -1752,6 +1757,7 @@ const handlers = {
     pickingComponentDataGetter: null,
     pickedComponentData: action.data,
     componentDataListIsVisible: false,
+    componentDataListItems: [],
   }),
   
   [PROJECT_PICK_COMPONENT_DATA_CANCEL]: state => state.merge({
@@ -1759,6 +1765,7 @@ const handlers = {
     pickedComponentId: INVALID_ID,
     pickedComponentArea: ComponentPickAreas.UNKNOWN,
     componentDataListIsVisible: false,
+    componentDataListItems: [],
   }),
   
   [PREVIEW_DRAG_OVER_PLACEHOLDER]: (state, action) => state.merge({

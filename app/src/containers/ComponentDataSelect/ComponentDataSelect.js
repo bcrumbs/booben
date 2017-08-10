@@ -7,8 +7,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import _forOwn from 'lodash.forown';
-import { resolveTypedef } from '@jssy/types';
 
 import {
   MenuOverlapping,
@@ -18,16 +16,11 @@ import {
 } from '../../components/MenuOverlapping/MenuOverlapping';
 
 import { getLocalizedTextFromState } from '../../selectors';
-import { getString } from '../../lib/meta';
-import { noop, returnTrue } from '../../utils/misc';
+import { noop } from '../../utils/misc';
+import * as JssyPropTypes from '../../constants/common-prop-types';
 
 const propTypes = {
-  componentDataItems: PropTypes.arrayOf(PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    description: PropTypes.string,
-    unavailable: PropTypes.bool,
-    data: PropTypes.any.isRequired,
-  })).isRequired,
+  componentDataItems: JssyPropTypes.componentDataItem.isRequired,
   getLocalizedText: PropTypes.func.isRequired, // state
   onSelect: PropTypes.func,
 };

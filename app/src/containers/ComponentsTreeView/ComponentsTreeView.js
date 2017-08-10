@@ -105,10 +105,12 @@ const propTypes = {
   pickingComponent: PropTypes.bool.isRequired, // state
   pickingComponentData: PropTypes.bool.isRequired, // state
   pickingComponentFilter: PropTypes.func, // state
-  pickingComponentDataGetter: PropTypes.func, // state
   pickedComponentId: PropTypes.number.isRequired, // state
   pickedComponentArea: PropTypes.number.isRequired, // state
   componentDataListIsVisible: PropTypes.bool.isRequired, // state
+  componentDataListItems: PropTypes.arrayOf(
+    JssyPropTypes.componentDataItem,
+  ).isRequired, // state
   meta: PropTypes.object.isRequired, // state
   cursorPosition: JssyPropTypes.componentsTreePosition.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
@@ -134,7 +136,6 @@ const defaultProps = {
   dropZoneId: ComponentDropAreas.TREE,
   rootDraggedComponent: null,
   pickingComponentFilter: null,
-  pickingComponentDataGetter: null,
 };
 
 const mapStateToProps = state => ({
@@ -151,10 +152,10 @@ const mapStateToProps = state => ({
   pickingComponent: state.project.pickingComponent,
   pickingComponentData: state.project.pickingComponentData,
   pickingComponentFilter: state.project.pickingComponentFilter,
-  pickingComponentDataGetter: state.project.pickingComponentDataGetter,
   pickedComponentId: state.project.pickedComponentId,
   pickedComponentArea: state.project.pickedComponentArea,
   componentDataListIsVisible: state.project.componentDataListIsVisible,
+  componentDataListItems: state.project.componentDataListItems,
   language: state.project.languageForComponentProps,
   meta: state.project.meta,
   cursorPosition: cursorPositionSelector(state),
@@ -1192,7 +1193,7 @@ class ComponentsTreeViewComponent extends PureComponent {
   _renderComponentDataSelect() {
     const {
       pickedComponentId,
-      pickingComponentDataGetter,
+      componentDataListItems,
       getLocalizedText,
       onSelectComponentData,
     } = this.props;
@@ -1209,14 +1210,11 @@ class ComponentsTreeViewComponent extends PureComponent {
       top: `${top}px`,
     };
 
-    const pickedComponentDataItems =
-      pickingComponentDataGetter(pickedComponentId);
-
     return (
       <Portal>
         <div style={wrapperStyle}>
           <ComponentDataSelect
-            componentDataItems={pickedComponentDataItems}
+            componentDataItems={componentDataListItems}
             getLocalizedText={getLocalizedText}
             onSelect={onSelectComponentData}
           />
