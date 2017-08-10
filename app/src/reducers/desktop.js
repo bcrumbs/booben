@@ -34,7 +34,7 @@ import {
 import {
   PROJECT_PICK_COMPONENT,
   PROJECT_PICK_COMPONENT_DONE,
-  PROJECT_PICK_COMPONENT_STATE_SLOT,
+  PROJECT_PICK_COMPONENT_DATA,
   PROJECT_PICK_COMPONENT_CANCEL,
 } from '../actions/project';
 
@@ -286,7 +286,7 @@ const handlers = {
     ? state
     : selectPreviousTool(state),
   
-  [PROJECT_PICK_COMPONENT_STATE_SLOT]: state => selectPreviousTool(state),
+  [PROJECT_PICK_COMPONENT_DATA]: state => selectPreviousTool(state),
   
   [PROJECT_PICK_COMPONENT_CANCEL]: state => selectPreviousTool(state),
 

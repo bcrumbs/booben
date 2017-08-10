@@ -61,10 +61,10 @@ export const PROJECT_PICK_COMPONENT_DONE =
   'PROJECT_PICK_COMPONENT_DONE';
 export const PROJECT_PICK_COMPONENT_CANCEL =
   'PROJECT_PICK_COMPONENT_CANCEL';
-export const PROJECT_PICK_COMPONENT_STATE_SLOT =
-  'PROJECT_PICK_COMPONENT_STATE_SLOT';
-export const PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL =
-  'PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL';
+export const PROJECT_PICK_COMPONENT_DATA =
+  'PROJECT_PICK_COMPONENT_DATA';
+export const PROJECT_PICK_COMPONENT_DATA_CANCEL =
+  'PROJECT_PICK_COMPONENT_DATA_CANCEL';
 
 export const PROJECT_UNDO = 'PROJECT_UNDO';
 export const PROJECT_REDO = 'PROJECT_REDO';
@@ -433,25 +433,30 @@ export const createFunction = triggersProjectSave((
  */
 export const pickComponent = (filter = null) => ({
   type: PROJECT_PICK_COMPONENT,
-  stateSlot: false,
+  pickData: false,
   filter,
-  stateSlotsFilter: null,
+  dataGetter: null,
 });
 
 /**
+ * @typedef {Object} ComponentDataItem
+ * @property {string} name
+ * @property {string} description
+ * @property {boolean} unavailable
+ * @property {*} data
+ */
+
+/**
  *
- * @param {?Function} [filter=null]
- * @param {?Function} [stateSlotsFilter=null]
+ * @param {?function(componentId: number): boolean} [filter=null]
+ * @param {?function(componentId: number): Array<ComponentDataItem>} [dataGetter=null]
  * @return {Object}
  */
-export const pickComponentStateSlot = (
-  filter = null,
-  stateSlotsFilter = null,
-) => ({
+export const pickComponentData = (filter = null, dataGetter = null) => ({
   type: PROJECT_PICK_COMPONENT,
-  stateSlot: true,
+  pickData: true,
   filter,
-  stateSlotsFilter,
+  dataGetter,
 });
 
 /**
@@ -486,20 +491,20 @@ export const pickComponentCancel = () => ({
 
 /**
  *
- * @param {string} slotName
+ * @param {*} data
  * @return {Object}
  */
-export const pickComponentStateSlotDone = slotName => ({
-  type: PROJECT_PICK_COMPONENT_STATE_SLOT,
-  slotName,
+export const pickComponentDataDone = data => ({
+  type: PROJECT_PICK_COMPONENT_DATA,
+  data,
 });
 
 /**
  *
  * @return {Object}
  */
-export const pickComponentStateSlotCancel = () => ({
-  type: PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL,
+export const pickComponentDataCancel = () => ({
+  type: PROJECT_PICK_COMPONENT_DATA_CANCEL,
 });
 
 /**

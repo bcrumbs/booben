@@ -224,9 +224,7 @@ export const objectToArray = (
   const ret = [];
   
   keys.forEach(key => {
-    //noinspection JSCheckFunctionSignatures
     if (!includeFn(object[key], key, object)) return;
-    //noinspection JSCheckFunctionSignatures
     ret.push(itemFn(object[key], key, object));
   });
   

@@ -241,13 +241,30 @@ export const canMoveComponent = (
  * @param {function(component: Object)} visitor
  */
 export const walkComponentsTree = (components, rootComponentId, visitor) => {
+  const BREAK = walkComponentsTree.BREAK;
   const component = components.get(rootComponentId);
-  visitor(component);
+  const visitorRet = visitor(component);
 
+  if (visitorRet === BREAK) {
+    return { didBreak: true };
+  }
+
+  let didBreak = false;
+
+  // eslint-disable-next-line consistent-return
   component.children.forEach(childId => {
-    walkComponentsTree(components, childId, visitor);
+    const walkChildRet = walkComponentsTree(components, childId, visitor);
+
+    if (walkChildRet.didBreak) {
+      didBreak = true;
+      return false;
+    }
   });
+
+  return { didBreak };
 };
+
+walkComponentsTree.BREAK = Object.freeze(Object.create(null));
 
 /**
  *
@@ -350,11 +367,19 @@ export const walkSimpleValues = (
   };
   
   const SKIP = walkSimpleValues.SKIP;
+  const BREAK = walkSimpleValues.BREAK;
+
+  let didBreak = false;
 
   /* eslint-disable no-use-before-define, consistent-return */
   const visitAction = (action, path, isSystemProp) => {
     if (visitIntermediateNodes) {
-      if (visitor(action, null, path, isSystemProp) === SKIP) return;
+      const visitorRet = visitor(action, null, path, isSystemProp);
+      if (visitorRet === SKIP) return;
+      if (visitorRet === BREAK) {
+        didBreak = true;
+        return;
+      }
     }
     
     if (action.type === 'mutation') {
@@ -373,6 +398,10 @@ export const walkSimpleValues = (
           [...path, 'args', argName],
           isSystemProp,
         );
+
+        if (didBreak) {
+          return false;
+        }
       });
     } else if (action.type === 'method') {
       const methodMeta = componentMeta.methods[action.para.method];
@@ -386,6 +415,10 @@ export const walkSimpleValues = (
           [...path, 'args', argIdx],
           isSystemProp,
         );
+
+        if (didBreak) {
+          return false;
+        }
       });
     } else if (action.type === 'navigate') {
       action.params.routeParams.forEach((paramValue, paramName) => {
@@ -395,6 +428,10 @@ export const walkSimpleValues = (
           [...path, 'routeParams', paramName],
           isSystemProp,
         );
+
+        if (didBreak) {
+          return false;
+        }
       });
     } else if (action.type === 'prop') {
       // TODO: Visit value
@@ -407,6 +444,10 @@ export const walkSimpleValues = (
           [...path, 'successActions', actionIdx],
           isSystemProp,
         );
+
+        if (didBreak) {
+          return false;
+        }
       });
   
       action.params.errorActions.forEach((action, actionIdx) => {
@@ -415,6 +456,10 @@ export const walkSimpleValues = (
           [...path, 'errorActions', actionIdx],
           isSystemProp,
         );
+
+        if (didBreak) {
+          return false;
+        }
       });
     }
   };
@@ -426,7 +471,12 @@ export const walkSimpleValues = (
         jssyValue.sourceData.value !== null
       ) {
         if (visitIntermediateNodes) {
-          if (visitor(jssyValue, valueDef, path, isSystemProp) === SKIP) return;
+          const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+          if (visitorRet === SKIP) return;
+          if (visitorRet === BREAK) {
+            didBreak = true;
+            return;
+          }
         }
         
         _forOwn(valueDef.fields, (fieldTypedef, fieldName) => {
@@ -439,6 +489,10 @@ export const walkSimpleValues = (
               [...path, fieldName],
               isSystemProp,
             );
+
+            if (didBreak) {
+              return false;
+            }
           }
         });
       } else if (
@@ -446,32 +500,62 @@ export const walkSimpleValues = (
         jssyValue.sourceData.value !== null
       ) {
         if (visitIntermediateNodes) {
-          if (visitor(jssyValue, valueDef, path, isSystemProp) === SKIP) return;
+          const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+          if (visitorRet === SKIP) return;
+          if (visitorRet === BREAK) {
+            didBreak = true;
+            return;
+          }
         }
         
-        jssyValue.sourceData.value.forEach((fieldValue, key) => void visitValue(
-          fieldValue,
-          valueDef.ofType,
-          [...path, key],
-          isSystemProp,
-        ));
+        jssyValue.sourceData.value.forEach((fieldValue, key) => {
+          visitValue(
+            fieldValue,
+            valueDef.ofType,
+            [...path, key],
+            isSystemProp,
+          );
+
+          if (didBreak) {
+            return false;
+          }
+        });
       } else if (valueDef.type === TypeNames.ARRAY_OF) {
         if (visitIntermediateNodes) {
-          if (visitor(jssyValue, valueDef, path, isSystemProp) === SKIP) return;
+          const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+          if (visitorRet === SKIP) return;
+          if (visitorRet === BREAK) {
+            didBreak = true;
+            return;
+          }
         }
         
-        jssyValue.sourceData.value.forEach((itemValue, idx) => void visitValue(
-          itemValue,
-          valueDef.ofType,
-          [...path, idx],
-          isSystemProp,
-        ));
+        jssyValue.sourceData.value.forEach((itemValue, idx) => {
+          visitValue(
+            itemValue,
+            valueDef.ofType,
+            [...path, idx],
+            isSystemProp,
+          );
+
+          if (didBreak) {
+            return false;
+          }
+        });
       } else {
-        visitor(jssyValue, valueDef, path, isSystemProp);
+        const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+        if (visitorRet === BREAK) {
+          didBreak = true;
+        }
       }
     } else if (walkFunctionArgs && jssyValue.source === 'function') {
       if (visitIntermediateNodes) {
-        if (visitor(jssyValue, valueDef, path, isSystemProp) === SKIP) return;
+        const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+        if (visitorRet === SKIP) return;
+        if (visitorRet === BREAK) {
+          didBreak = true;
+          return;
+        }
       }
 
       const fnInfo = getFunctionInfo(
@@ -492,18 +576,31 @@ export const walkSimpleValues = (
             isSystemProp,
           );
         }
+
+        if (didBreak) return false;
       });
     } else if (walkActions && jssyValue.source === 'actions') {
       if (visitIntermediateNodes) {
-        if (visitor(jssyValue, valueDef, path, isSystemProp) === SKIP) return;
+        const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+        if (visitorRet === SKIP) return;
+        if (visitorRet === BREAK) {
+          didBreak = true;
+          return;
+        }
       }
 
       jssyValue.sourceData.actions.forEach((action, actionIdx) => {
         visitAction(action, [...path, 'actions', actionIdx], isSystemProp);
+        if (didBreak) return false;
       });
     } else if (walkDesignerValues && jssyValue.sourceIs('designer')) {
       if (visitIntermediateNodes) {
-        if (visitor(jssyValue, valueDef, path, isSystemProp) === SKIP) return;
+        const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+        if (visitorRet === SKIP) return;
+        if (visitorRet === BREAK) {
+          didBreak = true;
+          return;
+        }
       }
 
       const components = jssyValue.sourceData.components;
@@ -514,41 +611,60 @@ export const walkSimpleValues = (
           const componentMeta = getComponentMeta(component.name, meta);
           const pathPrefix = [...path, 'components', component.id];
 
-          walkSimpleValues(
+          const walkRet = walkSimpleValues(
             component,
             componentMeta,
             visitor,
             options,
             pathPrefix,
           );
+
+          if (walkRet.didBreak) {
+            didBreak = true;
+            return walkComponentsTree.BREAK;
+          }
         });
       }
     } else {
-      visitor(jssyValue, valueDef, path, isSystemProp);
+      const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+      if (visitorRet === BREAK) {
+        didBreak = true;
+      }
     }
   };
   /* eslint-enable no-use-before-define */
 
-  component.props.forEach(
-    (propValue, propName) => visitValue(
+  component.props.forEach((propValue, propName) => {
+    visitValue(
       propValue,
       componentMeta.props[propName],
       [..._pathPrefix, 'props', propName],
-    ),
-  );
+    );
+
+    if (didBreak) {
+      return false;
+    }
+  });
 
   if (walkSystemProps) {
-    component.systemProps.forEach(
-      (propValue, propName) => visitValue(
+    component.systemProps.forEach((propValue, propName) => {
+      visitValue(
         propValue,
         SYSTEM_PROPS[propName],
         [..._pathPrefix, 'systemProps', propName],
-      ),
-    );
+      );
+
+      if (didBreak) {
+        return false;
+      }
+    });
   }
+
+  return { didBreak };
 };
 
 walkSimpleValues.SKIP = Object.freeze(Object.create(null));
+walkSimpleValues.BREAK = Object.freeze(Object.create(null));
 
 /**
  *

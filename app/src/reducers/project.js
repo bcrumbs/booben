@@ -45,8 +45,8 @@ import {
   PROJECT_PICK_COMPONENT,
   PROJECT_PICK_COMPONENT_DONE,
   PROJECT_PICK_COMPONENT_CANCEL,
-  PROJECT_PICK_COMPONENT_STATE_SLOT,
-  PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL,
+  PROJECT_PICK_COMPONENT_DATA,
+  PROJECT_PICK_COMPONENT_DATA_CANCEL,
   PROJECT_UNDO,
   PROJECT_REDO,
   ComponentPickAreas,
@@ -202,13 +202,13 @@ const ProjectState = RecordWithHistory({
   selectingComponentLayout: false,
   nestedConstructors: List(),
   pickingComponent: false,
-  pickingComponentStateSlot: false,
+  pickingComponentData: false,
   pickingComponentFilter: null,
-  pickingComponentStateSlotsFilter: null,
+  pickingComponentDataGetter: null,
   pickedComponentId: INVALID_ID,
   pickedComponentArea: ComponentPickAreas.UNKNOWN,
-  pickedComponentStateSlot: '',
-  componentStateSlotsListIsVisible: false,
+  pickedComponentData: null,
+  componentDataListIsVisible: false,
 }, [
   'data',
   'lastRouteId',
@@ -232,13 +232,13 @@ const initDNDState = state => state.merge({
 
 const initComponentPickingState = state => state.merge({
   pickingComponent: false,
-  pickingComponentStateSlot: false,
+  pickingComponentData: false,
   pickingComponentFilter: null,
-  pickingComponentStateSlotsFilter: null,
+  pickingComponentDataGetter: null,
   pickedComponentId: INVALID_ID,
   pickedComponentArea: ComponentPickAreas.UNKNOWN,
-  pickedComponentStateSlot: '',
-  componentStateSlotsListIsVisible: false,
+  pickedComponentData: null,
+  componentDataListIsVisible: false,
 });
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
@@ -1704,7 +1704,7 @@ const handlers = {
   })),
   
   [PROJECT_PICK_COMPONENT]: (state, action) => {
-    if (state.pickingComponent || state.pickingComponentStateSlot) {
+    if (state.pickingComponent || state.pickingComponentData) {
       return state;
     }
 
@@ -1713,9 +1713,9 @@ const handlers = {
     
     return state.merge({
       pickingComponent: true,
-      pickingComponentStateSlot: !!action.stateSlot,
+      pickingComponentData: !!action.pickData,
       pickingComponentFilter: action.filter,
-      pickingComponentStateSlotsFilter: action.stateSlotsFilter,
+      pickingComponentDataGetter: action.dataGetter,
       pickedComponentId: INVALID_ID,
     });
   },
@@ -1727,8 +1727,8 @@ const handlers = {
       pickedComponentArea: action.pickArea,
     };
 
-    if (state.pickingComponentStateSlot) {
-      updates.componentStateSlotsListIsVisible = true;
+    if (state.pickingComponentData) {
+      updates.componentDataListIsVisible = true;
     }
 
     return state.merge(updates);
@@ -1736,29 +1736,29 @@ const handlers = {
   
   [PROJECT_PICK_COMPONENT_CANCEL]: state => state.merge({
     pickingComponent: false,
-    pickingComponentStateSlot: false,
+    pickingComponentData: false,
     pickingComponentFilter: null,
-    pickingComponentStateSlotsFilter: null,
+    pickingComponentDataGetter: null,
     pickedComponentId: INVALID_ID,
     pickedComponentArea: ComponentPickAreas.UNKNOWN,
-    pickedComponentStateSlot: '',
-    componentStateSlotsListIsVisible: false,
+    pickedComponentData: null,
+    componentDataListIsVisible: false,
   }),
 
-  [PROJECT_PICK_COMPONENT_STATE_SLOT]: (state, action) => state.merge({
+  [PROJECT_PICK_COMPONENT_DATA]: (state, action) => state.merge({
     pickingComponent: false,
-    pickingComponentStateSlot: false,
+    pickingComponentData: false,
     pickingComponentFilter: null,
-    pickingComponentStateSlotsFilter: null,
-    pickedComponentStateSlot: action.slotName,
-    componentStateSlotsListIsVisible: false,
+    pickingComponentDataGetter: null,
+    pickedComponentData: action.data,
+    componentDataListIsVisible: false,
   }),
   
-  [PROJECT_PICK_COMPONENT_STATE_SLOT_CANCEL]: state => state.merge({
+  [PROJECT_PICK_COMPONENT_DATA_CANCEL]: state => state.merge({
     pickingComponent: true,
     pickedComponentId: INVALID_ID,
     pickedComponentArea: ComponentPickAreas.UNKNOWN,
-    componentStateSlotsListIsVisible: false,
+    componentDataListIsVisible: false,
   }),
   
   [PREVIEW_DRAG_OVER_PLACEHOLDER]: (state, action) => state.merge({

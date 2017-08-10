@@ -39,8 +39,8 @@ import {
 } from '../containers/ComponentActionsEditor/ComponentActionsEditor';
 
 import {
-  ComponentStateSlotSelect,
-} from '../containers/ComponentStateSlotSelect/ComponentStateSlotSelect';
+  ComponentDataSelect,
+} from '../containers/ComponentDataSelect/ComponentDataSelect';
 
 import { Canvas, getComponentCoords } from '../containers/Canvas/Canvas';
 
@@ -71,7 +71,7 @@ import {
   copyComponent,
   moveComponent,
   selectLayoutForNewComponent,
-  pickComponentStateSlotDone,
+  pickComponentDataDone,
   undo,
   redo,
   moveComponentToClipboard,
@@ -113,8 +113,6 @@ import {
   formatComponentTitle,
 } from '../lib/components';
 
-import { returnTrue } from '../utils/misc';
-
 import {
   TOOL_ID_LIBRARY,
   TOOL_ID_COMPONENTS_TREE,
@@ -138,8 +136,8 @@ const propTypes = {
   language: PropTypes.string.isRequired, // state
   pickedComponentId: PropTypes.number.isRequired, // state
   pickedComponentArea: PropTypes.number.isRequired, // state
-  componentStateSlotsListIsVisible: PropTypes.bool.isRequired, // state
-  isCompatibleStateSlot: PropTypes.func.isRequired, // state
+  componentDataListIsVisible: PropTypes.bool.isRequired, // state
+  pickingComponentDataGetter: PropTypes.func, // state
   cursorPosition: JssyPropTypes.componentsTreePosition.isRequired, // state
   componentClipboard: JssyPropTypes.componentClipboard.isRequired, // state
   showInvisibleComponents: PropTypes.bool.isRequired, // state
@@ -156,7 +154,7 @@ const propTypes = {
   onConvertComponentToList: PropTypes.func.isRequired, // dispatch
   onSelectLayout: PropTypes.func.isRequired, // dispatch
   onDropComponent: PropTypes.func.isRequired, // dispatch
-  onSelectComponentStateSlot: PropTypes.func.isRequired, // dispatch
+  onSelectComponentData: PropTypes.func.isRequired, // dispatch
   onUndo: PropTypes.func.isRequired, // dispatch
   onRedo: PropTypes.func.isRequired, // dispatch
   onGoToStructure: PropTypes.func.isRequired, // dispatch
@@ -166,6 +164,7 @@ const propTypes = {
 
 const defaultProps = {
   draggedComponents: null,
+  pickingComponentDataGetter: null,
 };
 
 const mapStateToProps = state => ({
@@ -180,13 +179,8 @@ const mapStateToProps = state => ({
   language: state.project.languageForComponentProps,
   pickedComponentId: state.project.pickedComponentId,
   pickedComponentArea: state.project.pickedComponentArea,
-  componentStateSlotsListIsVisible:
-    state.project.componentStateSlotsListIsVisible,
-  
-  isCompatibleStateSlot:
-    state.project.pickingComponentStateSlotsFilter ||
-    returnTrue,
-
+  pickingComponentDataGetter: state.project.pickingComponentDataGetter,
+  componentDataListIsVisible: state.project.componentDataListIsVisible,
   cursorPosition: cursorPositionSelector(state),
   componentClipboard: componentClipboardSelector(state),
   showInvisibleComponents: state.app.showInvisibleComponents,
@@ -224,8 +218,8 @@ const mapDispatchToProps = dispatch => ({
   onDropComponent: area =>
     void dispatch(dropComponent(area)),
   
-  onSelectComponentStateSlot: ({ stateSlot }) =>
-    void dispatch(pickComponentStateSlotDone(stateSlot)),
+  onSelectComponentData: ({ data }) =>
+    void dispatch(pickComponentDataDone(data)),
   
   onUndo: () => void dispatch(undo()),
   onRedo: () => void dispatch(redo()),
@@ -811,20 +805,15 @@ class DesignRoute extends PureComponent {
     );
   }
   
-  _renderStateSlotSelect() {
+  _renderComponentDataSelect() {
     const {
-      meta,
-      components,
       pickedComponentId,
-      isCompatibleStateSlot,
-      language,
-      onSelectComponentStateSlot,
+      pickingComponentDataGetter,
+      getLocalizedText,
+      onSelectComponentData,
     } = this.props;
     
-    const component = components.get(pickedComponentId);
-    const componentMeta = getComponentMeta(component.name, meta);
     const componentElementCoords = getComponentCoords(pickedComponentId);
-    
     if (!componentElementCoords) return null;
     
     const wrapperStyle = {
@@ -833,15 +822,17 @@ class DesignRoute extends PureComponent {
       left: `${componentElementCoords.x}px`,
       top: `${componentElementCoords.y}px`,
     };
+
+    const pickedComponentDataItems =
+      pickingComponentDataGetter(pickedComponentId);
     
     return (
       <Portal>
         <div style={wrapperStyle}>
-          <ComponentStateSlotSelect
-            componentMeta={componentMeta}
-            isCompatibleStateSlot={isCompatibleStateSlot}
-            language={language}
-            onSelect={onSelectComponentStateSlot}
+          <ComponentDataSelect
+            componentDataItems={pickedComponentDataItems}
+            getLocalizedText={getLocalizedText}
+            onSelect={onSelectComponentData}
           />
         </div>
       </Portal>
@@ -867,7 +858,7 @@ class DesignRoute extends PureComponent {
       selectingComponentLayout,
       firstSelectedComponentId,
       singleComponentSelected,
-      componentStateSlotsListIsVisible,
+      componentDataListIsVisible,
       pickedComponentArea,
       componentClipboard,
       showInvisibleComponents,
@@ -908,12 +899,12 @@ class DesignRoute extends PureComponent {
       );
     }
 
-    const willRenderStateSlotSelect =
-      componentStateSlotsListIsVisible &&
+    const willRenderComponentDataSelect =
+      componentDataListIsVisible &&
       pickedComponentArea === ComponentPickAreas.CANVAS;
     
-    const componentStateSlotSelect = willRenderStateSlotSelect
-      ? this._renderStateSlotSelect()
+    const componentDataSelect = willRenderComponentDataSelect
+      ? this._renderComponentDataSelect()
       : null;
 
     const createComponentMenu = createComponentMenuIsVisible
@@ -1047,7 +1038,7 @@ class DesignRoute extends PureComponent {
             <ComponentsDragArea onDrop={this._handleDropComponent} />
           </Portal>
           
-          {componentStateSlotSelect}
+          {componentDataSelect}
           {createComponentMenu}
         </Desktop>
       </Shortcuts>

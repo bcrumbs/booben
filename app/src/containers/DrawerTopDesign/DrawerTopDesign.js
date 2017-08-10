@@ -36,7 +36,7 @@ import { INVALID_ID } from '../../constants/misc';
 
 const propTypes = {
   pickingComponent: PropTypes.bool.isRequired,
-  pickingComponentStateSlot: PropTypes.bool.isRequired,
+  pickingComponentData: PropTypes.bool.isRequired,
   haveNestedConstructor: PropTypes.bool.isRequired,
   nestedConstructorBreadcrumbs: ImmutablePropTypes.listOf(
     PropTypes.string,
@@ -61,7 +61,7 @@ const defaultProps = {
 
 const mapStateToProps = state => ({
   pickingComponent: state.project.pickingComponent,
-  pickingComponentStateSlot: state.project.pickingComponentStateSlot,
+  pickingComponentData: state.project.pickingComponentData,
   haveNestedConstructor: haveNestedConstructorsSelector(state),
   nestedConstructorBreadcrumbs: nestedConstructorBreadcrumbsSelector(state),
   currentComponents: currentComponentsSelector(state),
@@ -88,7 +88,7 @@ const wrap = connect(mapStateToProps, mapDispatchToProps);
 const DrawerTopDesignComponent = props => {
   const {
     pickingComponent,
-    pickingComponentStateSlot,
+    pickingComponentData,
     haveNestedConstructor,
     nestedConstructorBreadcrumbs,
     currentComponents,
@@ -103,7 +103,7 @@ const DrawerTopDesignComponent = props => {
     onSaveComponentForProp,
   } = props;
   
-  if (pickingComponent || pickingComponentStateSlot) {
+  if (pickingComponent || pickingComponentData) {
     return (
       <DrawerTop>
         <DrawerTopContent
