@@ -1723,19 +1723,21 @@ const handlers = {
   },
   
   [PROJECT_PICK_COMPONENT_DONE]: (state, action) => {
-    const updates = {
+    state = state.merge({
       pickingComponent: false,
       pickedComponentId: action.componentId,
       pickedComponentArea: action.pickArea,
-    };
+    });
 
     if (state.pickingComponentData) {
-      updates.componentDataListIsVisible = true;
-      updates.componentDataListItems =
-        state.pickingComponentDataGetter(action.componentId);
+      const dataItems = state.pickingComponentDataGetter(action.componentId);
+
+      state = state
+        .set('componentDataListIsVisible', true)
+        .set('componentDataListItems', dataItems);
     }
 
-    return state.merge(updates);
+    return state;
   },
   
   [PROJECT_PICK_COMPONENT_CANCEL]: state => state.merge({
