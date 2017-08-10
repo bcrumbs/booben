@@ -51,7 +51,11 @@ import {
   pickComponentData,
 } from '../../actions/project';
 
-import { getStateSlotPickerFns } from '../../actions/helpers/component-picker';
+import {
+  getStateSlotPickerFns,
+  getConnectionDataValuePickerFns,
+} from '../../actions/helpers/component-picker';
+
 import { setInPath } from '../../lib/path';
 import { formatComponentTitle } from '../../lib/components';
 
@@ -271,7 +275,12 @@ class ActionEditorComponent extends PureComponent {
     const { action, pickingPath } = this.state;
 
     if (action.type === 'loadMoreData') {
-      this._handleLoadMoreDataActionSetComponent({ componentId });
+      this.setState({
+        action: action.mergeIn(['params'], {
+          componentId,
+          pathToDataValue: data,
+        }),
+      });
     } else {
       const newValue = new JssyValue({
         source: 'state',
@@ -544,15 +553,22 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _handleLoadMoreDataActionPickComponent() {
-    const { onPickComponentData } = this.props;
+    const {
+      meta,
+      schema,
+      project,
+      language,
+      currentComponents,
+      onPickComponentData,
+    } = this.props;
 
-    const filter = componentId => {
-
-    };
-
-    const dataGetter = componentId => {
-
-    };
+    const { filter, dataGetter } = getConnectionDataValuePickerFns(
+      currentComponents,
+      meta,
+      schema,
+      project,
+      language,
+    );
 
     onPickComponentData(filter, dataGetter);
   }
@@ -562,14 +578,6 @@ class ActionEditorComponent extends PureComponent {
 
     this.setState({
       action: action.setIn(['params', 'componentId'], INVALID_ID),
-    });
-  }
-  
-  _handleLoadMoreDataActionSetComponent({ componentId }) {
-    const { action } = this.state;
-  
-    this.setState({
-      action: action.setIn(['params', 'componentId'], componentId),
     });
   }
   

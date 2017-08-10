@@ -7,7 +7,8 @@
 import { isCompatibleType } from '@jssy/types';
 import { getComponentMeta, getString } from '../../lib/meta';
 import { walkSimpleValues } from '../../lib/components';
-import { objectSome, objectToArray } from '../../utils/misc';
+import { findFirstConnectionInPath } from '../../lib/schema';
+import { objectSome, objectToArray, mapListToArray } from '../../utils/misc';
 
 /**
  *
@@ -76,44 +77,101 @@ export const getStateSlotPickerFns = (
   return { filter, dataGetter };
 };
 
-const componentHasConnectionDataValues = (component, componentMeta) => {
-  let ret = false;
-
-  const visitor = jssyValue => {
-
-  };
-
-  const options = {
-    meta: null,
-    schema: null,
-    project: null,
-    walkSystemProps: true,
-    walkDesignerValues: false,
-    walkFunctionArgs: true,
-    walkActions: false,
-    visitIntermediateNodes: false,
-  };
-
-  walkSimpleValues(component, componentMeta, visitor, options);
-
-  return ret;
-};
-
 export const getConnectionDataValuePickerFns = (
   components,
   meta,
   schema,
+  project,
   language,
 ) => {
   const filter = componentId => {
     const component = components.get(componentId);
     const componentMeta = getComponentMeta(component.name, meta);
+    let ret = false;
 
-    return componentHasConnectionDataValues(component, componentMeta);
+    // eslint-disable-next-line consistent-return
+    const visitor = jssyValue => {
+      if (
+        jssyValue.isLinkedWithData() &&
+        jssyValue.sourceData.dataContext.size === 0
+      ) {
+        const queryPath = mapListToArray(
+          jssyValue.sourceData.queryPath,
+          step => step.field,
+        );
+
+        const connectionIdx = findFirstConnectionInPath(schema, queryPath);
+
+        if (connectionIdx !== -1) {
+          ret = true;
+          return walkSimpleValues.BREAK;
+        }
+      }
+    };
+
+    const options = {
+      meta,
+      schema,
+      project,
+      walkSystemProps: true,
+      walkDesignerValues: false,
+      walkFunctionArgs: true,
+      walkActions: false,
+      visitIntermediateNodes: false,
+    };
+
+    walkSimpleValues(component, componentMeta, visitor, options);
+
+    return ret;
   };
 
   const dataGetter = componentId => {
+    const component = components.get(componentId);
+    const componentMeta = getComponentMeta(component.name, meta);
+    const ret = [];
 
+    // eslint-disable-next-line consistent-return
+    const visitor = (jssyValue, valueDef, pathSteps, isSystemProp) => {
+      if (
+        jssyValue.isLinkedWithData() &&
+        jssyValue.sourceData.dataContext.size === 0
+      ) {
+        const queryPath = mapListToArray(
+          jssyValue.sourceData.queryPath,
+          step => step.field,
+        );
+
+        const connectionIdx = findFirstConnectionInPath(schema, queryPath);
+
+        if (connectionIdx !== -1) {
+          const fullPath = isSystemProp
+            ? ['systemProps', ...pathSteps]
+            : ['props', ...pathSteps];
+
+          ret.push({
+            name: fullPath.join(' > '),
+            description: '',
+            unavailable: false,
+            data: fullPath,
+          });
+        }
+      }
+    };
+
+    const options = {
+      meta,
+      schema,
+      project,
+      walkSystemProps: true,
+      walkDesignerValues: false,
+      walkFunctionArgs: true,
+      walkActions: false,
+      visitIntermediateNodes: false,
+    };
+
+    walkSimpleValues(component, componentMeta, visitor, options);
+
+    return ret;
   };
 
   return { filter, dataGetter };

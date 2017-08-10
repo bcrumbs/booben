@@ -242,25 +242,27 @@ export const canMoveComponent = (
  */
 export const walkComponentsTree = (components, rootComponentId, visitor) => {
   const BREAK = walkComponentsTree.BREAK;
-  const component = components.get(rootComponentId);
-  const visitorRet = visitor(component);
-
-  if (visitorRet === BREAK) {
-    return { didBreak: true };
-  }
-
   let didBreak = false;
 
-  // eslint-disable-next-line consistent-return
-  component.children.forEach(childId => {
-    const walkChildRet = walkComponentsTree(components, childId, visitor);
+  const visitComponent = component => {
+    const visitorRet = visitor(component);
 
-    if (walkChildRet.didBreak) {
+    if (visitorRet === BREAK) {
       didBreak = true;
-      return false;
+      return;
     }
-  });
 
+    // eslint-disable-next-line consistent-return
+    component.children.forEach(childId => {
+      visitComponent(components.get(childId));
+
+      if (didBreak) {
+        return false;
+      }
+    });
+  };
+
+  visitComponent(components.get(rootComponentId));
   return { didBreak };
 };
 
@@ -383,8 +385,7 @@ export const walkSimpleValues = (
     }
     
     if (action.type === 'mutation') {
-      const mutationField =
-        getMutationField(schema, action.params.mutation);
+      const mutationField = getMutationField(schema, action.params.mutation);
 
       action.params.args.forEach((argValue, argName) => {
         const argValueDef = getJssyValueDefOfMutationArgument(
@@ -434,7 +435,7 @@ export const walkSimpleValues = (
         }
       });
     } else if (action.type === 'prop') {
-      // TODO: Visit value
+      // TODO: Visit value?
     }
     
     if (isAsyncAction(action.type)) {
