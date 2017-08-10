@@ -7,13 +7,13 @@
 import React from 'react';
 import patchComponent from '../../../hocs/patchComponent';
 
-const LCOLOR = 'rgba(255,255,255,0.3)',
-  LCOLOR_LRG = 'rgba(255,255,255,1)',
-  LWIDTH = 1,
-  LWIDTH_LRG = 2,
-  CSIZE = 20,
-  CSIZE_LRG = 100,
-  COFFSET_LRG = 40 - LWIDTH_LRG / 2;
+const LCOLOR = 'rgba(255,255,255,0.3)';
+const LCOLOR_LRG = 'rgba(255,255,255,1)';
+const LWIDTH = 1;
+const LWIDTH_LRG = 2;
+const CSIZE = 20;
+const CSIZE_LRG = 100;
+const COFFSET_LRG = 40 - LWIDTH_LRG / 2;
 
 const style = {
   width: '100%',
