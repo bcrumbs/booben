@@ -10,7 +10,6 @@ COPY . /usr/src/app
 WORKDIR /usr/src/app
 
 RUN apk --no-cache add --update \
-      nodejs \
       python \
       make \
       g++ \
