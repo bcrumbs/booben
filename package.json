@@ -20,11 +20,11 @@
   "dependencies": {
     "@common/async-utils": "^0.2.1",
     "@common/tree": "^0.1.1",
-    "@jssy/common-theme": "^0.1.2",
-    "@jssy/common-ui": "^0.1.11",
+    "@jssy/common-theme": "^0.1.3",
+    "@jssy/common-ui": "^0.1.12",
     "@jssy/metadata": "^0.8.0",
     "@jssy/types": "^0.5.0",
-    "@reactackle/reactackle": "0.1.0-dev.664",
+    "@reactackle/reactackle": "0.1.0-dev.666",
     "apollo-client": "^1.8.0",
     "babel-core": "^6.14.0",
     "babel-loader": "^6.4.1",
@@ -84,7 +84,7 @@
     "revalidator": "^0.3.1",
     "rimraf": "latest",
     "serve-static": "^1.11.1",
-    "styled-components": "^2.0.0",
+    "styled-components": "^2.1.1",
     "thenify": "^3.2.0",
     "webpack": "^2.4.1"
   },

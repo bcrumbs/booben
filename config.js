@@ -4,8 +4,8 @@
 
 'use strict';
 
-const convict = require('convict'),
-  path = require('path');
+const convict = require('convict');
+const path = require('path');
 
 convict.addFormat({
   name: 'strings-array',
@@ -19,7 +19,6 @@ convict.addFormat({
   coerce: val => val.split(',').map(v => v.trim()).filter(v => v !== ''),
 });
 
-// noinspection ReservedWordAsName
 const config = convict({
   env: {
     doc: 'The application environment.',
