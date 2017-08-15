@@ -104,7 +104,7 @@ const propTypes = {
   // eslint-disable-next-line react/no-unused-prop-types
   pickedComponentId: PropTypes.number.isRequired, // state
   // eslint-disable-next-line react/no-unused-prop-types
-  pickedComponentData: PropTypes.string.isRequired, // state
+  pickedComponentData: PropTypes.string, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onSave: PropTypes.func,
   onCancel: PropTypes.func,
@@ -118,6 +118,7 @@ const defaultProps = {
   onCancel: noop,
   ownerProps: null,
   ownerUserTypedefs: null,
+  pickedComponentData: null,
 };
 
 const mapStateToProps = state => ({

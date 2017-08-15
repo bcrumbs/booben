@@ -67,7 +67,7 @@ const propTypes = {
   ownerUserTypedefs: PropTypes.object,
   pickingComponentData: PropTypes.bool.isRequired,
   pickedComponentId: PropTypes.number.isRequired, // eslint-disable-line react/no-unused-prop-types
-  pickedComponentData: PropTypes.string.isRequired, // eslint-disable-line react/no-unused-prop-types
+  pickedComponentData: PropTypes.string, // eslint-disable-line react/no-unused-prop-types
   getLocalizedText: PropTypes.func.isRequired,
   onReplacePropValue: PropTypes.func.isRequired,
   onConstructComponent: PropTypes.func.isRequired,
@@ -80,6 +80,7 @@ const propTypes = {
 const defaultProps = {
   ownerProps: null,
   ownerUserTypedefs: null,
+  pickedComponentData: null,
 };
 
 const mapStateToProps = state => ({

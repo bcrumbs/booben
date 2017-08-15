@@ -88,29 +88,33 @@ export default class ComponentsBundle {
 
     if (REACT_COMPATIBILITY_MODE) {
       /* eslint-disable no-console */
-      Object.defineProperty(this._windowInstance.React, 'PropTypes', {
-        get: () => {
-          if (REACT_COMPATIBILITY_MODE_WARNINGS) {
-            console.warn(
-              'React compatibility mode: React.PropTypes was referenced',
-            );
-          }
+      if (!this._windowInstance.React.PropTypes) {
+        Object.defineProperty(this._windowInstance.React, 'PropTypes', {
+          get: () => {
+            if (REACT_COMPATIBILITY_MODE_WARNINGS) {
+              console.warn(
+                'React compatibility mode: React.PropTypes was used',
+              );
+            }
 
-          return PropTypes;
-        },
-      });
+            return PropTypes;
+          },
+        });
+      }
 
-      Object.defineProperty(this._windowInstance.React, 'createClass', {
-        get: () => {
-          if (REACT_COMPATIBILITY_MODE_WARNINGS) {
-            console.warn(
-              'React compatibility mode: React.createClass was called',
-            );
-          }
+      if (!this._windowInstance.React.createClass) {
+        Object.defineProperty(this._windowInstance.React, 'createClass', {
+          get: () => {
+            if (REACT_COMPATIBILITY_MODE_WARNINGS) {
+              console.warn(
+                'React compatibility mode: React.createClass was used',
+              );
+            }
 
-          return createReactClass;
-        },
-      });
+            return createReactClass;
+          },
+        });
+      }
       /* eslint-enable no-console */
     }
 
