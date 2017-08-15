@@ -135,6 +135,11 @@ const wrap = compose(
   alertsCreator,
 );
 
+const componentKey = component => String(component.id);
+
+const placeholderKey = (containerId, afterIdx) =>
+  `placeholder-${containerId}:${afterIdx}`;
+
 class CanvasBuilderComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -397,7 +402,10 @@ class CanvasBuilderComponent extends PureComponent {
    * @private
    */
   _renderOutletComponent(component, isInvisible) {
-    const props = {};
+    const props = {
+      key: componentKey(component),
+    };
+
     this._patchComponentProps(props, component.id, false, isInvisible);
     
     return (
@@ -443,8 +451,6 @@ class CanvasBuilderComponent extends PureComponent {
       placeholderContainerId,
       placeholderAfter,
     } = this.props;
-  
-    const key = `placeholder-${containerId}:${afterIdx}`;
 
     const collapsed =
       !draggingOverPlaceholder ||
@@ -453,7 +459,7 @@ class CanvasBuilderComponent extends PureComponent {
   
     return (
       <PlaceholderBuilder
-        key={key}
+        key={placeholderKey(containerId, afterIdx)}
         componentsBundle={componentsBundle}
         components={draggedComponents}
         rootId={rootDraggedComponent.id}
@@ -674,7 +680,7 @@ class CanvasBuilderComponent extends PureComponent {
       );
     }
 
-    props.key = String(component.id);
+    props.key = componentKey(component);
 
     if (!dontPatch) {
       this._patchComponentProps(
