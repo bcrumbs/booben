@@ -18,6 +18,7 @@ export const ToolbarStyled = styled.div`
   color: ${colorWhite};
   width: 100%;
   height: ${constants.height}px;
+  flex-shrink: 0;
 `;
 
 ToolbarStyled.displayName = 'ToolbarStyled';

@@ -1,15 +1,26 @@
 'use strict';
 
 import React from 'react';
+import PropTypes from 'prop-types';
 import { DrawerTopStyled } from './styles/DrawerTopStyled';
 import { DrawerTopContentStyled } from './styles/DrawerTopContentStyled';
 
-export const DrawerTop = props => (
-  <DrawerTopStyled>
+const propTypes = {
+  fixed: PropTypes.bool,
+};
+
+const defaultProps = {
+  fixed: false,
+};
+
+export const DrawerTop = ({ fixed, children }) => (
+  <DrawerTopStyled fixed={fixed}>
     <DrawerTopContentStyled>
-      {props.children}
+      {children}
     </DrawerTopContentStyled>
   </DrawerTopStyled>
 );
 
 DrawerTop.displayName = 'DrawerTop';
+DrawerTop.propTypes = propTypes;
+DrawerTop.defaultProps = defaultProps;

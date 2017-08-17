@@ -13,7 +13,6 @@ import {
   TopRegion,
   BottomRegion,
   Button,
-  Container,
   Header,
   HeaderRegion,
   HeaderLogoBox,
@@ -28,7 +27,6 @@ import {
   FooterMenuGroup,
   FooterMenuList,
   Panel,
-  PanelContent,
   ToggleButton,
 } from '@reactackle/reactackle';
 
@@ -41,12 +39,6 @@ import {
   BlockContentBoxHeading,
   BlockContentPlaceholder,
 } from '@jssy/common-ui';
-
-import {
-  RoutesList,
-  RouteCard,
-  IndexRouteCard,
-} from '../components/RoutesList/RoutesList';
 
 import {
   ComponentLayoutSelection,
@@ -87,16 +79,6 @@ import {
   ConstructionTool,
 } from '../components/ConstructionPane/ConstructionPane';
 
-import {
-  ToolBar,
-  ToolBarGroup,
-  ToolBarAction,
-} from '../components/ToolBar/ToolBar';
-
-import {
-  CanvasPlaceholder,
-} from '../containers/Canvas/content/components/CanvasPlaceholder';
-
 import { Desktop } from '../containers/Desktop/Desktop';
 
 import ToolSectionRecord from '../models/ToolSection';
@@ -105,6 +87,8 @@ import ToolRecord from '../models/Tool';
 import { List, Set } from 'immutable';
 
 import { removeSplashScreen } from '../lib/dom';
+
+import { DataFlowScreen } from './DataFlow.draft.js';
 
 // DATA
 const toolIsolationSections = List([
@@ -497,6 +481,7 @@ export default class Playground extends React.Component {
   
   render() {
     return (
+      <div>
       <App fixed>
         <TopRegion fixed={false}>
           <Header size="blank">
@@ -546,9 +531,6 @@ export default class Playground extends React.Component {
         </TopRegion>
 
         <Desktop toolGroups={toolGroups}>
-          <Panel headerFixed maxHeight="initial" spread>
-            <CanvasPlaceholder />
-          </Panel>
         </Desktop>
 
         <BottomRegion fixed={false}>
@@ -576,6 +558,8 @@ export default class Playground extends React.Component {
           </Footer>
         </BottomRegion>
       </App>
+      <DataFlowScreen />
+      </div>
     );
   }
 }
