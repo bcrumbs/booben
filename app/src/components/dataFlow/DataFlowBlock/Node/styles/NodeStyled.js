@@ -1,6 +1,7 @@
 'use strict';
 
-import styled from 'styled-components';
+import styled, { css } from 'styled-components';
+import constants from '../../../styles/constants';
 import { HeaderBoxStyled } from '../../styles/HeaderBoxStyled';
 
 import {
@@ -8,7 +9,16 @@ import {
   baseModule,
 } from '../../../../../styles/themeSelectors';
 
-const nodeSize = 10;
+const nodeSize = 11;
+
+const colorScheme = ({ colorScheme }) => css`
+  background-color: ${constants.color[colorScheme]};
+`;
+
+const position = ({ position }) => css`
+  margin-${position}: -${nodeSize/2}px;
+  ${position}: 0;
+`;
 
 export const NodeStyled = styled.div`
   position: absolute;
@@ -18,16 +28,14 @@ export const NodeStyled = styled.div`
   border: 1px solid ${colorBorder};
   border-radius: 50%;
   background-color: inherit;
-  margin-left: -${nodeSize/2}px;
-  top: ${baseModule(1.5)}px;
-  left: 0;
+  top: ${baseModule(2)}px;
+  overflow: hidden;
+  box-sizing: border-box;
+  ${colorScheme}
+  ${position}
   
   ${HeaderBoxStyled} & {
-    margin-right: -${nodeSize/2}px;
-    margin-left: 0;
     top: 50%;
-    left: auto;
-    right: 0;
   }
 `;
 

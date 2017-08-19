@@ -11,6 +11,7 @@ export const BlockStyled = styled.div`
   min-width: 150px;
   font-family: ${bodyFontFamily};
   background-color: ${colorWhite};
+  position: relative;
 `;
 
 BlockStyled.displayName = 'BlockStyled';

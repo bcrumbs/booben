@@ -12,7 +12,7 @@ export const ContentBoxStyled = styled.div`
   width: 100%;
   color: ${textColorBody};
   font-size: ${fontSizeBody}px;
-  padding: ${baseModule(0.5)}px 0;
+  padding: ${baseModule(1)}px 0;
   
   &:empty {
     padding: 0;

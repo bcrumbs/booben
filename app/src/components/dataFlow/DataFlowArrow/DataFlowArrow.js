@@ -1,7 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { WrapperStyled } from './styles/WrapperStyled';
+import { DataFlowArrowStyled } from './styles/DataFlowArrowStyled';
 import { ArrowStyled } from './styles/ArrowStyled';
+import { PathStyled } from './styles/PathStyled';
 import constants from '../styles/constants';
 
 const propTypes = {
@@ -58,7 +60,7 @@ export const DataFlowArrow = props => {
   const arNarrow = arWidth - arGroove;
   
   const arrow = (
-    <polygon
+    <ArrowStyled
       fill={color}
       points={`
         ${width} ${height - arHeight / 2},
@@ -69,38 +71,33 @@ export const DataFlowArrow = props => {
     />
   );
   
-  const curveShoulder = width / 3;
+  const curveShoulder = width / 5;
   const centerX = (width - arNarrow) / 2;
   const centerY = (height - strokeWidth + arHeight) / 2;
   const pathXStart = curveShoulder;
   const pathYStart = strokeWidth / 2;
   const pathXEnd = width - arNarrow;
   const pathYEnd = height - arHeight / 2;
-  const startCurve = `Q${pathXStart} ${pathYStart} ${centerX} ${centerY}`;
+  const startCurve = `10 ${pathYStart} Q${pathXStart} ${pathYStart} ${centerX} ${centerY}`;
   const endCurve = `T${pathXEnd} ${pathYEnd}`;
   
   return (
-    <ArrowStyled style={pathStyles}>
+    <DataFlowArrowStyled style={pathStyles}>
       <WrapperStyled
         xmlns="http://www.w3.org/2000/svg"
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="xMidYMid meet"
       >
-        <title>SVG curve</title>
-        <desc>example curves in SVG</desc>
-        
-        <g id="main">
-          <path
+        <g>
+          ${arrow}
+          <PathStyled
             strokeWidth={strokeWidth}
             stroke={color}
-            fill="transparent"
             d={`M0 ${strokeWidth / 2} ${startCurve} ${endCurve}`}
           />
-  
-          ${arrow}
         </g>
       </WrapperStyled>
-    </ArrowStyled>
+    </DataFlowArrowStyled>
   );
 };
 

@@ -20,7 +20,7 @@ const base = ({ disabled }) => {
       color: ${textColorBody};
       
       &:hover {
-        background-color: rgba(0, 0, 0, 0.05);
+        background-color: rgba(255, 255, 255, 0.05);
       }
     `;
   

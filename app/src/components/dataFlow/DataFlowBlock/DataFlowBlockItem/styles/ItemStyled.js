@@ -8,7 +8,7 @@ import {
 
 export const ItemStyled = styled.div`
   position: relative;
-  padding: ${baseModule(1.5)}px;
+  padding: ${baseModule(0.75)}px ${baseModule(1.5)}px;
 `;
 
 ItemStyled.displayName = 'ItemStyled';

@@ -119,6 +119,7 @@ export const fontWeightBold = ({ theme }) =>
 /* Text color */
 export const textColorMedium = paletteBlueGrey400;
 export const textColorBody = paletteBlueGrey900;
+export const textColorBodyLight = colorWhite;
 
 /* Body settings */
 export const bodyFontFamily = ({ theme }) =>

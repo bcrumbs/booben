@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { boxShadow } from '../../../styles/mixins';
 
 import {
+  paletteBlueGrey700,
   colorWhite,
   radiusDefault,
   bodyFontFamily,
@@ -17,7 +18,8 @@ export const MenuOverlappingStyled = styled.div`
   padding: 0;
   overflow-y: auto;
   max-height: 400px;
-  background-color: ${colorWhite};
+  background-color: ${paletteBlueGrey700};
+  color: ${colorWhite};
   border-radius: ${radiusDefault}px;
   ${boxShadow3}
   

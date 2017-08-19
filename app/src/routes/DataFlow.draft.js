@@ -1,5 +1,7 @@
 import React from 'react';
-import { Button } from '@reactackle/reactackle';
+import {
+  Button,
+} from '@reactackle/reactackle';
 
 import {
   ToolBar,
@@ -8,10 +10,22 @@ import {
 } from '../components/ToolBar/ToolBar';
 
 import { DrawerTop } from '../components/DrawerTop/DrawerTop';
+import { SearchInput } from '../components/SearchInput/SearchInput';
 
 import {
   DrawerTopContent,
 } from '../components/DrawerTopContent/DrawerTopContent';
+
+import {
+  MenuOverlapping,
+  MenuOverlappingGroup,
+  MenuOverlappingGroupItem,
+} from '../components/MenuOverlapping/MenuOverlapping';
+
+import {
+  PanelCollapsible,
+  PanelCollapsibleItem,
+} from '../components/PanelCollapsible/PanelCollapsible';
 
 import {
   DataFlowWrapper,
@@ -19,6 +33,13 @@ import {
   DataFlowArrow,
   DataFlowBlock,
   DataFlowBlockItem,
+
+  NodeView,
+  PickView,
+
+  BlockSelectionMenu,
+  BlockSelectionMenuGroup,
+  BlockSelectionMenuItem,
 } from '../components/dataFlow';
 
 const TestPositionWrapper = ({ x, y, width, children }) => (
@@ -52,6 +73,7 @@ export const DataFlowScreen = () => (
         <ToolBarAction icon={{ name: 'repeat' }} />
       </ToolBarGroup>
     </ToolBar>
+
     <DataFlowCanvas>
       <TestPositionWrapper
         width={150}
@@ -60,7 +82,14 @@ export const DataFlowScreen = () => (
       >
         <DataFlowBlock title="Constant" outputType="string">
           <DataFlowBlockItem>
-            some block item 1
+            <NodeView
+              title="some block item 1"
+              subtitle="bool"
+              inputType="none"
+            />
+          </DataFlowBlockItem>
+          <DataFlowBlockItem>
+            <PickView title="Pick component" />
           </DataFlowBlockItem>
         </DataFlowBlock>
       </TestPositionWrapper>
@@ -72,10 +101,18 @@ export const DataFlowScreen = () => (
       >
         <DataFlowBlock title="Function" outputType="number">
           <DataFlowBlockItem>
-            some block item 1
+            <NodeView
+              title="Argument 1"
+              subtitle="string"
+              inputType="complex"
+            />
           </DataFlowBlockItem>
           <DataFlowBlockItem>
-            some block item 2
+            <NodeView
+              title="Argument 2"
+              subtitle="bool"
+              inputType="bool"
+            />
           </DataFlowBlockItem>
         </DataFlowBlock>
       </TestPositionWrapper>
@@ -104,6 +141,35 @@ export const DataFlowScreen = () => (
         </DataFlowBlock>
       </TestPositionWrapper>
 
+      <TestPositionWrapper
+        width={250}
+        x={600}
+        y={550}
+      >
+        <PanelCollapsible title="Blocks">
+          <PanelCollapsibleItem>
+            <SearchInput />
+          </PanelCollapsibleItem>
+
+          <PanelCollapsibleItem bordered hasPaddings>
+            <BlockSelectionMenu>
+              <BlockSelectionMenuGroup>
+                <BlockSelectionMenuItem title="Constant" />
+                <BlockSelectionMenuItem title="Function">
+                  <BlockSelectionMenuGroup title="Reactackle funcs">
+                    <BlockSelectionMenuItem title="Calc average" />
+                  </BlockSelectionMenuGroup>
+                  <BlockSelectionMenuGroup title="User funcs">
+                    <BlockSelectionMenuItem title="Calc average" />
+                  </BlockSelectionMenuGroup>
+                </BlockSelectionMenuItem>
+                <BlockSelectionMenuItem title="Graph QL" />
+              </BlockSelectionMenuGroup>
+            </BlockSelectionMenu>
+          </PanelCollapsibleItem>
+        </PanelCollapsible>
+      </TestPositionWrapper>
+
       <DataFlowArrow
         start={{ x: 160, y: 106 }}
         end={{ x: 250, y: 126 }}
@@ -120,11 +186,26 @@ export const DataFlowScreen = () => (
         end={{ x: 700, y: 116 }}
         colorScheme="bool"
       />
+
       <DataFlowArrow
         start={{ x: 700, y: 116 }}
         end={{ x: 400, y: 456 }}
         colorScheme="number"
       />
+
+      <TestPositionWrapper
+        x={750}
+        y={179}
+        width={200}
+      >
+        <MenuOverlapping>
+          <MenuOverlappingGroup title="Blocks">
+            <MenuOverlappingGroupItem title="String" />
+            <MenuOverlappingGroupItem title="Route URL" />
+            <MenuOverlappingGroupItem title="Get Name" />
+          </MenuOverlappingGroup>
+        </MenuOverlapping>
+      </TestPositionWrapper>
     </DataFlowCanvas>
   </DataFlowWrapper>
 );

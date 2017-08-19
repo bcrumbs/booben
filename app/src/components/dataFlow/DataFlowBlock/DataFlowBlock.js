@@ -7,6 +7,7 @@ import { HeaderBoxStyled } from './styles/HeaderBoxStyled';
 import { TitleStyled } from './styles/TitleStyled';
 import { SubtitleStyled } from './styles/SubtitleStyled';
 import { ContentBoxStyled } from './styles/ContentBoxStyled';
+import { ActionsStyled } from './styles/ActionsStyled';
 
 const propTypes = {
   title: PropTypes.string,
@@ -19,12 +20,14 @@ const propTypes = {
     'array',
   ]),
   actions: PropTypes.arrayOf(Action),
+  endPoint: PropTypes.bool,
 };
 
 const defaultProps = {
   title: '',
   outputType: '',
   actions: [],
+  endPoint: false,
 };
 
 export const DataFlowBlock = props => {
@@ -32,8 +35,17 @@ export const DataFlowBlock = props => {
     ? `output type: ${props.outputType}`
     : 'Please, connect with some node';
 
+  const actions = props.actions.map((item, idx) => (
+    <Action {...item} key={idx} />
+  ));
+
+  const actionsWrapper = props.actions
+    ? <ActionsStyled>{actions}</ActionsStyled>
+    : null;
+
   return(
     <BlockStyled>
+
       <HeaderBoxStyled colorScheme={props.outputType}>
         <TitleStyled>
           {props.title}
@@ -41,11 +53,18 @@ export const DataFlowBlock = props => {
         <SubtitleStyled>
           {subtitle}
         </SubtitleStyled>
-        <Node />
+        <Node
+          colorScheme={props.outputType}
+          position={props.endPoint ? "left" : "right"}
+        />
       </HeaderBoxStyled>
+
       <ContentBoxStyled>
         {props.children}
       </ContentBoxStyled>
+
+      {actionsWrapper}
+
     </BlockStyled>
   );
 };
