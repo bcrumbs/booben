@@ -1,6 +1,4 @@
-'use strict';
-
-import React, { Component } from 'react';
+import React from 'react';
 import { Button } from '@reactackle/reactackle';
 import { ItemStyled } from './styles/ItemStyled';
 import { ContentStyled } from './styles/ContentStyled';

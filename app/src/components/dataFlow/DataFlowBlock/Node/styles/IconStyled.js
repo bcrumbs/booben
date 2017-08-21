@@ -1,6 +1,4 @@
-'use strict';
-
-import styled, { css } from 'styled-components';
+import styled from 'styled-components';
 import { iconSize } from '../../../../../styles/mixins/elements';
 
 import {

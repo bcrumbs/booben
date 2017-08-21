@@ -1,6 +1,4 @@
-'use strict';
-
-import React, { Component } from 'react';
+import React from 'react';
 import { MenuStyled } from './styles/MenuStyled';
 
 export const BlockSelectionMenu = ({ children }) => (

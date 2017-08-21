@@ -33,15 +33,13 @@ const defaultProps = {
   focused: false,
 };
 
-// Docs https://developer.mozilla.org/ru/docs/Web/SVG/Tutorial/Paths
 export const DataFlowArrow = props => {
   const arHeight = 12;
   const arWidth = 14;
   const arGroove = 3;
   const arNarrow = arWidth - arGroove;
-  const nodeSize = 10;
-  const offsetX = nodeSize/ 2;
-  
+  const nodeSize = constants.nodeSize;
+  const offsetX = nodeSize / 2;
   const width = Math.abs(props.end.x - props.start.x);
   const height = Math.abs(props.end.y - props.start.y) + arHeight / 2;
   const color = constants.color[props.colorScheme];

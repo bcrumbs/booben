@@ -1,5 +1,3 @@
-'use strict';
-
 import styled, { css } from 'styled-components';
 import constants from '../../styles/constants';
 

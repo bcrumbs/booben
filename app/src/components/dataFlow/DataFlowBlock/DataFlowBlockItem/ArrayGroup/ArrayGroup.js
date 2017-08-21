@@ -4,6 +4,7 @@ import { Button, SelectBox } from '@reactackle/reactackle';
 import { ArrayGroupStyled } from './styles/ArrayGroupStyled';
 import { TitleStyled } from './styles/TitleStyled';
 import { ButtonRowStyled } from './styles/ButtonRowStyled';
+import { TypeStyled } from './styles/TypeStyled';
 
 const propTypes = {
   title: PropTypes.string,
@@ -18,7 +19,9 @@ const defaultProps = {
 // TODO в селект запихиваем тип элементов массива
 export const ArrayGroup = props => (
   <ArrayGroupStyled>
-    <SelectBox />
+    <TypeStyled>
+      <SelectBox fullWidth defaultValue="String" />
+    </TypeStyled>
     <TitleStyled>
       {props.title}
     </TitleStyled>

@@ -1,5 +1,3 @@
-'use strict';
-
 import styled from 'styled-components';
 import constants from '../../../styles/constants';
 
@@ -39,8 +37,7 @@ export const ComplexStyled = styled.div`
     background-color: ${constants.color.number};
     top: 50%;
     left: 50%;
-  }
-  
+  }  
 `;
 
 ComplexStyled.displayName = 'ComplexStyled';

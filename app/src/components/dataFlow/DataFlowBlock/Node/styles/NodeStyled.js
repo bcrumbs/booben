@@ -1,5 +1,3 @@
-'use strict';
-
 import styled, { css } from 'styled-components';
 import constants from '../../../styles/constants';
 import { HeaderBoxStyled } from '../../styles/HeaderBoxStyled';
@@ -11,7 +9,7 @@ import {
   colorLightBlue,
 } from '../../../../../styles/themeSelectors';
 
-const nodeSize = 11;
+const nodeSize = constants.nodeSize;
 
 const colorScheme = ({ colorScheme }) => css`
   background-color: ${constants.color[colorScheme]};

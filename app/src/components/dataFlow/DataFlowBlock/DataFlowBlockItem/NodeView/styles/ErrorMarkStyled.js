@@ -10,7 +10,7 @@ export const ErrorMarkStyled = styled.div`
   background-color: ${colorError};
   color: ${colorWhite};
   border-radius: 50%;
-  ${iconSize('16px', '16px', '12px')}
+  ${iconSize('16px', '16px', '12px', 'font')}
 `;
 
 ErrorMarkStyled.displayName = 'ErrorMarkStyled';

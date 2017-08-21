@@ -7,4 +7,6 @@ export default {
     array: '#b101cc',
     shape: '#cc6701',
   },
+
+  nodeSize: 11,
 };
