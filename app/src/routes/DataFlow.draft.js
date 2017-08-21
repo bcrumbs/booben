@@ -340,14 +340,14 @@ export const DataFlowScreen = () => (
         </TestPositionWrapper>
 
         <DataFlowArrow
-          start={{ x: 160, y: 106 }}
-          end={{ x: 250, y: 126 }}
+          start={{ x: 180, y: 104 }}
+          end={{ x: 251, y: 207 }}
           colorScheme="string"
         />
 
         <DataFlowArrow
-          start={{ x: 200, y: 276 }}
-          end={{ x: 250, y: 126 }}
+          start={{ x: 220, y: 339 }}
+          end={{ x: 250, y: 249 }}
           colorScheme="bool"
         />
 
