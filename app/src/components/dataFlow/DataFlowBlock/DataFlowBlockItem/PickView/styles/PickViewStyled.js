@@ -1,10 +1,14 @@
-'use strict';
-
 import styled from 'styled-components';
+import constants from '../../../../styles/constants';
+
+import {
+  fontSizeBody,
+} from '../../../../../../styles/themeSelectors';
 
 export const PickViewStyled = styled.button`
   text-decoration: underline;
-  padding: 0;
+  font-size: ${fontSizeBody}px;
+  padding: ${constants.itemPadY}px ${constants.itemPadX}px;
   margin: 0;
   outline: none;
   box-shadow: none;

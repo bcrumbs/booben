@@ -5,6 +5,6 @@ export default {
     bool: '#0194f0',
     number: '#8e29f0',
     array: '#b101cc',
-    object: '#cc6701',
+    shape: '#cc6701',
   },
 };

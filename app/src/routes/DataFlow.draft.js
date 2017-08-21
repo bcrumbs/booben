@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   Button,
+  TextField
 } from '@reactackle/reactackle';
 
 import {
@@ -9,6 +10,7 @@ import {
   ToolBarAction,
 } from '../components/ToolBar/ToolBar';
 
+import { Popover } from '../components/Popover/Popover';
 import { DrawerTop } from '../components/DrawerTop/DrawerTop';
 import { SearchInput } from '../components/SearchInput/SearchInput';
 
@@ -29,18 +31,26 @@ import {
 
 import {
   DataFlowWrapper,
+  DataFlowCanvasWrapper,
   DataFlowCanvas,
   DataFlowArrow,
   DataFlowBlock,
+  DataFlowBlockHeading,
   DataFlowBlockItem,
 
   NodeView,
+  NodeGroup,
   PickView,
+  TableView,
+  GraphQLGroup,
+  ArrayGroup,
 
   BlockSelectionMenu,
   BlockSelectionMenuGroup,
   BlockSelectionMenuItem,
 } from '../components/dataFlow';
+
+const BLOCK_WIDTH = 170;
 
 const TestPositionWrapper = ({ x, y, width, children }) => (
   <div
@@ -72,141 +82,302 @@ export const DataFlowScreen = () => (
         <ToolBarAction icon={{ name: 'undo' }} />
         <ToolBarAction icon={{ name: 'repeat' }} />
       </ToolBarGroup>
+      <ToolBarGroup>
+        <ToolBarAction icon={{ name: 'search-minus' }} />
+        <ToolBarAction icon={{ name: 'search-plus' }} />
+        <ToolBarAction
+          text='100%'
+          icon={{ name: 'caret-down' }}
+          iconPositionRight
+        />
+      </ToolBarGroup>
     </ToolBar>
 
-    <DataFlowCanvas>
-      <TestPositionWrapper
-        width={150}
-        x={10}
-        y={80}
-      >
-        <DataFlowBlock title="Constant" outputType="string">
-          <DataFlowBlockItem>
-            <NodeView
-              title="some block item 1"
-              subtitle="bool"
-              inputType="none"
-            />
-          </DataFlowBlockItem>
-          <DataFlowBlockItem>
-            <PickView title="Pick component" />
-          </DataFlowBlockItem>
-        </DataFlowBlock>
-      </TestPositionWrapper>
+    <DataFlowCanvasWrapper>
+      <DataFlowCanvas>
+        <TestPositionWrapper
+          width={BLOCK_WIDTH}
+          x={10}
+          y={80}
+        >
+          <DataFlowBlock title="Constant" outputType="string" >
+            <DataFlowBlockItem>
+              <TextField label="Value" />
+            </DataFlowBlockItem>
+          </DataFlowBlock>
+        </TestPositionWrapper>
 
-      <TestPositionWrapper
-        width={150}
-        x={250}
-        y={100}
-      >
-        <DataFlowBlock title="Function" outputType="number">
-          <DataFlowBlockItem>
+        <TestPositionWrapper
+          width={BLOCK_WIDTH}
+          x={10}
+          y={220}
+        >
+          <DataFlowBlock title="Constant" outputType="default" />
+        </TestPositionWrapper>
+
+        <TestPositionWrapper
+          width={BLOCK_WIDTH}
+          x={250}
+          y={100}
+        >
+          <DataFlowBlock title="Function" outputType="number">
+            <DataFlowBlockHeading name="SomeFunction" />
             <NodeView
               title="Argument 1"
               subtitle="string"
-              inputType="complex"
+              inputType="string"
             />
-          </DataFlowBlockItem>
-          <DataFlowBlockItem>
             <NodeView
               title="Argument 2"
               subtitle="bool"
               inputType="bool"
             />
-          </DataFlowBlockItem>
-        </DataFlowBlock>
-      </TestPositionWrapper>
+          </DataFlowBlock>
+        </TestPositionWrapper>
 
-      <TestPositionWrapper
-        width={150}
-        x={600}
-        y={150}
-      >
-        <DataFlowBlock title="Constant" outputType="default" />
-      </TestPositionWrapper>
-
-      <TestPositionWrapper
-        width={150}
-        x={50}
-        y={250}
-      >
-        <DataFlowBlock
-          title="Constant"
-          outputType="bool"
-          actions={[
-            { text: 'Clear' }
-          ]}
+        <TestPositionWrapper
+          width={BLOCK_WIDTH}
+          x={50}
+          y={320}
         >
-          some block
-        </DataFlowBlock>
-      </TestPositionWrapper>
+          <DataFlowBlock
+            title="Component"
+            outputType="bool"
+            actions={[
+              { text: 'Clear' }
+            ]}
+          >
+            <PickView title="Pick component" />
+          </DataFlowBlock>
+        </TestPositionWrapper>
 
-      <TestPositionWrapper
-        width={250}
-        x={600}
-        y={550}
-      >
-        <PanelCollapsible title="Blocks">
-          <PanelCollapsibleItem>
-            <SearchInput />
-          </PanelCollapsibleItem>
+        <TestPositionWrapper
+          width={BLOCK_WIDTH}
+          x={50}
+          y={480}
+        >
+          <DataFlowBlock
+            title="Component"
+            outputType="bool"
+            actions={[
+              { text: 'Clear' }
+            ]}
+          >
+            <DataFlowBlockHeading
+              title="Input"
+              name="ComponentXYZ"
+            />
+            <TableView field="Disabled" tooltip="Field description" />
+          </DataFlowBlock>
+        </TestPositionWrapper>
 
-          <PanelCollapsibleItem bordered hasPaddings>
-            <BlockSelectionMenu>
-              <BlockSelectionMenuGroup>
-                <BlockSelectionMenuItem title="Constant" />
-                <BlockSelectionMenuItem title="Function">
-                  <BlockSelectionMenuGroup title="Reactackle funcs">
-                    <BlockSelectionMenuItem title="Calc average" />
-                  </BlockSelectionMenuGroup>
-                  <BlockSelectionMenuGroup title="User funcs">
-                    <BlockSelectionMenuItem title="Calc average" />
-                  </BlockSelectionMenuGroup>
-                </BlockSelectionMenuItem>
-                <BlockSelectionMenuItem title="Graph QL" />
-              </BlockSelectionMenuGroup>
-            </BlockSelectionMenu>
-          </PanelCollapsibleItem>
-        </PanelCollapsible>
-      </TestPositionWrapper>
+        <TestPositionWrapper
+          width={BLOCK_WIDTH}
+          x={470}
+          y={100}
+        >
+          <DataFlowBlock title="Graph QL" outputType="string" disconnected>
+            <DataFlowBlockHeading
+              name="Planet Name"
+              breadcrumbs={{
+                items: [
+                  { title: 'item1' },
+                  { title: 'item2' },
+                ],
+                mode: 'dark',
+              }}
+            />
+            <GraphQLGroup
+              breadcrumbs={{
+                items: [
+                  { title: '/' },
+                ],
+                mode: 'dark',
+              }}
+              title="Field1"
+            >
+              <NodeView
+                title="Argument 1"
+                subtitle="string"
+                inputType="complex"
+                error
+              />
+            </GraphQLGroup>
 
-      <DataFlowArrow
-        start={{ x: 160, y: 106 }}
-        end={{ x: 250, y: 126 }}
-        colorScheme="string"
-      />
-      <DataFlowArrow
-        start={{ x: 200, y: 276 }}
-        end={{ x: 250, y: 126 }}
-        colorScheme="bool"
-      />
+            <GraphQLGroup
+              breadcrumbs={{
+                items: [
+                  { title: 'field1' },
+                  { title: 'field2' },
+                ],
+                mode: 'dark',
+              }}
+              title="Field2"
+            >
+              <NodeView
+                title="Argument 2"
+                subtitle="bool"
+                inputType="bool"
+                disconnected
+              />
+            </GraphQLGroup>
+          </DataFlowBlock>
+        </TestPositionWrapper>
 
-      <DataFlowArrow
-        start={{ x: 1000, y: 456 }}
-        end={{ x: 700, y: 116 }}
-        colorScheme="bool"
-      />
+        <TestPositionWrapper
+          width={BLOCK_WIDTH}
+          x={250}
+          y={480}
+        >
+          <DataFlowBlock
+            title="Constant"
+            outputType="array"
+          >
+            <ArrayGroup>
+              <NodeView removable title="1" />
+              <NodeView removable title="2" />
+              <NodeView removable title="3" />
+            </ArrayGroup>
+          </DataFlowBlock>
+        </TestPositionWrapper>
 
-      <DataFlowArrow
-        start={{ x: 700, y: 116 }}
-        end={{ x: 400, y: 456 }}
-        colorScheme="number"
-      />
+        <TestPositionWrapper
+          width={BLOCK_WIDTH}
+          x={450}
+          y={480}
+        >
+          <DataFlowBlock
+            title="Constant"
+            outputType="shape"
+            typeDescription="description here.."
+          >
+            <NodeView title="Item-1" subtitle="shape">
+              <NodeGroup>
+                <NodeView title="Item-11" subtitle="string" inputType="string" />
+                <NodeView title="Item-12" subtitle="shape" inputType="shape">
+                  <NodeGroup>
+                    <NodeView title="Item-111" subtitle="number" inputType="number" />
+                  </NodeGroup>
+                </NodeView>
+                <NodeView
+                  title="Item-13"
+                  subtitle="shapeOf"
+                  inputType="complex"
+                  collapsed
+                >
+                  <NodeGroup>
+                    <NodeView title="Item-111" subtitle="number" inputType="number" />
+                  </NodeGroup>
+                </NodeView>
+              </NodeGroup>
+            </NodeView>
+          </DataFlowBlock>
+        </TestPositionWrapper>
 
-      <TestPositionWrapper
-        x={750}
-        y={179}
-        width={200}
-      >
-        <MenuOverlapping>
-          <MenuOverlappingGroup title="Blocks">
-            <MenuOverlappingGroupItem title="String" />
-            <MenuOverlappingGroupItem title="Route URL" />
-            <MenuOverlappingGroupItem title="Get Name" />
-          </MenuOverlappingGroup>
-        </MenuOverlapping>
-      </TestPositionWrapper>
-    </DataFlowCanvas>
+        <TestPositionWrapper
+          width={250}
+          x={590}
+          y={510}
+        >
+          <Popover title="ShapeOf">
+            <div>Показываем Popover с описанием структуры типа при нажатии на стрелку</div>
+            <pre>
+              {
+                `item1: {
+                  item11: {},
+                  item12: {},
+                }`
+              }
+            </pre>
+          </Popover>
+        </TestPositionWrapper>
+
+        <TestPositionWrapper
+          width={BLOCK_WIDTH}
+          x={720}
+          y={340}
+        >
+          <DataFlowBlock
+            title="End"
+            outputType="string"
+            endPoint
+          >
+            <DataFlowBlockHeading
+              title="Input"
+              name="ComponentXYZ"
+            />
+            <TableView field="Disabled" tooltip="Field description" />
+          </DataFlowBlock>
+        </TestPositionWrapper>
+
+        <TestPositionWrapper
+          width={250}
+          x={700}
+          y={650}
+        >
+          <PanelCollapsible title="Blocks">
+            <PanelCollapsibleItem>
+              <SearchInput />
+            </PanelCollapsibleItem>
+
+            <PanelCollapsibleItem bordered hasPaddings>
+              <BlockSelectionMenu>
+                <BlockSelectionMenuGroup>
+                  <BlockSelectionMenuItem title="Constant" />
+                  <BlockSelectionMenuItem title="Function">
+                    <BlockSelectionMenuGroup title="Reactackle funcs">
+                      <BlockSelectionMenuItem title="Calc average" />
+                    </BlockSelectionMenuGroup>
+                    <BlockSelectionMenuGroup title="User funcs">
+                      <BlockSelectionMenuItem title="Calc average" />
+                    </BlockSelectionMenuGroup>
+                  </BlockSelectionMenuItem>
+                  <BlockSelectionMenuItem title="Graph QL" />
+                </BlockSelectionMenuGroup>
+              </BlockSelectionMenu>
+            </PanelCollapsibleItem>
+          </PanelCollapsible>
+        </TestPositionWrapper>
+
+        <DataFlowArrow
+          start={{ x: 160, y: 106 }}
+          end={{ x: 250, y: 126 }}
+          colorScheme="string"
+        />
+
+        <DataFlowArrow
+          start={{ x: 200, y: 276 }}
+          end={{ x: 250, y: 126 }}
+          colorScheme="bool"
+        />
+
+        <DataFlowArrow
+          start={{ x: 1000, y: 456 }}
+          end={{ x: 700, y: 116 }}
+          colorScheme="number"
+        />
+
+        <DataFlowArrow
+          start={{ x: 700, y: 116 }}
+          end={{ x: 400, y: 456 }}
+          colorScheme="number"
+        />
+
+        <TestPositionWrapper
+          x={750}
+          y={179}
+          width={200}
+        >
+          <MenuOverlapping>
+            <MenuOverlappingGroup title="Blocks">
+              <MenuOverlappingGroupItem title="String" />
+              <MenuOverlappingGroupItem title="Route URL" />
+              <MenuOverlappingGroupItem title="Get Name" />
+            </MenuOverlappingGroup>
+          </MenuOverlapping>
+        </TestPositionWrapper>
+      </DataFlowCanvas>
+    </DataFlowCanvasWrapper>
   </DataFlowWrapper>
 );
 

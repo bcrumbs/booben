@@ -1,11 +1,9 @@
-'use strict';
-
 import styled from 'styled-components';
 import constants from '../../styles/constants';
 
-export const ItemStyled = styled.div`
-  position: relative;
+export const DataFlowBlockHeadingStyled = styled.div`
+  width: 100%;
   padding: ${constants.itemPadY}px ${constants.itemPadX}px;
 `;
 
-ItemStyled.displayName = 'ItemStyled';
+DataFlowBlockHeadingStyled.displayName = 'DataFlowBlockHeadingStyled';

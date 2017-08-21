@@ -1,10 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@reactackle/reactackle';
-import { Node } from '../../../Node/Node';
+import { Button, Icon } from '@reactackle/reactackle';
+import { Node } from '../../Node/Node';
+import { NodeViewStyled } from './styles/NodeViewStyled';
 import { ItemContentStyled } from './styles/ItemContentStyled';
 import { TitleStyled } from './styles/TitleStyled';
 import { SubtitleStyled } from './styles/SubtitleStyled';
+import { ErrorMarkStyled } from './styles/ErrorMarkStyled';
 import { ButtonStyled } from './styles/ButtonStyled';
 import { TitleBoxStyled } from './styles/TitleBoxStyled';
 
@@ -16,10 +18,13 @@ const propTypes = {
     'string',
     'bool',
     'number',
-    'object',
+    'shape',
     'array',
   ]),
   removable: PropTypes.bool,
+  collapsed: PropTypes.bool,
+  error: PropTypes.bool,
+  disconnected: PropTypes.bool,
   title: PropTypes.string,
   subtitle: PropTypes.string,
 };
@@ -27,6 +32,11 @@ const propTypes = {
 const defaultProps = {
   inputType: 'default',
   removable: false,
+  collapsed: false,
+  error: false,
+  disconnected: false,
+  title: '',
+  subtitle: '',
 };
 
 export const NodeView = props => {
@@ -35,7 +45,12 @@ export const NodeView = props => {
   );
 
   const node = props.inputType !== 'none' && (
-    <Node colorScheme={props.inputType} position="left" />
+    <Node
+      disconnected={props.disconnected}
+      error={props.error}
+      colorScheme={props.inputType}
+      position="left"
+    />
   );
 
   const removeButton = props.removable && (
@@ -49,7 +64,7 @@ export const NodeView = props => {
   );
 
   const collapseButton = props.children && (
-    <ButtonStyled>
+    <ButtonStyled collapsed={props.collapsed}>
       <Button
         icon={{ name: 'chevron-down' }}
         size="small"
@@ -58,22 +73,33 @@ export const NodeView = props => {
     </ButtonStyled>
   );
 
+  const errorMark = props.error && (
+    <ErrorMarkStyled>
+      <Icon size="inherit" color="inherit" name="exclamation" />
+    </ErrorMarkStyled>
+  );
+
   return (
-    <div>
+    <NodeViewStyled>
       {node}
       <ItemContentStyled>
         <TitleBoxStyled>
           <TitleStyled>{props.title}</TitleStyled>
           {subtitle}
         </TitleBoxStyled>
+        {errorMark}
         {removeButton}
         {collapseButton}
       </ItemContentStyled>
-      {props.children}
-    </div>
+
+      {!props.collapsed && props.children}
+
+    </NodeViewStyled>
   );
 };
 
 NodeView.displayName = 'NodeView';
 NodeView.propTypes = propTypes;
 NodeView.defaultProps = defaultProps;
+
+export * from './NodeGroup/NodeGroup';

@@ -9,5 +9,8 @@ export const DataFlowBlockItem = props => (
 
 DataFlowBlockItem.displayName = 'DataFlowBlockItem';
 
-export * from './views/NodeView/NodeView';
-export * from './views/PickView/PickView';
+export * from './NodeView/NodeView';
+export * from './PickView/PickView';
+export * from './TableView/TableView';
+export * from './GraphQLGroup/GraphQLGroup';
+export * from './ArrayGroup/ArrayGroup';

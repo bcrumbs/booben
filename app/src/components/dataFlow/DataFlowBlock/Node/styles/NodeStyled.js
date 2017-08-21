@@ -7,6 +7,8 @@ import { HeaderBoxStyled } from '../../styles/HeaderBoxStyled';
 import {
   colorBorder,
   baseModule,
+  colorError,
+  colorLightBlue,
 } from '../../../../../styles/themeSelectors';
 
 const nodeSize = 11;
@@ -19,6 +21,19 @@ const position = ({ position }) => css`
   margin-${position}: -${nodeSize/2}px;
   ${position}: 0;
 `;
+
+const error = ({ error }) => error
+  ? css`box-shadow: 0 0 3px 2px ${colorError};`
+  : '';
+
+const disconnected = ({ disconnected }) => disconnected
+  ? css`    
+    &:hover {
+      transform: scale(1.6);
+      background-color: ${colorLightBlue};
+    }
+  `
+  : '';
 
 export const NodeStyled = styled.div`
   position: absolute;
@@ -33,6 +48,8 @@ export const NodeStyled = styled.div`
   box-sizing: border-box;
   ${colorScheme}
   ${position}
+  ${error}
+  ${disconnected}
   
   ${HeaderBoxStyled} & {
     top: 50%;
