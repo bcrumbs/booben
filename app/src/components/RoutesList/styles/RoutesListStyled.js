@@ -5,7 +5,6 @@ import { RouteCardStyled } from '../RouteCard/styles/RouteCardStyled';
 import { baseModule, colorBorder } from '../../../styles/themeSelectors';
 
 export const RoutesListStyled = styled.ul`
-  width: 100%;
   margin: 0;
   padding: 0;
   list-style-type: none;

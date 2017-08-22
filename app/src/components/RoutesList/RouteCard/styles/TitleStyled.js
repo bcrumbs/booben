@@ -2,12 +2,10 @@
 
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import componentTheme from '../styles/constants';
 
 import {
   textColorBody,
   textColorMedium,
-  fontSizeBody,
 } from '../../../../styles/themeSelectors';
 
 const propTypes = {
@@ -19,17 +17,12 @@ const defaultProps = {
 };
 
 const index = ({ index }) => index
-  ? css`
-    color: ${textColorMedium};
-    font-size: ${fontSizeBody}px;
-    line-height: 1.5;
-  `
-  : '';
+  ? css`color: ${textColorMedium};`
+  : css`color: ${textColorBody};`;
 
 export const TitleStyled = styled.span`
-  font-size: ${componentTheme.titleFontSize}px;
-  line-height: 1.3;
-  color: ${textColorBody};
+  font-size: inherit;
+  line-height: inherit;
   ${index}
 `;
 

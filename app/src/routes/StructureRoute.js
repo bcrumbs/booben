@@ -35,6 +35,7 @@ import {
 import { AppWrapper } from '../components/AppWrapper/AppWrapper';
 
 import {
+  RoutesListWrapper,
   RoutesList,
   RouteCard,
   IndexRouteCard,
@@ -1450,9 +1451,11 @@ class StructureRoute extends PureComponent {
       this._renderRouteList(project.routes, null, project.rootRoutes);
     
     return (
-      <Container spread>
-        {routesList}
-      </Container>
+      <RoutesListWrapper>
+        <Container spread>
+          {routesList}
+        </Container>
+      </RoutesListWrapper>
     );
   }
 

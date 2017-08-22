@@ -1,8 +1,6 @@
-'use strict';
-
-import { baseModule, fontSizeBody2 } from '../../../../styles/themeSelectors';
+import { baseModule } from '../../../../styles/themeSelectors';
 
 export default {
-  titleFontSize: fontSizeBody2,
+  titleLineHeight: 1.3,
   cardPaddingX: baseModule(2),
 };
