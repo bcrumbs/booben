@@ -1,14 +1,14 @@
 import styled from 'styled-components';
 
 import {
-  colorWhite,
+  textColorBody,
   bodyFontFamily,
   fontSizeBody,
 } from '../../../../styles/themeSelectors';
 
 export const MenuStyled = styled.div`
   width: 100%;
-  color: ${colorWhite};
+  color: ${textColorBody};
   font-size: ${fontSizeBody}px;
   
   &,

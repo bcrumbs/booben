@@ -79,6 +79,12 @@ import {
   ConstructionTool,
 } from '../components/ConstructionPane/ConstructionPane';
 
+import { DrawerTop } from '../components/DrawerTop/DrawerTop';
+
+import {
+  DrawerTopContent,
+} from '../components/DrawerTopContent/DrawerTopContent';
+
 import { Desktop } from '../containers/Desktop/Desktop';
 
 import ToolSectionRecord from '../models/ToolSection';
@@ -481,7 +487,6 @@ export default class Playground extends React.Component {
   
   render() {
     return (
-      <div>
       <App fixed>
         <TopRegion fixed={false}>
           <Header size="blank">
@@ -528,9 +533,17 @@ export default class Playground extends React.Component {
               </HeaderMenu>
             </HeaderRegion>
           </Header>
+
+          <DrawerTop>
+            <DrawerTopContent title="Data Flow Editor">
+              <Button size="small" colorScheme="flatLight" text="Save & Close" />
+              <Button size="small" colorScheme="flatLight" text="Dismiss & Close" />
+            </DrawerTopContent>
+          </DrawerTop>
         </TopRegion>
 
         <Desktop toolGroups={toolGroups}>
+          <DataFlowScreen />
         </Desktop>
 
         <BottomRegion fixed={false}>
@@ -558,8 +571,6 @@ export default class Playground extends React.Component {
           </Footer>
         </BottomRegion>
       </App>
-      <DataFlowScreen />
-      </div>
     );
   }
 }

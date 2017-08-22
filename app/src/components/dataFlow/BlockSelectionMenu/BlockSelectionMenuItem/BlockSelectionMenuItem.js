@@ -17,7 +17,6 @@ export const BlockSelectionMenuItem = ({ children, title }) => (
         <Button
           icon={{ name: 'chevron-down '}}
           radius="rounded"
-          colorScheme="flatLight"
           size="small"
         />
       </ButtonStyled>

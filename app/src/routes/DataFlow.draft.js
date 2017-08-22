@@ -1,8 +1,7 @@
 import React from 'react';
+
 import {
-  Button,
   TextField,
-  SelectBox,
 } from '@reactackle/reactackle';
 
 import {
@@ -12,12 +11,7 @@ import {
 } from '../components/ToolBar/ToolBar';
 
 import { Popover } from '../components/Popover/Popover';
-import { DrawerTop } from '../components/DrawerTop/DrawerTop';
 import { SearchInput } from '../components/SearchInput/SearchInput';
-
-import {
-  DrawerTopContent,
-} from '../components/DrawerTopContent/DrawerTopContent';
 
 import {
   MenuOverlapping,
@@ -56,7 +50,7 @@ const BLOCK_WIDTH = 170;
 const TestPositionWrapper = ({ x, y, width, children }) => (
   <div
     style={{
-      position: 'absolute',
+      position: 'fixed',
       top: y,
       left: x,
       width: width,
@@ -68,13 +62,6 @@ const TestPositionWrapper = ({ x, y, width, children }) => (
 
 export const DataFlowScreen = () => (
   <DataFlowWrapper>
-    <DrawerTop>
-      <DrawerTopContent title="Data Flow Editor">
-        <Button size="small" colorScheme="flatLight" text="Save & Close" />
-        <Button size="small" colorScheme="flatLight" text="Dismiss & Close" />
-      </DrawerTopContent>
-    </DrawerTop>
-    
     <ToolBar>
       <ToolBarGroup>
         <ToolBarAction icon={{ name: 'trash-o' }} />
