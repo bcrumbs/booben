@@ -13,6 +13,7 @@ export const HeaderBoxStyled = styled.div`
   width: 100%;
   position: relative;
   padding: ${baseModule(1)}px ${baseModule(1.5)}px;
+  user-select: none;
   ${colorScheme}
 `;
 

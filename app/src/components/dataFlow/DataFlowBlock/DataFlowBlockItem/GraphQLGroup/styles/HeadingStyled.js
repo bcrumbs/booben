@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import constants from '../../../../styles/constants';
+import constants from '../../../styles/constants';
 
 export const HeadingStyled = styled.button`
   display: flex;

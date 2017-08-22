@@ -33,11 +33,19 @@ const defaultProps = {
   focused: false,
 };
 
+// TODO Сейчаc не предусмотрен случай, когда width < arWidth
 export const DataFlowArrow = props => {
+  /*
+   * Arrow params
+   */
   const arHeight = 12;
   const arWidth = 14;
   const arGroove = 3;
   const arNarrow = arWidth - arGroove;
+
+  /*
+   * Path params
+   */
   const nodeSize = constants.nodeSize;
   const offsetX = nodeSize / 2;
   const width = Math.abs(props.end.x - props.start.x);

@@ -20,7 +20,7 @@ const defaultProps = {
 export const ArrayGroup = props => (
   <ArrayGroupStyled>
     <TypeStyled>
-      <SelectBox fullWidth defaultValue="String" />
+      <SelectBox fullWidth dense defaultValue="String" />
     </TypeStyled>
     <TitleStyled>
       {props.title}

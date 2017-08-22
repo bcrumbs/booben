@@ -101,9 +101,9 @@ export const DataFlowScreen = () => (
           x={10}
           y={80}
         >
-          <DataFlowBlock title="Constant" outputType="string" >
+          <DataFlowBlock title="Value" outputType="string" >
             <DataFlowBlockItem>
-              <TextField label="Value" />
+              <TextField label="Value" dense />
             </DataFlowBlockItem>
           </DataFlowBlock>
         </TestPositionWrapper>
@@ -113,7 +113,7 @@ export const DataFlowScreen = () => (
           x={10}
           y={220}
         >
-          <DataFlowBlock title="Constant" outputType="default" />
+          <DataFlowBlock title="Value" outputType="default" />
         </TestPositionWrapper>
 
         <TestPositionWrapper
@@ -228,7 +228,7 @@ export const DataFlowScreen = () => (
           y={480}
         >
           <DataFlowBlock
-            title="Constant"
+            title="Value"
             outputType="array"
           >
             <ArrayGroup>
@@ -245,7 +245,7 @@ export const DataFlowScreen = () => (
           y={480}
         >
           <DataFlowBlock
-            title="Constant"
+            title="Value"
             outputType="shape"
             typeDescription="description here.."
           >
@@ -321,7 +321,7 @@ export const DataFlowScreen = () => (
             <PanelCollapsibleItem bordered hasPaddings>
               <BlockSelectionMenu>
                 <BlockSelectionMenuGroup>
-                  <BlockSelectionMenuItem title="Constant" />
+                  <BlockSelectionMenuItem title="Value" />
                   <BlockSelectionMenuItem title="Function">
                     <BlockSelectionMenuGroup title="Reactackle funcs">
                       <BlockSelectionMenuItem title="Calc average" />
@@ -339,26 +339,14 @@ export const DataFlowScreen = () => (
 
         <DataFlowArrow
           start={{ x: 180, y: 104 }}
-          end={{ x: 251, y: 207 }}
+          end={{ x: 251, y: 199 }}
           colorScheme="string"
         />
 
         <DataFlowArrow
           start={{ x: 220, y: 339 }}
-          end={{ x: 250, y: 249 }}
+          end={{ x: 250, y: 242 }}
           colorScheme="bool"
-        />
-
-        <DataFlowArrow
-          start={{ x: 1000, y: 456 }}
-          end={{ x: 700, y: 116 }}
-          colorScheme="number"
-        />
-
-        <DataFlowArrow
-          start={{ x: 700, y: 116 }}
-          end={{ x: 400, y: 456 }}
-          colorScheme="number"
         />
 
         <TestPositionWrapper
