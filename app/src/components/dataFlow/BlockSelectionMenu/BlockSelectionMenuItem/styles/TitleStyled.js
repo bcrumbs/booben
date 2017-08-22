@@ -10,6 +10,7 @@ export const TitleStyled = styled.div`
   font-size: ${fontSizeBody}px;
   padding: ${baseModule(0.5)}px ${baseModule(0.75)}px;
   border-radius: ${radiusDefault}px;
+  cursor: pointer;
   
   &:hover,
   &:focus {

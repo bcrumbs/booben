@@ -6,14 +6,20 @@ import { ContentStyled } from './styles/ContentStyled';
 
 const propTypes = {
   title: PropTypes.string,
+  /*
+   * Specify Popover position. Arrow will be placed on the opposite side.
+   */
+  position: PropTypes.oneOf(['left', 'right', 'top', 'bottom']),
 };
 
 const defaultProps = {
   title: '',
+  position: 'right',
 };
 
-export const Popover = ({ children, title }) => (
-  <PopoverStyled>
+// TODO Popover should be positioned inside window boundaries
+export const Popover = ({ children, title, position }) => (
+  <PopoverStyled position={position}>
     {title && <TitleStyled>{title}</TitleStyled>}
     <ContentStyled>{children}</ContentStyled>
   </PopoverStyled>

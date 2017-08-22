@@ -144,9 +144,6 @@ export const DataFlowScreen = () => (
           <DataFlowBlock
             title="Component"
             outputType="bool"
-            actions={[
-              { text: 'Clear' }
-            ]}
           >
             <PickView title="Pick component" />
           </DataFlowBlock>
@@ -278,7 +275,7 @@ export const DataFlowScreen = () => (
         <TestPositionWrapper
           width={250}
           x={590}
-          y={510}
+          y={512}
         >
           <Popover title="ShapeOf">
             <div>Показываем Popover с описанием структуры типа при нажатии на стрелку</div>
