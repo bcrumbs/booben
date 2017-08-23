@@ -1040,7 +1040,7 @@ class StructureRoute extends PureComponent {
     }
 
     return (
-      <RoutesList>
+      <RoutesList focused={needButton}>
         {routeCards}
         {button}
       </RoutesList>

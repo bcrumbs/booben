@@ -5,10 +5,8 @@ import PropTypes from 'prop-types';
 import { boxShadow, transition } from '@reactackle/reactackle';
 
 import {
-  baseModule,
   radiusDefault,
   colorWhite,
-  colorSecondary,
   paletteBlueGrey50,
 } from '../../../../styles/themeSelectors';
 
