@@ -8,7 +8,7 @@ import {
   baseModule,
   colorMain,
   textColorBody,
-  fontSizeXSmall,
+  fontSizeSmall,
 } from '../../../styles/themeSelectors';
 
 const propTypes = {
@@ -23,7 +23,7 @@ const focused = ({ focused }) =>
   `color: ${focused ? colorMain : textColorBody};`;
 
 export const TitleStyled = styled.div`
-  font-size: ${fontSizeXSmall}px;
+  font-size: ${fontSizeSmall}px;
   line-height: 1.25;
   padding: ${baseModule(0.5)}px;
   text-align: center;

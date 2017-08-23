@@ -27,6 +27,7 @@ import {
 } from '../../components/ComponentTag/ComponentTag';
 
 import { SearchInput } from '../../components/SearchInput/SearchInput';
+import { AccordionBox } from '../../components/AccordionBox/AccordionBox';
 
 import {
   setExpandedGroups,
@@ -282,13 +283,13 @@ class ComponentsLibraryComponent extends PureComponent {
           dragData={{ name: component.fullName }}
           dragStartRadius={DND_DRAG_START_RADIUS_LIBRARY}
           onDragStart={this._handleDragStart}
-          contentBlank
         />
       ));
 
       return {
         id: group.name,
         title: getGroupNameString(group, language, getLocalizedText),
+        contentBlank: true,
         content: (
           <ComponentTagWrapper>
             {items}
@@ -314,12 +315,14 @@ class ComponentsLibraryComponent extends PureComponent {
         </BlockContentBoxItem>
         
         <BlockContentBoxItem blank isBordered>
-          <Accordion
-            single
-            items={accordionItems}
-            expandedItemIds={expandedItemIds}
-            onChange={this._handleExpandedItemsChange}
-          />
+          <AccordionBox>
+            <Accordion
+              single
+              items={accordionItems}
+              expandedItemIds={expandedItemIds}
+              onChange={this._handleExpandedItemsChange}
+            />
+          </AccordionBox>
         </BlockContentBoxItem>
       </BlockContentBox>
     );

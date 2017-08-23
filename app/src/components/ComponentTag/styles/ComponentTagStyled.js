@@ -14,10 +14,12 @@ import {
 
 const propTypes = {
   focused: PropTypes.bool,
+  colorScheme: PropTypes.oneOf(['dark', 'light']),
 };
 
 const defaultProps = {
   focused: false,
+  colorScheme: 'dark',
 };
 
 const TAGS_PER_ROW = 3;

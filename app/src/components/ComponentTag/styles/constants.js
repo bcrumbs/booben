@@ -1,5 +1,3 @@
-'use strict';
-
 import {
   colorBorder,
 } from '../../../styles/themeSelectors';
@@ -7,4 +5,12 @@ import {
 export default {
   borderColor: colorBorder,
   borderWidth: 1,
+
+  dark: {
+
+  },
+
+  light: {
+
+  },
 };
