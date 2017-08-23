@@ -17,8 +17,7 @@ export const patternBlueprint = (
 ) => css`
   background-image:
     linear-gradient(${lineLrgColor} ${lineLrgWidth}px, transparent ${lineLrgWidth}px),
-    linear-gradient(90deg, ${lineLrgColor} ${lineLrgWidth}px,
-      transparent ${lineLrgWidth}px),
+    linear-gradient(90deg, ${lineLrgColor} ${lineLrgWidth}px, transparent ${lineLrgWidth}px),
     linear-gradient(${lineSmlColor} ${lineSmlWidth}px, transparent ${lineSmlWidth}px),
     linear-gradient(90deg, ${lineSmlColor} ${lineSmlWidth}px, transparent ${lineSmlWidth}px);
   
