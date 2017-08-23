@@ -58,7 +58,6 @@ const propTypes = {
   onApply: PropTypes.func,
   onReturn: PropTypes.func,
   onReturnToList: PropTypes.func,
-  onNestedLink: PropTypes.func,
   onPickComponentData: PropTypes.func.isRequired,
 };
 
@@ -67,7 +66,6 @@ const defaultProps = {
   onApply: noop,
   onReturn: noop,
   onReturnToList: noop,
-  onNestedLink: noop,
 };
 
 const mapStateToProps = state => ({
@@ -149,8 +147,6 @@ class FunctionWindowComponent extends PureComponent {
     
     this._handleBreadcrumbsClick = this._handleBreadcrumbsClick.bind(this);
     this._handleChange = this._handleChange.bind(this);
-    this._handleLink = this._handleLink.bind(this);
-    this._handleLinkDone = this._handleLinkDone.bind(this);
     this._handlePick = this._handlePick.bind(this);
     this._handleBackButtonPress = this._handleBackButtonPress.bind(this);
     this._handleApplyButtonPress = this._handleApplyButtonPress.bind(this);
@@ -209,48 +205,6 @@ class FunctionWindowComponent extends PureComponent {
     
     const valuesMap = argValuesToMap(values, functionDef);
     this.props.onApply({ argValues: valuesMap });
-  }
-  
-  _handleLink({ name, path, targetValueDef, targetUserTypedefs }) {
-    const { functionDef, onNestedLink } = this.props;
-
-    const argIndex = parseInt(name, 10);
-    const arg = functionDef.args.get(argIndex);
-    const nestedLinkWindowName =
-      `${functionDef.title}(${[arg.name, ...path].join('.')})`;
-    
-    this.setState({
-      linking: true,
-      linkingName: name,
-      linkingPath: path,
-    });
-    
-    onNestedLink({
-      name: nestedLinkWindowName,
-      valueDef: targetValueDef,
-      userTypedefs: targetUserTypedefs,
-      onLink: this._handleLinkDone,
-    });
-  }
-  
-  _handleLinkDone({ newValue }) {
-    const { values, linking, linkingName, linkingPath } = this.state;
-    
-    if (!linking) return;
-  
-    const argIndex = parseInt(linkingName, 10);
-    
-    this.setState({
-      linking: false,
-      linkingName: '',
-      linkingPath: [],
-      values: linkingPath.length > 0
-        ? values.update(
-          argIndex,
-          oldValue => oldValue.setInStatic(linkingPath, newValue),
-        )
-        : values.set(argIndex, newValue),
-    });
   }
   
   _handlePick({ name, path, targetValueDef, targetUserTypedefs }) {
@@ -331,9 +285,9 @@ class FunctionWindowComponent extends PureComponent {
           value={values.get(idx)}
           valueDef={valueDef}
           optional={!arg.isRequired}
+          onlyStatic
           getLocalizedText={getLocalizedText}
           onChange={this._handleChange}
-          onLink={this._handleLink}
           onPick={this._handlePick}
         />
       );

@@ -47,6 +47,7 @@ const propTypes = {
   label: PropTypes.string,
   description: PropTypes.string,
   showType: PropTypes.bool,
+  onlyStatic: PropTypes.bool,
   getLocalizedText: PropTypes.func,
   onChange: PropTypes.func,
   onLink: PropTypes.func,
@@ -66,6 +67,7 @@ const defaultProps = {
   label: '',
   description: '',
   showType: false,
+  onlyStatic: false,
   getLocalizedText: returnArg,
   onChange: noop,
   onLink: noop,
@@ -534,7 +536,13 @@ export class JssyValueEditor extends PureComponent {
       isIterableItem = false,
     } = {},
   ) {
-    const { userTypedefs, strings, language, showType } = this.props;
+    const {
+      userTypedefs,
+      strings,
+      language,
+      showType,
+      onlyStatic,
+    } = this.props;
 
     if (this._propType && !noCache) return this._propType;
 
@@ -556,8 +564,8 @@ export class JssyValueEditor extends PureComponent {
         descriptionOverride,
       ),
       
-      linkable: this._isLinkableValue(resolvedValueDef),
-      pickable: this._isPickableValue(resolvedValueDef),
+      linkable: onlyStatic ? false : this._isLinkableValue(resolvedValueDef),
+      pickable: onlyStatic ? false : this._isPickableValue(resolvedValueDef),
       checkable,
       required: !!resolvedValueDef.required,
       transformValue: null,

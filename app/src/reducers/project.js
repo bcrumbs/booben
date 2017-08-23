@@ -42,6 +42,10 @@ import {
   PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT,
   PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL,
   PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE,
+  PROJECT_LINK_VALUE_GLOBAL,
+  PROJECT_LINK_VALUE_LOCAL,
+  PROJECT_LINK_VALUE_DONE,
+  PROJECT_LINK_VALUE_CANCEL,
   PROJECT_PICK_COMPONENT,
   PROJECT_PICK_COMPONENT_DONE,
   PROJECT_PICK_COMPONENT_CANCEL,
@@ -201,6 +205,13 @@ const ProjectState = RecordWithHistory({
   languageForComponentProps: 'en',
   selectingComponentLayout: false,
   nestedConstructors: List(),
+  linkingValue: false,
+  linkingValueGlobal: false,
+  linkingValuePath: null,
+  linkingValueDef: null,
+  linkingValueUserTypedefs: null,
+  linkingValueContext: null,
+  linkedValue: null,
   pickingComponent: false,
   pickingComponentData: false,
   pickingComponentFilter: null,
@@ -241,6 +252,16 @@ const initComponentPickingState = state => state.merge({
   pickedComponentData: null,
   componentDataListIsVisible: false,
   componentDataListItems: [],
+});
+
+const initLinkingValueState = state => state.merge({
+  linkingValue: false,
+  linkingValueGlobal: false,
+  linkingValuePath: null,
+  linkingValueDef: null,
+  linkingValueUserTypedefs: null,
+  linkingValueContext: null,
+  linkedValue: null,
 });
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
@@ -1704,6 +1725,44 @@ const handlers = {
     
     return state.setIn(['data', 'functions', action.name], newFunction);
   })),
+
+  [PROJECT_LINK_VALUE_GLOBAL]: (state, action) => {
+    const valueInfo = getValueInfoByPath(action.path, state);
+
+    return state.merge({
+      linkingValue: true,
+      linkingValueGlobal: true,
+      linkingValuePath: action.path,
+      linkingValueDef: valueInfo.valueDef,
+      linkingValueUserTypedefs: valueInfo.userTypedefs,
+      linkingValueContext: action.context,
+      linkedValue: null,
+    });
+  },
+
+  [PROJECT_LINK_VALUE_LOCAL]: (state, action) => state.merge({
+    linkingValue: true,
+    linkingValueGlobal: false,
+    linkingValuePath: null,
+    linkingValueDef: action.valueDef,
+    linkingValueUserTypedefs: action.userTypedefs,
+    linkingValueContext: action.context,
+    linkedValue: null,
+  }),
+
+  [PROJECT_LINK_VALUE_DONE]: (state, action) => {
+    if (state.linkingValueGlobal) {
+      state = updateValue(state, state.linkingPath, action.newValue);
+      state = initLinkingValueState(state);
+      state = incrementRevision(state);
+      return updateHistory(state, getPathToCurrentHistoryNode);
+    } else {
+      state = initLinkingValueState(state);
+      return state.set('linkedValue', action.newValue);
+    }
+  },
+
+  [PROJECT_LINK_VALUE_CANCEL]: state => initLinkingValueState(state),
   
   [PROJECT_PICK_COMPONENT]: (state, action) => {
     if (state.pickingComponent || state.pickingComponentData) {

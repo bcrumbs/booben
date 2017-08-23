@@ -17,12 +17,10 @@ import {
 } from '@jssy/common-ui';
 
 import { getNestedTypedef } from '@jssy/types';
-import { DesignDialog } from '../DesignDialog/DesignDialog';
 import { PropsList } from '../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
 import { ActionEditor } from '../ActionEditor/ActionEditor';
 import { ActionsList } from '../ActionsList/ActionsList';
-import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
 import JssyValue, { SourceDataState } from '../../models/JssyValue';
 
 import {
@@ -32,6 +30,7 @@ import {
   addAction,
   replaceAction,
   deleteAction,
+  linkValueGlobal,
 } from '../../actions/project';
 
 import { getStateSlotPickerFns } from '../../actions/helpers/component-picker';
@@ -75,6 +74,7 @@ const propTypes = {
   onAddAction: PropTypes.func.isRequired,
   onReplaceAction: PropTypes.func.isRequired,
   onDeleteAction: PropTypes.func.isRequired,
+  onLink: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -107,12 +107,15 @@ const mapDispatchToProps = dispatch => ({
   
   onAddAction: ({ path, action }) =>
     void dispatch(addAction(path, action)),
-  
+
   onReplaceAction: ({ path, index, newAction }) =>
     void dispatch(replaceAction(path, index, newAction)),
   
   onDeleteAction: ({ path, index }) =>
     void dispatch(deleteAction(path, index)),
+
+  onLink: ({ path }) =>
+    void dispatch(linkValueGlobal(path)),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
@@ -190,7 +193,6 @@ class ComponentPropsEditorComponent extends PureComponent {
       linkingProp: false,
       linkingPath: null,
       linkingValueDef: null,
-      linkWindowName: '',
       pickingPath: null,
       editingActions: false,
       editingActionsForProp: '',
@@ -214,9 +216,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     this._handleChange = this._handleChange.bind(this, false);
     this._handleLink = this._handleLink.bind(this, false);
     this._handlePick = this._handlePick.bind(this, false);
-    
-    this._handleLinkApply = this._handleLinkApply.bind(this);
-    this._handleLinkCancel = this._handleLinkCancel.bind(this);
+
     this._handlePickApply = this._handlePickApply.bind(this);
     this._handleCreateAction = this._handleCreateAction.bind(this);
     this._handleEditAction = this._handleEditAction.bind(this);
@@ -260,49 +260,12 @@ class ComponentPropsEditorComponent extends PureComponent {
    * @private
    */
   _handleLink(isSystemProp, { name, path }) {
-    const { meta, components, selectedComponentIds } = this.props;
+    const { selectedComponentIds, onLink } = this.props;
   
     const componentId = selectedComponentIds.first();
-    
-    let linkingValueDef;
-    if (isSystemProp) {
-      const propMeta = SYSTEM_PROPS[name];
-      linkingValueDef = getNestedTypedef(propMeta, path);
-    } else {
-      const component = components.get(componentId);
-      const componentMeta = getComponentMeta(component.name, meta);
-      const propMeta = componentMeta.props[name];
-      linkingValueDef = getNestedTypedef(propMeta, path, componentMeta.types);
-    }
-    
-    this.setState({
-      linkingProp: true,
-      linkingPath: buildFullPath(componentId, isSystemProp, name, path),
-      linkingValueDef,
-      linkWindowName: [name, ...path].join('.'),
-    });
-  }
-  
-  _handleLinkApply({ newValue }) {
-    const { onReplacePropValue } = this.props;
-    const { linkingPath } = this.state;
-    
-    this.setState({
-      linkingProp: false,
-      linkingPath: null,
-      linkingValueDef: null,
-      linkWindowName: '',
-    });
-    
-    onReplacePropValue(linkingPath, newValue);
-  }
-  
-  _handleLinkCancel() {
-    this.setState({
-      linkingProp: false,
-      linkingPath: null,
-      linkingValueDef: null,
-      linkWindowName: '',
+
+    onLink({
+      path: buildFullPath(componentId, isSystemProp, name, path),
     });
   }
 
@@ -728,13 +691,7 @@ class ComponentPropsEditorComponent extends PureComponent {
 
   render() {
     const { selectedComponentIds, getLocalizedText } = this.props;
-    
-    const {
-      linkingProp,
-      linkingValueDef,
-      linkWindowName,
-      editingActions,
-    } = this.state;
+    const { editingActions } = this.state;
 
     if (selectedComponentIds.size === 0) {
       return (
@@ -839,23 +796,6 @@ class ComponentPropsEditorComponent extends PureComponent {
         {systemProps}
         {content}
         {actionsEditor}
-  
-        <DesignDialog
-          title="Link attribute value"
-          backdrop
-          minWidth={420}
-          paddingSize="none"
-          open={linkingProp}
-          haveCloseButton
-          onClose={this._handleLinkCancel}
-        >
-          <LinkPropWindow
-            name={linkWindowName}
-            valueDef={linkingValueDef}
-            userTypedefs={componentMeta.types}
-            onLink={this._handleLinkApply}
-          />
-        </DesignDialog>
       </BlockContentBox>
     );
   }

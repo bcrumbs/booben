@@ -43,7 +43,7 @@ import {
   BlockSelectionMenu,
   BlockSelectionMenuGroup,
   BlockSelectionMenuItem,
-} from '../components/dataFlow';
+} from '../components/dara-flow';
 
 const BLOCK_WIDTH = 170;
 

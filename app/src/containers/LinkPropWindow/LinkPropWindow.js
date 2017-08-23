@@ -9,11 +9,6 @@ import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
 import { Map, List } from 'immutable';
-import Portal from 'react-portal-minimal';
-
-import {
-  BackdropBreadcrumbs,
-} from '../../components/BackdropBreadcrumbs/BackdropBreadcrumbs';
 
 import {
   LinkSourceSelection,
@@ -36,7 +31,7 @@ import {
   getLocalizedTextFromState,
 } from '../../selectors';
 
-import { createFunction } from '../../actions/project';
+import { createFunction, linkValueDone } from '../../actions/project';
 import ProjectComponentRecord from '../../models/ProjectComponent';
 import ProjectRecord from '../../models/Project';
 
@@ -51,7 +46,6 @@ import JssyValue, {
 
 import { NestedConstructor } from '../../reducers/project';
 import { getComponentMeta, isValidSourceForValue } from '../../lib/meta';
-import { noop } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
 
 const propTypes = {
@@ -62,10 +56,10 @@ const propTypes = {
   builtinFunctions: ImmutablePropTypes.map.isRequired,
   valueDef: PropTypes.object,
   userTypedefs: PropTypes.object,
-  actionArgsMeta: PropTypes.arrayOf(PropTypes.object),
-  actionComponentMeta: PropTypes.object,
-  name: PropTypes.string,
-  breadcrumbs: PropTypes.arrayOf(PropTypes.string),
+  context: PropTypes.shape({
+    actionArgsMeta: PropTypes.arrayOf(PropTypes.object),
+    actionComponentMeta: PropTypes.object,
+  }),
   availableDataContexts: PropTypes.arrayOf(PropTypes.shape({
     dataContext: PropTypes.arrayOf(PropTypes.string),
     typeName: PropTypes.string,
@@ -77,7 +71,7 @@ const propTypes = {
   currentRouteId: PropTypes.number.isRequired,
   language: PropTypes.string.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
-  onLink: PropTypes.func,
+  onLink: PropTypes.func.isRequired,
   onCreateFunction: PropTypes.func.isRequired,
 };
 
@@ -86,11 +80,7 @@ const defaultProps = {
   topNestedConstructorComponent: null,
   valueDef: null,
   userTypedefs: null,
-  actionArgsMeta: null,
-  actionComponentMeta: null,
-  name: '',
-  breadcrumbs: [],
-  onLink: noop,
+  context: null,
 };
 
 const mapStateToProps = state => ({
@@ -99,6 +89,9 @@ const mapStateToProps = state => ({
   project: state.project.data,
   projectFunctions: state.project.data.functions,
   builtinFunctions: Map(), // TODO: Pass built-in functions here
+  valueDef: state.project.linkingValueDef,
+  userTypedefs: state.project.linkingValueUserTypedefs,
+  context: state.project.linkingValueContext,
   availableDataContexts: availableDataContextsSelector(state),
   topNestedConstructor: topNestedConstructorSelector(state),
   topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
@@ -108,6 +101,8 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+  onLink: ({ newValue }) => void dispatch(linkValueDone(newValue)),
+
   onCreateFunction: ({ name, title, description, args, returnType, code }) =>
     void dispatch(createFunction(
       name,
@@ -128,11 +123,6 @@ class LinkPropWindowComponent extends PureComponent {
     this.state = {
       selectedSourceId: '',
       selectedSourceData: null,
-      haveNestedWindow: false,
-      nestedWindowOnLink: null,
-      nestedWindowValueDef: null,
-      nestedWindowUserTypedefs: null,
-      nestedWindowLinkName: '',
     };
     
     this._handleSelectSource = this._handleSelectSource.bind(this);
@@ -143,8 +133,6 @@ class LinkPropWindowComponent extends PureComponent {
     this._handleCreateFunction = this._handleCreateFunction.bind(this);
     this._handleLinkWithRouteParam = this._handleLinkWithRouteParam.bind(this);
     this._handleLinkWithActionArg = this._handleLinkWithActionArg.bind(this);
-    this._handleNestedLink = this._handleNestedLink.bind(this);
-    this._handleNestedLinkDone = this._handleNestedLinkDone.bind(this);
   }
   
   /**
@@ -219,11 +207,6 @@ class LinkPropWindowComponent extends PureComponent {
         title: getLocalizedText('linkDialog.source.actionArgs'),
       });
     }
-  
-    items.push({
-      id: 'function',
-      title: getLocalizedText('linkDialog.source.function'),
-    });
     
     return items;
   }
@@ -369,59 +352,7 @@ class LinkPropWindowComponent extends PureComponent {
   
     onLink({ newValue });
   }
-  
-  /**
-   *
-   * @param {string} name
-   * @param {JssyValueDefinition} valueDef
-   * @param {?Object<string, JssyTypeDefinition>} userTypedefs
-   * @param {Function} onLink
-   * @private
-   */
-  _handleNestedLink({ name, valueDef, userTypedefs, onLink }) {
-    this.setState({
-      haveNestedWindow: true,
-      nestedWindowOnLink: onLink,
-      nestedWindowValueDef: valueDef,
-      nestedWindowUserTypedefs: userTypedefs,
-      nestedWindowLinkName: name,
-    });
-  }
-  
-  /**
-   *
-   * @param {Object} newValue - JssyValue record
-   * @private
-   */
-  _handleNestedLinkDone({ newValue }) {
-    const { nestedWindowOnLink } = this.state;
-    
-    this.setState({
-      haveNestedWindow: false,
-      nestedWindowOnLink: null,
-      nestedWindowValueDef: null,
-      nestedWindowUserTypedefs: null,
-      nestedWindowLinkName: '',
-    });
-    
-    nestedWindowOnLink({ newValue });
-  }
 
-  _renderFloatingBreadcrumbs() {
-    const { name, breadcrumbs } = this.props;
-    const { haveNestedWindow } = this.state;
-
-    if (haveNestedWindow) return null;
-
-    const items = [...breadcrumbs, name].map(str => ({ title: str }));
-    if (!items.length) return null;
-
-    return (
-      <Portal>
-        <BackdropBreadcrumbs items={items} />
-      </Portal>
-    );
-  }
   
   /**
    *
@@ -462,8 +393,7 @@ class LinkPropWindowComponent extends PureComponent {
     );
     
     const ownerPropMeta = topNestedConstructor.valueInfo.valueDef;
-    
-    //noinspection JSValidateTypes
+
     return (
       <OwnerComponentPropSelection
         ownerComponentMeta={ownerMeta}
@@ -492,8 +422,7 @@ class LinkPropWindowComponent extends PureComponent {
       userTypedefs,
       getLocalizedText,
     } = this.props;
-    
-    //noinspection JSValidateTypes
+
     return (
       <DataSelection
         dataContext={dataContext}
@@ -504,7 +433,6 @@ class LinkPropWindowComponent extends PureComponent {
         getLocalizedText={getLocalizedText}
         onSelect={this._handleLinkWithData}
         onReturn={this._handleReturn}
-        onNestedLink={this._handleNestedLink}
       />
     );
   }
@@ -528,7 +456,6 @@ class LinkPropWindowComponent extends PureComponent {
         onSelect={this._handleLinkWithFunction}
         onCreateFunction={this._handleCreateFunction}
         onReturn={this._handleReturn}
-        onNestedLink={this._handleNestedLink}
       />
     );
   }
@@ -551,19 +478,22 @@ class LinkPropWindowComponent extends PureComponent {
     const {
       valueDef,
       userTypedefs,
+      context,
       language,
-      actionArgsMeta,
-      actionComponentMeta,
       getLocalizedText,
     } = this.props;
+
+    if (!context.actionArgsMeta || !context.actionComponentMeta) {
+      return null;
+    }
     
     return (
       <ActionArgSelection
         linkTargetValueDef={valueDef}
         userTypedefs={userTypedefs}
         language={language}
-        actionArgsMeta={actionArgsMeta}
-        actionComponentMeta={actionComponentMeta}
+        actionArgsMeta={context.actionArgsMeta}
+        actionComponentMeta={context.actionComponentMeta}
         getLocalizedText={getLocalizedText}
         onSelect={this._handleLinkWithActionArg}
         onReturn={this._handleReturn}
@@ -571,37 +501,9 @@ class LinkPropWindowComponent extends PureComponent {
     );
   }
   
-  _renderNestedWindow() {
-    const { name, breadcrumbs } = this.props;
-    const {
-      haveNestedWindow,
-      nestedWindowValueDef,
-      nestedWindowUserTypedefs,
-      nestedWindowLinkName,
-    } = this.state;
-  
-    if (!haveNestedWindow) return null;
-
-    const nestedWindowBreadcrumbs = [...breadcrumbs, name];
-  
-    return (
-      <LinkPropWindow
-        name={nestedWindowLinkName}
-        breadcrumbs={nestedWindowBreadcrumbs}
-        valueDef={nestedWindowValueDef}
-        userTypedefs={nestedWindowUserTypedefs}
-        onLink={this._handleNestedLinkDone}
-      />
-    );
-  }
-  
-  _renderMainWindow() {
+  render() {
     const { schema, valueDef } = this.props;
-    const {
-      selectedSourceId,
-      selectedSourceData,
-      haveNestedWindow,
-    } = this.state;
+    const { selectedSourceId, selectedSourceData } = this.state;
     
     if (!valueDef) return null;
   
@@ -627,23 +529,9 @@ class LinkPropWindowComponent extends PureComponent {
     }
   
     return (
-      <DataWindow hidden={haveNestedWindow}>
+      <DataWindow>
         {content}
       </DataWindow>
-    );
-  }
-  
-  render() {
-    const mainWindow = this._renderMainWindow();
-    const nestedWindow = this._renderNestedWindow();
-    const breadcrumbs = this._renderFloatingBreadcrumbs();
-    
-    return (
-      <div>
-        {mainWindow}
-        {nestedWindow}
-        {breadcrumbs}
-      </div>
     );
   }
 }

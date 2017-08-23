@@ -20,14 +20,12 @@ const propTypes = {
   fieldArgs: PropTypes.object,
   getLocalizedText: PropTypes.func,
   onArgsUpdate: PropTypes.func,
-  onNestedLink: PropTypes.func,
 };
 
 const defaultProps = {
   fieldArgs: null,
   getLocalizedText: returnArg,
   onArgsUpdate: noop,
-  onNestedLink: noop,
 };
 
 export class DataSelectionArgsEditor extends PureComponent {
@@ -41,8 +39,6 @@ export class DataSelectionArgsEditor extends PureComponent {
     };
 
     this._handleUpdateValue = this._handleUpdateValue.bind(this);
-    this._handleLink = this._handleLink.bind(this);
-    this._handleLinkDone = this._handleLinkDone.bind(this);
   }
   
   /**
@@ -60,51 +56,6 @@ export class DataSelectionArgsEditor extends PureComponent {
       ? newArgs.set(name, value)
       : newArgs.delete(name);
 
-    onArgsUpdate({ args: newArgs });
-  }
-  
-  _handleLink({ name, path, targetValueDef, targetUserTypedefs }) {
-    const { field, onNestedLink } = this.props;
-
-    const nestedLinkWindowName = `${field.name}(${[name, ...path].join('.')})`;
-    
-    this.setState({
-      linking: true,
-      linkingName: name,
-      linkingPath: path,
-    });
-    
-    onNestedLink({
-      name: nestedLinkWindowName,
-      valueDef: targetValueDef,
-      userTypedefs: targetUserTypedefs,
-      onLink: this._handleLinkDone,
-    });
-  }
-  
-  _handleLinkDone({ newValue }) {
-    const { fieldArgs, onArgsUpdate } = this.props;
-    const { linking, linkingName, linkingPath } = this.state;
-    
-    if (!linking) return;
-  
-    let newArgs = fieldArgs || Map();
-  
-    if (linkingPath.length > 0) {
-      newArgs = newArgs.update(
-        linkingName,
-        oldValue => oldValue.setInStatic(linkingPath, newValue),
-      );
-    } else {
-      newArgs = newArgs.set(linkingName, newValue);
-    }
-  
-    this.setState({
-      linking: false,
-      linkingName: '',
-      linkingPath: null,
-    });
-  
     onArgsUpdate({ args: newArgs });
   }
   
@@ -126,9 +77,9 @@ export class DataSelectionArgsEditor extends PureComponent {
           value={value}
           valueDef={valueDef}
           optional={!arg.nonNull}
+          onlyStatic
           getLocalizedText={getLocalizedText}
           onChange={this._handleUpdateValue}
-          onLink={this._handleLink}
         />
       );
     });

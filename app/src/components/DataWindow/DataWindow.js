@@ -5,31 +5,14 @@
 'use strict';
 
 import React from 'react';
-import PropTypes from 'prop-types';
 import { DataWindowStyled } from './styles/DataWindowStyled';
 
-const propTypes = {
-  hidden: PropTypes.bool,
-};
+export const DataWindow = props => (
+  <DataWindowStyled>
+    {props.children}
+  </DataWindowStyled>
+);
 
-const defaultProps = {
-  hidden: false,
-};
-
-export const DataWindow = props => {
-  const style = {};
-  
-  if (props.hidden) style.display = 'none';
-  
-  return (
-    <DataWindowStyled style={style}>
-      {props.children}
-    </DataWindowStyled>
-  );
-};
-
-DataWindow.propTypes = propTypes;
-DataWindow.defaultProps = defaultProps;
 DataWindow.displayName = 'DataWindow';
 
 export * from './DataWindowTitle/DataWindowTitle';

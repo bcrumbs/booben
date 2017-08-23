@@ -29,7 +29,6 @@ const propTypes = {
   onSelect: PropTypes.func,
   onCreateFunction: PropTypes.func,
   onReturn: PropTypes.func,
-  onNestedLink: PropTypes.func,
 };
 
 const defaultProps = {
@@ -40,7 +39,6 @@ const defaultProps = {
   onSelect: noop,
   onCreateFunction: noop,
   onReturn: noop,
-  onNestedLink: noop,
 };
 
 const Views = {
@@ -202,13 +200,7 @@ export class FunctionSelection extends PureComponent {
   }
 
   _renderFunctionWindow() {
-    const {
-      valueDef,
-      projectFunctions,
-      builtinFunctions,
-      onNestedLink,
-    } = this.props;
-    
+    const { valueDef, projectFunctions, builtinFunctions } = this.props;
     const { selectedFunctionId, selectedFunctionSource } = this.state;
 
     const functionDefs = selectedFunctionSource === FunctionSources.BUILTIN
@@ -224,7 +216,6 @@ export class FunctionSelection extends PureComponent {
         onApply={this._handleApply}
         onReturn={this._handleReturn}
         onReturnToList={this._handleReturnToList}
-        onNestedLink={onNestedLink}
       />
     );
   }

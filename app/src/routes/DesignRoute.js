@@ -13,6 +13,7 @@ import { push } from 'react-router-redux';
 import { List } from 'immutable';
 import { Dialog } from '@reactackle/reactackle';
 import { Desktop } from '../containers/Desktop/Desktop';
+import { LinkPropWindow } from '../containers/LinkPropWindow/LinkPropWindow';
 
 import {
   CreateComponentMenu,
@@ -76,6 +77,7 @@ import {
   redo,
   moveComponentToClipboard,
   convertComponentToList,
+  linkValueCancel,
   ComponentPickAreas,
 } from '../actions/project';
 
@@ -146,6 +148,7 @@ const propTypes = {
   showContentPlaceholders: PropTypes.bool.isRequired, // state
   canUndo: PropTypes.bool.isRequired, // state
   canRedo: PropTypes.bool.isRequired, // state
+  linkingValue: PropTypes.bool.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onCreateComponent: PropTypes.func.isRequired, // dispatch
   onRenameComponent: PropTypes.func.isRequired, // dispatch
@@ -162,6 +165,7 @@ const propTypes = {
   onGoToStructure: PropTypes.func.isRequired, // dispatch
   onToggleInvisibleComponents: PropTypes.func.isRequired, // dispatch
   onToggleContentPlaceholders: PropTypes.func.isRequired, // dispatch
+  onCancelLink: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
@@ -188,6 +192,7 @@ const mapStateToProps = state => ({
   showContentPlaceholders: state.app.showContentPlaceholders,
   canUndo: canUndoSelector(state),
   canRedo: canRedoSelector(state),
+  linkingValue: state.project.linkingValue,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -235,6 +240,8 @@ const mapDispatchToProps = dispatch => ({
 
   onToggleContentPlaceholders: enable =>
     void dispatch(toggleContentPlaceholders(enable)),
+
+  onCancelLink: () => void dispatch(linkValueCancel()),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
@@ -863,9 +870,11 @@ class DesignRoute extends PureComponent {
       showContentPlaceholders,
       canUndo,
       canRedo,
+      linkingValue,
       getLocalizedText,
       onUndo,
       onRedo,
+      onCancelLink,
     } = this.props;
 
     const {
@@ -1030,6 +1039,18 @@ class DesignRoute extends PureComponent {
             onEnterKeyPress={this._handleDeleteComponentConfirm}
           >
             {deleteComponentDialogText}
+          </Dialog>
+
+          <Dialog
+            title="Link attribute value"
+            backdrop
+            minWidth={420}
+            paddingSize="none"
+            open={linkingValue}
+            haveCloseButton
+            onClose={onCancelLink}
+          >
+            <LinkPropWindow />
           </Dialog>
   
           <Portal>

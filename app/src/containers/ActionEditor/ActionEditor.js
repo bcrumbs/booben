@@ -13,8 +13,6 @@ import _mapValues from 'lodash.mapvalues';
 import { List, Map } from 'immutable';
 import { Button } from '@reactackle/reactackle';
 import { BlockContentBoxItem } from '@jssy/common-ui';
-import { DesignDialog } from '../DesignDialog/DesignDialog';
-import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
 import { PropsList } from '../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
 
@@ -49,6 +47,7 @@ import {
 import {
   pickComponent,
   pickComponentData,
+  linkValueLocal,
 } from '../../actions/project';
 
 import {
@@ -105,11 +104,15 @@ const propTypes = {
   pickedComponentId: PropTypes.number.isRequired, // state
   // eslint-disable-next-line react/no-unused-prop-types
   pickedComponentData: PropTypes.string.isRequired, // state
+  linkingValue: PropTypes.bool.isRequired, // state
+  // eslint-disable-next-line react/no-unused-prop-types
+  linkedValue: PropTypes.instanceOf(JssyValue), // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onSave: PropTypes.func,
   onCancel: PropTypes.func,
   onPickComponent: PropTypes.func.isRequired, // dispatch
   onPickComponentData: PropTypes.func.isRequired, // dispatch
+  onLink: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
@@ -118,6 +121,7 @@ const defaultProps = {
   onCancel: noop,
   ownerProps: null,
   ownerUserTypedefs: null,
+  linkedValue: null,
 };
 
 const mapStateToProps = state => ({
@@ -132,6 +136,8 @@ const mapStateToProps = state => ({
   pickingComponentData: state.project.pickingComponentData,
   pickedComponentId: state.project.pickedComponentId,
   pickedComponentData: state.project.pickedComponentData,
+  linkingValue: state.project.linkingValue,
+  linkedValue: state.project.linkedValue,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -141,6 +147,9 @@ const mapDispatchToProps = dispatch => ({
 
   onPickComponentData: (filter, dataGetter) =>
     void dispatch(pickComponentData(filter, dataGetter)),
+
+  onLink: (valueDef, userTypedefs, context) =>
+    void dispatch(linkValueLocal(valueDef, userTypedefs, context)),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
@@ -244,7 +253,11 @@ class ActionEditorComponent extends PureComponent {
   }
   
   componentWillReceiveProps(nextProps) {
-    const { pickingComponent, pickingComponentData } = this.props;
+    const {
+      pickingComponent,
+      pickingComponentData,
+      linkingValue,
+    } = this.props;
 
     if (nextProps.pickedComponentId === INVALID_ID) return;
     
@@ -258,6 +271,14 @@ class ActionEditorComponent extends PureComponent {
         nextProps.pickedComponentId,
         nextProps.pickedComponentData,
       );
+    }
+
+    if (linkingValue && !nextProps.linkingValue) {
+      if (nextProps.linkedValue) {
+        this._handleLinkApply(nextProps.linkedValue);
+      } else {
+        this._handleLinkCancel();
+      }
     }
   }
 
@@ -593,14 +614,29 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _handleLink(linkParams) {
+    const { actionArgsMeta, actionComponentMeta, onLink } = this.props;
+
     this.setState({
       linkingValue: true,
       linkParams,
     });
+
+    const valueLinkContext = {
+      actionArgsMeta,
+      actionComponentMeta,
+    };
+
+    onLink(
+      addActionArgSourceToValueDef(linkParams.targetValueDef),
+      linkParams.targetUserTypedefs,
+      valueLinkContext,
+    );
   }
   
-  _handleLinkApply({ newValue }) {
-    const { action, linkParams } = this.state;
+  _handleLinkApply(newValue) {
+    const { action, linkingValue, linkParams } = this.state;
+
+    if (!linkingValue) return;
     
     const stateUpdates = {
       linkingValue: false,
@@ -634,6 +670,10 @@ class ActionEditorComponent extends PureComponent {
   }
   
   _handleLinkCancel() {
+    const { linkingValue } = this.state;
+
+    if (!linkingValue) return;
+
     this.setState({
       linkingValue: false,
       linkParams: null,
@@ -1299,13 +1339,8 @@ class ActionEditorComponent extends PureComponent {
   }
   
   render() {
-    const {
-      actionArgsMeta,
-      actionComponentMeta,
-      getLocalizedText,
-    } = this.props;
-    
-    const { action, linkingValue, linkParams } = this.state;
+    const { getLocalizedText } = this.props;
+    const { action } = this.state;
     
     const actionTypeLabel = getLocalizedText('actionsEditor.actionType');
     const actionTypeOptions = this._getActionTypeOptions();
@@ -1329,18 +1364,6 @@ class ActionEditorComponent extends PureComponent {
     
     const isSaveButtonDisabled = !this._isCurrentActionValid();
 
-    const linkWindowName = linkParams
-      ? [linkParams.name, ...linkParams.path].join(',')
-      : '';
-
-    const linkTargetValueDef = linkParams
-      ? addActionArgSourceToValueDef(linkParams.targetValueDef)
-      : null;
-
-    const linkTargetUserTypedefs = linkParams
-      ? linkParams.targetUserTypedefs
-      : null;
-
     return (
       <BlockContentBoxItem>
         <PropsList>
@@ -1357,25 +1380,6 @@ class ActionEditorComponent extends PureComponent {
           text={getLocalizedText('common.cancel')}
           onPress={this._handleCancel}
         />
-        
-        <DesignDialog
-          title="Link attribute value"
-          backdrop
-          minWidth={420}
-          paddingSize="none"
-          open={linkingValue}
-          haveCloseButton
-          onClose={this._handleLinkCancel}
-        >
-          <LinkPropWindow
-            name={linkWindowName}
-            valueDef={linkTargetValueDef}
-            userTypedefs={linkTargetUserTypedefs}
-            actionArgsMeta={actionArgsMeta}
-            actionComponentMeta={actionComponentMeta}
-            onLink={this._handleLinkApply}
-          />
-        </DesignDialog>
       </BlockContentBoxItem>
     );
   }

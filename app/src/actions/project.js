@@ -55,6 +55,15 @@ export const PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE =
 export const PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL =
   'PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL';
 
+export const PROJECT_LINK_VALUE_GLOBAL =
+  'PROJECT_LINK_VALUE_GLOBAL';
+export const PROJECT_LINK_VALUE_LOCAL =
+  'PROJECT_LINK_VALUE_LOCAL';
+export const PROJECT_LINK_VALUE_DONE =
+  'PROJECT_LINK_VALUE_DONE';
+export const PROJECT_LINK_VALUE_CANCEL =
+  'PROJECT_LINK_VALUE_CANCEL';
+
 export const PROJECT_PICK_COMPONENT =
   'PROJECT_PICK_COMPONENT';
 export const PROJECT_PICK_COMPONENT_DONE =
@@ -436,6 +445,60 @@ export const pickComponent = (filter = null) => ({
   pickData: false,
   filter,
   dataGetter: null,
+});
+
+/**
+ * @typedef {Object} ValueLinkContext
+ * @property {Array<Object>} [actionArgsMeta]
+ * @property {ComponentMeta} [actionComponentMeta]
+ */
+
+/**
+ *
+ * @param {ProjectPath} path
+ * @param {?ValueLinkContext} [context]
+ * @return {Object}
+ */
+export const linkValueGlobal = (path, context = {}) => ({
+  type: PROJECT_LINK_VALUE_GLOBAL,
+  path,
+  context,
+});
+
+/**
+ *
+ * @param {JssyValueDefinition} valueDef
+ * @param {Object<string, JssyTypeDefinition>} [userTypedefs]
+ * @param {?ValueLinkContext} [context]
+ * @return {Object}
+ */
+export const linkValueLocal = (
+  valueDef,
+  userTypedefs = null,
+  context = {},
+) => ({
+  type: PROJECT_LINK_VALUE_LOCAL,
+  valueDef,
+  userTypedefs,
+  context,
+});
+
+/**
+ *
+ * @param {Object} newValue - JssyValue record
+ * @return {Object}
+ */
+export const linkValueDone = newValue => ({
+  type: PROJECT_LINK_VALUE_DONE,
+  newValue,
+});
+
+/**
+ *
+ * @return {Object}
+ */
+export const linkValueCancel = () => ({
+  type: PROJECT_LINK_VALUE_CANCEL,
 });
 
 /**
