@@ -19,11 +19,14 @@ const defaultProps = {
   focused: false,
 };
 
+const heightOffset = ({ theme }) =>
+  theme.reactackle.components.button.size.normal.minHeight / 2;
+
 const focused = ({ focused }) => focused
   ? css`
     border-left: 2px solid ${paletteBlueGrey400};
     border-bottom: 2px solid ${paletteBlueGrey400};
-    height: calc(100% - 18px);
+    height: calc(100% - ${heightOffset}px);
   `
   : css`
     border-left: 1px dotted ${paletteBlueGrey500};
