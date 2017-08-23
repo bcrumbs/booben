@@ -302,7 +302,7 @@ class AppRoute extends Component {
               <FooterMenu inline dense mode="light">
                 <FooterMenuGroup>
                   <FooterMenuList>
-                    <FooterMenuItem text={getLocalizedText('appFooter.faq')} />
+                    <FooterMenuItem text={getLocalizedText('appFooter.help')} />
                   </FooterMenuList>
                 </FooterMenuGroup>
               </FooterMenu>
