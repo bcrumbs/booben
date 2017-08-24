@@ -3,6 +3,6 @@
 import { paletteBlueGrey500 } from '../../../styles/themeSelectors';
 
 export default {
-  height: 40,
+  height: 42,
   borderColor: paletteBlueGrey500,
 };

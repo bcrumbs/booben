@@ -1,16 +1,36 @@
 import {
+  colorMain,
   colorBorder,
+  paletteBlueGrey25,
+  paletteBlueGrey500,
+  colorActiveBg,
+  colorActiveBgLight,
+  textColorBody,
+  textColorBodyAlt,
 } from '../../../styles/themeSelectors';
 
 export default {
-  borderColor: colorBorder,
   borderWidth: 1,
 
-  dark: {
+  light: {
+    separatorColor: colorBorder,
 
+    tag: {
+      fontColor: textColorBodyAlt,
+      fontColorFocused: colorMain,
+      bgColorHover: paletteBlueGrey25,
+      bgColorFocused: colorActiveBg,
+    },
   },
 
-  light: {
+  dark: {
+    separatorColor: paletteBlueGrey500,
 
+    tag: {
+      fontColor: textColorBody,
+      fontColorFocused: textColorBody,
+      bgColorHover: colorActiveBgLight,
+      bgColorFocused: colorActiveBgLight,
+    },
   },
 };

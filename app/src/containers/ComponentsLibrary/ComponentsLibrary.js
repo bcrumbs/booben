@@ -266,6 +266,7 @@ class ComponentsLibraryComponent extends PureComponent {
             <Button
               text={showAllComponentsText}
               onPress={onShowAllComponents}
+              colorScheme="flatLight"
             />
           </BlockContentPlaceholder>
         );
@@ -304,7 +305,7 @@ class ComponentsLibraryComponent extends PureComponent {
       : expandedGroups.toArray();
 
     return (
-      <BlockContentBox isBordered>
+      <BlockContentBox isBordered flex>
         <BlockContentBoxItem blank>
           <SearchInput
             placeholder={getLocalizedText('library.search.placeholder')}
@@ -314,7 +315,7 @@ class ComponentsLibraryComponent extends PureComponent {
           />
         </BlockContentBoxItem>
         
-        <BlockContentBoxItem blank isBordered>
+        <BlockContentBoxItem blank isBordered hasScrollY>
           <AccordionBox>
             <Accordion
               single

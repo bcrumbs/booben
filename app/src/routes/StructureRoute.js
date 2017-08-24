@@ -1208,6 +1208,7 @@ class StructureRoute extends PureComponent {
       (paramValue, paramName) => (
         <FormItem key={paramName}>
           <TextField
+            dense
             label={paramName}
             value={paramValue}
             onChange={this._handleNewRouteParamChange.bind(this, paramName)}
@@ -1219,7 +1220,7 @@ class StructureRoute extends PureComponent {
     
     if (routeParamInputs.length) {
       routeParamsBoxHeading = (
-        <BlockContentBoxHeading>
+        <BlockContentBoxHeading removePaddingX>
           {getLocalizedText('structure.routeParamValuesHeading')}
         </BlockContentBoxHeading>
       );

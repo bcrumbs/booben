@@ -18,6 +18,11 @@ export const AccordionBoxStyled = styled.div`
   .accordion-title-icon-wrapper * {
     color: ${paletteBlueGrey100};
   }
+  
+  .accordion-title-box {
+    position: relative;
+    z-index: 2;
+  }
 `;
 
 AccordionBoxStyled.displayName = 'AccordionBoxStyled';

@@ -430,7 +430,7 @@ export class DataSelection extends PureComponent {
       }
       
       dataWindowHeading = (
-        <BlockContentBoxGroup colorScheme="dim">
+        <BlockContentBoxGroup shading="dim">
           <BlockContentBoxItem>
             <DataWindowTitle
               title={currentFieldName}
@@ -505,7 +505,7 @@ export class DataSelection extends PureComponent {
     return (
       <BlockContent>
         <BlockContentBox isBordered flex>
-          <BlockContentBoxGroup colorScheme="dim">
+          <BlockContentBoxGroup shading="dim">
             <BlockContentBoxItem>
               <DataWindowTitle
                 title={titleText}
@@ -585,7 +585,7 @@ export class DataSelection extends PureComponent {
     return (
       <BlockContent>
         <BlockContentBox isBordered flex>
-          <BlockContentBoxGroup colorScheme="dim">
+          <BlockContentBoxGroup shading="dim">
             <BlockContentBoxItem>
               <DataWindowTitle
                 title={titleText}

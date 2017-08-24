@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import { ComponentTagStyled } from './styles/ComponentTagStyled';
@@ -11,22 +9,24 @@ const propTypes = {
   image: PropTypes.string,
   title: PropTypes.string,
   focused: PropTypes.bool,
+  colorScheme: PropTypes.oneOf(['dark', 'light']),
 };
 
 const defaultProps = {
   image: '',
   title: '',
   focused: false,
+  colorScheme: 'dark',
 };
 
 export const ComponentTag = props => (
-  <ComponentTagStyled focused={props.focused}>
+  <ComponentTagStyled focused={props.focused} colorScheme={props.colorScheme}>
     <TagStyled>
       <ImageStyled>
         <img src={props.image} alt="" role="presentation" />
       </ImageStyled>
 
-      <TitleStyled focused={props.focused}>
+      <TitleStyled focused={props.focused} colorScheme={props.colorScheme}>
         {props.title}
       </TitleStyled>
     </TagStyled>
