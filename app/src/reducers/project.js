@@ -1729,30 +1729,32 @@ const handlers = {
   [PROJECT_LINK_VALUE_GLOBAL]: (state, action) => {
     const valueInfo = getValueInfoByPath(action.path, state);
 
-    return state.merge({
-      linkingValue: true,
-      linkingValueGlobal: true,
-      linkingValuePath: action.path,
-      linkingValueDef: valueInfo.valueDef,
-      linkingValueUserTypedefs: valueInfo.userTypedefs,
-      linkingValueContext: action.context,
-      linkedValue: null,
-    });
+    return state
+      .merge({
+        linkingValue: true,
+        linkingValueGlobal: true,
+        linkedValue: null,
+      })
+      .set('linkingValuePath', action.path)
+      .set('linkingValueDef', valueInfo.valueDef)
+      .set('linkingValueUserTypedefs', valueInfo.userTypedefs)
+      .set('linkingValueContext', action.context);
   },
 
-  [PROJECT_LINK_VALUE_LOCAL]: (state, action) => state.merge({
-    linkingValue: true,
-    linkingValueGlobal: false,
-    linkingValuePath: null,
-    linkingValueDef: action.valueDef,
-    linkingValueUserTypedefs: action.userTypedefs,
-    linkingValueContext: action.context,
-    linkedValue: null,
-  }),
+  [PROJECT_LINK_VALUE_LOCAL]: (state, action) => state
+    .merge({
+      linkingValue: true,
+      linkingValueGlobal: false,
+      linkingValuePath: null,
+      linkedValue: null,
+    })
+    .set('linkingValueDef', action.valueDef)
+    .set('linkingValueUserTypedefs', action.userTypedefs)
+    .set('linkingValueContext', action.context),
 
   [PROJECT_LINK_VALUE_DONE]: (state, action) => {
     if (state.linkingValueGlobal) {
-      state = updateValue(state, state.linkingPath, action.newValue);
+      state = updateValue(state, state.linkingValuePath, action.newValue);
       state = initLinkingValueState(state);
       state = incrementRevision(state);
       return updateHistory(state, getPathToCurrentHistoryNode);

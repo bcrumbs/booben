@@ -361,8 +361,7 @@ class LinkPropWindowComponent extends PureComponent {
    */
   _renderSourceSelection() {
     const sourceItems = this._getAvailableSources();
-    
-    //noinspection JSValidateTypes
+
     return (
       <LinkSourceSelection
         items={sourceItems}

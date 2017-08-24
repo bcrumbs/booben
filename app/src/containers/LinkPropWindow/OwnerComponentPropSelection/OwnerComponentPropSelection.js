@@ -98,12 +98,20 @@ export class OwnerComponentPropSelection extends PureComponent {
       getSourceConfig(ownerPropMeta, 'designer', ownerComponentMeta.types);
 
     const items = Object.keys(designerSourceConfig.props)
-      .filter(ownerPropName => isEqualType(
-        designerSourceConfig.props[ownerPropName],
-        linkTargetValueDef,
-        ownerComponentMeta.types,
-        userTypedefs,
-      ))
+      .filter(ownerPropName => {
+        const propMeta = designerSourceConfig.props[ownerPropName];
+
+        if (propMeta.dataContext) {
+          return false;
+        }
+
+        return isEqualType(
+          propMeta,
+          linkTargetValueDef,
+          ownerComponentMeta.types,
+          userTypedefs,
+        );
+      })
       .map(ownerPropName => {
         const ownerPropMeta = designerSourceConfig.props[ownerPropName];
       
