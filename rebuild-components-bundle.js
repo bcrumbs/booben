@@ -10,8 +10,10 @@ const fs = require('mz/fs');
 const minimist = require('minimist');
 const thenify = require('thenify');
 const rimraf = thenify(require('rimraf'));
-const { buildComponentsBundle } =
-  require('./endpoints/components-bundle-builder');
+const {
+  buildComponentsBundle,
+} = require('./endpoints/components-bundle-builder');
+
 const config = require('./config');
 const constants = require('./common/constants');
 

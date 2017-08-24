@@ -50,7 +50,7 @@ const propTypes = {
   // eslint-disable-next-line react/no-unused-prop-types
   pickedComponentId: PropTypes.number.isRequired,
   // eslint-disable-next-line react/no-unused-prop-types
-  pickedComponentData: PropTypes.string.isRequired,
+  pickedComponentData: PropTypes.string,
   targetValueDef: PropTypes.object.isRequired,
   functionDef: PropTypes.instanceOf(ProjectFunctionRecord).isRequired,
   language: PropTypes.string.isRequired,
@@ -62,6 +62,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+  pickedComponentData: null,
   getLocalizedText: returnArg,
   onApply: noop,
   onReturn: noop,

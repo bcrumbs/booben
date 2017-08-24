@@ -9,14 +9,9 @@ stages:
 
 push_image:
   stage: publish
-  cache:
-    untracked: true
-    paths:
-      - node_modules/
-      - yarn.lock
   script:
-    - yarn install
-    - yarn run build
+    - npm install
+    - npm run build
     - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json) .
     - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
     - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)

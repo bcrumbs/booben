@@ -33,12 +33,13 @@ if (willAddReduxDevTools) {
 const enhancer = compose(...enhancers);
 const store = createStore(rootReducer, enhancer);
 const originalDispatch = store.dispatch;
+let dispatchWithApollo = null;
 let dispatch = originalDispatch;
 let isApolloInjected = false;
+let wasApolloInjected = false;
 
 export const removeApolloMiddleware = () => {
-  store.dispatch = originalDispatch;
-  dispatch = originalDispatch;
+  dispatchWithApollo = null;
   isApolloInjected = false;
 };
 
@@ -50,8 +51,17 @@ export const injectApolloMiddleware = middleware => {
     getState: store.getState,
     dispatch: action => dispatch(action),
   };
-  
-  store.dispatch = dispatch = middleware(middlewareAPI)(originalDispatch);
+
+  dispatchWithApollo = middleware(middlewareAPI)(originalDispatch);
+
+  if (!wasApolloInjected) {
+    store.dispatch = dispatch = action => (dispatchWithApollo !== null)
+      ? dispatchWithApollo(action)
+      : originalDispatch(action);
+
+    wasApolloInjected = true;
+  }
+
   isApolloInjected = true;
 };
 

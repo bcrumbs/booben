@@ -103,7 +103,7 @@ const propTypes = {
   // eslint-disable-next-line react/no-unused-prop-types
   pickedComponentId: PropTypes.number.isRequired, // state
   // eslint-disable-next-line react/no-unused-prop-types
-  pickedComponentData: PropTypes.string.isRequired, // state
+  pickedComponentData: PropTypes.string, // state
   linkingValue: PropTypes.bool.isRequired, // state
   // eslint-disable-next-line react/no-unused-prop-types
   linkedValue: PropTypes.instanceOf(JssyValue), // state
@@ -121,6 +121,7 @@ const defaultProps = {
   onCancel: noop,
   ownerProps: null,
   ownerUserTypedefs: null,
+  pickedComponentData: null,
   linkedValue: null,
 };
 

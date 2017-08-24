@@ -10,12 +10,11 @@ COPY . /usr/src/app
 WORKDIR /usr/src/app
 
 RUN apk --no-cache add --update \
-      nodejs \
       python \
       make \
       g++ \
       git \
-    && yarn install --production \
+    && npm install --production \
     && npm dedupe \
     && npm rm -g yarn npm \
     && rm -rf /tmp/* \

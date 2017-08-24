@@ -355,5 +355,21 @@ export const nestedConstructorBreadcrumbsSelector = createSelector(
   },
 );
 
+export const isCanvasClearSelector = createSelector(
+  topNestedConstructorSelector,
+  currentRouteSelector,
+  state => state.project.indexRouteSelected,
+
+  (topNestedConstructor, currentRoute, indexRouteSelected) => {
+    if (topNestedConstructor) {
+      return topNestedConstructor.rootId === INVALID_ID;
+    } else {
+      return currentRoute.parentId === INVALID_ID &&
+        !indexRouteSelected &&
+        currentRoute.component === INVALID_ID;
+    }
+  },
+);
+
 export const isProjectDirty = state =>
   state.project.localRevision > state.project.lastSavedRevision;

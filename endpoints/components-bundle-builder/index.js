@@ -353,9 +353,36 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
     const fullPath = path.join(modulesDir, dir);
     const meta = yield gatherMetadata(fullPath);
 
-    return meta
-      ? { name: dir, dir: fullPath, meta }
-      : null;
+    if (!meta) {
+      throw new Error(`Failed to get metadata for ${dir}`);
+    }
+
+    return { name: dir, dir: fullPath, meta };
+  }));
+
+  yield asyncUtils.asyncForEach(libsData, ({ name, dir }) => co(function* () {
+    const packageJSONPath = path.join(dir, 'package.json');
+    const packageJSON = require(packageJSONPath);
+
+    if (packageJSON.peerDependencies) {
+      const peerDeps = Object.keys(packageJSON.peerDependencies)
+        .filter(moduleName =>
+          ['react', 'react-dom', 'prop-types'].indexOf(moduleName) === -1);
+
+      if (peerDeps.length > 0) {
+        logger.debug(
+          `[${project.name}] Installing peer dependencies of ${name}`
+        );
+
+        const toInstall = peerDeps.map(moduleName =>
+          `${moduleName}@"${packageJSON.peerDependencies[moduleName]}"`);
+
+        yield npmInstall(projectDir, toInstall, {
+          legacyBundling: true,
+          log: options.npmLogger,
+        });
+      }
+    }
   }));
 
   libsData = libsData.filter(libData => libData !== null);

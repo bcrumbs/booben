@@ -10,6 +10,7 @@ import {
   highlightedComponentIdsSelector,
   currentRootComponentIdSelector,
   currentComponentsSelector,
+  isCanvasClearSelector,
   getLocalizedTextFromState,
 } from '../../../../selectors';
 
@@ -31,6 +32,7 @@ const propTypes = {
   draggingComponent: PropTypes.bool.isRequired,
   pickingComponent: PropTypes.bool.isRequired,
   pickingComponentData: PropTypes.bool.isRequired,
+  isCanvasClear: PropTypes.bool.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
 };
 
@@ -47,6 +49,7 @@ const mapStateToProps = state => ({
   draggingComponent: state.project.draggingComponent,
   pickingComponent: state.project.pickingComponent,
   pickingComponentData: state.project.pickingComponentData,
+  isCanvasClear: isCanvasClearSelector(state),
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -124,7 +127,6 @@ class Overlay extends PureComponent {
 
   render() {
     const {
-      components,
       draggingComponent,
       pickingComponent,
       pickingComponentData,
@@ -132,6 +134,7 @@ class Overlay extends PureComponent {
       highlightedComponentIds,
       selectedComponentIds,
       boundaryComponentId,
+      isCanvasClear,
       getLocalizedText,
     } = this.props;
     
@@ -162,7 +165,7 @@ class Overlay extends PureComponent {
       : null;
     
     let canvasPlaceholder = null;
-    if (components.size === 0 && !draggingComponent) {
+    if (isCanvasClear && !draggingComponent) {
       canvasPlaceholder = (
         <CanvasPlaceholder
           key="canvas_placeholder"
