@@ -12,32 +12,43 @@ const LWIDTH = 1;
 const LWIDTH_LRG = 2;
 const CSIZE = 20;
 const CSIZE_LRG = 100;
-const COFFSET_LRG = 40 - LWIDTH_LRG / 2;
 
+export const calcBackgroundSize = scale => {
+  const lrg = CSIZE_LRG * scale;
+  const sml = CSIZE * scale;
+
+  return `
+    ${lrg}px ${lrg}px,
+    ${lrg}px ${lrg}px,
+    ${sml}px ${sml}px,
+    ${sml}px ${sml}px
+  `;
+};
+
+export const calcBackgroundPosition = (offsetX, offsetY) => `
+    ${offsetX}px ${offsetY}px,
+    ${offsetX}px ${offsetY}px,
+    ${offsetX}px ${offsetY}px,
+    ${offsetX}px ${offsetY}px
+  `;
+
+/* eslint-disable max-len */
 export const CanvasStyled = styled.div`
   flex-grow: 1;
   width: 100%;
   background-color: ${paletteBlueGrey500};
   color: white;
+  overflow: hidden;
   
   background-image:
     linear-gradient(${LCOLOR_LRG} ${LWIDTH_LRG}px, transparent ${LWIDTH_LRG}px),
-    linear-gradient(90deg, ${LCOLOR_LRG} ${LWIDTH_LRG}px,
-      transparent ${LWIDTH_LRG}px),
+    linear-gradient(90deg, ${LCOLOR_LRG} ${LWIDTH_LRG}px, transparent ${LWIDTH_LRG}px),
     linear-gradient(${LCOLOR} ${LWIDTH}px, transparent ${LWIDTH}px),
     linear-gradient(90deg, ${LCOLOR} ${LWIDTH}px, transparent ${LWIDTH}px);
     
-  background-size:
-    ${CSIZE_LRG}px ${CSIZE_LRG}px,
-    ${CSIZE_LRG}px ${CSIZE_LRG}px,
-    ${CSIZE}px ${CSIZE}px,
-    ${CSIZE}px ${CSIZE}px;
-    
-  background-position:
-    ${COFFSET_LRG}px ${COFFSET_LRG}px,
-    ${COFFSET_LRG}px ${COFFSET_LRG}px,
-    -${LWIDTH}px -${LWIDTH}px,
-    -${LWIDTH}px -${LWIDTH}px;
+  background-size: ${calcBackgroundSize(1)};
+  background-position: ${calcBackgroundPosition(0, 0)};
 `;
+/* eslint-enable max-len */
 
 CanvasStyled.displayName = 'CanvasStyled';

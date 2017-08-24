@@ -399,3 +399,12 @@ export const trimArray = (array, predicate = isFalsy) => {
   
   return array.slice(start, end + 1);
 };
+
+/**
+ *
+ * @param {number} value
+ * @param {number} min
+ * @param {number} max
+ * @return {number}
+ */
+export const minMax = (value, min, max) => Math.min(max, Math.max(value, min));

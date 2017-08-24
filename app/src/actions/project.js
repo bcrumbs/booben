@@ -63,6 +63,12 @@ export const PROJECT_LINK_VALUE_DONE =
   'PROJECT_LINK_VALUE_DONE';
 export const PROJECT_LINK_VALUE_CANCEL =
   'PROJECT_LINK_VALUE_CANCEL';
+export const PROJECT_LINK_VALUE_SWITCH_TO_DATA_FLOW =
+  'PROJECT_LINK_VALUE_SWITCH_TO_DATA_FLOW';
+export const PROJECT_LINK_VALUE_DATA_FLOW_UPDATE_CURRENT_VALUE =
+  'PROJECT_LINK_VALUE_DATA_FLOW_UPDATE_CURRENT_VALUE';
+export const PROJECT_LINK_VALUE_DATA_FLOW_SAVE =
+  'PROJECT_LINK_VALUE_DATA_FLOW_SAVE';
 
 export const PROJECT_PICK_COMPONENT =
   'PROJECT_PICK_COMPONENT';
@@ -499,6 +505,32 @@ export const linkValueDone = newValue => ({
  */
 export const linkValueCancel = () => ({
   type: PROJECT_LINK_VALUE_CANCEL,
+});
+
+/**
+ *
+ * @return {Object}
+ */
+export const switchToDataFlow = () => ({
+  type: PROJECT_LINK_VALUE_SWITCH_TO_DATA_FLOW,
+});
+
+/**
+ *
+ * @return {Object}
+ */
+export const dataFlowSave = () => ({
+  type: PROJECT_LINK_VALUE_DATA_FLOW_SAVE,
+});
+
+/**
+ *
+ * @param {Object} newValue - JssyValue record
+ * @return {Object}
+ */
+export const dataFlowUpdateCurrentValue = newValue => ({
+  type: PROJECT_LINK_VALUE_DATA_FLOW_UPDATE_CURRENT_VALUE,
+  newValue,
 });
 
 /**

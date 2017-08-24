@@ -14,6 +14,7 @@ import { List } from 'immutable';
 import { Dialog } from '@reactackle/reactackle';
 import { Desktop } from '../containers/Desktop/Desktop';
 import { LinkPropWindow } from '../containers/LinkPropWindow/LinkPropWindow';
+import { DataFlowEditor } from '../containers/DataFlowEditor/DataFlowEditor';
 
 import {
   CreateComponentMenu,
@@ -149,6 +150,7 @@ const propTypes = {
   canUndo: PropTypes.bool.isRequired, // state
   canRedo: PropTypes.bool.isRequired, // state
   linkingValue: PropTypes.bool.isRequired, // state
+  linkingValueDataFlow: PropTypes.bool.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onCreateComponent: PropTypes.func.isRequired, // dispatch
   onRenameComponent: PropTypes.func.isRequired, // dispatch
@@ -193,6 +195,7 @@ const mapStateToProps = state => ({
   canUndo: canUndoSelector(state),
   canRedo: canRedoSelector(state),
   linkingValue: state.project.linkingValue,
+  linkingValueDataFlow: state.project.linkingValueDataFlow,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -855,13 +858,10 @@ class DesignRoute extends PureComponent {
     );
   }
 
-  render() {
+  _renderDesktop() {
     const {
       projectName,
       previewContainerStyle,
-      components,
-      selectingComponentLayout,
-      firstSelectedComponentId,
       singleComponentSelected,
       componentDataListIsVisible,
       pickedComponentArea,
@@ -870,17 +870,145 @@ class DesignRoute extends PureComponent {
       showContentPlaceholders,
       canUndo,
       canRedo,
-      linkingValue,
       getLocalizedText,
       onUndo,
       onRedo,
+    } = this.props;
+
+    const { createComponentMenuIsVisible } = this.state;
+
+    const toolGroups = this._getTools();
+
+    const willRenderComponentDataSelect =
+      componentDataListIsVisible &&
+      pickedComponentArea === ComponentPickAreas.CANVAS;
+
+    const componentDataSelect = willRenderComponentDataSelect
+      ? this._renderComponentDataSelect()
+      : null;
+
+    const createComponentMenu = createComponentMenuIsVisible
+      ? this._renderCreateComponentMenu()
+      : null;
+
+    return (
+      <Desktop
+        toolGroups={toolGroups}
+        onToolTitleChange={this._handleToolTitleChange}
+      >
+        <ToolBar>
+          <ToolBarGroup>
+            <ToolBarAction
+              icon={{ name: 'files-o' }}
+              tooltipText={getLocalizedText('toolbar.design.duplicate')}
+              disabled={!singleComponentSelected}
+              onPress={this._handleDuplicateSelectedComponent}
+            />
+
+            <ToolBarAction
+              icon={{ name: 'clone' }}
+              tooltipText={getLocalizedText('toolbar.design.copy')}
+              disabled={!singleComponentSelected}
+              onPress={this._handleCopySelectedComponent}
+            />
+
+            <ToolBarAction
+              icon={{ name: 'scissors' }}
+              tooltipText={getLocalizedText('toolbar.design.cut')}
+              disabled={!singleComponentSelected}
+              onPress={this._handleCutSelectedComponent}
+            />
+
+            <ToolBarAction
+              icon={{ name: 'clipboard' }}
+              tooltipText={getLocalizedText('toolbar.design.paste')}
+              disabled={componentClipboard.componentId === INVALID_ID}
+              onPress={this._handlePasteComponent}
+            />
+
+            <ToolBarAction
+              icon={{ name: 'trash' }}
+              tooltipText={getLocalizedText('toolbar.design.delete')}
+              disabled={!this._isDeletable()}
+              onPress={this._handleDeleteSelectedComponent}
+            />
+          </ToolBarGroup>
+
+          <ToolBarGroup>
+            <ToolBarAction
+              icon={{ name: 'undo' }}
+              tooltipText={getLocalizedText('toolbar.common.undo')}
+              disabled={!canUndo}
+              onPress={onUndo}
+            />
+
+            <ToolBarAction
+              icon={{ name: 'repeat' }}
+              tooltipText={getLocalizedText('toolbar.common.redo')}
+              disabled={!canRedo}
+              onPress={onRedo}
+            />
+          </ToolBarGroup>
+
+          <ToolBarGroup>
+            <ToolBarAction
+              icon={{ name: 'list' }}
+              tooltipText={getLocalizedText('toolbar.design.convertToList')}
+              disabled={!singleComponentSelected}
+              onPress={this._handleConvertComponentToList}
+            />
+          </ToolBarGroup>
+
+          <ToolBarGroup>
+            <ToolBarAction
+              text={getLocalizedText(showContentPlaceholders
+                ? 'toolbar.design.hideEmpty'
+                : 'toolbar.design.showEmpty')}
+
+              onPress={this._handleToggleContentPlaceholders}
+            />
+
+            <ToolBarAction
+              text={getLocalizedText(showInvisibleComponents
+                ? 'toolbar.design.hideHidden'
+                : 'toolbar.design.showHidden')}
+
+              onPress={this._handleToggleInvisibleComponents}
+            />
+          </ToolBarGroup>
+        </ToolBar>
+
+        <AppWrapper>
+          <Canvas
+            projectName={projectName}
+            containerStyle={previewContainerStyle}
+          />
+        </AppWrapper>
+
+        {componentDataSelect}
+        {createComponentMenu}
+      </Desktop>
+    );
+  }
+
+  _renderDataFlowEditor() {
+    return (
+      <DataFlowEditor />
+    );
+  }
+
+  render() {
+    const {
+      components,
+      selectingComponentLayout,
+      firstSelectedComponentId,
+      linkingValue,
+      linkingValueDataFlow,
+      getLocalizedText,
       onCancelLink,
     } = this.props;
 
-    const {
-      createComponentMenuIsVisible,
-      confirmDeleteComponentDialogIsVisible,
-    } = this.state;
+    const { confirmDeleteComponentDialogIsVisible } = this.state;
 
     const layoutSelectionDialogContent =
       this._renderLayoutSelectionDialogContent();
@@ -892,8 +1020,6 @@ class DesignRoute extends PureComponent {
       text: getLocalizedText('common.cancel'),
       onPress: this._handleDeleteComponentCancel,
     }];
-  
-    const toolGroups = this._getTools();
 
     let deleteComponentDialogText = '';
     if (confirmDeleteComponentDialogIsVisible) {
@@ -906,17 +1032,9 @@ class DesignRoute extends PureComponent {
       );
     }
 
-    const willRenderComponentDataSelect =
-      componentDataListIsVisible &&
-      pickedComponentArea === ComponentPickAreas.CANVAS;
-    
-    const componentDataSelect = willRenderComponentDataSelect
-      ? this._renderComponentDataSelect()
-      : null;
-
-    const createComponentMenu = createComponentMenuIsVisible
-      ? this._renderCreateComponentMenu()
-      : null;
+    const content = linkingValueDataFlow
+      ? this._renderDataFlowEditor()
+      : this._renderDesktop();
 
     return (
       <Shortcuts
@@ -925,141 +1043,46 @@ class DesignRoute extends PureComponent {
         targetNodeSelector="body"
         className="jssy-app"
       >
-        <Desktop
-          toolGroups={toolGroups}
-          onToolTitleChange={this._handleToolTitleChange}
+        {content}
+
+        <Dialog
+          title={getLocalizedText('design.selectLayout')}
+          backdrop
+          minWidth={400}
+          open={selectingComponentLayout}
         >
-          <ToolBar>
-            <ToolBarGroup>
-              <ToolBarAction
-                icon={{ name: 'files-o' }}
-                tooltipText={getLocalizedText('toolbar.design.duplicate')}
-                disabled={!singleComponentSelected}
-                onPress={this._handleDuplicateSelectedComponent}
-              />
+          {layoutSelectionDialogContent}
+        </Dialog>
 
-              <ToolBarAction
-                icon={{ name: 'clone' }}
-                tooltipText={getLocalizedText('toolbar.design.copy')}
-                disabled={!singleComponentSelected}
-                onPress={this._handleCopySelectedComponent}
-              />
+        <Dialog
+          title={getLocalizedText('design.deleteComponent')}
+          backdrop
+          minWidth={400}
+          buttons={confirmDeleteDialogButtons}
+          open={confirmDeleteComponentDialogIsVisible}
+          closeOnEscape
+          closeOnBackdropClick
+          onClose={this._handleDeleteComponentCancel}
+          onEnterKeyPress={this._handleDeleteComponentConfirm}
+        >
+          {deleteComponentDialogText}
+        </Dialog>
 
-              <ToolBarAction
-                icon={{ name: 'scissors' }}
-                tooltipText={getLocalizedText('toolbar.design.cut')}
-                disabled={!singleComponentSelected}
-                onPress={this._handleCutSelectedComponent}
-              />
+        <Dialog
+          title="Link attribute value"
+          backdrop
+          minWidth={420}
+          paddingSize="none"
+          open={linkingValue && !linkingValueDataFlow}
+          haveCloseButton
+          onClose={onCancelLink}
+        >
+          <LinkPropWindow />
+        </Dialog>
 
-              <ToolBarAction
-                icon={{ name: 'clipboard' }}
-                tooltipText={getLocalizedText('toolbar.design.paste')}
-                disabled={componentClipboard.componentId === INVALID_ID}
-                onPress={this._handlePasteComponent}
-              />
-
-              <ToolBarAction
-                icon={{ name: 'trash' }}
-                tooltipText={getLocalizedText('toolbar.design.delete')}
-                disabled={!this._isDeletable()}
-                onPress={this._handleDeleteSelectedComponent}
-              />
-            </ToolBarGroup>
-
-            <ToolBarGroup>
-              <ToolBarAction
-                icon={{ name: 'undo' }}
-                tooltipText={getLocalizedText('toolbar.common.undo')}
-                disabled={!canUndo}
-                onPress={onUndo}
-              />
-
-              <ToolBarAction
-                icon={{ name: 'repeat' }}
-                tooltipText={getLocalizedText('toolbar.common.redo')}
-                disabled={!canRedo}
-                onPress={onRedo}
-              />
-            </ToolBarGroup>
-  
-            <ToolBarGroup>
-              <ToolBarAction
-                icon={{ name: 'list' }}
-                tooltipText={getLocalizedText('toolbar.design.convertToList')}
-                disabled={!singleComponentSelected}
-                onPress={this._handleConvertComponentToList}
-              />
-            </ToolBarGroup>
-
-            <ToolBarGroup>
-              <ToolBarAction
-                text={getLocalizedText(showContentPlaceholders
-                  ? 'toolbar.design.hideEmpty'
-                  : 'toolbar.design.showEmpty')}
-
-                onPress={this._handleToggleContentPlaceholders}
-              />
-
-              <ToolBarAction
-                text={getLocalizedText(showInvisibleComponents
-                  ? 'toolbar.design.hideHidden'
-                  : 'toolbar.design.showHidden')}
-
-                onPress={this._handleToggleInvisibleComponents}
-              />
-            </ToolBarGroup>
-          </ToolBar>
-
-          <AppWrapper>
-            <Canvas
-              projectName={projectName}
-              containerStyle={previewContainerStyle}
-            />
-          </AppWrapper>
-          
-          <Dialog
-            title={getLocalizedText('design.selectLayout')}
-            backdrop
-            minWidth={400}
-            open={selectingComponentLayout}
-          >
-            {layoutSelectionDialogContent}
-          </Dialog>
-  
-          <Dialog
-            title={getLocalizedText('design.deleteComponent')}
-            backdrop
-            minWidth={400}
-            buttons={confirmDeleteDialogButtons}
-            open={confirmDeleteComponentDialogIsVisible}
-            closeOnEscape
-            closeOnBackdropClick
-            onClose={this._handleDeleteComponentCancel}
-            onEnterKeyPress={this._handleDeleteComponentConfirm}
-          >
-            {deleteComponentDialogText}
-          </Dialog>
-
-          <Dialog
-            title="Link attribute value"
-            backdrop
-            minWidth={420}
-            paddingSize="none"
-            open={linkingValue}
-            haveCloseButton
-            onClose={onCancelLink}
-          >
-            <LinkPropWindow />
-          </Dialog>
-  
-          <Portal>
-            <ComponentsDragArea onDrop={this._handleDropComponent} />
-          </Portal>
-          
-          {componentDataSelect}
-          {createComponentMenu}
-        </Desktop>
+        <Portal>
+          <ComponentsDragArea onDrop={this._handleDropComponent} />
+        </Portal>
       </Shortcuts>
     );
   }

@@ -126,6 +126,7 @@
   "valueEditor.arrayItemTitle": "Элемент {index}",
   "valueEditor.objectItemTitle": "{key}",
 
+  "linkDialog.switchToDataFlow": "Редактор потока данных",
   "linkDialog.sources": "Источники",
   "linkDialog.source.owner": "Родительский компонент",
   "linkDialog.source.data": "Данные",
@@ -154,6 +155,10 @@
   "linkDialog.data.allArguments": "Все аргументы",
   "linkDialog.data.argumentsForField": "Аргументы для {name}",
   "linkDialog.data.pleaseFillAllRequiredArguments": "Пожалуйста, введите значения для всех обязательных аргументы",
+
+  "dataFlowEditor.top.heading": "Редактор потока данных",
+  "dataFlowEditor.top.save": "Сохранить и закрыть",
+  "dataFlowEditor.top.cancel": "Отмена",
 
   "actionsEditor.addAction": "Добавить действие",
   "actionsEditor.actionType": "Тип действия",

@@ -126,6 +126,7 @@
   "valueEditor.arrayItemTitle": "Item {index}",
   "valueEditor.objectItemTitle": "{key}",
 
+  "linkDialog.switchToDataFlow": "Data flow editor",
   "linkDialog.sources": "Sources",
   "linkDialog.source.owner": "Owner component",
   "linkDialog.source.data": "Data",
@@ -154,6 +155,10 @@
   "linkDialog.data.allArguments": "All arguments",
   "linkDialog.data.argumentsForField": "{name} arguments",
   "linkDialog.data.pleaseFillAllRequiredArguments": "Please, fill all required arguments",
+
+  "dataFlowEditor.top.heading": "Data flow editor",
+  "dataFlowEditor.top.save": "Save & Close",
+  "dataFlowEditor.top.cancel": "Dismiss & Close",
 
   "actionsEditor.addAction": "Add action",
   "actionsEditor.actionType": "Action type",

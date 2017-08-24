@@ -19,6 +19,8 @@ import {
   pickComponentCancel,
   saveComponentForProp,
   cancelConstructComponentForProp,
+  dataFlowSave,
+  linkValueCancel,
 } from '../../actions/project';
 
 import {
@@ -47,10 +49,13 @@ const propTypes = {
   draggingOverPlaceholder: PropTypes.bool.isRequired,
   placeholderContainerId: PropTypes.number.isRequired,
   placeholderAfter: PropTypes.number.isRequired,
+  linkingValueDataFlow: PropTypes.bool.isRequired,
   getLocalizedText: PropTypes.func,
   onCancelPickComponent: PropTypes.func.isRequired,
   onSaveComponentForProp: PropTypes.func.isRequired,
   onCancelConstructComponentForProp: PropTypes.func.isRequired,
+  onDataFlowSave: PropTypes.func.isRequired,
+  onLinkValueCancel: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -70,17 +75,18 @@ const mapStateToProps = state => ({
   draggingOverPlaceholder: state.project.draggingOverPlaceholder,
   placeholderContainerId: state.project.placeholderContainerId,
   placeholderAfter: state.project.placeholderAfter,
+  linkingValueDataFlow: state.project.linkingValueDataFlow,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
   onCancelPickComponent: () => void dispatch(pickComponentCancel()),
-  
-  onSaveComponentForProp: () =>
-    void dispatch(saveComponentForProp()),
-  
+  onSaveComponentForProp: () => void dispatch(saveComponentForProp()),
   onCancelConstructComponentForProp: () =>
     void dispatch(cancelConstructComponentForProp()),
+
+  onDataFlowSave: () => void dispatch(dataFlowSave()),
+  onLinkValueCancel: () => void dispatch(linkValueCancel()),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
@@ -97,11 +103,38 @@ const DrawerTopDesignComponent = props => {
     draggingOverPlaceholder,
     placeholderContainerId,
     placeholderAfter,
+    linkingValueDataFlow,
     getLocalizedText,
     onCancelPickComponent,
     onCancelConstructComponentForProp,
     onSaveComponentForProp,
+    onDataFlowSave,
+    onLinkValueCancel,
   } = props;
+
+  if (linkingValueDataFlow) {
+    return (
+      <DrawerTop>
+        <DrawerTopContent
+          title={getLocalizedText('dataFlowEditor.top.heading')}
+        >
+          <Button
+            size="small"
+            colorScheme="flatLight"
+            text={getLocalizedText('dataFlowEditor.top.save')}
+            onPress={onDataFlowSave}
+          />
+
+          <Button
+            size="small"
+            colorScheme="flatLight"
+            text={getLocalizedText('dataFlowEditor.top.cancel')}
+            onPress={onLinkValueCancel}
+          />
+        </DrawerTopContent>
+      </DrawerTop>
+    );
+  }
   
   if (pickingComponent || pickingComponentData) {
     return (

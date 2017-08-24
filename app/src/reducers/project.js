@@ -46,6 +46,9 @@ import {
   PROJECT_LINK_VALUE_LOCAL,
   PROJECT_LINK_VALUE_DONE,
   PROJECT_LINK_VALUE_CANCEL,
+  PROJECT_LINK_VALUE_SWITCH_TO_DATA_FLOW,
+  PROJECT_LINK_VALUE_DATA_FLOW_UPDATE_CURRENT_VALUE,
+  PROJECT_LINK_VALUE_DATA_FLOW_SAVE,
   PROJECT_PICK_COMPONENT,
   PROJECT_PICK_COMPONENT_DONE,
   PROJECT_PICK_COMPONENT_CANCEL,
@@ -212,6 +215,8 @@ const ProjectState = RecordWithHistory({
   linkingValueUserTypedefs: null,
   linkingValueContext: null,
   linkedValue: null,
+  linkingValueDataFlow: false,
+  linkingValueDataFlowCurrentValue: null,
   pickingComponent: false,
   pickingComponentData: false,
   pickingComponentFilter: null,
@@ -262,6 +267,8 @@ const initLinkingValueState = state => state.merge({
   linkingValueUserTypedefs: null,
   linkingValueContext: null,
   linkedValue: null,
+  linkingValueDataFlow: false,
+  linkingValueDataFlowCurrentValue: null,
 });
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
@@ -1164,6 +1171,18 @@ const _undoable = getPathToNodeWithHistory => fn => (state, action) => fn(
 const undoable = _undoable(getPathToCurrentHistoryNode);
 const undoableInPreviousNode = _undoable(getPathToPreviousHistoryNode);
 
+const linkValueDone = (state, newValue) => {
+  if (state.linkingValueGlobal) {
+    state = updateValue(state, state.linkingValuePath, newValue);
+    state = initLinkingValueState(state);
+    state = incrementRevision(state);
+    return updateHistory(state, getPathToCurrentHistoryNode);
+  } else {
+    state = initLinkingValueState(state);
+    return state.set('linkedValue', newValue);
+  }
+};
+
 
 const handlers = {
   [LOCATION_CHANGE]: (state, action) => {
@@ -1752,19 +1771,24 @@ const handlers = {
     .set('linkingValueUserTypedefs', action.userTypedefs)
     .set('linkingValueContext', action.context),
 
-  [PROJECT_LINK_VALUE_DONE]: (state, action) => {
-    if (state.linkingValueGlobal) {
-      state = updateValue(state, state.linkingValuePath, action.newValue);
-      state = initLinkingValueState(state);
-      state = incrementRevision(state);
-      return updateHistory(state, getPathToCurrentHistoryNode);
-    } else {
-      state = initLinkingValueState(state);
-      return state.set('linkedValue', action.newValue);
-    }
-  },
+  [PROJECT_LINK_VALUE_DONE]: (state, action) =>
+    linkValueDone(state, action.newValue),
 
   [PROJECT_LINK_VALUE_CANCEL]: state => initLinkingValueState(state),
+
+  [PROJECT_LINK_VALUE_SWITCH_TO_DATA_FLOW]: state =>
+    state.set('linkingValueDataFlow', true),
+
+  [PROJECT_LINK_VALUE_DATA_FLOW_UPDATE_CURRENT_VALUE]: (state, action) =>
+    state.set('linkingValueDataFlowCurrentValue', action.newValue),
+
+  [PROJECT_LINK_VALUE_DATA_FLOW_SAVE]: state => {
+    const newValue = state.linkingValueDataFlowCurrentValue;
+
+    return newValue
+      ? linkValueDone(state, newValue)
+      : initLinkingValueState(state);
+  },
   
   [PROJECT_PICK_COMPONENT]: (state, action) => {
     if (state.pickingComponent || state.pickingComponentData) {

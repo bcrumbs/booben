@@ -25,13 +25,22 @@ import { ActionArgSelection } from './ActionArgSelection/ActionArgSelection';
 import { DataWindow } from '../../components/DataWindow/DataWindow';
 
 import {
+  DataWindowBigButton,
+} from '../../components/DataWindow/DataWindowBigButton/DataWindowBigButton';
+
+import {
   topNestedConstructorSelector,
   topNestedConstructorComponentSelector,
   availableDataContextsSelector,
   getLocalizedTextFromState,
 } from '../../selectors';
 
-import { createFunction, linkValueDone } from '../../actions/project';
+import {
+  createFunction,
+  linkValueDone,
+  switchToDataFlow,
+} from '../../actions/project';
+
 import ProjectComponentRecord from '../../models/ProjectComponent';
 import ProjectRecord from '../../models/Project';
 
@@ -73,6 +82,7 @@ const propTypes = {
   getLocalizedText: PropTypes.func.isRequired,
   onLink: PropTypes.func.isRequired,
   onCreateFunction: PropTypes.func.isRequired,
+  onSwitchToDataFlow: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -112,6 +122,8 @@ const mapDispatchToProps = dispatch => ({
       returnType,
       code,
     )),
+
+  onSwitchToDataFlow: () => void dispatch(switchToDataFlow()),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
@@ -501,7 +513,13 @@ class LinkPropWindowComponent extends PureComponent {
   }
   
   render() {
-    const { schema, valueDef } = this.props;
+    const {
+      schema,
+      valueDef,
+      getLocalizedText,
+      onSwitchToDataFlow,
+    } = this.props;
+
     const { selectedSourceId, selectedSourceData } = this.state;
     
     if (!valueDef) return null;
@@ -529,6 +547,12 @@ class LinkPropWindowComponent extends PureComponent {
   
     return (
       <DataWindow>
+        <DataWindowBigButton
+          text={getLocalizedText('linkDialog.switchToDataFlow')}
+          icon={{ name: 'compass' }}
+          onPress={onSwitchToDataFlow}
+        />
+
         {content}
       </DataWindow>
     );
