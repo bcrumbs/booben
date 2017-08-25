@@ -11,9 +11,11 @@ const disconnected = ({ disconnected }) => disconnected
   : css`background-color: ${colorWhite};`;
 
 export const BlockStyled = styled.div`
-  min-width: 150px;
+  min-width: 170px;
   font-family: ${bodyFontFamily};
-  position: relative;
+  position: absolute;
+  top: 0;
+  left: 0;
   ${disconnected}
 `;
 

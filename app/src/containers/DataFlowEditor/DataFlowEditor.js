@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -25,15 +23,36 @@ import {
   ToolBarAction,
 } from '../../components/ToolBar/ToolBar';
 
-const propTypes = {};
+import { dataFlowUpdateCurrentValue } from '../../actions/project';
+
+const propTypes = {
+  onUpdateCurrentValue: PropTypes.func.isRequired, // dispatch
+};
 
 const defaultProps = {};
 
 const mapStateToProps = state => ({});
 
-const wrap = connect(mapStateToProps);
+const mapDispatchToProps = dispatch => ({
+  onUpdateCurrentValue: newValue =>
+    void dispatch(dataFlowUpdateCurrentValue(newValue)),
+});
+
+const wrap = connect(mapStateToProps, mapDispatchToProps);
 
 class _DataFlowEditor extends PureComponent {
+  constructor(props, context) {
+    super(props, context);
+    
+    this.state = {
+      blocks: new Map(),
+    };
+  }
+  
+  _renderBlocks() {
+  
+  }
+  
   render() {
     return (
       <MainRegion>

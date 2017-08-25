@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 import React from 'react';
 
 import {
@@ -46,19 +48,27 @@ import {
 } from '../components/dara-flow';
 
 const BLOCK_WIDTH = 170;
+const BLOCK_WIDTH_MAX = 400;
 
 const TestPositionWrapper = ({ x, y, width, children }) => (
   <div
     style={{
-      position: 'fixed',
-      top: y,
-      left: x,
-      width: width,
+      position: 'absolute',
+      top: `${y}px`,
+      left: `${x}px`,
+      width: `${width}px`,
     }}
   >
     {children}
   </div>
 );
+
+const resizeableProps = {
+  resizeEnabled: true,
+  resizeSides: ['right'],
+  resizeMinWidth: BLOCK_WIDTH,
+  resizeMaxWidth: BLOCK_WIDTH_MAX,
+};
 
 export const DataFlowScreen = () => (
   <DataFlowWrapper>
@@ -83,181 +93,170 @@ export const DataFlowScreen = () => (
 
     <DataFlowCanvasWrapper>
       <DataFlowCanvas>
-        <TestPositionWrapper
-          width={BLOCK_WIDTH}
-          x={10}
-          y={80}
+        <DataFlowBlock
+          {...resizeableProps}
+          positionX={10}
+          positionY={80}
+          title="Value"
+          outputType="string"
         >
-          <DataFlowBlock title="Value" outputType="string" >
-            <DataFlowBlockItem>
-              <TextField label="Value" dense />
-            </DataFlowBlockItem>
-          </DataFlowBlock>
-        </TestPositionWrapper>
-
-        <TestPositionWrapper
-          width={BLOCK_WIDTH}
-          x={10}
-          y={220}
+          <DataFlowBlockItem>
+            <TextField label="Value" dense />
+          </DataFlowBlockItem>
+        </DataFlowBlock>
+  
+        <DataFlowBlock
+          {...resizeableProps}
+          positionX={10}
+          positionY={220}
+          title="Value"
+          outputType="default"
+        />
+  
+        <DataFlowBlock
+          {...resizeableProps}
+          positionX={250}
+          positionY={100}
+          title="Function"
+          outputType="number"
         >
-          <DataFlowBlock title="Value" outputType="default" />
-        </TestPositionWrapper>
-
-        <TestPositionWrapper
-          width={BLOCK_WIDTH}
-          x={250}
-          y={100}
+          <DataFlowBlockHeading name="SomeFunction" />
+          <NodeView
+            title="Argument 1"
+            subtitle="string"
+            inputType="string"
+          />
+          <NodeView
+            title="Argument 2"
+            subtitle="bool"
+            inputType="bool"
+          />
+        </DataFlowBlock>
+  
+        <DataFlowBlock
+          {...resizeableProps}
+          positionX={50}
+          positionY={320}
+          title="Component"
+          outputType="bool"
         >
-          <DataFlowBlock title="Function" outputType="number">
-            <DataFlowBlockHeading name="SomeFunction" />
+          <PickView title="Pick component" />
+        </DataFlowBlock>
+  
+        <DataFlowBlock
+          {...resizeableProps}
+          positionX={50}
+          positionY={480}
+          title="Component"
+          outputType="bool"
+          actions={[
+            { text: 'Clear' }
+          ]}
+        >
+          <DataFlowBlockHeading
+            title="Input"
+            name="ComponentXYZ"
+          />
+          <TableView field="Disabled" tooltip="Field description" />
+        </DataFlowBlock>
+  
+        <DataFlowBlock
+          {...resizeableProps}
+          positionX={470}
+          positionY={100}
+          title="Graph QL"
+          outputType="string"
+          disconnected
+        >
+          <DataFlowBlockHeading
+            name="Planet Name"
+            breadcrumbs={{
+              items: [
+                { title: 'item1' },
+                { title: 'item2' },
+              ],
+              mode: 'dark',
+            }}
+          />
+          <GraphQLGroup
+            breadcrumbs={{
+              items: [
+                { title: '/' },
+              ],
+              mode: 'dark',
+            }}
+            title="Field1"
+          >
             <NodeView
               title="Argument 1"
               subtitle="string"
-              inputType="string"
+              inputType="complex"
+              error
             />
+          </GraphQLGroup>
+    
+          <GraphQLGroup
+            breadcrumbs={{
+              items: [
+                { title: 'field1' },
+                { title: 'field2' },
+              ],
+              mode: 'dark',
+            }}
+            title="Field2"
+          >
             <NodeView
               title="Argument 2"
               subtitle="bool"
               inputType="bool"
+              disconnected
             />
-          </DataFlowBlock>
-        </TestPositionWrapper>
-
-        <TestPositionWrapper
-          width={BLOCK_WIDTH}
-          x={50}
-          y={320}
+          </GraphQLGroup>
+        </DataFlowBlock>
+  
+        <DataFlowBlock
+          {...resizeableProps}
+          positionX={250}
+          positionY={480}
+          title="Value"
+          outputType="array"
         >
-          <DataFlowBlock
-            title="Component"
-            outputType="bool"
-          >
-            <PickView title="Pick component" />
-          </DataFlowBlock>
-        </TestPositionWrapper>
-
-        <TestPositionWrapper
-          width={BLOCK_WIDTH}
-          x={50}
-          y={480}
+          <ArrayGroup>
+            <NodeView removable title="1" />
+            <NodeView removable title="2" />
+            <NodeView removable title="3" />
+          </ArrayGroup>
+        </DataFlowBlock>
+  
+        <DataFlowBlock
+          {...resizeableProps}
+          positionX={450}
+          positionY={480}
+          title="Value"
+          outputType="shape"
+          typeDescription="description here.."
         >
-          <DataFlowBlock
-            title="Component"
-            outputType="bool"
-            actions={[
-              { text: 'Clear' }
-            ]}
-          >
-            <DataFlowBlockHeading
-              title="Input"
-              name="ComponentXYZ"
-            />
-            <TableView field="Disabled" tooltip="Field description" />
-          </DataFlowBlock>
-        </TestPositionWrapper>
-
-        <TestPositionWrapper
-          width={BLOCK_WIDTH}
-          x={470}
-          y={100}
-        >
-          <DataFlowBlock title="Graph QL" outputType="string" disconnected>
-            <DataFlowBlockHeading
-              name="Planet Name"
-              breadcrumbs={{
-                items: [
-                  { title: 'item1' },
-                  { title: 'item2' },
-                ],
-                mode: 'dark',
-              }}
-            />
-            <GraphQLGroup
-              breadcrumbs={{
-                items: [
-                  { title: '/' },
-                ],
-                mode: 'dark',
-              }}
-              title="Field1"
-            >
+          <NodeView title="Item-1" subtitle="shape">
+            <NodeGroup>
+              <NodeView title="Item-11" subtitle="string" inputType="string" />
+              <NodeView title="Item-12" subtitle="shape" inputType="shape">
+                <NodeGroup>
+                  <NodeView title="Item-111" subtitle="number" inputType="number" />
+                </NodeGroup>
+              </NodeView>
               <NodeView
-                title="Argument 1"
-                subtitle="string"
+                title="Item-13"
+                subtitle="shapeOf"
                 inputType="complex"
-                error
-              />
-            </GraphQLGroup>
-
-            <GraphQLGroup
-              breadcrumbs={{
-                items: [
-                  { title: 'field1' },
-                  { title: 'field2' },
-                ],
-                mode: 'dark',
-              }}
-              title="Field2"
-            >
-              <NodeView
-                title="Argument 2"
-                subtitle="bool"
-                inputType="bool"
-                disconnected
-              />
-            </GraphQLGroup>
-          </DataFlowBlock>
-        </TestPositionWrapper>
-
-        <TestPositionWrapper
-          width={BLOCK_WIDTH}
-          x={250}
-          y={480}
-        >
-          <DataFlowBlock
-            title="Value"
-            outputType="array"
-          >
-            <ArrayGroup>
-              <NodeView removable title="1" />
-              <NodeView removable title="2" />
-              <NodeView removable title="3" />
-            </ArrayGroup>
-          </DataFlowBlock>
-        </TestPositionWrapper>
-
-        <TestPositionWrapper
-          width={BLOCK_WIDTH}
-          x={450}
-          y={480}
-        >
-          <DataFlowBlock
-            title="Value"
-            outputType="shape"
-            typeDescription="description here.."
-          >
-            <NodeView title="Item-1" subtitle="shape">
-              <NodeGroup>
-                <NodeView title="Item-11" subtitle="string" inputType="string" />
-                <NodeView title="Item-12" subtitle="shape" inputType="shape">
-                  <NodeGroup>
-                    <NodeView title="Item-111" subtitle="number" inputType="number" />
-                  </NodeGroup>
-                </NodeView>
-                <NodeView
-                  title="Item-13"
-                  subtitle="shapeOf"
-                  inputType="complex"
-                  collapsed
-                >
-                  <NodeGroup>
-                    <NodeView title="Item-111" subtitle="number" inputType="number" />
-                  </NodeGroup>
-                </NodeView>
-              </NodeGroup>
-            </NodeView>
-          </DataFlowBlock>
-        </TestPositionWrapper>
+                collapsed
+              >
+                <NodeGroup>
+                  <NodeView title="Item-111" subtitle="number" inputType="number" />
+                </NodeGroup>
+              </NodeView>
+            </NodeGroup>
+          </NodeView>
+        </DataFlowBlock>
 
         <TestPositionWrapper
           width={250}
@@ -276,24 +275,21 @@ export const DataFlowScreen = () => (
             </pre>
           </Popover>
         </TestPositionWrapper>
-
-        <TestPositionWrapper
-          width={BLOCK_WIDTH}
-          x={720}
-          y={340}
+  
+        <DataFlowBlock
+          {...resizeableProps}
+          positionX={720}
+          positionY={340}
+          title="End"
+          outputType="string"
+          endPoint
         >
-          <DataFlowBlock
-            title="End"
-            outputType="string"
-            endPoint
-          >
-            <DataFlowBlockHeading
-              title="Input"
-              name="ComponentXYZ"
-            />
-            <TableView field="Disabled" tooltip="Field description" />
-          </DataFlowBlock>
-        </TestPositionWrapper>
+          <DataFlowBlockHeading
+            title="Input"
+            name="ComponentXYZ"
+          />
+          <TableView field="Disabled" tooltip="Field description" />
+        </DataFlowBlock>
 
         <TestPositionWrapper
           width={250}

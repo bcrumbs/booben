@@ -39,6 +39,7 @@ export const CanvasStyled = styled.div`
   background-color: ${paletteBlueGrey500};
   color: white;
   overflow: hidden;
+  position: relative;
   
   background-image:
     linear-gradient(${LCOLOR_LRG} ${LWIDTH_LRG}px, transparent ${LWIDTH_LRG}px),

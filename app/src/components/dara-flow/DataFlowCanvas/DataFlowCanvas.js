@@ -1,22 +1,11 @@
 import React, { PureComponent } from 'react';
-
-import {
-  CanvasStyled,
-  calcBackgroundPosition,
-  calcBackgroundSize,
-} from './styles/CanvasStyled';
-
+import { CanvasStyled, calcBackgroundPosition } from './styles/CanvasStyled';
+import { on, off } from '../../../utils/dom';
 import { minMax } from '../../../utils/misc';
 
 const SCALE_MIN = 0.5;
 const SCALE_MAX = 2;
 const SCALE_BASE = 1.25;
-
-const on = (element, eventName, listener) =>
-  element.addEventListener(eventName, listener);
-
-const off = (element, eventName, listener) =>
-  element.removeEventListener(eventName, listener);
 
 export class DataFlowCanvas extends PureComponent {
   constructor(props, context) {
@@ -34,9 +23,13 @@ export class DataFlowCanvas extends PureComponent {
     this._startY = 0;
     this._offsetStartX = 0;
     this._offsetStartY = 0;
+    
+    this._animationFrameHandle = 0;
+    this._needRAF = false;
 
     this._saveRef = this._saveRef.bind(this);
     this._saveContainerRef = this._saveContainerRef.bind(this);
+    this._animationFrame = this._animationFrame.bind(this);
     this._handleNativeMouseDown = this._handleNativeMouseDown.bind(this);
     this._handleNativeMouseMove = this._handleNativeMouseMove.bind(this);
     this._handleNativeMouseUp = this._handleNativeMouseUp.bind(this);
@@ -49,12 +42,16 @@ export class DataFlowCanvas extends PureComponent {
   }
 
   componentWillUnmount() {
+    if (this._animationFrameHandle !== 0) {
+      this._cancelAnimationFrame();
+    }
+    
     off(this._rootElement, 'mousedown', this._handleNativeMouseDown);
     off(this._rootElement, 'wheel', this._handleNativeWheel);
 
     if (this._moving) {
       off(this._rootElement, 'mousemove', this._handleNativeMouseMove);
-      off(this._rootElement, 'mouseup', this._handleNativeMouseUp);
+      off(window.document.body, 'mouseup', this._handleNativeMouseUp, true);
     }
   }
 
@@ -75,6 +72,27 @@ export class DataFlowCanvas extends PureComponent {
   _saveContainerRef(ref) {
     this._containerElement = ref;
   }
+  
+  _scheduleUpdate() {
+    if (this._needRAF) {
+      this._animationFrameHandle =
+        window.requestAnimationFrame(this._animationFrame);
+  
+      this._needRAF = false;
+    }
+  }
+  
+  _animationFrame() {
+    this._animationFrameHandle = 0;
+    this._needRAF = true;
+    this._updateRootStyle();
+    this._updateContainerStyle();
+  }
+  
+  _cancelAnimationFrame() {
+    window.cancelAnimationFrame(this._animationFrameHandle);
+    this._animationFrameHandle = 0;
+  }
 
   /**
    *
@@ -83,18 +101,18 @@ export class DataFlowCanvas extends PureComponent {
   _updateContainerStyle() {
     const tx = `${this._offsetX}px`;
     const ty = `${this._offsetY}px`;
-    const s = this._scale.toFixed(4);
+  
+    // TODO: Scale content
 
     this._containerElement.style.transform =
-      `translate(${tx}, ${ty}) scale(${s}, ${s})`;
+      `translate(${tx}, ${ty}) scale(1, 1)`;
   }
 
   _updateRootStyle() {
     this._rootElement.style['background-position'] =
       calcBackgroundPosition(this._offsetX, this._offsetY);
-
-    this._rootElement.style['background-size'] =
-      calcBackgroundSize(this._scale);
+  
+    // TODO: Scale background
   }
 
   /**
@@ -110,7 +128,9 @@ export class DataFlowCanvas extends PureComponent {
     this._offsetStartY = this._offsetY;
 
     on(this._rootElement, 'mousemove', this._handleNativeMouseMove);
-    on(this._rootElement, 'mouseup', this._handleNativeMouseUp);
+    on(window.document.body, 'mouseup', this._handleNativeMouseUp, true);
+    
+    this._needRAF = true;
   }
 
   /**
@@ -123,27 +143,8 @@ export class DataFlowCanvas extends PureComponent {
 
     this._offsetX = this._offsetStartX + event.pageX - this._startX;
     this._offsetY = this._offsetStartY + event.pageY - this._startY;
-
-    this._updateContainerStyle();
-    this._updateRootStyle();
-  }
-
-  /**
-   *
-   * @param {WheelEvent} event
-   * @private
-   */
-  _handleNativeWheel(event) {
-    event.preventDefault();
-
-    this._scale = minMax(
-      this._scale * SCALE_BASE ** (-event.deltaY / 100),
-      SCALE_MIN,
-      SCALE_MAX,
-    );
-
-    this._updateContainerStyle();
-    this._updateRootStyle();
+    
+    this._scheduleUpdate();
   }
 
   /**
@@ -153,7 +154,30 @@ export class DataFlowCanvas extends PureComponent {
   _handleNativeMouseUp() {
     this._moving = false;
     off(this._rootElement, 'mousemove', this._handleNativeMouseMove);
-    off(this._rootElement, 'mouseup', this._handleNativeMouseUp);
+    off(window.document.body, 'mouseup', this._handleNativeMouseUp, true);
+    
+    if (this._animationFrameHandle) {
+      this._cancelAnimationFrame();
+    }
+    
+    this._needRAF = false;
+  }
+  
+  /**
+   *
+   * @param {WheelEvent} event
+   * @private
+   */
+  _handleNativeWheel(event) {
+    event.preventDefault();
+    
+    this._scale = minMax(
+      this._scale * SCALE_BASE ** (-event.deltaY / 100),
+      SCALE_MIN,
+      SCALE_MAX,
+    );
+  
+    this._scheduleUpdate();
   }
 
   render() {
@@ -161,7 +185,10 @@ export class DataFlowCanvas extends PureComponent {
 
     return (
       <CanvasStyled innerRef={this._saveRef}>
-        <div ref={this._saveContainerRef}>
+        <div
+          style={{ position: 'relative', top: '0', left: '0' }}
+          ref={this._saveContainerRef}
+        >
           {children}
         </div>
       </CanvasStyled>
