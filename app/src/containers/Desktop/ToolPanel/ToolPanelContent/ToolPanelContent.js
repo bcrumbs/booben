@@ -64,6 +64,7 @@ export class ToolPanelContent extends PureComponent {
       icon: {
         name: 'chevron-right',
       },
+      colorScheme: "flatLight",
       onPress: onCollapse,
     }];
   
@@ -72,6 +73,7 @@ export class ToolPanelContent extends PureComponent {
         icon: {
           name: 'arrows-alt',
         },
+        colorScheme: "flatLight",
         onPress: onUndock,
       });
     }
@@ -121,6 +123,7 @@ export class ToolPanelContent extends PureComponent {
             icon={{ name: button.icon }}
             text={button.text}
             disabled={button.disabled}
+            colorScheme="flatLight"
             onPress={button.onPress} // eslint-disable-line react/jsx-handler-names
           />
         ));
@@ -140,6 +143,8 @@ export class ToolPanelContent extends PureComponent {
             icon={{ name: button.icon }}
             text={button.text}
             disabled={button.disabled}
+            colorScheme="flatLight"
+            size="small"
             onPress={button.onPress} // eslint-disable-line react/jsx-handler-names
           />
         ));

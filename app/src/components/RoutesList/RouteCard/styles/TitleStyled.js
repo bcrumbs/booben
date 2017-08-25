@@ -4,7 +4,7 @@ import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 
 import {
-  textColorBody,
+  textColorBodyAlt,
   textColorMedium,
 } from '../../../../styles/themeSelectors';
 
@@ -18,7 +18,7 @@ const defaultProps = {
 
 const index = ({ index }) => index
   ? css`color: ${textColorMedium};`
-  : css`color: ${textColorBody};`;
+  : css`color: ${textColorBodyAlt};`;
 
 export const TitleStyled = styled.span`
   font-size: inherit;

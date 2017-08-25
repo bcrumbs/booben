@@ -20,8 +20,6 @@ const defaultProps = {
   index: false,
 };
 
-const boxShadowValue = boxShadow(1);
-
 const index = ({ index, focused }) => index
   ? css`
     background-color: ${paletteBlueGrey50};
@@ -33,7 +31,6 @@ const index = ({ index, focused }) => index
     &:focus {
       background-color: ${paletteBlueGrey50};
       outline: none;
-      ${boxShadowValue}
     }
   `
   : '';
@@ -51,9 +48,8 @@ export const CardStyled = styled.div`
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  ${boxShadowValue}
   ${index}
-  ${transition('background-color, box-shadow, border')}
+  ${transition('background-color, border')}
 
   &:hover,
   &:focus {
