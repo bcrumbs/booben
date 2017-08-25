@@ -1,10 +1,8 @@
-'use strict';
-
 import styled from 'styled-components';
 import { boxShadow } from '../../../styles/mixins';
 
 import {
-  colorWhite,
+  paletteBlueGrey600,
   radiusDefault,
   baseModule,
 } from '../../../styles/themeSelectors';
@@ -43,7 +41,7 @@ const minWidth = ({ minWidth }) => `max-height: ${`${minWidth}px` || '0'};`;
 const zIndex = ({ zIndex }) => `z-index: ${zIndex || '0'};`;
 
 export const DraggableWindowStyled = styled.div`
-  background-color: ${colorWhite};
+  background-color: ${paletteBlueGrey600};
   border-radius: ${radiusDefault}px;
   display: flex;
   align-items: stretch;

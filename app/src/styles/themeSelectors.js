@@ -81,9 +81,9 @@ export const paletteBlueGrey900 = ({ theme }) =>
   theme.jssy.paletteBlueGrey[900];
 
 export const colorBorder = ({ theme }) => theme.reactackle.colorBorder;
-export const colorActiveBg = ({ theme }) =>
-  Color(theme.jssy.color.lightBlue).fade(0.9).string();
-export const colorActiveBgLight = ({ theme }) => 'rgba(255, 255, 255, 0.1)';
+export const colorActiveBg = ({ theme }) => theme.jssy.color.colorSelection;
+export const colorActiveBgLight = ({ theme }) => theme.jssy.color.colorHover;
+export const colorHoverDark = ({ theme }) => theme.jssy.color.colorHoverDark;
 
 /* Font size */
 export const fontSizeXSmall = ({ theme }) =>
