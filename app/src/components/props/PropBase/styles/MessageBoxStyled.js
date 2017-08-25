@@ -10,7 +10,7 @@ import {
 export const MessageBoxStyled = styled.div`
   font-size: ${fontSizeSmall}px;
   color: ${textColorMedium};
-  line-height: 1.25;
+  line-height: 1.3;
 `;
 
 MessageBoxStyled.displayName = 'MessageBoxStyled';

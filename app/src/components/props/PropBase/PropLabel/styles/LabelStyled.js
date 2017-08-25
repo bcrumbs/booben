@@ -1,23 +1,37 @@
-'use strict';
+import styled, { css } from 'styled-components';
+import PropTypes from 'prop-types';
+import constants from '../../../styles/constants';
 
-import styled from 'styled-components';
 import {
-  fontSizeBody,
+  fontSizeSmall,
   fontWeightNormal,
-  textColorBody,
 } from '../../../../../styles/themeSelectors';
+
+const propTypes = {
+  colorScheme: PropTypes.oneOf(['dark', 'light']),
+};
+
+const defaultProps = {
+  colorScheme: 'dark',
+};
+
+const colorScheme = ({ colorScheme }) => css`
+  color: ${constants[colorScheme].label.fontColor};
+`;
 
 export const LabelStyled = styled.label`
   flex-grow: 1;
-  font-size: ${fontSizeBody}px;
+  font-size: ${fontSizeSmall}px;
   line-height: 1.2;
   font-weight: ${fontWeightNormal};
-  color: ${textColorBody};
   display: flex;
   margin-bottom: 0;
   position: relative;
   align-items: center;
   user-select: none;
+  ${colorScheme}
 `;
 
 LabelStyled.displayName = 'LabelStyled';
+LabelStyled.propTypes = propTypes;
+LabelStyled.defaultProps = defaultProps;

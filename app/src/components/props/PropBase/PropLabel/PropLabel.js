@@ -11,11 +11,13 @@ const propTypes = {
   label: PropTypes.string.isRequired,
   secondaryLabel: PropTypes.string,
   tooltip: PropTypes.string,
+  colorScheme: PropTypes.oneOf(['dark', 'light']),
 };
 
 const defaultProps = {
   secondaryLabel: '',
   tooltip: '',
+  colorScheme: 'dark',
 };
 
 export const PropLabel = props => {
@@ -36,7 +38,7 @@ export const PropLabel = props => {
   }
 
   return (
-    <LabelStyled>
+    <LabelStyled colorScheme={props.colorScheme}>
       <div>
         <LabelTextStyled>
           {props.label}
