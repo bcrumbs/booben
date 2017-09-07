@@ -39,7 +39,7 @@ const active = ({ active, disabled }) => {
   
   return active
     ? css`
-      background-color: ${colorActiveBgLight};
+      background-color: rgba(0, 0, 0, 0.15);
       cursor: default;
       ${disabledCase}
     `
