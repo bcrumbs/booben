@@ -10,8 +10,17 @@ $header-bg-color:       color($bg, 800);
 // =============================================================================
 // HEADER MENU
 // =============================================================================
+$hmenu-item-padding-y:     $base-module*0.25;
 $hmenu-item-padding-x:     $base-module*0.75;
+$header-default-font-size: 12px;
+$hmenu-font-size-primary: 12px;
+$header-dense-font-size: 12px;
+$hmenu-dense-font-size-primary: 12px;
 
+$hmenu-item-left-icon-box-size: 12px;
+$hmenu-item-left-icon-size: 12px;
+$hmenu-item-right-icon-box-size: 12px;
+$hmenu-item-right-icon-size: 12px;
 
 // =============================================================================
 // LOGO BOX

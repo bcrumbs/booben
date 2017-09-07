@@ -73,6 +73,8 @@ export const paletteBlueGrey500 = ({ theme }) =>
   theme.jssy.paletteBlueGrey[500];
 export const paletteBlueGrey600 = ({ theme }) =>
   theme.jssy.paletteBlueGrey[600];
+export const paletteBlueGrey650 = ({ theme }) =>
+  theme.jssy.paletteBlueGrey[650];
 export const paletteBlueGrey700 = ({ theme }) =>
   theme.jssy.paletteBlueGrey[700];
 export const paletteBlueGrey800 = ({ theme }) =>
@@ -81,6 +83,7 @@ export const paletteBlueGrey900 = ({ theme }) =>
   theme.jssy.paletteBlueGrey[900];
 
 export const colorBorder = ({ theme }) => theme.reactackle.colorBorder;
+export const colorBorderDark = paletteBlueGrey650;
 export const colorActiveBg = ({ theme }) => theme.jssy.color.colorSelection;
 export const colorActiveBgLight = ({ theme }) => theme.jssy.color.colorHover;
 export const colorHover = ({ theme }) => theme.jssy.color.colorHover;
@@ -91,7 +94,7 @@ export const fontSizeXSmall = ({ theme }) =>
 export const fontSizeSmall = ({ theme }) =>
   theme.reactackle.fontSize[-1];
 export const fontSizeBody = ({ theme }) =>
-  theme.reactackle.fontSize[0];
+  theme.reactackle.fontSize[-1];
 export const fontSizeBody2 = ({ theme }) =>
   theme.reactackle.fontSize[1];
 export const fontSizeTitle = ({ theme }) =>

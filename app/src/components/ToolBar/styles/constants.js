@@ -1,8 +1,8 @@
 'use strict';
 
-import { paletteBlueGrey500 } from '../../../styles/themeSelectors';
+import { colorBorderDark } from '../../../styles/themeSelectors';
 
 export default {
-  height: 42,
-  borderColor: paletteBlueGrey500,
+  height: 37,
+  borderColor: colorBorderDark,
 };
