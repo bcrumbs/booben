@@ -16,16 +16,4 @@ export default {
   item: {
     baseHeight,
   },
-
-  light: {
-    label: {
-      fontColor: textColorBody,
-    },
-  },
-
-  dark: {
-    label: {
-      fontColor: paletteBlueGrey50,
-    },
-  },
 };

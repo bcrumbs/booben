@@ -38,7 +38,7 @@ const propTypes = {
   checked: PropTypes.bool,
   deletable: PropTypes.bool,
   expanded: PropTypes.bool,
-  colorScheme: PropTypes.oneOf(['dark', 'light']),
+  labelPositionTop: PropTypes.bool,
   additionalActions: PropTypes.arrayOf(PropTypes.oneOfType([
     PropTypes.element,
     PropTypes.shape({
@@ -74,7 +74,7 @@ const defaultProps = {
   checked: false,
   deletable: false,
   expanded: false,
-  colorScheme: 'dark',
+  labelPositionTop: false,
   additionalActions: [],
   content: null,
   onLink: noop,
@@ -167,7 +167,7 @@ export class PropBase extends PureComponent {
       additionalActions,
       content,
       children,
-      colorScheme,
+      labelPositionTop,
     } = this.props;
 
     let labelElement = null;
@@ -208,7 +208,8 @@ export class PropBase extends PureComponent {
             label={label}
             secondaryLabel={secondaryLabel}
             tooltip={tooltip}
-            colorScheme={colorScheme}
+            positionTop={labelPositionTop}
+            itemCheckable={checkable}
           />
         </LabelBoxStyled>
       );

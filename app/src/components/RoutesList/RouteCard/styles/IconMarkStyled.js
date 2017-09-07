@@ -1,20 +1,14 @@
 import styled from 'styled-components';
 import { iconSize } from '../../../../styles/mixins';
 import constants from './constants';
-
-import {
-  colorWhite,
-  colorWarning,
-} from '../../../../styles/themeSelectors';
+import { textColorMedium } from '../../../../styles/themeSelectors';
 
 const markSize = `${constants.markSize}px`;
 
-export const AlertMarkStyled = styled.div`
-  color: ${colorWhite};
-  background-color: ${colorWarning};
+export const IconMarkStyled = styled.div`
+  color: ${textColorMedium};
   flex-shrink: 0;
-  border-radius: 50%;
   ${iconSize(markSize, markSize, `${constants.markImgSize}px`, 'font')}
 `;
 
-AlertMarkStyled.displayName = 'AlertMarkStyled';
+IconMarkStyled.displayName = 'IconMarkStyled';

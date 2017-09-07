@@ -11,6 +11,7 @@ import { RouteCardStyled } from '../RouteCard/styles/RouteCardStyled';
 import { CardWrapperStyled } from '../RouteCard/styles/CardWrapperStyled';
 import { CardStyled } from '../RouteCard/styles/CardStyled';
 import { CardContentStyled } from '../RouteCard/styles/CardContentStyled';
+import { TextBoxStyled } from '../RouteCard/styles/TextBoxStyled';
 import { TitleBoxStyled } from '../RouteCard/styles/TitleBoxStyled';
 import { TitleStyled } from '../RouteCard/styles/TitleStyled';
 
@@ -92,9 +93,11 @@ export class IndexRouteCard extends PureComponent {
             innerRef={this._saveRef}
           >
             <CardContentStyled>
-              <TitleBoxStyled>
-                <TitleStyled index>{title}</TitleStyled>
-              </TitleBoxStyled>
+              <TextBoxStyled>
+                <TitleBoxStyled>
+                  <TitleStyled index>{title}</TitleStyled>
+                </TitleBoxStyled>
+              </TextBoxStyled>
             </CardContentStyled>
           </CardStyled>
         </CardWrapperStyled>

@@ -1,24 +1,21 @@
-'use strict';
-
 import styled, { css } from 'styled-components';
 import { transition } from '@reactackle/reactackle';
 
 import {
   baseModule,
   radiusDefault,
-  paletteBlueGrey25,
+  colorHover,
 } from '../../../../styles/themeSelectors';
 
 const selected = ({ selected }) => !selected
   ? css`
     &:hover {
-      background-color: ${paletteBlueGrey25};
+      background-color: ${colorHover};
     }
   `
   : '';
 
 export const DataListItemStyled = styled.div`
-  border-radius: ${radiusDefault}px;
   display: flex;
   user-select: none;
   cursor: pointer;

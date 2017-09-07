@@ -78,7 +78,7 @@ export class ComponentAction extends PureComponent {
         <ActionHeadingStyled>
           <ActionLinkWrapperStyled onClick={this._handleClick}>
             <ActionIconStyled>
-              <Icon name="long-arrow-right" size="inherit" />
+              <Icon name="long-arrow-right" size="inherit" color="inherit" />
             </ActionIconStyled>
             
             <ActionTitleStyled>
@@ -94,6 +94,8 @@ export class ComponentAction extends PureComponent {
             <Button
               icon={{ name: 'times' }}
               radius="rounded"
+              size="small"
+              colorScheme="flatLight"
               onPress={this._handleDeleteButtonPress}
             />
           </ActionButtonsWrapperStyled>

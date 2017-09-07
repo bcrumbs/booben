@@ -83,7 +83,7 @@ export const paletteBlueGrey900 = ({ theme }) =>
 export const colorBorder = ({ theme }) => theme.reactackle.colorBorder;
 export const colorActiveBg = ({ theme }) => theme.jssy.color.colorSelection;
 export const colorActiveBgLight = ({ theme }) => theme.jssy.color.colorHover;
-export const colorHoverDark = ({ theme }) => theme.jssy.color.colorHoverDark;
+export const colorHover = ({ theme }) => theme.jssy.color.colorHover;
 
 /* Font size */
 export const fontSizeXSmall = ({ theme }) =>
@@ -119,6 +119,7 @@ export const fontWeightBold = ({ theme }) =>
 
 /* Text color */
 export const textColorMedium = paletteBlueGrey400;
+export const textColorMediumDark = paletteBlueGrey300;
 export const textColorBody = paletteBlueGrey25;
 export const textColorBodyAlt = paletteBlueGrey900;
 
