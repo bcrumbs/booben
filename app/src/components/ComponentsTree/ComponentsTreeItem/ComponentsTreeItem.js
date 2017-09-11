@@ -1,25 +1,28 @@
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@reactackle/reactackle';
 import { noop } from '../../../utils/misc';
+import { ItemButtonExpand } from './ItemButton/ItemButtonExpand';
 import { TreeItemStyled } from './styles/TreeItemStyled';
 import { ItemContentStyled } from './styles/ItemContentStyled';
+import { ButtonsStyled } from './styles/ButtonsStyled';
 import { IconStyled } from './styles/IconStyled';
+import { SpacerStyled } from './styles/SpacerStyled';
 
 const propTypes = {
   componentId: PropTypes.number.isRequired,
   itemElement: PropTypes.element,
   expanded: PropTypes.bool,
+  visible: PropTypes.bool,
   onExpand: PropTypes.func,
 };
 
 const defaultProps = {
   itemElement: null,
   expanded: false,
+  visible: false,
   onExpand: noop,
 };
+
 
 export class ComponentsTreeItem extends PureComponent {
   constructor(props, context) {
@@ -51,29 +54,28 @@ export class ComponentsTreeItem extends PureComponent {
     const { expanded, itemElement, children } = this.props;
 
     let content = null;
-    let icon = null;
+    let button = null;
+    let spacer = null;
 
     if (children) {
       if (expanded) content = children;
       
-      icon = (
-        <IconStyled
-          expanded={expanded}
-          innerRef={this._saveExpandButtonRef}
-        >
-          <Button
-            icon={{ name: 'chevron-down' }}
-            size="small"
-            radius="rounded"
-          />
-        </IconStyled>
+      button = (
+        <ButtonsStyled>
+          <IconStyled innerRef={this._saveExpandButtonRef}>
+            <ItemButtonExpand expanded={expanded} />
+          </IconStyled>
+        </ButtonsStyled>
       );
+    } else {
+      spacer = <SpacerStyled />;
     }
 
     return (
       <TreeItemStyled>
-        <ItemContentStyled noSublevel={!children}>
-          {icon}
+        <ItemContentStyled>
+          {spacer}
+          {button}
           {itemElement}
         </ItemContentStyled>
 

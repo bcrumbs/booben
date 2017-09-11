@@ -6,7 +6,6 @@ import {
   radiusDefault,
   textColorBody,
   fontSizeBody,
-  colorActiveBgLight,
   textColorMedium,
 } from '../../../../../styles/themeSelectors';
 
@@ -51,7 +50,7 @@ const disabled = ({ disabled }) => disabled
   : '';
 
 export const TitleStyled = styled.div`
-  padding: ${baseModule(0.5)}px ${baseModule(1)}px;
+  padding: ${baseModule(0.75)}px 0;
   border-radius: ${radiusDefault}px;
   color: ${textColorBody};
   font-size: ${fontSizeBody}px;
@@ -64,8 +63,6 @@ export const TitleStyled = styled.div`
   overflow: hidden;
   text-align: left;
   ${transition('background-color')}
-  ${hovered}
-  ${active}
   ${disabled}
 `;
 
