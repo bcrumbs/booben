@@ -13,6 +13,10 @@ const propTypes = {
   itemElement: PropTypes.element,
   expanded: PropTypes.bool,
   visible: PropTypes.bool,
+  active: PropTypes.bool,
+  selected: PropTypes.bool,
+  hovered: PropTypes.bool,
+  disabled: PropTypes.bool,
   onExpand: PropTypes.func,
 };
 
@@ -20,6 +24,10 @@ const defaultProps = {
   itemElement: null,
   expanded: false,
   visible: false,
+  active: false,
+  selected: false,
+  hovered: false,
+  disabled: false,
   onExpand: noop,
 };
 
@@ -63,7 +71,10 @@ export class ComponentsTreeItem extends PureComponent {
       button = (
         <ButtonsStyled>
           <IconStyled innerRef={this._saveExpandButtonRef}>
-            <ItemButtonExpand expanded={expanded} />
+            <ItemButtonExpand
+              disabled={this.props.disabled}
+              expanded={expanded}
+            />
           </IconStyled>
         </ButtonsStyled>
       );
@@ -73,7 +84,12 @@ export class ComponentsTreeItem extends PureComponent {
 
     return (
       <TreeItemStyled>
-        <ItemContentStyled>
+        <ItemContentStyled
+          hovered={this.props.hovered}
+          active={this.props.active}
+          selected={this.props.selected}
+          disabled={this.props.disabled}
+        >
           {spacer}
           {button}
           {itemElement}

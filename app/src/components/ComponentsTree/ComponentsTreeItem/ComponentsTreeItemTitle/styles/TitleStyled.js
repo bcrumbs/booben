@@ -1,52 +1,22 @@
 import styled, { css } from 'styled-components';
-import { transition } from '@reactackle/reactackle';
 
 import {
   baseModule,
   radiusDefault,
+  textColorMedium,
   textColorBody,
   fontSizeBody,
-  textColorMedium,
 } from '../../../../../styles/themeSelectors';
 
-const disabledStyles = css`
-  &,
-  &:hover,
-  &:focus {
+const disabled = ({ disabled }) => disabled
+  ? css`
+    &,
+    &:hover,
+    &:focus {
       color: ${textColorMedium};
       cursor: default;
-  }
-`;
-
-const hovered = ({ hovered, active, disabled }) => {
-  const disabledCase = disabled ? disabledStyles : '';
-  
-  return hovered && !active
-    ? css`
-      &,
-      &:hover {
-        background-color: rgba(0, 0, 0, 0.15);
-      }
-      
-      ${disabledCase}
-    `
-    : '';
-};
-
-const active = ({ active, disabled }) => {
-  const disabledCase = disabled ? disabledStyles : '';
-  
-  return active
-    ? css`
-      background-color: rgba(0, 0, 0, 0.15);
-      cursor: default;
-      ${disabledCase}
-    `
-    : '';
-};
-
-const disabled = ({ disabled }) => disabled
-  ? disabledStyles
+    }
+  `
   : '';
 
 export const TitleStyled = styled.div`
@@ -62,7 +32,6 @@ export const TitleStyled = styled.div`
   min-width: 100px;
   overflow: hidden;
   text-align: left;
-  ${transition('background-color')}
   ${disabled}
 `;
 

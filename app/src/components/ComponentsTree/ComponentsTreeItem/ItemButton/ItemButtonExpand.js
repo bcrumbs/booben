@@ -9,10 +9,12 @@ import ICON_EXPAND
 
 const propTypes = {
   expanded: PropTypes.bool,
+  disabled: PropTypes.bool,
 };
 
 const defaultProps = {
   expanded: false,
+  disabled: false,
 };
 
 const ButtonExpand = styled.div`
@@ -22,10 +24,14 @@ const ButtonExpand = styled.div`
   ${props => props.expanded && `
     transform: rotate(90deg);
   `}
+  
+  ${props => props.disabled && `
+    opacity: 0.5;
+  `}
 `;
 
-export const ItemButtonExpand = ({ expanded }) => (
-  <ButtonExpand expanded={expanded}>
+export const ItemButtonExpand = ({ expanded, disabled }) => (
+  <ButtonExpand expanded={expanded} disabled={disabled}>
     <ItemButton
       icon={{
         type: 'library',
