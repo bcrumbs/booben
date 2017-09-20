@@ -82,13 +82,14 @@
 /**
  * @typedef {Object} QueryPathStep
  * @property {string} field
+ * @property {number} connectionPageSize
  */
 
 /**
  * @typedef {Object} SourceDataData
  * @property {string[]} dataContext
  * @property {QueryPathStep[]} queryPath
- * @property {Object<string, PlainJssyValue>} queryArgs
+ * @property {Object<string, Object<string, PlainJssyValue>>} queryArgs
  */
 
 /**
