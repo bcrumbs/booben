@@ -93,7 +93,6 @@ export const NodeView = props => {
       </ItemContentStyled>
 
       {!props.collapsed && props.children}
-
     </NodeViewStyled>
   );
 };

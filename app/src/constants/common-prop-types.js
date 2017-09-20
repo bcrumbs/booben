@@ -55,3 +55,8 @@ export const componentDataItem = PropTypes.arrayOf(PropTypes.shape({
   unavailable: PropTypes.bool,
   data: PropTypes.any.isRequired,
 }));
+
+export const point = PropTypes.shape({
+  x: PropTypes.number,
+  y: PropTypes.number,
+});

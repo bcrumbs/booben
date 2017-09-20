@@ -73,6 +73,10 @@ export class DataFlowCanvas extends PureComponent {
     this._containerElement = ref;
   }
   
+  /**
+   *
+   * @private
+   */
   _scheduleUpdate() {
     if (this._needRAF) {
       this._animationFrameHandle =
@@ -82,6 +86,10 @@ export class DataFlowCanvas extends PureComponent {
     }
   }
   
+  /**
+   *
+   * @private
+   */
   _animationFrame() {
     this._animationFrameHandle = 0;
     this._needRAF = true;
@@ -89,6 +97,10 @@ export class DataFlowCanvas extends PureComponent {
     this._updateContainerStyle();
   }
   
+  /**
+   *
+   * @private
+   */
   _cancelAnimationFrame() {
     window.cancelAnimationFrame(this._animationFrameHandle);
     this._animationFrameHandle = 0;
@@ -107,7 +119,11 @@ export class DataFlowCanvas extends PureComponent {
     this._containerElement.style.transform =
       `translate(${tx}, ${ty}) scale(1, 1)`;
   }
-
+  
+  /**
+   *
+   * @private
+   */
   _updateRootStyle() {
     this._rootElement.style['background-position'] =
       calcBackgroundPosition(this._offsetX, this._offsetY);

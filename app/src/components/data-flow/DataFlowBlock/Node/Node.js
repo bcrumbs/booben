@@ -32,23 +32,19 @@ const defaultProps = {
 
 export const Node = props => {
   const complex = props.colorScheme === 'complex' && (
-      <ComplexStyled>
-        <div />
-        <div />
-        <div />
-        <div />
-      </ComplexStyled>
-    );
+    <ComplexStyled>
+      <div />
+      <div />
+      <div />
+      <div />
+    </ComplexStyled>
+  );
 
   const disconnected = props.disconnected && (
-      <IconStyled>
-        <Icon
-          size="inherit"
-          color="inherit"
-          name="plus"
-        />
-      </IconStyled>
-    );
+    <IconStyled>
+      <Icon size="inherit" color="inherit" name="plus" />
+    </IconStyled>
+  );
 
   return (
     <NodeStyled

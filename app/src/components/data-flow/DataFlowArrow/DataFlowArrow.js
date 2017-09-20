@@ -5,16 +5,11 @@ import { DataFlowArrowStyled } from './styles/DataFlowArrowStyled';
 import { ArrowStyled } from './styles/ArrowStyled';
 import { PathStyled } from './styles/PathStyled';
 import constants from '../styles/constants';
+import * as JssyPropTypes from '../../../constants/common-prop-types';
 
 const propTypes = {
-  start: PropTypes.arrayOf({
-    x: PropTypes.number,
-    y: PropTypes.number,
-  }),
-  end: PropTypes.arrayOf({
-    x: PropTypes.number,
-    y: PropTypes.number,
-  }),
+  start: JssyPropTypes.point,
+  end: JssyPropTypes.point,
   colorScheme: PropTypes.oneOf([
     'default',
     'string',
@@ -85,7 +80,8 @@ export const DataFlowArrow = props => {
   const pathXEnd = width - arNarrow - nodeSize / 2;
   const pathYEnd = height - arHeight / 2;
   const startCurve = `${pathXStart} ${pathYStart}`;
-  const endCurve = `${pathXEnd - curveShoulder} ${pathYEnd} ${pathXEnd} ${pathYEnd}`;
+  const endCurve =
+    `${pathXEnd - curveShoulder} ${pathYEnd} ${pathXEnd} ${pathYEnd}`;
 
   return (
     <DataFlowArrowStyled style={pathStyles}>
