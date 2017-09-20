@@ -15,7 +15,7 @@ import {
   DataFlowBlock,
   DataFlowBlockHeading,
   DataFlowBlockItem,
-} from '../../components/dara-flow';
+} from '../../components/data-flow';
 
 import {
   ToolBar,
