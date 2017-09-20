@@ -290,6 +290,18 @@ export const DataFlowScreen = () => (
           />
           <TableView field="Disabled" tooltip="Field description" />
         </DataFlowBlock>
+  
+        <DataFlowArrow
+          start={{ x: 180, y: 104 }}
+          end={{ x: 251, y: 199 }}
+          colorScheme="string"
+        />
+  
+        <DataFlowArrow
+          start={{ x: 220, y: 339 }}
+          end={{ x: 250, y: 242 }}
+          colorScheme="bool"
+        />
 
         <TestPositionWrapper
           width={250}
@@ -319,18 +331,6 @@ export const DataFlowScreen = () => (
             </PanelCollapsibleItem>
           </PanelCollapsible>
         </TestPositionWrapper>
-
-        <DataFlowArrow
-          start={{ x: 180, y: 104 }}
-          end={{ x: 251, y: 199 }}
-          colorScheme="string"
-        />
-
-        <DataFlowArrow
-          start={{ x: 220, y: 339 }}
-          end={{ x: 250, y: 242 }}
-          colorScheme="bool"
-        />
 
         <TestPositionWrapper
           x={750}
