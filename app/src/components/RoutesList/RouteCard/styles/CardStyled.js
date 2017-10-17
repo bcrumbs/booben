@@ -23,7 +23,6 @@ const defaultProps = {
 const index = ({ index, focused }) => index
   ? css`
     background-color: ${paletteBlueGrey50};
-    min-height: 0;
     
     ${focused ? `background-color: ${colorWhite};` : ''}
 
@@ -40,7 +39,6 @@ export const CardStyled = styled.div`
   border-radius: ${radiusDefault}px;
   width: 100%;
   max-width: 20em;
-  min-height: 60px;
   cursor: pointer;
   position: relative;
   user-select: none;

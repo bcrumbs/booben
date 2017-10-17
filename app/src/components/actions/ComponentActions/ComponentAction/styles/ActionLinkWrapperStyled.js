@@ -5,7 +5,7 @@ import { transition } from '@reactackle/reactackle';
 
 import {
   radiusDefault,
-  colorActiveBg,
+  colorHover,
 } from '../../../../../styles/themeSelectors';
 
 export const ActionLinkWrapperStyled = styled.a`
@@ -16,7 +16,7 @@ export const ActionLinkWrapperStyled = styled.a`
   ${transition('background-color')}
 
   &:hover {
-    background-color: ${colorActiveBg};
+    background-color: ${colorHover};
   }
 `;
 

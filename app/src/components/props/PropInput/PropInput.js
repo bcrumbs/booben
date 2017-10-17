@@ -75,6 +75,7 @@ export class PropInput extends Component {
       <PropBase
         {...propsForBase}
         content={content}
+        labelPositionTop
       />
     );
   }

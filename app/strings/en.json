@@ -110,7 +110,7 @@
   "tree.noComponents": "There are no components here",
   "tree.cursorTooltip": "Move cursor - SHIFT + ↓ / ↑ / ← / →. Check out help page for more info.",
 
-  "propsEditor.noComponentsSelectedText": "Select a component",
+  "propsEditor.noComponentsSelectedText": "Select a component on the canvas to activate this panel",
   "propsEditor.multipleComponentsSelectedText": "Multiple components selected",
   "propsEditor.noEditableAttributes": "This component doesn't have editable attributes",
   "propsEditor.systemProps.visible.name": "Visible",

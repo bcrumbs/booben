@@ -10,6 +10,7 @@ import _pick from 'lodash.pick';
 import { Button } from '@reactackle/reactackle';
 import { PropBase } from '../PropBase/PropBase';
 import { noop, returnArg } from '../../../utils/misc';
+import { ButtonRowStyled } from './styles/ButtonRowStyled';
 
 const propTypes = {
   ...PropBase.propTypes,
@@ -36,13 +37,16 @@ export const PropComponentPicker = props => {
     <PropBase
       {...propsForBase}
       content={
-        <Button
-          size="small"
-          colorScheme="link"
-          text={getLocalizedText('valueEditor.componentPicker.pickComponent')}
-          disabled={disabled}
-          onPress={onPickComponent}
-        />
+        <ButtonRowStyled>
+          <Button
+            size="small"
+            colorScheme="primary"
+            text={getLocalizedText('valueEditor.componentPicker.pickComponent')}
+            disabled={disabled}
+            onPress={onPickComponent}
+            outlined
+          />
+        </ButtonRowStyled>
       }
     />
   );

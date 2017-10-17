@@ -17,6 +17,7 @@ import { DesignDialog } from '../DesignDialog/DesignDialog';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
 import { PropsList } from '../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
+import { ComponentActionsButtonRow } from '../../components/actions';
 
 import {
   PropInput,
@@ -1348,16 +1349,22 @@ class ActionEditorComponent extends PureComponent {
           {props}
         </PropsList>
         
-        <Button
-          text={getLocalizedText('common.save')}
-          disabled={isSaveButtonDisabled}
-          onPress={this._handleSave}
-        />
-        
-        <Button
-          text={getLocalizedText('common.cancel')}
-          onPress={this._handleCancel}
-        />
+        <ComponentActionsButtonRow>
+          <Button
+            text={getLocalizedText('common.save')}
+            disabled={isSaveButtonDisabled}
+            onPress={this._handleSave}
+            size="small"
+            narrow
+          />
+          
+          <Button
+            text={getLocalizedText('common.cancel')}
+            onPress={this._handleCancel}
+            size="small"
+            narrow
+          />
+        </ComponentActionsButtonRow>
         
         <DesignDialog
           title="Link attribute value"
