@@ -20,6 +20,7 @@ import { SubcomponentBoxStyled } from './styles/SubcomponentBoxStyled';
 import { ContentBoxStyled } from './styles/ContentBoxStyled';
 import { WrapperStyled } from './styles/WrapperStyled';
 import { PropItemStyled } from './styles/PropItemStyled';
+import { LinkedDataStyled } from './styles/LinkedDataStyled';
 
 const propTypes = {
   id: PropTypes.string,
@@ -102,15 +103,18 @@ export class PropBase extends PureComponent {
     const { linkedWith, onUnlink } = this.props;
 
     return (
-      <Tag
-        text={linkedWith}
-        bounded
-        removable
-        onRemove={onUnlink}
-      />
+      <LinkedDataStyled title={linkedWith}>
+        <Tag
+          icon='link'
+          text={linkedWith}
+          bounded
+          removable
+          onRemove={onUnlink}
+        />
+      </LinkedDataStyled>
     );
   }
-  
+
   /**
    *
    * @param {boolean} value
