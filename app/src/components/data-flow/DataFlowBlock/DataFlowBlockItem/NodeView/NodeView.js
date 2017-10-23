@@ -18,7 +18,7 @@ const propTypes = {
     'string',
     'bool',
     'number',
-    'shape',
+    'object',
     'array',
   ]),
   removable: PropTypes.bool,

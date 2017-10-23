@@ -26,12 +26,19 @@ import {
 import { dataFlowUpdateCurrentValue } from '../../actions/project';
 
 const propTypes = {
+  valueDef: PropTypes.object.isRequired, // state
+  userTypedefs: PropTypes.object, // state
   onUpdateCurrentValue: PropTypes.func.isRequired, // dispatch
 };
 
-const defaultProps = {};
+const defaultProps = {
+  userTypedefs: null,
+};
 
-const mapStateToProps = state => ({});
+const mapStateToProps = state => ({
+  valueDef: state.project.linkingValueDef,
+  userTypedefs: state.project.linkingValueUserTypedefs,
+});
 
 const mapDispatchToProps = dispatch => ({
   onUpdateCurrentValue: newValue =>
