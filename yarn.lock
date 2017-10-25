@@ -39,9 +39,9 @@
   dependencies:
     "@eslint/eslint-config-common" "^0.2.0"
 
-"@jssy/common-theme@^0.4.0":
-  version "0.4.0"
-  resolved "https://npm.ordbuy.com/@jssy%2fcommon-theme/-/common-theme-0.4.0.tgz#4e7826583f71c929d53b41f2ecb393cde908d01f"
+"@jssy/common-theme@^0.5.0":
+  version "0.5.0"
+  resolved "https://npm.ordbuy.com/@jssy%2fcommon-theme/-/common-theme-0.5.0.tgz#4a47f06484df87682ac3552197a6c6faf4641131"
   dependencies:
     color "^2.0.0"
 
