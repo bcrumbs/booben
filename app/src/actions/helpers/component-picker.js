@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { isCompatibleType } from '@jssy/types';
 import { getComponentMeta, getString } from '../../lib/meta';
 import { walkSimpleValues } from '../../lib/components';

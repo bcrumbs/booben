@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { Record, List } from 'immutable';
 import { mapListToArray } from '../utils/misc';
 import { FUNCTION_FNS_ARG_NAME } from '../constants/misc';

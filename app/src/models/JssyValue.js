@@ -8,6 +8,7 @@ import SourceDataActionArg from './JssyValueSourceData/SourceDataActionArg';
 
 import SourceDataActions, {
   Action,
+  ActionTypes,
   MutationActionParams,
   NavigateActionParams,
   URLActionParams,
@@ -302,6 +303,7 @@ export {
   SourceDataActionArg,
   SourceDataActions,
   Action,
+  ActionTypes,
   MutationActionParams,
   NavigateActionParams,
   URLActionParams,

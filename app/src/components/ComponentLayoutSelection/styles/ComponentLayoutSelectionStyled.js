@@ -1,5 +1,3 @@
-'use strict';
-
 import styled from 'styled-components';
 
 export const ComponentLayoutSelectionStyled = styled.div`  

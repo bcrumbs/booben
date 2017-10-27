@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React from 'react';
 import { HeadingButtonsStyled } from './styles/HeadingButtonsStyled';
 

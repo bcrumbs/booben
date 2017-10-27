@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 /* eslint-disable */
 
 import React from 'react';

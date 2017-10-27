@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import triggersProjectSave from './project-save/wrapper';
 
 export const PREVIEW_SELECT_COMPONENT =

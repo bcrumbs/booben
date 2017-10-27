@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import PropTypes from 'prop-types';
 import { toClassComponent } from '../utils/react';
 import { noop } from '../utils/misc';

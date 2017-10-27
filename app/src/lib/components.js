@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { Set, Map } from 'immutable';
 import _forOwn from 'lodash.forown';
 import { TypeNames } from '@jssy/types';
@@ -11,6 +9,7 @@ import { TypeNames } from '@jssy/types';
 import JssyValue, {
   SourceDataDesigner,
   Action,
+  ActionTypes,
   isAsyncAction,
 } from '../models/JssyValue';
 
@@ -384,7 +383,7 @@ export const walkSimpleValues = (
       }
     }
     
-    if (action.type === 'mutation') {
+    if (action.type === ActionTypes.MUTATION) {
       const mutationField = getMutationField(schema, action.params.mutation);
 
       action.params.args.forEach((argValue, argName) => {
@@ -404,7 +403,7 @@ export const walkSimpleValues = (
           return false;
         }
       });
-    } else if (action.type === 'method') {
+    } else if (action.type === ActionTypes.METHOD) {
       const methodMeta = componentMeta.methods[action.para.method];
 
       action.params.args.forEach((argValue, argIdx) => {
@@ -421,7 +420,7 @@ export const walkSimpleValues = (
           return false;
         }
       });
-    } else if (action.type === 'navigate') {
+    } else if (action.type === ActionTypes.NAVIGATE) {
       action.params.routeParams.forEach((paramValue, paramName) => {
         visitValue(
           paramValue,
@@ -434,7 +433,7 @@ export const walkSimpleValues = (
           return false;
         }
       });
-    } else if (action.type === 'prop') {
+    } else if (action.type === ActionTypes.PROP) {
       // TODO: Visit value?
     }
     
@@ -720,7 +719,10 @@ export const makeDetachedCopy = (
   
     const visitor = (node, valueDef, steps, isSystemProp) => {
       if (node instanceof Action) {
-        if (node.type === 'method' || node.type === 'prop') {
+        if (
+          node.type === ActionTypes.METHOD ||
+          node.type === ActionTypes.PROP
+        ) {
           const targetId = node.params.componentId;
           
           if (targetId !== INVALID_ID) {

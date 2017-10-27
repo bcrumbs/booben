@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 export const LIBRARY_EXPANDED_GROUPS =
   'LIBRARY_EXPANDED_GROUPS';
 export const LIBRARY_SHOW_ALL_COMPONENTS =

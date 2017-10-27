@@ -3,8 +3,6 @@
  */
 
 
-'use strict';
-
 import React from 'react';
 import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';

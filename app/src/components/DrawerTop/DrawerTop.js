@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 import { DrawerTopStyled } from './styles/DrawerTopStyled';
 import { DrawerTopContentStyled } from './styles/DrawerTopContentStyled';

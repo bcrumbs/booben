@@ -2,8 +2,6 @@
  * @author Ekaterina Marova
  */
 
-'use strict';
-
 import styled from 'styled-components';
 import { baseModule } from '../../../../styles/themeSelectors';
 

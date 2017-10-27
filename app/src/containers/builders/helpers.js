@@ -6,7 +6,7 @@ import Immutable from 'immutable';
 import forOwn from 'lodash.forown';
 import { List } from './List/List';
 import { Text } from './Text/Text';
-import JssyValue, { isAsyncAction } from '../../models/JssyValue';
+import JssyValue, { ActionTypes, isAsyncAction } from '../../models/JssyValue';
 import { parseComponentName, getComponentMeta } from '../../lib/meta';
 import { walkComponentsTree, walkSimpleValues } from '../../lib/components';
 import { buildInitialComponentState } from '../../lib/values';
@@ -52,7 +52,10 @@ export const getRenderHints = (components, rootId, meta, schema, project) => {
   if (rootId === INVALID_ID) return ret;
 
   const visitAction = action => {
-    if (action.type === 'method' || action.type === 'loadMoreData') {
+    if (
+      action.type === ActionTypes.METHOD ||
+      action.type === ActionTypes.LOAD_MORE_DATA
+    ) {
       ret.needRefs.add(action.params.componentId);
     }
   
