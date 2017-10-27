@@ -1,5 +1,3 @@
-'use strict';
-
 export default {
   markerSize: 10,
   borderThickness: 2,

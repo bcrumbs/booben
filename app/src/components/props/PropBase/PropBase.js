@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Icon, Checkbox, Tag } from '@reactackle/reactackle';
@@ -105,7 +103,7 @@ export class PropBase extends PureComponent {
     return (
       <LinkedDataStyled title={linkedWith}>
         <Tag
-          icon='link'
+          icon="link"
           text={linkedWith}
           bounded
           removable

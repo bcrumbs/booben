@@ -1,11 +1,7 @@
 import styled from 'styled-components';
 import { iconSize } from '../../../../styles/mixins';
 import constants from './constants';
-
-import {
-  colorWhite,
-  colorWarning,
-} from '../../../../styles/themeSelectors';
+import { colorWhite, colorWarning } from '../../../../styles/themeSelectors';
 
 const markSize = `${constants.markSize}px`;
 

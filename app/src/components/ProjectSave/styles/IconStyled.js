@@ -1,9 +1,7 @@
-'use strict';
-
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { transition, animations } from '@reactackle/reactackle';
-import { baseModule, paletteBlueGrey100 } from '../../../styles/themeSelectors';
+import { baseModule } from '../../../styles/themeSelectors';
 import { iconSize } from '../../../styles/mixins';
 
 const propTypes = {
@@ -16,9 +14,9 @@ const defaultProps = {
   typeProgress: false,
 };
 
-const outerSize = '15px',
-  imgSize = '8px',
-  borderWidth = '1px';
+const outerSize = '15px';
+const imgSize = '8px';
+const borderWidth = '1px';
 
 const active = ({ active }) => `opacity: ${active ? 0.8 : 0.5};`;
 

@@ -1,7 +1,3 @@
-'use strict';
-
-import Color from 'color';
-
 const multiplierFunctions = Object.create(null);
 
 export const baseModule = multiplier => {

@@ -1,8 +1,6 @@
-'use strict';
-
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import { boxShadow, transition } from '@reactackle/reactackle';
+import { transition } from '@reactackle/reactackle';
 
 import {
   radiusDefault,

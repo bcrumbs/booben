@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -1348,24 +1346,24 @@ class ActionEditorComponent extends PureComponent {
         <PropsList>
           {props}
         </PropsList>
-        
+
         <ComponentActionsButtonRow>
           <Button
+            narrow
+            size="small"
             text={getLocalizedText('common.save')}
             disabled={isSaveButtonDisabled}
             onPress={this._handleSave}
-            size="small"
-            narrow
           />
-          
+
           <Button
+            narrow
+            size="small"
             text={getLocalizedText('common.cancel')}
             onPress={this._handleCancel}
-            size="small"
-            narrow
           />
         </ComponentActionsButtonRow>
-        
+
         <DesignDialog
           title="Link attribute value"
           backdrop
