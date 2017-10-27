@@ -9,6 +9,7 @@ import _mapValues from 'lodash.mapvalues';
 
 import JssyValue, {
   SourceDataStatic,
+  SourceDataOwnerProp,
   SourceDataData,
   QueryPathStep,
   SourceDataConst,
@@ -193,13 +194,10 @@ const propSourceDataToImmutableFns = {
       }
     }
 
-    if (!isUndef(input.ownerPropName)) {
-      data.ownerPropName = input.ownerPropName;
-    }
-
     return new SourceDataStatic(data);
   },
 
+  ownerProp: input => new SourceDataOwnerProp(input),
   data: input => {
     const data = {
       queryPath: input.queryPath
@@ -379,11 +377,7 @@ const sourceDataToJSv1Converters = {
   }),
   
   static: sourceData => {
-    if (sourceData.ownerPropName) {
-      return {
-        ownerPropName: sourceData.ownerPropName,
-      };
-    } else if (sourceData.value instanceof List) {
+    if (sourceData.value instanceof List) {
       return {
         value: mapListToArray(sourceData.value, jssyValueToJSv1),
       };
@@ -401,6 +395,10 @@ const sourceDataToJSv1Converters = {
       };
     }
   },
+
+  ownerProp: sourceData => ({
+    ownerPropName: sourceData.ownerPropName,
+  }),
   
   data: sourceData => ({
     dataContext: mapListToArray(sourceData.dataContext, returnArg),

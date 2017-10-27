@@ -710,8 +710,7 @@ class ActionEditorComponent extends PureComponent {
       if (!action.params.url) return false;
     } else if (action.type === 'ajax') {
       if (
-        action.params.url.sourceIs('static') &&
-        !action.params.url.isLinked() &&
+        action.params.url.sourceIs(JssyValue.Source.STATIC) &&
         action.params.url.sourceData.value === ''
       ) {
         return false;
@@ -887,7 +886,7 @@ class ActionEditorComponent extends PureComponent {
           const key = `methodArg_${idx}`;
           const value = action.params.args.get(idx);
           
-          if (value.source === 'const') return;
+          if (value.sourceIs(JssyValue.Source.CONST)) return;
           
           ret.push(
             <JssyValueEditor

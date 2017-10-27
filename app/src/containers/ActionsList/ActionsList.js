@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -20,7 +18,7 @@ import {
   getLocalizedTextFromState,
 } from '../../selectors';
 
-import { isAsyncAction } from '../../models/JssyValue';
+import JssyValue, { isAsyncAction } from '../../models/JssyValue';
 import { getMutationField } from '../../lib/schema';
 import { getComponentMeta, getString } from '../../lib/meta';
 import { formatComponentTitle } from '../../lib/components';
@@ -177,8 +175,7 @@ class _ActionsList extends Component {
       
       case 'ajax': {
         const haveURLString =
-          action.params.url.sourceIs('static') &&
-          !action.params.url.isLinked();
+          action.params.url.sourceIs(JssyValue.Source.STATIC);
         
         if (haveURLString) {
           return getLocalizedText('actionsEditor.actionTitle.ajax.withURL', {

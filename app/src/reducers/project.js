@@ -419,7 +419,7 @@ const deleteOutdatedActions = (state, component, deletedComponentIds) => {
   };
 
   walkSimpleValues(component, componentMeta, (propValue, _, steps) => {
-    if (propValue.source === 'actions') {
+    if (propValue.sourceIs(JssyValue.Source.ACTIONS)) {
       const stepsToActionsList = [...steps, 'actions'];
 
       propValue.sourceData.actions.forEach((action, idx) => {
@@ -784,7 +784,7 @@ const getValueInfoByPath = (path, state) => {
     const nextStep = path.steps.length === idx + 1 ? null : path.steps[idx + 1];
   
     if (object instanceof JssyValue) {
-      if (object.source === 'function') {
+      if (object.sourceIs(JssyValue.Source.FUNCTION)) {
         currentFunction = getFunctionInfo(
           object.sourceData.functionSource,
           object.sourceData.function,
@@ -794,7 +794,7 @@ const getValueInfoByPath = (path, state) => {
         if (nextStep === 'args') {
           nextValueType = ValueTypes.FUNCTION_ARG;
         }
-      } else if (object.source === 'designer') {
+      } else if (object.sourceIs(JssyValue.Source.DESIGNER)) {
         currentComponents = object.sourceData.components;
       }
       

@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -43,6 +41,7 @@ import ProjectRecord from '../../models/Project';
 import JssyValue, {
   SourceDataFunction,
   SourceDataStatic,
+  SourceDataOwnerProp,
   SourceDataRouteParams,
   SourceDataData,
   QueryPathStep,
@@ -261,8 +260,8 @@ class LinkPropWindowComponent extends PureComponent {
     const { onLink } = this.props;
     
     const newValue = new JssyValue({
-      source: 'static',
-      sourceData: new SourceDataStatic({
+      source: JssyValue.Source.OWNER_PROP,
+      sourceData: new SourceDataOwnerProp({
         ownerPropName: propName,
       }),
     });
@@ -281,7 +280,7 @@ class LinkPropWindowComponent extends PureComponent {
     const { onLink } = this.props;
     
     const newValue = new JssyValue({
-      source: 'data',
+      source: JssyValue.Source.DATA,
       sourceData: new SourceDataData({
         dataContext: List(dataContext),
         queryPath: List(path.map(field => new QueryPathStep({ field }))),
@@ -303,7 +302,7 @@ class LinkPropWindowComponent extends PureComponent {
     const { onLink } = this.props;
     
     const newValue = new JssyValue({
-      source: 'function',
+      source: JssyValue.Source.FUNCTION,
       sourceData: new SourceDataFunction({
         functionSource: source,
         function: name,
@@ -345,7 +344,7 @@ class LinkPropWindowComponent extends PureComponent {
     const { onLink } = this.props;
   
     const newValue = new JssyValue({
-      source: 'routeParams',
+      source: JssyValue.Source.ROUTE_PARAMS,
       sourceData: new SourceDataRouteParams({ routeId, paramName }),
     });
   
@@ -361,7 +360,7 @@ class LinkPropWindowComponent extends PureComponent {
     const { onLink } = this.props;
     
     const newValue = new JssyValue({
-      source: 'actionArg',
+      source: JssyValue.Source.ACTION_ARG,
       sourceData: new SourceDataActionArg({
         arg: argIdx,
       }),

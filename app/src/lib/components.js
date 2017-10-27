@@ -466,7 +466,7 @@ export const walkSimpleValues = (
   };
 
   const visitValue = (jssyValue, valueDef, path, isSystemProp) => {
-    if (jssyValue.source === 'static' && !jssyValue.sourceData.ownerPropName) {
+    if (jssyValue.sourceIs(JssyValue.Source.STATIC)) {
       if (
         valueDef.type === TypeNames.SHAPE &&
         jssyValue.sourceData.value !== null
@@ -549,7 +549,10 @@ export const walkSimpleValues = (
           didBreak = true;
         }
       }
-    } else if (walkFunctionArgs && jssyValue.source === 'function') {
+    } else if (
+      walkFunctionArgs &&
+      jssyValue.sourceIs(JssyValue.Source.FUNCTION)
+    ) {
       if (visitIntermediateNodes) {
         const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
         if (visitorRet === SKIP) return;
@@ -580,7 +583,7 @@ export const walkSimpleValues = (
 
         if (didBreak) return false;
       });
-    } else if (walkActions && jssyValue.source === 'actions') {
+    } else if (walkActions && jssyValue.sourceIs(JssyValue.Source.ACTIONS)) {
       if (visitIntermediateNodes) {
         const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
         if (visitorRet === SKIP) return;
@@ -594,7 +597,10 @@ export const walkSimpleValues = (
         visitAction(action, [...path, 'actions', actionIdx], isSystemProp);
         if (didBreak) return false;
       });
-    } else if (walkDesignerValues && jssyValue.sourceIs('designer')) {
+    } else if (
+      walkDesignerValues &&
+      jssyValue.sourceIs(JssyValue.Source.DESIGNER)
+    ) {
       if (visitIntermediateNodes) {
         const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
         if (visitorRet === SKIP) return;
@@ -726,7 +732,7 @@ export const makeDetachedCopy = (
           }
         }
       } else if (node instanceof JssyValue) {
-        if (node.source === 'state') {
+        if (node.sourceIs(JssyValue.Source.STATE)) {
           const targetId = node.sourceData.componentId;
           
           if (targetId !== INVALID_ID) {

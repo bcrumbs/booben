@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { Record, List, Map } from 'immutable';
 import { isDef } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';

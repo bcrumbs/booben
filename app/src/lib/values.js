@@ -2,6 +2,7 @@
  * @author Dmitriy Bizyaev
  */
 
+
 'use strict';
 
 import React from 'react';
@@ -28,6 +29,7 @@ import {
   returnNull,
 } from '../utils/misc';
 
+import JssyValue from '../models/JssyValue';
 import { ROUTE_PARAM_VALUE_DEF, NO_VALUE, INVALID_ID } from '../constants/misc';
 
 /**
@@ -508,39 +510,37 @@ export const buildValue = (
     ? defaultContext
     : { ...defaultContext, ...context };
 
-  if (jssyValue.sourceIs('static')) {
-    if (jssyValue.sourceData.ownerPropName) {
-      return buildOwnerPropValue(jssyValue, actualContext);
-    } else {
-      return buildStaticValue(jssyValue, valueDef, userTypedefs, actualContext);
-    }
-  } else if (jssyValue.sourceIs('const')) {
+  if (jssyValue.sourceIs(JssyValue.Source.STATIC)) {
+    return buildStaticValue(jssyValue, valueDef, userTypedefs, actualContext);
+  } else if (jssyValue.sourceIs(JssyValue.Source.OWNER_PROP)) {
+    return buildOwnerPropValue(jssyValue, actualContext);
+  } else if (jssyValue.sourceIs(JssyValue.Source.CONST)) {
     return buildConstValue(jssyValue);
-  } else if (jssyValue.sourceIs('data')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.DATA)) {
     return buildDataValue(jssyValue, valueDef, userTypedefs, actualContext);
-  } else if (jssyValue.sourceIs('function')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.FUNCTION)) {
     return buildFunctionValue(jssyValue, valueDef, userTypedefs, actualContext);
-  } else if (jssyValue.sourceIs('state')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.STATE)) {
     return buildStateValue(jssyValue, valueDef, userTypedefs, actualContext);
-  } else if (jssyValue.sourceIs('routeParams')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.ROUTE_PARAMS)) {
     return buildRouteParamsValue(
       jssyValue,
       valueDef,
       userTypedefs,
       actualContext,
     );
-  } else if (jssyValue.sourceIs('actionArg')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.ACTION_ARG)) {
     return buildActionArgValue(
       jssyValue,
       valueDef,
       userTypedefs,
       actualContext,
     );
-  } else if (jssyValue.sourceIs('designer')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.DESIGNER)) {
     return buildDesignerValue(jssyValue, actualContext);
-  } else if (jssyValue.sourceIs('actions')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.ACTIONS)) {
     return buildActionsValue(jssyValue, valueDef, userTypedefs, actualContext);
-  } else if (jssyValue.sourceIs('connectionPaginationState')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.CONNECTION_PAGINATION_STATE)) {
     return buildConnectionPaginationStateValue(jssyValue, actualContext);
   } else {
     throw new Error(`buildValue(): unknown value source: ${jssyValue.source}`);

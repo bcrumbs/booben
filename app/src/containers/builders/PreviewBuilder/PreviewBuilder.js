@@ -370,7 +370,7 @@ class PreviewBuilderComponent extends PureComponent {
     );
     
     let newValue;
-    if (action.params.value.sourceIs('actionArg')) {
+    if (action.params.value.sourceIs(JssyValue.Source.ACTION_ARG)) {
       const targetComponent = components.get(action.params.componentId);
       const targetComponentMeta = getComponentMeta(
         targetComponent.name,
