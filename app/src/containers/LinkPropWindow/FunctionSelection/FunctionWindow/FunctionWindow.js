@@ -359,12 +359,13 @@ class FunctionWindowComponent extends PureComponent {
           <BlockBreadcrumbs
             items={breadcrumbsItems}
             mode="dark"
+            colorScheme="alt"
             onItemClick={this._handleBreadcrumbsClick}
           />
         </BlockContentNavigation>
   
         <BlockContentBox isBordered>
-          <BlockContentBoxGroup shading="dim">
+          <BlockContentBoxGroup shading="dim" colorScheme="alt">
             <BlockContentBoxItem>
               <DataWindowTitle
                 title={functionDef.title}

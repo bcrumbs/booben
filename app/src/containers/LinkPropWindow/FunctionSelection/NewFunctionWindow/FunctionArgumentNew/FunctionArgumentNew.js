@@ -117,7 +117,7 @@ export class FunctionArgumentNew extends PureComponent {
     const typeLabel = getLocalizedText('linkDialog.function.new.newArg.type');
 
     return (
-      <BlockContentBoxGroup shading="editing">
+      <BlockContentBoxGroup shading="editing" colorScheme="alt">
         <BlockContentBoxHeading>
           {getLocalizedText('linkDialog.function.new.newArg.heading')}
         </BlockContentBoxHeading>

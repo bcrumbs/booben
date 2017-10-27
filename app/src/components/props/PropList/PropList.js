@@ -81,6 +81,7 @@ export class PropList extends Component {
       <PropBase
         {...propsForBase}
         content={content}
+        labelPositionTop
       />
     );
   }

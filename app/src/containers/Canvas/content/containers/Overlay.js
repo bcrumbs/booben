@@ -1,5 +1,3 @@
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Set } from 'immutable';
@@ -55,9 +53,12 @@ const mapStateToProps = state => ({
 
 const wrap = connect(mapStateToProps);
 
-const HIGHLIGHT_COLOR = 'rgba(0, 113, 216, 0.3)';
+const HIGHLIGHT_COLOR = 'rgba(0, 113, 216, 0.7)';
+const HIGHLIGHT_STYLE = 'dashed';
 const SELECT_COLOR = 'rgba(0, 113, 216, 1)';
+const SELECT_STYLE = 'solid';
 const BOUNDARY_COLOR = 'red';
+const BOUNDARY_STYLE = 'solid';
 
 class Overlay extends PureComponent {
   constructor(props, context) {
@@ -94,11 +95,12 @@ class Overlay extends PureComponent {
    *
    * @param {Immutable.List<number>} componentIds
    * @param {string} color
+   * @param {string} borderStyle
    * @param {boolean} [showTitle=false]
    * @return {Array<ReactElement>}
    * @private
    */
-  _renderBoundingBoxes(componentIds, color, showTitle = false) {
+  _renderBoundingBoxes(componentIds, color, borderStyle, showTitle = false) {
     const { components } = this.props;
     
     return mapListToArray(componentIds, id => {
@@ -118,6 +120,7 @@ class Overlay extends PureComponent {
           key={key}
           element={element}
           color={color}
+          borderStyle={borderStyle}
           title={title}
           showTitle={showTitle}
         />
@@ -142,13 +145,18 @@ class Overlay extends PureComponent {
       ? this._renderBoundingBoxes(
         highlightedComponentIds,
         HIGHLIGHT_COLOR,
+        HIGHLIGHT_STYLE,
         true,
       )
       : null;
 
     const selectBoxes = pickingComponent || pickingComponentData
       ? null
-      : this._renderBoundingBoxes(selectedComponentIds, SELECT_COLOR);
+      : this._renderBoundingBoxes(
+          selectedComponentIds,
+          SELECT_COLOR,
+          SELECT_STYLE,
+      );
     
     const willRenderBoundaryBox =
       boundaryComponentId !== INVALID_ID && (
@@ -161,6 +169,7 @@ class Overlay extends PureComponent {
       ? this._renderBoundingBoxes(
         Set([boundaryComponentId]),
         BOUNDARY_COLOR,
+        BOUNDARY_STYLE,
       )
       : null;
     

@@ -52,8 +52,8 @@ const colorScheme = ({ colorScheme }) => css`
 export const ContentStyled = styled.div`
   display: flex;
   align-items: center;
-  padding: ${baseModule(0.25)}px ${baseModule(1)}px;
-  padding-right: ${baseModule(1.25)}px;
+  padding: ${baseModule(0.125)}px ${baseModule(0.75)}px;
+  padding-right: ${baseModule(1)}px;
   user-select: none;
   position: relative;
   border-radius: ${radiusDefault}px;

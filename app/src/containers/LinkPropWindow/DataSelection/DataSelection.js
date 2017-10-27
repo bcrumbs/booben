@@ -430,7 +430,7 @@ export class DataSelection extends PureComponent {
       }
       
       dataWindowHeading = (
-        <BlockContentBoxGroup shading="dim">
+        <BlockContentBoxGroup shading="dim" colorScheme="alt">
           <BlockContentBoxItem>
             <DataWindowTitle
               title={currentFieldName}
@@ -456,6 +456,7 @@ export class DataSelection extends PureComponent {
           <BlockBreadcrumbs
             items={breadCrumbsItems}
             mode="dark"
+            colorScheme="alt"
             overflow
             onItemClick={this._handleBreadcrumbsClick}
           />
@@ -505,7 +506,7 @@ export class DataSelection extends PureComponent {
     return (
       <BlockContent>
         <BlockContentBox isBordered flex>
-          <BlockContentBoxGroup shading="dim">
+          <BlockContentBoxGroup shading="dim" colorScheme="alt">
             <BlockContentBoxItem>
               <DataWindowTitle
                 title={titleText}
@@ -585,7 +586,7 @@ export class DataSelection extends PureComponent {
     return (
       <BlockContent>
         <BlockContentBox isBordered flex>
-          <BlockContentBoxGroup shading="dim">
+          <BlockContentBoxGroup shading="dim" colorScheme="alt">
             <BlockContentBoxItem>
               <DataWindowTitle
                 title={titleText}

@@ -71,6 +71,7 @@ export class PropTextarea extends Component {
       <PropBase
         {...propsForBase}
         content={content}
+        labelPositionTop
       />
     );
   }

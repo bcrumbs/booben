@@ -168,6 +168,7 @@ export class FunctionsList extends PureComponent {
           <BlockBreadcrumbs
             items={breadcrumbsItems}
             mode="dark"
+            colorScheme="alt"
             onItemClick={this._handleBreadcrumbsClick}
           />
         </BlockContentNavigation>

@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Icon, withTooltip } from '@reactackle/reactackle';
@@ -16,7 +14,8 @@ import { CardContentStyled } from './styles/CardContentStyled';
 import { TitleBoxStyled } from './styles/TitleBoxStyled';
 import { TitleStyled } from './styles/TitleStyled';
 import { SubtitleStyled } from './styles/SubtitleStyled';
-import { RouteIconStyled } from './styles/RouteIconStyled';
+import { MarkWrapperStyled } from './styles/MarkWrapperStyled';
+import { IconMarkStyled } from './styles/IconMarkStyled';
 import { AlertMarkStyled } from './styles/AlertMarkStyled';
 import { TextBoxStyled } from './styles/TextBoxStyled';
 import { MessageStyled } from './styles/MessageStyled';
@@ -112,12 +111,12 @@ class _RouteCard extends PureComponent {
 
     } = this.props;
     
-    let icon = null;
+    let redirectMark = null;
     if (route.redirect) {
-      icon = (
-        <RouteIconStyled>
+      redirectMark = (
+        <IconMarkStyled>
           <Icon name="random" size="inherit" color="inherit" />
-        </RouteIconStyled>
+        </IconMarkStyled>
       );
     }
     
@@ -128,6 +127,16 @@ class _RouteCard extends PureComponent {
           <Icon name="exclamation" size="inherit" color="inherit" />
           <Tooltip text={alertTooltip} />
         </AlertMarkStyled>
+      );
+    }
+    
+    let markWrapper = null;
+    if (mark || redirectMark) {
+      markWrapper = (
+        <MarkWrapperStyled>
+          {mark}
+          {redirectMark}
+        </MarkWrapperStyled>
       );
     }
     
@@ -155,7 +164,6 @@ class _RouteCard extends PureComponent {
               <TextBoxStyled>
                 <TitleBoxStyled>
                   <TitleStyled>{title}</TitleStyled>
-                  {icon}
                 </TitleBoxStyled>
     
                 <SubtitleStyled>
@@ -163,7 +171,7 @@ class _RouteCard extends PureComponent {
                 </SubtitleStyled>
               </TextBoxStyled>
   
-              {mark}
+              {markWrapper}
             </CardContentStyled>
             
             {messageElement}
