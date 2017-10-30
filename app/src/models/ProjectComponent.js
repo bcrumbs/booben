@@ -220,7 +220,7 @@ const propSourceDataToImmutableFns = {
   [JssyValue.Source.FUNCTION]: input => new SourceDataFunction({
     functionSource: input.functionSource,
     function: input.function,
-    args: Map(_mapValues(input.args, jssyValueToImmutable)),
+    args: List(input.args.map(jssyValueToImmutable)),
   }),
   
   [JssyValue.Source.ACTIONS]: input => new SourceDataActions({
@@ -415,7 +415,7 @@ const sourceDataToJSv1Converters = {
   [JssyValue.Source.FUNCTION]: sourceData => ({
     functionSource: sourceData.functionSource,
     function: sourceData.function,
-    args: mapMapToObject(sourceData.args, returnSecondArg, jssyValueToJSv1),
+    args: mapListToArray(sourceData.args, jssyValueToJSv1),
   }),
   
   [JssyValue.Source.ACTIONS]: sourceData => ({

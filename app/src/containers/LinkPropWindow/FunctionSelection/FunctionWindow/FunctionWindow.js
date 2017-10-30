@@ -5,7 +5,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { List, Map } from 'immutable';
+import { List } from 'immutable';
 import { Button } from '@reactackle/reactackle';
 
 import {
@@ -117,20 +117,7 @@ const makeDefaultValues = argValueDefs => List(argValueDefs.map(
   valueDef => jssyValueToImmutable(buildDefaultValue(valueDef)),
 ));
 
-/**
- *
- * @param {Immutable.List<Object>} values - List of JssyValues
- * @param {Object} functionDef - ProjectFunction Record
- * @return {Immutable.Map<string, Object>} - Map of string -> JssyValue
- */
-const argValuesToMap = (values, functionDef) =>
-  Map().withMutations(map => {
-    values.forEach((value, idx) => {
-      map.set(functionDef.args.get(idx).name, value);
-    });
-  });
-
-class FunctionWindowComponent extends PureComponent {
+class _FunctionWindow extends PureComponent {
   constructor(props, context) {
     super(props, context);
   
@@ -203,11 +190,10 @@ class FunctionWindowComponent extends PureComponent {
   }
   
   _handleApplyButtonPress() {
-    const { functionDef } = this.props;
     const { values } = this.state;
-    
-    const valuesMap = argValuesToMap(values, functionDef);
-    this.props.onApply({ argValues: valuesMap });
+    const { onApply } = this.props;
+
+    onApply({ argValues: values });
   }
   
   _handleLink({ name, path, targetValueDef, targetUserTypedefs }) {
@@ -397,8 +383,8 @@ class FunctionWindowComponent extends PureComponent {
   }
 }
 
-FunctionWindowComponent.propTypes = propTypes;
-FunctionWindowComponent.defaultProps = defaultProps;
-FunctionWindowComponent.displayName = 'FunctionWindow';
+_FunctionWindow.propTypes = propTypes;
+_FunctionWindow.defaultProps = defaultProps;
+_FunctionWindow.displayName = 'FunctionWindow';
 
-export const FunctionWindow = wrap(FunctionWindowComponent);
+export const FunctionWindow = wrap(_FunctionWindow);
