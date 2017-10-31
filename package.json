@@ -59,6 +59,7 @@
     "lodash.set": "^4.3.2",
     "lodash.startcase": "^4.4.0",
     "lodash.throttle": "^4.1.1",
+    "lodash.transform": "^4.6.0",
     "minimist": "^1.2.0",
     "mz": "^2.4.0",
     "ncp": "^2.0.0",

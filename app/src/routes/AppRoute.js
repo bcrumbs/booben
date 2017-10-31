@@ -41,6 +41,8 @@ import { alertAreaProvider } from '../hocs/alerts';
 import ProjectRecord from '../models/Project';
 import { getLocalizedTextFromState } from '../selectors';
 
+import ShortcutsDialog from '../containers/ShortcutsDialog';
+
 import {
   PATH_STRUCTURE,
   PATH_DESIGN_ROUTE,
@@ -229,6 +231,15 @@ class AppRoute extends Component {
                   
                     <HeaderMenuItem
                       text={getLocalizedText('appHeader.menu.settings')}
+                    />
+
+                    <ShortcutsDialog
+                      ButtonComponent={props =>
+                        <HeaderMenuItem
+                          {...props}
+                          text={getLocalizedText('appHeader.menu.shortcuts')}
+                        />
+                      }
                     />
                   </HeaderMenuList>
                 </HeaderMenuGroup>
