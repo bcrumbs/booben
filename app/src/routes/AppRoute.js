@@ -232,15 +232,6 @@ class AppRoute extends Component {
                     <HeaderMenuItem
                       text={getLocalizedText('appHeader.menu.settings')}
                     />
-
-                    <ShortcutsDialog
-                      ButtonComponent={props =>
-                        <HeaderMenuItem
-                          {...props}
-                          text={getLocalizedText('appHeader.menu.shortcuts')}
-                        />
-                      }
-                    />
                   </HeaderMenuList>
                 </HeaderMenuGroup>
               </HeaderMenu>
@@ -329,6 +320,24 @@ class AppRoute extends Component {
                 </FooterMenuGroup>
               </FooterMenu>
             </FooterRegion>
+
+            <FooterRegion size="blank">
+              <FooterMenu inline dense mode="light">
+                <FooterMenuGroup>
+                  <FooterMenuList>
+                    <ShortcutsDialog
+                      ButtonComponent={props =>
+                        <FooterMenuItem
+                          {...props}
+                          text={getLocalizedText('appHeader.menu.shortcuts')}
+                        />
+                      }
+                    />
+                  </FooterMenuList>
+                </FooterMenuGroup>
+              </FooterMenu>
+            </FooterRegion>
+
           </Footer>
         </BottomRegion>
       
