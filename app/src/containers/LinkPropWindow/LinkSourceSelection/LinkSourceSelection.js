@@ -9,7 +9,7 @@ import {
   BlockContent,
   BlockContentBox,
   BlockContentBoxItem,
-} from '@jssy/common-ui';
+} from '../../../components/BlockContent';
 
 import { DataList, DataItem } from '../../../components/DataList/DataList';
 import { noop } from '../../../utils/misc';

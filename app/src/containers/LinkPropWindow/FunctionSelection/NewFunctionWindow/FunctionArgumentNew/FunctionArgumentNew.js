@@ -14,7 +14,7 @@ import {
   BlockContentBoxGroup,
   BlockContentBoxItem,
   BlockContentBoxHeading,
-} from '@jssy/common-ui';
+} from '../../../../../components/BlockContent';
 
 import { returnArg, noop } from '../../../../../utils/misc';
 import { ButtonRowStyled } from './styles/ButtonRowStyled';

@@ -1,5 +1,5 @@
 import Color from 'color';
-import { jssyTheme } from '@jssy/common-theme';
+import { jssyTheme } from '../../../../styles/theme';
 
 const fontWeightNormal = base => base.fontWeight.normal;
 const colorTransparent = base => base.color.transparent;

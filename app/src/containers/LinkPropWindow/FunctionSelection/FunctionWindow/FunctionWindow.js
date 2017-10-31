@@ -17,7 +17,7 @@ import {
   BlockContentBoxItem,
   BlockContentActions,
   BlockContentActionsRegion,
-} from '@jssy/common-ui';
+} from '../../../../components/BlockContent';
 
 import ProjectFunctionRecord from '../../../../models/ProjectFunction';
 import JssyValue, { SourceDataState } from '../../../../models/JssyValue';
