@@ -56,7 +56,7 @@
   "structure.indexRouteProperties": "Index route properties",
   "structure.editRoutePathDialogTitle": "Edit route path",
   "structure.routeParamValuesHeading": "Provide example values for route parameters",
-  "structure.noOutletWarning": "Before editing this route you should place the outlet in '{routeTitle}’ first",
+  "structure.noOutletWarning": "Before editing this route you should place the outlet in above routes first",
   "structure.noOutletMarkTooltip": "No outlet in this route",
 
   "design.tool.elementsTree": "Elements tree",

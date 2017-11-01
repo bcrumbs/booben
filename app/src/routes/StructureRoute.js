@@ -1060,7 +1060,7 @@ class StructureRoute extends PureComponent {
       indexRouteSelected,
       getLocalizedText,
     } = this.props;
-    
+
     const route = routes.get(routeId);
     const isSelected = selectedRouteId === route.id && !indexRouteSelected;
     const willRenderChildren = route.children.size > 0 || route.haveIndex;
@@ -1068,7 +1068,7 @@ class StructureRoute extends PureComponent {
     let outletWarning = false;
     let outletWarningTooltip = '';
 
-    if (!parentWithoutOutlet && route.children.size > 0) {
+    if (route.children.size > 0) {
       const outlet = findComponent(
         route.components,
         route.component,
@@ -1088,7 +1088,7 @@ class StructureRoute extends PureComponent {
         routes,
         route,
         route.children,
-        parentWithoutOutlet || (outletWarning ? route : null),
+        parentWithoutOutlet || outletWarning,
       );
     } else {
       children = isSelected
@@ -1096,7 +1096,7 @@ class StructureRoute extends PureComponent {
           routes,
           route,
           null,
-          parentWithoutOutlet || (outletWarning ? route : null),
+          parentWithoutOutlet || outletWarning,
         )
         : null;
     }
@@ -1104,13 +1104,12 @@ class StructureRoute extends PureComponent {
     let parentOutletWarningMessage = null;
     let disabled = false;
 
-    if (parentWithoutOutlet !== null) {
+    if (parentWithoutOutlet) {
       disabled = true;
 
       if (isSelected) {
         const messageText = getLocalizedText(
           'structure.noOutletWarning',
-          { routeTitle: parentWithoutOutlet.title },
         );
 
         parentOutletWarningMessage = (
