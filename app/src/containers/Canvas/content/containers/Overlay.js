@@ -98,7 +98,12 @@ class Overlay extends PureComponent {
    * @return {Array<ReactElement>}
    * @private
    */
-  _renderBoundingBoxes(componentIds, color, showTitle = false) {
+  _renderBoundingBoxes(
+    componentIds,
+    color,
+    showTitle = false,
+    additionalOverlayLevel = 0,
+  ) {
     const { components } = this.props;
     
     return mapListToArray(componentIds, id => {
@@ -120,6 +125,7 @@ class Overlay extends PureComponent {
           color={color}
           title={title}
           showTitle={showTitle}
+          additionalOverlayLevel={additionalOverlayLevel}
         />
       );
     });
@@ -143,12 +149,17 @@ class Overlay extends PureComponent {
         highlightedComponentIds,
         HIGHLIGHT_COLOR,
         true,
+        1,
       )
       : null;
 
     const selectBoxes = pickingComponent || pickingComponentData
       ? null
-      : this._renderBoundingBoxes(selectedComponentIds, SELECT_COLOR);
+      : this._renderBoundingBoxes(
+        selectedComponentIds,
+        SELECT_COLOR,
+        true,
+      );
     
     const willRenderBoundaryBox =
       boundaryComponentId !== INVALID_ID && (

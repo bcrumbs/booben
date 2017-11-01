@@ -13,6 +13,7 @@ const propTypes = {
   color: PropTypes.string,
   title: PropTypes.string,
   showTitle: PropTypes.bool,
+  additionalOverlayLevel: PropTypes.number,
 };
 
 const contextTypes = {
@@ -24,12 +25,19 @@ const defaultProps = {
   color: '#c8e5f6',
   title: '',
   showTitle: false,
+  additionalOverlayLevel: 0,
 };
 
 const BORDER_WIDTH = 2;
 
 export const OverlayBoundingBox = (props, context) => {
-  const { element, color, title, showTitle } = props;
+  const {
+    element,
+    color,
+    title,
+    showTitle,
+    additionalOverlayLevel,
+  } = props;
   const { window } = context;
   
   if (!element) return null;
@@ -44,7 +52,7 @@ export const OverlayBoundingBox = (props, context) => {
     height: 0,
     width: 0,
     position: 'absolute',
-    zIndex: '1000',
+    zIndex: `${1000 + additionalOverlayLevel}`,
     left: `${left}px`,
     top: `${topValue}px`,
     boxSizing: 'border-box',
