@@ -3,13 +3,21 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import camelCase from 'lodash.camelcase';
 import transform from 'lodash.transform';
+import { getPlatformName } from 'react-shortcuts/lib/helpers';
+
 import {
   Dialog,
+  Theme,
 } from '@reactackle/reactackle';
-import { getPlatformName } from 'react-shortcuts/lib/helpers';
 
 import keymap from '../../keymap';
 import { getLocalizedTextFromState } from '../../selectors';
+
+import {
+  ShortcutsList,
+  ShortcutsGroup,
+  ShortcutItem,
+} from '../../components/shortcuts';
 
 const getLocalizedShortcuts = state => {
   const NAMESPACE = 'shortcuts';
@@ -39,10 +47,19 @@ const propTypes = {
 
 const defaultProps = Dialog.defaultProps;
 
-
 const wrap = connect(
   state => ({ localizedShortcuts: getLocalizedShortcuts(state) }),
 );
+
+const reactackleThemeMixin = {
+  components: {
+    dialog: {
+      window: {
+        maxWidth: 960,
+      },
+    },
+  },
+};
 
 export class ShortcutsDialog extends React.Component {
   constructor(props) {
@@ -68,31 +85,41 @@ export class ShortcutsDialog extends React.Component {
     const {
       ButtonComponent,
       localizedShortcuts,
+      getLocalizedText,
     } = this.props;
 
     const shortcuts =
       Object.entries(localizedShortcuts).map(([groupName, shortcuts]) => {
         const keys = Object.entries(shortcuts).map(([shortcutName, key]) =>
-          <div key={`${shortcutName}.${key}`}>{shortcutName}: {key}</div>,
+          <ShortcutItem
+            key={`${shortcutName}.${key}`}
+            shortcut={key}
+            description={shortcutName}
+          />,
         );
         return (
-          <div key={groupName} style={{ color: 'white' }}>
-            <h3>{groupName}</h3>
+          <ShortcutsGroup key={groupName} title={groupName}>
             {keys}
-          </div>
+          </ShortcutsGroup>
         );
       });
 
     return (
       <div style={{ display: 'inherit' }}>
         <ButtonComponent onClick={this._handleOpen} />
-        <Dialog
-          open={this.state.isOpen}
-          onClose={this._handleClose}
-          haveCloseButton
-        >
-          {shortcuts}
-        </Dialog>
+
+        <Theme mixin={reactackleThemeMixin}>
+          <Dialog
+            open={this.state.isOpen}
+            onClose={this._handleClose}
+            title='Keyboard shortcuts'
+            haveCloseButton
+          >
+            <ShortcutsList>
+              {shortcuts}
+            </ShortcutsList>
+          </Dialog>
+        </Theme>
       </div>
     );
   }

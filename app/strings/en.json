@@ -210,6 +210,7 @@
   "types.component": "Component",
   "types.any": "Any value",
 
+  "shortcuts.dialogTitle": "Keyboard shortcuts",
   "shortcuts.structureScreen": "Structure screen",
   "shortcuts.structureScreen.undo": "Undo",
   "shortcuts.structureScreen.redo": "Redo",
@@ -217,7 +218,7 @@
   "shortcuts.routesList.deleteRoute": "Delete route",
   "shortcuts.routesList.createChildRoute": "Create child route",
   "shortcuts.routesList.createRootRoute": "Create root route",
-  "shortcuts.routesList.selectNextRoute": "Create xext route",
+  "shortcuts.routesList.selectNextRoute": "Select next route",
   "shortcuts.routesList.selectPreviousRoute": "Select previous route",
   "shortcuts.routesList.selectChildRoute": "Select child route",
   "shortcuts.routesList.selectParentRoute": "Select parent route",
