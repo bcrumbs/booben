@@ -55,7 +55,7 @@ const reactackleThemeMixin = {
   components: {
     dialog: {
       window: {
-        maxWidth: 960,
+        maxWidth: 1000,
       },
     },
   },

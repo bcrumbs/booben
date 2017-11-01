@@ -6,9 +6,9 @@ import {
 } from '../../../../styles/themeSelectors';
 
 export const KeyStyled = styled.div`
-  width: 150px;
+  width: 100px;
   flex-shrink: 0;
-  margin-right: ${baseModule(1.5)}px;
+  margin-right: ${baseModule(2)}px;
   font-weight: ${fontWeightSemibold};
   text-align: right;
 `;
