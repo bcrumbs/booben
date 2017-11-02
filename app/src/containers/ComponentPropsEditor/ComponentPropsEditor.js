@@ -7,11 +7,10 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Button } from '@reactackle/reactackle';
+import { Accordion, Button } from '@reactackle/reactackle';
 
 import {
   BlockContentBox,
-  BlockContentBoxHeading,
   BlockContentBoxItem,
   BlockContentPlaceholder,
 } from '@jssy/common-ui';
@@ -783,25 +782,14 @@ class ComponentPropsEditorComponent extends PureComponent {
     });
 
     const content = [];
-
-    propGroups.forEach(group => {
-      content.push(
-        <BlockContentBoxHeading
-          key={`${group.name}__heading__`}
-          hidden={editingActions}
-          isBordered
-        >
-          {group.title}
-        </BlockContentBoxHeading>,
-      );
-
+    const groups = propGroups.map(group => {
       const controls = group.props.map(propName => this._renderPropsItem(
         componentMeta,
         propName,
         component.props.get(propName) || null,
       ));
 
-      content.push(
+      const content = (
         <BlockContentBoxItem
           key={group.name}
           hidden={editingActions}
@@ -809,9 +797,21 @@ class ComponentPropsEditorComponent extends PureComponent {
           <PropsList>
             {controls}
           </PropsList>
-        </BlockContentBoxItem>,
+        </BlockContentBoxItem>
       );
+
+      return {
+        id: group.title,
+        title: group.title,
+        content,
+      };
     });
+
+    content.push(
+      <Accordion
+        items={groups}
+      />,
+    );
 
     if (propsWithoutGroup.length > 0) {
       const controls = propsWithoutGroup.map(propName => this._renderPropsItem(
