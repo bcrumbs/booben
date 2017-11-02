@@ -6,7 +6,7 @@ import {
 } from '../../../../styles/themeSelectors';
 
 export const KeyStyled = styled.div`
-  width: 100px;
+  width: 85px;
   flex-shrink: 0;
   margin-right: ${baseModule(2)}px;
   font-weight: ${fontWeightSemibold};

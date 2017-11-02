@@ -33,7 +33,8 @@ const getLocalizedShortcuts = state => {
           localize(`${NAMESPACE}.${camelGroupName}.${camelCase(shortcutName)}`);
 
         const platformKey = key[currentPlatform] || key;
-        resShortcuts[localizedShortcutName] = platformKey.replace(/\+/g, ' + ');
+        resShortcuts[localizedShortcutName] =
+          platformKey.replace(/\+/g, ` +${String.fromCharCode(160)}`);
       }, {});
     resGroup[localizedGroupName] = localizedShortcuts;
   }, {});
