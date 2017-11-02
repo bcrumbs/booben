@@ -56,6 +56,7 @@ export const OverlayBoundingBox = (props, context) => {
     left: `${left}px`,
     top: `${topValue}px`,
     boxSizing: 'border-box',
+    opacity: additionalOverlayLevel ? '1' : '0.6',
   };
   
   const commonBorderStyles = {
