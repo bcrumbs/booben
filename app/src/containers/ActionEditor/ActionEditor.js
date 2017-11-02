@@ -1008,15 +1008,16 @@ class ActionEditorComponent extends PureComponent {
       const propSelected =
         !!action.params.propName ||
         !!action.params.systemPropName;
-      
+
       if (propSelected) {
         const systemPropSelected = !!action.params.systemPropName;
+        const propName = systemPropSelected
+          ? action.params.systemPropName
+          : action.params.propName;
         
         const propValueDef = systemPropSelected
-          ? SYSTEM_PROPS[action.params.systemPropName]
-          : componentMeta.props[action.params.propName];
-        
-        const label = getLocalizedText('actionsEditor.actionForm.propValue');
+          ? SYSTEM_PROPS[propName]
+          : componentMeta.props[propName];
         
         ret.push(
           <JssyValueEditor
@@ -1024,7 +1025,7 @@ class ActionEditorComponent extends PureComponent {
             name="propValue"
             valueDef={propValueDef}
             value={action.params.value}
-            label={label}
+            label={_startCase(propName)}
             userTypedefs={systemPropSelected ? null : componentMeta.types}
             strings={systemPropSelected ? null : componentMeta.strings}
             language={language}
@@ -1327,7 +1328,7 @@ class ActionEditorComponent extends PureComponent {
       
       ...additionalProps,
     ];
-    
+
     const isSaveButtonDisabled = !this._isCurrentActionValid();
 
     const linkWindowName = linkParams
