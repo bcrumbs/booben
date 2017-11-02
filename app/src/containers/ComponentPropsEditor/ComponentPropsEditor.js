@@ -7,7 +7,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Accordion, Button } from '@reactackle/reactackle';
+import { Button } from '@reactackle/reactackle';
 
 import {
   BlockContentBox,
@@ -22,6 +22,7 @@ import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
 import { ActionEditor } from '../ActionEditor/ActionEditor';
 import { ActionsList } from '../ActionsList/ActionsList';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
+import { PropsGroup } from '../../components/PropsGroup/PropsGroup';
 import JssyValue, { SourceDataState } from '../../models/JssyValue';
 
 import {
@@ -808,7 +809,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     });
 
     content.push(
-      <Accordion
+      <PropsGroup
         items={groups}
       />,
     );
