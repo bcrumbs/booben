@@ -24,7 +24,7 @@ const buttonProps = Object.keys(Button.propTypes);
 const _ToolBarAction = props => {
   const { disabled, tooltipText, Tooltip, showTooltip, hideTooltip } = props;
 
-  const hasTooltip = tooltipText !== '';
+  const hasTooltip = !disabled && tooltipText !== '';
 
   const onMouseEnter = hasTooltip ? showTooltip : noop;
   const onMouseLeave = hasTooltip ? hideTooltip : noop;

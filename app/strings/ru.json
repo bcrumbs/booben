@@ -210,6 +210,7 @@
   "types.component": "Компонент",
   "types.any": "Любое значение",
 
+  "shortcuts.dialogTitle": "Keyboard shortcuts",
   "shortcuts.structureScreen": "Structure screen",
   "shortcuts.structureScreen.undo": "Undo",
   "shortcuts.structureScreen.redo": "Redo",

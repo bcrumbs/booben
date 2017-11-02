@@ -24,18 +24,18 @@ const getLocalizedShortcuts = state => {
   const currentPlatform = getPlatformName();
   const localize = getLocalizedTextFromState(state);
 
-  return transform(keymap, (resG, shortcuts, groupName) => {
+  return transform(keymap, (resGroup, shortcuts, groupName) => {
     const camelGroupName = camelCase(groupName);
     const localizedGroupName = localize(`${NAMESPACE}.${camelGroupName}`);
     const localizedShortcuts =
-      transform(shortcuts, (resS, key, shortcutName) => {
+      transform(shortcuts, (resShortcuts, key, shortcutName) => {
         const localizedShortcutName =
           localize(`${NAMESPACE}.${camelGroupName}.${camelCase(shortcutName)}`);
 
         const platformKey = key[currentPlatform] || key;
-        resS[localizedShortcutName] = platformKey;
+        resShortcuts[localizedShortcutName] = platformKey.replace(/\+/g, ' + ');
       }, {});
-    resG[localizedGroupName] = localizedShortcuts;
+    resGroup[localizedGroupName] = localizedShortcuts;
   }, {});
 };
 
@@ -48,7 +48,10 @@ const propTypes = {
 const defaultProps = Dialog.defaultProps;
 
 const wrap = connect(
-  state => ({ localizedShortcuts: getLocalizedShortcuts(state) }),
+  state => ({
+    localizedShortcuts: getLocalizedShortcuts(state),
+    localize: getLocalizedTextFromState(state),
+  }),
 );
 
 const reactackleThemeMixin = {
@@ -85,7 +88,7 @@ export class ShortcutsDialog extends React.Component {
     const {
       ButtonComponent,
       localizedShortcuts,
-      getLocalizedText,
+      localize,
     } = this.props;
 
     const shortcuts =
@@ -112,8 +115,9 @@ export class ShortcutsDialog extends React.Component {
           <Dialog
             open={this.state.isOpen}
             onClose={this._handleClose}
-            title='Keyboard shortcuts'
+            title={localize('shortcuts.dialogTitle')}
             haveCloseButton
+            closeOnEscape
           >
             <ShortcutsList>
               {shortcuts}
