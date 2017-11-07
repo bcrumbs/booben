@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import { List, Map } from 'immutable';
@@ -14,7 +12,7 @@ import {
   PageDrawerActionsGroup,
   PageDrawerActionItem,
   PageDrawerActionPlaceholder,
-} from '@jssy/common-ui';
+} from '../../../components/PageDrawer';
 
 import { ToolPanelContent } from './ToolPanelContent/ToolPanelContent';
 import resizeable from '../../../hocs/resizeable';

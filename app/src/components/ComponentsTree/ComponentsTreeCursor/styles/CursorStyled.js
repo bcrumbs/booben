@@ -2,8 +2,6 @@
  * @author Ekaterina Marova
  */
 
-'use strict';
-
 import styled from 'styled-components';
 import { animations } from '@reactackle/reactackle';
 import { paletteBlueGrey300 } from '../../../../styles/themeSelectors';

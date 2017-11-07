@@ -2,8 +2,6 @@
  * @author Ekaterina Marova
  */
 
-'use strict';
-
 import styled, { css } from 'styled-components';
 import { transition } from '@reactackle/reactackle';
 

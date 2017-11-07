@@ -1,5 +1,3 @@
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Icon, TooltipIcon } from '@reactackle/reactackle';
@@ -74,7 +72,7 @@ export class ComponentHandler extends PureComponent {
           </HandlerTitleStyled>
         
           <HandlerIconStyled expanded={expanded}>
-            <Icon name="chevron-down" size="small" />
+            <Icon name="chevron-right" size="small" color="inherit" />
           </HandlerIconStyled>
         </HandlerHeadingStyled>
       

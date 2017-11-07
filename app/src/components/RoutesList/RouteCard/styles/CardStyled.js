@@ -1,14 +1,10 @@
-'use strict';
-
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import { boxShadow, transition } from '@reactackle/reactackle';
+import { transition } from '@reactackle/reactackle';
 
 import {
-  baseModule,
   radiusDefault,
   colorWhite,
-  colorSecondary,
   paletteBlueGrey50,
 } from '../../../../styles/themeSelectors';
 
@@ -22,12 +18,9 @@ const defaultProps = {
   index: false,
 };
 
-const boxShadowValue = boxShadow(1);
-
 const index = ({ index, focused }) => index
   ? css`
     background-color: ${paletteBlueGrey50};
-    min-height: 0;
     
     ${focused ? `background-color: ${colorWhite};` : ''}
 
@@ -35,7 +28,6 @@ const index = ({ index, focused }) => index
     &:focus {
       background-color: ${paletteBlueGrey50};
       outline: none;
-      ${boxShadowValue}
     }
   `
   : '';
@@ -45,7 +37,6 @@ export const CardStyled = styled.div`
   border-radius: ${radiusDefault}px;
   width: 100%;
   max-width: 20em;
-  min-height: 60px;
   cursor: pointer;
   position: relative;
   user-select: none;
@@ -53,9 +44,8 @@ export const CardStyled = styled.div`
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  ${boxShadowValue}
   ${index}
-  ${transition('background-color, box-shadow, border')}
+  ${transition('background-color, border')}
 
   &:hover,
   &:focus {

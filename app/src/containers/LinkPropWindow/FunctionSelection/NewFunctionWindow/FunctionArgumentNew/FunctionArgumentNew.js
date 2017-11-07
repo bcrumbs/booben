@@ -1,5 +1,3 @@
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TypeNames } from '@jssy/types';
@@ -16,7 +14,7 @@ import {
   BlockContentBoxGroup,
   BlockContentBoxItem,
   BlockContentBoxHeading,
-} from '@jssy/common-ui';
+} from '../../../../../components/BlockContent';
 
 import { returnArg, noop } from '../../../../../utils/misc';
 import { ButtonRowStyled } from './styles/ButtonRowStyled';
@@ -117,7 +115,7 @@ export class FunctionArgumentNew extends PureComponent {
     const typeLabel = getLocalizedText('linkDialog.function.new.newArg.type');
 
     return (
-      <BlockContentBoxGroup colorScheme="editing">
+      <BlockContentBoxGroup shading="editing" colorScheme="alt">
         <BlockContentBoxHeading>
           {getLocalizedText('linkDialog.function.new.newArg.heading')}
         </BlockContentBoxHeading>

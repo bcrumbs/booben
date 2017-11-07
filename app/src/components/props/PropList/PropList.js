@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import _pick from 'lodash.pick';
@@ -81,6 +79,7 @@ export class PropList extends Component {
       <PropBase
         {...propsForBase}
         content={content}
+        labelPositionTop
       />
     );
   }

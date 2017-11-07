@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -239,7 +237,7 @@ const mapDispatchToProps = dispatch => ({
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
 
-const LIBRARY_ICON = 'cubes';
+const LIBRARY_ICON = 'plus-square-o';
 const COMPONENTS_TREE_ICON = 'sitemap';
 const PROPS_EDITOR_ICON = 'sliders';
 

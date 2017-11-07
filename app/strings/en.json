@@ -25,7 +25,7 @@
   "appHeader.saveIndicator.tooltip.error": "",
   "appHeader.saveIndicator.tooltip.saved": "",
 
-  "appFooter.faq": "FAQ",
+  "appFooter.help": "Help",
   "appFooter.toggleFullScreen": "Toggle Full Screen",
 
   "alert.queryError": "An error has occurred while performing GraphQL query: {message}",
@@ -110,7 +110,7 @@
   "tree.noComponents": "There are no components here",
   "tree.cursorTooltip": "Move cursor - SHIFT + ↓ / ↑ / ← / →. Check out help page for more info.",
 
-  "propsEditor.noComponentsSelectedText": "Select a component",
+  "propsEditor.noComponentsSelectedText": "Select a component on the canvas to activate this panel",
   "propsEditor.multipleComponentsSelectedText": "Multiple components selected",
   "propsEditor.noEditableAttributes": "This component doesn't have editable attributes",
   "propsEditor.systemProps.visible.name": "Visible",

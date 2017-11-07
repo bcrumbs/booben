@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 let interval = 0;
 let consumers = 0;
 let lastX = -1;

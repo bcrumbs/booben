@@ -52,7 +52,7 @@
 /**
  * @typedef {Object} PlainJssyValue
  * @property {string} source
- * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner|SourceDataFunction|SourceDataState|SourceDataRouteParams|SourceDataActionArg} sourceData
+ * @property {SourceDataStatic|SourceDataOwnerProp|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner|SourceDataFunction|SourceDataState|SourceDataRouteParams|SourceDataActionArg} sourceData
  */
 
 /**
@@ -70,6 +70,11 @@
  */
 
 /**
+ * @typedef {Object} SourceDataOwnerProp
+ * @property {string} ownerPropName
+ */
+
+/**
  * @typedef {Object} SourceDataConst
  * @property {*} value
  */
@@ -82,13 +87,14 @@
 /**
  * @typedef {Object} QueryPathStep
  * @property {string} field
+ * @property {number} connectionPageSize
  */
 
 /**
  * @typedef {Object} SourceDataData
  * @property {string[]} dataContext
  * @property {QueryPathStep[]} queryPath
- * @property {Object<string, PlainJssyValue>} queryArgs
+ * @property {Object<string, Object<string, PlainJssyValue>>} queryArgs
  */
 
 /**
@@ -139,9 +145,17 @@
  */
 
 /**
+ * @typedef {Object} LoadMoreDataActionParams
+ * @property {number} componentId
+ * @property {Array<string>} pathToDataValue
+ * @property {Action[]} successActions
+ * @property {Action[]} errorActions
+ */
+
+/**
  * @typedef {Object} Action
  * @property {string} type
- * @property {MutationActionParams|NavigateActionParams|URLActionParams|MethodCallActionParams|PropChangeActionParams|AJAXActionParams} params
+ * @property {MutationActionParams|NavigateActionParams|URLActionParams|MethodCallActionParams|PropChangeActionParams|AJAXActionParams|LoadMoreDataActionParams} params
  */
 
 /**
@@ -165,7 +179,7 @@
  * @typedef {Object} SourceDataFunction
  * @property {string} functionSource - Can be 'project' or 'builtin'.
  * @property {string} function - Function name
- * @property {Object<string, PlainJssyValue>} args
+ * @property {Array<?PlainJssyValue>} args
  */
 
 /**
@@ -178,6 +192,7 @@
  * @property {string} title
  * @property {string} description
  * @property {FunctionArgument[]} args
+ * @property {boolean} spreadLastArg
  * @property {JssyTypeDefinition} returnType
  * @property {string} body
  */

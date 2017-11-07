@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Map } from 'immutable';
@@ -19,7 +17,7 @@ import {
   BlockBreadcrumbs,
   BlockContentActions,
   BlockContentActionsRegion,
-} from '@jssy/common-ui';
+} from '../../../components/BlockContent';
 
 import {
   DataWindowTitle,
@@ -430,7 +428,7 @@ export class DataSelection extends PureComponent {
       }
       
       dataWindowHeading = (
-        <BlockContentBoxGroup colorScheme="dim">
+        <BlockContentBoxGroup shading="dim" colorScheme="alt">
           <BlockContentBoxItem>
             <DataWindowTitle
               title={currentFieldName}
@@ -456,6 +454,7 @@ export class DataSelection extends PureComponent {
           <BlockBreadcrumbs
             items={breadCrumbsItems}
             mode="dark"
+            colorScheme="alt"
             overflow
             onItemClick={this._handleBreadcrumbsClick}
           />
@@ -505,7 +504,7 @@ export class DataSelection extends PureComponent {
     return (
       <BlockContent>
         <BlockContentBox isBordered flex>
-          <BlockContentBoxGroup colorScheme="dim">
+          <BlockContentBoxGroup shading="dim" colorScheme="alt">
             <BlockContentBoxItem>
               <DataWindowTitle
                 title={titleText}
@@ -585,7 +584,7 @@ export class DataSelection extends PureComponent {
     return (
       <BlockContent>
         <BlockContentBox isBordered flex>
-          <BlockContentBoxGroup colorScheme="dim">
+          <BlockContentBoxGroup shading="dim" colorScheme="alt">
             <BlockContentBoxItem>
               <DataWindowTitle
                 title={titleText}

@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import _mapValues from 'lodash.mapvalues';
@@ -642,7 +640,7 @@ export class JssyValueEditor extends PureComponent {
     let checked = true;
 
     if (!linked) {
-      if (jssyValue.sourceIs('static')) {
+      if (jssyValue.sourceIs(JssyValue.Source.STATIC)) {
         if (
           resolvedValueDef.type === TypeNames.INT ||
           resolvedValueDef.type === TypeNames.FLOAT
@@ -684,29 +682,29 @@ export class JssyValueEditor extends PureComponent {
             ),
           ).toJS();
         }
-      } else if (jssyValue.sourceIs('designer')) {
+      } else if (jssyValue.sourceIs(JssyValue.Source.DESIGNER)) {
         // true if component exists, false otherwise
         if (resolvedValueDef.type === TypeNames.COMPONENT) {
           value = jssyValue.sourceData.rootId !== INVALID_ID;
         }
       }
-    } else if (jssyValue.sourceIs('data')) {
+    } else if (jssyValue.sourceIs(JssyValue.Source.DATA)) {
       if (jssyValue.sourceData.queryPath) {
         linkedWith = jssyValue.sourceData.queryPath
           .map(step => step.field)
           .join(LINK_TEXT_ITEMS_SEPARATOR);
       }
-    } else if (jssyValue.sourceIs('function')) {
+    } else if (jssyValue.sourceIs(JssyValue.Source.FUNCTION)) {
       linkedWith = jssyValue.sourceData.function;
-    } else if (jssyValue.sourceIs('static')) {
+    } else if (jssyValue.sourceIs(JssyValue.Source.OWNER_PROP)) {
       linkedWith = jssyValue.sourceData.ownerPropName;
-    } else if (jssyValue.sourceIs('state')) {
+    } else if (jssyValue.sourceIs(JssyValue.Source.STATE)) {
       linkedWith =
         `Component ${jssyValue.sourceData.componentId} ` +
         `- ${jssyValue.sourceData.stateSlot}`;
-    } else if (jssyValue.sourceIs('routeParams')) {
+    } else if (jssyValue.sourceIs(JssyValue.Source.ROUTE_PARAMS)) {
       linkedWith = jssyValue.sourceData.paramName;
-    } else if (jssyValue.sourceIs('actionArg')) {
+    } else if (jssyValue.sourceIs(JssyValue.Source.ACTION_ARG)) {
       linkedWith = `Action argument ${jssyValue.sourceData.arg}`;
     }
 

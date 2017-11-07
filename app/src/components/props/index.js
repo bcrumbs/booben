@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 export * from './PropEmpty/PropEmpty';
 export * from './PropExpandable/PropExpandable';
 export * from './PropInput/PropInput';

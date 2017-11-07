@@ -2,11 +2,20 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { Record, List, Map } from 'immutable';
 import { isDef } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
+
+export const ActionTypes = {
+  MUTATION: 'mutation',
+  NAVIGATE: 'navigate',
+  URL: 'url',
+  METHOD: 'method',
+  PROP: 'prop',
+  AJAX: 'ajax',
+  LOGOUT: 'logout',
+  LOAD_MORE_DATA: 'loadMoreData',
+};
 
 export const MutationActionParams = Record({
   mutation: '',
@@ -43,7 +52,7 @@ export const AJAXActionParams = Record({
   method: 'GET', // HTTP method
   headers: Map(), // Map of string -> string
   body: null, // JssyValue
-  mode: 'cors', // cors, no-cors or same-origin
+  mode: 'cors', // 'cors', 'no-cors' or 'same-origin'
   decodeResponse: 'text', // text, blob, json or arrayBuffer
   successActions: List(), // List of Actions
   errorActions: List(), // List of Actions
@@ -57,9 +66,9 @@ export const LoadMoreDataActionParams = Record({
 });
 
 const ASYNC_ACTIONS = new Set([
-  'mutation',
-  'ajax',
-  'loadMoreData',
+  ActionTypes.MUTATION,
+  ActionTypes.AJAX,
+  ActionTypes.LOAD_MORE_DATA,
 ]);
 
 export const isAsyncAction = actionType => ASYNC_ACTIONS.has(actionType);
@@ -70,11 +79,17 @@ export const Action = Record({
 });
 
 const VALID_PATH_STEPS_BY_ACTION_TYPE = {
-  mutation: new Set(['args', 'successActions', 'errorActions']),
-  method: new Set(['args']),
-  navigate: new Set(['routeParams']),
-  prop: new Set(['value']),
-  ajax: new Set(['url', 'body', 'successActions', 'errorActions']),
+  [ActionTypes.MUTATION]: new Set(['args', 'successActions', 'errorActions']),
+  [ActionTypes.METHOD]: new Set(['args']),
+  [ActionTypes.NAVIGATE]: new Set(['routeParams']),
+  [ActionTypes.PROP]: new Set(['value']),
+  [ActionTypes.LOAD_MORE_DATA]: new Set(['successActions', 'errorActions']),
+  [ActionTypes.AJAX]: new Set([
+    'url',
+    'body',
+    'successActions',
+    'errorActions',
+  ]),
 };
 
 Action.isValidPathStep = (step, current) => {

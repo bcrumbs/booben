@@ -1,5 +1,3 @@
-'use strict';
-
 import styled, { css } from 'styled-components';
 import { animations } from '@reactackle/reactackle';
 import PropTypes from 'prop-types';

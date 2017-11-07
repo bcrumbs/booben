@@ -2,8 +2,6 @@
  * @author Ekaterina Marova
  */
 
-'use strict';
-
 import styled from 'styled-components';
 import componentConstants from '../../styles/constants';
 import { paletteBlueGrey200 } from '../../../../styles/themeSelectors';

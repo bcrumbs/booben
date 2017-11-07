@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { createSelector } from 'reselect';
 import { getLocalizedTextFromState } from './index';
 import { extractGroupsDataFromMeta, compareComponents } from '../lib/library';

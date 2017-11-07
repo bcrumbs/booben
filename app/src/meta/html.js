@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import _mapValues from 'lodash.mapvalues';
 import a from './html/a';
 import abbr from './html/abbr';

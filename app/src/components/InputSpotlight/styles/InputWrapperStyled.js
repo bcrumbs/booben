@@ -2,8 +2,6 @@
  * @author Ekaterina Marova
  */
 
-'use strict';
-
 import styled from 'styled-components';
 
 export const InputWrapperStyled = styled.div`

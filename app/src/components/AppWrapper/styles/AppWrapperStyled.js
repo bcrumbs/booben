@@ -1,5 +1,3 @@
-'use strict';
-
 import styled from 'styled-components';
 
 export const AppWrapperStyled = styled.div`
@@ -8,6 +6,7 @@ export const AppWrapperStyled = styled.div`
   flex-direction: column;
   align-items: stretch;
   flex-grow: 1;
+  overflow-y: auto;
 `;
 
 AppWrapperStyled.displayName = 'AppWrapperStyled';

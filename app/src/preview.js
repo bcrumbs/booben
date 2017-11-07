@@ -2,15 +2,13 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { ApolloClient } from 'apollo-client';
 import { ApolloProvider } from 'react-apollo';
 import { ThemeProvider } from 'styled-components';
 import { Theme, injectGlobalStyle } from '@reactackle/reactackle';
-import { jssyTheme, reactackleMixin } from '@jssy/common-theme';
+import { jssyTheme, reactackleMixin } from './styles/theme';
 import { Preview } from './containers/Preview/Preview';
 import { ErrorScreen } from './components/StateScreen/StateScreen';
 import { projectToImmutable } from './models/Project';

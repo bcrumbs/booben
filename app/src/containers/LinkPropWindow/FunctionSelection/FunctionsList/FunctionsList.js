@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Button, Tabs } from '@reactackle/reactackle';
@@ -14,7 +12,7 @@ import {
   BlockContentNavigation,
   BlockBreadcrumbs,
   BlockContentBoxItem,
-} from '@jssy/common-ui';
+} from '../../../../components/BlockContent';
 
 import {
   DataList,
@@ -168,6 +166,7 @@ export class FunctionsList extends PureComponent {
           <BlockBreadcrumbs
             items={breadcrumbsItems}
             mode="dark"
+            colorScheme="alt"
             onItemClick={this._handleBreadcrumbsClick}
           />
         </BlockContentNavigation>

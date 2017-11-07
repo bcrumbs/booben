@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Button, Tabs } from '@reactackle/reactackle';
@@ -14,8 +12,11 @@ import {
   BlockContentActions,
   BlockContentActionsRegion,
   BlockContentNavigation,
+} from '../../../../components/BlockContent';
+
+import {
   PageDrawerContentArea,
-} from '@jssy/common-ui';
+} from '../../../../components/PageDrawer';
 
 import ToolType from '../../../../models/Tool';
 import ToolStateType from '../../../../models/ToolState';
@@ -64,6 +65,7 @@ export class ToolPanelContent extends PureComponent {
       icon: {
         name: 'chevron-right',
       },
+      colorScheme: "flatLight",
       onPress: onCollapse,
     }];
   
@@ -72,6 +74,7 @@ export class ToolPanelContent extends PureComponent {
         icon: {
           name: 'arrows-alt',
         },
+        colorScheme: "flatLight",
         onPress: onUndock,
       });
     }
@@ -121,6 +124,7 @@ export class ToolPanelContent extends PureComponent {
             icon={{ name: button.icon }}
             text={button.text}
             disabled={button.disabled}
+            colorScheme="flatLight"
             onPress={button.onPress} // eslint-disable-line react/jsx-handler-names
           />
         ));
@@ -140,6 +144,8 @@ export class ToolPanelContent extends PureComponent {
             icon={{ name: button.icon }}
             text={button.text}
             disabled={button.disabled}
+            colorScheme="flatLight"
+            size="small"
             onPress={button.onPress} // eslint-disable-line react/jsx-handler-names
           />
         ));

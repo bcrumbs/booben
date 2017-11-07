@@ -1,5 +1,3 @@
-'use strict';
-
 import styled from 'styled-components';
 import { textColorMedium } from '../../../styles/themeSelectors';
 

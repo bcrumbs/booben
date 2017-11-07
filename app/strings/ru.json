@@ -25,7 +25,7 @@
   "appHeader.saveIndicator.tooltip.error": "",
   "appHeader.saveIndicator.tooltip.saved": "",
 
-  "appFooter.faq": "Помощь",
+  "appFooter.help": "Помощь",
   "appFooter.toggleFullScreen": "Во весь экран",
 
   "alert.queryError": "Во время выполнения GraphQL-запроса произошла ошибка: {message}",
