@@ -781,6 +781,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     });
 
     const content = [];
+    const expanded = [];
     const groups = propGroups.map(group => {
       const controls = group.props.map(propName => this._renderPropsItem(
         componentMeta,
@@ -798,7 +799,7 @@ class ComponentPropsEditorComponent extends PureComponent {
           </PropsList>
         </BlockContentBoxItem>
       );
-
+      expanded.push(group.title);
       return {
         id: group.title,
         title: group.title,
@@ -808,6 +809,7 @@ class ComponentPropsEditorComponent extends PureComponent {
 
     content.push(
       <PropsGroup
+        expandedItemIds={expanded}
         items={groups}
       />,
     );
