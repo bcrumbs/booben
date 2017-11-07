@@ -14,7 +14,7 @@ import {
   BlockContentNavigation,
   BlockContentActions,
   BlockContentActionsRegion,
-} from '@jssy/common-ui';
+} from '../../../components/BlockContent';
 
 import {
   DraggableWindow,

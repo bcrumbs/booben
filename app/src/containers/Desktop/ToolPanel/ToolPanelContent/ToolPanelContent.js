@@ -12,8 +12,11 @@ import {
   BlockContentActions,
   BlockContentActionsRegion,
   BlockContentNavigation,
+} from '../../../../components/BlockContent';
+
+import {
   PageDrawerContentArea,
-} from '@jssy/common-ui';
+} from '../../../../components/PageDrawer';
 
 import ToolType from '../../../../models/Tool';
 import ToolStateType from '../../../../models/ToolState';

@@ -10,12 +10,12 @@ import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';
 import { List, Map } from 'immutable';
 import { Button } from '@reactackle/reactackle';
-import { BlockContentBoxItem } from '@jssy/common-ui';
 import { DesignDialog } from '../DesignDialog/DesignDialog';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
 import { PropsList } from '../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
 import { ComponentActionsButtonRow } from '../../components/actions';
+import { BlockContentBoxItem } from '../../components/BlockContent';
 
 import {
   PropInput,

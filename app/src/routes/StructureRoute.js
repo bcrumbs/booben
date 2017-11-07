@@ -22,7 +22,7 @@ import {
   BlockContentBox,
   BlockContentBoxItem,
   BlockContentBoxHeading,
-} from '@jssy/common-ui';
+} from '../components/BlockContent';
 
 import {
   ToolBar,
