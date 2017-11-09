@@ -2,12 +2,15 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { BlockContentBox, BlockContentBoxItem } from '@jssy/common-ui';
+
+import {
+  BlockContentBox,
+  BlockContentBoxItem,
+} from '../../components/BlockContent';
+
 import { PropsList } from '../../components/PropsList/PropsList';
 import { PropToggle } from '../../components/props';
 import { toggleComponentRegion } from '../../actions/project';

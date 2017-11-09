@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -24,7 +22,7 @@ import {
   BlockContentBox,
   BlockContentBoxItem,
   BlockContentBoxHeading,
-} from '@jssy/common-ui';
+} from '../components/BlockContent';
 
 import {
   ToolBar,
@@ -35,6 +33,7 @@ import {
 import { AppWrapper } from '../components/AppWrapper/AppWrapper';
 
 import {
+  RoutesListWrapper,
   RoutesList,
   RouteCard,
   IndexRouteCard,
@@ -1039,7 +1038,7 @@ class StructureRoute extends PureComponent {
     }
 
     return (
-      <RoutesList>
+      <RoutesList focused={needButton}>
         {routeCards}
         {button}
       </RoutesList>
@@ -1207,6 +1206,7 @@ class StructureRoute extends PureComponent {
       (paramValue, paramName) => (
         <FormItem key={paramName}>
           <TextField
+            dense
             label={paramName}
             value={paramValue}
             onChange={this._handleNewRouteParamChange.bind(this, paramName)}
@@ -1218,7 +1218,7 @@ class StructureRoute extends PureComponent {
     
     if (routeParamInputs.length) {
       routeParamsBoxHeading = (
-        <BlockContentBoxHeading>
+        <BlockContentBoxHeading removePaddingX>
           {getLocalizedText('structure.routeParamValuesHeading')}
         </BlockContentBoxHeading>
       );
@@ -1450,9 +1450,11 @@ class StructureRoute extends PureComponent {
       this._renderRouteList(project.routes, null, project.rootRoutes);
     
     return (
-      <Container spread>
-        {routesList}
-      </Container>
+      <RoutesListWrapper>
+        <Container spread>
+          {routesList}
+        </Container>
+      </RoutesListWrapper>
     );
   }
 

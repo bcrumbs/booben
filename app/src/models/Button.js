@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { Record } from 'immutable';
 import { noop } from '../utils/misc';
 

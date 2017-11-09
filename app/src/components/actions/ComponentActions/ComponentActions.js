@@ -1,5 +1,3 @@
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from '@reactackle/reactackle';
@@ -43,6 +41,7 @@ export class ComponentActions extends PureComponent {
           <Button
             text={addButtonText}
             icon={{ name: 'plus' }}
+            size="small"
             narrow
             onPress={this._handleAddButtonPress}
           />

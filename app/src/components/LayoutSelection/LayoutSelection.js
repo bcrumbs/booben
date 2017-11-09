@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 import { LayoutSelectionStyled } from './styles/LayoutSelectionStyled';
 import { SelectionListStyled } from './styles/SelectionListStyled';

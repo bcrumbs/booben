@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -12,11 +10,12 @@ import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';
 import { List, Map } from 'immutable';
 import { Button } from '@reactackle/reactackle';
-import { BlockContentBoxItem } from '@jssy/common-ui';
 import { DesignDialog } from '../DesignDialog/DesignDialog';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
 import { PropsList } from '../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
+import { ComponentActionsButtonRow } from '../../components/actions';
+import { BlockContentBoxItem } from '../../components/BlockContent';
 
 import {
   PropInput,
@@ -30,6 +29,7 @@ import { jssyValueToImmutable } from '../../models/ProjectComponent';
 import JssyValue, {
   SourceDataState,
   Action,
+  ActionTypes,
   MutationActionParams,
   NavigateActionParams,
   URLActionParams,
@@ -265,9 +265,9 @@ class ActionEditorComponent extends PureComponent {
   _handlePickedComponent(componentId) {
     const { action } = this.state;
 
-    if (action.type === 'method') {
+    if (action.type === ActionTypes.METHOD) {
       this._handleMethodActionSetComponent({ componentId });
-    } else if (action.type === 'prop') {
+    } else if (action.type === ActionTypes.PROP) {
       this._handlePropActionSetComponent({ componentId });
     }
   }
@@ -275,7 +275,7 @@ class ActionEditorComponent extends PureComponent {
   _handlePickedComponentData(componentId, data) {
     const { action, pickingPath } = this.state;
 
-    if (action.type === 'loadMoreData') {
+    if (action.type === ActionTypes.LOAD_MORE_DATA) {
       this.setState({
         action: action.mergeIn(['params'], {
           componentId,
@@ -609,16 +609,16 @@ class ActionEditorComponent extends PureComponent {
     };
     
     let pathToRootValue;
-    if (action.type === 'mutation') {
+    if (action.type === ActionTypes.MUTATION) {
       pathToRootValue = ['params', 'args', linkParams.name];
-    } else if (action.type === 'method') {
+    } else if (action.type === ActionTypes.METHOD) {
       const argIdx = parseInt(linkParams.name, 10);
       pathToRootValue = ['params', 'args', argIdx];
-    } else if (action.type === 'navigate') {
+    } else if (action.type === ActionTypes.NAVIGATE) {
       pathToRootValue = ['params', 'routeParams', linkParams.name];
-    } else if (action.type === 'prop') {
+    } else if (action.type === ActionTypes.PROP) {
       pathToRootValue = ['params', 'value'];
-    } else if (action.type === 'ajax') {
+    } else if (action.type === ActionTypes.AJAX) {
       pathToRootValue = ['params', linkParams.name];
     }
     
@@ -659,13 +659,13 @@ class ActionEditorComponent extends PureComponent {
       steps: null,
     };
 
-    if (action.type === 'method') {
+    if (action.type === ActionTypes.METHOD) {
       pickingPath.steps = ['args', name, ...path];
-    } else if (action.type === 'mutation') {
+    } else if (action.type === ActionTypes.MUTATION) {
       pickingPath.steps = ['args', name, ...path];
-    } else if (action.type === 'prop') {
+    } else if (action.type === ActionTypes.PROP) {
       pickingPath.steps = ['value', ...path];
-    } else if (action.type === 'navigate') {
+    } else if (action.type === ActionTypes.NAVIGATE) {
       pickingPath.steps = ['routeParams', name];
     } else {
       throw new Error(
@@ -691,13 +691,13 @@ class ActionEditorComponent extends PureComponent {
   
     if (!action.type) return false;
   
-    if (action.type === 'mutation') {
+    if (action.type === ActionTypes.MUTATION) {
       if (!action.params.mutation) return false;
-    } else if (action.type === 'method') {
+    } else if (action.type === ActionTypes.METHOD) {
       if (action.params.componentId === INVALID_ID || !action.params.method) {
         return false;
       }
-    } else if (action.type === 'prop') {
+    } else if (action.type === ActionTypes.PROP) {
       const paramsAreInvalid =
         action.params.componentId === INVALID_ID || (
           !action.params.propName &&
@@ -705,19 +705,18 @@ class ActionEditorComponent extends PureComponent {
         );
       
       if (paramsAreInvalid) return false;
-    } else if (action.type === 'navigate') {
+    } else if (action.type === ActionTypes.NAVIGATE) {
       if (action.params.routeId === INVALID_ID) return false;
-    } else if (action.type === 'url') {
+    } else if (action.type === ActionTypes.URL) {
       if (!action.params.url) return false;
-    } else if (action.type === 'ajax') {
+    } else if (action.type === ActionTypes.AJAX) {
       if (
-        action.params.url.sourceIs('static') &&
-        !action.params.url.isLinked() &&
+        action.params.url.sourceIs(JssyValue.Source.STATIC) &&
         action.params.url.sourceData.value === ''
       ) {
         return false;
       }
-    } else if (action.type === 'loadMoreData') {
+    } else if (action.type === ActionTypes.LOAD_MORE_DATA) {
       if (action.params.componentId === INVALID_ID) {
         return false;
       }
@@ -888,7 +887,7 @@ class ActionEditorComponent extends PureComponent {
           const key = `methodArg_${idx}`;
           const value = action.params.args.get(idx);
           
-          if (value.source === 'const') return;
+          if (value.sourceIs(JssyValue.Source.CONST)) return;
           
           ret.push(
             <JssyValueEditor
@@ -1310,7 +1309,7 @@ class ActionEditorComponent extends PureComponent {
     
     const actionTypeLabel = getLocalizedText('actionsEditor.actionType');
     const actionTypeOptions = this._getActionTypeOptions();
-    const actionTypeValue = action.type === 'mutation'
+    const actionTypeValue = action.type === ActionTypes.MUTATION
       ? `mutation/${action.params.mutation}`
       : action.type || null;
     
@@ -1347,18 +1346,24 @@ class ActionEditorComponent extends PureComponent {
         <PropsList>
           {props}
         </PropsList>
-        
-        <Button
-          text={getLocalizedText('common.save')}
-          disabled={isSaveButtonDisabled}
-          onPress={this._handleSave}
-        />
-        
-        <Button
-          text={getLocalizedText('common.cancel')}
-          onPress={this._handleCancel}
-        />
-        
+
+        <ComponentActionsButtonRow>
+          <Button
+            narrow
+            size="small"
+            text={getLocalizedText('common.save')}
+            disabled={isSaveButtonDisabled}
+            onPress={this._handleSave}
+          />
+
+          <Button
+            narrow
+            size="small"
+            text={getLocalizedText('common.cancel')}
+            onPress={this._handleCancel}
+          />
+        </ComponentActionsButtonRow>
+
         <DesignDialog
           title="Link attribute value"
           backdrop

@@ -2,8 +2,6 @@
  * @author Oleg Nosov <olegnosov1@gmail.com>
  */
 
-'use strict';
-
 import { getStrings } from '../lib/api';
 
 export const APP_LOAD_STRINGS =

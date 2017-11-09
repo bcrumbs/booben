@@ -1,5 +1,3 @@
-'use strict';
-
 import styled from 'styled-components';
 import { colorActiveBg } from '../../../../../../styles/themeSelectors';
 import constants from '../../../../styles/constants';

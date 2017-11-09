@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -13,7 +11,7 @@ import {
   BlockContentBoxItem,
   BlockContentBoxHeading,
   BlockContentPlaceholder,
-} from '@jssy/common-ui';
+} from '../../components/BlockContent';
 
 import {
   PropInput,
@@ -256,6 +254,7 @@ class RouteEditorComponent extends PureComponent {
       if (route.redirectAuthenticated) {
         redirectAuthenticatedPathInput = (
           <PropInput
+            label={getLocalizedText('structure.redirectTo')}
             value={route.redirectAuthenticatedTo}
             onChange={this._handleRedirectAuthenticatedToChange}
           />
@@ -265,6 +264,7 @@ class RouteEditorComponent extends PureComponent {
       if (route.redirectAnonymous) {
         redirectAnonymousPathInput = (
           <PropInput
+            label={getLocalizedText('structure.redirectTo')}
             value={route.redirectAnonymousTo}
             onChange={this._handleRedirectAnonymousToChange}
           />

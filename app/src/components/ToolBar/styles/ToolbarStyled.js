@@ -1,7 +1,6 @@
-'use strict';
-
 import styled from 'styled-components';
 import constants from './constants';
+
 import {
   baseModule,
   paletteBlueGrey600,

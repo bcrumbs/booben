@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { Map, List } from 'immutable';
 import { isInteger, isFunction } from '../utils/misc';
 

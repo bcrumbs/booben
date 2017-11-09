@@ -1,5 +1,3 @@
-'use strict';
-
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { transition } from '@reactackle/reactackle';

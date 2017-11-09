@@ -1,5 +1,3 @@
-'use strict';
-
 import styled from 'styled-components';
 import { paletteBlueGrey200 } from '../../../../styles/themeSelectors';
 

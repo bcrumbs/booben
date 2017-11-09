@@ -1,5 +1,3 @@
-'use strict';
-
 import styled, { css } from 'styled-components';
 import { transition } from '@reactackle/reactackle';
 
@@ -8,16 +6,15 @@ import {
   radiusDefault,
   textColorBody,
   fontSizeBody,
-  paletteBlueGrey50,
-  paletteBlueGrey400,
-  colorActiveBg,
+  colorActiveBgLight,
+  textColorMedium,
 } from '../../../../../styles/themeSelectors';
 
 const disabledStyles = css`
   &,
   &:hover,
   &:focus {
-      color: ${paletteBlueGrey400};
+      color: ${textColorMedium};
       cursor: default;
   }
 `;
@@ -29,7 +26,7 @@ const hovered = ({ hovered, active, disabled }) => {
     ? css`
       &,
       &:hover {
-        background-color: ${paletteBlueGrey50};
+        background-color: rgba(0, 0, 0, 0.15);
       }
       
       ${disabledCase}
@@ -42,7 +39,7 @@ const active = ({ active, disabled }) => {
   
   return active
     ? css`
-      background-color: ${colorActiveBg};
+      background-color: ${colorActiveBgLight};
       cursor: default;
       ${disabledCase}
     `

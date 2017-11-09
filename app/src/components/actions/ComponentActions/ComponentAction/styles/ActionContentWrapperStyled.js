@@ -1,5 +1,3 @@
-'use strict';
-
 import styled from 'styled-components';
 import constants from './constants';
 import { baseModule } from '../../../../../styles/themeSelectors';

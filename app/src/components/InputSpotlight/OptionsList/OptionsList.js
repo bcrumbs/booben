@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev, Ekaterina Marova
  */
 
-'use strict';
-
 import React from 'react';
 import { OptionsListStyled } from './styles/OptionsListStyled';
 

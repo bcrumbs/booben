@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Button } from '@reactackle/reactackle';
@@ -30,6 +28,7 @@ export const PropAction = ({ icon, onPress, expanded, rounded }) => (
       radius={rounded ? 'rounded' : 'default'}
       onPress={onPress}
       size="small"
+      colorScheme="flatLight"
     />
   </PropActionStyled>
 );

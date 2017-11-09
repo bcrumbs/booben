@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { introspectionQuery } from 'graphql/utilities';
 import { URL_API_PREFIX } from '../../../shared/constants';
 

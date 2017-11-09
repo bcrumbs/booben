@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 /* eslint-disable */
 
 import React from 'react';
@@ -40,7 +38,7 @@ import {
   BlockContentBoxItem,
   BlockContentBoxHeading,
   BlockContentPlaceholder,
-} from '@jssy/common-ui';
+} from '../components/BlockContent';
 
 import {
   RoutesList,

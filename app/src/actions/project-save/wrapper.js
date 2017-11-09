@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import {
   PROJECT_SAVE,
   PROJECT_SAVE_SUCCESS,

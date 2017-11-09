@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import { OverlayComponentTitle } from './OverlayComponentTitle';
@@ -28,16 +26,18 @@ const defaultProps = {
   additionalOverlayLevel: 0,
 };
 
-const BORDER_WIDTH = 2;
+const BORDER_WIDTH = 1;
 
 export const OverlayBoundingBox = (props, context) => {
   const {
     element,
     color,
+    borderStyle,
     title,
     showTitle,
     additionalOverlayLevel,
   } = props;
+
   const { window } = context;
   
   if (!element) return null;
@@ -62,7 +62,9 @@ export const OverlayBoundingBox = (props, context) => {
   const commonBorderStyles = {
     position: 'absolute',
     boxSizing: 'border-box',
-    backgroundColor: color,
+    borderWidth: 0,
+    borderColor: color,
+    borderStyle,
   };
 
   const topBorderStyle = {
@@ -70,6 +72,7 @@ export const OverlayBoundingBox = (props, context) => {
   
     width,
     height: `${BORDER_WIDTH}px`,
+    borderTopWidth: `${BORDER_WIDTH}px`,
     left: '0',
     top: '0',
   };
@@ -79,6 +82,7 @@ export const OverlayBoundingBox = (props, context) => {
     
     height,
     width: `${BORDER_WIDTH}px`,
+    borderLeftWidth: `${BORDER_WIDTH}px`,
     left: '0',
     top: '0',
   };
@@ -88,6 +92,7 @@ export const OverlayBoundingBox = (props, context) => {
   
     width,
     height: `${BORDER_WIDTH}px`,
+    borderBottomWidth: `${BORDER_WIDTH}px`,
     left: '0',
     bottom: `-${Math.round(height)}px`,
   };
@@ -97,6 +102,7 @@ export const OverlayBoundingBox = (props, context) => {
     
     height,
     width: `${BORDER_WIDTH}px`,
+    borderRightWidth: `${BORDER_WIDTH}px`,
     right: `-${width}px`,
     top: '0',
   };

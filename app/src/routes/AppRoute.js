@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -34,6 +32,7 @@ import {
 import StructureRoute from './StructureRoute';
 import DesignRoute from './DesignRoute';
 import { DrawerTopDesign } from '../containers/DrawerTopDesign/DrawerTopDesign';
+import { ShortcutsDialog } from '../containers/ShortcutsDialog/ShortcutsDialog';
 
 import {
   ProjectSaveIndicator,
@@ -302,7 +301,7 @@ class AppRoute extends Component {
               <FooterMenu inline dense mode="light">
                 <FooterMenuGroup>
                   <FooterMenuList>
-                    <FooterMenuItem text={getLocalizedText('appFooter.faq')} />
+                    <FooterMenuItem text={getLocalizedText('appFooter.help')} />
                   </FooterMenuList>
                 </FooterMenuGroup>
               </FooterMenu>
@@ -320,6 +319,24 @@ class AppRoute extends Component {
                 </FooterMenuGroup>
               </FooterMenu>
             </FooterRegion>
+
+            <FooterRegion size="blank">
+              <FooterMenu inline dense mode="light">
+                <FooterMenuGroup>
+                  <FooterMenuList>
+                    <ShortcutsDialog
+                      ButtonComponent={props =>
+                        <FooterMenuItem
+                          {...props}
+                          text={getLocalizedText('appHeader.menu.shortcuts')}
+                        />
+                      }
+                    />
+                  </FooterMenuList>
+                </FooterMenuGroup>
+              </FooterMenu>
+            </FooterRegion>
+
           </Footer>
         </BottomRegion>
       
