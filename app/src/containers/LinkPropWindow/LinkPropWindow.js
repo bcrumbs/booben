@@ -40,7 +40,6 @@ import ProjectRecord from '../../models/Project';
 
 import JssyValue, {
   SourceDataFunction,
-  SourceDataStatic,
   SourceDataOwnerProp,
   SourceDataRouteParams,
   SourceDataData,

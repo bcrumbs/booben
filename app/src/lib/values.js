@@ -256,13 +256,32 @@ const buildFunctionValue = (jssyValue, valueDef, userTypedefs, context) => {
     throw new Error(`buildFunctionValue(): function not found: ${functionId}`);
   }
 
-  const argValues = mapListToArray(fnInfo.args, (argInfo, argNum) => {
-    const argValue = jssyValue.sourceData.args.get(argInfo.name);
+  const tooManyArgs = (
+    fnInfo.args.size === 0 &&
+    jssyValue.sourceData.args.size > 0
+  ) || (
+    jssyValue.sourceData.args.size > fnInfo.args.size &&
+    !fnInfo.spreadLastArg
+  );
+
+  if (tooManyArgs) {
+    const functionId = formatFunctionId(
+      jssyValue.sourceData.functionSource,
+      jssyValue.sourceData.function,
+    );
+
+    throw new Error(
+      `buildFunctionValue(): too many arguments for function ${functionId}`,
+    );
+  }
+
+  const argValues = mapListToArray(jssyValue.sourceData.args, (value, idx) => {
+    const argInfo = fnInfo.args.get(Math.min(idx, fnInfo.args.size - 1));
 
     let ret = NO_VALUE;
 
-    if (argValue) {
-      ret = buildValue(argValue, argInfo.typedef, userTypedefs, context);
+    if (value) {
+      ret = buildValue(value, argInfo.typedef, userTypedefs, context);
     }
 
     if (ret === NO_VALUE) {
@@ -273,7 +292,7 @@ const buildFunctionValue = (jssyValue, valueDef, userTypedefs, context) => {
         );
 
         throw new Error(
-          `buildFunctionValue(): failed to build required argument ${argNum} ` +
+          `buildFunctionValue(): failed to build required argument ${idx} ` +
           `for function ${functionId}`,
         );
       } else {
@@ -284,8 +303,7 @@ const buildFunctionValue = (jssyValue, valueDef, userTypedefs, context) => {
     return ret;
   });
 
-  // TODO: Pass fns as last argument
-  const rawValue = fnInfo.fn(...argValues, {});
+  const rawValue = fnInfo.fn(...argValues);
 
   return coerceValue(
     rawValue,

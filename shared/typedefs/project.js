@@ -179,7 +179,7 @@
  * @typedef {Object} SourceDataFunction
  * @property {string} functionSource - Can be 'project' or 'builtin'.
  * @property {string} function - Function name
- * @property {Object<string, PlainJssyValue>} args
+ * @property {Array<?PlainJssyValue>} args
  */
 
 /**
@@ -192,6 +192,7 @@
  * @property {string} title
  * @property {string} description
  * @property {FunctionArgument[]} args
+ * @property {boolean} spreadLastArg
  * @property {JssyTypeDefinition} returnType
  * @property {string} body
  */

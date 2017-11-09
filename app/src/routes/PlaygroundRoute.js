@@ -38,7 +38,7 @@ import {
   BlockContentBoxItem,
   BlockContentBoxHeading,
   BlockContentPlaceholder,
-} from '@jssy/common-ui';
+} from '../components/BlockContent';
 
 import {
   RoutesList,

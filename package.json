@@ -20,8 +20,6 @@
   "dependencies": {
     "@common/async-utils": "^0.2.1",
     "@common/tree": "^0.1.1",
-    "@jssy/common-theme": "^0.5.0",
-    "@jssy/common-ui": "^1.0.0",
     "@jssy/metadata": "^0.8.0",
     "@jssy/types": "^0.5.0",
     "@reactackle/reactackle": "0.1.0-dev.670",

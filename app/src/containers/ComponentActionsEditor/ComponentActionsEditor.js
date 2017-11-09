@@ -11,7 +11,7 @@ import { List } from 'immutable';
 import {
   BlockContentBox,
   BlockContentBoxItem,
-} from '@jssy/common-ui';
+} from '../../components/BlockContent';
 
 import { ComponentHandlers, ComponentHandler } from '../../components/actions';
 import { ActionsList } from '../ActionsList/ActionsList';
