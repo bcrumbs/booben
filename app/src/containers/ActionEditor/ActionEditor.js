@@ -1011,13 +1011,31 @@ class ActionEditorComponent extends PureComponent {
 
       if (propSelected) {
         const systemPropSelected = !!action.params.systemPropName;
-        const propName = systemPropSelected
-          ? action.params.systemPropName
-          : action.params.propName;
+
+        let propName;
+        let propValueDef;
+        let label;
+        let description;
+        let userTypedefs;
+        let strings;
         
-        const propValueDef = systemPropSelected
-          ? SYSTEM_PROPS[propName]
-          : componentMeta.props[propName];
+        if (systemPropSelected) {
+          propName = action.params.systemPropName;
+          propValueDef = SYSTEM_PROPS[propName];
+          label = getLocalizedText(`propsEditor.systemProps.${propName}.name`);
+          description =
+            getLocalizedText(`propsEditor.systemProps.${propName}.desc`);
+          
+          userTypedefs = null;
+          strings = null;
+        } else {
+          propName = action.params.propName;
+          propValueDef = componentMeta.props[propName];
+          label = '';
+          description = '';
+          userTypedefs = componentMeta.types;
+          strings = componentMeta.strings;
+        }
         
         ret.push(
           <JssyValueEditor
@@ -1025,9 +1043,10 @@ class ActionEditorComponent extends PureComponent {
             name="propValue"
             valueDef={propValueDef}
             value={action.params.value}
-            label={_startCase(propName)}
-            userTypedefs={systemPropSelected ? null : componentMeta.types}
-            strings={systemPropSelected ? null : componentMeta.strings}
+            label={label}
+            description={description}
+            userTypedefs={userTypedefs}
+            strings={strings}
             language={language}
             ownerProps={ownerProps}
             ownerUserTypedefs={ownerUserTypedefs}
