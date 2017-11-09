@@ -57,7 +57,7 @@
   "structure.indexRouteProperties": "Свойства маршрута по умолчанию",
   "structure.editRoutePathDialogTitle": "Редактирование пути",
   "structure.routeParamValuesHeading": "Введите примеры значений для параметров роута",
-  "structure.noOutletWarning": "Прежде чем редактировать этот роут, необходимо добавить Outlet в роуте '{routeTitle}'",
+  "structure.noOutletWarning": "Прежде чем редактировать этот роут, необходимо добавить Outlet в вышестоящие роуты",
   "structure.noOutletMarkTooltip": "В роуте нет Outlet",
 
   "design.tool.elementsTree": "Дерево элементов",
