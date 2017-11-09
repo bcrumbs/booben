@@ -135,6 +135,7 @@ export class BlockContentTitle extends PureComponent {
           editable={isEditable}
           editing={editingTitle}
           value={title}
+          title={title}
           placeholder={titlePlaceHolder}
           onChange={this._handleTitleChange}
           onFocus={this._handleTitleInputFocus}
@@ -146,7 +147,7 @@ export class BlockContentTitle extends PureComponent {
     let subtitleElement = null;
     if (subtitle) {
       subtitleElement = (
-        <SubtitleBoxStyled colorScheme={colorScheme}>
+        <SubtitleBoxStyled colorScheme={colorScheme} title={subtitle}>
           <span>{subtitle}</span>
         </SubtitleBoxStyled>
       );
