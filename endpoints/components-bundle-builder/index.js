@@ -34,7 +34,6 @@ const projectsDir = config.get('projectsDir');
  * @returns {Promise}
  */
 const npmInit = (dir, options) => co(function* () {
-  // Prevent installation problem for macOS developers
   const _options = options || {};
   logger.debug(`init package.json in ${dir}`);
   const cmd = 'npm init -y';
@@ -356,6 +355,7 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
   const projectDir = path.join(projectsDir, project.name);
 
   if (project.componentLibs.length > 0) {
+    // Prevents installation problem for macOS developers
     yield npmInit(projectDir, {
       log: options.npmLogger,
     });
