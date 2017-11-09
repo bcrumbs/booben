@@ -1,8 +1,5 @@
 import styled from 'styled-components';
-
-import {
-  baseModule,
-} from '../../../../styles/themeSelectors';
+import { baseModule } from '../../../../styles/themeSelectors';
 
 export const ShortcutsListStyled = styled.div`
   column-width: 260px;
