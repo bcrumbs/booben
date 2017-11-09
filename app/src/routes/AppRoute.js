@@ -32,6 +32,7 @@ import {
 import StructureRoute from './StructureRoute';
 import DesignRoute from './DesignRoute';
 import { DrawerTopDesign } from '../containers/DrawerTopDesign/DrawerTopDesign';
+import { ShortcutsDialog } from '../containers/ShortcutsDialog/ShortcutsDialog';
 
 import {
   ProjectSaveIndicator,
@@ -40,8 +41,6 @@ import {
 import { alertAreaProvider } from '../hocs/alerts';
 import ProjectRecord from '../models/Project';
 import { getLocalizedTextFromState } from '../selectors';
-
-import ShortcutsDialog from '../containers/ShortcutsDialog';
 
 import {
   PATH_STRUCTURE,
