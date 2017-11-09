@@ -979,11 +979,16 @@ class StructureRoute extends PureComponent {
    * @param {Immutable.List<Object>} routes
    * @param {Object} parentRoute
    * @param {Immutable.List<number>} routesIds
-   * @param {?Object} [parentWithoutOutlet=null]
+   * @param {boolean} [parentWithoutOutlet=false]
    * @return {ReactElement}
    * @private
    */
-  _renderRouteList(routes, parentRoute, routesIds, parentWithoutOutlet = null) {
+  _renderRouteList(
+    routes,
+    parentRoute,
+    routesIds,
+    parentWithoutOutlet = false,
+  ) {
     const {
       selectedRouteId,
       indexRouteSelected,
@@ -1050,11 +1055,11 @@ class StructureRoute extends PureComponent {
    *
    * @param {Immutable.List<Object>} routes
    * @param {number} routeId
-   * @param {?Object} [parentWithoutOutlet=null]
+   * @param {boolean} [parentWithoutOutlet=false]
    * @return {ReactElement}
    * @private
    */
-  _renderRouteCard(routes, routeId, parentWithoutOutlet = null) {
+  _renderRouteCard(routes, routeId, parentWithoutOutlet = false) {
     const {
       selectedRouteId,
       indexRouteSelected,
