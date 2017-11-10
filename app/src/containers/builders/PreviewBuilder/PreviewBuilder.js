@@ -852,8 +852,10 @@ class PreviewBuilderComponent extends PureComponent {
           
           ret = ret.setIn([jssyValue, idx], pageInfo);
         }
+
+        const alias = `${step.field}${jssyValue.sourceData.aliasPostfix}`;
         
-        currentNode = currentNode[step.field];
+        currentNode = currentNode[alias];
         currentTypeName = field.type;
       });
     };
