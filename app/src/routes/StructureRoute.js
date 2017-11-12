@@ -1188,7 +1188,7 @@ class StructureRoute extends PureComponent {
       ? 'error'
       : 'neutral';
   
-    let pathInputMessage = '';
+    let pathInputMessage = getLocalizedText('structure.pathHelpMessage');
     if (pathPatternError) {
       pathInputMessage = getLocalizedText('structure.pathErrorMessage');
     } else if (routeAlreadyExists) {
@@ -1244,7 +1244,6 @@ class StructureRoute extends PureComponent {
         minWidth={400}
         open={createRouteDialogIsVisible}
         closeOnEscape
-        closeOnBackdropClick
         onEnterKeyPress={this._handleCreateRouteDialogEnterKey}
         onClose={this._handleCreateRouteDialogClose}
       >

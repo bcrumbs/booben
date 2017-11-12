@@ -45,6 +45,7 @@
   "structure.title": "Title",
   "structure.routeDescription": "Description",
   "structure.path": "Path",
+  "structure.pathHelpMessage": "To create and use variable type its name starting with ':' (ex. ':userName').",
   "structure.pathErrorMessage": "Path can only contain letters, numbers, and underscores",
   "structure.routeAlreadyExistsMessage": "Route {path} already exists",
   "structure.deleteRouteConfirmationMessage": "All child routes will be deleted too.",
