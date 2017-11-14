@@ -193,9 +193,9 @@ const ProjectState = RecordWithHistory({
   draggingComponent: false,
   draggedComponentId: INVALID_ID,
   draggedComponents: null,
-  draggingOverPlaceholder: false,
-  placeholderContainerId: INVALID_ID,
-  placeholderAfter: -1,
+  draggingOverPlaceholder: false, // если он тру, то мы уже находимся на том месте, где можно дропнуть
+  placeholderContainerId: INVALID_ID, // Kuda nusno dropnut'
+  placeholderAfter: -1, //vishe
   selectedRouteId: INVALID_ID,
   indexRouteSelected: false,
   languageForComponentProps: 'en',

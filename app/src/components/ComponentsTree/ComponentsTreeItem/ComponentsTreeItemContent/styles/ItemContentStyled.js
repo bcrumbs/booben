@@ -1,10 +1,10 @@
 import styled, { css } from 'styled-components';
 import { transition } from '@reactackle/reactackle';
-import constants from '../../styles/constants';
+import constants from '../../../styles/constants';
 
 import {
   textColorMedium,
-} from '../../../../styles/themeSelectors';
+} from '../../../../../styles/themeSelectors';
 
 const disabledStyles = css`
   &,
@@ -48,19 +48,11 @@ const disabled = ({ disabled }) => disabled
   ? disabledStyles
   : '';
 
-// TODO remove this after fixing TreeItem & adding props
-const temporary = () => `
-  &:hover,
-  &:focus {
-    background-color: rgba(0, 0, 0, 0.15);    
-  }
-`;
 
 export const ItemContentStyled = styled.div`
   display: flex;
   align-items: center;
   padding: 0 ${constants.itemPaddingX}px;
-  ${temporary}
   ${hovered}
   ${active}
   ${selected}

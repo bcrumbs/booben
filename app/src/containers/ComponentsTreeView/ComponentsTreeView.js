@@ -25,6 +25,7 @@ import {
   ComponentsTree,
   ComponentsTreeItem,
   ComponentsTreeItemTitle,
+  ComponentsTreeItemContent,
   ComponentsTreeList,
   ComponentsTreeCursor,
 } from '../../components/ComponentsTree/ComponentsTree';
@@ -255,9 +256,8 @@ const calcCursorPosition = (pageY, element, borderPixels) => {
   return ret;
 };
 
-
-const DraggableComponentTitle =
-  connectDraggable(draggable(ComponentsTreeItemTitle));
+const DraggableComponentItemContent =
+  connectDraggable(draggable(ComponentsTreeItemContent));
 
 const DRAG_THROTTLE = 100;
 
@@ -1035,13 +1035,10 @@ class ComponentsTreeViewComponent extends PureComponent {
       !pickingComponentFilter(componentId);
     
     const titleElement = (
-      <DraggableComponentTitle
+      <ComponentsTreeItemTitle
         componentId={componentId}
         title={title}
         subtitle={subtitle}
-        disabled={disabled}
-        active={active}
-        hovered={hovered}
         dragEnable={isDraggable}
         dragStartRadius={DND_DRAG_START_RADIUS_TREE}
         dragTitle={title}
@@ -1061,7 +1058,26 @@ class ComponentsTreeViewComponent extends PureComponent {
         itemElement={titleElement}
         onExpand={this._handleExpand}
       >
-        {subLevel}
+        <DraggableComponentItemContent
+          key={String(componentId)}
+          componentId={componentId}
+          expanded={expanded}
+          itemElement={titleElement}
+          onExpand={this._handleExpand}
+          disabled={disabled}
+          active={active}
+          hovered={hovered}
+          subLevel={subLevel}
+          dragEnable={isDraggable}
+          dragStartRadius={DND_DRAG_START_RADIUS_TREE}
+          dragTitle={title}
+          dragData={dragData}
+          elementRef={this._saveItemRef}
+          onSelect={this._handleSelect}
+          onHover={this._handleHover}
+          onDragStart={this._handleComponentDragStart}
+        />
+        { expanded && subLevel}
       </ComponentsTreeItem>
     );
   }
