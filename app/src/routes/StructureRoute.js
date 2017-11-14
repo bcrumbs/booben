@@ -978,11 +978,16 @@ class StructureRoute extends PureComponent {
    * @param {Immutable.List<Object>} routes
    * @param {Object} parentRoute
    * @param {Immutable.List<number>} routesIds
-   * @param {?Object} [parentWithoutOutlet=null]
+   * @param {boolean} [parentWithoutOutlet=false]
    * @return {ReactElement}
    * @private
    */
-  _renderRouteList(routes, parentRoute, routesIds, parentWithoutOutlet = null) {
+  _renderRouteList(
+    routes,
+    parentRoute,
+    routesIds,
+    parentWithoutOutlet = false,
+  ) {
     const {
       selectedRouteId,
       indexRouteSelected,
@@ -1049,17 +1054,17 @@ class StructureRoute extends PureComponent {
    *
    * @param {Immutable.List<Object>} routes
    * @param {number} routeId
-   * @param {?Object} [parentWithoutOutlet=null]
+   * @param {boolean} [parentWithoutOutlet=false]
    * @return {ReactElement}
    * @private
    */
-  _renderRouteCard(routes, routeId, parentWithoutOutlet = null) {
+  _renderRouteCard(routes, routeId, parentWithoutOutlet = false) {
     const {
       selectedRouteId,
       indexRouteSelected,
       getLocalizedText,
     } = this.props;
-    
+
     const route = routes.get(routeId);
     const isSelected = selectedRouteId === route.id && !indexRouteSelected;
     const willRenderChildren = route.children.size > 0 || route.haveIndex;
@@ -1067,7 +1072,7 @@ class StructureRoute extends PureComponent {
     let outletWarning = false;
     let outletWarningTooltip = '';
 
-    if (!parentWithoutOutlet && route.children.size > 0) {
+    if (route.children.size > 0) {
       const outlet = findComponent(
         route.components,
         route.component,
@@ -1087,7 +1092,7 @@ class StructureRoute extends PureComponent {
         routes,
         route,
         route.children,
-        parentWithoutOutlet || (outletWarning ? route : null),
+        parentWithoutOutlet || outletWarning,
       );
     } else {
       children = isSelected
@@ -1095,7 +1100,7 @@ class StructureRoute extends PureComponent {
           routes,
           route,
           null,
-          parentWithoutOutlet || (outletWarning ? route : null),
+          parentWithoutOutlet || outletWarning,
         )
         : null;
     }
@@ -1103,13 +1108,12 @@ class StructureRoute extends PureComponent {
     let parentOutletWarningMessage = null;
     let disabled = false;
 
-    if (parentWithoutOutlet !== null) {
+    if (parentWithoutOutlet) {
       disabled = true;
 
       if (isSelected) {
         const messageText = getLocalizedText(
           'structure.noOutletWarning',
-          { routeTitle: parentWithoutOutlet.title },
         );
 
         parentOutletWarningMessage = (
@@ -1184,7 +1188,7 @@ class StructureRoute extends PureComponent {
       ? 'error'
       : 'neutral';
   
-    let pathInputMessage = '';
+    let pathInputMessage = getLocalizedText('structure.pathHelpMessage');
     if (pathPatternError) {
       pathInputMessage = getLocalizedText('structure.pathErrorMessage');
     } else if (routeAlreadyExists) {
@@ -1240,7 +1244,6 @@ class StructureRoute extends PureComponent {
         minWidth={400}
         open={createRouteDialogIsVisible}
         closeOnEscape
-        closeOnBackdropClick
         onEnterKeyPress={this._handleCreateRouteDialogEnterKey}
         onClose={this._handleCreateRouteDialogClose}
       >

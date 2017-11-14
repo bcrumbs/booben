@@ -4,7 +4,6 @@
 
 import { Record, List } from 'immutable';
 import { mapListToArray } from '../utils/misc';
-import { FUNCTION_FNS_ARG_NAME } from '../constants/misc';
 
 export const ProjectFunctionArgument = Record({
   name: '',
@@ -34,7 +33,6 @@ const ProjectFunction = Record({
  */
 export const createJSFunction = (argNames, body) => new Function(
   ...argNames,
-  FUNCTION_FNS_ARG_NAME,
   body,
 );
 
