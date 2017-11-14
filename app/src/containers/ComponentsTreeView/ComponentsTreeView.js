@@ -991,15 +991,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     
     const component = components.get(componentId);
 
-    let title;
-    let subtitle;
-    if (component.title) {
-      title = component.title;
-      subtitle = component.name;
-    } else {
-      title = component.name;
-      subtitle = '';
-    }
+    const title = component.title;
     
     let expanded = expandedItemIds.has(componentId);
     if (!expanded && draggingOverPlaceholder) {
@@ -1045,10 +1037,6 @@ class ComponentsTreeViewComponent extends PureComponent {
     return (
       <ComponentsTreeItem
         key={String(componentId)}
-        componentId={componentId}
-        expanded={expanded}
-        itemElement={titleElement}
-        onExpand={this._handleExpand}
       >
         <DraggableComponentItemContent
           key={String(componentId)}

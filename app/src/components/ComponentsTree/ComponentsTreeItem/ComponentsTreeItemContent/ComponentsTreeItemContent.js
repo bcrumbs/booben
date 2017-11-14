@@ -98,6 +98,7 @@ export class ComponentsTreeItemContent extends PureComponent {
     const { expanded, itemElement, hasSubLevel } = this.props;
     let button = null;
     let spacer = null;
+    
     if (hasSubLevel) {
       button = (
         <ButtonsStyled>
