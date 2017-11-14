@@ -6,6 +6,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Button } from '@reactackle/reactackle';
+import { getNestedTypedef } from '@jssy/types';
 
 import {
   BlockContentBox,
@@ -13,14 +14,13 @@ import {
   BlockContentPlaceholder,
 } from '../../components/BlockContent';
 
-import { getNestedTypedef } from '@jssy/types';
-import { DesignDialog } from '../DesignDialog/DesignDialog';
 import { PropsList } from '../../components/PropsList/PropsList';
+import { PropsGroup } from '../../components/PropsGroup/PropsGroup';
+import { DesignDialog } from '../DesignDialog/DesignDialog';
 import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
 import { ActionEditor } from '../ActionEditor/ActionEditor';
 import { ActionsList } from '../ActionsList/ActionsList';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
-import { PropsGroup } from '../../components/PropsGroup/PropsGroup';
 import JssyValue, { SourceDataState } from '../../models/JssyValue';
 
 import {
@@ -799,7 +799,9 @@ class ComponentPropsEditorComponent extends PureComponent {
           </PropsList>
         </BlockContentBoxItem>
       );
+
       expanded.push(group.title);
+
       return {
         id: group.title,
         title: group.title,
