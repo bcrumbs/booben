@@ -162,7 +162,6 @@ export class PropBase extends PureComponent {
       deletable,
       linkable,
       linked,
-      pickable,
       checkable,
       checked,
       expanded,
@@ -273,18 +272,6 @@ export class PropBase extends PureComponent {
       );
     
       actionItemsRight.push(linkAction);
-    }
-
-    if (pickable && (!checkable || checked)) {
-      const pickAction = (
-        <PropAction
-          key="pick"
-          icon="eyedropper"
-          onPress={this._handlePick}
-        />
-      );
-
-      actionItemsRight.push(pickAction);
     }
   
     let actionsRightElement = null;

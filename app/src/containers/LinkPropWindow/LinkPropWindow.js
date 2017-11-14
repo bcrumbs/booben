@@ -77,6 +77,7 @@ const propTypes = {
   getLocalizedText: PropTypes.func.isRequired,
   onLink: PropTypes.func,
   onCreateFunction: PropTypes.func.isRequired,
+  onPick: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -221,6 +222,11 @@ class LinkPropWindowComponent extends PureComponent {
     items.push({
       id: 'function',
       title: getLocalizedText('linkDialog.source.function'),
+    });
+
+    items.push({
+      id: 'otherComponent',
+      title: getLocalizedText('linkDialog.source.otherComponent'),
     });
     
     return items;
@@ -428,7 +434,7 @@ class LinkPropWindowComponent extends PureComponent {
    */
   _renderSourceSelection() {
     const sourceItems = this._getAvailableSources();
-    
+
     //noinspection JSValidateTypes
     return (
       <LinkSourceSelection
@@ -617,6 +623,11 @@ class LinkPropWindowComponent extends PureComponent {
       content = this._renderRouteParamsSelection();
     } else if (selectedSourceId === 'actionArg') {
       content = this._renderActionArgSelection();
+    } else if (selectedSourceId === 'otherComponent') {
+      this.props.onPick({
+        name: this.props.name,
+        path: [],
+      });
     } else if (selectedSourceId.startsWith('context')) {
       content = this._renderDataSelection(
         selectedSourceData.dataContext,

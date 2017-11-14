@@ -334,6 +334,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     });
 
     onPickComponentData(filter, dataGetter);
+    this._handleLinkCancel();
   }
 
   _handlePickApply({ componentId, stateSlot }) {
@@ -346,7 +347,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       source: 'state',
       sourceData: new SourceDataState({ componentId, stateSlot }),
     });
-
+    
     onReplacePropValue(pickingPath, newValue);
   }
 
@@ -624,7 +625,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     
     const visibleDesc =
       getLocalizedText('propsEditor.systemProps.visible.desc');
-    
+
     return (
       <BlockContentBoxItem
         key="__system_props__"
@@ -853,6 +854,10 @@ class ComponentPropsEditorComponent extends PureComponent {
             valueDef={linkingValueDef}
             userTypedefs={componentMeta.types}
             onLink={this._handleLinkApply}
+            onPick={this.props.pickedComponentId === -1
+              ? this._handleSystemPropPick
+              : this._handlePick
+            }
           />
         </DesignDialog>
       </BlockContentBox>
