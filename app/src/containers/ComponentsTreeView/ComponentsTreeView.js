@@ -1036,17 +1036,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     
     const titleElement = (
       <ComponentsTreeItemTitle
-        componentId={componentId}
         title={title}
-        subtitle={subtitle}
-        dragEnable={isDraggable}
-        dragStartRadius={DND_DRAG_START_RADIUS_TREE}
-        dragTitle={title}
-        dragData={dragData}
-        elementRef={this._saveItemRef}
-        onSelect={this._handleSelect}
-        onHover={this._handleHover}
-        onDragStart={this._handleComponentDragStart}
       />
     );
 

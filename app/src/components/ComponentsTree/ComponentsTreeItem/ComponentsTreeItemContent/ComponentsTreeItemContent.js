@@ -22,6 +22,8 @@ const propTypes = {
   hovered: PropTypes.bool,
   disabled: PropTypes.bool,
   onExpand: PropTypes.func,
+  onHover: PropTypes.func,
+  onSelect: PropTypes.func,
 };
 
 const defaultProps = {
@@ -34,6 +36,8 @@ const defaultProps = {
   hovered: false,
   disabled: false,
   onExpand: noop,
+  onHover: noop,
+  onSelect: noop,
 };
 
 export class ComponentsTreeItemContent extends PureComponent {
@@ -41,8 +45,11 @@ export class ComponentsTreeItemContent extends PureComponent {
     super(props, context);
     
     this._expandButtonElement = null;
-  
     this._saveExpandButtonRef = this._saveExpandButtonRef.bind(this);
+    this._handleHoverIn = this._handleHoverIn.bind(this);
+    this._handleHoverOut = this._handleHoverOut.bind(this);
+    this._handleClick = this._handleClick.bind(this);
+    this._saveItemContentRef = this._saveItemContentRef.bind(this);
   }
   
   componentDidMount() {
@@ -56,10 +63,33 @@ export class ComponentsTreeItemContent extends PureComponent {
   _saveExpandButtonRef(ref) {
     this._expandButtonElement = ref;
   }
+
+  _handleHoverIn() {
+    const { componentId, disabled, onHover } = this.props;
+    if (!disabled) onHover({ componentId, hovered: true });
+  }
+  
+  _handleHoverOut() {
+    const { componentId, disabled, onHover } = this.props;
+    if (!disabled) onHover({ componentId, hovered: false });
+  }
   
   _handleExpand() {
     const { componentId, expanded, onExpand } = this.props;
     onExpand({ componentId, expanded: !expanded });
+  }
+
+  _handleClick(event) {
+    const { componentId, active, disabled, onSelect } = this.props;
+    if (!disabled) {
+      event.stopPropagation();
+      onSelect({ componentId, selected: !active });
+    }
+  }
+  _saveItemContentRef(ref) {
+    const { componentId, elementRef } = this.props;
+    this._titleElement = ref;
+    elementRef({ componentId, ref });
   }
   
   render() {
@@ -87,6 +117,10 @@ export class ComponentsTreeItemContent extends PureComponent {
         active={this.props.active}
         selected={this.props.selected}
         disabled={this.props.disabled}
+        innerRef={this._saveItemContentRef}
+        onMouseOver={this._handleHoverIn}
+        onMouseOut={this._handleHoverOut}
+        onClick={this._handleClick}
       >
         {spacer}
         {button}
