@@ -1040,6 +1040,8 @@ class ComponentsTreeViewComponent extends PureComponent {
       />
     );
 
+    const hasSubLevel = !!subLevel;
+
     return (
       <ComponentsTreeItem
         key={String(componentId)}
@@ -1057,7 +1059,7 @@ class ComponentsTreeViewComponent extends PureComponent {
           disabled={disabled}
           active={active}
           hovered={hovered}
-          subLevel={subLevel}
+          hasSubLevel={hasSubLevel}
           dragEnable={isDraggable}
           dragStartRadius={DND_DRAG_START_RADIUS_TREE}
           dragTitle={title}

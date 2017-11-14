@@ -14,7 +14,7 @@ import { SpacerStyled } from '../styles/SpacerStyled';
 const propTypes = {
   componentId: PropTypes.number.isRequired,
   itemElement: PropTypes.element,
-  subLevel: PropTypes.element,
+  hasSubLevel: PropTypes.bool,
   expanded: PropTypes.bool,
   // visible: PropTypes.bool,
   active: PropTypes.bool,
@@ -29,7 +29,7 @@ const propTypes = {
 
 const defaultProps = {
   itemElement: null,
-  subLevel: null,
+  hasSubLevel: false,
   expanded: false,
   visible: false,
   active: false,
@@ -95,11 +95,10 @@ export class ComponentsTreeItemContent extends PureComponent {
   }
   
   render() {
-    const { expanded, itemElement, subLevel } = this.props;
+    const { expanded, itemElement, hasSubLevel } = this.props;
     let button = null;
     let spacer = null;
-
-    if (subLevel) {
+    if (hasSubLevel) {
       button = (
         <ButtonsStyled>
           <IconStyled innerRef={this._saveExpandButtonRef}>
