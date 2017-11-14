@@ -24,6 +24,7 @@ const propTypes = {
   onExpand: PropTypes.func,
   onHover: PropTypes.func,
   onSelect: PropTypes.func,
+  elementRef: PropTypes.func,
 };
 
 const defaultProps = {
@@ -38,6 +39,7 @@ const defaultProps = {
   onExpand: noop,
   onHover: noop,
   onSelect: noop,
+  elementRef: noop,
 };
 
 export class ComponentsTreeItemContent extends PureComponent {

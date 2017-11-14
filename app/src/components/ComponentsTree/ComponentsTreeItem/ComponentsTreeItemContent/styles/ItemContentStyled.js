@@ -52,6 +52,7 @@ const disabled = ({ disabled }) => disabled
 export const ItemContentStyled = styled.div`
   display: flex;
   align-items: center;
+  user-select: none;
   padding: 0 ${constants.itemPaddingX}px;
   ${hovered}
   ${active}
