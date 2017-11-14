@@ -1042,9 +1042,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     return (
       <ComponentsTreeItem
         key={String(componentId)}
-       
       >
-
         <DraggableComponentItemContent
           key={String(componentId)}
           componentId={componentId}
