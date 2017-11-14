@@ -918,11 +918,7 @@ class ComponentsTreeViewComponent extends PureComponent {
   _getClosestItemComponentId(pageY) {
     let closestItemComponentId = INVALID_ID;
     let minHeightDiff = Infinity;
-    console.log('this._itemElements', this._itemElements);
-    console.log('this._itemElements', this._itemElements);
     this._itemElements.forEach((ref, componentId) => {
-      console.log(ref);
-      console.log('not ref', !ref)
       if (!ref) return;
       
       const { top, bottom } = ref.getBoundingClientRect();
