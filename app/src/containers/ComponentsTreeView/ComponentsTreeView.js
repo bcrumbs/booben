@@ -380,7 +380,7 @@ class ComponentsTreeViewComponent extends PureComponent {
    */
   _snapToLineElement() {
     const { dropZoneId, onDropZoneSnap } = this.props;
-    
+    if (!this._lineElement) return;
     const lineRect = this._lineElement.getBoundingClientRect();
     const boxRect = this._contentBoxElement.getBoundingClientRect();
   
@@ -918,8 +918,11 @@ class ComponentsTreeViewComponent extends PureComponent {
   _getClosestItemComponentId(pageY) {
     let closestItemComponentId = INVALID_ID;
     let minHeightDiff = Infinity;
-    
+    console.log('this._itemElements', this._itemElements);
+    console.log('this._itemElements', this._itemElements);
     this._itemElements.forEach((ref, componentId) => {
+      console.log(ref);
+      console.log('not ref', !ref)
       if (!ref) return;
       
       const { top, bottom } = ref.getBoundingClientRect();
@@ -991,7 +994,13 @@ class ComponentsTreeViewComponent extends PureComponent {
     
     const component = components.get(componentId);
 
-    const title = component.title;
+    let title;
+    if (component.title) {
+      title = component.title;
+    } else {
+      title = component.name;
+    }
+
     
     let expanded = expandedItemIds.has(componentId);
     if (!expanded && draggingOverPlaceholder) {
@@ -1037,7 +1046,9 @@ class ComponentsTreeViewComponent extends PureComponent {
     return (
       <ComponentsTreeItem
         key={String(componentId)}
+       
       >
+
         <DraggableComponentItemContent
           key={String(componentId)}
           componentId={componentId}
