@@ -725,6 +725,35 @@ class ComponentPropsEditorComponent extends PureComponent {
     }
   }
 
+  _renderGroup({ props, title }) {
+    const componentId = this.props.selectedComponentIds.first();
+    const component = this.props.components.get(componentId);
+    const componentMeta = getComponentMeta(component.name, this.props.meta);
+
+    const controls = props.map(propName => this._renderPropsItem(
+      componentMeta,
+      propName,
+      component.props.get(propName) || null,
+    ));
+
+    const content = (
+      <BlockContentBoxItem
+        key={title}
+        hidden={this.state.editingActions}
+      >
+        <PropsList>
+          {controls}
+        </PropsList>
+      </BlockContentBoxItem>
+    );
+
+    return {
+      id: title,
+      title,
+      content,
+    };
+  }
+
   render() {
     const { selectedComponentIds, getLocalizedText } = this.props;
     
@@ -732,7 +761,6 @@ class ComponentPropsEditorComponent extends PureComponent {
       linkingProp,
       linkingValueDef,
       linkWindowName,
-      editingActions,
     } = this.state;
 
     if (selectedComponentIds.size === 0) {
@@ -783,31 +811,19 @@ class ComponentPropsEditorComponent extends PureComponent {
     const content = [];
     const expanded = [];
     const groups = propGroups.map(group => {
-      const controls = group.props.map(propName => this._renderPropsItem(
-        componentMeta,
-        propName,
-        component.props.get(propName) || null,
-      ));
-
-      const content = (
-        <BlockContentBoxItem
-          key={group.name}
-          hidden={editingActions}
-        >
-          <PropsList>
-            {controls}
-          </PropsList>
-        </BlockContentBoxItem>
-      );
-
-      expanded.push(group.title);
-
-      return {
-        id: group.title,
-        title: group.title,
-        content,
-      };
+      const groupDescription = this._renderGroup(group);
+      expanded.push(groupDescription.id);
+      return groupDescription;
     });
+
+    if (propsWithoutGroup.length > 0) {
+      const groupDescription = this._renderGroup({
+        title: getLocalizedText('propsEditor.propsWithoutGroup.name'),
+        props: propsWithoutGroup,
+      });
+      expanded.push(groupDescription.id);
+      groups.push(groupDescription);
+    }
 
     content.push(
       <PropsGroup
@@ -815,25 +831,6 @@ class ComponentPropsEditorComponent extends PureComponent {
         items={groups}
       />,
     );
-
-    if (propsWithoutGroup.length > 0) {
-      const controls = propsWithoutGroup.map(propName => this._renderPropsItem(
-        componentMeta,
-        propName,
-        component.props.get(propName) || null,
-      ));
-
-      content.push(
-        <BlockContentBoxItem
-          key="__no_group__"
-          hidden={editingActions}
-        >
-          <PropsList>
-            {controls}
-          </PropsList>
-        </BlockContentBoxItem>,
-      );
-    }
     
     const systemProps = this._renderSystemProps(component);
     const actionsEditor = this._renderActionsEditor();
