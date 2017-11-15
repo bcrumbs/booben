@@ -13,6 +13,7 @@ const propTypes = {
   saving: PropTypes.bool.isRequired,
   lastSaveError: PropTypes.object,
   lastSavedRevision: PropTypes.number.isRequired,
+  lastSaveTimestamp: PropTypes.number.isRequired,
   getLocalizedText: PropTypes.func,
 };
 
@@ -25,18 +26,26 @@ const mapStateToProps = state => ({
   saving: state.project.saving,
   lastSaveError: state.project.lastSaveError,
   lastSavedRevision: state.project.lastSavedRevision,
+  lastSaveTimestamp: state.project.lastSaveTimestamp,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const wrap = connect(mapStateToProps);
 
 const ProjectSaveIndicatorComponent = props => {
-  const { saving, lastSaveError, lastSavedRevision, getLocalizedText } = props;
+  const {
+    saving,
+    lastSaveError,
+    lastSavedRevision,
+    getLocalizedText,
+    lastSaveTimestamp,
+  } = props;
   
   let title = '';
   let tooltip = '';
   let status = '';
-  
+  let savedTimestamp = null;
+
   if (saving) {
     title = getLocalizedText('appHeader.saveIndicator.title.saving');
     tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.saving');
@@ -49,6 +58,7 @@ const ProjectSaveIndicatorComponent = props => {
     title = getLocalizedText('appHeader.saveIndicator.title.saved');
     tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.saved');
     status = 'success';
+    savedTimestamp = lastSaveTimestamp;
   } else {
     title = getLocalizedText('appHeader.saveIndicator.title.idle');
     tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.idle');
@@ -60,6 +70,7 @@ const ProjectSaveIndicatorComponent = props => {
       status={status}
       title={title}
       tooltip={tooltip}
+      savedTimestamp={savedTimestamp}
     />
   );
 };

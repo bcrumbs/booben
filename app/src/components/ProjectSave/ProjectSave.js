@@ -13,16 +13,21 @@ const propTypes = {
   toggleTooltip: PropTypes.func.isRequired,
   showTooltip: PropTypes.func.isRequired,
   hideTooltip: PropTypes.func.isRequired,
+  savedTimestamp: PropTypes.number,
   Tooltip: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
+  savedTimestamp: null,
   status: 'default',
   title: '',
   tooltipText: '',
 };
 
 const ProjectSaveComponent = props => {
+  const savedTime = props.savedTimestamp
+    ? new Date(props.savedTimestamp).toLocaleString()
+    : null;
   let icon = null;
   
   if (props.status === 'error') {
