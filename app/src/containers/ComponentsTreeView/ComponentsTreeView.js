@@ -832,7 +832,7 @@ class ComponentsTreeViewComponent extends PureComponent {
       onDeselectItem,
       onPickComponent,
     } = this.props;
-
+    
     if (pickingComponent) {
       onPickComponent(componentId);
     } else if (!pickingComponentData) {
@@ -1007,7 +1007,19 @@ class ComponentsTreeViewComponent extends PureComponent {
       }
     }
 
-    const hovered = highlightedComponentIds.has(componentId);
+    let hovered = false;
+    const highlightedComponentId = highlightedComponentIds.first();
+    if (highlightedComponentId) {
+      let currentID = highlightedComponentId;
+      while (!expandedItemIds.has(currentID)) {
+        if (currentID !== INVALID_ID) {
+          const parentId = components.get(currentID).parentId;
+          if (currentID === componentId) hovered = true;
+          currentID = parentId;
+        }
+      }
+    }
+    
     const active =
       !pickingComponent &&
       !pickingComponentData &&
