@@ -111,7 +111,7 @@ const extend = OriginalComponent => class extends OriginalComponent {
 
     if (!dragEnable) return;
     
-    event.stopPropagation();
+    event.target.click();
   
     this.__draggableTryingStartDrag = true;
     window.addEventListener('mousemove', this.__draggableHandleMouseMove);
