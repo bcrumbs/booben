@@ -42,11 +42,13 @@ export const selectPreviewComponent = (
   componentId,
   exclusive = false,
   openConfigurationTool = false,
+  expandParents,
 ) => ({
   type: PREVIEW_SELECT_COMPONENT,
   componentId,
   exclusive,
   openConfigurationTool,
+  expandParents,
 });
 
 /**

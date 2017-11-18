@@ -171,7 +171,7 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(collapseTreeItem(id)),
   
   onSelectItem: id =>
-    void dispatch(selectPreviewComponent(id, true, false)),
+    void dispatch(selectPreviewComponent(id, true, false, false)),
   
   onDeselectItem: id =>
     void dispatch(deselectPreviewComponent(id)),

@@ -106,7 +106,7 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(toggleComponentSelection(componentId)),
   
   onSelectSingleComponent: componentId =>
-    void dispatch(selectPreviewComponent(componentId, true, true)),
+    void dispatch(selectPreviewComponent(componentId, true, true, true)),
   
   onHighlightComponent: componentId =>
     void dispatch(highlightPreviewComponent(componentId)),
