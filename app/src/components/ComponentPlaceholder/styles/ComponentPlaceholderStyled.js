@@ -32,7 +32,8 @@ export const ComponentPlaceholderStyled = styled.div`
   border-radius: ${radiusDefault}px;
   cursor: move;
   user-select: none;
-  ${placed}
+  height: 1px;
+  width: 100%;
   ${visible}
   
   &,
