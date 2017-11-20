@@ -742,7 +742,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     if (!isDraggingOnTree) return;
     
     const componentId = this._getClosestItemComponentId(pageY);
-
+    
     if (componentId === INVALID_ID) {
       if (draggingOverPlaceholder) onDragOverNothing();
       return;
@@ -920,14 +920,10 @@ class ComponentsTreeViewComponent extends PureComponent {
     let minHeightDiff = Infinity;
     this._itemElements.forEach((ref, componentId) => {
       if (!ref) return;
-      
       const { top, bottom } = ref.getBoundingClientRect();
       
-      const heightDiff = Math.min(
-        Math.abs(pageY - top),
-        Math.abs(pageY - bottom),
-      );
-      
+      const heightDiff = Math.abs(pageY - top) + Math.abs(pageY - bottom);
+
       if (heightDiff > MAX_HEIGHT_DIFF) return;
       
       if (heightDiff < minHeightDiff) {
@@ -935,7 +931,6 @@ class ComponentsTreeViewComponent extends PureComponent {
         closestItemComponentId = componentId;
       }
     });
-    
     return closestItemComponentId;
   }
   
