@@ -1571,6 +1571,26 @@ const handlers = {
   
   [PREVIEW_SELECT_COMPONENT]: (state, action) => {
     state = state.set('showAllComponentsOnPalette', false);
+
+    if (action.expandParents) {
+      const pathToCurrentComponents = getPathToCurrentComponents(state);
+      const currentComponents = state.getIn(pathToCurrentComponents);
+
+      let componentsToExpand = [];
+      let currentComponentId = action.componentId;
+
+      while (currentComponentId !== INVALID_ID) {
+        const { parentId } = currentComponents.get(currentComponentId);
+  
+        if (parentId !== INVALID_ID) {
+          componentsToExpand = [...componentsToExpand, parentId];
+        }
+
+        currentComponentId = parentId;
+      }
+      state = updateDesigner(state, designer =>
+        designer.expandTreeItems(componentsToExpand));
+    }
     
     return updateDesigner(state, action.exclusive
       ? designer => designer.selectComponentExclusive(action.componentId)
