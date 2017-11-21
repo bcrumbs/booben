@@ -117,6 +117,11 @@ import {
   TOOL_ID_PROPS_EDITOR,
 } from '../constants/tool-ids';
 
+import {
+  isInputOrTextareaActive,
+} from '../utils/dom';
+
+
 import { buildStructurePath } from '../constants/paths';
 import * as JssyPropTypes from '../constants/common-prop-types';
 import { INVALID_ID } from '../constants/misc';
@@ -436,16 +441,6 @@ class DesignRoute extends PureComponent {
     return true;
   }
 
-  /**
-   *
-   * @private
-   */
-  _isInputOrTextareaActive() {
-    const nodeName = document.activeElement.nodeName;
-    const isInputOrTextareaActive =
-      nodeName === 'INPUT' || nodeName === 'TEXTAREA';
-    return isInputOrTextareaActive;
-  }
   
   /**
    *
@@ -458,7 +453,9 @@ class DesignRoute extends PureComponent {
       case 'REDO': this.props.onRedo(); break;
       
       case 'DELETE_COMPONENT': {
-        this._handleDeleteSelectedComponent();
+        if (!isInputOrTextareaActive()) {
+          this._handleDeleteSelectedComponent();
+        }
         break;
       }
       
@@ -514,7 +511,7 @@ class DesignRoute extends PureComponent {
    * @private
    */
   _handleDeleteSelectedComponent() {
-    if (this._isDeletable() && !this._isInputOrTextareaActive()) {
+    if (this._isDeletable()) {
       this._handleDeleteComponentButtonPress();
     }
   }
