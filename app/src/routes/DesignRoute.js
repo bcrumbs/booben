@@ -435,6 +435,17 @@ class DesignRoute extends PureComponent {
 
     return true;
   }
+
+  /**
+   *
+   * @private
+   */
+  _isInputOrTextareaActive() {
+    const nodeName = document.activeElement.nodeName;
+    const isInputOrTextareaActive =
+      nodeName === 'INPUT' || nodeName === 'TEXTAREA';
+    return isInputOrTextareaActive;
+  }
   
   /**
    *
@@ -503,7 +514,7 @@ class DesignRoute extends PureComponent {
    * @private
    */
   _handleDeleteSelectedComponent() {
-    if (this._isDeletable()) {
+    if (this._isDeletable() && !this._isInputOrTextareaActive()) {
       this._handleDeleteComponentButtonPress();
     }
   }
