@@ -117,9 +117,7 @@ import {
   TOOL_ID_PROPS_EDITOR,
 } from '../constants/tool-ids';
 
-import {
-  isInputOrTextareaActive,
-} from '../utils/dom';
+import { isInputOrTextareaActive } from '../utils/dom';
 
 
 import { buildStructurePath } from '../constants/paths';
@@ -441,7 +439,6 @@ class DesignRoute extends PureComponent {
     return true;
   }
 
-  
   /**
    *
    * @param {string} action
