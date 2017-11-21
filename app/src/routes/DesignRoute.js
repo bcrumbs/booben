@@ -118,7 +118,6 @@ import {
 } from '../constants/tool-ids';
 
 import { isInputOrTextareaActive } from '../utils/dom';
-
 import { buildStructurePath } from '../constants/paths';
 import * as JssyPropTypes from '../constants/common-prop-types';
 import { INVALID_ID } from '../constants/misc';
