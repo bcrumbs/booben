@@ -52,9 +52,10 @@ const loadComponentsBundleIntoWindow = async (windowInstance, url) => {
 };
 
 export default class ComponentsBundle {
-  constructor(projectName, windowInstance) {
+  constructor(projectName, windowInstance, options) {
     this._windowInstance = windowInstance;
     this._projectName = projectName;
+    this._options = options;
     this._loading = false;
     this._loaded = false;
     this._components = null;
@@ -131,10 +132,14 @@ export default class ComponentsBundle {
       );
     }
 
-    this._components = _mapValues(
-      this._windowInstance.JssyComponents.default,
-      ns => _mapValues(ns, patchComponent),
-    );
+    if (this._options.patchComponents) {
+      this._components = _mapValues(
+        this._windowInstance.JssyComponents.default,
+        ns => _mapValues(ns, patchComponent),
+      );
+    } else {
+      this._components = this._windowInstance.JssyComponents.default;
+    }
 
     this._loading = false;
     this._loaded = true;
