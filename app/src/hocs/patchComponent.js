@@ -25,8 +25,9 @@ const patchDOMElement = componentInstance => {
   const node = findDOMNode(componentInstance);
 
   if (!node) return;
-  
+
   node.addEventListener('keypress', e => e.preventDefault());
+  node.addEventListener('click', e => e.preventDefault());
   
   if (node.nodeType === Node.ELEMENT_NODE) {
     if (isNumber(componentId)) {
