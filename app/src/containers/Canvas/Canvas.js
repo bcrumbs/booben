@@ -323,8 +323,8 @@ class CanvasComponent extends Component {
       patchComponents: true,
     };
 
-    const componentsBundle = new ComponentsBundle(projectName, contentWindow, options);
-    await componentsBundle.loadComponents();
+    const componentsBundle = new ComponentsBundle(projectName, contentWindow);
+    await componentsBundle.loadComponents(options);
     
     const containerNode = document.getElementById(CANVAS_CONTAINER_ID);
     const overlayNode = document.getElementById(CANVAS_OVERLAY_ID);

@@ -52,10 +52,9 @@ const loadComponentsBundleIntoWindow = async (windowInstance, url) => {
 };
 
 export default class ComponentsBundle {
-  constructor(projectName, windowInstance, options) {
+  constructor(projectName, windowInstance) {
     this._windowInstance = windowInstance;
     this._projectName = projectName;
-    this._options = options;
     this._loading = false;
     this._loaded = false;
     this._components = null;
@@ -65,7 +64,7 @@ export default class ComponentsBundle {
    *
    * @return {Promise<void>}
    */
-  async loadComponents() {
+  async loadComponents({ patchComponents = false } = {}) {
     if (this._loaded) {
       throw new Error(
         'ComponentsBundle#loadComponents(): components already loaded',
@@ -132,7 +131,7 @@ export default class ComponentsBundle {
       );
     }
 
-    if (this._options.patchComponents) {
+    if (patchComponents) {
       this._components = _mapValues(
         this._windowInstance.JssyComponents.default,
         ns => _mapValues(ns, patchComponent),
