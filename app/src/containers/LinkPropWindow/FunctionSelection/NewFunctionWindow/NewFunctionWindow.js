@@ -221,6 +221,8 @@ export class NewFunctionWindow extends PureComponent {
           {list}
         </PropsList>
       );
+    } else {
+      argsList = 'Argument list is empty';
     }
     
     return (
