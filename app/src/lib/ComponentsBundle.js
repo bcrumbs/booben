@@ -131,7 +131,10 @@ export default class ComponentsBundle {
       );
     }
 
-    this._components = this._windowInstance.JssyComponents.default;
+    this._components = _mapValues(
+      this._windowInstance.JssyComponents.default,
+      ns => _mapValues(ns, patchComponent),
+    );
 
     this._loading = false;
     this._loaded = true;
