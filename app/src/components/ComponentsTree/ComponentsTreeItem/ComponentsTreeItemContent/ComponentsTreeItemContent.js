@@ -59,6 +59,9 @@ export class ComponentsTreeItemContent extends PureComponent {
       this._expandButtonElement.addEventListener('click', event => {
         if (event.button === 0) this._handleExpand();
       });
+      this._expandButtonElement.addEventListener('mousedown', event => {
+        event.stopPropagation();
+      });
     }
   }
   
