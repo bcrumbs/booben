@@ -58,7 +58,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     if (projectName === '') {
       throw new Error('Invalid URL');
     }
-
+    
     const componentsBundle = new ComponentsBundle(projectName, window);
     const [rawProject, rawMeta] = await Promise.all([
       getProject(projectName),
