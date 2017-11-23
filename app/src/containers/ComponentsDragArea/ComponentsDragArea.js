@@ -609,7 +609,7 @@ export class ComponentsDragArea extends PureComponent {
   }
 
   _handleSnap({ dropZoneId, element, x, y, width, height, hideTitle }) {
-    if (!this._dragging || element === this._snapElement) return;
+    if (!this._dragging) return;
 
     const dropZoneData = this._dropZones.get(dropZoneId);
     if (!dropZoneData) return;
