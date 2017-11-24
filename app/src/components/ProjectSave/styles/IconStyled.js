@@ -1,9 +1,7 @@
-'use strict';
-
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { transition, animations } from '@reactackle/reactackle';
-import { baseModule, paletteBlueGrey100 } from '../../../styles/themeSelectors';
+import { baseModule } from '../../../styles/themeSelectors';
 import { iconSize } from '../../../styles/mixins';
 
 const propTypes = {

@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
@@ -66,7 +64,7 @@ export default class ComponentsBundle {
    *
    * @return {Promise<void>}
    */
-  async loadComponents() {
+  async loadComponents({ patchComponents = false } = {}) {
     if (this._loaded) {
       throw new Error(
         'ComponentsBundle#loadComponents(): components already loaded',
@@ -133,10 +131,14 @@ export default class ComponentsBundle {
       );
     }
 
-    this._components = _mapValues(
-      this._windowInstance.JssyComponents.default,
-      ns => _mapValues(ns, patchComponent),
-    );
+    if (patchComponents) {
+      this._components = _mapValues(
+        this._windowInstance.JssyComponents.default,
+        ns => _mapValues(ns, patchComponent),
+      );
+    } else {
+      this._components = this._windowInstance.JssyComponents.default;
+    }
 
     this._loading = false;
     this._loaded = true;

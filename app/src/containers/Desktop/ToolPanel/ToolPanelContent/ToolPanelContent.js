@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Button, Tabs } from '@reactackle/reactackle';
@@ -14,8 +12,11 @@ import {
   BlockContentActions,
   BlockContentActionsRegion,
   BlockContentNavigation,
+} from '../../../../components/BlockContent';
+
+import {
   PageDrawerContentArea,
-} from '@jssy/common-ui';
+} from '../../../../components/PageDrawer';
 
 import ToolType from '../../../../models/Tool';
 import ToolStateType from '../../../../models/ToolState';

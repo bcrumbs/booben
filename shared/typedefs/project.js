@@ -52,7 +52,7 @@
 /**
  * @typedef {Object} PlainJssyValue
  * @property {string} source
- * @property {SourceDataStatic|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner|SourceDataFunction|SourceDataState|SourceDataRouteParams|SourceDataActionArg} sourceData
+ * @property {SourceDataStatic|SourceDataOwnerProp|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner|SourceDataFunction|SourceDataState|SourceDataRouteParams|SourceDataActionArg} sourceData
  */
 
 /**
@@ -67,6 +67,11 @@
  * @typedef {Object} SourceDataStatic
  * @property {scalar|SourceDataStaticObjectValue|SourceDataStaticArrayValue} [value]
  * @property {string} [ownerPropName]
+ */
+
+/**
+ * @typedef {Object} SourceDataOwnerProp
+ * @property {string} ownerPropName
  */
 
 /**
@@ -140,9 +145,17 @@
  */
 
 /**
+ * @typedef {Object} LoadMoreDataActionParams
+ * @property {number} componentId
+ * @property {Array<string>} pathToDataValue
+ * @property {Action[]} successActions
+ * @property {Action[]} errorActions
+ */
+
+/**
  * @typedef {Object} Action
  * @property {string} type
- * @property {MutationActionParams|NavigateActionParams|URLActionParams|MethodCallActionParams|PropChangeActionParams|AJAXActionParams} params
+ * @property {MutationActionParams|NavigateActionParams|URLActionParams|MethodCallActionParams|PropChangeActionParams|AJAXActionParams|LoadMoreDataActionParams} params
  */
 
 /**
@@ -166,7 +179,7 @@
  * @typedef {Object} SourceDataFunction
  * @property {string} functionSource - Can be 'project' or 'builtin'.
  * @property {string} function - Function name
- * @property {Object<string, PlainJssyValue>} args
+ * @property {Array<?PlainJssyValue>} args
  */
 
 /**
@@ -179,6 +192,7 @@
  * @property {string} title
  * @property {string} description
  * @property {FunctionArgument[]} args
+ * @property {boolean} spreadLastArg
  * @property {JssyTypeDefinition} returnType
  * @property {string} body
  */

@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 import { Column, TextField, Row } from '@reactackle/reactackle';
 import { DataRowStyled } from './styles/DataRowStyled';

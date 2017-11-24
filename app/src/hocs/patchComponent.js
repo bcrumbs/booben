@@ -2,11 +2,10 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { findDOMNode } from 'react-dom';
 import PropTypes from 'prop-types';
 import { isReactComponent, toClassComponent } from '../utils/react';
+import { preventDefault } from '../utils/dom';
 
 import {
   noop,
@@ -28,6 +27,9 @@ const patchDOMElement = componentInstance => {
 
   if (!node) return;
 
+  node.addEventListener('keypress', preventDefault);
+  node.addEventListener('click', preventDefault);
+  
   if (node.nodeType === Node.ELEMENT_NODE) {
     if (isNumber(componentId)) {
       node.setAttribute('data-jssy-id', String(componentId));

@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { Record } from 'immutable';
 import { INVALID_ID } from '../../constants/misc';
 

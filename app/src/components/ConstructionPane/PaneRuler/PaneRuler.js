@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 // TODO: Finish it
 
 import React from 'react';

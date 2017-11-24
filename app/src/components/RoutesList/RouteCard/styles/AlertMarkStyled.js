@@ -2,14 +2,10 @@
 
 import styled from 'styled-components';
 import { iconSize } from '../../../../styles/mixins';
+import constants from './constants';
+import { colorWhite, colorWarning } from '../../../../styles/themeSelectors';
 
-import {
-  baseModule,
-  colorWhite,
-  colorWarning,
-} from '../../../../styles/themeSelectors';
-
-const markSize = '20px';
+const markSize = `${constants.markSize}px`;
 
 export const AlertMarkStyled = styled.div`
   margin-left: ${baseModule(1)}px;

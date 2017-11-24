@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { createNetworkInterface } from 'apollo-client';
 import { URL_GRAPHQL_PREFIX } from '../../../shared/constants';
 

@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { Map, Set, List } from 'immutable';
 import { resolveTypedef } from '@jssy/types';
 import { LOCATION_CHANGE } from 'react-router-redux';
@@ -90,6 +88,8 @@ import JssyValue, {
   SourceDataDesigner,
   SourceDataRouteParams,
   Action,
+  ActionTypes,
+  isAsyncAction,
 } from '../models/JssyValue';
 
 import ProjectFunction, {
@@ -387,7 +387,10 @@ const deleteOutdatedActions = (state, component, deletedComponentIds) => {
   let actionsToDelete = Map();
 
   const visitAction = (action, stepsToActionsList, actionIdx) => {
-    if (action.type === 'method' || action.type === 'prop') {
+    if (
+      action.type === ActionTypes.METHOD ||
+      action.type === ActionTypes.PROP
+    ) {
       if (deletedComponentIds.has(action.params.componentId)) {
         if (actionsToDelete.has(stepsToActionsList)) {
           actionsToDelete = actionsToDelete.update(
@@ -401,7 +404,9 @@ const deleteOutdatedActions = (state, component, deletedComponentIds) => {
           );
         }
       }
-    } else if (action.type === 'mutation' || action.type === 'ajax') {
+    }
+
+    if (isAsyncAction(action.type)) {
       const stepsToSuccessActionsList =
         [...stepsToActionsList, actionIdx, 'successActions'];
 
@@ -419,7 +424,7 @@ const deleteOutdatedActions = (state, component, deletedComponentIds) => {
   };
 
   walkSimpleValues(component, componentMeta, (propValue, _, steps) => {
-    if (propValue.source === 'actions') {
+    if (propValue.sourceIs(JssyValue.Source.ACTIONS)) {
       const stepsToActionsList = [...steps, 'actions'];
 
       propValue.sourceData.actions.forEach((action, idx) => {
@@ -784,7 +789,7 @@ const getValueInfoByPath = (path, state) => {
     const nextStep = path.steps.length === idx + 1 ? null : path.steps[idx + 1];
   
     if (object instanceof JssyValue) {
-      if (object.source === 'function') {
+      if (object.sourceIs(JssyValue.Source.FUNCTION)) {
         currentFunction = getFunctionInfo(
           object.sourceData.functionSource,
           object.sourceData.function,
@@ -794,7 +799,7 @@ const getValueInfoByPath = (path, state) => {
         if (nextStep === 'args') {
           nextValueType = ValueTypes.FUNCTION_ARG;
         }
-      } else if (object.source === 'designer') {
+      } else if (object.sourceIs(JssyValue.Source.DESIGNER)) {
         currentComponents = object.sourceData.components;
       }
       
@@ -895,13 +900,16 @@ const getValueInfoByPath = (path, state) => {
       } else if (object instanceof Action) {
         currentAction = object;
         
-        if (object.type === 'mutation' && nextStep === 'args') {
+        if (object.type === ActionTypes.MUTATION && nextStep === 'args') {
           nextValueType = ValueTypes.ACTION_MUTATION_ARG;
-        } else if (object.type === 'method' && nextStep === 'args') {
+        } else if (object.type === ActionTypes.METHOD && nextStep === 'args') {
           nextValueType = ValueTypes.ACTION_METHOD_ARG;
-        } else if (object.type === 'prop' && nextStep === 'value') {
+        } else if (object.type === ActionTypes.PROP && nextStep === 'value') {
           nextValueType = ValueTypes.ACTION_PROP_VALUE;
-        } else if (object.type === 'navigate' && nextStep === 'routeParams') {
+        } else if (
+          object.type === ActionTypes.NAVIGATE &&
+          nextStep === 'routeParams'
+        ) {
           nextValueType = ValueTypes.ACTION_ROUTE_PARAM;
         }
       }

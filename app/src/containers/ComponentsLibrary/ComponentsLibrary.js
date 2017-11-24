@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -16,7 +14,7 @@ import {
   BlockContentBox,
   BlockContentBoxItem,
   BlockContentPlaceholder,
-} from '@jssy/common-ui';
+} from '../../components/BlockContent';
 
 import draggable from '../../hocs/draggable';
 import { connectDraggable } from '../ComponentsDragArea/ComponentsDragArea';

@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 export const DESKTOP_SET_TOOLS =
   'DESKTOP_SET_TOOLS';
 export const DESKTOP_COLLAPSE_TOOLS_PANEL =

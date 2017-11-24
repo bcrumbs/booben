@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 export default {
   displayName: 'h5',
   textKey: 'name',

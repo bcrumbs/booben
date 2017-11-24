@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -119,6 +117,7 @@ import {
   TOOL_ID_PROPS_EDITOR,
 } from '../constants/tool-ids';
 
+import { isInputOrTextareaActive } from '../utils/dom';
 import { buildStructurePath } from '../constants/paths';
 import * as JssyPropTypes from '../constants/common-prop-types';
 import { INVALID_ID } from '../constants/misc';
@@ -437,7 +436,7 @@ class DesignRoute extends PureComponent {
 
     return true;
   }
-  
+
   /**
    *
    * @param {string} action
@@ -449,7 +448,9 @@ class DesignRoute extends PureComponent {
       case 'REDO': this.props.onRedo(); break;
       
       case 'DELETE_COMPONENT': {
-        this._handleDeleteSelectedComponent();
+        if (!isInputOrTextareaActive()) {
+          this._handleDeleteSelectedComponent();
+        }
         break;
       }
       

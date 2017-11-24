@@ -2,8 +2,6 @@
  * @author Ekaterina Marova
  */
 
-'use strict';
-
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { OptionStyled } from './styles/OptionStyled';

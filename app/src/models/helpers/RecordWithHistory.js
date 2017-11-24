@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { Record, List } from 'immutable';
 import { arrayToObject, returnArg, unflatten } from '../../utils/misc';
 

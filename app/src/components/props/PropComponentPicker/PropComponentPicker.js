@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import _pick from 'lodash.pick';

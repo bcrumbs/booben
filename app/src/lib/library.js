@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { List, Map, OrderedMap } from 'immutable';
 import _forOwn from 'lodash.forown';
 import LibraryComponentData from '../models/LibraryComponentData';

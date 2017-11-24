@@ -24,16 +24,7 @@ const hovered = ({ hovered, active, disabled }) => {
       &:hover {
         background-color: rgba(0, 0, 0, 0.15);
       }
-      
-      ${disabledCase}
-    `
-    : '';
-};
-
-const active = ({ active }) => active
-  ? css`
-    background-color: rgba(0, 0, 0, 0.15);
-    cursor: default;
+    }
   `
   : '';
 

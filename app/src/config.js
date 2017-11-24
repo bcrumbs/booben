@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 export const DEFAULT_LANGUAGE = 'en';
 
 export const COMPONENTS_BUNDLE_FILE = 'components.js';

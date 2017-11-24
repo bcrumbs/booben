@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -73,7 +71,7 @@ export const OverlayComponentTitle = (props, context) => {
     ...verticalPositionStyle,
     position: 'absolute',
     backgroundColor: '#c8e5f6',
-    color: '#667388',
+    color: '#4a5465',
     padding: '2px 8px',
     fontSize: '12px',
     lineHeight: '1.25',

@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TypeNames } from '@jssy/types';
@@ -23,7 +21,7 @@ import {
   BlockContentBoxItem,
   BlockContentActions,
   BlockContentActionsRegion,
-} from '@jssy/common-ui';
+} from '../../../../components/BlockContent';
 
 import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
 import { PropEmpty } from '../../../../components/props';

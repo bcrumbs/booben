@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import PropTypes from 'prop-types';
 import { findDOMNode } from 'react-dom';
 import { toClassComponent } from '../utils/react';

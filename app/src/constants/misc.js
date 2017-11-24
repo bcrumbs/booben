@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 /**
  *
  * @type {number}
@@ -15,12 +13,6 @@ export const INVALID_ID = -1;
  * @type {Symbol}
  */
 export const NO_VALUE = Symbol('NO_VALUE');
-
-/**
- *
- * @type {string}
- */
-export const FUNCTION_FNS_ARG_NAME = 'fns';
 
 /**
  *

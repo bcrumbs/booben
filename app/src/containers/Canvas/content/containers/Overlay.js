@@ -1,5 +1,3 @@
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Set } from 'immutable';
@@ -58,6 +56,7 @@ const wrap = connect(mapStateToProps);
 const HIGHLIGHT_COLOR = 'rgba(0, 113, 216, 0.3)';
 const SELECT_COLOR = 'rgba(0, 113, 216, 1)';
 const BOUNDARY_COLOR = 'red';
+const BOUNDARY_STYLE = 'solid';
 
 class Overlay extends PureComponent {
   constructor(props, context) {
@@ -94,11 +93,19 @@ class Overlay extends PureComponent {
    *
    * @param {Immutable.List<number>} componentIds
    * @param {string} color
+   * @param {string} borderStyle
    * @param {boolean} [showTitle=false]
+   * @param {number} [additionalOverlayLevel=0]
    * @return {Array<ReactElement>}
    * @private
    */
-  _renderBoundingBoxes(componentIds, color, showTitle = false) {
+  _renderBoundingBoxes(
+    componentIds,
+    color,
+    borderStyle,
+    showTitle = false,
+    additionalOverlayLevel = 0,
+  ) {
     const { components } = this.props;
     
     return mapListToArray(componentIds, id => {
@@ -120,6 +127,7 @@ class Overlay extends PureComponent {
           color={color}
           title={title}
           showTitle={showTitle}
+          additionalOverlayLevel={additionalOverlayLevel}
         />
       );
     });
@@ -143,12 +151,18 @@ class Overlay extends PureComponent {
         highlightedComponentIds,
         HIGHLIGHT_COLOR,
         true,
+        1,
       )
       : null;
 
     const selectBoxes = pickingComponent || pickingComponentData
       ? null
-      : this._renderBoundingBoxes(selectedComponentIds, SELECT_COLOR);
+      : this._renderBoundingBoxes(
+        selectedComponentIds,
+        SELECT_COLOR,
+        SELECT_STYLE,
+        true,
+      );
     
     const willRenderBoundaryBox =
       boundaryComponentId !== INVALID_ID && (
@@ -161,6 +175,7 @@ class Overlay extends PureComponent {
       ? this._renderBoundingBoxes(
         Set([boundaryComponentId]),
         BOUNDARY_COLOR,
+        BOUNDARY_STYLE,
       )
       : null;
     

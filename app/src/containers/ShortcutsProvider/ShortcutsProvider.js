@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import { PureComponent, Children } from 'react';
 import PropTypes from 'prop-types';
 import { ShortcutManager } from 'react-shortcuts';

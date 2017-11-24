@@ -2,8 +2,6 @@
  * @author Dmitriy Bizyaev
  */
 
-'use strict';
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withTooltip } from '@reactackle/reactackle';

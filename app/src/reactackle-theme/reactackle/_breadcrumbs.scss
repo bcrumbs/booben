@@ -1,0 +1,11 @@
+@charset "UTF-8";
+@import "~@reactackle/reactackle/utils/_variables";
+@import "../_theme-variables";
+
+// =============================================================================
+// Variables
+// =============================================================================
+$breadcrumbs-dark-title-font-color: color($bg, 50);
+$breadcrumbs-icon-color-dark: color($bg, 300);
+$breadcrumbs-separator-color-dark: color($bg, 300);
+

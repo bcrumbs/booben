@@ -1,26 +1,57 @@
 import styled, { css } from 'styled-components';
+import { transition } from '@reactackle/reactackle';
 
 import {
   baseModule,
   radiusDefault,
-  textColorMedium,
   textColorBody,
   fontSizeBody,
+  colorActiveBgLight,
+  textColorMedium,
 } from '../../../../../styles/themeSelectors';
 
-const disabled = ({ disabled }) => disabled
-  ? css`
-    &,
-    &:hover,
-    &:focus {
+const disabledStyles = css`
+  &,
+  &:hover,
+  &:focus {
       color: ${textColorMedium};
       cursor: default;
-    }
-  `
+  }
+`;
+
+const hovered = ({ hovered, active, disabled }) => {
+  const disabledCase = disabled ? disabledStyles : '';
+  
+  return hovered && !active
+    ? css`
+      &,
+      &:hover {
+        background-color: rgba(0, 0, 0, 0.15);
+      }
+      
+      ${disabledCase}
+    `
+    : '';
+};
+
+const active = ({ active, disabled }) => {
+  const disabledCase = disabled ? disabledStyles : '';
+  
+  return active
+    ? css`
+      background-color: ${colorActiveBgLight};
+      cursor: default;
+      ${disabledCase}
+    `
+    : '';
+};
+
+const disabled = ({ disabled }) => disabled
+  ? disabledStyles
   : '';
 
 export const TitleStyled = styled.div`
-  padding: ${baseModule(0.75)}px 0;
+  padding: ${baseModule(0.5)}px ${baseModule(1)}px;
   border-radius: ${radiusDefault}px;
   color: ${textColorBody};
   font-size: ${fontSizeBody}px;
@@ -32,6 +63,9 @@ export const TitleStyled = styled.div`
   min-width: 100px;
   overflow: hidden;
   text-align: left;
+  ${transition('background-color')}
+  ${hovered}
+  ${active}
   ${disabled}
 `;
 
