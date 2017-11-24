@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components';
 import { transition } from '@reactackle/reactackle';
-import constants from '../../../styles/constants';
+import constants from '../../../../../styles/theme/constants'
 
 import {
   textColorMedium,
@@ -27,6 +27,7 @@ const hovered = ({ hovered, active, disabled }) => {
     }
   `
   : '';
+}
 
 const selected = ({ selected }) => selected
   ? css`
