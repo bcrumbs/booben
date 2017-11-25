@@ -53,18 +53,21 @@ const mapStateToProps = state => ({
 
 const wrap = connect(mapStateToProps);
 
-const HIGHLIGHT_COLOR = 'rgba(0, 113, 216, 0.3)';
+const HIGHLIGHT_COLOR = 'rgba(0, 113, 216, 0.7)';
+const HIGHLIGHT_STYLE = 'dashed';
 const SELECT_COLOR = 'rgba(0, 113, 216, 1)';
+const SELECT_STYLE = 'solid';
 const BOUNDARY_COLOR = 'red';
 const BOUNDARY_STYLE = 'solid';
+
 
 class Overlay extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this._container = null;
   }
-  
+
   /**
    *
    * @return {HTMLElement}
@@ -72,12 +75,12 @@ class Overlay extends PureComponent {
    */
   _getContainer() {
     const { document } = this.context;
-    
+
     if (this._container) return this._container;
     this._container = document.getElementById(CANVAS_CONTAINER_ID);
     return this._container;
   }
-  
+
   /**
    *
    * @param {number} id
@@ -88,7 +91,7 @@ class Overlay extends PureComponent {
     const container = this._getContainer();
     return container.querySelector(`[data-jssy-id="${id}"]`) || null;
   }
-  
+
   /**
    *
    * @param {Immutable.List<number>} componentIds
@@ -107,12 +110,12 @@ class Overlay extends PureComponent {
     additionalOverlayLevel = 0,
   ) {
     const { components } = this.props;
-    
+
     return mapListToArray(componentIds, id => {
       const element = this._getDOMElementByComponentId(id);
       const key = `${id}-${color}`;
       let title = '';
-      
+
       if (showTitle) {
         const component = components.get(id);
         if (component) {
@@ -125,6 +128,7 @@ class Overlay extends PureComponent {
           key={key}
           element={element}
           color={color}
+          borderStyle={borderStyle}
           title={title}
           showTitle={showTitle}
           additionalOverlayLevel={additionalOverlayLevel}
@@ -145,11 +149,12 @@ class Overlay extends PureComponent {
       isCanvasClear,
       getLocalizedText,
     } = this.props;
-    
+
     const highlightBoxes = highlightingEnabled
       ? this._renderBoundingBoxes(
         highlightedComponentIds,
         HIGHLIGHT_COLOR,
+        HIGHLIGHT_STYLE,
         true,
         1,
       )
@@ -163,14 +168,14 @@ class Overlay extends PureComponent {
         SELECT_STYLE,
         true,
       );
-    
+
     const willRenderBoundaryBox =
       boundaryComponentId !== INVALID_ID && (
         pickingComponent ||
         pickingComponentData ||
         draggingComponent
       );
-  
+
     const rootComponentBox = willRenderBoundaryBox
       ? this._renderBoundingBoxes(
         Set([boundaryComponentId]),
@@ -178,7 +183,7 @@ class Overlay extends PureComponent {
         BOUNDARY_STYLE,
       )
       : null;
-    
+
     let canvasPlaceholder = null;
     if (isCanvasClear && !draggingComponent) {
       canvasPlaceholder = (

@@ -1,10 +1,10 @@
-import constants from '../../../../../styles/theme/constants';
+import constants from '../../../styles/constants';
 
 export default {
   components: {
     button: {
       iconOpacity: 1,
-      
+
       size: {
         inline: {
           minHeight: constants.buttonSize,
@@ -12,13 +12,13 @@ export default {
           lineHeight: 1,
         },
       },
-  
+
       colorScheme: {
         flatLight: {
           hover: {
             backgroundColor: 'transparent',
           },
-          
+
           focus: {
             backgroundColor: 'transparent',
           },

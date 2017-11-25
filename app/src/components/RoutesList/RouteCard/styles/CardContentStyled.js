@@ -19,7 +19,7 @@ export const CardContentStyled = styled.div`
   flex-grow: 1;
   display: flex;
   align-items: center;
-  padding: ${baseModule(1)}px ${constants.cardPaddingX}px;
+  padding: ${baseModule(1)}px ${baseModule(2)}px;
   ${focused}
   ${transition('border')}
 `;
