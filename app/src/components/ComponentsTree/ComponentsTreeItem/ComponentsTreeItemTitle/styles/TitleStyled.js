@@ -21,7 +21,7 @@ const disabledStyles = css`
 
 const hovered = ({ hovered, active, disabled }) => {
   const disabledCase = disabled ? disabledStyles : '';
-  
+
   return hovered && !active
     ? css`
       &,
@@ -36,7 +36,7 @@ const hovered = ({ hovered, active, disabled }) => {
 
 const active = ({ active, disabled }) => {
   const disabledCase = disabled ? disabledStyles : '';
-  
+
   return active
     ? css`
       background-color: ${colorActiveBgLight};
@@ -51,7 +51,7 @@ const disabled = ({ disabled }) => disabled
   : '';
 
 export const TitleStyled = styled.div`
-  padding: ${baseModule(0.5)}px ${baseModule(1)}px;
+  padding: ${baseModule(0.75)}px ${baseModule(1)}px;
   border-radius: ${radiusDefault}px;
   color: ${textColorBody};
   font-size: ${fontSizeBody}px;

@@ -9,6 +9,7 @@ export const SpacerStyled = styled.div`
   
   ${TreeItemStyled} ${TreeItemStyled} & {    
     width: ${size}px;
+    min-width: ${size}px;
     height: ${size}px;
     margin-right: ${constants.buttonMargin}px;
   }
