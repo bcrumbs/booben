@@ -21,6 +21,7 @@ export default (
   
   return class extends RecordClass {
     _extractHistoryEntry() {
+      console.log('historyProps', historyProps)
       return arrayToObject(
         historyProps,
         returnArg,
@@ -29,7 +30,27 @@ export default (
     }
     
     _applyHistoryEntry(historyEntry) {
-      return this.mergeDeep(unflatten(historyEntry));
+      let record = this;
+      const {
+        data,
+        indexRouteSelected,
+        lastComponentId,
+        lastRouteId,
+        selectedRouteId,
+        designer,
+      } = unflatten(historyEntry);
+     
+      record = record.setIn(['data'], data);
+      record = record.setIn(['indexRouteSelected'], indexRouteSelected);
+      record = record.setIn(['lastComponentId'], lastComponentId);
+      record = record.setIn(['lastRouteId'], lastRouteId);
+      record = record.setIn(['selectedRouteId'], selectedRouteId);
+      record = record.setIn(
+        ['designer', 'selectedComponentIds'],
+        designer.selectedComponentIds,
+      );
+
+      return record;
     }
   
     pushHistoryEntry() {
