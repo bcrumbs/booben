@@ -29,18 +29,11 @@ export default (
     }
     
     _applyHistoryEntry(historyEntry) {
-      let record = this;
-
-      historyProps.forEach(prop => {
-        const path = prop.split('.');
-        const value = path
-          .reduce((previous, current) =>
-            previous[current], unflatten(historyEntry));
-        record = record.setIn(path, value);
-      });
-
-      return record;
+      return historyProps
+        .reduce((record, prop) =>
+          record.setIn(prop.split('.'), historyEntry[prop]), this);
     }
+
   
     pushHistoryEntry() {
       let nextHistory = this._history
