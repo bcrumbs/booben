@@ -33,12 +33,12 @@ export default (
 
       historyProps.forEach(prop => {
         const path = prop.split('.');
-        const value = prop.split('.')
+        const value = path
           .reduce((previous, current) =>
             previous[current], unflatten(historyEntry));
         record = record.setIn(path, value);
       });
-      
+
       return record;
     }
   
