@@ -34,7 +34,6 @@ export default (
           record.setIn(prop.split('.'), historyEntry[prop]), this);
     }
 
-  
     pushHistoryEntry() {
       let nextHistory = this._history
         .setSize(this._history.size - this._historyPointer)
