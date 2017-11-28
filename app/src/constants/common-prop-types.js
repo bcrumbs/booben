@@ -47,9 +47,21 @@ export const toolStates = ImmutablePropTypes.mapOf(
   PropTypes.string,
 );
 
+<<<<<<< HEAD
 export const componentDataItem = PropTypes.shape({
+=======
+export const componentDataItem = ImmutablePropTypes.listOf(PropTypes.shape({
+>>>>>>> b9ae5b39f382dbe220f487f8ccb96f3f14a7f5ee
   name: PropTypes.string.isRequired,
   description: PropTypes.string,
   unavailable: PropTypes.bool,
   data: PropTypes.any.isRequired,
+<<<<<<< HEAD
 });
+=======
+}));
+
+export const componentDataItemList = ImmutablePropTypes.listOf(
+  componentDataItem,
+);
+>>>>>>> b9ae5b39f382dbe220f487f8ccb96f3f14a7f5ee
