@@ -4,12 +4,12 @@ import constants from '../../styles/constants';
 
 const propTypes = {
   bordered: PropTypes.bool,
-  colorScheme: PropTypes.oneOf(['dark', 'light']),
+  colorScheme: PropTypes.oneOf(['default', 'alt']),
 };
 
 const defaultProps = {
   bordered: false,
-  colorScheme: 'dark',
+  colorScheme: 'default',
 };
 
 const bordered = ({ bordered, colorScheme }) => bordered
