@@ -61,6 +61,8 @@
     "minimist": "^1.2.0",
     "mz": "^2.4.0",
     "ncp": "^2.0.0",
+    "no-scroll": "^2.1.0",
+    "object-hash": "^1.2.0",
     "point-in-polygon": "^1.0.1",
     "pretty-ms": "latest",
     "prop-types": "^15.5.8",
@@ -83,6 +85,7 @@
     "rimraf": "latest",
     "serve-static": "^1.11.1",
     "styled-components": "^2.1.1",
+    "tabbable": "^1.1.1",
     "thenify": "^3.2.0",
     "webpack": "^3.5.4"
   },

@@ -12,6 +12,8 @@ import { List } from 'immutable';
 import { Dialog } from '@reactackle/reactackle';
 import { Desktop } from '../containers/Desktop/Desktop';
 
+import Modal from '../components/Modal';
+
 import {
   CreateComponentMenu,
 } from '../containers/CreateComponentMenu/CreateComponentMenu';
@@ -837,12 +839,13 @@ class DesignRoute extends PureComponent {
 
   _renderCreateComponentMenu() {
     return (
-      <Portal>
-        <CreateComponentMenu
+      <Modal
+        onCloseAttempt={this._handleCreateComponentMenuClose}
+        disableFocus
+        render={() => <CreateComponentMenu
           onCreateComponent={this._handleCreateComponent}
-          onClose={this._handleCreateComponentMenuClose}
-        />
-      </Portal>
+        />}
+      />
     );
   }
 
@@ -902,7 +905,7 @@ class DesignRoute extends PureComponent {
     const componentDataSelect = willRenderComponentDataSelect
       ? this._renderComponentDataSelect()
       : null;
-
+    
     const createComponentMenu = createComponentMenuIsVisible
       ? this._renderCreateComponentMenu()
       : null;

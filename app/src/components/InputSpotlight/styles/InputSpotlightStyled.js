@@ -8,7 +8,7 @@ import { baseModule } from '../../../styles/themeSelectors';
 export const InputSpotlightStyled = styled.div`
   min-width: 0;
   max-width: 100vw;
-  max-height: 100vh;
+  max-height: 80vw;
   width: 400px;
   padding: ${baseModule(1)}px;
   box-sizing: border-box;

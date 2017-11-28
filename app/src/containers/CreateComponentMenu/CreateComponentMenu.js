@@ -51,7 +51,6 @@ const propTypes = {
   haveNestedConstructors: PropTypes.bool.isRequired, // state
   language: PropTypes.string.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
-  onClose: PropTypes.func,
   onCreateComponent: PropTypes.func,
 };
 
@@ -181,8 +180,6 @@ class CreateComponentMenuComponent extends PureComponent {
 
         break;
       }
-
-      case 'CLOSE': this.props.onClose(); break;
       case 'SELECT_NEXT': this._handleSelectNext(); break;
       case 'SELECT_PREVIOUS': this._handleSelectPrevious(); break;
       default:
