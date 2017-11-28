@@ -136,7 +136,9 @@ const propTypes = {
   pickedComponentId: PropTypes.number.isRequired, // state
   pickedComponentArea: PropTypes.number.isRequired, // state
   componentDataListIsVisible: PropTypes.bool.isRequired, // state
-  componentDataListItems: JssyPropTypes.componentDataItemList.isRequired, // state
+  componentDataListItems: PropTypes.arrayOf(
+    JssyPropTypes.componentDataItem,
+  ).isRequired, // state
   cursorPosition: JssyPropTypes.componentsTreePosition.isRequired, // state
   componentClipboard: JssyPropTypes.componentClipboard.isRequired, // state
   showInvisibleComponents: PropTypes.bool.isRequired, // state

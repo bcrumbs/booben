@@ -209,7 +209,7 @@ const ProjectState = RecordWithHistory({
   pickedComponentArea: ComponentPickAreas.UNKNOWN,
   pickedComponentData: null,
   componentDataListIsVisible: false,
-  componentDataListItems: List(),
+  componentDataListItems: [],
 }, [
   'data',
   'lastRouteId',
@@ -240,7 +240,7 @@ const initComponentPickingState = state => state.merge({
   pickedComponentArea: ComponentPickAreas.UNKNOWN,
   pickedComponentData: null,
   componentDataListIsVisible: false,
-  componentDataListItems: List(),
+  componentDataListItems: [],
 });
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
