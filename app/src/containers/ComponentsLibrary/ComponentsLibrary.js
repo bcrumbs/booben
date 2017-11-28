@@ -111,6 +111,13 @@ const libraryGroupsFilteredSelector = createSelector(
       component => !haveNestedConstructors || component.fullName !== 'Outlet',
     ];
 
+    const hasOutlet = components.find(value => value.get('name') === 'Outlet');
+    if (hasOutlet) {
+      filterFns.push(
+        component => component.fullName !== 'Outlet',
+      );
+    }
+
     if (selectedComponentIds.size === 1 && !showAllComponentsOnPalette) {
       const selectedComponentId = selectedComponentIds.first();
 
