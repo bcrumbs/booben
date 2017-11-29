@@ -6,13 +6,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
-
-import {
-  Dialog,
-  Form,
-  FormItem,
-  TextField,
-} from '@reactackle/reactackle';
+import { Dialog, Form, FormItem, TextField } from '@reactackle/reactackle';
 
 import {
   BlockContent,
@@ -20,75 +14,57 @@ import {
   BlockContentBoxItem,
 } from '../../components/BlockContent';
 
-import {
-  getLocalizedTextFromState,
-} from '../../selectors';
-
-import {
-  withFormState,
-  formStatePropTypes,
-} from '../../hocs/withFormState';
-
-import RouteParams from './RouteParams';
-
+import { RouteParams } from './RouteParams';
+import { withFormState, formStatePropTypes } from '../../hocs/withFormState';
+import { getUpdatedParamValues, validatePath } from './common';
+import { getLocalizedTextFromState } from '../../selectors';
 import { INVALID_ID } from '../../constants/misc';
-
-import {
-  getUpdatedParamValues,
-  validatePath,
-} from './common';
+import { returnSecondArg, isFalsy, objectToArray } from '../../utils/misc';
 
 const propTypes = {
-  open: PropTypes.bool.isRequired,
+  open: PropTypes.bool,
   editingRouteId: PropTypes.number.isRequired,
+  project: PropTypes.object.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
   ...formStatePropTypes,
 };
 
+const defaultProps = {
+  open: false,
+};
+
 const withForm = withFormState({
   validateOnBlur: true,
-  validateOnChage: true,
+  validateOnChange: true,
   mapPropsToValues: ({ project, editingRouteId }) => {
-    const {
-      path,
-      paramValues,
-    } = project.routes.get(editingRouteId);
+    const { path, paramValues } = project.routes.get(editingRouteId);
+
     return {
       path: path.replace('/', ''),
-      params: getUpdatedParamValues(
-        path,
-        path,
-        paramValues.toJS() || {},
-      ),
+      params: getUpdatedParamValues(path, path, paramValues.toJS() || {}),
     };
   },
 
-  validationConstructor: (values, props) => {
-    const {
-      getLocalizedText,
-      project,
-      editingRouteId,
-    } = props;
+  validators: {
+    path: (value, props) => {
+      const { project, editingRouteId, getLocalizedText } = props;
+      const route = project.routes.get(editingRouteId);
+      const parentRouteId = route.parentId;
 
-    const route = project.routes.get(editingRouteId);
-    const editedRouteId = route.id;
-    const parentRouteId = route.parentId;
+      return validatePath(
+        value,
+        parentRouteId,
+        project,
+        editingRouteId,
+        getLocalizedText,
+      );
+    },
 
-    return {
-      path: () => {
-        const { valid, message } = validatePath({
-          path: values.path,
-          getLocalizedText,
-          parentRouteId,
-          project,
-          editedRouteId,
-        });
-        return valid
-          ? null
-          : message;
-      },
-    };
+    params: value => {
+      const invalidParams = objectToArray(value, returnSecondArg, isFalsy);
+      return { valid: invalidParams.length === 0, invalidParams };
+    },
   },
 
   onSubmit: (values, props) => {
@@ -107,24 +83,33 @@ const mapStateToProps = state => ({
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
-const wrap = compose(
-  connect(mapStateToProps),
-  withForm,
-);
+const wrap = compose(connect(mapStateToProps), withForm);
 
 class _EditRoutePathDialog extends Component {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
-    this.dialogTitle =
-      this.props.getLocalizedText('structure.editRoutePathDialogTitle');
-
+    this._handlePathChange = this._handlePathChange.bind(this);
+    this._handlePathBlur = this._handlePathBlur.bind(this);
     this._handleClose = this._handleClose.bind(this);
     this._handleSubmit = this._handleSubmit.bind(this);
   }
 
-  get editingRootRoute() {
-    return this.props.parentRouteId === INVALID_ID;
+  _handlePathChange({ value }) {
+    const { formValues, onFieldChange } = this.props;
+
+    onFieldChange({
+      path: value,
+      params: getUpdatedParamValues(
+        formValues.path,
+        value,
+        formValues.params,
+      ),
+    });
+  }
+
+  _handlePathBlur() {
+    this.props.onFieldBlur(['path']);
   }
 
   _handleClose(closeDialog) {
@@ -153,14 +138,19 @@ class _EditRoutePathDialog extends Component {
 
   render() {
     const {
-      getLocalizedText,
+      open,
+      editingRouteId,
+      project,
       isFormValid,
       formValues,
-      formErrors,
+      formFieldsValidity,
+      getLocalizedText,
       onFieldChange,
-      onFieldBlur,
-      open
     } = this.props;
+
+    const route = project.routes.get(editingRouteId);
+    const editingRootRoute = route.parentId === INVALID_ID;
+    const dialogTitle = getLocalizedText('structure.editRoutePathDialogTitle');
 
     const dialogButtons = [{
       text: getLocalizedText('common.save'),
@@ -173,7 +163,7 @@ class _EditRoutePathDialog extends Component {
 
     return (
       <Dialog
-        title={this.dialogTitle}
+        title={dialogTitle}
         buttons={dialogButtons}
         backdrop
         minWidth={400}
@@ -191,22 +181,17 @@ class _EditRoutePathDialog extends Component {
                   <TextField
                     label={getLocalizedText('structure.path')}
                     value={formValues.path}
-                    message={formErrors.path}
-                    colorScheme={formErrors.path ? 'error' : 'neutral'}
-                    prefix={this.editingRootRoute ? '/' : ''}
-                    onChange={({ value }) => {
-                      onFieldChange({
-                        path: value,
-                        params: getUpdatedParamValues(
-                          formValues.path,
-                          value,
-                          formValues.params,
-                        ),
-                      });
-                    }}
-                    onBlur={() => {
-                      onFieldBlur(['path']);
-                    }}
+                    message={
+                      !formFieldsValidity.path.valid
+                        ? formFieldsValidity.path.message
+                        : getLocalizedText('structure.pathHelpMessage')
+                    }
+                    colorScheme={
+                      formFieldsValidity.path.valid ? 'neutral' : 'error'
+                    }
+                    prefix={editingRootRoute ? '/' : ''}
+                    onChange={this._handlePathChange}
+                    onBlur={this._handlePathBlur}
                   />
                 </FormItem>
               </Form>
@@ -214,9 +199,10 @@ class _EditRoutePathDialog extends Component {
           </BlockContentBox>
 
           <RouteParams
-            getLocalizedText={getLocalizedText}
-            handleChange={onFieldChange}
             params={formValues.params}
+            invalidParams={formFieldsValidity.params.invalidParams || []}
+            getLocalizedText={getLocalizedText}
+            onChange={onFieldChange}
           />
         </BlockContent>
       </Dialog>
@@ -225,6 +211,7 @@ class _EditRoutePathDialog extends Component {
 }
 
 _EditRoutePathDialog.propTypes = propTypes;
+_EditRoutePathDialog.defaultProps = defaultProps;
 _EditRoutePathDialog.displayName = 'EditRoutePathDialog';
 
 export const EditRoutePathDialog = wrap(_EditRoutePathDialog);

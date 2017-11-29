@@ -4,61 +4,64 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-
-import {
-  Form,
-  FormItem,
-  TextField,
-} from '@reactackle/reactackle';
+import { Form, FormItem, TextField } from '@reactackle/reactackle';
 
 import {
   BlockContentBox,
   BlockContentBoxItem,
   BlockContentBoxHeading,
-} from '@jssy/common-ui';
+} from '../../components/BlockContent';
 
 import { objectToArray } from '../../utils/misc';
 
 const propTypes = {
-  getLocalizedText: PropTypes.func.isRequired,
-  handleChange: PropTypes.func.isRequired,
   params: PropTypes.object.isRequired,
+  invalidParams: PropTypes.arrayOf(PropTypes.string).isRequired,
+  getLocalizedText: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
 };
 
-const RouteParams = ({
-  getLocalizedText,
-  handleChange,
+export const RouteParams = ({
   params,
+  invalidParams,
+  getLocalizedText,
+  onChange,
 }) => {
+  const errorMessage =
+    getLocalizedText('structure.routeParamIsRequiredMessage');
+
   let routeParamsBoxHeading = null;
   let routeParamsBoxItem = null;
-  
+
   const routeParamInputs = objectToArray(
     params,
-    (paramValue, paramName) => (
-      <FormItem key={paramName}>
-        <TextField
-          dense
-          label={paramName}
-          value={params[paramName]}
-          onChange={({ value }) => handleChange({
-            params: {
-              ...params,
-              [paramName]: value,
-            },
-          })}
-        />
-      </FormItem>
-    ),
+    (paramValue, paramName) => {
+      const isInvalid = invalidParams.indexOf(paramName) !== -1;
+
+      return (
+        <FormItem key={paramName}>
+          <TextField
+            dense
+            label={paramName}
+            value={params[paramName]}
+            colorScheme={isInvalid ? 'error' : 'neutral'}
+            message={isInvalid ? errorMessage : ''}
+            onChange={({ value }) => onChange({
+              params: { ...params, [paramName]: value },
+            })}
+          />
+        </FormItem>
+      );
+    },
   );
-  
+
   if (routeParamInputs.length) {
     routeParamsBoxHeading = (
       <BlockContentBoxHeading removePaddingX>
         {getLocalizedText('structure.routeParamValuesHeading')}
       </BlockContentBoxHeading>
     );
-  
+
     routeParamsBoxItem = (
       <BlockContentBoxItem blank>
         <Form>
@@ -78,5 +81,3 @@ const RouteParams = ({
 
 RouteParams.propTypes = propTypes;
 RouteParams.displayName = 'RouteParams';
-
-export default RouteParams;

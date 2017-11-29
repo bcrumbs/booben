@@ -6,13 +6,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
-
-import {
-  Dialog,
-  Form,
-  FormItem,
-  TextField,
-} from '@reactackle/reactackle';
+import { Dialog, Form, FormItem, TextField } from '@reactackle/reactackle';
 
 import {
   BlockContent,
@@ -20,30 +14,24 @@ import {
   BlockContentBoxItem,
 } from '../../components/BlockContent';
 
+import { withFormState, formStatePropTypes } from '../../hocs/withFormState';
+import { RouteParams } from './RouteParams';
+import { getUpdatedParamValues, validatePath } from './common';
+import { getLocalizedTextFromState } from '../../selectors';
 import { INVALID_ID } from '../../constants/misc';
-
-import {
-  getLocalizedTextFromState,
-} from '../../selectors';
-
-import {
-  withFormState,
-  formStatePropTypes,
-} from '../../hocs/withFormState';
-
-import {
-  getUpdatedParamValues,
-  validatePath,
-} from './common';
-
-import RouteParams from './RouteParams';
+import { returnSecondArg, isFalsy, objectToArray } from '../../utils/misc';
 
 const propTypes = {
-  open: PropTypes.bool.isRequired,
+  open: PropTypes.bool,
   parentRouteId: PropTypes.number.isRequired,
+  project: PropTypes.object.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired,
   ...formStatePropTypes,
+};
+
+const defaultProps = {
+  open: false,
 };
 
 const withForm = withFormState({
@@ -55,37 +43,34 @@ const withForm = withFormState({
     params: {},
   }),
 
-  validationConstructor: (values, props) => {
-    const {
-      getLocalizedText,
-      parentRouteId,
-      project,
-      editedRouteId,
-    } = props;
+  validators: {
+    title: (value, props) => {
+      const { getLocalizedText } = props;
 
-    const validateTitle = () => {
-      if (!values.title) {
-        return 'Required';
-      } else {
-        return '';
-      }
-    };
+      return {
+        valid: !!value,
+        message: value
+          ? ''
+          : getLocalizedText('structure.titleIsRequiredMessage'),
+      };
+    },
 
-    return {
-      title: validateTitle,
-      path: () => {
-        const { valid, message } = validatePath({
-          path: values.path,
-          getLocalizedText,
-          parentRouteId,
-          project,
-          editedRouteId,
-        });
-        return valid
-          ? null
-          : message;
-      },
-    };
+    path: (value, props) => {
+      const { parentRouteId, project, editedRouteId, getLocalizedText } = props;
+
+      return validatePath(
+        value,
+        parentRouteId,
+        project,
+        editedRouteId,
+        getLocalizedText,
+      );
+    },
+
+    params: value => {
+      const invalidParams = objectToArray(value, returnSecondArg, isFalsy);
+      return { valid: invalidParams.length === 0, invalidParams };
+    },
   },
 
   onSubmit: (values, props) => {
@@ -105,45 +90,54 @@ const mapStateToProps = state => ({
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
-const wrap = compose(
-  connect(mapStateToProps),
-  withForm,
-);
+const wrap = compose(connect(mapStateToProps), withForm);
 
 class _CreateRouteDialog extends Component {
-  constructor(props) {
-    super(props);
+  constructor(props, context) {
+    super(props, context);
 
-    this.dialogTitle = this.props.getLocalizedText(
-      this.creatingRootRoute
-        ? 'structure.createNewRootRoute'
-        : 'structure.createNewRoute',
-    );
-
-
+    this._handleTitleChange = this._handleTitleChange.bind(this);
+    this._handleTitleBlur = this._handleTitleBlur.bind(this);
+    this._handlePathChange = this._handlePathChange.bind(this);
+    this._handlePathBlur = this._handlePathBlur.bind(this);
     this._handleClose = this._handleClose.bind(this);
     this._handleSubmit = this._handleSubmit.bind(this);
   }
 
-  get creatingRootRoute() {
-    return this.props.parentRouteId === INVALID_ID;
+  _handleTitleChange({ value }) {
+    this.props.onFieldChange({ title: value });
+  }
+
+  _handleTitleBlur() {
+    this.props.onFieldBlur(['title']);
+  }
+
+  _handlePathChange({ value }) {
+    const { formValues, onFieldChange } = this.props;
+
+    onFieldChange({
+      path: value,
+      params: getUpdatedParamValues(
+        formValues.path,
+        value,
+        formValues.params,
+      ),
+    });
+  }
+
+  _handlePathBlur() {
+    this.props.onFieldBlur(['path']);
   }
 
   _handleClose(closeDialog) {
-    const {
-      onClose,
-      onResetForm,
-    } = this.props;
+    const { onClose, onResetForm } = this.props;
 
     onClose(closeDialog);
     onResetForm();
   }
 
   _handleSubmit(closeDialog) {
-    const {
-      onFormSubmit,
-      onResetForm,
-    } = this.props;
+    const { onFormSubmit, onResetForm } = this.props;
 
     onFormSubmit({
       postAction: () => {
@@ -155,14 +149,19 @@ class _CreateRouteDialog extends Component {
 
   render() {
     const {
-      getLocalizedText,
+      open,
+      parentRouteId,
       isFormValid,
       formValues,
-      formErrors,
+      formFieldsValidity,
+      getLocalizedText,
       onFieldChange,
-      onFieldBlur,
-      open,
     } = this.props;
+
+    const creatingRootRoute = parentRouteId === INVALID_ID;
+    const dialogTitle = creatingRootRoute
+      ? getLocalizedText('structure.createNewRootRoute')
+      : getLocalizedText('structure.createNewRoute');
 
     const dialogButtons = [{
       text: getLocalizedText('common.create'),
@@ -175,7 +174,7 @@ class _CreateRouteDialog extends Component {
 
     return (
       <Dialog
-        title={this.dialogTitle}
+        title={dialogTitle}
         buttons={dialogButtons}
         backdrop
         minWidth={400}
@@ -193,16 +192,12 @@ class _CreateRouteDialog extends Component {
                   <TextField
                     label={getLocalizedText('structure.title')}
                     value={formValues.title}
-                    message={formErrors.title}
-                    colorScheme={formErrors.title ? 'error' : 'neutral'}
-                    onChange={({ value }) => {
-                      onFieldChange({
-                        title: value,
-                      });
-                    }}
-                    onBlur={() => {
-                      onFieldBlur(['title']);
-                    }}
+                    message={formFieldsValidity.title.message || ''}
+                    colorScheme={
+                      formFieldsValidity.title.valid ? 'neutral' : 'error'
+                    }
+                    onChange={this._handleTitleChange}
+                    onBlur={this._handleTitleBlur}
                   />
                 </FormItem>
 
@@ -211,24 +206,16 @@ class _CreateRouteDialog extends Component {
                     label={getLocalizedText('structure.path')}
                     value={formValues.path}
                     message={
-                      formErrors.path ||
-                      getLocalizedText('structure.pathHelpMessage')
+                      !formFieldsValidity.path.valid
+                        ? formFieldsValidity.path.message
+                        : getLocalizedText('structure.pathHelpMessage')
                     }
-                    colorScheme={formErrors.path ? 'error' : 'neutral'}
-                    prefix={this.creatingRootRoute ? '/' : ''}
-                    onChange={({ value }) => {
-                      onFieldChange({
-                        path: value,
-                        params: getUpdatedParamValues(
-                          formValues.path,
-                          value,
-                          formValues.params,
-                        ),
-                      });
-                    }}
-                    onBlur={() => {
-                      onFieldBlur(['path']);
-                    }}
+                    colorScheme={
+                      formFieldsValidity.path.valid ? 'neutral' : 'error'
+                    }
+                    prefix={creatingRootRoute ? '/' : ''}
+                    onChange={this._handlePathChange}
+                    onBlur={this._handlePathBlur}
                   />
                 </FormItem>
               </Form>
@@ -236,18 +223,19 @@ class _CreateRouteDialog extends Component {
           </BlockContentBox>
 
           <RouteParams
-            getLocalizedText={getLocalizedText}
-            handleChange={onFieldChange}
             params={formValues.params}
+            invalidParams={formFieldsValidity.params.invalidParams || []}
+            getLocalizedText={getLocalizedText}
+            onChange={onFieldChange}
           />
         </BlockContent>
       </Dialog>
     );
   }
-
 }
 
 _CreateRouteDialog.propTypes = propTypes;
+_CreateRouteDialog.defaultProps = defaultProps;
 _CreateRouteDialog.displayName = 'CreateRouteDialog';
 
 export const CreateRouteDialog = wrap(_CreateRouteDialog);

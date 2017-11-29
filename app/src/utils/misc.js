@@ -200,7 +200,7 @@ export const arrayToObject = (
   (acc, cur, idx) => includeFn(cur, idx, array)
     ? Object.assign(acc, { [keyFn(cur, idx, array)]: valueFn(cur, idx, array) })
     : acc,
-  
+
   {},
 );
 
@@ -220,12 +220,13 @@ export const objectToArray = (
 ) => {
   const keys = Object.keys(object);
   const ret = [];
-  
+
   keys.forEach(key => {
-    if (!includeFn(object[key], key, object)) return;
-    ret.push(itemFn(object[key], key, object));
+    if (includeFn(object[key], key, object)) {
+      ret.push(itemFn(object[key], key, object));
+    }
   });
-  
+
   return ret;
 };
 
@@ -304,36 +305,36 @@ export const concatPath = (prefix, path) => {
 /* eslint-disable no-restricted-syntax, guard-for-in, prefer-template */
 export const flatten = data => {
   const result = {};
-  
+
   const recurse = (cur, prop) => {
     if (Object(cur) !== cur) {
       result[prop] = cur;
     } else if (Array.isArray(cur)) {
       const l = cur.length;
-      
+
       for (let i = 0; i < l; i++) {
         recurse(cur[i], prop ? prop + '.' + i : '' + i);
       }
-      
+
       if (l === 0) {
         result[prop] = [];
       }
     } else {
       let isEmpty = true;
-      
+
       for (const p in cur) {
         isEmpty = false;
         recurse(cur[p], prop ? prop + '.' + p : p);
       }
-      
+
       if (isEmpty) {
         result[prop] = {};
       }
     }
   };
-  
+
   recurse(data, '');
-  
+
   return result;
 };
 
@@ -341,19 +342,19 @@ export const unflatten = data => {
   if (Object(data) !== data || Array.isArray(data)) {
     return data;
   }
-  
+
   const result = {};
   let cur;
   let prop;
   let idx;
   let last;
   let temp;
-  
+
   for (const p in data) {
     cur = result;
     prop = '';
     last = 0;
-    
+
     do {
       idx = p.indexOf('.', last);
       temp = p.substring(last, idx !== -1 ? idx : undefined);
@@ -361,10 +362,10 @@ export const unflatten = data => {
       prop = temp;
       last = idx + 1;
     } while (idx >= 0);
-    
+
     cur[prop] = data[p];
   }
-  
+
   return result[''];
 };
 /* eslint-enable no-restricted-syntax, guard-for-in, prefer-template */
@@ -387,13 +388,13 @@ export const hasOwnProperty = (object, property) =>
 export const trimArray = (array, predicate = isFalsy) => {
   const len = array.length;
   let start = 0;
-  
+
   while (start < len && predicate(array[start])) start++;
   if (start === len) return [];
-  
+
   let end = len - 1;
   while (end >= start && predicate(array[end])) end--;
   if (end < start) return [];
-  
+
   return array.slice(start, end + 1);
 };

@@ -2,33 +2,50 @@
  * @author Nick Maltsev
  */
 
-import {
-  arrayToObject,
-  returnArg,
-  isUndef,
-} from '../../utils/misc';
-
+import { arrayToObject, returnArg, isUndef } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
 
+/**
+ *
+ * @param {string} path
+ * @return {Array<string>}
+ */
 const splitPath = path => path.split('/');
 
+/**
+ *
+ * @param {string} pathPart
+ * @return {boolean}
+ */
 const isRouteParam = pathPart =>
   pathPart.length > 1 &&
   pathPart.startsWith(':');
 
+/**
+ *
+ * @param {string} pathPart
+ * @return {string}
+ */
 const routeParamName = pathPart => pathPart.slice(1);
 
+/**
+ *
+ * @param {string} oldPath
+ * @param {string} newPath
+ * @param {boolean} reverse
+ * @return {Object<string, string>}
+ */
 const getRenamedRouteParams = (oldPath, newPath, reverse = false) => {
   const oldParts = splitPath(oldPath);
   const parts = splitPath(newPath);
   const renamedParams = {};
-  
+
   for (let i = 0, l = Math.min(oldParts.length, parts.length); i < l; i++) {
     const oldPart = oldParts[i];
     const newPart = parts[i];
     const isOldParam = isRouteParam(oldPart);
     const isNewParam = isRouteParam(newPart);
-    
+
     if (isOldParam && isNewParam && oldPart !== newPart) {
       if (reverse) {
         renamedParams[routeParamName(newPart)] = routeParamName(oldPart);
@@ -37,10 +54,17 @@ const getRenamedRouteParams = (oldPath, newPath, reverse = false) => {
       }
     }
   }
-  
+
   return renamedParams;
 };
 
+/**
+ *
+ * @param {string} prevPath
+ * @param {string} newPath
+ * @param {Object<string, string>} oldParamValues
+ * @return {Object<string, string>}
+ */
 export const getUpdatedParamValues = (prevPath, newPath, oldParamValues) => {
   const renamedParams = getRenamedRouteParams(prevPath, newPath, true);
 
@@ -55,91 +79,122 @@ export const getUpdatedParamValues = (prevPath, newPath, oldParamValues) => {
     .filter(isRouteParam)
     .map(routeParamName);
 
-  const updatedParamValues = arrayToObject(
-    params,
-    returnArg,
-    getNewParamValue,
-  );
-
-  return updatedParamValues;
+  return arrayToObject(params, returnArg, getNewParamValue);
 };
 
+/**
+ *
+ * @type {RegExp}
+ */
 const ROUTE_PATH_TEXT_FIELD_PATTERN =
-/(^$)|(^(:?[a-zA-Z0-9_]+\/)*:?[a-zA-Z0-9_]+$)/;
+  /(^$)|(^(:?[a-zA-Z0-9_]+\/)*:?[a-zA-Z0-9_]+$)/;
 
+/**
+ *
+ * @param {string} rawPath
+ * @param {boolean} isRootRoute
+ * @return {string}
+ */
 const normalizePath = (rawPath, isRootRoute) =>
   isRootRoute ? `/${rawPath}` : rawPath;
 
-export const validatePath = ({
+
+/**
+ *
+ * @param {string} path
+ * @param {number} parentRouteId
+ * @param {Object} project
+ * @param {string} editedRouteId
+ * @return {boolean}
+ */
+const isRouteAlreadyExist = (
   path,
-  getLocalizedText,
   parentRouteId,
   project,
   editedRouteId,
-}) => {
+) => {
   const isRootRoute = parentRouteId === INVALID_ID;
 
-  const isRouteAlreadyExist = path => {
-    if (isRootRoute) {
-      const siblingIds = project.rootRoutes;
-      const actualNewRoutePath = `/${path}`;
-      
-      const haveExistingRootRoutes = siblingIds.some(
-        routeId =>
-          routeId !== editedRouteId &&
-          project.routes.get(routeId).path === actualNewRoutePath,
-      );
-      
-      if (haveExistingRootRoutes) return true;
-      
-      const slashRouteId = project.rootRoutes.find(
-        routeId => project.routes.get(routeId).path === '/',
-      );
-      
-      if (isUndef(slashRouteId)) return false;
-      
-      return project.routes.get(slashRouteId).children.some(
-        routeId =>
-          routeId !== editedRouteId &&
-          project.routes.get(routeId).path === path,
-      );
-    } else {
-      const siblingIds = project.routes.get(parentRouteId).children;
-      
-      return siblingIds.some(
-        routeId =>
-          routeId !== editedRouteId &&
-          project.routes.get(routeId).path === path,
-      );
-    }
-  };
+  if (isRootRoute) {
+    const siblingIds = project.rootRoutes;
+    const actualNewRoutePath = `/${path}`;
 
-  return () => {
-    if (!ROUTE_PATH_TEXT_FIELD_PATTERN.test(path)) {
-      return {
-        message: getLocalizedText('structure.pathErrorMessage'),
-        valid: false,
-      };
-    } else if (path.length === 0 && !isRootRoute) {
-      return {
-        message: getLocalizedText('structure.childRoutesEmptyMessage'),
-        valid: false,
-      };
-    } else if (isRouteAlreadyExist(path)) {
-      const creatingRootRoute = parentRouteId === INVALID_ID;
-      const actualPath = normalizePath(path, creatingRootRoute);
-    
-      return {
-        message: getLocalizedText(
-          'structure.routeAlreadyExistsMessage',
-          { path: actualPath },
-        ),
-        valid: false,
-      };
-    } else {
-      return {
-        valid: true,
-      };
-    }
-  };
+    const haveExistingRootRoutes = siblingIds.some(
+      routeId =>
+        routeId !== editedRouteId &&
+        project.routes.get(routeId).path === actualNewRoutePath,
+    );
+
+    if (haveExistingRootRoutes) return true;
+
+    const slashRouteId = project.rootRoutes.find(
+      routeId => project.routes.get(routeId).path === '/',
+    );
+
+    if (isUndef(slashRouteId)) return false;
+
+    return project.routes.get(slashRouteId).children.some(
+      routeId =>
+        routeId !== editedRouteId &&
+        project.routes.get(routeId).path === path,
+    );
+  } else {
+    const siblingIds = project.routes.get(parentRouteId).children;
+
+    return siblingIds.some(
+      routeId =>
+        routeId !== editedRouteId &&
+        project.routes.get(routeId).path === path,
+    );
+  }
+};
+
+/**
+ *
+ * @param {string} path
+ * @param {number} parentRouteId
+ * @param {Object} project
+ * @param {string} editedRouteId
+ * @param {function(string, =Object<string, *>): string} getLocalizedText
+ * @return {FieldValidity}
+ */
+export const validatePath = (
+  path,
+  parentRouteId,
+  project,
+  editedRouteId,
+  getLocalizedText,
+) => {
+  const isRootRoute = parentRouteId === INVALID_ID;
+
+  if (!ROUTE_PATH_TEXT_FIELD_PATTERN.test(path)) {
+    return {
+      valid: false,
+      message: getLocalizedText('structure.pathErrorMessage'),
+    };
+  } else if (path.length === 0 && !isRootRoute) {
+    return {
+      valid: false,
+      message: getLocalizedText('structure.childRoutesEmptyMessage'),
+    };
+  } else if (isRouteAlreadyExist(
+    path,
+    parentRouteId,
+    project,
+    editedRouteId,
+  )) {
+    const actualPath = normalizePath(path, isRootRoute);
+
+    return {
+      valid: false,
+      message: getLocalizedText(
+        'structure.routeAlreadyExistsMessage',
+        { path: actualPath },
+      ),
+    };
+  } else {
+    return {
+      valid: true,
+    };
+  }
 };
