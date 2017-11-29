@@ -10,9 +10,9 @@ import {
   BlockContentBox,
   BlockContentBoxItem,
   BlockContentBoxHeading,
-} from '../../components/BlockContent';
+} from '../../../components/BlockContent/index';
 
-import { objectToArray } from '../../utils/misc';
+import { objectToArray } from '../../../utils/misc';
 
 const propTypes = {
   params: PropTypes.object.isRequired,

@@ -8,11 +8,7 @@ import { connect } from 'react-redux';
 import { push } from 'react-router-redux';
 import { Shortcuts } from 'react-shortcuts';
 import { List } from 'immutable';
-
-import {
-  Container,
-  Dialog,
-} from '@reactackle/reactackle';
+import { Container, Dialog } from '@reactackle/reactackle';
 
 import {
   ToolBar,
@@ -36,10 +32,11 @@ import ProjectRecord from '../models/Project';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
 import ButtonRecord from '../models/Button';
+
 import {
   CreateRouteDialog,
   EditRoutePathDialog,
-} from '../containers/route-dialog';
+} from '../containers/route-dialogs';
 
 import {
   createRoute,
@@ -59,7 +56,6 @@ import {
 } from '../selectors';
 
 import { findComponent } from '../lib/components';
-
 import { TOOL_ID_ROUTE_EDITOR } from '../constants/tool-ids';
 
 import {
@@ -214,10 +210,10 @@ class StructureRoute extends PureComponent {
       this._handleDeleteRouteCancel.bind(this);
     this._handleCreateRouteDialogClose =
       this._handleCreateRouteDialogClose.bind(this);
-    this._handleCreateRouteCreate =
-      this._handleCreateRouteCreate.bind(this);
-    this._handleEditPathSave =
-      this._handleEditPathSave.bind(this);
+    this._handleCreateRouteDialogSubmit =
+      this._handleCreateRouteDialogSubmit.bind(this);
+    this._handleEditPathDialogSubmit =
+      this._handleEditPathDialogSubmit.bind(this);
     this._handleEditPathDialogClose =
       this._handleEditPathDialogClose.bind(this);
 
@@ -600,34 +596,17 @@ class StructureRoute extends PureComponent {
 
   /**
    *
-   * @param {string} paramName
-   * @param {string} value
+   * @param {Object} data
    * @private
    */
-  _handleNewRouteParamChange(paramName, { value }) {
-    const { newRouteParamValues } = this.state;
-
-    this.setState({
-      newRouteParamValues: {
-        ...newRouteParamValues,
-        [paramName]: value,
-      },
-    });
-  }
-
-  /**
-   *
-   * @param {Function} closeDialog
-   * @private
-   */
-  _handleCreateRouteCreate(ret) {
+  _handleCreateRouteDialogSubmit(data) {
     const { onCreateRoute } = this.props;
     const {
       createRouteParentId,
       newRoutePath,
       newRouteTitle,
       newRouteParamValues,
-    } = ret;
+    } = data;
 
     const isRootRoute = createRouteParentId === -1;
     const title = newRouteTitle.trim();
@@ -659,14 +638,19 @@ class StructureRoute extends PureComponent {
     });
   }
 
-  _handleEditPathSave(ret) {
+  /**
+   *
+   * @param {Object} data
+   * @private
+   */
+  _handleEditPathDialogSubmit(data) {
     const { project, onUpdateRoutePath } = this.props;
 
     const {
       editingRouteId,
       newRoutePath,
       newRouteParamValues,
-    } = ret;
+    } = data;
 
     const route = project.routes.get(editingRouteId);
     const isRootRoute = route.parentId === INVALID_ID;
@@ -861,9 +845,9 @@ class StructureRoute extends PureComponent {
 
     return (
       <CreateRouteDialog
-        open={createRouteDialogIsVisible}
+        open
         parentRouteId={createRouteParentId}
-        onSubmit={this._handleCreateRouteCreate}
+        onSubmit={this._handleCreateRouteDialogSubmit}
         onClose={this._handleCreateRouteDialogClose}
       />
     );
@@ -884,10 +868,10 @@ class StructureRoute extends PureComponent {
 
     return (
       <EditRoutePathDialog
+        open
         editingRouteId={editingRouteId}
-        onSubmit={this._handleEditPathSave}
+        onSubmit={this._handleEditPathDialogSubmit}
         onClose={this._handleEditPathDialogClose}
-        open={editRoutePathDialogIsVisible}
       />
     );
   }

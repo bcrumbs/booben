@@ -12,14 +12,14 @@ import {
   BlockContent,
   BlockContentBox,
   BlockContentBoxItem,
-} from '../../components/BlockContent';
+} from '../../../components/BlockContent/index';
 
-import { withFormState, formStatePropTypes } from '../../hocs/withFormState';
-import { RouteParams } from './RouteParams';
-import { getUpdatedParamValues, validatePath } from './common';
-import { getLocalizedTextFromState } from '../../selectors';
-import { INVALID_ID } from '../../constants/misc';
-import { returnSecondArg, isFalsy, objectToArray } from '../../utils/misc';
+import { withFormState, formStatePropTypes } from '../../../hocs/withFormState';
+import { RouteParams } from '../RouteParams/RouteParams';
+import { getUpdatedParamValues, validatePath } from '../common';
+import { getLocalizedTextFromState } from '../../../selectors/index';
+import { INVALID_ID } from '../../../constants/misc';
+import { returnSecondArg, isFalsy, objectToArray } from '../../../utils/misc';
 
 const propTypes = {
   open: PropTypes.bool,
