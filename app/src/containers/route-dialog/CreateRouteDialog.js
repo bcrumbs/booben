@@ -18,7 +18,7 @@ import {
   BlockContent,
   BlockContentBox,
   BlockContentBoxItem,
-} from '@jssy/common-ui';
+} from '../../components/BlockContent';
 
 import { INVALID_ID } from '../../constants/misc';
 
@@ -119,7 +119,7 @@ class _CreateRouteDialog extends Component {
         ? 'structure.createNewRootRoute'
         : 'structure.createNewRoute',
     );
-  
+
 
     this._handleClose = this._handleClose.bind(this);
     this._handleSubmit = this._handleSubmit.bind(this);
@@ -205,12 +205,15 @@ class _CreateRouteDialog extends Component {
                     }}
                   />
                 </FormItem>
-    
+
                 <FormItem>
                   <TextField
                     label={getLocalizedText('structure.path')}
                     value={formValues.path}
-                    message={formErrors.path}
+                    message={
+                      formErrors.path ||
+                      getLocalizedText('structure.pathHelpMessage')
+                    }
                     colorScheme={formErrors.path ? 'error' : 'neutral'}
                     prefix={this.creatingRootRoute ? '/' : ''}
                     onChange={({ value }) => {
@@ -231,7 +234,7 @@ class _CreateRouteDialog extends Component {
               </Form>
             </BlockContentBoxItem>
           </BlockContentBox>
-  
+
           <RouteParams
             getLocalizedText={getLocalizedText}
             handleChange={onFieldChange}

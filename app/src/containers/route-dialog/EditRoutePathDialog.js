@@ -18,7 +18,7 @@ import {
   BlockContent,
   BlockContentBox,
   BlockContentBoxItem,
-} from '@jssy/common-ui';
+} from '../../components/BlockContent';
 
 import {
   getLocalizedTextFromState,
@@ -161,7 +161,7 @@ class _EditRoutePathDialog extends Component {
       onFieldBlur,
       open
     } = this.props;
-    
+
     const dialogButtons = [{
       text: getLocalizedText('common.save'),
       disabled: !isFormValid,
@@ -212,7 +212,7 @@ class _EditRoutePathDialog extends Component {
               </Form>
             </BlockContentBoxItem>
           </BlockContentBox>
-  
+
           <RouteParams
             getLocalizedText={getLocalizedText}
             handleChange={onFieldChange}

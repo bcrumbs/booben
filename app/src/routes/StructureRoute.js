@@ -859,8 +859,6 @@ class StructureRoute extends PureComponent {
 
     if (!createRouteDialogIsVisible) return null;
 
-    debugger;
-
     return (
       <CreateRouteDialog
         open={createRouteDialogIsVisible}
