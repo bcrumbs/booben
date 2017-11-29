@@ -36,6 +36,7 @@ import {
 import {
   selectedComponentIdsSelector,
   currentComponentsSelector,
+  currentRootComponentIdSelector,
   haveNestedConstructorsSelector,
   getLocalizedTextFromState,
   rootDraggedComponentSelector,
@@ -53,7 +54,12 @@ import {
   filterGroupsAndComponents,
 } from '../../lib/library';
 
-import { canInsertComponent, ANYWHERE } from '../../lib/components';
+import {
+  findComponent,
+  canInsertComponent,
+  ANYWHERE,
+} from '../../lib/components';
+
 import { combineFiltersAll, mapListToArray } from '../../utils/misc';
 
 import {
@@ -89,6 +95,7 @@ const libraryGroupsFilteredSelector = createSelector(
   libraryGroupsSortedByLanguageSelector,
   selectedComponentIdsSelector,
   currentComponentsSelector,
+  currentRootComponentIdSelector,
   haveNestedConstructorsSelector,
   state => state.project.showAllComponentsOnPalette,
   state => state.project.meta,
@@ -100,6 +107,7 @@ const libraryGroupsFilteredSelector = createSelector(
     groups,
     selectedComponentIds,
     components,
+    rootComponentId,
     haveNestedConstructors,
     showAllComponentsOnPalette,
     meta,
@@ -107,15 +115,18 @@ const libraryGroupsFilteredSelector = createSelector(
     language,
     getLocalizedText,
   ) => {
-    const filterFns = [
-      component => !haveNestedConstructors || component.fullName !== 'Outlet',
-    ];
+    const filterFns = [];
 
-    const hasOutlet = components.find(value => value.get('name') === 'Outlet');
-    if (hasOutlet) {
-      filterFns.push(
-        component => component.fullName !== 'Outlet',
-      );
+    const willHideOutlet =
+      haveNestedConstructors ||
+      findComponent(
+        components,
+        rootComponentId,
+        component => component.name === 'Outlet',
+      ) !== null;
+
+    if (willHideOutlet) {
+      filterFns.push(component => component.fullName !== 'Outlet');
     }
 
     if (selectedComponentIds.size === 1 && !showAllComponentsOnPalette) {
@@ -131,7 +142,7 @@ const libraryGroupsFilteredSelector = createSelector(
         ),
       );
     }
-    
+
     if (searchString !== '') {
       filterFns.push(
         component =>
@@ -165,7 +176,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   onExpandedGroupsChange: groups =>
     void dispatch(setExpandedGroups(groups)),
-  
+
   onSearchComponents: searchString =>
     void dispatch(searchComponents(searchString)),
 
@@ -183,7 +194,7 @@ const DraggableComponentTag = connectDraggable(draggable(ComponentTag));
 class ComponentsLibraryComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this.state = {
       localSearchString: props.searchString,
     };
@@ -193,7 +204,7 @@ class ComponentsLibraryComponent extends PureComponent {
     this._handleSearchButtonPress = this._handleSearchButtonPress.bind(this);
     this._handleExpandedItemsChange =
       this._handleExpandedItemsChange.bind(this);
-    
+
     this._doSearchDebounced = _debounce(
       this._doSearch.bind(this),
       LIBRARY_SEARCH_INPUT_DEBOUNCE,
@@ -211,29 +222,29 @@ class ComponentsLibraryComponent extends PureComponent {
     const components = constructComponent(data.name, 0, language, meta);
     onStartDragComponent(components);
   }
-  
+
   _doSearch() {
     const { onSearchComponents } = this.props;
     const { localSearchString } = this.state;
-  
+
     onSearchComponents(localSearchString);
   }
-  
+
   _handleSearchInputChange({ value }) {
     this.setState({
       localSearchString: value,
     }, this._doSearchDebounced);
   }
-  
+
   _handleSearchButtonPress() {
     this._doSearch();
   }
-  
+
   _handleExpandedItemsChange({ expandedItemIds }) {
     const { onExpandedGroupsChange } = this.props;
     onExpandedGroupsChange(expandedItemIds);
   }
-  
+
   render() {
     const {
       componentGroups,
@@ -243,7 +254,7 @@ class ComponentsLibraryComponent extends PureComponent {
       getLocalizedText,
       onShowAllComponents,
     } = this.props;
-    
+
     const { localSearchString } = this.state;
 
     const focusedComponentName = this._getFocusedComponentName();
@@ -253,19 +264,19 @@ class ComponentsLibraryComponent extends PureComponent {
       if (!filtered) {
         const noComponentsText =
           getLocalizedText('library.noComponentsInLibrary');
-  
+
         return (
           <BlockContentPlaceholder text={noComponentsText} />
         );
       }
-      
+
       if (searchString === '') {
         const noComponentsText =
           getLocalizedText('library.noComponentsAvailable');
-  
+
         const showAllComponentsText =
           getLocalizedText('library.showAllComponents');
-  
+
         return (
           <BlockContentPlaceholder text={noComponentsText}>
             <Button
@@ -303,7 +314,7 @@ class ComponentsLibraryComponent extends PureComponent {
         ),
       };
     });
-    
+
     const expandAll = searchString !== '';
     const expandedItemIds = expandAll
       ? accordionItems.map(item => item.id)
@@ -319,7 +330,7 @@ class ComponentsLibraryComponent extends PureComponent {
             onButtonPress={this._handleSearchButtonPress}
           />
         </BlockContentBoxItem>
-        
+
         <BlockContentBoxItem blank isBordered hasScrollY>
           <AccordionBox>
             <Accordion
