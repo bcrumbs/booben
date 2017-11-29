@@ -34,7 +34,7 @@ export class PropTextarea extends Component {
     super(props, context);
     this._handleChange = this._handleChange.bind(this);
   }
-  
+
   /**
    *
    * @param {string} value
@@ -69,6 +69,7 @@ export class PropTextarea extends Component {
       <PropBase
         {...propsForBase}
         content={content}
+        labelPositionTop
       />
     );
   }

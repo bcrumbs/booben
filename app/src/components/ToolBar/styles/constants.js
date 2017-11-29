@@ -1,6 +1,6 @@
 import { colorBorderDark } from '../../../styles/themeSelectors';
 
 export default {
-  height: 42,
+  height: 37,
   borderColor: colorBorderDark,
 };

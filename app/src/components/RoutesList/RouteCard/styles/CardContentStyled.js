@@ -18,8 +18,7 @@ const focused = ({ focused }) => focused
 export const CardContentStyled = styled.div`
   flex-grow: 1;
   display: flex;
-  align-items: center;
-  padding: ${baseModule(1)}px ${baseModule(2)}px;
+  align-items: stretch;
   ${focused}
   ${transition('border')}
 `;

@@ -196,34 +196,34 @@ const mapDispatchToProps = dispatch => ({
 
   onRenameComponent: (componentId, newTitle) =>
     void dispatch(renameComponent(componentId, newTitle)),
-  
+
   onDeleteComponent: componentId =>
     void dispatch(deleteComponent(componentId)),
-  
+
   onCopyComponent: (componentId, containerId, afterIdx) =>
     void dispatch(copyComponent(componentId, containerId, afterIdx)),
-  
+
   onMoveComponent: (componentId, containerId, afterIdx) =>
     void dispatch(moveComponent(componentId, containerId, afterIdx, true)),
 
   onMoveComponentToClipboard: (componentId, copy) =>
     void dispatch(moveComponentToClipboard(componentId, copy)),
-  
+
   onConvertComponentToList: componentId =>
     void dispatch(convertComponentToList(componentId)),
-  
+
   onSelectLayout: layoutIdx =>
     void dispatch(selectLayoutForNewComponent(layoutIdx)),
-  
+
   onDropComponent: area =>
     void dispatch(dropComponent(area)),
-  
+
   onSelectComponentData: ({ data }) =>
     void dispatch(pickComponentDataDone(data)),
-  
+
   onUndo: () => void dispatch(undo()),
   onRedo: () => void dispatch(redo()),
-  
+
   onGoToStructure: projectName => {
     const path = buildStructurePath({ projectName });
     dispatch(push(path));
@@ -238,7 +238,7 @@ const mapDispatchToProps = dispatch => ({
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
 
-const LIBRARY_ICON = 'cubes';
+const LIBRARY_ICON = 'plus-square-o';
 const COMPONENTS_TREE_ICON = 'sitemap';
 const PROPS_EDITOR_ICON = 'sliders';
 
@@ -302,10 +302,10 @@ class DesignRoute extends PureComponent {
     this._handleConvertComponentToList =
       this._handleConvertComponentToList.bind(this);
   }
-  
+
   _getLibraryTool() {
     const { getLocalizedText } = this.props;
-    
+
     return new ToolRecord({
       id: TOOL_ID_LIBRARY,
       icon: LIBRARY_ICON,
@@ -320,10 +320,10 @@ class DesignRoute extends PureComponent {
       windowMinWidth: 360,
     });
   }
-  
+
   _getTreeTool() {
     const { getLocalizedText } = this.props;
-    
+
     return new ToolRecord({
       id: TOOL_ID_COMPONENTS_TREE,
       icon: COMPONENTS_TREE_ICON,
@@ -337,7 +337,7 @@ class DesignRoute extends PureComponent {
       ]),
     });
   }
-  
+
   _getPropsEditorTool() {
     const {
       meta,
@@ -346,19 +346,19 @@ class DesignRoute extends PureComponent {
       firstSelectedComponentId,
       getLocalizedText,
     } = this.props;
-    
+
     const propsEditorSection = new ToolSectionRecord({
       name: 'General',
       component: ComponentPropsEditor,
     });
-  
+
     let title = '';
     let subtitle = '';
     let sections = List([propsEditorSection]);
-  
+
     if (singleComponentSelected) {
       const selectedComponent = components.get(firstSelectedComponentId);
-    
+
       title = selectedComponent.title;
       subtitle = selectedComponent.name;
 
@@ -370,7 +370,7 @@ class DesignRoute extends PureComponent {
           }),
         );
       }
-      
+
       if (componentHasActions(selectedComponent.name, meta)) {
         sections = sections.push(
           new ToolSectionRecord({
@@ -386,7 +386,7 @@ class DesignRoute extends PureComponent {
     const name = getLocalizedText('design.tool.componentConfiguration');
     const titlePlaceholder =
       getLocalizedText('design.tool.componentConfiguration.enterTitle');
-    
+
     return new ToolRecord({
       id: TOOL_ID_PROPS_EDITOR,
       icon: PROPS_EDITOR_ICON,
@@ -398,7 +398,7 @@ class DesignRoute extends PureComponent {
       sections,
     });
   }
-  
+
   _getTools() {
     const libraryTool = this._getLibraryTool();
     const treeTool = this._getTreeTool();
@@ -446,14 +446,14 @@ class DesignRoute extends PureComponent {
     switch (action) {
       case 'UNDO': this.props.onUndo(); break;
       case 'REDO': this.props.onRedo(); break;
-      
+
       case 'DELETE_COMPONENT': {
         if (!isInputOrTextareaActive()) {
           this._handleDeleteSelectedComponent();
         }
         break;
       }
-      
+
       case 'DUPLICATE_COMPONENT': {
         this._handleDuplicateSelectedComponent();
         break;
@@ -473,7 +473,7 @@ class DesignRoute extends PureComponent {
         this._handlePasteComponent();
         break;
       }
-      
+
       case 'GO_TO_STRUCTURE': {
         const { projectName, onGoToStructure } = this.props;
 
@@ -483,11 +483,11 @@ class DesignRoute extends PureComponent {
 
       case 'OPEN_CREATE_COMPONENT_MENU': {
         const { components, cursorPosition } = this.props;
-        
+
         const willOpenMenu =
           cursorPosition.containerId !== INVALID_ID ||
           components.size === 0;
-        
+
         if (willOpenMenu) {
           this.setState({
             createComponentMenuIsVisible: true,
@@ -496,7 +496,7 @@ class DesignRoute extends PureComponent {
 
         break;
       }
-      
+
       default:
     }
   }
@@ -510,7 +510,7 @@ class DesignRoute extends PureComponent {
       this._handleDeleteComponentButtonPress();
     }
   }
-  
+
   /**
    *
    * @private
@@ -523,13 +523,13 @@ class DesignRoute extends PureComponent {
       firstSelectedComponentId,
       onCopyComponent,
     } = this.props;
-    
+
     if (!singleComponentSelected) return;
-  
+
     const selectedComponent = components.get(firstSelectedComponentId);
-    
+
     if (isRootComponent(selectedComponent)) return;
-    
+
     const parentComponent = components.get(selectedComponent.parentId);
     const afterIdx = parentComponent.children.indexOf(selectedComponent.id) + 1;
     const canDuplicate = canInsertComponent(
@@ -539,7 +539,7 @@ class DesignRoute extends PureComponent {
       afterIdx,
       meta,
     );
-    
+
     if (canDuplicate) {
       onCopyComponent(
         selectedComponent.id,
@@ -586,9 +586,9 @@ class DesignRoute extends PureComponent {
     } = this.props;
 
     if (componentClipboard.componentId === INVALID_ID) return;
-    
+
     const clipboardComponent = components.get(componentClipboard.componentId);
-    
+
     if (componentClipboard.copy) {
       const canCopy = canInsertComponent(
         clipboardComponent.name,
@@ -597,7 +597,7 @@ class DesignRoute extends PureComponent {
         cursorPosition.afterIdx,
         meta,
       );
-      
+
       if (canCopy) {
         onCopyComponent(
           componentClipboard.componentId,
@@ -613,7 +613,7 @@ class DesignRoute extends PureComponent {
         cursorPosition.afterIdx,
         meta,
       );
-      
+
       if (canMove) {
         onMoveComponent(
           componentClipboard.componentId,
@@ -632,7 +632,7 @@ class DesignRoute extends PureComponent {
    */
   _handleToolTitleChange(tool, newTitle) {
     const { firstSelectedComponentId, onRenameComponent } = this.props;
-    
+
     if (tool.id === TOOL_ID_PROPS_EDITOR) {
       onRenameComponent(firstSelectedComponentId, newTitle);
     }
@@ -654,7 +654,7 @@ class DesignRoute extends PureComponent {
    */
   _handleDeleteComponentConfirm() {
     const { firstSelectedComponentId, onDeleteComponent } = this.props;
-  
+
     this.setState({
       confirmDeleteComponentDialogIsVisible: false,
     }, () => {
@@ -671,7 +671,7 @@ class DesignRoute extends PureComponent {
       confirmDeleteComponentDialogIsVisible: false,
     });
   }
-  
+
   /**
    *
    * @param {number} layoutIdx
@@ -730,7 +730,7 @@ class DesignRoute extends PureComponent {
     const { showInvisibleComponents, onToggleInvisibleComponents } = this.props;
     onToggleInvisibleComponents(!showInvisibleComponents);
   }
-  
+
   /**
    *
    * @private
@@ -739,7 +739,7 @@ class DesignRoute extends PureComponent {
     const { showContentPlaceholders, onToggleContentPlaceholders } = this.props;
     onToggleContentPlaceholders(!showContentPlaceholders);
   }
-  
+
   /**
    *
    * @private
@@ -750,12 +750,12 @@ class DesignRoute extends PureComponent {
       firstSelectedComponentId,
       onConvertComponentToList,
     } = this.props;
-    
+
     if (singleComponentSelected) {
       onConvertComponentToList(firstSelectedComponentId);
     }
   }
-  
+
   /**
    *
    * @return {?ReactElement}
@@ -768,12 +768,12 @@ class DesignRoute extends PureComponent {
       selectingComponentLayout,
       draggedComponents,
     } = this.props;
-    
+
     if (!selectingComponentLayout) return null;
-  
+
     const draggedComponent = draggedComponents.get(0);
     const draggedComponentMeta = getComponentMeta(draggedComponent.name, meta);
-  
+
     const items = draggedComponentMeta.layouts.map((layout, idx) => {
       const icon = layout.icon || defaultComponentLayoutIcon;
       const title = getString(
@@ -781,13 +781,13 @@ class DesignRoute extends PureComponent {
         layout.textKey,
         language,
       );
-      
+
       const subtitle = getString(
         draggedComponentMeta.strings,
         layout.descriptionTextKey,
         language,
       );
-    
+
       return (
         <ComponentLayoutSelectionItem
           key={String(idx)}
@@ -799,14 +799,14 @@ class DesignRoute extends PureComponent {
         />
       );
     });
-    
+
     return (
       <ComponentLayoutSelection>
         {items}
       </ComponentLayoutSelection>
     );
   }
-  
+
   _renderComponentDataSelect() {
     const {
       pickedComponentId,
@@ -814,17 +814,17 @@ class DesignRoute extends PureComponent {
       getLocalizedText,
       onSelectComponentData,
     } = this.props;
-    
+
     const componentElementCoords = getComponentCoords(pickedComponentId);
     if (!componentElementCoords) return null;
-    
+
     const wrapperStyle = {
       position: 'absolute',
       zIndex: '1000',
       left: `${componentElementCoords.x}px`,
       top: `${componentElementCoords.y}px`,
     };
-    
+
     return (
       <Portal>
         <div style={wrapperStyle}>
@@ -884,7 +884,7 @@ class DesignRoute extends PureComponent {
       text: getLocalizedText('common.cancel'),
       onPress: this._handleDeleteComponentCancel,
     }];
-  
+
     const toolGroups = this._getTools();
 
     let deleteComponentDialogText = '';
@@ -901,7 +901,7 @@ class DesignRoute extends PureComponent {
     const willRenderComponentDataSelect =
       componentDataListIsVisible &&
       pickedComponentArea === ComponentPickAreas.CANVAS;
-    
+
     const componentDataSelect = willRenderComponentDataSelect
       ? this._renderComponentDataSelect()
       : null;
@@ -974,7 +974,7 @@ class DesignRoute extends PureComponent {
                 onPress={onRedo}
               />
             </ToolBarGroup>
-  
+
             <ToolBarGroup>
               <ToolBarAction
                 icon={{ name: 'list' }}
@@ -1009,7 +1009,7 @@ class DesignRoute extends PureComponent {
               containerStyle={previewContainerStyle}
             />
           </AppWrapper>
-          
+
           <Dialog
             title={getLocalizedText('design.selectLayout')}
             backdrop
@@ -1018,7 +1018,7 @@ class DesignRoute extends PureComponent {
           >
             {layoutSelectionDialogContent}
           </Dialog>
-  
+
           <Dialog
             title={getLocalizedText('design.deleteComponent')}
             backdrop
@@ -1032,11 +1032,11 @@ class DesignRoute extends PureComponent {
           >
             {deleteComponentDialogText}
           </Dialog>
-  
+
           <Portal>
             <ComponentsDragArea onDrop={this._handleDropComponent} />
           </Portal>
-          
+
           {componentDataSelect}
           {createComponentMenu}
         </Desktop>

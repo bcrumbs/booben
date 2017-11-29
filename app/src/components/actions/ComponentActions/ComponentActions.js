@@ -21,26 +21,27 @@ const defaultProps = {
 export class ComponentActions extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this._handleAddButtonPress = this._handleAddButtonPress.bind(this);
   }
-  
+
   _handleAddButtonPress() {
     const { pathToList, onAdd } = this.props;
     onAdd({ pathToList });
   }
-  
+
   render() {
     const { addButtonText, children } = this.props;
-    
+
     return (
       <div>
         {children}
-    
+
         <div>
           <Button
             text={addButtonText}
             icon={{ name: 'plus' }}
+            size="small"
             narrow
             onPress={this._handleAddButtonPress}
           />

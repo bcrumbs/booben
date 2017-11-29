@@ -38,7 +38,7 @@ export class PropList extends Component {
     super(props, context);
     this._handleChange = this._handleChange.bind(this);
   }
-  
+
   /**
    *
    * @param {*} value
@@ -79,6 +79,7 @@ export class PropList extends Component {
       <PropBase
         {...propsForBase}
         content={content}
+        labelPositionTop
       />
     );
   }
