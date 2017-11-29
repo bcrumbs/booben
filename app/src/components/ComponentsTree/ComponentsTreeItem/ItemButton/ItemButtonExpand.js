@@ -32,12 +32,7 @@ const ButtonExpand = styled.div`
 
 export const ItemButtonExpand = ({ expanded, disabled }) => (
   <ButtonExpand expanded={expanded} disabled={disabled}>
-    <ItemButton
-      icon={{
-        type: 'library',
-        src: iconExpand,
-      }}
-    />
+    <ItemButton icon={{ type: 'library', src: iconExpand }} />
   </ButtonExpand>
 );
 

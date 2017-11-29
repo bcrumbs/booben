@@ -14,8 +14,8 @@ const disabledStyles = css`
   &,
   &:hover,
   &:focus {
-      color: ${textColorMedium};
-      cursor: default;
+    color: ${textColorMedium};
+    cursor: default;
   }
 `;
 

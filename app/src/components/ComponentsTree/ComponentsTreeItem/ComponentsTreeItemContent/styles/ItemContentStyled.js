@@ -1,10 +1,7 @@
 import styled, { css } from 'styled-components';
 import { transition } from '@reactackle/reactackle';
-import constants from '../../../styles/constants'
-
-import {
-  textColorMedium,
-} from '../../../../../styles/themeSelectors';
+import constants from '../../../styles/constants';
+import { textColorMedium } from '../../../../../styles/themeSelectors';
 
 const disabledStyles = css`
   &,
