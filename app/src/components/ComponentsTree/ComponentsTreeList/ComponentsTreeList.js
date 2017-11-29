@@ -16,4 +16,6 @@ export const ComponentsTreeList = ({ children, level }) => (
   </TreeListStyled>
 );
 
+ComponentsTreeList.propTypes = propTypes;
+ComponentsTreeList.defaultProps = defaultProps;
 ComponentsTreeList.displayName = 'ComponentsTreeList';
