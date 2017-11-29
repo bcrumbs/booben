@@ -16,7 +16,6 @@ const propTypes = {
   itemElement: PropTypes.element,
   hasSubLevel: PropTypes.bool,
   expanded: PropTypes.bool,
-  // visible: PropTypes.bool,
   active: PropTypes.bool,
   selected: PropTypes.bool,
   hovered: PropTypes.bool,
@@ -31,7 +30,6 @@ const defaultProps = {
   itemElement: null,
   hasSubLevel: false,
   expanded: false,
-  visible: false,
   active: false,
   selected: false,
   hovered: false,
@@ -47,6 +45,7 @@ export class ComponentsTreeItemContent extends PureComponent {
     super(props, context);
     
     this._expandButtonElement = null;
+
     this._saveExpandButtonRef = this._saveExpandButtonRef.bind(this);
     this._handleHoverIn = this._handleHoverIn.bind(this);
     this._handleHoverOut = this._handleHoverOut.bind(this);
@@ -59,6 +58,7 @@ export class ComponentsTreeItemContent extends PureComponent {
       this._expandButtonElement.addEventListener('click', event => {
         if (event.button === 0) this._handleExpand();
       });
+
       this._expandButtonElement.addEventListener('mousedown', event => {
         event.stopPropagation();
       });
@@ -116,6 +116,7 @@ export class ComponentsTreeItemContent extends PureComponent {
     } else {
       spacer = <SpacerStyled />;
     }
+    
     return (
       <ItemContentStyled
         hovered={this.props.hovered}

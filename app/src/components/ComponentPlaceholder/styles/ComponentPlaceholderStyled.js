@@ -7,16 +7,6 @@ import {
   bodyFontFamily,
 } from '../../../styles/themeSelectors';
 
-const placed = ({ placed }) => placed
-  ? `
-    position: relative;
-    min-height: 0;
-  `
-  : `
-    width: 100px;
-    height: 100px;
-  `;
-
 const visible = ({ visible }) => css`opacity: ${visible ? '1' : '0'};`;
 
 export const ComponentPlaceholderStyled = styled.div`  

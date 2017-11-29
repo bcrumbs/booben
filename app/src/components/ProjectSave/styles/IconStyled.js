@@ -14,9 +14,9 @@ const defaultProps = {
   typeProgress: false,
 };
 
-const outerSize = '16px',
-  imgSize = '9px',
-  borderWidth = '1px';
+const outerSize = '16px';
+const imgSize = '9px';
+const borderWidth = '1px';
 
 const active = ({ active }) => `opacity: ${active ? 0.8 : 0.5};`;
 

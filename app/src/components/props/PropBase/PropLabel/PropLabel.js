@@ -39,14 +39,12 @@ export const PropLabel = props => {
 
   return (
     <LabelStyled colorScheme={props.colorScheme}>
-      <div>
-        <LabelTextStyled>
-          {props.label}
-        </LabelTextStyled>
+      <LabelTextStyled>
+        {props.label}
+      </LabelTextStyled>
 
-        {secondaryLabel}
-        {tooltip}
-      </div>
+      {secondaryLabel}
+      {tooltip}
     </LabelStyled>
   );
 };

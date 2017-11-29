@@ -1,8 +1,10 @@
 import React from 'react';
+
 import {
   Button,
   Theme,
 } from '@reactackle/reactackle';
+
 import reactackleThemeMixin from './styles/reactackle-theme-mixin';
 
 const propTypes = {

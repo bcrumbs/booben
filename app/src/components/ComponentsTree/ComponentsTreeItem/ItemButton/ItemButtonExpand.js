@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import { transition } from '@reactackle/reactackle';
 import { ItemButton } from './ItemButton';
 
-import ICON_EXPAND
+import iconExpand
   from '../../../../../assets/ic-light__chevron-right_24-bound.svg';
 
 const propTypes = {
@@ -35,7 +35,7 @@ export const ItemButtonExpand = ({ expanded, disabled }) => (
     <ItemButton
       icon={{
         type: 'library',
-        src: ICON_EXPAND,
+        src: iconExpand,
       }}
     />
   </ButtonExpand>
