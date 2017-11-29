@@ -46,6 +46,7 @@
   "structure.path": "Path",
   "structure.pathErrorMessage": "Path can only contain letters, numbers, and underscores",
   "structure.routeAlreadyExistsMessage": "Route {path} already exists",
+  "structure.childRoutesEmptyMessage": "Child route path can not be empty",
   "structure.deleteRouteConfirmationMessage": "All child routes will be deleted too.",
   "structure.redirectTo": "Redirect to",
   "structure.indexRoute": "Index route",
