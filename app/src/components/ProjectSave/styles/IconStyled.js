@@ -14,8 +14,8 @@ const defaultProps = {
   typeProgress: false,
 };
 
-const outerSize = '16px';
-const imgSize = '9px';
+const outerSize = '15px';
+const imgSize = '8px';
 const borderWidth = '1px';
 
 const active = ({ active }) => `opacity: ${active ? 0.8 : 0.5};`;
@@ -37,6 +37,7 @@ export const IconStyled = styled.div`
   margin-right: ${baseModule(1)}px;
   position:relative;
   color: inherit;
+  box-sizing: border-box;
   ${active}
   ${typeProgress}
   ${transition('opacity')};

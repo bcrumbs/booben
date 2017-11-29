@@ -9,6 +9,7 @@ import { RouteCardStyled } from '../RouteCard/styles/RouteCardStyled';
 import { CardWrapperStyled } from '../RouteCard/styles/CardWrapperStyled';
 import { CardStyled } from '../RouteCard/styles/CardStyled';
 import { CardContentStyled } from '../RouteCard/styles/CardContentStyled';
+import { TextBoxStyled } from '../RouteCard/styles/TextBoxStyled';
 import { TitleBoxStyled } from '../RouteCard/styles/TitleBoxStyled';
 import { TitleStyled } from '../RouteCard/styles/TitleStyled';
 
@@ -30,55 +31,55 @@ const defaultProps = {
 export class IndexRouteCard extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this._element = null;
-    
+
     this._handleDoubleClick = this._handleDoubleClick.bind(this);
     this._handleCardClick = this._handleCardClick.bind(this);
     this._saveRef = this._saveRef.bind(this);
   }
-  
+
   componentDidMount() {
     this._element.addEventListener('dblclick', this._handleDoubleClick);
   }
-  
+
   componentWillUpdate(nextProps) {
     const { onGo } = this.props;
-    
+
     if (nextProps.onGo !== onGo) {
       this._element.removeEventListener('dblclick', this._handleDoubleClick);
     }
   }
-  
+
   componentDidUpdate(prevProps) {
     const { onGo } = this.props;
-    
+
     if (prevProps.onGo !== onGo) {
       this._element.addEventListener('dblclick', this._handleDoubleClick);
     }
   }
-  
+
   componentWillUnmount() {
     this._element.removeEventListener('dblclick', this._handleDoubleClick);
   }
-  
+
   _handleDoubleClick() {
     const { routeId, onGo } = this.props;
     onGo({ routeId, isIndexRoute: true });
   }
-  
+
   _handleCardClick() {
     const { routeId, onFocus } = this.props;
     onFocus({ routeId, isIndexRoute: true });
   }
-  
+
   _saveRef(el) {
     this._element = el;
   }
-  
+
   render() {
     const { title, focused } = this.props;
-    
+
     return (
       <RouteCardStyled>
         <CardWrapperStyled index>
@@ -90,9 +91,11 @@ export class IndexRouteCard extends PureComponent {
             innerRef={this._saveRef}
           >
             <CardContentStyled>
-              <TitleBoxStyled>
-                <TitleStyled index>{title}</TitleStyled>
-              </TitleBoxStyled>
+              <TextBoxStyled>
+                <TitleBoxStyled>
+                  <TitleStyled index>{title}</TitleStyled>
+                </TitleBoxStyled>
+              </TextBoxStyled>
             </CardContentStyled>
           </CardStyled>
         </CardWrapperStyled>

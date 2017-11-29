@@ -15,7 +15,7 @@ import {
 import {
   ActionContentWrapperStyled,
 } from './styles/ActionContentWrapperStyled';
-   
+
 const propTypes = {
   id: PropTypes.any.isRequired,
   title: PropTypes.string,
@@ -34,11 +34,11 @@ const defaultProps = {
 export class ComponentAction extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this._handleClick = this._handleClick.bind(this);
     this._handleDeleteButtonPress = this._handleDeleteButtonPress.bind(this);
   }
-  
+
   _handleClick(event) {
     const { id, onEdit } = this.props;
 
@@ -46,22 +46,22 @@ export class ComponentAction extends PureComponent {
       onEdit({ actionId: id });
     }
   }
-  
+
   _handleDeleteButtonPress() {
     const { id, onDelete } = this.props;
     onDelete({ actionId: id });
   }
-  
+
   render() {
     const { title, description, children } = this.props;
-    
+
     let tooltip = null;
     if (description) {
       tooltip = (
         <TooltipIcon text={description} />
       );
     }
-  
+
     let content = null;
     if (children) {
       content = (
@@ -70,33 +70,35 @@ export class ComponentAction extends PureComponent {
         </ActionContentWrapperStyled>
       );
     }
-  
+
     return (
       <div>
         <ActionHeadingStyled>
           <ActionLinkWrapperStyled onClick={this._handleClick}>
             <ActionIconStyled>
-              <Icon name="long-arrow-right" size="inherit" />
+              <Icon name="long-arrow-right" size="inherit" color="inherit" />
             </ActionIconStyled>
-            
+
             <ActionTitleStyled>
               <ActionTitleTextStyled>
                 {title}
               </ActionTitleTextStyled>
-              
+
               {tooltip}
             </ActionTitleStyled>
           </ActionLinkWrapperStyled>
-          
+
           <ActionButtonsWrapperStyled>
             <Button
               icon={{ name: 'times' }}
               radius="rounded"
+              size="small"
+              colorScheme="flatLight"
               onPress={this._handleDeleteButtonPress}
             />
           </ActionButtonsWrapperStyled>
         </ActionHeadingStyled>
-        
+
         {content}
       </div>
     );

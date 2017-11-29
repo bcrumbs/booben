@@ -37,7 +37,7 @@ const propTypes = {
   checked: PropTypes.bool,
   deletable: PropTypes.bool,
   expanded: PropTypes.bool,
-  colorScheme: PropTypes.oneOf(['dark', 'light']),
+  labelPositionTop: PropTypes.bool,
   additionalActions: PropTypes.arrayOf(PropTypes.oneOfType([
     PropTypes.element,
     PropTypes.shape({
@@ -73,7 +73,7 @@ const defaultProps = {
   checked: false,
   deletable: false,
   expanded: false,
-  colorScheme: 'dark',
+  labelPositionTop: false,
   additionalActions: [],
   content: null,
   onLink: noop,
@@ -91,7 +91,7 @@ export class PropBase extends PureComponent {
     this._handleLink = this._handleLink.bind(this);
     this._handlePick = this._handlePick.bind(this);
   }
-  
+
   /**
    *
    * @return {ReactElement}
@@ -122,7 +122,7 @@ export class PropBase extends PureComponent {
     const { id, onCheck } = this.props;
     onCheck({ checked: value, id });
   }
-  
+
   /**
    *
    * @private
@@ -131,7 +131,7 @@ export class PropBase extends PureComponent {
     const { id, onDelete } = this.props;
     onDelete({ id });
   }
-  
+
   /**
    *
    * @private
@@ -169,7 +169,7 @@ export class PropBase extends PureComponent {
       additionalActions,
       content,
       children,
-      colorScheme,
+      labelPositionTop,
     } = this.props;
 
     let labelElement = null;
@@ -201,28 +201,29 @@ export class PropBase extends PureComponent {
           </MarkWrapperStyled>
         );
       }
-      
+
       labelElement = (
         <LabelBoxStyled>
           {requireMark}
-        
+
           <PropLabel
             label={label}
             secondaryLabel={secondaryLabel}
             tooltip={tooltip}
-            colorScheme={colorScheme}
+            positionTop={labelPositionTop}
+            itemCheckable={checkable}
           />
         </LabelBoxStyled>
       );
     }
-  
+
     let imageElement = null;
     if (image) {
       imageElement = (
         <PropImage src={image} />
       );
     }
-  
+
     let messageElement = null;
     if (message) {
       messageElement = (
@@ -231,7 +232,7 @@ export class PropBase extends PureComponent {
         </MessageBoxStyled>
       );
     }
-  
+
     let actionsLeftElement = null;
     if (deletable) {
       actionsLeftElement = (
@@ -243,7 +244,7 @@ export class PropBase extends PureComponent {
         </ActionsBoxStyled>
       );
     }
-  
+
     const actionItemsRight = [];
 
     additionalActions.forEach(action => {
@@ -261,7 +262,7 @@ export class PropBase extends PureComponent {
         );
       }
     });
-  
+
     if (linkable && (!checkable || checked)) {
       const linkAction = (
         <PropAction
@@ -270,7 +271,7 @@ export class PropBase extends PureComponent {
           onPress={this._handleLink}
         />
       );
-    
+
       actionItemsRight.push(linkAction);
     }
 
@@ -285,7 +286,7 @@ export class PropBase extends PureComponent {
 
       actionItemsRight.push(pickAction);
     }
-  
+
     let actionsRightElement = null;
     if (actionItemsRight.length) {
       actionsRightElement = (
@@ -294,7 +295,7 @@ export class PropBase extends PureComponent {
         </ActionsBoxStyled>
       );
     }
-  
+
     let checkboxElement = null;
     if (checkable) {
       checkboxElement = (
@@ -306,25 +307,25 @@ export class PropBase extends PureComponent {
         </SubcomponentBoxStyled>
       );
     }
-    
+
     const contentElement = linked ? this._renderLinked() : content;
-    
+
     return (
       <PropItemStyled sublevelVisible={expanded}>
         <WrapperStyled>
           {checkboxElement}
           {actionsLeftElement}
           {imageElement}
-        
+
           <ContentBoxStyled>
             {labelElement}
             {messageElement}
             {contentElement}
           </ContentBoxStyled>
-        
+
           {actionsRightElement}
         </WrapperStyled>
-      
+
         {children}
       </PropItemStyled>
     );

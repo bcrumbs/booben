@@ -34,7 +34,7 @@ export class PropInput extends Component {
     super(props, context);
     this._handleChange = this._handleChange.bind(this);
   }
-  
+
   /**
    *
    * @param {string} value
@@ -44,7 +44,7 @@ export class PropInput extends Component {
     const { id, transformValue, onChange } = this.props;
     onChange({ id, value: transformValue(value) });
   }
-  
+
   /**
    *
    * @return {?ReactElement}
@@ -73,6 +73,7 @@ export class PropInput extends Component {
       <PropBase
         {...propsForBase}
         content={content}
+        labelPositionTop
       />
     );
   }
