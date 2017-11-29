@@ -147,6 +147,7 @@
   "linkDialog.function.new.desc": "Description",
   "linkDialog.function.new.returnType": "Return type",
   "linkDialog.function.new.argsList": "Arguments list",
+  "linkDialog.function.new.argsEmpty": "Arguments list is empty",
   "linkDialog.function.new.newArg.button": "New Argument",
   "linkDialog.function.new.newArg.heading": "New Argument",
   "linkDialog.function.new.newArg.name": "Name",

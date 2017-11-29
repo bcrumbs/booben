@@ -147,6 +147,7 @@
   "linkDialog.function.new.desc": "Описание",
   "linkDialog.function.new.returnType": "Тип значения",
   "linkDialog.function.new.argsList": "Аргументы",
+  "linkDialog.function.new.argsEmpty": "Нет аргументов",
   "linkDialog.function.new.newArg.button": "Добавить аргумент",
   "linkDialog.function.new.newArg.heading": "Новый аргумент",
   "linkDialog.function.new.newArg.name": "Имя",
