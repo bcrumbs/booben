@@ -5,20 +5,21 @@ const offsetGenerator = ({ level = 20 }) => {
   const selectorsArray = ['li'];
   let itemSelectors = '';
   const selectorItem = '& li';
+  const result = [];
 
-  const levels = [...Array(level).keys()];
-
-  return levels.map(idx => {
+  for (let index = 0; index < level; index++) {
     selectorsArray.push(selectorItem);
     itemSelectors = selectorsArray.join(' > ');
-
-    return css`
+    const cssItem = css`
       ${itemSelectors} > div {
         padding-left:
-          ${constants.levelOffset * (idx + 1) + constants.itemPaddingX}px;
+          ${constants.levelOffset * (index + 1) + constants.itemPaddingX}px;
       }
     `;
-  });
+    result.push(cssItem);
+  }
+
+  return result;
 };
 
 export const TreeListStyled = styled.ul`
