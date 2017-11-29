@@ -28,7 +28,7 @@ export const PropAction = ({ icon, onPress, expanded, rounded }) => (
       radius={rounded ? 'rounded' : 'default'}
       onPress={onPress}
       size="small"
-      colorScheme='flatLight'
+      colorScheme="flatLight"
     />
   </PropActionStyled>
 );
