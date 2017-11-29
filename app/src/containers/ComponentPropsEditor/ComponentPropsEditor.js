@@ -12,7 +12,7 @@ import {
   BlockContentBoxHeading,
   BlockContentBoxItem,
   BlockContentPlaceholder,
-} from '@jssy/common-ui';
+} from '../../components/BlockContent';
 
 import { getNestedTypedef } from '@jssy/types';
 import { DesignDialog } from '../DesignDialog/DesignDialog';

@@ -13,7 +13,7 @@ import throttle from 'lodash.throttle';
 import {
   BlockContentBox,
   BlockContentPlaceholder,
-} from '@jssy/common-ui';
+} from '../../components/BlockContent';
 
 import {
   ComponentDataSelect,

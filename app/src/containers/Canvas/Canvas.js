@@ -319,8 +319,12 @@ class CanvasComponent extends Component {
     document.write(initialContent);
     document.close();
 
+    const options = {
+      patchComponents: true,
+    };
+
     const componentsBundle = new ComponentsBundle(projectName, contentWindow);
-    await componentsBundle.loadComponents();
+    await componentsBundle.loadComponents(options);
     
     const containerNode = document.getElementById(CANVAS_CONTAINER_ID);
     const overlayNode = document.getElementById(CANVAS_OVERLAY_ID);

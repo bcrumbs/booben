@@ -12,7 +12,7 @@ import {
   BlockContentNavigation,
   BlockBreadcrumbs,
   BlockContentBoxItem,
-} from '@jssy/common-ui';
+} from '../../../../components/BlockContent';
 
 import {
   DataList,

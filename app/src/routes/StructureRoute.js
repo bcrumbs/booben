@@ -100,13 +100,13 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   onSelectRoute: (routeId, indexRouteSelected) =>
     void dispatch(selectRoute(routeId, indexRouteSelected)),
-  
+
   onCreateRoute: (parentRouteId, path, title, paramValues) =>
     void dispatch(createRoute(parentRouteId, path, title, paramValues)),
-  
+
   onDeleteRoute: routeId =>
     void dispatch(deleteRoute(routeId)),
-  
+
   onRenameRoute: (routeId, newTitle) =>
     void dispatch(updateRouteField(routeId, 'title', newTitle)),
 
@@ -117,15 +117,15 @@ const mapDispatchToProps = dispatch => ({
       newParamValues,
       renamedParams,
     )),
-  
+
   onOpenDesigner: ({ projectName, routeId, isIndexRoute }) => {
     const path = isIndexRoute
       ? buildDesignRouteIndexPath({ projectName, routeId })
       : buildDesignRoutePath({ projectName, routeId });
-    
+
     dispatch(push(path));
   },
-  
+
   onUndo: () => void dispatch(undo()),
   onRedo: () => void dispatch(redo()),
 });
@@ -220,7 +220,7 @@ class StructureRoute extends PureComponent {
       this._handleEditPathSave.bind(this);
     this._handleEditPathDialogClose =
       this._handleEditPathDialogClose.bind(this);
-  
+
     this._routePathInput = null;
     this._toolGroups = this._getTools(
       props.project,
@@ -229,14 +229,14 @@ class StructureRoute extends PureComponent {
       props.getLocalizedText,
     );
   }
-  
+
   componentWillReceiveProps(nextProps) {
     const willReCreateTools =
       nextProps.project !== this.props.project ||
       nextProps.selectedRouteId !== this.props.selectedRouteId ||
       nextProps.indexRouteSelected !== this.props.indexRouteSelected ||
       nextProps.getLocalizedText !== this.props.getLocalizedText;
-    
+
     if (willReCreateTools) {
       this._toolGroups = this._getTools(
         nextProps.project,
@@ -246,12 +246,12 @@ class StructureRoute extends PureComponent {
       );
     }
   }
-  
+
   _getTools(project, selectedRouteId, indexRouteSelected, getLocalizedText) {
     const selectedRoute = selectedRouteId !== -1
       ? project.routes.get(selectedRouteId)
       : null;
-    
+
     const routeEditorToolMainButtons = selectedRoute
       ? List([
         new ButtonRecord({
@@ -266,7 +266,7 @@ class StructureRoute extends PureComponent {
         }),
       ])
       : List();
-    
+
     const routeEditorToolSections = List([
       new ToolSectionRecord({
         component: RouteEditor,
@@ -275,7 +275,7 @@ class StructureRoute extends PureComponent {
         },
       }),
     ]);
-    
+
     let title;
     if (selectedRoute) {
       title = indexRouteSelected
@@ -284,9 +284,9 @@ class StructureRoute extends PureComponent {
     } else {
       title = getLocalizedText('structure.routeEditorTitle');
     }
-    
+
     const titleEditable = !!selectedRoute && !indexRouteSelected;
-    
+
     return List([
       List([
         new ToolRecord({
@@ -304,7 +304,7 @@ class StructureRoute extends PureComponent {
       ]),
     ]);
   }
-  
+
   /**
    *
    * @param {string} action
@@ -312,43 +312,43 @@ class StructureRoute extends PureComponent {
    */
   _handleShortcuts(action) {
     const { onUndo, onRedo } = this.props;
-    
+
     switch (action) {
       case 'UNDO': onUndo(); break;
       case 'REDO': onRedo(); break;
-      
+
       case 'DELETE_ROUTE': {
         const { indexRouteSelected } = this.props;
-        
+
         if (!indexRouteSelected) {
           this._handleDeleteRoutePress();
         }
-        
+
         break;
       }
-      
+
       case 'CREATE_CHILD_ROUTE': {
         const { project, selectedRouteId } = this.props;
         const { createRouteDialogIsVisible } = this.state;
-        
+
         if (!createRouteDialogIsVisible) {
           const parentRoute = project.routes.get(selectedRouteId);
           this._handleNewRoutePress({ parentRoute });
         }
-        
+
         break;
       }
-      
+
       case 'CREATE_ROOT_ROUTE': {
         const { createRouteDialogIsVisible } = this.state;
-  
+
         if (!createRouteDialogIsVisible) {
           this._handleNewRoutePress({ parentRoute: null });
         }
-        
+
         break;
       }
-      
+
       case 'SELECT_NEXT_ROUTE': this._handleSelectNextRoute(); break;
       case 'SELECT_PREVIOUS_ROUTE': this._handleSelectPreviousRoute(); break;
       case 'SELECT_CHILD_ROUTE': this._handleSelectChildRoute(); break;
@@ -368,7 +368,7 @@ class StructureRoute extends PureComponent {
 
         break;
       }
-      
+
       default:
     }
   }
@@ -389,7 +389,7 @@ class StructureRoute extends PureComponent {
       onSelectRoute(routeId, isIndexRoute);
     }
   }
-  
+
   _handleSelectNextRoute() {
     const {
       project,
@@ -397,9 +397,9 @@ class StructureRoute extends PureComponent {
       indexRouteSelected,
       onSelectRoute,
     } = this.props;
-    
+
     const currentRoute = project.routes.get(selectedRouteId);
-    
+
     if (indexRouteSelected) {
       if (currentRoute.children.size > 0) {
         const nextRouteId = currentRoute.children.first();
@@ -410,16 +410,16 @@ class StructureRoute extends PureComponent {
       const currentRoutesList = isRootRoute
         ? project.rootRoutes
         : project.routes.get(currentRoute.parentId).children;
-  
+
       const currentRoutePosition = currentRoutesList.indexOf(selectedRouteId);
-      
+
       if (currentRoutePosition < currentRoutesList.size - 1) {
         const nextRouteId = currentRoutesList.get(currentRoutePosition + 1);
         onSelectRoute(nextRouteId, false);
       }
     }
   }
-  
+
   _handleSelectPreviousRoute() {
     const {
       project,
@@ -427,21 +427,21 @@ class StructureRoute extends PureComponent {
       indexRouteSelected,
       onSelectRoute,
     } = this.props;
-  
+
     const currentRoute = project.routes.get(selectedRouteId);
-    
+
     if (!indexRouteSelected) {
       const isRootRoute = currentRoute.parentId === INVALID_ID;
       const parentRoute = isRootRoute
         ? null
         : project.routes.get(currentRoute.parentId);
-      
+
       const currentRoutesList = isRootRoute
         ? project.rootRoutes
         : parentRoute.children;
-  
+
       const currentRoutePosition = currentRoutesList.indexOf(selectedRouteId);
-      
+
       if (currentRoutePosition > 0) {
         const nextRouteId = currentRoutesList.get(currentRoutePosition - 1);
         onSelectRoute(nextRouteId, false);
@@ -450,7 +450,7 @@ class StructureRoute extends PureComponent {
       }
     }
   }
-  
+
   _handleSelectParentRoute() {
     const {
       project,
@@ -458,17 +458,17 @@ class StructureRoute extends PureComponent {
       indexRouteSelected,
       onSelectRoute,
     } = this.props;
-    
+
     const currentRoute = project.routes.get(selectedRouteId);
     const isRootRoute = currentRoute.parentId === INVALID_ID;
-    
+
     if (indexRouteSelected) {
       onSelectRoute(selectedRouteId, false);
     } else if (!isRootRoute) {
       onSelectRoute(currentRoute.parentId, false);
     }
   }
-  
+
   _handleSelectChildRoute() {
     const {
       project,
@@ -476,10 +476,10 @@ class StructureRoute extends PureComponent {
       indexRouteSelected,
       onSelectRoute,
     } = this.props;
-  
+
     if (!indexRouteSelected) {
       const currentRoute = project.routes.get(selectedRouteId);
-  
+
       if (currentRoute.haveIndex) {
         onSelectRoute(selectedRouteId, true);
       } else if (currentRoute.children.size > 0) {
@@ -505,7 +505,7 @@ class StructureRoute extends PureComponent {
    */
   _handleSelectedRouteGo() {
     const { selectedRouteId, indexRouteSelected } = this.props;
-    
+
     this._handleRouteGo({
       routeId: selectedRouteId,
       isIndexRoute: indexRouteSelected,
@@ -577,7 +577,7 @@ class StructureRoute extends PureComponent {
    */
   _handleNewRoutePress({ parentRoute }) {
     const parentId = parentRoute ? parentRoute.id : -1;
-    
+
     this.setState({
       createRouteDialogIsVisible: true,
       createRouteParentId: parentId,
@@ -606,7 +606,7 @@ class StructureRoute extends PureComponent {
    */
   _handleNewRouteParamChange(paramName, { value }) {
     const { newRouteParamValues } = this.state;
-    
+
     this.setState({
       newRouteParamValues: {
         ...newRouteParamValues,
@@ -628,7 +628,7 @@ class StructureRoute extends PureComponent {
       newRouteTitle,
       newRouteParamValues,
     } = ret;
-    
+
     const isRootRoute = createRouteParentId === -1;
     const title = newRouteTitle.trim();
     const path = normalizePath(newRoutePath, isRootRoute);
@@ -685,11 +685,16 @@ class StructureRoute extends PureComponent {
    * @param {Immutable.List<Object>} routes
    * @param {Object} parentRoute
    * @param {Immutable.List<number>} routesIds
-   * @param {?Object} [parentWithoutOutlet=null]
+   * @param {boolean} [parentWithoutOutlet=false]
    * @return {ReactElement}
    * @private
    */
-  _renderRouteList(routes, parentRoute, routesIds, parentWithoutOutlet = null) {
+  _renderRouteList(
+    routes,
+    parentRoute,
+    routesIds,
+    parentWithoutOutlet = false,
+  ) {
     const {
       selectedRouteId,
       indexRouteSelected,
@@ -708,7 +713,7 @@ class StructureRoute extends PureComponent {
       const isSelected =
         selectedRouteId === parentRoute.id &&
         indexRouteSelected;
-      
+
       if (routeCards) {
         routeCards = routeCards.unshift(
           <IndexRouteCard
@@ -722,13 +727,13 @@ class StructureRoute extends PureComponent {
         );
       }
     }
-    
+
     const needButton = parentRoute === null || (
       !indexRouteSelected &&
       selectedRouteId !== -1 &&
       parentRoute.id === selectedRouteId
     );
-  
+
     let button = null;
     if (needButton) {
       const text = getLocalizedText(
@@ -756,17 +761,17 @@ class StructureRoute extends PureComponent {
    *
    * @param {Immutable.List<Object>} routes
    * @param {number} routeId
-   * @param {?Object} [parentWithoutOutlet=null]
+   * @param {boolean} [parentWithoutOutlet=false]
    * @return {ReactElement}
    * @private
    */
-  _renderRouteCard(routes, routeId, parentWithoutOutlet = null) {
+  _renderRouteCard(routes, routeId, parentWithoutOutlet = false) {
     const {
       selectedRouteId,
       indexRouteSelected,
       getLocalizedText,
     } = this.props;
-    
+
     const route = routes.get(routeId);
     const isSelected = selectedRouteId === route.id && !indexRouteSelected;
     const willRenderChildren = route.children.size > 0 || route.haveIndex;
@@ -774,7 +779,7 @@ class StructureRoute extends PureComponent {
     let outletWarning = false;
     let outletWarningTooltip = '';
 
-    if (!parentWithoutOutlet && route.children.size > 0) {
+    if (route.children.size > 0) {
       const outlet = findComponent(
         route.components,
         route.component,
@@ -794,7 +799,7 @@ class StructureRoute extends PureComponent {
         routes,
         route,
         route.children,
-        parentWithoutOutlet || (outletWarning ? route : null),
+        parentWithoutOutlet || outletWarning,
       );
     } else {
       children = isSelected
@@ -802,7 +807,7 @@ class StructureRoute extends PureComponent {
           routes,
           route,
           null,
-          parentWithoutOutlet || (outletWarning ? route : null),
+          parentWithoutOutlet || outletWarning,
         )
         : null;
     }
@@ -810,13 +815,12 @@ class StructureRoute extends PureComponent {
     let parentOutletWarningMessage = null;
     let disabled = false;
 
-    if (parentWithoutOutlet !== null) {
+    if (parentWithoutOutlet) {
       disabled = true;
 
       if (isSelected) {
         const messageText = getLocalizedText(
           'structure.noOutletWarning',
-          { routeTitle: parentWithoutOutlet.title },
         );
 
         parentOutletWarningMessage = (
@@ -824,7 +828,7 @@ class StructureRoute extends PureComponent {
         );
       }
     }
-    
+
     return (
       <RouteCard
         key={String(route.id)}
@@ -856,7 +860,7 @@ class StructureRoute extends PureComponent {
     if (!createRouteDialogIsVisible) return null;
 
     debugger;
-    
+
     return (
       <CreateRouteDialog
         open={createRouteDialogIsVisible}
@@ -889,11 +893,11 @@ class StructureRoute extends PureComponent {
       />
     );
   }
-  
+
   _renderDeleteRouteDialog() {
     const { getLocalizedText } = this.props;
     const { confirmDeleteDialogIsVisible } = this.state;
-    
+
     const deleteRouteDialogButtons = [{
       text: getLocalizedText('common.delete'),
       onPress: this._handleDeleteRouteConfirm,
@@ -901,7 +905,7 @@ class StructureRoute extends PureComponent {
       text: getLocalizedText('common.cancel'),
       onPress: this._handleDeleteRouteCancel,
     }];
-    
+
     return (
       <Dialog
         title={getLocalizedText('structure.deleteRouteQuestion')}
@@ -918,13 +922,13 @@ class StructureRoute extends PureComponent {
       </Dialog>
     );
   }
-  
+
   _renderContent() {
     const { project } = this.props;
-  
+
     const routesList =
       this._renderRouteList(project.routes, null, project.rootRoutes);
-    
+
     return (
       <RoutesListWrapper>
         <Container spread>
@@ -998,7 +1002,7 @@ class StructureRoute extends PureComponent {
               {content}
             </Shortcuts>
           </AppWrapper>
-          
+
           {newRouteDialog}
           {editRoutePathDialog}
           {deleteRouteDialog}

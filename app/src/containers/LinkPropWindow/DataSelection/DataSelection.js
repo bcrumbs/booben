@@ -17,7 +17,7 @@ import {
   BlockBreadcrumbs,
   BlockContentActions,
   BlockContentActionsRegion,
-} from '@jssy/common-ui';
+} from '../../../components/BlockContent';
 
 import {
   DataWindowTitle,

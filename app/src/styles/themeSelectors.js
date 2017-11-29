@@ -83,6 +83,7 @@ export const colorBorderDark = paletteBlueGrey650;
 export const colorActiveBg = ({ theme }) => theme.jssy.color.colorSelection;
 export const colorActiveBgLight = ({ theme }) => theme.jssy.color.colorHover;
 export const colorHover = ({ theme }) => theme.jssy.color.colorHover;
+export const colorBgDefault = ({ theme }) => theme.jssy.color.bgDefault;
 
 /* Font size */
 export const fontSizeXSmall = ({ theme }) =>

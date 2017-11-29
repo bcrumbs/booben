@@ -12,7 +12,7 @@ import {
   PageDrawerActionsGroup,
   PageDrawerActionItem,
   PageDrawerActionPlaceholder,
-} from '@jssy/common-ui';
+} from '../../../components/PageDrawer';
 
 import { ToolPanelContent } from './ToolPanelContent/ToolPanelContent';
 import resizeable from '../../../hocs/resizeable';
