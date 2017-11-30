@@ -18,7 +18,9 @@ import { noop } from '../../utils/misc';
 import * as JssyPropTypes from '../../constants/common-prop-types';
 
 const propTypes = {
-  componentDataItems: JssyPropTypes.componentDataItem.isRequired,
+  componentDataItems: PropTypes.arrayOf(
+    JssyPropTypes.componentDataItem,
+  ).isRequired,
   getLocalizedText: PropTypes.func.isRequired, // state
   onSelect: PropTypes.func,
 };
