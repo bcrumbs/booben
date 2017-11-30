@@ -231,8 +231,8 @@ const initDNDState = state => state.merge({
   highlightingEnabled: true,
 });
 
-const initComponentPickingState = state =>
-  state.merge({
+const initComponentPickingState = state => state
+  .merge({
     pickingComponent: false,
     pickingComponentData: false,
     pickingComponentFilter: null,
@@ -1750,20 +1750,10 @@ const handlers = {
   },
   
   [PROJECT_PICK_COMPONENT_CANCEL]: state =>
-    state.merge({
-      pickingComponent: false,
-      pickingComponentData: false,
-      pickingComponentFilter: null,
-      pickingComponentDataGetter: null,
-      pickedComponentId: INVALID_ID,
-      pickedComponentArea: ComponentPickAreas.UNKNOWN,
-      pickedComponentData: null,
-      componentDataListIsVisible: false,
-    })
-    .set('componentDataListItems', []),
+    initComponentPickingState(state),
 
-  [PROJECT_PICK_COMPONENT_DATA]: (state, action) =>
-    state.merge({
+  [PROJECT_PICK_COMPONENT_DATA]: (state, action) => state
+    .merge({
       pickingComponent: false,
       pickingComponentData: false,
       pickingComponentFilter: null,
@@ -1773,8 +1763,8 @@ const handlers = {
     })
     .set('componentDataListItems', []),
   
-  [PROJECT_PICK_COMPONENT_DATA_CANCEL]: state =>
-    state.merge({
+  [PROJECT_PICK_COMPONENT_DATA_CANCEL]: state => state
+    .merge({
       pickingComponent: true,
       pickedComponentId: INVALID_ID,
       pickedComponentArea: ComponentPickAreas.UNKNOWN,
