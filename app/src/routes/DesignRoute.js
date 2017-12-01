@@ -905,7 +905,7 @@ class DesignRoute extends PureComponent {
     const componentDataSelect = willRenderComponentDataSelect
       ? this._renderComponentDataSelect()
       : null;
-
+    
     const createComponentMenu = createComponentMenuIsVisible
       ? this._renderCreateComponentMenu()
       : null;

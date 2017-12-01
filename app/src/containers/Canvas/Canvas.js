@@ -57,6 +57,7 @@ const wrap = compose(connectDropZone, dropZone);
 const MOUSE_EVENTS_FOR_PARENT_FRAME = [
   'mousemove',
   'mouseup',
+  'click',
 ];
 
 const KEYBOARD_EVENTS_FOR_PARENT_FRAME = [
