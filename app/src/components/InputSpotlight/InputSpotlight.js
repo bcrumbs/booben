@@ -3,6 +3,7 @@
  */
 
 import React from 'react';
+import { findDOMNode } from 'react-dom';
 import PropTypes from 'prop-types';
 import { TextField, Theme } from '@reactackle/reactackle';
 import { InputSpotlightStyled } from './styles/InputSpotlightStyled';
@@ -32,7 +33,7 @@ export const InputSpotlight = props => (
       <ContentStyled>
         <InputWrapperStyled>
           <TextField
-            ref={props.inputRef}
+            ref={ref => props.inputRef(findDOMNode(ref))}
             fullWidth
             placeholder={props.placeholder}
             value={props.value}
