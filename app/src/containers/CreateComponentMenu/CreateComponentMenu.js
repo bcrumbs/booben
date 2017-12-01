@@ -99,12 +99,9 @@ class CreateComponentMenuComponent extends PureComponent {
   }
 
   componentDidMount() {
-    if (this._spotlight !== null) {
-      // TODO: Remove extra check after upgrading reactackle
-      if (this._input.focus) this._input.focus();
-      window.addEventListener('click', this._handleOutsideClick, true);
-      window.addEventListener('keydown', this._handleTab, true);
-    }
+    this._input.focus();
+    window.addEventListener('click', this._handleOutsideClick, true);
+    window.addEventListener('keydown', this._handleTab, true);
   }
 
   componentWillUnmount() {
