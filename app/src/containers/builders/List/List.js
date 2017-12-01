@@ -29,22 +29,26 @@ const getCanvasBody = () => {
   return iframeDocument.body;
 };
 
+const overlayPropTypes = {
+  rect: PropTypes.object.isRequired,
+};
+
 const EmptyListOverlay = ({ rect }) =>
   <div
-    id="strange things"
     style={{
       position: 'fixed',
       left: rect.left,
       top: rect.top,
       width: rect.width,
       height: rect.height,
-      background: 'grey',
+      background: '#ECEFF7',
       opacity: 0.7,
       pointerEvents: 'none',
+      zIndex: 9,
     }}
-  >
-    text on overlay
-  </div>;
+  />;
+
+EmptyListOverlay.propTypes = overlayPropTypes;
 
 const _List = props => {
   if (!props.data.length) {

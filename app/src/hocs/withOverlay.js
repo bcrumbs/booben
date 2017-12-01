@@ -11,6 +11,8 @@ export default ({ OverlayComponent, mountTarget }) => WrappedComponent => {
   class WithOverlay extends React.Component {
     constructor(props) {
       super(props);
+      this.overlay = null;
+      this.component = null;
       this.handleComponentRef = this.handleComponentRef.bind(this);
     }
 
