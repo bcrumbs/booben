@@ -128,6 +128,23 @@ export const firstSelectedComponentIdSelector = state => {
   return isDef(ret) ? ret : INVALID_ID;
 };
 
+export const canCopySelector = createSelector(
+  state => state.project.meta,
+  singleComponentSelectedSelector,
+  firstSelectedComponentIdSelector,
+  currentComponentsSelector,
+
+  (meta, singleComponentSelected, firstSelectedComponentId, components) => {
+    if (
+      !singleComponentSelected || firstSelectedComponentId === INVALID_ID
+    ) return false;
+
+    const component = components.get(firstSelectedComponentId);
+    const componentMeta = getComponentMeta(component.name, meta);
+    return componentMeta.kind !== 'composite';
+  },
+);
+
 export const highlightedComponentIdsSelector = createSelector(
   currentDesignerSelector,
   designer => designer.highlightedComponentIds,
