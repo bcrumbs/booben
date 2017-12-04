@@ -446,6 +446,18 @@ const buildGraphQLFragmentForValue = (
         variablesAccumulator,
       ));
 
+      const endCursorSelection = {
+        kind: 'Field',
+        alias: null,
+        name: {
+          kind: 'Name',
+          value: RELAY_PAGEINFO_FIELD_END_CURSOR,
+        },
+        arguments: [],
+        directives: [],
+        selectionSet: null,
+      };
+
       const node = {
         kind: 'Field',
         alias: buildAlias(fieldName, jssyValue),
@@ -501,17 +513,9 @@ const buildGraphQLFragmentForValue = (
                 arguments: [],
                 directives: [],
                 selectionSet: null,
-              }, {
-                kind: 'Field',
-                alias: null,
-                name: {
-                  kind: 'Name',
-                  value: RELAY_PAGEINFO_FIELD_END_CURSOR,
-                },
-                arguments: [],
-                directives: [],
-                selectionSet: null,
-              }],
+              },
+                ...(schema.pageInfoHasCursors) ? endCursorSelection : [],
+              ],
             },
           }],
         },
