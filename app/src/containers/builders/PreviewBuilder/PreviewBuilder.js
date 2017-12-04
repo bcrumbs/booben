@@ -842,14 +842,19 @@ class PreviewBuilderComponent extends PureComponent {
       
       jssyValue.sourceData.queryPath.forEach((step, idx) => {
         const field = getFieldOnType(schema, currentTypeName, step.field);
-        
         if (field.kind === FieldKinds.CONNECTION) {
           const dataFieldKey = getDataFieldKey(step.field, jssyValue);
           const pageInfo = pick(
             currentNode[dataFieldKey].pageInfo,
             RELAY_PAGEINFO_FIELDS,
           );
-          
+
+          if (!schema.pageInfoHasCursors) {
+            const edges = currentNode[dataFieldKey].edges;
+            pageInfo.startCursor = edges[0].cursor;
+            pageInfo.endCursor = [...edges].pop().cursor;
+          }
+
           ret = ret.setIn([jssyValue, idx], pageInfo);
         }
 
