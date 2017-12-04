@@ -25,6 +25,7 @@ import {
   RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
   RELAY_CONNECTION_FIELD_EDGES,
   RELAY_EDGE_FIELD_NODE,
+  RELAY_EDGE_FIELD_CURSOR,
 } from './schema';
 
 import {
@@ -446,7 +447,19 @@ const buildGraphQLFragmentForValue = (
         variablesAccumulator,
       ));
 
-      const endCursorSelection = {
+      const cursorSelection = [{
+        kind: 'Field',
+        alias: null,
+        name: {
+          kind: 'Name',
+          value: RELAY_EDGE_FIELD_CURSOR,
+        },
+        arguments: [],
+        directives: [],
+        selectionSet: null,
+      }];
+
+      const endCursorSelection = [{
         kind: 'Field',
         alias: null,
         name: {
@@ -456,7 +469,7 @@ const buildGraphQLFragmentForValue = (
         arguments: [],
         directives: [],
         selectionSet: null,
-      };
+      }];
 
       const node = {
         kind: 'Field',
@@ -490,7 +503,9 @@ const buildGraphQLFragmentForValue = (
                 arguments: [],
                 directives: [],
                 selectionSet: null,
-              }],
+              },
+                ...(!schema.pageInfoHasCursors ? cursorSelection : []),
+              ],
             },
           }, {
             kind: 'Field',
@@ -514,7 +529,7 @@ const buildGraphQLFragmentForValue = (
                 directives: [],
                 selectionSet: null,
               },
-                ...(schema.pageInfoHasCursors) ? endCursorSelection : [],
+                ...(schema.pageInfoHasCursors ? endCursorSelection : []),
               ],
             },
           }],
