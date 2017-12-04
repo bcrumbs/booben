@@ -25,6 +25,7 @@ import {
   RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
   RELAY_CONNECTION_FIELD_EDGES,
   RELAY_EDGE_FIELD_NODE,
+  RELAY_EDGE_FIELD_CURSOR,
 } from './schema';
 
 import {
@@ -445,7 +446,7 @@ const buildGraphQLFragmentForValue = (
         afterValue,
         variablesAccumulator,
       ));
-
+      
       const node = {
         kind: 'Field',
         alias: buildAlias(fieldName, jssyValue),
@@ -501,21 +502,37 @@ const buildGraphQLFragmentForValue = (
                 arguments: [],
                 directives: [],
                 selectionSet: null,
-              }, {
-                kind: 'Field',
-                alias: null,
-                name: {
-                  kind: 'Name',
-                  value: RELAY_PAGEINFO_FIELD_END_CURSOR,
-                },
-                arguments: [],
-                directives: [],
-                selectionSet: null,
               }],
             },
           }],
         },
       };
+
+      if (schema.pageInfoHasCursors) {
+        node.selectionSet.selections[1].selectionSet.selections.push({
+          kind: 'Field',
+          alias: null,
+          name: {
+            kind: 'Name',
+            value: RELAY_PAGEINFO_FIELD_END_CURSOR,
+          },
+          arguments: [],
+          directives: [],
+          selectionSet: null,
+        });
+      } else {
+        node.selectionSet.selections[0].selectionSet.selections.push({
+          kind: 'Field',
+          alias: null,
+          name: {
+            kind: 'Name',
+            value: RELAY_EDGE_FIELD_CURSOR,
+          },
+          arguments: [],
+          directives: [],
+          selectionSet: null,
+        });
+      }
 
       currentNode.selectionSet = {
         kind: 'SelectionSet',
