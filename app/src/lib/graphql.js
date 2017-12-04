@@ -446,31 +446,7 @@ const buildGraphQLFragmentForValue = (
         afterValue,
         variablesAccumulator,
       ));
-
-      const cursorSelection = [{
-        kind: 'Field',
-        alias: null,
-        name: {
-          kind: 'Name',
-          value: RELAY_EDGE_FIELD_CURSOR,
-        },
-        arguments: [],
-        directives: [],
-        selectionSet: null,
-      }];
-
-      const endCursorSelection = [{
-        kind: 'Field',
-        alias: null,
-        name: {
-          kind: 'Name',
-          value: RELAY_PAGEINFO_FIELD_END_CURSOR,
-        },
-        arguments: [],
-        directives: [],
-        selectionSet: null,
-      }];
-
+      
       const node = {
         kind: 'Field',
         alias: buildAlias(fieldName, jssyValue),
@@ -503,9 +479,7 @@ const buildGraphQLFragmentForValue = (
                 arguments: [],
                 directives: [],
                 selectionSet: null,
-              },
-                ...(!schema.pageInfoHasCursors ? cursorSelection : []),
-              ],
+              }],
             },
           }, {
             kind: 'Field',
@@ -528,13 +502,37 @@ const buildGraphQLFragmentForValue = (
                 arguments: [],
                 directives: [],
                 selectionSet: null,
-              },
-                ...(schema.pageInfoHasCursors ? endCursorSelection : []),
-              ],
+              }],
             },
           }],
         },
       };
+
+      if (schema.pageInfoHasCursors) {
+        node.selectionSet.selections[1].selectionSet.selections.push({
+          kind: 'Field',
+          alias: null,
+          name: {
+            kind: 'Name',
+            value: RELAY_PAGEINFO_FIELD_END_CURSOR,
+          },
+          arguments: [],
+          directives: [],
+          selectionSet: null,
+        });
+      } else {
+        node.selectionSet.selections[0].selectionSet.selections.push({
+          kind: 'Field',
+          alias: null,
+          name: {
+            kind: 'Name',
+            value: RELAY_EDGE_FIELD_CURSOR,
+          },
+          arguments: [],
+          directives: [],
+          selectionSet: null,
+        });
+      }
 
       currentNode.selectionSet = {
         kind: 'SelectionSet',
