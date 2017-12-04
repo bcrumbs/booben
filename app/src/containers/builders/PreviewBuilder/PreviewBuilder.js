@@ -851,8 +851,13 @@ class PreviewBuilderComponent extends PureComponent {
 
           if (!schema.pageInfoHasCursors) {
             const edges = currentNode[dataFieldKey].edges;
-            pageInfo.startCursor = edges[0].cursor;
-            pageInfo.endCursor = edges[edges.length - 1].cursor;
+            if (edges.length > 0) {
+              pageInfo.startCursor = edges[0].cursor;
+              pageInfo.endCursor = edges[edges.length - 1].cursor;
+            } else {
+              pageInfo.startCursor = null;
+              pageInfo.endCursor = null;
+            }
           }
 
           ret = ret.setIn([jssyValue, idx], pageInfo);
