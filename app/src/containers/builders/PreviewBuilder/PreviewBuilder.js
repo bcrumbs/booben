@@ -859,7 +859,7 @@ class PreviewBuilderComponent extends PureComponent {
               pageInfo.endCursor = null;
             }
           }
-          console.log('currentNode[dataFieldKey]', currentNode[dataFieldKey])
+          
           ret = ret.setIn([jssyValue, idx], pageInfo);
         }
 
