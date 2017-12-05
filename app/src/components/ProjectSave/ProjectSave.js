@@ -1,6 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Icon, withTooltip } from '@reactackle/reactackle';
+import { withTooltip } from '@reactackle/reactackle';
+
+import {
+  IconExclamation,
+  IconCheck,
+} from '../icons';
+
 import { ProjectSaveStyled } from './styles/ProjectSaveStyled';
 import { IconStyled } from './styles/IconStyled';
 import { TitleStyled } from './styles/TitleStyled';
@@ -24,19 +30,19 @@ const defaultProps = {
 
 const ProjectSaveComponent = props => {
   let icon = null;
-  
+
   if (props.status === 'error') {
-    icon = <Icon name="exclamation" size="inherit" color="inherit" />;
+    icon = <IconExclamation size="custom" color="currentColor" />;
   } else if (props.status === 'success') {
-    icon = <Icon name="check" size="inherit" color="inherit" />;
+    icon = <IconCheck size="custom" color="currentColor" />;
   } else if (props.status === 'progress') {
     icon = null;
   } else {
-    icon = <Icon name="check" size="inherit" color="inherit" />;
+    icon = <IconCheck size="custom" color="currentColor" />;
   }
-  
+
   const TooltipComponent = props.Tooltip;
-  
+
   /* eslint-disable react/jsx-handler-names */
   return (
     <ProjectSaveStyled
@@ -53,12 +59,12 @@ const ProjectSaveComponent = props => {
         >
           {icon}
         </IconStyled>
-        
+
         <TitleStyled>
           {props.title}
         </TitleStyled>
       </ContentStyled>
-      
+
       <TooltipComponent text={props.tooltipText} />
     </ProjectSaveStyled>
   );

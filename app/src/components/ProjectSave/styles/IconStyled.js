@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition, animations } from '@reactackle/reactackle';
+import { transition, animations, iconSizeMixin } from '@reactackle/reactackle';
 import { baseModule } from '../../../styles/themeSelectors';
 import { iconSize } from '../../../styles/mixins';
 
@@ -33,7 +33,7 @@ const typeProgress = ({ typeProgress }) => typeProgress
 
 export const IconStyled = styled.div`
   border-radius: 50%;
-  border: 1px solid var(--text-color);
+  border: 1px solid currentColor;
   margin-right: ${baseModule(1)}px;
   position:relative;
   color: inherit;
@@ -41,7 +41,7 @@ export const IconStyled = styled.div`
   ${active}
   ${typeProgress}
   ${transition('opacity')};
-  ${iconSize(outerSize, outerSize, imgSize, 'font')}
+  ${iconSizeMixin(outerSize, imgSize)}
 
   & > * {
     position: absolute;

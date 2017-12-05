@@ -17,22 +17,13 @@ import { TitleBoxStyled } from './styles/TitleBoxStyled';
 import { TitleStyled } from './styles/TitleStyled';
 import { TitleIconStyled } from './styles/TitleIconStyled';
 
-const iconPropType = PropTypes.shape({
-  /** Set icon's name (required for font-awesome icons */
-  name: PropTypes.string,
-  /** Set icon's source (required for library icons */
-  src: PropTypes.string,
-  /** Set icon type */
-  type: PropTypes.oneOf(['font-awesome', 'library']),
-});
-
 const propTypes = {
   title: PropTypes.string,
   isEditable: PropTypes.bool,
   draggable: PropTypes.bool,
   titlePlaceHolder: PropTypes.string,
   subtitle: PropTypes.string,
-  iconLeft: iconPropType,
+  iconLeft: Icon.propTypes,
   buttons: PropTypes.arrayOf(PropTypes.shape(Button.propTypes)),
   colorScheme: PropTypes.oneOf(['default', 'alt']),
   onLeftIconMouseDown: PropTypes.func,
@@ -103,7 +94,7 @@ export class BlockContentTitle extends PureComponent {
           colorScheme={colorScheme}
           onMouseDown={onLeftIconMouseDown}
         >
-          <Icon {...iconLeft} size="inherit" color="inherit" />
+          <Icon {...iconLeft} size="custom" color="currentColor" />
         </TitleIconStyled>
       );
     }

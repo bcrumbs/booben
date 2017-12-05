@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Button, Icon, TooltipIcon } from '@reactackle/reactackle';
+import { Button, TooltipIcon } from '@reactackle/reactackle';
 import { noop } from '../../../../utils/misc';
+import { IconCross, IconArrowForward } from '../../../icons';
 import { ActionHeadingStyled } from './styles/ActionHeadingStyled';
 import { ActionLinkWrapperStyled } from './styles/ActionLinkWrapperStyled';
 import { ActionTitleStyled } from './styles/ActionTitleStyled';
@@ -76,7 +77,7 @@ export class ComponentAction extends PureComponent {
         <ActionHeadingStyled>
           <ActionLinkWrapperStyled onClick={this._handleClick}>
             <ActionIconStyled>
-              <Icon name="long-arrow-right" size="inherit" color="inherit" />
+              <IconArrowForward size="custom" color="currentColor" />
             </ActionIconStyled>
 
             <ActionTitleStyled>
@@ -90,7 +91,7 @@ export class ComponentAction extends PureComponent {
 
           <ActionButtonsWrapperStyled>
             <Button
-              icon={{ name: 'times' }}
+              icon={<IconCross size="custom" color="currentColor" />}
               radius="rounded"
               size="small"
               colorScheme="flatLight"
