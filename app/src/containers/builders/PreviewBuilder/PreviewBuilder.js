@@ -859,12 +859,12 @@ class PreviewBuilderComponent extends PureComponent {
               pageInfo.endCursor = null;
             }
           }
-          
+
           ret = ret.setIn([jssyValue, idx], pageInfo);
         }
 
         const alias = `${step.field}${jssyValue.sourceData.aliasPostfix}`;
-        
+        if (currentNode === null) return false;
         currentNode = currentNode[alias];
         currentTypeName = field.type;
       });
@@ -934,7 +934,7 @@ class PreviewBuilderComponent extends PureComponent {
     const Component = getComponentByName(component.name, componentsBundle);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
-    
+
     this._graphQLVariables.set(component.id, graphQLVariables);
     
     const theMergedMap = thePreviousMap
@@ -947,7 +947,6 @@ class PreviewBuilderComponent extends PureComponent {
     if (!systemProps.visible) return null;
 
     const props = graphQLQuery ? {} : this._buildProps(component, valueContext);
-
     props.children = this._renderComponentChildren(component);
     props.key = String(component.id);
   
