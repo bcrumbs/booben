@@ -3,8 +3,8 @@ import PropTypes from 'prop-types';
 import { withTooltip } from '@reactackle/reactackle';
 
 import {
-  IconExclamation,
   IconCheck,
+  IconExclamation,
 } from '../icons';
 
 import { ProjectSaveStyled } from './styles/ProjectSaveStyled';

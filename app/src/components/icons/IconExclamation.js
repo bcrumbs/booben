@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconSvg } from '@reactackle/reactackle';
+import { IconSvg } from 'reactackle-icons';
 
 export const IconExclamation = props => (
   <IconSvg {...props}>

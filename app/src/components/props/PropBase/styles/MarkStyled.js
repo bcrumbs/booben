@@ -1,6 +1,6 @@
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
-import { iconSize } from '../../../../styles/mixins';
+import { iconSizeMixin } from '@reactackle/reactackle';
 
 import {
   baseModule,
@@ -38,7 +38,7 @@ const markSize = baseModule(1.75);
 
 const colorScheme = ({ colorScheme }) => {
   const key = colorScheme || 'default';
-  
+
   return `
     background-color: ${colorMap[key].bgColor};
     color: ${colorMap[key].textColor};
@@ -49,7 +49,7 @@ export const MarkStyled = styled.div`
   border-radius: 50%;
   flex-shrink: 0;
   ${colorScheme}
-  ${iconSize(`${markSize}px`, `${markSize}px`, '8px', 'font')}
+  ${iconSizeMixin(`${markSize}px`, '8px')}
 `;
 
 MarkStyled.displayName = 'MarkStyled';

@@ -1,2 +1,2 @@
-export { IconCheck } from '@reactackle/reactackle';
+export { IconCheck } from 'reactackle-icons';
 

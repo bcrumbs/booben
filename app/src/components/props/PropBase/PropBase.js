@@ -4,11 +4,12 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Icon, Checkbox, Tag } from '@reactackle/reactackle';
+import { Checkbox, Tag } from '@reactackle/reactackle';
 import { PropLabel } from './PropLabel/PropLabel';
 import { PropImage } from './PropImage/PropImage';
 import { PropAction } from './PropAction/PropAction';
 import { noop } from '../../../utils/misc';
+import { IconCheck, IconExclamation } from '../../icons';
 import { MarkWrapperStyled } from './styles/MarkWrapperStyled';
 import { MarkStyled } from './styles/MarkStyled';
 import { LabelBoxStyled } from './styles/LabelBoxStyled';
@@ -42,7 +43,7 @@ const propTypes = {
     PropTypes.element,
     PropTypes.shape({
       id: PropTypes.string.isRequired,
-      icon: PropTypes.string.isRequired,
+      icon: PropTypes.element,
       rounded: PropTypes.bool,
       expanded: PropTypes.bool,
       handler: PropTypes.func.isRequired,
@@ -184,12 +185,12 @@ export class PropBase extends PureComponent {
         if (requirementFulfilled) {
           markColorScheme = 'success';
           markIcon = (
-            <Icon name="check" size="inherit" color="inherit" />
+            <IconCheck size="custom" color="currentColor" />
           );
         } else {
           markColorScheme = 'error';
           markIcon = (
-            <Icon name="exclamation" size="inherit" color="inherit" />
+            <IconExclamation size="custom" color="currentColor" />
           );
         }
 
