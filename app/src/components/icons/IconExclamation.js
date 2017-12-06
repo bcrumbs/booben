@@ -1,7 +1,7 @@
 import React from 'react';
 import { IconSvg } from '@reactackle/reactackle';
 
-const IconExclamation = props => (
+export const IconExclamation = props => (
   <IconSvg {...props}>
     <svg viewBox="0 0 24 24">
       <g>
@@ -11,5 +11,3 @@ const IconExclamation = props => (
     </svg>
   </IconSvg>
 );
-
-export default IconExclamation;
