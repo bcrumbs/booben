@@ -614,7 +614,10 @@ class CanvasBuilderComponent extends PureComponent {
 
         return {
           ...ownProps,
-          innerProps: this._buildProps(component, valueContext),
+          innerProps: {
+            ...ownProps.innerProps,
+            ...this._buildProps(component, valueContext),
+          },
         };
       },
 
