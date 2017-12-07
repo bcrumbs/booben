@@ -930,14 +930,14 @@ class DesignRoute extends PureComponent {
               <ToolBarAction
                 icon={{ name: 'files-o' }}
                 tooltipText={getLocalizedText('toolbar.design.duplicate')}
-                disabled={!canCopySelected || !singleComponentSelected}
+                disabled={!canCopySelected}
                 onPress={this._handleDuplicateSelectedComponent}
               />
 
               <ToolBarAction
                 icon={{ name: 'clone' }}
                 tooltipText={getLocalizedText('toolbar.design.copy')}
-                disabled={!canCopySelected || !singleComponentSelected}
+                disabled={!canCopySelected}
                 onPress={this._handleCopySelectedComponent}
               />
 

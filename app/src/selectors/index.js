@@ -14,6 +14,7 @@ import {
   getSourceConfig,
   getComponentPropName,
   getContainerStyle,
+  isCompositeComponent,
 } from '../lib/meta';
 
 import { formatComponentTitle } from '../lib/components';
@@ -139,9 +140,12 @@ export const canCopySelector = createSelector(
       !singleComponentSelected || firstSelectedComponentId === INVALID_ID
     ) return false;
 
-    const component = components.get(firstSelectedComponentId);
-    const componentMeta = getComponentMeta(component.name, meta);
-    return componentMeta.kind !== 'composite';
+    const componentParentId = components.getIn(
+      [firstSelectedComponentId, 'parentId'],
+    );
+
+    const componentParent = components.get(componentParentId);
+    return !isCompositeComponent(componentParent.name, meta);
   },
 );
 
