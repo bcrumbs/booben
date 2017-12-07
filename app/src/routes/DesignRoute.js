@@ -94,6 +94,7 @@ import {
   componentClipboardSelector,
   canUndoSelector,
   canRedoSelector,
+  canCopySelector,
 } from '../selectors';
 
 import {
@@ -130,6 +131,7 @@ const propTypes = {
   previewContainerStyle: PropTypes.string.isRequired, // state
   singleComponentSelected: PropTypes.bool.isRequired, // state
   firstSelectedComponentId: PropTypes.number.isRequired, // state
+  canCopySelected: PropTypes.bool.isRequired, // state
   selectingComponentLayout: PropTypes.bool.isRequired, // state
   draggedComponents: JssyPropTypes.components, // state
   language: PropTypes.string.isRequired, // state
@@ -174,6 +176,7 @@ const mapStateToProps = state => ({
   previewContainerStyle: containerStyleSelector(state),
   singleComponentSelected: singleComponentSelectedSelector(state),
   firstSelectedComponentId: firstSelectedComponentIdSelector(state),
+  canCopySelected: canCopySelector(state),
   selectingComponentLayout: state.project.selectingComponentLayout,
   draggedComponents: state.project.draggedComponents,
   language: state.project.languageForComponentProps,
@@ -857,6 +860,7 @@ class DesignRoute extends PureComponent {
       selectingComponentLayout,
       firstSelectedComponentId,
       singleComponentSelected,
+      canCopySelected,
       componentDataListIsVisible,
       pickedComponentArea,
       componentClipboard,
@@ -926,14 +930,14 @@ class DesignRoute extends PureComponent {
               <ToolBarAction
                 icon={{ name: 'files-o' }}
                 tooltipText={getLocalizedText('toolbar.design.duplicate')}
-                disabled={!singleComponentSelected}
+                disabled={!canCopySelected}
                 onPress={this._handleDuplicateSelectedComponent}
               />
 
               <ToolBarAction
                 icon={{ name: 'clone' }}
                 tooltipText={getLocalizedText('toolbar.design.copy')}
-                disabled={!singleComponentSelected}
+                disabled={!canCopySelected}
                 onPress={this._handleCopySelectedComponent}
               />
 

@@ -14,6 +14,7 @@ import {
   getSourceConfig,
   getComponentPropName,
   getContainerStyle,
+  isCompositeComponent,
 } from '../lib/meta';
 
 import { formatComponentTitle } from '../lib/components';
@@ -127,6 +128,23 @@ export const firstSelectedComponentIdSelector = state => {
   const ret = selectedComponentIdsSelector(state).first();
   return isDef(ret) ? ret : INVALID_ID;
 };
+
+export const canCopySelector = createSelector(
+  state => state.project.meta,
+  singleComponentSelectedSelector,
+  firstSelectedComponentIdSelector,
+  currentComponentsSelector,
+
+  (meta, singleComponentSelected, firstSelectedComponentId, components) => {
+    if (!singleComponentSelected) return false;
+    
+    const component = components.get(firstSelectedComponentId);
+    if (component.name === 'Outlet') return false;
+
+    const componentParent = components.get(component.parentId);
+    return !isCompositeComponent(componentParent.name, meta);
+  },
+);
 
 export const highlightedComponentIdsSelector = createSelector(
   currentDesignerSelector,
