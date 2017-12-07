@@ -137,11 +137,11 @@ export const canCopySelector = createSelector(
 
   (meta, singleComponentSelected, firstSelectedComponentId, components) => {
     if (!singleComponentSelected) return false;
+    
+    const component = components.get(firstSelectedComponentId);
+    if (component.name === 'Outlet') return false;
 
-    const componentParentId = components.getIn(
-      [firstSelectedComponentId, 'parentId'],
-    );
-
+    const componentParentId = component.get('parentId');
     const componentParent = components.get(componentParentId);
     return !isCompositeComponent(componentParent.name, meta);
   },
