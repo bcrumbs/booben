@@ -136,9 +136,7 @@ export const canCopySelector = createSelector(
   currentComponentsSelector,
 
   (meta, singleComponentSelected, firstSelectedComponentId, components) => {
-    if (
-      !singleComponentSelected || firstSelectedComponentId === INVALID_ID
-    ) return false;
+    if (!singleComponentSelected) return false;
 
     const componentParentId = components.getIn(
       [firstSelectedComponentId, 'parentId'],
