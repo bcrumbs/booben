@@ -346,8 +346,7 @@ class PreviewBuilderComponent extends PureComponent {
    */
   _performPropAction(action, valueContext) {
     const { meta, components } = this.props;
-    const { dynamicPropValues } = this.state;
-
+ 
     if (action.params.componentId === INVALID_ID) return;
 
     let propName;
@@ -388,10 +387,10 @@ class PreviewBuilderComponent extends PureComponent {
     } else {
       newValue = action.params.value;
     }
-
-    this.setState({
+    
+    this.setState(({ dynamicPropValues }) => ({
       dynamicPropValues: dynamicPropValues.set(propAddress, newValue),
-    });
+    }));
   }
 
   /**
