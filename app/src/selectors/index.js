@@ -141,8 +141,7 @@ export const canCopySelector = createSelector(
     const component = components.get(firstSelectedComponentId);
     if (component.name === 'Outlet') return false;
 
-    const componentParentId = component.get('parentId');
-    const componentParent = components.get(componentParentId);
+    const componentParent = components.get(component.parentId);
     return !isCompositeComponent(componentParent.name, meta);
   },
 );
