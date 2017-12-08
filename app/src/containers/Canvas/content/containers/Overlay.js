@@ -6,6 +6,7 @@ import { connect } from 'react-redux';
 import {
   selectedComponentIdsSelector,
   highlightedComponentIdsSelector,
+  disabledComponentIdsSelector,
   currentRootComponentIdSelector,
   currentComponentsSelector,
   isCanvasClearSelector,
@@ -25,6 +26,7 @@ const propTypes = {
   components: JssyPropTypes.components.isRequired,
   selectedComponentIds: JssyPropTypes.setOfIds.isRequired,
   highlightedComponentIds: JssyPropTypes.setOfIds.isRequired,
+  disabledComponentIds: JssyPropTypes.setOfIds.isRequired,
   boundaryComponentId: PropTypes.number.isRequired,
   highlightingEnabled: PropTypes.bool.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
@@ -42,6 +44,7 @@ const mapStateToProps = state => ({
   components: currentComponentsSelector(state),
   selectedComponentIds: selectedComponentIdsSelector(state),
   highlightedComponentIds: highlightedComponentIdsSelector(state),
+  disabledComponentIds: disabledComponentIdsSelector(state),
   boundaryComponentId: currentRootComponentIdSelector(state),
   highlightingEnabled: state.project.highlightingEnabled,
   draggingComponent: state.project.draggingComponent,
@@ -55,6 +58,8 @@ const wrap = connect(mapStateToProps);
 
 const HIGHLIGHT_COLOR = 'rgba(0, 113, 216, 0.7)';
 const HIGHLIGHT_STYLE = 'dashed';
+const DISABLE_COLOR = '#ECEFF7';
+const DISABLE_STYLE = 'solid';
 const SELECT_COLOR = 'rgba(0, 113, 216, 1)';
 const SELECT_STYLE = 'solid';
 const BOUNDARY_COLOR = 'red';
@@ -98,6 +103,7 @@ class Overlay extends PureComponent {
    * @param {string} borderStyle
    * @param {boolean} [showTitle=false]
    * @param {number} [additionalOverlayLevel=0]
+   * @param {boolean} [showOverlay=false]
    * @return {Array<ReactElement>}
    * @private
    */
@@ -107,6 +113,7 @@ class Overlay extends PureComponent {
     borderStyle,
     showTitle = false,
     additionalOverlayLevel = 0,
+    showOverlay = false,
   ) {
     const { components } = this.props;
     
@@ -130,6 +137,7 @@ class Overlay extends PureComponent {
           borderStyle={borderStyle}
           title={title}
           showTitle={showTitle}
+          showOverlay={showOverlay}
           additionalOverlayLevel={additionalOverlayLevel}
         />
       );
@@ -143,12 +151,24 @@ class Overlay extends PureComponent {
       pickingComponentData,
       highlightingEnabled,
       highlightedComponentIds,
+      disabledComponentIds,
       selectedComponentIds,
       boundaryComponentId,
       isCanvasClear,
       getLocalizedText,
     } = this.props;
-    
+
+    const disabledBoxes = disabledComponentIds.isEmpty()
+      ? null
+      : this._renderBoundingBoxes(
+        disabledComponentIds,
+        DISABLE_COLOR,
+        DISABLE_STYLE,
+        false,
+        0,
+        true,
+      );
+
     const highlightBoxes = highlightingEnabled
       ? this._renderBoundingBoxes(
         highlightedComponentIds,
@@ -195,6 +215,7 @@ class Overlay extends PureComponent {
 
     return (
       <OverlayContainer>
+        {disabledBoxes}
         {highlightBoxes}
         {selectBoxes}
         {rootComponentBox}

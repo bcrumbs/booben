@@ -20,6 +20,7 @@ import { formatComponentTitle } from '../lib/components';
 import { getTypeNameByPath } from '../lib/schema';
 import { isDef, mapListToArray } from '../utils/misc';
 import { INVALID_ID } from '../constants/misc';
+import { isEmptyListComponent } from '../containers/builders/helpers';
 
 export const haveNestedConstructorsSelector = state =>
   !state.project.nestedConstructors.isEmpty();
@@ -113,6 +114,14 @@ export const currentRootComponentIdSelector = createSelector(
       return INVALID_ID;
     }
   },
+);
+
+export const disabledComponentIdsSelector = createSelector(
+  currentComponentsSelector,
+  components => components
+    .filter(isEmptyListComponent)
+    .keySeq()
+    .toSet(),
 );
 
 export const selectedComponentIdsSelector = createSelector(
