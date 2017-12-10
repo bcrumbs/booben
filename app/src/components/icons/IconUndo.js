@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconSvg } from 'reactackle-icons';
-import { defaulProps } from './index';
+import { defaultProps } from './index';
 
 export const IconUndo = props => (
   <IconSvg {...props}>
@@ -11,4 +11,4 @@ export const IconUndo = props => (
   </IconSvg>
 );
 
-IconUndo.defaulProps = defaulProps;
+IconUndo.defaultProps = defaultProps;

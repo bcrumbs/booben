@@ -26,7 +26,7 @@ export * from './IconUndo';
 export * from './IconUpload';
 
 export const defaultProps = {
-  ...IconSvg.defaulProps,
+  ...IconSvg.defaultProps,
   size: 'custom',
   color: 'currentColor',
 };

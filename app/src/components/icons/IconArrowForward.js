@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconSvg } from 'reactackle-icons';
-import { defaulProps } from './index';
+import { defaultProps } from './index';
 
 export const IconArrowForward = props => (
   <IconSvg {...props}>
@@ -10,4 +10,4 @@ export const IconArrowForward = props => (
   </IconSvg>
 );
 
-IconArrowForward.defaulProps = defaulProps;
+IconArrowForward.defaultProps = defaultProps;
