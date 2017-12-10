@@ -45,6 +45,7 @@ import {
 
 import { functionNameFromTitle } from '../../../../lib/functions';
 import { noop, returnArg } from '../../../../utils/misc';
+import { IconArrowChevronLeft } from '../../../../components/icons';
 
 const propTypes = {
   existingFunctionNames: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -326,7 +327,7 @@ export class NewFunctionWindow extends PureComponent {
           <BlockContentActionsRegion type="secondary">
             <Button
               text={getLocalizedText('common.back')}
-              icon={{ name: 'chevron-left' }}
+              icon={<IconArrowChevronLeft />}
               onPress={this._handleBack}
             />
           </BlockContentActionsRegion>

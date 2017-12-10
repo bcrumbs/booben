@@ -9,7 +9,6 @@ import { PropLabel } from './PropLabel/PropLabel';
 import { PropImage } from './PropImage/PropImage';
 import { PropAction } from './PropAction/PropAction';
 import { noop } from '../../../utils/misc';
-import { IconCheck, IconExclamation } from '../../icons';
 import { MarkWrapperStyled } from './styles/MarkWrapperStyled';
 import { MarkStyled } from './styles/MarkStyled';
 import { LabelBoxStyled } from './styles/LabelBoxStyled';
@@ -20,6 +19,14 @@ import { ContentBoxStyled } from './styles/ContentBoxStyled';
 import { WrapperStyled } from './styles/WrapperStyled';
 import { PropItemStyled } from './styles/PropItemStyled';
 import { LinkedDataStyled } from './styles/LinkedDataStyled';
+
+import {
+  IconCheck,
+  IconExclamation,
+  IconLink,
+  IconCross,
+  IconEyedropper,
+} from '../../icons';
 
 const propTypes = {
   id: PropTypes.string,
@@ -104,7 +111,7 @@ export class PropBase extends PureComponent {
     return (
       <LinkedDataStyled title={linkedWith}>
         <Tag
-          icon="link"
+          icon={<IconLink />}
           text={linkedWith}
           bounded
           removable
@@ -185,12 +192,12 @@ export class PropBase extends PureComponent {
         if (requirementFulfilled) {
           markColorScheme = 'success';
           markIcon = (
-            <IconCheck size="custom" color="currentColor" />
+            <IconCheck />
           );
         } else {
           markColorScheme = 'error';
           markIcon = (
-            <IconExclamation size="custom" color="currentColor" />
+            <IconExclamation />
           );
         }
 
@@ -239,7 +246,7 @@ export class PropBase extends PureComponent {
       actionsLeftElement = (
         <ActionsBoxStyled>
           <PropAction
-            icon="times"
+            icon={<IconCross />}
             onPress={this._handleDelete}
           />
         </ActionsBoxStyled>
@@ -268,7 +275,7 @@ export class PropBase extends PureComponent {
       const linkAction = (
         <PropAction
           key="linking"
-          icon="link"
+          icon={<IconLink />}
           onPress={this._handleLink}
         />
       );
@@ -280,7 +287,7 @@ export class PropBase extends PureComponent {
       const pickAction = (
         <PropAction
           key="pick"
-          icon="eyedropper"
+          icon={<IconEyedropper />}
           onPress={this._handlePick}
         />
       );

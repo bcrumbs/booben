@@ -77,7 +77,7 @@ export class ComponentAction extends PureComponent {
         <ActionHeadingStyled>
           <ActionLinkWrapperStyled onClick={this._handleClick}>
             <ActionIconStyled>
-              <IconArrowForward size="custom" color="currentColor" />
+              <IconArrowForward />
             </ActionIconStyled>
 
             <ActionTitleStyled>
@@ -91,7 +91,7 @@ export class ComponentAction extends PureComponent {
 
           <ActionButtonsWrapperStyled>
             <Button
-              icon={<IconCross size="custom" color="currentColor" />}
+              icon={<IconCross />}
               radius="rounded"
               size="small"
               colorScheme="flatLight"

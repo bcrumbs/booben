@@ -6,7 +6,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import throttle from 'lodash.throttle';
-import { Button, Tabs } from '@reactackle/reactackle';
+import { Button, Tabs, IconCross } from '@reactackle/reactackle';
 
 import {
   BlockContent,
@@ -25,6 +25,7 @@ import resizeable from '../../../hocs/resizeable';
 import ToolType from '../../../models/Tool';
 import ToolStateType from '../../../models/ToolState';
 import { noop } from '../../../utils/misc';
+import { IconCollapse, IconElipsis } from '../../../components/icons';
 
 const propTypes = {
   tool: PropTypes.instanceOf(ToolType).isRequired,
@@ -248,7 +249,7 @@ export class ToolWindow extends PureComponent {
     return buttons.map(({ icon, text, onPress }, idx) => (
       <Button
         key={String(idx)}
-        icon={{ name: icon }}
+        icon={icon}
         text={text}
         onPress={onPress}
       />
@@ -327,18 +328,14 @@ export class ToolWindow extends PureComponent {
 
     if (tool.undockable) {
       titleButtons.push({
-        icon: {
-          name: 'compress',
-        },
+        icon: <IconCollapse />,
         onPress: onDock,
       });
     }
 
     if (tool.closable) {
       titleButtons.push({
-        icon: {
-          name: 'times',
-        },
+        icon: <IconCross />,
         onPress: onClose,
       });
     }
@@ -360,7 +357,7 @@ export class ToolWindow extends PureComponent {
             subtitle={tool.subtitle}
             isEditable={tool.titleEditable}
             titlePlaceHolder={tool.titlePlaceholder}
-            iconLeft={{ name: "ellipsis-v" }}
+            iconLeft={<IconElipsis />}
             buttons={titleButtons}
             onLeftIconMouseDown={this._handleStartDrag}
             onTitleChange={onTitleChange}

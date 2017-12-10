@@ -32,13 +32,13 @@ const ProjectSaveComponent = props => {
   let icon = null;
 
   if (props.status === 'error') {
-    icon = <IconExclamation size="custom" color="currentColor" />;
+    icon = <IconExclamation />;
   } else if (props.status === 'success') {
-    icon = <IconCheck size="custom" color="currentColor" />;
+    icon = <IconCheck />;
   } else if (props.status === 'progress') {
     icon = null;
   } else {
-    icon = <IconCheck size="custom" color="currentColor" />;
+    icon = <IconCheck />;
   }
 
   const TooltipComponent = props.Tooltip;

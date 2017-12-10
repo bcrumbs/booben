@@ -20,6 +20,7 @@ import ToolState from '../../../models/ToolState';
 import { noop } from '../../../utils/misc';
 import * as JssyPropTypes from '../../../constants/common-prop-types';
 import { DESKTOP_PANEL_MIN_WIDTH } from '../../../config';
+import { IconArrowChevronLeft } from '../../../components/icons';
 
 /* eslint-disable react/no-unused-prop-types */
 const propTypes = {
@@ -160,7 +161,7 @@ export const ToolPanel = props => {
     const expandActionGroup = (
       <PageDrawerActionsGroup key="expand">
         <PageDrawerActionItem
-          icon="chevron-left"
+          icon={<IconArrowChevronLeft />}
           onPress={props.onExpand}
         />
       </PageDrawerActionsGroup>

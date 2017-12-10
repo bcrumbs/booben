@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { IconSvg, Button } from '@reactackle/reactackle';
+import { Button } from '@reactackle/reactackle';
 import { noop } from '../../../utils/misc';
 
 import {
@@ -23,7 +23,7 @@ const propTypes = {
   draggable: PropTypes.bool,
   titlePlaceHolder: PropTypes.string,
   subtitle: PropTypes.string,
-  iconLeft: IconSvg.propTypes,
+  iconLeft: PropTypes.element,
   buttons: PropTypes.arrayOf(PropTypes.shape(Button.propTypes)),
   colorScheme: PropTypes.oneOf(['default', 'alt']),
   onLeftIconMouseDown: PropTypes.func,
@@ -87,17 +87,16 @@ export class BlockContentTitle extends PureComponent {
 
     const { editingTitle } = this.state;
 
-    let iconLeftElement = null;
-    if (iconLeft) {
-      iconLeftElement = (
+    const iconLeftElement = iconLeft
+      ? (
         <TitleIconStyled
           colorScheme={colorScheme}
           onMouseDown={onLeftIconMouseDown}
         >
-          <IconSvg {...iconLeft} size="custom" color="currentColor" />
+          {iconLeft}
         </TitleIconStyled>
-      );
-    }
+      )
+      : null;
 
     let buttonsArea = null;
     if (buttons.length > 0) {

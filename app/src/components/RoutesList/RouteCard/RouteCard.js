@@ -120,7 +120,7 @@ class _RouteCard extends PureComponent {
     if (route.redirect) {
       redirectMark = (
         <IconMarkStyled>
-          <IconRedirect size="custom" color="currentColor" />
+          <IconRedirect />
         </IconMarkStyled>
       );
     }
@@ -129,7 +129,7 @@ class _RouteCard extends PureComponent {
     if (alertMark) {
       mark = (
         <AlertMarkStyled onMouseEnter={showTooltip} onMouseOut={hideTooltip}>
-          <IconExclamation size="custom" color="currentColor" />
+          <IconExclamation />
           <Tooltip text={alertTooltip} />
         </AlertMarkStyled>
       );

@@ -73,7 +73,7 @@ export class ComponentHandler extends PureComponent {
           </HandlerTitleStyled>
 
           <HandlerIconStyled expanded={expanded}>
-            <IconArrowChevronRight size="small" color="currentColor" />
+            <IconArrowChevronRight />
           </HandlerIconStyled>
         </HandlerHeadingStyled>
 

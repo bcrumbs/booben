@@ -1,7 +1,9 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from '@reactackle/reactackle';
+
 import { noop } from '../../../utils/misc';
+import { IconAdd } from '../../icons';
 
 const propTypes = {
   pathToList: PropTypes.arrayOf(PropTypes.oneOfType([
@@ -40,7 +42,7 @@ export class ComponentActions extends PureComponent {
         <div>
           <Button
             text={addButtonText}
-            icon={{ name: 'plus' }}
+            icon={<IconAdd />}
             size="small"
             narrow
             onPress={this._handleAddButtonPress}

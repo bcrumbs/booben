@@ -1,5 +1,6 @@
 import React from 'react';
 import { IconSvg } from 'reactackle-icons';
+import { defaulProps } from './index';
 
 export const IconExclamation = props => (
   <IconSvg {...props}>
@@ -11,3 +12,5 @@ export const IconExclamation = props => (
     </svg>
   </IconSvg>
 );
+
+IconExclamation.defaultProps = defaultProps;

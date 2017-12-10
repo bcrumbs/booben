@@ -64,6 +64,7 @@ import {
 } from '../constants/paths';
 
 import { INVALID_ID } from '../constants/misc';
+import { IconUndo, IconRedo, IconTrash } from '../components/icons';
 
 const propTypes = {
   project: PropTypes.instanceOf(ProjectRecord).isRequired, // store
@@ -951,7 +952,7 @@ class StructureRoute extends PureComponent {
           <ToolBar>
             <ToolBarGroup>
               <ToolBarAction
-                icon={{ name: 'trash' }}
+                icon={<IconTrash />}
                 tooltipText={getLocalizedText('toolbar.structure.delete')}
                 disabled={!isDeletable}
                 onPress={this._handleDeleteRoutePress}
@@ -960,14 +961,14 @@ class StructureRoute extends PureComponent {
 
             <ToolBarGroup>
               <ToolBarAction
-                icon={{ name: 'undo' }}
+                icon={<IconUndo />}
                 tooltipText={getLocalizedText('toolbar.common.undo')}
                 disabled={!canUndo}
                 onPress={onUndo}
               />
 
               <ToolBarAction
-                icon={{ name: 'repeat' }}
+                icon={<IconRedo />}
                 tooltipText={getLocalizedText('toolbar.common.redo')}
                 disabled={!canRedo}
                 onPress={onRedo}

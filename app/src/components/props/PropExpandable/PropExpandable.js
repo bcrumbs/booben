@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import _pick from 'lodash.pick';
 import { PropBase } from '../PropBase/PropBase';
 import { noop } from '../../../utils/misc';
+import { IconArrowChevronRight } from '../../icons';
 
 const propTypes = {
   expanded: PropTypes.bool,
@@ -52,7 +53,7 @@ export class PropExpandable extends Component {
     if (!linked && (!checkable || checked)) {
       actualAdditionalActions = [...actualAdditionalActions, {
         id: 'expand',
-        icon: 'chevron-right',
+        icon: <IconArrowChevronRight />,
         rounded: true,
         expanded,
         handler: this._handleExpandAction,

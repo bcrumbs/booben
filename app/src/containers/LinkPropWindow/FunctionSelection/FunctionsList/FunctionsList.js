@@ -21,7 +21,8 @@ import {
 
 import { FunctionSources } from '../../../../lib/functions';
 import { noop, returnArg } from '../../../../utils/misc';
-
+import { IconAdd } from '../../../../components/icons';
+ 
 const FunctionShape = PropTypes.shape({
   id: PropTypes.string.isRequired,
   name: PropTypes.string,
@@ -146,7 +147,7 @@ export class FunctionsList extends PureComponent {
       addButton = (
         <BlockContentBoxItem>
           <Button
-            icon={{ name: 'plus' }}
+            icon={<IconAdd />}
             text={getLocalizedText('linkDialog.function.create')}
             narrow
             onPress={onAdd}
