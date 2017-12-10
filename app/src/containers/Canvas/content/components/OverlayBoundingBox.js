@@ -11,7 +11,6 @@ const propTypes = {
   color: PropTypes.string,
   title: PropTypes.string,
   showTitle: PropTypes.bool,
-  showOverlay: PropTypes.bool,
   additionalOverlayLevel: PropTypes.number,
 };
 
@@ -24,7 +23,6 @@ const defaultProps = {
   color: '#c8e5f6',
   title: '',
   showTitle: false,
-  showOverlay: false,
   additionalOverlayLevel: 0,
 };
 
@@ -37,7 +35,6 @@ export const OverlayBoundingBox = (props, context) => {
     borderStyle,
     title,
     showTitle,
-    showOverlay,
     additionalOverlayLevel,
   } = props;
 
@@ -119,28 +116,10 @@ export const OverlayBoundingBox = (props, context) => {
       />
     );
   }
-
-  let overlayElement = null;
-  if (showOverlay) {
-    overlayElement = (
-      <div
-        style={{
-          left,
-          top,
-          width,
-          height,
-          background: color,
-          opacity: 0.7,
-          pointerEvents: 'none',
-        }}
-      />
-    );
-  }
   
   return (
     <div style={style}>
       {titleElement}
-      {overlayElement}
       <div style={topBorderStyle} />
       <div style={leftBorderStyle} />
       <div style={bottomBorderStyle} />
