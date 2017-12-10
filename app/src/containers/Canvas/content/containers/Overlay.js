@@ -15,6 +15,7 @@ import {
 
 import { OverlayContainer } from '../components/OverlayContainer';
 import { OverlayBoundingBox } from '../components/OverlayBoundingBox';
+import { OverlayOverlapBox } from '../components/OverlayOverlapBox';
 import { CanvasPlaceholder } from '../components/CanvasPlaceholder';
 import { formatComponentTitle } from '../../../../lib/components';
 import { mapListToArray } from '../../../../utils/misc';
@@ -58,8 +59,6 @@ const wrap = connect(mapStateToProps);
 
 const HIGHLIGHT_COLOR = 'rgba(0, 113, 216, 0.7)';
 const HIGHLIGHT_STYLE = 'dashed';
-const DISABLE_COLOR = '#ECEFF7';
-const DISABLE_STYLE = 'solid';
 const SELECT_COLOR = 'rgba(0, 113, 216, 1)';
 const SELECT_STYLE = 'solid';
 const BOUNDARY_COLOR = 'red';
@@ -103,7 +102,6 @@ class Overlay extends PureComponent {
    * @param {string} borderStyle
    * @param {boolean} [showTitle=false]
    * @param {number} [additionalOverlayLevel=0]
-   * @param {boolean} [showOverlay=false]
    * @return {Array<ReactElement>}
    * @private
    */
@@ -113,7 +111,6 @@ class Overlay extends PureComponent {
     borderStyle,
     showTitle = false,
     additionalOverlayLevel = 0,
-    showOverlay = false,
   ) {
     const { components } = this.props;
     
@@ -137,8 +134,27 @@ class Overlay extends PureComponent {
           borderStyle={borderStyle}
           title={title}
           showTitle={showTitle}
-          showOverlay={showOverlay}
           additionalOverlayLevel={additionalOverlayLevel}
+        />
+      );
+    });
+  }
+
+  /**
+   *
+   * @param {Immutable.List<number>} componentIds
+   * @param {string} color
+   * @return {Array<ReactElement>}
+   * @private
+   */
+  _renderOverlapBoxes(componentIds, color) {
+    return mapListToArray(componentIds, id => {
+      const element = this._getDOMElementByComponentId(id);
+      return (
+        <OverlayOverlapBox
+          key={`overlap-${id}`}
+          element={element}
+          color={color}
         />
       );
     });
@@ -160,13 +176,8 @@ class Overlay extends PureComponent {
 
     const disabledBoxes = disabledComponentIds.isEmpty()
       ? null
-      : this._renderBoundingBoxes(
+      : this._renderOverlapBoxes(
         disabledComponentIds,
-        DISABLE_COLOR,
-        DISABLE_STYLE,
-        false,
-        0,
-        true,
       );
 
     const highlightBoxes = highlightingEnabled

@@ -33,9 +33,12 @@ export const isPseudoComponent = component =>
  * @param {ProjectComponent} component
  * @return {boolean}
  */
-export const isEmptyListComponent = component =>
-  component.name === 'List' &&
-  !component.getIn(['props', 'data']).isLinkedWithData();
+export const isEmptyListComponent = component => {
+  if (component.id === INVALID_ID) return false;
+
+  return component.name === 'List' &&
+    !component.getIn(['props', 'data']).isLinkedWithData();
+};
 
 /**
  * @typedef {Object} RenderHints

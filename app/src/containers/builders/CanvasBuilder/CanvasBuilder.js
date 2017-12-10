@@ -440,14 +440,12 @@ class CanvasBuilderComponent extends PureComponent {
    * @private
    */
   _renderEmptyListComponent(list) {
-    const sourceDataPath = ['props', 'component', 'sourceData'];
-    const rootListComponentId = list.getIn([...sourceDataPath, 'rootId']);
+    const componentValue = list.props.get('component');
 
-    const rootListComponent = list.getIn([
-      ...sourceDataPath,
-      'components',
-      rootListComponentId,
-    ]);
+    if (componentValue.sourceData.rootId === INVALID_ID) return null;
+
+    const rootListComponent = componentValue.sourceData.components
+      .get(componentValue.sourceData.rootId);
 
     // Changing rootListComponent ID here in order
     // to everyone outside recognize it as initial List
