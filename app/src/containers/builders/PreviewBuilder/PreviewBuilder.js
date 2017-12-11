@@ -346,7 +346,7 @@ class PreviewBuilderComponent extends PureComponent {
    */
   _performPropAction(action, valueContext) {
     const { meta, components } = this.props;
- 
+
     if (action.params.componentId === INVALID_ID) return;
 
     let propName;
@@ -387,7 +387,7 @@ class PreviewBuilderComponent extends PureComponent {
     } else {
       newValue = action.params.value;
     }
-    
+
     this.setState(({ dynamicPropValues }) => ({
       dynamicPropValues: dynamicPropValues.set(propAddress, newValue),
     }));
@@ -908,7 +908,7 @@ class PreviewBuilderComponent extends PureComponent {
           schema,
         ),
 
-        fetchPolicy: 'cache-and-network',
+        fetchPolicy: 'cache-first',
       },
     });
   }

@@ -143,7 +143,7 @@ class CanvasBuilderComponent extends PureComponent {
     super(props, context);
 
     this._connectedComponentsCache = new Map();
-    
+
     this._renderHints = getRenderHints(
       props.components,
       props.rootId,
@@ -151,7 +151,7 @@ class CanvasBuilderComponent extends PureComponent {
       props.schema,
       props.project,
     );
-  
+
     this.state = {
       componentsState: getInitialComponentsState(
         props.components,
@@ -159,18 +159,18 @@ class CanvasBuilderComponent extends PureComponent {
         this._renderHints,
       ),
     };
-    
+
     this._handleComponentDragStart = this._handleComponentDragStart.bind(this);
   }
-  
+
   componentWillReceiveProps(nextProps) {
     const { components, rootId } = this.props;
     const { componentsState } = this.state;
-    
+
     const componentsUpdated =
       nextProps.components !== components ||
       nextProps.rootId !== rootId;
-    
+
     if (componentsUpdated) {
       this._renderHints = getRenderHints(
         nextProps.components,
@@ -179,7 +179,7 @@ class CanvasBuilderComponent extends PureComponent {
         nextProps.schema,
         nextProps.project,
       );
-      
+
       this.setState({
         componentsState: mergeComponentsState(
           componentsState,
@@ -205,7 +205,7 @@ class CanvasBuilderComponent extends PureComponent {
     this._connectedComponentsCache.set(componentName, ret);
     return ret;
   }
-  
+
   /**
    *
    * @param {Object} component
@@ -215,23 +215,23 @@ class CanvasBuilderComponent extends PureComponent {
    */
   _handleErrorInComponentLifecycleHook(component, error, hookName) {
     const { getLocalizedText, onAlert } = this.props;
-    
+
     const message = getLocalizedText('alert.componentError', {
       componentName: component.title
         ? `${component.title} (${component.name})`
         : component.name,
-      
+
       hookName,
       message: error.message,
     });
-    
+
     const alert = {
       content: message,
     };
-    
+
     onAlert(alert);
   }
-  
+
   /**
    *
    * @param {Object} data
@@ -242,7 +242,7 @@ class CanvasBuilderComponent extends PureComponent {
     const { onStartDragComponent } = this.props;
     onStartDragComponent(data.componentId);
   }
-  
+
   /**
    *
    * @param {number} componentId
@@ -253,20 +253,20 @@ class CanvasBuilderComponent extends PureComponent {
    */
   _handleActions(componentId, valueDef, userTypedefs, valueContext) {
     const { componentsState } = this.state;
-  
+
     const resolvedTypedef = resolveTypedef(valueDef, userTypedefs);
     const stateUpdates =
       getSourceConfig(resolvedTypedef, 'actions', userTypedefs).updateState;
-  
+
     if (stateUpdates && componentId !== INVALID_ID) {
       const currentState = componentsState.get(componentId);
-    
+
       if (currentState) {
         let nextState = currentState;
-      
+
         forOwn(stateUpdates, (value, slotName) => {
           if (!currentState.has(slotName)) return;
-        
+
           let newValue = NO_VALUE;
           if (value.source === 'const') {
             newValue = value.sourceData.value;
@@ -277,12 +277,12 @@ class CanvasBuilderComponent extends PureComponent {
               NO_VALUE,
             );
           }
-        
+
           if (newValue !== NO_VALUE) {
             nextState = nextState.set(slotName, newValue);
           }
         });
-      
+
         if (nextState !== currentState) {
           this.setState({
             componentsState: componentsState.set(componentId, nextState),
@@ -291,7 +291,7 @@ class CanvasBuilderComponent extends PureComponent {
       }
     }
   }
-  
+
   /**
    *
    * @param {number} [componentId=INVALID_ID]
@@ -311,9 +311,9 @@ class CanvasBuilderComponent extends PureComponent {
       dataContextInfo,
       routeParams,
     } = this.props;
-  
+
     const { componentsState } = this.state;
-    
+
     return {
       meta,
       schema,
@@ -336,7 +336,7 @@ class CanvasBuilderComponent extends PureComponent {
         theMap: valueContext.theMap,
         dataContextInfo: valueContext.theMap.get(jssyValue),
       }),
-  
+
       handleActions: (jssyValue, valueDef, userTypedefs, valueContext) => {
         this._handleActions(
           componentId,
@@ -357,7 +357,7 @@ class CanvasBuilderComponent extends PureComponent {
    */
   _buildProps(component, valueContext = null) {
     const { meta } = this.props;
-    
+
     const componentMeta = getComponentMeta(component.name, meta);
     const ret = {};
 
@@ -371,7 +371,7 @@ class CanvasBuilderComponent extends PureComponent {
 
     return ret;
   }
-  
+
   /**
    * Constructs system props object
    *
@@ -381,17 +381,17 @@ class CanvasBuilderComponent extends PureComponent {
    */
   _buildSystemProps(component, valueContext = null) {
     const ret = {};
-    
+
     component.systemProps.forEach((propValue, propName) => {
       const valueDef = SYSTEM_PROPS[propName];
       const value = buildValue(propValue, valueDef, null, valueContext);
 
       if (value !== NO_VALUE) ret[propName] = value;
     });
-    
+
     return ret;
   }
-  
+
   /**
    *
    * @param {Object} component
@@ -405,7 +405,7 @@ class CanvasBuilderComponent extends PureComponent {
     };
 
     this._patchComponentProps(props, component.id, false, isInvisible);
-    
+
     return (
       <Outlet {...props} />
     );
@@ -419,10 +419,10 @@ class CanvasBuilderComponent extends PureComponent {
    */
   _renderPseudoComponent(component) {
     const { showInvisibleComponents, children } = this.props;
-    
+
     const systemProps = this._buildSystemProps(component, null);
     if (!showInvisibleComponents && !systemProps.visible) return null;
-    
+
     if (component.name === 'Outlet') {
       return children || this._renderOutletComponent(
         component,
@@ -473,7 +473,7 @@ class CanvasBuilderComponent extends PureComponent {
       !draggingOverPlaceholder ||
       placeholderContainerId !== containerId ||
       placeholderAfter !== afterIdx;
-  
+
     return (
       <PlaceholderBuilder
         key={placeholderKey(containerId, afterIdx)}
@@ -516,7 +516,7 @@ class CanvasBuilderComponent extends PureComponent {
 
     component.children.forEach((childComponentId, idx) => {
       const childComponent = components.get(childComponentId);
-  
+
       // Do not render the component that's being dragged
       if (
         draggingComponent &&
@@ -590,7 +590,7 @@ class CanvasBuilderComponent extends PureComponent {
       if (isInvisible) props.__jssy_invisible__ = true;
     }
   }
-  
+
   /**
    *
    * @param {Object} component
@@ -604,7 +604,7 @@ class CanvasBuilderComponent extends PureComponent {
       highlightedComponentIds,
       selectedComponentIds,
     } = this.props;
-    
+
     return isContainerComponent(component.name, meta) && (
       showContentPlaceholders ||
       highlightedComponentIds.has(component.id) ||
@@ -648,7 +648,7 @@ class CanvasBuilderComponent extends PureComponent {
           schema,
         ),
 
-        fetchPolicy: 'cache-and-network',
+        fetchPolicy: 'cache-first',
       },
     });
   }
@@ -683,7 +683,7 @@ class CanvasBuilderComponent extends PureComponent {
     const isHTML = isHTMLComponent(component.name);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
-    
+
     const theMergedMap = thePreviousMap
       ? thePreviousMap.merge(theMap)
       : theMap;
@@ -720,7 +720,7 @@ class CanvasBuilderComponent extends PureComponent {
         <ContentPlaceholder />
       );
     }
-    
+
     let Renderable = Component;
 
     if (graphQLQuery) {
@@ -733,12 +733,12 @@ class CanvasBuilderComponent extends PureComponent {
 
       Renderable = gqlHoc(Component);
     }
-  
+
     const isDraggable =
       editable &&
       parentComponent !== null &&
       !isCompositeComponent(parentComponent.name, meta);
-    
+
     return (
       <Renderable
         key={props.key}
@@ -764,7 +764,7 @@ class CanvasBuilderComponent extends PureComponent {
       draggingComponent,
       rootDraggedComponent,
     } = this.props;
-    
+
     if (rootId !== INVALID_ID) {
       const rootComponent = components.get(rootId);
       return this._renderComponent(rootComponent, null);
@@ -782,7 +782,7 @@ class CanvasBuilderComponent extends PureComponent {
             rootDraggedComponent.name,
             meta,
           );
-  
+
       return canInsertDraggedComponentAsRoot
         ? this._renderPlaceholderForDraggedComponent(INVALID_ID, -1)
         : null;
