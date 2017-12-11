@@ -26,7 +26,9 @@ export const createApolloClient = (project, authConfig) => {
         authorization: authConfig.getToken(),
       },
     }));
+
     const link = middlewareLink.concat(httpLink);
+    
     return new ApolloClient({
       link,
       cache,
