@@ -8,34 +8,31 @@ import { setContext } from 'apollo-link-context';
 import { InMemoryCache } from 'apollo-cache-inmemory';
 import { URL_GRAPHQL_PREFIX } from '../../../shared/constants';
 
-export const createApolloClient = (project, authConfig) => {
+export const createApolloClient = project => {
   const graphQLEndpointURL = project.proxyGraphQLEndpoint
     ? `${URL_GRAPHQL_PREFIX}/${project.name}`
     : project.graphQLEndpointURL;
 
-  const httpLink = createHttpLink({
+  let link = createHttpLink({
     uri: graphQLEndpointURL,
     credentials: 'same-origin',
   });
 
   const cache = new InMemoryCache();
 
-  if (authConfig.type === 'jwt') {
-    const middlewareLink = setContext(() => ({
-      headers: {
-        authorization: authConfig.getToken(),
-      },
-    }));
-
-    const link = middlewareLink.concat(httpLink);
-    
-    return new ApolloClient({
-      link,
-      cache,
-    });
+  if (project.auth) {
+    if (project.auth.type === 'jwt') {
+      const middlewareLink = setContext(() => ({
+        headers: {
+          authorization: localStorage.getItem('jssy_auth_token'),
+        },
+      }));
+      link = middlewareLink.concat(link);
+    }
   }
+
   return new ApolloClient({
-    httpLink,
+    link,
     cache,
   });
 };

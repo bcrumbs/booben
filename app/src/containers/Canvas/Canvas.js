@@ -214,18 +214,7 @@ class CanvasComponent extends Component {
 
     const auth = state.project.data.auth;
 
-    let authConfig = {};
-
-    if (auth) {
-      if (auth.type === 'jwt') {
-        authConfig = {
-          type: 'jwt',
-          getToken: () => localStorage.getItem('jssy_auth_token'),
-        };
-      }
-    }
-
-    const client = createApolloClient(state.project.data, authConfig);
+    const client = createApolloClient(state.project.data);
   
     if (auth) {
       if (auth.type === 'jwt') {
