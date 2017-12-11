@@ -30,6 +30,7 @@ export * from './IconPropsEditor';
 export * from './IconCog';
 export * from './IconFile';
 export * from './IconRandom';
+export * from './IconLink';
 
 export const defaultProps = {
   ...IconSvg.defaultProps,
