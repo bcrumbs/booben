@@ -14,6 +14,7 @@ import { resolveTypedef } from '@jssy/types';
 
 import {
   isPseudoComponent,
+  isEmptyListComponent,
   getComponentByName,
   getRenderHints,
   getInitialComponentsState,
@@ -434,6 +435,25 @@ class CanvasBuilderComponent extends PureComponent {
 
   /**
    *
+   * @param {Object} component
+   * @return {*}
+   * @private
+   */
+  _renderEmptyListComponent(list) {
+    const componentValue = list.props.get('component');
+
+    if (componentValue.sourceData.rootId === INVALID_ID) return null;
+
+    const rootListComponent = componentValue.sourceData.components
+      .get(componentValue.sourceData.rootId);
+
+    // Changing rootListComponent ID here in order
+    // to everyone outside recognize it as initial List
+    return this._renderComponent(rootListComponent.set('id', list.id));
+  }
+
+  /**
+   *
    * @param {number} containerId
    * @param {number} afterIdx
    * @return {ReactElement}
@@ -650,6 +670,10 @@ class CanvasBuilderComponent extends PureComponent {
       theMap: thePreviousMap,
       showInvisibleComponents,
     } = this.props;
+
+    if (isEmptyListComponent(component)) {
+      return this._renderEmptyListComponent(component);
+    }
 
     if (isPseudoComponent(component)) {
       return this._renderPseudoComponent(component);
