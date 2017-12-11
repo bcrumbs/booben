@@ -131,6 +131,9 @@ import {
   IconUndo,
   IconRedo,
   IconList,
+  IconLibrary,
+  IconTree,
+  IconPropsEditor,
 } from '../components/icons';
 
 const propTypes = {
@@ -248,10 +251,6 @@ const mapDispatchToProps = dispatch => ({
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
 
-const LIBRARY_ICON = 'plus-square-o';
-const COMPONENTS_TREE_ICON = 'sitemap';
-const PROPS_EDITOR_ICON = 'sliders';
-
 const NestedConstructorsBreadcrumbsItem = props => (
   <span className={props.className}>
     {props.children}
@@ -318,7 +317,7 @@ class DesignRoute extends PureComponent {
 
     return new ToolRecord({
       id: TOOL_ID_LIBRARY,
-      icon: LIBRARY_ICON,
+      icon: <IconLibrary />,
       name: getLocalizedText('design.tool.componentsLibrary'),
       title: getLocalizedText('design.tool.componentsLibrary'),
       sections: List([
@@ -336,7 +335,7 @@ class DesignRoute extends PureComponent {
 
     return new ToolRecord({
       id: TOOL_ID_COMPONENTS_TREE,
-      icon: COMPONENTS_TREE_ICON,
+      icon: <IconTree />,
       name: getLocalizedText('design.tool.elementsTree'),
       title: getLocalizedText('design.tool.elementsTree'),
       sections: List([
@@ -399,7 +398,7 @@ class DesignRoute extends PureComponent {
 
     return new ToolRecord({
       id: TOOL_ID_PROPS_EDITOR,
-      icon: PROPS_EDITOR_ICON,
+      icon: <IconPropsEditor />,
       name,
       title,
       titleEditable: singleComponentSelected,

@@ -104,6 +104,15 @@ import { List, Set } from 'immutable';
 
 import { removeSplashScreen } from '../lib/dom';
 
+import {
+  IconTrash,
+  IconLibrary,
+  IconTree,
+  IconCog,
+  IconFile,
+  IconPlay,
+} from '../components/icons';
+
 // DATA
 const toolIsolationSections = List([
   new ToolSectionRecord({
@@ -394,7 +403,7 @@ const toolGroups = List([
   List([
     new ToolRecord({
       id: 'tool10',
-      icon: 'play',
+      icon: <IconPlay />,
       name: 'Action / New Action',
       title: 'Button',
       undockable: true,
@@ -406,7 +415,7 @@ const toolGroups = List([
     
     new ToolRecord({
       id: 'tool8',
-      icon: 'play',
+      icon: <IconPlay />,
       name: 'Action Tab Content',
       title: 'Action Tab Content',
       undockable: true,
@@ -418,7 +427,7 @@ const toolGroups = List([
     
     new ToolRecord({
       id: 'tool9',
-      icon: 'cog',
+      icon: <IconCog />,
       name: 'Artboard Properties',
       title: 'Artboard Properties',
       undockable: true,
@@ -430,7 +439,7 @@ const toolGroups = List([
 
     new ToolRecord({
       id: 'tool1',
-      icon: 'file-text-o',
+      icon: <IconFile />,
       name: 'Data',
       title: 'Data',
       undockable: true,
@@ -442,7 +451,7 @@ const toolGroups = List([
 
     new ToolRecord({
       id: 'tool7',
-      icon: 'cog',
+      icon: <IconCog />,
       name: 'Component Settings',
       title: 'Component Settings',
       undockable: true,
@@ -454,7 +463,7 @@ const toolGroups = List([
 
     new ToolRecord({
       id: 'tool6',
-      icon: 'sitemap',
+      icon: <IconTree />,
       name: 'Elements Tree',
       title: 'Elements Tree',
       undockable: true,
@@ -464,7 +473,7 @@ const toolGroups = List([
 
     new ToolRecord({
       id: 'tool2',
-      icon: 'cube',
+      icon: <IconLibrary />,
       name: 'Components Library',
       title: 'Components Library',
       undockable: true,
@@ -476,7 +485,7 @@ const toolGroups = List([
 
     new ToolRecord({
       id: 'tool4',
-      icon: 'trash-o',
+      icon: <IconTrash />,
       name: 'Just Empty Tab',
       title: 'Just Empty Tab',
       undockable: true,

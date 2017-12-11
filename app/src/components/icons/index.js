@@ -24,6 +24,12 @@ export * from './IconSearch';
 export * from './IconTrash';
 export * from './IconUndo';
 export * from './IconUpload';
+export * from './IconLibrary';
+export * from './IconTree';
+export * from './IconPropsEditor';
+export * from './IconCog';
+export * from './IconFile';
+export * from './IconRandom';
 
 export const defaultProps = {
   ...IconSvg.defaultProps,
