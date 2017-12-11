@@ -4,12 +4,10 @@ import PropTypes from 'prop-types';
 import { compose } from 'redux';
 import { Provider } from 'react-redux';
 import { ApolloProvider } from 'react-apollo';
-import ApolloClient from 'apollo-client';
 import _set from 'lodash.set';
 import _get from 'lodash.get';
 
 import store, {
-  injectApolloMiddleware,
   removeApolloMiddleware,
 } from '../../store';
 
@@ -27,8 +25,7 @@ import { buildMutation } from '../../lib/graphql';
 import ComponentsBundle from '../../lib/ComponentsBundle';
 
 import {
-  applyJWTMiddleware,
-  createNetworkInterfaceForProject,
+  createApolloClient,
 } from '../../lib/apollo';
 
 import { waitFor, returnEmptyObject } from '../../utils/misc';
@@ -67,8 +64,6 @@ const KEYBOARD_EVENTS_FOR_PARENT_FRAME = [
 ];
 
 let token = null;
-const getToken = () => token;
-
 let canvas = null;
 
 export const getComponentCoords = componentId => {
@@ -212,7 +207,7 @@ class CanvasComponent extends Component {
     });
   }
   
-  async _getProvider() {
+  async _getApolloClient() {
     const state = store.getState();
   
     if (state.project.loadState !== LOADED) {
@@ -220,36 +215,12 @@ class CanvasComponent extends Component {
     }
     
     if (!state.project.data.graphQLEndpointURL) {
-      return {
-        ProviderComponent: Provider,
-        providerProps: { store },
-      };
+      return null;
     }
 
-    const networkInterface =
-      createNetworkInterfaceForProject(state.project.data);
+    const client = createApolloClient(state.project.data);
   
     const auth = state.project.data.auth;
-  
-    if (auth) {
-      if (auth.type === 'jwt') {
-        applyJWTMiddleware(networkInterface, getToken);
-      }
-    }
-  
-    const client = new ApolloClient({
-      networkInterface,
-      reduxRootSelector: state => state[APOLLO_STATE_KEY],
-    });
-    
-    const apolloReducer = client.reducer();
-    const apolloMiddleware = client.middleware();
-    
-    store.replaceReducer(createReducer({
-      [APOLLO_STATE_KEY]: apolloReducer,
-    }));
-  
-    injectApolloMiddleware(apolloMiddleware);
 
     if (auth) {
       if (auth.type === 'jwt') {
@@ -292,10 +263,7 @@ class CanvasComponent extends Component {
       }
     }
   
-    return {
-      ProviderComponent: ApolloProvider,
-      providerProps: { client, store },
-    };
+    return client;
   }
   
   async _canvasInit() {
@@ -332,22 +300,45 @@ class CanvasComponent extends Component {
     
     containerNode.setAttribute('style', containerStyle);
     
-    const { ProviderComponent, providerProps } = await this._getProvider();
+    const apolloClient = await this._getApolloClient();
 
+    let previewContent = (
+      <Provider store={store}>
+        <DocumentContext window={contentWindow} document={document}>
+          <CanvasContent
+            ref={this._saveCanvasContentRef}
+            componentsBundle={componentsBundle}
+            onDropZoneSnap={this._handleSnap}
+            onDropZoneUnsnap={this._handleUnsnap}
+            onDropZoneOpenDropMenu={this._handleOpenDropMenu}
+          />
+        </DocumentContext>
+      </Provider>
+    );
+
+    let overlayContent = (
+      <Provider store={store}>
+        <DocumentContext window={contentWindow} document={document}>
+          <Overlay />
+        </DocumentContext>
+      </Provider>
+    );
+    
+    if (apolloClient) {
+      previewContent = (
+        <ApolloProvider client={apolloClient}>
+          {previewContent}
+        </ApolloProvider>
+      );
+      overlayContent = (
+        <ApolloProvider client={apolloClient}>
+          {overlayContent}
+        </ApolloProvider>
+      );
+    }
     const renderPreviewPromise = new Promise(resolve => {
       ReactDOM.render(
-        <ProviderComponent {...providerProps}>
-          <DocumentContext window={contentWindow} document={document}>
-            <CanvasContent
-              ref={this._saveCanvasContentRef}
-              componentsBundle={componentsBundle}
-              onDropZoneSnap={this._handleSnap}
-              onDropZoneUnsnap={this._handleUnsnap}
-              onDropZoneOpenDropMenu={this._handleOpenDropMenu}
-            />
-          </DocumentContext>
-        </ProviderComponent>,
-
+        previewContent,
         containerNode,
         () => void resolve(),
       );
@@ -355,12 +346,7 @@ class CanvasComponent extends Component {
 
     const renderOverlayPromise = new Promise(resolve => {
       ReactDOM.render(
-        <ProviderComponent {...providerProps}>
-          <DocumentContext window={contentWindow} document={document}>
-            <Overlay />
-          </DocumentContext>
-        </ProviderComponent>,
-
+        overlayContent,
         overlayNode,
         () => void resolve(),
       );

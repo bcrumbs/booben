@@ -4,7 +4,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { ApolloClient } from 'apollo-client';
+// import { ApolloClient } from 'apollo-client';
 import { ApolloProvider } from 'react-apollo';
 import { ThemeProvider } from 'styled-components';
 import { Theme, injectGlobalStyle } from '@reactackle/reactackle';
@@ -19,8 +19,7 @@ import { transformMetadata, getContainerStyle } from './lib/meta';
 import { parseGraphQLSchema } from './lib/schema';
 
 import {
-  applyJWTMiddleware,
-  createNetworkInterfaceForProject,
+  createApolloClient,
 } from './lib/apollo';
 
 import { trimArray } from './utils/misc';
@@ -31,21 +30,6 @@ const getProjectName = () => {
   return pathSplit.length === 2 // /preview/:project_name
     ? pathSplit[1]
     : '';
-};
-
-const createApolloClient = project => {
-  const networkInterface = createNetworkInterfaceForProject(project);
-
-  if (project.auth) {
-    if (project.auth.type === 'jwt') {
-      applyJWTMiddleware(
-        networkInterface,
-        () => localStorage.getItem('jssy_auth_token'),
-      );
-    }
-  }
-
-  return new ApolloClient({ networkInterface });
 };
 
 window.addEventListener('DOMContentLoaded', async () => {

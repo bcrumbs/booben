@@ -2,30 +2,37 @@
  * @author Dmitriy Bizyaev
  */
 
-import { createNetworkInterface } from 'apollo-client';
+import { ApolloClient } from 'apollo-client';
+import { createHttpLink } from 'apollo-link-http';
+import { setContext } from 'apollo-link-context';
+import { InMemoryCache } from 'apollo-cache-inmemory';
 import { URL_GRAPHQL_PREFIX } from '../../../shared/constants';
 
-export const applyJWTMiddleware = (networkInterface, getToken) => {
-  networkInterface.use([{
-    applyMiddleware(req, next) {
-      if (!req.options.headers) req.options.headers = {};
-      const token = getToken();
-      if (token) req.options.headers.Authorization = `Bearer ${token}`;
-      next();
-    },
-  }]);
-};
-
-export const createNetworkInterfaceForProject = project => {
+export const createApolloClient = project => {
   const graphQLEndpointURL = project.proxyGraphQLEndpoint
     ? `${URL_GRAPHQL_PREFIX}/${project.name}`
     : project.graphQLEndpointURL;
 
-  return createNetworkInterface({
+  const httpLink = createHttpLink({
     uri: graphQLEndpointURL,
-    opts: {
-      credentials: 'same-origin',
+    credentials: 'same-origin',
+  });
+
+  const middlewareLink = setContext(() => ({
+    headers: {
+      authorization: localStorage.getItem('jssy_auth_token') || null,
     },
+  }));
+
+  const link = middlewareLink.concat(httpLink);
+
+  const cache = new InMemoryCache({
+    
+  });
+
+  return new ApolloClient({
+    link,
+    cache,
   });
 };
 
