@@ -4,7 +4,6 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-// import { ApolloClient } from 'apollo-client';
 import { ApolloProvider } from 'react-apollo';
 import { ThemeProvider } from 'styled-components';
 import { Theme, injectGlobalStyle } from '@reactackle/reactackle';
@@ -57,7 +56,17 @@ window.addEventListener('DOMContentLoaded', async () => {
     let content;
     
     if (project.graphQLEndpointURL) {
-      const apolloClient = createApolloClient(project);
+      let authConfig = {};
+      if (project.auth) {
+        if (project.auth.type === 'jwt') {
+          authConfig = {
+            type: 'jwt',
+            getToken: () => localStorage.getItem('jssy_auth_token'),
+          };
+        }
+      }
+    
+      const apolloClient = createApolloClient(project, authConfig);
       const rawSchema = await getGraphQLSchema(project.graphQLEndpointURL);
       const schema = parseGraphQLSchema(rawSchema);
       
