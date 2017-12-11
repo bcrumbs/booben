@@ -29,9 +29,11 @@ export default (
     }
     
     _applyHistoryEntry(historyEntry) {
-      return this.mergeDeep(unflatten(historyEntry));
+      return historyProps
+        .reduce((record, prop) =>
+          record.setIn(prop.split('.'), historyEntry[prop]), this);
     }
-  
+
     pushHistoryEntry() {
       let nextHistory = this._history
         .setSize(this._history.size - this._historyPointer)

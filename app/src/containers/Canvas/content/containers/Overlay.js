@@ -67,10 +67,10 @@ const BOUNDARY_STYLE = 'solid';
 class Overlay extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this._container = null;
   }
-  
+
   /**
    *
    * @return {HTMLElement}
@@ -78,12 +78,12 @@ class Overlay extends PureComponent {
    */
   _getContainer() {
     const { document } = this.context;
-    
+
     if (this._container) return this._container;
     this._container = document.getElementById(CANVAS_CONTAINER_ID);
     return this._container;
   }
-  
+
   /**
    *
    * @param {number} id
@@ -94,7 +94,7 @@ class Overlay extends PureComponent {
     const container = this._getContainer();
     return container.querySelector(`[data-jssy-id="${id}"]`) || null;
   }
-  
+
   /**
    *
    * @param {Immutable.List<number>} componentIds
@@ -113,12 +113,12 @@ class Overlay extends PureComponent {
     additionalOverlayLevel = 0,
   ) {
     const { components } = this.props;
-    
+
     return mapListToArray(componentIds, id => {
       const element = this._getDOMElementByComponentId(id);
       const key = `${id}-${color}`;
       let title = '';
-      
+
       if (showTitle) {
         const component = components.get(id);
         if (component) {
@@ -193,14 +193,14 @@ class Overlay extends PureComponent {
         SELECT_STYLE,
         true,
       );
-    
+
     const willRenderBoundaryBox =
       boundaryComponentId !== INVALID_ID && (
         pickingComponent ||
         pickingComponentData ||
         draggingComponent
       );
-  
+
     const rootComponentBox = willRenderBoundaryBox
       ? this._renderBoundingBoxes(
         Set([boundaryComponentId]),
@@ -208,7 +208,7 @@ class Overlay extends PureComponent {
         BOUNDARY_STYLE,
       )
       : null;
-    
+
     let canvasPlaceholder = null;
     if (isCanvasClear && !draggingComponent) {
       canvasPlaceholder = (

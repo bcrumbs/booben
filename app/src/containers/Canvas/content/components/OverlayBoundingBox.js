@@ -39,12 +39,12 @@ export const OverlayBoundingBox = (props, context) => {
   } = props;
 
   const { window } = context;
-  
+
   if (!element) return null;
 
   const { left, top, width, height } = element.getBoundingClientRect();
   if (!width || !height) return null;
-  
+
   const scrollTop = window.pageYOffset;
   const topValue = Math.round(top + scrollTop);
 
@@ -58,7 +58,7 @@ export const OverlayBoundingBox = (props, context) => {
     boxSizing: 'border-box',
     opacity: additionalOverlayLevel ? '1' : '0.6',
   };
-  
+
   const commonBorderStyles = {
     position: 'absolute',
     boxSizing: 'border-box',
@@ -69,7 +69,7 @@ export const OverlayBoundingBox = (props, context) => {
 
   const topBorderStyle = {
     ...commonBorderStyles,
-  
+
     width,
     height: `${BORDER_WIDTH}px`,
     borderTopWidth: `${BORDER_WIDTH}px`,
@@ -79,7 +79,7 @@ export const OverlayBoundingBox = (props, context) => {
 
   const leftBorderStyle = {
     ...commonBorderStyles,
-    
+
     height,
     width: `${BORDER_WIDTH}px`,
     borderLeftWidth: `${BORDER_WIDTH}px`,
@@ -89,7 +89,7 @@ export const OverlayBoundingBox = (props, context) => {
 
   const bottomBorderStyle = {
     ...commonBorderStyles,
-  
+
     width,
     height: `${BORDER_WIDTH}px`,
     borderBottomWidth: `${BORDER_WIDTH}px`,
@@ -99,14 +99,14 @@ export const OverlayBoundingBox = (props, context) => {
 
   const rightBorderStyle = {
     ...commonBorderStyles,
-    
+
     height,
     width: `${BORDER_WIDTH}px`,
     borderRightWidth: `${BORDER_WIDTH}px`,
     right: `-${width}px`,
     top: '0',
   };
-  
+
   let titleElement = null;
   if (showTitle) {
     titleElement = (
@@ -116,7 +116,7 @@ export const OverlayBoundingBox = (props, context) => {
       />
     );
   }
-  
+
   return (
     <div style={style}>
       {titleElement}

@@ -39,6 +39,10 @@ import {
   FunctionEditor,
 } from '../../../../components/FunctionEditor/FunctionEditor';
 
+import {
+  ArgumentsPlaceholderStyled,
+} from './styles/ArgumentsPlaceholderStyled';
+
 import { functionNameFromTitle } from '../../../../lib/functions';
 import { noop, returnArg } from '../../../../utils/misc';
 
@@ -221,6 +225,12 @@ export class NewFunctionWindow extends PureComponent {
           {list}
         </PropsList>
       );
+    } else {
+      argsList = (
+        <ArgumentsPlaceholderStyled>
+          {getLocalizedText('linkDialog.function.new.argsEmpty')}
+        </ArgumentsPlaceholderStyled>
+      )
     }
     
     return (

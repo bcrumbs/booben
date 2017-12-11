@@ -11,13 +11,13 @@ import {
 const propTypes = {
   bordered: PropTypes.bool,
   removePaddingX: PropTypes.bool,
-  colorScheme: PropTypes.oneOf(['dark', 'light']),
+  colorScheme: PropTypes.oneOf(['default', 'alt']),
 };
 
 const defaultProps = {
   bordered: false,
   removePaddingX: false,
-  colorScheme: 'dark',
+  colorScheme: 'default',
 };
 
 const removePaddingX = ({ removePaddingX }) => removePaddingX

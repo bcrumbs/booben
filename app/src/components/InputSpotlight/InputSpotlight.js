@@ -30,9 +30,12 @@ export const InputSpotlight = props => (
   <Theme mixin={reactackleThemeMixin}>
     <InputSpotlightStyled>
       <ContentStyled>
-        <InputWrapperStyled>
+        <InputWrapperStyled
+          innerRef={
+            ref => props.inputRef(ref ? ref.firstChild : ref)
+          }
+        >
           <TextField
-            ref={props.inputRef}
             fullWidth
             placeholder={props.placeholder}
             value={props.value}
