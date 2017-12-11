@@ -6,11 +6,7 @@ import { Provider } from 'react-redux';
 import { ApolloProvider } from 'react-apollo';
 import _set from 'lodash.set';
 import _get from 'lodash.get';
-
-import store, {
-  removeApolloMiddleware,
-} from '../../store';
-
+import store from '../../store';
 import { CanvasFrame } from '../../components/CanvasFrame/CanvasFrame';
 import { DocumentContext } from './DocumentContext/DocumentContext';
 import CanvasContent from './content/containers/CanvasContent';
@@ -20,7 +16,6 @@ import { connectDropZone } from '../ComponentsDragArea/ComponentsDragArea';
 import { LOADED } from '../../constants/load-states';
 import { CANVAS_CONTAINER_ID, CANVAS_OVERLAY_ID } from './content/constants';
 import { ComponentDropAreas } from '../../actions/preview';
-import { createReducer } from '../../reducers';
 import { buildMutation } from '../../lib/graphql';
 import ComponentsBundle from '../../lib/ComponentsBundle';
 
@@ -28,9 +23,8 @@ import {
   createApolloClient,
 } from '../../lib/apollo';
 
-import { waitFor, returnEmptyObject } from '../../utils/misc';
+import { waitFor } from '../../utils/misc';
 import contentTemplate from './content/content.ejs';
-import { APOLLO_STATE_KEY } from '../../constants/misc';
 
 /* eslint-disable react/no-unused-prop-types */
 const propTypes = {
@@ -360,14 +354,6 @@ class CanvasComponent extends Component {
   _canvasCleanup() {
     if (!this._initialized) return;
 
-    const state = store.getState();
-    if (state.project.data.graphQLEndpointURL) {
-      removeApolloMiddleware();
-      store.replaceReducer(createReducer({
-        [APOLLO_STATE_KEY]: returnEmptyObject,
-      }));
-    }
-  
     const contentWindow = this._iframe.contentWindow;
     const document = contentWindow.document;
     const containerNode = document.getElementById(CANVAS_CONTAINER_ID);
