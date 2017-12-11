@@ -16,19 +16,38 @@ import { removeSplashScreen } from './lib/dom';
 import { getProject, getMetadata, getGraphQLSchema } from './lib/api';
 import { transformMetadata, getContainerStyle } from './lib/meta';
 import { parseGraphQLSchema } from './lib/schema';
-
-import {
-  createApolloClient,
-} from './lib/apollo';
-
+import { createApolloClient } from './lib/apollo';
 import { trimArray } from './utils/misc';
 
 const getProjectName = () => {
   const pathSplit = trimArray(window.location.pathname.split('/'));
-  
+
   return pathSplit.length === 2 // /preview/:project_name
     ? pathSplit[1]
     : '';
+};
+
+/**
+ *
+ * @param {Object} projectAuth
+ * @return {?AuthConfig}
+ */
+const getAuthConfig = projectAuth => {
+  if (projectAuth === null) {
+    return null;
+  }
+
+  switch (projectAuth.type) {
+    case 'jwt': {
+      return {
+        getToken: () => localStorage.getItem('jssy_auth_token'),
+      };
+    }
+
+    default: {
+      return null;
+    }
+  }
 };
 
 window.addEventListener('DOMContentLoaded', async () => {
@@ -37,29 +56,33 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   try {
     const projectName = getProjectName();
-  
+
     if (projectName === '') {
       throw new Error('Invalid URL');
     }
-    
+
     const componentsBundle = new ComponentsBundle(projectName, window);
     const [rawProject, rawMeta] = await Promise.all([
       getProject(projectName),
       getMetadata(projectName),
       componentsBundle.loadComponents(),
     ]);
-    
+
     const project = projectToImmutable(rawProject);
     const meta = transformMetadata(rawMeta);
     const containerStyle = getContainerStyle(meta);
-    
+
     let content;
-    
+
     if (project.graphQLEndpointURL) {
-      const apolloClient = createApolloClient(project);
+      const apolloClient = createApolloClient(
+        project,
+        getAuthConfig(project.auth),
+      );
+
       const rawSchema = await getGraphQLSchema(project.graphQLEndpointURL);
       const schema = parseGraphQLSchema(rawSchema);
-      
+
       content = (
         <ApolloProvider client={apolloClient}>
           <Preview
@@ -86,7 +109,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   } catch (err) {
     injectGlobalStyle();
-    
+
     ReactDOM.render(
       <Theme mixin={reactackleMixin}>
         <ThemeProvider theme={jssyTheme}>

@@ -1,3 +1,7 @@
+/**
+ * @author Dmitriy Bizyaev
+ */
+
 import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
@@ -18,11 +22,7 @@ import { CANVAS_CONTAINER_ID, CANVAS_OVERLAY_ID } from './content/constants';
 import { ComponentDropAreas } from '../../actions/preview';
 import { buildMutation } from '../../lib/graphql';
 import ComponentsBundle from '../../lib/ComponentsBundle';
-
-import {
-  createApolloClient,
-} from '../../lib/apollo';
-
+import { createApolloClient } from '../../lib/apollo';
 import { waitFor } from '../../utils/misc';
 import contentTemplate from './content/content.ejs';
 
@@ -58,6 +58,30 @@ const KEYBOARD_EVENTS_FOR_PARENT_FRAME = [
 ];
 
 let token = null;
+
+/**
+ *
+ * @param {Object} projectAuth
+ * @return {?AuthConfig}
+ */
+const getAuthConfig = projectAuth => {
+  if (projectAuth === null) {
+    return null;
+  }
+
+  switch (projectAuth.type) {
+    case 'jwt': {
+      return {
+        getToken: () => token,
+      };
+    }
+
+    default: {
+      return null;
+    }
+  }
+};
+
 let canvas = null;
 
 export const getComponentCoords = componentId => {
@@ -68,11 +92,11 @@ export const getComponentCoords = componentId => {
 class CanvasComponent extends Component {
   constructor(props, context) {
     super(props, context);
-    
+
     this._iframe = null;
     this._canvasContent = null;
     this._initialized = false;
-    
+
     this.state = {
       error: null,
     };
@@ -89,10 +113,10 @@ class CanvasComponent extends Component {
     this._saveIFrameRef = this._saveIFrameRef.bind(this);
     this._saveCanvasContentRef = this._saveCanvasContentRef.bind(this);
   }
-  
+
   componentDidMount() {
     const { dropZoneId, onDropZoneReady } = this.props;
-  
+
     this._canvasInit()
       .then(() => {
         this._attachEventListeners();
@@ -106,41 +130,41 @@ class CanvasComponent extends Component {
           onDropMenuItemSelected: this._handleDropMenuItemSelected,
           onDropMenuClosed: this._handleDropMenuClosed,
         });
-  
+
         canvas = this;
       })
       .catch(error => {
         this.setState({ error });
       });
   }
-  
+
   shouldComponentUpdate(nextProps, nextState) {
     return nextState.error !== this.state.error;
   }
-  
+
   componentWillUnmount() {
     this._canvasCleanup();
     canvas = null;
   }
-  
+
   _getComponentCoords(componentId) {
     if (!this._iframe) return null;
-  
+
     const document = this._iframe.contentWindow.document;
     const selector = `[data-jssy-id="${componentId}"]`;
     const element = document.querySelector(selector);
-    
+
     if (!element) return null;
-    
+
     const elementRect = element.getBoundingClientRect();
     const iframeRect = this._iframe.getBoundingClientRect();
-    
+
     return {
       x: iframeRect.left + elementRect.left,
       y: iframeRect.top + elementRect.top,
     };
   }
-  
+
   _saveIFrameRef(ref) {
     this._iframe = ref;
   }
@@ -148,10 +172,10 @@ class CanvasComponent extends Component {
   _saveCanvasContentRef(ref) {
     this._canvasContent = ref ? ref.wrappedInstance : null;
   }
-  
+
   _attachEventListeners() {
     const contentWindow = this._iframe.contentWindow;
-    
+
     // Re-dispatch events from the iframe to the parent frame
     MOUSE_EVENTS_FOR_PARENT_FRAME.forEach(eventName => {
       contentWindow.document.addEventListener(eventName, event => {
@@ -167,11 +191,11 @@ class CanvasComponent extends Component {
           screenX: event.screenX,
           screenY: event.screenY,
         });
-        
+
         this._iframe.dispatchEvent(evt);
       });
     });
-    
+
     KEYBOARD_EVENTS_FOR_PARENT_FRAME.forEach(eventName => {
       contentWindow.document.addEventListener(eventName, event => {
         // Browsers ignore charCode, keyCode and which properties
@@ -182,7 +206,7 @@ class CanvasComponent extends Component {
           bubbles: true,
           cancelable: true,
         });
-  
+
         evt.key = event.key;
         evt.code = event.code;
         evt.location = event.location;
@@ -195,27 +219,31 @@ class CanvasComponent extends Component {
         evt.charCode = event.charCode;
         evt.keyCode = event.keyCode;
         evt.which = event.which;
-  
+
         window.document.body.dispatchEvent(evt);
       });
     });
   }
-  
+
+  _needApollo() {
+    const state = store.getState();
+    const project = state.project.data;
+
+    return !!project.graphQLEndpointURL;
+  }
+
   async _getApolloClient() {
     const state = store.getState();
-  
+
     if (state.project.loadState !== LOADED) {
       throw new Error('Canvas#_getProvider() failed: Project is not loaded');
     }
-    
-    if (!state.project.data.graphQLEndpointURL) {
-      return null;
-    }
 
-    const auth = state.project.data.auth;
+    const project = state.project.data;
+    const auth = project.auth;
+    const client = createApolloClient(project, getAuthConfig(auth));
 
-    const client = createApolloClient(state.project.data);
-  
+    // TODO: Move it elsewhere
     if (auth) {
       if (auth.type === 'jwt') {
         const schema = state.project.schema;
@@ -256,20 +284,20 @@ class CanvasComponent extends Component {
         }
       }
     }
-  
+
     return client;
   }
-  
+
   async _canvasInit() {
     const { projectName, containerStyle } = this.props;
-  
+
     if (this._initialized) return;
-  
+
     const contentWindow = this._iframe.contentWindow;
     const documentIsReady = () =>
       contentWindow.document &&
       contentWindow.document.readyState === 'complete';
-    
+
     await waitFor(documentIsReady);
 
     const document = contentWindow.document;
@@ -277,7 +305,7 @@ class CanvasComponent extends Component {
       jssyContainerId: CANVAS_CONTAINER_ID,
       jssyOverlayId: CANVAS_OVERLAY_ID,
     });
-  
+
     document.open('text/html', 'replace');
     document.write(initialContent);
     document.close();
@@ -288,13 +316,11 @@ class CanvasComponent extends Component {
 
     const componentsBundle = new ComponentsBundle(projectName, contentWindow);
     await componentsBundle.loadComponents(options);
-    
+
     const containerNode = document.getElementById(CANVAS_CONTAINER_ID);
     const overlayNode = document.getElementById(CANVAS_OVERLAY_ID);
-    
+
     containerNode.setAttribute('style', containerStyle);
-    
-    const apolloClient = await this._getApolloClient();
 
     let previewContent = (
       <Provider store={store}>
@@ -310,26 +336,23 @@ class CanvasComponent extends Component {
       </Provider>
     );
 
-    let overlayContent = (
+    const overlayContent = (
       <Provider store={store}>
         <DocumentContext window={contentWindow} document={document}>
           <Overlay />
         </DocumentContext>
       </Provider>
     );
-    
-    if (apolloClient) {
+
+    if (this._needApollo()) {
+      const apolloClient = await this._getApolloClient();
       previewContent = (
         <ApolloProvider client={apolloClient}>
           {previewContent}
         </ApolloProvider>
       );
-      overlayContent = (
-        <ApolloProvider client={apolloClient}>
-          {overlayContent}
-        </ApolloProvider>
-      );
     }
+
     const renderPreviewPromise = new Promise(resolve => {
       ReactDOM.render(
         previewContent,
@@ -347,10 +370,10 @@ class CanvasComponent extends Component {
     });
 
     await Promise.all([renderPreviewPromise, renderOverlayPromise]);
-  
+
     this._initialized = true;
   }
-  
+
   _canvasCleanup() {
     if (!this._initialized) return;
 
@@ -358,10 +381,10 @@ class CanvasComponent extends Component {
     const document = contentWindow.document;
     const containerNode = document.getElementById(CANVAS_CONTAINER_ID);
     const overlayNode = document.getElementById(CANVAS_OVERLAY_ID);
-  
+
     ReactDOM.unmountComponentAtNode(overlayNode);
     ReactDOM.unmountComponentAtNode(containerNode);
-  
+
     this._initialized = false;
   }
 
@@ -376,11 +399,11 @@ class CanvasComponent extends Component {
   _handleLeave() {
     this._canvasContent.leave();
   }
-  
+
   _handleDropMenuItemSelected(data) {
     this._canvasContent.dropMenuItemSelected(data);
   }
-  
+
   _handleDropMenuClosed() {
     this._canvasContent.dropMenuClosed();
   }
@@ -407,15 +430,15 @@ class CanvasComponent extends Component {
     const { dropZoneId, onDropZoneUnsnap } = this.props;
     onDropZoneUnsnap({ dropZoneId });
   }
-  
+
   _handleOpenDropMenu({ coords, snapCoords, dropPointsData }) {
     const { dropZoneId, onDropZoneOpenDropMenu } = this.props;
     onDropZoneOpenDropMenu({ dropZoneId, coords, snapCoords, dropPointsData });
   }
-  
+
   render() {
     const { error } = this.state;
-    
+
     if (error) {
       // TODO: Render canvas error properly
       return (
@@ -424,7 +447,7 @@ class CanvasComponent extends Component {
         </div>
       );
     }
-    
+
     return (
       <CanvasFrame iframeRef={this._saveIFrameRef} />
     );
