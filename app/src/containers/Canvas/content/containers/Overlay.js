@@ -143,19 +143,14 @@ class Overlay extends PureComponent {
   /**
    *
    * @param {Immutable.List<number>} componentIds
-   * @param {string} color
    * @return {Array<ReactElement>}
    * @private
    */
-  _renderOverlapBoxes(componentIds, color) {
+  _renderOverlapBoxes(componentIds) {
     return mapListToArray(componentIds, id => {
       const element = this._getDOMElementByComponentId(id);
       return (
-        <OverlayOverlapBox
-          key={`overlap-${id}`}
-          element={element}
-          color={color}
-        />
+        <OverlayOverlapBox key={`overlap-${id}`} element={element} />
       );
     });
   }

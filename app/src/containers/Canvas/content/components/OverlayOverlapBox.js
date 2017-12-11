@@ -20,11 +20,7 @@ const defaultProps = {
 };
 
 export const OverlayOverlapBox = (props, context) => {
-  const {
-    element,
-    color,
-  } = props;
-
+  const { element, color } = props;
   const { window } = context;
   
   if (!element) return null;
@@ -45,23 +41,19 @@ export const OverlayOverlapBox = (props, context) => {
     boxSizing: 'border-box',
   };
 
-  const overlayElement = (
-    <div
-      style={{
-        left,
-        top,
-        width,
-        height,
-        background: color,
-        opacity: 0.7,
-        pointerEvents: 'none',
-      }}
-    />
-  );
+  const overlayElementStyle = {
+    left,
+    top,
+    width,
+    height,
+    background: color,
+    opacity: 0.7,
+    pointerEvents: 'none',
+  };
   
   return (
     <div style={style}>
-      {overlayElement}
+      <div style={overlayElementStyle} />
     </div>
   );
 };
