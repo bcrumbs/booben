@@ -2,6 +2,8 @@
  * @author Dmitriy Bizyaev
  */
 
+import React from 'react';
+import PropTypes from 'prop-types';
 import Immutable from 'immutable';
 import forOwn from 'lodash.forown';
 import { List } from './List/List';
@@ -182,7 +184,17 @@ export const getComponentByName = (componentName, componentsBundle) => {
   const { name, namespace } = parseComponentName(componentName);
 
   if (namespace === 'HTML') {
-    return name;
+    const styled = componentsBundle.getStyled();
+    const ret = ({ style, ...props }) => {
+      const Component = styled[name]`${style}`;
+      return <Component {...props} />;
+    };
+
+    ret.displayName = name;
+    ret.propTypes = {
+      style: PropTypes.string.isRequired,
+    };
+    return ret;
   } else if (namespace === '') {
     if (name === 'List') return List;
     if (name === 'Text') return Text;

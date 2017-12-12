@@ -26,6 +26,7 @@ import {
   PROJECT_COMPONENT_CREATE,
   PROJECT_COMPONENT_DELETE,
   PROJECT_COMPONENT_RENAME,
+  PROJECT_COMPONENT_CHANGE_STYLE,
   PROJECT_COMPONENT_TOGGLE_REGION,
   PROJECT_COMPONENT_COPY,
   PROJECT_COMPONENT_MOVE,
@@ -1553,6 +1554,17 @@ const handlers = {
   
     return state.setIn(path, action.newTitle);
   })),
+
+  [PROJECT_COMPONENT_CHANGE_STYLE]:
+    undoable(incrementsRevision((state, action) => {
+      const pathToCurrentComponents = getPathToCurrentComponents(state);
+      const path = [].concat(pathToCurrentComponents, [
+        action.componentId,
+        'style',
+      ]);
+    
+      return state.setIn(path, action.style);
+    })),
   
   [PROJECT_COMPONENT_TOGGLE_REGION]: undoable(incrementsRevision(
     (state, action) => {

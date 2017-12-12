@@ -702,6 +702,8 @@ class CanvasBuilderComponent extends PureComponent {
         this._handleErrorInComponentLifecycleHook.bind(this, component),
         250,
       );
+    } else {
+      props.style = component.style;
     }
 
     props.key = componentKey(component);

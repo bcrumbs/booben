@@ -46,6 +46,7 @@ const ProjectComponentRecord = Record({
   parentId: INVALID_ID,
   isNew: false,
   isWrapper: false,
+  style: '',
   name: '',
   title: '',
   props: Map(),
@@ -267,6 +268,7 @@ export const projectComponentToImmutable = (
   isWrapper: !!input.isWrapper,
   name: input.name,
   title: input.title,
+  style: input.style,
   props: propsToImmutable(input.props),
   systemProps: propsToImmutable(input.systemProps),
   children: List(input.children.map(childComponent => childComponent.id)),
@@ -458,6 +460,7 @@ export const projectComponentToJSv1 = (components, componentId) => {
     id: component.id,
     name: component.name,
     title: component.title,
+    style: component.style,
     isWrapper: component.isWrapper,
     props: mapMapToObject(
       component.props,

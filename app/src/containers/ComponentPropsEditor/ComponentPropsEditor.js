@@ -6,6 +6,9 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Button } from '@reactackle/reactackle';
+import CodeMirror from 'react-codemirror';
+import 'codemirror/lib/codemirror.css';
+import 'codemirror/mode/css/css';
 
 import {
   BlockContentBox,
@@ -30,6 +33,7 @@ import {
   addAction,
   replaceAction,
   deleteAction,
+  changeComponentStyle,
 } from '../../actions/project';
 
 import { getStateSlotPickerFns } from '../../actions/helpers/component-picker';
@@ -51,6 +55,7 @@ import {
   parseComponentName,
   formatComponentName,
   constructComponent,
+  isHTMLComponent,
 } from '../../lib/meta';
 
 import { INVALID_ID, SYSTEM_PROPS } from '../../constants/misc';
@@ -73,6 +78,7 @@ const propTypes = {
   onAddAction: PropTypes.func.isRequired,
   onReplaceAction: PropTypes.func.isRequired,
   onDeleteAction: PropTypes.func.isRequired,
+  onChangeComponentStyle: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -112,6 +118,9 @@ const mapDispatchToProps = dispatch => ({
   
   onDeleteAction: ({ path, index }) =>
     void dispatch(deleteAction(path, index)),
+
+  onChangeComponentStyle: ({ style, componentId }) =>
+    void dispatch(changeComponentStyle(componentId, style)),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
@@ -726,7 +735,11 @@ class ComponentPropsEditorComponent extends PureComponent {
   }
 
   render() {
-    const { selectedComponentIds, getLocalizedText } = this.props;
+    const {
+      selectedComponentIds,
+      getLocalizedText,
+      onChangeComponentStyle,
+    } = this.props;
     
     const {
       linkingProp,
@@ -833,8 +846,24 @@ class ComponentPropsEditorComponent extends PureComponent {
     const systemProps = this._renderSystemProps(component);
     const actionsEditor = this._renderActionsEditor();
 
+    const styleEditor = isHTMLComponent(component.name)
+      ? (
+        <CodeMirror
+          value={component.style}
+          options={{
+            mode: 'css',
+          }}
+          onChange={style => onChangeComponentStyle({
+            style,
+            componentId,
+          })}
+        />
+      )
+      : null;
+
     return (
       <BlockContentBox isBordered>
+        {styleEditor}
         {systemProps}
         {content}
         {actionsEditor}
