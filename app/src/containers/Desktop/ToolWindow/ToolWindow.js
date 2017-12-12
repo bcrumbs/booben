@@ -25,7 +25,7 @@ import resizeable from '../../../hocs/resizeable';
 import ToolType from '../../../models/Tool';
 import ToolStateType from '../../../models/ToolState';
 import { noop } from '../../../utils/misc';
-import { IconCollapse, IconElipsis } from '../../../components/icons';
+import { IconCollapse, IconDrag } from '../../../components/icons';
 
 const propTypes = {
   tool: PropTypes.instanceOf(ToolType).isRequired,
@@ -357,7 +357,7 @@ export class ToolWindow extends PureComponent {
             subtitle={tool.subtitle}
             isEditable={tool.titleEditable}
             titlePlaceHolder={tool.titlePlaceholder}
-            iconLeft={<IconElipsis />}
+            iconLeft={<IconDrag />}
             buttons={titleButtons}
             onLeftIconMouseDown={this._handleStartDrag}
             onTitleChange={onTitleChange}

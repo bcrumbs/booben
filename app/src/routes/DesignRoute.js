@@ -126,14 +126,14 @@ import {
   IconCopy,
   IconDuplicate,
   IconCut,
-  IconClipboard,
+  IconPaste,
   IconTrash,
   IconUndo,
   IconRedo,
   IconList,
   IconLibrary,
   IconTree,
-  IconPropsEditor,
+  IconBrush,
 } from '../components/icons';
 
 const propTypes = {
@@ -398,7 +398,7 @@ class DesignRoute extends PureComponent {
 
     return new ToolRecord({
       id: TOOL_ID_PROPS_EDITOR,
-      icon: <IconPropsEditor />,
+      icon: <IconBrush />,
       name,
       title,
       titleEditable: singleComponentSelected,
@@ -954,7 +954,7 @@ class DesignRoute extends PureComponent {
               />
 
               <ToolBarAction
-                icon={<IconClipboard />}
+                icon={<IconPaste />}
                 tooltipText={getLocalizedText('toolbar.design.paste')}
                 disabled={componentClipboard.componentId === INVALID_ID}
                 onPress={this._handlePasteComponent}

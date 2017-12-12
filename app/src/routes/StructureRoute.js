@@ -64,7 +64,7 @@ import {
 } from '../constants/paths';
 
 import { INVALID_ID } from '../constants/misc';
-import { IconUndo, IconRedo, IconTrash, IconRandom } from '../components/icons';
+import { IconUndo, IconRedo, IconTrash, IconRedirect } from '../components/icons';
 
 const propTypes = {
   project: PropTypes.instanceOf(ProjectRecord).isRequired, // store
@@ -288,7 +288,7 @@ class StructureRoute extends PureComponent {
       List([
         new ToolRecord({
           id: TOOL_ID_ROUTE_EDITOR,
-          icon: <IconRandom />,
+          icon: <IconRedirect />,
           name: getLocalizedText('structure.routeEditorTitle'),
           title,
           titleEditable,

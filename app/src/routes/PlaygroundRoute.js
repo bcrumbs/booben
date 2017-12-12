@@ -108,7 +108,7 @@ import {
   IconTrash,
   IconLibrary,
   IconTree,
-  IconCog,
+  IconBrush,
   IconFile,
   IconPlay,
 } from '../components/icons';
@@ -427,7 +427,7 @@ const toolGroups = List([
     
     new ToolRecord({
       id: 'tool9',
-      icon: <IconCog />,
+      icon: <IconBrush />,
       name: 'Artboard Properties',
       title: 'Artboard Properties',
       undockable: true,
@@ -451,7 +451,7 @@ const toolGroups = List([
 
     new ToolRecord({
       id: 'tool7',
-      icon: <IconCog />,
+      icon: <IconBrush />,
       name: 'Component Settings',
       title: 'Component Settings',
       undockable: true,
