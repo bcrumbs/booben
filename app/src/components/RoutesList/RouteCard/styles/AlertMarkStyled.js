@@ -11,6 +11,12 @@ export const AlertMarkStyled = styled.div`
   flex-shrink: 0;
   border-radius: 50%;
   ${iconSizeMixin(markSize, `${constants.markImgSize}px`)}
+  
+  & > *,
+  svg {
+    width: ${markSize};
+    height: ${markSize};
+  }
 `;
 
 AlertMarkStyled.displayName = 'AlertMarkStyled';

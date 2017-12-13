@@ -2,7 +2,6 @@ import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import { transition, animations, iconSizeMixin } from '@reactackle/reactackle';
 import { baseModule } from '../../../styles/themeSelectors';
-import { iconSize } from '../../../styles/mixins';
 
 const propTypes = {
   active: PropTypes.bool,
@@ -36,7 +35,6 @@ export const IconStyled = styled.div`
   border: 1px solid currentColor;
   margin-right: ${baseModule(1)}px;
   position:relative;
-  color: inherit;
   box-sizing: border-box;
   ${active}
   ${typeProgress}
@@ -47,6 +45,8 @@ export const IconStyled = styled.div`
     position: absolute;
     top: -${borderWidth};
     left: -${borderWidth};
+    width: ${outerSize};
+    height: ${outerSize};
   }
 `;
 
