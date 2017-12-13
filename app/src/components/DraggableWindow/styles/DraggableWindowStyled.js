@@ -26,13 +26,13 @@ const dragged = ({ dragged }) => dragged
 
 const maxHeight = ({ maxHeight }) => {
   let height = null;
-  
+
   if (maxHeight) {
     height = typeof maxHeight === 'number' ? `${maxHeight}px` : maxHeight;
   } else {
     height = `calc(100vh - ${doubleMargin}px)`;
   }
-  
+
   return `max-height: ${height};`;
 };
 

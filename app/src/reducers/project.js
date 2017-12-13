@@ -231,17 +231,18 @@ const initDNDState = state => state.merge({
   highlightingEnabled: true,
 });
 
-const initComponentPickingState = state => state.merge({
-  pickingComponent: false,
-  pickingComponentData: false,
-  pickingComponentFilter: null,
-  pickingComponentDataGetter: null,
-  pickedComponentId: INVALID_ID,
-  pickedComponentArea: ComponentPickAreas.UNKNOWN,
-  pickedComponentData: null,
-  componentDataListIsVisible: false,
-  componentDataListItems: [],
-});
+const initComponentPickingState = state => state
+  .merge({
+    pickingComponent: false,
+    pickingComponentData: false,
+    pickingComponentFilter: null,
+    pickingComponentDataGetter: null,
+    pickedComponentId: INVALID_ID,
+    pickedComponentArea: ComponentPickAreas.UNKNOWN,
+    pickedComponentData: null,
+    componentDataListIsVisible: false,
+  })
+  .set('componentDataListItems', []);
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
 
@@ -1579,6 +1580,26 @@ const handlers = {
   
   [PREVIEW_SELECT_COMPONENT]: (state, action) => {
     state = state.set('showAllComponentsOnPalette', false);
+
+    if (action.expandParents) {
+      const pathToCurrentComponents = getPathToCurrentComponents(state);
+      const currentComponents = state.getIn(pathToCurrentComponents);
+
+      let componentsToExpand = [];
+      let currentComponentId = action.componentId;
+
+      while (currentComponentId !== INVALID_ID) {
+        const { parentId } = currentComponents.get(currentComponentId);
+  
+        if (parentId !== INVALID_ID) {
+          componentsToExpand = [...componentsToExpand, parentId];
+        }
+
+        currentComponentId = parentId;
+      }
+      state = updateDesigner(state, designer =>
+        designer.expandTreeItems(componentsToExpand));
+    }
     
     return updateDesigner(state, action.exclusive
       ? designer => designer.selectComponentExclusive(action.componentId)
@@ -1748,35 +1769,28 @@ const handlers = {
     return state;
   },
   
-  [PROJECT_PICK_COMPONENT_CANCEL]: state => state.merge({
-    pickingComponent: false,
-    pickingComponentData: false,
-    pickingComponentFilter: null,
-    pickingComponentDataGetter: null,
-    pickedComponentId: INVALID_ID,
-    pickedComponentArea: ComponentPickAreas.UNKNOWN,
-    pickedComponentData: null,
-    componentDataListIsVisible: false,
-    componentDataListItems: [],
-  }),
+  [PROJECT_PICK_COMPONENT_CANCEL]: state =>
+    initComponentPickingState(state),
 
-  [PROJECT_PICK_COMPONENT_DATA]: (state, action) => state.merge({
-    pickingComponent: false,
-    pickingComponentData: false,
-    pickingComponentFilter: null,
-    pickingComponentDataGetter: null,
-    pickedComponentData: action.data,
-    componentDataListIsVisible: false,
-    componentDataListItems: [],
-  }),
+  [PROJECT_PICK_COMPONENT_DATA]: (state, action) => state
+    .merge({
+      pickingComponent: false,
+      pickingComponentData: false,
+      pickingComponentFilter: null,
+      pickingComponentDataGetter: null,
+      pickedComponentData: action.data,
+      componentDataListIsVisible: false,
+    })
+    .set('componentDataListItems', []),
   
-  [PROJECT_PICK_COMPONENT_DATA_CANCEL]: state => state.merge({
-    pickingComponent: true,
-    pickedComponentId: INVALID_ID,
-    pickedComponentArea: ComponentPickAreas.UNKNOWN,
-    componentDataListIsVisible: false,
-    componentDataListItems: [],
-  }),
+  [PROJECT_PICK_COMPONENT_DATA_CANCEL]: state => state
+    .merge({
+      pickingComponent: true,
+      pickedComponentId: INVALID_ID,
+      pickedComponentArea: ComponentPickAreas.UNKNOWN,
+      componentDataListIsVisible: false,
+    })
+    .set('componentDataListItems', []),
   
   [PREVIEW_DRAG_OVER_PLACEHOLDER]: (state, action) => state.merge({
     draggingOverPlaceholder: true,
