@@ -29,6 +29,18 @@ export const isPseudoComponent = component =>
   PSEUDO_COMPONENTS.has(component.name);
 
 /**
+ *
+ * @param {ProjectComponent} component
+ * @return {boolean}
+ */
+export const isEmptyListComponent = component => {
+  if (component.id === INVALID_ID) return false;
+
+  return component.name === 'List' &&
+    !component.getIn(['props', 'data']).isLinkedWithData();
+};
+
+/**
  * @typedef {Object} RenderHints
  * @property {Set<number>} needRefs
  * @property {Map<number, Set<string>>} activeStateSlots
