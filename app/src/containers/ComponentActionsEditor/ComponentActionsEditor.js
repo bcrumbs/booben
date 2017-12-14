@@ -5,7 +5,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import _forOwn from 'lodash.forown';
 import { List } from 'immutable';
 
 import {
@@ -83,12 +82,18 @@ const Views = {
 class ComponentActionsEditorComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
+    const componentId = this.props.selectedComponentIds.first();
+    const component = this.props.currentComponents.get(componentId);
+    const componentMeta = getComponentMeta(component.name, this.props.meta);
+    this.componentActionProps =
+      this._filterComponentPropsToActions(componentMeta.props);
+
     this.state = {
       currentView: Views.HANDLERS_LIST,
       
       // Handlers list
-      activeHandler: '',
+      activeHandler: this.componentActionProps[0][0],
       
       // New action
       newActionPathToList: [],
@@ -96,13 +101,18 @@ class ComponentActionsEditorComponent extends PureComponent {
       // Edit action
       editActionPath: [],
     };
-    
+
     this._handleExpandHandler = this._handleExpandHandler.bind(this);
     this._handleOpenNewActionForm = this._handleOpenNewActionForm.bind(this);
     this._handleEditAction = this._handleEditAction.bind(this);
     this._handleDeleteAction = this._handleDeleteAction.bind(this);
     this._handleActionEditorSave = this._handleActionEditorSave.bind(this);
     this._handleActionEditorCancel = this._handleActionEditorCancel.bind(this);
+  }
+
+  _filterComponentPropsToActions(componentProps) {
+    return Object.entries(componentProps)
+      .filter(([, propMeta]) => isValidSourceForValue(propMeta, 'actions'));
   }
   
   _handleExpandHandler({ handlerId }) {
@@ -223,51 +233,48 @@ class ComponentActionsEditorComponent extends PureComponent {
     const component = currentComponents.get(componentId);
     const componentMeta = getComponentMeta(component.name, meta);
     
-    const handlersList = [];
+    const handlersList =
+      this.componentActionProps.map(([propName, propMeta]) => {
+        const title = getString(
+          componentMeta.strings,
+          propMeta.textKey,
+          language,
+        );
+        
+        const description = getString(
+          componentMeta.strings,
+          propMeta.descriptionTextKey,
+          language,
+        );
     
-    _forOwn(componentMeta.props, (propMeta, propName) => {
-      if (!isValidSourceForValue(propMeta, 'actions')) return;
-      
-      const title = getString(
-        componentMeta.strings,
-        propMeta.textKey,
-        language,
-      );
-      
-      const description = getString(
-        componentMeta.strings,
-        propMeta.descriptionTextKey,
-        language,
-      );
-  
-      const hasValue = component.props.has(propName);
-      const actions = hasValue
-        ? component.props.get(propName).sourceData.actions
-        : List();
-      
-      const hasActions = actions.size > 0;
-      const expanded = propName === activeHandler;
-      
-      handlersList.push(
-        <ComponentHandler
-          id={propName}
-          key={propName}
-          title={title}
-          description={description}
-          hasActions={hasActions}
-          expanded={expanded}
-          onExpand={this._handleExpandHandler}
-        >
-          <ActionsList
-            actions={actions}
-            onCreateAction={this._handleOpenNewActionForm}
-            onEditAction={this._handleEditAction}
-            onDeleteAction={this._handleDeleteAction}
-          />
-        </ComponentHandler>,
-      );
-    });
-    
+        const hasValue = component.props.has(propName);
+        const actions = hasValue
+          ? component.props.get(propName).sourceData.actions
+          : List();
+        
+        const hasActions = actions.size > 0;
+        const expanded = propName === activeHandler;
+
+        return (
+          <ComponentHandler
+            id={propName}
+            key={propName}
+            title={title}
+            description={description}
+            hasActions={hasActions}
+            expanded={expanded}
+            onExpand={this._handleExpandHandler}
+          >
+            <ActionsList
+              actions={actions}
+              onCreateAction={this._handleOpenNewActionForm}
+              onEditAction={this._handleEditAction}
+              onDeleteAction={this._handleDeleteAction}
+            />
+          </ComponentHandler>
+        );
+      });
+
     return (
       <BlockContentBoxItem isBordered flexMain>
         <ComponentHandlers>
