@@ -862,8 +862,8 @@ class ComponentPropsEditorComponent extends PureComponent {
 
     return (
       <BlockContentBox isBordered>
-        {styleEditor}
         {systemProps}
+        {styleEditor}
         {content}
         {actionsEditor}
 
