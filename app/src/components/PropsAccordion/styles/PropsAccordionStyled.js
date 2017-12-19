@@ -46,4 +46,4 @@ export const PropsAccordionStyled = styled.div`
   }
 `;
 
-PropsAccordionStyled.displayName = 'PropsGroupStyled';
+PropsAccordionStyled.displayName = 'PropsAccordionStyled';
