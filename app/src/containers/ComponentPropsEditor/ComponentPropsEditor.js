@@ -5,6 +5,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import debounce from 'lodash.debounce';
 import { Button } from '@reactackle/reactackle';
 import { getNestedTypedef } from '@jssy/types';
 
@@ -58,6 +59,7 @@ import {
 
 import { INVALID_ID, SYSTEM_PROPS } from '../../constants/misc';
 import * as JssyPropTypes from '../../constants/common-prop-types';
+import { CSS_EDITOR_DEBOUNCE } from '../../config';
 
 /**
  * @typedef {Object} PropsGroup
@@ -199,7 +201,12 @@ class ComponentPropsEditorComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
 
+    const { components, selectedComponentIds } = props;
+    const componentId = selectedComponentIds.first();
+    const component = components.get(componentId);
+
     this.state = {
+      componentStyle: component.style,
       linkingProp: false,
       linkingPath: null,
       linkingValueDef: null,
@@ -238,6 +245,11 @@ class ComponentPropsEditorComponent extends PureComponent {
     this._handleActionEditorCancel = this._handleActionEditorCancel.bind(this);
     this._handleCloseActionsEditor = this._handleCloseActionsEditor.bind(this);
     this._handleStyleChange = this._handleStyleChange.bind(this);
+
+    this._saveComponentStyle = debounce(
+      this._saveComponentStyle.bind(this),
+      CSS_EDITOR_DEBOUNCE,
+    );
   }
 
   componentWillReceiveProps(nextProps) {
@@ -577,11 +589,20 @@ class ComponentPropsEditorComponent extends PureComponent {
     });
   }
 
-  _handleStyleChange(style) {
+  _saveComponentStyle() {
     const { selectedComponentIds, onChangeComponentStyle } = this.props;
+    const { componentStyle } = this.state;
 
     const componentId = selectedComponentIds.first();
-    onChangeComponentStyle({ style, componentId });
+    onChangeComponentStyle({ componentId, style: componentStyle });
+  }
+
+  _handleStyleChange(newStyle) {
+    this.setState({
+      componentStyle: newStyle,
+    });
+
+    this._saveComponentStyle();
   }
 
   /**
