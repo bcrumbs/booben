@@ -21,6 +21,10 @@ import { noop } from '../../../utils/misc';
 import * as JssyPropTypes from '../../../constants/common-prop-types';
 import { DESKTOP_PANEL_MIN_WIDTH } from '../../../config';
 
+import {
+  ToolPanelCommonActions,
+} from './ToolPanelCommonActions/ToolPanelCommonActions';
+
 /* eslint-disable react/no-unused-prop-types */
 const propTypes = {
   toolGroups: JssyPropTypes.toolGroups,
@@ -154,7 +158,7 @@ export const ToolPanel = props => {
       />
     );
   }
-  
+
   const pageDrawerHasActions = panelSwitcherGroups.length > 0;
   if (!isExpanded && pageDrawerHasActions) {
     const expandActionGroup = (
@@ -168,7 +172,7 @@ export const ToolPanel = props => {
     
     panelSwitcherGroups.unshift(expandActionGroup);
   }
-
+ 
   return (
     <ResizeablePageDrawer
       resizeEnabled={isExpanded}
@@ -180,6 +184,7 @@ export const ToolPanel = props => {
     >
       <PageDrawerActionsArea>
         {panelSwitcherGroups}
+        <ToolPanelCommonActions />
       </PageDrawerActionsArea>
 
       {shadowedPanelContent}
