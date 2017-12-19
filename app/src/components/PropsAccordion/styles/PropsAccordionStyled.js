@@ -8,7 +8,7 @@ import {
   colorBorderDark,
 } from '../../../styles/themeSelectors';
 
-export const PropsGroupStyled = styled.div`
+export const PropsAccordionStyled = styled.div`
   .accordion-item {
     border-top: 1px solid ${colorBorderDark};
     
@@ -46,4 +46,4 @@ export const PropsGroupStyled = styled.div`
   }
 `;
 
-PropsGroupStyled.displayName = 'PropsGroupStyled';
+PropsAccordionStyled.displayName = 'PropsGroupStyled';
