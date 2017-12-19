@@ -829,12 +829,10 @@ class ComponentPropsEditorComponent extends PureComponent {
     });
 
     const accordionItems = [];
-    const expandedItemIds = [];
 
     propGroups.forEach(group => {
       const groupDescription = this._createAccordionItem(group);
       accordionItems.push(groupDescription);
-      expandedItemIds.push(groupDescription.id);
     });
 
     if (propsWithoutGroup.length > 0) {
@@ -846,7 +844,6 @@ class ComponentPropsEditorComponent extends PureComponent {
 
       const groupDescription = this._createAccordionItem(defaultGroup);
       accordionItems.push(groupDescription);
-      expandedItemIds.push(groupDescription.id);
     }
 
     const systemProps = this._renderSystemProps(component);
@@ -856,10 +853,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       <BlockContentBox isBordered>
         {systemProps}
 
-        <PropsAccordion
-          expandedItemIds={expandedItemIds}
-          items={accordionItems}
-        />
+        <PropsAccordion items={accordionItems} />
 
         {actionsEditor}
 
