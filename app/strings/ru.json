@@ -120,6 +120,7 @@
   "propsEditor.noEditableAttributes": "Этот компонент не имеет изменяемых атрибутов",
   "propsEditor.systemProps.visible.name": "Видимый",
   "propsEditor.systemProps.visible.desc": "",
+  "propsEditor.propsWithoutGroup.name": "Другие",
 
   "valueEditor.component.setComponent": "Создать компонент",
   "valueEditor.component.editComponent": "Изменить компонент",
