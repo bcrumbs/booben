@@ -1,14 +1,11 @@
 /**
- * @author Nickolay Maltsev
+ * @author Nikolay Maltsev
  */
 
-import React from 'react';
+import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-
-import {
-  getLocalizedTextFromState,
-} from '../../../../selectors';
+import { getLocalizedTextFromState } from '../../../../selectors';
 
 import {
   PageDrawerActionsGroup,
@@ -16,7 +13,7 @@ import {
 } from '../../../../components/PageDrawer';
 
 import { ShortcutsDialog } from '../../../ShortcutsDialog/ShortcutsDialog';
-import { toggleFullscreen } from '../../../../routes/AppRoute';
+import { toggleFullscreen } from '../../../../utils/browser';
 
 const propTypes = {
   getLocalizedText: PropTypes.func.isRequired,
@@ -28,36 +25,71 @@ const mapStateToProps = state => ({
 
 const wrap = connect(mapStateToProps);
 
-const _ToolPanelCommonActions = ({ getLocalizedText }) => (
-  <PageDrawerActionsGroup
-    key="commonActions"
-    style={{
-      display: 'flex',
-      flexDirection: 'column-reverse',
-    }}
-  >
-    <ShortcutsDialog
-      ButtonComponent={props =>
+class _ToolPanelCommonActions extends PureComponent {
+  constructor(props, context) {
+    super(props, context);
+
+    this.state = {
+      isShortcutsDialogOpen: false,
+    };
+
+    this._handleOpenShortcutsDialog =
+      this._handleOpenShortcutsDialog.bind(this);
+    this._handleCloseShortcutsDialog =
+      this._handleCloseShortcutsDialog.bind(this);
+  }
+
+  _handleOpenShortcutsDialog() {
+    this.setState({
+      isShortcutsDialogOpen: true,
+    });
+  }
+
+  _handleCloseShortcutsDialog() {
+    this.setState({
+      isShortcutsDialogOpen: false,
+    });
+  }
+
+  render() {
+    const { getLocalizedText } = this.props;
+    const { isShortcutsDialogOpen } = this.state;
+
+    return (
+      <PageDrawerActionsGroup
+        key="commonActions"
+        style={{
+          display: 'flex',
+          flexDirection: 'column-reverse',
+        }}
+      >
         <PageDrawerActionItem
-          // eslint-disable-next-line react/prop-types
-          onPress={props.onClick}
           icon="question"
           title={getLocalizedText('appHeader.menu.shortcuts')}
+          onPress={this._handleOpenShortcutsDialog}
         />
-      }
-    />
-    <PageDrawerActionItem
-      icon="arrows-alt"
-      title={getLocalizedText('appFooter.toggleFullScreen')}
-      onPress={toggleFullscreen}
-    />
-    <PageDrawerActionItem
-      icon="question"
-      title={getLocalizedText('appFooter.help')}
-    />
-  </PageDrawerActionsGroup>
-);
+
+        <PageDrawerActionItem
+          icon="arrows-alt"
+          title={getLocalizedText('appFooter.toggleFullScreen')}
+          onPress={toggleFullscreen}
+        />
+
+        <PageDrawerActionItem
+          icon="question"
+          title={getLocalizedText('appFooter.help')}
+        />
+
+        <ShortcutsDialog
+          open={isShortcutsDialogOpen}
+          onClose={this._handleCloseShortcutsDialog}
+        />
+      </PageDrawerActionsGroup>
+    );
+  }
+}
 
 _ToolPanelCommonActions.propTypes = propTypes;
+_ToolPanelCommonActions.displayName = 'ToolPanelCommonActions';
 
 export const ToolPanelCommonActions = wrap(_ToolPanelCommonActions);
