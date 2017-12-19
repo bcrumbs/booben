@@ -57,9 +57,8 @@ export class PropToggle extends Component {
     let actualAdditionalActions = additionalActions;
     if (!linked && (!checkable || checked)) {
       actualAdditionalActions = [
-        <ToggleBoxStyled>
+        <ToggleBoxStyled key="toggle">
           <ToggleButton
-            key="toggle"
             checked={value}
             disabled={disabled}
             onChange={this._handleChange}

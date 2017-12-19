@@ -118,6 +118,7 @@ export const fontWeightBold = ({ theme }) =>
   theme.reactackle.fontWeight.bold;
 
 /* Text color */
+export const textColorLight = paletteBlueGrey200;
 export const textColorMedium = paletteBlueGrey400;
 export const textColorMediumDark = paletteBlueGrey300;
 export const textColorBody = paletteBlueGrey25;

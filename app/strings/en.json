@@ -120,6 +120,7 @@
   "propsEditor.noEditableAttributes": "This component doesn't have editable attributes",
   "propsEditor.systemProps.visible.name": "Visible",
   "propsEditor.systemProps.visible.desc": "",
+  "propsEditor.propsWithoutGroup.name": "Others",
 
   "valueEditor.component.setComponent": "Set component",
   "valueEditor.component.editComponent": "Edit component",

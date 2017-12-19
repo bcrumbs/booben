@@ -10,13 +10,13 @@ import { getNestedTypedef } from '@jssy/types';
 
 import {
   BlockContentBox,
-  BlockContentBoxHeading,
   BlockContentBoxItem,
   BlockContentPlaceholder,
 } from '../../components/BlockContent';
 
-import { DesignDialog } from '../DesignDialog/DesignDialog';
 import { PropsList } from '../../components/PropsList/PropsList';
+import { PropsAccordion } from '../../components/PropsAccordion/PropsAccordion';
+import { DesignDialog } from '../DesignDialog/DesignDialog';
 import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
 import { ActionEditor } from '../ActionEditor/ActionEditor';
 import { ActionsList } from '../ActionsList/ActionsList';
@@ -58,6 +58,13 @@ import {
 
 import { INVALID_ID, SYSTEM_PROPS } from '../../constants/misc';
 import * as JssyPropTypes from '../../constants/common-prop-types';
+
+/**
+ * @typedef {Object} PropsGroup
+ * @property {string} name
+ * @property {string} title
+ * @property {Array<string>} props
+ */
 
 const propTypes = {
   meta: PropTypes.object.isRequired,
@@ -740,13 +747,51 @@ class ComponentPropsEditorComponent extends PureComponent {
     }
   }
 
+  /**
+   *
+   * @param {PropsGroup} group
+   * @return {{id: string, title: string, content: ReactElement}}
+   * @private
+   */
+  _createAccordionItem(group) {
+    const { components, meta, selectedComponentIds } = this.props;
+    const { editingActions } = this.state;
+
+    const { name, title, props } = group;
+    const componentId = selectedComponentIds.first();
+    const component = components.get(componentId);
+    const componentMeta = getComponentMeta(component.name, meta);
+
+    const controls = props.map(propName => this._renderPropsItem(
+      componentMeta,
+      propName,
+      component.props.get(propName) || null,
+    ));
+
+    const content = (
+      <BlockContentBoxItem key={name} hidden={editingActions}>
+        <PropsList>
+          {controls}
+        </PropsList>
+      </BlockContentBoxItem>
+    );
+
+    return { id: name, title, content };
+  }
+
   render() {
-    const { selectedComponentIds, getLocalizedText } = this.props;
+    const {
+      components,
+      selectedComponentIds,
+      meta,
+      language,
+      getLocalizedText,
+    } = this.props;
+
     const {
       linkingProp,
       linkingValueDef,
       linkWindowName,
-      editingActions,
     } = this.state;
 
     if (selectedComponentIds.size === 0) {
@@ -766,23 +811,27 @@ class ComponentPropsEditorComponent extends PureComponent {
     }
 
     const componentId = selectedComponentIds.first();
-    const component = this.props.components.get(componentId);
-    const componentMeta = getComponentMeta(component.name, this.props.meta);
+    const component = components.get(componentId);
+    const componentMeta = getComponentMeta(component.name, meta);
 
-    if (!componentMeta) return null;
+    if (!componentMeta) {
+      return null;
+    }
 
     const propGroups = componentMeta.propGroups.map(groupData => ({
       name: groupData.name,
       title: getString(
         componentMeta.strings,
         groupData.textKey,
-        this.props.language,
+        language,
       ),
       props: [],
     }));
 
     const propsByGroup = new Map();
-    propGroups.forEach(group => void propsByGroup.set(group.name, group.props));
+    propGroups.forEach(group => {
+      propsByGroup.set(group.name, group.props);
+    });
 
     const propsWithoutGroup = [];
     const renderablePropNames = Object.keys(componentMeta.props)
@@ -794,54 +843,22 @@ class ComponentPropsEditorComponent extends PureComponent {
       else propsWithoutGroup.push(propName);
     });
 
-    const content = [];
+    const accordionItems = [];
 
     propGroups.forEach(group => {
-      content.push(
-        <BlockContentBoxHeading
-          key={`${group.name}__heading__`}
-          hidden={editingActions}
-          isBordered
-        >
-          {group.title}
-        </BlockContentBoxHeading>,
-      );
-
-      const controls = group.props.map(propName => this._renderPropsItem(
-        componentMeta,
-        propName,
-        component.props.get(propName) || null,
-      ));
-
-      content.push(
-        <BlockContentBoxItem
-          key={group.name}
-          hidden={editingActions}
-        >
-          <PropsList>
-            {controls}
-          </PropsList>
-        </BlockContentBoxItem>,
-      );
+      const groupDescription = this._createAccordionItem(group);
+      accordionItems.push(groupDescription);
     });
 
     if (propsWithoutGroup.length > 0) {
-      const controls = propsWithoutGroup.map(propName => this._renderPropsItem(
-        componentMeta,
-        propName,
-        component.props.get(propName) || null,
-      ));
+      const defaultGroup = {
+        name: '__no_group__',
+        title: getLocalizedText('propsEditor.propsWithoutGroup.name'),
+        props: propsWithoutGroup,
+      };
 
-      content.push(
-        <BlockContentBoxItem
-          key="__no_group__"
-          hidden={editingActions}
-        >
-          <PropsList>
-            {controls}
-          </PropsList>
-        </BlockContentBoxItem>,
-      );
+      const groupDescription = this._createAccordionItem(defaultGroup);
+      accordionItems.push(groupDescription);
     }
 
     const systemProps = this._renderSystemProps(component);
@@ -864,7 +881,9 @@ class ComponentPropsEditorComponent extends PureComponent {
       <BlockContentBox isBordered>
         {systemProps}
         {styleEditor}
-        {content}
+
+        <PropsAccordion items={accordionItems} />
+
         {actionsEditor}
 
         <DesignDialog
