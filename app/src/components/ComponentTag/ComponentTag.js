@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { ComponentTagStyled } from './styles/ComponentTagStyled';
 import { TagStyled } from './styles/TagStyled';
@@ -19,19 +19,38 @@ const defaultProps = {
   colorScheme: 'dark',
 };
 
-export const ComponentTag = props => (
-  <ComponentTagStyled focused={props.focused} colorScheme={props.colorScheme}>
-    <TagStyled>
-      <ImageStyled>
-        <img src={props.image} alt="" role="presentation" />
-      </ImageStyled>
+export class ComponentTag extends Component {
+  shouldComponentUpdate(nextProps) {
+    if (this.props.title === nextProps.title) {
+      return false;
+    } else {
+      return true;
+    }
+  }
 
-      <TitleStyled focused={props.focused} colorScheme={props.colorScheme}>
-        {props.title}
-      </TitleStyled>
-    </TagStyled>
-  </ComponentTagStyled>
-);
+  render() {
+    const { focused, colorScheme, image, title } = this.props;
+    return (
+      <ComponentTagStyled
+        focused={focused}
+        colorScheme={colorScheme}
+      >
+        <TagStyled>
+          <ImageStyled>
+            <img src={image} alt="" role="presentation" />
+          </ImageStyled>
+
+          <TitleStyled
+            focused={focused}
+            colorScheme={colorScheme}
+          >
+            {title}
+          </TitleStyled>
+        </TagStyled>
+      </ComponentTagStyled>
+    );
+  }
+}
 
 ComponentTag.propTypes = propTypes;
 ComponentTag.defaultProps = defaultProps;

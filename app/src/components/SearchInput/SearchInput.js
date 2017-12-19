@@ -17,21 +17,33 @@ const defaultProps = {
   onChange: noop,
 };
 
-export const SearchInput = props => (
-  <SearchInputStyled>
-    <InputWrapperStyled>
-      <TextField
-        fullWidth
-        placeholder={props.placeholder}
-        value={props.value}
-        onChange={props.onChange}
-        iconInner={{ name: 'search' }}
-        clearingIcon
-        dense
-      />
-    </InputWrapperStyled>
-  </SearchInputStyled>
-);
+export class SearchInput extends React.Component {
+  shouldComponentUpdate(nextProps) {
+    if (this.props.placeholder === nextProps.placeholder) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+  
+  render() {
+    return (
+      <SearchInputStyled>
+        <InputWrapperStyled>
+          <TextField
+            fullWidth
+            placeholder={this.props.placeholder}
+            value={this.props.value}
+            onChange={this.props.onChange}
+            iconInner={{ name: 'search' }}
+            clearingIcon
+            dense
+          />
+        </InputWrapperStyled>
+      </SearchInputStyled>
+    );
+  }
+  }
 
 SearchInput.propTypes = propTypes;
 SearchInput.defaultProps = defaultProps;
