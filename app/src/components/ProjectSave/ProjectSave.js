@@ -1,12 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withTooltip } from '@reactackle/reactackle';
-
-import {
-  IconCheck,
-  IconExclamation,
-} from '../icons';
-
+import { IconCheck, IconExclamation } from '../icons';
 import { ProjectSaveStyled } from './styles/ProjectSaveStyled';
 import { IconStyled } from './styles/IconStyled';
 import { TitleStyled } from './styles/TitleStyled';
@@ -28,7 +23,7 @@ const defaultProps = {
   tooltipText: '',
 };
 
-const ProjectSaveComponent = props => {
+const _ProjectSave = props => {
   let icon = null;
 
   if (props.status === 'error') {
@@ -71,8 +66,8 @@ const ProjectSaveComponent = props => {
   /* eslint-enable react/jsx-handler-names */
 };
 
-ProjectSaveComponent.propTypes = propTypes;
-ProjectSaveComponent.defaultProps = defaultProps;
-ProjectSaveComponent.displayName = 'ProjectSave';
+_ProjectSave.propTypes = propTypes;
+_ProjectSave.defaultProps = defaultProps;
+_ProjectSave.displayName = 'ProjectSave';
 
-export const ProjectSave = withTooltip(ProjectSaveComponent, true);
+export const ProjectSave = withTooltip(_ProjectSave, true);

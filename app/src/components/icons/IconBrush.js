@@ -1,7 +1,8 @@
 import React from 'react';
-import { IconSvg } from 'reactackle-icons';
+import { IconSvg } from '@reactackle/reactackle';
 import { defaultProps } from './index';
 
+/* eslint-disable max-len */
 export const IconBrush = props => (
   <IconSvg {...props}>
     <svg viewBox="0 0 24 24">
@@ -12,5 +13,6 @@ export const IconBrush = props => (
     </svg>
   </IconSvg>
 );
+/* eslint-enable max-len */
 
 IconBrush.defaultProps = defaultProps;

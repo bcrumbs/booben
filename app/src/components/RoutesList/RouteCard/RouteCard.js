@@ -19,11 +19,7 @@ import { IconMarkStyled } from './styles/IconMarkStyled';
 import { AlertMarkStyled } from './styles/AlertMarkStyled';
 import { TextBoxStyled } from './styles/TextBoxStyled';
 import { MessageStyled } from './styles/MessageStyled';
-
-import {
-  IconRedirect,
-  IconExclamation,
-} from '../../icons';
+import { IconRedirect, IconExclamation } from '../../icons';
 
 const propTypes = {
   route: PropTypes.instanceOf(ProjectRoute).isRequired,

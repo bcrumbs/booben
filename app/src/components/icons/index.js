@@ -1,4 +1,4 @@
-import { IconSvg } from 'reactackle-icons';
+import { IconSvg } from '@reactackle/reactackle';
 
 export * from './IconAdd';
 export * from './IconArrowChevronLeft';

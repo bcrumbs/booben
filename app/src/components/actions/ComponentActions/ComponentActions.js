@@ -1,7 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from '@reactackle/reactackle';
-
 import { noop } from '../../../utils/misc';
 import { IconAdd } from '../../icons';
 

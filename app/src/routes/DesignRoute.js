@@ -123,6 +123,7 @@ import { buildStructurePath } from '../constants/paths';
 import * as JssyPropTypes from '../constants/common-prop-types';
 import { INVALID_ID } from '../constants/misc';
 import defaultComponentLayoutIcon from '../../assets/layout_default.svg';
+
 import {
   IconCopy,
   IconDuplicate,
@@ -918,7 +919,7 @@ class DesignRoute extends PureComponent {
     const componentDataSelect = willRenderComponentDataSelect
       ? this._renderComponentDataSelect()
       : null;
-    
+
     const createComponentMenu = createComponentMenuIsVisible
       ? this._renderCreateComponentMenu()
       : null;

@@ -1,4 +1,4 @@
-import { IconCross } from 'reactackle-icons';
+import { IconCross } from '@reactackle/reactackle';
 import { defaultProps } from './index';
 
 IconCross.defaultProps = defaultProps;

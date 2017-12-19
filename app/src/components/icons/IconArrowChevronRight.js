@@ -1,4 +1,4 @@
-import { IconArrowChevronRight } from 'reactackle-icons';
+import { IconArrowChevronRight } from '@reactackle/reactackle';
 import { defaultProps } from './index';
 
 IconArrowChevronRight.defaultProps = defaultProps;

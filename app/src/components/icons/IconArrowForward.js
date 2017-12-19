@@ -1,7 +1,8 @@
 import React from 'react';
-import { IconSvg } from 'reactackle-icons';
+import { IconSvg } from '@reactackle/reactackle';
 import { defaultProps } from './index';
 
+/* eslint-disable max-len */
 export const IconArrowForward = props => (
   <IconSvg {...props}>
     <svg viewBox="0 0 24 24">
@@ -9,5 +10,6 @@ export const IconArrowForward = props => (
     </svg>
   </IconSvg>
 );
+/* eslint-enable max-len */
 
 IconArrowForward.defaultProps = defaultProps;

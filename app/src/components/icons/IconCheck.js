@@ -1,4 +1,4 @@
-import { IconCheck } from 'reactackle-icons';
+import { IconCheck } from '@reactackle/reactackle';
 import { defaultProps } from './index';
 
 IconCheck.defaultProps = defaultProps;
