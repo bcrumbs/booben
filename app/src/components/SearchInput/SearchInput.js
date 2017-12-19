@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { TextField } from '@reactackle/reactackle';
 import { SearchInputStyled } from './styles/SearchInputStyled';
@@ -17,7 +17,7 @@ const defaultProps = {
   onChange: noop,
 };
 
-export class SearchInput extends React.Component {
+export class SearchInput extends Component {
   shouldComponentUpdate(nextProps) {
     if (this.props.placeholder === nextProps.placeholder) {
       return false;
