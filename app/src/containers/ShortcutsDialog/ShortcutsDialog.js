@@ -14,18 +14,20 @@ import {
   ShortcutItem,
 } from '../../components/shortcuts';
 
+import { noop } from '../../utils/misc';
+
 const getLocalizedShortcuts = state => {
-  const NAMESPACE = 'shortcuts';
+  const namespace = 'shortcuts';
   const currentPlatform = getPlatformName();
   const localize = getLocalizedTextFromState(state);
 
   return transform(keymap, (resGroup, shortcuts, groupName) => {
     const camelGroupName = camelCase(groupName);
-    const localizedGroupName = localize(`${NAMESPACE}.${camelGroupName}`);
+    const localizedGroupName = localize(`${namespace}.${camelGroupName}`);
     const localizedShortcuts =
       transform(shortcuts, (resShortcuts, key, shortcutName) => {
         const localizedShortcutName =
-          localize(`${NAMESPACE}.${camelGroupName}.${camelCase(shortcutName)}`);
+          localize(`${namespace}.${camelGroupName}.${camelCase(shortcutName)}`);
 
         const platformKey = key[currentPlatform] || key;
         resShortcuts[localizedShortcutName] =
@@ -37,16 +39,20 @@ const getLocalizedShortcuts = state => {
 };
 
 const propTypes = {
-  ...Dialog.propTypes,
-  ButtonComponent: PropTypes.func.isRequired,
+  open: PropTypes.bool,
   localizedShortcuts: PropTypes.object.isRequired,
+  getLocalizedText: PropTypes.func.isRequired,
+  onClose: PropTypes.func,
 };
 
-const defaultProps = Dialog.defaultProps;
+const defaultProps = {
+  open: false,
+  onClose: noop,
+};
 
 const mapStateToProps = state => ({
   localizedShortcuts: getLocalizedShortcuts(state),
-  localize: getLocalizedTextFromState(state),
+  getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const wrap = connect(mapStateToProps);
@@ -61,69 +67,42 @@ const reactackleThemeMixin = {
   },
 };
 
-class _ShortcutsDialog extends React.Component {
-  constructor(props) {
-    super(props);
+const _ShortcutsDialog = props => {
+  const { open, localizedShortcuts, getLocalizedText, onClose } = props;
 
-    this.state = {
-      isOpen: false,
-    };
+  const shortcuts =
+    Object.entries(localizedShortcuts).map(([groupName, shortcuts]) => {
+      const keys = Object.entries(shortcuts).map(([shortcutName, key]) =>
+        <ShortcutItem
+          key={`${shortcutName}.${key}`}
+          shortcut={key}
+          description={shortcutName}
+        />,
+      );
 
-    this._handleClose = this._handleClose.bind(this);
-    this._handleOpen = this._handleOpen.bind(this);
-  }
+      return (
+        <ShortcutsGroup key={groupName} title={groupName}>
+          {keys}
+        </ShortcutsGroup>
+      );
+    });
 
-  _handleOpen() {
-    this.setState({ isOpen: true });
-  }
-
-  _handleClose() {
-    this.setState({ isOpen: false });
-  }
-
-  render() {
-    const {
-      ButtonComponent,
-      localizedShortcuts,
-      localize,
-    } = this.props;
-
-    const shortcuts =
-      Object.entries(localizedShortcuts).map(([groupName, shortcuts]) => {
-        const keys = Object.entries(shortcuts).map(([shortcutName, key]) =>
-          <ShortcutItem
-            key={`${shortcutName}.${key}`}
-            shortcut={key}
-            description={shortcutName}
-          />,
-        );
-
-        return (
-          <ShortcutsGroup key={groupName} title={groupName}>
-            {keys}
-          </ShortcutsGroup>
-        );
-      });
-
-    return [
-      <ButtonComponent key="sc-dialog-button" onClick={this._handleOpen} />,
-
-      <Theme key="sc-dialog" mixin={reactackleThemeMixin}>
-        <Dialog
-          open={this.state.isOpen}
-          onClose={this._handleClose}
-          title={localize('shortcuts.dialogTitle')}
-          haveCloseButton
-          closeOnEscape
-        >
-          <ShortcutsList>
-            {shortcuts}
-          </ShortcutsList>
-        </Dialog>
-      </Theme>,
-    ];
-  }
-}
+  return (
+    <Theme mixin={reactackleThemeMixin}>
+      <Dialog
+        open={open}
+        title={getLocalizedText('shortcuts.dialogTitle')}
+        haveCloseButton
+        closeOnEscape
+        onClose={onClose}
+      >
+        <ShortcutsList>
+          {shortcuts}
+        </ShortcutsList>
+      </Dialog>
+    </Theme>
+  );
+};
 
 _ShortcutsDialog.propTypes = propTypes;
 _ShortcutsDialog.defaultProps = defaultProps;
