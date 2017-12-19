@@ -1,48 +1,47 @@
 import React from 'react';
-import { PropBase } from '../PropBase/PropBase';
+import PropTypes from 'prop-types';
 import CodeMirror from 'react-codemirror';
 import 'codemirror/lib/codemirror.css';
 import 'codemirror/theme/blackboard.css';
 import 'codemirror/mode/css/css';
+import _pick from 'lodash.pick';
+import { PropBase } from '../PropBase/PropBase';
 import { EditorWrapperStyled } from './styles/EditorWrapperStyled';
 
 const propTypes = {
-  ...CodeMirror.propTypes,
   ...PropBase.propTypes,
+  ...CodeMirror.propTypes,
+  mode: PropTypes.string,
 };
 
 const defaultProps = {
-  ...PropBase.propTypes,
+  ...PropBase.defaultProps,
+  ...CodeMirror.defaultProps,
   mode: 'css',
 };
 
-export const PropCodeEditor = ({
-  value,
-  mode,
-  label,
-  onChange,
-  ...props,
-}) => {
+const baseProps = Object.keys(PropBase.propTypes);
+const codeMirrorProps = Object.keys(CodeMirror.propTypes);
+
+export const PropCodeEditor = ({ mode, ...props }) => {
+  const propsForCodeMirror = _pick(props, codeMirrorProps);
 
   const content = (
     <EditorWrapperStyled>
       <CodeMirror
-        className='jssy__code-editor'
-        value={value}
-        options={{
-          mode: mode,
-          theme: 'blackboard',
-        }}
-        onChange={onChange}
-        {...props}
+        {...propsForCodeMirror}
+        className="jssy__code-editor"
+        options={{ mode, theme: 'blackboard' }}
       />
     </EditorWrapperStyled>
   );
 
+  const propsForBase = _pick(props, baseProps);
+
   return (
     <PropBase
+      {...propsForBase}
       content={content}
-      label={label}
       labelPositionTop
     />
   );

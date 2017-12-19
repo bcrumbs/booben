@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import blockContentConstants from '../../../BlockContent/styles/constants';
+
 import {
   baseModule,
   paletteBlueGrey800,

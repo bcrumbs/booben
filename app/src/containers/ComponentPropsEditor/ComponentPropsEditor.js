@@ -6,6 +6,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Button } from '@reactackle/reactackle';
+import { getNestedTypedef } from '@jssy/types';
 
 import {
   BlockContentBox,
@@ -14,7 +15,6 @@ import {
   BlockContentPlaceholder,
 } from '../../components/BlockContent';
 
-import { getNestedTypedef } from '@jssy/types';
 import { DesignDialog } from '../DesignDialog/DesignDialog';
 import { PropsList } from '../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
@@ -230,6 +230,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     this._handleActionEditorSave = this._handleActionEditorSave.bind(this);
     this._handleActionEditorCancel = this._handleActionEditorCancel.bind(this);
     this._handleCloseActionsEditor = this._handleCloseActionsEditor.bind(this);
+    this._handleStyleChange = this._handleStyleChange.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -569,6 +570,13 @@ class ComponentPropsEditorComponent extends PureComponent {
     });
   }
 
+  _handleStyleChange(style) {
+    const { selectedComponentIds, onChangeComponentStyle } = this.props;
+
+    const componentId = selectedComponentIds.first();
+    onChangeComponentStyle({ style, componentId });
+  }
+
   /**
    *
    * @param {ComponentMeta} componentMeta
@@ -733,12 +741,7 @@ class ComponentPropsEditorComponent extends PureComponent {
   }
 
   render() {
-    const {
-      selectedComponentIds,
-      getLocalizedText,
-      onChangeComponentStyle,
-    } = this.props;
-
+    const { selectedComponentIds, getLocalizedText } = this.props;
     const {
       linkingProp,
       linkingValueDef,
@@ -849,12 +852,9 @@ class ComponentPropsEditorComponent extends PureComponent {
         <BlockContentBoxItem>
           <PropCodeEditor
             value={component.style}
-            mode='css'
+            mode="css"
             label="CSS"
-            onChange={style => onChangeComponentStyle({
-              style,
-              componentId,
-            })}
+            onChange={this._handleStyleChange}
           />
         </BlockContentBoxItem>
       )

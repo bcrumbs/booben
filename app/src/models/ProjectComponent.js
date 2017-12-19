@@ -69,7 +69,7 @@ const actionsToImmutable = actions => List(actions.map(action => {
   const data = {
     type: action.type,
   };
-  
+
   switch (action.type) {
     case ActionTypes.MUTATION: {
       data.params = new MutationActionParams({
@@ -78,10 +78,10 @@ const actionsToImmutable = actions => List(actions.map(action => {
         successActions: actionsToImmutable(action.params.successActions),
         errorActions: actionsToImmutable(action.params.errorActions),
       });
-      
+
       break;
     }
-    
+
     case ActionTypes.NAVIGATE: {
       data.params = new NavigateActionParams({
         routeId: action.params.routeId,
@@ -90,29 +90,29 @@ const actionsToImmutable = actions => List(actions.map(action => {
           jssyValueToImmutable,
         )),
       });
-      
+
       break;
     }
-    
+
     case ActionTypes.URL: {
       data.params = new URLActionParams({
         url: action.params.url,
         newWindow: action.params.newWindow,
       });
-      
+
       break;
     }
-    
+
     case ActionTypes.METHOD: {
       data.params = new MethodCallActionParams({
         componentId: action.params.componentId,
         method: action.params.method,
         args: List(action.params.args.map(jssyValueToImmutable)),
       });
-      
+
       break;
     }
-    
+
     case ActionTypes.PROP: {
       data.params = new PropChangeActionParams({
         componentId: action.params.componentId,
@@ -120,10 +120,10 @@ const actionsToImmutable = actions => List(actions.map(action => {
         systemPropName: action.params.systemPropName || '',
         value: jssyValueToImmutable(action.params.value),
       });
-      
+
       break;
     }
-    
+
     case ActionTypes.AJAX: {
       data.params = new AJAXActionParams({
         url: jssyValueToImmutable(action.params.url),
@@ -137,10 +137,10 @@ const actionsToImmutable = actions => List(actions.map(action => {
         successActions: actionsToImmutable(action.params.successActions),
         errorActions: actionsToImmutable(action.params.errorActions),
       });
-      
+
       break;
     }
-    
+
     case ActionTypes.LOAD_MORE_DATA: {
       data.params = new LoadMoreDataActionParams({
         componentId: action.params.componentId,
@@ -148,15 +148,15 @@ const actionsToImmutable = actions => List(actions.map(action => {
         successActions: actionsToImmutable(action.params.successActions),
         errorActions: actionsToImmutable(action.params.errorActions),
       });
-      
+
       break;
     }
-    
+
     default: {
       data.params = null;
     }
   }
-  
+
   return Action(data);
 }));
 
@@ -169,9 +169,9 @@ export const jssyValueToImmutable = plainValue => {
   if (plainValue === null) {
     return null;
   }
-  
+
   const { source, sourceData } = plainValue;
-  
+
   return new JssyValue({
     source,
     sourceData: sourceDataToImmutable(source, sourceData),
@@ -206,7 +206,7 @@ const propSourceDataToImmutableFns = {
           connectionPageSize: step.connectionPageSize,
         })))
         : null,
-      
+
       queryArgs: Map(_mapValues(input.queryArgs, args =>
         Map(_mapValues(args, jssyValueToImmutable)))),
 
@@ -223,7 +223,7 @@ const propSourceDataToImmutableFns = {
     function: input.function,
     args: List(input.args.map(jssyValueToImmutable)),
   }),
-  
+
   [JssyValue.Source.ACTIONS]: input => new SourceDataActions({
     actions: actionsToImmutable(input.actions),
   }),
@@ -244,7 +244,7 @@ const propSourceDataToImmutableFns = {
         rootId: INVALID_ID,
       },
   ),
-  
+
   [JssyValue.Source.STATE]: input => new SourceDataState(input),
   [JssyValue.Source.ROUTE_PARAMS]: input => new SourceDataRouteParams(input),
   [JssyValue.Source.ACTION_ARG]: input => new SourceDataActionArg(input),
@@ -268,7 +268,7 @@ export const projectComponentToImmutable = (
   isWrapper: !!input.isWrapper,
   name: input.name,
   title: input.title,
-  style: input.style,
+  style: input.style || '',
   props: propsToImmutable(input.props),
   systemProps: propsToImmutable(input.systemProps),
   children: List(input.children.map(childComponent => childComponent.id)),
@@ -313,28 +313,28 @@ const actionParamsToJSv1Converters = {
     successActions: mapListToArray(params.successActions, actionToJSv1),
     errorActions: mapListToArray(params.errorActions, actionToJSv1),
   }),
-  
+
   [ActionTypes.METHOD]: params => ({
     componentId: params.componentId,
     method: params.method,
     args: mapListToArray(params.args, jssyValueToJSv1),
   }),
-  
+
   [ActionTypes.PROP]: params => {
     const ret = {
       componentId: params.componentId,
       value: jssyValueToJSv1(params.value),
     };
-    
+
     if (params.systemPropName) {
       ret.systemPropName = params.systemPropName;
     } else {
       ret.propName = params.propName;
     }
-    
+
     return ret;
   },
-  
+
   [ActionTypes.NAVIGATE]: params => ({
     routeId: params.routeId,
     routeParams: mapMapToObject(
@@ -343,11 +343,11 @@ const actionParamsToJSv1Converters = {
       jssyValueToJSv1,
     ),
   }),
-  
+
   [ActionTypes.URL]: params => params.toJS(),
-  
+
   [ActionTypes.LOGOUT]: returnNull,
-  
+
   [ActionTypes.AJAX]: params => ({
     url: jssyValueToJSv1(params.url),
     method: params.method,
@@ -358,7 +358,7 @@ const actionParamsToJSv1Converters = {
     successActions: mapListToArray(params.successActions, actionToJSv1),
     errorActions: mapListToArray(params.errorActions, actionToJSv1),
   }),
-  
+
   [ActionTypes.LOAD_MORE_DATA]: params => ({
     componentId: params.componentId,
     pathToDataValue: params.pathToDataValue.toJS(),
@@ -376,7 +376,7 @@ const sourceDataToJSv1Converters = {
   [JssyValue.Source.CONST]: sourceData => ({
     value: sourceData.value,
   }),
-  
+
   [JssyValue.Source.STATIC]: sourceData => {
     if (sourceData.value instanceof List) {
       return {
@@ -400,7 +400,7 @@ const sourceDataToJSv1Converters = {
   [JssyValue.Source.OWNER_PROP]: sourceData => ({
     ownerPropName: sourceData.ownerPropName,
   }),
-  
+
   [JssyValue.Source.DATA]: sourceData => ({
     dataContext: mapListToArray(sourceData.dataContext, returnArg),
     queryPath: sourceData.queryPath === null
@@ -413,17 +413,17 @@ const sourceDataToJSv1Converters = {
       args => mapMapToObject(args, returnSecondArg, jssyValueToJSv1),
     ),
   }),
-  
+
   [JssyValue.Source.FUNCTION]: sourceData => ({
     functionSource: sourceData.functionSource,
     function: sourceData.function,
     args: mapListToArray(sourceData.args, jssyValueToJSv1),
   }),
-  
+
   [JssyValue.Source.ACTIONS]: sourceData => ({
     actions: mapListToArray(sourceData.actions, actionToJSv1),
   }),
-  
+
   [JssyValue.Source.DESIGNER]: sourceData => {
     if (sourceData.rootId === INVALID_ID) {
       return {
@@ -438,7 +438,7 @@ const sourceDataToJSv1Converters = {
       };
     }
   },
-  
+
   [JssyValue.Source.STATE]: sourceData => sourceData.toJS(),
   [JssyValue.Source.ROUTE_PARAMS]: sourceData => sourceData.toJS(),
   [JssyValue.Source.ACTION_ARG]: sourceData => sourceData.toJS(),
@@ -455,7 +455,7 @@ const jssyValueToJSv1 = jssyValue => ({
 
 export const projectComponentToJSv1 = (components, componentId) => {
   const component = components.get(componentId);
-  
+
   return {
     id: component.id,
     name: component.name,
