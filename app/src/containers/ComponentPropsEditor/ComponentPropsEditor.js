@@ -21,6 +21,7 @@ import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
 import { ActionEditor } from '../ActionEditor/ActionEditor';
 import { ActionsList } from '../ActionsList/ActionsList';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
+import { PropCodeEditor } from '../../components/props';
 import JssyValue, { SourceDataState } from '../../models/JssyValue';
 
 import {
@@ -30,6 +31,7 @@ import {
   addAction,
   replaceAction,
   deleteAction,
+  changeComponentStyle,
 } from '../../actions/project';
 
 import { getStateSlotPickerFns } from '../../actions/helpers/component-picker';
@@ -51,6 +53,7 @@ import {
   parseComponentName,
   formatComponentName,
   constructComponent,
+  isHTMLComponent,
 } from '../../lib/meta';
 
 import { INVALID_ID, SYSTEM_PROPS } from '../../constants/misc';
@@ -80,6 +83,7 @@ const propTypes = {
   onAddAction: PropTypes.func.isRequired,
   onReplaceAction: PropTypes.func.isRequired,
   onDeleteAction: PropTypes.func.isRequired,
+  onChangeComponentStyle: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -119,6 +123,9 @@ const mapDispatchToProps = dispatch => ({
 
   onDeleteAction: ({ path, index }) =>
     void dispatch(deleteAction(path, index)),
+
+  onChangeComponentStyle: ({ style, componentId }) =>
+    void dispatch(changeComponentStyle(componentId, style)),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
@@ -230,6 +237,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     this._handleActionEditorSave = this._handleActionEditorSave.bind(this);
     this._handleActionEditorCancel = this._handleActionEditorCancel.bind(this);
     this._handleCloseActionsEditor = this._handleCloseActionsEditor.bind(this);
+    this._handleStyleChange = this._handleStyleChange.bind(this);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -569,6 +577,13 @@ class ComponentPropsEditorComponent extends PureComponent {
     });
   }
 
+  _handleStyleChange(style) {
+    const { selectedComponentIds, onChangeComponentStyle } = this.props;
+
+    const componentId = selectedComponentIds.first();
+    onChangeComponentStyle({ style, componentId });
+  }
+
   /**
    *
    * @param {ComponentMeta} componentMeta
@@ -849,9 +864,23 @@ class ComponentPropsEditorComponent extends PureComponent {
     const systemProps = this._renderSystemProps(component);
     const actionsEditor = this._renderActionsEditor();
 
+    const styleEditor = isHTMLComponent(component.name)
+      ? (
+        <BlockContentBoxItem>
+          <PropCodeEditor
+            value={component.style}
+            mode="css"
+            label="CSS"
+            onChange={this._handleStyleChange}
+          />
+        </BlockContentBoxItem>
+      )
+      : null;
+
     return (
       <BlockContentBox isBordered>
         {systemProps}
+        {styleEditor}
 
         <PropsAccordion items={accordionItems} />
 

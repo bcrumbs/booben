@@ -23,6 +23,8 @@ export const PROJECT_COMPONENT_DELETE =
   'PROJECT_COMPONENT_DELETE';
 export const PROJECT_COMPONENT_RENAME =
   'PROJECT_COMPONENT_RENAME';
+export const PROJECT_COMPONENT_CHANGE_STYLE =
+  'PROJECT_COMPONENT_CHANGE_STYLE';
 export const PROJECT_COMPONENT_TOGGLE_REGION =
   'PROJECT_COMPONENT_TOGGLE_REGION';
 export const PROJECT_COMPONENT_COPY =
@@ -358,6 +360,13 @@ export const renameComponent = triggersProjectSave((componentId, newTitle) => ({
   componentId,
   newTitle,
 }));
+
+export const changeComponentStyle =
+  triggersProjectSave((componentId, style) => ({
+    type: PROJECT_COMPONENT_CHANGE_STYLE,
+    componentId,
+    style,
+  }));
 
 /**
  *

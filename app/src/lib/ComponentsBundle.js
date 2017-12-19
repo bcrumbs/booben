@@ -59,6 +59,7 @@ export default class ComponentsBundle {
     this._loaded = false;
     this._components = null;
     this._styled = null;
+    this._styledHTMLComponentsCache = new Map();
   }
 
   /**
@@ -147,6 +148,47 @@ export default class ComponentsBundle {
 
     this._loading = false;
     this._loaded = true;
+  }
+
+  _createStyledHTMLComponent(name) {
+    if (this._styled === null) {
+      throw new Error(
+        'ComponentsBundle#_createStyledHTMLComponent: ' +
+        'this ComponentsBundle doesn\'t have styled-components',
+      );
+    }
+
+    const ret = ({ style, ...props }) => {
+      const Component = this._styled[name]`${style}`;
+      return <Component {...props} />;
+    };
+
+    ret.displayName = name;
+    ret.propTypes = {
+      style: PropTypes.string,
+    };
+
+    ret.defaultProps = {
+      style: '',
+    };
+
+    return ret;
+  }
+
+  getStyledHTMLComponent(name) {
+    if (!this._loaded) {
+      throw new Error(
+        'ComponentsBundle#getStyledHTMLComponent: components not loaded',
+      );
+    }
+
+    let ret = this._styledHTMLComponentsCache.get(name);
+    if (!ret) {
+      ret = this._createStyledHTMLComponent(name);
+      this._styledHTMLComponentsCache.set(name, ret);
+    }
+
+    return ret;
   }
 
   /**
