@@ -6,6 +6,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { ApolloProvider } from 'react-apollo';
 import { ThemeProvider } from 'styled-components';
+import { parseGraphQLSchema } from '@jssy/graphql-schema';
 import { Theme, injectGlobalStyle } from '@reactackle/reactackle';
 import { jssyTheme, reactackleMixin } from './styles/theme';
 import { Preview } from './containers/Preview/Preview';
@@ -15,7 +16,6 @@ import ComponentsBundle from './lib/ComponentsBundle';
 import { removeSplashScreen } from './lib/dom';
 import { getProject, getMetadata, getGraphQLSchema } from './lib/api';
 import { transformMetadata, getContainerStyle } from './lib/meta';
-import { parseGraphQLSchema } from './lib/schema';
 import { createApolloClient } from './lib/apollo';
 import { trimArray } from './utils/misc';
 

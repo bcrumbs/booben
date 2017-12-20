@@ -3,9 +3,16 @@
  */
 
 import { Map, Set, List } from 'immutable';
-import { resolveTypedef } from '@jssy/types';
 import { LOCATION_CHANGE } from 'react-router-redux';
 import { matchPath } from 'react-router';
+import { resolveTypedef } from '@jssy/types';
+
+import {
+  parseGraphQLSchema,
+  getMutationField,
+  getJssyValueDefOfMutationArgument,
+} from '@jssy/graphql-schema';
+
 import { PATH_DESIGN_ROUTE, PATH_DESIGN_ROUTE_INDEX } from '../constants/paths';
 
 import {
@@ -129,12 +136,6 @@ import {
   isAtomicComponent,
   buildDefaultValue,
 } from '../lib/meta';
-
-import {
-  parseGraphQLSchema,
-  getMutationField,
-  getJssyValueDefOfMutationArgument,
-} from '../lib/schema';
 
 import { walkPath, expandPath, getObjectByPath } from '../lib/path';
 import { isArrayOrList, isPrefixList, concatPath } from '../utils/misc';

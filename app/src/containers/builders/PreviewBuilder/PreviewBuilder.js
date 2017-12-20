@@ -14,6 +14,16 @@ import defaultsDeep from 'lodash.defaultsdeep';
 import { resolveTypedef } from '@jssy/types';
 
 import {
+  FieldKinds,
+  getJssyValueDefOfMutationArgument,
+  getMutationField,
+  getFieldOnType,
+  findFirstConnectionInPath,
+  RELAY_PAGEINFO_FIELDS,
+  RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
+} from '@jssy/graphql-schema';
+
+import {
   isPseudoComponent,
   getComponentByName,
   getRenderHints,
@@ -36,16 +46,6 @@ import {
 } from '../../../lib/graphql';
 
 import { queryResultHasData } from '../../../lib/apollo';
-
-import {
-  FieldKinds,
-  getJssyValueDefOfMutationArgument,
-  getMutationField,
-  getFieldOnType,
-  findFirstConnectionInPath,
-  RELAY_PAGEINFO_FIELDS,
-  RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
-} from '../../../lib/schema';
 
 import { walkSimpleValues } from '../../../lib/components';
 import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
