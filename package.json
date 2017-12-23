@@ -59,6 +59,7 @@
     "lodash.omit": "^4.5.0",
     "lodash.pick": "^4.4.0",
     "lodash.set": "^4.3.2",
+    "lodash.snakecase": "^4.1.1",
     "lodash.startcase": "^4.4.0",
     "lodash.throttle": "^4.1.1",
     "lodash.transform": "^4.6.0",
