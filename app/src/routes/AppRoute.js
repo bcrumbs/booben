@@ -12,7 +12,6 @@ import { Link } from 'react-router-dom';
 import {
   App,
   TopRegion,
-  BottomRegion,
   Header,
   HeaderRegion,
   HeaderLogoBox,
@@ -20,19 +19,12 @@ import {
   HeaderMenuGroup,
   HeaderMenuList,
   HeaderMenuItem,
-  Footer,
-  FooterRegion,
-  FooterMenu,
-  FooterMenuGroup,
-  FooterMenuList,
-  FooterMenuItem,
   AlertArea,
 } from '@reactackle/reactackle';
 
 import StructureRoute from './StructureRoute';
 import DesignRoute from './DesignRoute';
 import { DrawerTopDesign } from '../containers/DrawerTopDesign/DrawerTopDesign';
-import { ShortcutsDialog } from '../containers/ShortcutsDialog/ShortcutsDialog';
 
 import {
   ProjectSaveIndicator,
@@ -114,38 +106,12 @@ TopMenuExternalLink.defaultProps = {
 
 TopMenuExternalLink.displayName = 'TopMenuExternalLink';
 
-const toggleFullscreen = () => {
-  const document = window.document;
-
-  if (
-    !document.fullscreenElement &&
-    !document.mozFullScreenElement &&
-    !document.webkitFullscreenElement
-  ) {
-    if (document.documentElement.requestFullscreen) {
-      document.documentElement.requestFullscreen();
-    } else if (document.documentElement.mozRequestFullScreen) {
-      document.documentElement.mozRequestFullScreen();
-    } else if (document.documentElement.webkitRequestFullscreen) {
-      document.documentElement.webkitRequestFullscreen(
-        Element.ALLOW_KEYBOARD_INPUT,
-      );
-    }
-  } else if (document.cancelFullScreen) {
-    document.cancelFullScreen();
-  } else if (document.mozCancelFullScreen) {
-    document.mozCancelFullScreen();
-  } else if (document.webkitCancelFullScreen) {
-    document.webkitCancelFullScreen();
-  }
-};
-
 class AppRoute extends Component {
   componentWillUnmount() {
     const { onAlertAreaRemoved } = this.props;
     onAlertAreaRemoved();
   }
-  
+
   render() {
     const {
       projectName,
@@ -154,16 +120,16 @@ class AppRoute extends Component {
       getLocalizedText,
       onAlertAreaReady,
     } = this.props;
-  
+
     const routeMenuItems = [];
     const currentPath = location.pathname;
-  
+
     project.routes.forEach(route => {
       const href = buildDesignRoutePath({
         projectName,
         routeId: route.id,
       });
-    
+
       routeMenuItems.push(
         <HeaderMenuItem
           key={String(route.id)}
@@ -173,13 +139,13 @@ class AppRoute extends Component {
           isActive={href === currentPath}
         />,
       );
-    
+
       if (route.haveIndex) {
         const indexHref = buildDesignRouteIndexPath({
           projectName,
           routeId: route.id,
         });
-      
+
         routeMenuItems.push(
           <HeaderMenuItem
             key={`${route.id}-index`}
@@ -191,11 +157,11 @@ class AppRoute extends Component {
         );
       }
     });
-  
+
     const title = getLocalizedText('appHeader.projectTitle', {
       projectName,
     });
-  
+
     return (
       <App fixed>
         <TopRegion>
@@ -203,7 +169,7 @@ class AppRoute extends Component {
             <HeaderRegion size="blank">
               <HeaderLogoBox title={title} />
             </HeaderRegion>
-          
+
             <HeaderRegion spread size="blank">
               <HeaderMenu inline dense mode="light">
                 <HeaderMenuGroup>
@@ -213,7 +179,7 @@ class AppRoute extends Component {
                       linkHref={`/${projectName}/structure`}
                       linkComponent={TopMenuLink}
                     />
-                  
+
                     <HeaderMenuItem
                       text={getLocalizedText('appHeader.menu.design')}
                     >
@@ -223,11 +189,11 @@ class AppRoute extends Component {
                         </HeaderMenuList>
                       </HeaderMenuGroup>
                     </HeaderMenuItem>
-                  
+
                     <HeaderMenuItem
                       text={getLocalizedText('appHeader.menu.data')}
                     />
-                  
+
                     <HeaderMenuItem
                       text={getLocalizedText('appHeader.menu.settings')}
                     />
@@ -235,11 +201,11 @@ class AppRoute extends Component {
                 </HeaderMenuGroup>
               </HeaderMenu>
             </HeaderRegion>
-  
+
             <HeaderRegion size="blank">
               <ProjectSaveIndicator />
             </HeaderRegion>
-          
+
             <HeaderRegion size="blank">
               <HeaderMenu inline dense mode="light">
                 <HeaderMenuGroup>
@@ -250,7 +216,7 @@ class AppRoute extends Component {
                       linkComponent={TopMenuExternalLink}
                       iconLeft="play-circle"
                     />
-                  
+
                     <HeaderMenuItem
                       text={getLocalizedText('appHeader.menu.publish')}
                       iconLeft="arrow-circle-o-up"
@@ -260,7 +226,7 @@ class AppRoute extends Component {
               </HeaderMenu>
             </HeaderRegion>
           </Header>
-  
+
           <Route
             path={PATH_DESIGN_ROUTE}
             render={() => (
@@ -268,78 +234,33 @@ class AppRoute extends Component {
             )}
           />
         </TopRegion>
-      
+
         <Switch>
           <Route
             exact
             path={PATH_STRUCTURE}
             component={StructureRoute}
           />
-        
+
           <Route
             exact
             path={PATH_DESIGN_ROUTE}
             component={DesignRoute}
           />
-        
+
           <Route
             exact
             path={PATH_DESIGN_ROUTE_INDEX}
             component={DesignRoute}
           />
-        
+
           <Route
             render={({ match }) => (
               <Redirect to={buildStructurePath(match.params)} />
             )}
           />
         </Switch>
-      
-        <BottomRegion>
-          <Footer>
-            <FooterRegion spread size="blank">
-              <FooterMenu inline dense mode="light">
-                <FooterMenuGroup>
-                  <FooterMenuList>
-                    <FooterMenuItem text={getLocalizedText('appFooter.help')} />
-                  </FooterMenuList>
-                </FooterMenuGroup>
-              </FooterMenu>
-            </FooterRegion>
-          
-            <FooterRegion size="blank">
-              <FooterMenu inline dense mode="light">
-                <FooterMenuGroup>
-                  <FooterMenuList>
-                    <FooterMenuItem
-                      text={getLocalizedText('appFooter.toggleFullScreen')}
-                      onClick={toggleFullscreen}
-                    />
-                  </FooterMenuList>
-                </FooterMenuGroup>
-              </FooterMenu>
-            </FooterRegion>
 
-            <FooterRegion size="blank">
-              <FooterMenu inline dense mode="light">
-                <FooterMenuGroup>
-                  <FooterMenuList>
-                    <ShortcutsDialog
-                      ButtonComponent={props =>
-                        <FooterMenuItem
-                          {...props}
-                          text={getLocalizedText('appHeader.menu.shortcuts')}
-                        />
-                      }
-                    />
-                  </FooterMenuList>
-                </FooterMenuGroup>
-              </FooterMenu>
-            </FooterRegion>
-
-          </Footer>
-        </BottomRegion>
-      
         <AlertArea ref={onAlertAreaReady} />
       </App>
     );

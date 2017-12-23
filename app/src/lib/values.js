@@ -13,7 +13,7 @@ import {
   getJssyValueDefOfField,
   getJssyValueDefOfQueryArgument,
   RELAY_PAGEINFO_FIELD_END_CURSOR,
-} from './schema';
+} from '@jssy/graphql-schema';
 
 import { extractPropValueFromData } from './graphql';
 import { getFunctionInfo, formatFunctionId } from './functions';
@@ -333,11 +333,11 @@ const buildStateValue = (jssyValue, valueDef, userTypedefs, context) => {
   }
 
   const componentId = jssyValue.sourceData.componentId;
-  
+
   if (componentId === INVALID_ID) {
     return NO_VALUE;
   }
-  
+
   const stateSlot = jssyValue.sourceData.stateSlot;
   const componentState = componentsState.get(componentId);
 
@@ -494,12 +494,12 @@ const buildConnectionPaginationStateValue = (jssyValue, context) => {
     if (context.pageInfos === null || !context.pageInfos.has(dataValue)) {
       return '';
     }
-    
+
     const pageInfosForValue = context.pageInfos.get(dataValue);
     if (!pageInfosForValue.has(queryStep)) {
       return '';
     }
-    
+
     const pageInfo = pageInfosForValue.get(queryStep);
     return pageInfo[RELAY_PAGEINFO_FIELD_END_CURSOR] || '';
   } else {

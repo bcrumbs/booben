@@ -38,7 +38,7 @@ export class PropList extends Component {
     super(props, context);
     this._handleChange = this._handleChange.bind(this);
   }
-  
+
   /**
    *
    * @param {*} value

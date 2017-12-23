@@ -3,9 +3,9 @@
  */
 
 import { isCompatibleType } from '@jssy/types';
+import { findFirstConnectionInPath } from '@jssy/graphql-schema';
 import { getComponentMeta, getString } from '../../lib/meta';
 import { walkSimpleValues } from '../../lib/components';
-import { findFirstConnectionInPath } from '../../lib/schema';
 import { objectSome, objectToArray, mapListToArray } from '../../utils/misc';
 
 /**

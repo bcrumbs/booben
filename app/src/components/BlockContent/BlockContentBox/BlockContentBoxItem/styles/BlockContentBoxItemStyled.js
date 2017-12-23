@@ -9,14 +9,12 @@ import {
 
 const propTypes = {
   bordered: PropTypes.bool,
-  overflow: PropTypes.bool,
   colorScheme: PropTypes.oneOf(['default', 'alt']),
   shading: PropTypes.oneOf(['default', 'editing', 'dim']),
 };
 
 const defaultProps = {
   bordered: false,
-  overflow: false,
   colorScheme: 'default',
   shading: 'default',
 };
