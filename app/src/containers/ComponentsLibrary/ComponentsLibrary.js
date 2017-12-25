@@ -16,13 +16,7 @@ import {
   BlockContentPlaceholder,
 } from '../../components/BlockContent';
 
-import draggable from '../../hocs/draggable';
-import { connectDraggable } from '../ComponentsDragArea/ComponentsDragArea';
-
-import {
-  ComponentTag,
-  ComponentTagWrapper,
-} from '../../components/ComponentTag/ComponentTag';
+import { AccordionItem } from './AccordionItem/AccordionItem';
 
 import { SearchInput } from '../../components/SearchInput/SearchInput';
 import { AccordionBox } from '../../components/AccordionBox/AccordionBox';
@@ -189,8 +183,6 @@ const mapDispatchToProps = dispatch => ({
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
 
-const DraggableComponentTag = connectDraggable(draggable(ComponentTag));
-
 class ComponentsLibraryComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -289,31 +281,20 @@ class ComponentsLibraryComponent extends PureComponent {
       }
     }
 
-    const accordionItems = mapListToArray(groups, group => {
-      const items = mapListToArray(group.components, component => (
-        <DraggableComponentTag
-          key={component.fullName}
-          title={getComponentNameString(component, language, getLocalizedText)}
-          image={component.iconURL}
-          focused={focusedComponentName === component.fullName}
-          dragTitle={component.fullName}
-          dragData={{ name: component.fullName }}
+    const accordionItems = mapListToArray(groups, group => ({
+      id: group.name,
+      title: getGroupNameString(group, language, getLocalizedText),
+      contentBlank: true,
+      content: (
+        <AccordionItem
+          getLocalizedText={getLocalizedText}
+          language={language}
+          components={group.components}
+          focusedComponentName={focusedComponentName}
           dragStartRadius={DND_DRAG_START_RADIUS_LIBRARY}
-          onDragStart={this._handleDragStart}
         />
-      ));
-
-      return {
-        id: group.name,
-        title: getGroupNameString(group, language, getLocalizedText),
-        contentBlank: true,
-        content: (
-          <ComponentTagWrapper>
-            {items}
-          </ComponentTagWrapper>
-        ),
-      };
-    });
+      ),
+    }));
 
     const expandAll = searchString !== '';
     const expandedItemIds = expandAll
