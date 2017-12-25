@@ -22,7 +22,8 @@ const propTypes = {
 
 const DraggableComponentTag = connectDraggable(draggable(ComponentTag));
 
-export class AccordionItem extends PureComponent { // eslint-disable-line
+// eslint-disable-next-line react/prefer-stateless-function
+export class AccordionItem extends PureComponent {
   render() {
     const {
       components,
