@@ -58,7 +58,6 @@ import { combineFiltersAll, mapListToArray } from '../../utils/misc';
 
 import {
   LIBRARY_SEARCH_INPUT_DEBOUNCE,
-  DND_DRAG_START_RADIUS_LIBRARY,
 } from '../../config';
 
 const ComponentGroupsType = PropTypes.shape({
@@ -291,7 +290,7 @@ class ComponentsLibraryComponent extends PureComponent {
           language={language}
           components={group.components}
           focusedComponentName={focusedComponentName}
-          dragStartRadius={DND_DRAG_START_RADIUS_LIBRARY}
+          onDragStart={this._handleDragStart}
         />
       ),
     }));

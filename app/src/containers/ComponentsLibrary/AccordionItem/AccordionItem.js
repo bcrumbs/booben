@@ -10,13 +10,14 @@ import { getComponentNameString } from '../../../lib/library';
 import { mapListToArray } from '../../../utils/misc';
 import draggable from '../../../hocs/draggable';
 import { connectDraggable } from '../../ComponentsDragArea/ComponentsDragArea';
+import { DND_DRAG_START_RADIUS_LIBRARY } from '../../../config';
 
 const propTypes = {
   components: PropTypes.object.isRequired,
   language: PropTypes.string.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
   focusedComponentName: PropTypes.string.isRequired,
-  dragStartRadius: PropTypes.number.isRequired,
+  onDragStart: PropTypes.func.isRequired,
 };
 
 const DraggableComponentTag = connectDraggable(draggable(ComponentTag));
@@ -28,7 +29,7 @@ export class AccordionItem extends PureComponent {
       language,
       getLocalizedText,
       focusedComponentName,
-      dragStartRadius,
+      onDragStart,
     } = this.props;
 
     const items = mapListToArray(components, component => (
@@ -39,8 +40,8 @@ export class AccordionItem extends PureComponent {
         focused={focusedComponentName === component.fullName}
         dragTitle={component.fullName}
         dragData={{ name: component.fullName }}
-        dragStartRadius={dragStartRadius}
-        onDragStart={this._handleDragStart}
+        dragStartRadius={DND_DRAG_START_RADIUS_LIBRARY}
+        onDragStart={onDragStart}
       />
     ));
 
