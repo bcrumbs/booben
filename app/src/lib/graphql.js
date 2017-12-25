@@ -5,10 +5,6 @@
 import _forOwn from 'lodash.forown';
 import { Record, Map, List } from 'immutable';
 
-import JssyValue, {
-  SourceDataConnectionPaginationState,
-} from '../models/JssyValue';
-
 import {
   getTypeNameByField,
   getTypeNameByPath,
@@ -26,7 +22,11 @@ import {
   RELAY_CONNECTION_FIELD_EDGES,
   RELAY_EDGE_FIELD_NODE,
   RELAY_EDGE_FIELD_CURSOR,
-} from './schema';
+} from '@jssy/graphql-schema';
+
+import JssyValue, {
+  SourceDataConnectionPaginationState,
+} from '../models/JssyValue';
 
 import {
   getComponentMeta,

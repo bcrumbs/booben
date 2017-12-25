@@ -26,3 +26,5 @@ export const REACT_COMPATIBILITY_MODE = true;
 export const REACT_COMPATIBILITY_MODE_WARNINGS = false;
 
 export const COMPONENTS_COPY_NAME_TO_TITLE_ON_CREATION = true;
+
+export const CSS_EDITOR_DEBOUNCE = 200;

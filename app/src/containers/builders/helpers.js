@@ -70,7 +70,7 @@ export const getRenderHints = (components, rootId, meta, schema, project) => {
     ) {
       ret.needRefs.add(action.params.componentId);
     }
-  
+
     if (isAsyncAction(action.type)) {
       action.params.successActions.forEach(visitAction);
       action.params.errorActions.forEach(visitAction);
@@ -182,7 +182,7 @@ export const getComponentByName = (componentName, componentsBundle) => {
   const { name, namespace } = parseComponentName(componentName);
 
   if (namespace === 'HTML') {
-    return name;
+    return componentsBundle.getStyledHTMLComponent(name);
   } else if (namespace === '') {
     if (name === 'List') return List;
     if (name === 'Text') return Text;

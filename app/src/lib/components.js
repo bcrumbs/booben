@@ -6,6 +6,11 @@ import { Set, Map } from 'immutable';
 import _forOwn from 'lodash.forown';
 import { TypeNames } from '@jssy/types';
 
+import {
+  getMutationField,
+  getJssyValueDefOfMutationArgument,
+} from '@jssy/graphql-schema';
+
 import JssyValue, {
   SourceDataDesigner,
   Action,
@@ -20,7 +25,6 @@ import {
   constructComponent,
 } from './meta';
 
-import { getMutationField, getJssyValueDefOfMutationArgument } from './schema';
 import { getFunctionInfo } from './functions';
 import { expandPath } from './path';
 import { mapListToArray } from '../utils/misc';

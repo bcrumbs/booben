@@ -47,6 +47,7 @@
  * @property {Object<string, PlainJssyValue>} systemProps
  * @property {ProjectComponent[]} children
  * @property {number[]} regionsEnabled
+ * @property {string} style - CSS for HTML components
  */
 
 /**

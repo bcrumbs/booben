@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
 import { Dialog, Form, FormItem, TextField } from '@reactackle/reactackle';
+import snakeCase from 'lodash.snakecase';
 
 import {
   BlockContent,
@@ -105,7 +106,17 @@ class _CreateRouteDialog extends Component {
   }
 
   _handleTitleChange({ value }) {
-    this.props.onFieldChange({ title: value });
+    const { formTouchedFields } = this.props;
+
+    const newFormState = {
+      title: value,
+    };
+
+    if (!formTouchedFields.path) {
+      newFormState.path = snakeCase(value);
+    }
+
+    this.props.onFieldChange(newFormState);
   }
 
   _handleTitleBlur() {

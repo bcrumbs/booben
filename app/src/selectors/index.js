@@ -6,6 +6,7 @@ import { createSelector } from 'reselect';
 import IntlMessageFormat from 'intl-messageformat';
 import _forOwn from 'lodash.forown';
 import { List } from 'immutable';
+import { getTypeNameByPath } from '@jssy/graphql-schema';
 
 import {
   getComponentMeta,
@@ -18,7 +19,6 @@ import {
 } from '../lib/meta';
 
 import { formatComponentTitle } from '../lib/components';
-import { getTypeNameByPath } from '../lib/schema';
 import { isDef, mapListToArray } from '../utils/misc';
 import { INVALID_ID } from '../constants/misc';
 import { isEmptyListComponent } from '../containers/builders/helpers';

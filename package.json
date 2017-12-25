@@ -20,8 +20,9 @@
   "dependencies": {
     "@common/async-utils": "^0.2.1",
     "@common/tree": "^0.1.1",
+    "@jssy/graphql-schema": "^0.1.0",
     "@jssy/metadata": "^0.8.0",
-    "@jssy/types": "^0.5.0",
+    "@jssy/types": "^0.6.0",
     "@reactackle/reactackle": "0.1.0-dev.688",
     "apollo-cache-inmemory": "^1.1.4",
     "apollo-client": "^2.0.4",
@@ -58,6 +59,7 @@
     "lodash.omit": "^4.5.0",
     "lodash.pick": "^4.4.0",
     "lodash.set": "^4.3.2",
+    "lodash.snakecase": "^4.1.1",
     "lodash.startcase": "^4.4.0",
     "lodash.throttle": "^4.1.1",
     "lodash.transform": "^4.6.0",
