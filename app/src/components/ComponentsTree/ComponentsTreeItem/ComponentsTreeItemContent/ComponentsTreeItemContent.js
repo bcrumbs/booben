@@ -11,9 +11,13 @@ import { ButtonsStyled } from '../styles/ButtonsStyled';
 import { IconStyled } from '../styles/IconStyled';
 import { SpacerStyled } from '../styles/SpacerStyled';
 
+import {
+  ComponentsTreeItemTitle,
+} from '../ComponentsTreeItemTitle/ComponentsTreeItemTitle';
+
 const propTypes = {
   componentId: PropTypes.number.isRequired,
-  itemElement: PropTypes.element,
+  title: PropTypes.string,
   hasSubLevel: PropTypes.bool,
   expanded: PropTypes.bool,
   active: PropTypes.bool,
@@ -27,7 +31,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-  itemElement: null,
+  title: '',
   hasSubLevel: false,
   expanded: false,
   active: false,
@@ -98,7 +102,7 @@ export class ComponentsTreeItemContent extends PureComponent {
   }
   
   render() {
-    const { expanded, itemElement, hasSubLevel } = this.props;
+    const { expanded, title, hasSubLevel } = this.props;
     let button = null;
     let spacer = null;
     
@@ -116,6 +120,10 @@ export class ComponentsTreeItemContent extends PureComponent {
     } else {
       spacer = <SpacerStyled />;
     }
+
+    const titleElement = (
+      <ComponentsTreeItemTitle title={title} />
+    );
     
     return (
       <ItemContentStyled
@@ -130,7 +138,7 @@ export class ComponentsTreeItemContent extends PureComponent {
       >
         {spacer}
         {button}
-        {itemElement}
+        {titleElement}
       </ItemContentStyled>
     );
   }
