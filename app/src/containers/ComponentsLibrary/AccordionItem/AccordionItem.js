@@ -22,7 +22,7 @@ const propTypes = {
 
 const DraggableComponentTag = connectDraggable(draggable(ComponentTag));
 
-export class AccordionItem extends PureComponent {
+export class AccordionItem extends PureComponent { // eslint-disable-line
   render() {
     const {
       components,

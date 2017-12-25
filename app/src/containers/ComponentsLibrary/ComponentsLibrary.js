@@ -55,10 +55,7 @@ import {
 } from '../../lib/components';
 
 import { combineFiltersAll, mapListToArray } from '../../utils/misc';
-
-import {
-  LIBRARY_SEARCH_INPUT_DEBOUNCE,
-} from '../../config';
+import { LIBRARY_SEARCH_INPUT_DEBOUNCE } from '../../config';
 
 const ComponentGroupsType = PropTypes.shape({
   groups: ImmutablePropTypes.listOf(PropTypes.instanceOf(LibraryGroupData)),
