@@ -223,11 +223,6 @@ class LinkPropWindowComponent extends PureComponent {
       id: 'function',
       title: getLocalizedText('linkDialog.source.function'),
     });
-
-    items.push({
-      id: 'otherComponent',
-      title: getLocalizedText('linkDialog.source.otherComponent'),
-    });
     
     return items;
   }
@@ -433,7 +428,14 @@ class LinkPropWindowComponent extends PureComponent {
    * @private
    */
   _renderSourceSelection() {
+    const { getLocalizedText } = this.props;
     const sourceItems = this._getAvailableSources();
+
+    sourceItems.push({
+      id: 'otherComponent',
+      title: getLocalizedText('linkDialog.source.otherComponent'),
+      withoutConnection: true,
+    });
 
     //noinspection JSValidateTypes
     return (

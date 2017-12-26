@@ -227,13 +227,12 @@ class ComponentPropsEditorComponent extends PureComponent {
       this._handleEditActions.bind(this, true);
     this._handleSystemPropChange = this._handleChange.bind(this, true);
     this._handleSystemPropLink = this._handleLink.bind(this, true);
-    this._handleSystemPropPick = this._handlePick.bind(this, true);
 
     this._handleSetComponent = this._handleSetComponent.bind(this, false);
     this._handleEditActions = this._handleEditActions.bind(this, false);
     this._handleChange = this._handleChange.bind(this, false);
     this._handleLink = this._handleLink.bind(this, false);
-    this._handlePick = this._handlePick.bind(this, false);
+    this._handlePick = this._handlePick.bind(this);
 
     this._handleLinkApply = this._handleLinkApply.bind(this);
     this._handleLinkCancel = this._handleLinkCancel.bind(this);
@@ -332,7 +331,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     });
   }
 
-  _handlePick(isSystemProp, { name, path }) {
+  _handlePick({ name, path }) {
     const {
       meta,
       components,
@@ -344,6 +343,8 @@ class ComponentPropsEditorComponent extends PureComponent {
     const componentId = selectedComponentIds.first();
     const component = components.get(componentId);
     const componentMeta = getComponentMeta(component.name, meta);
+
+    const isSystemProp = name in SYSTEM_PROPS;
     const linkingValueDef = isSystemProp
       ? getNestedTypedef(SYSTEM_PROPS[name], path)
       : getNestedTypedef(componentMeta.props[name], path, componentMeta.types);
@@ -640,7 +641,6 @@ class ComponentPropsEditorComponent extends PureComponent {
         getLocalizedText={getLocalizedText}
         onChange={this._handleChange}
         onLink={this._handleLink}
-        onPick={this._handlePick}
         onConstructComponent={this._handleSetComponent}
         onEditActions={this._handleEditActions}
       />
@@ -922,10 +922,7 @@ class ComponentPropsEditorComponent extends PureComponent {
             valueDef={linkingValueDef}
             userTypedefs={componentMeta.types}
             onLink={this._handleLinkApply}
-            onPick={this.props.pickedComponentId === -1
-              ? this._handleSystemPropPick
-              : this._handlePick
-            }
+            onPick={this._handlePick}
           />
         </DesignDialog>
       </BlockContentBox>
