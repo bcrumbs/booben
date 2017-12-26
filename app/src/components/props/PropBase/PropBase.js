@@ -28,7 +28,6 @@ const propTypes = {
   tooltip: PropTypes.string,
   message: PropTypes.string,
   linkable: PropTypes.bool,
-  pickable: PropTypes.bool,
   linked: PropTypes.bool,
   linkedWith: PropTypes.string,
   required: PropTypes.bool,
@@ -50,7 +49,6 @@ const propTypes = {
   ])),
   content: PropTypes.element,
   onLink: PropTypes.func,
-  onPick: PropTypes.func,
   onUnlink: PropTypes.func,
   onCheck: PropTypes.func,
   onDelete: PropTypes.func,
@@ -64,7 +62,6 @@ const defaultProps = {
   tooltip: '',
   message: '',
   linkable: false,
-  pickable: false,
   linked: false,
   linkedWith: '',
   required: false,
@@ -77,7 +74,6 @@ const defaultProps = {
   additionalActions: [],
   content: null,
   onLink: noop,
-  onPick: noop,
   onUnlink: noop,
   onCheck: noop,
   onDelete: noop,
@@ -89,7 +85,6 @@ export class PropBase extends PureComponent {
     this._handleCheck = this._handleCheck.bind(this);
     this._handleDelete = this._handleDelete.bind(this);
     this._handleLink = this._handleLink.bind(this);
-    this._handlePick = this._handlePick.bind(this);
   }
 
   /**
@@ -141,15 +136,6 @@ export class PropBase extends PureComponent {
     onLink({ id });
   }
 
-  /**
-   *
-   * @private
-   */
-  _handlePick() {
-    const { id, onPick } = this.props;
-    onPick({ id });
-  }
-
   render() {
     const {
       label,
@@ -162,7 +148,6 @@ export class PropBase extends PureComponent {
       deletable,
       linkable,
       linked,
-      pickable,
       checkable,
       checked,
       expanded,
@@ -273,18 +258,6 @@ export class PropBase extends PureComponent {
       );
 
       actionItemsRight.push(linkAction);
-    }
-
-    if (pickable && (!checkable || checked)) {
-      const pickAction = (
-        <PropAction
-          key="pick"
-          icon="eyedropper"
-          onPress={this._handlePick}
-        />
-      );
-
-      actionItemsRight.push(pickAction);
     }
 
     let actionsRightElement = null;

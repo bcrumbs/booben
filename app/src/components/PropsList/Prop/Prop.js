@@ -45,7 +45,6 @@ const propTypes = {
   onAddValue: PropTypes.func,
   onDeleteValue: PropTypes.func,
   onLink: PropTypes.func,
-  onPick: PropTypes.func,
   onUnlink: PropTypes.func,
   onCheck: PropTypes.func,
 };
@@ -59,7 +58,6 @@ const defaultProps = {
   onAddValue: noop,
   onDeleteValue: noop,
   onLink: noop,
-  onPick: noop,
   onUnlink: noop,
   onCheck: noop,
 };
@@ -109,19 +107,17 @@ const getValueByPath = (value, path) => path.reduce(getNestedValue, value);
 export class Prop extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this.state = {
       isOpen: false,
       currentPath: [],
     };
-    
+
     this._handleOpen = this._handleOpen.bind(this);
     this._handleOpenNested = this._handleOpenNested.bind(this);
     this._handleBreadcrumbsSelect = this._handleBreadcrumbsSelect.bind(this);
     this._handleLink = this._handleLink.bind(this);
     this._handleLinkNested = this._handleLinkNested.bind(this);
-    this._handlePick = this._handlePick.bind(this);
-    this._handlePickNested = this._handlePickNested.bind(this);
     this._handleUnlink = this._handleUnlink.bind(this);
     this._handleUnlinkNested = this._handleUnlinkNested.bind(this);
     this._handleCheck = this._handleCheck.bind(this);
@@ -135,7 +131,7 @@ export class Prop extends PureComponent {
     this._handleEditActions = this._handleEditActions.bind(this);
     this._handleEditActionsNested = this._handleEditActionsNested.bind(this);
   }
-  
+
   /**
    *
    * @private
@@ -144,7 +140,7 @@ export class Prop extends PureComponent {
     const { isOpen } = this.state;
     this.setState({ isOpen: !isOpen, currentPath: [] });
   }
-  
+
   /**
    *
    * @param {string|number} index
@@ -154,7 +150,7 @@ export class Prop extends PureComponent {
     const { currentPath } = this.state;
     this.setState({ currentPath: [...currentPath, index] });
   }
-  
+
   /**
    *
    * @param {number} index
@@ -164,7 +160,7 @@ export class Prop extends PureComponent {
     const { currentPath } = this.state;
     this.setState({ currentPath: currentPath.slice(0, index) });
   }
-  
+
   /**
    *
    * @param {boolean} checked
@@ -174,7 +170,7 @@ export class Prop extends PureComponent {
     const { propName, onCheck } = this.props;
     onCheck({ propName, checked, path: [] });
   }
-  
+
   /**
    *
    * @param {boolean} checked
@@ -186,7 +182,7 @@ export class Prop extends PureComponent {
     const { currentPath } = this.state;
     onCheck({ propName, checked, path: [...currentPath, index] });
   }
-  
+
   /**
    *
    * @private
@@ -196,15 +192,6 @@ export class Prop extends PureComponent {
     onLink({ propName, path: [] });
   }
 
-  /**
-   *
-   * @private
-   */
-  _handlePick() {
-    const { propName, onPick } = this.props;
-    onPick({ propName, path: [] });
-  }
-  
   /**
    *
    * @param {string|number} index
@@ -218,24 +205,13 @@ export class Prop extends PureComponent {
 
   /**
    *
-   * @param {string|number} index
-   * @private
-   */
-  _handlePickNested({ index }) {
-    const { propName, onPick } = this.props;
-    const { currentPath } = this.state;
-    onPick({ propName, path: [...currentPath, index] });
-  }
-  
-  /**
-   *
    * @private
    */
   _handleUnlink() {
     const { propName, onUnlink } = this.props;
     onUnlink({ propName, path: [] });
   }
-  
+
   /**
    *
    * @param {string|number} index
@@ -246,7 +222,7 @@ export class Prop extends PureComponent {
     const { currentPath } = this.state;
     onUnlink({ propName, path: [...currentPath, index] });
   }
-  
+
   /**
    *
    * @param {string|number} index
@@ -257,7 +233,7 @@ export class Prop extends PureComponent {
     const { currentPath } = this.state;
     onDeleteValue({ propName, index, where: currentPath });
   }
-  
+
   /**
    *
    * @param {Object} [name]
@@ -271,7 +247,7 @@ export class Prop extends PureComponent {
     const index = currentType.view === PropViews.ARRAY ? -1 : name;
     onAddValue({ propName, index, where: currentPath });
   }
-  
+
   /**
    *
    * @param {*} value
@@ -281,7 +257,7 @@ export class Prop extends PureComponent {
     const { propName, onChange } = this.props;
     onChange({ propName, value, path: [] });
   }
-  
+
   /**
    *
    * @param {string|number} index
@@ -291,10 +267,10 @@ export class Prop extends PureComponent {
   _handleChangeNested({ index, value }) {
     const { propName, onChange } = this.props;
     const { currentPath } = this.state;
-    
+
     onChange({ propName, value, path: [...currentPath, index] });
   }
-  
+
   /**
    *
    * @private
@@ -303,7 +279,7 @@ export class Prop extends PureComponent {
     const { propName, onSetComponent } = this.props;
     onSetComponent({ propName, path: [] });
   }
-  
+
   /**
    *
    * @param {string|number} index
@@ -312,10 +288,10 @@ export class Prop extends PureComponent {
   _handleSetComponentNested({ index }) {
     const { propName, onSetComponent } = this.props;
     const { currentPath } = this.state;
-    
+
     onSetComponent({ propName, path: [...currentPath, index] });
   }
-  
+
   /**
    *
    * @private
@@ -324,7 +300,7 @@ export class Prop extends PureComponent {
     const { propName, onEditActions } = this.props;
     onEditActions({ propName, path: [] });
   }
-  
+
   /**
    *
    * @param {string|number} index
@@ -333,38 +309,38 @@ export class Prop extends PureComponent {
   _handleEditActionsNested({ index }) {
     const { propName, onEditActions } = this.props;
     const { currentPath } = this.state;
-    
+
     onEditActions({ propName, path: [...currentPath, index] });
   }
-  
+
   _renderBreadcrumbs() {
     const { propType } = this.props;
     const { currentPath } = this.state;
-    
+
     if (currentPath.length === 0) return null;
-    
+
     const items = [{
       title: propType.label,
       subtitle: propType.type,
     }];
-    
+
     let currentType = propType;
-    
+
     for (let i = 0, l = currentPath.length; i < l; i++) {
       const pathElement = currentPath[i];
       const nestedType = getNestedType(currentType, pathElement);
-      
+
       items.push({
         title: currentType.view === PropViews.SHAPE
           ? nestedType.label
           : currentType.formatItemLabel(pathElement),
-        
+
         subtitle: nestedType.type,
       });
-      
+
       currentType = nestedType;
     }
-    
+
     return (
       <ComplexPropBreadcrumbs
         items={items}
@@ -372,18 +348,18 @@ export class Prop extends PureComponent {
       />
     );
   }
-  
+
   _renderNestedProps() {
     const { propType, value, disabled, getLocalizedText } = this.props;
     const { isOpen, currentPath } = this.state;
 
     if (!isOpen) return null;
-  
+
     const currentType = getTypeByPath(propType, currentPath);
     const currentValue = getValueByPath(value, currentPath);
-  
+
     if (!currentValue || currentValue.value === null) return null;
-    
+
     if (currentType.view === PropViews.SHAPE) {
       return Object.keys(currentType.fields).map(fieldName => (
         <NestedProp
@@ -398,7 +374,6 @@ export class Prop extends PureComponent {
           onSetComponent={this._handleSetComponentNested}
           onEditActions={this._handleEditActionsNested}
           onLink={this._handleLinkNested}
-          onPick={this._handlePickNested}
           onUnlink={this._handleUnlinkNested}
           onCheck={this._handleCheckNested}
           onOpen={this._handleOpenNested}
@@ -420,7 +395,6 @@ export class Prop extends PureComponent {
           onSetComponent={this._handleSetComponentNested}
           onEditActions={this._handleEditActionsNested}
           onLink={this._handleLinkNested}
-          onPick={this._handlePickNested}
           onUnlink={this._handleUnlinkNested}
           onCheck={this._handleCheckNested}
           onOpen={this._handleOpenNested}
@@ -443,7 +417,6 @@ export class Prop extends PureComponent {
           onSetComponent={this._handleSetComponentNested}
           onEditActions={this._handleEditActionsNested}
           onLink={this._handleLinkNested}
-          onPick={this._handlePickNested}
           onUnlink={this._handleUnlinkNested}
           onCheck={this._handleCheckNested}
           onOpen={this._handleOpenNested}
@@ -482,11 +455,11 @@ export class Prop extends PureComponent {
       </NestedPropsList>
     );
   }
-  
+
   render() {
     const { propType, value, disabled, getLocalizedText } = this.props;
     const { isOpen } = this.state;
-    
+
     const commonProps = {
       label: propType.label || '',
       secondaryLabel: propType.secondaryLabel || '',
@@ -500,11 +473,10 @@ export class Prop extends PureComponent {
       checkable: !!propType.checkable,
       checked: !!value.checked,
       onLink: this._handleLink,
-      onPick: this._handlePick,
       onUnlink: this._handleUnlink,
       onCheck: this._handleCheck,
     };
-    
+
     if (propType.view === PropViews.INPUT) {
       const optionalProps = {};
 
@@ -582,7 +554,7 @@ export class Prop extends PureComponent {
       );
     } else if (isComplexView(propType.view)) {
       const nestedList = this._renderNestedPropsList();
-      
+
       return (
         <PropExpandable
           {...commonProps}

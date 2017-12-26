@@ -111,7 +111,7 @@ export default {
           disabled: {
             borderColor: colorBorder,
           },
-        }
+        },
       },
 
       optionsList: {

@@ -24,87 +24,87 @@ export default {
     fontSize: 15,
     lineHeight: 1.5,
   },
-  
+
   default: {
     blocksSeparatorColor: borderColor,
     subtitleColor: textColorMedium,
-    
+
     content: {
       bgColor: 'transparent',
     },
-    
+
     contentHeading: {
       textColor: textColorMedium,
     },
-    
+
     title: {
+      borderColor,
       color: textColorBody,
       placeholderColor: textColorMedium,
-      borderColor: borderColor,
       borderColorActive: colorMain,
     },
-    
+
     titleIcon: {
       color: textColorMedium,
     },
-  
+
     placeholder: {
       bgColor: paletteBlueGrey25,
       textColor: textColorMedium,
     },
-  
+
     shading: {
       default: {
         backgroundColor: 'transparent',
       },
-    
+
       dim: {
         backgroundColor: paletteBlueGrey25,
       },
-    
+
       editing: {
         backgroundColor: colorActiveBg,
       },
     },
   },
-  
+
   alt: {
     blocksSeparatorColor: paletteBlueGrey500,
     subtitleColor: textColorMedium,
-  
+
     content: {
       bgColor: 'transparent',
     },
-  
+
     contentHeading: {
       textColor: textColorMedium,
     },
-    
+
     title: {
       color: textColorBodyAlt,
       placeholderColor: textColorMedium,
       borderColor: paletteBlueGrey500,
       borderColorActive: colorMain,
     },
-  
+
     titleIcon: {
       color: textColorMedium,
     },
-  
+
     placeholder: {
       bgColor: paletteBlueGrey650,
       textColor: textColorMedium,
     },
-  
+
     shading: {
       default: {
         backgroundColor: 'transparent',
       },
-    
+
       dim: {
         backgroundColor: paletteBlueGrey700,
       },
-    
+
       editing: {
         backgroundColor: colorActiveBgLight,
       },
