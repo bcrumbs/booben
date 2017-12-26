@@ -80,7 +80,6 @@ export const getConnectionDataValuePickerFns = (
   meta,
   schema,
   project,
-  language,
 ) => {
   const filter = componentId => {
     const component = components.get(componentId);

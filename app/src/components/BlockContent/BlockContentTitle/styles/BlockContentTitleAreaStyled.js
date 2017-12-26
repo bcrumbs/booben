@@ -1,6 +1,5 @@
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import { baseModule } from '../../../../styles/themeSelectors';
 
 const propTypes = {
   draggable: PropTypes.bool,

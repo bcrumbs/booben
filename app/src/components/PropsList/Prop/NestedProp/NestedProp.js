@@ -37,7 +37,6 @@ const propTypes = {
   onSetComponent: PropTypes.func,
   onEditActions: PropTypes.func,
   onLink: PropTypes.func,
-  onPick: PropTypes.func,
   onUnlink: PropTypes.func,
   onCheck: PropTypes.func,
   onOpen: PropTypes.func,
@@ -52,7 +51,6 @@ const defaultProps = {
   onSetComponent: noop,
   onEditActions: noop,
   onLink: noop,
-  onPick: noop,
   onUnlink: noop,
   onCheck: noop,
   onOpen: noop,
@@ -62,7 +60,7 @@ const defaultProps = {
 export class NestedProp extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this._handleOpen = this._handleOpen.bind(this);
     this._handleDelete = this._handleDelete.bind(this);
     this._handleCheck = this._handleCheck.bind(this);
@@ -70,10 +68,9 @@ export class NestedProp extends PureComponent {
     this._handleSetComponent = this._handleSetComponent.bind(this);
     this._handleEditActions = this._handleEditActions.bind(this);
     this._handleLink = this._handleLink.bind(this);
-    this._handlePick = this._handlePick.bind(this);
     this._handleUnlink = this._handleUnlink.bind(this);
   }
-  
+
   /**
    *
    * @private
@@ -82,7 +79,7 @@ export class NestedProp extends PureComponent {
     const { index, onOpen } = this.props;
     onOpen({ index });
   }
-  
+
   /**
    *
    * @private
@@ -91,7 +88,7 @@ export class NestedProp extends PureComponent {
     const { index, onDelete } = this.props;
     onDelete({ index });
   }
-  
+
   /**
    *
    * @param {boolean} checked
@@ -101,7 +98,7 @@ export class NestedProp extends PureComponent {
     const { index, onCheck } = this.props;
     onCheck({ index, checked });
   }
-  
+
   /**
    *
    * @param {*} value
@@ -111,7 +108,7 @@ export class NestedProp extends PureComponent {
     const { index, onChange } = this.props;
     onChange({ index, value });
   }
-  
+
   /**
    *
    * @private
@@ -120,7 +117,7 @@ export class NestedProp extends PureComponent {
     const { index, onSetComponent } = this.props;
     onSetComponent({ index });
   }
-  
+
   /**
    *
    * @private
@@ -129,7 +126,7 @@ export class NestedProp extends PureComponent {
     const { index, onEditActions } = this.props;
     onEditActions({ index });
   }
-  
+
   /**
    *
    * @private
@@ -143,20 +140,11 @@ export class NestedProp extends PureComponent {
    *
    * @private
    */
-  _handlePick() {
-    const { index, onPick } = this.props;
-    onPick({ index });
-  }
-  
-  /**
-   *
-   * @private
-   */
   _handleUnlink() {
     const { index, onUnlink } = this.props;
     onUnlink({ index });
   }
-  
+
   render() {
     const {
       propType,
@@ -166,7 +154,7 @@ export class NestedProp extends PureComponent {
       label,
       getLocalizedText,
     } = this.props;
-    
+
     const commonProps = {
       deletable,
       label,
@@ -183,10 +171,9 @@ export class NestedProp extends PureComponent {
       onDelete: this._handleDelete,
       onCheck: this._handleCheck,
       onLink: this._handleLink,
-      onPick: this._handlePick,
       onUnlink: this._handleUnlink,
     };
-    
+
     if (propType.view === PropViews.INPUT) {
       const optionalProps = {};
 

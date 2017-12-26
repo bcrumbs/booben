@@ -2,7 +2,7 @@
  * @author Dmitriy Bizyaev
  */
 
-import React, { PureComponent } from 'react';
+import React, { PureComponent, Fragment } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import _startCase from 'lodash.startcase';
@@ -59,7 +59,6 @@ import {
 } from '../../actions/project';
 
 import {
-  getStateSlotPickerFns,
   getConnectionDataValuePickerFns,
 } from '../../actions/helpers/component-picker';
 
@@ -239,7 +238,6 @@ class ActionEditorComponent extends PureComponent {
     this._handleLink = this._handleLink.bind(this);
     this._handleLinkApply = this._handleLinkApply.bind(this);
     this._handleLinkCancel = this._handleLinkCancel.bind(this);
-    this._handlePick = this._handlePick.bind(this);
 
     this._handleSave = this._handleSave.bind(this);
     this._handleCancel = this._handleCancel.bind(this);
@@ -559,7 +557,6 @@ class ActionEditorComponent extends PureComponent {
       meta,
       schema,
       project,
-      language,
       currentComponents,
       onPickComponentData,
     } = this.props;
@@ -569,7 +566,6 @@ class ActionEditorComponent extends PureComponent {
       meta,
       schema,
       project,
-      language,
     );
 
     onPickComponentData(filter, dataGetter);
@@ -640,51 +636,6 @@ class ActionEditorComponent extends PureComponent {
       linkingValue: false,
       linkParams: null,
     });
-  }
-
-  _handlePick({ name, path, targetValueDef, targetUserTypedefs }) {
-    const {
-      meta,
-      currentComponents,
-      language,
-      onPickComponentData,
-    } = this.props;
-
-    const { action } = this.state;
-
-    const pickingPath = {
-      start: {
-        object: action,
-        expandedPath: [],
-      },
-      steps: null,
-    };
-
-    if (action.type === ActionTypes.METHOD) {
-      pickingPath.steps = ['args', name, ...path];
-    } else if (action.type === ActionTypes.MUTATION) {
-      pickingPath.steps = ['args', name, ...path];
-    } else if (action.type === ActionTypes.PROP) {
-      pickingPath.steps = ['value', ...path];
-    } else if (action.type === ActionTypes.NAVIGATE) {
-      pickingPath.steps = ['routeParams', name];
-    } else {
-      throw new Error(
-        `ActionEditor#_handlePick: Wrong action type: ${action.type}`,
-      );
-    }
-
-    this.setState({ pickingPath });
-
-    const { filter, dataGetter } = getStateSlotPickerFns(
-      targetValueDef,
-      targetUserTypedefs,
-      currentComponents,
-      meta,
-      language,
-    );
-
-    onPickComponentData(filter, dataGetter);
   }
 
   _isCurrentActionValid() {
@@ -805,7 +756,6 @@ class ActionEditorComponent extends PureComponent {
           getLocalizedText={getLocalizedText}
           onChange={this._handleMutationActionArgChange}
           onLink={this._handleLink}
-          onPick={this._handlePick}
         />
       );
     });
@@ -904,7 +854,6 @@ class ActionEditorComponent extends PureComponent {
               getLocalizedText={getLocalizedText}
               onChange={this._handleMethodActionArgValueChange}
               onLink={this._handleLink}
-              onPick={this._handlePick}
             />,
           );
         });
@@ -1053,7 +1002,6 @@ class ActionEditorComponent extends PureComponent {
             getLocalizedText={getLocalizedText}
             onChange={this._handlePropActionValueChange}
             onLink={this._handleLink}
-            onPick={this._handlePick}
           />,
         );
       }
@@ -1077,21 +1025,21 @@ class ActionEditorComponent extends PureComponent {
       },
     ];
 
-    return [
-      <PropInput
-        key="url"
-        label={getLocalizedText('actionsEditor.actionForm.url')}
-        value={action.params.url}
-        onChange={this._handleURLActionURLChange}
-      />,
-      <PropList
-        key="urlWindow"
-        label={getLocalizedText('actionsEditor.actionForm.urlWindow')}
-        options={windowOptions}
-        value={action.params.newWindow}
-        onChange={this._handleURLActionNewWindowChange}
-      />,
-    ];
+    return (
+      <Fragment>
+        <PropInput
+          label={getLocalizedText('actionsEditor.actionForm.url')}
+          value={action.params.url}
+          onChange={this._handleURLActionURLChange}
+        />
+        <PropList
+          label={getLocalizedText('actionsEditor.actionForm.urlWindow')}
+          options={windowOptions}
+          value={action.params.newWindow}
+          onChange={this._handleURLActionNewWindowChange}
+        />
+      </Fragment>
+    );
   }
 
   _renderNavigateActionProps() {
@@ -1148,7 +1096,6 @@ class ActionEditorComponent extends PureComponent {
               getLocalizedText={getLocalizedText}
               onChange={this._handleNavigateActionRouteParamChange}
               onLink={this._handleLink}
-              onPick={this._handlePick}
             />,
           );
         }
@@ -1183,7 +1130,6 @@ class ActionEditorComponent extends PureComponent {
         getLocalizedText={getLocalizedText}
         onChange={this._handleAJAXActionURLChange}
         onLink={this._handleLink}
-        onPick={this._handlePick}
       />,
     );
 
@@ -1247,7 +1193,6 @@ class ActionEditorComponent extends PureComponent {
           getLocalizedText={getLocalizedText}
           onChange={this._handleAJAXActionBodyChange}
           onLink={this._handleLink}
-          onPick={this._handlePick}
         />,
       );
     }

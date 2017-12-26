@@ -49,7 +49,6 @@ const propTypes = {
   ])),
   content: PropTypes.element,
   onLink: PropTypes.func,
-  onPick: PropTypes.func,
   onUnlink: PropTypes.func,
   onCheck: PropTypes.func,
   onDelete: PropTypes.func,
@@ -75,7 +74,6 @@ const defaultProps = {
   additionalActions: [],
   content: null,
   onLink: noop,
-  onPick: noop,
   onUnlink: noop,
   onCheck: noop,
   onDelete: noop,
@@ -87,7 +85,6 @@ export class PropBase extends PureComponent {
     this._handleCheck = this._handleCheck.bind(this);
     this._handleDelete = this._handleDelete.bind(this);
     this._handleLink = this._handleLink.bind(this);
-    this._handlePick = this._handlePick.bind(this);
   }
 
   /**
@@ -137,15 +134,6 @@ export class PropBase extends PureComponent {
   _handleLink() {
     const { id, onLink } = this.props;
     onLink({ id });
-  }
-
-  /**
-   *
-   * @private
-   */
-  _handlePick() {
-    const { id, onPick } = this.props;
-    onPick({ id });
   }
 
   render() {
@@ -271,7 +259,7 @@ export class PropBase extends PureComponent {
 
       actionItemsRight.push(linkAction);
     }
-  
+
     let actionsRightElement = null;
     if (actionItemsRight.length) {
       actionsRightElement = (
