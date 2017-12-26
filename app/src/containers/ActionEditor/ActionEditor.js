@@ -1025,21 +1025,21 @@ class ActionEditorComponent extends PureComponent {
       },
     ];
 
-    return (
-      <Fragment>
-        <PropInput
-          label={getLocalizedText('actionsEditor.actionForm.url')}
-          value={action.params.url}
-          onChange={this._handleURLActionURLChange}
-        />
-        <PropList
-          label={getLocalizedText('actionsEditor.actionForm.urlWindow')}
-          options={windowOptions}
-          value={action.params.newWindow}
-          onChange={this._handleURLActionNewWindowChange}
-        />
-      </Fragment>
-    );
+    return [
+      <PropInput
+        key="url"
+        label={getLocalizedText('actionsEditor.actionForm.url')}
+        value={action.params.url}
+        onChange={this._handleURLActionURLChange}
+      />,
+      <PropList
+        key="url-window"
+        label={getLocalizedText('actionsEditor.actionForm.urlWindow')}
+        options={windowOptions}
+        value={action.params.newWindow}
+        onChange={this._handleURLActionNewWindowChange}
+      />,
+    ];
   }
 
   _renderNavigateActionProps() {
