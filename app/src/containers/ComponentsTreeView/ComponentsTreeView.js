@@ -1041,12 +1041,6 @@ class ComponentsTreeViewComponent extends PureComponent {
       isFunction(pickingComponentFilter) &&
       !pickingComponentFilter(componentId);
 
-    const titleElement = (
-      <ComponentsTreeItemTitle
-        title={title}
-      />
-    );
-
     const hasSubLevel = !!subLevel;
 
     return (
@@ -1057,7 +1051,7 @@ class ComponentsTreeViewComponent extends PureComponent {
           key={String(componentId)}
           componentId={componentId}
           expanded={expanded}
-          itemElement={titleElement}
+          title={title}
           onExpand={this._handleExpand}
           disabled={disabled}
           active={active}

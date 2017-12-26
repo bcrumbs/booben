@@ -11,9 +11,13 @@ import { ButtonsStyled } from '../styles/ButtonsStyled';
 import { IconStyled } from '../styles/IconStyled';
 import { SpacerStyled } from '../styles/SpacerStyled';
 
+import {
+  ComponentsTreeItemTitle,
+} from '../ComponentsTreeItemTitle/ComponentsTreeItemTitle';
+
 const propTypes = {
   componentId: PropTypes.number.isRequired,
-  itemElement: PropTypes.element,
+  title: PropTypes.string,
   hasSubLevel: PropTypes.bool,
   expanded: PropTypes.bool,
   active: PropTypes.bool,
@@ -27,7 +31,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-  itemElement: null,
+  title: '',
   hasSubLevel: false,
   expanded: false,
   active: false,
@@ -43,7 +47,7 @@ const defaultProps = {
 export class ComponentsTreeItemContent extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this._expandButtonElement = null;
 
     this._saveExpandButtonRef = this._saveExpandButtonRef.bind(this);
@@ -52,7 +56,7 @@ export class ComponentsTreeItemContent extends PureComponent {
     this._handleClick = this._handleClick.bind(this);
     this._saveItemContentRef = this._saveItemContentRef.bind(this);
   }
-  
+
   componentDidMount() {
     if (this._expandButtonElement) {
       this._expandButtonElement.addEventListener('click', event => {
@@ -64,7 +68,7 @@ export class ComponentsTreeItemContent extends PureComponent {
       });
     }
   }
-  
+
   _saveExpandButtonRef(ref) {
     this._expandButtonElement = ref;
   }
@@ -73,12 +77,12 @@ export class ComponentsTreeItemContent extends PureComponent {
     const { componentId, disabled, onHover } = this.props;
     if (!disabled) onHover({ componentId, hovered: true });
   }
-  
+
   _handleHoverOut() {
     const { componentId, disabled, onHover } = this.props;
     if (!disabled) onHover({ componentId, hovered: false });
   }
-  
+
   _handleExpand() {
     const { componentId, expanded, onExpand } = this.props;
     onExpand({ componentId, expanded: !expanded });
@@ -96,12 +100,12 @@ export class ComponentsTreeItemContent extends PureComponent {
     this._titleElement = ref;
     elementRef({ componentId, ref });
   }
-  
+
   render() {
-    const { expanded, itemElement, hasSubLevel } = this.props;
+    const { expanded, title, hasSubLevel } = this.props;
     let button = null;
     let spacer = null;
-    
+
     if (hasSubLevel) {
       button = (
         <ButtonsStyled>
@@ -116,7 +120,7 @@ export class ComponentsTreeItemContent extends PureComponent {
     } else {
       spacer = <SpacerStyled />;
     }
-    
+
     return (
       <ItemContentStyled
         hovered={this.props.hovered}
@@ -130,7 +134,7 @@ export class ComponentsTreeItemContent extends PureComponent {
       >
         {spacer}
         {button}
-        {itemElement}
+        <ComponentsTreeItemTitle title={title} />
       </ItemContentStyled>
     );
   }
