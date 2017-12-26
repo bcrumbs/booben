@@ -38,7 +38,7 @@ const npmInit = (dir, options) => co(function* () {
   logger.debug(`init package.json in ${dir}`);
   const cmd = 'npm init -y';
   const [stdout, stderr] = yield exec(cmd, { cwd: dir });
-  
+
   if (_options.log) {
     if (stdout) {
       _options.log('NPM output:');
@@ -93,10 +93,15 @@ const npmInstall = (dir, modules, options) => co(function* () {
 /**
  *
  * @param {LibData[]} libsData
+ * @param {boolean} [usingStyledComponents=false]
  * @returns {string}
  */
-const generateBundleCode = libsData => {
+const generateBundleCode = (libsData, usingStyledComponents = false) => {
   let ret = '';
+
+  if (usingStyledComponents) {
+    ret += 'import __styled_components__ from \'styled-components\';\n';
+  }
 
   libsData.forEach(data => {
     if (data.meta.import && data.meta.import.length > 0) {
@@ -111,7 +116,11 @@ const generateBundleCode = libsData => {
   ret +=
     'export default { ' +
     `${libsData.map(data => data.meta.namespace).join(', ')}` +
-    ' }';
+    ' };\n';
+
+  if (usingStyledComponents) {
+    ret += 'export const styled = __styled_components__;\n';
+  }
 
   return ret;
 };
@@ -241,7 +250,7 @@ const installLoaders = (projectDir, libsData, options) => co(function* () {
 
   libsData.forEach(libData => {
     const keys = Object.keys(libData.meta.loaders);
-    
+
     keys.forEach(key => {
       const loaders = libData.meta.loaders[key];
       loaders.forEach(loaderConfig => {
@@ -350,18 +359,29 @@ const defaultOptions = {
  */
 exports.buildComponentsBundle = (project, options) => co(function* () {
   options = Object.assign({}, defaultOptions, options);
-  
+
   const startTime = Date.now();
   const projectDir = path.join(projectsDir, project.name);
+  const usingStyledComponents = project.enableHTML;
+
+  // Prevents installation problem for macOS developers
+  yield npmInit(projectDir, {
+    log: options.npmLogger,
+  });
 
   if (project.componentLibs.length > 0) {
-    // Prevents installation problem for macOS developers
-    yield npmInit(projectDir, {
-      log: options.npmLogger,
-    });
     logger.debug(`[${project.name}] Installing component libraries`);
+
     yield npmInstall(projectDir, project.componentLibs, {
       legacyBundling: true,
+      log: options.npmLogger,
+    });
+  }
+
+  if (usingStyledComponents) {
+    logger.debug(`[${project.name}] Installing styled-components`);
+
+    yield npmInstall(projectDir, 'styled-components', {
       log: options.npmLogger,
     });
   }
@@ -376,7 +396,7 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
   logger.debug(
     `[${project.name}] Gathering metadata from ${libDirs.join(', ')}`
   );
-  
+
   let libsData = yield asyncUtils.asyncMap(libDirs, dir => co(function* () {
     const fullPath = path.join(modulesDir, dir);
     const meta = yield gatherMetadata(fullPath);
@@ -448,7 +468,7 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
   }
 
   logger.debug(`[${project.name}] Generating code for components bundle`);
-  const code = generateBundleCode(libsData);
+  const code = generateBundleCode(libsData, usingStyledComponents);
   const codeFile = path.join(projectDir, constants.PROJECT_COMPONENTS_SRC_FILE);
   yield fs.writeFile(codeFile, code);
 
@@ -461,16 +481,16 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
   );
 
   const stats = yield compile(webpackConfig);
-  
+
   if (options.printWebpackOutput) {
     logger.debug(stats.toString({ colors: true }));
   }
-  
+
   const webpackLogFile = path.join(
     projectDir,
     constants.PROJECT_PREVIEW_WEBPACK_LOG_FILE
   );
-  
+
   try {
     yield fs.writeFile(webpackLogFile, stats.toString({ colors: false }));
   } catch (err) {
@@ -478,15 +498,15 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
       `Failed to write webpack log to ${webpackLogFile}: ${err.code}`
     );
   }
-  
+
   if (options.clean) {
     logger.debug(`[${project.name}] Cleaning ${projectDir}`);
     yield clean(projectDir);
   }
-  
+
   const buildTime = Date.now() - startTime;
   logger.debug(`[${project.name}] Build finished in ${prettyMs(buildTime)}`);
-  
+
   return null;
 });
 

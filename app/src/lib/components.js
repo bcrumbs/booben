@@ -6,6 +6,11 @@ import { Set, Map } from 'immutable';
 import _forOwn from 'lodash.forown';
 import { TypeNames } from '@jssy/types';
 
+import {
+  getMutationField,
+  getJssyValueDefOfMutationArgument,
+} from '@jssy/graphql-schema';
+
 import JssyValue, {
   SourceDataDesigner,
   Action,
@@ -20,7 +25,6 @@ import {
   constructComponent,
 } from './meta';
 
-import { getMutationField, getJssyValueDefOfMutationArgument } from './schema';
 import { getFunctionInfo } from './functions';
 import { expandPath } from './path';
 import { mapListToArray } from '../utils/misc';
@@ -73,53 +77,53 @@ export const canInsertComponent = (
   meta,
 ) => {
   const componentMeta = getComponentMeta(componentName, meta);
-  
+
   const mustBeRoot =
     !!componentMeta.placement &&
     componentMeta.placement.root === 'only';
-  
+
   if (mustBeRoot) return false;
-  
+
   const container = components.get(containerId);
   const containerMeta = getComponentMeta(container.name, meta);
   if (containerMeta.kind !== 'container') return false;
-  
+
   if (!componentMeta.placement) return true;
-  
+
   const { namespace } = parseComponentName(componentName);
   const { namespace: containerNamespace } = parseComponentName(container.name);
   const sameNamespace = containerNamespace === namespace;
-  
+
   if (sameNamespace && componentMeta.placement.inside) {
     if (componentMeta.placement.inside.include) {
       const containerChildrenNames = mapListToArray(
         container.children,
         childId => components.get(childId).name,
       );
-      
+
       const sameComponentsNum = containerChildrenNames
         .reduce((acc, cur) => acc + (cur === componentName ? 1 : 0), 0);
-      
+
       const allow = componentMeta.placement.inside.include.some(inclusion => {
         if (inclusion.component) {
           const inclusionComponentName = formatComponentName(
             namespace,
             inclusion.component,
           );
-          
+
           if (container.name !== inclusionComponentName) return false;
         } else if (inclusion.group) {
           if (containerMeta.group !== inclusion.group) return false;
         } else if (inclusion.tag) {
           if (!containerMeta.tags.has(inclusion.tag)) return false;
         }
-        
+
         return !inclusion.maxNum || sameComponentsNum < inclusion.maxNum;
       });
-      
+
       if (!allow) return false;
     }
-    
+
     if (componentMeta.placement.inside.exclude) {
       const deny = componentMeta.placement.inside.exclude.some(exclusion => {
         if (exclusion.component) {
@@ -127,7 +131,7 @@ export const canInsertComponent = (
             namespace,
             exclusion.component,
           );
-          
+
           return container.name === exclusionComponentName;
         } else if (exclusion.group) {
           return containerMeta.group === exclusion.group;
@@ -137,13 +141,13 @@ export const canInsertComponent = (
           return false;
         }
       });
-      
+
       if (deny) return false;
     }
   }
-  
+
   // TODO: Check before and after constraints
-  
+
   return true;
 };
 
@@ -162,7 +166,7 @@ export const canInsertComponentIntoTree = (
   meta,
 ) => {
   const rootComponent = components.get(rootId);
-  
+
   const canInsert = canInsertComponent(
     componentName,
     components,
@@ -170,9 +174,9 @@ export const canInsertComponentIntoTree = (
     ANYWHERE,
     meta,
   );
-  
+
   if (canInsert) return true;
-  
+
   return rootComponent.children.some(childId => canInsertComponentIntoTree(
     componentName,
     components,
@@ -197,13 +201,13 @@ export const isRootComponent = component => component.parentId === INVALID_ID;
  */
 export const isDeepChild = (components, componentId, containerId) => {
   const component = components.get(componentId);
-  
+
   let parentId = component.parentId;
   while (parentId !== INVALID_ID) {
     if (parentId === containerId) return true;
     parentId = components.get(parentId).parentId;
   }
-  
+
   return false;
 };
 
@@ -272,6 +276,7 @@ walkComponentsTree.BREAK = Object.freeze(Object.create(null));
  * @param {Immutable.Map<number, Object>} components
  * @param {number} rootComponentId
  * @param {function(component: Object): boolean} predicate
+ * @return {?Object}
  */
 export const findComponent = (components, rootComponentId, predicate) => {
   if (rootComponentId === INVALID_ID) return null;
@@ -366,7 +371,7 @@ export const walkSimpleValues = (
     schema,
     visitIntermediateNodes,
   };
-  
+
   const SKIP = walkSimpleValues.SKIP;
   const BREAK = walkSimpleValues.BREAK;
 
@@ -382,7 +387,7 @@ export const walkSimpleValues = (
         return;
       }
     }
-    
+
     if (action.type === ActionTypes.MUTATION) {
       const mutationField = getMutationField(schema, action.params.mutation);
 
@@ -436,7 +441,7 @@ export const walkSimpleValues = (
     } else if (action.type === ActionTypes.PROP) {
       // TODO: Visit value?
     }
-    
+
     if (isAsyncAction(action.type)) {
       action.params.successActions.forEach((action, actionIdx) => {
         visitAction(
@@ -449,7 +454,7 @@ export const walkSimpleValues = (
           return false;
         }
       });
-  
+
       action.params.errorActions.forEach((action, actionIdx) => {
         visitAction(
           action,
@@ -478,7 +483,7 @@ export const walkSimpleValues = (
             return;
           }
         }
-        
+
         _forOwn(valueDef.fields, (fieldTypedef, fieldName) => {
           const fieldValue = jssyValue.sourceData.value.get(fieldName);
 
@@ -507,7 +512,7 @@ export const walkSimpleValues = (
             return;
           }
         }
-        
+
         jssyValue.sourceData.value.forEach((fieldValue, key) => {
           visitValue(
             fieldValue,
@@ -529,7 +534,7 @@ export const walkSimpleValues = (
             return;
           }
         }
-        
+
         jssyValue.sourceData.value.forEach((itemValue, idx) => {
           visitValue(
             itemValue,
@@ -695,10 +700,10 @@ export const makeDetachedCopy = (
   } = {},
 ) => Map().withMutations(ret => {
   const subtreeIds = gatherComponentsTreeIds(components, rootId);
-  
+
   let idsMap = Map();
   let nextId = 0;
-  
+
   const transformId = id => {
     if (idsMap.has(id)) {
       return idsMap.get(id);
@@ -708,7 +713,7 @@ export const makeDetachedCopy = (
       return newId;
     }
   };
-  
+
   walkComponentsTree(components, rootId, component => {
     const isRoot = component.id === rootId;
     const componentMeta = getComponentMeta(component.name, meta);
@@ -716,7 +721,7 @@ export const makeDetachedCopy = (
     const actionsToTransform = [];
     const jssyValuesToClear = [];
     const jssyValuesToTransform = [];
-  
+
     const visitor = (node, valueDef, steps, isSystemProp) => {
       if (node instanceof Action) {
         if (
@@ -724,30 +729,30 @@ export const makeDetachedCopy = (
           node.type === ActionTypes.PROP
         ) {
           const targetId = node.params.componentId;
-          
+
           if (targetId !== INVALID_ID) {
             const arr = subtreeIds.has(targetId)
               ? actionsToTransform
               : actionsToClear;
-  
+
             arr.push([isSystemProp ? 'systemProps' : 'props', ...steps]);
           }
         }
       } else if (node instanceof JssyValue) {
         if (node.sourceIs(JssyValue.Source.STATE)) {
           const targetId = node.sourceData.componentId;
-          
+
           if (targetId !== INVALID_ID) {
             const arr = subtreeIds.has(targetId)
               ? jssyValuesToTransform
               : jssyValuesToClear;
-  
+
             arr.push([isSystemProp ? 'systemProps' : 'props', ...steps]);
           }
         }
       }
     };
-  
+
     const options = {
       meta,
       schema,
@@ -758,14 +763,14 @@ export const makeDetachedCopy = (
       walkActions: true,
       visitIntermediateNodes: true,
     };
-  
+
     walkSimpleValues(component, componentMeta, visitor, options);
-  
+
     const start = {
       object: component,
       expandedPath: [],
     };
-  
+
     if (clearExternalRefs) {
       actionsToClear.forEach(steps => {
         component = component.updateIn(
@@ -773,7 +778,7 @@ export const makeDetachedCopy = (
           action => action.setIn(['params', 'componentId'], INVALID_ID),
         );
       });
-  
+
       jssyValuesToClear.forEach(steps => {
         component = component.updateIn(
           expandPath({ start, steps }),
@@ -784,14 +789,14 @@ export const makeDetachedCopy = (
         );
       });
     }
-  
+
     actionsToTransform.forEach(steps => {
       component = component.updateIn(
         expandPath({ start, steps }),
         action => action.updateIn(['params', 'componentId'], transformId),
       );
     });
-  
+
     jssyValuesToTransform.forEach(steps => {
       component = component.updateIn(
         expandPath({ start, steps }),
@@ -801,7 +806,7 @@ export const makeDetachedCopy = (
         ),
       );
     });
-  
+
     component = component.merge({
       id: transformId(component.id),
       parentId: isRoot ? INVALID_ID : transformId(component.parentId),
@@ -810,7 +815,7 @@ export const makeDetachedCopy = (
       isIndexRoute: false,
       children: component.children.map(transformId),
     });
-    
+
     ret.set(component.id, component);
   });
 });
@@ -846,7 +851,7 @@ export const convertComponentToList = (
       rootId: 0,
     }),
   });
-  
+
   return list.setIn([0, 'props', 'component'], designerValue);
 };
 
@@ -858,17 +863,17 @@ export const convertComponentToList = (
  */
 export const getComponentPosition = (components, componentId) => {
   const component = components.get(componentId);
-  
+
   if (component.parentId === INVALID_ID) {
     return {
       containerId: INVALID_ID,
       afterIdx: -1,
     };
   }
-  
+
   const container = components.get(component.parentId);
   const position = container.children.indexOf(componentId);
-  
+
   return {
     containerId: container.id,
     afterIdx: position - 1,

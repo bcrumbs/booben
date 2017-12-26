@@ -8,7 +8,7 @@ import { HandlerTitleStyled } from './styles/HandlerTitleStyled';
 import { HandlerTitleTextStyled } from './styles/HandlerTitleTextStyled';
 import { HandlerIconStyled } from './styles/HandlerIconStyled';
 import { HandlerBodyStyled } from './styles/HandlerBodyStyled';
-   
+
 const propTypes = {
   id: PropTypes.any.isRequired,
   title: PropTypes.string,
@@ -29,10 +29,10 @@ const defaultProps = {
 export class ComponentHandler extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this._handleExpandButtonClick = this._handleExpandButtonClick.bind(this);
   }
-  
+
   _handleExpandButtonClick(event) {
     const { id, onExpand } = this.props;
 
@@ -40,10 +40,10 @@ export class ComponentHandler extends PureComponent {
       onExpand({ handlerId: id });
     }
   }
-  
+
   render() {
     const { title, description, hasActions, expanded, children } = this.props;
-  
+
     let content = null;
     if (expanded && children) {
       content = (
@@ -52,14 +52,14 @@ export class ComponentHandler extends PureComponent {
         </HandlerBodyStyled>
       );
     }
-  
+
     let tooltip = null;
     if (description) {
       tooltip = (
         <TooltipIcon text={description} />
       );
     }
-  
+
     return (
       <HandlerStyled>
         <HandlerHeadingStyled onClick={this._handleExpandButtonClick}>
@@ -67,15 +67,15 @@ export class ComponentHandler extends PureComponent {
             <HandlerTitleTextStyled>
               {title}
             </HandlerTitleTextStyled>
-          
+
             {tooltip}
           </HandlerTitleStyled>
-        
+
           <HandlerIconStyled expanded={expanded}>
             <Icon name="chevron-right" size="small" color="inherit" />
           </HandlerIconStyled>
         </HandlerHeadingStyled>
-      
+
         {content}
       </HandlerStyled>
     );

@@ -5,11 +5,11 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Map } from 'immutable';
+import { getJssyValueDefOfQueryArgument } from '@jssy/graphql-schema';
 import { PropsList } from '../../../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
 import { jssyValueToImmutable } from '../../../../models/ProjectComponent';
 import { buildDefaultValue } from '../../../../lib/meta';
-import { getJssyValueDefOfQueryArgument } from '../../../../lib/schema';
 import { noop, returnArg, objectToArray } from '../../../../utils/misc';
 
 const propTypes = {
@@ -31,7 +31,7 @@ const defaultProps = {
 export class DataSelectionArgsEditor extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this.state = {
       linking: false,
       linkingName: '',
@@ -42,7 +42,7 @@ export class DataSelectionArgsEditor extends PureComponent {
     this._handleLink = this._handleLink.bind(this);
     this._handleLinkDone = this._handleLinkDone.bind(this);
   }
-  
+
   /**
    *
    * @param {string} name
@@ -51,27 +51,27 @@ export class DataSelectionArgsEditor extends PureComponent {
    */
   _handleUpdateValue({ name, value }) {
     const { fieldArgs, onArgsUpdate } = this.props;
-    
+
     let newArgs = fieldArgs || Map();
-  
+
     newArgs = value
       ? newArgs.set(name, value)
       : newArgs.delete(name);
 
     onArgsUpdate({ args: newArgs });
   }
-  
+
   _handleLink({ name, path, targetValueDef, targetUserTypedefs }) {
     const { field, onNestedLink } = this.props;
 
     const nestedLinkWindowName = `${field.name}(${[name, ...path].join('.')})`;
-    
+
     this.setState({
       linking: true,
       linkingName: name,
       linkingPath: path,
     });
-    
+
     onNestedLink({
       name: nestedLinkWindowName,
       valueDef: targetValueDef,
@@ -79,15 +79,15 @@ export class DataSelectionArgsEditor extends PureComponent {
       onLink: this._handleLinkDone,
     });
   }
-  
+
   _handleLinkDone({ newValue }) {
     const { fieldArgs, onArgsUpdate } = this.props;
     const { linking, linkingName, linkingPath } = this.state;
-    
+
     if (!linking) return;
-  
+
     let newArgs = fieldArgs || Map();
-  
+
     if (linkingPath.length > 0) {
       newArgs = newArgs.update(
         linkingName,
@@ -96,22 +96,22 @@ export class DataSelectionArgsEditor extends PureComponent {
     } else {
       newArgs = newArgs.set(linkingName, newValue);
     }
-  
+
     this.setState({
       linking: false,
       linkingName: '',
       linkingPath: null,
     });
-  
+
     onArgsUpdate({ args: newArgs });
   }
-  
+
   render() {
     const { field, schema, fieldArgs, getLocalizedText } = this.props;
-  
+
     const items = objectToArray(field.args, (arg, argName) => {
       const valueDef = getJssyValueDefOfQueryArgument(arg, schema);
-      
+
       let value = fieldArgs ? fieldArgs.get(argName) || null : null;
       if (arg.nonNull && !value) {
         value = jssyValueToImmutable(buildDefaultValue(valueDef));
@@ -130,7 +130,7 @@ export class DataSelectionArgsEditor extends PureComponent {
         />
       );
     });
-  
+
     return (
       <PropsList>
         {items}

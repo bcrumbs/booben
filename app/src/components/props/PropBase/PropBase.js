@@ -28,7 +28,6 @@ const propTypes = {
   tooltip: PropTypes.string,
   message: PropTypes.string,
   linkable: PropTypes.bool,
-  pickable: PropTypes.bool,
   linked: PropTypes.bool,
   linkedWith: PropTypes.string,
   required: PropTypes.bool,
@@ -64,7 +63,6 @@ const defaultProps = {
   tooltip: '',
   message: '',
   linkable: false,
-  pickable: false,
   linked: false,
   linkedWith: '',
   required: false,
@@ -91,7 +89,7 @@ export class PropBase extends PureComponent {
     this._handleLink = this._handleLink.bind(this);
     this._handlePick = this._handlePick.bind(this);
   }
-  
+
   /**
    *
    * @return {ReactElement}
@@ -122,7 +120,7 @@ export class PropBase extends PureComponent {
     const { id, onCheck } = this.props;
     onCheck({ checked: value, id });
   }
-  
+
   /**
    *
    * @private
@@ -131,7 +129,7 @@ export class PropBase extends PureComponent {
     const { id, onDelete } = this.props;
     onDelete({ id });
   }
-  
+
   /**
    *
    * @private
@@ -200,11 +198,11 @@ export class PropBase extends PureComponent {
           </MarkWrapperStyled>
         );
       }
-      
+
       labelElement = (
         <LabelBoxStyled>
           {requireMark}
-        
+
           <PropLabel
             label={label}
             secondaryLabel={secondaryLabel}
@@ -215,14 +213,14 @@ export class PropBase extends PureComponent {
         </LabelBoxStyled>
       );
     }
-  
+
     let imageElement = null;
     if (image) {
       imageElement = (
         <PropImage src={image} />
       );
     }
-  
+
     let messageElement = null;
     if (message) {
       messageElement = (
@@ -231,7 +229,7 @@ export class PropBase extends PureComponent {
         </MessageBoxStyled>
       );
     }
-  
+
     let actionsLeftElement = null;
     if (deletable) {
       actionsLeftElement = (
@@ -243,7 +241,7 @@ export class PropBase extends PureComponent {
         </ActionsBoxStyled>
       );
     }
-  
+
     const actionItemsRight = [];
 
     additionalActions.forEach(action => {
@@ -261,7 +259,7 @@ export class PropBase extends PureComponent {
         );
       }
     });
-  
+
     if (linkable && (!checkable || checked)) {
       const linkAction = (
         <PropAction
@@ -270,7 +268,7 @@ export class PropBase extends PureComponent {
           onPress={this._handleLink}
         />
       );
-    
+
       actionItemsRight.push(linkAction);
     }
   
@@ -282,7 +280,7 @@ export class PropBase extends PureComponent {
         </ActionsBoxStyled>
       );
     }
-  
+
     let checkboxElement = null;
     if (checkable) {
       checkboxElement = (
@@ -294,25 +292,25 @@ export class PropBase extends PureComponent {
         </SubcomponentBoxStyled>
       );
     }
-    
+
     const contentElement = linked ? this._renderLinked() : content;
-    
+
     return (
       <PropItemStyled sublevelVisible={expanded}>
         <WrapperStyled>
           {checkboxElement}
           {actionsLeftElement}
           {imageElement}
-        
+
           <ContentBoxStyled>
             {labelElement}
             {messageElement}
             {contentElement}
           </ContentBoxStyled>
-        
+
           {actionsRightElement}
         </WrapperStyled>
-      
+
         {children}
       </PropItemStyled>
     );
