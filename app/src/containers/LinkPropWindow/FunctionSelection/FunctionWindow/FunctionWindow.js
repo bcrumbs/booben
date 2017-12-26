@@ -40,6 +40,7 @@ import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
 import { buildDefaultValue } from '../../../../lib/meta';
 import { noop, returnArg, mapListToArray } from '../../../../utils/misc';
 import * as JssyPropTypes from '../../../../constants/common-prop-types';
+import { ButtonWrapperStyled } from './styles/ButtonWrapperStyled';
 
 import {
   PropExpandable,
@@ -124,7 +125,7 @@ const makeDefaultValues = argValueDefs => List(argValueDefs.map(
 class _FunctionWindow extends PureComponent {
   constructor(props, context) {
     super(props, context);
-  
+
     this._argsValueDefs = getValueDefs(props.functionDef, props.targetValueDef);
 
     this.state = {
@@ -141,7 +142,7 @@ class _FunctionWindow extends PureComponent {
       pickingName: '',
       pickingPath: null,
     };
-    
+
     this._handleBreadcrumbsClick = this._handleBreadcrumbsClick.bind(this);
     this._handleArgChange = this._handleChange.bind(this, false);
     this._handleRestArgChange = this._handleChange.bind(this, true);
@@ -157,7 +158,7 @@ class _FunctionWindow extends PureComponent {
     this._handleBackButtonPress = this._handleBackButtonPress.bind(this);
     this._handleApplyButtonPress = this._handleApplyButtonPress.bind(this);
   }
-  
+
   componentWillReceiveProps(nextProps) {
     if (
       nextProps.functionDef !== this.props.functionDef ||
@@ -167,13 +168,13 @@ class _FunctionWindow extends PureComponent {
         nextProps.functionDef,
         nextProps.targetValueDef,
       );
-      
+
       this.setState({
         values: this.getArgsDefaultValues(),
         restArgValues: this.getRestArgDefaultValues(),
       });
     }
-    
+
     if (
       this.props.pickingComponentData &&
       !nextProps.pickingComponentData
@@ -205,19 +206,19 @@ class _FunctionWindow extends PureComponent {
     const valueDef = this.getRestArgValueDef();
     return valueDef ? makeDefaultValues([valueDef]) : null;
   }
-  
+
   _handleBreadcrumbsClick({ index }) {
     const { onReturn, onReturnToList } = this.props;
-    
+
     if (index === 0) onReturn();
     else if (index === 1) onReturnToList();
   }
-  
+
   _handleChange(isRestArg, { name, value }) {
     const valuesKey = isRestArg ? 'restArgValues' : 'values';
-    
+
     const argIndex = parseInt(name, 10);
-    
+
     this.setState({
       [valuesKey]: this.state[valuesKey].set(argIndex, value),
     });
@@ -233,7 +234,7 @@ class _FunctionWindow extends PureComponent {
 
   _handleRestArgAdd() {
     const { restArgValues } = this.state;
-    
+
     this.setState({
       restArgValues: restArgValues.push(this._restArgDefaultValue),
     });
@@ -241,16 +242,16 @@ class _FunctionWindow extends PureComponent {
 
   _handleRestArgDelete({ id }) {
     const { restArgValues } = this.state;
-  
+
     this.setState({
       restArgValues: restArgValues.delete(id),
     });
   }
-  
+
   _handleBackButtonPress() {
     this.props.onReturnToList();
   }
-  
+
   _handleApplyButtonPress() {
     const { values, restArgValues } = this.state;
     const { onApply } = this.props;
@@ -263,7 +264,7 @@ class _FunctionWindow extends PureComponent {
 
     onApply({ argValues: appliedValues });
   }
-  
+
   _handleLink(isRestArg, { name, path, targetValueDef, targetUserTypedefs }) {
     const { functionDef, onNestedLink } = this.props;
 
@@ -278,14 +279,14 @@ class _FunctionWindow extends PureComponent {
 
     const nestedLinkWindowName =
       `${functionDef.title}(${[argName, ...path].join('.')})`;
-    
+
     this.setState({
       linking: true,
       linkingName: name,
       linkingPath: path,
       linkingRest: isRestArg,
     });
-    
+
     onNestedLink({
       name: nestedLinkWindowName,
       valueDef: targetValueDef,
@@ -293,13 +294,13 @@ class _FunctionWindow extends PureComponent {
       onLink: this._handleLinkDone,
     });
   }
-  
+
   _handleLinkDone({ newValue }) {
     const { linking, linkingName, linkingPath, linkingRest } = this.state;
     const valuesKey = linkingRest ? 'restArgValues' : 'values';
-    
+
     if (!linking) return;
-  
+
     const argIndex = parseInt(linkingName, 10);
 
     this.setState({
@@ -314,7 +315,7 @@ class _FunctionWindow extends PureComponent {
         : this.state[valuesKey].set(argIndex, newValue),
     });
   }
-  
+
   _handlePick(isRestArg, { name, path, targetValueDef, targetUserTypedefs }) {
     const {
       meta,
@@ -330,23 +331,23 @@ class _FunctionWindow extends PureComponent {
       meta,
       language,
     );
-    
+
     this.setState({
       picking: true,
       pickingName: name,
       pickingPath: path,
       pickingRest: isRestArg,
     });
-  
+
     onPickComponentData(filter, dataGetter);
   }
-  
+
   _handlePickDone({ componentId, stateSlot }) {
     const { picking, pickingName, pickingPath, pickingRest } = this.state;
     const valuesKey = pickingRest ? 'restArgValues' : 'values';
-  
+
     if (!picking) return;
-  
+
     const argIndex = parseInt(pickingName, 10);
     const newValue = new JssyValue({
       source: 'state',
@@ -355,7 +356,7 @@ class _FunctionWindow extends PureComponent {
         stateSlot,
       }),
     });
-    
+
     this.setState({
       picking: false,
       pickingName: '',
@@ -386,7 +387,7 @@ class _FunctionWindow extends PureComponent {
     const { getLocalizedText } = this.props;
     const valueDef = this.getRestArgValueDef();
 
-    const restArgElements = restArgValues.map((value, idx) => {      
+    const restArgElements = restArgValues.map((value, idx) => {
       return (
         <JssyValueEditor
           id={idx}
@@ -400,6 +401,7 @@ class _FunctionWindow extends PureComponent {
           onLink={this._handleRestArgLink}
           onPick={this._handleRestArgPick}
           deletable={idx}
+          simulateLeftOffset={idx === 0}
           onDelete={this._handleRestArgDelete}
         />
       );
@@ -407,7 +409,7 @@ class _FunctionWindow extends PureComponent {
 
     return (
       <PropExpandable
-        label={valueDef.label}
+        label={`...${valueDef.label}`}
         secondaryLabel={valueDef.type}
         expanded={restArgExpanded}
         onToggle={this._handleRestArgsExpand}
@@ -416,14 +418,17 @@ class _FunctionWindow extends PureComponent {
         onCheck={this._handleRestArgsEnable}
       >
         {restArgElements}
-        <Button
-          text="Add rest arg"
-          onPress={this._handleRestArgAdd}
-        />
+        <ButtonWrapperStyled>
+          <Button
+            narrow
+            text="Add rest arg"
+            onPress={this._handleRestArgAdd}
+          />
+        </ButtonWrapperStyled>
       </PropExpandable>
     );
   }
-  
+
   _renderArgsForm() {
     const { functionDef, getLocalizedText } = this.props;
     const { values } = this.state;
@@ -451,7 +456,7 @@ class _FunctionWindow extends PureComponent {
         />
       );
     });
-    
+
     return (
       <PropsList>
         {props}
@@ -461,10 +466,10 @@ class _FunctionWindow extends PureComponent {
 
   render() {
     const { functionDef, getLocalizedText } = this.props;
-    
+
     const breadcrumbsItems = this._getBreadcrumbsItems();
     const argsForm = this._renderArgsForm();
-    
+
     return (
       <BlockContent>
         <BlockContentNavigation isBordered>
@@ -475,7 +480,7 @@ class _FunctionWindow extends PureComponent {
             onItemClick={this._handleBreadcrumbsClick}
           />
         </BlockContentNavigation>
-  
+
         <BlockContentBox isBordered>
           <BlockContentBoxGroup shading="dim" colorScheme="alt">
             <BlockContentBoxItem>
@@ -485,12 +490,12 @@ class _FunctionWindow extends PureComponent {
               />
             </BlockContentBoxItem>
           </BlockContentBoxGroup>
-          
+
           <BlockContentBoxItem>
             {argsForm}
           </BlockContentBoxItem>
         </BlockContentBox>
-  
+
         <BlockContentActions>
           <BlockContentActionsRegion type="main">
             <Button
@@ -498,7 +503,7 @@ class _FunctionWindow extends PureComponent {
               onPress={this._handleApplyButtonPress}
             />
           </BlockContentActionsRegion>
-  
+
           <BlockContentActionsRegion type="secondary">
             <Button
               text={getLocalizedText('linkDialog.function.backToList')}

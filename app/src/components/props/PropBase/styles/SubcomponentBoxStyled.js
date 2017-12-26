@@ -4,7 +4,7 @@ import { baseModule } from '../../../../styles/themeSelectors';
 
 export const SubcomponentBoxStyled = styled.div`
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   max-height: ${constants.item.baseHeight}px;
   margin-right: ${baseModule(1)}px;
 `;

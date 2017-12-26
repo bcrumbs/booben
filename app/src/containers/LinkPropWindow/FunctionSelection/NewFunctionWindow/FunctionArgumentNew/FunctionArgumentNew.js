@@ -8,6 +8,7 @@ import {
   TextField,
   SelectBox,
   Button,
+  Checkbox,
 } from '@reactackle/reactackle';
 
 import {
@@ -49,7 +50,7 @@ export class FunctionArgumentNew extends PureComponent {
     this._handleAddButtonPress = this._handleAddButtonPress.bind(this);
     this._handleCancelButtonPress = this._handleCancelButtonPress.bind(this);
   }
-  
+
   /**
    *
    * @return {{ value: string, text: string }[]}
@@ -65,7 +66,7 @@ export class FunctionArgumentNew extends PureComponent {
       { value: TypeNames.BOOL, text: getLocalizedText('types.bool') },
     ];
   }
-  
+
   /**
    *
    * @param {string} value
@@ -74,7 +75,7 @@ export class FunctionArgumentNew extends PureComponent {
   _handleNameChange({ value }) {
     this.setState({ name: value });
   }
-  
+
   /**
    *
    * @param {string} value
@@ -83,7 +84,7 @@ export class FunctionArgumentNew extends PureComponent {
   _handleTypeChange({ value }) {
     this.setState({ type: value });
   }
-  
+
   /**
    *
    * @private
@@ -94,7 +95,7 @@ export class FunctionArgumentNew extends PureComponent {
 
     onAdd({ name, type });
   }
-  
+
   /**
    *
    * @private
@@ -110,12 +111,12 @@ export class FunctionArgumentNew extends PureComponent {
     const typeOptions = this._getTypeOptions();
     const isButtonDisabled =
       !name || !type || existingArgNames.indexOf(name) !== -1;
-    
+
     const nameLabel = getLocalizedText('linkDialog.function.new.newArg.name');
     const typeLabel = getLocalizedText('linkDialog.function.new.newArg.type');
 
     return (
-      <BlockContentBoxGroup shading="editing" colorScheme="alt">
+      <BlockContentBoxGroup shading="dim" colorScheme="alt">
         <BlockContentBoxHeading>
           {getLocalizedText('linkDialog.function.new.newArg.heading')}
         </BlockContentBoxHeading>
@@ -137,6 +138,21 @@ export class FunctionArgumentNew extends PureComponent {
                 value={type}
                 options={typeOptions}
                 onChange={this._handleTypeChange}
+              />
+            </FormItem>
+
+            <FormItem>
+              <SelectBox
+                label={typeLabel}
+                value={type}
+                options={typeOptions}
+                onChange={this._handleTypeChange}
+              />
+            </FormItem>
+
+            <FormItem>
+              <Checkbox
+                label={'May be repeated multiple times'}
               />
             </FormItem>
           </Form>

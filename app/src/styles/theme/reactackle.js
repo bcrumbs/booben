@@ -10,6 +10,7 @@ import {
 
 import jssyTheme from './jssy';
 
+const fontColorBodyLight = paletteBlueGrey[25];
 const fontColorMedium = paletteBlueGrey[400];
 const colorBorder = paletteBlueGrey[500];
 const colorMain = themeColors.main;
@@ -45,7 +46,7 @@ export default {
 
   body: {
     backgroundColor: paletteBlueGrey[600],
-    fontColor: paletteBlueGrey[25],
+    fontColor: fontColorBodyLight,
     fontColorAlt: paletteBlueGrey[900],
   },
 
@@ -67,6 +68,12 @@ export default {
           },
         },
       },
+    },
+
+    checkbox: {
+      label: {
+        fontColor: fontColorBodyLight,
+      }
     },
 
     dialog: {

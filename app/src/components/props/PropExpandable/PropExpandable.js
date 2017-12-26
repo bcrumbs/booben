@@ -7,6 +7,7 @@ import PropTypes from 'prop-types';
 import _pick from 'lodash.pick';
 import { PropBase } from '../PropBase/PropBase';
 import { noop } from '../../../utils/misc';
+import { ChildrenWrapperStyled } from './styles/ChildrenWrapperStyled';
 
 const propTypes = {
   expanded: PropTypes.bool,
@@ -61,7 +62,9 @@ export class PropExpandable extends Component {
       }];
     }
 
-    const actualChildren = isChecked && expanded ? children : null;
+    const actualChildren = isChecked && expanded
+      ? <ChildrenWrapperStyled>{children}</ChildrenWrapperStyled>
+      : null;
 
     return (
       <PropBase
