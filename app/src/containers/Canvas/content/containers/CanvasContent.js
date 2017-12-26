@@ -35,10 +35,11 @@ import { getRouteParams } from '../../../../models/ProjectRoute';
 import { formatComponentTitle } from '../../../../lib/components';
 import ComponentsBundle from '../../../../lib/ComponentsBundle';
 import { distance } from '../../../../utils/geometry';
-import { noop } from '../../../../utils/misc';
+import { noop, waitFor } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
 import * as JssyPropTypes from '../../../../constants/common-prop-types';
+import { DND_CANVAS_SNAP_LINES } from '../../../../config';
 
 const propTypes = {
   componentsBundle: PropTypes.instanceOf(ComponentsBundle).isRequired,
@@ -66,6 +67,7 @@ const propTypes = {
   onDragOverNothing: PropTypes.func.isRequired,
   onDropZoneSnap: PropTypes.func,
   onDropZoneUnsnap: PropTypes.func,
+  onDropZoneUpdateSnapPoints: PropTypes.func,
   onDropZoneOpenDropMenu: PropTypes.func,
 };
 
@@ -79,6 +81,7 @@ const defaultProps = {
   pickingComponentFilter: null,
   onDropZoneSnap: noop,
   onDropZoneUnsnap: noop,
+  onDropZoneUpdateSnapPoints: noop,
   onDropZoneOpenDropMenu: noop,
 };
 
@@ -165,6 +168,17 @@ const getOutletPosition = components => {
   };
 };
 
+const findPlaceholders = async document => {
+  let placeholders = [];
+
+  await waitFor(() => {
+    placeholders = document.querySelectorAll('[data-jssy-placeholder]');
+    return placeholders.length > 0;
+  }, 10, 10);
+
+  return placeholders;
+};
+
 class CanvasContent extends Component {
   constructor(props, context) {
     super(props, context);
@@ -175,6 +189,7 @@ class CanvasContent extends Component {
     this._draggingOverCanvas = false;
     this._lastDropMenuSnapPoint = { x: 0, y: 0 };
     this._suppressDropMenu = false;
+    this._snapPoints = null;
 
     this._handleMouseOver = this._handleMouseOver.bind(this);
     this._handleMouseOut = this._handleMouseOut.bind(this);
@@ -299,8 +314,18 @@ class CanvasContent extends Component {
   /**
    * Called by Canvas component
    */
-  enter() {
+  async enter() {
+    const { onDropZoneUpdateSnapPoints } = this.props;
+
     this._draggingOverCanvas = true;
+
+    if (DND_CANVAS_SNAP_LINES) {
+      const snapPoints = await this._getAllSnapPoints();
+
+      if (this._draggingOverCanvas && snapPoints.length > 1) {
+        onDropZoneUpdateSnapPoints(snapPoints);
+      }
+    }
   }
 
   /**
@@ -312,59 +337,90 @@ class CanvasContent extends Component {
   }
 
   /**
+   * @typedef {Object} SnapPoint
+   * @property {number} containerId
+   * @property {number} afterIdx
+   * @property {number} [x]
+   * @property {number} [y]
+   */
+
+  /**
    *
-   * @param {number} x
-   * @param {number} y
-   * @return {Object[]}
+   * @return {Array<SnapPoint>}
    * @private
    */
-  _getPossibleSnapPoints(x, y) {
+  async _getAllSnapPoints() {
     const { document } = this.context;
 
-    const placeholders = document.querySelectorAll('[data-jssy-placeholder]');
+    if (this._snapPoints !== null) {
+      return this._snapPoints;
+    }
 
-    if (placeholders.length === 1) {
+    const placeholders = await findPlaceholders(document);
+    let ret;
+
+    if (placeholders.length === 0) {
+      ret = [];
+    } else if (placeholders.length === 1) {
       const element = placeholders[0];
 
-      return [{
+      ret = [{
         containerId: readContainerId(element),
         afterIdx: readAfterIdx(element),
       }];
-    }
-
-    if (placeholders.length > 1) {
-      const snapPoints = [];
+    } else {
+      ret = [];
       placeholders.forEach(element => {
         const { left, top } = element.getBoundingClientRect();
 
-        snapPoints.push({
+        ret.push({
           x: Math.round(left),
           y: Math.round(top),
           containerId: readContainerId(element),
           afterIdx: readAfterIdx(element),
         });
       });
+    }
 
+    this._snapPoints = ret;
+
+    return ret;
+  }
+
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   * @return {{ all: Array<SnapPoint>, snappable: Array<SnapPoint> }}
+   * @private
+   */
+  async _getPossibleSnapPoints(x, y) {
+    const snapPoints = await this._getAllSnapPoints();
+    let possibleSnapPoints;
+
+    if (snapPoints.length < 2) {
+      possibleSnapPoints = snapPoints;
+    } else {
       const index = kdbush(snapPoints, p => p.x, p => p.y, 64, Int32Array);
       const pointsWithinSnapDistance = index
         .within(x, y, SNAP_DISTANCE)
         .map(id => snapPoints[id]);
 
-      if (pointsWithinSnapDistance.length === 0) {
-        return [];
+      if (pointsWithinSnapDistance.length > 0) {
+        const closestPoint = _minBy(
+          pointsWithinSnapDistance,
+          point => distance(x, y, point.x, point.y),
+        );
+
+        possibleSnapPoints = index
+          .within(closestPoint.x, closestPoint.y, CLOSE_SNAP_POINTS_THRESHOLD)
+          .map(id => snapPoints[id]);
+      } else {
+        possibleSnapPoints = [];
       }
-
-      const closestPoint = _minBy(
-        pointsWithinSnapDistance,
-        point => distance(x, y, point.x, point.y),
-      );
-
-      return index
-        .within(closestPoint.x, closestPoint.y, CLOSE_SNAP_POINTS_THRESHOLD)
-        .map(id => snapPoints[id]);
     }
 
-    return [];
+    return possibleSnapPoints;
   }
 
   /**
@@ -374,7 +430,7 @@ class CanvasContent extends Component {
    * @param {number} y
    * @private
    */
-  drag({ x, y }) {
+  async drag({ x, y }) {
     const {
       currentComponents,
       draggingComponent,
@@ -401,7 +457,10 @@ class CanvasContent extends Component {
       }
     }
 
-    const possibleSnapPoints = this._getPossibleSnapPoints(x, y);
+    const possibleSnapPoints = await this._getPossibleSnapPoints(x, y);
+
+    // _getPossibleSnapPoints is async, check if we're still here
+    if (!this._draggingOverCanvas) return;
 
     if (possibleSnapPoints.length === 0) {
       this._snap(null);
@@ -457,17 +516,32 @@ class CanvasContent extends Component {
   }
 
   /**
-   *
-   * @param {Object} snapPoint
+   * Called by Canvas component
+   * @param {SnapPoint} snapPoint
    */
   dropMenuItemSelected(snapPoint) {
     this._snap(snapPoint);
   }
 
+  /**
+   * Called by Canvas component
+   */
   dropMenuClosed() {
     this._snap(null);
   }
 
+  /**
+   * Called by Canvas component
+   */
+  drop() {
+    this._snapPoints = null;
+  }
+
+  /**
+   *
+   * @param {SnapPoint} snapPoint
+   * @private
+   */
   _snap(snapPoint) {
     const {
       draggingOverPlaceholder,
@@ -499,15 +573,17 @@ class CanvasContent extends Component {
   _getContainer() {
     const { document } = this.context;
 
-    if (this._container) return this._container;
-    this._container = document.getElementById(CANVAS_CONTAINER_ID);
+    if (this._container === null) {
+      this._container = document.getElementById(CANVAS_CONTAINER_ID);
+    }
+
     return this._container;
   }
 
   /**
    *
    * @param {HTMLElement} element
-   * @return {?number}
+   * @return {number}
    */
   _getClosestComponentId(element) {
     const containerNode = this._getContainer();
