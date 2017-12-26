@@ -1235,7 +1235,7 @@ const handlers = {
     saving: false,
     lastSavedRevision: state.savingRevision,
     lastSaveError: null,
-    lastSaveTimestamp: Date.now(),
+    lastSaveTimestamp: new Date(),
   }),
 
   [PROJECT_SAVE_ERROR]: (state, action) => state.merge({

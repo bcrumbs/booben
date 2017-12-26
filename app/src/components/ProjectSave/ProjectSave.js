@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import moment from 'moment';
 import { Icon, withTooltip } from '@reactackle/reactackle';
 import { ProjectSaveStyled } from './styles/ProjectSaveStyled';
 import { IconStyled } from './styles/IconStyled';
@@ -26,8 +27,9 @@ const defaultProps = {
 
 const ProjectSaveComponent = props => {
   const savedTime = props.savedTimestamp
-    ? new Date(props.savedTimestamp).toLocaleString()
+    ? moment(props.savedTimestamp).fromNow()
     : null;
+    
   let icon = null;
   
   if (props.status === 'error') {
@@ -57,6 +59,7 @@ const ProjectSaveComponent = props => {
           active={props.status !== 'default'}
         >
           {icon}
+          {savedTime}
         </IconStyled>
         
         <TitleStyled>
