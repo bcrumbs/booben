@@ -51,6 +51,9 @@ const propTypes = {
   onPick: PropTypes.func,
   onConstructComponent: PropTypes.func,
   onEditActions: PropTypes.func,
+  deletable: PropTypes.bool,
+  onDelete: PropTypes.func,
+  id: PropTypes.string,
 };
 
 const defaultProps = {
@@ -70,6 +73,9 @@ const defaultProps = {
   onPick: noop,
   onConstructComponent: noop,
   onEditActions: noop,
+  deletable: false,
+  onDelete: noop,
+  id: '',
 };
 
 /**
@@ -720,6 +726,9 @@ export class JssyValueEditor extends PureComponent {
       label,
       description,
       getLocalizedText,
+      deletable,
+      onDelete,
+      id,
     } = this.props;
     
     const checkable =
@@ -735,6 +744,9 @@ export class JssyValueEditor extends PureComponent {
       }),
       
       checkable,
+      deletable,
+      onDelete,
+      id,
     };
     
     const propValue = this._getPropValue(value, valueDef);

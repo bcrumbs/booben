@@ -143,16 +143,16 @@ export class FunctionArgumentNew extends PureComponent {
 
           <ButtonRowStyled>
             <Button
+              text={getLocalizedText('common.cancel')}
+              narrow
+              onPress={this._handleCancelButtonPress}
+            />
+
+            <Button
               text={getLocalizedText('linkDialog.function.new.newArg.add')}
               narrow
               disabled={isButtonDisabled}
               onPress={this._handleAddButtonPress}
-            />
-
-            <Button
-              text={getLocalizedText('common.cancel')}
-              narrow
-              onPress={this._handleCancelButtonPress}
             />
           </ButtonRowStyled>
         </BlockContentBoxItem>

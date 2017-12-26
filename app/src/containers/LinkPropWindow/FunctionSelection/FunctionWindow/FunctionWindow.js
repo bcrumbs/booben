@@ -41,6 +41,10 @@ import { buildDefaultValue } from '../../../../lib/meta';
 import { noop, returnArg, mapListToArray } from '../../../../utils/misc';
 import * as JssyPropTypes from '../../../../constants/common-prop-types';
 
+import {
+  PropExpandable,
+} from '../../../../components/props/PropExpandable/PropExpandable';
+
 const propTypes = {
   meta: PropTypes.object.isRequired,
   currentComponents: JssyPropTypes.components.isRequired,
@@ -124,20 +128,32 @@ class _FunctionWindow extends PureComponent {
     this._argsValueDefs = getValueDefs(props.functionDef, props.targetValueDef);
 
     this.state = {
-      values: makeDefaultValues(this._argsValueDefs),
+      values: this.getArgsDefaultValues(),
+      restArgValues: this.getRestArgDefaultValues(),
+      restArgEnabled: true,
+      restArgExpanded: true,
       linking: false,
+      linkingRest: false,
       linkingName: '',
       linkingPath: null,
       picking: false,
+      pickingRest: false,
       pickingName: '',
       pickingPath: null,
     };
     
     this._handleBreadcrumbsClick = this._handleBreadcrumbsClick.bind(this);
-    this._handleChange = this._handleChange.bind(this);
-    this._handleLink = this._handleLink.bind(this);
+    this._handleArgChange = this._handleChange.bind(this, false);
+    this._handleRestArgChange = this._handleChange.bind(this, true);
+    this._handleRestArgAdd = this._handleRestArgAdd.bind(this);
+    this._handleRestArgDelete = this._handleRestArgDelete.bind(this);
+    this._handleRestArgsEnable = this._handleRestArgsEnable.bind(this);
+    this._handleRestArgsExpand = this._handleRestArgsExpand.bind(this);
+    this._handleArgLink = this._handleLink.bind(this, false);
+    this._handleRestArgLink = this._handleLink.bind(this, true);
     this._handleLinkDone = this._handleLinkDone.bind(this);
-    this._handlePick = this._handlePick.bind(this);
+    this._handleArgPick = this._handlePick.bind(this, false);
+    this._handleRestArgPick = this._handlePick.bind(this, true);
     this._handleBackButtonPress = this._handleBackButtonPress.bind(this);
     this._handleApplyButtonPress = this._handleApplyButtonPress.bind(this);
   }
@@ -153,7 +169,8 @@ class _FunctionWindow extends PureComponent {
       );
       
       this.setState({
-        values: makeDefaultValues(this._argsValueDefs),
+        values: this.getArgsDefaultValues(),
+        restArgValues: this.getRestArgDefaultValues(),
       });
     }
     
@@ -167,6 +184,27 @@ class _FunctionWindow extends PureComponent {
       });
     }
   }
+
+  getArgsValueDefs() {
+    return this.props.functionDef.spreadLastArg
+      ? this._argsValueDefs.slice(-1)
+      : this._argsValueDefs;
+  }
+
+  getRestArgValueDef() {
+    return this.props.functionDef.spreadLastArg
+      ? this._argsValueDefs[this._argsValueDefs.length - 1]
+      : null;
+  }
+
+  getArgsDefaultValues() {
+    return makeDefaultValues(this.getArgsValueDefs());
+  }
+
+  getRestArgDefaultValues() {
+    const valueDef = this.getRestArgValueDef();
+    return valueDef ? makeDefaultValues([valueDef]) : null;
+  }
   
   _handleBreadcrumbsClick({ index }) {
     const { onReturn, onReturnToList } = this.props;
@@ -175,13 +213,37 @@ class _FunctionWindow extends PureComponent {
     else if (index === 1) onReturnToList();
   }
   
-  _handleChange({ name, value }) {
-    const { values } = this.state;
+  _handleChange(isRestArg, { name, value }) {
+    const valuesKey = isRestArg ? 'restArgValues' : 'values';
     
     const argIndex = parseInt(name, 10);
     
     this.setState({
-      values: values.set(argIndex, value),
+      [valuesKey]: this.state[valuesKey].set(argIndex, value),
+    });
+  }
+
+  _handleRestArgsEnable({ checked }) {
+    this.setState({ restArgEnabled: checked });
+  }
+
+  _handleRestArgsExpand({ expanded }) {
+    this.setState({ restArgExpanded: expanded });
+  }
+
+  _handleRestArgAdd() {
+    const { restArgValues } = this.state;
+    
+    this.setState({
+      restArgValues: restArgValues.push(this._restArgDefaultValue),
+    });
+  }
+
+  _handleRestArgDelete({ id }) {
+    const { restArgValues } = this.state;
+  
+    this.setState({
+      restArgValues: restArgValues.delete(id),
     });
   }
   
@@ -190,24 +252,38 @@ class _FunctionWindow extends PureComponent {
   }
   
   _handleApplyButtonPress() {
-    const { values } = this.state;
+    const { values, restArgValues } = this.state;
     const { onApply } = this.props;
 
-    onApply({ argValues: values });
+    let appliedValues = values;
+
+    if (this.props.functionDef.spreadLastArg) {
+      appliedValues = values.concat(restArgValues);
+    }
+
+    onApply({ argValues: appliedValues });
   }
   
-  _handleLink({ name, path, targetValueDef, targetUserTypedefs }) {
+  _handleLink(isRestArg, { name, path, targetValueDef, targetUserTypedefs }) {
     const { functionDef, onNestedLink } = this.props;
 
-    const argIndex = parseInt(name, 10);
-    const arg = functionDef.args.get(argIndex);
+    let argName;
+
+    if (isRestArg) {
+      argName = `${functionDef.args.last().name} ${name}`;
+    } else {
+      const argIndex = parseInt(name, 10);
+      argName = functionDef.args.get(argIndex).name;
+    }
+
     const nestedLinkWindowName =
-      `${functionDef.title}(${[arg.name, ...path].join('.')})`;
+      `${functionDef.title}(${[argName, ...path].join('.')})`;
     
     this.setState({
       linking: true,
       linkingName: name,
       linkingPath: path,
+      linkingRest: isRestArg,
     });
     
     onNestedLink({
@@ -219,26 +295,27 @@ class _FunctionWindow extends PureComponent {
   }
   
   _handleLinkDone({ newValue }) {
-    const { values, linking, linkingName, linkingPath } = this.state;
+    const { linking, linkingName, linkingPath, linkingRest } = this.state;
+    const valuesKey = linkingRest ? 'restArgValues' : 'values';
     
     if (!linking) return;
   
     const argIndex = parseInt(linkingName, 10);
-    
+
     this.setState({
       linking: false,
       linkingName: '',
       linkingPath: [],
-      values: linkingPath.length > 0
-        ? values.update(
+      [valuesKey]: linkingPath.length > 0
+        ? this.state[valuesKey].update(
           argIndex,
           oldValue => oldValue.setInStatic(linkingPath, newValue),
         )
-        : values.set(argIndex, newValue),
+        : this.state[valuesKey].set(argIndex, newValue),
     });
   }
   
-  _handlePick({ name, path, targetValueDef, targetUserTypedefs }) {
+  _handlePick(isRestArg, { name, path, targetValueDef, targetUserTypedefs }) {
     const {
       meta,
       currentComponents,
@@ -258,13 +335,15 @@ class _FunctionWindow extends PureComponent {
       picking: true,
       pickingName: name,
       pickingPath: path,
+      pickingRest: isRestArg,
     });
   
     onPickComponentData(filter, dataGetter);
   }
   
   _handlePickDone({ componentId, stateSlot }) {
-    const { values, picking, pickingName, pickingPath } = this.state;
+    const { picking, pickingName, pickingPath, pickingRest } = this.state;
+    const valuesKey = pickingRest ? 'restArgValues' : 'values';
   
     if (!picking) return;
   
@@ -281,12 +360,12 @@ class _FunctionWindow extends PureComponent {
       picking: false,
       pickingName: '',
       pickingPath: [],
-      values: pickingPath.length > 0
-        ? values.update(
+      [valuesKey]: pickingPath.length > 0
+        ? this.state[valuesKey].update(
           argIndex,
           oldValue => oldValue.setInStatic(pickingPath, newValue),
         )
-        : values.set(argIndex, newValue),
+        : this.state[valuesKey].set(argIndex, newValue),
     });
   }
 
@@ -301,14 +380,63 @@ class _FunctionWindow extends PureComponent {
       title: functionDef.title,
     }];
   }
+
+  _renderRestArgForm() {
+    const { restArgValues, restArgEnabled, restArgExpanded } = this.state;
+    const { getLocalizedText } = this.props;
+    const valueDef = this.getRestArgValueDef();
+
+    const restArgElements = restArgValues.map((value, idx) => {      
+      return (
+        <JssyValueEditor
+          id={idx}
+          key={String(idx)}
+          name={String(idx)}
+          value={value}
+          valueDef={{ ...valueDef, label: `${idx}` }}
+          optional={false}
+          getLocalizedText={getLocalizedText}
+          onChange={this._handleRestArgChange}
+          onLink={this._handleRestArgLink}
+          onPick={this._handleRestArgPick}
+          deletable={idx}
+          onDelete={this._handleRestArgDelete}
+        />
+      );
+    });
+
+    return (
+      <PropExpandable
+        label={valueDef.label}
+        secondaryLabel={valueDef.type}
+        expanded={restArgExpanded}
+        onToggle={this._handleRestArgsExpand}
+        checkable
+        checked={restArgEnabled}
+        onCheck={this._handleRestArgsEnable}
+      >
+        {restArgElements}
+        <Button
+          text="Add rest arg"
+          onPress={this._handleRestArgAdd}
+        />
+      </PropExpandable>
+    );
+  }
   
   _renderArgsForm() {
     const { functionDef, getLocalizedText } = this.props;
     const { values } = this.state;
-    
+    const argsCount = functionDef.args.size;
+
     const props = functionDef.args.map((arg, idx) => {
+      if (
+        functionDef.spreadLastArg &&
+        idx + 1 === argsCount
+      ) return this._renderRestArgForm();
+
       const valueDef = this._argsValueDefs[idx];
-      
+
       return (
         <JssyValueEditor
           key={String(idx)}
@@ -317,9 +445,9 @@ class _FunctionWindow extends PureComponent {
           valueDef={valueDef}
           optional={!arg.isRequired}
           getLocalizedText={getLocalizedText}
-          onChange={this._handleChange}
-          onLink={this._handleLink}
-          onPick={this._handlePick}
+          onChange={this._handleArgChange}
+          onLink={this._handleArgLink}
+          onPick={this._handleArgPick}
         />
       );
     });

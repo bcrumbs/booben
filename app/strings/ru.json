@@ -8,6 +8,7 @@
   "common.back": "Назад",
   "common.next": "Далее",
   "common.apply": "Применить",
+  "common.enable": "Enable",
 
   "appHeader.projectTitle": "Проект {projectName}",
   "appHeader.menu.structure": "Структура",
@@ -148,6 +149,9 @@
   "linkDialog.function.new.desc": "Описание",
   "linkDialog.function.new.returnType": "Тип значения",
   "linkDialog.function.new.argsList": "Аргументы",
+  "linkDialog.function.new.restArg.enable": "May be repeated multiple times",
+  "linkDialog.function.new.restArg.onlyOneWarning": "No more than one rest argument might be created",
+  "linkDialog.function.new.restArg": "Rest",
   "linkDialog.function.new.argsEmpty": "Нет аргументов",
   "linkDialog.function.new.newArg.button": "Добавить аргумент",
   "linkDialog.function.new.newArg.heading": "Новый аргумент",

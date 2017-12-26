@@ -49,7 +49,9 @@ export class PropExpandable extends Component {
     const propsForBase = _pick(this.props, baseProps);
     let actualAdditionalActions = additionalActions;
 
-    if (!linked && (!checkable || checked)) {
+    const isChecked = !checkable || checked;
+
+    if (!linked && isChecked) {
       actualAdditionalActions = [...actualAdditionalActions, {
         id: 'expand',
         icon: 'chevron-right',
@@ -59,7 +61,7 @@ export class PropExpandable extends Component {
       }];
     }
 
-    const actualChildren = expanded ? children : null;
+    const actualChildren = isChecked && expanded ? children : null;
 
     return (
       <PropBase
