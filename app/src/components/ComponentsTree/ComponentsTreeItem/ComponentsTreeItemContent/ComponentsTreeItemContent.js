@@ -47,7 +47,7 @@ const defaultProps = {
 export class ComponentsTreeItemContent extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this._expandButtonElement = null;
 
     this._saveExpandButtonRef = this._saveExpandButtonRef.bind(this);
@@ -56,7 +56,7 @@ export class ComponentsTreeItemContent extends PureComponent {
     this._handleClick = this._handleClick.bind(this);
     this._saveItemContentRef = this._saveItemContentRef.bind(this);
   }
-  
+
   componentDidMount() {
     if (this._expandButtonElement) {
       this._expandButtonElement.addEventListener('click', event => {
@@ -68,7 +68,7 @@ export class ComponentsTreeItemContent extends PureComponent {
       });
     }
   }
-  
+
   _saveExpandButtonRef(ref) {
     this._expandButtonElement = ref;
   }
@@ -77,12 +77,12 @@ export class ComponentsTreeItemContent extends PureComponent {
     const { componentId, disabled, onHover } = this.props;
     if (!disabled) onHover({ componentId, hovered: true });
   }
-  
+
   _handleHoverOut() {
     const { componentId, disabled, onHover } = this.props;
     if (!disabled) onHover({ componentId, hovered: false });
   }
-  
+
   _handleExpand() {
     const { componentId, expanded, onExpand } = this.props;
     onExpand({ componentId, expanded: !expanded });
@@ -100,12 +100,12 @@ export class ComponentsTreeItemContent extends PureComponent {
     this._titleElement = ref;
     elementRef({ componentId, ref });
   }
-  
+
   render() {
     const { expanded, title, hasSubLevel } = this.props;
     let button = null;
     let spacer = null;
-    
+
     if (hasSubLevel) {
       button = (
         <ButtonsStyled>
@@ -121,10 +121,6 @@ export class ComponentsTreeItemContent extends PureComponent {
       spacer = <SpacerStyled />;
     }
 
-    const titleElement = (
-      <ComponentsTreeItemTitle title={title} />
-    );
-    
     return (
       <ItemContentStyled
         hovered={this.props.hovered}
@@ -138,7 +134,7 @@ export class ComponentsTreeItemContent extends PureComponent {
       >
         {spacer}
         {button}
-        {titleElement}
+        <ComponentsTreeItemTitle title={title} />
       </ItemContentStyled>
     );
   }
