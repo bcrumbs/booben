@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { withTooltip } from '@reactackle/reactackle';
 import { IconCheck, IconExclamation } from '../icons';
@@ -6,65 +6,80 @@ import { ProjectSaveStyled } from './styles/ProjectSaveStyled';
 import { IconStyled } from './styles/IconStyled';
 import { TitleStyled } from './styles/TitleStyled';
 import { ContentStyled } from './styles/ContentStyled';
+import { noop } from '../../utils/misc';
 
 const propTypes = {
   status: PropTypes.oneOf(['error', 'success', 'progress', 'default']),
   title: PropTypes.string,
   tooltipText: PropTypes.string,
-  toggleTooltip: PropTypes.func.isRequired,
   showTooltip: PropTypes.func.isRequired,
   hideTooltip: PropTypes.func.isRequired,
   Tooltip: PropTypes.func.isRequired,
+  onShowTooltip: PropTypes.func,
 };
 
 const defaultProps = {
   status: 'default',
   title: '',
   tooltipText: '',
+  onShowTooltip: noop,
 };
 
-const _ProjectSave = props => {
-  let icon = null;
+class _ProjectSave extends Component {
+  constructor(props, context) {
+    super(props, context);
 
-  if (props.status === 'error') {
-    icon = <IconExclamation />;
-  } else if (props.status === 'success') {
-    icon = <IconCheck />;
-  } else if (props.status === 'progress') {
-    icon = null;
-  } else {
-    icon = <IconCheck />;
+    this._handleMouseEnter = this._handleMouseEnter.bind(this);
+    this._handleMouseLeave = this._handleMouseLeave.bind(this);
   }
 
-  const TooltipComponent = props.Tooltip;
+  _handleMouseEnter() {
+    this.props.onShowTooltip();
+    this.props.showTooltip();
+  }
 
-  /* eslint-disable react/jsx-handler-names */
-  return (
-    <ProjectSaveStyled
-      onClick={props.toggleTooltip}
-      onFocus={props.showTooltip}
-      onBlur={props.hideTooltip}
-      onMouseEnter={props.showTooltip}
-      onMouseLeave={props.hideTooltip}
-    >
-      <ContentStyled colorScheme={props.status}>
-        <IconStyled
-          typeProgress={props.status === 'progress'}
-          active={props.status !== 'default'}
-        >
-          {icon}
-        </IconStyled>
+  _handleMouseLeave() {
+    this.props.hideTooltip();
+  }
 
-        <TitleStyled>
-          {props.title}
-        </TitleStyled>
-      </ContentStyled>
+  render() {
+    const { title, status, tooltipText, Tooltip } = this.props;
 
-      <TooltipComponent text={props.tooltipText} />
-    </ProjectSaveStyled>
-  );
-  /* eslint-enable react/jsx-handler-names */
-};
+    let icon = null;
+
+    if (status === 'error') {
+      icon = <IconExclamation />;
+    } else if (status === 'success') {
+      icon = <IconCheck />;
+    } else if (status === 'progress') {
+      icon = null;
+    } else {
+      icon = <IconCheck />;
+    }
+
+    return (
+      <ProjectSaveStyled
+        onMouseEnter={this._handleMouseEnter}
+        onMouseLeave={this._handleMouseLeave}
+      >
+        <ContentStyled colorScheme={status}>
+          <IconStyled
+            typeProgress={status === 'progress'}
+            active={status !== 'default'}
+          >
+            {icon}
+          </IconStyled>
+
+          <TitleStyled>
+            {title}
+          </TitleStyled>
+        </ContentStyled>
+
+        <Tooltip text={tooltipText} />
+      </ProjectSaveStyled>
+    );
+  }
+}
 
 _ProjectSave.propTypes = propTypes;
 _ProjectSave.defaultProps = defaultProps;
