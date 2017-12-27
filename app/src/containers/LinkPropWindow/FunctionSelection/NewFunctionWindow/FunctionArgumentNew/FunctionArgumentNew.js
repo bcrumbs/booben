@@ -25,6 +25,9 @@ const propTypes = {
   getLocalizedText: PropTypes.func,
   onAdd: PropTypes.func,
   onCancel: PropTypes.func,
+  restArgDisabled: PropTypes.bool.isRequired,
+  restArgChecked: PropTypes.bool.isRequired,
+  onRestArgCheckToogle: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -105,7 +108,13 @@ export class FunctionArgumentNew extends PureComponent {
   }
 
   render() {
-    const { existingArgNames, getLocalizedText } = this.props;
+    const {
+      existingArgNames,
+      getLocalizedText,
+      restArgDisabled,
+      restArgChecked,
+      onRestArgCheckToogle,
+    } = this.props;
     const { name, type } = this.state;
 
     const typeOptions = this._getTypeOptions();
@@ -142,17 +151,19 @@ export class FunctionArgumentNew extends PureComponent {
             </FormItem>
 
             <FormItem>
-              <SelectBox
-                label={typeLabel}
-                value={type}
-                options={typeOptions}
-                onChange={this._handleTypeChange}
-              />
-            </FormItem>
-
-            <FormItem>
               <Checkbox
-                label={'May be repeated multiple times'}
+                disabled={restArgDisabled}
+                checked={restArgChecked}
+                onChange={onRestArgCheckToogle}
+                label={
+                  getLocalizedText('linkDialog.function.new.restArg.enable')
+                }
+                tooltip={restArgDisabled
+                  ? getLocalizedText(
+                    'linkDialog.function.new.restArg.onlyOneWarning'
+                  )
+                  : ''
+                }
               />
             </FormItem>
           </Form>

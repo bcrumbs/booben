@@ -233,24 +233,17 @@ export class NewFunctionWindow extends PureComponent {
     let newArgumentForm = null;
 
     if (creatingNewArgument) {
-      newArgumentForm = [
+      newArgumentForm = (
         <FunctionArgumentNew
           existingArgNames={args.map(item => item.name)}
           getLocalizedText={getLocalizedText}
           onAdd={this._handleAddArg}
           onCancel={this._handleCancelAddArgument}
-        />,
-        <Checkbox
-          disabled={restArgCreated}
-          checked={creatingRestArg}
-          onChange={this._handleRestArgsToggle}
-          label={getLocalizedText('linkDialog.function.new.restArg.enable')}
-          tooltip={restArgCreated
-            ? getLocalizedText('linkDialog.function.new.restArg.onlyOneWarning')
-            : ''
-          }
-        />,
-      ];
+          restArgDisabled={restArgCreated}
+          restArgChecked={creatingRestArg}
+          onRestArgCheckToogle={this._handleRestArgsToggle}
+        />
+      );
     } else {
       newArgumentButton = (
         <FunctionAddArgumentButton
@@ -267,7 +260,7 @@ export class NewFunctionWindow extends PureComponent {
 
         if (restArgCreated && idx === args.length - 1) {
           secondaryLabel =
-            `${secondaryLabel} ${getLocalizedText(
+            `${secondaryLabel}, ${getLocalizedText(
               'linkDialog.function.new.restArg',
             )}`;
         }

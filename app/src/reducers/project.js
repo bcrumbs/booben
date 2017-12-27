@@ -1735,7 +1735,7 @@ const handlers = {
           typedef: { type },
         }),
       )),
-
+      spreadLastArg: action.spreadLastArg,
       returnType: { type: action.returnType },
       body: action.code,
       fn: createJSFunction(action.args.map(arg => arg.name), action.code),
