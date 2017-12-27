@@ -1,5 +1,4 @@
 import {
-  baseModule,
   textColorBody,
   paletteBlueGrey50,
 } from '../../../styles/themeSelectors';

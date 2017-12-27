@@ -2,7 +2,7 @@
  * @author Dmitriy Bizyaev
  */
 
-import React, { PureComponent } from 'react';
+import React, { PureComponent, Fragment } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
@@ -32,9 +32,10 @@ import {
   topNestedConstructorComponentSelector,
   availableDataContextsSelector,
   getLocalizedTextFromState,
+  currentComponentsSelector,
 } from '../../selectors';
 
-import { createFunction } from '../../actions/project';
+import { createFunction, pickComponentData } from '../../actions/project';
 import ProjectComponentRecord from '../../models/ProjectComponent';
 import ProjectRecord from '../../models/Project';
 
@@ -45,17 +46,21 @@ import JssyValue, {
   SourceDataData,
   QueryPathStep,
   SourceDataActionArg,
+  SourceDataState,
 } from '../../models/JssyValue';
 
 import { NestedConstructor } from '../../reducers/project';
+import { getStateSlotPickerFns } from '../../actions/helpers/component-picker';
 import { getComponentMeta, isValidSourceForValue } from '../../lib/meta';
 import { noop } from '../../utils/misc';
+import * as JssyPropTypes from '../../constants/common-prop-types';
 import { INVALID_ID } from '../../constants/misc';
 
 const propTypes = {
   meta: PropTypes.object.isRequired,
   schema: PropTypes.object.isRequired,
   project: PropTypes.instanceOf(ProjectRecord).isRequired,
+  components: JssyPropTypes.components.isRequired,
   projectFunctions: ImmutablePropTypes.map.isRequired,
   builtinFunctions: ImmutablePropTypes.map.isRequired,
   valueDef: PropTypes.object,
@@ -74,9 +79,14 @@ const propTypes = {
   ),
   currentRouteId: PropTypes.number.isRequired,
   language: PropTypes.string.isRequired,
+  pickingComponent: PropTypes.bool.isRequired,
+  pickingComponentData: PropTypes.bool.isRequired,
+  pickedComponentId: PropTypes.number.isRequired, // eslint-disable-line react/no-unused-prop-types
+  pickedComponentData: PropTypes.string, // eslint-disable-line react/no-unused-prop-types
   getLocalizedText: PropTypes.func.isRequired,
   onLink: PropTypes.func,
   onCreateFunction: PropTypes.func.isRequired,
+  onPickComponentData: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -88,6 +98,7 @@ const defaultProps = {
   actionComponentMeta: null,
   name: '',
   breadcrumbs: [],
+  pickedComponentData: null,
   onLink: noop,
 };
 
@@ -95,6 +106,7 @@ const mapStateToProps = state => ({
   meta: state.project.meta,
   schema: state.project.schema,
   project: state.project.data,
+  components: currentComponentsSelector(state),
   projectFunctions: state.project.data.functions,
   builtinFunctions: Map(), // TODO: Pass built-in functions here
   availableDataContexts: availableDataContextsSelector(state),
@@ -102,6 +114,10 @@ const mapStateToProps = state => ({
   topNestedConstructorComponent: topNestedConstructorComponentSelector(state),
   currentRouteId: state.project.currentRouteId,
   language: state.project.languageForComponentProps,
+  pickingComponent: state.project.pickingComponent,
+  pickingComponentData: state.project.pickingComponentData,
+  pickedComponentId: state.project.pickedComponentId,
+  pickedComponentData: state.project.pickedComponentData,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -124,6 +140,9 @@ const mapDispatchToProps = dispatch => ({
       code,
       spreadLastArg,
     )),
+
+  onPickComponentData: (filter, dataGetter) =>
+    void dispatch(pickComponentData(filter, dataGetter)),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
@@ -131,7 +150,7 @@ const wrap = connect(mapStateToProps, mapDispatchToProps);
 class LinkPropWindowComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this.state = {
       selectedSourceId: '',
       selectedSourceData: null,
@@ -141,7 +160,7 @@ class LinkPropWindowComponent extends PureComponent {
       nestedWindowUserTypedefs: null,
       nestedWindowLinkName: '',
     };
-    
+
     this._handleSelectSource = this._handleSelectSource.bind(this);
     this._handleReturn = this._handleReturn.bind(this);
     this._handleLinkWithOwnerProp = this._handleLinkWithOwnerProp.bind(this);
@@ -153,7 +172,40 @@ class LinkPropWindowComponent extends PureComponent {
     this._handleNestedLink = this._handleNestedLink.bind(this);
     this._handleNestedLinkDone = this._handleNestedLinkDone.bind(this);
   }
-  
+
+  componentWillReceiveProps(nextProps) {
+    const { pickingComponentData } = this.props;
+
+    if (pickingComponentData && !nextProps.pickingComponentData) {
+      if (
+        nextProps.pickedComponentId !== INVALID_ID &&
+        nextProps.pickedComponentData !== null
+      ) {
+        this._handlePickApply({
+          componentId: nextProps.pickedComponentId,
+          stateSlot: nextProps.pickedComponentData,
+        });
+      }
+    }
+  }
+
+  /**
+   *
+   * @param {number} componentId
+   * @param {string} stateSlot
+   * @private
+   */
+  _handlePickApply({ componentId, stateSlot }) {
+    const { onLink } = this.props;
+
+    const newValue = new JssyValue({
+      source: 'state',
+      sourceData: new SourceDataState({ componentId, stateSlot }),
+    });
+
+    onLink({ newValue });
+  }
+
   /**
    *
    * @return {LinkSourceItem[]}
@@ -168,22 +220,22 @@ class LinkPropWindowComponent extends PureComponent {
       valueDef,
       getLocalizedText,
     } = this.props;
-    
+
     const items = [];
-    
+
     if (isValidSourceForValue(valueDef, 'static') && topNestedConstructor) {
       items.push({
         id: 'owner',
         title: getLocalizedText('linkDialog.source.owner'),
       });
     }
-    
+
     if (isValidSourceForValue(valueDef, 'data')) {
       items.push({
         id: 'query',
         title: getLocalizedText('linkDialog.source.data'),
       });
-      
+
       availableDataContexts.forEach(({ dataContext, typeName }, idx) => {
         items.push({
           id: `context-${idx}`,
@@ -197,21 +249,21 @@ class LinkPropWindowComponent extends PureComponent {
         });
       });
     }
-    
+
     if (isValidSourceForValue(valueDef, 'routeParams')) {
       let routeId = currentRouteId;
       let haveRouteParams = false;
-      
+
       while (routeId !== INVALID_ID) {
         const route = project.routes.get(routeId);
         if (route.paramValues.size) {
           haveRouteParams = true;
           break;
         }
-        
+
         routeId = route.parentId;
       }
-      
+
       if (haveRouteParams) {
         items.push({
           id: 'routeParams',
@@ -219,22 +271,30 @@ class LinkPropWindowComponent extends PureComponent {
         });
       }
     }
-    
+
     if (isValidSourceForValue(valueDef, 'actionArg')) {
       items.push({
         id: 'actionArg',
         title: getLocalizedText('linkDialog.source.actionArgs'),
       });
     }
-  
+
     items.push({
       id: 'function',
       title: getLocalizedText('linkDialog.source.function'),
     });
-    
+
+    if (isValidSourceForValue(valueDef, 'state')) {
+      items.push({
+        id: 'otherComponent',
+        title: getLocalizedText('linkDialog.source.otherComponent'),
+        withoutConnection: true,
+      });
+    }
+
     return items;
   }
-  
+
   /**
    *
    * @param {string} id
@@ -242,12 +302,33 @@ class LinkPropWindowComponent extends PureComponent {
    * @private
    */
   _handleSelectSource({ id, data }) {
-    this.setState({
-      selectedSourceId: id,
-      selectedSourceData: data,
-    });
+    const {
+      meta,
+      components,
+      valueDef,
+      userTypedefs,
+      language,
+      onPickComponentData,
+    } = this.props;
+
+    if (id === 'otherComponent') {
+      const { filter, dataGetter } = getStateSlotPickerFns(
+        valueDef,
+        userTypedefs,
+        components,
+        meta,
+        language,
+      );
+
+      onPickComponentData(filter, dataGetter);
+    } else {
+      this.setState({
+        selectedSourceId: id,
+        selectedSourceData: data,
+      });
+    }
   }
-  
+
   /**
    *
    * @private
@@ -258,7 +339,7 @@ class LinkPropWindowComponent extends PureComponent {
       selectedSourceData: null,
     });
   }
-  
+
   /**
    *
    * @param {string} propName
@@ -266,17 +347,17 @@ class LinkPropWindowComponent extends PureComponent {
    */
   _handleLinkWithOwnerProp({ propName }) {
     const { onLink } = this.props;
-    
+
     const newValue = new JssyValue({
       source: JssyValue.Source.OWNER_PROP,
       sourceData: new SourceDataOwnerProp({
         ownerPropName: propName,
       }),
     });
-  
+
     onLink({ newValue });
   }
-  
+
   /**
    *
    * @param {string[]} dataContext
@@ -286,7 +367,7 @@ class LinkPropWindowComponent extends PureComponent {
    */
   _handleLinkWithData({ dataContext, path, args }) {
     const { onLink } = this.props;
-    
+
     const newValue = new JssyValue({
       source: JssyValue.Source.DATA,
       sourceData: new SourceDataData({
@@ -295,10 +376,10 @@ class LinkPropWindowComponent extends PureComponent {
         queryArgs: args,
       }),
     });
-    
+
     onLink({ newValue });
   }
-  
+
   /**
    *
    * @param {string} source
@@ -308,7 +389,7 @@ class LinkPropWindowComponent extends PureComponent {
    */
   _handleLinkWithFunction({ source, name, argValues }) {
     const { onLink } = this.props;
-    
+
     const newValue = new JssyValue({
       source: JssyValue.Source.FUNCTION,
       sourceData: new SourceDataFunction({
@@ -317,10 +398,10 @@ class LinkPropWindowComponent extends PureComponent {
         args: argValues,
       }),
     });
-    
+
     onLink({ newValue });
   }
-  
+
   /**
    *
    * @param {string} name
@@ -350,7 +431,7 @@ class LinkPropWindowComponent extends PureComponent {
       spreadLastArg,
     });
   }
-  
+
   /**
    *
    * @param {number} routeId
@@ -359,15 +440,15 @@ class LinkPropWindowComponent extends PureComponent {
    */
   _handleLinkWithRouteParam({ routeId, paramName }) {
     const { onLink } = this.props;
-  
+
     const newValue = new JssyValue({
       source: JssyValue.Source.ROUTE_PARAMS,
       sourceData: new SourceDataRouteParams({ routeId, paramName }),
     });
-  
+
     onLink({ newValue });
   }
-  
+
   /**
    *
    * @param {number} argIdx
@@ -375,17 +456,17 @@ class LinkPropWindowComponent extends PureComponent {
    */
   _handleLinkWithActionArg({ argIdx }) {
     const { onLink } = this.props;
-    
+
     const newValue = new JssyValue({
       source: JssyValue.Source.ACTION_ARG,
       sourceData: new SourceDataActionArg({
         arg: argIdx,
       }),
     });
-  
+
     onLink({ newValue });
   }
-  
+
   /**
    *
    * @param {string} name
@@ -403,7 +484,7 @@ class LinkPropWindowComponent extends PureComponent {
       nestedWindowLinkName: name,
     });
   }
-  
+
   /**
    *
    * @param {Object} newValue - JssyValue record
@@ -411,7 +492,7 @@ class LinkPropWindowComponent extends PureComponent {
    */
   _handleNestedLinkDone({ newValue }) {
     const { nestedWindowOnLink } = this.state;
-    
+
     this.setState({
       haveNestedWindow: false,
       nestedWindowOnLink: null,
@@ -419,15 +500,23 @@ class LinkPropWindowComponent extends PureComponent {
       nestedWindowUserTypedefs: null,
       nestedWindowLinkName: '',
     });
-    
+
     nestedWindowOnLink({ newValue });
   }
 
   _renderFloatingBreadcrumbs() {
-    const { name, breadcrumbs } = this.props;
+    const {
+      name,
+      breadcrumbs,
+      pickingComponent,
+      pickingComponentData,
+    } = this.props;
+
     const { haveNestedWindow } = this.state;
 
-    if (haveNestedWindow) return null;
+    if (haveNestedWindow || pickingComponent || pickingComponentData) {
+      return null;
+    }
 
     const items = [...breadcrumbs, name].map(str => ({ title: str }));
     if (!items.length) return null;
@@ -438,7 +527,7 @@ class LinkPropWindowComponent extends PureComponent {
       </Portal>
     );
   }
-  
+
   /**
    *
    * @return {ReactElement}
@@ -446,8 +535,7 @@ class LinkPropWindowComponent extends PureComponent {
    */
   _renderSourceSelection() {
     const sourceItems = this._getAvailableSources();
-    
-    //noinspection JSValidateTypes
+
     return (
       <LinkSourceSelection
         items={sourceItems}
@@ -455,7 +543,7 @@ class LinkPropWindowComponent extends PureComponent {
       />
     );
   }
-  
+
   /**
    *
    * @return {ReactElement}
@@ -471,15 +559,14 @@ class LinkPropWindowComponent extends PureComponent {
       language,
       getLocalizedText,
     } = this.props;
-    
+
     const ownerMeta = getComponentMeta(
       topNestedConstructorComponent.name,
       meta,
     );
-    
+
     const ownerPropMeta = topNestedConstructor.valueInfo.valueDef;
-    
-    //noinspection JSValidateTypes
+
     return (
       <OwnerComponentPropSelection
         ownerComponentMeta={ownerMeta}
@@ -493,7 +580,7 @@ class LinkPropWindowComponent extends PureComponent {
       />
     );
   }
-  
+
   /**
    *
    * @param {string[]} dataContext
@@ -508,8 +595,7 @@ class LinkPropWindowComponent extends PureComponent {
       userTypedefs,
       getLocalizedText,
     } = this.props;
-    
-    //noinspection JSValidateTypes
+
     return (
       <DataSelection
         dataContext={dataContext}
@@ -524,7 +610,7 @@ class LinkPropWindowComponent extends PureComponent {
       />
     );
   }
-  
+
   _renderFunctionSelection() {
     const {
       valueDef,
@@ -548,10 +634,10 @@ class LinkPropWindowComponent extends PureComponent {
       />
     );
   }
-  
+
   _renderRouteParamsSelection() {
     const { project, currentRouteId, getLocalizedText } = this.props;
-    
+
     return (
       <RouteParamSelection
         routes={project.routes}
@@ -562,7 +648,7 @@ class LinkPropWindowComponent extends PureComponent {
       />
     );
   }
-  
+
   _renderActionArgSelection() {
     const {
       valueDef,
@@ -572,7 +658,7 @@ class LinkPropWindowComponent extends PureComponent {
       actionComponentMeta,
       getLocalizedText,
     } = this.props;
-    
+
     return (
       <ActionArgSelection
         linkTargetValueDef={valueDef}
@@ -586,7 +672,7 @@ class LinkPropWindowComponent extends PureComponent {
       />
     );
   }
-  
+
   _renderNestedWindow() {
     const { name, breadcrumbs } = this.props;
     const {
@@ -595,11 +681,11 @@ class LinkPropWindowComponent extends PureComponent {
       nestedWindowUserTypedefs,
       nestedWindowLinkName,
     } = this.state;
-  
+
     if (!haveNestedWindow) return null;
 
     const nestedWindowBreadcrumbs = [...breadcrumbs, name];
-  
+
     return (
       <LinkPropWindow
         name={nestedWindowLinkName}
@@ -610,19 +696,25 @@ class LinkPropWindowComponent extends PureComponent {
       />
     );
   }
-  
+
   _renderMainWindow() {
-    const { schema, valueDef } = this.props;
+    const {
+      schema,
+      valueDef,
+      pickingComponent,
+      pickingComponentData,
+    } = this.props;
+
     const {
       selectedSourceId,
       selectedSourceData,
       haveNestedWindow,
     } = this.state;
-    
+
     if (!valueDef) return null;
-  
+
     let content = null;
-  
+
     if (!selectedSourceId) {
       content = this._renderSourceSelection();
     } else if (selectedSourceId === 'owner') {
@@ -641,25 +733,27 @@ class LinkPropWindowComponent extends PureComponent {
         selectedSourceData.rootTypeName,
       );
     }
-  
+
+    const hidden = haveNestedWindow || pickingComponent || pickingComponentData;
+
     return (
-      <DataWindow hidden={haveNestedWindow}>
+      <DataWindow hidden={hidden}>
         {content}
       </DataWindow>
     );
   }
-  
+
   render() {
     const mainWindow = this._renderMainWindow();
     const nestedWindow = this._renderNestedWindow();
     const breadcrumbs = this._renderFloatingBreadcrumbs();
-    
+
     return (
-      <div>
+      <Fragment>
         {mainWindow}
         {nestedWindow}
         {breadcrumbs}
-      </div>
+      </Fragment>
     );
   }
 }

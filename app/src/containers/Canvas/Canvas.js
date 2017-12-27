@@ -34,6 +34,7 @@ const propTypes = {
   onDropZoneReady: PropTypes.func.isRequired,
   onDropZoneSnap: PropTypes.func.isRequired,
   onDropZoneUnsnap: PropTypes.func.isRequired,
+  onDropZoneUpdateSnapPoints: PropTypes.func.isRequired,
   onDropZoneOpenDropMenu: PropTypes.func.isRequired,
 };
 /* eslint-enable react/no-unused-prop-types */
@@ -109,7 +110,9 @@ class CanvasComponent extends Component {
     this._handleDropMenuClosed = this._handleDropMenuClosed.bind(this);
     this._handleSnap = this._handleSnap.bind(this);
     this._handleUnsnap = this._handleUnsnap.bind(this);
+    this._handleUpdateSnapPoints = this._handleUpdateSnapPoints.bind(this);
     this._handleOpenDropMenu = this._handleOpenDropMenu.bind(this);
+    this._handleDrop = this._handleDrop.bind(this);
     this._saveIFrameRef = this._saveIFrameRef.bind(this);
     this._saveCanvasContentRef = this._saveCanvasContentRef.bind(this);
   }
@@ -129,6 +132,7 @@ class CanvasComponent extends Component {
           onLeave: this._handleLeave,
           onDropMenuItemSelected: this._handleDropMenuItemSelected,
           onDropMenuClosed: this._handleDropMenuClosed,
+          onDrop: this._handleDrop,
         });
 
         canvas = this;
@@ -330,6 +334,7 @@ class CanvasComponent extends Component {
             componentsBundle={componentsBundle}
             onDropZoneSnap={this._handleSnap}
             onDropZoneUnsnap={this._handleUnsnap}
+            onDropZoneUpdateSnapPoints={this._handleUpdateSnapPoints}
             onDropZoneOpenDropMenu={this._handleOpenDropMenu}
           />
         </DocumentContext>
@@ -408,6 +413,10 @@ class CanvasComponent extends Component {
     this._canvasContent.dropMenuClosed();
   }
 
+  _handleDrop() {
+    this._canvasContent.drop();
+  }
+
   _handleSnap({ element }) {
     const { dropZoneId, onDropZoneSnap } = this.props;
 
@@ -429,6 +438,11 @@ class CanvasComponent extends Component {
   _handleUnsnap() {
     const { dropZoneId, onDropZoneUnsnap } = this.props;
     onDropZoneUnsnap({ dropZoneId });
+  }
+
+  _handleUpdateSnapPoints(snapPoints) {
+    const { dropZoneId, onDropZoneUpdateSnapPoints } = this.props;
+    onDropZoneUpdateSnapPoints({ dropZoneId, snapPoints });
   }
 
   _handleOpenDropMenu({ coords, snapCoords, dropPointsData }) {

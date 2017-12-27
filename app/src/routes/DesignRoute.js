@@ -40,16 +40,15 @@ import {
   ComponentDataSelect,
 } from '../containers/ComponentDataSelect/ComponentDataSelect';
 
+import {
+  LayoutSelectionDialog,
+} from '../containers/LayoutSelectionDialog/LayoutSelectionDialog';
+
 import { Canvas, getComponentCoords } from '../containers/Canvas/Canvas';
 
 import {
   ComponentsDragArea,
 } from '../containers/ComponentsDragArea/ComponentsDragArea';
-
-import {
-  ComponentLayoutSelection,
-  ComponentLayoutSelectionItem,
-} from '../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
 import { AppWrapper } from '../components/AppWrapper/AppWrapper';
 
@@ -61,6 +60,8 @@ import {
 
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
+import Clipboard from '../models/Clipboard';
+import Cursor from '../models/Cursor';
 
 import {
   createComponent,
@@ -68,7 +69,6 @@ import {
   deleteComponent,
   copyComponent,
   moveComponent,
-  selectLayoutForNewComponent,
   pickComponentDataDone,
   undo,
   redo,
@@ -98,9 +98,7 @@ import {
 } from '../selectors';
 
 import {
-  getComponentMeta,
   isCompositeComponent,
-  getString,
   componentHasActions,
   constructComponent,
 } from '../lib/meta';
@@ -122,7 +120,6 @@ import { isInputOrTextareaActive } from '../utils/dom';
 import { buildStructurePath } from '../constants/paths';
 import * as JssyPropTypes from '../constants/common-prop-types';
 import { INVALID_ID } from '../constants/misc';
-import defaultComponentLayoutIcon from '../../assets/layout_default.svg';
 
 const propTypes = {
   projectName: PropTypes.string.isRequired, // state
@@ -132,8 +129,6 @@ const propTypes = {
   singleComponentSelected: PropTypes.bool.isRequired, // state
   firstSelectedComponentId: PropTypes.number.isRequired, // state
   canCopySelected: PropTypes.bool.isRequired, // state
-  selectingComponentLayout: PropTypes.bool.isRequired, // state
-  draggedComponents: JssyPropTypes.components, // state
   language: PropTypes.string.isRequired, // state
   pickedComponentId: PropTypes.number.isRequired, // state
   pickedComponentArea: PropTypes.number.isRequired, // state
@@ -141,8 +136,8 @@ const propTypes = {
   componentDataListItems: PropTypes.arrayOf(
     JssyPropTypes.componentDataItem,
   ).isRequired, // state
-  cursorPosition: JssyPropTypes.componentsTreePosition.isRequired, // state
-  componentClipboard: JssyPropTypes.componentClipboard.isRequired, // state
+  cursorPosition: PropTypes.instanceOf(Cursor).isRequired, // state
+  componentClipboard: PropTypes.instanceOf(Clipboard).isRequired, // state
   showInvisibleComponents: PropTypes.bool.isRequired, // state
   showContentPlaceholders: PropTypes.bool.isRequired, // state
   canUndo: PropTypes.bool.isRequired, // state
@@ -155,7 +150,6 @@ const propTypes = {
   onMoveComponent: PropTypes.func.isRequired, // dispatch
   onMoveComponentToClipboard: PropTypes.func.isRequired, // dispatch
   onConvertComponentToList: PropTypes.func.isRequired, // dispatch
-  onSelectLayout: PropTypes.func.isRequired, // dispatch
   onDropComponent: PropTypes.func.isRequired, // dispatch
   onSelectComponentData: PropTypes.func.isRequired, // dispatch
   onUndo: PropTypes.func.isRequired, // dispatch
@@ -163,10 +157,6 @@ const propTypes = {
   onGoToStructure: PropTypes.func.isRequired, // dispatch
   onToggleInvisibleComponents: PropTypes.func.isRequired, // dispatch
   onToggleContentPlaceholders: PropTypes.func.isRequired, // dispatch
-};
-
-const defaultProps = {
-  draggedComponents: null,
 };
 
 const mapStateToProps = state => ({
@@ -177,8 +167,6 @@ const mapStateToProps = state => ({
   singleComponentSelected: singleComponentSelectedSelector(state),
   firstSelectedComponentId: firstSelectedComponentIdSelector(state),
   canCopySelected: canCopySelector(state),
-  selectingComponentLayout: state.project.selectingComponentLayout,
-  draggedComponents: state.project.draggedComponents,
   language: state.project.languageForComponentProps,
   pickedComponentId: state.project.pickedComponentId,
   pickedComponentArea: state.project.pickedComponentArea,
@@ -214,9 +202,6 @@ const mapDispatchToProps = dispatch => ({
 
   onConvertComponentToList: componentId =>
     void dispatch(convertComponentToList(componentId)),
-
-  onSelectLayout: layoutIdx =>
-    void dispatch(selectLayoutForNewComponent(layoutIdx)),
 
   onDropComponent: area =>
     void dispatch(dropComponent(area)),
@@ -282,8 +267,6 @@ class DesignRoute extends PureComponent {
       this._handleDeleteComponentConfirm.bind(this);
     this._handleDeleteComponentCancel =
       this._handleDeleteComponentCancel.bind(this);
-    this._handleLayoutSelection =
-      this._handleLayoutSelection.bind(this);
     this._handleDropComponent =
       this._handleDropComponent.bind(this);
     this._handleCreateComponent =
@@ -677,16 +660,6 @@ class DesignRoute extends PureComponent {
 
   /**
    *
-   * @param {number} layoutIdx
-   * @private
-   */
-  _handleLayoutSelection({ layoutIdx }) {
-    const { onSelectLayout } = this.props;
-    onSelectLayout(layoutIdx);
-  }
-
-  /**
-   *
    * @private
    */
   _handleDropComponent({ dropZoneId }) {
@@ -759,57 +732,6 @@ class DesignRoute extends PureComponent {
     }
   }
 
-  /**
-   *
-   * @return {?ReactElement}
-   * @private
-   */
-  _renderLayoutSelectionDialogContent() {
-    const {
-      meta,
-      language,
-      selectingComponentLayout,
-      draggedComponents,
-    } = this.props;
-
-    if (!selectingComponentLayout) return null;
-
-    const draggedComponent = draggedComponents.get(0);
-    const draggedComponentMeta = getComponentMeta(draggedComponent.name, meta);
-
-    const items = draggedComponentMeta.layouts.map((layout, idx) => {
-      const icon = layout.icon || defaultComponentLayoutIcon;
-      const title = getString(
-        draggedComponentMeta.strings,
-        layout.textKey,
-        language,
-      );
-
-      const subtitle = getString(
-        draggedComponentMeta.strings,
-        layout.descriptionTextKey,
-        language,
-      );
-
-      return (
-        <ComponentLayoutSelectionItem
-          key={String(idx)}
-          layoutIdx={idx}
-          image={icon}
-          title={title}
-          subtitle={subtitle}
-          onSelect={this._handleLayoutSelection}
-        />
-      );
-    });
-
-    return (
-      <ComponentLayoutSelection>
-        {items}
-      </ComponentLayoutSelection>
-    );
-  }
-
   _renderComponentDataSelect() {
     const {
       pickedComponentId,
@@ -857,7 +779,6 @@ class DesignRoute extends PureComponent {
       projectName,
       previewContainerStyle,
       components,
-      selectingComponentLayout,
       firstSelectedComponentId,
       singleComponentSelected,
       canCopySelected,
@@ -877,9 +798,6 @@ class DesignRoute extends PureComponent {
       createComponentMenuIsVisible,
       confirmDeleteComponentDialogIsVisible,
     } = this.state;
-
-    const layoutSelectionDialogContent =
-      this._renderLayoutSelectionDialogContent();
 
     const confirmDeleteDialogButtons = [{
       text: getLocalizedText('common.delete'),
@@ -909,7 +827,7 @@ class DesignRoute extends PureComponent {
     const componentDataSelect = willRenderComponentDataSelect
       ? this._renderComponentDataSelect()
       : null;
-    
+
     const createComponentMenu = createComponentMenuIsVisible
       ? this._renderCreateComponentMenu()
       : null;
@@ -1014,14 +932,7 @@ class DesignRoute extends PureComponent {
             />
           </AppWrapper>
 
-          <Dialog
-            title={getLocalizedText('design.selectLayout')}
-            backdrop
-            minWidth={400}
-            open={selectingComponentLayout}
-          >
-            {layoutSelectionDialogContent}
-          </Dialog>
+          <LayoutSelectionDialog />
 
           <Dialog
             title={getLocalizedText('design.deleteComponent')}
@@ -1050,7 +961,6 @@ class DesignRoute extends PureComponent {
 }
 
 DesignRoute.propTypes = propTypes;
-DesignRoute.defaultProps = defaultProps;
 DesignRoute.displayName = 'DesignRoute';
 
 export default wrap(DesignRoute);

@@ -108,7 +108,7 @@ export class NewFunctionWindow extends PureComponent {
 
   _getTypeSelectOptions() {
     const { getLocalizedText } = this.props;
-    
+
     return [
       { value: TypeNames.STRING, text: getLocalizedText('types.string') },
       { value: TypeNames.INT, text: getLocalizedText('types.int') },

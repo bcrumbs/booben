@@ -138,6 +138,7 @@
   "linkDialog.source.data": "Данные",
   "linkDialog.source.dataContext": "Контекст - {context}",
   "linkDialog.source.function": "Функция",
+  "linkDialog.source.otherComponent": "Другой компонент",
   "linkDialog.source.routeParams": "Параметры роута",
   "linkDialog.source.actionArgs": "Аргументы действия",
   "linkDialog.function.library": "Встроенные",

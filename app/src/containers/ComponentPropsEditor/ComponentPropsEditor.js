@@ -23,19 +23,16 @@ import { ActionEditor } from '../ActionEditor/ActionEditor';
 import { ActionsList } from '../ActionsList/ActionsList';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
 import { PropCodeEditor } from '../../components/props';
-import JssyValue, { SourceDataState } from '../../models/JssyValue';
 
 import {
   replaceJssyValue,
   constructComponentForProp,
-  pickComponentData,
   addAction,
   replaceAction,
   deleteAction,
   changeComponentStyle,
 } from '../../actions/project';
 
-import { getStateSlotPickerFns } from '../../actions/helpers/component-picker';
 import { PathStartingPoints } from '../../reducers/project';
 
 import {
@@ -75,13 +72,9 @@ const propTypes = {
   language: PropTypes.string.isRequired,
   ownerProps: PropTypes.object,
   ownerUserTypedefs: PropTypes.object,
-  pickingComponentData: PropTypes.bool.isRequired,
-  pickedComponentId: PropTypes.number.isRequired, // eslint-disable-line react/no-unused-prop-types
-  pickedComponentData: PropTypes.string, // eslint-disable-line react/no-unused-prop-types
   getLocalizedText: PropTypes.func.isRequired,
   onReplacePropValue: PropTypes.func.isRequired,
   onConstructComponent: PropTypes.func.isRequired,
-  onPickComponentData: PropTypes.func.isRequired,
   onAddAction: PropTypes.func.isRequired,
   onReplaceAction: PropTypes.func.isRequired,
   onDeleteAction: PropTypes.func.isRequired,
@@ -91,7 +84,6 @@ const propTypes = {
 const defaultProps = {
   ownerProps: null,
   ownerUserTypedefs: null,
-  pickedComponentData: null,
 };
 
 const mapStateToProps = state => ({
@@ -101,9 +93,6 @@ const mapStateToProps = state => ({
   language: state.app.language,
   ownerProps: ownerPropsSelector(state),
   ownerUserTypedefs: ownerUserTypedefsSelector(state),
-  pickingComponentData: state.project.pickingComponentData,
-  pickedComponentId: state.project.pickedComponentId,
-  pickedComponentData: state.project.pickedComponentData,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -113,9 +102,6 @@ const mapDispatchToProps = dispatch => ({
 
   onConstructComponent: (path, components, rootId) =>
     void dispatch(constructComponentForProp(path, components, rootId)),
-
-  onPickComponentData: (filter, dataGetter) =>
-    void dispatch(pickComponentData(filter, dataGetter)),
 
   onAddAction: ({ path, action }) =>
     void dispatch(addAction(path, action)),
@@ -202,16 +188,20 @@ class ComponentPropsEditorComponent extends PureComponent {
     super(props, context);
 
     const { components, selectedComponentIds } = props;
-    const componentId = selectedComponentIds.first();
-    const component = components.get(componentId);
+
+    let componentStyle = '';
+    if (selectedComponentIds.size === 1) {
+      const componentId = selectedComponentIds.first();
+      const component = components.get(componentId);
+      componentStyle = component.style;
+    }
 
     this.state = {
-      componentStyle: component.style,
+      componentStyle,
       linkingProp: false,
       linkingPath: null,
       linkingValueDef: null,
       linkWindowName: '',
-      pickingPath: null,
       editingActions: false,
       editingActionsForProp: '',
       editingActionsForPath: null,
@@ -227,17 +217,14 @@ class ComponentPropsEditorComponent extends PureComponent {
       this._handleEditActions.bind(this, true);
     this._handleSystemPropChange = this._handleChange.bind(this, true);
     this._handleSystemPropLink = this._handleLink.bind(this, true);
-    this._handleSystemPropPick = this._handlePick.bind(this, true);
 
     this._handleSetComponent = this._handleSetComponent.bind(this, false);
     this._handleEditActions = this._handleEditActions.bind(this, false);
     this._handleChange = this._handleChange.bind(this, false);
     this._handleLink = this._handleLink.bind(this, false);
-    this._handlePick = this._handlePick.bind(this, false);
 
     this._handleLinkApply = this._handleLinkApply.bind(this);
     this._handleLinkCancel = this._handleLinkCancel.bind(this);
-    this._handlePickApply = this._handlePickApply.bind(this);
     this._handleCreateAction = this._handleCreateAction.bind(this);
     this._handleEditAction = this._handleEditAction.bind(this);
     this._handleDeleteAction = this._handleDeleteAction.bind(this);
@@ -253,13 +240,15 @@ class ComponentPropsEditorComponent extends PureComponent {
   }
 
   componentWillReceiveProps(nextProps) {
-    const { pickingComponentData } = this.props;
+    if (nextProps.selectedComponentIds !== this.props.selectedComponentIds) {
+      if (nextProps.selectedComponentIds.size === 1) {
+        const componentId = nextProps.selectedComponentIds.first();
+        const component = nextProps.components.get(componentId);
 
-    if (pickingComponentData && !nextProps.pickingComponentData) {
-      this._handlePickApply({
-        componentId: nextProps.pickedComponentId,
-        stateSlot: nextProps.pickedComponentData,
-      });
+        this.setState({
+          componentStyle: component.style,
+        });
+      }
     }
   }
 
@@ -330,51 +319,6 @@ class ComponentPropsEditorComponent extends PureComponent {
       linkingValueDef: null,
       linkWindowName: '',
     });
-  }
-
-  _handlePick(isSystemProp, { name, path }) {
-    const {
-      meta,
-      components,
-      selectedComponentIds,
-      language,
-      onPickComponentData,
-    } = this.props;
-
-    const componentId = selectedComponentIds.first();
-    const component = components.get(componentId);
-    const componentMeta = getComponentMeta(component.name, meta);
-    const linkingValueDef = isSystemProp
-      ? getNestedTypedef(SYSTEM_PROPS[name], path)
-      : getNestedTypedef(componentMeta.props[name], path, componentMeta.types);
-
-    const { filter, dataGetter } = getStateSlotPickerFns(
-      linkingValueDef,
-      componentMeta.types,
-      components,
-      meta,
-      language,
-    );
-
-    this.setState({
-      pickingPath: buildFullPath(componentId, isSystemProp, name, path),
-    });
-
-    onPickComponentData(filter, dataGetter);
-  }
-
-  _handlePickApply({ componentId, stateSlot }) {
-    const { onReplacePropValue } = this.props;
-    const { pickingPath } = this.state;
-
-    if (componentId === INVALID_ID) return;
-
-    const newValue = new JssyValue({
-      source: 'state',
-      sourceData: new SourceDataState({ componentId, stateSlot }),
-    });
-
-    onReplacePropValue(pickingPath, newValue);
   }
 
   /**
@@ -639,7 +583,6 @@ class ComponentPropsEditorComponent extends PureComponent {
         getLocalizedText={getLocalizedText}
         onChange={this._handleChange}
         onLink={this._handleLink}
-        onPick={this._handlePick}
         onConstructComponent={this._handleSetComponent}
         onEditActions={this._handleEditActions}
       />
@@ -686,7 +629,6 @@ class ComponentPropsEditorComponent extends PureComponent {
             getLocalizedText={getLocalizedText}
             onChange={this._handleSystemPropChange}
             onLink={this._handleSystemPropLink}
-            onPick={this._handleSystemPropPick}
             onConstructComponent={this._handleSystemPropSetComponent}
             onEditActions={this._handleSystemPropEditActions}
           />

@@ -45,7 +45,6 @@ const propTypes = {
   onAddValue: PropTypes.func,
   onDeleteValue: PropTypes.func,
   onLink: PropTypes.func,
-  onPick: PropTypes.func,
   onUnlink: PropTypes.func,
   onCheck: PropTypes.func,
 };
@@ -59,7 +58,6 @@ const defaultProps = {
   onAddValue: noop,
   onDeleteValue: noop,
   onLink: noop,
-  onPick: noop,
   onUnlink: noop,
   onCheck: noop,
 };
@@ -120,8 +118,6 @@ export class Prop extends PureComponent {
     this._handleBreadcrumbsSelect = this._handleBreadcrumbsSelect.bind(this);
     this._handleLink = this._handleLink.bind(this);
     this._handleLinkNested = this._handleLinkNested.bind(this);
-    this._handlePick = this._handlePick.bind(this);
-    this._handlePickNested = this._handlePickNested.bind(this);
     this._handleUnlink = this._handleUnlink.bind(this);
     this._handleUnlinkNested = this._handleUnlinkNested.bind(this);
     this._handleCheck = this._handleCheck.bind(this);
@@ -198,15 +194,6 @@ export class Prop extends PureComponent {
 
   /**
    *
-   * @private
-   */
-  _handlePick() {
-    const { propName, onPick } = this.props;
-    onPick({ propName, path: [] });
-  }
-
-  /**
-   *
    * @param {string|number} index
    * @private
    */
@@ -214,17 +201,6 @@ export class Prop extends PureComponent {
     const { propName, onLink } = this.props;
     const { currentPath } = this.state;
     onLink({ propName, path: [...currentPath, index] });
-  }
-
-  /**
-   *
-   * @param {string|number} index
-   * @private
-   */
-  _handlePickNested({ index }) {
-    const { propName, onPick } = this.props;
-    const { currentPath } = this.state;
-    onPick({ propName, path: [...currentPath, index] });
   }
 
   /**
@@ -398,7 +374,6 @@ export class Prop extends PureComponent {
           onSetComponent={this._handleSetComponentNested}
           onEditActions={this._handleEditActionsNested}
           onLink={this._handleLinkNested}
-          onPick={this._handlePickNested}
           onUnlink={this._handleUnlinkNested}
           onCheck={this._handleCheckNested}
           onOpen={this._handleOpenNested}
@@ -421,7 +396,6 @@ export class Prop extends PureComponent {
           onSetComponent={this._handleSetComponentNested}
           onEditActions={this._handleEditActionsNested}
           onLink={this._handleLinkNested}
-          onPick={this._handlePickNested}
           onUnlink={this._handleUnlinkNested}
           onCheck={this._handleCheckNested}
           onOpen={this._handleOpenNested}
@@ -445,7 +419,6 @@ export class Prop extends PureComponent {
           onSetComponent={this._handleSetComponentNested}
           onEditActions={this._handleEditActionsNested}
           onLink={this._handleLinkNested}
-          onPick={this._handlePickNested}
           onUnlink={this._handleUnlinkNested}
           onCheck={this._handleCheckNested}
           onOpen={this._handleOpenNested}
@@ -506,7 +479,6 @@ export class Prop extends PureComponent {
       id: propType.id,
       checked: !!value.checked,
       onLink: this._handleLink,
-      onPick: this._handlePick,
       onUnlink: this._handleUnlink,
       onCheck: this._handleCheck,
     };

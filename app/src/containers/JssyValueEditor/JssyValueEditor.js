@@ -48,7 +48,6 @@ const propTypes = {
   getLocalizedText: PropTypes.func,
   onChange: PropTypes.func,
   onLink: PropTypes.func,
-  onPick: PropTypes.func,
   onConstructComponent: PropTypes.func,
   onEditActions: PropTypes.func,
   deletable: PropTypes.bool,
@@ -71,7 +70,6 @@ const defaultProps = {
   getLocalizedText: returnArg,
   onChange: noop,
   onLink: noop,
-  onPick: noop,
   onConstructComponent: noop,
   onEditActions: noop,
   deletable: false,
@@ -128,7 +126,6 @@ export class JssyValueEditor extends PureComponent {
     this._handleAdd = this._handleAdd.bind(this);
     this._handleDelete = this._handleDelete.bind(this);
     this._handleLink = this._handleLink.bind(this);
-    this._handlePick = this._handlePick.bind(this);
     this._handleUnlink = this._handleUnlink.bind(this);
     this._handleCheck = this._handleCheck.bind(this);
     this._handleConstructComponent = this._handleConstructComponent.bind(this);
@@ -243,22 +240,6 @@ export class JssyValueEditor extends PureComponent {
       targetUserTypedefs: userTypedefs,
       ownerProps,
       ownerUserTypedefs,
-    });
-  }
-
-  /**
-   *
-   * @param {(string|number)[]} path
-   * @private
-   */
-  _handlePick({ path }) {
-    const { name, valueDef, userTypedefs, onPick } = this.props;
-
-    onPick({
-      name,
-      path,
-      targetValueDef: getNestedTypedef(valueDef, path, userTypedefs),
-      targetUserTypedefs: userTypedefs,
     });
   }
 
@@ -413,7 +394,7 @@ export class JssyValueEditor extends PureComponent {
     if (isValidSourceForValue(valueDef, 'data')) return true;
     if (isValidSourceForValue(valueDef, 'routeParams')) return true;
     if (isValidSourceForValue(valueDef, 'actionArg')) return true;
-
+    if (isValidSourceForValue(valueDef, 'state')) return true;
     if (!isValidSourceForValue(valueDef, 'static') || !ownerProps) return false;
 
     return objectSome(ownerProps, ownerProp => {
@@ -426,16 +407,6 @@ export class JssyValueEditor extends PureComponent {
         ownerUserTypedefs,
       );
     });
-  }
-
-  /**
-   *
-   * @param {JssyValueDefinition} valueDef
-   * @return {boolean}
-   * @private
-   */
-  _isPickableValue(valueDef) {
-    return isValidSourceForValue(valueDef, 'state');
   }
 
   /**
@@ -563,7 +534,6 @@ export class JssyValueEditor extends PureComponent {
       ),
 
       linkable: this._isLinkableValue(resolvedValueDef),
-      pickable: this._isPickableValue(resolvedValueDef),
       checkable,
       required: !!resolvedValueDef.required,
       transformValue: null,
@@ -767,7 +737,6 @@ export class JssyValueEditor extends PureComponent {
         onCheck={this._handleCheck}
         onLink={this._handleLink}
         onUnlink={this._handleUnlink}
-        onPick={this._handlePick}
         onSetComponent={this._handleConstructComponent}
         onEditActions={this._handleEditActions}
       />
