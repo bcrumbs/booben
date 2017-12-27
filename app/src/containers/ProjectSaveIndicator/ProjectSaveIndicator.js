@@ -5,6 +5,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import moment from 'moment';
+
 import { ProjectSave } from '../../components/ProjectSave/ProjectSave';
 import { getLocalizedTextFromState } from '../../selectors';
 import { returnArg } from '../../utils/misc';
@@ -44,7 +46,6 @@ const ProjectSaveIndicatorComponent = props => {
   let title = '';
   let tooltip = '';
   let status = '';
-  let savedTimestamp = null;
 
   if (saving) {
     title = getLocalizedText('appHeader.saveIndicator.title.saving');
@@ -55,10 +56,17 @@ const ProjectSaveIndicatorComponent = props => {
     tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.error');
     status = 'error';
   } else if (lastSavedRevision > 0) {
+    const savedTime = lastSaveTimestamp
+      ? moment(lastSaveTimestamp).fromNow()
+      : '';
+
     title = getLocalizedText('appHeader.saveIndicator.title.saved');
-    tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.saved');
+
+    tooltip = `${getLocalizedText(
+      'appHeader.saveIndicator.tooltip.saved',
+    )} ${savedTime}`;
+
     status = 'success';
-    savedTimestamp = lastSaveTimestamp;
   } else {
     title = getLocalizedText('appHeader.saveIndicator.title.idle');
     tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.idle');
@@ -69,8 +77,7 @@ const ProjectSaveIndicatorComponent = props => {
     <ProjectSave
       status={status}
       title={title}
-      tooltip={tooltip}
-      savedTimestamp={savedTimestamp}
+      tooltipText={tooltip}
     />
   );
 };

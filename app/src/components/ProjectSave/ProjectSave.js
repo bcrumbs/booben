@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import moment from 'moment';
 import { Icon, withTooltip } from '@reactackle/reactackle';
 import { ProjectSaveStyled } from './styles/ProjectSaveStyled';
 import { IconStyled } from './styles/IconStyled';
@@ -14,22 +13,16 @@ const propTypes = {
   toggleTooltip: PropTypes.func.isRequired,
   showTooltip: PropTypes.func.isRequired,
   hideTooltip: PropTypes.func.isRequired,
-  savedTimestamp: PropTypes.number,
   Tooltip: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
-  savedTimestamp: null,
   status: 'default',
   title: '',
   tooltipText: '',
 };
 
 const ProjectSaveComponent = props => {
-  const savedTime = props.savedTimestamp
-    ? moment(props.savedTimestamp).fromNow()
-    : null;
-    
   let icon = null;
   
   if (props.status === 'error') {
@@ -59,7 +52,6 @@ const ProjectSaveComponent = props => {
           active={props.status !== 'default'}
         >
           {icon}
-          {savedTime}
         </IconStyled>
         
         <TitleStyled>
