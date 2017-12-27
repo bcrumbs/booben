@@ -570,10 +570,10 @@ export class ComponentsDragArea extends PureComponent {
       dropZone.onDrop();
     }
 
+    onDrop({ dropZoneId, data });
+
     if (dropMenuIsVisible) this._hideDropMenu();
     this._dropSnapPoints();
-
-    onDrop({ dropZoneId, data });
   }
 
   _handleDragTryStart({ title, data, element }) {
