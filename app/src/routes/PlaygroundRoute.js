@@ -19,14 +19,7 @@ import {
   HeaderMenuList,
   HeaderMenuGroup,
   HeaderMenuItem,
-  Footer,
-  FooterRegion,
-  FooterMenu,
-  FooterMenuItem,
-  FooterMenuGroup,
-  FooterMenuList,
   Panel,
-  PanelContent,
   ToggleButton,
 } from '@reactackle/reactackle';
 
@@ -39,12 +32,6 @@ import {
   BlockContentBoxHeading,
   BlockContentPlaceholder,
 } from '../components/BlockContent';
-
-import {
-  RoutesList,
-  RouteCard,
-  IndexRouteCard,
-} from '../components/RoutesList/RoutesList';
 
 import {
   ComponentLayoutSelection,
@@ -93,9 +80,7 @@ import { Desktop } from '../containers/Desktop/Desktop';
 
 import ToolSectionRecord from '../models/ToolSection';
 import ToolRecord from '../models/Tool';
-
-import { List, Set } from 'immutable';
-
+import { List } from 'immutable';
 import { removeSplashScreen } from '../lib/dom';
 
 import {
@@ -550,31 +535,6 @@ export default class Playground extends React.Component {
             <CanvasPlaceholder />
           </Panel>
         </Desktop>
-
-        <BottomRegion fixed={false}>
-          <Footer>
-            <FooterRegion region="main" size="blank">
-              <FooterMenu inline dense >
-                <FooterMenuGroup>
-                  <FooterMenuList>
-                    <FooterMenuItem text="FAQ" />
-                  </FooterMenuList>
-                </FooterMenuGroup>
-              </FooterMenu>
-            </FooterRegion>
-            <FooterRegion size="blank">
-              <FooterMenu inline dense mode="light">
-                <FooterMenuGroup>
-                  <FooterMenuList>
-                    <FooterMenuItem text="Show component's title" subcomponentRight={<ToggleButton />} />
-                    <FooterMenuItem text="Show placeholders" subcomponentRight={<ToggleButton />} />
-                    <FooterMenuItem text="Toggle fullscreen" />
-                  </FooterMenuList>
-                </FooterMenuGroup>
-              </FooterMenu>
-            </FooterRegion>
-          </Footer>
-        </BottomRegion>
       </App>
     );
   }
