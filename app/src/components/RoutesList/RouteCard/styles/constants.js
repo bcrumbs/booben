@@ -5,5 +5,5 @@ export default {
   cardPaddingY: baseModule(1.25),
   cardPaddingX: baseModule(1.25),
   markSize: 16,
-  markImgSize: 12,
+  markImgSize: 10,
 };

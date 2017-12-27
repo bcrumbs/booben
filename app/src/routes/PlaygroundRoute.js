@@ -86,12 +86,6 @@ import {
 } from '../components/ConstructionPane/ConstructionPane';
 
 import {
-  ToolBar,
-  ToolBarGroup,
-  ToolBarAction,
-} from '../components/ToolBar/ToolBar';
-
-import {
   CanvasPlaceholder,
 } from '../containers/Canvas/content/components/CanvasPlaceholder';
 
@@ -103,6 +97,14 @@ import ToolRecord from '../models/Tool';
 import { List, Set } from 'immutable';
 
 import { removeSplashScreen } from '../lib/dom';
+
+import {
+  IconTrash,
+  IconLibrary,
+  IconTree,
+  IconBrush,
+  IconPlay,
+} from '../components/icons';
 
 // DATA
 const toolIsolationSections = List([
@@ -269,7 +271,7 @@ const toolComponentActionsWindowSections = List([
               title="onFocus"
               description="Some description from meta"
             />
-            
+
             <ComponentHandler
               title="onPress"
               description="Some description from meta"
@@ -278,12 +280,12 @@ const toolComponentActionsWindowSections = List([
             >
               <ComponentActions addButtonText="Add action">
                 <ComponentAction title="Show Preloader" />
-                
+
                 <ComponentAction title="Create Alert">
                   <ComponentActionCaseRow type="success" title="On success">
                     <ComponentActions addButtonText="Add action" />
                   </ComponentActionCaseRow>
-                  
+
                   <ComponentActionCaseRow type="error" title="On error">
                     <ComponentActions addButtonText="Add action">
                       <ComponentAction title="Some action" />
@@ -291,11 +293,11 @@ const toolComponentActionsWindowSections = List([
                     </ComponentActions>
                   </ComponentActionCaseRow>
                 </ComponentAction>
-                
+
                 <ComponentAction title="Go to route SomeRoute" />
               </ComponentActions>
             </ComponentHandler>
-            
+
             <ComponentHandler
               title="onSomething"
               description="Some description from meta"
@@ -343,7 +345,7 @@ const toolComponentActionNewWindowSections = List([
       <BlockContentBox isBordered>
         <BlockBreadcrumbs items={breadcrumbsSample} />
         <BlockContentHeading>New Action</BlockContentHeading>
-        
+
         <BlockContentBox>
           <BlockContentBoxGroup>
             <BlockContentBoxItem>
@@ -363,7 +365,7 @@ const toolComponentActionNewWindowSections = List([
             </BlockContentBoxItem>
           </BlockContentBoxGroup>
         </BlockContentBox>
-       
+
         <BlockContentBox>
           <BlockContentBoxHeading>Parameters</BlockContentBoxHeading>
           <BlockContentBoxGroup>
@@ -394,7 +396,7 @@ const toolGroups = List([
   List([
     new ToolRecord({
       id: 'tool10',
-      icon: 'play',
+      icon: <IconPlay />,
       name: 'Action / New Action',
       title: 'Button',
       undockable: true,
@@ -403,10 +405,10 @@ const toolGroups = List([
       mainButtons: '',
       secondaryButtons: '',
     }),
-    
+
     new ToolRecord({
       id: 'tool8',
-      icon: 'play',
+      icon: <IconPlay />,
       name: 'Action Tab Content',
       title: 'Action Tab Content',
       undockable: true,
@@ -415,10 +417,10 @@ const toolGroups = List([
       mainButtons: '',
       secondaryButtons: '',
     }),
-    
+
     new ToolRecord({
       id: 'tool9',
-      icon: 'cog',
+      icon: <IconBrush />,
       name: 'Artboard Properties',
       title: 'Artboard Properties',
       undockable: true,
@@ -430,7 +432,7 @@ const toolGroups = List([
 
     new ToolRecord({
       id: 'tool1',
-      icon: 'file-text-o',
+      icon: <IconBrush />,
       name: 'Data',
       title: 'Data',
       undockable: true,
@@ -442,7 +444,7 @@ const toolGroups = List([
 
     new ToolRecord({
       id: 'tool7',
-      icon: 'cog',
+      icon: <IconBrush />,
       name: 'Component Settings',
       title: 'Component Settings',
       undockable: true,
@@ -454,7 +456,7 @@ const toolGroups = List([
 
     new ToolRecord({
       id: 'tool6',
-      icon: 'sitemap',
+      icon: <IconTree />,
       name: 'Elements Tree',
       title: 'Elements Tree',
       undockable: true,
@@ -464,7 +466,7 @@ const toolGroups = List([
 
     new ToolRecord({
       id: 'tool2',
-      icon: 'cube',
+      icon: <IconLibrary />,
       name: 'Components Library',
       title: 'Components Library',
       undockable: true,
@@ -476,7 +478,7 @@ const toolGroups = List([
 
     new ToolRecord({
       id: 'tool4',
-      icon: 'trash-o',
+      icon: <IconTrash />,
       name: 'Just Empty Tab',
       title: 'Just Empty Tab',
       undockable: true,
@@ -492,7 +494,7 @@ export default class Playground extends React.Component {
   componentDidMount() {
     removeSplashScreen();
   }
-  
+
   render() {
     return (
       <App fixed>
@@ -527,7 +529,7 @@ export default class Playground extends React.Component {
             <HeaderRegion size="blank">
               <ProjectSave title="status" />
             </HeaderRegion>
-            
+
             <HeaderRegion size="blank">
               <HeaderMenu inline dense>
                 <HeaderMenu inline dense mode={'light'}>

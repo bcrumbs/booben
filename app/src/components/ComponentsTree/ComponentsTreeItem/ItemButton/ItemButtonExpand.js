@@ -3,9 +3,7 @@ import { PropTypes } from 'prop-types';
 import styled from 'styled-components';
 import { transition } from '@reactackle/reactackle';
 import { ItemButton } from './ItemButton';
-
-import iconExpand
-  from '../../../../../assets/ic-light__chevron-right_24-bound.svg';
+import { IconArrowChevronRight } from '../../../icons';
 
 const propTypes = {
   expanded: PropTypes.bool,
@@ -32,7 +30,7 @@ const ButtonExpand = styled.div`
 
 export const ItemButtonExpand = ({ expanded, disabled }) => (
   <ButtonExpand expanded={expanded} disabled={disabled}>
-    <ItemButton icon={{ type: 'library', src: iconExpand }} />
+    <ItemButton icon={<IconArrowChevronRight />} />
   </ButtonExpand>
 );
 

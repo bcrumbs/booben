@@ -11,7 +11,7 @@ const propTypes = {
   showTooltip: PropTypes.func.isRequired,
   hideTooltip: PropTypes.func.isRequired,
   Tooltip: PropTypes.func.isRequired,
-  icon: PropTypes.string,
+  icon: PropTypes.element,
   title: PropTypes.string,
   isActive: PropTypes.bool,
   onPress: PropTypes.func,
@@ -19,7 +19,7 @@ const propTypes = {
 };
 
 const defaultProps = {
-  icon: '',
+  icon: null,
   title: '',
   isActive: false,
   onPress: noop,
@@ -35,7 +35,7 @@ const _PageDrawerActionItem = props => {
   if (props.icon) {
     button = (
       <Button
-        icon={{ name: props.icon }}
+        icon={props.icon}
         onPress={props.onPress}
         radius="none"
         size="normal"

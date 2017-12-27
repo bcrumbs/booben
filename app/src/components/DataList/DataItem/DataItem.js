@@ -10,6 +10,7 @@ import { TypeStyled } from './styles/TypeStyled';
 import { ContentStyled } from './styles/ContentStyled';
 import { ActionsStyled } from './styles/ActionsStyled';
 import { ButtonsStyled } from './styles/ButtonsStyled';
+import { IconArrowChevronRight } from '../../icons';
 
 const propTypes = {
   id: PropTypes.string.isRequired,
@@ -111,7 +112,7 @@ export class DataItem extends PureComponent {
       actionsRight = (
         <ActionsStyled>
           <Button
-            icon={{ name: 'chevron-right' }}
+            icon={<IconArrowChevronRight />}
             onPress={this._handleJumpInto}
             radius="rounded"
             size="small"

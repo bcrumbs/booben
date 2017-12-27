@@ -44,6 +44,7 @@ import {
 } from '../constants/paths';
 
 import { URL_PREVIEW_PREFIX } from '../../../shared/constants';
+import { IconPlay, IconUpload } from '../components/icons';
 
 const propTypes = {
   location: PropTypes.object.isRequired, // router
@@ -214,12 +215,12 @@ class AppRoute extends Component {
                       text={getLocalizedText('appHeader.menu.preview')}
                       linkHref={`${URL_PREVIEW_PREFIX}/${projectName}`}
                       linkComponent={TopMenuExternalLink}
-                      iconLeft="play-circle"
+                      iconLeft={<IconPlay />}
                     />
 
                     <HeaderMenuItem
                       text={getLocalizedText('appHeader.menu.publish')}
-                      iconLeft="arrow-circle-o-up"
+                      iconLeft={<IconUpload />}
                     />
                   </HeaderMenuList>
                 </HeaderMenuGroup>

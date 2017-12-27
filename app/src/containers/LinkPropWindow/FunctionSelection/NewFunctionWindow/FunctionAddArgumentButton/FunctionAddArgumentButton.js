@@ -6,6 +6,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { Button } from '@reactackle/reactackle';
 import { returnArg, noop } from '../../../../../utils/misc';
+import { IconAdd } from '../../../../../components/icons';
 
 const propTypes = {
   getLocalizedText: PropTypes.func,
@@ -20,7 +21,7 @@ const defaultProps = {
 export const FunctionAddArgumentButton = ({ getLocalizedText, onPress }) => (
   <div className="function-arguments_list-button">
     <Button
-      icon={{ name: 'plus' }}
+      icon={<IconAdd />}
       text={getLocalizedText('linkDialog.function.new.newArg.button')}
       narrow
       onPress={onPress}

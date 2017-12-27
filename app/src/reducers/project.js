@@ -90,6 +90,8 @@ import {
 
 import RecordWithHistory from '../models/helpers/RecordWithHistory';
 import Designer from '../models/Designer';
+import Clipboard from '../models/Clipboard';
+import Cursor from '../models/Cursor';
 import ProjectRoute from '../models/ProjectRoute';
 
 import JssyValue, {
@@ -163,6 +165,8 @@ export const NestedConstructor = RecordWithHistory({
   rootId: INVALID_ID,
   lastComponentId: INVALID_ID,
   designer: new Designer(),
+  clipboard: new Clipboard(),
+  cursor: new Cursor(),
 }, [
   'components',
   'rootId',
@@ -188,6 +192,8 @@ const ProjectState = RecordWithHistory({
   lastRouteId: INVALID_ID,
   lastComponentId: INVALID_ID,
   designer: new Designer(),
+  clipboard: new Clipboard(),
+  cursor: new Cursor(),
   highlightingEnabled: true,
   showAllComponentsOnPalette: false,
   currentRouteId: INVALID_ID,
@@ -268,6 +274,14 @@ const getPathToCurrentDesigner = state => haveNestedConstructors(state)
   ? ['nestedConstructors', 0, 'designer']
   : ['designer'];
 
+const getPathToCurrentClipboard = state => haveNestedConstructors(state)
+  ? ['nestedConstructors', 0, 'clipboard']
+  : ['clipboard'];
+
+const getPathToCurrentCursor = state => haveNestedConstructors(state)
+  ? ['nestedConstructors', 0, 'cursor']
+  : ['cursor'];
+
 const getPathToCurrentHistoryNode = state => haveNestedConstructors(state)
   ? ['nestedConstructors', 0]
   : [];
@@ -276,10 +290,16 @@ const getPathToPreviousHistoryNode = state => state.nestedConstructors.size > 1
   ? ['nestedConstructors', 1]
   : [];
 
-const getDesigner = state => state.getIn(getPathToCurrentDesigner(state));
+const getCursor = state => state.getIn(getPathToCurrentCursor(state));
 
 const updateDesigner = (state, updater) =>
   state.updateIn(getPathToCurrentDesigner(state), updater);
+
+const updateClipboard = (state, updater) =>
+  state.updateIn(getPathToCurrentClipboard(state), updater);
+
+const updateCursor = (state, updater) =>
+  state.updateIn(getPathToCurrentCursor(state), updater);
 
 const getPathToLastComponentId = state => haveNestedConstructors(state)
   ? ['nestedConstructors', 0, 'lastComponentId']
@@ -363,14 +383,14 @@ const addNewComponents = (
     if (containerId === INVALID_ID) {
       if (!isAtomicComponent(rootComponent.name, state.meta)) {
         // Set cursor position inside newly created root component
-        state = updateDesigner(state, designer => designer.setCursorPosition(
+        state = updateCursor(state, cursor => cursor.setPosition(
           state.getIn(getPathToCurrentRootComponentId(state)),
           -1,
         ));
       }
     } else {
       // Set cursor position after newly created component
-      state = updateDesigner(state, designer => designer.setCursorPosition(
+      state = updateCursor(state, cursor => cursor.setPosition(
         containerId,
         position,
       ));
@@ -517,17 +537,14 @@ const deleteComponent = (state, componentId) => {
 
   // Update cursor position
   if (isRootComponent(component)) {
-    state = updateDesigner(state, designer => designer.setCursorPosition(
-      INVALID_ID,
-      -1,
-    ));
+    state = updateCursor(state, cursor => cursor.setPosition(INVALID_ID, -1));
   } else {
-    const designer = getDesigner(state);
+    const cursor = getCursor(state);
     const cursorIsInsideDeletedSubtree =
-      designer.cursorContainerId === componentId ||
+      cursor.containerId === componentId ||
       isDeepChild(
         currentComponents,
-        designer.cursorContainerId,
+        cursor.containerId,
         componentId,
       );
 
@@ -536,7 +553,7 @@ const deleteComponent = (state, componentId) => {
       const deletedComponentPosition =
         parentComponent.children.indexOf(componentId);
 
-      state = updateDesigner(state, designer => designer.setCursorPosition(
+      state = updateCursor(state, cursor => cursor.setPosition(
         component.parentId,
         deletedComponentPosition - 1,
       ));
@@ -604,14 +621,14 @@ const moveComponent = (state, componentId, containerId, afterIdx) => {
   const targetPosition = afterIdx + 1;
 
   // Update cursor position
-  const designer = getDesigner(state);
-  if (designer.cursorContainerId === component.parentId) {
+  const cursor = getCursor(state);
+  if (cursor.containerId === component.parentId) {
     const parentComponent = components.get(component.parentId);
     const position = parentComponent.children.indexOf(componentId);
-    if (designer.cursorAfter >= position) {
-      state = updateDesigner(state, designer => designer.setCursorPosition(
-        designer.cursorContainerId,
-        designer.cursorAfter - 1,
+    if (cursor.afterIdx >= position) {
+      state = updateCursor(state, cursor => cursor.setPosition(
+        cursor.containerId,
+        cursor.afterIdx - 1,
       ));
     }
   }
@@ -1108,13 +1125,17 @@ const initMainDesigner = state => {
     ? Set()
     : Set([rootComponentId]);
 
-  return state.update('designer', designer => {
-    if (willUpdateCursor) {
-      designer = designer.setCursorPosition(rootComponentId, -1);
-    }
+  if (willUpdateCursor) {
+    state = state.update(
+      'cursor',
+      cursor => cursor.setPosition(rootComponentId, -1),
+    );
+  }
 
-    return designer.set('expandedTreeItemIds', expandedTreeItemIds);
-  });
+  return state.update(
+    'designer',
+    designer => designer.set('expandedTreeItemIds', expandedTreeItemIds),
+  );
 };
 
 const setCurrentRoute = (state, routeId, isIndexRoute) => {
@@ -1419,7 +1440,7 @@ const handlers = {
   [PROJECT_COMPONENT_MOVE]: undoable(incrementsRevision(
     (state, action) => moveComponent(
       action.clearClipboard
-        ? updateDesigner(state, designer => designer.clearClipboard())
+        ? updateClipboard(state, clipboard => clipboard.clearClipboard())
         : state,
 
       action.componentId,
@@ -1429,8 +1450,8 @@ const handlers = {
   )),
 
   [PROJECT_COMPONENT_MOVE_TO_CLIPBOARD]: (state, action) =>
-    updateDesigner(state, designer =>
-      designer.updateClipboard(action.componentId, action.copy)),
+    updateClipboard(state, clipboard =>
+      clipboard.updateClipboard(action.componentId, action.copy)),
 
   [PROJECT_COMPONENT_CONVERT_TO_LIST]: undoable(incrementsRevision(
     (state, action) => {
@@ -1829,7 +1850,7 @@ const handlers = {
   ),
 
   [PROJECT_MOVE_CURSOR]: (state, action) =>
-    updateDesigner(state, designer => designer.setCursorPosition(
+    updateCursor(state, cursor => cursor.setPosition(
       action.containerId,
       action.afterIdx,
     )),

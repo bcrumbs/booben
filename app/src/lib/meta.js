@@ -54,7 +54,7 @@ export const formatComponentName = (namespace, name) =>
  *
  * @param {string} componentName
  * @param {ComponentsMeta} meta
- * @return {?Object}
+ * @return {?ComponentMeta}
  */
 export const getComponentMeta = (componentName, meta) => {
   const { namespace, name } = parseComponentName(componentName);

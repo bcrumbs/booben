@@ -11,18 +11,18 @@ export default {
   placeholderSize: 28,
   
   content: {
+    borderColor,
     bgColor: colorBgDefault,
-    borderColor: borderColor,
   },
   
   actions: {
+    borderColor,
     bgColor: colorBgDefault,
-    borderColor: borderColor,
     groupSeparatorColor: borderColor,
     
     placeholder: {
+      borderColor,
       bgColor: colorActiveBgLight,
-      borderColor: borderColor,
     },
     
     action: {
