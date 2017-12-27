@@ -22,7 +22,6 @@ import {
 import {
   ComponentsTree,
   ComponentsTreeItem,
-  ComponentsTreeItemTitle,
   ComponentsTreeItemContent,
   ComponentsTreeList,
   ComponentsTreeCursor,
@@ -74,6 +73,7 @@ import {
   expandedTreeItemIdsSelector,
 } from '../../selectors';
 
+import Cursor from '../../models/Cursor';
 import ProjectComponentRecord from '../../models/ProjectComponent';
 import { isCompositeComponent, isAtomicComponent } from '../../lib/meta';
 
@@ -111,7 +111,7 @@ const propTypes = {
     JssyPropTypes.componentDataItem,
   ).isRequired, // state
   meta: PropTypes.object.isRequired, // state
-  cursorPosition: JssyPropTypes.componentsTreePosition.isRequired, // state
+  cursorPosition: PropTypes.instanceOf(Cursor).isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onExpandItem: PropTypes.func.isRequired, // dispatch
   onCollapseItem: PropTypes.func.isRequired, // dispatch

@@ -50,7 +50,7 @@ class RootRoute extends PureComponent {
 
   componentDidMount() {
     const { match, onProjectRequest } = this.props;
-    
+
     const projectName = match.params.projectName;
     if (projectName) onProjectRequest(projectName);
   }
@@ -65,12 +65,12 @@ class RootRoute extends PureComponent {
 
     if (willRemoveSplashScreen) this._removeSplashScreen();
   }
-  
+
   _removeSplashScreen() {
     removeSplashScreen();
     this._spashScreenRemoved = true;
   }
-  
+
   _renderError(message) {
     return (
       <ErrorScreen
@@ -82,19 +82,19 @@ class RootRoute extends PureComponent {
 
   render() {
     const { match, projectLoadState, projectLoadError } = this.props;
-  
+
     const projectName = match.params.projectName;
-    
+
     if (!projectName) {
       this._removeSplashScreen();
       return this._renderError('Project name not specified');
     }
-    
+
     switch (projectLoadState) {
       case LOAD_ERROR: {
         return this._renderError(projectLoadError.message);
       }
-      
+
       case LOADED: {
         return (
           <Switch>
@@ -102,7 +102,7 @@ class RootRoute extends PureComponent {
           </Switch>
         );
       }
-      
+
       default: {
         return null;
       }

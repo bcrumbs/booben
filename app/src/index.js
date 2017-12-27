@@ -43,7 +43,7 @@ window.addEventListener('DOMContentLoaded', () => {
                   path="/playground"
                   component={PlaygroundRoute}
                 />
-    
+
                 <Route
                   exact
                   path={PATH_ROOT}
@@ -51,7 +51,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     <Redirect to={buildStructurePath(match.params)} />
                   )}
                 />
-    
+
                 <Route path={PATH_ROOT} component={RootRoute} />
               </Switch>
             </ConnectedRouter>

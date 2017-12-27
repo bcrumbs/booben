@@ -188,11 +188,16 @@ class ComponentPropsEditorComponent extends PureComponent {
     super(props, context);
 
     const { components, selectedComponentIds } = props;
-    const componentId = selectedComponentIds.first();
-    const component = components.get(componentId);
+
+    let componentStyle = '';
+    if (selectedComponentIds.size === 1) {
+      const componentId = selectedComponentIds.first();
+      const component = components.get(componentId);
+      componentStyle = component.style;
+    }
 
     this.state = {
-      componentStyle: component.style,
+      componentStyle,
       linkingProp: false,
       linkingPath: null,
       linkingValueDef: null,
@@ -232,6 +237,19 @@ class ComponentPropsEditorComponent extends PureComponent {
       this._saveComponentStyle.bind(this),
       CSS_EDITOR_DEBOUNCE,
     );
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.selectedComponentIds !== this.props.selectedComponentIds) {
+      if (nextProps.selectedComponentIds.size === 1) {
+        const componentId = nextProps.selectedComponentIds.first();
+        const component = nextProps.components.get(componentId);
+
+        this.setState({
+          componentStyle: component.style,
+        });
+      }
+    }
   }
 
   /**

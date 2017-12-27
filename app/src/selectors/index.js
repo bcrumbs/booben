@@ -33,10 +33,10 @@ export const topNestedConstructorSelector = state =>
 
 export const currentDesignerSelector = createSelector(
   topNestedConstructorSelector,
-  state => state.project,
+  state => state.project.designer,
 
-  (topNestedConstructor, projectState) => topNestedConstructor === null
-    ? projectState.designer
+  (topNestedConstructor, projectDesigner) => topNestedConstructor === null
+    ? projectDesigner
     : topNestedConstructor.designer,
 );
 
@@ -162,19 +162,25 @@ export const highlightedComponentIdsSelector = createSelector(
 );
 
 export const cursorPositionSelector = createSelector(
-  currentDesignerSelector,
-  designer => ({
-    containerId: designer.cursorContainerId,
-    afterIdx: designer.cursorAfter,
-  }),
+  state => haveNestedConstructorsSelector(state)
+    ? state.project.nestedConstructors.first().cursor
+    : null,
+
+  state => state.project.cursor,
+
+  (topNestedConstructorCursor, projectCursor) =>
+    topNestedConstructorCursor || projectCursor,
 );
 
 export const componentClipboardSelector = createSelector(
-  currentDesignerSelector,
-  designer => ({
-    componentId: designer.clipboardComponentId,
-    copy: designer.clipboardCopy,
-  }),
+  state => haveNestedConstructorsSelector(state)
+    ? state.project.nestedConstructors.first().clipboard
+    : null,
+
+  state => state.project.clipboard,
+
+  (topNestedConstructorClipboard, projectClipboard) =>
+    topNestedConstructorClipboard || projectClipboard,
 );
 
 export const expandedTreeItemIdsSelector = createSelector(
