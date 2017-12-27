@@ -4,6 +4,9 @@ export default {
       size: {
         normal: {
           fontSize: 12,
+          icon: {
+            width: 20,
+          }
         },
       },
     },

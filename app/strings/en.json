@@ -25,7 +25,7 @@
   "appHeader.saveIndicator.tooltip.idle": "",
   "appHeader.saveIndicator.tooltip.saving": "",
   "appHeader.saveIndicator.tooltip.error": "",
-  "appHeader.saveIndicator.tooltip.saved": "",
+  "appHeader.saveIndicator.tooltip.saved": "Last saved {savedTime}",
 
   "appFooter.help": "Help",
   "appFooter.toggleFullScreen": "Toggle Full Screen",

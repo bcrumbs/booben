@@ -14,13 +14,15 @@ import {
   BlockContentNavigation,
 } from '../../../../components/BlockContent';
 
-import {
-  PageDrawerContentArea,
-} from '../../../../components/PageDrawer';
-
+import { PageDrawerContentArea } from '../../../../components/PageDrawer';
 import ToolType from '../../../../models/Tool';
 import ToolStateType from '../../../../models/ToolState';
 import { noop } from '../../../../utils/misc';
+
+import {
+  IconArrowChevronRight,
+  IconExpand,
+} from '../../../../components/icons';
 
 const propTypes = {
   tool: PropTypes.instanceOf(ToolType).isRequired,
@@ -62,18 +64,14 @@ export class ToolPanelContent extends PureComponent {
     } = this.props;
 
     const titleButtons = [{
-      icon: {
-        name: 'chevron-right',
-      },
+      icon: <IconArrowChevronRight />,
       colorScheme: 'flatLight',
       onPress: onCollapse,
     }];
 
     if (tool.undockable) {
       titleButtons.unshift({
-        icon: {
-          name: 'arrows-alt',
-        },
+        icon: <IconExpand />,
         colorScheme: 'flatLight',
         onPress: onUndock,
       });
@@ -121,7 +119,7 @@ export class ToolPanelContent extends PureComponent {
         const buttons = mainButtons.map((button, idx) => (
           <Button
             key={String(idx)}
-            icon={{ name: button.icon }}
+            icon={button.icon}
             text={button.text}
             disabled={button.disabled}
             colorScheme="flatLight"
@@ -141,7 +139,7 @@ export class ToolPanelContent extends PureComponent {
         const buttons = secondaryButtons.map((button, idx) => (
           <Button
             key={String(idx)}
-            icon={{ name: button.icon }}
+            icon={button.icon}
             text={button.text}
             disabled={button.disabled}
             colorScheme="flatLight"

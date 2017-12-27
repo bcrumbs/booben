@@ -121,6 +121,20 @@ import { buildStructurePath } from '../constants/paths';
 import * as JssyPropTypes from '../constants/common-prop-types';
 import { INVALID_ID } from '../constants/misc';
 
+import {
+  IconCopy,
+  IconDuplicate,
+  IconCut,
+  IconPaste,
+  IconTrash,
+  IconUndo,
+  IconRedo,
+  IconList,
+  IconLibrary,
+  IconTree,
+  IconBrush,
+} from '../components/icons';
+
 const propTypes = {
   projectName: PropTypes.string.isRequired, // state
   components: JssyPropTypes.components.isRequired, // state
@@ -226,10 +240,6 @@ const mapDispatchToProps = dispatch => ({
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
 
-const LIBRARY_ICON = 'plus-square-o';
-const COMPONENTS_TREE_ICON = 'sitemap';
-const PROPS_EDITOR_ICON = 'sliders';
-
 const NestedConstructorsBreadcrumbsItem = props => (
   <span className={props.className}>
     {props.children}
@@ -294,7 +304,7 @@ class DesignRoute extends PureComponent {
 
     return new ToolRecord({
       id: TOOL_ID_LIBRARY,
-      icon: LIBRARY_ICON,
+      icon: <IconLibrary />,
       name: getLocalizedText('design.tool.componentsLibrary'),
       title: getLocalizedText('design.tool.componentsLibrary'),
       sections: List([
@@ -312,7 +322,7 @@ class DesignRoute extends PureComponent {
 
     return new ToolRecord({
       id: TOOL_ID_COMPONENTS_TREE,
-      icon: COMPONENTS_TREE_ICON,
+      icon: <IconTree />,
       name: getLocalizedText('design.tool.elementsTree'),
       title: getLocalizedText('design.tool.elementsTree'),
       sections: List([
@@ -375,7 +385,7 @@ class DesignRoute extends PureComponent {
 
     return new ToolRecord({
       id: TOOL_ID_PROPS_EDITOR,
-      icon: PROPS_EDITOR_ICON,
+      icon: <IconBrush />,
       name,
       title,
       titleEditable: singleComponentSelected,
@@ -846,35 +856,35 @@ class DesignRoute extends PureComponent {
           <ToolBar>
             <ToolBarGroup>
               <ToolBarAction
-                icon={{ name: 'files-o' }}
+                icon={<IconDuplicate />}
                 tooltipText={getLocalizedText('toolbar.design.duplicate')}
                 disabled={!canCopySelected}
                 onPress={this._handleDuplicateSelectedComponent}
               />
 
               <ToolBarAction
-                icon={{ name: 'clone' }}
+                icon={<IconCopy />}
                 tooltipText={getLocalizedText('toolbar.design.copy')}
                 disabled={!canCopySelected}
                 onPress={this._handleCopySelectedComponent}
               />
 
               <ToolBarAction
-                icon={{ name: 'scissors' }}
+                icon={<IconCut />}
                 tooltipText={getLocalizedText('toolbar.design.cut')}
                 disabled={!singleComponentSelected}
                 onPress={this._handleCutSelectedComponent}
               />
 
               <ToolBarAction
-                icon={{ name: 'clipboard' }}
+                icon={<IconPaste />}
                 tooltipText={getLocalizedText('toolbar.design.paste')}
                 disabled={componentClipboard.componentId === INVALID_ID}
                 onPress={this._handlePasteComponent}
               />
 
               <ToolBarAction
-                icon={{ name: 'trash' }}
+                icon={<IconTrash />}
                 tooltipText={getLocalizedText('toolbar.design.delete')}
                 disabled={!this._isDeletable()}
                 onPress={this._handleDeleteSelectedComponent}
@@ -883,14 +893,14 @@ class DesignRoute extends PureComponent {
 
             <ToolBarGroup>
               <ToolBarAction
-                icon={{ name: 'undo' }}
+                icon={<IconUndo />}
                 tooltipText={getLocalizedText('toolbar.common.undo')}
                 disabled={!canUndo}
                 onPress={onUndo}
               />
 
               <ToolBarAction
-                icon={{ name: 'repeat' }}
+                icon={<IconRedo />}
                 tooltipText={getLocalizedText('toolbar.common.redo')}
                 disabled={!canRedo}
                 onPress={onRedo}
@@ -899,7 +909,7 @@ class DesignRoute extends PureComponent {
 
             <ToolBarGroup>
               <ToolBarAction
-                icon={{ name: 'list' }}
+                icon={<IconList />}
                 tooltipText={getLocalizedText('toolbar.design.convertToList')}
                 disabled={!singleComponentSelected}
                 onPress={this._handleConvertComponentToList}

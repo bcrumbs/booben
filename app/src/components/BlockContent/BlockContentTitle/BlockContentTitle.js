@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Icon, Button } from '@reactackle/reactackle';
+import { Button } from '@reactackle/reactackle';
 import { noop } from '../../../utils/misc';
 
 import {
@@ -17,22 +17,13 @@ import { TitleBoxStyled } from './styles/TitleBoxStyled';
 import { TitleStyled } from './styles/TitleStyled';
 import { TitleIconStyled } from './styles/TitleIconStyled';
 
-const iconPropType = PropTypes.shape({
-  /** Set icon's name (required for font-awesome icons */
-  name: PropTypes.string,
-  /** Set icon's source (required for library icons */
-  src: PropTypes.string,
-  /** Set icon type */
-  type: PropTypes.oneOf(['font-awesome', 'library']),
-});
-
 const propTypes = {
   title: PropTypes.string,
   isEditable: PropTypes.bool,
   draggable: PropTypes.bool,
   titlePlaceHolder: PropTypes.string,
   subtitle: PropTypes.string,
-  iconLeft: iconPropType,
+  iconLeft: PropTypes.element,
   buttons: PropTypes.arrayOf(PropTypes.shape(Button.propTypes)),
   colorScheme: PropTypes.oneOf(['default', 'alt']),
   onLeftIconMouseDown: PropTypes.func,
@@ -96,17 +87,16 @@ export class BlockContentTitle extends PureComponent {
 
     const { editingTitle } = this.state;
 
-    let iconLeftElement = null;
-    if (iconLeft && (iconLeft.src || iconLeft.name)) {
-      iconLeftElement = (
+    const iconLeftElement = iconLeft
+      ? (
         <TitleIconStyled
           colorScheme={colorScheme}
           onMouseDown={onLeftIconMouseDown}
         >
-          <Icon {...iconLeft} size="inherit" color="inherit" />
+          {iconLeft}
         </TitleIconStyled>
-      );
-    }
+      )
+      : null;
 
     let buttonsArea = null;
     if (buttons.length > 0) {

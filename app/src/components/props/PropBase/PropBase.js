@@ -4,7 +4,7 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Icon, Checkbox, Tag } from '@reactackle/reactackle';
+import { Checkbox, Tag } from '@reactackle/reactackle';
 import { PropLabel } from './PropLabel/PropLabel';
 import { PropImage } from './PropImage/PropImage';
 import { PropAction } from './PropAction/PropAction';
@@ -19,6 +19,13 @@ import { ContentBoxStyled } from './styles/ContentBoxStyled';
 import { WrapperStyled } from './styles/WrapperStyled';
 import { PropItemStyled } from './styles/PropItemStyled';
 import { LinkedDataStyled } from './styles/LinkedDataStyled';
+
+import {
+  IconCheck,
+  IconExclamation,
+  IconLink,
+  IconCross,
+} from '../../icons';
 
 const propTypes = {
   id: PropTypes.string,
@@ -42,7 +49,7 @@ const propTypes = {
     PropTypes.element,
     PropTypes.shape({
       id: PropTypes.string.isRequired,
-      icon: PropTypes.string.isRequired,
+      icon: PropTypes.element,
       rounded: PropTypes.bool,
       expanded: PropTypes.bool,
       handler: PropTypes.func.isRequired,
@@ -100,7 +107,7 @@ export class PropBase extends PureComponent {
     return (
       <LinkedDataStyled title={linkedWith}>
         <Tag
-          icon="link"
+          icon={<IconLink />}
           text={linkedWith}
           bounded
           removable
@@ -171,12 +178,12 @@ export class PropBase extends PureComponent {
         if (requirementFulfilled) {
           markColorScheme = 'success';
           markIcon = (
-            <Icon name="check" size="inherit" color="inherit" />
+            <IconCheck />
           );
         } else {
           markColorScheme = 'error';
           markIcon = (
-            <Icon name="exclamation" size="inherit" color="inherit" />
+            <IconExclamation />
           );
         }
 
@@ -225,7 +232,7 @@ export class PropBase extends PureComponent {
       actionsLeftElement = (
         <ActionsBoxStyled>
           <PropAction
-            icon="times"
+            icon={<IconCross />}
             onPress={this._handleDelete}
           />
         </ActionsBoxStyled>
@@ -254,7 +261,7 @@ export class PropBase extends PureComponent {
       const linkAction = (
         <PropAction
           key="linking"
-          icon="link"
+          icon={<IconLink />}
           onPress={this._handleLink}
         />
       );

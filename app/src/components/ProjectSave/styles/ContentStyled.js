@@ -42,9 +42,8 @@ const colorMap = {
 };
 
 const colorScheme = ({ colorScheme }) => css`
-  --text-color: ${colorMap[colorScheme].textColor};
   background-color: ${colorMap[colorScheme].bgColor};
-  color: var(--text-color);
+  color: ${colorMap[colorScheme].textColor};
 `;
 
 export const ContentStyled = styled.div`

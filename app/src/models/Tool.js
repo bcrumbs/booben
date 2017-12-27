@@ -6,7 +6,7 @@ import { Record, List } from 'immutable';
 
 export default Record({
   id: '',
-  icon: '',
+  icon: null,
   name: '',
   title: '',
   titleEditable: false,

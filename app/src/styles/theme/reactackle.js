@@ -52,6 +52,21 @@ export default {
 
   components: {
     button: {
+      size: {
+        small: {
+          icon: {
+            width: 24,
+            imgSize: 18,
+          }
+        },
+        normal: {
+          icon: {
+            width: 24,
+            imgSize: 18,
+          }
+        },
+      },
+
       disabled: {
         backgroundColor: jssyTheme.jssy.color.stateHoverDark,
         fontColor: fontColorMedium,

@@ -32,6 +32,7 @@ const propTypes = {
   containerStyle: PropTypes.string,
   dropZoneId: PropTypes.string,
   onDropZoneReady: PropTypes.func.isRequired,
+  onDropZoneRemove: PropTypes.func.isRequired,
   onDropZoneSnap: PropTypes.func.isRequired,
   onDropZoneUnsnap: PropTypes.func.isRequired,
   onDropZoneUpdateSnapPoints: PropTypes.func.isRequired,
@@ -147,6 +148,9 @@ class CanvasComponent extends Component {
   }
 
   componentWillUnmount() {
+    const { dropZoneId, onDropZoneRemove } = this.props;
+
+    onDropZoneRemove({ id: dropZoneId });
     this._canvasCleanup();
     canvas = null;
   }
@@ -394,27 +398,39 @@ class CanvasComponent extends Component {
   }
 
   _handleDrag(data) {
-    this._canvasContent.drag(data);
+    if (this._canvasContent !== null) {
+      this._canvasContent.drag(data);
+    }
   }
 
-  _handleEnter() {
-    this._canvasContent.enter();
+  _handleEnter(data) {
+    if (this._canvasContent !== null) {
+      this._canvasContent.enter(data);
+    }
   }
 
-  _handleLeave() {
-    this._canvasContent.leave();
+  _handleLeave(data) {
+    if (this._canvasContent !== null) {
+      this._canvasContent.leave(data);
+    }
   }
 
   _handleDropMenuItemSelected(data) {
-    this._canvasContent.dropMenuItemSelected(data);
+    if (this._canvasContent !== null) {
+      this._canvasContent.dropMenuItemSelected(data);
+    }
   }
 
-  _handleDropMenuClosed() {
-    this._canvasContent.dropMenuClosed();
+  _handleDropMenuClosed(data) {
+    if (this._canvasContent !== null) {
+      this._canvasContent.dropMenuClosed(data);
+    }
   }
 
-  _handleDrop() {
-    this._canvasContent.drop();
+  _handleDrop(data) {
+    if (this._canvasContent !== null) {
+      this._canvasContent.drop(data);
+    }
   }
 
   _handleSnap({ element }) {

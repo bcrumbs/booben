@@ -4,6 +4,7 @@ import { TextField } from '@reactackle/reactackle';
 import { SearchInputStyled } from './styles/SearchInputStyled';
 import { InputWrapperStyled } from './styles/InputWrapperStyled';
 import { noop } from '../../utils/misc';
+import { IconSearch } from '../icons';
 
 const propTypes = {
   placeholder: PropTypes.string,
@@ -25,7 +26,7 @@ export const SearchInput = props => (
         placeholder={props.placeholder}
         value={props.value}
         onChange={props.onChange}
-        iconInner={{ name: 'search' }}
+        iconInner={<IconSearch />}
         clearingIcon
         dense
       />
