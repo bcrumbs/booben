@@ -64,6 +64,7 @@
     "lodash.throttle": "^4.1.1",
     "lodash.transform": "^4.6.0",
     "minimist": "^1.2.0",
+    "moment": "^2.20.1",
     "mz": "^2.4.0",
     "ncp": "^2.0.0",
     "point-in-polygon": "^1.0.1",

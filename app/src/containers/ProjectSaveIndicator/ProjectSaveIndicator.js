@@ -5,6 +5,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
+import moment from 'moment';
 import { ProjectSave } from '../../components/ProjectSave/ProjectSave';
 import { getLocalizedTextFromState } from '../../selectors';
 import { returnArg } from '../../utils/misc';
@@ -13,6 +14,7 @@ const propTypes = {
   saving: PropTypes.bool.isRequired,
   lastSaveError: PropTypes.object,
   lastSavedRevision: PropTypes.number.isRequired,
+  lastSaveTimestamp: PropTypes.number.isRequired,
   getLocalizedText: PropTypes.func,
 };
 
@@ -25,18 +27,25 @@ const mapStateToProps = state => ({
   saving: state.project.saving,
   lastSaveError: state.project.lastSaveError,
   lastSavedRevision: state.project.lastSavedRevision,
+  lastSaveTimestamp: state.project.lastSaveTimestamp,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const wrap = connect(mapStateToProps);
 
-const ProjectSaveIndicatorComponent = props => {
-  const { saving, lastSaveError, lastSavedRevision, getLocalizedText } = props;
-  
+const _ProjectSaveIndicator = props => {
+  const {
+    saving,
+    lastSaveError,
+    lastSavedRevision,
+    getLocalizedText,
+    lastSaveTimestamp,
+  } = props;
+
   let title = '';
   let tooltip = '';
   let status = '';
-  
+
   if (saving) {
     title = getLocalizedText('appHeader.saveIndicator.title.saving');
     tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.saving');
@@ -46,26 +55,33 @@ const ProjectSaveIndicatorComponent = props => {
     tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.error');
     status = 'error';
   } else if (lastSavedRevision > 0) {
+    const savedTime = lastSaveTimestamp > 0
+      ? moment(lastSaveTimestamp).fromNow()
+      : '';
+
     title = getLocalizedText('appHeader.saveIndicator.title.saved');
-    tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.saved');
+    tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.saved', {
+      savedTime,
+    });
+
     status = 'success';
   } else {
     title = getLocalizedText('appHeader.saveIndicator.title.idle');
     tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.idle');
     status = 'default';
   }
-  
+
   return (
     <ProjectSave
       status={status}
       title={title}
-      tooltip={tooltip}
+      tooltipText={tooltip}
     />
   );
 };
 
-ProjectSaveIndicatorComponent.propTypes = propTypes;
-ProjectSaveIndicatorComponent.defaultProps = defaultProps;
-ProjectSaveIndicatorComponent.displayName = 'ProjectSaveIndicator';
+_ProjectSaveIndicator.propTypes = propTypes;
+_ProjectSaveIndicator.defaultProps = defaultProps;
+_ProjectSaveIndicator.displayName = 'ProjectSaveIndicator';
 
-export const ProjectSaveIndicator = wrap(ProjectSaveIndicatorComponent);
+export const ProjectSaveIndicator = wrap(_ProjectSaveIndicator);
