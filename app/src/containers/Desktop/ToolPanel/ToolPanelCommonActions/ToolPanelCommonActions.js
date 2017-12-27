@@ -13,6 +13,7 @@ import {
 } from '../../../../components/PageDrawer';
 
 import { ShortcutsDialog } from '../../../ShortcutsDialog/ShortcutsDialog';
+import { IconExpand } from '../../../../components/icons';
 import { toggleFullscreen } from '../../../../utils/browser';
 
 const propTypes = {
@@ -64,19 +65,19 @@ class _ToolPanelCommonActions extends PureComponent {
         }}
       >
         <PageDrawerActionItem
-          icon="question"
+          icon="?"
           title={getLocalizedText('appHeader.menu.shortcuts')}
           onPress={this._handleOpenShortcutsDialog}
         />
 
         <PageDrawerActionItem
-          icon="arrows-alt"
+          icon={<IconExpand />}
           title={getLocalizedText('appFooter.toggleFullScreen')}
           onPress={toggleFullscreen}
         />
 
         <PageDrawerActionItem
-          icon="question"
+          icon="?"
           title={getLocalizedText('appFooter.help')}
         />
 

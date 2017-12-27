@@ -30,39 +30,26 @@ const _PageDrawerActionItem = props => {
   const buttonColorScheme = props.colorScheme === 'dark'
     ? 'flatLight'
     : 'flat';
-  
-  let button = null;
-  if (props.icon) {
-    button = (
-      <Button
-        icon={props.icon}
-        onPress={props.onPress}
-        radius="none"
-        size="normal"
-        colorScheme={buttonColorScheme}
-      />
-    );
-  } else {
-    button = (
-      <Button
-        text={{ name: props.title }}
-        onPress={props.onPress}
-        radius="none"
-        size="normal"
-        colorScheme={buttonColorScheme}
-      />
-    );
-  }
-  
+
+  const button = (
+    <Button
+      icon={props.icon}
+      radius="none"
+      size="normal"
+      colorScheme={buttonColorScheme}
+      onPress={props.onPress}
+    />
+  );
+
   if (props.title) {
     const TooltipComponent = props.Tooltip;
-  
+
     /* eslint-disable react/jsx-handler-names */
     return (
       <PageDrawerActionItemStyled
+        active={props.isActive}
         onMouseEnter={props.showTooltip}
         onMouseLeave={props.hideTooltip}
-        active={props.isActive}
       >
         {button}
         <TooltipComponent text={props.title} />
