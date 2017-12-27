@@ -1,4 +1,12 @@
 {
-  "presets": ["es2015", "es2016", "react"],
+  "presets": [
+    ["env", {
+      "targets": {
+        "browsers": "last 2 versions"
+      },
+      "useBuiltIns": true
+    }],
+    "react"
+  ],
   "plugins": ["transform-object-rest-spread", "styled-components"]
 }

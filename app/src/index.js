@@ -2,6 +2,7 @@
  * @author Dmitriy Bizyaev
  */
 
+import 'babel-polyfill';
 import '@reactackle/reactackle/reactackle.scss';
 import React from 'react';
 import ReactDOM from 'react-dom';
