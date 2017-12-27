@@ -438,7 +438,7 @@ export class ComponentsDragArea extends PureComponent {
               this._dropZones.get(this._lastDraggedDropZoneId);
 
             if (lastDropZone) {
-              this._dropSnapPoints();
+              this._forgetSnapPoints();
               lastDropZone.onLeave();
             }
           }
@@ -532,7 +532,7 @@ export class ComponentsDragArea extends PureComponent {
           this._dropZones.get(this._lastDraggedDropZoneId);
 
         if (lastDropZone) {
-          this._dropSnapPoints();
+          this._forgetSnapPoints();
           lastDropZone.onLeave();
         }
       }
@@ -573,7 +573,7 @@ export class ComponentsDragArea extends PureComponent {
     onDrop({ dropZoneId, data });
 
     if (dropMenuIsVisible) this._hideDropMenu();
-    this._dropSnapPoints();
+    this._forgetSnapPoints();
   }
 
   _handleDragTryStart({ title, data, element }) {
@@ -660,7 +660,7 @@ export class ComponentsDragArea extends PureComponent {
 
   _handleDropZoneRemove({ id }) {
     if (this._lastDraggedDropZoneId === id) {
-      this._dropSnapPoints();
+      this._forgetSnapPoints();
     }
 
     this._dropZones.delete(id);
@@ -746,17 +746,29 @@ export class ComponentsDragArea extends PureComponent {
     this._snapLineElements = [];
   }
 
+  _hideSnapLines() {
+    this._snapLineElements.forEach(snapLine => {
+      snapLine.style.display = 'none';
+    });
+  }
+
+  _showSnapLines() {
+    this._snapLineElements.forEach(snapLine => {
+      snapLine.style.display = 'block';
+    });
+  }
+
   _handleUpdateSnapPoints({ dropZoneId, snapPoints }) {
     if (!this._dragging) return;
     if (!this._dropZones.has(dropZoneId)) return;
     if (dropZoneId !== this._lastDraggedDropZoneId) return;
 
-    this._dropSnapPoints();
+    this._forgetSnapPoints();
     this._snapPoints = snapPoints;
     this._createSnapLines();
   }
 
-  _dropSnapPoints() {
+  _forgetSnapPoints() {
     if (this._snapPoints !== null) {
       this._snapPoints = null;
       this._removeSnapLines();
@@ -771,6 +783,8 @@ export class ComponentsDragArea extends PureComponent {
     ) {
       return;
     }
+
+    this._hideSnapLines();
 
     const { left, top } = this._getDropZoneDimensions(dropZoneId);
     const mouseSpeed = getMouseSpeed();
@@ -803,6 +817,8 @@ export class ComponentsDragArea extends PureComponent {
 
   _hideDropMenu() {
     const { dropMenuDropZoneId } = this.state;
+
+    this._showSnapLines();
 
     const dropZone = this._dropZones.get(dropMenuDropZoneId);
     dropZone.onDropMenuClosed();
