@@ -190,6 +190,7 @@ class CanvasContent extends Component {
     this._lastDropMenuSnapPoint = { x: 0, y: 0 };
     this._suppressDropMenu = false;
     this._snapPoints = null;
+    this._snapPointsIndex = null;
 
     this._handleMouseOver = this._handleMouseOver.bind(this);
     this._handleMouseOut = this._handleMouseOut.bind(this);
@@ -364,6 +365,7 @@ class CanvasContent extends Component {
     } else if (placeholders.length === 1) {
       const element = placeholders[0];
 
+      // We don't need coordinates if there's only one snap point
       ret = [{
         containerId: readContainerId(element),
         afterIdx: readAfterIdx(element),
@@ -401,8 +403,17 @@ class CanvasContent extends Component {
     if (snapPoints.length < 2) {
       possibleSnapPoints = snapPoints;
     } else {
-      const index = kdbush(snapPoints, p => p.x, p => p.y, 64, Int32Array);
-      const pointsWithinSnapDistance = index
+      if (this._snapPointsIndex === null) {
+        this._snapPointsIndex = kdbush(
+          snapPoints,
+          p => p.x,
+          p => p.y,
+          64,
+          Int32Array,
+        );
+      }
+
+      const pointsWithinSnapDistance = this._snapPointsIndex
         .within(x, y, SNAP_DISTANCE)
         .map(id => snapPoints[id]);
 
@@ -412,7 +423,7 @@ class CanvasContent extends Component {
           point => distance(x, y, point.x, point.y),
         );
 
-        possibleSnapPoints = index
+        possibleSnapPoints = this._snapPointsIndex
           .within(closestPoint.x, closestPoint.y, CLOSE_SNAP_POINTS_THRESHOLD)
           .map(id => snapPoints[id]);
       } else {
@@ -535,6 +546,7 @@ class CanvasContent extends Component {
    */
   drop() {
     this._snapPoints = null;
+    this._snapPointsIndex = null;
   }
 
   /**
