@@ -715,7 +715,7 @@ export class ComponentsDragArea extends PureComponent {
 
     this._snapLineElements = this._snapPoints.map(snapPoint => {
       const dist = distance(x, y, snapPoint.x, snapPoint.y);
-      const angle = Math.atan((y - snapPoint.y) / (x - snapPoint.x));
+      const angle = tiltAngle(x, y, snapPoint.x, snapPoint.y);
       const snapLine = window.document.createElement('div');
 
       snapLine.style.position = 'absolute';
