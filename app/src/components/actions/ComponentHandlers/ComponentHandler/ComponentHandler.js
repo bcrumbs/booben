@@ -1,7 +1,8 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Icon, TooltipIcon } from '@reactackle/reactackle';
+import { TooltipIcon } from '@reactackle/reactackle';
 import { noop } from '../../../../utils/misc';
+import { IconArrowChevronRight } from '../../../icons';
 import { HandlerStyled } from './styles/HandlerStyled';
 import { HandlerHeadingStyled } from './styles/HandlerHeadingStyled';
 import { HandlerTitleStyled } from './styles/HandlerTitleStyled';
@@ -72,7 +73,7 @@ export class ComponentHandler extends PureComponent {
           </HandlerTitleStyled>
 
           <HandlerIconStyled expanded={expanded}>
-            <Icon name="chevron-right" size="small" color="inherit" />
+            <IconArrowChevronRight />
           </HandlerIconStyled>
         </HandlerHeadingStyled>
 

@@ -4,7 +4,7 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Icon, withTooltip } from '@reactackle/reactackle';
+import { withTooltip } from '@reactackle/reactackle';
 import ProjectRoute from '../../../models/ProjectRoute';
 import { noop } from '../../../utils/misc';
 import { RouteCardStyled } from './styles/RouteCardStyled';
@@ -19,6 +19,7 @@ import { IconMarkStyled } from './styles/IconMarkStyled';
 import { AlertMarkStyled } from './styles/AlertMarkStyled';
 import { TextBoxStyled } from './styles/TextBoxStyled';
 import { MessageStyled } from './styles/MessageStyled';
+import { IconRedirect, IconExclamation } from '../../icons';
 
 const propTypes = {
   route: PropTypes.instanceOf(ProjectRoute).isRequired,
@@ -115,7 +116,7 @@ class _RouteCard extends PureComponent {
     if (route.redirect) {
       redirectMark = (
         <IconMarkStyled>
-          <Icon name="random" size="inherit" color="inherit" />
+          <IconRedirect />
         </IconMarkStyled>
       );
     }
@@ -124,7 +125,7 @@ class _RouteCard extends PureComponent {
     if (alertMark) {
       mark = (
         <AlertMarkStyled onMouseEnter={showTooltip} onMouseOut={hideTooltip}>
-          <Icon name="exclamation" size="inherit" color="inherit" />
+          <IconExclamation />
           <Tooltip text={alertTooltip} />
         </AlertMarkStyled>
       );

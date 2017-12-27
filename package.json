@@ -23,7 +23,7 @@
     "@jssy/graphql-schema": "^0.1.0",
     "@jssy/metadata": "^0.8.0",
     "@jssy/types": "^0.6.0",
-    "@reactackle/reactackle": "0.1.0-dev.680",
+    "@reactackle/reactackle": "0.1.0-dev.688",
     "apollo-cache-inmemory": "^1.1.4",
     "apollo-client": "^2.0.4",
     "apollo-link-context": "^1.0.3",

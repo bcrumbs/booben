@@ -47,6 +47,8 @@ import {
   objectSome,
 } from '../../../utils/misc';
 
+import { IconArrowChevronLeft } from '../../../components/icons';
+
 const propTypes = {
   dataContext: PropTypes.arrayOf(PropTypes.string).isRequired,
   schema: PropTypes.object.isRequired,
@@ -529,7 +531,7 @@ export class DataSelection extends PureComponent {
           <BlockContentActionsRegion type="main">
             <Button
               text={backText}
-              icon={{ name: 'chevron-left' }}
+              icon={<IconArrowChevronLeft />}
               onPress={this._handleCancelSetArguments}
             />
             <Button
@@ -602,7 +604,7 @@ export class DataSelection extends PureComponent {
           <BlockContentActionsRegion type="main">
             <Button
               text={backText}
-              icon={{ name: 'chevron-left' }}
+              icon={<IconArrowChevronLeft />}
               onPress={this._handleCancelSetArguments}
             />
             <Button

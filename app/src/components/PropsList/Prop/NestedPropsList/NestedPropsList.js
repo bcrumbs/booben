@@ -13,6 +13,7 @@ import {
 } from './AddNestedValueDialog/AddNestedValueDialog';
 
 import { noop, returnArg } from '../../../../utils/misc';
+import { IconAdd } from '../../../icons';
 
 const propTypes = {
   hasAddButton: PropTypes.bool,
@@ -81,7 +82,7 @@ export class NestedPropsList extends PureComponent {
         <ActionsRowStyled>
           <Button
             text={getLocalizedText('valueEditor.addValue')}
-            icon={{ name: 'plus' }}
+            icon={<IconAdd />}
             size="small"
             narrow
             onPress={this._handleAddButtonPress}
