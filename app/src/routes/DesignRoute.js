@@ -11,6 +11,7 @@ import { push } from 'react-router-redux';
 import { List } from 'immutable';
 import { Dialog } from '@reactackle/reactackle';
 import { Desktop } from '../containers/Desktop/Desktop';
+import { DesignToolbar } from '../containers/toolbars';
 
 import {
   CreateComponentMenu,
@@ -51,13 +52,6 @@ import {
 } from '../containers/ComponentsDragArea/ComponentsDragArea';
 
 import { AppWrapper } from '../components/AppWrapper/AppWrapper';
-
-import {
-  ToolBar,
-  ToolBarGroup,
-  ToolBarAction,
-} from '../components/ToolBar/ToolBar';
-
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
 import Clipboard from '../models/Clipboard';
@@ -92,9 +86,7 @@ import {
   containerStyleSelector,
   cursorPositionSelector,
   componentClipboardSelector,
-  canUndoSelector,
-  canRedoSelector,
-  canCopySelector,
+  canDeleteComponentSelector,
 } from '../selectors';
 
 import {
@@ -120,20 +112,7 @@ import { isInputOrTextareaActive } from '../utils/dom';
 import { buildStructurePath } from '../constants/paths';
 import * as JssyPropTypes from '../constants/common-prop-types';
 import { INVALID_ID } from '../constants/misc';
-
-import {
-  IconCopy,
-  IconDuplicate,
-  IconCut,
-  IconPaste,
-  IconTrash,
-  IconUndo,
-  IconRedo,
-  IconList,
-  IconLibrary,
-  IconTree,
-  IconBrush,
-} from '../components/icons';
+import { IconLibrary, IconTree, IconBrush } from '../components/icons';
 
 const propTypes = {
   projectName: PropTypes.string.isRequired, // state
@@ -142,7 +121,6 @@ const propTypes = {
   previewContainerStyle: PropTypes.string.isRequired, // state
   singleComponentSelected: PropTypes.bool.isRequired, // state
   firstSelectedComponentId: PropTypes.number.isRequired, // state
-  canCopySelected: PropTypes.bool.isRequired, // state
   language: PropTypes.string.isRequired, // state
   pickedComponentId: PropTypes.number.isRequired, // state
   pickedComponentArea: PropTypes.number.isRequired, // state
@@ -154,8 +132,7 @@ const propTypes = {
   componentClipboard: PropTypes.instanceOf(Clipboard).isRequired, // state
   showInvisibleComponents: PropTypes.bool.isRequired, // state
   showContentPlaceholders: PropTypes.bool.isRequired, // state
-  canUndo: PropTypes.bool.isRequired, // state
-  canRedo: PropTypes.bool.isRequired, // state
+  canDelete: PropTypes.bool.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onCreateComponent: PropTypes.func.isRequired, // dispatch
   onRenameComponent: PropTypes.func.isRequired, // dispatch
@@ -180,7 +157,6 @@ const mapStateToProps = state => ({
   previewContainerStyle: containerStyleSelector(state),
   singleComponentSelected: singleComponentSelectedSelector(state),
   firstSelectedComponentId: firstSelectedComponentIdSelector(state),
-  canCopySelected: canCopySelector(state),
   language: state.project.languageForComponentProps,
   pickedComponentId: state.project.pickedComponentId,
   pickedComponentArea: state.project.pickedComponentArea,
@@ -190,8 +166,7 @@ const mapStateToProps = state => ({
   componentClipboard: componentClipboardSelector(state),
   showInvisibleComponents: state.app.showInvisibleComponents,
   showContentPlaceholders: state.app.showContentPlaceholders,
-  canUndo: canUndoSelector(state),
-  canRedo: canRedoSelector(state),
+  canDelete: canDeleteComponentSelector(state),
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -404,37 +379,6 @@ class DesignRoute extends PureComponent {
 
   /**
    *
-   * @return {boolean}
-   * @private
-   */
-  _isDeletable() {
-    const {
-      meta,
-      components,
-      singleComponentSelected,
-      firstSelectedComponentId,
-    } = this.props;
-
-    if (!singleComponentSelected) return false;
-
-    const selectedComponent = components.get(firstSelectedComponentId);
-    if (selectedComponent.isWrapper) return false;
-
-    const parentComponent = selectedComponent.parentId > -1
-      ? components.get(selectedComponent.parentId)
-      : null;
-
-    const isRegion = parentComponent
-      ? isCompositeComponent(parentComponent.name, meta)
-      : false;
-
-    if (isRegion) return false;
-
-    return true;
-  }
-
-  /**
-   *
    * @param {string} action
    * @private
    */
@@ -502,7 +446,9 @@ class DesignRoute extends PureComponent {
    * @private
    */
   _handleDeleteSelectedComponent() {
-    if (this._isDeletable()) {
+    const { canDelete } = this.props;
+
+    if (canDelete) {
       this._handleDeleteComponentButtonPress();
     }
   }
@@ -790,15 +736,8 @@ class DesignRoute extends PureComponent {
       previewContainerStyle,
       components,
       firstSelectedComponentId,
-      singleComponentSelected,
-      canCopySelected,
       componentDataListIsVisible,
       pickedComponentArea,
-      componentClipboard,
-      showInvisibleComponents,
-      showContentPlaceholders,
-      canUndo,
-      canRedo,
       getLocalizedText,
       onUndo,
       onRedo,
@@ -853,87 +792,18 @@ class DesignRoute extends PureComponent {
           toolGroups={toolGroups}
           onToolTitleChange={this._handleToolTitleChange}
         >
-          <ToolBar>
-            <ToolBarGroup>
-              <ToolBarAction
-                icon={<IconDuplicate />}
-                tooltipText={getLocalizedText('toolbar.design.duplicate')}
-                disabled={!canCopySelected}
-                onPress={this._handleDuplicateSelectedComponent}
-              />
-
-              <ToolBarAction
-                icon={<IconCopy />}
-                tooltipText={getLocalizedText('toolbar.design.copy')}
-                disabled={!canCopySelected}
-                onPress={this._handleCopySelectedComponent}
-              />
-
-              <ToolBarAction
-                icon={<IconCut />}
-                tooltipText={getLocalizedText('toolbar.design.cut')}
-                disabled={!singleComponentSelected}
-                onPress={this._handleCutSelectedComponent}
-              />
-
-              <ToolBarAction
-                icon={<IconPaste />}
-                tooltipText={getLocalizedText('toolbar.design.paste')}
-                disabled={componentClipboard.componentId === INVALID_ID}
-                onPress={this._handlePasteComponent}
-              />
-
-              <ToolBarAction
-                icon={<IconTrash />}
-                tooltipText={getLocalizedText('toolbar.design.delete')}
-                disabled={!this._isDeletable()}
-                onPress={this._handleDeleteSelectedComponent}
-              />
-            </ToolBarGroup>
-
-            <ToolBarGroup>
-              <ToolBarAction
-                icon={<IconUndo />}
-                tooltipText={getLocalizedText('toolbar.common.undo')}
-                disabled={!canUndo}
-                onPress={onUndo}
-              />
-
-              <ToolBarAction
-                icon={<IconRedo />}
-                tooltipText={getLocalizedText('toolbar.common.redo')}
-                disabled={!canRedo}
-                onPress={onRedo}
-              />
-            </ToolBarGroup>
-
-            <ToolBarGroup>
-              <ToolBarAction
-                icon={<IconList />}
-                tooltipText={getLocalizedText('toolbar.design.convertToList')}
-                disabled={!singleComponentSelected}
-                onPress={this._handleConvertComponentToList}
-              />
-            </ToolBarGroup>
-
-            <ToolBarGroup>
-              <ToolBarAction
-                text={getLocalizedText(showContentPlaceholders
-                  ? 'toolbar.design.hideEmpty'
-                  : 'toolbar.design.showEmpty')}
-
-                onPress={this._handleToggleContentPlaceholders}
-              />
-
-              <ToolBarAction
-                text={getLocalizedText(showInvisibleComponents
-                  ? 'toolbar.design.hideHidden'
-                  : 'toolbar.design.showHidden')}
-
-                onPress={this._handleToggleInvisibleComponents}
-              />
-            </ToolBarGroup>
-          </ToolBar>
+          <DesignToolbar
+            onDuplicate={this._handleDuplicateSelectedComponent}
+            onCopy={this._handleCopySelectedComponent}
+            onCut={this._handleCutSelectedComponent}
+            onPaste={this._handlePasteComponent}
+            onDelete={this._handleDeleteComponentButtonPress}
+            onUndo={onUndo}
+            onRedo={onRedo}
+            onConvertToList={this._handleConvertComponentToList}
+            onToggleInvisible={this._handleToggleInvisibleComponents}
+            onTogglePlaceholders={this._handleToggleContentPlaceholders}
+          />
 
           <AppWrapper>
             <Canvas

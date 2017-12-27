@@ -49,16 +49,6 @@ export const currentHistoryNodeSelector = createSelector(
     : topNestedConstructor,
 );
 
-export const canUndoSelector = createSelector(
-  currentHistoryNodeSelector,
-  historyNode => historyNode.canMoveBack(),
-);
-
-export const canRedoSelector = createSelector(
-  currentHistoryNodeSelector,
-  historyNode => historyNode.canMoveForward(),
-);
-
 export const currentRouteSelector = state =>
   state.project.currentRouteId !== INVALID_ID
     ? state.project.data.routes.get(state.project.currentRouteId)
@@ -138,22 +128,76 @@ export const firstSelectedComponentIdSelector = state => {
   return isDef(ret) ? ret : INVALID_ID;
 };
 
-export const canCopySelector = createSelector(
-  state => state.project.meta,
+export const singleSelectedComponentSelector = createSelector(
+  currentComponentsSelector,
   singleComponentSelectedSelector,
   firstSelectedComponentIdSelector,
+
+  (components, singleComponentSelected, firstSelectedComponentId) =>
+    singleComponentSelected
+      ? components.get(firstSelectedComponentId)
+      : null,
+);
+
+export const singleSelectedComponentParentSelector = createSelector(
   currentComponentsSelector,
+  singleSelectedComponentSelector,
 
-  (meta, singleComponentSelected, firstSelectedComponentId, components) => {
-    if (!singleComponentSelected) return false;
-
-    const component = components.get(firstSelectedComponentId);
-    if (component.name === 'Outlet') return false;
-    if (component.parentId === INVALID_ID) return false;
-
-    const componentParent = components.get(component.parentId);
-    return !isCompositeComponent(componentParent.name, meta);
+  (components, selectedComponent) => {
+    if (selectedComponent === null) return null;
+    if (selectedComponent.parentId === INVALID_ID) return null;
+    return components.get(selectedComponent.parentId);
   },
+);
+
+export const canDeleteComponentSelector = createSelector(
+  state => state.project.meta,
+  singleSelectedComponentSelector,
+  singleSelectedComponentParentSelector,
+
+  (meta, component, parentComponent) => {
+    if (component === null) return false;
+    if (parentComponent === null) return true;
+    if (component.isWrapper) return false;
+    return !isCompositeComponent(parentComponent.name, meta);
+  },
+);
+
+export const canCopyComponentSelector = createSelector(
+  state => state.project.meta,
+  singleSelectedComponentSelector,
+  singleSelectedComponentParentSelector,
+
+  (meta, component, parentComponent) => {
+    if (component === null) return false;
+    if (parentComponent === null) return false;
+    if (component.isWrapper) return false;
+    if (component.name === 'Outlet') return false;
+    return !isCompositeComponent(parentComponent.name, meta);
+  },
+);
+
+export const canMoveComponentSelector = createSelector(
+  state => state.project.meta,
+  singleSelectedComponentSelector,
+  singleSelectedComponentParentSelector,
+
+  (meta, component, parentComponent) => {
+    if (component === null) return false;
+    if (parentComponent === null) return false;
+    if (component.isWrapper) return false;
+    return !isCompositeComponent(parentComponent.name, meta);
+  },
+);
+
+export const canUndoSelector = createSelector(
+  currentHistoryNodeSelector,
+  historyNode => historyNode.canMoveBack(),
+);
+
+export const canRedoSelector = createSelector(
+  currentHistoryNodeSelector,
+  historyNode => historyNode.canMoveForward(),
 );
 
 export const highlightedComponentIdsSelector = createSelector(
