@@ -64,7 +64,7 @@ const ProjectSaveIndicatorComponent = props => {
 
     tooltip = `${getLocalizedText(
       'appHeader.saveIndicator.tooltip.saved',
-    )} ${savedTime}`;
+    )}: ${savedTime}`;
 
     status = 'success';
   } else {
