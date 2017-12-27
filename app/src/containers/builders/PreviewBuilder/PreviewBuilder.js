@@ -37,6 +37,7 @@ import {
   isCompositeComponent,
   getComponentMeta,
   getSourceConfig,
+  isHTMLComponent,
 } from '../../../lib/meta';
 
 import {
@@ -932,6 +933,7 @@ class PreviewBuilderComponent extends PureComponent {
       return this._renderPseudoComponent(component);
     }
 
+    const isHTML = isHTMLComponent(component.name);
     const Component = getComponentByName(component.name, componentsBundle);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
@@ -953,6 +955,10 @@ class PreviewBuilderComponent extends PureComponent {
 
     if (this._renderHints.needRefs.has(component.id)) {
       props.ref = this._saveComponentRef.bind(this, component.id);
+    }
+
+    if (isHTML) {
+      props.style = component.style;
     }
 
     let Renderable = Component;
