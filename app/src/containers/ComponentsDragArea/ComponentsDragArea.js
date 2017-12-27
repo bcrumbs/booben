@@ -565,10 +565,10 @@ export class ComponentsDragArea extends PureComponent {
     window.removeEventListener('mouseup', this._handleMouseUp);
     stopMouseSpeedMeasuring();
 
-    if (dropZoneId) {
-      const dropZone = this._dropZones.get(dropZoneId);
-      dropZone.onDrop();
-    }
+    this._dropZones.forEach((dropZone, id) => {
+      const thisDropZone = dropZoneId === id;
+      dropZone.onDrop({ thisDropZone });
+    });
 
     onDrop({ dropZoneId, data });
 
@@ -661,6 +661,7 @@ export class ComponentsDragArea extends PureComponent {
   _handleDropZoneRemove({ id }) {
     if (this._lastDraggedDropZoneId === id) {
       this._forgetSnapPoints();
+      this._lastDraggedDropZoneId = '';
     }
 
     this._dropZones.delete(id);
