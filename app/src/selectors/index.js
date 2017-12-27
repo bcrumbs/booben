@@ -31,13 +31,19 @@ export const topNestedConstructorSelector = state =>
     ? state.project.nestedConstructors.first()
     : null;
 
+export const topNestedConstructorDesignerSelector = state =>
+  haveNestedConstructorsSelector(state)
+    ? state.project.nestedConstructors.first().designer
+    : null;
+
 export const currentDesignerSelector = createSelector(
-  topNestedConstructorSelector,
+  topNestedConstructorDesignerSelector,
   state => state.project.designer,
 
-  (topNestedConstructor, projectDesigner) => topNestedConstructor === null
-    ? projectDesigner
-    : topNestedConstructor.designer,
+  (topNestedConstructorDesigner, projectDesigner) =>
+    topNestedConstructorDesigner === null
+      ? projectDesigner
+      : topNestedConstructorDesigner,
 );
 
 export const currentHistoryNodeSelector = createSelector(
@@ -119,6 +125,9 @@ export const selectedComponentIdsSelector = createSelector(
   currentDesignerSelector,
   designer => designer.selectedComponentIds,
 );
+
+export const selectedComponentsNumberSelector = state =>
+  selectedComponentIdsSelector(state).size;
 
 export const singleComponentSelectedSelector = state =>
   selectedComponentIdsSelector(state).size === 1;

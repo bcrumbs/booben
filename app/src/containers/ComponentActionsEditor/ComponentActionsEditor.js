@@ -16,12 +16,7 @@ import { ComponentHandlers, ComponentHandler } from '../../components/actions';
 import { ActionsList } from '../ActionsList/ActionsList';
 import { ActionEditor } from '../ActionEditor/ActionEditor';
 import { addAction, replaceAction, deleteAction } from '../../actions/project';
-
-import {
-  currentComponentsSelector,
-  selectedComponentIdsSelector,
-} from '../../selectors';
-
+import { singleSelectedComponentSelector } from '../../selectors';
 import { PathStartingPoints } from '../../reducers/project';
 
 import {
@@ -31,22 +26,30 @@ import {
   getSourceConfig,
 } from '../../lib/meta';
 
-import * as JssyPropTypes from '../../constants/common-prop-types';
+import ProjectComponent from '../../models/ProjectComponent';
+
+const Views = {
+  HANDLERS_LIST: 0,
+  NEW_ACTION: 1,
+  EDIT_ACTION: 2,
+};
 
 const propTypes = {
   meta: PropTypes.object.isRequired,
-  currentComponents: JssyPropTypes.components.isRequired,
-  selectedComponentIds: JssyPropTypes.setOfIds.isRequired,
+  selectedComponent: PropTypes.instanceOf(ProjectComponent),
   language: PropTypes.string.isRequired,
   onAddAction: PropTypes.func.isRequired,
   onReplaceAction: PropTypes.func.isRequired,
   onDeleteAction: PropTypes.func.isRequired,
 };
 
+const defaultProps = {
+  selectedComponent: null,
+};
+
 const mapStateToProps = state => ({
   meta: state.project.meta,
-  currentComponents: currentComponentsSelector(state),
-  selectedComponentIds: selectedComponentIdsSelector(state),
+  selectedComponent: singleSelectedComponentSelector(state),
   language: state.app.language,
 });
 
@@ -63,12 +66,6 @@ const mapDispatchToProps = dispatch => ({
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
-
-const Views = {
-  HANDLERS_LIST: 0,
-  NEW_ACTION: 1,
-  EDIT_ACTION: 2,
-};
 
 class ComponentActionsEditorComponent extends PureComponent {
   constructor(props, context) {
@@ -99,9 +96,14 @@ class ComponentActionsEditorComponent extends PureComponent {
   }
 
   _getActionPropEntries(props) {
-    const componentId = props.selectedComponentIds.first();
-    const component = props.currentComponents.get(componentId);
-    const componentMeta = getComponentMeta(component.name, props.meta);
+    if (props.selectedComponent === null) {
+      return [];
+    }
+
+    const componentMeta = getComponentMeta(
+      props.selectedComponent.name,
+      props.meta,
+    );
 
     return Object.entries(componentMeta.props)
       .filter(([, propMeta]) => isValidSourceForValue(propMeta, 'actions'));
@@ -130,17 +132,15 @@ class ComponentActionsEditorComponent extends PureComponent {
   }
 
   _handleDeleteAction({ actionPath }) {
-    const { selectedComponentIds, onDeleteAction } = this.props;
+    const { selectedComponent, onDeleteAction } = this.props;
     const { activeHandler } = this.state;
 
-    const componentId = selectedComponentIds.first();
     const pathToList = actionPath.slice(0, -1);
     const index = actionPath[actionPath.length - 1];
-
     const fullPath = {
       startingPoint: PathStartingPoints.CURRENT_COMPONENTS,
       steps: [
-        componentId,
+        selectedComponent.id,
         'props',
         activeHandler,
         'actions',
@@ -152,7 +152,7 @@ class ComponentActionsEditorComponent extends PureComponent {
   }
 
   _handleActionEditorSave({ action }) {
-    const { selectedComponentIds, onAddAction, onReplaceAction } = this.props;
+    const { selectedComponent, onAddAction, onReplaceAction } = this.props;
 
     const {
       currentView,
@@ -161,15 +161,13 @@ class ComponentActionsEditorComponent extends PureComponent {
       editActionPath,
     } = this.state;
 
-    const componentId = selectedComponentIds.first();
-
     // TODO: Create jssyValue if it doesn't exist
 
     if (currentView === Views.NEW_ACTION) {
       const path = {
         startingPoint: PathStartingPoints.CURRENT_COMPONENTS,
         steps: [
-          componentId,
+          selectedComponent.id,
           'props',
           activeHandler,
           'actions',
@@ -185,7 +183,7 @@ class ComponentActionsEditorComponent extends PureComponent {
       const fullPath = {
         startingPoint: PathStartingPoints.CURRENT_COMPONENTS,
         steps: [
-          componentId,
+          selectedComponent.id,
           'props',
           activeHandler,
           'actions',
@@ -212,19 +210,10 @@ class ComponentActionsEditorComponent extends PureComponent {
   }
 
   _renderHandlersList() {
-    const {
-      meta,
-      selectedComponentIds,
-      currentComponents,
-      language,
-    } = this.props;
-
+    const { meta, selectedComponent, language } = this.props;
     const { activeHandler } = this.state;
 
-    const componentId = selectedComponentIds.first();
-    const component = currentComponents.get(componentId);
-    const componentMeta = getComponentMeta(component.name, meta);
-
+    const componentMeta = getComponentMeta(selectedComponent.name, meta);
     const handlersList = this.componentActionPropEntries.map(entry => {
       const [propName, propMeta] = entry;
       const title = getString(
@@ -239,9 +228,9 @@ class ComponentActionsEditorComponent extends PureComponent {
         language,
       );
 
-      const hasValue = component.props.has(propName);
+      const hasValue = selectedComponent.props.has(propName);
       const actions = hasValue
-        ? component.props.get(propName).sourceData.actions
+        ? selectedComponent.props.get(propName).sourceData.actions
         : List();
 
       const hasActions = actions.size > 0;
@@ -277,12 +266,10 @@ class ComponentActionsEditorComponent extends PureComponent {
   }
 
   _renderNewActionView() {
-    const { meta, currentComponents, selectedComponentIds } = this.props;
+    const { meta, selectedComponent } = this.props;
     const { activeHandler } = this.state;
 
-    const componentId = selectedComponentIds.first();
-    const component = currentComponents.get(componentId);
-    const componentMeta = getComponentMeta(component.name, meta);
+    const componentMeta = getComponentMeta(selectedComponent.name, meta);
     const propMeta = componentMeta.props[activeHandler];
     const actionArgsMeta =
       getSourceConfig(propMeta, 'actions', componentMeta.types).args;
@@ -298,17 +285,15 @@ class ComponentActionsEditorComponent extends PureComponent {
   }
 
   _renderEditActionView() {
-    const { meta, currentComponents, selectedComponentIds } = this.props;
+    const { meta, selectedComponent } = this.props;
     const { activeHandler, editActionPath } = this.state;
 
-    const componentId = selectedComponentIds.first();
-    const component = currentComponents.get(componentId);
-    const componentMeta = getComponentMeta(component.name, meta);
+    const componentMeta = getComponentMeta(selectedComponent.name, meta);
     const propMeta = componentMeta.props[activeHandler];
     const actionArgsMeta =
       getSourceConfig(propMeta, 'actions', componentMeta.types).args;
 
-    const propValue = component.props.get(activeHandler);
+    const propValue = selectedComponent.props.get(activeHandler);
     const action = propValue.getActionByPath(editActionPath);
 
     return (
@@ -323,10 +308,12 @@ class ComponentActionsEditorComponent extends PureComponent {
   }
 
   render() {
-    const { selectedComponentIds } = this.props;
+    const { selectedComponent } = this.props;
     const { currentView } = this.state;
 
-    if (selectedComponentIds.size !== 1) return null;
+    if (selectedComponent === null) {
+      return null;
+    }
 
     let content = null;
     if (currentView === Views.HANDLERS_LIST) {
@@ -346,6 +333,7 @@ class ComponentActionsEditorComponent extends PureComponent {
 }
 
 ComponentActionsEditorComponent.propTypes = propTypes;
+ComponentActionsEditorComponent.defaultProps = defaultProps;
 ComponentActionsEditorComponent.displayName = 'ComponentActionsEditor';
 
 export const ComponentActionsEditor = wrap(ComponentActionsEditorComponent);
