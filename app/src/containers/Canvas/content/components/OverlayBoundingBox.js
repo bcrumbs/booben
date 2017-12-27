@@ -9,6 +9,7 @@ import { OverlayComponentTitle } from './OverlayComponentTitle';
 const propTypes = {
   element: PropTypes.object,
   color: PropTypes.string,
+  borderStyle: PropTypes.string,
   title: PropTypes.string,
   showTitle: PropTypes.bool,
   additionalOverlayLevel: PropTypes.number,
@@ -21,6 +22,7 @@ const contextTypes = {
 const defaultProps = {
   element: null,
   color: '#c8e5f6',
+  borderStyle: 'solid',
   title: '',
   showTitle: false,
   additionalOverlayLevel: 0,

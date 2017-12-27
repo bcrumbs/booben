@@ -42,7 +42,7 @@ export const LinkSourceSelection = props => {
       id={item.id}
       title={item.title}
       data={item.data}
-      connection
+      connection={!item.withoutConnection}
       onSelect={props.onSelect}
     />
   ));

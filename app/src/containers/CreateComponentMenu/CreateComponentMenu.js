@@ -37,6 +37,7 @@ import {
 
 import { libraryGroupsSortedByLanguageSelector } from '../../selectors/library';
 import LibraryGroupData from '../../models/LibraryGroupData';
+import Cursor from '../../models/Cursor';
 import { combineFiltersAll, mapListToArray, noop } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
 import * as JssyPropTypes from '../../constants/common-prop-types';
@@ -47,7 +48,7 @@ const propTypes = {
   componentGroups: ImmutablePropTypes.listOf(
     PropTypes.instanceOf(LibraryGroupData),
   ).isRequired, // state
-  cursorPosition: JssyPropTypes.componentsTreePosition.isRequired, // state
+  cursorPosition: PropTypes.instanceOf(Cursor).isRequired, // state
   haveNestedConstructors: PropTypes.bool.isRequired, // state
   language: PropTypes.string.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
@@ -259,7 +260,7 @@ class CreateComponentMenuComponent extends PureComponent {
       activeComponentName,
       filteredComponentGroups,
     } = this.state;
-  
+
     if (
       searchString === '' ||
       filteredComponentGroups === null ||

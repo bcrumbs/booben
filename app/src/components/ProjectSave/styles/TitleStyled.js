@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { fontSizeBody, baseModule } from '../../../styles/themeSelectors';
+import { baseModule } from '../../../styles/themeSelectors';
 
 export const TitleStyled = styled.div`
   color: inherit;

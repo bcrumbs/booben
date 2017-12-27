@@ -1,4 +1,4 @@
-import styled , { css } from 'styled-components';
+import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import { transition } from '@reactackle/reactackle';
 import constants from './constants';

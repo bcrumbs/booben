@@ -137,6 +137,7 @@
   "linkDialog.source.data": "Data",
   "linkDialog.source.dataContext": "Context - {context}",
   "linkDialog.source.function": "Function",
+  "linkDialog.source.otherComponent": "Other component",
   "linkDialog.source.routeParams": "Route parameters",
   "linkDialog.source.actionArgs": "Action arguments",
   "linkDialog.function.library": "Library functions",

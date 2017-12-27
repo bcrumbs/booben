@@ -39,6 +39,18 @@ export const distance = (x1, y1, x2, y2) =>
 
 /**
  *
+ * @param {number} x1
+ * @param {number} y1
+ * @param {number} x2
+ * @param {number} y2
+ * @return {number}
+ */
+export const tiltAngle = (x1, y1, x2, y2) => x1 >= x2
+  ? Math.atan((y1 - y2) / (x1 - x2))
+  : Math.atan((y1 - y2) / (x1 - x2)) - Math.PI;
+
+/**
+ *
  * @param {number} x
  * @param {number} y
  * @param {number} rx
@@ -82,12 +94,12 @@ export const PointPositions = {
 export const pointPositionRelativeToRect = (x, y, rx, ry, rw, rh) => {
   let horizontal = PointPositions.INSIDE;
   let vertical = PointPositions.INSIDE;
-  
+
   if (x < rx) horizontal = PointPositions.WEST;
   else if (x > rx + rw) horizontal = PointPositions.EAST;
-  
+
   if (y < ry) vertical = PointPositions.NORTH;
   else if (y > ry + rh) vertical = PointPositions.SOUTH;
-  
+
   return horizontal | vertical;
 };

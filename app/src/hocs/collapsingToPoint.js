@@ -19,6 +19,53 @@ const defaultProps = {
 
 const hocProps = Object.keys(propTypes);
 
+let justMountedCollapsedInstances = [];
+let queuedInstances = [];
+let afterMountTimeout = 0;
+let working = false;
+let currentPromise = null;
+
+const doWork = async () => {
+  for (let i = 0; i < justMountedCollapsedInstances.length; i++) {
+    const instance = justMountedCollapsedInstances[i];
+    if (instance._mounted) {
+      await instance._initialRender();
+      if (instance._mounted) {
+        await instance._collapse();
+      }
+    }
+  }
+
+  justMountedCollapsedInstances = [];
+  afterMountTimeout = 0;
+
+  if (queuedInstances.length > 0) {
+    justMountedCollapsedInstances = queuedInstances;
+    queuedInstances = [];
+    await doWork();
+  }
+};
+
+const processMounted = async () => {
+  working = true;
+  await doWork();
+  working = false;
+  currentPromise = null;
+};
+
+const addInstance = instance => {
+  if (working) {
+    queuedInstances.push(instance);
+  } else {
+    justMountedCollapsedInstances.push(instance);
+    if (afterMountTimeout === 0) {
+      afterMountTimeout = setTimeout(() => {
+        currentPromise = processMounted();
+      }, 0);
+    }
+  }
+};
+
 export default ({
   pointAttributesFromProps = returnNull,
   getWindowInstance = () => window,
@@ -26,30 +73,31 @@ export default ({
   const Wrapper = class extends Component {
     constructor(props, context) {
       super(props, context);
-    
+
       this._pointElement = null;
-      this._af = 0;
-    
+      this._mounted = false;
+
       this.state = {
+        pending: true,
         reallyCollapsed: false,
         pointX: 0,
         pointY: 0,
       };
-      
-      this._collapse = this._collapse.bind(this);
     }
-    
+
     componentDidMount() {
       const { collapsedToPoint } = this.props;
+
+      this._mounted = true;
+
       if (collapsedToPoint) {
-        const windowInstance = getWindowInstance(this.props, this.context);
-        this._af = windowInstance.requestAnimationFrame(this._collapse);
+        addInstance(this);
       }
     }
-    
+
     componentWillReceiveProps(nextProps) {
       const { collapsedToPoint } = this.props;
-      
+
       if (nextProps.collapsedToPoint) {
         if (!collapsedToPoint) {
           this._collapse();
@@ -58,66 +106,73 @@ export default ({
         this._uncollapse();
       }
     }
-    
+
     componentWillUnmount() {
       this._removePoint();
-      const windowInstance = getWindowInstance(this.props, this.context);
-      if (this._af !== 0) windowInstance.cancelAnimationFrame(this._af);
+      this._mounted = false;
     }
-    
-    _collapse() {
+
+    async _initialRender() {
+      return new Promise(resolve => {
+        this.setState({ pending: false }, resolve);
+      });
+    }
+
+    async _collapse() {
       const { reallyCollapsed } = this.state;
-  
+
       if (!reallyCollapsed) {
         this._createPoint();
-    
-        this.setState({
-          reallyCollapsed: true,
+        return new Promise(resolve => {
+          this.setState({
+            reallyCollapsed: true,
+            pending: false,
+          }, resolve);
         });
+      } else {
+        return Promise.resolve();
       }
-  
-      this._af = 0;
     }
-    
+
     _uncollapse() {
       const { reallyCollapsed } = this.state;
-  
+
       if (reallyCollapsed) {
         this._removePoint();
-    
+
         this.setState({
           reallyCollapsed: false,
         });
       }
     }
-  
+
     _createPoint() {
       if (this._pointElement === null) {
         const element = findDOMNode(this);
         if (element) {
           const windowInstance = getWindowInstance(this.props, this.context);
           const { left, top } = element.getBoundingClientRect();
-          
+
           const point = windowInstance.document.createElement('div');
           point.style.width = '0px';
           point.style.height = '0px';
           point.style.position = 'absolute';
           point.style.left = `${left}px`;
           point.style.top = `${top}px`;
-  
+
           const attributes = pointAttributesFromProps(this.props);
           if (isObject(attributes)) {
             _forOwn(attributes, (value, key) => {
               point.setAttribute(key, value);
             });
           }
-  
+
           windowInstance.document.body.appendChild(point);
           this._pointElement = point;
         }
       }
     }
-    
+
     _removePoint() {
       if (this._pointElement !== null) {
         const windowInstance = getWindowInstance(this.props, this.context);
@@ -125,30 +180,32 @@ export default ({
         this._pointElement = null;
       }
     }
-  
+
     render() {
-      const { reallyCollapsed } = this.state;
-      
-      if (reallyCollapsed) return null;
-    
+      const { pending, reallyCollapsed } = this.state;
+
+      if (pending || reallyCollapsed) {
+        return null;
+      }
+
       return (
         <WrappedComponent {..._omit(this.props, hocProps)} />
       );
     }
   };
-  
+
   Wrapper.propTypes = {
     ...(WrappedComponent.propTypes || {}),
     ...propTypes,
   };
-  
+
   Wrapper.defaultProps = {
     ...(WrappedComponent.defaultProps || {}),
     ...defaultProps,
   };
-  
+
   Wrapper.contextTypes = WrappedComponent.contextTypes;
   Wrapper.displayName = `collapsingToPoint(${WrappedComponent.displayName})`;
-  
+
   return Wrapper;
 };

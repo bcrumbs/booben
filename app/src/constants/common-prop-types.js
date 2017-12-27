@@ -28,16 +28,6 @@ export const actions = ImmutablePropTypes.listOf(
   PropTypes.instanceOf(Action),
 );
 
-export const componentsTreePosition = PropTypes.shape({
-  containerId: PropTypes.number.isRequired,
-  afterIdx: PropTypes.number.isRequired,
-});
-
-export const componentClipboard = PropTypes.shape({
-  componentId: PropTypes.number.isRequired,
-  copy: PropTypes.bool.isRequired,
-});
-
 export const toolGroups = ImmutablePropTypes.listOf(
   ImmutablePropTypes.listOf(PropTypes.instanceOf(Tool)),
 );

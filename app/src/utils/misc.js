@@ -157,10 +157,15 @@ export const wait = msecs =>
  *
  * @param {function(): boolean} condition
  * @param {number} [pause=0]
+ * @param {number} [maxWaits=Infinity]
  * @return {Promise}
  */
-export const waitFor = async (condition, pause = 0) => {
-  while (!condition()) await wait(pause);
+export const waitFor = async (condition, pause = 0, maxWaits = Infinity) => {
+  let n = 0;
+  while (!condition() && n < maxWaits) {
+    await wait(pause);
+    n += 1;
+  }
 };
 
 /**

@@ -113,7 +113,7 @@ export class ToolWindow extends PureComponent {
     this.inStickRegionBottom = false;
     this.animationFrame = null;
   }
-  
+
   componentWillUnmount() {
     this.domNode = null;
   }
@@ -149,7 +149,7 @@ export class ToolWindow extends PureComponent {
       containerWidth,
       containerHeight,
     } = this;
-    
+
     const {
       marginLeft,
       marginRight,
@@ -210,9 +210,9 @@ export class ToolWindow extends PureComponent {
     this.containerHeight = this.container.clientHeight;
     this.maxDx = this.containerWidth - this.width - this.props.marginRight;
     this.maxDy = this.containerHeight - this.height - this.props.marginBottom;
-    
+
     this.setState({ dragging: true });
-    
+
     this.dragStartDiffX = this.currentTranslateX - event.clientX;
     this.dragStartDiffY = this.currentTranslateY - event.clientY;
     this.needRAF = true;
@@ -244,7 +244,7 @@ export class ToolWindow extends PureComponent {
   _handleNavigation({ value }) {
     this.props.onActiveSectionChange(value);
   }
-  
+
   _renderButtons(buttons) {
     return buttons.map(({ icon, text, onPress }, idx) => (
       <Button
@@ -265,12 +265,12 @@ export class ToolWindow extends PureComponent {
       onTitleChange,
       onFocus,
     } = this.props;
-    
+
     const { dragging } = this.state;
-    
+
     const sections = tool.sections;
     const sectionsNum = sections.size;
-  
+
     let navArea = null;
     if (sectionsNum > 1) {
       const tabs = sections.map(section => ({ text: section.name }));
@@ -286,12 +286,12 @@ export class ToolWindow extends PureComponent {
         </BlockContentNavigation>
       );
     }
-    
+
     const mainButtons = tool.mainButtons;
     const secondaryButtons = tool.secondaryButtons;
     const mainButtonsNum = mainButtons.size;
     const secondaryButtonsNum = secondaryButtons.size;
-  
+
     let actionsArea = null;
     if (mainButtonsNum > 0 || secondaryButtonsNum > 0) {
       let mainActionsRegion = null;
