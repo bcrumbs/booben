@@ -69,7 +69,6 @@ import {
   deleteComponent,
   copyComponent,
   moveComponent,
-  selectLayoutForNewComponent,
   pickComponentDataDone,
   undo,
   redo,
@@ -151,7 +150,6 @@ const propTypes = {
   onMoveComponent: PropTypes.func.isRequired, // dispatch
   onMoveComponentToClipboard: PropTypes.func.isRequired, // dispatch
   onConvertComponentToList: PropTypes.func.isRequired, // dispatch
-  onSelectLayout: PropTypes.func.isRequired, // dispatch
   onDropComponent: PropTypes.func.isRequired, // dispatch
   onSelectComponentData: PropTypes.func.isRequired, // dispatch
   onUndo: PropTypes.func.isRequired, // dispatch
@@ -204,9 +202,6 @@ const mapDispatchToProps = dispatch => ({
 
   onConvertComponentToList: componentId =>
     void dispatch(convertComponentToList(componentId)),
-
-  onSelectLayout: layoutIdx =>
-    void dispatch(selectLayoutForNewComponent(layoutIdx)),
 
   onDropComponent: area =>
     void dispatch(dropComponent(area)),
@@ -272,8 +267,6 @@ class DesignRoute extends PureComponent {
       this._handleDeleteComponentConfirm.bind(this);
     this._handleDeleteComponentCancel =
       this._handleDeleteComponentCancel.bind(this);
-    this._handleLayoutSelection =
-      this._handleLayoutSelection.bind(this);
     this._handleDropComponent =
       this._handleDropComponent.bind(this);
     this._handleCreateComponent =
@@ -663,16 +656,6 @@ class DesignRoute extends PureComponent {
     this.setState({
       confirmDeleteComponentDialogIsVisible: false,
     });
-  }
-
-  /**
-   *
-   * @param {number} layoutIdx
-   * @private
-   */
-  _handleLayoutSelection({ layoutIdx }) {
-    const { onSelectLayout } = this.props;
-    onSelectLayout(layoutIdx);
   }
 
   /**

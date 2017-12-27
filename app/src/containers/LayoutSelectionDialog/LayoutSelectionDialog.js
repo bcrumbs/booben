@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import { Dialog } from '@reactackle/reactackle';
 import { getLocalizedTextFromState } from '../../selectors';
 import { getComponentMeta, getString } from '../../lib/meta';
+import { selectLayoutForNewComponent } from '../../actions/project';
 
 import {
   ComponentLayoutSelection,
@@ -23,6 +24,7 @@ const propTypes = {
   draggedComponents: JssyPropTypes.components, // state
   language: PropTypes.string.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
+  onSelectLayout: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
@@ -37,9 +39,29 @@ const mapStateToProps = state => ({
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
-const wrap = connect(mapStateToProps);
+const mapDispatchToProps = dispatch => ({
+  onSelectLayout: layoutIdx =>
+    void dispatch(selectLayoutForNewComponent(layoutIdx)),
+});
+
+const wrap = connect(mapStateToProps, mapDispatchToProps);
 
 class _LayoutSelectionDialog extends PureComponent {
+  constructor(props, context) {
+    super(props, context);
+
+    this._handleLayoutSelection = this._handleLayoutSelection.bind(this);
+  }
+
+  /**
+   *
+   * @param {number} layoutIdx
+   * @private
+   */
+  _handleLayoutSelection({ layoutIdx }) {
+    this.props.onSelectLayout(layoutIdx);
+  }
+
   render() {
     const {
       meta,
