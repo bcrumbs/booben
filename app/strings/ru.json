@@ -24,7 +24,7 @@
   "appHeader.saveIndicator.tooltip.idle": "",
   "appHeader.saveIndicator.tooltip.saving": "",
   "appHeader.saveIndicator.tooltip.error": "",
-  "appHeader.saveIndicator.tooltip.saved": "Last saved",
+  "appHeader.saveIndicator.tooltip.saved": "Сохранено {savedTime}",
 
   "appFooter.help": "Помощь",
   "appFooter.toggleFullScreen": "Во весь экран",
