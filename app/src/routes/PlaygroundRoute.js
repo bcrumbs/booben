@@ -86,12 +86,6 @@ import {
 } from '../components/ConstructionPane/ConstructionPane';
 
 import {
-  ToolBar,
-  ToolBarGroup,
-  ToolBarAction,
-} from '../components/ToolBar/ToolBar';
-
-import {
   CanvasPlaceholder,
 } from '../containers/Canvas/content/components/CanvasPlaceholder';
 
@@ -109,7 +103,6 @@ import {
   IconLibrary,
   IconTree,
   IconBrush,
-  IconFile,
   IconPlay,
 } from '../components/icons';
 
@@ -278,7 +271,7 @@ const toolComponentActionsWindowSections = List([
               title="onFocus"
               description="Some description from meta"
             />
-            
+
             <ComponentHandler
               title="onPress"
               description="Some description from meta"
@@ -287,12 +280,12 @@ const toolComponentActionsWindowSections = List([
             >
               <ComponentActions addButtonText="Add action">
                 <ComponentAction title="Show Preloader" />
-                
+
                 <ComponentAction title="Create Alert">
                   <ComponentActionCaseRow type="success" title="On success">
                     <ComponentActions addButtonText="Add action" />
                   </ComponentActionCaseRow>
-                  
+
                   <ComponentActionCaseRow type="error" title="On error">
                     <ComponentActions addButtonText="Add action">
                       <ComponentAction title="Some action" />
@@ -300,11 +293,11 @@ const toolComponentActionsWindowSections = List([
                     </ComponentActions>
                   </ComponentActionCaseRow>
                 </ComponentAction>
-                
+
                 <ComponentAction title="Go to route SomeRoute" />
               </ComponentActions>
             </ComponentHandler>
-            
+
             <ComponentHandler
               title="onSomething"
               description="Some description from meta"
@@ -352,7 +345,7 @@ const toolComponentActionNewWindowSections = List([
       <BlockContentBox isBordered>
         <BlockBreadcrumbs items={breadcrumbsSample} />
         <BlockContentHeading>New Action</BlockContentHeading>
-        
+
         <BlockContentBox>
           <BlockContentBoxGroup>
             <BlockContentBoxItem>
@@ -372,7 +365,7 @@ const toolComponentActionNewWindowSections = List([
             </BlockContentBoxItem>
           </BlockContentBoxGroup>
         </BlockContentBox>
-       
+
         <BlockContentBox>
           <BlockContentBoxHeading>Parameters</BlockContentBoxHeading>
           <BlockContentBoxGroup>
@@ -412,7 +405,7 @@ const toolGroups = List([
       mainButtons: '',
       secondaryButtons: '',
     }),
-    
+
     new ToolRecord({
       id: 'tool8',
       icon: <IconPlay />,
@@ -424,7 +417,7 @@ const toolGroups = List([
       mainButtons: '',
       secondaryButtons: '',
     }),
-    
+
     new ToolRecord({
       id: 'tool9',
       icon: <IconBrush />,
@@ -439,7 +432,7 @@ const toolGroups = List([
 
     new ToolRecord({
       id: 'tool1',
-      icon: <IconFile />,
+      icon: <IconBrush />,
       name: 'Data',
       title: 'Data',
       undockable: true,
@@ -501,7 +494,7 @@ export default class Playground extends React.Component {
   componentDidMount() {
     removeSplashScreen();
   }
-  
+
   render() {
     return (
       <App fixed>
@@ -536,7 +529,7 @@ export default class Playground extends React.Component {
             <HeaderRegion size="blank">
               <ProjectSave title="status" />
             </HeaderRegion>
-            
+
             <HeaderRegion size="blank">
               <HeaderMenu inline dense>
                 <HeaderMenu inline dense mode={'light'}>

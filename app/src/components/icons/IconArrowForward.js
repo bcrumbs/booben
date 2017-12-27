@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconSvg } from '@reactackle/reactackle';
-import { defaultProps } from './index';
+import defaultProps from './common/defaultProps';
 
 /* eslint-disable max-len */
 export const IconArrowForward = props => (
@@ -12,4 +12,6 @@ export const IconArrowForward = props => (
 );
 /* eslint-enable max-len */
 
+IconArrowForward.propTypes = IconSvg.propTypes;
 IconArrowForward.defaultProps = defaultProps;
+IconArrowForward.displayName = 'IconArrowForward';

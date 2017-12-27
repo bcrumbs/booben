@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconSvg } from '@reactackle/reactackle';
-import { defaultProps } from './index';
+import defaultProps from './common/defaultProps';
 
 export const IconDrag = props => (
   <IconSvg {...props}>
@@ -21,5 +21,6 @@ export const IconDrag = props => (
   </IconSvg>
 );
 
+IconDrag.propTypes = IconSvg.propTypes;
 IconDrag.defaultProps = defaultProps;
-
+IconDrag.displayName = 'IconDrag';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconSvg } from '@reactackle/reactackle';
-import { defaultProps } from './index';
+import defaultProps from './common/defaultProps';
 
 /* eslint-disable max-len */
 export const IconList = props => (
@@ -18,4 +18,6 @@ export const IconList = props => (
 );
 /* eslint-enable max-len */
 
+IconList.propTypes = IconSvg.propTypes;
 IconList.defaultProps = defaultProps;
+IconList.displayName = 'IconList';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconSvg } from '@reactackle/reactackle';
-import { defaultProps } from './index';
+import defaultProps from './common/defaultProps';
 
 export const IconTree = props => (
   <IconSvg {...props}>
@@ -15,4 +15,6 @@ export const IconTree = props => (
   </IconSvg>
 );
 
+IconTree.propTypes = IconSvg.propTypes;
 IconTree.defaultProps = defaultProps;
+IconTree.displayName = 'IconTree';

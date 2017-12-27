@@ -1,6 +1,6 @@
 import React from 'react';
 import { IconSvg } from '@reactackle/reactackle';
-import { defaultProps } from './index';
+import defaultProps from './common/defaultProps';
 
 /* eslint-disable max-len */
 export const IconRedo = props => (
@@ -15,4 +15,6 @@ export const IconRedo = props => (
 );
 /* eslint-enable max-len */
 
+IconRedo.propTypes = IconSvg.propTypes;
 IconRedo.defaultProps = defaultProps;
+IconRedo.displayName = 'IconRedo';

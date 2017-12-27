@@ -1,6 +1,15 @@
-import { IconArrowChevronRight } from '@reactackle/reactackle';
-import { defaultProps } from './index';
+import React from 'react';
 
+import {
+  IconArrowChevronRight as IconArrowChevronRightRCTCL,
+} from '@reactackle/reactackle';
+
+import defaultProps from './common/defaultProps';
+
+export const IconArrowChevronRight = props => (
+  <IconArrowChevronRightRCTCL {...props} />
+);
+
+IconArrowChevronRight.propTypes = IconArrowChevronRightRCTCL.propTypes;
 IconArrowChevronRight.defaultProps = defaultProps;
-
-export { IconArrowChevronRight };
+IconArrowChevronRight.displayName = 'IconArrowChevronRight';
