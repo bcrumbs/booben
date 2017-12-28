@@ -29,6 +29,18 @@ export const isPseudoComponent = component =>
   PSEUDO_COMPONENTS.has(component.name);
 
 /**
+ *
+ * @param {ProjectComponent} component
+ * @return {boolean}
+ */
+export const isEmptyListComponent = component => {
+  if (component.id === INVALID_ID) return false;
+
+  return component.name === 'List' &&
+    !component.getIn(['props', 'data']).isLinkedWithData();
+};
+
+/**
  * @typedef {Object} RenderHints
  * @property {Set<number>} needRefs
  * @property {Map<number, Set<string>>} activeStateSlots
@@ -58,7 +70,7 @@ export const getRenderHints = (components, rootId, meta, schema, project) => {
     ) {
       ret.needRefs.add(action.params.componentId);
     }
-  
+
     if (isAsyncAction(action.type)) {
       action.params.successActions.forEach(visitAction);
       action.params.errorActions.forEach(visitAction);
@@ -170,7 +182,7 @@ export const getComponentByName = (componentName, componentsBundle) => {
   const { name, namespace } = parseComponentName(componentName);
 
   if (namespace === 'HTML') {
-    return name;
+    return componentsBundle.getStyledHTMLComponent(name);
   } else if (namespace === '') {
     if (name === 'List') return List;
     if (name === 'Text') return Text;

@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { iconSize } from '../../../../styles/mixins';
+import { iconSizeMixin } from '@reactackle/reactackle';
 import constants from './constants';
 import { colorWhite, colorWarning } from '../../../../styles/themeSelectors';
 
@@ -10,7 +10,13 @@ export const AlertMarkStyled = styled.div`
   background-color: ${colorWarning};
   flex-shrink: 0;
   border-radius: 50%;
-  ${iconSize(markSize, markSize, `${constants.markImgSize}px`, 'font')}
+  ${iconSizeMixin(markSize, `${constants.markImgSize}px`)}
+  
+  & > *,
+  svg {
+    width: ${markSize};
+    height: ${markSize};
+  }
 `;
 
 AlertMarkStyled.displayName = 'AlertMarkStyled';

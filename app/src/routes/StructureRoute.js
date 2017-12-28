@@ -8,28 +8,7 @@ import { connect } from 'react-redux';
 import { push } from 'react-router-redux';
 import { Shortcuts } from 'react-shortcuts';
 import { List } from 'immutable';
-
-import {
-  Container,
-  Dialog,
-  Form,
-  FormItem,
-  TextField,
-} from '@reactackle/reactackle';
-
-import {
-  BlockContent,
-  BlockContentBox,
-  BlockContentBoxItem,
-  BlockContentBoxHeading,
-} from '@jssy/common-ui';
-
-import {
-  ToolBar,
-  ToolBarGroup,
-  ToolBarAction,
-} from '../components/ToolBar/ToolBar';
-
+import { Container, Dialog } from '@reactackle/reactackle';
 import { AppWrapper } from '../components/AppWrapper/AppWrapper';
 
 import {
@@ -40,12 +19,19 @@ import {
   RouteNewButton,
 } from '../components/RoutesList/RoutesList';
 
+import { IconRedirect } from '../components/icons';
 import { Desktop } from '../containers/Desktop/Desktop';
+import { StructureToolbar } from '../containers/toolbars';
 import { RouteEditor } from '../containers/RouteEditor/RouteEditor';
 import ProjectRecord from '../models/Project';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
 import ButtonRecord from '../models/Button';
+
+import {
+  CreateRouteDialog,
+  EditRoutePathDialog,
+} from '../containers/route-dialogs';
 
 import {
   createRoute,
@@ -57,26 +43,8 @@ import {
 } from '../actions/project';
 
 import { selectRoute } from '../actions/structure';
-
-import {
-  getLocalizedTextFromState,
-  canUndoSelector,
-  canRedoSelector,
-} from '../selectors';
-
+import { getLocalizedTextFromState } from '../selectors';
 import { findComponent } from '../lib/components';
-
-import {
-  arrayToObject,
-  objectToArray,
-  objectSome,
-  objectEvery,
-  returnArg,
-  isUndef,
-  isTruthy,
-  isFalsy,
-} from '../utils/misc';
-
 import { TOOL_ID_ROUTE_EDITOR } from '../constants/tool-ids';
 
 import {
@@ -91,8 +59,6 @@ const propTypes = {
   projectName: PropTypes.string.isRequired, // store
   selectedRouteId: PropTypes.number.isRequired, // store
   indexRouteSelected: PropTypes.bool.isRequired, // store
-  canUndo: PropTypes.bool.isRequired, // store
-  canRedo: PropTypes.bool.isRequired, // store
   getLocalizedText: PropTypes.func.isRequired, // store
   onSelectRoute: PropTypes.func.isRequired, // dispatch
   onCreateRoute: PropTypes.func.isRequired, // dispatch
@@ -109,21 +75,19 @@ const mapStateToProps = state => ({
   projectName: state.project.projectName,
   selectedRouteId: state.project.selectedRouteId,
   indexRouteSelected: state.project.indexRouteSelected,
-  canUndo: canUndoSelector(state),
-  canRedo: canRedoSelector(state),
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
   onSelectRoute: (routeId, indexRouteSelected) =>
     void dispatch(selectRoute(routeId, indexRouteSelected)),
-  
+
   onCreateRoute: (parentRouteId, path, title, paramValues) =>
     void dispatch(createRoute(parentRouteId, path, title, paramValues)),
-  
+
   onDeleteRoute: routeId =>
     void dispatch(deleteRoute(routeId)),
-  
+
   onRenameRoute: (routeId, newTitle) =>
     void dispatch(updateRouteField(routeId, 'title', newTitle)),
 
@@ -134,80 +98,20 @@ const mapDispatchToProps = dispatch => ({
       newParamValues,
       renamedParams,
     )),
-  
+
   onOpenDesigner: ({ projectName, routeId, isIndexRoute }) => {
     const path = isIndexRoute
       ? buildDesignRouteIndexPath({ projectName, routeId })
       : buildDesignRoutePath({ projectName, routeId });
-    
+
     dispatch(push(path));
   },
-  
+
   onUndo: () => void dispatch(undo()),
   onRedo: () => void dispatch(redo()),
 });
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
-
-/**
- *
- * @type {RegExp}
- */
-const ROUTE_PATH_TEXT_FIELD_PATTERN =
-  /(^$)|(^(:?[a-zA-Z0-9_]+\/)*:?[a-zA-Z0-9_]+$)/;
-
-/**
- *
- * @param {string} path
- * @return {string[]}
- */
-const splitPath = path => path.split('/');
-
-/**
- *
- * @param {string} pathPart
- * @return {boolean}
- */
-const isRouteParam = pathPart =>
-  pathPart.length > 1 &&
-  pathPart.startsWith(':');
-
-/**
- *
- * @param {string} pathPart
- * @return {string}
- */
-const routeParamName = pathPart => pathPart.slice(1);
-
-/**
- *
- * @param {string} oldPath
- * @param {string} newPath
- * @param {boolean} [reverse=false]
- * @return {Object<string, string>}
- */
-const getRenamedRouteParams = (oldPath, newPath, reverse = false) => {
-  const oldParts = splitPath(oldPath);
-  const parts = splitPath(newPath);
-  const renamedParams = {};
-  
-  for (let i = 0, l = Math.min(oldParts.length, parts.length); i < l; i++) {
-    const oldPart = oldParts[i];
-    const newPart = parts[i];
-    const isOldParam = isRouteParam(oldPart);
-    const isNewParam = isRouteParam(newPart);
-    
-    if (isOldParam && isNewParam && oldPart !== newPart) {
-      if (reverse) {
-        renamedParams[routeParamName(newPart)] = routeParamName(oldPart);
-      } else {
-        renamedParams[routeParamName(oldPart)] = routeParamName(newPart);
-      }
-    }
-  }
-  
-  return renamedParams;
-};
 
 /**
  *
@@ -260,17 +164,12 @@ class StructureRoute extends PureComponent {
       createRouteDialogIsVisible: false,
       createRouteParentId: -1,
       editRoutePathDialogIsVisible: false,
-      editingPathOfRouteId: INVALID_ID,
+      editingRouteId: INVALID_ID,
       newRoutePath: '',
       newRouteTitle: '',
       newRouteParamValues: {},
       pathPatternError: false,
     };
-
-    this._saveNewRouteTitleInputRef =
-      this._saveNewRouteTitleInputRef.bind(this);
-    this._saveRoutePathInputRef =
-      this._saveRoutePathInputRef.bind(this);
 
     this._handleShortcuts =
       this._handleShortcuts.bind(this);
@@ -296,26 +195,13 @@ class StructureRoute extends PureComponent {
       this._handleDeleteRouteCancel.bind(this);
     this._handleCreateRouteDialogClose =
       this._handleCreateRouteDialogClose.bind(this);
-    this._handleNewRouteTitleChange =
-      this._handleNewRouteTitleChange.bind(this);
-    this._handleNewRoutePathChange =
-      this._handleNewRoutePathChange.bind(this);
-    this._handleCreateRouteCancel =
-      this._handleCreateRouteCancel.bind(this);
-    this._handleCreateRouteCreate =
-      this._handleCreateRouteCreate.bind(this);
-    this._handleCreateRouteDialogEnterKey =
-      this._handleCreateRouteDialogEnterKey.bind(this);
-    this._handleEditPathSave =
-      this._handleEditPathSave.bind(this);
-    this._handleEditRouteCancel =
-      this._handleEditRouteCancel.bind(this);
+    this._handleCreateRouteDialogSubmit =
+      this._handleCreateRouteDialogSubmit.bind(this);
+    this._handleEditPathDialogSubmit =
+      this._handleEditPathDialogSubmit.bind(this);
     this._handleEditPathDialogClose =
       this._handleEditPathDialogClose.bind(this);
-    this._handleEditPathDialogEnterKey =
-      this._handleEditPathDialogEnterKey.bind(this);
-  
-    this._newRouteTitleInput = null;
+
     this._routePathInput = null;
     this._toolGroups = this._getTools(
       props.project,
@@ -324,14 +210,14 @@ class StructureRoute extends PureComponent {
       props.getLocalizedText,
     );
   }
-  
+
   componentWillReceiveProps(nextProps) {
     const willReCreateTools =
       nextProps.project !== this.props.project ||
       nextProps.selectedRouteId !== this.props.selectedRouteId ||
       nextProps.indexRouteSelected !== this.props.indexRouteSelected ||
       nextProps.getLocalizedText !== this.props.getLocalizedText;
-    
+
     if (willReCreateTools) {
       this._toolGroups = this._getTools(
         nextProps.project,
@@ -341,12 +227,12 @@ class StructureRoute extends PureComponent {
       );
     }
   }
-  
+
   _getTools(project, selectedRouteId, indexRouteSelected, getLocalizedText) {
     const selectedRoute = selectedRouteId !== -1
       ? project.routes.get(selectedRouteId)
       : null;
-    
+
     const routeEditorToolMainButtons = selectedRoute
       ? List([
         new ButtonRecord({
@@ -361,7 +247,7 @@ class StructureRoute extends PureComponent {
         }),
       ])
       : List();
-    
+
     const routeEditorToolSections = List([
       new ToolSectionRecord({
         component: RouteEditor,
@@ -370,7 +256,7 @@ class StructureRoute extends PureComponent {
         },
       }),
     ]);
-    
+
     let title;
     if (selectedRoute) {
       title = indexRouteSelected
@@ -379,14 +265,14 @@ class StructureRoute extends PureComponent {
     } else {
       title = getLocalizedText('structure.routeEditorTitle');
     }
-    
+
     const titleEditable = !!selectedRoute && !indexRouteSelected;
-    
+
     return List([
       List([
         new ToolRecord({
           id: TOOL_ID_ROUTE_EDITOR,
-          icon: 'random',
+          icon: <IconRedirect />,
           name: getLocalizedText('structure.routeEditorTitle'),
           title,
           titleEditable,
@@ -402,117 +288,48 @@ class StructureRoute extends PureComponent {
 
   /**
    *
-   * @param {number} parentRouteId
-   * @param {string} newRoutePath
-   * @param {number} [editedRouteId]
-   * @return {boolean}
-   * @private
-   */
-  _isRouteAlreadyExist(
-    parentRouteId,
-    newRoutePath,
-    editedRouteId = INVALID_ID,
-  ) {
-    const { project } = this.props;
-    
-    const isRootRoute = parentRouteId === INVALID_ID;
-    
-    if (isRootRoute) {
-      const siblingIds = project.rootRoutes;
-      const actualNewRoutePath = `/${newRoutePath}`;
-      
-      const haveExistingRootRoutes = siblingIds.some(
-        routeId =>
-          routeId !== editedRouteId &&
-          project.routes.get(routeId).path === actualNewRoutePath,
-      );
-      
-      if (haveExistingRootRoutes) return true;
-      
-      const slashRouteId = project.rootRoutes.find(
-        routeId => project.routes.get(routeId).path === '/',
-      );
-      
-      if (isUndef(slashRouteId)) return false;
-      
-      return project.routes.get(slashRouteId).children.some(
-        routeId =>
-          routeId !== editedRouteId &&
-          project.routes.get(routeId).path === newRoutePath,
-      );
-    } else {
-      const siblingIds = project.routes.get(parentRouteId).children;
-      
-      return siblingIds.some(
-        routeId =>
-          routeId !== editedRouteId &&
-          project.routes.get(routeId).path === newRoutePath,
-      );
-    }
-  }
-
-  /**
-   *
-   * @param {Object} ref
-   * @private
-   */
-  _saveNewRouteTitleInputRef(ref) {
-    this._newRouteTitleInput = ref;
-  }
-
-  /**
-   *
-   * @param {Object} ref
-   * @private
-   */
-  _saveRoutePathInputRef(ref) {
-    this._routePathInput = ref;
-  }
-  
-  /**
-   *
    * @param {string} action
    * @private
    */
   _handleShortcuts(action) {
     const { onUndo, onRedo } = this.props;
-    
+
     switch (action) {
       case 'UNDO': onUndo(); break;
       case 'REDO': onRedo(); break;
-      
+
       case 'DELETE_ROUTE': {
         const { indexRouteSelected } = this.props;
-        
+
         if (!indexRouteSelected) {
           this._handleDeleteRoutePress();
         }
-        
+
         break;
       }
-      
+
       case 'CREATE_CHILD_ROUTE': {
         const { project, selectedRouteId } = this.props;
         const { createRouteDialogIsVisible } = this.state;
-        
+
         if (!createRouteDialogIsVisible) {
           const parentRoute = project.routes.get(selectedRouteId);
           this._handleNewRoutePress({ parentRoute });
         }
-        
+
         break;
       }
-      
+
       case 'CREATE_ROOT_ROUTE': {
         const { createRouteDialogIsVisible } = this.state;
-  
+
         if (!createRouteDialogIsVisible) {
           this._handleNewRoutePress({ parentRoute: null });
         }
-        
+
         break;
       }
-      
+
       case 'SELECT_NEXT_ROUTE': this._handleSelectNextRoute(); break;
       case 'SELECT_PREVIOUS_ROUTE': this._handleSelectPreviousRoute(); break;
       case 'SELECT_CHILD_ROUTE': this._handleSelectChildRoute(); break;
@@ -532,7 +349,7 @@ class StructureRoute extends PureComponent {
 
         break;
       }
-      
+
       default:
     }
   }
@@ -553,7 +370,7 @@ class StructureRoute extends PureComponent {
       onSelectRoute(routeId, isIndexRoute);
     }
   }
-  
+
   _handleSelectNextRoute() {
     const {
       project,
@@ -561,9 +378,9 @@ class StructureRoute extends PureComponent {
       indexRouteSelected,
       onSelectRoute,
     } = this.props;
-    
+
     const currentRoute = project.routes.get(selectedRouteId);
-    
+
     if (indexRouteSelected) {
       if (currentRoute.children.size > 0) {
         const nextRouteId = currentRoute.children.first();
@@ -574,16 +391,16 @@ class StructureRoute extends PureComponent {
       const currentRoutesList = isRootRoute
         ? project.rootRoutes
         : project.routes.get(currentRoute.parentId).children;
-  
+
       const currentRoutePosition = currentRoutesList.indexOf(selectedRouteId);
-      
+
       if (currentRoutePosition < currentRoutesList.size - 1) {
         const nextRouteId = currentRoutesList.get(currentRoutePosition + 1);
         onSelectRoute(nextRouteId, false);
       }
     }
   }
-  
+
   _handleSelectPreviousRoute() {
     const {
       project,
@@ -591,21 +408,21 @@ class StructureRoute extends PureComponent {
       indexRouteSelected,
       onSelectRoute,
     } = this.props;
-  
+
     const currentRoute = project.routes.get(selectedRouteId);
-    
+
     if (!indexRouteSelected) {
       const isRootRoute = currentRoute.parentId === INVALID_ID;
       const parentRoute = isRootRoute
         ? null
         : project.routes.get(currentRoute.parentId);
-      
+
       const currentRoutesList = isRootRoute
         ? project.rootRoutes
         : parentRoute.children;
-  
+
       const currentRoutePosition = currentRoutesList.indexOf(selectedRouteId);
-      
+
       if (currentRoutePosition > 0) {
         const nextRouteId = currentRoutesList.get(currentRoutePosition - 1);
         onSelectRoute(nextRouteId, false);
@@ -614,7 +431,7 @@ class StructureRoute extends PureComponent {
       }
     }
   }
-  
+
   _handleSelectParentRoute() {
     const {
       project,
@@ -622,17 +439,17 @@ class StructureRoute extends PureComponent {
       indexRouteSelected,
       onSelectRoute,
     } = this.props;
-    
+
     const currentRoute = project.routes.get(selectedRouteId);
     const isRootRoute = currentRoute.parentId === INVALID_ID;
-    
+
     if (indexRouteSelected) {
       onSelectRoute(selectedRouteId, false);
     } else if (!isRootRoute) {
       onSelectRoute(currentRoute.parentId, false);
     }
   }
-  
+
   _handleSelectChildRoute() {
     const {
       project,
@@ -640,10 +457,10 @@ class StructureRoute extends PureComponent {
       indexRouteSelected,
       onSelectRoute,
     } = this.props;
-  
+
     if (!indexRouteSelected) {
       const currentRoute = project.routes.get(selectedRouteId);
-  
+
       if (currentRoute.haveIndex) {
         onSelectRoute(selectedRouteId, true);
       } else if (currentRoute.children.size > 0) {
@@ -669,7 +486,7 @@ class StructureRoute extends PureComponent {
    */
   _handleSelectedRouteGo() {
     const { selectedRouteId, indexRouteSelected } = this.props;
-    
+
     this._handleRouteGo({
       routeId: selectedRouteId,
       isIndexRoute: indexRouteSelected,
@@ -691,7 +508,7 @@ class StructureRoute extends PureComponent {
 
     this.setState({
       editRoutePathDialogIsVisible: true,
-      editingPathOfRouteId: selectedRouteId,
+      editingRouteId: selectedRouteId,
       newRoutePath: displayPath,
       newRouteParamValues: route.paramValues.toObject(),
     }, () => {
@@ -741,17 +558,13 @@ class StructureRoute extends PureComponent {
    */
   _handleNewRoutePress({ parentRoute }) {
     const parentId = parentRoute ? parentRoute.id : -1;
-    
+
     this.setState({
       createRouteDialogIsVisible: true,
       createRouteParentId: parentId,
       newRoutePath: '',
       newRouteTitle: '',
       newRouteParamValues: {},
-    }, () => {
-      if (this._newRouteTitleInput) {
-        this._newRouteTitleInput.focus();
-      }
     });
   }
 
@@ -768,123 +581,23 @@ class StructureRoute extends PureComponent {
 
   /**
    *
-   * @param {string} newPath
+   * @param {Object} data
    * @private
    */
-  _handleNewRoutePathChange({ value: newPath }) {
-    const { newRoutePath: oldPath, newRouteParamValues } = this.state;
-    
-    const renamedParams = getRenamedRouteParams(oldPath, newPath, true);
-
-    const getNewParamValue = paramName =>
-      newRouteParamValues[paramName] || (
-        renamedParams[paramName]
-          ? newRouteParamValues[renamedParams[paramName]]
-          : ''
-      );
-    
-    const params = splitPath(newPath)
-      .filter(isRouteParam)
-      .map(routeParamName);
-
-    const updatedParamValues = arrayToObject(
-      params,
-      returnArg,
-      getNewParamValue,
-    );
-    
-    this.setState({
-      newRoutePath: newPath,
-      pathPatternError: !ROUTE_PATH_TEXT_FIELD_PATTERN.test(newPath),
-      newRouteParamValues: updatedParamValues,
-    });
-  }
-
-  /**
-   *
-   * @param {string} value
-   * @private
-   */
-  _handleNewRouteTitleChange({ value }) {
-    this.setState({
-      newRouteTitle: value,
-    });
-  }
-  
-  /**
-   *
-   * @param {string} paramName
-   * @param {string} value
-   * @private
-   */
-  _handleNewRouteParamChange(paramName, { value }) {
-    const { newRouteParamValues } = this.state;
-    
-    this.setState({
-      newRouteParamValues: {
-        ...newRouteParamValues,
-        [paramName]: value,
-      },
-    });
-  }
-
-  /**
-   *
-   * @param {Function} closeDialog
-   * @private
-   */
-  _handleCreateRouteCancel(closeDialog) {
-    closeDialog();
-  }
-
-  /**
-   *
-   * @param {Function} closeDialog
-   * @private
-   */
-  _handleCreateRouteCreate(closeDialog) {
+  _handleCreateRouteDialogSubmit(data) {
     const { onCreateRoute } = this.props;
     const {
       createRouteParentId,
       newRoutePath,
       newRouteTitle,
       newRouteParamValues,
-    } = this.state;
-    
+    } = data;
+
     const isRootRoute = createRouteParentId === -1;
     const title = newRouteTitle.trim();
     const path = normalizePath(newRoutePath, isRootRoute);
 
     onCreateRoute(createRouteParentId, path, title, newRouteParamValues);
-    closeDialog();
-  }
-
-  /**
-   *
-   * @param {Function} closeDialog
-   * @private
-   */
-  _handleCreateRouteDialogEnterKey(closeDialog) {
-    const {
-      createRouteParentId,
-      newRouteTitle,
-      newRoutePath,
-      newRouteParamValues,
-    } = this.state;
-
-    const creatingRootRoute = createRouteParentId === -1;
-    const routeAlreadyExists = this._isRouteAlreadyExist(
-      createRouteParentId,
-      newRoutePath,
-    );
-
-    const isValid =
-      !!newRouteTitle &&
-      !routeAlreadyExists &&
-      (creatingRootRoute || !!newRoutePath) &&
-      objectEvery(newRouteParamValues, isTruthy);
-
-    if (isValid) this._handleCreateRouteCreate(closeDialog);
   }
 
   /**
@@ -906,71 +619,34 @@ class StructureRoute extends PureComponent {
   _handleEditPathDialogClose() {
     this.setState({
       editRoutePathDialogIsVisible: false,
-      editingPathOfRouteId: INVALID_ID,
+      editingRouteId: INVALID_ID,
     });
   }
 
   /**
    *
-   * @param {Function} closeDialog
+   * @param {Object} data
    * @private
    */
-  _handleEditRouteCancel(closeDialog) {
-    closeDialog();
-  }
-
-  /**
-   *
-   * @param {Function} closeDialog
-   * @private
-   */
-  _handleEditPathSave(closeDialog) {
+  _handleEditPathDialogSubmit(data) {
     const { project, onUpdateRoutePath } = this.props;
 
     const {
-      editingPathOfRouteId,
+      editingRouteId,
       newRoutePath,
       newRouteParamValues,
-    } = this.state;
+    } = data;
 
-    const route = project.routes.get(editingPathOfRouteId);
+    const route = project.routes.get(editingRouteId);
     const isRootRoute = route.parentId === INVALID_ID;
     const path = normalizePath(newRoutePath, isRootRoute);
-    const renamedParams = getRenamedRouteParams(route.path, path);
 
     onUpdateRoutePath(
-      editingPathOfRouteId,
+      editingRouteId,
       path,
       newRouteParamValues,
-      renamedParams,
+      {},
     );
-    
-    closeDialog();
-  }
-
-  _handleEditPathDialogEnterKey(closeDialog) {
-    const { project } = this.props;
-
-    const {
-      editingPathOfRouteId,
-      newRoutePath,
-      newRouteParamValues,
-    } = this.state;
-
-    const route = project.routes.get(editingPathOfRouteId);
-    const isRootRoute = route.parentId === INVALID_ID;
-    const routeAlreadyExists = this._isRouteAlreadyExist(
-      route.parentId,
-      newRoutePath,
-      editingPathOfRouteId,
-    );
-
-    const isValid =
-      !routeAlreadyExists &&
-      (isRootRoute || !!newRoutePath) &&
-      objectEvery(newRouteParamValues, isTruthy);
-
-    if (isValid) this._handleEditPathSave(closeDialog);
   }
 
   /**
@@ -978,11 +654,16 @@ class StructureRoute extends PureComponent {
    * @param {Immutable.List<Object>} routes
    * @param {Object} parentRoute
    * @param {Immutable.List<number>} routesIds
-   * @param {?Object} [parentWithoutOutlet=null]
+   * @param {boolean} [parentWithoutOutlet=false]
    * @return {ReactElement}
    * @private
    */
-  _renderRouteList(routes, parentRoute, routesIds, parentWithoutOutlet = null) {
+  _renderRouteList(
+    routes,
+    parentRoute,
+    routesIds,
+    parentWithoutOutlet = false,
+  ) {
     const {
       selectedRouteId,
       indexRouteSelected,
@@ -1001,7 +682,7 @@ class StructureRoute extends PureComponent {
       const isSelected =
         selectedRouteId === parentRoute.id &&
         indexRouteSelected;
-      
+
       if (routeCards) {
         routeCards = routeCards.unshift(
           <IndexRouteCard
@@ -1015,13 +696,13 @@ class StructureRoute extends PureComponent {
         );
       }
     }
-    
+
     const needButton = parentRoute === null || (
       !indexRouteSelected &&
       selectedRouteId !== -1 &&
       parentRoute.id === selectedRouteId
     );
-  
+
     let button = null;
     if (needButton) {
       const text = getLocalizedText(
@@ -1049,17 +730,17 @@ class StructureRoute extends PureComponent {
    *
    * @param {Immutable.List<Object>} routes
    * @param {number} routeId
-   * @param {?Object} [parentWithoutOutlet=null]
+   * @param {boolean} [parentWithoutOutlet=false]
    * @return {ReactElement}
    * @private
    */
-  _renderRouteCard(routes, routeId, parentWithoutOutlet = null) {
+  _renderRouteCard(routes, routeId, parentWithoutOutlet = false) {
     const {
       selectedRouteId,
       indexRouteSelected,
       getLocalizedText,
     } = this.props;
-    
+
     const route = routes.get(routeId);
     const isSelected = selectedRouteId === route.id && !indexRouteSelected;
     const willRenderChildren = route.children.size > 0 || route.haveIndex;
@@ -1067,7 +748,7 @@ class StructureRoute extends PureComponent {
     let outletWarning = false;
     let outletWarningTooltip = '';
 
-    if (!parentWithoutOutlet && route.children.size > 0) {
+    if (route.children.size > 0) {
       const outlet = findComponent(
         route.components,
         route.component,
@@ -1087,7 +768,7 @@ class StructureRoute extends PureComponent {
         routes,
         route,
         route.children,
-        parentWithoutOutlet || (outletWarning ? route : null),
+        parentWithoutOutlet || outletWarning,
       );
     } else {
       children = isSelected
@@ -1095,7 +776,7 @@ class StructureRoute extends PureComponent {
           routes,
           route,
           null,
-          parentWithoutOutlet || (outletWarning ? route : null),
+          parentWithoutOutlet || outletWarning,
         )
         : null;
     }
@@ -1103,13 +784,12 @@ class StructureRoute extends PureComponent {
     let parentOutletWarningMessage = null;
     let disabled = false;
 
-    if (parentWithoutOutlet !== null) {
+    if (parentWithoutOutlet) {
       disabled = true;
 
       if (isSelected) {
         const messageText = getLocalizedText(
           'structure.noOutletWarning',
-          { routeTitle: parentWithoutOutlet.title },
         );
 
         parentOutletWarningMessage = (
@@ -1117,7 +797,7 @@ class StructureRoute extends PureComponent {
         );
       }
     }
-    
+
     return (
       <RouteCard
         key={String(route.id)}
@@ -1141,142 +821,20 @@ class StructureRoute extends PureComponent {
    * @private
    */
   _renderNewRouteDialog() {
-    const { getLocalizedText } = this.props;
-  
     const {
       createRouteParentId,
-      newRouteTitle,
-      newRoutePath,
-      newRouteParamValues,
       createRouteDialogIsVisible,
-      pathPatternError,
     } = this.state;
-    
-    const creatingRootRoute = createRouteParentId === -1;
-    const routeAlreadyExists = this._isRouteAlreadyExist(
-      createRouteParentId,
-      newRoutePath,
-    );
 
-    const isCreateButtonDisabled =
-      !newRouteTitle ||
-      routeAlreadyExists ||
-      pathPatternError ||
-      (!creatingRootRoute && newRoutePath === '') ||
-      objectSome(newRouteParamValues, isFalsy);
+    if (!createRouteDialogIsVisible) return null;
 
-    const dialogTitle = getLocalizedText(
-      creatingRootRoute
-        ? 'structure.createNewRootRoute'
-        : 'structure.createNewRoute',
-    );
-    
-    const dialogButtons = [{
-      text: getLocalizedText('common.create'),
-      disabled: isCreateButtonDisabled,
-      onPress: this._handleCreateRouteCreate,
-    }, {
-      text: getLocalizedText('common.cancel'),
-      onPress: this._handleCreateRouteCancel,
-    }];
-  
-    const pathInputStyle = (routeAlreadyExists || pathPatternError)
-      ? 'error'
-      : 'neutral';
-  
-    let pathInputMessage = '';
-    if (pathPatternError) {
-      pathInputMessage = getLocalizedText('structure.pathErrorMessage');
-    } else if (routeAlreadyExists) {
-      const actualPath = normalizePath(newRoutePath, creatingRootRoute);
-    
-      pathInputMessage = getLocalizedText(
-        'structure.routeAlreadyExistsMessage',
-        { path: actualPath },
-      );
-    }
-  
-    let routeParamsBoxHeading = null;
-    let routeParamsBoxItem = null;
-    
-    /* eslint-disable react/jsx-no-bind */
-    const routeParamInputs = objectToArray(
-      newRouteParamValues,
-      
-      (paramValue, paramName) => (
-        <FormItem key={paramName}>
-          <TextField
-            dense
-            label={paramName}
-            value={paramValue}
-            onChange={this._handleNewRouteParamChange.bind(this, paramName)}
-          />
-        </FormItem>
-      ),
-    );
-    /* eslint-enable react/jsx-no-bind */
-    
-    if (routeParamInputs.length) {
-      routeParamsBoxHeading = (
-        <BlockContentBoxHeading removePaddingX>
-          {getLocalizedText('structure.routeParamValuesHeading')}
-        </BlockContentBoxHeading>
-      );
-  
-      routeParamsBoxItem = (
-        <BlockContentBoxItem blank>
-          <Form>
-            {routeParamInputs}
-          </Form>
-        </BlockContentBoxItem>
-      );
-    }
-    
     return (
-      <Dialog
-        title={dialogTitle}
-        buttons={dialogButtons}
-        backdrop
-        minWidth={400}
-        open={createRouteDialogIsVisible}
-        closeOnEscape
-        closeOnBackdropClick
-        onEnterKeyPress={this._handleCreateRouteDialogEnterKey}
+      <CreateRouteDialog
+        open
+        parentRouteId={createRouteParentId}
+        onSubmit={this._handleCreateRouteDialogSubmit}
         onClose={this._handleCreateRouteDialogClose}
-      >
-        <BlockContent>
-          <BlockContentBox>
-            <BlockContentBoxItem blank>
-              <Form>
-                <FormItem>
-                  <TextField
-                    ref={this._saveNewRouteTitleInputRef}
-                    label={getLocalizedText('structure.title')}
-                    value={newRouteTitle}
-                    onChange={this._handleNewRouteTitleChange}
-                  />
-                </FormItem>
-
-                <FormItem>
-                  <TextField
-                    label={getLocalizedText('structure.path')}
-                    value={newRoutePath}
-                    prefix="/"
-                    colorScheme={pathInputStyle}
-                    message={pathInputMessage}
-                    onChange={this._handleNewRoutePathChange}
-                  />
-                </FormItem>
-              </Form>
-            </BlockContentBoxItem>
-          </BlockContentBox>
-          
-          <BlockContentBox>
-            {routeParamsBoxHeading}
-            {routeParamsBoxItem}
-          </BlockContentBox>
-        </BlockContent>
-      </Dialog>
+      />
     );
   }
 
@@ -1286,138 +844,27 @@ class StructureRoute extends PureComponent {
    * @private
    */
   _renderEditRoutePathDialog() {
-    const { project, getLocalizedText } = this.props;
     const {
       editRoutePathDialogIsVisible,
-      editingPathOfRouteId,
-      newRoutePath,
-      newRouteParamValues,
-      pathPatternError,
+      editingRouteId,
     } = this.state;
 
     if (!editRoutePathDialogIsVisible) return null;
 
-    const route = project.routes.get(editingPathOfRouteId);
-    const isRootRoute = route.parentId === INVALID_ID;
-    const routeAlreadyExists = this._isRouteAlreadyExist(
-      route.parentId,
-      newRoutePath,
-      editingPathOfRouteId,
-    );
-
-    const pathInputStyle = (routeAlreadyExists || pathPatternError)
-      ? 'error'
-      : 'neutral';
-
-    let pathInputMessage = '';
-    if (pathPatternError) {
-      pathInputMessage = getLocalizedText('structure.pathErrorMessage');
-    } else if (routeAlreadyExists) {
-      const actualPath = normalizePath(newRoutePath, isRootRoute);
-
-      pathInputMessage = getLocalizedText(
-        'structure.routeAlreadyExistsMessage',
-        { path: actualPath },
-      );
-    }
-
-    const isSaveButtonDisabled =
-      routeAlreadyExists ||
-      pathPatternError ||
-      (!isRootRoute && newRoutePath === '') ||
-      objectSome(newRouteParamValues, isFalsy);
-
-    const dialogTitle = getLocalizedText('structure.editRoutePathDialogTitle');
-
-    const dialogButtons = [{
-      text: getLocalizedText('common.save'),
-      disabled: isSaveButtonDisabled,
-      onPress: this._handleEditPathSave,
-    }, {
-      text: getLocalizedText('common.cancel'),
-      onPress: this._handleEditRouteCancel,
-    }];
-
-    let routeParamsBoxHeading = null;
-    let routeParamsBoxItem = null;
-
-    /* eslint-disable react/jsx-no-bind */
-    const routeParamInputs = objectToArray(
-      newRouteParamValues,
-
-      (paramValue, paramName) => (
-        <FormItem>
-          <TextField
-            key={paramName}
-            label={paramName}
-            value={paramValue}
-            onChange={this._handleNewRouteParamChange.bind(this, paramName)}
-          />
-        </FormItem>
-      ),
-    );
-    /* eslint-enable react/jsx-no-bind */
-
-    if (routeParamInputs.length) {
-      routeParamsBoxHeading = (
-        <BlockContentBoxHeading>
-          {getLocalizedText('structure.routeParamValuesHeading')}
-        </BlockContentBoxHeading>
-      );
-
-      routeParamsBoxItem = (
-        <BlockContentBoxItem blank>
-          <Form>
-            {routeParamInputs}
-          </Form>
-        </BlockContentBoxItem>
-      );
-    }
-
     return (
-      <Dialog
-        title={dialogTitle}
-        buttons={dialogButtons}
-        backdrop
-        minWidth={400}
+      <EditRoutePathDialog
         open
-        closeOnEscape
-        closeOnBackdropClick
-        onEnterKeyPress={this._handleEditPathDialogEnterKey}
+        editingRouteId={editingRouteId}
+        onSubmit={this._handleEditPathDialogSubmit}
         onClose={this._handleEditPathDialogClose}
-      >
-        <BlockContent>
-          <BlockContentBox>
-            <BlockContentBoxItem blank>
-              <Form>
-                <FormItem>
-                  <TextField
-                    ref={this._saveRoutePathInputRef}
-                    label={getLocalizedText('structure.path')}
-                    value={newRoutePath}
-                    prefix="/"
-                    colorScheme={pathInputStyle}
-                    message={pathInputMessage}
-                    onChange={this._handleNewRoutePathChange}
-                  />
-                </FormItem>
-              </Form>
-            </BlockContentBoxItem>
-          </BlockContentBox>
-
-          <BlockContentBox>
-            {routeParamsBoxHeading}
-            {routeParamsBoxItem}
-          </BlockContentBox>
-        </BlockContent>
-      </Dialog>
+      />
     );
   }
-  
+
   _renderDeleteRouteDialog() {
     const { getLocalizedText } = this.props;
     const { confirmDeleteDialogIsVisible } = this.state;
-    
+
     const deleteRouteDialogButtons = [{
       text: getLocalizedText('common.delete'),
       onPress: this._handleDeleteRouteConfirm,
@@ -1425,7 +872,7 @@ class StructureRoute extends PureComponent {
       text: getLocalizedText('common.cancel'),
       onPress: this._handleDeleteRouteCancel,
     }];
-    
+
     return (
       <Dialog
         title={getLocalizedText('structure.deleteRouteQuestion')}
@@ -1442,13 +889,13 @@ class StructureRoute extends PureComponent {
       </Dialog>
     );
   }
-  
+
   _renderContent() {
     const { project } = this.props;
-  
+
     const routesList =
       this._renderRouteList(project.routes, null, project.rootRoutes);
-    
+
     return (
       <RoutesListWrapper>
         <Container spread>
@@ -1459,17 +906,8 @@ class StructureRoute extends PureComponent {
   }
 
   render() {
-    const {
-      canUndo,
-      canRedo,
-      selectedRouteId,
-      indexRouteSelected,
-      getLocalizedText,
-      onUndo,
-      onRedo,
-    } = this.props;
+    const { onUndo, onRedo } = this.props;
 
-    const isDeletable = selectedRouteId !== INVALID_ID && !indexRouteSelected;
     const content = this._renderContent();
     const newRouteDialog = this._renderNewRouteDialog();
     const editRoutePathDialog = this._renderEditRoutePathDialog();
@@ -1486,32 +924,11 @@ class StructureRoute extends PureComponent {
           toolGroups={this._toolGroups}
           onToolTitleChange={this._handleToolTitleChange}
         >
-          <ToolBar>
-            <ToolBarGroup>
-              <ToolBarAction
-                icon={{ name: 'trash' }}
-                tooltipText={getLocalizedText('toolbar.structure.delete')}
-                disabled={!isDeletable}
-                onPress={this._handleDeleteRoutePress}
-              />
-            </ToolBarGroup>
-
-            <ToolBarGroup>
-              <ToolBarAction
-                icon={{ name: 'undo' }}
-                tooltipText={getLocalizedText('toolbar.common.undo')}
-                disabled={!canUndo}
-                onPress={onUndo}
-              />
-
-              <ToolBarAction
-                icon={{ name: 'repeat' }}
-                tooltipText={getLocalizedText('toolbar.common.redo')}
-                disabled={!canRedo}
-                onPress={onRedo}
-              />
-            </ToolBarGroup>
-          </ToolBar>
+          <StructureToolbar
+            onDelete={this._handleDeleteRoutePress}
+            onUndo={onUndo}
+            onRedo={onRedo}
+          />
 
           <AppWrapper>
             <Shortcuts
@@ -1522,7 +939,7 @@ class StructureRoute extends PureComponent {
               {content}
             </Shortcuts>
           </AppWrapper>
-          
+
           {newRouteDialog}
           {editRoutePathDialog}
           {deleteRouteDialog}

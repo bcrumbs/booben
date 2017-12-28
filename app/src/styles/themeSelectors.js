@@ -5,7 +5,7 @@ export const baseModule = multiplier => {
     multiplierFunctions[multiplier] =
       ({ theme }) => theme.reactackle.baseModule * multiplier;
   }
-  
+
   return multiplierFunctions[multiplier];
 };
 
@@ -80,9 +80,10 @@ export const paletteBlueGrey900 = ({ theme }) =>
 
 export const colorBorder = ({ theme }) => theme.reactackle.colorBorder;
 export const colorBorderDark = paletteBlueGrey650;
-export const colorActiveBg = ({ theme }) => theme.jssy.color.colorSelection;
-export const colorActiveBgLight = ({ theme }) => theme.jssy.color.colorHover;
-export const colorHover = ({ theme }) => theme.jssy.color.colorHover;
+export const colorActiveBg = ({ theme }) => theme.jssy.color.stateSelection;
+export const colorActiveBgLight = ({ theme }) => theme.jssy.color.stateHover;
+export const colorHover = ({ theme }) => theme.jssy.color.stateHover;
+export const colorBgDefault = ({ theme }) => theme.jssy.color.bgDefault;
 
 /* Font size */
 export const fontSizeXSmall = ({ theme }) =>
@@ -117,6 +118,7 @@ export const fontWeightBold = ({ theme }) =>
   theme.reactackle.fontWeight.bold;
 
 /* Text color */
+export const textColorLight = paletteBlueGrey200;
 export const textColorMedium = paletteBlueGrey400;
 export const textColorMediumDark = paletteBlueGrey300;
 export const textColorBody = paletteBlueGrey25;

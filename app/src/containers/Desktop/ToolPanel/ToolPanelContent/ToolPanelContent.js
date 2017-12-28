@@ -12,12 +12,17 @@ import {
   BlockContentActions,
   BlockContentActionsRegion,
   BlockContentNavigation,
-  PageDrawerContentArea,
-} from '@jssy/common-ui';
+} from '../../../../components/BlockContent';
 
+import { PageDrawerContentArea } from '../../../../components/PageDrawer';
 import ToolType from '../../../../models/Tool';
 import ToolStateType from '../../../../models/ToolState';
 import { noop } from '../../../../utils/misc';
+
+import {
+  IconArrowChevronRight,
+  IconExpand,
+} from '../../../../components/icons';
 
 const propTypes = {
   tool: PropTypes.instanceOf(ToolType).isRequired,
@@ -42,12 +47,12 @@ export class ToolPanelContent extends PureComponent {
     super(props, context);
     this._handleTabChange = this._handleTabChange.bind(this);
   }
-  
+
   _handleTabChange({ value }) {
     const { onActiveSectionChange } = this.props;
     onActiveSectionChange({ newActiveSection: value });
   }
-  
+
   render() {
     const {
       tool,
@@ -57,34 +62,30 @@ export class ToolPanelContent extends PureComponent {
       onUndock,
       onTitleChange,
     } = this.props;
-  
+
     const titleButtons = [{
-      icon: {
-        name: 'chevron-right',
-      },
-      colorScheme: "flatLight",
+      icon: <IconArrowChevronRight />,
+      colorScheme: 'flatLight',
       onPress: onCollapse,
     }];
-  
+
     if (tool.undockable) {
       titleButtons.unshift({
-        icon: {
-          name: 'arrows-alt',
-        },
-        colorScheme: "flatLight",
+        icon: <IconExpand />,
+        colorScheme: 'flatLight',
         onPress: onUndock,
       });
     }
-  
+
     const sections = tool.sections;
     const sectionsNum = sections.size;
     let navArea = null;
-  
+
     if (sectionsNum > 1) {
       const tabs = Array.from(
         sections.map(section => ({ text: section.name })),
       );
-    
+
       navArea = (
         <BlockContentNavigation>
           <Tabs
@@ -96,49 +97,49 @@ export class ToolPanelContent extends PureComponent {
         </BlockContentNavigation>
       );
     }
-  
+
     const activeSection = sections.get(toolState.activeSection) || null;
     const ContentComponent = activeSection !== null
       ? activeSection.component
       : null;
-  
+
     const content = ContentComponent
       ? <ContentComponent {...activeSection.componentProps} />
       : null;
-  
+
     let actionsArea = null;
     const mainButtons = tool.mainButtons;
     const secondaryButtons = tool.secondaryButtons;
     const mainButtonsNum = mainButtons.size;
     const secondaryButtonsNum = secondaryButtons.size;
-  
+
     if (mainButtonsNum > 0 || secondaryButtonsNum > 0) {
       let mainActionsRegion = null;
       if (mainButtonsNum > 0) {
         const buttons = mainButtons.map((button, idx) => (
           <Button
             key={String(idx)}
-            icon={{ name: button.icon }}
+            icon={button.icon}
             text={button.text}
             disabled={button.disabled}
             colorScheme="flatLight"
             onPress={button.onPress} // eslint-disable-line react/jsx-handler-names
           />
         ));
-      
+
         mainActionsRegion = (
           <BlockContentActionsRegion type="main">
             {buttons}
           </BlockContentActionsRegion>
         );
       }
-    
+
       let secondaryButtonsRegion = null;
       if (secondaryButtonsNum > 0) {
         const buttons = secondaryButtons.map((button, idx) => (
           <Button
             key={String(idx)}
-            icon={{ name: button.icon }}
+            icon={button.icon}
             text={button.text}
             disabled={button.disabled}
             colorScheme="flatLight"
@@ -146,14 +147,14 @@ export class ToolPanelContent extends PureComponent {
             onPress={button.onPress} // eslint-disable-line react/jsx-handler-names
           />
         ));
-      
+
         secondaryButtonsRegion = (
           <BlockContentActionsRegion type="secondary">
             {buttons}
           </BlockContentActionsRegion>
         );
       }
-    
+
       actionsArea = (
         <BlockContentActions>
           {secondaryButtonsRegion}
@@ -161,7 +162,7 @@ export class ToolPanelContent extends PureComponent {
         </BlockContentActions>
       );
     }
-  
+
     return (
       <PageDrawerContentArea hidden={shadowed}>
         <BlockContent>
@@ -172,7 +173,7 @@ export class ToolPanelContent extends PureComponent {
             buttons={titleButtons}
             onTitleChange={onTitleChange}
           />
-        
+
           {navArea}
           {content}
           {actionsArea}

@@ -48,7 +48,6 @@ const propTypes = {
   getLocalizedText: PropTypes.func,
   onChange: PropTypes.func,
   onLink: PropTypes.func,
-  onPick: PropTypes.func,
   onConstructComponent: PropTypes.func,
   onEditActions: PropTypes.func,
 };
@@ -67,7 +66,6 @@ const defaultProps = {
   getLocalizedText: returnArg,
   onChange: noop,
   onLink: noop,
-  onPick: noop,
   onConstructComponent: noop,
   onEditActions: noop,
 };
@@ -115,17 +113,16 @@ export class JssyValueEditor extends PureComponent {
     super(props, context);
 
     this._propType = null;
-    
+
     this._handleChange = this._handleChange.bind(this);
     this._handleAdd = this._handleAdd.bind(this);
     this._handleDelete = this._handleDelete.bind(this);
     this._handleLink = this._handleLink.bind(this);
-    this._handlePick = this._handlePick.bind(this);
     this._handleUnlink = this._handleUnlink.bind(this);
     this._handleCheck = this._handleCheck.bind(this);
     this._handleConstructComponent = this._handleConstructComponent.bind(this);
     this._handleEditActions = this._handleEditActions.bind(this);
-    
+
     this._formatArrayItemLabel = this._formatArrayItemLabel.bind(this);
     this._formatObjectItemLabel = this._formatObjectItemLabel.bind(this);
   }
@@ -140,7 +137,7 @@ export class JssyValueEditor extends PureComponent {
       this._propType = null;
     }
   }
-  
+
   /**
    *
    * @param {*} value
@@ -154,10 +151,10 @@ export class JssyValueEditor extends PureComponent {
     const newValue = path.length > 0
       ? currentValue.setInStatic(path, jssyValue)
       : jssyValue;
-    
+
     onChange({ name, value: newValue });
   }
-  
+
   /**
    *
    * @param {(string|number)[]} where
@@ -174,7 +171,7 @@ export class JssyValueEditor extends PureComponent {
       language,
       onChange,
     } = this.props;
-  
+
     const nestedTypedef = getNestedTypedef(valueDef, where, userTypedefs);
     const value = jssyValueToImmutable(buildDefaultValue(
       nestedTypedef.ofType,
@@ -183,17 +180,17 @@ export class JssyValueEditor extends PureComponent {
       userTypedefs,
       { forceEnable: true },
     ));
-  
+
     const newValue = where.length > 0
       ? currentValue.updateInStatic(
         where,
         nestedValue => nestedValue.addValueInStatic(index, value),
       )
       : currentValue.addValueInStatic(index, value);
-  
+
     onChange({ name, value: newValue });
   }
-  
+
   /**
    *
    * @param {(string|number)[]} where
@@ -202,17 +199,17 @@ export class JssyValueEditor extends PureComponent {
    */
   _handleDelete({ where, index }) {
     const { name, value: currentValue, onChange } = this.props;
-    
+
     const newValue = where.length > 0
       ? currentValue.updateInStatic(
         where,
         nestedValue => nestedValue.deleteValueInStatic(index),
       )
       : currentValue.deleteValueInStatic(index);
-  
+
     onChange({ name, value: newValue });
   }
-  
+
   /**
    *
    * @param {(string|number)[]} path
@@ -227,7 +224,7 @@ export class JssyValueEditor extends PureComponent {
       ownerUserTypedefs,
       onLink,
     } = this.props;
-    
+
     onLink({
       name,
       path,
@@ -243,22 +240,6 @@ export class JssyValueEditor extends PureComponent {
    * @param {(string|number)[]} path
    * @private
    */
-  _handlePick({ path }) {
-    const { name, valueDef, userTypedefs, onPick } = this.props;
-
-    onPick({
-      name,
-      path,
-      targetValueDef: getNestedTypedef(valueDef, path, userTypedefs),
-      targetUserTypedefs: userTypedefs,
-    });
-  }
-  
-  /**
-   *
-   * @param {(string|number)[]} path
-   * @private
-   */
   _handleUnlink({ path }) {
     const {
       name,
@@ -269,7 +250,7 @@ export class JssyValueEditor extends PureComponent {
       language,
       onChange,
     } = this.props;
-  
+
     const nestedValueDef = getNestedTypedef(valueDef, path, userTypedefs);
     const value = jssyValueToImmutable(buildDefaultValue(
       nestedValueDef,
@@ -278,14 +259,14 @@ export class JssyValueEditor extends PureComponent {
       userTypedefs,
       { forceEnable: true },
     ));
-    
+
     const newValue = path.length > 0
       ? currentValue.setInStatic(path, value)
       : value;
-  
+
     onChange({ name, value: newValue });
   }
-  
+
   /**
    *
    * @param {(string|number)[]} path
@@ -306,7 +287,7 @@ export class JssyValueEditor extends PureComponent {
 
     if (path.length > 0) {
       let newValue;
-      
+
       const resolvedValueDef = resolveTypedef(
         getNestedTypedef(valueDef, path, userTypedefs),
         userTypedefs,
@@ -327,11 +308,11 @@ export class JssyValueEditor extends PureComponent {
           getNestedTypedef(valueDef, path.slice(0, -1), userTypedefs),
           userTypedefs,
         );
-        
+
         const isIterable =
           parentTypeDef.type === TypeNames.ARRAY_OF ||
           parentTypeDef.type === TypeNames.OBJECT_OF;
-        
+
         if (!isIterable && !resolvedValueDef.required) {
           newValue = currentValue.unsetInStatic(path);
         } else {
@@ -342,7 +323,7 @@ export class JssyValueEditor extends PureComponent {
       onChange({ name, value: newValue });
     } else {
       const resolvedValueDef = resolveTypedef(valueDef, userTypedefs);
-      
+
       if (checked) {
         const value = jssyValueToImmutable(buildDefaultValue(
           resolvedValueDef,
@@ -351,7 +332,7 @@ export class JssyValueEditor extends PureComponent {
           userTypedefs,
           { forceEnable: true },
         ));
-    
+
         onChange({ name, value });
       } else if (optional) {
         onChange({ name, value: null });
@@ -360,7 +341,7 @@ export class JssyValueEditor extends PureComponent {
       }
     }
   }
-  
+
   /**
    *
    * @param {(string|number)[]} path
@@ -368,7 +349,7 @@ export class JssyValueEditor extends PureComponent {
    */
   _handleConstructComponent({ path }) {
     const { name, valueDef, userTypedefs, onConstructComponent } = this.props;
-    
+
     onConstructComponent({
       name,
       path,
@@ -376,7 +357,7 @@ export class JssyValueEditor extends PureComponent {
       targetUserTypedefs: userTypedefs,
     });
   }
-  
+
   /**
    *
    * @param {(string|number)[]} path
@@ -384,7 +365,7 @@ export class JssyValueEditor extends PureComponent {
    */
   _handleEditActions({ path }) {
     const { name, valueDef, userTypedefs, onEditActions } = this.props;
-  
+
     onEditActions({
       name,
       path,
@@ -392,7 +373,7 @@ export class JssyValueEditor extends PureComponent {
       targetUserTypedefs: userTypedefs,
     });
   }
-  
+
   /**
    *
    * @param {JssyValueDefinition} valueDef
@@ -401,16 +382,16 @@ export class JssyValueEditor extends PureComponent {
    */
   _isLinkableValue(valueDef) {
     const { userTypedefs, ownerProps, ownerUserTypedefs } = this.props;
-    
+
     if (isValidSourceForValue(valueDef, 'data')) return true;
     if (isValidSourceForValue(valueDef, 'routeParams')) return true;
     if (isValidSourceForValue(valueDef, 'actionArg')) return true;
-    
+    if (isValidSourceForValue(valueDef, 'state')) return true;
     if (!isValidSourceForValue(valueDef, 'static') || !ownerProps) return false;
-    
+
     return objectSome(ownerProps, ownerProp => {
       if (ownerProp.dataContext) return false;
-      
+
       return isEqualType(
         valueDef,
         ownerProp,
@@ -422,16 +403,6 @@ export class JssyValueEditor extends PureComponent {
 
   /**
    *
-   * @param {JssyValueDefinition} valueDef
-   * @return {boolean}
-   * @private
-   */
-  _isPickableValue(valueDef) {
-    return isValidSourceForValue(valueDef, 'state');
-  }
-  
-  /**
-   *
    * @param {JssyValueDefinition|ComponentPropMeta} valueDef
    * @param {string} [fallback='']
    * @param {string} [override='']
@@ -440,16 +411,16 @@ export class JssyValueEditor extends PureComponent {
    */
   _formatLabel(valueDef, fallback = '', override = '') {
     const { strings, language } = this.props;
-    
+
     if (override) return override;
-    
+
     if (valueDef.textKey && strings && language) {
       return getString(strings, valueDef.textKey, language);
     } else {
       return valueDef.label || fallback || '';
     }
   }
-  
+
   /**
    *
    * @param {JssyValueDefinition} valueDef
@@ -463,7 +434,7 @@ export class JssyValueEditor extends PureComponent {
       return valueDef.type;
     }
   }
-  
+
   /**
    *
    * @param {JssyValueDefinition|ComponentPropMeta} valueDef
@@ -474,16 +445,16 @@ export class JssyValueEditor extends PureComponent {
    */
   _formatTooltip(valueDef, fallback = '', override = '') {
     const { strings, language } = this.props;
-  
+
     if (override) return override;
-  
+
     if (valueDef.descriptionTextKey && strings && language) {
       return getString(strings, valueDef.descriptionTextKey, language);
     } else {
       return valueDef.description || fallback || '';
     }
   }
-  
+
   /**
    *
    * @param {number} index
@@ -492,12 +463,12 @@ export class JssyValueEditor extends PureComponent {
    */
   _formatArrayItemLabel(index) {
     const { getLocalizedText } = this.props;
-    
+
     return getLocalizedText('valueEditor.arrayItemTitle', {
       index: String(index),
     });
   }
-  
+
   /**
    *
    * @param {string} key
@@ -546,16 +517,15 @@ export class JssyValueEditor extends PureComponent {
       view: isEditableValue(resolvedValueDef)
         ? jssyTypeToView(resolvedValueDef.type)
         : PropViews.EMPTY,
-      
+
       image: '',
       tooltip: this._formatTooltip(
         resolvedValueDef,
         descriptionFallback,
         descriptionOverride,
       ),
-      
+
       linkable: this._isLinkableValue(resolvedValueDef),
-      pickable: this._isPickableValue(resolvedValueDef),
       checkable,
       required: !!resolvedValueDef.required,
       transformValue: null,
@@ -583,7 +553,7 @@ export class JssyValueEditor extends PureComponent {
       if (ret.view === PropViews.SHAPE) {
         ret.fields = _mapValues(
           resolvedValueDef.fields,
-    
+
           (fieldTypedef, fieldName) => this._getPropType(fieldTypedef, {
             noCache: true,
             labelFallback: fieldName,
@@ -597,7 +567,7 @@ export class JssyValueEditor extends PureComponent {
           isIterableItem: true,
         });
       }
-  
+
       ret.formatItemLabel = this._formatArrayItemLabel;
     } else if (resolvedValueDef.type === TypeNames.OBJECT_OF) {
       if (ret.view === PropViews.OBJECT) {
@@ -606,7 +576,7 @@ export class JssyValueEditor extends PureComponent {
           isIterableItem: true,
         });
       }
-      
+
       ret.formatItemLabel = this._formatObjectItemLabel;
     }
 
@@ -710,7 +680,7 @@ export class JssyValueEditor extends PureComponent {
 
     return { value, linked, linkedWith, checked };
   }
-  
+
   render() {
     const {
       name,
@@ -721,7 +691,7 @@ export class JssyValueEditor extends PureComponent {
       description,
       getLocalizedText,
     } = this.props;
-    
+
     const checkable =
       optional || (
         isNullableType(valueDef.type) &&
@@ -733,10 +703,10 @@ export class JssyValueEditor extends PureComponent {
         labelOverride: label,
         descriptionOverride: description,
       }),
-      
+
       checkable,
     };
-    
+
     const propValue = this._getPropValue(value, valueDef);
 
     return (
@@ -751,7 +721,6 @@ export class JssyValueEditor extends PureComponent {
         onCheck={this._handleCheck}
         onLink={this._handleLink}
         onUnlink={this._handleUnlink}
-        onPick={this._handlePick}
         onSetComponent={this._handleConstructComponent}
         onEditActions={this._handleEditActions}
       />

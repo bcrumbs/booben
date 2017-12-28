@@ -1,11 +1,6 @@
 import styled, { css } from 'styled-components';
 import { transition } from '@reactackle/reactackle';
-
-import {
-  baseModule,
-  radiusDefault,
-  colorHover,
-} from '../../../../styles/themeSelectors';
+import { baseModule, colorHover } from '../../../../styles/themeSelectors';
 
 const selected = ({ selected }) => !selected
   ? css`

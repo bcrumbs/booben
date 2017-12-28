@@ -37,6 +37,7 @@ import {
 
 import { libraryGroupsSortedByLanguageSelector } from '../../selectors/library';
 import LibraryGroupData from '../../models/LibraryGroupData';
+import Cursor from '../../models/Cursor';
 import { combineFiltersAll, mapListToArray, noop } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
 import * as JssyPropTypes from '../../constants/common-prop-types';
@@ -47,7 +48,7 @@ const propTypes = {
   componentGroups: ImmutablePropTypes.listOf(
     PropTypes.instanceOf(LibraryGroupData),
   ).isRequired, // state
-  cursorPosition: JssyPropTypes.componentsTreePosition.isRequired, // state
+  cursorPosition: PropTypes.instanceOf(Cursor).isRequired, // state
   haveNestedConstructors: PropTypes.bool.isRequired, // state
   language: PropTypes.string.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
@@ -78,6 +79,7 @@ class CreateComponentMenuComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
 
+    this._spotlight = null;
     this._input = null;
     this._unmounted = false;
 
@@ -88,26 +90,30 @@ class CreateComponentMenuComponent extends PureComponent {
     };
 
     this._doSearch = _debounce(this._doSearch.bind(this), SEARCH_DEBOUNCE);
-    this._saveInputRef = this._saveInputRef.bind(this);
+    this._saveRef = this._saveRef.bind(this);
     this._handleShortcuts = this._handleShortcuts.bind(this);
     this._handleInputChange = this._handleInputChange.bind(this);
     this._handleOptionActivate = this._handleOptionActivate.bind(this);
     this._handleOptionSelect = this._handleOptionSelect.bind(this);
+    this._handleOutsideClick = this._handleOutsideClick.bind(this);
+    this._handleTab = this._handleTab.bind(this);
   }
 
   componentDidMount() {
-    if (this._input !== null) {
-      // TODO: Remove extra check after upgrading reactackle
-      if (this._input.focus) this._input.focus();
-    }
+    this._input.focus();
+    window.addEventListener('click', this._handleOutsideClick, true);
+    window.addEventListener('keydown', this._handleTab, true);
   }
 
   componentWillUnmount() {
     this._unmounted = true;
+    window.removeEventListener('click', this._handleOutsideClick, true);
+    window.removeEventListener('keydown', this._handleTab, true);
   }
 
-  _saveInputRef(ref) {
-    this._input = ref;
+  _saveRef(ref) {
+    this._spotlight = ref;
+    this._input = ref ? ref.getElementsByTagName('input')[0] : ref;
   }
 
   _doSearch() {
@@ -181,11 +187,22 @@ class CreateComponentMenuComponent extends PureComponent {
 
         break;
       }
-
       case 'CLOSE': this.props.onClose(); break;
       case 'SELECT_NEXT': this._handleSelectNext(); break;
       case 'SELECT_PREVIOUS': this._handleSelectPrevious(); break;
       default:
+    }
+  }
+
+  _handleOutsideClick(event) {
+    if (!this._spotlight) return;
+    if (this._spotlight.contains(event.target)) return;
+    this.props.onClose();
+  }
+
+  _handleTab(event) {
+    if (event.key === 'Tab' || event.keyCode === 9) {
+      event.preventDefault();
     }
   }
 
@@ -243,7 +260,7 @@ class CreateComponentMenuComponent extends PureComponent {
       activeComponentName,
       filteredComponentGroups,
     } = this.state;
-  
+
     if (
       searchString === '' ||
       filteredComponentGroups === null ||
@@ -368,7 +385,7 @@ class CreateComponentMenuComponent extends PureComponent {
       // eslint-disable-next-line react/jsx-handler-names
       <Shortcuts name="CREATE_COMPONENT_MENU" handler={this._handleShortcuts}>
         <InputSpotlight
-          inputRef={this._saveInputRef}
+          inputRef={this._saveRef}
           placeholder={placeholder}
           value={searchString}
           onChange={this._handleInputChange}

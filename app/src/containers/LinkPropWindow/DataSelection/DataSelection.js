@@ -8,6 +8,14 @@ import { Map } from 'immutable';
 import { Button } from '@reactackle/reactackle';
 
 import {
+  getTypeNameByField,
+  getTypeNameByPath,
+  fieldHasArguments,
+  getFieldsByPath,
+  getFieldOnType,
+} from '@jssy/graphql-schema';
+
+import {
   BlockContent,
   BlockContentBox,
   BlockContentBoxItem,
@@ -17,7 +25,7 @@ import {
   BlockBreadcrumbs,
   BlockContentActions,
   BlockContentActionsRegion,
-} from '@jssy/common-ui';
+} from '../../../components/BlockContent';
 
 import {
   DataWindowTitle,
@@ -34,18 +42,12 @@ import {
 } from './DataSelectionArgsEditor/DataSelectionArgsEditor';
 
 import {
-  getTypeNameByField,
-  getTypeNameByPath,
-  fieldHasArguments,
-  getFieldsByPath,
-  getFieldOnType,
-} from '../../../lib/schema';
-
-import {
   returnArg,
   noop,
   objectSome,
 } from '../../../utils/misc';
+
+import { IconArrowChevronLeft } from '../../../components/icons';
 
 const propTypes = {
   dataContext: PropTypes.arrayOf(PropTypes.string).isRequired,
@@ -76,27 +78,27 @@ const Views = {
 export class DataSelection extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this.state = {
       currentView: Views.FIELDS_LIST,
-      
+
       // For FIELDS_LIST view
       currentTypeName: props.rootTypeName,
       currentPath: [],
-      
+
       // For ARGS_FORM view
       argumentsFieldName: '',
       argumentsPathToField: [],
       argumentsField: null,
-  
+
       // For FULL_ARGS_FORM view
       finalFieldName: '',
-      
+
       // For ARGS_FORM and FULL_ARGS_FORM views
       currentArgValues: Map(),
       tmpArgValues: null,
     };
-    
+
     this._handleBreadcrumbsClick =
       this._handleBreadcrumbsClick.bind(this);
     this._handleJumpIntoField =
@@ -116,7 +118,7 @@ export class DataSelection extends PureComponent {
     this._handleFullArgumentsFormApply =
       this._handleFullArgumentsFormApply.bind(this);
   }
-  
+
   /**
    *
    * @return {{ title: string }[]}
@@ -132,14 +134,14 @@ export class DataSelection extends PureComponent {
         context: rootTypeName,
       })
       : getLocalizedText('linkDialog.source.data');
-    
+
     return [
       { title: firstItemTitle },
       { title: secondItemTitle },
       ...currentPath.map(fieldName => ({ title: fieldName })),
     ];
   }
-  
+
   /**
    *
    * @return {?DataField}
@@ -148,20 +150,20 @@ export class DataSelection extends PureComponent {
   _getCurrentField() {
     const { schema, rootTypeName } = this.props;
     const { currentPath } = this.state;
-    
+
     if (currentPath.length === 0) return null;
-  
+
     const prevTypeName = getTypeNameByPath(
       schema,
       currentPath.slice(0, -1),
       rootTypeName,
     );
-    
+
     const currentFieldName = currentPath[currentPath.length - 1];
-    
+
     return getFieldOnType(schema, prevTypeName, currentFieldName);
   }
-  
+
   /**
    *
    * @param {string[]} path
@@ -171,19 +173,19 @@ export class DataSelection extends PureComponent {
    */
   _haveUndefinedRequiredArgs(path, argValues) {
     const { schema, rootTypeName } = this.props;
-    
+
     const fields = getFieldsByPath(schema, path, rootTypeName);
-    
+
     return fields.some((field, idx) => {
       const args = field.args;
       const valuesKey = path.slice(0, idx + 1).join(' ');
       const values = argValues.get(valuesKey);
-      
+
       return objectSome(args, (arg, argName) =>
         arg.nonNull && (!values || !values.get(argName)));
     });
   }
-  
+
   /**
    *
    * @param {string} fieldName
@@ -193,7 +195,7 @@ export class DataSelection extends PureComponent {
    */
   _switchToArgumentsForm(fieldName, field, pathToField) {
     const { currentArgValues } = this.state;
-    
+
     this.setState({
       currentView: Views.ARGS_FORM,
       argumentsFieldName: fieldName,
@@ -202,32 +204,32 @@ export class DataSelection extends PureComponent {
       tmpArgValues: currentArgValues,
     });
   }
-  
+
   /**
    *
    * @private
    */
   _switchToFullArgumentsForm(finalFieldName) {
     const { currentArgValues } = this.state;
-    
+
     this.setState({
       currentView: Views.FULL_ARGS_FORM,
       tmpArgValues: currentArgValues,
       finalFieldName,
     });
   }
-  
+
   _apply(finalFieldName, argValues) {
     const { dataContext, onSelect } = this.props;
     const { currentPath } = this.state;
-    
+
     onSelect({
       dataContext,
       path: [...currentPath, finalFieldName],
       args: argValues,
     });
   }
-  
+
   /**
    *
    * @private
@@ -235,14 +237,14 @@ export class DataSelection extends PureComponent {
   _handleFullArgumentsFormApply() {
     const { currentPath, finalFieldName, tmpArgValues } = this.state;
     const fullPath = [...currentPath, finalFieldName];
-    
+
     if (this._haveUndefinedRequiredArgs(fullPath, tmpArgValues)) {
       // TODO: Scroll to the first invalid field and show red messages
     } else {
       this._apply(finalFieldName, tmpArgValues);
     }
   }
-  
+
   /**
    *
    * @param {number} index
@@ -251,13 +253,13 @@ export class DataSelection extends PureComponent {
   _handleBreadcrumbsClick({ index }) {
     const { schema, onReturn } = this.props;
     const { currentPath } = this.state;
-    
+
     if (index === currentPath.length + 1) return;
-    
+
     if (index > 0) {
       const nextPath = currentPath.slice(0, index - 1);
       const nextTypeName = getTypeNameByPath(schema, nextPath);
-      
+
       this.setState({
         currentPath: nextPath,
         currentTypeName: nextTypeName,
@@ -266,7 +268,7 @@ export class DataSelection extends PureComponent {
       onReturn();
     }
   }
-  
+
   /**
    *
    * @param {string} fieldName
@@ -275,33 +277,33 @@ export class DataSelection extends PureComponent {
   _handleJumpIntoField({ fieldName }) {
     const { schema } = this.props;
     const { currentPath, currentTypeName } = this.state;
-    
+
     const nextPath = currentPath.concat(fieldName);
     const nextTypeName = getTypeNameByField(schema, fieldName, currentTypeName);
-    
+
     this.setState({
       currentPath: nextPath,
       currentTypeName: nextTypeName,
     });
   }
-  
+
   /**
    *
    * @private
    */
   _handleSetArgumentsOnCurrentField() {
     const { currentPath } = this.state;
-    
+
     const currentFieldName = currentPath[currentPath.length - 1];
     const currentField = this._getCurrentField();
-    
+
     this._switchToArgumentsForm(
       currentFieldName,
       currentField,
       [].concat(currentPath),
     );
   }
-  
+
   /**
    *
    * @param {string} fieldName
@@ -310,16 +312,16 @@ export class DataSelection extends PureComponent {
   _handleSetArgumentsOnDataItem({ fieldName }) {
     const { schema } = this.props;
     const { currentPath, currentTypeName } = this.state;
-    
+
     const field = schema.types[currentTypeName].fields[fieldName];
-    
+
     this._switchToArgumentsForm(
       fieldName,
       field,
       [...currentPath, fieldName],
     );
   }
-  
+
   /**
    *
    * @param {Object} args
@@ -327,12 +329,12 @@ export class DataSelection extends PureComponent {
    */
   _handleCurrentArgsUpdate({ args }) {
     const { argumentsPathToField, tmpArgValues } = this.state;
-    
+
     this.setState({
       tmpArgValues: tmpArgValues.set(argumentsPathToField.join(' '), args),
     });
   }
-  
+
   /**
    *
    * @param {string[]} pathToField
@@ -341,12 +343,12 @@ export class DataSelection extends PureComponent {
    */
   _handleArgsUpdate({ pathToField, args }) {
     const { tmpArgValues } = this.state;
-    
+
     this.setState({
       tmpArgValues: tmpArgValues.set(pathToField.join(' '), args),
     });
   }
-  
+
   /**
    *
    * @private
@@ -361,7 +363,7 @@ export class DataSelection extends PureComponent {
       finalFieldName: '',
     });
   }
-  
+
   /**
    *
    * @private
@@ -376,18 +378,18 @@ export class DataSelection extends PureComponent {
       tmpArgValues: null,
     });
   }
-  
+
   _handleApplyLink({ fieldName }) {
     const { currentPath, currentArgValues } = this.state;
     const fullPath = [...currentPath, fieldName];
-    
+
     if (this._haveUndefinedRequiredArgs(fullPath, currentArgValues)) {
       this._switchToFullArgumentsForm(fieldName);
     } else {
       this._apply(fieldName, currentArgValues);
     }
   }
-  
+
   _renderFieldSelection() {
     const {
       schema,
@@ -395,16 +397,16 @@ export class DataSelection extends PureComponent {
       linkTargetValueDef,
       userTypedefs,
     } = this.props;
-    
+
     const { currentPath, currentTypeName } = this.state;
-    
+
     /** @type {DataObjectType} */
     const currentType = schema.types[currentTypeName];
-    
+
     const breadCrumbsItems = this._getBreadcrumbsItems();
     let dataWindowHeading = null;
     let fieldsHeading = null;
-    
+
     if (currentPath.length > 0) {
       const currentFieldName = currentPath[currentPath.length - 1];
       const currentField = this._getCurrentField();
@@ -412,7 +414,7 @@ export class DataSelection extends PureComponent {
       const setArgumentsText = getLocalizedText('linkDialog.data.setArguments');
       const fieldsText = getLocalizedText('linkDialog.data.fields');
       let buttons = null;
-      
+
       if (currentFieldHasArgs) {
         buttons = (
           <BlockContentBoxItem>
@@ -426,7 +428,7 @@ export class DataSelection extends PureComponent {
           </BlockContentBoxItem>
         );
       }
-      
+
       dataWindowHeading = (
         <BlockContentBoxGroup shading="dim" colorScheme="alt">
           <BlockContentBoxItem>
@@ -436,18 +438,18 @@ export class DataSelection extends PureComponent {
               subtitle={currentType.description}
             />
           </BlockContentBoxItem>
-          
+
           {buttons}
         </BlockContentBoxGroup>
       );
-  
+
       fieldsHeading = (
         <BlockContentBoxHeading>
           {fieldsText}
         </BlockContentBoxHeading>
       );
     }
-    
+
     return (
       <BlockContent>
         <BlockContentNavigation isBordered>
@@ -459,11 +461,11 @@ export class DataSelection extends PureComponent {
             onItemClick={this._handleBreadcrumbsClick}
           />
         </BlockContentNavigation>
-        
+
         <BlockContentBox isBordered flex>
           {dataWindowHeading}
           {fieldsHeading}
-  
+
           <BlockContentBoxItem>
             <DataSelectionFieldsList
               type={currentType}
@@ -480,7 +482,7 @@ export class DataSelection extends PureComponent {
       </BlockContent>
     );
   }
-  
+
   _renderArgumentsForm() {
     const { schema, getLocalizedText, onNestedLink } = this.props;
     const {
@@ -489,18 +491,18 @@ export class DataSelection extends PureComponent {
       argumentsPathToField,
       tmpArgValues,
     } = this.state;
-    
+
     const titleText = getLocalizedText('linkDialog.data.argumentsForField', {
       name: argumentsFieldName,
     });
-    
+
     const subtitleText =
       getLocalizedText('linkDialog.data.pleaseFillAllRequiredArguments');
 
     const backText = getLocalizedText('common.back');
     const applyText = getLocalizedText('common.apply');
     const fieldArgs = tmpArgValues.get(argumentsPathToField.join(' ')) || null;
-    
+
     return (
       <BlockContent>
         <BlockContentBox isBordered flex>
@@ -512,7 +514,7 @@ export class DataSelection extends PureComponent {
               />
             </BlockContentBoxItem>
           </BlockContentBoxGroup>
-  
+
           <BlockContentBoxItem>
             <DataSelectionArgsEditor
               field={argumentsField}
@@ -524,12 +526,12 @@ export class DataSelection extends PureComponent {
             />
           </BlockContentBoxItem>
         </BlockContentBox>
-        
+
         <BlockContentActions>
           <BlockContentActionsRegion type="main">
             <Button
               text={backText}
-              icon={{ name: 'chevron-left' }}
+              icon={<IconArrowChevronLeft />}
               onPress={this._handleCancelSetArguments}
             />
             <Button
@@ -541,14 +543,14 @@ export class DataSelection extends PureComponent {
       </BlockContent>
     );
   }
-  
+
   _renderFullArgumentsForm() {
     const { schema, rootTypeName, getLocalizedText, onNestedLink } = this.props;
     const { currentPath, finalFieldName, tmpArgValues } = this.state;
-    
+
     const fullPath = [...currentPath, finalFieldName];
     const fields = getFieldsByPath(schema, fullPath, rootTypeName);
-    
+
     const contentGroups = fields
       .filter(fieldHasArguments)
       .map((field, idx) => {
@@ -556,10 +558,10 @@ export class DataSelection extends PureComponent {
         const pathToField = fullPath.slice(0, idx + 1);
         const valuesKey = pathToField.join(' ');
         const values = tmpArgValues.get(valuesKey) || null;
-        
+
         const onArgsUpdate = ({ args }) =>
           void this._handleArgsUpdate({ pathToField, args });
-        
+
         return (
           <DataWindowContentGroup key={fieldName} title={fieldName}>
             <DataSelectionArgsEditor
@@ -573,14 +575,14 @@ export class DataSelection extends PureComponent {
           </DataWindowContentGroup>
         );
       });
-  
+
     const titleText = getLocalizedText('linkDialog.data.allArguments');
     const subtitleText =
       getLocalizedText('linkDialog.data.pleaseFillAllRequiredArguments');
 
     const applyText = getLocalizedText('common.apply');
     const backText = getLocalizedText('common.back');
-    
+
     return (
       <BlockContent>
         <BlockContentBox isBordered flex>
@@ -592,17 +594,17 @@ export class DataSelection extends PureComponent {
               />
             </BlockContentBoxItem>
           </BlockContentBoxGroup>
-  
+
           <BlockContentBoxItem>
             {contentGroups}
           </BlockContentBoxItem>
         </BlockContentBox>
-  
+
         <BlockContentActions>
           <BlockContentActionsRegion type="main">
             <Button
               text={backText}
-              icon={{ name: 'chevron-left' }}
+              icon={<IconArrowChevronLeft />}
               onPress={this._handleCancelSetArguments}
             />
             <Button
@@ -614,7 +616,7 @@ export class DataSelection extends PureComponent {
       </BlockContent>
     );
   }
-  
+
   render() {
     switch (this.state.currentView) {
       case Views.FIELDS_LIST: return this._renderFieldSelection();

@@ -6,7 +6,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import throttle from 'lodash.throttle';
-import { Button, Tabs } from '@reactackle/reactackle';
+import { Button, Tabs, IconCross } from '@reactackle/reactackle';
 
 import {
   BlockContent,
@@ -14,7 +14,7 @@ import {
   BlockContentNavigation,
   BlockContentActions,
   BlockContentActionsRegion,
-} from '@jssy/common-ui';
+} from '../../../components/BlockContent';
 
 import {
   DraggableWindow,
@@ -25,6 +25,7 @@ import resizeable from '../../../hocs/resizeable';
 import ToolType from '../../../models/Tool';
 import ToolStateType from '../../../models/ToolState';
 import { noop } from '../../../utils/misc';
+import { IconCollapse, IconDrag } from '../../../components/icons';
 
 const propTypes = {
   tool: PropTypes.instanceOf(ToolType).isRequired,
@@ -112,7 +113,7 @@ export class ToolWindow extends PureComponent {
     this.inStickRegionBottom = false;
     this.animationFrame = null;
   }
-  
+
   componentWillUnmount() {
     this.domNode = null;
   }
@@ -148,7 +149,7 @@ export class ToolWindow extends PureComponent {
       containerWidth,
       containerHeight,
     } = this;
-    
+
     const {
       marginLeft,
       marginRight,
@@ -209,9 +210,9 @@ export class ToolWindow extends PureComponent {
     this.containerHeight = this.container.clientHeight;
     this.maxDx = this.containerWidth - this.width - this.props.marginRight;
     this.maxDy = this.containerHeight - this.height - this.props.marginBottom;
-    
+
     this.setState({ dragging: true });
-    
+
     this.dragStartDiffX = this.currentTranslateX - event.clientX;
     this.dragStartDiffY = this.currentTranslateY - event.clientY;
     this.needRAF = true;
@@ -243,12 +244,12 @@ export class ToolWindow extends PureComponent {
   _handleNavigation({ value }) {
     this.props.onActiveSectionChange(value);
   }
-  
+
   _renderButtons(buttons) {
     return buttons.map(({ icon, text, onPress }, idx) => (
       <Button
         key={String(idx)}
-        icon={{ name: icon }}
+        icon={icon}
         text={text}
         onPress={onPress}
       />
@@ -264,12 +265,12 @@ export class ToolWindow extends PureComponent {
       onTitleChange,
       onFocus,
     } = this.props;
-    
+
     const { dragging } = this.state;
-    
+
     const sections = tool.sections;
     const sectionsNum = sections.size;
-  
+
     let navArea = null;
     if (sectionsNum > 1) {
       const tabs = sections.map(section => ({ text: section.name }));
@@ -285,12 +286,12 @@ export class ToolWindow extends PureComponent {
         </BlockContentNavigation>
       );
     }
-    
+
     const mainButtons = tool.mainButtons;
     const secondaryButtons = tool.secondaryButtons;
     const mainButtonsNum = mainButtons.size;
     const secondaryButtonsNum = secondaryButtons.size;
-  
+
     let actionsArea = null;
     if (mainButtonsNum > 0 || secondaryButtonsNum > 0) {
       let mainActionsRegion = null;
@@ -327,18 +328,14 @@ export class ToolWindow extends PureComponent {
 
     if (tool.undockable) {
       titleButtons.push({
-        icon: {
-          name: 'compress',
-        },
+        icon: <IconCollapse />,
         onPress: onDock,
       });
     }
 
     if (tool.closable) {
       titleButtons.push({
-        icon: {
-          name: 'times',
-        },
+        icon: <IconCross />,
         onPress: onClose,
       });
     }
@@ -360,7 +357,7 @@ export class ToolWindow extends PureComponent {
             subtitle={tool.subtitle}
             isEditable={tool.titleEditable}
             titlePlaceHolder={tool.titlePlaceholder}
-            iconLeft={{ name: "ellipsis-v" }}
+            iconLeft={<IconDrag />}
             buttons={titleButtons}
             onLeftIconMouseDown={this._handleStartDrag}
             onTitleChange={onTitleChange}

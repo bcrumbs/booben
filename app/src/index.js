@@ -2,6 +2,7 @@
  * @author Dmitriy Bizyaev
  */
 
+import 'babel-polyfill';
 import '@reactackle/reactackle/reactackle.scss';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -10,7 +11,7 @@ import { ConnectedRouter } from 'react-router-redux';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from 'styled-components';
 import { Theme, injectGlobalStyle } from '@reactackle/reactackle';
-import { jssyTheme, reactackleMixin } from '@jssy/common-theme';
+import { jssyTheme, reactackleMixin } from './styles/theme';
 import RootRoute from './routes/RootRoute';
 import PlaygroundRoute from './routes/PlaygroundRoute';
 import store from './store';
@@ -43,7 +44,7 @@ window.addEventListener('DOMContentLoaded', () => {
                   path="/playground"
                   component={PlaygroundRoute}
                 />
-    
+
                 <Route
                   exact
                   path={PATH_ROOT}
@@ -51,7 +52,7 @@ window.addEventListener('DOMContentLoaded', () => {
                     <Redirect to={buildStructurePath(match.params)} />
                   )}
                 />
-    
+
                 <Route path={PATH_ROOT} component={RootRoute} />
               </Switch>
             </ConnectedRouter>

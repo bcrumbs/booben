@@ -21,3 +21,11 @@ $menu-dense-item-left-icon-size: $ic-size;
 $menu-dense-item-left-icon-box-size: $ic-size;
 $menu-dense-item-right-icon-size: $ic-size;
 $menu-dense-item-right-icon-box-size: $ic-size;
+
+.header-menu-item-icon,
+.header-menu-item-icon > *,
+.header-menu-item-icon svg {
+    width: $ic-size !important;
+    height: $ic-size !important;
+}
+

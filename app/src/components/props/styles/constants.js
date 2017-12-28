@@ -1,5 +1,4 @@
 import {
-  baseModule,
   textColorBody,
   paletteBlueGrey50,
 } from '../../../styles/themeSelectors';
@@ -15,5 +14,17 @@ export default {
 
   item: {
     baseHeight,
+  },
+
+  light: {
+    label: {
+      fontColor: textColorBody,
+    },
+  },
+
+  dark: {
+    label: {
+      fontColor: paletteBlueGrey50,
+    },
   },
 };

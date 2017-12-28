@@ -16,7 +16,7 @@ import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
 import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../constants/misc';
 import { isDef, returnEmptyObject, objectSome } from '../utils/misc';
-import { DEFAULT_LANGUAGE } from '../config';
+import { DEFAULT_LANGUAGE, COMPONENTS_TITLE_FORMATTING } from '../config';
 
 /**
  * @typedef {Object<string, Object<string, ComponentMeta>>} ComponentsMeta
@@ -50,12 +50,12 @@ export const formatComponentName = (namespace, name) =>
  *
  * @param {string} componentName
  * @param {ComponentsMeta} meta
- * @return {?Object}
+ * @return {?ComponentMeta}
  */
 export const getComponentMeta = (componentName, meta) => {
   const { namespace, name } = parseComponentName(componentName);
   let components;
-  
+
   if (namespace === '') components = miscMeta.components;
   else if (namespace === 'HTML') components = HTMLMeta.components;
   else components = meta[namespace] ? meta[namespace].components : null;
@@ -149,16 +149,16 @@ const defaultSourceConfigBuilders = {
   static: (valueDef, userTypedefs) => ({
     default: makeDefaultValue(valueDef, userTypedefs),
   }),
-  
+
   const: (valueDef, userTypedefs) => ({
     value: makeDefaultValue(valueDef, userTypedefs),
   }),
-  
+
   data: returnEmptyObject,
   designer: () => ({
     props: {},
   }),
-  
+
   state: returnEmptyObject,
   routeParams: returnEmptyObject,
   actions: () => ({
@@ -177,7 +177,7 @@ export const getSourceConfig = (valueDef, source, userTypedefs = null) => {
   if (valueDef.sourceConfigs && valueDef.sourceConfigs[source]) {
     return valueDef.sourceConfigs[source];
   }
-  
+
   return defaultSourceConfigBuilders[source](valueDef, userTypedefs);
 };
 
@@ -248,7 +248,7 @@ const buildDefaultStaticValue = (
   ) {
     return null;
   }
-  
+
   /* eslint-disable no-use-before-define */
   if (sourceConfig.defaultTextKey) {
     const string = (strings && language)
@@ -258,7 +258,7 @@ const buildDefaultStaticValue = (
         language,
       )
       : '';
-    
+
     return makeSimpleStaticValue(string);
   }
 
@@ -443,7 +443,7 @@ const _buildDefaultValue = (
   inheritedDefaultValue = NO_VALUE,
 ) => {
   const resolvedValueDef = resolveTypedef(valueDef, userTypedefs);
-  
+
   for (let i = 0, l = sourcePriority.length; i < l; i++) {
     if (isValidSourceForValue(resolvedValueDef, sourcePriority[i])) {
       return defaultValueBuilders[sourcePriority[i]](
@@ -476,7 +476,7 @@ export const isJssyValueDefinition = typedefOrValueDef =>
  */
 const ensureValueDef = (typedefOrValueDef, userTypedefs) => {
   if (isJssyValueDefinition(typedefOrValueDef)) return typedefOrValueDef;
-  
+
   const ret = {
     ...typedefOrValueDef,
     source: ['static'],
@@ -486,7 +486,7 @@ const ensureValueDef = (typedefOrValueDef, userTypedefs) => {
       },
     },
   };
-  
+
   if (typedefOrValueDef.type === TypeNames.SHAPE) {
     _forOwn(ret.fields, (fieldTypedef, fieldName) => {
       ret.fields[fieldName] = {
@@ -513,7 +513,7 @@ const ensureValueDef = (typedefOrValueDef, userTypedefs) => {
       },
     };
   }
-  
+
   return ret;
 };
 
@@ -570,11 +570,35 @@ const buildDefaultProps = (
       language,
       userTypedefs,
     );
-    
+
     if (defaultValue !== null) ret[propName] = defaultValue;
   });
 
   return ret;
+};
+
+/**
+ *
+ * @param {string} componentName
+ * @param {ComponentMeta} componentMeta
+ * @param {string} language
+ * @return {*}
+ */
+const formatNewComponentTitle = (componentName, componentMeta, language) => {
+  switch (COMPONENTS_TITLE_FORMATTING) {
+    case 0: {
+      return '';
+    }
+    case 1: {
+      return componentName;
+    }
+    case 2: {
+      return getString(componentMeta.strings, componentMeta.textKey, language);
+    }
+    default: {
+      return '';
+    }
+  }
 };
 
 /**
@@ -596,7 +620,7 @@ export const constructComponent = (
   { isWrapper = false, isNew = true } = {},
 ) => {
   const componentMeta = getComponentMeta(componentName, meta);
-  
+
   if (componentMeta === null) {
     throw new Error(
       `constructComponent(): failed to get metadata for '${componentName}'`,
@@ -611,7 +635,7 @@ export const constructComponent = (
     isNew,
     isWrapper,
     name: componentName,
-    title: '',
+    title: formatNewComponentTitle(componentName, meta, language),
     systemProps: buildDefaultProps(SYSTEM_PROPS),
     props: buildDefaultProps(
       componentMeta.props,
@@ -619,7 +643,7 @@ export const constructComponent = (
       language,
       componentMeta.types,
     ),
-    
+
     children: [],
   };
 
@@ -634,7 +658,7 @@ export const constructComponent = (
         namespace,
         region.component,
       );
-      
+
       const regionComponentMeta = getComponentMeta(regionComponentName, meta);
       const props = Object.assign(
         buildDefaultProps(
@@ -643,7 +667,7 @@ export const constructComponent = (
           language,
           regionComponentMeta.types,
         ),
-        
+
         region.props || {},
       );
 
@@ -652,7 +676,7 @@ export const constructComponent = (
         isNew,
         isWrapper,
         name: regionComponentName,
-        title: '',
+        title: formatNewComponentTitle(regionComponentName, meta, language),
         systemProps: buildDefaultProps(SYSTEM_PROPS),
         props,
         children: [],
@@ -682,10 +706,10 @@ export const valueHasDataContest = valueDef =>
  */
 export const findPropThatPushedDataContext = (componentMeta, dataContext) => {
   const propNames = Object.keys(componentMeta.props);
-  
+
   for (let i = 0; i < propNames.length; i++) {
     const propMeta = componentMeta.props[propNames[i]];
-    
+
     if (
       isValidSourceForValue(propMeta, 'data') &&
       getSourceConfig(propMeta, 'data').pushDataContext === dataContext
@@ -696,7 +720,7 @@ export const findPropThatPushedDataContext = (componentMeta, dataContext) => {
       };
     }
   }
-  
+
   return null;
 };
 
@@ -711,7 +735,7 @@ export const transformMetadata = meta => {
       componentMeta.tags = new Set(componentMeta.tags);
     });
   });
-  
+
   return meta;
 };
 
@@ -725,7 +749,7 @@ export const getContainerStyle = meta => {
     (acc, cur) => Object.assign(acc, meta[cur].containerStyle || {}),
     {},
   );
-  
+
   return Object.keys(combinedStyle)
     .map(prop => `${prop}:${combinedStyle[prop]}`)
     .join(';');

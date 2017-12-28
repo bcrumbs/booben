@@ -2,13 +2,14 @@
  * @author Dmitriy Bizyaev
  */
 
+import 'babel-polyfill';
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { ApolloClient } from 'apollo-client';
 import { ApolloProvider } from 'react-apollo';
 import { ThemeProvider } from 'styled-components';
+import { parseGraphQLSchema } from '@jssy/graphql-schema';
 import { Theme, injectGlobalStyle } from '@reactackle/reactackle';
-import { jssyTheme, reactackleMixin } from '@jssy/common-theme';
+import { jssyTheme, reactackleMixin } from './styles/theme';
 import { Preview } from './containers/Preview/Preview';
 import { ErrorScreen } from './components/StateScreen/StateScreen';
 import { projectToImmutable } from './models/Project';
@@ -16,36 +17,38 @@ import ComponentsBundle from './lib/ComponentsBundle';
 import { removeSplashScreen } from './lib/dom';
 import { getProject, getMetadata, getGraphQLSchema } from './lib/api';
 import { transformMetadata, getContainerStyle } from './lib/meta';
-import { parseGraphQLSchema } from './lib/schema';
-
-import {
-  applyJWTMiddleware,
-  createNetworkInterfaceForProject,
-} from './lib/apollo';
-
+import { createApolloClient } from './lib/apollo';
 import { trimArray } from './utils/misc';
 
 const getProjectName = () => {
   const pathSplit = trimArray(window.location.pathname.split('/'));
-  
+
   return pathSplit.length === 2 // /preview/:project_name
     ? pathSplit[1]
     : '';
 };
 
-const createApolloClient = project => {
-  const networkInterface = createNetworkInterfaceForProject(project);
-
-  if (project.auth) {
-    if (project.auth.type === 'jwt') {
-      applyJWTMiddleware(
-        networkInterface,
-        () => localStorage.getItem('jssy_auth_token'),
-      );
-    }
+/**
+ *
+ * @param {Object} projectAuth
+ * @return {?AuthConfig}
+ */
+const getAuthConfig = projectAuth => {
+  if (projectAuth === null) {
+    return null;
   }
 
-  return new ApolloClient({ networkInterface });
+  switch (projectAuth.type) {
+    case 'jwt': {
+      return {
+        getToken: () => localStorage.getItem('jssy_auth_token'),
+      };
+    }
+
+    default: {
+      return null;
+    }
+  }
 };
 
 window.addEventListener('DOMContentLoaded', async () => {
@@ -54,7 +57,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   try {
     const projectName = getProjectName();
-  
+
     if (projectName === '') {
       throw new Error('Invalid URL');
     }
@@ -65,18 +68,22 @@ window.addEventListener('DOMContentLoaded', async () => {
       getMetadata(projectName),
       componentsBundle.loadComponents(),
     ]);
-    
+
     const project = projectToImmutable(rawProject);
     const meta = transformMetadata(rawMeta);
     const containerStyle = getContainerStyle(meta);
-    
+
     let content;
-    
+
     if (project.graphQLEndpointURL) {
-      const apolloClient = createApolloClient(project);
+      const apolloClient = createApolloClient(
+        project,
+        getAuthConfig(project.auth),
+      );
+
       const rawSchema = await getGraphQLSchema(project.graphQLEndpointURL);
       const schema = parseGraphQLSchema(rawSchema);
-      
+
       content = (
         <ApolloProvider client={apolloClient}>
           <Preview
@@ -103,7 +110,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
   } catch (err) {
     injectGlobalStyle();
-    
+
     ReactDOM.render(
       <Theme mixin={reactackleMixin}>
         <ThemeProvider theme={jssyTheme}>

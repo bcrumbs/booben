@@ -28,10 +28,10 @@ const scriptsCache = {};
 const loadScript = async url => {
   const cached = scriptsCache[url];
   if (cached) return cached;
-  
+
   const res = await fetch(url);
   const script = await res.text();
-  
+
   scriptsCache[url] = script;
   return script;
 };
@@ -45,7 +45,7 @@ const loadScript = async url => {
 const loadComponentsBundleIntoWindow = async (windowInstance, url) => {
   const document = windowInstance.document;
   const script = document.createElement('script');
-  
+
   script.type = 'application/javascript';
   document.body.appendChild(script);
   script.text = await loadScript(url);
@@ -58,13 +58,15 @@ export default class ComponentsBundle {
     this._loading = false;
     this._loaded = false;
     this._components = null;
+    this._styled = null;
+    this._styledHTMLComponentsCache = new Map();
   }
 
   /**
    *
    * @return {Promise<void>}
    */
-  async loadComponents() {
+  async loadComponents({ patchComponents = false } = {}) {
     if (this._loaded) {
       throw new Error(
         'ComponentsBundle#loadComponents(): components already loaded',
@@ -131,13 +133,62 @@ export default class ComponentsBundle {
       );
     }
 
-    this._components = _mapValues(
-      this._windowInstance.JssyComponents.default,
-      ns => _mapValues(ns, patchComponent),
-    );
+    if (patchComponents) {
+      this._components = _mapValues(
+        this._windowInstance.JssyComponents.default,
+        ns => _mapValues(ns, patchComponent),
+      );
+    } else {
+      this._components = this._windowInstance.JssyComponents.default;
+    }
+
+    if (this._windowInstance.JssyComponents.styled) {
+      this._styled = this._windowInstance.JssyComponents.styled;
+    }
 
     this._loading = false;
     this._loaded = true;
+  }
+
+  _createStyledHTMLComponent(name) {
+    if (this._styled === null) {
+      throw new Error(
+        'ComponentsBundle#_createStyledHTMLComponent: ' +
+        'this ComponentsBundle doesn\'t have styled-components',
+      );
+    }
+
+    const ret = ({ style, ...props }) => {
+      const Component = this._styled[name]`${style}`;
+      return <Component {...props} />;
+    };
+
+    ret.displayName = name;
+    ret.propTypes = {
+      style: PropTypes.string,
+    };
+
+    ret.defaultProps = {
+      style: '',
+    };
+
+    return ret;
+  }
+
+  getStyledHTMLComponent(name) {
+    if (!this._loaded) {
+      throw new Error(
+        'ComponentsBundle#getStyledHTMLComponent: components not loaded',
+      );
+    }
+
+    let ret = this._styledHTMLComponentsCache.get(name);
+    if (!ret) {
+      ret = this._createStyledHTMLComponent(name);
+      this._styledHTMLComponentsCache.set(name, ret);
+    }
+
+    return ret;
   }
 
   /**
@@ -178,5 +229,13 @@ export default class ComponentsBundle {
     }
 
     return component;
+  }
+
+  /**
+   *
+   * @return {?Object}
+   */
+  getStyled() {
+    return this._styled;
   }
 }

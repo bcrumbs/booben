@@ -14,15 +14,9 @@ import {
   BlockContentBox,
   BlockContentBoxItem,
   BlockContentPlaceholder,
-} from '@jssy/common-ui';
+} from '../../components/BlockContent';
 
-import draggable from '../../hocs/draggable';
-import { connectDraggable } from '../ComponentsDragArea/ComponentsDragArea';
-
-import {
-  ComponentTag,
-  ComponentTagWrapper,
-} from '../../components/ComponentTag/ComponentTag';
+import { AccordionItem } from './AccordionItem/AccordionItem';
 
 import { SearchInput } from '../../components/SearchInput/SearchInput';
 import { AccordionBox } from '../../components/AccordionBox/AccordionBox';
@@ -36,6 +30,7 @@ import {
 import {
   selectedComponentIdsSelector,
   currentComponentsSelector,
+  currentRootComponentIdSelector,
   haveNestedConstructorsSelector,
   getLocalizedTextFromState,
   rootDraggedComponentSelector,
@@ -53,13 +48,14 @@ import {
   filterGroupsAndComponents,
 } from '../../lib/library';
 
-import { canInsertComponent, ANYWHERE } from '../../lib/components';
-import { combineFiltersAll, mapListToArray } from '../../utils/misc';
-
 import {
-  LIBRARY_SEARCH_INPUT_DEBOUNCE,
-  DND_DRAG_START_RADIUS_LIBRARY,
-} from '../../config';
+  findComponent,
+  canInsertComponent,
+  ANYWHERE,
+} from '../../lib/components';
+
+import { combineFiltersAll, mapListToArray } from '../../utils/misc';
+import { LIBRARY_SEARCH_INPUT_DEBOUNCE } from '../../config';
 
 const ComponentGroupsType = PropTypes.shape({
   groups: ImmutablePropTypes.listOf(PropTypes.instanceOf(LibraryGroupData)),
@@ -89,6 +85,7 @@ const libraryGroupsFilteredSelector = createSelector(
   libraryGroupsSortedByLanguageSelector,
   selectedComponentIdsSelector,
   currentComponentsSelector,
+  currentRootComponentIdSelector,
   haveNestedConstructorsSelector,
   state => state.project.showAllComponentsOnPalette,
   state => state.project.meta,
@@ -100,6 +97,7 @@ const libraryGroupsFilteredSelector = createSelector(
     groups,
     selectedComponentIds,
     components,
+    rootComponentId,
     haveNestedConstructors,
     showAllComponentsOnPalette,
     meta,
@@ -107,9 +105,19 @@ const libraryGroupsFilteredSelector = createSelector(
     language,
     getLocalizedText,
   ) => {
-    const filterFns = [
-      component => !haveNestedConstructors || component.fullName !== 'Outlet',
-    ];
+    const filterFns = [];
+
+    const willHideOutlet =
+      haveNestedConstructors ||
+      findComponent(
+        components,
+        rootComponentId,
+        component => component.name === 'Outlet',
+      ) !== null;
+
+    if (willHideOutlet) {
+      filterFns.push(component => component.fullName !== 'Outlet');
+    }
 
     if (selectedComponentIds.size === 1 && !showAllComponentsOnPalette) {
       const selectedComponentId = selectedComponentIds.first();
@@ -124,7 +132,7 @@ const libraryGroupsFilteredSelector = createSelector(
         ),
       );
     }
-    
+
     if (searchString !== '') {
       filterFns.push(
         component =>
@@ -158,7 +166,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   onExpandedGroupsChange: groups =>
     void dispatch(setExpandedGroups(groups)),
-  
+
   onSearchComponents: searchString =>
     void dispatch(searchComponents(searchString)),
 
@@ -171,12 +179,10 @@ const mapDispatchToProps = dispatch => ({
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
 
-const DraggableComponentTag = connectDraggable(draggable(ComponentTag));
-
 class ComponentsLibraryComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this.state = {
       localSearchString: props.searchString,
     };
@@ -186,7 +192,7 @@ class ComponentsLibraryComponent extends PureComponent {
     this._handleSearchButtonPress = this._handleSearchButtonPress.bind(this);
     this._handleExpandedItemsChange =
       this._handleExpandedItemsChange.bind(this);
-    
+
     this._doSearchDebounced = _debounce(
       this._doSearch.bind(this),
       LIBRARY_SEARCH_INPUT_DEBOUNCE,
@@ -204,29 +210,29 @@ class ComponentsLibraryComponent extends PureComponent {
     const components = constructComponent(data.name, 0, language, meta);
     onStartDragComponent(components);
   }
-  
+
   _doSearch() {
     const { onSearchComponents } = this.props;
     const { localSearchString } = this.state;
-  
+
     onSearchComponents(localSearchString);
   }
-  
+
   _handleSearchInputChange({ value }) {
     this.setState({
       localSearchString: value,
     }, this._doSearchDebounced);
   }
-  
+
   _handleSearchButtonPress() {
     this._doSearch();
   }
-  
+
   _handleExpandedItemsChange({ expandedItemIds }) {
     const { onExpandedGroupsChange } = this.props;
     onExpandedGroupsChange(expandedItemIds);
   }
-  
+
   render() {
     const {
       componentGroups,
@@ -236,7 +242,7 @@ class ComponentsLibraryComponent extends PureComponent {
       getLocalizedText,
       onShowAllComponents,
     } = this.props;
-    
+
     const { localSearchString } = this.state;
 
     const focusedComponentName = this._getFocusedComponentName();
@@ -246,19 +252,19 @@ class ComponentsLibraryComponent extends PureComponent {
       if (!filtered) {
         const noComponentsText =
           getLocalizedText('library.noComponentsInLibrary');
-  
+
         return (
           <BlockContentPlaceholder text={noComponentsText} />
         );
       }
-      
+
       if (searchString === '') {
         const noComponentsText =
           getLocalizedText('library.noComponentsAvailable');
-  
+
         const showAllComponentsText =
           getLocalizedText('library.showAllComponents');
-  
+
         return (
           <BlockContentPlaceholder text={noComponentsText}>
             <Button
@@ -271,32 +277,21 @@ class ComponentsLibraryComponent extends PureComponent {
       }
     }
 
-    const accordionItems = mapListToArray(groups, group => {
-      const items = mapListToArray(group.components, component => (
-        <DraggableComponentTag
-          key={component.fullName}
-          title={getComponentNameString(component, language, getLocalizedText)}
-          image={component.iconURL}
-          focused={focusedComponentName === component.fullName}
-          dragTitle={component.fullName}
-          dragData={{ name: component.fullName }}
-          dragStartRadius={DND_DRAG_START_RADIUS_LIBRARY}
+    const accordionItems = mapListToArray(groups, group => ({
+      id: group.name,
+      title: getGroupNameString(group, language, getLocalizedText),
+      contentBlank: true,
+      content: (
+        <AccordionItem
+          getLocalizedText={getLocalizedText}
+          language={language}
+          components={group.components}
+          focusedComponentName={focusedComponentName}
           onDragStart={this._handleDragStart}
         />
-      ));
+      ),
+    }));
 
-      return {
-        id: group.name,
-        title: getGroupNameString(group, language, getLocalizedText),
-        contentBlank: true,
-        content: (
-          <ComponentTagWrapper>
-            {items}
-          </ComponentTagWrapper>
-        ),
-      };
-    });
-    
     const expandAll = searchString !== '';
     const expandedItemIds = expandAll
       ? accordionItems.map(item => item.id)
@@ -312,7 +307,7 @@ class ComponentsLibraryComponent extends PureComponent {
             onButtonPress={this._handleSearchButtonPress}
           />
         </BlockContentBoxItem>
-        
+
         <BlockContentBoxItem blank isBordered hasScrollY>
           <AccordionBox>
             <Accordion

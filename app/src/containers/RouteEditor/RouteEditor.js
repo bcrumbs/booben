@@ -11,7 +11,7 @@ import {
   BlockContentBoxItem,
   BlockContentBoxHeading,
   BlockContentPlaceholder,
-} from '@jssy/common-ui';
+} from '../../components/BlockContent';
 
 import {
   PropInput,
@@ -30,6 +30,7 @@ import { getLocalizedTextFromState } from '../../selectors';
 import { updateRouteField } from '../../actions/project';
 import { noop } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
+import { IconPencil } from '../../components/icons';
 
 const propTypes = {
   project: PropTypes.instanceOf(Project).isRequired,
@@ -307,7 +308,7 @@ class RouteEditorComponent extends PureComponent {
               disabled
               additionalActions={[{
                 id: 'edit',
-                icon: 'pencil',
+                icon: <IconPencil />,
                 handler: this._handleEditPath,
               }]}
             />
