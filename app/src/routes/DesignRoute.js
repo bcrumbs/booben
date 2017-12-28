@@ -828,10 +828,7 @@ class DesignRoute extends PureComponent {
             {deleteComponentDialogText}
           </Dialog>
 
-          <Portal>
-            <ComponentsDragArea onDrop={this._handleDropComponent} />
-          </Portal>
-
+          <ComponentsDragArea onDrop={this._handleDropComponent} />
           {componentDataSelect}
           {createComponentMenu}
         </Desktop>
