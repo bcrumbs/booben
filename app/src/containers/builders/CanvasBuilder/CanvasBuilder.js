@@ -613,7 +613,7 @@ class CanvasBuilderComponent extends PureComponent {
   }
 
   _createApolloHOC(component, graphQLQuery, graphQLVariables, theMap) {
-    const { schema, getLocalizedText, onAlert } = this.props;
+    const { schema, dontPatch, getLocalizedText, onAlert } = this.props;
 
     return graphql(graphQLQuery, {
       props: ({ ownProps, data }) => {
@@ -632,13 +632,20 @@ class CanvasBuilderComponent extends PureComponent {
           haveData ? data : null,
         );
 
-        return {
-          ...ownProps,
-          innerProps: {
-            ...ownProps.innerProps,
+        if (dontPatch) {
+          return {
+            ...ownProps,
             ...this._buildProps(component, valueContext),
-          },
-        };
+          };
+        } else {
+          return {
+            ...ownProps,
+            innerProps: {
+              ...ownProps.innerProps,
+              ...this._buildProps(component, valueContext),
+            },
+          };
+        }
       },
 
       options: {
@@ -664,6 +671,7 @@ class CanvasBuilderComponent extends PureComponent {
     const {
       meta,
       schema,
+      componentsBundle,
       project,
       editable,
       dontPatch,
@@ -679,7 +687,10 @@ class CanvasBuilderComponent extends PureComponent {
       return this._renderPseudoComponent(component);
     }
 
-    const Component = this._getConnectedComponent(component.name);
+    const Component = dontPatch
+      ? getComponentByName(component.name, componentsBundle)
+      : this._getConnectedComponent(component.name);
+
     const isHTML = isHTMLComponent(component.name);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
@@ -736,22 +747,28 @@ class CanvasBuilderComponent extends PureComponent {
       Renderable = gqlHoc(Component);
     }
 
-    const isDraggable =
-      editable &&
-      parentComponent !== null &&
-      !isCompositeComponent(parentComponent.name, meta);
+    if (dontPatch) {
+      return (
+        <Renderable {...props} />
+      );
+    } else {
+      const isDraggable =
+        editable &&
+        parentComponent !== null &&
+        !isCompositeComponent(parentComponent.name, meta);
 
-    return (
-      <Renderable
-        key={props.key}
-        innerProps={props}
-        dragEnable={isDraggable}
-        dragTitle={formatComponentTitle(component)}
-        dragData={{ componentId: component.id }}
-        dragStartRadius={DND_DRAG_START_RADIUS_CANVAS}
-        onDragStart={this._handleComponentDragStart}
-      />
-    );
+      return (
+        <Renderable
+          key={props.key}
+          innerProps={props}
+          dragEnable={isDraggable}
+          dragTitle={formatComponentTitle(component)}
+          dragData={{ componentId: component.id }}
+          dragStartRadius={DND_DRAG_START_RADIUS_CANVAS}
+          onDragStart={this._handleComponentDragStart}
+        />
+      );
+    }
   }
 
   render() {
