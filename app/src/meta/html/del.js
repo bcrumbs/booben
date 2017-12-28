@@ -7,7 +7,7 @@ export default {
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'text',
+  hidden: true,
   props: {
     cite: {
       textKey: 'props_cite',

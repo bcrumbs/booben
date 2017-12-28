@@ -7,7 +7,7 @@ export default {
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'atomic',
-  group: 'table',
+  hidden: true,
   props: {
     span: {
       textKey: 'props_span',

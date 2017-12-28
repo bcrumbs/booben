@@ -10,15 +10,15 @@ export default {
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'blocks',
+  group: 'basic',
   props: {},
   propGroups: [],
   strings: {
     name: {
-      en: '<div> tag',
+      en: 'Div Block',
     },
     description: {
-      en: '',
+      en: 'Generic layout component.',
     },
   },
   tags: new Set(),

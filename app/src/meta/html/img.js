@@ -67,10 +67,10 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<img> tag',
+      en: 'Image',
     },
     description: {
-      en: '',
+      en: 'Represents an image in the document',
     },
     props_alt: {
       en: 'alt',
@@ -98,4 +98,8 @@ export default {
     },
   },
   tags: new Set(),
+
+  placement: {
+    root: 'deny',
+  },
 };

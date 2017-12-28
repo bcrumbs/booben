@@ -7,7 +7,7 @@ export default {
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'lists',
+  hidden: true,
   props: {},
   propGroups: [],
   strings: {

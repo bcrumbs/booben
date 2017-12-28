@@ -7,7 +7,7 @@ export default {
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'forms',
+  hidden: true,
   props: {
     max: {
       textKey: 'props_max',

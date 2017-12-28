@@ -7,7 +7,7 @@ export default {
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'forms',
+  hidden: true,
   props: {
     htmlFor: {
       textKey: 'props_htmlFor',

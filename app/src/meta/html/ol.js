@@ -7,7 +7,7 @@ export default {
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'lists',
+  group: 'basic',
   props: {
     reversed: {
       textKey: 'props_reversed',
@@ -56,43 +56,44 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<ol> tag',
+      en: 'Ordered list',
     },
     description: {
-      en: '',
+      en: 'Represents an ordered list of items, typically rendered as a' +
+      ' numbered list',
     },
     props_reversed: {
       en: 'reversed',
     },
     props_reversed_desc: {
-      en: '',
+      en: 'This Boolean attribute specifies that the items of the list are specified in reversed order.',
     },
     props_start: {
       en: 'start',
     },
     props_start_desc: {
-      en: '',
+      en: 'This integer attribute specifies the start value for numbering the individual list items. Although the ordering type of list elements might be Roman numerals, such as XXXI, or letters, the value of start is always represented as a number. To start numbering elements from the letter "C", use start="3".',
     },
     props_type: {
       en: 'type',
     },
     props_type_desc: {
-      en: '',
+      en: 'Indicates the numbering type',
     },
     props_type_1: {
-      en: '1',
+      en: '1 - numbers',
     },
     props_type_A: {
-      en: 'A',
+      en: 'A - uppercase letters',
     },
     props_type_a: {
-      en: 'a',
+      en: 'a - lowercase letters',
     },
     props_type_I: {
-      en: 'I',
+      en: 'I - uppercase Roman numerals',
     },
     props_type_i: {
-      en: 'i',
+      en: 'i - lowercase Roman numerals',
     },
   },
   tags: new Set(),

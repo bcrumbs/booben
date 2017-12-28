@@ -12,10 +12,10 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<code> tag',
+      en: 'Code',
     },
     description: {
-      en: '',
+      en: 'Represents a fragment of computer code.',
     },
   },
   tags: new Set(),

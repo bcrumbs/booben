@@ -12,10 +12,10 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<h4> tag',
+      en: 'Heading 4',
     },
     description: {
-      en: '',
+      en: 'Represents fourth level of section headings.',
     },
   },
   tags: new Set(),

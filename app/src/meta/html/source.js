@@ -7,7 +7,7 @@ export default {
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'atomic',
-  group: 'media',
+  hidden: true,
   props: {
     src: {
       textKey: 'props_src',

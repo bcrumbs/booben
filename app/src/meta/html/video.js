@@ -127,73 +127,77 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<video> tag',
+      en: 'Video',
     },
     description: {
-      en: '',
+      en: 'Represent embedded video content.',
     },
     props_autoPlay: {
       en: 'autoplay',
     },
     props_autoPlay_desc: {
-      en: '',
+      en: 'If specified, the video automatically begins to play back as soon' +
+      ' as it can do so without stopping to finish loading the data.',
     },
     props_controls: {
       en: 'controls',
     },
     props_controls_desc: {
-      en: '',
+      en: 'If this attribute is present, the browser will offer controls to allow the user to control video playback, including volume, seeking, and pause/resume playback.',
     },
     props_height: {
       en: 'height',
     },
     props_height_desc: {
-      en: '',
+      en: 'The height of the video\'s display area, in pixels.',
     },
     props_loop: {
       en: 'loop',
     },
     props_loop_desc: {
-      en: '',
+      en: 'A Boolean attribute; if specified, we will, upon reaching the end of the video, automatically seek back to the start.',
     },
     props_muted: {
       en: 'muted',
     },
     props_muted_desc: {
-      en: '',
+      en: 'A Boolean attribute which indicates the default setting of the audio contained in the video. If set, the audio will be initially silenced. Its default value is false, meaning that the audio will be played when the video is played.',
     },
     props_poster: {
-      en: 'poster',
+      en: 'Poster',
     },
     props_poster_desc: {
-      en: '',
+      en: 'A URL indicating a poster frame to show until the user plays or' +
+      ' seeks. If this attribute isn\'t specified, nothing is displayed until the first frame is available; then the first frame is shown as the poster frame.',
     },
     props_preload: {
       en: 'preload',
     },
     props_preload_desc: {
-      en: '',
+      en: 'This enumerated attribute is intended to provide a hint to the' +
+      ' browser about what the author thinks will lead to the best user' +
+      ' experience.',
     },
     props_preload_none: {
-      en: 'none',
+      en: 'None',
     },
     props_preload_metadata: {
-      en: 'metadata',
+      en: 'Metadata',
     },
     props_preload_auto: {
-      en: 'auto',
+      en: 'Auto',
     },
     props_src: {
       en: 'src',
     },
     props_src_desc: {
-      en: '',
+      en: 'The URL of the video to embed.',
     },
     props_width: {
       en: 'width',
     },
     props_width_desc: {
-      en: '',
+      en: 'The width of the video\'s display area, in pixels.',
     },
   },
   tags: new Set(),
