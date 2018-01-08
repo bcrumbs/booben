@@ -43,14 +43,17 @@ export const FunctionEditor = ({
   code,
   onChange,
 }) => {
-  const argsString = spreadLastArg
-    ? args.map(
-        (arg, i) => i === args.length - 1
-          ? `...${arg.name}`
-          : arg.name,
-      )
-      .join(', ')
-    : args.map(arg => arg.name).join(', ');
+  let argsString;
+  if (spreadLastArg) {
+    argsString = args.map(
+      (arg, i) => i === args.length - 1
+        ? `...${arg.name}`
+        : arg.name,
+    )
+    .join(', ');
+  } else {
+    argsString = args.map(arg => arg.name).join(', ');
+  }
 
   const header = `function ${name}(${argsString})`;
   const footer = '}';
