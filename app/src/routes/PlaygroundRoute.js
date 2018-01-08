@@ -7,11 +7,6 @@
 import React from 'react';
 
 import {
-  App,
-  TopRegion,
-  BottomRegion,
-  Button,
-  Container,
   Header,
   HeaderRegion,
   HeaderLogoBox,
@@ -20,8 +15,12 @@ import {
   HeaderMenuGroup,
   HeaderMenuItem,
   Panel,
-  ToggleButton,
 } from '@reactackle/reactackle';
+
+import { App, TopRegion, BottomRegion } from 'reactackle-app';
+import { Button } from 'reactackle-button';
+import { Container } from 'reactackle-grid';
+import { ToggleButton } from 'reactackle-toggle-button';
 
 import {
   BlockContentBox,
