@@ -44,6 +44,7 @@ const propTypes = {
   checked: PropTypes.bool,
   deletable: PropTypes.bool,
   expanded: PropTypes.bool,
+  simulateLeftOffset: PropTypes.bool,
   labelPositionTop: PropTypes.bool,
   additionalActions: PropTypes.arrayOf(PropTypes.oneOfType([
     PropTypes.element,
@@ -78,6 +79,7 @@ const defaultProps = {
   checked: false,
   deletable: false,
   expanded: false,
+  simulateLeftOffset: false,
   labelPositionTop: false,
   additionalActions: [],
   content: null,
@@ -292,7 +294,10 @@ export class PropBase extends PureComponent {
     const contentElement = linked ? this._renderLinked() : content;
 
     return (
-      <PropItemStyled sublevelVisible={expanded}>
+      <PropItemStyled
+        sublevelVisible={expanded}
+        simulateLeftOffset={this.props.simulateLeftOffset}
+      >
         <WrapperStyled>
           {checkboxElement}
           {actionsLeftElement}

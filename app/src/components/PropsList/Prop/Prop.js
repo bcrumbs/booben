@@ -389,6 +389,7 @@ export class Prop extends PureComponent {
           index={idx}
           label={currentType.formatItemLabel(idx)}
           disabled={disabled}
+          simulateLeftOffset={simulateLeftOffset}
           deletable
           getLocalizedText={getLocalizedText}
           onChange={this._handleChangeNested}
@@ -411,6 +412,7 @@ export class Prop extends PureComponent {
           index={key}
           label={currentType.formatItemLabel(key)}
           disabled={disabled}
+          simulateLeftOffset={simulateLeftOffset}
           deletable
           getLocalizedText={getLocalizedText}
           onChange={this._handleChangeNested}
@@ -471,6 +473,10 @@ export class Prop extends PureComponent {
       linked: !!value.linked,
       linkedWith: value.linkedWith || '',
       checkable: !!propType.checkable,
+      deletable: !!propType.deletable,
+      simulateLeftOffset: propType.simulateLeftOffset,
+      onDelete: propType.onDelete,
+      id: propType.id,
       checked: !!value.checked,
       onLink: this._handleLink,
       onUnlink: this._handleUnlink,

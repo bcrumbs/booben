@@ -122,7 +122,15 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onCreateFunction: ({ name, title, description, args, returnType, code }) =>
+  onCreateFunction: ({
+    name,
+    title,
+    description,
+    args,
+    returnType,
+    code,
+    spreadLastArg,
+  }) =>
     void dispatch(createFunction(
       name,
       title,
@@ -130,6 +138,7 @@ const mapDispatchToProps = dispatch => ({
       args,
       returnType,
       code,
+      spreadLastArg,
     )),
 
   onPickComponentData: (filter, dataGetter) =>
@@ -403,7 +412,15 @@ class LinkPropWindowComponent extends PureComponent {
    * @param {string} code
    * @private
    */
-  _handleCreateFunction({ name, title, description, args, returnType, code }) {
+  _handleCreateFunction({
+    name,
+    title,
+    description,
+    args,
+    returnType,
+    code,
+    spreadLastArg,
+  }) {
     this.props.onCreateFunction({
       name,
       title,
@@ -411,6 +428,7 @@ class LinkPropWindowComponent extends PureComponent {
       args,
       returnType,
       code,
+      spreadLastArg,
     });
   }
 

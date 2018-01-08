@@ -50,6 +50,10 @@ const propTypes = {
   onLink: PropTypes.func,
   onConstructComponent: PropTypes.func,
   onEditActions: PropTypes.func,
+  deletable: PropTypes.bool,
+  simulateLeftOffset: PropTypes.bool,
+  onDelete: PropTypes.func,
+  id: PropTypes.string,
 };
 
 const defaultProps = {
@@ -68,6 +72,10 @@ const defaultProps = {
   onLink: noop,
   onConstructComponent: noop,
   onEditActions: noop,
+  deletable: false,
+  simulateLeftOffset: false,
+  onDelete: noop,
+  id: '',
 };
 
 /**
@@ -690,6 +698,10 @@ export class JssyValueEditor extends PureComponent {
       label,
       description,
       getLocalizedText,
+      deletable,
+      simulateLeftOffset,
+      onDelete,
+      id,
     } = this.props;
 
     const checkable =
@@ -705,6 +717,10 @@ export class JssyValueEditor extends PureComponent {
       }),
 
       checkable,
+      deletable,
+      simulateLeftOffset,
+      onDelete,
+      id,
     };
 
     const propValue = this._getPropValue(value, valueDef);

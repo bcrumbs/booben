@@ -8,6 +8,7 @@
   "common.back": "Back",
   "common.next": "Next",
   "common.apply": "Apply",
+  "common.enable": "Enable",
 
   "appHeader.projectTitle": "Project {projectName}",
   "appHeader.menu.structure": "Structure",
@@ -149,6 +150,9 @@
   "linkDialog.function.new.desc": "Description",
   "linkDialog.function.new.returnType": "Return type",
   "linkDialog.function.new.argsList": "Arguments list",
+  "linkDialog.function.new.restArg.enable": "May be repeated multiple times",
+  "linkDialog.function.new.restArg.onlyOneWarning": "No more than one rest argument might be created",
+  "linkDialog.function.new.restArg": "Rest",
   "linkDialog.function.new.argsEmpty": "Arguments list is empty",
   "linkDialog.function.new.newArg.button": "New Argument",
   "linkDialog.function.new.newArg.heading": "New Argument",

@@ -423,6 +423,7 @@ export const createFunction = triggersProjectSave((
   args,
   returnType,
   code,
+  spreadLastArg,
 ) => ({
   type: PROJECT_CREATE_FUNCTION,
   name,
@@ -431,6 +432,7 @@ export const createFunction = triggersProjectSave((
   args,
   returnType,
   code,
+  spreadLastArg,
 }));
 
 /**

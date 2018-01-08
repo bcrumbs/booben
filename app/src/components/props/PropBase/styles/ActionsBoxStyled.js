@@ -10,7 +10,7 @@ export const ActionsBoxStyled = styled.div`
   margin-right: -${constants.action.marginX}px;
   min-height: ${constants.item.baseHeight}px;
   max-height: ${constants.item.baseHeight}px;
-  padding-left: ${baseModule(1)}px;
+  padding: 0 ${baseModule(0.5)}px;
 `;
 
 ActionsBoxStyled.displayName = 'ActionsBoxStyled';

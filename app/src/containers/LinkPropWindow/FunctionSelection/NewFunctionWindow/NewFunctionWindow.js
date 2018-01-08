@@ -84,6 +84,8 @@ export class NewFunctionWindow extends PureComponent {
       args: [],
       code: '',
       creatingNewArgument: false,
+      creatingRestArg: false,
+      restArgCreated: false,
     };
 
     this._handleTitleChange = this._handleTitleChange.bind(this);
@@ -91,6 +93,7 @@ export class NewFunctionWindow extends PureComponent {
     this._handleReturnTypeChange = this._handleReturnTypeChange.bind(this);
     this._handleAddButtonPress = this._handleAddButtonPress.bind(this);
     this._handleCancelAddArgument = this._handleCancelAddArgument.bind(this);
+    this._handleRestArgsToggle = this._handleRestArgsToggle.bind(this);
     this._handleAddArg = this._handleAddArg.bind(this);
     this._handleDeleteArg = this._handleDeleteArg.bind(this);
     this._handleCancel = this._handleCancel.bind(this);
@@ -135,16 +138,39 @@ export class NewFunctionWindow extends PureComponent {
     this.setState({ creatingNewArgument: false });
   }
 
+  _handleRestArgsToggle({ value }) {
+    this.setState({ creatingRestArg: value });
+  }
+
   _handleAddArg(arg) {
-    const { args } = this.state;
-    this.setState({ args: [...args, arg], creatingNewArgument: false });
+    const { args, restArgCreated, creatingRestArg } = this.state;
+
+    let newArgs;
+    if (restArgCreated) {
+      newArgs = [...args];
+      newArgs.splice(-1, 0, arg);
+    } else {
+      newArgs = [...args, arg];
+    }
+
+    this.setState({
+      args: newArgs,
+      creatingNewArgument: false,
+      restArgCreated: restArgCreated || creatingRestArg,
+    });
   }
 
   _handleDeleteArg({ id }) {
-    const { args } = this.state;
+    const { args, restArgCreated } = this.state;
 
     const idx = parseInt(id, 10);
-    this.setState({ args: without(args, idx) });
+
+    const deletingRestArg = restArgCreated && idx === args.length - 1;
+
+    this.setState({
+      args: without(args, idx),
+      restArgCreated: !deletingRestArg,
+    });
   }
 
   _handleCancel() {
@@ -161,9 +187,23 @@ export class NewFunctionWindow extends PureComponent {
 
   _handleCreate() {
     const { onCreate } = this.props;
-    const { title, description, args, returnType, code } = this.state;
+    const {
+      args,
+      title,
+      description,
+      returnType,
+      code,
+      restArgCreated,
+    } = this.state;
 
-    onCreate({ title, description, args, returnType, code });
+    onCreate({
+      title,
+      description,
+      args,
+      returnType,
+      code,
+      spreadLastArg: restArgCreated,
+    });
   }
 
   _handleCodeChange(code) {
@@ -179,6 +219,8 @@ export class NewFunctionWindow extends PureComponent {
       returnType,
       args,
       creatingNewArgument,
+      creatingRestArg,
+      restArgCreated,
     } = this.state;
 
     const typeSelectOptions = this._getTypeSelectOptions();
@@ -194,6 +236,9 @@ export class NewFunctionWindow extends PureComponent {
           getLocalizedText={getLocalizedText}
           onAdd={this._handleAddArg}
           onCancel={this._handleCancelAddArgument}
+          restArgDisabled={restArgCreated}
+          restArgChecked={creatingRestArg}
+          onRestArgCheckToogle={this._handleRestArgsToggle}
         />
       );
     } else {
@@ -207,16 +252,27 @@ export class NewFunctionWindow extends PureComponent {
 
     let argsList = null;
     if (args.length > 0) {
-      const list = args.map(({ name, type }, idx) => (
-        <PropEmpty
-          key={name}
-          id={String(idx)}
-          label={name}
-          secondaryLabel={getLocalizedText(`types.${type}`)}
-          deletable
-          onDelete={this._handleDeleteArg}
-        />
-      ));
+      const list = args.map(({ name, type }, idx) => {
+        let secondaryLabel = getLocalizedText(`types.${type}`);
+
+        if (restArgCreated && idx === args.length - 1) {
+          secondaryLabel =
+            `${secondaryLabel}, ${getLocalizedText(
+              'linkDialog.function.new.restArg',
+            )}`;
+        }
+
+        return (
+          <PropEmpty
+            key={name}
+            id={String(idx)}
+            label={name}
+            secondaryLabel={secondaryLabel}
+            deletable
+            onDelete={this._handleDeleteArg}
+          />
+        );
+      });
 
       argsList = (
         <PropsList>
@@ -303,7 +359,7 @@ export class NewFunctionWindow extends PureComponent {
 
   _renderCodeEditor() {
     const { existingFunctionNames, getLocalizedText } = this.props;
-    const { title, args, code } = this.state;
+    const { args, title, code, restArgCreated } = this.state;
 
     const functionName = functionNameFromTitle(title, existingFunctionNames);
 
@@ -314,6 +370,7 @@ export class NewFunctionWindow extends PureComponent {
             <FunctionEditor
               name={functionName}
               args={args}
+              spreadLastArg={restArgCreated}
               code={code}
               onChange={this._handleCodeChange}
             />

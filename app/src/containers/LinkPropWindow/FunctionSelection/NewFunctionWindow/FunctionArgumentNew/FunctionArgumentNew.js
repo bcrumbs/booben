@@ -5,6 +5,7 @@ import { Form, FormItem } from 'reactackle-form';
 import { TextField } from 'reactackle-text-field';
 import { SelectBox } from 'reactackle-selectbox';
 import { Button } from 'reactackle-button';
+import { Checkbox } from 'reactackle-checkbox';
 
 import {
   BlockContentBoxGroup,
@@ -20,6 +21,9 @@ const propTypes = {
   getLocalizedText: PropTypes.func,
   onAdd: PropTypes.func,
   onCancel: PropTypes.func,
+  restArgDisabled: PropTypes.bool.isRequired,
+  restArgChecked: PropTypes.bool.isRequired,
+  onRestArgCheckToogle: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -45,7 +49,7 @@ export class FunctionArgumentNew extends PureComponent {
     this._handleAddButtonPress = this._handleAddButtonPress.bind(this);
     this._handleCancelButtonPress = this._handleCancelButtonPress.bind(this);
   }
-  
+
   /**
    *
    * @return {{ value: string, text: string }[]}
@@ -61,7 +65,7 @@ export class FunctionArgumentNew extends PureComponent {
       { value: TypeNames.BOOL, text: getLocalizedText('types.bool') },
     ];
   }
-  
+
   /**
    *
    * @param {string} value
@@ -70,7 +74,7 @@ export class FunctionArgumentNew extends PureComponent {
   _handleNameChange({ value }) {
     this.setState({ name: value });
   }
-  
+
   /**
    *
    * @param {string} value
@@ -79,7 +83,7 @@ export class FunctionArgumentNew extends PureComponent {
   _handleTypeChange({ value }) {
     this.setState({ type: value });
   }
-  
+
   /**
    *
    * @private
@@ -90,7 +94,7 @@ export class FunctionArgumentNew extends PureComponent {
 
     onAdd({ name, type });
   }
-  
+
   /**
    *
    * @private
@@ -100,18 +104,24 @@ export class FunctionArgumentNew extends PureComponent {
   }
 
   render() {
-    const { existingArgNames, getLocalizedText } = this.props;
+    const {
+      existingArgNames,
+      getLocalizedText,
+      restArgDisabled,
+      restArgChecked,
+      onRestArgCheckToogle,
+    } = this.props;
     const { name, type } = this.state;
 
     const typeOptions = this._getTypeOptions();
     const isButtonDisabled =
       !name || !type || existingArgNames.indexOf(name) !== -1;
-    
+
     const nameLabel = getLocalizedText('linkDialog.function.new.newArg.name');
     const typeLabel = getLocalizedText('linkDialog.function.new.newArg.type');
 
     return (
-      <BlockContentBoxGroup shading="editing" colorScheme="alt">
+      <BlockContentBoxGroup shading="dim" colorScheme="alt">
         <BlockContentBoxHeading>
           {getLocalizedText('linkDialog.function.new.newArg.heading')}
         </BlockContentBoxHeading>
@@ -135,20 +145,37 @@ export class FunctionArgumentNew extends PureComponent {
                 onChange={this._handleTypeChange}
               />
             </FormItem>
+
+            <FormItem>
+              <Checkbox
+                disabled={restArgDisabled}
+                checked={restArgChecked}
+                onChange={onRestArgCheckToogle}
+                label={
+                  getLocalizedText('linkDialog.function.new.restArg.enable')
+                }
+                tooltip={restArgDisabled
+                  ? getLocalizedText(
+                    'linkDialog.function.new.restArg.onlyOneWarning'
+                  )
+                  : ''
+                }
+              />
+            </FormItem>
           </Form>
 
           <ButtonRowStyled>
+            <Button
+              text={getLocalizedText('common.cancel')}
+              narrow
+              onPress={this._handleCancelButtonPress}
+            />
+
             <Button
               text={getLocalizedText('linkDialog.function.new.newArg.add')}
               narrow
               disabled={isButtonDisabled}
               onPress={this._handleAddButtonPress}
-            />
-
-            <Button
-              text={getLocalizedText('common.cancel')}
-              narrow
-              onPress={this._handleCancelButtonPress}
             />
           </ButtonRowStyled>
         </BlockContentBoxItem>
