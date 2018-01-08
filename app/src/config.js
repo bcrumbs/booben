@@ -32,6 +32,6 @@ export const REACT_COMPATIBILITY_MODE_WARNINGS = false;
 // 0 - leave it empty
 // 1 - use internal name (like 'Namespace.MyCoolComponent')
 // 2 - use name from metadata (like 'My cool component')
-export const COMPONENTS_TITLE_FORMATTING = 2;
+export const COMPONENTS_TITLE_FORMATTING = 1;
 
 export const CSS_EDITOR_DEBOUNCE = 200;
