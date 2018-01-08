@@ -3,10 +3,15 @@
  */
 
 import React, { PureComponent } from 'react';
+import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
 import bezierEasing from 'bezier-easing';
 import pointInPolygon from 'point-in-polygon';
 import Color from 'color';
+
+import {
+  ComponentsDragAreaContainer,
+} from './styles/ComponentsDragAreaContainer';
 
 import {
   ComponentPlaceholder,
@@ -884,19 +889,10 @@ export class ComponentsDragArea extends PureComponent {
   render() {
     const { title, dropMenuIsVisible } = this.state;
 
-    const containerStyle = {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      width: '100vw',
-      height: '100vh',
-      overflow: 'hidden',
-    };
-
     const dropMenu = dropMenuIsVisible ? this._renderDropMenu() : null;
 
-    return (
-      <div style={containerStyle} ref={this._saveContainerRef}>
+    return createPortal(
+      <ComponentsDragAreaContainer innerRef={this._saveContainerRef}>
         <ComponentPlaceholder
           title={title}
           elementRef={this._saveRectangleRef}
@@ -904,7 +900,9 @@ export class ComponentsDragArea extends PureComponent {
         />
 
         {dropMenu}
-      </div>
+      </ComponentsDragAreaContainer>,
+
+      window.document.body,
     );
   }
 }

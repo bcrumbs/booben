@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { TooltipIcon } from '@reactackle/reactackle';
+import { TooltipIcon } from 'reactackle-tooltip-icon';
 import { TypeStyled } from './styles/TypeStyled';
 import { LabelStyled } from './styles/LabelStyled';
 import { LabelTextStyled } from './styles/LabelTextStyled';

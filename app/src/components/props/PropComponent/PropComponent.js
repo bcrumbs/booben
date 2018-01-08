@@ -5,7 +5,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _pick from 'lodash.pick';
-import { Button } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
 import { PropBase } from '../PropBase/PropBase';
 import { noop, returnArg } from '../../../utils/misc';
 import { ButtonRowStyled } from './styles/ButtonRowStyled';

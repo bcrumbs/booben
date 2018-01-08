@@ -3,7 +3,7 @@
  */
 
 import styled, { css } from 'styled-components';
-import { transition } from '@reactackle/reactackle';
+import { transition } from 'reactackle-core';
 
 import {
   baseModule,

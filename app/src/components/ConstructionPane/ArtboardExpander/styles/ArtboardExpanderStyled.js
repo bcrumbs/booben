@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition } from '@reactackle/reactackle';
+import { transition } from 'reactackle-core';
 import componentConstants from '../../styles/constants';
 
 const propTypes = {

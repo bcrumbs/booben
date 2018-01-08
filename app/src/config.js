@@ -28,6 +28,10 @@ export const LIBRARY_SEARCH_INPUT_DEBOUNCE = 150;
 export const REACT_COMPATIBILITY_MODE = true;
 export const REACT_COMPATIBILITY_MODE_WARNINGS = false;
 
-export const COMPONENTS_COPY_NAME_TO_TITLE_ON_CREATION = true;
+// Specify how to format title when creating new components:
+// 0 - leave it empty
+// 1 - use internal name (like 'Namespace.MyCoolComponent')
+// 2 - use name from metadata (like 'My cool component')
+export const COMPONENTS_TITLE_FORMATTING = 1;
 
 export const CSS_EDITOR_DEBOUNCE = 200;

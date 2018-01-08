@@ -5,7 +5,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Dialog } from '@reactackle/reactackle';
+import { Dialog } from 'reactackle-dialog';
 import { getLocalizedTextFromState } from '../../selectors';
 import { getComponentMeta, getString } from '../../lib/meta';
 import { selectLayoutForNewComponent } from '../../actions/project';

@@ -6,7 +6,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import debounce from 'lodash.debounce';
-import { Button } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
 import { getNestedTypedef } from '@jssy/types';
 
 import {
@@ -36,8 +36,8 @@ import {
 import { PathStartingPoints } from '../../reducers/project';
 
 import {
-  currentComponentsSelector,
-  selectedComponentIdsSelector,
+  singleSelectedComponentSelector,
+  selectedComponentsNumberSelector,
   ownerPropsSelector,
   ownerUserTypedefsSelector,
   getLocalizedTextFromState,
@@ -54,8 +54,8 @@ import {
   isHTMLComponent,
 } from '../../lib/meta';
 
+import ProjectComponent from '../../models/ProjectComponent';
 import { INVALID_ID, SYSTEM_PROPS } from '../../constants/misc';
-import * as JssyPropTypes from '../../constants/common-prop-types';
 import { CSS_EDITOR_DEBOUNCE } from '../../config';
 
 /**
@@ -66,30 +66,31 @@ import { CSS_EDITOR_DEBOUNCE } from '../../config';
  */
 
 const propTypes = {
-  meta: PropTypes.object.isRequired,
-  components: JssyPropTypes.components.isRequired,
-  selectedComponentIds: JssyPropTypes.setOfIds.isRequired,
-  language: PropTypes.string.isRequired,
-  ownerProps: PropTypes.object,
-  ownerUserTypedefs: PropTypes.object,
-  getLocalizedText: PropTypes.func.isRequired,
-  onReplacePropValue: PropTypes.func.isRequired,
-  onConstructComponent: PropTypes.func.isRequired,
-  onAddAction: PropTypes.func.isRequired,
-  onReplaceAction: PropTypes.func.isRequired,
-  onDeleteAction: PropTypes.func.isRequired,
-  onChangeComponentStyle: PropTypes.func.isRequired,
+  meta: PropTypes.object.isRequired, // state
+  selectedComponent: PropTypes.instanceOf(ProjectComponent), // state
+  selectedComponentsNumber: PropTypes.number.isRequired, // state
+  language: PropTypes.string.isRequired, // state
+  ownerProps: PropTypes.object, // state
+  ownerUserTypedefs: PropTypes.object, // state
+  getLocalizedText: PropTypes.func.isRequired, // state
+  onReplacePropValue: PropTypes.func.isRequired, // dispatch
+  onConstructComponent: PropTypes.func.isRequired, // dispatch
+  onAddAction: PropTypes.func.isRequired, // dispatch
+  onReplaceAction: PropTypes.func.isRequired, // dispatch
+  onDeleteAction: PropTypes.func.isRequired, // dispatch
+  onChangeComponentStyle: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
+  selectedComponent: null,
   ownerProps: null,
   ownerUserTypedefs: null,
 };
 
 const mapStateToProps = state => ({
   meta: state.project.meta,
-  components: currentComponentsSelector(state),
-  selectedComponentIds: selectedComponentIdsSelector(state),
+  selectedComponent: singleSelectedComponentSelector(state),
+  selectedComponentsNumber: selectedComponentsNumberSelector(state),
   language: state.app.language,
   ownerProps: ownerPropsSelector(state),
   ownerUserTypedefs: ownerUserTypedefsSelector(state),
@@ -183,21 +184,14 @@ const ActionEditorViews = {
   EDIT: 2,
 };
 
+const getStyle = component => component !== null ? component.style : '';
+
 class ComponentPropsEditorComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
 
-    const { components, selectedComponentIds } = props;
-
-    let componentStyle = '';
-    if (selectedComponentIds.size === 1) {
-      const componentId = selectedComponentIds.first();
-      const component = components.get(componentId);
-      componentStyle = component.style;
-    }
-
     this.state = {
-      componentStyle,
+      componentStyle: getStyle(props.selectedComponent),
       linkingProp: false,
       linkingPath: null,
       linkingValueDef: null,
@@ -240,15 +234,10 @@ class ComponentPropsEditorComponent extends PureComponent {
   }
 
   componentWillReceiveProps(nextProps) {
-    if (nextProps.selectedComponentIds !== this.props.selectedComponentIds) {
-      if (nextProps.selectedComponentIds.size === 1) {
-        const componentId = nextProps.selectedComponentIds.first();
-        const component = nextProps.components.get(componentId);
-
-        this.setState({
-          componentStyle: component.style,
-        });
-      }
+    if (nextProps.selectedComponent !== this.props.selectedComponent) {
+      this.setState({
+        componentStyle: getStyle(nextProps.selectedComponent),
+      });
     }
   }
 
@@ -260,10 +249,9 @@ class ComponentPropsEditorComponent extends PureComponent {
    * @private
    */
   _handleChange(isSystemProp, { name, value }) {
-    const { selectedComponentIds, onReplacePropValue } = this.props;
+    const { selectedComponent, onReplacePropValue } = this.props;
 
-    const componentId = selectedComponentIds.first();
-    const fullPath = buildFullPath(componentId, isSystemProp, name);
+    const fullPath = buildFullPath(selectedComponent.id, isSystemProp, name);
     onReplacePropValue(fullPath, value);
   }
 
@@ -275,24 +263,26 @@ class ComponentPropsEditorComponent extends PureComponent {
    * @private
    */
   _handleLink(isSystemProp, { name, path }) {
-    const { meta, components, selectedComponentIds } = this.props;
-
-    const componentId = selectedComponentIds.first();
+    const { meta, selectedComponent } = this.props;
 
     let linkingValueDef;
     if (isSystemProp) {
       const propMeta = SYSTEM_PROPS[name];
       linkingValueDef = getNestedTypedef(propMeta, path);
     } else {
-      const component = components.get(componentId);
-      const componentMeta = getComponentMeta(component.name, meta);
+      const componentMeta = getComponentMeta(selectedComponent.name, meta);
       const propMeta = componentMeta.props[name];
       linkingValueDef = getNestedTypedef(propMeta, path, componentMeta.types);
     }
 
     this.setState({
       linkingProp: true,
-      linkingPath: buildFullPath(componentId, isSystemProp, name, path),
+      linkingPath: buildFullPath(
+        selectedComponent.id,
+        isSystemProp,
+        name,
+        path,
+      ),
       linkingValueDef,
       linkWindowName: [name, ...path].join('.'),
     });
@@ -331,20 +321,17 @@ class ComponentPropsEditorComponent extends PureComponent {
   _handleSetComponent(isSystemProp, { name, path }) {
     const {
       meta,
-      components,
-      selectedComponentIds,
+      selectedComponent,
       language,
       onConstructComponent,
     } = this.props;
 
-    const componentId = selectedComponentIds.first();
-    const component = components.get(componentId);
     const currentPropValue = isSystemProp
-      ? component.systemProps.get(name)
-      : component.props.get(name);
+      ? selectedComponent.systemProps.get(name)
+      : selectedComponent.props.get(name);
 
     const currentValue = currentPropValue.getInStatic(path);
-    const componentMeta = getComponentMeta(component.name, meta);
+    const componentMeta = getComponentMeta(selectedComponent.name, meta);
     const valueMeta = getNestedTypedef(
       componentMeta.props[name],
       path,
@@ -362,8 +349,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       !!designerSourceConfig.wrapper;
 
     if (willBuildWrapper) {
-      const { namespace } = parseComponentName(component.name);
-
+      const { namespace } = parseComponentName(selectedComponent.name);
       const wrapperFullName = formatComponentName(
         namespace,
         designerSourceConfig.wrapper,
@@ -380,7 +366,13 @@ class ComponentPropsEditorComponent extends PureComponent {
       initialComponentsRootId = 0;
     }
 
-    const fullPath = buildFullPath(componentId, isSystemProp, name, path);
+    const fullPath = buildFullPath(
+      selectedComponent.id,
+      isSystemProp,
+      name,
+      path,
+    );
+
     onConstructComponent(fullPath, initialComponents, initialComponentsRootId);
   }
 
@@ -433,7 +425,7 @@ class ComponentPropsEditorComponent extends PureComponent {
    * @private
    */
   _handleDeleteAction({ actionPath }) {
-    const { selectedComponentIds, onDeleteAction } = this.props;
+    const { selectedComponent, onDeleteAction } = this.props;
 
     const {
       editingActionsForProp,
@@ -441,11 +433,10 @@ class ComponentPropsEditorComponent extends PureComponent {
       editingActionsForPath,
     } = this.state;
 
-    const componentId = selectedComponentIds.first();
     const pathToList = actionPath.slice(0, -1);
     const index = actionPath[actionPath.length - 1];
     const path = buildFullPathToActionsList(
-      componentId,
+      selectedComponent.id,
       editingActionsForSystemProp,
       editingActionsForProp,
       editingActionsForPath,
@@ -461,7 +452,7 @@ class ComponentPropsEditorComponent extends PureComponent {
    * @private
    */
   _handleActionEditorSave({ action }) {
-    const { selectedComponentIds, onAddAction, onReplaceAction } = this.props;
+    const { selectedComponent, onAddAction, onReplaceAction } = this.props;
 
     const {
       actionEditorView,
@@ -472,11 +463,9 @@ class ComponentPropsEditorComponent extends PureComponent {
       pathToActionsList,
     } = this.state;
 
-    const componentId = selectedComponentIds.first();
-
     if (actionEditorView === ActionEditorViews.NEW) {
       const path = buildFullPathToActionsList(
-        componentId,
+        selectedComponent.id,
         editingActionsForSystemProp,
         editingActionsForProp,
         editingActionsForPath,
@@ -488,7 +477,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       const pathToList = actionPath.slice(0, -1);
       const index = actionPath[actionPath.length - 1];
       const path = buildFullPathToActionsList(
-        componentId,
+        selectedComponent.id,
         editingActionsForSystemProp,
         editingActionsForProp,
         editingActionsForPath,
@@ -534,11 +523,13 @@ class ComponentPropsEditorComponent extends PureComponent {
   }
 
   _saveComponentStyle() {
-    const { selectedComponentIds, onChangeComponentStyle } = this.props;
+    const { selectedComponent, onChangeComponentStyle } = this.props;
     const { componentStyle } = this.state;
 
-    const componentId = selectedComponentIds.first();
-    onChangeComponentStyle({ componentId, style: componentStyle });
+    onChangeComponentStyle({
+      componentId: selectedComponent.id,
+      style: componentStyle,
+    });
   }
 
   _handleStyleChange(newStyle) {
@@ -643,7 +634,7 @@ class ComponentPropsEditorComponent extends PureComponent {
    * @private
    */
   _renderActionsEditor() {
-    const { selectedComponentIds, getLocalizedText } = this.props;
+    const { selectedComponent, getLocalizedText } = this.props;
 
     const {
       editingActions,
@@ -654,12 +645,13 @@ class ComponentPropsEditorComponent extends PureComponent {
       actionPath,
     } = this.state;
 
-    if (!editingActions) return null;
+    if (!editingActions) {
+      return null;
+    }
 
-    const component = selectedComponentIds.first();
     const propValue = editingActionsForSystemProp
-      ? component.systemProps.get(editingActionsForProp)
-      : component.props.get(editingActionsForProp);
+      ? selectedComponent.systemProps.get(editingActionsForProp)
+      : selectedComponent.props.get(editingActionsForProp);
 
     const value = propValue.getInStatic(editingActionsForPath);
 
@@ -717,18 +709,15 @@ class ComponentPropsEditorComponent extends PureComponent {
    * @private
    */
   _createAccordionItem(group) {
-    const { components, meta, selectedComponentIds } = this.props;
+    const { meta, selectedComponent } = this.props;
     const { editingActions } = this.state;
 
     const { name, title, props } = group;
-    const componentId = selectedComponentIds.first();
-    const component = components.get(componentId);
-    const componentMeta = getComponentMeta(component.name, meta);
-
+    const componentMeta = getComponentMeta(selectedComponent.name, meta);
     const controls = props.map(propName => this._renderPropsItem(
       componentMeta,
       propName,
-      component.props.get(propName) || null,
+      selectedComponent.props.get(propName) || null,
     ));
 
     const content = (
@@ -742,22 +731,43 @@ class ComponentPropsEditorComponent extends PureComponent {
     return { id: name, title, content };
   }
 
+  /**
+   *
+   * @return {?ReactElement}
+   * @private
+   */
+  _renderStyleEditor() {
+    const { selectedComponent } = this.props;
+    const { componentStyle } = this.state;
+
+    if (!isHTMLComponent(selectedComponent.name)) {
+      return null;
+    }
+
+    return (
+      <BlockContentBoxItem>
+        <PropCodeEditor
+          value={componentStyle}
+          mode="css"
+          label="CSS"
+          onChange={this._handleStyleChange}
+        />
+      </BlockContentBoxItem>
+    );
+  }
+
   render() {
     const {
-      components,
-      selectedComponentIds,
+      selectedComponent,
+      selectedComponentsNumber,
       meta,
       language,
       getLocalizedText,
     } = this.props;
 
-    const {
-      linkingProp,
-      linkingValueDef,
-      linkWindowName,
-    } = this.state;
+    const { linkingProp, linkingValueDef, linkWindowName } = this.state;
 
-    if (selectedComponentIds.size === 0) {
+    if (selectedComponentsNumber === 0) {
       return (
         <BlockContentPlaceholder
           text={getLocalizedText('propsEditor.noComponentsSelectedText')}
@@ -765,7 +775,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       );
     }
 
-    if (selectedComponentIds.size > 1) {
+    if (selectedComponentsNumber > 1) {
       return (
         <BlockContentPlaceholder
           text={getLocalizedText('propsEditor.multipleComponentsSelectedText')}
@@ -773,10 +783,7 @@ class ComponentPropsEditorComponent extends PureComponent {
       );
     }
 
-    const componentId = selectedComponentIds.first();
-    const component = components.get(componentId);
-    const componentMeta = getComponentMeta(component.name, meta);
-
+    const componentMeta = getComponentMeta(selectedComponent.name, meta);
     if (!componentMeta) {
       return null;
     }
@@ -824,29 +831,15 @@ class ComponentPropsEditorComponent extends PureComponent {
       accordionItems.push(groupDescription);
     }
 
-    const systemProps = this._renderSystemProps(component);
+    const systemProps = this._renderSystemProps(selectedComponent);
     const actionsEditor = this._renderActionsEditor();
-
-    const styleEditor = isHTMLComponent(component.name)
-      ? (
-        <BlockContentBoxItem>
-          <PropCodeEditor
-            value={component.style}
-            mode="css"
-            label="CSS"
-            onChange={this._handleStyleChange}
-          />
-        </BlockContentBoxItem>
-      )
-      : null;
+    const styleEditor = this._renderStyleEditor();
 
     return (
       <BlockContentBox isBordered>
         {systemProps}
         {styleEditor}
-
         <PropsAccordion items={accordionItems} />
-
         {actionsEditor}
 
         <DesignDialog

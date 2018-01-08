@@ -8,7 +8,8 @@ import { connect } from 'react-redux';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { createSelector } from 'reselect';
 import _debounce from 'lodash.debounce';
-import { Accordion, Button } from '@reactackle/reactackle';
+import { Accordion } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
 
 import {
   BlockContentBox,

@@ -1,6 +1,6 @@
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition } from '@reactackle/reactackle';
+import { transition } from 'reactackle-core';
 
 import {
   radiusDefault,

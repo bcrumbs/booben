@@ -1,5 +1,5 @@
 import React from 'react';
-import { Theme } from '@reactackle/reactackle';
+import { Theme } from 'reactackle-core';
 import reactackleThemeMixin from './styles/reactackle-theme-mixin';
 import { ToolbarStyled } from './styles/ToolbarStyled';
 

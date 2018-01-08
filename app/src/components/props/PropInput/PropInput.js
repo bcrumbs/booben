@@ -5,7 +5,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import _pick from 'lodash.pick';
-import { TextField } from '@reactackle/reactackle';
+import { TextField } from 'reactackle-text-field';
 import { PropBase } from '../PropBase/PropBase';
 import { noop, returnArg } from '../../../utils/misc';
 

@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Button, TooltipIcon } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
+import { TooltipIcon } from 'reactackle-tooltip-icon';
 import { noop, returnArg } from '../../../utils/misc';
 import { DataListItemStyled } from './styles/DataListItemStyled';
 import { ContentBoxStyled } from './styles/ContentBoxStyled';

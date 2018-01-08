@@ -4,7 +4,8 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { TextField, Theme } from '@reactackle/reactackle';
+import { TextField } from 'reactackle-text-field';
+import { Theme } from 'reactackle-core';
 import { InputSpotlightStyled } from './styles/InputSpotlightStyled';
 import { ContentStyled } from './styles/ContentStyled';
 import { InputWrapperStyled } from './styles/InputWrapperStyled';

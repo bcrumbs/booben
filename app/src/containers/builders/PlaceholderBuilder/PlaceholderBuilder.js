@@ -441,7 +441,9 @@ class PlaceholderBuilderComponent extends PureComponent {
 
     props.children = this._renderComponentChildren(component);
 
-    if (!isHTML) {
+    if (isHTML) {
+      props.style = component.style;
+    } else {
       props.__jssy_error_handler__ = _debounce(
         this._handleErrorInComponentLifecycleHook.bind(this, component),
         250,

@@ -8,14 +8,8 @@ import { connect } from 'react-redux';
 import { push } from 'react-router-redux';
 import { Shortcuts } from 'react-shortcuts';
 import { List } from 'immutable';
-import { Container, Dialog } from '@reactackle/reactackle';
-
-import {
-  ToolBar,
-  ToolBarGroup,
-  ToolBarAction,
-} from '../components/ToolBar/ToolBar';
-
+import { Container } from 'reactackle-grid';
+import { Dialog } from 'reactackle-dialog';
 import { AppWrapper } from '../components/AppWrapper/AppWrapper';
 
 import {
@@ -26,7 +20,9 @@ import {
   RouteNewButton,
 } from '../components/RoutesList/RoutesList';
 
+import { IconRedirect } from '../components/icons';
 import { Desktop } from '../containers/Desktop/Desktop';
+import { StructureToolbar } from '../containers/toolbars';
 import { RouteEditor } from '../containers/RouteEditor/RouteEditor';
 import ProjectRecord from '../models/Project';
 import ToolRecord from '../models/Tool';
@@ -48,13 +44,7 @@ import {
 } from '../actions/project';
 
 import { selectRoute } from '../actions/structure';
-
-import {
-  getLocalizedTextFromState,
-  canUndoSelector,
-  canRedoSelector,
-} from '../selectors';
-
+import { getLocalizedTextFromState } from '../selectors';
 import { findComponent } from '../lib/components';
 import { TOOL_ID_ROUTE_EDITOR } from '../constants/tool-ids';
 
@@ -64,15 +54,12 @@ import {
 } from '../constants/paths';
 
 import { INVALID_ID } from '../constants/misc';
-import { IconUndo, IconRedo, IconTrash, IconRedirect } from '../components/icons';
 
 const propTypes = {
   project: PropTypes.instanceOf(ProjectRecord).isRequired, // store
   projectName: PropTypes.string.isRequired, // store
   selectedRouteId: PropTypes.number.isRequired, // store
   indexRouteSelected: PropTypes.bool.isRequired, // store
-  canUndo: PropTypes.bool.isRequired, // store
-  canRedo: PropTypes.bool.isRequired, // store
   getLocalizedText: PropTypes.func.isRequired, // store
   onSelectRoute: PropTypes.func.isRequired, // dispatch
   onCreateRoute: PropTypes.func.isRequired, // dispatch
@@ -89,8 +76,6 @@ const mapStateToProps = state => ({
   projectName: state.project.projectName,
   selectedRouteId: state.project.selectedRouteId,
   indexRouteSelected: state.project.indexRouteSelected,
-  canUndo: canUndoSelector(state),
-  canRedo: canRedoSelector(state),
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -922,17 +907,8 @@ class StructureRoute extends PureComponent {
   }
 
   render() {
-    const {
-      canUndo,
-      canRedo,
-      selectedRouteId,
-      indexRouteSelected,
-      getLocalizedText,
-      onUndo,
-      onRedo,
-    } = this.props;
+    const { onUndo, onRedo } = this.props;
 
-    const isDeletable = selectedRouteId !== INVALID_ID && !indexRouteSelected;
     const content = this._renderContent();
     const newRouteDialog = this._renderNewRouteDialog();
     const editRoutePathDialog = this._renderEditRoutePathDialog();
@@ -949,32 +925,11 @@ class StructureRoute extends PureComponent {
           toolGroups={this._toolGroups}
           onToolTitleChange={this._handleToolTitleChange}
         >
-          <ToolBar>
-            <ToolBarGroup>
-              <ToolBarAction
-                icon={<IconTrash />}
-                tooltipText={getLocalizedText('toolbar.structure.delete')}
-                disabled={!isDeletable}
-                onPress={this._handleDeleteRoutePress}
-              />
-            </ToolBarGroup>
-
-            <ToolBarGroup>
-              <ToolBarAction
-                icon={<IconUndo />}
-                tooltipText={getLocalizedText('toolbar.common.undo')}
-                disabled={!canUndo}
-                onPress={onUndo}
-              />
-
-              <ToolBarAction
-                icon={<IconRedo />}
-                tooltipText={getLocalizedText('toolbar.common.redo')}
-                disabled={!canRedo}
-                onPress={onRedo}
-              />
-            </ToolBarGroup>
-          </ToolBar>
+          <StructureToolbar
+            onDelete={this._handleDeleteRoutePress}
+            onUndo={onUndo}
+            onRedo={onRedo}
+          />
 
           <AppWrapper>
             <Shortcuts

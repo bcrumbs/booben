@@ -4,7 +4,8 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Form, FormItem, TextField } from '@reactackle/reactackle';
+import { Form, FormItem } from 'reactackle-form';
+import { TextField } from 'reactackle-text-field';
 
 import {
   BlockContentBox,

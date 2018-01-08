@@ -2,6 +2,7 @@
  * @author Dmitriy Bizyaev
  */
 
+import 'babel-polyfill';
 import '@reactackle/reactackle/reactackle.scss';
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -9,7 +10,7 @@ import { Route, Switch, Redirect } from 'react-router';
 import { ConnectedRouter } from 'react-router-redux';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from 'styled-components';
-import { Theme, injectGlobalStyle } from '@reactackle/reactackle';
+import { Theme, injectGlobalStyle } from 'reactackle-core';
 import { jssyTheme, reactackleMixin } from './styles/theme';
 import RootRoute from './routes/RootRoute';
 import PlaygroundRoute from './routes/PlaygroundRoute';

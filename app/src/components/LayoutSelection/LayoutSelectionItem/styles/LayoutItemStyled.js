@@ -3,7 +3,7 @@
  */
 
 import styled from 'styled-components';
-import { transition } from '@reactackle/reactackle';
+import { transition } from 'reactackle-core';
 import componentConstants from '../../styles/constants';
 import { colorBorder } from '../../../../styles/themeSelectors';
 

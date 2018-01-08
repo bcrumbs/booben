@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconCross as IconCrossRCTCL } from '@reactackle/reactackle';
+import { IconCross as IconCrossRCTCL } from 'reactackle-icons';
 import defaultProps from './common/defaultProps';
 
 export const IconCross = props => (

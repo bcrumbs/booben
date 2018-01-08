@@ -4,7 +4,8 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Checkbox, Tag } from '@reactackle/reactackle';
+import { Tag } from '@reactackle/reactackle';
+import { Checkbox } from 'reactackle-checkbox';
 import { PropLabel } from './PropLabel/PropLabel';
 import { PropImage } from './PropImage/PropImage';
 import { PropAction } from './PropAction/PropAction';

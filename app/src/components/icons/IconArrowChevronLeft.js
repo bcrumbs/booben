@@ -2,7 +2,7 @@ import React from 'react';
 
 import {
   IconArrowChevronLeft as IconArrowChevronLeftRCTCL,
-} from '@reactackle/reactackle';
+} from 'reactackle-icons';
 
 import defaultProps from './common/defaultProps';
 

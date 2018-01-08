@@ -1,5 +1,5 @@
 import React from 'react';
-import { IconCheck as IconCheckRCTCL } from '@reactackle/reactackle';
+import { IconCheck as IconCheckRCTCL } from 'reactackle-icons';
 import defaultProps from './common/defaultProps';
 
 export const IconCheck = props => (

@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition, animations, iconSizeMixin } from '@reactackle/reactackle';
+import { transition, animations, iconSizeMixin } from 'reactackle-core';
 import { baseModule } from '../../../styles/themeSelectors';
 
 const propTypes = {

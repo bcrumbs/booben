@@ -1,6 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Button, TooltipIcon } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
+import { TooltipIcon } from 'reactackle-tooltip-icon';
 import { noop } from '../../../../utils/misc';
 import { IconCross, IconArrowForward } from '../../../icons';
 import { ActionHeadingStyled } from './styles/ActionHeadingStyled';

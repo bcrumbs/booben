@@ -16,11 +16,7 @@ import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
 import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../constants/misc';
 import { isDef, returnEmptyObject, objectSome } from '../utils/misc';
-
-import {
-  DEFAULT_LANGUAGE,
-  COMPONENTS_COPY_NAME_TO_TITLE_ON_CREATION,
-} from '../config';
+import { DEFAULT_LANGUAGE, COMPONENTS_TITLE_FORMATTING } from '../config';
 
 /**
  * @typedef {Object<string, Object<string, ComponentMeta>>} ComponentsMeta
@@ -582,6 +578,30 @@ const buildDefaultProps = (
 };
 
 /**
+ *
+ * @param {string} componentName
+ * @param {ComponentMeta} componentMeta
+ * @param {string} language
+ * @return {*}
+ */
+const formatNewComponentTitle = (componentName, componentMeta, language) => {
+  switch (COMPONENTS_TITLE_FORMATTING) {
+    case 0: {
+      return '';
+    }
+    case 1: {
+      return componentName;
+    }
+    case 2: {
+      return getString(componentMeta.strings, componentMeta.textKey, language);
+    }
+    default: {
+      return '';
+    }
+  }
+};
+
+/**
  * Constructs new immutable ProjectComponent record
  *
  * @param {string} componentName
@@ -615,7 +635,7 @@ export const constructComponent = (
     isNew,
     isWrapper,
     name: componentName,
-    title: COMPONENTS_COPY_NAME_TO_TITLE_ON_CREATION ? componentName : '',
+    title: formatNewComponentTitle(componentName, meta, language),
     systemProps: buildDefaultProps(SYSTEM_PROPS),
     props: buildDefaultProps(
       componentMeta.props,
@@ -656,9 +676,7 @@ export const constructComponent = (
         isNew,
         isWrapper,
         name: regionComponentName,
-        title: COMPONENTS_COPY_NAME_TO_TITLE_ON_CREATION
-          ? regionComponentName
-          : '',
+        title: formatNewComponentTitle(regionComponentName, meta, language),
         systemProps: buildDefaultProps(SYSTEM_PROPS),
         props,
         children: [],

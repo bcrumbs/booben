@@ -10,8 +10,6 @@ import { Route, Switch, Redirect } from 'react-router';
 import { Link } from 'react-router-dom';
 
 import {
-  App,
-  TopRegion,
   Header,
   HeaderRegion,
   HeaderLogoBox,
@@ -21,6 +19,8 @@ import {
   HeaderMenuItem,
   AlertArea,
 } from '@reactackle/reactackle';
+
+import { App, TopRegion } from 'reactackle-app';
 
 import StructureRoute from './StructureRoute';
 import DesignRoute from './DesignRoute';

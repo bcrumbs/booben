@@ -4,7 +4,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
 import { noop } from '../../../../utils/misc';
 import { PropActionStyled } from './styles/PropActionStyled';
 

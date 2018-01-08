@@ -4,7 +4,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
 import { returnArg, noop } from '../../../../../utils/misc';
 import { IconAdd } from '../../../../../components/icons';
 

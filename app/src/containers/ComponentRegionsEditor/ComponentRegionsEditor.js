@@ -14,28 +14,25 @@ import {
 import { PropsList } from '../../components/PropsList/PropsList';
 import { PropToggle } from '../../components/props';
 import { toggleComponentRegion } from '../../actions/project';
-
-import {
-  currentComponentsSelector,
-  selectedComponentIdsSelector,
-} from '../../selectors';
-
+import { singleSelectedComponentSelector } from '../../selectors';
 import { getComponentMeta, getString } from '../../lib/meta';
-import * as JssyPropTypes from '../../constants/common-prop-types';
+import ProjectComponent from '../../models/ProjectComponent';
 import defaultRegionIcon from '../../../assets/layout_default.svg';
 
 const propTypes = {
-  meta: PropTypes.object.isRequired,
-  currentComponents: JssyPropTypes.components.isRequired,
-  selectedComponentIds: JssyPropTypes.setOfIds.isRequired,
-  language: PropTypes.string.isRequired,
-  onToggleRegion: PropTypes.func.isRequired,
+  meta: PropTypes.object.isRequired, // state
+  selectedComponent: PropTypes.instanceOf(ProjectComponent), // state
+  language: PropTypes.string.isRequired, // state
+  onToggleRegion: PropTypes.func.isRequired, // dispatch
+};
+
+const defaultProps = {
+  selectedComponent: null,
 };
 
 const mapStateToProps = state => ({
   meta: state.project.meta,
-  currentComponents: currentComponentsSelector(state),
-  selectedComponentIds: selectedComponentIdsSelector(state),
+  selectedComponent: singleSelectedComponentSelector(state),
   language: state.app.language,
 });
 
@@ -46,43 +43,48 @@ const mapDispatchToProps = dispatch => ({
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
 
-class ComponentRegionsEditorComponent extends PureComponent {
+class _ComponentRegionsEditor extends PureComponent {
+  constructor(props, context) {
+    super(props, context);
+    this._handleRegionToggleBinds = [];
+  }
+
   _handleRegionToggle(regionIdx, { value }) {
-    const { selectedComponentIds, onToggleRegion } = this.props;
-    
-    const componentId = selectedComponentIds.first();
-    onToggleRegion(componentId, regionIdx, value);
+    const { selectedComponent, onToggleRegion } = this.props;
+    onToggleRegion(selectedComponent.id, regionIdx, value);
+  }
+
+  _getRegionToggleHandler(regionIdx) {
+    if (!this._handleRegionToggleBinds[regionIdx]) {
+      this._handleRegionToggleBinds[regionIdx] =
+        this._handleRegionToggle.bind(this, regionIdx);
+    }
+
+    return this._handleRegionToggleBinds[regionIdx];
   }
 
   render() {
-    const {
-      meta,
-      currentComponents,
-      selectedComponentIds,
-      language,
-    } = this.props;
-    
-    if (selectedComponentIds.size !== 1) return null;
+    const { meta, selectedComponent, language } = this.props;
 
-    const componentId = selectedComponentIds.first();
-    const component = currentComponents.get(componentId);
-    const componentMeta = getComponentMeta(component.name, meta);
+    if (selectedComponent === null) {
+      return null;
+    }
 
-    if (componentMeta.kind !== 'composite') return null;
+    const componentMeta = getComponentMeta(selectedComponent.name, meta);
+    if (componentMeta.kind !== 'composite') {
+      return null;
+    }
 
-    const layoutMeta = componentMeta.layouts[component.layout];
-
-    /* eslint-disable react/jsx-no-bind */
+    const layoutMeta = componentMeta.layouts[selectedComponent.layout];
     const items = layoutMeta.regions.map((region, idx) => (
       <PropToggle
         key={String(idx)}
         label={getString(componentMeta.strings, region.textKey, language)}
         image={region.icon || defaultRegionIcon}
-        value={component.regionsEnabled.has(idx)}
-        onChange={this._handleRegionToggle.bind(this, idx)}
+        value={selectedComponent.regionsEnabled.has(idx)}
+        onChange={this._getRegionToggleHandler(idx)}
       />
     ));
-    /* eslint-enable react/jsx-no-bind */
 
     return (
       <BlockContentBox isBordered>
@@ -96,7 +98,8 @@ class ComponentRegionsEditorComponent extends PureComponent {
   }
 }
 
-ComponentRegionsEditorComponent.propTypes = propTypes;
-ComponentRegionsEditorComponent.displayName = 'ComponentRegionsEditor';
+_ComponentRegionsEditor.propTypes = propTypes;
+_ComponentRegionsEditor.defaultProps = defaultProps;
+_ComponentRegionsEditor.displayName = 'ComponentRegionsEditor';
 
-export const ComponentRegionsEditor = wrap(ComponentRegionsEditorComponent);
+export const ComponentRegionsEditor = wrap(_ComponentRegionsEditor);

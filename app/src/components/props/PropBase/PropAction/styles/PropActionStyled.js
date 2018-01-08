@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { transition } from '@reactackle/reactackle';
+import { transition } from 'reactackle-core';
 import constants from '../../../styles/constants';
 
 const expanded = ({ expanded }) => expanded ? 'transform: rotate(90deg);' : '';

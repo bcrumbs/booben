@@ -9,7 +9,7 @@ import _startCase from 'lodash.startcase';
 import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';
 import { List, Map } from 'immutable';
-import { Button } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
 
 import {
   getMutationType,
