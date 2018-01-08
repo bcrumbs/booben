@@ -1,4 +1,4 @@
-import { IconSvg } from '@reactackle/reactackle';
+import { IconSvg } from 'reactackle-icons';
 
 export default {
   ...IconSvg.defaultProps,

@@ -5,7 +5,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import _pick from 'lodash.pick';
-import { ToggleButton } from '@reactackle/reactackle';
+import { ToggleButton } from 'reactackle-toggle-button';
 import { PropBase } from '../PropBase/PropBase';
 import { noop } from '../../../utils/misc';
 import { ToggleBoxStyled } from './styles/ToggleBoxStyled';

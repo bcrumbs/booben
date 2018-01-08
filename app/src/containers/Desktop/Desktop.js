@@ -6,7 +6,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { List } from 'immutable';
-import { MainRegion, Content } from '@reactackle/reactackle';
+import { MainRegion, Content } from 'reactackle-app';
 import { ToolWindow, STICK_REGION_RIGHT } from './ToolWindow/ToolWindow';
 import { ToolPanel } from './ToolPanel/ToolPanel';
 import ToolState from '../../models/ToolState';

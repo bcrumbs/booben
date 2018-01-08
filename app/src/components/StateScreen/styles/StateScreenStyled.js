@@ -1,5 +1,5 @@
 import styled, { css } from 'styled-components';
-import { animations } from '@reactackle/reactackle';
+import { animations } from 'reactackle-core';
 import PropTypes from 'prop-types';
 
 import { bodyFontFamily } from '../../../styles/themeSelectors';

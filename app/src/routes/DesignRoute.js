@@ -9,7 +9,7 @@ import { Shortcuts } from 'react-shortcuts';
 import Portal from 'react-portal-minimal';
 import { push } from 'react-router-redux';
 import { List } from 'immutable';
-import { Dialog } from '@reactackle/reactackle';
+import { Dialog } from 'reactackle-dialog';
 import { Desktop } from '../containers/Desktop/Desktop';
 import { DesignToolbar } from '../containers/toolbars';
 

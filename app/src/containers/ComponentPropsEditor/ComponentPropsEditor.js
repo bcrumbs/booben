@@ -6,7 +6,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import debounce from 'lodash.debounce';
-import { Button } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
 import { getNestedTypedef } from '@jssy/types';
 
 import {

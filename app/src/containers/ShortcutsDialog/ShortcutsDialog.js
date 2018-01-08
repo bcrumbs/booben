@@ -4,7 +4,8 @@ import { connect } from 'react-redux';
 import camelCase from 'lodash.camelcase';
 import transform from 'lodash.transform';
 import { getPlatformName } from 'react-shortcuts/lib/helpers';
-import { Dialog, Theme } from '@reactackle/reactackle';
+import { Theme } from 'reactackle-core';
+import { Dialog } from 'reactackle-dialog';
 import keymap from '../../keymap';
 import { getLocalizedTextFromState } from '../../selectors';
 

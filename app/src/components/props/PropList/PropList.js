@@ -5,7 +5,7 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import _pick from 'lodash.pick';
-import { SelectBox } from '@reactackle/reactackle';
+import { SelectBox } from 'reactackle-selectbox';
 import { PropBase } from '../PropBase/PropBase';
 import { noop } from '../../../utils/misc';
 

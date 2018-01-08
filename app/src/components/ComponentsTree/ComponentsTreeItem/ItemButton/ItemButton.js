@@ -1,5 +1,6 @@
 import React from 'react';
-import { Button, Theme } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
+import { Theme } from 'reactackle-core';
 import reactackleThemeMixin from './styles/reactackle-theme-mixin';
 
 const propTypes = {

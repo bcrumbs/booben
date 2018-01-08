@@ -1,7 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import _pick from 'lodash.pick';
-import { Button, Theme, withTooltip } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
+import { Theme } from 'reactackle-core';
+import { withTooltip } from 'reactackle-tooltip';
 import { ToolBarActionStyled } from './styles/ToolBarActionStyled';
 import reactackleThemeMixin from './styles/reactackle-theme-mixin';
 import { noop } from '../../../utils/misc';

@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Button, withTooltip } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
+import { withTooltip } from 'reactackle-tooltip';
 import { noop } from '../../../../utils/misc';
 
 import {

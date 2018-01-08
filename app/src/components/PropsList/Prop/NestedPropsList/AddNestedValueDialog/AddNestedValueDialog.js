@@ -4,7 +4,8 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TextField, Button } from '@reactackle/reactackle';
+import { TextField } from 'reactackle-text-field';
+import { Button } from 'reactackle-button';
 import { noop, returnArg } from '../../../../../utils/misc';
 import { FieldNewStyled } from './styles/FieldNewStyled';
 import { TitleRowStyled } from './styles/TitleRowStyled';

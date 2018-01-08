@@ -4,7 +4,7 @@
 
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
 import { ActionsRowStyled } from './styles/ActionsRowStyled';
 import { PropsListStyled } from '../../styles/PropsListStyled';
 

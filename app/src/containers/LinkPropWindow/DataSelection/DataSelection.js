@@ -5,7 +5,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Map } from 'immutable';
-import { Button } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
 
 import {
   getTypeNameByField,

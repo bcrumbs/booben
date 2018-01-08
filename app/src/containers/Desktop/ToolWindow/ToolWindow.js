@@ -6,7 +6,9 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ReactDOM from 'react-dom';
 import throttle from 'lodash.throttle';
-import { Button, Tabs, IconCross } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
+import { Tabs } from 'reactackle-tabs';
+import { IconCross } from 'reactackle-icons';
 
 import {
   BlockContent,

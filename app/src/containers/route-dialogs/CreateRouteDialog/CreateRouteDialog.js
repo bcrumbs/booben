@@ -6,7 +6,9 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
-import { Dialog, Form, FormItem, TextField } from '@reactackle/reactackle';
+import { Form, FormItem } from 'reactackle-form';
+import { TextField } from 'reactackle-text-field';
+import { Dialog } from 'reactackle-dialog';
 import snakeCase from 'lodash.snakecase';
 
 import {

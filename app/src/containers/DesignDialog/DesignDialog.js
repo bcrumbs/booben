@@ -5,7 +5,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Dialog } from '@reactackle/reactackle';
+import { Dialog } from 'reactackle-dialog';
 
 const propTypes = {
   ...Dialog.propTypes,

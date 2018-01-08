@@ -8,7 +8,8 @@ import { connect } from 'react-redux';
 import { push } from 'react-router-redux';
 import { Shortcuts } from 'react-shortcuts';
 import { List } from 'immutable';
-import { Container, Dialog } from '@reactackle/reactackle';
+import { Container } from 'reactackle-grid';
+import { Dialog } from 'reactackle-dialog';
 import { AppWrapper } from '../components/AppWrapper/AppWrapper';
 
 import {

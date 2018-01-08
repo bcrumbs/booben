@@ -3,7 +3,7 @@
  */
 
 import styled from 'styled-components';
-import { animations } from '@reactackle/reactackle';
+import { animations } from 'reactackle-core';
 import { paletteBlueGrey300 } from '../../../../styles/themeSelectors';
 
 const lineHeight = 1;

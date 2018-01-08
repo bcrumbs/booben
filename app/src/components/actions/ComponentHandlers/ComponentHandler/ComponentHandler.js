@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TooltipIcon } from '@reactackle/reactackle';
+import { TooltipIcon } from 'reactackle-tooltip-icon';
 import { noop } from '../../../../utils/misc';
 import { IconArrowChevronRight } from '../../../icons';
 import { HandlerStyled } from './styles/HandlerStyled';

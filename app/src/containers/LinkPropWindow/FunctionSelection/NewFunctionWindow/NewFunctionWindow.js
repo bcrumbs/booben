@@ -6,13 +6,10 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TypeNames } from '@jssy/types';
 
-import {
-  Form,
-  FormItem,
-  TextField,
-  SelectBox,
-  Button,
-} from '@reactackle/reactackle';
+import { Form, FormItem } from 'reactackle-form';
+import { TextField } from 'reactackle-text-field';
+import { SelectBox } from 'reactackle-selectbox';
+import { Button } from 'reactackle-button';
 
 import {
   BlockContent,

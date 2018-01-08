@@ -1,5 +1,6 @@
 import React from 'react';
-import { Column, TextField, Row } from '@reactackle/reactackle';
+import { TextField } from 'reactackle-text-field';
+import { Column, Row } from 'reactackle-grid';
 import { DataRowStyled } from './styles/DataRowStyled';
 import { DataAdditionalStyled } from './styles/DataAdditionalStyled';
 

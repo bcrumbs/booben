@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { withTooltip } from '@reactackle/reactackle';
+import { withTooltip } from 'reactackle-tooltip';
 import { IconCheck, IconExclamation } from '../icons';
 import { ProjectSaveStyled } from './styles/ProjectSaveStyled';
 import { IconStyled } from './styles/IconStyled';

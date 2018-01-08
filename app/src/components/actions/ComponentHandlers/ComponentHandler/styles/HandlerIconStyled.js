@@ -1,5 +1,5 @@
 import styled, { css } from 'styled-components';
-import { transition } from '@reactackle/reactackle';
+import { transition } from 'reactackle-core';
 import { textColorMedium } from '../../../../../styles/themeSelectors';
 
 const expanded = ({ expanded }) => expanded

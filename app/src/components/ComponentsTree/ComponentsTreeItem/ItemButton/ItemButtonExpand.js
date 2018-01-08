@@ -1,7 +1,7 @@
 import React from 'react';
 import { PropTypes } from 'prop-types';
 import styled from 'styled-components';
-import { transition } from '@reactackle/reactackle';
+import { transition } from 'reactackle-core';
 import { ItemButton } from './ItemButton';
 import { IconArrowChevronRight } from '../../../icons';
 

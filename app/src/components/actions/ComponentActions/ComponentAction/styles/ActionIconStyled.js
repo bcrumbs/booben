@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { iconSizeMixin } from '@reactackle/reactackle';
+import { iconSizeMixin } from 'reactackle-core';
 import constants from './constants';
 import { textColorMedium } from '../../../../../styles/themeSelectors';
 
