@@ -4,6 +4,7 @@
 
 import _mapValues from 'lodash.mapvalues';
 import a from './html/a';
+import audio from './html/audio';
 import blockquote from './html/blockquote';
 import code from './html/code';
 import div from './html/div';
@@ -88,6 +89,7 @@ export default {
 
   components: _mapValues({
     a,
+    audio,
     blockquote,
     code,
     div,
