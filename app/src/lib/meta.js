@@ -635,7 +635,7 @@ export const constructComponent = (
     isNew,
     isWrapper,
     name: componentName,
-    title: formatNewComponentTitle(componentName, meta, language),
+    title: formatNewComponentTitle(componentName, componentMeta, language),
     systemProps: buildDefaultProps(SYSTEM_PROPS),
     props: buildDefaultProps(
       componentMeta.props,
@@ -676,7 +676,11 @@ export const constructComponent = (
         isNew,
         isWrapper,
         name: regionComponentName,
-        title: formatNewComponentTitle(regionComponentName, meta, language),
+        title: formatNewComponentTitle(
+          regionComponentName,
+          regionComponentMeta,
+          language,
+        ),
         systemProps: buildDefaultProps(SYSTEM_PROPS),
         props,
         children: [],

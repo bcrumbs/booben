@@ -12,10 +12,12 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<h1> tag',
+      en: 'Heading 1',
     },
     description: {
-      en: '',
+      en: 'Represents first (highest) level of section headings. It\'s' +
+      ' recommended to use only 1 header of this type on the page' +
+      ' for better search optimization.',
     },
   },
   tags: new Set(),

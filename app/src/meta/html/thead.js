@@ -12,10 +12,10 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<thead> tag',
+      en: 'Table header',
     },
     description: {
-      en: '',
+      en: 'A set of rows defining the head of the columns of the table.',
     },
   },
   tags: new Set(),

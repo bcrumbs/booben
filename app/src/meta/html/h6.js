@@ -12,10 +12,10 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<h6> tag',
+      en: 'Heading 6',
     },
     description: {
-      en: '',
+      en: 'Represents sixth (lowest) level of section headings.',
     },
   },
   tags: new Set(),

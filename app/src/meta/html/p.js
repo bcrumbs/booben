@@ -12,10 +12,10 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<p> tag',
+      en: 'Paragraph',
     },
     description: {
-      en: '',
+      en: 'A paragraph of text.',
     },
   },
   tags: new Set(),

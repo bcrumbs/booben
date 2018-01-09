@@ -7,7 +7,7 @@ export default {
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'atomic',
-  group: 'forms',
+  hidden: true,
   props: {
     autoFocus: {
       textKey: 'props_autoFocus',

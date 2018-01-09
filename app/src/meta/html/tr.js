@@ -12,10 +12,10 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<tr> tag',
+      en: 'Table row',
     },
     description: {
-      en: '',
+      en: 'A row of cells in a table',
     },
   },
   tags: new Set(),

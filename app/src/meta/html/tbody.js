@@ -12,10 +12,10 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<tbody> tag',
+      en: 'Table body',
     },
     description: {
-      en: '',
+      en: 'Groups one or more Table Rows as the body of a Table.',
     },
   },
   tags: new Set(),

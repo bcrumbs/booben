@@ -7,7 +7,7 @@ export default {
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'special',
+  hidden: true,
   props: {
     height: {
       textKey: 'props_height',

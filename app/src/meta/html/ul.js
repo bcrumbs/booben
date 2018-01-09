@@ -7,15 +7,15 @@ export default {
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'lists',
+  group: 'basic',
   props: {},
   propGroups: [],
   strings: {
     name: {
-      en: '<ul> tag',
+      en: 'Unordered list',
     },
     description: {
-      en: '',
+      en: 'An unordered list of items, typically rendered as a bulleted list',
     },
   },
   tags: new Set(),
