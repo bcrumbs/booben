@@ -45,6 +45,7 @@ const Views = {
   LIST: 0,
   FUNCTION: 1,
   ADD: 2,
+  EDIT: 3,
 };
 
 export class FunctionSelection extends PureComponent {
@@ -68,9 +69,10 @@ export class FunctionSelection extends PureComponent {
     this._handleReturn = this._handleReturn.bind(this);
     this._handleReturnToList = this._handleReturnToList.bind(this);
     this._handleAddFunction = this._handleAddFunction.bind(this);
+    this._handleEditFunction = this._handleEditFunction.bind(this);
     this._handleSelectFunction = this._handleSelectFunction.bind(this);
     this._handleApply = this._handleApply.bind(this);
-    this._handleCreate = this._handleCreate.bind(this);
+    this._handleSave = this._handleSave.bind(this);
   }
   
   componentWillReceiveProps(nextProps) {
@@ -118,6 +120,12 @@ export class FunctionSelection extends PureComponent {
     });
   }
 
+  _handleEditFunction() {
+    this.setState({
+      currentView: Views.EDIT,
+    });
+  }
+
   _handleSelectFunction({ id, source }) {
     this.setState({
       currentView: Views.FUNCTION,
@@ -137,11 +145,24 @@ export class FunctionSelection extends PureComponent {
     });
   }
   
-  _handleCreate({ title, description, args, returnType, code, spreadLastArg }) {
+  _handleSave({
+    name: receivedName,
+    title,
+    description,
+    args,
+    returnType,
+    code,
+    spreadLastArg,
+  }) {
     const { projectFunctions, onCreateFunction } = this.props;
     
-    const existingNames = Array.from(projectFunctions.keys());
-    const name = functionNameFromTitle(title, existingNames);
+    let name;
+    if (!receivedName) {
+      const existingNames = Array.from(projectFunctions.keys());
+      name = functionNameFromTitle(title, existingNames);
+    } else {
+      name = receivedName;
+    }
   
     this._newFunctionId = name;
   
@@ -224,6 +245,7 @@ export class FunctionSelection extends PureComponent {
         onReturn={this._handleReturn}
         onReturnToList={this._handleReturnToList}
         onNestedLink={onNestedLink}
+        onEdit={this._handleEditFunction}
       />
     );
   }
@@ -237,7 +259,36 @@ export class FunctionSelection extends PureComponent {
       <NewFunctionWindow
         existingFunctionNames={existingFunctionNames}
         getLocalizedText={getLocalizedText}
-        onCreate={this._handleCreate}
+        getLinkDialogLocalizedText={
+          text => getLocalizedText(`linkDialog.function.new.${text}`)
+        }
+        onSave={this._handleSave}
+        onCancel={this._handleReturnToList}
+      />
+    );
+  }
+
+  _renderEditFunctionWindow() {
+    const { projectFunctions, getLocalizedText, builtinFunctions } = this.props;
+    const { selectedFunctionId, selectedFunctionSource } = this.state;
+    const existingFunctionNames = Array.from(projectFunctions.keys());
+    
+    const functionDefs = selectedFunctionSource === FunctionSources.BUILTIN
+      ? builtinFunctions
+      : projectFunctions;
+
+    const functionDef = functionDefs.get(selectedFunctionId);
+    
+    return (
+      <NewFunctionWindow
+        existingFunctionNames={existingFunctionNames}
+        selectedFunctionId={selectedFunctionId}
+        getLocalizedText={getLocalizedText}
+        getLinkDialogLocalizedText={
+          text => getLocalizedText(`linkDialog.function.edit.${text}`)
+        }
+        functionDef={functionDef}
+        onSave={this._handleSave}
         onCancel={this._handleReturnToList}
       />
     );
@@ -250,6 +301,7 @@ export class FunctionSelection extends PureComponent {
       case Views.LIST: return this._renderFunctionsList();
       case Views.FUNCTION: return this._renderFunctionWindow();
       case Views.ADD: return this._renderNewFunctionWindow();
+      case Views.EDIT: return this._renderEditFunctionWindow();
       default: return null;
     }
   }

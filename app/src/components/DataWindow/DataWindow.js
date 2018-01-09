@@ -31,5 +31,6 @@ DataWindow.defaultProps = defaultProps;
 DataWindow.displayName = 'DataWindow';
 
 export * from './DataWindowTitle/DataWindowTitle';
+export * from './DataWindowTitleActions/DataWindowTitleActions';
 export * from './DataWindowHeadingButtons/DataWindowHeadingButtons';
 export * from './DataWindowContentGroup/DataWindowContentGroup';
