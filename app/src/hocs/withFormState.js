@@ -153,7 +153,7 @@ export const withFormState = ({
       }, () => {
         if (this._isFormValid()) {
           onSubmit(this.state.values, this.props);
-          postAction();
+          if (postAction) postAction();
         }
       });
     }
