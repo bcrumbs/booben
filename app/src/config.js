@@ -16,7 +16,7 @@ export const DND_DRAG_START_RADIUS_TREE = 10;
 export const DND_DRAG_START_RADIUS_CANVAS = 100;
 // Experimental feature.
 // Configure snap lines in containers/ComponentsDragArea/ComponentsDragArea.js.
-export const DND_CANVAS_SNAP_LINES = true;
+export const DND_CANVAS_SNAP_LINES = false;
 
 export const DESKTOP_TOOL_WINDOWS_MARGIN = 8;
 export const DESKTOP_EMPTY_TOOL_PANEL_WIDTH = 40;
