@@ -1009,12 +1009,12 @@ class ComponentsTreeViewComponent extends PureComponent {
     const highlightedComponentId = highlightedComponentIds.first();
     if (highlightedComponentId) {
       let currentID = highlightedComponentId;
-      while (!expandedItemIds.has(currentID)) {
-        if (currentID !== INVALID_ID) {
-          const parentId = components.get(currentID).parentId;
-          if (currentID === componentId) hovered = true;
-          currentID = parentId;
-        }
+      while (
+        currentID !== INVALID_ID && !expandedItemIds.has(currentID)
+      ) {
+        const parentId = components.get(currentID).parentId;
+        if (currentID === componentId) hovered = true;
+        currentID = parentId;
       }
     }
 
