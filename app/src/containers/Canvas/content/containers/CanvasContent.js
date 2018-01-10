@@ -206,9 +206,7 @@ class CanvasContent extends Component {
     const containerNode = this._getContainer();
     containerNode.addEventListener('mouseover', this._handleMouseOver, false);
     containerNode.addEventListener('mouseout', this._handleMouseOut, false);
-    containerNode.addEventListener('mousedown', this._handleMouseDown, false);
     containerNode.addEventListener('click', this._handleClick, false);
-    containerNode.addEventListener('mouseup', this._handleMouseUp);
   }
 
   componentWillReceiveProps(nextProps) {
@@ -296,14 +294,7 @@ class CanvasContent extends Component {
 
     containerNode.removeEventListener('mouseout', this._handleMouseOut, false);
 
-    containerNode.removeEventListener(
-      'mousedown',
-      this._handleMouseDown,
-      false,
-    );
-
     containerNode.removeEventListener('click', this._handleClick, false);
-    containerNode.removeEventListener('mouseup', this._handleMouseUp);
 
     if (this._unhighilightTimer > -1) clearImmediate(this._unhighilightTimer);
 
@@ -629,7 +620,7 @@ class CanvasContent extends Component {
 
     const component = getComponentById(project, componentId);
 
-    return component.routeId === currentRouteId &&
+    return component && component.routeId === currentRouteId &&
       component.isIndexRoute === currentRouteIsIndexRoute;
   }
 
@@ -697,7 +688,7 @@ class CanvasContent extends Component {
       }
     }
   }
-
+  
   /**
    *
    * @param {MouseEvent} event

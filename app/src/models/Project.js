@@ -117,8 +117,10 @@ export const gatherRoutesTreeIds = (project, rootRouteId) =>
 export const getRouteByComponentId = (project, componentId) =>
   project.routes.find(route => route.components.has(componentId));
 
-export const getComponentById = (project, componentId) =>
-  getRouteByComponentId(project, componentId).components.get(componentId);
+export const getComponentById = (project, componentId) => {
+  const route = getRouteByComponentId(project, componentId);
+  return route && route.components.get(componentId);
+};
 
 export const projectToJSv1 = project => ({
   version: 1,
