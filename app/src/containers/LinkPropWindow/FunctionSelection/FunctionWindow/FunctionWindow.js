@@ -34,7 +34,11 @@ import {
   getStateSlotPickerFns,
 } from '../../../../actions/helpers/component-picker';
 
-import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
+import {
+  DataWindowTitle,
+  DataWindowTitleActions,
+} from '../../../../components/DataWindow/DataWindow';
+
 import { PropsList } from '../../../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
 import { buildDefaultValue } from '../../../../lib/meta';
@@ -63,6 +67,7 @@ const propTypes = {
   onReturnToList: PropTypes.func,
   onNestedLink: PropTypes.func,
   onPickComponentData: PropTypes.func.isRequired,
+  onEdit: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -488,6 +493,13 @@ class _FunctionWindow extends PureComponent {
                 title={functionDef.title}
                 subtitle={functionDef.description}
               />
+              <DataWindowTitleActions>
+                <Button
+                  text={getLocalizedText('linkDialog.function.button.edit')}
+                  narrow
+                  onPress={this.props.onEdit}
+                />
+              </DataWindowTitleActions>
             </BlockContentBoxItem>
           </BlockContentBoxGroup>
 

@@ -3,7 +3,6 @@ import {
   paletteBlueGrey25,
   paletteBlueGrey500,
   paletteBlueGrey650,
-  paletteBlueGrey700,
   colorMain,
   colorBorderDark,
   colorActiveBg,
@@ -102,7 +101,7 @@ export default {
       },
 
       dim: {
-        backgroundColor: paletteBlueGrey700,
+        backgroundColor: 'rgba(0, 0, 0, 0.1)',
       },
 
       editing: {

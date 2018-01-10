@@ -46,15 +46,22 @@ import { IconArrowChevronLeft } from '../../../../components/icons';
 
 const propTypes = {
   existingFunctionNames: PropTypes.arrayOf(PropTypes.string).isRequired,
+  selectedFunctionId: PropTypes.string,
+  // eslint-disable-next-line react/no-unused-prop-types
+  functionDef: PropTypes.object,
   getLocalizedText: PropTypes.func,
-  onCreate: PropTypes.func,
+  getLinkDialogLocalizedText: PropTypes.func,
+  onSave: PropTypes.func,
   onCancel: PropTypes.func,
 };
 
 const defaultProps = {
+  selectedFunctionId: null,
   getLocalizedText: returnArg,
-  onCreate: noop,
+  getLinkDialogLocalizedText: returnArg,
+  onSave: noop,
   onCancel: noop,
+  functionDef: null,
 };
 
 const without = (array, idx) => {
@@ -78,14 +85,9 @@ export class NewFunctionWindow extends PureComponent {
 
     this.state = {
       view: Views.DEFINITION,
-      title: '',
-      description: '',
-      returnType: TypeNames.STRING,
-      args: [],
-      code: '',
       creatingNewArgument: false,
       creatingRestArg: false,
-      restArgCreated: false,
+      ...this._mapPropsToState(this.props),
     };
 
     this._handleTitleChange = this._handleTitleChange.bind(this);
@@ -99,8 +101,38 @@ export class NewFunctionWindow extends PureComponent {
     this._handleCancel = this._handleCancel.bind(this);
     this._handleNext = this._handleNext.bind(this);
     this._handleBack = this._handleBack.bind(this);
-    this._handleCreate = this._handleCreate.bind(this);
+    this._handleSave = this._handleSave.bind(this);
     this._handleCodeChange = this._handleCodeChange.bind(this);
+  }
+
+  componentWillReceiveProps(nextProps) {
+    this.setState(this._mapPropsToState(nextProps));
+  }
+
+
+  _mapPropsToState({ functionDef }) {
+    const state = {
+      title: '',
+      description: '',
+      returnType: TypeNames.STRING,
+      args: [],
+      code: '',
+      restArgCreated: false,
+    };
+
+    if (functionDef) {
+      state.title = functionDef.title;
+      state.description = functionDef.description;
+      state.returnType = functionDef.returnType.type;
+      state.code = functionDef.body;
+      state.args = functionDef.args.toJS().map(arg => ({
+        type: arg.typedef.type,
+        name: arg.name,
+      }));
+      state.restArgCreated = functionDef.spreadLastArg;
+    }
+
+    return state;
   }
 
   _getTypeSelectOptions() {
@@ -185,8 +217,8 @@ export class NewFunctionWindow extends PureComponent {
     this.setState({ view: Views.DEFINITION });
   }
 
-  _handleCreate() {
-    const { onCreate } = this.props;
+  _handleSave() {
+    const { onSave, selectedFunctionId } = this.props;
     const {
       args,
       title,
@@ -196,14 +228,20 @@ export class NewFunctionWindow extends PureComponent {
       restArgCreated,
     } = this.state;
 
-    onCreate({
+    const newFunction = {
       title,
       description,
       args,
       returnType,
       code,
       spreadLastArg: restArgCreated,
-    });
+    };
+
+    if (selectedFunctionId) {
+      newFunction.name = selectedFunctionId;
+    }
+
+    onSave(newFunction);
   }
 
   _handleCodeChange(code) {
@@ -211,7 +249,10 @@ export class NewFunctionWindow extends PureComponent {
   }
 
   _renderDefinitionForm() {
-    const { getLocalizedText } = this.props;
+    const {
+      getLocalizedText,
+      getLinkDialogLocalizedText,
+    } = this.props;
 
     const {
       title,
@@ -292,7 +333,7 @@ export class NewFunctionWindow extends PureComponent {
         <BlockContentBox>
           <BlockContentBoxItem isBordered>
             <DataWindowTitle
-              title={getLocalizedText('linkDialog.function.new.windowTitle')}
+              title={getLinkDialogLocalizedText('windowTitle')}
             />
           </BlockContentBoxItem>
 
@@ -300,7 +341,7 @@ export class NewFunctionWindow extends PureComponent {
             <Form>
               <FormItem>
                 <TextField
-                  label={getLocalizedText('linkDialog.function.new.title')}
+                  label={getLinkDialogLocalizedText('title')}
                   value={title}
                   onChange={this._handleTitleChange}
                 />
@@ -310,7 +351,7 @@ export class NewFunctionWindow extends PureComponent {
                 <TextField
                   multiline
                   multilineRows={{ min: 1 }}
-                  label={getLocalizedText('linkDialog.function.new.desc')}
+                  label={getLinkDialogLocalizedText('desc')}
                   value={description}
                   onChange={this._handleDescriptionChange}
                 />
@@ -318,7 +359,7 @@ export class NewFunctionWindow extends PureComponent {
 
               <FormItem>
                 <SelectBox
-                  label={getLocalizedText('linkDialog.function.new.returnType')}
+                  label={getLinkDialogLocalizedText('returnType')}
                   value={returnType}
                   options={typeSelectOptions}
                   onChange={this._handleReturnTypeChange}
@@ -328,7 +369,7 @@ export class NewFunctionWindow extends PureComponent {
           </BlockContentBoxItem>
 
           <BlockContentBoxHeading>
-            {getLocalizedText('linkDialog.function.new.argsList')}
+            {getLinkDialogLocalizedText('argsList')}
           </BlockContentBoxHeading>
 
           <BlockContentBoxItem>
@@ -358,7 +399,12 @@ export class NewFunctionWindow extends PureComponent {
   }
 
   _renderCodeEditor() {
-    const { existingFunctionNames, getLocalizedText } = this.props;
+    const {
+      existingFunctionNames,
+      getLocalizedText,
+      getLinkDialogLocalizedText,
+    } = this.props;
+
     const { args, title, code, restArgCreated } = this.state;
 
     const functionName = functionNameFromTitle(title, existingFunctionNames);
@@ -391,8 +437,8 @@ export class NewFunctionWindow extends PureComponent {
               onPress={this._handleCancel}
             />
             <Button
-              text={getLocalizedText('common.create')}
-              onPress={this._handleCreate}
+              text={getLinkDialogLocalizedText('save')}
+              onPress={this._handleSave}
             />
           </BlockContentActionsRegion>
         </BlockContentActions>
