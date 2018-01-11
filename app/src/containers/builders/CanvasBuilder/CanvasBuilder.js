@@ -69,6 +69,7 @@ const propTypes = {
   enclosingContainerId: PropTypes.number,
   enclosingAfterIdx: PropTypes.number,
   dontPatch: PropTypes.bool,
+  fakeRootId: PropTypes.number,
   propsFromOwner: PropTypes.object,
   theMap: PropTypes.object,
   dataContextInfo: PropTypes.object,
@@ -99,6 +100,7 @@ const defaultProps = {
   enclosingContainerId: INVALID_ID,
   enclosingAfterIdx: -1,
   dontPatch: false,
+  fakeRootId: null,
   propsFromOwner: {},
   theMap: null,
   dataContextInfo: null,
@@ -440,16 +442,19 @@ class CanvasBuilderComponent extends PureComponent {
    * @private
    */
   _renderEmptyListComponent(list) {
-    const componentValue = list.props.get('component');
+    const { componentsBundle } = this.props;
+    const componentSourceData = list.props.get('component').sourceData;
 
-    if (componentValue.sourceData.rootId === INVALID_ID) return null;
+    if (componentSourceData.rootId === INVALID_ID) return null;
 
-    const rootListComponent = componentValue.sourceData.components
-      .get(componentValue.sourceData.rootId);
-
-    // Changing rootListComponent ID here in order
-    // to everyone outside recognize it as initial List
-    return this._renderComponent(rootListComponent.set('id', list.id));
+    return (
+      <CanvasBuilder
+        componentsBundle={componentsBundle}
+        components={componentSourceData.components}
+        rootId={componentSourceData.rootId}
+        fakeRootId={list.id}
+      />
+    );
   }
 
   /**
@@ -582,11 +587,20 @@ class CanvasBuilderComponent extends PureComponent {
    * @private
    */
   _patchComponentProps(props, componentId, isHTMLComponent, isInvisible) {
+    const { fakeRootId, rootId } = this.props;
+
+    // If we faking rootId, skip patching of all his childrens
+    if (fakeRootId && componentId !== rootId) return;
+
+    const id = fakeRootId && componentId === rootId
+      ? fakeRootId
+      : componentId;
+      
     if (isHTMLComponent) {
-      props['data-jssy-id'] = String(componentId);
+      props['data-jssy-id'] = String(id);
       if (isInvisible) props['data-jssy-invisible'] = '';
     } else {
-      props.__jssy_component_id__ = componentId;
+      props.__jssy_component_id__ = id;
       if (isInvisible) props.__jssy_invisible__ = true;
     }
   }
