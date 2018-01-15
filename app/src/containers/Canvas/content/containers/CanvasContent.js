@@ -8,6 +8,7 @@ import { connect } from 'react-redux';
 import throttle from 'lodash.throttle';
 import kdbush from 'kdbush';
 import _minBy from 'lodash.minby';
+import debounce from 'lodash.debounce';
 import { CanvasBuilder } from '../../../builders/CanvasBuilder/CanvasBuilder';
 
 import {
@@ -135,13 +136,13 @@ const wrap = connect(
   { withRef: true },
 );
 
-const setImmediate = window.setImmediate || (fn => setTimeout(fn, 0));
 const clearImmediate = window.clearImmediate || window.clearTimeout;
 
 const SNAP_DISTANCE = 200;
 const SUPPRESS_DROP_MENU_RADIUS = Math.round(SNAP_DISTANCE * 1.5);
 const CLOSE_SNAP_POINTS_THRESHOLD = 10;
 const DRAG_THROTTLE = 100;
+const HOVER_DEBOUNCE = 16;
 
 const readContainerId = element =>
   parseInt(element.getAttribute('data-jssy-container-id'), 10);
@@ -179,6 +180,7 @@ const findPlaceholders = async document => {
   return placeholders;
 };
 
+
 class CanvasContent extends Component {
   constructor(props, context) {
     super(props, context);
@@ -192,8 +194,8 @@ class CanvasContent extends Component {
     this._snapPoints = null;
     this._snapPointsIndex = null;
 
-    this._handleMouseOver = this._handleMouseOver.bind(this);
-    this._handleMouseOut = this._handleMouseOut.bind(this);
+    this._onHighlight = debounce(this._onHighlight.bind(this), HOVER_DEBOUNCE);
+    this._handleMouse = this._handleMouse.bind(this);
     this._handleClick = this._handleClick.bind(this);
     this._handleBodyClick = this._handleBodyClick.bind(this);
     this._handleNavigate = this._handleNavigate.bind(this);
@@ -204,8 +206,8 @@ class CanvasContent extends Component {
 
   componentDidMount() {
     const containerNode = this._getContainer();
-    containerNode.addEventListener('mouseover', this._handleMouseOver, false);
-    containerNode.addEventListener('mouseout', this._handleMouseOut, false);
+    containerNode.addEventListener('mouseover', this._handleMouse, true);
+    containerNode.addEventListener('mouseout', this._handleMouse);
     containerNode.addEventListener('click', this._handleClick, false);
   }
 
@@ -288,11 +290,11 @@ class CanvasContent extends Component {
 
     containerNode.removeEventListener(
       'mouseover',
-      this._handleMouseOver,
-      false,
+      this._handleMouse,
+      true,
     );
 
-    containerNode.removeEventListener('mouseout', this._handleMouseOut, false);
+    containerNode.removeEventListener('mouseout', this._handleMouse);
 
     containerNode.removeEventListener('click', this._handleClick, false);
 
@@ -641,61 +643,36 @@ class CanvasContent extends Component {
     return this._componentIsInCurrentRoute(componentId);
   }
 
-  /**
-   *
-   * @param {MouseEvent} event
-   * @private
-   */
-  _handleMouseOver(event) {
+  _onHighlight(componentId) {
     const {
       highlightingEnabled,
-      pickingComponent,
-      pickingComponentFilter,
-      onHighlightComponent,
       onUnhighlightComponent,
+      onHighlightComponent,
     } = this.props;
-
+    
     if (highlightingEnabled) {
-      const componentId = this._getClosestComponentId(event.target);
-
-      if (
-        componentId !== INVALID_ID &&
-        this._canInteractWithComponent(componentId)
-      ) {
-        if (this._unhighilightTimer > -1) {
-          clearImmediate(this._unhighilightTimer);
-          this._unhighilightTimer = -1;
-        }
-
-        if (this._unhighlightedComponentId !== componentId) {
-          if (this._unhighlightedComponentId !== INVALID_ID) {
-            onUnhighlightComponent(this._unhighlightedComponentId);
-          }
-
-          if (pickingComponent) {
-            if (
-              !pickingComponentFilter ||
-              pickingComponentFilter(componentId)
-            ) {
-              onHighlightComponent(componentId);
-            }
-          } else {
-            onHighlightComponent(componentId);
-          }
-        }
-
-        this._unhighlightedComponentId = INVALID_ID;
+      if (componentId) {
+        onHighlightComponent(componentId);
+      } else {
+        onUnhighlightComponent();
       }
     }
   }
-  
-  /**
-   *
-   * @param {MouseEvent} event
-   * @private
-   */
-  _handleMouseOut(event) {
-    const { highlightingEnabled, onUnhighlightComponent } = this.props;
+
+  _handleMouse(event) {
+    const {
+      highlightingEnabled,
+    } = this.props;
+
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+
+    if (event.type === 'mouseout') {
+      this._onHighlight();
+      return;
+    }
+
+    if (event.target !== event.path[0]) return;
 
     if (highlightingEnabled) {
       const componentId = this._getClosestComponentId(event.target);
@@ -704,18 +681,9 @@ class CanvasContent extends Component {
         componentId !== INVALID_ID &&
         this._canInteractWithComponent(componentId)
       ) {
-        if (this._unhighilightTimer > -1) {
-          clearImmediate(this._unhighilightTimer);
-          onUnhighlightComponent(this._unhighlightedComponentId);
-        }
-
-        this._unhighilightTimer = setImmediate(() => {
-          this._unhighilightTimer = -1;
-          this._unhighlightedComponentId = INVALID_ID;
-          onUnhighlightComponent(componentId);
-        });
-
-        this._unhighlightedComponentId = componentId;
+        this._onHighlight(componentId);
+      } else {
+        this._onHighlight();
       }
     }
   }

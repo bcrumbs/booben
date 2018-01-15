@@ -6,58 +6,43 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
-import { graphql } from 'react-apollo';
 import forOwn from 'lodash.forown';
 import get from 'lodash.get';
-import debounce from 'lodash.debounce';
 import { resolveTypedef } from '@jssy/types';
 
+import CanvasComponent from './CanvasComponent';
+
 import {
-  isPseudoComponent,
-  isEmptyListComponent,
-  getComponentByName,
   getRenderHints,
   getInitialComponentsState,
   mergeComponentsState,
 } from '../helpers';
 
 import { alertsCreator } from '../../../hocs/alerts';
-import { wrapComponent as draggable } from '../../../hocs/draggable';
 import { PlaceholderBuilder } from '../PlaceholderBuilder/PlaceholderBuilder';
-import { connectDraggable } from '../../ComponentsDragArea/ComponentsDragArea';
-import { ContentPlaceholder } from '../ContentPlaceholder/ContentPlaceholder';
 import { Outlet } from '../Outlet/Outlet';
 import ProjectComponent from '../../../models/ProjectComponent';
 import { startDragExistingComponent } from '../../../actions/preview';
 
 import {
-  selectedComponentIdsSelector,
-  highlightedComponentIdsSelector,
   rootDraggedComponentSelector,
   getLocalizedTextFromState,
 } from '../../../selectors/index';
 
 import {
-  isHTMLComponent,
-  isContainerComponent,
   isCompositeComponent,
-  getComponentMeta,
   getSourceConfig,
 } from '../../../lib/meta';
 
 import {
   canInsertComponent,
   canInsertRootComponent,
-  formatComponentTitle,
 } from '../../../lib/components';
 
-import { buildQueryForComponent } from '../../../lib/graphql';
-import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
-import { queryResultHasData } from '../../../lib/apollo';
+import { buildValue } from '../../../lib/values';
 import ComponentsBundle from '../../../lib/ComponentsBundle';
 import * as JssyPropTypes from '../../../constants/common-prop-types';
 import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../../../constants/misc';
-import { DND_DRAG_START_RADIUS_CANVAS } from '../../../config';
 
 const propTypes = {
   editable: PropTypes.bool,
@@ -83,8 +68,6 @@ const propTypes = {
   placeholderAfter: PropTypes.number.isRequired, // state
   showContentPlaceholders: PropTypes.bool.isRequired, // state
   showInvisibleComponents: PropTypes.bool.isRequired, // state
-  selectedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
-  highlightedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onAlert: PropTypes.func.isRequired, // alertsCreator
   onStartDragComponent: PropTypes.func.isRequired, // dispatch
@@ -118,8 +101,6 @@ const mapStateToProps = state => ({
   placeholderAfter: state.project.placeholderAfter,
   showContentPlaceholders: state.app.showContentPlaceholders,
   showInvisibleComponents: state.app.showInvisibleComponents,
-  selectedComponentIds: selectedComponentIdsSelector(state),
-  highlightedComponentIds: highlightedComponentIdsSelector(state),
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -193,45 +174,6 @@ class CanvasBuilderComponent extends PureComponent {
     }
   }
 
-  _getConnectedComponent(componentName) {
-    const { componentsBundle } = this.props;
-
-    const cached = this._connectedComponentsCache.get(componentName);
-    if (cached) return cached;
-
-    const Component = getComponentByName(componentName, componentsBundle);
-    const ret = connectDraggable(draggable(Component));
-
-    this._connectedComponentsCache.set(componentName, ret);
-    return ret;
-  }
-
-  /**
-   *
-   * @param {Object} component
-   * @param {Error} error
-   * @param {string} hookName
-   * @private
-   */
-  _handleErrorInComponentLifecycleHook(component, error, hookName) {
-    const { getLocalizedText, onAlert } = this.props;
-
-    const message = getLocalizedText('alert.componentError', {
-      componentName: component.title
-        ? `${component.title} (${component.name})`
-        : component.name,
-
-      hookName,
-      message: error.message,
-    });
-
-    const alert = {
-      content: message,
-    };
-
-    onAlert(alert);
-  }
-
   /**
    *
    * @param {Object} data
@@ -290,86 +232,6 @@ class CanvasBuilderComponent extends PureComponent {
         }
       }
     }
-  }
-
-  /**
-   *
-   * @param {number} [componentId=INVALID_ID]
-   * @param {Immutable.Map<Object, DataContextsInfo>} [theMap=null]
-   * @param {?Object} [data=null]
-   * @return {ValueContext}
-   * @private
-   */
-  _getValueContext(componentId = INVALID_ID, theMap = null, data = null) {
-    const {
-      componentsBundle,
-      meta,
-      schema,
-      project,
-      components,
-      propsFromOwner,
-      dataContextInfo,
-      routeParams,
-    } = this.props;
-
-    const { componentsState } = this.state;
-
-    return {
-      meta,
-      schema,
-      components,
-      componentsState,
-      propsFromOwner,
-      dataContextInfo,
-      projectFunctions: project.functions,
-      theMap,
-      data,
-      routeParams,
-      BuilderComponent: CanvasBuilder, // eslint-disable-line no-use-before-define
-      getBuilderProps: (ownProps, jssyValue, valueContext) => ({
-        componentsBundle,
-        routeParams,
-        components: jssyValue.sourceData.components,
-        rootId: jssyValue.sourceData.rootId,
-        dontPatch: true,
-        propsFromOwner: ownProps,
-        theMap: valueContext.theMap,
-        dataContextInfo: valueContext.theMap.get(jssyValue),
-      }),
-
-      handleActions: (jssyValue, valueDef, userTypedefs, valueContext) => {
-        this._handleActions(
-          componentId,
-          valueDef,
-          userTypedefs,
-          valueContext,
-        );
-      },
-    };
-  }
-
-  /**
-   * Constructs props object
-   *
-   * @param {Object} component
-   * @param {?ValueContext} [valueContext=null]
-   * @return {Object<string, *>}
-   */
-  _buildProps(component, valueContext = null) {
-    const { meta } = this.props;
-
-    const componentMeta = getComponentMeta(component.name, meta);
-    const ret = {};
-
-    component.props.forEach((propValue, propName) => {
-      const valueDef = componentMeta.props[propName];
-      const userTypedefs = componentMeta.types;
-      const value = buildValue(propValue, valueDef, userTypedefs, valueContext);
-
-      if (value !== NO_VALUE) ret[propName] = value;
-    });
-
-    return ret;
   }
 
   /**
@@ -594,75 +456,6 @@ class CanvasBuilderComponent extends PureComponent {
   /**
    *
    * @param {Object} component
-   * @return {boolean}
-   * @private
-   */
-  _willRenderContentPlaceholder(component) {
-    const {
-      meta,
-      showContentPlaceholders,
-      highlightedComponentIds,
-      selectedComponentIds,
-    } = this.props;
-
-    return isContainerComponent(component.name, meta) && (
-      showContentPlaceholders ||
-      highlightedComponentIds.has(component.id) ||
-      selectedComponentIds.has(component.id)
-    );
-  }
-
-  _createApolloHOC(component, graphQLQuery, graphQLVariables, theMap) {
-    const { schema, dontPatch, getLocalizedText, onAlert } = this.props;
-
-    return graphql(graphQLQuery, {
-      props: ({ ownProps, data }) => {
-        if (data.error) {
-          const message = getLocalizedText('alert.queryError', {
-            message: data.error.message,
-          });
-
-          setTimeout(() => void onAlert({ content: message }), 0);
-        }
-
-        const haveData = queryResultHasData(data);
-        const valueContext = this._getValueContext(
-          component.id,
-          theMap,
-          haveData ? data : null,
-        );
-
-        if (dontPatch) {
-          return {
-            ...ownProps,
-            ...this._buildProps(component, valueContext),
-          };
-        } else {
-          return {
-            ...ownProps,
-            innerProps: {
-              ...ownProps.innerProps,
-              ...this._buildProps(component, valueContext),
-            },
-          };
-        }
-      },
-
-      options: {
-        variables: buildGraphQLQueryVariables(
-          graphQLVariables,
-          this._getValueContext(component.id),
-          schema,
-        ),
-
-        fetchPolicy: 'cache-first',
-      },
-    });
-  }
-
-  /**
-   *
-   * @param {Object} component
    * @param {Object} [parentComponent=null]
    * @return {ReactElement}
    * @private
@@ -675,100 +468,52 @@ class CanvasBuilderComponent extends PureComponent {
       project,
       editable,
       dontPatch,
-      theMap: thePreviousMap,
       showInvisibleComponents,
+      components,
+      propsFromOwner,
+      dataContextInfo,
+      routeParams,
+      getLocalizedText,
+      onAlert,
+      showContentPlaceholders,
     } = this.props;
 
-    if (isEmptyListComponent(component)) {
-      return this._renderEmptyListComponent(component);
-    }
-
-    if (isPseudoComponent(component)) {
-      return this._renderPseudoComponent(component);
-    }
-
-    const Component = dontPatch
-      ? getComponentByName(component.name, componentsBundle)
-      : this._getConnectedComponent(component.name);
-
-    const isHTML = isHTMLComponent(component.name);
-    const { query: graphQLQuery, variables: graphQLVariables, theMap } =
-      buildQueryForComponent(component, schema, meta, project);
-
-    const theMergedMap = thePreviousMap
-      ? thePreviousMap.merge(theMap)
-      : theMap;
-
-    const valueContext = this._getValueContext(component.id, theMergedMap);
-    const systemProps = this._buildSystemProps(component, valueContext);
-
-    if (!showInvisibleComponents && !systemProps.visible) return null;
-
-    const props = graphQLQuery ? {} : this._buildProps(component, valueContext);
-
-    props.children = this._renderComponentChildren(component);
-
-    if (isHTML) {
-      props.style = component.style;
-    } else {
-      props.__jssy_error_handler__ = debounce(
-        this._handleErrorInComponentLifecycleHook.bind(this, component),
-        250,
-      );
-    }
-
-    props.key = componentKey(component);
-
-    if (!dontPatch) {
-      this._patchComponentProps(
-        props,
-        component.id,
-        isHTML,
-        !systemProps.visible,
-      );
-    }
-
-    if (!props.children && this._willRenderContentPlaceholder(component)) {
-      props.children = (
-        <ContentPlaceholder />
-      );
-    }
-
-    let Renderable = Component;
-
-    if (graphQLQuery) {
-      const gqlHoc = this._createApolloHOC(
-        component,
-        graphQLQuery,
-        graphQLVariables,
-        theMergedMap,
-      );
-
-      Renderable = gqlHoc(Component);
-    }
-
-    if (dontPatch) {
-      return (
-        <Renderable {...props} />
-      );
-    } else {
-      const isDraggable =
-        editable &&
-        parentComponent !== null &&
-        !isCompositeComponent(parentComponent.name, meta);
-
-      return (
-        <Renderable
-          key={props.key}
-          innerProps={props}
-          dragEnable={isDraggable}
-          dragTitle={formatComponentTitle(component)}
-          dragData={{ componentId: component.id }}
-          dragStartRadius={DND_DRAG_START_RADIUS_CANVAS}
-          onDragStart={this._handleComponentDragStart}
-        />
-      );
-    }
+    return (
+      <CanvasComponent
+        component={component}
+        meta={meta}
+        componentsBundle={componentsBundle}
+        schema={schema}
+        project={project}
+        components={components}
+        propsFromOwner={propsFromOwner}
+        dataContextInfo={dataContextInfo}
+        routeParams={routeParams}
+        BuilderComponent={CanvasBuilder}
+        renderComponentChildren={
+          this._renderComponentChildren.bind(this)
+        }
+        dontPatch={dontPatch}
+        getLocalizedText={getLocalizedText}
+        onAlert={onAlert}
+        editable={editable}
+        parentComponent={parentComponent}
+        handleComponentDragStart={
+          this._handleComponentDragStart
+        }
+        showInvisibleComponents={showInvisibleComponents}
+        renderEmptyListComponent={
+          this._renderEmptyListComponent.bind(this)
+        }
+        renderPseudoComponent={
+          this._renderPseudoComponent.bind(this)
+        }
+        componentsState={
+          this.state.componentsState
+        }
+        showContentPlaceholders={showContentPlaceholders}
+      />
+    );
   }
 
   render() {
