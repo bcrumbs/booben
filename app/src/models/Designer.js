@@ -3,7 +3,6 @@
  */
 
 import { Record, Set } from 'immutable';
-import { INVALID_ID } from '../constants/misc';
 
 const defaults = {
   selectedComponentIds: Set(),
@@ -26,16 +25,16 @@ export default class Designer extends DesignerRecord {
   }
 
   highlightComponent(componentId) {
-    return this.update(
+    return this.set(
       'highlightedComponentIds',
-      highlightedComponentIds => highlightedComponentIds.add(componentId),
+      Set([componentId]),
     );
   }
 
-  unhighlightComponent(componentId) {
-    return this.update(
+  unhighlightComponent() {
+    return this.set(
       'highlightedComponentIds',
-      highlightedComponentIds => highlightedComponentIds.delete(componentId),
+      Set(),
     );
   }
 

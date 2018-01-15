@@ -214,6 +214,40 @@ export const highlightedComponentIdsSelector = createSelector(
   designer => designer.highlightedComponentIds,
 );
 
+export const expandedTreeItemIdsSelector = createSelector(
+  currentDesignerSelector,
+  designer => designer.expandedTreeItemIds,
+);
+
+export const highlightedTreeItemIdSelector = createSelector(
+  highlightedComponentIdsSelector,
+  expandedTreeItemIdsSelector,
+  currentComponentsSelector,
+  (highlightedComponentIds, expandedTreeItemIds, components) => {
+    const highlightedTreeItemId = highlightedComponentIds.first();
+    if (!highlightedTreeItemId) return [];
+
+    const getParentId = childId =>
+      components.get(childId).parentId;
+
+    const reversedTreePath = [highlightedTreeItemId];
+    let currentParentId = getParentId(highlightedTreeItemId);
+    while (currentParentId !== INVALID_ID) {
+      reversedTreePath.push(currentParentId);
+      currentParentId = getParentId(currentParentId);
+    }
+
+    const treePath = [];
+    while (reversedTreePath.length) {
+      const targetId = reversedTreePath.pop();
+      treePath.push(targetId);
+      if (!expandedTreeItemIds.has(targetId)) break;
+    }
+
+    return treePath[treePath.length - 1];
+  },
+);
+
 export const cursorPositionSelector = createSelector(
   state => haveNestedConstructorsSelector(state)
     ? state.project.nestedConstructors.first().cursor
@@ -234,11 +268,6 @@ export const componentClipboardSelector = createSelector(
 
   (topNestedConstructorClipboard, projectClipboard) =>
     topNestedConstructorClipboard || projectClipboard,
-);
-
-export const expandedTreeItemIdsSelector = createSelector(
-  currentDesignerSelector,
-  designer => designer.expandedTreeItemIds,
 );
 
 export const currentComponentsStackSelector = createSelector(

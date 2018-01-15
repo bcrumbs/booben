@@ -9,6 +9,7 @@ import { connect } from 'react-redux';
 import Portal from 'react-portal-minimal';
 import { Shortcuts } from 'react-shortcuts';
 import throttle from 'lodash.throttle';
+import debounce from 'lodash.debounce';
 
 import {
   BlockContentBox,
@@ -21,8 +22,6 @@ import {
 
 import {
   ComponentsTree,
-  ComponentsTreeItem,
-  ComponentsTreeItemContent,
   ComponentsTreeList,
   ComponentsTreeCursor,
 } from '../../components/ComponentsTree/ComponentsTree';
@@ -31,11 +30,9 @@ import {
   ComponentPlaceholder,
 } from '../../components/ComponentPlaceholder/ComponentPlaceholder';
 
-import draggable from '../../hocs/draggable';
 import dropZone from '../../hocs/dropZone';
 
 import {
-  connectDraggable,
   connectDropZone,
 } from '../ComponentsDragArea/ComponentsDragArea';
 
@@ -66,7 +63,6 @@ import {
   currentComponentsSelector,
   currentRootComponentIdSelector,
   selectedComponentIdsSelector,
-  highlightedComponentIdsSelector,
   getLocalizedTextFromState,
   rootDraggedComponentSelector,
   cursorPositionSelector,
@@ -75,7 +71,7 @@ import {
 
 import Cursor from '../../models/Cursor';
 import ProjectComponentRecord from '../../models/ProjectComponent';
-import { isCompositeComponent, isAtomicComponent } from '../../lib/meta';
+import { isAtomicComponent } from '../../lib/meta';
 
 import {
   isRootComponent,
@@ -84,17 +80,15 @@ import {
   formatComponentTitle,
 } from '../../lib/components';
 
-import { isFunction } from '../../utils/misc';
 import * as JssyPropTypes from '../../constants/common-prop-types';
 import { INVALID_ID } from '../../constants/misc';
-import { DND_DRAG_START_RADIUS_TREE } from '../../config';
+import TreeItem from './TreeItem';
 
 const propTypes = {
   dropZoneId: PropTypes.string,
   components: JssyPropTypes.components.isRequired, // state
   rootComponentId: PropTypes.number.isRequired, // state
   selectedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
-  highlightedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
   expandedItemIds: JssyPropTypes.setOfIds.isRequired, // state
   draggingComponent: PropTypes.bool.isRequired, // state
   rootDraggedComponent: PropTypes.instanceOf(ProjectComponentRecord), // state
@@ -141,7 +135,6 @@ const mapStateToProps = state => ({
   components: currentComponentsSelector(state),
   rootComponentId: currentRootComponentIdSelector(state),
   selectedComponentIds: selectedComponentIdsSelector(state),
-  highlightedComponentIds: highlightedComponentIdsSelector(state),
   expandedItemIds: expandedTreeItemIdsSelector(state),
   draggingComponent: state.project.draggingComponent,
   rootDraggedComponent: rootDraggedComponentSelector(state),
@@ -254,10 +247,8 @@ const calcCursorPosition = (pageY, element, borderPixels) => {
   return ret;
 };
 
-const DraggableComponentItemContent =
-  connectDraggable(draggable(ComponentsTreeItemContent));
-
 const DRAG_THROTTLE = 100;
+const HOVER_DEBOUNCE = 16;
 
 class ComponentsTreeViewComponent extends PureComponent {
   constructor(props, context) {
@@ -280,7 +271,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     this._handleNativeClick = this._handleNativeClick.bind(this);
     this._handleExpand = this._handleExpand.bind(this);
     this._handleSelect = this._handleSelect.bind(this);
-    this._handleHover = this._handleHover.bind(this);
+    this._handleHover = debounce(this._handleHover.bind(this), HOVER_DEBOUNCE);
     this._handleDragEnter = this._handleDragEnter.bind(this);
     this._handleDragLeave = this._handleDragLeave.bind(this);
     this._handleDrag = throttle(this._handleDrag.bind(this), DRAG_THROTTLE);
@@ -976,9 +967,6 @@ class ComponentsTreeViewComponent extends PureComponent {
     const {
       meta,
       components,
-      highlightedComponentIds,
-      selectedComponentIds,
-      expandedItemIds,
       draggingOverPlaceholder,
       placeholderContainerId,
       pickingComponent,
@@ -986,88 +974,23 @@ class ComponentsTreeViewComponent extends PureComponent {
       pickingComponentFilter,
     } = this.props;
 
-    const component = components.get(componentId);
-
-    let title;
-    if (component.title) {
-      title = component.title;
-    } else {
-      title = component.name;
-    }
-
-
-    let expanded = expandedItemIds.has(componentId);
-    if (!expanded && draggingOverPlaceholder) {
-      let currentId = placeholderContainerId;
-      while (currentId !== INVALID_ID && !expanded) {
-        if (currentId === componentId) expanded = true;
-        currentId = components.get(currentId).parentId;
-      }
-    }
-
-    let hovered = false;
-    const highlightedComponentId = highlightedComponentIds.first();
-    if (highlightedComponentId) {
-      let currentID = highlightedComponentId;
-      while (
-        currentID !== INVALID_ID && !expandedItemIds.has(currentID)
-      ) {
-        const parentId = components.get(currentID).parentId;
-        if (currentID === componentId) hovered = true;
-        currentID = parentId;
-      }
-    }
-
-    const active =
-      !pickingComponent &&
-      !pickingComponentData &&
-      selectedComponentIds.has(componentId);
-
-    const dragData = { componentId };
-    const subLevel = this._renderList(componentId);
-    const isRootComponent = component.parentId === INVALID_ID;
-    const parentComponent = isRootComponent
-      ? null
-      : components.get(component.parentId);
-
-    const isDraggable =
-      active &&
-      selectedComponentIds.size === 1 &&
-      !isRootComponent &&
-      !isCompositeComponent(parentComponent.name, meta);
-
-    const disabled =
-      (pickingComponent || pickingComponentData) &&
-      isFunction(pickingComponentFilter) &&
-      !pickingComponentFilter(componentId);
-
-    const hasSubLevel = !!subLevel;
-
     return (
-      <ComponentsTreeItem
-        key={String(componentId)}
-      >
-        <DraggableComponentItemContent
-          key={String(componentId)}
-          componentId={componentId}
-          expanded={expanded}
-          title={title}
-          onExpand={this._handleExpand}
-          disabled={disabled}
-          active={active}
-          hovered={hovered}
-          hasSubLevel={hasSubLevel}
-          dragEnable={isDraggable}
-          dragStartRadius={DND_DRAG_START_RADIUS_TREE}
-          dragTitle={title}
-          dragData={dragData}
-          elementRef={this._saveItemRef}
-          onSelect={this._handleSelect}
-          onHover={this._handleHover}
-          onDragStart={this._handleComponentDragStart}
-        />
-        {hasSubLevel && expanded ? subLevel : null}
-      </ComponentsTreeItem>
+      <TreeItem
+        componentId={componentId}
+        components={components}
+        meta={meta}
+        draggingOverPlaceholder={draggingOverPlaceholder}
+        placeholderContainerId={placeholderContainerId}
+        pickingComponent={pickingComponent}
+        pickingComponentData={pickingComponentData}
+        pickingComponentFilter={pickingComponentFilter}
+        renderList={this._renderList.bind(this)}
+        handleExpand={this._handleExpand.bind(this)}
+        saveItemRef={this._saveItemRef.bind(this)}
+        handleSelect={this._handleSelect.bind(this)}
+        handleHover={this._handleHover.bind(this)}
+        handleComponentDragStart={this._handleComponentDragStart.bind(this)}
+      />
     );
   }
 
