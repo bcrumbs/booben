@@ -24,6 +24,7 @@ const colorScheme = ({ active }) => active
 export const PageDrawerActionItemStyled = styled.div`
   display: flex;
   flex-shrink: 0;
+  min-height: ${constants.actionHeight}px;
   ${colorScheme}
   ${transition('background-color, opacity')}
   

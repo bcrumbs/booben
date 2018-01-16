@@ -1,10 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { Theme } from 'reactackle-core';
 import { TextField } from 'reactackle-text-field';
 import { SearchInputStyled } from './styles/SearchInputStyled';
 import { InputWrapperStyled } from './styles/InputWrapperStyled';
 import { noop } from '../../utils/misc';
 import { IconSearch } from '../icons';
+import { reactackleThemeMixin } from './styles/reactackle-theme-mixin';
 
 const propTypes = {
   placeholder: PropTypes.string,
@@ -19,19 +21,21 @@ const defaultProps = {
 };
 
 export const SearchInput = props => (
-  <SearchInputStyled>
-    <InputWrapperStyled>
-      <TextField
-        fullWidth
-        placeholder={props.placeholder}
-        value={props.value}
-        onChange={props.onChange}
-        iconInner={<IconSearch />}
-        clearingIcon
-        dense
-      />
-    </InputWrapperStyled>
-  </SearchInputStyled>
+  <Theme mixin={reactackleThemeMixin}>
+    <SearchInputStyled>
+      <InputWrapperStyled>
+        <TextField
+          dense
+          fullWidth
+          placeholder={props.placeholder}
+          value={props.value}
+          onChange={props.onChange}
+          iconInner={<IconSearch />}
+          clearingIcon
+        />
+      </InputWrapperStyled>
+    </SearchInputStyled>
+  </Theme>
 );
 
 SearchInput.propTypes = propTypes;

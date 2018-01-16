@@ -8,8 +8,8 @@ const fontSizeTwo = base => base.fontSize[2];
 
 export default {
   components: {
-    input: {
-      input: {
+    textfield: {
+      textfield: {
         bordered: {
           size: {
             fullWidth: {
@@ -20,7 +20,7 @@ export default {
             },
           },
         },
-        
+
         underlined: {
           size: {
             fullWidth: {
