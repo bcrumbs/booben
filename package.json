@@ -23,7 +23,7 @@
     "@jssy/graphql-schema": "^0.1.0",
     "@jssy/metadata": "^0.8.0",
     "@jssy/types": "^0.6.0",
-    "@reactackle/reactackle": "0.1.0-dev.688",
+    "@reactackle/reactackle": "0.1.0-dev.691",
     "reactackle-button": "^1.0.0-beta.3",
     "reactackle-tooltip-icon": "^1.0.0-beta.3",
     "reactackle-core": "^1.0.0-beta.3",

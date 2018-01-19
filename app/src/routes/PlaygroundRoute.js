@@ -10,10 +10,10 @@ import {
   Header,
   HeaderRegion,
   HeaderLogoBox,
-  HeaderMenu,
-  HeaderMenuList,
-  HeaderMenuGroup,
-  HeaderMenuItem,
+  Menu,
+  MenuList,
+  MenuGroup,
+  MenuItem,
   Panel,
 } from '@reactackle/reactackle';
 
@@ -489,25 +489,25 @@ export default class Playground extends React.Component {
             </HeaderRegion>
 
             <HeaderRegion spread size="blank">
-              <HeaderMenu inline dense>
-                <HeaderMenu inline dense mode={'light'}>
-                  <HeaderMenuGroup>
-                    <HeaderMenuList>
-                      <HeaderMenuItem text="Structure" />
-                      <HeaderMenuItem text="Design">
-                        <HeaderMenuGroup>
-                          <HeaderMenuList>
-                            <HeaderMenuItem text="User Route 1: index" />
-                            <HeaderMenuItem text="User Route 2: aerial" />
-                          </HeaderMenuList>
-                        </HeaderMenuGroup>
-                      </HeaderMenuItem>
-                      <HeaderMenuItem text="Data" isActive />
-                      <HeaderMenuItem text="Settings" />
-                    </HeaderMenuList>
-                  </HeaderMenuGroup>
-                </HeaderMenu>
-              </HeaderMenu>
+              <Menu inline dense>
+                <Menu inline dense mode={'light'}>
+                  <MenuGroup>
+                    <MenuList>
+                      <MenuItem text="Structure" />
+                      <MenuItem text="Design">
+                        <MenuGroup>
+                          <MenuList>
+                            <MenuItem text="User Route 1: index" />
+                            <MenuItem text="User Route 2: aerial" />
+                          </MenuList>
+                        </MenuGroup>
+                      </MenuItem>
+                      <MenuItem text="Data" isActive />
+                      <MenuItem text="Settings" />
+                    </MenuList>
+                  </MenuGroup>
+                </Menu>
+              </Menu>
             </HeaderRegion>
 
             <HeaderRegion size="blank">
@@ -515,16 +515,16 @@ export default class Playground extends React.Component {
             </HeaderRegion>
 
             <HeaderRegion size="blank">
-              <HeaderMenu inline dense>
-                <HeaderMenu inline dense mode={'light'}>
-                  <HeaderMenuGroup>
-                    <HeaderMenuList>
-                      <HeaderMenuItem text="Preview" />
-                      <HeaderMenuItem text="Publish" />
-                    </HeaderMenuList>
-                  </HeaderMenuGroup>
-                </HeaderMenu>
-              </HeaderMenu>
+              <Menu inline dense>
+                <Menu inline dense mode={'light'}>
+                  <MenuGroup>
+                    <MenuList>
+                      <MenuItem text="Preview" />
+                      <MenuItem text="Publish" />
+                    </MenuList>
+                  </MenuGroup>
+                </Menu>
+              </Menu>
             </HeaderRegion>
           </Header>
         </TopRegion>

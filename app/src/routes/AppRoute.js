@@ -13,10 +13,10 @@ import {
   Header,
   HeaderRegion,
   HeaderLogoBox,
-  HeaderMenu,
-  HeaderMenuGroup,
-  HeaderMenuList,
-  HeaderMenuItem,
+  Menu,
+  MenuGroup,
+  MenuList,
+  MenuItem,
   AlertArea,
 } from '@reactackle/reactackle';
 
@@ -132,7 +132,7 @@ class AppRoute extends Component {
       });
 
       routeMenuItems.push(
-        <HeaderMenuItem
+        <MenuItem
           key={String(route.id)}
           text={route.fullPath}
           linkHref={href}
@@ -148,7 +148,7 @@ class AppRoute extends Component {
         });
 
         routeMenuItems.push(
-          <HeaderMenuItem
+          <MenuItem
             key={`${route.id}-index`}
             text={`${route.fullPath} - index`}
             linkHref={indexHref}
@@ -172,35 +172,35 @@ class AppRoute extends Component {
             </HeaderRegion>
 
             <HeaderRegion spread size="blank">
-              <HeaderMenu inline dense mode="light">
-                <HeaderMenuGroup>
-                  <HeaderMenuList>
-                    <HeaderMenuItem
+              <Menu inline dense mode="light">
+                <MenuGroup>
+                  <MenuList>
+                    <MenuItem
                       text={getLocalizedText('appHeader.menu.structure')}
                       linkHref={`/${projectName}/structure`}
                       linkComponent={TopMenuLink}
                     />
 
-                    <HeaderMenuItem
+                    <MenuItem
                       text={getLocalizedText('appHeader.menu.design')}
                     >
-                      <HeaderMenuGroup mode="dark">
-                        <HeaderMenuList>
+                      <MenuGroup mode="dark">
+                        <MenuList>
                           {routeMenuItems}
-                        </HeaderMenuList>
-                      </HeaderMenuGroup>
-                    </HeaderMenuItem>
+                        </MenuList>
+                      </MenuGroup>
+                    </MenuItem>
 
-                    <HeaderMenuItem
+                    <MenuItem
                       text={getLocalizedText('appHeader.menu.data')}
                     />
 
-                    <HeaderMenuItem
+                    <MenuItem
                       text={getLocalizedText('appHeader.menu.settings')}
                     />
-                  </HeaderMenuList>
-                </HeaderMenuGroup>
-              </HeaderMenu>
+                  </MenuList>
+                </MenuGroup>
+              </Menu>
             </HeaderRegion>
 
             <HeaderRegion size="blank">
@@ -208,23 +208,23 @@ class AppRoute extends Component {
             </HeaderRegion>
 
             <HeaderRegion size="blank">
-              <HeaderMenu inline dense mode="light">
-                <HeaderMenuGroup>
-                  <HeaderMenuList>
-                    <HeaderMenuItem
+              <Menu inline dense mode="light">
+                <MenuGroup>
+                  <MenuList>
+                    <MenuItem
                       text={getLocalizedText('appHeader.menu.preview')}
                       linkHref={`${URL_PREVIEW_PREFIX}/${projectName}`}
                       linkComponent={TopMenuExternalLink}
                       iconLeft={<IconPlay />}
                     />
 
-                    <HeaderMenuItem
+                    <MenuItem
                       text={getLocalizedText('appHeader.menu.publish')}
                       iconLeft={<IconUpload />}
                     />
-                  </HeaderMenuList>
-                </HeaderMenuGroup>
-              </HeaderMenu>
+                  </MenuList>
+                </MenuGroup>
+              </Menu>
             </HeaderRegion>
           </Header>
 
