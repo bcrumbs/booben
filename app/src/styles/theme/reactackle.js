@@ -101,6 +101,20 @@ export default {
         color: colorMain,
         fontWeight: fontWeight.normal,
       },
+
+      closeButton: {
+        style: {
+          color: fontColorBodyLight,
+
+          hover: {
+            color: fontColorBodyLight,
+          },
+
+          focus: {
+            color: fontColorBodyLight,
+          },
+        }
+      },
     },
 
     formItem: {

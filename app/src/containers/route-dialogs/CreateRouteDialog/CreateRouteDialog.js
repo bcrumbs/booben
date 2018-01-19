@@ -198,7 +198,7 @@ class _CreateRouteDialog extends Component {
         onClose={this._handleClose}
       >
         <BlockContent>
-          <BlockContentBox>
+          <BlockContentBox notScrollable>
             <BlockContentBoxItem blank>
               <Form>
                 <FormItem>

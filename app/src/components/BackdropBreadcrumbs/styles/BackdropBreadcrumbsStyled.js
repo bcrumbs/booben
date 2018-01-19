@@ -1,4 +1,5 @@
 import styled from 'styled-components';
+import drawerTopConstants from '../../DrawerTop/styles/constants';
 
 import {
   baseModule,
@@ -13,6 +14,9 @@ export const BackdropBreadcrumbsStyled = styled.div`
   top: 0;
   left: 0;
   z-index: 9999;
+  min-height: ${drawerTopConstants.minHeight};
+  display: flex;
+  align-items: center;
 `;
 
 BackdropBreadcrumbsStyled.displayName = 'BackdropBreadcrumbsStyled';

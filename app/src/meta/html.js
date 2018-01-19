@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import _mapValues from 'lodash.mapvalues';
 import a from './html/a';
 import audio from './html/audio';

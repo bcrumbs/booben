@@ -26,11 +26,8 @@ const background = ({ colorScheme }) => {
   const color1Transparent = 'transparent';
   const color2 = constants[colorScheme].blocksSeparatorColor;
   const color2Transparent = 'transparent';
-  
+
   return css`
-    background:
-      linear-gradient(${color1Transparent}, ${color1} 50%) 0 100%, 
-      linear-gradient(${color2} 100%, ${color2Transparent}) 0 100%;
     background-color: ${constants[colorScheme].content.bgColor};
   `;
 };
@@ -38,6 +35,10 @@ const background = ({ colorScheme }) => {
 const bordered = ({ bordered, colorScheme }) => bordered
   ? css`border-top: 1px solid ${constants[colorScheme].blocksSeparatorColor};`
   : '';
+
+const scrollable = ({ scrollable }) => scrollable
+  ? 'overflow-y: auto;'
+  : 'flex-shrink: 0;';
 
 const flex = ({ flex }) => flex
   ? `
@@ -50,11 +51,8 @@ export const BlockContentBoxAreaStyled = styled.div`
   ${background}
   font-size: ${fontSizeBody}px;
   flex-grow: 1;
-  overflow-y: auto;
-  background-repeat: no-repeat;
-  background-size: 100% 4px, 100% 1px;
-  background-attachment: local, scroll;
   ${bordered}
+  ${scrollable}
   ${flex}
 `;
 

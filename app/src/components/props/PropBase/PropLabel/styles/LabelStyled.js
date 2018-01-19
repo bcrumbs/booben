@@ -24,7 +24,7 @@ const position = ({ positionTop }) => positionTop
   ? css`
     color: ${textColorMediumDark};
     font-size: ${fontSizeSmall}px;
-    margin-bottom: -2px;
+    margin-bottom: -4px;
   `
   : css`
     color: ${textColorBody};
@@ -35,12 +35,13 @@ const position = ({ positionTop }) => positionTop
 // 2px is to compensate difference between the checkboxSize (18px) & label
 // height
 const itemCheckable = ({ itemCheckable }) => itemCheckable
-  ? 'padding-top: 2px;'
+  ? 'margin-top: 4px;'
   : '';
 
 export const LabelStyled = styled.label`
   flex-grow: 1;
   line-height: 1.2;
+  padding: 6px 0;
   font-weight: ${fontWeightNormal};
   position: relative;
   align-items: center;
