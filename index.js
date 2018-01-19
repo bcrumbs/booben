@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 const co = require('co');
 const http = require('http');
 const express = require('express');

@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 export default {
   displayName: 'picture',
   textKey: 'name',

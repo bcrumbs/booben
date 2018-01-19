@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 export default {
   displayName: 'h1',
   textKey: 'name',

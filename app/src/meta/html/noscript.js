@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 export default {
   displayName: 'noscript',
   textKey: 'name',

@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import _forOwn from 'lodash.forown';

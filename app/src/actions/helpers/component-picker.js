@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import { isCompatibleType } from '@jssy/types';
 import { findFirstConnectionInPath } from '@jssy/graphql-schema';
 import { getComponentMeta, getString } from '../../lib/meta';

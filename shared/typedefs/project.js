@@ -1,10 +1,4 @@
 /**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
-/**
  * @typedef {Object} Project
  * @property {number} version
  * @property {string} name

@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import { findDOMNode } from 'react-dom';
 import PropTypes from 'prop-types';
 import { isReactComponent, toClassComponent } from '../utils/react';

@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import { Map, List } from 'immutable';
 import { isInteger, isFunction } from '../utils/misc';
 

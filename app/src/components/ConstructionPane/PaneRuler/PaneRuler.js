@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 // TODO: Finish it
 
 import React from 'react';

@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import { Record, Map } from 'immutable';
 import { INVALID_ID } from '../../constants/misc';
 

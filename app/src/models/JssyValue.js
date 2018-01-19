@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import { Record, Map, List } from 'immutable';
 import _mapValues from 'lodash.mapvalues';
 import SourceDataActionArg from './JssyValueSourceData/SourceDataActionArg';

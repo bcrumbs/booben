@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import {
   PROJECT_SAVE,
   PROJECT_SAVE_SUCCESS,

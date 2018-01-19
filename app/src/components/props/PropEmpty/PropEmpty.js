@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import React from 'react';
 import { PropBase } from '../PropBase/PropBase';
 

@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import styled from 'styled-components';
 
 const fontFamily = ({ theme }) => `

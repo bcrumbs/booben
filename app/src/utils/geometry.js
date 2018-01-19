@@ -1,8 +1,4 @@
 /**
- * @author Dmitriy Bizyaev
- */
-
-/**
  *
  * @param {number} x
  * @param {number} y

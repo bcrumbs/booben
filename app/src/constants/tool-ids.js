@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import { List } from 'immutable';
 
 // Routes editor tools

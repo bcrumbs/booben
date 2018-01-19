@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import createHistory from 'history/es/createBrowserHistory';
 import { URL_APP_PREFIX } from '../../shared/constants';
 

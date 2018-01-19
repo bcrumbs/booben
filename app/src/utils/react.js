@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import { Component } from 'react';
 import { isFunction } from './misc';
 

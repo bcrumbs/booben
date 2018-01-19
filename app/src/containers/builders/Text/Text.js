@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import PropTypes from 'prop-types';
 import patchComponent from '../../../hocs/patchComponent';
 

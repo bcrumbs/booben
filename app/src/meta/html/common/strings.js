@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 /* eslint-disable max-len */
 
 export default {

@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import PropTypes from 'prop-types';
 import { toClassComponent } from '../utils/react';
 import { noop } from '../utils/misc';

@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import { Record, List } from 'immutable';
 
 const SourceDataFunction = Record({

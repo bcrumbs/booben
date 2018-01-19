@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import { createSelector } from 'reselect';
 import IntlMessageFormat from 'intl-messageformat';
 import _forOwn from 'lodash.forown';

@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import { Map, Set, List } from 'immutable';
 import { LOCATION_CHANGE } from 'react-router-redux';
 import { matchPath } from 'react-router';

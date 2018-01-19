@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import { Record, List, Map } from 'immutable';
 import { isDef } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';

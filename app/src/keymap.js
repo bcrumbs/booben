@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 export default {
   STRUCTURE_SCREEN: {
     UNDO: {

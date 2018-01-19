@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import React from 'react';
 
 const GR_SIZE = 10;

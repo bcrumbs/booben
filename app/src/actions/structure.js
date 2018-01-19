@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 export const STRUCTURE_SELECT_ROUTE =
   'STRUCTURE_SELECT_ROUTE';
 

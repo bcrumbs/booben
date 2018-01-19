@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import { Set, Map } from 'immutable';
 import _forOwn from 'lodash.forown';
 import { TypeNames } from '@jssy/types';

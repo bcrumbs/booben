@@ -1,8 +1,4 @@
 /**
- * @author Dmitriy Bizyaev
- */
-
-/**
  *
  * @type {string}
  */

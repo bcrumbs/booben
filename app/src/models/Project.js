@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import { Record, List, Map, Set } from 'immutable';
 import _forOwn from 'lodash.forown';
 

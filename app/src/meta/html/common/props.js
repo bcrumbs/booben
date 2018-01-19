@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 export default {
   accessKey: {
     textKey: 'props_accessKey',

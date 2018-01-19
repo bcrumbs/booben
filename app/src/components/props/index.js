@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 export * from './PropEmpty/PropEmpty';
 export * from './PropExpandable/PropExpandable';
 export * from './PropInput/PropInput';

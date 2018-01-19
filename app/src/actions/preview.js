@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import triggersProjectSave from './project-save/wrapper';
 
 export const PREVIEW_SELECT_COMPONENT =

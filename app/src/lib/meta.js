@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import _forOwn from 'lodash.forown';
 
 import {

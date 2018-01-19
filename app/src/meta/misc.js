@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import Text from './builtin/Text';
 import Outlet from './builtin/Outlet';
 import List from './builtin/List';

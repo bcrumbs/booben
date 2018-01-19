@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import triggersProjectSave from './project-save/wrapper';
 import { getProject, getMetadata, getGraphQLSchema } from '../lib/api';
 import { URL_GRAPHQL_PREFIX } from '../../../shared/constants';

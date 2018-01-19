@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 const co = require('co');
 const thenify = require('thenify');
 const path = require('path');

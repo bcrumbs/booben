@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 import Immutable from 'immutable';
 import forOwn from 'lodash.forown';
 import { List } from './List/List';

@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
 let interval = 0;
 let consumers = 0;
 let lastX = -1;

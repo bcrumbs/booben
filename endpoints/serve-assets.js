@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 const path = require('path');
 const helpers = require('./helpers');
 const config = require('../config');
