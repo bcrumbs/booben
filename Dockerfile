@@ -18,7 +18,8 @@ RUN apk --no-cache add --update \
     && npm dedupe \
     && npm rm -g yarn npm \
     && rm -rf /tmp/* \
-    && rm -rf /root/..?* /root/.[!.]* /root/*
+    && rm -rf /root/..?* /root/.[!.]* /root/* \
+    && mv jssy-projects /var/lib/jssy/projects
 
 VOLUME /var/lib/jssy
 

@@ -10,6 +10,4 @@ jssy:
     max-size: 50m
   tty: true
   image: registry.ordbuy.com/jssy/jssy:{{TAG}}
-  volumes:
-  - /media/storage/jssy:/var/lib/jssy
   stdin_open: true
