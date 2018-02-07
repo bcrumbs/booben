@@ -133,8 +133,7 @@ export class OwnerComponentPropSelection extends PureComponent {
         <BlockContentNavigation>
           <BlockBreadcrumbs
             items={breadcrumbsItems}
-            mode="dark"
-            colorScheme="alt"
+            colorScheme="dark"
             overflow
             onItemClick={this._handleBreadcrumbsClick}
           />

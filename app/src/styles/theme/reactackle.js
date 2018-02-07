@@ -13,9 +13,16 @@ import jssyTheme from './jssy';
 const fontColorBodyLight = paletteBlueGrey[25];
 const fontColorMedium = paletteBlueGrey[400];
 const colorBorder = paletteBlueGrey[500];
+const colorBorderDark = paletteBlueGrey[650];
 const colorMain = themeColors.main;
+const fontSizeSmall = fontSize[-1];
 
 const baseModule = 8;
+
+const accordionConstants = {
+  bgColor: 'inherit',
+  bgColorHover: paletteBlueGrey[700],
+};
 
 export default {
   color: {
@@ -51,6 +58,42 @@ export default {
   },
 
   components: {
+    accordion: {
+      item: {
+        title: {
+          collapsed: {
+            backgroundColor: accordionConstants.bgColor,
+              textTransform: 'none',
+
+              hover: {
+              backgroundColor: accordionConstants.bgColorHover,
+            },
+
+            focus: {
+              backgroundColor: accordionConstants.bgColorHover,
+            },
+          },
+
+          expanded: {
+            backgroundColor: accordionConstants.bgColor,
+              textTransform: 'none',
+
+              hover: {
+              backgroundColor: accordionConstants.bgColorHover,
+            },
+
+            focus: {
+              backgroundColor: accordionConstants.bgColorHover,
+            },
+          },
+        },
+      },
+
+      separator: {
+        color: colorBorderDark,
+      },
+    },
+
     button: {
       size: {
         small: {
@@ -195,6 +238,16 @@ export default {
             },
           },
         },
+      },
+    },
+
+    tag: {
+      backgroundColor: paletteBlueGrey[700],
+      textColor: paletteBlueGrey[50],
+      fontSize: fontSizeSmall,
+
+      content: {
+        alignY: 'center',
       },
     },
 

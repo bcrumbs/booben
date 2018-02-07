@@ -1,6 +1,7 @@
 import {
   colorMain,
   colorBorder,
+  colorBorderDark,
   paletteBlueGrey25,
   paletteBlueGrey500,
   colorActiveBg,
@@ -24,7 +25,7 @@ export default {
   },
 
   dark: {
-    separatorColor: paletteBlueGrey500,
+    separatorColor: colorBorderDark,
 
     tag: {
       fontColor: textColorBody,

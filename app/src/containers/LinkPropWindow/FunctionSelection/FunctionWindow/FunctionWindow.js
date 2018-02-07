@@ -471,8 +471,7 @@ class _FunctionWindow extends PureComponent {
         <BlockContentNavigation isBordered>
           <BlockBreadcrumbs
             items={breadcrumbsItems}
-            mode="dark"
-            colorScheme="alt"
+            colorScheme="dark"
             onItemClick={this._handleBreadcrumbsClick}
           />
         </BlockContentNavigation>

@@ -28,18 +28,8 @@ export const TagWrapperStyled = styled.div`
   display: flex;
   flex-wrap: wrap;
   position: relative;
-  margin-bottom: ${baseModule(1)}px;
+  margin-bottom: -${constants.borderWidth}px;
   ${colorScheme}
-  
-  &::after {
-    content: '';
-    display: block;
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: ${constants.borderWidth}px;
-  }
 `;
 
 TagWrapperStyled.displayName = 'TagWrapperStyled';

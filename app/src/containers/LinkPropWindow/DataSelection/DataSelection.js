@@ -451,8 +451,7 @@ export class DataSelection extends PureComponent {
         <BlockContentNavigation isBordered>
           <BlockBreadcrumbs
             items={breadCrumbsItems}
-            mode="dark"
-            colorScheme="alt"
+            colorScheme="dark"
             overflow
             onItemClick={this._handleBreadcrumbsClick}
           />

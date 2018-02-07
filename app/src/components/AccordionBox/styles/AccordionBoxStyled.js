@@ -1,27 +1,21 @@
 import styled from 'styled-components';
 
 import {
-  paletteBlueGrey50,
-  paletteBlueGrey100,
+  textColorMediumDark,
 } from '../../../styles/themeSelectors';
 
-// TODO remove this after moving Accordion to SC
 export const AccordionBoxStyled = styled.div`
-  .accordion-item-content-box {
-    padding: 0;
+  button {
+    color: ${textColorMediumDark};
   }
   
-  .accordion-item-is-collapsed .accordion-title {
-    color: ${paletteBlueGrey50};
-  }
-  
-  .accordion-title-icon-wrapper * {
-    color: ${paletteBlueGrey100};
-  }
-  
-  .accordion-title-box {
-    position: relative;
+  dt {
     z-index: 2;
+    position: relative;
+  }
+  
+  dd {
+    z-index: 1;
   }
 `;
 
