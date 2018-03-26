@@ -118,6 +118,12 @@ class AppRoute extends Component {
       onAlertAreaReady,
     } = this.props;
 
+    let routeName = projectName;
+
+    if (process.env.NODE_ENV === 'production') {
+      routeName = project._id;
+    }
+
     const routeMenuItems = [];
     const currentPath = location.pathname;
 
@@ -173,7 +179,7 @@ class AppRoute extends Component {
                   <MenuList>
                     <MenuItem
                       text={getLocalizedText('appHeader.menu.structure')}
-                      linkHref={`/${projectName}/structure`}
+                      linkHref={`/${routeName}/structure`}
                       linkComponent={TopMenuLink}
                     />
 
@@ -209,7 +215,7 @@ class AppRoute extends Component {
                   <MenuList>
                     <MenuItem
                       text={getLocalizedText('appHeader.menu.preview')}
-                      linkHref={`${URL_PREVIEW_PREFIX}/${projectName}`}
+                      linkHref={`${URL_PREVIEW_PREFIX}/${routeName}`}
                       linkComponent={TopMenuExternalLink}
                       iconLeft={<IconPlay />}
                     />

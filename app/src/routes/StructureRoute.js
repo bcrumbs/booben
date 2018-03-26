@@ -473,8 +473,12 @@ class StructureRoute extends PureComponent {
    * @private
    */
   _handleRouteGo({ routeId, isIndexRoute }) {
-    const { projectName, onOpenDesigner } = this.props;
-    onOpenDesigner({ projectName, routeId, isIndexRoute });
+    const { project, projectName, onOpenDesigner } = this.props;
+    if (process.env.NODE_ENV === 'production') {
+      onOpenDesigner({ projectName: project._id, routeId, isIndexRoute });
+    } else {
+      onOpenDesigner({ projectName, routeId, isIndexRoute });
+    }
   }
 
   /**

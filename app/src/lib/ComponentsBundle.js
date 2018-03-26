@@ -14,6 +14,11 @@ import {
 
 import { URL_BUNDLE_PREFIX } from '../../../shared/constants';
 
+let url = URL_BUNDLE_PREFIX;
+
+if (process.env.NODE_ENV === 'production') {
+  url = 'https://s3.eu-central-1.amazonaws.com/jssy-bundle';
+}
 const scriptsCache = {};
 
 /**
@@ -114,10 +119,19 @@ export default class ComponentsBundle {
       /* eslint-enable no-console */
     }
 
-    await loadComponentsBundleIntoWindow(
-      this._windowInstance,
-      `${URL_BUNDLE_PREFIX}/${this._projectName}/${COMPONENTS_BUNDLE_FILE}`,
-    );
+    if (process.env.NODE_ENV === 'production') {
+      await loadComponentsBundleIntoWindow(
+        this._windowInstance,
+        `${url}/${COMPONENTS_BUNDLE_FILE}`,
+      );
+    } else {
+      await loadComponentsBundleIntoWindow(
+        this._windowInstance,
+        `${url}/${this._projectName}/${COMPONENTS_BUNDLE_FILE}`,
+      );
+    }
+
+    
 
     const noComponents =
       !this._windowInstance.JssyComponents ||

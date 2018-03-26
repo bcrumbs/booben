@@ -5,6 +5,7 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const UglifyJSPlugin = require('uglifyjs-webpack-plugin');
 
 const prod = process.argv.includes('-p');
 
@@ -75,14 +76,17 @@ module.exports = {
     rules: [
       {
         test: /\.jsx?$/,
-        exclude: path => {
-          if (/reactackle[/\\]node_modules/.test(path)) return true;
-          if (/common-ui[/\\]node_modules/.test(path)) return true;
-          if (/reactackle/.test(path)) return false;
-          if (/common-ui/.test(path)) return false;
-          return /node_modules/.test(path);
-        },
+        // exclude: path => {
+        //   if (/reactackle[/\\]node_modules/.test(path)) return true;
+        //   if (/common-ui[/\\]node_modules/.test(path)) return true;
+        //   if (/reactackle/.test(path)) return false;
+        //   if (/common-ui/.test(path)) return false;
+        //   return /node_modules/.test(path);
+        // },
         loader: 'babel-loader',
+        options: {  // << add options with presets env
+          presets: ['env'],
+        },
       },
       {
         test: /\.ejs$/,
@@ -186,5 +190,13 @@ module.exports = {
     new CopyWebpackPlugin([
       { from: 'strings', to: 'strings' },
     ]),
+    
+    new UglifyJSPlugin({
+      test: /\.js($|\?)/i,
+      sourceMap: true,
+      uglifyOptions: {
+        compress: true,
+      },
+    }),
   ],
 };

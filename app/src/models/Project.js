@@ -42,6 +42,7 @@ const authToImmutable = input => new AuthRecord({
 });
 
 const ProjectRecord = Record({
+  _id: '',
   name: '',
   author: '',
   componentLibs: List(),
@@ -60,6 +61,7 @@ ProjectRecord.isValidPathStep = step => VALID_PATH_STEPS.has(step);
 ProjectRecord.expandPathStep = step => step;
 
 export const projectToImmutable = input => new ProjectRecord({
+  _id: input._id,
   name: input.name,
   author: input.author,
   componentLibs: List(input.componentLibs),
@@ -119,6 +121,7 @@ export const getComponentById = (project, componentId) => {
 };
 
 export const projectToJSv1 = project => ({
+  _id: project._id,
   version: 1,
   name: project.name,
   author: project.author,
