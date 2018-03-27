@@ -6,8 +6,6 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const ScriptExtHtmlWebpackPlugin = require('script-ext-html-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 
-const prod = process.argv.includes('-p');
-
 const DIST_DIR = '../../public';
 
 class RewriteThemePathResolverPlugin {
@@ -69,7 +67,7 @@ module.exports = {
     extensions: ['.js'],
   },
 
-  devtool: prod ? 'source-map' : 'cheap-module-eval-source-map',
+  devtool: 'source-map',
 
   module: {
     rules: [
@@ -179,7 +177,7 @@ module.exports = {
 
     new webpack.DefinePlugin({
       'process.env': {
-        NODE_ENV: prod ? '"production"' : '"development"',
+        NODE_ENV: '"production"',
       },
     }),
 
