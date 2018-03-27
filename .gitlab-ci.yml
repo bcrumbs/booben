@@ -11,7 +11,7 @@ push_image:
   stage: publish
   script:
     - npm install
-    - npm run build
+    - npm run build:prod
     - 'echo "{ \"projectsDir\": \"${PWD}/jssy-projects\" }" > dev-config.json'
     - ssh-keyscan -p 29184 gitlab.ordbuy.com >> ~/.ssh/known_hosts
     - git clone ssh://git@gitlab.ordbuy.com:29184/jssy/jssy-projects.git
