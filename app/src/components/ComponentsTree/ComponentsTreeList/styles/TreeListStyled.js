@@ -1,13 +1,13 @@
 import styled, { css } from 'styled-components';
 import constants from '../../styles/constants';
 
-const offsetGenerator = ({ level = 20 }) => {
+const offsetGenerator = () => {
   const selectorsArray = ['li'];
   let itemSelectors = '';
   const selectorItem = '& li';
   const result = [];
 
-  for (let index = 0; index < level; index++) {
+  for (let index = 0; index < 20; index++) {
     selectorsArray.push(selectorItem);
     itemSelectors = selectorsArray.join(' > ');
     const cssItem = css`

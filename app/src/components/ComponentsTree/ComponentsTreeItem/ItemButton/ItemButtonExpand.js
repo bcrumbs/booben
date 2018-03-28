@@ -30,7 +30,7 @@ const ButtonExpand = styled.div`
 
 export const ItemButtonExpand = ({ expanded, disabled }) => (
   <ButtonExpand expanded={expanded} disabled={disabled}>
-    <ItemButton icon={<IconArrowChevronRight />} />
+    <ItemButton icon={<IconArrowChevronRight size="custom" color="currentColor" />} />
   </ButtonExpand>
 );
 

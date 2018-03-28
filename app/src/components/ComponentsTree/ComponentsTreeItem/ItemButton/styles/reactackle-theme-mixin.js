@@ -10,6 +10,12 @@ export default {
           minHeight: constants.buttonSize,
           fontSize: constants.buttonSize,
           lineHeight: 1,
+
+          icon: {
+            width: 14,
+            height: null,
+            imgSize: null,
+          },
         },
       },
 

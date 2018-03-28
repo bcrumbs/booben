@@ -11,7 +11,6 @@ export const SpacerStyled = styled.div`
     width: ${size}px;
     min-width: ${size}px;
     height: ${size}px;
-    margin-right: ${constants.buttonMargin}px;
   }
 `;
 

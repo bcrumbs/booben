@@ -7,11 +7,22 @@ export const IconExpand = props => (
   <IconSvg {...props}>
     <svg viewBox="0 0 24 24">
       <g>
-        <polygon points="2,2 2,8 8,2" />
-        <polygon points="2,22 8,22 2,16" />
-        <polygon points="16,2 22,8 22,2" />
-        <polygon points="22,22 22,16 16,22" />
-        <polygon points="19.7,18.3 13.4,12 19.7,5.7 18.3,4.3 12,10.6 5.7,4.3 4.3,5.7 10.6,12 4.3,18.3 5.7,19.7 12,13.4 18.3,19.7" />
+        <polygon points="3,10 3,3 10,3 		"/>
+      </g>
+      <g>
+        <polygon points="10,21 3,21 3,14 		"/>
+      </g>
+      <g>
+        <polygon points="14,3 21,3 21,10 		"/>
+      </g>
+      <g>
+        <polygon points="21,14 21,21 14,21 		"/>
+      </g>
+      <g>
+        <rect x="11" y="2.1" transform="matrix(0.7071 -0.7071 0.7071 0.7071 -4.9706 12)" width="2" height="19.8"/>
+      </g>
+      <g>
+        <rect x="2.1" y="11" transform="matrix(0.7071 -0.7071 0.7071 0.7071 -4.9706 12)" width="19.8" height="2"/>
       </g>
     </svg>
   </IconSvg>
