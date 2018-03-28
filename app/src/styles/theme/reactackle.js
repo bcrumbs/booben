@@ -1,3 +1,4 @@
+import React from 'react';
 import Color from 'color';
 
 import {
@@ -7,6 +8,8 @@ import {
   fontSize,
   fontWeight,
 } from './constants';
+
+import { IconCross } from '../../components/icons';
 
 import jssyTheme from './jssy';
 
@@ -146,6 +149,8 @@ export default {
       },
 
       closeButton: {
+        iconElement: <IconCross size="custom" color="currentColor" />,
+
         style: {
           color: fontColorBodyLight,
 

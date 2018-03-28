@@ -53,7 +53,10 @@ const padding = ({ blank }) => {
 const spread = ({ spread }) => spread ? 'flex-grow: 1;' : '';
 
 const hasScrollY = ({ hasScrollY }) => hasScrollY
-  ? 'overflow-y: auto;'
+  ? `
+    overflow-y: auto;
+    overflow-x: hidden;
+  `
   : 'flex-shrink: 0;';
 
 export const BlockContentBoxItemStyled = styled.div` 

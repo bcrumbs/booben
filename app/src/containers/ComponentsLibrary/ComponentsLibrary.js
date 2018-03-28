@@ -305,7 +305,7 @@ class ComponentsLibraryComponent extends PureComponent {
           />
         </BlockContentBoxItem>
 
-        <BlockContentBoxItem blank isBordered hasScrollY>
+        <BlockContentBoxItem blank isBordered hasScrollY flexMain>
           <AccordionBox>
             <Accordion
               single

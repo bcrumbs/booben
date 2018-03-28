@@ -12,12 +12,9 @@
 
   "appHeader.projectTitle": "Проект {projectName}",
   "appHeader.menu.structure": "Структура",
-  "appHeader.menu.design": "Дизайн",
-  "appHeader.menu.data": "Данные",
   "appHeader.menu.settings": "Настройки",
   "appHeader.menu.shortcuts": "Горячие клавиши",
   "appHeader.menu.preview": "Превью",
-  "appHeader.menu.publish": "Опубликовать",
   "appHeader.saveIndicator.title.idle": "Сохранено",
   "appHeader.saveIndicator.title.saving": "Сохранение...",
   "appHeader.saveIndicator.title.error": "Ошибка",

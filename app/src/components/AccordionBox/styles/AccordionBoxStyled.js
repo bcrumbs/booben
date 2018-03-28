@@ -1,12 +1,19 @@
 import styled from 'styled-components';
 
 import {
+  baseModule,
   textColorMediumDark,
 } from '../../../styles/themeSelectors';
 
 export const AccordionBoxStyled = styled.div`
   button {
     color: ${textColorMediumDark};
+  }
+  
+  dl {
+    box-sizing: border-box;
+    margin: 0;
+    padding: ${baseModule(1)}px 0;
   }
   
   dt {
@@ -16,6 +23,7 @@ export const AccordionBoxStyled = styled.div`
   
   dd {
     z-index: 1;
+    transition-property: none;
   }
 `;
 

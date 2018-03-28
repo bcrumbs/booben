@@ -13,7 +13,7 @@ import {
 } from '../../../../components/PageDrawer';
 
 import { ShortcutsDialog } from '../../../ShortcutsDialog/ShortcutsDialog';
-import { IconExpand } from '../../../../components/icons';
+import { IconExpand, IconShortcut } from '../../../../components/icons';
 import { toggleFullscreen } from '../../../../utils/browser';
 
 const propTypes = {
@@ -65,7 +65,7 @@ class _ToolPanelCommonActions extends PureComponent {
         }}
       >
         <PageDrawerActionItem
-          icon="?"
+          icon={<IconShortcut />}
           title={getLocalizedText('appHeader.menu.shortcuts')}
           onPress={this._handleOpenShortcutsDialog}
         />
@@ -74,11 +74,6 @@ class _ToolPanelCommonActions extends PureComponent {
           icon={<IconExpand />}
           title={getLocalizedText('appFooter.toggleFullScreen')}
           onPress={toggleFullscreen}
-        />
-
-        <PageDrawerActionItem
-          icon="?"
-          title={getLocalizedText('appFooter.help')}
         />
 
         <ShortcutsDialog

@@ -6,7 +6,7 @@ import { SearchInputStyled } from './styles/SearchInputStyled';
 import { InputWrapperStyled } from './styles/InputWrapperStyled';
 import { noop } from '../../utils/misc';
 import { IconSearch } from '../icons';
-import { reactackleThemeMixin } from './styles/reactackle-theme-mixin';
+import reactackleThemeMixin from './styles/reactackle-theme-mixin';
 
 const propTypes = {
   placeholder: PropTypes.string,
@@ -30,7 +30,7 @@ export const SearchInput = props => (
           placeholder={props.placeholder}
           value={props.value}
           onChange={props.onChange}
-          iconInner={<IconSearch />}
+          iconInner={<IconSearch size="custom" color="currentColor" />}
           clearingIcon
         />
       </InputWrapperStyled>

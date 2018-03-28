@@ -32,7 +32,7 @@ const bordered = ({ bordered, colorScheme }) => bordered
   : '';
 
 const colorScheme = ({ colorScheme }) => css`
-  color: ${constants[colorScheme].contentHeading.fontColor};
+  color: ${constants[colorScheme].contentHeading.textColor};
 `;
 
 export const BlockContentBoxHeadingStyled = styled.div`
@@ -45,8 +45,8 @@ export const BlockContentBoxHeadingStyled = styled.div`
   padding-top: ${constants.basePaddingY}px;
   margin-bottom: ${baseModule(1.5)}px;
   ${bordered}
-  ${removePaddingX}
   ${colorScheme}
+  ${removePaddingX}
 `;
 
 BlockContentBoxHeadingStyled.propTypes = propTypes;

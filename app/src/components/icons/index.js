@@ -25,3 +25,4 @@ export * from './IconTree';
 export * from './IconBrush';
 export * from './IconRedirect';
 export * from './IconLink';
+export * from './IconShortcut';

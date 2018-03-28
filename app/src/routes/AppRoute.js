@@ -183,23 +183,15 @@ class AppRoute extends Component {
                       linkComponent={TopMenuLink}
                     />
 
-                    <MenuItem
-                      text={getLocalizedText('appHeader.menu.design')}
-                    >
-                      <MenuGroup mode="dark">
-                        <MenuList>
-                          {routeMenuItems}
-                        </MenuList>
-                      </MenuGroup>
-                    </MenuItem>
-
-                    <MenuItem
-                      text={getLocalizedText('appHeader.menu.data')}
-                    />
-
-                    <MenuItem
-                      text={getLocalizedText('appHeader.menu.settings')}
-                    />
+                    {/*<MenuItem*/}
+                      {/*text={getLocalizedText('appHeader.menu.design')}*/}
+                    {/*>*/}
+                      {/*<MenuGroup mode="dark">*/}
+                        {/*<MenuList>*/}
+                          {/*{routeMenuItems}*/}
+                        {/*</MenuList>*/}
+                      {/*</MenuGroup>*/}
+                    {/*</MenuItem>*/}
                   </MenuList>
                 </MenuGroup>
               </Menu>
@@ -218,11 +210,6 @@ class AppRoute extends Component {
                       linkHref={`${URL_PREVIEW_PREFIX}/${routeName}`}
                       linkComponent={TopMenuExternalLink}
                       iconLeft={<IconPlay />}
-                    />
-
-                    <MenuItem
-                      text={getLocalizedText('appHeader.menu.publish')}
-                      iconLeft={<IconUpload />}
                     />
                   </MenuList>
                 </MenuGroup>
