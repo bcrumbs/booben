@@ -143,7 +143,7 @@ export default {
       },
 
       title: {
-        fontSize: fontSize[3],
+        fontSize: fontSize[2],
         color: colorMain,
         fontWeight: fontWeight.normal,
       },
@@ -265,6 +265,10 @@ export default {
             borderColor: colorBorder,
           },
         },
+      },
+
+      placeholder: {
+        fontColor: paletteBlueGrey[400],
       },
 
       message: {

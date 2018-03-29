@@ -5,6 +5,7 @@ import { TooltipIcon } from 'reactackle-tooltip-icon';
 import { noop, returnArg } from '../../../utils/misc';
 import { DataListItemStyled } from './styles/DataListItemStyled';
 import { ContentBoxStyled } from './styles/ContentBoxStyled';
+import { TitleWrapperStyled } from './styles/TitleWrapperStyled';
 import { TitleStyled } from './styles/TitleStyled';
 import { DescriptionStyled } from './styles/DescriptionStyled';
 import { TypeStyled } from './styles/TypeStyled';
@@ -50,33 +51,33 @@ const defaultProps = {
 export class DataItem extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this._handleSelect = this._handleSelect.bind(this);
     this._handleJumpInto = this._handleJumpInto.bind(this);
     this._handleApplyClick = this._handleApplyClick.bind(this);
     this._handleSetArgumentsClick = this._handleSetArgumentsClick.bind(this);
   }
-  
+
   _handleSelect() {
     const { id, data, onSelect } = this.props;
     onSelect({ id, data });
   }
-  
+
   _handleJumpInto() {
     const { id, data, onJumpIntoClick } = this.props;
     onJumpIntoClick({ id, data });
   }
-  
+
   _handleApplyClick() {
     const { id, data, onApplyClick } = this.props;
     onApplyClick({ id, data });
   }
-  
+
   _handleSetArgumentsClick() {
     const { id, data, onSetArgumentsClick } = this.props;
     onSetArgumentsClick({ id, data });
   }
-  
+
   render() {
     const {
       title,
@@ -89,14 +90,14 @@ export class DataItem extends PureComponent {
       type,
       getLocalizedText,
     } = this.props;
-      
+
     let tooltipElement = null;
     if (tooltip) {
       tooltipElement = (
         <TooltipIcon text={tooltip} />
       );
     }
-  
+
     let argsButtonElement = null;
     if (argsButton) {
       argsButtonElement = (
@@ -104,10 +105,12 @@ export class DataItem extends PureComponent {
           narrow
           text={getLocalizedText('linkDialog.data.setArguments')}
           onPress={this._handleSetArgumentsClick}
+          size="small"
+          outlined
         />
       );
     }
-  
+
     let actionsRight = null;
     if (connection) {
       actionsRight = (
@@ -121,7 +124,7 @@ export class DataItem extends PureComponent {
         </ActionsStyled>
       );
     }
-  
+
     let descriptionElement = null;
     if (description) {
       descriptionElement = (
@@ -130,7 +133,7 @@ export class DataItem extends PureComponent {
         </DescriptionStyled>
       );
     }
-  
+
     let content = null;
     if (descriptionElement || argsButtonElement || canBeApplied) {
       let applyButton = null;
@@ -140,10 +143,12 @@ export class DataItem extends PureComponent {
             narrow
             text={getLocalizedText('common.apply')}
             onPress={this._handleApplyClick}
+            size="small"
+            outlined
           />
         );
       }
-    
+
       content = (
         <ContentStyled>
           {descriptionElement}
@@ -154,22 +159,22 @@ export class DataItem extends PureComponent {
         </ContentStyled>
       );
     }
-  
+
     let typeElement = null;
     if (type) {
       typeElement = (
         <TypeStyled>{type}</TypeStyled>
       );
     }
-  
+
     return (
       <DataListItemStyled selected={selected} onClick={this._handleSelect}>
         <ContentBoxStyled selected={selected}>
-          <div>
+          <TitleWrapperStyled>
             <TitleStyled>{title}</TitleStyled>
             {typeElement}
             {tooltipElement}
-          </div>
+          </TitleWrapperStyled>
           {content}
         </ContentBoxStyled>
         {actionsRight}

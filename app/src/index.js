@@ -9,7 +9,6 @@ import { ThemeProvider } from 'styled-components';
 import { Theme, injectGlobalStyle } from 'reactackle-core';
 import { jssyTheme, reactackleMixin } from './styles/theme';
 import RootRoute from './routes/RootRoute';
-import PlaygroundRoute from './routes/PlaygroundRoute';
 import store from './store';
 import history from './history';
 
@@ -35,12 +34,6 @@ window.addEventListener('DOMContentLoaded', () => {
           <ShortcutsProvider keymap={keymap}>
             <ConnectedRouter history={history}>
               <Switch>
-                <Route
-                  exact
-                  path="/playground"
-                  component={PlaygroundRoute}
-                />
-
                 <Route
                   exact
                   path={PATH_ROOT}

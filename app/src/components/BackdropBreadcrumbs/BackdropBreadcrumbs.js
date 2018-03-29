@@ -22,7 +22,7 @@ export const BackdropBreadcrumbs = props => (
     <ThemeProvider theme={jssyTheme}>
       <BackdropBreadcrumbsStyled>
         <Breadcrumbs
-          colorScheme="light"
+          colorScheme="dark"
           items={props.items}
           linkComponent={BreadcrumbLink}
         />

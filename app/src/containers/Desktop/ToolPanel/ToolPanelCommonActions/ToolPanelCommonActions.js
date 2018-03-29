@@ -59,10 +59,6 @@ class _ToolPanelCommonActions extends PureComponent {
     return (
       <PageDrawerActionsGroup
         key="commonActions"
-        style={{
-          display: 'flex',
-          flexDirection: 'column-reverse',
-        }}
       >
         <PageDrawerActionItem
           icon={<IconShortcut />}

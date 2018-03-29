@@ -44,6 +44,7 @@ export const BlockContentBoxHeadingStyled = styled.div`
   padding: 0 ${constants.basePaddingX}px;
   padding-top: ${constants.basePaddingY}px;
   margin-bottom: ${baseModule(1.5)}px;
+  letter-spacing: 0.05em;
   ${bordered}
   ${colorScheme}
   ${removePaddingX}

@@ -209,7 +209,7 @@ class AppRoute extends Component {
                       text={getLocalizedText('appHeader.menu.preview')}
                       linkHref={`${URL_PREVIEW_PREFIX}/${routeName}`}
                       linkComponent={TopMenuExternalLink}
-                      iconLeft={<IconPlay />}
+                      iconLeft={<IconPlay border borderWidth={1} rounded />}
                     />
                   </MenuList>
                 </MenuGroup>

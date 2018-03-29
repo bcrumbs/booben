@@ -13,8 +13,8 @@ const defaultProps = {
   typeProgress: false,
 };
 
-const outerSize = '15px';
-const imgSize = '8px';
+const outerSize = '16px';
+const imgSize = '12px';
 const borderWidth = '1px';
 
 const active = ({ active }) => `opacity: ${active ? 0.8 : 0.5};`;
@@ -31,9 +31,7 @@ const typeProgress = ({ typeProgress }) => typeProgress
   : '';
 
 export const IconStyled = styled.div`
-  border-radius: 50%;
-  border: 1px solid currentColor;
-  margin-right: ${baseModule(1)}px;
+  margin-right: ${baseModule(0.5)}px;
   position:relative;
   box-sizing: border-box;
   ${active}

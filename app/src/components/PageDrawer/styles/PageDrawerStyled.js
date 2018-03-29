@@ -13,9 +13,12 @@ const defaultProps = {
 };
 
 const width = ({ collapsed, hasActions }) => {
-  const narrowWidth = hasActions ? constants.actionWidth : 0;
+  const narrowWidth = hasActions
+    ? constants.actionWidth + constants.verticalBorderWidth
+    : 0;
+
   const width = collapsed ? narrowWidth : 360;
-  
+
   return `
     width: ${width}px;
   `;
@@ -27,7 +30,7 @@ export const PageDrawerStyled = styled.div`
   position: relative;
   display: flex;
   align-items: stretch;
-  border-left: 2px solid ${constants.content.borderColor};
+  border-left: ${constants.verticalBorderWidth}px solid ${constants.content.borderColor};
   background-color: ${constants.content.bgColor};
   ${width}
 `;

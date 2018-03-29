@@ -5,7 +5,7 @@ import constants from './constants';
 
 import {
   baseModule,
-  fontSizeSmall,
+  fontSizeXSmall,
 } from '../../../styles/themeSelectors';
 
 const propTypes = {
@@ -25,7 +25,7 @@ const focused = ({ focused, colorScheme }) => css`
   };`;
 
 export const TitleStyled = styled.div`
-  font-size: ${fontSizeSmall}px;
+  font-size: ${fontSizeXSmall}px;
   line-height: 1.25;
   padding: ${baseModule(0.5)}px;
   text-align: center;

@@ -19,7 +19,7 @@ import {
 import { FunctionSources } from '../../../../lib/functions';
 import { noop, returnArg } from '../../../../utils/misc';
 import { IconAdd } from '../../../../components/icons';
- 
+
 const FunctionShape = PropTypes.shape({
   id: PropTypes.string.isRequired,
   name: PropTypes.string,
@@ -52,7 +52,7 @@ const Sections = {
 export class FunctionsList extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this.state = {
       activeSection: Sections.BUILTIN,
     };
@@ -64,7 +64,7 @@ export class FunctionsList extends PureComponent {
 
   _getBreadcrumbsItems() {
     const { getLocalizedText } = this.props;
-    
+
     return [{
       title: getLocalizedText('linkDialog.sources'),
     }, {
@@ -120,16 +120,24 @@ export class FunctionsList extends PureComponent {
       ? builtinFunctions
       : projectFunctions;
 
-    return fns.map(fn => (
-      <DataItem
-        key={fn.id}
-        id={fn.id}
-        title={fn.name}
-        description={fn.description}
-        connection
-        onSelect={this._handleFunctionSelect}
-      />
-    ));
+
+
+    return fns.lenght > 0 && (
+      <BlockContentBoxItem>
+        <DataList>
+          {fns.map(fn => (
+            <DataItem
+              key={fn.id}
+              id={fn.id}
+              title={fn.name}
+              description={fn.description}
+              connection
+              onSelect={this._handleFunctionSelect}
+            />
+          ))}
+        </DataList>
+      </BlockContentBoxItem>
+    );
   }
 
   render() {
@@ -152,7 +160,7 @@ export class FunctionsList extends PureComponent {
         </BlockContentBoxItem>
       );
     }
-    
+
     const tabs = [
       { text: getLocalizedText('linkDialog.function.library') },
       { text: getLocalizedText('linkDialog.function.user') },
@@ -178,11 +186,7 @@ export class FunctionsList extends PureComponent {
         </BlockContentNavigation>
 
         <BlockContentBox isBordered>
-          <BlockContentBoxItem>
-            <DataList>
-              {list}
-            </DataList>
-          </BlockContentBoxItem>
+          {list}
 
           {addButton}
         </BlockContentBox>

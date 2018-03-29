@@ -285,7 +285,7 @@ export class NewFunctionWindow extends PureComponent {
 
     return (
       <BlockContent>
-        <BlockContentBox>
+        <BlockContentBox spread>
           <BlockContentBoxItem isBordered>
             <DataWindowTitle
               title={getLocalizedText('linkDialog.function.new.windowTitle')}
@@ -340,12 +340,16 @@ export class NewFunctionWindow extends PureComponent {
             <Button
               text={getLocalizedText('common.cancel')}
               onPress={this._handleCancel}
+              outlined
+              size="small"
             />
 
             <Button
               text={getLocalizedText('common.next')}
               disabled={isNextButtonDisabled}
               onPress={this._handleNext}
+              outlined
+              size="small"
             />
           </BlockContentActionsRegion>
         </BlockContentActions>

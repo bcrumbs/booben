@@ -11,10 +11,24 @@ export default {
 
       iconInner: {
         size: {
-          imgSize: 24,
+          boxSize: 22,
+          imgSize: 22,
 
           denseFullWidth: {
-            imgSize: 24,
+            boxSize: 22,
+            imgSize: 22,
+          },
+        },
+      },
+
+      buttonInner: {
+        size: {
+          boxSize: 22,
+          imgSize: 22,
+
+          denseFullWidth: {
+            boxSize: 22,
+            imgSize: 22,
           },
         },
       },

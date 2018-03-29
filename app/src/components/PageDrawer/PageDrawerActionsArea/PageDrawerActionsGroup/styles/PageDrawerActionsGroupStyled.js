@@ -1,18 +1,28 @@
 import styled from 'styled-components';
+import PropTypes from 'prop-types';
 import constants from '../../../styles/constants';
 import { baseModule } from '../../../../../styles/themeSelectors';
 
+const propTypes = {
+  spread: PropTypes.bool,
+};
+
+const defaultProps = {
+  spread: false,
+};
+
+
 export const PageDrawerActionsGroupStyled = styled.div`
   flex-shrink: 0;
-  padding: ${baseModule(0.25)}px 0;
+  padding: 0;
   
-  &:last-child {
-      flex-grow: 1;
-  }
-  
-  & + & {
+  & + * {
     border-top: 1px solid ${constants.actions.groupSeparatorColor};
   }
+  
+  ${props => props.spread && 'flex-grow: 1;'}
 `;
 
+PageDrawerActionsGroupStyled.propTypes = propTypes;
+PageDrawerActionsGroupStyled.defaultProps = defaultProps;
 PageDrawerActionsGroupStyled.displayName = 'PageDrawerActionsGroupStyled';

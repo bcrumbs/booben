@@ -7,6 +7,7 @@ import { BlockContentBoxAreaStyled } from './styles/BlockContentBoxAreaStyled';
 const propTypes = {
   isBordered: PropTypes.bool,
   flex: PropTypes.bool,
+  spread: PropTypes.bool,
   notScrollable: PropTypes.bool,
   hidden: PropTypes.bool,
   elementRef: PropTypes.func,
@@ -16,6 +17,7 @@ const propTypes = {
 const defaultProps = {
   isBordered: false,
   flex: false,
+  spread: false,
   notScrollable: false,
   hidden: false,
   elementRef: noop,
@@ -32,6 +34,7 @@ const BlockContentBoxComponent = props => {
       scrollable={!props.notScrollable}
       colorScheme={props.colorScheme}
       flex={props.flex}
+      spread={props.spread}
       style={style}
       innerRef={props.elementRef}
     >

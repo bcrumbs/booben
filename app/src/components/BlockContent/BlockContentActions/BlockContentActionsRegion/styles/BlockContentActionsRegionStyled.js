@@ -1,6 +1,7 @@
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import { baseModule } from '../../../../../styles/themeSelectors';
+import constants from '../../../styles/constants';
 
 const propTypes = {
   type: PropTypes.oneOf(['main', 'secondary']),
@@ -43,7 +44,8 @@ const margin = ({ theme, type }) => {
 export const BlockContentActionsRegionStyled = styled.div`
   display: flex;
   align-items: flex-start;
-  flex-wrap: wrap; 
+  flex-wrap: wrap;
+  padding: ${constants.basePaddingX}px;
   ${type}
   ${margin}
     

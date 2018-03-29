@@ -47,6 +47,8 @@ const flex = ({ flex }) => flex
   `
   : '';
 
+const spread = ({ spread }) => spread && 'flex-grow: 1;';
+
 export const BlockContentBoxAreaStyled = styled.div`
   ${background}
   font-size: ${fontSizeBody}px;
@@ -54,6 +56,7 @@ export const BlockContentBoxAreaStyled = styled.div`
   ${bordered}
   ${scrollable}
   ${flex}
+  ${spread}
 `;
 
 BlockContentBoxAreaStyled.propTypes = propTypes;

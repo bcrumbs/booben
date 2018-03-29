@@ -166,10 +166,10 @@ export const ToolPanel = props => {
         />
       </PageDrawerActionsGroup>
     );
-    
+
     panelSwitcherGroups.unshift(expandActionGroup);
   }
- 
+
   return (
     <ResizeablePageDrawer
       resizeEnabled={isExpanded}
@@ -180,7 +180,9 @@ export const ToolPanel = props => {
       hasActions={pageDrawerHasActions}
     >
       <PageDrawerActionsArea>
-        {panelSwitcherGroups}
+        <PageDrawerActionsGroup spread>
+          {panelSwitcherGroups}
+        </PageDrawerActionsGroup>
         <ToolPanelCommonActions />
       </PageDrawerActionsArea>
 

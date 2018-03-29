@@ -7,9 +7,10 @@ import {
 const borderColor = colorBorderDark;
 
 export default {
-  actionWidth: 34,
-  actionHeight: 32,
+  actionWidth: 38,
+  actionHeight: 38,
   placeholderSize: 28,
+  verticalBorderWidth: 2,
 
   content: {
     borderColor,

@@ -16,7 +16,7 @@ import {
   RouteNewButton,
 } from '../components/RoutesList/RoutesList';
 
-import { IconRedirect } from '../components/icons';
+import { IconBrush } from '../components/icons';
 import { Desktop } from '../containers/Desktop/Desktop';
 import { StructureToolbar } from '../containers/toolbars';
 import { RouteEditor } from '../containers/RouteEditor/RouteEditor';
@@ -269,7 +269,7 @@ class StructureRoute extends PureComponent {
       List([
         new ToolRecord({
           id: TOOL_ID_ROUTE_EDITOR,
-          icon: <IconRedirect />,
+          icon: <IconBrush />,
           name: getLocalizedText('structure.routeEditorTitle'),
           title,
           titleEditable,

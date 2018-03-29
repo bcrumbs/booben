@@ -8,6 +8,12 @@ import {
 export const AccordionBoxStyled = styled.div`
   button {
     color: ${textColorMediumDark};
+    
+    &,
+    &:hover,
+    &:focus {
+      padding-right: 12px !important;
+    }
   }
   
   dl {

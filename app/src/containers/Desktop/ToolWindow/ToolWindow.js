@@ -250,6 +250,8 @@ export class ToolWindow extends PureComponent {
         icon={icon}
         text={text}
         onPress={onPress}
+        size="small"
+        outlined
       />
     ));
   }

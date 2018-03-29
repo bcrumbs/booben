@@ -45,16 +45,22 @@ class _ProjectSave extends Component {
   render() {
     const { title, status, tooltipText, Tooltip } = this.props;
 
+    const iconProps = {
+      border: true,
+      rounded: true,
+      borderWidth: 1,
+    };
+
     let icon = null;
 
     if (status === 'error') {
-      icon = <IconExclamation />;
+      icon = <IconExclamation {...iconProps} />;
     } else if (status === 'success') {
-      icon = <IconCheck />;
+      icon = <IconCheck {...iconProps} />;
     } else if (status === 'progress') {
       icon = null;
     } else {
-      icon = <IconCheck />;
+      icon = <IconCheck {...iconProps} />;
     }
 
     return (

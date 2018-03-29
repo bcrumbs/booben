@@ -3,7 +3,7 @@ import {
   paletteBlueGrey25,
   paletteBlueGrey500,
   paletteBlueGrey650,
-  paletteBlueGrey700,
+  paletteBlueGrey800,
   colorMain,
   colorBorderDark,
   colorActiveBg,
@@ -16,7 +16,7 @@ import {
 const borderColor = colorBorderDark;
 
 export default {
-  basePaddingX: baseModule(1.5),
+  basePaddingX: baseModule(2),
   basePaddingY: baseModule(2),
 
   title: {
@@ -102,7 +102,7 @@ export default {
       },
 
       dim: {
-        backgroundColor: paletteBlueGrey700,
+        backgroundColor: paletteBlueGrey800,
       },
 
       editing: {
