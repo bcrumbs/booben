@@ -3,7 +3,7 @@ import { introspectionQuery } from 'graphql/utilities';
 import { URL_API_PREFIX } from '../../../shared/constants';
 
 const backendUrl =
-      'https://nr0pmvrpw6.execute-api.eu-central-1.amazonaws.com/production/';
+      'https://nr0pmvrpw6.execute-api.eu-central-1.amazonaws.com/production';
 
 /**
  *
@@ -13,7 +13,7 @@ const backendUrl =
 export const getProject = async projectName => {
   let url = URL_API_PREFIX;
   const jwt = Cookie.getJSON('jssy-jwt');
-
+  console.log('jwt', jwt)
   if (process.env.NODE_ENV === 'production') {
     url = backendUrl;
   }
