@@ -12,7 +12,7 @@ const backendUrl =
  */
 export const getProject = async projectName => {
   let url = URL_API_PREFIX;
-  const jwt = Cookie.getJSON('jssy-jwt', { domain: 'dashboard.booben.io' });
+  const jwt = Cookie.getJSON('jssy-jwt');
   console.log('jwt', jwt)
   if (process.env.NODE_ENV === 'production') {
     url = backendUrl;
@@ -41,7 +41,7 @@ export const putProject = async (projectName, project) => {
 
   if (process.env.NODE_ENV === 'production') {
     url = backendUrl;
-    const jwt = Cookie.getJSON('jssy-jwt', { domain: 'dashboard.booben.io' });
+    const jwt = Cookie.getJSON('jssy-jwt');
 
     const res = await fetch(`${url}/projects/${projectName}`, {
       method: 'POST',
