@@ -22,7 +22,6 @@ export const getProject = async projectName => {
     headers: {
       Authorization: `Bearer ${jwt}`,
     },
-    mode: 'no-cors',
   });
   const data = await res.json();
 
@@ -51,7 +50,6 @@ export const putProject = async (projectName, project) => {
         'content-type': 'application/json',
         Authorization: `Bearer ${jwt}`,
       },
-      mode: 'no-cors',
     });
     
     const data = await res.json();
