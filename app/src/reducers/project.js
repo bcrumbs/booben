@@ -1322,6 +1322,35 @@ const handlers = {
       state.selectedRouteId !== INVALID_ID &&
       deletedRouteIds.has(state.selectedRouteId);
 
+    // Remove all actions with ref to this route
+    state.data.routes.forEach(route => {
+      route.components.forEach(component => {
+        component.props.forEach((prop, propName) => {
+          if (prop.source === 'actions') {
+            prop.sourceData.actions.forEach((a, i) => {
+              if (a.type === 'navigate') {
+                state = state.updateIn(
+                  [
+                    'data',
+                    'routes',
+                    route.id,
+                    'components',
+                    component.id,
+                    'props',
+                    propName,
+                    'sourceData',
+                    'actions',
+                  ],
+                  methodsIds =>
+                    methodsIds.filter((method, methodId) => methodId !== i),
+                );
+              }
+            });
+          }
+        });
+      });
+    });
+
     if (deletedRouteIsSelected) state = selectFirstRoute(state);
     return state;
   })),

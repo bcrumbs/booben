@@ -49,7 +49,7 @@
   "structure.routeParamIsRequiredMessage": "Route parameter value is required",
   "structure.routeAlreadyExistsMessage": "Route {path} already exists",
   "structure.childRoutesEmptyMessage": "Child route path can not be empty",
-  "structure.deleteRouteConfirmationMessage": "All child routes will be deleted too.",
+  "structure.deleteRouteConfirmationMessage": "All child routes will be deleted too. All change route actions linked to this route will be deleted as well",
   "structure.redirectTo": "Redirect to",
   "structure.indexRoute": "Index route",
   "structure.indexRedirect": "Index redirect",
