@@ -13,7 +13,7 @@ const backendUrl =
 export const getProject = async projectName => {
   let url = URL_API_PREFIX;
   const jwt = Cookie.getJSON('jssy-jwt');
-  console.log('jwt', jwt)
+
   if (process.env.NODE_ENV === 'production') {
     url = backendUrl;
   }
