@@ -617,7 +617,7 @@ export class DataSelection extends PureComponent {
       case Views.FIELDS_LIST: return this._renderFieldSelection();
       case Views.ARGS_FORM: return this._renderArgumentsForm();
       case Views.FULL_ARGS_FORM: return this._renderFullArgumentsForm();
-      default: return null;
+      default: return <div>hello</div>;
     }
   }
 }

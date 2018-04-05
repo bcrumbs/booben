@@ -199,6 +199,13 @@ export class DataSelectionFieldsList extends PureComponent {
     );
   }
 
+  _renderNoDataSourcePlaceholder() {
+    // @kakatyamarova: Replace <div/> with placeholder component;
+    return (
+      <div>No data sources available</div>
+    );
+  }
+
   render() {
     const {
       type,
@@ -248,9 +255,16 @@ export class DataSelectionFieldsList extends PureComponent {
       });
     });
 
+    let content;
+    if (items.length > 0) {
+      content = items;
+    } else {
+      content = this._renderNoDataSourcePlaceholder();
+    }
+
     return (
       <DataList>
-        {items}
+        {content}
       </DataList>
     );
   }
