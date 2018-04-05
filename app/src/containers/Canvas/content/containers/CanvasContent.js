@@ -131,9 +131,6 @@ const wrap = connect(
   { withRef: true },
 );
 
-const setImmediate = window.setImmediate || (fn => setTimeout(fn, 0));
-const clearImmediate = window.clearImmediate || window.clearTimeout;
-
 const SNAP_DISTANCE = 200;
 const SUPPRESS_DROP_MENU_RADIUS = Math.round(SNAP_DISTANCE * 1.5);
 const CLOSE_SNAP_POINTS_THRESHOLD = 10;
@@ -291,8 +288,6 @@ class CanvasContent extends Component {
     containerNode.removeEventListener('mouseout', this._handleMouseOut, false);
 
     containerNode.removeEventListener('click', this._handleClick, false);
-
-    if (this._unhighilightTimer > -1) clearImmediate(this._unhighilightTimer);
 
     if (pickingComponent || pickingComponentData) {
       window.document.body.removeEventListener('click', this._handleBodyClick);
@@ -658,11 +653,6 @@ class CanvasContent extends Component {
         componentId !== INVALID_ID &&
         this._canInteractWithComponent(componentId)
       ) {
-        if (this._unhighilightTimer > -1) {
-          clearImmediate(this._unhighilightTimer);
-          this._unhighilightTimer = -1;
-        }
-
         if (this._unhighlightedComponentId !== componentId) {
           if (this._unhighlightedComponentId !== INVALID_ID) {
             onUnhighlightComponent(this._unhighlightedComponentId);
@@ -677,10 +667,9 @@ class CanvasContent extends Component {
             }
           } else {
             onHighlightComponent(componentId);
+            this._unhighlightedComponentId = componentId;
           }
         }
-
-        this._unhighlightedComponentId = INVALID_ID;
       }
     }
   }
@@ -700,16 +689,7 @@ class CanvasContent extends Component {
         componentId !== INVALID_ID &&
         this._canInteractWithComponent(componentId)
       ) {
-        if (this._unhighilightTimer > -1) {
-          clearImmediate(this._unhighilightTimer);
-          onUnhighlightComponent(this._unhighlightedComponentId);
-        }
-
-        this._unhighilightTimer = setImmediate(() => {
-          this._unhighilightTimer = -1;
-          this._unhighlightedComponentId = INVALID_ID;
-          onUnhighlightComponent(componentId);
-        });
+        onUnhighlightComponent(this._unhighlightedComponentId);
 
         this._unhighlightedComponentId = componentId;
       }
