@@ -1,6 +1,7 @@
 import triggersProjectSave from './project-save/wrapper';
 import { getProject, getMetadata, getGraphQLSchema } from '../lib/api';
 import { URL_GRAPHQL_PREFIX } from '../../../shared/constants';
+import fakeSchema from './helpers/fakeSchema.json';
 
 export const PROJECT_REQUEST = 'PROJECT_REQUEST';
 export const PROJECT_LOADED = 'PROJECT_LOADED';
@@ -122,7 +123,7 @@ export const loadProject = projectName => async dispatch => {
 
       dispatch(projectLoaded(project, metadata, schema));
     } else {
-      dispatch(projectLoaded(project, metadata));
+      dispatch(projectLoaded(project, metadata, fakeSchema));
     }
   } catch (error) {
     dispatch(projectLoadFailed(error));
