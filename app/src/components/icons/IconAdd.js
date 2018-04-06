@@ -15,7 +15,8 @@ export const IconAdd = props => (
       </g>
       <g>
         <rect x="7.3" y="11" width="9.4" height="2"/>
-      </g>    </svg>
+      </g>
+    </svg>
   </IconSvg>
 );
 /* eslint-enable max-len */

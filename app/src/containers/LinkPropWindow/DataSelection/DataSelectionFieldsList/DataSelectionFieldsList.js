@@ -10,6 +10,7 @@ import {
   formatFieldName,
 } from '@jssy/graphql-schema';
 
+import { BlockContentPlaceholder } from '../../../../components/BlockContent';
 import { DataList, DataItem } from '../../../../components/DataList/DataList';
 import { noop, returnArg, objectSome } from '../../../../utils/misc';
 
@@ -200,9 +201,12 @@ export class DataSelectionFieldsList extends PureComponent {
   }
 
   _renderNoDataSourcePlaceholder() {
-    // @kakatyamarova: Replace <div/> with placeholder component;
+    const { getLocalizedText } = this.props;
     return (
-      <div>No data sources available</div>
+      <BlockContentPlaceholder
+        colorScheme="alt"
+        text={getLocalizedText('linkDialog.data.placeholder')}
+      />
     );
   }
 

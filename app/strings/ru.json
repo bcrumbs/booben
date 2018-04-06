@@ -156,6 +156,7 @@
   "linkDialog.function.new.newArg.name": "Имя",
   "linkDialog.function.new.newArg.type": "Тип",
   "linkDialog.function.new.newArg.add": "Добавить",
+  "linkDialog.data.placeholder": "Схема пуста или не подключена",
   "linkDialog.data.setArguments": "Аргументы",
   "linkDialog.data.fields": "Поля",
   "linkDialog.data.fields.listOf": "Список {type}",
