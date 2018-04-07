@@ -31,3 +31,5 @@ export const REACT_COMPATIBILITY_MODE_WARNINGS = false;
 export const COMPONENTS_TITLE_FORMATTING = 1;
 
 export const CSS_EDITOR_DEBOUNCE = 200;
+
+export const SELECT_ROUTE_DEBOUNCE = 200;

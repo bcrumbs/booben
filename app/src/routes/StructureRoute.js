@@ -2,6 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { push } from 'react-router-redux';
+import debounce from 'lodash.debounce';
 import { Shortcuts } from 'react-shortcuts';
 import { List } from 'immutable';
 import { Container } from 'reactackle-grid';
@@ -24,6 +25,8 @@ import ProjectRecord from '../models/Project';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
 import ButtonRecord from '../models/Button';
+
+import { SELECT_ROUTE_DEBOUNCE } from '../config';
 
 import {
   CreateRouteDialog,
@@ -359,12 +362,13 @@ class StructureRoute extends PureComponent {
    */
   _handleRouteSelect({ routeId, isIndexRoute }) {
     const { selectedRouteId, indexRouteSelected, onSelectRoute } = this.props;
+    const onSelectRouteWithDebounce = debounce(onSelectRoute, SELECT_ROUTE_DEBOUNCE);
 
     if (
       routeId !== selectedRouteId ||
       isIndexRoute !== indexRouteSelected
     ) {
-      onSelectRoute(routeId, isIndexRoute);
+      onSelectRouteWithDebounce(routeId, isIndexRoute);
     }
   }
 
