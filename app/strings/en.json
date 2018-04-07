@@ -156,6 +156,7 @@
   "linkDialog.function.new.newArg.name": "Name",
   "linkDialog.function.new.newArg.type": "Type",
   "linkDialog.function.new.newArg.add": "Add argument",
+  "linkDialog.data.placeholder": "Scheme is empty or not connected",
   "linkDialog.data.setArguments": "Set arguments",
   "linkDialog.data.fields": "Fields",
   "linkDialog.data.fields.listOf": "List of {type}",

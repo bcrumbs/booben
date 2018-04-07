@@ -49,7 +49,6 @@ export default {
     },
 
     placeholder: {
-      bgColor: paletteBlueGrey25,
       textColor: textColorMedium,
     },
 
@@ -92,7 +91,6 @@ export default {
     },
 
     placeholder: {
-      bgColor: paletteBlueGrey650,
       textColor: textColorMedium,
     },
 
