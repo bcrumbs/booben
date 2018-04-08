@@ -15,6 +15,7 @@ import { getProject, getMetadata, getGraphQLSchema } from './lib/api';
 import { transformMetadata, getContainerStyle } from './lib/meta';
 import { createApolloClient } from './lib/apollo';
 import { trimArray } from './utils/misc';
+import fakeSchema from './actions/helpers/fakeSchema.json';
 
 const getProjectName = () => {
   const pathSplit = trimArray(window.location.pathname.split('/'));
@@ -96,6 +97,7 @@ window.addEventListener('DOMContentLoaded', async () => {
           componentsBundle={componentsBundle}
           project={project}
           meta={meta}
+          schema={fakeSchema}
         />
       );
     }
