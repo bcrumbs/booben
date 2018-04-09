@@ -43,6 +43,7 @@ const propTypes = {
   onLink: PropTypes.func,
   onUnlink: PropTypes.func,
   onCheck: PropTypes.func,
+  simulateLeftOffset: PropTypes.boolean,
 };
 
 const defaultProps = {
@@ -56,6 +57,7 @@ const defaultProps = {
   onLink: noop,
   onUnlink: noop,
   onCheck: noop,
+  simulateLeftOffset: false,
 };
 
 /**
@@ -346,7 +348,7 @@ export class Prop extends PureComponent {
   }
 
   _renderNestedProps() {
-    const { propType, value, disabled, getLocalizedText } = this.props;
+    const { propType, value, disabled, getLocalizedText, simulateLeftOffset } = this.props;
     const { isOpen, currentPath } = this.state;
 
     if (!isOpen) return null;
