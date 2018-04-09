@@ -182,16 +182,6 @@ class AppRoute extends Component {
                       linkHref={`/${routeName}/structure`}
                       linkComponent={TopMenuLink}
                     />
-
-                    {/*<MenuItem*/}
-                      {/*text={getLocalizedText('appHeader.menu.design')}*/}
-                    {/*>*/}
-                      {/*<MenuGroup mode="dark">*/}
-                        {/*<MenuList>*/}
-                          {/*{routeMenuItems}*/}
-                        {/*</MenuList>*/}
-                      {/*</MenuGroup>*/}
-                    {/*</MenuItem>*/}
                   </MenuList>
                 </MenuGroup>
               </Menu>

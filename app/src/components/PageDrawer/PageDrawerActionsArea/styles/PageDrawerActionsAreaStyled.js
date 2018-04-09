@@ -12,6 +12,7 @@ export const PageDrawerActionsAreaStyled = styled.div`
   min-width: ${constants.actionWidth}px;
   background-color: ${constants.actions.bgColor};
   border-right: 1px solid ${constants.actions.borderColor};
+  border-left: 1px solid ${constants.actions.borderColor};
 `;
 
 PageDrawerActionsAreaStyled.displayName = 'PageDrawerActionsAreaStyled';
