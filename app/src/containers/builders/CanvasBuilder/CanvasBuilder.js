@@ -593,6 +593,10 @@ class CanvasBuilderComponent extends PureComponent {
       : componentId;
       
     if (isHTMLComponent) {
+      // Find a better way to disable href on canvas builder;
+      if (props.href || props.href === '') {
+        delete props.href;
+      }
       props['data-jssy-id'] = String(id);
       if (isInvisible) props['data-jssy-invisible'] = '';
     } else {
