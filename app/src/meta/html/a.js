@@ -13,7 +13,7 @@ export default {
       source: ['static', 'data'],
       sourceConfigs: {
         static: {
-          default: '',
+          default: 'javascript: void(0)',
         },
         data: {},
       },
