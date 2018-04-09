@@ -120,9 +120,7 @@ export class FunctionsList extends PureComponent {
       ? builtinFunctions
       : projectFunctions;
 
-
-
-    return fns.lenght > 0 && (
+    return fns.length > 0 && (
       <BlockContentBoxItem>
         <DataList>
           {fns.map(fn => (
