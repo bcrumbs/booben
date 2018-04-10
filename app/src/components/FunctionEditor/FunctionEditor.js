@@ -55,7 +55,7 @@ export const FunctionEditor = ({
     argsString = args.map(arg => arg.name).join(', ');
   }
 
-  const header = `function ${name}(${argsString})`;
+  const header = `function ${name}(${argsString}){`;
   const footer = '}';
 
   return (
