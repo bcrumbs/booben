@@ -10,7 +10,7 @@
   "common.apply": "Применить",
   "common.enable": "Enable",
 
-  "appHeader.projectTitle": "Проект {projectName}",
+  "appHeader.projectTitle": "{projectName}",
   "appHeader.menu.structure": "Структура",
   "appHeader.menu.settings": "Настройки",
   "appHeader.menu.shortcuts": "Горячие клавиши",
