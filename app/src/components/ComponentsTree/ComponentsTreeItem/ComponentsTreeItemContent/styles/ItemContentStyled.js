@@ -1,5 +1,4 @@
 import styled, { css } from 'styled-components';
-import { transition } from 'reactackle-core';
 import constants from '../../../styles/constants';
 import { textColorMedium } from '../../../../../styles/themeSelectors';
 
@@ -55,7 +54,6 @@ export const ItemContentStyled = styled.div`
   ${active}
   ${selected}
   ${disabled}
-  ${transition('background-color')}
 `;
 
 ItemContentStyled.displayName = 'ItemContentStyled';

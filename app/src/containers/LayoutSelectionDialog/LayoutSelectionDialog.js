@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Dialog } from 'reactackle-dialog';
+import { Dialog } from '../../components';
 import { getLocalizedTextFromState } from '../../selectors';
 import { getComponentMeta, getString } from '../../lib/meta';
 import { selectLayoutForNewComponent } from '../../actions/project';

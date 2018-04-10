@@ -16,8 +16,8 @@ import {
 const borderColor = colorBorderDark;
 
 export default {
-  basePaddingX: baseModule(2),
-  basePaddingY: baseModule(2),
+  basePaddingX: baseModule(2.5),
+  basePaddingY: baseModule(2.5),
 
   title: {
     elementsSpacing: baseModule(1),

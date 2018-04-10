@@ -18,12 +18,11 @@ const colorScheme = ({ colorScheme }) => css`
 
 export const TitleIconStyled = styled.div`
   display: flex;
-  font-size: 16px;
-  margin-right: -${constants.basePaddingX}px;
-  align-self: flex-start;
-  margin-top: ${baseModule(0.5)}px;
+  align-self: center;
+  position: absolute;
+  left: 0;
   ${colorScheme}
-  ${iconSizeMixin('32px')}
+  ${iconSizeMixin('24px', '24px', '20px', '24px')}
 `;
 
 TitleIconStyled.displayName = 'TitleIconStyled';

@@ -1,5 +1,4 @@
 import styled, { css } from 'styled-components';
-import { transition } from 'reactackle-core';
 import constants from '../../../styles/constants';
 
 const colorScheme = ({ active }) => active
@@ -26,7 +25,6 @@ export const PageDrawerActionItemStyled = styled.div`
   flex-shrink: 0;
   min-height: ${constants.actionHeight}px;
   ${colorScheme}
-  ${transition('background-color, opacity')}
   
   & > * {
     flex-grow: 1;

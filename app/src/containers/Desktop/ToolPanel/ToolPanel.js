@@ -178,7 +178,7 @@ export const ToolPanel = props => {
       resizeMaxWidth={Math.round(window.innerWidth / 2)}
       isExpanded={isExpanded}
       hasActions={pageDrawerHasActions}
-      position="left"
+      position="right"
     >
       <PageDrawerActionsArea>
         <PageDrawerActionsGroup spread>

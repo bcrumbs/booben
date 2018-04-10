@@ -1,6 +1,5 @@
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition } from 'reactackle-core';
 import componentConstants from '../../styles/constants';
 
 const propTypes = {
@@ -15,7 +14,7 @@ const thickness = componentConstants.rulerWidth;
 
 const position = ({ position }) => {
   let styles = null;
-  
+
   if (position === 'horizontal') {
     styles = `
       width: 100%;
@@ -41,7 +40,7 @@ const position = ({ position }) => {
       cursor: se-resize;
     `;
   }
-  
+
   return styles;
 };
 
@@ -51,7 +50,6 @@ export const ArtboardExpanderStyled = styled.div`
   position: absolute;
   z-index: 9;
   ${position}
-  ${transition('opacity')}
 
   &:hover {
     opacity: 1;

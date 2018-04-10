@@ -1,5 +1,4 @@
 import styled, { css } from 'styled-components';
-import { transition } from 'reactackle-core';
 import componentConstants from '../../styles/constants';
 
 import {
@@ -25,7 +24,6 @@ export const ContentBoxStyled = styled.div`
   flex-grow: 1;
   border-radius: ${radiusDefault}px;
   display: flex;
-  ${transition('background-color')};
   ${selected}
 `;
 

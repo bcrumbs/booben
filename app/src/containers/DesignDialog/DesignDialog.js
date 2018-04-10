@@ -1,9 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Theme } from 'reactackle-core';
 import { connect } from 'react-redux';
-import { Dialog } from 'reactackle-dialog';
-import reactackleThemeMixin from './styles/reactackle-theme-mixin';
+import { Dialog } from '../../components';
 
 const propTypes = {
   ...Dialog.propTypes,
@@ -26,9 +24,7 @@ const DesignDialogComponent = props => {
   const visible = !pickingComponent && !pickingComponentData;
 
   return (
-    <Theme mixin={reactackleThemeMixin}>
-      <Dialog {...props} visible={visible} />
-    </Theme>
+    <Dialog {...props} visible={visible} />
   );
 };
 

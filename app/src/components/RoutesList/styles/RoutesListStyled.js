@@ -1,6 +1,5 @@
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition } from 'reactackle-core';
 import { RouteCardStyled } from '../RouteCard/styles/RouteCardStyled';
 
 import {
@@ -50,7 +49,6 @@ export const RoutesListStyled = styled.ul`
       left: -${baseModule(1)}px;
       width: 4px;
       ${focused}
-      ${transition('border-color, height')
     }
   }
   

@@ -35,7 +35,7 @@ const position = ({ position }) => css`
   border-${oppositeDirection[position]}-width: ${constants.verticalBorderWidth}px;
   border-${oppositeDirection[position]}-style: solid;
   border-${oppositeDirection[position]}-color: ${constants.content.borderColor};
-  ${position === 'left' ? 1 : 3}
+  order: ${position === 'right' ? 3 : 1};
 `;
 
 export const PageDrawerStyled = styled.div`

@@ -6,16 +6,10 @@ export const IconDrag = props => (
   <IconSvg {...props}>
     <svg viewBox="0 0 24 24">
       <g>
-        <circle cx="8" cy="14.7" r="2" />
-        <circle cx="8" cy="20" r="2" />
-        <circle cx="8" cy="9.3" r="2" />
-        <circle cx="8" cy="4" r="2" />
+        <rect x="9" y="2.5" width="2" height="19"/>
       </g>
       <g>
-        <circle cx="16" cy="14.7" r="2" />
-        <circle cx="16" cy="20" r="2" />
-        <circle cx="16" cy="9.3" r="2" />
-        <circle cx="16" cy="4" r="2" />
+        <rect x="13" y="2.5" width="2" height="19"/>
       </g>
     </svg>
   </IconSvg>

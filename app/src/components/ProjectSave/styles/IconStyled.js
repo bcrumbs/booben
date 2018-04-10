@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition, animations, iconSizeMixin } from 'reactackle-core';
+import { animations, iconSizeMixin } from 'reactackle-core';
 import { baseModule } from '../../../styles/themeSelectors';
 
 const propTypes = {
@@ -21,12 +21,13 @@ const active = ({ active }) => `opacity: ${active ? 0.8 : 0.5};`;
 
 const typeProgress = ({ typeProgress }) => typeProgress
   ? `
+    border: 1px solid currentColor;
     border-right-color: transparent;
+    border-radius: 50%;
     animation-iteration-count: infinite;
     animation-duration: 1s;
     animation-name: ${animations.spin};
     animation-timing-function: linear;
-    border-width: 2px;
   `
   : '';
 
@@ -36,7 +37,6 @@ export const IconStyled = styled.div`
   box-sizing: border-box;
   ${active}
   ${typeProgress}
-  ${transition('opacity')};
   ${iconSizeMixin(outerSize, imgSize)}
 
   & > * {

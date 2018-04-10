@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import { transition } from 'reactackle-core';
 import { baseModule } from '../../../../styles/themeSelectors';
 
 const my = 2;
@@ -22,7 +21,6 @@ export const ButtonsStyled = styled.div`
   width: calc(100% + ${baseModule(1)}px);
   text-align: right;
   ${selected}
-  ${transition('opacity')};
 
   & > * {
       margin: ${my}px ${mx}px;

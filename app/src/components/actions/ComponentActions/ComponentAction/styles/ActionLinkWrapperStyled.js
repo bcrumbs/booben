@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import { transition } from 'reactackle-core';
 
 import {
   radiusDefault,
@@ -11,7 +10,6 @@ export const ActionLinkWrapperStyled = styled.a`
   flex-grow: 1;
   border-radius: ${radiusDefault}px;
   cursor: pointer;
-  ${transition('background-color')}
 
   &:hover {
     background-color: ${colorHover};

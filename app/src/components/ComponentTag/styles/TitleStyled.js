@@ -1,6 +1,5 @@
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition } from 'reactackle-core';
 import constants from './constants';
 
 import {
@@ -30,7 +29,6 @@ export const TitleStyled = styled.div`
   padding: ${baseModule(0.5)}px;
   text-align: center;
   word-wrap: break-word;
-  ${transition('color')};
   ${focused}
 `;
 

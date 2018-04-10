@@ -1,6 +1,5 @@
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition } from 'reactackle-core';
 import { baseModule, colorSecondary } from '../../../../styles/themeSelectors';
 
 const propTypes = {
@@ -20,7 +19,6 @@ export const CardContentStyled = styled.div`
   display: flex;
   align-items: stretch;
   ${focused}
-  ${transition('border')}
 `;
 
 CardContentStyled.displayName = 'CardContentStyled';

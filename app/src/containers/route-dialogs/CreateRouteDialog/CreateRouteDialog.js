@@ -8,8 +8,8 @@ import { connect } from 'react-redux';
 import { compose } from 'redux';
 import { Form, FormItem } from 'reactackle-form';
 import { TextField } from 'reactackle-text-field';
-import { Dialog } from 'reactackle-dialog';
 import snakeCase from 'lodash.snakecase';
+import { Dialog } from '../../../components';
 
 import {
   BlockContent,

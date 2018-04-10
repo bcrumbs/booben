@@ -1,6 +1,5 @@
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition } from 'reactackle-core';
 
 import {
   baseModule,
@@ -57,7 +56,6 @@ export const ContentStyled = styled.div`
   border: 1px solid rgba(255,255,255,0.1);
   font-size: ${fontSizeSmall}px;
   ${colorScheme}
-  ${transition('background-color')}
 `;
 
 ContentStyled.displayName = 'ContentStyled';

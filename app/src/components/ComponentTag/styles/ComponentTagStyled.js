@@ -1,6 +1,5 @@
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition } from 'reactackle-core';
 import constants from './constants';
 
 import {
@@ -52,7 +51,6 @@ export const ComponentTagStyled = styled.div`
   user-select: none;
   border-left-width: 0;
   ${focused}
-  ${transition('border, background')};
   
   &:nth-child(${TAGS_PER_ROW}n) {
     border-right-width: 0;

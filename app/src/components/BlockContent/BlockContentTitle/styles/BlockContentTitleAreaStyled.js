@@ -16,6 +16,7 @@ export const BlockContentTitleAreaStyled = styled.div`
   display: flex;
   align-items: center;
   min-height: 38px;
+  position: relative;
   ${draggable}
 `;
 

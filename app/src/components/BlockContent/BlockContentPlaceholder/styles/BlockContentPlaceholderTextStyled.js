@@ -16,7 +16,7 @@ const defaultProps = {
 };
 
 const colorScheme = ({ colorScheme }) => css`
-  color: ${constants[colorScheme].placeholder.fontColor};
+  color: ${constants[colorScheme].placeholder.textColor};
 `;
 
 export const BlockContentPlaceholderTextStyled = styled.div`

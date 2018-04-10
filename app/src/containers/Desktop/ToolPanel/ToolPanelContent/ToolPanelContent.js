@@ -18,7 +18,7 @@ import { noop } from '../../../../utils/misc';
 
 import {
   IconArrowChevronRight,
-  IconExpand,
+  IconDetach,
 } from '../../../../components/icons';
 
 const propTypes = {
@@ -68,7 +68,7 @@ export class ToolPanelContent extends PureComponent {
 
     if (tool.undockable) {
       titleButtons.unshift({
-        icon: <IconExpand />,
+        icon: <IconDetach />,
         colorScheme: 'flatLight',
         onPress: onUndock,
       });

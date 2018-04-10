@@ -140,12 +140,21 @@ export default {
     dialog: {
       window: {
         backgroundColor: paletteBlueGrey[700],
+        minWidth: 320,
+        maxWidth: 540,
       },
 
       title: {
         fontSize: fontSize[2],
         color: colorMain,
         fontWeight: fontWeight.normal,
+        paddingX: baseModule * 3,
+        paddingY: baseModule * 3,
+      },
+
+      content: {
+        paddingX: baseModule * 3,
+        paddingY: baseModule * 3,
       },
 
       closeButton: {

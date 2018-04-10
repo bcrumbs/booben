@@ -766,6 +766,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     if (selectedComponentsNumber === 0) {
       return (
         <BlockContentPlaceholder
+          colorScheme="alt"
           text={getLocalizedText('propsEditor.noComponentsSelectedText')}
         />
       );
@@ -774,6 +775,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     if (selectedComponentsNumber > 1) {
       return (
         <BlockContentPlaceholder
+          colorScheme="alt"
           text={getLocalizedText('propsEditor.multipleComponentsSelectedText')}
         />
       );

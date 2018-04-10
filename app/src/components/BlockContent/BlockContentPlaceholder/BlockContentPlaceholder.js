@@ -32,7 +32,7 @@ export const BlockContentPlaceholder = props => {
 
   return (
     <BlockContentPlaceholderStyled>
-      <BlockContentPlaceholderContentStyled colorScheme={props.colorScheme}>
+      <BlockContentPlaceholderContentStyled>
         {text}
         {props.children}
       </BlockContentPlaceholderContentStyled>

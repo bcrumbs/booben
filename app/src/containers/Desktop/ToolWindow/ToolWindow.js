@@ -23,7 +23,7 @@ import resizeable from '../../../hocs/resizeable';
 import ToolType from '../../../models/Tool';
 import ToolStateType from '../../../models/ToolState';
 import { noop } from '../../../utils/misc';
-import { IconCollapse, IconDrag } from '../../../components/icons';
+import { IconAttach, IconDrag } from '../../../components/icons';
 
 const propTypes = {
   tool: PropTypes.instanceOf(ToolType).isRequired,
@@ -328,7 +328,7 @@ export class ToolWindow extends PureComponent {
 
     if (tool.undockable) {
       titleButtons.push({
-        icon: <IconCollapse />,
+        icon: <IconAttach />,
         onPress: onDock,
       });
     }

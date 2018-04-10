@@ -1,6 +1,5 @@
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition } from 'reactackle-core';
 
 import {
   radiusDefault,
@@ -45,7 +44,6 @@ export const CardStyled = styled.div`
   flex-direction: column;
   align-items: stretch;
   ${index}
-  ${transition('background-color, border')}
 
   &:hover,
   &:focus {

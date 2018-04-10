@@ -1,9 +1,4 @@
-/**
- * @author Ekaterina Marova
- */
-
 import styled, { css } from 'styled-components';
-import { transition } from 'reactackle-core';
 
 import {
   baseModule,
@@ -21,7 +16,6 @@ export const OptionStyled = styled.li`
   line-height: 1.5;
   cursor: pointer;
   ${active}
-  ${transition('background-color')}
   
   &:hover,
   &:focus {

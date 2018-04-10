@@ -1,5 +1,4 @@
 import styled, { css } from 'styled-components';
-import { transition } from 'reactackle-core';
 
 import {
   baseModule,
@@ -63,7 +62,6 @@ export const TitleStyled = styled.div`
   min-width: 100px;
   overflow: hidden;
   text-align: left;
-  ${transition('background-color')}
   ${hovered}
   ${active}
   ${disabled}

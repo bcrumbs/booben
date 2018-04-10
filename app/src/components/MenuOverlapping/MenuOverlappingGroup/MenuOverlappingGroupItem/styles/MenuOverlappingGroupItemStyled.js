@@ -1,5 +1,4 @@
 import styled, { css } from 'styled-components';
-import { transition } from '../../../../../styles/mixins';
 
 import {
   baseModule,
@@ -21,14 +20,12 @@ const base = ({ disabled }) => {
         background-color: rgba(0, 0, 0, 0.05);
       }
     `;
-  
+
   return `
     cursor: ${cursor};
     ${backgroundStyles}
   `;
 };
-
-const bgTransition = transition('background-color');
 
 export const MenuOverlappingGroupItemStyled = styled.li`
   padding: ${baseModule(1)}px ${baseModule(1.5)}px;
@@ -36,7 +33,6 @@ export const MenuOverlappingGroupItemStyled = styled.li`
   vertical-align: baseline;
   user-select: none;
   ${base}
-  ${bgTransition}
 `;
 
 MenuOverlappingGroupItemStyled.displayName = 'MenuOverlappingGroupItemStyled';

@@ -1,6 +1,5 @@
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition } from 'reactackle-core';
 import constants from '../../styles/constants';
 
 const propTypes = {
@@ -64,8 +63,7 @@ export const TitleStyled = styled.input`
   font-size: ${constants.title.fontSize}px;
   ${disabled}
   ${colorScheme}
-  ${editable}  
-  ${transition('border')}
+  ${editable}
   
   &,
   &:hover,
