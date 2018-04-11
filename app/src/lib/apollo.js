@@ -35,7 +35,7 @@ export const createApolloClient = (project, authConfig) => {
     if (project.auth.type === 'jwt') {
       const middlewareLink = setContext(() => ({
         headers: {
-          authorization: authConfig.getToken(),
+          authorization: `Bearer ${authConfig.getToken()}`,
         },
       }));
 
