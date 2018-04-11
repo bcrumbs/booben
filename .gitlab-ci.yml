@@ -5,7 +5,7 @@ stages:
   - publish
   - deploydev
 #  - deploystage
-#  - deployprod
+  - deployprod
 
 push_image:
   stage: publish
@@ -32,7 +32,7 @@ deploy_to_dev:
     - rancher-compose --url $URL --access-key $ACCESS_KEY_DEV --secret-key $SECRET_KEY_DEV -p $CI_PROJECT_NAMESPACE -f docker-compose-dev.yml up $CI_PROJECT_NAME -p --force-upgrade -c -d
   environment:
     name: Jssy
-    url: http://jssy.ordbuy.com/app/test/
+    url: https://dev.booben.io/app
   only:
     - /^dev$/
   tags:
@@ -51,17 +51,17 @@ deploy_to_dev:
 #  tags:
 #    - rancher
 
-#deploy_to_prod:
-#  stage: deployprod
-#  before_script:
-#  script:
-#    - sed -i "s|{{TAG}}|$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)|g" docker-compose-prod.yml
-#    - rancher-compose --url $URL --access-key $ACCESS_KEY_PROD --secret-key $SECRET_KEY_PROD -p $CI_PROJECT_NAMESPACE -f docker-compose-prod.yml up $CI_PROJECT_NAME -p --force-upgrade -c -d
-#  environment:
-#    - name: Production
-#    - url: https://ordbuy.com
-#  only:
-#    - tags
-#  when: manual
-#  tags:
-#    - rancher
+deploy_to_prod:
+  stage: deployprod
+  before_script:
+  script:
+    - sed -i "s|{{TAG}}|$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)|g" docker-compose-prod.yml
+    - rancher-compose --url $URL --access-key $ACCESS_KEY_DEV --secret-key $SECRET_KEY_DEV -p $CI_PROJECT_NAMESPACE -f docker-compose-prod.yml up $CI_PROJECT_NAME -p --force-upgrade -c -d
+  environment:
+    - name: Production
+    - url: https://prod.booben.io/app
+  only:
+    - master
+  when: manual
+  tags:
+    - rancher
