@@ -7,7 +7,7 @@ stages:
 #  - deploystage
   - deployprod
 
-push_image:
+build_image_dev:
   stage: publish
   script:
     - npm install
@@ -22,6 +22,24 @@ push_image:
     - docker rmi -f $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)
   only:
     - /^dev$/
+  tags:
+    - node
+
+build_image_prod:
+  stage: publish
+  script:
+    - npm install
+    - npm run build:prod
+    - 'echo "{ \"projectsDir\": \"${PWD}/jssy-projects\" }" > prod-config.json'
+    - ssh-keyscan -p 29184 gitlab.ordbuy.com >> ~/.ssh/known_hosts
+    - git clone ssh://git@gitlab.ordbuy.com:29184/jssy/jssy-projects.git
+    - while read PROJECT; do node rebuild-components-bundle.js --config prod-config.json -- ${PROJECT}; done < <(find jssy-projects/* -maxdepth 0 -type d | sed 's/.*\///g')
+    - docker build -t $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME-prod:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json) .
+    - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY
+    - docker push $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME-prod:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)
+    - docker rmi -f $CI_REGISTRY/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME-prod:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)
+  only:
+    - master
   tags:
     - node
 
@@ -56,7 +74,7 @@ deploy_to_prod:
   before_script:
   script:
     - sed -i "s|{{TAG}}|$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)|g" docker-compose-prod.yml
-    - rancher-compose --url $URL --access-key $ACCESS_KEY_DEV --secret-key $SECRET_KEY_DEV -p $CI_PROJECT_NAMESPACE -f docker-compose-prod.yml up $CI_PROJECT_NAME -p --force-upgrade -c -d
+    - rancher-compose --url $URL --access-key $ACCESS_KEY_DEV --secret-key $SECRET_KEY_DEV -p $CI_PROJECT_NAMESPACE -f docker-compose-prod.yml up $CI_PROJECT_NAME-prod -p --force-upgrade -c -d
   environment:
     name: Production
     url: https://prod.booben.io/app
