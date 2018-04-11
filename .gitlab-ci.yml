@@ -58,8 +58,8 @@ deploy_to_prod:
     - sed -i "s|{{TAG}}|$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)|g" docker-compose-prod.yml
     - rancher-compose --url $URL --access-key $ACCESS_KEY_DEV --secret-key $SECRET_KEY_DEV -p $CI_PROJECT_NAMESPACE -f docker-compose-prod.yml up $CI_PROJECT_NAME -p --force-upgrade -c -d
   environment:
-    - name: Production
-    - url: https://prod.booben.io/app
+    name: Production
+    url: https://prod.booben.io/app
   only:
     - master
   when: manual
