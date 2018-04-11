@@ -176,7 +176,6 @@ class ActionEditorComponent extends PureComponent {
       action: props.action || new Action(),
       linkingValue: false,
       linkParams: null,
-      pickingPath: null,
     };
 
     this._handleActionTypeChange = this._handleActionTypeChange.bind(this);
@@ -268,7 +267,7 @@ class ActionEditorComponent extends PureComponent {
   }
 
   _handlePickedComponentData(componentId, data) {
-    const { action, pickingPath } = this.state;
+    const { action, linkParams } = this.state;
 
     if (action.type === ActionTypes.LOAD_MORE_DATA) {
       this.setState({
@@ -282,6 +281,16 @@ class ActionEditorComponent extends PureComponent {
         source: 'state',
         sourceData: new SourceDataState({ componentId, stateSlot: data }),
       });
+
+      const pickingPath = {
+        start: {
+          object: action,
+          expandedPath: [],
+        },
+
+        steps: ['args', linkParams.name],
+      };
+  
 
       this.setState({
         action: setInPath(pickingPath, newValue),
