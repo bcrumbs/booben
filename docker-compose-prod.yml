@@ -9,5 +9,5 @@ jssy-prod:
     max-file: '3'
     max-size: 50m
   tty: true
-  image: registry.ordbuy.com/jssy/jssy:{{TAG}}
+  image: registry.ordbuy.com/jssy/jssy-prod:{{TAG}}
   stdin_open: true
