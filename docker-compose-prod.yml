@@ -1,0 +1,13 @@
+jssy-prod:
+  ports:
+  - 8029:3000/tcp
+  log_driver: json-file
+  labels:
+    io.rancher.container.pull_image: always
+    io.rancher.scheduler.affinity:host_label: host=node1
+  log_opt:
+    max-file: '3'
+    max-size: 50m
+  tty: true
+  image: registry.ordbuy.com/jssy/jssy:{{TAG}}
+  stdin_open: true
