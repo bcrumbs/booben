@@ -8,6 +8,11 @@ import set from 'lodash.set';
 import pick from 'lodash.pick';
 import defaultsDeep from 'lodash.defaultsdeep';
 import { resolveTypedef } from '@jssy/types';
+import { injectGlobal } from 'styled-components';
+
+const doInjectGlobal = styles => injectGlobal`
+  ${styles}
+`;
 
 import {
   FieldKinds,
@@ -124,7 +129,18 @@ class PreviewBuilderComponent extends PureComponent {
         props.meta,
         this._renderHints,
       ),
+      componentsStyle: null,
     };
+  }
+
+  componentDidMount() {
+    const styles = [];
+    this.props.components.forEach(component => {
+      if (component.name === 'HTML.div') {
+        styles.push(`.styled${component.id}{ ${component.style} }`);
+      }
+    });
+    doInjectGlobal(styles.join('\n'));
   }
 
   componentWillReceiveProps(nextProps) {
@@ -952,9 +968,9 @@ class PreviewBuilderComponent extends PureComponent {
       props.ref = this._saveComponentRef.bind(this, component.id);
     }
 
-    if (isHTML) {
-      props.style = component.style;
-    }
+    // if (isHTML) {
+    //   props.style = component.style;
+    // }
 
     let Renderable = Component;
 
@@ -969,15 +985,23 @@ class PreviewBuilderComponent extends PureComponent {
       Renderable = gqlHoc(Component);
     }
 
-    return (
-      <Renderable {...props} />
-    );
+    let element;
+    if (component.name === 'HTML.div') {
+      element = <div className={`styled${component.id}`} {...props} />;
+    } else {
+      element = (
+        <Renderable {...props} />
+      );
+    }
+    
+    
+    return element;
   }
 
   render() {
     const { components, rootId } = this.props;
     return rootId !== INVALID_ID
-    ? this._renderComponent(components.get(rootId))
+    ? <div>{this._renderComponent(components.get(rootId))}</div>
     : null;
   }
 
