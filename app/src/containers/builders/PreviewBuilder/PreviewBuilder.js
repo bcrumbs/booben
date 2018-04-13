@@ -39,6 +39,7 @@ import {
   getComponentMeta,
   getSourceConfig,
   isHTMLComponent,
+  parseComponentName,
 } from '../../../lib/meta';
 
 import {
@@ -136,7 +137,7 @@ class PreviewBuilderComponent extends PureComponent {
   componentDidMount() {
     const styles = [];
     this.props.components.forEach(component => {
-      if (component.name === 'HTML.div' || component.name === 'HTML.a') {
+      if (isHTMLComponent(component.name)) {
         styles.push(`.styled${component.id}{ ${component.style} }`);
       }
     });
@@ -986,10 +987,17 @@ class PreviewBuilderComponent extends PureComponent {
     }
 
     let element;
-    if (component.name === 'HTML.div') {
-      element = <div className={`styled${component.id}`} {...props} />;
-    } else if (component.name === 'HTML.a') {
-      element = <a className={`styled${component.id}`} {...props} />;
+    
+    
+    if (isHTMLComponent(component.name)) {
+      const { name } = parseComponentName(component.name);
+      const className = `styled${component.id}`;
+      const newProps = {
+        ...props,
+        className,
+      };
+
+      element = React.createElement(name, newProps);
     } else {
       element = (
         <Renderable {...props} />
