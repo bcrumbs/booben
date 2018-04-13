@@ -991,7 +991,12 @@ class PreviewBuilderComponent extends PureComponent {
     
     if (isHTMLComponent(component.name)) {
       const { name } = parseComponentName(component.name);
-      const className = `styled${component.id}`;
+      let className = `styled${component.id}`;
+      
+      if (props.className) {
+        className += ` ${props.className}`;
+      }
+
       const newProps = {
         ...props,
         className,
