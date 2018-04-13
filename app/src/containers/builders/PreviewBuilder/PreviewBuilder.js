@@ -134,7 +134,7 @@ class PreviewBuilderComponent extends PureComponent {
     };
   }
 
-  componentDidMount() {
+  componentWillMount() {
     const styles = [];
     this.props.components.forEach(component => {
       if (isHTMLComponent(component.name)) {
