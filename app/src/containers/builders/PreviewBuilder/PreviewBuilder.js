@@ -136,7 +136,7 @@ class PreviewBuilderComponent extends PureComponent {
   componentDidMount() {
     const styles = [];
     this.props.components.forEach(component => {
-      if (component.name === 'HTML.div') {
+      if (component.name === 'HTML.div' || component.name === 'HTML.a') {
         styles.push(`.styled${component.id}{ ${component.style} }`);
       }
     });
@@ -988,6 +988,8 @@ class PreviewBuilderComponent extends PureComponent {
     let element;
     if (component.name === 'HTML.div') {
       element = <div className={`styled${component.id}`} {...props} />;
+    } else if (component.name === 'HTML.a') {
+      element = <a className={`styled${component.id}`} {...props} />;
     } else {
       element = (
         <Renderable {...props} />
