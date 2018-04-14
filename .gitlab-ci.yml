@@ -80,6 +80,5 @@ deploy_to_prod:
     url: https://prod.booben.io/app
   only:
     - master
-  when: manual
   tags:
     - rancher
