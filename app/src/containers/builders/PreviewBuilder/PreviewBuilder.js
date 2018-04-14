@@ -1016,7 +1016,7 @@ class PreviewBuilderComponent extends PureComponent {
   render() {
     const { components, rootId } = this.props;
     return rootId !== INVALID_ID
-    ? <div>{this._renderComponent(components.get(rootId))}</div>
+    ? this._renderComponent(components.get(rootId))
     : null;
   }
 
