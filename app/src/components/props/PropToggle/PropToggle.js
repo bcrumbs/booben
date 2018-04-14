@@ -1,15 +1,10 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import _pick from 'lodash.pick';
-import { ToggleButton } from '@reactackle/reactackle';
+import { ToggleButton } from 'reactackle-toggle-button';
 import { PropBase } from '../PropBase/PropBase';
 import { noop } from '../../../utils/misc';
+import { ToggleBoxStyled } from './styles/ToggleBoxStyled';
 
 const propTypes = {
   ...PropBase.propTypes,
@@ -58,12 +53,13 @@ export class PropToggle extends Component {
     let actualAdditionalActions = additionalActions;
     if (!linked && (!checkable || checked)) {
       actualAdditionalActions = [
-        <ToggleButton
-          key="toggle"
-          checked={value}
-          disabled={disabled}
-          onChange={this._handleChange}
-        />,
+        <ToggleBoxStyled key="toggle">
+          <ToggleButton
+            checked={value}
+            disabled={disabled}
+            onChange={this._handleChange}
+          />
+        </ToggleBoxStyled>,
         ...additionalActions,
       ];
     }

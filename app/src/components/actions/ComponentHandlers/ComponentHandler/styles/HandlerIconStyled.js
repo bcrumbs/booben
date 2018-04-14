@@ -1,16 +1,18 @@
-'use strict';
-
-import styled from 'styled-components';
-import { transition } from '@reactackle/reactackle';
+import styled, { css } from 'styled-components';
+import { textColorMedium } from '../../../../../styles/themeSelectors';
 
 const expanded = ({ expanded }) => expanded
-  ? '> * { transform: rotate(90deg); }'
+  ? css`
+    > * {
+      transform: rotate(90deg);
+    }
+  `
   : '';
 
 export const HandlerIconStyled = styled.div`
   display: flex;
+  color: ${textColorMedium};
   ${expanded}
-  ${transition('transform')}
 `;
 
 HandlerIconStyled.displayName = 'HandlerIconStyled';

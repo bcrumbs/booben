@@ -1,12 +1,10 @@
-'use strict';
-
 import styled from 'styled-components';
 import constants from '../../styles/constants';
 import { baseModule } from '../../../../styles/themeSelectors';
 
 export const ToolBarGroupStyled = styled.div`
   display: flex;
-  align-items: stretch;
+  align-items: center;
   padding: 0 ${baseModule(1)}px;
   
   & + & {

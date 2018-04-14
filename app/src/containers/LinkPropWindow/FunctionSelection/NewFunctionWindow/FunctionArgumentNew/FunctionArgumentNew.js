@@ -1,31 +1,34 @@
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { TypeNames } from '@jssy/types';
-
-import {
-  Form,
-  FormItem,
-  TextField,
-  SelectBox,
-  Button,
-} from '@reactackle/reactackle';
+import { Form, FormItem } from 'reactackle-form';
+import { TextField } from 'reactackle-text-field';
+import { SelectBox } from 'reactackle-selectbox';
+import { Button } from 'reactackle-button';
+import { Checkbox } from 'reactackle-checkbox';
 
 import {
   BlockContentBoxGroup,
   BlockContentBoxItem,
   BlockContentBoxHeading,
-} from '@jssy/common-ui';
+} from '../../../../../components/BlockContent';
 
 import { returnArg, noop } from '../../../../../utils/misc';
 import { ButtonRowStyled } from './styles/ButtonRowStyled';
+import {
+  withFormState,
+  formStatePropTypes,
+} from '../../../../../hocs/withFormState';
 
 const propTypes = {
   existingArgNames: PropTypes.arrayOf(PropTypes.string),
   getLocalizedText: PropTypes.func,
   onAdd: PropTypes.func,
   onCancel: PropTypes.func,
+  restArgDisabled: PropTypes.bool.isRequired,
+  restArgChecked: PropTypes.bool.isRequired,
+  onRestArgCheckToogle: PropTypes.func.isRequired,
+  ...formStatePropTypes,
 };
 
 const defaultProps = {
@@ -35,23 +38,54 @@ const defaultProps = {
   onCancel: noop,
 };
 
-const ARG_NAME_PATTERN = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
+const withForm = withFormState({
+  mapPropsToValues: () => ({
+    name: '',
+    type: TypeNames.STRING,
+  }),
 
-export class FunctionArgumentNew extends PureComponent {
+  validators: {
+    name: (value, { existingArgNames, getLocalizedText }) => {
+      let message = '';
+      if (!value) {
+        message = getLocalizedText(
+          'linkDialog.function.new.newArg.validation.required',
+        );
+      } else if (existingArgNames.indexOf(value) !== -1) {
+        message = getLocalizedText(
+          'linkDialog.function.new.newArg.validation.alreadyExist',
+        );
+      } else if (/\d/.test(value)) {
+        message = getLocalizedText(
+          'linkDialog.function.new.newArg.validation.noDigit',
+        );
+      } else if (!/[A-Za-z]/.test(value)) {
+        message = getLocalizedText(
+          'linkDialog.function.new.newArg.validation.onlyEnglish',
+        );
+      }
+
+      return {
+        valid: !message,
+        message,
+      };
+    },
+  },
+
+  onSubmit: ({ name, type }, { onAdd }) => {
+    onAdd({ name, type });
+  },
+});
+
+class _FunctionArgumentNew extends PureComponent {
   constructor(props, context) {
     super(props, context);
 
-    this.state = {
-      name: '',
-      type: TypeNames.STRING,
-    };
-
     this._handleNameChange = this._handleNameChange.bind(this);
     this._handleTypeChange = this._handleTypeChange.bind(this);
-    this._handleAddButtonPress = this._handleAddButtonPress.bind(this);
     this._handleCancelButtonPress = this._handleCancelButtonPress.bind(this);
   }
-  
+
   /**
    *
    * @return {{ value: string, text: string }[]}
@@ -67,36 +101,33 @@ export class FunctionArgumentNew extends PureComponent {
       { value: TypeNames.BOOL, text: getLocalizedText('types.bool') },
     ];
   }
-  
+
   /**
    *
    * @param {string} value
    * @private
    */
   _handleNameChange({ value }) {
-    this.setState({ name: value });
+    const { onFieldChange } = this.props;
+
+    onFieldChange({
+      name: value,
+    });
   }
-  
+
   /**
    *
    * @param {string} value
    * @private
    */
   _handleTypeChange({ value }) {
-    this.setState({ type: value });
-  }
-  
-  /**
-   *
-   * @private
-   */
-  _handleAddButtonPress() {
-    const { onAdd } = this.props;
-    const { name, type } = this.state;
+    const { onFieldChange } = this.props;
 
-    onAdd({ name, type });
+    onFieldChange({
+      type: value,
+    });
   }
-  
+
   /**
    *
    * @private
@@ -106,18 +137,25 @@ export class FunctionArgumentNew extends PureComponent {
   }
 
   render() {
-    const { existingArgNames, getLocalizedText } = this.props;
-    const { name, type } = this.state;
+    const {
+      getLocalizedText,
+      restArgDisabled,
+      restArgChecked,
+      onRestArgCheckToogle,
+      formFieldsValidity,
+      formValues,
+      isFormValid,
+      onFormSubmit,
+    } = this.props;
+    const { name, type } = formValues;
 
     const typeOptions = this._getTypeOptions();
-    const isButtonDisabled =
-      !name || !type || existingArgNames.indexOf(name) !== -1;
-    
+
     const nameLabel = getLocalizedText('linkDialog.function.new.newArg.name');
     const typeLabel = getLocalizedText('linkDialog.function.new.newArg.type');
 
     return (
-      <BlockContentBoxGroup colorScheme="editing">
+      <BlockContentBoxGroup shading="dim" colorScheme="alt">
         <BlockContentBoxHeading>
           {getLocalizedText('linkDialog.function.new.newArg.heading')}
         </BlockContentBoxHeading>
@@ -128,8 +166,11 @@ export class FunctionArgumentNew extends PureComponent {
               <TextField
                 label={nameLabel}
                 value={name}
-                pattern={ARG_NAME_PATTERN}
                 onChange={this._handleNameChange}
+                message={formFieldsValidity.name.message || ''}
+                colorScheme={
+                  formFieldsValidity.name.valid ? 'neutral' : 'error'
+                }
               />
             </FormItem>
 
@@ -141,20 +182,37 @@ export class FunctionArgumentNew extends PureComponent {
                 onChange={this._handleTypeChange}
               />
             </FormItem>
+
+            <FormItem>
+              <Checkbox
+                disabled={restArgDisabled}
+                checked={restArgChecked}
+                onChange={onRestArgCheckToogle}
+                label={
+                  getLocalizedText('linkDialog.function.new.restArg.enable')
+                }
+                tooltip={restArgDisabled
+                  ? getLocalizedText(
+                    'linkDialog.function.new.restArg.onlyOneWarning'
+                  )
+                  : ''
+                }
+              />
+            </FormItem>
           </Form>
 
           <ButtonRowStyled>
             <Button
-              text={getLocalizedText('linkDialog.function.new.newArg.add')}
-              narrow
-              disabled={isButtonDisabled}
-              onPress={this._handleAddButtonPress}
-            />
-
-            <Button
               text={getLocalizedText('common.cancel')}
               narrow
               onPress={this._handleCancelButtonPress}
+            />
+
+            <Button
+              text={getLocalizedText('linkDialog.function.new.newArg.add')}
+              narrow
+              disabled={!isFormValid}
+              onPress={onFormSubmit}
             />
           </ButtonRowStyled>
         </BlockContentBoxItem>
@@ -163,6 +221,8 @@ export class FunctionArgumentNew extends PureComponent {
   }
 }
 
-FunctionArgumentNew.propTypes = propTypes;
-FunctionArgumentNew.defaultProps = defaultProps;
-FunctionArgumentNew.displayName = 'FunctionArgumentNew';
+_FunctionArgumentNew.propTypes = propTypes;
+_FunctionArgumentNew.defaultProps = defaultProps;
+_FunctionArgumentNew.displayName = 'FunctionArgumentNew';
+
+export const FunctionArgumentNew = withForm(_FunctionArgumentNew);

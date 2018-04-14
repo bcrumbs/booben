@@ -1,8 +1,5 @@
-'use strict';
-
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition } from '@reactackle/reactackle';
 import componentConstants from '../../styles/constants';
 import { paletteBlueGrey600 } from '../../../../styles/themeSelectors';
 
@@ -28,7 +25,7 @@ const colorLine = i =>
 
 const position = ({ position }) => {
   let styles = null;
-  
+
   if (position === 'horizontal') {
     styles = `
       height: ${iconWidth}px;
@@ -64,7 +61,7 @@ const position = ({ position }) => {
         linear-gradient(135deg, ${colorLine(1)}, ${colorLine(2)});
     `;
   }
-  
+
   return styles;
 };
 
@@ -75,7 +72,6 @@ export const IconStyled = styled.div`
   transform: translate3d(-50%, -50%, 0);
   z-index: 10;
   ${position}
-  ${transition('opacity')}
 
   &:hover {
     opacity: 1;

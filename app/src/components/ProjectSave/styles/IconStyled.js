@@ -1,10 +1,7 @@
-'use strict';
-
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition, animations } from '@reactackle/reactackle';
-import { baseModule, paletteBlueGrey100 } from '../../../styles/themeSelectors';
-import { iconSize } from '../../../styles/mixins';
+import { animations, iconSizeMixin } from 'reactackle-core';
+import { baseModule } from '../../../styles/themeSelectors';
 
 const propTypes = {
   active: PropTypes.bool,
@@ -16,38 +13,38 @@ const defaultProps = {
   typeProgress: false,
 };
 
-const outerSize = '16px',
-  imgSize = '9px',
-  borderWidth = '1px';
+const outerSize = '16px';
+const imgSize = '12px';
+const borderWidth = '1px';
 
 const active = ({ active }) => `opacity: ${active ? 0.8 : 0.5};`;
 
 const typeProgress = ({ typeProgress }) => typeProgress
   ? `
+    border: 1px solid currentColor;
     border-right-color: transparent;
+    border-radius: 50%;
     animation-iteration-count: infinite;
     animation-duration: 1s;
     animation-name: ${animations.spin};
     animation-timing-function: linear;
-    border-width: 2px;
   `
   : '';
 
 export const IconStyled = styled.div`
-  border-radius: 50%;
-  border: 1px solid var(--text-color);
-  margin-right: ${baseModule(1)}px;
+  margin-right: ${baseModule(0.5)}px;
   position:relative;
-  color: inherit;
+  box-sizing: border-box;
   ${active}
   ${typeProgress}
-  ${transition('opacity')};
-  ${iconSize(outerSize, outerSize, imgSize, 'font')}
+  ${iconSizeMixin(outerSize, imgSize)}
 
   & > * {
     position: absolute;
     top: -${borderWidth};
     left: -${borderWidth};
+    width: ${outerSize};
+    height: ${outerSize};
   }
 `;
 

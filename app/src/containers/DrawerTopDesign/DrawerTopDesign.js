@@ -1,14 +1,8 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { connect } from 'react-redux';
-import { Button } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
 import { DrawerTop } from '../../components/DrawerTop/DrawerTop';
 
 import {

@@ -1,7 +1,4 @@
-'use strict';
-
 import styled from 'styled-components';
-import { transition } from '@reactackle/reactackle';
 import { baseModule } from '../../../../styles/themeSelectors';
 
 const my = 2;
@@ -19,14 +16,19 @@ export const ButtonsStyled = styled.div`
   opacity: 0;
   pointer-events: none;
   position: fixed;
-  margin: -${my}px -${baseModule(1)}px;
-  width: calc(100% + ${baseModule(2)}px);
+  margin: -6px -${baseModule(1)}px;
+  margin-left: 0;
+  width: calc(100% + ${baseModule(1)}px);
   text-align: right;
   ${selected}
-  ${transition('opacity')};
 
   & > * {
       margin: ${my}px ${mx}px;
+  }
+  
+  button > div {
+    padding-top: 6px;
+    padding-bottom: 6px;
   }
 `;
 

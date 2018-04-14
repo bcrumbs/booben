@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React from 'react';
 import patchComponent from '../../../hocs/patchComponent';
 
@@ -48,11 +42,17 @@ const style = {
 
 const outletContentStyle = {
   maxWidth: '20em',
-  fontSize: '24px',
-  lineHeight: '1.5',
+  fontSize: '15px',
+  lineHeight: '1',
   color: '#BAC0CB',
   textAlign: 'center',
   margin: 'auto',
+  textTransform: 'uppercase',
+  letterSpacing: '0.05em',
+  fontWeight: '600',
+  backgroundColor: 'white',
+  fontFamily: 'Open Sans, sans-serif',
+  padding: '4px 8px',
 };
 
 const _Outlet = () => (

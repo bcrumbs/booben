@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'tfoot',
   textKey: 'name',
@@ -14,10 +8,10 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<tfoot> tag',
+      en: 'Table footer',
     },
     description: {
-      en: '',
+      en: 'A set of rows summarizing the columns of the table',
     },
   },
   tags: new Set(),

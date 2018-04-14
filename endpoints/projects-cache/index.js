@@ -1,10 +1,4 @@
 /**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
-/**
  *
  * @type {Object<string, Project>}
  */

@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export const DESIGN_TREE_EXPAND_ITEM =
   'DESIGN_TREE_EXPAND_ITEM';
 export const DESIGN_TREE_COLLAPSE_ITEM =

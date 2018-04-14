@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import triggersProjectSave from './project-save/wrapper';
 
 export const PREVIEW_SELECT_COMPONENT =
@@ -42,11 +36,13 @@ export const selectPreviewComponent = (
   componentId,
   exclusive = false,
   openConfigurationTool = false,
+  expandParents,
 ) => ({
   type: PREVIEW_SELECT_COMPONENT,
   componentId,
   exclusive,
   openConfigurationTool,
+  expandParents,
 });
 
 /**

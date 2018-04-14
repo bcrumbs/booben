@@ -1,7 +1,4 @@
-'use strict';
-
 import styled, { css } from 'styled-components';
-import { transition } from '@reactackle/reactackle';
 import componentConstants from '../../styles/constants';
 
 import {
@@ -17,7 +14,7 @@ const selected = ({ selected }) => selected
     &,
     &:hover {      
       cursor: pointer;
-      background-color: ${colorActiveBg};
+      background-color: rgba(255,255,255,0.1);
     }
   `
   : '';
@@ -26,7 +23,7 @@ export const ContentBoxStyled = styled.div`
   padding: ${py}px ${px}px;
   flex-grow: 1;
   border-radius: ${radiusDefault}px;
-  ${transition('background-color')};
+  display: flex;
   ${selected}
 `;
 

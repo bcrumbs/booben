@@ -1,14 +1,8 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import Immutable from 'immutable';
 import forOwn from 'lodash.forown';
 import { List } from './List/List';
 import { Text } from './Text/Text';
-import { isAsyncAction } from '../../models/JssyValue';
+import JssyValue, { ActionTypes, isAsyncAction } from '../../models/JssyValue';
 import { parseComponentName, getComponentMeta } from '../../lib/meta';
 import { walkComponentsTree, walkSimpleValues } from '../../lib/components';
 import { buildInitialComponentState } from '../../lib/values';
@@ -29,6 +23,18 @@ const PSEUDO_COMPONENTS = new Set(['Outlet']);
  */
 export const isPseudoComponent = component =>
   PSEUDO_COMPONENTS.has(component.name);
+
+/**
+ *
+ * @param {ProjectComponent} component
+ * @return {boolean}
+ */
+export const isEmptyListComponent = component => {
+  if (component.id === INVALID_ID) return false;
+
+  return component.name === 'List' &&
+    !component.getIn(['props', 'data']).isLinkedWithData();
+};
 
 /**
  * @typedef {Object} RenderHints
@@ -54,32 +60,37 @@ export const getRenderHints = (components, rootId, meta, schema, project) => {
   if (rootId === INVALID_ID) return ret;
 
   const visitAction = action => {
-    if (action.type === 'method' || action.type === 'loadMoreData') {
+    if (
+      action.type === ActionTypes.METHOD ||
+      action.type === ActionTypes.LOAD_MORE_DATA
+    ) {
       ret.needRefs.add(action.params.componentId);
     }
-  
+
     if (isAsyncAction(action.type)) {
       action.params.successActions.forEach(visitAction);
       action.params.errorActions.forEach(visitAction);
     }
   };
 
-  const visitValue = jssyValue => {
-    if (jssyValue.source === 'actions') {
-      jssyValue.sourceData.actions.forEach(visitAction);
-    } else if (jssyValue.source === 'state') {
+  const visitNode = node => {
+    if (!(node instanceof JssyValue)) return;
+
+    if (node.sourceIs(JssyValue.Source.ACTIONS)) {
+      node.sourceData.actions.forEach(visitAction);
+    } else if (node.sourceIs(JssyValue.Source.STATE)) {
       let activeStateSlotsForComponent =
-        ret.activeStateSlots.get(jssyValue.sourceData.componentId);
+        ret.activeStateSlots.get(node.sourceData.componentId);
 
       if (!activeStateSlotsForComponent) {
         activeStateSlotsForComponent = new Set();
         ret.activeStateSlots.set(
-          jssyValue.sourceData.componentId,
+          node.sourceData.componentId,
           activeStateSlotsForComponent,
         );
       }
 
-      activeStateSlotsForComponent.add(jssyValue.sourceData.stateSlot);
+      activeStateSlotsForComponent.add(node.sourceData.stateSlot);
     }
   };
 
@@ -98,7 +109,7 @@ export const getRenderHints = (components, rootId, meta, schema, project) => {
     walkSimpleValues(
       component,
       componentMeta,
-      visitValue,
+      visitNode,
       walkSimpleValuesOptions,
     );
   });
@@ -167,7 +178,7 @@ export const getComponentByName = (componentName, componentsBundle) => {
   const { name, namespace } = parseComponentName(componentName);
 
   if (namespace === 'HTML') {
-    return name;
+    return componentsBundle.getStyledHTMLComponent(name);
   } else if (namespace === '') {
     if (name === 'List') return List;
     if (name === 'Text') return Text;

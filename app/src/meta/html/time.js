@@ -1,15 +1,9 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'time',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'text',
+  hidden: true,
   props: {
     dateTime: {
       textKey: 'props_dateTime',

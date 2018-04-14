@@ -1,15 +1,10 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import _pick from 'lodash.pick';
-import { Button } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
 import { PropBase } from '../PropBase/PropBase';
 import { noop, returnArg } from '../../../utils/misc';
+import { ButtonRowStyled } from './styles/ButtonRowStyled';
 
 const propTypes = {
   ...PropBase.propTypes,
@@ -47,13 +42,16 @@ export const PropComponent = props => {
     <PropBase
       {...propsForBase}
       content={
-        <Button
-          size="small"
-          colorScheme="link"
-          text={text}
-          disabled={disabled}
-          onPress={onSetComponent}
-        />
+        <ButtonRowStyled>
+          <Button
+            size="small"
+            colorScheme="primary"
+            text={text}
+            disabled={disabled}
+            onPress={onSetComponent}
+            outlined
+          />
+        </ButtonRowStyled>
       }
     />
   );

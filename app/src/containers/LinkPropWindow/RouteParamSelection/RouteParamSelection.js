@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 
@@ -13,7 +7,7 @@ import {
   BlockContentBoxItem,
   BlockContentNavigation,
   BlockBreadcrumbs,
-} from '@jssy/common-ui';
+} from '../../../components/BlockContent';
 
 import { DataList, DataItem } from '../../../components/DataList/DataList';
 import { noop, returnArg } from '../../../utils/misc';
@@ -121,7 +115,7 @@ export class RouteParamSelection extends PureComponent {
         <BlockContentNavigation>
           <BlockBreadcrumbs
             items={breadcrumbsItems}
-            mode="dark"
+            colorScheme="dark"
             overflow
             onItemClick={this._handleBreadcrumbsClick}
           />

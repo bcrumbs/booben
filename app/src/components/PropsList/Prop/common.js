@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import PropTypes from 'prop-types';
 import { TypeNames } from '@jssy/types';
 

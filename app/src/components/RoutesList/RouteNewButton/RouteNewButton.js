@@ -1,8 +1,6 @@
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
 import ProjectRoute from '../../../models/ProjectRoute';
 import { noop } from '../../../utils/misc';
 import { RouteNewButtonStyled } from './styles/RouteNewButtonStyled';

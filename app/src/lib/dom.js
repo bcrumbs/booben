@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 const SPLASH_SCREEN_ID = 'splash-screen';
 const EXIT_CLASS = 'exit';
 const EXIT_ANIMATION_DURATION = 200;

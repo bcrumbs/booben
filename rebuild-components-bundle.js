@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 const co = require('co');
 const path = require('path');
 const fs = require('mz/fs');

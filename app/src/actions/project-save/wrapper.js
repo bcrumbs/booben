@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import {
   PROJECT_SAVE,
   PROJECT_SAVE_SUCCESS,
@@ -32,10 +26,15 @@ const doSave = async (dispatch, getState) => {
   dispatch({ type: PROJECT_SAVE });
   
   const state = getState();
-  const projectName = state.project.projectName;
+  let projectName = state.project.projectName;
+  
   const project = state.project.data;
   const jsProject = projectToJSv1(project);
   
+  if (process.env.NODE_ENV === 'production') {
+    projectName = jsProject._id;
+  }
+
   try {
     await putProject(projectName, jsProject);
     dispatch({ type: PROJECT_SAVE_SUCCESS });

@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -13,7 +7,7 @@ import {
   BlockContentBoxItem,
   BlockContentBoxHeading,
   BlockContentPlaceholder,
-} from '@jssy/common-ui';
+} from '../../components/BlockContent';
 
 import {
   PropInput,
@@ -32,6 +26,7 @@ import { getLocalizedTextFromState } from '../../selectors';
 import { updateRouteField } from '../../actions/project';
 import { noop } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
+import { IconPencil } from '../../components/icons';
 
 const propTypes = {
   project: PropTypes.instanceOf(Project).isRequired,
@@ -256,6 +251,7 @@ class RouteEditorComponent extends PureComponent {
       if (route.redirectAuthenticated) {
         redirectAuthenticatedPathInput = (
           <PropInput
+            label={getLocalizedText('structure.redirectTo')}
             value={route.redirectAuthenticatedTo}
             onChange={this._handleRedirectAuthenticatedToChange}
           />
@@ -265,6 +261,7 @@ class RouteEditorComponent extends PureComponent {
       if (route.redirectAnonymous) {
         redirectAnonymousPathInput = (
           <PropInput
+            label={getLocalizedText('structure.redirectTo')}
             value={route.redirectAnonymousTo}
             onChange={this._handleRedirectAnonymousToChange}
           />
@@ -307,7 +304,7 @@ class RouteEditorComponent extends PureComponent {
               disabled
               additionalActions={[{
                 id: 'edit',
-                icon: 'pencil',
+                icon: <IconPencil />,
                 handler: this._handleEditPath,
               }]}
             />

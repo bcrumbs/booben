@@ -1,15 +1,9 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'bdo',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'text',
+  hidden: true,
   props: {
     dir: {
       textKey: 'props_dir',

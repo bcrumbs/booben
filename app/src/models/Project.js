@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import { Record, List, Map, Set } from 'immutable';
 import _forOwn from 'lodash.forown';
 
@@ -48,6 +42,7 @@ const authToImmutable = input => new AuthRecord({
 });
 
 const ProjectRecord = Record({
+  _id: '',
   name: '',
   author: '',
   componentLibs: List(),
@@ -66,6 +61,7 @@ ProjectRecord.isValidPathStep = step => VALID_PATH_STEPS.has(step);
 ProjectRecord.expandPathStep = step => step;
 
 export const projectToImmutable = input => new ProjectRecord({
+  _id: input._id,
   name: input.name,
   author: input.author,
   componentLibs: List(input.componentLibs),
@@ -119,10 +115,13 @@ export const gatherRoutesTreeIds = (project, rootRouteId) =>
 export const getRouteByComponentId = (project, componentId) =>
   project.routes.find(route => route.components.has(componentId));
 
-export const getComponentById = (project, componentId) =>
-  getRouteByComponentId(project, componentId).components.get(componentId);
+export const getComponentById = (project, componentId) => {
+  const route = getRouteByComponentId(project, componentId);
+  return route && route.components.get(componentId);
+};
 
 export const projectToJSv1 = project => ({
+  _id: project._id,
   version: 1,
   name: project.name,
   author: project.author,

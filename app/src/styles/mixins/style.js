@@ -1,4 +1,39 @@
-'use strict';
+import { css } from 'styled-components';
+
+
+/**
+ * Create blueprint pattern
+ */
+/* eslint-disable max-len */
+export const patternBlueprint = (
+  lineSmlColor,
+  lineSmlWidth,
+  cellSmlSize,
+  lineLrgColor,
+  lineLrgWidth,
+  cellLrgSize,
+  offsetX,
+  offsetY,
+) => css`
+  background-image:
+    linear-gradient(${lineLrgColor} ${lineLrgWidth}px, transparent ${lineLrgWidth}px),
+    linear-gradient(90deg, ${lineLrgColor} ${lineLrgWidth}px, transparent ${lineLrgWidth}px),
+    linear-gradient(${lineSmlColor} ${lineSmlWidth}px, transparent ${lineSmlWidth}px),
+    linear-gradient(90deg, ${lineSmlColor} ${lineSmlWidth}px, transparent ${lineSmlWidth}px);
+  
+  background-size:
+    ${cellLrgSize}px ${cellLrgSize}px,
+    ${cellLrgSize}px ${cellLrgSize}px,
+    ${cellSmlSize}px ${cellSmlSize}px,
+    ${cellSmlSize}px ${cellSmlSize}px;
+  
+  background-position:
+    ${offsetX}px ${offsetY}px,
+    ${offsetX}px ${offsetY}px,
+    -${lineSmlWidth}px -${lineSmlWidth}px,
+    -${lineSmlWidth}px -${lineSmlWidth}px;
+`;
+/* eslint-enable max-len */
 
 /**
  * Set transition

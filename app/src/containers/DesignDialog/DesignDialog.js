@@ -1,13 +1,7 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Dialog } from '@reactackle/reactackle';
+import { Dialog } from '../../components';
 
 const propTypes = {
   ...Dialog.propTypes,
@@ -26,9 +20,9 @@ const wrap = connect(mapStateToProps);
 
 const DesignDialogComponent = props => {
   const { pickingComponent, pickingComponentData } = props;
-  
+
   const visible = !pickingComponent && !pickingComponentData;
-  
+
   return (
     <Dialog {...props} visible={visible} />
   );

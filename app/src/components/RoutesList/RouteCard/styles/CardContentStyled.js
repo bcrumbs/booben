@@ -1,14 +1,6 @@
-'use strict';
-
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition } from '@reactackle/reactackle';
-import constants from './constants';
-
-import {
-  baseModule,
-  colorSecondary,
-} from '../../../../styles/themeSelectors';
+import { baseModule, colorSecondary } from '../../../../styles/themeSelectors';
 
 const propTypes = {
   focused: PropTypes.bool,
@@ -25,10 +17,8 @@ const focused = ({ focused }) => focused
 export const CardContentStyled = styled.div`
   flex-grow: 1;
   display: flex;
-  align-items: center;
-  padding: ${baseModule(1)}px ${constants.cardPaddingX}px;
+  align-items: stretch;
   ${focused}
-  ${transition('border')}
 `;
 
 CardContentStyled.displayName = 'CardContentStyled';

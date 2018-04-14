@@ -1,15 +1,9 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'canvas',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'special',
+  hidden: true,
   props: {
     height: {
       textKey: 'props_height',

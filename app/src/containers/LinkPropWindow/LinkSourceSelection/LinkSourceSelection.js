@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React from 'react';
 import PropTypes from 'prop-types';
 
@@ -11,7 +5,7 @@ import {
   BlockContent,
   BlockContentBox,
   BlockContentBoxItem,
-} from '@jssy/common-ui';
+} from '../../../components/BlockContent';
 
 import { DataList, DataItem } from '../../../components/DataList/DataList';
 import { noop } from '../../../utils/misc';
@@ -44,7 +38,7 @@ export const LinkSourceSelection = props => {
       id={item.id}
       title={item.title}
       data={item.data}
-      connection
+      connection={!item.withoutConnection}
       onSelect={props.onSelect}
     />
   ));

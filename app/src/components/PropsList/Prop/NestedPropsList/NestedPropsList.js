@@ -1,12 +1,6 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Button } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
 import { ActionsRowStyled } from './styles/ActionsRowStyled';
 import { PropsListStyled } from '../../styles/PropsListStyled';
 
@@ -15,6 +9,7 @@ import {
 } from './AddNestedValueDialog/AddNestedValueDialog';
 
 import { noop, returnArg } from '../../../../utils/misc';
+import { IconAdd } from '../../../icons';
 
 const propTypes = {
   hasAddButton: PropTypes.bool,
@@ -83,7 +78,7 @@ export class NestedPropsList extends PureComponent {
         <ActionsRowStyled>
           <Button
             text={getLocalizedText('valueEditor.addValue')}
-            icon={{ name: 'plus' }}
+            icon={<IconAdd />}
             size="small"
             narrow
             onPress={this._handleAddButtonPress}

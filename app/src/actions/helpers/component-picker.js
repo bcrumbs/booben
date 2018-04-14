@@ -1,13 +1,7 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import { isCompatibleType } from '@jssy/types';
+import { findFirstConnectionInPath } from '@jssy/graphql-schema';
 import { getComponentMeta, getString } from '../../lib/meta';
 import { walkSimpleValues } from '../../lib/components';
-import { findFirstConnectionInPath } from '../../lib/schema';
 import { objectSome, objectToArray, mapListToArray } from '../../utils/misc';
 
 /**
@@ -82,7 +76,6 @@ export const getConnectionDataValuePickerFns = (
   meta,
   schema,
   project,
-  language,
 ) => {
   const filter = componentId => {
     const component = components.get(componentId);

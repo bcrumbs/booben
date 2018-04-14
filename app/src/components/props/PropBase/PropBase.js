@@ -1,12 +1,7 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Icon, Checkbox, Tag } from '@reactackle/reactackle';
+import { Tag } from '@reactackle/reactackle';
+import { Checkbox } from 'reactackle-checkbox';
 import { PropLabel } from './PropLabel/PropLabel';
 import { PropImage } from './PropImage/PropImage';
 import { PropAction } from './PropAction/PropAction';
@@ -20,6 +15,14 @@ import { SubcomponentBoxStyled } from './styles/SubcomponentBoxStyled';
 import { ContentBoxStyled } from './styles/ContentBoxStyled';
 import { WrapperStyled } from './styles/WrapperStyled';
 import { PropItemStyled } from './styles/PropItemStyled';
+import { LinkedDataStyled } from './styles/LinkedDataStyled';
+
+import {
+  IconCheck,
+  IconExclamation,
+  IconLink,
+  IconCross,
+} from '../../icons';
 
 const propTypes = {
   id: PropTypes.string,
@@ -29,7 +32,6 @@ const propTypes = {
   tooltip: PropTypes.string,
   message: PropTypes.string,
   linkable: PropTypes.bool,
-  pickable: PropTypes.bool,
   linked: PropTypes.bool,
   linkedWith: PropTypes.string,
   required: PropTypes.bool,
@@ -38,11 +40,13 @@ const propTypes = {
   checked: PropTypes.bool,
   deletable: PropTypes.bool,
   expanded: PropTypes.bool,
+  simulateLeftOffset: PropTypes.bool,
+  labelPositionTop: PropTypes.bool,
   additionalActions: PropTypes.arrayOf(PropTypes.oneOfType([
     PropTypes.element,
     PropTypes.shape({
       id: PropTypes.string.isRequired,
-      icon: PropTypes.string.isRequired,
+      icon: PropTypes.element,
       rounded: PropTypes.bool,
       expanded: PropTypes.bool,
       handler: PropTypes.func.isRequired,
@@ -50,7 +54,6 @@ const propTypes = {
   ])),
   content: PropTypes.element,
   onLink: PropTypes.func,
-  onPick: PropTypes.func,
   onUnlink: PropTypes.func,
   onCheck: PropTypes.func,
   onDelete: PropTypes.func,
@@ -64,7 +67,6 @@ const defaultProps = {
   tooltip: '',
   message: '',
   linkable: false,
-  pickable: false,
   linked: false,
   linkedWith: '',
   required: false,
@@ -73,10 +75,11 @@ const defaultProps = {
   checked: false,
   deletable: false,
   expanded: false,
+  simulateLeftOffset: false,
+  labelPositionTop: false,
   additionalActions: [],
   content: null,
   onLink: noop,
-  onPick: noop,
   onUnlink: noop,
   onCheck: noop,
   onDelete: noop,
@@ -88,9 +91,8 @@ export class PropBase extends PureComponent {
     this._handleCheck = this._handleCheck.bind(this);
     this._handleDelete = this._handleDelete.bind(this);
     this._handleLink = this._handleLink.bind(this);
-    this._handlePick = this._handlePick.bind(this);
   }
-  
+
   /**
    *
    * @return {ReactElement}
@@ -100,15 +102,18 @@ export class PropBase extends PureComponent {
     const { linkedWith, onUnlink } = this.props;
 
     return (
-      <Tag
-        text={linkedWith}
-        bounded
-        removable
-        onRemove={onUnlink}
-      />
+      <LinkedDataStyled title={linkedWith}>
+        <Tag
+          icon={<IconLink />}
+          text={linkedWith}
+          bounded
+          removable
+          onRemove={onUnlink}
+        />
+      </LinkedDataStyled>
     );
   }
-  
+
   /**
    *
    * @param {boolean} value
@@ -118,7 +123,7 @@ export class PropBase extends PureComponent {
     const { id, onCheck } = this.props;
     onCheck({ checked: value, id });
   }
-  
+
   /**
    *
    * @private
@@ -127,7 +132,7 @@ export class PropBase extends PureComponent {
     const { id, onDelete } = this.props;
     onDelete({ id });
   }
-  
+
   /**
    *
    * @private
@@ -135,15 +140,6 @@ export class PropBase extends PureComponent {
   _handleLink() {
     const { id, onLink } = this.props;
     onLink({ id });
-  }
-
-  /**
-   *
-   * @private
-   */
-  _handlePick() {
-    const { id, onPick } = this.props;
-    onPick({ id });
   }
 
   render() {
@@ -158,13 +154,13 @@ export class PropBase extends PureComponent {
       deletable,
       linkable,
       linked,
-      pickable,
       checkable,
       checked,
       expanded,
       additionalActions,
       content,
       children,
+      labelPositionTop,
     } = this.props;
 
     let labelElement = null;
@@ -179,12 +175,12 @@ export class PropBase extends PureComponent {
         if (requirementFulfilled) {
           markColorScheme = 'success';
           markIcon = (
-            <Icon name="check" size="inherit" color="inherit" />
+            <IconCheck />
           );
         } else {
           markColorScheme = 'error';
           markIcon = (
-            <Icon name="exclamation" size="inherit" color="inherit" />
+            <IconExclamation />
           );
         }
 
@@ -196,27 +192,29 @@ export class PropBase extends PureComponent {
           </MarkWrapperStyled>
         );
       }
-      
+
       labelElement = (
         <LabelBoxStyled>
           {requireMark}
-        
+
           <PropLabel
             label={label}
             secondaryLabel={secondaryLabel}
             tooltip={tooltip}
+            positionTop={labelPositionTop}
+            itemCheckable={checkable}
           />
         </LabelBoxStyled>
       );
     }
-  
+
     let imageElement = null;
     if (image) {
       imageElement = (
         <PropImage src={image} />
       );
     }
-  
+
     let messageElement = null;
     if (message) {
       messageElement = (
@@ -225,19 +223,19 @@ export class PropBase extends PureComponent {
         </MessageBoxStyled>
       );
     }
-  
+
     let actionsLeftElement = null;
     if (deletable) {
       actionsLeftElement = (
         <ActionsBoxStyled>
           <PropAction
-            icon="times"
+            icon={<IconCross />}
             onPress={this._handleDelete}
           />
         </ActionsBoxStyled>
       );
     }
-  
+
     const actionItemsRight = [];
 
     additionalActions.forEach(action => {
@@ -255,31 +253,19 @@ export class PropBase extends PureComponent {
         );
       }
     });
-  
+
     if (linkable && (!checkable || checked)) {
       const linkAction = (
         <PropAction
           key="linking"
-          icon="link"
+          icon={<IconLink />}
           onPress={this._handleLink}
         />
       );
-    
+
       actionItemsRight.push(linkAction);
     }
 
-    if (pickable && (!checkable || checked)) {
-      const pickAction = (
-        <PropAction
-          key="pick"
-          icon="eyedropper"
-          onPress={this._handlePick}
-        />
-      );
-
-      actionItemsRight.push(pickAction);
-    }
-  
     let actionsRightElement = null;
     if (actionItemsRight.length) {
       actionsRightElement = (
@@ -288,7 +274,7 @@ export class PropBase extends PureComponent {
         </ActionsBoxStyled>
       );
     }
-  
+
     let checkboxElement = null;
     if (checkable) {
       checkboxElement = (
@@ -300,25 +286,28 @@ export class PropBase extends PureComponent {
         </SubcomponentBoxStyled>
       );
     }
-    
+
     const contentElement = linked ? this._renderLinked() : content;
-    
+
     return (
-      <PropItemStyled sublevelVisible={expanded}>
+      <PropItemStyled
+        sublevelVisible={expanded}
+        simulateLeftOffset={this.props.simulateLeftOffset}
+      >
         <WrapperStyled>
           {checkboxElement}
           {actionsLeftElement}
           {imageElement}
-        
+
           <ContentBoxStyled>
             {labelElement}
             {messageElement}
             {contentElement}
           </ContentBoxStyled>
-        
+
           {actionsRightElement}
         </WrapperStyled>
-      
+
         {children}
       </PropItemStyled>
     );

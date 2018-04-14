@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import Text from './builtin/Text';
 import Outlet from './builtin/Outlet';
 import List from './builtin/List';

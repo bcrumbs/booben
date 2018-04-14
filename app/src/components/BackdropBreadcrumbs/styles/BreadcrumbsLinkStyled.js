@@ -1,11 +1,6 @@
-'use strict';
-
 import styled from 'styled-components';
-import { textColorMedium } from '../../../styles/themeSelectors';
 
-export const BreadcrumbsLinkStyled = styled.div`  
-  color: ${textColorMedium};
-
+export const BreadcrumbsLinkStyled = styled.div`
   &:focus {
     box-shadow: none;
     outline: none;

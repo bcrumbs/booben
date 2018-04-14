@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'code',
   textKey: 'name',
@@ -14,10 +8,10 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<code> tag',
+      en: 'Code',
     },
     description: {
-      en: '',
+      en: 'Represents a fragment of computer code.',
     },
   },
   tags: new Set(),

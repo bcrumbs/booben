@@ -1,5 +1,3 @@
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Set } from 'immutable';
@@ -8,6 +6,7 @@ import { connect } from 'react-redux';
 import {
   selectedComponentIdsSelector,
   highlightedComponentIdsSelector,
+  disabledComponentIdsSelector,
   currentRootComponentIdSelector,
   currentComponentsSelector,
   isCanvasClearSelector,
@@ -16,6 +15,7 @@ import {
 
 import { OverlayContainer } from '../components/OverlayContainer';
 import { OverlayBoundingBox } from '../components/OverlayBoundingBox';
+import { OverlayOverlapBox } from '../components/OverlayOverlapBox';
 import { CanvasPlaceholder } from '../components/CanvasPlaceholder';
 import { formatComponentTitle } from '../../../../lib/components';
 import { mapListToArray } from '../../../../utils/misc';
@@ -27,6 +27,7 @@ const propTypes = {
   components: JssyPropTypes.components.isRequired,
   selectedComponentIds: JssyPropTypes.setOfIds.isRequired,
   highlightedComponentIds: JssyPropTypes.setOfIds.isRequired,
+  disabledComponentIds: JssyPropTypes.setOfIds.isRequired,
   boundaryComponentId: PropTypes.number.isRequired,
   highlightingEnabled: PropTypes.bool.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
@@ -44,6 +45,7 @@ const mapStateToProps = state => ({
   components: currentComponentsSelector(state),
   selectedComponentIds: selectedComponentIdsSelector(state),
   highlightedComponentIds: highlightedComponentIdsSelector(state),
+  disabledComponentIds: disabledComponentIdsSelector(state),
   boundaryComponentId: currentRootComponentIdSelector(state),
   highlightingEnabled: state.project.highlightingEnabled,
   draggingComponent: state.project.draggingComponent,
@@ -55,17 +57,20 @@ const mapStateToProps = state => ({
 
 const wrap = connect(mapStateToProps);
 
-const HIGHLIGHT_COLOR = 'rgba(0, 113, 216, 0.3)';
+const HIGHLIGHT_COLOR = 'rgba(0, 113, 216, 0.7)';
+const HIGHLIGHT_STYLE = 'dashed';
 const SELECT_COLOR = 'rgba(0, 113, 216, 1)';
+const SELECT_STYLE = 'solid';
 const BOUNDARY_COLOR = 'red';
+const BOUNDARY_STYLE = 'solid';
 
 class Overlay extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this._container = null;
   }
-  
+
   /**
    *
    * @return {HTMLElement}
@@ -73,12 +78,12 @@ class Overlay extends PureComponent {
    */
   _getContainer() {
     const { document } = this.context;
-    
+
     if (this._container) return this._container;
     this._container = document.getElementById(CANVAS_CONTAINER_ID);
     return this._container;
   }
-  
+
   /**
    *
    * @param {number} id
@@ -89,23 +94,31 @@ class Overlay extends PureComponent {
     const container = this._getContainer();
     return container.querySelector(`[data-jssy-id="${id}"]`) || null;
   }
-  
+
   /**
    *
    * @param {Immutable.List<number>} componentIds
    * @param {string} color
+   * @param {string} borderStyle
    * @param {boolean} [showTitle=false]
+   * @param {number} [additionalOverlayLevel=0]
    * @return {Array<ReactElement>}
    * @private
    */
-  _renderBoundingBoxes(componentIds, color, showTitle = false) {
+  _renderBoundingBoxes(
+    componentIds,
+    color,
+    borderStyle,
+    showTitle = false,
+    additionalOverlayLevel = 0,
+  ) {
     const { components } = this.props;
-    
+
     return mapListToArray(componentIds, id => {
       const element = this._getDOMElementByComponentId(id);
       const key = `${id}-${color}`;
       let title = '';
-      
+
       if (showTitle) {
         const component = components.get(id);
         if (component) {
@@ -118,9 +131,26 @@ class Overlay extends PureComponent {
           key={key}
           element={element}
           color={color}
+          borderStyle={borderStyle}
           title={title}
           showTitle={showTitle}
+          additionalOverlayLevel={additionalOverlayLevel}
         />
+      );
+    });
+  }
+
+  /**
+   *
+   * @param {Immutable.List<number>} componentIds
+   * @return {Array<ReactElement>}
+   * @private
+   */
+  _renderOverlapBoxes(componentIds) {
+    return mapListToArray(componentIds, id => {
+      const element = this._getDOMElementByComponentId(id);
+      return (
+        <OverlayOverlapBox key={`overlap-${id}`} element={element} />
       );
     });
   }
@@ -132,38 +162,53 @@ class Overlay extends PureComponent {
       pickingComponentData,
       highlightingEnabled,
       highlightedComponentIds,
+      disabledComponentIds,
       selectedComponentIds,
       boundaryComponentId,
       isCanvasClear,
       getLocalizedText,
     } = this.props;
-    
+
+    const disabledBoxes = disabledComponentIds.isEmpty()
+      ? null
+      : this._renderOverlapBoxes(
+        disabledComponentIds,
+      );
+
     const highlightBoxes = highlightingEnabled
       ? this._renderBoundingBoxes(
         highlightedComponentIds,
         HIGHLIGHT_COLOR,
+        HIGHLIGHT_STYLE,
         true,
+        1,
       )
       : null;
 
     const selectBoxes = pickingComponent || pickingComponentData
       ? null
-      : this._renderBoundingBoxes(selectedComponentIds, SELECT_COLOR);
-    
+      : this._renderBoundingBoxes(
+        selectedComponentIds,
+        SELECT_COLOR,
+        SELECT_STYLE,
+        true,
+      );
+
     const willRenderBoundaryBox =
       boundaryComponentId !== INVALID_ID && (
         pickingComponent ||
         pickingComponentData ||
         draggingComponent
       );
-  
+
     const rootComponentBox = willRenderBoundaryBox
       ? this._renderBoundingBoxes(
         Set([boundaryComponentId]),
         BOUNDARY_COLOR,
+        BOUNDARY_STYLE,
       )
       : null;
-    
+
     let canvasPlaceholder = null;
     if (isCanvasClear && !draggingComponent) {
       canvasPlaceholder = (
@@ -176,6 +221,7 @@ class Overlay extends PureComponent {
 
     return (
       <OverlayContainer>
+        {disabledBoxes}
         {highlightBoxes}
         {selectBoxes}
         {rootComponentBox}

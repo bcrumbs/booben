@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'h3',
   textKey: 'name',
@@ -14,10 +8,10 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<h3> tag',
+      en: 'Heading 3',
     },
     description: {
-      en: '',
+      en: 'Represents third level of section headings.',
     },
   },
   tags: new Set(),

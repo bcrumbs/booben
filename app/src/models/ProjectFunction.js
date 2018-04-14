@@ -1,12 +1,5 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import { Record, List } from 'immutable';
 import { mapListToArray } from '../utils/misc';
-import { FUNCTION_FNS_ARG_NAME } from '../constants/misc';
 
 export const ProjectFunctionArgument = Record({
   name: '',
@@ -22,6 +15,7 @@ const ProjectFunction = Record({
   title: '',
   description: '',
   args: List(),
+  spreadLastArg: false,
   body: '',
   returnType: null,
   fn: new Function('return void 0;'),
@@ -35,7 +29,6 @@ const ProjectFunction = Record({
  */
 export const createJSFunction = (argNames, body) => new Function(
   ...argNames,
-  FUNCTION_FNS_ARG_NAME,
   body,
 );
 
@@ -45,6 +38,7 @@ export const projectFunctionToImmutable = input => new ProjectFunction({
   title: input.title,
   description: input.description,
   args: List(input.args.map(arg => new ProjectFunctionArgument(arg))),
+  spreadLastArg: input.spreadLastArg,
   body: input.body,
   returnType: input.returnType,
   fn: createJSFunction(input.args.map(arg => arg.name), input.body),
@@ -54,6 +48,7 @@ export const projectFunctionToJSv1 = fn => ({
   title: fn.title,
   description: fn.description,
   args: mapListToArray(fn.args, arg => arg.toJS()),
+  spreadLastArg: fn.spreadLastArg,
   body: fn.body,
   returnType: fn.returnType,
 });

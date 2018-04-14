@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Router, Switch, Route, Redirect } from 'react-router';

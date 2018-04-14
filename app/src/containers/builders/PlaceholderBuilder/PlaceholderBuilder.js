@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { compose } from 'redux';
@@ -372,37 +366,37 @@ class PlaceholderBuilderComponent extends PureComponent {
 
     return ret.length > 0 ? ret : null;
   }
-  
+
   _createApolloHOC(component, graphQLQuery, graphQLVariables, theMap) {
     const { schema, getLocalizedText, onAlert } = this.props;
-    
+
     return graphql(graphQLQuery, {
       props: ({ ownProps, data }) => {
         if (data.error) {
           const message = getLocalizedText('alert.queryError', {
             message: data.error.message,
           });
-      
+
           setTimeout(() => void onAlert({ content: message }), 0);
         }
-    
+
         const props = this._buildProps(
           component,
           theMap,
           queryResultHasData(data) ? data : null,
         );
-    
+
         return { ...ownProps, ...props };
       },
-  
+
       options: {
         variables: buildGraphQLQueryVariables(
           graphQLVariables,
           this._getValueContext(),
           schema,
         ),
-    
-        fetchPolicy: 'cache-and-network',
+
+        fetchPolicy: 'cache-first',
       },
     });
   }
@@ -443,7 +437,9 @@ class PlaceholderBuilderComponent extends PureComponent {
 
     props.children = this._renderComponentChildren(component);
 
-    if (!isHTML) {
+    if (isHTML) {
+      props.style = component.style;
+    } else {
       props.__jssy_error_handler__ = _debounce(
         this._handleErrorInComponentLifecycleHook.bind(this, component),
         250,

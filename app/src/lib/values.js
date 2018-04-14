@@ -1,8 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
 
 import React from 'react';
 import _forOwn from 'lodash.forown';
@@ -14,7 +9,7 @@ import {
   getJssyValueDefOfField,
   getJssyValueDefOfQueryArgument,
   RELAY_PAGEINFO_FIELD_END_CURSOR,
-} from './schema';
+} from '@jssy/graphql-schema';
 
 import { extractPropValueFromData } from './graphql';
 import { getFunctionInfo, formatFunctionId } from './functions';
@@ -28,6 +23,7 @@ import {
   returnNull,
 } from '../utils/misc';
 
+import JssyValue from '../models/JssyValue';
 import { ROUTE_PARAM_VALUE_DEF, NO_VALUE, INVALID_ID } from '../constants/misc';
 
 /**
@@ -256,13 +252,32 @@ const buildFunctionValue = (jssyValue, valueDef, userTypedefs, context) => {
     throw new Error(`buildFunctionValue(): function not found: ${functionId}`);
   }
 
-  const argValues = mapListToArray(fnInfo.args, (argInfo, argNum) => {
-    const argValue = jssyValue.sourceData.args.get(argInfo.name);
+  const tooManyArgs = (
+    fnInfo.args.size === 0 &&
+    jssyValue.sourceData.args.size > 0
+  ) || (
+    jssyValue.sourceData.args.size > fnInfo.args.size &&
+    !fnInfo.spreadLastArg
+  );
+
+  if (tooManyArgs) {
+    const functionId = formatFunctionId(
+      jssyValue.sourceData.functionSource,
+      jssyValue.sourceData.function,
+    );
+
+    throw new Error(
+      `buildFunctionValue(): too many arguments for function ${functionId}`,
+    );
+  }
+
+  const argValues = mapListToArray(jssyValue.sourceData.args, (value, idx) => {
+    const argInfo = fnInfo.args.get(Math.min(idx, fnInfo.args.size - 1));
 
     let ret = NO_VALUE;
 
-    if (argValue) {
-      ret = buildValue(argValue, argInfo.typedef, userTypedefs, context);
+    if (value) {
+      ret = buildValue(value, argInfo.typedef, userTypedefs, context);
     }
 
     if (ret === NO_VALUE) {
@@ -273,7 +288,7 @@ const buildFunctionValue = (jssyValue, valueDef, userTypedefs, context) => {
         );
 
         throw new Error(
-          `buildFunctionValue(): failed to build required argument ${argNum} ` +
+          `buildFunctionValue(): failed to build required argument ${idx} ` +
           `for function ${functionId}`,
         );
       } else {
@@ -284,8 +299,7 @@ const buildFunctionValue = (jssyValue, valueDef, userTypedefs, context) => {
     return ret;
   });
 
-  // TODO: Pass fns as last argument
-  const rawValue = fnInfo.fn(...argValues, {});
+  const rawValue = fnInfo.fn(...argValues);
 
   return coerceValue(
     rawValue,
@@ -315,11 +329,11 @@ const buildStateValue = (jssyValue, valueDef, userTypedefs, context) => {
   }
 
   const componentId = jssyValue.sourceData.componentId;
-  
+
   if (componentId === INVALID_ID) {
     return NO_VALUE;
   }
-  
+
   const stateSlot = jssyValue.sourceData.stateSlot;
   const componentState = componentsState.get(componentId);
 
@@ -476,12 +490,12 @@ const buildConnectionPaginationStateValue = (jssyValue, context) => {
     if (context.pageInfos === null || !context.pageInfos.has(dataValue)) {
       return '';
     }
-    
+
     const pageInfosForValue = context.pageInfos.get(dataValue);
     if (!pageInfosForValue.has(queryStep)) {
       return '';
     }
-    
+
     const pageInfo = pageInfosForValue.get(queryStep);
     return pageInfo[RELAY_PAGEINFO_FIELD_END_CURSOR] || '';
   } else {
@@ -508,39 +522,37 @@ export const buildValue = (
     ? defaultContext
     : { ...defaultContext, ...context };
 
-  if (jssyValue.sourceIs('static')) {
-    if (jssyValue.sourceData.ownerPropName) {
-      return buildOwnerPropValue(jssyValue, actualContext);
-    } else {
-      return buildStaticValue(jssyValue, valueDef, userTypedefs, actualContext);
-    }
-  } else if (jssyValue.sourceIs('const')) {
+  if (jssyValue.sourceIs(JssyValue.Source.STATIC)) {
+    return buildStaticValue(jssyValue, valueDef, userTypedefs, actualContext);
+  } else if (jssyValue.sourceIs(JssyValue.Source.OWNER_PROP)) {
+    return buildOwnerPropValue(jssyValue, actualContext);
+  } else if (jssyValue.sourceIs(JssyValue.Source.CONST)) {
     return buildConstValue(jssyValue);
-  } else if (jssyValue.sourceIs('data')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.DATA)) {
     return buildDataValue(jssyValue, valueDef, userTypedefs, actualContext);
-  } else if (jssyValue.sourceIs('function')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.FUNCTION)) {
     return buildFunctionValue(jssyValue, valueDef, userTypedefs, actualContext);
-  } else if (jssyValue.sourceIs('state')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.STATE)) {
     return buildStateValue(jssyValue, valueDef, userTypedefs, actualContext);
-  } else if (jssyValue.sourceIs('routeParams')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.ROUTE_PARAMS)) {
     return buildRouteParamsValue(
       jssyValue,
       valueDef,
       userTypedefs,
       actualContext,
     );
-  } else if (jssyValue.sourceIs('actionArg')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.ACTION_ARG)) {
     return buildActionArgValue(
       jssyValue,
       valueDef,
       userTypedefs,
       actualContext,
     );
-  } else if (jssyValue.sourceIs('designer')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.DESIGNER)) {
     return buildDesignerValue(jssyValue, actualContext);
-  } else if (jssyValue.sourceIs('actions')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.ACTIONS)) {
     return buildActionsValue(jssyValue, valueDef, userTypedefs, actualContext);
-  } else if (jssyValue.sourceIs('connectionPaginationState')) {
+  } else if (jssyValue.sourceIs(JssyValue.Source.CONNECTION_PAGINATION_STATE)) {
     return buildConnectionPaginationStateValue(jssyValue, actualContext);
   } else {
     throw new Error(`buildValue(): unknown value source: ${jssyValue.source}`);

@@ -1,13 +1,7 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import _pick from 'lodash.pick';
-import { TextField } from '@reactackle/reactackle';
+import { TextField } from 'reactackle-text-field';
 import { PropBase } from '../PropBase/PropBase';
 import { noop, returnArg } from '../../../utils/misc';
 
@@ -36,7 +30,7 @@ export class PropInput extends Component {
     super(props, context);
     this._handleChange = this._handleChange.bind(this);
   }
-  
+
   /**
    *
    * @param {string} value
@@ -46,7 +40,7 @@ export class PropInput extends Component {
     const { id, transformValue, onChange } = this.props;
     onChange({ id, value: transformValue(value) });
   }
-  
+
   /**
    *
    * @return {?ReactElement}
@@ -75,6 +69,7 @@ export class PropInput extends Component {
       <PropBase
         {...propsForBase}
         content={content}
+        labelPositionTop
       />
     );
   }

@@ -1,21 +1,13 @@
-/**
- * @author Ekaterina Marova
- */
-
-'use strict';
-
 import styled from 'styled-components';
-import { animations } from '@reactackle/reactackle';
-import { paletteBlueGrey300 } from '../../../../styles/themeSelectors';
+import { paletteBlueGrey500 } from '../../../../styles/themeSelectors';
 
 const lineHeight = 1;
-const cursorHeight = 9;
-const cursorWidth = 9;
-const color = paletteBlueGrey300;
+const cursorHeight = 7;
+const cursorWidth = 7;
+const color = paletteBlueGrey500;
 
 export const CursorStyled = styled.div`
   width: 100%;
-  animation: ${animations.fadeIn} 1.5s infinite linear both;
   position: relative;
   height: ${cursorHeight}px;
   
@@ -40,9 +32,8 @@ export const CursorStyled = styled.div`
     top: 0;
     width: ${cursorHeight}px;
     height: ${cursorWidth}px;
-    border: 1px solid ${color};
     border-radius: 50% 50% 0;
-    background-color: white;
+    background-color: ${color};
     transform: rotate(-45deg);
   }
 `;

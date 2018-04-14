@@ -1,8 +1,6 @@
-'use strict';
-
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { TooltipIcon } from '@reactackle/reactackle';
+import { TooltipIcon } from 'reactackle-tooltip-icon';
 import { noop } from '../../../../utils/misc';
 
 import {

@@ -1,15 +1,9 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'track',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'atomic',
-  group: 'media',
+  hidden: true,
   props: {
     default: {
       textKey: 'props_default',

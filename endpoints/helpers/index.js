@@ -1,10 +1,4 @@
 /**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
-/**
  *
  * @param {Object} res
  * @param {number} code

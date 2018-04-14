@@ -1,15 +1,9 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'col',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'atomic',
-  group: 'table',
+  hidden: true,
   props: {
     span: {
       textKey: 'props_span',

@@ -1,15 +1,9 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'map',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'media',
+  hidden: true,
   props: {
     name: {
       textKey: 'props_name',

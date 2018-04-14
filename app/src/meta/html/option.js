@@ -1,15 +1,9 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'option',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'forms',
+  hidden: true,
   props: {
     disabled: {
       textKey: 'props_disabled',

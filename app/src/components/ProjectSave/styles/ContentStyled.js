@@ -1,8 +1,5 @@
-'use strict';
-
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
-import { transition } from '@reactackle/reactackle';
 
 import {
   baseModule,
@@ -44,23 +41,21 @@ const colorMap = {
 };
 
 const colorScheme = ({ colorScheme }) => css`
-  --text-color: ${colorMap[colorScheme].textColor};
   background-color: ${colorMap[colorScheme].bgColor};
-  color: var(--text-color);
+  color: ${colorMap[colorScheme].textColor};
 `;
 
 export const ContentStyled = styled.div`
   display: flex;
   align-items: center;
-  padding: ${baseModule(0.25)}px ${baseModule(1)}px;
-  padding-right: ${baseModule(1.25)}px;
+  padding: ${baseModule(0.125)}px ${baseModule(0.75)}px;
+  padding-right: ${baseModule(1)}px;
   user-select: none;
   position: relative;
   border-radius: ${radiusDefault}px;
   border: 1px solid rgba(255,255,255,0.1);
   font-size: ${fontSizeSmall}px;
   ${colorScheme}
-  ${transition('background-color')}
 `;
 
 ContentStyled.displayName = 'ContentStyled';

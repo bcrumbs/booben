@@ -1,42 +1,17 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'table',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
   group: 'table',
-  props: {
-    sortable: {
-      textKey: 'props_sortable',
-      descriptionTextKey: 'props_sortable_desc',
-      required: false,
-      type: 'bool',
-      source: ['static'],
-      sourceConfigs: {
-        static: {
-          default: false,
-        },
-      },
-    },
-  },
+  props: {},
   propGroups: [],
   strings: {
     name: {
-      en: '<table> tag',
+      en: 'Table',
     },
     description: {
-      en: '',
-    },
-    props_sortable: {
-      en: 'sortable',
-    },
-    props_sortable_desc: {
-      en: '',
+      en: 'Represents tabular data',
     },
   },
   tags: new Set(),

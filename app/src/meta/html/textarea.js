@@ -1,15 +1,9 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'textarea',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'atomic',
-  group: 'forms',
+  hidden: true,
   props: {
     autoFocus: {
       textKey: 'props_autoFocus',

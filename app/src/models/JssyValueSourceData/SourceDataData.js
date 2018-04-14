@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import { Record, List, Map } from 'immutable';
 
 export const QueryPathStep = Record({

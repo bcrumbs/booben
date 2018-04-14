@@ -1,17 +1,12 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { List } from 'immutable';
-import { MainRegion, Content } from '@reactackle/reactackle';
+import { MainRegion } from 'reactackle-app';
 import { ToolWindow, STICK_REGION_RIGHT } from './ToolWindow/ToolWindow';
 import { ToolPanel } from './ToolPanel/ToolPanel';
 import ToolState from '../../models/ToolState';
+import { Content } from '../../components';
 
 import {
   expandToolsPanel,
@@ -111,45 +106,45 @@ class DesktopComponent extends PureComponent {
       onToolStickRegionLeave,
       onToolActiveSectionChange,
     } = this.props;
-    
+
     const hasDockedTools = toolGroups.some(tools => tools.some(tool => {
       const toolState = toolStates.get(tool.id);
       return toolState && toolState.docked;
     }));
-  
+
     const marginRight = hasDockedTools
       ? DESKTOP_TOOL_WINDOWS_MARGIN
       : DESKTOP_TOOL_WINDOWS_MARGIN + DESKTOP_EMPTY_TOOL_PANEL_WIDTH;
-    
+
     const windows = [];
-  
+
     toolGroups.forEach(tools => {
       tools.forEach(tool => {
         const toolState = toolStates.get(tool.id) || new ToolState();
-        
+
         if (toolState.docked || toolState.closed) return;
-      
+
         const onDock = () => onToolDock(tool);
         const onClose = () => onToolClose(tool);
         const onFocus = () => onToolFocus(tool);
         const onTitleChange = newTitle => onToolTitleChange(tool, newTitle);
-        
+
         const onStickRegionEnter = stickRegion => {
           if (stickRegion === STICK_REGION_RIGHT) onToolStickRegionEnter(tool);
         };
-        
+
         const onStickRegionLeave = stickRegion => {
           if (stickRegion === STICK_REGION_RIGHT) onToolStickRegionLeave(tool);
         };
-      
+
         const onStopDrag = () => {
           const toolState = toolStates.get(tool.id);
           if (toolState.isInDockRegion) onToolDock(tool);
         };
-      
+
         const onActiveSectionChange = newActiveSection =>
           onToolActiveSectionChange(tool, newActiveSection);
-      
+
         windows.push(
           <ToolWindow
             key={tool.id}
@@ -171,10 +166,10 @@ class DesktopComponent extends PureComponent {
         );
       });
     });
-    
+
     return windows;
   }
-  
+
   render() {
     const {
       toolGroups,

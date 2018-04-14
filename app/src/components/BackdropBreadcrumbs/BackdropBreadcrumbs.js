@@ -1,10 +1,11 @@
-'use strict';
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Breadcrumbs } from '@reactackle/reactackle';
+import { ThemeProvider } from 'styled-components';
+import { Theme } from 'reactackle-core';
 import { BreadcrumbLink } from './BreadcrumbLink';
 import { BackdropBreadcrumbsStyled } from './styles/BackdropBreadcrumbsStyled';
+import { jssyTheme, reactackleMixin } from '../../styles/theme';
 
 const propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
@@ -17,13 +18,17 @@ const defaultProps = {
 };
 
 export const BackdropBreadcrumbs = props => (
-  <BackdropBreadcrumbsStyled>
-    <Breadcrumbs
-      mode="light"
-      items={props.items}
-      linkComponent={BreadcrumbLink}
-    />
-  </BackdropBreadcrumbsStyled>
+  <Theme mixin={reactackleMixin}>
+    <ThemeProvider theme={jssyTheme}>
+      <BackdropBreadcrumbsStyled>
+        <Breadcrumbs
+          colorScheme="dark"
+          items={props.items}
+          linkComponent={BreadcrumbLink}
+        />
+      </BackdropBreadcrumbsStyled>
+    </ThemeProvider>
+  </Theme>
 );
 
 BackdropBreadcrumbs.propTypes = propTypes;

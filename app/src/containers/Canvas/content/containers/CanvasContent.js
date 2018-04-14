@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -37,10 +31,11 @@ import { getRouteParams } from '../../../../models/ProjectRoute';
 import { formatComponentTitle } from '../../../../lib/components';
 import ComponentsBundle from '../../../../lib/ComponentsBundle';
 import { distance } from '../../../../utils/geometry';
-import { noop } from '../../../../utils/misc';
+import { noop, waitFor } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
 import * as JssyPropTypes from '../../../../constants/common-prop-types';
+import { DND_CANVAS_SNAP_LINES } from '../../../../config';
 
 const propTypes = {
   componentsBundle: PropTypes.instanceOf(ComponentsBundle).isRequired,
@@ -68,6 +63,7 @@ const propTypes = {
   onDragOverNothing: PropTypes.func.isRequired,
   onDropZoneSnap: PropTypes.func,
   onDropZoneUnsnap: PropTypes.func,
+  onDropZoneUpdateSnapPoints: PropTypes.func,
   onDropZoneOpenDropMenu: PropTypes.func,
 };
 
@@ -81,6 +77,7 @@ const defaultProps = {
   pickingComponentFilter: null,
   onDropZoneSnap: noop,
   onDropZoneUnsnap: noop,
+  onDropZoneUpdateSnapPoints: noop,
   onDropZoneOpenDropMenu: noop,
 };
 
@@ -104,19 +101,19 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   onToggleComponentSelection: componentId =>
     void dispatch(toggleComponentSelection(componentId)),
-  
+
   onSelectSingleComponent: componentId =>
-    void dispatch(selectPreviewComponent(componentId, true, true)),
-  
+    void dispatch(selectPreviewComponent(componentId, true, true, true)),
+
   onHighlightComponent: componentId =>
     void dispatch(highlightPreviewComponent(componentId)),
-  
+
   onUnhighlightComponent: componentId =>
     void dispatch(unhighlightPreviewComponent(componentId)),
-  
+
   onPickComponent: componentId =>
     void dispatch(pickComponentDone(componentId, ComponentPickAreas.CANVAS)),
-  
+
   onCancelPickComponentData: () =>
     void dispatch(pickComponentDataCancel()),
 
@@ -134,9 +131,6 @@ const wrap = connect(
   { withRef: true },
 );
 
-const setImmediate = window.setImmediate || (fn => setTimeout(fn, 0));
-const clearImmediate = window.clearImmediate || window.clearTimeout;
-
 const SNAP_DISTANCE = 200;
 const SUPPRESS_DROP_MENU_RADIUS = Math.round(SNAP_DISTANCE * 1.5);
 const CLOSE_SNAP_POINTS_THRESHOLD = 10;
@@ -150,33 +144,46 @@ const readAfterIdx = element =>
 
 const getOutletPosition = components => {
   const outlet = components.find(component => component.name === 'Outlet');
-  
+
   if (!outlet || outlet.parentId === INVALID_ID) {
     return {
       containerId: INVALID_ID,
       afterIdx: -1,
     };
   }
-  
+
   const parent = components.get(outlet.parentId);
   const outletPosition = parent.children.keyOf(outlet.id);
-  
+
   return {
     containerId: parent.id,
     afterIdx: outletPosition - 1,
   };
 };
 
+const findPlaceholders = async document => {
+  let placeholders = [];
+
+  await waitFor(() => {
+    placeholders = document.querySelectorAll('[data-jssy-placeholder]');
+    return placeholders.length > 0;
+  }, 10, 10);
+
+  return placeholders;
+};
+
 class CanvasContent extends Component {
   constructor(props, context) {
     super(props, context);
-    
+
     this._container = null;
     this._unhighilightTimer = -1;
     this._unhighlightedComponentId = INVALID_ID;
     this._draggingOverCanvas = false;
     this._lastDropMenuSnapPoint = { x: 0, y: 0 };
     this._suppressDropMenu = false;
+    this._snapPoints = null;
+    this._snapPointsIndex = null;
 
     this._handleMouseOver = this._handleMouseOver.bind(this);
     this._handleMouseOut = this._handleMouseOut.bind(this);
@@ -192,22 +199,20 @@ class CanvasContent extends Component {
     const containerNode = this._getContainer();
     containerNode.addEventListener('mouseover', this._handleMouseOver, false);
     containerNode.addEventListener('mouseout', this._handleMouseOut, false);
-    containerNode.addEventListener('mousedown', this._handleMouseDown, false);
     containerNode.addEventListener('click', this._handleClick, false);
-    containerNode.addEventListener('mouseup', this._handleMouseUp);
   }
 
   componentWillReceiveProps(nextProps) {
     const { pickingComponent, pickingComponentData } = this.props;
-    
+
     const nowPickingComponent =
       nextProps.pickingComponent ||
       nextProps.pickingComponentData;
-    
+
     const wasPickingComponent =
       pickingComponent ||
       pickingComponentData;
-    
+
     if (nowPickingComponent) {
       if (!wasPickingComponent) {
         window.document.body.addEventListener('click', this._handleBodyClick);
@@ -227,7 +232,7 @@ class CanvasContent extends Component {
       placeholderContainerId,
       placeholderAfter,
     } = this.props;
-    
+
     return nextProps.project !== project ||
       nextProps.topNestedConstructor !== topNestedConstructor ||
       nextProps.currentRouteId !== currentRouteId ||
@@ -254,9 +259,9 @@ class CanvasContent extends Component {
           '[data-jssy-placeholder]' +
           `[data-jssy-container-id="${placeholderContainerId}"]` +
           `[data-jssy-after="${placeholderAfter}"]`;
-    
+
         const placeholderElement = document.querySelector(selector);
-    
+
         if (placeholderElement) {
           onDropZoneSnap({ element: placeholderElement });
         } else {
@@ -282,17 +287,8 @@ class CanvasContent extends Component {
 
     containerNode.removeEventListener('mouseout', this._handleMouseOut, false);
 
-    containerNode.removeEventListener(
-      'mousedown',
-      this._handleMouseDown,
-      false,
-    );
-
     containerNode.removeEventListener('click', this._handleClick, false);
-    containerNode.removeEventListener('mouseup', this._handleMouseUp);
 
-    if (this._unhighilightTimer > -1) clearImmediate(this._unhighilightTimer);
-    
     if (pickingComponent || pickingComponentData) {
       window.document.body.removeEventListener('click', this._handleBodyClick);
     }
@@ -301,8 +297,18 @@ class CanvasContent extends Component {
   /**
    * Called by Canvas component
    */
-  enter() {
+  async enter() {
+    const { onDropZoneUpdateSnapPoints } = this.props;
+
     this._draggingOverCanvas = true;
+
+    if (DND_CANVAS_SNAP_LINES) {
+      const snapPoints = await this._getAllSnapPoints();
+
+      if (this._draggingOverCanvas && snapPoints.length > 1) {
+        onDropZoneUpdateSnapPoints(snapPoints);
+      }
+    }
   }
 
   /**
@@ -312,61 +318,102 @@ class CanvasContent extends Component {
     this._draggingOverCanvas = false;
     this._snap(null);
   }
-  
+
+  /**
+   * @typedef {Object} SnapPoint
+   * @property {number} containerId
+   * @property {number} afterIdx
+   * @property {number} [x]
+   * @property {number} [y]
+   */
+
   /**
    *
-   * @param {number} x
-   * @param {number} y
-   * @return {Object[]}
+   * @return {Array<SnapPoint>}
    * @private
    */
-  _getPossibleSnapPoints(x, y) {
+  async _getAllSnapPoints() {
     const { document } = this.context;
-    
-    const placeholders = document.querySelectorAll('[data-jssy-placeholder]');
-  
-    if (placeholders.length === 1) {
+
+    if (this._snapPoints !== null) {
+      return this._snapPoints;
+    }
+
+    const placeholders = await findPlaceholders(document);
+    let ret;
+
+    if (placeholders.length === 0) {
+      ret = [];
+    } else if (placeholders.length === 1) {
       const element = placeholders[0];
-      
-      return [{
+
+      // We don't need coordinates if there's only one snap point
+      ret = [{
         containerId: readContainerId(element),
         afterIdx: readAfterIdx(element),
       }];
-    }
-    
-    if (placeholders.length > 1) {
-      const snapPoints = [];
+    } else {
+      ret = [];
       placeholders.forEach(element => {
         const { left, top } = element.getBoundingClientRect();
-      
-        snapPoints.push({
+
+        ret.push({
           x: Math.round(left),
           y: Math.round(top),
           containerId: readContainerId(element),
           afterIdx: readAfterIdx(element),
         });
       });
-    
-      const index = kdbush(snapPoints, p => p.x, p => p.y, 64, Int32Array);
-      const pointsWithinSnapDistance = index
+    }
+
+    this._snapPoints = ret;
+
+    return ret;
+  }
+
+  /**
+   *
+   * @param {number} x
+   * @param {number} y
+   * @return {{ all: Array<SnapPoint>, snappable: Array<SnapPoint> }}
+   * @private
+   */
+  async _getPossibleSnapPoints(x, y) {
+    const snapPoints = await this._getAllSnapPoints();
+    let possibleSnapPoints;
+
+    if (snapPoints.length < 2) {
+      possibleSnapPoints = snapPoints;
+    } else {
+      if (this._snapPointsIndex === null) {
+        this._snapPointsIndex = kdbush(
+          snapPoints,
+          p => p.x,
+          p => p.y,
+          64,
+          Int32Array,
+        );
+      }
+
+      const pointsWithinSnapDistance = this._snapPointsIndex
         .within(x, y, SNAP_DISTANCE)
         .map(id => snapPoints[id]);
-      
-      if (pointsWithinSnapDistance.length === 0) {
-        return [];
+
+      if (pointsWithinSnapDistance.length > 0) {
+        const closestPoint = _minBy(
+          pointsWithinSnapDistance,
+          point => distance(x, y, point.x, point.y),
+        );
+
+        possibleSnapPoints = this._snapPointsIndex
+          .within(closestPoint.x, closestPoint.y, CLOSE_SNAP_POINTS_THRESHOLD)
+          .map(id => snapPoints[id]);
+      } else {
+        possibleSnapPoints = [];
       }
-  
-      const closestPoint = _minBy(
-        pointsWithinSnapDistance,
-        point => distance(x, y, point.x, point.y),
-      );
-  
-      return index
-        .within(closestPoint.x, closestPoint.y, CLOSE_SNAP_POINTS_THRESHOLD)
-        .map(id => snapPoints[id]);
     }
-    
-    return [];
+
+    return possibleSnapPoints;
   }
 
   /**
@@ -376,20 +423,20 @@ class CanvasContent extends Component {
    * @param {number} y
    * @private
    */
-  drag({ x, y }) {
+  async drag({ x, y }) {
     const {
       currentComponents,
       draggingComponent,
       onDropZoneOpenDropMenu,
     } = this.props;
-    
+
     if (!draggingComponent) return;
 
     // Although ComponentsDragArea doesn't call onDrag after onLeave,
     // this method can be called later because it's throttled,
     // so we need to check if we're still here
     if (!this._draggingOverCanvas) return;
-  
+
     if (this._suppressDropMenu) {
       const distanceToLastSnapPoint = distance(
         x,
@@ -397,50 +444,53 @@ class CanvasContent extends Component {
         this._lastDropMenuSnapPoint.x,
         this._lastDropMenuSnapPoint.y,
       );
-      
+
       if (distanceToLastSnapPoint >= SUPPRESS_DROP_MENU_RADIUS) {
         this._suppressDropMenu = false;
       }
     }
-    
-    const possibleSnapPoints = this._getPossibleSnapPoints(x, y);
-    
+
+    const possibleSnapPoints = await this._getPossibleSnapPoints(x, y);
+
+    // _getPossibleSnapPoints is async, check if we're still here
+    if (!this._draggingOverCanvas) return;
+
     if (possibleSnapPoints.length === 0) {
       this._snap(null);
       return;
     }
-    
+
     if (possibleSnapPoints.length === 1) {
       this._snap(possibleSnapPoints[0]);
       return;
     }
-  
+
     const dropPointsData = possibleSnapPoints.map(snapPoint => {
       const container = currentComponents.get(snapPoint.containerId);
       const parentNames = [];
-    
+
       let componentId = container.parentId;
       let i = 0;
-    
+
       while (componentId !== INVALID_ID && i < 2) {
         const component = currentComponents.get(componentId);
         parentNames.unshift(formatComponentTitle(component));
         componentId = component.parentId;
         i++;
       }
-    
+
       const ellipsis = componentId !== INVALID_ID;
       const title = formatComponentTitle(container);
       const caption =
         `${ellipsis ? '... ' : ''}${parentNames.join(' > ')} >`;
-    
+
       return {
         title,
         caption,
         data: snapPoint,
       };
     });
-  
+
     onDropZoneOpenDropMenu({
       coords: { x, y },
       snapCoords: {
@@ -449,27 +499,43 @@ class CanvasContent extends Component {
       },
       dropPointsData,
     });
-  
+
     this._lastDropMenuSnapPoint = {
       x: possibleSnapPoints[0].x,
       y: possibleSnapPoints[0].y,
     };
-  
+
     this._suppressDropMenu = true;
   }
-  
+
   /**
-   *
-   * @param {Object} snapPoint
+   * Called by Canvas component
+   * @param {SnapPoint} snapPoint
    */
   dropMenuItemSelected(snapPoint) {
     this._snap(snapPoint);
   }
-  
+
+  /**
+   * Called by Canvas component
+   */
   dropMenuClosed() {
     this._snap(null);
   }
-  
+
+  /**
+   * Called by Canvas component
+   */
+  drop() {
+    this._snapPoints = null;
+    this._snapPointsIndex = null;
+  }
+
+  /**
+   *
+   * @param {SnapPoint} snapPoint
+   * @private
+   */
   _snap(snapPoint) {
     const {
       draggingOverPlaceholder,
@@ -478,7 +544,7 @@ class CanvasContent extends Component {
       onDragOverPlaceholder,
       onDragOverNothing,
     } = this.props;
-    
+
     if (snapPoint === null) {
       if (draggingOverPlaceholder) onDragOverNothing();
     } else {
@@ -486,13 +552,13 @@ class CanvasContent extends Component {
         !draggingOverPlaceholder ||
         placeholderContainerId !== snapPoint.containerId ||
         placeholderAfter !== snapPoint.afterIdx;
-  
+
       if (willUpdatePlaceholder) {
         onDragOverPlaceholder(snapPoint.containerId, snapPoint.afterIdx);
       }
     }
   }
-  
+
   /**
    *
    * @return {HTMLElement}
@@ -500,35 +566,37 @@ class CanvasContent extends Component {
    */
   _getContainer() {
     const { document } = this.context;
-    
-    if (this._container) return this._container;
-    this._container = document.getElementById(CANVAS_CONTAINER_ID);
+
+    if (this._container === null) {
+      this._container = document.getElementById(CANVAS_CONTAINER_ID);
+    }
+
     return this._container;
   }
-  
+
   /**
    *
    * @param {HTMLElement} element
-   * @return {?number}
+   * @return {number}
    */
   _getClosestComponentId(element) {
     const containerNode = this._getContainer();
     let current = element;
-  
+
     while (current) {
       if (element === containerNode) break;
-    
+
       if (current.nodeType !== Node.ELEMENT_NODE) {
         current = current.parentNode;
         continue;
       }
-    
+
       const dataJssyId = current.getAttribute('data-jssy-id');
       if (dataJssyId) return parseInt(dataJssyId, 10);
       if (current.hasAttribute('data-reactroot')) break;
       current = current.parentNode;
     }
-  
+
     return INVALID_ID;
   }
 
@@ -540,10 +608,10 @@ class CanvasContent extends Component {
    */
   _componentIsInCurrentRoute(componentId) {
     const { project, currentRouteId, currentRouteIsIndexRoute } = this.props;
-    
+
     const component = getComponentById(project, componentId);
 
-    return component.routeId === currentRouteId &&
+    return component && component.routeId === currentRouteId &&
       component.isIndexRoute === currentRouteIsIndexRoute;
   }
 
@@ -555,7 +623,7 @@ class CanvasContent extends Component {
    */
   _canInteractWithComponent(componentId) {
     const { topNestedConstructor } = this.props;
-    
+
     // We can interact with any component in nested constructors
     if (topNestedConstructor) return true;
 
@@ -577,7 +645,7 @@ class CanvasContent extends Component {
       onHighlightComponent,
       onUnhighlightComponent,
     } = this.props;
-    
+
     if (highlightingEnabled) {
       const componentId = this._getClosestComponentId(event.target);
 
@@ -585,11 +653,6 @@ class CanvasContent extends Component {
         componentId !== INVALID_ID &&
         this._canInteractWithComponent(componentId)
       ) {
-        if (this._unhighilightTimer > -1) {
-          clearImmediate(this._unhighilightTimer);
-          this._unhighilightTimer = -1;
-        }
-
         if (this._unhighlightedComponentId !== componentId) {
           if (this._unhighlightedComponentId !== INVALID_ID) {
             onUnhighlightComponent(this._unhighlightedComponentId);
@@ -604,14 +667,13 @@ class CanvasContent extends Component {
             }
           } else {
             onHighlightComponent(componentId);
+            this._unhighlightedComponentId = componentId;
           }
         }
-
-        this._unhighlightedComponentId = INVALID_ID;
       }
     }
   }
-
+  
   /**
    *
    * @param {MouseEvent} event
@@ -619,7 +681,7 @@ class CanvasContent extends Component {
    */
   _handleMouseOut(event) {
     const { highlightingEnabled, onUnhighlightComponent } = this.props;
-    
+
     if (highlightingEnabled) {
       const componentId = this._getClosestComponentId(event.target);
 
@@ -627,16 +689,7 @@ class CanvasContent extends Component {
         componentId !== INVALID_ID &&
         this._canInteractWithComponent(componentId)
       ) {
-        if (this._unhighilightTimer > -1) {
-          clearImmediate(this._unhighilightTimer);
-          onUnhighlightComponent(this._unhighlightedComponentId);
-        }
-
-        this._unhighilightTimer = setImmediate(() => {
-          this._unhighilightTimer = -1;
-          this._unhighlightedComponentId = INVALID_ID;
-          onUnhighlightComponent(componentId);
-        });
+        onUnhighlightComponent(this._unhighlightedComponentId);
 
         this._unhighlightedComponentId = componentId;
       }
@@ -658,15 +711,15 @@ class CanvasContent extends Component {
       onPickComponent,
       onCancelPickComponentData,
     } = this.props;
-    
+
     if (event.button === 0) { // Left button
       if (componentDataListIsVisible) {
         onCancelPickComponentData();
         return;
       }
-      
+
       const componentId = this._getClosestComponentId(event.target);
-      
+
       if (
         componentId !== INVALID_ID &&
         this._canInteractWithComponent(componentId)
@@ -683,22 +736,26 @@ class CanvasContent extends Component {
       }
     }
   }
-  
+
   /**
    *
+   * @param {MouseEvent} event
    * @private
    */
-  _handleBodyClick() {
+  _handleBodyClick(event) {
     const {
       componentDataListIsVisible,
       onCancelPickComponentData,
     } = this.props;
-    
+
+    // Ignore events that were re-dispatched from the iframe manually
+    if (event.target.tagName === 'IFRAME') return;
+
     if (componentDataListIsVisible) {
       onCancelPickComponentData();
     }
   }
-  
+
   /**
    *
    * @param {number} routeId
@@ -707,10 +764,10 @@ class CanvasContent extends Component {
    */
   _handleNavigate({ routeId, routeParams }) {
     const { project } = this.props;
-    
+
     const route = project.routes.get(routeId);
     if (!route) return;
-    
+
     const path = route.fullPath
       .split('/')
       .map(
@@ -722,7 +779,7 @@ class CanvasContent extends Component {
 
     this._history.push(path);
   }
-  
+
   /**
    *
    * @param {string} url
@@ -731,17 +788,17 @@ class CanvasContent extends Component {
    */
   _handleOpenURL({ url, newWindow }) {
     const { window } = this.context;
-    
+
     const doc = window.top.document;
     const a = doc.createElement('a');
-    
+
     a.setAttribute('href', url);
     if (newWindow) a.setAttribute('target', '_blank');
     doc.body.appendChild(a);
     a.click();
     doc.body.removeChild(a);
   }
-  
+
   /**
    *
    * @return {?ReactElement}
@@ -754,17 +811,17 @@ class CanvasContent extends Component {
       currentRouteIsIndexRoute,
       componentsBundle,
     } = this.props;
-    
+
     if (currentRouteId === INVALID_ID) return null;
-    
+
     let route = project.routes.get(currentRouteId);
     let ret;
-  
+
     const routeParams = getRouteParams(route, project.routes);
-    
+
     if (currentRouteIsIndexRoute) {
       const outletPosition = getOutletPosition(route.components);
-      
+
       ret = (
         <CanvasBuilder
           componentsBundle={componentsBundle}
@@ -788,16 +845,16 @@ class CanvasContent extends Component {
       let enclosingComponents = null;
       let enclosingContainerId = INVALID_ID;
       let enclosingAfterIdx = -1;
-      
+
       if (route.parentId !== INVALID_ID) {
         const parentRoute = project.routes.get(route.parentId);
         const outletPosition = getOutletPosition(parentRoute.components);
-        
+
         enclosingComponents = parentRoute.components;
         enclosingContainerId = outletPosition.containerId;
         enclosingAfterIdx = outletPosition.afterIdx;
       }
-  
+
       ret = (
         <CanvasBuilder
           editable
@@ -811,10 +868,10 @@ class CanvasContent extends Component {
         />
       );
     }
-    
+
     while (route.parentId !== INVALID_ID) {
       route = project.routes.get(route.parentId);
-  
+
       const routeParams = getRouteParams(route, project.routes);
 
       ret = (
@@ -831,7 +888,7 @@ class CanvasContent extends Component {
 
     return ret;
   }
-  
+
   _renderTopNestedConstructor() {
     const {
       project,
@@ -839,10 +896,10 @@ class CanvasContent extends Component {
       currentRouteId,
       componentsBundle,
     } = this.props;
-  
+
     const currentRoute = project.routes.get(currentRouteId);
     const routeParams = getRouteParams(currentRoute, project.routes);
-    
+
     return (
       <CanvasBuilder
         editable

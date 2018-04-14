@@ -1,15 +1,5 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import _forOwn from 'lodash.forown';
 import { Record, Map, List } from 'immutable';
-
-import JssyValue, {
-  SourceDataConnectionPaginationState,
-} from '../models/JssyValue';
 
 import {
   getTypeNameByField,
@@ -27,7 +17,12 @@ import {
   RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
   RELAY_CONNECTION_FIELD_EDGES,
   RELAY_EDGE_FIELD_NODE,
-} from './schema';
+  RELAY_EDGE_FIELD_CURSOR,
+} from '@jssy/graphql-schema';
+
+import JssyValue, {
+  SourceDataConnectionPaginationState,
+} from '../models/JssyValue';
 
 import {
   getComponentMeta,
@@ -90,7 +85,7 @@ export const randomName = (len = 12) => {
 const getDeepestFieldSelection = fragment => {
   let currentNode = fragment;
   let fieldSelection;
-  
+
   /* eslint-disable no-cond-assign */
   while (
     fieldSelection = currentNode.selectionSet
@@ -100,21 +95,21 @@ const getDeepestFieldSelection = fragment => {
       : null
   ) currentNode = fieldSelection;
   /* eslint-enable no-cond-assign */
-  
+
   return currentNode;
 };
 
 const getSelectionByPath = (fragment, path) => {
   let currentNode = fragment;
-  
+
   path.forEach(field => {
     const selection = currentNode.selectionSet.selections.find(selection =>
       selection.kind === 'Field' && selection.name.value === field);
-    
+
     if (!selection) throw new Error('getSelectionByPath(): bad path');
     currentNode = selection;
   });
-  
+
   return currentNode;
 };
 
@@ -133,7 +128,7 @@ const attachFragmentToFragment = (
       selections: [],
     };
   }
-  
+
   selectionNode.selectionSet.selections.push({
     kind: 'FragmentSpread',
     name: {
@@ -148,14 +143,14 @@ const attachFragmentToFragment = (
 
 const addTypenameField = fragment => {
   const selectionNode = getDeepestFieldSelection(fragment);
-  
+
   if (!selectionNode.selectionSet) {
     selectionNode.selectionSet = {
       kind: 'SelectionSet',
       selections: [],
     };
   }
-  
+
   selectionNode.selectionSet.selections.push({
     kind: 'Field',
     alias: null,
@@ -167,7 +162,7 @@ const addTypenameField = fragment => {
     directives: [],
     selectionSet: null,
   });
-  
+
   return fragment;
 };
 
@@ -199,18 +194,18 @@ const typeDefinitionToGQLTypeAST = typeDefinition => {
       value: typeDefinition.type,
     },
   };
-  
+
   const kindError =
     typeDefinition.kind !== FieldKinds.SINGLE &&
     typeDefinition.kind !== FieldKinds.LIST;
-  
+
   if (kindError) {
     throw new Error(
       'typeDefinitionToGQLTypeAST(): ' +
       'Only types of kinds SINGLE and LIST are supported',
     );
   }
-  
+
   if (typeDefinition.kind === FieldKinds.LIST) {
     if (typeDefinition.nonNullMember) {
       ret = {
@@ -218,20 +213,20 @@ const typeDefinitionToGQLTypeAST = typeDefinition => {
         type: ret,
       };
     }
-    
+
     ret = {
       kind: 'ListType',
       type: ret,
     };
   }
-  
+
   if (typeDefinition.nonNull) {
     ret = {
       kind: 'NonNullType',
       type: ret,
     };
   }
-  
+
   return ret;
 };
 
@@ -266,7 +261,7 @@ const buildGraphQLArgument = (
 ) => {
   const argDefinition = getFieldArgDefinition(fieldDefinition, argName);
   const variableName = randomName();
-  
+
   variablesAccumulator[variableName] = { argDefinition, argValue };
 
   return {
@@ -367,7 +362,7 @@ const buildGraphQLFragmentForValue = (
           const fieldDefinition = currentTypeDefinition
             .fields[fieldName]
             .connectionFields[connectionFieldName];
-          
+
           const arg = buildGraphQLArgument(
             fieldDefinition,
             argName,
@@ -413,7 +408,7 @@ const buildGraphQLFragmentForValue = (
     } else if (currentFieldDefinition.kind === FieldKinds.CONNECTION) {
       const args = [];
       const argumentValues = jssyValue.getQueryStepArgValues(idx);
-  
+
       if (argumentValues) {
         argumentValues.forEach((argValue, argName) => buildGraphQLArgument(
           currentTypeDefinition.fields[fieldName],
@@ -503,21 +498,37 @@ const buildGraphQLFragmentForValue = (
                 arguments: [],
                 directives: [],
                 selectionSet: null,
-              }, {
-                kind: 'Field',
-                alias: null,
-                name: {
-                  kind: 'Name',
-                  value: RELAY_PAGEINFO_FIELD_END_CURSOR,
-                },
-                arguments: [],
-                directives: [],
-                selectionSet: null,
               }],
             },
           }],
         },
       };
+
+      if (schema.pageInfoHasCursors) {
+        node.selectionSet.selections[1].selectionSet.selections.push({
+          kind: 'Field',
+          alias: null,
+          name: {
+            kind: 'Name',
+            value: RELAY_PAGEINFO_FIELD_END_CURSOR,
+          },
+          arguments: [],
+          directives: [],
+          selectionSet: null,
+        });
+      } else {
+        node.selectionSet.selections[0].selectionSet.selections.push({
+          kind: 'Field',
+          alias: null,
+          name: {
+            kind: 'Name',
+            value: RELAY_EDGE_FIELD_CURSOR,
+          },
+          arguments: [],
+          directives: [],
+          selectionSet: null,
+        });
+      }
 
       currentNode.selectionSet = {
         kind: 'SelectionSet',
@@ -635,7 +646,7 @@ const buildAndAttachFragmentsForDesignerProp = (
   variablesAccumulator,
 ) => {
   const designerSourceConfig = getSourceConfig(valueDef, 'designer');
-  
+
   if (!designerSourceConfig.props) {
     return { fragments: [], theMap };
   }
@@ -746,10 +757,10 @@ const buildGraphQLFragmentsForOwnComponent = (
       const parentFragment = dataContextTreeNode.fragment;
 
       attachFragmentToFragment(fragment, parentFragment);
-      
+
       if (fragment[IS_FINISHED_FRAGMENT]) {
         const path = getDataContextTreePath(dataContextTree, value);
-        
+
         // Skipping root node because it doesn't contain a fragment
         path.rest().forEach(node => {
           node.fragment[IS_FINISHED_FRAGMENT] = true;
@@ -817,7 +828,7 @@ const fixUnfinishedFragments = fragments => {
       fragment[IS_FINISHED_FRAGMENT] = true;
     }
   });
-  
+
   return fragments;
 };
 
@@ -941,7 +952,7 @@ const buildGraphQLFragmentsForComponent = (
  */
 export const buildQueryForComponent = (component, schema, meta, project) => {
   const variablesAccumulator = {};
-  
+
   const { fragments, theMap } = buildGraphQLFragmentsForComponent(
     component,
     schema,
@@ -949,13 +960,24 @@ export const buildQueryForComponent = (component, schema, meta, project) => {
     project,
     variablesAccumulator,
   );
-  
+
   const isRootFragment = fragment =>
     fragment.typeCondition.name.value === schema.queryTypeName;
 
-  const rootFragments = fragments.filter(isRootFragment);
+  const rootFragments = [];
+  const nestedFragments = [];
 
-  if (!rootFragments.length) return { query: null, theMap, variables: {} };
+  fragments.forEach(fragment => {
+    if (isRootFragment(fragment)) {
+      rootFragments.push(fragment);
+    } else {
+      nestedFragments.push(fragment);
+    }
+  });
+
+  if (rootFragments.length === 0) {
+    return { query: null, theMap, variables: {} };
+  }
 
   const query = {
     kind: 'Document',
@@ -969,7 +991,7 @@ export const buildQueryForComponent = (component, schema, meta, project) => {
         },
         variableDefinitions: objectToArray(
           variablesAccumulator,
-    
+
           ({ argDefinition }, varName) => ({
             kind: 'VariableDefinition',
             variable: {
@@ -986,20 +1008,22 @@ export const buildQueryForComponent = (component, schema, meta, project) => {
         directives: [],
         selectionSet: {
           kind: 'SelectionSet',
-          selections: rootFragments.map(fragment => ({
-            kind: 'FragmentSpread',
-            name: {
-              kind: 'Name',
-              value: fragment.name.value,
-            },
-            directives: [],
-          })),
+          selections: [],
         },
       },
 
-      ...fragments,
+      ...nestedFragments,
     ],
   };
+
+  const rootSelectionSet = query.definitions[0].selectionSet;
+
+  // Merging root fragments into the main query, 'cause Apollo doesn't like
+  // fragments on query type:
+  // https://github.com/apollographql/apollo-client/issues/2438
+  rootFragments.forEach(fragment => {
+    rootSelectionSet.selections.push(...fragment.selectionSet.selections);
+  });
 
   return { query, theMap, variables: variablesAccumulator };
 };
@@ -1024,7 +1048,7 @@ export const extractPropValueFromData = (
       type: '',
     };
   }
-  
+
   const typeDefinition = schema.types[acc.type];
   const { fieldName, connectionFieldName } = parseFieldName(queryStep.field);
   const fieldDefinition = typeDefinition.fields[fieldName];
@@ -1034,7 +1058,7 @@ export const extractPropValueFromData = (
     if (connectionFieldName) {
       const connectionFieldKey =
         getDataFieldKey(connectionFieldName, jssyValue);
-      
+
       return {
         data: acc.data[fieldKey][connectionFieldKey],
         type: fieldDefinition.connectionFields[connectionFieldName].type,
@@ -1084,7 +1108,7 @@ const saveMutationToCache = (schema, mutationName, mutation) => {
     mutationsBySchema = new window.Map();
     mutationsCacheBySchema.set(schema, mutationsBySchema);
   }
-  
+
   mutationsCacheBySchema.set(mutationName, mutation);
 };
 
@@ -1095,10 +1119,10 @@ const saveMutationToCache = (schema, mutationName, mutation) => {
  */
 const selectionsToAST = selections => {
   if (!selections) return [];
-  
+
   return objectToArray(
     selections,
-  
+
     (value, key) => ({
       kind: 'Field',
       alias: null,
@@ -1138,10 +1162,10 @@ const isScalarType = (schema, typeName) =>
 export const buildMutation = (schema, mutationName, selections = null) => {
   const cached = getMutationFromCache(schema, mutationName);
   if (cached) return cached;
-  
+
   const mutationField = getMutationField(schema, mutationName);
   if (!mutationField) return null;
-  
+
   const ret = {
     kind: 'Document',
     definitions: [
@@ -1154,7 +1178,7 @@ export const buildMutation = (schema, mutationName, selections = null) => {
         },
         variableDefinitions: objectToArray(
           mutationField.args,
-          
+
           (arg, argName) => ({
             kind: 'VariableDefinition',
             variable: {
@@ -1214,7 +1238,7 @@ export const buildMutation = (schema, mutationName, selections = null) => {
       },
     ],
   };
-  
+
   saveMutationToCache(schema, mutationName, ret);
   return ret;
 };

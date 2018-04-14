@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'tr',
   textKey: 'name',
@@ -14,10 +8,10 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<tr> tag',
+      en: 'Table row',
     },
     description: {
-      en: '',
+      en: 'A row of cells in a table',
     },
   },
   tags: new Set(),

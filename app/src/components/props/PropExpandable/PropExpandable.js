@@ -1,14 +1,10 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import _pick from 'lodash.pick';
 import { PropBase } from '../PropBase/PropBase';
 import { noop } from '../../../utils/misc';
+import { ChildrenWrapperStyled } from './styles/ChildrenWrapperStyled';
+import { IconArrowChevronRight } from '../../icons';
 
 const propTypes = {
   expanded: PropTypes.bool,
@@ -51,17 +47,21 @@ export class PropExpandable extends Component {
     const propsForBase = _pick(this.props, baseProps);
     let actualAdditionalActions = additionalActions;
 
-    if (!linked && (!checkable || checked)) {
+    const isChecked = !checkable || checked;
+
+    if (!linked && isChecked) {
       actualAdditionalActions = [...actualAdditionalActions, {
         id: 'expand',
-        icon: 'chevron-right',
+        icon: <IconArrowChevronRight />,
         rounded: true,
         expanded,
         handler: this._handleExpandAction,
       }];
     }
 
-    const actualChildren = expanded ? children : null;
+    const actualChildren = isChecked && expanded
+      ? <ChildrenWrapperStyled>{children}</ChildrenWrapperStyled>
+      : null;
 
     return (
       <PropBase

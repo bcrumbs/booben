@@ -1,12 +1,7 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Button, Tabs } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
+import { Tabs } from 'reactackle-tabs';
 
 import {
   BlockContent,
@@ -14,7 +9,7 @@ import {
   BlockContentNavigation,
   BlockBreadcrumbs,
   BlockContentBoxItem,
-} from '@jssy/common-ui';
+} from '../../../../components/BlockContent';
 
 import {
   DataList,
@@ -23,6 +18,7 @@ import {
 
 import { FunctionSources } from '../../../../lib/functions';
 import { noop, returnArg } from '../../../../utils/misc';
+import { IconAdd } from '../../../../components/icons';
 
 const FunctionShape = PropTypes.shape({
   id: PropTypes.string.isRequired,
@@ -56,7 +52,7 @@ const Sections = {
 export class FunctionsList extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this.state = {
       activeSection: Sections.BUILTIN,
     };
@@ -68,7 +64,7 @@ export class FunctionsList extends PureComponent {
 
   _getBreadcrumbsItems() {
     const { getLocalizedText } = this.props;
-    
+
     return [{
       title: getLocalizedText('linkDialog.sources'),
     }, {
@@ -124,16 +120,22 @@ export class FunctionsList extends PureComponent {
       ? builtinFunctions
       : projectFunctions;
 
-    return fns.map(fn => (
-      <DataItem
-        key={fn.id}
-        id={fn.id}
-        title={fn.name}
-        description={fn.description}
-        connection
-        onSelect={this._handleFunctionSelect}
-      />
-    ));
+    return fns.length > 0 && (
+      <BlockContentBoxItem>
+        <DataList>
+          {fns.map(fn => (
+            <DataItem
+              key={fn.id}
+              id={fn.id}
+              title={fn.name}
+              description={fn.description}
+              connection
+              onSelect={this._handleFunctionSelect}
+            />
+          ))}
+        </DataList>
+      </BlockContentBoxItem>
+    );
   }
 
   render() {
@@ -148,7 +150,7 @@ export class FunctionsList extends PureComponent {
       addButton = (
         <BlockContentBoxItem>
           <Button
-            icon={{ name: 'plus' }}
+            icon={<IconAdd />}
             text={getLocalizedText('linkDialog.function.create')}
             narrow
             onPress={onAdd}
@@ -156,7 +158,7 @@ export class FunctionsList extends PureComponent {
         </BlockContentBoxItem>
       );
     }
-    
+
     const tabs = [
       { text: getLocalizedText('linkDialog.function.library') },
       { text: getLocalizedText('linkDialog.function.user') },
@@ -167,7 +169,7 @@ export class FunctionsList extends PureComponent {
         <BlockContentNavigation isBordered>
           <BlockBreadcrumbs
             items={breadcrumbsItems}
-            mode="dark"
+            colorScheme="dark"
             onItemClick={this._handleBreadcrumbsClick}
           />
         </BlockContentNavigation>
@@ -182,11 +184,7 @@ export class FunctionsList extends PureComponent {
         </BlockContentNavigation>
 
         <BlockContentBox isBordered>
-          <BlockContentBoxItem>
-            <DataList>
-              {list}
-            </DataList>
-          </BlockContentBoxItem>
+          {list}
 
           {addButton}
         </BlockContentBox>

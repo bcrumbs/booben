@@ -1,12 +1,6 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Icon, withTooltip } from '@reactackle/reactackle';
+import { withTooltip } from 'reactackle-tooltip';
 import ProjectRoute from '../../../models/ProjectRoute';
 import { noop } from '../../../utils/misc';
 import { RouteCardStyled } from './styles/RouteCardStyled';
@@ -16,10 +10,12 @@ import { CardContentStyled } from './styles/CardContentStyled';
 import { TitleBoxStyled } from './styles/TitleBoxStyled';
 import { TitleStyled } from './styles/TitleStyled';
 import { SubtitleStyled } from './styles/SubtitleStyled';
-import { RouteIconStyled } from './styles/RouteIconStyled';
+import { MarkWrapperStyled } from './styles/MarkWrapperStyled';
+import { IconMarkStyled } from './styles/IconMarkStyled';
 import { AlertMarkStyled } from './styles/AlertMarkStyled';
 import { TextBoxStyled } from './styles/TextBoxStyled';
 import { MessageStyled } from './styles/MessageStyled';
+import { IconRedirect, IconExclamation } from '../../icons';
 
 const propTypes = {
   route: PropTypes.instanceOf(ProjectRoute).isRequired,
@@ -55,31 +51,31 @@ class _RouteCard extends PureComponent {
     this._handleCardClick = this._handleCardClick.bind(this);
     this._saveRef = this._saveRef.bind(this);
   }
-  
+
   componentDidMount() {
     this._element.addEventListener('dblclick', this._handleDoubleClick);
   }
-  
+
   componentWillUpdate(nextProps) {
     const { onGo } = this.props;
-    
+
     if (nextProps.onGo !== onGo) {
       this._element.removeEventListener('dblclick', this._handleDoubleClick);
     }
   }
-  
+
   componentDidUpdate(prevProps) {
     const { onGo } = this.props;
-    
+
     if (prevProps.onGo !== onGo) {
       this._element.addEventListener('dblclick', this._handleDoubleClick);
     }
   }
-  
+
   componentWillUnmount() {
     this._element.removeEventListener('dblclick', this._handleDoubleClick);
   }
-  
+
   _handleDoubleClick() {
     const { route, disabled, onGo } = this.props;
 
@@ -87,7 +83,7 @@ class _RouteCard extends PureComponent {
       onGo({ routeId: route.id, isIndexRoute: false });
     }
   }
-  
+
   _handleCardClick() {
     const { route, onFocus } = this.props;
     onFocus({ routeId: route.id, isIndexRoute: false });
@@ -111,26 +107,36 @@ class _RouteCard extends PureComponent {
       hideTooltip,
 
     } = this.props;
-    
-    let icon = null;
+
+    let redirectMark = null;
     if (route.redirect) {
-      icon = (
-        <RouteIconStyled>
-          <Icon name="random" size="inherit" color="inherit" />
-        </RouteIconStyled>
+      redirectMark = (
+        <IconMarkStyled>
+          <IconRedirect />
+        </IconMarkStyled>
       );
     }
-    
+
     let mark = null;
     if (alertMark) {
       mark = (
         <AlertMarkStyled onMouseEnter={showTooltip} onMouseOut={hideTooltip}>
-          <Icon name="exclamation" size="inherit" color="inherit" />
+          <IconExclamation />
           <Tooltip text={alertTooltip} />
         </AlertMarkStyled>
       );
     }
-    
+
+    let markWrapper = null;
+    if (mark || redirectMark) {
+      markWrapper = (
+        <MarkWrapperStyled>
+          {mark}
+          {redirectMark}
+        </MarkWrapperStyled>
+      );
+    }
+
     let messageElement = null;
     if (message) {
       messageElement = (
@@ -139,7 +145,7 @@ class _RouteCard extends PureComponent {
         </MessageStyled>
       );
     }
-    
+
     const title = route.title || route.path;
 
     return (
@@ -155,17 +161,16 @@ class _RouteCard extends PureComponent {
               <TextBoxStyled>
                 <TitleBoxStyled>
                   <TitleStyled>{title}</TitleStyled>
-                  {icon}
                 </TitleBoxStyled>
-    
+
                 <SubtitleStyled>
                   {route.path}
                 </SubtitleStyled>
               </TextBoxStyled>
-  
-              {mark}
+
+              {markWrapper}
             </CardContentStyled>
-            
+
             {messageElement}
           </CardStyled>
         </CardWrapperStyled>

@@ -1,16 +1,15 @@
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Icon, TooltipIcon } from '@reactackle/reactackle';
+import { TooltipIcon } from 'reactackle-tooltip-icon';
 import { noop } from '../../../../utils/misc';
+import { IconArrowChevronRight } from '../../../icons';
 import { HandlerStyled } from './styles/HandlerStyled';
 import { HandlerHeadingStyled } from './styles/HandlerHeadingStyled';
 import { HandlerTitleStyled } from './styles/HandlerTitleStyled';
 import { HandlerTitleTextStyled } from './styles/HandlerTitleTextStyled';
 import { HandlerIconStyled } from './styles/HandlerIconStyled';
 import { HandlerBodyStyled } from './styles/HandlerBodyStyled';
-   
+
 const propTypes = {
   id: PropTypes.any.isRequired,
   title: PropTypes.string,
@@ -31,10 +30,10 @@ const defaultProps = {
 export class ComponentHandler extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this._handleExpandButtonClick = this._handleExpandButtonClick.bind(this);
   }
-  
+
   _handleExpandButtonClick(event) {
     const { id, onExpand } = this.props;
 
@@ -42,10 +41,10 @@ export class ComponentHandler extends PureComponent {
       onExpand({ handlerId: id });
     }
   }
-  
+
   render() {
     const { title, description, hasActions, expanded, children } = this.props;
-  
+
     let content = null;
     if (expanded && children) {
       content = (
@@ -54,14 +53,14 @@ export class ComponentHandler extends PureComponent {
         </HandlerBodyStyled>
       );
     }
-  
+
     let tooltip = null;
     if (description) {
       tooltip = (
         <TooltipIcon text={description} />
       );
     }
-  
+
     return (
       <HandlerStyled>
         <HandlerHeadingStyled onClick={this._handleExpandButtonClick}>
@@ -69,15 +68,15 @@ export class ComponentHandler extends PureComponent {
             <HandlerTitleTextStyled>
               {title}
             </HandlerTitleTextStyled>
-          
+
             {tooltip}
           </HandlerTitleStyled>
-        
+
           <HandlerIconStyled expanded={expanded}>
-            <Icon name="chevron-down" size="small" />
+            <IconArrowChevronRight />
           </HandlerIconStyled>
         </HandlerHeadingStyled>
-      
+
         {content}
       </HandlerStyled>
     );

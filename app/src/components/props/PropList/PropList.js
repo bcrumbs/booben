@@ -1,13 +1,7 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import _pick from 'lodash.pick';
-import { SelectBox } from '@reactackle/reactackle';
+import { SelectBox } from 'reactackle-selectbox';
 import { PropBase } from '../PropBase/PropBase';
 import { noop } from '../../../utils/misc';
 
@@ -40,7 +34,7 @@ export class PropList extends Component {
     super(props, context);
     this._handleChange = this._handleChange.bind(this);
   }
-  
+
   /**
    *
    * @param {*} value
@@ -81,6 +75,7 @@ export class PropList extends Component {
       <PropBase
         {...propsForBase}
         content={content}
+        labelPositionTop
       />
     );
   }

@@ -1,20 +1,16 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import { Record, List, Map, Set } from 'immutable';
 import _mapValues from 'lodash.mapvalues';
 
 import JssyValue, {
   SourceDataStatic,
+  SourceDataOwnerProp,
   SourceDataData,
   QueryPathStep,
   SourceDataConst,
   SourceDataFunction,
   SourceDataActions,
   Action,
+  ActionTypes,
   MutationActionParams,
   NavigateActionParams,
   URLActionParams,
@@ -46,6 +42,7 @@ const ProjectComponentRecord = Record({
   parentId: INVALID_ID,
   isNew: false,
   isWrapper: false,
+  style: '',
   name: '',
   title: '',
   props: Map(),
@@ -68,20 +65,20 @@ const actionsToImmutable = actions => List(actions.map(action => {
   const data = {
     type: action.type,
   };
-  
+
   switch (action.type) {
-    case 'mutation': {
+    case ActionTypes.MUTATION: {
       data.params = new MutationActionParams({
         mutation: action.params.mutation,
         args: Map(_mapValues(action.params.args, jssyValueToImmutable)),
         successActions: actionsToImmutable(action.params.successActions),
         errorActions: actionsToImmutable(action.params.errorActions),
       });
-      
+
       break;
     }
-    
-    case 'navigate': {
+
+    case ActionTypes.NAVIGATE: {
       data.params = new NavigateActionParams({
         routeId: action.params.routeId,
         routeParams: Map(_mapValues(
@@ -89,41 +86,41 @@ const actionsToImmutable = actions => List(actions.map(action => {
           jssyValueToImmutable,
         )),
       });
-      
+
       break;
     }
-    
-    case 'url': {
+
+    case ActionTypes.URL: {
       data.params = new URLActionParams({
         url: action.params.url,
         newWindow: action.params.newWindow,
       });
-      
+
       break;
     }
-    
-    case 'method': {
+
+    case ActionTypes.METHOD: {
       data.params = new MethodCallActionParams({
         componentId: action.params.componentId,
         method: action.params.method,
         args: List(action.params.args.map(jssyValueToImmutable)),
       });
-      
+
       break;
     }
-    
-    case 'prop': {
+
+    case ActionTypes.PROP: {
       data.params = new PropChangeActionParams({
         componentId: action.params.componentId,
         propName: action.params.propName || '',
         systemPropName: action.params.systemPropName || '',
         value: jssyValueToImmutable(action.params.value),
       });
-      
+
       break;
     }
-    
-    case 'ajax': {
+
+    case ActionTypes.AJAX: {
       data.params = new AJAXActionParams({
         url: jssyValueToImmutable(action.params.url),
         method: action.params.method,
@@ -136,26 +133,26 @@ const actionsToImmutable = actions => List(actions.map(action => {
         successActions: actionsToImmutable(action.params.successActions),
         errorActions: actionsToImmutable(action.params.errorActions),
       });
-      
+
       break;
     }
-    
-    case 'loadMoreData': {
+
+    case ActionTypes.LOAD_MORE_DATA: {
       data.params = new LoadMoreDataActionParams({
         componentId: action.params.componentId,
         pathToDataValue: List(action.params.pathToDataValue),
         successActions: actionsToImmutable(action.params.successActions),
         errorActions: actionsToImmutable(action.params.errorActions),
       });
-      
+
       break;
     }
-    
+
     default: {
       data.params = null;
     }
   }
-  
+
   return Action(data);
 }));
 
@@ -168,9 +165,9 @@ export const jssyValueToImmutable = plainValue => {
   if (plainValue === null) {
     return null;
   }
-  
+
   const { source, sourceData } = plainValue;
-  
+
   return new JssyValue({
     source,
     sourceData: sourceDataToImmutable(source, sourceData),
@@ -178,8 +175,8 @@ export const jssyValueToImmutable = plainValue => {
 };
 
 const propSourceDataToImmutableFns = {
-  const: input => new SourceDataConst(input),
-  static: input => {
+  [JssyValue.Source.CONST]: input => new SourceDataConst(input),
+  [JssyValue.Source.STATIC]: input => {
     const data = {};
 
     if (!isUndef(input.value)) {
@@ -193,14 +190,11 @@ const propSourceDataToImmutableFns = {
       }
     }
 
-    if (!isUndef(input.ownerPropName)) {
-      data.ownerPropName = input.ownerPropName;
-    }
-
     return new SourceDataStatic(data);
   },
 
-  data: input => {
+  [JssyValue.Source.OWNER_PROP]: input => new SourceDataOwnerProp(input),
+  [JssyValue.Source.DATA]: input => {
     const data = {
       queryPath: input.queryPath
         ? List(input.queryPath.map(step => new QueryPathStep({
@@ -208,7 +202,7 @@ const propSourceDataToImmutableFns = {
           connectionPageSize: step.connectionPageSize,
         })))
         : null,
-      
+
       queryArgs: Map(_mapValues(input.queryArgs, args =>
         Map(_mapValues(args, jssyValueToImmutable)))),
 
@@ -220,17 +214,17 @@ const propSourceDataToImmutableFns = {
     return new SourceDataData(data);
   },
 
-  function: input => new SourceDataFunction({
+  [JssyValue.Source.FUNCTION]: input => new SourceDataFunction({
     functionSource: input.functionSource,
     function: input.function,
-    args: Map(_mapValues(input.args, jssyValueToImmutable)),
+    args: List(input.args.map(jssyValueToImmutable)),
   }),
-  
-  actions: input => new SourceDataActions({
+
+  [JssyValue.Source.ACTIONS]: input => new SourceDataActions({
     actions: actionsToImmutable(input.actions),
   }),
 
-  designer: input => new SourceDataDesigner(
+  [JssyValue.Source.DESIGNER]: input => new SourceDataDesigner(
     input.component
       ? {
         rootId: input.component.id,
@@ -246,10 +240,10 @@ const propSourceDataToImmutableFns = {
         rootId: INVALID_ID,
       },
   ),
-  
-  state: input => new SourceDataState(input),
-  routeParams: input => new SourceDataRouteParams(input),
-  actionArg: input => new SourceDataActionArg(input),
+
+  [JssyValue.Source.STATE]: input => new SourceDataState(input),
+  [JssyValue.Source.ROUTE_PARAMS]: input => new SourceDataRouteParams(input),
+  [JssyValue.Source.ACTION_ARG]: input => new SourceDataActionArg(input),
 };
 /* eslint-enable no-use-before-define */
 
@@ -270,6 +264,7 @@ export const projectComponentToImmutable = (
   isWrapper: !!input.isWrapper,
   name: input.name,
   title: input.title,
+  style: input.style || '',
   props: propsToImmutable(input.props),
   systemProps: propsToImmutable(input.systemProps),
   children: List(input.children.map(childComponent => childComponent.id)),
@@ -308,35 +303,35 @@ export const componentsToImmutable = (
 
 /* eslint-disable no-use-before-define */
 const actionParamsToJSv1Converters = {
-  mutation: params => ({
+  [ActionTypes.MUTATION]: params => ({
     mutation: params.mutation,
     args: mapMapToObject(params.args, returnSecondArg, jssyValueToJSv1),
     successActions: mapListToArray(params.successActions, actionToJSv1),
     errorActions: mapListToArray(params.errorActions, actionToJSv1),
   }),
-  
-  method: params => ({
+
+  [ActionTypes.METHOD]: params => ({
     componentId: params.componentId,
     method: params.method,
     args: mapListToArray(params.args, jssyValueToJSv1),
   }),
-  
-  prop: params => {
+
+  [ActionTypes.PROP]: params => {
     const ret = {
       componentId: params.componentId,
       value: jssyValueToJSv1(params.value),
     };
-    
+
     if (params.systemPropName) {
       ret.systemPropName = params.systemPropName;
     } else {
       ret.propName = params.propName;
     }
-    
+
     return ret;
   },
-  
-  navigate: params => ({
+
+  [ActionTypes.NAVIGATE]: params => ({
     routeId: params.routeId,
     routeParams: mapMapToObject(
       params.routeParams,
@@ -344,12 +339,12 @@ const actionParamsToJSv1Converters = {
       jssyValueToJSv1,
     ),
   }),
-  
-  url: params => params.toJS(),
-  
-  logout: returnNull,
-  
-  ajax: params => ({
+
+  [ActionTypes.URL]: params => params.toJS(),
+
+  [ActionTypes.LOGOUT]: returnNull,
+
+  [ActionTypes.AJAX]: params => ({
     url: jssyValueToJSv1(params.url),
     method: params.method,
     headers: params.headers.toJS(),
@@ -359,8 +354,8 @@ const actionParamsToJSv1Converters = {
     successActions: mapListToArray(params.successActions, actionToJSv1),
     errorActions: mapListToArray(params.errorActions, actionToJSv1),
   }),
-  
-  loadMoreData: params => ({
+
+  [ActionTypes.LOAD_MORE_DATA]: params => ({
     componentId: params.componentId,
     pathToDataValue: params.pathToDataValue.toJS(),
     successActions: mapListToArray(params.successActions, actionToJSv1),
@@ -374,16 +369,12 @@ const actionToJSv1 = action => ({
 });
 
 const sourceDataToJSv1Converters = {
-  const: sourceData => ({
+  [JssyValue.Source.CONST]: sourceData => ({
     value: sourceData.value,
   }),
-  
-  static: sourceData => {
-    if (sourceData.ownerPropName) {
-      return {
-        ownerPropName: sourceData.ownerPropName,
-      };
-    } else if (sourceData.value instanceof List) {
+
+  [JssyValue.Source.STATIC]: sourceData => {
+    if (sourceData.value instanceof List) {
       return {
         value: mapListToArray(sourceData.value, jssyValueToJSv1),
       };
@@ -401,8 +392,12 @@ const sourceDataToJSv1Converters = {
       };
     }
   },
-  
-  data: sourceData => ({
+
+  [JssyValue.Source.OWNER_PROP]: sourceData => ({
+    ownerPropName: sourceData.ownerPropName,
+  }),
+
+  [JssyValue.Source.DATA]: sourceData => ({
     dataContext: mapListToArray(sourceData.dataContext, returnArg),
     queryPath: sourceData.queryPath === null
       ? null
@@ -414,18 +409,18 @@ const sourceDataToJSv1Converters = {
       args => mapMapToObject(args, returnSecondArg, jssyValueToJSv1),
     ),
   }),
-  
-  function: sourceData => ({
+
+  [JssyValue.Source.FUNCTION]: sourceData => ({
     functionSource: sourceData.functionSource,
     function: sourceData.function,
-    args: mapMapToObject(sourceData.args, returnSecondArg, jssyValueToJSv1),
+    args: mapListToArray(sourceData.args, jssyValueToJSv1),
   }),
-  
-  actions: sourceData => ({
+
+  [JssyValue.Source.ACTIONS]: sourceData => ({
     actions: mapListToArray(sourceData.actions, actionToJSv1),
   }),
-  
-  designer: sourceData => {
+
+  [JssyValue.Source.DESIGNER]: sourceData => {
     if (sourceData.rootId === INVALID_ID) {
       return {
         component: null,
@@ -439,10 +434,10 @@ const sourceDataToJSv1Converters = {
       };
     }
   },
-  
-  state: sourceData => sourceData.toJS(),
-  routeParams: sourceData => sourceData.toJS(),
-  actionArg: sourceData => sourceData.toJS(),
+
+  [JssyValue.Source.STATE]: sourceData => sourceData.toJS(),
+  [JssyValue.Source.ROUTE_PARAMS]: sourceData => sourceData.toJS(),
+  [JssyValue.Source.ACTION_ARG]: sourceData => sourceData.toJS(),
 };
 /* eslint-enable no-use-before-define */
 
@@ -456,11 +451,12 @@ const jssyValueToJSv1 = jssyValue => ({
 
 export const projectComponentToJSv1 = (components, componentId) => {
   const component = components.get(componentId);
-  
+
   return {
     id: component.id,
     name: component.name,
     title: component.title,
+    style: component.style,
     isWrapper: component.isWrapper,
     props: mapMapToObject(
       component.props,

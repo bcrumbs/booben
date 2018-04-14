@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'span',
   textKey: 'name',
@@ -14,10 +8,10 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<span> tag',
+      en: 'Text',
     },
     description: {
-      en: '',
+      en: 'Inline text block. Best used for non-heading or paragraph needs.',
     },
   },
   tags: new Set(),

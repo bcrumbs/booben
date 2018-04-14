@@ -1,11 +1,8 @@
-'use strict';
-
 import styled from 'styled-components';
-import { transition } from '@reactackle/reactackle';
 
 import {
   radiusDefault,
-  colorActiveBg,
+  colorHover,
 } from '../../../../../styles/themeSelectors';
 
 export const ActionLinkWrapperStyled = styled.a`
@@ -13,10 +10,9 @@ export const ActionLinkWrapperStyled = styled.a`
   flex-grow: 1;
   border-radius: ${radiusDefault}px;
   cursor: pointer;
-  ${transition('background-color')}
 
   &:hover {
-    background-color: ${colorActiveBg};
+    background-color: ${colorHover};
   }
 `;
 

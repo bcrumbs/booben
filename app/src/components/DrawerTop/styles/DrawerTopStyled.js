@@ -1,5 +1,3 @@
-'use strict';
-
 import styled from 'styled-components';
 import { animations } from '../../../styles/mixins';
 import {
@@ -7,9 +5,11 @@ import {
   colorMainForeground,
 } from '../../../styles/themeSelectors';
 
+import constants from './constants';
+
 export const DrawerTopStyled = styled.div`
   width: 100%;
-  min-height: 36px;
+  min-height: ${constants.minHeight};
   position: fixed;
   z-index: 9999;
   top: 0;

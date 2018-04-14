@@ -1,24 +1,22 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'hr',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'text',
+  group: 'basic',
   props: {},
   propGroups: [],
   strings: {
     name: {
-      en: '<hr> tag',
+      en: 'Separator',
     },
     description: {
-      en: '',
+      en: 'Represents a thematic break between paragraph-level elements.',
     },
   },
   tags: new Set(),
+
+  placement: {
+    root: 'deny',
+  },
 };

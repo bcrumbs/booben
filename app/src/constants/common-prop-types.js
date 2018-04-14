@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import ProjectComponent from '../models/ProjectComponent';
@@ -30,16 +24,6 @@ export const actions = ImmutablePropTypes.listOf(
   PropTypes.instanceOf(Action),
 );
 
-export const componentsTreePosition = PropTypes.shape({
-  containerId: PropTypes.number.isRequired,
-  afterIdx: PropTypes.number.isRequired,
-});
-
-export const componentClipboard = PropTypes.shape({
-  componentId: PropTypes.number.isRequired,
-  copy: PropTypes.bool.isRequired,
-});
-
 export const toolGroups = ImmutablePropTypes.listOf(
   ImmutablePropTypes.listOf(PropTypes.instanceOf(Tool)),
 );
@@ -49,9 +33,9 @@ export const toolStates = ImmutablePropTypes.mapOf(
   PropTypes.string,
 );
 
-export const componentDataItem = PropTypes.arrayOf(PropTypes.shape({
+export const componentDataItem = PropTypes.shape({
   name: PropTypes.string.isRequired,
   description: PropTypes.string,
   unavailable: PropTypes.bool,
   data: PropTypes.any.isRequired,
-}));
+});

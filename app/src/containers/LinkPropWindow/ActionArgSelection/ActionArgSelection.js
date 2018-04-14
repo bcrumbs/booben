@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { isCompatibleType } from '@jssy/types';
@@ -14,7 +8,7 @@ import {
   BlockContentBoxItem,
   BlockContentNavigation,
   BlockBreadcrumbs,
-} from '@jssy/common-ui';
+} from '../../../components/BlockContent';
 
 import {
   DataList,
@@ -136,7 +130,7 @@ export class ActionArgSelection extends PureComponent {
         <BlockContentNavigation>
           <BlockBreadcrumbs
             items={breadcrumbsItems}
-            mode="dark"
+            colorScheme="dark"
             overflow
             onItemClick={this._handleBreadcrumbsClick}
           />

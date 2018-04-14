@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import CodeMirror from 'react-codemirror';
@@ -20,6 +18,7 @@ const propTypes = {
     name: PropTypes.string,
     type: PropTypes.string,
   })),
+  spreadLastArg: PropTypes.bool,
   code: PropTypes.string,
   onChange: PropTypes.func,
 };
@@ -27,6 +26,7 @@ const propTypes = {
 const defaultProps = {
   name: '',
   args: [],
+  spreadLastArg: false,
   code: '',
   onChange: noop,
 };
@@ -36,8 +36,26 @@ const codeMirrorOptions = {
   lineNumbers: true,
 };
 
-export const FunctionEditor = ({ name, args, code, onChange }) => {
-  const header = `function ${name}(${args.map(arg => arg.name).join(', ')}) {`;
+export const FunctionEditor = ({
+  name,
+  args,
+  spreadLastArg,
+  code,
+  onChange,
+}) => {
+  let argsString;
+  if (spreadLastArg) {
+    argsString = args.map(
+      (arg, i) => i === args.length - 1
+        ? `...${arg.name}`
+        : arg.name,
+    )
+    .join(', ');
+  } else {
+    argsString = args.map(arg => arg.name).join(', ');
+  }
+
+  const header = `function ${name}(${argsString}){`;
   const footer = '}';
 
   return (

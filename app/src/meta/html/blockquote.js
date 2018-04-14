@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'blockquote',
   textKey: 'name',
@@ -27,16 +21,16 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<blockquote> tag',
+      en: 'Block Quote',
     },
     description: {
-      en: '',
+      en: 'Display and style a quotation.',
     },
     props_cite: {
       en: 'cite',
     },
     props_cite_desc: {
-      en: '',
+      en: 'Specifies the source of the quotation.',
     },
   },
   tags: new Set(),

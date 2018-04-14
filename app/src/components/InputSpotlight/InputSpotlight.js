@@ -2,11 +2,10 @@
  * @author Ekaterina Marova
  */
 
-'use strict';
-
 import React from 'react';
 import PropTypes from 'prop-types';
-import { TextField, Theme } from '@reactackle/reactackle';
+import { TextField } from 'reactackle-text-field';
+import { Theme } from 'reactackle-core';
 import { InputSpotlightStyled } from './styles/InputSpotlightStyled';
 import { ContentStyled } from './styles/ContentStyled';
 import { InputWrapperStyled } from './styles/InputWrapperStyled';
@@ -32,9 +31,12 @@ export const InputSpotlight = props => (
   <Theme mixin={reactackleThemeMixin}>
     <InputSpotlightStyled>
       <ContentStyled>
-        <InputWrapperStyled>
+        <InputWrapperStyled
+          innerRef={
+            ref => props.inputRef(ref ? ref.firstChild : ref)
+          }
+        >
           <TextField
-            ref={props.inputRef}
             fullWidth
             placeholder={props.placeholder}
             value={props.value}

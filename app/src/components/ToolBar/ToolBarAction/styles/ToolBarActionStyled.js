@@ -1,6 +1,5 @@
-'use strict';
-
 import styled from 'styled-components';
+import { radiusDefault } from '../../../../styles/themeSelectors';
 import constants from '../../styles/constants';
 
 export const ToolBarActionStyled = styled.div`
@@ -9,7 +8,9 @@ export const ToolBarActionStyled = styled.div`
   opacity: 1;
   
   & > * {
-    min-width: ${constants.height}px;
+    height: ${constants.buttonSize}px;
+    min-width: ${constants.buttonSize}px;
+    border-radius: ${radiusDefault}px;
   }
 `;
 

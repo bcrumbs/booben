@@ -1,9 +1,9 @@
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Button, Icon, TooltipIcon } from '@reactackle/reactackle';
+import { Button } from 'reactackle-button';
+import { TooltipIcon } from 'reactackle-tooltip-icon';
 import { noop } from '../../../../utils/misc';
+import { IconCross, IconArrowForward } from '../../../icons';
 import { ActionHeadingStyled } from './styles/ActionHeadingStyled';
 import { ActionLinkWrapperStyled } from './styles/ActionLinkWrapperStyled';
 import { ActionTitleStyled } from './styles/ActionTitleStyled';
@@ -17,7 +17,7 @@ import {
 import {
   ActionContentWrapperStyled,
 } from './styles/ActionContentWrapperStyled';
-   
+
 const propTypes = {
   id: PropTypes.any.isRequired,
   title: PropTypes.string,
@@ -36,11 +36,11 @@ const defaultProps = {
 export class ComponentAction extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this._handleClick = this._handleClick.bind(this);
     this._handleDeleteButtonPress = this._handleDeleteButtonPress.bind(this);
   }
-  
+
   _handleClick(event) {
     const { id, onEdit } = this.props;
 
@@ -48,22 +48,22 @@ export class ComponentAction extends PureComponent {
       onEdit({ actionId: id });
     }
   }
-  
+
   _handleDeleteButtonPress() {
     const { id, onDelete } = this.props;
     onDelete({ actionId: id });
   }
-  
+
   render() {
     const { title, description, children } = this.props;
-    
+
     let tooltip = null;
     if (description) {
       tooltip = (
         <TooltipIcon text={description} />
       );
     }
-  
+
     let content = null;
     if (children) {
       content = (
@@ -72,33 +72,35 @@ export class ComponentAction extends PureComponent {
         </ActionContentWrapperStyled>
       );
     }
-  
+
     return (
       <div>
         <ActionHeadingStyled>
           <ActionLinkWrapperStyled onClick={this._handleClick}>
             <ActionIconStyled>
-              <Icon name="long-arrow-right" size="inherit" />
+              <IconArrowForward />
             </ActionIconStyled>
-            
+
             <ActionTitleStyled>
               <ActionTitleTextStyled>
                 {title}
               </ActionTitleTextStyled>
-              
+
               {tooltip}
             </ActionTitleStyled>
           </ActionLinkWrapperStyled>
-          
+
           <ActionButtonsWrapperStyled>
             <Button
-              icon={{ name: 'times' }}
+              icon={<IconCross />}
               radius="rounded"
+              size="small"
+              colorScheme="flatLight"
               onPress={this._handleDeleteButtonPress}
             />
           </ActionButtonsWrapperStyled>
         </ActionHeadingStyled>
-        
+
         {content}
       </div>
     );

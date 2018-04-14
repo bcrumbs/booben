@@ -1,15 +1,9 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'label',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'forms',
+  hidden: true,
   props: {
     htmlFor: {
       textKey: 'props_htmlFor',

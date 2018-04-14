@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
@@ -139,7 +133,7 @@ export class FunctionSelection extends PureComponent {
     });
   }
   
-  _handleCreate({ title, description, args, returnType, code }) {
+  _handleCreate({ title, description, args, returnType, code, spreadLastArg }) {
     const { projectFunctions, onCreateFunction } = this.props;
     
     const existingNames = Array.from(projectFunctions.keys());
@@ -154,6 +148,7 @@ export class FunctionSelection extends PureComponent {
       args,
       returnType,
       code,
+      spreadLastArg,
     });
   }
 

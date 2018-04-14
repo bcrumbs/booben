@@ -1,15 +1,9 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'input',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'atomic',
-  group: 'forms',
+  hidden: true,
   props: {
     accept: {
       textKey: 'props_accept',

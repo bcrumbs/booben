@@ -1,15 +1,9 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'figcaption',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'media',
+  hidden: true,
   props: {},
   propGroups: [],
   strings: {

@@ -1,7 +1,6 @@
-'use strict';
-
 import styled from 'styled-components';
 import constants from './constants';
+
 import {
   baseModule,
   paletteBlueGrey600,
@@ -14,10 +13,11 @@ export const ToolbarStyled = styled.div`
   justify-content: center;
   background-color: ${paletteBlueGrey600};
   border-bottom: 1px solid ${constants.borderColor};
-  padding: 0 ${baseModule(1)}px;
+  padding: 4px ${baseModule(1)}px;
   color: ${colorWhite};
   width: 100%;
   height: ${constants.height}px;
+  min-height: ${constants.height}px;
 `;
 
 ToolbarStyled.displayName = 'ToolbarStyled';

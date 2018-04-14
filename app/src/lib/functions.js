@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import _camelCase from 'lodash.camelcase';
 
 /**

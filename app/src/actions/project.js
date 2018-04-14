@@ -1,12 +1,7 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import triggersProjectSave from './project-save/wrapper';
 import { getProject, getMetadata, getGraphQLSchema } from '../lib/api';
 import { URL_GRAPHQL_PREFIX } from '../../../shared/constants';
+import fakeSchema from './helpers/fakeSchema.json';
 
 export const PROJECT_REQUEST = 'PROJECT_REQUEST';
 export const PROJECT_LOADED = 'PROJECT_LOADED';
@@ -25,6 +20,8 @@ export const PROJECT_COMPONENT_DELETE =
   'PROJECT_COMPONENT_DELETE';
 export const PROJECT_COMPONENT_RENAME =
   'PROJECT_COMPONENT_RENAME';
+export const PROJECT_COMPONENT_CHANGE_STYLE =
+  'PROJECT_COMPONENT_CHANGE_STYLE';
 export const PROJECT_COMPONENT_TOGGLE_REGION =
   'PROJECT_COMPONENT_TOGGLE_REGION';
 export const PROJECT_COMPONENT_COPY =
@@ -126,7 +123,7 @@ export const loadProject = projectName => async dispatch => {
 
       dispatch(projectLoaded(project, metadata, schema));
     } else {
-      dispatch(projectLoaded(project, metadata));
+      dispatch(projectLoaded(project, metadata, fakeSchema));
     }
   } catch (error) {
     dispatch(projectLoadFailed(error));
@@ -361,6 +358,13 @@ export const renameComponent = triggersProjectSave((componentId, newTitle) => ({
   newTitle,
 }));
 
+export const changeComponentStyle =
+  triggersProjectSave((componentId, style) => ({
+    type: PROJECT_COMPONENT_CHANGE_STYLE,
+    componentId,
+    style,
+  }));
+
 /**
  *
  * @param {number} componentId
@@ -416,6 +420,7 @@ export const createFunction = triggersProjectSave((
   args,
   returnType,
   code,
+  spreadLastArg,
 ) => ({
   type: PROJECT_CREATE_FUNCTION,
   name,
@@ -424,6 +429,7 @@ export const createFunction = triggersProjectSave((
   args,
   returnType,
   code,
+  spreadLastArg,
 }));
 
 /**

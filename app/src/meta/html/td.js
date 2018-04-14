@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'td',
   textKey: 'name',
@@ -23,15 +17,15 @@ export default {
         },
       },
     },
-    headers: {
-      textKey: 'props_headers',
-      descriptionTextKey: 'props_headers_desc',
+    rowSpan: {
+      textKey: 'props_rowSpan',
+      descriptionTextKey: 'props_rowSpan_desc',
       required: false,
-      type: 'string',
+      type: 'int',
       source: ['static'],
       sourceConfigs: {
         static: {
-          default: '',
+          default: 1,
         },
       },
     },
@@ -39,22 +33,26 @@ export default {
   propGroups: [],
   strings: {
     name: {
-      en: '<td> tag',
+      en: 'Table Cell',
     },
     description: {
-      en: '',
+      en: 'A cell of a table that contains data',
     },
     props_colSpan: {
-      en: 'colspan',
+      en: 'Column span',
     },
     props_colSpan_desc: {
-      en: '',
+      en: 'This attribute contains a non-negative integer value that indicates for how many columns the cell extends.',
     },
-    props_headers: {
-      en: 'headers',
+    props_rowSpan: {
+      en: 'Row span',
     },
-    props_headers_desc: {
-      en: '',
+    props_rowSpan_desc: {
+      en: 'This attribute contains a non-negative integer value that' +
+      ' indicates for how many rows the cell extends. Its default value is' +
+      ' 1; if its value is set to 0, it extends until the end of the table' +
+      ' section (table head, table body, table foot, even if implicitly' +
+      ' defined, that the cell belongs to.',
     },
   },
   tags: new Set(),

@@ -1,11 +1,9 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
+import Cookie from 'js-cookie';
 import { introspectionQuery } from 'graphql/utilities';
 import { URL_API_PREFIX } from '../../../shared/constants';
+
+const backendUrl =
+      'https://nr0pmvrpw6.execute-api.eu-central-1.amazonaws.com/production';
 
 /**
  *
@@ -13,10 +11,21 @@ import { URL_API_PREFIX } from '../../../shared/constants';
  * @return {Project}
  */
 export const getProject = async projectName => {
-  const res = await fetch(`${URL_API_PREFIX}/projects/${projectName}`);
+  let url = URL_API_PREFIX;
+  const jwt = Cookie.getJSON('jssy-jwt');
+
+  if (process.env.NODE_ENV === 'production') {
+    url = backendUrl;
+  }
+
+  const res = await fetch(`${url}/projects/${projectName}`, {
+    headers: {
+      Authorization: `Bearer ${jwt}`,
+    },
+  });
   const data = await res.json();
-  
   if (data.error) throw new Error(data.error);
+  if (data.message) throw new Error(data.message);
   return data;
 };
 
@@ -27,18 +36,41 @@ export const getProject = async projectName => {
  * @return {Object}
  */
 export const putProject = async (projectName, project) => {
-  const res = await fetch(`${URL_API_PREFIX}/projects/${projectName}`, {
-    method: 'PUT',
-    body: JSON.stringify(project),
-    headers: {
-      'content-type': 'application/json',
-    },
-  });
+
+  let url = URL_API_PREFIX;
+
+  if (process.env.NODE_ENV === 'production') {
+    url = backendUrl;
+    const jwt = Cookie.getJSON('jssy-jwt');
+
+    const res = await fetch(`${url}/projects/${projectName}`, {
+      method: 'POST',
+      body: JSON.stringify(project),
+      headers: {
+        'content-type': 'application/json',
+        Authorization: `Bearer ${jwt}`,
+      },
+    });
+    
+    const data = await res.json();
   
-  const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    return data;
+  } else {
+    const res = await fetch(`${url}/projects/${projectName}`, {
+      method: 'PUT',
+      body: JSON.stringify(project),
+      headers: {
+        'content-type': 'application/json',
+      },
+    });
+    
+    const data = await res.json();
   
-  if (data.error) throw new Error(data.error);
-  return data;
+    if (data.error) throw new Error(data.error);
+    if (data.message) throw new Error(data.message);
+    return data;
+  }
 };
 
 /**
@@ -47,7 +79,13 @@ export const putProject = async (projectName, project) => {
  * @return {Object<string, Object<string, ComponentMeta>>}
  */
 export const getMetadata = async projectName => {
-  const res = await fetch(`${URL_API_PREFIX}/projects/${projectName}/metadata`);
+  let url = `${URL_API_PREFIX}/projects/${projectName}/metadata`;
+
+  if (process.env.NODE_ENV === 'production') {
+    url = 'https://s3.eu-central-1.amazonaws.com/jssy-meta/meta.json';
+  }
+
+  const res = await fetch(url);
   const data = await res.json();
   
   if (data.error) throw new Error(data.error);

@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { graphql, withApollo } from 'react-apollo';
@@ -14,6 +8,21 @@ import set from 'lodash.set';
 import pick from 'lodash.pick';
 import defaultsDeep from 'lodash.defaultsdeep';
 import { resolveTypedef } from '@jssy/types';
+import { injectGlobal } from 'styled-components';
+
+const doInjectGlobal = styles => injectGlobal`
+  ${styles}
+`;
+
+import {
+  FieldKinds,
+  getJssyValueDefOfMutationArgument,
+  getMutationField,
+  getFieldOnType,
+  findFirstConnectionInPath,
+  RELAY_PAGEINFO_FIELDS,
+  RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
+} from '@jssy/graphql-schema';
 
 import {
   isPseudoComponent,
@@ -29,6 +38,8 @@ import {
   isCompositeComponent,
   getComponentMeta,
   getSourceConfig,
+  isHTMLComponent,
+  parseComponentName,
 } from '../../../lib/meta';
 
 import {
@@ -38,16 +49,6 @@ import {
 } from '../../../lib/graphql';
 
 import { queryResultHasData } from '../../../lib/apollo';
-
-import {
-  FieldKinds,
-  getJssyValueDefOfMutationArgument,
-  getMutationField,
-  getFieldOnType,
-  findFirstConnectionInPath,
-  RELAY_PAGEINFO_FIELDS,
-  RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
-} from '../../../lib/schema';
 
 import { walkSimpleValues } from '../../../lib/components';
 import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
@@ -109,7 +110,7 @@ const serializePropAddress = (componentId, propName, isSystemProp) =>
 class PreviewBuilderComponent extends PureComponent {
   constructor(props, context) {
     super(props, context);
-    
+
     this._renderHints = getRenderHints(
       props.components,
       props.rootId,
@@ -121,7 +122,7 @@ class PreviewBuilderComponent extends PureComponent {
     this._refs = new Map();
     this._pageInfos = Immutable.Map();
     this._graphQLVariables = new Map();
-    
+
     this.state = {
       dynamicPropValues: Immutable.Map(),
       componentsState: getInitialComponentsState(
@@ -129,22 +130,33 @@ class PreviewBuilderComponent extends PureComponent {
         props.meta,
         this._renderHints,
       ),
+      componentsStyle: null,
     };
   }
-  
+
+  componentWillMount() {
+    const styles = [];
+    this.props.components.forEach(component => {
+      if (isHTMLComponent(component.name)) {
+        styles.push(`.styled${component.id}{ ${component.style} }`);
+      }
+    });
+    doInjectGlobal(styles.join('\n'));
+  }
+
   componentWillReceiveProps(nextProps) {
     const { components, rootId } = this.props;
     const { componentsState } = this.state;
-    
+
     const componentsUpdated =
       nextProps.components !== components ||
       nextProps.rootId !== rootId;
-    
+
     if (componentsUpdated) {
       this._refs = new Map();
       this._pageInfos = Immutable.Map();
       this._graphQLVariables = new Map();
-      
+
       this._renderHints = getRenderHints(
         nextProps.components,
         nextProps.rootId,
@@ -165,7 +177,7 @@ class PreviewBuilderComponent extends PureComponent {
       });
     }
   }
-  
+
   /**
    *
    * @param {number} componentId
@@ -175,7 +187,7 @@ class PreviewBuilderComponent extends PureComponent {
   _saveComponentRef(componentId, ref) {
     this._refs.set(componentId, ref);
   }
-  
+
   /**
    *
    * @param {string} mutationName
@@ -184,7 +196,7 @@ class PreviewBuilderComponent extends PureComponent {
    */
   _handleMutationResponse(mutationName, response) {
     const { project } = this.props;
-    
+
     if (project.auth) {
       if (project.auth.type === 'jwt') {
         if (mutationName === project.auth.loginMutation) {
@@ -195,7 +207,7 @@ class PreviewBuilderComponent extends PureComponent {
       }
     }
   }
-  
+
   /**
    *
    * @param {Object} action
@@ -205,9 +217,9 @@ class PreviewBuilderComponent extends PureComponent {
    */
   async _performMutationAction(action, valueContext) {
     const { project, schema, client } = this.props;
-    
+
     let selections = null;
-    
+
     if (
       project.auth &&
       project.auth.type === 'jwt' &&
@@ -215,39 +227,39 @@ class PreviewBuilderComponent extends PureComponent {
     ) {
       selections = set({}, project.auth.tokenPath, true);
     }
-    
+
     const mutation = buildMutation(
       schema,
       action.params.mutation,
       selections,
     );
-    
+
     if (!mutation) return;
-    
+
     const mutationField = getMutationField(schema, action.params.mutation);
     const variables = {};
-    
+
     action.params.args.forEach((argValue, argName) => {
       const mutationArg = mutationField.args[argName];
       const argJssyType = getJssyValueDefOfMutationArgument(
         mutationArg,
         schema,
       );
-      
+
       const value = buildValue(argValue, argJssyType, null, valueContext);
-      
+
       if (value !== NO_VALUE) variables[argName] = value;
     });
-    
+
     try {
       const response = await client.mutate({ mutation, variables });
       this._handleMutationResponse(action.params.mutation, response);
-      
+
       // We cannot know (yet) what queries need to be updated
       // based on the mutation result, so the only option we have
       // is to drop the cache and refetch everything.
       client.resetStore();
-      
+
       action.params.successActions.forEach(successAction => {
         this._performAction(successAction, valueContext);
       });
@@ -257,7 +269,7 @@ class PreviewBuilderComponent extends PureComponent {
       });
     }
   }
-  
+
   /**
    *
    * @param {Object} action
@@ -266,9 +278,9 @@ class PreviewBuilderComponent extends PureComponent {
    */
   _performNavigateAction(action, valueContext) {
     const { onNavigate } = this.props;
-    
+
     const routeParams = {};
-    
+
     action.params.routeParams.forEach((paramValue, paramName) => {
       const value = buildValue(
         paramValue,
@@ -276,13 +288,13 @@ class PreviewBuilderComponent extends PureComponent {
         null,
         valueContext,
       );
-      
+
       if (value !== NO_VALUE) routeParams[paramName] = value;
     });
-    
+
     onNavigate({ routeId: action.params.routeId, routeParams });
   }
-  
+
   /**
    *
    * @param {Object} action
@@ -290,13 +302,13 @@ class PreviewBuilderComponent extends PureComponent {
    */
   _performURLAction(action) {
     const { onOpenURL } = this.props;
-    
+
     onOpenURL({
       url: action.params.url,
       newWindow: action.params.newWindow,
     });
   }
-  
+
   /**
    *
    * @param {Object} action
@@ -305,41 +317,41 @@ class PreviewBuilderComponent extends PureComponent {
    */
   _performMethodAction(action, valueContext) {
     const { meta, components } = this.props;
-    
+
     if (action.params.componentId === INVALID_ID) return;
-    
+
     const component = components.get(action.params.componentId);
     const componentInstance = this._refs.get(action.params.componentId);
     if (!component || !componentInstance) return;
-    
+
     const componentMeta = getComponentMeta(component.name, meta);
     const isInvalidMethod =
       !componentMeta.methods ||
       !componentMeta.methods[action.params.method];
-    
+
     if (isInvalidMethod) return;
-    
+
     const args = [];
-    
+
     action.params.args.forEach((argValue, idx) => {
       const argTypedef = resolveTypedef(
         componentMeta.methods[action.params.method].args[idx],
         componentMeta.types,
       );
-      
+
       const value = buildValue(
         argValue,
         argTypedef,
         componentMeta.types,
         valueContext,
       );
-      
+
       args.push(value !== NO_VALUE ? value : void 0);
     });
-    
+
     componentInstance[action.params.method](...args);
   }
-  
+
   /**
    *
    * @param {Object} action
@@ -348,13 +360,12 @@ class PreviewBuilderComponent extends PureComponent {
    */
   _performPropAction(action, valueContext) {
     const { meta, components } = this.props;
-    const { dynamicPropValues } = this.state;
-  
+
     if (action.params.componentId === INVALID_ID) return;
-    
+
     let propName;
     let isSystemProp;
-    
+
     if (action.params.propName) {
       propName = action.params.propName;
       isSystemProp = false;
@@ -362,25 +373,25 @@ class PreviewBuilderComponent extends PureComponent {
       propName = action.params.systemPropName;
       isSystemProp = true;
     }
-    
+
     const propAddress = serializePropAddress(
       action.params.componentId,
       propName,
       isSystemProp,
     );
-    
+
     let newValue;
-    if (action.params.value.sourceIs('actionArg')) {
+    if (action.params.value.sourceIs(JssyValue.Source.ACTION_ARG)) {
       const targetComponent = components.get(action.params.componentId);
       const targetComponentMeta = getComponentMeta(
         targetComponent.name,
         meta,
       );
-      
+
       const targetPropMeta = isSystemProp
         ? SYSTEM_PROPS[propName]
         : targetComponentMeta.props[propName];
-      
+
       newValue = JssyValue.staticFromJS(buildValue(
         action.params.value,
         targetPropMeta,
@@ -390,12 +401,12 @@ class PreviewBuilderComponent extends PureComponent {
     } else {
       newValue = action.params.value;
     }
-    
-    this.setState({
+
+    this.setState(({ dynamicPropValues }) => ({
       dynamicPropValues: dynamicPropValues.set(propAddress, newValue),
-    });
+    }));
   }
-  
+
   /**
    *
    * @private
@@ -403,7 +414,7 @@ class PreviewBuilderComponent extends PureComponent {
   _performLogoutAction() {
     localStorage.removeItem('jssy_auth_token');
   }
-  
+
   /**
    *
    * @param {Object} action
@@ -418,20 +429,20 @@ class PreviewBuilderComponent extends PureComponent {
       null,
       valueContext,
     );
-    
+
     if (url === NO_VALUE) return;
-    
+
     const requestInit = {
       method: action.params.method,
       headers: action.params.headers.toJS(),
       mode: action.params.mode,
     };
-    
+
     const willAddBody =
       action.params.body !== null &&
       action.params.method !== 'GET' &&
       action.params.method !== 'HEAD';
-    
+
     if (willAddBody) {
       const bodyValue = buildValue(
         action.params.body,
@@ -439,15 +450,15 @@ class PreviewBuilderComponent extends PureComponent {
         null,
         valueContext,
       );
-      
+
       if (bodyValue !== NO_VALUE) {
         requestInit.body = JSON.stringify(bodyValue);
       }
     }
-    
+
     try {
       const response = await fetch(url, requestInit);
-      
+
       let body = null;
       if (action.params.decodeResponse === 'text') {
         body = await response.text();
@@ -458,16 +469,16 @@ class PreviewBuilderComponent extends PureComponent {
       } else if (action.params.decodeResponse === 'arrayBuffer') {
         body = await response.arrayBuffer();
       }
-      
+
       const ajaxRequestResult = {
         error: null,
         status: response.status,
         headers: response.headers,
         body,
       };
-      
+
       const nextValueContext = { ...valueContext, ajaxRequestResult };
-      
+
       action.params.successActions.forEach(successAction => {
         this._performAction(successAction, nextValueContext);
       });
@@ -478,15 +489,15 @@ class PreviewBuilderComponent extends PureComponent {
         headers: null,
         body: null,
       };
-      
+
       const nextValueContext = { ...valueContext, ajaxRequestResult };
-      
+
       action.params.errorActions.forEach(errorAction => {
         this._performAction(errorAction, nextValueContext);
       });
     }
   }
-  
+
   /**
    *
    * @param {Object} action
@@ -496,53 +507,53 @@ class PreviewBuilderComponent extends PureComponent {
    */
   async _performLoadMoreDataAction(action, valueContext) {
     const { schema, components } = this.props;
-  
+
     if (action.params.componentId === INVALID_ID) return;
-  
+
     const component = components.get(action.params.componentId);
     const componentInstance = this._refs.get(action.params.componentId);
     if (!component || !componentInstance) return;
-    
+
     const observableQuery = componentInstance.queryObservable;
     if (!observableQuery) return;
-  
+
     const pathToDataValue = createPath(
       component,
       action.params.pathToDataValue.toJS(),
     );
-  
+
     const dataValue = getObjectByPath(pathToDataValue);
-    
+
     // TODO: Handle values with data context
     if (dataValue.sourceData.dataContext.size > 0) return;
-    
+
     const queryPath = mapListToArray(
       dataValue.sourceData.queryPath,
       step => step.field,
     );
-    
+
     const connectionIdx = findFirstConnectionInPath(schema, queryPath);
     if (connectionIdx === -1) return;
-    
+
     const edgesPath = [
       ...queryPath
         .slice(0, connectionIdx + 1)
         .map(field => getDataFieldKey(field, dataValue)),
-      
+
       'edges',
     ];
-    
+
     const pageInfo = this._pageInfos.getIn([
       component.id,
       dataValue,
       connectionIdx,
     ]);
-    
+
     if (!pageInfo) return;
     if (!pageInfo[RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE]) return;
-    
+
     const graphQLVariables = this._graphQLVariables.get(component.id);
-    
+
     try {
       const valueContextForVariables = {
         ...this._getValueContext(component.id),
@@ -555,17 +566,17 @@ class PreviewBuilderComponent extends PureComponent {
           valueContextForVariables,
           schema,
         ),
-        
+
         updateQuery: (previousResult, { fetchMoreResult }) => {
           const oldEdges = get(previousResult, edgesPath);
           const newEdges = get(fetchMoreResult, edgesPath);
           const combinedEdges = [...oldEdges, ...newEdges];
           const update = set({}, edgesPath, combinedEdges);
-          
+
           return defaultsDeep(update, fetchMoreResult);
         },
       });
-      
+
       action.params.successActions.forEach(successAction => {
         this._performAction(successAction, valueContext);
       });
@@ -575,7 +586,7 @@ class PreviewBuilderComponent extends PureComponent {
       });
     }
   }
-  
+
   /**
    *
    * @param {Object} action
@@ -595,7 +606,7 @@ class PreviewBuilderComponent extends PureComponent {
       default:
     }
   }
-  
+
   /**
    *
    * @param {number} componentId
@@ -607,20 +618,20 @@ class PreviewBuilderComponent extends PureComponent {
    */
   _handleActions(componentId, jssyValue, valueDef, userTypedefs, valueContext) {
     const { componentsState } = this.state;
-    
+
     const resolvedTypedef = resolveTypedef(valueDef, userTypedefs);
     const stateUpdates =
       getSourceConfig(resolvedTypedef, 'actions', userTypedefs).updateState;
-    
+
     if (stateUpdates && componentId !== INVALID_ID) {
       const currentState = componentsState.get(componentId);
-      
+
       if (currentState) {
         let nextState = currentState;
-        
+
         forOwn(stateUpdates, (value, slotName) => {
           if (!currentState.has(slotName)) return;
-          
+
           let newValue = NO_VALUE;
           if (value.source === 'const') {
             newValue = value.sourceData.value;
@@ -631,12 +642,12 @@ class PreviewBuilderComponent extends PureComponent {
               NO_VALUE,
             );
           }
-          
+
           if (newValue !== NO_VALUE) {
             nextState = nextState.set(slotName, newValue);
           }
         });
-        
+
         if (nextState !== currentState) {
           this.setState({
             componentsState: componentsState.set(componentId, nextState),
@@ -644,12 +655,11 @@ class PreviewBuilderComponent extends PureComponent {
         }
       }
     }
-    
     jssyValue.sourceData.actions.forEach(action => {
       this._performAction(action, valueContext);
     });
   }
-  
+
   /**
    *
    * @param {number} [componentId=INVALID_ID]
@@ -671,9 +681,9 @@ class PreviewBuilderComponent extends PureComponent {
       onNavigate,
       onOpenURL,
     } = this.props;
-    
+
     const { componentsState } = this.state;
-    
+
     return {
       meta,
       schema,
@@ -700,7 +710,7 @@ class PreviewBuilderComponent extends PureComponent {
         onNavigate,
         onOpenURL,
       }),
-      
+
       handleActions: (jssyValue, valueDef, userTypedefs, valueContext) => {
         this._handleActions(
           componentId,
@@ -712,7 +722,7 @@ class PreviewBuilderComponent extends PureComponent {
       },
     };
   }
-  
+
   /**
    * Constructs props object
    *
@@ -723,10 +733,10 @@ class PreviewBuilderComponent extends PureComponent {
   _buildProps(component, valueContext = null) {
     const { meta } = this.props;
     const { dynamicPropValues } = this.state;
-    
+
     const componentMeta = getComponentMeta(component.name, meta);
     const ret = {};
-    
+
     component.props.forEach((propValue, propName) => {
       const propMeta = componentMeta.props[propName];
       const propAddress = serializePropAddress(component.id, propName, false);
@@ -737,13 +747,13 @@ class PreviewBuilderComponent extends PureComponent {
         componentMeta.types,
         valueContext,
       );
-      
+
       if (value !== NO_VALUE) ret[propName] = value;
     });
-    
+
     return ret;
   }
-  
+
   /**
    * Constructs system props object
    *
@@ -753,9 +763,9 @@ class PreviewBuilderComponent extends PureComponent {
    */
   _buildSystemProps(component, valueContext) {
     const { dynamicPropValues } = this.state;
-    
+
     const ret = {};
-    
+
     component.systemProps.forEach((propValue, propName) => {
       const propMeta = SYSTEM_PROPS[propName];
       const propAddress = serializePropAddress(component.id, propName, true);
@@ -766,13 +776,13 @@ class PreviewBuilderComponent extends PureComponent {
         null,
         valueContext,
       );
-      
+
       if (value !== NO_VALUE) ret[propName] = value;
     });
-    
+
     return ret;
   }
-  
+
   /**
    *
    * @param {Object} component
@@ -781,18 +791,18 @@ class PreviewBuilderComponent extends PureComponent {
    */
   _renderPseudoComponent(component) {
     const { children } = this.props;
-    
+
     const valueContext = this._getValueContext(component.id);
     const systemProps = this._buildSystemProps(component, valueContext);
     if (!systemProps.visible) return null;
-    
+
     if (component.name === 'Outlet') {
       return children;
     } else {
       return null;
     }
   }
-  
+
   /**
    *
    * @param {ProjectComponent} component
@@ -801,73 +811,87 @@ class PreviewBuilderComponent extends PureComponent {
    */
   _renderComponentChildren(component) {
     const { meta, components } = this.props;
-    
+
     const ret = [];
     const isComposite = isCompositeComponent(component.name, meta);
-    
+
     if (component.children.size === 0) {
       return null;
     }
-    
+
     component.children.forEach((childComponentId, idx) => {
       const childComponent = components.get(childComponentId);
-      
+
       // Do not render disabled regions in composite components
       if (isComposite && !component.regionsEnabled.has(idx)) {
         return;
       }
-      
+
       const rendered = this._renderComponent(childComponent);
-      
+
       if (Array.isArray(rendered)) {
         ret.push(...rendered);
       } else {
         ret.push(rendered);
       }
     });
-    
+
     return ret.length > 0 ? ret : null;
   }
-  
+
   _extractPageInfos(component, queryResultRoot) {
     const { meta, schema } = this.props;
-    
+
     const componentMeta = getComponentMeta(component.name, meta);
     let ret = Immutable.Map();
-    
+
     const visitValue = jssyValue => {
       if (!jssyValue.isLinkedWithData()) return;
       if (jssyValue.sourceData.dataContext.size > 0) return;
-      
+
       let currentNode = queryResultRoot;
       let currentTypeName = schema.queryTypeName;
-      
+
+      // eslint-disable-next-line consistent-return
       jssyValue.sourceData.queryPath.forEach((step, idx) => {
+        if (currentNode === null) return false;
+
         const field = getFieldOnType(schema, currentTypeName, step.field);
-        
         if (field.kind === FieldKinds.CONNECTION) {
           const dataFieldKey = getDataFieldKey(step.field, jssyValue);
           const pageInfo = pick(
             currentNode[dataFieldKey].pageInfo,
             RELAY_PAGEINFO_FIELDS,
           );
-          
+
+          if (!schema.pageInfoHasCursors) {
+            const edges = currentNode[dataFieldKey].edges;
+            if (edges.length > 0) {
+              pageInfo.startCursor = edges[0].cursor;
+              pageInfo.endCursor = edges[edges.length - 1].cursor;
+            } else {
+              pageInfo.startCursor = null;
+              pageInfo.endCursor = null;
+            }
+          }
+
           ret = ret.setIn([jssyValue, idx], pageInfo);
         }
-        
-        currentNode = currentNode[step.field];
+
+        const alias = `${step.field}${jssyValue.sourceData.aliasPostfix}`;
+        currentNode = currentNode[alias];
         currentTypeName = field.type;
       });
     };
-    
+
     walkSimpleValues(component, componentMeta, visitValue);
-    
+
     return ret;
   }
-  
+
   _createApolloHOC(component, graphQLQuery, graphQLVariables, theMap) {
     const { schema } = this.props;
-    
+
     return graphql(graphQLQuery, {
       props: ({ ownProps, data }) => {
         const haveData = queryResultHasData(data);
@@ -876,32 +900,32 @@ class PreviewBuilderComponent extends PureComponent {
           theMap,
           haveData ? data : null,
         );
-  
+
         if (haveData) {
           this._pageInfos = this._pageInfos.set(
             component.id,
             this._extractPageInfos(component, data),
           );
         }
-        
+
         return {
           ...ownProps,
           ...this._buildProps(component, valueContext),
         };
       },
-  
+
       options: {
         variables: buildGraphQLQueryVariables(
           graphQLVariables,
           this._getValueContext(component.id),
           schema,
         ),
-        
-        fetchPolicy: 'cache-and-network',
+
+        fetchPolicy: 'cache-first',
       },
     });
   }
-  
+
   /**
    *
    * @param {Object} component
@@ -921,12 +945,13 @@ class PreviewBuilderComponent extends PureComponent {
       return this._renderPseudoComponent(component);
     }
 
+    const isHTML = isHTMLComponent(component.name);
     const Component = getComponentByName(component.name, componentsBundle);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
-    
+
     this._graphQLVariables.set(component.id, graphQLVariables);
-    
+
     const theMergedMap = thePreviousMap
       ? thePreviousMap.merge(theMap)
       : theMap;
@@ -937,16 +962,19 @@ class PreviewBuilderComponent extends PureComponent {
     if (!systemProps.visible) return null;
 
     const props = graphQLQuery ? {} : this._buildProps(component, valueContext);
-
     props.children = this._renderComponentChildren(component);
     props.key = String(component.id);
-  
+
     if (this._renderHints.needRefs.has(component.id)) {
       props.ref = this._saveComponentRef.bind(this, component.id);
     }
-    
+
+    // if (isHTML) {
+    //   props.style = component.style;
+    // }
+
     let Renderable = Component;
-    
+
     if (graphQLQuery) {
       const gqlHoc = this._createApolloHOC(
         component,
@@ -957,19 +985,41 @@ class PreviewBuilderComponent extends PureComponent {
 
       Renderable = gqlHoc(Component);
     }
+
+    let element;
     
-    return (
-      <Renderable {...props} />
-    );
+    
+    if (isHTMLComponent(component.name)) {
+      const { name } = parseComponentName(component.name);
+      let className = `styled${component.id}`;
+      
+      if (props.className) {
+        className += ` ${props.className}`;
+      }
+
+      const newProps = {
+        ...props,
+        className,
+      };
+
+      element = React.createElement(name, newProps);
+    } else {
+      element = (
+        <Renderable {...props} />
+      );
+    }
+    
+    
+    return element;
   }
-  
+
   render() {
     const { components, rootId } = this.props;
-  
     return rootId !== INVALID_ID
-      ? this._renderComponent(components.get(rootId))
-      : null;
+    ? this._renderComponent(components.get(rootId))
+    : null;
   }
+
 }
 
 PreviewBuilderComponent.propTypes = propTypes;

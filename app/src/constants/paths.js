@@ -1,9 +1,3 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export const PATH_ROOT = '/:projectName';
 export const PATH_STRUCTURE = `${PATH_ROOT}/structure`;
 export const PATH_DESIGN = `${PATH_ROOT}/design`;

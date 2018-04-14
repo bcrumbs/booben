@@ -1,15 +1,9 @@
-/**
- * @author Dmitriy Bizyaev
- */
-
-'use strict';
-
 export default {
   displayName: 'aside',
   textKey: 'name',
   descriptionTextKey: 'description',
   kind: 'container',
-  group: 'blocks',
+  hidden: true,
   props: {},
   propGroups: [],
   strings: {
