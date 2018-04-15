@@ -69,6 +69,8 @@ export class Preview extends Component {
       ? this._renderSwitch(route.children, indexRoute ? [indexRoute] : [])
       : null;
 
+    const routeId = route.get('id');
+
     const ret = ({ match }) => (
       <PreviewBuilder
         componentsBundle={componentsBundle}
@@ -80,6 +82,7 @@ export class Preview extends Component {
         routeParams={match.params}
         onNavigate={this._handleNavigate}
         onOpenURL={this._handleOpenURL}
+        routeId={routeId}
       >
         {childSwitch}
       </PreviewBuilder>

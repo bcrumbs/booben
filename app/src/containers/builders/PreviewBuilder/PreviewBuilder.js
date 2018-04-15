@@ -10,10 +10,6 @@ import defaultsDeep from 'lodash.defaultsdeep';
 import { resolveTypedef } from '@jssy/types';
 import { injectGlobal } from 'styled-components';
 
-const doInjectGlobal = styles => injectGlobal`
-  ${styles}
-`;
-
 import {
   FieldKinds,
   getJssyValueDefOfMutationArgument,
@@ -66,6 +62,10 @@ import {
   AJAX_URL_VALUE_DEF,
 } from '../../../constants/misc';
 
+const doInjectGlobal = styles => injectGlobal`
+  ${styles}
+`;
+
 const propTypes = {
   componentsBundle: PropTypes.instanceOf(ComponentsBundle).isRequired,
   project: PropTypes.any.isRequired,
@@ -80,6 +80,7 @@ const propTypes = {
   client: PropTypes.object, // react-apollo
   onNavigate: PropTypes.func,
   onOpenURL: PropTypes.func,
+  routeId: PropTypes.number,
 };
 
 const defaultProps = {
@@ -93,6 +94,7 @@ const defaultProps = {
   client: null,
   onNavigate: noop,
   onOpenURL: noop,
+  routeId: INVALID_ID,
 };
 
 const wrap = withApollo;
@@ -939,13 +941,13 @@ class PreviewBuilderComponent extends PureComponent {
       schema,
       project,
       theMap: thePreviousMap,
+      routeId,
     } = this.props;
 
     if (isPseudoComponent(component)) {
       return this._renderPseudoComponent(component);
     }
 
-    const isHTML = isHTMLComponent(component.name);
     const Component = getComponentByName(component.name, componentsBundle);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
@@ -969,10 +971,6 @@ class PreviewBuilderComponent extends PureComponent {
       props.ref = this._saveComponentRef.bind(this, component.id);
     }
 
-    // if (isHTML) {
-    //   props.style = component.style;
-    // }
-
     let Renderable = Component;
 
     if (graphQLQuery) {
@@ -991,7 +989,7 @@ class PreviewBuilderComponent extends PureComponent {
     
     if (isHTMLComponent(component.name)) {
       const { name } = parseComponentName(component.name);
-      let className = `styled${component.id}`;
+      let className = `styledRoute${routeId}Component${component.id}`;
       
       if (props.className) {
         className += ` ${props.className}`;
