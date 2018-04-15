@@ -287,10 +287,23 @@ class ActionEditorComponent extends PureComponent {
           object: action,
           expandedPath: [],
         },
-
-        steps: ['args', linkParams.name],
+        steps: null,
       };
   
+
+      if (action.type === 'method') {
+        pickingPath.steps = ['args', linkParams.name];
+      } else if (action.type === 'mutation') {
+        pickingPath.steps = ['args', linkParams.name];
+      } else if (action.type === 'prop') {
+        pickingPath.steps = ['value'];
+      } else if (action.type === 'navigate') {
+        pickingPath.steps = ['routeParams'];
+      } else {
+        throw new Error(
+          `ActionEditor#_handlePick: Wrong action type: ${action.type}`,
+        );
+      }
 
       this.setState({
         action: setInPath(pickingPath, newValue),
