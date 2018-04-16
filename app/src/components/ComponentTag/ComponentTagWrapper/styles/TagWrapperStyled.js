@@ -1,7 +1,6 @@
 import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import constants from '../../styles/constants';
-import { baseModule } from '../../../../styles/themeSelectors';
 
 const propTypes = {
   colorScheme: PropTypes.oneOf(['dark', 'light']),
@@ -25,8 +24,10 @@ const colorScheme = ({ colorScheme }) => {
 
 export const TagWrapperStyled = styled.div`
   margin: 0;
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(100px,1fr));
+  grid-gap: 0;
+  grid-auto-rows: minmax(80px,auto);
   position: relative;
   margin-bottom: -${constants.borderWidth}px;
   ${colorScheme}

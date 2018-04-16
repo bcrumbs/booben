@@ -16,8 +16,6 @@ const defaultProps = {
   colorScheme: 'dark',
 };
 
-const TAGS_PER_ROW = 3;
-const TAG_BASE_WIDTH = 100 / TAGS_PER_ROW;
 const BORDER_WIDTH = constants.borderWidth;
 
 const focused = ({ focused, colorScheme }) => focused
@@ -43,18 +41,11 @@ export const ComponentTagStyled = styled.div`
   margin-top: -${BORDER_WIDTH}px;
   cursor: move;
   flex-shrink: 0;
-  flex-basis: ${TAG_BASE_WIDTH}%;
-  max-width: ${TAG_BASE_WIDTH}%;
-  flex-grow: 1;
   display: flex;
   align-items: stretch;
   user-select: none;
   border-left-width: 0;
   ${focused}
-  
-  &:nth-child(${TAGS_PER_ROW}n) {
-    border-right-width: 0;
-  }
 `;
 
 ComponentTagStyled.displayName = 'ComponentTagStyled';

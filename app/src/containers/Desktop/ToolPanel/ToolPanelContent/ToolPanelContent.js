@@ -165,6 +165,7 @@ export class ToolPanelContent extends PureComponent {
         <BlockContent>
           <BlockContentTitle
             title={tool.title}
+            subtitle={tool.subtitle}
             isEditable={tool.titleEditable}
             titlePlaceHolder={tool.titlePlaceholder}
             buttons={titleButtons}
