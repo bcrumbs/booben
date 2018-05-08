@@ -50,6 +50,7 @@ export const ItemContentStyled = styled.div`
   align-items: center;
   user-select: none;
   padding: 0 ${constants.itemPaddingX}px;
+  position: relative;
   ${hovered}
   ${active}
   ${selected}

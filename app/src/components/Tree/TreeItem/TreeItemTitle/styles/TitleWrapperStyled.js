@@ -3,6 +3,8 @@ import { bodyFontFamily } from '../../../../../styles/themeSelectors';
 
 export const TitleWrapperStyled = styled.div`
   font-family: ${bodyFontFamily};
+  max-width: 100%;
+  min-width: 0;
   
   &,
   &:hover,

@@ -15,7 +15,7 @@ const defaultProps = {
 };
 
 export const TreeItemTitle = ({ title }) => (
-  <TitleWrapperStyled>
+  <TitleWrapperStyled title={title}>
     <TitleStyled>
       {title}
     </TitleStyled>

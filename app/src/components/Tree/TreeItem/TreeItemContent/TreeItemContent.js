@@ -3,9 +3,14 @@ import PropTypes from 'prop-types';
 import { noop } from '../../../../utils/misc';
 import { ItemContentStyled } from './styles/ItemContentStyled';
 import { ItemButtonExpand } from '../ItemButton';
-import { ButtonsStyled } from '../styles/ButtonsStyled';
-import { IconStyled } from '../styles/IconStyled';
-import { SpacerStyled } from '../styles/SpacerStyled';
+import {
+  ButtonsStyled,
+  IconStyled,
+  SpacerStyled,
+  IconSlotStyled,
+  WarningStyled,
+  ButtonSlotRightStyled,
+} from '../styles';
 
 import {
   TreeItemTitle,
@@ -13,6 +18,9 @@ import {
 
 const propTypes = {
   title: PropTypes.string,
+  warningMessage: PropTypes.string,
+  iconSlot: PropTypes.element,
+  buttonSlotRight: PropTypes.element,
   hasSubLevel: PropTypes.bool,
   expanded: PropTypes.bool,
   active: PropTypes.bool,
@@ -24,6 +32,9 @@ const propTypes = {
 
 const defaultProps = {
   title: '',
+  warningMessage: '',
+  iconSlot: null,
+  buttonSlotRight: null,
   hasSubLevel: false,
   expanded: false,
   active: false,
@@ -40,12 +51,18 @@ export const TreeItemContent = ({
   active,
   selected,
   title,
+  warningMessage,
+  iconSlot,
+  buttonSlotRight,
   hasSubLevel,
   expandButtonRef,
   ...props,
 }) => {
+  let warning = null;
   let button = null;
   let spacer = null;
+  let icon = null;
+  let buttonSlotRightElement = null;
 
   if (hasSubLevel) {
     button = (
@@ -62,6 +79,19 @@ export const TreeItemContent = ({
     spacer = <SpacerStyled />;
   }
 
+  if (iconSlot)
+    icon = <IconSlotStyled>{iconSlot}</IconSlotStyled>;
+
+  if (warningMessage)
+    warning = <WarningStyled title={warningMessage} />;
+
+  if (buttonSlotRight)
+    buttonSlotRightElement = (
+      <ButtonSlotRightStyled isVisible={hovered || selected}>
+        {buttonSlotRight}
+      </ButtonSlotRightStyled>
+    );
+
   return (
     <ItemContentStyled
       hovered={hovered}
@@ -70,9 +100,12 @@ export const TreeItemContent = ({
       disabled={disabled}
       {...props}
     >
+      {warning}
       {spacer}
       {button}
+      {icon}
       <TreeItemTitle title={title} />
+      {buttonSlotRightElement}
     </ItemContentStyled>
   );
 };

@@ -1,6 +1,4 @@
 import React from 'react';
-import { RouteTreeStyled } from './styles';
+import { Tree } from '../Tree';
 
-export const RouteTree = ({ children }) => (
-  <RouteTreeStyled>{children}</RouteTreeStyled>
-);
+export const RouteTree = props => <Tree {...props} />;
