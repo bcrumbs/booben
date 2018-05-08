@@ -1,7 +1,3 @@
-/**
- * @author Vladimir Nadygin
- */
-
 import React from 'react';
 import { TreeItemStyled } from './styles/TreeItemStyled';
 

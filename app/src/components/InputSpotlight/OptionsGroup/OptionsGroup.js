@@ -1,7 +1,3 @@
-/**
- * @author Ekaterina Marova
- */
-
 import React from 'react';
 
 export const OptionsGroup = ({ children }) => (

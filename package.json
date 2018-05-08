@@ -1,5 +1,5 @@
 {
-  "name": "jssy",
+  "name": "booben",
   "version": "0.1.0-dev.16",
   "description": "",
   "main": "index.js",
@@ -15,7 +15,7 @@
     "type": "git",
     "url": "ssh://git@gitlab.ordbuy.com:29184/jssy/jssy.git"
   },
-  "author": "Dmitriy Bizyaev",
+  "author": "Braincrumbs",
   "license": "UNLICENSED",
   "dependencies": {
     "@common/async-utils": "^0.2.1",

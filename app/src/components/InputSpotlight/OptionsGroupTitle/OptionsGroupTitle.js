@@ -1,7 +1,3 @@
-/**
- * @author Ekaterina Marova
- */
-
 import React from 'react';
 import { GroupTitleStyled } from './styles/GroupTitleStyled';
 

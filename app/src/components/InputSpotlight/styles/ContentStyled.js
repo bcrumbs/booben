@@ -1,7 +1,3 @@
-/**
- * @author Ekaterina Marova
- */
-
 import styled from 'styled-components';
 import Color from 'color';
 import { radiusDefault } from '../../../styles/themeSelectors';
