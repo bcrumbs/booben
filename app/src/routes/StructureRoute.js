@@ -21,6 +21,7 @@ import { IconBrush } from '../components/icons';
 import { Desktop } from '../containers/Desktop/Desktop';
 import { StructureToolbar } from '../containers/toolbars';
 import { RouteEditor } from '../containers/RouteEditor/RouteEditor';
+import { RouteTreeComponent } from '../containers/RouteTree/RouteTree';
 import ProjectRecord from '../models/Project';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
@@ -250,7 +251,7 @@ class StructureRoute extends PureComponent {
 
     const routeEditorToolSections = List([
       new ToolSectionRecord({
-        component: RouteEditor,
+        component: RouteTreeComponent,
         componentProps: {
           onEditPath: this._handleEditPath,
         },

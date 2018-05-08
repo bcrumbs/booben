@@ -1,13 +1,7 @@
 import React from 'react';
-import { ComponentsTreeStyled } from './styles/ComponentsTreeStyled';
+import { Tree } from '../Tree';
 
-export const ComponentsTree = props => (
-  <ComponentsTreeStyled>
-    {props.children}
-  </ComponentsTreeStyled>
-);
-
-ComponentsTree.displayName = 'ComponentsTree';
+export const ComponentsTree = props => <Tree {...props} />;
 
 export * from './ComponentsTreeList/ComponentsTreeList';
 export * from './ComponentsTreeItem/ComponentsTreeItem';
