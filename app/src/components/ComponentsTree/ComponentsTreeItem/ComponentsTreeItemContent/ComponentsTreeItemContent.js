@@ -89,23 +89,14 @@ export class ComponentsTreeItemContent extends PureComponent {
   }
 
   render() {
-    const {
-      _saveItemContentRef,
-      _saveExpandButtonRef,
-      _handleHoverIn,
-      _handleHoverOut,
-      _handleClick,
-    } = this;
-
     return (
       <TreeItemContent
-        onMouseOver={_handleHoverIn}
-        onMouseOut={_handleHoverOut}
-        onClick={_handleClick}
-        innerRef={_saveItemContentRef}
-        expandButtonRef={this._saveExpandButtonRef}
-
         {...this.props}
+        onMouseOver={this._handleHoverIn}
+        onMouseOut={this._handleHoverOut}
+        onClick={this._handleClick}
+        innerRef={this._saveItemContentRef}
+        expandButtonRef={this._saveExpandButtonRef}
       />
     );
   }
