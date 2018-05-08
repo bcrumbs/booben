@@ -5,6 +5,7 @@ export const TitleWrapperStyled = styled.div`
   font-family: ${bodyFontFamily};
   max-width: 100%;
   min-width: 0;
+  flex-grow: 1;
   
   &,
   &:hover,

@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 import { TreeItemStyled } from './TreeItemStyled';
-import constants from '../../styles/constants';
+import constants from '../../../styles/constants';
 
 const size = constants.buttonSize;
 

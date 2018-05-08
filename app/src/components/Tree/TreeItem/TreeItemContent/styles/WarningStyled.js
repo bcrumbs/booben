@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import { colorWarning } from '../../../../styles/themeSelectors';
+import { colorWarning } from '../../../../../styles/themeSelectors';
 
 const size = 10;
 

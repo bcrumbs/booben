@@ -1,36 +1,30 @@
 import React from 'react';
 
 import {
-  IconRedirect,
-  IconAdd,
-  Tree,
-  TreeList,
-  TreeItem,
-  TreeItemContent,
-  ItemButton,
+  RouteTree,
+  RouteTreeList,
+  RouteTreeItem,
+  RouteTreeItemContent,
 } from '../../components';
 
-export const ViewRoutesList = props => {
-
-  return (
-    <Tree>
-      <TreeList level={0}>
-        <TreeItem>
-          <TreeItemContent title="1" expanded hasSubLevel iconSlot={<IconRedirect />}/>
-          <TreeList level={1}>
-            <TreeItem>
-              <TreeItemContent title="Index" />
-            </TreeItem>
-            <TreeItem>
-              <TreeItemContent title="buttonSlotRight buttonSlotRight buttonSlotRightbuttonSlotRightbuttonSlotRight" hasSubLevel buttonSlotRight={<ItemButton icon={<IconAdd />} />}/>
-            </TreeItem>
-            <TreeItem>
-              <TreeItemContent title="1-2" buttonSlotRight={<ItemButton icon={<IconAdd />} />}/>
-            </TreeItem>
-          </TreeList>
-        </TreeItem>
-      </TreeList>
-    </Tree>
-  );
-}
+export const ViewRoutesList = props => (
+  <RouteTree>
+    <RouteTreeList level={0}>
+      <RouteTreeItem>
+        <RouteTreeItemContent title="1" expanded hasSubLevel hasRedirect />
+        <RouteTreeList level={1}>
+          <RouteTreeItem>
+            <RouteTreeItemContent hasSubLevel title="Index" />
+          </RouteTreeItem>
+          <RouteTreeItem>
+            <RouteTreeItemContent title="buttonSlotRight buttonSlotRight buttonSlotRightbuttonSlotRightbuttonSlotRight" hasSubLevel />
+          </RouteTreeItem>
+          <RouteTreeItem>
+            <RouteTreeItemContent title="1-2" />
+          </RouteTreeItem>
+        </RouteTreeList>
+      </RouteTreeItem>
+    </RouteTreeList>
+  </RouteTree>
+);
 

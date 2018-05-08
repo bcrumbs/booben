@@ -1,16 +1,16 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { noop } from '../../../../utils/misc';
-import { ItemContentStyled } from './styles/ItemContentStyled';
 import { ItemButtonExpand } from '../ItemButton';
 import {
+  ItemContentStyled,
   ButtonsStyled,
   IconStyled,
   SpacerStyled,
   IconSlotStyled,
   WarningStyled,
   ButtonSlotRightStyled,
-} from '../styles';
+} from './styles';
 
 import {
   TreeItemTitle,
@@ -87,7 +87,7 @@ export const TreeItemContent = ({
 
   if (buttonSlotRight)
     buttonSlotRightElement = (
-      <ButtonSlotRightStyled isVisible={hovered || selected}>
+      <ButtonSlotRightStyled isVisible={hovered || active}>
         {buttonSlotRight}
       </ButtonSlotRightStyled>
     );

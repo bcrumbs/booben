@@ -2,11 +2,14 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { noop } from '../../utils/misc';
 import { TreeItemContent } from '../Tree';
+import { RouteTreeItemButton } from './RouteTreeItemButton';
+import { IconRedirect, IconAdd } from '../icons';
 
 const propTypes = {
   ...TreeItemContent.propTypes,
 
   componentId: PropTypes.number.isRequired,
+  hasRedirect: PropTypes.bool,
   expanded: PropTypes.bool,
   active: PropTypes.bool,
   selected: PropTypes.bool,
@@ -15,12 +18,14 @@ const propTypes = {
   onExpand: PropTypes.func,
   onHover: PropTypes.func,
   onSelect: PropTypes.func,
+  onAddButtonClick: PropTypes.func,
   elementRef: PropTypes.func,
 };
 
 const defaultProps = {
   ...TreeItemContent.defaultProps,
 
+  hasRedirect: false,
   expanded: false,
   active: false,
   selected: false,
@@ -29,6 +34,7 @@ const defaultProps = {
   onExpand: noop,
   onHover: noop,
   onSelect: noop,
+  onAddButtonClick: noop,
   elementRef: noop,
 };
 
@@ -90,22 +96,27 @@ export class RouteTreeItemContent extends PureComponent {
 
   render() {
     const {
-      _saveItemContentRef,
-      _saveExpandButtonRef,
-      _handleHoverIn,
-      _handleHoverOut,
-      _handleClick,
-    } = this;
+      hasRedirect,
+      onAddButtonClick,
+    } = this.props;
+
+    let iconSlotElement = null;
+
+    if (hasRedirect)
+      iconSlotElement = <IconRedirect />;
 
     return (
       <TreeItemContent
-        onMouseOver={_handleHoverIn}
-        onMouseOut={_handleHoverOut}
-        onClick={_handleClick}
-        innerRef={_saveItemContentRef}
-        expandButtonRef={this._saveExpandButtonRef}
-
         {...this.props}
+        iconSlot={iconSlotElement}
+        buttonSlotRight={(
+          <RouteTreeItemButton icon={<IconAdd />} onClick={onAddButtonClick} />
+        )}
+        onMouseOver={this._handleHoverIn}
+        onMouseOut={this._handleHoverOut}
+        onClick={this._handleClick}
+        innerRef={this._saveItemContentRef}
+        expandButtonRef={this._saveExpandButtonRef}
       />
     );
   }

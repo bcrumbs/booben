@@ -12,21 +12,9 @@ export default {
           lineHeight: 1,
 
           icon: {
-            width: 14,
-            height: null,
-            imgSize: null,
-          },
-        },
-      },
-
-      colorScheme: {
-        flatLight: {
-          hover: {
-            backgroundColor: 'transparent',
-          },
-
-          focus: {
-            backgroundColor: 'transparent',
+            width: constants.buttonSize,
+            height: constants.buttonSize,
+            imgSize: constants.buttonImgSize,
           },
         },
       },

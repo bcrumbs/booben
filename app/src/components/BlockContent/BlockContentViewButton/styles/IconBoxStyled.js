@@ -20,8 +20,9 @@ const iconBoxSize = 20;
 const colorScheme = ({ colorScheme }) =>
   css`color: ${constants[colorScheme].titleIcon.color};`;
 
+// `margin-right: 3px;` is needed to visually balance title and a nearby Tree
 export const IconBoxStyled = styled.div`
-  margin-right: ${baseModule(1)}px;
+  margin-right: 3px;
   margin-left: -4px;
   ${colorScheme}
   ${iconSizeMixin(

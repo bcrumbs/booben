@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import constants from '../../styles/constants';
+import constants from '../../../styles/constants';
 
 const visibility = ({ isVisible }) => !isVisible && `
   opacity: 0;

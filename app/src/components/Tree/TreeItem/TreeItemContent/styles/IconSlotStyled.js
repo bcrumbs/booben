@@ -1,20 +1,21 @@
 import styled from 'styled-components';
 import { iconSizeMixin } from 'reactackle-core';
-import constants from '../../styles/constants';
+import constants from '../../../styles/constants';
 
 import {
   baseModule,
   textColorMediumDark,
-} from '../../../../styles/themeSelectors';
+} from '../../../../../styles/themeSelectors';
 
 const iconSize = constants.buttonSize;
+const iconImgSize = constants.buttonImgSize;
 
 export const IconSlotStyled = styled.div`
   display: flex;
   color: ${textColorMediumDark};
-  margin-left: ${baseModule(0.5)}px;
+  margin-right: -2px;
   
-  ${iconSizeMixin(`${iconSize}px`)}
+  ${iconSizeMixin(`${iconSize}px`, `${iconImgSize}px`)}
 `;
 
 IconSlotStyled.displayName = 'IconSlotStyled';
