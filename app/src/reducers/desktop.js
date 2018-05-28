@@ -251,6 +251,7 @@ const handlers = {
     if (action.toolId !== null && state.toolStates.has(action.toolId)) {
       return state
         .setIn(['toolStates', action.toolId, 'isInDockRegion'], true)
+        .setIn(['toolStates', action.toolId, 'position'], action.position)
         .set('stickyToolId', action.toolId);
     } else {
       return state.set('stickyToolId', null);

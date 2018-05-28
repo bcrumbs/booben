@@ -58,11 +58,11 @@ export const ToolPanel = props => {
 
   props.toolGroups.forEach((tools, groupIdx) => {
     const icons = [];
-
+   
     tools.forEach(tool => {
       const toolState = props.toolStates.get(tool.id) || new ToolState();
       if (toolState.closed) return;
-
+      
       if (toolState.isInDockRegion) {
         icons.push(
           <PageDrawerActionPlaceholder key={tool.id} />,
@@ -178,7 +178,7 @@ export const ToolPanel = props => {
       resizeMaxWidth={Math.round(window.innerWidth / 2)}
       isExpanded={isExpanded}
       hasActions={pageDrawerHasActions}
-      position="right"
+      position="left"
     >
       <PageDrawerActionsArea>
         <PageDrawerActionsGroup spread>

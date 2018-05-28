@@ -65,9 +65,10 @@ export const openTool = toolId => ({
   toolId,
 });
 
-export const setStickyTool = toolId => ({
+export const setStickyTool = (toolId, position) => ({
   type: DESKTOP_SET_STICKY_TOOL,
   toolId,
+  position,
 });
 
 export const setToolActiveSection = (toolId, newActiveSection) => ({

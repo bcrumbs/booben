@@ -9,4 +9,5 @@ export default Record({
   isActiveInToolsPanel: false,
   isShadowedInToolsPanel: false,
   activeSection: 0,
+  position: 'right',
 });
