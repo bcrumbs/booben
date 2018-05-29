@@ -54,24 +54,31 @@ export const ToolPanel = props => {
   let activeTool = null;
   let shadowedTool = null;
 
-  const panelSwitcherGroups = [];
+  const panelSwitcherGroups = {
+    left: [],
+    right: [],
+  };
 
   props.toolGroups.forEach((tools, groupIdx) => {
-    const icons = [];
+    const icons = {
+      left: [],
+      right: [],
+    };
    
     tools.forEach(tool => {
       const toolState = props.toolStates.get(tool.id) || new ToolState();
+      const iconsGroup = icons[toolState.position];
       if (toolState.closed) return;
       
       if (toolState.isInDockRegion) {
-        icons.push(
+        iconsGroup.push(
           <PageDrawerActionPlaceholder key={tool.id} />,
         );
       } else if (toolState.docked) {
         if (toolState.isActiveInToolsPanel) activeTool = tool;
         else if (toolState.isShadowedInToolsPanel) shadowedTool = tool;
 
-        icons.push(
+        iconsGroup.push(
           <PageDrawerActionItem
             key={tool.id}
             icon={tool.icon}
@@ -83,13 +90,16 @@ export const ToolPanel = props => {
       }
     });
 
-    if (icons.length > 0) {
-      panelSwitcherGroups.push(
-        <PageDrawerActionsGroup key={String(groupIdx)}>
-          {icons}
-        </PageDrawerActionsGroup>,
-      );
-    }
+    Object.keys(icons).forEach(position => {
+      const iconsGroup = icons[position];
+      if (iconsGroup.length > 0) {
+        panelSwitcherGroups[position].push(
+          <PageDrawerActionsGroup key={String(groupIdx)}>
+            {iconsGroup}
+          </PageDrawerActionsGroup>,
+        );
+      }
+    });
   });
 
   let panelContent = null;
@@ -170,19 +180,20 @@ export const ToolPanel = props => {
     panelSwitcherGroups.unshift(expandActionGroup);
   }
 
-  return (
+  const renderPageDrawer = position => (
     <ResizeablePageDrawer
+      key={`page-drawer-${position}`}
       resizeEnabled={isExpanded}
       resizeSides={['left']}
       resizeMinWidth={DESKTOP_PANEL_MIN_WIDTH}
       resizeMaxWidth={Math.round(window.innerWidth / 2)}
       isExpanded={isExpanded}
       hasActions={pageDrawerHasActions}
-      position="left"
+      position={position}
     >
       <PageDrawerActionsArea>
         <PageDrawerActionsGroup spread>
-          {panelSwitcherGroups}
+          {panelSwitcherGroups[position]}
         </PageDrawerActionsGroup>
         <ToolPanelCommonActions />
       </PageDrawerActionsArea>
@@ -191,6 +202,11 @@ export const ToolPanel = props => {
       {panelContent}
     </ResizeablePageDrawer>
   );
+
+  return [
+    renderPageDrawer('left'),
+    renderPageDrawer('right'),
+  ];
 };
 
 ToolPanel.propTypes = propTypes;
