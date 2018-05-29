@@ -53,8 +53,14 @@ const defaultProps = {
 const ResizeablePageDrawer = resizeable(PageDrawer);
 
 export const ToolPanel = props => {
-  let activeTool = null;
-  let shadowedTool = null;
+  const activeTool = {
+    left: null,
+    right: null,
+  };
+  const shadowedTool = {
+    left: null,
+    right: null,
+  };
 
   const panelSwitcherGroups = {
     left: [],
@@ -77,9 +83,12 @@ export const ToolPanel = props => {
           <PageDrawerActionPlaceholder key={tool.id} />,
         );
       } else if (toolState.docked) {
-        if (toolState.isActiveInToolsPanel) activeTool = tool;
-        else if (toolState.isShadowedInToolsPanel) shadowedTool = tool;
-
+        if (toolState.isActiveInToolsPanel) {
+          activeTool[toolState.position] = tool;
+        } else if (toolState.isShadowedInToolsPanel) {
+          shadowedTool[toolState.position] = tool;
+        }
+        
         iconsGroup.push(
           <PageDrawerActionItem
             key={tool.id}
@@ -104,72 +113,86 @@ export const ToolPanel = props => {
     });
   });
 
-  let panelContent = null;
-  let shadowedPanelContent = null;
+  console.log(activeTool);
+  console.log(shadowedTool);
+
+  const panelContent = {
+    left: null,
+    right: null,
+  };
+
+  const shadowedPanelContent = {
+    left: null,
+    right: null,
+  };
   let isExpanded = false;
 
-  if (activeTool !== null) {
-    const activeToolState =
-      props.toolStates.get(activeTool.id) ||
-      new ToolState();
-
-    const onTitleChange = newTitle =>
-      props.onToolTitleChange(activeTool, newTitle);
-
-    const onUndock = () => {
-      let nextActiveTool = null;
-
-      /* eslint-disable consistent-return */
-      props.toolGroups.forEach(tools => {
-        tools.forEach(tool => {
-          if (tool !== activeTool) {
-            nextActiveTool = tool;
-            return false;
-          }
+  Object.keys(activeTool).forEach(position => {
+    if (activeTool[position] !== null) {
+      const activeToolState =
+        props.toolStates.get(activeTool[position].id) ||
+        new ToolState();
+  
+      const onTitleChange = newTitle =>
+        props.onToolTitleChange(activeTool[position], newTitle);
+  
+      const onUndock = () => {
+        let nextActiveTool = null;
+  
+        /* eslint-disable consistent-return */
+        props.toolGroups.forEach(tools => {
+          tools.forEach(tool => {
+            if (tool !== activeTool[position]) {
+              nextActiveTool = tool;
+              return false;
+            }
+          });
+  
+          if (nextActiveTool !== null) return false;
         });
+        /* eslint-enable consistent-return */
+  
+        props.onToolUndock(activeTool[position], nextActiveTool);
+      };
+  
+      const onActiveSectionChange = ({ newActiveSection }) =>
+        props.onToolActiveSectionChange(activeTool[position], newActiveSection);
 
-        if (nextActiveTool !== null) return false;
-      });
-      /* eslint-enable consistent-return */
+      panelContent[position] = (
+        <ToolPanelContent
+          key={`tool-panel-content-${activeTool[position].id}`}
+          tool={activeTool[position]}
+          toolState={activeToolState}
+          onTitleChange={onTitleChange}
+          onUndock={onUndock}
+          onActiveSectionChange={onActiveSectionChange}
+          onCollapse={() => props.onCollapse(position)}
+        />
+      );
+  
+      isExpanded = {
+        left: props.isLeftExpanded,
+        right: props.isRightExpanded,
+      };
+    }
+  });
 
-      props.onToolUndock(activeTool, nextActiveTool);
-    };
-
-    const onActiveSectionChange = ({ newActiveSection }) =>
-      props.onToolActiveSectionChange(activeTool, newActiveSection);
-
-    panelContent = (
-      <ToolPanelContent
-        key={`tool-panel-content-${activeTool.id}`}
-        tool={activeTool}
-        toolState={activeToolState}
-        onTitleChange={onTitleChange}
-        onUndock={onUndock}
-        onActiveSectionChange={onActiveSectionChange}
-        onCollapse={() => props.onCollapse('left')}
-      />
-    );
-
-    isExpanded = {
-      left: props.isLeftExpanded,
-      right: props.isRightExpanded,
-    };
-  }
-
-  if (shadowedTool !== null) {
-    const shadowedToolState =
-      props.toolStates.get(shadowedTool.id) ||
-      new ToolState();
-
-    shadowedPanelContent = (
-      <ToolPanelContent
-        key={`tool-panel-content-${shadowedTool.id}`}
-        tool={shadowedTool}
-        toolState={shadowedToolState}
-        shadowed
-      />
-    );
-  }
+  Object.keys(shadowedTool).forEach(position => {
+    if (shadowedTool[position] !== null) {
+      const shadowedToolState =
+        props.toolStates.get(shadowedTool[position].id) ||
+        new ToolState();
+  
+      shadowedPanelContent[position] = (
+        <ToolPanelContent
+          key={`tool-panel-content-${shadowedTool[position].id}`}
+          tool={shadowedTool[position]}
+          toolState={shadowedToolState}
+          shadowed
+        />
+      );
+    }
+  });
 
   const pageDrawerHasActions = {
     left: false,
@@ -210,8 +233,8 @@ export const ToolPanel = props => {
         <ToolPanelCommonActions />
       </PageDrawerActionsArea>
 
-      {shadowedPanelContent}
-      {panelContent}
+      {shadowedPanelContent[position]}
+      {panelContent[position]}
     </ResizeablePageDrawer>
   );
 

@@ -44,10 +44,14 @@ import { PATH_STRUCTURE, PATH_DESIGN } from '../constants/paths';
 
 const DesktopState = Record({
   toolStates: Map(),
+  // TODO: clean this
   toolsPanelIsExpanded: true,
   leftToolsPanelIsExpanded: true,
   rightToolsPanelIsExpanded: true,
+  // TODO: clean this
   activeToolId: null,
+  leftActiveToolId: null,
+  rightActiveToolId: null,
   shadowedToolId: null,
   topToolZIndex: 0,
   stickyToolId: null,
@@ -56,27 +60,43 @@ const DesktopState = Record({
 
 const selectTool = (state, toolId) => {
   const position = state.toolStates.get(toolId).position;
-  console.log('position', position);
-  if (toolId === state.activeToolId && state.toolsPanelIsExpanded) {
-    return state;
-  }
+  
+  if (position === 'left') {
+    if (state.leftActiveToolId !== null) {
+      state = state.setIn(
+        ['toolStates', state.leftActiveToolId, 'isActiveInToolsPanel'],
+        false,
+      );
+    }
 
-  if (state.activeToolId !== null) {
-    state = state.setIn(
-      ['toolStates', state.activeToolId, 'isActiveInToolsPanel'],
-      false,
-    );
-  }
+    if (toolId !== null && state.toolStates.has(toolId)) {
+      return state
+        .setIn(['toolStates', toolId, 'isActiveInToolsPanel'], true)
+        .merge({
+          leftActiveToolId: toolId,
+          leftToolsPanelIsExpanded: true,
+        });
+    } else {
+      return state.set('activeToolId', null);
+    }
+  } else if (position === 'right') {
+    if (state.rightActiveToolId !== null) {
+      state = state.setIn(
+        ['toolStates', state.rightActiveToolId, 'isActiveInToolsPanel'],
+        false,
+      );
+    }
 
-  if (toolId !== null && state.toolStates.has(toolId)) {
-    return state
-      .setIn(['toolStates', toolId, 'isActiveInToolsPanel'], true)
-      .merge({
-        activeToolId: toolId,
-        toolsPanelIsExpanded: true,
-      });
-  } else {
-    return state.set('activeToolId', null);
+    if (toolId !== null && state.toolStates.has(toolId)) {
+      return state
+        .setIn(['toolStates', toolId, 'isActiveInToolsPanel'], true)
+        .merge({
+          rightActiveToolId: toolId,
+          rightToolsPanelIsExpanded: true,
+        });
+    } else {
+      return state.set('activeToolId', null);
+    }
   }
 };
 
