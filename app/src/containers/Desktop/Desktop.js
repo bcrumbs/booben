@@ -38,7 +38,8 @@ import {
 const propTypes = {
   toolGroups: JssyPropTypes.toolGroups,
   toolStates: JssyPropTypes.toolStates.isRequired,
-  toolsPanelIsExpanded: PropTypes.bool.isRequired,
+  leftToolsPanelIsExpanded: PropTypes.bool.isRequired,
+  rightToolsPanelIsExpanded: PropTypes.bool.isRequired,
   onToolsPanelExpand: PropTypes.func.isRequired,
   onToolsPanelCollapse: PropTypes.func.isRequired,
   onActiveToolChange: PropTypes.func.isRequired,
@@ -59,15 +60,16 @@ const defaultProps = {
 
 const mapStateToProps = ({ desktop }) => ({
   toolStates: desktop.toolStates,
-  toolsPanelIsExpanded: desktop.toolsPanelIsExpanded,
+  leftToolsPanelIsExpanded: desktop.leftToolsPanelIsExpanded,
+  rightToolsPanelIsExpanded: desktop.rightToolsPanelIsExpanded,
 });
 
 const mapDispatchToProps = dispatch => ({
-  onToolsPanelExpand: () =>
-    void dispatch(expandToolsPanel()),
+  onToolsPanelExpand: position =>
+    void dispatch(expandToolsPanel(position)),
 
-  onToolsPanelCollapse: () =>
-    void dispatch(collapseToolsPanel()),
+  onToolsPanelCollapse: position =>
+    void dispatch(collapseToolsPanel(position)),
 
   onActiveToolChange: tool =>
     void dispatch(selectTool(tool.id)),
@@ -188,7 +190,8 @@ class DesktopComponent extends PureComponent {
     const {
       toolGroups,
       toolStates,
-      toolsPanelIsExpanded,
+      leftToolsPanelIsExpanded,
+      rightToolsPanelIsExpanded,
       onToolUndock,
       onToolTitleChange,
       onToolActiveSectionChange,
@@ -208,7 +211,8 @@ class DesktopComponent extends PureComponent {
         </Content>
 
         <ToolPanel
-          isExpanded={toolsPanelIsExpanded}
+          isLeftExpanded={leftToolsPanelIsExpanded}
+          isRightExpanded={rightToolsPanelIsExpanded}
           toolGroups={toolGroups}
           toolStates={toolStates}
           onExpand={onToolsPanelExpand}

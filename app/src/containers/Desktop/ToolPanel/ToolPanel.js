@@ -26,7 +26,8 @@ import {
 const propTypes = {
   toolGroups: JssyPropTypes.toolGroups,
   toolStates: JssyPropTypes.toolStates,
-  isExpanded: PropTypes.bool,
+  isLeftExpanded: PropTypes.bool,
+  isRightExpanded: PropTypes.bool,
   onCollapse: PropTypes.func,
   onExpand: PropTypes.func,
   onToolUndock: PropTypes.func,
@@ -39,7 +40,8 @@ const propTypes = {
 const defaultProps = {
   toolGroups: List(),
   toolStates: Map(),
-  isExpanded: false,
+  isLeftExpanded: false,
+  isRightExpanded: false,
   onCollapse: noop,
   onExpand: noop,
   onToolUndock: noop,
@@ -144,11 +146,14 @@ export const ToolPanel = props => {
         onTitleChange={onTitleChange}
         onUndock={onUndock}
         onActiveSectionChange={onActiveSectionChange}
-        onCollapse={props.onCollapse}
+        onCollapse={() => props.onCollapse('left')}
       />
     );
 
-    isExpanded = props.isExpanded;
+    isExpanded = {
+      left: props.isLeftExpanded,
+      right: props.isRightExpanded,
+    };
   }
 
   if (shadowedTool !== null) {
@@ -166,29 +171,36 @@ export const ToolPanel = props => {
     );
   }
 
-  const pageDrawerHasActions = panelSwitcherGroups.length > 0;
-  if (!isExpanded && pageDrawerHasActions) {
-    const expandActionGroup = (
-      <PageDrawerActionsGroup key="expand">
-        <PageDrawerActionItem
-          icon={<IconArrowChevronLeft />}
-          onPress={props.onExpand}
-        />
-      </PageDrawerActionsGroup>
-    );
+  const pageDrawerHasActions = {
+    left: false,
+    right: false,
+  };
 
-    panelSwitcherGroups.unshift(expandActionGroup);
-  }
-
+  Object.keys(panelSwitcherGroups).forEach(position => {
+    pageDrawerHasActions[position] = panelSwitcherGroups[position].length > 0;
+    if (!isExpanded[position] && pageDrawerHasActions[position]) {
+      const expandActionGroup = (
+        <PageDrawerActionsGroup key="expand">
+          <PageDrawerActionItem
+            icon={<IconArrowChevronLeft />}
+            onPress={() => props.onExpand(position)}
+          />
+        </PageDrawerActionsGroup>
+      );
+  
+      panelSwitcherGroups[position].unshift(expandActionGroup);
+    }
+  });
+  
   const renderPageDrawer = position => (
     <ResizeablePageDrawer
       key={`page-drawer-${position}`}
-      resizeEnabled={isExpanded}
+      resizeEnabled={isExpanded[position]}
       resizeSides={['left']}
       resizeMinWidth={DESKTOP_PANEL_MIN_WIDTH}
       resizeMaxWidth={Math.round(window.innerWidth / 2)}
-      isExpanded={isExpanded}
-      hasActions={pageDrawerHasActions}
+      isExpanded={isExpanded[position]}
+      hasActions={pageDrawerHasActions[position]}
       position={position}
     >
       <PageDrawerActionsArea>

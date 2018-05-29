@@ -45,6 +45,8 @@ import { PATH_STRUCTURE, PATH_DESIGN } from '../constants/paths';
 const DesktopState = Record({
   toolStates: Map(),
   toolsPanelIsExpanded: true,
+  leftToolsPanelIsExpanded: true,
+  rightToolsPanelIsExpanded: true,
   activeToolId: null,
   shadowedToolId: null,
   topToolZIndex: 0,
@@ -53,6 +55,8 @@ const DesktopState = Record({
 });
 
 const selectTool = (state, toolId) => {
+  const position = state.toolStates.get(toolId).position;
+  console.log('position', position);
   if (toolId === state.activeToolId && state.toolsPanelIsExpanded) {
     return state;
   }
@@ -166,11 +170,27 @@ const handlers = {
   [DESKTOP_SET_TOOLS]: (state, action) =>
     setActiveTools(state, action.toolIds),
   
-  [DESKTOP_COLLAPSE_TOOLS_PANEL]: state =>
-    state.set('toolsPanelIsExpanded', false),
+  [DESKTOP_COLLAPSE_TOOLS_PANEL]: (state, action) => {
+    if (action.position === 'left') {
+      return state.set('leftToolsPanelIsExpanded', false);
+    } else if (action.position === 'right') {
+      return state.set('rightToolsPanelIsExpanded', false);
+    } else {
+      return state;
+    }
+  },
+    
   
-  [DESKTOP_EXPAND_TOOLS_PANEL]: state =>
-    state.set('toolsPanelIsExpanded', true),
+  [DESKTOP_EXPAND_TOOLS_PANEL]: (state, action) => {
+    if (action.position === 'left') {
+      return state.set('leftToolsPanelIsExpanded', true);
+    } else if (action.position === 'right') {
+      return state.set('rightToolsPanelIsExpanded', true);
+    } else {
+      return state;
+    }
+  },
+    
   
   [DESKTOP_TOOL_DOCK]: (state, action) => {
     if (state.activeToolId !== null) {

@@ -26,12 +26,14 @@ export const setTools = toolIds => ({
   toolIds,
 });
 
-export const collapseToolsPanel = () => ({
+export const collapseToolsPanel = position => ({
   type: DESKTOP_COLLAPSE_TOOLS_PANEL,
+  position,
 });
 
-export const expandToolsPanel = () => ({
+export const expandToolsPanel = position => ({
   type: DESKTOP_EXPAND_TOOLS_PANEL,
+  position,
 });
 
 export const dockTool = toolId => ({
