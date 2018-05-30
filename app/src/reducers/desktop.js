@@ -214,12 +214,10 @@ const handlers = {
   [DESKTOP_TOOL_DOCK]: (state, action) => {
     const position = state.toolStates.get(action.toolId).position;
 
-    if (state.activeToolId !== null) {
-      state = state.setIn(
-        ['toolStates', state.activeToolId, 'isActiveInToolsPanel'],
-        false,
-      );
-    }
+    state = state.setIn(
+      ['toolStates', state[`${position}ActiveToolId`], 'isActiveInToolsPanel'],
+      false,
+    );
   
     if (state.stickyToolId !== null) {
       state = state.setIn(
