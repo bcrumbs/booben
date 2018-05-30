@@ -44,8 +44,6 @@ import { PATH_STRUCTURE, PATH_DESIGN } from '../constants/paths';
 
 const DesktopState = Record({
   toolStates: Map(),
-  // TODO: clean this
-  toolsPanelIsExpanded: true,
   leftToolsPanelIsExpanded: true,
   rightToolsPanelIsExpanded: true,
   // TODO: clean this
@@ -59,6 +57,7 @@ const DesktopState = Record({
 });
 
 const selectTool = (state, toolId) => {
+  if (toolId === null) return state;
   const position = state.toolStates.get(toolId).position;
   
   if (position === 'left') {
@@ -77,7 +76,7 @@ const selectTool = (state, toolId) => {
           leftToolsPanelIsExpanded: true,
         });
     } else {
-      return state.set('activeToolId', null);
+      return state;
     }
   } else if (position === 'right') {
     if (state.rightActiveToolId !== null) {
@@ -95,7 +94,7 @@ const selectTool = (state, toolId) => {
           rightToolsPanelIsExpanded: true,
         });
     } else {
-      return state.set('activeToolId', null);
+      return state;
     }
   }
 };
@@ -213,6 +212,8 @@ const handlers = {
     
   
   [DESKTOP_TOOL_DOCK]: (state, action) => {
+    const position = state.toolStates.get(action.toolId).position;
+
     if (state.activeToolId !== null) {
       state = state.setIn(
         ['toolStates', state.activeToolId, 'isActiveInToolsPanel'],
@@ -234,11 +235,13 @@ const handlers = {
       .setIn(['toolStates', action.toolId, 'isActiveInToolsPanel'], true)
       .merge({
         stickyToolId: null,
-        activeToolId: action.toolId,
+        [`${position}ActiveToolId`]: action.toolId,
       });
   },
   
   [DESKTOP_TOOL_UNDOCK]: (state, action) => {
+    const position = state.toolStates.get(action.toolId).position;
+    
     if (!state.toolStates.has(action.toolId)) return state;
   
     if (state.activeToolId !== null) {
@@ -257,7 +260,7 @@ const handlers = {
   
     return state
       .setIn(['toolStates', action.toolId, 'docked'], false)
-      .set('activeToolId', action.nextActiveToolId);
+      .set(`${position}ActiveToolId`, action.nextActiveToolId);
   },
   
   [DESKTOP_TOOL_CLOSE]: (state, action) =>

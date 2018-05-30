@@ -113,9 +113,6 @@ export const ToolPanel = props => {
     });
   });
 
-  console.log(activeTool);
-  console.log(shadowedTool);
-
   const panelContent = {
     left: null,
     right: null,
