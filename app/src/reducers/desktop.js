@@ -14,6 +14,7 @@ import {
   DESKTOP_TOOL_OPEN,
   DESKTOP_SET_STICKY_TOOL,
   DESKTOP_TOOL_SET_ACTIVE_SECTION,
+  TOGGLE_TREE_VIEW_MODE,
 } from '../actions/desktop';
 
 import {
@@ -54,6 +55,7 @@ const DesktopState = Record({
   topToolZIndex: 0,
   stickyToolId: null,
   pickingComponentData: false,
+  treeViewMode: 'routeTree',
 });
 
 const selectTool = (state, toolId) => {
@@ -341,6 +343,18 @@ const handlers = {
 
   [PREVIEW_DESELECT_COMPONENT]: state =>
     setActiveSection(state, state.activeToolId, 0),
+
+  [TOGGLE_TREE_VIEW_MODE]: state => {
+    const currentTreeViewMode = state.treeViewMode;
+
+    if (currentTreeViewMode === 'routeTree') {
+      return state.setIn(['treeViewMode'], 'routesList');
+    } else if (currentTreeViewMode === 'routesList') {
+      return state.setIn(['treeViewMode'], 'routeTree');
+    } else {
+      return state;
+    }
+  },
 };
 
 export default (state = new DesktopState(), action) =>

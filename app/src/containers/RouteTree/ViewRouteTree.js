@@ -1,7 +1,6 @@
 import React from 'react';
+import {
+  ComponentsTreeView,
+} from '../ComponentsTreeView/ComponentsTreeView';
 
-export const ViewRouteTree = props => (
-  <div>вместо этого выводим дерево компонентов, которое сейчас справа
-    в отдельной вкладке</div>
-
-);
+export const ViewRouteTree = props => <ComponentsTreeView />;

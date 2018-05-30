@@ -20,6 +20,8 @@ export const DESKTOP_SET_STICKY_TOOL =
   'DESKTOP_SET_STICKY_TOOL';
 export const DESKTOP_TOOL_SET_ACTIVE_SECTION =
   'DESKTOP_TOOL_SET_ACTIVE_SECTION';
+export const TOGGLE_TREE_VIEW_MODE =
+  'TOGGLE_TREE_VIEW_MODE';
 
 export const setTools = toolIds => ({
   type: DESKTOP_SET_TOOLS,
@@ -77,4 +79,8 @@ export const setToolActiveSection = (toolId, newActiveSection) => ({
   type: DESKTOP_TOOL_SET_ACTIVE_SECTION,
   toolId,
   newActiveSection,
+});
+
+export const toggleTreeViewMode = () => ({
+  type: TOGGLE_TREE_VIEW_MODE,
 });

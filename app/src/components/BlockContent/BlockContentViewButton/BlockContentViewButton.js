@@ -34,6 +34,7 @@ export const BlockContentViewButton = ({
   sectionTitle,
   actionsSlot,
   colorScheme,
+  onClick,
 }) => {
   const actions = actionsSlot && (
     <ActionsStyled>{actionsSlot}</ActionsStyled>
@@ -46,7 +47,7 @@ export const BlockContentViewButton = ({
   );
 
   return (
-    <BlockContentViewButtonStyled colorScheme={colorScheme}>
+    <BlockContentViewButtonStyled colorScheme={colorScheme} onClick={onClick}>
       <ButtonStyled>
         <IconBoxStyled colorScheme={colorScheme}>
           <IconArrowUpDown />

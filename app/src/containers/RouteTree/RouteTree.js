@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from 'reactackle-button';
+import { connect } from 'react-redux';
 
 import {
   BlockContentBox,
@@ -9,6 +10,10 @@ import {
 
 import { ViewRouteTree } from './ViewRouteTree';
 import { ViewRoutesList } from './ViewRoutesList';
+
+import {
+  toggleTreeViewMode,
+} from '../../actions/desktop';
 
 const colorScheme = 'default';
 
@@ -21,11 +26,22 @@ const AddButton = props => (
   />
 );
 
-export const RouteTreeComponent = props => {
-  const currentView = 'routesList';
-  //const currentView = 'routeTree';
+const mapStateToProps = state => ({
+  currentView: state.desktop.treeViewMode,
+});
 
-  const changeViewButtonProps = currentView === 'routesList'
+const mapDispatchToProps = dispatch => ({
+  onToggleTreeViewMode: () =>
+    void dispatch(toggleTreeViewMode()),
+});
+
+const wrap = connect(mapStateToProps, mapDispatchToProps);
+
+const RouteTreeComponent = props => {
+  // const currentView = 'routesList';
+  // const currentView = 'routeTree';
+
+  const changeViewButtonProps = props.currentView === 'routesList'
     ? {
       title: 'Routes',
     }
@@ -35,7 +51,7 @@ export const RouteTreeComponent = props => {
       actionsSlot: <AddButton />,
     };
 
-  const content = currentView === 'routesList'
+  const content = props.currentView === 'routesList'
     ? <ViewRoutesList />
     : <ViewRouteTree />;
 
@@ -44,6 +60,7 @@ export const RouteTreeComponent = props => {
       key="change-view-button"
       colorScheme={colorScheme}
       {...changeViewButtonProps}
+      onClick={props.onToggleTreeViewMode}
     />,
 
     <BlockContentBox key="list" colorScheme={colorScheme}>
@@ -51,3 +68,5 @@ export const RouteTreeComponent = props => {
     </BlockContentBox>
   ];
 }
+
+export const TreeView = wrap(RouteTreeComponent);
