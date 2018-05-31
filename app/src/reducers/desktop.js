@@ -146,7 +146,11 @@ const setActiveTools = (state, toolIds) => {
   
   toolIds.forEach(toolId => {
     if (!state.toolStates.has(toolId)) {
-      newToolStates[toolId] = new ToolStateRecord();
+      if (toolId === 'componentsTree') {
+        newToolStates[toolId] = new ToolStateRecord({ position: 'left' });
+      } else {
+        newToolStates[toolId] = new ToolStateRecord();
+      }
     }
   });
   

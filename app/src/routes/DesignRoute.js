@@ -17,9 +17,13 @@ import {
   ComponentsLibrary,
 } from '../containers/ComponentsLibrary/ComponentsLibrary';
 
+// import {
+//   TreeView,
+// } from '../containers/RouteTree/RouteTree';
+
 import {
-  TreeView,
-} from '../containers/RouteTree/RouteTree';
+  ComponentsTreeView,
+} from '../containers/ComponentsTreeView/ComponentsTreeView';
 
 import {
   ComponentPropsEditor,
@@ -299,7 +303,7 @@ class DesignRoute extends PureComponent {
       sections: List([
         new ToolSectionRecord({
           name: '',
-          component: TreeView,
+          component: ComponentsTreeView,
         }),
       ]),
     });

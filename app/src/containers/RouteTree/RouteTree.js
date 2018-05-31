@@ -28,6 +28,7 @@ const AddButton = props => (
 
 const mapStateToProps = state => ({
   currentView: state.desktop.treeViewMode,
+  project: state.project.data,
 });
 
 const mapDispatchToProps = dispatch => ({
@@ -38,9 +39,7 @@ const mapDispatchToProps = dispatch => ({
 const wrap = connect(mapStateToProps, mapDispatchToProps);
 
 const RouteTreeComponent = props => {
-  // const currentView = 'routesList';
-  // const currentView = 'routeTree';
-
+  
   const changeViewButtonProps = props.currentView === 'routesList'
     ? {
       title: 'Routes',
