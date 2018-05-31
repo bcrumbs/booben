@@ -83,6 +83,7 @@ export class BlockContentTitle extends PureComponent {
       draggable,
       titlePlaceHolder,
       onLeftIconMouseDown,
+      component,
     } = this.props;
 
     const { editingTitle } = this.state;
@@ -148,8 +149,9 @@ export class BlockContentTitle extends PureComponent {
         {iconLeftElement}
 
         <BlockContentTitleContentStyled>
-          {titleElement}
+          {!component && titleElement}
           {subtitleElement}
+          {component}
         </BlockContentTitleContentStyled>
 
         {buttonsArea}

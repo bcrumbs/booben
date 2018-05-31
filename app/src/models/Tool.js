@@ -5,6 +5,7 @@ export default Record({
   icon: null,
   name: '',
   title: '',
+  component: null,
   titleEditable: false,
   titlePlaceholder: '',
   subtitle: '',

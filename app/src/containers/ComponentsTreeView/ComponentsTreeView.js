@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import Portal from 'react-portal-minimal';
 import { Shortcuts } from 'react-shortcuts';
 import throttle from 'lodash.throttle';
+import { ViewRoutesList } from '../RouteTree/ViewRoutesList';
 
 import {
   BlockContentBox,

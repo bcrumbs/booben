@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { noop } from '../../../utils/misc';
-import { IconArrowUpDown } from '../../icons';
+import { IconArrowChevronLeft } from '../../icons';
 
 import {
   BlockContentViewButtonStyled,
@@ -50,7 +50,7 @@ export const BlockContentViewButton = ({
     <BlockContentViewButtonStyled colorScheme={colorScheme} onClick={onClick}>
       <ButtonStyled>
         <IconBoxStyled colorScheme={colorScheme}>
-          <IconArrowUpDown />
+          <IconArrowChevronLeft />
         </IconBoxStyled>
         <TextBoxStyled>
           {sectionTitleElement}

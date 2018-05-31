@@ -82,6 +82,8 @@ import {
 import {
   DESIGN_TREE_EXPAND_ITEM,
   DESIGN_TREE_COLLAPSE_ITEM,
+  DESIGN_ROUTE_TREE_EXPAND_ITEM,
+  DESIGN_ROUTE_TREE_COLLAPSE_ITEM
 } from '../actions/design';
 
 import RecordWithHistory from '../models/helpers/RecordWithHistory';
@@ -1907,6 +1909,18 @@ const handlers = {
     updateDesigner(state, designer => isArrayOrList(action.componentId)
       ? designer.collapseTreeItems(action.componentId)
       : designer.collapseTreeItem(action.componentId),
+    ),
+  
+  [DESIGN_ROUTE_TREE_EXPAND_ITEM]: (state, action) =>
+    updateDesigner(state, designer => isArrayOrList(action.routeId)
+      ? designer.expandRouteTreeItems(action.routeId)
+      : designer.expandRouteTreeItem(action.routeId),
+    ),
+
+  [DESIGN_ROUTE_TREE_COLLAPSE_ITEM]: (state, action) =>
+    updateDesigner(state, designer => isArrayOrList(action.routeId)
+      ? designer.collapseRouteTreeItems(action.routeId)
+      : designer.collapseRouteTreeItem(action.routeId),
     ),
 };
 

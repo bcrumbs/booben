@@ -17,9 +17,9 @@ import {
   ComponentsLibrary,
 } from '../containers/ComponentsLibrary/ComponentsLibrary';
 
-// import {
-//   TreeView,
-// } from '../containers/RouteTree/RouteTree';
+import {
+  ViewRoutesList,
+} from '../containers/RouteTree/ViewRoutesList';
 
 import {
   ComponentsTreeView,
@@ -113,6 +113,7 @@ import { buildStructurePath } from '../constants/paths';
 import * as JssyPropTypes from '../constants/common-prop-types';
 import { INVALID_ID } from '../constants/misc';
 import { IconLibrary, IconTree, IconBrush } from '../components/icons';
+import { RouteContentViewButton } from '../containers/RouteTree/RouteContentViewButton';
 
 const propTypes = {
   projectName: PropTypes.string.isRequired, // state
@@ -300,10 +301,11 @@ class DesignRoute extends PureComponent {
       icon: <IconTree />,
       name: getLocalizedText('design.tool.elementsTree'),
       title: getLocalizedText('design.tool.elementsTree'),
+      component: <RouteContentViewButton />,
       sections: List([
         new ToolSectionRecord({
           name: '',
-          component: ComponentsTreeView,
+          component: ViewRoutesList,
         }),
       ]),
     });

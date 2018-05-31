@@ -1,30 +1,88 @@
-import React from 'react';
+import React from "react";
+import { connect } from "react-redux";
 
 import {
   RouteTree,
   RouteTreeList,
   RouteTreeItem,
   RouteTreeItemContent,
-} from '../../components';
+  BlockContentBox,
+} from "../../components";
 
-export const ViewRoutesList = props => (
-  <RouteTree>
-    <RouteTreeList level={0}>
-      <RouteTreeItem>
-        <RouteTreeItemContent title="1" expanded hasSubLevel hasRedirect />
-        <RouteTreeList level={1}>
+import { ComponentsTreeView } from "../ComponentsTreeView/ComponentsTreeView";
+
+import {
+  expandRouteTreeItem,
+  collapseRouteTreeItem,
+} from '../../actions/design';
+
+import { currentRouteSelector } from "../../selectors/index";
+import { INVALID_ID } from "../../constants/misc";
+
+import { RouteContentViewButton } from './RouteContentViewButton'
+
+const mapStateToProps = state => ({
+  routes: state.project.data.routes,
+  currentRoute: currentRouteSelector(state),
+  expandedRouteTreeItemIds: state.project.designer.expandedRouteTreeItemIds,
+});
+
+const mapDispatchToProps = dispatch => ({
+  onExpandItem: id =>
+    void dispatch(expandRouteTreeItem(id)),
+
+  onCollapseItem: id =>
+    void dispatch(collapseRouteTreeItem(id)),
+});
+
+const wrap = connect(mapStateToProps, mapDispatchToProps);
+
+const colorScheme = "default";
+
+export const ViewRoutes = ({ currentRoute, expandedRouteTreeItemIds, ...props }) => {
+  // const content = (
+  //   <RouteTreeList level={1}>
+  //     <RouteTreeItem>
+  //       <RouteTreeItemContent hasSubLevel title="Index" />
+  //     </RouteTreeItem>
+  //   </RouteTreeList>
+  // );
+
+  const _handleExpand = ({ componentId, expanded }) => {
+    const { onExpandItem, onCollapseItem } = props;
+
+    if (expanded) onExpandItem(componentId);
+    else onCollapseItem(componentId);
+  };
+
+  const _renderRouteTree = () => {
+    const expanded = expandedRouteTreeItemIds.has(currentRoute.id);
+
+    if (currentRoute.id !== INVALID_ID) {
+      return (
+        <RouteTreeList level={0}>
           <RouteTreeItem>
-            <RouteTreeItemContent hasSubLevel title="Index" />
-          </RouteTreeItem>
-          <RouteTreeItem>
-            <RouteTreeItemContent title="buttonSlotRight buttonSlotRight buttonSlotRightbuttonSlotRightbuttonSlotRight" hasSubLevel />
-          </RouteTreeItem>
-          <RouteTreeItem>
-            <RouteTreeItemContent title="1-2" />
+            <RouteTreeItemContent
+              componentId={currentRoute.id}
+              onExpand={_handleExpand}
+              title={currentRoute.title}
+              hasSubLevel
+              expanded={expanded}
+            />
+            {expanded && <ComponentsTreeView />}
           </RouteTreeItem>
         </RouteTreeList>
-      </RouteTreeItem>
-    </RouteTreeList>
-  </RouteTree>
-);
+      );
+    }
+  };
 
+  const content = _renderRouteTree();
+
+  return (
+    <BlockContentBox colorScheme={colorScheme}>
+      <RouteTree>{content}</RouteTree>
+    </BlockContentBox>
+  );
+};
+
+export const ViewRoutesList = wrap(ViewRoutes);

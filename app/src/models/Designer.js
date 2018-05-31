@@ -5,6 +5,7 @@ const defaults = {
   selectedComponentIds: Set(),
   highlightedComponentIds: Set(),
   expandedTreeItemIds: Set(),
+  expandedRouteTreeItemIds: Set(),
 };
 
 const DesignerRecord = Record(defaults);
@@ -54,6 +55,14 @@ export default class Designer extends DesignerRecord {
 
   expandTreeItem(componentId) {
     return this.update('expandedTreeItemIds', ids => ids.add(componentId));
+  }
+
+  expandRouteTreeItem(routeId) {
+    return this.update('expandedRouteTreeItemIds', ids => ids.add(routeId));
+  }
+
+  collapseRouteTreeItem(routeId) {
+    return this.update('expandedRouteTreeItemIds', ids => ids.delete(routeId));
   }
 
   expandTreeItems(componentIds) {

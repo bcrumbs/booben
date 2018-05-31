@@ -170,6 +170,7 @@ export class ToolPanelContent extends PureComponent {
             titlePlaceHolder={tool.titlePlaceholder}
             buttons={titleButtons}
             onTitleChange={onTitleChange}
+            component={tool.component}
           />
 
           {navArea}
