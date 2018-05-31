@@ -148,12 +148,14 @@ export class BlockContentTitle extends PureComponent {
       <BlockContentTitleAreaStyled draggable={draggable}>
         {iconLeftElement}
 
-        <BlockContentTitleContentStyled>
-          {!component && titleElement}
-          {subtitleElement}
-          {component}
-        </BlockContentTitleContentStyled>
+        {!component && (
+          <BlockContentTitleContentStyled>
+            {titleElement}
+            {subtitleElement}
+          </BlockContentTitleContentStyled>
+        )}
 
+        {component}
         {buttonsArea}
       </BlockContentTitleAreaStyled>
     );

@@ -1186,8 +1186,11 @@ class ComponentsTreeViewComponent extends PureComponent {
     if (!children.length) return null;
 
     return (
-      <ComponentsTreeList level={1}>
-        {children}
+      <ComponentsTreeList>
+        <ComponentsTreeItem>
+          <ComponentsTreeItemContent title="route-title" hasSubLevel expanded />
+          {children}
+        </ComponentsTreeItem>
       </ComponentsTreeList>
     );
   }
@@ -1262,9 +1265,7 @@ class ComponentsTreeViewComponent extends PureComponent {
           handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
           targetNodeSelector="body"
         >
-          <ComponentsTree>
-            {list}
-          </ComponentsTree>
+          {list}
         </Shortcuts>
 
         {componentDataSelect}

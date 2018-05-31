@@ -19,6 +19,8 @@ export const BlockContentViewButtonStyled = styled.div`
   align-items: center;
   justify-content: space-between;
   min-height: ${constants.title.minHeight}px;
+  min-width: 0;
+  background-color: transparent;
   ${colorScheme}
   
   &:hover,
