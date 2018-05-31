@@ -1186,7 +1186,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     if (!children.length) return null;
 
     return (
-      <ComponentsTreeList>
+      <ComponentsTreeList level={1}>
         {children}
       </ComponentsTreeList>
     );
@@ -1251,26 +1251,19 @@ class ComponentsTreeViewComponent extends PureComponent {
       ? this._renderComponentDataSelect()
       : null;
 
-    return (
-      <BlockContentBox
-        isBordered
-        flex
-        elementRef={this._saveContentBoxRef}
-        autoScrollUpDown={draggingComponent}
+    return [
+      <Shortcuts
+        name="COMPONENTS_TREE"
+        handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
+        targetNodeSelector="body"
       >
-        <Shortcuts
-          name="COMPONENTS_TREE"
-          handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
-          targetNodeSelector="body"
-        >
-          <ComponentsTree>
-            {list}
-          </ComponentsTree>
-        </Shortcuts>
+        <ComponentsTree>
+          {list}
+        </ComponentsTree>
+      </Shortcuts>,
 
-        {componentDataSelect}
-      </BlockContentBox>
-    );
+      {componentDataSelect}
+    ];
   }
 }
 
