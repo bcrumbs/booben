@@ -1251,19 +1251,25 @@ class ComponentsTreeViewComponent extends PureComponent {
       ? this._renderComponentDataSelect()
       : null;
 
-    return [
-      <Shortcuts
-        name="COMPONENTS_TREE"
-        handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
-        targetNodeSelector="body"
+    return (
+      <BlockContentBox
+        flex
+        elementRef={this._saveContentBoxRef}
+        autoScrollUpDown={draggingComponent}
       >
-        <ComponentsTree>
-          {list}
-        </ComponentsTree>
-      </Shortcuts>,
+        <Shortcuts
+          name="COMPONENTS_TREE"
+          handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
+          targetNodeSelector="body"
+        >
+          <ComponentsTree>
+            {list}
+          </ComponentsTree>
+        </Shortcuts>
 
-      {componentDataSelect}
-    ];
+        {componentDataSelect}
+      </BlockContentBox>
+    );
   }
 }
 
