@@ -17,9 +17,9 @@ import {
   ComponentsLibrary,
 } from '../containers/ComponentsLibrary/ComponentsLibrary';
 
-import {
-  ViewRoutesList,
-} from '../containers/RouteTree/ViewRoutesList';
+// import {
+//   ViewRoutesList,
+// } from '../containers/RouteTree/ViewRoutesList';
 
 import {
   ComponentsTreeView,
@@ -305,7 +305,7 @@ class DesignRoute extends PureComponent {
       sections: List([
         new ToolSectionRecord({
           name: '',
-          component: ViewRoutesList,
+          component: ComponentsTreeView,
         }),
       ]),
     });

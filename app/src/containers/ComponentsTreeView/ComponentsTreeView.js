@@ -39,6 +39,8 @@ import {
 import {
   expandTreeItem,
   collapseTreeItem,
+  expandRouteTreeItem,
+  collapseRouteTreeItem,
 } from '../../actions/design';
 
 import {
@@ -68,9 +70,11 @@ import {
   rootDraggedComponentSelector,
   cursorPositionSelector,
   expandedTreeItemIdsSelector,
+  currentRouteSelector,
 } from '../../selectors';
 
 import Cursor from '../../models/Cursor';
+import ProjectRoute from '../../models/ProjectRoute';
 import ProjectComponentRecord from '../../models/ProjectComponent';
 import { isCompositeComponent, isAtomicComponent } from '../../lib/meta';
 
@@ -90,6 +94,8 @@ const propTypes = {
   dropZoneId: PropTypes.string,
   components: JssyPropTypes.components.isRequired, // state
   rootComponentId: PropTypes.number.isRequired, // state
+  currentRoute: PropTypes.instanceOf(ProjectRoute).isRequired,
+  expandedRouteTreeItemIds: JssyPropTypes.setOfIds.isRequired,
   selectedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
   highlightedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
   expandedItemIds: JssyPropTypes.setOfIds.isRequired, // state
@@ -112,6 +118,8 @@ const propTypes = {
   getLocalizedText: PropTypes.func.isRequired, // state
   onExpandItem: PropTypes.func.isRequired, // dispatch
   onCollapseItem: PropTypes.func.isRequired, // dispatch
+  onExpandRouteItem: PropTypes.func.isRequired, // dispatch
+  onCollapseRouteItem: PropTypes.func.isRequired, // dispatch
   onSelectItem: PropTypes.func.isRequired, // dispatch
   onDeselectItem: PropTypes.func.isRequired, // dispatch
   onHighlightItem: PropTypes.func.isRequired, // dispatch
@@ -137,6 +145,8 @@ const defaultProps = {
 const mapStateToProps = state => ({
   components: currentComponentsSelector(state),
   rootComponentId: currentRootComponentIdSelector(state),
+  currentRoute: currentRouteSelector(state),
+  expandedRouteTreeItemIds: state.project.designer.expandedRouteTreeItemIds,
   selectedComponentIds: selectedComponentIdsSelector(state),
   highlightedComponentIds: highlightedComponentIdsSelector(state),
   expandedItemIds: expandedTreeItemIdsSelector(state),
@@ -164,6 +174,12 @@ const mapDispatchToProps = dispatch => ({
 
   onCollapseItem: id =>
     void dispatch(collapseTreeItem(id)),
+
+  onExpandRouteItem: id =>
+  void dispatch(expandRouteTreeItem(id)),
+
+  onCollapseRouteItem: id =>
+    void dispatch(collapseRouteTreeItem(id)),
 
   onSelectItem: id =>
     void dispatch(selectPreviewComponent(id, true, false, false)),
@@ -276,6 +292,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     this._handleShortcuts = this._handleShortcuts.bind(this);
     this._handleNativeClick = this._handleNativeClick.bind(this);
     this._handleExpand = this._handleExpand.bind(this);
+    this._handleRouteExpand = this._handleRouteExpand.bind(this);
     this._handleSelect = this._handleSelect.bind(this);
     this._handleHover = this._handleHover.bind(this);
     this._handleDragEnter = this._handleDragEnter.bind(this);
@@ -288,6 +305,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     this._expandComponent = this._expandComponent.bind(this);
     this._expandComponentAfterTime = this._expandComponentAfterTime.bind(this);
     this._clearExpandTimeout = this._clearExpandTimeout.bind(this);
+    this._renderRouteItem = this._renderRouteItem.bind(this);
   }
 
   componentDidMount() {
@@ -803,6 +821,13 @@ class ComponentsTreeViewComponent extends PureComponent {
     }
   }
 
+  _handleRouteExpand({ componentId, expanded }) {
+    const { onExpandRouteItem, onCollapseRouteItem } = this.props;
+
+    if (expanded) onExpandRouteItem(componentId);
+    else onCollapseRouteItem(componentId);
+  }
+
   /**
    *
    * @param {number} componentId
@@ -1225,13 +1250,32 @@ class ComponentsTreeViewComponent extends PureComponent {
     );
   }
 
+  _renderRouteItem() {
+    const { currentRoute, expandedRouteTreeItemIds } = this.props;
+    const expanded = expandedRouteTreeItemIds.has(currentRoute.id);
+    
+    return (
+      <ComponentsTreeItemContent
+        componentId={currentRoute.id}
+        onExpand={this._handleRouteExpand}
+        title={currentRoute.title}
+        hasSubLevel
+        expanded={expanded}
+      />
+    );
+  }
+
   render() {
     const {
       draggingComponent,
       componentDataListIsVisible,
       pickedComponentArea,
       getLocalizedText,
+      expandedRouteTreeItemIds,
+      currentRoute,
     } = this.props;
+
+    const routeExpanded = expandedRouteTreeItemIds.has(currentRoute.id);
 
     if (!this._treeIsVisible()) {
       return (
@@ -1251,6 +1295,8 @@ class ComponentsTreeViewComponent extends PureComponent {
       ? this._renderComponentDataSelect()
       : null;
 
+    const routeItem = this._renderRouteItem();
+
     return (
       <BlockContentBox
         flex
@@ -1264,8 +1310,8 @@ class ComponentsTreeViewComponent extends PureComponent {
         >
           <ComponentsTreeList>
             <ComponentsTreeItem>
-              <ComponentsTreeItemContent title="route-title" hasSubLevel expanded />
-              {list}
+              {routeItem}
+              {routeExpanded && list}
             </ComponentsTreeItem>
           </ComponentsTreeList>
         </Shortcuts>
