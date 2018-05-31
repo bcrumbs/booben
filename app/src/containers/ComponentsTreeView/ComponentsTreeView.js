@@ -43,6 +43,8 @@ import {
   collapseRouteTreeItem,
 } from '../../actions/design';
 
+import { selectRoute } from '../../actions/structure';
+
 import {
   selectPreviewComponent,
   deselectPreviewComponent,
@@ -120,6 +122,7 @@ const propTypes = {
   onCollapseItem: PropTypes.func.isRequired, // dispatch
   onExpandRouteItem: PropTypes.func.isRequired, // dispatch
   onCollapseRouteItem: PropTypes.func.isRequired, // dispatch
+  onSelectRoute: PropTypes.func.isRequired, // dispatch
   onSelectItem: PropTypes.func.isRequired, // dispatch
   onDeselectItem: PropTypes.func.isRequired, // dispatch
   onHighlightItem: PropTypes.func.isRequired, // dispatch
@@ -183,6 +186,9 @@ const mapDispatchToProps = dispatch => ({
 
   onSelectItem: id =>
     void dispatch(selectPreviewComponent(id, true, false, false)),
+
+  onSelectRoute: (routeId, indexRouteSelected) => 
+    void dispatch(selectRoute(routeId, indexRouteSelected)),
 
   onDeselectItem: id =>
     void dispatch(deselectPreviewComponent(id)),
@@ -294,6 +300,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     this._handleExpand = this._handleExpand.bind(this);
     this._handleRouteExpand = this._handleRouteExpand.bind(this);
     this._handleSelect = this._handleSelect.bind(this);
+    this._handleRouteSelect = this._handleRouteSelect.bind(this);
     this._handleHover = this._handleHover.bind(this);
     this._handleDragEnter = this._handleDragEnter.bind(this);
     this._handleDragLeave = this._handleDragLeave.bind(this);
@@ -841,6 +848,11 @@ class ComponentsTreeViewComponent extends PureComponent {
     else onCollapseItem(componentId);
   }
 
+  _handleRouteSelect() {
+    const { currentRoute, onSelectRoute } = this.props;
+    onSelectRoute(currentRoute.id, currentRoute.haveIndex);
+  }
+
   /**
    *
    * @param {number} componentId
@@ -1259,6 +1271,7 @@ class ComponentsTreeViewComponent extends PureComponent {
         componentId={currentRoute.id}
         onExpand={this._handleRouteExpand}
         title={currentRoute.title}
+        onSelect={this._handleRouteSelect}
         hasSubLevel
         expanded={expanded}
       />

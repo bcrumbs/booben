@@ -79,7 +79,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onSelectRoute: (routeId, indexRouteSelected) =>
+  onSelectRoute: (routeId, indexRouteSelected) => 
     void dispatch(selectRoute(routeId, indexRouteSelected)),
 
   onCreateRoute: (parentRouteId, path, title, paramValues) =>
