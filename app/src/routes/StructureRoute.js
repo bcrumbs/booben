@@ -233,21 +233,6 @@ class StructureRoute extends PureComponent {
       ? project.routes.get(selectedRouteId)
       : null;
 
-    const routeEditorToolMainButtons = selectedRoute
-      ? List([
-        new ButtonRecord({
-          text: getLocalizedText('common.edit'),
-          disabled: !isRouteEditable(
-            project.routes,
-            selectedRouteId,
-            indexRouteSelected,
-          ),
-
-          onPress: this._handleSelectedRouteGo,
-        }),
-      ])
-      : List();
-
     const routeEditorToolSections = List([
       new ToolSectionRecord({
         component: RouteEditor,
@@ -279,7 +264,6 @@ class StructureRoute extends PureComponent {
           titlePlaceholder: getLocalizedText('structure.routeTitle'),
           subtitle: selectedRoute ? selectedRoute.path : '',
           sections: routeEditorToolSections,
-          mainButtons: routeEditorToolMainButtons,
           windowMinWidth: 360,
         }),
       ]),

@@ -189,6 +189,7 @@ const ProjectState = RecordWithHistory({
   meta: null,
   lastRouteId: INVALID_ID,
   lastComponentId: INVALID_ID,
+  propsViewMode: 'componentProps',
   designer: new Designer(),
   clipboard: new Clipboard(),
   cursor: new Cursor(),
@@ -1665,6 +1666,8 @@ const handlers = {
         designer.expandTreeItems(componentsToExpand));
     }
 
+    state = state.merge({ propsViewMode: 'componentProps' });
+    
     return updateDesigner(state, action.exclusive
       ? designer => designer.selectComponentExclusive(action.componentId)
       : designer => designer.selectComponent(action.componentId),
@@ -1888,10 +1891,13 @@ const handlers = {
       action.afterIdx,
     )),
 
-  [STRUCTURE_SELECT_ROUTE]: (state, action) => state.merge({
-    selectedRouteId: action.routeId,
-    indexRouteSelected: action.indexRouteSelected,
-  }),
+  [STRUCTURE_SELECT_ROUTE]: (state, action) => {
+    return state.merge({
+      selectedRouteId: action.routeId,
+      indexRouteSelected: action.indexRouteSelected,
+      propsViewMode: 'routeProps',
+    });
+  },
 
   [APP_LOAD_STRINGS_SUCCESS]: (state, action) =>
     state.set('languageForComponentProps', action.language),

@@ -51,6 +51,8 @@ import {
   ComponentsDragArea,
 } from '../containers/ComponentsDragArea/ComponentsDragArea';
 
+import { RouteEditor } from '../containers/RouteEditor/RouteEditor';
+
 import { AppWrapper } from '../components/AppWrapper/AppWrapper';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
@@ -106,6 +108,7 @@ import {
   TOOL_ID_LIBRARY,
   TOOL_ID_COMPONENTS_TREE,
   TOOL_ID_PROPS_EDITOR,
+  TOOL_ID_ROUTE_EDITOR,
 } from '../constants/tool-ids';
 
 import { isInputOrTextareaActive } from '../utils/dom';
@@ -152,9 +155,13 @@ const propTypes = {
 };
 
 const mapStateToProps = state => ({
+  project: state.project.data,
+  selectedRouteId: state.project.selectedRouteId,
+  indexRouteSelected: state.project.indexRouteSelected,
   projectName: state.project.projectName,
   components: currentComponentsSelector(state),
   meta: state.project.meta,
+  propsViewMode: state.project.propsViewMode,
   previewContainerStyle: containerStyleSelector(state),
   singleComponentSelected: singleComponentSelectedSelector(state),
   firstSelectedComponentId: firstSelectedComponentIdSelector(state),
@@ -311,6 +318,47 @@ class DesignRoute extends PureComponent {
     });
   }
 
+  _getRouteEditorTool() {
+    const {
+      project, selectedRouteId, indexRouteSelected, getLocalizedText
+    } = this.props;
+    const selectedRoute = selectedRouteId !== -1
+      ? project.routes.get(selectedRouteId)
+      : null;
+
+    const routeEditorToolSections = List([
+      new ToolSectionRecord({
+        component: RouteEditor,
+        componentProps: {
+          onEditPath: this._handleEditPath,
+        },
+      }),
+    ]);
+
+    let title;
+    if (selectedRoute) {
+      title = indexRouteSelected
+        ? `${selectedRoute.title || selectedRoute.path} - Index`
+        : selectedRoute.title;
+    } else {
+      title = getLocalizedText('structure.routeEditorTitle');
+    }
+
+    const titleEditable = !!selectedRoute && !indexRouteSelected;
+
+    return new ToolRecord({
+      id: TOOL_ID_PROPS_EDITOR,
+      icon: <IconBrush />,
+      name: getLocalizedText('structure.routeEditorTitle'),
+      title,
+      titleEditable,
+      titlePlaceholder: getLocalizedText('structure.routeTitle'),
+      subtitle: selectedRoute ? selectedRoute.path : '',
+      sections: routeEditorToolSections,
+      windowMinWidth: 360,
+    });
+  }
+
   _getPropsEditorTool() {
     const {
       meta,
@@ -376,7 +424,16 @@ class DesignRoute extends PureComponent {
     const libraryTool = this._getLibraryTool();
     const treeTool = this._getTreeTool();
     const propsEditorTool = this._getPropsEditorTool();
-    return List([List([libraryTool, treeTool, propsEditorTool])]);
+    const routeEditorTool = this._getRouteEditorTool();
+
+    let editorTool;
+
+    if (this.props.propsViewMode === 'routeProps') {
+      editorTool = routeEditorTool;
+    } else {
+      editorTool = propsEditorTool;
+    }
+    return List([List([libraryTool, treeTool, editorTool])]);
   }
 
   /**
