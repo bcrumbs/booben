@@ -4,20 +4,15 @@ import { Button } from "reactackle-button";
 
 import { currentRouteSelector } from "../../selectors/index";
 
-import { BlockContentViewButton, IconAdd } from "../../components";
-
-import { toggleTreeViewMode } from "../../actions/desktop";
-
 import { getLocalizedTextFromState } from "../../selectors";
 
+import { BlockContentViewButton, IconAdd } from "../../components";
+
 const mapStateToProps = state => ({
-  currentRoute: currentRouteSelector(state),
   getLocalizedText: getLocalizedTextFromState(state)
 });
 
-const mapDispatchToProps = dispatch => ({
-  onToggleTreeViewMode: () => void dispatch(toggleTreeViewMode())
-});
+const mapDispatchToProps = dispatch => ({});
 
 const AddButton = props => (
   <Button
@@ -35,28 +30,25 @@ const wrap = connect(
 
 const colorScheme = "default";
 
-const ContentViewButton = ({
+const RoutesListHeaderComponent = ({
   getLocalizedText,
   currentRoute,
   onToggleTreeViewMode,
   addButtonAction
 }) => {
-  const formatRouteTitle = title =>
-    `${getLocalizedText(
-      "structure.routeTreeEditorTitle"
-    )}: ${title}`.toUpperCase();
+  const title = getLocalizedText("structure.routeTreeEditorTitle");
 
   const changeViewButtonProps = {
-    title: formatRouteTitle(currentRoute.title),
+    title: title,
+    actionsSlot: addButtonAction && <AddButton onPress={addButtonAction} />,
   };
 
   return (
     <BlockContentViewButton
       colorScheme={colorScheme}
       {...changeViewButtonProps}
-      onClick={onToggleTreeViewMode}
     />
   );
 };
 
-export const RouteContentViewButton = wrap(ContentViewButton);
+export const RoutesListHeader = wrap(RoutesListHeaderComponent);

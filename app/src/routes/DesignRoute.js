@@ -52,17 +52,22 @@ import {
 } from '../containers/ComponentsDragArea/ComponentsDragArea';
 
 import { RouteEditor } from '../containers/RouteEditor/RouteEditor';
+import { RouteTreeView } from '../containers/RouteTree/RouteTree';
 
 import { AppWrapper } from '../components/AppWrapper/AppWrapper';
 import ToolRecord from '../models/Tool';
+import ProjectRecord from '../models/Project';
 import ToolSectionRecord from '../models/ToolSection';
 import Clipboard from '../models/Clipboard';
 import Cursor from '../models/Cursor';
 
 import {
+  createRoute,
   createComponent,
   renameComponent,
   deleteComponent,
+  updateRoutePath,
+  updateRouteField,
   copyComponent,
   moveComponent,
   pickComponentDataDone,
@@ -117,11 +122,19 @@ import * as JssyPropTypes from '../constants/common-prop-types';
 import { INVALID_ID } from '../constants/misc';
 import { IconLibrary, IconTree, IconBrush } from '../components/icons';
 import { RouteContentViewButton } from '../containers/RouteTree/RouteContentViewButton';
+import { RoutesListHeader } from '../containers/RouteTree/RoutesListHeader';
+
+import {
+  CreateRouteDialog,
+  EditRoutePathDialog,
+} from '../containers/route-dialogs';
 
 const propTypes = {
+  project: PropTypes.instanceOf(ProjectRecord).isRequired, // store
   projectName: PropTypes.string.isRequired, // state
   components: JssyPropTypes.components.isRequired, // state
   meta: PropTypes.object.isRequired, // state
+  selectedRouteId: PropTypes.number.isRequired, // store
   previewContainerStyle: PropTypes.string.isRequired, // state
   singleComponentSelected: PropTypes.bool.isRequired, // state
   firstSelectedComponentId: PropTypes.number.isRequired, // state
@@ -138,6 +151,9 @@ const propTypes = {
   showContentPlaceholders: PropTypes.bool.isRequired, // state
   canDelete: PropTypes.bool.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
+  onRenameRoute: PropTypes.func.isRequired, // dispatch
+  onCreateRoute: PropTypes.func.isRequired, // dispatch
+  onUpdateRoutePath: PropTypes.func.isRequired, // dispatch
   onCreateComponent: PropTypes.func.isRequired, // dispatch
   onRenameComponent: PropTypes.func.isRequired, // dispatch
   onDeleteComponent: PropTypes.func.isRequired, // dispatch
@@ -159,6 +175,7 @@ const mapStateToProps = state => ({
   selectedRouteId: state.project.selectedRouteId,
   indexRouteSelected: state.project.indexRouteSelected,
   projectName: state.project.projectName,
+  treeViewMode: state.desktop.treeViewMode,
   components: currentComponentsSelector(state),
   meta: state.project.meta,
   propsViewMode: state.project.propsViewMode,
@@ -179,6 +196,20 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+  onUpdateRoutePath: (routeId, newPath, newParamValues, renamedParams) =>
+    void dispatch(updateRoutePath(
+      routeId,
+      newPath,
+      newParamValues,
+      renamedParams,
+    )),
+
+  onRenameRoute: (routeId, newTitle) =>
+    void dispatch(updateRouteField(routeId, 'title', newTitle)),
+
+  onCreateRoute: (parentRouteId, path, title, paramValues) =>
+    void dispatch(createRoute(parentRouteId, path, title, paramValues)),
+
   onCreateComponent: (components, containerId, afterIdx) =>
     void dispatch(createComponent(components, containerId, afterIdx)),
 
@@ -239,6 +270,9 @@ NestedConstructorsBreadcrumbsItem.defaultProps = {
 NestedConstructorsBreadcrumbsItem.displayName =
   'NestedConstructorsBreadcrumbsItem';
 
+const normalizePath = (rawPath, isRootRoute) =>
+  isRootRoute ? `/${rawPath}` : rawPath;
+
 class DesignRoute extends PureComponent {
   constructor(props, context) {
     super(props, context);
@@ -246,8 +280,30 @@ class DesignRoute extends PureComponent {
     this.state = {
       createComponentMenuIsVisible: false,
       confirmDeleteComponentDialogIsVisible: false,
+      confirmDeleteDialogIsVisible: false,
+      createRouteDialogIsVisible: false,
+      createRouteParentId: -1,
+      editRoutePathDialogIsVisible: false,
+      editingRouteId: INVALID_ID,
+      newRoutePath: '',
+      newRouteTitle: '',
+      newRouteParamValues: {},
+      pathPatternError: false,
     };
-
+    this._handleToolRouteTitleChange =
+      this._handleToolRouteTitleChange.bind(this);
+    this._handleNewRoutePress = this._handleNewRoutePress.bind(this);
+    this._handleCreateRouteDialogSubmit =
+      this._handleCreateRouteDialogSubmit.bind(this);
+    this._handleCreateRouteDialogClose =
+      this._handleCreateRouteDialogClose.bind(this);
+    this._renderNewRouteDialog = this._renderNewRouteDialog.bind(this);
+    this._handleEditPath =
+      this._handleEditPath.bind(this);
+    this._handleEditPathDialogSubmit =
+      this._handleEditPathDialogSubmit.bind(this);
+    this._handleEditPathDialogClose =
+      this._handleEditPathDialogClose.bind(this);
     this._handleShortcuts =
       this._handleShortcuts.bind(this);
     this._handleToolTitleChange =
@@ -282,6 +338,12 @@ class DesignRoute extends PureComponent {
       this._handleConvertComponentToList.bind(this);
   }
 
+  _handleToolRouteTitleChange(tool, newTitle) {
+    if (tool.id === TOOL_ID_PROPS_EDITOR) {
+      this.props.onRenameRoute(this.props.selectedRouteId, newTitle);
+    }
+  }
+
   _getLibraryTool() {
     const { getLocalizedText } = this.props;
 
@@ -300,21 +362,167 @@ class DesignRoute extends PureComponent {
     });
   }
 
+  _handleNewRoutePress({ parentRoute }) {
+    const parentId = parentRoute ? parentRoute.id : -1;
+
+    this.setState({
+      createRouteDialogIsVisible: true,
+      createRouteParentId: parentId,
+      newRoutePath: '',
+      newRouteTitle: '',
+      newRouteParamValues: {},
+    });
+  }
+
+  _handleCreateRouteDialogClose() {
+    this.setState({
+      createRouteDialogIsVisible: false,
+      createRouteParentId: INVALID_ID,
+    });
+  }
+
+  _renderNewRouteDialog() {
+    const {
+      createRouteParentId,
+      createRouteDialogIsVisible,
+    } = this.state;
+
+    if (!createRouteDialogIsVisible) return null;
+
+    return (
+      <CreateRouteDialog
+        open
+        parentRouteId={createRouteParentId}
+        onSubmit={this._handleCreateRouteDialogSubmit}
+        onClose={this._handleCreateRouteDialogClose}
+      />
+    );
+  }
+
+  _renderEditRoutePathDialog() {
+    const {
+      editRoutePathDialogIsVisible,
+      editingRouteId,
+    } = this.state;
+
+    if (!editRoutePathDialogIsVisible) return null;
+
+    return (
+      <EditRoutePathDialog
+        open
+        editingRouteId={editingRouteId}
+        onSubmit={this._handleEditPathDialogSubmit}
+        onClose={this._handleEditPathDialogClose}
+      />
+    );
+  }
+
+  _handleCreateRouteDialogSubmit(data) {
+    const { onCreateRoute } = this.props;
+    const {
+      createRouteParentId,
+      newRoutePath,
+      newRouteTitle,
+      newRouteParamValues,
+    } = data;
+
+    const isRootRoute = createRouteParentId === -1;
+    const title = newRouteTitle.trim();
+    const path = normalizePath(newRoutePath, isRootRoute);
+
+    onCreateRoute(createRouteParentId, path, title, newRouteParamValues);
+  }
+
+  _handleEditPath() {
+    const { project, selectedRouteId } = this.props;
+
+    const route = project.routes.get(selectedRouteId);
+    const isRootRoute = route.parentId === INVALID_ID;
+
+    // Remove leading / from root route path
+    const displayPath = isRootRoute ? route.path.slice(1) : route.path;
+
+    this.setState({
+      editRoutePathDialogIsVisible: true,
+      editingRouteId: selectedRouteId,
+      newRoutePath: displayPath,
+      newRouteParamValues: route.paramValues.toObject(),
+    }, () => {
+      if (this._routePathInput) this._routePathInput.focus();
+    });
+  }
+
+  _handleEditPathDialogSubmit(data) {
+    const { project, onUpdateRoutePath } = this.props;
+
+    const {
+      editingRouteId,
+      newRoutePath,
+      newRouteParamValues,
+    } = data;
+
+    const route = project.routes.get(editingRouteId);
+    const isRootRoute = route.parentId === INVALID_ID;
+    const path = normalizePath(newRoutePath, isRootRoute);
+
+    onUpdateRoutePath(
+      editingRouteId,
+      path,
+      newRouteParamValues,
+      {},
+    );
+  }
+
+  _handleEditPathDialogClose() {
+    this.setState({
+      editRoutePathDialogIsVisible: false,
+      editingRouteId: INVALID_ID,
+    });
+  }
+
   _getTreeTool() {
-    const { getLocalizedText } = this.props;
+    const { getLocalizedText, treeViewMode } = this.props;
+
+    let component = null;
+
+    if (treeViewMode === 'routesList') {
+      component = (
+        <RoutesListHeader
+          addButtonAction={
+            () => this._handleNewRoutePress({ parentRoute: null })
+          }
+        />
+      );
+    } else if (treeViewMode === 'routeTree') {
+      component = <RouteContentViewButton />;
+    }
+
+    const routesTreeToolSections = List([
+      new ToolSectionRecord({
+        name: '',
+        component: RouteTreeView,
+      }),
+    ]);
+
+    const componentTreeToolSections = List([
+      new ToolSectionRecord({
+        name: '',
+        component: ComponentsTreeView,
+      }),
+    ]);
+
+    const activeSections =
+      treeViewMode === 'routesList'
+        ? routesTreeToolSections
+        : componentTreeToolSections;
 
     return new ToolRecord({
       id: TOOL_ID_COMPONENTS_TREE,
       icon: <IconTree />,
       name: getLocalizedText('design.tool.elementsTree'),
       title: getLocalizedText('design.tool.elementsTree'),
-      component: <RouteContentViewButton />,
-      sections: List([
-        new ToolSectionRecord({
-          name: '',
-          component: ComponentsTreeView,
-        }),
-      ]),
+      component,
+      sections: activeSections,
     });
   }
 
@@ -800,6 +1008,7 @@ class DesignRoute extends PureComponent {
       getLocalizedText,
       onUndo,
       onRedo,
+      propsViewMode,
     } = this.props;
 
     const {
@@ -840,6 +1049,17 @@ class DesignRoute extends PureComponent {
       ? this._renderCreateComponentMenu()
       : null;
 
+    const newRouteDialog = this._renderNewRouteDialog();
+    const editRoutePathDialog = this._renderEditRoutePathDialog();
+
+    let onToolTitleChange;
+
+    if (propsViewMode === 'routeProps') {
+      onToolTitleChange = this._handleToolRouteTitleChange;
+    } else {
+      onToolTitleChange = this._handleToolTitleChange;
+    }
+
     return (
       <Shortcuts
         name="DESIGN_SCREEN"
@@ -849,7 +1069,7 @@ class DesignRoute extends PureComponent {
       >
         <Desktop
           toolGroups={toolGroups}
-          onToolTitleChange={this._handleToolTitleChange}
+          onToolTitleChange={onToolTitleChange}
         >
           <DesignToolbar
             onDuplicate={this._handleDuplicateSelectedComponent}
@@ -890,6 +1110,8 @@ class DesignRoute extends PureComponent {
           <ComponentsDragArea onDrop={this._handleDropComponent} />
           {componentDataSelect}
           {createComponentMenu}
+          {newRouteDialog}
+          {editRoutePathDialog}
         </Desktop>
       </Shortcuts>
     );

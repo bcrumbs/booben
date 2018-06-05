@@ -61,7 +61,7 @@ export const BlockContentViewButton = ({
       {actions}
     </BlockContentViewButtonStyled>
   );
-}
+};
 
 BlockContentViewButton.propTypes = propTypes;
 BlockContentViewButton.defaultProps = defaultProps;

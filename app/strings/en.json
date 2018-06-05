@@ -31,6 +31,7 @@
   "alert.componentError": "An error has occurred in {hookName} of {componentName}: {message}",
 
   "structure.routeEditorTitle": "Route configuration",
+  "structure.routeTreeEditorTitle": "Routes",
   "structure.noRouteSelected": "Select a route",
   "structure.route": "Route",
   "structure.routeTitle": "Route title",
