@@ -1165,6 +1165,7 @@ const initMainDesigner = state => {
 
 const setCurrentRoute = (state, routeId, isIndexRoute) => {
   state = closeAllNestedConstructors(state);
+  state = state.update('designer', designer => designer.reset());
 
   state = state.merge({
     currentRouteId: routeId,

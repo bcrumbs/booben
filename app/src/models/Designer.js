@@ -1,4 +1,5 @@
 import { Record, Set } from 'immutable';
+import _omit from 'lodash.omit';
 import { INVALID_ID } from '../constants/misc';
 
 const defaults = {
@@ -118,6 +119,6 @@ export default class Designer extends DesignerRecord {
   }
 
   reset() {
-    return this.merge(defaults);
+    return this.merge(_omit(defaults, ['expandedRouteTreeItemIds']));
   }
 }

@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Button } from 'reactackle-button';
 import { connect } from 'react-redux';
 import { push } from 'react-router-redux';
+import { Shortcuts } from 'react-shortcuts';
 
 import {
   BlockContentBox,
@@ -17,19 +18,14 @@ import { ViewRouteTree } from './ViewRouteTree';
 import { ViewRoutesList } from './ViewRoutesList';
 import { INVALID_ID } from '../../constants/misc';
 
-
-import {
-  createRoute,
-} from '../../actions/project';
+import { createRoute } from '../../actions/project';
 
 import {
   buildDesignRoutePath,
   buildDesignRouteIndexPath,
 } from '../../constants/paths';
 
-import {
-  CreateRouteDialog,
-} from '../route-dialogs';
+import { CreateRouteDialog } from '../route-dialogs';
 
 import {
   getLocalizedTextFromState,
@@ -120,18 +116,164 @@ class RouteTreeComponent extends Component {
       newRouteParamValues: {},
       pathPatternError: false,
     };
-    
+
+    this._handleShortcuts = this._handleShortcuts.bind(this);
+    this._handleMoveSelectionVertically = this._handleMoveSelectionVertically.bind(
+      this,
+    );
+    this._handleSelectChildRoute = this._handleSelectChildRoute.bind(this);
+    this._handleSelectParentComponent =
+      this._handleSelectParentComponent.bind(this);
     this._handleHover = this._handleHover.bind(this);
     this._handleRouteSelect = this._handleRouteSelect.bind(this);
     this._handleExpand = this._handleExpand.bind(this);
     this._renderRouteItem = this._renderRouteItem.bind(this);
     this._renderRoutesList = this._renderRoutesList.bind(this);
     this._handleNewRoutePress = this._handleNewRoutePress.bind(this);
-    this._handleCreateRouteDialogClose =
-      this._handleCreateRouteDialogClose.bind(this);
+    this._handleCreateRouteDialogClose = this._handleCreateRouteDialogClose.bind(
+      this,
+    );
     this._renderNewRouteDialog = this._renderNewRouteDialog.bind(this);
-    this._handleCreateRouteDialogSubmit =
-      this._handleCreateRouteDialogSubmit.bind(this);
+    this._handleCreateRouteDialogSubmit = this._handleCreateRouteDialogSubmit.bind(
+      this,
+    );
+  }
+
+  _handleShortcuts(action) {
+    switch (action) {
+      case 'SELECT_NEXT_ROUTE': {
+        this._handleMoveSelectionVertically('down');
+        break;
+      }
+
+      case 'SELECT_PREVIOUS_ROUTE': {
+        this._handleMoveSelectionVertically('up');
+        break;
+      }
+
+      case 'SELECT_CHILD_ROUTE': {
+        this._handleSelectChildRoute();
+        break;
+      }
+
+      case 'SELECT_PARENT_ROUTE': {
+        this._handleSelectParentComponent();
+        break;
+      }
+
+      default:
+    }
+  }
+
+  _handleMoveSelectionVertically(direction) {
+    const {
+      project,
+      projectName,
+      currentRoute,
+      selectedRouteId,
+      onSelectRoute,
+      onOpenDesigner,
+    } = this.props;
+
+    const selectedRoute = project.routes.get(selectedRouteId);
+
+    if (selectedRoute.parentId === INVALID_ID) {
+      const position = project.rootRoutes.indexOf(selectedRouteId);
+      const nextPosition = direction === 'down' ? position + 1 : position - 1;
+
+      if (nextPosition < 0 || nextPosition > project.rootRoutes.size - 1) {
+        return;
+      }
+      const newRouteId = project.rootRoutes.get(nextPosition);
+      const newRoute = project.routes.get(newRouteId);
+      onSelectRoute(newRouteId);
+
+      if (currentRoute.id !== newRouteId) {
+        onOpenDesigner({
+          projectName,
+          routeId: newRouteId,
+          isIndexRoute: newRoute.haveIndex,
+        });
+      }
+    } else {
+      const parentRoute = project.routes.get(selectedRoute.parentId);
+      const position = parentRoute.children.indexOf(selectedRouteId);
+      const nextPosition = direction === 'down' ? position + 1 : position - 1;
+
+      if (nextPosition < 0 || nextPosition > parentRoute.children.size - 1) {
+        return;
+      }
+      const newRouteId = parentRoute.children.get(nextPosition);
+      const newRoute = project.routes.get(newRouteId);
+      onSelectRoute(newRouteId);
+
+      if (currentRoute.id !== newRouteId) {
+        onOpenDesigner({
+          projectName,
+          routeId: newRouteId,
+          isIndexRoute: newRoute.haveIndex,
+        });
+      }
+    }
+  }
+
+  _handleSelectChildRoute() {
+    const {
+      project,
+      projectName,
+      selectedRouteId,
+      onSelectRoute,
+      currentRoute,
+      expandedRouteTreeItemIds,
+      onExpandItem,
+      onOpenDesigner,
+    } = this.props
+
+    const selectedRoute = project.routes.get(selectedRouteId);
+    if (selectedRoute.children.size === 0) return;
+
+    if (!expandedRouteTreeItemIds.has(selectedRoute)) {
+      onExpandItem(selectedRoute);
+    }
+    const newRouteId = selectedRoute.children.first();
+    const newRoute = project.routes.get(newRouteId);
+
+    onSelectRoute(newRouteId);
+
+    if (currentRoute.id !== newRouteId) {
+      onOpenDesigner({
+        projectName,
+        routeId: newRouteId,
+        isIndexRoute: newRoute.haveIndex,
+      });
+    }
+  }
+
+  _handleSelectParentComponent() {
+    const {
+      project,
+      projectName,
+      selectedRouteId,
+      onSelectRoute,
+      currentRoute,
+      onOpenDesigner,
+    } = this.props;
+
+    const selectedRoute = project.routes.get(selectedRouteId);
+    const newRouteId = selectedRoute.parentId;
+    const newRoute = project.routes.get(newRouteId);
+
+    if (selectedRoute.parentId === INVALID_ID) return;
+
+    onSelectRoute(selectedRoute.parentId);
+
+    if (currentRoute.id !== newRouteId) {
+      onOpenDesigner({
+        projectName,
+        routeId: newRouteId,
+        isIndexRoute: newRoute.haveIndex,
+      });
+    }
   }
 
   _handleNewRoutePress({ parentRoute }) {
@@ -170,10 +312,7 @@ class RouteTreeComponent extends Component {
   }
 
   _renderNewRouteDialog() {
-    const {
-      createRouteParentId,
-      createRouteDialogIsVisible,
-    } = this.state;
+    const { createRouteParentId, createRouteDialogIsVisible } = this.state;
 
     if (!createRouteDialogIsVisible) return null;
 
@@ -209,10 +348,7 @@ class RouteTreeComponent extends Component {
   }
 
   _handleHover({ componentId, hovered }) {
-    const {
-      onHighlightItem,
-      onUnhighlightItem
-    } = this.props;
+    const { onHighlightItem, onUnhighlightItem } = this.props;
 
     if (hovered) onHighlightItem(componentId);
     else onUnhighlightItem(componentId);
@@ -322,10 +458,16 @@ class RouteTreeComponent extends Component {
     const newRouteDialog = this._renderNewRouteDialog();
     const content = this._renderRoutesList(INVALID_ID);
     return (
-      <BlockContentBox key="list" colorScheme={colorScheme}>
-        <RouteTree>{content}</RouteTree>
-        {newRouteDialog}
-      </BlockContentBox>
+      <Shortcuts
+        name="ROUTES_LIST"
+        handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
+        targetNodeSelector="body"
+      >
+        <BlockContentBox key="list" colorScheme={colorScheme}>
+          <RouteTree>{content}</RouteTree>
+          {newRouteDialog}
+        </BlockContentBox>
+      </Shortcuts>
     );
   }
 }

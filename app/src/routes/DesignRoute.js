@@ -697,6 +697,28 @@ class DesignRoute extends PureComponent {
       case 'UNDO': this.props.onUndo(); break;
       case 'REDO': this.props.onRedo(); break;
 
+      case 'CREATE_CHILD_ROUTE': {
+        const { project, selectedRouteId } = this.props;
+        const { createRouteDialogIsVisible } = this.state;
+
+        if (!createRouteDialogIsVisible) {
+          const parentRoute = project.routes.get(selectedRouteId);
+          this._handleNewRoutePress({ parentRoute });
+        }
+
+        break;
+      }
+
+      case 'CREATE_ROOT_ROUTE': {
+        const { createRouteDialogIsVisible } = this.state;
+
+        if (!createRouteDialogIsVisible) {
+          this._handleNewRoutePress({ parentRoute: null });
+        }
+
+        break;
+      }
+
       case 'DELETE_COMPONENT': {
         if (!isInputOrTextareaActive()) {
           this._handleDeleteSelectedComponent();

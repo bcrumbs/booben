@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+import debounce from 'lodash.debounce';
 import { noop } from '../../../../utils/misc';
 import { TreeItemContent } from '../../../Tree';
 
@@ -83,6 +84,7 @@ export class ComponentsTreeItemContent extends PureComponent {
       onSelect({ componentId, selected: !active });
     }
   }
+
   _saveItemContentRef(ref) {
     const { componentId, elementRef } = this.props;
     elementRef({ componentId, ref });
