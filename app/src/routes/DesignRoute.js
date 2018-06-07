@@ -9,47 +9,29 @@ import { Dialog } from 'reactackle-dialog';
 import { Desktop } from '../containers/Desktop/Desktop';
 import { DesignToolbar } from '../containers/toolbars';
 
-import {
-  CreateComponentMenu,
-} from '../containers/CreateComponentMenu/CreateComponentMenu';
+import { CreateComponentMenu } from '../containers/CreateComponentMenu/CreateComponentMenu';
 
-import {
-  ComponentsLibrary,
-} from '../containers/ComponentsLibrary/ComponentsLibrary';
+import { ComponentsLibrary } from '../containers/ComponentsLibrary/ComponentsLibrary';
 
 // import {
 //   ViewRoutesList,
 // } from '../containers/RouteTree/ViewRoutesList';
 
-import {
-  ComponentsTreeView,
-} from '../containers/ComponentsTreeView/ComponentsTreeView';
+import { ComponentsTreeView } from '../containers/ComponentsTreeView/ComponentsTreeView';
 
-import {
-  ComponentPropsEditor,
-} from '../containers/ComponentPropsEditor/ComponentPropsEditor';
+import { ComponentPropsEditor } from '../containers/ComponentPropsEditor/ComponentPropsEditor';
 
-import {
-  ComponentRegionsEditor,
-} from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
+import { ComponentRegionsEditor } from '../containers/ComponentRegionsEditor/ComponentRegionsEditor';
 
-import {
-  ComponentActionsEditor,
-} from '../containers/ComponentActionsEditor/ComponentActionsEditor';
+import { ComponentActionsEditor } from '../containers/ComponentActionsEditor/ComponentActionsEditor';
 
-import {
-  ComponentDataSelect,
-} from '../containers/ComponentDataSelect/ComponentDataSelect';
+import { ComponentDataSelect } from '../containers/ComponentDataSelect/ComponentDataSelect';
 
-import {
-  LayoutSelectionDialog,
-} from '../containers/LayoutSelectionDialog/LayoutSelectionDialog';
+import { LayoutSelectionDialog } from '../containers/LayoutSelectionDialog/LayoutSelectionDialog';
 
 import { Canvas, getComponentCoords } from '../containers/Canvas/Canvas';
 
-import {
-  ComponentsDragArea,
-} from '../containers/ComponentsDragArea/ComponentsDragArea';
+import { ComponentsDragArea } from '../containers/ComponentsDragArea/ComponentsDragArea';
 
 import { RouteEditor } from '../containers/RouteEditor/RouteEditor';
 import { RouteTreeView } from '../containers/RouteTree/RouteTree';
@@ -81,6 +63,8 @@ import {
 } from '../actions/project';
 
 import { dropComponent } from '../actions/preview';
+
+import { selectRoute } from '../actions/structure';
 
 import {
   toggleInvisibleComponents,
@@ -119,7 +103,13 @@ import {
 } from '../constants/tool-ids';
 
 import { isInputOrTextareaActive } from '../utils/dom';
-import { buildStructurePath } from '../constants/paths';
+
+import {
+  buildStructurePath,
+  buildDesignRoutePath,
+  buildDesignRouteIndexPath,
+} from '../constants/paths';
+
 import * as JssyPropTypes from '../constants/common-prop-types';
 import { INVALID_ID } from '../constants/misc';
 import { IconLibrary, IconTree, IconBrush } from '../components/icons';
@@ -144,9 +134,8 @@ const propTypes = {
   pickedComponentId: PropTypes.number.isRequired, // state
   pickedComponentArea: PropTypes.number.isRequired, // state
   componentDataListIsVisible: PropTypes.bool.isRequired, // state
-  componentDataListItems: PropTypes.arrayOf(
-    JssyPropTypes.componentDataItem,
-  ).isRequired, // state
+  componentDataListItems: PropTypes.arrayOf(JssyPropTypes.componentDataItem)
+    .isRequired, // state
   cursorPosition: PropTypes.instanceOf(Cursor).isRequired, // state
   componentClipboard: PropTypes.instanceOf(Clipboard).isRequired, // state
   showInvisibleComponents: PropTypes.bool.isRequired, // state
@@ -199,16 +188,23 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onDeleteRoute: routeId =>
-    void dispatch(deleteRoute(routeId)),
-    
+  onOpenDesigner: ({ projectName, routeId, isIndexRoute }) => {
+    const path = isIndexRoute
+      ? buildDesignRouteIndexPath({ projectName, routeId })
+      : buildDesignRoutePath({ projectName, routeId });
+
+    dispatch(push(path));
+  },
+
+  onSelectRoute: (routeId, indexRouteSelected) =>
+    void dispatch(selectRoute(routeId, indexRouteSelected)),
+
+  onDeleteRoute: routeId => void dispatch(deleteRoute(routeId)),
+
   onUpdateRoutePath: (routeId, newPath, newParamValues, renamedParams) =>
-    void dispatch(updateRoutePath(
-      routeId,
-      newPath,
-      newParamValues,
-      renamedParams,
-    )),
+    void dispatch(
+      updateRoutePath(routeId, newPath, newParamValues, renamedParams),
+    ),
 
   onRenameRoute: (routeId, newTitle) =>
     void dispatch(updateRouteField(routeId, 'title', newTitle)),
@@ -222,8 +218,7 @@ const mapDispatchToProps = dispatch => ({
   onRenameComponent: (componentId, newTitle) =>
     void dispatch(renameComponent(componentId, newTitle)),
 
-  onDeleteComponent: componentId =>
-    void dispatch(deleteComponent(componentId)),
+  onDeleteComponent: componentId => void dispatch(deleteComponent(componentId)),
 
   onCopyComponent: (componentId, containerId, afterIdx) =>
     void dispatch(copyComponent(componentId, containerId, afterIdx)),
@@ -237,8 +232,7 @@ const mapDispatchToProps = dispatch => ({
   onConvertComponentToList: componentId =>
     void dispatch(convertComponentToList(componentId)),
 
-  onDropComponent: area =>
-    void dispatch(dropComponent(area)),
+  onDropComponent: area => void dispatch(dropComponent(area)),
 
   onSelectComponentData: ({ data }) =>
     void dispatch(pickComponentDataDone(data)),
@@ -258,12 +252,13 @@ const mapDispatchToProps = dispatch => ({
     void dispatch(toggleContentPlaceholders(enable)),
 });
 
-const wrap = connect(mapStateToProps, mapDispatchToProps);
+const wrap = connect(
+  mapStateToProps,
+  mapDispatchToProps,
+);
 
 const NestedConstructorsBreadcrumbsItem = props => (
-  <span className={props.className}>
-    {props.children}
-  </span>
+  <span className={props.className}>{props.children}</span>
 );
 
 NestedConstructorsBreadcrumbsItem.propTypes = {
@@ -297,60 +292,70 @@ class DesignRoute extends PureComponent {
       pathPatternError: false,
     };
 
-    this._handleDeleteRouteCancel =
-      this._handleDeleteRouteCancel.bind(this);
-    this._handleDeleteRouteConfirm =
-      this._handleDeleteRouteConfirm.bind(this);
-    this._handleDeleteRouteDialogClose =
-      this._handleDeleteRouteDialogClose.bind(this);
-    this._handleDeleteRoutePress =
-      this._handleDeleteRoutePress.bind(this);
-    this._handleToolRouteTitleChange =
-      this._handleToolRouteTitleChange.bind(this);
+    this._handleDeleteRouteCancel = this._handleDeleteRouteCancel.bind(this);
+    this._handleDeleteRouteConfirm = this._handleDeleteRouteConfirm.bind(this);
+    this._handleDeleteRouteDialogClose = this._handleDeleteRouteDialogClose.bind(
+      this,
+    );
+    this._handleDeleteRoutePress = this._handleDeleteRoutePress.bind(this);
+    this._handleToolRouteTitleChange = this._handleToolRouteTitleChange.bind(
+      this,
+    );
     this._handleNewRoutePress = this._handleNewRoutePress.bind(this);
-    this._handleCreateRouteDialogSubmit =
-      this._handleCreateRouteDialogSubmit.bind(this);
-    this._handleCreateRouteDialogClose =
-      this._handleCreateRouteDialogClose.bind(this);
+    this._handleCreateRouteDialogSubmit = this._handleCreateRouteDialogSubmit.bind(
+      this,
+    );
+    this._handleCreateRouteDialogClose = this._handleCreateRouteDialogClose.bind(
+      this,
+    );
     this._renderNewRouteDialog = this._renderNewRouteDialog.bind(this);
-    this._handleEditPath =
-      this._handleEditPath.bind(this);
-    this._handleEditPathDialogSubmit =
-      this._handleEditPathDialogSubmit.bind(this);
-    this._handleEditPathDialogClose =
-      this._handleEditPathDialogClose.bind(this);
-    this._handleShortcuts =
-      this._handleShortcuts.bind(this);
-    this._handleToolTitleChange =
-      this._handleToolTitleChange.bind(this);
-    this._handleDeleteSelectedComponent =
-      this._handleDeleteSelectedComponent.bind(this);
-    this._handleDeleteComponentButtonPress =
-      this._handleDeleteComponentButtonPress.bind(this);
-    this._handleDeleteComponentConfirm =
-      this._handleDeleteComponentConfirm.bind(this);
-    this._handleDeleteComponentCancel =
-      this._handleDeleteComponentCancel.bind(this);
-    this._handleDropComponent =
-      this._handleDropComponent.bind(this);
-    this._handleCreateComponent =
-      this._handleCreateComponent.bind(this);
-    this._handleCreateComponentMenuClose =
-      this._handleCreateComponentMenuClose.bind(this);
-    this._handleToggleInvisibleComponents =
-      this._handleToggleInvisibleComponents.bind(this);
-    this._handleToggleContentPlaceholders =
-      this._handleToggleContentPlaceholders.bind(this);
-    this._handleDuplicateSelectedComponent =
-      this._handleDuplicateSelectedComponent.bind(this);
-    this._handleCopySelectedComponent =
-      this._handleMoveSelectedComponentToClipboard.bind(this, true);
-    this._handleCutSelectedComponent =
-      this._handleMoveSelectedComponentToClipboard.bind(this, false);
-    this._handlePasteComponent =
-      this._handlePasteComponent.bind(this);
-    this._handleConvertComponentToList =
-      this._handleConvertComponentToList.bind(this);
+    this._handleEditPath = this._handleEditPath.bind(this);
+    this._handleEditPathDialogSubmit = this._handleEditPathDialogSubmit.bind(
+      this,
+    );
+    this._handleEditPathDialogClose = this._handleEditPathDialogClose.bind(
+      this,
+    );
+    this._handleShortcuts = this._handleShortcuts.bind(this);
+    this._handleToolTitleChange = this._handleToolTitleChange.bind(this);
+    this._handleDeleteSelectedComponent = this._handleDeleteSelectedComponent.bind(
+      this,
+    );
+    this._handleDeleteComponentButtonPress = this._handleDeleteComponentButtonPress.bind(
+      this,
+    );
+    this._handleDeleteComponentConfirm = this._handleDeleteComponentConfirm.bind(
+      this,
+    );
+    this._handleDeleteComponentCancel = this._handleDeleteComponentCancel.bind(
+      this,
+    );
+    this._handleDropComponent = this._handleDropComponent.bind(this);
+    this._handleCreateComponent = this._handleCreateComponent.bind(this);
+    this._handleCreateComponentMenuClose = this._handleCreateComponentMenuClose.bind(
+      this,
+    );
+    this._handleToggleInvisibleComponents = this._handleToggleInvisibleComponents.bind(
+      this,
+    );
+    this._handleToggleContentPlaceholders = this._handleToggleContentPlaceholders.bind(
+      this,
+    );
+    this._handleDuplicateSelectedComponent = this._handleDuplicateSelectedComponent.bind(
+      this,
+    );
+    this._handleCopySelectedComponent = this._handleMoveSelectedComponentToClipboard.bind(
+      this,
+      true,
+    );
+    this._handleCutSelectedComponent = this._handleMoveSelectedComponentToClipboard.bind(
+      this,
+      false,
+    );
+    this._handlePasteComponent = this._handlePasteComponent.bind(this);
+    this._handleConvertComponentToList = this._handleConvertComponentToList.bind(
+      this,
+    );
   }
 
   _handleToolRouteTitleChange(tool, newTitle) {
@@ -386,7 +391,27 @@ class DesignRoute extends PureComponent {
   }
 
   _handleDeleteRouteConfirm(closeDialog) {
-    this.props.onDeleteRoute(this.props.selectedRouteId);
+    const {
+      project,
+      projectName,
+      onSelectRoute,
+      onOpenDesigner,
+      onDeleteRoute,
+    } = this.props;
+
+    const rootRouteId = project.rootRoutes.first();
+    const rootRoute = project.routes.get(rootRouteId);
+
+    onSelectRoute(rootRouteId, rootRoute.haveIndex);
+
+    onOpenDesigner({
+      projectName,
+      routeId: rootRouteId,
+      isIndexRoute: rootRoute.haveIndex,
+    });
+
+    onDeleteRoute(this.props.selectedRouteId);
+
     closeDialog();
   }
 
@@ -414,10 +439,7 @@ class DesignRoute extends PureComponent {
   }
 
   _renderNewRouteDialog() {
-    const {
-      createRouteParentId,
-      createRouteDialogIsVisible,
-    } = this.state;
+    const { createRouteParentId, createRouteDialogIsVisible } = this.state;
 
     if (!createRouteDialogIsVisible) return null;
 
@@ -432,10 +454,7 @@ class DesignRoute extends PureComponent {
   }
 
   _renderEditRoutePathDialog() {
-    const {
-      editRoutePathDialogIsVisible,
-      editingRouteId,
-    } = this.state;
+    const { editRoutePathDialogIsVisible, editingRouteId } = this.state;
 
     if (!editRoutePathDialogIsVisible) return null;
 
@@ -474,35 +493,29 @@ class DesignRoute extends PureComponent {
     // Remove leading / from root route path
     const displayPath = isRootRoute ? route.path.slice(1) : route.path;
 
-    this.setState({
-      editRoutePathDialogIsVisible: true,
-      editingRouteId: selectedRouteId,
-      newRoutePath: displayPath,
-      newRouteParamValues: route.paramValues.toObject(),
-    }, () => {
-      if (this._routePathInput) this._routePathInput.focus();
-    });
+    this.setState(
+      {
+        editRoutePathDialogIsVisible: true,
+        editingRouteId: selectedRouteId,
+        newRoutePath: displayPath,
+        newRouteParamValues: route.paramValues.toObject(),
+      },
+      () => {
+        if (this._routePathInput) this._routePathInput.focus();
+      },
+    );
   }
 
   _handleEditPathDialogSubmit(data) {
     const { project, onUpdateRoutePath } = this.props;
 
-    const {
-      editingRouteId,
-      newRoutePath,
-      newRouteParamValues,
-    } = data;
+    const { editingRouteId, newRoutePath, newRouteParamValues } = data;
 
     const route = project.routes.get(editingRouteId);
     const isRootRoute = route.parentId === INVALID_ID;
     const path = normalizePath(newRoutePath, isRootRoute);
 
-    onUpdateRoutePath(
-      editingRouteId,
-      path,
-      newRouteParamValues,
-      {},
-    );
+    onUpdateRoutePath(editingRouteId, path, newRouteParamValues, {});
   }
 
   _handleEditPathDialogClose() {
@@ -520,8 +533,8 @@ class DesignRoute extends PureComponent {
     if (treeViewMode === 'routesList') {
       component = (
         <RoutesListHeader
-          addButtonAction={
-            () => this._handleNewRoutePress({ parentRoute: null })
+          addButtonAction={() =>
+            this._handleNewRoutePress({ parentRoute: null })
           }
         />
       );
@@ -560,21 +573,22 @@ class DesignRoute extends PureComponent {
 
   _getRouteEditorTool() {
     const {
-      project, selectedRouteId, indexRouteSelected, getLocalizedText
+      project,
+      selectedRouteId,
+      indexRouteSelected,
+      getLocalizedText,
     } = this.props;
-    const selectedRoute = selectedRouteId !== -1
-      ? project.routes.get(selectedRouteId)
-      : null;
+    const selectedRoute =
+      selectedRouteId !== -1 ? project.routes.get(selectedRouteId) : null;
 
     const routeDeleteToolMainButtons = selectedRoute
       ? List([
-        new ButtonRecord({
-          text: getLocalizedText('common.delete'),
-          onPress: this._handleDeleteRoutePress,
-        }),
-      ])
+          new ButtonRecord({
+            text: getLocalizedText('common.delete'),
+            onPress: this._handleDeleteRoutePress,
+          }),
+        ])
       : List();
-
 
     const routeEditorToolSections = List([
       new ToolSectionRecord({
@@ -656,8 +670,9 @@ class DesignRoute extends PureComponent {
     }
 
     const name = getLocalizedText('design.tool.componentConfiguration');
-    const titlePlaceholder =
-      getLocalizedText('design.tool.componentConfiguration.enterTitle');
+    const titlePlaceholder = getLocalizedText(
+      'design.tool.componentConfiguration.enterTitle',
+    );
 
     return new ToolRecord({
       id: TOOL_ID_PROPS_EDITOR,
@@ -694,8 +709,12 @@ class DesignRoute extends PureComponent {
    */
   _handleShortcuts(action) {
     switch (action) {
-      case 'UNDO': this.props.onUndo(); break;
-      case 'REDO': this.props.onRedo(); break;
+      case 'UNDO':
+        this.props.onUndo();
+        break;
+      case 'REDO':
+        this.props.onRedo();
+        break;
 
       case 'CREATE_CHILD_ROUTE': {
         const { project, selectedRouteId } = this.props;
@@ -757,8 +776,7 @@ class DesignRoute extends PureComponent {
         const { components, cursorPosition } = this.props;
 
         const willOpenMenu =
-          cursorPosition.containerId !== INVALID_ID ||
-          components.size === 0;
+          cursorPosition.containerId !== INVALID_ID || components.size === 0;
 
         if (willOpenMenu) {
           this.setState({
@@ -929,11 +947,14 @@ class DesignRoute extends PureComponent {
   _handleDeleteComponentConfirm() {
     const { firstSelectedComponentId, onDeleteComponent } = this.props;
 
-    this.setState({
-      confirmDeleteComponentDialogIsVisible: false,
-    }, () => {
-      onDeleteComponent(firstSelectedComponentId);
-    });
+    this.setState(
+      {
+        confirmDeleteComponentDialogIsVisible: false,
+      },
+      () => {
+        onDeleteComponent(firstSelectedComponentId);
+      },
+    );
   }
 
   /**
@@ -1024,13 +1045,16 @@ class DesignRoute extends PureComponent {
     const { getLocalizedText } = this.props;
     const { confirmDeleteDialogIsVisible } = this.state;
 
-    const deleteRouteDialogButtons = [{
-      text: getLocalizedText('common.delete'),
-      onPress: this._handleDeleteRouteConfirm,
-    }, {
-      text: getLocalizedText('common.cancel'),
-      onPress: this._handleDeleteRouteCancel,
-    }];
+    const deleteRouteDialogButtons = [
+      {
+        text: getLocalizedText('common.delete'),
+        onPress: this._handleDeleteRouteConfirm,
+      },
+      {
+        text: getLocalizedText('common.cancel'),
+        onPress: this._handleDeleteRouteCancel,
+      },
+    ];
 
     return (
       <Dialog
@@ -1110,13 +1134,16 @@ class DesignRoute extends PureComponent {
       confirmDeleteComponentDialogIsVisible,
     } = this.state;
 
-    const confirmDeleteDialogButtons = [{
-      text: getLocalizedText('common.delete'),
-      onPress: this._handleDeleteComponentConfirm,
-    }, {
-      text: getLocalizedText('common.cancel'),
-      onPress: this._handleDeleteComponentCancel,
-    }];
+    const confirmDeleteDialogButtons = [
+      {
+        text: getLocalizedText('common.delete'),
+        onPress: this._handleDeleteComponentConfirm,
+      },
+      {
+        text: getLocalizedText('common.cancel'),
+        onPress: this._handleDeleteComponentCancel,
+      },
+    ];
 
     const toolGroups = this._getTools();
 
@@ -1162,10 +1189,7 @@ class DesignRoute extends PureComponent {
         targetNodeSelector="body"
         className="jssy-app"
       >
-        <Desktop
-          toolGroups={toolGroups}
-          onToolTitleChange={onToolTitleChange}
-        >
+        <Desktop toolGroups={toolGroups} onToolTitleChange={onToolTitleChange}>
           <DesignToolbar
             onDuplicate={this._handleDuplicateSelectedComponent}
             onCopy={this._handleCopySelectedComponent}

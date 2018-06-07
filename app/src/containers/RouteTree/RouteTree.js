@@ -186,7 +186,7 @@ class RouteTreeComponent extends Component {
       }
       const newRouteId = project.rootRoutes.get(nextPosition);
       const newRoute = project.routes.get(newRouteId);
-      onSelectRoute(newRouteId);
+      onSelectRoute(newRouteId, newRoute.haveIndex);
 
       if (currentRoute.id !== newRouteId) {
         onOpenDesigner({
@@ -205,7 +205,7 @@ class RouteTreeComponent extends Component {
       }
       const newRouteId = parentRoute.children.get(nextPosition);
       const newRoute = project.routes.get(newRouteId);
-      onSelectRoute(newRouteId);
+      onSelectRoute(newRouteId, newRoute.haveIndex);
 
       if (currentRoute.id !== newRouteId) {
         onOpenDesigner({
@@ -238,7 +238,7 @@ class RouteTreeComponent extends Component {
     const newRouteId = selectedRoute.children.first();
     const newRoute = project.routes.get(newRouteId);
 
-    onSelectRoute(newRouteId);
+    onSelectRoute(newRouteId, newRoute.haveIndex);
 
     if (currentRoute.id !== newRouteId) {
       onOpenDesigner({
@@ -265,7 +265,7 @@ class RouteTreeComponent extends Component {
 
     if (selectedRoute.parentId === INVALID_ID) return;
 
-    onSelectRoute(selectedRoute.parentId);
+    onSelectRoute(newRoute.id, newRoute.haveIndex);
 
     if (currentRoute.id !== newRouteId) {
       onOpenDesigner({
@@ -296,7 +296,10 @@ class RouteTreeComponent extends Component {
   }
 
   _handleCreateRouteDialogSubmit(data) {
-    const { onCreateRoute } = this.props;
+    const {
+      onCreateRoute,
+    } = this.props;
+
     const {
       createRouteParentId,
       newRoutePath,
@@ -307,7 +310,6 @@ class RouteTreeComponent extends Component {
     const isRootRoute = createRouteParentId === -1;
     const title = newRouteTitle.trim();
     const path = normalizePath(newRoutePath, isRootRoute);
-
     onCreateRoute(createRouteParentId, path, title, newRouteParamValues);
   }
 
@@ -406,10 +408,7 @@ class RouteTreeComponent extends Component {
     const hasSubLevel = subLevel.size > 0;
 
     const active = id === selectedRouteId;
-    const parentRoute = project.routes.get(parentId);
-    // console.log('highlightedComponentIds', highlightedComponentIds.toJS());
-    // console.log('id', id);
-    // console.log(highlightedComponentIds.has(id));
+    const parentRoute = project.routes.get(id);
     const hovered = highlightedComponentIds.has(id);
 
     return (
