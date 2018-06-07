@@ -1,15 +1,15 @@
-import React from "react";
-import { connect } from "react-redux";
-import { Button } from "reactackle-button";
+import React from 'react';
+import { connect } from 'react-redux';
+import { Button } from 'reactackle-button';
 
-import { currentRouteSelector } from "../../selectors/index";
+import { currentRouteSelector } from '../../selectors/index';
 
-import { getLocalizedTextFromState } from "../../selectors";
+import { getLocalizedTextFromState } from '../../selectors';
 
-import { BlockContentViewButton, IconAdd } from "../../components";
+import { BlockContentViewButton, IconAdd } from '../../components';
 
 const mapStateToProps = state => ({
-  getLocalizedText: getLocalizedTextFromState(state)
+  getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({});
@@ -25,18 +25,18 @@ const AddButton = props => (
 
 const wrap = connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 );
 
-const colorScheme = "default";
+const colorScheme = 'default';
 
 const RoutesListHeaderComponent = ({
   getLocalizedText,
   currentRoute,
   onToggleTreeViewMode,
-  addButtonAction
+  addButtonAction,
 }) => {
-  const title = getLocalizedText("structure.routeTreeEditorTitle");
+  const title = getLocalizedText('structure.routeTreeEditorTitle');
 
   const changeViewButtonProps = {
     title: title,

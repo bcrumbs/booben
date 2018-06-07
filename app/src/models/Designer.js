@@ -61,8 +61,19 @@ export default class Designer extends DesignerRecord {
     return this.update('expandedRouteTreeItemIds', ids => ids.add(routeId));
   }
 
+  expandRouteTreeItems(routeIds) {
+    return this.update('expandedRouteTreeItemIds', ids => ids.union(routeIds));
+  }
+
   collapseRouteTreeItem(routeId) {
     return this.update('expandedRouteTreeItemIds', ids => ids.delete(routeId));
+  }
+
+  collapseRouteTreeItems(routeIds) {
+    return this.update(
+      'expandedRouteTreeItemIds',
+      ids => ids.subtract(routeIds),
+    );
   }
 
   expandTreeItems(componentIds) {

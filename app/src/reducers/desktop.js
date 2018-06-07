@@ -163,10 +163,14 @@ const setActiveTools = (state, toolIds) => {
   const needToChangeActiveTool =
     state.activeToolId === null ||
     !toolIds.includes(state.activeToolId);
-  
-  return needToChangeActiveTool
-    ? selectTool(state, toolIds.get(0) || null)
-    : state;
+
+  if (needToChangeActiveTool) {
+    state = selectTool(state, toolIds.get(0) || null);
+    state = selectTool(state, toolIds.get(1) || null);
+    return state;
+  } else {
+    return state;
+  }
 };
 
 const handlers = {

@@ -56,6 +56,7 @@ import { RouteTreeView } from '../containers/RouteTree/RouteTree';
 
 import { AppWrapper } from '../components/AppWrapper/AppWrapper';
 import ToolRecord from '../models/Tool';
+import ButtonRecord from '../models/Button';
 import ProjectRecord from '../models/Project';
 import ToolSectionRecord from '../models/ToolSection';
 import Clipboard from '../models/Clipboard';
@@ -69,6 +70,7 @@ import {
   updateRoutePath,
   updateRouteField,
   copyComponent,
+  deleteRoute,
   moveComponent,
   pickComponentDataDone,
   undo,
@@ -152,6 +154,7 @@ const propTypes = {
   canDelete: PropTypes.bool.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onRenameRoute: PropTypes.func.isRequired, // dispatch
+  onDeleteRoute: PropTypes.func.isRequired, // dispatch
   onCreateRoute: PropTypes.func.isRequired, // dispatch
   onUpdateRoutePath: PropTypes.func.isRequired, // dispatch
   onCreateComponent: PropTypes.func.isRequired, // dispatch
@@ -196,6 +199,9 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+  onDeleteRoute: routeId =>
+    void dispatch(deleteRoute(routeId)),
+    
   onUpdateRoutePath: (routeId, newPath, newParamValues, renamedParams) =>
     void dispatch(updateRoutePath(
       routeId,
@@ -290,6 +296,15 @@ class DesignRoute extends PureComponent {
       newRouteParamValues: {},
       pathPatternError: false,
     };
+
+    this._handleDeleteRouteCancel =
+      this._handleDeleteRouteCancel.bind(this);
+    this._handleDeleteRouteConfirm =
+      this._handleDeleteRouteConfirm.bind(this);
+    this._handleDeleteRouteDialogClose =
+      this._handleDeleteRouteDialogClose.bind(this);
+    this._handleDeleteRoutePress =
+      this._handleDeleteRoutePress.bind(this);
     this._handleToolRouteTitleChange =
       this._handleToolRouteTitleChange.bind(this);
     this._handleNewRoutePress = this._handleNewRoutePress.bind(this);
@@ -360,6 +375,23 @@ class DesignRoute extends PureComponent {
       ]),
       windowMinWidth: 360,
     });
+  }
+
+  _handleDeleteRoutePress() {
+    this.setState({ confirmDeleteDialogIsVisible: true });
+  }
+
+  _handleDeleteRouteDialogClose() {
+    this.setState({ confirmDeleteDialogIsVisible: false });
+  }
+
+  _handleDeleteRouteConfirm(closeDialog) {
+    this.props.onDeleteRoute(this.props.selectedRouteId);
+    closeDialog();
+  }
+
+  _handleDeleteRouteCancel(closeDialog) {
+    closeDialog();
   }
 
   _handleNewRoutePress({ parentRoute }) {
@@ -534,6 +566,16 @@ class DesignRoute extends PureComponent {
       ? project.routes.get(selectedRouteId)
       : null;
 
+    const routeDeleteToolMainButtons = selectedRoute
+      ? List([
+        new ButtonRecord({
+          text: getLocalizedText('common.delete'),
+          onPress: this._handleDeleteRoutePress,
+        }),
+      ])
+      : List();
+
+
     const routeEditorToolSections = List([
       new ToolSectionRecord({
         component: RouteEditor,
@@ -563,6 +605,7 @@ class DesignRoute extends PureComponent {
       titlePlaceholder: getLocalizedText('structure.routeTitle'),
       subtitle: selectedRoute ? selectedRoute.path : '',
       sections: routeEditorToolSections,
+      mainButtons: routeDeleteToolMainButtons,
       windowMinWidth: 360,
     });
   }
@@ -955,6 +998,35 @@ class DesignRoute extends PureComponent {
     }
   }
 
+  _renderDeleteRouteDialog() {
+    const { getLocalizedText } = this.props;
+    const { confirmDeleteDialogIsVisible } = this.state;
+
+    const deleteRouteDialogButtons = [{
+      text: getLocalizedText('common.delete'),
+      onPress: this._handleDeleteRouteConfirm,
+    }, {
+      text: getLocalizedText('common.cancel'),
+      onPress: this._handleDeleteRouteCancel,
+    }];
+
+    return (
+      <Dialog
+        title={getLocalizedText('structure.deleteRouteQuestion')}
+        buttons={deleteRouteDialogButtons}
+        backdrop
+        minWidth={400}
+        open={confirmDeleteDialogIsVisible}
+        closeOnEscape
+        closeOnBackdropClick
+        onEnterKeyPress={this._handleDeleteRouteConfirm}
+        onClose={this._handleDeleteRouteDialogClose}
+      >
+        {getLocalizedText('structure.deleteRouteConfirmationMessage')}
+      </Dialog>
+    );
+  }
+
   _renderComponentDataSelect() {
     const {
       pickedComponentId,
@@ -1051,6 +1123,7 @@ class DesignRoute extends PureComponent {
 
     const newRouteDialog = this._renderNewRouteDialog();
     const editRoutePathDialog = this._renderEditRoutePathDialog();
+    const deleteRouteDialog = this._renderDeleteRouteDialog();
 
     let onToolTitleChange;
 
@@ -1112,6 +1185,7 @@ class DesignRoute extends PureComponent {
           {createComponentMenu}
           {newRouteDialog}
           {editRoutePathDialog}
+          {deleteRouteDialog}
         </Desktop>
       </Shortcuts>
     );

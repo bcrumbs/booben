@@ -1,5 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
+import { withTooltip } from 'reactackle-tooltip';
 import { noop } from '../../utils/misc';
 import { TreeItemContent } from '../Tree';
 import { RouteTreeItemButton } from './RouteTreeItemButton';
@@ -38,7 +39,7 @@ const defaultProps = {
   elementRef: noop,
 };
 
-export class RouteTreeItemContent extends PureComponent {
+class _RouteTreeItemContent extends PureComponent {
   constructor(props, context) {
     super(props, context);
 
@@ -102,15 +103,16 @@ export class RouteTreeItemContent extends PureComponent {
 
     let iconSlotElement = null;
 
-    if (hasRedirect)
+    if (hasRedirect) {
       iconSlotElement = <IconRedirect />;
+    }
 
     return (
       <TreeItemContent
         {...this.props}
         iconSlot={iconSlotElement}
         buttonSlotRight={(
-          <RouteTreeItemButton icon={<IconAdd />} onClick={onAddButtonClick} />
+          <RouteTreeItemButton icon={<IconAdd />} onPress={onAddButtonClick} />
         )}
         onMouseOver={this._handleHoverIn}
         onMouseOut={this._handleHoverOut}
@@ -122,5 +124,7 @@ export class RouteTreeItemContent extends PureComponent {
   }
 }
 
-RouteTreeItemContent.propTypes = propTypes;
-RouteTreeItemContent.defaultProps = defaultProps;
+_RouteTreeItemContent.propTypes = propTypes;
+_RouteTreeItemContent.defaultProps = defaultProps;
+
+export const RouteTreeItemContent = withTooltip(_RouteTreeItemContent);

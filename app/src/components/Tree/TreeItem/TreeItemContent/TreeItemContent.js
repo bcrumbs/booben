@@ -12,9 +12,7 @@ import {
   ButtonSlotRightStyled,
 } from './styles';
 
-import {
-  TreeItemTitle,
-} from '../TreeItemTitle';
+import { TreeItemTitle } from '../TreeItemTitle';
 
 const propTypes = {
   title: PropTypes.string,
@@ -28,6 +26,9 @@ const propTypes = {
   hovered: PropTypes.bool,
   disabled: PropTypes.bool,
   expandButtonRef: PropTypes.func,
+  Tooltip: PropTypes.func,
+  showTooltip: PropTypes.func,
+  hideTooltip: PropTypes.func,
 };
 
 const defaultProps = {
@@ -42,6 +43,9 @@ const defaultProps = {
   hovered: false,
   disabled: false,
   expandButtonRef: noop,
+  Tooltip: null,
+  showTooltip: noop,
+  hideTooltip: noop,
 };
 
 export const TreeItemContent = ({
@@ -56,22 +60,20 @@ export const TreeItemContent = ({
   buttonSlotRight,
   hasSubLevel,
   expandButtonRef,
-  ...props,
+  ...props
 }) => {
   let warning = null;
   let button = null;
   let spacer = null;
   let icon = null;
   let buttonSlotRightElement = null;
+  let tooltip;
 
   if (hasSubLevel) {
     button = (
       <ButtonsStyled>
         <IconStyled innerRef={expandButtonRef}>
-          <ItemButtonExpand
-            disabled={disabled}
-            expanded={expanded}
-          />
+          <ItemButtonExpand disabled={disabled} expanded={expanded} />
         </IconStyled>
       </ButtonsStyled>
     );
@@ -79,18 +81,31 @@ export const TreeItemContent = ({
     spacer = <SpacerStyled />;
   }
 
-  if (iconSlot)
+  if (iconSlot) {
     icon = <IconSlotStyled>{iconSlot}</IconSlotStyled>;
+  }
 
-  if (warningMessage)
-    warning = <WarningStyled title={warningMessage} />;
+  if (warningMessage) {
+    warning = (
+      <WarningStyled
+        onMouseOut={props.hideTooltip}
+        onMouseEnter={props.showTooltip}
+        title={warningMessage}
+      />
+    );
+  }
 
-  if (buttonSlotRight)
+  if (buttonSlotRight) {
     buttonSlotRightElement = (
       <ButtonSlotRightStyled isVisible={hovered || active}>
         {buttonSlotRight}
       </ButtonSlotRightStyled>
     );
+  }
+
+  if (props.Tooltip) {
+    tooltip = <props.Tooltip text={warningMessage} />;
+  }
 
   return (
     <ItemContentStyled
@@ -106,6 +121,7 @@ export const TreeItemContent = ({
       {icon}
       <TreeItemTitle title={title} />
       {buttonSlotRightElement}
+      {tooltip}
     </ItemContentStyled>
   );
 };

@@ -12,9 +12,7 @@ import {
   BlockContentPlaceholder,
 } from '../../components/BlockContent';
 
-import {
-  ComponentDataSelect,
-} from '../ComponentDataSelect/ComponentDataSelect';
+import { ComponentDataSelect } from '../ComponentDataSelect/ComponentDataSelect';
 
 import {
   ComponentsTree,
@@ -24,9 +22,7 @@ import {
   ComponentsTreeCursor,
 } from '../../components/ComponentsTree/ComponentsTree';
 
-import {
-  ComponentPlaceholder,
-} from '../../components/ComponentPlaceholder/ComponentPlaceholder';
+import { ComponentPlaceholder } from '../../components/ComponentPlaceholder/ComponentPlaceholder';
 
 import draggable from '../../hocs/draggable';
 import dropZone from '../../hocs/dropZone';
@@ -112,9 +108,8 @@ const propTypes = {
   pickedComponentId: PropTypes.number.isRequired, // state
   pickedComponentArea: PropTypes.number.isRequired, // state
   componentDataListIsVisible: PropTypes.bool.isRequired, // state
-  componentDataListItems: PropTypes.arrayOf(
-    JssyPropTypes.componentDataItem,
-  ).isRequired, // state
+  componentDataListItems: PropTypes.arrayOf(JssyPropTypes.componentDataItem)
+    .isRequired, // state
   meta: PropTypes.object.isRequired, // state
   cursorPosition: PropTypes.instanceOf(Cursor).isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
@@ -172,38 +167,30 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onExpandItem: id =>
-    void dispatch(expandTreeItem(id)),
+  onExpandItem: id => void dispatch(expandTreeItem(id)),
 
-  onCollapseItem: id =>
-    void dispatch(collapseTreeItem(id)),
+  onCollapseItem: id => void dispatch(collapseTreeItem(id)),
 
-  onExpandRouteItem: id =>
-  void dispatch(expandRouteTreeItem(id)),
+  onExpandRouteItem: id => void dispatch(expandRouteTreeItem(id)),
 
-  onCollapseRouteItem: id =>
-    void dispatch(collapseRouteTreeItem(id)),
+  onCollapseRouteItem: id => void dispatch(collapseRouteTreeItem(id)),
 
   onSelectItem: id =>
     void dispatch(selectPreviewComponent(id, true, false, false)),
 
-  onSelectRoute: (routeId, indexRouteSelected) => 
+  onSelectRoute: (routeId, indexRouteSelected) =>
     void dispatch(selectRoute(routeId, indexRouteSelected)),
 
-  onDeselectItem: id =>
-    void dispatch(deselectPreviewComponent(id)),
+  onDeselectItem: id => void dispatch(deselectPreviewComponent(id)),
 
-  onHighlightItem: id =>
-    void dispatch(highlightPreviewComponent(id)),
+  onHighlightItem: id => void dispatch(highlightPreviewComponent(id)),
 
-  onUnhighlightItem: id =>
-    void dispatch(unhighlightPreviewComponent(id)),
+  onUnhighlightItem: id => void dispatch(unhighlightPreviewComponent(id)),
 
   onDragOverPlaceholder: (id, afterIdx) =>
     void dispatch(dragOverPlaceholder(id, afterIdx)),
 
-  onDragOverNothing: () =>
-    void dispatch(dragOverNothing()),
+  onDragOverNothing: () => void dispatch(dragOverNothing()),
 
   onStartDragComponent: componentId =>
     void dispatch(startDragExistingComponent(componentId)),
@@ -219,7 +206,10 @@ const mapDispatchToProps = dispatch => ({
 });
 
 const wrap = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   connectDropZone,
   dropZone,
 );
@@ -265,16 +255,16 @@ const calcCursorPosition = (pageY, element, borderPixels) => {
     if (fromTop > fromBottom) ret.middlePosition = CursorPositions.BOTTOM;
     else ret.middlePosition = CursorPositions.TOP;
   } else {
-    ret.position = pageY - top < 0
-      ? CursorPositions.TOP
-      : CursorPositions.BOTTOM;
+    ret.position =
+      pageY - top < 0 ? CursorPositions.TOP : CursorPositions.BOTTOM;
   }
 
   return ret;
 };
 
-const DraggableComponentItemContent =
-  connectDraggable(draggable(ComponentsTreeItemContent));
+const DraggableComponentItemContent = connectDraggable(
+  draggable(ComponentsTreeItemContent),
+);
 
 const DRAG_THROTTLE = 100;
 
@@ -570,10 +560,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     const position = parentComponent.children.indexOf(selectedComponentId);
     const nextPosition = direction === 'down' ? position + 1 : position - 1;
 
-    if (
-      nextPosition < 0 ||
-      nextPosition > parentComponent.children.size - 1
-    ) {
+    if (nextPosition < 0 || nextPosition > parentComponent.children.size - 1) {
       return;
     }
 
@@ -671,8 +658,9 @@ class ComponentsTreeViewComponent extends PureComponent {
     if (isRootComponent(containerComponent)) return;
 
     const parentComponent = components.get(containerComponent.parentId);
-    const containerPosition =
-      parentComponent.children.indexOf(parentComponent.id);
+    const containerPosition = parentComponent.children.indexOf(
+      parentComponent.id,
+    );
 
     onMoveCursor(parentComponent.id, containerPosition);
   }
@@ -699,8 +687,9 @@ class ComponentsTreeViewComponent extends PureComponent {
       return;
     }
 
-    const targetComponentId =
-      containerComponent.children.get(cursorPosition.afterIdx + 1);
+    const targetComponentId = containerComponent.children.get(
+      cursorPosition.afterIdx + 1,
+    );
 
     const targetComponent = components.get(targetComponentId);
 
@@ -776,10 +765,11 @@ class ComponentsTreeViewComponent extends PureComponent {
     const isRootComponent = parentId === INVALID_ID;
     const parentComponent = isRootComponent ? null : components.get(parentId);
     const element = this._itemElements.get(componentId);
-    const {
-      position,
-      middlePosition,
-    } = calcCursorPosition(pageY, element, BORDER_PIXELS);
+    const { position, middlePosition } = calcCursorPosition(
+      pageY,
+      element,
+      BORDER_PIXELS,
+    );
 
     const componentPosition = isRootComponent
       ? 0
@@ -795,8 +785,7 @@ class ComponentsTreeViewComponent extends PureComponent {
         this._tryUpdatePlaceholder(componentId, INVALID_ID);
       } else {
         const expandAlreadyScheduled =
-          !!this._expandTimeout &&
-          componentId === this._componentIdToExpand;
+          !!this._expandTimeout && componentId === this._componentIdToExpand;
 
         if (!expandAlreadyScheduled) {
           const canInsertIntoSubtree = canInsertComponentIntoTree(
@@ -909,11 +898,7 @@ class ComponentsTreeViewComponent extends PureComponent {
    * @private
    */
   _expandComponent() {
-    const {
-      draggingComponent,
-      expandedItemIds,
-      onExpandItem,
-    } = this.props;
+    const { draggingComponent, expandedItemIds, onExpandItem } = this.props;
 
     const componentId = this._componentIdToExpand;
     if (!draggingComponent || expandedItemIds.has(componentId)) return;
@@ -1029,7 +1014,6 @@ class ComponentsTreeViewComponent extends PureComponent {
       title = component.name;
     }
 
-
     let expanded = expandedItemIds.has(componentId);
     if (!expanded && draggingOverPlaceholder) {
       let currentId = placeholderContainerId;
@@ -1043,9 +1027,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     const highlightedComponentId = highlightedComponentIds.first();
     if (highlightedComponentId) {
       let currentID = highlightedComponentId;
-      while (
-        currentID !== INVALID_ID && !expandedItemIds.has(currentID)
-      ) {
+      while (currentID !== INVALID_ID && !expandedItemIds.has(currentID)) {
         const parentId = components.get(currentID).parentId;
         if (currentID === componentId) hovered = true;
         currentID = parentId;
@@ -1078,9 +1060,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     const hasSubLevel = !!subLevel;
 
     return (
-      <ComponentsTreeItem
-        key={String(componentId)}
-      >
+      <ComponentsTreeItem key={String(componentId)}>
         <DraggableComponentItemContent
           key={String(componentId)}
           componentId={componentId}
@@ -1151,9 +1131,10 @@ class ComponentsTreeViewComponent extends PureComponent {
       getLocalizedText,
     } = this.props;
 
-    const componentIds = parentComponentId !== INVALID_ID
-      ? components.get(parentComponentId).children
-      : [rootComponentId];
+    const componentIds =
+      parentComponentId !== INVALID_ID
+        ? components.get(parentComponentId).children
+        : [rootComponentId];
 
     const children = [];
     let gotDraggedComponent = false;
@@ -1182,8 +1163,10 @@ class ComponentsTreeViewComponent extends PureComponent {
 
         const afterIdx = gotDraggedComponent ? idx - 2 : idx - 1;
 
-        const snapPointOrPlaceholder =
-          this._renderSnapBlockOrPlaceholder(parentComponentId, afterIdx);
+        const snapPointOrPlaceholder = this._renderSnapBlockOrPlaceholder(
+          parentComponentId,
+          afterIdx,
+        );
 
         if (snapPointOrPlaceholder) {
           children.push(snapPointOrPlaceholder);
@@ -1222,11 +1205,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     if (!children.length) return null;
 
-    return (
-      <ComponentsTreeList>
-        {children}
-      </ComponentsTreeList>
-    );
+    return <ComponentsTreeList>{children}</ComponentsTreeList>;
   }
 
   _renderComponentDataSelect() {
@@ -1265,7 +1244,7 @@ class ComponentsTreeViewComponent extends PureComponent {
   _renderRouteItem() {
     const { currentRoute, expandedRouteTreeItemIds } = this.props;
     const expanded = expandedRouteTreeItemIds.has(currentRoute.id);
-    
+
     return (
       <ComponentsTreeItemContent
         componentId={currentRoute.id}
@@ -1292,9 +1271,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     if (!this._treeIsVisible()) {
       return (
-        <BlockContentPlaceholder
-          text={getLocalizedText('tree.noComponents')}
-        />
+        <BlockContentPlaceholder text={getLocalizedText('tree.noComponents')} />
       );
     }
 
