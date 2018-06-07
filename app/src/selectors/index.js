@@ -210,6 +210,11 @@ export const highlightedComponentIdsSelector = createSelector(
   designer => designer.highlightedComponentIds,
 );
 
+export const highlightedRouteIdsSelector = createSelector(
+  currentDesignerSelector,
+  designer => designer.highlightRoutesIds,
+);
+
 export const cursorPositionSelector = createSelector(
   state => haveNestedConstructorsSelector(state)
     ? state.project.nestedConstructors.first().cursor

@@ -69,7 +69,11 @@ import {
 
 import { APP_LOAD_STRINGS_SUCCESS } from '../actions/app';
 
-import { STRUCTURE_SELECT_ROUTE } from '../actions/structure';
+import {
+  STRUCTURE_SELECT_ROUTE,
+  STRUCTURE_HIGHLIGHT_ROUTE,
+  STRUCTURE_UNHIGHLIGHT_ROUTE,
+} from '../actions/structure';
 
 import { LIBRARY_SHOW_ALL_COMPONENTS } from '../actions/components-library';
 
@@ -1999,6 +2003,16 @@ const handlers = {
       propsViewMode: 'routeProps',
     });
   },
+
+  [STRUCTURE_HIGHLIGHT_ROUTE]: (state, action) =>
+    updateDesigner(state, designer =>
+      designer.highlightRoute(action.routeId),
+    ),
+
+  [STRUCTURE_UNHIGHLIGHT_ROUTE]: (state, action) =>
+    updateDesigner(state, designer =>
+      designer.unhighlightRoute(action.routeId),
+    ),
 
   [APP_LOAD_STRINGS_SUCCESS]: (state, action) =>
     state.set('languageForComponentProps', action.language),

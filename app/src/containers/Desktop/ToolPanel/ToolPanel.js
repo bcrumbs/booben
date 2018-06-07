@@ -67,6 +67,14 @@ export const ToolPanel = props => {
     right: [],
   };
 
+  const commonActions = {
+    left: null,
+    right: null,
+  };
+
+  let hasLeftDrawer = false;
+  let hasRightDrawer = false;
+
   props.toolGroups.forEach((tools, groupIdx) => {
     const icons = {
       left: [],
@@ -100,6 +108,20 @@ export const ToolPanel = props => {
         );
       }
     });
+    
+    if (icons.right.length !== 0) {
+      commonActions.right = <ToolPanelCommonActions />;
+    } else {
+      commonActions.left = <ToolPanelCommonActions />;
+    }
+
+    if (icons.left.length > 0) {
+      hasLeftDrawer = true;
+    }
+
+    if (icons.right.length > 0) {
+      hasRightDrawer = true;
+    }
 
     Object.keys(icons).forEach(position => {
       const iconsGroup = icons[position];
@@ -122,6 +144,7 @@ export const ToolPanel = props => {
     left: null,
     right: null,
   };
+
   let isExpanded = false;
 
   Object.keys(activeTool).forEach(position => {
@@ -211,7 +234,7 @@ export const ToolPanel = props => {
       panelSwitcherGroups[position].unshift(expandActionGroup);
     }
   });
-  
+
   const renderPageDrawer = position => (
     <ResizeablePageDrawer
       key={`page-drawer-${position}`}
@@ -227,7 +250,7 @@ export const ToolPanel = props => {
         <PageDrawerActionsGroup spread>
           {panelSwitcherGroups[position]}
         </PageDrawerActionsGroup>
-        <ToolPanelCommonActions />
+        {commonActions[position]}
       </PageDrawerActionsArea>
 
       {shadowedPanelContent[position]}
@@ -236,8 +259,8 @@ export const ToolPanel = props => {
   );
 
   return [
-    renderPageDrawer('left'),
-    renderPageDrawer('right'),
+    hasLeftDrawer && renderPageDrawer('left'),
+    hasRightDrawer && renderPageDrawer('right'),
   ];
 };
 

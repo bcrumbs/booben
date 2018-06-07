@@ -342,6 +342,7 @@ const handlers = {
         state.toolStates.get(TOOL_ID_PROPS_EDITOR);
   
       if (componentConfigToolState && componentConfigToolState.docked) {
+        state = state.setIn(['treeViewMode'], 'routeTree');
         state = selectTool(state, TOOL_ID_PROPS_EDITOR);
       }
     }

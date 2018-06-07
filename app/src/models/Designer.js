@@ -6,6 +6,7 @@ const defaults = {
   highlightedComponentIds: Set(),
   expandedTreeItemIds: Set(),
   expandedRouteTreeItemIds: Set(),
+  highlightRoutesIds: Set(),
 };
 
 const DesignerRecord = Record(defaults);
@@ -38,6 +39,24 @@ export default class Designer extends DesignerRecord {
 
   unhighlightAllComponents() {
     return this.set('highlightedComponentIds', Set());
+  }
+
+  highlightRoute(routeId) {
+    return this.update(
+      'highlightRoutesIds',
+      highlightRoutesIds => highlightRoutesIds.add(routeId),
+    );
+  }
+
+  unhighlightRoute(routeId) {
+    return this.update(
+      'highlightRoutesIds',
+      highlightRoutesIds => highlightRoutesIds.delete(routeId),
+    );
+  }
+
+  unhighlightAllRoutes() {
+    return this.set('highlightRoutesIds', Set());
   }
 
   deselectComponent(componentId) {

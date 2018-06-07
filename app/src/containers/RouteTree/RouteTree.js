@@ -34,6 +34,7 @@ import {
 import {
   getLocalizedTextFromState,
   currentRouteSelector,
+  highlightedRouteIdsSelector,
 } from '../../selectors';
 
 import {
@@ -43,7 +44,11 @@ import {
 
 import { findComponent } from '../../lib/components';
 
-import { selectRoute } from '../../actions/structure';
+import {
+  selectRoute,
+  highlightRoute,
+  unhighlightRoute,
+} from '../../actions/structure';
 
 const colorScheme = 'default';
 
@@ -59,6 +64,7 @@ const AddButton = props => (
 const mapStateToProps = state => ({
   project: state.project.data,
   projectName: state.project.projectName,
+  highlightedComponentIds: highlightedRouteIdsSelector(state),
   currentRoute: currentRouteSelector(state),
   selectedRouteId: state.project.selectedRouteId,
   expandedRouteTreeItemIds: state.project.designer.expandedRouteTreeItemIds,
@@ -66,6 +72,10 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+  onHighlightItem: id => void dispatch(highlightRoute(id)),
+
+  onUnhighlightItem: id => void dispatch(unhighlightRoute(id)),
+
   onCreateRoute: (parentRouteId, path, title, paramValues) =>
     void dispatch(createRoute(parentRouteId, path, title, paramValues)),
 
@@ -111,6 +121,7 @@ class RouteTreeComponent extends Component {
       pathPatternError: false,
     };
     
+    this._handleHover = this._handleHover.bind(this);
     this._handleRouteSelect = this._handleRouteSelect.bind(this);
     this._handleExpand = this._handleExpand.bind(this);
     this._renderRouteItem = this._renderRouteItem.bind(this);
@@ -197,6 +208,16 @@ class RouteTreeComponent extends Component {
     }
   }
 
+  _handleHover({ componentId, hovered }) {
+    const {
+      onHighlightItem,
+      onUnhighlightItem
+    } = this.props;
+
+    if (hovered) onHighlightItem(componentId);
+    else onUnhighlightItem(componentId);
+  }
+
   _handleExpand({ componentId, expanded }) {
     const { onExpandItem, onCollapseItem } = this.props;
 
@@ -210,6 +231,7 @@ class RouteTreeComponent extends Component {
       expandedRouteTreeItemIds,
       getLocalizedText,
       selectedRouteId,
+      highlightedComponentIds,
     } = this.props;
 
     const route = project.routes.get(routeId);
@@ -249,11 +271,17 @@ class RouteTreeComponent extends Component {
 
     const active = id === selectedRouteId;
     const parentRoute = project.routes.get(parentId);
+    // console.log('highlightedComponentIds', highlightedComponentIds.toJS());
+    // console.log('id', id);
+    // console.log(highlightedComponentIds.has(id));
+    const hovered = highlightedComponentIds.has(id);
 
     return (
       <RouteTreeItem key={String(id)}>
         <RouteTreeItemContent
+          onHover={this._handleHover}
           active={active}
+          hovered={hovered}
           warningMessage={outletWarningTooltip}
           hasRedirect={hasRedirect}
           componentId={id}
