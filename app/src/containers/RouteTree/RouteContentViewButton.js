@@ -30,7 +30,7 @@ const AddButton = props => (
 
 const wrap = connect(
   mapStateToProps,
-  mapDispatchToProps
+  mapDispatchToProps,
 );
 
 const colorScheme = "default";
@@ -45,9 +45,11 @@ const ContentViewButton = ({
     `${getLocalizedText(
       "structure.routeTreeEditorTitle"
     )}: ${title}`.toUpperCase();
-
+  
+  const title = currentRoute ? currentRoute.title : '';
+  
   const changeViewButtonProps = {
-    title: formatRouteTitle(currentRoute.title),
+    title: formatRouteTitle(title),
   };
 
   return (

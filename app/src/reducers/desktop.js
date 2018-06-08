@@ -31,6 +31,7 @@ import {
   PROJECT_PICK_COMPONENT_DONE,
   PROJECT_PICK_COMPONENT_DATA,
   PROJECT_PICK_COMPONENT_CANCEL,
+  PROJECT_LOADED,
 } from '../actions/project';
 
 import {
@@ -188,6 +189,16 @@ const handlers = {
       exact: false,
       strict: false,
     });
+
+    const designMatchExact = matchPath(pathname, {
+      path: PATH_DESIGN,
+      exact: true,
+      strict: false,
+    });
+
+    if (designMatchExact) {
+      state = state.setIn(['treeViewMode'], 'routesList');
+    }
     
     if (designMatch) return setActiveTools(state, TOOL_IDS_DESIGN);
     

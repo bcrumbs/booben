@@ -53,7 +53,7 @@ const propTypes = {
   projectName: PropTypes.string.isRequired,
   indexRouteSelected: PropTypes.bool.isRequired, // store
   highlightedComponentIds: JssyPropTypes.setOfIds.isRequired,
-  currentRoute: PropTypes.instanceOf(ProjectRoute).isRequired,
+  currentRoute: PropTypes.instanceOf(ProjectRoute),
   selectedRouteId: PropTypes.number.isRequired,
   expandedRouteTreeItemIds: JssyPropTypes.setOfIds.isRequired,
   getLocalizedText: PropTypes.func,
@@ -371,7 +371,6 @@ class RouteTreeComponent extends Component {
       onSelectRoute,
       projectName,
       onOpenDesigner,
-      currentRoute,
       indexRouteSelected,
     } = this.props;
 
@@ -384,7 +383,7 @@ class RouteTreeComponent extends Component {
       indexRouteSelected,
     );
 
-    if (currentRoute.id !== route.id && isEditable) {
+    if (isEditable) {
       onOpenDesigner({
         projectName,
         routeId: route.id,

@@ -1147,7 +1147,7 @@ class DesignRoute extends PureComponent {
       onRedo,
       propsViewMode,
     } = this.props;
-
+    console.log('components', components);
     const {
       createComponentMenuIsVisible,
       confirmDeleteComponentDialogIsVisible,

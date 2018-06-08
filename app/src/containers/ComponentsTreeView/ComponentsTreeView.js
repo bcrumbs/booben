@@ -1268,6 +1268,22 @@ class ComponentsTreeViewComponent extends PureComponent {
       expandedRouteTreeItemIds,
       currentRoute,
     } = this.props;
+    
+    if (currentRoute === null) {
+      return (
+        <BlockContentBox
+          flex
+          elementRef={this._saveContentBoxRef}
+          autoScrollUpDown={draggingComponent}
+        >
+          <Shortcuts
+            name="COMPONENTS_TREE"
+            handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
+            targetNodeSelector="body"
+          />
+        </BlockContentBox>
+      );
+    }
 
     const routeExpanded = expandedRouteTreeItemIds.has(currentRoute.id);
 

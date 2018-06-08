@@ -1,7 +1,7 @@
 import { createSelector } from 'reselect';
 import IntlMessageFormat from 'intl-messageformat';
 import _forOwn from 'lodash.forown';
-import { List } from 'immutable';
+import { List, Map } from 'immutable';
 import { getTypeNameByPath } from '@jssy/graphql-schema';
 
 import {
@@ -63,7 +63,7 @@ export const currentComponentsSelector = createSelector(
   (topNestedConstructor, currentRoute) => {
     if (topNestedConstructor) return topNestedConstructor.components;
     if (currentRoute) return currentRoute.components;
-    return null;
+    return Map();
   },
 );
 
@@ -450,9 +450,13 @@ export const isCanvasClearSelector = createSelector(
     if (topNestedConstructor) {
       return topNestedConstructor.rootId === INVALID_ID;
     } else {
-      return currentRoute.parentId === INVALID_ID &&
+      if (currentRoute) {
+        return currentRoute.parentId === INVALID_ID &&
         !indexRouteSelected &&
         currentRoute.component === INVALID_ID;
+      } else {
+        return false;
+      }
     }
   },
 );
