@@ -5,24 +5,26 @@ import { connect } from 'react-redux';
 import Portal from 'react-portal-minimal';
 import { Shortcuts } from 'react-shortcuts';
 import throttle from 'lodash.throttle';
-import { ViewRoutesList } from '../RouteTree/ViewRoutesList';
 
 import {
   BlockContentBox,
   BlockContentPlaceholder,
 } from '../../components/BlockContent';
 
-import { ComponentDataSelect } from '../ComponentDataSelect/ComponentDataSelect';
+import {
+  ComponentDataSelect,
+} from '../ComponentDataSelect/ComponentDataSelect';
 
 import {
-  ComponentsTree,
   ComponentsTreeItem,
   ComponentsTreeItemContent,
   ComponentsTreeList,
   ComponentsTreeCursor,
 } from '../../components/ComponentsTree/ComponentsTree';
 
-import { ComponentPlaceholder } from '../../components/ComponentPlaceholder/ComponentPlaceholder';
+import {
+  ComponentPlaceholder,
+} from '../../components/ComponentPlaceholder/ComponentPlaceholder';
 
 import draggable from '../../hocs/draggable';
 import dropZone from '../../hocs/dropZone';
@@ -1269,9 +1271,19 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     const routeExpanded = expandedRouteTreeItemIds.has(currentRoute.id);
 
+    const routeItem = this._renderRouteItem();
+
     if (!this._treeIsVisible()) {
       return (
-        <BlockContentPlaceholder text={getLocalizedText('tree.noComponents')} />
+        <ComponentsTreeList>
+          <ComponentsTreeItem>
+            {routeItem}
+            <BlockContentPlaceholder
+              text={getLocalizedText('tree.noComponents')}
+            />
+          </ComponentsTreeItem>
+        </ComponentsTreeList>
+        
       );
     }
 
@@ -1284,8 +1296,6 @@ class ComponentsTreeViewComponent extends PureComponent {
     const componentDataSelect = willRenderComponentDataSelect
       ? this._renderComponentDataSelect()
       : null;
-
-    const routeItem = this._renderRouteItem();
 
     return (
       <BlockContentBox

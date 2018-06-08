@@ -51,6 +51,7 @@ const colorScheme = 'default';
 const propTypes = {
   project: PropTypes.instanceOf(Project).isRequired,
   projectName: PropTypes.string.isRequired,
+  indexRouteSelected: PropTypes.bool.isRequired, // store
   highlightedComponentIds: JssyPropTypes.setOfIds.isRequired,
   currentRoute: PropTypes.instanceOf(ProjectRoute).isRequired,
   selectedRouteId: PropTypes.number.isRequired,
@@ -72,6 +73,7 @@ const defaultProps = {
 const mapStateToProps = state => ({
   project: state.project.data,
   projectName: state.project.projectName,
+  indexRouteSelected: state.project.indexRouteSelected,
   highlightedComponentIds: highlightedRouteIdsSelector(state),
   currentRoute: currentRouteSelector(state),
   selectedRouteId: state.project.selectedRouteId,
@@ -105,6 +107,32 @@ const mapDispatchToProps = dispatch => ({
 
 const normalizePath = (rawPath, isRootRoute) =>
   isRootRoute ? `/${rawPath}` : rawPath;
+
+const isRouteEditable = (routes, routeId, isIndexRoute) => {
+  const parentIds = [];
+  
+  if (isIndexRoute) {
+    parentIds.push(routeId);
+  }
+  
+  let currentRoute = routes.get(routeId);
+  
+  while (currentRoute.parentId !== INVALID_ID) {
+    parentIds.push(currentRoute.parentId);
+    currentRoute = routes.get(currentRoute.parentId);
+  }
+  
+  return parentIds.every(id => {
+    const route = routes.get(id);
+    const outlet = findComponent(
+      route.components,
+      route.component,
+      component => component.name === 'Outlet',
+    );
+  
+    return outlet !== null;
+  });
+};
 
 const wrap = connect(
   mapStateToProps,
@@ -344,12 +372,19 @@ class RouteTreeComponent extends Component {
       projectName,
       onOpenDesigner,
       currentRoute,
+      indexRouteSelected,
     } = this.props;
 
     const route = project.routes.get(componentId);
     onSelectRoute(route.id, route.haveIndex);
 
-    if (currentRoute.id !== route.id) {
+    const isEditable = isRouteEditable(
+      project.routes,
+      componentId,
+      indexRouteSelected,
+    );
+
+    if (currentRoute.id !== route.id && isEditable) {
       onOpenDesigner({
         projectName,
         routeId: route.id,
@@ -419,11 +454,18 @@ class RouteTreeComponent extends Component {
     const parentRoute = project.routes.get(id);
     const hovered = highlightedComponentIds.has(id);
 
+    const disabled = !isRouteEditable(
+      project.routes,
+      routeId,
+      route.hasIndex,
+    );
+
     return (
       <RouteTreeItem key={String(id)}>
         <RouteTreeItemContent
           onHover={this._handleHover}
           active={active}
+          disabled={disabled}
           hovered={hovered}
           warningMessage={outletWarningTooltip}
           hasRedirect={hasRedirect}

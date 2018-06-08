@@ -32,6 +32,7 @@ import { getLocalizedTextFromState } from '../selectors';
 
 import {
   PATH_STRUCTURE,
+  PATH_DESIGN,
   PATH_DESIGN_ROUTE,
   PATH_DESIGN_ROUTE_INDEX,
   buildStructurePath,
@@ -218,10 +219,10 @@ class AppRoute extends Component {
         <Switch>
           <Route
             exact
-            path={PATH_STRUCTURE}
-            component={StructureRoute}
+            path={PATH_DESIGN}
+            component={DesignRoute}
           />
-
+        
           <Route
             exact
             path={PATH_DESIGN_ROUTE}
@@ -232,12 +233,6 @@ class AppRoute extends Component {
             exact
             path={PATH_DESIGN_ROUTE_INDEX}
             component={DesignRoute}
-          />
-
-          <Route
-            render={({ match }) => (
-              <Redirect to={buildStructurePath(match.params)} />
-            )}
           />
         </Switch>
 

@@ -1,6 +1,5 @@
 import { Record, Set } from 'immutable';
 import _omit from 'lodash.omit';
-import { INVALID_ID } from '../constants/misc';
 
 const defaults = {
   selectedComponentIds: Set(),

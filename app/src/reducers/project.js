@@ -1276,8 +1276,12 @@ const handlers = {
         lastRouteId: getMaxRouteId(project),
         lastComponentId: getMaxComponentId(project),
       });
-
-    return initMainDesigner(selectFirstRoute(state));
+    
+    state.merge({
+      selectedRouteId: state.currentRouteId,
+    });
+    
+    return initMainDesigner(state);
   },
 
   [PROJECT_LOAD_FAILED]: (state, action) =>
