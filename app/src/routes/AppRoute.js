@@ -40,7 +40,7 @@ import {
 } from '../constants/paths';
 
 import { URL_PREVIEW_PREFIX } from '../../../shared/constants';
-import { IconPlay, IconUpload } from '../components/icons';
+import { IconPlay } from '../components/icons';
 
 const propTypes = {
   location: PropTypes.object.isRequired, // router

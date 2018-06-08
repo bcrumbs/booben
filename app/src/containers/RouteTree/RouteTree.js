@@ -1,24 +1,23 @@
 import React, { Component } from 'react';
-import { Button } from 'reactackle-button';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { push } from 'react-router-redux';
 import { Shortcuts } from 'react-shortcuts';
 
 import {
   BlockContentBox,
-  BlockContentViewButton,
-  IconAdd,
   RouteTree,
   RouteTreeList,
   RouteTreeItem,
   RouteTreeItemContent,
 } from '../../components';
 
-import { ViewRouteTree } from './ViewRouteTree';
-import { ViewRoutesList } from './ViewRoutesList';
+import * as JssyPropTypes from '../../constants/common-prop-types';
 import { INVALID_ID } from '../../constants/misc';
 
 import { createRoute } from '../../actions/project';
+import Project from '../../models/Project';
+import ProjectRoute from '../../models/ProjectRoute';
 
 import {
   buildDesignRoutePath,
@@ -45,17 +44,30 @@ import {
   highlightRoute,
   unhighlightRoute,
 } from '../../actions/structure';
+import { noop } from '../../utils/misc';
 
 const colorScheme = 'default';
 
-const AddButton = props => (
-  <Button
-    radius="rounded"
-    colorScheme="flatLight"
-    icon={<IconAdd size="custom" color="currentColor" />}
-    {...props}
-  />
-);
+const propTypes = {
+  project: PropTypes.instanceOf(Project).isRequired,
+  projectName: PropTypes.string.isRequired,
+  highlightedComponentIds: JssyPropTypes.setOfIds.isRequired,
+  currentRoute: PropTypes.instanceOf(ProjectRoute).isRequired,
+  selectedRouteId: PropTypes.number.isRequired,
+  expandedRouteTreeItemIds: JssyPropTypes.setOfIds.isRequired,
+  getLocalizedText: PropTypes.func,
+  onSelectRoute: PropTypes.func.isRequired,
+  onOpenDesigner: PropTypes.func.isRequired,
+  onExpandItem: PropTypes.func.isRequired,
+  onCollapseItem: PropTypes.func.isRequired,
+  onCreateRoute: PropTypes.func.isRequired,
+  onHighlightItem: PropTypes.func.isRequired,
+  onUnhighlightItem: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+  getLocalizedText: noop,
+};
 
 const mapStateToProps = state => ({
   project: state.project.data,
@@ -118,9 +130,8 @@ class RouteTreeComponent extends Component {
     };
 
     this._handleShortcuts = this._handleShortcuts.bind(this);
-    this._handleMoveSelectionVertically = this._handleMoveSelectionVertically.bind(
-      this,
-    );
+    this._handleMoveSelectionVertically =
+      this._handleMoveSelectionVertically.bind(this);
     this._handleSelectChildRoute = this._handleSelectChildRoute.bind(this);
     this._handleSelectParentComponent =
       this._handleSelectParentComponent.bind(this);
@@ -130,13 +141,11 @@ class RouteTreeComponent extends Component {
     this._renderRouteItem = this._renderRouteItem.bind(this);
     this._renderRoutesList = this._renderRoutesList.bind(this);
     this._handleNewRoutePress = this._handleNewRoutePress.bind(this);
-    this._handleCreateRouteDialogClose = this._handleCreateRouteDialogClose.bind(
-      this,
-    );
+    this._handleCreateRouteDialogClose =
+      this._handleCreateRouteDialogClose.bind(this);
     this._renderNewRouteDialog = this._renderNewRouteDialog.bind(this);
-    this._handleCreateRouteDialogSubmit = this._handleCreateRouteDialogSubmit.bind(
-      this,
-    );
+    this._handleCreateRouteDialogSubmit =
+      this._handleCreateRouteDialogSubmit.bind(this);
   }
 
   _handleShortcuts(action) {
@@ -227,7 +236,7 @@ class RouteTreeComponent extends Component {
       expandedRouteTreeItemIds,
       onExpandItem,
       onOpenDesigner,
-    } = this.props
+    } = this.props;
 
     const selectedRoute = project.routes.get(selectedRouteId);
     if (selectedRoute.children.size === 0) return;
@@ -380,7 +389,6 @@ class RouteTreeComponent extends Component {
       redirectAnonymous,
       redirectAuthenticated,
       id,
-      parentId,
     } = route;
 
     let outletWarning = false;
@@ -470,5 +478,8 @@ class RouteTreeComponent extends Component {
     );
   }
 }
+
+RouteTreeComponent.propTypes = propTypes;
+RouteTreeComponent.defaultProps = defaultProps;
 
 export const RouteTreeView = wrap(RouteTreeComponent);

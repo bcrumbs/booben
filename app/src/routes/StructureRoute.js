@@ -25,7 +25,6 @@ import { RouteTreeView } from '../containers/RouteTree/RouteTree';
 import ProjectRecord from '../models/Project';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
-import ButtonRecord from '../models/Button';
 
 import { SELECT_ROUTE_DEBOUNCE } from '../config';
 
@@ -46,7 +45,10 @@ import {
 import { selectRoute } from '../actions/structure';
 import { getLocalizedTextFromState } from '../selectors';
 import { findComponent } from '../lib/components';
-import { TOOL_ID_ROUTE_EDITOR, TOOL_ID_ROUTE_TREE } from '../constants/tool-ids';
+import {
+  TOOL_ID_ROUTE_EDITOR,
+  TOOL_ID_ROUTE_TREE,
+} from '../constants/tool-ids';
 
 import {
   buildDesignRoutePath,
@@ -80,7 +82,7 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onSelectRoute: (routeId, indexRouteSelected) => 
+  onSelectRoute: (routeId, indexRouteSelected) =>
     void dispatch(selectRoute(routeId, indexRouteSelected)),
 
   onCreateRoute: (parentRouteId, path, title, paramValues) =>
@@ -361,7 +363,8 @@ class StructureRoute extends PureComponent {
    */
   _handleRouteSelect({ routeId, isIndexRoute }) {
     const { selectedRouteId, indexRouteSelected, onSelectRoute } = this.props;
-    const onSelectRouteWithDebounce = debounce(onSelectRoute, SELECT_ROUTE_DEBOUNCE);
+    const onSelectRouteWithDebounce =
+      debounce(onSelectRoute, SELECT_ROUTE_DEBOUNCE);
 
     if (
       routeId !== selectedRouteId ||

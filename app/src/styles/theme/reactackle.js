@@ -66,9 +66,9 @@ export default {
         title: {
           collapsed: {
             backgroundColor: accordionConstants.bgColor,
-              textTransform: 'none',
+            textTransform: 'none',
 
-              hover: {
+            hover: {
               backgroundColor: accordionConstants.bgColorHover,
             },
 
@@ -79,9 +79,9 @@ export default {
 
           expanded: {
             backgroundColor: accordionConstants.bgColor,
-              textTransform: 'none',
+            textTransform: 'none',
 
-              hover: {
+            hover: {
               backgroundColor: accordionConstants.bgColorHover,
             },
 
@@ -103,13 +103,13 @@ export default {
           icon: {
             width: 24,
             imgSize: 18,
-          }
+          },
         },
         normal: {
           icon: {
             width: 24,
             imgSize: 18,
-          }
+          },
         },
       },
 
@@ -134,7 +134,7 @@ export default {
     checkbox: {
       label: {
         fontColor: fontColorBodyLight,
-      }
+      },
     },
 
     dialog: {
@@ -170,7 +170,7 @@ export default {
           focus: {
             color: fontColorBodyLight,
           },
-        }
+        },
       },
     },
 

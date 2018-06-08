@@ -95,8 +95,6 @@ const selectTool = (state, toolId) => {
           rightActiveToolId: toolId,
           rightToolsPanelIsExpanded: true,
         });
-    } else {
-      return state;
     }
   }
 };

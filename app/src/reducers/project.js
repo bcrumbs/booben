@@ -152,7 +152,7 @@ import {
   ROUTE_PARAM_VALUE_DEF,
 } from '../constants/misc';
 
-import { UNDO_HISTORY_LENGTH, COMPONENTS_BUNDLE_FILE } from '../config';
+import { UNDO_HISTORY_LENGTH } from '../config';
 
 export const NestedConstructor = RecordWithHistory(
   {
@@ -268,11 +268,11 @@ const getPathToCurrentRootComponentId = state =>
   haveNestedConstructors(state)
     ? ['nestedConstructors', 0, 'rootId']
     : [
-        'data',
-        'routes',
-        state.currentRouteId,
-        state.currentRouteIsIndexRoute ? 'indexComponent' : 'component',
-      ];
+      'data',
+      'routes',
+      state.currentRouteId,
+      state.currentRouteIsIndexRoute ? 'indexComponent' : 'component',
+    ];
 
 const getPathToCurrentDesigner = state =>
   haveNestedConstructors(state)
@@ -1997,13 +1997,11 @@ const handlers = {
       cursor.setPosition(action.containerId, action.afterIdx),
     ),
 
-  [STRUCTURE_SELECT_ROUTE]: (state, action) => {
-    return state.merge({
-      selectedRouteId: action.routeId,
-      indexRouteSelected: action.indexRouteSelected,
-      propsViewMode: 'routeProps',
-    });
-  },
+  [STRUCTURE_SELECT_ROUTE]: (state, action) => state.merge({
+    selectedRouteId: action.routeId,
+    indexRouteSelected: action.indexRouteSelected,
+    propsViewMode: 'routeProps',
+  }),
 
   [STRUCTURE_HIGHLIGHT_ROUTE]: (state, action) =>
     updateDesigner(state, designer =>
