@@ -1,14 +1,19 @@
 import React from "react";
+import PropTypes from 'prop-types';
 import { connect } from "react-redux";
 import { Button } from "reactackle-button";
-
 import { currentRouteSelector } from "../../selectors/index";
-
 import { BlockContentViewButton, IconAdd } from "../../components";
-
 import { toggleTreeViewMode } from "../../actions/desktop";
-
 import { getLocalizedTextFromState } from "../../selectors";
+
+const propTypes = {
+  ...BlockContentViewButton.propTypes,
+};
+
+const defaultProps = {
+  ...BlockContentViewButton.defaultProps,
+};
 
 const mapStateToProps = state => ({
   currentRoute: currentRouteSelector(state),
@@ -39,15 +44,14 @@ const ContentViewButton = ({
   getLocalizedText,
   currentRoute,
   onToggleTreeViewMode,
-  addButtonAction
+  addButtonAction,
 }) => {
-  const formatRouteTitle = title =>
-    `${getLocalizedText(
+  const formatRouteTitle = title => getLocalizedText(
       "structure.routeTreeEditorTitle"
-    )}: ${title}`.toUpperCase();
-  
+  );
+
   const title = currentRoute ? currentRoute.title : '';
-  
+
   const changeViewButtonProps = {
     title: formatRouteTitle(title),
   };
@@ -60,5 +64,8 @@ const ContentViewButton = ({
     />
   );
 };
+
+ContentViewButton.propTypes = propTypes;
+ContentViewButton.defaultProps = defaultProps;
 
 export const RouteContentViewButton = wrap(ContentViewButton);

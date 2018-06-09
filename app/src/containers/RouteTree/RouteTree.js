@@ -115,18 +115,18 @@ const normalizePath = (rawPath, isRootRoute) =>
 
 const isRouteEditable = (routes, routeId, isIndexRoute) => {
   const parentIds = [];
-  
+
   if (isIndexRoute) {
     parentIds.push(routeId);
   }
-  
+
   let currentRoute = routes.get(routeId);
-  
+
   while (currentRoute.parentId !== INVALID_ID) {
     parentIds.push(currentRoute.parentId);
     currentRoute = routes.get(currentRoute.parentId);
   }
-  
+
   return parentIds.every(id => {
     const route = routes.get(id);
     const outlet = findComponent(
@@ -134,7 +134,7 @@ const isRouteEditable = (routes, routeId, isIndexRoute) => {
       route.component,
       component => component.name === 'Outlet',
     );
-  
+
     return outlet !== null;
   });
 };
@@ -521,8 +521,9 @@ class RouteTreeComponent extends Component {
         name="ROUTES_LIST"
         handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
         targetNodeSelector="body"
+        className="rct-shortcuts-wrapper"
       >
-        <BlockContentBox key="list" colorScheme={colorScheme}>
+        <BlockContentBox key="list" colorScheme={colorScheme} isBordered>
           <RouteTree>{content}</RouteTree>
           {newRouteDialog}
         </BlockContentBox>

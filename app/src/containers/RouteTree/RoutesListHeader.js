@@ -16,7 +16,6 @@ const mapDispatchToProps = dispatch => ({});
 
 const AddButton = props => (
   <Button
-    radius="rounded"
     colorScheme="flatLight"
     icon={<IconAdd size="custom" color="currentColor" />}
     {...props}

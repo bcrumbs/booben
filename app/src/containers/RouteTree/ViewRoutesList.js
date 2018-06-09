@@ -40,14 +40,6 @@ const wrap = connect(mapStateToProps, mapDispatchToProps);
 const colorScheme = "default";
 
 export const ViewRoutes = ({ currentRoute, expandedRouteTreeItemIds, ...props }) => {
-  // const content = (
-  //   <RouteTreeList level={1}>
-  //     <RouteTreeItem>
-  //       <RouteTreeItemContent hasSubLevel title="Index" />
-  //     </RouteTreeItem>
-  //   </RouteTreeList>
-  // );
-
   const _handleExpand = ({ componentId, expanded }) => {
     const { onExpandItem, onCollapseItem } = props;
 
@@ -79,7 +71,7 @@ export const ViewRoutes = ({ currentRoute, expandedRouteTreeItemIds, ...props })
   const content = _renderRouteTree();
 
   return (
-    <BlockContentBox colorScheme={colorScheme}>
+    <BlockContentBox colorScheme={colorScheme} isBordered>
       <RouteTree>{content}</RouteTree>
     </BlockContentBox>
   );
