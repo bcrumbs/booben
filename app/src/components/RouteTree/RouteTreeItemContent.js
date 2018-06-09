@@ -49,6 +49,7 @@ class _RouteTreeItemContent extends PureComponent {
     this._handleHoverIn = this._handleHoverIn.bind(this);
     this._handleHoverOut = this._handleHoverOut.bind(this);
     this._handleClick = this._handleClick.bind(this);
+    this._handleDoubleClick = this._handleDoubleClick.bind(this);
     this._saveItemContentRef = this._saveItemContentRef.bind(this);
   }
 
@@ -90,6 +91,11 @@ class _RouteTreeItemContent extends PureComponent {
       onSelect({ componentId, selected: !active });
     }
   }
+
+  _handleDoubleClick(event) {
+    this.props.onOpenComponentsTree();
+  }
+
   _saveItemContentRef(ref) {
     const { componentId, elementRef } = this.props;
     elementRef({ componentId, ref });
@@ -117,6 +123,7 @@ class _RouteTreeItemContent extends PureComponent {
         onMouseOver={this._handleHoverIn}
         onMouseOut={this._handleHoverOut}
         onClick={this._handleClick}
+        onDoubleClick={this._handleDoubleClick}
         innerRef={this._saveItemContentRef}
         expandButtonRef={this._saveExpandButtonRef}
       />

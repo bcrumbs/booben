@@ -16,6 +16,7 @@ import * as JssyPropTypes from '../../constants/common-prop-types';
 import { INVALID_ID } from '../../constants/misc';
 
 import { createRoute } from '../../actions/project';
+import { toggleTreeViewMode } from '../../actions/desktop';
 import Project from '../../models/Project';
 import ProjectRoute from '../../models/ProjectRoute';
 
@@ -64,6 +65,7 @@ const propTypes = {
   onCreateRoute: PropTypes.func.isRequired,
   onHighlightItem: PropTypes.func.isRequired,
   onUnhighlightItem: PropTypes.func.isRequired,
+  onToggleTreeViewMode: PropTypes.func.isRequired,
 };
 
 const defaultProps = {
@@ -103,6 +105,9 @@ const mapDispatchToProps = dispatch => ({
 
     dispatch(push(path));
   },
+
+  onToggleTreeViewMode: () =>
+    void dispatch(toggleTreeViewMode()),
 });
 
 const normalizePath = (rawPath, isRootRoute) =>
@@ -165,6 +170,7 @@ class RouteTreeComponent extends Component {
       this._handleSelectParentComponent.bind(this);
     this._handleHover = this._handleHover.bind(this);
     this._handleRouteSelect = this._handleRouteSelect.bind(this);
+    this._handleOpenComponentsTree = this._handleOpenComponentsTree.bind(this);
     this._handleExpand = this._handleExpand.bind(this);
     this._renderRouteItem = this._renderRouteItem.bind(this);
     this._renderRoutesList = this._renderRoutesList.bind(this);
@@ -392,6 +398,10 @@ class RouteTreeComponent extends Component {
     }
   }
 
+  _handleOpenComponentsTree() {
+    this.props.onToggleTreeViewMode();
+  }
+
   _handleHover({ componentId, hovered }) {
     const { onHighlightItem, onUnhighlightItem } = this.props;
 
@@ -475,6 +485,7 @@ class RouteTreeComponent extends Component {
           expanded={expanded}
           hasSubLevel={hasSubLevel}
           onSelect={this._handleRouteSelect}
+          onOpenComponentsTree={this._handleOpenComponentsTree}
         />
         {hasSubLevel && expanded ? subLevel : null}
       </RouteTreeItem>

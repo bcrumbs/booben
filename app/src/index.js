@@ -18,7 +18,7 @@ import {
 
 import keymap from './keymap';
 import { loadStrings } from './actions/app';
-import { PATH_ROOT, buildRootDesignRoutePath } from './constants/paths';
+import { PATH_ROOT, buildDesignPath } from './constants/paths';
 import { DEFAULT_LANGUAGE } from './config';
 import './styles/classUtils.css';
 
@@ -38,7 +38,7 @@ window.addEventListener('DOMContentLoaded', () => {
                   exact
                   path={PATH_ROOT}
                   render={({ match }) => (
-                    <Redirect to={buildRootDesignRoutePath(match.params)} />
+                    <Redirect to={buildDesignPath(match.params)} />
                   )}
                 />
 
