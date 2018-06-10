@@ -1245,16 +1245,17 @@ class ComponentsTreeViewComponent extends PureComponent {
   }
 
   _renderRouteItem() {
-    const { currentRoute } = this.props;
+    const { currentRoute, getLocalizedText } = this.props;
 
     return (
       <ComponentsTreeItemContent
         componentId={currentRoute.id}
-        title={currentRoute.title}
+        title={getLocalizedText('tree.routePrefix') + currentRoute.title}
         onSelect={this._handleRouteSelect}
         hasSubLevel
         expanded
         hideExpandButton
+        removeSpacer
       />
     );
   }

@@ -112,6 +112,7 @@
   "components.builtin.Text": "Text",
   "components.builtin.Text.desc": "",
 
+  "tree.routePrefix": "Route: ",
   "tree.noComponents": "There are no components here",
   "tree.cursorTooltip": "Move cursor - SHIFT + ↓ / ↑ / ← / →. Check out help page for more info.",
 
