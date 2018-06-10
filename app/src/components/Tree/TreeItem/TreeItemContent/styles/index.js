@@ -6,3 +6,4 @@ export * from './ItemContentStyled';
 export * from './SpacerStyled';
 export * from './TreeItemStyled';
 export * from './WarningStyled';
+export * from './WarningWrapperStyled';

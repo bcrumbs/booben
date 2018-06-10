@@ -16,9 +16,14 @@ import {
 } from '../../selectors';
 
 const propTypes = {
+  ...BlockContentViewButton.propTypes,
   getLocalizedText: PropTypes.func.isRequired,
   currentRoute: PropTypes.instanceOf(ProjectRoute).isRequired,
   onToggleTreeViewMode: PropTypes.func.isRequired,
+};
+
+const defaultProps = {
+  ...BlockContentViewButton.defaultProps,
 };
 
 const mapStateToProps = state => ({
@@ -43,13 +48,12 @@ const ContentViewButton = ({
   currentRoute,
   onToggleTreeViewMode,
 }) => {
-  const formatRouteTitle = title =>
-    `${getLocalizedText(
-      'structure.routeTreeEditorTitle',
-    )}: ${title}`.toUpperCase();
-  
+  const formatRouteTitle = () => getLocalizedText(
+    'structure.routeTreeEditorTitle',
+  );
+
   const title = currentRoute ? currentRoute.title : '';
-  
+
   const changeViewButtonProps = {
     title: formatRouteTitle(title),
   };
@@ -64,5 +68,6 @@ const ContentViewButton = ({
 };
 
 ContentViewButton.propTypes = propTypes;
+ContentViewButton.defaultProps = defaultProps;
 
 export const RouteContentViewButton = wrap(ContentViewButton);

@@ -9,6 +9,7 @@ import {
   SpacerStyled,
   IconSlotStyled,
   WarningStyled,
+  WarningWrapperStyled,
   ButtonSlotRightStyled,
 } from './styles';
 
@@ -60,7 +61,7 @@ export const TreeItemContent = ({
   buttonSlotRight,
   hasSubLevel,
   expandButtonRef,
-  ...props
+  ...props,
 }) => {
   let warning = null;
   let button = null;
@@ -90,8 +91,9 @@ export const TreeItemContent = ({
       <WarningStyled
         onMouseOut={props.hideTooltip}
         onMouseEnter={props.showTooltip}
-        title={warningMessage}
-      />
+      >
+        <WarningWrapperStyled />
+      </WarningStyled>
     );
   }
 

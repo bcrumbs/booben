@@ -82,7 +82,7 @@ export const ViewRoutes = ({
   const content = _renderRouteTree();
 
   return (
-    <BlockContentBox colorScheme={colorScheme}>
+    <BlockContentBox colorScheme={colorScheme} isBordered>
       <RouteTree>{content}</RouteTree>
     </BlockContentBox>
   );

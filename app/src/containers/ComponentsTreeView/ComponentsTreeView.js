@@ -16,6 +16,7 @@ import {
 } from '../ComponentDataSelect/ComponentDataSelect';
 
 import {
+  ComponentsTree,
   ComponentsTreeItem,
   ComponentsTreeItemContent,
   ComponentsTreeList,
@@ -1268,13 +1269,14 @@ class ComponentsTreeViewComponent extends PureComponent {
       expandedRouteTreeItemIds,
       currentRoute,
     } = this.props;
-    
+
     if (currentRoute === null) {
       return (
         <BlockContentBox
           flex
           elementRef={this._saveContentBoxRef}
           autoScrollUpDown={draggingComponent}
+          isBordered
         >
           <Shortcuts
             name="COMPONENTS_TREE"
@@ -1291,15 +1293,23 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     if (!this._treeIsVisible()) {
       return (
-        <ComponentsTreeList>
-          <ComponentsTreeItem>
-            {routeItem}
-            <BlockContentPlaceholder
-              text={getLocalizedText('tree.noComponents')}
-            />
-          </ComponentsTreeItem>
-        </ComponentsTreeList>
-        
+        <BlockContentBox
+          flex
+          elementRef={this._saveContentBoxRef}
+          autoScrollUpDown={draggingComponent}
+          isBordered
+        >
+          <ComponentsTree>
+            <ComponentsTreeList>
+              <ComponentsTreeItem>
+                {routeItem}
+                <BlockContentPlaceholder
+                  text={getLocalizedText('tree.noComponents')}
+                />
+              </ComponentsTreeItem>
+            </ComponentsTreeList>
+          </ComponentsTree>
+        </BlockContentBox>
       );
     }
 
@@ -1318,18 +1328,22 @@ class ComponentsTreeViewComponent extends PureComponent {
         flex
         elementRef={this._saveContentBoxRef}
         autoScrollUpDown={draggingComponent}
+        isBordered
       >
         <Shortcuts
           name="COMPONENTS_TREE"
           handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
           targetNodeSelector="body"
+          className="rct-shortcuts-wrapper"
         >
-          <ComponentsTreeList>
-            <ComponentsTreeItem>
-              {routeItem}
-              {routeExpanded && list}
-            </ComponentsTreeItem>
-          </ComponentsTreeList>
+          <ComponentsTree>
+            <ComponentsTreeList>
+              <ComponentsTreeItem>
+                {routeItem}
+                {routeExpanded && list}
+              </ComponentsTreeItem>
+            </ComponentsTreeList>
+          </ComponentsTree>
         </Shortcuts>
 
         {componentDataSelect}

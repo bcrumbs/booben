@@ -8,6 +8,7 @@ import { Provider } from 'react-redux';
 import { ThemeProvider } from 'styled-components';
 import { Theme, injectGlobalStyle } from 'reactackle-core';
 import { jssyTheme, reactackleMixin } from './styles/theme';
+import { injectAppStyle } from './styles/appGlobalStyles';
 import RootRoute from './routes/RootRoute';
 import store from './store';
 import history from './history';
@@ -23,6 +24,7 @@ import { DEFAULT_LANGUAGE } from './config';
 import './styles/classUtils.css';
 
 injectGlobalStyle();
+injectAppStyle();
 
 store.dispatch(loadStrings(DEFAULT_LANGUAGE));
 

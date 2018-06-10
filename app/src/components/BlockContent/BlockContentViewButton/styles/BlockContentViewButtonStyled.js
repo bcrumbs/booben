@@ -21,12 +21,9 @@ export const BlockContentViewButtonStyled = styled.div`
   min-height: ${constants.title.minHeight}px;
   min-width: 0;
   background-color: transparent;
+  flex-grow: 1;
+  padding-left: ${constants.basePaddingX}px;
   ${colorScheme}
-  
-  &:hover,
-  &:focus {
-    background-color: rgba(0,0,0,0.1);
-  }
 `;
 
 BlockContentViewButtonStyled.propTypes = propTypes;

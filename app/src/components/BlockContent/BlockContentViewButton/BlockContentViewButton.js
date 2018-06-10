@@ -14,6 +14,7 @@ import {
 } from './styles';
 
 const propTypes = {
+  clickable: PropTypes.bool,
   title: PropTypes.string,
   sectionTitle: PropTypes.string,
   actionsSlot: PropTypes.element,
@@ -22,6 +23,7 @@ const propTypes = {
 };
 
 const defaultProps = {
+  clickable: true,
   title: '',
   sectionTitle: '',
   actionsSlot: null,
@@ -30,6 +32,7 @@ const defaultProps = {
 };
 
 export const BlockContentViewButton = ({
+  clickable,
   title,
   sectionTitle,
   actionsSlot,
@@ -48,7 +51,7 @@ export const BlockContentViewButton = ({
 
   return (
     <BlockContentViewButtonStyled colorScheme={colorScheme} onClick={onClick}>
-      <ButtonStyled>
+      <ButtonStyled clickable={clickable}>
         <IconBoxStyled colorScheme={colorScheme}>
           <IconArrowChevronLeft />
         </IconBoxStyled>
