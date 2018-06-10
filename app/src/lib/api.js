@@ -36,7 +36,6 @@ export const getProject = async projectName => {
  * @return {Object}
  */
 export const putProject = async (projectName, project) => {
-
   let url = URL_API_PREFIX;
 
   if (process.env.NODE_ENV === 'production') {

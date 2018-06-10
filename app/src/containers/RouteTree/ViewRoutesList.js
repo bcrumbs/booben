@@ -1,5 +1,6 @@
-import React from "react";
-import { connect } from "react-redux";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 
 import {
   RouteTree,
@@ -7,19 +8,24 @@ import {
   RouteTreeItem,
   RouteTreeItemContent,
   BlockContentBox,
-} from "../../components";
+} from '../../components';
 
-import { ComponentsTreeView } from "../ComponentsTreeView/ComponentsTreeView";
+import { ComponentsTreeView } from '../ComponentsTreeView/ComponentsTreeView';
+import ProjectRoute from '../../models/ProjectRoute';
+import * as JssyPropTypes from '../../constants/common-prop-types';
 
 import {
   expandRouteTreeItem,
   collapseRouteTreeItem,
 } from '../../actions/design';
 
-import { currentRouteSelector } from "../../selectors/index";
-import { INVALID_ID } from "../../constants/misc";
+import { currentRouteSelector } from '../../selectors/index';
+import { INVALID_ID } from '../../constants/misc';
 
-import { RouteContentViewButton } from './RouteContentViewButton'
+const propTypes = {
+  currentRoute: PropTypes.instanceOf(ProjectRoute).isRequired,
+  expandedRouteTreeItemIds: JssyPropTypes.setOfIds.isRequired,
+};
 
 const mapStateToProps = state => ({
   routes: state.project.data.routes,
@@ -37,17 +43,13 @@ const mapDispatchToProps = dispatch => ({
 
 const wrap = connect(mapStateToProps, mapDispatchToProps);
 
-const colorScheme = "default";
+const colorScheme = 'default';
 
-export const ViewRoutes = ({ currentRoute, expandedRouteTreeItemIds, ...props }) => {
-  // const content = (
-  //   <RouteTreeList level={1}>
-  //     <RouteTreeItem>
-  //       <RouteTreeItemContent hasSubLevel title="Index" />
-  //     </RouteTreeItem>
-  //   </RouteTreeList>
-  // );
-
+export const ViewRoutes = ({
+  currentRoute,
+  expandedRouteTreeItemIds,
+  ...props
+}) => {
   const _handleExpand = ({ componentId, expanded }) => {
     const { onExpandItem, onCollapseItem } = props;
 
@@ -74,6 +76,7 @@ export const ViewRoutes = ({ currentRoute, expandedRouteTreeItemIds, ...props })
         </RouteTreeList>
       );
     }
+    return null;
   };
 
   const content = _renderRouteTree();
@@ -84,5 +87,7 @@ export const ViewRoutes = ({ currentRoute, expandedRouteTreeItemIds, ...props })
     </BlockContentBox>
   );
 };
+
+ViewRoutes.propTypes = propTypes;
 
 export const ViewRoutesList = wrap(ViewRoutes);

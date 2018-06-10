@@ -31,7 +31,6 @@ import {
   PROJECT_PICK_COMPONENT_DONE,
   PROJECT_PICK_COMPONENT_DATA,
   PROJECT_PICK_COMPONENT_CANCEL,
-  PROJECT_LOADED,
 } from '../actions/project';
 
 import {
@@ -98,6 +97,7 @@ const selectTool = (state, toolId) => {
         });
     }
   }
+  return state;
 };
 
 const changeToolStateProp = (state, toolId, prop, value) =>

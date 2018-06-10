@@ -3,7 +3,6 @@ import { iconSizeMixin } from 'reactackle-core';
 import constants from '../../../styles/constants';
 
 import {
-  baseModule,
   textColorMediumDark,
 } from '../../../../../styles/themeSelectors';
 

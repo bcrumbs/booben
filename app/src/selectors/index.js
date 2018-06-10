@@ -450,13 +450,10 @@ export const isCanvasClearSelector = createSelector(
     if (topNestedConstructor) {
       return topNestedConstructor.rootId === INVALID_ID;
     } else {
-      if (currentRoute) {
-        return currentRoute.parentId === INVALID_ID &&
+      if (!currentRoute) return false;
+      return currentRoute.parentId === INVALID_ID &&
         !indexRouteSelected &&
         currentRoute.component === INVALID_ID;
-      } else {
-        return false;
-      }
     }
   },
 );

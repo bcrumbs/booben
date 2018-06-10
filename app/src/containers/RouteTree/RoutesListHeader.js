@@ -1,18 +1,15 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { Button } from 'reactackle-button';
 
-import { currentRouteSelector } from '../../selectors/index';
-
 import { getLocalizedTextFromState } from '../../selectors';
-
 import { BlockContentViewButton, IconAdd } from '../../components';
+import { noop } from '../../utils/misc';
 
 const mapStateToProps = state => ({
   getLocalizedText: getLocalizedTextFromState(state),
 });
-
-const mapDispatchToProps = dispatch => ({});
 
 const AddButton = props => (
   <Button
@@ -25,21 +22,28 @@ const AddButton = props => (
 
 const wrap = connect(
   mapStateToProps,
-  mapDispatchToProps,
+  null,
 );
 
 const colorScheme = 'default';
 
+const propTypes = {
+  getLocalizedText: PropTypes.func.isRequired,
+  addButtonAction: PropTypes.func,
+};
+
+const defaultProps = {
+  addButtonAction: noop,
+}
+
 const RoutesListHeaderComponent = ({
   getLocalizedText,
-  currentRoute,
-  onToggleTreeViewMode,
   addButtonAction,
 }) => {
   const title = getLocalizedText('structure.routeTreeEditorTitle');
 
   const changeViewButtonProps = {
-    title: title,
+    title,
     actionsSlot: addButtonAction && <AddButton onPress={addButtonAction} />,
   };
 
@@ -50,5 +54,8 @@ const RoutesListHeaderComponent = ({
     />
   );
 };
+
+RoutesListHeaderComponent.propTypes = propTypes;
+RoutesListHeaderComponent.defaultProps = defaultProps;
 
 export const RoutesListHeader = wrap(RoutesListHeaderComponent);

@@ -7,10 +7,10 @@ export const IconAdd = props => (
   <IconSvg {...props}>
     <svg viewBox="0 0 24 24">
       <g>
-        <rect x="2.5" y="11" width="19" height="2"/>
+        <rect x="2.5" y="11" width="19" height="2" />
       </g>
       <g>
-        <rect x="11" y="2.5" width="2" height="19"/>
+        <rect x="11" y="2.5" width="2" height="19" />
       </g>
     </svg>
   </IconSvg>

@@ -6,8 +6,8 @@ export const IconArrowUpDown = props => (
   <IconSvg {...props}>
     <svg viewBox="0 0 24 24">
       <g>
-        <path d="M7,15l5,5l5-5H7z"/>
-        <path d="M17,9l-5-5L7,9H17z"/>
+        <path d="M7,15l5,5l5-5H7z" />
+        <path d="M17,9l-5-5L7,9H17z" />
       </g>
     </svg>
   </IconSvg>

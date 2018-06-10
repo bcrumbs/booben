@@ -2,7 +2,6 @@ import {
   baseModule,
   paletteBlueGrey25,
   paletteBlueGrey500,
-  paletteBlueGrey650,
   paletteBlueGrey800,
   colorMain,
   colorBorderDark,

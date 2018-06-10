@@ -92,7 +92,7 @@ class _RouteTreeItemContent extends PureComponent {
     }
   }
 
-  _handleDoubleClick(event) {
+  _handleDoubleClick() {
     this.props.onOpenComponentsTree();
   }
 

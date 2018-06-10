@@ -9,15 +9,15 @@ export const IconDetach = props => (
       <g>
         <g>
           <g>
-            <polygon points="16,17 16,7 21,12 				"/>
+            <polygon points="16,17 16,7 21,12 				" />
           </g>
         </g>
       </g>
       <g>
-        <rect x="8" y="11" width="8" height="2"/>
+        <rect x="8" y="11" width="8" height="2" />
       </g>
       <g>
-        <rect x="4" y="2.5" width="2" height="19"/>
+        <rect x="4" y="2.5" width="2" height="19" />
       </g>
     </svg>
   </IconSvg>

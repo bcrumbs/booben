@@ -1,4 +1,4 @@
-import React, { PureComponent } from 'react';
+import React from 'react';
 import PropTypes from 'prop-types';
 import { noop } from '../../../utils/misc';
 import { IconArrowChevronLeft } from '../../icons';

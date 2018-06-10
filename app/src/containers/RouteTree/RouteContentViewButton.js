@@ -1,49 +1,51 @@
-import React from "react";
-import { connect } from "react-redux";
-import { Button } from "reactackle-button";
+import React from 'react';
+import PropTypes from 'prop-types';
+import { connect } from 'react-redux';
 
-import { currentRouteSelector } from "../../selectors/index";
+import ProjectRoute from '../../models/ProjectRoute';
 
-import { BlockContentViewButton, IconAdd } from "../../components";
+// import { currentRouteSelector } from '../../selectors/index';
 
-import { toggleTreeViewMode } from "../../actions/desktop";
+import { BlockContentViewButton } from '../../components';
 
-import { getLocalizedTextFromState } from "../../selectors";
+import { toggleTreeViewMode } from '../../actions/desktop';
+
+import {
+  getLocalizedTextFromState,
+  currentRouteSelector,
+} from '../../selectors';
+
+const propTypes = {
+  getLocalizedText: PropTypes.func.isRequired,
+  currentRoute: PropTypes.instanceOf(ProjectRoute).isRequired,
+  onToggleTreeViewMode: PropTypes.func.isRequired,
+};
 
 const mapStateToProps = state => ({
   currentRoute: currentRouteSelector(state),
-  getLocalizedText: getLocalizedTextFromState(state)
+  getLocalizedText: getLocalizedTextFromState(state),
 });
 
 const mapDispatchToProps = dispatch => ({
-  onToggleTreeViewMode: () => void dispatch(toggleTreeViewMode())
+  onToggleTreeViewMode: () => void dispatch(toggleTreeViewMode()),
 });
-
-const AddButton = props => (
-  <Button
-    radius="rounded"
-    colorScheme="flatLight"
-    icon={<IconAdd size="custom" color="currentColor" />}
-    {...props}
-  />
-);
 
 const wrap = connect(
   mapStateToProps,
   mapDispatchToProps,
 );
 
-const colorScheme = "default";
+const colorScheme = 'default';
+
 
 const ContentViewButton = ({
   getLocalizedText,
   currentRoute,
   onToggleTreeViewMode,
-  addButtonAction
 }) => {
   const formatRouteTitle = title =>
     `${getLocalizedText(
-      "structure.routeTreeEditorTitle"
+      'structure.routeTreeEditorTitle',
     )}: ${title}`.toUpperCase();
   
   const title = currentRoute ? currentRoute.title : '';
@@ -60,5 +62,7 @@ const ContentViewButton = ({
     />
   );
 };
+
+ContentViewButton.propTypes = propTypes;
 
 export const RouteContentViewButton = wrap(ContentViewButton);

@@ -383,25 +383,23 @@ class _FunctionWindow extends PureComponent {
     const { getLocalizedText } = this.props;
     const valueDef = this.getRestArgValueDef();
 
-    const restArgElements = restArgValues.map((value, idx) => {
-      return (
-        <JssyValueEditor
-          id={idx}
-          key={String(idx)}
-          name={String(idx)}
-          value={value}
-          valueDef={{ ...valueDef, label: `${idx}` }}
-          optional={false}
-          getLocalizedText={getLocalizedText}
-          onChange={this._handleRestArgChange}
-          onLink={this._handleRestArgLink}
-          onPick={this._handleRestArgPick}
-          deletable={idx}
-          simulateLeftOffset={idx === 0}
-          onDelete={this._handleRestArgDelete}
-        />
-      );
-    });
+    const restArgElements = restArgValues.map((value, idx) => (
+      <JssyValueEditor
+        id={idx}
+        key={String(idx)}
+        name={String(idx)}
+        value={value}
+        valueDef={{ ...valueDef, label: `${idx}` }}
+        optional={false}
+        getLocalizedText={getLocalizedText}
+        onChange={this._handleRestArgChange}
+        onLink={this._handleRestArgLink}
+        onPick={this._handleRestArgPick}
+        deletable={idx}
+        simulateLeftOffset={idx === 0}
+        onDelete={this._handleRestArgDelete}
+      />
+      ));
 
     return (
       <PropExpandable

@@ -70,6 +70,7 @@ const propTypes = {
 
 const defaultProps = {
   getLocalizedText: noop,
+  currentRoute: INVALID_ID,
 };
 
 const mapStateToProps = state => ({
