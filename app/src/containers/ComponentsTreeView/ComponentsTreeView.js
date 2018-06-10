@@ -1247,8 +1247,6 @@ class ComponentsTreeViewComponent extends PureComponent {
   _renderRouteItem() {
     const { currentRoute } = this.props;
 
-    const hideExpandButton = !this._treeIsVisible();
-
     return (
       <ComponentsTreeItemContent
         componentId={currentRoute.id}
@@ -1256,7 +1254,7 @@ class ComponentsTreeViewComponent extends PureComponent {
         onSelect={this._handleRouteSelect}
         hasSubLevel
         expanded
-        hideExpandButton={hideExpandButton}
+        hideExpandButton
       />
     );
   }

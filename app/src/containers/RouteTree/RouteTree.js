@@ -52,10 +52,10 @@ const colorScheme = 'default';
 const propTypes = {
   project: PropTypes.instanceOf(Project).isRequired,
   projectName: PropTypes.string.isRequired,
-  indexRouteSelected: PropTypes.bool.isRequired, // store
   highlightedComponentIds: JssyPropTypes.setOfIds.isRequired,
   currentRoute: PropTypes.instanceOf(ProjectRoute),
   selectedRouteId: PropTypes.number.isRequired,
+  indexRouteSelected: PropTypes.bool.isRequired,
   expandedRouteTreeItemIds: JssyPropTypes.setOfIds.isRequired,
   getLocalizedText: PropTypes.func,
   onSelectRoute: PropTypes.func.isRequired,
@@ -116,18 +116,18 @@ const normalizePath = (rawPath, isRootRoute) =>
 
 const isRouteEditable = (routes, routeId, isIndexRoute) => {
   const parentIds = [];
-
+  
   if (isIndexRoute) {
     parentIds.push(routeId);
   }
-
+  
   let currentRoute = routes.get(routeId);
-
+  
   while (currentRoute.parentId !== INVALID_ID) {
     parentIds.push(currentRoute.parentId);
     currentRoute = routes.get(currentRoute.parentId);
   }
-
+  
   return parentIds.every(id => {
     const route = routes.get(id);
     const outlet = findComponent(
@@ -380,30 +380,30 @@ class RouteTreeComponent extends Component {
       onSelectRoute,
       projectName,
       onOpenDesigner,
-      indexRouteSelected,
     } = this.props;
 
     const route = project.routes.get(componentId);
 
-    const isEditable = isRouteEditable(
+    onOpenDesigner({
+      projectName,
+      routeId: route.id,
+      isIndexRoute: route.haveIndex,
+    });
+
+    onSelectRoute(route.id, route.haveIndex);
+  }
+
+  _handleOpenComponentsTree({ componentId }) {
+    const { project, indexRouteSelected } = this.props;
+
+    const parentHasOutlet = isRouteEditable(
       project.routes,
       componentId,
       indexRouteSelected,
     );
-
-    if (isEditable) {
-      onOpenDesigner({
-        projectName,
-        routeId: route.id,
-        isIndexRoute: route.haveIndex,
-      });
+    if (parentHasOutlet) {
+      this.props.onToggleTreeViewMode();
     }
-    
-    onSelectRoute(route.id, route.haveIndex);
-  }
-
-  _handleOpenComponentsTree() {
-    this.props.onToggleTreeViewMode();
   }
 
   _handleHover({ componentId, hovered }) {
@@ -467,7 +467,7 @@ class RouteTreeComponent extends Component {
     const parentRoute = project.routes.get(id);
     const hovered = highlightedComponentIds.has(id);
 
-    return (
+    return ( 
       <RouteTreeItem key={String(id)}>
         <RouteTreeItemContent
           onHover={this._handleHover}

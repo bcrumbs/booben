@@ -93,7 +93,10 @@ class _RouteTreeItemContent extends PureComponent {
   }
 
   _handleDoubleClick() {
-    this.props.onOpenComponentsTree();
+    const { componentId, active, disabled, onOpenComponentsTree } = this.props;
+    if (!disabled) {
+      onOpenComponentsTree({ componentId, selected: !active });
+    }
   }
 
   _saveItemContentRef(ref) {
