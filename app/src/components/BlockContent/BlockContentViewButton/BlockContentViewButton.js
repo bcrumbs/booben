@@ -49,12 +49,16 @@ export const BlockContentViewButton = ({
     </SectionTitleStyled>
   );
 
+  const leftButton = clickable && (
+    <IconBoxStyled colorScheme={colorScheme}>
+      <IconArrowChevronLeft />
+    </IconBoxStyled>
+  );
+
   return (
     <BlockContentViewButtonStyled colorScheme={colorScheme} onClick={onClick}>
       <ButtonStyled clickable={clickable}>
-        <IconBoxStyled colorScheme={colorScheme}>
-          <IconArrowChevronLeft />
-        </IconBoxStyled>
+        {leftButton}
         <TextBoxStyled>
           {sectionTitleElement}
           <TitleStyled title={title}>{title}</TitleStyled>

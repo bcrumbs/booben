@@ -26,6 +26,7 @@ const propTypes = {
   selected: PropTypes.bool,
   hovered: PropTypes.bool,
   disabled: PropTypes.bool,
+  hideExpandButton: PropTypes.bool,
   expandButtonRef: PropTypes.func,
   Tooltip: PropTypes.func,
   showTooltip: PropTypes.func,
@@ -43,6 +44,7 @@ const defaultProps = {
   selected: false,
   hovered: false,
   disabled: false,
+  hideExpandButton: false,
   expandButtonRef: noop,
   Tooltip: null,
   showTooltip: noop,
@@ -61,7 +63,8 @@ export const TreeItemContent = ({
   buttonSlotRight,
   hasSubLevel,
   expandButtonRef,
-  ...props,
+  hideExpandButton,
+  ...props
 }) => {
   let warning = null;
   let button = null;
@@ -70,7 +73,7 @@ export const TreeItemContent = ({
   let buttonSlotRightElement = null;
   let tooltip;
 
-  if (hasSubLevel) {
+  if (hasSubLevel && !hideExpandButton) {
     button = (
       <ButtonsStyled>
         <IconStyled innerRef={expandButtonRef}>

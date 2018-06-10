@@ -97,7 +97,7 @@ const mapDispatchToProps = dispatch => ({
   onCollapseItem: id => void dispatch(collapseRouteTreeItem(id)),
 
   onSelectRoute: (routeId, indexRouteSelected) =>
-    void dispatch(selectRoute(routeId, indexRouteSelected)),
+    void dispatch(selectRoute(routeId, indexRouteSelected, true)),
 
   onOpenDesigner: ({ projectName, routeId, isIndexRoute }) => {
     const path = isIndexRoute
@@ -342,6 +342,7 @@ class RouteTreeComponent extends Component {
   _handleCreateRouteDialogSubmit(data) {
     const {
       onCreateRoute,
+      onExpandItem,
     } = this.props;
 
     const {
@@ -355,6 +356,7 @@ class RouteTreeComponent extends Component {
     const title = newRouteTitle.trim();
     const path = normalizePath(newRoutePath, isRootRoute);
     onCreateRoute(createRouteParentId, path, title, newRouteParamValues);
+    onExpandItem(createRouteParentId);
   }
 
   _renderNewRouteDialog() {
@@ -382,7 +384,6 @@ class RouteTreeComponent extends Component {
     } = this.props;
 
     const route = project.routes.get(componentId);
-    onSelectRoute(route.id, route.haveIndex);
 
     const isEditable = isRouteEditable(
       project.routes,
@@ -397,6 +398,8 @@ class RouteTreeComponent extends Component {
         isIndexRoute: route.haveIndex,
       });
     }
+    
+    onSelectRoute(route.id, route.haveIndex);
   }
 
   _handleOpenComponentsTree() {
@@ -464,18 +467,11 @@ class RouteTreeComponent extends Component {
     const parentRoute = project.routes.get(id);
     const hovered = highlightedComponentIds.has(id);
 
-    const disabled = !isRouteEditable(
-      project.routes,
-      routeId,
-      route.hasIndex,
-    );
-
     return (
       <RouteTreeItem key={String(id)}>
         <RouteTreeItemContent
           onHover={this._handleHover}
           active={active}
-          disabled={disabled}
           hovered={hovered}
           warningMessage={outletWarningTooltip}
           hasRedirect={hasRedirect}

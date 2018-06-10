@@ -239,7 +239,7 @@ export const ToolPanel = props => {
     <ResizeablePageDrawer
       key={`page-drawer-${position}`}
       resizeEnabled={isExpanded[position]}
-      resizeSides={['left']}
+      resizeSides={position === 'left' ? ['right'] : ['left']}
       resizeMinWidth={DESKTOP_PANEL_MIN_WIDTH}
       resizeMaxWidth={Math.round(window.innerWidth / 2)}
       isExpanded={isExpanded[position]}

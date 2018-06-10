@@ -13,10 +13,15 @@ export const STRUCTURE_UNHIGHLIGHT_ROUTE =
  * @param {boolean} indexRouteSelected
  * @return {Object}
  */
-export const selectRoute = (routeId, indexRouteSelected) => ({
+export const selectRoute = (
+  routeId,
+  indexRouteSelected,
+  openConfigurationTool = false,
+) => ({
   type: STRUCTURE_SELECT_ROUTE,
   routeId,
   indexRouteSelected,
+  openConfigurationTool,
 });
 
 export const highlightRoute = routeId => ({

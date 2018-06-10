@@ -27,6 +27,10 @@ import {
 } from '../actions/preview';
 
 import {
+  STRUCTURE_SELECT_ROUTE,
+} from '../actions/structure';
+
+import {
   PROJECT_PICK_COMPONENT,
   PROJECT_PICK_COMPONENT_DONE,
   PROJECT_PICK_COMPONENT_DATA,
@@ -345,6 +349,17 @@ const handlers = {
   
   [PROJECT_PICK_COMPONENT_CANCEL]: state => selectPreviousTool(state),
 
+  [STRUCTURE_SELECT_ROUTE]: (state, action) => {
+    if (action.openConfigurationTool) {
+      const componentConfigToolState =
+        state.toolStates.get(TOOL_ID_PROPS_EDITOR);
+
+      if (componentConfigToolState && componentConfigToolState.docked) {
+        state = selectTool(state, TOOL_ID_PROPS_EDITOR);
+      }
+    }
+    return setActiveSection(state, state.activeToolId, 0);
+  },
   [PREVIEW_SELECT_COMPONENT]: (state, action) => {
     if (action.openConfigurationTool) {
       const componentConfigToolState =

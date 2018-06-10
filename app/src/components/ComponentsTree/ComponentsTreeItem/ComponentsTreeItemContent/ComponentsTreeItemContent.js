@@ -78,6 +78,9 @@ export class ComponentsTreeItemContent extends PureComponent {
 
   _handleClick(event) {
     const { componentId, active, disabled, onSelect } = this.props;
+    // TODO: find a better way to prevent clicking from expand icon element
+    if (event.target.nodeName !== 'DIV') return;
+
     if (!disabled) {
       event.stopPropagation();
       onSelect({ componentId, selected: !active });

@@ -179,7 +179,7 @@ const mapDispatchToProps = dispatch => ({
   onCollapseRouteItem: id => void dispatch(collapseRouteTreeItem(id)),
 
   onSelectItem: id =>
-    void dispatch(selectPreviewComponent(id, true, false, false)),
+    void dispatch(selectPreviewComponent(id, true, true, false)),
 
   onSelectRoute: (routeId, indexRouteSelected) =>
     void dispatch(selectRoute(routeId, indexRouteSelected)),
@@ -1245,17 +1245,18 @@ class ComponentsTreeViewComponent extends PureComponent {
   }
 
   _renderRouteItem() {
-    const { currentRoute, expandedRouteTreeItemIds } = this.props;
-    const expanded = expandedRouteTreeItemIds.has(currentRoute.id);
+    const { currentRoute } = this.props;
+
+    const hideExpandButton = !this._treeIsVisible();
 
     return (
       <ComponentsTreeItemContent
         componentId={currentRoute.id}
-        onExpand={this._handleRouteExpand}
         title={currentRoute.title}
         onSelect={this._handleRouteSelect}
         hasSubLevel
-        expanded={expanded}
+        expanded
+        hideExpandButton={hideExpandButton}
       />
     );
   }
@@ -1266,7 +1267,6 @@ class ComponentsTreeViewComponent extends PureComponent {
       componentDataListIsVisible,
       pickedComponentArea,
       getLocalizedText,
-      expandedRouteTreeItemIds,
       currentRoute,
     } = this.props;
 
@@ -1286,8 +1286,6 @@ class ComponentsTreeViewComponent extends PureComponent {
         </BlockContentBox>
       );
     }
-
-    const routeExpanded = expandedRouteTreeItemIds.has(currentRoute.id);
 
     const routeItem = this._renderRouteItem();
 
@@ -1340,7 +1338,7 @@ class ComponentsTreeViewComponent extends PureComponent {
             <ComponentsTreeList>
               <ComponentsTreeItem>
                 {routeItem}
-                {routeExpanded && list}
+                {list}
               </ComponentsTreeItem>
             </ComponentsTreeList>
           </ComponentsTree>

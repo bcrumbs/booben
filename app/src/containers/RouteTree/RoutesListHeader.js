@@ -33,7 +33,7 @@ const propTypes = {
 
 const defaultProps = {
   addButtonAction: noop,
-}
+};
 
 const RoutesListHeaderComponent = ({
   getLocalizedText,
@@ -49,6 +49,7 @@ const RoutesListHeaderComponent = ({
   return (
     <BlockContentViewButton
       colorScheme={colorScheme}
+      clickable={false}
       {...changeViewButtonProps}
     />
   );
