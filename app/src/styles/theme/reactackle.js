@@ -66,9 +66,10 @@ export default {
         title: {
           collapsed: {
             backgroundColor: accordionConstants.bgColor,
-              textTransform: 'none',
+            textTransform: 'none',
+            paddingLeft: baseModule * 2.5,
 
-              hover: {
+            hover: {
               backgroundColor: accordionConstants.bgColorHover,
             },
 
@@ -79,9 +80,10 @@ export default {
 
           expanded: {
             backgroundColor: accordionConstants.bgColor,
-              textTransform: 'none',
+            textTransform: 'none',
+            paddingLeft: baseModule * 2.5,
 
-              hover: {
+            hover: {
               backgroundColor: accordionConstants.bgColorHover,
             },
 

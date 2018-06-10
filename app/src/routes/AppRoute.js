@@ -4,19 +4,22 @@ import { connect } from 'react-redux';
 import { compose } from 'redux';
 import { Route, Switch, Redirect } from 'react-router';
 import { Link } from 'react-router-dom';
+import { AlertArea } from 'reactackle-alert-area';
+import { App, TopRegion } from 'reactackle-app';
 
 import {
   Header,
   HeaderRegion,
-  HeaderLogoBox,
+} from 'reactackle-header';
+
+import {
   Menu,
   MenuGroup,
   MenuList,
   MenuItem,
-  AlertArea,
-} from '@reactackle/reactackle';
+} from 'reactackle-menu';
 
-import { App, TopRegion } from 'reactackle-app';
+import { HeaderLogo } from '../components';
 
 import StructureRoute from './StructureRoute';
 import DesignRoute from './DesignRoute';
@@ -170,7 +173,7 @@ class AppRoute extends Component {
         <TopRegion>
           <Header size="blank">
             <HeaderRegion size="blank">
-              <HeaderLogoBox title={title} />
+              <HeaderLogo>{title}</HeaderLogo>
             </HeaderRegion>
 
             <HeaderRegion spread size="blank">
