@@ -172,11 +172,11 @@ class AppRoute extends Component {
       <App fixed>
         <TopRegion>
           <Header size="blank">
-            <HeaderRegion size="blank">
+            <HeaderRegion size="blank" verticalAlign="center">
               <HeaderLogo>{title}</HeaderLogo>
             </HeaderRegion>
 
-            <HeaderRegion spread size="blank">
+            <HeaderRegion spread size="blank" verticalAlign="center">
               <Menu inline dense mode="light">
                 <MenuGroup>
                   <MenuList>
@@ -190,11 +190,11 @@ class AppRoute extends Component {
               </Menu>
             </HeaderRegion>
 
-            <HeaderRegion size="blank">
+            <HeaderRegion size="blank" verticalAlign="center">
               <ProjectSaveIndicator />
             </HeaderRegion>
 
-            <HeaderRegion size="blank">
+            <HeaderRegion size="blank" verticalAlign="center">
               <Menu inline dense mode="light">
                 <MenuGroup>
                   <MenuList>
@@ -202,7 +202,7 @@ class AppRoute extends Component {
                       text={getLocalizedText('appHeader.menu.preview')}
                       linkHref={`${URL_PREVIEW_PREFIX}/${routeName}`}
                       linkComponent={TopMenuExternalLink}
-                      iconLeft={<IconPlay border borderWidth={1} rounded />}
+                      iconLeft={<IconPlay border borderWidth={1} rounded size='small' />}
                     />
                   </MenuList>
                 </MenuGroup>
