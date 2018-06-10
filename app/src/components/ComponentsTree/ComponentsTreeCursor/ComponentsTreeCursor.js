@@ -23,7 +23,7 @@ export const _ComponentsTreeCursor = props => {
       onMouseEnter={props.showTooltip}
       onMouseLeave={props.hideTooltip}
     >
-      <TooltipComponent text={props.tooltipText} />
+      <TooltipComponent>{props.tooltipText}</TooltipComponent>
     </CursorStyled>
   );
   /* eslint-enable react/jsx-handler-names */
