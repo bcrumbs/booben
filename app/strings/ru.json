@@ -79,6 +79,7 @@
   "design.willDropComponentAfterText": "{componentTitle} будет вставлен в {where} после {after}",
   "design.createComponentMenu.inputPlaceholder": "Начните вводить имя компонента",
   "design.canvas.placeholder": "Перетащите сюда компонент",
+  "design.canvas.placeholderNoParentRouteOutlet": "У родительского роута нет Outlet. Добавьте его роут родителя",
 
   "toolbar.common.undo": "Отменить",
   "toolbar.common.redo": "Повторить",

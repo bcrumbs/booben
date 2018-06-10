@@ -79,6 +79,7 @@
   "design.willDropComponentAfterText": "Will insert {componentTitle} into {where} after {after}",
   "design.createComponentMenu.inputPlaceholder": "Start typing component name",
   "design.canvas.placeholder": "Drop a component here",
+  "design.canvas.placeholderNoParentRouteOutlet": "Parent route doesn't have an Outlet. Please, add it to the parent route.",
 
   "toolbar.common.undo": "Undo",
   "toolbar.common.redo": "Redo",
