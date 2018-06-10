@@ -331,10 +331,13 @@ const handlers = {
   [PREVIEW_START_DRAG_EXISTING_COMPONENT]: state =>
     temporarilySelectTool(state, TOOL_ID_COMPONENTS_TREE),
   
-  [PREVIEW_DROP_COMPONENT]: (state, action) =>
-    action.dropOnAreaId === ComponentDropAreas.TREE
+  [PREVIEW_DROP_COMPONENT]: (state, action) => {
+    state = state.setIn(['treeViewMode'], 'routeTree');
+    
+    return action.dropOnAreaId === ComponentDropAreas.TREE
       ? state
-      : selectPreviousTool(state),
+      : selectPreviousTool(state);
+  },
   
   [PROJECT_PICK_COMPONENT]: (state, action) => {
     state = state.set('pickingComponentData', action.pickData);
