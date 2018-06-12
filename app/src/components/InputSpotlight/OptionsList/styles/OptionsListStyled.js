@@ -1,7 +1,3 @@
-/**
- * @author Ekaterina Marova
- */
-
 import styled from 'styled-components';
 import { baseModule } from '../../../../styles/themeSelectors';
 

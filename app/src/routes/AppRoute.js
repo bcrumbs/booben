@@ -4,19 +4,22 @@ import { connect } from 'react-redux';
 import { compose } from 'redux';
 import { Route, Switch } from 'react-router';
 import { Link } from 'react-router-dom';
+import { AlertArea } from 'reactackle-alert-area';
+import { App, TopRegion } from 'reactackle-app';
 
 import {
   Header,
   HeaderRegion,
-  HeaderLogoBox,
+} from 'reactackle-header';
+
+import {
   Menu,
   MenuGroup,
   MenuList,
   MenuItem,
-  AlertArea,
-} from '@reactackle/reactackle';
+} from 'reactackle-menu';
 
-import { App, TopRegion } from 'reactackle-app';
+import { HeaderLogo } from '../components';
 
 import DesignRoute from './DesignRoute';
 import { DrawerTopDesign } from '../containers/DrawerTopDesign/DrawerTopDesign';
@@ -167,17 +170,29 @@ class AppRoute extends Component {
       <App fixed>
         <TopRegion>
           <Header size="blank">
-            <HeaderRegion size="blank">
-              <HeaderLogoBox title={title} />
+            <HeaderRegion size="blank" verticalAlign="center">
+              <HeaderLogo>{title}</HeaderLogo>
             </HeaderRegion>
 
-            <HeaderRegion spread size="blank" />
+            <HeaderRegion spread size="blank" verticalAlign="center">
+              <Menu inline dense mode="light">
+                <MenuGroup>
+                  <MenuList>
+                    <MenuItem
+                      text={getLocalizedText('appHeader.menu.structure')}
+                      linkHref={`/${routeName}/structure`}
+                      linkComponent={TopMenuLink}
+                    />
+                  </MenuList>
+                </MenuGroup>
+              </Menu>
+            </HeaderRegion>
 
-            <HeaderRegion size="blank">
+            <HeaderRegion size="blank" verticalAlign="center">
               <ProjectSaveIndicator />
             </HeaderRegion>
 
-            <HeaderRegion size="blank">
+            <HeaderRegion size="blank" verticalAlign="center">
               <Menu inline dense mode="light">
                 <MenuGroup>
                   <MenuList>
@@ -185,7 +200,7 @@ class AppRoute extends Component {
                       text={getLocalizedText('appHeader.menu.preview')}
                       linkHref={`${URL_PREVIEW_PREFIX}/${routeName}`}
                       linkComponent={TopMenuExternalLink}
-                      iconLeft={<IconPlay border borderWidth={1} rounded />}
+                      iconLeft={<IconPlay border borderWidth={1} rounded size='small' />}
                     />
                   </MenuList>
                 </MenuGroup>

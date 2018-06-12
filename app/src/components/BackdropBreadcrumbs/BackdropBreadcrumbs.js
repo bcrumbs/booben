@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Breadcrumbs } from '@reactackle/reactackle';
+import { Breadcrumbs } from 'reactackle-breadcrumbs';
 import { ThemeProvider } from 'styled-components';
 import { Theme } from 'reactackle-core';
 import { BreadcrumbLink } from './BreadcrumbLink';

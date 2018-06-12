@@ -1,7 +1,3 @@
-/**
- * @author Ekaterina Marova
- */
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import { TextField } from 'reactackle-text-field';

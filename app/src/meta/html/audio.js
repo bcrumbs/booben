@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev, Ekaterina Marova
- */
-
 export default {
   displayName: 'audio',
   textKey: 'name',
