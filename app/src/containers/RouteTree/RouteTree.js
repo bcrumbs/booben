@@ -45,6 +45,7 @@ import {
   highlightRoute,
   unhighlightRoute,
 } from '../../actions/structure';
+
 import { noop } from '../../utils/misc';
 
 const colorScheme = 'default';
@@ -87,7 +88,7 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   onHighlightItem: id => void dispatch(highlightRoute(id)),
 
-  onUnhighlightItem: id => void dispatch(unhighlightRoute(id)),
+  onUnhighlightItem: id => void dispatch(unhighlightRoute(id)), 
 
   onCreateRoute: (parentRouteId, path, title, paramValues) =>
     void dispatch(createRoute(parentRouteId, path, title, paramValues)),
@@ -467,7 +468,7 @@ class RouteTreeComponent extends Component {
     const parentRoute = project.routes.get(id);
     const hovered = highlightedComponentIds.has(id);
 
-    return ( 
+    return (
       <RouteTreeItem key={String(id)}>
         <RouteTreeItemContent
           onHover={this._handleHover}

@@ -42,7 +42,11 @@ import {
   collapseRouteTreeItem,
 } from '../../actions/design';
 
-import { selectRoute } from '../../actions/structure';
+import {
+  selectRoute,
+  highlightRoute,
+  unhighlightRoute,
+} from '../../actions/structure';
 
 import {
   selectPreviewComponent,
@@ -72,6 +76,7 @@ import {
   cursorPositionSelector,
   expandedTreeItemIdsSelector,
   currentRouteSelector,
+  highlightedRouteIdsSelector,
 } from '../../selectors';
 
 import Cursor from '../../models/Cursor';
@@ -96,9 +101,10 @@ const propTypes = {
   components: JssyPropTypes.components.isRequired, // state
   rootComponentId: PropTypes.number.isRequired, // state
   currentRoute: PropTypes.instanceOf(ProjectRoute).isRequired,
-  expandedRouteTreeItemIds: JssyPropTypes.setOfIds.isRequired,
+  propsViewMode: PropTypes.oneOf(['componentProps', 'routeProps']).isRequired, // state
   selectedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
   highlightedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
+  highlightedRouteIds: JssyPropTypes.setOfIds.isRequired, // state
   expandedItemIds: JssyPropTypes.setOfIds.isRequired, // state
   draggingComponent: PropTypes.bool.isRequired, // state
   rootDraggedComponent: PropTypes.instanceOf(ProjectComponentRecord), // state
@@ -135,6 +141,8 @@ const propTypes = {
   onPickComponent: PropTypes.func.isRequired, // dispatch
   onSelectComponentData: PropTypes.func.isRequired, // dispatch
   onMoveCursor: PropTypes.func.isRequired, // dispatch
+  onHighlightRouteItem: PropTypes.func.isRequired, // dispatch
+  onUnhighlightRouteItem: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
@@ -147,8 +155,10 @@ const mapStateToProps = state => ({
   components: currentComponentsSelector(state),
   rootComponentId: currentRootComponentIdSelector(state),
   currentRoute: currentRouteSelector(state),
+  propsViewMode: state.project.propsViewMode,
   expandedRouteTreeItemIds: state.project.designer.expandedRouteTreeItemIds,
   selectedComponentIds: selectedComponentIdsSelector(state),
+  highlightedRouteIds: highlightedRouteIdsSelector(state),
   highlightedComponentIds: highlightedComponentIdsSelector(state),
   expandedItemIds: expandedTreeItemIdsSelector(state),
   draggingComponent: state.project.draggingComponent,
@@ -170,6 +180,10 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
+  onHighlightRouteItem: id => void dispatch(highlightRoute(id)),
+
+  onUnhighlightRouteItem: id => void dispatch(unhighlightRoute(id)),
+  
   onExpandItem: id => void dispatch(expandTreeItem(id)),
 
   onCollapseItem: id => void dispatch(collapseTreeItem(id)),
@@ -295,6 +309,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     this._handleSelect = this._handleSelect.bind(this);
     this._handleRouteSelect = this._handleRouteSelect.bind(this);
     this._handleHover = this._handleHover.bind(this);
+    this._handleRouteHover = this._handleRouteHover.bind(this);
     this._handleDragEnter = this._handleDragEnter.bind(this);
     this._handleDragLeave = this._handleDragLeave.bind(this);
     this._handleDrag = throttle(this._handleDrag.bind(this), DRAG_THROTTLE);
@@ -841,7 +856,14 @@ class ComponentsTreeViewComponent extends PureComponent {
   }
 
   _handleRouteSelect() {
-    const { currentRoute, onSelectRoute } = this.props;
+    const {
+      currentRoute,
+      onSelectRoute,
+      onDeselectItem,
+      selectedComponentIds,
+    } = this.props;
+
+    onDeselectItem(selectedComponentIds.first());
     onSelectRoute(currentRoute.id, currentRoute.haveIndex);
   }
 
@@ -883,6 +905,19 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     if (hovered && !draggingComponent) onHighlightItem(componentId);
     else onUnhighlightItem(componentId);
+  }
+
+  /**
+   *
+   * @param {number} componentId
+   * @param {boolean} hovered
+   * @private
+   */
+  _handleRouteHover({ componentId, hovered }) {
+    const { onHighlightRouteItem, onUnhighlightRouteItem } = this.props;
+
+    if (hovered) onHighlightRouteItem(componentId);
+    else onUnhighlightRouteItem(componentId);
   }
 
   /**
@@ -1245,16 +1280,28 @@ class ComponentsTreeViewComponent extends PureComponent {
   }
 
   _renderRouteItem() {
-    const { currentRoute } = this.props;
+    const {
+      currentRoute,
+      highlightedRouteIds,
+      selectedComponentIds,
+      propsViewMode,
+    } = this.props;
+
+    const hovered = highlightedRouteIds.has(currentRoute.id);
+    const active = selectedComponentIds.size === 0
+      && propsViewMode === 'routeProps';
 
     return (
       <ComponentsTreeItemContent
         componentId={currentRoute.id}
         title={currentRoute.title}
         onSelect={this._handleRouteSelect}
+        active={active}
         hasSubLevel
         expanded
         hideExpandButton
+        hovered={hovered}
+        onHover={this._handleRouteHover}
       />
     );
   }
