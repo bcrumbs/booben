@@ -1285,6 +1285,7 @@ class ComponentsTreeViewComponent extends PureComponent {
       highlightedRouteIds,
       selectedComponentIds,
       propsViewMode,
+      getLocalizedText,
     } = this.props;
 
     const hovered = highlightedRouteIds.has(currentRoute.id);
@@ -1294,7 +1295,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     return (
       <ComponentsTreeItemContent
         componentId={currentRoute.id}
-        title={currentRoute.title}
+        title={getLocalizedText('tree.routePrefix') + currentRoute.title}
         onSelect={this._handleRouteSelect}
         active={active}
         hasSubLevel
@@ -1302,6 +1303,7 @@ class ComponentsTreeViewComponent extends PureComponent {
         hideExpandButton
         hovered={hovered}
         onHover={this._handleRouteHover}
+        removeSpacer
       />
     );
   }

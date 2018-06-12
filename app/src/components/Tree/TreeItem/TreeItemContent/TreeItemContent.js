@@ -27,6 +27,7 @@ const propTypes = {
   hovered: PropTypes.bool,
   disabled: PropTypes.bool,
   hideExpandButton: PropTypes.bool,
+  removeSpacer: PropTypes.bool,
   expandButtonRef: PropTypes.func,
   Tooltip: PropTypes.func,
   showTooltip: PropTypes.func,
@@ -45,6 +46,7 @@ const defaultProps = {
   hovered: false,
   disabled: false,
   hideExpandButton: false,
+  removeSpacer: false,
   expandButtonRef: noop,
   Tooltip: null,
   showTooltip: noop,
@@ -64,6 +66,7 @@ export const TreeItemContent = ({
   hasSubLevel,
   expandButtonRef,
   hideExpandButton,
+  removeSpacer,
   ...props
 }) => {
   let warning = null;
@@ -82,7 +85,7 @@ export const TreeItemContent = ({
       </ButtonsStyled>
     );
   } else {
-    spacer = <SpacerStyled />;
+    spacer = <SpacerStyled removeSpacer={removeSpacer} />;
   }
 
   if (iconSlot) {
