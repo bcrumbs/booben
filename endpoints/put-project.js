@@ -15,7 +15,7 @@ module.exports = {
   url: `${sharedConstants.URL_API_PREFIX}/projects/:name`,
   method: 'put',
   handlers: [
-    bodyParser.json(),
+    bodyParser.json({ limit: '50mb' }),
 
     (req, res) => void co(function* () {
       if (!constants.PROJECT_NAME_REGEX.test(req.params.name)) {
