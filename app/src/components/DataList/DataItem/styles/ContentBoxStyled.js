@@ -3,7 +3,6 @@ import componentConstants from '../../styles/constants';
 
 import {
   radiusDefault,
-  colorActiveBg,
 } from '../../../../styles/themeSelectors';
 
 const py = componentConstants.item.paddingY;

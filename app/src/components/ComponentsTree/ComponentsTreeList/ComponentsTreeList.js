@@ -1,21 +1,15 @@
 import React from 'react';
-import PropTypes from 'prop-types';
-import { TreeListStyled } from './styles/TreeListStyled';
+import { TreeList } from '../../Tree';
 
 const propTypes = {
-  level: PropTypes.number,
+  ...TreeList.propTypes,
 };
 
 const defaultProps = {
-  level: 0,
+  ...TreeList.defaultProps,
 };
 
-export const ComponentsTreeList = ({ children, level }) => (
-  <TreeListStyled level={level}>
-    {children}
-  </TreeListStyled>
-);
+export const ComponentsTreeList = props => <TreeList {...props} />;
 
 ComponentsTreeList.propTypes = propTypes;
 ComponentsTreeList.defaultProps = defaultProps;
-ComponentsTreeList.displayName = 'ComponentsTreeList';

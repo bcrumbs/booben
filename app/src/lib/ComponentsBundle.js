@@ -130,7 +130,6 @@ export default class ComponentsBundle {
         `${url}/${this._projectName}/${COMPONENTS_BUNDLE_FILE}`,
       );
     }
-
     
 
     const noComponents =

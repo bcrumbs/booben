@@ -1,7 +1,6 @@
 import styled from 'styled-components';
 import PropTypes from 'prop-types';
 import constants from '../../../styles/constants';
-import { baseModule } from '../../../../../styles/themeSelectors';
 
 const propTypes = {
   spread: PropTypes.bool,

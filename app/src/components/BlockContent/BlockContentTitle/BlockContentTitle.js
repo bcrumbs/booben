@@ -21,6 +21,7 @@ const propTypes = {
   title: PropTypes.string,
   isEditable: PropTypes.bool,
   draggable: PropTypes.bool,
+  component: PropTypes.element,
   titlePlaceHolder: PropTypes.string,
   subtitle: PropTypes.string,
   iconLeft: PropTypes.element,
@@ -35,6 +36,7 @@ const defaultProps = {
   isEditable: false,
   draggable: false,
   titlePlaceHolder: '',
+  component: null,
   subtitle: null,
   iconLeft: null,
   buttons: [],
@@ -83,6 +85,7 @@ export class BlockContentTitle extends PureComponent {
       draggable,
       titlePlaceHolder,
       onLeftIconMouseDown,
+      component,
     } = this.props;
 
     const { editingTitle } = this.state;
@@ -147,11 +150,14 @@ export class BlockContentTitle extends PureComponent {
       <BlockContentTitleAreaStyled draggable={draggable}>
         {iconLeftElement}
 
-        <BlockContentTitleContentStyled>
-          {titleElement}
-          {subtitleElement}
-        </BlockContentTitleContentStyled>
+        {!component && (
+          <BlockContentTitleContentStyled>
+            {titleElement}
+            {subtitleElement}
+          </BlockContentTitleContentStyled>
+        )}
 
+        {component}
         {buttonsArea}
       </BlockContentTitleAreaStyled>
     );

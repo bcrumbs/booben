@@ -3,7 +3,6 @@ import {
   colorBorder,
   colorBorderDark,
   paletteBlueGrey25,
-  paletteBlueGrey500,
   colorActiveBg,
   colorActiveBgLight,
   textColorBody,

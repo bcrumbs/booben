@@ -6,7 +6,7 @@ export default {
           fontSize: 12,
           icon: {
             width: 20,
-          }
+          },
         },
       },
     },

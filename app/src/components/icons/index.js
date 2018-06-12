@@ -2,6 +2,7 @@ export * from './IconAdd';
 export * from './IconArrowChevronLeft';
 export * from './IconArrowChevronRight';
 export * from './IconArrowForward';
+export * from './IconArrowUpDown';
 export * from './IconAttach';
 export * from './IconCheck';
 export * from './IconDetach';

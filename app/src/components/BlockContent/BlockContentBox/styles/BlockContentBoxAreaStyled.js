@@ -21,16 +21,10 @@ const defaultProps = {
  * a correct work of the gradient background.
  * The gradient background simulates bottom border for content overflowing cases.
  */
-const background = ({ colorScheme }) => {
-  const color1 = constants[colorScheme].content.bgColor;
-  const color1Transparent = 'transparent';
-  const color2 = constants[colorScheme].blocksSeparatorColor;
-  const color2Transparent = 'transparent';
-
-  return css`
+const background = ({ colorScheme }) =>
+  css`
     background-color: ${constants[colorScheme].content.bgColor};
   `;
-};
 
 const bordered = ({ bordered, colorScheme }) => bordered
   ? css`border-top: 1px solid ${constants[colorScheme].blocksSeparatorColor};`

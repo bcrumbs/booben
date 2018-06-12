@@ -1,12 +1,7 @@
-import React from 'react';
-import Color from 'color';
-
 import {
   themeColors,
   paletteBlueGrey,
-  foregroundColors,
   fontSize,
-  fontWeight,
 } from './constants';
 
 export const fontColorBodyLight = paletteBlueGrey[25];

@@ -20,18 +20,22 @@ export const DESKTOP_SET_STICKY_TOOL =
   'DESKTOP_SET_STICKY_TOOL';
 export const DESKTOP_TOOL_SET_ACTIVE_SECTION =
   'DESKTOP_TOOL_SET_ACTIVE_SECTION';
+export const TOGGLE_TREE_VIEW_MODE =
+  'TOGGLE_TREE_VIEW_MODE';
 
 export const setTools = toolIds => ({
   type: DESKTOP_SET_TOOLS,
   toolIds,
 });
 
-export const collapseToolsPanel = () => ({
+export const collapseToolsPanel = position => ({
   type: DESKTOP_COLLAPSE_TOOLS_PANEL,
+  position,
 });
 
-export const expandToolsPanel = () => ({
+export const expandToolsPanel = position => ({
   type: DESKTOP_EXPAND_TOOLS_PANEL,
+  position,
 });
 
 export const dockTool = toolId => ({
@@ -65,13 +69,18 @@ export const openTool = toolId => ({
   toolId,
 });
 
-export const setStickyTool = toolId => ({
+export const setStickyTool = (toolId, position) => ({
   type: DESKTOP_SET_STICKY_TOOL,
   toolId,
+  position,
 });
 
 export const setToolActiveSection = (toolId, newActiveSection) => ({
   type: DESKTOP_TOOL_SET_ACTIVE_SECTION,
   toolId,
   newActiveSection,
+});
+
+export const toggleTreeViewMode = () => ({
+  type: TOGGLE_TREE_VIEW_MODE,
 });

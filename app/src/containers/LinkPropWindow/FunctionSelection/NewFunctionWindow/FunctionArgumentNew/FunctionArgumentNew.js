@@ -193,7 +193,7 @@ class _FunctionArgumentNew extends PureComponent {
                 }
                 tooltip={restArgDisabled
                   ? getLocalizedText(
-                    'linkDialog.function.new.restArg.onlyOneWarning'
+                    'linkDialog.function.new.restArg.onlyOneWarning',
                   )
                   : ''
                 }

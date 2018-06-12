@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
-import { Route, Switch, Redirect } from 'react-router';
+import { Route, Switch } from 'react-router';
 import { Link } from 'react-router-dom';
 import { AlertArea } from 'reactackle-alert-area';
 import { App, TopRegion } from 'reactackle-app';
@@ -21,7 +21,6 @@ import {
 
 import { HeaderLogo } from '../components';
 
-import StructureRoute from './StructureRoute';
 import DesignRoute from './DesignRoute';
 import { DrawerTopDesign } from '../containers/DrawerTopDesign/DrawerTopDesign';
 
@@ -34,16 +33,15 @@ import ProjectRecord from '../models/Project';
 import { getLocalizedTextFromState } from '../selectors';
 
 import {
-  PATH_STRUCTURE,
+  PATH_DESIGN,
   PATH_DESIGN_ROUTE,
   PATH_DESIGN_ROUTE_INDEX,
-  buildStructurePath,
   buildDesignRoutePath,
   buildDesignRouteIndexPath,
 } from '../constants/paths';
 
 import { URL_PREVIEW_PREFIX } from '../../../shared/constants';
-import { IconPlay, IconUpload } from '../components/icons';
+import { IconPlay } from '../components/icons';
 
 const propTypes = {
   location: PropTypes.object.isRequired, // router
@@ -221,8 +219,8 @@ class AppRoute extends Component {
         <Switch>
           <Route
             exact
-            path={PATH_STRUCTURE}
-            component={StructureRoute}
+            path={PATH_DESIGN}
+            component={DesignRoute}
           />
 
           <Route
@@ -235,12 +233,6 @@ class AppRoute extends Component {
             exact
             path={PATH_DESIGN_ROUTE_INDEX}
             component={DesignRoute}
-          />
-
-          <Route
-            render={({ match }) => (
-              <Redirect to={buildStructurePath(match.params)} />
-            )}
           />
         </Switch>
 

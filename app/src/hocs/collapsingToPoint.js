@@ -20,7 +20,6 @@ let queuedInstances = [];
 let afterMountTimeout = 0;
 let working = false;
 let currentPromise = null;
-
 const doWork = async () => {
   for (let i = 0; i < justMountedCollapsedInstances.length; i++) {
     const instance = justMountedCollapsedInstances[i];
