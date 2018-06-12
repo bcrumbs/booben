@@ -138,9 +138,14 @@ class PreviewBuilderComponent extends PureComponent {
 
   componentWillMount() {
     const styles = [];
-    this.props.components.forEach(component => {
+    const { routeId, components } = this.props;
+    components.forEach(component => {
       if (isHTMLComponent(component.name)) {
-        styles.push(`.styled${component.id}{ ${component.style} }`);
+        styles.push(
+          `.styledRoute${routeId}Component${component.id}{ ${
+            component.style
+          } }`,
+        );
       }
     });
     doInjectGlobal(styles.join('\n'));
