@@ -303,7 +303,6 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     this._renderItem = this._renderItem.bind(this);
     this._handleShortcuts = this._handleShortcuts.bind(this);
-    this._handleNativeClick = this._handleNativeClick.bind(this);
     this._handleExpand = this._handleExpand.bind(this);
     this._handleRouteExpand = this._handleRouteExpand.bind(this);
     this._handleSelect = this._handleSelect.bind(this);
@@ -327,11 +326,6 @@ class ComponentsTreeViewComponent extends PureComponent {
     if (this._treeIsVisible()) this._dropZoneReady();
 
     if (this._contentBoxElement) {
-      this._contentBoxElement.addEventListener(
-        'click',
-        this._handleNativeClick,
-      );
-
       this._clickListenerIsSet = true;
     }
   }
@@ -361,11 +355,6 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     if (this._contentBoxElement) {
       if (!this._clickListenerIsSet) {
-        this._contentBoxElement.addEventListener(
-          'click',
-          this._handleNativeClick,
-        );
-
         this._clickListenerIsSet = true;
       }
     } else {
@@ -720,15 +709,6 @@ class ComponentsTreeViewComponent extends PureComponent {
     }
   }
 
-  /**
-   *
-   * @param {MouseEvent} event
-   * @private
-   */
-  _handleNativeClick(event) {
-    const { pickingComponent } = this.props;
-    if (pickingComponent) event.stopPropagation();
-  }
 
   /**
    *
@@ -874,6 +854,7 @@ class ComponentsTreeViewComponent extends PureComponent {
    * @private
    */
   _handleSelect({ componentId, selected }) {
+    console.log('click on components tree');
     const {
       pickingComponent,
       pickingComponentData,
@@ -881,7 +862,7 @@ class ComponentsTreeViewComponent extends PureComponent {
       onDeselectItem,
       onPickComponent,
     } = this.props;
-
+    console.log('pickingComponent', pickingComponent)
     if (pickingComponent) {
       onPickComponent(componentId);
     } else if (!pickingComponentData) {
