@@ -124,6 +124,8 @@ class PreviewBuilderComponent extends PureComponent {
     this._refs = new Map();
     this._pageInfos = Immutable.Map();
     this._graphQLVariables = new Map();
+    // this hack to prevent rerender for input components with binded default values
+    this._cachedApolloComponents = new Map();
 
     this.state = {
       dynamicPropValues: Immutable.Map(),
@@ -979,14 +981,21 @@ class PreviewBuilderComponent extends PureComponent {
     let Renderable = Component;
 
     if (graphQLQuery) {
-      const gqlHoc = this._createApolloHOC(
-        component,
-        graphQLQuery,
-        graphQLVariables,
-        theMergedMap,
-      );
+      if (!this._cachedApolloComponents.has(component.id)) {
 
-      Renderable = gqlHoc(Component);
+        const gqlHoc = this._createApolloHOC(
+          component,
+          graphQLQuery,
+          graphQLVariables,
+          theMergedMap,
+        );
+
+        const renderableComponent = gqlHoc(Component);
+
+        this._cachedApolloComponents.set(component.id, renderableComponent);
+      }
+      
+      Renderable = this._cachedApolloComponents.get(component.id);
     }
 
     let element;
