@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import debounce from 'lodash.debounce';
 import { Button } from 'reactackle-button';
-import { getNestedTypedef } from '@jssy/types';
+import { getNestedTypedef } from 'booben-types';
 
 import {
   BlockContentBox,

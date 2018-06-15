@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { isEqualType } from '@jssy/types';
+import { isEqualType } from 'booben-types';
 
 import {
   BlockContent,

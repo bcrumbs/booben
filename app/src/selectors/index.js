@@ -2,7 +2,7 @@ import { createSelector } from 'reselect';
 import IntlMessageFormat from 'intl-messageformat';
 import _forOwn from 'lodash.forown';
 import { List, Map } from 'immutable';
-import { getTypeNameByPath } from '@jssy/graphql-schema';
+import { getTypeNameByPath } from 'booben-graphql-schema';
 
 import {
   getComponentMeta,

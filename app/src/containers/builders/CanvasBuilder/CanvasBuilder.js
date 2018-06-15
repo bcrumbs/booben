@@ -6,7 +6,7 @@ import { graphql } from 'react-apollo';
 import forOwn from 'lodash.forown';
 import get from 'lodash.get';
 import debounce from 'lodash.debounce';
-import { resolveTypedef } from '@jssy/types';
+import { resolveTypedef } from 'booben-types';
 
 import {
   isPseudoComponent,

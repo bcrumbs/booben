@@ -11,7 +11,7 @@ import {
   getMutationType,
   getMutationField,
   getJssyValueDefOfMutationArgument,
-} from '@jssy/graphql-schema';
+} from 'booben-graphql-schema';
 
 import { DesignDialog } from '../DesignDialog/DesignDialog';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';

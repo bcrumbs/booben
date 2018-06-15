@@ -1,11 +1,11 @@
 import { Set, Map } from 'immutable';
 import _forOwn from 'lodash.forown';
-import { TypeNames } from '@jssy/types';
+import { TypeNames } from 'booben-types';
 
 import {
   getMutationField,
   getJssyValueDefOfMutationArgument,
-} from '@jssy/graphql-schema';
+} from 'booben-graphql-schema';
 
 import JssyValue, {
   SourceDataDesigner,

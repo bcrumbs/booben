@@ -1,13 +1,13 @@
 import { Map, Set, List } from 'immutable';
 import { LOCATION_CHANGE } from 'react-router-redux';
 import { matchPath } from 'react-router';
-import { resolveTypedef } from '@jssy/types';
+import { resolveTypedef } from 'booben-types';
 
 import {
   parseGraphQLSchema,
   getMutationField,
   getJssyValueDefOfMutationArgument,
-} from '@jssy/graphql-schema';
+} from 'booben-graphql-schema';
 
 import { PATH_DESIGN_ROUTE, PATH_DESIGN_ROUTE_INDEX } from '../constants/paths';
 

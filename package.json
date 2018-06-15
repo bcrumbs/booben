@@ -18,12 +18,11 @@
   "author": "Braincrumbs",
   "license": "UNLICENSED",
   "dependencies": {
-    "@common/async-utils": "^0.2.1",
-    "@common/tree": "^0.1.1",
-    "@jssy/graphql-schema": "^0.1.0",
-    "@jssy/metadata": "^0.8.0",
-    "@jssy/types": "^0.6.0",
-    "@reactackle/reactackle": "^0.1.0-dev.723",
+    "booben-async-utils": "^0.2.1",
+    "booben-common-tree": "^0.1.1",
+    "booben-graphql-schema": "^0.1.0",
+    "booben-metadata": "^0.8.2",
+    "booben-types": "^0.6.0",
     "apollo-cache-inmemory": "^1.1.4",
     "apollo-client": "^2.0.4",
     "apollo-link-context": "^1.0.3",
@@ -116,8 +115,8 @@
     "webpack": "^3.5.4"
   },
   "devDependencies": {
-    "@eslint/eslint-config-client": "^0.2.1",
-    "@eslint/eslint-config-server": "^0.2.2",
+    "booben-eslint-config-client": "^0.3.3",
+    "booben-eslint-config-server": "^0.3.3",
     "babel-plugin-styled-components": "^1.1.4",
     "babel-plugin-transform-object-rest-spread": "^6.20.2",
     "babel-preset-env": "^1.6.1",

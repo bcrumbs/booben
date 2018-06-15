@@ -2,14 +2,14 @@
 import React from 'react';
 import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';
-import { TypeNames, resolveTypedef, coerceValue } from '@jssy/types';
+import { TypeNames, resolveTypedef, coerceValue } from 'booben-types';
 
 import {
   getFieldByPath,
   getJssyValueDefOfField,
   getJssyValueDefOfQueryArgument,
   RELAY_PAGEINFO_FIELD_END_CURSOR,
-} from '@jssy/graphql-schema';
+} from 'booben-graphql-schema';
 
 import { extractPropValueFromData } from './graphql';
 import { getFunctionInfo, formatFunctionId } from './functions';

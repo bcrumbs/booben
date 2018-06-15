@@ -3,7 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { ApolloProvider } from 'react-apollo';
 import { ThemeProvider } from 'styled-components';
-import { parseGraphQLSchema } from '@jssy/graphql-schema';
+import { parseGraphQLSchema } from 'booben-graphql-schema';
 import { Theme, injectGlobalStyle } from 'reactackle-core';
 import { jssyTheme, reactackleMixin } from './styles/theme';
 import { Preview } from './containers/Preview/Preview';

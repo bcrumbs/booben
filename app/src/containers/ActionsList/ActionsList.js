@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import _startCase from 'lodash.startcase';
-import { getMutationField } from '@jssy/graphql-schema';
+import { getMutationField } from 'booben-graphql-schema';
 
 import {
   ComponentActions,

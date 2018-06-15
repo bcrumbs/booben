@@ -8,7 +8,7 @@ import {
   getNestedTypedef,
   resolveTypedef,
   isNullableType,
-} from '@jssy/types';
+} from 'booben-types';
 
 import JssyValue from '../../models/JssyValue';
 import { jssyValueToImmutable } from '../../models/ProjectComponent';

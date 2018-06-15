@@ -1,5 +1,5 @@
-import { isCompatibleType } from '@jssy/types';
-import { findFirstConnectionInPath } from '@jssy/graphql-schema';
+import { isCompatibleType } from 'booben-types';
+import { findFirstConnectionInPath } from 'booben-graphql-schema';
 import { getComponentMeta, getString } from '../../lib/meta';
 import { walkSimpleValues } from '../../lib/components';
 import { objectSome, objectToArray, mapListToArray } from '../../utils/misc';

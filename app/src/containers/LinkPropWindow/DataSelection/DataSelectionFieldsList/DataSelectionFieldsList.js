@@ -1,14 +1,14 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import _forOwn from 'lodash.forown';
-import { isCompatibleType, TypeNames } from '@jssy/types';
+import { isCompatibleType, TypeNames } from 'booben-types';
 
 import {
   getJssyValueDefOfField,
   fieldHasArguments,
   FieldKinds,
   formatFieldName,
-} from '@jssy/graphql-schema';
+} from 'booben-graphql-schema';
 
 import { BlockContentPlaceholder } from '../../../../components/BlockContent';
 import { DataList, DataItem } from '../../../../components/DataList/DataList';

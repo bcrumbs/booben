@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { TypeNames } from '@jssy/types';
+import { TypeNames } from 'booben-types';
 import { Form, FormItem } from 'reactackle-form';
 import { TextField } from 'reactackle-text-field';
 import { SelectBox } from 'reactackle-selectbox';

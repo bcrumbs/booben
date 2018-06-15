@@ -5,7 +5,7 @@ import {
   resolveTypedef,
   makeDefaultNonNullValue,
   makeDefaultValue,
-} from '@jssy/types';
+} from 'booben-types';
 
 import HTMLMeta from '../meta/html';
 import miscMeta from '../meta/misc';

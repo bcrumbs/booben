@@ -1,5 +1,4 @@
 import 'babel-polyfill';
-import '@reactackle/reactackle/reactackle.scss';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Route, Switch, Redirect } from 'react-router';

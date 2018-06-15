@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { TypeNames } from '@jssy/types';
+import { TypeNames } from 'booben-types';
 
 /**
  * @typedef {Object} PropsItemPropTypeOption

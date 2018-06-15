@@ -18,7 +18,7 @@ import {
   RELAY_CONNECTION_FIELD_EDGES,
   RELAY_EDGE_FIELD_NODE,
   RELAY_EDGE_FIELD_CURSOR,
-} from '@jssy/graphql-schema';
+} from 'booben-graphql-schema';
 
 import JssyValue, {
   SourceDataConnectionPaginationState,

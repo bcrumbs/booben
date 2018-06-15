@@ -7,7 +7,7 @@ import get from 'lodash.get';
 import set from 'lodash.set';
 import pick from 'lodash.pick';
 import defaultsDeep from 'lodash.defaultsdeep';
-import { resolveTypedef } from '@jssy/types';
+import { resolveTypedef } from 'booben-types';
 import { injectGlobal } from 'styled-components';
 
 import {
@@ -18,7 +18,7 @@ import {
   findFirstConnectionInPath,
   RELAY_PAGEINFO_FIELDS,
   RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
-} from '@jssy/graphql-schema';
+} from 'booben-graphql-schema';
 
 import {
   isPseudoComponent,

@@ -1,7 +1,7 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Map } from 'immutable';
-import { getJssyValueDefOfQueryArgument } from '@jssy/graphql-schema';
+import { getJssyValueDefOfQueryArgument } from 'booben-graphql-schema';
 import { PropsList } from '../../../../components/PropsList/PropsList';
 import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
 import { jssyValueToImmutable } from '../../../../models/ProjectComponent';
