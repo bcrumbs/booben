@@ -81,7 +81,9 @@ class _ProjectSave extends Component {
           </TitleStyled>
         </ContentStyled>
 
-        <Tooltip>{tooltipText}</Tooltip>
+        {
+          tooltipText && <Tooltip>{tooltipText}</Tooltip>
+        }
       </ProjectSaveStyled>
     );
   }
