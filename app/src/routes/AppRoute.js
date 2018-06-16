@@ -197,6 +197,7 @@ class AppRoute extends Component {
                 <MenuGroup>
                   <MenuList>
                     <MenuItem
+                      renderLink
                       text={getLocalizedText('appHeader.menu.preview')}
                       linkHref={`${URL_PREVIEW_PREFIX}/${routeName}`}
                       linkComponent={TopMenuExternalLink}
