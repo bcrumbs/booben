@@ -1,4 +1,5 @@
 const co = require('co');
+const npa = require('npm-package-arg');
 const thenify = require('thenify');
 const path = require('path');
 const exec = require('mz/child_process').exec;
@@ -381,10 +382,9 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
   }
 
   const modulesDir = path.join(projectDir, 'node_modules');
-  const libDirs = project.componentLibs.map(name => {
-    const atIdx = name.lastIndexOf('@');
-    if (atIdx === -1 || atIdx === 0) return name;
-    return name.slice(0, atIdx);
+  const libDirs = project.componentLibs.map(lib => {
+    const { name } = npa(lib);
+    return name.replace('-meta', '');
   });
 
   logger.debug(
@@ -392,7 +392,8 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
   );
 
   let libsData = yield asyncUtils.asyncMap(libDirs, dir => co(function* () {
-    const fullPath = path.join(modulesDir, dir);
+    const metaDir = `${dir}-meta`;
+    const fullPath = path.join(modulesDir, metaDir);
     const meta = yield gatherMetadata(fullPath);
 
     if (!meta) {
@@ -493,10 +494,10 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
     );
   }
 
-  if (options.clean) {
-    logger.debug(`[${project.name}] Cleaning ${projectDir}`);
-    yield clean(projectDir);
-  }
+  // if (options.clean) {
+  //   logger.debug(`[${project.name}] Cleaning ${projectDir}`);
+  //   yield clean(projectDir);
+  // }
 
   const buildTime = Date.now() - startTime;
   logger.debug(`[${project.name}] Build finished in ${prettyMs(buildTime)}`);
