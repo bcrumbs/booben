@@ -494,10 +494,10 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
     );
   }
 
-  // if (options.clean) {
-  //   logger.debug(`[${project.name}] Cleaning ${projectDir}`);
-  //   yield clean(projectDir);
-  // }
+  if (options.clean) {
+    logger.debug(`[${project.name}] Cleaning ${projectDir}`);
+    yield clean(projectDir);
+  }
 
   const buildTime = Date.now() - startTime;
   logger.debug(`[${project.name}] Build finished in ${prettyMs(buildTime)}`);
