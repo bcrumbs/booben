@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import FileSaver from 'file-saver';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
@@ -30,6 +31,7 @@ import {
 
 import { alertAreaProvider } from '../hocs/alerts';
 import ProjectRecord from '../models/Project';
+import { projectToJSv1 } from '../models/Project';
 import { getLocalizedTextFromState } from '../selectors';
 
 import {
@@ -42,6 +44,8 @@ import {
 
 import { URL_PREVIEW_PREFIX } from '../../../shared/constants';
 import { IconPlay } from '../components/icons';
+
+import { getCode } from '../lib/api';
 
 const propTypes = {
   location: PropTypes.object.isRequired, // router
@@ -105,9 +109,26 @@ TopMenuExternalLink.defaultProps = {
 TopMenuExternalLink.displayName = 'TopMenuExternalLink';
 
 class AppRoute extends Component {
+  constructor(props, context) {
+    super(props, context);
+    this._getProjectCode = this._getProjectCode.bind(this);
+  }
+
   componentWillUnmount() {
     const { onAlertAreaRemoved } = this.props;
     onAlertAreaRemoved();
+  }
+
+  async _getProjectCode() {
+    const { project } = this.props;
+    try {
+      const jsProject = projectToJSv1(project);
+      const res = await getCode(jsProject);
+      
+      FileSaver.saveAs(res, "project.zip");
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   render() {
@@ -204,9 +225,9 @@ class AppRoute extends Component {
                       iconLeft={<IconPlay border borderWidth={1} rounded size='small' />}
                     />
                     <MenuItem
-                      renderLink
                       text={getLocalizedText('appHeader.menu.codegen')}
                       iconLeft={<IconPlay border borderWidth={1} rounded size='small' />}
+                      onClick={this._getProjectCode}
                     />
                   </MenuList>
                 </MenuGroup>

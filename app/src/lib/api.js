@@ -117,9 +117,30 @@ export const getGraphQLSchema = async graphqlEndpointURL => {
       'content-type': 'application/json',
     },
   });
-  
+
   const data = await res.json();
-  
+
   if (data.error) throw new Error(data.error);
   return data.data.__schema;
 };
+
+export const getCode = async project => {
+  const url = `${URL_API_PREFIX}/codegen`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+    },
+    body: JSON.stringify(project),
+  });
+
+  if (res.ok) {
+    const data = await res.blob()
+    if (data.error) throw new Error(data.error);
+    return data  
+  } else {
+    throw new Error(res.status);
+  }
+  
+}
