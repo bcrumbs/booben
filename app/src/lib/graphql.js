@@ -20,14 +20,14 @@ import {
   RELAY_EDGE_FIELD_CURSOR,
 } from 'booben-graphql-schema';
 
-import JssyValue, {
+import BoobenValue, {
   SourceDataConnectionPaginationState,
-} from '../models/JssyValue';
+} from '../models/BoobenValue';
 
 import {
   getComponentMeta,
   getSourceConfig,
-  isJssyValueDefinition,
+  isBoobenValueDefinition,
   valueHasDataContest,
 } from './meta';
 
@@ -280,26 +280,26 @@ const buildGraphQLArgument = (
 /**
  *
  * @param {string} fieldName
- * @param {Object} jssyValue
+ * @param {Object} boobenValue
  * @return {string}
  */
-export const getDataFieldKey = (fieldName, jssyValue) =>
-  `${fieldName}${jssyValue.sourceData.aliasPostfix}`;
+export const getDataFieldKey = (fieldName, boobenValue) =>
+  `${fieldName}${boobenValue.sourceData.aliasPostfix}`;
 
 /**
  *
  * @param {string} fieldName
- * @param {Object} jssyValue
+ * @param {Object} boobenValue
  * @return {Object}
  */
-const buildAlias = (fieldName, jssyValue) => ({
+const buildAlias = (fieldName, boobenValue) => ({
   kind: 'Name',
-  value: getDataFieldKey(fieldName, jssyValue),
+  value: getDataFieldKey(fieldName, boobenValue),
 });
 
 /**
  *
- * @param {Object} jssyValue
+ * @param {Object} boobenValue
  * Actually it's Immutable.Record; see models/ProjectComponentProp
  * @param {DataSchema} schema
  * @param {Object} dataContextTree
@@ -307,13 +307,13 @@ const buildAlias = (fieldName, jssyValue) => ({
  * @return {Object}
  */
 const buildGraphQLFragmentForValue = (
-  jssyValue,
+  boobenValue,
   schema,
   dataContextTree,
   variablesAccumulator,
 ) => {
   const fragmentName = randomName();
-  const onType = resolveGraphQLType(jssyValue, dataContextTree);
+  const onType = resolveGraphQLType(boobenValue, dataContextTree);
 
   const ret = {
     kind: 'FragmentDefinition',
@@ -337,7 +337,7 @@ const buildGraphQLFragmentForValue = (
   let badPath = false;
 
   /* eslint-disable consistent-return */
-  jssyValue.sourceData.queryPath.forEach((step, idx) => {
+  boobenValue.sourceData.queryPath.forEach((step, idx) => {
     const [fieldName, connectionFieldName] = step.field.split('/');
     const currentTypeDefinition = schema.types[currentType];
     const currentFieldDefinition = currentTypeDefinition.fields[fieldName];
@@ -355,7 +355,7 @@ const buildGraphQLFragmentForValue = (
       }
 
       const args = [];
-      const argumentValues = jssyValue.getQueryStepArgValues(idx);
+      const argumentValues = boobenValue.getQueryStepArgValues(idx);
 
       if (argumentValues) {
         argumentValues.forEach((argValue, argName) => {
@@ -376,7 +376,7 @@ const buildGraphQLFragmentForValue = (
 
       const node = {
         kind: 'Field',
-        alias: buildAlias(fieldName, jssyValue),
+        alias: buildAlias(fieldName, boobenValue),
         name: {
           kind: 'Name',
           value: fieldName,
@@ -387,7 +387,7 @@ const buildGraphQLFragmentForValue = (
           kind: 'SelectionSet',
           selections: [{
             kind: 'Field',
-            alias: buildAlias(connectionFieldName, jssyValue),
+            alias: buildAlias(connectionFieldName, boobenValue),
             name: {
               kind: 'Name',
               value: connectionFieldName,
@@ -407,7 +407,7 @@ const buildGraphQLFragmentForValue = (
       currentNode = node.selectionSet.selections[0];
     } else if (currentFieldDefinition.kind === FieldKinds.CONNECTION) {
       const args = [];
-      const argumentValues = jssyValue.getQueryStepArgValues(idx);
+      const argumentValues = boobenValue.getQueryStepArgValues(idx);
 
       if (argumentValues) {
         argumentValues.forEach((argValue, argName) => buildGraphQLArgument(
@@ -427,11 +427,11 @@ const buildGraphQLFragmentForValue = (
         },
       });
 
-      const afterValue = new JssyValue({
+      const afterValue = new BoobenValue({
         source: 'connectionPaginationState',
         sourceData: new SourceDataConnectionPaginationState({
           param: 'after',
-          dataValue: jssyValue,
+          dataValue: boobenValue,
           queryStep: idx,
         }),
       });
@@ -445,7 +445,7 @@ const buildGraphQLFragmentForValue = (
 
       const node = {
         kind: 'Field',
-        alias: buildAlias(fieldName, jssyValue),
+        alias: buildAlias(fieldName, boobenValue),
         name: {
           kind: 'Name',
           value: fieldName,
@@ -538,7 +538,7 @@ const buildGraphQLFragmentForValue = (
       currentNode = node.selectionSet.selections[0].selectionSet.selections[0];
     } else {
       const args = [];
-      const argumentValues = jssyValue.getQueryStepArgValues(idx);
+      const argumentValues = boobenValue.getQueryStepArgValues(idx);
 
       if (argumentValues) {
         argumentValues.forEach((argValue, argName) => {
@@ -555,7 +555,7 @@ const buildGraphQLFragmentForValue = (
 
       const node = {
         kind: 'Field',
-        alias: buildAlias(fieldName, jssyValue),
+        alias: buildAlias(fieldName, boobenValue),
         name: {
           kind: 'Name',
           value: fieldName,
@@ -768,7 +768,7 @@ const buildGraphQLFragmentsForOwnComponent = (
       }
 
       const hasDataContext =
-        isJssyValueDefinition(typedef) &&
+        isBoobenValueDefinition(typedef) &&
         valueHasDataContest(typedef);
 
       if (hasDataContext) {
@@ -881,7 +881,7 @@ const buildGraphQLFragmentsForComponent = (
       fragments.push(fragment);
 
       const hasDataContext =
-        isJssyValueDefinition(typedef) &&
+        isBoobenValueDefinition(typedef) &&
         valueHasDataContest(typedef);
 
       if (hasDataContext) {
@@ -1030,18 +1030,18 @@ export const buildQueryForComponent = (component, schema, meta, project) => {
 
 /**
  *
- * @param {Object} jssyValue
+ * @param {Object} boobenValue
  * @param {Object} data
  * @param {DataSchema} schema
  * @param {string} [rootType]
  * @return {*|NO_VALUE}
  */
 export const extractPropValueFromData = (
-  jssyValue,
+  boobenValue,
   data,
   schema,
   rootType = schema.queryTypeName,
-) => jssyValue.sourceData.queryPath.reduce((acc, queryStep) => {
+) => boobenValue.sourceData.queryPath.reduce((acc, queryStep) => {
   if (acc.data === null || acc.data === NO_VALUE) {
     return {
       data: NO_VALUE,
@@ -1052,12 +1052,12 @@ export const extractPropValueFromData = (
   const typeDefinition = schema.types[acc.type];
   const { fieldName, connectionFieldName } = parseFieldName(queryStep.field);
   const fieldDefinition = typeDefinition.fields[fieldName];
-  const fieldKey = getDataFieldKey(fieldName, jssyValue);
+  const fieldKey = getDataFieldKey(fieldName, boobenValue);
 
   if (fieldDefinition.kind === FieldKinds.CONNECTION) {
     if (connectionFieldName) {
       const connectionFieldKey =
-        getDataFieldKey(connectionFieldName, jssyValue);
+        getDataFieldKey(connectionFieldName, boobenValue);
 
       return {
         data: acc.data[fieldKey][connectionFieldKey],

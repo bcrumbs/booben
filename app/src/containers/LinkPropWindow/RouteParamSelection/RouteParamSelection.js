@@ -11,11 +11,11 @@ import {
 
 import { DataList, DataItem } from '../../../components/DataList/DataList';
 import { noop, returnArg } from '../../../utils/misc';
-import * as JssyPropTypes from '../../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../../constants/common-prop-types';
 import { INVALID_ID } from '../../../constants/misc';
 
 const propTypes = {
-  routes: JssyPropTypes.routes.isRequired,
+  routes: BoobenPropTypes.routes.isRequired,
   currentRouteId: PropTypes.number.isRequired,
   getLocalizedText: PropTypes.func,
   onSelect: PropTypes.func,

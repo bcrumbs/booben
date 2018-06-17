@@ -12,7 +12,7 @@ import { injectGlobal } from 'styled-components';
 
 import {
   FieldKinds,
-  getJssyValueDefOfMutationArgument,
+  getBoobenValueDefOfMutationArgument,
   getMutationField,
   getFieldOnType,
   findFirstConnectionInPath,
@@ -28,7 +28,7 @@ import {
   mergeComponentsState,
 } from '../helpers';
 
-import JssyValue from '../../../models/JssyValue';
+import BoobenValue from '../../../models/BoobenValue';
 
 import {
   isCompositeComponent,
@@ -51,7 +51,7 @@ import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
 import ComponentsBundle from '../../../lib/ComponentsBundle';
 import { createPath, getObjectByPath } from '../../../lib/path';
 import { noop, mapListToArray } from '../../../utils/misc';
-import * as JssyPropTypes from '../../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../../constants/common-prop-types';
 
 import {
   INVALID_ID,
@@ -71,7 +71,7 @@ const propTypes = {
   project: PropTypes.any.isRequired,
   meta: PropTypes.object.isRequired,
   schema: PropTypes.object,
-  components: JssyPropTypes.components.isRequired,
+  components: BoobenPropTypes.components.isRequired,
   rootId: PropTypes.number,
   routeParams: PropTypes.object,
   propsFromOwner: PropTypes.object,
@@ -211,7 +211,7 @@ class PreviewBuilderComponent extends PureComponent {
         if (mutationName === project.auth.loginMutation) {
           const tokenPath = [mutationName, ...project.auth.tokenPath];
           const token = get(response.data, tokenPath);
-          if (token) localStorage.setItem('jssy_auth_token', token);
+          if (token) localStorage.setItem('booben_auth_token', token);
         }
       }
     }
@@ -250,12 +250,12 @@ class PreviewBuilderComponent extends PureComponent {
 
     action.params.args.forEach((argValue, argName) => {
       const mutationArg = mutationField.args[argName];
-      const argJssyType = getJssyValueDefOfMutationArgument(
+      const argBoobenType = getBoobenValueDefOfMutationArgument(
         mutationArg,
         schema,
       );
 
-      const value = buildValue(argValue, argJssyType, null, valueContext);
+      const value = buildValue(argValue, argBoobenType, null, valueContext);
 
       if (value !== NO_VALUE) variables[argName] = value;
     });
@@ -390,7 +390,7 @@ class PreviewBuilderComponent extends PureComponent {
     );
 
     let newValue;
-    if (action.params.value.sourceIs(JssyValue.Source.ACTION_ARG)) {
+    if (action.params.value.sourceIs(BoobenValue.Source.ACTION_ARG)) {
       const targetComponent = components.get(action.params.componentId);
       const targetComponentMeta = getComponentMeta(
         targetComponent.name,
@@ -401,7 +401,7 @@ class PreviewBuilderComponent extends PureComponent {
         ? SYSTEM_PROPS[propName]
         : targetComponentMeta.props[propName];
 
-      newValue = JssyValue.staticFromJS(buildValue(
+      newValue = BoobenValue.staticFromJS(buildValue(
         action.params.value,
         targetPropMeta,
         targetComponent.types,
@@ -421,7 +421,7 @@ class PreviewBuilderComponent extends PureComponent {
    * @private
    */
   _performLogoutAction() {
-    localStorage.removeItem('jssy_auth_token');
+    localStorage.removeItem('booben_auth_token');
   }
 
   /**
@@ -619,13 +619,13 @@ class PreviewBuilderComponent extends PureComponent {
   /**
    *
    * @param {number} componentId
-   * @param {Object} jssyValue
-   * @param {JssyValueDefinition} valueDef
-   * @param {Object<string, JssyTypeDefinition>} userTypedefs
+   * @param {Object} boobenValue
+   * @param {BoobenValueDefinition} valueDef
+   * @param {Object<string, BoobenTypeDefinition>} userTypedefs
    * @param {ValueContext} valueContext
    * @private
    */
-  _handleActions(componentId, jssyValue, valueDef, userTypedefs, valueContext) {
+  _handleActions(componentId, boobenValue, valueDef, userTypedefs, valueContext) {
     const { componentsState } = this.state;
 
     const resolvedTypedef = resolveTypedef(valueDef, userTypedefs);
@@ -664,7 +664,7 @@ class PreviewBuilderComponent extends PureComponent {
         }
       }
     }
-    jssyValue.sourceData.actions.forEach(action => {
+    boobenValue.sourceData.actions.forEach(action => {
       this._performAction(action, valueContext);
     });
   }
@@ -705,25 +705,25 @@ class PreviewBuilderComponent extends PureComponent {
       data,
       routeParams,
       BuilderComponent: PreviewBuilder, // eslint-disable-line no-use-before-define
-      getBuilderProps: (ownProps, jssyValue, valueContext) => ({
+      getBuilderProps: (ownProps, boobenValue, valueContext) => ({
         componentsBundle,
         project,
         meta,
         schema,
         routeParams,
-        components: jssyValue.sourceData.components,
-        rootId: jssyValue.sourceData.rootId,
+        components: boobenValue.sourceData.components,
+        rootId: boobenValue.sourceData.rootId,
         propsFromOwner: ownProps,
         theMap: valueContext.theMap,
-        dataContextInfo: valueContext.theMap.get(jssyValue),
+        dataContextInfo: valueContext.theMap.get(boobenValue),
         onNavigate,
         onOpenURL,
       }),
 
-      handleActions: (jssyValue, valueDef, userTypedefs, valueContext) => {
+      handleActions: (boobenValue, valueDef, userTypedefs, valueContext) => {
         this._handleActions(
           componentId,
-          jssyValue,
+          boobenValue,
           valueDef,
           userTypedefs,
           valueContext,
@@ -854,20 +854,20 @@ class PreviewBuilderComponent extends PureComponent {
     const componentMeta = getComponentMeta(component.name, meta);
     let ret = Immutable.Map();
 
-    const visitValue = jssyValue => {
-      if (!jssyValue.isLinkedWithData()) return;
-      if (jssyValue.sourceData.dataContext.size > 0) return;
+    const visitValue = boobenValue => {
+      if (!boobenValue.isLinkedWithData()) return;
+      if (boobenValue.sourceData.dataContext.size > 0) return;
 
       let currentNode = queryResultRoot;
       let currentTypeName = schema.queryTypeName;
 
       // eslint-disable-next-line consistent-return
-      jssyValue.sourceData.queryPath.forEach((step, idx) => {
+      boobenValue.sourceData.queryPath.forEach((step, idx) => {
         if (currentNode === null) return false;
 
         const field = getFieldOnType(schema, currentTypeName, step.field);
         if (field.kind === FieldKinds.CONNECTION) {
-          const dataFieldKey = getDataFieldKey(step.field, jssyValue);
+          const dataFieldKey = getDataFieldKey(step.field, boobenValue);
           const pageInfo = pick(
             currentNode[dataFieldKey].pageInfo,
             RELAY_PAGEINFO_FIELDS,
@@ -884,10 +884,10 @@ class PreviewBuilderComponent extends PureComponent {
             }
           }
 
-          ret = ret.setIn([jssyValue, idx], pageInfo);
+          ret = ret.setIn([boobenValue, idx], pageInfo);
         }
 
-        const alias = `${step.field}${jssyValue.sourceData.aliasPostfix}`;
+        const alias = `${step.field}${boobenValue.sourceData.aliasPostfix}`;
         currentNode = currentNode[alias];
         currentTypeName = field.type;
       });

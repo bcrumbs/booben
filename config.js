@@ -38,28 +38,28 @@ const config = convict({
     doc: '',
     format: 'port',
     default: 3000,
-    env: 'JSSY_PORT',
+    env: 'BOOBEN_PORT',
   },
 
   serveStatic: {
     doc: '',
     format: Boolean,
     default: false,
-    env: 'JSSY_SERVE_STATIC',
+    env: 'BOOBEN_SERVE_STATIC',
   },
 
   projectsDir: {
     doc: 'Projects directory. Default value is for Docker build.',
     format: String,
-    default: '/var/lib/jssy/projects',
-    env: 'JSSY_PROJECTS_DIR',
+    default: '/var/lib/booben/projects',
+    env: 'BOOBEN_PROJECTS_DIR',
   },
 
   defaultComponentLibs: {
     doc: '',
     format: 'strings-array',
     default: [],
-    env: 'JSSY_DEFAULT_COMPONENT_LIBS',
+    env: 'BOOBEN_DEFAULT_COMPONENT_LIBS',
   },
 });
 

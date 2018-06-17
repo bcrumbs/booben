@@ -1,6 +1,6 @@
 import { Record, Map, List } from 'immutable';
 import _mapValues from 'lodash.mapvalues';
-import SourceDataActionArg from './JssyValueSourceData/SourceDataActionArg';
+import SourceDataActionArg from './BoobenValueSourceData/SourceDataActionArg';
 
 import SourceDataActions, {
   Action,
@@ -13,23 +13,23 @@ import SourceDataActions, {
   AJAXActionParams,
   LoadMoreDataActionParams,
   isAsyncAction,
-} from './JssyValueSourceData/SourceDataActions';
+} from './BoobenValueSourceData/SourceDataActions';
 
 import SourceDataConnectionPaginationState
-  from './JssyValueSourceData/SourceDataConnectionPaginationState';
+  from './BoobenValueSourceData/SourceDataConnectionPaginationState';
 
-import SourceDataConst from './JssyValueSourceData/SourceDataConst';
+import SourceDataConst from './BoobenValueSourceData/SourceDataConst';
 
 import SourceDataData, {
   QueryPathStep,
-} from './JssyValueSourceData/SourceDataData';
+} from './BoobenValueSourceData/SourceDataData';
 
-import SourceDataDesigner from './JssyValueSourceData/SourceDataDesigner';
-import SourceDataFunction from './JssyValueSourceData/SourceDataFunction';
-import SourceDataRouteParams from './JssyValueSourceData/SourceDataRouteParams';
-import SourceDataState from './JssyValueSourceData/SourceDataState';
-import SourceDataStatic from './JssyValueSourceData/SourceDataStatic';
-import SourceDataOwnerProp from './JssyValueSourceData/SourceDataOwnerProp';
+import SourceDataDesigner from './BoobenValueSourceData/SourceDataDesigner';
+import SourceDataFunction from './BoobenValueSourceData/SourceDataFunction';
+import SourceDataRouteParams from './BoobenValueSourceData/SourceDataRouteParams';
+import SourceDataState from './BoobenValueSourceData/SourceDataState';
+import SourceDataStatic from './BoobenValueSourceData/SourceDataStatic';
+import SourceDataOwnerProp from './BoobenValueSourceData/SourceDataOwnerProp';
 
 import {
   isString,
@@ -56,7 +56,7 @@ const Source = {
   CONNECTION_PAGINATION_STATE: 'connectionPaginationState',
 };
 
-const JssyValueRecord = Record({
+const BoobenValueRecord = Record({
   source: Source.INVALID,
   sourceData: null,
 });
@@ -67,10 +67,10 @@ const expandPath = path =>
 /* eslint-disable no-use-before-define */
 
 const JSArrayToStaticList = array =>
-  List(array.map(JssyValue.staticFromJS));
+  List(array.map(BoobenValue.staticFromJS));
   
 const JSObjectToStaticMap = object =>
-  Map(_mapValues(object, JssyValue.staticFromJS));
+  Map(_mapValues(object, BoobenValue.staticFromJS));
 
 /* eslint-enable no-use-before-define */
 
@@ -84,9 +84,9 @@ const VALID_PATH_STEPS_FUNCTION = new Set(['args']);
 const VALID_PATH_STEPS_DESIGNER = new Set(['components']);
 const VALID_PATH_STEPS_ACTIONS = new Set(['actions']);
 
-class JssyValue extends JssyValueRecord {
+class BoobenValue extends BoobenValueRecord {
   static staticFromJS(value) {
-    return new JssyValue({
+    return new BoobenValue({
       source: Source.STATIC,
       sourceData: new SourceDataStatic({
         value: JSValueToStaticValue(value),
@@ -131,17 +131,17 @@ class JssyValue extends JssyValueRecord {
     return this.getIn(expandPath(path));
   }
   
-  setInStatic(path, jssyValue) {
+  setInStatic(path, boobenValue) {
     if (path.length === 0) {
-      throw new Error('JssyValue#setInStatic: path must not be empty');
+      throw new Error('BoobenValue#setInStatic: path must not be empty');
     }
     
-    return this.setIn(expandPath(path), jssyValue);
+    return this.setIn(expandPath(path), boobenValue);
   }
 
   unsetInStatic(path) {
     if (path.length === 0) {
-      throw new Error('JssyValue#setInStatic: path must not be empty');
+      throw new Error('BoobenValue#setInStatic: path must not be empty');
     }
 
     return this.deleteIn(expandPath(path));
@@ -149,7 +149,7 @@ class JssyValue extends JssyValueRecord {
   
   updateInStatic(path, updateFn) {
     if (path.length === 0) {
-      throw new Error('JssyValue#updateInStatic: path must not be empty');
+      throw new Error('BoobenValue#updateInStatic: path must not be empty');
     }
     
     return this.updateIn(expandPath(path), updateFn);
@@ -157,7 +157,7 @@ class JssyValue extends JssyValueRecord {
   
   replaceStaticValue(jsValue) {
     if (!this.sourceIs(Source.STATIC)) {
-      throw new Error('JssyValue#replaceStaticValue: not a static value');
+      throw new Error('BoobenValue#replaceStaticValue: not a static value');
     }
     
     return this.setIn(['sourceData', 'value'], JSValueToStaticValue(jsValue));
@@ -169,34 +169,34 @@ class JssyValue extends JssyValueRecord {
     } else {
       return this.updateInStatic(
         path,
-        jssyValue => jssyValue.replaceStaticValue(jsValue),
+        boobenValue => boobenValue.replaceStaticValue(jsValue),
       );
     }
   }
   
-  addValueInStatic(index, jssyValue) {
+  addValueInStatic(index, boobenValue) {
     if (!this.sourceIs(Source.STATIC)) {
-      throw new Error('JssyValue#addValueInStatic: not a static value');
+      throw new Error('BoobenValue#addValueInStatic: not a static value');
     }
     
     const path = ['sourceData', 'value'];
     
     if (isString(index)) {
-      return this.updateIn(path, map => map.set(index, jssyValue));
+      return this.updateIn(path, map => map.set(index, boobenValue));
     } else if (isInteger(index)) {
       if (index === -1) {
-        return this.updateIn(path, list => list.push(jssyValue));
+        return this.updateIn(path, list => list.push(boobenValue));
       } else if (index >= 0) {
-        return this.updateIn(path, list => list.insert(index, jssyValue));
+        return this.updateIn(path, list => list.insert(index, boobenValue));
       }
     }
 
-    throw new Error(`JssyValue#addValueInStatic: ${index} is invalid index`);
+    throw new Error(`BoobenValue#addValueInStatic: ${index} is invalid index`);
   }
   
   deleteValueInStatic(index) {
     if (!this.sourceIs(Source.STATIC)) {
-      throw new Error('JssyValue#addValueInStatic: not a static value');
+      throw new Error('BoobenValue#addValueInStatic: not a static value');
     }
     
     return this.updateIn(
@@ -246,7 +246,7 @@ class JssyValue extends JssyValueRecord {
 
   resetDataLink() {
     if (!this.sourceIs(Source.DATA)) {
-      throw new Error('JssyValue#resetDataLink called on non-data value');
+      throw new Error('BoobenValue#resetDataLink called on non-data value');
     }
 
     return this.set('sourceData', new SourceDataData({ queryPath: null }));
@@ -254,7 +254,7 @@ class JssyValue extends JssyValueRecord {
   
   getQueryStepArgValues(stepIdx) {
     if (!this.isLinkedWithData()) {
-      throw new Error('JssyValue#getQueryStepArgValues: Not a data value');
+      throw new Error('BoobenValue#getQueryStepArgValues: Not a data value');
     }
     
     const keyForQueryArgs = this.sourceData.queryPath
@@ -273,7 +273,7 @@ class JssyValue extends JssyValueRecord {
   getActionByPath(actionPath) {
     if (!this.sourceIs(Source.ACTIONS)) {
       throw new Error(
-        'JssyValue#getActionByPath: called on non-action JssyValue',
+        'BoobenValue#getActionByPath: called on non-action BoobenValue',
       );
     }
     
@@ -290,10 +290,10 @@ class JssyValue extends JssyValueRecord {
   }
 }
 
-JssyValue.STATIC_NULL = JssyValue.staticFromJS(null);
-JssyValue.Source = Source;
+BoobenValue.STATIC_NULL = BoobenValue.staticFromJS(null);
+BoobenValue.Source = Source;
 
-export default JssyValue;
+export default BoobenValue;
 
 export {
   SourceDataActionArg,

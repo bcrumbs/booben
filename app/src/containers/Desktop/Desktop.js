@@ -27,7 +27,7 @@ import {
 } from '../../actions/desktop';
 
 import { noop } from '../../utils/misc';
-import * as JssyPropTypes from '../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../constants/common-prop-types';
 
 import {
   DESKTOP_TOOL_WINDOWS_MARGIN,
@@ -36,8 +36,8 @@ import {
 } from '../../config';
 
 const propTypes = {
-  toolGroups: JssyPropTypes.toolGroups,
-  toolStates: JssyPropTypes.toolStates.isRequired,
+  toolGroups: BoobenPropTypes.toolGroups,
+  toolStates: BoobenPropTypes.toolStates.isRequired,
   leftToolsPanelIsExpanded: PropTypes.bool.isRequired,
   rightToolsPanelIsExpanded: PropTypes.bool.isRequired,
   onToolsPanelExpand: PropTypes.func.isRequired,

@@ -43,7 +43,7 @@ export class Preview extends Component {
 
     switch (project.auth.type) {
       case 'jwt': {
-        return !!window.localStorage.getItem('jssy_auth_token');
+        return !!window.localStorage.getItem('booben_auth_token');
       }
 
       default: {

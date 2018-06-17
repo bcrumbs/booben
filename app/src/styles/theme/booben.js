@@ -8,7 +8,7 @@ import {
 } from './constants';
 
 export default {
-  jssy: {
+  booben: {
     color: {
       lightBlue: '#2196F3',
       

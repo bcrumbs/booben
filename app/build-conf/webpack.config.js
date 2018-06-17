@@ -154,7 +154,7 @@ module.exports = {
     }),
 
     new HtmlWebpackPlugin({
-      title: 'JSSY',
+      title: 'BOOBEN',
       template: './src/index.ejs',
       filename: 'index.html',
       chunks: ['common', 'index'],
@@ -164,7 +164,7 @@ module.exports = {
     }),
 
     new HtmlWebpackPlugin({
-      title: 'JSSY',
+      title: 'BOOBEN',
       template: './src/preview.ejs',
       filename: 'preview.html',
       chunks: ['common', 'preview'],

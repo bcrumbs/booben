@@ -15,14 +15,14 @@ export const ActionTypes = {
 
 export const MutationActionParams = Record({
   mutation: '',
-  args: Map(), // Map of JssyValues
+  args: Map(), // Map of BoobenValues
   successActions: List(), // List of Actions
   errorActions: List(), // List of Actions
 });
 
 export const NavigateActionParams = Record({
   routeId: INVALID_ID,
-  routeParams: Map(), // Map of JssyValues
+  routeParams: Map(), // Map of BoobenValues
 });
 
 export const URLActionParams = Record({
@@ -33,21 +33,21 @@ export const URLActionParams = Record({
 export const MethodCallActionParams = Record({
   componentId: INVALID_ID,
   method: '',
-  args: List(), // List of JssyValues
+  args: List(), // List of BoobenValues
 });
 
 export const PropChangeActionParams = Record({
   componentId: INVALID_ID,
   propName: '',
   systemPropName: '',
-  value: null, // JssyValue
+  value: null, // BoobenValue
 });
 
 export const AJAXActionParams = Record({
-  url: null, // JssyValue
+  url: null, // BoobenValue
   method: 'GET', // HTTP method
   headers: Map(), // Map of string -> string
-  body: null, // JssyValue
+  body: null, // BoobenValue
   mode: 'cors', // 'cors', 'no-cors' or 'same-origin'
   decodeResponse: 'text', // text, blob, json or arrayBuffer
   successActions: List(), // List of Actions

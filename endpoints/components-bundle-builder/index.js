@@ -144,7 +144,7 @@ const generateWebpackConfig = (projectName, projectDir, libsData) => {
     output: {
       path: path.join(projectDir, 'build'),
       filename: '[name].js',
-      library: 'JssyComponents',
+      library: 'BoobenComponents',
       libraryTarget: 'var',
       publicPath: `${URL_BUNDLE_PREFIX}/${projectName}/`,
     },

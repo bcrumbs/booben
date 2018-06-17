@@ -20,7 +20,7 @@ export const colorBlack = ({ theme }) =>
 export const colorTransparent = ({ theme }) =>
   theme.reactackle.color.transparent;
 export const colorLightBlue = ({ theme }) =>
-  theme.jssy.color.lightBlue;
+  theme.booben.color.lightBlue;
 
 export const colorMain = ({ theme }) =>
   theme.reactackle.color.main;
@@ -52,38 +52,38 @@ export const colorInfoForeground = ({ theme }) =>
   theme.reactackle.color.infoFgTextColor;
 
 export const paletteBlueGrey25 = ({ theme }) =>
-  theme.jssy.paletteBlueGrey[25];
+  theme.booben.paletteBlueGrey[25];
 export const paletteBlueGrey50 = ({ theme }) =>
-  theme.jssy.paletteBlueGrey[50];
+  theme.booben.paletteBlueGrey[50];
 export const paletteBlueGrey75 = ({ theme }) =>
-  theme.jssy.paletteBlueGrey[75];
+  theme.booben.paletteBlueGrey[75];
 export const paletteBlueGrey100 = ({ theme }) =>
-  theme.jssy.paletteBlueGrey[100];
+  theme.booben.paletteBlueGrey[100];
 export const paletteBlueGrey200 = ({ theme }) =>
-  theme.jssy.paletteBlueGrey[200];
+  theme.booben.paletteBlueGrey[200];
 export const paletteBlueGrey300 = ({ theme }) =>
-  theme.jssy.paletteBlueGrey[300];
+  theme.booben.paletteBlueGrey[300];
 export const paletteBlueGrey400 = ({ theme }) =>
-  theme.jssy.paletteBlueGrey[400];
+  theme.booben.paletteBlueGrey[400];
 export const paletteBlueGrey500 = ({ theme }) =>
-  theme.jssy.paletteBlueGrey[500];
+  theme.booben.paletteBlueGrey[500];
 export const paletteBlueGrey600 = ({ theme }) =>
-  theme.jssy.paletteBlueGrey[600];
+  theme.booben.paletteBlueGrey[600];
 export const paletteBlueGrey650 = ({ theme }) =>
-  theme.jssy.paletteBlueGrey[650];
+  theme.booben.paletteBlueGrey[650];
 export const paletteBlueGrey700 = ({ theme }) =>
-  theme.jssy.paletteBlueGrey[700];
+  theme.booben.paletteBlueGrey[700];
 export const paletteBlueGrey800 = ({ theme }) =>
-  theme.jssy.paletteBlueGrey[800];
+  theme.booben.paletteBlueGrey[800];
 export const paletteBlueGrey900 = ({ theme }) =>
-  theme.jssy.paletteBlueGrey[900];
+  theme.booben.paletteBlueGrey[900];
 
 export const colorBorder = ({ theme }) => theme.reactackle.colorBorder;
 export const colorBorderDark = paletteBlueGrey650;
-export const colorActiveBg = ({ theme }) => theme.jssy.color.stateSelection;
-export const colorActiveBgLight = ({ theme }) => theme.jssy.color.stateHover;
-export const colorHover = ({ theme }) => theme.jssy.color.stateHover;
-export const colorBgDefault = ({ theme }) => theme.jssy.color.bgDefault;
+export const colorActiveBg = ({ theme }) => theme.booben.color.stateSelection;
+export const colorActiveBgLight = ({ theme }) => theme.booben.color.stateHover;
+export const colorHover = ({ theme }) => theme.booben.color.stateHover;
+export const colorBgDefault = ({ theme }) => theme.booben.color.bgDefault;
 
 /* Font size */
 export const fontSizeXSmall = ({ theme }) =>

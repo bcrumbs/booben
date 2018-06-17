@@ -10,13 +10,13 @@ import { Button } from 'reactackle-button';
 import {
   getMutationType,
   getMutationField,
-  getJssyValueDefOfMutationArgument,
+  getBoobenValueDefOfMutationArgument,
 } from 'booben-graphql-schema';
 
 import { DesignDialog } from '../DesignDialog/DesignDialog';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
 import { PropsList } from '../../components/PropsList/PropsList';
-import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
+import { BoobenValueEditor } from '../BoobenValueEditor/BoobenValueEditor';
 import { ComponentActionsButtonRow } from '../../components/actions';
 import { BlockContentBoxItem } from '../../components/BlockContent';
 
@@ -27,9 +27,9 @@ import {
 } from '../../components/props/index';
 
 import Project from '../../models/Project';
-import { jssyValueToImmutable } from '../../models/ProjectComponent';
+import { boobenValueToImmutable } from '../../models/ProjectComponent';
 
-import JssyValue, {
+import BoobenValue, {
   SourceDataState,
   Action,
   ActionTypes,
@@ -40,7 +40,7 @@ import JssyValue, {
   PropChangeActionParams,
   AJAXActionParams,
   LoadMoreDataActionParams,
-} from '../../models/JssyValue';
+} from '../../models/BoobenValue';
 
 import {
   currentComponentsSelector,
@@ -74,7 +74,7 @@ import {
   objectToArray,
 } from '../../utils/misc';
 
-import * as JssyPropTypes from '../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../constants/common-prop-types';
 
 import {
   INVALID_ID,
@@ -91,7 +91,7 @@ const propTypes = {
   meta: PropTypes.object.isRequired, // state
   schema: PropTypes.object.isRequired, // state
   project: PropTypes.instanceOf(Project).isRequired, // state
-  currentComponents: JssyPropTypes.components.isRequired, // state
+  currentComponents: BoobenPropTypes.components.isRequired, // state
   ownerProps: PropTypes.object, // state
   ownerUserTypedefs: PropTypes.object, // state
   language: PropTypes.string.isRequired, // state
@@ -160,7 +160,7 @@ const createActionParams = type => {
     case 'prop': return new PropChangeActionParams();
     case 'logout': return null;
     case 'ajax': return new AJAXActionParams({
-      url: JssyValue.staticFromJS(''),
+      url: BoobenValue.staticFromJS(''),
     });
 
     case 'loadMoreData': return new LoadMoreDataActionParams();
@@ -277,7 +277,7 @@ class ActionEditorComponent extends PureComponent {
         }),
       });
     } else {
-      const newValue = new JssyValue({
+      const newValue = new BoobenValue({
         source: 'state',
         sourceData: new SourceDataState({ componentId, stateSlot: data }),
       });
@@ -330,8 +330,8 @@ class ActionEditorComponent extends PureComponent {
         params = params.merge({
           mutation: mutationName,
           args: Map(_mapValues(mutationField.args, arg => {
-            const valueDef = getJssyValueDefOfMutationArgument(arg, schema);
-            return jssyValueToImmutable(buildDefaultValue(valueDef));
+            const valueDef = getBoobenValueDefOfMutationArgument(arg, schema);
+            return boobenValueToImmutable(buildDefaultValue(valueDef));
           })),
         });
       }
@@ -377,7 +377,7 @@ class ActionEditorComponent extends PureComponent {
         routeParams: Map(arrayToObject(
           paramNames,
           returnArg,
-          () => JssyValue.staticFromJS(''),
+          () => BoobenValue.staticFromJS(''),
         )),
       })),
     });
@@ -443,7 +443,7 @@ class ActionEditorComponent extends PureComponent {
     const targetComponentMeta = getComponentMeta(targetComponent.name, meta);
     const method = targetComponentMeta.methods[value];
     const argValues = List(method.args.map(
-      arg => jssyValueToImmutable(buildDefaultValue(
+      arg => boobenValueToImmutable(buildDefaultValue(
         arg,
         targetComponentMeta.strings,
         language,
@@ -499,7 +499,7 @@ class ActionEditorComponent extends PureComponent {
       prefix = '';
     }
 
-    const isSystemProp = prefix === 'jssy_system';
+    const isSystemProp = prefix === 'booben_system';
 
     const component = currentComponents.get(action.params.componentId);
     const propValue = isSystemProp
@@ -681,7 +681,7 @@ class ActionEditorComponent extends PureComponent {
       if (!action.params.url) return false;
     } else if (action.type === ActionTypes.AJAX) {
       if (
-        action.params.url.sourceIs(JssyValue.Source.STATIC) &&
+        action.params.url.sourceIs(BoobenValue.Source.STATIC) &&
         action.params.url.sourceData.value === ''
       ) {
         return false;
@@ -762,11 +762,11 @@ class ActionEditorComponent extends PureComponent {
       const key = `mutationArg_${argName}`;
 
       return (
-        <JssyValueEditor
+        <BoobenValueEditor
           key={key}
           name={argName}
           value={action.params.args.get(argName)}
-          valueDef={getJssyValueDefOfMutationArgument(arg, schema)}
+          valueDef={getBoobenValueDefOfMutationArgument(arg, schema)}
           optional={!arg.nonNull}
           language={language}
           ownerProps={ownerProps}
@@ -856,10 +856,10 @@ class ActionEditorComponent extends PureComponent {
           const key = `methodArg_${idx}`;
           const value = action.params.args.get(idx);
 
-          if (value.sourceIs(JssyValue.Source.CONST)) return;
+          if (value.sourceIs(BoobenValue.Source.CONST)) return;
 
           ret.push(
-            <JssyValueEditor
+            <BoobenValueEditor
               key={key}
               name={String(idx)}
               value={value}
@@ -941,7 +941,7 @@ class ActionEditorComponent extends PureComponent {
 
           return {
             text: nameString || propName,
-            value: `jssy_system/${propName}`,
+            value: `booben_system/${propName}`,
           };
         },
       );
@@ -952,7 +952,7 @@ class ActionEditorComponent extends PureComponent {
       if (action.params.propName) {
         value = action.params.propName;
       } else if (action.params.systemPropName) {
-        value = `jssy_system/${action.params.systemPropName}`;
+        value = `booben_system/${action.params.systemPropName}`;
       }
 
       const label =
@@ -1005,7 +1005,7 @@ class ActionEditorComponent extends PureComponent {
         }
 
         ret.push(
-          <JssyValueEditor
+          <BoobenValueEditor
             key="propValue"
             name="propValue"
             valueDef={propValueDef}
@@ -1102,7 +1102,7 @@ class ActionEditorComponent extends PureComponent {
           const key = `routeParam_${name}`;
 
           props.push(
-            <JssyValueEditor
+            <BoobenValueEditor
               key={key}
               name={name}
               label={name}
@@ -1136,7 +1136,7 @@ class ActionEditorComponent extends PureComponent {
     const props = [];
 
     props.push(
-      <JssyValueEditor
+      <BoobenValueEditor
         key="ajax_url"
         name="url"
         label={getLocalizedText('actionsEditor.actionForm.ajax.url')}
@@ -1198,7 +1198,7 @@ class ActionEditorComponent extends PureComponent {
 
     if (action.params.method !== 'GET' && action.params.method !== 'HEAD') {
       props.push(
-        <JssyValueEditor
+        <BoobenValueEditor
           key="ajax_body"
           name="body"
           label={getLocalizedText('actionsEditor.actionForm.ajax.body')}

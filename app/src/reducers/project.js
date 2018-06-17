@@ -6,7 +6,7 @@ import { resolveTypedef } from 'booben-types';
 import {
   parseGraphQLSchema,
   getMutationField,
-  getJssyValueDefOfMutationArgument,
+  getBoobenValueDefOfMutationArgument,
 } from 'booben-graphql-schema';
 
 import { PATH_DESIGN_ROUTE, PATH_DESIGN_ROUTE_INDEX } from '../constants/paths';
@@ -37,13 +37,13 @@ import {
   PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
   PROJECT_COMPONENT_CONVERT_TO_LIST,
   PROJECT_CREATE_FUNCTION,
-  PROJECT_JSSY_VALUE_REPLACE,
-  PROJECT_JSSY_VALUE_ADD_ACTION,
-  PROJECT_JSSY_VALUE_REPLACE_ACTION,
-  PROJECT_JSSY_VALUE_DELETE_ACTION,
-  PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT,
-  PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL,
-  PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE,
+  PROJECT_BOOBEN_VALUE_REPLACE,
+  PROJECT_BOOBEN_VALUE_ADD_ACTION,
+  PROJECT_BOOBEN_VALUE_REPLACE_ACTION,
+  PROJECT_BOOBEN_VALUE_DELETE_ACTION,
+  PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT,
+  PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT_CANCEL,
+  PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT_SAVE,
   PROJECT_PICK_COMPONENT,
   PROJECT_PICK_COMPONENT_DONE,
   PROJECT_PICK_COMPONENT_CANCEL,
@@ -90,13 +90,13 @@ import Clipboard from '../models/Clipboard';
 import Cursor from '../models/Cursor';
 import ProjectRoute from '../models/ProjectRoute';
 
-import JssyValue, {
+import BoobenValue, {
   SourceDataDesigner,
   SourceDataRouteParams,
   Action,
   ActionTypes,
   isAsyncAction,
-} from '../models/JssyValue';
+} from '../models/BoobenValue';
 
 import ProjectFunction, {
   ProjectFunctionArgument,
@@ -111,7 +111,7 @@ import {
 } from '../models/Project';
 
 import ProjectComponent, {
-  jssyValueToImmutable,
+  boobenValueToImmutable,
 } from '../models/ProjectComponent';
 
 import {
@@ -460,7 +460,7 @@ const deleteOutdatedActions = (state, component, deletedComponentIds) => {
   };
 
   walkSimpleValues(component, componentMeta, (propValue, _, steps) => {
-    if (propValue.sourceIs(JssyValue.Source.ACTIONS)) {
+    if (propValue.sourceIs(BoobenValue.Source.ACTIONS)) {
       const stepsToActionsList = [...steps, 'actions'];
 
       propValue.sourceData.actions.forEach((action, idx) => {
@@ -496,14 +496,14 @@ const resetOutdatedStateValues = (state, component, deletedComponentIds) => {
     meta: state.meta,
   };
 
-  const visitValue = (jssyValue, valueDef, steps) => {
+  const visitValue = (boobenValue, valueDef, steps) => {
     const willResetValue =
-      jssyValue.isLinkedWithState() &&
-      deletedComponentIds.has(jssyValue.sourceData.componentId);
+      boobenValue.isLinkedWithState() &&
+      deletedComponentIds.has(boobenValue.sourceData.componentId);
 
     if (willResetValue) {
       const physicalPath = expandPath({ start, steps });
-      const newValue = jssyValueToImmutable(
+      const newValue = boobenValueToImmutable(
         buildDefaultValue(
           valueDef,
           component.strings,
@@ -792,8 +792,8 @@ const ValueTypes = {
  * @typedef {Object} ValueInfo
  * @property {number} type
  * @property {boolean} isNested
- * @property {JssyValueDefinition} valueDef
- * @property {Object<string, JssyTypeDefinition>} userTypedefs
+ * @property {BoobenValueDefinition} valueDef
+ * @property {Object<string, BoobenTypeDefinition>} userTypedefs
  */
 
 /**
@@ -825,8 +825,8 @@ const getValueInfoByPath = (path, state) => {
     const step = path.steps[idx];
     const nextStep = path.steps.length === idx + 1 ? null : path.steps[idx + 1];
 
-    if (object instanceof JssyValue) {
-      if (object.sourceIs(JssyValue.Source.FUNCTION)) {
+    if (object instanceof BoobenValue) {
+      if (object.sourceIs(BoobenValue.Source.FUNCTION)) {
         currentFunction = getFunctionInfo(
           object.sourceData.functionSource,
           object.sourceData.function,
@@ -836,7 +836,7 @@ const getValueInfoByPath = (path, state) => {
         if (nextStep === 'args') {
           nextValueType = ValueTypes.FUNCTION_ARG;
         }
-      } else if (object.sourceIs(JssyValue.Source.DESIGNER)) {
+      } else if (object.sourceIs(BoobenValue.Source.DESIGNER)) {
         currentComponents = object.sourceData.components;
       }
 
@@ -867,7 +867,7 @@ const getValueInfoByPath = (path, state) => {
 
           const arg = mutation.args[step];
 
-          currentValueDef = getJssyValueDefOfMutationArgument(
+          currentValueDef = getBoobenValueDefOfMutationArgument(
             arg,
             state.schema,
           );
@@ -1449,17 +1449,17 @@ const handlers = {
               expandedPath: [],
             };
 
-            const visitValue = (jssyValue, valueDef, steps) => {
+            const visitValue = (boobenValue, valueDef, steps) => {
               const isCandidateValue =
-                jssyValue.isLinkedWithRouteParam() &&
-                jssyValue.sourceData.routeId === action.routeId;
+                boobenValue.isLinkedWithRouteParam() &&
+                boobenValue.sourceData.routeId === action.routeId;
 
               if (!isCandidateValue) return;
 
-              const paramName = jssyValue.sourceData.paramName;
+              const paramName = boobenValue.sourceData.paramName;
 
               if (action.renamedParams[paramName]) {
-                const newValue = new JssyValue({
+                const newValue = new BoobenValue({
                   source: 'routeParams',
                   sourceData: new SourceDataRouteParams({
                     routeId: action.routeId,
@@ -1472,7 +1472,7 @@ const handlers = {
                   newValue,
                 );
               } else if (!action.newParamValues[paramName]) {
-                const newValue = jssyValueToImmutable(
+                const newValue = boobenValueToImmutable(
                   buildDefaultValue(
                     valueDef,
                     component.strings,
@@ -1602,13 +1602,13 @@ const handlers = {
     }),
   ),
 
-  [PROJECT_JSSY_VALUE_REPLACE]: undoable(
+  [PROJECT_BOOBEN_VALUE_REPLACE]: undoable(
     incrementsRevision((state, action) =>
       updateValue(state, action.path, action.newValue),
     ),
   ),
 
-  [PROJECT_JSSY_VALUE_ADD_ACTION]: undoable(
+  [PROJECT_BOOBEN_VALUE_ADD_ACTION]: undoable(
     incrementsRevision((state, action) =>
       state.updateIn(
         expandPath(materializePath(action.path, state)),
@@ -1617,7 +1617,7 @@ const handlers = {
     ),
   ),
 
-  [PROJECT_JSSY_VALUE_REPLACE_ACTION]: undoable(
+  [PROJECT_BOOBEN_VALUE_REPLACE_ACTION]: undoable(
     incrementsRevision((state, action) =>
       state.updateIn(
         expandPath(materializePath(action.path, state)),
@@ -1626,7 +1626,7 @@ const handlers = {
     ),
   ),
 
-  [PROJECT_JSSY_VALUE_DELETE_ACTION]: undoable(
+  [PROJECT_BOOBEN_VALUE_DELETE_ACTION]: undoable(
     incrementsRevision((state, action) =>
       state.updateIn(
         expandPath(materializePath(action.path, state)),
@@ -1635,7 +1635,7 @@ const handlers = {
     ),
   ),
 
-  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT]: (state, action) => {
+  [PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT]: (state, action) => {
     if (action.path.startingPoint !== PathStartingPoints.CURRENT_COMPONENTS) {
       throw new Error('Cannot open nested constructor with absolute path');
     }
@@ -1661,13 +1661,13 @@ const handlers = {
     }
   },
 
-  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL]: state =>
+  [PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT_CANCEL]: state =>
     closeTopNestedConstructor(state),
 
-  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE]: undoableInPreviousNode(
+  [PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT_SAVE]: undoableInPreviousNode(
     incrementsRevision(state => {
       const topNestedConstructor = getTopNestedConstructor(state);
-      const newValue = new JssyValue({
+      const newValue = new BoobenValue({
         source: 'designer',
         sourceData: new SourceDataDesigner({
           components: topNestedConstructor.components,

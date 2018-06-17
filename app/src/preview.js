@@ -5,7 +5,7 @@ import { ApolloProvider } from 'react-apollo';
 import { ThemeProvider } from 'styled-components';
 import { parseGraphQLSchema } from 'booben-graphql-schema';
 import { Theme, injectGlobalStyle } from 'reactackle-core';
-import { jssyTheme, reactackleMixin } from './styles/theme';
+import { boobenTheme, reactackleMixin } from './styles/theme';
 import { Preview } from './containers/Preview/Preview';
 import { ErrorScreen } from './components/StateScreen/StateScreen';
 import { projectToImmutable } from './models/Project';
@@ -38,7 +38,7 @@ const getAuthConfig = projectAuth => {
   switch (projectAuth.type) {
     case 'jwt': {
       return {
-        getToken: () => localStorage.getItem('jssy_auth_token'),
+        getToken: () => localStorage.getItem('booben_auth_token'),
       };
     }
 
@@ -50,7 +50,7 @@ const getAuthConfig = projectAuth => {
 
 window.addEventListener('DOMContentLoaded', async () => {
   const containerElement =
-    window.document.getElementById('__jssy_preview_container__');
+    window.document.getElementById('__booben_preview_container__');
 
   try {
     const projectName = getProjectName();
@@ -111,7 +111,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     ReactDOM.render(
       <Theme mixin={reactackleMixin}>
-        <ThemeProvider theme={jssyTheme}>
+        <ThemeProvider theme={boobenTheme}>
           <ErrorScreen
             title="Failed to load project"
             message={err.message}

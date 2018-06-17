@@ -926,7 +926,7 @@ class StructureRoute extends PureComponent {
         name="STRUCTURE_SCREEN"
         handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
         targetNodeSelector="body"
-        className="jssy-app"
+        className="booben-app"
       >
         <Desktop
           toolGroups={this._toolGroups}
@@ -942,7 +942,7 @@ class StructureRoute extends PureComponent {
             <Shortcuts
               name="ROUTES_LIST"
               handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
-              className="jssy-app"
+              className="booben-app"
             >
               {content}
             </Shortcuts>

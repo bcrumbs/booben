@@ -6,7 +6,7 @@ import { ConnectedRouter } from 'react-router-redux';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from 'styled-components';
 import { Theme, injectGlobalStyle } from 'reactackle-core';
-import { jssyTheme, reactackleMixin } from './styles/theme';
+import { boobenTheme, reactackleMixin } from './styles/theme';
 import { injectAppStyle } from './styles/appGlobalStyles';
 import RootRoute from './routes/RootRoute';
 import store from './store';
@@ -30,7 +30,7 @@ store.dispatch(loadStrings(DEFAULT_LANGUAGE));
 window.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(
     <Theme mixin={reactackleMixin}>
-      <ThemeProvider theme={jssyTheme}>
+      <ThemeProvider theme={boobenTheme}>
         <Provider store={store}>
           <ShortcutsProvider keymap={keymap}>
             <ConnectedRouter history={history}>

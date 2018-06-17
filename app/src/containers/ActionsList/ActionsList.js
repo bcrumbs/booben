@@ -15,18 +15,18 @@ import {
   getLocalizedTextFromState,
 } from '../../selectors';
 
-import JssyValue, { isAsyncAction } from '../../models/JssyValue';
+import BoobenValue, { isAsyncAction } from '../../models/BoobenValue';
 import { getComponentMeta, getString } from '../../lib/meta';
 import { formatComponentTitle } from '../../lib/components';
 import { noop } from '../../utils/misc';
-import * as JssyPropTypes from '../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../constants/common-prop-types';
 
 const propTypes = {
-  actions: JssyPropTypes.actions.isRequired,
+  actions: BoobenPropTypes.actions.isRequired,
   meta: PropTypes.object.isRequired, // state
   schema: PropTypes.object, // state
-  routes: JssyPropTypes.routes.isRequired, // state
-  currentComponents: JssyPropTypes.components.isRequired, // state
+  routes: BoobenPropTypes.routes.isRequired, // state
+  currentComponents: BoobenPropTypes.components.isRequired, // state
   language: PropTypes.string.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onCreateAction: PropTypes.func,
@@ -171,7 +171,7 @@ class _ActionsList extends Component {
 
       case 'ajax': {
         const haveURLString =
-          action.params.url.sourceIs(JssyValue.Source.STATIC);
+          action.params.url.sourceIs(BoobenValue.Source.STATIC);
 
         if (haveURLString) {
           return getLocalizedText('actionsEditor.actionTitle.ajax.withURL', {

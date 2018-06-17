@@ -11,7 +11,7 @@ import {
 
 import { IconCross } from '../../components/icons';
 
-import jssyTheme from './jssy';
+import boobenTheme from './booben';
 
 const fontColorBodyLight = paletteBlueGrey[25];
 const fontColorMedium = paletteBlueGrey[400];
@@ -116,18 +116,18 @@ export default {
       },
 
       disabled: {
-        backgroundColor: jssyTheme.jssy.color.stateHoverDark,
+        backgroundColor: boobenTheme.booben.color.stateHoverDark,
         fontColor: fontColorMedium,
       },
 
       colorScheme: {
         flatLight: {
           hover: {
-            backgroundColor: jssyTheme.jssy.color.stateHoverDark,
+            backgroundColor: boobenTheme.booben.color.stateHoverDark,
           },
 
           focus: {
-            backgroundColor: jssyTheme.jssy.color.stateFocusDark,
+            backgroundColor: boobenTheme.booben.color.stateFocusDark,
           },
         },
       },
@@ -196,11 +196,11 @@ export default {
           borderColor: colorBorder,
 
           hover: {
-            backgroundColor: jssyTheme.jssy.color.stateHoverDark,
+            backgroundColor: boobenTheme.booben.color.stateHoverDark,
           },
 
           focus: {
-            backgroundColor: jssyTheme.jssy.color.stateFocusDark,
+            backgroundColor: boobenTheme.booben.color.stateFocusDark,
           },
 
           disabled: {
@@ -216,11 +216,11 @@ export default {
       option: {
         style: {
           hover: {
-            backgroundColor: jssyTheme.jssy.color.stateHoverDark,
+            backgroundColor: boobenTheme.booben.color.stateHoverDark,
           },
 
           focus: {
-            backgroundColor: jssyTheme.jssy.color.stateFocusDark,
+            backgroundColor: boobenTheme.booben.color.stateFocusDark,
           },
         },
       },

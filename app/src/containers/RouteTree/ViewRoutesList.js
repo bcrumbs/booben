@@ -12,7 +12,7 @@ import {
 
 import { ComponentsTreeView } from '../ComponentsTreeView/ComponentsTreeView';
 import ProjectRoute from '../../models/ProjectRoute';
-import * as JssyPropTypes from '../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../constants/common-prop-types';
 
 import {
   expandRouteTreeItem,
@@ -24,7 +24,7 @@ import { INVALID_ID } from '../../constants/misc';
 
 const propTypes = {
   currentRoute: PropTypes.instanceOf(ProjectRoute).isRequired,
-  expandedRouteTreeItemIds: JssyPropTypes.setOfIds.isRequired,
+  expandedRouteTreeItemIds: BoobenPropTypes.setOfIds.isRequired,
 };
 
 const mapStateToProps = state => ({

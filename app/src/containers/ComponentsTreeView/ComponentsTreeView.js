@@ -92,20 +92,20 @@ import {
 } from '../../lib/components';
 
 import { isFunction } from '../../utils/misc';
-import * as JssyPropTypes from '../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../constants/common-prop-types';
 import { INVALID_ID } from '../../constants/misc';
 import { DND_DRAG_START_RADIUS_TREE } from '../../config';
 
 const propTypes = {
   dropZoneId: PropTypes.string,
-  components: JssyPropTypes.components.isRequired, // state
+  components: BoobenPropTypes.components.isRequired, // state
   rootComponentId: PropTypes.number.isRequired, // state
   currentRoute: PropTypes.instanceOf(ProjectRoute).isRequired,
   propsViewMode: PropTypes.oneOf(['componentProps', 'routeProps']).isRequired, // state
-  selectedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
-  highlightedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
-  highlightedRouteIds: JssyPropTypes.setOfIds.isRequired, // state
-  expandedItemIds: JssyPropTypes.setOfIds.isRequired, // state
+  selectedComponentIds: BoobenPropTypes.setOfIds.isRequired, // state
+  highlightedComponentIds: BoobenPropTypes.setOfIds.isRequired, // state
+  highlightedRouteIds: BoobenPropTypes.setOfIds.isRequired, // state
+  expandedItemIds: BoobenPropTypes.setOfIds.isRequired, // state
   draggingComponent: PropTypes.bool.isRequired, // state
   rootDraggedComponent: PropTypes.instanceOf(ProjectComponentRecord), // state
   draggingOverPlaceholder: PropTypes.bool.isRequired, // state
@@ -117,7 +117,7 @@ const propTypes = {
   pickedComponentId: PropTypes.number.isRequired, // state
   pickedComponentArea: PropTypes.number.isRequired, // state
   componentDataListIsVisible: PropTypes.bool.isRequired, // state
-  componentDataListItems: PropTypes.arrayOf(JssyPropTypes.componentDataItem)
+  componentDataListItems: PropTypes.arrayOf(BoobenPropTypes.componentDataItem)
     .isRequired, // state
   meta: PropTypes.object.isRequired, // state
   cursorPosition: PropTypes.instanceOf(Cursor).isRequired, // state

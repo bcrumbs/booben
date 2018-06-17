@@ -10,12 +10,12 @@ import {
   isNullableType,
 } from 'booben-types';
 
-import JssyValue from '../../models/JssyValue';
-import { jssyValueToImmutable } from '../../models/ProjectComponent';
+import BoobenValue from '../../models/BoobenValue';
+import { boobenValueToImmutable } from '../../models/ProjectComponent';
 
 import {
   Prop,
-  jssyTypeToView,
+  boobenTypeToView,
   PropViews,
 } from '../../components/PropsList/PropsList';
 
@@ -31,7 +31,7 @@ import { INVALID_ID } from '../../constants/misc';
 const propTypes = {
   name: PropTypes.string.isRequired,
   valueDef: PropTypes.object.isRequired,
-  value: PropTypes.instanceOf(JssyValue),
+  value: PropTypes.instanceOf(BoobenValue),
   optional: PropTypes.bool,
   userTypedefs: PropTypes.object,
   strings: PropTypes.object,
@@ -98,7 +98,7 @@ const coerceFloatValue = value => {
 
 /**
  *
- * @param {JssyValueDefinition} valueDef
+ * @param {BoobenValueDefinition} valueDef
  * @return {boolean}
  */
 const isEditableValue = valueDef =>
@@ -112,7 +112,7 @@ const isEditableValue = valueDef =>
  */
 const LINK_TEXT_ITEMS_SEPARATOR = ' -> ';
 
-export class JssyValueEditor extends PureComponent {
+export class BoobenValueEditor extends PureComponent {
   constructor(props, context) {
     super(props, context);
 
@@ -151,10 +151,10 @@ export class JssyValueEditor extends PureComponent {
   _handleChange({ value, path }) {
     const { name, value: currentValue, onChange } = this.props;
 
-    const jssyValue = JssyValue.staticFromJS(value);
+    const boobenValue = BoobenValue.staticFromJS(value);
     const newValue = path.length > 0
-      ? currentValue.setInStatic(path, jssyValue)
-      : jssyValue;
+      ? currentValue.setInStatic(path, boobenValue)
+      : boobenValue;
 
     onChange({ name, value: newValue });
   }
@@ -177,7 +177,7 @@ export class JssyValueEditor extends PureComponent {
     } = this.props;
 
     const nestedTypedef = getNestedTypedef(valueDef, where, userTypedefs);
-    const value = jssyValueToImmutable(buildDefaultValue(
+    const value = boobenValueToImmutable(buildDefaultValue(
       nestedTypedef.ofType,
       strings,
       language,
@@ -256,7 +256,7 @@ export class JssyValueEditor extends PureComponent {
     } = this.props;
 
     const nestedValueDef = getNestedTypedef(valueDef, path, userTypedefs);
-    const value = jssyValueToImmutable(buildDefaultValue(
+    const value = boobenValueToImmutable(buildDefaultValue(
       nestedValueDef,
       strings,
       language,
@@ -298,7 +298,7 @@ export class JssyValueEditor extends PureComponent {
       );
 
       if (checked) {
-        const value = jssyValueToImmutable(buildDefaultValue(
+        const value = boobenValueToImmutable(buildDefaultValue(
           resolvedValueDef,
           strings,
           language,
@@ -320,7 +320,7 @@ export class JssyValueEditor extends PureComponent {
         if (!isIterable && !resolvedValueDef.required) {
           newValue = currentValue.unsetInStatic(path);
         } else {
-          newValue = currentValue.setInStatic(path, JssyValue.STATIC_NULL);
+          newValue = currentValue.setInStatic(path, BoobenValue.STATIC_NULL);
         }
       }
 
@@ -329,7 +329,7 @@ export class JssyValueEditor extends PureComponent {
       const resolvedValueDef = resolveTypedef(valueDef, userTypedefs);
 
       if (checked) {
-        const value = jssyValueToImmutable(buildDefaultValue(
+        const value = boobenValueToImmutable(buildDefaultValue(
           resolvedValueDef,
           strings,
           language,
@@ -341,7 +341,7 @@ export class JssyValueEditor extends PureComponent {
       } else if (optional) {
         onChange({ name, value: null });
       } else {
-        onChange({ name, value: JssyValue.STATIC_NULL });
+        onChange({ name, value: BoobenValue.STATIC_NULL });
       }
     }
   }
@@ -380,7 +380,7 @@ export class JssyValueEditor extends PureComponent {
 
   /**
    *
-   * @param {JssyValueDefinition} valueDef
+   * @param {BoobenValueDefinition} valueDef
    * @return {boolean}
    * @private
    */
@@ -407,7 +407,7 @@ export class JssyValueEditor extends PureComponent {
 
   /**
    *
-   * @param {JssyValueDefinition|ComponentPropMeta} valueDef
+   * @param {BoobenValueDefinition|ComponentPropMeta} valueDef
    * @param {string} [fallback='']
    * @param {string} [override='']
    * @return {string}
@@ -427,7 +427,7 @@ export class JssyValueEditor extends PureComponent {
 
   /**
    *
-   * @param {JssyValueDefinition} valueDef
+   * @param {BoobenValueDefinition} valueDef
    * @return {string}
    * @private
    */
@@ -441,7 +441,7 @@ export class JssyValueEditor extends PureComponent {
 
   /**
    *
-   * @param {JssyValueDefinition|ComponentPropMeta} valueDef
+   * @param {BoobenValueDefinition|ComponentPropMeta} valueDef
    * @param {string} [fallback='']
    * @param {string} [override='']
    * @return {string}
@@ -486,7 +486,7 @@ export class JssyValueEditor extends PureComponent {
 
   /**
    *
-   * @param {JssyValueDefinition} valueDef
+   * @param {BoobenValueDefinition} valueDef
    * @param {boolean} [noCache=false]
    * @param {string} [labelFallback='']
    * @param {string} [descriptionFallback='']
@@ -519,7 +519,7 @@ export class JssyValueEditor extends PureComponent {
     const ret = {
       label: this._formatLabel(resolvedValueDef, labelFallback, labelOverride),
       view: isEditableValue(resolvedValueDef)
-        ? jssyTypeToView(resolvedValueDef.type)
+        ? boobenTypeToView(resolvedValueDef.type)
         : PropViews.EMPTY,
 
       image: '',
@@ -591,15 +591,15 @@ export class JssyValueEditor extends PureComponent {
 
   /**
    *
-   * @param {Object} jssyValue
-   * @param {JssyValueDefinition} valueDef
+   * @param {Object} boobenValue
+   * @param {BoobenValueDefinition} valueDef
    * @return {PropsItemValue}
    * @private
    */
-  _getPropValue(jssyValue, valueDef) {
+  _getPropValue(boobenValue, valueDef) {
     const { userTypedefs } = this.props;
 
-    if (!jssyValue) {
+    if (!boobenValue) {
       return {
         value: null,
         linked: false,
@@ -608,29 +608,29 @@ export class JssyValueEditor extends PureComponent {
     }
 
     const resolvedValueDef = resolveTypedef(valueDef, userTypedefs);
-    const linked = jssyValue.isLinked();
+    const linked = boobenValue.isLinked();
     let linkedWith = '';
     let value = null;
     let checked = true;
 
     if (!linked) {
-      if (jssyValue.sourceIs(JssyValue.Source.STATIC)) {
+      if (boobenValue.sourceIs(BoobenValue.Source.STATIC)) {
         if (
           resolvedValueDef.type === TypeNames.INT ||
           resolvedValueDef.type === TypeNames.FLOAT
         ) {
-          value = String(jssyValue.sourceData.value);
+          value = String(boobenValue.sourceData.value);
         } else if (
           resolvedValueDef.type === TypeNames.STRING ||
           resolvedValueDef.type === TypeNames.BOOL ||
           resolvedValueDef.type === TypeNames.ONE_OF
         ) {
-          value = jssyValue.sourceData.value;
+          value = boobenValue.sourceData.value;
         } else if (resolvedValueDef.type === TypeNames.SHAPE) {
-          if (jssyValue.sourceData.value) {
+          if (boobenValue.sourceData.value) {
             value = _mapValues(resolvedValueDef.fields, (fieldDef, fieldName) =>
               this._getPropValue(
-                jssyValue.sourceData.value.get(fieldName),
+                boobenValue.sourceData.value.get(fieldName),
                 fieldDef,
               ),
             );
@@ -638,8 +638,8 @@ export class JssyValueEditor extends PureComponent {
             checked = false;
           }
         } else if (resolvedValueDef.type === TypeNames.OBJECT_OF) {
-          if (jssyValue.sourceData.value) {
-            value = jssyValue.sourceData.value.map(
+          if (boobenValue.sourceData.value) {
+            value = boobenValue.sourceData.value.map(
               nestedValue => this._getPropValue(
                 nestedValue,
                 resolvedValueDef.ofType,
@@ -649,37 +649,37 @@ export class JssyValueEditor extends PureComponent {
             checked = false;
           }
         } else if (resolvedValueDef.type === TypeNames.ARRAY_OF) {
-          value = jssyValue.sourceData.value.map(nestedValue =>
+          value = boobenValue.sourceData.value.map(nestedValue =>
             this._getPropValue(
               nestedValue,
               resolvedValueDef.ofType,
             ),
           ).toJS();
         }
-      } else if (jssyValue.sourceIs(JssyValue.Source.DESIGNER)) {
+      } else if (boobenValue.sourceIs(BoobenValue.Source.DESIGNER)) {
         // true if component exists, false otherwise
         if (resolvedValueDef.type === TypeNames.COMPONENT) {
-          value = jssyValue.sourceData.rootId !== INVALID_ID;
+          value = boobenValue.sourceData.rootId !== INVALID_ID;
         }
       }
-    } else if (jssyValue.sourceIs(JssyValue.Source.DATA)) {
-      if (jssyValue.sourceData.queryPath) {
-        linkedWith = jssyValue.sourceData.queryPath
+    } else if (boobenValue.sourceIs(BoobenValue.Source.DATA)) {
+      if (boobenValue.sourceData.queryPath) {
+        linkedWith = boobenValue.sourceData.queryPath
           .map(step => step.field)
           .join(LINK_TEXT_ITEMS_SEPARATOR);
       }
-    } else if (jssyValue.sourceIs(JssyValue.Source.FUNCTION)) {
-      linkedWith = jssyValue.sourceData.function;
-    } else if (jssyValue.sourceIs(JssyValue.Source.OWNER_PROP)) {
-      linkedWith = jssyValue.sourceData.ownerPropName;
-    } else if (jssyValue.sourceIs(JssyValue.Source.STATE)) {
+    } else if (boobenValue.sourceIs(BoobenValue.Source.FUNCTION)) {
+      linkedWith = boobenValue.sourceData.function;
+    } else if (boobenValue.sourceIs(BoobenValue.Source.OWNER_PROP)) {
+      linkedWith = boobenValue.sourceData.ownerPropName;
+    } else if (boobenValue.sourceIs(BoobenValue.Source.STATE)) {
       linkedWith =
-        `Component ${jssyValue.sourceData.componentId} ` +
-        `- ${jssyValue.sourceData.stateSlot}`;
-    } else if (jssyValue.sourceIs(JssyValue.Source.ROUTE_PARAMS)) {
-      linkedWith = jssyValue.sourceData.paramName;
-    } else if (jssyValue.sourceIs(JssyValue.Source.ACTION_ARG)) {
-      linkedWith = `Action argument ${jssyValue.sourceData.arg}`;
+        `Component ${boobenValue.sourceData.componentId} ` +
+        `- ${boobenValue.sourceData.stateSlot}`;
+    } else if (boobenValue.sourceIs(BoobenValue.Source.ROUTE_PARAMS)) {
+      linkedWith = boobenValue.sourceData.paramName;
+    } else if (boobenValue.sourceIs(BoobenValue.Source.ACTION_ARG)) {
+      linkedWith = `Action argument ${boobenValue.sourceData.arg}`;
     }
 
     return { value, linked, linkedWith, checked };
@@ -740,6 +740,6 @@ export class JssyValueEditor extends PureComponent {
   }
 }
 
-JssyValueEditor.diplayName = 'JssyValueEditor';
-JssyValueEditor.propTypes = propTypes;
-JssyValueEditor.defaultProps = defaultProps;
+BoobenValueEditor.diplayName = 'BoobenValueEditor';
+BoobenValueEditor.propTypes = propTypes;
+BoobenValueEditor.defaultProps = defaultProps;

@@ -12,11 +12,11 @@ import {
 
 const patchDOMElement = componentInstance => {
   const {
-    __jssy_component_id__: componentId,
-    __jssy_placeholder__: isPlaceholder,
-    __jssy_container_id__: containerId,
-    __jssy_after__: after,
-    __jssy_invisible__: invisible,
+    __booben_component_id__: componentId,
+    __booben_placeholder__: isPlaceholder,
+    __booben_container_id__: containerId,
+    __booben_after__: after,
+    __booben_invisible__: invisible,
   } = componentInstance.props;
 
   const node = findDOMNode(componentInstance);
@@ -28,17 +28,17 @@ const patchDOMElement = componentInstance => {
   
   if (node.nodeType === Node.ELEMENT_NODE) {
     if (isNumber(componentId)) {
-      node.setAttribute('data-jssy-id', String(componentId));
+      node.setAttribute('data-booben-id', String(componentId));
     } else if (isPlaceholder) {
-      node.setAttribute('data-jssy-placeholder', '');
-      node.setAttribute('data-jssy-after', String(after));
-      node.setAttribute('data-jssy-container-id', String(containerId));
+      node.setAttribute('data-booben-placeholder', '');
+      node.setAttribute('data-booben-after', String(after));
+      node.setAttribute('data-booben-container-id', String(containerId));
     }
 
     if (invisible) {
-      node.setAttribute('data-jssy-invisible', '');
+      node.setAttribute('data-booben-invisible', '');
     } else {
-      node.removeAttribute('data-jssy-invisible');
+      node.removeAttribute('data-booben-invisible');
     }
   }
 };
@@ -57,8 +57,8 @@ const catchErrors = (fn, hookName) => function (...args) {
   try {
     return fn.apply(this, args);
   } catch (error) {
-    if (isFunction(this.props.__jssy_error_handler__)) {
-      this.props.__jssy_error_handler__(error, hookName);
+    if (isFunction(this.props.__booben_error_handler__)) {
+      this.props.__booben_error_handler__(error, hookName);
     }
     
     return defaultReturnValues[hookName];
@@ -101,11 +101,11 @@ const patchClassComponent = component => {
     wrapLifecycleHook(originalComponentDidUpdate);
   
   if (component.propTypes) {
-    component.propTypes.__jssy_error_handler__ = PropTypes.func;
+    component.propTypes.__booben_error_handler__ = PropTypes.func;
   }
   
   if (component.defaultProps) {
-    component.defaultProps.__jssy_error_handler__ = noop;
+    component.defaultProps.__booben_error_handler__ = noop;
   }
 
   return component;

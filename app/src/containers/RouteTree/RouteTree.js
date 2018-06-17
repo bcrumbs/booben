@@ -12,7 +12,7 @@ import {
   RouteTreeItemContent,
 } from '../../components';
 
-import * as JssyPropTypes from '../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../constants/common-prop-types';
 import { INVALID_ID } from '../../constants/misc';
 
 import { createRoute } from '../../actions/project';
@@ -53,11 +53,11 @@ const colorScheme = 'default';
 const propTypes = {
   project: PropTypes.instanceOf(Project).isRequired,
   projectName: PropTypes.string.isRequired,
-  highlightedComponentIds: JssyPropTypes.setOfIds.isRequired,
+  highlightedComponentIds: BoobenPropTypes.setOfIds.isRequired,
   currentRoute: PropTypes.instanceOf(ProjectRoute),
   selectedRouteId: PropTypes.number.isRequired,
   indexRouteSelected: PropTypes.bool.isRequired,
-  expandedRouteTreeItemIds: JssyPropTypes.setOfIds.isRequired,
+  expandedRouteTreeItemIds: BoobenPropTypes.setOfIds.isRequired,
   getLocalizedText: PropTypes.func,
   onSelectRoute: PropTypes.func.isRequired,
   onOpenDesigner: PropTypes.func.isRequired,

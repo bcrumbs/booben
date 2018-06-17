@@ -1,7 +1,7 @@
 import { Record, List, Map, Set } from 'immutable';
 import _mapValues from 'lodash.mapvalues';
 
-import JssyValue, {
+import BoobenValue, {
   SourceDataStatic,
   SourceDataOwnerProp,
   SourceDataData,
@@ -22,7 +22,7 @@ import JssyValue, {
   SourceDataState,
   SourceDataRouteParams,
   SourceDataActionArg,
-} from './JssyValue';
+} from './BoobenValue';
 
 import {
   isUndef,
@@ -70,7 +70,7 @@ const actionsToImmutable = actions => List(actions.map(action => {
     case ActionTypes.MUTATION: {
       data.params = new MutationActionParams({
         mutation: action.params.mutation,
-        args: Map(_mapValues(action.params.args, jssyValueToImmutable)),
+        args: Map(_mapValues(action.params.args, boobenValueToImmutable)),
         successActions: actionsToImmutable(action.params.successActions),
         errorActions: actionsToImmutable(action.params.errorActions),
       });
@@ -83,7 +83,7 @@ const actionsToImmutable = actions => List(actions.map(action => {
         routeId: action.params.routeId,
         routeParams: Map(_mapValues(
           action.params.routeParams,
-          jssyValueToImmutable,
+          boobenValueToImmutable,
         )),
       });
 
@@ -103,7 +103,7 @@ const actionsToImmutable = actions => List(actions.map(action => {
       data.params = new MethodCallActionParams({
         componentId: action.params.componentId,
         method: action.params.method,
-        args: List(action.params.args.map(jssyValueToImmutable)),
+        args: List(action.params.args.map(boobenValueToImmutable)),
       });
 
       break;
@@ -114,7 +114,7 @@ const actionsToImmutable = actions => List(actions.map(action => {
         componentId: action.params.componentId,
         propName: action.params.propName || '',
         systemPropName: action.params.systemPropName || '',
-        value: jssyValueToImmutable(action.params.value),
+        value: boobenValueToImmutable(action.params.value),
       });
 
       break;
@@ -122,12 +122,12 @@ const actionsToImmutable = actions => List(actions.map(action => {
 
     case ActionTypes.AJAX: {
       data.params = new AJAXActionParams({
-        url: jssyValueToImmutable(action.params.url),
+        url: boobenValueToImmutable(action.params.url),
         method: action.params.method,
         headers: Map(action.params.headers),
         body: action.params.body === null
           ? null
-          : jssyValueToImmutable(action.params.body),
+          : boobenValueToImmutable(action.params.body),
         mode: action.params.mode,
         decodeResponse: action.params.decodeResponse,
         successActions: actionsToImmutable(action.params.successActions),
@@ -158,33 +158,33 @@ const actionsToImmutable = actions => List(actions.map(action => {
 
 /**
  *
- * @param {?PlainJssyValue} plainValue
+ * @param {?PlainBoobenValue} plainValue
  * @return {?Object}
  */
-export const jssyValueToImmutable = plainValue => {
+export const boobenValueToImmutable = plainValue => {
   if (plainValue === null) {
     return null;
   }
 
   const { source, sourceData } = plainValue;
 
-  return new JssyValue({
+  return new BoobenValue({
     source,
     sourceData: sourceDataToImmutable(source, sourceData),
   });
 };
 
 const propSourceDataToImmutableFns = {
-  [JssyValue.Source.CONST]: input => new SourceDataConst(input),
-  [JssyValue.Source.STATIC]: input => {
+  [BoobenValue.Source.CONST]: input => new SourceDataConst(input),
+  [BoobenValue.Source.STATIC]: input => {
     const data = {};
 
     if (!isUndef(input.value)) {
       if (Array.isArray(input.value)) {
-        data.value = List(input.value.map(jssyValueToImmutable),
+        data.value = List(input.value.map(boobenValueToImmutable),
         );
       } else if (isObject(input.value)) {
-        data.value = Map(_mapValues(input.value, jssyValueToImmutable));
+        data.value = Map(_mapValues(input.value, boobenValueToImmutable));
       } else {
         data.value = input.value;
       }
@@ -193,8 +193,8 @@ const propSourceDataToImmutableFns = {
     return new SourceDataStatic(data);
   },
 
-  [JssyValue.Source.OWNER_PROP]: input => new SourceDataOwnerProp(input),
-  [JssyValue.Source.DATA]: input => {
+  [BoobenValue.Source.OWNER_PROP]: input => new SourceDataOwnerProp(input),
+  [BoobenValue.Source.DATA]: input => {
     const data = {
       queryPath: input.queryPath
         ? List(input.queryPath.map(step => new QueryPathStep({
@@ -204,7 +204,7 @@ const propSourceDataToImmutableFns = {
         : null,
 
       queryArgs: Map(_mapValues(input.queryArgs, args =>
-        Map(_mapValues(args, jssyValueToImmutable)))),
+        Map(_mapValues(args, boobenValueToImmutable)))),
 
       dataContext: input.dataContext
         ? List(input.dataContext)
@@ -214,17 +214,17 @@ const propSourceDataToImmutableFns = {
     return new SourceDataData(data);
   },
 
-  [JssyValue.Source.FUNCTION]: input => new SourceDataFunction({
+  [BoobenValue.Source.FUNCTION]: input => new SourceDataFunction({
     functionSource: input.functionSource,
     function: input.function,
-    args: List(input.args.map(jssyValueToImmutable)),
+    args: List(input.args.map(boobenValueToImmutable)),
   }),
 
-  [JssyValue.Source.ACTIONS]: input => new SourceDataActions({
+  [BoobenValue.Source.ACTIONS]: input => new SourceDataActions({
     actions: actionsToImmutable(input.actions),
   }),
 
-  [JssyValue.Source.DESIGNER]: input => new SourceDataDesigner(
+  [BoobenValue.Source.DESIGNER]: input => new SourceDataDesigner(
     input.component
       ? {
         rootId: input.component.id,
@@ -241,16 +241,16 @@ const propSourceDataToImmutableFns = {
       },
   ),
 
-  [JssyValue.Source.STATE]: input => new SourceDataState(input),
-  [JssyValue.Source.ROUTE_PARAMS]: input => new SourceDataRouteParams(input),
-  [JssyValue.Source.ACTION_ARG]: input => new SourceDataActionArg(input),
+  [BoobenValue.Source.STATE]: input => new SourceDataState(input),
+  [BoobenValue.Source.ROUTE_PARAMS]: input => new SourceDataRouteParams(input),
+  [BoobenValue.Source.ACTION_ARG]: input => new SourceDataActionArg(input),
 };
 /* eslint-enable no-use-before-define */
 
 export const sourceDataToImmutable = (source, sourceData) =>
   propSourceDataToImmutableFns[source](sourceData);
 
-const propsToImmutable = props => Map(_mapValues(props, jssyValueToImmutable));
+const propsToImmutable = props => Map(_mapValues(props, boobenValueToImmutable));
 
 export const projectComponentToImmutable = (
   input,
@@ -305,7 +305,7 @@ export const componentsToImmutable = (
 const actionParamsToJSv1Converters = {
   [ActionTypes.MUTATION]: params => ({
     mutation: params.mutation,
-    args: mapMapToObject(params.args, returnSecondArg, jssyValueToJSv1),
+    args: mapMapToObject(params.args, returnSecondArg, boobenValueToJSv1),
     successActions: mapListToArray(params.successActions, actionToJSv1),
     errorActions: mapListToArray(params.errorActions, actionToJSv1),
   }),
@@ -313,13 +313,13 @@ const actionParamsToJSv1Converters = {
   [ActionTypes.METHOD]: params => ({
     componentId: params.componentId,
     method: params.method,
-    args: mapListToArray(params.args, jssyValueToJSv1),
+    args: mapListToArray(params.args, boobenValueToJSv1),
   }),
 
   [ActionTypes.PROP]: params => {
     const ret = {
       componentId: params.componentId,
-      value: jssyValueToJSv1(params.value),
+      value: boobenValueToJSv1(params.value),
     };
 
     if (params.systemPropName) {
@@ -336,7 +336,7 @@ const actionParamsToJSv1Converters = {
     routeParams: mapMapToObject(
       params.routeParams,
       returnSecondArg,
-      jssyValueToJSv1,
+      boobenValueToJSv1,
     ),
   }),
 
@@ -345,10 +345,10 @@ const actionParamsToJSv1Converters = {
   [ActionTypes.LOGOUT]: returnNull,
 
   [ActionTypes.AJAX]: params => ({
-    url: jssyValueToJSv1(params.url),
+    url: boobenValueToJSv1(params.url),
     method: params.method,
     headers: params.headers.toJS(),
-    body: params.body === null ? null : jssyValueToJSv1(params.body),
+    body: params.body === null ? null : boobenValueToJSv1(params.body),
     mode: params.mode,
     decodeResponse: params.decodeResponse,
     successActions: mapListToArray(params.successActions, actionToJSv1),
@@ -369,21 +369,21 @@ const actionToJSv1 = action => ({
 });
 
 const sourceDataToJSv1Converters = {
-  [JssyValue.Source.CONST]: sourceData => ({
+  [BoobenValue.Source.CONST]: sourceData => ({
     value: sourceData.value,
   }),
 
-  [JssyValue.Source.STATIC]: sourceData => {
+  [BoobenValue.Source.STATIC]: sourceData => {
     if (sourceData.value instanceof List) {
       return {
-        value: mapListToArray(sourceData.value, jssyValueToJSv1),
+        value: mapListToArray(sourceData.value, boobenValueToJSv1),
       };
     } else if (sourceData.value instanceof Map) {
       return {
         value: mapMapToObject(
           sourceData.value,
           returnSecondArg,
-          jssyValueToJSv1,
+          boobenValueToJSv1,
         ),
       };
     } else {
@@ -393,11 +393,11 @@ const sourceDataToJSv1Converters = {
     }
   },
 
-  [JssyValue.Source.OWNER_PROP]: sourceData => ({
+  [BoobenValue.Source.OWNER_PROP]: sourceData => ({
     ownerPropName: sourceData.ownerPropName,
   }),
 
-  [JssyValue.Source.DATA]: sourceData => ({
+  [BoobenValue.Source.DATA]: sourceData => ({
     dataContext: mapListToArray(sourceData.dataContext, returnArg),
     queryPath: sourceData.queryPath === null
       ? null
@@ -406,21 +406,21 @@ const sourceDataToJSv1Converters = {
     queryArgs: mapMapToObject(
       sourceData.queryArgs,
       returnSecondArg,
-      args => mapMapToObject(args, returnSecondArg, jssyValueToJSv1),
+      args => mapMapToObject(args, returnSecondArg, boobenValueToJSv1),
     ),
   }),
 
-  [JssyValue.Source.FUNCTION]: sourceData => ({
+  [BoobenValue.Source.FUNCTION]: sourceData => ({
     functionSource: sourceData.functionSource,
     function: sourceData.function,
-    args: mapListToArray(sourceData.args, jssyValueToJSv1),
+    args: mapListToArray(sourceData.args, boobenValueToJSv1),
   }),
 
-  [JssyValue.Source.ACTIONS]: sourceData => ({
+  [BoobenValue.Source.ACTIONS]: sourceData => ({
     actions: mapListToArray(sourceData.actions, actionToJSv1),
   }),
 
-  [JssyValue.Source.DESIGNER]: sourceData => {
+  [BoobenValue.Source.DESIGNER]: sourceData => {
     if (sourceData.rootId === INVALID_ID) {
       return {
         component: null,
@@ -435,18 +435,18 @@ const sourceDataToJSv1Converters = {
     }
   },
 
-  [JssyValue.Source.STATE]: sourceData => sourceData.toJS(),
-  [JssyValue.Source.ROUTE_PARAMS]: sourceData => sourceData.toJS(),
-  [JssyValue.Source.ACTION_ARG]: sourceData => sourceData.toJS(),
+  [BoobenValue.Source.STATE]: sourceData => sourceData.toJS(),
+  [BoobenValue.Source.ROUTE_PARAMS]: sourceData => sourceData.toJS(),
+  [BoobenValue.Source.ACTION_ARG]: sourceData => sourceData.toJS(),
 };
 /* eslint-enable no-use-before-define */
 
 const sourceDataToJSv1 = (source, sourceData) =>
   sourceDataToJSv1Converters[source](sourceData);
 
-const jssyValueToJSv1 = jssyValue => ({
-  source: jssyValue.source,
-  sourceData: sourceDataToJSv1(jssyValue.source, jssyValue.sourceData),
+const boobenValueToJSv1 = boobenValue => ({
+  source: boobenValue.source,
+  sourceData: sourceDataToJSv1(boobenValue.source, boobenValue.sourceData),
 });
 
 export const projectComponentToJSv1 = (components, componentId) => {
@@ -461,12 +461,12 @@ export const projectComponentToJSv1 = (components, componentId) => {
     props: mapMapToObject(
       component.props,
       returnSecondArg,
-      jssyValueToJSv1,
+      boobenValueToJSv1,
     ),
     systemProps: mapMapToObject(
       component.systemProps,
       returnSecondArg,
-      jssyValueToJSv1,
+      boobenValueToJSv1,
     ),
     layout: component.layout,
     regionsEnabled: component.regionsEnabled,

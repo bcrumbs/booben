@@ -123,7 +123,7 @@ import {
   buildDesignRouteIndexPath,
 } from '../constants/paths';
 
-import * as JssyPropTypes from '../constants/common-prop-types';
+import * as BoobenPropTypes from '../constants/common-prop-types';
 import { INVALID_ID } from '../constants/misc';
 import { IconLibrary, IconTree, IconBrush } from '../components/icons';
 
@@ -141,7 +141,7 @@ import {
 const propTypes = {
   project: PropTypes.instanceOf(ProjectRecord).isRequired, // store
   projectName: PropTypes.string.isRequired, // state
-  components: JssyPropTypes.components.isRequired, // state
+  components: BoobenPropTypes.components.isRequired, // state
   meta: PropTypes.object.isRequired, // state
   selectedRouteId: PropTypes.number.isRequired, // store
   previewContainerStyle: PropTypes.string.isRequired, // state
@@ -154,7 +154,7 @@ const propTypes = {
   indexRouteSelected: PropTypes.bool.isRequired,
   propsViewMode: PropTypes.oneOf(['componentProps', 'routeProps']).isRequired,
   treeViewMode: PropTypes.oneOf(['routesList', 'routeTree']).isRequired,
-  componentDataListItems: PropTypes.arrayOf(JssyPropTypes.componentDataItem)
+  componentDataListItems: PropTypes.arrayOf(BoobenPropTypes.componentDataItem)
     .isRequired, // state
   cursorPosition: PropTypes.instanceOf(Cursor).isRequired, // state
   componentClipboard: PropTypes.instanceOf(Clipboard).isRequired, // state
@@ -1206,7 +1206,7 @@ class DesignRoute extends PureComponent {
         name="DESIGN_SCREEN"
         handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
         targetNodeSelector="body"
-        className="jssy-app"
+        className="booben-app"
       >
         <Desktop toolGroups={toolGroups} onToolTitleChange={onToolTitleChange}>
           <DesignToolbar

@@ -2,7 +2,7 @@ import Immutable from 'immutable';
 import forOwn from 'lodash.forown';
 import { List } from './List/List';
 import { Text } from './Text/Text';
-import JssyValue, { ActionTypes, isAsyncAction } from '../../models/JssyValue';
+import BoobenValue, { ActionTypes, isAsyncAction } from '../../models/BoobenValue';
 import { parseComponentName, getComponentMeta } from '../../lib/meta';
 import { walkComponentsTree, walkSimpleValues } from '../../lib/components';
 import { buildInitialComponentState } from '../../lib/values';
@@ -74,11 +74,11 @@ export const getRenderHints = (components, rootId, meta, schema, project) => {
   };
 
   const visitNode = node => {
-    if (!(node instanceof JssyValue)) return;
+    if (!(node instanceof BoobenValue)) return;
 
-    if (node.sourceIs(JssyValue.Source.ACTIONS)) {
+    if (node.sourceIs(BoobenValue.Source.ACTIONS)) {
       node.sourceData.actions.forEach(visitAction);
-    } else if (node.sourceIs(JssyValue.Source.STATE)) {
+    } else if (node.sourceIs(BoobenValue.Source.STATE)) {
       let activeStateSlotsForComponent =
         ret.activeStateSlots.get(node.sourceData.componentId);
 

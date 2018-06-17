@@ -3,4 +3,4 @@
 + [Используемые техноголии](./deps.md)
 + [Структура репозитория](./repo.md)
 + [Важные компоненты](./components.md)
-+ [JssyValue](./jssy-values.md)
++ [BoobenValue](./booben-values.md)

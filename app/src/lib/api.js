@@ -12,7 +12,7 @@ const backendUrl =
  */
 export const getProject = async projectName => {
   let url = URL_API_PREFIX;
-  const jwt = Cookie.getJSON('jssy-jwt');
+  const jwt = Cookie.getJSON('booben-jwt');
 
   if (process.env.NODE_ENV === 'production') {
     url = backendUrl;
@@ -40,7 +40,7 @@ export const putProject = async (projectName, project) => {
 
   if (process.env.NODE_ENV === 'production') {
     url = backendUrl;
-    const jwt = Cookie.getJSON('jssy-jwt');
+    const jwt = Cookie.getJSON('booben-jwt');
 
     const res = await fetch(`${url}/projects/${projectName}`, {
       method: 'POST',
@@ -81,7 +81,7 @@ export const getMetadata = async projectName => {
   let url = `${URL_API_PREFIX}/projects/${projectName}/metadata`;
 
   if (process.env.NODE_ENV === 'production') {
-    url = 'https://s3.eu-central-1.amazonaws.com/jssy-meta/meta.json';
+    url = 'https://s3.eu-central-1.amazonaws.com/booben-meta/meta.json';
   }
 
   const res = await fetch(url);

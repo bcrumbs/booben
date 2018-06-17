@@ -30,7 +30,7 @@ export const PropCodeEditor = ({ mode, ...props }) => {
     <EditorWrapperStyled>
       <CodeMirror
         {...propsForCodeMirror}
-        className="jssy__code-editor"
+        className="booben__code-editor"
         options={{ mode, theme: 'blackboard' }}
       />
     </EditorWrapperStyled>

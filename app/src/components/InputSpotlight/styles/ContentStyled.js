@@ -4,13 +4,13 @@ import { radiusDefault } from '../../../styles/themeSelectors';
 
 /* Prop receivers */
 const backgroundColor = ({ theme }) => {
-  const bgColor = Color(theme.jssy.paletteBlueGrey[25]).fade(0.05).string();
+  const bgColor = Color(theme.booben.paletteBlueGrey[25]).fade(0.05).string();
   
   return `background-color: ${bgColor};`;
 };
 
 const shadow = ({ theme }) => {
-  const shadowColor = Color(theme.jssy.paletteBlueGrey[500]).fade(0.7).string();
+  const shadowColor = Color(theme.booben.paletteBlueGrey[500]).fade(0.7).string();
   
   return `box-shadow: 0 0 30px 2px ${shadowColor};`;
 };

@@ -4,7 +4,7 @@ import _forOwn from 'lodash.forown';
 import { isCompatibleType, TypeNames } from 'booben-types';
 
 import {
-  getJssyValueDefOfField,
+  getBoobenValueDefOfField,
   fieldHasArguments,
   FieldKinds,
   formatFieldName,
@@ -34,14 +34,14 @@ const defaultProps = {
 };
 
 const fieldHasCompatibleSubFields = (
-  fieldJssyTypedef,
+  fieldBoobenTypedef,
   linkTargetTypedef,
   linkTargetUserTypedefs,
   failedTypedefs = new Set(),
 ) => {
-  if (fieldJssyTypedef.type !== TypeNames.SHAPE) return false;
+  if (fieldBoobenTypedef.type !== TypeNames.SHAPE) return false;
 
-  return objectSome(fieldJssyTypedef.fields, fieldTypedef => {
+  return objectSome(fieldBoobenTypedef.fields, fieldTypedef => {
     const isCompatible = isCompatibleType(
       linkTargetTypedef,
       fieldTypedef,
@@ -66,19 +66,19 @@ const fieldHasCompatibleSubFields = (
 };
 
 const getFieldCompatibility = (
-  jssyType,
+  boobenType,
   linkTargetTypedef,
   linkTargetUserTypedefs,
 ) => {
   const isCompatible = isCompatibleType(
     linkTargetTypedef,
-    jssyType,
+    boobenType,
     linkTargetUserTypedefs,
     null,
   );
 
   const hasCompatibleSubFields = fieldHasCompatibleSubFields(
-    jssyType,
+    boobenType,
     linkTargetTypedef,
     linkTargetUserTypedefs,
   );
@@ -221,9 +221,9 @@ export class DataSelectionFieldsList extends PureComponent {
     const items = [];
 
     _forOwn(type.fields, (field, fieldName) => {
-      const jssyType = getJssyValueDefOfField(field, schema);
+      const boobenType = getBoobenValueDefOfField(field, schema);
       const { isCompatible, hasCompatibleSubFields } = getFieldCompatibility(
-        jssyType,
+        boobenType,
         linkTargetTypedef,
         linkTargetUserTypedefs,
       );
@@ -241,9 +241,9 @@ export class DataSelectionFieldsList extends PureComponent {
 
       _forOwn(field.connectionFields, (connField, connFieldName) => {
         const fullName = formatFieldName(fieldName, connFieldName);
-        const connFieldJssyType = getJssyValueDefOfField(connField, schema);
+        const connFieldBoobenType = getBoobenValueDefOfField(connField, schema);
         const { isCompatible, hasCompatibleSubFields } = getFieldCompatibility(
-          connFieldJssyType,
+          connFieldBoobenType,
           linkTargetTypedef,
           linkTargetUserTypedefs,
         );

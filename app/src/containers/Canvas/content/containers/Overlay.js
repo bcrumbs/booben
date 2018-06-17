@@ -22,17 +22,17 @@ import { formatComponentTitle, findComponent } from '../../../../lib/components'
 import { mapListToArray } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
-import * as JssyPropTypes from '../../../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../../../constants/common-prop-types';
 
 import ProjectRoute from '../../../../models/ProjectRoute';
 import Project from '../../../../models/Project';
 
 const propTypes = {
   project: PropTypes.instanceOf(Project).isRequired,
-  components: JssyPropTypes.components.isRequired,
-  selectedComponentIds: JssyPropTypes.setOfIds.isRequired,
-  highlightedComponentIds: JssyPropTypes.setOfIds.isRequired,
-  disabledComponentIds: JssyPropTypes.setOfIds.isRequired,
+  components: BoobenPropTypes.components.isRequired,
+  selectedComponentIds: BoobenPropTypes.setOfIds.isRequired,
+  highlightedComponentIds: BoobenPropTypes.setOfIds.isRequired,
+  disabledComponentIds: BoobenPropTypes.setOfIds.isRequired,
   boundaryComponentId: PropTypes.number.isRequired,
   highlightingEnabled: PropTypes.bool.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
@@ -130,7 +130,7 @@ class Overlay extends PureComponent {
    */
   _getDOMElementByComponentId(id) {
     const container = this._getContainer();
-    return container.querySelector(`[data-jssy-id="${id}"]`) || null;
+    return container.querySelector(`[data-booben-id="${id}"]`) || null;
   }
 
   /**

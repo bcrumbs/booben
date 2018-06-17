@@ -12,12 +12,12 @@ import {
 } from '../../components/ComponentLayoutSelection/ComponentLayoutSelection';
 
 import defaultComponentLayoutIcon from '../../../assets/layout_default.svg';
-import * as JssyPropTypes from '../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../constants/common-prop-types';
 
 const propTypes = {
   meta: PropTypes.object.isRequired, // state
   selectingComponentLayout: PropTypes.bool.isRequired, // state
-  draggedComponents: JssyPropTypes.components, // state
+  draggedComponents: BoobenPropTypes.components, // state
   language: PropTypes.string.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onSelectLayout: PropTypes.func.isRequired, // dispatch

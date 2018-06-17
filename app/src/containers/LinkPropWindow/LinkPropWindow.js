@@ -35,7 +35,7 @@ import { createFunction, pickComponentData } from '../../actions/project';
 import ProjectComponentRecord from '../../models/ProjectComponent';
 import ProjectRecord from '../../models/Project';
 
-import JssyValue, {
+import BoobenValue, {
   SourceDataFunction,
   SourceDataOwnerProp,
   SourceDataRouteParams,
@@ -43,20 +43,20 @@ import JssyValue, {
   QueryPathStep,
   SourceDataActionArg,
   SourceDataState,
-} from '../../models/JssyValue';
+} from '../../models/BoobenValue';
 
 import { NestedConstructor } from '../../reducers/project';
 import { getStateSlotPickerFns } from '../../actions/helpers/component-picker';
 import { getComponentMeta, isValidSourceForValue } from '../../lib/meta';
 import { noop } from '../../utils/misc';
-import * as JssyPropTypes from '../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../constants/common-prop-types';
 import { INVALID_ID } from '../../constants/misc';
 
 const propTypes = {
   meta: PropTypes.object.isRequired,
   schema: PropTypes.object.isRequired,
   project: PropTypes.instanceOf(ProjectRecord).isRequired,
-  components: JssyPropTypes.components.isRequired,
+  components: BoobenPropTypes.components.isRequired,
   projectFunctions: ImmutablePropTypes.map.isRequired,
   builtinFunctions: ImmutablePropTypes.map.isRequired,
   valueDef: PropTypes.object,
@@ -194,7 +194,7 @@ class LinkPropWindowComponent extends PureComponent {
   _handlePickApply({ componentId, stateSlot }) {
     const { onLink } = this.props;
 
-    const newValue = new JssyValue({
+    const newValue = new BoobenValue({
       source: 'state',
       sourceData: new SourceDataState({ componentId, stateSlot }),
     });
@@ -344,8 +344,8 @@ class LinkPropWindowComponent extends PureComponent {
   _handleLinkWithOwnerProp({ propName }) {
     const { onLink } = this.props;
 
-    const newValue = new JssyValue({
-      source: JssyValue.Source.OWNER_PROP,
+    const newValue = new BoobenValue({
+      source: BoobenValue.Source.OWNER_PROP,
       sourceData: new SourceDataOwnerProp({
         ownerPropName: propName,
       }),
@@ -364,8 +364,8 @@ class LinkPropWindowComponent extends PureComponent {
   _handleLinkWithData({ dataContext, path, args }) {
     const { onLink } = this.props;
 
-    const newValue = new JssyValue({
-      source: JssyValue.Source.DATA,
+    const newValue = new BoobenValue({
+      source: BoobenValue.Source.DATA,
       sourceData: new SourceDataData({
         dataContext: List(dataContext),
         queryPath: List(path.map(field => new QueryPathStep({ field }))),
@@ -386,8 +386,8 @@ class LinkPropWindowComponent extends PureComponent {
   _handleLinkWithFunction({ source, name, argValues }) {
     const { onLink } = this.props;
 
-    const newValue = new JssyValue({
-      source: JssyValue.Source.FUNCTION,
+    const newValue = new BoobenValue({
+      source: BoobenValue.Source.FUNCTION,
       sourceData: new SourceDataFunction({
         functionSource: source,
         function: name,
@@ -437,8 +437,8 @@ class LinkPropWindowComponent extends PureComponent {
   _handleLinkWithRouteParam({ routeId, paramName }) {
     const { onLink } = this.props;
 
-    const newValue = new JssyValue({
-      source: JssyValue.Source.ROUTE_PARAMS,
+    const newValue = new BoobenValue({
+      source: BoobenValue.Source.ROUTE_PARAMS,
       sourceData: new SourceDataRouteParams({ routeId, paramName }),
     });
 
@@ -453,8 +453,8 @@ class LinkPropWindowComponent extends PureComponent {
   _handleLinkWithActionArg({ argIdx }) {
     const { onLink } = this.props;
 
-    const newValue = new JssyValue({
-      source: JssyValue.Source.ACTION_ARG,
+    const newValue = new BoobenValue({
+      source: BoobenValue.Source.ACTION_ARG,
       sourceData: new SourceDataActionArg({
         arg: argIdx,
       }),
@@ -466,8 +466,8 @@ class LinkPropWindowComponent extends PureComponent {
   /**
    *
    * @param {string} name
-   * @param {JssyValueDefinition} valueDef
-   * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+   * @param {BoobenValueDefinition} valueDef
+   * @param {?Object<string, BoobenTypeDefinition>} userTypedefs
    * @param {Function} onLink
    * @private
    */
@@ -483,7 +483,7 @@ class LinkPropWindowComponent extends PureComponent {
 
   /**
    *
-   * @param {Object} newValue - JssyValue record
+   * @param {Object} newValue - BoobenValue record
    * @private
    */
   _handleNestedLinkDone({ newValue }) {

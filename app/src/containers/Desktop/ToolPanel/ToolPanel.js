@@ -14,7 +14,7 @@ import { ToolPanelContent } from './ToolPanelContent/ToolPanelContent';
 import resizeable from '../../../hocs/resizeable';
 import ToolState from '../../../models/ToolState';
 import { noop } from '../../../utils/misc';
-import * as JssyPropTypes from '../../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../../constants/common-prop-types';
 import { DESKTOP_PANEL_MIN_WIDTH } from '../../../config';
 import { IconArrowChevronLeft } from '../../../components/icons';
 
@@ -24,8 +24,8 @@ import {
 
 /* eslint-disable react/no-unused-prop-types */
 const propTypes = {
-  toolGroups: JssyPropTypes.toolGroups,
-  toolStates: JssyPropTypes.toolStates,
+  toolGroups: BoobenPropTypes.toolGroups,
+  toolStates: BoobenPropTypes.toolStates,
   isLeftExpanded: PropTypes.bool,
   isRightExpanded: PropTypes.bool,
   onCollapse: PropTypes.func,

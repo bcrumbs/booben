@@ -5,7 +5,7 @@ import { ThemeProvider } from 'styled-components';
 import { Theme } from 'reactackle-core';
 import { BreadcrumbLink } from './BreadcrumbLink';
 import { BackdropBreadcrumbsStyled } from './styles/BackdropBreadcrumbsStyled';
-import { jssyTheme, reactackleMixin } from '../../styles/theme';
+import { boobenTheme, reactackleMixin } from '../../styles/theme';
 
 const propTypes = {
   items: PropTypes.arrayOf(PropTypes.shape({
@@ -19,7 +19,7 @@ const defaultProps = {
 
 export const BackdropBreadcrumbs = props => (
   <Theme mixin={reactackleMixin}>
-    <ThemeProvider theme={jssyTheme}>
+    <ThemeProvider theme={boobenTheme}>
       <BackdropBreadcrumbsStyled>
         <Breadcrumbs
           colorScheme="dark"
