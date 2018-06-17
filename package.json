@@ -105,7 +105,7 @@
     "reactackle-tag": "^1.1.0",
     "reactackle-text-field": "^1.1.0",
     "reactackle-toggle-button": "^1.1.0",
-    "reactackle-tooltip": "^1.1.0",
+    "reactackle-tooltip": "^1.1.1",
     "reactackle-tooltip-icon": "^1.1.0",
     "redux": "^3.6.0",
     "redux-logger": "^2.6.1",
