@@ -203,6 +203,11 @@ class AppRoute extends Component {
                       linkComponent={TopMenuExternalLink}
                       iconLeft={<IconPlay border borderWidth={1} rounded size='small' />}
                     />
+                    <MenuItem
+                      renderLink
+                      text={getLocalizedText('appHeader.menu.codegen')}
+                      iconLeft={<IconPlay border borderWidth={1} rounded size='small' />}
+                    />
                   </MenuList>
                 </MenuGroup>
               </Menu>

@@ -15,6 +15,7 @@
   "appHeader.menu.settings": "Настройки",
   "appHeader.menu.shortcuts": "Горячие клавиши",
   "appHeader.menu.preview": "Превью",
+  "appHeader.menu.codegen": "Скачать код",
   "appHeader.saveIndicator.title.idle": "Сохранено",
   "appHeader.saveIndicator.title.saving": "Сохранение...",
   "appHeader.saveIndicator.title.error": "Ошибка",
