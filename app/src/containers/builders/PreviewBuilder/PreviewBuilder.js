@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { graphql, withApollo } from 'react-apollo';
+import { graphql } from 'react-apollo';
 import Immutable from 'immutable';
 import forOwn from 'lodash.forown';
 import get from 'lodash.get';
@@ -96,8 +96,6 @@ const defaultProps = {
   onOpenURL: noop,
   routeId: INVALID_ID,
 };
-
-const wrap = withApollo;
 
 /**
  *
@@ -1038,4 +1036,4 @@ PreviewBuilderComponent.propTypes = propTypes;
 PreviewBuilderComponent.defaultProps = defaultProps;
 PreviewBuilderComponent.displayName = 'PreviewBuilder';
 
-export const PreviewBuilder = wrap(PreviewBuilderComponent);
+export const PreviewBuilder = PreviewBuilderComponent

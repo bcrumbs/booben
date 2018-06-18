@@ -5,6 +5,9 @@ import createHistory from 'history/es/createHashHistory';
 import { PreviewBuilder } from '../builders/PreviewBuilder/PreviewBuilder';
 import Project from '../../models/Project';
 import ComponentsBundle from '../../lib/ComponentsBundle';
+import { withApollo } from 'react-apollo';
+
+let PreviewBuilderWithApollo;
 
 const propTypes = {
   componentsBundle: PropTypes.instanceOf(ComponentsBundle).isRequired,
@@ -71,8 +74,14 @@ export class Preview extends Component {
 
     const routeId = route.get('id');
 
+    if (project.graphQLEndpointURL) {
+      PreviewBuilderWithApollo = withApollo(PreviewBuilder)
+    } else {
+      PreviewBuilderWithApollo = PreviewBuilder;
+    }
+
     const ret = ({ match }) => (
-      <PreviewBuilder
+      <PreviewBuilderWithApollo
         componentsBundle={componentsBundle}
         project={project}
         meta={meta}
@@ -85,7 +94,7 @@ export class Preview extends Component {
         routeId={routeId}
       >
         {childSwitch}
-      </PreviewBuilder>
+      </PreviewBuilderWithApollo>
     );
 
     ret.displayName =
