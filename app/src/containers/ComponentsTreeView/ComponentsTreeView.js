@@ -854,7 +854,6 @@ class ComponentsTreeViewComponent extends PureComponent {
    * @private
    */
   _handleSelect({ componentId, selected }) {
-    console.log('click on components tree');
     const {
       pickingComponent,
       pickingComponentData,
@@ -862,7 +861,7 @@ class ComponentsTreeViewComponent extends PureComponent {
       onDeselectItem,
       onPickComponent,
     } = this.props;
-    console.log('pickingComponent', pickingComponent)
+
     if (pickingComponent) {
       onPickComponent(componentId);
     } else if (!pickingComponentData) {

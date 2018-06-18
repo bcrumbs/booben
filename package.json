@@ -34,6 +34,7 @@
     "booben-codegen": "git+https://github.com/VNadygin/booben-codegen",
     "booben-common-tree": "^0.1.2",
     "booben-graphql-schema": "^0.1.1",
+    "booben-html-meta": "^0.1.4",
     "booben-metadata": "^0.8.5",
     "booben-types": "^0.6.1",
     "co": "^4.6.0",

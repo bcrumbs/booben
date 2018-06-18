@@ -7,7 +7,7 @@ import {
   makeDefaultValue,
 } from 'booben-types';
 
-import HTMLMeta from '../meta/html';
+import HTMLMeta from 'booben-html-meta';
 import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
 import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../constants/misc';

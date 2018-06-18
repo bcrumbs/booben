@@ -1,8 +1,8 @@
 import { List, Map, OrderedMap } from 'immutable';
 import _forOwn from 'lodash.forown';
+import HTMLMeta from 'booben-html-meta';
 import LibraryComponentData from '../models/LibraryComponentData';
 import LibraryGroupData from '../models/LibraryGroupData';
-import HTMLMeta from '../meta/html';
 import defaultComponentIcon from '../../assets/component_default.svg';
 
 const GROUP_BUILTIN = new LibraryGroupData({
