@@ -195,19 +195,7 @@ class AppRoute extends Component {
               <HeaderLogo>{title}</HeaderLogo>
             </HeaderRegion>
 
-            <HeaderRegion spread size="blank" verticalAlign="center">
-              <Menu inline dense mode="light">
-                <MenuGroup>
-                  <MenuList>
-                    <MenuItem
-                      text={getLocalizedText('appHeader.menu.structure')}
-                      linkHref={`/${routeName}/structure`}
-                      linkComponent={TopMenuLink}
-                    />
-                  </MenuList>
-                </MenuGroup>
-              </Menu>
-            </HeaderRegion>
+            <HeaderRegion spread size="blank" verticalAlign="center" />
 
             <HeaderRegion size="blank" verticalAlign="center">
               <ProjectSaveIndicator />
