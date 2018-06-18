@@ -92,6 +92,7 @@ import {
 } from '../../lib/components';
 
 import { isFunction } from '../../utils/misc';
+import { isInputOrTextareaActive } from '../../utils/dom';
 import * as BoobenPropTypes from '../../constants/common-prop-types';
 import { INVALID_ID } from '../../constants/misc';
 import { DND_DRAG_START_RADIUS_TREE } from '../../config';
@@ -503,6 +504,7 @@ class ComponentsTreeViewComponent extends PureComponent {
    * @private
    */
   _handleShortcuts(action) {
+    if (isInputOrTextareaActive()) return;
     switch (action) {
       case 'SELECT_NEXT_COMPONENT': {
         this._handleMoveSelectionVertically('down');
