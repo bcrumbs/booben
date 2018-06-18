@@ -43,7 +43,7 @@ import {
 } from '../constants/paths';
 
 import { URL_PREVIEW_PREFIX } from '../../../shared/constants';
-import { IconPlay } from '../components/icons';
+import { IconPlay, IconUpload } from '../components/icons';
 
 import { getCode } from '../lib/api';
 
@@ -124,7 +124,7 @@ class AppRoute extends Component {
     try {
       const jsProject = projectToJSv1(project);
       const res = await getCode(jsProject);
-      
+
       FileSaver.saveAs(res, "project.zip");
     } catch (error) {
       console.log(error)
@@ -226,7 +226,7 @@ class AppRoute extends Component {
                     />
                     <MenuItem
                       text={getLocalizedText('appHeader.menu.codegen')}
-                      iconLeft={<IconPlay border borderWidth={1} rounded size='small' />}
+                      iconLeft={<IconUpload size='small' />}
                       onClick={this._getProjectCode}
                     />
                   </MenuList>

@@ -9,7 +9,7 @@
     "build:prod": "webpack -d --config ./app/build-conf/webpack-prod.config.js",
     "build:watch": "webpack -d --config ./app/build-conf/webpack.config.js --watch",
     "lint": "eslint .",
-    "start": "node index.js"
+    "start": "node index.js --config dev-config.json"
   },
   "repository": {
     "type": "git",
