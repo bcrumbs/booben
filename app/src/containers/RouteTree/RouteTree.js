@@ -47,6 +47,7 @@ import {
 } from '../../actions/structure';
 
 import { noop } from '../../utils/misc';
+import { isInputOrTextareaActive } from '../../utils/dom';
 
 const colorScheme = 'default';
 
@@ -185,6 +186,7 @@ class RouteTreeComponent extends Component {
   }
 
   _handleShortcuts(action) {
+    if (isInputOrTextareaActive()) return;
     switch (action) {
       case 'SELECT_NEXT_ROUTE': {
         this._handleMoveSelectionVertically('down');

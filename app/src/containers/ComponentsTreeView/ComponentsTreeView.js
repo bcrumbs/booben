@@ -1077,7 +1077,8 @@ class ComponentsTreeViewComponent extends PureComponent {
       isFunction(pickingComponentFilter) &&
       !pickingComponentFilter(componentId);
 
-    const hasSubLevel = !!subLevel;
+    const hasSubLevel = 
+      component.children.size > 0 || placeholderContainerId === component.id;
 
     return (
       <ComponentsTreeItem key={String(componentId)}>
