@@ -10,5 +10,9 @@ export const injectAppStyle = () => {
         outline: none;
       }
     }
+    
+    * {
+      box-sizing: border-box;
+    }
   `;
 };
