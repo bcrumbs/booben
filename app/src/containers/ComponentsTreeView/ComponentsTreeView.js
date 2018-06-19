@@ -92,6 +92,7 @@ import {
 } from '../../lib/components';
 
 import { isFunction } from '../../utils/misc';
+import { isInputOrTextareaActive } from '../../utils/dom';
 import * as BoobenPropTypes from '../../constants/common-prop-types';
 import { INVALID_ID } from '../../constants/misc';
 import { DND_DRAG_START_RADIUS_TREE } from '../../config';
@@ -503,6 +504,7 @@ class ComponentsTreeViewComponent extends PureComponent {
    * @private
    */
   _handleShortcuts(action) {
+    if (isInputOrTextareaActive()) return;
     switch (action) {
       case 'SELECT_NEXT_COMPONENT': {
         this._handleMoveSelectionVertically('down');
@@ -854,7 +856,6 @@ class ComponentsTreeViewComponent extends PureComponent {
    * @private
    */
   _handleSelect({ componentId, selected }) {
-    console.log('click on components tree');
     const {
       pickingComponent,
       pickingComponentData,
@@ -862,7 +863,7 @@ class ComponentsTreeViewComponent extends PureComponent {
       onDeselectItem,
       onPickComponent,
     } = this.props;
-    console.log('pickingComponent', pickingComponent)
+
     if (pickingComponent) {
       onPickComponent(componentId);
     } else if (!pickingComponentData) {
@@ -1076,7 +1077,8 @@ class ComponentsTreeViewComponent extends PureComponent {
       isFunction(pickingComponentFilter) &&
       !pickingComponentFilter(componentId);
 
-    const hasSubLevel = !!subLevel;
+    const hasSubLevel = 
+      component.children.size > 0 || placeholderContainerId === component.id;
 
     return (
       <ComponentsTreeItem key={String(componentId)}>
