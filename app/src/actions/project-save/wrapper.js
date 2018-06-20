@@ -26,14 +26,10 @@ const doSave = async (dispatch, getState) => {
   dispatch({ type: PROJECT_SAVE });
   
   const state = getState();
-  let projectName = state.project.projectName;
+  const projectName = state.project.projectName;
   
   const project = state.project.data;
   const jsProject = projectToJSv1(project);
-  
-  if (process.env.NODE_ENV === 'production') {
-    projectName = jsProject._id;
-  }
 
   try {
     await putProject(projectName, jsProject);

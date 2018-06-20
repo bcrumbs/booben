@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const { generateProject } = require('booben-codegen');
 const config = require('../config');
 const helpers = require('./helpers');
-const constants = require('../common/constants');
+const htmlMeta = require('booben-html-meta').default;
 const sharedConstants = require('../shared/constants');
 
 const projectsDir = config.get('projectsDir');
@@ -16,10 +16,11 @@ module.exports = {
   handlers: [
     bodyParser.json({ limit: '50mb' }),
     async (req, res) => {
-      const project = req.body;
+      const { project, meta } = req.body;
       const outputDir = path.join(projectsDir, project.name, 'bundle');
+      
       try {
-        await generateProject(project, outputDir);
+        await generateProject(project, outputDir, {...meta, HTML: htmlMeta });
       } catch (error) {
         helpers.sendError(res, 500, 'Something wrong with codegen');
       }

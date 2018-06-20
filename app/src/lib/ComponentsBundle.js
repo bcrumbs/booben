@@ -14,11 +14,8 @@ import {
 
 import { URL_BUNDLE_PREFIX } from '../../../shared/constants';
 
-let url = URL_BUNDLE_PREFIX;
+const url = URL_BUNDLE_PREFIX;
 
-if (process.env.NODE_ENV === 'production') {
-  url = 'https://s3.eu-central-1.amazonaws.com/booben-bundle';
-}
 const scriptsCache = {};
 
 /**
@@ -119,17 +116,11 @@ export default class ComponentsBundle {
       /* eslint-enable no-console */
     }
 
-    if (process.env.NODE_ENV === 'production') {
-      await loadComponentsBundleIntoWindow(
-        this._windowInstance,
-        `${url}/${COMPONENTS_BUNDLE_FILE}`,
-      );
-    } else {
-      await loadComponentsBundleIntoWindow(
-        this._windowInstance,
-        `${url}/${this._projectName}/${COMPONENTS_BUNDLE_FILE}`,
-      );
-    }
+    
+    await loadComponentsBundleIntoWindow(
+      this._windowInstance,
+      `${url}/${this._projectName}/${COMPONENTS_BUNDLE_FILE}`,
+    );
     
 
     const noComponents =
