@@ -17,12 +17,10 @@ services:
 
 before_install:
   - rm -f package-lock.json
-  - npm i -g npm
 
 jobs:
   include:
-    - stage: build project
-      script:
+    - script:
         - npm i
         - npm run build
         - git clone $BOOBEN_PROJECTS_REPO
