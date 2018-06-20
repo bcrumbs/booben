@@ -15,6 +15,9 @@ node_js:
 services:
   - docker
 
+before_install:
+  - npm i -g npm
+
 jobs:
   include:
     - stage: build project
