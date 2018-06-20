@@ -7,5 +7,5 @@ export BOOBEN_DIR=$PWD
 export PROJECTS_DIR=$PWD/booben-projects
 echo "{\"projectsDir\":\"${PROJECTS_DIR}\"}" > dev-config.json
 npm i
-node rebuild-components-bundle.js --config dev-config.json -- test-cases
+node rebuild-components-bundle.js --config dev-config.json -- blank
 npm run build
