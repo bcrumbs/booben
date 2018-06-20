@@ -10,12 +10,13 @@ sudo: required
 
 language: node_js
 node_js:
-  - "9"
+  - "8"
 
 services:
   - docker
 
 before_install:
+  - rm -f package-lock.json
   - npm i -g npm
 
 jobs:
