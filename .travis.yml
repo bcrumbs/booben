@@ -27,7 +27,9 @@ jobs:
         - npm run build
         - git clone $BOOBEN_PROJECTS_REPO
         - echo "{\"projectsDir\":\"$BOOBEN_PROJECTS_DIR\"}" > dev-config.json
-        - node rebuild-components-bundle.js --config dev-config.json -- $PROJECT
+        - cat dev-config.json
+        - ls -l $PWD
+        - node rebuild-components-bundle.js --config dev-config.json -- $BOOBEN_PROJECT
     - stage: build docker image
       deploy:
         provider: script
