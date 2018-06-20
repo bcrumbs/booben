@@ -8,5 +8,5 @@
 !config.js
 !package.json
 !.npmrc
-!docker-entrypoint.sh
+!docker/docker-entrypoint.sh
 !booben-projects/

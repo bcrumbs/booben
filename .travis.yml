@@ -1,0 +1,35 @@
+env:
+  global:
+    - BOOBEN_PROJECTS_REPO=https://github.com/bcrumbs/booben-projects
+    - BOOBEN_PROJECTS_DIR=$TRAVIS_BUILD_DIR/booben-projects
+    - DOCKER_REPO=braincrumbs/booben
+    - BOOBEN_PROJECT=demo
+
+sudo: required
+
+language: node_js
+node_js:
+  - "8"
+
+services:
+  - docker
+
+jobs:
+  include:
+    - stage: build project
+      script:
+        - npm i
+        - npm run build
+        - git clone $BOOBEN_PROJECTS_REPO
+        - echo "{\"projectsDir\":\"$BOOBEN_PROJECTS_DIR\"}" > dev-config.json
+        - node rebuild-components-bundle.js --config dev-config.json -- $PROJECT
+    - stage: build docker image
+      deploy:
+        provider: script
+        script:
+          - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+          - cd docker
+          - docker build -t $DOCKER_REPO:latest .
+          - docker push $DOCKER_REPO:latest
+          - docker tag $DOCKER_REPO:latest $DOCKER_REPO:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)
+          - docker push $DOCKER_REPO:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)
