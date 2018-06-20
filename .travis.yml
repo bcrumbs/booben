@@ -5,6 +5,7 @@ env:
     - DOCKER_REPO=braincrumbs/booben
     - BOOBEN_PROJECT=demo
 
+
 sudo: required
 
 language: node_js
@@ -28,8 +29,7 @@ jobs:
         provider: script
         script:
           - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
-          - cd docker
-          - docker build -t $DOCKER_REPO:latest .
+          - docker build -f docker/Dockerfile -t $DOCKER_REPO:latest .
           - docker push $DOCKER_REPO:latest
           - docker tag $DOCKER_REPO:latest $DOCKER_REPO:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)
           - docker push $DOCKER_REPO:$(sed -nr 's/.*"version":\ "(.*)",/\1/p' package.json)
