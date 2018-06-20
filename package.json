@@ -11,12 +11,8 @@
     "lint": "eslint .",
     "start": "node index.js --config dev-config.json"
   },
-  "repository": {
-    "type": "git",
-    "url": "ssh://git@gitlab.ordbuy.com:29184/booben/booben.git"
-  },
-  "author": "Braincrumbs",
-  "license": "UNLICENSED",
+  "author": "braincrumbs.io",
+  "license": "Apache 2.0",
   "dependencies": {
     "apollo-cache-inmemory": "^1.1.4",
     "apollo-client": "^2.0.4",
