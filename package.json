@@ -1,6 +1,6 @@
 {
   "name": "booben",
-  "version": "0.1.0-dev.17",
+  "version": "0.1.0-dev.18",
   "description": "",
   "main": "index.js",
   "scripts": {
@@ -12,7 +12,7 @@
     "start": "node index.js --config dev-config.json"
   },
   "author": "braincrumbs.io",
-  "license": "Apache 2.0",
+  "license": "Apache-2.0",
   "dependencies": {
     "apollo-cache-inmemory": "^1.1.4",
     "apollo-client": "^2.0.4",
