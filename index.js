@@ -37,7 +37,7 @@ const start = () => co(function* () {
   yield new Promise((resolve, reject) =>
     void httpServer.listen(port, cb(resolve, reject)));
 
-  logger.info(`Server is listening on port ${port}. App is ready on localhost:${port}/app/:projectName`.);
+  logger.info(`Server is listening on port ${port}. App is ready on localhost:${port}/app/:projectName.`);
 });
 
 
