@@ -142,11 +142,7 @@ class AppRoute extends Component {
       onAlertAreaReady,
     } = this.props;
 
-    let routeName = projectName;
-
-    if (process.env.NODE_ENV === 'production') {
-      routeName = project._id;
-    }
+    const routeName = projectName;
 
     const routeMenuItems = [];
     const currentPath = location.pathname;
