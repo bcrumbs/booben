@@ -9,4 +9,3 @@ echo "{\"projectsDir\":\"${PROJECTS_DIR}\"}" > dev-config.json
 npm i
 node rebuild-components-bundle.js --config dev-config.json -- test-cases
 npm run build
-node index.js --config dev-config.json
