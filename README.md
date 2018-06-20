@@ -1,4 +1,4 @@
-<div align="center"><img style="width: 100%;" src="https://preview.ibb.co/nEUQPd/booben_logo.png" /></div>
+<div align="center"><img  align="center" style="width: 100%;" src="https://preview.ibb.co/nEUQPd/booben_logo.png" /></div>
 <h3 align="center">Full-stack web app developing platform</h4>
 <p align="center">Design, develop, connect data, get source code - all in one place.</p>
 <div align="center"><a href="https://demo.booben.io">Demo</a></div>
@@ -43,15 +43,13 @@ Clone Booben repo
 git clone https://github.com/bcrumbs/booben
 ```
 
-**1. Quick setup**
+**Quick setup**
 
-Run bash script. It will clone blank project for Booben and create config file.
+Run bash script from the booben's directory. It will clone blank project for Booben and create config file.
 ```
-bash bootstap.sh
+bash bootstrap.sh
 node index.js --config dev-config.json
 ```
-
-
 
 ### Contributing
 All contributions are welcomed.
