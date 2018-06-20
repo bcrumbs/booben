@@ -21,6 +21,7 @@ const start = () => co(function* () {
   setupEndpoint(app, require('./endpoints/create-project'));
   setupEndpoint(app, require('./endpoints/put-project'));
   setupEndpoint(app, require('./endpoints/graphql-proxy'));
+  setupEndpoint(app, require('./endpoints/codegen'));
 
   if (config.get('serveStatic')) {
     setupEndpoint(app, require('./endpoints/serve-app'));

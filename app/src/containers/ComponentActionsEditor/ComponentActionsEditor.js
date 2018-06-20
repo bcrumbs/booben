@@ -157,7 +157,7 @@ class ComponentActionsEditorComponent extends PureComponent {
       editActionPath,
     } = this.state;
 
-    // TODO: Create jssyValue if it doesn't exist
+    // TODO: Create boobenValue if it doesn't exist
 
     if (currentView === Views.NEW_ACTION) {
       const path = {

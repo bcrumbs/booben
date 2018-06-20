@@ -1,4 +1,5 @@
 const co = require('co');
+const npa = require('npm-package-arg');
 const thenify = require('thenify');
 const path = require('path');
 const exec = require('mz/child_process').exec;
@@ -6,9 +7,9 @@ const fs = require('mz/fs');
 const rmrf = thenify(require('rimraf'));
 const prettyMs = require('pretty-ms');
 const webpack = require('webpack');
-const asyncUtils = require('@common/async-utils');
+const asyncUtils = require('booben-async-utils');
 const config = require('../../config');
-const gatherMetadata = require('@jssy/metadata').gatherMetadata;
+const gatherMetadata = require('booben-metadata').gatherMetadata;
 const constants = require('../../common/constants');
 const logger = require('../../common/logger');
 const { URL_BUNDLE_PREFIX } = require('../../shared/constants');
@@ -143,7 +144,7 @@ const generateWebpackConfig = (projectName, projectDir, libsData) => {
     output: {
       path: path.join(projectDir, 'build'),
       filename: '[name].js',
-      library: 'JssyComponents',
+      library: 'BoobenComponents',
       libraryTarget: 'var',
       publicPath: `${URL_BUNDLE_PREFIX}/${projectName}/`,
     },
@@ -381,10 +382,9 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
   }
 
   const modulesDir = path.join(projectDir, 'node_modules');
-  const libDirs = project.componentLibs.map(name => {
-    const atIdx = name.lastIndexOf('@');
-    if (atIdx === -1 || atIdx === 0) return name;
-    return name.slice(0, atIdx);
+  const libDirs = project.componentLibs.map(lib => {
+    const { name } = npa(lib);
+    return name.replace('-meta', '');
   });
 
   logger.debug(
@@ -392,7 +392,8 @@ exports.buildComponentsBundle = (project, options) => co(function* () {
   );
 
   let libsData = yield asyncUtils.asyncMap(libDirs, dir => co(function* () {
-    const fullPath = path.join(modulesDir, dir);
+    const metaDir = `${dir}-meta`;
+    const fullPath = path.join(modulesDir, metaDir);
     const meta = yield gatherMetadata(fullPath);
 
     if (!meta) {

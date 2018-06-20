@@ -1,12 +1,12 @@
 import Color from 'color';
-import { jssyTheme } from '../../../../styles/theme';
+import { boobenTheme } from '../../../../styles/theme';
 
 const fontWeightNormal = base => base.fontWeight.normal;
 const colorTransparent = base => base.color.transparent;
-const textColor = jssyTheme.jssy.paletteBlueGrey[75];
+const textColor = boobenTheme.booben.paletteBlueGrey[75];
 const textColorHover = base => base.color.white;
-const disabledColor = Color(jssyTheme.jssy.paletteBlueGrey[400]).fade(0.35);
-const bgColorFocus = jssyTheme.jssy.paletteBlueGrey[500];
+const disabledColor = Color(boobenTheme.booben.paletteBlueGrey[400]).fade(0.35);
+const bgColorFocus = boobenTheme.booben.paletteBlueGrey[500];
 
 export default {
   components: {

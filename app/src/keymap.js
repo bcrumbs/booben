@@ -18,16 +18,6 @@ export default {
       windows: 'del',
       linux: 'del',
     },
-    CREATE_CHILD_ROUTE: {
-      osx: 'command+alt+r',
-      windows: 'ctrl+alt+r',
-      linux: 'ctrl+alt+r',
-    },
-    CREATE_ROOT_ROUTE: {
-      osx: 'command+shift+alt+r',
-      windows: 'ctrl+shift+alt+r',
-      linux: 'ctrl+shift+alt+r',
-    },
     SELECT_NEXT_ROUTE: 'down',
     SELECT_PREVIOUS_ROUTE: 'up',
     SELECT_CHILD_ROUTE: 'right',
@@ -84,6 +74,16 @@ export default {
       osx: 'command+alt+n',
       windows: 'ctrl+alt+n',
       linux: 'ctrl+alt+n',
+    },
+    CREATE_CHILD_ROUTE: {
+      osx: 'command+alt+r',
+      windows: 'ctrl+alt+r',
+      linux: 'ctrl+alt+r',
+    },
+    CREATE_ROOT_ROUTE: {
+      osx: 'command+shift+alt+r',
+      windows: 'ctrl+shift+alt+r',
+      linux: 'ctrl+shift+alt+r',
     },
   },
   

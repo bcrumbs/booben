@@ -31,7 +31,7 @@ const _ToolBarAction = props => {
   const onMouseEnter = hasTooltip ? showTooltip : noop;
   const onMouseLeave = hasTooltip ? hideTooltip : noop;
   const tooltipElement = hasTooltip
-    ? <Tooltip text={tooltipText} />
+    ? <Tooltip>{tooltipText}</Tooltip>
     : null;
 
   return (

@@ -2,9 +2,11 @@ import { List } from 'immutable';
 
 // Routes editor tools
 export const TOOL_ID_ROUTE_EDITOR = 'routeEditor';
+export const TOOL_ID_ROUTE_TREE = 'routesTree';
 
 export const TOOL_IDS_STRUCTURE = List([
   TOOL_ID_ROUTE_EDITOR,
+  TOOL_ID_ROUTE_TREE,
 ]);
 
 // Design tools

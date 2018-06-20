@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import debounce from 'lodash.debounce';
 import { Button } from 'reactackle-button';
-import { getNestedTypedef } from '@jssy/types';
+import { getNestedTypedef } from 'booben-types';
 
 import {
   BlockContentBox,
@@ -14,14 +14,14 @@ import {
 import { PropsList } from '../../components/PropsList/PropsList';
 import { PropsAccordion } from '../../components/PropsAccordion/PropsAccordion';
 import { DesignDialog } from '../DesignDialog/DesignDialog';
-import { JssyValueEditor } from '../JssyValueEditor/JssyValueEditor';
+import { BoobenValueEditor } from '../BoobenValueEditor/BoobenValueEditor';
 import { ActionEditor } from '../ActionEditor/ActionEditor';
 import { ActionsList } from '../ActionsList/ActionsList';
 import { LinkPropWindow } from '../LinkPropWindow/LinkPropWindow';
 import { PropCodeEditor } from '../../components/props';
 
 import {
-  replaceJssyValue,
+  replaceBoobenValue,
   constructComponentForProp,
   addAction,
   replaceAction,
@@ -95,7 +95,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = dispatch => ({
   onReplacePropValue: (path, newValue) =>
-    void dispatch(replaceJssyValue(path, newValue)),
+    void dispatch(replaceBoobenValue(path, newValue)),
 
   onConstructComponent: (path, components, rootId) =>
     void dispatch(constructComponentForProp(path, components, rootId)),
@@ -556,7 +556,7 @@ class ComponentPropsEditorComponent extends PureComponent {
     const isOptional = propMeta.required === false;
 
     return (
-      <JssyValueEditor
+      <BoobenValueEditor
         key={propName}
         name={propName}
         value={propValue}
@@ -604,7 +604,7 @@ class ComponentPropsEditorComponent extends PureComponent {
         hidden={editingActions}
       >
         <PropsList>
-          <JssyValueEditor
+          <BoobenValueEditor
             name="visible"
             value={component.systemProps.get('visible')}
             valueDef={SYSTEM_PROPS.visible}

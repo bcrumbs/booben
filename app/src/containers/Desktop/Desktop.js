@@ -3,7 +3,13 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { List } from 'immutable';
 import { MainRegion } from 'reactackle-app';
-import { ToolWindow, STICK_REGION_RIGHT } from './ToolWindow/ToolWindow';
+
+import {
+  ToolWindow,
+  STICK_REGION_RIGHT,
+  STICK_REGION_LEFT,
+} from './ToolWindow/ToolWindow';
+
 import { ToolPanel } from './ToolPanel/ToolPanel';
 import ToolState from '../../models/ToolState';
 import { Content } from '../../components';
@@ -21,7 +27,7 @@ import {
 } from '../../actions/desktop';
 
 import { noop } from '../../utils/misc';
-import * as JssyPropTypes from '../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../constants/common-prop-types';
 
 import {
   DESKTOP_TOOL_WINDOWS_MARGIN,
@@ -30,9 +36,10 @@ import {
 } from '../../config';
 
 const propTypes = {
-  toolGroups: JssyPropTypes.toolGroups,
-  toolStates: JssyPropTypes.toolStates.isRequired,
-  toolsPanelIsExpanded: PropTypes.bool.isRequired,
+  toolGroups: BoobenPropTypes.toolGroups,
+  toolStates: BoobenPropTypes.toolStates.isRequired,
+  leftToolsPanelIsExpanded: PropTypes.bool.isRequired,
+  rightToolsPanelIsExpanded: PropTypes.bool.isRequired,
   onToolsPanelExpand: PropTypes.func.isRequired,
   onToolsPanelCollapse: PropTypes.func.isRequired,
   onActiveToolChange: PropTypes.func.isRequired,
@@ -53,15 +60,16 @@ const defaultProps = {
 
 const mapStateToProps = ({ desktop }) => ({
   toolStates: desktop.toolStates,
-  toolsPanelIsExpanded: desktop.toolsPanelIsExpanded,
+  leftToolsPanelIsExpanded: desktop.leftToolsPanelIsExpanded,
+  rightToolsPanelIsExpanded: desktop.rightToolsPanelIsExpanded,
 });
 
 const mapDispatchToProps = dispatch => ({
-  onToolsPanelExpand: () =>
-    void dispatch(expandToolsPanel()),
+  onToolsPanelExpand: position =>
+    void dispatch(expandToolsPanel(position)),
 
-  onToolsPanelCollapse: () =>
-    void dispatch(collapseToolsPanel()),
+  onToolsPanelCollapse: position =>
+    void dispatch(collapseToolsPanel(position)),
 
   onActiveToolChange: tool =>
     void dispatch(selectTool(tool.id)),
@@ -81,8 +89,8 @@ const mapDispatchToProps = dispatch => ({
   onToolFocus: tool =>
     void dispatch(focusTool(tool.id)),
 
-  onToolStickRegionEnter: tool =>
-    void dispatch(setStickyTool(tool.id)),
+  onToolStickRegionEnter: (tool, position) =>
+    void dispatch(setStickyTool(tool.id, position)),
 
   onToolStickRegionLeave: () =>
     void dispatch(setStickyTool(null)),
@@ -130,10 +138,17 @@ class DesktopComponent extends PureComponent {
         const onTitleChange = newTitle => onToolTitleChange(tool, newTitle);
 
         const onStickRegionEnter = stickRegion => {
-          if (stickRegion === STICK_REGION_RIGHT) onToolStickRegionEnter(tool);
+          if (stickRegion === STICK_REGION_LEFT) {
+            onToolStickRegionEnter(tool, 'left');
+          }
+            
+          if (stickRegion === STICK_REGION_RIGHT) {
+            onToolStickRegionEnter(tool, 'right');
+          }
         };
 
         const onStickRegionLeave = stickRegion => {
+          if (stickRegion === STICK_REGION_LEFT) onToolStickRegionLeave(tool);
           if (stickRegion === STICK_REGION_RIGHT) onToolStickRegionLeave(tool);
         };
 
@@ -153,6 +168,7 @@ class DesktopComponent extends PureComponent {
             constrainPosition
             marginRight={marginRight}
             marginBottom={DESKTOP_TOOL_WINDOWS_MARGIN}
+            stickRegionLeft={DESKTOP_STICK_REGION_SIZE}
             stickRegionRight={DESKTOP_STICK_REGION_SIZE}
             onDock={onDock}
             onClose={onClose}
@@ -174,7 +190,8 @@ class DesktopComponent extends PureComponent {
     const {
       toolGroups,
       toolStates,
-      toolsPanelIsExpanded,
+      leftToolsPanelIsExpanded,
+      rightToolsPanelIsExpanded,
       onToolUndock,
       onToolTitleChange,
       onToolActiveSectionChange,
@@ -194,7 +211,8 @@ class DesktopComponent extends PureComponent {
         </Content>
 
         <ToolPanel
-          isExpanded={toolsPanelIsExpanded}
+          isLeftExpanded={leftToolsPanelIsExpanded}
+          isRightExpanded={rightToolsPanelIsExpanded}
           toolGroups={toolGroups}
           toolStates={toolStates}
           onExpand={onToolsPanelExpand}

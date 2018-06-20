@@ -1,10 +1,12 @@
 import { Record, Set } from 'immutable';
-import { INVALID_ID } from '../constants/misc';
+import _omit from 'lodash.omit';
 
 const defaults = {
   selectedComponentIds: Set(),
   highlightedComponentIds: Set(),
   expandedTreeItemIds: Set(),
+  expandedRouteTreeItemIds: Set(),
+  highlightRoutesIds: Set(),
 };
 
 const DesignerRecord = Record(defaults);
@@ -39,6 +41,24 @@ export default class Designer extends DesignerRecord {
     return this.set('highlightedComponentIds', Set());
   }
 
+  highlightRoute(routeId) {
+    return this.update(
+      'highlightRoutesIds',
+      highlightRoutesIds => highlightRoutesIds.add(routeId),
+    );
+  }
+
+  unhighlightRoute(routeId) {
+    return this.update(
+      'highlightRoutesIds',
+      highlightRoutesIds => highlightRoutesIds.delete(routeId),
+    );
+  }
+
+  unhighlightAllRoutes() {
+    return this.set('highlightRoutesIds', Set());
+  }
+
   deselectComponent(componentId) {
     return this.update(
       'selectedComponentIds',
@@ -54,6 +74,25 @@ export default class Designer extends DesignerRecord {
 
   expandTreeItem(componentId) {
     return this.update('expandedTreeItemIds', ids => ids.add(componentId));
+  }
+
+  expandRouteTreeItem(routeId) {
+    return this.update('expandedRouteTreeItemIds', ids => ids.add(routeId));
+  }
+
+  expandRouteTreeItems(routeIds) {
+    return this.update('expandedRouteTreeItemIds', ids => ids.union(routeIds));
+  }
+
+  collapseRouteTreeItem(routeId) {
+    return this.update('expandedRouteTreeItemIds', ids => ids.delete(routeId));
+  }
+
+  collapseRouteTreeItems(routeIds) {
+    return this.update(
+      'expandedRouteTreeItemIds',
+      ids => ids.subtract(routeIds),
+    );
   }
 
   expandTreeItems(componentIds) {
@@ -79,6 +118,6 @@ export default class Designer extends DesignerRecord {
   }
 
   reset() {
-    return this.merge(defaults);
+    return this.merge(_omit(defaults, ['expandedRouteTreeItemIds']));
   }
 }

@@ -1,8 +1,4 @@
 /**
- * @author Vladimir Nadygin
- */
-
-/**
  *
  * @return {boolean}
  */

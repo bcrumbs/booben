@@ -1,11 +1,11 @@
-#Важные компоненты
+# Важные компоненты
 
-##Canvas
+#### Canvas
 Находится в файле
 [app/src/containers/Canvas/Canvas.js](../app/src/containers/Canvas/Canvas.js).
 Отвечает за создание и разрушение iframe, в котором рендерится дерево
 компонентов, над которым работает пользователь. Это может быть дерево
-компонентов роура (основное или индексное) или дерево компонентов из JssyValue с
+компонентов роура (основное или индексное) или дерево компонентов из BoobenValue с
 source, равным "designer".
 Также отвечает за инициализацию Apollo, проброс событий мыши и клавиатуры из
 iframe в верхнее окно и проброс событий drag'n'drop внутрь iframe.
@@ -27,7 +27,7 @@ CanvasContent, в свою очередь, рендерит builder'ы, кото
 Передача данных между компонентами в основном окне и компонентами внутри iframe
 осуществляется через общий redux store.
 
-##Builders
+#### Builders
 Находятся в каталоге `app/src/containers/builders`. Билдеры отвечают за рендер
 дерева компонентов. Всего их три:
 + [CanvasBuilder](../app/src/containers/builders/CanvasBuilder/CanvasBuilder.js) -
@@ -37,17 +37,17 @@ CanvasContent, в свою очередь, рендерит builder'ы, кото
 + [PreviewBuilder](../app/src/containers/builders/CanvasBuilder/PreviewBuilder.js) -
 Рендерит дерево компонентов в превью приложения.
 
-##Preview
+#### Preview
 Находится в файле
 [app/src/containers/Preview/Preview.js](../app/src/containers/Preview/Preview.js).
-Рендерит превью приложения без элементов интерфейса jssy. Для превью есть
+Рендерит превью приложения без элементов интерфейса booben. Для превью есть
 отдельный entry point [app/src/preview.js](../app/src/preview.js), который
 вставляет Preview непосредственно в шаблон. Preview использует для рендера
 деревьев компонентов билдер PreviewBuilder, котоый рендерит компоненты
 максимально близко к тому, как бы они выглядели и работали в собранном
 приложении, а также использует настоящий роутинг (react-router).
 
-##ComponentsDragArea
+#### ComponentsDragArea
 Находится в файле
 [app/src/containers/ComponentsDragArea/ComponentsDragArea.js](../app/src/containers/ComponentsDragArea/ComponentsDragArea.js).
 Рисует голубой прямоугольник при перетаскивании компонента из библиотеки, с
@@ -61,18 +61,18 @@ CanvasContent, в свою очередь, рендерит builder'ы, кото
 компонентов на вкладке библиотеки, ноды в дереве компонентов и сми компоненты на
 канве. dropZone - Canvas и ComponentsTreeView.
 
-##ComponentsTreeView
+#### ComponentsTreeView
 Находится в файле
 [app/src/containers/ComponentsTreeView/ComponentsTreeView.js](../app/src/containers/ComponentsTreeView/ComponentsTreeView.js).
 Рендерит дерево компонентов на правой вкладке. Является dropZone. Ноды дерева
 являются draggable.
 
-##ComponentsLibrary
+#### ComponentsLibrary
 Находится в файле
 [app/src/containers/ComponentsLibrary/ComponentsLibrary.js](../app/src/containers/ComponentsLibrary/ComponentsLibrary.js).
 Рендерит библиотеку компонентов. Иконки компонентов являются draggable.
 
-##Desktop
+#### Desktop
 Находится в файле
 [app/src/containers/Desktop/Desktop.js](../app/src/containers/Desktop/Desktop.js).
 Рендерит каркас центральной области UI (MainRegion в терминах Reactackle):

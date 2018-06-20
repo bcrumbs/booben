@@ -14,11 +14,8 @@ import {
 
 import { URL_BUNDLE_PREFIX } from '../../../shared/constants';
 
-let url = URL_BUNDLE_PREFIX;
+const url = URL_BUNDLE_PREFIX;
 
-if (process.env.NODE_ENV === 'production') {
-  url = 'https://s3.eu-central-1.amazonaws.com/jssy-bundle';
-}
 const scriptsCache = {};
 
 /**
@@ -119,23 +116,16 @@ export default class ComponentsBundle {
       /* eslint-enable no-console */
     }
 
-    if (process.env.NODE_ENV === 'production') {
-      await loadComponentsBundleIntoWindow(
-        this._windowInstance,
-        `${url}/${COMPONENTS_BUNDLE_FILE}`,
-      );
-    } else {
-      await loadComponentsBundleIntoWindow(
-        this._windowInstance,
-        `${url}/${this._projectName}/${COMPONENTS_BUNDLE_FILE}`,
-      );
-    }
-
+    
+    await loadComponentsBundleIntoWindow(
+      this._windowInstance,
+      `${url}/${this._projectName}/${COMPONENTS_BUNDLE_FILE}`,
+    );
     
 
     const noComponents =
-      !this._windowInstance.JssyComponents ||
-      !this._windowInstance.JssyComponents.default;
+      !this._windowInstance.BoobenComponents ||
+      !this._windowInstance.BoobenComponents.default;
 
     if (noComponents) {
       throw new Error(
@@ -145,15 +135,15 @@ export default class ComponentsBundle {
 
     if (patchComponents) {
       this._components = _mapValues(
-        this._windowInstance.JssyComponents.default,
+        this._windowInstance.BoobenComponents.default,
         ns => _mapValues(ns, patchComponent),
       );
     } else {
-      this._components = this._windowInstance.JssyComponents.default;
+      this._components = this._windowInstance.BoobenComponents.default;
     }
 
-    if (this._windowInstance.JssyComponents.styled) {
-      this._styled = this._windowInstance.JssyComponents.styled;
+    if (this._windowInstance.BoobenComponents.styled) {
+      this._styled = this._windowInstance.BoobenComponents.styled;
     }
 
     this._loading = false;

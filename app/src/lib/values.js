@@ -2,14 +2,14 @@
 import React from 'react';
 import _forOwn from 'lodash.forown';
 import _mapValues from 'lodash.mapvalues';
-import { TypeNames, resolveTypedef, coerceValue } from '@jssy/types';
+import { TypeNames, resolveTypedef, coerceValue } from 'booben-types';
 
 import {
   getFieldByPath,
-  getJssyValueDefOfField,
-  getJssyValueDefOfQueryArgument,
+  getBoobenValueDefOfField,
+  getBoobenValueDefOfQueryArgument,
   RELAY_PAGEINFO_FIELD_END_CURSOR,
-} from '@jssy/graphql-schema';
+} from 'booben-graphql-schema';
 
 import { extractPropValueFromData } from './graphql';
 import { getFunctionInfo, formatFunctionId } from './functions';
@@ -23,7 +23,7 @@ import {
   returnNull,
 } from '../utils/misc';
 
-import JssyValue from '../models/JssyValue';
+import BoobenValue from '../models/BoobenValue';
 import { ROUTE_PARAM_VALUE_DEF, NO_VALUE, INVALID_ID } from '../constants/misc';
 
 /**
@@ -47,11 +47,11 @@ import { ROUTE_PARAM_VALUE_DEF, NO_VALUE, INVALID_ID } from '../constants/misc';
  * @property {?Object} [data=null]
  * @property {?Object<string, string>} [routeParams=null]
  * @property {?Array<*>} [actionArgValues=null]
- * @property {?JssyValueDefinition} [actionValueDef=null]
- * @property {?Object<string, JssyTypeDefinition>} [actionUserTypedefs=null]
+ * @property {?BoobenValueDefinition} [actionValueDef=null]
+ * @property {?Object<string, BoobenTypeDefinition>} [actionUserTypedefs=null]
  * @property {?AJAXRequestResult} [ajaxRequestResult=null]
  * @property {?ReactComponent} [BuilderComponent=null]
- * @property {?function(ownProps: Object<string, *>, jssyValue: Object, context: ValueContext): Object<string, *>} [getBuilderProps=null]
+ * @property {?function(ownProps: Object<string, *>, boobenValue: Object, context: ValueContext): Object<string, *>} [getBuilderProps=null]
  * @property {?Function} [handleActions=null]
  * @property {?Immutable.Map<Object, Immutable.Map<number, Object>>} [pageInfos=null]
  */
@@ -81,12 +81,12 @@ const defaultContext = {
 
 /**
  *
- * @param {Object} jssyValue
+ * @param {Object} boobenValue
  * @param {?ValueContext} context
  */
-const buildOwnerPropValue = (jssyValue, context) => {
+const buildOwnerPropValue = (boobenValue, context) => {
   const { propsFromOwner } = context;
-  const propName = jssyValue.sourceData.ownerPropName;
+  const propName = boobenValue.sourceData.ownerPropName;
 
   if (propsFromOwner === null || !hasOwnProperty(propsFromOwner, propName)) {
     return NO_VALUE;
@@ -97,22 +97,22 @@ const buildOwnerPropValue = (jssyValue, context) => {
 
 /**
  *
- * @param {Object} jssyValue
- * @param {JssyValueDefinition} valueDef
- * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+ * @param {Object} boobenValue
+ * @param {BoobenValueDefinition} valueDef
+ * @param {?Object<string, BoobenTypeDefinition>} userTypedefs
  * @param {?ValueContext} context
  * @return {*}
  */
-const buildStaticValue = (jssyValue, valueDef, userTypedefs, context) => {
+const buildStaticValue = (boobenValue, valueDef, userTypedefs, context) => {
   const resolvedTypedef = resolveTypedef(valueDef, userTypedefs);
 
   if (resolvedTypedef.type === TypeNames.SHAPE) {
-    if (jssyValue.sourceData.value === null) return null;
+    if (boobenValue.sourceData.value === null) return null;
 
     const ret = {};
 
     _forOwn(resolvedTypedef.fields, (fieldMeta, fieldName) => {
-      const fieldValue = jssyValue.sourceData.value.get(fieldName);
+      const fieldValue = boobenValue.sourceData.value.get(fieldName);
 
       if (!isUndef(fieldValue)) {
         ret[fieldName] = buildValue(
@@ -126,45 +126,45 @@ const buildStaticValue = (jssyValue, valueDef, userTypedefs, context) => {
 
     return ret;
   } else if (resolvedTypedef.type === TypeNames.OBJECT_OF) {
-    if (jssyValue.sourceData.value === null) return null;
+    if (boobenValue.sourceData.value === null) return null;
 
-    return mapMapToObject(jssyValue.sourceData.value, nestedValue => buildValue(
+    return mapMapToObject(boobenValue.sourceData.value, nestedValue => buildValue(
       nestedValue,
       resolvedTypedef.ofType,
       userTypedefs,
       context,
     ));
   } else if (resolvedTypedef.type === TypeNames.ARRAY_OF) {
-    return mapListToArray(jssyValue.sourceData.value, nestedValue => buildValue(
+    return mapListToArray(boobenValue.sourceData.value, nestedValue => buildValue(
       nestedValue,
       resolvedTypedef.ofType,
       userTypedefs,
       context,
     ));
   } else {
-    return jssyValue.sourceData.value;
+    return boobenValue.sourceData.value;
   }
 };
 
 /**
  *
- * @param {Object} jssyValue
+ * @param {Object} boobenValue
  * @return {*}
  */
-const buildConstValue = jssyValue => jssyValue.sourceData.value;
+const buildConstValue = boobenValue => boobenValue.sourceData.value;
 
 /**
  *
- * @param {Object} jssyValue
- * @param {JssyValueDefinition} valueDef
- * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+ * @param {Object} boobenValue
+ * @param {BoobenValueDefinition} valueDef
+ * @param {?Object<string, BoobenTypeDefinition>} userTypedefs
  * @param {?ValueContext} context
  * @return {*}
  */
-const buildDataValue = (jssyValue, valueDef, userTypedefs, context) => {
+const buildDataValue = (boobenValue, valueDef, userTypedefs, context) => {
   const { schema, propsFromOwner, dataContextInfo, data } = context;
 
-  if (jssyValue.sourceData.queryPath === null) {
+  if (boobenValue.sourceData.queryPath === null) {
     return NO_VALUE;
   }
 
@@ -175,15 +175,15 @@ const buildDataValue = (jssyValue, valueDef, userTypedefs, context) => {
   }
 
   const path = mapListToArray(
-    jssyValue.sourceData.queryPath,
+    boobenValue.sourceData.queryPath,
     step => step.field,
   );
 
   let rawValue;
   let field;
 
-  if (jssyValue.sourceData.dataContext.size > 0) {
-    const dataContextName = jssyValue.sourceData.dataContext.last();
+  if (boobenValue.sourceData.dataContext.size > 0) {
+    const dataContextName = boobenValue.sourceData.dataContext.last();
 
     if (
       dataContextInfo === null ||
@@ -203,7 +203,7 @@ const buildDataValue = (jssyValue, valueDef, userTypedefs, context) => {
 
     field = getFieldByPath(schema, path, ourDataContextInfo.type);
     rawValue = extractPropValueFromData(
-      jssyValue,
+      boobenValue,
       propsFromOwner[ourDataContextInfo.ownerPropName],
       schema,
       ourDataContextInfo.type,
@@ -214,12 +214,12 @@ const buildDataValue = (jssyValue, valueDef, userTypedefs, context) => {
     }
 
     field = getFieldByPath(schema, path);
-    rawValue = extractPropValueFromData(jssyValue, data, schema);
+    rawValue = extractPropValueFromData(boobenValue, data, schema);
   }
 
   return coerceValue(
     rawValue,
-    getJssyValueDefOfField(field, schema),
+    getBoobenValueDefOfField(field, schema),
     valueDef,
     null,
     userTypedefs,
@@ -228,25 +228,25 @@ const buildDataValue = (jssyValue, valueDef, userTypedefs, context) => {
 
 /**
  *
- * @param {Object} jssyValue
- * @param {JssyValueDefinition} valueDef
- * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+ * @param {Object} boobenValue
+ * @param {BoobenValueDefinition} valueDef
+ * @param {?Object<string, BoobenTypeDefinition>} userTypedefs
  * @param {?ValueContext} context
  * @return {*}
  */
-const buildFunctionValue = (jssyValue, valueDef, userTypedefs, context) => {
+const buildFunctionValue = (boobenValue, valueDef, userTypedefs, context) => {
   const { projectFunctions } = context;
 
   const fnInfo = getFunctionInfo(
-    jssyValue.sourceData.functionSource,
-    jssyValue.sourceData.function,
+    boobenValue.sourceData.functionSource,
+    boobenValue.sourceData.function,
     projectFunctions,
   );
 
   if (fnInfo === null) {
     const functionId = formatFunctionId(
-      jssyValue.sourceData.functionSource,
-      jssyValue.sourceData.function,
+      boobenValue.sourceData.functionSource,
+      boobenValue.sourceData.function,
     );
 
     throw new Error(`buildFunctionValue(): function not found: ${functionId}`);
@@ -254,16 +254,16 @@ const buildFunctionValue = (jssyValue, valueDef, userTypedefs, context) => {
 
   const tooManyArgs = (
     fnInfo.args.size === 0 &&
-    jssyValue.sourceData.args.size > 0
+    boobenValue.sourceData.args.size > 0
   ) || (
-    jssyValue.sourceData.args.size > fnInfo.args.size &&
+    boobenValue.sourceData.args.size > fnInfo.args.size &&
     !fnInfo.spreadLastArg
   );
 
   if (tooManyArgs) {
     const functionId = formatFunctionId(
-      jssyValue.sourceData.functionSource,
-      jssyValue.sourceData.function,
+      boobenValue.sourceData.functionSource,
+      boobenValue.sourceData.function,
     );
 
     throw new Error(
@@ -271,7 +271,7 @@ const buildFunctionValue = (jssyValue, valueDef, userTypedefs, context) => {
     );
   }
 
-  const argValues = mapListToArray(jssyValue.sourceData.args, (value, idx) => {
+  const argValues = mapListToArray(boobenValue.sourceData.args, (value, idx) => {
     const argInfo = fnInfo.args.get(Math.min(idx, fnInfo.args.size - 1));
 
     let ret = NO_VALUE;
@@ -283,8 +283,8 @@ const buildFunctionValue = (jssyValue, valueDef, userTypedefs, context) => {
     if (ret === NO_VALUE) {
       if (argInfo.isRequired) {
         const functionId = formatFunctionId(
-          jssyValue.sourceData.functionSource,
-          jssyValue.sourceData.function,
+          boobenValue.sourceData.functionSource,
+          boobenValue.sourceData.function,
         );
 
         throw new Error(
@@ -312,13 +312,13 @@ const buildFunctionValue = (jssyValue, valueDef, userTypedefs, context) => {
 
 /**
  *
- * @param {Object} jssyValue
- * @param {JssyValueDefinition} valueDef
- * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+ * @param {Object} boobenValue
+ * @param {BoobenValueDefinition} valueDef
+ * @param {?Object<string, BoobenTypeDefinition>} userTypedefs
  * @param {?ValueContext} context
  * @return {*}
  */
-const buildStateValue = (jssyValue, valueDef, userTypedefs, context) => {
+const buildStateValue = (boobenValue, valueDef, userTypedefs, context) => {
   const { meta, components, componentsState } = context;
 
   if (meta === null || components === null || componentsState === null) {
@@ -328,13 +328,13 @@ const buildStateValue = (jssyValue, valueDef, userTypedefs, context) => {
     );
   }
 
-  const componentId = jssyValue.sourceData.componentId;
+  const componentId = boobenValue.sourceData.componentId;
 
   if (componentId === INVALID_ID) {
     return NO_VALUE;
   }
 
-  const stateSlot = jssyValue.sourceData.stateSlot;
+  const stateSlot = boobenValue.sourceData.stateSlot;
   const componentState = componentsState.get(componentId);
 
   if (!componentState || !componentState.has(stateSlot)) {
@@ -357,20 +357,20 @@ const buildStateValue = (jssyValue, valueDef, userTypedefs, context) => {
 
 /**
  *
- * @param {Object} jssyValue
- * @param {JssyValueDefinition} valueDef
- * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+ * @param {Object} boobenValue
+ * @param {BoobenValueDefinition} valueDef
+ * @param {?Object<string, BoobenTypeDefinition>} userTypedefs
  * @param {?ValueContext} context
  * @return {*}
  */
-const buildRouteParamsValue = (jssyValue, valueDef, userTypedefs, context) => {
+const buildRouteParamsValue = (boobenValue, valueDef, userTypedefs, context) => {
   const { routeParams } = context;
 
   if (routeParams === null) {
     throw new Error('buildRouteParamsValue(): routeParams is required');
   }
 
-  const paramName = jssyValue.sourceData.paramName;
+  const paramName = boobenValue.sourceData.paramName;
 
   if (!hasOwnProperty(routeParams, paramName)) {
     throw new Error(
@@ -389,13 +389,13 @@ const buildRouteParamsValue = (jssyValue, valueDef, userTypedefs, context) => {
 
 /**
  *
- * @param {Object} jssyValue
- * @param {JssyValueDefinition} valueDef
- * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+ * @param {Object} boobenValue
+ * @param {BoobenValueDefinition} valueDef
+ * @param {?Object<string, BoobenTypeDefinition>} userTypedefs
  * @param {?ValueContext} context
  * @return {*}
  */
-const buildActionArgValue = (jssyValue, valueDef, userTypedefs, context) => {
+const buildActionArgValue = (boobenValue, valueDef, userTypedefs, context) => {
   const { actionArgValues, actionValueDef, actionUserTypedefs } = context;
 
   if (
@@ -409,7 +409,7 @@ const buildActionArgValue = (jssyValue, valueDef, userTypedefs, context) => {
     );
   }
 
-  const argIdx = jssyValue.sourceData.arg;
+  const argIdx = boobenValue.sourceData.arg;
 
   return coerceValue(
     actionArgValues[argIdx],
@@ -422,14 +422,14 @@ const buildActionArgValue = (jssyValue, valueDef, userTypedefs, context) => {
 
 /**
  *
- * @param {Object} jssyValue
+ * @param {Object} boobenValue
  * @param {?ValueContext} context
  * @return {ReactComponent}
  */
-const buildDesignerValue = (jssyValue, context) => {
+const buildDesignerValue = (boobenValue, context) => {
   const { BuilderComponent, getBuilderProps } = context;
 
-  if (!jssyValue.hasDesignedComponent()) return returnNull;
+  if (!boobenValue.hasDesignedComponent()) return returnNull;
 
   if (BuilderComponent === null || getBuilderProps === null) {
     throw new Error(
@@ -438,7 +438,7 @@ const buildDesignerValue = (jssyValue, context) => {
   }
 
   const ret = ownProps => (
-    <BuilderComponent {...getBuilderProps(ownProps, jssyValue, context)}>
+    <BuilderComponent {...getBuilderProps(ownProps, boobenValue, context)}>
       {ownProps.children}
     </BuilderComponent>
   );
@@ -450,13 +450,13 @@ const buildDesignerValue = (jssyValue, context) => {
 
 /**
  *
- * @param {Object} jssyValue
- * @param {JssyValueDefinition} valueDef
- * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+ * @param {Object} boobenValue
+ * @param {BoobenValueDefinition} valueDef
+ * @param {?Object<string, BoobenTypeDefinition>} userTypedefs
  * @param {?ValueContext} context
  * @return {*}
  */
-const buildActionsValue = (jssyValue, valueDef, userTypedefs, context) => {
+const buildActionsValue = (boobenValue, valueDef, userTypedefs, context) => {
   const { handleActions } = context;
 
   if (handleActions === null) {
@@ -471,20 +471,20 @@ const buildActionsValue = (jssyValue, valueDef, userTypedefs, context) => {
       actionUserTypedefs: userTypedefs,
     };
 
-    handleActions(jssyValue, valueDef, userTypedefs, nextValueContext);
+    handleActions(boobenValue, valueDef, userTypedefs, nextValueContext);
   };
 };
 
 /**
  *
- * @param {Object} jssyValue
+ * @param {Object} boobenValue
  * @param {?ValueContext} context
  * @return {*}
  */
-const buildConnectionPaginationStateValue = (jssyValue, context) => {
-  const param = jssyValue.sourceData.param;
-  const dataValue = jssyValue.sourceData.dataValue;
-  const queryStep = jssyValue.sourceData.queryStep;
+const buildConnectionPaginationStateValue = (boobenValue, context) => {
+  const param = boobenValue.sourceData.param;
+  const dataValue = boobenValue.sourceData.dataValue;
+  const queryStep = boobenValue.sourceData.queryStep;
 
   if (param === 'after') {
     if (context.pageInfos === null || !context.pageInfos.has(dataValue)) {
@@ -507,13 +507,13 @@ const buildConnectionPaginationStateValue = (jssyValue, context) => {
 
 /**
  *
- * @param {Object} jssyValue
- * @param {JssyValueDefinition} valueDef
- * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
+ * @param {Object} boobenValue
+ * @param {BoobenValueDefinition} valueDef
+ * @param {?Object<string, BoobenTypeDefinition>} [userTypedefs=null]
  * @param {?ValueContext} [context=null]
  */
 export const buildValue = (
-  jssyValue,
+  boobenValue,
   valueDef,
   userTypedefs = null,
   context = null,
@@ -522,40 +522,40 @@ export const buildValue = (
     ? defaultContext
     : { ...defaultContext, ...context };
 
-  if (jssyValue.sourceIs(JssyValue.Source.STATIC)) {
-    return buildStaticValue(jssyValue, valueDef, userTypedefs, actualContext);
-  } else if (jssyValue.sourceIs(JssyValue.Source.OWNER_PROP)) {
-    return buildOwnerPropValue(jssyValue, actualContext);
-  } else if (jssyValue.sourceIs(JssyValue.Source.CONST)) {
-    return buildConstValue(jssyValue);
-  } else if (jssyValue.sourceIs(JssyValue.Source.DATA)) {
-    return buildDataValue(jssyValue, valueDef, userTypedefs, actualContext);
-  } else if (jssyValue.sourceIs(JssyValue.Source.FUNCTION)) {
-    return buildFunctionValue(jssyValue, valueDef, userTypedefs, actualContext);
-  } else if (jssyValue.sourceIs(JssyValue.Source.STATE)) {
-    return buildStateValue(jssyValue, valueDef, userTypedefs, actualContext);
-  } else if (jssyValue.sourceIs(JssyValue.Source.ROUTE_PARAMS)) {
+  if (boobenValue.sourceIs(BoobenValue.Source.STATIC)) {
+    return buildStaticValue(boobenValue, valueDef, userTypedefs, actualContext);
+  } else if (boobenValue.sourceIs(BoobenValue.Source.OWNER_PROP)) {
+    return buildOwnerPropValue(boobenValue, actualContext);
+  } else if (boobenValue.sourceIs(BoobenValue.Source.CONST)) {
+    return buildConstValue(boobenValue);
+  } else if (boobenValue.sourceIs(BoobenValue.Source.DATA)) {
+    return buildDataValue(boobenValue, valueDef, userTypedefs, actualContext);
+  } else if (boobenValue.sourceIs(BoobenValue.Source.FUNCTION)) {
+    return buildFunctionValue(boobenValue, valueDef, userTypedefs, actualContext);
+  } else if (boobenValue.sourceIs(BoobenValue.Source.STATE)) {
+    return buildStateValue(boobenValue, valueDef, userTypedefs, actualContext);
+  } else if (boobenValue.sourceIs(BoobenValue.Source.ROUTE_PARAMS)) {
     return buildRouteParamsValue(
-      jssyValue,
+      boobenValue,
       valueDef,
       userTypedefs,
       actualContext,
     );
-  } else if (jssyValue.sourceIs(JssyValue.Source.ACTION_ARG)) {
+  } else if (boobenValue.sourceIs(BoobenValue.Source.ACTION_ARG)) {
     return buildActionArgValue(
-      jssyValue,
+      boobenValue,
       valueDef,
       userTypedefs,
       actualContext,
     );
-  } else if (jssyValue.sourceIs(JssyValue.Source.DESIGNER)) {
-    return buildDesignerValue(jssyValue, actualContext);
-  } else if (jssyValue.sourceIs(JssyValue.Source.ACTIONS)) {
-    return buildActionsValue(jssyValue, valueDef, userTypedefs, actualContext);
-  } else if (jssyValue.sourceIs(JssyValue.Source.CONNECTION_PAGINATION_STATE)) {
-    return buildConnectionPaginationStateValue(jssyValue, actualContext);
+  } else if (boobenValue.sourceIs(BoobenValue.Source.DESIGNER)) {
+    return buildDesignerValue(boobenValue, actualContext);
+  } else if (boobenValue.sourceIs(BoobenValue.Source.ACTIONS)) {
+    return buildActionsValue(boobenValue, valueDef, userTypedefs, actualContext);
+  } else if (boobenValue.sourceIs(BoobenValue.Source.CONNECTION_PAGINATION_STATE)) {
+    return buildConnectionPaginationStateValue(boobenValue, actualContext);
   } else {
-    throw new Error(`buildValue(): unknown value source: ${jssyValue.source}`);
+    throw new Error(`buildValue(): unknown value source: ${boobenValue.source}`);
   }
 };
 
@@ -626,7 +626,7 @@ export const buildGraphQLQueryVariables = (
   schema,
 ) => _mapValues(graphQLVariables, ({ argDefinition, argValue }) => buildValue(
   argValue,
-  getJssyValueDefOfQueryArgument(argDefinition, schema),
+  getBoobenValueDefOfQueryArgument(argDefinition, schema),
   null,
   valueContext,
 ));

@@ -1,13 +1,13 @@
-import { isCompatibleType } from '@jssy/types';
-import { findFirstConnectionInPath } from '@jssy/graphql-schema';
+import { isCompatibleType } from 'booben-types';
+import { findFirstConnectionInPath } from 'booben-graphql-schema';
 import { getComponentMeta, getString } from '../../lib/meta';
 import { walkSimpleValues } from '../../lib/components';
 import { objectSome, objectToArray, mapListToArray } from '../../utils/misc';
 
 /**
  *
- * @param {JssyValueDefinition} targetValueDef
- * @param {?Object<string, JssyTypeDefinition>} targetUserTypedefs
+ * @param {BoobenValueDefinition} targetValueDef
+ * @param {?Object<string, BoobenTypeDefinition>} targetUserTypedefs
  * @param {Immutable.Map<number, Object>} components
  * @param {ComponentsMeta} meta
  * @param {string} language
@@ -83,13 +83,13 @@ export const getConnectionDataValuePickerFns = (
     let ret = false;
 
     // eslint-disable-next-line consistent-return
-    const visitor = jssyValue => {
+    const visitor = boobenValue => {
       if (
-        jssyValue.isLinkedWithData() &&
-        jssyValue.sourceData.dataContext.size === 0
+        boobenValue.isLinkedWithData() &&
+        boobenValue.sourceData.dataContext.size === 0
       ) {
         const queryPath = mapListToArray(
-          jssyValue.sourceData.queryPath,
+          boobenValue.sourceData.queryPath,
           step => step.field,
         );
 
@@ -124,13 +124,13 @@ export const getConnectionDataValuePickerFns = (
     const ret = [];
 
     // eslint-disable-next-line consistent-return
-    const visitor = (jssyValue, valueDef, pathSteps) => {
+    const visitor = (boobenValue, valueDef, pathSteps) => {
       if (
-        jssyValue.isLinkedWithData() &&
-        jssyValue.sourceData.dataContext.size === 0
+        boobenValue.isLinkedWithData() &&
+        boobenValue.sourceData.dataContext.size === 0
       ) {
         const queryPath = mapListToArray(
-          jssyValue.sourceData.queryPath,
+          boobenValue.sourceData.queryPath,
           step => step.field,
         );
 

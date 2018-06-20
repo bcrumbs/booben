@@ -6,7 +6,7 @@ import { graphql } from 'react-apollo';
 import forOwn from 'lodash.forown';
 import get from 'lodash.get';
 import debounce from 'lodash.debounce';
-import { resolveTypedef } from '@jssy/types';
+import { resolveTypedef } from 'booben-types';
 
 import {
   isPseudoComponent,
@@ -51,17 +51,17 @@ import { buildQueryForComponent } from '../../../lib/graphql';
 import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
 import { queryResultHasData } from '../../../lib/apollo';
 import ComponentsBundle from '../../../lib/ComponentsBundle';
-import * as JssyPropTypes from '../../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../../constants/common-prop-types';
 import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../../../constants/misc';
 import { DND_DRAG_START_RADIUS_CANVAS } from '../../../config';
 
 const propTypes = {
   editable: PropTypes.bool,
   componentsBundle: PropTypes.instanceOf(ComponentsBundle).isRequired,
-  components: JssyPropTypes.components.isRequired,
+  components: BoobenPropTypes.components.isRequired,
   rootId: PropTypes.number,
   routeParams: PropTypes.object,
-  enclosingComponents: JssyPropTypes.components,
+  enclosingComponents: BoobenPropTypes.components,
   enclosingContainerId: PropTypes.number,
   enclosingAfterIdx: PropTypes.number,
   dontPatch: PropTypes.bool,
@@ -74,14 +74,14 @@ const propTypes = {
   schema: PropTypes.object.isRequired, // state
   draggingComponent: PropTypes.bool.isRequired, // state
   rootDraggedComponent: PropTypes.instanceOf(ProjectComponent), // state
-  draggedComponents: JssyPropTypes.components, // state
+  draggedComponents: BoobenPropTypes.components, // state
   draggingOverPlaceholder: PropTypes.bool.isRequired, // state
   placeholderContainerId: PropTypes.number.isRequired, // state
   placeholderAfter: PropTypes.number.isRequired, // state
   showContentPlaceholders: PropTypes.bool.isRequired, // state
   showInvisibleComponents: PropTypes.bool.isRequired, // state
-  selectedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
-  highlightedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
+  selectedComponentIds: BoobenPropTypes.setOfIds.isRequired, // state
+  highlightedComponentIds: BoobenPropTypes.setOfIds.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onAlert: PropTypes.func.isRequired, // alertsCreator
   onStartDragComponent: PropTypes.func.isRequired, // dispatch
@@ -244,8 +244,8 @@ class CanvasBuilderComponent extends PureComponent {
   /**
    *
    * @param {number} componentId
-   * @param {JssyValueDefinition} valueDef
-   * @param {Object<string, JssyTypeDefinition>} userTypedefs
+   * @param {BoobenValueDefinition} valueDef
+   * @param {Object<string, BoobenTypeDefinition>} userTypedefs
    * @param {ValueContext} valueContext
    * @private
    */
@@ -324,18 +324,18 @@ class CanvasBuilderComponent extends PureComponent {
       data,
       routeParams,
       BuilderComponent: CanvasBuilder, // eslint-disable-line no-use-before-define
-      getBuilderProps: (ownProps, jssyValue, valueContext) => ({
+      getBuilderProps: (ownProps, boobenValue, valueContext) => ({
         componentsBundle,
         routeParams,
-        components: jssyValue.sourceData.components,
-        rootId: jssyValue.sourceData.rootId,
+        components: boobenValue.sourceData.components,
+        rootId: boobenValue.sourceData.rootId,
         dontPatch: true,
         propsFromOwner: ownProps,
         theMap: valueContext.theMap,
-        dataContextInfo: valueContext.theMap.get(jssyValue),
+        dataContextInfo: valueContext.theMap.get(boobenValue),
       }),
 
-      handleActions: (jssyValue, valueDef, userTypedefs, valueContext) => {
+      handleActions: (boobenValue, valueDef, userTypedefs, valueContext) => {
         this._handleActions(
           componentId,
           valueDef,
@@ -597,11 +597,11 @@ class CanvasBuilderComponent extends PureComponent {
       if (props.href || props.href === '') {
         delete props.href;
       }
-      props['data-jssy-id'] = String(id);
-      if (isInvisible) props['data-jssy-invisible'] = '';
+      props['data-booben-id'] = String(id);
+      if (isInvisible) props['data-booben-invisible'] = '';
     } else {
-      props.__jssy_component_id__ = id;
-      if (isInvisible) props.__jssy_invisible__ = true;
+      props.__booben_component_id__ = id;
+      if (isInvisible) props.__booben_invisible__ = true;
     }
   }
 
@@ -725,7 +725,7 @@ class CanvasBuilderComponent extends PureComponent {
     if (isHTML) {
       props.style = component.style;
     } else {
-      props.__jssy_error_handler__ = debounce(
+      props.__booben_error_handler__ = debounce(
         this._handleErrorInComponentLifecycleHook.bind(this, component),
         250,
       );

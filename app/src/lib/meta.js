@@ -5,9 +5,9 @@ import {
   resolveTypedef,
   makeDefaultNonNullValue,
   makeDefaultValue,
-} from '@jssy/types';
+} from 'booben-types';
 
-import HTMLMeta from '../meta/html';
+import HTMLMeta from 'booben-html-meta';
 import miscMeta from '../meta/misc';
 import { componentsToImmutable } from '../models/ProjectComponent';
 import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../constants/misc';
@@ -134,7 +134,7 @@ export const getComponentPropName = (componentMeta, prop, language) => {
 
 /**
  *
- * @param {JssyValueDefinition} valueDef
+ * @param {BoobenValueDefinition} valueDef
  * @param {string} source
  * @return {boolean}
  */
@@ -164,9 +164,9 @@ const defaultSourceConfigBuilders = {
 
 /**
  *
- * @param {JssyValueDefinition} valueDef
+ * @param {BoobenValueDefinition} valueDef
  * @param {string} source
- * @param {Object<string, JssyTypeDefinition>} [userTypedefs=null]
+ * @param {Object<string, BoobenTypeDefinition>} [userTypedefs=null]
  * @return {Object}
  */
 export const getSourceConfig = (valueDef, source, userTypedefs = null) => {
@@ -195,7 +195,7 @@ export const componentHasActions = (componentName, meta) => {
 
 /**
  *
- * @param {JssyValueDefinition} propMeta
+ * @param {BoobenValueDefinition} propMeta
  * @return {boolean}
  */
 export const propHasDataContext = propMeta =>
@@ -205,7 +205,7 @@ export const propHasDataContext = propMeta =>
 /**
  *
  * @param {*} value
- * @return {PlainJssyValue}
+ * @return {PlainBoobenValue}
  */
 const makeSimpleStaticValue = value => ({
   source: 'static',
@@ -219,13 +219,13 @@ const makeSimpleStaticValue = value => ({
 
 /**
  *
- * @param {JssyValueDefinition} valueDef
+ * @param {BoobenValueDefinition} valueDef
  * @param {?Object<string, Object<string, string>>} strings
  * @param {string} language
- * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+ * @param {?Object<string, BoobenTypeDefinition>} userTypedefs
  * @param {BuildDefaultValueOptions} options
  * @param {*|Symbol} [_inheritedDefaultValue=NO_VALUE]
- * @return {PlainJssyValue|Symbol}
+ * @return {PlainBoobenValue|Symbol}
  */
 const buildDefaultStaticValue = (
   valueDef,
@@ -344,11 +344,11 @@ const buildDefaultStaticValue = (
 
 /**
  *
- * @param {JssyValueDefinition} valueDef
+ * @param {BoobenValueDefinition} valueDef
  * @param {?Object<string, Object<string, string>>} _
  * @param {string} __
- * @param {?Object<string, JssyTypeDefinition>} userTypedefs
- * @return {PlainJssyValue}
+ * @param {?Object<string, BoobenTypeDefinition>} userTypedefs
+ * @return {PlainBoobenValue}
  */
 const buildDefaultConstValue = (valueDef, _, __, userTypedefs) => ({
   source: 'const',
@@ -359,7 +359,7 @@ const buildDefaultConstValue = (valueDef, _, __, userTypedefs) => ({
 
 /**
  *
- * @return {PlainJssyValue}
+ * @return {PlainBoobenValue}
  */
 const buildDefaultDesignerValue = () => ({
   source: 'designer',
@@ -371,7 +371,7 @@ const buildDefaultDesignerValue = () => ({
 
 /**
  *
- * @return {PlainJssyValue}
+ * @return {PlainBoobenValue}
  */
 const buildDefaultDataValue = () => ({
   source: 'data',
@@ -385,7 +385,7 @@ const buildDefaultDataValue = () => ({
 
 /**
  *
- * @return {PlainJssyValue}
+ * @return {PlainBoobenValue}
  */
 const buildDefaultActionsValue = () => ({
   source: 'actions',
@@ -396,7 +396,7 @@ const buildDefaultActionsValue = () => ({
 
 /**
  *
- * @type {Object<string, function(valueDef: JssyValueDefinition, strings: ?Object<string, Object<string, string>>, language: string, _inheritedDefaultValue: *|NO_VALUE): PlainJssyValue|Symbol>}
+ * @type {Object<string, function(valueDef: BoobenValueDefinition, strings: ?Object<string, Object<string, string>>, language: string, _inheritedDefaultValue: *|NO_VALUE): PlainBoobenValue|Symbol>}
  * @const
  */
 const defaultValueBuilders = {
@@ -422,13 +422,13 @@ const sourcePriority = [
 
 /**
  *
- * @param {JssyValueDefinition} valueDef
+ * @param {BoobenValueDefinition} valueDef
  * @param {?Object<string, Object<string, string>>} strings
  * @param {string} language
- * @param {?Object<string, JssyTypeDefinition>} userTypedefs
+ * @param {?Object<string, BoobenTypeDefinition>} userTypedefs
  * @param {BuildDefaultValueOptions} options
  * @param {*} [inheritedDefaultValue=NO_VALUE]
- * @return {?PlainJssyValue}
+ * @return {?PlainBoobenValue}
  */
 const _buildDefaultValue = (
   valueDef,
@@ -458,20 +458,20 @@ const _buildDefaultValue = (
 
 /**
  *
- * @param {JssyTypeDefinition|JssyValueDefinition} typedefOrValueDef
+ * @param {BoobenTypeDefinition|BoobenValueDefinition} typedefOrValueDef
  * @return {boolean}
  */
-export const isJssyValueDefinition = typedefOrValueDef =>
+export const isBoobenValueDefinition = typedefOrValueDef =>
   !!typedefOrValueDef.source;
 
 /**
  *
- * @param {JssyValueDefinition|JssyTypeDefinition} typedefOrValueDef
- * @param {Object<string, JssyTypeDefinition>} userTypedefs
- * @return {JssyValueDefinition}
+ * @param {BoobenValueDefinition|BoobenTypeDefinition} typedefOrValueDef
+ * @param {Object<string, BoobenTypeDefinition>} userTypedefs
+ * @return {BoobenValueDefinition}
  */
 const ensureValueDef = (typedefOrValueDef, userTypedefs) => {
-  if (isJssyValueDefinition(typedefOrValueDef)) return typedefOrValueDef;
+  if (isBoobenValueDefinition(typedefOrValueDef)) return typedefOrValueDef;
 
   const ret = {
     ...typedefOrValueDef,
@@ -522,12 +522,12 @@ const defaultBuildDefaultValueOptions = {
 
 /**
  *
- * @param {JssyValueDefinition|JssyTypeDefinition} valueDef
+ * @param {BoobenValueDefinition|BoobenTypeDefinition} valueDef
  * @param {?Object<string, Object<string, string>>} [strings=null]
  * @param {string} [language='']
- * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
+ * @param {?Object<string, BoobenTypeDefinition>} [userTypedefs=null]
  * @param {?BuildDefaultValueOptions} [options=null]
- * @return {?PlainJssyValue}
+ * @return {?PlainBoobenValue}
  */
 export const buildDefaultValue = (
   valueDef,
@@ -548,8 +548,8 @@ export const buildDefaultValue = (
  * @param {Object<string, ComponentPropMeta>} propsMeta
  * @param {?Object<string, Object<string, string>>} [strings=null]
  * @param {string} [language='']
- * @param {?Object<string, JssyTypeDefinition>} [userTypedefs=null]
- * @return {Object<string, PlainJssyValue>}
+ * @param {?Object<string, BoobenTypeDefinition>} [userTypedefs=null]
+ * @return {Object<string, PlainBoobenValue>}
  */
 const buildDefaultProps = (
   propsMeta,
@@ -691,7 +691,7 @@ export const constructComponent = (
 
 /**
  *
- * @param {JssyValueDefinition} valueDef
+ * @param {BoobenValueDefinition} valueDef
  * @return {boolean}
  */
 export const valueHasDataContest = valueDef =>

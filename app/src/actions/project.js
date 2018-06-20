@@ -37,20 +37,20 @@ export const PROJECT_COMPONENT_CONVERT_TO_LIST =
 
 export const PROJECT_CREATE_FUNCTION = 'PROJECT_CREATE_FUNCTION';
 
-export const PROJECT_JSSY_VALUE_REPLACE =
-  'PROJECT_JSSY_VALUE_REPLACE';
-export const PROJECT_JSSY_VALUE_ADD_ACTION =
-  'PROJECT_JSSY_VALUE_ADD_ACTION';
-export const PROJECT_JSSY_VALUE_REPLACE_ACTION =
-  'PROJECT_JSSY_VALUE_REPLACE_ACTION';
-export const PROJECT_JSSY_VALUE_DELETE_ACTION =
-  'PROJECT_JSSY_VALUE_DELETE_ACTION';
-export const PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT =
-  'PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT';
-export const PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE =
-  'PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE';
-export const PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL =
-  'PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL';
+export const PROJECT_BOOBEN_VALUE_REPLACE =
+  'PROJECT_BOOBEN_VALUE_REPLACE';
+export const PROJECT_BOOBEN_VALUE_ADD_ACTION =
+  'PROJECT_BOOBEN_VALUE_ADD_ACTION';
+export const PROJECT_BOOBEN_VALUE_REPLACE_ACTION =
+  'PROJECT_BOOBEN_VALUE_REPLACE_ACTION';
+export const PROJECT_BOOBEN_VALUE_DELETE_ACTION =
+  'PROJECT_BOOBEN_VALUE_DELETE_ACTION';
+export const PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT =
+  'PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT';
+export const PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT_SAVE =
+  'PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT_SAVE';
+export const PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT_CANCEL =
+  'PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT_CANCEL';
 
 export const PROJECT_PICK_COMPONENT =
   'PROJECT_PICK_COMPONENT';
@@ -269,11 +269,11 @@ export const moveComponentToClipboard = (componentId, copy) => ({
 /**
  *
  * @param {Path} path
- * @param {JssyValue} newValue
+ * @param {BoobenValue} newValue
  * @return {Object}
  */
-export const replaceJssyValue = triggersProjectSave((path, newValue) => ({
-  type: PROJECT_JSSY_VALUE_REPLACE,
+export const replaceBoobenValue = triggersProjectSave((path, newValue) => ({
+  type: PROJECT_BOOBEN_VALUE_REPLACE,
   path,
   newValue,
 }));
@@ -285,7 +285,7 @@ export const replaceJssyValue = triggersProjectSave((path, newValue) => ({
  * @return {Object}
  */
 export const addAction = triggersProjectSave((path, action) => ({
-  type: PROJECT_JSSY_VALUE_ADD_ACTION,
+  type: PROJECT_BOOBEN_VALUE_ADD_ACTION,
   path,
   action,
 }));
@@ -298,7 +298,7 @@ export const addAction = triggersProjectSave((path, action) => ({
  * @return {Object}
  */
 export const replaceAction = triggersProjectSave((path, index, newAction) => ({
-  type: PROJECT_JSSY_VALUE_REPLACE_ACTION,
+  type: PROJECT_BOOBEN_VALUE_REPLACE_ACTION,
   path,
   index,
   newAction,
@@ -311,7 +311,7 @@ export const replaceAction = triggersProjectSave((path, index, newAction) => ({
  * @return {Object}
  */
 export const deleteAction = triggersProjectSave((path, index) => ({
-  type: PROJECT_JSSY_VALUE_DELETE_ACTION,
+  type: PROJECT_BOOBEN_VALUE_DELETE_ACTION,
   path,
   index,
 }));
@@ -324,7 +324,7 @@ export const deleteAction = triggersProjectSave((path, index) => ({
  * @return {Object}
  */
 export const constructComponentForProp = (path, components, rootId) => ({
-  type: PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT,
+  type: PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT,
   path,
   components,
   rootId,
@@ -335,7 +335,7 @@ export const constructComponentForProp = (path, components, rootId) => ({
  * @return {Object}
  */
 export const cancelConstructComponentForProp = () => ({
-  type: PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL,
+  type: PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT_CANCEL,
 });
 
 /**
@@ -343,7 +343,7 @@ export const cancelConstructComponentForProp = () => ({
  * @return {Object}
  */
 export const saveComponentForProp = triggersProjectSave(() => ({
-  type: PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE,
+  type: PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT_SAVE,
 }));
 
 /**

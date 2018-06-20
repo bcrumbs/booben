@@ -53,7 +53,7 @@ const _PageDrawerActionItem = props => {
         onMouseLeave={props.hideTooltip}
       >
         {button}
-        <TooltipComponent text={props.title} />
+        <TooltipComponent>{props.title}</TooltipComponent>
       </PageDrawerActionItemStyled>
     );
     /* eslint-enable react/jsx-handler-names */

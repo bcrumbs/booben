@@ -2,7 +2,6 @@ import styled, { css } from 'styled-components';
 import PropTypes from 'prop-types';
 import { iconSizeMixin } from 'reactackle-core';
 import constants from '../../styles/constants';
-import { baseModule } from '../../../../styles/themeSelectors';
 
 const propTypes = {
   colorScheme: PropTypes.oneOf(['default', 'alt']),

@@ -36,11 +36,11 @@ import LibraryGroupData from '../../models/LibraryGroupData';
 import Cursor from '../../models/Cursor';
 import { combineFiltersAll, mapListToArray, noop } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
-import * as JssyPropTypes from '../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../constants/common-prop-types';
 
 const propTypes = {
   meta: PropTypes.object.isRequired, // state
-  components: JssyPropTypes.components.isRequired, // state
+  components: BoobenPropTypes.components.isRequired, // state
   componentGroups: ImmutablePropTypes.listOf(
     PropTypes.instanceOf(LibraryGroupData),
   ).isRequired, // state

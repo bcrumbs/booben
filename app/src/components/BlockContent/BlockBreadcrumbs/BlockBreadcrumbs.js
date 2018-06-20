@@ -1,5 +1,5 @@
 import React from 'react';
-import { Breadcrumbs } from '@reactackle/reactackle';
+import { Breadcrumbs } from 'reactackle-breadcrumbs';
 import { BlockBreadcrumbsStyled } from './styles/BlockBreadcrumbsStyled';
 
 /* eslint-disable react/prop-types */

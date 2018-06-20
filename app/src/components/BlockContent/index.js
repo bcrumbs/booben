@@ -6,3 +6,4 @@ export * from './BlockContentNavigation/BlockContentNavigation';
 export * from './BlockContentActions/BlockContentActions';
 export * from './BlockContentPlaceholder/BlockContentPlaceholder';
 export * from './BlockBreadcrumbs/BlockBreadcrumbs';
+export * from './BlockContentViewButton/BlockContentViewButton';

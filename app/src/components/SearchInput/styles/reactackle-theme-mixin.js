@@ -5,7 +5,7 @@ export default {
         size: {
           denseFullWidth: {
             paddingY: 6,
-          }
+          },
         },
       },
 

@@ -11,23 +11,28 @@ import {
   currentComponentsSelector,
   isCanvasClearSelector,
   getLocalizedTextFromState,
+  currentRouteSelector,
 } from '../../../../selectors';
 
 import { OverlayContainer } from '../components/OverlayContainer';
 import { OverlayBoundingBox } from '../components/OverlayBoundingBox';
 import { OverlayOverlapBox } from '../components/OverlayOverlapBox';
 import { CanvasPlaceholder } from '../components/CanvasPlaceholder';
-import { formatComponentTitle } from '../../../../lib/components';
+import { formatComponentTitle, findComponent } from '../../../../lib/components';
 import { mapListToArray } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
-import * as JssyPropTypes from '../../../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../../../constants/common-prop-types';
+
+import ProjectRoute from '../../../../models/ProjectRoute';
+import Project from '../../../../models/Project';
 
 const propTypes = {
-  components: JssyPropTypes.components.isRequired,
-  selectedComponentIds: JssyPropTypes.setOfIds.isRequired,
-  highlightedComponentIds: JssyPropTypes.setOfIds.isRequired,
-  disabledComponentIds: JssyPropTypes.setOfIds.isRequired,
+  project: PropTypes.instanceOf(Project).isRequired,
+  components: BoobenPropTypes.components.isRequired,
+  selectedComponentIds: BoobenPropTypes.setOfIds.isRequired,
+  highlightedComponentIds: BoobenPropTypes.setOfIds.isRequired,
+  disabledComponentIds: BoobenPropTypes.setOfIds.isRequired,
   boundaryComponentId: PropTypes.number.isRequired,
   highlightingEnabled: PropTypes.bool.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
@@ -35,6 +40,11 @@ const propTypes = {
   pickingComponentData: PropTypes.bool.isRequired,
   isCanvasClear: PropTypes.bool.isRequired,
   getLocalizedText: PropTypes.func.isRequired,
+  currentRoute: PropTypes.instanceOf(ProjectRoute),
+};
+
+const defaultProps = {
+  currentRoute: INVALID_ID,
 };
 
 const contextTypes = {
@@ -42,6 +52,7 @@ const contextTypes = {
 };
 
 const mapStateToProps = state => ({
+  project: state.project.data,
   components: currentComponentsSelector(state),
   selectedComponentIds: selectedComponentIdsSelector(state),
   highlightedComponentIds: highlightedComponentIdsSelector(state),
@@ -53,6 +64,7 @@ const mapStateToProps = state => ({
   pickingComponentData: state.project.pickingComponentData,
   isCanvasClear: isCanvasClearSelector(state),
   getLocalizedText: getLocalizedTextFromState(state),
+  currentRoute: currentRouteSelector(state),
 });
 
 const wrap = connect(mapStateToProps);
@@ -63,6 +75,32 @@ const SELECT_COLOR = 'rgba(0, 113, 216, 1)';
 const SELECT_STYLE = 'solid';
 const BOUNDARY_COLOR = 'red';
 const BOUNDARY_STYLE = 'solid';
+
+const isRouteEditable = (routes, routeId, isIndexRoute) => {
+  const parentIds = [];
+  
+  if (isIndexRoute) {
+    parentIds.push(routeId);
+  }
+  
+  let currentRoute = routes.get(routeId);
+  
+  while (currentRoute.parentId !== INVALID_ID) {
+    parentIds.push(currentRoute.parentId);
+    currentRoute = routes.get(currentRoute.parentId);
+  }
+  
+  return parentIds.every(id => {
+    const route = routes.get(id);
+    const outlet = findComponent(
+      route.components,
+      route.component,
+      component => component.name === 'Outlet',
+    );
+
+    return outlet !== null;
+  });
+};
 
 class Overlay extends PureComponent {
   constructor(props, context) {
@@ -92,7 +130,7 @@ class Overlay extends PureComponent {
    */
   _getDOMElementByComponentId(id) {
     const container = this._getContainer();
-    return container.querySelector(`[data-jssy-id="${id}"]`) || null;
+    return container.querySelector(`[data-booben-id="${id}"]`) || null;
   }
 
   /**
@@ -157,6 +195,7 @@ class Overlay extends PureComponent {
 
   render() {
     const {
+      project,
       draggingComponent,
       pickingComponent,
       pickingComponentData,
@@ -167,6 +206,7 @@ class Overlay extends PureComponent {
       boundaryComponentId,
       isCanvasClear,
       getLocalizedText,
+      currentRoute,
     } = this.props;
 
     const disabledBoxes = disabledComponentIds.isEmpty()
@@ -210,6 +250,23 @@ class Overlay extends PureComponent {
       : null;
 
     let canvasPlaceholder = null;
+
+    if (currentRoute && currentRoute.parentId !== INVALID_ID) {
+      const parentHasOutlet = isRouteEditable(
+        project.routes,
+        currentRoute.id,
+        currentRoute.haveIndex,
+      );
+
+      if (!parentHasOutlet) {
+        canvasPlaceholder = (
+          <CanvasPlaceholder
+            key="canvas_placeholder"
+            text={getLocalizedText('design.canvas.placeholderNoParentRouteOutlet')}
+          />
+        );
+      }
+    }
     if (isCanvasClear && !draggingComponent) {
       canvasPlaceholder = (
         <CanvasPlaceholder
@@ -232,6 +289,7 @@ class Overlay extends PureComponent {
 }
 
 Overlay.propTypes = propTypes;
+Overlay.defaultProps = defaultProps;
 Overlay.contextTypes = contextTypes;
 Overlay.displayName = 'Overlay';
 

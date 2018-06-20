@@ -1,28 +1,24 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { graphql, withApollo } from 'react-apollo';
+import { graphql } from 'react-apollo';
 import Immutable from 'immutable';
 import forOwn from 'lodash.forown';
 import get from 'lodash.get';
 import set from 'lodash.set';
 import pick from 'lodash.pick';
 import defaultsDeep from 'lodash.defaultsdeep';
-import { resolveTypedef } from '@jssy/types';
+import { resolveTypedef } from 'booben-types';
 import { injectGlobal } from 'styled-components';
-
-const doInjectGlobal = styles => injectGlobal`
-  ${styles}
-`;
 
 import {
   FieldKinds,
-  getJssyValueDefOfMutationArgument,
+  getBoobenValueDefOfMutationArgument,
   getMutationField,
   getFieldOnType,
   findFirstConnectionInPath,
   RELAY_PAGEINFO_FIELDS,
   RELAY_PAGEINFO_FIELD_HAS_NEXT_PAGE,
-} from '@jssy/graphql-schema';
+} from 'booben-graphql-schema';
 
 import {
   isPseudoComponent,
@@ -32,7 +28,7 @@ import {
   mergeComponentsState,
 } from '../helpers';
 
-import JssyValue from '../../../models/JssyValue';
+import BoobenValue from '../../../models/BoobenValue';
 
 import {
   isCompositeComponent,
@@ -55,7 +51,7 @@ import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
 import ComponentsBundle from '../../../lib/ComponentsBundle';
 import { createPath, getObjectByPath } from '../../../lib/path';
 import { noop, mapListToArray } from '../../../utils/misc';
-import * as JssyPropTypes from '../../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../../constants/common-prop-types';
 
 import {
   INVALID_ID,
@@ -66,12 +62,16 @@ import {
   AJAX_URL_VALUE_DEF,
 } from '../../../constants/misc';
 
+const doInjectGlobal = styles => injectGlobal`
+  ${styles}
+`;
+
 const propTypes = {
   componentsBundle: PropTypes.instanceOf(ComponentsBundle).isRequired,
   project: PropTypes.any.isRequired,
   meta: PropTypes.object.isRequired,
   schema: PropTypes.object,
-  components: JssyPropTypes.components.isRequired,
+  components: BoobenPropTypes.components.isRequired,
   rootId: PropTypes.number,
   routeParams: PropTypes.object,
   propsFromOwner: PropTypes.object,
@@ -80,6 +80,7 @@ const propTypes = {
   client: PropTypes.object, // react-apollo
   onNavigate: PropTypes.func,
   onOpenURL: PropTypes.func,
+  routeId: PropTypes.number,
 };
 
 const defaultProps = {
@@ -93,9 +94,8 @@ const defaultProps = {
   client: null,
   onNavigate: noop,
   onOpenURL: noop,
+  routeId: INVALID_ID,
 };
-
-const wrap = withApollo;
 
 /**
  *
@@ -122,6 +122,8 @@ class PreviewBuilderComponent extends PureComponent {
     this._refs = new Map();
     this._pageInfos = Immutable.Map();
     this._graphQLVariables = new Map();
+    // this hack to prevent rerender for input components with binded default values
+    this._cachedApolloComponents = new Map();
 
     this.state = {
       dynamicPropValues: Immutable.Map(),
@@ -136,9 +138,14 @@ class PreviewBuilderComponent extends PureComponent {
 
   componentWillMount() {
     const styles = [];
-    this.props.components.forEach(component => {
+    const { routeId, components } = this.props;
+    components.forEach(component => {
       if (isHTMLComponent(component.name)) {
-        styles.push(`.styled${component.id}{ ${component.style} }`);
+        styles.push(
+          `.styledRoute${routeId}Component${component.id}{ ${
+            component.style
+          } }`,
+        );
       }
     });
     doInjectGlobal(styles.join('\n'));
@@ -202,7 +209,7 @@ class PreviewBuilderComponent extends PureComponent {
         if (mutationName === project.auth.loginMutation) {
           const tokenPath = [mutationName, ...project.auth.tokenPath];
           const token = get(response.data, tokenPath);
-          if (token) localStorage.setItem('jssy_auth_token', token);
+          if (token) localStorage.setItem('booben_auth_token', token);
         }
       }
     }
@@ -241,12 +248,12 @@ class PreviewBuilderComponent extends PureComponent {
 
     action.params.args.forEach((argValue, argName) => {
       const mutationArg = mutationField.args[argName];
-      const argJssyType = getJssyValueDefOfMutationArgument(
+      const argBoobenType = getBoobenValueDefOfMutationArgument(
         mutationArg,
         schema,
       );
 
-      const value = buildValue(argValue, argJssyType, null, valueContext);
+      const value = buildValue(argValue, argBoobenType, null, valueContext);
 
       if (value !== NO_VALUE) variables[argName] = value;
     });
@@ -381,7 +388,7 @@ class PreviewBuilderComponent extends PureComponent {
     );
 
     let newValue;
-    if (action.params.value.sourceIs(JssyValue.Source.ACTION_ARG)) {
+    if (action.params.value.sourceIs(BoobenValue.Source.ACTION_ARG)) {
       const targetComponent = components.get(action.params.componentId);
       const targetComponentMeta = getComponentMeta(
         targetComponent.name,
@@ -392,7 +399,7 @@ class PreviewBuilderComponent extends PureComponent {
         ? SYSTEM_PROPS[propName]
         : targetComponentMeta.props[propName];
 
-      newValue = JssyValue.staticFromJS(buildValue(
+      newValue = BoobenValue.staticFromJS(buildValue(
         action.params.value,
         targetPropMeta,
         targetComponent.types,
@@ -412,7 +419,7 @@ class PreviewBuilderComponent extends PureComponent {
    * @private
    */
   _performLogoutAction() {
-    localStorage.removeItem('jssy_auth_token');
+    localStorage.removeItem('booben_auth_token');
   }
 
   /**
@@ -610,13 +617,13 @@ class PreviewBuilderComponent extends PureComponent {
   /**
    *
    * @param {number} componentId
-   * @param {Object} jssyValue
-   * @param {JssyValueDefinition} valueDef
-   * @param {Object<string, JssyTypeDefinition>} userTypedefs
+   * @param {Object} boobenValue
+   * @param {BoobenValueDefinition} valueDef
+   * @param {Object<string, BoobenTypeDefinition>} userTypedefs
    * @param {ValueContext} valueContext
    * @private
    */
-  _handleActions(componentId, jssyValue, valueDef, userTypedefs, valueContext) {
+  _handleActions(componentId, boobenValue, valueDef, userTypedefs, valueContext) {
     const { componentsState } = this.state;
 
     const resolvedTypedef = resolveTypedef(valueDef, userTypedefs);
@@ -655,7 +662,7 @@ class PreviewBuilderComponent extends PureComponent {
         }
       }
     }
-    jssyValue.sourceData.actions.forEach(action => {
+    boobenValue.sourceData.actions.forEach(action => {
       this._performAction(action, valueContext);
     });
   }
@@ -696,25 +703,25 @@ class PreviewBuilderComponent extends PureComponent {
       data,
       routeParams,
       BuilderComponent: PreviewBuilder, // eslint-disable-line no-use-before-define
-      getBuilderProps: (ownProps, jssyValue, valueContext) => ({
+      getBuilderProps: (ownProps, boobenValue, valueContext) => ({
         componentsBundle,
         project,
         meta,
         schema,
         routeParams,
-        components: jssyValue.sourceData.components,
-        rootId: jssyValue.sourceData.rootId,
+        components: boobenValue.sourceData.components,
+        rootId: boobenValue.sourceData.rootId,
         propsFromOwner: ownProps,
         theMap: valueContext.theMap,
-        dataContextInfo: valueContext.theMap.get(jssyValue),
+        dataContextInfo: valueContext.theMap.get(boobenValue),
         onNavigate,
         onOpenURL,
       }),
 
-      handleActions: (jssyValue, valueDef, userTypedefs, valueContext) => {
+      handleActions: (boobenValue, valueDef, userTypedefs, valueContext) => {
         this._handleActions(
           componentId,
-          jssyValue,
+          boobenValue,
           valueDef,
           userTypedefs,
           valueContext,
@@ -845,20 +852,20 @@ class PreviewBuilderComponent extends PureComponent {
     const componentMeta = getComponentMeta(component.name, meta);
     let ret = Immutable.Map();
 
-    const visitValue = jssyValue => {
-      if (!jssyValue.isLinkedWithData()) return;
-      if (jssyValue.sourceData.dataContext.size > 0) return;
+    const visitValue = boobenValue => {
+      if (!boobenValue.isLinkedWithData()) return;
+      if (boobenValue.sourceData.dataContext.size > 0) return;
 
       let currentNode = queryResultRoot;
       let currentTypeName = schema.queryTypeName;
 
       // eslint-disable-next-line consistent-return
-      jssyValue.sourceData.queryPath.forEach((step, idx) => {
+      boobenValue.sourceData.queryPath.forEach((step, idx) => {
         if (currentNode === null) return false;
 
         const field = getFieldOnType(schema, currentTypeName, step.field);
         if (field.kind === FieldKinds.CONNECTION) {
-          const dataFieldKey = getDataFieldKey(step.field, jssyValue);
+          const dataFieldKey = getDataFieldKey(step.field, boobenValue);
           const pageInfo = pick(
             currentNode[dataFieldKey].pageInfo,
             RELAY_PAGEINFO_FIELDS,
@@ -875,10 +882,10 @@ class PreviewBuilderComponent extends PureComponent {
             }
           }
 
-          ret = ret.setIn([jssyValue, idx], pageInfo);
+          ret = ret.setIn([boobenValue, idx], pageInfo);
         }
 
-        const alias = `${step.field}${jssyValue.sourceData.aliasPostfix}`;
+        const alias = `${step.field}${boobenValue.sourceData.aliasPostfix}`;
         currentNode = currentNode[alias];
         currentTypeName = field.type;
       });
@@ -939,13 +946,13 @@ class PreviewBuilderComponent extends PureComponent {
       schema,
       project,
       theMap: thePreviousMap,
+      routeId,
     } = this.props;
 
     if (isPseudoComponent(component)) {
       return this._renderPseudoComponent(component);
     }
 
-    const isHTML = isHTMLComponent(component.name);
     const Component = getComponentByName(component.name, componentsBundle);
     const { query: graphQLQuery, variables: graphQLVariables, theMap } =
       buildQueryForComponent(component, schema, meta, project);
@@ -969,21 +976,24 @@ class PreviewBuilderComponent extends PureComponent {
       props.ref = this._saveComponentRef.bind(this, component.id);
     }
 
-    // if (isHTML) {
-    //   props.style = component.style;
-    // }
-
     let Renderable = Component;
 
     if (graphQLQuery) {
-      const gqlHoc = this._createApolloHOC(
-        component,
-        graphQLQuery,
-        graphQLVariables,
-        theMergedMap,
-      );
+      if (!this._cachedApolloComponents.has(component.id)) {
 
-      Renderable = gqlHoc(Component);
+        const gqlHoc = this._createApolloHOC(
+          component,
+          graphQLQuery,
+          graphQLVariables,
+          theMergedMap,
+        );
+
+        const renderableComponent = gqlHoc(Component);
+
+        this._cachedApolloComponents.set(component.id, renderableComponent);
+      }
+      
+      Renderable = this._cachedApolloComponents.get(component.id);
     }
 
     let element;
@@ -991,7 +1001,7 @@ class PreviewBuilderComponent extends PureComponent {
     
     if (isHTMLComponent(component.name)) {
       const { name } = parseComponentName(component.name);
-      let className = `styled${component.id}`;
+      let className = `styledRoute${routeId}Component${component.id}`;
       
       if (props.className) {
         className += ` ${props.className}`;
@@ -1026,4 +1036,4 @@ PreviewBuilderComponent.propTypes = propTypes;
 PreviewBuilderComponent.defaultProps = defaultProps;
 PreviewBuilderComponent.displayName = 'PreviewBuilder';
 
-export const PreviewBuilder = wrap(PreviewBuilderComponent);
+export const PreviewBuilder = PreviewBuilderComponent

@@ -11,7 +11,7 @@ import {
 
 import { IconCross } from '../../components/icons';
 
-import jssyTheme from './jssy';
+import boobenTheme from './booben';
 
 const fontColorBodyLight = paletteBlueGrey[25];
 const fontColorMedium = paletteBlueGrey[400];
@@ -66,9 +66,10 @@ export default {
         title: {
           collapsed: {
             backgroundColor: accordionConstants.bgColor,
-              textTransform: 'none',
+            textTransform: 'none',
+            paddingLeft: baseModule * 2.5,
 
-              hover: {
+            hover: {
               backgroundColor: accordionConstants.bgColorHover,
             },
 
@@ -79,9 +80,10 @@ export default {
 
           expanded: {
             backgroundColor: accordionConstants.bgColor,
-              textTransform: 'none',
+            textTransform: 'none',
+            paddingLeft: baseModule * 2.5,
 
-              hover: {
+            hover: {
               backgroundColor: accordionConstants.bgColorHover,
             },
 
@@ -103,29 +105,29 @@ export default {
           icon: {
             width: 24,
             imgSize: 18,
-          }
+          },
         },
         normal: {
           icon: {
             width: 24,
             imgSize: 18,
-          }
+          },
         },
       },
 
       disabled: {
-        backgroundColor: jssyTheme.jssy.color.stateHoverDark,
+        backgroundColor: boobenTheme.booben.color.stateHoverDark,
         fontColor: fontColorMedium,
       },
 
       colorScheme: {
         flatLight: {
           hover: {
-            backgroundColor: jssyTheme.jssy.color.stateHoverDark,
+            backgroundColor: boobenTheme.booben.color.stateHoverDark,
           },
 
           focus: {
-            backgroundColor: jssyTheme.jssy.color.stateFocusDark,
+            backgroundColor: boobenTheme.booben.color.stateFocusDark,
           },
         },
       },
@@ -134,7 +136,7 @@ export default {
     checkbox: {
       label: {
         fontColor: fontColorBodyLight,
-      }
+      },
     },
 
     dialog: {
@@ -170,7 +172,7 @@ export default {
           focus: {
             color: fontColorBodyLight,
           },
-        }
+        },
       },
     },
 
@@ -194,11 +196,11 @@ export default {
           borderColor: colorBorder,
 
           hover: {
-            backgroundColor: jssyTheme.jssy.color.stateHoverDark,
+            backgroundColor: boobenTheme.booben.color.stateHoverDark,
           },
 
           focus: {
-            backgroundColor: jssyTheme.jssy.color.stateFocusDark,
+            backgroundColor: boobenTheme.booben.color.stateFocusDark,
           },
 
           disabled: {
@@ -214,11 +216,11 @@ export default {
       option: {
         style: {
           hover: {
-            backgroundColor: jssyTheme.jssy.color.stateHoverDark,
+            backgroundColor: boobenTheme.booben.color.stateHoverDark,
           },
 
           focus: {
-            backgroundColor: jssyTheme.jssy.color.stateFocusDark,
+            backgroundColor: boobenTheme.booben.color.stateFocusDark,
           },
         },
       },

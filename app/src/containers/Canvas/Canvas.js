@@ -155,7 +155,7 @@ class CanvasComponent extends Component {
     if (!this._iframe) return null;
 
     const document = this._iframe.contentWindow.document;
-    const selector = `[data-jssy-id="${componentId}"]`;
+    const selector = `[data-booben-id="${componentId}"]`;
     const element = document.querySelector(selector);
 
     if (!element) return null;
@@ -306,8 +306,8 @@ class CanvasComponent extends Component {
 
     const document = contentWindow.document;
     const initialContent = contentTemplate({
-      jssyContainerId: CANVAS_CONTAINER_ID,
-      jssyOverlayId: CANVAS_OVERLAY_ID,
+      boobenContainerId: CANVAS_CONTAINER_ID,
+      boobenOverlayId: CANVAS_OVERLAY_ID,
     });
 
     document.open('text/html', 'replace');

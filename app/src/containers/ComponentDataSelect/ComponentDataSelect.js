@@ -11,11 +11,11 @@ import {
 
 import { getLocalizedTextFromState } from '../../selectors';
 import { noop } from '../../utils/misc';
-import * as JssyPropTypes from '../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../constants/common-prop-types';
 
 const propTypes = {
   componentDataItems: PropTypes.arrayOf(
-    JssyPropTypes.componentDataItem,
+    BoobenPropTypes.componentDataItem,
   ).isRequired,
   getLocalizedText: PropTypes.func.isRequired, // state
   onSelect: PropTypes.func,

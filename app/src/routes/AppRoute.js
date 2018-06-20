@@ -1,24 +1,27 @@
 import React, { Component } from 'react';
+import FileSaver from 'file-saver';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { compose } from 'redux';
-import { Route, Switch, Redirect } from 'react-router';
+import { Route, Switch } from 'react-router';
 import { Link } from 'react-router-dom';
+import { AlertArea } from 'reactackle-alert-area';
+import { App, TopRegion } from 'reactackle-app';
 
 import {
   Header,
   HeaderRegion,
-  HeaderLogoBox,
+} from 'reactackle-header';
+
+import {
   Menu,
   MenuGroup,
   MenuList,
   MenuItem,
-  AlertArea,
-} from '@reactackle/reactackle';
+} from 'reactackle-menu';
 
-import { App, TopRegion } from 'reactackle-app';
+import { HeaderLogo } from '../components';
 
-import StructureRoute from './StructureRoute';
 import DesignRoute from './DesignRoute';
 import { DrawerTopDesign } from '../containers/DrawerTopDesign/DrawerTopDesign';
 
@@ -28,13 +31,13 @@ import {
 
 import { alertAreaProvider } from '../hocs/alerts';
 import ProjectRecord from '../models/Project';
+import { projectToJSv1 } from '../models/Project';
 import { getLocalizedTextFromState } from '../selectors';
 
 import {
-  PATH_STRUCTURE,
+  PATH_DESIGN,
   PATH_DESIGN_ROUTE,
   PATH_DESIGN_ROUTE_INDEX,
-  buildStructurePath,
   buildDesignRoutePath,
   buildDesignRouteIndexPath,
 } from '../constants/paths';
@@ -42,10 +45,13 @@ import {
 import { URL_PREVIEW_PREFIX } from '../../../shared/constants';
 import { IconPlay, IconUpload } from '../components/icons';
 
+import { getCode } from '../lib/api';
+
 const propTypes = {
   location: PropTypes.object.isRequired, // router
   projectName: PropTypes.string.isRequired, // state
   project: PropTypes.instanceOf(ProjectRecord).isRequired, // state
+  meta: PropTypes.object.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onAlertAreaReady: PropTypes.func.isRequired, // alertAreaProvider
   onAlertAreaRemoved: PropTypes.func.isRequired, // alertAreaProvider
@@ -54,6 +60,7 @@ const propTypes = {
 const mapStateToProps = state => ({
   projectName: state.project.projectName,
   project: state.project.data,
+  meta: state.project.meta,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -104,9 +111,26 @@ TopMenuExternalLink.defaultProps = {
 TopMenuExternalLink.displayName = 'TopMenuExternalLink';
 
 class AppRoute extends Component {
+  constructor(props, context) {
+    super(props, context);
+    this._getProjectCode = this._getProjectCode.bind(this);
+  }
+
   componentWillUnmount() {
     const { onAlertAreaRemoved } = this.props;
     onAlertAreaRemoved();
+  }
+
+  async _getProjectCode() {
+    const { project, meta } = this.props;
+    try {
+      const jsProject = projectToJSv1(project);
+      const res = await getCode(jsProject, meta);
+
+      FileSaver.saveAs(res, "project.zip");
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   render() {
@@ -118,11 +142,7 @@ class AppRoute extends Component {
       onAlertAreaReady,
     } = this.props;
 
-    let routeName = projectName;
-
-    if (process.env.NODE_ENV === 'production') {
-      routeName = project._id;
-    }
+    const routeName = projectName;
 
     const routeMenuItems = [];
     const currentPath = location.pathname;
@@ -169,37 +189,31 @@ class AppRoute extends Component {
       <App fixed>
         <TopRegion>
           <Header size="blank">
-            <HeaderRegion size="blank">
-              <HeaderLogoBox title={title} />
+            <HeaderRegion size="blank" verticalAlign="center">
+              <HeaderLogo>{title}</HeaderLogo>
             </HeaderRegion>
 
-            <HeaderRegion spread size="blank">
-              <Menu inline dense mode="light">
-                <MenuGroup>
-                  <MenuList>
-                    <MenuItem
-                      text={getLocalizedText('appHeader.menu.structure')}
-                      linkHref={`/${routeName}/structure`}
-                      linkComponent={TopMenuLink}
-                    />
-                  </MenuList>
-                </MenuGroup>
-              </Menu>
-            </HeaderRegion>
+            <HeaderRegion spread size="blank" verticalAlign="center" />
 
-            <HeaderRegion size="blank">
+            <HeaderRegion size="blank" verticalAlign="center">
               <ProjectSaveIndicator />
             </HeaderRegion>
 
-            <HeaderRegion size="blank">
+            <HeaderRegion size="blank" verticalAlign="center">
               <Menu inline dense mode="light">
                 <MenuGroup>
                   <MenuList>
                     <MenuItem
+                      renderLink
                       text={getLocalizedText('appHeader.menu.preview')}
                       linkHref={`${URL_PREVIEW_PREFIX}/${routeName}`}
                       linkComponent={TopMenuExternalLink}
-                      iconLeft={<IconPlay border borderWidth={1} rounded />}
+                      iconLeft={<IconPlay border borderWidth={1} rounded size='small' />}
+                    />
+                    <MenuItem
+                      text={getLocalizedText('appHeader.menu.codegen')}
+                      iconLeft={<IconUpload size='small' />}
+                      onClick={this._getProjectCode}
                     />
                   </MenuList>
                 </MenuGroup>
@@ -218,8 +232,8 @@ class AppRoute extends Component {
         <Switch>
           <Route
             exact
-            path={PATH_STRUCTURE}
-            component={StructureRoute}
+            path={PATH_DESIGN}
+            component={DesignRoute}
           />
 
           <Route
@@ -232,12 +246,6 @@ class AppRoute extends Component {
             exact
             path={PATH_DESIGN_ROUTE_INDEX}
             component={DesignRoute}
-          />
-
-          <Route
-            render={({ match }) => (
-              <Redirect to={buildStructurePath(match.params)} />
-            )}
           />
         </Switch>
 

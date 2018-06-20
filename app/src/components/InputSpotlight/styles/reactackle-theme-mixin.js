@@ -1,7 +1,3 @@
-/**
- * @author Ekaterina Marova
- */
-
 const twoBaseModules = base => base.baseModule * 2;
 const threeBaseModules = base => base.baseModule * 3;
 const fontSizeTwo = base => base.fontSize[2];

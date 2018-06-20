@@ -14,6 +14,7 @@ import {
   DESKTOP_TOOL_OPEN,
   DESKTOP_SET_STICKY_TOOL,
   DESKTOP_TOOL_SET_ACTIVE_SECTION,
+  TOGGLE_TREE_VIEW_MODE,
 } from '../actions/desktop';
 
 import {
@@ -24,6 +25,10 @@ import {
   PREVIEW_DESELECT_COMPONENT,
   ComponentDropAreas,
 } from '../actions/preview';
+
+import {
+  STRUCTURE_SELECT_ROUTE,
+} from '../actions/structure';
 
 import {
   PROJECT_PICK_COMPONENT,
@@ -44,36 +49,59 @@ import { PATH_STRUCTURE, PATH_DESIGN } from '../constants/paths';
 
 const DesktopState = Record({
   toolStates: Map(),
-  toolsPanelIsExpanded: true,
+  leftToolsPanelIsExpanded: true,
+  rightToolsPanelIsExpanded: true,
+  // TODO: clean this
   activeToolId: null,
+  leftActiveToolId: null,
+  rightActiveToolId: null,
   shadowedToolId: null,
   topToolZIndex: 0,
   stickyToolId: null,
   pickingComponentData: false,
+  treeViewMode: 'routeTree',
 });
 
 const selectTool = (state, toolId) => {
-  if (toolId === state.activeToolId && state.toolsPanelIsExpanded) {
-    return state;
-  }
+  if (toolId === null) return state;
+  const position = state.toolStates.get(toolId).position;
+  
+  if (position === 'left') {
+    if (state.leftActiveToolId !== null) {
+      state = state.setIn(
+        ['toolStates', state.leftActiveToolId, 'isActiveInToolsPanel'],
+        false,
+      );
+    }
 
-  if (state.activeToolId !== null) {
-    state = state.setIn(
-      ['toolStates', state.activeToolId, 'isActiveInToolsPanel'],
-      false,
-    );
-  }
+    if (toolId !== null && state.toolStates.has(toolId)) {
+      return state
+        .setIn(['toolStates', toolId, 'isActiveInToolsPanel'], true)
+        .merge({
+          leftActiveToolId: toolId,
+          leftToolsPanelIsExpanded: true,
+        });
+    } else {
+      return state;
+    }
+  } else if (position === 'right') {
+    if (state.rightActiveToolId !== null) {
+      state = state.setIn(
+        ['toolStates', state.rightActiveToolId, 'isActiveInToolsPanel'],
+        false,
+      );
+    }
 
-  if (toolId !== null && state.toolStates.has(toolId)) {
-    return state
-      .setIn(['toolStates', toolId, 'isActiveInToolsPanel'], true)
-      .merge({
-        activeToolId: toolId,
-        toolsPanelIsExpanded: true,
-      });
-  } else {
-    return state.set('activeToolId', null);
+    if (toolId !== null && state.toolStates.has(toolId)) {
+      return state
+        .setIn(['toolStates', toolId, 'isActiveInToolsPanel'], true)
+        .merge({
+          rightActiveToolId: toolId,
+          rightToolsPanelIsExpanded: true,
+        });
+    }
   }
+  return state;
 };
 
 const changeToolStateProp = (state, toolId, prop, value) =>
@@ -121,7 +149,11 @@ const setActiveTools = (state, toolIds) => {
   
   toolIds.forEach(toolId => {
     if (!state.toolStates.has(toolId)) {
-      newToolStates[toolId] = new ToolStateRecord();
+      if (toolId === 'componentsTree' || toolId === 'routesTree') {
+        newToolStates[toolId] = new ToolStateRecord({ position: 'left' });
+      } else {
+        newToolStates[toolId] = new ToolStateRecord();
+      }
     }
   });
   
@@ -134,10 +166,14 @@ const setActiveTools = (state, toolIds) => {
   const needToChangeActiveTool =
     state.activeToolId === null ||
     !toolIds.includes(state.activeToolId);
-  
-  return needToChangeActiveTool
-    ? selectTool(state, toolIds.get(0) || null)
-    : state;
+
+  if (needToChangeActiveTool) {
+    state = selectTool(state, toolIds.get(0) || null);
+    state = selectTool(state, toolIds.get(1) || null);
+    return state;
+  } else {
+    return state;
+  }
 };
 
 const handlers = {
@@ -157,6 +193,16 @@ const handlers = {
       exact: false,
       strict: false,
     });
+
+    const designMatchExact = matchPath(pathname, {
+      path: PATH_DESIGN,
+      exact: true,
+      strict: false,
+    });
+
+    if (designMatchExact) {
+      state = state.setIn(['treeViewMode'], 'routesList');
+    }
     
     if (designMatch) return setActiveTools(state, TOOL_IDS_DESIGN);
     
@@ -166,19 +212,35 @@ const handlers = {
   [DESKTOP_SET_TOOLS]: (state, action) =>
     setActiveTools(state, action.toolIds),
   
-  [DESKTOP_COLLAPSE_TOOLS_PANEL]: state =>
-    state.set('toolsPanelIsExpanded', false),
+  [DESKTOP_COLLAPSE_TOOLS_PANEL]: (state, action) => {
+    if (action.position === 'left') {
+      return state.set('leftToolsPanelIsExpanded', false);
+    } else if (action.position === 'right') {
+      return state.set('rightToolsPanelIsExpanded', false);
+    } else {
+      return state;
+    }
+  },
+    
   
-  [DESKTOP_EXPAND_TOOLS_PANEL]: state =>
-    state.set('toolsPanelIsExpanded', true),
+  [DESKTOP_EXPAND_TOOLS_PANEL]: (state, action) => {
+    if (action.position === 'left') {
+      return state.set('leftToolsPanelIsExpanded', true);
+    } else if (action.position === 'right') {
+      return state.set('rightToolsPanelIsExpanded', true);
+    } else {
+      return state;
+    }
+  },
+    
   
   [DESKTOP_TOOL_DOCK]: (state, action) => {
-    if (state.activeToolId !== null) {
-      state = state.setIn(
-        ['toolStates', state.activeToolId, 'isActiveInToolsPanel'],
-        false,
-      );
-    }
+    const position = state.toolStates.get(action.toolId).position;
+
+    state = state.setIn(
+      ['toolStates', state[`${position}ActiveToolId`], 'isActiveInToolsPanel'],
+      false,
+    );
   
     if (state.stickyToolId !== null) {
       state = state.setIn(
@@ -194,11 +256,13 @@ const handlers = {
       .setIn(['toolStates', action.toolId, 'isActiveInToolsPanel'], true)
       .merge({
         stickyToolId: null,
-        activeToolId: action.toolId,
+        [`${position}ActiveToolId`]: action.toolId,
       });
   },
   
   [DESKTOP_TOOL_UNDOCK]: (state, action) => {
+    const position = state.toolStates.get(action.toolId).position;
+    
     if (!state.toolStates.has(action.toolId)) return state;
   
     if (state.activeToolId !== null) {
@@ -217,7 +281,7 @@ const handlers = {
   
     return state
       .setIn(['toolStates', action.toolId, 'docked'], false)
-      .set('activeToolId', action.nextActiveToolId);
+      .set(`${position}ActiveToolId`, action.nextActiveToolId);
   },
   
   [DESKTOP_TOOL_CLOSE]: (state, action) =>
@@ -251,6 +315,7 @@ const handlers = {
     if (action.toolId !== null && state.toolStates.has(action.toolId)) {
       return state
         .setIn(['toolStates', action.toolId, 'isInDockRegion'], true)
+        .setIn(['toolStates', action.toolId, 'position'], action.position)
         .set('stickyToolId', action.toolId);
     } else {
       return state.set('stickyToolId', null);
@@ -266,10 +331,13 @@ const handlers = {
   [PREVIEW_START_DRAG_EXISTING_COMPONENT]: state =>
     temporarilySelectTool(state, TOOL_ID_COMPONENTS_TREE),
   
-  [PREVIEW_DROP_COMPONENT]: (state, action) =>
-    action.dropOnAreaId === ComponentDropAreas.TREE
+  [PREVIEW_DROP_COMPONENT]: (state, action) => {
+    state = state.setIn(['treeViewMode'], 'routeTree');
+    
+    return action.dropOnAreaId === ComponentDropAreas.TREE
       ? state
-      : selectPreviousTool(state),
+      : selectPreviousTool(state);
+  },
   
   [PROJECT_PICK_COMPONENT]: (state, action) => {
     state = state.set('pickingComponentData', action.pickData);
@@ -284,12 +352,24 @@ const handlers = {
   
   [PROJECT_PICK_COMPONENT_CANCEL]: state => selectPreviousTool(state),
 
+  [STRUCTURE_SELECT_ROUTE]: (state, action) => {
+    if (action.openConfigurationTool) {
+      const componentConfigToolState =
+        state.toolStates.get(TOOL_ID_PROPS_EDITOR);
+
+      if (componentConfigToolState && componentConfigToolState.docked) {
+        state = selectTool(state, TOOL_ID_PROPS_EDITOR);
+      }
+    }
+    return setActiveSection(state, state.activeToolId, 0);
+  },
   [PREVIEW_SELECT_COMPONENT]: (state, action) => {
     if (action.openConfigurationTool) {
       const componentConfigToolState =
         state.toolStates.get(TOOL_ID_PROPS_EDITOR);
   
       if (componentConfigToolState && componentConfigToolState.docked) {
+        state = state.setIn(['treeViewMode'], 'routeTree');
         state = selectTool(state, TOOL_ID_PROPS_EDITOR);
       }
     }
@@ -299,6 +379,18 @@ const handlers = {
 
   [PREVIEW_DESELECT_COMPONENT]: state =>
     setActiveSection(state, state.activeToolId, 0),
+
+  [TOGGLE_TREE_VIEW_MODE]: state => {
+    const currentTreeViewMode = state.treeViewMode;
+
+    if (currentTreeViewMode === 'routeTree') {
+      return state.setIn(['treeViewMode'], 'routesList');
+    } else if (currentTreeViewMode === 'routesList') {
+      return state.setIn(['treeViewMode'], 'routeTree');
+    } else {
+      return state;
+    }
+  },
 };
 
 export default (state = new DesktopState(), action) =>

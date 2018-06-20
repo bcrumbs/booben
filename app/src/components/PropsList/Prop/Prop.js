@@ -24,7 +24,7 @@ import {
   ValueShape,
   PropTypeShape,
   isComplexView,
-  jssyTypeToView,
+  boobenTypeToView,
 } from './common';
 
 import { noop, returnArg } from '../../../utils/misc';
@@ -581,5 +581,5 @@ Prop.displayName = 'Prop';
 // Export utils
 export {
   PropViews,
-  jssyTypeToView,
+  boobenTypeToView,
 };

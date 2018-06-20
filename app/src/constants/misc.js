@@ -12,7 +12,7 @@ export const NO_VALUE = Symbol('NO_VALUE');
 
 /**
  *
- * @type {Object<string, JssyValueDefinition>}
+ * @type {Object<string, BoobenValueDefinition>}
  */
 export const SYSTEM_PROPS = {
   visible: {
@@ -31,7 +31,7 @@ export const SYSTEM_PROPS = {
 
 /**
  *
- * @type {JssyValueDefinition}
+ * @type {BoobenValueDefinition}
  */
 export const ROUTE_PARAM_VALUE_DEF = {
   type: 'string',
@@ -49,7 +49,7 @@ export const ROUTE_PARAM_VALUE_DEF = {
 
 /**
  *
- * @type {JssyValueDefinition}
+ * @type {BoobenValueDefinition}
  */
 export const AJAX_URL_VALUE_DEF = {
   type: 'string',
@@ -67,7 +67,7 @@ export const AJAX_URL_VALUE_DEF = {
 
 /**
  *
- * @type {JssyValueDefinition}
+ * @type {BoobenValueDefinition}
  */
 export const AJAX_BODY_VALUE_DEF = {
   type: 'any',

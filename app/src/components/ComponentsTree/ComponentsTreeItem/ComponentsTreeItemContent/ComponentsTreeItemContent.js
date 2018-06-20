@@ -1,24 +1,12 @@
-/**
- * @author Vladimir Nadygin
- */
-
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { noop } from '../../../../utils/misc';
-import { ItemContentStyled } from './styles/ItemContentStyled';
-import { ItemButtonExpand } from '../ItemButton/ItemButtonExpand';
-import { ButtonsStyled } from '../styles/ButtonsStyled';
-import { IconStyled } from '../styles/IconStyled';
-import { SpacerStyled } from '../styles/SpacerStyled';
-
-import {
-  ComponentsTreeItemTitle,
-} from '../ComponentsTreeItemTitle/ComponentsTreeItemTitle';
+import { TreeItemContent } from '../../../Tree';
 
 const propTypes = {
+  ...TreeItemContent.propTypes,
+
   componentId: PropTypes.number.isRequired,
-  title: PropTypes.string,
-  hasSubLevel: PropTypes.bool,
   expanded: PropTypes.bool,
   active: PropTypes.bool,
   selected: PropTypes.bool,
@@ -31,8 +19,8 @@ const propTypes = {
 };
 
 const defaultProps = {
-  title: '',
-  hasSubLevel: false,
+  ...TreeItemContent.defaultProps,
+
   expanded: false,
   active: false,
   selected: false,
@@ -90,57 +78,33 @@ export class ComponentsTreeItemContent extends PureComponent {
 
   _handleClick(event) {
     const { componentId, active, disabled, onSelect } = this.props;
+    // TODO: find a better way to prevent clicking from expand icon element
+    if (event.target.nodeName !== 'DIV') return;
+
     if (!disabled) {
       event.stopPropagation();
       onSelect({ componentId, selected: !active });
     }
   }
+
   _saveItemContentRef(ref) {
     const { componentId, elementRef } = this.props;
-    this._titleElement = ref;
     elementRef({ componentId, ref });
   }
 
   render() {
-    const { expanded, title, hasSubLevel } = this.props;
-    let button = null;
-    let spacer = null;
-
-    if (hasSubLevel) {
-      button = (
-        <ButtonsStyled>
-          <IconStyled innerRef={this._saveExpandButtonRef}>
-            <ItemButtonExpand
-              disabled={this.props.disabled}
-              expanded={expanded}
-            />
-          </IconStyled>
-        </ButtonsStyled>
-      );
-    } else {
-      spacer = <SpacerStyled />;
-    }
-
     return (
-      <ItemContentStyled
-        hovered={this.props.hovered}
-        active={this.props.active}
-        selected={this.props.selected}
-        disabled={this.props.disabled}
-        innerRef={this._saveItemContentRef}
+      <TreeItemContent
+        {...this.props}
         onMouseOver={this._handleHoverIn}
         onMouseOut={this._handleHoverOut}
         onClick={this._handleClick}
-      >
-        {spacer}
-        {button}
-        <ComponentsTreeItemTitle title={title} />
-      </ItemContentStyled>
+        innerRef={this._saveItemContentRef}
+        expandButtonRef={this._saveExpandButtonRef}
+      />
     );
   }
 }
 
-
 ComponentsTreeItemContent.propTypes = propTypes;
 ComponentsTreeItemContent.defaultProps = defaultProps;
-ComponentsTreeItemContent.displayName = 'ComponentsTreeItemContent';

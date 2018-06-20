@@ -9,7 +9,7 @@ import {
   fieldHasArguments,
   getFieldsByPath,
   getFieldOnType,
-} from '@jssy/graphql-schema';
+} from 'booben-graphql-schema';
 
 import {
   BlockContent,

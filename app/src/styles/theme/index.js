@@ -1,4 +1,4 @@
-import jssyTheme from './jssy';
+import boobenTheme from './booben';
 import reactackleMixin from './reactackle';
 
-export { jssyTheme, reactackleMixin };
+export { boobenTheme, reactackleMixin };

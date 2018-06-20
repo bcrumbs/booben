@@ -1,5 +1,4 @@
 import 'babel-polyfill';
-import '@reactackle/reactackle/reactackle.scss';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { Route, Switch, Redirect } from 'react-router';
@@ -7,7 +6,8 @@ import { ConnectedRouter } from 'react-router-redux';
 import { Provider } from 'react-redux';
 import { ThemeProvider } from 'styled-components';
 import { Theme, injectGlobalStyle } from 'reactackle-core';
-import { jssyTheme, reactackleMixin } from './styles/theme';
+import { boobenTheme, reactackleMixin } from './styles/theme';
+import { injectAppStyle } from './styles/appGlobalStyles';
 import RootRoute from './routes/RootRoute';
 import store from './store';
 import history from './history';
@@ -18,18 +18,19 @@ import {
 
 import keymap from './keymap';
 import { loadStrings } from './actions/app';
-import { PATH_ROOT, buildStructurePath } from './constants/paths';
+import { PATH_ROOT, buildDesignPath } from './constants/paths';
 import { DEFAULT_LANGUAGE } from './config';
 import './styles/classUtils.css';
 
 injectGlobalStyle();
+injectAppStyle();
 
 store.dispatch(loadStrings(DEFAULT_LANGUAGE));
 
 window.addEventListener('DOMContentLoaded', () => {
   ReactDOM.render(
     <Theme mixin={reactackleMixin}>
-      <ThemeProvider theme={jssyTheme}>
+      <ThemeProvider theme={boobenTheme}>
         <Provider store={store}>
           <ShortcutsProvider keymap={keymap}>
             <ConnectedRouter history={history}>
@@ -38,7 +39,7 @@ window.addEventListener('DOMContentLoaded', () => {
                   exact
                   path={PATH_ROOT}
                   render={({ match }) => (
-                    <Redirect to={buildStructurePath(match.params)} />
+                    <Redirect to={buildDesignPath(match.params)} />
                   )}
                 />
 

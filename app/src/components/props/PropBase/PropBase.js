@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Tag } from '@reactackle/reactackle';
+import { Tag } from 'reactackle-tag';
 import { Checkbox } from 'reactackle-checkbox';
 import { PropLabel } from './PropLabel/PropLabel';
 import { PropImage } from './PropImage/PropImage';

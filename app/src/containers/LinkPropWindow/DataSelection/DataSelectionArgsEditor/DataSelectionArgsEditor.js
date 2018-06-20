@@ -1,10 +1,10 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { Map } from 'immutable';
-import { getJssyValueDefOfQueryArgument } from '@jssy/graphql-schema';
+import { getBoobenValueDefOfQueryArgument } from 'booben-graphql-schema';
 import { PropsList } from '../../../../components/PropsList/PropsList';
-import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
-import { jssyValueToImmutable } from '../../../../models/ProjectComponent';
+import { BoobenValueEditor } from '../../../BoobenValueEditor/BoobenValueEditor';
+import { boobenValueToImmutable } from '../../../../models/ProjectComponent';
 import { buildDefaultValue } from '../../../../lib/meta';
 import { noop, returnArg, objectToArray } from '../../../../utils/misc';
 
@@ -106,15 +106,15 @@ export class DataSelectionArgsEditor extends PureComponent {
     const { field, schema, fieldArgs, getLocalizedText } = this.props;
 
     const items = objectToArray(field.args, (arg, argName) => {
-      const valueDef = getJssyValueDefOfQueryArgument(arg, schema);
+      const valueDef = getBoobenValueDefOfQueryArgument(arg, schema);
 
       let value = fieldArgs ? fieldArgs.get(argName) || null : null;
       if (arg.nonNull && !value) {
-        value = jssyValueToImmutable(buildDefaultValue(valueDef));
+        value = boobenValueToImmutable(buildDefaultValue(valueDef));
       }
 
       return (
-        <JssyValueEditor
+        <BoobenValueEditor
           key={argName}
           name={argName}
           value={value}

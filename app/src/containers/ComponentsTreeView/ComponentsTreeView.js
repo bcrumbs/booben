@@ -38,7 +38,15 @@ import {
 import {
   expandTreeItem,
   collapseTreeItem,
+  expandRouteTreeItem,
+  collapseRouteTreeItem,
 } from '../../actions/design';
+
+import {
+  selectRoute,
+  highlightRoute,
+  unhighlightRoute,
+} from '../../actions/structure';
 
 import {
   selectPreviewComponent,
@@ -67,9 +75,12 @@ import {
   rootDraggedComponentSelector,
   cursorPositionSelector,
   expandedTreeItemIdsSelector,
+  currentRouteSelector,
+  highlightedRouteIdsSelector,
 } from '../../selectors';
 
 import Cursor from '../../models/Cursor';
+import ProjectRoute from '../../models/ProjectRoute';
 import ProjectComponentRecord from '../../models/ProjectComponent';
 import { isCompositeComponent, isAtomicComponent } from '../../lib/meta';
 
@@ -81,17 +92,21 @@ import {
 } from '../../lib/components';
 
 import { isFunction } from '../../utils/misc';
-import * as JssyPropTypes from '../../constants/common-prop-types';
+import { isInputOrTextareaActive } from '../../utils/dom';
+import * as BoobenPropTypes from '../../constants/common-prop-types';
 import { INVALID_ID } from '../../constants/misc';
 import { DND_DRAG_START_RADIUS_TREE } from '../../config';
 
 const propTypes = {
   dropZoneId: PropTypes.string,
-  components: JssyPropTypes.components.isRequired, // state
+  components: BoobenPropTypes.components.isRequired, // state
   rootComponentId: PropTypes.number.isRequired, // state
-  selectedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
-  highlightedComponentIds: JssyPropTypes.setOfIds.isRequired, // state
-  expandedItemIds: JssyPropTypes.setOfIds.isRequired, // state
+  currentRoute: PropTypes.instanceOf(ProjectRoute).isRequired,
+  propsViewMode: PropTypes.oneOf(['componentProps', 'routeProps']).isRequired, // state
+  selectedComponentIds: BoobenPropTypes.setOfIds.isRequired, // state
+  highlightedComponentIds: BoobenPropTypes.setOfIds.isRequired, // state
+  highlightedRouteIds: BoobenPropTypes.setOfIds.isRequired, // state
+  expandedItemIds: BoobenPropTypes.setOfIds.isRequired, // state
   draggingComponent: PropTypes.bool.isRequired, // state
   rootDraggedComponent: PropTypes.instanceOf(ProjectComponentRecord), // state
   draggingOverPlaceholder: PropTypes.bool.isRequired, // state
@@ -103,14 +118,16 @@ const propTypes = {
   pickedComponentId: PropTypes.number.isRequired, // state
   pickedComponentArea: PropTypes.number.isRequired, // state
   componentDataListIsVisible: PropTypes.bool.isRequired, // state
-  componentDataListItems: PropTypes.arrayOf(
-    JssyPropTypes.componentDataItem,
-  ).isRequired, // state
+  componentDataListItems: PropTypes.arrayOf(BoobenPropTypes.componentDataItem)
+    .isRequired, // state
   meta: PropTypes.object.isRequired, // state
   cursorPosition: PropTypes.instanceOf(Cursor).isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onExpandItem: PropTypes.func.isRequired, // dispatch
   onCollapseItem: PropTypes.func.isRequired, // dispatch
+  onExpandRouteItem: PropTypes.func.isRequired, // dispatch
+  onCollapseRouteItem: PropTypes.func.isRequired, // dispatch
+  onSelectRoute: PropTypes.func.isRequired, // dispatch
   onSelectItem: PropTypes.func.isRequired, // dispatch
   onDeselectItem: PropTypes.func.isRequired, // dispatch
   onHighlightItem: PropTypes.func.isRequired, // dispatch
@@ -125,6 +142,8 @@ const propTypes = {
   onPickComponent: PropTypes.func.isRequired, // dispatch
   onSelectComponentData: PropTypes.func.isRequired, // dispatch
   onMoveCursor: PropTypes.func.isRequired, // dispatch
+  onHighlightRouteItem: PropTypes.func.isRequired, // dispatch
+  onUnhighlightRouteItem: PropTypes.func.isRequired, // dispatch
 };
 
 const defaultProps = {
@@ -136,7 +155,11 @@ const defaultProps = {
 const mapStateToProps = state => ({
   components: currentComponentsSelector(state),
   rootComponentId: currentRootComponentIdSelector(state),
+  currentRoute: currentRouteSelector(state),
+  propsViewMode: state.project.propsViewMode,
+  expandedRouteTreeItemIds: state.project.designer.expandedRouteTreeItemIds,
   selectedComponentIds: selectedComponentIdsSelector(state),
+  highlightedRouteIds: highlightedRouteIdsSelector(state),
   highlightedComponentIds: highlightedComponentIdsSelector(state),
   expandedItemIds: expandedTreeItemIdsSelector(state),
   draggingComponent: state.project.draggingComponent,
@@ -158,29 +181,34 @@ const mapStateToProps = state => ({
 });
 
 const mapDispatchToProps = dispatch => ({
-  onExpandItem: id =>
-    void dispatch(expandTreeItem(id)),
+  onHighlightRouteItem: id => void dispatch(highlightRoute(id)),
 
-  onCollapseItem: id =>
-    void dispatch(collapseTreeItem(id)),
+  onUnhighlightRouteItem: id => void dispatch(unhighlightRoute(id)),
+  
+  onExpandItem: id => void dispatch(expandTreeItem(id)),
+
+  onCollapseItem: id => void dispatch(collapseTreeItem(id)),
+
+  onExpandRouteItem: id => void dispatch(expandRouteTreeItem(id)),
+
+  onCollapseRouteItem: id => void dispatch(collapseRouteTreeItem(id)),
 
   onSelectItem: id =>
-    void dispatch(selectPreviewComponent(id, true, false, false)),
+    void dispatch(selectPreviewComponent(id, true, true, false)),
 
-  onDeselectItem: id =>
-    void dispatch(deselectPreviewComponent(id)),
+  onSelectRoute: (routeId, indexRouteSelected) =>
+    void dispatch(selectRoute(routeId, indexRouteSelected)),
 
-  onHighlightItem: id =>
-    void dispatch(highlightPreviewComponent(id)),
+  onDeselectItem: id => void dispatch(deselectPreviewComponent(id)),
 
-  onUnhighlightItem: id =>
-    void dispatch(unhighlightPreviewComponent(id)),
+  onHighlightItem: id => void dispatch(highlightPreviewComponent(id)),
+
+  onUnhighlightItem: id => void dispatch(unhighlightPreviewComponent(id)),
 
   onDragOverPlaceholder: (id, afterIdx) =>
     void dispatch(dragOverPlaceholder(id, afterIdx)),
 
-  onDragOverNothing: () =>
-    void dispatch(dragOverNothing()),
+  onDragOverNothing: () => void dispatch(dragOverNothing()),
 
   onStartDragComponent: componentId =>
     void dispatch(startDragExistingComponent(componentId)),
@@ -196,7 +224,10 @@ const mapDispatchToProps = dispatch => ({
 });
 
 const wrap = compose(
-  connect(mapStateToProps, mapDispatchToProps),
+  connect(
+    mapStateToProps,
+    mapDispatchToProps,
+  ),
   connectDropZone,
   dropZone,
 );
@@ -242,16 +273,16 @@ const calcCursorPosition = (pageY, element, borderPixels) => {
     if (fromTop > fromBottom) ret.middlePosition = CursorPositions.BOTTOM;
     else ret.middlePosition = CursorPositions.TOP;
   } else {
-    ret.position = pageY - top < 0
-      ? CursorPositions.TOP
-      : CursorPositions.BOTTOM;
+    ret.position =
+      pageY - top < 0 ? CursorPositions.TOP : CursorPositions.BOTTOM;
   }
 
   return ret;
 };
 
-const DraggableComponentItemContent =
-  connectDraggable(draggable(ComponentsTreeItemContent));
+const DraggableComponentItemContent = connectDraggable(
+  draggable(ComponentsTreeItemContent),
+);
 
 const DRAG_THROTTLE = 100;
 
@@ -273,10 +304,12 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     this._renderItem = this._renderItem.bind(this);
     this._handleShortcuts = this._handleShortcuts.bind(this);
-    this._handleNativeClick = this._handleNativeClick.bind(this);
     this._handleExpand = this._handleExpand.bind(this);
+    this._handleRouteExpand = this._handleRouteExpand.bind(this);
     this._handleSelect = this._handleSelect.bind(this);
+    this._handleRouteSelect = this._handleRouteSelect.bind(this);
     this._handleHover = this._handleHover.bind(this);
+    this._handleRouteHover = this._handleRouteHover.bind(this);
     this._handleDragEnter = this._handleDragEnter.bind(this);
     this._handleDragLeave = this._handleDragLeave.bind(this);
     this._handleDrag = throttle(this._handleDrag.bind(this), DRAG_THROTTLE);
@@ -287,17 +320,13 @@ class ComponentsTreeViewComponent extends PureComponent {
     this._expandComponent = this._expandComponent.bind(this);
     this._expandComponentAfterTime = this._expandComponentAfterTime.bind(this);
     this._clearExpandTimeout = this._clearExpandTimeout.bind(this);
+    this._renderRouteItem = this._renderRouteItem.bind(this);
   }
 
   componentDidMount() {
     if (this._treeIsVisible()) this._dropZoneReady();
 
     if (this._contentBoxElement) {
-      this._contentBoxElement.addEventListener(
-        'click',
-        this._handleNativeClick,
-      );
-
       this._clickListenerIsSet = true;
     }
   }
@@ -327,11 +356,6 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     if (this._contentBoxElement) {
       if (!this._clickListenerIsSet) {
-        this._contentBoxElement.addEventListener(
-          'click',
-          this._handleNativeClick,
-        );
-
         this._clickListenerIsSet = true;
       }
     } else {
@@ -480,6 +504,7 @@ class ComponentsTreeViewComponent extends PureComponent {
    * @private
    */
   _handleShortcuts(action) {
+    if (isInputOrTextareaActive()) return;
     switch (action) {
       case 'SELECT_NEXT_COMPONENT': {
         this._handleMoveSelectionVertically('down');
@@ -544,10 +569,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     const position = parentComponent.children.indexOf(selectedComponentId);
     const nextPosition = direction === 'down' ? position + 1 : position - 1;
 
-    if (
-      nextPosition < 0 ||
-      nextPosition > parentComponent.children.size - 1
-    ) {
+    if (nextPosition < 0 || nextPosition > parentComponent.children.size - 1) {
       return;
     }
 
@@ -645,8 +667,9 @@ class ComponentsTreeViewComponent extends PureComponent {
     if (isRootComponent(containerComponent)) return;
 
     const parentComponent = components.get(containerComponent.parentId);
-    const containerPosition =
-      parentComponent.children.indexOf(parentComponent.id);
+    const containerPosition = parentComponent.children.indexOf(
+      parentComponent.id,
+    );
 
     onMoveCursor(parentComponent.id, containerPosition);
   }
@@ -673,8 +696,9 @@ class ComponentsTreeViewComponent extends PureComponent {
       return;
     }
 
-    const targetComponentId =
-      containerComponent.children.get(cursorPosition.afterIdx + 1);
+    const targetComponentId = containerComponent.children.get(
+      cursorPosition.afterIdx + 1,
+    );
 
     const targetComponent = components.get(targetComponentId);
 
@@ -687,15 +711,6 @@ class ComponentsTreeViewComponent extends PureComponent {
     }
   }
 
-  /**
-   *
-   * @param {MouseEvent} event
-   * @private
-   */
-  _handleNativeClick(event) {
-    const { pickingComponent } = this.props;
-    if (pickingComponent) event.stopPropagation();
-  }
 
   /**
    *
@@ -750,10 +765,11 @@ class ComponentsTreeViewComponent extends PureComponent {
     const isRootComponent = parentId === INVALID_ID;
     const parentComponent = isRootComponent ? null : components.get(parentId);
     const element = this._itemElements.get(componentId);
-    const {
-      position,
-      middlePosition,
-    } = calcCursorPosition(pageY, element, BORDER_PIXELS);
+    const { position, middlePosition } = calcCursorPosition(
+      pageY,
+      element,
+      BORDER_PIXELS,
+    );
 
     const componentPosition = isRootComponent
       ? 0
@@ -769,8 +785,7 @@ class ComponentsTreeViewComponent extends PureComponent {
         this._tryUpdatePlaceholder(componentId, INVALID_ID);
       } else {
         const expandAlreadyScheduled =
-          !!this._expandTimeout &&
-          componentId === this._componentIdToExpand;
+          !!this._expandTimeout && componentId === this._componentIdToExpand;
 
         if (!expandAlreadyScheduled) {
           const canInsertIntoSubtree = canInsertComponentIntoTree(
@@ -802,6 +817,13 @@ class ComponentsTreeViewComponent extends PureComponent {
     }
   }
 
+  _handleRouteExpand({ componentId, expanded }) {
+    const { onExpandRouteItem, onCollapseRouteItem } = this.props;
+
+    if (expanded) onExpandRouteItem(componentId);
+    else onCollapseRouteItem(componentId);
+  }
+
   /**
    *
    * @param {number} componentId
@@ -813,6 +835,18 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     if (expanded) onExpandItem(componentId);
     else onCollapseItem(componentId);
+  }
+
+  _handleRouteSelect() {
+    const {
+      currentRoute,
+      onSelectRoute,
+      onDeselectItem,
+      selectedComponentIds,
+    } = this.props;
+
+    onDeselectItem(selectedComponentIds.first());
+    onSelectRoute(currentRoute.id, currentRoute.haveIndex);
   }
 
   /**
@@ -857,6 +891,19 @@ class ComponentsTreeViewComponent extends PureComponent {
 
   /**
    *
+   * @param {number} componentId
+   * @param {boolean} hovered
+   * @private
+   */
+  _handleRouteHover({ componentId, hovered }) {
+    const { onHighlightRouteItem, onUnhighlightRouteItem } = this.props;
+
+    if (hovered) onHighlightRouteItem(componentId);
+    else onUnhighlightRouteItem(componentId);
+  }
+
+  /**
+   *
    * @param {Object} data
    * @param {number} data.componentId
    * @private
@@ -871,11 +918,7 @@ class ComponentsTreeViewComponent extends PureComponent {
    * @private
    */
   _expandComponent() {
-    const {
-      draggingComponent,
-      expandedItemIds,
-      onExpandItem,
-    } = this.props;
+    const { draggingComponent, expandedItemIds, onExpandItem } = this.props;
 
     const componentId = this._componentIdToExpand;
     if (!draggingComponent || expandedItemIds.has(componentId)) return;
@@ -991,7 +1034,6 @@ class ComponentsTreeViewComponent extends PureComponent {
       title = component.name;
     }
 
-
     let expanded = expandedItemIds.has(componentId);
     if (!expanded && draggingOverPlaceholder) {
       let currentId = placeholderContainerId;
@@ -1005,9 +1047,7 @@ class ComponentsTreeViewComponent extends PureComponent {
     const highlightedComponentId = highlightedComponentIds.first();
     if (highlightedComponentId) {
       let currentID = highlightedComponentId;
-      while (
-        currentID !== INVALID_ID && !expandedItemIds.has(currentID)
-      ) {
+      while (currentID !== INVALID_ID && !expandedItemIds.has(currentID)) {
         const parentId = components.get(currentID).parentId;
         if (currentID === componentId) hovered = true;
         currentID = parentId;
@@ -1037,12 +1077,11 @@ class ComponentsTreeViewComponent extends PureComponent {
       isFunction(pickingComponentFilter) &&
       !pickingComponentFilter(componentId);
 
-    const hasSubLevel = !!subLevel;
+    const hasSubLevel = 
+      component.children.size > 0 || placeholderContainerId === component.id;
 
     return (
-      <ComponentsTreeItem
-        key={String(componentId)}
-      >
+      <ComponentsTreeItem key={String(componentId)}>
         <DraggableComponentItemContent
           key={String(componentId)}
           componentId={componentId}
@@ -1113,9 +1152,10 @@ class ComponentsTreeViewComponent extends PureComponent {
       getLocalizedText,
     } = this.props;
 
-    const componentIds = parentComponentId !== INVALID_ID
-      ? components.get(parentComponentId).children
-      : [rootComponentId];
+    const componentIds =
+      parentComponentId !== INVALID_ID
+        ? components.get(parentComponentId).children
+        : [rootComponentId];
 
     const children = [];
     let gotDraggedComponent = false;
@@ -1144,8 +1184,10 @@ class ComponentsTreeViewComponent extends PureComponent {
 
         const afterIdx = gotDraggedComponent ? idx - 2 : idx - 1;
 
-        const snapPointOrPlaceholder =
-          this._renderSnapBlockOrPlaceholder(parentComponentId, afterIdx);
+        const snapPointOrPlaceholder = this._renderSnapBlockOrPlaceholder(
+          parentComponentId,
+          afterIdx,
+        );
 
         if (snapPointOrPlaceholder) {
           children.push(snapPointOrPlaceholder);
@@ -1184,11 +1226,7 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     if (!children.length) return null;
 
-    return (
-      <ComponentsTreeList>
-        {children}
-      </ComponentsTreeList>
-    );
+    return <ComponentsTreeList>{children}</ComponentsTreeList>;
   }
 
   _renderComponentDataSelect() {
@@ -1224,19 +1262,82 @@ class ComponentsTreeViewComponent extends PureComponent {
     );
   }
 
+  _renderRouteItem() {
+    const {
+      currentRoute,
+      highlightedRouteIds,
+      selectedComponentIds,
+      propsViewMode,
+      getLocalizedText,
+    } = this.props;
+
+    const hovered = highlightedRouteIds.has(currentRoute.id);
+    const active = selectedComponentIds.size === 0
+      && propsViewMode === 'routeProps';
+
+    return (
+      <ComponentsTreeItemContent
+        componentId={currentRoute.id}
+        title={getLocalizedText('tree.routePrefix') + currentRoute.title}
+        onSelect={this._handleRouteSelect}
+        active={active}
+        hasSubLevel
+        expanded
+        hideExpandButton
+        hovered={hovered}
+        onHover={this._handleRouteHover}
+        removeSpacer
+      />
+    );
+  }
+
   render() {
     const {
       draggingComponent,
       componentDataListIsVisible,
       pickedComponentArea,
       getLocalizedText,
+      currentRoute,
     } = this.props;
+
+    if (currentRoute === null) {
+      return (
+        <BlockContentBox
+          flex
+          elementRef={this._saveContentBoxRef}
+          autoScrollUpDown={draggingComponent}
+          isBordered
+        >
+          <Shortcuts
+            name="COMPONENTS_TREE"
+            handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
+            targetNodeSelector="body"
+          />
+        </BlockContentBox>
+      );
+    }
+
+    const routeItem = this._renderRouteItem();
 
     if (!this._treeIsVisible()) {
       return (
-        <BlockContentPlaceholder
-          text={getLocalizedText('tree.noComponents')}
-        />
+        <BlockContentBox
+          flex
+          elementRef={this._saveContentBoxRef}
+          autoScrollUpDown={draggingComponent}
+          isBordered
+        >
+          <ComponentsTree>
+            <ComponentsTreeList>
+              <ComponentsTreeItem>
+                {routeItem}
+                <BlockContentPlaceholder
+                  text={getLocalizedText('tree.noComponents')}
+                />
+              </ComponentsTreeItem>
+            </ComponentsTreeList>
+          </ComponentsTree>
+        </BlockContentBox>
       );
     }
 
@@ -1252,18 +1353,24 @@ class ComponentsTreeViewComponent extends PureComponent {
 
     return (
       <BlockContentBox
-        isBordered
         flex
         elementRef={this._saveContentBoxRef}
         autoScrollUpDown={draggingComponent}
+        isBordered
       >
         <Shortcuts
           name="COMPONENTS_TREE"
           handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
           targetNodeSelector="body"
+          className="rct-shortcuts-wrapper"
         >
           <ComponentsTree>
-            {list}
+            <ComponentsTreeList>
+              <ComponentsTreeItem>
+                {routeItem}
+                {list}
+              </ComponentsTreeItem>
+            </ComponentsTreeList>
           </ComponentsTree>
         </Shortcuts>
 

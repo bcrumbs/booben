@@ -2,7 +2,7 @@ import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import ImmutablePropTypes from 'react-immutable-proptypes';
 import { Map } from 'immutable';
-import { isCompatibleType } from '@jssy/types';
+import { isCompatibleType } from 'booben-types';
 import { FunctionsList } from './FunctionsList/FunctionsList';
 import { FunctionWindow } from './FunctionWindow/FunctionWindow';
 import { NewFunctionWindow } from './NewFunctionWindow/NewFunctionWindow';

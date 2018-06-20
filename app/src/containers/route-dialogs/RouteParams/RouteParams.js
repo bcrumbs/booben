@@ -1,7 +1,3 @@
-/**
- * @author Nick Maltsev
- */
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import { Form, FormItem } from 'reactackle-form';

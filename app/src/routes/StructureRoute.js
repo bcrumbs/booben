@@ -1,3 +1,4 @@
+// Deprecated
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
@@ -17,14 +18,14 @@ import {
   RouteNewButton,
 } from '../components/RoutesList/RoutesList';
 
-import { IconBrush } from '../components/icons';
+import { IconBrush, IconTree } from '../components/icons';
 import { Desktop } from '../containers/Desktop/Desktop';
 import { StructureToolbar } from '../containers/toolbars';
 import { RouteEditor } from '../containers/RouteEditor/RouteEditor';
+import { RouteTreeView } from '../containers/RouteTree/RouteTree';
 import ProjectRecord from '../models/Project';
 import ToolRecord from '../models/Tool';
 import ToolSectionRecord from '../models/ToolSection';
-import ButtonRecord from '../models/Button';
 
 import { SELECT_ROUTE_DEBOUNCE } from '../config';
 
@@ -45,7 +46,10 @@ import {
 import { selectRoute } from '../actions/structure';
 import { getLocalizedTextFromState } from '../selectors';
 import { findComponent } from '../lib/components';
-import { TOOL_ID_ROUTE_EDITOR } from '../constants/tool-ids';
+import {
+  TOOL_ID_ROUTE_EDITOR,
+  TOOL_ID_ROUTE_TREE,
+} from '../constants/tool-ids';
 
 import {
   buildDesignRoutePath,
@@ -233,20 +237,12 @@ class StructureRoute extends PureComponent {
       ? project.routes.get(selectedRouteId)
       : null;
 
-    const routeEditorToolMainButtons = selectedRoute
-      ? List([
-        new ButtonRecord({
-          text: getLocalizedText('common.edit'),
-          disabled: !isRouteEditable(
-            project.routes,
-            selectedRouteId,
-            indexRouteSelected,
-          ),
-
-          onPress: this._handleSelectedRouteGo,
-        }),
-      ])
-      : List();
+    const routesTreeToolSections = List([
+      new ToolSectionRecord({
+        name: '',
+        component: RouteTreeView,
+      }),
+    ]);
 
     const routeEditorToolSections = List([
       new ToolSectionRecord({
@@ -279,8 +275,14 @@ class StructureRoute extends PureComponent {
           titlePlaceholder: getLocalizedText('structure.routeTitle'),
           subtitle: selectedRoute ? selectedRoute.path : '',
           sections: routeEditorToolSections,
-          mainButtons: routeEditorToolMainButtons,
-          windowMinWidth: 360,
+        }),
+        new ToolRecord({
+          id: TOOL_ID_ROUTE_TREE,
+          icon: <IconTree />,
+          name: getLocalizedText('structure.routeEditorTitle'),
+          title: getLocalizedText('structure.routeTreeEditorTitle'),
+          titlePlaceholder: getLocalizedText('structure.routeTitle'),
+          sections: routesTreeToolSections,
         }),
       ]),
     ]);
@@ -362,7 +364,8 @@ class StructureRoute extends PureComponent {
    */
   _handleRouteSelect({ routeId, isIndexRoute }) {
     const { selectedRouteId, indexRouteSelected, onSelectRoute } = this.props;
-    const onSelectRouteWithDebounce = debounce(onSelectRoute, SELECT_ROUTE_DEBOUNCE);
+    const onSelectRouteWithDebounce =
+      debounce(onSelectRoute, SELECT_ROUTE_DEBOUNCE);
 
     if (
       routeId !== selectedRouteId ||
@@ -923,7 +926,7 @@ class StructureRoute extends PureComponent {
         name="STRUCTURE_SCREEN"
         handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
         targetNodeSelector="body"
-        className="jssy-app"
+        className="booben-app"
       >
         <Desktop
           toolGroups={this._toolGroups}
@@ -939,7 +942,7 @@ class StructureRoute extends PureComponent {
             <Shortcuts
               name="ROUTES_LIST"
               handler={this._handleShortcuts} // eslint-disable-line react/jsx-handler-names
-              className="jssy-app"
+              className="booben-app"
             >
               {content}
             </Shortcuts>

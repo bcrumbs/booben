@@ -1,7 +1,3 @@
-/**
- * @author Nick Maltsev
- */
-
 import { arrayToObject, returnArg, isUndef } from '../../utils/misc';
 import { INVALID_ID } from '../../constants/misc';
 

@@ -1,7 +1,3 @@
-/**
- * @author Oleg Nosov <olegnosov1@gmail.com>
- */
-
 import { getStrings } from '../lib/api';
 
 export const APP_LOAD_STRINGS =
@@ -55,7 +51,7 @@ export const stringsLoading = () => ({
  */
 export const loadStrings = language => dispatch => {
   dispatch(stringsLoading());
-  
+
   getStrings(language)
     .then(strings => {
       dispatch(stringsLoadSuccess(language, strings));

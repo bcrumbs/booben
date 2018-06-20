@@ -1,18 +1,18 @@
 import { Set, Map } from 'immutable';
 import _forOwn from 'lodash.forown';
-import { TypeNames } from '@jssy/types';
+import { TypeNames } from 'booben-types';
 
 import {
   getMutationField,
-  getJssyValueDefOfMutationArgument,
-} from '@jssy/graphql-schema';
+  getBoobenValueDefOfMutationArgument,
+} from 'booben-graphql-schema';
 
-import JssyValue, {
+import BoobenValue, {
   SourceDataDesigner,
   Action,
   ActionTypes,
   isAsyncAction,
-} from '../models/JssyValue';
+} from '../models/BoobenValue';
 
 import {
   getComponentMeta,
@@ -312,7 +312,7 @@ export const gatherComponentsTreeIds = (
  *
  * @param {Object} component
  * @param {ComponentMeta} componentMeta
- * @param {function(node: Object, valueDef: ?JssyValueDefinition, steps: (string|number)[], isSystemProp: boolean )} visitor
+ * @param {function(node: Object, valueDef: ?BoobenValueDefinition, steps: (string|number)[], isSystemProp: boolean )} visitor
  * @param {boolean} [walkSystemProps=false]
  * @param {boolean} [walkDesignerValues=false]
  * @param {?Object<string, Object<string, ComponentMeta>>} [meta=null]
@@ -388,7 +388,7 @@ export const walkSimpleValues = (
       const mutationField = getMutationField(schema, action.params.mutation);
 
       action.params.args.forEach((argValue, argName) => {
-        const argValueDef = getJssyValueDefOfMutationArgument(
+        const argValueDef = getBoobenValueDefOfMutationArgument(
           mutationField.args[argName],
           schema,
         );
@@ -465,14 +465,14 @@ export const walkSimpleValues = (
     }
   };
 
-  const visitValue = (jssyValue, valueDef, path, isSystemProp) => {
-    if (jssyValue.sourceIs(JssyValue.Source.STATIC)) {
+  const visitValue = (boobenValue, valueDef, path, isSystemProp) => {
+    if (boobenValue.sourceIs(BoobenValue.Source.STATIC)) {
       if (
         valueDef.type === TypeNames.SHAPE &&
-        jssyValue.sourceData.value !== null
+        boobenValue.sourceData.value !== null
       ) {
         if (visitIntermediateNodes) {
-          const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+          const visitorRet = visitor(boobenValue, valueDef, path, isSystemProp);
           if (visitorRet === SKIP) return;
           if (visitorRet === BREAK) {
             didBreak = true;
@@ -481,7 +481,7 @@ export const walkSimpleValues = (
         }
 
         _forOwn(valueDef.fields, (fieldTypedef, fieldName) => {
-          const fieldValue = jssyValue.sourceData.value.get(fieldName);
+          const fieldValue = boobenValue.sourceData.value.get(fieldName);
 
           if (fieldValue) {
             visitValue(
@@ -498,10 +498,10 @@ export const walkSimpleValues = (
         });
       } else if (
         valueDef.type === TypeNames.OBJECT_OF &&
-        jssyValue.sourceData.value !== null
+        boobenValue.sourceData.value !== null
       ) {
         if (visitIntermediateNodes) {
-          const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+          const visitorRet = visitor(boobenValue, valueDef, path, isSystemProp);
           if (visitorRet === SKIP) return;
           if (visitorRet === BREAK) {
             didBreak = true;
@@ -509,7 +509,7 @@ export const walkSimpleValues = (
           }
         }
 
-        jssyValue.sourceData.value.forEach((fieldValue, key) => {
+        boobenValue.sourceData.value.forEach((fieldValue, key) => {
           visitValue(
             fieldValue,
             valueDef.ofType,
@@ -523,7 +523,7 @@ export const walkSimpleValues = (
         });
       } else if (valueDef.type === TypeNames.ARRAY_OF) {
         if (visitIntermediateNodes) {
-          const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+          const visitorRet = visitor(boobenValue, valueDef, path, isSystemProp);
           if (visitorRet === SKIP) return;
           if (visitorRet === BREAK) {
             didBreak = true;
@@ -531,7 +531,7 @@ export const walkSimpleValues = (
           }
         }
 
-        jssyValue.sourceData.value.forEach((itemValue, idx) => {
+        boobenValue.sourceData.value.forEach((itemValue, idx) => {
           visitValue(
             itemValue,
             valueDef.ofType,
@@ -544,17 +544,17 @@ export const walkSimpleValues = (
           }
         });
       } else {
-        const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+        const visitorRet = visitor(boobenValue, valueDef, path, isSystemProp);
         if (visitorRet === BREAK) {
           didBreak = true;
         }
       }
     } else if (
       walkFunctionArgs &&
-      jssyValue.sourceIs(JssyValue.Source.FUNCTION)
+      boobenValue.sourceIs(BoobenValue.Source.FUNCTION)
     ) {
       if (visitIntermediateNodes) {
-        const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+        const visitorRet = visitor(boobenValue, valueDef, path, isSystemProp);
         if (visitorRet === SKIP) return;
         if (visitorRet === BREAK) {
           didBreak = true;
@@ -563,14 +563,14 @@ export const walkSimpleValues = (
       }
 
       const fnInfo = getFunctionInfo(
-        jssyValue.sourceData.functionSource,
-        jssyValue.sourceData.function,
+        boobenValue.sourceData.functionSource,
+        boobenValue.sourceData.function,
         project.functions,
       );
 
       fnInfo.args.forEach(argInfo => {
         const argName = argInfo.name;
-        const argValue = jssyValue.sourceData.args.get(argInfo.name);
+        const argValue = boobenValue.sourceData.args.get(argInfo.name);
 
         if (argValue) {
           visitValue(
@@ -583,9 +583,9 @@ export const walkSimpleValues = (
 
         if (didBreak) return false;
       });
-    } else if (walkActions && jssyValue.sourceIs(JssyValue.Source.ACTIONS)) {
+    } else if (walkActions && boobenValue.sourceIs(BoobenValue.Source.ACTIONS)) {
       if (visitIntermediateNodes) {
-        const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+        const visitorRet = visitor(boobenValue, valueDef, path, isSystemProp);
         if (visitorRet === SKIP) return;
         if (visitorRet === BREAK) {
           didBreak = true;
@@ -593,16 +593,16 @@ export const walkSimpleValues = (
         }
       }
 
-      jssyValue.sourceData.actions.forEach((action, actionIdx) => {
+      boobenValue.sourceData.actions.forEach((action, actionIdx) => {
         visitAction(action, [...path, 'actions', actionIdx], isSystemProp);
         if (didBreak) return false;
       });
     } else if (
       walkDesignerValues &&
-      jssyValue.sourceIs(JssyValue.Source.DESIGNER)
+      boobenValue.sourceIs(BoobenValue.Source.DESIGNER)
     ) {
       if (visitIntermediateNodes) {
-        const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+        const visitorRet = visitor(boobenValue, valueDef, path, isSystemProp);
         if (visitorRet === SKIP) return;
         if (visitorRet === BREAK) {
           didBreak = true;
@@ -610,8 +610,8 @@ export const walkSimpleValues = (
         }
       }
 
-      const components = jssyValue.sourceData.components;
-      const rootId = jssyValue.sourceData.rootId;
+      const components = boobenValue.sourceData.components;
+      const rootId = boobenValue.sourceData.rootId;
 
       if (rootId !== INVALID_ID) {
         walkComponentsTree(components, rootId, component => {
@@ -633,7 +633,7 @@ export const walkSimpleValues = (
         });
       }
     } else {
-      const visitorRet = visitor(jssyValue, valueDef, path, isSystemProp);
+      const visitorRet = visitor(boobenValue, valueDef, path, isSystemProp);
       if (visitorRet === BREAK) {
         didBreak = true;
       }
@@ -715,8 +715,8 @@ export const makeDetachedCopy = (
     const componentMeta = getComponentMeta(component.name, meta);
     const actionsToClear = [];
     const actionsToTransform = [];
-    const jssyValuesToClear = [];
-    const jssyValuesToTransform = [];
+    const boobenValuesToClear = [];
+    const boobenValuesToTransform = [];
 
     const visitor = (node, valueDef, steps, isSystemProp) => {
       if (node instanceof Action) {
@@ -734,14 +734,14 @@ export const makeDetachedCopy = (
             arr.push([isSystemProp ? 'systemProps' : 'props', ...steps]);
           }
         }
-      } else if (node instanceof JssyValue) {
-        if (node.sourceIs(JssyValue.Source.STATE)) {
+      } else if (node instanceof BoobenValue) {
+        if (node.sourceIs(BoobenValue.Source.STATE)) {
           const targetId = node.sourceData.componentId;
 
           if (targetId !== INVALID_ID) {
             const arr = subtreeIds.has(targetId)
-              ? jssyValuesToTransform
-              : jssyValuesToClear;
+              ? boobenValuesToTransform
+              : boobenValuesToClear;
 
             arr.push([isSystemProp ? 'systemProps' : 'props', ...steps]);
           }
@@ -775,10 +775,10 @@ export const makeDetachedCopy = (
         );
       });
 
-      jssyValuesToClear.forEach(steps => {
+      boobenValuesToClear.forEach(steps => {
         component = component.updateIn(
           expandPath({ start, steps }),
-          jssyValue => jssyValue.setIn(
+          boobenValue => boobenValue.setIn(
             ['sourceData', 'componentId'],
             INVALID_ID,
           ),
@@ -793,10 +793,10 @@ export const makeDetachedCopy = (
       );
     });
 
-    jssyValuesToTransform.forEach(steps => {
+    boobenValuesToTransform.forEach(steps => {
       component = component.updateIn(
         expandPath({ start, steps }),
-        jssyValue => jssyValue.updateIn(
+        boobenValue => boobenValue.updateIn(
           ['sourceData', 'componentId'],
           transformId,
         ),
@@ -833,7 +833,7 @@ export const convertComponentToList = (
   schema,
 ) => {
   const list = constructComponent('List');
-  const designerValue = new JssyValue({
+  const designerValue = new BoobenValue({
     source: 'designer',
     sourceData: new SourceDataDesigner({
       components: makeDetachedCopy(

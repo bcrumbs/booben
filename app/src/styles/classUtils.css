@@ -1,4 +1,4 @@
-.jssy-app {
+.booben-app {
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -8,6 +8,6 @@
     position: relative;
 }
 
-.jssy-app:focus {
+.booben-app:focus {
     outline: none;
 }

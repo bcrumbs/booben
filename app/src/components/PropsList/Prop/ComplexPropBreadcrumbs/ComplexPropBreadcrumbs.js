@@ -1,6 +1,6 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Breadcrumbs } from '@reactackle/reactackle';
+import { Breadcrumbs } from 'reactackle-breadcrumbs';
 import { noop } from '../../../../utils/misc';
 import { BreadcrumbsStyled } from './styles/BreadcrumbsStyled';
 import { LinkStyled } from './styles/LinkStyled';
@@ -31,7 +31,7 @@ export class ComplexPropBreadcrumbs extends PureComponent {
     super(props, context);
     this._handleItemSelect = this._handleItemSelect.bind(this);
   }
-  
+
   /**
    *
    * @param {number} index
@@ -41,16 +41,16 @@ export class ComplexPropBreadcrumbs extends PureComponent {
     const { onItemSelect } = this.props;
     onItemSelect({ index });
   }
-  
+
   render() {
     const { items } = this.props;
-    
+
     return (
       <BreadcrumbsStyled>
         <Breadcrumbs
           items={items}
           linkComponent={LinkComponent}
-          mode="dark"
+          colorSCheme="dark"
           onItemClick={this._handleItemSelect}
         />
       </BreadcrumbsStyled>

@@ -31,12 +31,12 @@ import { buildValue, buildGraphQLQueryVariables } from '../../../lib/values';
 import { queryResultHasData } from '../../../lib/apollo';
 import ComponentsBundle from '../../../lib/ComponentsBundle';
 import { noop } from '../../../utils/misc';
-import * as JssyPropTypes from '../../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../../constants/common-prop-types';
 import { INVALID_ID, NO_VALUE, SYSTEM_PROPS } from '../../../constants/misc';
 
 const propTypes = {
   componentsBundle: PropTypes.instanceOf(ComponentsBundle).isRequired,
-  components: JssyPropTypes.components.isRequired,
+  components: BoobenPropTypes.components.isRequired,
   rootId: PropTypes.number,
   routeParams: PropTypes.object,
   dontPatch: PropTypes.bool,
@@ -82,9 +82,9 @@ const wrap = compose(
   alertsCreator,
   collapsingToPoint({
     pointAttributesFromProps: props => ({
-      'data-jssy-placeholder': '',
-      'data-jssy-container-id': String(props.containerId),
-      'data-jssy-after': String(props.afterIdx),
+      'data-booben-placeholder': '',
+      'data-booben-container-id': String(props.containerId),
+      'data-booben-after': String(props.afterIdx),
     }),
 
     getWindowInstance: (props, context) => context.window,
@@ -201,15 +201,15 @@ class PlaceholderBuilderComponent extends PureComponent {
       data,
       routeParams,
       BuilderComponent: PlaceholderBuilder, // eslint-disable-line no-use-before-define
-      getBuilderProps: (ownProps, jssyValue, valueContext) => ({
+      getBuilderProps: (ownProps, boobenValue, valueContext) => ({
         componentsBundle,
         routeParams,
-        components: jssyValue.sourceData.components,
-        rootId: jssyValue.sourceData.rootId,
+        components: boobenValue.sourceData.components,
+        rootId: boobenValue.sourceData.rootId,
         dontPatch: true,
         propsFromOwner: ownProps,
         theMap: valueContext.theMap,
-        dataContextInfo: valueContext.theMap.get(jssyValue),
+        dataContextInfo: valueContext.theMap.get(boobenValue),
       }),
 
       handleActions: noop,
@@ -273,13 +273,13 @@ class PlaceholderBuilderComponent extends PureComponent {
     const { containerId, afterIdx } = this.props;
 
     if (isHTMLComponent) {
-      props['data-jssy-placeholder'] = '';
-      props['data-jssy-after'] = String(afterIdx);
-      props['data-jssy-container-id'] = String(containerId);
+      props['data-booben-placeholder'] = '';
+      props['data-booben-after'] = String(afterIdx);
+      props['data-booben-container-id'] = String(containerId);
     } else {
-      props.__jssy_placeholder__ = true;
-      props.__jssy_after__ = afterIdx;
-      props.__jssy_container_id__ = containerId;
+      props.__booben_placeholder__ = true;
+      props.__booben_after__ = afterIdx;
+      props.__booben_container_id__ = containerId;
     }
   }
 
@@ -293,9 +293,9 @@ class PlaceholderBuilderComponent extends PureComponent {
   _patchComponentProps(props, isHTMLComponent, isInvisible) {
     if (isInvisible) {
       if (isHTMLComponent) {
-        props['data-jssy-invisible'] = '';
+        props['data-booben-invisible'] = '';
       } else {
-        props.__jssy_invisible__ = true;
+        props.__booben_invisible__ = true;
       }
     }
   }
@@ -440,7 +440,7 @@ class PlaceholderBuilderComponent extends PureComponent {
     if (isHTML) {
       props.style = component.style;
     } else {
-      props.__jssy_error_handler__ = _debounce(
+      props.__booben_error_handler__ = _debounce(
         this._handleErrorInComponentLifecycleHook.bind(this, component),
         250,
       );

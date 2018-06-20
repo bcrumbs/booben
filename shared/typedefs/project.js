@@ -37,25 +37,25 @@
  * @property {string} name - Component name with namespace (e.g. "Namespace.MyComponent")
  * @property {string} title - User-defined title
  * @property {boolean} isWrapper
- * @property {Object<string, PlainJssyValue>} props
- * @property {Object<string, PlainJssyValue>} systemProps
+ * @property {Object<string, PlainBoobenValue>} props
+ * @property {Object<string, PlainBoobenValue>} systemProps
  * @property {ProjectComponent[]} children
  * @property {number[]} regionsEnabled
  * @property {string} style - CSS for HTML components
  */
 
 /**
- * @typedef {Object} PlainJssyValue
+ * @typedef {Object} PlainBoobenValue
  * @property {string} source
  * @property {SourceDataStatic|SourceDataOwnerProp|SourceDataData|SourceDataConst|SourceDataActions|SourceDataDesigner|SourceDataFunction|SourceDataState|SourceDataRouteParams|SourceDataActionArg} sourceData
  */
 
 /**
- * @typedef {Object<string, PlainJssyValue>} SourceDataStaticObjectValue
+ * @typedef {Object<string, PlainBoobenValue>} SourceDataStaticObjectValue
  */
 
 /**
- * @typedef {PlainJssyValue[]} SourceDataStaticArrayValue
+ * @typedef {PlainBoobenValue[]} SourceDataStaticArrayValue
  */
 
 /**
@@ -89,13 +89,13 @@
  * @typedef {Object} SourceDataData
  * @property {string[]} dataContext
  * @property {QueryPathStep[]} queryPath
- * @property {Object<string, Object<string, PlainJssyValue>>} queryArgs
+ * @property {Object<string, Object<string, PlainBoobenValue>>} queryArgs
  */
 
 /**
  * @typedef {Object} MutationActionParams
  * @property {string} mutation
- * @property {Object<string, PlainJssyValue>} args
+ * @property {Object<string, PlainBoobenValue>} args
  * @property {Action[]} successActions
  * @property {Action[]} errorActions
  */
@@ -103,7 +103,7 @@
 /**
  * @typedef {Object} NavigateActionParams
  * @property {number} routeId
- * @property {Object<string, PlainJssyValue>} routeParams
+ * @property {Object<string, PlainBoobenValue>} routeParams
  */
 
 /**
@@ -116,7 +116,7 @@
  * @typedef {Object} MethodCallActionParams
  * @property {number} componentId
  * @property {string} method
- * @property {PlainJssyValue[]} args
+ * @property {PlainBoobenValue[]} args
  */
 
 /**
@@ -124,16 +124,16 @@
  * @property {number} componentId
  * @property {string} propName
  * @property {string} systemPropName
- * @property {PlainJssyValue} value
+ * @property {PlainBoobenValue} value
  */
 
 /**
  * @typedef {Object} AJAXActionParams
- * @property {PlainJssyValue} url
+ * @property {PlainBoobenValue} url
  * @property {string} method
  * @property {Object<string, string>} headers
  * @property {string} mode
- * @property {?PlainJssyValue} body
+ * @property {?PlainBoobenValue} body
  * @property {string} decodeResponse
  * @property {Action[]} successActions
  * @property {Action[]} errorActions
@@ -174,7 +174,7 @@
  * @typedef {Object} SourceDataFunction
  * @property {string} functionSource - Can be 'project' or 'builtin'.
  * @property {string} function - Function name
- * @property {Array<?PlainJssyValue>} args
+ * @property {Array<?PlainBoobenValue>} args
  */
 
 /**
@@ -188,7 +188,7 @@
  * @property {string} description
  * @property {FunctionArgument[]} args
  * @property {boolean} spreadLastArg
- * @property {JssyTypeDefinition} returnType
+ * @property {BoobenTypeDefinition} returnType
  * @property {string} body
  */
 
@@ -196,7 +196,7 @@
  * @typedef {Object} FunctionArgument
  * @property {string} name
  * @property {string} description
- * @property {JssyTypeDefinition} typedef
+ * @property {BoobenTypeDefinition} typedef
  * @property {boolean} isRequired
  * @property {*} [defaultValue]
  */

@@ -1,8 +1,8 @@
 import { createSelector } from 'reselect';
 import IntlMessageFormat from 'intl-messageformat';
 import _forOwn from 'lodash.forown';
-import { List } from 'immutable';
-import { getTypeNameByPath } from '@jssy/graphql-schema';
+import { List, Map } from 'immutable';
+import { getTypeNameByPath } from 'booben-graphql-schema';
 
 import {
   getComponentMeta,
@@ -63,7 +63,7 @@ export const currentComponentsSelector = createSelector(
   (topNestedConstructor, currentRoute) => {
     if (topNestedConstructor) return topNestedConstructor.components;
     if (currentRoute) return currentRoute.components;
-    return null;
+    return Map();
   },
 );
 
@@ -208,6 +208,11 @@ export const canRedoSelector = createSelector(
 export const highlightedComponentIdsSelector = createSelector(
   currentDesignerSelector,
   designer => designer.highlightedComponentIds,
+);
+
+export const highlightedRouteIdsSelector = createSelector(
+  currentDesignerSelector,
+  designer => designer.highlightRoutesIds,
 );
 
 export const cursorPositionSelector = createSelector(
@@ -445,6 +450,7 @@ export const isCanvasClearSelector = createSelector(
     if (topNestedConstructor) {
       return topNestedConstructor.rootId === INVALID_ID;
     } else {
+      if (!currentRoute) return false;
       return currentRoute.parentId === INVALID_ID &&
         !indexRouteSelected &&
         currentRoute.component === INVALID_ID;

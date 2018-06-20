@@ -2,7 +2,6 @@ import {
   baseModule,
   paletteBlueGrey25,
   paletteBlueGrey500,
-  paletteBlueGrey650,
   paletteBlueGrey800,
   colorMain,
   colorBorderDark,
@@ -20,9 +19,13 @@ export default {
   basePaddingY: baseModule(2.5),
 
   title: {
+    minHeight: 38,
     elementsSpacing: baseModule(1),
     fontSize: 15,
     lineHeight: 1.5,
+    paddingY: baseModule(0.5),
+    actionsPaddingRight: baseModule(1.5),
+    actionsSpacing: baseModule(0.125),
   },
 
   default: {

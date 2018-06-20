@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import { baseModule } from '../../../styles/themeSelectors';
 
 export const SearchInputStyled = styled.div`
   display: flex;

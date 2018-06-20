@@ -1,7 +1,3 @@
-/**
- * @author Dmitriy Bizyaev, Ekaterina Marova
- */
-
 import React from 'react';
 import { OptionsListStyled } from './styles/OptionsListStyled';
 

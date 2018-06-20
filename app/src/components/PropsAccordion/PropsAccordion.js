@@ -1,5 +1,5 @@
 import React from 'react';
-import { Accordion } from '@reactackle/reactackle';
+import { Accordion } from 'reactackle-accordion';
 import { PropsAccordionStyled } from './styles/PropsAccordionStyled';
 
 export const PropsAccordion = props => (

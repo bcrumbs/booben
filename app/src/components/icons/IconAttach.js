@@ -9,15 +9,15 @@ export const IconAttach = props => (
       <g>
         <g>
           <g>
-            <polygon points="11,17 11,7 16,12 				"/>
+            <polygon points="11,17 11,7 16,12 				" />
           </g>
         </g>
       </g>
       <g>
-        <rect x="3" y="11" width="9" height="2"/>
+        <rect x="3" y="11" width="9" height="2" />
       </g>
       <g>
-        <rect x="18" y="2.5" width="2" height="19"/>
+        <rect x="18" y="2.5" width="2" height="19" />
       </g>
     </svg>
   </IconSvg>

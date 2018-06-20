@@ -34,13 +34,13 @@ import { distance } from '../../../../utils/geometry';
 import { noop, waitFor } from '../../../../utils/misc';
 import { CANVAS_CONTAINER_ID } from '../constants';
 import { INVALID_ID } from '../../../../constants/misc';
-import * as JssyPropTypes from '../../../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../../../constants/common-prop-types';
 import { DND_CANVAS_SNAP_LINES } from '../../../../config';
 
 const propTypes = {
   componentsBundle: PropTypes.instanceOf(ComponentsBundle).isRequired,
   project: PropTypes.instanceOf(Project).isRequired,
-  currentComponents: JssyPropTypes.components.isRequired,
+  currentComponents: BoobenPropTypes.components.isRequired,
   draggingComponent: PropTypes.bool.isRequired,
   draggingOverPlaceholder: PropTypes.bool.isRequired,
   placeholderContainerId: PropTypes.number.isRequired,
@@ -137,10 +137,10 @@ const CLOSE_SNAP_POINTS_THRESHOLD = 10;
 const DRAG_THROTTLE = 100;
 
 const readContainerId = element =>
-  parseInt(element.getAttribute('data-jssy-container-id'), 10);
+  parseInt(element.getAttribute('data-booben-container-id'), 10);
 
 const readAfterIdx = element =>
-  parseInt(element.getAttribute('data-jssy-after'), 10);
+  parseInt(element.getAttribute('data-booben-after'), 10);
 
 const getOutletPosition = components => {
   const outlet = components.find(component => component.name === 'Outlet');
@@ -165,7 +165,7 @@ const findPlaceholders = async document => {
   let placeholders = [];
 
   await waitFor(() => {
-    placeholders = document.querySelectorAll('[data-jssy-placeholder]');
+    placeholders = document.querySelectorAll('[data-booben-placeholder]');
     return placeholders.length > 0;
   }, 10, 10);
 
@@ -256,9 +256,9 @@ class CanvasContent extends Component {
     if (this._draggingOverCanvas) {
       if (draggingOverPlaceholder) {
         const selector =
-          '[data-jssy-placeholder]' +
-          `[data-jssy-container-id="${placeholderContainerId}"]` +
-          `[data-jssy-after="${placeholderAfter}"]`;
+          '[data-booben-placeholder]' +
+          `[data-booben-container-id="${placeholderContainerId}"]` +
+          `[data-booben-after="${placeholderAfter}"]`;
 
         const placeholderElement = document.querySelector(selector);
 
@@ -591,8 +591,8 @@ class CanvasContent extends Component {
         continue;
       }
 
-      const dataJssyId = current.getAttribute('data-jssy-id');
-      if (dataJssyId) return parseInt(dataJssyId, 10);
+      const dataBoobenId = current.getAttribute('data-booben-id');
+      if (dataBoobenId) return parseInt(dataBoobenId, 10);
       if (current.hasAttribute('data-reactroot')) break;
       current = current.parentNode;
     }

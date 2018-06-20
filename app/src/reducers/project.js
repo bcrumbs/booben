@@ -1,13 +1,13 @@
 import { Map, Set, List } from 'immutable';
 import { LOCATION_CHANGE } from 'react-router-redux';
 import { matchPath } from 'react-router';
-import { resolveTypedef } from '@jssy/types';
+import { resolveTypedef } from 'booben-types';
 
 import {
   parseGraphQLSchema,
   getMutationField,
-  getJssyValueDefOfMutationArgument,
-} from '@jssy/graphql-schema';
+  getBoobenValueDefOfMutationArgument,
+} from 'booben-graphql-schema';
 
 import { PATH_DESIGN_ROUTE, PATH_DESIGN_ROUTE_INDEX } from '../constants/paths';
 
@@ -37,13 +37,13 @@ import {
   PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT,
   PROJECT_COMPONENT_CONVERT_TO_LIST,
   PROJECT_CREATE_FUNCTION,
-  PROJECT_JSSY_VALUE_REPLACE,
-  PROJECT_JSSY_VALUE_ADD_ACTION,
-  PROJECT_JSSY_VALUE_REPLACE_ACTION,
-  PROJECT_JSSY_VALUE_DELETE_ACTION,
-  PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT,
-  PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL,
-  PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE,
+  PROJECT_BOOBEN_VALUE_REPLACE,
+  PROJECT_BOOBEN_VALUE_ADD_ACTION,
+  PROJECT_BOOBEN_VALUE_REPLACE_ACTION,
+  PROJECT_BOOBEN_VALUE_DELETE_ACTION,
+  PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT,
+  PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT_CANCEL,
+  PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT_SAVE,
   PROJECT_PICK_COMPONENT,
   PROJECT_PICK_COMPONENT_DONE,
   PROJECT_PICK_COMPONENT_CANCEL,
@@ -67,21 +67,21 @@ import {
   PREVIEW_DRAG_OVER_NOTHING,
 } from '../actions/preview';
 
-import {
-  APP_LOAD_STRINGS_SUCCESS,
-} from '../actions/app';
+import { APP_LOAD_STRINGS_SUCCESS } from '../actions/app';
 
 import {
   STRUCTURE_SELECT_ROUTE,
+  STRUCTURE_HIGHLIGHT_ROUTE,
+  STRUCTURE_UNHIGHLIGHT_ROUTE,
 } from '../actions/structure';
 
-import {
-  LIBRARY_SHOW_ALL_COMPONENTS,
-} from '../actions/components-library';
+import { LIBRARY_SHOW_ALL_COMPONENTS } from '../actions/components-library';
 
 import {
   DESIGN_TREE_EXPAND_ITEM,
   DESIGN_TREE_COLLAPSE_ITEM,
+  DESIGN_ROUTE_TREE_EXPAND_ITEM,
+  DESIGN_ROUTE_TREE_COLLAPSE_ITEM,
 } from '../actions/design';
 
 import RecordWithHistory from '../models/helpers/RecordWithHistory';
@@ -90,13 +90,13 @@ import Clipboard from '../models/Clipboard';
 import Cursor from '../models/Cursor';
 import ProjectRoute from '../models/ProjectRoute';
 
-import JssyValue, {
+import BoobenValue, {
   SourceDataDesigner,
   SourceDataRouteParams,
   Action,
   ActionTypes,
   isAsyncAction,
-} from '../models/JssyValue';
+} from '../models/BoobenValue';
 
 import ProjectFunction, {
   ProjectFunctionArgument,
@@ -111,7 +111,7 @@ import {
 } from '../models/Project';
 
 import ProjectComponent, {
-  jssyValueToImmutable,
+  boobenValueToImmutable,
 } from '../models/ProjectComponent';
 
 import {
@@ -154,89 +154,58 @@ import {
 
 import { UNDO_HISTORY_LENGTH } from '../config';
 
-export const NestedConstructor = RecordWithHistory({
-  path: [],
-  valueInfo: null,
-  components: Map(),
-  rootId: INVALID_ID,
-  lastComponentId: INVALID_ID,
-  designer: new Designer(),
-  clipboard: new Clipboard(),
-  cursor: new Cursor(),
-}, [
-  'components',
-  'rootId',
-  'lastComponentId',
-  'designer.selectedComponentIds',
-], {
-  historyLength: UNDO_HISTORY_LENGTH,
-});
+export const NestedConstructor = RecordWithHistory(
+  {
+    path: [],
+    valueInfo: null,
+    components: Map(),
+    rootId: INVALID_ID,
+    lastComponentId: INVALID_ID,
+    designer: new Designer(),
+    clipboard: new Clipboard(),
+    cursor: new Cursor(),
+  },
+  ['components', 'rootId', 'lastComponentId', 'designer.selectedComponentIds'],
+  {
+    historyLength: UNDO_HISTORY_LENGTH,
+  },
+);
 
-const ProjectState = RecordWithHistory({
-  projectName: '',
-  loadState: NOT_LOADED,
-  error: null,
-  localRevision: 0,
-  saving: false,
-  savingRevision: 0,
-  lastSavedRevision: 0,
-  lastSaveTimestamp: 0,
-  lastSaveError: null,
-  data: null,
-  schema: null,
-  meta: null,
-  lastRouteId: INVALID_ID,
-  lastComponentId: INVALID_ID,
-  designer: new Designer(),
-  clipboard: new Clipboard(),
-  cursor: new Cursor(),
-  highlightingEnabled: true,
-  showAllComponentsOnPalette: false,
-  currentRouteId: INVALID_ID,
-  currentRouteIsIndexRoute: false,
-  draggingComponent: false,
-  draggedComponentId: INVALID_ID,
-  draggedComponents: null,
-  draggingOverPlaceholder: false,
-  placeholderContainerId: INVALID_ID,
-  placeholderAfter: -1,
-  selectedRouteId: INVALID_ID,
-  indexRouteSelected: false,
-  languageForComponentProps: 'en',
-  selectingComponentLayout: false,
-  nestedConstructors: List(),
-  pickingComponent: false,
-  pickingComponentData: false,
-  pickingComponentFilter: null,
-  pickingComponentDataGetter: null,
-  pickedComponentId: INVALID_ID,
-  pickedComponentArea: ComponentPickAreas.UNKNOWN,
-  pickedComponentData: null,
-  componentDataListIsVisible: false,
-  componentDataListItems: [],
-}, [
-  'data',
-  'lastRouteId',
-  'lastComponentId',
-  'selectedRouteId',
-  'indexRouteSelected',
-  'designer.selectedComponentIds',
-], {
-  historyLength: UNDO_HISTORY_LENGTH,
-});
-
-const initDNDState = state => state.merge({
-  draggingComponent: false,
-  draggedComponents: null,
-  draggedComponentId: INVALID_ID,
-  draggingOverPlaceholder: false,
-  placeholderContainerId: INVALID_ID,
-  placeholderAfter: -1,
-  highlightingEnabled: true,
-});
-
-const initComponentPickingState = state => state
-  .merge({
+const ProjectState = RecordWithHistory(
+  {
+    projectName: '',
+    loadState: NOT_LOADED,
+    error: null,
+    localRevision: 0,
+    saving: false,
+    savingRevision: 0,
+    lastSavedRevision: 0,
+    lastSaveTimestamp: 0,
+    lastSaveError: null,
+    data: null,
+    schema: null,
+    meta: null,
+    lastRouteId: INVALID_ID,
+    lastComponentId: INVALID_ID,
+    propsViewMode: 'componentProps',
+    designer: new Designer(),
+    clipboard: new Clipboard(),
+    cursor: new Cursor(),
+    highlightingEnabled: true,
+    showAllComponentsOnPalette: false,
+    currentRouteId: INVALID_ID,
+    currentRouteIsIndexRoute: false,
+    draggingComponent: false,
+    draggedComponentId: INVALID_ID,
+    draggedComponents: null,
+    draggingOverPlaceholder: false,
+    placeholderContainerId: INVALID_ID,
+    placeholderAfter: -1,
+    selectedRouteId: INVALID_ID,
+    indexRouteSelected: false,
+    languageForComponentProps: 'en',
+    selectingComponentLayout: false,
+    nestedConstructors: List(),
     pickingComponent: false,
     pickingComponentData: false,
     pickingComponentFilter: null,
@@ -245,46 +214,86 @@ const initComponentPickingState = state => state
     pickedComponentArea: ComponentPickAreas.UNKNOWN,
     pickedComponentData: null,
     componentDataListIsVisible: false,
-  })
-  .set('componentDataListItems', []);
+    componentDataListItems: [],
+  },
+  [
+    'data',
+    'lastRouteId',
+    'lastComponentId',
+    'selectedRouteId',
+    'indexRouteSelected',
+    'designer.selectedComponentIds',
+  ],
+  {
+    historyLength: UNDO_HISTORY_LENGTH,
+  },
+);
+
+const initDNDState = state =>
+  state.merge({
+    draggingComponent: false,
+    draggedComponents: null,
+    draggedComponentId: INVALID_ID,
+    draggingOverPlaceholder: false,
+    placeholderContainerId: INVALID_ID,
+    placeholderAfter: -1,
+    highlightingEnabled: true,
+  });
+
+const initComponentPickingState = state =>
+  state
+    .merge({
+      pickingComponent: false,
+      pickingComponentData: false,
+      pickingComponentFilter: null,
+      pickingComponentDataGetter: null,
+      pickedComponentId: INVALID_ID,
+      pickedComponentArea: ComponentPickAreas.UNKNOWN,
+      pickedComponentData: null,
+      componentDataListIsVisible: false,
+    })
+    .set('componentDataListItems', []);
 
 const haveNestedConstructors = state => !state.nestedConstructors.isEmpty();
 
 const getTopNestedConstructor = state =>
   state.nestedConstructors.first() || null;
 
-const getPathToCurrentComponents = state => haveNestedConstructors(state)
-  ? ['nestedConstructors', 0, 'components']
-  : ['data', 'routes', state.currentRouteId, 'components'];
+const getPathToCurrentComponents = state =>
+  haveNestedConstructors(state)
+    ? ['nestedConstructors', 0, 'components']
+    : ['data', 'routes', state.currentRouteId, 'components'];
 
-const getPathToCurrentRootComponentId = state => haveNestedConstructors(state)
-  ? ['nestedConstructors', 0, 'rootId']
-  : [
-    'data',
-    'routes',
-    state.currentRouteId,
-    state.currentRouteIsIndexRoute ? 'indexComponent' : 'component',
-  ];
+const getPathToCurrentRootComponentId = state =>
+  haveNestedConstructors(state)
+    ? ['nestedConstructors', 0, 'rootId']
+    : [
+      'data',
+      'routes',
+      state.currentRouteId,
+      state.currentRouteIsIndexRoute ? 'indexComponent' : 'component',
+    ];
 
-const getPathToCurrentDesigner = state => haveNestedConstructors(state)
-  ? ['nestedConstructors', 0, 'designer']
-  : ['designer'];
+const getPathToCurrentDesigner = state =>
+  haveNestedConstructors(state)
+    ? ['nestedConstructors', 0, 'designer']
+    : ['designer'];
 
-const getPathToCurrentClipboard = state => haveNestedConstructors(state)
-  ? ['nestedConstructors', 0, 'clipboard']
-  : ['clipboard'];
+const getPathToCurrentClipboard = state =>
+  haveNestedConstructors(state)
+    ? ['nestedConstructors', 0, 'clipboard']
+    : ['clipboard'];
 
-const getPathToCurrentCursor = state => haveNestedConstructors(state)
-  ? ['nestedConstructors', 0, 'cursor']
-  : ['cursor'];
+const getPathToCurrentCursor = state =>
+  haveNestedConstructors(state)
+    ? ['nestedConstructors', 0, 'cursor']
+    : ['cursor'];
 
-const getPathToCurrentHistoryNode = state => haveNestedConstructors(state)
-  ? ['nestedConstructors', 0]
-  : [];
+const getPathToCurrentHistoryNode = state =>
+  haveNestedConstructors(state) ? ['nestedConstructors', 0] : [];
 
-const getPathToPreviousHistoryNode = state => state.nestedConstructors.size > 1
-  ? ['nestedConstructors', 1]
-  : [];
+const getPathToPreviousHistoryNode = state =>
+  state.nestedConstructors.size > 1 ? ['nestedConstructors', 1] : [];
 
 const getCursor = state => state.getIn(getPathToCurrentCursor(state));
 
@@ -297,9 +306,10 @@ const updateClipboard = (state, updater) =>
 const updateCursor = (state, updater) =>
   state.updateIn(getPathToCurrentCursor(state), updater);
 
-const getPathToLastComponentId = state => haveNestedConstructors(state)
-  ? ['nestedConstructors', 0, 'lastComponentId']
-  : ['lastComponentId'];
+const getPathToLastComponentId = state =>
+  haveNestedConstructors(state)
+    ? ['nestedConstructors', 0, 'lastComponentId']
+    : ['lastComponentId'];
 
 const addNewComponents = (
   state,
@@ -310,9 +320,8 @@ const addNewComponents = (
 ) => {
   const pathToLastComponentId = getPathToLastComponentId(state);
   const lastComponentId = state.getIn(pathToLastComponentId);
-  const rootComponentId = lastComponentId === INVALID_ID
-    ? 0
-    : lastComponentId + 1;
+  const rootComponentId =
+    lastComponentId === INVALID_ID ? 0 : lastComponentId + 1;
 
   const pathToCurrentComponents = getPathToCurrentComponents(state);
   const rootComponent = components.get(0);
@@ -322,30 +331,31 @@ const addNewComponents = (
   state = state.updateIn(
     pathToCurrentComponents,
 
-    updatedComponents => updatedComponents.withMutations(mut => {
-      components.forEach(newComponent => {
-        const id = newComponent.id + rootComponentId;
-        if (id > maxId) maxId = id;
+    updatedComponents =>
+      updatedComponents.withMutations(mut => {
+        components.forEach(newComponent => {
+          const id = newComponent.id + rootComponentId;
+          if (id > maxId) maxId = id;
 
-        const insertedComponent = newComponent
-          .merge({
-            id,
-            isNew: false,
-            parentId: newComponent.parentId === INVALID_ID
-              ? containerId
-              : newComponent.parentId + rootComponentId,
+          const insertedComponent = newComponent
+            .merge({
+              id,
+              isNew: false,
+              parentId:
+                newComponent.parentId === INVALID_ID
+                  ? containerId
+                  : newComponent.parentId + rootComponentId,
 
-            routeId: state.currentRouteId,
-            isIndexRoute: state.currentRouteIsIndexRoute,
-          })
-          .update(
-            'children',
-            childIds => childIds.map(id => id + rootComponentId),
-          );
+              routeId: state.currentRouteId,
+              isIndexRoute: state.currentRouteIsIndexRoute,
+            })
+            .update('children', childIds =>
+              childIds.map(id => id + rootComponentId),
+            );
 
-        mut.set(id, insertedComponent);
-      });
-    }),
+          mut.set(id, insertedComponent);
+        });
+      }),
   );
 
   if (containerId !== INVALID_ID) {
@@ -355,9 +365,8 @@ const addNewComponents = (
       'children',
     ]);
 
-    state = state.updateIn(
-      pathToChildrenIdsList,
-      childComponentIds => childComponentIds.insert(position, rootComponentId),
+    state = state.updateIn(pathToChildrenIdsList, childComponentIds =>
+      childComponentIds.insert(position, rootComponentId),
     );
   } else {
     // Inserting root component
@@ -370,7 +379,8 @@ const addNewComponents = (
   if (isCompositeComponent(rootComponent.name, state.meta)) {
     // If the new component is composite, expand it in the tree view
     state = updateDesigner(state, designer =>
-      designer.expandTreeItem(rootComponentId));
+      designer.expandTreeItem(rootComponentId),
+    );
   }
 
   state = state.setIn(pathToLastComponentId, maxId);
@@ -379,17 +389,18 @@ const addNewComponents = (
     if (containerId === INVALID_ID) {
       if (!isAtomicComponent(rootComponent.name, state.meta)) {
         // Set cursor position inside newly created root component
-        state = updateCursor(state, cursor => cursor.setPosition(
-          state.getIn(getPathToCurrentRootComponentId(state)),
-          -1,
-        ));
+        state = updateCursor(state, cursor =>
+          cursor.setPosition(
+            state.getIn(getPathToCurrentRootComponentId(state)),
+            -1,
+          ),
+        );
       }
     } else {
       // Set cursor position after newly created component
-      state = updateCursor(state, cursor => cursor.setPosition(
-        containerId,
-        position,
-      ));
+      state = updateCursor(state, cursor =>
+        cursor.setPosition(containerId, position),
+      );
     }
   }
 
@@ -426,11 +437,17 @@ const deleteOutdatedActions = (state, component, deletedComponentIds) => {
     }
 
     if (isAsyncAction(action.type)) {
-      const stepsToSuccessActionsList =
-        [...stepsToActionsList, actionIdx, 'successActions'];
+      const stepsToSuccessActionsList = [
+        ...stepsToActionsList,
+        actionIdx,
+        'successActions',
+      ];
 
-      const stepsToErrorActionsList =
-        [...stepsToActionsList, actionIdx, 'errorActions'];
+      const stepsToErrorActionsList = [
+        ...stepsToActionsList,
+        actionIdx,
+        'errorActions',
+      ];
 
       action.params.successActions.forEach((successAction, idx) => {
         visitAction(successAction, stepsToSuccessActionsList, idx);
@@ -443,7 +460,7 @@ const deleteOutdatedActions = (state, component, deletedComponentIds) => {
   };
 
   walkSimpleValues(component, componentMeta, (propValue, _, steps) => {
-    if (propValue.sourceIs(JssyValue.Source.ACTIONS)) {
+    if (propValue.sourceIs(BoobenValue.Source.ACTIONS)) {
       const stepsToActionsList = [...steps, 'actions'];
 
       propValue.sourceData.actions.forEach((action, idx) => {
@@ -453,9 +470,8 @@ const deleteOutdatedActions = (state, component, deletedComponentIds) => {
   });
 
   actionsToDelete.forEach((indexes, steps) => {
-    component = component.updateIn(
-      expandPath({ start, steps }),
-      actions => actions.filter((_, idx) => !indexes.has(idx)),
+    component = component.updateIn(expandPath({ start, steps }), actions =>
+      actions.filter((_, idx) => !indexes.has(idx)),
     );
   });
 
@@ -480,20 +496,22 @@ const resetOutdatedStateValues = (state, component, deletedComponentIds) => {
     meta: state.meta,
   };
 
-  const visitValue = (jssyValue, valueDef, steps) => {
+  const visitValue = (boobenValue, valueDef, steps) => {
     const willResetValue =
-      jssyValue.isLinkedWithState() &&
-      deletedComponentIds.has(jssyValue.sourceData.componentId);
+      boobenValue.isLinkedWithState() &&
+      deletedComponentIds.has(boobenValue.sourceData.componentId);
 
     if (willResetValue) {
       const physicalPath = expandPath({ start, steps });
-      const newValue = jssyValueToImmutable(buildDefaultValue(
-        valueDef,
-        component.strings,
-        state.languageForComponentProps,
-        component.types,
-        { forceEnable: true },
-      ));
+      const newValue = boobenValueToImmutable(
+        buildDefaultValue(
+          valueDef,
+          component.strings,
+          state.languageForComponentProps,
+          component.types,
+          { forceEnable: true },
+        ),
+      );
 
       component = component.setIn(physicalPath, newValue);
     }
@@ -538,21 +556,17 @@ const deleteComponent = (state, componentId) => {
     const cursor = getCursor(state);
     const cursorIsInsideDeletedSubtree =
       cursor.containerId === componentId ||
-      isDeepChild(
-        currentComponents,
-        cursor.containerId,
-        componentId,
-      );
+      isDeepChild(currentComponents, cursor.containerId, componentId);
 
     if (cursorIsInsideDeletedSubtree) {
       const parentComponent = currentComponents.get(component.parentId);
-      const deletedComponentPosition =
-        parentComponent.children.indexOf(componentId);
+      const deletedComponentPosition = parentComponent.children.indexOf(
+        componentId,
+      );
 
-      state = updateCursor(state, cursor => cursor.setPosition(
-        component.parentId,
-        deletedComponentPosition - 1,
-      ));
+      state = updateCursor(state, cursor =>
+        cursor.setPosition(component.parentId, deletedComponentPosition - 1),
+      );
     }
   }
 
@@ -560,11 +574,12 @@ const deleteComponent = (state, componentId) => {
   state = state.updateIn(
     pathToCurrentComponents,
 
-    components => components.withMutations(componentsMut => {
-      deletedComponentIds.forEach(id => {
-        componentsMut.delete(id);
-      });
-    }),
+    components =>
+      components.withMutations(componentsMut => {
+        deletedComponentIds.forEach(id => {
+          componentsMut.delete(id);
+        });
+      }),
   );
 
   if (isRootComponent(component)) {
@@ -577,9 +592,8 @@ const deleteComponent = (state, componentId) => {
       'children',
     ]);
 
-    state = state.updateIn(
-      pathToChildrenIdsList,
-      children => children.filter(id => id !== componentId),
+    state = state.updateIn(pathToChildrenIdsList, children =>
+      children.filter(id => id !== componentId),
     );
   }
 
@@ -587,19 +601,24 @@ const deleteComponent = (state, componentId) => {
   state = state.updateIn(
     pathToCurrentComponents,
 
-    components => components.map(component => {
-      component = deleteOutdatedActions(state, component, deletedComponentIds);
-
-      if (haveState) {
-        component = resetOutdatedStateValues(
+    components =>
+      components.map(component => {
+        component = deleteOutdatedActions(
           state,
           component,
           deletedComponentIds,
         );
-      }
 
-      return component;
-    }),
+        if (haveState) {
+          component = resetOutdatedStateValues(
+            state,
+            component,
+            deletedComponentIds,
+          );
+        }
+
+        return component;
+      }),
   );
 
   return state;
@@ -622,10 +641,9 @@ const moveComponent = (state, componentId, containerId, afterIdx) => {
     const parentComponent = components.get(component.parentId);
     const position = parentComponent.children.indexOf(componentId);
     if (cursor.afterIdx >= position) {
-      state = updateCursor(state, cursor => cursor.setPosition(
-        cursor.containerId,
-        cursor.afterIdx - 1,
-      ));
+      state = updateCursor(state, cursor =>
+        cursor.setPosition(cursor.containerId, cursor.afterIdx - 1),
+      );
     }
   }
 
@@ -685,21 +703,24 @@ const copyComponent = (state, componentId, containerId, afterIdx) => {
   return addNewComponents(state, containerId, afterIdx, componentsCopy);
 };
 
-const insertDraggedComponents = (state, components) => addNewComponents(
-  state,
-  state.placeholderContainerId,
-  state.placeholderAfter,
-  components,
-  true,
-);
+const insertDraggedComponents = (state, components) =>
+  addNewComponents(
+    state,
+    state.placeholderContainerId,
+    state.placeholderAfter,
+    components,
+    true,
+  );
 
-const selectFirstRoute = state => state.merge({
-  selectedRouteId: state.data.rootRoutes.size > 0
-    ? state.data.rootRoutes.get(0)
-    : INVALID_ID,
+const selectFirstRoute = state =>
+  state.merge({
+    selectedRouteId:
+      state.data.rootRoutes.size > 0
+        ? state.data.rootRoutes.get(0)
+        : INVALID_ID,
 
-  indexRouteSelected: false,
-});
+    indexRouteSelected: false,
+  });
 
 /**
  * @typedef {Object} ProjectPath
@@ -771,8 +792,8 @@ const ValueTypes = {
  * @typedef {Object} ValueInfo
  * @property {number} type
  * @property {boolean} isNested
- * @property {JssyValueDefinition} valueDef
- * @property {Object<string, JssyTypeDefinition>} userTypedefs
+ * @property {BoobenValueDefinition} valueDef
+ * @property {Object<string, BoobenTypeDefinition>} userTypedefs
  */
 
 /**
@@ -804,8 +825,8 @@ const getValueInfoByPath = (path, state) => {
     const step = path.steps[idx];
     const nextStep = path.steps.length === idx + 1 ? null : path.steps[idx + 1];
 
-    if (object instanceof JssyValue) {
-      if (object.sourceIs(JssyValue.Source.FUNCTION)) {
+    if (object instanceof BoobenValue) {
+      if (object.sourceIs(BoobenValue.Source.FUNCTION)) {
         currentFunction = getFunctionInfo(
           object.sourceData.functionSource,
           object.sourceData.function,
@@ -815,7 +836,7 @@ const getValueInfoByPath = (path, state) => {
         if (nextStep === 'args') {
           nextValueType = ValueTypes.FUNCTION_ARG;
         }
-      } else if (object.sourceIs(JssyValue.Source.DESIGNER)) {
+      } else if (object.sourceIs(BoobenValue.Source.DESIGNER)) {
         currentComponents = object.sourceData.components;
       }
 
@@ -833,28 +854,34 @@ const getValueInfoByPath = (path, state) => {
           currentValueDef = null;
           userTypedefs = null;
         } else if (currentValueType === ValueTypes.FUNCTION_ARG) {
-          currentValueDef = currentFunction.args
-            .find(argDef => argDef.name === step);
+          currentValueDef = currentFunction.args.find(
+            argDef => argDef.name === step,
+          );
 
           userTypedefs = null;
         } else if (currentValueType === ValueTypes.ACTION_MUTATION_ARG) {
-          const mutation =
-            getMutationField(state.schema, currentAction.mutation);
+          const mutation = getMutationField(
+            state.schema,
+            currentAction.mutation,
+          );
 
           const arg = mutation.args[step];
 
-          currentValueDef = getJssyValueDefOfMutationArgument(
+          currentValueDef = getBoobenValueDefOfMutationArgument(
             arg,
             state.schema,
           );
 
           userTypedefs = null;
         } else if (currentValueType === ValueTypes.ACTION_METHOD_ARG) {
-          const targetComponent =
-            currentComponents.get(currentAction.params.componentId);
+          const targetComponent = currentComponents.get(
+            currentAction.params.componentId,
+          );
 
-          const targetComponentMeta =
-            getComponentMeta(targetComponent.name, state.meta);
+          const targetComponentMeta = getComponentMeta(
+            targetComponent.name,
+            state.meta,
+          );
 
           currentValueDef =
             targetComponentMeta.methods[currentAction.params.method].args[step];
@@ -865,11 +892,14 @@ const getValueInfoByPath = (path, state) => {
             currentValueDef = SYSTEM_PROPS[currentAction.params.systemPropName];
             userTypedefs = null;
           } else {
-            const targetComponent =
-              currentComponents.get(currentAction.params.componentId);
+            const targetComponent = currentComponents.get(
+              currentAction.params.componentId,
+            );
 
-            const targetComponentMeta =
-              getComponentMeta(targetComponent.name, state.meta);
+            const targetComponentMeta = getComponentMeta(
+              targetComponent.name,
+              state.meta,
+            );
 
             currentValueDef =
               targetComponentMeta.props[currentAction.params.propName];
@@ -967,8 +997,9 @@ const clearOutdatedDataProps = (state, updatedPath) => {
 
   if (!propHasDataContext(updatedPropMeta)) return state;
 
-  const outdatedDataContext = oldValue.sourceData.dataContext
-    .push(updatedPropMeta.sourceConfigs.data.pushDataContext);
+  const outdatedDataContext = oldValue.sourceData.dataContext.push(
+    updatedPropMeta.sourceConfigs.data.pushDataContext,
+  );
 
   const visitDesignerValue = (designerValue, physicalPath) => {
     const pathStart = {
@@ -993,9 +1024,8 @@ const clearOutdatedDataProps = (state, updatedPath) => {
               steps: ['components', componentId, ...steps],
             });
 
-            state = state.updateIn(
-              physicalPath,
-              updatedValue => updatedValue.resetDataLink(),
+            state = state.updateIn(physicalPath, updatedValue =>
+              updatedValue.resetDataLink(),
             );
           }
         } else if (propValue.hasDesignedComponent()) {
@@ -1090,13 +1120,14 @@ const openNestedConstructor = (state, path, components, rootId) => {
   nestedConstructorInit.designer = new Designer(designerInit);
 
   return state.update('nestedConstructors', nestedConstructors =>
-    nestedConstructors.unshift(new NestedConstructor(nestedConstructorInit)));
+    nestedConstructors.unshift(new NestedConstructor(nestedConstructorInit)),
+  );
 };
 
-const closeTopNestedConstructor = state => state.update(
-  'nestedConstructors',
-  nestedConstructors => nestedConstructors.shift(),
-);
+const closeTopNestedConstructor = state =>
+  state.update('nestedConstructors', nestedConstructors =>
+    nestedConstructors.shift(),
+  );
 
 const closeAllNestedConstructors = state =>
   state.set('nestedConstructors', List());
@@ -1109,28 +1140,26 @@ const initMainDesigner = state => {
     ? route.indexComponent
     : route.component;
 
-  const rootComponent = rootComponentId === INVALID_ID
-    ? null
-    : route.components.get(rootComponentId);
+  const rootComponent =
+    rootComponentId === INVALID_ID
+      ? null
+      : route.components.get(rootComponentId);
 
   const willUpdateCursor =
     rootComponent !== null &&
     !isAtomicComponent(rootComponent.name, state.meta);
 
-  const expandedTreeItemIds = rootComponentId === INVALID_ID
-    ? Set()
-    : Set([rootComponentId]);
+  const expandedTreeItemIds =
+    rootComponentId === INVALID_ID ? Set() : Set([rootComponentId]);
 
   if (willUpdateCursor) {
-    state = state.update(
-      'cursor',
-      cursor => cursor.setPosition(rootComponentId, -1),
+    state = state.update('cursor', cursor =>
+      cursor.setPosition(rootComponentId, -1),
     );
   }
 
-  return state.update(
-    'designer',
-    designer => designer.set('expandedTreeItemIds', expandedTreeItemIds),
+  return state.update('designer', designer =>
+    designer.set('expandedTreeItemIds', expandedTreeItemIds),
   );
 };
 
@@ -1150,27 +1179,22 @@ const setCurrentRoute = (state, routeId, isIndexRoute) => {
   return state;
 };
 
-const incrementRevision = state => state.update(
-  'localRevision',
-  localRevision => localRevision + 1,
-);
+const incrementRevision = state =>
+  state.update('localRevision', localRevision => localRevision + 1);
 
 const incrementsRevision = fn => (state, action) =>
   incrementRevision(fn(state, action));
 
-const updateHistory = (state, getPathToNodeWithHistory) => state.updateIn(
-  getPathToNodeWithHistory(state),
-  record => record.pushHistoryEntry(),
-);
+const updateHistory = (state, getPathToNodeWithHistory) =>
+  state.updateIn(getPathToNodeWithHistory(state), record =>
+    record.pushHistoryEntry(),
+  );
 
-const _undoable = getPathToNodeWithHistory => fn => (state, action) => fn(
-  updateHistory(state, getPathToNodeWithHistory),
-  action,
-);
+const _undoable = getPathToNodeWithHistory => fn => (state, action) =>
+  fn(updateHistory(state, getPathToNodeWithHistory), action);
 
 const undoable = _undoable(getPathToCurrentHistoryNode);
 const undoableInPreviousNode = _undoable(getPathToPreviousHistoryNode);
-
 
 const handlers = {
   [LOCATION_CHANGE]: (state, action) => {
@@ -1187,7 +1211,24 @@ const handlers = {
 
     if (designRouteMatch) {
       const routeId = parseInt(designRouteMatch.params.routeId, 10);
-      return setCurrentRoute(state, routeId, false);
+      state = setCurrentRoute(state, routeId, false);
+
+      if (state.data && state.data.routes) {
+        const routesIdToExpand = state.designer.expandedRouteTreeItemIds.toJS();
+        const getParentRoute = id => {
+          const route = state.data.routes.get(id);
+
+          if (route.parentId !== INVALID_ID) {
+            routesIdToExpand.push(route.parentId);
+            getParentRoute(route.parentId);
+          }
+        };
+        getParentRoute(routeId);
+
+        state = state.update('designer', designer =>
+          designer.set('expandedRouteTreeItemIds', Set(routesIdToExpand)),
+        );
+      }
     }
 
     const designRouteIndexMatch = matchPath(pathname, {
@@ -1198,16 +1239,17 @@ const handlers = {
 
     if (designRouteIndexMatch) {
       const routeId = parseInt(designRouteIndexMatch.params.routeId, 10);
-      return setCurrentRoute(state, routeId, true);
+      state = setCurrentRoute(state, routeId, true);
     }
 
     return state;
   },
 
-  [PROJECT_REQUEST]: (state, action) => state.merge({
-    projectName: action.projectName,
-    loadState: LOADING,
-  }),
+  [PROJECT_REQUEST]: (state, action) =>
+    state.merge({
+      projectName: action.projectName,
+      loadState: LOADING,
+    }),
 
   [PROJECT_LOADED]: (state, action) => {
     const project = projectToImmutable(action.project);
@@ -1234,260 +1276,298 @@ const handlers = {
         lastRouteId: getMaxRouteId(project),
         lastComponentId: getMaxComponentId(project),
       });
-
-    return initMainDesigner(selectFirstRoute(state));
+    
+    state.merge({
+      selectedRouteId: state.currentRouteId,
+    });
+    
+    return initMainDesigner(state);
   },
 
-  [PROJECT_LOAD_FAILED]: (state, action) => state.merge({
-    loadState: LOAD_ERROR,
-    error: action.error,
-  }),
+  [PROJECT_LOAD_FAILED]: (state, action) =>
+    state.merge({
+      loadState: LOAD_ERROR,
+      error: action.error,
+    }),
 
-  [PROJECT_SAVE]: state => state.merge({
-    saving: true,
-    savingRevision: state.localRevision,
-  }),
+  [PROJECT_SAVE]: state =>
+    state.merge({
+      saving: true,
+      savingRevision: state.localRevision,
+    }),
 
-  [PROJECT_SAVE_SUCCESS]: state => state.merge({
-    saving: false,
-    lastSavedRevision: state.savingRevision,
-    lastSaveError: null,
-    lastSaveTimestamp: Date.now(),
-  }),
+  [PROJECT_SAVE_SUCCESS]: state =>
+    state.merge({
+      saving: false,
+      lastSavedRevision: state.savingRevision,
+      lastSaveError: null,
+      lastSaveTimestamp: Date.now(),
+    }),
 
-  [PROJECT_SAVE_ERROR]: (state, action) => state.merge({
-    saving: false,
-    lastSaveError: action.error,
-  }),
+  [PROJECT_SAVE_ERROR]: (state, action) =>
+    state.merge({
+      saving: false,
+      lastSaveError: action.error,
+    }),
 
-  [PROJECT_ROUTE_CREATE]: undoable(incrementsRevision((state, action) => {
-    const newRouteId = state.lastRouteId === INVALID_ID
-      ? 0
-      : state.lastRouteId + 1;
+  [PROJECT_ROUTE_CREATE]: undoable(
+    incrementsRevision((state, action) => {
+      const newRouteId =
+        state.lastRouteId === INVALID_ID ? 0 : state.lastRouteId + 1;
 
-    const parentRoute = action.parentRouteId === INVALID_ID
-      ? null
-      : state.data.routes.get(action.parentRouteId);
+      const parentRoute =
+        action.parentRouteId === INVALID_ID
+          ? null
+          : state.data.routes.get(action.parentRouteId);
 
-    const fullPath = parentRoute
-      ? concatPath(parentRoute.fullPath, action.path)
-      : action.path;
+      const fullPath = parentRoute
+        ? concatPath(parentRoute.fullPath, action.path)
+        : action.path;
 
-    const newRoute = new ProjectRoute({
-      id: newRouteId,
-      parentId: action.parentRouteId,
-      path: action.path,
-      fullPath,
-      title: action.title,
-      paramValues: Map(action.paramValues),
-    });
-
-    state = state.setIn(['data', 'routes', newRouteId], newRoute);
-
-    const pathToIdsList = action.parentRouteId === INVALID_ID
-      ? ['data', 'rootRoutes']
-      : ['data', 'routes', action.parentRouteId, 'children'];
-
-    return state
-      .updateIn(pathToIdsList, list => list.push(newRouteId))
-      .merge({
-        lastRouteId: newRouteId,
-        selectedRouteId: newRouteId,
-        indexRouteSelected: false,
+      const newRoute = new ProjectRoute({
+        id: newRouteId,
+        parentId: action.parentRouteId,
+        path: action.path,
+        fullPath,
+        title: action.title,
+        paramValues: Map(action.paramValues),
       });
-  })),
 
-  [PROJECT_ROUTE_DELETE]: undoable(incrementsRevision((state, action) => {
-    const deletedRoute = state.data.routes.get(action.routeId);
-    const deletedRouteIds = gatherRoutesTreeIds(state.data, action.routeId);
+      state = state.setIn(['data', 'routes', newRouteId], newRoute);
 
-    // Delete routes
-    state = state.updateIn(
-      ['data', 'routes'],
-      routes => routes.filter(route => !deletedRouteIds.has(route.id)),
-    );
+      const pathToIdsList =
+        action.parentRouteId === INVALID_ID
+          ? ['data', 'rootRoutes']
+          : ['data', 'routes', action.parentRouteId, 'children'];
 
-    // Update rootRoutes or parent's children list
-    const pathToIdsList = deletedRoute.parentId === INVALID_ID
-      ? ['data', 'rootRoutes']
-      : ['data', 'routes', deletedRoute.parentId, 'children'];
+      return state
+        .updateIn(pathToIdsList, list => list.push(newRouteId))
+        .merge({
+          lastRouteId: newRouteId,
+          selectedRouteId: newRouteId,
+          indexRouteSelected: false,
+        });
+    }),
+  ),
 
-    state = state.updateIn(
-      pathToIdsList,
-      routeIds => routeIds.filter(routeId => routeId !== action.routeId),
-    );
+  [PROJECT_ROUTE_DELETE]: undoable(
+    incrementsRevision((state, action) => {
+      const deletedRoute = state.data.routes.get(action.routeId);
+      const deletedRouteIds = gatherRoutesTreeIds(state.data, action.routeId);
 
-    // Update selected route
-    const deletedRouteIsSelected =
-      state.selectedRouteId !== INVALID_ID &&
-      deletedRouteIds.has(state.selectedRouteId);
+      // Delete routes
+      state = state.updateIn(['data', 'routes'], routes =>
+        routes.filter(route => !deletedRouteIds.has(route.id)),
+      );
 
-    // Remove all actions with ref to this route
+      // Update rootRoutes or parent's children list
+      const pathToIdsList =
+        deletedRoute.parentId === INVALID_ID
+          ? ['data', 'rootRoutes']
+          : ['data', 'routes', deletedRoute.parentId, 'children'];
 
-    state.data.routes.forEach(route => {
-      route.components.forEach(component => {
-        component.props.forEach((prop, propName) => {
-          if (prop.source === 'actions') {
-            const actionIndexesToDelete = [];
-            prop.sourceData.actions.forEach((a, index) => {
-              if (a.type === 'navigate') {
-                if (deletedRouteIds.has(a.params.routeId)) {
-                  actionIndexesToDelete.push(index);
+      state = state.updateIn(pathToIdsList, routeIds =>
+        routeIds.filter(routeId => routeId !== action.routeId),
+      );
+
+      // Update selected route
+      const deletedRouteIsSelected =
+        state.selectedRouteId !== INVALID_ID &&
+        deletedRouteIds.has(state.selectedRouteId);
+
+      // Remove all actions with ref to this route
+
+      state.data.routes.forEach(route => {
+        route.components.forEach(component => {
+          component.props.forEach((prop, propName) => {
+            if (prop.source === 'actions') {
+              const actionIndexesToDelete = [];
+              prop.sourceData.actions.forEach((a, index) => {
+                if (a.type === 'navigate') {
+                  if (deletedRouteIds.has(a.params.routeId)) {
+                    actionIndexesToDelete.push(index);
+                  }
                 }
-              }
-            });
-            state = state.updateIn(
-              [
-                'data',
-                'routes',
-                route.id,
-                'components',
-                component.id,
-                'props',
-                propName,
-                'sourceData',
-                'actions',
-              ],
-              methodsIds =>
-                methodsIds.filter((method, methodId) =>
-                  !actionIndexesToDelete.includes(methodId)),
-            );
-          }
+              });
+              state = state.updateIn(
+                [
+                  'data',
+                  'routes',
+                  route.id,
+                  'components',
+                  component.id,
+                  'props',
+                  propName,
+                  'sourceData',
+                  'actions',
+                ],
+                methodsIds =>
+                  methodsIds.filter(
+                    (method, methodId) =>
+                      !actionIndexesToDelete.includes(methodId),
+                  ),
+              );
+            }
+          });
         });
       });
-    });
 
-    if (deletedRouteIsSelected) state = selectFirstRoute(state);
-    return state;
-  })),
+      if (deletedRouteIsSelected) state = selectFirstRoute(state);
+      return state;
+    }),
+  ),
 
-  [PROJECT_ROUTE_UPDATE_FIELD]: undoable(incrementsRevision(
-    (state, action) => state.setIn(
-      ['data', 'routes', action.routeId, action.field],
-      action.newValue,
+  [PROJECT_ROUTE_UPDATE_FIELD]: undoable(
+    incrementsRevision((state, action) =>
+      state.setIn(
+        ['data', 'routes', action.routeId, action.field],
+        action.newValue,
+      ),
     ),
-  )),
+  ),
 
-  [PROJECT_ROUTE_UPDATE_PATH]: undoable(incrementsRevision((state, action) => {
-    const walkSimpleValuesOptions = {
-      walkSystemProps: true,
-      walkActions: true,
-      walkFunctionArgs: true,
-      walkDesignerValues: true,
-      project: state.data,
-      schema: state.schema,
-      meta: state.meta,
-    };
+  [PROJECT_ROUTE_UPDATE_PATH]: undoable(
+    incrementsRevision((state, action) => {
+      const walkSimpleValuesOptions = {
+        walkSystemProps: true,
+        walkActions: true,
+        walkFunctionArgs: true,
+        walkDesignerValues: true,
+        project: state.data,
+        schema: state.schema,
+        meta: state.meta,
+      };
 
-    state = state.updateIn(
-      ['data', 'routes', action.routeId, 'components'],
+      state = state.updateIn(
+        ['data', 'routes', action.routeId, 'components'],
 
-      components => components.map(component => {
-        const componentMeta = getComponentMeta(component.name, state.meta);
-        const start = {
-          object: component,
-          expandedPath: [],
-        };
+        components =>
+          components.map(component => {
+            const componentMeta = getComponentMeta(component.name, state.meta);
+            const start = {
+              object: component,
+              expandedPath: [],
+            };
 
-        const visitValue = (jssyValue, valueDef, steps) => {
-          const isCandidateValue =
-            jssyValue.isLinkedWithRouteParam() &&
-            jssyValue.sourceData.routeId === action.routeId;
+            const visitValue = (boobenValue, valueDef, steps) => {
+              const isCandidateValue =
+                boobenValue.isLinkedWithRouteParam() &&
+                boobenValue.sourceData.routeId === action.routeId;
 
-          if (!isCandidateValue) return;
+              if (!isCandidateValue) return;
 
-          const paramName = jssyValue.sourceData.paramName;
+              const paramName = boobenValue.sourceData.paramName;
 
-          if (action.renamedParams[paramName]) {
-            const newValue = new JssyValue({
-              source: 'routeParams',
-              sourceData: new SourceDataRouteParams({
-                routeId: action.routeId,
-                paramName: action.renamedParams[paramName],
-              }),
-            });
+              if (action.renamedParams[paramName]) {
+                const newValue = new BoobenValue({
+                  source: 'routeParams',
+                  sourceData: new SourceDataRouteParams({
+                    routeId: action.routeId,
+                    paramName: action.renamedParams[paramName],
+                  }),
+                });
 
-            component = component.setIn(expandPath({ start, steps }), newValue);
-          } else if (!action.newParamValues[paramName]) {
-            const newValue = jssyValueToImmutable(buildDefaultValue(
-              valueDef,
-              component.strings,
-              state.languageForComponentProps,
-              component.types,
-              { forceEnable: true },
-            ));
+                component = component.setIn(
+                  expandPath({ start, steps }),
+                  newValue,
+                );
+              } else if (!action.newParamValues[paramName]) {
+                const newValue = boobenValueToImmutable(
+                  buildDefaultValue(
+                    valueDef,
+                    component.strings,
+                    state.languageForComponentProps,
+                    component.types,
+                    { forceEnable: true },
+                  ),
+                );
 
-            component = component.setIn(expandPath({ start, steps }), newValue);
-          }
-        };
+                component = component.setIn(
+                  expandPath({ start, steps }),
+                  newValue,
+                );
+              }
+            };
 
-        walkSimpleValues(
-          component,
-          componentMeta,
-          visitValue,
-          walkSimpleValuesOptions,
-        );
+            walkSimpleValues(
+              component,
+              componentMeta,
+              visitValue,
+              walkSimpleValuesOptions,
+            );
 
-        return component;
-      }),
-    );
+            return component;
+          }),
+      );
 
-    return state.mergeIn(['data', 'routes', action.routeId], {
-      path: action.newPath,
-      paramValues: Map(action.newParamValues),
-    });
-  })),
+      return state.mergeIn(['data', 'routes', action.routeId], {
+        path: action.newPath,
+        paramValues: Map(action.newParamValues),
+      });
+    }),
+  ),
 
-  [PROJECT_COMPONENT_CREATE]: undoable(incrementsRevision(
-    (state, action) => addNewComponents(
-      state,
-      action.containerId,
-      action.afterIdx,
-      action.components,
-      action.updateCursorPosition,
+  [PROJECT_COMPONENT_CREATE]: undoable(
+    incrementsRevision((state, action) =>
+      addNewComponents(
+        state,
+        action.containerId,
+        action.afterIdx,
+        action.components,
+        action.updateCursorPosition,
+      ),
     ),
-  )),
+  ),
 
-  [PROJECT_COMPONENT_DELETE]: undoable(incrementsRevision((state, action) => {
-    state = updateDesigner(state, designer =>
-      designer.forgetComponent(action.componentId));
+  [PROJECT_COMPONENT_DELETE]: undoable(
+    incrementsRevision((state, action) => {
+      state = updateDesigner(state, designer =>
+        designer.forgetComponent(action.componentId),
+      );
 
-    if (state.draggedComponentId === action.componentId) {
-      state = initDNDState(state);
-    }
+      if (state.draggedComponentId === action.componentId) {
+        state = initDNDState(state);
+      }
 
-    return deleteComponent(state, action.componentId);
-  })),
+      return deleteComponent(state, action.componentId);
+    }),
+  ),
 
-  [PROJECT_COMPONENT_COPY]: undoable(incrementsRevision(
-    (state, action) => copyComponent(
-      state,
-      action.componentId,
-      action.containerId,
-      action.afterIdx,
+  [PROJECT_COMPONENT_COPY]: undoable(
+    incrementsRevision((state, action) =>
+      copyComponent(
+        state,
+        action.componentId,
+        action.containerId,
+        action.afterIdx,
+      ),
     ),
-  )),
+  ),
 
-  [PROJECT_COMPONENT_MOVE]: undoable(incrementsRevision(
-    (state, action) => moveComponent(
-      action.clearClipboard
-        ? updateClipboard(state, clipboard => clipboard.clearClipboard())
-        : state,
+  [PROJECT_COMPONENT_MOVE]: undoable(
+    incrementsRevision((state, action) =>
+      moveComponent(
+        action.clearClipboard
+          ? updateClipboard(state, clipboard => clipboard.clearClipboard())
+          : state,
 
-      action.componentId,
-      action.containerId,
-      action.afterIdx,
+        action.componentId,
+        action.containerId,
+        action.afterIdx,
+      ),
     ),
-  )),
+  ),
 
   [PROJECT_COMPONENT_MOVE_TO_CLIPBOARD]: (state, action) =>
     updateClipboard(state, clipboard =>
-      clipboard.updateClipboard(action.componentId, action.copy)),
+      clipboard.updateClipboard(action.componentId, action.copy),
+    ),
 
-  [PROJECT_COMPONENT_CONVERT_TO_LIST]: undoable(incrementsRevision(
-    (state, action) => {
+  [PROJECT_COMPONENT_CONVERT_TO_LIST]: undoable(
+    incrementsRevision((state, action) => {
       state = updateDesigner(state, designer =>
-        designer.forgetComponent(action.componentId));
+        designer.forgetComponent(action.componentId),
+      );
 
       if (state.draggedComponentId === action.componentId) {
         state = initDNDState(state);
@@ -1517,36 +1597,45 @@ const handlers = {
       state = addNewComponents(state, containerId, afterIdx, list);
 
       return updateDesigner(state, designer =>
-        designer.selectComponentExclusive(newComponentId));
-    },
-  )),
+        designer.selectComponentExclusive(newComponentId),
+      );
+    }),
+  ),
 
-  [PROJECT_JSSY_VALUE_REPLACE]: undoable(incrementsRevision(
-    (state, action) => updateValue(state, action.path, action.newValue),
-  )),
-
-  [PROJECT_JSSY_VALUE_ADD_ACTION]: undoable(incrementsRevision(
-    (state, action) => state.updateIn(
-      expandPath(materializePath(action.path, state)),
-      actionsList => actionsList.push(action.action),
+  [PROJECT_BOOBEN_VALUE_REPLACE]: undoable(
+    incrementsRevision((state, action) =>
+      updateValue(state, action.path, action.newValue),
     ),
-  )),
+  ),
 
-  [PROJECT_JSSY_VALUE_REPLACE_ACTION]: undoable(incrementsRevision(
-    (state, action) => state.updateIn(
-      expandPath(materializePath(action.path, state)),
-      actionsList => actionsList.set(action.index, action.newAction),
+  [PROJECT_BOOBEN_VALUE_ADD_ACTION]: undoable(
+    incrementsRevision((state, action) =>
+      state.updateIn(
+        expandPath(materializePath(action.path, state)),
+        actionsList => actionsList.push(action.action),
+      ),
     ),
-  )),
+  ),
 
-  [PROJECT_JSSY_VALUE_DELETE_ACTION]: undoable(incrementsRevision(
-    (state, action) => state.updateIn(
-      expandPath(materializePath(action.path, state)),
-      actionsList => actionsList.delete(action.index),
+  [PROJECT_BOOBEN_VALUE_REPLACE_ACTION]: undoable(
+    incrementsRevision((state, action) =>
+      state.updateIn(
+        expandPath(materializePath(action.path, state)),
+        actionsList => actionsList.set(action.index, action.newAction),
+      ),
     ),
-  )),
+  ),
 
-  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT]: (state, action) => {
+  [PROJECT_BOOBEN_VALUE_DELETE_ACTION]: undoable(
+    incrementsRevision((state, action) =>
+      state.updateIn(
+        expandPath(materializePath(action.path, state)),
+        actionsList => actionsList.delete(action.index),
+      ),
+    ),
+  ),
+
+  [PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT]: (state, action) => {
     if (action.path.startingPoint !== PathStartingPoints.CURRENT_COMPONENTS) {
       throw new Error('Cannot open nested constructor with absolute path');
     }
@@ -1568,22 +1657,17 @@ const handlers = {
         action.rootId,
       );
     } else {
-      return openNestedConstructor(
-        state,
-        action.path,
-        null,
-        INVALID_ID,
-      );
+      return openNestedConstructor(state, action.path, null, INVALID_ID);
     }
   },
 
-  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_CANCEL]: state =>
+  [PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT_CANCEL]: state =>
     closeTopNestedConstructor(state),
 
-  [PROJECT_JSSY_VALUE_CONSTRUCT_COMPONENT_SAVE]:
-    undoableInPreviousNode(incrementsRevision(state => {
+  [PROJECT_BOOBEN_VALUE_CONSTRUCT_COMPONENT_SAVE]: undoableInPreviousNode(
+    incrementsRevision(state => {
       const topNestedConstructor = getTopNestedConstructor(state);
-      const newValue = new JssyValue({
+      const newValue = new BoobenValue({
         source: 'designer',
         sourceData: new SourceDataDesigner({
           components: topNestedConstructor.components,
@@ -1596,28 +1680,32 @@ const handlers = {
         topNestedConstructor.path,
         newValue,
       );
-    })),
+    }),
+  ),
 
-  [PROJECT_COMPONENT_RENAME]: undoable(incrementsRevision((state, action) => {
-    const pathToCurrentComponents = getPathToCurrentComponents(state);
-    const path = [].concat(pathToCurrentComponents, [
-      action.componentId,
-      'title',
-    ]);
+  [PROJECT_COMPONENT_RENAME]: undoable(
+    incrementsRevision((state, action) => {
+      const pathToCurrentComponents = getPathToCurrentComponents(state);
+      const path = [].concat(pathToCurrentComponents, [
+        action.componentId,
+        'title',
+      ]);
 
-    return state.setIn(path, action.newTitle);
-  })),
+      return state.setIn(path, action.newTitle);
+    }),
+  ),
 
-  [PROJECT_COMPONENT_CHANGE_STYLE]:
-    undoable(incrementsRevision((state, action) => {
+  [PROJECT_COMPONENT_CHANGE_STYLE]: undoable(
+    incrementsRevision((state, action) => {
       const pathToCurrentComponents = getPathToCurrentComponents(state);
       const path = [...pathToCurrentComponents, action.componentId, 'style'];
 
       return state.setIn(path, action.style);
-    })),
+    }),
+  ),
 
-  [PROJECT_COMPONENT_TOGGLE_REGION]: undoable(incrementsRevision(
-    (state, action) => {
+  [PROJECT_COMPONENT_TOGGLE_REGION]: undoable(
+    incrementsRevision((state, action) => {
       const pathToCurrentComponents = getPathToCurrentComponents(state);
       const path = [
         ...pathToCurrentComponents,
@@ -1625,20 +1713,25 @@ const handlers = {
         'regionsEnabled',
       ];
 
-      return state.updateIn(path, regionsEnabled => action.enable
-        ? regionsEnabled.add(action.regionIdx)
-        : regionsEnabled.delete(action.regionIdx),
+      return state.updateIn(
+        path,
+        regionsEnabled =>
+          action.enable
+            ? regionsEnabled.add(action.regionIdx)
+            : regionsEnabled.delete(action.regionIdx),
       );
-    },
-  )),
+    }),
+  ),
 
   [PREVIEW_HIGHLIGHT_COMPONENT]: (state, action) =>
     updateDesigner(state, designer =>
-      designer.highlightComponent(action.componentId)),
+      designer.highlightComponent(action.componentId),
+    ),
 
   [PREVIEW_UNHIGHLIGHT_COMPONENT]: (state, action) =>
     updateDesigner(state, designer =>
-      designer.unhighlightComponent(action.componentId)),
+      designer.unhighlightComponent(action.componentId),
+    ),
 
   [PREVIEW_SELECT_COMPONENT]: (state, action) => {
     state = state.set('showAllComponentsOnPalette', false);
@@ -1660,12 +1753,17 @@ const handlers = {
         currentComponentId = parentId;
       }
       state = updateDesigner(state, designer =>
-        designer.expandTreeItems(componentsToExpand));
+        designer.expandTreeItems(componentsToExpand),
+      );
     }
 
-    return updateDesigner(state, action.exclusive
-      ? designer => designer.selectComponentExclusive(action.componentId)
-      : designer => designer.selectComponent(action.componentId),
+    state = state.merge({ propsViewMode: 'componentProps' });
+
+    return updateDesigner(
+      state,
+      action.exclusive
+        ? designer => designer.selectComponentExclusive(action.componentId)
+        : designer => designer.selectComponent(action.componentId),
     );
   },
 
@@ -1673,21 +1771,24 @@ const handlers = {
     state = state.set('showAllComponentsOnPalette', false);
 
     return updateDesigner(state, designer =>
-      designer.deselectComponent(action.componentId));
+      designer.deselectComponent(action.componentId),
+    );
   },
 
   [PREVIEW_TOGGLE_COMPONENT_SELECTION]: (state, action) => {
     state = state.set('showAllComponentsOnPalette', false);
 
     return updateDesigner(state, designer =>
-      designer.toggleComponentSelection(action.componentId));
+      designer.toggleComponentSelection(action.componentId),
+    );
   },
 
   [PREVIEW_START_DRAG_NEW_COMPONENT]: (state, action) => {
     if (state.selectingComponentLayout || state.pickingComponent) return state;
 
     state = updateDesigner(state, designer =>
-      designer.unhighlightAllComponents());
+      designer.unhighlightAllComponents(),
+    );
 
     return state.merge({
       draggingComponent: true,
@@ -1704,7 +1805,8 @@ const handlers = {
     const currentComponents = state.getIn(pathToCurrentComponents);
 
     state = updateDesigner(state, designer =>
-      designer.unhighlightAllComponents());
+      designer.unhighlightAllComponents(),
+    );
 
     return state.merge({
       draggingComponent: true,
@@ -1737,8 +1839,7 @@ const handlers = {
       const rootComponent = state.draggedComponents.get(0);
       const componentMeta = getComponentMeta(rootComponent.name, state.meta);
       const isCompositeComponentWithMultipleLayouts =
-        componentMeta.kind === 'composite' &&
-        componentMeta.layouts.length > 1;
+        componentMeta.kind === 'composite' && componentMeta.layouts.length > 1;
 
       if (isCompositeComponentWithMultipleLayouts) {
         // The component is composite and has multiple layouts;
@@ -1757,44 +1858,49 @@ const handlers = {
     }
   },
 
-  [PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT]: undoable(incrementsRevision(
-    (state, action) => {
+  [PROJECT_SELECT_LAYOUT_FOR_NEW_COMPONENT]: undoable(
+    incrementsRevision((state, action) => {
       if (!state.selectingComponentLayout) return state;
 
-      const components = action.layoutIdx === 0
-        ? state.draggedComponents
-
-        : constructComponent(
-          state.draggedComponents.get(0).name,
-          action.layoutIdx,
-          state.languageForComponentProps,
-          state.meta,
-        );
+      const components =
+        action.layoutIdx === 0
+          ? state.draggedComponents
+          : constructComponent(
+              state.draggedComponents.get(0).name,
+              action.layoutIdx,
+              state.languageForComponentProps,
+              state.meta,
+            );
 
       state = insertDraggedComponents(state, components);
       state = state.set('selectingComponentLayout', false);
       return initDNDState(state);
-    },
-  )),
+    }),
+  ),
 
-  [PROJECT_CREATE_FUNCTION]: undoable(incrementsRevision((state, action) => {
-    const newFunction = new ProjectFunction({
-      title: action.title,
-      description: action.description,
-      args: List(action.args.map(
-        ({ name, type }) => new ProjectFunctionArgument({
-          name,
-          typedef: { type },
-        }),
-      )),
-      spreadLastArg: action.spreadLastArg,
-      returnType: { type: action.returnType },
-      body: action.code,
-      fn: createJSFunction(action.args.map(arg => arg.name), action.code),
-    });
+  [PROJECT_CREATE_FUNCTION]: undoable(
+    incrementsRevision((state, action) => {
+      const newFunction = new ProjectFunction({
+        title: action.title,
+        description: action.description,
+        args: List(
+          action.args.map(
+            ({ name, type }) =>
+              new ProjectFunctionArgument({
+                name,
+                typedef: { type },
+              }),
+          ),
+        ),
+        spreadLastArg: action.spreadLastArg,
+        returnType: { type: action.returnType },
+        body: action.code,
+        fn: createJSFunction(action.args.map(arg => arg.name), action.code),
+      });
 
-    return state.setIn(['data', 'functions', action.name], newFunction);
-  })),
+      return state.setIn(['data', 'functions', action.name], newFunction);
+    }),
+  ),
 
   [PROJECT_PICK_COMPONENT]: (state, action) => {
     if (state.pickingComponent || state.pickingComponentData) {
@@ -1802,7 +1908,8 @@ const handlers = {
     }
 
     state = updateDesigner(state, designer =>
-      designer.unhighlightAllComponents());
+      designer.unhighlightAllComponents(),
+    );
 
     return state.merge({
       pickingComponent: true,
@@ -1831,65 +1938,84 @@ const handlers = {
     return state;
   },
 
-  [PROJECT_PICK_COMPONENT_CANCEL]: state =>
-    initComponentPickingState(state),
+  [PROJECT_PICK_COMPONENT_CANCEL]: state => initComponentPickingState(state),
 
-  [PROJECT_PICK_COMPONENT_DATA]: (state, action) => state
-    .merge({
-      pickingComponent: false,
-      pickingComponentData: false,
-      pickingComponentFilter: null,
-      pickingComponentDataGetter: null,
-      pickedComponentData: action.data,
-      componentDataListIsVisible: false,
-    })
-    .set('componentDataListItems', []),
+  [PROJECT_PICK_COMPONENT_DATA]: (state, action) =>
+    state
+      .merge({
+        pickingComponent: false,
+        pickingComponentData: false,
+        pickingComponentFilter: null,
+        pickingComponentDataGetter: null,
+        pickedComponentData: action.data,
+        componentDataListIsVisible: false,
+      })
+      .set('componentDataListItems', []),
 
-  [PROJECT_PICK_COMPONENT_DATA_CANCEL]: state => state
-    .merge({
-      pickingComponent: true,
-      pickedComponentId: INVALID_ID,
-      pickedComponentArea: ComponentPickAreas.UNKNOWN,
-      componentDataListIsVisible: false,
-    })
-    .set('componentDataListItems', []),
+  [PROJECT_PICK_COMPONENT_DATA_CANCEL]: state =>
+    state
+      .merge({
+        pickingComponent: true,
+        pickedComponentId: INVALID_ID,
+        pickedComponentArea: ComponentPickAreas.UNKNOWN,
+        componentDataListIsVisible: false,
+      })
+      .set('componentDataListItems', []),
 
-  [PREVIEW_DRAG_OVER_PLACEHOLDER]: (state, action) => state.merge({
-    draggingOverPlaceholder: true,
-    placeholderContainerId: action.containerId,
-    placeholderAfter: action.afterIdx,
-  }),
+  [PREVIEW_DRAG_OVER_PLACEHOLDER]: (state, action) =>
+    state.merge({
+      draggingOverPlaceholder: true,
+      placeholderContainerId: action.containerId,
+      placeholderAfter: action.afterIdx,
+    }),
 
-  [PREVIEW_DRAG_OVER_NOTHING]: state => state.merge({
-    draggingOverPlaceholder: false,
-    placeholderContainerId: INVALID_ID,
-    placeholderAfter: -1,
-  }),
+  [PREVIEW_DRAG_OVER_NOTHING]: state =>
+    state.merge({
+      draggingOverPlaceholder: false,
+      placeholderContainerId: INVALID_ID,
+      placeholderAfter: -1,
+    }),
 
-  [PROJECT_UNDO]: incrementsRevision(
-    state => initComponentPickingState(initDNDState(state.updateIn(
-      getPathToCurrentHistoryNode(state),
-      record => record.moveBack(),
-    ))),
+  [PROJECT_UNDO]: incrementsRevision(state =>
+    initComponentPickingState(
+      initDNDState(
+        state.updateIn(getPathToCurrentHistoryNode(state), record =>
+          record.moveBack(),
+        ),
+      ),
+    ),
   ),
 
-  [PROJECT_REDO]: incrementsRevision(
-    state => initComponentPickingState(initDNDState(state.updateIn(
-      getPathToCurrentHistoryNode(state),
-      record => record.moveForward(),
-    ))),
+  [PROJECT_REDO]: incrementsRevision(state =>
+    initComponentPickingState(
+      initDNDState(
+        state.updateIn(getPathToCurrentHistoryNode(state), record =>
+          record.moveForward(),
+        ),
+      ),
+    ),
   ),
 
   [PROJECT_MOVE_CURSOR]: (state, action) =>
-    updateCursor(state, cursor => cursor.setPosition(
-      action.containerId,
-      action.afterIdx,
-    )),
+    updateCursor(state, cursor =>
+      cursor.setPosition(action.containerId, action.afterIdx),
+    ),
 
   [STRUCTURE_SELECT_ROUTE]: (state, action) => state.merge({
     selectedRouteId: action.routeId,
     indexRouteSelected: action.indexRouteSelected,
+    propsViewMode: 'routeProps',
   }),
+
+  [STRUCTURE_HIGHLIGHT_ROUTE]: (state, action) =>
+    updateDesigner(state, designer =>
+      designer.highlightRoute(action.routeId),
+    ),
+
+  [STRUCTURE_UNHIGHLIGHT_ROUTE]: (state, action) =>
+    updateDesigner(state, designer =>
+      designer.unhighlightRoute(action.routeId),
+    ),
 
   [APP_LOAD_STRINGS_SUCCESS]: (state, action) =>
     state.set('languageForComponentProps', action.language),
@@ -1898,15 +2024,39 @@ const handlers = {
     state.set('showAllComponentsOnPalette', true),
 
   [DESIGN_TREE_EXPAND_ITEM]: (state, action) =>
-    updateDesigner(state, designer => isArrayOrList(action.componentId)
-      ? designer.expandTreeItems(action.componentId)
-      : designer.expandTreeItem(action.componentId),
+    updateDesigner(
+      state,
+      designer =>
+        isArrayOrList(action.componentId)
+          ? designer.expandTreeItems(action.componentId)
+          : designer.expandTreeItem(action.componentId),
     ),
 
   [DESIGN_TREE_COLLAPSE_ITEM]: (state, action) =>
-    updateDesigner(state, designer => isArrayOrList(action.componentId)
-      ? designer.collapseTreeItems(action.componentId)
-      : designer.collapseTreeItem(action.componentId),
+    updateDesigner(
+      state,
+      designer =>
+        isArrayOrList(action.componentId)
+          ? designer.collapseTreeItems(action.componentId)
+          : designer.collapseTreeItem(action.componentId),
+    ),
+
+  [DESIGN_ROUTE_TREE_EXPAND_ITEM]: (state, action) =>
+    updateDesigner(
+      state,
+      designer =>
+        isArrayOrList(action.routeId)
+          ? designer.expandRouteTreeItems(action.routeId)
+          : designer.expandRouteTreeItem(action.routeId),
+    ),
+
+  [DESIGN_ROUTE_TREE_COLLAPSE_ITEM]: (state, action) =>
+    updateDesigner(
+      state,
+      designer =>
+        isArrayOrList(action.routeId)
+          ? designer.collapseRouteTreeItems(action.routeId)
+          : designer.collapseRouteTreeItem(action.routeId),
     ),
 };
 

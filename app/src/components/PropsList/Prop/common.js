@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import { TypeNames } from '@jssy/types';
+import { TypeNames } from 'booben-types';
 
 /**
  * @typedef {Object} PropsItemPropTypeOption
@@ -58,7 +58,7 @@ export const PropViews = {
  * @type {Object<string, number>}
  * @const
  */
-const JSSY_TYPE_TO_VIEW = {
+const BOOBEN_TYPE_TO_VIEW = {
   [TypeNames.STRING]: PropViews.INPUT,
   [TypeNames.BOOL]: PropViews.TOGGLE,
   [TypeNames.INT]: PropViews.INPUT,
@@ -77,11 +77,11 @@ const JSSY_TYPE_TO_VIEW = {
 
 /**
  *
- * @param {string} jssyType
+ * @param {string} boobenType
  * @return {number}
  */
-export const jssyTypeToView = jssyType =>
-  JSSY_TYPE_TO_VIEW[jssyType] || PropViews.EMPTY;
+export const boobenTypeToView = boobenType =>
+  BOOBEN_TYPE_TO_VIEW[boobenType] || PropViews.EMPTY;
 
 export const ValueShape = PropTypes.shape({
   value: PropTypes.any,

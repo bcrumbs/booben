@@ -16,8 +16,8 @@ import {
 } from '../../../../components/BlockContent';
 
 import ProjectFunctionRecord from '../../../../models/ProjectFunction';
-import JssyValue, { SourceDataState } from '../../../../models/JssyValue';
-import { jssyValueToImmutable } from '../../../../models/ProjectComponent';
+import BoobenValue, { SourceDataState } from '../../../../models/BoobenValue';
+import { boobenValueToImmutable } from '../../../../models/ProjectComponent';
 
 import {
   getLocalizedTextFromState,
@@ -32,10 +32,10 @@ import {
 
 import { DataWindowTitle } from '../../../../components/DataWindow/DataWindow';
 import { PropsList } from '../../../../components/PropsList/PropsList';
-import { JssyValueEditor } from '../../../JssyValueEditor/JssyValueEditor';
+import { BoobenValueEditor } from '../../../BoobenValueEditor/BoobenValueEditor';
 import { buildDefaultValue } from '../../../../lib/meta';
 import { noop, returnArg, mapListToArray } from '../../../../utils/misc';
-import * as JssyPropTypes from '../../../../constants/common-prop-types';
+import * as BoobenPropTypes from '../../../../constants/common-prop-types';
 import { ButtonWrapperStyled } from './styles/ButtonWrapperStyled';
 
 import {
@@ -44,7 +44,7 @@ import {
 
 const propTypes = {
   meta: PropTypes.object.isRequired,
-  currentComponents: JssyPropTypes.components.isRequired,
+  currentComponents: BoobenPropTypes.components.isRequired,
   pickingComponentData: PropTypes.bool.isRequired,
   // eslint-disable-next-line react/no-unused-prop-types
   pickedComponentId: PropTypes.number.isRequired,
@@ -90,8 +90,8 @@ const wrap = connect(mapStateToProps, mapDispatchToProps);
 /**
  *
  * @param {Object} arg - FunctionArgument Record
- * @param {JssyValueDefinition} targetValueDef
- * @return {JssyValueDefinition}
+ * @param {BoobenValueDefinition} targetValueDef
+ * @return {BoobenValueDefinition}
  */
 const getValueDef = (arg, targetValueDef) => ({
   ...arg.typedef,
@@ -103,19 +103,19 @@ const getValueDef = (arg, targetValueDef) => ({
 /**
  *
  * @param {Object} functionDef - ProjectFunction Record
- * @param {JssyValueDefinition} targetValueDef
- * @return {JssyValueDefinition[]}
+ * @param {BoobenValueDefinition} targetValueDef
+ * @return {BoobenValueDefinition[]}
  */
 const getValueDefs = (functionDef, targetValueDef) =>
   mapListToArray(functionDef.args, arg => getValueDef(arg, targetValueDef));
 
 /**
  *
- * @param {JssyValueDefinition[]} argValueDefs
- * @return {Immutable.List<Object>} - List of JssyValues
+ * @param {BoobenValueDefinition[]} argValueDefs
+ * @return {Immutable.List<Object>} - List of BoobenValues
  */
 const makeDefaultValues = argValueDefs => List(argValueDefs.map(
-  valueDef => jssyValueToImmutable(buildDefaultValue(valueDef)),
+  valueDef => boobenValueToImmutable(buildDefaultValue(valueDef)),
 ));
 
 class _FunctionWindow extends PureComponent {
@@ -345,7 +345,7 @@ class _FunctionWindow extends PureComponent {
     if (!picking) return;
 
     const argIndex = parseInt(pickingName, 10);
-    const newValue = new JssyValue({
+    const newValue = new BoobenValue({
       source: 'state',
       sourceData: new SourceDataState({
         componentId,
@@ -383,25 +383,23 @@ class _FunctionWindow extends PureComponent {
     const { getLocalizedText } = this.props;
     const valueDef = this.getRestArgValueDef();
 
-    const restArgElements = restArgValues.map((value, idx) => {
-      return (
-        <JssyValueEditor
-          id={idx}
-          key={String(idx)}
-          name={String(idx)}
-          value={value}
-          valueDef={{ ...valueDef, label: `${idx}` }}
-          optional={false}
-          getLocalizedText={getLocalizedText}
-          onChange={this._handleRestArgChange}
-          onLink={this._handleRestArgLink}
-          onPick={this._handleRestArgPick}
-          deletable={idx}
-          simulateLeftOffset={idx === 0}
-          onDelete={this._handleRestArgDelete}
-        />
-      );
-    });
+    const restArgElements = restArgValues.map((value, idx) => (
+      <BoobenValueEditor
+        id={idx}
+        key={String(idx)}
+        name={String(idx)}
+        value={value}
+        valueDef={{ ...valueDef, label: `${idx}` }}
+        optional={false}
+        getLocalizedText={getLocalizedText}
+        onChange={this._handleRestArgChange}
+        onLink={this._handleRestArgLink}
+        onPick={this._handleRestArgPick}
+        deletable={idx}
+        simulateLeftOffset={idx === 0}
+        onDelete={this._handleRestArgDelete}
+      />
+      ));
 
     return (
       <PropExpandable
@@ -439,7 +437,7 @@ class _FunctionWindow extends PureComponent {
       const valueDef = this._argsValueDefs[idx];
 
       return (
-        <JssyValueEditor
+        <BoobenValueEditor
           key={String(idx)}
           name={String(idx)}
           value={values.get(idx)}
