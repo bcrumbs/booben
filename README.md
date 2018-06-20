@@ -38,6 +38,21 @@ Documentation is not complete and translated yet. Contributions are welcomed.
 
 ### Setup
 
+Clone Booben repo
+```
+git clone https://github.com/bcrumbs/booben
+```
+
+**1. Quick setup**
+
+Run bash script. It will clone blank project for Booben and create config file.
+```
+bash bootstap.sh
+node index.js --config dev-config.json
+```
+
+
+
 ### Contributing
 All contributions are welcomed.
 
