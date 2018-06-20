@@ -51,6 +51,8 @@ bash bootstrap.sh
 node index.js --config dev-config.json
 ```
 
+App will be running on `localhost:3000/app/<project_name>`
+
 ### Contributing
 All contributions are welcomed.
 
