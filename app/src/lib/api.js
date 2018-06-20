@@ -124,15 +124,20 @@ export const getGraphQLSchema = async graphqlEndpointURL => {
   return data.data.__schema;
 };
 
-export const getCode = async project => {
+export const getCode = async (project, meta) => {
   const url = `${URL_API_PREFIX}/codegen`;
+
+  const body = {
+    project,
+    meta,
+  }
 
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       'content-type': 'application/json',
     },
-    body: JSON.stringify(project),
+    body: JSON.stringify(body),
   });
 
   if (res.ok) {

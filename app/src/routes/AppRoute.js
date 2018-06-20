@@ -51,6 +51,7 @@ const propTypes = {
   location: PropTypes.object.isRequired, // router
   projectName: PropTypes.string.isRequired, // state
   project: PropTypes.instanceOf(ProjectRecord).isRequired, // state
+  meta: PropTypes.object.isRequired, // state
   getLocalizedText: PropTypes.func.isRequired, // state
   onAlertAreaReady: PropTypes.func.isRequired, // alertAreaProvider
   onAlertAreaRemoved: PropTypes.func.isRequired, // alertAreaProvider
@@ -59,6 +60,7 @@ const propTypes = {
 const mapStateToProps = state => ({
   projectName: state.project.projectName,
   project: state.project.data,
+  meta: state.project.meta,
   getLocalizedText: getLocalizedTextFromState(state),
 });
 
@@ -120,10 +122,10 @@ class AppRoute extends Component {
   }
 
   async _getProjectCode() {
-    const { project } = this.props;
+    const { project, meta } = this.props;
     try {
       const jsProject = projectToJSv1(project);
-      const res = await getCode(jsProject);
+      const res = await getCode(jsProject, meta);
 
       FileSaver.saveAs(res, "project.zip");
     } catch (error) {
