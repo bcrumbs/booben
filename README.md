@@ -1,7 +1,7 @@
 <div align="center"><img  align="center" style="width: 100%;" src="https://preview.ibb.co/nEUQPd/booben_logo.png" /></div>
 <h3 align="center">Full-stack web app developing platform</h4>
 <p align="center">Design, develop, connect data, get source code - all in one place.</p>
-<div align="center"><a href="https://demo.booben.io">Demo</a></div>
+<div align="center"><a href="http://demo.booben.io/app/demo/">Demo</a></div>
 <br />
 <hr />
 
