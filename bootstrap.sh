@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-PROJECTS_REPO="https://github.com/bcrumbs/booben-projects"
+PROJECTS_REPO="https://github.com/bcrumbs/booben-projects.git"
 
 for i in "$@"
 do
