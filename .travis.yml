@@ -20,4 +20,4 @@ script: echo "npm test temporarily disabled"
 
 deploy:
   provider: script
-    script: bash docker/travis-deploy.sh
+  script: bash docker/travis-deploy.sh
