@@ -24,3 +24,7 @@ deploy:
   script: bash docker/travis-deploy.sh
   on:
     all_branches: true
+
+cache:
+  directories:
+    - node_modules/
