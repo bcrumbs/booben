@@ -4,6 +4,7 @@
 <div align="center"><a href="https://demo.booben.io">Demo</a></div>
 <br />
 <hr />
+[![Build Status](https://travis-ci.org/bcrumbs/booben.svg?branch=master)](https://travis-ci.org/bcrumbs/booben)
 
 ### Features
 + Design your app without a line of code by drag-and-dropping components on the canvas
@@ -49,7 +50,7 @@ cd booben
 Run bash script from the booben's directory. It will clone blank project for Booben and create config file.
 ```
 bash bootstrap.sh
-node index.js --config project-config.json
+node index.js --config projects-config.json
 ```
 OR
 ```
@@ -57,10 +58,12 @@ make bootstrap
 ```
 On Docker:
 ```
+docker pull braincrumbs/booben
 docker run -d --name=booben -p 3000:3000 braincrumbs/booben
 ```
 OR
 ```
+docker-compose pull
 docker-compose up -d
 ```
 
