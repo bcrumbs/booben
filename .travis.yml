@@ -21,3 +21,5 @@ script: echo "npm test temporarily disabled"
 deploy:
   provider: script
   script: bash docker/travis-deploy.sh
+  on:
+    all_branches: true
