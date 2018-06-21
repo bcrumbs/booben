@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-make bootstrap
+make project-build
 make docker-build
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 docker tag booben:latest $DOCKER_REPO:latest
