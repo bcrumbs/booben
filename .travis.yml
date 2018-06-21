@@ -23,7 +23,7 @@ deploy:
   skip_cleanup: true
   script: bash docker/travis-deploy.sh
   on:
-    all_branches: true
+    branch: master
 
 cache:
   directories:

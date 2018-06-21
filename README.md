@@ -4,6 +4,7 @@
 <div align="center"><a href="https://demo.booben.io">Demo</a></div>
 <br />
 <hr />
+
 [![Build Status](https://travis-ci.org/bcrumbs/booben.svg?branch=master)](https://travis-ci.org/bcrumbs/booben)
 
 ### Features
