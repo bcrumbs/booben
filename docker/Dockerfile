@@ -11,8 +11,13 @@ RUN apt update \
     && npm dedupe \
     && npm rm -g yarn npm \
     && echo "{\"projectsDir\":\"${PWD}/booben-projects\"}" > dev-config.json \
-    && rm -rf /tmp/* \
-    && rm -rf /root/..?* /root/.[!.]* /root/*
+    && apt purge -y git
+    && rm -rf /root/..?* \
+              /root/.[!.]* \
+              /root/* \
+              /tmp/* \
+              /var/lib/apt/lists/*
+
 
 VOLUME /var/lib/booben
 
