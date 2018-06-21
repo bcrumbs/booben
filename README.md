@@ -6,11 +6,11 @@
 <hr />
 
 ### Features
-+ Design your app without a line of code by drag-and-dropping components on the canvas
-+ Get a markup which is completely identical to what you see in the components tree without any unnecessary inline styles and wrappers
++ Design your app without a line of code by dragging-and-dropping components on the canvas
++ Get a markup which is completely identical to what you see in the components tree without any unnecessary inline styles and / or wrappers
 + Bind data with **GraphQL**
-+ Setup actions and write pure functions through the Booben's interface
-+ Use **any components library** to build your own App. All what you need is to cover this library with [metadata](https://github.com/bcrumbs/reactackle-meta). As a default we use [Reactackle components library](https://github.com/bcrumbs/reactackle) and plain [HTML-tags](https://github.com/bcrumbs/booben-html-meta). You may look at the [Reactackle's meta](https://github.com/bcrumbs/reactackle-meta) for the example.
++ Setup actions and write pure functions through the Booben interface
++ Use **any components library** to build your own App. All you need is to cover this library with [metadata](https://github.com/bcrumbs/reactackle-meta). As a default we use [Reactackle components library](https://github.com/bcrumbs/reactackle) and plain [HTML-tags](https://github.com/bcrumbs/booben-html-meta). You may look at the [Reactackle's meta](https://github.com/bcrumbs/reactackle-meta) for an example.
 + Style components by **modifying its props** and/or by adding **custom css** (scss syntax is supported)
 + Download generated code in a single click
 
@@ -20,9 +20,8 @@
 + [Redux](https://redux.js.org) (redux + react-redux) - state management
 + [Reselect](https://github.com/reactjs/reselect) - redux selectors
 + [immutable.js](https://facebook.github.io/immutable-js/) - we store all redux objects in immutable structures (Map, List, Set, Record, ...).
-Exceptions are that data structures which can be changed at all or may be changed only completely (ex. metadata).
-+ [Apollo](https://www.apollographql.com) (apollo-client + react-apollo) - GraphQL client, used only to communicate with project's GraphQL endpoint.
-Booben itself communicates with its backend by REST API.
+Exceptions are those data structures which can't be changed at all or may be changed only completely (ex. metadata).
++ [Apollo](https://www.apollographql.com) (apollo-client + react-apollo) - GraphQL client, used only to communicate with project's GraphQL endpoint. Booben itself communicates with its backend by REST API.
 + [Styled Components](https://www.styled-components.com) - CSS-in-JS used for styling components
 + [Lodash](https://lodash.com)
 + [Reactackle](https://gitlab.ordbuy.com/reactackle/reactackle) - react ui-components library
