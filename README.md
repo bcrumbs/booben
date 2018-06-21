@@ -5,6 +5,8 @@
 <br />
 <hr />
 
+[![Build Status](https://travis-ci.org/bcrumbs/booben.svg?branch=master)](https://travis-ci.org/bcrumbs/booben)
+
 ### Features
 + Design your app without a line of code by dragging-and-dropping components on the canvas
 + Get a markup which is completely identical to what you see in the components tree without any unnecessary inline styles and / or wrappers
@@ -40,6 +42,7 @@ Documentation is not complete and translated yet. Contributions are welcomed.
 Clone Booben repo
 ```
 git clone https://github.com/bcrumbs/booben
+cd booben
 ```
 
 **Quick setup**
@@ -47,10 +50,24 @@ git clone https://github.com/bcrumbs/booben
 Run bash script from the booben's directory. It will clone blank project for Booben and create config file.
 ```
 bash bootstrap.sh
-node index.js --config dev-config.json
+node index.js --config projects-config.json
+```
+OR
+```
+make bootstrap
+```
+On Docker:
+```
+docker pull braincrumbs/booben
+docker run -d --name=booben -p 3000:3000 braincrumbs/booben
+```
+OR
+```
+docker-compose pull
+docker-compose up -d
 ```
 
-App will be running on `localhost:3000/app/<project_name>`
+App will be running on http://localhost:3000/app/blank
 
 ### Contributing
 All contributions are welcomed.

@@ -1,0 +1,13 @@
+version: "3"
+
+services:
+  booben:
+    image: braincrumbs/booben
+    container_name: booben
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    logging:
+      options:
+        max-file: '3'
+        max-size: 10m

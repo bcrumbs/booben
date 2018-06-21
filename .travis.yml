@@ -1,0 +1,30 @@
+env:
+  global:
+    - DOCKER_REPO=braincrumbs/booben
+
+sudo: required
+
+language: node_js
+node_js:
+  - "8"
+
+services:
+  - docker
+
+before_install:
+  - rm -f package-lock.json
+  - npm i -g npm
+
+install: true
+script: echo "npm test temporarily disabled"
+
+deploy:
+  provider: script
+  skip_cleanup: true
+  script: bash docker/travis-deploy.sh
+  on:
+    branch: master
+
+cache:
+  directories:
+    - node_modules/
