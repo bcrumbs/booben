@@ -6,6 +6,7 @@
 <hr />
 
 [![Build Status](https://travis-ci.org/bcrumbs/booben.svg?branch=master)](https://travis-ci.org/bcrumbs/booben)
+[![Braincrumbs Slack](https://slackin.braincrumbs.io/badge.svg)](https://slackin.braincrumbs.io)
 
 ### Features
 + Design your app without a line of code by dragging-and-dropping components on the canvas
