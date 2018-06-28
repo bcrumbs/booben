@@ -27,7 +27,7 @@
     "bezier-easing": "^2.0.3",
     "body-parser": "^1.15.2",
     "booben-async-utils": "^0.2.2",
-    "booben-codegen": "0.1.4",
+    "booben-codegen": "0.1.5",
     "booben-common-tree": "^0.1.2",
     "booben-graphql-schema": "^0.1.1",
     "booben-html-meta": "^0.1.4",
