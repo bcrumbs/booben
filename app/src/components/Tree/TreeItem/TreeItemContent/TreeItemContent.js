@@ -95,8 +95,7 @@ export const TreeItemContent = ({
   if (warningMessage) {
     warning = (
       <WarningStyled
-        onMouseOut={props.hideTooltip}
-        onMouseEnter={props.showTooltip}
+        title={warningMessage}
       >
         <WarningWrapperStyled />
       </WarningStyled>
@@ -109,10 +108,6 @@ export const TreeItemContent = ({
         {buttonSlotRight}
       </ButtonSlotRightStyled>
     );
-  }
-
-  if (props.Tooltip) {
-    tooltip = <props.Tooltip text={warningMessage} />;
   }
 
   return (
