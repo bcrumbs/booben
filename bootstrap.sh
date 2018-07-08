@@ -11,6 +11,9 @@ case $i in
     -p=*|--project-name=*)
     PROJECT_NAME="${i#*=}"
     ;;
+    --deploy=*)
+    DEPLOY="${i#*=}"
+    ;;
     *)
     ;;
 esac
@@ -30,7 +33,11 @@ else
   echo "{\"projectsDir\":\"${PWD}/${PROJECTS_DIR}\"}" > projects-config.json
 fi
 npm i
-npm run build
+if [ -z "${DEPLOY}" ]; then
+  npm run build
+else
+  npm run build:demo
+fi
 while read PROJECT; do
   echo "BUILD PROJECT: ${PROJECT}"
   node rebuild-components-bundle.js --config projects-config.json -- ${PROJECT}
