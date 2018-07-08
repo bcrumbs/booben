@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack -d --config ./app/build-conf/webpack.config.js",
     "build:prod": "webpack -d --config ./app/build-conf/webpack-prod.config.js",
+    "build:demo": "webpack -d --config ./app/build-conf/webpack-demo.config.js",
     "build:watch": "webpack -d --config ./app/build-conf/webpack.config.js --watch",
     "lint": "eslint .",
     "start": "node index.js --config dev-config.json"

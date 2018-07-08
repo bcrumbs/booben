@@ -32,6 +32,8 @@ const doSave = async (dispatch, getState) => {
   const jsProject = projectToJSv1(project);
 
   try {
+    if (process.env.NODE_ENV === 'demo') 
+      throw new Error('Saving is deactivated in demo')
     await putProject(projectName, jsProject);
     dispatch({ type: PROJECT_SAVE_SUCCESS });
   } catch (error) {
