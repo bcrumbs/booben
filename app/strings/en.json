@@ -20,6 +20,7 @@
   "appHeader.saveIndicator.title.saving": "Saving...",
   "appHeader.saveIndicator.title.error": "Error",
   "appHeader.saveIndicator.title.saved": "Saved",
+  "appHeader.saveIndicator.title.disabled": "Saving is disabled",
   "appHeader.saveIndicator.tooltip.idle": "",
   "appHeader.saveIndicator.tooltip.saving": "",
   "appHeader.saveIndicator.tooltip.error": "",

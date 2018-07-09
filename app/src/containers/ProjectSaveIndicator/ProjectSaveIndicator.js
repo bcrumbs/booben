@@ -72,25 +72,31 @@ class _ProjectSaveIndicator extends PureComponent {
     let tooltip = '';
     let status = '';
 
-    if (saving) {
-      title = getLocalizedText('appHeader.saveIndicator.title.saving');
-      tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.saving');
-      status = 'progress';
-    } else if (lastSaveError) {
-      title = getLocalizedText('appHeader.saveIndicator.title.error');
+    if (process.env.NODE_ENV === 'demo') {
+      title = getLocalizedText('appHeader.saveIndicator.title.disabled');
       tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.error');
       status = 'error';
-    } else if (lastSavedRevision > 0) {
-      title = getLocalizedText('appHeader.saveIndicator.title.saved');
-      tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.saved', {
-        savedTime,
-      });
-
-      status = 'success';
     } else {
-      title = getLocalizedText('appHeader.saveIndicator.title.idle');
-      tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.idle');
-      status = 'default';
+      if (saving) {
+        title = getLocalizedText('appHeader.saveIndicator.title.saving');
+        tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.saving');
+        status = 'progress';
+      } else if (lastSaveError) {
+        title = getLocalizedText('appHeader.saveIndicator.title.error');
+        tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.error');
+        status = 'error';
+      } else if (lastSavedRevision > 0) {
+        title = getLocalizedText('appHeader.saveIndicator.title.saved');
+        tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.saved', {
+          savedTime,
+        });
+
+        status = 'success';
+      } else {
+        title = getLocalizedText('appHeader.saveIndicator.title.idle');
+        tooltip = getLocalizedText('appHeader.saveIndicator.tooltip.idle');
+        status = 'default';
+      }
     }
 
     return (

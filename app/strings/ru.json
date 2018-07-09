@@ -20,6 +20,7 @@
   "appHeader.saveIndicator.title.saving": "Сохранение...",
   "appHeader.saveIndicator.title.error": "Ошибка",
   "appHeader.saveIndicator.title.saved": "Сохранено",
+  "appHeader.saveIndicator.title.disabled": "Сохранение отключено",
   "appHeader.saveIndicator.tooltip.idle": "",
   "appHeader.saveIndicator.tooltip.saving": "",
   "appHeader.saveIndicator.tooltip.error": "",
