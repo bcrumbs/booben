@@ -7,6 +7,7 @@ docker tag booben:latest $DOCKER_REPO:demo
 docker push $DOCKER_REPO:demo
 docker rmi booben:latest
 
+rm -rf booben-projects/demo
 make project-build PROJECT_NAME="blank"
 make docker-build
 docker tag booben:latest $DOCKER_REPO:latest
