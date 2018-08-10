@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-make project-build DEPLOY="demo"
+make project-build DEPLOY="demo" PROJECT_NAME="demo"
 make docker-build
 echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
 docker tag booben:latest $DOCKER_REPO:demo
