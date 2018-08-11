@@ -38,6 +38,10 @@ Documentation is not complete and translated yet. Contributions are welcomed.
 
 [Docs in Russian](./docs/index.md)
 
+### Prerequisites
+
+You'll need [node](https://nodejs.org) version 8.6.0 or higher to run dev environment.
+
 ### Setup
 
 Clone Booben repo
