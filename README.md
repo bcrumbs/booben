@@ -27,7 +27,7 @@ Exceptions are those data structures which can't be changed at all or may be cha
 + [Apollo](https://www.apollographql.com) (apollo-client + react-apollo) - GraphQL client, used only to communicate with project's GraphQL endpoint. Booben itself communicates with its backend by REST API.
 + [Styled Components](https://www.styled-components.com) - CSS-in-JS used for styling components
 + [Lodash](https://lodash.com)
-+ [Reactackle](https://gitlab.ordbuy.com/reactackle/reactackle) - react ui-components library
++ [Reactackle](https://github.com/bcrumbs/reactackle) - react ui-components library
 + [Webpack](https://webpack.github.io)
 + [Babel](https://babeljs.io)
 + [Eslint](https://eslint.org) - we are now using custom presets but are going to migrate to
