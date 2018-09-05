@@ -272,10 +272,12 @@ const installLoaders = (projectDir, libsData, options) => co(function* () {
   const loadersPeerDepsSet = new Set();
 
   loaderModules.forEach(loaderModule => {
+    const loaderModuleName = npa(loaderModule).name;
+    
     const packageJSONFile = path.join(
       projectDir,
       'node_modules',
-      loaderModule,
+      loaderModuleName,
       'package.json'
     );
 
