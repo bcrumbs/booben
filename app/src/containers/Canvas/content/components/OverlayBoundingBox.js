@@ -24,7 +24,7 @@ const defaultProps = {
   additionalOverlayLevel: 0,
 };
 
-const BORDER_WIDTH = 1;
+const BORDER_WIDTH = 2;
 
 export const OverlayBoundingBox = (props, context) => {
   const {

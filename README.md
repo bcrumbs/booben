@@ -34,7 +34,7 @@ Exceptions are those data structures which can't be changed at all or may be cha
 [Prettier](https://prettier.io).
 
 ### Docs
-Documentation is not complete and translated yet. Contributions are welcomed.
+Documentation is not complete and translated yet. Contributions are welcome.
 
 [Docs in Russian](./docs/index.md)
 

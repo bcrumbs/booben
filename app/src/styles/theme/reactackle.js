@@ -99,6 +99,19 @@ export default {
       },
     },
 
+    alertsArea: {
+      item: {
+        borderRadius: 2,
+        
+        colorScheme: {
+          default: {
+            textColor: '#fff',
+            backgroundColor: 'rgba(0,0,0,0.8)',
+          },
+        },
+      },
+    },
+
     button: {
       size: {
         small: {

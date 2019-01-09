@@ -76,7 +76,7 @@
     "react": "^16.2.0",
     "react-apollo": "^2.0.4",
     "react-codemirror": "git://github.com/skidding/react-codemirror.git#106-fix-update",
-    "react-dom": "^16.2.0",
+    "react-dom": "^16.7.0",
     "react-immutable-proptypes": "^2.1.0",
     "react-portal-minimal": "^4.0.2",
     "react-redux": "^5.0.5",

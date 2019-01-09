@@ -14,5 +14,16 @@ export const injectAppStyle = () => {
     * {
       box-sizing: border-box;
     }
+
+    .rctckl__app-container {
+      overflow-x: auto;
+      height: 100vh;
+      
+      > * {
+        min-width: 1265px;
+        height: 100%;
+        min-height: 100%;
+      }
+    }
   `;
 };
